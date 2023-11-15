@@ -1,0 +1,4 @@
+* linguist-vendored
+*.ex linguist-vendored=true
+*.exs linguist-vendored=true
+*.html linguist-vendored=false
