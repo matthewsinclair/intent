@@ -169,7 +169,7 @@ stp help st
 
 #### Work in Progress (WIP) Template
 
-Location: `doc/prj/wip.md`
+Location: `stp/prj/wip.md`
 
 Purpose: Tracks current development focus and active steel threads.
 
@@ -182,7 +182,7 @@ Structure:
 
 #### Journal Template
 
-Location: `doc/prj/journal.md`
+Location: `stp/prj/journal.md`
 
 Purpose: Maintains a chronological record of project activities.
 
@@ -195,7 +195,7 @@ Structure:
 
 #### Steel Thread Templates
 
-Location: `doc/prj/st/`
+Location: `stp/prj/st/`
 
 Purpose: Defines and tracks individual units of work.
 
@@ -224,8 +224,8 @@ Structure:
 ## Directory Structure
 
 ```
-stp/
-├── doc/                # Documentation directory
+STP/
+├── stp/                # Main STP directory
 │   ├── _templ/         # Templates directory
 │   ├── bin/            # STP script documentation
 │   ├── prj/            # Project documentation

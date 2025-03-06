@@ -21,19 +21,19 @@ This project follows the Steel Thread Project (STP) methodology, which structure
 
 Documentation is organized into these key directories:
 
-- **doc/prj/**: Project documentation
-  - **doc/prj/wip.md**: Current work in progress
-  - **doc/prj/journal.md**: Historical record of project activities
-  - **doc/prj/st/**: Steel thread documents
-- **doc/eng/**: Engineering documentation
-  - **doc/eng/tpd/**: Technical Product Design documents
-- **doc/usr/**: User documentation
-  - **doc/usr/user_guide.md**: User guide
-  - **doc/usr/reference_guide.md**: Reference guide
-  - **doc/usr/deployment_guide.md**: Deployment guide
-- **doc/llm/**: LLM-specific content
-  - **doc/llm/llm_preamble.md**: This document
-  - **doc/llm/*.prompt.md**: Canned prompts for reuse
+- **stp/prj/**: Project documentation
+  - **stp/prj/wip.md**: Current work in progress
+  - **stp/prj/journal.md**: Historical record of project activities
+  - **stp/prj/st/**: Steel thread documents
+- **stp/eng/**: Engineering documentation
+  - **stp/eng/tpd/**: Technical Product Design documents
+- **stp/usr/**: User documentation
+  - **stp/usr/user_guide.md**: User guide
+  - **stp/usr/reference_guide.md**: Reference guide
+  - **stp/usr/deployment_guide.md**: Deployment guide
+- **stp/llm/**: LLM-specific content
+  - **stp/llm/llm_preamble.md**: This document
+  - **stp/llm/*.prompt.md**: Canned prompts for reuse
 
 ## Code Style and Conventions
 
@@ -70,8 +70,8 @@ The project includes several STP commands:
 
 When beginning a new session:
 
-1. Review the current WIP document (doc/prj/wip.md)
-2. Check active steel threads in the index (doc/prj/st/steel_threads.md)
+1. Review the current WIP document (stp/prj/wip.md)
+2. Check active steel threads in the index (stp/prj/st/steel_threads.md)
 3. Focus on the specific steel thread indicated in the WIP
 
 [Additional project-specific instructions or guidelines]

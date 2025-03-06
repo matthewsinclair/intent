@@ -53,7 +53,7 @@ fi
 
 # Create directory structure
 echo "Creating STP directory structure..."
-mkdir -p "$TARGET_DIR"/doc/{prj/st,eng/tpd,usr,llm,_templ,bin}
+mkdir -p "$TARGET_DIR"/stp/{prj/st,eng/tpd,usr,llm,_templ,bin}
 
 # Get author information from git if available
 if command -v git &> /dev/null && git config user.name &> /dev/null; then
@@ -77,17 +77,17 @@ EOF
 
 # Copy templates
 echo "Copying templates..."
-if [ -d "$STP_HOME/doc/_templ" ]; then
-  cp -r "$STP_HOME/doc/_templ"/* "$TARGET_DIR/doc/_templ/"
+if [ -d "$STP_HOME/stp/_templ" ]; then
+  cp -r "$STP_HOME/stp/_templ"/* "$TARGET_DIR/stp/_templ/"
 else
-  cp -r "$STP_HOME/_templ"/* "$TARGET_DIR/doc/_templ/"
+  cp -r "$STP_HOME/_templ"/* "$TARGET_DIR/stp/_templ/"
 fi
 
 # Create initial prj/wip.md
 echo "Creating initial documents..."
 TEMPL_DIR=""
-if [ -d "$STP_HOME/doc/_templ" ]; then
-  TEMPL_DIR="$STP_HOME/doc/_templ"
+if [ -d "$STP_HOME/stp/_templ" ]; then
+  TEMPL_DIR="$STP_HOME/stp/_templ"
 else
   TEMPL_DIR="$STP_HOME/_templ"
 fi
@@ -95,64 +95,64 @@ fi
 sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
     -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
     -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/prj/_wip.md" > "$TARGET_DIR/doc/prj/wip.md"
+    "$TEMPL_DIR/prj/_wip.md" > "$TARGET_DIR/stp/prj/wip.md"
 
 # Create initial prj/journal.md
 sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
     -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
     -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/prj/_journal.md" > "$TARGET_DIR/doc/prj/journal.md"
+    "$TEMPL_DIR/prj/_journal.md" > "$TARGET_DIR/stp/prj/journal.md"
 
 # Create initial prj/st/steel_threads.md
 sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
     -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
     -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/prj/st/_steel_threads.md" > "$TARGET_DIR/doc/prj/st/steel_threads.md"
+    "$TEMPL_DIR/prj/st/_steel_threads.md" > "$TARGET_DIR/stp/prj/st/steel_threads.md"
 
 # Create initial eng/tpd/technical_product_design.md
-mkdir -p "$TARGET_DIR/doc/eng/tpd"
+mkdir -p "$TARGET_DIR/stp/eng/tpd"
 sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
     -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
     -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/eng/tpd/_technical_product_design.md" > "$TARGET_DIR/doc/eng/tpd/technical_product_design.md"
+    "$TEMPL_DIR/eng/tpd/_technical_product_design.md" > "$TARGET_DIR/stp/eng/tpd/technical_product_design.md"
 
 # Create initial llm/llm_preamble.md
 sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
     -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
     -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/llm/_llm_preamble.md" > "$TARGET_DIR/doc/llm/llm_preamble.md"
+    "$TEMPL_DIR/llm/_llm_preamble.md" > "$TARGET_DIR/stp/llm/llm_preamble.md"
 
 # Create initial usr/ documents
 sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
     -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
     -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/usr/_user_guide.md" > "$TARGET_DIR/doc/usr/user_guide.md"
+    "$TEMPL_DIR/usr/_user_guide.md" > "$TARGET_DIR/stp/usr/user_guide.md"
 
 sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
     -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
     -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/usr/_reference_guide.md" > "$TARGET_DIR/doc/usr/reference_guide.md"
+    "$TEMPL_DIR/usr/_reference_guide.md" > "$TARGET_DIR/stp/usr/reference_guide.md"
 
 sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
     -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
     -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/usr/_deployment_guide.md" > "$TARGET_DIR/doc/usr/deployment_guide.md"
+    "$TEMPL_DIR/usr/_deployment_guide.md" > "$TARGET_DIR/stp/usr/deployment_guide.md"
 
 # Copy scripts
 echo "Copying scripts..."
-if [ -d "$STP_HOME/doc/bin" ]; then
+if [ -d "$STP_HOME/stp/bin" ]; then
   mkdir -p "$TARGET_DIR/bin"
-  cp "$STP_HOME/doc/bin"/stp* "$TARGET_DIR/bin/"
-  cp "$STP_HOME/doc/bin"/stp* "$TARGET_DIR/doc/bin/"
+  cp "$STP_HOME/stp/bin"/stp* "$TARGET_DIR/bin/"
+  cp "$STP_HOME/stp/bin"/stp* "$TARGET_DIR/stp/bin/"
 else 
   mkdir -p "$TARGET_DIR/bin"
   cp "$STP_HOME/bin"/stp* "$TARGET_DIR/bin/"
-  cp "$STP_HOME/bin"/stp* "$TARGET_DIR/doc/bin/"
+  cp "$STP_HOME/bin"/stp* "$TARGET_DIR/stp/bin/"
 fi
 
 # Make scripts executable
 chmod +x "$TARGET_DIR"/bin/stp*
-chmod +x "$TARGET_DIR"/doc/bin/stp*
+chmod +x "$TARGET_DIR"/stp/bin/stp*
 
 # Create local configuration for STP
 echo "Creating local configuration..."
@@ -168,8 +168,8 @@ EOF
 echo "STP initialized for project: $PROJECT_NAME in $TARGET_DIR"
 echo ""
 echo "To get started:"
-echo "  1. Review the initial documentation in doc/prj/, doc/eng/, doc/usr/, and doc/llm/"
+echo "  1. Review the initial documentation in stp/prj/, stp/eng/, stp/usr/, and stp/llm/"
 echo "  2. Create your first steel thread: stp st new \"Initial Setup\""
-echo "  3. Update doc/prj/wip.md with your current focus"
+echo "  3. Update stp/prj/wip.md with your current focus"
 echo ""
 echo "For help, run: stp help"

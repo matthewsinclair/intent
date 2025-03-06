@@ -90,7 +90,7 @@ After initialization, you'll have this structure:
 
 ```
 my-project/
-└── doc/                    # Project documentation
+└── stp/                    # Project documentation
     ├── prj/                # Project documentation
     │   ├── st/             # Steel threads
     │   ├── wip.md          # Work in progress
@@ -111,7 +111,7 @@ To create a new steel thread:
 stp st new "Implement Feature X"
 ```
 
-This creates a new steel thread document (e.g., `prj/st/ST0001.md`) and adds it to the index.
+This creates a new steel thread document (e.g., `stp/prj/st/ST0001.md`) and adds it to the index.
 
 ### Viewing Steel Threads
 

@@ -18,8 +18,8 @@ if [ -z "$STP_HOME" ]; then
   if [ -d "$SCRIPT_DIR/../_templ" ]; then
     # We're likely in the bin directory of an STP installation
     export STP_HOME="$(cd "$SCRIPT_DIR/.." && pwd)"
-  elif [ -d "$SCRIPT_DIR/../../doc/_templ" ]; then
-    # We're in the bin directory under doc
+  elif [ -d "$SCRIPT_DIR/../../stp/_templ" ]; then
+    # We're in the bin directory under stp
     export STP_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
   else
     # Try to find STP in common locations
@@ -38,13 +38,13 @@ if [ -z "$STP_HOME" ]; then
 fi
 
 # Check if bin directory exists
-if [ ! -d "$STP_HOME/doc/bin" ] && [ ! -d "$STP_HOME/bin" ]; then
-  error "Invalid STP_HOME: bin directory not found at $STP_HOME/doc/bin or $STP_HOME/bin"
+if [ ! -d "$STP_HOME/stp/bin" ] && [ ! -d "$STP_HOME/bin" ]; then
+  error "Invalid STP_HOME: bin directory not found at $STP_HOME/stp/bin or $STP_HOME/bin"
 fi
 
 # Determine bin directory location
-if [ -d "$STP_HOME/doc/bin" ]; then
-  BIN_DIR="$STP_HOME/doc/bin"
+if [ -d "$STP_HOME/stp/bin" ]; then
+  BIN_DIR="$STP_HOME/stp/bin"
 else
   BIN_DIR="$STP_HOME/bin"
 fi

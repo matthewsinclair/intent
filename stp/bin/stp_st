@@ -51,7 +51,7 @@ shift
 # Function to get the next steel thread ID
 get_next_steel_thread_id() {
   local st_prefix="${ST_PREFIX:-ST}"
-  local st_dir="doc/prj/st"
+  local st_dir="stp/prj/st"
   local next_id=1
   
   # Find the highest existing ID
@@ -84,7 +84,7 @@ update_steel_threads_index() {
   local status="$3"
   local created="$4"
   local completed="$5"
-  local index_file="doc/prj/st/steel_threads.md"
+  local index_file="stp/prj/st/steel_threads.md"
   
   # Create index file if it doesn't exist
   if [ ! -f "$index_file" ]; then
@@ -123,21 +123,21 @@ case "$ST_COMMAND" in
     
     TITLE="$1"
     ST_ID=$(get_next_steel_thread_id)
-    ST_FILE="doc/prj/st/$ST_ID.md"
+    ST_FILE="stp/prj/st/$ST_ID.md"
     DATE=$(date '+%Y-%m-%d')
     AUTHOR="${STP_AUTHOR:-${AUTHOR:-$(git config user.name 2>/dev/null || echo "$USER")}}"
     
     # Create directory if it doesn't exist
-    mkdir -p "doc/prj/st"
+    mkdir -p "stp/prj/st"
     
     # Create steel thread file from template
-    if [ -f "doc/_templ/prj/st/_ST####.md" ]; then
+    if [ -f "stp/_templ/prj/st/_ST####.md" ]; then
       sed -e "s/ST####/$ST_ID/g" \
           -e "s/\[Title\]/$TITLE/g" \
           -e "s/\[Not Started|In Progress|Completed|On Hold|Cancelled\]/Not Started/g" \
           -e "s/YYYY-MM-DD/$DATE/g" \
           -e "s/\[Author Name\]/$AUTHOR/g" \
-          "doc/_templ/prj/st/_ST####.md" > "$ST_FILE"
+          "stp/_templ/prj/st/_ST####.md" > "$ST_FILE"
     else
       # Create file without template
       cat > "$ST_FILE" << EOF
@@ -198,7 +198,7 @@ EOF
       ST_ID="ST$ST_ID"
     fi
     
-    ST_FILE="doc/prj/st/$ST_ID.md"
+    ST_FILE="stp/prj/st/$ST_ID.md"
     DATE=$(date '+%Y-%m-%d')
     
     # Check if steel thread exists
@@ -236,7 +236,7 @@ EOF
       esac
     done
     
-    INDEX_FILE="doc/prj/st/steel_threads.md"
+    INDEX_FILE="stp/prj/st/steel_threads.md"
     
     # Check if index file exists
     if [ ! -f "$INDEX_FILE" ]; then
@@ -289,7 +289,7 @@ EOF
       ST_ID="ST$ST_ID"
     fi
     
-    ST_FILE="doc/prj/st/$ST_ID.md"
+    ST_FILE="stp/prj/st/$ST_ID.md"
     
     # Check if steel thread exists
     if [ ! -f "$ST_FILE" ]; then
@@ -318,7 +318,7 @@ EOF
       ST_ID="ST$ST_ID"
     fi
     
-    ST_FILE="doc/prj/st/$ST_ID.md"
+    ST_FILE="stp/prj/st/$ST_ID.md"
     
     # Check if steel thread exists
     if [ ! -f "$ST_FILE" ]; then
