@@ -1,3 +1,3 @@
-# prj-shellm
-SheLLM - A command line shell for LLMs
+# prj-stp
+STP - A steel thread process for helping LLMs help you work with your code
 
