@@ -296,7 +296,7 @@ STP/
 
 ### Project Configuration
 
-Location: `.stp-config`
+Location: `stp/.config/config`
 
 Format: INI-style configuration file
 

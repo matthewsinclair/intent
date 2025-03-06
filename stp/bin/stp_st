@@ -40,7 +40,10 @@ if [ $# -lt 1 ]; then
 fi
 
 # Load project configuration if available
-if [ -f .stp-config ]; then
+if [ -f stp/.config/config ]; then
+  source stp/.config/config
+elif [ -f .stp-config ]; then
+  # For backward compatibility
   source .stp-config
 fi
 

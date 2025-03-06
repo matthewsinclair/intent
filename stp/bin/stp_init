@@ -137,7 +137,8 @@ DATE="$(date '+%Y-%m-%d')"
 
 # Create configuration file
 echo "Creating configuration file..."
-cat > "$TARGET_DIR/.stp-config" << EOF
+mkdir -p "$TARGET_DIR/stp/.config"
+cat > "$TARGET_DIR/stp/.config/config" << EOF
 # STP Project Configuration
 PROJECT_NAME="$PROJECT_NAME"
 AUTHOR="$AUTHOR"
@@ -218,30 +219,22 @@ if [[ "$DIRS_TO_COPY" == *"usr"* ]]; then
       "$TEMPL_DIR/usr/_deployment_guide.md" > "$TARGET_DIR/stp/usr/deployment_guide.md"
 fi
 
-# Copy scripts only if in whitelist
+# Copy scripts only if explicitly in whitelist
 if [[ "$DIRS_TO_COPY" == *"bin"* ]]; then
   echo "Copying scripts..."
   if [ -d "$STP_HOME/stp/bin" ]; then
-    mkdir -p "$TARGET_DIR/bin"
-    cp "$STP_HOME/stp/bin"/stp* "$TARGET_DIR/bin/"
     cp "$STP_HOME/stp/bin"/stp* "$TARGET_DIR/stp/bin/"
   else 
-    mkdir -p "$TARGET_DIR/bin"
-    cp "$STP_HOME/bin"/stp* "$TARGET_DIR/bin/"
     cp "$STP_HOME/bin"/stp* "$TARGET_DIR/stp/bin/"
   fi
 
   # Make scripts executable
-  chmod +x "$TARGET_DIR"/bin/stp*
   chmod +x "$TARGET_DIR"/stp/bin/stp*
-else
-  # Always create the bin directory in the root for the stp_config.sh
-  mkdir -p "$TARGET_DIR/bin"
 fi
 
 # Create local configuration for STP
 echo "Creating local configuration..."
-cat > "$TARGET_DIR/bin/stp_config.sh" << EOF
+cat > "$TARGET_DIR/stp/.config/stp_config.sh" << EOF
 #!/bin/bash
 # Local STP configuration for $PROJECT_NAME
 

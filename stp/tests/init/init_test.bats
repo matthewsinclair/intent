@@ -126,11 +126,11 @@ create_template_files() {
   
   # Check if project was created in current directory with default directories
   assert_directory_exists "stp"
+  assert_directory_exists "stp/.config"
   assert_directory_exists "stp/prj"
   assert_directory_exists "stp/eng"
   assert_directory_exists "stp/usr"
   assert_directory_exists "stp/llm"
-  assert_directory_exists "bin"  # bin dir is still created for local config
   
   # Return to the original test directory
   cd "${TEST_TEMP_DIR}"
@@ -156,9 +156,9 @@ create_template_files() {
   
   # Check if project was created in the specified directory with default directories
   assert_directory_exists "target-dir/stp"
+  assert_directory_exists "target-dir/stp/.config"
   assert_directory_exists "target-dir/stp/prj"
   assert_directory_exists "target-dir/stp/eng"
-  assert_directory_exists "target-dir/bin"  # bin dir is still created for local config
   
   # Return to the original test directory
   cd "${TEST_TEMP_DIR}"
@@ -180,8 +180,8 @@ create_template_files() {
   [ "$status" -eq 0 ]
   
   # Check if configuration file was created
-  assert_file_exists ".stp-config"
-  assert_file_contains ".stp-config" "PROJECT_NAME=\"Test Project\""
+  assert_file_exists "stp/.config/config"
+  assert_file_contains "stp/.config/config" "PROJECT_NAME=\"Test Project\""
   
   # Return to the original test directory
   cd "${TEST_TEMP_DIR}"
@@ -263,15 +263,15 @@ EOF
   [ "$status" -eq 0 ]
   
   # Check if scripts were copied and are executable
-  assert_file_exists "bin/stp"
-  assert_file_exists "bin/stp_init"
-  assert_file_exists "bin/stp_st"
-  assert_file_exists "bin/stp_help"
+  assert_file_exists "stp/bin/stp"
+  assert_file_exists "stp/bin/stp_init"
+  assert_file_exists "stp/bin/stp_st"
+  assert_file_exists "stp/bin/stp_help"
   
-  [ -x "bin/stp" ]
-  [ -x "bin/stp_init" ]
-  [ -x "bin/stp_st" ]
-  [ -x "bin/stp_help" ]
+  [ -x "stp/bin/stp" ]
+  [ -x "stp/bin/stp_init" ]
+  [ -x "stp/bin/stp_st" ]
+  [ -x "stp/bin/stp_help" ]
   
   # Return to the original test directory
   cd "${TEST_TEMP_DIR}"
@@ -322,8 +322,8 @@ EOF
   [ "$status" -eq 0 ]
   
   # Check if local configuration was created
-  assert_file_exists "bin/stp_config.sh"
-  assert_file_contains "bin/stp_config.sh" "export STP_PROJECT=\"Test Project\""
+  assert_file_exists "stp/.config/stp_config.sh"
+  assert_file_contains "stp/.config/stp_config.sh" "export STP_PROJECT=\"Test Project\""
   
   # Return to the original test directory
   cd "${TEST_TEMP_DIR}"
