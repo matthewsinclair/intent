@@ -7,17 +7,17 @@ This document serves as an index of all steel threads in the Steel Thread Projec
 
 ## Index
 
-| ID                       | Title                  | Status      | Created    | Completed |
-|--------------------------|------------------------|-------------|------------|-----------|
-| [ST0009](./ST0009.md) | Process Refinement     | Not Started |            |           |
-| [ST0008](./ST0008.md) | LLM Integration        | Not Started |            |           |
-| [ST0007](./ST0007.md) | User Documentation     | Not Started |            |           |
-| [ST0006](./ST0006.md) | Help System            | Not Started |            |           |
-| [ST0005](./ST0005.md) | Initialization Command | Not Started |            |           |
-| [ST0004](./ST0004.md) | Steel Thread Commands  | Not Started |            |           |
-| [ST0003](./ST0003.md) | Template System        | Not Started |            |           |
-| [ST0002](./ST0002.md) | Core Script Framework  | In Progress | 2025-03-06 |           |
-| [ST0001](./ST0001.md) | Directory Structure    | In Progress | 2025-03-06 |           |
+| ID                    | Title                  | Status      | Created    | Completed  |
+|-----------------------|------------------------|-------------|------------|------------|
+| [ST0009](./ST0009.md) | Process Refinement     | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0008](./ST0008.md) | LLM Integration        | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0007](./ST0007.md) | User Documentation     | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0006](./ST0006.md) | Help System            | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0005](./ST0005.md) | Initialization Command | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0004](./ST0004.md) | Steel Thread Commands  | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0003](./ST0003.md) | Template System        | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0002](./ST0002.md) | Core Script Framework  | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0001](./ST0001.md) | Directory Structure    | Completed   | 2025-03-06 | 2025-06-03 |
 
 ## Steel Thread Status Definitions
 
