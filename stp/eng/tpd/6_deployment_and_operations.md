@@ -3,6 +3,8 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
 # 6. Deployment and Operations
 
+[index](<./technical_product_design.md>)
+
 ## 6.1 Installation
 
 STP is designed for easy installation and use. There are two primary installation methods:

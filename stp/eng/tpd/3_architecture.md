@@ -3,6 +3,8 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
 # 3. Architecture
 
+[index](<./technical_product_design.md>)
+
 ## 3.1 System Architecture Overview
 
 The Steel Thread Project (STP) follows a modular architecture with three primary components:

@@ -1,9 +1,9 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
-# Implementation Strategy
-
 # 5. Implementation Strategy
+
+[index](<./technical_product_design.md>)
 
 ## 5.1 Development Approach
 

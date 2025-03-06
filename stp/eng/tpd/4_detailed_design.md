@@ -3,6 +3,8 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
 # 4. Detailed Design
 
+[index](<./technical_product_design.md>)
+
 ## 4.1 Directory Structure
 
 The STP system organizes documentation into a structured directory hierarchy:

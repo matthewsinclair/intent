@@ -3,6 +3,8 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
 # 7. Technical Challenges and Mitigations
 
+[index](<./technical_product_design.md>)
+
 ## 7.1 LLM Context Window Management
 
 ### 7.1.1 Challenge
