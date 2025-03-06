@@ -16,12 +16,6 @@ jobs:
       with:
         fetch-depth: 0  # Fetch all history for proper testing
     
-    - name: Set up test environment
-      run: |
-        cd stp/tests
-        chmod +x setup_test_env.sh
-        ./setup_test_env.sh $HOME
-      
     - name: Install bats-core
       run: |
         # Install bats from package manager
@@ -31,12 +25,21 @@ jobs:
         echo "PATH=$PATH:/usr/bin" >> $GITHUB_ENV
         which bats
     
+    - name: Make scripts executable
+      run: |
+        chmod +x stp/bin/*
+        chmod +x stp/tests/*.sh
+    
+    - name: Install bats libraries manually
+      run: |
+        mkdir -p stp/tests/lib
+        git clone https://github.com/bats-core/bats-support.git stp/tests/lib/bats-support
+        git clone https://github.com/bats-core/bats-assert.git stp/tests/lib/bats-assert
+        git clone https://github.com/bats-core/bats-file.git stp/tests/lib/bats-file
+    
     - name: Run tests
       run: |
         cd stp/tests
-        chmod +x run_tests.sh
-        # Make all scripts executable
-        chmod +x ../bin/*
         ./run_tests.sh
 
   test-macos:
