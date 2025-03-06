@@ -1,0 +1,71 @@
+name: STP Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-linux:
+    name: Test on Ubuntu
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Fetch all history for proper testing
+    
+    - name: Set up test environment
+      run: |
+        cd stp/tests
+        chmod +x setup_test_env.sh
+        ./setup_test_env.sh $HOME
+      
+    - name: Install bats-core
+      run: |
+        # Install bats from package manager
+        sudo apt-get update
+        sudo apt-get install -y bats
+        # Make sure bats is in PATH
+        echo "PATH=$PATH:/usr/bin" >> $GITHUB_ENV
+        which bats
+    
+    - name: Run tests
+      run: |
+        cd stp/tests
+        chmod +x run_tests.sh
+        # Make all scripts executable
+        chmod +x ../bin/*
+        ./run_tests.sh
+
+  test-macos:
+    name: Test on macOS
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Fetch all history for proper testing
+    
+    - name: Install bats-core
+      run: |
+        # Install bats with Homebrew
+        brew install bats-core
+        # Make sure bats is in PATH
+        echo "PATH=$PATH:/usr/local/bin" >> $GITHUB_ENV
+        which bats
+    
+    - name: Set up test environment
+      run: |
+        cd stp/tests
+        chmod +x setup_test_env.sh
+        ./setup_test_env.sh
+    
+    - name: Run tests
+      run: |
+        cd stp/tests
+        chmod +x run_tests.sh
+        # Make all scripts executable
+        chmod +x ../bin/*
+        ./run_tests.sh

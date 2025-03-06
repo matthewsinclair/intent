@@ -1,5 +1,7 @@
 # prj-stp
 
+[![STP Tests](https://github.com/username/STP/actions/workflows/tests.yml/badge.svg)](https://github.com/username/STP/actions/workflows/tests.yml)
+
 STP - A steel thread process for helping LLMs help you work with your code
 
 Look in the [Technical Product Design](<./stp/eng/tpd/technical_product_design.md>) for info on the overall design of STP.

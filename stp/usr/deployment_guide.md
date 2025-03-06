@@ -255,6 +255,7 @@ cd stp/tests/
 ```
 
 This script will:
+
 1. Check for existing Bats installation
 2. Install Bats if needed
 3. Install required Bats libraries
@@ -299,6 +300,7 @@ cd stp/tests/
 #### Test Failures
 
 For test failures:
+
 1. Check the test output for specific errors
 2. Verify the STP installation is correct
 3. Ensure all paths are correctly configured
