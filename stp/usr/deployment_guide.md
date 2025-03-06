@@ -119,21 +119,83 @@ STP works seamlessly with git and other version control systems:
 
 ### CI/CD Integration
 
-[Instructions for integrating with CI/CD pipelines]
+To integrate STP with CI/CD pipelines:
+
+1. Include the STP test suite in your CI pipeline:
+
+```yaml
+# Example GitHub Actions workflow
+name: STP Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up test environment
+        run: ./stp/tests/setup_test_env.sh
+      - name: Run tests
+        run: cd stp/tests && ./run_tests.sh
+```
+
+2. Configure notifications for test failures
+3. Add documentation generation steps if needed
 
 ### IDE Integration
 
-[Instructions for integrating with common IDEs]
+#### VS Code Integration
+
+1. Install the "Bash Debug" extension for debugging STP scripts
+2. Configure `.vscode/tasks.json` for common STP tasks:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run STP Tests",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/stp/tests && ./run_tests.sh",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    }
+  ]
+}
+```
+
+#### JetBrains IDE Integration
+
+1. Configure run configurations for STP commands
+2. Set up file watchers for markdown linting
+3. Add shell script run configurations for tests
 
 ### LLM Platform Integration
 
 #### Claude Code Integration
 
-[Instructions for integrating with Claude Code]
+To integrate STP with Claude Code:
+
+1. Share the `stp/llm/llm_preamble.md` at the beginning of each session
+2. Keep relevant steel thread documents in the context window
+3. Use structured templates for consistent information sharing
+
+Example Claude Code command:
+
+```bash
+claude code --context stp/llm/llm_preamble.md --context stp/prj/st/ST0001.md
+```
 
 #### Other LLM Integration
 
-[Instructions for integrating with other LLM platforms]
+For other LLM platforms:
+
+1. Create platform-specific scripts to extract and format STP context
+2. Maintain a consistent formatting pattern when sharing information
+3. Consider implementing automatic context extraction helpers
 
 ## Maintenance
 
@@ -170,31 +232,105 @@ git pull
 
 [Instructions for migrating between major versions]
 
+## Test Suite Deployment
+
+The STP test suite uses Bats (Bash Automated Testing System) and requires proper setup:
+
+### Test Dependencies
+
+The test suite requires the following dependencies:
+
+- Bats: Core testing framework
+- bats-support: Support library for better test output
+- bats-assert: Assertion library for test validation
+- bats-file: File-related assertions
+
+### Setting Up the Test Environment
+
+Run the setup script to install all dependencies:
+
+```bash
+cd stp/tests/
+./setup_test_env.sh
+```
+
+This script will:
+1. Check for existing Bats installation
+2. Install Bats if needed
+3. Install required Bats libraries
+4. Configure the test environment
+
+### Test Suite Configuration
+
+The test suite can be configured through environment variables:
+
+| Variable        | Purpose                             | Default                       |
+|-----------------|-------------------------------------|-------------------------------|
+| BATS_LIB_PATH   | Location of Bats libraries          | stp/tests/lib                 |
+| STP_TEST_TEMP   | Temporary directory for test files  | /tmp/stp-test-XXXXXX          |
+| STP_BIN_PATH    | Path to STP executables             | Determined from current path  |
+
+### Running Tests in Different Environments
+
+```bash
+# Set custom paths for testing
+export STP_BIN_PATH=/custom/path/to/stp/bin
+export BATS_LIB_PATH=/custom/path/to/bats/libs
+
+# Run tests with custom configuration
+cd stp/tests/
+./run_tests.sh
+```
+
 ## Troubleshooting
 
 ### Common Issues
 
-[List of common issues and their solutions]
+#### Missing Test Dependencies
+
+If test dependencies are missing:
+
+```bash
+# Re-run the setup script
+cd stp/tests/
+./setup_test_env.sh
+```
+
+#### Test Failures
+
+For test failures:
+1. Check the test output for specific errors
+2. Verify the STP installation is correct
+3. Ensure all paths are correctly configured
+4. Check for permission issues on script files
+
+#### Permission Errors
+
+If you encounter permission errors:
+
+```bash
+# Make scripts executable
+chmod +x stp/bin/*
+chmod +x stp/tests/*.sh
+chmod +x stp/tests/lib/*/src/*.bash
+```
 
 ### Diagnostic Tools
 
-[Description of diagnostic tools and commands]
+STP provides several diagnostic tools:
+
+- `stp help`: Verify command availability
+- `run_tests.sh`: Run tests to verify functionality
+- Test failure output: Contains detailed error information
+
+To debug test failures, examine the test output and check the corresponding script functionality.
 
 ### Getting Help
 
-[Information on where to get help]
+If you encounter issues:
 
----
-
-# Context for LLM
-
-This document template is for creating a deployment guide for the STP system. When implementing this guide:
-
-1. Replace placeholder sections with detailed deployment instructions
-2. Include system requirements and prerequisites
-3. Provide clear, step-by-step installation instructions
-4. Detail configuration options and environment variables
-5. Include integration strategies for various tools and platforms
-6. Add troubleshooting information for common deployment issues
-
-The final deployment guide should provide all necessary information for deploying and configuring the STP system in various environments.
+1. Check the troubleshooting section in this guide
+2. Review the test output for specific errors
+3. Consult the STP documentation
+4. Submit issues to the STP project repository
+5. Refer to the Bats documentation for test-specific problems

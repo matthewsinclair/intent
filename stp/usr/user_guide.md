@@ -139,26 +139,109 @@ This updates the status and completion date.
 
 ## Documentation Management
 
-[Instructions for working with and maintaining documentation]
+STP provides a structured approach to managing project documentation:
+
+### Updating Technical Product Design
+
+The technical product design document is the central reference for the project:
+
+```bash
+# Open the TPD document
+stp tpd
+```
+
+When making significant changes to the project, update the TPD to keep it in sync with the implementation.
+
+### Working with User Documentation
+
+User documentation is maintained in the `stp/usr/` directory:
+
+- `user_guide.md`: Task-oriented instructions for users
+- `reference_guide.md`: Comprehensive reference information
+- `deployment_guide.md`: Installation and deployment guidance
+
+Update these documents as features are added or changed.
 
 ## LLM Collaboration
 
-[Guidelines for effectively collaborating with LLMs]
+STP is designed for effective collaboration with Large Language Models like Claude:
+
+### Using the LLM Preamble
+
+The LLM preamble file contains context that should be shared with LLMs at the beginning of each session:
+
+```bash
+# View the LLM preamble
+cat stp/llm/llm_preamble.md
+```
+
+Include this preamble when starting new sessions with an LLM to provide essential context.
+
+### Contextualizing Work with Steel Threads
+
+When working with an LLM on a specific steel thread:
+
+```bash
+# Share the steel thread document with the LLM
+stp st show ST0001 | [send to LLM]
+```
+
+This provides the LLM with task-specific context for more effective collaboration.
+
+## Testing
+
+STP includes a comprehensive test suite to verify functionality:
+
+### Running Tests
+
+To run the test suite:
+
+```bash
+# Run all tests
+cd stp/tests/
+./run_tests.sh
+
+# Run specific test suite
+./run_tests.sh bootstrap
+```
+
+### Test Structure
+
+Tests are organized by component:
+- `bootstrap_test.bats`: Tests for bootstrap script
+- `init_test.bats`: Tests for init command
+- `st_test.bats`: Tests for steel thread commands
+- `help_test.bats`: Tests for help system
+- `main_test.bats`: Tests for main script
 
 ## Troubleshooting
 
-[Common issues and their solutions]
+### Common Issues
 
----
+#### STP Commands Not Found
 
-# Context for LLM
+If STP commands are not found:
 
-This document template is for creating a user guide explaining how to use the STP system. When implementing this guide:
+```bash
+# Check STP_HOME environment variable
+echo $STP_HOME
 
-1. Replace placeholder sections with specific, detailed instructions
-2. Include examples for common workflows
-3. Add screenshots or diagrams if helpful
-4. Ensure all commands and paths are accurate
-5. Include troubleshooting information for common issues
+# Ensure STP bin directory is in PATH
+echo $PATH | grep stp
 
-The final user guide should be comprehensive but accessible, aimed at helping users get started with the STP system and use it effectively.
+# Fix PATH if needed
+export PATH=$PATH:$STP_HOME/bin
+```
+
+#### Permission Issues
+
+If you encounter permission errors:
+
+```bash
+# Make scripts executable
+chmod +x $STP_HOME/bin/*
+```
+
+#### Template Generation Errors
+
+If template generation fails, check file permissions and ensure template files exist in the `_templ` directory.

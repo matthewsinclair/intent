@@ -161,7 +161,31 @@ stp help st
 
 ### Additional Commands
 
-[Document any additional commands here]
+#### Test Suite Commands
+
+The STP test suite provides commands for verifying system functionality:
+
+```bash
+# Run all tests
+cd stp/tests/
+./run_tests.sh
+
+# Run specific test suite
+./run_tests.sh bootstrap
+./run_tests.sh init
+./run_tests.sh st
+./run_tests.sh help
+./run_tests.sh main
+
+# Set up test environment
+./setup_test_env.sh
+```
+
+The test environment setup script installs necessary dependencies, including:
+- Bats (Bash Automated Testing System)
+- bats-support
+- bats-assert
+- bats-file
 
 ## Document Templates
 
@@ -211,15 +235,27 @@ Structure:
 
 ### Engineering Templates
 
-[Document engineering templates]
+Engineering templates are located in `stp/_templ/eng/`:
+
+- `tpd/`: Technical Product Design templates
+  - `_technical_product_design.md`: Main TPD template
+  - `_1_introduction.md` through `_8_appendices.md`: Section templates
+
+These templates provide structured formats for capturing technical design decisions and architectural information.
 
 ### User Documentation Templates
 
-[Document user documentation templates]
+User documentation templates are located in `stp/_templ/usr/`:
+
+- `_user_guide.md`: Template for task-oriented user instructions
+- `_reference_guide.md`: Template for comprehensive reference information
+- `_deployment_guide.md`: Template for installation and deployment guidance
 
 ### LLM Templates
 
-[Document LLM templates]
+LLM-specific templates are located in `stp/_templ/llm/`:
+
+- `_llm_preamble.md`: Template for creating context preambles for LLM sessions
 
 ## Directory Structure
 
@@ -227,7 +263,6 @@ Structure:
 STP/
 ├── stp/                # Main STP directory
 │   ├── _templ/         # Templates directory
-│   ├── bin/            # STP script documentation
 │   ├── prj/            # Project documentation
 │   │   ├── st/         # Steel threads
 │   │   ├── wip.md      # Work in progress
@@ -235,7 +270,16 @@ STP/
 │   ├── eng/            # Engineering docs
 │   │   └── tpd/        # Technical Product Design
 │   ├── usr/            # User documentation
-│   └── llm/            # LLM-specific content
+│   ├── llm/            # LLM-specific content
+│   └── tests/          # Test suite
+│       ├── bootstrap/  # Bootstrap tests
+│       ├── init/       # Init command tests
+│       ├── st/         # Steel thread command tests
+│       ├── help/       # Help system tests
+│       ├── main/       # Main script tests
+│       ├── lib/        # Test helper libraries
+│       ├── fixtures/   # Test fixtures
+│       └── run_tests.sh # Test runner script
 ├── bin/                # STP scripts (executable)
 ```
 
@@ -301,16 +345,3 @@ ST_PREFIX="ST"
 | Canned Prompt | A pre-defined, reusable instruction template for an LLM |
 | WIP | Work in Progress, a document tracking current development focus |
 
----
-
-# Context for LLM
-
-This document template is for creating a reference guide for the STP system. When implementing this guide:
-
-1. Replace placeholder sections with comprehensive reference information
-2. Include complete command syntax, parameters, and examples
-3. Document all templates, their purposes, and structures
-4. Provide detailed configuration information
-5. Include best practices based on experience with the system
-
-The final reference guide should be thorough and comprehensive, serving as a complete reference for users of the STP system.
