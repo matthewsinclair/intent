@@ -124,13 +124,13 @@ create_template_files() {
   run ./run_init.exp "Test Project"
   [ "$status" -eq 0 ]
   
-  # Check if project was created in current directory
+  # Check if project was created in current directory with default directories
   assert_directory_exists "stp"
   assert_directory_exists "stp/prj"
   assert_directory_exists "stp/eng"
   assert_directory_exists "stp/usr"
   assert_directory_exists "stp/llm"
-  assert_directory_exists "bin"
+  assert_directory_exists "bin"  # bin dir is still created for local config
   
   # Return to the original test directory
   cd "${TEST_TEMP_DIR}"
@@ -154,11 +154,11 @@ create_template_files() {
   run ./run_init.exp "Test Project" "target-dir"
   [ "$status" -eq 0 ]
   
-  # Check if project was created in the specified directory
+  # Check if project was created in the specified directory with default directories
   assert_directory_exists "target-dir/stp"
   assert_directory_exists "target-dir/stp/prj"
   assert_directory_exists "target-dir/stp/eng"
-  assert_directory_exists "target-dir/bin"
+  assert_directory_exists "target-dir/bin"  # bin dir is still created for local config
   
   # Return to the original test directory
   cd "${TEST_TEMP_DIR}"
@@ -216,7 +216,7 @@ create_template_files() {
   cd "${TEST_TEMP_DIR}"
 }
 
-# Test if init copies scripts and makes them executable
+# Test if init copies scripts and makes them executable when --all is specified
 @test "init copies scripts and makes them executable" {
   # Create a clean test directory
   mkdir -p "${TEST_TEMP_DIR}/scripts-test"
@@ -227,8 +227,39 @@ create_template_files() {
   cp "${TEST_TEMP_DIR}/run_init.exp" ./
   chmod +x ./stp_init ./run_init.exp
   
+  # Create a modified expect script that uses the --all flag
+  cat > "./run_init_all.exp" << 'EOF'
+#!/usr/bin/expect -f
+set timeout 5
+set project_name [lindex $argv 0]
+set target_dir [lindex $argv 1]
+
+# Get the command to run
+if {$target_dir eq ""} {
+    set cmd "./stp_init --all \"$project_name\""
+} else {
+    set cmd "./stp_init --all \"$project_name\" \"$target_dir\""
+}
+
+# Execute the command
+spawn {*}$cmd
+
+# Handle any "directory not empty" prompts
+expect {
+    "Press Enter to continue or Ctrl+C to cancel" {
+        send "\r"
+        exp_continue
+    }
+    timeout {
+        exit 1
+    }
+    eof
+}
+EOF
+  chmod +x ./run_init_all.exp
+  
   # Run with expect to handle interactive prompts
-  run ./run_init.exp "Test Project"
+  run ./run_init_all.exp "Test Project"
   [ "$status" -eq 0 ]
   
   # Check if scripts were copied and are executable

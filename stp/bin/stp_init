@@ -1,9 +1,12 @@
 #!/bin/bash
 # stp_init - Initialize STP in a project
-# Usage: stp_init <project_name> [directory]
+# Usage: stp_init [options] <project_name> [directory]
 
 # Exit on error
 set -e
+
+# Default directories to copy
+DEFAULT_DIRS_TO_COPY="eng,llm,prj,usr"
 
 # Function to display error messages
 error() {
@@ -13,9 +16,13 @@ error() {
 
 # Function to display usage information
 usage() {
-  echo "Usage: stp init <project_name> [directory]"
+  echo "Usage: stp init [options] <project_name> [directory]"
   echo ""
   echo "Initialize Steel Thread Project in the specified directory"
+  echo ""
+  echo "Options:"
+  echo "  -d, --dirs    Comma-separated list of directories to copy (default: $DEFAULT_DIRS_TO_COPY)"
+  echo "  -a, --all     Copy all directories, including bin, _templ, tests"
   echo ""
   echo "Arguments:"
   echo "  project_name  Name of the project (required)"
@@ -23,8 +30,35 @@ usage() {
   echo ""
   echo "Example:"
   echo "  stp init \"My Project\" ./my-project"
+  echo "  stp init --dirs \"eng,llm,prj,usr,bin\" \"My Project\" ./my-project"
   exit 1
 }
+
+# Initialize variables
+DIRS_TO_COPY="$DEFAULT_DIRS_TO_COPY"
+COPY_ALL=false
+
+# Parse options
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -d|--dirs)
+      DIRS_TO_COPY="$2"
+      shift 2
+      ;;
+    -a|--all)
+      COPY_ALL=true
+      shift
+      ;;
+    -*)
+      error "Unknown option: $1"
+      usage
+      ;;
+    *)
+      # First non-option argument is project name
+      break
+      ;;
+  esac
+done
 
 # Check for required arguments
 if [ $# -lt 1 ]; then
@@ -35,6 +69,11 @@ fi
 # Get arguments
 PROJECT_NAME="$1"
 TARGET_DIR="${2:-.}"
+
+# If copy_all is true, override dirs_to_copy
+if [ "$COPY_ALL" = true ]; then
+  DIRS_TO_COPY="eng,llm,prj,usr,bin,_templ,tests"
+fi
 
 # Check if STP_HOME is set
 if [ -z "$STP_HOME" ]; then
@@ -53,7 +92,38 @@ fi
 
 # Create directory structure
 echo "Creating STP directory structure..."
-mkdir -p "$TARGET_DIR"/stp/{prj/st,eng/tpd,usr,llm,_templ,bin}
+mkdir -p "$TARGET_DIR/stp"
+
+# Create directories based on whitelist
+IFS=',' read -ra DIRS <<< "$DIRS_TO_COPY"
+for dir in "${DIRS[@]}"; do
+  case "$dir" in
+    eng)
+      mkdir -p "$TARGET_DIR/stp/eng/tpd"
+      ;;
+    llm)
+      mkdir -p "$TARGET_DIR/stp/llm"
+      ;;
+    prj)
+      mkdir -p "$TARGET_DIR/stp/prj/st"
+      ;;
+    usr)
+      mkdir -p "$TARGET_DIR/stp/usr"
+      ;;
+    _templ)
+      mkdir -p "$TARGET_DIR/stp/_templ"
+      ;;
+    bin)
+      mkdir -p "$TARGET_DIR/stp/bin"
+      ;;
+    tests)
+      mkdir -p "$TARGET_DIR/stp/tests"
+      ;;
+    *)
+      echo "Warning: Unknown directory '$dir' in whitelist"
+      ;;
+  esac
+done
 
 # Get author information from git if available
 if command -v git &> /dev/null && git config user.name &> /dev/null; then
@@ -75,84 +145,99 @@ CREATED_DATE="$DATE"
 ST_PREFIX="ST"
 EOF
 
-# Copy templates
-echo "Copying templates..."
-if [ -d "$STP_HOME/stp/_templ" ]; then
-  cp -r "$STP_HOME/stp/_templ"/* "$TARGET_DIR/stp/_templ/"
-else
-  cp -r "$STP_HOME/_templ"/* "$TARGET_DIR/stp/_templ/"
-fi
-
-# Create initial prj/wip.md
-echo "Creating initial documents..."
-TEMPL_DIR=""
+# Find the template directory
 if [ -d "$STP_HOME/stp/_templ" ]; then
   TEMPL_DIR="$STP_HOME/stp/_templ"
 else
   TEMPL_DIR="$STP_HOME/_templ"
 fi
 
-sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
-    -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
-    -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/prj/_wip.md" > "$TARGET_DIR/stp/prj/wip.md"
-
-# Create initial prj/journal.md
-sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
-    -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
-    -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/prj/_journal.md" > "$TARGET_DIR/stp/prj/journal.md"
-
-# Create initial prj/st/steel_threads.md
-sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
-    -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
-    -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/prj/st/_steel_threads.md" > "$TARGET_DIR/stp/prj/st/steel_threads.md"
-
-# Create initial eng/tpd/technical_product_design.md
-mkdir -p "$TARGET_DIR/stp/eng/tpd"
-sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
-    -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
-    -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/eng/tpd/_technical_product_design.md" > "$TARGET_DIR/stp/eng/tpd/technical_product_design.md"
-
-# Create initial llm/llm_preamble.md
-sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
-    -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
-    -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/llm/_llm_preamble.md" > "$TARGET_DIR/stp/llm/llm_preamble.md"
-
-# Create initial usr/ documents
-sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
-    -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
-    -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/usr/_user_guide.md" > "$TARGET_DIR/stp/usr/user_guide.md"
-
-sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
-    -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
-    -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/usr/_reference_guide.md" > "$TARGET_DIR/stp/usr/reference_guide.md"
-
-sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
-    -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
-    -e "s/\[\[DATE\]\]/$DATE/g" \
-    "$TEMPL_DIR/usr/_deployment_guide.md" > "$TARGET_DIR/stp/usr/deployment_guide.md"
-
-# Copy scripts
-echo "Copying scripts..."
-if [ -d "$STP_HOME/stp/bin" ]; then
-  mkdir -p "$TARGET_DIR/bin"
-  cp "$STP_HOME/stp/bin"/stp* "$TARGET_DIR/bin/"
-  cp "$STP_HOME/stp/bin"/stp* "$TARGET_DIR/stp/bin/"
-else 
-  mkdir -p "$TARGET_DIR/bin"
-  cp "$STP_HOME/bin"/stp* "$TARGET_DIR/bin/"
-  cp "$STP_HOME/bin"/stp* "$TARGET_DIR/stp/bin/"
+# Copy templates only if in whitelist
+if [[ "$DIRS_TO_COPY" == *"_templ"* ]]; then
+  echo "Copying templates..."
+  cp -r "$TEMPL_DIR"/* "$TARGET_DIR/stp/_templ/"
 fi
 
-# Make scripts executable
-chmod +x "$TARGET_DIR"/bin/stp*
-chmod +x "$TARGET_DIR"/stp/bin/stp*
+# Create initial documents
+echo "Creating initial documents..."
+
+# Create prj documents if in whitelist
+if [[ "$DIRS_TO_COPY" == *"prj"* ]]; then
+  sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
+      -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
+      -e "s/\[\[DATE\]\]/$DATE/g" \
+      "$TEMPL_DIR/prj/_wip.md" > "$TARGET_DIR/stp/prj/wip.md"
+
+  # Create initial prj/journal.md
+  sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
+      -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
+      -e "s/\[\[DATE\]\]/$DATE/g" \
+      "$TEMPL_DIR/prj/_journal.md" > "$TARGET_DIR/stp/prj/journal.md"
+
+  # Create initial prj/st/steel_threads.md
+  sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
+      -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
+      -e "s/\[\[DATE\]\]/$DATE/g" \
+      "$TEMPL_DIR/prj/st/_steel_threads.md" > "$TARGET_DIR/stp/prj/st/steel_threads.md"
+fi
+
+# Create eng documents if in whitelist
+if [[ "$DIRS_TO_COPY" == *"eng"* ]]; then
+  # Create initial eng/tpd/technical_product_design.md
+  sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
+      -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
+      -e "s/\[\[DATE\]\]/$DATE/g" \
+      "$TEMPL_DIR/eng/tpd/_technical_product_design.md" > "$TARGET_DIR/stp/eng/tpd/technical_product_design.md"
+fi
+
+# Create llm documents if in whitelist
+if [[ "$DIRS_TO_COPY" == *"llm"* ]]; then
+  # Create initial llm/llm_preamble.md
+  sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
+      -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
+      -e "s/\[\[DATE\]\]/$DATE/g" \
+      "$TEMPL_DIR/llm/_llm_preamble.md" > "$TARGET_DIR/stp/llm/llm_preamble.md"
+fi
+
+# Create usr documents if in whitelist
+if [[ "$DIRS_TO_COPY" == *"usr"* ]]; then
+  # Create initial usr/ documents
+  sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
+      -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
+      -e "s/\[\[DATE\]\]/$DATE/g" \
+      "$TEMPL_DIR/usr/_user_guide.md" > "$TARGET_DIR/stp/usr/user_guide.md"
+
+  sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
+      -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
+      -e "s/\[\[DATE\]\]/$DATE/g" \
+      "$TEMPL_DIR/usr/_reference_guide.md" > "$TARGET_DIR/stp/usr/reference_guide.md"
+
+  sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
+      -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
+      -e "s/\[\[DATE\]\]/$DATE/g" \
+      "$TEMPL_DIR/usr/_deployment_guide.md" > "$TARGET_DIR/stp/usr/deployment_guide.md"
+fi
+
+# Copy scripts only if in whitelist
+if [[ "$DIRS_TO_COPY" == *"bin"* ]]; then
+  echo "Copying scripts..."
+  if [ -d "$STP_HOME/stp/bin" ]; then
+    mkdir -p "$TARGET_DIR/bin"
+    cp "$STP_HOME/stp/bin"/stp* "$TARGET_DIR/bin/"
+    cp "$STP_HOME/stp/bin"/stp* "$TARGET_DIR/stp/bin/"
+  else 
+    mkdir -p "$TARGET_DIR/bin"
+    cp "$STP_HOME/bin"/stp* "$TARGET_DIR/bin/"
+    cp "$STP_HOME/bin"/stp* "$TARGET_DIR/stp/bin/"
+  fi
+
+  # Make scripts executable
+  chmod +x "$TARGET_DIR"/bin/stp*
+  chmod +x "$TARGET_DIR"/stp/bin/stp*
+else
+  # Always create the bin directory in the root for the stp_config.sh
+  mkdir -p "$TARGET_DIR/bin"
+fi
 
 # Create local configuration for STP
 echo "Creating local configuration..."
@@ -166,10 +251,16 @@ export STP_AUTHOR="$AUTHOR"
 EOF
 
 echo "STP initialized for project: $PROJECT_NAME in $TARGET_DIR"
+echo "Included directories: $DIRS_TO_COPY"
 echo ""
 echo "To get started:"
-echo "  1. Review the initial documentation in stp/prj/, stp/eng/, stp/usr/, and stp/llm/"
-echo "  2. Create your first steel thread: stp st new \"Initial Setup\""
-echo "  3. Update stp/prj/wip.md with your current focus"
+echo "  1. Review the initial documentation in the created directories"
+
+# Show appropriate messages based on which directories were created
+if [[ "$DIRS_TO_COPY" == *"prj"* ]]; then
+  echo "  2. Create your first steel thread: stp st new \"Initial Setup\""
+  echo "  3. Update stp/prj/wip.md with your current focus"
+fi
+
 echo ""
 echo "For help, run: stp help"

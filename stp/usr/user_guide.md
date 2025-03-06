@@ -78,15 +78,21 @@ To set up STP in a new or existing project:
 # Navigate to project directory
 cd my-project
 
-# Initialize STP
+# Initialize STP with default directories (eng, llm, prj, usr)
 stp init "Project Name"
+
+# Or specify which directories to include
+stp init --dirs "eng,llm,prj,usr" "Project Name"
+
+# Or include all directories (including bin, _templ, tests) 
+stp init --all "Project Name"
 ```
 
 This creates the STP directory structure with template documents.
 
 ### Directory Structure
 
-After initialization, you'll have this structure:
+After initialization with the default directories, you'll have this structure:
 
 ```
 my-project/
@@ -100,6 +106,18 @@ my-project/
     ├── usr/                # User documentation
     └── llm/                # LLM-specific content
 ```
+
+If you use the `--all` option or include specific directories with `--dirs`, additional directories may be included:
+
+```
+my-project/
+└── stp/
+    ├── bin/                # STP scripts (only with --all or --dirs "bin")
+    ├── _templ/             # Templates (only with --all or --dirs "_templ")
+    └── tests/              # Tests (only with --all or --dirs "tests")
+```
+
+Note: Even when not copying bin files to the new project, STP commands will still work because they execute from the centrally installed location.
 
 ## Working with Steel Threads
 

@@ -8,6 +8,7 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 **004-DONE: Updated project documentation**
 
 Updated all project documentation to reflect current status:
+
 - Updated steel_threads.md to show ST0011 as completed and ST0010 as on hold
 - Ensured all steel thread documents have the correct status
 - Updated wip.md and journal.md to reflect current state
@@ -15,7 +16,8 @@ Updated all project documentation to reflect current status:
 **003-DONE: Build a test suite**
 
 Implemented and fixed a comprehensive test suite (ST0011) with tests for bootstrap, init, steel thread commands, help command, and the main stp script. Created test helper functions, test architecture, and scripts to run tests and set up the test environment. Fixed multiple issues:
-- Modified test runner to exclude library test files 
+
+- Modified test runner to exclude library test files
 - Added .gitignore for test directory
 - Fixed interactive script testing using expect utility
 - Improved string pattern matching for special characters

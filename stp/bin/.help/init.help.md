@@ -15,13 +15,17 @@ This command should be run once at the beginning of a project or when
 adding STP to an existing project.
 
 @usage:
-stp init <project_name> [directory]
+stp init [options] <project_name> [directory]
+
+Options:
+  -d, --dirs    Comma-separated list of directories to copy (default: eng,llm,prj,usr)
+  -a, --all     Copy all directories, including bin, _templ, tests
 
 Arguments:
   project_name  Name of the project (required)
   directory     Target directory (optional, defaults to current directory)
 
-The command creates the following directory structure:
+The command creates the following directory structure by default:
   prj/                # Project documentation
     st/               # Steel threads
     wip.md            # Work in progress
@@ -30,9 +34,14 @@ The command creates the following directory structure:
     tpd/              # Technical Product Design
   usr/                # User documentation
   llm/                # LLM-specific content
-  _templ/             # Templates
-  bin/                # STP scripts
+
+When using the --all option or specifying with --dirs, additional directories may be included:
+  _templ/             # Templates (only with --all or --dirs "_templ")
+  bin/                # STP scripts (only with --all or --dirs "bin")
+  tests/              # Tests (only with --all or --dirs "tests")
 
 Examples:
-  stp init "My Project"                 # Initialize in current directory
-  stp init "My Project" ./my-project    # Initialize in specified directory
+  stp init "My Project"                                # Initialize with default directories
+  stp init "My Project" ./my-project                   # Initialize in specified directory
+  stp init --dirs "eng,llm,prj,usr,bin" "My Project"   # Specify which directories to include
+  stp init --all "My Project"                          # Include all directories
