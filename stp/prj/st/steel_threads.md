@@ -9,6 +9,8 @@ This document serves as an index of all steel threads in the Steel Thread Projec
 
 | ID                    | Title                  | Status      | Created    | Completed  |
 |-----------------------|------------------------|-------------|------------|------------|
+| [ST0011](./ST0011.md) | Test Suite Implementation | Not Started | 2025-06-03 |            |
+| [ST0010](./ST0010.md) | Anthropic MCP Integration | Not Started | 2025-06-03 |            |
 | [ST0009](./ST0009.md) | Process Refinement     | Completed   | 2025-03-06 | 2025-06-03 |
 | [ST0008](./ST0008.md) | LLM Integration        | Completed   | 2025-03-06 | 2025-06-03 |
 | [ST0007](./ST0007.md) | User Documentation     | Completed   | 2025-03-06 | 2025-06-03 |

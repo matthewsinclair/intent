@@ -5,13 +5,13 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 
 ## Current Focus
 
-**003-TODO: Build a test suite**
+**003-DONE: Build a test suite**
 
-We need to build a test suite that can be run in the STP project to test that bootstrap and init work as expected. Please create a new ST for this work.
+Created ST0011 for implementing a comprehensive test suite that will verify bootstrap, init, and other core STP functions work as expected across different environments.
 
-**002-TODO: Consider potential use of Anthropic MCP?**
+**002-DONE: Consider potential use of Anthropic MCP?**
 
-Given that we have the potential for some of the STP scripts to need to invoke an LLM is there an option here to create an MCP implementation (or proxy or whatever) so that we can more robustly have the LLM control itself in a controlled manner? For example, in the case of the "$ stp st done STID" command, is that something that we could parameterise (via the steel thread id) and then have the LLM call itself using an MCP interaction? Would that work? Hmm. 🤔 Please create a new ST for this work, but this is low priority for now and can be done later.
+Created ST0010 to explore the potential use of Anthropic's Machine Control Protocol (MCP) for allowing STP scripts to interact with LLMs in a more controlled manner. This is low priority work that can be addressed later.
 
 **001-DONE: Updating directory references from "doc" to "stp"**
 
@@ -25,7 +25,8 @@ Completed:
 
 | ID                    | Title                  | Status      | Created    | Completed  |
 |-----------------------|------------------------|-------------|------------|------------|
-| None                  |                        |             |            |            |
+| [ST0011](./st/ST0011.md) | Test Suite Implementation | Not Started | 2025-06-03 |            |
+| [ST0010](./st/ST0010.md) | Anthropic MCP Integration | Not Started | 2025-06-03 |            |
 
 ## Upcoming Work
 
@@ -47,8 +48,8 @@ This document captures the current state of development on the Steel Thread Proj
 
 ### Next Steps
 
-1. Complete the remaining tasks for ST0001 and ST0002
-2. Begin work on ST0003 (Template System)
+1. Begin implementation of ST0011 (Test Suite Implementation)
+2. Research and document MCP capabilities for ST0010
 3. Update the technical product design with any new insights
 4. Create additional help documentation as needed
 
