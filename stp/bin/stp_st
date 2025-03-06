@@ -246,30 +246,73 @@ EOF
       error "Steel threads index not found"
     fi
     
+    # Get terminal width
+    TERM_WIDTH=$(tput cols 2>/dev/null || echo 80)
+    
+    # Set column widths based on terminal width
+    ID_WIDTH=10
+    STATUS_WIDTH=15
+    DATE_WIDTH=10
+    
+    # Calculate available width for title column (accounting for column separators)
+    SEPARATORS_WIDTH=13  # 4 separators at "| " = 8 chars + 5 spaces in header
+    FIXED_COLS_WIDTH=$((ID_WIDTH + STATUS_WIDTH + DATE_WIDTH + DATE_WIDTH))
+    TITLE_WIDTH=$((TERM_WIDTH - FIXED_COLS_WIDTH - SEPARATORS_WIDTH))
+    
+    # Minimum title width - if terminal is too narrow, set a minimum
+    [ $TITLE_WIDTH -lt 20 ] && TITLE_WIDTH=20
+    
+    # Function to truncate string with ellipsis if too long
+    truncate_string() {
+      local string="$1"
+      local width=$2
+      
+      if [ ${#string} -gt $width ]; then
+        echo "${string:0:$((width-3))}..."
+      else
+        echo "$string"
+      fi
+    }
+    
     # Display steel threads in a formatted table
+    printf "%-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s\n" \
+      "ID" "Title" "Status" "Created" "Completed"
+    printf "%-${ID_WIDTH}s-|-%-${TITLE_WIDTH}s-|-%-${STATUS_WIDTH}s-|-%-${DATE_WIDTH}s-|-%-${DATE_WIDTH}s\n" \
+      "$(printf '%0.s-' $(seq 1 $ID_WIDTH))" \
+      "$(printf '%0.s-' $(seq 1 $TITLE_WIDTH))" \
+      "$(printf '%0.s-' $(seq 1 $STATUS_WIDTH))" \
+      "$(printf '%0.s-' $(seq 1 $DATE_WIDTH))" \
+      "$(printf '%0.s-' $(seq 1 $DATE_WIDTH))"
+    
+    # Process and display rows
+    process_line() {
+      local line="$1"
+      ID=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
+      TITLE=$(echo "$line" | awk -F'|' '{print $3}' | xargs)
+      STATUS=$(echo "$line" | awk -F'|' '{print $4}' | xargs)
+      CREATED=$(echo "$line" | awk -F'|' '{print $5}' | xargs)
+      COMPLETED=$(echo "$line" | awk -F'|' '{print $6}' | xargs)
+      
+      # Truncate values if needed
+      ID_TRUNC=$(truncate_string "$ID" $ID_WIDTH)
+      TITLE_TRUNC=$(truncate_string "$TITLE" $TITLE_WIDTH)
+      STATUS_TRUNC=$(truncate_string "$STATUS" $STATUS_WIDTH)
+      CREATED_TRUNC=$(truncate_string "$CREATED" $DATE_WIDTH)
+      COMPLETED_TRUNC=$(truncate_string "$COMPLETED" $DATE_WIDTH)
+      
+      printf "%-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s\n" \
+        "$ID_TRUNC" "$TITLE_TRUNC" "$STATUS_TRUNC" "$CREATED_TRUNC" "$COMPLETED_TRUNC"
+    }
+    
     if [ -n "$STATUS" ]; then
-      printf "%-10s | %-30s | %-15s | %-10s | %-10s\n" "ID" "Title" "Status" "Created" "Completed"
-      printf "%-10s-|-%-30s-|-%-15s-|-%-10s-|-%-10s\n" "----------" "------------------------------" "---------------" "----------" "----------"
       grep "^| \[ST" "$INDEX_FILE" | grep "$STATUS" | sed 's/| \[ST\([0-9]*\)\](.*) |/| ST\1 |/' | 
       while read line; do
-        ID=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
-        TITLE=$(echo "$line" | awk -F'|' '{print $3}' | xargs)
-        STATUS=$(echo "$line" | awk -F'|' '{print $4}' | xargs)
-        CREATED=$(echo "$line" | awk -F'|' '{print $5}' | xargs)
-        COMPLETED=$(echo "$line" | awk -F'|' '{print $6}' | xargs)
-        printf "%-10s | %-30s | %-15s | %-10s | %-10s\n" "$ID" "$TITLE" "$STATUS" "$CREATED" "$COMPLETED"
+        process_line "$line"
       done
     else
-      printf "%-10s | %-30s | %-15s | %-10s | %-10s\n" "ID" "Title" "Status" "Created" "Completed"
-      printf "%-10s-|-%-30s-|-%-15s-|-%-10s-|-%-10s\n" "----------" "------------------------------" "---------------" "----------" "----------"
       grep "^| \[ST" "$INDEX_FILE" | sed 's/| \[ST\([0-9]*\)\](.*) |/| ST\1 |/' | 
       while read line; do
-        ID=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
-        TITLE=$(echo "$line" | awk -F'|' '{print $3}' | xargs)
-        STATUS=$(echo "$line" | awk -F'|' '{print $4}' | xargs)
-        CREATED=$(echo "$line" | awk -F'|' '{print $5}' | xargs)
-        COMPLETED=$(echo "$line" | awk -F'|' '{print $6}' | xargs)
-        printf "%-10s | %-30s | %-15s | %-10s | %-10s\n" "$ID" "$TITLE" "$STATUS" "$CREATED" "$COMPLETED"
+        process_line "$line"
       done
     fi
     ;;
