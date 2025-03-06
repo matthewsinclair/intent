@@ -8,4 +8,4 @@ Day-to-day project manangement can be found in [WIP](<./stp/prj/wip.md>) and act
 
 Scripts to help you work with STP can be found in `stp/bin`.
 
-Once [installed](<./stp/usr/user_guide.md>) try `$ stp help` to get started, or `$ stp st list` to get a list of the steel threads.
+Once [installed](<./stp/usr/user_guide.md#installation>) try `$ stp help` to get started, or `$ stp st list` to get a list of the steel threads.
