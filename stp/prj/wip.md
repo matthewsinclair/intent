@@ -5,9 +5,9 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 
 ## Current Focus
 
-**003-DONE: Build a test suite**
+**003-WIP: Build a test suite**
 
-Created ST0011 for implementing a comprehensive test suite that will verify bootstrap, init, and other core STP functions work as expected across different environments.
+Implemented initial version of the test suite (ST0011) with comprehensive tests for bootstrap, init, and steel thread commands. Created test helper functions, test architecture, and scripts to run tests and set up the test environment. Still need to set up continuous integration for automated testing.
 
 **002-DONE: Consider potential use of Anthropic MCP?**
 
@@ -25,7 +25,7 @@ Completed:
 
 | ID                    | Title                  | Status      | Created    | Completed  |
 |-----------------------|------------------------|-------------|------------|------------|
-| [ST0011](./st/ST0011.md) | Test Suite Implementation | Not Started | 2025-06-03 |            |
+| [ST0011](./st/ST0011.md) | Test Suite Implementation | In Progress | 2025-06-03 |            |
 | [ST0010](./st/ST0010.md) | Anthropic MCP Integration | Not Started | 2025-06-03 |            |
 
 ## Upcoming Work
@@ -48,10 +48,10 @@ This document captures the current state of development on the Steel Thread Proj
 
 ### Next Steps
 
-1. Begin implementation of ST0011 (Test Suite Implementation)
+1. Complete ST0011 by setting up continuous integration for test automation
 2. Research and document MCP capabilities for ST0010
-3. Update the technical product design with any new insights
-4. Create additional help documentation as needed
+3. Update the technical product design with test suite information
+4. Create documentation for running and extending the test suite
 
 ### Questions to Address
 
