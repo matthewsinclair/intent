@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # Tests for the stp_init script
 
-load '../lib/test_helper'
+load '../lib/test_helper.bash'
 
 # Setup test environment before each test
 setup() {
@@ -13,14 +13,55 @@ setup() {
   cp "${STP_BIN_DIR}/stp_init" "${TEST_TEMP_DIR}/"
   chmod +x "${TEST_TEMP_DIR}/stp_init"
   
-  # Create a minimal STP_HOME structure
-  mkdir -p "${TEST_TEMP_DIR}/stp_home/stp/{_templ/{prj/st,eng/tpd,usr,llm},bin}"
+  # Create a minimal STP_HOME structure with required directories
+  mkdir -p "${TEST_TEMP_DIR}/stp_home/stp/_templ/prj/st"
+  mkdir -p "${TEST_TEMP_DIR}/stp_home/stp/_templ/eng/tpd"
+  mkdir -p "${TEST_TEMP_DIR}/stp_home/stp/_templ/usr"
+  mkdir -p "${TEST_TEMP_DIR}/stp_home/stp/_templ/llm"
+  mkdir -p "${TEST_TEMP_DIR}/stp_home/stp/bin"
   
   # Create minimal template files
   create_template_files
   
   # Set STP_HOME environment variable
   export STP_HOME="${TEST_TEMP_DIR}/stp_home"
+  
+  # Create expect script for running stp_init non-interactively
+  cat > "${TEST_TEMP_DIR}/run_init.exp" << 'EOF'
+#!/usr/bin/expect -f
+set timeout 5
+set project_name [lindex $argv 0]
+set target_dir [lindex $argv 1]
+
+# Get the command to run
+if {$target_dir eq ""} {
+    set cmd "./stp_init \"$project_name\""
+} else {
+    set cmd "./stp_init \"$project_name\" \"$target_dir\""
+}
+
+# Execute the command
+spawn {*}$cmd
+
+# Handle any "directory not empty" prompts
+expect {
+    "Press Enter to continue or Ctrl+C to cancel" {
+        send "\r"
+        exp_continue
+    }
+    timeout {
+        exit 1
+    }
+    eof
+}
+EOF
+  
+  chmod +x "${TEST_TEMP_DIR}/run_init.exp"
+  
+  # Skip tests if expect is not available
+  if ! command -v expect &> /dev/null; then
+    skip "expect command is not available"
+  fi
 }
 
 # Clean up after each test
@@ -70,7 +111,17 @@ create_template_files() {
 
 # Test if init creates a project in the current directory by default
 @test "init creates a project in the current directory by default" {
-  run ./stp_init "Test Project"
+  # Create a clean test directory
+  mkdir -p "${TEST_TEMP_DIR}/test-dir"
+  cd "${TEST_TEMP_DIR}/test-dir"
+  
+  # Copy necessary files
+  cp "${TEST_TEMP_DIR}/stp_init" ./
+  cp "${TEST_TEMP_DIR}/run_init.exp" ./
+  chmod +x ./stp_init ./run_init.exp
+  
+  # Run with expect to handle interactive prompts
+  run ./run_init.exp "Test Project"
   [ "$status" -eq 0 ]
   
   # Check if project was created in current directory
@@ -80,35 +131,75 @@ create_template_files() {
   assert_directory_exists "stp/usr"
   assert_directory_exists "stp/llm"
   assert_directory_exists "bin"
+  
+  # Return to the original test directory
+  cd "${TEST_TEMP_DIR}"
 }
 
 # Test if init creates a project in a specified directory
 @test "init creates a project in a specified directory" {
-  mkdir -p "${TEST_TEMP_DIR}/custom-dir"
+  # Create a clean test directory
+  mkdir -p "${TEST_TEMP_DIR}/specified-dir-test"
+  cd "${TEST_TEMP_DIR}/specified-dir-test"
   
-  run ./stp_init "Test Project" "${TEST_TEMP_DIR}/custom-dir"
+  # Create target directory
+  mkdir -p "${TEST_TEMP_DIR}/specified-dir-test/target-dir"
+  
+  # Copy necessary files
+  cp "${TEST_TEMP_DIR}/stp_init" ./
+  cp "${TEST_TEMP_DIR}/run_init.exp" ./
+  chmod +x ./stp_init ./run_init.exp
+  
+  # Run with expect to handle interactive prompts
+  run ./run_init.exp "Test Project" "target-dir"
   [ "$status" -eq 0 ]
   
   # Check if project was created in the specified directory
-  assert_directory_exists "${TEST_TEMP_DIR}/custom-dir/stp"
-  assert_directory_exists "${TEST_TEMP_DIR}/custom-dir/stp/prj"
-  assert_directory_exists "${TEST_TEMP_DIR}/custom-dir/stp/eng"
-  assert_directory_exists "${TEST_TEMP_DIR}/custom-dir/bin"
+  assert_directory_exists "target-dir/stp"
+  assert_directory_exists "target-dir/stp/prj"
+  assert_directory_exists "target-dir/stp/eng"
+  assert_directory_exists "target-dir/bin"
+  
+  # Return to the original test directory
+  cd "${TEST_TEMP_DIR}"
 }
 
 # Test if init creates the configuration file
 @test "init creates the configuration file" {
-  run ./stp_init "Test Project"
+  # Create a clean test directory
+  mkdir -p "${TEST_TEMP_DIR}/config-test"
+  cd "${TEST_TEMP_DIR}/config-test"
+  
+  # Copy necessary files
+  cp "${TEST_TEMP_DIR}/stp_init" ./
+  cp "${TEST_TEMP_DIR}/run_init.exp" ./
+  chmod +x ./stp_init ./run_init.exp
+  
+  # Run with expect to handle interactive prompts
+  run ./run_init.exp "Test Project"
   [ "$status" -eq 0 ]
   
   # Check if configuration file was created
   assert_file_exists ".stp-config"
   assert_file_contains ".stp-config" "PROJECT_NAME=\"Test Project\""
+  
+  # Return to the original test directory
+  cd "${TEST_TEMP_DIR}"
 }
 
 # Test if init creates project files from templates
 @test "init creates project files from templates" {
-  run ./stp_init "Test Project"
+  # Create a clean test directory
+  mkdir -p "${TEST_TEMP_DIR}/template-test"
+  cd "${TEST_TEMP_DIR}/template-test"
+  
+  # Copy necessary files
+  cp "${TEST_TEMP_DIR}/stp_init" ./
+  cp "${TEST_TEMP_DIR}/run_init.exp" ./
+  chmod +x ./stp_init ./run_init.exp
+  
+  # Run with expect to handle interactive prompts
+  run ./run_init.exp "Test Project"
   [ "$status" -eq 0 ]
   
   # Check if files were created from templates
@@ -120,11 +211,24 @@ create_template_files() {
   assert_file_exists "stp/usr/reference_guide.md"
   assert_file_exists "stp/usr/deployment_guide.md"
   assert_file_exists "stp/llm/llm_preamble.md"
+  
+  # Return to the original test directory
+  cd "${TEST_TEMP_DIR}"
 }
 
 # Test if init copies scripts and makes them executable
 @test "init copies scripts and makes them executable" {
-  run ./stp_init "Test Project"
+  # Create a clean test directory
+  mkdir -p "${TEST_TEMP_DIR}/scripts-test"
+  cd "${TEST_TEMP_DIR}/scripts-test"
+  
+  # Copy necessary files
+  cp "${TEST_TEMP_DIR}/stp_init" ./
+  cp "${TEST_TEMP_DIR}/run_init.exp" ./
+  chmod +x ./stp_init ./run_init.exp
+  
+  # Run with expect to handle interactive prompts
+  run ./run_init.exp "Test Project"
   [ "$status" -eq 0 ]
   
   # Check if scripts were copied and are executable
@@ -137,6 +241,9 @@ create_template_files() {
   [ -x "bin/stp_init" ]
   [ -x "bin/stp_st" ]
   [ -x "bin/stp_help" ]
+  
+  # Return to the original test directory
+  cd "${TEST_TEMP_DIR}"
 }
 
 # Test if init handles non-empty target directory
@@ -170,10 +277,23 @@ EOF
 
 # Test if init creates local configuration for STP
 @test "init creates local configuration for STP" {
-  run ./stp_init "Test Project"
+  # Create a clean test directory
+  mkdir -p "${TEST_TEMP_DIR}/config-local-test"
+  cd "${TEST_TEMP_DIR}/config-local-test"
+  
+  # Copy necessary files
+  cp "${TEST_TEMP_DIR}/stp_init" ./
+  cp "${TEST_TEMP_DIR}/run_init.exp" ./
+  chmod +x ./stp_init ./run_init.exp
+  
+  # Run with expect to handle interactive prompts
+  run ./run_init.exp "Test Project"
   [ "$status" -eq 0 ]
   
   # Check if local configuration was created
   assert_file_exists "bin/stp_config.sh"
   assert_file_contains "bin/stp_config.sh" "export STP_PROJECT=\"Test Project\""
+  
+  # Return to the original test directory
+  cd "${TEST_TEMP_DIR}"
 }

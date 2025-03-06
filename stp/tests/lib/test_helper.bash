@@ -1,14 +1,6 @@
 #!/usr/bin/env bash
 # Test helper functions and setup for STP tests
 
-# Load external dependencies
-# Note: Update these paths to match your system
-load '/usr/local/lib/bats/load.bash'
-# Uncomment to use these libraries once installed:
-# load '/usr/local/lib/bats-support/load.bash'
-# load '/usr/local/lib/bats-assert/load.bash'
-# load '/usr/local/lib/bats-file/load.bash'
-
 # Set up project-specific paths
 # Use absolute paths to ensure tests work from any directory
 STP_PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"

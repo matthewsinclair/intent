@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # Tests for the bootstrap script
 
-load '../lib/test_helper'
+load '../lib/test_helper.bash'
 
 # Setup test environment before each test
 setup() {

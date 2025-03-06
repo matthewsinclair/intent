@@ -105,12 +105,26 @@ info "Running STP Tests"
 info "================="
 info "STP Root: $STP_ROOT_DIR"
 info "Test Path: $TEST_PATH"
+info "Bats Path: $(which bats 2>/dev/null || echo 'Not found')"
+
+# Check for required libraries
+if [ ! -d "$SCRIPT_DIR/lib/bats-support" ] || [ ! -d "$SCRIPT_DIR/lib/bats-assert" ] || [ ! -d "$SCRIPT_DIR/lib/bats-file" ]; then
+  warning "Some Bats libraries are missing. Running setup_test_env.sh to install them..."
+  
+  # Run setup_test_env if it exists and is executable
+  if [ -x "$SCRIPT_DIR/setup_test_env.sh" ]; then
+    "$SCRIPT_DIR/setup_test_env.sh"
+  else
+    warning "setup_test_env.sh not found or not executable. Please run it manually to set up dependencies."
+  fi
+fi
+
 echo ""
 
 # Run the tests
 if [[ -d "$TEST_PATH" ]]; then
-  # If directory, run all .bats files in it
-  find "$TEST_PATH" -name "*.bats" | sort | while read -r test_file; do
+  # If directory, run all .bats files in it, excluding the lib directory
+  find "$TEST_PATH" -name "*.bats" | grep -v "/lib/" | sort | while read -r test_file; do
     info "Running test file: $(basename "$test_file")"
     if bats "$test_file"; then
       success "✓ $(basename "$test_file") passed"

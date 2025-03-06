@@ -85,10 +85,14 @@ fi
 # Install Bats libraries
 info "Installing Bats libraries..."
 
+# Create lib directory if it doesn't exist
+mkdir -p "$SCRIPT_DIR/lib"
+
 # Bats Support
 if [ -d "$SCRIPT_DIR/lib/bats-support" ]; then
   info "Bats Support is already installed"
 else
+  info "Installing bats-support..."
   git clone https://github.com/bats-core/bats-support.git "$SCRIPT_DIR/lib/bats-support" || error "Failed to clone bats-support"
   success "Bats Support installed successfully"
 fi
@@ -97,6 +101,7 @@ fi
 if [ -d "$SCRIPT_DIR/lib/bats-assert" ]; then
   info "Bats Assert is already installed"
 else
+  info "Installing bats-assert..."
   git clone https://github.com/bats-core/bats-assert.git "$SCRIPT_DIR/lib/bats-assert" || error "Failed to clone bats-assert"
   success "Bats Assert installed successfully"
 fi
@@ -105,8 +110,40 @@ fi
 if [ -d "$SCRIPT_DIR/lib/bats-file" ]; then
   info "Bats File is already installed"
 else
+  info "Installing bats-file..."
   git clone https://github.com/bats-core/bats-file.git "$SCRIPT_DIR/lib/bats-file" || error "Failed to clone bats-file"
   success "Bats File installed successfully"
+fi
+
+# Print information about the bats installation
+info ""
+info "Bats installation details:"
+if command -v bats &> /dev/null; then
+  BATS_PATH=$(command -v bats)
+  info "  Bats executable: $BATS_PATH"
+  
+  # Try to find the load.bash file
+  if command -v brew &> /dev/null && brew --prefix bats-core &> /dev/null; then
+    BREW_PREFIX=$(brew --prefix bats-core)
+    if [ -f "$BREW_PREFIX/lib/bats-core/load.bash" ]; then
+      info "  Bats load.bash: $BREW_PREFIX/lib/bats-core/load.bash"
+    fi
+  fi
+  
+  # Check for other common locations
+  for path in \
+    "/usr/local/lib/bats/load.bash" \
+    "/usr/lib/bats/load.bash" \
+    "/opt/homebrew/lib/bats-core/load.bash" \
+    "/usr/local/lib/bats-core/load.bash"
+  do
+    if [ -f "$path" ]; then
+      info "  Bats load.bash: $path"
+      break
+    fi
+  done
+else
+  warning "  Bats executable not found in PATH"
 fi
 
 # Update test_helper.bash to use local libraries

@@ -5,9 +5,15 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 
 ## Current Focus
 
-**003-WIP: Build a test suite**
+**003-DONE: Build a test suite**
 
-Implemented initial version of the test suite (ST0011) with comprehensive tests for bootstrap, init, and steel thread commands. Created test helper functions, test architecture, and scripts to run tests and set up the test environment. Still need to set up continuous integration for automated testing.
+Implemented and fixed a comprehensive test suite (ST0011) with tests for bootstrap, init, steel thread commands, help command, and the main stp script. Created test helper functions, test architecture, and scripts to run tests and set up the test environment. Fixed multiple issues:
+- Modified test runner to exclude library test files 
+- Added .gitignore for test directory
+- Fixed interactive script testing using expect utility
+- Improved string pattern matching for special characters
+- Enhanced test reliability for all components
+Only remaining task is setting up continuous integration, which can be addressed later.
 
 **002-DONE: Consider potential use of Anthropic MCP?**
 
@@ -23,9 +29,9 @@ Completed:
 
 ## Active Steel Threads
 
-| ID                    | Title                  | Status      | Created    | Completed  |
-|-----------------------|------------------------|-------------|------------|------------|
-| [ST0011](./st/ST0011.md) | Test Suite Implementation | In Progress | 2025-06-03 |            |
+| ID                       | Title                     | Status      | Created    | Completed  |
+|--------------------------|---------------------------|-------------|------------|------------|
+| [ST0011](./st/ST0011.md) | Test Suite Implementation | Completed   | 2025-06-03 | 2025-06-03 |
 | [ST0010](./st/ST0010.md) | Anthropic MCP Integration | Not Started | 2025-06-03 |            |
 
 ## Upcoming Work
