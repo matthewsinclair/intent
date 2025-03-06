@@ -5,6 +5,13 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 
 ## Current Focus
 
+**004-DONE: Updated project documentation**
+
+Updated all project documentation to reflect current status:
+- Updated steel_threads.md to show ST0011 as completed and ST0010 as on hold
+- Ensured all steel thread documents have the correct status
+- Updated wip.md and journal.md to reflect current state
+
 **003-DONE: Build a test suite**
 
 Implemented and fixed a comprehensive test suite (ST0011) with tests for bootstrap, init, steel thread commands, help command, and the main stp script. Created test helper functions, test architecture, and scripts to run tests and set up the test environment. Fixed multiple issues:
@@ -17,7 +24,7 @@ Only remaining task is setting up continuous integration, which can be addressed
 
 **002-DONE: Consider potential use of Anthropic MCP?**
 
-Created ST0010 to explore the potential use of Anthropic's Machine Control Protocol (MCP) for allowing STP scripts to interact with LLMs in a more controlled manner. This is low priority work that can be addressed later.
+Created ST0010 to explore the potential use of Anthropic's Machine Control Protocol (MCP) for allowing STP scripts to interact with LLMs in a more controlled manner. This work is now on hold and can be addressed later as needed.
 
 **001-DONE: Updating directory references from "doc" to "stp"**
 
@@ -31,8 +38,22 @@ Completed:
 
 | ID                       | Title                     | Status      | Created    | Completed  |
 |--------------------------|---------------------------|-------------|------------|------------|
+| [ST0010](./st/ST0010.md) | Anthropic MCP Integration | On Hold     | 2025-06-03 |            |
+
+## Completed Steel Threads
+
+| ID                       | Title                     | Status      | Created    | Completed  |
+|--------------------------|---------------------------|-------------|------------|------------|
 | [ST0011](./st/ST0011.md) | Test Suite Implementation | Completed   | 2025-06-03 | 2025-06-03 |
-| [ST0010](./st/ST0010.md) | Anthropic MCP Integration | Not Started | 2025-06-03 |            |
+| [ST0009](./st/ST0009.md) | Process Refinement        | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0008](./st/ST0008.md) | LLM Integration           | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0007](./st/ST0007.md) | User Documentation        | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0006](./st/ST0006.md) | Help System               | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0005](./st/ST0005.md) | Initialization Command    | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0004](./st/ST0004.md) | Steel Thread Commands     | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0003](./st/ST0003.md) | Template System           | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0002](./st/ST0002.md) | Core Script Framework     | Completed   | 2025-03-06 | 2025-06-03 |
+| [ST0001](./st/ST0001.md) | Directory Structure       | Completed   | 2025-03-06 | 2025-06-03 |
 
 ## Upcoming Work
 
@@ -54,10 +75,10 @@ This document captures the current state of development on the Steel Thread Proj
 
 ### Next Steps
 
-1. Complete ST0011 by setting up continuous integration for test automation
-2. Research and document MCP capabilities for ST0010
-3. Update the technical product design with test suite information
-4. Create documentation for running and extending the test suite
+1. Set up continuous integration for test automation (remaining task from ST0011)
+2. Consider implementing configuration settings for customizing STP behavior
+3. Explore version control integration features
+4. Develop additional canned prompts for common tasks
 
 ### Questions to Address
 
