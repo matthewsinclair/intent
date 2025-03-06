@@ -9,11 +9,11 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 
 We need to build a test suite that can be run in the STP project to test that bootstrap and init work as expected. Please create a new ST for this work.
 
-**002-TODO: Consider potential use of Anthropic MCP? - New, to be done**
+**002-TODO: Consider potential use of Anthropic MCP?**
 
 Given that we have the potential for some of the STP scripts to need to invoke an LLM is there an option here to create an MCP implementation (or proxy or whatever) so that we can more robustly have the LLM control itself in a controlled manner? For example, in the case of the "$ stp st done STID" command, is that something that we could parameterise (via the steel thread id) and then have the LLM call itself using an MCP interaction? Would that work? Hmm. 🤔 Please create a new ST for this work, but this is low priority for now and can be done later.
 
-**001-DONE: Updating directory references from "doc" to "stp" - Done**
+**001-DONE: Updating directory references from "doc" to "stp"**
 
 Completed:
 
