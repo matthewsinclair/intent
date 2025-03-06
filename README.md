@@ -1,6 +1,6 @@
 # prj-stp
 
-[![STP Tests](https://github.com/username/STP/actions/workflows/tests.yml/badge.svg)](https://github.com/username/STP/actions/workflows/tests.yml)
+[![STP Tests](https://github.com/matthewsinclair/STP/actions/workflows/tests.yml/badge.svg)](https://github.com/matthewsinclair/STP/actions/workflows/tests.yml)
 
 STP - A steel thread process for helping LLMs help you work with your code
 
