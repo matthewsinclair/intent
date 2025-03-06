@@ -1,0 +1,138 @@
+#!/bin/bash
+# bootstrap - Create STP directory structure and initial files
+# 
+# This is a standalone script that does not require the stp command.
+# It bootstraps the entire STP directory structure and creates initial files.
+#
+# Usage: ./bootstrap [author]
+
+# Exit on error
+set -e
+
+# Function to display error messages
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
+# Get author name (default to git config or current user)
+AUTHOR="${1:-$(git config user.name 2>/dev/null || echo "$USER")}"
+DATE="$(date '+%d %b %Y')"
+
+echo "Creating STP directory structure with author: $AUTHOR"
+
+# Create directory structure
+mkdir -p {doc/{_templ/{prj/st,eng/tpd,usr,llm},bin/.help,prj/st,eng/tpd,usr,llm},bin}
+
+# Function to create a markdown file with propblock
+create_md_file() {
+  local file="$1"
+  local title="$2"
+  
+  mkdir -p "$(dirname "$file")"
+  
+  cat > "$file" << EOF
+---
+verblock: "$DATE:v0.1: $AUTHOR - Initial version"
+---
+# $title
+EOF
+
+  echo "Created: $file"
+}
+
+# Function to create a template markdown file with generic title
+create_template_md_file() {
+  local file="$1"
+  local title="$2"
+  
+  mkdir -p "$(dirname "$file")"
+  
+  cat > "$file" << EOF
+---
+verblock: "$DATE:v0.1: $AUTHOR - Initial version"
+---
+# $title
+
+[Generic template content - replace with project-specific information]
+EOF
+
+  echo "Created template: $file"
+}
+
+# Create template files
+create_template_md_file "doc/_templ/prj/_wip.md" "Work In Progress Template"
+create_template_md_file "doc/_templ/prj/_journal.md" "Journal Template"
+create_template_md_file "doc/_templ/prj/st/_steel_threads.md" "Steel Threads Index Template"
+create_template_md_file "doc/_templ/prj/st/_ST####.md" "Steel Thread Template"
+
+create_template_md_file "doc/_templ/eng/tpd/_technical_product_design.md" "Technical Product Design Template"
+create_template_md_file "doc/_templ/eng/tpd/_1_introduction.md" "Introduction Template"
+create_template_md_file "doc/_templ/eng/tpd/_2_requirements.md" "Requirements Template"
+create_template_md_file "doc/_templ/eng/tpd/_3_architecture.md" "Architecture Template"
+create_template_md_file "doc/_templ/eng/tpd/_4_detailed_design.md" "Detailed Design Template"
+create_template_md_file "doc/_templ/eng/tpd/_5_implementation_strategy.md" "Implementation Strategy Template"
+create_template_md_file "doc/_templ/eng/tpd/_6_deployment_and_operations.md" "Deployment and Operations Template"
+create_template_md_file "doc/_templ/eng/tpd/_7_technical_challenges_and_mitigations.md" "Technical Challenges and Mitigations Template"
+create_template_md_file "doc/_templ/eng/tpd/_8_appendices.md" "Appendices Template"
+
+create_template_md_file "doc/_templ/usr/_user_guide.md" "User Guide Template"
+create_template_md_file "doc/_templ/usr/_reference_guide.md" "Reference Guide Template"
+create_template_md_file "doc/_templ/usr/_deployment_guide.md" "Deployment Guide Template"
+
+create_template_md_file "doc/_templ/llm/_llm_preamble.md" "LLM Preamble Template"
+
+# Create project files
+create_md_file "doc/prj/wip.md" "Work In Progress"
+create_md_file "doc/prj/journal.md" "Project Journal"
+create_md_file "doc/prj/st/steel_threads.md" "Steel Threads"
+create_md_file "doc/prj/st/ST0001.md" "ST0001: Directory Structure"
+create_md_file "doc/prj/st/ST0002.md" "ST0002: Core Script Framework"
+
+# Create engineering files
+create_md_file "doc/eng/tpd/technical_product_design.md" "Technical Product Design"
+create_md_file "doc/eng/tpd/1_introduction.md" "Introduction"
+create_md_file "doc/eng/tpd/2_requirements.md" "Requirements"
+create_md_file "doc/eng/tpd/3_architecture.md" "Architecture"
+create_md_file "doc/eng/tpd/4_detailed_design.md" "Detailed Design"
+create_md_file "doc/eng/tpd/5_implementation_strategy.md" "Implementation Strategy"
+create_md_file "doc/eng/tpd/6_deployment_and_operations.md" "Deployment and Operations"
+create_md_file "doc/eng/tpd/7_technical_challenges_and_mitigations.md" "Technical Challenges and Mitigations"
+create_md_file "doc/eng/tpd/8_appendices.md" "Appendices"
+
+# Create user files
+create_md_file "doc/usr/user_guide.md" "User Guide"
+create_md_file "doc/usr/reference_guide.md" "Reference Guide"
+create_md_file "doc/usr/deployment_guide.md" "Deployment Guide"
+
+# Create LLM files
+create_md_file "doc/llm/llm_preamble.md" "LLM Preamble"
+
+# Create help files
+create_md_file "doc/bin/.help/init.help.md" "init"
+create_md_file "doc/bin/.help/st.help.md" "st"
+create_md_file "doc/bin/.help/help.help.md" "help"
+
+# Create script files (just placeholders, not executable yet)
+touch bin/stp
+touch bin/stp_init
+touch bin/stp_st
+touch bin/stp_help
+touch bin/bootstrap
+
+# Also create copies in doc/bin
+touch doc/bin/stp
+touch doc/bin/stp_init
+touch doc/bin/stp_st
+touch doc/bin/stp_help
+touch doc/bin/bootstrap
+
+# Make script files executable
+echo "You'll need to add content to the scripts and make them executable with: chmod +x bin/stp* doc/bin/stp*"
+
+echo ""
+echo "STP bootstrap complete! Directory structure and placeholder files created."
+echo "Next steps:"
+echo "1. Add content to the template files in doc/_templ/"
+echo "2. Implement the script files in bin/ and doc/bin/"
+echo "3. Make script files executable with: chmod +x bin/stp* doc/bin/stp*"

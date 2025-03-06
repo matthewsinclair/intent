@@ -1,0 +1,40 @@
+---
+verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
+---
+# Technical Product Design
+
+## Preamble to Claude
+
+This document is a Technical Product Design (TPD) for the Steel Thread Project (STP) system. When processing this document, please understand:
+
+1. This is a comprehensive technical specification for a shell-script and markdown-based system
+2. The system is designed to facilitate collaboration between developers and LLMs
+3. The document contains:
+   - System architecture and design principles
+   - Process descriptions
+   - Template structures
+   - Implementation details for existing code
+   - Future development plans
+
+4. The code is developed through "steel threads" which are incremental implementation stages
+5. The system consists primarily of shell scripts and markdown templates
+6. The system is designed to integrate with existing development workflows
+
+# Steel Thread Project Technical Product Design
+
+This document serves as the central index for the Technical Product Design (TPD) of the Steel Thread Project (STP) system. The TPD is organized into sections that detail the architecture, implementation, and roadmap for the system.
+
+## Table of Contents
+
+1. [Introduction](./1_introduction.md)
+2. [Requirements](./2_requirements.md)
+3. [Architecture](./3_architecture.md)
+4. [Detailed Design](./4_detailed_design.md)
+5. [Implementation Strategy](./5_implementation_strategy.md)
+6. [Deployment and Operations](./6_deployment_and_operations.md)
+7. [Technical Challenges and Mitigations](./7_technical_challenges_and_mitigations.md)
+8. [Appendices](./8_appendices.md)
+
+## Links
+
+[Steel Threads](../../prj/st/steel_threads.md)

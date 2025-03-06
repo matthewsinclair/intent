@@ -1,0 +1,79 @@
+#!/bin/bash
+# stp - Steel Thread Project main script
+# Usage: stp <command> [options] [arguments]
+
+# Exit on error
+set -e
+
+# Function to display error messages
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
+# Determine STP_HOME if not set
+if [ -z "$STP_HOME" ]; then
+  # First try to determine from the script location
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [ -d "$SCRIPT_DIR/../_templ" ]; then
+    # We're likely in the bin directory of an STP installation
+    export STP_HOME="$(cd "$SCRIPT_DIR/.." && pwd)"
+  elif [ -d "$SCRIPT_DIR/../../doc/_templ" ]; then
+    # We're in the bin directory under doc
+    export STP_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
+  else
+    # Try to find STP in common locations
+    for dir in ~/stp ~/.stp /usr/local/stp; do
+      if [ -d "$dir" ]; then
+        export STP_HOME="$dir"
+        break
+      fi
+    done
+  fi
+  
+  # If still not found, error out
+  if [ -z "$STP_HOME" ]; then
+    error "Could not determine STP_HOME. Please set it manually."
+  fi
+fi
+
+# Check if bin directory exists
+if [ ! -d "$STP_HOME/doc/bin" ] && [ ! -d "$STP_HOME/bin" ]; then
+  error "Invalid STP_HOME: bin directory not found at $STP_HOME/doc/bin or $STP_HOME/bin"
+fi
+
+# Determine bin directory location
+if [ -d "$STP_HOME/doc/bin" ]; then
+  BIN_DIR="$STP_HOME/doc/bin"
+else
+  BIN_DIR="$STP_HOME/bin"
+fi
+
+# Display help if no arguments provided
+if [ $# -eq 0 ]; then
+  exec "$BIN_DIR/stp_help"
+fi
+
+# Get the command
+COMMAND="$1"
+shift
+
+# Handle help command specially
+if [ "$COMMAND" = "help" ]; then
+  exec "$BIN_DIR/stp_help" "$@"
+fi
+
+# Check if command script exists
+COMMAND_SCRIPT="$BIN_DIR/stp_$COMMAND"
+if [ ! -f "$COMMAND_SCRIPT" ]; then
+  error "Unknown command '$COMMAND'. Run 'stp help' for usage information."
+fi
+
+# Check if script is executable
+if [ ! -x "$COMMAND_SCRIPT" ]; then
+  echo "Warning: Making script executable: $COMMAND_SCRIPT" >&2
+  chmod +x "$COMMAND_SCRIPT"
+fi
+
+# Execute command with remaining arguments
+exec "$COMMAND_SCRIPT" "$@"

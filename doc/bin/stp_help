@@ -1,0 +1,85 @@
+#!/bin/bash
+# stp_help - Display help for STP commands
+# Usage: stp_help [command]
+
+# Exit on error
+set -e
+
+# Function to display error messages
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
+# Check if STP_HOME is set
+if [ -z "$STP_HOME" ]; then
+  error "STP_HOME environment variable is not set"
+fi
+
+# Display command-specific help
+if [ $# -eq 1 ]; then
+  COMMAND="$1"
+  HELP_FILE="$STP_HOME/doc/bin/.help/$COMMAND.help.md"
+  
+  if [ -f "$HELP_FILE" ]; then
+    # Display help file
+    cat "$HELP_FILE"
+  else
+    # Check if command exists but doesn't have help
+    COMMAND_SCRIPT="$STP_HOME/doc/bin/stp_$COMMAND"
+    if [ -f "$COMMAND_SCRIPT" ]; then
+      echo "No help available for command '$COMMAND'"
+      echo ""
+      echo "Usage information may be available by running:"
+      echo "  $COMMAND_SCRIPT --help"
+    else
+      error "Unknown command '$COMMAND'"
+    fi
+  fi
+  exit 0
+fi
+
+# Display general help
+cat << EOF
+STP - Steel Thread Project
+
+A system for structured development and documentation with LLM collaboration.
+
+Usage: stp <command> [options] [arguments]
+
+Available commands:
+EOF
+
+# Find all stp_* commands in doc/bin directory
+for script in "$STP_HOME"/doc/bin/stp_*; do
+  if [ -f "$script" ]; then
+    # Extract command name from script name (remove stp_ prefix)
+    cmd_name=$(basename "$script" | sed 's/^stp_//')
+    
+    # Construct help file path
+    help_file="$STP_HOME/doc/bin/.help/$cmd_name.help.md"
+    
+    # Get short description from help file if it exists
+    if [ -f "$help_file" ]; then
+      # Extract text between @short: and the next section (@)
+      # Properly handle multiline descriptions by joining them with spaces
+      short_desc=$(awk '/^@short:/{flag=1; next} /^@/{if(flag){flag=0}} flag' "$help_file" | \
+                   awk '{$1=$1}1' | \
+                   tr '\n' ' ' | \
+                   sed 's/^ *//; s/ *$//')
+      printf "  %-6s %s\n" "$cmd_name" "$short_desc"
+    else
+      printf "  %-6s %s\n" "$cmd_name" "No description available"
+    fi
+  fi
+done
+
+cat << EOF
+
+For more information on a specific command, run:
+  stp help <command>
+
+For complete documentation, see:
+  doc/usr/user_guide.md       - Task-based guide for users
+  doc/usr/reference_guide.md  - Complete reference for all features
+EOF

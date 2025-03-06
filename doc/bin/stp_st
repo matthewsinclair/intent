@@ -1,0 +1,362 @@
+#!/bin/bash
+# stp_st - Manage steel threads
+# Usage: stp_st <command> [options] [arguments]
+
+# Exit on error
+set -e
+
+# Function to display error messages
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
+# Function to display usage information
+usage() {
+  echo "Usage: stp st <command> [options] [arguments]"
+  echo ""
+  echo "Manage steel threads for the project"
+  echo ""
+  echo "Commands:"
+  echo "  new <title>              Create a new steel thread"
+  echo "  done <id>                Mark a steel thread as complete"
+  echo "  list [--status <status>] List all steel threads"
+  echo "  show <id>                Show details of a specific steel thread"
+  echo "  edit <id>                Open a steel thread in your default editor"
+  echo ""
+  echo "Examples:"
+  echo "  stp st new \"Implement Feature X\""
+  echo "  stp st done ST0001"
+  echo "  stp st list --status \"In Progress\""
+  echo "  stp st show ST0001"
+  echo "  stp st edit 1"
+  exit 1
+}
+
+# Check for required arguments
+if [ $# -lt 1 ]; then
+  error "Steel thread command is required"
+  usage
+fi
+
+# Load project configuration if available
+if [ -f .stp-config ]; then
+  source .stp-config
+fi
+
+# Get command
+ST_COMMAND="$1"
+shift
+
+# Function to get the next steel thread ID
+get_next_steel_thread_id() {
+  local st_prefix="${ST_PREFIX:-ST}"
+  local st_dir="doc/prj/st"
+  local next_id=1
+  
+  # Find the highest existing ID
+  if [ -d "$st_dir" ] && [ "$(ls -A "$st_dir" 2>/dev/null)" ]; then
+    for file in "$st_dir"/$st_prefix*.md; do
+      if [ -f "$file" ]; then
+        # Extract numeric part of filename
+        local id_str=$(basename "$file" .md)
+        id_str=${id_str#$st_prefix}
+        
+        # Convert to number and compare
+        if [[ "$id_str" =~ ^[0-9]+$ ]]; then
+          local id=$((10#$id_str))
+          if [ $id -ge $next_id ]; then
+            next_id=$((id + 1))
+          fi
+        fi
+      fi
+    done
+  fi
+  
+  # Format with leading zeros (4 digits)
+  printf "%s%04d" "$st_prefix" $next_id
+}
+
+# Function to update steel threads index
+update_steel_threads_index() {
+  local id="$1"
+  local title="$2"
+  local status="$3"
+  local created="$4"
+  local completed="$5"
+  local index_file="doc/prj/st/steel_threads.md"
+  
+  # Create index file if it doesn't exist
+  if [ ! -f "$index_file" ]; then
+    mkdir -p "$(dirname "$index_file")"
+    cat > "$index_file" << EOF
+# Steel Threads
+
+This document serves as an index of all steel threads in the project.
+
+## Index
+
+| ID | Title | Status | Created | Completed |
+|----|-------|--------|---------|-----------|
+EOF
+  fi
+  
+  # Check if entry already exists
+  if grep -q "^| $id " "$index_file"; then
+    # Update existing entry
+    sed -i.bak "s/^| $id .*$/| $id | $title | $status | $created | $completed |/" "$index_file"
+    rm -f "$index_file.bak"
+  else
+    # Add new entry
+    echo "| $id | $title | $status | $created | $completed |" >> "$index_file"
+  fi
+}
+
+# Handle different commands
+case "$ST_COMMAND" in
+  "new")
+    # Check for required arguments
+    if [ $# -lt 1 ]; then
+      error "Steel thread title is required"
+      usage
+    fi
+    
+    TITLE="$1"
+    ST_ID=$(get_next_steel_thread_id)
+    ST_FILE="doc/prj/st/$ST_ID.md"
+    DATE=$(date '+%Y-%m-%d')
+    AUTHOR="${STP_AUTHOR:-${AUTHOR:-$(git config user.name 2>/dev/null || echo "$USER")}}"
+    
+    # Create directory if it doesn't exist
+    mkdir -p "doc/prj/st"
+    
+    # Create steel thread file from template
+    if [ -f "doc/_templ/prj/st/_ST####.md" ]; then
+      sed -e "s/ST####/$ST_ID/g" \
+          -e "s/\[Title\]/$TITLE/g" \
+          -e "s/\[Not Started|In Progress|Completed|On Hold|Cancelled\]/Not Started/g" \
+          -e "s/YYYY-MM-DD/$DATE/g" \
+          -e "s/\[Author Name\]/$AUTHOR/g" \
+          "doc/_templ/prj/st/_ST####.md" > "$ST_FILE"
+    else
+      # Create file without template
+      cat > "$ST_FILE" << EOF
+# $ST_ID: $TITLE
+
+- **Status**: Not Started
+- **Created**: $DATE
+- **Completed**: 
+- **Author**: $AUTHOR
+
+## Objective
+[Clear statement of what this steel thread aims to accomplish]
+
+## Context
+[Background information and context for this steel thread]
+
+## Approach
+[Planned approach for implementing this steel thread]
+
+## Tasks
+- [ ] Task 1
+- [ ] Task 2
+- [ ] Task 3
+
+## Implementation Notes
+[Notes on implementation details, decisions, challenges, etc.]
+
+## Results
+[Summary of results after completion]
+
+## Related Steel Threads
+- [List any related steel threads here]
+EOF
+    fi
+    
+    # Update index
+    update_steel_threads_index "$ST_ID" "$TITLE" "Not Started" "$DATE" ""
+    
+    echo "Created steel thread: $ST_ID: $TITLE"
+    echo "Edit file: $ST_FILE"
+    ;;
+    
+  "done")
+    # Check for required arguments
+    if [ $# -lt 1 ]; then
+      error "Steel thread ID is required"
+      usage
+    fi
+    
+    # Process the steel thread ID
+    ST_ID="$1"
+    
+    # If just a number is provided, format it as ST#### (with leading zeros)
+    if [[ "$ST_ID" =~ ^[0-9]+$ ]]; then
+      ST_ID=$(printf "ST%04d" "$ST_ID")
+    # If the ID doesn't start with ST, prepend it
+    elif [[ ! "$ST_ID" =~ ^ST ]]; then
+      ST_ID="ST$ST_ID"
+    fi
+    
+    ST_FILE="doc/prj/st/$ST_ID.md"
+    DATE=$(date '+%Y-%m-%d')
+    
+    # Check if steel thread exists
+    if [ ! -f "$ST_FILE" ]; then
+      error "Steel thread not found: $ST_ID"
+    fi
+    
+    # Extract title
+    TITLE=$(grep "^# $ST_ID:" "$ST_FILE" | sed "s/^# $ST_ID: //")
+    
+    # Update status and completion date
+    sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: Completed/" "$ST_FILE"
+    sed -i.bak "s/^\- \*\*Completed\*\*: .*$/- **Completed**: $DATE/" "$ST_FILE"
+    rm -f "$ST_FILE.bak"
+    
+    # Update index
+    update_steel_threads_index "$ST_ID" "$TITLE" "Completed" "$(grep '^\- \*\*Created\*\*:' "$ST_FILE" | sed 's/^\- \*\*Created\*\*: //')" "$DATE"
+    
+    echo "Marked steel thread as complete: $ST_ID: $TITLE"
+    ;;
+    
+  "list")
+    # Parse options
+    STATUS=""
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --status)
+          shift
+          STATUS="$1"
+          shift
+          ;;
+        *)
+          error "Unknown option: $1"
+          ;;
+      esac
+    done
+    
+    INDEX_FILE="doc/prj/st/steel_threads.md"
+    
+    # Check if index file exists
+    if [ ! -f "$INDEX_FILE" ]; then
+      error "Steel threads index not found"
+    fi
+    
+    # Display steel threads in a formatted table
+    if [ -n "$STATUS" ]; then
+      printf "%-10s | %-30s | %-15s | %-10s | %-10s\n" "ID" "Title" "Status" "Created" "Completed"
+      printf "%-10s-|-%-30s-|-%-15s-|-%-10s-|-%-10s\n" "----------" "------------------------------" "---------------" "----------" "----------"
+      grep "^| \[ST" "$INDEX_FILE" | grep "$STATUS" | sed 's/| \[ST\([0-9]*\)\](.*) |/| ST\1 |/' | 
+      while read line; do
+        ID=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
+        TITLE=$(echo "$line" | awk -F'|' '{print $3}' | xargs)
+        STATUS=$(echo "$line" | awk -F'|' '{print $4}' | xargs)
+        CREATED=$(echo "$line" | awk -F'|' '{print $5}' | xargs)
+        COMPLETED=$(echo "$line" | awk -F'|' '{print $6}' | xargs)
+        printf "%-10s | %-30s | %-15s | %-10s | %-10s\n" "$ID" "$TITLE" "$STATUS" "$CREATED" "$COMPLETED"
+      done
+    else
+      printf "%-10s | %-30s | %-15s | %-10s | %-10s\n" "ID" "Title" "Status" "Created" "Completed"
+      printf "%-10s-|-%-30s-|-%-15s-|-%-10s-|-%-10s\n" "----------" "------------------------------" "---------------" "----------" "----------"
+      grep "^| \[ST" "$INDEX_FILE" | sed 's/| \[ST\([0-9]*\)\](.*) |/| ST\1 |/' | 
+      while read line; do
+        ID=$(echo "$line" | awk -F'|' '{print $2}' | xargs)
+        TITLE=$(echo "$line" | awk -F'|' '{print $3}' | xargs)
+        STATUS=$(echo "$line" | awk -F'|' '{print $4}' | xargs)
+        CREATED=$(echo "$line" | awk -F'|' '{print $5}' | xargs)
+        COMPLETED=$(echo "$line" | awk -F'|' '{print $6}' | xargs)
+        printf "%-10s | %-30s | %-15s | %-10s | %-10s\n" "$ID" "$TITLE" "$STATUS" "$CREATED" "$COMPLETED"
+      done
+    fi
+    ;;
+    
+  "show")
+    # Check for required arguments
+    if [ $# -lt 1 ]; then
+      error "Steel thread ID is required"
+      usage
+    fi
+    
+    # Process the steel thread ID
+    ST_ID="$1"
+    
+    # If just a number is provided, format it as ST#### (with leading zeros)
+    if [[ "$ST_ID" =~ ^[0-9]+$ ]]; then
+      ST_ID=$(printf "ST%04d" "$ST_ID")
+    # If the ID doesn't start with ST, prepend it
+    elif [[ ! "$ST_ID" =~ ^ST ]]; then
+      ST_ID="ST$ST_ID"
+    fi
+    
+    ST_FILE="doc/prj/st/$ST_ID.md"
+    
+    # Check if steel thread exists
+    if [ ! -f "$ST_FILE" ]; then
+      error "Steel thread not found: $ST_ID"
+    fi
+    
+    # Display steel thread contents
+    cat "$ST_FILE"
+    ;;
+    
+  "edit")
+    # Check for required arguments
+    if [ $# -lt 1 ]; then
+      error "Steel thread ID is required"
+      usage
+    fi
+    
+    # Process the steel thread ID
+    ST_ID="$1"
+    
+    # If just a number is provided, format it as ST#### (with leading zeros)
+    if [[ "$ST_ID" =~ ^[0-9]+$ ]]; then
+      ST_ID=$(printf "ST%04d" "$ST_ID")
+    # If the ID doesn't start with ST, prepend it
+    elif [[ ! "$ST_ID" =~ ^ST ]]; then
+      ST_ID="ST$ST_ID"
+    fi
+    
+    ST_FILE="doc/prj/st/$ST_ID.md"
+    
+    # Check if steel thread exists
+    if [ ! -f "$ST_FILE" ]; then
+      error "Steel thread not found: $ST_ID"
+    fi
+    
+    # Get absolute path to the file
+    ABSOLUTE_PATH=$(cd "$(dirname "$ST_FILE")" && pwd)/$(basename "$ST_FILE")
+    
+    # Use the appropriate open command based on the OS
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      # macOS
+      open "$ABSOLUTE_PATH"
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+      # Linux
+      if command -v xdg-open > /dev/null; then
+        xdg-open "$ABSOLUTE_PATH"
+      else
+        # Fallback to default editor
+        ${EDITOR:-vi} "$ABSOLUTE_PATH"
+      fi
+    elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+      # Windows
+      start "$ABSOLUTE_PATH"
+    else
+      # Fallback to default editor
+      ${EDITOR:-vi} "$ABSOLUTE_PATH"
+    fi
+    
+    echo "Opening steel thread: $ST_ID"
+    ;;
+    
+  "help")
+    usage
+    ;;
+    
+  *)
+    error "Unknown command: $ST_COMMAND"
+    usage
+    ;;
+esac
