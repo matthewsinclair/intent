@@ -23,16 +23,15 @@ Completed:
 
 ## Active Steel Threads
 
-- ST0001: Directory Structure - Creating the initial directory structure and placeholder files
-- ST0002: Core Script Framework - Implementing the main `stp` script and command dispatching
+| ID                    | Title                  | Status      | Created    | Completed  |
+|-----------------------|------------------------|-------------|------------|------------|
+| None                  |                        |             |            |            |
 
 ## Upcoming Work
 
-- Create the template system (ST0003)
-- Implement steel thread commands (ST0004)
-- Finalize the initialization command (ST0005)
-- Complete the help system (ST0006)
-- Develop user documentation (ST0007)
+| ID                    | Title                  | Status      | Created    | Completed  |
+|-----------------------|------------------------|-------------|------------|------------|
+| None                  |                        |             |            |            |
 
 ## Notes
 
