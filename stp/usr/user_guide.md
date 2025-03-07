@@ -1,5 +1,6 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
+stp_version: 1.0.0
 ---
 # User Guide
 
@@ -231,6 +232,43 @@ Tests are organized by component:
 - `st_test.bats`: Tests for steel thread commands
 - `help_test.bats`: Tests for help system
 - `main_test.bats`: Tests for main script
+
+## Upgrading STP
+
+When new versions of STP are released, you may need to upgrade your existing STP projects to ensure compatibility with the latest features.
+
+### Running the Upgrade Command
+
+To upgrade all STP files in your project to the latest format:
+
+```bash
+stp upgrade
+```
+
+This command:
+- Updates metadata in all STP files
+- Adds or updates YAML frontmatter
+- Ensures files follow the current format standards
+- Adds section markers for automatic sync
+
+### Forcing Upgrades
+
+For major version differences, the upgrade command will warn you before proceeding. To force the upgrade:
+
+```bash
+stp upgrade --force
+```
+
+### After Upgrading
+
+After upgrading, it's a good practice to:
+
+1. Review updated files to ensure everything looks correct
+2. Run a sync to update the steel threads index:
+   ```bash
+   stp st sync --write
+   ```
+3. Commit the changes if you're using version control
 
 ## Troubleshooting
 

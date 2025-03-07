@@ -18,18 +18,16 @@ usage() {
   echo "Manage steel threads for the project"
   echo ""
   echo "Commands:"
-  echo "  new <title>                       Create a new steel thread"
-  echo "  done <id>                         Mark a steel thread as complete"
-  echo "  list [--status <status>] [--width N] List all steel threads"
-  echo "  sync [--write] [--width N]        Synchronize steel_threads.md with individual ST files"
-  echo "  show <id>                         Show details of a specific steel thread"
-  echo "  edit <id>                         Open a steel thread in your default editor"
+  echo "  new <title>              Create a new steel thread"
+  echo "  done <id>                Mark a steel thread as complete"
+  echo "  list [--status <status>] List all steel threads"
+  echo "  show <id>                Show details of a specific steel thread"
+  echo "  edit <id>                Open a steel thread in your default editor"
   echo ""
   echo "Examples:"
   echo "  stp st new \"Implement Feature X\""
   echo "  stp st done ST0001"
-  echo "  stp st list --status \"In Progress\" --width 100"
-  echo "  stp st sync --write --width 100"
+  echo "  stp st list --status \"In Progress\""
   echo "  stp st show ST0001"
   echo "  stp st edit 1"
   exit 1
@@ -137,27 +135,15 @@ case "$ST_COMMAND" in
     
     # Create steel thread file from template
     if [ -f "stp/_templ/prj/st/_ST####.md" ]; then
-      # Format date in both formats - YYYY-MM-DD for display and YYYYMMDD for frontmatter
-      DATE_COMPACT=$(date '+%Y%m%d')
-      
       sed -e "s/ST####/$ST_ID/g" \
           -e "s/\[Title\]/$TITLE/g" \
           -e "s/\[Not Started|In Progress|Completed|On Hold|Cancelled\]/Not Started/g" \
           -e "s/YYYY-MM-DD/$DATE/g" \
-          -e "s/YYYYMMDD/$DATE_COMPACT/g" \
           -e "s/\[Author Name\]/$AUTHOR/g" \
           "stp/_templ/prj/st/_ST####.md" > "$ST_FILE"
     else
       # Create file without template
-      DATE_COMPACT=$(date '+%Y%m%d')
       cat > "$ST_FILE" << EOF
----
-verblock: "$(date '+%d %b %Y'):v0.1: $AUTHOR - Initial version"
-stp_version: 1.0.0
-status: Not Started
-created: $DATE_COMPACT
-completed: 
----
 # $ST_ID: $TITLE
 
 - **Status**: Not Started
@@ -240,17 +226,11 @@ EOF
   "list")
     # Parse options
     STATUS=""
-    WIDTH=0  # Default to terminal width
     while [ $# -gt 0 ]; do
       case "$1" in
         --status)
           shift
           STATUS="$1"
-          shift
-          ;;
-        --width)
-          shift
-          WIDTH="$1"
           shift
           ;;
         *)
@@ -266,14 +246,8 @@ EOF
       error "Steel threads directory not found"
     fi
     
-    # Determine table width
-    if [ "$WIDTH" -gt 0 ]; then
-      # Use specified width
-      TABLE_WIDTH=$WIDTH
-    else
-      # Use terminal width
-      TABLE_WIDTH=$(tput cols 2>/dev/null || echo 80)
-    fi
+    # Get terminal width
+    TERM_WIDTH=$(tput cols 2>/dev/null || echo 80)
     
     # Set column widths based on terminal width
     ID_WIDTH=10
@@ -283,7 +257,7 @@ EOF
     # Calculate available width for title column (accounting for column separators)
     SEPARATORS_WIDTH=13  # 4 separators at "| " = 8 chars + 5 spaces in header
     FIXED_COLS_WIDTH=$((ID_WIDTH + STATUS_WIDTH + DATE_WIDTH + DATE_WIDTH))
-    TITLE_WIDTH=$((TABLE_WIDTH - FIXED_COLS_WIDTH - SEPARATORS_WIDTH))
+    TITLE_WIDTH=$((TERM_WIDTH - FIXED_COLS_WIDTH - SEPARATORS_WIDTH))
     
     # Minimum title width - if terminal is too narrow, set a minimum
     [ $TITLE_WIDTH -lt 20 ] && TITLE_WIDTH=20
@@ -293,24 +267,9 @@ EOF
       local string="$1"
       local width=$2
       
-      # Handle empty strings
-      if [ -z "$string" ]; then
-        echo ""
-        return
-      fi
-      
-      # If string length exceeds width, truncate and add ellipsis
       if [ ${#string} -gt $width ]; then
-        # For very narrow columns, ensure we at least show something
-        if [ $width -le 5 ]; then
-          # Just use available width
-          echo "${string:0:$width}"
-        else
-          # Standard truncation with ellipsis
-          echo "${string:0:$((width-3))}..."
-        fi
+        echo "${string:0:$((width-3))}..."
       else
-        # String fits within width, return as is
         echo "$string"
       fi
     }
@@ -338,17 +297,17 @@ EOF
         TITLE=$(grep "^# $ID:" "$file" | sed "s/^# $ID: //")
         
         # Extract status, created, and completed dates
-        ST_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //")
+        STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //")
         CREATED=$(grep -m 1 "^\- \*\*Created\*\*:" "$file" | sed "s/^\- \*\*Created\*\*: //")
         COMPLETED=$(grep -m 1 "^\- \*\*Completed\*\*:" "$file" | sed "s/^\- \*\*Completed\*\*: //")
         
         # Skip if the requested status doesn't match
-        if [ -n "$STATUS" ] && [ "$STATUS" != "$ST_STATUS" ]; then
+        if [ -n "$STATUS" ] && [ "$STATUS" != "$STATUS" ]; then
           continue
         fi
         
         # Add to data array
-        st_data+=("$ID|$TITLE|$ST_STATUS|$CREATED|$COMPLETED")
+        st_data+=("$ID|$TITLE|$STATUS|$CREATED|$COMPLETED")
       fi
     done
     
@@ -360,14 +319,19 @@ EOF
     for line in "${sorted_data[@]}"; do
       ID=$(echo "$line" | cut -d'|' -f1)
       TITLE=$(echo "$line" | cut -d'|' -f2)
-      ST_STATUS=$(echo "$line" | cut -d'|' -f3)
+      STATUS=$(echo "$line" | cut -d'|' -f3)
       CREATED=$(echo "$line" | cut -d'|' -f4)
       COMPLETED=$(echo "$line" | cut -d'|' -f5)
+      
+      # Filter by status if requested
+      if [ -n "$STATUS" ] && [ "$STATUS" != "$STATUS" ]; then
+        continue
+      fi
       
       # Truncate values if needed
       ID_TRUNC=$(truncate_string "$ID" $ID_WIDTH)
       TITLE_TRUNC=$(truncate_string "$TITLE" $TITLE_WIDTH)
-      STATUS_TRUNC=$(truncate_string "$ST_STATUS" $STATUS_WIDTH)
+      STATUS_TRUNC=$(truncate_string "$STATUS" $STATUS_WIDTH)
       CREATED_TRUNC=$(truncate_string "$CREATED" $DATE_WIDTH)
       COMPLETED_TRUNC=$(truncate_string "$COMPLETED" $DATE_WIDTH)
       
@@ -454,156 +418,6 @@ EOF
     fi
     
     echo "Opening steel thread: $ST_ID"
-    ;;
-    
-  "sync")
-    # Parse options
-    WRITE_MODE=0
-    WIDTH=0  # Default to dynamic width
-    while [ $# -gt 0 ]; do
-      case "$1" in
-        --write)
-          WRITE_MODE=1
-          shift
-          ;;
-        --width)
-          shift
-          WIDTH="$1"
-          shift
-          ;;
-        *)
-          error "Unknown option: $1"
-          ;;
-      esac
-    done
-    
-    ST_DIR="stp/prj/st"
-    INDEX_FILE="$ST_DIR/steel_threads.md"
-    
-    # Check if ST directory exists
-    if [ ! -d "$ST_DIR" ]; then
-      error "Steel threads directory not found"
-    fi
-    
-    # Check if index file exists
-    if [ ! -f "$INDEX_FILE" ]; then
-      error "Steel threads index file not found"
-    fi
-    
-    # Temporary file for construction
-    TMP_FILE=$(mktemp)
-    
-    # Copy the original file to the temp file
-    cp "$INDEX_FILE" "$TMP_FILE"
-    
-    # Generate steel thread index content
-    ST_INDEX_CONTENT=$(
-      echo "| ID                    | Title                     | Status    | Created    | Completed  |"
-      echo "|-----------------------|---------------------------|-----------|------------|------------|"
-      
-      # Loop through all ST####.md files in the ST directory in reverse order (newest first)
-      for file in $(find "$ST_DIR" -name "ST[0-9][0-9][0-9][0-9].md" | sort -r); do
-        if [ -f "$file" ]; then
-          # Extract ID from filename
-          ID=$(basename "$file" .md)
-          
-          # Extract title from the first line
-          TITLE=$(grep "^# $ID:" "$file" | sed "s/^# $ID: //")
-          
-          # Extract metadata prioritizing document body over YAML frontmatter
-          # This ensures we use the actual values that appear in the document body display
-          
-          # Get status from document body first
-          STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-          
-          # If empty or not found, try YAML frontmatter
-          if [ -z "$STATUS" ]; then
-            YAML_STATUS=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
-            if [ -n "$YAML_STATUS" ]; then
-              STATUS="$YAML_STATUS"
-            fi
-          fi
-          
-          # Get created date from document body first
-          CREATED=$(grep -m 1 "^\- \*\*Created\*\*:" "$file" | sed "s/^\- \*\*Created\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-          
-          # If empty or not found, try YAML frontmatter
-          if [ -z "$CREATED" ] || [ "$CREATED" = "YYYY-MM-DD" ]; then
-            YAML_CREATED=$(grep -m 1 "^created:" "$file" | sed "s/^created: *//")
-            if [ -n "$YAML_CREATED" ] && [ "$YAML_CREATED" != "YYYYMMDD" ]; then
-              # Convert YYYYMMDD to YYYY-MM-DD if needed
-              if [[ "$YAML_CREATED" =~ ^[0-9]{8}$ ]]; then
-                CREATED="${YAML_CREATED:0:4}-${YAML_CREATED:4:2}-${YAML_CREATED:6:2}"
-              else
-                CREATED="$YAML_CREATED"
-              fi
-            fi
-          fi
-          
-          # Get completed date from document body first
-          COMPLETED=$(grep -m 1 "^\- \*\*Completed\*\*:" "$file" | sed "s/^\- \*\*Completed\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-          
-          # If empty or not found, try YAML frontmatter
-          if [ -z "$COMPLETED" ] || [ "$COMPLETED" = "YYYY-MM-DD" ]; then
-            YAML_COMPLETED=$(grep -m 1 "^completed:" "$file" | sed "s/^completed: *//")
-            if [ -n "$YAML_COMPLETED" ] && [ "$YAML_COMPLETED" != "null" ] && [ "$YAML_COMPLETED" != "~" ] && [ "$YAML_COMPLETED" != "YYYYMMDD" ]; then
-              # Convert YYYYMMDD to YYYY-MM-DD if needed
-              if [[ "$YAML_COMPLETED" =~ ^[0-9]{8}$ ]]; then
-                COMPLETED="${YAML_COMPLETED:0:4}-${YAML_COMPLETED:4:2}-${YAML_COMPLETED:6:2}"
-              else
-                COMPLETED="$YAML_COMPLETED"
-              fi
-            fi
-          fi
-          
-          # Clean up any placeholder or empty values
-          if [ -z "$STATUS" ] || [ "$STATUS" = "COMPLETED" ]; then
-            STATUS="Not Started"
-          fi
-          
-          if [ -z "$CREATED" ] || [ "$CREATED" = "YYYYMMDD" ] || [ "$CREATED" = "YYYY-MM-DD" ]; then
-            CREATED=$(date '+%Y-%m-%d')
-          fi
-          
-          if [ -z "$COMPLETED" ] || [ "$COMPLETED" = "YYYYMMDD" ] || [ "$COMPLETED" = "YYYY-MM-DD" ]; then
-            COMPLETED=""
-          fi
-          
-          # Format as markdown table row with link
-          echo "| [$ID](./$ID.md) | $TITLE | $STATUS | $CREATED | $COMPLETED |"
-        fi
-      done
-    )
-    
-    # Update index content between markers
-    # Create a temporary file with the replacement content
-    SECTION_FILE=$(mktemp)
-    {
-      echo "<!-- BEGIN: STEEL_THREAD_INDEX -->"
-      echo "$ST_INDEX_CONTENT"
-      echo "<!-- END: STEEL_THREAD_INDEX -->"
-    } > "$SECTION_FILE"
-    
-    # Replace content between markers using awk
-    awk '
-      BEGIN { replacing = 0; }
-      /<!-- BEGIN: STEEL_THREAD_INDEX -->/ { replacing = 1; system("cat '"$SECTION_FILE"'"); next; }
-      /<!-- END: STEEL_THREAD_INDEX -->/ { replacing = 0; next; }
-      !replacing { print; }
-    ' "$INDEX_FILE" > "$TMP_FILE"
-    
-    # Clean up temporary file
-    rm "$SECTION_FILE"
-    
-    # If write mode is enabled, update the file
-    if [ $WRITE_MODE -eq 1 ]; then
-      mv "$TMP_FILE" "$INDEX_FILE"
-      echo "Updated steel threads index file: $INDEX_FILE"
-    else
-      # Otherwise, output to stdout
-      cat "$TMP_FILE"
-      rm "$TMP_FILE"
-    fi
     ;;
     
   "help")

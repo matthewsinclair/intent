@@ -1,5 +1,6 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
+stp_version: 1.0.0
 ---
 # Reference Guide
 
@@ -19,6 +20,33 @@ This reference guide provides comprehensive information about the Steel Thread P
 ## Command Reference
 
 ### Core Commands
+
+#### `stp upgrade`
+
+Upgrades STP files to the latest format.
+
+**Usage:**
+
+```bash
+stp upgrade [--force]
+```
+
+**Options:**
+
+- `--force`: Force upgrade even for major version differences
+
+**Example:**
+
+```bash
+stp upgrade
+```
+
+**Output:**
+
+- Updates all STP files with the latest format and metadata
+- Adds STP version information to files
+- Adds or updates YAML frontmatter
+- Adds section markers to steel_threads.md for sync
 
 #### `stp init`
 
@@ -106,17 +134,39 @@ Lists all steel threads.
 **Usage:**
 
 ```bash
-stp st list [--status <status>]
+stp st list [--status <status>] [--width <columns>]
 ```
 
 **Options:**
 
 - `--status`: Filter by status (optional)
+- `--width`: Set the output table width in columns (optional, defaults to terminal width)
 
 **Example:**
 
 ```bash
-stp st list --status "In Progress"
+stp st list --status "In Progress" --width 100
+```
+
+`stp st sync`
+
+Synchronizes the steel_threads.md document with individual steel thread files.
+
+**Usage:**
+
+```bash
+stp st sync [--write] [--width <columns>]
+```
+
+**Options:**
+
+- `--write`: Update the steel_threads.md file (optional, without this flag output is sent to stdout)
+- `--width`: Set the output table width in columns (optional, defaults to terminal width)
+
+**Example:**
+
+```bash
+stp st sync --write --width 100
 ```
 
 `stp st show`
@@ -188,6 +238,74 @@ The test environment setup script installs necessary dependencies, including:
 - bats-file
 
 ## Document Templates
+
+### Steel Thread Document Format
+
+Steel thread documents (located in `stp/prj/st/ST####.md`) use a standardized format with two ways to store metadata:
+
+#### STP Versioning
+
+Each STP file includes version information to track compatibility:
+
+```yaml
+---
+stp_version: 1.0.0
+---
+```
+
+The version follows semantic versioning (MAJOR.MINOR.PATCH) where:
+- MAJOR: Incompatible changes that require manual migration
+- MINOR: New features in a backward-compatible manner
+- PATCH: Backward-compatible bug fixes
+
+When running `stp upgrade`, the system checks this version to determine what upgrades are needed.
+
+#### YAML Frontmatter
+
+Steel thread files can use YAML frontmatter at the beginning of the file to store structured metadata:
+
+```yaml
+---
+verblock: "06 Mar 2025:v0.1: Author Name - Initial version"
+status: In Progress
+created: 20250307
+completed: 
+---
+```
+
+**Supported Metadata Fields:**
+
+- `status`: Current state of the steel thread (Not Started, In Progress, Completed, On Hold, or Cancelled)
+- `created`: Creation date in YYYYMMDD format
+- `completed`: Completion date in YYYYMMDD format (omit or leave empty if not completed)
+- `verblock`: Version tracking information
+
+#### Document Body Metadata
+
+Steel thread documents also include metadata within the document body in a human-readable format:
+
+```markdown
+# ST0001: Steel Thread Title
+
+- **Status**: In Progress
+- **Created**: 2025-03-07
+- **Completed**: 
+- **Author**: Author Name
+```
+
+When using both formats, the document body metadata takes precedence over YAML frontmatter when displayed in the steel threads list.
+
+#### Section Markers in steel_threads.md
+
+The steel_threads.md document uses HTML comment markers to identify sections that can be automatically updated by the `stp st sync` command:
+
+```markdown
+<!-- BEGIN: STEEL_THREAD_INDEX -->
+(content here will be replaced by sync command)
+<!-- END: STEEL_THREAD_INDEX -->
+```
+
+These markers should not be removed from the document, as they enable automatic updates while preserving manually edited content outside the marked sections.
 
 ### Project Templates
 

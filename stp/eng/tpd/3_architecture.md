@@ -1,5 +1,6 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
+stp_version: 1.0.0
 ---
 # 3. Architecture
 

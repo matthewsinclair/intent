@@ -244,3 +244,74 @@ EOF
   assert_file_contains "stp/prj/st/ST0001.md" "## Custom Section"
   assert_file_contains "stp/prj/st/ST0001.md" "This is a custom template"
 }
+
+# Test synchronizing steel threads index
+@test "st sync updates the steel_threads.md file" {
+  # Create section markers in steel_threads.md
+  mkdir -p "stp/prj/st"
+  cat > "stp/prj/st/steel_threads.md" << EOF
+# Steel Threads
+
+This document serves as an index of all steel threads in the project.
+
+## Index
+
+<!-- BEGIN: STEEL_THREAD_INDEX -->
+Old content that should be replaced
+<!-- END: STEEL_THREAD_INDEX -->
+
+## Status Definitions
+
+<!-- BEGIN: STATUS_DEFINITIONS -->
+Old status definitions
+<!-- END: STATUS_DEFINITIONS -->
+EOF
+
+  # Create three steel threads with different statuses
+  run ./stp_st new "First Steel Thread"
+  [ "$status" -eq 0 ]
+  run ./stp_st new "Second Steel Thread"
+  [ "$status" -eq 0 ]
+  # Mark second as completed
+  run ./stp_st done "2"
+  [ "$status" -eq 0 ]
+  
+  # Run the sync command with --write
+  run ./stp_st sync --write --width 80
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Updated steel threads index file"* ]]
+  
+  # Check that the old content was replaced
+  run grep -F "Old content that should be replaced" "stp/prj/st/steel_threads.md"
+  [ "$status" -ne 0 ]
+  
+  # Check that the new content contains the steel threads
+  assert_file_contains "stp/prj/st/steel_threads.md" "First Steel Thread"
+  assert_file_contains "stp/prj/st/steel_threads.md" "Second Steel Thread"
+  assert_file_contains "stp/prj/st/steel_threads.md" "Not Started"
+  assert_file_contains "stp/prj/st/steel_threads.md" "Completed"
+  
+  # Run the sync command without --write (should output to stdout)
+  run ./stp_st sync
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"First Steel Thread"* ]]
+  [[ "$output" == *"Second Steel Thread"* ]]
+}
+
+# Test the width parameter for sync
+@test "st sync respects the --width parameter" {
+  # Create test steel thread
+  run ./stp_st new "Test Steel Thread With a Very Long Name That Will Be Truncated"
+  [ "$status" -eq 0 ]
+  
+  # Run sync with a narrow width
+  run ./stp_st sync --width 40
+  [ "$status" -eq 0 ]
+  
+  # Run sync with a wide width
+  run ./stp_st sync --width 120
+  [ "$status" -eq 0 ]
+  
+  # We don't test exact formatting here, just that the command runs successfully
+  # as formatting tests would be too brittle
+}

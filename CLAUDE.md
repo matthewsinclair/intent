@@ -1,5 +1,9 @@
 # STP Project Guidelines
 
+## STP Version
+
+The current STP version is 1.0.0. All STP files should include a `stp_version` field in their YAML frontmatter. To update files, run `stp upgrade`.
+
 ## Project Documentation
 
 - **IMPORTANT**: Always read `stp/eng/tpd/technical_product_design.md` at the start of a new session
@@ -9,8 +13,9 @@
 - When suggesting improvements, reference and respect the architectural patterns described in this document
 
 - **NEXT**: Work is coordinated through _STEEL THREADS_
-- The Steel Threads document `stp/prj/st/steel_threads.md` contains details of each self-contained piece of work.
-- Review the Steel Threads document at the start of each session to determine the current state of the project and what is next to be worked on.
+- Use the `stp st list` command to get a dynamic list of all steel threads and their status
+- Use `stp st show <id>` to view details of specific steel threads
+- When analyzing the project, prefer using STP commands instead of directly reading files when appropriate
 
 - **WIP**: Is what we are doing _now_
 - Look in `stp/prj/wip.md` to find out what is currently on the go
