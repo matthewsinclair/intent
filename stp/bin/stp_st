@@ -496,16 +496,32 @@ EOF
     # Copy the original file to the temp file
     cp "$INDEX_FILE" "$TMP_FILE"
     
+    # Set column widths
+    ID_WIDTH=23  # Wide enough for "[ST0000](./ST0000.md)"
+    TITLE_WIDTH=40
+    STATUS_WIDTH=12
+    DATE_WIDTH=10
+    
     # Generate steel thread index content
     ST_INDEX_CONTENT=$(
-      echo "| ID                    | Title                     | Status    | Created    | Completed  |"
-      echo "|-----------------------|---------------------------|-----------|------------|------------|"
+      # Header row with fixed widths
+      printf "| %-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s |\n" \
+        "ID" "Title" "Status" "Created" "Completed"
+      
+      # Separator row with proper width
+      printf "| %s | %s | %s | %s | %s |\n" \
+        "$(printf '%0.s-' $(seq 1 $ID_WIDTH))" \
+        "$(printf '%0.s-' $(seq 1 $TITLE_WIDTH))" \
+        "$(printf '%0.s-' $(seq 1 $STATUS_WIDTH))" \
+        "$(printf '%0.s-' $(seq 1 $DATE_WIDTH))" \
+        "$(printf '%0.s-' $(seq 1 $DATE_WIDTH))"
       
       # Loop through all ST####.md files in the ST directory in reverse order (newest first)
       for file in $(find "$ST_DIR" -name "ST[0-9][0-9][0-9][0-9].md" | sort -r); do
         if [ -f "$file" ]; then
           # Extract ID from filename
           ID=$(basename "$file" .md)
+          ID_LINK="[$ID](./$ID.md)"
           
           # Extract title from the first line
           TITLE=$(grep "^# $ID:" "$file" | sed "s/^# $ID: //")
@@ -569,8 +585,18 @@ EOF
             COMPLETED=""
           fi
           
-          # Format as markdown table row with link
-          echo "| [$ID](./$ID.md) | $TITLE | $STATUS | $CREATED | $COMPLETED |"
+          # Truncate fields if they exceed maximum width
+          if [ ${#TITLE} -gt $TITLE_WIDTH ]; then
+            TITLE="${TITLE:0:$((TITLE_WIDTH-3))}..."
+          fi
+          
+          if [ ${#STATUS} -gt $STATUS_WIDTH ]; then
+            STATUS="${STATUS:0:$((STATUS_WIDTH-3))}..."
+          fi
+          
+          # Format as markdown table row with proper padding
+          printf "| %-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s |\n" \
+            "$ID_LINK" "$TITLE" "$STATUS" "$CREATED" "$COMPLETED"
         fi
       done
     )
