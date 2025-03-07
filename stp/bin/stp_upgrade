@@ -128,75 +128,106 @@ update_file_frontmatter() {
   if [ -f "$file" ]; then
     # Check if file already has YAML frontmatter
     if grep -q "^---" "$file"; then
-      # Update existing frontmatter
-      awk '
-        BEGIN { in_frontmatter = 0; has_version = 0; printed_version = 0; }
-        /^---/ {
-          if (in_frontmatter == 0) {
-            in_frontmatter = 1;
-            print "---";
-            next;
-          } else {
-            in_frontmatter = 0;
-            if (!has_version) {
-              print "stp_version: '"$CURRENT_VERSION"'";
-              printed_version = 1;
-            }
-            print "---";
-            next;
-          }
-        }
-        in_frontmatter && /^stp_version:/ {
-          print "stp_version: '"$CURRENT_VERSION"'";
-          has_version = 1;
-          printed_version = 1;
-          next;
-        }
-        { print; }
-      ' "$file" > "$temp_file"
-    else
-      # Add new frontmatter
-      echo "---" > "$temp_file"
-      echo "stp_version: $CURRENT_VERSION" >> "$temp_file"
-      
-      # Try to extract information from the file content to create proper frontmatter
+      # Extract information from the file content for comprehensive frontmatter update
       local title=$(grep -m 1 "^# " "$file" | sed "s/^# //")
       local author=$(grep -m 1 "^\- \*\*Author\*\*:" "$file" | sed "s/^\- \*\*Author\*\*: //")
       local status=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //")
       local created=$(grep -m 1 "^\- \*\*Created\*\*:" "$file" | sed "s/^\- \*\*Created\*\*: //")
       local completed=$(grep -m 1 "^\- \*\*Completed\*\*:" "$file" | sed "s/^\- \*\*Completed\*\*: //")
       
-      # Format dates for frontmatter if found
-      if [ -n "$created" ]; then
-        # Convert YYYY-MM-DD to YYYYMMDD if needed
-        if [[ "$created" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
-          created=$(echo "$created" | tr -d '-')
-        fi
-        echo "created: $created" >> "$temp_file"
+      # Set default values if not found in the file
+      if [ -z "$status" ]; then
+        status="Not Started"
       fi
       
-      if [ -n "$completed" ] && [ "$completed" != "YYYY-MM-DD" ] && [ -z "$(echo "$completed" | tr -d '[:space:]')" ]; then
+      if [ -z "$created" ]; then
+        created=$(date '+%Y%m%d')
+      elif [[ "$created" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
         # Convert YYYY-MM-DD to YYYYMMDD if needed
+        created=$(echo "$created" | tr -d '-')
+      fi
+      
+      if [ -n "$completed" ] && [ "$completed" != "YYYY-MM-DD" ] && [ ! -z "$(echo "$completed" | tr -d '[:space:]')" ]; then
         if [[ "$completed" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+          # Convert YYYY-MM-DD to YYYYMMDD if needed
           completed=$(echo "$completed" | tr -d '-')
         fi
-        echo "completed: $completed" >> "$temp_file"
       else
-        echo "completed: " >> "$temp_file"
+        completed=""
       fi
       
-      if [ -n "$status" ]; then
-        echo "status: $status" >> "$temp_file"
+      if [ -z "$author" ]; then
+        author="${STP_AUTHOR:-${AUTHOR:-$(git config user.name 2>/dev/null || echo "$USER")}}"
       fi
       
-      # Add verblock if possible
-      if [ -n "$author" ]; then
-        echo "verblock: \"$(date '+%d %b %Y'):v0.1: $author - Updated via STP upgrade\"" >> "$temp_file"
-      else
-        echo "verblock: \"$(date '+%d %b %Y'):v0.1: STP upgrade\"" >> "$temp_file"
-      fi
-      
+      # Create a new complete frontmatter with all the necessary fields
+      echo "---" > "$temp_file"
+      echo "verblock: \"$(date '+%d %b %Y'):v0.1: $author - Updated via STP upgrade\"" >> "$temp_file"
+      echo "stp_version: $CURRENT_VERSION" >> "$temp_file"
+      echo "status: $status" >> "$temp_file"
+      echo "created: $created" >> "$temp_file"
+      echo "completed: $completed" >> "$temp_file"
       echo "---" >> "$temp_file"
+      
+      # Add the rest of the file content, skipping the old frontmatter
+      awk '
+        BEGIN { in_frontmatter = 0; skip = 0; }
+        /^---/ {
+          if (in_frontmatter == 0) {
+            in_frontmatter = 1;
+            skip = 1;
+            next;
+          } else {
+            in_frontmatter = 0;
+            skip = 0;
+            next;
+          }
+        }
+        !skip { print; }
+      ' "$file" >> "$temp_file"
+    else
+      # Extract information from the file content to create proper frontmatter
+      local title=$(grep -m 1 "^# " "$file" | sed "s/^# //")
+      local author=$(grep -m 1 "^\- \*\*Author\*\*:" "$file" | sed "s/^\- \*\*Author\*\*: //")
+      local status=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //")
+      local created=$(grep -m 1 "^\- \*\*Created\*\*:" "$file" | sed "s/^\- \*\*Created\*\*: //")
+      local completed=$(grep -m 1 "^\- \*\*Completed\*\*:" "$file" | sed "s/^\- \*\*Completed\*\*: //")
+      
+      # Set default values if not found in the file
+      if [ -z "$status" ]; then
+        status="Not Started"
+      fi
+      
+      if [ -z "$created" ]; then
+        created=$(date '+%Y%m%d')
+      elif [[ "$created" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+        # Convert YYYY-MM-DD to YYYYMMDD if needed
+        created=$(echo "$created" | tr -d '-')
+      fi
+      
+      if [ -n "$completed" ] && [ "$completed" != "YYYY-MM-DD" ] && [ ! -z "$(echo "$completed" | tr -d '[:space:]')" ]; then
+        if [[ "$completed" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+          # Convert YYYY-MM-DD to YYYYMMDD if needed
+          completed=$(echo "$completed" | tr -d '-')
+        fi
+      else
+        completed=""
+      fi
+      
+      if [ -z "$author" ]; then
+        author="${STP_AUTHOR:-${AUTHOR:-$(git config user.name 2>/dev/null || echo "$USER")}}"
+      fi
+      
+      # Create a new complete frontmatter with all the necessary fields
+      echo "---" > "$temp_file"
+      echo "verblock: \"$(date '+%d %b %Y'):v0.1: $author - Updated via STP upgrade\"" >> "$temp_file"
+      echo "stp_version: $CURRENT_VERSION" >> "$temp_file"
+      echo "status: $status" >> "$temp_file"
+      echo "created: $created" >> "$temp_file"
+      echo "completed: $completed" >> "$temp_file"
+      echo "---" >> "$temp_file"
+      
+      # Add the original file content
       cat "$file" >> "$temp_file"
     fi
     
@@ -258,10 +289,37 @@ if [ -d "stp/prj/st" ]; then
   
   # Process all steel thread files
   echo "Upgrading steel thread files..."
-  for st_file in stp/prj/st/ST*.md; do
+  if ls stp/prj/st/ST*.md 1> /dev/null 2>&1; then
+    for st_file in stp/prj/st/ST*.md; do
     if [ -f "$st_file" ]; then
       file_version=$(get_file_version "$st_file")
       echo "Processing $st_file (current version: $file_version)"
+      
+      # Check if the file contains the necessary metadata fields
+      missing_metadata=0
+      if ! grep -q "^\- \*\*Status\*\*:" "$st_file"; then
+        echo "  Missing Status field in file"
+        missing_metadata=1
+      fi
+      if ! grep -q "^\- \*\*Created\*\*:" "$st_file"; then
+        echo "  Missing Created field in file"
+        missing_metadata=1
+      fi
+      if ! grep -q "^\- \*\*Completed\*\*:" "$st_file"; then
+        echo "  Missing Completed field in file"
+        missing_metadata=1
+      fi
+      if ! grep -q "^\- \*\*Author\*\*:" "$st_file"; then
+        echo "  Missing Author field in file"
+        missing_metadata=1
+      fi
+      
+      # Force update if metadata is missing
+      if [ $missing_metadata -eq 1 ]; then
+        echo "  Updating file to add missing metadata fields..."
+        update_file_frontmatter "$st_file"
+        continue
+      fi
       
       # Compare versions
       compare_versions "$CURRENT_VERSION" "$file_version"
@@ -286,7 +344,10 @@ if [ -d "stp/prj/st" ]; then
         echo "  This may indicate the file was created with a newer version of STP."
       fi
     fi
-  done
+    done
+  else
+    echo "No ST*.md files found in stp/prj/st/ directory"
+  fi
   
   # Run sync to update the steel_threads.md file
   if [ -x "./stp/bin/stp_st" ]; then

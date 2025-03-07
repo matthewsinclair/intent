@@ -4,6 +4,21 @@
 
 The current STP version is 1.0.0. All STP files should include a `stp_version` field in their YAML frontmatter. To update files, run `stp upgrade`.
 
+### ST File Metadata Format
+
+ST files must have consistent metadata in this format:
+```yaml
+---
+verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
+stp_version: 1.0.0
+status: Not Started|In Progress|Completed|On Hold|Cancelled
+created: YYYYMMDD
+completed: YYYYMMDD
+---
+```
+
+Only keep one verblock entry with the most recent change (don't accumulate verblock history, as this is available in git).
+
 ## Project Documentation
 
 - **IMPORTANT**: Always read `stp/eng/tpd/technical_product_design.md` at the start of a new session

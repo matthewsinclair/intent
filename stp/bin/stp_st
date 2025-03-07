@@ -337,10 +337,48 @@ EOF
         # Extract title from the first line
         TITLE=$(grep "^# $ID:" "$file" | sed "s/^# $ID: //")
         
-        # Extract status, created, and completed dates
-        ST_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //")
-        CREATED=$(grep -m 1 "^\- \*\*Created\*\*:" "$file" | sed "s/^\- \*\*Created\*\*: //")
-        COMPLETED=$(grep -m 1 "^\- \*\*Completed\*\*:" "$file" | sed "s/^\- \*\*Completed\*\*: //")
+        # Extract status, created, and completed dates from document body first
+        ST_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        CREATED=$(grep -m 1 "^\- \*\*Created\*\*:" "$file" | sed "s/^\- \*\*Created\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        COMPLETED=$(grep -m 1 "^\- \*\*Completed\*\*:" "$file" | sed "s/^\- \*\*Completed\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        
+        # If empty or not found, try YAML frontmatter
+        if [ -z "$ST_STATUS" ] || [ "$ST_STATUS" = "COMPLETED" ]; then
+          YAML_STATUS=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
+          if [ -n "$YAML_STATUS" ]; then
+            ST_STATUS="$YAML_STATUS"
+          else
+            ST_STATUS="Not Started"
+          fi
+        fi
+        
+        # If created date is empty or placeholder, try YAML frontmatter
+        if [ -z "$CREATED" ] || [ "$CREATED" = "YYYY-MM-DD" ]; then
+          YAML_CREATED=$(grep -m 1 "^created:" "$file" | sed "s/^created: *//")
+          if [ -n "$YAML_CREATED" ] && [ "$YAML_CREATED" != "YYYYMMDD" ]; then
+            # Convert YYYYMMDD to YYYY-MM-DD if needed
+            if [[ "$YAML_CREATED" =~ ^[0-9]{8}$ ]]; then
+              CREATED="${YAML_CREATED:0:4}-${YAML_CREATED:4:2}-${YAML_CREATED:6:2}"
+            else
+              CREATED="$YAML_CREATED"
+            fi
+          else
+            CREATED=$(date '+%Y-%m-%d')
+          fi
+        fi
+        
+        # If completed date is empty or placeholder, try YAML frontmatter
+        if [ -z "$COMPLETED" ] || [ "$COMPLETED" = "YYYY-MM-DD" ]; then
+          YAML_COMPLETED=$(grep -m 1 "^completed:" "$file" | sed "s/^completed: *//")
+          if [ -n "$YAML_COMPLETED" ] && [ "$YAML_COMPLETED" != "null" ] && [ "$YAML_COMPLETED" != "~" ] && [ "$YAML_COMPLETED" != "YYYYMMDD" ]; then
+            # Convert YYYYMMDD to YYYY-MM-DD if needed
+            if [[ "$YAML_COMPLETED" =~ ^[0-9]{8}$ ]]; then
+              COMPLETED="${YAML_COMPLETED:0:4}-${YAML_COMPLETED:4:2}-${YAML_COMPLETED:6:2}"
+            else
+              COMPLETED="$YAML_COMPLETED"
+            fi
+          fi
+        fi
         
         # Skip if the requested status doesn't match
         if [ -n "$STATUS" ] && [ "$STATUS" != "$ST_STATUS" ]; then
