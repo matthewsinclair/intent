@@ -59,7 +59,48 @@ stp/
 
 ## 4.2 Document Templates
 
-### 4.2.1 Project Templates
+### 4.2.1 Document Metadata
+
+All STP documents use YAML frontmatter to store structured metadata at the beginning of the file:
+
+```yaml
+---
+verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
+stp_version: 1.0.0
+status: Not Started|In Progress|Completed|On Hold|Cancelled
+created: YYYYMMDD
+completed: YYYYMMDD
+---
+```
+
+**Metadata Fields:**
+- `verblock`: Tracks version information with date, version number, author, and description
+- `stp_version`: Indicates the STP version used, for compatibility and upgrade purposes
+- `status`: Current state of the document or steel thread
+- `created`: Creation date in YYYYMMDD format
+- `completed`: Completion date in YYYYMMDD format (when applicable)
+
+### 4.2.2 Section Markers
+
+STP uses HTML comment markers to identify sections in documents that can be automatically updated:
+
+```markdown
+<!-- BEGIN: SECTION_NAME -->
+(Content here will be automatically managed by STP commands)
+<!-- END: SECTION_NAME -->
+```
+
+In particular, the steel_threads.md index file uses these markers to allow the `stp st sync` command to update the index while preserving manually added content outside the marked sections:
+
+```markdown
+<!-- BEGIN: STEEL_THREAD_INDEX -->
+| ID | Title | Status | Created | Completed |
+|----|-------|--------|---------|-----------|
+| ST0001 | Example Thread | Completed | 2025-03-01 | 2025-03-05 |
+<!-- END: STEEL_THREAD_INDEX -->
+```
+
+### 4.2.3 Project Templates
 
 #### Work In Progress (WIP) Template
 
@@ -109,21 +150,34 @@ The Journal document maintains a chronological record of project activities.
 ```markdown
 # Steel Threads
 
-| ID     | Title   | Status   | Created  | Completed | Link                    |
-|--------|---------|----------|----------|-----------|-------------------------|
-| ST0002 | [Title] | [Status] | YYYYMMDD | YYYYMMDD  | [ST0002](<./ST0002.md>) |
-| ST0001 | [Title] | [Status] | YYYYMMDD | YYYYMMDD  | [ST0002](<./ST0002.md>) |
-| ...    | ...     | ...      | ...      | ...       |                         |
+This document serves as an index of all steel threads in the project.
+
+## Index
+
+<!-- BEGIN: STEEL_THREAD_INDEX -->
+| ID                    | Title   | Status   | Created  | Completed |
+|-----------------------|---------|----------|----------|-----------|
+| [ST0002](./ST0002.md) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
+| [ST0001](./ST0001.md) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
+<!-- END: STEEL_THREAD_INDEX -->
 ```
 
 **Individual Steel Thread Template:**
 
 ```markdown
+---
+verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
+stp_version: 1.0.0
+status: Not Started
+created: YYYYMMDD
+completed: 
+---
 # ST####: [Title]
 
 - **Status**: [Not Started|In Progress|Completed]
 - **Created**: YYYY-MM-DD
 - **Completed**: YYYY-MM-DD
+- **Author**: Author Name
 
 ## Objective
 [Clear statement of what this steel thread aims to accomplish]
@@ -192,12 +246,16 @@ Main commands include:
 - `init`: Initialize STP in a project
 - `st`: Manage steel threads
 - `help`: Display help information
+- `upgrade`: Upgrade STP files to the latest format
 
 Subcommands include:
 
 - `st new`: Create a new steel thread
 - `st done`: Mark a steel thread as complete
-- `st list`: List all steel threads
+- `st list`: List all steel threads with optional filtering by status
+- `st sync`: Synchronize the steel_threads.md index file with individual ST files
+- `st show`: Show details of a specific steel thread
+- `st edit`: Open a steel thread in the default editor
 
 ### 4.3.2 Command Implementation
 
@@ -206,6 +264,8 @@ Each command is implemented as a separate shell script:
 1. `stp`: Main dispatcher that validates input and calls appropriate subcommand
 2. `stp_<command>`: Implements specific command functionality
 3. `stp_help`: Displays help information from `.help` directory
+4. `stp_st`: Manages steel thread operations (new, done, list, sync, show, edit)
+5. `stp_upgrade`: Upgrades STP files to the latest format and standards
 
 ### 4.3.3 Help System
 

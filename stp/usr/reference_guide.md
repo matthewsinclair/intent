@@ -44,9 +44,35 @@ stp upgrade
 **Output:**
 
 - Updates all STP files with the latest format and metadata
-- Adds STP version information to files
-- Adds or updates YAML frontmatter
+- Adds or updates STP version information in YAML frontmatter
+- Adds or updates missing metadata fields
 - Adds section markers to steel_threads.md for sync
+- Runs `stp st sync --write` to update steel thread index
+- Reports upgrade status for each file processed
+
+Example output:
+
+```
+Starting STP upgrade process...
+Current STP version: 1.0.0
+
+Scanning for STP files to upgrade...
+Checking steel_threads.md...
+Added section markers to stp/prj/st/steel_threads.md
+Upgrading steel thread files...
+Processing stp/prj/st/ST0001.md (current version: 0.0.0)
+  Missing Status field in file
+  Missing Created field in file
+  Updating file to add missing metadata fields...
+Updated: stp/prj/st/ST0001.md
+Processing stp/prj/st/ST0002.md (current version: 1.0.0)
+  Already at latest version, no update needed.
+
+Running sync to update steel_threads.md...
+Updated steel threads index file: stp/prj/st/steel_threads.md
+
+STP upgrade complete.
+```
 
 #### `stp init`
 
@@ -148,6 +174,16 @@ stp st list [--status <status>] [--width <columns>]
 stp st list --status "In Progress" --width 100
 ```
 
+**Output:**
+
+```
+ID     | Title                                | Status      | Created    | Completed  
+-------|--------------------------------------|-------------|------------|-----------
+ST0003 | Implement Feature X                  | In Progress | 2025-03-08 |            
+ST0002 | Design Database Schema               | In Progress | 2025-03-07 |            
+ST0001 | Project Setup                        | Completed   | 2025-03-05 | 2025-03-06 
+```
+
 `stp st sync`
 
 Synchronizes the steel_threads.md document with individual steel thread files.
@@ -167,6 +203,30 @@ stp st sync [--write] [--width <columns>]
 
 ```bash
 stp st sync --write --width 100
+```
+
+**Output:**
+
+Updates the steel_threads.md file with the current status of all steel thread files, preserving content outside the marked section:
+
+```markdown
+# Steel Threads
+
+This document serves as an index of all steel threads in the project.
+
+## Index
+
+<!-- BEGIN: STEEL_THREAD_INDEX -->
+| ID                      | Title                                | Status      | Created    | Completed   |
+|-------------------------|--------------------------------------|-------------|------------|-------------|
+| [ST0003](./ST0003.md)   | Implement Feature X                  | In Progress | 2025-03-08 |             |
+| [ST0002](./ST0002.md)   | Design Database Schema               | In Progress | 2025-03-07 |             |
+| [ST0001](./ST0001.md)   | Project Setup                        | Completed   | 2025-03-05 | 2025-03-06  |
+<!-- END: STEEL_THREAD_INDEX -->
+
+## Notes
+
+Additional notes about steel threads can be added here.
 ```
 
 `stp st show`

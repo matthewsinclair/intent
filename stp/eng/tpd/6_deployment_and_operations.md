@@ -96,8 +96,20 @@ stp st list
 # List steel threads by status
 stp st list --status "In Progress"
 
+# List steel threads with custom width
+stp st list --width 100
+
 # View details of a specific steel thread
 stp st show ST0001
+
+# Edit a steel thread in your default editor
+stp st edit ST0001
+
+# Synchronize the steel threads index with individual files
+stp st sync --write
+
+# Upgrade STP files to the latest format
+stp upgrade
 ```
 
 ### 6.4.3 Completing Steel Threads

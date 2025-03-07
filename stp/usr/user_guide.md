@@ -137,13 +137,41 @@ This creates a new steel thread document (e.g., `stp/prj/st/ST0001.md`) and adds
 To list all steel threads:
 
 ```bash
+# Basic list of all steel threads
 stp st list
+
+# Filter by status
+stp st list --status "In Progress"
+
+# Adjust table width (useful for wide terminals)
+stp st list --width 120
 ```
 
 To view a specific steel thread:
 
 ```bash
 stp st show ST0001
+```
+
+To edit a steel thread in your default editor:
+
+```bash
+stp st edit ST0001
+```
+
+### Synchronizing Steel Threads
+
+To update the steel threads index file with information from individual ST files:
+
+```bash
+# Preview changes without writing to file
+stp st sync
+
+# Write changes to steel_threads.md
+stp st sync --write
+
+# Adjust output width
+stp st sync --write --width 120
 ```
 
 ### Completing a Steel Thread
