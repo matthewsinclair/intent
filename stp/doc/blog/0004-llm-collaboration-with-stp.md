@@ -1,0 +1,52 @@
+---
+title: "LLM Collaboration with STP"
+date: "2025-03-11"
+author: "Matthew Sinclair"
+draft: true
+---
+
+# LLM Collaboration with STP: Multiplying Development Capabilities
+
+## Outline
+
+* **The LLM Collaboration Challenge**
+  * Current limitations in LLM-assisted development
+  * Context window constraints and information overload
+  * The "stale context" problem
+  * Difficulty in communicating project structure
+  * Challenges in maintaining continuity across sessions
+
+* **How STP Is Designed for LLM Collaboration**
+  * The preamble to Claude in the TPD document
+  * Structured documentation that fits LLM thinking patterns
+  * Just-in-time context loading via steel threads
+  * Markdown as a universal interface format
+  * The "WIP → Steel Thread → Journal" information flow
+
+* **Context Management Strategies**
+  * Using the WIP document to orient LLMs
+  * Steel threads as focused context containers
+  * Technical Product Design as the system overview
+  * The journal for historical context
+  * Template system for consistent document structure
+
+* **Templates and Structure that Enhance LLM Effectiveness**
+  * The rationale behind STP's template design
+  * How structured documentation guides LLM understanding
+  * Frontmatter metadata and why it matters
+  * Section organization that works with LLM reasoning
+  * Consistent formatting that reduces cognitive load
+
+* **The Documentation-Implementation Feedback Loop**
+  * Documentation drives implementation
+  * Implementation updates documentation
+  * LLMs participate in both sides of the cycle
+  * The virtuous cycle of clearer intent → better code → improved documentation
+  * Real examples of the feedback loop in action
+
+* **Future Opportunities for LLM Integration**
+  * Automated documentation generation and validation
+  * LLM-powered steel thread creation and management
+  * Intelligent context selection based on work in progress
+  * Code generation guided by steel thread documentation
+  * The potential of Anthropic's Machine Control Protocol (MCP)

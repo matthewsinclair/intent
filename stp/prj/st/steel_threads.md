@@ -11,6 +11,7 @@ This document serves as an index of all steel threads in the Steel Thread Projec
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 | ID                      | Title                                    | Status       | Created    | Completed  |
 | ----------------------- | ---------------------------------------- | ------------ | ---------- | ---------- |
+| [ST0013](./ST0013.md)   | STP Blog Post Series                     | In Progress  | 2025-03-11 |            |
 | [ST0012](./ST0012.md)   | Document Sync Command                    | Completed    | 2025-03-07 | 2025-03-07 |
 | [ST0011](./ST0011.md)   | Test Suite Implementation                | Completed    | 2025-06-03 | 2025-06-03 |
 | [ST0010](./ST0010.md)   | Anthropic MCP Integration                | On Hold      | 2025-06-03 |            |

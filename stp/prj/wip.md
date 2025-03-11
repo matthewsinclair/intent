@@ -6,6 +6,24 @@ stp_version: 1.0.0
 
 ## Current Focus
 
+### 20250311
+
+**001-WIP: Create STP Blog Post Series**
+
+Creating a series of blog posts to explain STP, its philosophy, and implementation:
+
+- Created ST0013 to track the blog post series development
+- Planned a 5-post series covering:
+  1. Introduction to STP
+  2. The Steel Thread Methodology
+  3. Intent Capture in Software Development
+  4. LLM Collaboration with STP
+  5. Getting Started with STP
+- Blog posts will focus on the unique aspects of STP, particularly intent capture and LLM collaboration
+- All posts will be stored in the `/stp/doc/blog` directory
+
+### 20240307
+
 **004-DONE: Updated project documentation**
 
 Updated all project documentation to reflect current status:
@@ -41,6 +59,7 @@ Completed:
 
 | ID                       | Title                     | Status      | Created    | Completed  |
 |--------------------------|---------------------------|-------------|------------|------------|
+| [ST0013](./st/ST0013.md) | STP Blog Post Series      | In Progress | 2025-03-11 |            |
 | [ST0010](./st/ST0010.md) | Anthropic MCP Integration | On Hold     | 2025-06-03 |            |
 
 ## Completed Steel Threads
