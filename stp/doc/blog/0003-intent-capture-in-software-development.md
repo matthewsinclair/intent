@@ -9,6 +9,12 @@ draft: true
 
 ## Outline
 
+* **Applying Intention Principles in Practice**
+  * Taking the motivation (from post 0000) into practical implementation
+  * Expanding from "why intention matters" to "how to capture it effectively"
+  * Concrete techniques for intention preservation in day-to-day development
+  * Moving from theoretical understanding to practical methodologies
+
 * **The Intent Problem in Software Development**
   * What is "intent" in software development?
   * Why intent gets lost during implementation

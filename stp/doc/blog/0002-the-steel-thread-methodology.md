@@ -16,12 +16,13 @@ draft: true
   * Steel threads vs. stories vs. epics vs. tickets
   * Why "steel" and not "golden" or something else?
 
-* **How Steel Threads Differ from Traditional Approaches**
-  * Contrast with waterfall development
-  * Differences from pure agile/scrum methodologies
-  * Not just feature branches - intent + implementation together
-  * Focus on incremental value rather than arbitrary time boxes
-  * Documentation integrated with implementation
+* **How Steel Threads Complement Existing Approaches**
+  * Integration with agile, lean, and XP methodologies
+  * Adaptable to any existing process - not a replacement
+  * Flexible mapping to your current work units (epics, stories, tasks, PRs)
+  * Intent capture layer that enhances rather than replaces
+  * Documentation integration that works with existing workflows
+  * Steel threads as process-agnostic functionality containers
 
 * **Anatomy of a Steel Thread**
   * Structure and components of a steel thread document

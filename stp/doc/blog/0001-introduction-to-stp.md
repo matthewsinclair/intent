@@ -9,12 +9,10 @@ draft: true
 
 ## Outline
 
-* **The Problem with Modern Software Development**
-  * Increasing complexity of codebases
-  * Challenges in communication between teams and team members
-  * Knowledge silos and documentation that quickly becomes outdated
-  * Difficulty in onboarding new team members
-  * Misalignment between initial intent and final implementation
+* **Building on the Intention Foundation**
+  * Brief recap of why intention matters (from previous post)
+  * How STP specifically addresses the intention challenge
+  * Moving from the theoretical to the practical implementation
 
 * **What is STP?**
   * Steel Thread Project - definition and core concepts
@@ -27,7 +25,9 @@ draft: true
   * Documentation as a first-class citizen
   * Intent capture throughout the development lifecycle
   * Incremental development through steel threads
-  * Lightweight and adaptable to different workflows
+  * Process-agnostic and compatible with any existing methodology
+  * Lightweight enhancement rather than process replacement
+  * Flexibility to match your team's specific workflow
   * Integration with modern LLM tooling
 
 * **The Steel Thread Concept**

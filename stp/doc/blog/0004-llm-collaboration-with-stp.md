@@ -9,6 +9,12 @@ draft: true
 
 ## Outline
 
+* **Intention-First LLM Collaboration**
+  * Connecting back to the motivation for STP (post 0000)
+  * How established intention foundations transform LLM interactions
+  * Moving from generic prompting to intention-aligned prompting
+  * The multiplier effect of clear intentions on LLM productivity
+
 * **The LLM Collaboration Challenge**
   * Current limitations in LLM-assisted development
   * Context window constraints and information overload

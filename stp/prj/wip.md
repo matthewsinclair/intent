@@ -6,6 +6,12 @@ stp_version: 1.0.0
 
 ## Current Focus
 
+### 20250312
+
+**001-WIP: More work on the STP Blog Post Series**
+
+Updated the blog posts with some clearer thinking on why/what/how
+
 ### 20250311
 
 **001-WIP: Create STP Blog Post Series**
