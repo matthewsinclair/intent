@@ -349,11 +349,11 @@ if [ -d "stp/prj/st" ]; then
     echo "No ST*.md files found in stp/prj/st/ directory"
   fi
   
-  # Run the organization command to move files based on status
+  # Run the organization script to move files based on status
   if [ -x "./stp/bin/stp_st" ]; then
     echo ""
     echo "Organizing steel thread files by status..."
-    ./stp/bin/stp_st organize --write
+    ./stp/bin/organize_st.sh
   elif [ -n "$STP_HOME" ] && [ -x "$STP_HOME/stp/bin/stp_st" ]; then
     echo ""
     echo "Organizing steel thread files by status..."

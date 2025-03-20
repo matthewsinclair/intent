@@ -7,19 +7,19 @@ This document serves as an index of all steel threads in the project. A steel th
 
 ## Index
 
-| ID     | Title   | Status   | Created  | Completed | Link                    |
-|--------|---------|----------|----------|-----------|-------------------------|
-| ST0002 | [Title] | [Status] | YYYYMMDD | YYYYMMDD  | [ST0002](<./ST0002.md>) |
-| ST0001 | [Title] | [Status] | YYYYMMDD | YYYYMMDD  | [ST0002](<./ST0002.md>) |
-| ...    | ...     | ...      | ...      | ...       |                         |
+| ID                      | Title   | Status   | Created  | Completed |
+|-------------------------|---------|----------|----------|-----------|
+| [ST0002](<./ST0002.md>) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
+| [ST0002](<./ST0002.md>) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
+| ...                     | ...     | ...      | ...      | ...       |
 
 ## Steel Thread Status Definitions
 
-- **Not Started**: Steel thread has been created but work has not begun
-- **In Progress**: Work is actively being done on this steel thread
-- **Completed**: All tasks have been completed and the steel thread is finished
-- **On Hold**: Work has been temporarily paused
-- **Cancelled**: The steel thread has been cancelled and will not be completed
+- **NOT-STARTED**: Steel thread has been created but work has not begun (stp/prj/st/NOT-STARTED/)
+- **IN-PROGRESS**: Work is actively being done on this steel thread (stp/prj/st/)
+- **COMPLETED**: All tasks have been completed and the steel thread is finished (stp/prj/st/COMPLETED)
+- **HOLD**: Work has been temporarily paused (stp/prj/st)
+- **CANCELLED**: The steel thread has been cancelled and will not be completed (stp/prj/st/CANCELLED)
 
 ## Context for LLM
 
