@@ -189,6 +189,11 @@ EOF
   fi
 }
 
+# Normalize the command (handle alternative spelling)
+if [ "$ST_COMMAND" = "organise" ]; then
+  ST_COMMAND="organize"
+fi
+
 # Handle different commands
 case "$ST_COMMAND" in
   "new")
@@ -647,11 +652,21 @@ EOF
         "$(printf '%0.s-' $(seq 1 $DATE_WIDTH))" \
         "$(printf '%0.s-' $(seq 1 $DATE_WIDTH))"
       
+      # Debug information
+      if [ $WRITE_MODE -ne 1 ]; then
+        echo "Searching for ST files in: $ST_DIR and subdirectories" >&2
+      fi
+
       # Find all ST files in all subdirectories
       for file in $(find "$ST_DIR" -type f -name "ST[0-9][0-9][0-9][0-9].md" | sort -r); do
         if [ -f "$file" ]; then
           # Extract ID from filename
           ID=$(basename "$file" .md)
+          
+          # Debug information
+          if [ $WRITE_MODE -ne 1 ]; then
+            echo "Processing file: $file" >&2
+          fi
           
           # Create relative link that works regardless of where the file is located
           # Determine relative path from steel_threads.md to the file
@@ -679,7 +694,13 @@ EOF
           elif [ -n "$BODY_STATUS" ]; then
             STATUS="$BODY_STATUS"
           else
+            # Default to "Not Started" ONLY if we cannot determine status
             STATUS="Not Started"
+          fi
+          
+          # Debug information
+          if [ $WRITE_MODE -ne 1 ]; then
+            echo "  ID: $ID, Status: $STATUS, Path: $RELATIVE_PATH" >&2
           fi
           
           # Extract dates
@@ -792,7 +813,7 @@ EOF
     # Create required directories if they don't exist
     mkdir -p "$BASE_DIR/COMPLETED" "$BASE_DIR/NOT-STARTED" "$BASE_DIR/CANCELLED"
     
-    # Find all steel thread files
+    # Find all steel thread files in the root directory
     ST_FILES=$(find "$BASE_DIR" -maxdepth 1 -name "ST[0-9][0-9][0-9][0-9].md")
     
     # Process each steel thread file
@@ -818,7 +839,8 @@ EOF
         STATUS="Not Started"
       fi
       
-      echo "File: $ID - Status: $STATUS"
+      echo "Processing file: $file"
+      echo "  File: $ID - Status: $STATUS"
       
       # Get the target location for this file
       TARGET_FILE=$(get_st_path "$ID" "$STATUS")
@@ -846,6 +868,8 @@ EOF
       if [ -d "$subdir" ] && [[ "$subdir" != "$BASE_DIR/steel_threads.md" ]]; then
         SUBDIR_NAME=$(basename "$subdir")
         
+        echo "Processing subdirectory: $subdir"
+        
         # Find all steel thread files in this subdirectory
         SUB_ST_FILES=$(find "$subdir" -maxdepth 1 -name "ST[0-9][0-9][0-9][0-9].md")
         
@@ -857,6 +881,8 @@ EOF
           
           # Extract ID from filename
           ID=$(basename "$file" .md)
+          
+          echo "  Processing file in subdirectory: $file"
           
           # Check both YAML frontmatter and document body for status
           YAML_STATUS=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
@@ -870,6 +896,8 @@ EOF
           else
             STATUS="Not Started"
           fi
+          
+          echo "    File: $ID - Status: $STATUS"
           
           # Get the target location for this file
           TARGET_FILE=$(get_st_path "$ID" "$STATUS")
