@@ -6,12 +6,13 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 This document serves as an index of all steel threads in the project. A steel thread represents a self-contained unit of work that focuses on implementing a specific piece of functionality.
 
 ## Index
-
+<!-- BEGIN: STEEL_THREAD_INDEX -->
 | ID                      | Title   | Status   | Created  | Completed |
 |-------------------------|---------|----------|----------|-----------|
 | [ST0002](<./ST0002.md>) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
-| [ST0002](<./ST0002.md>) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
+| [ST0001](<./ST0001.md>) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
 | ...                     | ...     | ...      | ...      | ...       |
+<!-- END: STEEL_THREAD_INDEX -->
 
 ## Steel Thread Status Definitions
 
