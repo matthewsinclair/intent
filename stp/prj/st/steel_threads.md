@@ -8,34 +8,34 @@ This document serves as an index of all steel threads in the Steel Thread Projec
 
 ## Index
 
-<\!-- BEGIN: STEEL_THREAD_INDEX -->
-| ID                              | Title                                 | Status      | Created    | Completed  |
-|---------------------------------|---------------------------------------|-------------|------------|------------|
-| [ST0014](./ST0014.md)           | Directory Structure for Steel Threads | In Progress | 2025-03-20 |            |
-| [ST0013](./ST0013.md)           | STP Blog Post Series                  | In Progress | 2025-03-11 |            |
-| [ST0010](./ST0010.md)           | Anthropic MCP Integration             | On Hold     | 2025-06-03 |            |
-| [ST0012](./COMPLETED/ST0012.md) | Document Sync Command                 | Completed   | 2025-03-07 | 2025-03-07 |
-| [ST0011](./COMPLETED/ST0011.md) | Test Suite Implementation             | Completed   | 2025-06-03 | 2025-06-03 |
-| [ST0009](./COMPLETED/ST0009.md) | Process Refinement                    | Completed   | 2025-03-06 | 2025-06-03 |
-| [ST0008](./COMPLETED/ST0008.md) | LLM Integration                       | Completed   | 2025-03-06 | 2025-06-03 |
-| [ST0007](./COMPLETED/ST0007.md) | User Documentation                    | Completed   | 2025-03-06 | 2025-06-03 |
-| [ST0006](./COMPLETED/ST0006.md) | Help System                           | Completed   | 2025-03-06 | 2025-06-03 |
-| [ST0005](./COMPLETED/ST0005.md) | Initialization Command                | Completed   | 2025-03-06 | 2025-06-03 |
-| [ST0004](./COMPLETED/ST0004.md) | Steel Thread Commands                 | Completed   | 2025-03-06 | 2025-06-03 |
-| [ST0003](./COMPLETED/ST0003.md) | Template System                       | Completed   | 2025-03-06 | 2025-06-03 |
-| [ST0002](./COMPLETED/ST0002.md) | Core Script Framework                 | Completed   | 2025-03-06 | 2025-06-03 |
-| [ST0001](./COMPLETED/ST0001.md) | Directory Structure                   | Completed   | 2025-03-06 | 2025-06-03 |
-<\!-- END: STEEL_THREAD_INDEX -->
+<!-- BEGIN: STEEL_THREAD_INDEX -->
+ID         | Title                                                      | Status           | Created    | Completed 
+-----------|------------------------------------------------------------|------------------|------------|-----------
+ST0014     | Directory Structure for Steel Threads                      | In Progress      | 2025-03-20 |           
+ST0013     | STP Blog Post Series                                       | In Progress      | 2025-03-11 |           
+ST0012     | Document Sync Command                                      | Completed        | 2025-03-07 | 2025-03-07
+ST0011     | Test Suite Implementation                                  | Completed        | 2025-06-03 | 2025-06-03
+ST0010     | Anthropic MCP Integration                                  | On Hold          | 2025-06-03 |           
+ST0009     | Process Refinement                                         | Completed        | 2025-03-06 | 2025-06-03
+ST0008     | LLM Integration                                            | Completed        | 2025-03-06 | 2025-06-03
+ST0007     | User Documentation                                         | Completed        | 2025-03-06 | 2025-06-03
+ST0006     | Help System                                                | Completed        | 2025-03-06 | 2025-06-03
+ST0005     | Initialization Command                                     | Completed        | 2025-03-06 | 2025-06-03
+ST0004     | Steel Thread Commands                                      | Completed        | 2025-03-06 | 2025-06-03
+ST0003     | Template System                                            | Completed        | 2025-03-06 | 2025-06-03
+ST0002     | Core Script Framework                                      | Completed        | 2025-03-06 | 2025-06-03
+ST0001     | Directory Structure                                        | Completed        | 2025-03-06 | 2025-06-03
+<!-- END: STEEL_THREAD_INDEX -->
 
 ## Steel Thread Status Definitions
 
-<\!-- BEGIN: STATUS_DEFINITIONS -->
+<!-- BEGIN: STATUS_DEFINITIONS -->
 - **Not Started**: Steel thread has been created but work has not begun (stp/prj/st/NOT-STARTED/)
 - **In Progress**: Work is actively being done on this steel thread (stp/prj/st/)
 - **Completed**: All tasks have been completed and the steel thread is finished (stp/prj/st/COMPLETED)
 - **On Hold**: Work has been temporarily paused (stp/prj/st)
 - **Cancelled**: The steel thread has been cancelled and will not be completed (stp/prj/st/CANCELLED)
-<\!-- END: STATUS_DEFINITIONS -->
+<!-- END: STATUS_DEFINITIONS -->
 
 ## Context for LLM
 
@@ -43,11 +43,11 @@ This document provides an overview of all steel threads in the STP project. It h
 
 ### How to use this document
 
-<\!-- BEGIN: USAGE_INSTRUCTIONS -->
+<!-- BEGIN: USAGE_INSTRUCTIONS -->
 1. Update the index when creating new steel threads
 2. Update the status of steel threads as they progress
 3. Add completion dates when steel threads are finished
 4. Use this document to quickly locate specific steel thread documents
-<\!-- END: USAGE_INSTRUCTIONS -->
+<!-- END: USAGE_INSTRUCTIONS -->
 
 The detailed information for each steel thread is contained in its individual document (e.g., ST0001.md).

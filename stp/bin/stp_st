@@ -173,8 +173,8 @@ This document serves as an index of all steel threads in the project.
 
 ## Index
 
-| ID | Title | Status | Created | Completed |
-|----|-------|--------|---------|-----------|
+| ID                       | Title                  | Status       | Created    | Completed  |
+| ----------------------- | -------------------- | ------------ | ---------- | ---------- |
 EOF
   fi
   
@@ -365,22 +365,102 @@ EOF
       # Use specified width
       TABLE_WIDTH=$WIDTH
     else
-      # Use terminal width
-      TABLE_WIDTH=$(tput cols 2>/dev/null || echo 80)
+      # For sync command with --write flag, always use 80 columns
+      # This ensures consistent formatting in the committed file
+      if [ "$ST_COMMAND" = "sync" ] && [ $WRITE_MODE -eq 1 ]; then
+        TABLE_WIDTH=80
+      else
+        # Use terminal width - try multiple methods
+        # First check COLUMNS env var
+        if [ -n "$COLUMNS" ]; then
+          TABLE_WIDTH=$COLUMNS
+        elif [ -t 1 ]; then
+          # Try stty
+          STTY_SIZE=$( (stty size 2>/dev/null || echo "24 80") | cut -d' ' -f2)
+          if [ -n "$STTY_SIZE" ] && [ "$STTY_SIZE" -gt 0 ]; then
+            TABLE_WIDTH=$STTY_SIZE
+          else
+            # Try tput as fallback
+            TPUT_COLS=$(tput cols 2>/dev/null || echo 80)
+            TABLE_WIDTH=$TPUT_COLS
+          fi
+        else
+          # Not connected to a terminal, use default
+          TABLE_WIDTH=80
+        fi
+      fi
+      # Debug output - comment out for production use
+      # echo "DEBUG: Terminal width detected: $TABLE_WIDTH" >&2
     fi
     
-    # Set column widths based on terminal width
-    ID_WIDTH=10
-    STATUS_WIDTH=15
-    DATE_WIDTH=10
+    # Dynamically allocate column widths based on terminal width
+    # Minimum widths for each column
+    MIN_ID_WIDTH=10
+    MIN_STATUS_WIDTH=12
+    MIN_DATE_WIDTH=10
+    MIN_TITLE_WIDTH=20
     
-    # Calculate available width for title column (accounting for column separators)
+    # Fixed column sizes (ID, Status, Created, Completed)
+    FIXED_MIN_WIDTH=$((MIN_ID_WIDTH + MIN_STATUS_WIDTH + MIN_DATE_WIDTH + MIN_DATE_WIDTH))
+    
+    # Account for separators and padding
     SEPARATORS_WIDTH=13  # 4 separators at "| " = 8 chars + 5 spaces in header
-    FIXED_COLS_WIDTH=$((ID_WIDTH + STATUS_WIDTH + DATE_WIDTH + DATE_WIDTH))
-    TITLE_WIDTH=$((TABLE_WIDTH - FIXED_COLS_WIDTH - SEPARATORS_WIDTH))
     
-    # Minimum title width - if terminal is too narrow, set a minimum
-    [ $TITLE_WIDTH -lt 20 ] && TITLE_WIDTH=20
+    # Calculate available width
+    AVAILABLE_WIDTH=$((TABLE_WIDTH - SEPARATORS_WIDTH))
+    
+    # If terminal is extremely narrow, use minimum values
+    if [ $AVAILABLE_WIDTH -lt $((FIXED_MIN_WIDTH + MIN_TITLE_WIDTH)) ]; then
+      ID_WIDTH=$MIN_ID_WIDTH
+      STATUS_WIDTH=$MIN_STATUS_WIDTH
+      DATE_WIDTH=$MIN_DATE_WIDTH
+      TITLE_WIDTH=$MIN_TITLE_WIDTH
+    else
+      # Base width allocation - more balanced distribution
+      if [ $AVAILABLE_WIDTH -le 100 ]; then
+        # For narrower terminals (~80 columns)
+        ID_WIDTH=$MIN_ID_WIDTH
+        STATUS_WIDTH=$MIN_STATUS_WIDTH
+        DATE_WIDTH=$MIN_DATE_WIDTH
+        
+        # Give remaining space to title, but cap it at 50% of available width
+        MAX_TITLE_PCT=50
+        MAX_TITLE_WIDTH=$((AVAILABLE_WIDTH * MAX_TITLE_PCT / 100))
+        TITLE_WIDTH=$((AVAILABLE_WIDTH - MIN_ID_WIDTH - MIN_STATUS_WIDTH - MIN_DATE_WIDTH - MIN_DATE_WIDTH))
+        
+        # Cap title width
+        [ $TITLE_WIDTH -gt $MAX_TITLE_WIDTH ] && TITLE_WIDTH=$MAX_TITLE_WIDTH
+        
+        # If we capped title, redistribute the space
+        REMAINING=$((AVAILABLE_WIDTH - ID_WIDTH - STATUS_WIDTH - DATE_WIDTH - DATE_WIDTH - TITLE_WIDTH))
+        if [ $REMAINING -gt 0 ]; then
+          # Distribute remaining space to other columns
+          STATUS_WIDTH=$((STATUS_WIDTH + (REMAINING * 4 / 10)))
+          DATE_WIDTH=$((DATE_WIDTH + (REMAINING * 3 / 10)))
+          ID_WIDTH=$((ID_WIDTH + (REMAINING * 3 / 10)))
+        fi
+      else
+        # For wider terminals:
+        # Start with percentage-based allocation of available width
+        ID_WIDTH=$((AVAILABLE_WIDTH * 10 / 100))     # 10%
+        STATUS_WIDTH=$((AVAILABLE_WIDTH * 15 / 100)) # 15%
+        DATE_WIDTH=$((AVAILABLE_WIDTH * 10 / 100))   # 10% each (20% total for dates)
+        TITLE_WIDTH=$((AVAILABLE_WIDTH * 55 / 100))  # 55%
+
+        # Ensure minimum widths
+        [ $ID_WIDTH -lt $MIN_ID_WIDTH ] && ID_WIDTH=$MIN_ID_WIDTH
+        [ $STATUS_WIDTH -lt $MIN_STATUS_WIDTH ] && STATUS_WIDTH=$MIN_STATUS_WIDTH
+        [ $DATE_WIDTH -lt $MIN_DATE_WIDTH ] && DATE_WIDTH=$MIN_DATE_WIDTH
+        [ $TITLE_WIDTH -lt $MIN_TITLE_WIDTH ] && TITLE_WIDTH=$MIN_TITLE_WIDTH
+        
+        # Make any final adjustments
+        TOTAL=$((ID_WIDTH + STATUS_WIDTH + DATE_WIDTH + DATE_WIDTH + TITLE_WIDTH))
+        if [ $TOTAL -gt $AVAILABLE_WIDTH ]; then
+          # We allocated too much, reduce title width to fit
+          TITLE_WIDTH=$((TITLE_WIDTH - (TOTAL - AVAILABLE_WIDTH)))
+        fi
+      fi
+    fi
     
     # Function to truncate string with ellipsis if too long
     truncate_string() {
@@ -595,201 +675,49 @@ EOF
   "sync")
     # Parse options
     WRITE_MODE=0
-    WIDTH=0  # Default to dynamic width
+    WIDTH=80
+    
     while [ $# -gt 0 ]; do
       case "$1" in
-        --write)
-          WRITE_MODE=1
-          shift
-          ;;
-        --width)
-          shift
-          WIDTH="$1"
-          shift
-          ;;
-        *)
-          error "Unknown option: $1"
-          ;;
+        --write) WRITE_MODE=1; shift ;;
+        --width) shift; WIDTH="$1"; shift ;;
+        *) error "Unknown option: $1" ;;
       esac
     done
     
+    # Paths
     ST_DIR="stp/prj/st"
     INDEX_FILE="$ST_DIR/steel_threads.md"
     
-    # Check if ST directory exists
-    if [ ! -d "$ST_DIR" ]; then
-      error "Steel threads directory not found"
-    fi
+    # Basic validation
+    [ ! -d "$ST_DIR" ] && error "Steel threads directory not found"
+    [ ! -f "$INDEX_FILE" ] && error "Steel threads index file not found"
     
-    # Check if index file exists
-    if [ ! -f "$INDEX_FILE" ]; then
-      error "Steel threads index file not found"
-    fi
-    
-    # Temporary file for construction
-    TMP_FILE=$(mktemp)
-    
-    # Copy the original file to the temp file
-    cp "$INDEX_FILE" "$TMP_FILE"
-    
-    # Set column widths
-    ID_WIDTH=23  # Wide enough for "[ST0000](./ST0000.md)"
-    TITLE_WIDTH=40
-    STATUS_WIDTH=12
-    DATE_WIDTH=10
-    
-    # Generate steel thread index content
-    ST_INDEX_CONTENT=$(
-      # Header row with fixed widths
-      printf "| %-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s |\n" \
-        "ID" "Title" "Status" "Created" "Completed"
-      
-      # Separator row with proper width
-      printf "| %s | %s | %s | %s | %s |\n" \
-        "$(printf '%0.s-' $(seq 1 $ID_WIDTH))" \
-        "$(printf '%0.s-' $(seq 1 $TITLE_WIDTH))" \
-        "$(printf '%0.s-' $(seq 1 $STATUS_WIDTH))" \
-        "$(printf '%0.s-' $(seq 1 $DATE_WIDTH))" \
-        "$(printf '%0.s-' $(seq 1 $DATE_WIDTH))"
-      
-      # Debug information
-      if [ $WRITE_MODE -ne 1 ]; then
-        echo "Searching for ST files in: $ST_DIR and subdirectories" >&2
-      fi
-
-      # Find all ST files in all subdirectories
-      for file in $(find "$ST_DIR" -type f -name "ST[0-9][0-9][0-9][0-9].md" | sort -r); do
-        if [ -f "$file" ]; then
-          # Extract ID from filename
-          ID=$(basename "$file" .md)
-          
-          # Debug information
-          if [ $WRITE_MODE -ne 1 ]; then
-            echo "Processing file: $file" >&2
-          fi
-          
-          # Create relative link that works regardless of where the file is located
-          # Determine relative path from steel_threads.md to the file
-          DIR_PATH=$(dirname "$file")
-          RELATIVE_PATH="${DIR_PATH#$ST_DIR/}"
-          
-          if [ "$RELATIVE_PATH" = "$DIR_PATH" ] || [ -z "$RELATIVE_PATH" ]; then
-            # Files in the same directory
-            ID_LINK="[$ID](./$ID.md)"
-          else
-            # Files in subdirectories
-            ID_LINK="[$ID](./$RELATIVE_PATH/$ID.md)"
-          fi
-          
-          # Extract title from the file
-          TITLE=$(grep "^# $ID:" "$file" | sed "s/^# $ID: //")
-          
-          # Check both YAML frontmatter and document body for status
-          YAML_STATUS=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
-          BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-          
-          # Prioritize YAML frontmatter for status
-          if [ -n "$YAML_STATUS" ]; then
-            STATUS="$YAML_STATUS"
-          elif [ -n "$BODY_STATUS" ]; then
-            STATUS="$BODY_STATUS"
-          else
-            # Default to "Not Started" ONLY if we cannot determine status
-            STATUS="Not Started"
-          fi
-          
-          # Debug information
-          if [ $WRITE_MODE -ne 1 ]; then
-            echo "  ID: $ID, Status: $STATUS, Path: $RELATIVE_PATH" >&2
-          fi
-          
-          # Extract dates
-          CREATED=$(grep -m 1 "^\- \*\*Created\*\*:" "$file" | sed "s/^\- \*\*Created\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-          COMPLETED=$(grep -m 1 "^\- \*\*Completed\*\*:" "$file" | sed "s/^\- \*\*Completed\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-          
-          # If created date is empty or placeholder, try YAML frontmatter
-          if [ -z "$CREATED" ] || [ "$CREATED" = "YYYY-MM-DD" ]; then
-            YAML_CREATED=$(grep -m 1 "^created:" "$file" | sed "s/^created: *//")
-            if [ -n "$YAML_CREATED" ] && [ "$YAML_CREATED" != "YYYYMMDD" ]; then
-              # Convert YYYYMMDD to YYYY-MM-DD if needed
-              if [[ "$YAML_CREATED" =~ ^[0-9]{8}$ ]]; then
-                CREATED="${YAML_CREATED:0:4}-${YAML_CREATED:4:2}-${YAML_CREATED:6:2}"
-              else
-                CREATED="$YAML_CREATED"
-              fi
-            fi
-          fi
-          
-          # If completed date is empty or placeholder, try YAML frontmatter
-          if [ -z "$COMPLETED" ] || [ "$COMPLETED" = "YYYY-MM-DD" ]; then
-            YAML_COMPLETED=$(grep -m 1 "^completed:" "$file" | sed "s/^completed: *//")
-            if [ -n "$YAML_COMPLETED" ] && [ "$YAML_COMPLETED" != "null" ] && [ "$YAML_COMPLETED" != "~" ] && [ "$YAML_COMPLETED" != "YYYYMMDD" ]; then
-              # Convert YYYYMMDD to YYYY-MM-DD if needed
-              if [[ "$YAML_COMPLETED" =~ ^[0-9]{8}$ ]]; then
-                COMPLETED="${YAML_COMPLETED:0:4}-${YAML_COMPLETED:4:2}-${YAML_COMPLETED:6:2}"
-              else
-                COMPLETED="$YAML_COMPLETED"
-              fi
-            fi
-          fi
-          
-          # Clean up any placeholder or empty values
-          if [ -z "$STATUS" ]; then
-            STATUS="Not Started"
-          fi
-          
-          if [ -z "$CREATED" ] || [ "$CREATED" = "YYYYMMDD" ] || [ "$CREATED" = "YYYY-MM-DD" ]; then
-            CREATED=$(date '+%Y-%m-%d')
-          fi
-          
-          if [ -z "$COMPLETED" ] || [ "$COMPLETED" = "YYYYMMDD" ] || [ "$COMPLETED" = "YYYY-MM-DD" ]; then
-            COMPLETED=""
-          fi
-          
-          # Truncate fields if they exceed maximum width
-          if [ ${#TITLE} -gt $TITLE_WIDTH ]; then
-            TITLE="${TITLE:0:$((TITLE_WIDTH-3))}..."
-          fi
-          
-          if [ ${#STATUS} -gt $STATUS_WIDTH ]; then
-            STATUS="${STATUS:0:$((STATUS_WIDTH-3))}..."
-          fi
-          
-          # Format as markdown table row with proper padding
-          printf "| %-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s |\n" \
-            "$ID_LINK" "$TITLE" "$STATUS" "$CREATED" "$COMPLETED"
-        fi
-      done
-    )
-    
-    # Update index content between markers
-    # Create a temporary file with the replacement content
-    SECTION_FILE=$(mktemp)
-    {
-      echo "<!-- BEGIN: STEEL_THREAD_INDEX -->"
-      echo "$ST_INDEX_CONTENT"
-      echo "<!-- END: STEEL_THREAD_INDEX -->"
-    } > "$SECTION_FILE"
-    
-    # Replace content between markers using awk
-    awk '
-      BEGIN { replacing = 0; }
-      /<!-- BEGIN: STEEL_THREAD_INDEX -->/ { replacing = 1; system("cat '"$SECTION_FILE"'"); next; }
-      /<!-- END: STEEL_THREAD_INDEX -->/ { replacing = 0; next; }
-      !replacing { print; }
-    ' "$INDEX_FILE" > "$TMP_FILE"
-    
-    # Clean up temporary file
-    rm "$SECTION_FILE"
-    
-    # If write mode is enabled, update the file
     if [ $WRITE_MODE -eq 1 ]; then
+      # Create temp files
+      TMP_FILE=$(mktemp)
+      LIST_OUTPUT=$(mktemp)
+      
+      # Get list output silently
+      "$0" list --width $WIDTH > "$LIST_OUTPUT" 2>/dev/null
+      
+      # Extract everything before the markers
+      sed -n '1,/<!-- BEGIN: STEEL_THREAD_INDEX -->/p' "$INDEX_FILE" > "$TMP_FILE"
+      
+      # Add the list output
+      cat "$LIST_OUTPUT" >> "$TMP_FILE"
+      
+      # Add everything after the markers
+      sed -n '/<!-- END: STEEL_THREAD_INDEX -->/,$p' "$INDEX_FILE" >> "$TMP_FILE"
+      
+      # Update file and clean up
       mv "$TMP_FILE" "$INDEX_FILE"
+      rm "$LIST_OUTPUT"
+      
       echo "Updated steel threads index file: $INDEX_FILE"
     else
-      # Otherwise, output to stdout
-      cat "$TMP_FILE"
-      rm "$TMP_FILE"
+      # For display, just run the list command
+      "$0" list --width "$WIDTH"
     fi
     ;;
     
