@@ -1,5 +1,5 @@
 ---
-verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
+verblock: "08 Jul 2025:v0.2: Matthew Sinclair - Added Backlog.md integration architecture"
 stp_version: 1.0.0
 ---
 # 3. Architecture
@@ -125,6 +125,7 @@ STP is designed to interface with:
 1. **Version Control Systems**: Through normal file operations
 2. **LLM Systems**: Through document content and canned prompts
 3. **Development Environments**: Through standard shell integration
+4. **Task Management Systems**: Through Backlog.md integration for fine-grained task tracking
 
 ## 3.5 Architectural Decisions
 
@@ -135,3 +136,89 @@ STP is designed to interface with:
 | Directory-Based Organization | Creates clear structure while maintaining simplicity                       |
 | Template-Driven Approach     | Reduces friction in creating consistent documentation                      |
 | Steel Thread Methodology     | Breaks work into manageable units suitable for LLM collaboration           |
+
+## 3.6 Integration Architecture
+
+STP is designed as an extensible system that can integrate with complementary tools while maintaining its core philosophy of simplicity and portability.
+
+### 3.6.1 Backlog.md Integration
+
+The integration with Backlog.md extends STP's capabilities with fine-grained task management while preserving the separation of concerns:
+
+#### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      STP System                             │
+│                                                             │
+│  ┌───────────────┐    ┌───────────────┐    ┌───────────────┐│
+│  │ Steel Threads │    │  STP Commands │    │   Templates   ││
+│  │  (Intent)     │◄───┤  (Workflow)   │────►  (Structure)  ││
+│  └───────────────┘    └───────────────┘    └───────────────┘│
+│         ▲                     │                             │
+│         │              ┌──────▼──────┐                      │
+│         └──────────────┤ Integration │                      │
+│                        │   Layer     │                      │
+│                        └──────┬──────┘                      │
+└───────────────────────────────┼─────────────────────────────┘
+                                │
+┌───────────────────────────────┼─────────────────────────────┐
+│                               ▼                             │
+│                        ┌─────────────┐                      │
+│                        │ Backlog.md  │                      │
+│                        │   System    │                      │
+│                        └─────────────┘                      │
+│  ┌───────────────┐    ┌───────────────┐    ┌───────────────┐│
+│  │ Task Tracking │    │    Kanban     │    │  Task Files  ││
+│  │  (Execution)  │◄───┤    Board      │────►  (Storage)   ││
+│  └───────────────┘    └───────────────┘    └───────────────┘│
+│                                                             │
+│                    External Task Management                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Component Responsibilities
+
+**STP Components:**
+- **Steel Threads**: Capture high-level objectives, context, and design decisions
+- **Documentation**: Maintain project narrative and technical specifications
+- **Process Coordination**: Orchestrate the overall development workflow
+
+**Backlog.md Components:**
+- **Task Management**: Track individual implementation tasks with rich metadata
+- **Status Tracking**: Provide granular task states and progress visibility
+- **Visualisation**: Offer Kanban board and browser-based interfaces
+
+**Integration Layer:**
+- **Command Wrappers**: `stp bl`, `stp task`, `stp status`, `stp migrate`
+- **Status Synchronisation**: Bidirectional status updates between systems
+- **Naming Conventions**: Consistent task naming linking to steel threads
+
+#### Data Flow
+
+1. **Steel Thread Creation** → Integration layer creates linked task structure
+2. **Task Updates** → Status changes propagate to steel thread status
+3. **Migration** → Embedded tasks convert to Backlog.md format
+4. **Queries** → Unified view of steel thread and task information
+
+#### Integration Points
+
+1. **File System**: 
+   - STP: `/stp/prj/st/` for steel threads
+   - Backlog: `/backlog/` for task management
+   - No overlap in storage locations
+
+2. **Command Interface**:
+   - Native STP commands remain unchanged
+   - Integration commands follow STP patterns
+   - Wrapper commands prevent common errors
+
+3. **Status Model**:
+   - Steel thread status derived from task states
+   - Automatic synchronisation available
+   - Manual override supported
+
+4. **Workflow Integration**:
+   - Steel threads define "what" and "why"
+   - Backlog tasks define "how" and "when"
+   - Clear separation of concerns maintained

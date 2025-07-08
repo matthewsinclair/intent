@@ -1,5 +1,5 @@
 ---
-verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
+verblock: "08 Jul 2025:v0.2: Matthew Sinclair - Added integration references for Backlog.md"
 stp_version: 1.0.0
 ---
 # 8. Appendices
@@ -269,3 +269,26 @@ I'll help you create a new steel thread for user authentication. Let's use the S
 - **Cross-Project References**: References between related projects
 - **Document Generation**: Automatic generation of summary reports
 - **Collaborative Editing**: Support for collaborative editing of documents
+
+## 8.7 Integration References
+
+### 8.7.1 Backlog.md Integration
+
+- **Integration Guide**: `/stp/usr/reference_guide.md#backlogmd-integration` - Comprehensive guide for using the integration
+- **Backlog.md Documentation**: [https://github.com/slune-org/backlog](https://github.com/slune-org/backlog)
+- **Integration Tests**:
+  - `/stp/tests/task/` - Task management command tests
+  - `/stp/tests/status/` - Status synchronisation tests
+  - `/stp/tests/migrate/` - Migration tool tests
+  - `/stp/tests/backlog/` - Wrapper command tests
+- **Implementation Scripts**:
+  - `/stp/bin/stp_backlog` - Backlog wrapper implementation
+  - `/stp/bin/stp_task` - Task management implementation
+  - `/stp/bin/stp_status` - Status synchronisation implementation
+  - `/stp/bin/stp_migrate` - Migration tool implementation
+
+### 8.7.2 Integration Architecture
+
+For technical details on the Backlog.md integration architecture, see:
+- Section 3.6.1: Backlog.md Integration Architecture
+- Section 4.8.1: Backlog.md Integration Implementation Details

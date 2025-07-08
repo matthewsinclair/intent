@@ -1,5 +1,5 @@
 ---
-verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
+verblock: "08 Jul 2025:v0.2: Matthew Sinclair - Added Backlog.md integration implementation details"
 stp_version: 1.0.0
 ---
 # 4. Detailed Design
@@ -363,3 +363,188 @@ STP addresses security through:
 2. **File Permission Management**: Ensuring appropriate permissions for created files
 3. **Input Validation**: Sanitizing user input to prevent script injection
 4. **No Sensitive Data**: Avoiding storage of credentials or sensitive information
+
+## 4.8 Integration Implementations
+
+### 4.8.1 Backlog.md Integration Details
+
+The Backlog.md integration extends STP with task management capabilities through a set of wrapper commands and conventions.
+
+#### Command Implementations
+
+**1. Backlog Wrapper (`stp_backlog`)**
+
+The `stp bl` command provides a wrapper around Backlog.md to:
+- Add `--plain` flag automatically to prevent git fetch errors
+- Provide shortcuts for common operations
+- Maintain consistent error handling
+
+```bash
+# Key wrapper behaviors
+stp bl list          → backlog task list --plain
+stp bl board         → backlog board --plain  
+stp bl create <args> → backlog task create <args>
+```
+
+**2. Task Management (`stp_task`)**
+
+The `stp task` command manages the relationship between steel threads and Backlog tasks:
+
+```bash
+stp task create <ST####> <title>  # Creates task with ST prefix
+stp task list <ST####>            # Lists all tasks for a thread
+stp task sync <ST####>            # Updates thread status from tasks
+```
+
+**3. Status Synchronisation (`stp_status`)**
+
+The `stp status` command provides bidirectional status updates:
+
+```bash
+stp status show <ST####>   # Shows thread and task status
+stp status sync <ST####>   # Updates thread status from tasks
+stp status report          # Overall project status
+```
+
+Status mapping rules:
+- All tasks in draft/none → Steel thread: "Not Started"
+- Any task in todo/in-progress → Steel thread: "In Progress"  
+- All tasks done/archived → Steel thread: "Completed"
+- Manual override for "On Hold" and "Cancelled"
+
+**4. Migration Tool (`stp_migrate`)**
+
+The `stp migrate` command converts embedded task lists to Backlog:
+
+```bash
+stp migrate <ST####>        # Migrate specific thread
+stp migrate --all-active    # Migrate all active threads
+stp migrate --dry-run       # Preview migration
+```
+
+Migration process:
+1. Parse markdown checkboxes from steel thread
+2. Create Backlog tasks with appropriate status
+3. Update steel thread to reference Backlog
+4. Preserve completion status
+
+#### Naming Conventions
+
+Tasks linked to steel threads follow strict naming:
+
+```
+ST#### - <task description>
+```
+
+Examples:
+- `ST0014 - Create directory structure`
+- `ST0014 - Update command implementations`
+- `ST0014 - Add integration tests`
+
+This convention enables:
+- Automatic linking between systems
+- Filtering and grouping operations
+- Status synchronisation
+
+#### File Structure Integration
+
+```
+project/
+├── stp/
+│   └── prj/
+│       └── st/
+│           ├── steel_threads.md    # Thread index
+│           ├── ST0001.md          # Steel thread docs
+│           └── ...
+└── backlog/
+    ├── config.yml                 # Backlog configuration
+    ├── tasks/                     # Active tasks
+    │   ├── task-001 - ST0014 - Create structure.md
+    │   └── ...
+    ├── drafts/                    # Draft tasks
+    └── archive/                   # Completed tasks
+```
+
+Key principles:
+- Complete separation of STP and Backlog directories
+- No file conflicts or overlaps
+- Each system maintains its own structure
+
+#### Workflow Integration Patterns
+
+**1. New Feature Development**
+
+```bash
+# 1. Create steel thread for high-level planning
+stp st new "Implement user authentication"
+# Output: Created ST0015
+
+# 2. Create implementation tasks
+stp task create ST0015 "Design auth database schema"
+stp task create ST0015 "Implement login endpoint"
+stp task create ST0015 "Create registration flow"
+stp task create ST0015 "Add session management"
+stp task create ST0015 "Write integration tests"
+
+# 3. Work through tasks
+stp bl board                      # View Kanban board
+backlog task edit <id> --status in-progress
+
+# 4. Sync status back to steel thread
+stp status sync ST0015
+```
+
+**2. Research and Design**
+
+```bash
+# 1. Create steel thread for research
+stp st new "Research caching strategies"
+
+# 2. Create investigation tasks
+stp task create ST0016 "Review Redis capabilities"
+stp task create ST0016 "Benchmark Memcached performance"
+stp task create ST0016 "Evaluate in-memory options"
+stp task create ST0016 "Document recommendations"
+
+# 3. Track progress
+stp task list ST0016
+```
+
+**3. Bug Fix Workflow**
+
+```bash
+# 1. Create steel thread for bug
+stp st new "Fix authentication timeout issue"
+
+# 2. Create diagnostic and fix tasks
+stp task create ST0017 "Reproduce timeout issue"
+stp task create ST0017 "Debug session handling"
+stp task create ST0017 "Implement fix"
+stp task create ST0017 "Add regression test"
+
+# 3. Fast status check
+stp status show ST0017
+```
+
+#### Error Handling
+
+The integration includes specific error handling:
+
+1. **Missing Backlog Installation**: Clear message with installation instructions
+2. **Git Fetch Errors**: Automatically prevented with `--plain` flag
+3. **Invalid Steel Thread IDs**: Validation before task creation
+4. **Status Conflicts**: Warning when manual status doesn't match tasks
+
+#### Testing Infrastructure
+
+Integration tests are provided in:
+- `stp/tests/task/task_test.bats` - Task command tests
+- `stp/tests/status/status_test.bats` - Status synchronisation tests
+- `stp/tests/migrate/migrate_test.bats` - Migration tests
+- `stp/tests/backlog/backlog_test.bats` - Wrapper command tests
+
+Test coverage includes:
+- Command functionality
+- Error conditions
+- Edge cases
+- Integration workflows

@@ -77,7 +77,7 @@ stp bl create ST0014 "Fix validation bug"
 stp bl list
 ```
 
-For detailed integration guide, see: `stp/doc/stp-backlog-integration.md`
+For detailed integration guide, see: `stp/usr/reference_guide.md#backlogmd-integration`
 
 ## Code Style Guidelines
 

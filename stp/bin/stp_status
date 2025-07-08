@@ -17,6 +17,14 @@ if [ -z "$STP_HOME" ]; then
   export STP_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
 fi
 
+# Check if backlog is installed
+if ! command -v backlog &> /dev/null; then
+  echo "Error: Backlog.md is not installed" >&2
+  echo "" >&2
+  cat "$STP_HOME/stp/bin/.help/backlog-install.help.md" >&2
+  exit 1
+fi
+
 # Function to display usage
 usage() {
   echo "Usage: stp status <command> [options] [arguments]"
