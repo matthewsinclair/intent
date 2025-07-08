@@ -1,7 +1,7 @@
 ---
 id: task-13
 title: ST0013 - Research existing intro content for blog 0001 - Introduction to STP
-status: Done
+status: done
 assignee: []
 created_date: '2025-07-08'
 labels: []

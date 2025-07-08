@@ -1,6 +1,6 @@
 project_name: "stp"
-default_status: "To Do"
-statuses: ["To Do", "In Progress", "Done"]
+default_status: "todo"
+statuses: ["todo", "wip", "done", "cancelled", "archived"]
 labels: []
 milestones: []
 date_format: yyyy-mm-dd

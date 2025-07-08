@@ -1,7 +1,7 @@
 ---
 id: task-28
 title: ST0013 - Research intent capture challenges for blog 0003
-status: Done
+status: done
 assignee: []
 created_date: '2025-07-08'
 labels: []
