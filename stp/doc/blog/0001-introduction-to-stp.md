@@ -1,8 +1,9 @@
 ---
 title: "Introduction to STP"
-date: "2025-03-11"
+date: "2025-07-08"
 author: "Matthew Sinclair"
-draft: true
+draft: false
+word_count: 1623
 ---
 
 # Introduction to STP: A Better Way to Build Software
