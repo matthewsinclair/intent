@@ -1,0 +1,10 @@
+# Blog 0000 Workflow Summary
+
+Completed tasks for blog post 0000:
+
+task-10      [done]          ST0013 - Write 'The vision behind STP' section for blog 0000
+task-11      [done]          ST0013 - Review and polish blog 0000
+task-12      [done]          ST0013 - Update metadata and mark blog 0000 as complete
+task-6       [done]          ST0013 - Research existing docs for blog 0000 - Motivation for STP
+task-7       [done]          ST0013 - Write introduction section for blog 0000
+task-9       [done]          ST0013 - Write 'Why existing approaches fall short' section for blog 0000

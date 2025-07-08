@@ -1,7 +1,7 @@
 ---
 id: task-16
 title: ST0013 - Write 'Core principles' section for blog 0001
-status: To Do
+status: Done
 assignee: []
 created_date: '2025-07-08'
 labels: []

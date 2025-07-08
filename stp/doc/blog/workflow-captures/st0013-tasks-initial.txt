@@ -1,0 +1,54 @@
+Tasks for ST0013:
+================
+task-10      [todo]          ST0013 - Write 'The vision behind STP' section for blog 0000
+task-11      [todo]          ST0013 - Review and polish blog 0000
+task-12      [todo]          ST0013 - Update metadata and mark blog 0000 as complete
+task-13      [todo]          ST0013 - Research existing intro content for blog 0001 - Introduction to STP
+task-14      [todo]          ST0013 - Write opening hook for blog 0001
+task-15      [todo]          ST0013 - Write 'What is STP?' section for blog 0001
+task-16      [todo]          ST0013 - Write 'Core principles' section for blog 0001
+task-17      [todo]          ST0013 - Create ASCII diagram showing STP workflow for blog 0001
+task-18      [todo]          ST0013 - Write 'Why STP matters' section for blog 0001
+task-19      [todo]          ST0013 - Review and polish blog 0001
+task-20      [todo]          ST0013 - Update metadata and mark blog 0001 as complete
+task-21      [todo]          ST0013 - Research steel thread examples for blog 0002
+task-22      [todo]          ST0013 - Write 'What is a steel thread?' section for blog 0002
+task-23      [todo]          ST0013 - Write 'Steel threads vs traditional methods' section for blog 0002
+task-24      [todo]          ST0013 - Create ASCII diagram of steel thread lifecycle for blog 0002
+task-25      [todo]          ST0013 - Write 'Benefits and examples' section for blog 0002
+task-26      [todo]          ST0013 - Review and polish blog 0002
+task-27      [todo]          ST0013 - Update metadata and mark blog 0002 as complete
+task-28      [todo]          ST0013 - Research intent capture challenges for blog 0003
+task-29      [todo]          ST0013 - Write 'The intent problem' section for blog 0003
+task-30      [todo]          ST0013 - Write 'How STP captures intent' section for blog 0003
+task-31      [todo]          ST0013 - Write 'Intent and LLMs' section for blog 0003
+task-32      [todo]          ST0013 - Create ASCII diagram of intent flow for blog 0003
+task-33      [todo]          ST0013 - Write 'Practical examples' section for blog 0003
+task-34      [todo]          ST0013 - Review and polish blog 0003
+task-35      [todo]          ST0013 - Update metadata and mark blog 0003 as complete
+task-36      [todo]          ST0013 - Research LLM collaboration patterns for blog 0004
+task-37      [todo]          ST0013 - Write 'STP design for LLMs' section for blog 0004
+task-38      [todo]          ST0013 - Write 'Context management' section for blog 0004
+task-39      [todo]          ST0013 - Write 'Templates and structure' section for blog 0004
+task-40      [todo]          ST0013 - Create ASCII diagram of LLM workflow for blog 0004
+task-41      [todo]          ST0013 - Write 'Future opportunities' section for blog 0004
+task-42      [todo]          ST0013 - Review and polish blog 0004
+task-43      [todo]          ST0013 - Update metadata and mark blog 0004 as complete
+task-44      [todo]          ST0013 - Write 'Installation' section for blog 0005
+task-45      [todo]          ST0013 - Write 'Basic commands' section for blog 0005
+task-46      [todo]          ST0013 - Write 'Creating your first steel thread' section for blog 0005
+task-47      [todo]          ST0013 - Write 'STP+Backlog workflow' meta-section for blog 0005
+task-48      [todo]          ST0013 - Add real command outputs from blog writing process for blog 0005
+task-49      [todo]          ST0013 - Write 'Best practices' section for blog 0005
+task-50      [todo]          ST0013 - Review and polish blog 0005
+task-51      [todo]          ST0013 - Update metadata and mark blog 0005 as complete
+task-52      [todo]          ST0013 - Write 'Current state of STP' section for blog 0006
+task-53      [todo]          ST0013 - Write 'Lessons learned' section for blog 0006
+task-54      [todo]          ST0013 - Write 'Roadmap' section for blog 0006
+task-55      [todo]          ST0013 - Write 'Integration opportunities' section for blog 0006
+task-56      [todo]          ST0013 - Write 'Community and contributions' section for blog 0006
+task-57      [todo]          ST0013 - Review and polish blog 0006
+task-58      [todo]          ST0013 - Update metadata and mark blog 0006 as complete
+task-6       [todo]          ST0013 - Research existing docs for blog 0000 - Motivation for STP
+task-7       [todo]          ST0013 - Write introduction section for blog 0000
+task-9       [todo]          ST0013 - Write 'Why existing approaches fall short' section for blog 0000
