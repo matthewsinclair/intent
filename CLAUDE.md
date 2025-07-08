@@ -39,6 +39,29 @@ Only keep one verblock entry with the most recent change (don't accumulate verbl
 - **THEN**: The journal doc `stp/journal.md` a historical narrative or work done
 - Use this to wrap up and conclude what has been done (in summary) at the end of each session
 
+## Task Management with Backlog.md
+
+STP is integrated with Backlog.md for fine-grained task tracking:
+
+- **Steel Threads**: Continue to capture high-level intent, design, and implementation documentation
+- **Backlog Tasks**: Track individual implementation tasks with rich metadata (status, priority, dependencies)
+- **Helper Commands**:
+  - `stp task create <ST####> <title>` - Create a task linked to a steel thread
+  - `stp task list <ST####>` - List all tasks for a steel thread
+  - `stp status show <ST####>` - Show steel thread and task status summary
+  - `stp migrate <ST####>` - Migrate embedded tasks from steel thread to Backlog
+
+### Task Naming Convention
+Tasks linked to steel threads follow the pattern: `ST#### - <task description>`
+
+### Workflow
+1. Create steel thread with `stp st new` for intent capture
+2. Create associated tasks with `stp task create`
+3. Track progress with `backlog board` or `stp task list`
+4. Update steel thread status based on task completion
+
+For detailed integration guide, see: `stp/doc/stp-backlog-integration.md`
+
 ## Code Style Guidelines
 
 - For Elixir code:

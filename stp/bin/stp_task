@@ -1,0 +1,202 @@
+#!/bin/bash
+# stp_task - Manage Backlog tasks linked to Steel Threads
+# Usage: stp task <command> [options] [arguments]
+
+# Exit on error
+set -e
+
+# Function to display error messages
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
+# Get STP_HOME from environment or determine from script location
+if [ -z "$STP_HOME" ]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  export STP_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
+
+# Function to display usage
+usage() {
+  echo "Usage: stp task <command> [options] [arguments]"
+  echo ""
+  echo "Manage Backlog tasks linked to Steel Threads"
+  echo ""
+  echo "Commands:"
+  echo "  create <ST####> <title>    Create a new task for a steel thread"
+  echo "  list <ST####>              List all tasks for a steel thread"
+  echo "  sync <ST####>              Sync task status with steel thread"
+  echo ""
+  echo "Examples:"
+  echo "  stp task create ST0014 \"Update documentation\""
+  echo "  stp task list ST0014"
+  echo "  stp task sync ST0014"
+}
+
+# Validate steel thread ID format
+validate_st_id() {
+  local st_id="$1"
+  if ! echo "$st_id" | grep -qE '^ST[0-9]{4}$'; then
+    echo "Error: Invalid steel thread ID format. Expected: ST####" >&2
+    return 1
+  fi
+  return 0
+}
+
+# Create a new task
+create_task() {
+  local st_id="$1"
+  local title="$2"
+  
+  if [ -z "$st_id" ] || [ -z "$title" ]; then
+    error "Both steel thread ID and title are required"
+  fi
+  
+  validate_st_id "$st_id" || exit 1
+  
+  # Check if steel thread exists
+  if ! "$STP_HOME/stp/bin/stp" st show "$st_id" >/dev/null 2>&1; then
+    echo "Error: Steel thread $st_id not found" >&2
+    exit 1
+  fi
+  
+  # Create task with backlog
+  local full_title="$st_id - $title"
+  echo "Creating task: $full_title"
+  
+  # Create the task and capture output
+  if output=$(backlog task create "$full_title" 2>&1); then
+    echo "Task created successfully"
+    echo "$output" | grep -E "task-[0-9]+" || true
+  else
+    echo "Error creating task: $output" >&2
+    exit 1
+  fi
+}
+
+# List tasks for a steel thread
+list_tasks() {
+  local st_id="$1"
+  
+  if [ -z "$st_id" ]; then
+    error "Steel thread ID required"
+  fi
+  
+  validate_st_id "$st_id" || exit 1
+  
+  echo "Tasks for $st_id:"
+  echo "================"
+  
+  # Check task files directly
+  for task_file in "$STP_HOME/backlog/tasks"/task-*.md; do
+    if [ -f "$task_file" ]; then
+      # Check if the task title contains the steel thread ID
+      if grep -q "^title:.*$st_id" "$task_file"; then
+        # Extract task info from YAML frontmatter
+        task_id=$(basename "$task_file" | sed -E 's/ - .*//')
+        title=$(awk '/^title:/ {sub(/^title: /, ""); print}' "$task_file")
+        status=$(awk '/^status:/ {sub(/^status: /, ""); print}' "$task_file")
+        
+        # Normalize status display
+        case "$status" in
+          "To Do") status="todo" ;;
+          "In Progress") status="in-progress" ;;
+          "Done") status="done" ;;
+        esac
+        
+        printf "%-12s %-15s %s\n" "$task_id" "[$status]" "$title"
+      fi
+    fi
+  done
+}
+
+# Sync task status with steel thread
+sync_status() {
+  local st_id="$1"
+  
+  if [ -z "$st_id" ]; then
+    error "Steel thread ID required"
+  fi
+  
+  validate_st_id "$st_id" || exit 1
+  
+  echo "Syncing status for $st_id..."
+  
+  # Count tasks by status
+  local total=0
+  local done=0
+  local in_progress=0
+  local todo=0
+  
+  backlog task list --plain 2>/dev/null | grep "^task-" | while IFS= read -r line; do
+    if echo "$line" | grep -q "$st_id"; then
+      total=$((total + 1))
+      task_id=$(echo "$line" | sed -E 's/^(task-[0-9]+).*/\1/')
+      
+      if task_details=$(backlog task view "$task_id" --plain 2>/dev/null); then
+        status=$(echo "$task_details" | grep -E "^Status:" | sed 's/Status: *//')
+        
+        case "$status" in
+          "done") done=$((done + 1)) ;;
+          "in-progress") in_progress=$((in_progress + 1)) ;;
+          "todo") todo=$((todo + 1)) ;;
+        esac
+      fi
+    fi
+  done
+  
+  # Determine steel thread status
+  local st_status=""
+  if [ "$total" -eq 0 ]; then
+    st_status="Not Started"
+  elif [ "$done" -eq "$total" ]; then
+    st_status="Completed"
+  elif [ "$in_progress" -gt 0 ] || [ "$todo" -gt 0 ]; then
+    st_status="In Progress"
+  else
+    st_status="Not Started"
+  fi
+  
+  echo "Task Summary:"
+  echo "  Total: $total"
+  echo "  Done: $done"
+  echo "  In Progress: $in_progress"
+  echo "  Todo: $todo"
+  echo ""
+  echo "Recommended steel thread status: $st_status"
+  
+  # Note: Actual status update would be done by stp-status command
+  echo ""
+  echo "To update steel thread status, run:"
+  echo "  stp-status sync $st_id"
+}
+
+# Display usage if no arguments provided
+if [ $# -eq 0 ]; then
+  usage
+  exit 0
+fi
+
+# Main command processing
+case "$1" in
+  create)
+    shift
+    create_task "$@"
+    ;;
+  list)
+    shift
+    list_tasks "$@"
+    ;;
+  sync)
+    shift
+    sync_status "$@"
+    ;;
+  -h|--help|help)
+    usage
+    exit 0
+    ;;
+  *)
+    error "Unknown command: $1. Run 'stp task help' for usage information."
+    ;;
+esac

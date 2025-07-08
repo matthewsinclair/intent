@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./run_tests.sh bootstrap)",
+      "Bash(./stp/bin/organize_st.sh:*)",
+      "Bash(./stp/bin/stp:*)",
+      "Bash(./stp/bin/stp_st:*)",
+      "Bash(./stp/bin/stp_upgrade:*)",
+      "Bash(./stp/tests/run_tests.sh:*)",
+      "Bash(/Users/matts/Devel/prj/STP/run_tests.sh)",
+      "Bash(cd:*)",
+      "Bash(chmod:*)",
+      "Bash(cp:*)",
+      "Bash(export:*)",
+      "Bash(find:*)",
+      "Bash(for:*)",
+      "Bash(git add:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(stp st sync:*)",
+      "Bash(stp/tests/run_tests.sh init/init_test.bats)",
+      "Bash(stp/tests/run_tests.sh:*)",
+      "Bash(stp:*)",
+      "Bash(touch:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(backlog:*)",
+      "Bash(/Users/matts/Devel/prj/STP/bin/stp-migrate:*)",
+      "Bash(/Users/matts/Devel/prj/STP/bin/stp-task list:*)",
+      "Bash(/Users/matts/Devel/prj/STP/bin/stp-status show:*)"
+    ],
+    "deny": []
+  }
+}
