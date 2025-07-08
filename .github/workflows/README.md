@@ -16,12 +16,11 @@ This directory contains automated workflows that run on GitHub to ensure code qu
 
 **Jobs**:
 - `test-linux`: Runs full test suite on Ubuntu with Node.js for Backlog.md
-- `test-macos`: Runs full test suite on macOS with Node.js for Backlog.md
 - `shellcheck`: Static analysis of shell scripts (non-blocking)
-- `test-summary`: Aggregates results from all test jobs
+- `test-summary`: Aggregates results from test jobs
 
 **Key Features**:
-- Tests on both Linux and macOS to ensure cross-platform compatibility
+- Tests on Ubuntu for Linux compatibility
 - Installs Backlog.md to test integration features
 - Includes both unit tests and integration tests
 - ShellCheck provides code quality feedback without blocking
@@ -81,8 +80,7 @@ shellcheck stp/bin/stp*
 
 ### Test Environments
 - **Ubuntu**: Latest version with apt package manager
-- **macOS**: Latest version with Homebrew
-- Both environments test the full suite to ensure compatibility
+- Tests run on Linux to ensure broad compatibility
 
 ### Best Practices
 - ShellCheck runs are non-blocking to allow gradual improvements
