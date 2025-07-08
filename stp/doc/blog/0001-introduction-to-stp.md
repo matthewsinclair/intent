@@ -18,13 +18,15 @@ draft: true
   * Steel Thread Project - definition and core concepts
   * A lightweight methodology for structuring both development and documentation
   * Built around the concept of "steel threads" of functionality
+  * Integrated with Backlog.md for fine-grained task management
   * Designed to work alongside existing development practices
-  * Shell scripts + markdown templates = minimal overhead
+  * Shell scripts + markdown templates + task tracking = minimal overhead
 
 * **Core Principles of STP**
   * Documentation as a first-class citizen
   * Intent capture throughout the development lifecycle
   * Incremental development through steel threads
+  * Task tracking linked to steel threads for visibility
   * Process-agnostic and compatible with any existing methodology
   * Lightweight enhancement rather than process replacement
   * Flexibility to match your team's specific workflow
@@ -38,6 +40,8 @@ draft: true
 * **Benefits of STP**
   * Better alignment between intent and implementation
   * Documentation that stays up-to-date
+  * Fine-grained visibility into work progress
+  * Automatic status synchronization with task completion
   * Improved onboarding experience
   * Enhanced collaboration with LLMs
   * More efficient development process

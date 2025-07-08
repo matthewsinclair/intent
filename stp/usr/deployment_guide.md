@@ -22,6 +22,7 @@ This deployment guide provides instructions for deploying the Steel Thread Proje
 - POSIX-compatible shell environment (bash, zsh)
 - Git (optional, for version control)
 - Text editor with markdown support
+- Backlog.md (for task management integration)
 
 ### Installation Methods
 
@@ -62,6 +63,28 @@ stp help
 ```
 
 This should display the help information for STP commands.
+
+#### Installing Backlog.md
+
+Install Backlog.md for task management:
+
+```bash
+# Install Backlog globally
+npm install -g backlog.md
+
+# Or install locally in your project
+npm install backlog.md
+
+# Verify installation
+backlog --version
+```
+
+Initialize Backlog in your project:
+
+```bash
+# Initialize Backlog with STP-friendly settings
+stp bl init
+```
 
 ## Configuration
 
@@ -106,6 +129,10 @@ STP works seamlessly with git and other version control systems:
 ```
 # STP temporary files
 .stp-tmp/
+
+# Backlog configuration
+backlog/config.yml
+backlog/.git/
 ```
 
 #### Commit Practices
@@ -205,11 +232,19 @@ For other LLM platforms:
 - Update STP installation periodically
 - Review and clean up completed steel threads
 - Archive older project documents
+- Sync steel thread status with Backlog tasks
+- Archive completed tasks in Backlog
 
 ### Backup Practices
 
 - Include STP documents in regular backups
 - Ensure documentation is committed to version control
+- Back up Backlog task data (backlog/tasks/, backlog/archive/)
+- Export task data periodically:
+  ```bash
+  # Export all tasks to JSON
+  backlog task list --export > backlog-export-$(date +%Y%m%d).json
+  ```
 
 ## Upgrading
 
@@ -231,7 +266,36 @@ git pull
 
 ### Migrating Between Versions
 
-[Instructions for migrating between major versions]
+When upgrading STP with Backlog integration:
+
+1. **Backup existing data**:
+   ```bash
+   # Backup steel threads
+   cp -r stp/prj/st stp/prj/st.backup
+   
+   # Backup Backlog data
+   cp -r backlog backlog.backup
+   ```
+
+2. **Run upgrade command**:
+   ```bash
+   stp upgrade
+   ```
+
+3. **Migrate embedded tasks** (if upgrading from pre-Backlog version):
+   ```bash
+   # Migrate all active steel threads
+   stp migrate --all-active
+   ```
+
+4. **Verify integration**:
+   ```bash
+   # Check task status
+   stp status report
+   
+   # Verify tasks in Backlog
+   stp bl list
+   ```
 
 ## Test Suite Deployment
 
@@ -288,6 +352,22 @@ cd stp/tests/
 
 ### Common Issues
 
+#### Backlog Git Fetch Errors
+
+If you encounter git fetch errors with Backlog:
+
+```bash
+# Use the STP wrapper instead of direct backlog commands
+stp bl list  # Instead of: backlog task list
+
+# Verify remote operations are disabled
+backlog config get remoteOperations
+# Should return: false
+
+# If not disabled, fix it:
+backlog config set remoteOperations false
+```
+
 #### Missing Test Dependencies
 
 If test dependencies are missing:
@@ -316,6 +396,23 @@ If you encounter permission errors:
 chmod +x stp/bin/*
 chmod +x stp/tests/*.sh
 chmod +x stp/tests/lib/*/src/*.bash
+```
+
+#### Task Synchronization Issues
+
+If tasks aren't syncing properly with steel threads:
+
+```bash
+# Check task naming convention (should be "ST#### - Description")
+stp bl list | grep "ST[0-9]"
+
+# Manually sync a specific steel thread
+stp status sync ST0001
+
+# Force sync all active threads
+for st in $(stp st list --status "In Progress" | awk '{print $1}' | grep "^ST"); do
+  stp status sync "$st"
+done
 ```
 
 ### Diagnostic Tools

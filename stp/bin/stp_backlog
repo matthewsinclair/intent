@@ -1,0 +1,161 @@
+#!/bin/bash
+# stp_backlog - Wrapper for Backlog.md to provide tighter STP integration
+# Usage: stp backlog <command> [options] [arguments]
+# Also available as: stp bl <command> [options] [arguments]
+
+# Exit on error
+set -e
+
+# Function to display error messages
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
+# Get STP_HOME from environment or determine from script location
+if [ -z "$STP_HOME" ]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  export STP_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
+
+# Function to display usage
+usage() {
+  echo "Usage: stp backlog <command> [options] [arguments]"
+  echo "       stp bl <command> [options] [arguments]"
+  echo ""
+  echo "STP wrapper for Backlog.md task management"
+  echo ""
+  echo "Commands:"
+  echo "  init                       Initialize backlog in current project"
+  echo "  task <subcommand>          Task management (create, list, edit, etc.)"
+  echo "  list                       List all tasks (alias for 'task list --plain')"
+  echo "  create <ST####> <title>    Create a task linked to a steel thread"
+  echo "  board                      Display tasks in Kanban board"
+  echo "  config                     Manage backlog configuration"
+  echo "  browser                    Open browser interface"
+  echo ""
+  echo "This wrapper:"
+  echo "  - Automatically uses --plain for list/board to avoid git errors"
+  echo "  - Disables remote operations for local projects"
+  echo "  - Provides shortcuts for common STP workflows"
+  echo ""
+  echo "Examples:"
+  echo "  stp bl list                    # List all tasks without git fetch"
+  echo "  stp bl create ST0014 \"Fix bug\" # Create task linked to ST0014"
+  echo "  stp bl task edit task-5        # Edit a specific task"
+  echo ""
+  echo "For full backlog documentation, run: backlog help"
+}
+
+# Initialize backlog with STP-friendly defaults
+init_backlog() {
+  # Run backlog init
+  backlog init "$@"
+  
+  # Configure for local use
+  if [ -f "backlog/config.yml" ]; then
+    echo "Configuring backlog for STP integration..."
+    # Disable remote operations to prevent git fetch errors
+    backlog config set remoteOperations false >/dev/null 2>&1 || true
+    # Set default status to match STP conventions
+    backlog config set defaultStatus "To Do" >/dev/null 2>&1 || true
+    echo "Backlog configured for local STP use."
+  fi
+}
+
+# Create a task with STP conventions
+create_task() {
+  local st_id="$1"
+  local title="$2"
+  
+  if [ -z "$st_id" ] || [ -z "$title" ]; then
+    error "Usage: stp bl create <ST####> <title>"
+  fi
+  
+  # Validate steel thread ID format
+  if ! echo "$st_id" | grep -qE '^ST[0-9]{4}$'; then
+    error "Invalid steel thread ID format. Expected: ST####"
+  fi
+  
+  # Create the task with full title
+  local full_title="$st_id - $title"
+  backlog task create "$full_title"
+}
+
+# Process commands
+case "${1:-}" in
+  init)
+    shift
+    init_backlog "$@"
+    ;;
+  
+  list)
+    # Shortcut for 'task list --plain'
+    shift
+    # Add --plain if not already present
+    if ! echo "$@" | grep -q -- "--plain"; then
+      backlog task list --plain "$@"
+    else
+      backlog task list "$@"
+    fi
+    ;;
+  
+  create)
+    # Special STP create command
+    shift
+    create_task "$@"
+    ;;
+  
+  board)
+    shift
+    # Add --plain to board command to avoid git operations
+    if ! echo "$@" | grep -q -- "--plain"; then
+      backlog board --plain "$@"
+    else
+      backlog board "$@"
+    fi
+    ;;
+  
+  task|tasks)
+    # Handle task subcommands
+    subcommand="${2:-}"
+    case "$subcommand" in
+      list)
+        # Add --plain to task list
+        shift 2
+        if ! echo "$@" | grep -q -- "--plain"; then
+          backlog task list --plain "$@"
+        else
+          backlog task list "$@"
+        fi
+        ;;
+      *)
+        # Pass through other task commands
+        shift
+        backlog task "$@"
+        ;;
+    esac
+    ;;
+  
+  config)
+    # Pass through config commands
+    shift
+    backlog config "$@"
+    ;;
+  
+  browser)
+    # Pass through browser command
+    shift
+    backlog browser "$@"
+    ;;
+  
+  -h|--help|help|"")
+    usage
+    exit 0
+    ;;
+  
+  *)
+    # Pass through any other commands
+    backlog "$@"
+    ;;
+esac

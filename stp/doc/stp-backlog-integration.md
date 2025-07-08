@@ -8,6 +8,29 @@ stp_version: 1.0.0
 
 This document describes the integration between STP (Steel Thread Process) and Backlog.md for enhanced task management. The integration maintains STP's strength in intent capture while leveraging Backlog.md's powerful task tracking capabilities.
 
+### Using the STP Backlog Wrapper
+
+STP provides a wrapper command `stp backlog` (or `stp bl` for short) that streamlines Backlog usage:
+
+```bash
+# Initialize backlog with STP-friendly settings
+stp bl init
+
+# List tasks without git fetch errors  
+stp bl list
+
+# Create tasks linked to steel threads
+stp bl create ST0014 "Add validation"
+
+# View Kanban board
+stp bl board
+```
+
+The wrapper automatically:
+- Adds `--plain` to list/board commands to prevent git errors
+- Disables remote operations for local projects
+- Provides shortcuts for common workflows
+
 ## Architecture
 
 ### STP Responsibilities
@@ -51,10 +74,10 @@ ST0014 - Add unit tests
 stp st new "My New Feature"
 # Returns: Created ST0015
 
-# Create associated tasks in Backlog
-stp task create ST0015 "Design API structure"
-stp task create ST0015 "Implement core logic"
-stp task create ST0015 "Write unit tests"
+# Create associated tasks using the backlog wrapper
+stp bl create ST0015 "Design API structure"
+stp bl create ST0015 "Implement core logic"
+stp bl create ST0015 "Write unit tests"
 ```
 
 ### 2. Task Lifecycle
@@ -100,11 +123,14 @@ stp status sync ST0015
 # View all tasks for a steel thread
 stp task list ST0015
 
+# View all tasks without git errors
+stp bl list
+
 # View in Kanban board
-backlog board
+stp bl board
 
 # View in browser
-backlog browser
+stp bl browser
 ```
 
 ## Steel Thread Document Structure
@@ -224,7 +250,8 @@ stp migrate --dry-run <ST####>       # Preview migration
 ### Getting Help
 
 - Run `stp help` for STP commands
-- Run `backlog help` for Backlog commands
+- Run `stp help backlog` for STP's Backlog wrapper
+- Run `backlog help` for native Backlog commands
 - Check `/stp/doc/` for additional guides
 
 ## Testing

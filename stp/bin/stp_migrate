@@ -114,14 +114,14 @@ create_backlog_task() {
   
   echo "  Creating task: $title"
   
-  # Create the task
-  if output=$(backlog task create "$title" 2>&1); then
+  # Use stp bl wrapper to create the task
+  if output=$("$STP_HOME/stp/bin/stp" bl create "$st_id" "$description" 2>&1); then
     # Extract task ID from output
     task_id=$(echo "$output" | grep -oE "task-[0-9]+" | head -1)
     
     if [ -n "$task_id" ] && [ "$status" = "done" ]; then
-      # Update status to done
-      backlog task edit "$task_id" --status done >/dev/null 2>&1
+      # Update status to Done (capital D for Backlog)
+      "$STP_HOME/stp/bin/stp" bl task edit "$task_id" --status Done >/dev/null 2>&1
       echo "    Task created and marked as done: $task_id"
     else
       echo "    Task created: $task_id"

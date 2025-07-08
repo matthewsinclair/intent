@@ -6,6 +6,28 @@ stp_version: 1.0.0
 
 This document maintains a chronological record of project activities, decisions, and progress. It serves as a historical narrative of the Steel Thread Project's development.
 
+## 20250320
+
+### Backlog.md Integration
+
+Successfully integrated Backlog.md with STP to provide fine-grained task management capabilities. This integration allows developers to track detailed tasks linked to steel threads, providing better visibility into work progress and enabling automatic status synchronization.
+
+Key accomplishments:
+- Created `stp bl` wrapper to provide a streamlined interface to Backlog.md while avoiding git fetch errors
+- Implemented `stp task` command for creating and listing tasks linked to specific steel threads
+- Implemented `stp status` command to synchronize steel thread status based on task completion metrics
+- Implemented `stp migrate` command to help users migrate existing embedded checkbox tasks to Backlog
+- Created comprehensive test suites for all new commands
+- Updated all documentation (user guide, reference guide, deployment guide, TPD) to reflect the integration
+
+The integration follows STP naming conventions with tasks automatically named in the format "ST#### - Description" for clear traceability. The `stp bl` wrapper configures Backlog for local use, disabling remote operations that can cause errors.
+
+This enhancement provides:
+- Granular task tracking that complements high-level steel threads
+- Automatic status updates based on task completion
+- Seamless migration path from embedded tasks
+- Error-free operation through the wrapper interface
+
 ## 20250603
 
 ### Documentation Update

@@ -20,10 +20,15 @@ This document is a Technical Product Design (TPD) for the Steel Thread Project (
 4. The code is developed through "steel threads" which are incremental implementation stages
 5. The system consists primarily of shell scripts and markdown templates
 6. The system is designed to integrate with existing development workflows
-7. Key commands include:
+7. The system integrates with Backlog.md for fine-grained task management
+8. Key commands include:
    - `stp st list`: List all steel threads with optional filtering by status
    - `stp st sync`: Synchronize the steel_threads.md index with individual ST files
    - `stp upgrade`: Upgrade STP files to the latest format and standards
+   - `stp bl`: Wrapper for Backlog.md commands to avoid git errors
+   - `stp task`: Manage Backlog tasks linked to steel threads
+   - `stp status`: Synchronize steel thread status based on task completion
+   - `stp migrate`: Migrate embedded tasks from steel threads to Backlog
 
 # Steel Thread Project Technical Product Design
 

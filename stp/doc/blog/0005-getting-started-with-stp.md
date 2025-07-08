@@ -11,6 +11,7 @@ draft: true
 
 * **Installation and Setup**
   * Prerequisites for STP installation
+  * Installing Backlog.md for task management
   * Bootstrapping STP in a new project
   * Bootstrapping STP in an existing project
   * Directory structure overview
@@ -19,6 +20,9 @@ draft: true
 * **Basic Commands and Workflow**
   * The `stp` command and its subcommands
   * Creating and managing steel threads
+  * Task management with `stp bl` and `stp task`
+  * Synchronizing status with `stp status`
+  * Migrating embedded tasks with `stp migrate`
   * Working with the WIP document
   * Updating the journal
   * Navigating and utilizing the TPD document
@@ -27,7 +31,10 @@ draft: true
 * **Daily Workflow with STP**
   * Starting a new work session
   * Creating a new steel thread
+  * Breaking down work into Backlog tasks
   * Working on an existing steel thread
+  * Managing tasks with `stp task list` and `stp bl`
+  * Synchronizing steel thread status
   * Completing a steel thread
   * End-of-day journaling process
   * Weekly and sprint planning with STP
@@ -42,6 +49,9 @@ draft: true
 
 * **Common Patterns and Best Practices**
   * Steel thread granularity guidelines
+  * Task breakdown strategies
+  * Using the `stp bl` wrapper to avoid git errors
+  * Task naming conventions (ST#### - Description)
   * Documentation style consistency
   * Effective use of templates
   * LLM collaboration techniques

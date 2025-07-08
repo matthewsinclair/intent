@@ -65,12 +65,10 @@ create_task() {
   local full_title="$st_id - $title"
   echo "Creating task: $full_title"
   
-  # Create the task and capture output
-  if output=$(backlog task create "$full_title" 2>&1); then
+  # Use stp bl wrapper to create the task
+  if "$STP_HOME/stp/bin/stp" bl create "$st_id" "$title"; then
     echo "Task created successfully"
-    echo "$output" | grep -E "task-[0-9]+" || true
   else
-    echo "Error creating task: $output" >&2
     exit 1
   fi
 }

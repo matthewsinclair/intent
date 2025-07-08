@@ -29,11 +29,16 @@ draft: true
   * Status tracking and lifecycle
   * Clear objectives and success criteria
   * Implementation plan and tracking
+  * Tasks tracked in Backlog with `stp task list ST####`
+  * Automatic status synchronization based on task completion
   * How the documentation evolves with the code
 
 * **Managing Work with Steel Threads**
   * Creating and planning steel threads
-  * Tracking progress
+  * Breaking down work into Backlog tasks with `stp task create`
+  * Tracking progress with `stp task list` and `stp status show`
+  * Task naming convention: "ST#### - Description"
+  * Synchronizing status with `stp status sync`
   * Completing and archiving steel threads
   * Dependencies between steel threads
   * Team collaboration around steel threads
@@ -47,6 +52,8 @@ draft: true
 * **Benefits of the Steel Thread Approach**
   * Better focus on delivering value
   * Improved visibility into project status
+  * Fine-grained task tracking linked to high-level goals
+  * Automatic status updates based on task completion
   * Documentation that evolves naturally with implementation
   * Enhanced collaboration between team members
   * Clearer demarcation of what's done and what's not

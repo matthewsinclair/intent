@@ -26,15 +26,18 @@ draft: true
   * The preamble to Claude in the TPD document
   * Structured documentation that fits LLM thinking patterns
   * Just-in-time context loading via steel threads
+  * Task-level context with Backlog integration
   * Markdown as a universal interface format
-  * The "WIP → Steel Thread → Journal" information flow
+  * The "WIP → Steel Thread → Tasks → Journal" information flow
 
 * **Context Management Strategies**
   * Using the WIP document to orient LLMs
   * Steel threads as focused context containers
+  * Task lists with `stp task list ST####` for current work
   * Technical Product Design as the system overview
   * The journal for historical context
   * Template system for consistent document structure
+  * Task status as progress indicators for LLMs
 
 * **Templates and Structure that Enhance LLM Effectiveness**
   * The rationale behind STP's template design

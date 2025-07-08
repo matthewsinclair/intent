@@ -32,6 +32,7 @@ draft: true
 * **How STP Addresses the Intent Problem**
   * Documentation alongside code, not separate from it
   * Steel threads as intent containers
+  * Fine-grained tasks capturing implementation intent
   * Versioning documentation with implementation
   * Structured templates that prompt for intent capture
   * The journal, WIP, and TPD documents as living intent records
@@ -39,6 +40,7 @@ draft: true
 * **Intent Capture Best Practices**
   * Document decisions, not just outcomes
   * Capture alternatives considered
+  * Break down high-level intent into task-level implementation details
   * Link intent to requirements and constraints
   * Update intent documentation as understanding evolves
   * Use structured formats that are easy to maintain

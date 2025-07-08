@@ -11,6 +11,8 @@ draft: true
 
 * **Current State of STP**
   * Review of core features and capabilities
+  * Backlog.md integration for fine-grained task management
+  * Automatic status synchronization between tasks and steel threads
   * Community adoption and feedback
   * Strengths and limitations in the current implementation
   * Success stories and use cases
@@ -23,6 +25,7 @@ draft: true
   * Enhanced template system
   * Performance optimizations for larger projects
   * Cross-platform support improvements
+  * Advanced Backlog features and reporting
 
 * **Integration Opportunities**
   * Seamless integration with existing methodologies and tools

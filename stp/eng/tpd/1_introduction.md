@@ -19,6 +19,8 @@ STP encompasses:
 - Shell scripts for managing the STP workflow
 - A process methodology centered around "steel threads" of work
 - Integration patterns for working with LLMs
+- Integration with Backlog.md for fine-grained task management
+- Commands for synchronizing steel thread status with task completion
 
 STP is designed to be lightweight, adaptable, and to work alongside existing development workflows without requiring significant changes to development practices.
 
@@ -30,6 +32,8 @@ STP is designed to be lightweight, adaptable, and to work alongside existing dev
 | LLM            | Large Language Model, an AI system capable of understanding and generating text                  |
 | Context Window | The amount of text an LLM can process in a single interaction                                    |
 | Canned Prompt  | A pre-defined, reusable instruction template for an LLM                                          |
+| Backlog        | Task management system integrated with STP for tracking fine-grained work items                  |
+| Task           | Individual unit of work linked to a steel thread, tracked in Backlog                             |
 
 ## 1.4 System Overview
 
@@ -39,6 +43,8 @@ STP operates as a meta-layer on top of existing development processes. It provid
 2. **LLM Collaboration**: Guidelines and tools for effective LLM assistance in development
 3. **Incremental Development**: A methodology for breaking work into manageable "steel threads"
 4. **Project Tracking**: Mechanisms for tracking work-in-progress and project history
+5. **Task Management**: Integration with Backlog.md for fine-grained task tracking linked to steel threads
+6. **Status Synchronization**: Automatic status updates based on task completion metrics
 
 The system is intentionally simple, using markdown files and shell scripts to maximize portability and minimize dependencies.
 

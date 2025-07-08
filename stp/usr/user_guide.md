@@ -12,9 +12,10 @@ This user guide provides task-oriented instructions for using the Steel Thread P
 2. [Installation](#installation)
 3. [Getting Started](#getting-started)
 4. [Working with Steel Threads](#working-with-steel-threads)
-5. [Documentation Management](#documentation-management)
-6. [LLM Collaboration](#llm-collaboration)
-7. [Troubleshooting](#troubleshooting)
+5. [Working with Backlog](#working-with-backlog)
+6. [Documentation Management](#documentation-management)
+7. [LLM Collaboration](#llm-collaboration)
+8. [Troubleshooting](#troubleshooting)
 
 ## Introduction
 
@@ -42,6 +43,7 @@ STP helps developers:
 - POSIX-compatible shell (bash, zsh)
 - Git (optional, for version control)
 - Text editor with markdown support
+- Backlog.md (for task management integration)
 
 ### Installation Steps
 
@@ -87,9 +89,12 @@ stp init --dirs "eng,llm,prj,usr" "Project Name"
 
 # Or include all directories (including bin, _templ, tests) 
 stp init --all "Project Name"
+
+# Initialize Backlog for task management
+stp bl init
 ```
 
-This creates the STP directory structure with template documents.
+This creates the STP directory structure with template documents and sets up Backlog for task management.
 
 ### Directory Structure
 
@@ -97,15 +102,19 @@ After initialization with the default directories, you'll have this structure:
 
 ```
 my-project/
-└── stp/                    # Project documentation
-    ├── prj/                # Project documentation
-    │   ├── st/             # Steel threads
-    │   ├── wip.md          # Work in progress
-    │   └── journal.md      # Project journal
-    ├── eng/                # Engineering docs
-    │   └── tpd/            # Technical Product Design
-    ├── usr/                # User documentation
-    └── llm/                # LLM-specific content
+├── stp/                    # Project documentation
+│   ├── prj/                # Project documentation
+│   │   ├── st/             # Steel threads
+│   │   ├── wip.md          # Work in progress
+│   │   └── journal.md      # Project journal
+│   ├── eng/                # Engineering docs
+│   │   └── tpd/            # Technical Product Design
+│   ├── usr/                # User documentation
+│   └── llm/                # LLM-specific content
+└── backlog/                # Backlog.md task management
+    ├── tasks/              # Active tasks
+    ├── drafts/             # Draft tasks
+    └── config.yml          # Backlog configuration
 ```
 
 If you use the `--all` option or include specific directories with `--dirs`, additional directories may be included:
@@ -183,6 +192,97 @@ stp st done ST0001
 ```
 
 This updates the status and completion date.
+
+## Working with Backlog
+
+STP integrates with Backlog.md for fine-grained task management. The `stp bl` wrapper provides a streamlined interface that avoids common issues like git fetch errors.
+
+### Initializing Backlog
+
+To set up Backlog in your project:
+
+```bash
+# Initialize Backlog with STP-friendly settings
+stp bl init
+```
+
+This configures Backlog for local use, disabling remote operations that can cause errors.
+
+### Creating Tasks
+
+Tasks are linked to steel threads for traceability:
+
+```bash
+# Create a task linked to a steel thread
+stp bl create ST0001 "Implement user authentication"
+
+# Or use the task command
+stp task create ST0001 "Add password validation"
+```
+
+### Listing Tasks
+
+View all tasks or filter by steel thread:
+
+```bash
+# List all tasks (without git errors)
+stp bl list
+
+# List tasks for a specific steel thread
+stp task list ST0001
+
+# View tasks in Kanban board
+stp bl board
+```
+
+### Managing Task Status
+
+Update task status as work progresses:
+
+```bash
+# Edit a task
+stp bl task edit task-5 --status "In Progress"
+
+# Mark a task as done
+stp bl task edit task-5 --status Done
+```
+
+### Synchronizing Status
+
+Keep steel thread status in sync with task completion:
+
+```bash
+# View status summary
+stp status show ST0001
+
+# Sync steel thread status based on tasks
+stp status sync ST0001
+
+# Generate status report for all active threads
+stp status report
+```
+
+### Migrating Existing Tasks
+
+If you have embedded tasks in steel threads, migrate them to Backlog:
+
+```bash
+# Migrate tasks from a specific steel thread
+stp migrate ST0001
+
+# Preview migration without making changes
+stp migrate --dry-run ST0001
+
+# Migrate all active steel threads
+stp migrate --all-active
+```
+
+### Best Practices
+
+1. **Use the wrapper**: Always use `stp bl` instead of `backlog` directly to avoid git errors
+2. **Task naming**: Tasks are automatically named with the pattern "ST#### - Description"
+3. **Regular syncing**: Run `stp status sync` to keep steel thread status current
+4. **Task granularity**: Create tasks that can be completed in 1-2 days
 
 ## Documentation Management
 
@@ -329,3 +429,28 @@ chmod +x $STP_HOME/bin/*
 #### Template Generation Errors
 
 If template generation fails, check file permissions and ensure template files exist in the `_templ` directory.
+
+#### Backlog Git Fetch Errors
+
+If you see git fetch errors when using Backlog:
+
+```bash
+# Use the STP wrapper instead
+stp bl list  # Instead of: backlog task list
+
+# Ensure remote operations are disabled
+backlog config get remoteOperations
+# Should return: false
+```
+
+#### Task Not Found
+
+If tasks aren't showing up:
+
+```bash
+# Check task files exist
+ls backlog/tasks/
+
+# Use --plain flag if needed
+backlog task list --plain
+```

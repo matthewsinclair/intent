@@ -75,8 +75,27 @@ teardown() {
 
 # Test creating a task
 @test "task create creates a new backlog task" {
-  # Mock the backlog command
-  create_mock_command "backlog" 0 "Created task task-1"
+  # The steel thread ST0014 is created in setup(), so stp st show should find it
+  
+  # Mock the stp bl command by mocking the underlying backlog command
+  mkdir -p "${TEST_TEMP_DIR}/bin"
+  cat > "${TEST_TEMP_DIR}/bin/backlog" << 'EOF'
+#!/bin/bash
+if [[ "$1" == "task" && "$2" == "create" ]]; then
+  echo "Created task task-1"
+  echo "File: /path/to/task-1.md"
+  exit 0
+fi
+exit 1
+EOF
+  chmod +x "${TEST_TEMP_DIR}/bin/backlog"
+  export PATH="${TEST_TEMP_DIR}/bin:$PATH"
+  
+  # Also need to provide stp_backlog and stp_bl for the bl command
+  cp "${STP_BIN_DIR}/stp_backlog" "stp/bin/"
+  cp "${STP_BIN_DIR}/stp_bl" "stp/bin/"
+  chmod +x "stp/bin/stp_backlog"
+  chmod +x "stp/bin/stp_bl"
   
   run ./stp_task create ST0014 "Test task description"
   [ "$status" -eq 0 ]

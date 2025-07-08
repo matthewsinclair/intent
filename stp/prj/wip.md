@@ -6,6 +6,25 @@ stp_version: 1.0.0
 
 ## Current Focus
 
+### 20250320
+
+**001-DONE: Integrate Backlog.md with STP**
+
+Successfully integrated Backlog.md for fine-grained task management:
+
+- Created `stp bl` wrapper to avoid git fetch errors 
+- Implemented `stp task` command for managing tasks linked to steel threads
+- Implemented `stp status` command to sync steel thread status based on task completion
+- Implemented `stp migrate` command to migrate embedded tasks from steel threads to Backlog
+- Created comprehensive test suites for all new commands
+- Updated all documentation to reflect the Backlog integration
+
+This integration provides:
+- Fine-grained task tracking linked to steel threads
+- Automatic status synchronization based on task completion
+- Seamless migration from embedded tasks to Backlog
+- Error-free operation with the `stp bl` wrapper
+
 ### 20250312
 
 **001-DONE: More work on the STP Blog Post Series**
@@ -65,6 +84,7 @@ Completed:
 
 | ID                       | Title                     | Status      | Created    | Completed  |
 |--------------------------|---------------------------|-------------|------------|------------|
+| [ST0014](./st/ST0014.md) | Directory Structure for Steel Threads | In Progress | 2025-03-20 |            |
 | [ST0013](./st/ST0013.md) | STP Blog Post Series      | In Progress | 2025-03-11 |            |
 | [ST0010](./st/ST0010.md) | Anthropic MCP Integration | On Hold     | 2025-06-03 |            |
 
@@ -107,6 +127,7 @@ This document captures the current state of development on the Steel Thread Proj
 2. Consider implementing configuration settings for customizing STP behavior
 3. Explore version control integration features
 4. Develop additional canned prompts for common tasks
+5. Complete implementation of directory structure for steel threads (ST0014)
 
 ### Questions to Address
 

@@ -35,6 +35,10 @@ stp/
 │   ├── stp_init        # Init command implementation
 │   ├── stp_st          # Steel thread command implementation
 │   ├── stp_help        # Help command implementation
+│   ├── stp_backlog     # Backlog wrapper implementation
+│   ├── stp_task        # Task management implementation
+│   ├── stp_status      # Status sync implementation
+│   ├── stp_migrate     # Task migration implementation
 │   └── ...             # Other command implementations
 ├── prj/                # Project documentation
 │   ├── st/             # Steel threads
@@ -52,9 +56,14 @@ stp/
 │   ├── user_guide.md
 │   ├── reference_guide.md
 │   └── deployment_guide.md
-└── llm/                # LLM-specific content
-    ├── llm_preamble.md
-    └── *.prompt.md     # Canned prompts
+├── llm/                # LLM-specific content
+│   ├── llm_preamble.md
+│   └── *.prompt.md     # Canned prompts
+└── backlog/            # Backlog.md task management
+    ├── tasks/          # Active tasks
+    ├── drafts/         # Draft tasks
+    ├── archive/        # Archived tasks
+    └── config.yml      # Backlog configuration
 ```
 
 ## 4.2 Document Templates
@@ -189,9 +198,7 @@ completed:
 [Planned approach for implementing this steel thread]
 
 ## Tasks
-- [ ] Task 1
-- [ ] Task 2
-- ...
+Tasks are tracked in Backlog. View with: `stp task list ST####`
 
 ## Implementation Notes
 [Notes on implementation details, decisions, challenges, etc.]
@@ -247,6 +254,10 @@ Main commands include:
 - `st`: Manage steel threads
 - `help`: Display help information
 - `upgrade`: Upgrade STP files to the latest format
+- `bl` / `backlog`: Wrapper for Backlog.md commands
+- `task`: Manage tasks linked to steel threads
+- `status`: Synchronize steel thread status with tasks
+- `migrate`: Migrate embedded tasks to Backlog
 
 Subcommands include:
 
@@ -256,6 +267,10 @@ Subcommands include:
 - `st sync`: Synchronize the steel_threads.md index file with individual ST files
 - `st show`: Show details of a specific steel thread
 - `st edit`: Open a steel thread in the default editor
+- `bl create`: Create a task linked to a steel thread
+- `bl list`: List all tasks without git errors
+- `task list`: List tasks for a specific steel thread
+- `status sync`: Update steel thread status based on tasks
 
 ### 4.3.2 Command Implementation
 
@@ -266,6 +281,10 @@ Each command is implemented as a separate shell script:
 3. `stp_help`: Displays help information from `.help` directory
 4. `stp_st`: Manages steel thread operations (new, done, list, sync, show, edit)
 5. `stp_upgrade`: Upgrades STP files to the latest format and standards
+6. `stp_backlog`: Wrapper for Backlog.md to avoid git errors and provide shortcuts
+7. `stp_task`: Manages tasks linked to steel threads (create, list, sync)
+8. `stp_status`: Synchronizes steel thread status based on task completion
+9. `stp_migrate`: Migrates embedded tasks from steel threads to Backlog
 
 ### 4.3.3 Help System
 

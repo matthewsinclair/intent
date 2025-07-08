@@ -1,0 +1,9 @@
+#!/bin/bash
+# stp_bl - Shorthand alias for stp_backlog
+# This simply calls stp_backlog with all arguments
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Call stp_backlog with all arguments
+exec "$SCRIPT_DIR/stp_backlog" "$@"

@@ -45,6 +45,11 @@ STP is integrated with Backlog.md for fine-grained task tracking:
 
 - **Steel Threads**: Continue to capture high-level intent, design, and implementation documentation
 - **Backlog Tasks**: Track individual implementation tasks with rich metadata (status, priority, dependencies)
+- **STP Backlog Wrapper** (`stp backlog` or `stp bl`):
+  - `stp bl init` - Initialize backlog with STP-friendly settings
+  - `stp bl list` - List all tasks without git errors
+  - `stp bl create <ST####> <title>` - Create a task linked to a steel thread
+  - `stp bl board` - View Kanban board
 - **Helper Commands**:
   - `stp task create <ST####> <title>` - Create a task linked to a steel thread
   - `stp task list <ST####>` - List all tasks for a steel thread
@@ -56,9 +61,21 @@ Tasks linked to steel threads follow the pattern: `ST#### - <task description>`
 
 ### Workflow
 1. Create steel thread with `stp st new` for intent capture
-2. Create associated tasks with `stp task create`
-3. Track progress with `backlog board` or `stp task list`
+2. Create associated tasks with `stp bl create` or `stp task create`
+3. Track progress with `stp bl board` or `stp task list`
 4. Update steel thread status based on task completion
+
+### Quick Start with Backlog
+```bash
+# Initialize backlog in your project
+stp bl init
+
+# Create a task
+stp bl create ST0014 "Fix validation bug"
+
+# List all tasks
+stp bl list
+```
 
 For detailed integration guide, see: `stp/doc/stp-backlog-integration.md`
 
