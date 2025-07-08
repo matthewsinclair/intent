@@ -32,7 +32,7 @@ jobs:
     
     - name: Install Backlog.md
       run: |
-        npm install -g @backlog.md/cli
+        npm install -g backlog.md
         backlog --version || echo "Backlog installation status: $?"
     
     - name: Make scripts executable

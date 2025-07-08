@@ -75,6 +75,7 @@ shellcheck stp/bin/stp*
 ### Dependencies
 - **GitHub Actions**: Uses `actions/checkout@v4` and `actions/setup-node@v4`
 - **Node.js**: Version 20 for Backlog.md compatibility
+- **Backlog.md**: Installed via `npm install -g backlog.md`
 - **Bats**: Installed via system package manager
 - **Bats Libraries**: Cloned from GitHub if not present
 
