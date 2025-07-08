@@ -1,5 +1,7 @@
 #!/bin/bash
 # stp - Steel Thread Project main script
+# Copyright (c) 2024 Matthew Sinclair
+# Licensed under the MIT License (see LICENSE file)
 # Usage: stp <command> [options] [arguments]
 
 # Exit on error
