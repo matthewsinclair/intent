@@ -279,7 +279,7 @@ STP thrives on community contributions. Here's how you can help shape its future
 
 1. **Fork and Clone**:
 ```bash
-git clone https://github.com/yourusername/stp.git
+git clone https://github.com/matthewsinclair/stp.git
 cd stp
 ```
 

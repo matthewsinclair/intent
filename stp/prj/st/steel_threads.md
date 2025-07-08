@@ -4,7 +4,7 @@ stp_version: 1.0.0
 ---
 # Steel Threads
 
-This document serves as an index of all steel threads in the Steel Thread Project (STP) system. A steel thread represents a self-contained unit of work that focuses on implementing a specific piece of functionality.
+This document serves as an index of all steel threads in the Steel Thread Process (STP) system. A steel thread represents a self-contained unit of work that focuses on implementing a specific piece of functionality.
 
 ## Index
 

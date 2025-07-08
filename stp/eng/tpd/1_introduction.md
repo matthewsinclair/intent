@@ -8,7 +8,7 @@ stp_version: 1.0.0
 
 ## 1.1 Purpose
 
-The Steel Thread Project (STP) is a system designed to create a structured workflow and documentation process for developers working collaboratively with Large Language Models (LLMs) such as Claude Code. STP provides templates, scripts, and process guidelines to enhance productivity while ensuring high-quality documentation as a byproduct of the development process.
+The Steel Thread Process (STP) is a system designed to create a structured workflow and documentation process for developers working collaboratively with Large Language Models (LLMs) such as Claude Code. STP provides templates, scripts, and process guidelines to enhance productivity while ensuring high-quality documentation as a byproduct of the development process.
 
 ## 1.2 Scope
 

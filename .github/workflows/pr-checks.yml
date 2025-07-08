@@ -1,0 +1,149 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate-steel-thread:
+    name: Validate Steel Thread Reference
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check for steel thread reference
+      run: |
+        echo "Checking if PR references a steel thread..."
+        
+        # Get PR description
+        PR_BODY="${{ github.event.pull_request.body }}"
+        
+        # Check if it contains a steel thread reference (ST####)
+        if echo "$PR_BODY" | grep -qE "ST[0-9]{4}"; then
+          echo "✅ Steel thread reference found"
+          THREAD_ID=$(echo "$PR_BODY" | grep -oE "ST[0-9]{4}" | head -1)
+          echo "Referenced thread: $THREAD_ID"
+          
+          # Check if the thread file exists
+          if [ -f "stp/prj/st/${THREAD_ID}.md" ]; then
+            echo "✅ Steel thread file exists"
+          else
+            echo "⚠️  Warning: Steel thread file not found (might be in a subdirectory)"
+          fi
+        else
+          echo "ℹ️  No steel thread reference found in PR description"
+          echo "Consider referencing the related steel thread (ST####) in your PR"
+        fi
+
+  check-documentation:
+    name: Documentation Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check for documentation updates
+      run: |
+        echo "Checking if documentation needs updates..."
+        
+        # Get list of changed files
+        CHANGED_FILES="${{ github.event.pull_request.changed_files }}"
+        
+        # Check if any scripts were modified
+        if git diff --name-only origin/main..HEAD | grep -q "stp/bin/"; then
+          echo "Scripts were modified - checking for documentation updates"
+          
+          # Check if any documentation was also updated
+          if git diff --name-only origin/main..HEAD | grep -qE "(\.md$|usr/|doc/)"; then
+            echo "✅ Documentation updates found"
+          else
+            echo "⚠️  Warning: Scripts modified but no documentation updates found"
+            echo "Consider updating relevant documentation"
+          fi
+        fi
+
+  test-coverage:
+    name: Test Coverage Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check for test updates
+      run: |
+        echo "Checking test coverage for changes..."
+        
+        # Check if any source files were modified
+        if git diff --name-only origin/main..HEAD | grep -q "stp/bin/"; then
+          echo "Source files were modified - checking for test updates"
+          
+          # Check if any tests were also updated
+          if git diff --name-only origin/main..HEAD | grep -q "tests/"; then
+            echo "✅ Test updates found"
+          else
+            echo "⚠️  Warning: Source files modified but no test updates found"
+            echo "Consider adding or updating tests for your changes"
+          fi
+        fi
+
+  commit-message-check:
+    name: Commit Message Format
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Check commit messages
+      run: |
+        echo "Checking commit message format..."
+        
+        # Get commits in this PR
+        COMMITS=$(git log --format="%s" origin/main..HEAD)
+        
+        # Check each commit message
+        echo "$COMMITS" | while read -r commit; do
+          echo "Checking: $commit"
+          
+          # Basic checks (customize as needed)
+          if [ ${#commit} -lt 10 ]; then
+            echo "⚠️  Warning: Very short commit message"
+          fi
+          
+          if [ ${#commit} -gt 72 ]; then
+            echo "⚠️  Warning: Commit message exceeds 72 characters"
+          fi
+        done
+        
+        echo "Commit message check completed"
+
+  pr-size-check:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check PR size
+      run: |
+        echo "Checking PR size..."
+        
+        # Count changed lines
+        ADDITIONS="${{ github.event.pull_request.additions }}"
+        DELETIONS="${{ github.event.pull_request.deletions }}"
+        TOTAL_CHANGES=$((ADDITIONS + DELETIONS))
+        
+        echo "Lines added: $ADDITIONS"
+        echo "Lines deleted: $DELETIONS"
+        echo "Total changes: $TOTAL_CHANGES"
+        
+        if [ $TOTAL_CHANGES -gt 1000 ]; then
+          echo "⚠️  Warning: Large PR (>1000 lines changed)"
+          echo "Consider breaking this into smaller PRs"
+        elif [ $TOTAL_CHANGES -gt 500 ]; then
+          echo "ℹ️  Note: Medium-sized PR (>500 lines changed)"
+        else
+          echo "✅ PR size is reasonable"
+        fi

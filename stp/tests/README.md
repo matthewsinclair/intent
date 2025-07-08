@@ -1,6 +1,6 @@
 # STP Test Suite
 
-This directory contains automated tests for the Steel Thread Project (STP) utilities.
+This directory contains automated tests for the Steel Thread Process (STP) utilities.
 
 ## Overview
 

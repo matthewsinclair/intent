@@ -43,7 +43,7 @@ usage() {
   echo "  browser                    Open browser interface"
   echo ""
   echo "This wrapper:"
-  echo "  - Automatically uses --plain for list/board to avoid git errors"
+  echo "  - Automatically uses --plain for list commands to avoid git errors"
   echo "  - Disables remote operations for local projects"
   echo "  - Provides shortcuts for common STP workflows"
   echo ""
@@ -116,12 +116,9 @@ case "${1:-}" in
   
   board)
     shift
-    # Add --plain to board command to avoid git operations
-    if ! echo "$@" | grep -q -- "--plain"; then
-      backlog board --plain "$@"
-    else
-      backlog board "$@"
-    fi
+    # Pass through board command without modification
+    # Note: board doesn't support --plain option
+    backlog board "$@"
     ;;
   
   task|tasks)

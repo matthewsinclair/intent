@@ -1,4 +1,4 @@
-# Steel Thread Project (STP)
+# Steel Thread Process (STP)
 
 [![STP Tests](https://github.com/matthewsinclair/dev-stp/actions/workflows/tests.yml/badge.svg)](https://github.com/matthewsinclair/dev-stp/actions/workflows/tests.yml)
 

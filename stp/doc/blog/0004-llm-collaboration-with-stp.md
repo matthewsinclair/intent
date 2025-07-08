@@ -67,7 +67,7 @@ Our Technical Product Design starts with explicit instructions for LLMs:
 ```markdown
 ## Preamble to Claude
 
-This document is a Technical Product Design (TPD) for the Steel Thread Project (STP) system. When processing this document, please understand:
+This document is a Technical Product Design (TPD) for the Steel Thread Process (STP) system. When processing this document, please understand:
 
 1. This is a comprehensive technical specification...
 2. The system is designed to facilitate collaboration between developers and LLMs...

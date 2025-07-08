@@ -7,7 +7,7 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 Initialize STP in a project
 
 @desc:
-The 'init' command sets up the Steel Thread Project (STP) structure in a
+The 'init' command sets up the Steel Thread Process (STP) structure in a
 new or existing project. It creates the necessary directory structure,
 initializes template documents, and configures the project for STP use.
 

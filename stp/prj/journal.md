@@ -4,7 +4,7 @@ stp_version: 1.0.0
 ---
 # Project Journal
 
-This document maintains a chronological record of project activities, decisions, and progress. It serves as a historical narrative of the Steel Thread Project's development.
+This document maintains a chronological record of project activities, decisions, and progress. It serves as a historical narrative of the Steel Thread Process's development.
 
 ## 20250320
 
@@ -75,7 +75,7 @@ Completed the migration from the old "doc" directory reference to the new "stp" 
 
 ### Project Initialization
 
-The Steel Thread Project (STP) was initiated today. The goal is to create a structured workflow and documentation process for developers working collaboratively with Large Language Models (LLMs).
+The Steel Thread Process (STP) was initiated today. The goal is to create a structured workflow and documentation process for developers working collaboratively with Large Language Models (LLMs).
 
 ### Specification Review
 

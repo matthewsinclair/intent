@@ -10,7 +10,7 @@ word_count: 1623
 
 If you've ever lost track of why a piece of code exists, struggled to onboard a new team member, or watched an LLM confidently solve the wrong problem, you understand the cost of lost intention in software development. In our [previous post](./0000-motivation-for-stp.md), we explored why capturing and preserving intention is crucial for modern development, especially when collaborating with AI.
 
-Today, I want to introduce you to the Steel Thread Project (STP) – a practical solution to the intention problem. STP isn't another heavyweight methodology or a complex framework. It's a lightweight system that enhances your existing workflow with intention-aware structure, making both human and AI collaboration more effective.
+Today, I want to introduce you to the Steel Thread Process (STP) – a practical solution to the intention problem. STP isn't another heavyweight methodology or a complex framework. It's a lightweight system that enhances your existing workflow with intention-aware structure, making both human and AI collaboration more effective.
 
 ## Building on the Intention Foundation
 
@@ -25,7 +25,7 @@ The shift from theoretical understanding to practical implementation happens thr
 
 ## What is STP?
 
-The Steel Thread Project is a lightweight methodology for structuring both development and documentation around clearly captured intentions. At its heart, STP is surprisingly simple: shell scripts + markdown templates + task tracking = intention-aware development.
+The Steel Thread Process is a lightweight methodology for structuring both development and documentation around clearly captured intentions. At its heart, STP is surprisingly simple: shell scripts + markdown templates + task tracking = intention-aware development.
 
 Let me break this down:
 

@@ -69,7 +69,7 @@ teardown() {
 @test "help displays general help when no command is specified" {
   run ./stp_help
   [ "$status" -eq 0 ]
-  [[ "$output" == *"STP - Steel Thread Project"* ]]
+  [[ "$output" == *"STP - Steel Thread Process"* ]]
   [[ "$output" == *"Available commands:"* ]]
   [[ "$output" == *"init"* ]]
   [[ "$output" == *"st"* ]]

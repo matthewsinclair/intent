@@ -119,7 +119,7 @@ Completed:
 
 ## Context for LLM
 
-This document captures the current state of development on the Steel Thread Project. When beginning work with an LLM assistant, start by sharing this document to provide context about what's currently being worked on.
+This document captures the current state of development on the Steel Thread Process. When beginning work with an LLM assistant, start by sharing this document to provide context about what's currently being worked on.
 
 ### Next Steps
 

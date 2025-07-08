@@ -4,7 +4,7 @@ stp_version: 1.0.0
 ---
 # Deployment Guide
 
-This deployment guide provides instructions for deploying the Steel Thread Project (STP) system in various environments. It covers installation, configuration, and integration with other tools and workflows.
+This deployment guide provides instructions for deploying the Steel Thread Process (STP) system in various environments. It covers installation, configuration, and integration with other tools and workflows.
 
 ## Table of Contents
 

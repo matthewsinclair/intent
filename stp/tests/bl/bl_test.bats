@@ -94,12 +94,12 @@ EOF
 }
 
 # Test stp bl board command
-@test "stp bl board adds --plain automatically" {
+@test "stp bl board passes through without --plain" {
   # Mock backlog to show arguments
   cat > "${TEST_TEMP_DIR}/bin/backlog" << 'EOF'
 #!/bin/bash
 echo "Backlog called with: $*"
-if [[ "$*" == "board --plain" ]]; then
+if [[ "$*" == "board" ]]; then
   echo "Kanban board displayed"
   exit 0
 fi
@@ -109,7 +109,7 @@ EOF
   
   run ./stp_bl board
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Backlog called with: board --plain"* ]]
+  [[ "$output" == *"Backlog called with: board"* ]]
   [[ "$output" == *"Kanban board displayed"* ]]
 }
 

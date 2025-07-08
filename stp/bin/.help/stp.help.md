@@ -1,10 +1,10 @@
 # stp
 
 @short:
-Steel Thread Project - A system for structured development and documentation with LLM collaboration
+Steel Thread Process - A system for structured development and documentation with LLM collaboration
 
 @desc:
-STP (Steel Thread Project) provides a structured process for developing software
+STP (Steel Thread Process) provides a structured process for developing software
 in collaboration with Large Language Models (LLMs). It helps manage documentation,
 track progress, and maintain context across development sessions.
 

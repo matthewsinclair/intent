@@ -6,7 +6,7 @@ stp_version: 1.0.0
 
 ## Preamble to Claude
 
-This document is a Technical Product Design (TPD) for the Steel Thread Project (STP) system. When processing this document, please understand:
+This document is a Technical Product Design (TPD) for the Steel Thread Process (STP) system. When processing this document, please understand:
 
 1. This is a comprehensive technical specification for a shell-script and markdown-based system
 2. The system is designed to facilitate collaboration between developers and LLMs
@@ -30,9 +30,9 @@ This document is a Technical Product Design (TPD) for the Steel Thread Project (
    - `stp status`: Synchronize steel thread status based on task completion
    - `stp migrate`: Migrate embedded tasks from steel threads to Backlog
 
-# Steel Thread Project Technical Product Design
+# Steel Thread Process Technical Product Design
 
-This document serves as the central index for the Technical Product Design (TPD) of the Steel Thread Project (STP) system. The TPD is organized into sections that detail the architecture, implementation, and roadmap for the system.
+This document serves as the central index for the Technical Product Design (TPD) of the Steel Thread Process (STP) system. The TPD is organized into sections that detail the architecture, implementation, and roadmap for the system.
 
 ## Table of Contents
 

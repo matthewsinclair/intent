@@ -8,7 +8,7 @@ stp_version: 1.0.0
 
 ## 5.1 Development Approach
 
-The Steel Thread Project (STP) will be developed using its own methodology - we will use steel threads to build the STP system itself. This meta-approach allows us to validate the process while creating it.
+The Steel Thread Process (STP) will be developed using its own methodology - we will use steel threads to build the STP system itself. This meta-approach allows us to validate the process while creating it.
 
 The implementation will proceed in phases:
 

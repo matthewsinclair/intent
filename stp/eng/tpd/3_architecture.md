@@ -8,7 +8,7 @@ stp_version: 1.0.0
 
 ## 3.1 System Architecture Overview
 
-The Steel Thread Project (STP) follows a modular architecture with three primary components:
+The Steel Thread Process (STP) follows a modular architecture with three primary components:
 
 1. **Documentation Structure**: A standardized directory layout and document templates
 2. **Command-line Interface**: Shell scripts for managing STP workflows

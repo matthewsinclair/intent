@@ -41,7 +41,7 @@ fi
 
 # Display general help
 cat << EOF
-STP - Steel Thread Project
+STP - Steel Thread Process
 
 A system for structured development and documentation with LLM collaboration.
 

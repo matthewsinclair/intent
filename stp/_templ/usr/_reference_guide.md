@@ -3,7 +3,7 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
 # Reference Guide
 
-This reference guide provides comprehensive information about the Steel Thread Project (STP) system. Unlike the task-oriented User Guide, this reference guide serves as a complete reference for all aspects of the system.
+This reference guide provides comprehensive information about the Steel Thread Process (STP) system. Unlike the task-oriented User Guide, this reference guide serves as a complete reference for all aspects of the system.
 
 ## Table of Contents
 

@@ -14,7 +14,7 @@ stp_version: 1.0.0
 |                | such as Claude, GPT, etc.                                                                        |
 | Steel Thread   | A self-contained unit of work that represents a logical piece of functionality to be implemented |
 | Context Window | The amount of text an LLM can process in a single interaction                                    |
-| STP            | Steel Thread Project - The system described in this document                                     |
+| STP            | Steel Thread Process - The system described in this document                                     |
 | Canned Prompt  | A pre-defined, reusable instruction template for an LLM                                          |
 | TPD            | Technical Product Design - A comprehensive technical specification document                      |
 
@@ -24,7 +24,7 @@ stp_version: 1.0.0
 
 ```bash
 #!/bin/bash
-# STP - Steel Thread Project main script
+# STP - Steel Thread Process main script
 # Usage: stp <command> [options] [arguments]
 
 # Check if STP_HOME is set
@@ -83,7 +83,7 @@ if [ $# -eq 1 ]; then
 fi
 
 # Display general help
-echo "STP - Steel Thread Project"
+echo "STP - Steel Thread Process"
 echo ""
 echo "Usage: stp <command> [options] [arguments]"
 echo ""

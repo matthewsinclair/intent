@@ -4,7 +4,7 @@ stp_version: 1.0.0
 ---
 # LLM Preamble
 
-This document provides essential context for LLMs working with the Steel Thread Project (STP) codebase.
+This document provides essential context for LLMs working with the Steel Thread Process (STP) codebase.
 
 ## Project Overview
 

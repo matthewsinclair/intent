@@ -10,7 +10,7 @@ word_count: 1507
 
 In the rapidly evolving landscape of AI-assisted software development, we stand at a critical juncture. Large Language Models (LLMs) like Claude have transformed how we write code, debug systems, and architect solutions. Yet, despite their remarkable capabilities, a fundamental challenge persists: how do we ensure that these powerful tools truly understand not just what we want to build, but why we want to build it?
 
-This is the story of the Steel Thread Project (STP) – a response to the growing disconnect between developer intention and LLM execution. It's a framework born from the realisation that in our rush to leverage AI capabilities, we've overlooked the most crucial element of successful collaboration: shared understanding of purpose.
+This is the story of the Steel Thread Process (STP) – a response to the growing disconnect between developer intention and LLM execution. It's a framework born from the realisation that in our rush to leverage AI capabilities, we've overlooked the most crucial element of successful collaboration: shared understanding of purpose.
 
 ## The Fundamental Challenge of LLM Collaboration
 
@@ -106,7 +106,7 @@ Intention becomes the cornerstone of technical intuition. When we make intention
 
 ## STP: An Answer to the Intention Question
 
-The Steel Thread Project emerged from a simple observation: successful LLM collaboration requires explicit intention capture, but we lacked a systematic way to achieve this. STP was designed specifically to bridge this gap.
+The Steel Thread Process emerged from a simple observation: successful LLM collaboration requires explicit intention capture, but we lacked a systematic way to achieve this. STP was designed specifically to bridge this gap.
 
 At its core, STP introduces the concept of a "steel thread" – not just a development task or user story, but an intention container. Each steel thread captures:
 - The problem we're solving (the why)

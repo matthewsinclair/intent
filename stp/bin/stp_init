@@ -18,7 +18,7 @@ error() {
 usage() {
   echo "Usage: stp init [options] <project_name> [directory]"
   echo ""
-  echo "Initialize Steel Thread Project in the specified directory"
+  echo "Initialize Steel Thread Process in the specified directory"
   echo ""
   echo "Options:"
   echo "  -d, --dirs    Comma-separated list of directories to copy (default: $DEFAULT_DIRS_TO_COPY)"

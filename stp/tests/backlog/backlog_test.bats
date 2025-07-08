@@ -116,8 +116,8 @@ EOF
   ! [[ "$output" == *"--plain --plain"* ]]
 }
 
-# Test board command adds --plain
-@test "backlog board automatically adds --plain flag" {
+# Test board command does NOT add --plain
+@test "backlog board does NOT add --plain flag" {
   # Create a mock backlog that shows what arguments it received
   mkdir -p "${TEST_TEMP_DIR}/bin"
   cat > "${TEST_TEMP_DIR}/bin/backlog" << 'EOF'
@@ -129,7 +129,8 @@ EOF
   
   run ./stp_backlog board
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Arguments: board --plain"* ]]
+  [[ "$output" == *"Arguments: board"* ]]
+  [[ "$output" != *"--plain"* ]]
 }
 
 # Test pass-through of other commands

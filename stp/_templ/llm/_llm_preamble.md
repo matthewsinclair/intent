@@ -7,7 +7,7 @@ This document provides essential context for LLMs working on the [[PROJECT_NAME]
 
 ## Project Context
 
-[[PROJECT_NAME]] follows the Steel Thread Project (STP) methodology, which organizes development into discrete "steel threads" - self-contained units of functionality that enable incremental progress with clear documentation.
+[[PROJECT_NAME]] follows the Steel Thread Process (STP) methodology, which organizes development into discrete "steel threads" - self-contained units of functionality that enable incremental progress with clear documentation.
 
 ## Navigation Guide
 

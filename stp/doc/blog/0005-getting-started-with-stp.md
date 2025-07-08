@@ -259,7 +259,7 @@ $ stp st show ST0013
 - **Author**: Matthew Sinclair
 
 ## Objective
-Create a series of blog posts about the Steel Thread Project (STP) 
+Create a series of blog posts about the Steel Thread Process (STP) 
 to explain its purpose, philosophy, and implementation.
 ```
 

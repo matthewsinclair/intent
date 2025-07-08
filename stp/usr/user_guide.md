@@ -4,7 +4,7 @@ stp_version: 1.0.0
 ---
 # User Guide
 
-This user guide provides task-oriented instructions for using the Steel Thread Project (STP) system. It explains how to accomplish common tasks and provides workflow guidance.
+This user guide provides task-oriented instructions for using the Steel Thread Process (STP) system. It explains how to accomplish common tasks and provides workflow guidance.
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ This user guide provides task-oriented instructions for using the Steel Thread P
 
 ## Introduction
 
-Steel Thread Project (STP) is a system designed to create a structured workflow and documentation process for developers working collaboratively with Large Language Models (LLMs). STP provides templates, scripts, and process guidelines to enhance productivity while ensuring high-quality documentation as a byproduct of the development process.
+Steel Thread Process (STP) is a system designed to create a structured workflow and documentation process for developers working collaboratively with Large Language Models (LLMs). STP provides templates, scripts, and process guidelines to enhance productivity while ensuring high-quality documentation as a byproduct of the development process.
 
 ### Purpose
 
