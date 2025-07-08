@@ -1,7 +1,7 @@
 ---
 id: task-55
 title: ST0013 - Write 'Integration opportunities' section for blog 0006
-status: To Do
+status: Done
 assignee: []
 created_date: '2025-07-08'
 labels: []

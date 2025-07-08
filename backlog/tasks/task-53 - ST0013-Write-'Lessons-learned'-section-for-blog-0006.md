@@ -1,7 +1,7 @@
 ---
 id: task-53
 title: ST0013 - Write 'Lessons learned' section for blog 0006
-status: To Do
+status: Done
 assignee: []
 created_date: '2025-07-08'
 labels: []

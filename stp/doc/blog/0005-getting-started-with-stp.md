@@ -26,7 +26,7 @@ STP requires minimal dependencies:
 
 1. **Clone the repository**:
 ```bash
-git clone https://github.com/yourusername/stp.git
+git clone https://github.com/matthewsinclair/stp.git
 cd stp
 ```
 
@@ -77,7 +77,7 @@ my-project/
 │   │   ├── journal.md
 │   │   └── wip.md
 │   └── usr/        # User documentation
-└── backlog/         # Backlog.md tasks
+└── backlog/        # Backlog.md tasks
 ```
 
 **For existing projects**:
