@@ -25,11 +25,14 @@ jobs:
           THREAD_ID=$(echo "$PR_BODY" | grep -oE "ST[0-9]{4}" | head -1)
           echo "Referenced thread: $THREAD_ID"
           
-          # Check if the thread file exists
-          if [ -f "stp/prj/st/${THREAD_ID}.md" ]; then
-            echo "✅ Steel thread file exists"
+          # Check if the thread exists (either as file or directory)
+          if [ -f "stp/prj/st/${THREAD_ID}.md" ] || [ -d "stp/prj/st/${THREAD_ID}" ]; then
+            echo "✅ Steel thread exists"
+          elif [ -d "stp/prj/st/COMPLETED/${THREAD_ID}" ] || [ -d "stp/prj/st/NOT-STARTED/${THREAD_ID}" ] || [ -d "stp/prj/st/CANCELLED/${THREAD_ID}" ]; then
+            echo "✅ Steel thread exists (in status subdirectory)"
           else
-            echo "⚠️  Warning: Steel thread file not found (might be in a subdirectory)"
+            echo "❌ Error: Steel thread ${THREAD_ID} not found"
+            exit 1
           fi
         else
           echo "ℹ️  No steel thread reference found in PR description"
