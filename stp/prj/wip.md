@@ -12,7 +12,7 @@ stp_version: 1.2.0
 
 Successfully integrated Backlog.md for fine-grained task management:
 
-- Created `stp bl` wrapper to avoid git fetch errors 
+- Created `stp bl` wrapper to avoid git fetch errors
 - Implemented `stp task` command for managing tasks linked to steel threads
 - Implemented `stp status` command to sync steel thread status based on task completion
 - Implemented `stp migrate` command to migrate embedded tasks from steel threads to Backlog
@@ -20,6 +20,7 @@ Successfully integrated Backlog.md for fine-grained task management:
 - Updated all documentation to reflect the Backlog integration
 
 This integration provides:
+
 - Fine-grained task tracking linked to steel threads
 - Automatic status synchronization based on task completion
 - Seamless migration from embedded tasks to Backlog
