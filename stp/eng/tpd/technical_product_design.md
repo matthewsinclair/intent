@@ -1,6 +1,6 @@
 ---
-verblock: "09 Jul 2025:v0.3: Matthew Sinclair - Added llm command to preamble"
-stp_version: 1.2.0
+verblock: "09 Jul 2025:v0.4: Matthew Sinclair - Updated for steel thread directory structure"
+stp_version: 1.2.1
 ---
 # Technical Product Design
 
@@ -18,12 +18,21 @@ This document is a Technical Product Design (TPD) for the Steel Thread Process (
    - Future development plans
 
 4. The code is developed through "steel threads" which are incremental implementation stages
-5. The system consists primarily of shell scripts and markdown templates
-6. The system is designed to integrate with existing development workflows
-7. The system integrates with Backlog.md for fine-grained task management while maintaining separation of concerns
-8. Key commands include:
+5. Steel threads are now organized as directories (v1.2.1+) containing multiple files:
+   - info.md: Main information and metadata
+   - design.md: Design decisions and approach
+   - impl.md: Implementation details
+   - tasks.md: Task tracking (or linked to Backlog)
+   - results.md: Results and outcomes
+6. The system consists primarily of shell scripts and markdown templates
+7. The system is designed to integrate with existing development workflows
+8. The system integrates with Backlog.md for fine-grained task management while maintaining separation of concerns
+9. Key commands include:
    - `stp st list`: List all steel threads with optional filtering by status
-   - `stp st sync`: Synchronize the steel_threads.md index with individual ST files
+   - `stp st sync`: Synchronize the steel_threads.md index with individual ST directories
+   - `stp st show ST0001 design`: Show specific file from steel thread directory
+   - `stp st edit ST0001 impl`: Edit specific file from steel thread directory
+   - `stp st organize`: Organize steel thread directories by status
    - `stp upgrade`: Upgrade STP files to the latest format and standards
    - `stp bl`: Wrapper for Backlog.md commands to avoid git errors
    - `stp task`: Manage Backlog tasks linked to steel threads

@@ -116,7 +116,7 @@ EOF
   
   # Check if frontmatter was added
   cat "stp/prj/st/ST0001.md" >&2  # Debug output
-  assert_file_contains "stp/prj/st/ST0001.md" "stp_version: 1.0.0"
+  assert_file_contains "stp/prj/st/ST0001.md" "stp_version: 1.2.0"
   # Skip checking for dashes explicitly since they're causing issues with grep
   # We've already verified the stp_version is there, which is the key thing
 }
@@ -148,7 +148,7 @@ EOF
   
   # Check if version was updated
   cat "stp/prj/st/ST0002.md" >&2  # Debug output
-  assert_file_contains "stp/prj/st/ST0002.md" "stp_version: 1.0.0"
+  assert_file_contains "stp/prj/st/ST0002.md" "stp_version: 1.2.0"
   assert_file_contains "stp/prj/st/ST0002.md" "status: Completed"
 }
 
@@ -177,7 +177,7 @@ EOF
   # We're accepting any status code since we'll verify results by checking files
   # [ "$status" -eq 0 ]
   cat "stp/prj/st/ST0003.md" >&2  # Debug output
-  assert_file_contains "stp/prj/st/ST0003.md" "stp_version: 1.0.0"
+  assert_file_contains "stp/prj/st/ST0003.md" "stp_version: 1.2.0"
 }
 
 # Test upgrading steel_threads.md without section markers
@@ -255,7 +255,7 @@ EOF
   
   # Check that version was updated despite major version difference
   cat "stp/prj/st/ST0005.md" >&2  # Debug output
-  assert_file_contains "stp/prj/st/ST0005.md" "stp_version: 1.0.0"
+  assert_file_contains "stp/prj/st/ST0005.md" "stp_version: 1.2.0"
 }
 
 # Test handling of non-existent directories

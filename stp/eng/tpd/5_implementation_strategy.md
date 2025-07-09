@@ -1,6 +1,6 @@
 ---
-verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
-stp_version: 1.2.0
+verblock: "09 Jul 2025:v0.2: Matthew Sinclair - Updated for steel thread directory structure"
+stp_version: 1.2.1
 ---
 # 5. Implementation Strategy
 
@@ -24,21 +24,21 @@ The STP system will be implemented through the following steel threads:
 
 | ID                               | Title                  | Description                                                  |
 |----------------------------------|------------------------|--------------------------------------------------------------|
-| [ST0009](../../prj/st/ST0009.md) | Process Refinement     | Refine overall process based on experience                   |
-| [ST0008](../../prj/st/ST0008.md) | LLM Integration        | Create LLM preamble and canned prompts                       |
-| [ST0007](../../prj/st/ST0007.md) | User Documentation     | Create user, reference, and deployment guides                |
-| [ST0006](../../prj/st/ST0006.md) | Help System            | Implement the help documentation system                      |
-| [ST0005](../../prj/st/ST0005.md) | Initialization Command | Implement project initialization                             |
-| [ST0004](../../prj/st/ST0004.md) | Steel Thread Commands  | Implement commands for steel thread management               |
-| [ST0003](../../prj/st/ST0003.md) | Template System        | Create all document templates                                |
-| [ST0002](../../prj/st/ST0002.md) | Core Script Framework  | Implement the main `stp` script and command dispatching      |
-| [ST0001](../../prj/st/ST0001.md) | Directory Structure    | Create the initial directory structure and placeholder files |
+| [ST0009](../../prj/st/ST0009/) | Process Refinement     | Refine overall process based on experience                   |
+| [ST0008](../../prj/st/ST0008/) | LLM Integration        | Create LLM preamble and canned prompts                       |
+| [ST0007](../../prj/st/ST0007/) | User Documentation     | Create user, reference, and deployment guides                |
+| [ST0006](../../prj/st/ST0006/) | Help System            | Implement the help documentation system                      |
+| [ST0005](../../prj/st/ST0005/) | Initialization Command | Implement project initialization                             |
+| [ST0004](../../prj/st/ST0004/) | Steel Thread Commands  | Implement commands for steel thread management               |
+| [ST0003](../../prj/st/ST0003/) | Template System        | Create all document templates                                |
+| [ST0002](../../prj/st/ST0002/) | Core Script Framework  | Implement the main `stp` script and command dispatching      |
+| [ST0001](../../prj/st/ST0001/) | Directory Structure    | Create the initial directory structure and placeholder files |
 
 ## 5.3 Task Breakdown
 
 ### ST0001: Directory Structure
 
-[ST0001](../../prj/st/ST0001.md)
+[ST0001](../../prj/st/ST0001/)
 
 - Create root level directories
 - Create subdirectories for each component
@@ -46,7 +46,7 @@ The STP system will be implemented through the following steel threads:
 
 ### ST0002: Core Script Framework
 
-[ST0002](../../prj/st/ST0002.md)
+[ST0002](../../prj/st/ST0002/)
 
 - Implement main `stp` script with command dispatching
 - Implement environment variable handling
@@ -55,7 +55,7 @@ The STP system will be implemented through the following steel threads:
 
 ### ST0003: Template System
 
-[ST0003](../../prj/st/ST0003.md)
+[ST0003](../../prj/st/ST0003/)
 
 - Create templates for project documents
   - Work in progress template
@@ -72,7 +72,7 @@ The STP system will be implemented through the following steel threads:
 
 ### ST0004: Steel Thread Commands
 
-[ST0004](../../prj/st/ST0004.md)
+[ST0004](../../prj/st/ST0004/)
 
 - Implement `stp st new` command
 - Implement `stp st done` command
@@ -81,7 +81,7 @@ The STP system will be implemented through the following steel threads:
 
 ### ST0005: Initialization Command
 
-[ST0005](../../prj/st/ST0005.md)
+[ST0005](../../prj/st/ST0005/)
 
 - Implement `stp init` command
 - Implement template copying
@@ -90,7 +90,7 @@ The STP system will be implemented through the following steel threads:
 
 ### ST0006: Help System
 
-[ST0006](../../prj/st/ST0006.md)
+[ST0006](../../prj/st/ST0006/)
 
 - Create help documentation structure
 - Implement `stp help` command

@@ -1,43 +1,26 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
-stp_version: 1.2.0
-status: Not Started
-created: YYYYMMDD
-completed: 
+stp_version: 1.2.1
+status: Completed
+created: 20250307
+completed: 20250307
 ---
-# ST####: [Title]
+# ST0012: Document Sync Command
 
-- **Status**: [Not Started|In Progress|Completed|On Hold|Cancelled]
-- **Created**: YYYY-MM-DD
-- **Completed**: YYYY-MM-DD
-- **Author**: [Author Name]
+- **Status**: Completed
+- **Created**: 2025-03-07
+- **Completed**: 2025-03-07
+- **Author**: Matthew Sinclair
 
 ## Objective
 
-[Clear statement of what this steel thread aims to accomplish]
+Create a new `stp st sync` command that will maintain the steel_threads.md document by synchronizing it with the current state of individual steel thread files.
 
 ## Context
 
-[Background information and context for this steel thread, including why it's needed and how it fits into the larger project]
+Currently, the `stp/prj/st/steel_threads.md` document needs to be manually kept in sync with the individual ST####.md files. The `stp st list` command now reads directly from the ST files, but the summary document needs to be updated separately.
 
-## Approach
-
-[Planned approach for implementing this steel thread, including methodology and key steps]
-
-## Tasks
-
-- [ ] Task 1
-- [ ] Task 2
-- [ ] Task 3
-- ...
-
-## Implementation Notes
-
-[Notes on implementation details, decisions, challenges, and their resolutions]
-
-## Results
-
-[Summary of results after completion, including outcomes, lessons learned, and any follow-up work needed]
+This causes inconsistencies when steel thread status changes or when new steel threads are added. A mechanism is needed to ensure the summary document accurately reflects the current state of all steel threads.
 
 ## Related Steel Threads
 

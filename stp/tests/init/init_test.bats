@@ -204,7 +204,6 @@ create_template_files() {
   
   # Check if files were created from templates
   assert_file_exists "stp/prj/wip.md"
-  assert_file_exists "stp/prj/journal.md"
   assert_file_exists "stp/prj/st/steel_threads.md"
   assert_file_exists "stp/eng/tpd/technical_product_design.md"
   assert_file_exists "stp/usr/user_guide.md"

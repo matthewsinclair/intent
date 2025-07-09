@@ -105,10 +105,23 @@ Every steel thread follows a consistent structure that captures intention and gu
 
 ### Structure and Components
 
-A typical steel thread document contains:
+Starting with STP v1.2.1, steel threads are organized as directories containing multiple files:
+
+```
+ST####/
+├── info.md      # Main information and metadata
+├── design.md    # Design decisions and approach  
+├── impl.md      # Implementation details
+├── tasks.md     # Task tracking
+└── results.md   # Results and outcomes
+```
+
+The main `info.md` file contains:
 
 ```markdown
 ---
+verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
+stp_version: 1.2.1
 status: Not Started|In Progress|Completed|On Hold
 created: YYYYMMDD
 completed: YYYYMMDD
@@ -118,21 +131,15 @@ completed: YYYYMMDD
 ## Objective
 [Clear statement of what this thread aims to achieve]
 
-## Context
+## Context  
 [Why this work matters and how it fits the bigger picture]
-
-## Approach
-[High-level strategy for implementation]
-
-## Tasks
-[Linked to Backlog tasks or embedded checklist]
-
-## Implementation Notes
-[Decisions, learnings, and details that emerge during work]
-
-## Results
-[What was actually delivered and learned]
 ```
+
+The separation into multiple files allows better organization:
+- **design.md**: Captures approach and architectural decisions
+- **impl.md**: Documents actual implementation details
+- **tasks.md**: Links to Backlog tasks or contains embedded checklist
+- **results.md**: Records what was delivered and learned
 
 ### Status Tracking and Task Integration
 
@@ -185,8 +192,12 @@ $ stp st new
 Enter title: Implement user authentication
 Created: ST0015
 
-# The template guides intention capture
-$ cat stp/prj/st/ST0015.md
+# View the created directory structure
+$ ls stp/prj/st/ST0015/
+info.md  design.md  impl.md  tasks.md  results.md
+
+# The info.md template guides intention capture
+$ cat stp/prj/st/ST0015/info.md
 ```
 
 The template prompts for objective, context, and approach – ensuring you capture intention from the start.
@@ -220,6 +231,14 @@ $ stp task list ST0015
 # Check overall project status
 $ stp st list --status in_progress
 
+# View specific files in the steel thread
+$ stp st show ST0015          # Shows info.md by default
+$ stp st show ST0015 design   # Shows design.md
+$ stp st show ST0015 all      # Shows all files
+
+# Edit specific files
+$ stp st edit ST0015 impl     # Edit implementation notes
+
 # Verify thread status matches task completion
 $ stp status show ST0015
 
@@ -245,7 +264,7 @@ Let's examine actual steel threads from the STP project itself.
 
 This thread implemented the `stp st sync` command:
 
-**Objective**: Create a command to keep the steel_threads.md index synchronised with individual thread files.
+**Objective**: Create a command to keep the steel_threads.md index synchronised with individual thread directories.
 
 **Why This Works Well**:
 - Clear, focused objective

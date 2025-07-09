@@ -1,6 +1,6 @@
 ---
-verblock: "08 Jul 2025:v0.2: Matthew Sinclair - Added integration references for Backlog.md"
-stp_version: 1.2.0
+verblock: "09 Jul 2025:v0.3: Matthew Sinclair - Updated for v1.2.1"
+stp_version: 1.2.1
 ---
 # 8. Appendices
 

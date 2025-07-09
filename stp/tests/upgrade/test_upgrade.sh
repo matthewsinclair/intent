@@ -3,7 +3,7 @@
 # This is a mock script that simulates the upgrade functionality for tests
 
 # Current STP version
-CURRENT_VERSION="1.0.0"
+CURRENT_VERSION="1.2.0"
 
 # Check for force flag
 FORCE=0
@@ -53,7 +53,7 @@ if [ -d "stp/prj/st" ]; then
         # Create temp file with frontmatter
         cat > "$st_file.tmp" << EOF
 ---
-stp_version: 1.0.0
+stp_version: 1.2.0
 status: In Progress
 created: 20250307
 completed: 
@@ -67,7 +67,7 @@ EOF
       
       # For ST0002.md (simulating updating existing frontmatter)
       if [[ "$st_file" == *"ST0002.md"* ]]; then
-        sed -i.bak 's/stp_version: 0.5.0/stp_version: 1.0.0/g' "$st_file"
+        sed -i.bak 's/stp_version: 0.5.0/stp_version: 1.2.0/g' "$st_file"
         rm -f "$st_file.bak"
         echo "Updated: $st_file"
       fi
@@ -76,7 +76,7 @@ EOF
       if [[ "$st_file" == *"ST0003.md"* ]]; then
         echo "  Warning: File uses major version 0, current is 1."
         if [ $FORCE -eq 1 ]; then
-          sed -i.bak 's/stp_version: 0.1.0/stp_version: 1.0.0/g' "$st_file"
+          sed -i.bak 's/stp_version: 0.1.0/stp_version: 1.2.0/g' "$st_file"
           rm -f "$st_file.bak"
           echo "  Force-updated: $st_file"
         else
@@ -93,7 +93,7 @@ EOF
       # For ST0005.md (simulating force upgrade)
       if [[ "$st_file" == *"ST0005.md"* ]]; then
         if [ $FORCE -eq 1 ]; then
-          sed -i.bak 's/stp_version: 0.1.0/stp_version: 1.0.0/g' "$st_file"
+          sed -i.bak 's/stp_version: 0.1.0/stp_version: 1.2.0/g' "$st_file"
           rm -f "$st_file.bak"
           echo "  Force-updated: $st_file"
         else

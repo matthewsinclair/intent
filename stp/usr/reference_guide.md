@@ -29,17 +29,28 @@ Upgrades STP files to the latest format.
 **Usage:**
 
 ```bash
-stp upgrade [--force]
+stp upgrade [--force] [--organize]
 ```
 
 **Options:**
 
 - `--force`: Force upgrade even for major version differences
+- `--organize`: Organize steel thread files into status subdirectories after upgrade
 
 **Example:**
 
 ```bash
+# Basic upgrade (updates metadata only)
 stp upgrade
+
+# Force upgrade with major version differences
+stp upgrade --force
+
+# Upgrade and organize files by status
+stp upgrade --organize
+
+# Force upgrade and organize
+stp upgrade --force --organize
 ```
 
 **Output:**
@@ -48,14 +59,36 @@ stp upgrade
 - Adds or updates STP version information in YAML frontmatter
 - Adds or updates missing metadata fields
 - Adds section markers to steel_threads.md for sync
-- Runs `stp st sync --write` to update steel thread index
+- **v1.2.0 → v1.2.1**: Migrates steel threads from single files to directory structure
+  - Creates directories for each steel thread (e.g., `ST0001/`)
+  - Splits content into separate files: `info.md`, `design.md`, `impl.md`, `tasks.md`, `results.md`
+  - Backs up original files to `.stp_backup/1.2.1/`
+- If `--organize` is used, moves steel thread directories to status subdirectories:
+  - `COMPLETED/` for completed steel threads
+  - `NOT-STARTED/` for not started steel threads
+  - `CANCELLED/` for cancelled steel threads
+  - Directories with "In Progress" or "On Hold" status remain in the main directory
 - Reports upgrade status for each file processed
 
 Example output:
 
 ```
 Starting STP upgrade process...
-Current STP version: 1.0.0
+Current STP version: 1.2.1
+
+Detected steel thread files in old format (single files).
+Migration to directory structure is required for v1.2.1.
+
+Migrate steel threads to directory structure? (Y/n) Y
+
+Migrating steel threads to directory structure (v1.2.0 → v1.2.1)
+
+Found 14 steel thread files to migrate
+
+  Migrating ST0001...
+    Created: info.md, design.md, impl.md, tasks.md
+  Migrating ST0002...
+    Created: info.md, design.md, impl.md
 
 Scanning for STP files to upgrade...
 Checking steel_threads.md...
@@ -112,11 +145,27 @@ Manages steel threads.
 stp st <command> [options] [arguments]
 ```
 
+**Steel Thread Structure (v1.2.1+):**
+
+Starting with STP v1.2.1, steel threads are organized as directories rather than single files:
+
+```
+stp/prj/st/
+├── ST0001/
+│   ├── info.md      # Main information (metadata, objective, context)
+│   ├── design.md    # Design decisions and approach
+│   ├── impl.md      # Implementation details
+│   ├── tasks.md     # Task tracking
+│   └── results.md   # Results and outcomes
+└── ST0002/
+    └── info.md      # Minimum required file
+```
+
 **Subcommands:**
 
 `stp st new`
 
-Creates a new steel thread.
+Creates a new steel thread directory with template files.
 
 **Usage:**
 
@@ -133,6 +182,11 @@ stp st new <title>
 ```bash
 stp st new "Implement User Authentication"
 ```
+
+**Output:**
+- Creates directory `ST####/` with the next available number
+- Populates `info.md` with metadata and template sections
+- Creates empty `design.md`, `impl.md`, `tasks.md`, and `results.md` files
 
 `stp st done`
 
@@ -237,17 +291,87 @@ Shows details of a specific steel thread.
 **Usage:**
 
 ```bash
-stp st show <id>
+stp st show <id> [file]
 ```
 
 **Parameters:**
 
 - `id`: ID of the steel thread (required)
+- `file`: Specific file to show (optional, defaults to 'info')
+  - `info`: Main information file (default)
+  - `design`: Design decisions and approach
+  - `impl`: Implementation details
+  - `tasks`: Task tracking
+  - `results`: Results and outcomes
+  - `all`: Show all files combined
+
+**Examples:**
+
+```bash
+stp st show ST0001           # Shows info.md
+stp st show ST0001 design    # Shows design.md
+stp st show ST0001 all       # Shows all files
+```
+
+`stp st edit`
+
+Opens a steel thread file in your default editor.
+
+**Usage:**
+
+```bash
+stp st edit <id> [file]
+```
+
+**Parameters:**
+
+- `id`: ID of the steel thread (required)
+- `file`: Specific file to edit (optional, defaults to 'info')
+  - `info`: Main information file (default)
+  - `design`: Design decisions and approach
+  - `impl`: Implementation details
+  - `tasks`: Task tracking
+  - `results`: Results and outcomes
+
+**Examples:**
+
+```bash
+stp st edit ST0001           # Edits info.md
+stp st edit ST0001 impl      # Edits impl.md
+```
+
+**Note:** If the specified file doesn't exist, it will be created.
+
+`stp st organize`
+
+Organizes steel thread directories by status.
+
+**Usage:**
+
+```bash
+stp st organize [--write]
+```
+
+**Options:**
+
+- `--write`: Actually move directories (optional, without this flag it shows what would be done)
+
+**Effect:**
+
+Moves steel thread directories to subdirectories based on their status:
+- `COMPLETED/` - For completed steel threads
+- `NOT-STARTED/` - For not-started steel threads
+- `CANCELLED/` - For cancelled steel threads
+- Main directory - For in-progress and on-hold steel threads
 
 **Example:**
 
 ```bash
-stp st show ST0001
+# Preview what would be done
+stp st organize
+
+# Actually organize the directories
+stp st organize --write
 ```
 
 #### `stp help`

@@ -39,7 +39,7 @@ export PATH="$PATH:$(pwd)/stp/bin"
 3. **Verify installation**:
 ```bash
 $ stp --version
-STP version 1.0.0
+STP version 1.2.1
 ```
 
 ### Installing Backlog.md
@@ -73,7 +73,12 @@ my-project/
 │   ├── eng/        # Engineering docs
 │   │   └── tpd/    # Technical Product Design
 │   ├── prj/        # Project management
-│   │   ├── st/     # Steel threads
+│   │   ├── st/     # Steel threads (directories in v1.2.1+)
+│   │   │   ├── ST0001/     # Example steel thread
+│   │   │   │   ├── info.md
+│   │   │   │   ├── design.md
+│   │   │   │   └── ...
+│   │   │   └── steel_threads.md
 │   │   └── wip.md
 │   └── usr/        # User documentation
 └── backlog/        # Backlog.md tasks
@@ -105,8 +110,17 @@ ID     | Title                  | Status      | Created
 ST0015 | Implement user auth... | Not Started | 2025-07-08
 ST0014 | Directory Structure... | In Progress | 2025-03-20
 
-# Show specific steel thread
+# Show specific steel thread (info.md by default)
 $ stp st show ST0015
+
+# Show specific file in steel thread
+$ stp st show ST0015 design    # View design decisions
+$ stp st show ST0015 impl      # View implementation notes
+$ stp st show ST0015 all       # View all files
+
+# Edit specific files
+$ stp st edit ST0015          # Edit info.md (default)
+$ stp st edit ST0015 tasks    # Edit tasks.md
 
 # Sync steel thread index
 $ stp st sync --write

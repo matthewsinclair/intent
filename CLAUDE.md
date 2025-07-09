@@ -2,15 +2,30 @@
 
 ## STP Version
 
-The current STP version is 1.2.0. All STP files should include a `stp_version` field in their YAML frontmatter. To update files, run `stp upgrade`.
+The current STP version is 1.2.1. All STP files should include a `stp_version` field in their YAML frontmatter. To update files, run `stp upgrade`.
+
+### Steel Thread Structure (v1.2.1+)
+
+Starting with STP v1.2.1, steel threads are organized as directories:
+```
+stp/prj/st/
+├── ST0001/
+│   ├── info.md      # Metadata, objective, context (required)
+│   ├── design.md    # Design decisions and approach
+│   ├── impl.md      # Implementation details
+│   ├── tasks.md     # Task tracking
+│   └── results.md   # Results and outcomes
+└── ST0002/
+    └── info.md      # Minimum required file
+```
 
 ### ST File Metadata Format
 
-ST files must have consistent metadata in this format:
+The `info.md` file must have consistent metadata in this format:
 ```yaml
 ---
 verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
-stp_version: 1.2.0
+stp_version: 1.2.1
 status: Not Started|In Progress|Completed|On Hold|Cancelled
 created: YYYYMMDD
 completed: YYYYMMDD
