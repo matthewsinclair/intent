@@ -1,7 +1,7 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 stp_version: 1.2.1
-status: On Hold
+status: Not Started
 created: 20250603
 ---
 # ST0010: Anthropic MCP Integration
