@@ -52,3 +52,4 @@ This document provides an overview of all steel threads in the STP project. It h
 
 The detailed information for each steel thread is contained in its individual document (e.g., ST0001.md).
 | ST0014 | Directory Structure for Steel Threads | Completed |  | 2025-07-09 |
+| ST0015 | Enhanced Steel Thread Templates and File Types | Not Started | 2025-07-09 |  |
