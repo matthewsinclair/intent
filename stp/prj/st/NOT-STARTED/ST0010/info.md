@@ -6,7 +6,7 @@ created: 20250603
 ---
 # ST0010: Anthropic MCP Integration
 
-- **Status**: On Hold
+- **Status**: Not Started
 - **Created**: 2025-06-03
 - **Completed**: 
 - **Author**: Matthew Sinclair
