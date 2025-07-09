@@ -1,5 +1,6 @@
-#\!/bin/bash
-# Script to organize steel thread files by status
+#!/bin/bash
+# Script to organize steel thread directories by status
+# Updated for v1.2.1 directory structure
 
 # Create required directories
 mkdir -p stp/prj/st/COMPLETED stp/prj/st/NOT-STARTED stp/prj/st/CANCELLED
@@ -7,15 +8,22 @@ mkdir -p stp/prj/st/COMPLETED stp/prj/st/NOT-STARTED stp/prj/st/CANCELLED
 # Move files based on their status
 echo "Organizing files based on status..."
 
-# Find all ST files
-for file in stp/prj/st/ST*.md; do
-  if [ -f "$file" ]; then
-    # Extract ID from filename
-    id=$(basename "$file" .md)
+# Find all ST directories
+for dir in stp/prj/st/ST*/; do
+  if [ -d "$dir" ]; then
+    # Extract ID from directory name
+    id=$(basename "$dir")
+    
+    # Look for status in info.md file
+    info_file="${dir}info.md"
+    if [ ! -f "$info_file" ]; then
+      echo "Warning: $id has no info.md file"
+      continue
+    fi
     
     # Check both YAML frontmatter and document body for status
-    yaml_status=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
-    body_status=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    yaml_status=$(grep -m 1 "^status:" "$info_file" | sed "s/^status: *//")
+    body_status=$(grep -m 1 "^\- \*\*Status\*\*:" "$info_file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     
     # Prioritize YAML frontmatter status
     if [ -n "$yaml_status" ]; then
@@ -26,21 +34,21 @@ for file in stp/prj/st/ST*.md; do
       status="Not Started"
     fi
     
-    echo "File: $id - Status: $status"
+    echo "Directory: $id - Status: $status"
     
-    # Move file to appropriate directory
+    # Move directory to appropriate location
     case "$status" in
       "Completed")
         echo "Moving $id to COMPLETED"
-        mv "$file" "stp/prj/st/COMPLETED/$id.md"
+        mv "$dir" "stp/prj/st/COMPLETED/$id"
         ;;
       "Not Started")
         echo "Moving $id to NOT-STARTED"
-        mv "$file" "stp/prj/st/NOT-STARTED/$id.md"
+        mv "$dir" "stp/prj/st/NOT-STARTED/$id"
         ;;
       "Cancelled")
         echo "Moving $id to CANCELLED"
-        mv "$file" "stp/prj/st/CANCELLED/$id.md"
+        mv "$dir" "stp/prj/st/CANCELLED/$id"
         ;;
       *)
         # In Progress or On Hold stay in the main directory
@@ -50,22 +58,30 @@ for file in stp/prj/st/ST*.md; do
   fi
 done
 
-# Also check subdirectories to make sure files are in the right place
-for subdir in stp/prj/st/*/; do
-  subdir_name=$(basename "$subdir")
-  if [ "$subdir_name" \!= "COMPLETED" ] && [ "$subdir_name" \!= "NOT-STARTED" ] && [ "$subdir_name" \!= "CANCELLED" ]; then
+# Also check subdirectories to make sure directories are in the right place
+for subdir in stp/prj/st/COMPLETED/ stp/prj/st/NOT-STARTED/ stp/prj/st/CANCELLED/; do
+  if [ ! -d "$subdir" ]; then
     continue
   fi
   
-  # Find all ST files in this subdirectory
-  for file in "$subdir"ST*.md; do
-    if [ -f "$file" ]; then
-      # Extract ID from filename
-      id=$(basename "$file" .md)
+  subdir_name=$(basename "$subdir")
+  
+  # Find all ST directories in this subdirectory
+  for dir in "$subdir"ST*/; do
+    if [ -d "$dir" ]; then
+      # Extract ID from directory name
+      id=$(basename "$dir")
+      
+      # Look for status in info.md file
+      info_file="${dir}info.md"
+      if [ ! -f "$info_file" ]; then
+        echo "Warning: $id has no info.md file"
+        continue
+      fi
       
       # Check both YAML frontmatter and document body for status
-      yaml_status=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
-      body_status=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+      yaml_status=$(grep -m 1 "^status:" "$info_file" | sed "s/^status: *//")
+      body_status=$(grep -m 1 "^\- \*\*Status\*\*:" "$info_file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
       
       # Prioritize YAML frontmatter status
       if [ -n "$yaml_status" ]; then
@@ -93,19 +109,19 @@ for subdir in stp/prj/st/*/; do
           ;;
       esac
       
-      # Move the file if it's in the wrong directory
-      if [ "$subdir_name" == "COMPLETED" ] && [ "$status" \!= "Completed" ]; then
+      # Move the directory if it's in the wrong location
+      if [ "$subdir_name" == "COMPLETED" ] && [ "$status" != "Completed" ]; then
         echo "Moving $id from COMPLETED to $target_dir"
-        mv "$file" "$target_dir/$id.md"
-      elif [ "$subdir_name" == "NOT-STARTED" ] && [ "$status" \!= "Not Started" ]; then
+        mv "$dir" "$target_dir/$id"
+      elif [ "$subdir_name" == "NOT-STARTED" ] && [ "$status" != "Not Started" ]; then
         echo "Moving $id from NOT-STARTED to $target_dir"
-        mv "$file" "$target_dir/$id.md"
-      elif [ "$subdir_name" == "CANCELLED" ] && [ "$status" \!= "Cancelled" ]; then
+        mv "$dir" "$target_dir/$id"
+      elif [ "$subdir_name" == "CANCELLED" ] && [ "$status" != "Cancelled" ]; then
         echo "Moving $id from CANCELLED to $target_dir"
-        mv "$file" "$target_dir/$id.md"
+        mv "$dir" "$target_dir/$id"
       fi
     fi
   done
 done
 
-echo "Organization complete\!"
+echo "Organization complete!"

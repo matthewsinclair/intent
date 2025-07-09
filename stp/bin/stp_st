@@ -276,6 +276,11 @@ case "$ST_COMMAND" in
       SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
       TEMPLATE_DIR="${SCRIPT_DIR}/../_templ/prj/st/ST####"
       
+      # Also check in current directory (for tests)
+      if [ ! -d "$TEMPLATE_DIR" ] && [ -d "stp/_templ/prj/st/ST####" ]; then
+        TEMPLATE_DIR="stp/_templ/prj/st/ST####"
+      fi
+      
       if [ -d "$TEMPLATE_DIR" ]; then
         # Format date in both formats
         DATE_COMPACT=$(date '+%Y%m%d')
@@ -880,7 +885,9 @@ EOF
       LIST_OUTPUT=$(mktemp)
       
       # Get list output silently
-      "$0" list --width $WIDTH > "$LIST_OUTPUT" 2>/dev/null
+      # Use the actual script path for recursive calls
+      SCRIPT_PATH="${BASH_SOURCE[0]}"
+      "$SCRIPT_PATH" list --width $WIDTH > "$LIST_OUTPUT" 2>/dev/null
       
       # Extract everything before the markers
       sed -n '1,/<!-- BEGIN: STEEL_THREAD_INDEX -->/p' "$INDEX_FILE" > "$TMP_FILE"
@@ -898,7 +905,8 @@ EOF
       echo "Updated steel threads index file: $INDEX_FILE"
     else
       # For display, just run the list command
-      "$0" list --width "$WIDTH"
+      SCRIPT_PATH="${BASH_SOURCE[0]}"
+      "$SCRIPT_PATH" list --width "$WIDTH"
     fi
     ;;
     
@@ -1058,7 +1066,8 @@ EOF
     
     # If we're in write mode, update the index file after organizing
     if [ $WRITE_MODE -eq 1 ]; then
-      "$0" sync --write
+      SCRIPT_PATH="${BASH_SOURCE[0]}"
+      "$SCRIPT_PATH" sync --write
       echo "Updated steel threads index."
     fi
     ;;

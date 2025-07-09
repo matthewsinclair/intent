@@ -1,5 +1,5 @@
 ---
-verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
+verblock: "09 Jul 2025:v0.2: Matthew Sinclair - Updated for directory structure"
 ---
 # Steel Threads
 
@@ -9,8 +9,8 @@ This document serves as an index of all steel threads in the project. A steel th
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 | ID                      | Title   | Status   | Created  | Completed |
 |-------------------------|---------|----------|----------|-----------|
-| [ST0002](<./ST0002.md>) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
-| [ST0001](<./ST0001.md>) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
+| [ST0002](<./ST0002/>) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
+| [ST0001](<./ST0001/>) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
 | ...                     | ...     | ...      | ...      | ...       |
 <!-- END: STEEL_THREAD_INDEX -->
 
@@ -33,4 +33,9 @@ This document provides an overview of all steel threads in the project. It helps
 3. Add completion dates when steel threads are finished
 4. Use this document to quickly locate specific steel thread documents
 
-The detailed information for each steel thread is contained in its individual document (e.g., ST0001.md).
+The detailed information for each steel thread is contained in its directory (e.g., ST0001/) with multiple files:
+- info.md: Main information and metadata
+- design.md: Design decisions and approach
+- impl.md: Implementation details
+- tasks.md: Task tracking
+- results.md: Results and outcomes

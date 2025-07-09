@@ -1,12 +1,13 @@
 #!/bin/bash
 # update_frontmatter.sh - Updates frontmatter in STP files
 # This script ensures all STP files include the stp_version field in YAML frontmatter
+# Updated for v1.2.1 directory structure
 
 # Exit on error
 set -e
 
 # Current STP version
-CURRENT_VERSION="1.0.0"
+CURRENT_VERSION="1.2.1"
 
 # Function to display error messages
 error() {
@@ -109,11 +110,32 @@ for file in stp/prj/*.md; do
   fi
 done
 
-# Update steel threads
+# Update steel threads (now in directories)
 echo "Updating steel threads..."
-for file in stp/prj/st/*.md; do
-  if [ -f "$file" ] && [[ "$file" != *steel_threads.md ]]; then
-    update_file_frontmatter "$file"
+# Check main directory
+for dir in stp/prj/st/ST*/; do
+  if [ -d "$dir" ]; then
+    # Update all .md files in the directory
+    for file in "$dir"*.md; do
+      if [ -f "$file" ]; then
+        update_file_frontmatter "$file"
+      fi
+    done
+  fi
+done
+
+# Also check status subdirectories
+for status_dir in stp/prj/st/COMPLETED/ stp/prj/st/NOT-STARTED/ stp/prj/st/CANCELLED/; do
+  if [ -d "$status_dir" ]; then
+    for dir in "$status_dir"ST*/; do
+      if [ -d "$dir" ]; then
+        for file in "$dir"*.md; do
+          if [ -f "$file" ]; then
+            update_file_frontmatter "$file"
+          fi
+        done
+      fi
+    done
   fi
 done
 

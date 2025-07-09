@@ -12,9 +12,9 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 ID         | Title                                                      | Status           | Created    | Completed 
 -----------|------------------------------------------------------------|------------------|------------|-----------
 ST0014     | Directory Structure for Steel Threads                      | In Progress      | 2025-03-20 |           
-ST0013     | STP Blog Post Series                                       | In Progress      | 2025-03-11 |           
+ST0013     | STP Blog Post Series                                       | Completed        | 2025-03-11 | 2025-07-08
 ST0012     | Document Sync Command                                      | Completed        | 2025-03-07 | 2025-03-07
-ST0011     | Test Suite Implementation                                  | Completed        | 2025-06-03 | 2025-06-03
+ST0011     | Test Suite Implementation                                  | Not Started      | 2025-06-03 | 2025-06-03
 ST0010     | Anthropic MCP Integration                                  | On Hold          | 2025-06-03 |           
 ST0009     | Process Refinement                                         | Completed        | 2025-03-06 | 2025-06-03
 ST0008     | LLM Integration                                            | Completed        | 2025-03-06 | 2025-06-03

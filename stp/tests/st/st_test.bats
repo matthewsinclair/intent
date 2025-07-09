@@ -34,13 +34,18 @@ teardown() {
 
 # Test creating a new steel thread
 @test "st new creates a new steel thread" {
+  # Create version file for v1.2.1
+  mkdir -p "stp/.config"
+  echo "stp_version: 1.2.1" > "stp/.config/version"
+  
   run ./stp_st new "Test Steel Thread"
   [ "$status" -eq 0 ]
   
-  # Check if steel thread file was created
-  assert_file_exists "stp/prj/st/ST0001.md"
-  assert_file_contains "stp/prj/st/ST0001.md" "ST0001: Test Steel Thread"
-  run grep -F "**Status**: Not Started" "stp/prj/st/ST0001.md"
+  # Check if steel thread directory was created
+  assert_dir_exists "stp/prj/st/ST0001"
+  assert_file_exists "stp/prj/st/ST0001/info.md"
+  assert_file_contains "stp/prj/st/ST0001/info.md" "ST0001: Test Steel Thread"
+  run grep -F "status: Not Started" "stp/prj/st/ST0001/info.md"
   [ "$status" -eq 0 ]
   
   # Check if index was updated
@@ -52,20 +57,24 @@ teardown() {
 
 # Test creating multiple steel threads and check IDs
 @test "st new creates sequential steel thread IDs" {
+  # Create version file for v1.2.1
+  mkdir -p "stp/.config"
+  echo "stp_version: 1.2.1" > "stp/.config/version"
+  
   # Create first steel thread
   run ./stp_st new "First Steel Thread"
   [ "$status" -eq 0 ]
-  assert_file_exists "stp/prj/st/ST0001.md"
+  assert_dir_exists "stp/prj/st/ST0001"
   
   # Create second steel thread
   run ./stp_st new "Second Steel Thread"
   [ "$status" -eq 0 ]
-  assert_file_exists "stp/prj/st/ST0002.md"
+  assert_dir_exists "stp/prj/st/ST0002"
   
   # Create third steel thread
   run ./stp_st new "Third Steel Thread"
   [ "$status" -eq 0 ]
-  assert_file_exists "stp/prj/st/ST0003.md"
+  assert_dir_exists "stp/prj/st/ST0003"
   
   # Check if index contains all three steel threads
   assert_file_contains "stp/prj/st/steel_threads.md" "ST0001"
@@ -75,6 +84,10 @@ teardown() {
 
 # Test marking a steel thread as done
 @test "st done marks a steel thread as complete" {
+  # Create version file for v1.2.1
+  mkdir -p "stp/.config"
+  echo "stp_version: 1.2.1" > "stp/.config/version"
+  
   # Create a steel thread
   run ./stp_st new "Test Steel Thread"
   [ "$status" -eq 0 ]
@@ -83,12 +96,12 @@ teardown() {
   run ./stp_st done "ST0001"
   [ "$status" -eq 0 ]
   
-  # Check if status and completion date were updated
-  run grep -F "**Status**: Completed" "stp/prj/st/ST0001.md"
+  # Check if status and completion date were updated in info.md
+  run grep -F "status: Completed" "stp/prj/st/ST0001/info.md"
   [ "$status" -eq 0 ]
   
-  # Check completion date - using today's date
-  run grep -F "**Completed**: $(date '+%Y-%m-%d')" "stp/prj/st/ST0001.md"
+  # Check completion date in YAML frontmatter - using today's date
+  run grep -F "completed: $(date '+%Y%m%d')" "stp/prj/st/ST0001/info.md"
   [ "$status" -eq 0 ]
   
   # Check if index was updated
@@ -97,6 +110,10 @@ teardown() {
 
 # Test marking a steel thread as done using just the number
 @test "st done works with just the number" {
+  # Create version file for v1.2.1
+  mkdir -p "stp/.config"
+  echo "stp_version: 1.2.1" > "stp/.config/version"
+  
   # Create a steel thread
   run ./stp_st new "Test Steel Thread"
   [ "$status" -eq 0 ]
@@ -106,12 +123,16 @@ teardown() {
   [ "$status" -eq 0 ]
   
   # Check if status was updated
-  run grep -F "**Status**: Completed" "stp/prj/st/ST0001.md"
+  run grep -F "status: Completed" "stp/prj/st/ST0001/info.md"
   [ "$status" -eq 0 ]
 }
 
 # Test listing steel threads
 @test "st list shows all steel threads" {
+  # Create version file for v1.2.1
+  mkdir -p "stp/.config"
+  echo "stp_version: 1.2.1" > "stp/.config/version"
+  
   # Create three steel threads with different statuses
   run ./stp_st new "First Steel Thread"
   [ "$status" -eq 0 ]
@@ -130,10 +151,10 @@ teardown() {
   echo "Exit status: $status"
   [ "$status" -eq 0 ]
   
-  # Check if all three steel thread files were created properly
-  assert_file_exists "stp/prj/st/ST0001.md"
-  assert_file_exists "stp/prj/st/ST0002.md"
-  assert_file_exists "stp/prj/st/ST0003.md"
+  # Check if all three steel thread directories were created properly
+  assert_dir_exists "stp/prj/st/ST0001"
+  assert_dir_exists "stp/prj/st/ST0002"
+  assert_dir_exists "stp/prj/st/ST0003"
   
   # Check that the index file has expected entries
   assert_file_exists "stp/prj/st/steel_threads.md"
@@ -147,6 +168,10 @@ teardown() {
 
 # Test listing steel threads with status filter
 @test "st list --status filters by status" {
+  # Create version file for v1.2.1
+  mkdir -p "stp/.config"
+  echo "stp_version: 1.2.1" > "stp/.config/version"
+  
   # Create three steel threads
   run ./stp_st new "First Steel Thread"
   [ "$status" -eq 0 ]
@@ -166,39 +191,47 @@ teardown() {
   [ "$status" -eq 0 ]
   
   # We won't test the command output directly as it's being tricky
-  # Instead, verify that the files were created with the correct content
-  assert_file_exists "stp/prj/st/ST0001.md"
-  assert_file_exists "stp/prj/st/ST0002.md"
-  assert_file_exists "stp/prj/st/ST0003.md"
+  # Instead, verify that the directories were created with the correct content
+  assert_dir_exists "stp/prj/st/ST0001"
+  assert_dir_exists "stp/prj/st/ST0002"
+  assert_dir_exists "stp/prj/st/ST0003"
   
   # Check that ST0002 is marked as completed
-  run grep -F "**Status**: Completed" "stp/prj/st/ST0002.md"
+  run grep -F "status: Completed" "stp/prj/st/ST0002/info.md"
   [ "$status" -eq 0 ]
   
-  # Check that the other files are not completed
-  run grep -F "**Status**: Not Started" "stp/prj/st/ST0001.md"
+  # Check that the other threads are not completed
+  run grep -F "status: Not Started" "stp/prj/st/ST0001/info.md"
   [ "$status" -eq 0 ]
-  run grep -F "**Status**: Not Started" "stp/prj/st/ST0003.md"
+  run grep -F "status: Not Started" "stp/prj/st/ST0003/info.md"
   [ "$status" -eq 0 ]
 }
 
 # Test showing a steel thread
 @test "st show displays the content of a steel thread" {
+  # Create version file for v1.2.1
+  mkdir -p "stp/.config"
+  echo "stp_version: 1.2.1" > "stp/.config/version"
+  
   # Create a steel thread
   run ./stp_st new "Test Steel Thread"
   [ "$status" -eq 0 ]
   
-  # Show the steel thread
+  # Show the steel thread (defaults to info.md)
   run ./stp_st show "ST0001"
   [ "$status" -eq 0 ]
   
   # Check if content is displayed
   [[ "$output" == *"ST0001: Test Steel Thread"* ]]
-  [[ "$output" == *"Status"*"Not Started"* ]]
+  [[ "$output" == *"status: Not Started"* ]]
 }
 
 # Test showing a steel thread with just the number
 @test "st show works with just the number" {
+  # Create version file for v1.2.1
+  mkdir -p "stp/.config"
+  echo "stp_version: 1.2.1" > "stp/.config/version"
+  
   # Create a steel thread
   run ./stp_st new "Test Steel Thread"
   [ "$status" -eq 0 ]
@@ -213,22 +246,32 @@ teardown() {
 
 # Test error when showing a non-existent steel thread
 @test "st show errors on non-existent steel thread" {
+  # Create version file for v1.2.1
+  mkdir -p "stp/.config"
+  echo "stp_version: 1.2.1" > "stp/.config/version"
+  
   run ./stp_st show "ST9999"
   [ "$status" -ne 0 ]
-  [[ "$output" == *"Steel thread not found"* ]]
+  [[ "$output" == *"File not found"* ]]
 }
 
 # Test creating a steel thread with a template if available
 @test "st new uses template if available" {
-  # Create template directory and file
-  mkdir -p "stp/_templ/prj/st"
-  cat > "stp/_templ/prj/st/_ST####.md" << EOF
+  # Create version file for v1.2.1
+  mkdir -p "stp/.config"
+  echo "stp_version: 1.2.1" > "stp/.config/version"
+  
+  # Create template directory structure
+  mkdir -p "stp/_templ/prj/st/ST####"
+  cat > "stp/_templ/prj/st/ST####/info.md" << EOF
+---
+verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
+stp_version: 1.2.1
+status: Not Started
+created: YYYYMMDD
+completed: 
+---
 # ST####: [Title]
-
-- **Status**: [Not Started|In Progress|Completed|On Hold|Cancelled]
-- **Created**: YYYY-MM-DD
-- **Completed**: 
-- **Author**: [Author Name]
 
 ## Custom Section
 This is a custom template
@@ -239,14 +282,18 @@ EOF
   [ "$status" -eq 0 ]
   
   # Check if template was used
-  assert_file_exists "stp/prj/st/ST0001.md"
-  assert_file_contains "stp/prj/st/ST0001.md" "ST0001: Template Test"
-  assert_file_contains "stp/prj/st/ST0001.md" "## Custom Section"
-  assert_file_contains "stp/prj/st/ST0001.md" "This is a custom template"
+  assert_dir_exists "stp/prj/st/ST0001"
+  assert_file_contains "stp/prj/st/ST0001/info.md" "ST0001: Template Test"
+  assert_file_contains "stp/prj/st/ST0001/info.md" "## Custom Section"
+  assert_file_contains "stp/prj/st/ST0001/info.md" "This is a custom template"
 }
 
 # Test synchronizing steel threads index
 @test "st sync updates the steel_threads.md file" {
+  # Create version file for v1.2.1
+  mkdir -p "stp/.config"
+  echo "stp_version: 1.2.1" > "stp/.config/version"
+  
   # Create section markers in steel_threads.md
   mkdir -p "stp/prj/st"
   cat > "stp/prj/st/steel_threads.md" << EOF
