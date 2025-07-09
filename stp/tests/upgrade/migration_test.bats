@@ -67,8 +67,8 @@ teardown() {
 }
 
 @test "migration script converts file to directory structure" {
-  # Run migration
-  run "$BATS_TEST_DIRNAME/../../bin/migrate_st_to_dirs"
+  # Run migration with automatic yes response
+  run bash -c "echo 'Y' | \"$BATS_TEST_DIRNAME/../../bin/stp_upgrade\" --force"
   [ "$status" -eq 0 ]
   
   # Check backup was created
@@ -96,8 +96,8 @@ teardown() {
 }
 
 @test "migration updates version to 1.2.1" {
-  # Run migration
-  "$BATS_TEST_DIRNAME/../../bin/migrate_st_to_dirs"
+  # Run migration with automatic yes response
+  echo 'Y' | "$BATS_TEST_DIRNAME/../../bin/stp_upgrade" --force
   
   # Check version was updated
   grep -q "stp_version: 1.2.1" "stp/prj/st/ST0001/info.md"
