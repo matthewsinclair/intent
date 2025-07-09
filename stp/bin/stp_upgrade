@@ -286,6 +286,186 @@ upgrade_section_markers() {
   fi
 }
 
+# Function to split a steel thread file into multiple files
+split_steel_thread() {
+  local st_file="$1"
+  local st_dir="$2"
+  local st_id=$(basename "$st_file" .md)
+  
+  echo "  Migrating $st_id..."
+  
+  # Create the directory
+  mkdir -p "$st_dir"
+  
+  # Create temporary files for each section
+  local temp_info=$(mktemp)
+  local temp_design=$(mktemp)
+  local temp_impl=$(mktemp)
+  local temp_tasks=$(mktemp)
+  local temp_results=$(mktemp)
+  
+  # Track which section we're in
+  local current_section="header"
+  local has_design=false
+  local has_impl=false
+  local has_tasks=false
+  local has_results=false
+  
+  # Read the file line by line
+  while IFS= read -r line; do
+    # Detect section headers
+    if [[ "$line" =~ ^##\ Approach ]]; then
+      current_section="approach"
+      has_design=true
+      echo "$line" >> "$temp_design"
+    elif [[ "$line" =~ ^##\ Tasks ]]; then
+      current_section="tasks"
+      has_tasks=true
+      echo "$line" >> "$temp_tasks"
+    elif [[ "$line" =~ ^##\ Implementation ]]; then
+      current_section="implementation"
+      has_impl=true
+      echo "$line" >> "$temp_impl"
+    elif [[ "$line" =~ ^##\ Results ]]; then
+      current_section="results"
+      has_results=true
+      echo "$line" >> "$temp_results"
+    elif [[ "$line" =~ ^##\ Related\ Steel\ Threads ]] || [[ "$line" =~ ^##\ Context\ for\ LLM ]]; then
+      current_section="footer"
+      echo "$line" >> "$temp_info"
+    elif [[ "$line" =~ ^##\ (Objective|Context) ]]; then
+      current_section="info"
+      echo "$line" >> "$temp_info"
+    else
+      # Write to appropriate file based on current section
+      case "$current_section" in
+        header|info|footer)
+          echo "$line" >> "$temp_info"
+          ;;
+        approach)
+          echo "$line" >> "$temp_design"
+          ;;
+        tasks)
+          echo "$line" >> "$temp_tasks"
+          ;;
+        implementation)
+          echo "$line" >> "$temp_impl"
+          ;;
+        results)
+          echo "$line" >> "$temp_results"
+          ;;
+      esac
+    fi
+  done < "$st_file"
+  
+  # Move temp files to final locations
+  mv "$temp_info" "$st_dir/info.md"
+  
+  # Only create files if they have content
+  if [ "$has_design" = true ] && [ -s "$temp_design" ]; then
+    # Add header to design.md
+    {
+      echo "# Design - $st_id: $(grep "^# $st_id:" "$st_file" | sed "s/^# $st_id: //")"
+      echo ""
+      cat "$temp_design"
+    } > "$st_dir/design.md"
+  fi
+  rm -f "$temp_design"
+  
+  if [ "$has_impl" = true ] && [ -s "$temp_impl" ]; then
+    # Add header to impl.md
+    {
+      echo "# Implementation - $st_id: $(grep "^# $st_id:" "$st_file" | sed "s/^# $st_id: //")"
+      echo ""
+      cat "$temp_impl"
+    } > "$st_dir/impl.md"
+  fi
+  rm -f "$temp_impl"
+  
+  if [ "$has_tasks" = true ] && [ -s "$temp_tasks" ]; then
+    # Add header to tasks.md
+    {
+      echo "# Tasks - $st_id: $(grep "^# $st_id:" "$st_file" | sed "s/^# $st_id: //")"
+      echo ""
+      cat "$temp_tasks"
+    } > "$st_dir/tasks.md"
+  fi
+  rm -f "$temp_tasks"
+  
+  if [ "$has_results" = true ] && [ -s "$temp_results" ]; then
+    # Add header to results.md
+    {
+      echo "# Results - $st_id: $(grep "^# $st_id:" "$st_file" | sed "s/^# $st_id: //")"
+      echo ""
+      cat "$temp_results"
+    } > "$st_dir/results.md"
+  fi
+  rm -f "$temp_results"
+  
+  # Update stp_version in info.md
+  sed -i.bak "s/^stp_version: .*$/stp_version: 1.2.1/" "$st_dir/info.md"
+  rm -f "$st_dir/info.md.bak"
+  
+  echo "    Created: info.md$([ -f "$st_dir/design.md" ] && echo ", design.md")$([ -f "$st_dir/impl.md" ] && echo ", impl.md")$([ -f "$st_dir/tasks.md" ] && echo ", tasks.md")$([ -f "$st_dir/results.md" ] && echo ", results.md")"
+}
+
+# Function to migrate steel threads to directory structure
+migrate_steel_threads_to_dirs() {
+  echo "Migrating steel threads to directory structure (v1.2.0 → v1.2.1)"
+  echo ""
+  
+  # Backup directory
+  local BACKUP_DIR=".stp_backup/1.2.1"
+  mkdir -p "$BACKUP_DIR"
+  
+  # Find all steel thread files
+  local ST_BASE_DIR="stp/prj/st"
+  local ST_FILES=$(find "$ST_BASE_DIR" -name "ST[0-9][0-9][0-9][0-9].md" -type f 2>/dev/null || true)
+  
+  if [ -z "$ST_FILES" ]; then
+    echo "No steel thread files found to migrate."
+    return 0
+  fi
+  
+  # Count files
+  local FILE_COUNT=$(echo "$ST_FILES" | wc -l | tr -d ' ')
+  echo "Found $FILE_COUNT steel thread files to migrate"
+  echo ""
+  
+  # Process each file
+  for st_file in $ST_FILES; do
+    # Get the base name and directory
+    local st_id=$(basename "$st_file" .md)
+    local st_parent_dir=$(dirname "$st_file")
+    
+    # Determine target directory based on current location
+    local target_dir
+    if [[ "$st_parent_dir" == */COMPLETED ]] || [[ "$st_parent_dir" == */NOT-STARTED ]] || [[ "$st_parent_dir" == */CANCELLED ]]; then
+      target_dir="$st_parent_dir/$st_id"
+    else
+      # In main directory
+      target_dir="$st_parent_dir/$st_id"
+    fi
+    
+    # Backup the original file
+    local backup_file="$BACKUP_DIR/$(basename "$st_file")"
+    cp "$st_file" "$backup_file"
+    
+    # Split the file into directory structure
+    split_steel_thread "$st_file" "$target_dir"
+    
+    # Remove the original file
+    rm "$st_file"
+  done
+  
+  echo ""
+  echo "Migration complete!"
+  echo "Original files backed up to: $BACKUP_DIR"
+  echo ""
+  echo "Note: You may want to run 'stp st organize --write' to ensure all"
+  echo "steel threads are in the correct status directories."
+}
+
 # Scan directories for STP files to upgrade
 echo "Scanning for STP files to upgrade..."
 
@@ -316,14 +496,8 @@ if [ -d "stp/prj/st" ]; then
     read -p "Migrate steel threads to directory structure? (Y/n) " -n 1 -r
     echo ""
     if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-      # Run migration script
-      if [ -x "./stp/bin/migrate_st_to_dirs" ]; then
-        ./stp/bin/migrate_st_to_dirs
-      elif [ -n "$STP_HOME" ] && [ -x "$STP_HOME/stp/bin/migrate_st_to_dirs" ]; then
-        "$STP_HOME/stp/bin/migrate_st_to_dirs"
-      else
-        error "Migration script not found: migrate_st_to_dirs"
-      fi
+      # Run migration function
+      migrate_steel_threads_to_dirs
       echo ""
     else
       echo "Migration skipped. Note: Some STP commands may not work correctly with the old format."

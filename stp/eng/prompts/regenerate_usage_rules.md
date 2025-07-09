@@ -1,6 +1,6 @@
 ---
 verblock: "09 Jul 2025:v0.1: Matthew Sinclair - Initial version"
-stp_version: 1.2.0
+stp_version: 1.2.1
 ---
 # Prompt to Regenerate STP Usage Rules
 
@@ -8,7 +8,7 @@ Use this prompt to regenerate the `stp/eng/usage-rules.md` document when STP is 
 
 ## The Prompt
 
-You need to create a usage-rules.md document for the Steel Thread Process (STP) system. This document should follow the pattern established by the Elixir Hex package `usage_rules` (see https://hexdocs.pm/usage_rules/readme.html).
+You need to create a usage-rules.md document for the Steel Thread Process (STP) system. This document should follow the pattern established by the Elixir Hex package `usage_rules` (see <https://hexdocs.pm/usage_rules/readme.html>).
 
 ### Context
 
@@ -50,11 +50,13 @@ STP is a structured development and documentation system designed for collaborat
 
 5. **Key Patterns to Document**
    - Starting a new project with STP
-   - Creating and managing steel threads
+   - Creating and managing steel threads (now organized as directories)
+   - Understanding the new steel thread directory structure (v1.2.1+)
    - Using the task management integration
    - Synchronizing steel thread status with tasks
    - Upgrading STP files to new versions
    - Working with LLMs using STP structure
+   - Navigating steel thread files (info.md, design.md, impl.md, tasks.md, results.md)
 
 6. **Blog Post References**
    Include strategic references to these blog posts for deeper understanding:
@@ -84,15 +86,23 @@ stp st new "Implement user authentication"
 ```
 
 This creates a new steel thread with:
+
 - Auto-generated ID (e.g., ST0015)
-- Template structure for documentation
+- Directory structure with separate files:
+  - `info.md` - Metadata, objective, and context
+  - `design.md` - Design decisions and approach (optional)
+  - `impl.md` - Implementation details (optional)
+  - `tasks.md` - Task tracking (optional)
+  - `results.md` - Results and outcomes (optional)
 - Status set to "Not Started"
 
 ### Best Practices
 
 1. **Clear Titles**: Use descriptive, action-oriented titles
 2. **One Feature Per Thread**: Keep threads focused on single features
-3. **Document Intent**: Fill in the Intent section immediately
+3. **Document Intent**: Fill in the info.md file immediately with clear objectives
+4. **Use Separate Files**: Leverage the directory structure to organize different aspects
+5. **Update Status**: Keep the status field in info.md current as work progresses
 
 ### Common Mistakes
 
@@ -110,6 +120,7 @@ stp task create ST0015 "Implement login endpoint"
 ```
 
 For deeper understanding of the steel thread methodology, see the blog post on [The Steel Thread Methodology](../doc/blog/0002-the-steel-thread-methodology.md).
+
 ```
 
 Remember: The goal is to help LLMs understand how to use STP effectively in real development scenarios.
