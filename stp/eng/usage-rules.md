@@ -1,6 +1,6 @@
 ---
-verblock: "09 Jul 2025:v0.1: Matthew Sinclair - Initial version"
-stp_version: 1.2.0
+verblock: "09 Jul 2025:v0.2: Matthew Sinclair - Updated for steel thread directory structure"
+stp_version: 1.2.1
 ---
 # STP Usage Rules
 
@@ -10,8 +10,8 @@ This document provides usage patterns and guidelines for working with the Steel 
 
 STP (Steel Thread Process) is a structured development system that facilitates collaboration between developers and LLMs through:
 
-- **Steel Threads**: Self-contained units of work with clear intent
-- **Structured Documentation**: Templates that capture context and decisions
+- **Steel Threads**: Self-contained units of work with clear intent, organized as directories (v1.2.1+)
+- **Structured Documentation**: Templates that capture context and decisions across multiple files
 - **Task Integration**: Fine-grained task management linked to larger goals
 - **Intent Preservation**: Methodologies for maintaining project context
 
@@ -69,9 +69,19 @@ Steel threads are the backbone of STP methodology. They represent coherent units
 #### Creating Steel Threads
 
 ```bash
-# Create a new steel thread
+# Create a new steel thread directory
 stp st new "Implement OAuth2 authentication"
 # Output: Created new steel thread: ST0015
+```
+
+This creates a directory structure:
+```
+ST0015/
+├── info.md      # Main information and metadata
+├── design.md    # Design decisions
+├── impl.md      # Implementation details
+├── tasks.md     # Task tracking
+└── results.md   # Results and outcomes
 ```
 
 **Best Practices:**
@@ -79,6 +89,7 @@ stp st new "Implement OAuth2 authentication"
 - Use clear, action-oriented titles
 - One feature or fix per thread
 - Create thread before starting work
+- Start documenting in info.md immediately
 
 #### Managing Steel Thread Lifecycle
 
@@ -89,11 +100,18 @@ stp st list
 # Filter by status
 stp st list --status "In Progress"
 
-# View thread details
+# View thread details (shows info.md by default)
 stp st show ST0015
 
-# Edit thread document
-stp st edit ST0015
+# View specific file
+stp st show ST0015 design    # Show design.md
+stp st show ST0015 impl      # Show impl.md
+stp st show ST0015 all       # Show all files
+
+# Edit thread files
+stp st edit ST0015          # Edit info.md (default)
+stp st edit ST0015 design   # Edit design.md
+stp st edit ST0015 impl     # Edit impl.md
 
 # Mark as complete
 stp st done ST0015
@@ -181,8 +199,17 @@ This command:
 
 - Updates file metadata
 - Adds missing fields
+- Migrates steel threads to directory structure (v1.2.0 → v1.2.1)
 - Synchronizes steel thread index
 - Reports all changes
+
+**v1.2.1 Migration:**
+
+When upgrading from v1.2.0 to v1.2.1, the upgrade command will:
+- Convert single ST####.md files to ST####/ directories
+- Split content into appropriate files (info.md, design.md, etc.)
+- Create backups in .stp_backup/1.2.1/
+- Maintain all existing content and metadata
 
 ## Steel Thread Workflows
 
@@ -194,10 +221,25 @@ This command:
    stp st new "Add user profile management"
    ```
 
-2. **Document Intent** (in the created file)
-   - Fill in the Intent section immediately
-   - Document constraints and assumptions
+2. **Document Intent**
+   
+   ```bash
+   # Edit the main info file
+   stp st edit ST0016
+   ```
+   
+   In info.md:
+   - Fill in the Objective section immediately
+   - Document constraints and assumptions in Context
    - Note any relevant background
+   
+   In design.md (when ready):
+   ```bash
+   stp st edit ST0016 design
+   ```
+   - Document approach and architecture
+   - Capture key design decisions
+   - Note alternatives considered
 
 3. **Break Down into Tasks**
 

@@ -74,6 +74,11 @@ assert_directory_exists() {
   return 0
 }
 
+# Alias for consistency
+assert_dir_exists() {
+  assert_directory_exists "$@"
+}
+
 # Helper function to verify file existence
 assert_file_exists() {
   local file="$1"

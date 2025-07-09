@@ -84,7 +84,7 @@ update_index() {
   local file="stp/prj/st/steel_threads.md"
   local temp_file="${file}.tmp"
   
-  sed -i.bak 's/\[ST0013\](\.\/NOT-STARTED\/ST0013\.md)/\[ST0013\](\.\/ST0013\.md)/' "$file" 2>/dev/null || true
+  sed -i.bak 's/\[ST0013\](\.\/NOT-STARTED\/ST0013)/\[ST0013\](\.\/ST0013)/' "$file" 2>/dev/null || true
   echo "Updated index file references"
 }
 

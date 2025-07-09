@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-07-09
+
+### Added
+
+- Directory-based structure for steel threads (replacing single files)
+- New steel thread file types: `info.md`, `design.md`, `impl.md`, `tasks.md`, `results.md`
+- Migration script `migrate_st_to_dirs` for upgrading from v1.2.0 to v1.2.1
+- Support for editing/viewing specific steel thread files with `stp st show/edit <id> <file>`
+- `stp st show <id> all` command to view all steel thread files at once
+- Automatic file creation when editing non-existent steel thread files
+- Version tracking in `stp/.config/version` file
+
+### Changed
+
+- **BREAKING**: Steel threads are now directories containing multiple files instead of single `.md` files
+- Updated `stp_st` script to handle both legacy (file) and new (directory) structures
+- Enhanced `stp st new` to create directory structure with all template files
+- Modified `stp st done` to move entire directories when completing steel threads
+- Updated `stp st list` to read from `info.md` files in directories
+- Enhanced `stp st organize` to handle directory-based steel threads
+- Improved `stp upgrade` to automatically detect and migrate steel threads to directory structure
+- Updated all documentation to reflect new steel thread structure
+
+### Fixed
+
+- Version detection in `stp_st` now properly checks for directory vs file structure
+- Steel thread organization now correctly moves directories instead of files
+
+### Migration Guide
+
+#### Upgrading from v1.2.0 to v1.2.1
+
+1. Run `stp upgrade` - it will detect old-format steel threads and offer to migrate them
+2. The migration will:
+   - Create a backup in `.stp_backup/1.2.1/`
+   - Create directories for each steel thread (e.g., `ST0001/`)
+   - Split content into separate files based on sections
+   - Preserve all existing content and metadata
+3. After migration, use `stp st organize --write` to organize by status if desired
+
+#### New Steel Thread Commands
+
+- `stp st show ST0001 design` - Show only the design.md file
+- `stp st edit ST0001 impl` - Edit the implementation file
+- `stp st show ST0001 all` - View all files for a steel thread
+
 ## [1.2.0] - 2025-07-09
 
 ### Added
@@ -22,6 +68,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `stp_upgrade` to handle file renaming during upgrades
 - Updated all documentation to reference Backlog for historical tracking instead of journal.md
 - Simplified `stp_init` to only create `wip.md` and `steel_threads.md` in the prj directory
+
+### Fixed
+
+- Fixed `stp upgrade` version mismatch (was using 1.0.0 instead of 1.2.0)
+- Made file organization in `stp upgrade` optional with new `--organize` flag to prevent unexpected file moves
 
 ### Deprecated
 

@@ -1,6 +1,6 @@
 ---
-verblock: "08 Jul 2025:v0.2: Matthew Sinclair - Added Backlog.md integration implementation details"
-stp_version: 1.2.0
+verblock: "09 Jul 2025:v0.3: Matthew Sinclair - Updated for steel thread directory structure"
+stp_version: 1.2.1
 ---
 # 4. Detailed Design
 
@@ -17,7 +17,12 @@ stp/
 │   │   ├── _wip.md
 │   │   └── st/
 │   │       ├── _steel_threads.md
-│   │       └── _ST####.md
+│   │       └── ST####/
+│   │           ├── info.md
+│   │           ├── design.md
+│   │           ├── impl.md
+│   │           ├── tasks.md
+│   │           └── results.md
 │   ├── eng/            # Engineering document templates
 │   │   └── tpd/
 │   │       ├── _technical_product_design.md
@@ -42,7 +47,17 @@ stp/
 ├── prj/                # Project documentation
 │   ├── st/             # Steel threads
 │   │   ├── steel_threads.md   # Steel thread index
-│   │   ├── ST0001.md          # Individual steel thread
+│   │   ├── ST0001/           # Steel thread directory (v1.2.1+)
+│   │   │   ├── info.md        # Main information
+│   │   │   ├── design.md      # Design decisions
+│   │   │   ├── impl.md        # Implementation
+│   │   │   ├── tasks.md       # Task tracking
+│   │   │   └── results.md     # Results
+│   │   ├── ST0002/           # Another steel thread
+│   │   │   └── info.md        # Minimum required file
+│   │   ├── COMPLETED/         # Completed threads
+│   │   ├── NOT-STARTED/       # Not started threads
+│   │   ├── CANCELLED/         # Cancelled threads
 │   │   └── ...
 │   └── wip.md          # Work in progress
 ├── eng/                # Engineering docs
@@ -73,7 +88,7 @@ All STP documents use YAML frontmatter to store structured metadata at the begin
 ```yaml
 ---
 verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
-stp_version: 1.2.0
+stp_version: 1.2.1
 status: Not Started|In Progress|Completed|On Hold|Cancelled
 created: YYYYMMDD
 completed: YYYYMMDD
@@ -162,19 +177,32 @@ This document serves as an index of all steel threads in the project.
 ## Index
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
-| ID                    | Title   | Status   | Created  | Completed |
-|-----------------------|---------|----------|----------|-----------|
-| [ST0002](./ST0002.md) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
-| [ST0001](./ST0001.md) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
+| ID                      | Title   | Status   | Created  | Completed |
+|-------------------------|---------|----------|----------|-----------|
+| [ST0002](./ST0002/)     | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
+| [ST0001](./ST0001/)     | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
 <!-- END: STEEL_THREAD_INDEX -->
 ```
 
-**Individual Steel Thread Template:**
+**Steel Thread Directory Structure (v1.2.1+):**
+
+Stepping with STP v1.2.1, steel threads are organized as directories containing multiple files:
+
+```
+ST####/
+├── info.md      # Main information file (required)
+├── design.md    # Design decisions and approach
+├── impl.md      # Implementation details
+├── tasks.md     # Task tracking
+└── results.md   # Results and outcomes
+```
+
+**info.md Template (Main Information File):**
 
 ```markdown
 ---
 verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
-stp_version: 1.2.0
+stp_version: 1.2.1
 status: Not Started
 created: YYYYMMDD
 completed: 
@@ -191,12 +219,63 @@ completed:
 
 ## Context
 [Background information and context for this steel thread]
+```
+
+**design.md Template:**
+
+```markdown
+# Design - ST####: [Title]
 
 ## Approach
 [Planned approach for implementing this steel thread]
 
-## Tasks
+## Key Design Decisions
+[Document important design choices and rationale]
+
+## Architecture
+[Architectural diagrams or descriptions if applicable]
+```
+
+**impl.md Template:**
+
+```markdown
+# Implementation - ST####: [Title]
+
+## Implementation Notes
+[Technical details about the implementation]
+
+## Code Changes
+[Summary of code changes made]
+
+## Challenges
+[Any implementation challenges encountered]
+```
+
+**tasks.md Template:**
+
+```markdown
+# Tasks - ST####: [Title]
+
 Tasks are tracked in Backlog. View with: `stp task list ST####`
+
+## Task Summary
+[High-level summary of tasks if needed]
+```
+
+**results.md Template:**
+
+```markdown
+# Results - ST####: [Title]
+
+## Outcomes
+[What was achieved]
+
+## Metrics
+[Any relevant metrics or measurements]
+
+## Lessons Learned
+[Key takeaways from this steel thread]
+```
 
 ## Implementation Notes
 [Notes on implementation details, decisions, challenges, etc.]

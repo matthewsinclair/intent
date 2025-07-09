@@ -146,9 +146,13 @@ This immediately orients the LLM to your current state and challenges.
 Each steel thread provides bounded context:
 
 ```bash
-# Share a complete context unit
-$ cat stp/prj/st/ST0042.md | pbcopy
+# Share a complete context unit (main info file)
+$ cat stp/prj/st/ST0042/info.md | pbcopy
 # Now paste into LLM conversation
+
+# Or share specific aspects
+$ cat stp/prj/st/ST0042/design.md | pbcopy    # For design discussions
+$ cat stp/prj/st/ST0042/impl.md | pbcopy      # For implementation details
 ```
 
 The LLM receives:
@@ -162,7 +166,7 @@ The LLM receives:
 Start minimal, add detail as needed:
 
 1. **Initial**: "Working on ST0042 - Authentication System"
-2. **If needed**: Share the steel thread document
+2. **If needed**: Share the steel thread info.md or specific files
 3. **For specifics**: Show relevant task details
 4. **For history**: Reference Backlog task history
 
@@ -189,10 +193,24 @@ STP templates aren't arbitrary – they're designed to match how LLMs process in
 
 ### Why Structure Matters to LLMs
 
-LLMs excel at pattern recognition. Consistent structure becomes a pattern they can leverage:
+LLMs excel at pattern recognition. STP v1.2.1+'s directory structure enhances this:
+
+```
+ST0042/
+├── info.md      # LLM starts here for context
+├── design.md    # Share for architectural discussions
+├── impl.md      # Reference during coding
+├── tasks.md     # Track progress
+└── results.md   # Document outcomes
+```
+
+Each file serves a specific purpose in LLM conversations:
 
 ```markdown
+# info.md - Primary context
 ---
+verblock: "08 Mar 2025:v0.1: Author - Initial version"
+stp_version: 1.2.1
 status: In Progress
 created: 20250308
 ---
