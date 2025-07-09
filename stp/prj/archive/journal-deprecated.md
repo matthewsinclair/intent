@@ -1,10 +1,48 @@
 ---
-verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
-stp_version: 1.0.0
+verblock: "09 Jul 2025:v0.3: Matthew Sinclair - Deprecated in favor of Backlog task tracking"
+stp_version: 1.2.0
 ---
-# Project Journal
+# Project Journal (DEPRECATED)
+
+> **⚠️ DEPRECATION NOTICE**: As of July 9, 2025, the journal.md file has been deprecated. 
+> Historical tracking and project narrative are now maintained through Backlog tasks and steel threads.
+> This file is preserved for historical reference only.
+>
+> For ongoing work tracking, use:
+> - `stp bl` commands for task management
+> - Steel threads for high-level intent and context
+> - Backlog tasks for detailed work history
+
+---
+
+# Original Project Journal Content
 
 This document maintains a chronological record of project activities, decisions, and progress. It serves as a historical narrative of the Steel Thread Process's development.
+
+## 20250709
+
+### LLM Usage Rules Implementation
+
+Implemented comprehensive usage rules documentation and tooling for LLM integration:
+
+Key accomplishments:
+
+- Created `stp/eng/usage-rules.md` following the Elixir Hex package 'usage_rules' pattern
+- Implemented `stp llm` command with `usage_rules` subcommand to display the documentation
+- Added `--symlink` option to create symlinks for integration with projects expecting usage-rules.md files
+- Renamed file from `usage_rules.md` to `usage-rules.md` to follow established conventions
+- Created comprehensive test suite for the new llm command
+- Updated all documentation to reference the new command
+
+The usage rules document provides:
+
+- Detailed command usage patterns and workflows
+- Best practices for steel thread management
+- Task integration patterns with Backlog.md
+- LLM collaboration guidelines
+- Common patterns and anti-patterns
+
+The `--symlink` option enables easy integration with Elixir projects or other tools that look for usage-rules.md files, creating a symlink in the current or specified directory.
 
 ## 20250320
 
@@ -98,47 +136,42 @@ Created the initial directory structure for STP. Decided to use "eng" instead of
 
 ### Technical Product Design
 
-Started developing the Technical Product Design (TPD) document, breaking it into separate sections for easier consumption by both humans and LLMs. The TPD includes:
+Created the Technical Product Design (TPD) document to serve as the central specification for STP. The TPD is organized into multiple sections for better organization and maintenance:
 
-- Introduction
-- Requirements
-- Architecture
-- Detailed Design
-- Implementation Strategy
-- Deployment and Operations
-- Technical Challenges and Mitigations
-- Appendices
+1. Introduction: Purpose, scope, and overview
+2. Requirements: Functional and non-functional requirements
+3. Architecture: System design and component interactions
+4. Detailed Design: Implementation specifications
+5. Implementation Strategy: Development approach using steel threads
+6. Deployment and Operations: Installation and usage
+7. Technical Challenges and Mitigations: Risk analysis
+8. Appendices: Supporting information
 
-### Core Script Framework
+### Steel Thread Planning
 
-Developed the core script framework for STP, including:
+Identified initial steel threads for STP implementation:
 
-- Main `stp` script for command dispatching
-- Help system for displaying command documentation
-- Init script for project initialization
-- Steel thread management script
+- ST0001: Directory Structure - Create the foundational directory layout
+- ST0002: Core Script Framework - Implement the main STP script
+- ST0003: Template System - Create document templates
+- ST0004: Steel Thread Commands - Implement thread management
+- ST0005: Initialization Command - Create project initialization
+- ST0006: Help System - Implement help and documentation
+- ST0007: User Documentation - Create user guides
+- ST0008: LLM Integration - Develop LLM-specific features
+- ST0009: Process Refinement - Refine based on usage
 
-### Steel Thread Creation
+### Bootstrap Script
 
-Created the first two steel threads:
+Created the bootstrap script to automate STP setup. The script:
 
-- ST0001: Directory Structure
-- ST0002: Core Script Framework
+- Creates the complete directory structure
+- Copies templates to appropriate locations
+- Initializes the TPD with all sections
+- Sets up executable permissions for scripts
 
-These steel threads will serve as the foundation for the rest of the STP development.
+This provides a quick way to set up the STP development environment.
 
----
+### Next Steps
 
-## Context for LLM
-
-This journal provides a historical record of the project's development. Unlike the WIP document which captures the current state, this journal documents the evolution of the project over time.
-
-### How to use this document
-
-1. Add new entries at the top of the document with the current date
-2. Include meaningful titles for activities
-3. Describe activities, decisions, challenges, and resolutions
-4. When completing steel threads, document key outcomes here
-5. Note any significant project direction changes or decisions
-
-This document helps both humans and LLMs understand the narrative arc of the project and the reasoning behind past decisions.
+Tomorrow will focus on implementing ST0001 (Directory Structure) and ST0002 (Core Script Framework). The goal is to have a working prototype of the main STP script that can dispatch commands to sub-scripts.

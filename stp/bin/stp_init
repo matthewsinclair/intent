@@ -169,12 +169,6 @@ if [[ "$DIRS_TO_COPY" == *"prj"* ]]; then
       -e "s/\[\[DATE\]\]/$DATE/g" \
       "$TEMPL_DIR/prj/_wip.md" > "$TARGET_DIR/stp/prj/wip.md"
 
-  # Create initial prj/journal.md
-  sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
-      -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
-      -e "s/\[\[DATE\]\]/$DATE/g" \
-      "$TEMPL_DIR/prj/_journal.md" > "$TARGET_DIR/stp/prj/journal.md"
-
   # Create initial prj/st/steel_threads.md
   sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
       -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \

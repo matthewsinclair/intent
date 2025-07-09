@@ -103,8 +103,7 @@ stp bl board
 ### Project Management
 - **[Work in Progress (WIP)](./stp/prj/wip.md)** - Current tasks and daily focus
 - **[Steel Threads Index](./stp/prj/st/steel_threads.md)** - All steel threads and their status
-- **[Project Journal](./stp/prj/journal.md)** - Historical narrative of project evolution
-- **[Backlog Integration](./CLAUDE.md#task-management-with-backlogmd)** - How STP works with Backlog.md
+- **[Backlog Integration](./CLAUDE.md#task-management-with-backlogmd)** - Task tracking and project history
 
 ### Development
 - **[CLAUDE.md](./CLAUDE.md)** - AI assistant instructions and project conventions
@@ -139,6 +138,12 @@ stp bl list                       # List tasks (without git errors)
 stp bl board                      # View Kanban board
 ```
 
+### LLM Integration
+```bash
+stp llm usage_rules               # Display STP usage patterns for LLMs
+stp llm usage_rules --symlink     # Create usage-rules.md symlink
+```
+
 ## 🏗️ Project Structure
 
 ```
@@ -149,7 +154,6 @@ stp/
 │   └── tpd/       # Technical Product Design
 ├── prj/           # Project management
 │   ├── st/        # Steel threads
-│   ├── journal.md # Project history
 │   └── wip.md     # Current work
 ├── tests/         # Test suites
 └── usr/           # User documentation

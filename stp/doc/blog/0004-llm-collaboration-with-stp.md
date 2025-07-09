@@ -164,7 +164,7 @@ Start minimal, add detail as needed:
 1. **Initial**: "Working on ST0042 - Authentication System"
 2. **If needed**: Share the steel thread document
 3. **For specifics**: Show relevant task details
-4. **For history**: Reference journal entries
+4. **For history**: Reference Backlog task history
 
 This prevents context overload while ensuring completeness.
 
@@ -371,6 +371,7 @@ Here's how STP transforms a typical development session:
 ├──────────────────────────┬────────────────────────────────┤
 │ 1. Load Context          │ $ cat stp/prj/wip.md           │
 │                          │ $ stp st show ST0042           │
+│                          │ $ stp llm usage_rules          │
 ├──────────────────────────┼────────────────────────────────┤
 │ 2. Share with LLM        │ "Working on ST0042, need help  │
 │                          │  with refresh token rotation"  │
@@ -378,6 +379,7 @@ Here's how STP transforms a typical development session:
 │ 3. LLM Understands       │ - Sees JWT token decision      │
 │                          │ - Knows security constraints   │
 │                          │ - Understands multi-device req │
+│                          │ - Knows STP workflow patterns  │
 ├──────────────────────────┼────────────────────────────────┤
 │ 4. Targeted Solution     │ LLM provides rotation strategy │
 │                          │ aligned with your architecture │
@@ -386,6 +388,23 @@ Here's how STP transforms a typical development session:
 │                          │ Update task status             │
 └──────────────────────────┴────────────────────────────────┘
 ```
+
+### Leveraging Usage Rules for Better Collaboration
+
+STP now includes usage rules documentation specifically designed for LLMs:
+
+```bash
+# Help LLMs understand STP workflows
+stp llm usage_rules
+```
+
+This provides LLMs with:
+- Command usage patterns and best practices
+- Common workflows for steel thread management
+- Task integration patterns with Backlog.md
+- Guidelines for effective collaboration
+
+By sharing these usage rules at the start of a session, LLMs gain a deeper understanding of how to work within the STP framework, leading to more accurate suggestions and better alignment with your development workflow.
 
 ## Transforming Development Through Collaboration
 

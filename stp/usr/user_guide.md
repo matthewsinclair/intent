@@ -1,6 +1,6 @@
 ---
-verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
-stp_version: 1.0.0
+verblock: "09 Jul 2025:v0.3: Matthew Sinclair - Updated llm command with --symlink option"
+stp_version: 1.2.0
 ---
 # User Guide
 
@@ -105,8 +105,7 @@ my-project/
 ├── stp/                    # Project documentation
 │   ├── prj/                # Project documentation
 │   │   ├── st/             # Steel threads
-│   │   ├── wip.md          # Work in progress
-│   │   └── journal.md      # Project journal
+│   │   └── wip.md          # Work in progress
 │   ├── eng/                # Engineering docs
 │   │   └── tpd/            # Technical Product Design
 │   ├── usr/                # User documentation
@@ -323,6 +322,27 @@ cat stp/llm/llm_preamble.md
 ```
 
 Include this preamble when starting new sessions with an LLM to provide essential context.
+
+### Understanding STP Usage Patterns
+
+STP provides usage rules documentation specifically designed for LLMs:
+
+```bash
+# Display usage patterns and workflows for LLMs
+stp llm usage_rules
+
+# Create symlink for Elixir projects (or other tools expecting usage-rules.md)
+stp llm usage_rules --symlink
+
+# Save to a file for reference
+stp llm usage_rules > usage-rules.md
+```
+
+This document helps LLMs understand:
+- How to use STP commands effectively
+- Common workflows and best practices
+- Steel thread management patterns
+- Task integration with Backlog.md
 
 ### Contextualizing Work with Steel Threads
 

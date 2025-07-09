@@ -178,19 +178,6 @@ Structure:
 - Upcoming Work
 - Notes
 
-#### Journal Template
-
-Location: `doc/prj/journal.md`
-
-Purpose: Maintains a chronological record of project activities.
-
-Structure:
-
-- Date entries
-- Activity descriptions
-- Decisions
-- Challenges and resolutions
-
 #### Steel Thread Templates
 
 Location: `doc/prj/st/`
@@ -228,8 +215,7 @@ stp/
 │   ├── bin/            # STP script documentation
 │   ├── prj/            # Project documentation
 │   │   ├── st/         # Steel threads
-│   │   ├── wip.md      # Work in progress
-│   │   └── journal.md  # Project journal
+│   │   └── wip.md      # Work in progress
 │   ├── eng/            # Engineering docs
 │   │   └── tpd/        # Technical Product Design
 │   ├── usr/            # User documentation
@@ -277,7 +263,7 @@ ST_PREFIX="ST"
 
 - Use consistent formatting across documents
 - Keep the WIP document updated with current focus
-- Document decisions and their rationale in the journal
+- Document decisions and their rationale in steel threads and Backlog tasks
 - Use clear, descriptive titles for steel threads
 - Maintain cross-references between related documents
 

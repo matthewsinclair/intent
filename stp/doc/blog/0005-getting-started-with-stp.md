@@ -74,7 +74,6 @@ my-project/
 │   │   └── tpd/    # Technical Product Design
 │   ├── prj/        # Project management
 │   │   ├── st/     # Steel threads
-│   │   ├── journal.md
 │   │   └── wip.md
 │   └── usr/        # User documentation
 └── backlog/        # Backlog.md tasks
@@ -338,7 +337,7 @@ STP enhances rather than replaces your current methodology:
 
 ### Gradual Adoption Strategy
 
-1. **Week 1**: Start with WIP and journal only
+1. **Week 1**: Start with WIP and basic task tracking
 2. **Week 2**: Create first steel thread for new feature
 3. **Week 3**: Add Backlog integration
 4. **Week 4**: Full workflow with status sync
@@ -412,11 +411,11 @@ Steel Thread: Add user notifications
    # Add new insights to Implementation Notes
    ```
 
-5. **Daily journal habit**:
+5. **Daily progress tracking**:
    ```bash
-   $ edit stp/prj/journal.md
-   ## 2025-07-08
-   - Completed profile edit API (ST0016)
+   $ stp bl task edit task-16 --status Done
+   # Task marked as completed
+   # Update steel thread status if needed
    - Discovered rate limiting issue
    - Decision: Implement token bucket
    ```

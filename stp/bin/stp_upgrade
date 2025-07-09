@@ -281,6 +281,13 @@ upgrade_section_markers() {
 # Scan directories for STP files to upgrade
 echo "Scanning for STP files to upgrade..."
 
+# Check for old usage_rules.md file and rename to usage-rules.md
+if [ -f "stp/eng/usage_rules.md" ]; then
+  echo "Found old usage_rules.md file, renaming to usage-rules.md..."
+  mv "stp/eng/usage_rules.md" "stp/eng/usage-rules.md"
+  echo "Renamed: stp/eng/usage_rules.md -> stp/eng/usage-rules.md"
+fi
+
 # Check for steel threads directory
 if [ -d "stp/prj/st" ]; then
   # Upgrade steel_threads.md

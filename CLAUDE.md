@@ -2,7 +2,7 @@
 
 ## STP Version
 
-The current STP version is 1.0.0. All STP files should include a `stp_version` field in their YAML frontmatter. To update files, run `stp upgrade`.
+The current STP version is 1.2.0. All STP files should include a `stp_version` field in their YAML frontmatter. To update files, run `stp upgrade`.
 
 ### ST File Metadata Format
 
@@ -10,7 +10,7 @@ ST files must have consistent metadata in this format:
 ```yaml
 ---
 verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
-stp_version: 1.0.0
+stp_version: 1.2.0
 status: Not Started|In Progress|Completed|On Hold|Cancelled
 created: YYYYMMDD
 completed: YYYYMMDD
@@ -27,6 +27,11 @@ Only keep one verblock entry with the most recent change (don't accumulate verbl
 - When making significant changes, update this document to keep it in sync with the implementation
 - When suggesting improvements, reference and respect the architectural patterns described in this document
 
+- **USAGE PATTERNS**: For detailed guidance on using STP commands and workflows, see `stp/eng/usage-rules.md`
+- This document provides patterns and best practices for working with STP, designed specifically for LLM understanding
+- It covers command usage, workflows, and integration patterns
+- You can also display this document using: `stp llm usage_rules`
+
 - **NEXT**: Work is coordinated through _STEEL THREADS_
 - Use the `stp st list` command to get a dynamic list of all steel threads and their status
 - Use `stp st show <id>` to view details of specific steel threads
@@ -36,8 +41,9 @@ Only keep one verblock entry with the most recent change (don't accumulate verbl
 - Look in `stp/prj/wip.md` to find out what is currently on the go
 - This document contains the current tasks in progress for each day.
 
-- **THEN**: The journal doc `stp/journal.md` a historical narrative or work done
-- Use this to wrap up and conclude what has been done (in summary) at the end of each session
+- **HISTORY**: Historical tracking is now maintained through Backlog tasks
+- Use `stp bl list` and `stp bl task show` to review completed work
+- Steel threads capture high-level context and decisions
 
 ## Task Management with Backlog.md
 

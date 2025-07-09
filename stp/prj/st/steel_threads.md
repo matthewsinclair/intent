@@ -1,6 +1,6 @@
 ---
 verblock: "20 Mar 2025:v0.1: Claude - Updated with new directory structure"
-stp_version: 1.0.0
+stp_version: 1.2.0
 ---
 # Steel Threads
 

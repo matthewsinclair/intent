@@ -1,6 +1,6 @@
 ---
-verblock: "08 Jul 2025:v0.2: Matthew Sinclair - Added comprehensive Backlog.md integration section"
-stp_version: 1.0.0
+verblock: "09 Jul 2025:v0.4: Matthew Sinclair - Updated llm command with --symlink option"
+stp_version: 1.2.0
 ---
 # Reference Guide
 
@@ -269,6 +269,62 @@ stp help [command]
 ```bash
 stp help st
 ```
+
+#### `stp llm`
+
+Commands for LLM integration and assistance.
+
+**Usage:**
+
+```bash
+stp llm <subcommand> [options]
+```
+
+**Purpose:**
+
+Provides utilities for working with Large Language Models (LLMs) in the context of STP. Helps LLMs understand how to use STP effectively and facilitates better collaboration between developers and AI assistants.
+
+**Subcommands:**
+
+`stp llm usage_rules`
+
+Displays the complete STP usage patterns and workflows documentation.
+
+**Usage:**
+
+```bash
+stp llm usage_rules
+```
+
+**Example:**
+
+```bash
+# Display usage rules
+stp llm usage_rules
+
+# Create symlink in current directory
+stp llm usage_rules --symlink
+
+# Create symlink in specific directory
+stp llm usage_rules --symlink ~/my-project
+
+# Pipe to less for easier reading
+stp llm usage_rules | less
+
+# Save to a file
+stp llm usage_rules > stp-usage-rules.md
+```
+
+**Options:**
+
+- `--symlink [dir]`: Create a symlink to usage-rules.md in current or specified directory
+
+**Notes:**
+
+- The usage rules document is located at `stp/eng/usage-rules.md`
+- It follows the pattern established by the Elixir Hex package 'usage_rules'
+- The document can be regenerated using the prompt at `stp/eng/prompts/regenerate_usage_rules.md`
+- The --symlink option creates a symlink named 'usage-rules.md' for integration with other tools
 
 #### `stp bl` / `stp backlog`
 
@@ -592,7 +648,7 @@ Each STP file includes version information to track compatibility:
 
 ```yaml
 ---
-stp_version: 1.0.0
+stp_version: 1.2.0
 ---
 ```
 
@@ -666,19 +722,6 @@ Structure:
 - Upcoming Work
 - Notes
 
-#### Journal Template
-
-Location: `stp/prj/journal.md`
-
-Purpose: Maintains a chronological record of project activities.
-
-Structure:
-
-- Date entries
-- Activity descriptions
-- Decisions
-- Challenges and resolutions
-
 #### Steel Thread Templates
 
 Location: `stp/prj/st/`
@@ -730,8 +773,7 @@ STP/
 │   │   │   ├── COMPLETED/    # Completed steel threads
 │   │   │   ├── NOT-STARTED/  # Not started steel threads
 │   │   │   └── CANCELLED/    # Cancelled steel threads
-│   │   ├── wip.md      # Work in progress
-│   │   └── journal.md  # Project journal
+│   │   └── wip.md      # Work in progress
 │   ├── eng/            # Engineering docs
 │   │   └── tpd/        # Technical Product Design
 │   ├── usr/            # User documentation
@@ -798,7 +840,7 @@ ST_PREFIX="ST"
 
 - Use consistent formatting across documents
 - Keep the WIP document updated with current focus
-- Document decisions and their rationale in the journal
+- Document decisions and their rationale in steel threads and Backlog tasks
 - Use clear, descriptive titles for steel threads
 - Maintain cross-references between related documents
 
@@ -992,7 +1034,7 @@ With Backlog integration, steel thread documents focus on intent and context:
 ```markdown
 ---
 verblock: "08 Jul 2025:v0.1: Author Name - Initial version"
-stp_version: 1.0.0
+stp_version: 1.2.0
 status: In Progress
 created: 20250708
 completed: 

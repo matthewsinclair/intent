@@ -1,6 +1,6 @@
 ---
-verblock: "08 Jul 2025:v0.2: Matthew Sinclair - Added Backlog.md integration to preamble"
-stp_version: 1.0.0
+verblock: "09 Jul 2025:v0.3: Matthew Sinclair - Added llm command to preamble"
+stp_version: 1.2.0
 ---
 # Technical Product Design
 
@@ -29,6 +29,7 @@ This document is a Technical Product Design (TPD) for the Steel Thread Process (
    - `stp task`: Manage Backlog tasks linked to steel threads
    - `stp status`: Synchronize steel thread status based on task completion
    - `stp migrate`: Migrate embedded tasks from steel threads to Backlog
+   - `stp llm usage_rules`: Display usage patterns and workflows for LLMs
 
 # Steel Thread Process Technical Product Design
 

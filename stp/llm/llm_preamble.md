@@ -1,6 +1,6 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
-stp_version: 1.0.0
+stp_version: 1.2.0
 ---
 # LLM Preamble
 
@@ -28,7 +28,7 @@ When working with this repository, you should focus on these key documents in th
 
 3. **THEN**: `stp/prj/wip.md` - Details the current work in progress and priorities. This is your guide to what should be worked on now.
 
-4. **FINALLY**: `stp/prj/journal.md` - Records the historical narrative of work completed. Reference this for context on previous development.
+4. **FINALLY**: Use `stp bl list` and steel thread documents to review historical work completed. Backlog tasks provide detailed progress tracking.
 
 ## Key System Components
 
@@ -97,6 +97,6 @@ When assisting with this project, you should:
 3. Maintain consistency with existing patterns and documentation standards
 4. Update documentation alongside code changes
 5. When suggesting improvements, reference relevant architectural patterns
-6. Summarize completed work in the journal document
+6. Update task status in Backlog to track progress
 
 Most tasks will involve implementing new functionality, enhancing existing features, or improving documentation within the steel thread framework. If needed, use the shell scripts to create or update steel threads.

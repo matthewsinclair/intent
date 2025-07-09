@@ -19,7 +19,7 @@ When working with this repository, you should focus on these key documents in th
 
 3. **THEN**: `stp/prj/wip.md` - Details the current work in progress and priorities. This is your guide to what should be worked on now.
 
-4. **FINALLY**: `stp/prj/journal.md` - Records the historical narrative of work completed. Reference this for context on previous development.
+4. **FINALLY**: Use `stp bl list` and steel thread documents to review historical work completed. Backlog tasks provide detailed progress tracking.
 
 ## Documentation Structure
 
@@ -27,7 +27,7 @@ The STP methodology organizes project information through a specific directory s
 
 - **stp/prj/**: Project management documents
   - **stp/prj/wip.md**: Current work in progress
-  - **stp/prj/journal.md**: Historical record of project activities
+  - **Backlog tasks**: Historical record of project activities and progress
   - **stp/prj/st/**: Steel thread documents and index
 - **stp/eng/**: Engineering documentation
   - **stp/eng/tpd/**: Technical Product Design documents
@@ -85,7 +85,7 @@ When assisting with this project, you should:
 3. Maintain consistency with existing patterns and documentation standards
 4. Update documentation alongside code changes
 5. Use the steel thread model to organize new work
-6. Summarize completed work in the journal document
+6. Update task status in Backlog to track progress
 
 [Add any project-specific collaboration guidelines here]
 

@@ -1,6 +1,6 @@
 ---
 verblock: "08 Jul 2025:v0.2: Matthew Sinclair - Added Backlog.md integration implementation details"
-stp_version: 1.0.0
+stp_version: 1.2.0
 ---
 # 4. Detailed Design
 
@@ -15,7 +15,6 @@ stp/
 ├── _templ/             # Templates directory
 │   ├── prj/            # Project document templates
 │   │   ├── _wip.md
-│   │   ├── _journal.md
 │   │   └── st/
 │   │       ├── _steel_threads.md
 │   │       └── _ST####.md
@@ -45,8 +44,7 @@ stp/
 │   │   ├── steel_threads.md   # Steel thread index
 │   │   ├── ST0001.md          # Individual steel thread
 │   │   └── ...
-│   ├── wip.md          # Work in progress
-│   └── journal.md      # Project journal
+│   └── wip.md          # Work in progress
 ├── eng/                # Engineering docs
 │   └── tpd/            # Technical Product Design
 │       ├── technical_product_design.md   # Main TPD document
@@ -75,7 +73,7 @@ All STP documents use YAML frontmatter to store structured metadata at the begin
 ```yaml
 ---
 verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
-stp_version: 1.0.0
+stp_version: 1.2.0
 status: Not Started|In Progress|Completed|On Hold|Cancelled
 created: YYYYMMDD
 completed: YYYYMMDD
@@ -176,7 +174,7 @@ This document serves as an index of all steel threads in the project.
 ```markdown
 ---
 verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
-stp_version: 1.0.0
+stp_version: 1.2.0
 status: Not Started
 created: YYYYMMDD
 completed: 

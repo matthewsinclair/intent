@@ -1,6 +1,6 @@
 ---
 verblock: "08 Jul 2025:v0.2: Matthew Sinclair - Added Backlog.md integration architecture"
-stp_version: 1.0.0
+stp_version: 1.2.0
 ---
 # 3. Architecture
 
@@ -55,8 +55,7 @@ stp/
 ├── bin/                # STP scripts
 ├── prj/                # Project documentation
 │   ├── st/             # Steel threads
-│   ├── wip.md          # Work in progress
-│   └── journal.md      # Project journal
+│   └── wip.md          # Work in progress
 ├── eng/                # Engineering docs
 │   └── tpd/            # Technical Product Design
 ├── usr/                # User documentation

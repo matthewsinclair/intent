@@ -29,7 +29,6 @@ The command creates the following directory structure by default:
   prj/                # Project documentation
     st/               # Steel threads
     wip.md            # Work in progress
-    journal.md        # Project journal
   eng/                # Engineering docs
     tpd/              # Technical Product Design
   usr/                # User documentation

@@ -1,6 +1,6 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
-stp_version: 1.0.0
+stp_version: 1.2.0
 ---
 # Work In Progress
 
@@ -55,7 +55,7 @@ Updated all project documentation to reflect current status:
 
 - Updated steel_threads.md to show ST0011 as completed and ST0010 as on hold
 - Ensured all steel thread documents have the correct status
-- Updated wip.md and journal.md to reflect current state
+- Updated wip.md to reflect current state
 
 **003-DONE: Build a test suite**
 
