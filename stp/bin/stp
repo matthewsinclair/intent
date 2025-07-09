@@ -5,7 +5,7 @@
 # Usage: stp <command> [options] [arguments]
 
 # Version
-STP_VERSION="1.2.0"
+STP_VERSION="1.2.1"
 
 # Exit on error
 set -e
