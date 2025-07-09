@@ -1,5 +1,5 @@
 #!/bin/bash
-# stp_st - Manage steel threads
+# stp_st - Manage steel threads (v1.2.1 - Directory-based structure)
 # Usage: stp_st <command> [options] [arguments]
 
 # Exit on error
@@ -23,17 +23,24 @@ usage() {
   echo "  list [--status <status>] [--width N] List all steel threads"
   echo "  sync [--write] [--width N]        Synchronize steel_threads.md with individual ST files"
   echo "  organize [--write]                Organize ST files in directories by status"
-  echo "  show <id>                         Show details of a specific steel thread"
-  echo "  edit <id>                         Open a steel thread in your default editor"
+  echo "  show <id> [file]                  Show details of a specific steel thread"
+  echo "  edit <id> [file]                  Open a steel thread in your default editor"
+  echo ""
+  echo "File options for show/edit commands:"
+  echo "  info    - Main information file (default)"
+  echo "  design  - Design decisions and approach"
+  echo "  impl    - Implementation details"
+  echo "  tasks   - Task tracking"
+  echo "  results - Results and outcomes"
+  echo "  all     - Show all files combined (show only)"
   echo ""
   echo "Examples:"
   echo "  stp st new \"Implement Feature X\""
   echo "  stp st done ST0001"
   echo "  stp st list --status \"In Progress\" --width 100"
-  echo "  stp st sync --write --width 100"
-  echo "  stp st organize --write"
   echo "  stp st show ST0001"
-  echo "  stp st edit 1"
+  echo "  stp st show ST0001 design"
+  echo "  stp st edit ST0001 impl"
   exit 1
 }
 
@@ -55,73 +62,108 @@ fi
 ST_COMMAND="$1"
 shift
 
+# Function to check if we're using directory structure (v1.2.1+)
+is_directory_structure() {
+  local stp_version=$(grep -m 1 "^stp_version:" stp/.config/version 2>/dev/null | sed "s/^stp_version: *//")
+  if [[ "$stp_version" > "1.2.0" ]] || [[ "$stp_version" == "1.2.1" ]]; then
+    return 0  # true - using directory structure
+  else
+    return 1  # false - using file structure
+  fi
+}
+
 # Function to determine the appropriate path for a steel thread based on its status
 get_st_path() {
   local st_id="$1"
   local status="$2"
+  local file_name="${3:-info.md}"  # Default to info.md
   local base_dir="stp/prj/st"
   local test_env=0
   
-  # Check if we're in a test environment - either from TEST_TEMP_DIR or from being in a /tmp directory
+  # Check if we're in a test environment
   if [[ "${TEST_TEMP_DIR:-}" != "" ]] || [[ "$(pwd)" == /tmp* ]] || [[ "$(pwd)" == */stp/tests/* ]]; then
     test_env=1
   fi
   
-  # If we're in a test environment, just use the main directory
-  if [ $test_env -eq 1 ]; then
-    echo "$base_dir/$st_id.md"
-    return
-  fi
-  
-  # If status is not provided, try to find the steel thread and read its status
-  if [ -z "$status" ]; then
-    # Check all possible locations
-    local possible_locations=(
-      "$base_dir/$st_id.md"
-      "$base_dir/COMPLETED/$st_id.md"
-      "$base_dir/NOT-STARTED/$st_id.md"
-      "$base_dir/CANCELLED/$st_id.md"
-    )
+  # For directory structure
+  if is_directory_structure; then
+    # If we're in a test environment, just use the main directory
+    if [ $test_env -eq 1 ]; then
+      echo "$base_dir/$st_id/$file_name"
+      return
+    fi
     
-    for location in "${possible_locations[@]}"; do
-      if [ -f "$location" ]; then
-        # Check both YAML frontmatter and document body for status
-        yaml_status=$(grep -m 1 "^status:" "$location" | sed "s/^status: *//")
-        body_status=$(grep -m 1 "^\- \*\*Status\*\*:" "$location" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        
-        # Prioritize YAML frontmatter status
-        if [ -n "$yaml_status" ]; then
-          status="$yaml_status"
-        elif [ -n "$body_status" ]; then
-          status="$body_status"
-        else
-          status="Not Started"
+    # If status is not provided, try to find the steel thread directory
+    if [ -z "$status" ]; then
+      # Check all possible locations
+      local possible_locations=(
+        "$base_dir/$st_id"
+        "$base_dir/COMPLETED/$st_id"
+        "$base_dir/NOT-STARTED/$st_id"
+        "$base_dir/CANCELLED/$st_id"
+      )
+      
+      for location in "${possible_locations[@]}"; do
+        if [ -d "$location" ]; then
+          # Read status from info.md
+          if [ -f "$location/info.md" ]; then
+            yaml_status=$(grep -m 1 "^status:" "$location/info.md" | sed "s/^status: *//")
+            body_status=$(grep -m 1 "^\- \*\*Status\*\*:" "$location/info.md" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            
+            # Prioritize YAML frontmatter status
+            if [ -n "$yaml_status" ]; then
+              status="$yaml_status"
+            elif [ -n "$body_status" ]; then
+              status="$body_status"
+            else
+              status="Not Started"
+            fi
+          fi
+          break
         fi
-        
-        break
-      fi
-    done
-  fi
-  
-  # Return the appropriate directory based on status
-  if [ $test_env -eq 1 ]; then
-    echo "$base_dir/$st_id.md"
+      done
+    fi
+    
+    # Return the appropriate directory based on status
+    if [ $test_env -eq 1 ]; then
+      echo "$base_dir/$st_id/$file_name"
+    else
+      case "$status" in
+        "Completed")
+          echo "$base_dir/COMPLETED/$st_id/$file_name"
+          ;;
+        "Not Started")
+          echo "$base_dir/NOT-STARTED/$st_id/$file_name"
+          ;;
+        "Cancelled")
+          echo "$base_dir/CANCELLED/$st_id/$file_name"
+          ;;
+        *)
+          # In Progress or On Hold stay in the main directory
+          echo "$base_dir/$st_id/$file_name"
+          ;;
+      esac
+    fi
   else
-    case "$status" in
-      "Completed")
-        echo "$base_dir/COMPLETED/$st_id.md"
-        ;;
-      "Not Started")
-        echo "$base_dir/NOT-STARTED/$st_id.md"
-        ;;
-      "Cancelled")
-        echo "$base_dir/CANCELLED/$st_id.md"
-        ;;
-      *)
-        # In Progress or On Hold stay in the main directory
-        echo "$base_dir/$st_id.md"
-        ;;
-    esac
+    # Legacy file structure - ignore file_name parameter
+    if [ $test_env -eq 1 ]; then
+      echo "$base_dir/$st_id.md"
+    else
+      case "$status" in
+        "Completed")
+          echo "$base_dir/COMPLETED/$st_id.md"
+          ;;
+        "Not Started")
+          echo "$base_dir/NOT-STARTED/$st_id.md"
+          ;;
+        "Cancelled")
+          echo "$base_dir/CANCELLED/$st_id.md"
+          ;;
+        *)
+          echo "$base_dir/$st_id.md"
+          ;;
+      esac
+    fi
   fi
 }
 
@@ -132,20 +174,35 @@ get_next_steel_thread_id() {
   local next_id=1
   local max_id=0
   
-  # Find all ST files in all directories
-  for file in $(find "$base_dir" -type f -name "$st_prefix[0-9][0-9][0-9][0-9].md" 2>/dev/null); do
-    # Extract numeric part of filename
-    local id_str=$(basename "$file" .md)
-    id_str=${id_str#$st_prefix}
-    
-    # Convert to number and compare
-    if [[ "$id_str" =~ ^[0-9]+$ ]]; then
-      local id=$((10#$id_str))
-      if [ $id -gt $max_id ]; then
-        max_id=$id
+  if is_directory_structure; then
+    # Find all ST directories
+    for dir in $(find "$base_dir" -type d -name "$st_prefix[0-9][0-9][0-9][0-9]" 2>/dev/null); do
+      # Extract numeric part of directory name
+      local id_str=$(basename "$dir")
+      id_str=${id_str#$st_prefix}
+      
+      # Convert to number and compare
+      if [[ "$id_str" =~ ^[0-9]+$ ]]; then
+        local id=$((10#$id_str))
+        if [ $id -gt $max_id ]; then
+          max_id=$id
+        fi
       fi
-    fi
-  done
+    done
+  else
+    # Legacy: Find all ST files
+    for file in $(find "$base_dir" -type f -name "$st_prefix[0-9][0-9][0-9][0-9].md" 2>/dev/null); do
+      local id_str=$(basename "$file" .md)
+      id_str=${id_str#$st_prefix}
+      
+      if [[ "$id_str" =~ ^[0-9]+$ ]]; then
+        local id=$((10#$id_str))
+        if [ $id -gt $max_id ]; then
+          max_id=$id
+        fi
+      fi
+    done
+  fi
   
   # Increment for the next ID
   next_id=$((max_id + 1))
@@ -206,34 +263,49 @@ case "$ST_COMMAND" in
     TITLE="$1"
     ST_ID=$(get_next_steel_thread_id)
     ST_STATUS="Not Started"
-    ST_FILE=$(get_st_path "$ST_ID" "$ST_STATUS")
     DATE=$(date '+%Y-%m-%d')
     AUTHOR="${STP_AUTHOR:-${AUTHOR:-$(git config user.name 2>/dev/null || echo "$USER")}}"
     
-    # Create directory if it doesn't exist
-    mkdir -p "$(dirname "$ST_FILE")"
-    
-    # Create steel thread file from template
-    if [ -f "stp/_templ/prj/st/_ST####.md" ]; then
-      # Format date in both formats - YYYY-MM-DD for display and YYYYMMDD for frontmatter
-      DATE_COMPACT=$(date '+%Y%m%d')
+    if is_directory_structure; then
+      # Create directory structure
+      ST_DIR=$(dirname $(get_st_path "$ST_ID" "$ST_STATUS" "info.md"))
+      mkdir -p "$ST_DIR"
       
-      sed -e "s/ST####/$ST_ID/g" \
-          -e "s/\[Title\]/$TITLE/g" \
-          -e "s/\[Not Started|In Progress|Completed|On Hold|Cancelled\]/$ST_STATUS/g" \
-          -e "s/YYYY-MM-DD/$DATE/g" \
-          -e "s/YYYYMMDD/$DATE_COMPACT/g" \
-          -e "s/\[Author Name\]/$AUTHOR/g" \
-          "stp/_templ/prj/st/_ST####.md" > "$ST_FILE"
-    else
-      # Create file without template
-      DATE_COMPACT=$(date '+%Y%m%d')
-      cat > "$ST_FILE" << EOF
+      # Create files from templates
+      # Try to find templates relative to script location
+      SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+      TEMPLATE_DIR="${SCRIPT_DIR}/../_templ/prj/st/ST####"
+      
+      if [ -d "$TEMPLATE_DIR" ]; then
+        # Format date in both formats
+        DATE_COMPACT=$(date '+%Y%m%d')
+        DATE_VERBOSE=$(date '+%d %b %Y')
+        
+        # Copy and process each template file
+        for template in "$TEMPLATE_DIR"/*.md; do
+          if [ -f "$template" ]; then
+            filename=$(basename "$template")
+            output_file="$ST_DIR/$filename"
+            
+            sed -e "s/ST####/$ST_ID/g" \
+                -e "s/\[Title\]/$TITLE/g" \
+                -e "s/\[Not Started|In Progress|Completed|On Hold|Cancelled\]/$ST_STATUS/g" \
+                -e "s/YYYY-MM-DD/$DATE/g" \
+                -e "s/YYYYMMDD/$DATE_COMPACT/g" \
+                -e "s/\[Date\]/$DATE_VERBOSE/g" \
+                -e "s/\[Author Name\]/$AUTHOR/g" \
+                -e "s/\[Author\]/$AUTHOR/g" \
+                "$template" > "$output_file"
+          fi
+        done
+      else
+        # Create minimal info.md if no templates
+        cat > "$ST_DIR/info.md" << EOF
 ---
 verblock: "$(date '+%d %b %Y'):v0.1: $AUTHOR - Initial version"
-stp_version: 1.0.0
+stp_version: 1.2.1
 status: $ST_STATUS
-created: $DATE_COMPACT
+created: $(date '+%Y%m%d')
 completed: 
 ---
 # $ST_ID: $TITLE
@@ -244,35 +316,44 @@ completed:
 - **Author**: $AUTHOR
 
 ## Objective
+
 [Clear statement of what this steel thread aims to accomplish]
 
 ## Context
+
 [Background information and context for this steel thread]
 
-## Approach
-[Planned approach for implementing this steel thread]
-
-## Tasks
-- [ ] Task 1
-- [ ] Task 2
-- [ ] Task 3
-
-## Implementation Notes
-[Notes on implementation details, decisions, challenges, etc.]
-
-## Results
-[Summary of results after completion]
-
 ## Related Steel Threads
+
 - [List any related steel threads here]
 EOF
+      fi
+      
+      echo "Created steel thread directory: $ST_DIR"
+      echo "Main file: $ST_DIR/info.md"
+    else
+      # Legacy: Create single file
+      ST_FILE=$(get_st_path "$ST_ID" "$ST_STATUS")
+      mkdir -p "$(dirname "$ST_FILE")"
+      
+      if [ -f "stp/_templ/prj/st/_ST####.md" ]; then
+        DATE_COMPACT=$(date '+%Y%m%d')
+        
+        sed -e "s/ST####/$ST_ID/g" \
+            -e "s/\[Title\]/$TITLE/g" \
+            -e "s/\[Not Started|In Progress|Completed|On Hold|Cancelled\]/$ST_STATUS/g" \
+            -e "s/YYYY-MM-DD/$DATE/g" \
+            -e "s/YYYYMMDD/$DATE_COMPACT/g" \
+            -e "s/\[Author Name\]/$AUTHOR/g" \
+            "stp/_templ/prj/st/_ST####.md" > "$ST_FILE"
+      fi
+      
+      echo "Created steel thread: $ST_ID: $TITLE"
+      echo "Edit file: $ST_FILE"
     fi
     
     # Update index
     update_steel_threads_index "$ST_ID" "$TITLE" "$ST_STATUS" "$DATE" ""
-    
-    echo "Created steel thread: $ST_ID: $TITLE"
-    echo "Edit file: $ST_FILE"
     ;;
     
   "done")
@@ -293,40 +374,67 @@ EOF
       ST_ID="ST$ST_ID"
     fi
     
-    # Find the steel thread file (could be in any subdirectory)
-    ST_FILE=$(get_st_path "$ST_ID")
     DATE=$(date '+%Y-%m-%d')
     
-    # Check if steel thread exists
-    if [ ! -f "$ST_FILE" ]; then
-      error "Steel thread not found: $ST_ID"
-    fi
-    
-    # Extract title
-    TITLE=$(grep "^# $ST_ID:" "$ST_FILE" | sed "s/^# $ST_ID: //")
-    
-    # Update status and completion date in the file
-    sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: Completed/" "$ST_FILE"
-    sed -i.bak "s/^\- \*\*Completed\*\*: .*$/- **Completed**: $DATE/" "$ST_FILE"
-    
-    # Update status in YAML frontmatter
-    sed -i.bak "s/^status: .*$/status: Completed/" "$ST_FILE"
-    sed -i.bak "s/^completed: .*$/completed: $(date '+%Y%m%d')/" "$ST_FILE"
-    
-    rm -f "$ST_FILE.bak"
-    
-    # Get the target location for this file
-    NEW_ST_FILE=$(get_st_path "$ST_ID" "Completed")
-    
-    # Move the file to the appropriate directory if it's different
-    if [ "$ST_FILE" != "$NEW_ST_FILE" ]; then
-      mkdir -p "$(dirname "$NEW_ST_FILE")"
-      mv "$ST_FILE" "$NEW_ST_FILE"
-      echo "Moved steel thread to: $NEW_ST_FILE"
+    if is_directory_structure; then
+      # Find the info.md file
+      ST_FILE=$(get_st_path "$ST_ID" "" "info.md")
+      
+      # Check if steel thread exists
+      if [ ! -f "$ST_FILE" ]; then
+        error "Steel thread not found: $ST_ID"
+      fi
+      
+      # Extract title
+      TITLE=$(grep "^# $ST_ID:" "$ST_FILE" | sed "s/^# $ST_ID: //")
+      
+      # Update status and completion date
+      sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: Completed/" "$ST_FILE"
+      sed -i.bak "s/^\- \*\*Completed\*\*: .*$/- **Completed**: $DATE/" "$ST_FILE"
+      sed -i.bak "s/^status: .*$/status: Completed/" "$ST_FILE"
+      sed -i.bak "s/^completed: .*$/completed: $(date '+%Y%m%d')/" "$ST_FILE"
+      rm -f "$ST_FILE.bak"
+      
+      # Get current directory
+      CURRENT_DIR=$(dirname "$ST_FILE")
+      
+      # Get the target location
+      NEW_ST_FILE=$(get_st_path "$ST_ID" "Completed" "info.md")
+      NEW_DIR=$(dirname "$NEW_ST_FILE")
+      
+      # Move the entire directory if it's different
+      if [ "$CURRENT_DIR" != "$NEW_DIR" ]; then
+        mkdir -p "$(dirname "$NEW_DIR")"
+        mv "$CURRENT_DIR" "$NEW_DIR"
+        echo "Moved steel thread to: $NEW_DIR"
+      fi
+    else
+      # Legacy: Handle single file
+      ST_FILE=$(get_st_path "$ST_ID")
+      
+      if [ ! -f "$ST_FILE" ]; then
+        error "Steel thread not found: $ST_ID"
+      fi
+      
+      TITLE=$(grep "^# $ST_ID:" "$ST_FILE" | sed "s/^# $ST_ID: //")
+      
+      sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: Completed/" "$ST_FILE"
+      sed -i.bak "s/^\- \*\*Completed\*\*: .*$/- **Completed**: $DATE/" "$ST_FILE"
+      sed -i.bak "s/^status: .*$/status: Completed/" "$ST_FILE"
+      sed -i.bak "s/^completed: .*$/completed: $(date '+%Y%m%d')/" "$ST_FILE"
+      rm -f "$ST_FILE.bak"
+      
+      NEW_ST_FILE=$(get_st_path "$ST_ID" "Completed")
+      
+      if [ "$ST_FILE" != "$NEW_ST_FILE" ]; then
+        mkdir -p "$(dirname "$NEW_ST_FILE")"
+        mv "$ST_FILE" "$NEW_ST_FILE"
+        echo "Moved steel thread to: $NEW_ST_FILE"
+      fi
     fi
     
     # Update index
-    update_steel_threads_index "$ST_ID" "$TITLE" "Completed" "$(grep '^\- \*\*Created\*\*:' "$NEW_ST_FILE" | sed 's/^\- \*\*Created\*\*: //')" "$DATE"
+    update_steel_threads_index "$ST_ID" "$TITLE" "Completed" "$(grep '^\- \*\*Created\*\*:' "$ST_FILE" 2>/dev/null | sed 's/^\- \*\*Created\*\*: //' || echo "$DATE")" "$DATE"
     
     echo "Marked steel thread as complete: $ST_ID: $TITLE"
     ;;
@@ -360,103 +468,75 @@ EOF
       error "Steel threads directory not found"
     fi
     
-    # Determine table width
+    # Determine table width (same as original)
     if [ "$WIDTH" -gt 0 ]; then
-      # Use specified width
       TABLE_WIDTH=$WIDTH
     else
-      # For sync command with --write flag, always use 80 columns
-      # This ensures consistent formatting in the committed file
       if [ "$ST_COMMAND" = "sync" ] && [ $WRITE_MODE -eq 1 ]; then
         TABLE_WIDTH=80
       else
-        # Use terminal width - try multiple methods
-        # First check COLUMNS env var
         if [ -n "$COLUMNS" ]; then
           TABLE_WIDTH=$COLUMNS
         elif [ -t 1 ]; then
-          # Try stty
           STTY_SIZE=$( (stty size 2>/dev/null || echo "24 80") | cut -d' ' -f2)
           if [ -n "$STTY_SIZE" ] && [ "$STTY_SIZE" -gt 0 ]; then
             TABLE_WIDTH=$STTY_SIZE
           else
-            # Try tput as fallback
             TPUT_COLS=$(tput cols 2>/dev/null || echo 80)
             TABLE_WIDTH=$TPUT_COLS
           fi
         else
-          # Not connected to a terminal, use default
           TABLE_WIDTH=80
         fi
       fi
-      # Debug output - comment out for production use
-      # echo "DEBUG: Terminal width detected: $TABLE_WIDTH" >&2
     fi
     
-    # Dynamically allocate column widths based on terminal width
-    # Minimum widths for each column
+    # Calculate column widths (same as original)
     MIN_ID_WIDTH=10
     MIN_STATUS_WIDTH=12
     MIN_DATE_WIDTH=10
     MIN_TITLE_WIDTH=20
     
-    # Fixed column sizes (ID, Status, Created, Completed)
     FIXED_MIN_WIDTH=$((MIN_ID_WIDTH + MIN_STATUS_WIDTH + MIN_DATE_WIDTH + MIN_DATE_WIDTH))
-    
-    # Account for separators and padding
-    SEPARATORS_WIDTH=13  # 4 separators at "| " = 8 chars + 5 spaces in header
-    
-    # Calculate available width
+    SEPARATORS_WIDTH=13
     AVAILABLE_WIDTH=$((TABLE_WIDTH - SEPARATORS_WIDTH))
     
-    # If terminal is extremely narrow, use minimum values
     if [ $AVAILABLE_WIDTH -lt $((FIXED_MIN_WIDTH + MIN_TITLE_WIDTH)) ]; then
       ID_WIDTH=$MIN_ID_WIDTH
       STATUS_WIDTH=$MIN_STATUS_WIDTH
       DATE_WIDTH=$MIN_DATE_WIDTH
       TITLE_WIDTH=$MIN_TITLE_WIDTH
     else
-      # Base width allocation - more balanced distribution
       if [ $AVAILABLE_WIDTH -le 100 ]; then
-        # For narrower terminals (~80 columns)
         ID_WIDTH=$MIN_ID_WIDTH
         STATUS_WIDTH=$MIN_STATUS_WIDTH
         DATE_WIDTH=$MIN_DATE_WIDTH
         
-        # Give remaining space to title, but cap it at 50% of available width
         MAX_TITLE_PCT=50
         MAX_TITLE_WIDTH=$((AVAILABLE_WIDTH * MAX_TITLE_PCT / 100))
         TITLE_WIDTH=$((AVAILABLE_WIDTH - MIN_ID_WIDTH - MIN_STATUS_WIDTH - MIN_DATE_WIDTH - MIN_DATE_WIDTH))
         
-        # Cap title width
         [ $TITLE_WIDTH -gt $MAX_TITLE_WIDTH ] && TITLE_WIDTH=$MAX_TITLE_WIDTH
         
-        # If we capped title, redistribute the space
         REMAINING=$((AVAILABLE_WIDTH - ID_WIDTH - STATUS_WIDTH - DATE_WIDTH - DATE_WIDTH - TITLE_WIDTH))
         if [ $REMAINING -gt 0 ]; then
-          # Distribute remaining space to other columns
           STATUS_WIDTH=$((STATUS_WIDTH + (REMAINING * 4 / 10)))
           DATE_WIDTH=$((DATE_WIDTH + (REMAINING * 3 / 10)))
           ID_WIDTH=$((ID_WIDTH + (REMAINING * 3 / 10)))
         fi
       else
-        # For wider terminals:
-        # Start with percentage-based allocation of available width
-        ID_WIDTH=$((AVAILABLE_WIDTH * 10 / 100))     # 10%
-        STATUS_WIDTH=$((AVAILABLE_WIDTH * 15 / 100)) # 15%
-        DATE_WIDTH=$((AVAILABLE_WIDTH * 10 / 100))   # 10% each (20% total for dates)
-        TITLE_WIDTH=$((AVAILABLE_WIDTH * 55 / 100))  # 55%
+        ID_WIDTH=$((AVAILABLE_WIDTH * 10 / 100))
+        STATUS_WIDTH=$((AVAILABLE_WIDTH * 15 / 100))
+        DATE_WIDTH=$((AVAILABLE_WIDTH * 10 / 100))
+        TITLE_WIDTH=$((AVAILABLE_WIDTH * 55 / 100))
 
-        # Ensure minimum widths
         [ $ID_WIDTH -lt $MIN_ID_WIDTH ] && ID_WIDTH=$MIN_ID_WIDTH
         [ $STATUS_WIDTH -lt $MIN_STATUS_WIDTH ] && STATUS_WIDTH=$MIN_STATUS_WIDTH
         [ $DATE_WIDTH -lt $MIN_DATE_WIDTH ] && DATE_WIDTH=$MIN_DATE_WIDTH
         [ $TITLE_WIDTH -lt $MIN_TITLE_WIDTH ] && TITLE_WIDTH=$MIN_TITLE_WIDTH
         
-        # Make any final adjustments
         TOTAL=$((ID_WIDTH + STATUS_WIDTH + DATE_WIDTH + DATE_WIDTH + TITLE_WIDTH))
         if [ $TOTAL -gt $AVAILABLE_WIDTH ]; then
-          # We allocated too much, reduce title width to fit
           TITLE_WIDTH=$((TITLE_WIDTH - (TOTAL - AVAILABLE_WIDTH)))
         fi
       fi
@@ -467,29 +547,23 @@ EOF
       local string="$1"
       local width=$2
       
-      # Handle empty strings
       if [ -z "$string" ]; then
         echo ""
         return
       fi
       
-      # If string length exceeds width, truncate and add ellipsis
       if [ ${#string} -gt $width ]; then
-        # For very narrow columns, ensure we at least show something
         if [ $width -le 5 ]; then
-          # Just use available width
           echo "${string:0:$width}"
         else
-          # Standard truncation with ellipsis
           echo "${string:0:$((width-3))}..."
         fi
       else
-        # String fits within width, return as is
         echo "$string"
       fi
     }
     
-    # Display steel threads in a formatted table
+    # Display header
     printf "%-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s\n" \
       "ID" "Title" "Status" "Created" "Completed"
     printf "%-${ID_WIDTH}s-|-%-${TITLE_WIDTH}s-|-%-${STATUS_WIDTH}s-|-%-${DATE_WIDTH}s-|-%-${DATE_WIDTH}s\n" \
@@ -499,72 +573,123 @@ EOF
       "$(printf '%0.s-' $(seq 1 $DATE_WIDTH))" \
       "$(printf '%0.s-' $(seq 1 $DATE_WIDTH))"
     
-    # Collect data from individual ST files
+    # Collect data from steel threads
     declare -a st_data
     
-    # Loop through all ST####.md files in all subdirectories
-    for file in $(find "$ST_DIR" -type f -name "ST[0-9][0-9][0-9][0-9].md"); do
-      if [ -f "$file" ]; then
-        # Extract ID from filename
-        ID=$(basename "$file" .md)
-        
-        # Check both YAML frontmatter and document body for metadata
-        YAML_STATUS=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
-        BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        
-        # Prioritize YAML frontmatter for status
-        if [ -n "$YAML_STATUS" ]; then
-          ST_STATUS="$YAML_STATUS"
-        elif [ -n "$BODY_STATUS" ]; then
-          ST_STATUS="$BODY_STATUS"
-        else
-          ST_STATUS="Not Started"
-        fi
-        
-        # Extract title from the first line
-        TITLE=$(grep "^# $ID:" "$file" | sed "s/^# $ID: //")
-        
-        # Extract created and completed dates
-        CREATED=$(grep -m 1 "^\- \*\*Created\*\*:" "$file" | sed "s/^\- \*\*Created\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        COMPLETED=$(grep -m 1 "^\- \*\*Completed\*\*:" "$file" | sed "s/^\- \*\*Completed\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        
-        # If created date is empty or placeholder, try YAML frontmatter
-        if [ -z "$CREATED" ] || [ "$CREATED" = "YYYY-MM-DD" ]; then
-          YAML_CREATED=$(grep -m 1 "^created:" "$file" | sed "s/^created: *//")
-          if [ -n "$YAML_CREATED" ] && [ "$YAML_CREATED" != "YYYYMMDD" ]; then
-            # Convert YYYYMMDD to YYYY-MM-DD if needed
-            if [[ "$YAML_CREATED" =~ ^[0-9]{8}$ ]]; then
-              CREATED="${YAML_CREATED:0:4}-${YAML_CREATED:4:2}-${YAML_CREATED:6:2}"
-            else
-              CREATED="$YAML_CREATED"
-            fi
+    if is_directory_structure; then
+      # Loop through all ST directories
+      for dir in $(find "$ST_DIR" -type d -name "ST[0-9][0-9][0-9][0-9]"); do
+        if [ -f "$dir/info.md" ]; then
+          # Extract ID from directory name
+          ID=$(basename "$dir")
+          
+          # Read metadata from info.md
+          file="$dir/info.md"
+          
+          YAML_STATUS=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
+          BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          
+          if [ -n "$YAML_STATUS" ]; then
+            ST_STATUS="$YAML_STATUS"
+          elif [ -n "$BODY_STATUS" ]; then
+            ST_STATUS="$BODY_STATUS"
           else
-            CREATED=$(date '+%Y-%m-%d')
+            ST_STATUS="Not Started"
           fi
-        fi
-        
-        # If completed date is empty or placeholder, try YAML frontmatter
-        if [ -z "$COMPLETED" ] || [ "$COMPLETED" = "YYYY-MM-DD" ]; then
-          YAML_COMPLETED=$(grep -m 1 "^completed:" "$file" | sed "s/^completed: *//")
-          if [ -n "$YAML_COMPLETED" ] && [ "$YAML_COMPLETED" != "null" ] && [ "$YAML_COMPLETED" != "~" ] && [ "$YAML_COMPLETED" != "YYYYMMDD" ]; then
-            # Convert YYYYMMDD to YYYY-MM-DD if needed
-            if [[ "$YAML_COMPLETED" =~ ^[0-9]{8}$ ]]; then
-              COMPLETED="${YAML_COMPLETED:0:4}-${YAML_COMPLETED:4:2}-${YAML_COMPLETED:6:2}"
+          
+          TITLE=$(grep "^# $ID:" "$file" | sed "s/^# $ID: //")
+          
+          CREATED=$(grep -m 1 "^\- \*\*Created\*\*:" "$file" | sed "s/^\- \*\*Created\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          COMPLETED=$(grep -m 1 "^\- \*\*Completed\*\*:" "$file" | sed "s/^\- \*\*Completed\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          
+          # Handle date formats (same as original)
+          if [ -z "$CREATED" ] || [ "$CREATED" = "YYYY-MM-DD" ]; then
+            YAML_CREATED=$(grep -m 1 "^created:" "$file" | sed "s/^created: *//")
+            if [ -n "$YAML_CREATED" ] && [ "$YAML_CREATED" != "YYYYMMDD" ]; then
+              if [[ "$YAML_CREATED" =~ ^[0-9]{8}$ ]]; then
+                CREATED="${YAML_CREATED:0:4}-${YAML_CREATED:4:2}-${YAML_CREATED:6:2}"
+              else
+                CREATED="$YAML_CREATED"
+              fi
             else
-              COMPLETED="$YAML_COMPLETED"
+              CREATED=$(date '+%Y-%m-%d')
             fi
           fi
+          
+          if [ -z "$COMPLETED" ] || [ "$COMPLETED" = "YYYY-MM-DD" ]; then
+            YAML_COMPLETED=$(grep -m 1 "^completed:" "$file" | sed "s/^completed: *//")
+            if [ -n "$YAML_COMPLETED" ] && [ "$YAML_COMPLETED" != "null" ] && [ "$YAML_COMPLETED" != "~" ] && [ "$YAML_COMPLETED" != "YYYYMMDD" ]; then
+              if [[ "$YAML_COMPLETED" =~ ^[0-9]{8}$ ]]; then
+                COMPLETED="${YAML_COMPLETED:0:4}-${YAML_COMPLETED:4:2}-${YAML_COMPLETED:6:2}"
+              else
+                COMPLETED="$YAML_COMPLETED"
+              fi
+            fi
+          fi
+          
+          # Skip if the requested status doesn't match
+          if [ -n "$STATUS" ] && [ "$STATUS" != "$ST_STATUS" ]; then
+            continue
+          fi
+          
+          st_data+=("$ID|$TITLE|$ST_STATUS|$CREATED|$COMPLETED")
         fi
-        
-        # Skip if the requested status doesn't match
-        if [ -n "$STATUS" ] && [ "$STATUS" != "$ST_STATUS" ]; then
-          continue
+      done
+    else
+      # Legacy: Loop through all ST####.md files
+      for file in $(find "$ST_DIR" -type f -name "ST[0-9][0-9][0-9][0-9].md"); do
+        if [ -f "$file" ]; then
+          ID=$(basename "$file" .md)
+          
+          # (Rest of legacy processing same as original)
+          YAML_STATUS=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
+          BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          
+          if [ -n "$YAML_STATUS" ]; then
+            ST_STATUS="$YAML_STATUS"
+          elif [ -n "$BODY_STATUS" ]; then
+            ST_STATUS="$BODY_STATUS"
+          else
+            ST_STATUS="Not Started"
+          fi
+          
+          TITLE=$(grep "^# $ID:" "$file" | sed "s/^# $ID: //")
+          
+          CREATED=$(grep -m 1 "^\- \*\*Created\*\*:" "$file" | sed "s/^\- \*\*Created\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          COMPLETED=$(grep -m 1 "^\- \*\*Completed\*\*:" "$file" | sed "s/^\- \*\*Completed\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          
+          if [ -z "$CREATED" ] || [ "$CREATED" = "YYYY-MM-DD" ]; then
+            YAML_CREATED=$(grep -m 1 "^created:" "$file" | sed "s/^created: *//")
+            if [ -n "$YAML_CREATED" ] && [ "$YAML_CREATED" != "YYYYMMDD" ]; then
+              if [[ "$YAML_CREATED" =~ ^[0-9]{8}$ ]]; then
+                CREATED="${YAML_CREATED:0:4}-${YAML_CREATED:4:2}-${YAML_CREATED:6:2}"
+              else
+                CREATED="$YAML_CREATED"
+              fi
+            else
+              CREATED=$(date '+%Y-%m-%d')
+            fi
+          fi
+          
+          if [ -z "$COMPLETED" ] || [ "$COMPLETED" = "YYYY-MM-DD" ]; then
+            YAML_COMPLETED=$(grep -m 1 "^completed:" "$file" | sed "s/^completed: *//")
+            if [ -n "$YAML_COMPLETED" ] && [ "$YAML_COMPLETED" != "null" ] && [ "$YAML_COMPLETED" != "~" ] && [ "$YAML_COMPLETED" != "YYYYMMDD" ]; then
+              if [[ "$YAML_COMPLETED" =~ ^[0-9]{8}$ ]]; then
+                COMPLETED="${YAML_COMPLETED:0:4}-${YAML_COMPLETED:4:2}-${YAML_COMPLETED:6:2}"
+              else
+                COMPLETED="$YAML_COMPLETED"
+              fi
+            fi
+          fi
+          
+          if [ -n "$STATUS" ] && [ "$STATUS" != "$ST_STATUS" ]; then
+            continue
+          fi
+          
+          st_data+=("$ID|$TITLE|$ST_STATUS|$CREATED|$COMPLETED")
         fi
-        
-        # Add to data array
-        st_data+=("$ID|$TITLE|$ST_STATUS|$CREATED|$COMPLETED")
-      fi
-    done
+      done
+    fi
     
     # Sort by ID in reverse order (newest first)
     IFS=$'\n' sorted_data=($(sort -r <<<"${st_data[*]}"))
@@ -599,25 +724,59 @@ EOF
     
     # Process the steel thread ID
     ST_ID="$1"
+    FILE_TYPE="${2:-info}"  # Default to info
     
     # If just a number is provided, format it as ST#### (with leading zeros)
     if [[ "$ST_ID" =~ ^[0-9]+$ ]]; then
       ST_ID=$(printf "ST%04d" "$ST_ID")
-    # If the ID doesn't start with ST, prepend it
     elif [[ ! "$ST_ID" =~ ^ST ]]; then
       ST_ID="ST$ST_ID"
     fi
     
-    # Find the steel thread file (could be in any subdirectory)
-    ST_FILE=$(get_st_path "$ST_ID")
-    
-    # Check if steel thread exists
-    if [ ! -f "$ST_FILE" ]; then
-      error "Steel thread not found: $ST_ID"
+    if is_directory_structure; then
+      if [ "$FILE_TYPE" = "all" ]; then
+        # Show all files in the steel thread directory
+        ST_DIR=$(dirname $(get_st_path "$ST_ID" "" "info.md"))
+        
+        if [ ! -d "$ST_DIR" ]; then
+          error "Steel thread not found: $ST_ID"
+        fi
+        
+        # Display each file with a header
+        for file in info.md design.md impl.md tasks.md results.md; do
+          if [ -f "$ST_DIR/$file" ]; then
+            echo "=== $file ==="
+            cat "$ST_DIR/$file"
+            echo ""
+          fi
+        done
+      else
+        # Show specific file
+        case "$FILE_TYPE" in
+          info|design|impl|tasks|results)
+            ST_FILE=$(get_st_path "$ST_ID" "" "$FILE_TYPE.md")
+            ;;
+          *)
+            error "Unknown file type: $FILE_TYPE"
+            ;;
+        esac
+        
+        if [ ! -f "$ST_FILE" ]; then
+          error "File not found: $FILE_TYPE.md for steel thread $ST_ID"
+        fi
+        
+        cat "$ST_FILE"
+      fi
+    else
+      # Legacy: Show single file
+      ST_FILE=$(get_st_path "$ST_ID")
+      
+      if [ ! -f "$ST_FILE" ]; then
+        error "Steel thread not found: $ST_ID"
+      fi
+      
+      cat "$ST_FILE"
     fi
-    
-    # Display steel thread contents
-    cat "$ST_FILE"
     ;;
     
   "edit")
@@ -629,21 +788,43 @@ EOF
     
     # Process the steel thread ID
     ST_ID="$1"
+    FILE_TYPE="${2:-info}"  # Default to info
     
     # If just a number is provided, format it as ST#### (with leading zeros)
     if [[ "$ST_ID" =~ ^[0-9]+$ ]]; then
       ST_ID=$(printf "ST%04d" "$ST_ID")
-    # If the ID doesn't start with ST, prepend it
     elif [[ ! "$ST_ID" =~ ^ST ]]; then
       ST_ID="ST$ST_ID"
     fi
     
-    # Find the steel thread file (could be in any subdirectory)
-    ST_FILE=$(get_st_path "$ST_ID")
-    
-    # Check if steel thread exists
-    if [ ! -f "$ST_FILE" ]; then
-      error "Steel thread not found: $ST_ID"
+    if is_directory_structure; then
+      # Edit specific file
+      case "$FILE_TYPE" in
+        info|design|impl|tasks|results)
+          ST_FILE=$(get_st_path "$ST_ID" "" "$FILE_TYPE.md")
+          ;;
+        *)
+          error "Unknown file type: $FILE_TYPE"
+          ;;
+      esac
+      
+      if [ ! -f "$ST_FILE" ]; then
+        # Create the file if it doesn't exist
+        ST_DIR=$(dirname "$ST_FILE")
+        if [ -d "$ST_DIR" ]; then
+          touch "$ST_FILE"
+          echo "Created new file: $FILE_TYPE.md"
+        else
+          error "Steel thread not found: $ST_ID"
+        fi
+      fi
+    else
+      # Legacy: Edit single file
+      ST_FILE=$(get_st_path "$ST_ID")
+      
+      if [ ! -f "$ST_FILE" ]; then
+        error "Steel thread not found: $ST_ID"
+      fi
     fi
     
     # Get absolute path to the file
@@ -669,7 +850,7 @@ EOF
       ${EDITOR:-vi} "$ABSOLUTE_PATH"
     fi
     
-    echo "Opening steel thread: $ST_ID"
+    echo "Opening steel thread: $ST_ID ($FILE_TYPE.md)"
     ;;
     
   "sync")
@@ -741,82 +922,25 @@ EOF
     # Create required directories if they don't exist
     mkdir -p "$BASE_DIR/COMPLETED" "$BASE_DIR/NOT-STARTED" "$BASE_DIR/CANCELLED"
     
-    # Find all steel thread files in the root directory
-    ST_FILES=$(find "$BASE_DIR" -maxdepth 1 -name "ST[0-9][0-9][0-9][0-9].md")
-    
-    # Process each steel thread file
-    for file in $ST_FILES; do
-      # Skip if not a file
-      if [ ! -f "$file" ]; then
-        continue
-      fi
+    if is_directory_structure; then
+      # Find all steel thread directories in the root directory
+      ST_DIRS=$(find "$BASE_DIR" -maxdepth 1 -type d -name "ST[0-9][0-9][0-9][0-9]")
       
-      # Extract ID from filename
-      ID=$(basename "$file" .md)
-      
-      # Check both YAML frontmatter and document body for status
-      YAML_STATUS=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
-      BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-      
-      # Prioritize YAML frontmatter for status
-      if [ -n "$YAML_STATUS" ]; then
-        STATUS="$YAML_STATUS"
-      elif [ -n "$BODY_STATUS" ]; then
-        STATUS="$BODY_STATUS"
-      else
-        STATUS="Not Started"
-      fi
-      
-      echo "Processing file: $file"
-      echo "  File: $ID - Status: $STATUS"
-      
-      # Get the target location for this file
-      TARGET_FILE=$(get_st_path "$ID" "$STATUS")
-      
-      # If we're in write mode and the target location is different, move the file
-      if [ $WRITE_MODE -eq 1 ] && [ "$file" != "$TARGET_FILE" ]; then
-        # Create target directory if it doesn't exist (should already exist, but just in case)
-        mkdir -p "$(dirname "$TARGET_FILE")"
-        
-        # Move the file
-        mv "$file" "$TARGET_FILE"
-        echo "Moving $ID to $(dirname "$TARGET_FILE")"
-      else
-        # Just display what would be done
-        if [ "$file" != "$TARGET_FILE" ]; then
-          echo "Would move $ID to $(dirname "$TARGET_FILE")"
-        else
-          echo "$ID stays in main directory"
+      # Process each steel thread directory
+      for dir in $ST_DIRS; do
+        # Skip if not a directory
+        if [ ! -d "$dir" ]; then
+          continue
         fi
-      fi
-    done
-    
-    # Also check subdirectories to make sure files are in the right place
-    for subdir in "$BASE_DIR"/*; do
-      if [ -d "$subdir" ] && [[ "$subdir" != "$BASE_DIR/steel_threads.md" ]]; then
-        SUBDIR_NAME=$(basename "$subdir")
         
-        echo "Processing subdirectory: $subdir"
+        # Extract ID from directory name
+        ID=$(basename "$dir")
         
-        # Find all steel thread files in this subdirectory
-        SUB_ST_FILES=$(find "$subdir" -maxdepth 1 -name "ST[0-9][0-9][0-9][0-9].md")
-        
-        for file in $SUB_ST_FILES; do
-          # Skip if not a file
-          if [ ! -f "$file" ]; then
-            continue
-          fi
+        # Read status from info.md
+        if [ -f "$dir/info.md" ]; then
+          YAML_STATUS=$(grep -m 1 "^status:" "$dir/info.md" | sed "s/^status: *//")
+          BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$dir/info.md" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
           
-          # Extract ID from filename
-          ID=$(basename "$file" .md)
-          
-          echo "  Processing file in subdirectory: $file"
-          
-          # Check both YAML frontmatter and document body for status
-          YAML_STATUS=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
-          BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-          
-          # Prioritize YAML frontmatter for status
           if [ -n "$YAML_STATUS" ]; then
             STATUS="$YAML_STATUS"
           elif [ -n "$BODY_STATUS" ]; then
@@ -825,28 +949,112 @@ EOF
             STATUS="Not Started"
           fi
           
-          echo "    File: $ID - Status: $STATUS"
+          echo "Processing directory: $dir"
+          echo "  Directory: $ID - Status: $STATUS"
           
-          # Get the target location for this file
-          TARGET_FILE=$(get_st_path "$ID" "$STATUS")
+          # Get the target location for this directory
+          TARGET_DIR=$(dirname $(get_st_path "$ID" "$STATUS" "info.md"))
           
-          # If we're in write mode and the target location is different, move the file
-          if [ $WRITE_MODE -eq 1 ] && [ "$file" != "$TARGET_FILE" ]; then
-            # Create target directory if it doesn't exist (should already exist, but just in case)
-            mkdir -p "$(dirname "$TARGET_FILE")"
-            
-            # Move the file
-            mv "$file" "$TARGET_FILE"
-            echo "Moving $ID from $SUBDIR_NAME to $(basename "$(dirname "$TARGET_FILE")")"
+          # If we're in write mode and the target location is different, move the directory
+          if [ $WRITE_MODE -eq 1 ] && [ "$dir" != "$TARGET_DIR" ]; then
+            mkdir -p "$(dirname "$TARGET_DIR")"
+            mv "$dir" "$TARGET_DIR"
+            echo "Moving $ID to $(dirname "$TARGET_DIR")"
           else
-            # Just display what would be done
-            if [ "$file" != "$TARGET_FILE" ]; then
-              echo "Would move $ID from $SUBDIR_NAME to $(basename "$(dirname "$TARGET_FILE")")"
+            if [ "$dir" != "$TARGET_DIR" ]; then
+              echo "Would move $ID to $(dirname "$TARGET_DIR")"
+            else
+              echo "$ID stays in main directory"
             fi
           fi
-        done
-      fi
-    done
+        fi
+      done
+      
+      # Also check subdirectories
+      for subdir in "$BASE_DIR"/*; do
+        if [ -d "$subdir" ] && [[ "$subdir" != "$BASE_DIR/steel_threads.md" ]]; then
+          SUBDIR_NAME=$(basename "$subdir")
+          
+          # Find all steel thread directories in this subdirectory
+          SUB_ST_DIRS=$(find "$subdir" -maxdepth 1 -type d -name "ST[0-9][0-9][0-9][0-9]")
+          
+          for dir in $SUB_ST_DIRS; do
+            if [ ! -d "$dir" ]; then
+              continue
+            fi
+            
+            ID=$(basename "$dir")
+            
+            if [ -f "$dir/info.md" ]; then
+              YAML_STATUS=$(grep -m 1 "^status:" "$dir/info.md" | sed "s/^status: *//")
+              BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$dir/info.md" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+              
+              if [ -n "$YAML_STATUS" ]; then
+                STATUS="$YAML_STATUS"
+              elif [ -n "$BODY_STATUS" ]; then
+                STATUS="$BODY_STATUS"
+              else
+                STATUS="Not Started"
+              fi
+              
+              echo "  Processing directory in subdirectory: $dir"
+              echo "    Directory: $ID - Status: $STATUS"
+              
+              TARGET_DIR=$(dirname $(get_st_path "$ID" "$STATUS" "info.md"))
+              
+              if [ $WRITE_MODE -eq 1 ] && [ "$dir" != "$TARGET_DIR" ]; then
+                mkdir -p "$(dirname "$TARGET_DIR")"
+                mv "$dir" "$TARGET_DIR"
+                echo "Moving $ID from $SUBDIR_NAME to $(basename "$(dirname "$TARGET_DIR")")"
+              else
+                if [ "$dir" != "$TARGET_DIR" ]; then
+                  echo "Would move $ID from $SUBDIR_NAME to $(basename "$(dirname "$TARGET_DIR")")"
+                fi
+              fi
+            fi
+          done
+        fi
+      done
+    else
+      # Legacy: organize single files (same as original)
+      ST_FILES=$(find "$BASE_DIR" -maxdepth 1 -name "ST[0-9][0-9][0-9][0-9].md")
+      
+      for file in $ST_FILES; do
+        if [ ! -f "$file" ]; then
+          continue
+        fi
+        
+        ID=$(basename "$file" .md)
+        
+        YAML_STATUS=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
+        BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        
+        if [ -n "$YAML_STATUS" ]; then
+          STATUS="$YAML_STATUS"
+        elif [ -n "$BODY_STATUS" ]; then
+          STATUS="$BODY_STATUS"
+        else
+          STATUS="Not Started"
+        fi
+        
+        echo "Processing file: $file"
+        echo "  File: $ID - Status: $STATUS"
+        
+        TARGET_FILE=$(get_st_path "$ID" "$STATUS")
+        
+        if [ $WRITE_MODE -eq 1 ] && [ "$file" != "$TARGET_FILE" ]; then
+          mkdir -p "$(dirname "$TARGET_FILE")"
+          mv "$file" "$TARGET_FILE"
+          echo "Moving $ID to $(dirname "$TARGET_FILE")"
+        else
+          if [ "$file" != "$TARGET_FILE" ]; then
+            echo "Would move $ID to $(dirname "$TARGET_FILE")"
+          else
+            echo "$ID stays in main directory"
+          fi
+        fi
+      done
+    fi
     
     # If we're in write mode, update the index file after organizing
     if [ $WRITE_MODE -eq 1 ]; then

@@ -6,7 +6,7 @@
 set -e
 
 # Current STP version
-CURRENT_VERSION="1.0.0"
+CURRENT_VERSION="1.2.1"
 
 # Function to display error messages
 error() {
@@ -17,7 +17,7 @@ error() {
 # Function to display usage information
 usage() {
   cat << EOF
-Usage: stp upgrade [--force]
+Usage: stp upgrade [--force] [--organize]
 
 Upgrade STP files to the latest format.
 
@@ -25,21 +25,29 @@ This command scans all STP files and brings them up to date with the latest vers
 It adds or updates metadata and ensures all files follow the current format standards.
 
 Options:
-  --force    Force upgrade even for major version differences
+  --force     Force upgrade even for major version differences
+  --organize  Organize steel thread files into status subdirectories after upgrade
 
 Examples:
   stp upgrade
   stp upgrade --force
+  stp upgrade --organize
+  stp upgrade --force --organize
 EOF
   exit 1
 }
 
 # Parse options
 FORCE=0
+ORGANIZE=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --force)
       FORCE=1
+      shift
+      ;;
+    --organize)
+      ORGANIZE=1
       shift
       ;;
     --help)
@@ -290,11 +298,44 @@ fi
 
 # Check for steel threads directory
 if [ -d "stp/prj/st" ]; then
+  # Check if we need to migrate from files to directories (1.2.0 -> 1.2.1)
+  NEEDS_MIGRATION=0
+  if ls stp/prj/st/ST*.md 1> /dev/null 2>&1 || ls stp/prj/st/*/ST*.md 1> /dev/null 2>&1; then
+    # Check if any .md files exist (old structure)
+    for st_file in $(find stp/prj/st -name "ST[0-9][0-9][0-9][0-9].md" -type f 2>/dev/null); do
+      NEEDS_MIGRATION=1
+      break
+    done
+  fi
+  
+  if [ $NEEDS_MIGRATION -eq 1 ]; then
+    echo ""
+    echo "Detected steel thread files in old format (single files)."
+    echo "Migration to directory structure is required for v1.2.1."
+    echo ""
+    read -p "Migrate steel threads to directory structure? (Y/n) " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+      # Run migration script
+      if [ -x "./stp/bin/migrate_st_to_dirs" ]; then
+        ./stp/bin/migrate_st_to_dirs
+      elif [ -n "$STP_HOME" ] && [ -x "$STP_HOME/stp/bin/migrate_st_to_dirs" ]; then
+        "$STP_HOME/stp/bin/migrate_st_to_dirs"
+      else
+        error "Migration script not found: migrate_st_to_dirs"
+      fi
+      echo ""
+    else
+      echo "Migration skipped. Note: Some STP commands may not work correctly with the old format."
+      echo ""
+    fi
+  fi
+  
   # Upgrade steel_threads.md
   echo "Checking steel_threads.md..."
   upgrade_section_markers
   
-  # Process all steel thread files
+  # Process all steel thread directories (new structure)
   echo "Upgrading steel thread files..."
   if ls stp/prj/st/ST*.md 1> /dev/null 2>&1; then
     for st_file in stp/prj/st/ST*.md; do
@@ -356,15 +397,20 @@ if [ -d "stp/prj/st" ]; then
     echo "No ST*.md files found in stp/prj/st/ directory"
   fi
   
-  # Run the organization command to move files based on status
-  if [ -x "./stp/bin/stp_st" ]; then
+  # Run the organization command to move files based on status (only if --organize flag is used)
+  if [ $ORGANIZE -eq 1 ]; then
+    if [ -x "./stp/bin/stp_st" ]; then
+      echo ""
+      echo "Organizing steel thread files by status..."
+      ./stp/bin/stp_st organize --write
+    elif [ -n "$STP_HOME" ] && [ -x "$STP_HOME/stp/bin/stp_st" ]; then
+      echo ""
+      echo "Organizing steel thread files by status..."
+      "$STP_HOME/stp/bin/stp_st" organize --write
+    fi
+  else
     echo ""
-    echo "Organizing steel thread files by status..."
-    ./stp/bin/stp_st organize --write
-  elif [ -n "$STP_HOME" ] && [ -x "$STP_HOME/stp/bin/stp_st" ]; then
-    echo ""
-    echo "Organizing steel thread files by status..."
-    "$STP_HOME/stp/bin/stp_st" organize --write
+    echo "Note: Steel thread files were not reorganized. Use --organize flag to move files to status subdirectories."
   fi
 else
   echo "No stp/prj/st directory found. Steel threads upgrade skipped."
