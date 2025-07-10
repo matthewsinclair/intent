@@ -931,11 +931,11 @@ EOF
     mkdir -p "$BASE_DIR/COMPLETED" "$BASE_DIR/NOT-STARTED" "$BASE_DIR/CANCELLED"
     
     if is_directory_structure; then
-      # Find all steel thread directories in the root directory
-      ST_DIRS=$(find "$BASE_DIR" -maxdepth 1 -type d -name "ST[0-9][0-9][0-9][0-9]")
+      # Find all steel thread directories in any location
+      ALL_ST_DIRS=$(find "$BASE_DIR" -type d -name "ST[0-9][0-9][0-9][0-9]" | sort)
       
       # Process each steel thread directory
-      for dir in $ST_DIRS; do
+      for dir in $ALL_ST_DIRS; do
         # Skip if not a directory
         if [ ! -d "$dir" ]; then
           continue
@@ -957,70 +957,63 @@ EOF
             STATUS="Not Started"
           fi
           
-          echo "Processing directory: $dir"
-          echo "  Directory: $ID - Status: $STATUS"
+          # Normalize status values to match expected format
+          case "$(echo "$STATUS" | tr '[:upper:]' '[:lower:]')" in
+            "wip"|"in progress")
+              STATUS="In Progress"
+              ;;
+            "completed"|"complete"|"done")
+              STATUS="Completed"
+              ;;
+            "not started"|"not-started")
+              STATUS="Not Started"
+              ;;
+            "cancelled"|"canceled")
+              STATUS="Cancelled"
+              ;;
+            "on hold")
+              STATUS="On Hold"
+              ;;
+          esac
           
-          # Get the target location for this directory
-          TARGET_DIR=$(dirname $(get_st_path "$ID" "$STATUS" "info.md"))
+          # Get current location
+          CURRENT_PARENT=$(dirname "$dir")
           
-          # If we're in write mode and the target location is different, move the directory
-          if [ $WRITE_MODE -eq 1 ] && [ "$dir" != "$TARGET_DIR" ]; then
-            mkdir -p "$(dirname "$TARGET_DIR")"
-            mv "$dir" "$TARGET_DIR"
-            echo "Moving $ID to $(dirname "$TARGET_DIR")"
-          else
-            if [ "$dir" != "$TARGET_DIR" ]; then
-              echo "Would move $ID to $(dirname "$TARGET_DIR")"
+          # Determine correct location based on status
+          case "$STATUS" in
+            "Completed")
+              CORRECT_PARENT="$BASE_DIR/COMPLETED"
+              ;;
+            "Not Started")
+              CORRECT_PARENT="$BASE_DIR/NOT-STARTED"
+              ;;
+            "Cancelled")
+              CORRECT_PARENT="$BASE_DIR/CANCELLED"
+              ;;
+            *)
+              # In Progress, On Hold, WIP, or any other status stay in main directory
+              CORRECT_PARENT="$BASE_DIR"
+              ;;
+          esac
+          
+          # Check if already in correct location
+          if [ "$CURRENT_PARENT" != "$CORRECT_PARENT" ]; then
+            echo "Processing: $ID (Status: $STATUS)"
+            echo "  Current location: $CURRENT_PARENT"
+            echo "  Should be in: $CORRECT_PARENT"
+            
+            if [ $WRITE_MODE -eq 1 ]; then
+              mkdir -p "$CORRECT_PARENT"
+              mv "$dir" "$CORRECT_PARENT/"
+              echo "  Moved $ID to $CORRECT_PARENT"
             else
-              echo "$ID stays in main directory"
+              echo "  Would move $ID to $CORRECT_PARENT"
             fi
+          else
+            echo "Already organized: $ID in $CORRECT_PARENT (Status: $STATUS)"
           fi
-        fi
-      done
-      
-      # Also check subdirectories
-      for subdir in "$BASE_DIR"/*; do
-        if [ -d "$subdir" ] && [[ "$subdir" != "$BASE_DIR/steel_threads.md" ]]; then
-          SUBDIR_NAME=$(basename "$subdir")
-          
-          # Find all steel thread directories in this subdirectory
-          SUB_ST_DIRS=$(find "$subdir" -maxdepth 1 -type d -name "ST[0-9][0-9][0-9][0-9]")
-          
-          for dir in $SUB_ST_DIRS; do
-            if [ ! -d "$dir" ]; then
-              continue
-            fi
-            
-            ID=$(basename "$dir")
-            
-            if [ -f "$dir/info.md" ]; then
-              YAML_STATUS=$(grep -m 1 "^status:" "$dir/info.md" | sed "s/^status: *//")
-              BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$dir/info.md" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-              
-              if [ -n "$YAML_STATUS" ]; then
-                STATUS="$YAML_STATUS"
-              elif [ -n "$BODY_STATUS" ]; then
-                STATUS="$BODY_STATUS"
-              else
-                STATUS="Not Started"
-              fi
-              
-              echo "  Processing directory in subdirectory: $dir"
-              echo "    Directory: $ID - Status: $STATUS"
-              
-              TARGET_DIR=$(dirname $(get_st_path "$ID" "$STATUS" "info.md"))
-              
-              if [ $WRITE_MODE -eq 1 ] && [ "$dir" != "$TARGET_DIR" ]; then
-                mkdir -p "$(dirname "$TARGET_DIR")"
-                mv "$dir" "$TARGET_DIR"
-                echo "Moving $ID from $SUBDIR_NAME to $(basename "$(dirname "$TARGET_DIR")")"
-              else
-                if [ "$dir" != "$TARGET_DIR" ]; then
-                  echo "Would move $ID from $SUBDIR_NAME to $(basename "$(dirname "$TARGET_DIR")")"
-                fi
-              fi
-            fi
-          done
+        else
+          echo "Warning: No info.md found for $ID"
         fi
       done
     else
