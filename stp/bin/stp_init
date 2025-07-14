@@ -5,6 +5,9 @@
 # Exit on error
 set -e
 
+# Get STP version from main script
+STP_VERSION="1.2.1"
+
 # Default directories to copy
 DEFAULT_DIRS_TO_COPY="eng,llm,prj,usr"
 
@@ -144,6 +147,11 @@ PROJECT_NAME="$PROJECT_NAME"
 AUTHOR="$AUTHOR"
 CREATED_DATE="$DATE"
 ST_PREFIX="ST"
+EOF
+
+# Create version file
+cat > "$TARGET_DIR/stp/.config/version" << EOF
+stp_version: $STP_VERSION
 EOF
 
 # Find the template directory
