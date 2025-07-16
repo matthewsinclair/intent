@@ -1,0 +1,201 @@
+#!/bin/bash
+# intent_config - Shared configuration library for Intent v2.0.0
+# Provides JSON parsing, config loading, and common functions
+
+# Version
+INTENT_VERSION="2.0.0"
+
+# Default values
+DEFAULT_INTENT_DIR="intent"
+DEFAULT_BACKLOG_DIR="backlog"
+
+# Parse JSON file using jq
+parse_json() {
+  local file=$1
+  local prefix=$2
+  
+  # Check if file exists
+  if [ ! -f "$file" ]; then
+    return 1
+  fi
+  
+  # Check if jq is available
+  if ! command -v jq >/dev/null 2>&1; then
+    error "jq is required but not installed. Please install jq to continue."
+  fi
+  
+  # Extract all key-value pairs as shell variable assignments
+  jq -r 'to_entries | .[] | "\(.key)=\"\(.value)\""' "$file" 2>/dev/null | \
+    sed -e "s/^/${prefix}/"
+}
+
+# Find project root by looking for intent/stp markers
+find_project_root() {
+  local current_dir=$(pwd)
+  
+  while [ "$current_dir" != "/" ]; do
+    # Check for v2.0.0 structure
+    if [ -f "$current_dir/.intent/config.json" ]; then
+      echo "$current_dir"
+      return 0
+    fi
+    
+    # Check for legacy structures
+    if [ -d "$current_dir/stp/.config" ] || [ -f "$current_dir/.stp-config" ]; then
+      echo "$current_dir"
+      return 0
+    fi
+    
+    # Check for directory-based or file-based steel threads
+    if [ -d "$current_dir/stp/prj/st" ]; then
+      echo "$current_dir"
+      return 0
+    fi
+    
+    current_dir=$(dirname "$current_dir")
+  done
+  
+  # No project root found
+  return 1
+}
+
+# Load Intent configuration with hierarchy
+load_intent_config() {
+  # Initialize defaults
+  INTENT_VERSION="${INTENT_VERSION:-2.0.0}"
+  INTENT_DIR="${DEFAULT_INTENT_DIR}"
+  BACKLOG_DIR="${DEFAULT_BACKLOG_DIR}"
+  AUTHOR="${USER}"
+  EDITOR="${EDITOR:-vim}"
+  
+  # Find project root
+  PROJECT_ROOT=$(find_project_root)
+  
+  # Load global config (XDG standard location)
+  if [ -f "$HOME/.config/intent/config.json" ]; then
+    local global_config
+    global_config=$(parse_json "$HOME/.config/intent/config.json" "global_")
+    if [ $? -eq 0 ]; then
+      eval "$global_config"
+      [ -n "$global_intent_dir" ] && INTENT_DIR="$global_intent_dir"
+      [ -n "$global_backlog_dir" ] && BACKLOG_DIR="$global_backlog_dir"
+      [ -n "$global_author" ] && AUTHOR="$global_author"
+      [ -n "$global_editor" ] && EDITOR="$global_editor"
+    fi
+  fi
+  
+  # Load local config (overrides global)
+  if [ -n "$PROJECT_ROOT" ] && [ -f "$PROJECT_ROOT/.intent/config.json" ]; then
+    local local_config
+    local_config=$(parse_json "$PROJECT_ROOT/.intent/config.json" "local_")
+    if [ $? -eq 0 ]; then
+      eval "$local_config"
+      [ -n "$local_intent_dir" ] && INTENT_DIR="$local_intent_dir"
+      [ -n "$local_backlog_dir" ] && BACKLOG_DIR="$local_backlog_dir"
+      [ -n "$local_author" ] && AUTHOR="$local_author"
+      [ -n "$local_editor" ] && EDITOR="$local_editor"
+      [ -n "$local_intent_version" ] && INTENT_VERSION="$local_intent_version"
+    fi
+  fi
+  
+  # Environment variables override all
+  [ -n "$INTENT_DIR_OVERRIDE" ] && INTENT_DIR="$INTENT_DIR_OVERRIDE"
+  [ -n "$BACKLOG_DIR_OVERRIDE" ] && BACKLOG_DIR="$BACKLOG_DIR_OVERRIDE"
+  
+  # Legacy support: check for stp directory if intent doesn't exist
+  if [ -n "$PROJECT_ROOT" ]; then
+    if [ ! -d "$PROJECT_ROOT/$INTENT_DIR" ] && [ -d "$PROJECT_ROOT/stp" ]; then
+      INTENT_DIR="stp"
+    fi
+  fi
+  
+  # Export for use in subcommands
+  export INTENT_VERSION INTENT_DIR BACKLOG_DIR AUTHOR EDITOR PROJECT_ROOT
+}
+
+# Validate JSON syntax using jq
+validate_json() {
+  local file=$1
+  
+  if [ ! -f "$file" ]; then
+    return 1
+  fi
+  
+  # Check if jq is available
+  if ! command -v jq >/dev/null 2>&1; then
+    return 1
+  fi
+  
+  # Use jq to validate JSON syntax
+  if jq . "$file" >/dev/null 2>&1; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Display configuration (for debugging)
+show_config() {
+  echo "Intent Configuration:"
+  echo "  INTENT_VERSION: $INTENT_VERSION"
+  echo "  PROJECT_ROOT: ${PROJECT_ROOT:-<not in project>}"
+  echo "  INTENT_DIR: $INTENT_DIR"
+  echo "  BACKLOG_DIR: $BACKLOG_DIR"
+  echo "  AUTHOR: $AUTHOR"
+  echo "  EDITOR: $EDITOR"
+}
+
+# Create default global config
+create_default_global_config() {
+  local config_dir="$HOME/.config/intent"
+  local config_file="$config_dir/config.json"
+  
+  mkdir -p "$config_dir"
+  
+  cat > "$config_file" << EOF
+{
+  "intent_version": "2.0.0",
+  "intent_dir": "intent",
+  "backlog_dir": "backlog",
+  "author": "${USER}",
+  "editor": "${EDITOR:-vim}"
+}
+EOF
+  
+  return $?
+}
+
+# Determine if running in legacy mode
+is_legacy_project() {
+  if [ -n "$PROJECT_ROOT" ]; then
+    # Check for old structures
+    if [ -f "$PROJECT_ROOT/.stp-config" ] || [ -d "$PROJECT_ROOT/stp" ]; then
+      if [ ! -f "$PROJECT_ROOT/.intent/config.json" ]; then
+        return 0
+      fi
+    fi
+  fi
+  return 1
+}
+
+# Common error handling
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
+# Common warning handling  
+warning() {
+  echo "Warning: $1" >&2
+}
+
+# Export functions for use by other scripts
+export -f parse_json
+export -f find_project_root
+export -f load_intent_config
+export -f validate_json
+export -f show_config
+export -f create_default_global_config
+export -f is_legacy_project
+export -f error
+export -f warning

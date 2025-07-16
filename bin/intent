@@ -1,0 +1,75 @@
+#!/bin/bash
+# intent - Main command for Intent v2.0.0
+# This is a minimal wrapper for Phase 1 testing
+
+# Version
+VERSION="2.0.0-alpha"
+
+# Determine INTENT_HOME if not set
+if [ -z "$INTENT_HOME" ]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  export INTENT_HOME="$(dirname "$SCRIPT_DIR")"
+fi
+
+# Source config library
+if [ -f "$INTENT_HOME/bin/intent_config" ]; then
+  source "$INTENT_HOME/bin/intent_config"
+fi
+
+# Function to display help
+show_help() {
+  cat << EOF
+Intent v$VERSION - The Steel Thread Process Tool
+
+Usage: intent <command> [options] [arguments]
+
+Commands:
+  bootstrap    Initial setup for Intent
+  doctor       Check and fix configuration issues
+  help         Show this help message
+  version      Show version information
+
+More commands will be available after full migration to v2.0.0.
+
+For help on a specific command:
+  intent <command> --help
+
+Examples:
+  intent bootstrap      # Set up Intent for first use
+  intent doctor         # Check your configuration
+  intent doctor --fix   # Fix configuration issues
+
+EOF
+}
+
+# Handle version flag
+if [ "$1" = "--version" ] || [ "$1" = "-v" ] || [ "$1" = "version" ]; then
+  echo "Intent version $VERSION"
+  echo "Migration phase: 1 (New Commands)"
+  exit 0
+fi
+
+# Handle help
+if [ $# -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  show_help
+  exit 0
+fi
+
+# Get the command
+COMMAND="$1"
+shift
+
+# Route to appropriate command
+case "$COMMAND" in
+  bootstrap)
+    exec "$INTENT_HOME/bin/intent_bootstrap" "$@"
+    ;;
+  doctor)
+    exec "$INTENT_HOME/bin/intent_doctor" "$@"
+    ;;
+  *)
+    echo "Error: Unknown command '$COMMAND'" >&2
+    echo "Run 'intent help' for usage information" >&2
+    exit 1
+    ;;
+esac

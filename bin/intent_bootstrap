@@ -1,0 +1,168 @@
+#!/bin/bash
+# intent_bootstrap - Initial setup for Intent v2.0.0 installations
+
+# Exit on error
+set -e
+
+# Function to display usage
+usage() {
+  cat << EOF
+Usage: intent_bootstrap [OPTIONS]
+
+Initial setup for Intent v2.0.0. Creates global configuration and provides
+setup instructions.
+
+Options:
+  -h, --help     Show this help message
+  -f, --force    Force recreation of config even if it exists
+  -q, --quiet    Suppress informational output
+
+Examples:
+  intent_bootstrap          # Standard setup
+  intent_bootstrap --force  # Recreate configuration
+
+EOF
+  exit 0
+}
+
+# Parse command line arguments
+FORCE=false
+QUIET=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help)
+      usage
+      ;;
+    -f|--force)
+      FORCE=true
+      shift
+      ;;
+    -q|--quiet)
+      QUIET=true
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      echo "Use --help for usage information" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# Function to print unless quiet mode
+info() {
+  if [ "$QUIET" != true ]; then
+    echo "$@"
+  fi
+}
+
+# Main bootstrap function
+bootstrap_intent() {
+  if [ "$QUIET" != true ]; then
+    echo "Intent Bootstrap v2.0.0"
+    echo "====================="
+    echo ""
+  fi
+  
+  # 1. Detect or validate INTENT_HOME
+  if [ -z "$INTENT_HOME" ]; then
+    info "INTENT_HOME not set, detecting installation directory..."
+    
+    # Get the directory where this script is located
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    
+    # Check if we're in a valid intent installation
+    if [ -f "$SCRIPT_DIR/intent" ] || [ -f "$SCRIPT_DIR/intent_bootstrap" ]; then
+      # We're in the bin directory
+      INTENT_HOME="$(dirname "$SCRIPT_DIR")"
+      info "Found intent installation at: $INTENT_HOME"
+    else
+      # Try to find intent installation by crawling up
+      local current_dir="$SCRIPT_DIR"
+      while [ "$current_dir" != "/" ]; do
+        if [ -f "$current_dir/bin/intent" ] || [ -f "$current_dir/bin/intent_bootstrap" ]; then
+          INTENT_HOME="$current_dir"
+          info "Found intent installation at: $INTENT_HOME"
+          break
+        fi
+        current_dir=$(dirname "$current_dir")
+      done
+    fi
+    
+    if [ -z "$INTENT_HOME" ]; then
+      echo "ERROR: Could not detect intent installation directory" >&2
+      echo "Please set INTENT_HOME and run bootstrap again" >&2
+      exit 1
+    fi
+  fi
+  
+  # 2. Validate installation
+  if [ ! -d "$INTENT_HOME/bin" ]; then
+    echo "ERROR: Invalid INTENT_HOME - bin directory not found at $INTENT_HOME/bin" >&2
+    exit 1
+  fi
+  
+  # 3. Create global config directory
+  info "Creating global config directory..."
+  mkdir -p "$HOME/.config/intent"
+  
+  # 4. Generate initial global config if it doesn't exist
+  local config_file="$HOME/.config/intent/config.json"
+  
+  if [ -f "$config_file" ] && [ "$FORCE" != true ]; then
+    info "Global configuration already exists at $config_file"
+    info "Use --force to recreate it"
+  else
+    if [ -f "$config_file" ] && [ "$FORCE" = true ]; then
+      info "Backing up existing configuration..."
+      cp "$config_file" "$config_file.bak.$(date +%Y%m%d_%H%M%S)"
+    fi
+    
+    info "Creating default global configuration..."
+    cat > "$config_file" << EOF
+{
+  "intent_version": "2.0.0",
+  "intent_dir": "intent",
+  "backlog_dir": "backlog",
+  "author": "${USER}",
+  "editor": "${EDITOR:-vim}"
+}
+EOF
+    
+    if [ $? -eq 0 ]; then
+      info "Configuration created successfully at $config_file"
+    else
+      echo "ERROR: Failed to create configuration file" >&2
+      exit 1
+    fi
+  fi
+  
+  # 5. PATH setup recommendations
+  if [ "$QUIET" != true ]; then
+    echo ""
+    echo "Setup complete! Add the following to your shell configuration:"
+    echo ""
+    echo "  export INTENT_HOME=\"$INTENT_HOME\""
+    echo "  export PATH=\"\$INTENT_HOME/bin:\$PATH\""
+    echo ""
+    echo "For bash, add to ~/.bashrc or ~/.bash_profile"
+    echo "For zsh, add to ~/.zshrc"
+    echo ""
+  fi
+  
+  # 6. Run doctor to verify (only if doctor exists)
+  if [ -f "$INTENT_HOME/bin/intent_doctor" ] && [ -x "$INTENT_HOME/bin/intent_doctor" ]; then
+    if [ "$QUIET" != true ]; then
+      echo "Running intent doctor to verify installation..."
+      echo ""
+    fi
+    "$INTENT_HOME/bin/intent_doctor"
+  else
+    info "Note: intent_doctor not found, skipping verification"
+    info "Run 'intent doctor' after completing setup to verify installation"
+  fi
+}
+
+# Run the bootstrap
+bootstrap_intent

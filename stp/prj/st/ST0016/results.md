@@ -8,6 +8,8 @@ stp_version: 1.2.1
 
 **Phase 0 Completed**: Test infrastructure has been created with all example projects and comprehensive test suites ready for implementation phases.
 
+**Phase 1 Completed**: New Intent v2.0.0 commands (bootstrap, doctor) implemented in top-level bin/ directory with jq-based JSON configuration system.
+
 ## Migration Statistics
 
 ### Projects Tested
