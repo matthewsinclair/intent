@@ -1,0 +1,14 @@
+# STP Configuration File
+# This is the ancient v0.0.0 format using YAML-style configuration
+
+project_name: Ancient Example Project
+author: Test User
+created: 2023-01-01
+
+# Directory structure settings
+stp_dir: stp
+st_dir: stp/prj/st
+
+# Tool settings
+editor: vim
+default_status: Not Started
