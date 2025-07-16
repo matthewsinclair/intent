@@ -1,5 +1,5 @@
 #!/bin/bash
-# stp_llm - LLM-related commands for STP
+# intent_llm - Manage LLM prompts and context files
 # Usage: stp_llm <subcommand> [options]
 
 # Exit on error

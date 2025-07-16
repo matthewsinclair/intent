@@ -1,5 +1,5 @@
 #!/bin/bash
-# stp_st - Manage steel threads (v1.2.1 - Directory-based structure)
+# intent_st - Manage steel threads in directory structure
 # Usage: stp_st <command> [options] [arguments]
 
 # Exit on error

@@ -50,15 +50,21 @@ fi
 # Set bin directory
 BIN_DIR="$INTENT_HOME/bin"
 
-# Source config library
-if [ -f "$BIN_DIR/intent_config" ]; then
-  source "$BIN_DIR/intent_config"
-  # Load configuration
-  load_intent_config
-fi
+# Define global commands that don't require project context
+GLOBAL_COMMANDS="help doctor bootstrap init version"
+
+# Function to check if command is global
+is_global_command() {
+  local cmd="$1"
+  for gc in $GLOBAL_COMMANDS; do
+    [ "$cmd" = "$gc" ] && return 0
+  done
+  return 1
+}
 
 # Display help if no arguments provided
 if [ $# -eq 0 ]; then
+  # Help is a global command, execute directly
   exec "$BIN_DIR/intent_help"
 fi
 
@@ -102,6 +108,26 @@ fi
 if [ ! -x "$BIN_DIR/$COMMAND_SCRIPT" ]; then
   echo "Warning: Making script executable: $COMMAND_SCRIPT" >&2
   chmod +x "$BIN_DIR/$COMMAND_SCRIPT"
+fi
+
+# Check if this is a global command
+if is_global_command "$COMMAND"; then
+  # Execute without requiring project context
+  exec "$BIN_DIR/$COMMAND_SCRIPT" "$@"
+fi
+
+# For project commands, source config and check for project root
+if [ -f "$BIN_DIR/intent_config" ]; then
+  source "$BIN_DIR/intent_config"
+  # Load configuration
+  load_intent_config
+  
+  # Check if we found a project root
+  if [ -z "$PROJECT_ROOT" ]; then
+    error "Not in an Intent project directory. Run 'intent init' to create a new project or navigate to an existing one."
+  fi
+else
+  error "Missing intent_config library. Intent installation may be corrupted."
 fi
 
 # Execute command with remaining arguments

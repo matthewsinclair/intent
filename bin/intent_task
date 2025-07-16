@@ -1,5 +1,5 @@
 #!/bin/bash
-# stp_task - Manage Backlog tasks linked to Steel Threads
+# intent_task - Manage Backlog tasks linked to steel threads
 # Usage: stp task <command> [options] [arguments]
 
 # Exit on error

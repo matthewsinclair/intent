@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 1. Run `stp upgrade` - it will detect old-format steel threads and offer to migrate them
 2. The migration will:
-   - Create a backup in `.stp_backup/1.2.1/`
+   - Create a backup in `.backup/1.2.1/`
    - Create directories for each steel thread (e.g., `ST0001/`)
    - Split content into separate files based on sections
    - Preserve all existing content and metadata

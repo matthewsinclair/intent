@@ -1,5 +1,5 @@
 #!/bin/bash
-# intent - Main command for Intent v2.0.0
+# intent_minimal - Minimal Intent wrapper for testing
 # This is a minimal wrapper for Phase 1 testing
 
 # Version

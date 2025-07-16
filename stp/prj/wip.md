@@ -35,26 +35,26 @@ You are working on the Intent project (formerly STP - Steel Thread Process) loca
 ```
 /Users/matts/Devel/prj/Intent/
 ├── bin/                    # Intent CLI executables
-│   ├── intent             # Main entry point
-│   ├── intent_*           # Subcommands
-│   └── stp -> intent      # Backward compatibility symlink
+│   ├── intent              # Main entry point
+│   ├── intent_*            # Subcommands
+│   └── stp -> intent       # Backward compatibility symlink
 ├── intent/                 # Main project content (migrated from stp/)
-│   ├── st/                # Steel threads organized by status
-│   │   ├── COMPLETED/     # 12 completed STs (ST0001-ST0009, ST0012-ST0014)
-│   │   ├── NOT-STARTED/   # 3 not-started STs (ST0010, ST0011, ST0015)
-│   │   ├── CANCELLED/     # Empty
-│   │   └── ST0016/        # Active ST (In Progress)
-│   ├── eng/tpd/           # Technical Product Design docs
-│   ├── llm/               # LLM guidelines
-│   ├── ref/               # Reference materials
-│   └── wip.md             # Work in progress tracking
+│   ├── st/                 # Steel threads organized by status
+│   │   ├── COMPLETED/      # 12 completed STs (ST0001-ST0009, ST0012-ST0014)
+│   │   ├── NOT-STARTED/    # 3 not-started STs (ST0010, ST0011, ST0015)
+│   │   ├── CANCELLED/      # Empty
+│   │   └── ST0016/         # Active ST (In Progress)
+│   ├── eng/tpd/            # Technical Product Design docs
+│   ├── llm/                # LLM guidelines
+│   ├── ref/                # Reference materials
+│   └── wip.md              # Work in progress tracking
 ├── lib/                    # Intent libraries and templates
-│   └── templates/         # Project templates (migrated from stp/_templ)
+│   └── templates/          # Project templates (migrated from stp/_templ)
 ├── stp/                    # Legacy STP structure (preserved, can be removed)
 ├── backlog/                # Backlog.md integration
 ├── .intent/                # Intent configuration
-│   └── config.json        # Project configuration (v2.0.0)
-└── CLAUDE.md              # Project guidelines for Claude
+│   └── config.json         # Project configuration (v2.0.0)
+└── CLAUDE.md               # Project guidelines for Claude
 
 ### Configuration
 - **INTENT_HOME**: `/Users/matts/Devel/prj/Intent`

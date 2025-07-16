@@ -1,5 +1,5 @@
 #!/bin/bash
-# stp_status - Sync steel thread status based on Backlog task completion
+# intent_status - Sync steel thread status with Backlog tasks
 # Usage: stp status <command> [options] [arguments]
 
 # Exit on error

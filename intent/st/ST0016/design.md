@@ -239,7 +239,7 @@ Migration steps:
    - If unable to determine: fail with clear error message
    - No assumptions about unknown versions
 
-2. **Backup**: Create .stp_backup/ with timestamp
+2. **Backup**: Create .backup/ with timestamp
 
 3. **Migrate Structure**:
    ```

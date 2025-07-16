@@ -61,7 +61,7 @@ info() {
 bootstrap_intent() {
   if [ "$QUIET" != true ]; then
     echo "Intent Bootstrap v2.0.0"
-    echo "====================="
+    echo "======================="
     echo ""
   fi
   

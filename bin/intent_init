@@ -5,12 +5,11 @@
 # Exit on error
 set -e
 
-# Source common library
+# Source common library (but don't load project config - init creates new projects)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/intent_config"
 
-# Load configuration
-load_intent_config
+# Set default INTENT_VERSION if not already set
+INTENT_VERSION="${INTENT_VERSION:-2.0.0}"
 
 # Function to display error messages
 error() {

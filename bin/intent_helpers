@@ -160,7 +160,7 @@ create_v2_directory_structure() {
 # Intent/STP specific
 .intent/local.json
 *.bak
-.stp_backup_*
+.backup_*
 
 # Backlog.md
 backlog/.backlog-md/
@@ -240,7 +240,7 @@ detect_project_version() {
 # Create backup of project
 create_project_backup() {
   local project_root=$1
-  local backup_dir=".stp_backup_$(date +%Y%m%d_%H%M%S)"
+  local backup_dir=".backup_$(date +%Y%m%d_%H%M%S)"
   
   echo "Creating backup in $backup_dir..."
   mkdir -p "$project_root/$backup_dir"
