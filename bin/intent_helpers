@@ -8,7 +8,9 @@ convert_yaml_frontmatter() {
   
   # Check if file has YAML frontmatter
   if ! head -1 "$file" | grep -q "^---$"; then
-    return 0  # No frontmatter, nothing to do
+    # No frontmatter, just copy the file to .tmp
+    cp "$file" "$temp_file"
+    return 0
   fi
   
   # Extract frontmatter and content

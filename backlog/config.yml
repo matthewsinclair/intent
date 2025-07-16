@@ -1,4 +1,4 @@
-project_name: "stp"
+project_name: "intent"
 default_status: "todo"
 statuses: ["todo", "wip", "done", "cancelled", "archived"]
 labels: []

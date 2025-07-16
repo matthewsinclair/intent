@@ -1,0 +1,23 @@
+---
+intent_version: 2.0.0
+---
+# ST0001: Project Setup
+
+- **Status**: Completed
+- **Created**: 2024-01-15
+- **Completed**: 2024-01-20
+- **Author**: v1.2.0 User
+
+## Objective
+
+Initialize the project with v1.2.0 structure.
+
+## Context
+
+This example demonstrates the v1.2.0 format with:
+- YAML frontmatter
+- File-based steel threads (not directories)
+- Version tracking in stp/.config/version
+
+## Implementation
+

@@ -12,11 +12,19 @@ error() {
   exit 1
 }
 
+# Get script directory first
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Get INTENT_HOME from environment or determine from script location
 if [ -z "$INTENT_HOME" ]; then
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  export INTENT_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
+  export INTENT_HOME="$(cd "$SCRIPT_DIR/.." && pwd)"
 fi
+
+# Source configuration helpers
+source "$SCRIPT_DIR/intent_config"
+
+# Load configuration
+load_intent_config
 
 # Check if backlog is installed
 if ! command -v backlog &> /dev/null; then
@@ -25,6 +33,20 @@ if ! command -v backlog &> /dev/null; then
   cat "$INTENT_HOME/bin/.help/backlog-install.help.md" >&2
   exit 1
 fi
+
+# Valid backlog statuses
+VALID_BACKLOG_STATUSES=("todo" "wip" "done" "cancelled" "archived")
+
+# Function to validate backlog status
+validate_backlog_status() {
+  local status="$1"
+  for valid_status in "${VALID_BACKLOG_STATUSES[@]}"; do
+    if [ "$status" = "$valid_status" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
 
 # Function to display usage
 usage() {
@@ -36,7 +58,7 @@ usage() {
   echo "Commands:"
   echo "  init                       Initialize backlog in current project"
   echo "  task <subcommand>          Task management (create, list, edit, etc.)"
-  echo "  list                       List all tasks (alias for 'task list --plain')"
+  echo "  list                       List tasks (uses backlog_list_status filter from config)"
   echo "  create <ST####> <title>    Create a task linked to a steel thread"
   echo "  board                      Display tasks in Kanban board"
   echo "  config                     Manage backlog configuration"
@@ -48,7 +70,9 @@ usage() {
   echo "  - Provides shortcuts for common Intent workflows"
   echo ""
   echo "Examples:"
-  echo "  intent bl list                    # List all tasks without git fetch"
+  echo "  intent bl list                    # List tasks matching backlog_list_status"
+  echo "  intent bl list --all              # List all tasks regardless of status"
+  echo "  intent bl list -s todo            # List only todo tasks"
   echo "  intent bl create ST0014 \"Fix bug\" # Create task linked to ST0014"
   echo "  intent bl task edit task-5        # Edit a specific task"
   echo ""
@@ -100,12 +124,52 @@ case "${1:-}" in
   list)
     # Shortcut for 'task list --plain'
     shift
+    
+    # Get default status from config
+    default_status="${BACKLOG_LIST_STATUS:-}"
+    
+    # If config has a default status, validate it
+    if [ -n "$default_status" ]; then
+      if ! validate_backlog_status "$default_status"; then
+        echo "Warning: Invalid backlog_list_status '$default_status' in config. Valid statuses are: ${VALID_BACKLOG_STATUSES[*]}" >&2
+        default_status=""
+      fi
+    fi
+    
+    # Check if user provided -s option or --all
+    has_status_filter=false
+    show_all=false
+    for arg in "$@"; do
+      if [ "$arg" = "-s" ] || [ "$arg" = "--status" ]; then
+        has_status_filter=true
+      elif [ "$arg" = "--all" ]; then
+        show_all=true
+      fi
+    done
+    
+    # Build command
+    cmd_args=()
+    
     # Add --plain if not already present
     if ! echo "$@" | grep -q -- "--plain"; then
-      backlog task list --plain "$@"
-    else
-      backlog task list "$@"
+      cmd_args+=("--plain")
     fi
+    
+    # Add default status filter if no status filter provided and we have a default
+    # But skip if --all is provided
+    if [ "$has_status_filter" = false ] && [ "$show_all" = false ] && [ -n "$default_status" ]; then
+      cmd_args+=("-s" "$default_status")
+    fi
+    
+    # Add all user arguments except --all
+    for arg in "$@"; do
+      if [ "$arg" != "--all" ]; then
+        cmd_args+=("$arg")
+      fi
+    done
+    
+    # Execute backlog command
+    backlog task list "${cmd_args[@]}"
     ;;
   
   create)
@@ -128,11 +192,52 @@ case "${1:-}" in
       list)
         # Add --plain to task list
         shift 2
-        if ! echo "$@" | grep -q -- "--plain"; then
-          backlog task list --plain "$@"
-        else
-          backlog task list "$@"
+        
+        # Get default status from config
+        default_status="${BACKLOG_LIST_STATUS:-}"
+        
+        # If config has a default status, validate it
+        if [ -n "$default_status" ]; then
+          if ! validate_backlog_status "$default_status"; then
+            echo "Warning: Invalid backlog_list_status '$default_status' in config. Valid statuses are: ${VALID_BACKLOG_STATUSES[*]}" >&2
+            default_status=""
+          fi
         fi
+        
+        # Check if user provided -s option or --all
+        has_status_filter=false
+        show_all=false
+        for arg in "$@"; do
+          if [ "$arg" = "-s" ] || [ "$arg" = "--status" ]; then
+            has_status_filter=true
+          elif [ "$arg" = "--all" ]; then
+            show_all=true
+          fi
+        done
+        
+        # Build command
+        cmd_args=()
+        
+        # Add --plain if not already present
+        if ! echo "$@" | grep -q -- "--plain"; then
+          cmd_args+=("--plain")
+        fi
+        
+        # Add default status filter if no status filter provided and we have a default
+        # But skip if --all is provided
+        if [ "$has_status_filter" = false ] && [ "$show_all" = false ] && [ -n "$default_status" ]; then
+          cmd_args+=("-s" "$default_status")
+        fi
+        
+        # Add all user arguments except --all
+        for arg in "$@"; do
+          if [ "$arg" != "--all" ]; then
+            cmd_args+=("$arg")
+          fi
+        done
+        
+        # Execute backlog command
+        backlog task list "${cmd_args[@]}"
         ;;
       *)
         # Pass through other task commands
