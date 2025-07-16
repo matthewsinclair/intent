@@ -1,0 +1,361 @@
+#!/bin/bash
+# intent_doctor - Configuration diagnostics and fixes for Intent v2.0.0
+
+# Source the config library if we can find it
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/intent_config" ]; then
+  source "$SCRIPT_DIR/intent_config"
+elif [ -n "$INTENT_HOME" ] && [ -f "$INTENT_HOME/bin/intent_config" ]; then
+  source "$INTENT_HOME/bin/intent_config"
+else
+  # Fallback - define minimal functions we need
+  validate_json() {
+    local file=$1
+    if [ ! -f "$file" ]; then
+      return 1
+    fi
+    # Use jq if available
+    if command -v jq >/dev/null 2>&1; then
+      jq . "$file" >/dev/null 2>&1
+      return $?
+    fi
+    # If no jq, just check file exists
+    return 0
+  }
+fi
+
+# Function to display usage
+usage() {
+  cat << EOF
+Usage: intent_doctor [OPTIONS]
+
+Diagnose and fix common Intent configuration issues.
+
+Options:
+  -h, --help     Show this help message
+  -f, --fix      Attempt to fix issues automatically
+  -v, --verbose  Show detailed information
+  -q, --quiet    Only show errors and warnings
+
+Examples:
+  intent_doctor         # Check for issues
+  intent_doctor --fix   # Fix issues automatically
+
+EOF
+  exit 0
+}
+
+# Parse command line arguments
+FIX_MODE=false
+VERBOSE=false
+QUIET=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help)
+      usage
+      ;;
+    -f|--fix)
+      FIX_MODE=true
+      shift
+      ;;
+    -v|--verbose)
+      VERBOSE=true
+      shift
+      ;;
+    -q|--quiet)
+      QUIET=true
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      echo "Use --help for usage information" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# Counters for issues
+ERRORS=0
+WARNINGS=0
+FIXED=0
+
+# Color codes (disabled if not terminal or if quiet)
+if [ -t 1 ] && [ "$QUIET" != true ]; then
+  RED='\033[0;31m'
+  YELLOW='\033[0;33m'
+  GREEN='\033[0;32m'
+  NC='\033[0m' # No Color
+else
+  RED=''
+  YELLOW=''
+  GREEN=''
+  NC=''
+fi
+
+# Status display functions
+show_ok() {
+  if [ "$QUIET" != true ]; then
+    echo -e "${GREEN}OK${NC}"
+  fi
+}
+
+show_error() {
+  echo -e "${RED}ERROR${NC}: $1"
+  ((ERRORS++))
+}
+
+show_warning() {
+  echo -e "${YELLOW}WARNING${NC}: $1"
+  ((WARNINGS++))
+}
+
+show_fixed() {
+  if [ "$FIX_MODE" = true ]; then
+    echo -e "  ${GREEN}FIXED${NC}: $1"
+    ((FIXED++))
+  fi
+}
+
+info() {
+  if [ "$QUIET" != true ]; then
+    echo "$@"
+  fi
+}
+
+verbose() {
+  if [ "$VERBOSE" = true ] && [ "$QUIET" != true ]; then
+    echo "  $@"
+  fi
+}
+
+# Main doctor function
+doctor_check() {
+  if [ "$QUIET" != true ]; then
+    echo "Intent Doctor v2.0.0"
+    echo "==================="
+    echo ""
+  fi
+  
+  # Check 1: INTENT_HOME
+  if [ "$QUIET" != true ]; then
+    echo -n "Checking INTENT_HOME... "
+  fi
+  
+  if [ -z "$INTENT_HOME" ]; then
+    show_error "Not set"
+    if [ "$FIX_MODE" = true ]; then
+      echo "  FIX: Please run 'intent_bootstrap' to set up INTENT_HOME"
+      echo "       Or set it manually: export INTENT_HOME=/path/to/intent"
+    fi
+  elif [ ! -d "$INTENT_HOME" ]; then
+    show_error "Directory does not exist: $INTENT_HOME"
+  else
+    show_ok
+    verbose "INTENT_HOME=$INTENT_HOME"
+  fi
+  
+  # Check 2: Intent executable
+  if [ "$QUIET" != true ]; then
+    echo -n "Checking intent executable... "
+  fi
+  
+  INTENT_FOUND=false
+  if [ -n "$INTENT_HOME" ]; then
+    if [ -f "$INTENT_HOME/bin/intent" ] && [ -x "$INTENT_HOME/bin/intent" ]; then
+      INTENT_FOUND=true
+      show_ok
+      verbose "Found at $INTENT_HOME/bin/intent"
+    elif [ -f "$INTENT_HOME/bin/intent_bootstrap" ]; then
+      # Bootstrap exists but main intent doesn't
+      show_warning "Not found (bootstrap exists)"
+      verbose "This is expected during initial setup"
+    else
+      show_error "Not found or not executable"
+    fi
+  else
+    show_error "Cannot check (INTENT_HOME not set)"
+  fi
+  
+  # Check 3: Global config
+  if [ "$QUIET" != true ]; then
+    echo -n "Checking global config... "
+  fi
+  
+  GLOBAL_CONFIG="$HOME/.config/intent/config.json"
+  if [ -f "$GLOBAL_CONFIG" ]; then
+    if validate_json "$GLOBAL_CONFIG"; then
+      show_ok
+      verbose "Found at $GLOBAL_CONFIG"
+      
+      # Check for required fields if verbose
+      if [ "$VERBOSE" = true ] && command -v jq >/dev/null 2>&1; then
+        if jq -e '.intent_version' "$GLOBAL_CONFIG" >/dev/null 2>&1; then
+          verbose "Has intent_version field"
+        else
+          verbose "Missing intent_version field"
+        fi
+      fi
+    else
+      show_error "Invalid JSON syntax"
+      if [ "$FIX_MODE" = true ]; then
+        echo "  Backing up invalid config..."
+        mv "$GLOBAL_CONFIG" "$GLOBAL_CONFIG.bak.$(date +%Y%m%d_%H%M%S)"
+        if [ -f "$INTENT_HOME/bin/intent_bootstrap" ]; then
+          echo "  Running bootstrap to create new config..."
+          "$INTENT_HOME/bin/intent_bootstrap" --quiet
+          show_fixed "Created new global config"
+        else
+          echo "  FIX: Run 'intent_bootstrap' to create new config"
+        fi
+      fi
+    fi
+  else
+    show_warning "Not found"
+    if [ "$FIX_MODE" = true ]; then
+      if [ -f "$INTENT_HOME/bin/intent_bootstrap" ]; then
+        echo "  Running bootstrap to create config..."
+        "$INTENT_HOME/bin/intent_bootstrap" --quiet
+        show_fixed "Created global config"
+      else
+        echo "  FIX: Run 'intent_bootstrap' to create config"
+      fi
+    else
+      verbose "Run 'intent_bootstrap' to create global config"
+    fi
+  fi
+  
+  # Check 4: Local config (if in a project)
+  if [ -n "$PROJECT_ROOT" ]; then
+    if [ "$QUIET" != true ]; then
+      echo -n "Checking local config... "
+    fi
+    
+    LOCAL_CONFIG="$PROJECT_ROOT/.intent/config.json"
+    if [ -f "$LOCAL_CONFIG" ]; then
+      if validate_json "$LOCAL_CONFIG"; then
+        show_ok
+        verbose "Found at $LOCAL_CONFIG"
+      else
+        show_error "Invalid JSON syntax"
+        if [ "$FIX_MODE" = true ]; then
+          echo "  FIX: Please fix JSON syntax in $LOCAL_CONFIG"
+          echo "       Or remove it to use global config only"
+        fi
+      fi
+    else
+      # Check if this is a legacy project
+      if [ -f "$PROJECT_ROOT/.stp-config" ] || [ -d "$PROJECT_ROOT/stp" ]; then
+        show_warning "Legacy project without intent config"
+        verbose "Run 'intent upgrade' to migrate to v2.0.0"
+      else
+        info "Not found (using global config)"
+      fi
+    fi
+  else
+    verbose "Not in a project directory"
+  fi
+  
+  # Check 5: PATH
+  if [ "$QUIET" != true ]; then
+    echo -n "Checking PATH... "
+  fi
+  
+  if [ -n "$INTENT_HOME" ]; then
+    if echo "$PATH" | grep -q "$INTENT_HOME/bin"; then
+      show_ok
+      verbose "$INTENT_HOME/bin is in PATH"
+    else
+      show_warning "$INTENT_HOME/bin not in PATH"
+      if [ "$FIX_MODE" = true ]; then
+        echo "  FIX: Add to your shell configuration:"
+        echo "       export PATH=\"\$INTENT_HOME/bin:\$PATH\""
+      fi
+    fi
+  else
+    show_warning "Cannot check (INTENT_HOME not set)"
+  fi
+  
+  # Check 6: Required tools
+  if [ "$QUIET" != true ]; then
+    echo -n "Checking required tools... "
+  fi
+  
+  MISSING_TOOLS=""
+  for tool in bash sed grep mkdir jq; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+      MISSING_TOOLS="$MISSING_TOOLS $tool"
+    fi
+  done
+  
+  if [ -z "$MISSING_TOOLS" ]; then
+    show_ok
+    verbose "All required tools found"
+  else
+    show_error "Missing tools:$MISSING_TOOLS"
+    echo "  FIX: Install missing tools using your package manager"
+    echo "       For macOS: brew install$MISSING_TOOLS"
+    echo "       For Ubuntu/Debian: sudo apt-get install$MISSING_TOOLS"
+  fi
+  
+  # Check 7: File permissions
+  if [ -n "$INTENT_HOME" ] && [ "$VERBOSE" = true ]; then
+    if [ "$QUIET" != true ]; then
+      echo -n "Checking file permissions... "
+    fi
+    
+    PERM_ISSUES=false
+    for file in "$INTENT_HOME"/bin/*; do
+      if [ -f "$file" ] && [ ! -x "$file" ]; then
+        PERM_ISSUES=true
+        verbose "Not executable: $file"
+      fi
+    done
+    
+    if [ "$PERM_ISSUES" = false ]; then
+      show_ok
+    else
+      show_warning "Some files not executable"
+      if [ "$FIX_MODE" = true ]; then
+        chmod +x "$INTENT_HOME"/bin/*
+        show_fixed "Made all bin files executable"
+      fi
+    fi
+  fi
+  
+  # Summary
+  if [ "$QUIET" != true ]; then
+    echo ""
+    echo "Summary:"
+    echo "  Errors: $ERRORS"
+    echo "  Warnings: $WARNINGS"
+    if [ "$FIX_MODE" = true ]; then
+      echo "  Fixed: $FIXED"
+    fi
+    echo ""
+    
+    if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
+      echo -e "${GREEN}✓ All checks passed!${NC}"
+    elif [ $ERRORS -eq 0 ]; then
+      echo -e "${YELLOW}⚠ Some warnings found but no errors${NC}"
+    else
+      echo -e "${RED}✗ Issues found that need attention${NC}"
+      if [ "$FIX_MODE" != true ]; then
+        echo ""
+        echo "Run 'intent_doctor --fix' to attempt automatic fixes"
+      fi
+    fi
+  fi
+  
+  # Exit with appropriate code
+  if [ $ERRORS -gt 0 ]; then
+    exit 1
+  elif [ $WARNINGS -gt 0 ]; then
+    exit 0  # Warnings don't cause failure
+  else
+    exit 0
+  fi
+}
+
+# Run the doctor check
+doctor_check
