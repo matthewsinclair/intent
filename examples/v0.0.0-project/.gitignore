@@ -1,0 +1,18 @@
+# Intent/STP specific
+.intent/local.json
+*.bak
+.backup_*
+
+# Backlog.md
+backlog/.backlog-md/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Editor specific
+*.swp
+*.swo
+*~
+.vscode/
+.idea/

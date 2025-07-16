@@ -81,6 +81,7 @@ load_intent_config() {
       [ -n "$global_backlog_dir" ] && BACKLOG_DIR="$global_backlog_dir"
       [ -n "$global_author" ] && AUTHOR="$global_author"
       [ -n "$global_editor" ] && EDITOR="$global_editor"
+      [ -n "$global_backlog_list_status" ] && BACKLOG_LIST_STATUS="$global_backlog_list_status"
     fi
   fi
   
@@ -95,6 +96,7 @@ load_intent_config() {
       [ -n "$local_author" ] && AUTHOR="$local_author"
       [ -n "$local_editor" ] && EDITOR="$local_editor"
       [ -n "$local_intent_version" ] && INTENT_VERSION="$local_intent_version"
+      [ -n "$local_backlog_list_status" ] && BACKLOG_LIST_STATUS="$local_backlog_list_status"
     fi
   fi
   
@@ -110,7 +112,7 @@ load_intent_config() {
   fi
   
   # Export for use in subcommands
-  export INTENT_VERSION INTENT_DIR BACKLOG_DIR AUTHOR EDITOR PROJECT_ROOT
+  export INTENT_VERSION INTENT_DIR BACKLOG_DIR AUTHOR EDITOR PROJECT_ROOT BACKLOG_LIST_STATUS
 }
 
 # Validate JSON syntax using jq

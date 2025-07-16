@@ -177,3 +177,122 @@ EOF
   assert_failure
   assert_output_contains "Backlog.md is not installed"
 }
+
+@test "bl list respects backlog_list_status from config" {
+  project_dir=$(create_test_project "BL Status Filter Test")
+  cd "$project_dir"
+  
+  # Set backlog_list_status in config
+  cat > .intent/config.json << 'EOF'
+{
+  "version": "2.0.0",
+  "project_name": "Test Project",
+  "author": "Test",
+  "created": "2025-07-17",
+  "st_prefix": "ST",
+  "backlog_list_status": "todo"
+}
+EOF
+  
+  # Mock backlog command that echoes arguments
+  mkdir -p bin
+  cat > bin/backlog << 'EOF'
+#!/bin/bash
+echo "Backlog called with: $*"
+# Check if -s todo was passed
+if [[ "$*" == *"-s todo"* ]]; then
+  echo "Filtering by status: todo"
+  echo "todo:"
+  echo "  task-1 - ST0001 - Todo task"
+else
+  echo "No status filter applied"
+  echo "todo:"
+  echo "  task-1 - ST0001 - Todo task"
+  echo "done:"
+  echo "  task-2 - ST0002 - Done task"
+fi
+exit 0
+EOF
+  chmod +x bin/backlog
+  export PATH="$PWD/bin:$PATH"
+  
+  run run_intent bl list
+  assert_success
+  assert_output_contains "Backlog called with: task list --plain -s todo"
+  assert_output_contains "Filtering by status: todo"
+  assert_output_contains "task-1 - ST0001 - Todo task"
+  ! assert_output_contains "task-2 - ST0002 - Done task"
+}
+
+@test "bl list --all ignores backlog_list_status" {
+  project_dir=$(create_test_project "BL All Test")
+  cd "$project_dir"
+  
+  # Set backlog_list_status in config
+  cat > .intent/config.json << 'EOF'
+{
+  "version": "2.0.0",
+  "project_name": "Test Project",
+  "author": "Test",
+  "created": "2025-07-17",
+  "st_prefix": "ST",
+  "backlog_list_status": "todo"
+}
+EOF
+  
+  # Mock backlog command
+  mkdir -p bin
+  cat > bin/backlog << 'EOF'
+#!/bin/bash
+echo "Backlog called with: $*"
+# Check if -s flag was NOT passed (meaning show all)
+if [[ "$*" != *"-s"* ]]; then
+  echo "Showing all tasks"
+  echo "todo:"
+  echo "  task-1 - ST0001 - Todo task"
+  echo "done:"
+  echo "  task-2 - ST0002 - Done task"
+fi
+exit 0
+EOF
+  chmod +x bin/backlog
+  export PATH="$PWD/bin:$PATH"
+  
+  run run_intent bl list --all
+  assert_success
+  assert_output_contains "Showing all tasks"
+  assert_output_contains "task-1 - ST0001 - Todo task"
+  assert_output_contains "task-2 - ST0002 - Done task"
+}
+
+@test "bl list validates backlog_list_status" {
+  project_dir=$(create_test_project "BL Invalid Status Test")
+  cd "$project_dir"
+  
+  # Set invalid backlog_list_status in config
+  cat > .intent/config.json << 'EOF'
+{
+  "version": "2.0.0",
+  "project_name": "Test Project",
+  "author": "Test",
+  "created": "2025-07-17",
+  "st_prefix": "ST",
+  "backlog_list_status": "invalid-status"
+}
+EOF
+  
+  # Mock backlog command
+  mkdir -p bin
+  cat > bin/backlog << 'EOF'
+#!/bin/bash
+echo "Backlog called with: $*"
+exit 0
+EOF
+  chmod +x bin/backlog
+  export PATH="$PWD/bin:$PATH"
+  
+  run run_intent bl list
+  assert_success
+  assert_output_contains "Warning: Invalid backlog_list_status 'invalid-status'"
+  assert_output_contains "Valid statuses are: todo wip done cancelled archived"
+}

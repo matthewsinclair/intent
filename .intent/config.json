@@ -3,5 +3,8 @@
   "project_name": "Intent",
   "author": "matts",
   "created": "2025-07-16",
-  "st_prefix": "ST"
+  "st_prefix": "ST",
+  "backlog_dir": "backlog",
+  "intent_dir": "intent",
+  "backlog_list_status": "todo"
 }
