@@ -1,346 +1,232 @@
 #!/bin/bash
-# intent_init - Initialize a new Intent v2.0.0 project
+# intent_init - Initialize Intent v2.0.0 project
+# Usage: intent init [project_name]
 
 # Exit on error
 set -e
 
-# Source required libraries
+# Source common library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/intent_config"
-source "$SCRIPT_DIR/intent_helpers"
 
 # Load configuration
 load_intent_config
 
-# Function to display usage
-usage() {
-  cat << EOF
-Usage: intent init [PROJECT_NAME] [OPTIONS]
-
-Initialize a new Intent v2.0.0 project with clean structure.
-
-Arguments:
-  PROJECT_NAME    Name for the new project (optional, defaults to current directory)
-
-Options:
-  -h, --help      Show this help message
-  -a, --author    Set project author (default: from config)
-  -e, --editor    Set preferred editor (default: from config)
-  --no-git        Don't initialize git repository
-  --no-backlog    Don't initialize Backlog.md
-  --with-st       Create first steel thread (ST0001)
-
-Examples:
-  intent init                  # Initialize in current directory
-  intent init my-project       # Create new directory and initialize
-  intent init --with-st        # Initialize with first steel thread
-  intent init --author "John"  # Set custom author
-
-EOF
-  exit 0
+# Function to display error messages
+error() {
+  echo "Error: $1" >&2
+  exit 1
 }
 
-# Parse command line arguments
-PROJECT_NAME=""
-CUSTOM_AUTHOR=""
-CUSTOM_EDITOR=""
-NO_GIT=false
-NO_BACKLOG=false
-WITH_ST=false
+# Function to display usage information
+usage() {
+  echo "Usage: intent init [project_name]"
+  echo ""
+  echo "Initialize a new Intent v2.0.0 project in the current directory"
+  echo ""
+  echo "Arguments:"
+  echo "  project_name  Name of the project (optional, defaults to directory name)"
+  echo ""
+  echo "Example:"
+  echo "  intent init \"My Project\""
+  exit 1
+}
 
+# Parse options
 while [[ $# -gt 0 ]]; do
-  case $1 in
+  case "$1" in
     -h|--help)
       usage
       ;;
-    -a|--author)
-      CUSTOM_AUTHOR="$2"
-      shift 2
-      ;;
-    -e|--editor)
-      CUSTOM_EDITOR="$2"
-      shift 2
-      ;;
-    --no-git)
-      NO_GIT=true
-      shift
-      ;;
-    --no-backlog)
-      NO_BACKLOG=true
-      shift
-      ;;
-    --with-st)
-      WITH_ST=true
-      shift
-      ;;
     -*)
-      echo "Unknown option: $1" >&2
-      echo "Use --help for usage information" >&2
-      exit 1
+      error "Unknown option: $1"
       ;;
     *)
-      if [ -z "$PROJECT_NAME" ]; then
-        PROJECT_NAME="$1"
-      else
-        echo "Error: Multiple project names provided" >&2
-        exit 1
-      fi
-      shift
+      # First non-option argument is project name
+      break
       ;;
   esac
 done
 
-# Initialize project
-init_project() {
-  local project_dir="."
-  
-  # If project name provided, create directory
-  if [ -n "$PROJECT_NAME" ]; then
-    if [ -e "$PROJECT_NAME" ]; then
-      echo "Error: '$PROJECT_NAME' already exists" >&2
-      exit 1
-    fi
-    echo "Creating project directory: $PROJECT_NAME"
-    mkdir -p "$PROJECT_NAME"
-    project_dir="$PROJECT_NAME"
-    cd "$project_dir"
-  else
-    # Check if current directory is empty or has existing project
-    if [ -f ".intent/config.json" ] || [ -f ".stp-config" ] || [ -d "stp" ]; then
-      echo "Error: Current directory already contains a project" >&2
-      echo "Use 'intent upgrade' to migrate existing projects" >&2
-      exit 1
-    fi
-  fi
-  
-  echo "Initializing Intent v2.0.0 project..."
-  
-  # Create directory structure
-  create_v2_directory_structure "."
-  
-  # Set author and editor
-  local author="${CUSTOM_AUTHOR:-$AUTHOR}"
-  local editor="${CUSTOM_EDITOR:-$EDITOR}"
-  
-  # Create local config
-  cat > .intent/config.json << EOF
+# Get project name (default to current directory name)
+PROJECT_NAME="${1:-$(basename "$(pwd)")}"
+
+# Check if already initialized
+if [ -f ".intent/config.json" ]; then
+  error "This directory is already an Intent project"
+fi
+
+# Get author information
+AUTHOR="${INTENT_AUTHOR:-${USER:-Unknown}}"
+DATE="$(date '+%Y-%m-%d')"
+
+echo "Initializing Intent v2.0.0 project: $PROJECT_NAME"
+
+# Create directory structure
+echo "Creating directory structure..."
+mkdir -p .intent
+mkdir -p intent/{st,docs,llm}
+mkdir -p backlog
+
+# Create local configuration
+echo "Creating configuration..."
+cat > .intent/config.json << EOF
 {
-  "intent_version": "2.0.0",
-  "intent_dir": "intent",
-  "backlog_dir": "backlog",
-  "project": "${PROJECT_NAME:-$(basename "$PWD")}",
-  "author": "$author",
-  "editor": "$editor",
-  "created": "$(date +%Y-%m-%d)"
+  "version": "2.0.0",
+  "project_name": "$PROJECT_NAME",
+  "author": "$AUTHOR",
+  "created": "$DATE",
+  "st_prefix": "ST"
 }
 EOF
-  
-  echo "Created .intent/config.json"
-  
-  # Create initial documentation
-  cat > intent/ref/README.md << EOF
-# ${PROJECT_NAME:-$(basename "$PWD")}
 
-An Intent v2.0.0 project using the Steel Thread Process methodology.
+# Create version file
+cat > .intent/version << EOF
+2.0.0
+EOF
+
+# Create initial files from templates
+echo "Creating initial files..."
+
+# Template directory
+TEMPLATE_DIR="${INTENT_HOME}/lib/templates"
+
+# Create work in progress file
+if [ -f "$TEMPLATE_DIR/prj/_wip.md" ]; then
+  sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
+      -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
+      -e "s/\[\[DATE\]\]/$DATE/g" \
+      "$TEMPLATE_DIR/prj/_wip.md" > "intent/wip.md"
+else
+  # Create a basic wip.md if template not found
+  cat > "intent/wip.md" << EOF
+---
+verblock: "$DATE:v0.1: $AUTHOR - Initial version"
+---
+# Work In Progress - $PROJECT_NAME
+
+## Current Focus
+
+[Document your current work here]
+EOF
+fi
+
+# Create initial documentation
+cat > "intent/docs/technical_product_design.md" << EOF
+---
+verblock: "$DATE:v0.1: $AUTHOR - Initial version"
+---
+# Technical Product Design - $PROJECT_NAME
+
+## Preamble to Claude
+
+[Add project context and instructions for AI assistants here]
+
+## Overview
+
+[Project overview]
+
+## Architecture
+
+[System architecture]
+
+## Implementation
+
+[Implementation details]
+EOF
+
+# Create LLM preamble
+cat > "intent/llm/llm_preamble.md" << EOF
+---
+verblock: "$DATE:v0.1: $AUTHOR - Initial version"
+---
+# LLM Preamble - $PROJECT_NAME
+
+## Project Context
+
+This is the $PROJECT_NAME project, created by $AUTHOR on $DATE.
+
+## Instructions
+
+[Add specific instructions for AI assistants working on this project]
+EOF
+
+# Create CLAUDE.md
+cat > "CLAUDE.md" << EOF
+# $PROJECT_NAME Project Guidelines
+
+This is an Intent v2.0.0 project.
 
 ## Project Structure
 
-\`\`\`
-.
-├── .intent/          # Project configuration
-├── intent/           # Project artifacts
-│   ├── st/          # Steel threads
-│   ├── eng/         # Engineering documentation
-│   ├── ref/         # Reference documentation
-│   └── llm/         # LLM context
-└── backlog/         # Task management (Backlog.md)
-\`\`\`
+- \`intent/\` - Project artifacts (steel threads, docs, work tracking)
+- \`backlog/\` - Task management (if using Backlog.md)
+- \`.intent/\` - Configuration and metadata
 
-## Getting Started
+## Steel Threads
 
-1. Create your first steel thread:
-   \`\`\`bash
-   intent st new "Initial Feature"
-   \`\`\`
+Steel threads are organized as directories under \`intent/st/\`:
+- Each steel thread has its own directory (e.g., ST0001/)
+- Minimum required file is \`info.md\` with metadata
+- Optional files: design.md, impl.md, tasks.md, results.md
 
-2. View project status:
-   \`\`\`bash
-   intent status
-   \`\`\`
+## Commands
 
-3. Manage tasks with Backlog.md:
-   \`\`\`bash
-   intent bl board
-   \`\`\`
+- \`intent st new "Title"\` - Create a new steel thread
+- \`intent st list\` - List all steel threads
+- \`intent st show <id>\` - Show steel thread details
+- \`intent doctor\` - Check configuration
+- \`intent help\` - Get help
 
 ## Author
 
-$author
-
-## Created
-
-$(date +%Y-%m-%d)
+$AUTHOR
 EOF
+
+# Initialize git if not already a repository
+if [ ! -d .git ]; then
+  echo "Initializing git repository..."
+  git init
   
-  echo "Created intent/ref/README.md"
+  # Create .gitignore
+  cat > .gitignore << EOF
+# Intent configuration
+.intent/cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*~
+.vscode/
+.idea/
+EOF
+fi
+
+# Initialize Backlog.md if available
+if command -v backlog >/dev/null 2>&1; then
+  echo "Initializing Backlog.md..."
+  backlog init
   
-  # Initialize git repository
-  if [ "$NO_GIT" = false ] && ! git rev-parse --git-dir >/dev/null 2>&1; then
-    echo "Initializing git repository..."
-    git init -q
-    git add .
-    git commit -q -m "Initial commit: Intent v2.0.0 project structure"
-    echo "Created initial git commit"
+  # Configure backlog for Intent
+  if [ -f "backlog/.config" ]; then
+    echo "task_prefix=ST" >> backlog/.config
+    echo "default_status=todo" >> backlog/.config
   fi
-  
-  # Initialize Backlog.md
-  if [ "$NO_BACKLOG" = false ]; then
-    if command -v backlog >/dev/null 2>&1; then
-      echo "Initializing Backlog.md..."
-      backlog init >/dev/null 2>&1 || true
-      
-      # Update backlog config for Intent
-      if [ -f "backlog/config.yml" ]; then
-        # Add intent-specific settings if needed
-        echo "Configured Backlog.md for Intent"
-      fi
-    else
-      echo "Note: Backlog.md not found. Install it for task management:"
-      echo "  https://github.com/DavidAnson/backlog"
-    fi
-  fi
-  
-  # Create first steel thread if requested
-  if [ "$WITH_ST" = true ]; then
-    create_first_steel_thread "$author"
-  fi
-  
-  # Success message
-  echo ""
-  echo "✓ Intent project initialized successfully!"
-  echo ""
-  echo "Project location: $(pwd)"
-  echo "Configuration: .intent/config.json"
-  echo ""
-  echo "Next steps:"
-  echo "  1. Run 'intent doctor' to verify setup"
-  echo "  2. Create your first steel thread: intent st new \"Your Feature\""
-  echo "  3. Read the documentation: intent/ref/README.md"
-}
+fi
 
-# Create first steel thread
-create_first_steel_thread() {
-  local author=$1
-  local st_dir="intent/st/ST0001"
-  
-  echo "Creating first steel thread (ST0001)..."
-  mkdir -p "$st_dir"
-  
-  # Create info.md
-  cat > "$st_dir/info.md" << EOF
----
-verblock: "$(date +"%d %b %Y"):v0.1: $author - Initial version"
-intent_version: 2.0.0
-status: Not Started
-created: $(date +%Y%m%d)
-completed: 
----
-# ST0001: Project Setup and Configuration
-
-- **Status**: Not Started
-- **Created**: $(date +%Y-%m-%d)
-- **Completed**: 
-- **Author**: $author
-
-## Objective
-
-Set up the initial project structure and establish development workflow.
-
-## Context
-
-This is the first steel thread for the project, focusing on foundational setup.
-
-## Related Steel Threads
-
-None - this is the first steel thread.
-
-## Context for LLM
-
-This steel thread establishes the project foundation using Intent v2.0.0 structure.
-EOF
-  
-  # Create minimal design.md
-  cat > "$st_dir/design.md" << EOF
----
-verblock: "$(date +"%d %b %Y"):v0.1: $author - Initial version"
-intent_version: 2.0.0
----
-# ST0001: Design Document
-
-## Overview
-
-*To be completed*
-
-## Design Decisions
-
-*To be documented*
-EOF
-  
-  # Create tasks.md
-  cat > "$st_dir/tasks.md" << EOF
----
-verblock: "$(date +"%d %b %Y"):v0.1: $author - Initial version"
-intent_version: 2.0.0
----
-# ST0001: Task Tracking
-
-## Overview
-
-Tasks for this steel thread can be managed using Backlog.md:
-
-\`\`\`bash
-intent task create ST0001 "Define project requirements"
-intent task create ST0001 "Set up development environment"
-intent task list ST0001
-\`\`\`
-
-## Tasks
-
-- [ ] Define project goals and requirements
-- [ ] Set up development environment
-- [ ] Create initial documentation
-- [ ] Establish coding standards
-EOF
-  
-  # Create steel_threads.md index
-  cat > "intent/st/steel_threads.md" << EOF
----
-verblock: "$(date +"%d %b %Y"):v0.1: $author - Initial version"
-intent_version: 2.0.0
----
-# Steel Threads
-
-This document serves as an index of all steel threads in the project.
-
-## Index
-
-<!-- BEGIN: STEEL_THREAD_INDEX -->
-| ID | Title | Status | Created | Completed |
-|----|-------|--------|---------|-----------|
-| ST0001 | Project Setup and Configuration | Not Started | $(date +%Y-%m-%d) | |
-<!-- END: STEEL_THREAD_INDEX -->
-
-## Status Definitions
-
-- **Not Started**: Steel thread has been created but work has not begun
-- **In Progress**: Active development is underway
-- **Completed**: All objectives have been achieved
-- **On Hold**: Work has been paused
-- **Cancelled**: Steel thread will not be completed
-EOF
-  
-  echo "Created ST0001: Project Setup and Configuration"
-}
-
-# Run the initialization
-init_project
+echo ""
+echo "Intent project initialized successfully!"
+echo ""
+echo "Project: $PROJECT_NAME"
+echo "Author: $AUTHOR"
+echo "Version: 2.0.0"
+echo ""
+echo "Next steps:"
+echo "  1. Create your first steel thread: intent st new \"Initial Setup\""
+echo "  2. Update intent/wip.md with your current focus"
+echo "  3. Review CLAUDE.md for project guidelines"
+echo ""
+echo "For help, run: intent help"

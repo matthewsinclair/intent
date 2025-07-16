@@ -1,83 +1,108 @@
 #!/bin/bash
 # intent - Main command for Intent v2.0.0
-# This is a minimal wrapper for Phase 1 testing
+# Copyright (c) 2024 Matthew Sinclair
+# Licensed under the MIT License (see LICENSE file)
+# Usage: intent <command> [options] [arguments]
 
 # Version
-VERSION="2.0.0-alpha"
+INTENT_VERSION="2.0.0"
+
+# Exit on error
+set -e
+
+# Function to display error messages
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
 
 # Determine INTENT_HOME if not set
 if [ -z "$INTENT_HOME" ]; then
+  # First try to determine from the script location
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  export INTENT_HOME="$(dirname "$SCRIPT_DIR")"
+  if [ -d "$SCRIPT_DIR/../lib" ]; then
+    # We're likely in the bin directory of an Intent installation
+    export INTENT_HOME="$(cd "$SCRIPT_DIR/.." && pwd)"
+  elif [ -d "$SCRIPT_DIR/../../intent/lib" ]; then
+    # We're in the bin directory under intent
+    export INTENT_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
+  else
+    # Try to find Intent in common locations
+    for dir in ~/intent ~/.intent /usr/local/intent; do
+      if [ -d "$dir" ]; then
+        export INTENT_HOME="$dir"
+        break
+      fi
+    done
+  fi
+  
+  # If still not found, error out
+  if [ -z "$INTENT_HOME" ]; then
+    error "Could not determine INTENT_HOME. Please set it manually."
+  fi
 fi
+
+# Check if bin directory exists
+if [ ! -d "$INTENT_HOME/bin" ]; then
+  error "Invalid INTENT_HOME: bin directory not found at $INTENT_HOME/bin"
+fi
+
+# Set bin directory
+BIN_DIR="$INTENT_HOME/bin"
 
 # Source config library
-if [ -f "$INTENT_HOME/bin/intent_config" ]; then
-  source "$INTENT_HOME/bin/intent_config"
+if [ -f "$BIN_DIR/intent_config" ]; then
+  source "$BIN_DIR/intent_config"
+  # Load configuration
+  load_intent_config
 fi
 
-# Function to display help
-show_help() {
-  cat << EOF
-Intent v$VERSION - The Steel Thread Process Tool
-
-Usage: intent <command> [options] [arguments]
-
-Commands:
-  bootstrap    Initial setup for Intent
-  doctor       Check and fix configuration issues
-  init         Initialize a new Intent project
-  upgrade      Upgrade existing STP project to Intent v2.0.0
-  help         Show this help message
-  version      Show version information
-
-More commands will be available after full migration to v2.0.0.
-
-For help on a specific command:
-  intent <command> --help
-
-Examples:
-  intent bootstrap      # Set up Intent for first use
-  intent doctor         # Check your configuration
-  intent doctor --fix   # Fix configuration issues
-
-EOF
-}
-
-# Handle version flag
-if [ "$1" = "--version" ] || [ "$1" = "-v" ] || [ "$1" = "version" ]; then
-  echo "Intent version $VERSION"
-  echo "Migration phase: 1 (New Commands)"
-  exit 0
-fi
-
-# Handle help
-if [ $# -eq 0 ] || [ "$1" = "help" ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
-  show_help
-  exit 0
+# Display help if no arguments provided
+if [ $# -eq 0 ]; then
+  exec "$BIN_DIR/intent_help"
 fi
 
 # Get the command
 COMMAND="$1"
 shift
 
-# Route to appropriate command
+# Handle version flag
+if [ "$COMMAND" = "--version" ] || [ "$COMMAND" = "-v" ] || [ "$COMMAND" = "version" ]; then
+  echo "Intent version $INTENT_VERSION"
+  exit 0
+fi
+
+# Handle help command specially
+if [ "$COMMAND" = "help" ] || [ "$COMMAND" = "--help" ] || [ "$COMMAND" = "-h" ]; then
+  exec "$BIN_DIR/intent_help" "$@"
+fi
+
+# Map shortened commands to full names
 case "$COMMAND" in
-  bootstrap)
-    exec "$INTENT_HOME/bin/intent_bootstrap" "$@"
+  st)
+    COMMAND="st"
+    COMMAND_SCRIPT="intent_st"
     ;;
-  doctor)
-    exec "$INTENT_HOME/bin/intent_doctor" "$@"
-    ;;
-  init)
-    exec "$INTENT_HOME/bin/intent_init" "$@"
-    ;;
-  upgrade)
-    exec "$INTENT_HOME/bin/intent_upgrade" "$@"
+  bl)
+    COMMAND="bl"
+    COMMAND_SCRIPT="intent_bl"
     ;;
   *)
-    echo "Error: Unknown command '$COMMAND'" >&2
-    echo "Run 'intent help' for usage information" >&2
-    exit 1
+    # Default: prefix with intent_
+    COMMAND_SCRIPT="intent_$COMMAND"
     ;;
 esac
+
+# Check if command script exists
+if [ ! -f "$BIN_DIR/$COMMAND_SCRIPT" ]; then
+  error "Unknown command '$COMMAND'. Run 'intent help' for usage information."
+fi
+
+# Check if script is executable
+if [ ! -x "$BIN_DIR/$COMMAND_SCRIPT" ]; then
+  echo "Warning: Making script executable: $COMMAND_SCRIPT" >&2
+  chmod +x "$BIN_DIR/$COMMAND_SCRIPT"
+fi
+
+# Execute command with remaining arguments
+exec "$BIN_DIR/$COMMAND_SCRIPT" "$@"

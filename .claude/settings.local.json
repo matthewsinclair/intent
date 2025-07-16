@@ -29,7 +29,8 @@
       "Bash(/Users/matts/Devel/prj/STP/bin/stp-migrate:*)",
       "Bash(/Users/matts/Devel/prj/STP/bin/stp-task list:*)",
       "Bash(/Users/matts/Devel/prj/STP/bin/stp-status show:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(bash bin/intent_upgrade:*)"
     ],
     "deny": []
   }

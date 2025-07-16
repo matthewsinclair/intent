@@ -146,7 +146,9 @@ create_v2_directory_structure() {
   
   # Create directories
   mkdir -p "$project_root/.intent"
-  mkdir -p "$project_root/intent/st"
+  mkdir -p "$project_root/intent/st/COMPLETED"
+  mkdir -p "$project_root/intent/st/NOT-STARTED"
+  mkdir -p "$project_root/intent/st/CANCELLED"
   mkdir -p "$project_root/intent/eng/tpd"
   mkdir -p "$project_root/intent/ref"
   mkdir -p "$project_root/intent/llm"
@@ -305,4 +307,225 @@ count_migration_files() {
   [ -f "$project_root/stp/.config/version" ] && ((count++))
   
   echo $count
+}
+
+# Alias for compatibility
+detect_stp_version() {
+  detect_project_version "$@"
+}
+
+# Check if needs v2 migration
+needs_v2_migration() {
+  local version=$1
+  
+  case "$version" in
+    "2.0.0")
+      return 1  # Already v2
+      ;;
+    *)
+      return 0  # Needs migration
+      ;;
+  esac
+}
+
+# Migrate v0.0.0 to v2.0.0
+migrate_v0_to_v2() {
+  local project_root=$1
+  
+  echo "Migrating v0.0.0 structure..."
+  
+  # Create new structure
+  mkdir -p "$project_root/intent/st"
+  mkdir -p "$project_root/intent/docs"
+  
+  # Migrate steel threads
+  if [ -d "$project_root/stp/prj/st" ]; then
+    for file in "$project_root/stp/prj/st"/ST*.md; do
+      if [ -f "$file" ]; then
+        local basename=$(basename "$file" .md)
+        echo "  Migrating $basename..."
+        mkdir -p "$project_root/intent/st/$basename"
+        convert_yaml_frontmatter "$file"
+        mv "$file.tmp" "$project_root/intent/st/$basename/info.md"
+      fi
+    done
+  fi
+  
+  # Migrate other files
+  [ -f "$project_root/stp/prj/wip.md" ] && cp "$project_root/stp/prj/wip.md" "$project_root/intent/wip.md"
+  [ -f "$project_root/stp/eng/tpd/technical_product_design.md" ] && cp "$project_root/stp/eng/tpd/technical_product_design.md" "$project_root/intent/docs/"
+  
+  # Create config
+  local project_name=$(basename "$project_root")
+  local author="${USER:-Unknown}"
+  
+  cat > "$project_root/.intent/config.json" << EOF
+{
+  "version": "2.0.0",
+  "project_name": "$project_name",
+  "author": "$author",
+  "created": "$(date +%Y-%m-%d)",
+  "st_prefix": "ST"
+}
+EOF
+}
+
+# Migrate v1.2.0 to v2.0.0
+migrate_v1_2_0_to_v2() {
+  local project_root=$1
+  
+  echo "Migrating v1.2.0 structure..."
+  
+  # Migrate steel threads (flat files)
+  if [ -d "$project_root/stp/prj/st" ]; then
+    for file in "$project_root/stp/prj/st"/ST*.md; do
+      if [ -f "$file" ]; then
+        local basename=$(basename "$file" .md)
+        echo "  Migrating $basename..."
+        mkdir -p "$project_root/intent/st/$basename"
+        convert_yaml_frontmatter "$file"
+        mv "$file.tmp" "$project_root/intent/st/$basename/info.md"
+      fi
+    done
+  fi
+  
+  # Migrate other content
+  flatten_directory_structure "$project_root/stp/prj" "$project_root/intent"
+  flatten_directory_structure "$project_root/stp/eng/tpd" "$project_root/intent/docs"
+  flatten_directory_structure "$project_root/stp/llm" "$project_root/intent/llm"
+  
+  # Create config from existing YAML
+  if [ -f "$project_root/stp/.config/config" ]; then
+    convert_yaml_to_json "$project_root/stp/.config/config" "$project_root/.intent/config.json"
+  else
+    create_default_v2_config "$project_root"
+  fi
+}
+
+# Migrate v1.2.1 to v2.0.0
+migrate_v1_2_1_to_v2() {
+  local project_root=$1
+  
+  echo "Migrating v1.2.1 structure..."
+  
+  # This project actually uses v1.2.0 structure with status directories
+  # Migrate ALL steel threads from all locations
+  if [ -d "$project_root/stp/prj/st" ]; then
+    # First, migrate ST directories at the root level
+    for dir in "$project_root/stp/prj/st"/ST*/; do
+      if [ -d "$dir" ]; then
+        local basename=$(basename "$dir")
+        echo "  Migrating $basename..."
+        mkdir -p "$project_root/intent/st/$basename"
+        cp -r "$dir"/* "$project_root/intent/st/$basename/"
+        
+        # Update metadata in info.md
+        if [ -f "$project_root/intent/st/$basename/info.md" ]; then
+          convert_yaml_frontmatter "$project_root/intent/st/$basename/info.md" || true
+          [ -f "$project_root/intent/st/$basename/info.md.tmp" ] && mv "$project_root/intent/st/$basename/info.md.tmp" "$project_root/intent/st/$basename/info.md"
+        fi
+      fi
+    done
+    
+    # Then migrate from status directories (COMPLETED, NOT-STARTED, etc)
+    for status_dir in "$project_root/stp/prj/st"/*/; do
+      if [ -d "$status_dir" ] && [[ ! "$(basename "$status_dir")" =~ ^ST[0-9]+ ]]; then
+        local status_name=$(basename "$status_dir")
+        for st_dir in "$status_dir"/ST*/; do
+          if [ -d "$st_dir" ]; then
+            local basename=$(basename "$st_dir")
+            echo "  Migrating $basename from $status_name..."
+            mkdir -p "$project_root/intent/st/$status_name/$basename"
+            cp -r "$st_dir"/* "$project_root/intent/st/$status_name/$basename/"
+            
+            # Update metadata in info.md
+            if [ -f "$project_root/intent/st/$status_name/$basename/info.md" ]; then
+              convert_yaml_frontmatter "$project_root/intent/st/$status_name/$basename/info.md" || true
+              [ -f "$project_root/intent/st/$status_name/$basename/info.md.tmp" ] && mv "$project_root/intent/st/$status_name/$basename/info.md.tmp" "$project_root/intent/st/$status_name/$basename/info.md"
+            fi
+          fi
+        done
+      fi
+    done
+    
+    # Copy steel_threads.md
+    [ -f "$project_root/stp/prj/st/steel_threads.md" ] && cp "$project_root/stp/prj/st/steel_threads.md" "$project_root/intent/st/"
+  fi
+  
+  # Migrate other content
+  [ -f "$project_root/stp/prj/wip.md" ] && cp "$project_root/stp/prj/wip.md" "$project_root/intent/"
+  [ -d "$project_root/stp/eng/tpd" ] && cp -r "$project_root/stp/eng/tpd"/* "$project_root/intent/eng/tpd/" 2>/dev/null || true
+  [ -d "$project_root/stp/llm" ] && cp -r "$project_root/stp/llm"/* "$project_root/intent/llm/" 2>/dev/null || true
+  
+  # Create config
+  if [ -f "$project_root/stp/.config/config" ]; then
+    convert_yaml_to_json "$project_root/stp/.config/config" "$project_root/.intent/config.json"
+  else
+    create_default_v2_config "$project_root"
+  fi
+}
+
+# Create default v2 config
+create_default_v2_config() {
+  local project_root=$1
+  local project_name=$(basename "$project_root")
+  local author="${USER:-Unknown}"
+  
+  cat > "$project_root/.intent/config.json" << EOF
+{
+  "version": "2.0.0",
+  "project_name": "$project_name",
+  "author": "$author",
+  "created": "$(date +%Y-%m-%d)",
+  "st_prefix": "ST"
+}
+EOF
+}
+
+# Create CLAUDE.md for Intent v2.0.0
+create_claude_md() {
+  local project_root=$1
+  local project_name=$(jq -r '.project_name // "Project"' "$project_root/.intent/config.json" 2>/dev/null || echo "Project")
+  local author=$(jq -r '.author // "Unknown"' "$project_root/.intent/config.json" 2>/dev/null || echo "${USER:-Unknown}")
+  
+  cat > "$project_root/CLAUDE.md" << EOF
+# $project_name Project Guidelines
+
+This is an Intent v2.0.0 project (formerly STP).
+
+## Project Structure
+
+- \`intent/\` - Project artifacts (steel threads, docs, work tracking)
+  - \`st/\` - Steel threads organized as directories
+  - \`docs/\` - Technical documentation
+  - \`llm/\` - LLM-specific guidelines
+- \`backlog/\` - Task management (if using Backlog.md)
+- \`.intent/\` - Configuration and metadata
+
+## Steel Threads
+
+Steel threads are organized as directories under \`intent/st/\`:
+- Each steel thread has its own directory (e.g., ST0001/)
+- Minimum required file is \`info.md\` with metadata
+- Optional files: design.md, impl.md, tasks.md, results.md
+
+## Commands
+
+- \`intent st new "Title"\` - Create a new steel thread
+- \`intent st list\` - List all steel threads
+- \`intent st show <id>\` - Show steel thread details
+- \`intent doctor\` - Check configuration
+- \`intent help\` - Get help
+
+## Migration Notes
+
+This project was migrated from STP to Intent v2.0.0 on $(date +%Y-%m-%d).
+- Old structure: \`stp/prj/st/\`, \`stp/eng/\`, etc.
+- New structure: \`intent/st/\`, \`intent/docs/\`, etc.
+- Configuration moved from YAML to JSON format
+
+## Author
+
+$author
+EOF
 }
