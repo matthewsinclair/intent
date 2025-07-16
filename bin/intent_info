@@ -1,0 +1,112 @@
+#!/bin/bash
+# intent_info - Display Intent installation and project information
+# Usage: intent info
+
+# Exit on error
+set -e
+
+# Function to display error messages
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
+# Function to count files in a directory
+count_files() {
+  local dir="$1"
+  local pattern="${2:-*}"
+  if [ -d "$dir" ]; then
+    find "$dir" -name "$pattern" -type f 2>/dev/null | wc -l | tr -d ' '
+  else
+    echo "0"
+  fi
+}
+
+# Function to count directories
+count_dirs() {
+  local dir="$1"
+  if [ -d "$dir" ]; then
+    find "$dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' '
+  else
+    echo "0"
+  fi
+}
+
+# Display title
+echo "Intent: The Steel Thread Process"
+echo
+
+# Display Intent installation info
+echo "Installation:"
+echo "  INTENT_HOME:     ${INTENT_HOME:-<not set>}"
+echo "  Version:         ${INTENT_VERSION:-2.0.0}"
+echo "  Executable:      $(which intent 2>/dev/null || echo '<not in PATH>')"
+echo
+
+# Try to load config to find project
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/intent_config" ]; then
+  source "$SCRIPT_DIR/intent_config"
+  
+  # Try to find project root without failing
+  PROJECT_ROOT=$(find_project_root 2>/dev/null || echo "")
+fi
+
+# Display project info if in a project
+if [ -n "$PROJECT_ROOT" ]; then
+  echo "Project:"
+  echo "  Location:        $PROJECT_ROOT"
+  
+  # Try to load project config
+  if [ -f "$PROJECT_ROOT/.intent/config.json" ]; then
+    project_name=$(jq -r '.project_name // "Unknown"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null || echo "Unknown")
+    author=$(jq -r '.author // "Unknown"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null || echo "Unknown")
+    created=$(jq -r '.created_date // "Unknown"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null || echo "Unknown")
+    
+    echo "  Name:            $project_name"
+    echo "  Author:          $author"
+    echo "  Created:         $created"
+  fi
+  
+  # Count steel threads
+  echo
+  echo "Steel Threads:"
+  if [ -d "$PROJECT_ROOT/intent/st" ]; then
+    # Count by status
+    completed=$(count_dirs "$PROJECT_ROOT/intent/st/COMPLETED")
+    not_started=$(count_dirs "$PROJECT_ROOT/intent/st/NOT-STARTED")
+    cancelled=$(count_dirs "$PROJECT_ROOT/intent/st/CANCELLED")
+    in_progress=$(find "$PROJECT_ROOT/intent/st" -mindepth 1 -maxdepth 1 -type d -name "ST*" 2>/dev/null | wc -l | tr -d ' ')
+    
+    total=$((completed + not_started + cancelled + in_progress))
+    
+    echo "  Total:           $total"
+    echo "  In Progress:     $in_progress"
+    echo "  Completed:       $completed"
+    echo "  Not Started:     $not_started"
+    echo "  Cancelled:       $cancelled"
+  else
+    echo "  No steel threads found"
+  fi
+  
+  # Check for Backlog integration
+  if [ -f "$PROJECT_ROOT/backlog/Backlog.md" ]; then
+    echo
+    echo "Backlog:"
+    echo "  Status:          Active"
+    if command -v backlog &> /dev/null; then
+      # Try to get task count
+      task_count=$(cd "$PROJECT_ROOT" && backlog stat --format json 2>/dev/null | jq -r '.totalTasks // 0' 2>/dev/null || echo "Unknown")
+      echo "  Tasks:           $task_count"
+    fi
+  fi
+  
+else
+  echo "Project:"
+  echo "  Not in an Intent project directory"
+  echo
+  echo "To create a new project:  intent init"
+  echo "To see available commands: intent help"
+fi
+
+echo

@@ -1,7 +1,7 @@
 #!/bin/bash
 # intent_backlog - Wrapper for Backlog.md task management integration
-# Usage: stp backlog <command> [options] [arguments]
-# Also available as: stp bl <command> [options] [arguments]
+# Usage: intent backlog <command> [options] [arguments]
+# Also available as: intent bl <command> [options] [arguments]
 
 # Exit on error
 set -e
@@ -12,26 +12,26 @@ error() {
   exit 1
 }
 
-# Get STP_HOME from environment or determine from script location
-if [ -z "$STP_HOME" ]; then
+# Get INTENT_HOME from environment or determine from script location
+if [ -z "$INTENT_HOME" ]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  export STP_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
+  export INTENT_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
 fi
 
 # Check if backlog is installed
 if ! command -v backlog &> /dev/null; then
   echo "Error: Backlog.md is not installed" >&2
   echo "" >&2
-  cat "$STP_HOME/stp/bin/.help/backlog-install.help.md" >&2
+  cat "$INTENT_HOME/bin/.help/backlog-install.help.md" >&2
   exit 1
 fi
 
 # Function to display usage
 usage() {
-  echo "Usage: stp backlog <command> [options] [arguments]"
-  echo "       stp bl <command> [options] [arguments]"
+  echo "Usage: intent backlog <command> [options] [arguments]"
+  echo "       intent bl <command> [options] [arguments]"
   echo ""
-  echo "STP wrapper for Backlog.md task management"
+  echo "Intent wrapper for Backlog.md task management"
   echo ""
   echo "Commands:"
   echo "  init                       Initialize backlog in current project"
@@ -45,12 +45,12 @@ usage() {
   echo "This wrapper:"
   echo "  - Automatically uses --plain for list commands to avoid git errors"
   echo "  - Disables remote operations for local projects"
-  echo "  - Provides shortcuts for common STP workflows"
+  echo "  - Provides shortcuts for common Intent workflows"
   echo ""
   echo "Examples:"
-  echo "  stp bl list                    # List all tasks without git fetch"
-  echo "  stp bl create ST0014 \"Fix bug\" # Create task linked to ST0014"
-  echo "  stp bl task edit task-5        # Edit a specific task"
+  echo "  intent bl list                    # List all tasks without git fetch"
+  echo "  intent bl create ST0014 \"Fix bug\" # Create task linked to ST0014"
+  echo "  intent bl task edit task-5        # Edit a specific task"
   echo ""
   echo "For full backlog documentation, run: backlog help"
 }
@@ -62,22 +62,22 @@ init_backlog() {
   
   # Configure for local use
   if [ -f "backlog/config.yml" ]; then
-    echo "Configuring backlog for STP integration..."
+    echo "Configuring backlog for Intent integration..."
     # Disable remote operations to prevent git fetch errors
     backlog config set remoteOperations false >/dev/null 2>&1 || true
-    # Set default status to match STP conventions
+    # Set default status to match Intent conventions
     backlog config set defaultStatus "To Do" >/dev/null 2>&1 || true
-    echo "Backlog configured for local STP use."
+    echo "Backlog configured for local Intent use."
   fi
 }
 
-# Create a task with STP conventions
+# Create a task with Intent conventions
 create_task() {
   local st_id="$1"
   local title="$2"
   
   if [ -z "$st_id" ] || [ -z "$title" ]; then
-    error "Usage: stp bl create <ST####> <title>"
+    error "Usage: intent bl create <ST####> <title>"
   fi
   
   # Validate steel thread ID format

@@ -51,7 +51,7 @@ fi
 BIN_DIR="$INTENT_HOME/bin"
 
 # Define global commands that don't require project context
-GLOBAL_COMMANDS="help doctor bootstrap init version"
+GLOBAL_COMMANDS="help doctor bootstrap init version info"
 
 # Function to check if command is global
 is_global_command() {
@@ -62,10 +62,10 @@ is_global_command() {
   return 1
 }
 
-# Display help if no arguments provided
+# Display info if no arguments provided
 if [ $# -eq 0 ]; then
-  # Help is a global command, execute directly
-  exec "$BIN_DIR/intent_help"
+  # Info is a global command, execute directly
+  exec "$BIN_DIR/intent_info"
 fi
 
 # Get the command
@@ -122,9 +122,15 @@ if [ -f "$BIN_DIR/intent_config" ]; then
   # Load configuration
   load_intent_config
   
-  # Check if we found a project root
-  if [ -z "$PROJECT_ROOT" ]; then
-    error "Not in an Intent project directory. Run 'intent init' to create a new project or navigate to an existing one."
+  # Check if we found a project root (check for empty or unset)
+  if [ -z "${PROJECT_ROOT:-}" ] || [ "$PROJECT_ROOT" = "" ]; then
+    echo "Error: Not in an Intent project directory." >&2
+    echo "" >&2
+    echo "The '$COMMAND' command requires an Intent project." >&2
+    echo "" >&2
+    echo "To create a new project:  intent init" >&2
+    echo "To see all commands:      intent help" >&2
+    exit 1
   fi
 else
   error "Missing intent_config library. Intent installation may be corrupted."

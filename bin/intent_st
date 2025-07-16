@@ -1,6 +1,6 @@
 #!/bin/bash
 # intent_st - Manage steel threads in directory structure
-# Usage: stp_st <command> [options] [arguments]
+# Usage: intent_st <command> [options] [arguments]
 
 # Exit on error
 set -e
@@ -13,7 +13,7 @@ error() {
 
 # Function to display usage information
 usage() {
-  echo "Usage: stp st <command> [options] [arguments]"
+  echo "Usage: intent st <command> [options] [arguments]"
   echo ""
   echo "Manage steel threads for the project"
   echo ""
@@ -35,12 +35,12 @@ usage() {
   echo "  all     - Show all files combined (show only)"
   echo ""
   echo "Examples:"
-  echo "  stp st new \"Implement Feature X\""
-  echo "  stp st done ST0001"
-  echo "  stp st list --status \"In Progress\" --width 100"
-  echo "  stp st show ST0001"
-  echo "  stp st show ST0001 design"
-  echo "  stp st edit ST0001 impl"
+  echo "  intent st new \"Implement Feature X\""
+  echo "  intent st done ST0001"
+  echo "  intent st list --status \"In Progress\" --width 100"
+  echo "  intent st show ST0001"
+  echo "  intent st show ST0001 design"
+  echo "  intent st edit ST0001 impl"
   exit 1
 }
 
@@ -51,8 +51,12 @@ if [ $# -lt 1 ]; then
 fi
 
 # Load project configuration if available
-if [ -f stp/.config/config ]; then
-  source stp/.config/config
+if [ -f .intent/config.json ]; then
+  # Parse JSON config (simplified extraction)
+  ST_PREFIX=$(grep -oE '"st_prefix"[[:space:]]*:[[:space:]]*"[^"]+"' .intent/config.json | cut -d'"' -f4 || echo "ST")
+  AUTHOR=$(grep -oE '"author"[[:space:]]*:[[:space:]]*"[^"]+"' .intent/config.json | cut -d'"' -f4 || echo "$USER")
+elif [ -f intent/.config/config ]; then
+  source intent/.config/config
 elif [ -f .stp-config ]; then
   # For backward compatibility
   source .stp-config
@@ -64,6 +68,16 @@ shift
 
 # Function to check if we're using directory structure (v1.2.1+)
 is_directory_structure() {
+  # Intent v2.0.0 always uses directory structure
+  if [ -f .intent/config.json ]; then
+    return 0  # true - using directory structure
+  fi
+  # Check legacy version for backward compatibility
+  local intent_version=$(grep -m 1 "^intent_version:" intent/.config/version 2>/dev/null | sed "s/^intent_version: *//")
+  if [ -n "$intent_version" ]; then
+    return 0  # true - using directory structure
+  fi
+  # Check even older stp_version
   local stp_version=$(grep -m 1 "^stp_version:" stp/.config/version 2>/dev/null | sed "s/^stp_version: *//")
   if [[ "$stp_version" > "1.2.0" ]] || [[ "$stp_version" == "1.2.1" ]]; then
     return 0  # true - using directory structure
@@ -77,11 +91,11 @@ get_st_path() {
   local st_id="$1"
   local status="$2"
   local file_name="${3:-info.md}"  # Default to info.md
-  local base_dir="stp/prj/st"
+  local base_dir="intent/st"
   local test_env=0
   
   # Check if we're in a test environment
-  if [[ "${TEST_TEMP_DIR:-}" != "" ]] || [[ "$(pwd)" == /tmp* ]] || [[ "$(pwd)" == */stp/tests/* ]]; then
+  if [[ "${TEST_TEMP_DIR:-}" != "" ]] || [[ "$(pwd)" == /tmp* ]] || [[ "$(pwd)" == */intent/tests/* ]]; then
     test_env=1
   fi
   
@@ -170,7 +184,7 @@ get_st_path() {
 # Function to get the next steel thread ID
 get_next_steel_thread_id() {
   local st_prefix="${ST_PREFIX:-ST}"
-  local base_dir="stp/prj/st"
+  local base_dir="intent/st"
   local next_id=1
   local max_id=0
   
@@ -218,7 +232,7 @@ update_steel_threads_index() {
   local status="$3"
   local created="$4"
   local completed="$5"
-  local index_file="stp/prj/st/steel_threads.md"
+  local index_file="intent/st/steel_threads.md"
   
   # Create index file if it doesn't exist
   if [ ! -f "$index_file" ]; then
@@ -264,7 +278,7 @@ case "$ST_COMMAND" in
     ST_ID=$(get_next_steel_thread_id)
     ST_STATUS="Not Started"
     DATE=$(date '+%Y-%m-%d')
-    AUTHOR="${STP_AUTHOR:-${AUTHOR:-$(git config user.name 2>/dev/null || echo "$USER")}}"
+    AUTHOR="${INTENT_AUTHOR:-${AUTHOR:-$(git config user.name 2>/dev/null || echo "$USER")}}"
     
     if is_directory_structure; then
       # Create directory structure
@@ -308,7 +322,7 @@ case "$ST_COMMAND" in
         cat > "$ST_DIR/info.md" << EOF
 ---
 verblock: "$(date '+%d %b %Y'):v0.1: $AUTHOR - Initial version"
-stp_version: 1.2.1
+intent_version: 2.0.0
 status: $ST_STATUS
 created: $(date '+%Y%m%d')
 completed: 
@@ -466,7 +480,7 @@ EOF
       esac
     done
     
-    ST_DIR="stp/prj/st"
+    ST_DIR="intent/st"
     
     # Check if ST directory exists
     if [ ! -d "$ST_DIR" ]; then
@@ -872,7 +886,7 @@ EOF
     done
     
     # Paths
-    ST_DIR="stp/prj/st"
+    ST_DIR="intent/st"
     INDEX_FILE="$ST_DIR/steel_threads.md"
     
     # Basic validation
@@ -925,7 +939,7 @@ EOF
       esac
     done
     
-    BASE_DIR="stp/prj/st"
+    BASE_DIR="intent/st"
     
     # Create required directories if they don't exist
     mkdir -p "$BASE_DIR/COMPLETED" "$BASE_DIR/NOT-STARTED" "$BASE_DIR/CANCELLED"

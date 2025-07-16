@@ -52,6 +52,7 @@ Formerly known as STP (Steel Thread Process).
 Usage: intent <command> [options] [arguments]
 
 Core:
+  info             Display Intent status and project information
   init             Initialize a new Intent project
   st               Manage steel threads
   bl               Backlog.md integration

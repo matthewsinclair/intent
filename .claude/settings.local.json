@@ -30,7 +30,13 @@
       "Bash(/Users/matts/Devel/prj/STP/bin/stp-task list:*)",
       "Bash(/Users/matts/Devel/prj/STP/bin/stp-status show:*)",
       "Bash(mv:*)",
-      "Bash(bash bin/intent_upgrade:*)"
+      "Bash(bash bin/intent_upgrade:*)",
+      "Bash(/Users/matts/Devel/prj/Intent/bin/intent bl --help)",
+      "Bash(bats:*)",
+      "Bash(./tests/run_tests.sh:*)",
+      "Bash(git checkout:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(./bin/intent:*)"
     ],
     "deny": []
   }
