@@ -133,7 +133,7 @@ verbose() {
 doctor_check() {
   if [ "$QUIET" != true ]; then
     echo "Intent Doctor v2.0.0"
-    echo "==================="
+    echo "===================="
     echo ""
   fi
   

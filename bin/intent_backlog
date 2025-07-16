@@ -1,5 +1,5 @@
 #!/bin/bash
-# stp_backlog - Wrapper for Backlog.md to provide tighter STP integration
+# intent_backlog - Wrapper for Backlog.md task management integration
 # Usage: stp backlog <command> [options] [arguments]
 # Also available as: stp bl <command> [options] [arguments]
 

@@ -5,12 +5,8 @@
 # Exit on error
 set -e
 
-# Source common library
+# Source common library (but don't load project config - help is a global command)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/intent_config" ]; then
-  source "$SCRIPT_DIR/intent_config"
-  load_intent_config
-fi
 
 # Function to display error messages
 error() {
@@ -55,26 +51,26 @@ Formerly known as STP (Steel Thread Process).
 
 Usage: intent <command> [options] [arguments]
 
-Core Commands:
-  init        Initialize a new Intent project
-  st          Manage steel threads
-  bl          Backlog.md integration
-  doctor      Check and fix configuration
-  upgrade     Upgrade from STP to Intent v2.0.0
-  help        Display help information
+Core:
+  init             Initialize a new Intent project
+  st               Manage steel threads
+  bl               Backlog.md integration
+  doctor           Check and fix configuration
+  upgrade          Upgrade from STP to Intent v2.0.0
+  help             Display help information
 
-Configuration Commands:
-  bootstrap   Initial Intent setup (first-time users)
-  config      Display configuration settings
+Configuration:
+  bootstrap        Initial Intent setup (first-time users)
+  config           Display configuration settings
 
-Utility Commands:
-  task        Create and manage tasks linked to steel threads
-  status      Show project and steel thread status
-  migrate     Migrate tasks from steel threads to Backlog.md
-  llm         Display LLM-specific guidance
-  organize    Organize steel threads by status
+Utility:
+  task             Create and manage tasks linked to steel threads
+  status           Show project and steel thread status
+  migrate          Migrate tasks from steel threads to Backlog.md
+  llm              Display LLM-specific guidance
+  organize         Organize steel threads by status
 
-Available commands:
+Other:
 EOF
 
 # Find all intent_* commands in bin directory
@@ -98,14 +94,14 @@ for script in "$INTENT_HOME"/bin/intent_*; do
                    awk '{$1=$1}1' | \
                    tr '\n' ' ' | \
                    sed 's/^ *//; s/ *$//')
-      printf "  %-12s %s\n" "$cmd_name" "$short_desc"
+      printf "  %-16s %s\n" "$cmd_name" "$short_desc"
     else
       # Try to get description from script header
       desc=$(head -n 10 "$script" | grep -E "^# intent_$cmd_name -" | sed "s/^# intent_$cmd_name - //")
       if [ -n "$desc" ]; then
-        printf "  %-12s %s\n" "$cmd_name" "$desc"
+        printf "  %-16s %s\n" "$cmd_name" "$desc"
       else
-        printf "  %-12s %s\n" "$cmd_name" "(no description available)"
+        printf "  %-16s %s\n" "$cmd_name" "(no description available)"
       fi
     fi
   fi

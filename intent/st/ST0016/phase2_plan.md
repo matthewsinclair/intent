@@ -52,7 +52,7 @@ detect_stp_version() {
 #### 2.2 Backup Creation
 ```bash
 create_backup() {
-  local backup_dir=".stp_backup_$(date +%Y%m%d_%H%M%S)"
+  local backup_dir=".backup_$(date +%Y%m%d_%H%M%S)"
   # Copy all relevant directories
   # Create manifest of backed up files
   # Return backup location

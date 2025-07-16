@@ -1,5 +1,5 @@
 #!/bin/bash
-# stp_bl - Shorthand alias for stp_backlog
+# intent_bl - Shorthand alias for intent_backlog
 # This simply calls stp_backlog with all arguments
 
 # Get the directory where this script is located

@@ -125,7 +125,7 @@ find_project_root() {
 
 bootstrap_intent() {
   echo "Intent Bootstrap v2.0.0"
-  echo "====================="
+  echo "======================="
   
   # 1. Detect or validate INTENT_HOME
   if [ -z "$INTENT_HOME" ]; then
@@ -197,7 +197,7 @@ doctor_check() {
   [ "$1" = "--fix" ] && fix_mode=true
   
   echo "Intent Doctor v2.0.0"
-  echo "==================="
+  echo "===================="
   echo ""
   
   local errors=0
@@ -335,7 +335,7 @@ upgrade_to_v2() {
   fi
   
   # Create backup
-  local backup_dir=".stp_backup_$(date +%Y%m%d_%H%M%S)"
+  local backup_dir=".backup_$(date +%Y%m%d_%H%M%S)"
   if [ "$dry_run" = false ]; then
     echo "Creating backup in $backup_dir..."
     mkdir -p "$backup_dir"

@@ -1,5 +1,5 @@
 #!/bin/bash
-# stp_migrate - Migrate embedded tasks from steel threads to Backlog
+# intent_migrate - Migrate tasks from steel threads to Backlog
 # Usage: stp migrate [options] <ST####>
 
 # Exit on error
