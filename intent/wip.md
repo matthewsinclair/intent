@@ -15,162 +15,157 @@ Read CLAUDE.md then wait for instruction.
 
 #### Todo
 
-⏺ Comprehensive Restart Prompt for Intent v2.0.0 Implementation
+  Detailed Restart Prompt for Intent v2.0.0 Implementation (ST0016)
 
-# Intent v2.0.0 Implementation Session
+  Session Context
 
-  I need you to implement the Intent v2.0.0 upgrade as specified in ST0016. This is a major refactoring of the STP (Steel Thread
-  Process) CLI tool, renaming it from "stp" to "intent" with significant architectural improvements.
+  You are continuing work on ST0016: Rename STP CLI to INTENT (v2.0.0). This is a major refactoring that has made significant
+  progress but needs completion.
 
-## Critical Context
+  Project Location: /Users/matts/Devel/prj/IntentCurrent Branch: mainLast Working State: Tests passing (83/83), repository
+  restructured, new commands implemented
 
-  1. **Current Location**: `/Users/matts/Devel/prj/STP/`
-  2. **Steel Thread**: ST0016 is currently In Progress at `stp/prj/st/ST0016/`
-  3. **Approach**: FAIL-FORWARD - No rollback mechanisms, we fix issues as we go
-  4. **User**: Single user (Matthew Sinclair) who understands the changes
+  Current Implementation Status
 
-## Your Primary References
+  ✅ Completed (Phases 0-2)
 
-  Read these files FIRST to understand the complete plan:
+  1. Repository Structure:
+    - Executables moved from stp/bin/ to top-level bin/
+    - All scripts renamed from stp_*to intent_*
+    - Backward compatibility symlink stp → intent created
+    - Project now uses Intent v2.0.0 structure
+  2. New Commands Implemented:
+    - intent bootstrap - Sets up global config at ~/.config/intent/config.json
+    - intent doctor - Configuration diagnostics with --fix mode
+    - intent upgrade - Migrates STP projects to Intent v2.0.0
+  3. Configuration System:
+    - JSON-based configs (.intent/config.json local, ~/.config/intent/config.json global)
+    - Config loading hierarchy: env vars → local → global → defaults
+    - No external dependencies (pure bash JSON parsing)
+  4. Test Infrastructure:
+    - Examples directory with test projects (v0.0.0, v1.2.0, v1.2.1, hello-world)
+    - BATS test suite with 83 passing tests
+    - Test helper infrastructure (tests/lib/test_helper.bash)
 
-- `stp/prj/st/ST0016/info.md` - Overview and objectives
-- `stp/prj/st/ST0016/design.md` - Detailed design with all phases
-- `stp/prj/st/ST0016/impl.md` - Technical implementation details
-- `stp/prj/st/ST0016/tasks.md` - Task breakdown by phase
+  ⏳ In Progress (Phase 3)
 
-## Implementation Order (CRITICAL - FOLLOW EXACTLY)
+  Current Tasks (from backlog):
 
-### Phase 0: Test Infrastructure (DO THIS FIRST!)
+- task-69: Test migrations on example projects
+- task-70: Execute self-migration to new structure
 
-  Before ANY other implementation:
+  ❌ Not Started (Phases 4-7)
 
-  1. Create `examples/` directory at project root
-  2. Create test fixtures:
-     - `examples/v0.0.0-project/` - Ancient .stp-config format
-     - `examples/v1.2.0-project/` - File-based steel threads
-     - `examples/v1.2.1-project/` - Directory-based steel threads
-     - `examples/hello-world/` - Clean v2.0.0 structure
-  3. Write comprehensive BATS test suite in `tests/upgrade/`
-  4. Document expected test outcomes
-  5. Create test harness for migration scenarios
+- Command updates for remaining subcommands
+- Documentation updates (README, migration guide)
+- Bootstrap and release preparation
 
-### Phase 1: New Commands
+  Critical Information
 
-  1. Implement `intent bootstrap` command:
-     - Auto-detect INTENT_HOME
-     - Create global config at `~/.config/intent/config.json`
-     - Provide PATH setup instructions
-  2. Implement `intent doctor` command:
-     - Configuration diagnostics
-     - JSON validation
-     - --fix mode for auto-repairs
+  Directory Structure (Current)
 
-### Phase 2: Configuration System
-
-  1. Implement JSON config parsing (NO external dependencies)
-  2. Config loading hierarchy:
-     - Global: `~/.config/intent/config.json` (XDG standard)
-     - Local: `.intent/config.json`
-     - Environment variables override all
-  3. Project root detection logic
-
-### Phase 3: Repository Restructuring
-
-  1. Move `stp/bin/*` → `bin/`
-  2. Rename executables:
-     - `stp` → `intent`
-     - `stp_*` → `intent_*`
-     - Create `stp` → `intent` symlink
-  3. Move `stp/_templ/` → `lib/templates/`
-  4. Flatten project structure:
-     - `stp/prj/st/` → `intent/st/`
-     - `stp/eng/` → `intent/eng/`
-     - `stp/usr/` → `intent/ref/`
-
-### Phase 4: Upgrade Command
-
-  1. Implement version detection with clear error handling
-  2. Create backup mechanism (timestamp-based)
-  3. Migration logic for each version:
-     - v0.0.0 → v2.0.0
-     - v1.2.0 → v2.0.0
-     - v1.2.1 → v2.0.0
-  4. Convert configs to JSON format
-  5. Update all documentation files
-
-### Phase 5: Command Updates
-
-  Update all commands to use:
-
-- Configured directory names ($INTENT_DIR)
-- New flattened structure (st/ not prj/st/)
-- JSON config loading
-
-### Phase 6: Documentation
-
-  1. Update README.md
-  2. Update CHANGELOG.md
-  3. Create migration guide
-  4. Update all command docs
-
-## Key Technical Details
-
-### JSON Config Format
-
-  ```json
-  {
-    "intent_version": "2.0.0",
-    "intent_dir": "intent",
-    "backlog_dir": "backlog",
-    "author": "Matthew Sinclair",
-    "editor": "vim"
-  }
-
-  Directory Structure (Final)
-
-  $INTENT_HOME/
-  ├── .intent/              # Local config for intent-on-itself
+  /Users/matts/Devel/prj/Intent/
+  ├── .intent/              # Local config
   │   └── config.json
-  ├── bin/                  # Tool executables
+  ├── bin/                  # Executables (moved from stp/bin/)
   │   ├── intent
   │   ├── intent_*
   │   └── stp -> intent
-  ├── lib/                  # Tool resources
-  │   └── templates/
-  ├── intent/               # Project artifacts
-  │   ├── st/              # Steel threads (flattened)
-  │   ├── eng/
-  │   ├── ref/             # Was usr/
-  │   ├── llm/
-  │   └── _archive/
-  ├── backlog/             # Backlog.md directory
+  ├── intent/               # Project artifacts (was stp/)
+  │   ├── st/              # Steel threads
+  │   ├── docs/
+  │   └── llm/
+  ├── backlog/             # Backlog.md integration
   ├── examples/            # Test projects
-  ├── docs/                # Tool documentation
-  └── tests/               # Tool tests
+  ├── tests/               # BATS test suite
+  └── CLAUDE.md            # Project instructions
 
-  Critical Implementation Notes
+  Known Issues
 
-  1. Version Detection: If unable to determine version, FAIL with clear error message
-  2. Config Parsing: Use simple sed/grep for JSON (no jq dependency)
-  3. Error Messages: Must be clear and actionable
-  4. Testing: Create tests BEFORE implementation
-  5. Self-Hosting: Remember that intent uses STP on itself (meta usage)
+  1. Backlog Task Status: Many completed tasks still marked as "todo" in backlog
+  2. Test Coverage: Reduced from 186 to 83 tests (see tests/RECOVERY_PLAN.md)
+  3. Git History: Shows "borked" commits during Phase 2, but latest state is working
 
-  Session Goals
+  Key Implementation Notes
 
-  1. Complete Phase 0 (test infrastructure) entirely
-  2. Begin Phase 1 (new commands) if time permits
-  3. Use Backlog.md to track detailed tasks: stp task create ST0016 "<task>"
-  4. Update ST0016 files as implementation progresses
-  5. Commit changes with clear messages
+  1. Fail-Forward Approach: No rollback mechanisms - fix issues as they arise
+  2. Self-Hosting: This project uses Intent on itself (meta usage)
+  3. JSON Parsing: Using sed/grep, no jq dependency
+  4. Error Handling: All version detection must fail with clear messages
+  5. Testing First: Always write tests before implementation
+
+  Your Mission
+
+  Primary Objectives
+
+  1. Complete Phase 3: Test migrations on all example projects
+
+# Run migration tests
+
+  cd examples/v0.0.0-project && ../../bin/intent upgrade --dry-run
+  cd examples/v1.2.0-project && ../../bin/intent upgrade --dry-run
+  cd examples/v1.2.1-project && ../../bin/intent upgrade --dry-run
+  2. Execute Self-Migration (task-70):
+    - Backup current state first
+    - Run intent upgrade on the Intent project itself
+    - Verify all functionality still works
+  3. Update Backlog Tasks:
+    - Mark completed tasks as done
+    - Create new tasks for remaining work
+
+  Secondary Objectives (if time permits)
+
+  4. Recover Test Coverage:
+    - Follow tests/RECOVERY_PLAN.md
+    - Priority: doctor tests, migrate tests, integration tests
+  5. Documentation Updates:
+    - Update README.md for v2.0.0
+    - Create migration guide
+    - Update command help text
+
+  Commands to Get Started
+
+# Verify current state
+
+  ./tests/run_tests.sh              # Should show 83/83 passing
+  ./bin/intent doctor               # Check configuration
+  ./bin/intent st show ST0016       # Review steel thread
+
+# Check backlog status
+
+  ./bin/intent task list ST0016     # List all ST0016 tasks
+  ./bin/intent bl list --plain | grep ST0016  # Alternative view
+
+# Start work
+
+  ./bin/intent task sync ST0016     # Sync task status
+
+  Important Files to Review
+
+  1. intent/st/ST0016/info.md - Overview and current status
+  2. intent/st/ST0016/tasks.md - Detailed task breakdown
+  3. intent/st/ST0016/impl.md - Technical implementation details
+  4. tests/RECOVERY_PLAN.md - Plan to restore missing tests
+  5. CLAUDE.md - Project-specific instructions
+
+  Success Criteria
+
+- All example projects can be successfully migrated
+- The Intent project itself is migrated to v2.0.0 structure
+- All tests pass after migration
+- Documentation reflects v2.0.0 changes
+- Clean git history with meaningful commits
+
+  Remember: This is a fail-forward implementation. If something breaks, fix it and move forward. Do not implement rollback
+  mechanisms.
 
   Important Reminders
 
-  - The tool is being renamed from "stp" to "intent"
-  - The Steel Thread Process (STP) methodology remains unchanged
-  - ST#### numbering continues as before
-  - This is a fail-forward implementation - no rollback needed
-  - Test everything thoroughly before proceeding to next phase
+- The tool is being renamed from "stp" to "intent"
+- The Steel Thread Process (STP) methodology remains unchanged
+- ST#### numbering continues as before
+- This is a fail-forward implementation - no rollback needed
+- Test everything thoroughly before proceeding to next phase
 
   Start by reading all ST0016/*.md files, then begin with Phase 0. Good luck!
 
