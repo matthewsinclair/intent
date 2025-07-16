@@ -26,6 +26,8 @@ Usage: intent <command> [options] [arguments]
 Commands:
   bootstrap    Initial setup for Intent
   doctor       Check and fix configuration issues
+  init         Initialize a new Intent project
+  upgrade      Upgrade existing STP project to Intent v2.0.0
   help         Show this help message
   version      Show version information
 
@@ -66,6 +68,12 @@ case "$COMMAND" in
     ;;
   doctor)
     exec "$INTENT_HOME/bin/intent_doctor" "$@"
+    ;;
+  init)
+    exec "$INTENT_HOME/bin/intent_init" "$@"
+    ;;
+  upgrade)
+    exec "$INTENT_HOME/bin/intent_upgrade" "$@"
     ;;
   *)
     echo "Error: Unknown command '$COMMAND'" >&2
