@@ -91,14 +91,14 @@ stp bl board
 
 ### Understanding STP
 - **[Technical Product Design](./stp/eng/tpd/technical_product_design.md)** - The complete vision and architecture of STP
-- **[Blog Series](./stp/doc/blog/)** - In-depth exploration of STP concepts:
-  - [Motivation for STP](./stp/doc/blog/0000-motivation-for-stp.md) - Why intention matters in software
-  - [Introduction to STP](./stp/doc/blog/0001-introduction-to-stp.md) - What STP is and how it works
-  - [The Steel Thread Methodology](./stp/doc/blog/0002-the-steel-thread-methodology.md) - Deep dive into steel threads
-  - [Intent Capture in Software Development](./stp/doc/blog/0003-intent-capture-in-software-development.md) - Practical techniques
-  - [LLM Collaboration with STP](./stp/doc/blog/0004-llm-collaboration-with-stp.md) - Enhancing AI assistance
-  - [Getting Started with STP](./stp/doc/blog/0005-getting-started-with-stp.md) - Practical implementation guide
-  - [Next Steps and Future Work](./stp/doc/blog/0006-next-steps-and-future-work.md) - Roadmap and vision
+- **[Blog Series](./docs/blog/)** - In-depth exploration of Intent concepts:
+  - [Motivation for Intent](./docs/blog/0000-motivation-for-intent.md) - Why intention matters in software
+  - [Introduction to Intent](./docs/blog/0001-introduction-to-intent.md) - What Intent is and how it works
+  - [The Steel Thread Methodology](./docs/blog/0002-the-steel-thread-methodology.md) - Deep dive into steel threads
+  - [Intent Capture in Software Development](./docs/blog/0003-intent-capture-in-software-development.md) - Practical techniques
+  - [LLM Collaboration with Intent](./docs/blog/0004-llm-collaboration-with-intent.md) - Enhancing AI assistance
+  - [Getting Started with Intent](./docs/blog/0005-getting-started-with-intent.md) - Practical implementation guide
+  - [Next Steps and Future Work](./docs/blog/0006-next-steps-and-future-work.md) - Roadmap and vision
 
 ### Project Management
 - **[Work in Progress (WIP)](./stp/prj/wip.md)** - Current tasks and daily focus
@@ -173,7 +173,7 @@ We welcome contributions! The best way to contribute is to:
 3. Break down work into Backlog tasks
 4. Submit a PR referencing your steel thread
 
-See our [contribution workflow](./stp/doc/blog/0006-next-steps-and-future-work.md#contributing-to-stp) for details.
+See our [contribution workflow](./docs/blog/0006-next-steps-and-future-work.md#contributing-to-intent) for details.
 
 ## 🎯 Use Cases
 
@@ -194,7 +194,7 @@ STP is evolving to become the standard for intention-aware development:
 - **Q3 2025**: Native AI integrations (MCP support)
 - **Q4 2025**: Enterprise features and scalability
 
-See our [roadmap](./stp/doc/blog/0006-next-steps-and-future-work.md#roadmap-the-next-12-months) for details.
+See our [roadmap](./docs/blog/0006-next-steps-and-future-work.md#roadmap-the-next-12-months) for details.
 
 ## 📖 Philosophy
 
@@ -206,7 +206,7 @@ STP transforms software development from a purely technical exercise into a prac
 
 - **Quick Start**: Run `stp help` for command overview
 - **User Guide**: See [comprehensive guide](./stp/usr/user_guide.md)
-- **Examples**: Check the [blog series](./stp/doc/blog/) for real-world usage
+- **Examples**: Check the [blog series](./docs/blog/) for real-world usage
 - **Issues**: Report bugs on [GitHub Issues](https://github.com/matthewsinclair/stp/issues)
 
 ## 📄 License
