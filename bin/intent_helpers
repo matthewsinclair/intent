@@ -1,0 +1,308 @@
+#!/bin/bash
+# intent_helpers - Shared functions for Intent v2.0.0 migration and utilities
+
+# Convert YAML frontmatter to JSON format
+convert_yaml_frontmatter() {
+  local file=$1
+  local temp_file="${file}.tmp"
+  
+  # Check if file has YAML frontmatter
+  if ! head -1 "$file" | grep -q "^---$"; then
+    return 0  # No frontmatter, nothing to do
+  fi
+  
+  # Extract frontmatter and content
+  local in_frontmatter=false
+  local frontmatter=""
+  local content=""
+  local line_num=0
+  
+  while IFS= read -r line; do
+    ((line_num++))
+    if [ $line_num -eq 1 ] && [ "$line" = "---" ]; then
+      in_frontmatter=true
+    elif [ "$in_frontmatter" = true ] && [ "$line" = "---" ]; then
+      in_frontmatter=false
+    elif [ "$in_frontmatter" = true ]; then
+      frontmatter="${frontmatter}${line}\n"
+    else
+      content="${content}${line}\n"
+    fi
+  done < "$file"
+  
+  # Convert common fields
+  echo "---" > "$temp_file"
+  
+  # Extract and convert fields using more flexible parsing
+  while IFS= read -r line; do
+    if echo "$line" | grep -q "^stp_version:"; then
+      # Convert stp_version to intent_version
+      local version=$(echo "$line" | sed 's/stp_version:[[:space:]]*//')
+      echo "intent_version: 2.0.0" >> "$temp_file"
+    elif echo "$line" | grep -qE "^(verblock|status|created|completed|author):"; then
+      # Keep these fields as-is
+      echo "$line" >> "$temp_file"
+    fi
+  done <<< "$frontmatter"
+  
+  echo "---" >> "$temp_file"
+  printf "%b" "$content" >> "$temp_file"
+  
+  # Replace original file
+  mv "$temp_file" "$file"
+}
+
+# Update stp_version to intent_version in frontmatter
+update_version_in_frontmatter() {
+  local file=$1
+  
+  if [ ! -f "$file" ]; then
+    return 1
+  fi
+  
+  # Use sed to replace stp_version with intent_version
+  if grep -q "^stp_version:" "$file"; then
+    sed -i.bak 's/^stp_version:/intent_version:/' "$file"
+    rm -f "${file}.bak"
+  fi
+}
+
+# Convert YAML config to JSON config
+convert_yaml_config_to_json() {
+  local yaml_file=$1
+  local json_file=$2
+  
+  # For .stp-config files, we need custom parsing
+  if [ "$(basename "$yaml_file")" = ".stp-config" ]; then
+    {
+      echo "{"
+      
+      # Parse common fields from .stp-config
+      local first=true
+      while IFS= read -r line; do
+        # Skip comments and empty lines
+        if echo "$line" | grep -qE "^#|^$"; then
+          continue
+        fi
+        
+        # Extract key-value pairs
+        if echo "$line" | grep -q ":"; then
+          local key=$(echo "$line" | cut -d: -f1 | tr -d ' ')
+          local value=$(echo "$line" | cut -d: -f2- | sed 's/^ *//' | tr -d '"')
+          
+          # Map old keys to new ones
+          case "$key" in
+            project_name)
+              [ "$first" = false ] && echo ","
+              echo -n "  \"project\": \"$value\""
+              first=false
+              ;;
+            author)
+              [ "$first" = false ] && echo ","
+              echo -n "  \"author\": \"$value\""
+              first=false
+              ;;
+            stp_dir|st_dir)
+              # Skip these, we use standard names
+              ;;
+            editor)
+              [ "$first" = false ] && echo ","
+              echo -n "  \"editor\": \"$value\""
+              first=false
+              ;;
+            default_status)
+              # Skip, not used in v2.0.0
+              ;;
+          esac
+        fi
+      done < "$yaml_file"
+      
+      # Add standard v2.0.0 fields
+      [ "$first" = false ] && echo ","
+      echo "  \"intent_version\": \"2.0.0\","
+      echo "  \"intent_dir\": \"intent\","
+      echo "  \"backlog_dir\": \"backlog\""
+      
+      echo "}"
+    } > "$json_file"
+  else
+    # For other YAML files, try to use yq if available
+    if command -v yq >/dev/null 2>&1; then
+      yq -o json "$yaml_file" > "$json_file"
+    else
+      # Fallback: create minimal JSON
+      echo "{" > "$json_file"
+      echo "  \"intent_version\": \"2.0.0\"," >> "$json_file"
+      echo "  \"intent_dir\": \"intent\"," >> "$json_file"
+      echo "  \"backlog_dir\": \"backlog\"" >> "$json_file"
+      echo "}" >> "$json_file"
+    fi
+  fi
+}
+
+# Create standard v2.0.0 directory structure
+create_v2_directory_structure() {
+  local project_root=$1
+  
+  # Create directories
+  mkdir -p "$project_root/.intent"
+  mkdir -p "$project_root/intent/st"
+  mkdir -p "$project_root/intent/eng/tpd"
+  mkdir -p "$project_root/intent/ref"
+  mkdir -p "$project_root/intent/llm"
+  mkdir -p "$project_root/backlog"
+  
+  # Create .gitignore if it doesn't exist
+  if [ ! -f "$project_root/.gitignore" ]; then
+    cat > "$project_root/.gitignore" << 'EOF'
+# Intent/STP specific
+.intent/local.json
+*.bak
+.stp_backup_*
+
+# Backlog.md
+backlog/.backlog-md/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Editor specific
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+EOF
+  fi
+}
+
+# Flatten nested directory structure
+flatten_directory_structure() {
+  local old_base=$1  # e.g., stp/prj/st
+  local new_base=$2  # e.g., intent/st
+  
+  if [ ! -d "$old_base" ]; then
+    return 0
+  fi
+  
+  # Create new base directory
+  mkdir -p "$new_base"
+  
+  # Move all contents
+  if [ -n "$(ls -A "$old_base")" ]; then
+    mv "$old_base"/* "$new_base/" 2>/dev/null || true
+    mv "$old_base"/.[!.]* "$new_base/" 2>/dev/null || true
+  fi
+}
+
+# Detect current STP/Intent version
+detect_project_version() {
+  local project_root=${1:-.}
+  
+  # Check for v2.0.0 (Intent)
+  if [ -f "$project_root/.intent/config.json" ]; then
+    local version=$(jq -r '.intent_version // empty' "$project_root/.intent/config.json" 2>/dev/null)
+    if [ -n "$version" ]; then
+      echo "$version"
+      return 0
+    fi
+  fi
+  
+  # Check for v1.2.0+ (version file)
+  if [ -f "$project_root/stp/.config/version" ]; then
+    local version=$(grep "^stp_version:" "$project_root/stp/.config/version" | sed 's/stp_version:[[:space:]]*//')
+    if [ -n "$version" ]; then
+      echo "$version"
+      return 0
+    fi
+  fi
+  
+  # Check for v0.0.0 (.stp-config)
+  if [ -f "$project_root/.stp-config" ]; then
+    echo "0.0.0"
+    return 0
+  fi
+  
+  # Check for directory structure patterns
+  if [ -d "$project_root/stp/prj/st" ]; then
+    # Has STP structure but no version - assume 1.0.0
+    echo "1.0.0"
+    return 0
+  fi
+  
+  # Unable to determine version
+  return 1
+}
+
+# Create backup of project
+create_project_backup() {
+  local project_root=$1
+  local backup_dir=".stp_backup_$(date +%Y%m%d_%H%M%S)"
+  
+  echo "Creating backup in $backup_dir..."
+  mkdir -p "$project_root/$backup_dir"
+  
+  # Create backup manifest
+  {
+    echo "Backup created: $(date)"
+    echo "Original version: $(detect_project_version "$project_root" || echo "unknown")"
+    echo "Files backed up:"
+  } > "$project_root/$backup_dir/manifest.txt"
+  
+  # Backup relevant directories and files
+  for item in stp .stp-config .intent intent backlog; do
+    if [ -e "$project_root/$item" ]; then
+      echo "Backing up $item..."
+      cp -r "$project_root/$item" "$project_root/$backup_dir/"
+      echo "  $item" >> "$project_root/$backup_dir/manifest.txt"
+    fi
+  done
+  
+  echo "$backup_dir"
+}
+
+# Check if migration is needed
+needs_migration() {
+  local version=$1
+  
+  # Already at v2.0.0
+  if [ "$version" = "2.0.0" ]; then
+    return 1
+  fi
+  
+  # All other versions need migration
+  return 0
+}
+
+# Display migration summary
+show_migration_summary() {
+  local from_version=$1
+  local file_count=$2
+  local backup_dir=$3
+  
+  echo ""
+  echo "Migration Summary:"
+  echo "  From version: $from_version"
+  echo "  To version: 2.0.0"
+  echo "  Files affected: $file_count"
+  echo "  Backup location: $backup_dir"
+  echo ""
+}
+
+# Count files that will be migrated
+count_migration_files() {
+  local project_root=$1
+  local count=0
+  
+  # Count Markdown files
+  if [ -d "$project_root/stp" ]; then
+    count=$(find "$project_root/stp" -name "*.md" -type f | wc -l)
+  fi
+  
+  # Add config files
+  [ -f "$project_root/.stp-config" ] && ((count++))
+  [ -f "$project_root/stp/.config/version" ] && ((count++))
+  
+  echo $count
+}

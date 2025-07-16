@@ -1,0 +1,331 @@
+#!/bin/bash
+# intent_upgrade - Upgrade existing STP projects to Intent v2.0.0
+
+# Exit on error
+set -e
+
+# Source required libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/intent_config"
+source "$SCRIPT_DIR/intent_helpers"
+
+# Function to display usage
+usage() {
+  cat << EOF
+Usage: intent upgrade [OPTIONS]
+
+Upgrade an existing STP project to Intent v2.0.0 structure.
+
+Options:
+  -h, --help       Show this help message
+  -n, --dry-run    Show what would be done without making changes
+  -y, --yes        Skip confirmation prompts
+  -v, --verbose    Show detailed progress
+  --backup-only    Create backup without migrating
+  --no-backup      Skip backup creation (dangerous!)
+
+Examples:
+  intent upgrade              # Upgrade current project
+  intent upgrade --dry-run    # Preview changes
+  intent upgrade --yes        # Skip confirmation
+
+Migration includes:
+  - Convert .stp-config or YAML configs to JSON
+  - Flatten directory structure (stp/prj/st → intent/st)
+  - Update frontmatter (stp_version → intent_version)
+  - Create v2.0.0 configuration files
+
+EOF
+  exit 0
+}
+
+# Parse command line arguments
+DRY_RUN=false
+AUTO_YES=false
+VERBOSE=false
+BACKUP_ONLY=false
+NO_BACKUP=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help)
+      usage
+      ;;
+    -n|--dry-run)
+      DRY_RUN=true
+      shift
+      ;;
+    -y|--yes)
+      AUTO_YES=true
+      shift
+      ;;
+    -v|--verbose)
+      VERBOSE=true
+      shift
+      ;;
+    --backup-only)
+      BACKUP_ONLY=true
+      shift
+      ;;
+    --no-backup)
+      NO_BACKUP=true
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      echo "Use --help for usage information" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# Verbose output helper
+verbose() {
+  if [ "$VERBOSE" = true ]; then
+    echo "  → $*"
+  fi
+}
+
+# Dry run helper
+dry_run() {
+  if [ "$DRY_RUN" = true ]; then
+    echo "[DRY RUN] $*"
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Migration functions for each version
+
+# Migrate from v0.0.0 (ancient .stp-config)
+migrate_v0_0_0() {
+  echo "Migrating from v0.0.0 (ancient .stp-config format)..."
+  
+  # Convert .stp-config to .intent/config.json
+  if [ -f ".stp-config" ]; then
+    verbose "Converting .stp-config to JSON format"
+    if ! dry_run "Convert .stp-config to .intent/config.json"; then
+      mkdir -p .intent
+      convert_yaml_config_to_json ".stp-config" ".intent/config.json"
+      verbose "Created .intent/config.json"
+    fi
+  fi
+  
+  # Flatten and move directories
+  if [ -d "stp/prj/st" ]; then
+    verbose "Flattening steel thread structure"
+    if ! dry_run "Move stp/prj/st/* to intent/st/"; then
+      flatten_directory_structure "stp/prj/st" "intent/st"
+    fi
+  fi
+  
+  if [ -d "stp/eng" ]; then
+    verbose "Moving engineering docs"
+    if ! dry_run "Move stp/eng/* to intent/eng/"; then
+      flatten_directory_structure "stp/eng" "intent/eng"
+    fi
+  fi
+  
+  if [ -d "stp/usr" ]; then
+    verbose "Moving user docs to reference"
+    if ! dry_run "Move stp/usr/* to intent/ref/"; then
+      flatten_directory_structure "stp/usr" "intent/ref"
+    fi
+  fi
+  
+  # Update frontmatter in all markdown files
+  verbose "Updating frontmatter in Markdown files"
+  if ! dry_run "Update frontmatter"; then
+    find intent -name "*.md" -type f | while read -r file; do
+      convert_yaml_frontmatter "$file"
+      verbose "Updated: $file"
+    done
+  fi
+  
+  # Clean up old structure
+  if ! dry_run "Remove old .stp-config"; then
+    rm -f .stp-config
+    verbose "Removed .stp-config"
+  fi
+}
+
+# Migrate from v1.2.0 (file-based steel threads)
+migrate_v1_2_0() {
+  echo "Migrating from v1.2.0 (file-based steel threads)..."
+  
+  # Create .intent/config.json
+  verbose "Creating Intent configuration"
+  if ! dry_run "Create .intent/config.json"; then
+    mkdir -p .intent
+    cat > .intent/config.json << EOF
+{
+  "intent_version": "2.0.0",
+  "intent_dir": "intent",
+  "backlog_dir": "backlog",
+  "author": "${AUTHOR:-$USER}",
+  "editor": "${EDITOR:-vim}"
+}
+EOF
+    verbose "Created .intent/config.json"
+  fi
+  
+  # Flatten directories
+  if [ -d "stp/prj/st" ]; then
+    verbose "Moving steel threads"
+    if ! dry_run "Move stp/prj/st/* to intent/st/"; then
+      flatten_directory_structure "stp/prj/st" "intent/st"
+    fi
+  fi
+  
+  if [ -d "stp/eng" ]; then
+    verbose "Moving engineering docs"
+    if ! dry_run "Move stp/eng/* to intent/eng/"; then
+      flatten_directory_structure "stp/eng" "intent/eng"
+    fi
+  fi
+  
+  if [ -d "stp/usr" ]; then
+    verbose "Moving user docs to reference"
+    if ! dry_run "Move stp/usr/* to intent/ref/"; then
+      flatten_directory_structure "stp/usr" "intent/ref"
+    fi
+  fi
+  
+  if [ -d "stp/llm" ]; then
+    verbose "Moving LLM context"
+    if ! dry_run "Move stp/llm/* to intent/llm/"; then
+      flatten_directory_structure "stp/llm" "intent/llm"
+    fi
+  fi
+  
+  # Update frontmatter
+  verbose "Updating frontmatter in Markdown files"
+  if ! dry_run "Update frontmatter"; then
+    find intent -name "*.md" -type f | while read -r file; do
+      update_version_in_frontmatter "$file"
+      verbose "Updated: $file"
+    done
+  fi
+}
+
+# Migrate from v1.2.1 (directory-based steel threads)
+migrate_v1_2_1() {
+  echo "Migrating from v1.2.1 (directory-based steel threads)..."
+  
+  # Same as v1.2.0 but handles directory structure
+  migrate_v1_2_0
+}
+
+# Main upgrade function
+upgrade_project() {
+  # Detect current version
+  echo "Detecting current project version..."
+  local current_version=$(detect_project_version ".")
+  
+  if [ -z "$current_version" ]; then
+    echo "ERROR: Unable to determine current project version" >&2
+    echo "" >&2
+    echo "This could mean:" >&2
+    echo "  1. This is not an STP/Intent project" >&2
+    echo "  2. The project structure is corrupted" >&2
+    echo "  3. This is a very old version we don't recognize" >&2
+    echo "" >&2
+    echo "Please verify this is an STP project before proceeding." >&2
+    exit 1
+  fi
+  
+  echo "Current version: $current_version"
+  
+  # Check if already v2.0.0
+  if [ "$current_version" = "2.0.0" ]; then
+    echo "Project is already at Intent v2.0.0"
+    exit 0
+  fi
+  
+  # Count files to be migrated
+  local file_count=$(count_migration_files ".")
+  
+  # Create backup unless disabled
+  local backup_dir=""
+  if [ "$NO_BACKUP" = false ]; then
+    if [ "$DRY_RUN" = false ]; then
+      backup_dir=$(create_project_backup ".")
+    else
+      backup_dir=".stp_backup_TIMESTAMP"
+      echo "[DRY RUN] Would create backup in $backup_dir"
+    fi
+  fi
+  
+  # If backup only, stop here
+  if [ "$BACKUP_ONLY" = true ]; then
+    echo "Backup created successfully in: $backup_dir"
+    exit 0
+  fi
+  
+  # Show migration summary
+  show_migration_summary "$current_version" "$file_count" "$backup_dir"
+  
+  # Confirm unless auto-yes or dry-run
+  if [ "$AUTO_YES" = false ] && [ "$DRY_RUN" = false ]; then
+    read -p "Proceed with migration? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo "Migration cancelled"
+      exit 0
+    fi
+  fi
+  
+  # Perform migration based on version
+  case "$current_version" in
+    0.0.0)
+      migrate_v0_0_0
+      ;;
+    1.0.0|1.1.*|1.2.0)
+      migrate_v1_2_0
+      ;;
+    1.2.1)
+      migrate_v1_2_1
+      ;;
+    *)
+      echo "ERROR: Don't know how to migrate from version $current_version" >&2
+      exit 1
+      ;;
+  esac
+  
+  # Clean up empty directories
+  if [ "$DRY_RUN" = false ]; then
+    # Remove empty stp directories
+    if [ -d "stp" ]; then
+      find stp -type d -empty -delete 2>/dev/null || true
+      # If stp is now empty, remove it
+      rmdir stp 2>/dev/null || true
+    fi
+  fi
+  
+  # Final success message
+  if [ "$DRY_RUN" = true ]; then
+    echo ""
+    echo "[DRY RUN] Migration would be complete!"
+    echo "Run without --dry-run to perform the actual migration."
+  else
+    echo ""
+    echo "✓ Migration to Intent v2.0.0 complete!"
+    echo ""
+    echo "Backup saved in: $backup_dir"
+    echo ""
+    echo "Next steps:"
+    echo "  1. Run 'intent doctor' to verify the migration"
+    echo "  2. Review the changes and test your commands"
+    echo "  3. Update your PATH to include the Intent bin directory"
+    echo ""
+    echo "If you encounter issues, you can restore from backup:"
+    echo "  cp -r $backup_dir/* ."
+  fi
+}
+
+# Load configuration before starting
+load_intent_config
+
+# Run the upgrade
+upgrade_project
