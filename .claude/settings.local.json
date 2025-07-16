@@ -28,7 +28,8 @@
       "Bash(backlog:*)",
       "Bash(/Users/matts/Devel/prj/STP/bin/stp-migrate:*)",
       "Bash(/Users/matts/Devel/prj/STP/bin/stp-task list:*)",
-      "Bash(/Users/matts/Devel/prj/STP/bin/stp-status show:*)"
+      "Bash(/Users/matts/Devel/prj/STP/bin/stp-status show:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }
