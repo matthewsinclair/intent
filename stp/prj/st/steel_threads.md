@@ -11,6 +11,7 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 ID         | Title                     | Status       | Created    | Completed 
 -----------|---------------------------|--------------|------------|-----------
+ST0016     | Rename STP CLI to INTENT (v2.0.0) | In Progress  | 2025-07-16 |           
 ST0015     | Enhanced Steel Thread ... | Not Started  | 2025-07-09 |           
 ST0014     | Directory Structure fo... | Completed    | 2025-03-20 | 2025-07-09
 ST0013     | STP Blog Post Series      | Completed    | 2025-03-11 | 2025-07-08
