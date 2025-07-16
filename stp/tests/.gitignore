@@ -1,9 +1,0 @@
-# Bats libraries (should be installed by setup_test_env.sh)
-lib/bats-*
-
-# Temporary test files
-tmp/
-
-# Editor backups
-*.bak
-*.tmp

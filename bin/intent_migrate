@@ -11,17 +11,17 @@ error() {
   exit 1
 }
 
-# Get STP_HOME from environment or determine from script location
-if [ -z "$STP_HOME" ]; then
+# Get INTENT_HOME from environment or determine from script location
+if [ -z "$INTENT_HOME" ]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  export STP_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
+  export INTENT_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
 fi
 
 # Check if backlog is installed
 if ! command -v backlog &> /dev/null; then
   echo "Error: Backlog.md is not installed" >&2
   echo "" >&2
-  cat "$STP_HOME/stp/bin/.help/backlog-install.help.md" >&2
+  cat "$INTENT_HOME/bin/.help/backlog-install.help.md" >&2
   exit 1
 fi
 
@@ -60,15 +60,15 @@ find_steel_thread() {
   local st_file=""
   
   # Check main directory
-  if [ -f "$STP_HOME/stp/prj/st/${st_id}.md" ]; then
-    st_file="$STP_HOME/stp/prj/st/${st_id}.md"
+  if [ -f "$INTENT_HOME/intent/st/${st_id}.md" ]; then
+    st_file="$INTENT_HOME/intent/st/${st_id}.md"
   # Check subdirectories
-  elif [ -f "$STP_HOME/stp/prj/st/COMPLETED/${st_id}.md" ]; then
-    st_file="$STP_HOME/stp/prj/st/COMPLETED/${st_id}.md"
-  elif [ -f "$STP_HOME/stp/prj/st/NOT-STARTED/${st_id}.md" ]; then
-    st_file="$STP_HOME/stp/prj/st/NOT-STARTED/${st_id}.md"
-  elif [ -f "$STP_HOME/stp/prj/st/CANCELLED/${st_id}.md" ]; then
-    st_file="$STP_HOME/stp/prj/st/CANCELLED/${st_id}.md"
+  elif [ -f "$INTENT_HOME/intent/st/COMPLETED/${st_id}.md" ]; then
+    st_file="$INTENT_HOME/intent/st/COMPLETED/${st_id}.md"
+  elif [ -f "$INTENT_HOME/intent/st/NOT-STARTED/${st_id}.md" ]; then
+    st_file="$INTENT_HOME/intent/st/NOT-STARTED/${st_id}.md"
+  elif [ -f "$INTENT_HOME/intent/st/CANCELLED/${st_id}.md" ]; then
+    st_file="$INTENT_HOME/intent/st/CANCELLED/${st_id}.md"
   fi
   
   echo "$st_file"
@@ -122,14 +122,14 @@ create_backlog_task() {
   
   echo "  Creating task: $title"
   
-  # Use stp bl wrapper to create the task
-  if output=$("$STP_HOME/stp/bin/stp" bl create "$st_id" "$description" 2>&1); then
+  # Use intent bl wrapper to create the task
+  if output=$("$INTENT_HOME/bin/intent" bl create "$st_id" "$description" 2>&1); then
     # Extract task ID from output
     task_id=$(echo "$output" | grep -oE "task-[0-9]+" | head -1)
     
     if [ -n "$task_id" ] && [ "$status" = "done" ]; then
       # Update status to Done (capital D for Backlog)
-      "$STP_HOME/stp/bin/stp" bl task edit "$task_id" --status Done >/dev/null 2>&1
+      "$INTENT_HOME/bin/intent" bl task edit "$task_id" --status Done >/dev/null 2>&1
       echo "    Task created and marked as done: $task_id"
     else
       echo "    Task created: $task_id"
@@ -161,7 +161,7 @@ update_steel_thread() {
     BEGIN { in_tasks = 0; tasks_replaced = 0 }
     /^## Tasks/ { 
       print $0
-      print "Tasks are tracked in Backlog. View with: `stp task list '"$st_id"'`"
+      print "Tasks are tracked in Backlog. View with: `intent task list '"$st_id"'`"
       print ""
       in_tasks = 1
       tasks_replaced = 1
@@ -235,7 +235,7 @@ migrate_steel_thread() {
 # Get all active steel threads
 get_active_threads() {
   # Get threads that are In Progress, Not Started, or On Hold
-  "$STP_HOME/stp/bin/stp" st list | grep -E "(In Progress|Not Started|On Hold)" | awk -F'|' '{print $1}' | grep -oE "ST[0-9]{4}"
+  "$INTENT_HOME/bin/intent" st list | grep -E "(In Progress|Not Started|On Hold)" | awk -F'|' '{print $1}' | grep -oE "ST[0-9]{4}"
 }
 
 # Main processing

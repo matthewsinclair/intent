@@ -68,8 +68,8 @@ load_intent_config() {
   AUTHOR="${USER}"
   EDITOR="${EDITOR:-vim}"
   
-  # Find project root
-  PROJECT_ROOT=$(find_project_root)
+  # Find project root (ignore exit code to prevent set -e from exiting)
+  PROJECT_ROOT=$(find_project_root || true)
   
   # Load global config (XDG standard location)
   if [ -f "$HOME/.config/intent/config.json" ]; then

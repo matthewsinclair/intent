@@ -1,6 +1,6 @@
 #!/bin/bash
 # intent_task - Manage Backlog tasks linked to steel threads
-# Usage: stp task <command> [options] [arguments]
+# Usage: intent task <command> [options] [arguments]
 
 # Exit on error
 set -e
@@ -11,23 +11,23 @@ error() {
   exit 1
 }
 
-# Get STP_HOME from environment or determine from script location
-if [ -z "$STP_HOME" ]; then
+# Get INTENT_HOME from environment or determine from script location
+if [ -z "$INTENT_HOME" ]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  export STP_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
+  export INTENT_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
 fi
 
 # Check if backlog is installed
 if ! command -v backlog &> /dev/null; then
   echo "Error: Backlog.md is not installed" >&2
   echo "" >&2
-  cat "$STP_HOME/stp/bin/.help/backlog-install.help.md" >&2
+  cat "$INTENT_HOME/bin/.help/backlog-install.help.md" >&2
   exit 1
 fi
 
 # Function to display usage
 usage() {
-  echo "Usage: stp task <command> [options] [arguments]"
+  echo "Usage: intent task <command> [options] [arguments]"
   echo ""
   echo "Manage Backlog tasks linked to Steel Threads"
   echo ""
@@ -37,9 +37,9 @@ usage() {
   echo "  sync <ST####>              Sync task status with steel thread"
   echo ""
   echo "Examples:"
-  echo "  stp task create ST0014 \"Update documentation\""
-  echo "  stp task list ST0014"
-  echo "  stp task sync ST0014"
+  echo "  intent task create ST0014 \"Update documentation\""
+  echo "  intent task list ST0014"
+  echo "  intent task sync ST0014"
 }
 
 # Validate steel thread ID format
@@ -64,7 +64,7 @@ create_task() {
   validate_st_id "$st_id" || exit 1
   
   # Check if steel thread exists
-  if ! "$STP_HOME/stp/bin/stp" st show "$st_id" >/dev/null 2>&1; then
+  if ! "$INTENT_HOME/bin/intent" st show "$st_id" >/dev/null 2>&1; then
     echo "Error: Steel thread $st_id not found" >&2
     exit 1
   fi
@@ -73,8 +73,8 @@ create_task() {
   local full_title="$st_id - $title"
   echo "Creating task: $full_title"
   
-  # Use stp bl wrapper to create the task
-  if "$STP_HOME/stp/bin/stp" bl create "$st_id" "$title"; then
+  # Use intent bl wrapper to create the task
+  if "$INTENT_HOME/bin/intent" bl create "$st_id" "$title"; then
     echo "Task created successfully"
   else
     exit 1
@@ -95,7 +95,7 @@ list_tasks() {
   echo "================"
   
   # Check task files directly
-  for task_file in "$STP_HOME/backlog/tasks"/task-*.md; do
+  for task_file in "$INTENT_HOME/backlog/tasks"/task-*.md; do
     if [ -f "$task_file" ]; then
       # Check if the task title contains the steel thread ID
       if grep -q "^title:.*$st_id" "$task_file"; then
@@ -172,10 +172,10 @@ sync_status() {
   echo ""
   echo "Recommended steel thread status: $st_status"
   
-  # Note: Actual status update would be done by stp-status command
+  # Note: Actual status update would be done by intent-status command
   echo ""
   echo "To update steel thread status, run:"
-  echo "  stp-status sync $st_id"
+  echo "  intent-status sync $st_id"
 }
 
 # Display usage if no arguments provided
@@ -203,6 +203,6 @@ case "$1" in
     exit 0
     ;;
   *)
-    error "Unknown command: $1. Run 'stp task help' for usage information."
+    error "Unknown command: $1. Run 'intent task help' for usage information."
     ;;
 esac

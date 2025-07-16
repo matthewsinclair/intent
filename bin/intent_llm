@@ -1,6 +1,6 @@
 #!/bin/bash
 # intent_llm - Manage LLM prompts and context files
-# Usage: stp_llm <subcommand> [options]
+# Usage: intent_llm <subcommand> [options]
 
 # Exit on error
 set -e
@@ -14,29 +14,29 @@ error() {
 # Function to display usage
 usage() {
   cat << EOF
-Usage: stp llm <subcommand> [options]
+Usage: intent llm <subcommand> [options]
 
 LLM-related commands for working with AI assistants.
 
 Subcommands:
-  usage_rules    Display the STP usage rules for LLMs
+  usage_rules    Display the Intent usage rules for LLMs
 
 Options for usage_rules:
   --symlink [dir]    Create a symlink to usage-rules.md in current or specified directory
 
 Examples:
-  stp llm usage_rules                # Display usage patterns and workflows
-  stp llm usage_rules --symlink      # Create symlink in current directory
-  stp llm usage_rules --symlink /tmp # Create symlink in /tmp directory
+  intent llm usage_rules                # Display usage patterns and workflows
+  intent llm usage_rules --symlink      # Create symlink in current directory
+  intent llm usage_rules --symlink /tmp # Create symlink in /tmp directory
 
 For more information on a specific subcommand, run:
-  stp help llm
+  intent help llm
 EOF
 }
 
-# Check if STP_HOME is set
-if [ -z "$STP_HOME" ]; then
-  error "STP_HOME environment variable is not set"
+# Check if INTENT_HOME is set
+if [ -z "$INTENT_HOME" ]; then
+  error "INTENT_HOME environment variable is not set"
 fi
 
 # Check for at least one argument
@@ -53,7 +53,7 @@ shift
 case "$SUBCOMMAND" in
   usage_rules)
     # Default behavior is to display the file
-    USAGE_RULES_FILE="$STP_HOME/stp/eng/usage-rules.md"
+    USAGE_RULES_FILE="$INTENT_HOME/intent/eng/usage-rules.md"
     
     # Check if usage-rules.md exists
     if [ ! -f "$USAGE_RULES_FILE" ]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 # intent_status - Sync steel thread status with Backlog tasks
-# Usage: stp status <command> [options] [arguments]
+# Usage: intent status <command> [options] [arguments]
 
 # Exit on error
 set -e
@@ -11,23 +11,23 @@ error() {
   exit 1
 }
 
-# Get STP_HOME from environment or determine from script location
-if [ -z "$STP_HOME" ]; then
+# Get INTENT_HOME from environment or determine from script location
+if [ -z "$INTENT_HOME" ]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  export STP_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
+  export INTENT_HOME="$(cd "$SCRIPT_DIR/../.." && pwd)"
 fi
 
 # Check if backlog is installed
 if ! command -v backlog &> /dev/null; then
   echo "Error: Backlog.md is not installed" >&2
   echo "" >&2
-  cat "$STP_HOME/stp/bin/.help/backlog-install.help.md" >&2
+  cat "$INTENT_HOME/bin/.help/backlog-install.help.md" >&2
   exit 1
 fi
 
 # Function to display usage
 usage() {
-  echo "Usage: stp status <command> [options] [arguments]"
+  echo "Usage: intent status <command> [options] [arguments]"
   echo ""
   echo "Sync steel thread status based on Backlog task completion"
   echo ""
@@ -40,9 +40,9 @@ usage() {
   echo "  --dry-run                  Show what would be changed without updating"
   echo ""
   echo "Examples:"
-  echo "  stp status show ST0014"
-  echo "  stp status sync ST0014"
-  echo "  stp status report"
+  echo "  intent status show ST0014"
+  echo "  intent status sync ST0014"
+  echo "  intent status report"
 }
 
 # Validate steel thread ID format
@@ -65,7 +65,7 @@ get_task_stats() {
   local draft=0
   
   # Check each task directory
-  for task_file in "$STP_HOME/backlog/tasks"/task-*.md "$STP_HOME/backlog/drafts"/task-*.md; do
+  for task_file in "$INTENT_HOME/backlog/tasks"/task-*.md "$INTENT_HOME/backlog/drafts"/task-*.md; do
     if [ -f "$task_file" ]; then
       # Check if task belongs to this steel thread (in title field)
       if grep -q "^title:.*$st_id" "$task_file"; then
@@ -155,7 +155,7 @@ EOF
   
   if [ "$current_status" != "$recommended_status" ]; then
     echo ""
-    echo "Status mismatch detected. Run 'stp status sync $st_id' to update."
+    echo "Status mismatch detected. Run 'intent status sync $st_id' to update."
   fi
 }
 
@@ -250,7 +250,7 @@ EOF
 update_wip_status() {
   local st_id="$1"
   local new_status="$2"
-  local wip_file="$STP_HOME/stp/prj/wip.md"
+  local wip_file="$INTENT_HOME/intent/wip.md"
   
   if [ ! -f "$wip_file" ]; then
     return 0
@@ -268,7 +268,7 @@ generate_report() {
   echo ""
   
   # Get all active steel threads
-  local active_threads=$("$STP_HOME/stp/bin/stp" st list | grep -E "(In Progress|Not Started|On Hold)" | awk -F'|' '{print $1}' | grep -E "ST[0-9]{4}")
+  local active_threads=$("$INTENT_HOME/bin/intent" st list | grep -E "(In Progress|Not Started|On Hold)" | awk -F'|' '{print $1}' | grep -E "ST[0-9]{4}")
   
   if [ -z "$active_threads" ]; then
     echo "No active steel threads found."
@@ -298,7 +298,7 @@ EOF
   done
   
   echo ""
-  echo "Run 'stp status sync <ST####>' to update any steel thread status."
+  echo "Run 'intent status sync <ST####>' to update any steel thread status."
 }
 
 # Find steel thread file
@@ -307,15 +307,15 @@ find_steel_thread() {
   local st_file=""
   
   # Check main directory
-  if [ -f "$STP_HOME/stp/prj/st/${st_id}.md" ]; then
-    st_file="$STP_HOME/stp/prj/st/${st_id}.md"
+  if [ -f "$INTENT_HOME/intent/st/${st_id}.md" ]; then
+    st_file="$INTENT_HOME/intent/st/${st_id}.md"
   # Check subdirectories
-  elif [ -f "$STP_HOME/stp/prj/st/COMPLETED/${st_id}.md" ]; then
-    st_file="$STP_HOME/stp/prj/st/COMPLETED/${st_id}.md"
-  elif [ -f "$STP_HOME/stp/prj/st/NOT-STARTED/${st_id}.md" ]; then
-    st_file="$STP_HOME/stp/prj/st/NOT-STARTED/${st_id}.md"
-  elif [ -f "$STP_HOME/stp/prj/st/CANCELLED/${st_id}.md" ]; then
-    st_file="$STP_HOME/stp/prj/st/CANCELLED/${st_id}.md"
+  elif [ -f "$INTENT_HOME/intent/st/COMPLETED/${st_id}.md" ]; then
+    st_file="$INTENT_HOME/intent/st/COMPLETED/${st_id}.md"
+  elif [ -f "$INTENT_HOME/intent/st/NOT-STARTED/${st_id}.md" ]; then
+    st_file="$INTENT_HOME/intent/st/NOT-STARTED/${st_id}.md"
+  elif [ -f "$INTENT_HOME/intent/st/CANCELLED/${st_id}.md" ]; then
+    st_file="$INTENT_HOME/intent/st/CANCELLED/${st_id}.md"
   fi
   
   echo "$st_file"
@@ -387,6 +387,6 @@ case "$1" in
     exit 0
     ;;
   *)
-    error "Unknown command: $1. Run 'stp status help' for usage information."
+    error "Unknown command: $1. Run 'intent status help' for usage information."
     ;;
 esac
