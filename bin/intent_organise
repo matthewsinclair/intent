@@ -1,0 +1,210 @@
+#!/bin/bash
+# intent_organise - Organize steel threads by status
+# Usage: intent organise [--dry-run]
+
+# Exit on error
+set -e
+
+# Source common libraries
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/intent_config"
+source "$SCRIPT_DIR/intent_helpers"
+
+# Load configuration
+load_intent_config
+
+# Function to display usage information
+usage() {
+  cat << EOF
+Usage: intent organise [--dry-run]
+
+Organize steel threads into status directories based on their metadata
+
+Options:
+  --dry-run    Preview changes without making them
+  -h, --help   Show this help message
+
+This command will:
+1. Read the status from each steel thread's info.md
+2. Create status directories (COMPLETED, NOT-STARTED, CANCELLED, etc.)
+3. Move steel threads to appropriate directories
+4. Keep active/in-progress threads at the root level
+
+Example:
+  intent organise          # Organize all steel threads
+  intent organise --dry-run # Preview what would be moved
+EOF
+  exit 0
+}
+
+# Parse options
+DRY_RUN=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run)
+      DRY_RUN=true
+      shift
+      ;;
+    -h|--help)
+      usage
+      ;;
+    *)
+      error "Unknown option: $1"
+      ;;
+  esac
+done
+
+# Check if we're in an Intent project
+if [ ! -d "$INTENT_DIR/st" ]; then
+  error "No $INTENT_DIR/st directory found. Are you in an Intent project?"
+fi
+
+# Function to extract status from info.md
+get_st_status() {
+  local info_file=$1
+  local status=""
+  
+  if [ -f "$info_file" ]; then
+    # Try to extract status from YAML frontmatter (handle malformed YAML)
+    # The YAML might be on one line with \n separators
+    status=$(sed -n '2p' "$info_file" | grep -o 'status:[^\\]*' | sed 's/status:[[:space:]]*//' | sed 's/[[:space:]]*$//')
+    
+    # Normalize status (convert to lowercase)
+    status_lower=$(echo "$status" | tr '[:upper:]' '[:lower:]')
+    case "$status_lower" in
+      completed|complete)
+        echo "COMPLETED"
+        ;;
+      not*started|"not started"|planned)
+        echo "NOT-STARTED"
+        ;;
+      cancelled|canceled)
+        echo "CANCELLED"
+        ;;
+      *progress*|active|started)
+        echo "ACTIVE"
+        ;;
+      "")
+        # If no status in YAML, try to find it in markdown
+        if grep -qi "Status.*Completed" "$info_file"; then
+          echo "COMPLETED"
+        elif grep -qi "Status.*Not.Started" "$info_file"; then
+          echo "NOT-STARTED"
+        elif grep -qi "Status.*Cancelled" "$info_file"; then
+          echo "CANCELLED"
+        elif grep -qi "Status.*Progress" "$info_file"; then
+          echo "ACTIVE"
+        else
+          echo "UNKNOWN"
+        fi
+        ;;
+      *)
+        echo "ACTIVE"
+        ;;
+    esac
+  else
+    echo "UNKNOWN"
+  fi
+}
+
+# Create status directories
+status_dirs=("COMPLETED" "NOT-STARTED" "CANCELLED")
+for dir in "${status_dirs[@]}"; do
+  if [ "$DRY_RUN" = true ]; then
+    echo "[DRY RUN] Would create directory: $INTENT_DIR/st/$dir"
+  else
+    mkdir -p "$INTENT_DIR/st/$dir"
+  fi
+done
+
+# Process all steel threads
+moved_count=0
+kept_count=0
+
+# First, process STs at root level
+for st_dir in "$INTENT_DIR/st"/ST*/; do
+  if [ -d "$st_dir" ]; then
+    st_name=$(basename "$st_dir")
+    info_file="$st_dir/info.md"
+    
+    status=$(get_st_status "$info_file")
+    
+    case "$status" in
+      COMPLETED|NOT-STARTED|CANCELLED)
+        if [ "$DRY_RUN" = true ]; then
+          echo "[DRY RUN] Would move $st_name to $status/"
+        else
+          echo "Moving $st_name to $status/"
+          mv "$st_dir" "$INTENT_DIR/st/$status/"
+        fi
+        ((moved_count++))
+        ;;
+      ACTIVE|UNKNOWN)
+        echo "Keeping $st_name at root (status: $status)"
+        ((kept_count++))
+        ;;
+    esac
+  fi
+done
+
+# Then, check if any STs are in wrong status directories
+for status_dir in "${status_dirs[@]}"; do
+  if [ -d "$INTENT_DIR/st/$status_dir" ]; then
+    for st_dir in "$INTENT_DIR/st/$status_dir"/ST*/; do
+      if [ -d "$st_dir" ]; then
+        st_name=$(basename "$st_dir")
+        info_file="$st_dir/info.md"
+        
+        actual_status=$(get_st_status "$info_file")
+        
+        if [ "$actual_status" != "$status_dir" ]; then
+          if [ "$actual_status" = "ACTIVE" ] || [ "$actual_status" = "UNKNOWN" ]; then
+            # Move to root
+            if [ "$DRY_RUN" = true ]; then
+              echo "[DRY RUN] Would move $st_name from $status_dir/ to root"
+            else
+              echo "Moving $st_name from $status_dir/ to root"
+              mv "$st_dir" "$INTENT_DIR/st/"
+            fi
+          else
+            # Move to correct status dir
+            if [ "$DRY_RUN" = true ]; then
+              echo "[DRY RUN] Would move $st_name from $status_dir/ to $actual_status/"
+            else
+              echo "Moving $st_name from $status_dir/ to $actual_status/"
+              mv "$st_dir" "$INTENT_DIR/st/$actual_status/"
+            fi
+          fi
+          ((moved_count++))
+        fi
+      fi
+    done
+  fi
+done
+
+# Summary
+echo ""
+if [ "$DRY_RUN" = true ]; then
+  echo "[DRY RUN] Would have moved $moved_count steel threads"
+  echo "[DRY RUN] Would have kept $kept_count steel threads at root"
+else
+  echo "Organization complete:"
+  echo "- Moved $moved_count steel threads to status directories"
+  echo "- Kept $kept_count steel threads at root"
+  
+  # Show current structure
+  echo ""
+  echo "Current structure:"
+  for dir in "$INTENT_DIR/st"/*; do
+    if [ -d "$dir" ]; then
+      name=$(basename "$dir")
+      if [[ "$name" =~ ^ST[0-9]+ ]]; then
+        echo "- $name (active)"
+      else
+        count=$(find "$dir" -name "ST*" -type d | wc -l)
+        echo "- $name/ ($count steel threads)"
+      fi
+    fi
+  done
+fi
