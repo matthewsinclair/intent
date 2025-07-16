@@ -1,120 +1,38 @@
-# STP Project Guidelines
+# . Project Guidelines
 
-## STP Version
+This is an Intent v2.0.0 project (formerly STP).
 
-The current STP version is 1.2.1. All STP files should include a `stp_version` field in their YAML frontmatter. To update files, run `stp upgrade`.
+## Project Structure
 
-### Steel Thread Structure (v1.2.1+)
+- `intent/` - Project artifacts (steel threads, docs, work tracking)
+  - `st/` - Steel threads organized as directories
+  - `docs/` - Technical documentation
+  - `llm/` - LLM-specific guidelines
+- `backlog/` - Task management (if using Backlog.md)
+- `.intent/` - Configuration and metadata
 
-Starting with STP v1.2.1, steel threads are organized as directories:
-```
-stp/prj/st/
-├── ST0001/
-│   ├── info.md      # Metadata, objective, context (required)
-│   ├── design.md    # Design decisions and approach
-│   ├── impl.md      # Implementation details
-│   ├── tasks.md     # Task tracking
-│   └── results.md   # Results and outcomes
-└── ST0002/
-    └── info.md      # Minimum required file
-```
+## Steel Threads
 
-### ST File Metadata Format
+Steel threads are organized as directories under `intent/st/`:
+- Each steel thread has its own directory (e.g., ST0001/)
+- Minimum required file is `info.md` with metadata
+- Optional files: design.md, impl.md, tasks.md, results.md
 
-The `info.md` file must have consistent metadata in this format:
-```yaml
----
-verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
-stp_version: 1.2.1
-status: Not Started|In Progress|Completed|On Hold|Cancelled
-created: YYYYMMDD
-completed: YYYYMMDD
----
-```
+## Commands
 
-Only keep one verblock entry with the most recent change (don't accumulate verblock history, as this is available in git).
+- `intent st new "Title"` - Create a new steel thread
+- `intent st list` - List all steel threads
+- `intent st show <id>` - Show steel thread details
+- `intent doctor` - Check configuration
+- `intent help` - Get help
 
-## Project Documentation
+## Migration Notes
 
-- **IMPORTANT**: Always read `stp/eng/tpd/technical_product_design.md` at the start of a new session
-- This document contains comprehensive information about the project vision, architecture, and current state
-- The "Preamble to Claude" section at the top is specifically designed to give Claude sessions a complete understanding of the project
-- When making significant changes, update this document to keep it in sync with the implementation
-- When suggesting improvements, reference and respect the architectural patterns described in this document
+This project was migrated from STP to Intent v2.0.0 on 2025-07-16.
+- Old structure: `stp/prj/st/`, `stp/eng/`, etc.
+- New structure: `intent/st/`, `intent/docs/`, etc.
+- Configuration moved from YAML to JSON format
 
-- **USAGE PATTERNS**: For detailed guidance on using STP commands and workflows, see `stp/eng/usage-rules.md`
-- This document provides patterns and best practices for working with STP, designed specifically for LLM understanding
-- It covers command usage, workflows, and integration patterns
-- You can also display this document using: `stp llm usage_rules`
+## Author
 
-- **NEXT**: Work is coordinated through _STEEL THREADS_
-- Use the `stp st list` command to get a dynamic list of all steel threads and their status
-- Use `stp st show <id>` to view details of specific steel threads
-- When analyzing the project, prefer using STP commands instead of directly reading files when appropriate
-
-- **WIP**: Is what we are doing _now_
-- Look in `stp/prj/wip.md` to find out what is currently on the go
-- This document contains the current tasks in progress for each day.
-
-- **HISTORY**: Historical tracking is now maintained through Backlog tasks
-- Use `stp bl list` and `stp bl task show` to review completed work
-- Steel threads capture high-level context and decisions
-
-## Task Management with Backlog.md
-
-STP is integrated with Backlog.md for fine-grained task tracking:
-
-- **Steel Threads**: Continue to capture high-level intent, design, and implementation documentation
-- **Backlog Tasks**: Track individual implementation tasks with rich metadata (status, priority, dependencies)
-- **STP Backlog Wrapper** (`stp backlog` or `stp bl`):
-  - `stp bl init` - Initialize backlog with STP-friendly settings
-  - `stp bl list` - List all tasks without git errors
-  - `stp bl create <ST####> <title>` - Create a task linked to a steel thread
-  - `stp bl board` - View Kanban board
-- **Helper Commands**:
-  - `stp task create <ST####> <title>` - Create a task linked to a steel thread
-  - `stp task list <ST####>` - List all tasks for a steel thread
-  - `stp status show <ST####>` - Show steel thread and task status summary
-  - `stp migrate <ST####>` - Migrate embedded tasks from steel thread to Backlog
-
-### Task Naming Convention
-Tasks linked to steel threads follow the pattern: `ST#### - <task description>`
-
-### Workflow
-1. Create steel thread with `stp st new` for intent capture
-2. Create associated tasks with `stp bl create` or `stp task create`
-3. Track progress with `stp bl board` or `stp task list`
-4. Update steel thread status based on task completion
-
-### Quick Start with Backlog
-```bash
-# Initialize backlog in your project
-stp bl init
-
-# Create a task
-stp bl create ST0014 "Fix validation bug"
-
-# List all tasks
-stp bl list
-```
-
-For detailed integration guide, see: `stp/usr/reference_guide.md#backlogmd-integration`
-
-## Code Style Guidelines
-
-- For Elixir code:
-  - Use `@moduledoc` and `@doc` with examples for all modules and public functions
-  - Add type specs for public functions with `@spec`
-  - Format with: `mix format`
-  - Use snake_case for variables, functions, and modules
-  - Use 2-space indentation (standard Elixir style)
-  - Group related functions together; public functions first, private after
-  - Handle errors with pattern matching or explicit `{:ok, result}` / `{:error, reason}` tuples
-  - Use descriptive variable names - avoid single-letter names except in very short callbacks
-  - All functions should have clear, defined purposes with no side effects
-  - Prefer pipe operators (`|>`) for data transformations
-  - Use doctest examples in documentation to provide test coverage
-  - When possible, make functions pure and stateless
-- In general:
-  - Use 2-space indentation in any programming language
-  - DO NOT ADD: "🤖 Generated with [Claude Code](https://claude.ai/code)" or "Co-Authored-By: Claude <noreply@anthropic.com>")" to git commit messages
+matts
