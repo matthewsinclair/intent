@@ -72,9 +72,9 @@ echo
 
 # Run the tests
 if [ -d "$TEST_PATH" ]; then
-  # If directory, run all .bats files in it
+  # If directory, run all .bats files in it (excluding lib directory)
   info "Running all tests in directory: $TEST_PATH"
-  find "$TEST_PATH" -name "*.bats" -type f | sort | xargs bats
+  find "$TEST_PATH" -name "*.bats" -type f -not -path "*/lib/*" | sort | xargs bats
 else
   # If file, run just that file
   info "Running test file: $TEST_PATH"
