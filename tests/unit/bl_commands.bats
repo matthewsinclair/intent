@@ -170,12 +170,32 @@ EOF
   project_dir=$(create_test_project "BL No Backlog Test")
   cd "$project_dir"
   
-  # Ensure backlog is not in PATH
-  export PATH="/usr/bin:/bin"
+  # Save original PATH
+  ORIG_PATH="$PATH"
   
+  # Create a temporary directory for our fake commands
+  FAKE_BIN="$(mktemp -d)"
+  
+  # Create fake jq that works (so we get past the jq check)
+  cat > "$FAKE_BIN/jq" << 'EOF'
+#!/bin/bash
+# Fake jq that just passes through for our test
+exit 0
+EOF
+  chmod +x "$FAKE_BIN/jq"
+  
+  # Set PATH to include fake bin and essential system directories
+  # This ensures commands like rm, cat, etc. still work
+  export PATH="$FAKE_BIN:/usr/bin:/bin"
+  
+  # Now backlog won't be found, but jq and system commands will work
   run run_intent bl list
   assert_failure
   assert_output_contains "Backlog.md is not installed"
+  
+  # Restore PATH and cleanup
+  export PATH="$ORIG_PATH"
+  rm -rf "$FAKE_BIN"
 }
 
 @test "bl list respects backlog_list_status from config" {
