@@ -50,6 +50,9 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Export INTENT_HOME for tests
 export INTENT_HOME="$PROJECT_ROOT"
 
+# Export BATS_LIB_PATH for bats libraries
+export BATS_LIB_PATH="$SCRIPT_DIR/lib"
+
 # Set default test path - only run new Intent tests by default
 # To run old STP tests: ./tests/run_tests.sh ../stp/tests
 TEST_PATH="${1:-$SCRIPT_DIR}"
