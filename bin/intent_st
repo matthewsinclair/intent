@@ -19,6 +19,7 @@ usage() {
   echo ""
   echo "Commands:"
   echo "  new <title>                       Create a new steel thread"
+  echo "  start <id>                        Mark a steel thread as in progress"
   echo "  done <id>                         Mark a steel thread as complete"
   echo "  list [--status <status>] [--width N] List all steel threads"
   echo "  sync [--write] [--width N]        Synchronize steel_threads.md with individual ST files"
@@ -37,6 +38,7 @@ usage() {
   echo ""
   echo "Examples:"
   echo "  intent st new \"Implement Feature X\""
+  echo "  intent st start ST0001"
   echo "  intent st done ST0001"
   echo "  intent st list --status \"In Progress\" --width 100"
   echo "  intent st show ST0001"
@@ -105,12 +107,6 @@ get_st_path() {
   
   # For directory structure
   if is_directory_structure; then
-    # If we're in a test environment, just use the main directory
-    if [ $test_env -eq 1 ]; then
-      echo "$base_dir/$st_id/$file_name"
-      return
-    fi
-    
     # If status is not provided, try to find the steel thread directory
     if [ -z "$status" ]; then
       # Check all possible locations
@@ -137,51 +133,45 @@ get_st_path() {
               status="Not Started"
             fi
           fi
-          break
+          # Return the actual found path
+          echo "$location/$file_name"
+          return
         fi
       done
     fi
     
     # Return the appropriate directory based on status
-    if [ $test_env -eq 1 ]; then
-      echo "$base_dir/$st_id/$file_name"
-    else
-      case "$status" in
-        "Completed")
-          echo "$base_dir/COMPLETED/$st_id/$file_name"
-          ;;
-        "Not Started")
-          echo "$base_dir/NOT-STARTED/$st_id/$file_name"
-          ;;
-        "Cancelled")
-          echo "$base_dir/CANCELLED/$st_id/$file_name"
-          ;;
-        *)
-          # In Progress or On Hold stay in the main directory
-          echo "$base_dir/$st_id/$file_name"
-          ;;
-      esac
-    fi
+    case "$status" in
+      "Completed")
+        echo "$base_dir/COMPLETED/$st_id/$file_name"
+        ;;
+      "Not Started")
+        echo "$base_dir/NOT-STARTED/$st_id/$file_name"
+        ;;
+      "Cancelled")
+        echo "$base_dir/CANCELLED/$st_id/$file_name"
+        ;;
+      *)
+        # In Progress or On Hold stay in the main directory
+        echo "$base_dir/$st_id/$file_name"
+        ;;
+    esac
   else
     # Legacy file structure - ignore file_name parameter
-    if [ $test_env -eq 1 ]; then
-      echo "$base_dir/$st_id.md"
-    else
-      case "$status" in
-        "Completed")
-          echo "$base_dir/COMPLETED/$st_id.md"
-          ;;
-        "Not Started")
-          echo "$base_dir/NOT-STARTED/$st_id.md"
-          ;;
-        "Cancelled")
-          echo "$base_dir/CANCELLED/$st_id.md"
-          ;;
-        *)
-          echo "$base_dir/$st_id.md"
-          ;;
-      esac
-    fi
+    case "$status" in
+      "Completed")
+        echo "$base_dir/COMPLETED/$st_id.md"
+        ;;
+      "Not Started")
+        echo "$base_dir/NOT-STARTED/$st_id.md"
+        ;;
+      "Cancelled")
+        echo "$base_dir/CANCELLED/$st_id.md"
+        ;;
+      *)
+        echo "$base_dir/$st_id.md"
+        ;;
+    esac
   fi
 }
 
@@ -460,6 +450,132 @@ EOF
     update_steel_threads_index "$ST_ID" "$TITLE" "Completed" "$(grep '^\- \*\*Created\*\*:' "$ST_FILE" 2>/dev/null | sed 's/^\- \*\*Created\*\*: //' || echo "$DATE")" "$DATE"
     
     echo "Marked steel thread as complete: $ST_ID: $TITLE"
+    ;;
+    
+  "start")
+    # Check for required arguments
+    if [ $# -lt 1 ]; then
+      error "Steel thread ID is required"
+      usage
+    fi
+    
+    # Process the steel thread ID
+    ST_ID="$1"
+    
+    # If just a number is provided, format it as ST#### (with leading zeros)
+    if [[ "$ST_ID" =~ ^[0-9]+$ ]]; then
+      ST_ID=$(printf "ST%04d" "$ST_ID")
+    # If the ID doesn't start with ST, prepend it
+    elif [[ ! "$ST_ID" =~ ^ST ]]; then
+      ST_ID="ST$ST_ID"
+    fi
+    
+    DATE=$(date '+%Y-%m-%d')
+    
+    if is_directory_structure; then
+      # Find the info.md file
+      ST_FILE=$(get_st_path "$ST_ID" "" "info.md")
+      
+      # Check if steel thread exists
+      if [ ! -f "$ST_FILE" ]; then
+        error "Steel thread not found: $ST_ID"
+      fi
+      
+      # Extract title and current status
+      TITLE=$(grep "^# $ST_ID:" "$ST_FILE" | sed "s/^# $ST_ID: //")
+      YAML_STATUS=$(grep -m 1 "^status:" "$ST_FILE" | sed "s/^status: *//")
+      BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$ST_FILE" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+      
+      if [ -n "$YAML_STATUS" ]; then
+        CURRENT_STATUS="$YAML_STATUS"
+      elif [ -n "$BODY_STATUS" ]; then
+        CURRENT_STATUS="$BODY_STATUS"
+      else
+        CURRENT_STATUS="Not Started"
+      fi
+      
+      # Check if already in progress
+      if [ "$CURRENT_STATUS" = "In Progress" ]; then
+        echo "Steel thread is already in progress: $ST_ID: $TITLE"
+        exit 0
+      fi
+      
+      # Update status to In Progress
+      sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: In Progress/" "$ST_FILE"
+      sed -i.bak "s/^status: .*$/status: In Progress/" "$ST_FILE"
+      rm -f "$ST_FILE.bak"
+      
+      # Get current directory
+      CURRENT_DIR=$(dirname "$ST_FILE")
+      
+      # Get the target location (main directory for In Progress threads)
+      NEW_ST_FILE=$(get_st_path "$ST_ID" "In Progress" "info.md")
+      NEW_DIR=$(dirname "$NEW_ST_FILE")
+      
+      # Move the entire directory if it's different (e.g., from NOT-STARTED/)
+      if [ "$CURRENT_DIR" != "$NEW_DIR" ]; then
+        mkdir -p "$(dirname "$NEW_DIR")"
+        mv "$CURRENT_DIR" "$NEW_DIR"
+        echo "Moved steel thread to: $NEW_DIR"
+      fi
+    else
+      # Legacy: Handle single file
+      ST_FILE=$(get_st_path "$ST_ID")
+      
+      if [ ! -f "$ST_FILE" ]; then
+        error "Steel thread not found: $ST_ID"
+      fi
+      
+      TITLE=$(grep "^# $ST_ID:" "$ST_FILE" | sed "s/^# $ST_ID: //")
+      YAML_STATUS=$(grep -m 1 "^status:" "$ST_FILE" | sed "s/^status: *//")
+      BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$ST_FILE" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+      
+      if [ -n "$YAML_STATUS" ]; then
+        CURRENT_STATUS="$YAML_STATUS"
+      elif [ -n "$BODY_STATUS" ]; then
+        CURRENT_STATUS="$BODY_STATUS"
+      else
+        CURRENT_STATUS="Not Started"
+      fi
+      
+      # Check if already in progress
+      if [ "$CURRENT_STATUS" = "In Progress" ]; then
+        echo "Steel thread is already in progress: $ST_ID: $TITLE"
+        exit 0
+      fi
+      
+      sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: In Progress/" "$ST_FILE"
+      sed -i.bak "s/^status: .*$/status: In Progress/" "$ST_FILE"
+      rm -f "$ST_FILE.bak"
+      
+      NEW_ST_FILE=$(get_st_path "$ST_ID" "In Progress")
+      
+      if [ "$ST_FILE" != "$NEW_ST_FILE" ]; then
+        mkdir -p "$(dirname "$NEW_ST_FILE")"
+        mv "$ST_FILE" "$NEW_ST_FILE"
+        echo "Moved steel thread to: $NEW_ST_FILE"
+      fi
+    fi
+    
+    # Extract created date for index update
+    CREATED=$(grep -m 1 "^\- \*\*Created\*\*:" "$ST_FILE" 2>/dev/null | sed 's/^\- \*\*Created\*\*: //' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    if [ -z "$CREATED" ] || [ "$CREATED" = "YYYY-MM-DD" ]; then
+      YAML_CREATED=$(grep -m 1 "^created:" "$ST_FILE" 2>/dev/null | sed "s/^created: *//")
+      if [ -n "$YAML_CREATED" ] && [ "$YAML_CREATED" != "YYYYMMDD" ]; then
+        if [[ "$YAML_CREATED" =~ ^[0-9]{8}$ ]]; then
+          CREATED="${YAML_CREATED:0:4}-${YAML_CREATED:4:2}-${YAML_CREATED:6:2}"
+        else
+          CREATED="$YAML_CREATED"
+        fi
+      else
+        CREATED="$DATE"
+      fi
+    fi
+    
+    # Update index
+    update_steel_threads_index "$ST_ID" "$TITLE" "In Progress" "$CREATED" ""
+    
+    echo "Marked steel thread as in progress: $ST_ID: $TITLE"
     ;;
     
   "list")

@@ -126,7 +126,7 @@ assert_directory_exists() {
 assert_file_contains() {
   local file="$1"
   local text="$2"
-  if ! grep -q "$text" "$file"; then
+  if ! grep -qF "$text" "$file"; then
     echo "Expected file $file to contain: $text"
     echo "File contents:"
     cat "$file"

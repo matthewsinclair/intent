@@ -446,7 +446,7 @@ intent llm usage_rules > intent-usage-rules.md
 
 **Notes:**
 
-- The usage rules document is located at `intent/eng/usage-rules.md`
+- The usage rules document is located at `intent/llm/usage-rules.md`
 - It follows the pattern established by the Elixir Hex package 'usage_rules'
 - The --symlink option creates a symlink named 'usage-rules.md' for integration with other tools
 
