@@ -172,7 +172,7 @@ See [Release Notes](./docs/releases/2.0.0/RELEASE_NOTES.md) for complete details
 
 1. Use `stp llm usage_rules` to display usage patterns
 2. Create symlinks with `stp llm usage_rules --symlink` for projects expecting usage-rules.md
-3. Reference the usage rules documentation at `stp/eng/usage-rules.md`
+3. Reference the usage rules documentation at `intent/llm/usage-rules.md`
 
 ## [1.0.0] - 2025-06-03
 

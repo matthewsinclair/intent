@@ -218,7 +218,7 @@ I'll help you create a new steel thread for user authentication. Let's use Inten
 
 ### 8.7.1 Backlog.md Integration
 
-- **Integration Guide**: `/intent/eng/usage-rules.md#task-management-integration` - Comprehensive guide for using the integration
+- **Integration Guide**: `/intent/llm/usage-rules.md#task-management-integration` - Comprehensive guide for using the integration
 - **Backlog.md Documentation**: [https://github.com/slune-org/backlog](https://github.com/slune-org/backlog)
 - **Integration Tests**:
   - `/tests/unit/task_commands.bats` - Task management command tests

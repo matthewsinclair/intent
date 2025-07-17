@@ -53,7 +53,7 @@ shift
 case "$SUBCOMMAND" in
   usage_rules)
     # Default behavior is to display the file
-    USAGE_RULES_FILE="$INTENT_HOME/intent/eng/usage-rules.md"
+    USAGE_RULES_FILE="$INTENT_HOME/intent/llm/usage-rules.md"
     
     # Check if usage-rules.md exists
     if [ ! -f "$USAGE_RULES_FILE" ]; then

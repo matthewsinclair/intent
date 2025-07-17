@@ -401,3 +401,214 @@ EOF
   assert_failure
   assert_output_contains "Steel thread not found: ST9999"
 }
+
+@test "st start marks a not-started thread as in progress" {
+  project_dir=$(create_test_project "ST Start Test")
+  cd "$project_dir"
+  
+  # Create a not-started thread
+  mkdir -p intent/st/NOT-STARTED/ST0001
+  cat > intent/st/NOT-STARTED/ST0001/info.md << EOF
+---
+intent_version: 2.0.0
+status: Not Started
+created: 20250117
+---
+# ST0001: Test Thread
+
+- **Status**: Not Started
+- **Created**: 2025-01-17
+- **Completed**: 
+- **Author**: test_user
+EOF
+  
+  run run_intent st start ST0001
+  assert_success
+  assert_output_contains "Marked steel thread as in progress: ST0001: Test Thread"
+  
+  # Check thread was moved to main directory
+  assert_directory_exists "intent/st/ST0001"
+  assert_file_exists "intent/st/ST0001/info.md"
+  [ ! -d "intent/st/NOT-STARTED/ST0001" ] || fail "ST0001 still in NOT-STARTED directory"
+  
+  # Check status was updated
+  assert_file_contains "intent/st/ST0001/info.md" "status: In Progress"
+  assert_file_contains "intent/st/ST0001/info.md" "**Status**: In Progress"
+}
+
+@test "st start works with just the number" {
+  project_dir=$(create_test_project "ST Start Number Test")
+  cd "$project_dir"
+  
+  mkdir -p intent/st/NOT-STARTED/ST0042
+  cat > intent/st/NOT-STARTED/ST0042/info.md << EOF
+---
+intent_version: 2.0.0
+status: Not Started
+---
+# ST0042: Number Test Thread
+- **Status**: Not Started
+EOF
+  
+  run run_intent st start 42
+  assert_success
+  assert_output_contains "ST0042"
+  assert_directory_exists "intent/st/ST0042"
+}
+
+@test "st start works with various ID formats" {
+  project_dir=$(create_test_project "ST Start ID Format Test")
+  cd "$project_dir"
+  
+  # Test with leading zeros
+  mkdir -p intent/st/NOT-STARTED/ST0003
+  cat > intent/st/NOT-STARTED/ST0003/info.md << EOF
+---
+intent_version: 2.0.0
+status: Not Started
+---
+# ST0003: Test Thread
+- **Status**: Not Started
+EOF
+  
+  run run_intent st start 0003
+  assert_success
+  assert_output_contains "ST0003"
+  assert_directory_exists "intent/st/ST0003"
+}
+
+@test "st start does nothing if thread is already in progress" {
+  project_dir=$(create_test_project "ST Start Already Progress Test")
+  cd "$project_dir"
+  
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << EOF
+---
+intent_version: 2.0.0
+status: In Progress
+---
+# ST0001: Already Active Thread
+- **Status**: In Progress
+EOF
+  
+  run run_intent st start ST0001
+  assert_success
+  assert_output_contains "Steel thread is already in progress: ST0001: Already Active Thread"
+  
+  # Thread should remain in main directory
+  assert_directory_exists "intent/st/ST0001"
+}
+
+@test "st start moves completed thread to in progress" {
+  project_dir=$(create_test_project "ST Start Completed Test")
+  cd "$project_dir"
+  
+  # Create a completed thread
+  mkdir -p intent/st/COMPLETED/ST0001
+  cat > intent/st/COMPLETED/ST0001/info.md << EOF
+---
+intent_version: 2.0.0
+status: Completed
+created: 20250115
+completed: 20250116
+---
+# ST0001: Completed Thread
+
+- **Status**: Completed
+- **Created**: 2025-01-15
+- **Completed**: 2025-01-16
+EOF
+  
+  run run_intent st start ST0001
+  assert_success
+  assert_output_contains "Marked steel thread as in progress: ST0001: Completed Thread"
+  
+  # Check thread was moved to main directory
+  assert_directory_exists "intent/st/ST0001"
+  [ ! -d "intent/st/COMPLETED/ST0001" ] || fail "ST0001 still in COMPLETED directory"
+  
+  # Check status was updated
+  assert_file_contains "intent/st/ST0001/info.md" "status: In Progress"
+  assert_file_contains "intent/st/ST0001/info.md" "**Status**: In Progress"
+}
+
+@test "st start updates steel_threads.md index" {
+  project_dir=$(create_test_project "ST Start Index Test")
+  cd "$project_dir"
+  
+  # Create index file
+  cat > intent/st/steel_threads.md << EOF
+# Steel Threads
+
+This document serves as an index of all steel threads in the project.
+
+## Index
+
+| ID                       | Title                  | Status       | Created    | Completed  |
+| ----------------------- | -------------------- | ------------ | ---------- | ---------- |
+| ST0001 | Test Thread | Not Started | 2025-01-17 |  |
+EOF
+  
+  mkdir -p intent/st/NOT-STARTED/ST0001
+  cat > intent/st/NOT-STARTED/ST0001/info.md << EOF
+---
+intent_version: 2.0.0
+status: Not Started
+created: 20250117
+---
+# ST0001: Test Thread
+- **Status**: Not Started
+- **Created**: 2025-01-17
+EOF
+  
+  run run_intent st start ST0001
+  assert_success
+  
+  # Check index was updated
+  assert_file_contains "intent/st/steel_threads.md" "| ST0001 | Test Thread | In Progress | 2025-01-17 |  |"
+}
+
+@test "st start errors on non-existent steel thread" {
+  project_dir=$(create_test_project "ST Start Error Test")
+  cd "$project_dir"
+  
+  run run_intent st start ST9999
+  assert_failure
+  assert_output_contains "Steel thread not found: ST9999"
+}
+
+@test "st start requires a steel thread ID" {
+  project_dir=$(create_test_project "ST Start No ID Test")
+  cd "$project_dir"
+  
+  run run_intent st start
+  assert_failure
+  assert_output_contains "Steel thread ID is required"
+}
+
+@test "st start handles thread in main directory" {
+  project_dir=$(create_test_project "ST Start Main Dir Test")
+  cd "$project_dir"
+  
+  # Create thread already in main directory but not started
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << EOF
+---
+intent_version: 2.0.0
+status: Not Started
+---
+# ST0001: Main Dir Thread
+- **Status**: Not Started
+EOF
+  
+  run run_intent st start ST0001
+  assert_success
+  assert_output_contains "Marked steel thread as in progress: ST0001: Main Dir Thread"
+  
+  # Thread should remain in main directory
+  assert_directory_exists "intent/st/ST0001"
+  
+  # Check status was updated
+  assert_file_contains "intent/st/ST0001/info.md" "status: In Progress"
+  assert_file_contains "intent/st/ST0001/info.md" "**Status**: In Progress"
+}
