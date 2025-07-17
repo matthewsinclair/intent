@@ -1,5 +1,9 @@
 ---
-verblock: "20 Mar 2025:v0.1: Claude - Initial version"\nstp_version: 2.0.0\nstatus: Completed\ncreated: 20250320\ncompleted: 20250709\n
+verblock: "20 Mar 2025:v0.1: Claude - Initial version"
+intent_version: 2.0.0
+status: Completed
+created: 20250320
+completed: 20250709
 ---
 # ST0014: Directory Structure for Steel Threads
 

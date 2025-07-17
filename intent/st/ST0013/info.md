@@ -1,7 +1,7 @@
 ---
 verblock: "20 Mar 2025:v0.1: Matthew Sinclair - Updated via STP upgrade"
-stp_version: 2.0.0
-status: Completed
+intent_version: 2.0.0
+status: In Progress
 created: 20250311
 completed: 20250708
 ---

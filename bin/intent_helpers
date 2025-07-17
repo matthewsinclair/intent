@@ -26,9 +26,11 @@ convert_yaml_frontmatter() {
     elif [ "$in_frontmatter" = true ] && [ "$line" = "---" ]; then
       in_frontmatter=false
     elif [ "$in_frontmatter" = true ]; then
-      frontmatter="${frontmatter}${line}\n"
+      frontmatter="${frontmatter}${line}
+"
     else
-      content="${content}${line}\n"
+      content="${content}${line}
+"
     fi
   done < "$file"
   

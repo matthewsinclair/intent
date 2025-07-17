@@ -1,5 +1,9 @@
 ---
-verblock: "09 Jul 2025:v0.1: Matthew Sinclair - Initial version"\nstp_version: 2.0.0\nstatus: Not Started\ncreated: 20250709\ncompleted: \n
+verblock: "09 Jul 2025:v0.1: Matthew Sinclair - Initial version"
+intent_version: 2.0.0
+status: Not Started
+created: 20250709
+completed: 
 ---
 # ST0015: Enhanced Steel Thread Templates and File Types
 
@@ -36,4 +40,3 @@ This document represents a single steel thread - a self-contained unit of work f
 1. Update the status as work progresses
 2. Update related documents (design.md, impl.md, etc.) as needed
 3. Mark the completion date when finished
-

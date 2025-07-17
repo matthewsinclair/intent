@@ -293,6 +293,87 @@ intent st edit ST0001
 intent st edit ST0001 tasks
 ```
 
+#### `intent st repair`
+
+Repairs malformed steel thread metadata.
+
+**Usage:**
+
+```bash
+intent st repair [id] [--write]
+```
+
+**Purpose:**
+
+Fixes common metadata issues in steel threads that may occur after migrations or manual edits:
+- Repairs malformed YAML frontmatter (e.g., escaped newlines)
+- Updates legacy field names (stp_version → intent_version)
+- Reconciles conflicting status values between frontmatter and body
+- Validates and fixes date formats
+- Adds missing required fields with sensible defaults
+
+**Parameters:**
+
+- `id`: ID of specific steel thread to repair (optional)
+- `--write`: Apply repairs (without this flag, performs dry-run)
+
+**Options:**
+
+- Without `--write`: Shows what would be changed (dry-run mode)
+- With `--write`: Actually performs the repairs and organizes files
+
+**Examples:**
+
+```bash
+# Dry-run repair on all steel threads
+intent st repair
+
+# Actually repair all steel threads
+intent st repair --write
+
+# Dry-run repair on specific steel thread
+intent st repair ST0001
+
+# Actually repair specific steel thread
+intent st repair ST0001 --write
+```
+
+**Expected Output (dry-run):**
+
+```
+Processing: ST0001
+  - Found malformed frontmatter
+    Would fix malformed frontmatter
+  - Found legacy stp_version field
+    Would update to intent_version
+  - Found conflicting status:
+    Frontmatter: Not Started
+    Body: Completed
+    Would update frontmatter status to: Completed
+
+Dry run complete. Use --write to apply changes.
+```
+
+**Expected Output (with --write):**
+
+```
+Processing: ST0001
+  - Found malformed frontmatter
+    Fixed malformed frontmatter
+  - Found legacy stp_version field
+    Updated to intent_version
+  - Found conflicting status:
+    Frontmatter: Not Started
+    Body: Completed
+    Updated frontmatter status to: Completed
+
+Repairs complete.
+
+Running organize to ensure correct file locations...
+Moved ST0001 to intent/st/COMPLETED
+Updated steel threads index.
+```
+
 #### `intent help`
 
 Displays help information.

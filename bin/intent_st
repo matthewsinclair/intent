@@ -25,6 +25,7 @@ usage() {
   echo "  organize [--write]                Organize ST files in directories by status"
   echo "  show <id> [file]                  Show details of a specific steel thread"
   echo "  edit <id> [file]                  Open a steel thread in your default editor"
+  echo "  repair [id] [--write]             Repair malformed steel thread metadata"
   echo ""
   echo "File options for show/edit commands:"
   echo "  info    - Main information file (default)"
@@ -41,6 +42,9 @@ usage() {
   echo "  intent st show ST0001"
   echo "  intent st show ST0001 design"
   echo "  intent st edit ST0001 impl"
+  echo "  intent st repair                  # Dry run repair on all steel threads"
+  echo "  intent st repair --write          # Actually repair all steel threads"
+  echo "  intent st repair ST0001 --write   # Repair specific steel thread"
   exit 1
 }
 
@@ -921,6 +925,251 @@ EOF
       # For display, just run the list command
       SCRIPT_PATH="${BASH_SOURCE[0]}"
       "$SCRIPT_PATH" list --width "$WIDTH"
+    fi
+    ;;
+    
+  "repair")
+    # Parse options
+    WRITE_MODE=0
+    SPECIFIC_ST=""
+    
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        --write)
+          WRITE_MODE=1
+          shift
+          ;;
+        ST[0-9][0-9][0-9][0-9])
+          SPECIFIC_ST="$1"
+          shift
+          ;;
+        [0-9][0-9][0-9][0-9])
+          SPECIFIC_ST="ST$1"
+          shift
+          ;;
+        [0-9]+)
+          SPECIFIC_ST=$(printf "ST%04d" "$1")
+          shift
+          ;;
+        *)
+          error "Unknown option or invalid steel thread ID: $1"
+          ;;
+      esac
+    done
+    
+    BASE_DIR="intent/st"
+    
+    # Function to repair a single steel thread
+    repair_steel_thread() {
+      local st_dir="$1"
+      local info_file="$st_dir/info.md"
+      local st_id=$(basename "$st_dir")
+      local changes_made=0
+      
+      if [ ! -f "$info_file" ]; then
+        echo "Warning: No info.md found for $st_id"
+        return
+      fi
+      
+      echo "Processing: $st_id"
+      
+      # Read the file content
+      local content=$(cat "$info_file")
+      
+      # Check if frontmatter is malformed (all on one line with \n)
+      if echo "$content" | grep -q '^---$' && echo "$content" | sed -n '2p' | grep -q '\\n'; then
+        echo "  - Found malformed frontmatter"
+        changes_made=1
+        
+        if [ $WRITE_MODE -eq 1 ]; then
+          # Extract the malformed line
+          local malformed_line=$(echo "$content" | sed -n '2p')
+          
+          # Split the line by \n and create proper YAML
+          local temp_file=$(mktemp)
+          echo "---" > "$temp_file"
+          
+          # Process each field
+          echo "$malformed_line" | sed 's/\\n/\n/g' | while IFS= read -r field; do
+            if [ -n "$field" ]; then
+              # Update stp_version to intent_version if found
+              if echo "$field" | grep -q "^stp_version:"; then
+                echo "intent_version: 2.0.0" >> "$temp_file"
+              else
+                echo "$field" >> "$temp_file"
+              fi
+            fi
+          done
+          
+          echo "---" >> "$temp_file"
+          
+          # Add the rest of the file (skip the first 3 lines)
+          echo "$content" | tail -n +4 >> "$temp_file"
+          
+          # Replace the original file
+          mv "$temp_file" "$info_file"
+          echo "    Fixed malformed frontmatter"
+        else
+          echo "    Would fix malformed frontmatter"
+        fi
+      fi
+      
+      # Re-read content after fixing malformed frontmatter
+      content=$(cat "$info_file")
+      
+      # Check for stp_version field
+      if echo "$content" | grep -q "^stp_version:"; then
+        echo "  - Found legacy stp_version field"
+        changes_made=1
+        
+        if [ $WRITE_MODE -eq 1 ]; then
+          sed -i.bak 's/^stp_version:/intent_version:/' "$info_file"
+          rm -f "${info_file}.bak"
+          echo "    Updated to intent_version"
+        else
+          echo "    Would update to intent_version"
+        fi
+      fi
+      
+      # Check for conflicting status
+      local yaml_status=$(grep -m 1 "^status:" "$info_file" | sed "s/^status: *//")
+      local body_status=$(grep -m 1 "^\- \*\*Status\*\*:" "$info_file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+      
+      if [ -n "$yaml_status" ] && [ -n "$body_status" ] && [ "$yaml_status" != "$body_status" ]; then
+        echo "  - Found conflicting status:"
+        echo "    Frontmatter: $yaml_status"
+        echo "    Body: $body_status"
+        changes_made=1
+        
+        # Normalize the body status
+        local normalized_status="$body_status"
+        case "$(echo "$body_status" | tr '[:upper:]' '[:lower:]')" in
+          "wip"|"in progress")
+            normalized_status="In Progress"
+            ;;
+          "completed"|"complete"|"done")
+            normalized_status="Completed"
+            ;;
+          "not started"|"not-started")
+            normalized_status="Not Started"
+            ;;
+          "cancelled"|"canceled")
+            normalized_status="Cancelled"
+            ;;
+          "on hold")
+            normalized_status="On Hold"
+            ;;
+        esac
+        
+        if [ $WRITE_MODE -eq 1 ]; then
+          # Update frontmatter to match body status (body is user-visible, so prioritize it)
+          sed -i.bak "s/^status: .*/status: $normalized_status/" "$info_file"
+          rm -f "${info_file}.bak"
+          echo "    Updated frontmatter status to: $normalized_status"
+        else
+          echo "    Would update frontmatter status to: $normalized_status"
+        fi
+      fi
+      
+      # Check for missing required fields
+      if ! grep -q "^status:" "$info_file"; then
+        echo "  - Missing status field in frontmatter"
+        changes_made=1
+        
+        if [ $WRITE_MODE -eq 1 ]; then
+          # Try to get status from body, default to "WIP"
+          local status="WIP"
+          if [ -n "$body_status" ]; then
+            status="$body_status"
+          fi
+          
+          # Add status after intent_version
+          sed -i.bak '/^intent_version:/a\
+status: '$status "$info_file"
+          rm -f "${info_file}.bak"
+          echo "    Added status: $status"
+        else
+          echo "    Would add status field"
+        fi
+      fi
+      
+      # Check date formats
+      local yaml_created=$(grep -m 1 "^created:" "$info_file" | sed "s/^created: *//")
+      local yaml_completed=$(grep -m 1 "^completed:" "$info_file" | sed "s/^completed: *//")
+      
+      # Validate created date
+      if [ -n "$yaml_created" ] && ! [[ "$yaml_created" =~ ^[0-9]{8}$ ]] && [ "$yaml_created" != "YYYYMMDD" ]; then
+        echo "  - Invalid created date format: $yaml_created"
+        changes_made=1
+        
+        if [ $WRITE_MODE -eq 1 ]; then
+          # Try to parse and reformat the date
+          local new_created=""
+          # Try various date formats
+          if [[ "$yaml_created" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            # YYYY-MM-DD format
+            new_created=$(echo "$yaml_created" | sed 's/-//g')
+          elif [[ "$yaml_created" =~ ^[0-9]{4}/[0-9]{2}/[0-9]{2}$ ]]; then
+            # YYYY/MM/DD format
+            new_created=$(echo "$yaml_created" | sed 's/\///g')
+          else
+            # Default to today's date
+            new_created=$(date '+%Y%m%d')
+          fi
+          sed -i.bak "s/^created: .*/created: $new_created/" "$info_file"
+          rm -f "${info_file}.bak"
+          echo "    Fixed created date: $new_created"
+        else
+          echo "    Would fix created date format"
+        fi
+      fi
+      
+      if [ $changes_made -eq 0 ]; then
+        echo "  - No repairs needed"
+      fi
+    }
+    
+    # Find steel threads to repair
+    if [ -n "$SPECIFIC_ST" ]; then
+      # Repair specific steel thread
+      found=0
+      for location in "$BASE_DIR" "$BASE_DIR/COMPLETED" "$BASE_DIR/NOT-STARTED" "$BASE_DIR/CANCELLED"; do
+        if [ -d "$location/$SPECIFIC_ST" ]; then
+          repair_steel_thread "$location/$SPECIFIC_ST"
+          found=1
+          break
+        fi
+      done
+      
+      if [ $found -eq 0 ]; then
+        error "Steel thread not found: $SPECIFIC_ST"
+      fi
+    else
+      # Repair all steel threads
+      echo "Scanning all steel threads for repairs..."
+      echo ""
+      
+      # Find all steel thread directories
+      ALL_ST_DIRS=$(find "$BASE_DIR" -type d -name "ST[0-9][0-9][0-9][0-9]" | sort)
+      
+      for dir in $ALL_ST_DIRS; do
+        repair_steel_thread "$dir"
+        echo ""
+      done
+    fi
+    
+    if [ $WRITE_MODE -eq 0 ]; then
+      echo ""
+      echo "Dry run complete. Use --write to apply changes."
+    else
+      echo ""
+      echo "Repairs complete."
+      
+      # Run organize to move files to correct locations based on repaired status
+      echo ""
+      echo "Running organize to ensure correct file locations..."
+      SCRIPT_PATH="${BASH_SOURCE[0]}"
+      "$SCRIPT_PATH" organize --write
     fi
     ;;
     
