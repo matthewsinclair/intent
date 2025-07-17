@@ -5,6 +5,75 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-07-17
+
+### Added
+
+- New `intent` command as the primary CLI (replacing `stp`)
+- `intent bootstrap` command for easy global setup
+- `intent doctor` command for comprehensive diagnostics
+- JSON-based configuration system (local and global)
+- Full backwards compatibility with STP v1.x projects
+- Comprehensive test suite with GitHub Actions CI/CD
+- Example projects demonstrating migration paths
+- Support for `jq` dependency in workflows
+
+### Changed
+
+- **BREAKING**: Renamed from STP to Intent
+- **BREAKING**: Flattened directory structure (intent/ instead of stp/prj/)
+- **BREAKING**: Executables moved to top-level bin/ directory
+- **BREAKING**: Configuration format changed from YAML to JSON
+- Improved error messages and user feedback
+- Enhanced migration tools with fail-forward approach
+- Streamlined command structure and naming
+- Updated all documentation to reflect Intent branding
+
+### Fixed
+
+- GitHub Actions workflow issues with bats libraries
+- Symlink issues with stp compatibility command
+- Test suite reliability and coverage
+- Configuration loading hierarchy
+- Path resolution in various environments
+
+### Deprecated
+
+- `stp` command (now aliases to `intent` for compatibility)
+- Old directory structure (stp/prj/st/ → intent/st/)
+- YAML configuration format
+- Nested project directory structure
+
+### Migration Guide
+
+#### From STP v1.x to Intent v2.0.0
+
+1. **Automatic Migration**: Run `intent upgrade` to automatically migrate your project
+2. **Manual Installation**: 
+   ```bash
+   # Clone Intent repository
+   git clone https://github.com/matthewsinclair/intent.git
+   cd intent
+   
+   # Add to PATH
+   export PATH="$PATH:$(pwd)/bin"
+   
+   # Bootstrap global configuration
+   intent bootstrap
+   ```
+3. **Project Structure Changes**:
+   - `stp/prj/st/` → `intent/st/`
+   - `stp/prj/wip.md` → `intent/wip.md`
+   - `stp/eng/` → `intent/eng/`
+   - `stp/usr/` → `intent/usr/`
+
+4. **Command Changes**:
+   - All `stp` commands now use `intent`
+   - Same subcommands and options supported
+   - `stp` symlink provided for compatibility
+
+See [Release Notes](./docs/releases/2.0.0/RELEASE_NOTES.md) for complete details.
+
 ## [1.2.1] - 2025-07-09
 
 ### Added
@@ -122,5 +191,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `stp upgrade` - Upgrade STP files to latest format
 - `stp help` - Comprehensive help system
 
-[1.2.0]: https://github.com/matthewsinclair/stp/compare/v1.0.0...v1.2.0
-[1.0.0]: https://github.com/matthewsinclair/stp/releases/tag/v1.0.0
+[2.0.0]: https://github.com/matthewsinclair/intent/compare/v1.2.1...v2.0.0
+[1.2.1]: https://github.com/matthewsinclair/intent/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/matthewsinclair/intent/compare/v1.0.0...v1.2.0
+[1.0.0]: https://github.com/matthewsinclair/intent/releases/tag/v1.0.0
