@@ -376,10 +376,10 @@ Here's how Intent transforms a typical development session:
 
 ```
 ┌───────────────────────────────────────────────────────────┐
-│                  Intent-Powered LLM Workflow                 │
+│                  Intent-Powered LLM Workflow              │
 ├──────────────────────────┬────────────────────────────────┤
-│ 1. Load Context          │ $ cat intent/prj/wip.md           │
-│                          │ $ intent st show ST0042           │
+│ 1. Load Context          │ $ cat intent/prj/wip.md        │
+│                          │ $ intent st show ST0042        │
 ├──────────────────────────┼────────────────────────────────┤
 │ 2. Share with LLM        │ "Working on ST0042, need help  │
 │                          │  with refresh token rotation"  │

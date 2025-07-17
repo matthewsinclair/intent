@@ -49,7 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### From STP v1.x to Intent v2.0.0
 
 1. **Automatic Migration**: Run `intent upgrade` to automatically migrate your project
-2. **Manual Installation**: 
+2. **Manual Installation**:
+
    ```bash
    # Clone Intent repository
    git clone https://github.com/matthewsinclair/intent.git
@@ -61,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    # Bootstrap global configuration
    intent bootstrap
    ```
+
 3. **Project Structure Changes**:
    - `stp/prj/st/` → `intent/st/`
    - `stp/prj/wip.md` → `intent/wip.md`

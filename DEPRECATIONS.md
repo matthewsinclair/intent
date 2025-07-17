@@ -52,6 +52,7 @@ The entire STP (Steel Thread Process) command and naming convention has been dep
 ### Why it was deprecated
 
 The name "Intent" better reflects the tool's core purpose of capturing and preserving the intention behind software development decisions. The rebrand includes:
+
 - Better alignment with the tool's philosophy
 - Clearer separation between tool and methodology
 - Improved directory structure with flattened hierarchy
@@ -60,6 +61,7 @@ The name "Intent" better reflects the tool's core purpose of capturing and prese
 ### Migration path
 
 Users migrating from STP to Intent should:
+
 1. Run `intent upgrade` to automatically migrate existing projects
 2. Update PATH to point to the new bin/ directory
 3. Use `intent` command instead of `stp` (symlink provided for compatibility)
@@ -68,6 +70,7 @@ Users migrating from STP to Intent should:
 ### Specific deprecations
 
 #### Commands
+
 - `stp` → `intent` (all subcommands remain the same)
 - `stp init` → `intent init`
 - `stp st` → `intent st`
@@ -78,6 +81,7 @@ Users migrating from STP to Intent should:
 - `stp upgrade` → `intent upgrade`
 
 #### Directory Structure
+
 - `stp/prj/st/` → `intent/st/`
 - `stp/prj/wip.md` → `intent/wip.md`
 - `stp/eng/` → `intent/eng/`
@@ -85,6 +89,7 @@ Users migrating from STP to Intent should:
 - `stp/bin/` → `bin/` (moved to top level)
 
 #### Configuration
+
 - YAML format → JSON format
 - `.stp/config.yml` → `.intent/config.json`
 - No global config → `~/.config/intent/config.json` (XDG standard)

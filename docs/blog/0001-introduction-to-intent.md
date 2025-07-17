@@ -106,7 +106,7 @@ Here's how the Intent workflow typically looks:
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │   Intention     │     │  Steel Thread    │     │     Tasks       │
 │   Capture       │────▶│   Creation       │────▶│   Definition    │
-│                 │     │  (intent st new)    │     │  (intent bl)       │
+│                 │     │  (intent st new) │     │  (intent bl)    │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
          │                       │                         │
          │                       ▼                         ▼
