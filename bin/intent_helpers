@@ -353,9 +353,12 @@ migrate_v0_to_v2() {
     done
   fi
   
-  # Migrate other files
+  # Migrate other known files
   [ -f "$project_root/stp/prj/wip.md" ] && cp "$project_root/stp/prj/wip.md" "$project_root/intent/wip.md"
   [ -f "$project_root/stp/eng/tpd/technical_product_design.md" ] && cp "$project_root/stp/eng/tpd/technical_product_design.md" "$project_root/intent/docs/"
+  
+  # Migrate ALL remaining content to ensure nothing is left behind
+  migrate_remaining_content "$project_root"
   
   # Create config
   local project_name=$(basename "$project_root")
@@ -391,10 +394,13 @@ migrate_v1_2_0_to_v2() {
     done
   fi
   
-  # Migrate other content
+  # Migrate other known content
   flatten_directory_structure "$project_root/stp/prj" "$project_root/intent"
   flatten_directory_structure "$project_root/stp/eng/tpd" "$project_root/intent/docs"
   flatten_directory_structure "$project_root/stp/llm" "$project_root/intent/llm"
+  
+  # Migrate ALL remaining content to ensure nothing is left behind
+  migrate_remaining_content "$project_root"
   
   # Create config from existing YAML
   if [ -f "$project_root/stp/.config/config" ]; then
@@ -454,10 +460,13 @@ migrate_v1_2_1_to_v2() {
     [ -f "$project_root/stp/prj/st/steel_threads.md" ] && cp "$project_root/stp/prj/st/steel_threads.md" "$project_root/intent/st/"
   fi
   
-  # Migrate other content
+  # Migrate other known content
   [ -f "$project_root/stp/prj/wip.md" ] && cp "$project_root/stp/prj/wip.md" "$project_root/intent/"
   [ -d "$project_root/stp/eng/tpd" ] && cp -r "$project_root/stp/eng/tpd"/* "$project_root/intent/eng/tpd/" 2>/dev/null || true
   [ -d "$project_root/stp/llm" ] && cp -r "$project_root/stp/llm"/* "$project_root/intent/llm/" 2>/dev/null || true
+  
+  # Migrate ALL remaining content to ensure nothing is left behind
+  migrate_remaining_content "$project_root"
   
   # Create config
   if [ -f "$project_root/stp/.config/config" ]; then
@@ -465,6 +474,74 @@ migrate_v1_2_1_to_v2() {
   else
     create_default_v2_config "$project_root"
   fi
+}
+
+# Migrate all remaining content from stp/ to intent/
+migrate_remaining_content() {
+  local project_root=$1
+  
+  echo "  Migrating any additional content..."
+  
+  # Migrate remaining content from stp/* (top level)
+  if [ -d "$project_root/stp" ]; then
+    for item in "$project_root/stp/"*; do
+      if [ -e "$item" ]; then
+        local basename=$(basename "$item")
+        # Skip already handled directories and config
+        if [[ "$basename" != "prj" && "$basename" != ".config" && "$basename" != "eng" && "$basename" != "llm" && "$basename" != "usr" ]]; then
+          echo "    Migrating additional: stp/$basename"
+          cp -r "$item" "$project_root/intent/" 2>/dev/null || true
+        fi
+      fi
+    done
+  fi
+  
+  # Migrate remaining content from stp/prj/* (except st/ and wip.md)
+  if [ -d "$project_root/stp/prj" ]; then
+    for item in "$project_root/stp/prj/"*; do
+      if [ -e "$item" ]; then
+        local basename=$(basename "$item")
+        if [[ "$basename" != "st" && "$basename" != "wip.md" ]]; then
+          echo "    Migrating additional: stp/prj/$basename"
+          cp -r "$item" "$project_root/intent/" 2>/dev/null || true
+        fi
+      fi
+    done
+  fi
+  
+  # Migrate remaining content from stp/eng/* (except tpd/)
+  if [ -d "$project_root/stp/eng" ]; then
+    for item in "$project_root/stp/eng/"*; do
+      if [ -e "$item" ]; then
+        local basename=$(basename "$item")
+        if [[ "$basename" != "tpd" ]]; then
+          echo "    Migrating additional: stp/eng/$basename"
+          mkdir -p "$project_root/intent/eng"
+          cp -r "$item" "$project_root/intent/eng/" 2>/dev/null || true
+        fi
+      fi
+    done
+  fi
+  
+  # Migrate remaining content from stp/usr/*
+  if [ -d "$project_root/stp/usr" ]; then
+    echo "    Migrating stp/usr/ content"
+    mkdir -p "$project_root/intent/usr"
+    cp -r "$project_root/stp/usr/"* "$project_root/intent/usr/" 2>/dev/null || true
+  fi
+  
+  # Update file references in all migrated files
+  echo "  Updating file references..."
+  find "$project_root/intent" -type f -name "*.md" -o -name "*.txt" | while read -r file; do
+    # Update stp/ references to intent/
+    sed -i.bak 's|stp/prj/st/|intent/st/|g' "$file" 2>/dev/null || true
+    sed -i.bak 's|stp/prj/|intent/|g' "$file" 2>/dev/null || true
+    sed -i.bak 's|stp/eng/|intent/eng/|g' "$file" 2>/dev/null || true
+    sed -i.bak 's|stp/usr/|intent/usr/|g' "$file" 2>/dev/null || true
+    sed -i.bak 's|stp/llm/|intent/llm/|g' "$file" 2>/dev/null || true
+    # Clean up backup files
+    rm -f "${file}.bak" 2>/dev/null || true
+  done
 }
 
 # Create default v2 config
