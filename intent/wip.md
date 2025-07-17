@@ -13,7 +13,7 @@ See the following files for detailed information about the project:
 
 Read CLAUDE.md then wait for instruction.
 
-#### Todo
+#### Todo 
 
 ⏺ Restart Prompt for New Claude Code Session
 

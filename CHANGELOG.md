@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `intent` command as the primary CLI (replacing `stp`)
 - `intent bootstrap` command for easy global setup
 - `intent doctor` command for comprehensive diagnostics
+- `intent st repair` command to fix malformed steel thread metadata
 - JSON-based configuration system (local and global)
 - Full backwards compatibility with STP v1.x projects
 - Comprehensive test suite with GitHub Actions CI/CD
@@ -36,6 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test suite reliability and coverage
 - Configuration loading hierarchy
 - Path resolution in various environments
+- Malformed YAML frontmatter in steel threads after migration
+- Legacy field names (stp_version) in steel thread metadata
+- Conflicting status values between frontmatter and body content
 
 ### Deprecated
 
