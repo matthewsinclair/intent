@@ -36,7 +36,9 @@
       "Bash(./tests/run_tests.sh:*)",
       "Bash(git checkout:*)",
       "Bash(git ls-tree:*)",
-      "Bash(./bin/intent:*)"
+      "Bash(./bin/intent:*)",
+      "Bash(git tag:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }
