@@ -1,4 +1,4 @@
-name: STP Tests
+name: Intent Tests
 
 on:
   push:
@@ -37,19 +37,19 @@ jobs:
     
     - name: Make scripts executable
       run: |
-        chmod +x stp/bin/*
-        chmod +x stp/tests/*.sh 2>/dev/null || true
+        chmod +x bin/*
+        chmod +x tests/*.sh 2>/dev/null || true
     
     - name: Install bats libraries manually
       run: |
-        mkdir -p stp/tests/lib
-        [ ! -d "stp/tests/lib/bats-support" ] && git clone https://github.com/bats-core/bats-support.git stp/tests/lib/bats-support
-        [ ! -d "stp/tests/lib/bats-assert" ] && git clone https://github.com/bats-core/bats-assert.git stp/tests/lib/bats-assert
-        [ ! -d "stp/tests/lib/bats-file" ] && git clone https://github.com/bats-core/bats-file.git stp/tests/lib/bats-file
+        mkdir -p tests/lib
+        [ ! -d "tests/lib/bats-support" ] && git clone https://github.com/bats-core/bats-support.git tests/lib/bats-support
+        [ ! -d "tests/lib/bats-assert" ] && git clone https://github.com/bats-core/bats-assert.git tests/lib/bats-assert
+        [ ! -d "tests/lib/bats-file" ] && git clone https://github.com/bats-core/bats-file.git tests/lib/bats-file
     
     - name: Run unit tests
       run: |
-        cd stp/tests
+        cd tests
         if [ -f "./run_tests.sh" ]; then
           ./run_tests.sh
         else
@@ -69,10 +69,10 @@ jobs:
     
     - name: Run integration tests
       run: |
-        cd stp/tests
+        cd tests
         echo "Running integration tests..."
-        if [ -f "integration/stp_backlog_integration_test.bats" ]; then
-          bats integration/stp_backlog_integration_test.bats || echo "Integration tests completed with status: $?"
+        if [ -f "integration/end_to_end.bats" ]; then
+          bats integration/end_to_end.bats || echo "Integration tests completed with status: $?"
         else
           echo "No integration tests found"
         fi
@@ -106,7 +106,7 @@ jobs:
     
     - name: Set up test environment
       run: |
-        cd stp/tests
+        cd tests
         if [ -f "setup_test_env.sh" ]; then
           chmod +x setup_test_env.sh
           ./setup_test_env.sh
@@ -120,12 +120,12 @@ jobs:
     
     - name: Make scripts executable
       run: |
-        chmod +x stp/bin/*
-        chmod +x stp/tests/*.sh 2>/dev/null || true
+        chmod +x bin/*
+        chmod +x tests/*.sh 2>/dev/null || true
     
     - name: Run tests
       run: |
-        cd stp/tests
+        cd tests
         if [ -f "./run_tests.sh" ]; then
           chmod +x run_tests.sh
           ./run_tests.sh
@@ -153,9 +153,9 @@ jobs:
     
     - name: Run ShellCheck
       run: |
-        echo "Running ShellCheck on STP scripts..."
+        echo "Running ShellCheck on Intent scripts..."
         # Run shellcheck on all shell scripts, but don't fail the build
-        find stp/bin -type f -name "stp*" | while read -r script; do
+        find bin -type f -name "intent*" | while read -r script; do
           if file "$script" | grep -q "shell script"; then
             echo "Checking: $script"
             shellcheck "$script" || echo "  ShellCheck found issues (non-blocking)"

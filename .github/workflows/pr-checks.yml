@@ -26,9 +26,9 @@ jobs:
           echo "Referenced thread: $THREAD_ID"
           
           # Check if the thread exists (either as file or directory)
-          if [ -f "stp/prj/st/${THREAD_ID}.md" ] || [ -d "stp/prj/st/${THREAD_ID}" ]; then
+          if [ -f "intent/st/${THREAD_ID}.md" ] || [ -d "intent/st/${THREAD_ID}" ]; then
             echo "✅ Steel thread exists"
-          elif [ -d "stp/prj/st/COMPLETED/${THREAD_ID}" ] || [ -d "stp/prj/st/NOT-STARTED/${THREAD_ID}" ] || [ -d "stp/prj/st/CANCELLED/${THREAD_ID}" ]; then
+          elif [ -d "intent/st/COMPLETED/${THREAD_ID}" ] || [ -d "intent/st/NOT-STARTED/${THREAD_ID}" ] || [ -d "intent/st/CANCELLED/${THREAD_ID}" ]; then
             echo "✅ Steel thread exists (in status subdirectory)"
           else
             echo "❌ Error: Steel thread ${THREAD_ID} not found"
@@ -54,7 +54,7 @@ jobs:
         CHANGED_FILES="${{ github.event.pull_request.changed_files }}"
         
         # Check if any scripts were modified
-        if git diff --name-only origin/main..HEAD | grep -q "stp/bin/"; then
+        if git diff --name-only origin/main..HEAD | grep -q "bin/"; then
           echo "Scripts were modified - checking for documentation updates"
           
           # Check if any documentation was also updated
@@ -78,7 +78,7 @@ jobs:
         echo "Checking test coverage for changes..."
         
         # Check if any source files were modified
-        if git diff --name-only origin/main..HEAD | grep -q "stp/bin/"; then
+        if git diff --name-only origin/main..HEAD | grep -q "bin/"; then
           echo "Source files were modified - checking for test updates"
           
           # Check if any tests were also updated
