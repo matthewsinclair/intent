@@ -1,5 +1,9 @@
 ---
-verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"\nstp_version: 2.0.0\nstatus: Completed\ncreated: 20250306\ncompleted: 20250603\n
+verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
+intent_version: 2.0.0
+status: Completed
+created: 20250306
+completed: 20250603
 ---
 # ST0001: Directory Structure
 

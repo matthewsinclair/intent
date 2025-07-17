@@ -249,3 +249,155 @@ EOF
   assert_file_exists "intent/st/steel_threads.md"
   assert_file_contains "intent/st/steel_threads.md" "Steel Threads"
 }
+
+@test "st repair shows dry-run output" {
+  project_dir=$(create_test_project "ST Repair Test")
+  cd "$project_dir"
+  
+  # Create a steel thread with malformed frontmatter
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << 'EOF'
+---
+verblock: "06 Mar 2025:v0.1: Test User - Initial version"\nstp_version: 1.2.1\nstatus: Not Started\ncreated: 20250306\ncompleted: \n
+---
+# ST0001: Test Thread
+
+- **Status**: Completed
+- **Created**: 2025-03-06
+- **Completed**: 2025-03-07
+EOF
+  
+  run run_intent st repair ST0001
+  assert_success
+  assert_output_contains "Processing: ST0001"
+  assert_output_contains "Found malformed frontmatter"
+  assert_output_contains "Would fix malformed frontmatter"
+  # Note: When frontmatter is malformed, it doesn't have separate status field
+  # so conflicting status isn't detected until after fixing frontmatter
+  assert_output_contains "Dry run complete. Use --write to apply changes."
+}
+
+@test "st repair --write fixes malformed frontmatter" {
+  project_dir=$(create_test_project "ST Repair Write Test")
+  cd "$project_dir"
+  
+  # Create a steel thread with malformed frontmatter
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << 'EOF'
+---
+verblock: "06 Mar 2025:v0.1: Test User - Initial version"\nstp_version: 1.2.1\nstatus: Not Started\ncreated: 20250306\ncompleted: \n
+---
+# ST0001: Test Thread
+
+- **Status**: Completed
+- **Created**: 2025-03-06
+- **Completed**: 2025-03-07
+EOF
+  
+  # Create the index file first since organize expects it
+  cat > intent/st/steel_threads.md << EOF
+# Steel Threads
+
+## Active Threads
+
+## Completed Threads
+EOF
+  
+  run run_intent st repair ST0001 --write
+  assert_success
+  assert_output_contains "Fixed malformed frontmatter"
+  # The stp_version -> intent_version update happens as part of frontmatter fix
+  assert_output_contains "Updated frontmatter status to: Completed"
+  
+  # Verify the file was moved to COMPLETED directory
+  assert_file_contains "intent/st/COMPLETED/ST0001/info.md" "intent_version: 2.0.0"
+  assert_file_contains "intent/st/COMPLETED/ST0001/info.md" "status: Completed"
+  
+  # Should not contain stp_version anymore
+  run grep "stp_version" intent/st/COMPLETED/ST0001/info.md
+  assert_failure
+}
+
+@test "st repair all threads without specific ID" {
+  project_dir=$(create_test_project "ST Repair All Test")
+  cd "$project_dir"
+  
+  # Create multiple threads with issues
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << 'EOF'
+---
+stp_version: 1.2.1
+status: In Progress
+---
+# ST0001: First Thread
+EOF
+
+  mkdir -p intent/st/ST0002
+  cat > intent/st/ST0002/info.md << 'EOF'
+---
+intent_version: 2.0.0
+status: WIP
+---
+# ST0002: Second Thread
+
+- **Status**: In Progress
+EOF
+  
+  run run_intent st repair
+  assert_success
+  assert_output_contains "Processing: ST0001"
+  assert_output_contains "Found legacy stp_version field"
+  assert_output_contains "Processing: ST0002"
+  assert_output_contains "Found conflicting status:"
+  assert_output_contains "Dry run complete"
+}
+
+@test "st repair handles missing status field" {
+  project_dir=$(create_test_project "ST Repair Missing Status Test")
+  cd "$project_dir"
+  
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << 'EOF'
+---
+intent_version: 2.0.0
+created: 20250306
+---
+# ST0001: No Status Thread
+
+- **Status**: In Progress
+EOF
+  
+  run run_intent st repair ST0001
+  assert_success
+  assert_output_contains "Missing status field in frontmatter"
+  assert_output_contains "Would add status field"
+}
+
+@test "st repair validates date formats" {
+  project_dir=$(create_test_project "ST Repair Date Test")
+  cd "$project_dir"
+  
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << 'EOF'
+---
+intent_version: 2.0.0
+status: In Progress
+created: 2025-03-06
+---
+# ST0001: Bad Date Format
+EOF
+  
+  run run_intent st repair ST0001
+  assert_success
+  assert_output_contains "Invalid created date format: 2025-03-06"
+  assert_output_contains "Would fix created date format"
+}
+
+@test "st repair handles non-existent steel thread" {
+  project_dir=$(create_test_project "ST Repair Not Found Test")
+  cd "$project_dir"
+  
+  run run_intent st repair ST9999
+  assert_failure
+  assert_output_contains "Steel thread not found: ST9999"
+}

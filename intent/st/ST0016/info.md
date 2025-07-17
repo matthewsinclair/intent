@@ -1,6 +1,6 @@
 ---
 verblock: "16 Jul 2025:v0.2: Matthew Sinclair - Updated with JSON config and new commands"
-stp_version: 2.0.0
+intent_version: 2.0.0
 status: WIP
 created: 20250311
 completed: 20250708

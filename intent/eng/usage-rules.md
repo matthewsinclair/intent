@@ -102,6 +102,11 @@ intent st show ST0015 design # Shows design.md
 # Edit thread files
 intent st edit ST0015        # Edits info.md
 intent st edit ST0015 tasks  # Edits tasks.md
+
+# Repair malformed metadata
+intent st repair             # Dry-run on all threads
+intent st repair --write     # Actually repair all threads
+intent st repair ST0015      # Dry-run on specific thread
 ```
 
 #### Steel Thread Structure
@@ -225,6 +230,28 @@ intent doctor
 # Auto-fix problems
 intent doctor --fix
 ```
+
+#### Repairing Steel Thread Metadata
+
+After migrations or manual edits, steel thread metadata may become corrupted. Use the repair command:
+
+```bash
+# Check what repairs are needed (dry-run)
+intent st repair
+
+# Repair all steel threads
+intent st repair --write
+
+# Repair specific steel thread
+intent st repair ST0001 --write
+```
+
+The repair command fixes:
+- Malformed YAML frontmatter (escaped newlines)
+- Legacy field names (stp_version → intent_version)
+- Conflicting status values between frontmatter and body
+- Invalid date formats
+- Missing required fields
 
 ## Steel Thread Workflows
 
@@ -422,6 +449,7 @@ intent status sync ST####
 # Maintain system
 intent doctor --fix
 intent upgrade           # From any STP version
+intent st repair --write # Fix metadata issues
 ```
 
 ## Configuration Quick Reference

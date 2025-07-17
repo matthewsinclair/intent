@@ -1,5 +1,9 @@
 ---
-verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"\nstp_version: 2.0.0\nstatus: Completed\ncreated: 20250307\ncompleted: 20250307\n
+verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
+intent_version: 2.0.0
+status: Completed
+created: 20250307
+completed: 20250307
 ---
 # ST0012: Document Sync Command
 
