@@ -398,7 +398,7 @@ migrate_v1_2_0_to_v2() {
   
   # Create config from existing YAML
   if [ -f "$project_root/stp/.config/config" ]; then
-    convert_yaml_to_json "$project_root/stp/.config/config" "$project_root/.intent/config.json"
+    convert_yaml_config_to_json "$project_root/stp/.config/config" "$project_root/.intent/config.json"
   else
     create_default_v2_config "$project_root"
   fi
@@ -461,7 +461,7 @@ migrate_v1_2_1_to_v2() {
   
   # Create config
   if [ -f "$project_root/stp/.config/config" ]; then
-    convert_yaml_to_json "$project_root/stp/.config/config" "$project_root/.intent/config.json"
+    convert_yaml_config_to_json "$project_root/stp/.config/config" "$project_root/.intent/config.json"
   else
     create_default_v2_config "$project_root"
   fi

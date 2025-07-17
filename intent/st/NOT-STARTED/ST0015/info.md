@@ -1,5 +1,5 @@
 ---
-verblock: "09 Jul 2025:v0.1: Matthew Sinclair - Initial version"\nstp_version: 1.2.1\nstatus: Not Started\ncreated: 20250709\ncompleted: \n
+verblock: "09 Jul 2025:v0.1: Matthew Sinclair - Initial version"\nstp_version: 2.0.0\nstatus: Not Started\ncreated: 20250709\ncompleted: \n
 ---
 # ST0015: Enhanced Steel Thread Templates and File Types
 

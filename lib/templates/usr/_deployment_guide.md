@@ -30,7 +30,7 @@ Install STP globally to make it available for all projects:
 
 ```bash
 # Clone the STP repository
-git clone https://github.com/username/stp.git ~/stp
+git clone https://github.com/matthewsinclair/stp.git ~/stp
 
 # Add STP bin directory to PATH in shell profile
 echo 'export STP_HOME=~/stp' >> ~/.bashrc
@@ -46,7 +46,7 @@ Install STP within a specific project:
 
 ```bash
 # From your project directory
-git clone https://github.com/username/stp.git .stp
+git clone https://github.com/matthewsinclair/stp.git .stp
 
 # Create a local alias for the project
 alias stp='./.stp/bin/stp'
