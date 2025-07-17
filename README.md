@@ -1,28 +1,30 @@
-# Intent: The Steel Thread Process (STP)
+# Intent: The Steel Thread Process
 
-[![STP Tests](https://github.com/matthewsinclair/dev-stp/actions/workflows/tests.yml/badge.svg)](https://github.com/matthewsinclair/dev-stp/actions/workflows/tests.yml)
+[![Intent Tests](https://github.com/matthewsinclair/intent/actions/workflows/tests.yml/badge.svg)](https://github.com/matthewsinclair/intent/actions/workflows/tests.yml)
 
 > **Transform how you build software by capturing the "why" alongside the "what"**
 
-STP is a lightweight, intention-aware development methodology that helps you build better software by preserving the context and reasoning behind every decision. It's designed from the ground up to enhance collaboration between developers and AI assistants, making your development process more efficient and your codebase more maintainable.
+Intent is a lightweight, intention-aware development methodology that helps you build better software by preserving the context and reasoning behind every decision. It's designed from the ground up to enhance collaboration between developers and AI assistants, making your development process more efficient and your codebase more maintainable.
 
-## 🎯 The Problem STP Solves
+## 🎯 The Problem Intent Solves
 
 Ever joined a project and wondered:
+
 - Why was this approach chosen over alternatives?
 - What problem was this code originally solving?
 - What were the trade-offs considered?
 - Why did we structure it this way?
 
 Traditional documentation captures _what_ the code does, but rarely preserves _why_ it exists. This context loss leads to:
+
 - 🔄 Repeated mistakes and circular discussions
 - 🤔 Confusion about design decisions
 - 🚫 Fear of changing "mysterious" code
 - 🤖 Poor AI assistance due to missing context
 
-## 💡 The STP Solution
+## 💡 The Intent Solution
 
-STP introduces **Steel Threads** - self-contained units of work that capture not just tasks, but the entire context of why work is being done. Combined with **Backlog.md** for task management, STP creates a two-tier system that preserves both strategic intent and tactical execution.
+Intent introduces **Steel Threads** - self-contained units of work that capture not just tasks, but the entire context of why work is being done. Combined with **Backlog.md** for task management, Intent creates a two-tier system that preserves both strategic intent and tactical execution.
 
 ### Key Benefits
 
@@ -38,59 +40,61 @@ STP introduces **Steel Threads** - self-contained units of work that capture not
 
 ```bash
 # Clone the repository
-git clone https://github.com/matthewsinclair/stp.git
-cd stp
+git clone https://github.com/matthewsinclair/intent.git
+cd intent
 
-# Add STP to your PATH
-export PATH="$PATH:$(pwd)/stp/bin"
+# Add Intent to your PATH
+export PATH="$PATH:$(pwd)/bin"
 
 # Verify installation
-stp --version
+intent --version
 
 # See available commands
-stp help
+intent help
 ```
 
 ### Your First Steel Thread
 
 ```bash
 # Create a new steel thread
-$ stp st new "Add user authentication"
+$ intent st new "Add user authentication"
 Created: ST0001
 
 # Create associated tasks
-$ stp task create ST0001 "Research auth libraries"
-$ stp task create ST0001 "Implement login endpoint"
-$ stp task create ST0001 "Add session management"
+$ intent task create ST0001 "Research auth libraries"
+$ intent task create ST0001 "Implement login endpoint"
+$ intent task create ST0001 "Add session management"
 
 # Check status
-$ stp status show ST0001
+$ intent status show ST0001
 ```
 
 ### Integrate with Backlog.md
 
 ```bash
 # Install Backlog.md (npm required)
-npm install -g @backlog/cli
+npm install -g backlog.md
 
 # Initialize Backlog in your project
-stp bl init
+intent bl init
 
 # Create and manage tasks
-stp bl create ST0001 "Configure OAuth provider"
-stp bl list
-stp bl board
+intent bl create ST0001 "Configure OAuth provider"
+intent bl list
+intent bl board
 ```
 
 ## 📚 Documentation
 
 ### Getting Started
-- **[User Guide](./stp/usr/user_guide.md)** - Step-by-step guide to using STP
-- **[Reference Guide](./stp/usr/reference_guide.md)** - Complete command reference and detailed documentation
-- **[Installation Guide](./stp/usr/user_guide.md#installation)** - Detailed installation instructions
 
-### Understanding STP
-- **[Technical Product Design](./stp/eng/tpd/technical_product_design.md)** - The complete vision and architecture of STP
+- **[User Guide](./intent/usr/user_guide.md)** - Step-by-step guide to using Intent
+- **[Reference Guide](./intent/usr/reference_guide.md)** - Complete command reference and detailed documentation
+- **[Installation Guide](./intent/usr/user_guide.md#installation)** - Detailed installation instructions
+
+### Understanding Intent
+
+- **[Technical Product Design](./intent/eng/tpd/technical_product_design.md)** - The complete vision and architecture of Intent
 - **[Blog Series](./docs/blog/)** - In-depth exploration of Intent concepts:
   - [Motivation for Intent](./docs/blog/0000-motivation-for-intent.md) - Why intention matters in software
   - [Introduction to Intent](./docs/blog/0001-introduction-to-intent.md) - What Intent is and how it works
@@ -101,67 +105,73 @@ stp bl board
   - [Next Steps and Future Work](./docs/blog/0006-next-steps-and-future-work.md) - Roadmap and vision
 
 ### Project Management
-- **[Work in Progress (WIP)](./stp/prj/wip.md)** - Current tasks and daily focus
-- **[Steel Threads Index](./stp/prj/st/steel_threads.md)** - All steel threads and their status
+
+- **[Work in Progress (WIP)](./intent/wip.md)** - Current tasks and daily focus
+- **[Steel Threads Index](./intent/st/steel_threads.md)** - All steel threads and their status
 - **[Backlog Integration](./CLAUDE.md#task-management-with-backlogmd)** - Task tracking and project history
 
 ### Development
+
 - **[CLAUDE.md](./CLAUDE.md)** - AI assistant instructions and project conventions
-- **[Architecture Overview](./stp/eng/tpd/3_architecture.md)** - System design and components
-- **[Detailed Design](./stp/eng/tpd/4_detailed_design.md)** - Implementation details
-- **[Testing Guide](./stp/tests/)** - Test suites and integration tests
+- **[Architecture Overview](./intent/eng/tpd/3_architecture.md)** - System design and components
+- **[Detailed Design](./intent/eng/tpd/4_detailed_design.md)** - Implementation details
+- **[Testing Guide](./tests/)** - Test suites and integration tests
 
 ## 🛠️ Core Commands
 
 ### Steel Thread Management
+
 ```bash
-stp st new <title>          # Create a new steel thread
-stp st list                 # List all steel threads
-stp st show <ST####>        # Show details of a specific thread
-stp st edit <ST####>        # Edit a steel thread
-stp st sync                 # Synchronise the steel thread index
+intent st new <title>          # Create a new steel thread
+intent st list                 # List all steel threads
+intent st show <ST####>        # Show details of a specific thread
+intent st edit <ST####>        # Edit a steel thread
+intent st sync                 # Synchronise the steel thread index
 ```
 
 ### Task Management
+
 ```bash
-stp task create <ST####> <title>  # Create a task linked to a thread
-stp task list <ST####>            # List tasks for a thread
-stp status show <ST####>          # Show thread and task status
-stp status sync <ST####>          # Sync thread status with tasks
+intent task create <ST####> <title>  # Create a task linked to a thread
+intent task list <ST####>            # List tasks for a thread
+intent status show <ST####>          # Show thread and task status
+intent status sync <ST####>          # Sync thread status with tasks
 ```
 
 ### Backlog Integration
+
 ```bash
-stp bl init                       # Initialize Backlog.md
-stp bl create <ST####> <title>    # Create a Backlog task
-stp bl list                       # List tasks (without git errors)
-stp bl board                      # View Kanban board
+intent bl init                       # Initialize Backlog.md
+intent bl create <ST####> <title>    # Create a Backlog task
+intent bl list                       # List tasks (without git errors)
+intent bl board                      # View Kanban board
 ```
 
 ### LLM Integration
+
 ```bash
-stp llm usage_rules               # Display STP usage patterns for LLMs
-stp llm usage_rules --symlink     # Create usage-rules.md symlink
+intent llm usage_rules               # Display Intent usage patterns for LLMs
+intent llm usage_rules --symlink     # Create usage-rules.md symlink
 ```
 
 ## 🏗️ Project Structure
 
 ```
-stp/
-├── bin/           # STP command-line tools
-├── doc/           # Documentation and blog posts
-├── eng/           # Engineering documentation
-│   └── tpd/       # Technical Product Design
-├── prj/           # Project management
+.
+├── bin/           # Intent command-line tools
+├── docs/          # Documentation and blog posts
+├── intent/        # Project artifacts (when using Intent)
 │   ├── st/        # Steel threads
+│   ├── eng/       # Engineering documentation
+│   │   └── tpd/   # Technical Product Design
+│   ├── usr/       # User documentation
 │   └── wip.md     # Current work
+├── lib/           # Templates and libraries
 ├── tests/         # Test suites
-└── usr/           # User documentation
-
-backlog/           # Backlog.md tasks (if integrated)
-├── tasks/         # Active tasks
-├── drafts/        # Draft tasks
-└── config.yml     # Backlog configuration
+└── backlog/       # Backlog.md tasks (if integrated)
+    ├── tasks/     # Active tasks
+    ├── drafts/    # Draft tasks
+    └── config.yml # Backlog configuration
 ```
 
 ## 🤝 Contributing
@@ -177,7 +187,7 @@ See our [contribution workflow](./docs/blog/0006-next-steps-and-future-work.md#c
 
 ## 🎯 Use Cases
 
-STP is particularly valuable for:
+Intent is particularly valuable for:
 
 - **🚀 Startups**: Preserve founder vision through rapid pivots
 - **🏢 Enterprise**: Maintain knowledge through team changes
@@ -187,7 +197,7 @@ STP is particularly valuable for:
 
 ## 🔮 Future Vision
 
-STP is evolving to become the standard for intention-aware development:
+Intent is evolving to become the standard for intention-aware development:
 
 - **Q1 2025**: Enhanced configuration and reporting
 - **Q2 2025**: Multi-user collaboration features
@@ -200,14 +210,14 @@ See our [roadmap](./docs/blog/0006-next-steps-and-future-work.md#roadmap-the-nex
 
 > "Great software isn't just about what it does – it's about why it exists."
 
-STP transforms software development from a purely technical exercise into a practice that values and preserves human intention. By capturing the "why" alongside the "what", we create software that is not just functional, but truly understood.
+Intent transforms software development from a purely technical exercise into a practice that values and preserves human intention. By capturing the "why" alongside the "what", we create software that is not just functional, but truly understood.
 
 ## 🚦 Getting Help
 
-- **Quick Start**: Run `stp help` for command overview
-- **User Guide**: See [comprehensive guide](./stp/usr/user_guide.md)
+- **Quick Start**: Run `intent help` for command overview
+- **User Guide**: See [comprehensive guide](./intent/usr/user_guide.md)
 - **Examples**: Check the [blog series](./docs/blog/) for real-world usage
-- **Issues**: Report bugs on [GitHub Issues](https://github.com/matthewsinclair/stp/issues)
+- **Issues**: Report bugs on [GitHub Issues](https://github.com/matthewsinclair/intent/issues)
 
 ## 📄 License
 
@@ -218,6 +228,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
 **Start capturing intention today. Your future self (and team) will thank you.**
 
 ```bash
-# Begin your STP journey
-$ stp st new "My first steel thread"
+# Begin your Intent journey
+$ intent st new "My first steel thread"
 ```
