@@ -23,10 +23,10 @@ load "../lib/test_helper.bash"
   assert_success
   
   # Check if steel thread directory was created
-  st_dirs=(intent/st/ST*)
-  assert_directory_exists "${st_dirs[0]}"
-  assert_file_exists "${st_dirs[0]}/info.md"
-  assert_file_contains "${st_dirs[0]}/info.md" "Test Steel Thread"
+  # New threads start in NOT-STARTED subdirectory
+  assert_directory_exists "intent/st/NOT-STARTED/ST0001"
+  assert_file_exists "intent/st/NOT-STARTED/ST0001/info.md"
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/info.md" "Test Steel Thread"
 }
 
 @test "st new creates sequential steel thread IDs" {
@@ -38,17 +38,17 @@ load "../lib/test_helper.bash"
   # Create first steel thread
   run run_intent st new "First Steel Thread"
   assert_success
-  assert_directory_exists "intent/st/ST0001"
+  assert_directory_exists "intent/st/NOT-STARTED/ST0001"
   
   # Create second steel thread
   run run_intent st new "Second Steel Thread"
   assert_success
-  assert_directory_exists "intent/st/ST0002"
+  assert_directory_exists "intent/st/NOT-STARTED/ST0002"
   
   # Create third steel thread
   run run_intent st new "Third Steel Thread"
   assert_success
-  assert_directory_exists "intent/st/ST0003"
+  assert_directory_exists "intent/st/NOT-STARTED/ST0003"
 }
 
 
@@ -417,7 +417,7 @@ created: 20250117
 # ST0001: Test Thread
 
 - **Status**: Not Started
-- **Created**: 2025-01-17
+- **Created**: $(date '+%Y-%m-%d')
 - **Completed**: 
 - **Author**: test_user
 EOF
@@ -536,6 +536,9 @@ EOF
   project_dir=$(create_test_project "ST Start Index Test")
   cd "$project_dir"
   
+  # Use current date consistently
+  CURRENT_DATE=$(date '+%Y-%m-%d')
+  
   # Create index file
   cat > intent/st/steel_threads.md << EOF
 # Steel Threads
@@ -546,7 +549,7 @@ This document serves as an index of all steel threads in the project.
 
 | ID                       | Title                  | Status       | Created    | Completed  |
 | ----------------------- | -------------------- | ------------ | ---------- | ---------- |
-| ST0001 | Test Thread | Not Started | 2025-01-17 |  |
+| ST0001 | Test Thread | Not Started | $CURRENT_DATE |  |
 EOF
   
   mkdir -p intent/st/NOT-STARTED/ST0001
@@ -554,18 +557,18 @@ EOF
 ---
 intent_version: 2.0.0
 status: Not Started
-created: 20250117
+created: $(date '+%Y%m%d')
 ---
 # ST0001: Test Thread
 - **Status**: Not Started
-- **Created**: 2025-01-17
+- **Created**: $CURRENT_DATE
 EOF
   
   run run_intent st start ST0001
   assert_success
   
   # Check index was updated
-  assert_file_contains "intent/st/steel_threads.md" "| ST0001 | Test Thread | In Progress | 2025-01-17 |  |"
+  assert_file_contains "intent/st/steel_threads.md" "| ST0001 | Test Thread | In Progress | $CURRENT_DATE |  |"
 }
 
 @test "st start errors on non-existent steel thread" {
