@@ -11,21 +11,25 @@ Phase 0 (Test Infrastructure) has been completed successfully. This foundation e
 Location: `/Users/matts/Devel/prj/STP/examples/`
 
 #### v0.0.0-project
+
 - Ancient format with `.stp-config` YAML file
 - File-based steel threads without frontmatter
 - Represents the oldest supported version
 
 #### v1.2.0-project
+
 - Uses `stp/.config/version` for version tracking
 - File-based steel threads with YAML frontmatter
 - Section markers in steel_threads.md
 
 #### v1.2.1-project
+
 - Directory-based steel threads (ST####/info.md structure)
 - Enhanced metadata with verblock
 - Current production version
 
 #### hello-world
+
 - Target v2.0.0 structure
 - JSON configuration (`.intent/config.json`)
 - Flattened directories (intent/st/ not stp/prj/st/)
@@ -36,6 +40,7 @@ Location: `/Users/matts/Devel/prj/STP/examples/`
 Location: `/Users/matts/Devel/prj/STP/stp/tests/`
 
 #### upgrade/comprehensive_test.bats
+
 - Version detection tests for all formats
 - Migration scenario tests (v0.0.0 → v2.0.0, etc.)
 - Backup creation validation
@@ -43,6 +48,7 @@ Location: `/Users/matts/Devel/prj/STP/stp/tests/`
 - Error handling tests
 
 #### intent/intent_bootstrap_test.bats
+
 - Global config directory creation
 - Default config.json generation
 - INTENT_HOME detection
@@ -50,6 +56,7 @@ Location: `/Users/matts/Devel/prj/STP/stp/tests/`
 - Doctor integration
 
 #### intent/intent_doctor_test.bats
+
 - Environment variable checks
 - Executable validation
 - Config file syntax validation
@@ -57,6 +64,7 @@ Location: `/Users/matts/Devel/prj/STP/stp/tests/`
 - --fix mode testing
 
 #### intent/json_config_test.bats
+
 - JSON parsing with sed/grep
 - Config loading hierarchy
 - Environment variable overrides
@@ -65,6 +73,7 @@ Location: `/Users/matts/Devel/prj/STP/stp/tests/`
 ### 3. Backlog.md Integration
 
 Created 12 tasks for ST0016:
+
 - task-59: Create examples directory structure
 - task-60: Create v0.0.0 example project
 - task-61: Create v1.2.0 example project
@@ -81,6 +90,7 @@ Created 12 tasks for ST0016:
 ## Next Steps
 
 Ready to begin Phase 1: New Commands Implementation
+
 1. Implement intent_bootstrap command
 2. Implement intent_doctor command
 3. Create shared JSON config parser
