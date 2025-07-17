@@ -50,6 +50,7 @@ jobs:
     - name: Run unit tests
       run: |
         cd tests
+        export BATS_LIB_PATH="$PWD/lib"
         if [ -f "./run_tests.sh" ]; then
           ./run_tests.sh
         else
@@ -70,6 +71,7 @@ jobs:
     - name: Run integration tests
       run: |
         cd tests
+        export BATS_LIB_PATH="$PWD/lib"
         echo "Running integration tests..."
         if [ -f "integration/end_to_end.bats" ]; then
           bats integration/end_to_end.bats || echo "Integration tests completed with status: $?"
@@ -126,6 +128,7 @@ jobs:
     - name: Run tests
       run: |
         cd tests
+        export BATS_LIB_PATH="$PWD/lib"
         if [ -f "./run_tests.sh" ]; then
           chmod +x run_tests.sh
           ./run_tests.sh
