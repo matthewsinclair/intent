@@ -90,63 +90,32 @@ The Command-line Interface provides shell-based tools for managing STP workflows
 
 ### 3.2.3 Process Guidelines
 
-The Process Guidelines define how Intent is used in practice. Key features include:
+The Process Guidelines define how STP is used in practice. Key features include:
 
 - **Steel Thread Methodology**: Process for incremental development
-- **LLM Collaboration**: Enhanced patterns for AI assistance
+- **LLM Collaboration**: Patterns for effective LLM assistance
 - **Documentation Lifecycle**: How documents evolve through project stages
-- **Integration Points**: How Intent integrates with other practices
-- **Self-Hosting**: Intent is developed using Intent itself
+- **Integration Points**: How STP integrates with other development practices
 
-## 3.3 Data Architecture [AS-BUILT]
+## 3.3 Data Architecture
 
-### 3.3.1 Configuration System
+STP manages several types of data:
 
-Intent v2.0.0 uses a hierarchical JSON configuration system:
+1. **Template Data**: Reusable document templates
+2. **Project Metadata**: Information about the project and its status
+3. **Work History**: Record of completed work and decisions
+4. **Configuration Data**: Settings for STP behavior
 
-```
-Configuration Hierarchy (highest to lowest priority):
-1. Environment Variables (INTENT_*, AUTHOR, EDITOR)
-2. Local Project Config (.intent/config.json)
-3. Global User Config (~/.config/intent/config.json)  
-4. Built-in Defaults
-
-Example .intent/config.json:
-{
-  "version": "2.0.0",
-  "project_name": "MyProject",
-  "author": "username",
-  "created": "2025-07-17",
-  "st_prefix": "ST",
-  "backlog_dir": "backlog",
-  "intent_dir": "intent",
-  "backlog_list_status": "todo"  // New in v2.0.0
-}
-```
-
-### 3.3.2 Data Types
-
-Intent manages several types of data:
-
-1. **Configuration Data**: JSON-based project and global settings
-2. **Steel Thread Data**: Markdown files in intent/st/ directories
-3. **Project Metadata**: Steel thread status, creation dates
-4. **Work History**: Journal entries and completed threads
-5. **Task Data**: Backlog.md integration with status tracking
-
-All data uses plain text formats (JSON and markdown) for maximum portability.
+All data is stored in plain text formats (primarily markdown) to maximize portability and tool compatibility.
 
 ## 3.4 Interface Architecture
 
 ### 3.4.1 User Interfaces
 
-Intent provides multiple user interfaces:
+STP provides two primary user interfaces:
 
-1. **Command-line Interface**: `intent` command with subcommands
-2. **Document Structure**: Markdown for human and LLM consumption
-3. **Configuration Interface**: JSON files for settings
-4. **Diagnostic Interface**: `intent doctor` for troubleshooting
-5. **Migration Interface**: `intent upgrade` for version transitions
+1. **Command-line Interface**: For developer interaction with STP
+2. **Document Structure**: For both human and LLM consumption of project information
 
 ### 3.4.2 External System Interfaces
 
@@ -207,24 +176,22 @@ The integration with Backlog.md extends STP's capabilities with fine-grained tas
 └─────────────────────────────────────────────────────────────┘
 ```
 
-#### Component Responsibilities [AS-BUILT]
+#### Component Responsibilities
 
-**Intent Core Components:**
-- **Steel Threads**: Capture objectives, context, and design in intent/st/
-- **Documentation**: Maintain narrative and specs in intent/docs/
-- **Configuration**: JSON-based settings in .intent/config.json
-- **Process Coordination**: Orchestrate development workflow
+**STP Components:**
+- **Steel Threads**: Capture high-level objectives, context, and design decisions
+- **Documentation**: Maintain project narrative and technical specifications
+- **Process Coordination**: Orchestrate the overall development workflow
 
-**Backlog.md Integration:**
-- **Task Management**: Track implementation tasks with metadata
-- **Status Filtering**: Configurable backlog_list_status for focused views
-- **Visualisation**: Kanban board and browser interfaces
+**Backlog.md Components:**
+- **Task Management**: Track individual implementation tasks with rich metadata
+- **Status Tracking**: Provide granular task states and progress visibility
+- **Visualisation**: Offer Kanban board and browser-based interfaces
 
 **Integration Layer:**
-- **Command Wrappers**: `intent bl`, `intent task`, `intent status`
-- **Status Synchronisation**: Task completion drives thread status
-- **Naming Conventions**: ST#### prefix links tasks to threads
-- **Git Safety**: Wrappers prevent git operation conflicts
+- **Command Wrappers**: `stp bl`, `stp task`, `stp status`, `stp migrate`
+- **Status Synchronisation**: Bidirectional status updates between systems
+- **Naming Conventions**: Consistent task naming linking to steel threads
 
 #### Data Flow
 
@@ -233,58 +200,24 @@ The integration with Backlog.md extends STP's capabilities with fine-grained tas
 3. **Migration** → Embedded tasks convert to Backlog.md format
 4. **Queries** → Unified view of steel thread and task information
 
-#### Integration Points [AS-BUILT]
+#### Integration Points
 
 1. **File System**: 
-   - Intent: `/intent/st/` for steel threads (flattened)
+   - STP: `/stp/prj/st/` for steel threads
    - Backlog: `/backlog/` for task management
-   - Config: `/.intent/config.json` for settings
    - No overlap in storage locations
 
 2. **Command Interface**:
-   - Unified `intent` command with subcommands
-   - All commands follow intent_* pattern
-   - Wrapper commands prevent git conflicts
-   - Help system integrated
+   - Native STP commands remain unchanged
+   - Integration commands follow STP patterns
+   - Wrapper commands prevent common errors
 
 3. **Status Model**:
-   - Steel thread status derived from task completion
-   - Automatic synchronisation via `intent status sync`
+   - Steel thread status derived from task states
+   - Automatic synchronisation available
    - Manual override supported
-   - Configurable list filtering
 
 4. **Workflow Integration**:
-   - Steel threads define "what" and "why" (intent)
-   - Backlog tasks define "how" and "when" (execution)
-   - Clear separation of concerns
-   - Self-hosting proven
-
-### 3.6.2 Migration Architecture [AS-BUILT]
-
-Intent v2.0.0 includes comprehensive migration support:
-
-```
-Migration Flow:
-1. Detect existing STP version
-2. Create timestamped backup
-3. Migrate directory structure (stp/* → intent/*)
-4. Convert YAML configs to JSON
-5. Update file formats and metadata
-6. Create .intent/config.json
-7. Update CLAUDE.md guidelines
-
-Supported Versions:
-- v0.0.0 → v2.0.0
-- v1.2.0 → v2.0.0
-- v1.2.1 → v2.0.0
-```
-
-## 3.7 AS-BUILT Summary
-
-Intent v2.0.0 represents a significant evolution from STP:
-- Complete rebrand with consistent naming
-- Flattened, intuitive directory structure
-- JSON-based hierarchical configuration
-- Enhanced Backlog.md integration
-- New user-friendly commands
-- Proven through self-hosting
+   - Steel threads define "what" and "why"
+   - Backlog tasks define "how" and "when"
+   - Clear separation of concerns maintained

@@ -1,8 +1,8 @@
 ---
-verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Updated for Intent v2.0.0 (As-Built)"
-intent_version: 2.0.0
+verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
+stp_version: 1.2.0
 ---
-# 7. Technical Challenges and Mitigations [AS-BUILT]
+# 7. Technical Challenges and Mitigations
 
 [index](<./technical_product_design.md>)
 
@@ -70,11 +70,11 @@ Developers may resist adopting new processes, especially those requiring signifi
 
 ### 7.5.2 Mitigation Strategies
 
-- **Incremental Value**: Intent provides value even with partial adoption
-- **Low Friction**: Bootstrap command minimizes setup effort
-- **Clear Benefits**: Blog series communicates benefits clearly
-- **Integration Flexibility**: Works alongside existing workflows
-- **Good Documentation**: Comprehensive TPD and blog posts
+- **Incremental Value**: Ensure STP provides value even with partial adoption
+- **Low Friction**: Minimize the effort required to start using STP
+- **Clear Benefits**: Clearly communicate the benefits of the STP approach
+- **Integration Flexibility**: Allow flexible integration with existing workflows
+- **Good Documentation**: Provide clear, comprehensive documentation
 
 ## 7.6 Template Management
 
@@ -145,61 +145,3 @@ Documentation may inadvertently contain sensitive information that should not be
 - **Isolation of Concerns**: Separate sensitive and non-sensitive information
 - **Review Process**: Review for sensitive information before sharing
 - **Redaction Patterns**: Patterns for redacting sensitive information
-
-## 7.11 AS-BUILT: v2.0.0 Specific Challenges
-
-### 7.11.1 YAML Frontmatter Migration Bug
-
-**Challenge**: Files without YAML frontmatter caused migration failures.
-
-**Resolution**: Modified `convert_yaml_frontmatter` to handle edge case:
-```bash
-if ! head -1 "$file" | grep -q "^---$"; then
-  cp "$file" "$temp_file"  # Just copy if no frontmatter
-  return 0
-fi
-```
-
-### 7.11.2 Test Migration Complexity
-
-**Challenge**: Lost ~100 tests during v2.0.0 migration.
-
-**Resolution**: 
-- Focused on core functionality (86 tests)
-- Documented lost tests for future recovery
-- Prioritized critical path testing
-
-### 7.11.3 Configuration Filtering
-
-**Challenge**: `intent bl list` not respecting configuration.
-
-**Resolution**:
-- Added `backlog_list_status` to config loading
-- Implemented `--all` flag override
-- Test-driven development approach
-
-### 7.11.4 Blog Post Recovery
-
-**Challenge**: Blog posts accidentally deleted during cleanup.
-
-**Resolution**:
-- Restored from git history (commit b65b8c9)
-- Updated all STP references to Intent
-- Fixed internal links between posts
-
-### 7.11.5 Directory Structure Flattening
-
-**Challenge**: Complex migration from nested to flat structure.
-
-**Resolution**:
-- Comprehensive upgrade script
-- Automatic backup creation
-- Clear migration path documentation
-
-## 7.12 Lessons Learned
-
-1. **Self-Hosting Validates Design**: Using Intent to build Intent exposed issues early
-2. **Test Coverage Essential**: BATS tests prevented regressions during migration
-3. **Git History Invaluable**: Ability to restore lost files saved the project
-4. **User Experience Matters**: Bootstrap, doctor, upgrade commands improve adoption
-5. **Documentation as Code**: Blog series and TPD updates tracked in git

@@ -1,48 +1,51 @@
 ---
-verblock: "09 Jul 2025:v0.4: Matthew Sinclair - Updated for steel thread directory structure"
-stp_version: 1.2.1
+verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Complete update for Intent v2.0.0 (As-Built)"
+intent_version: 2.0.0
 ---
-# Technical Product Design
+# Intent Technical Product Design v2.0.0 (As-Built)
 
 ## Preamble to Claude
 
-This document is a Technical Product Design (TPD) for the Steel Thread Process (STP) system. When processing this document, please understand:
+This document is a Technical Product Design (TPD) for the Intent system (formerly known as STP - Steel Thread Process). When processing this document, please understand:
 
-1. This is a comprehensive technical specification for a shell-script and markdown-based system
-2. The system is designed to facilitate collaboration between developers and LLMs
-3. The document contains:
-   - System architecture and design principles
-   - Process descriptions
-   - Template structures
-   - Implementation details for existing code
-   - Future development plans
+1. This is the AS-BUILT documentation for Intent v2.0.0, reflecting the actual implementation
+2. Intent underwent a complete rebrand from STP to Intent in July 2025
+3. The system is designed to facilitate collaboration between developers and LLMs
+4. This document contains:
+   - Actual v2.0.0 architecture and implementation
+   - JSON-based configuration system
+   - Complete command reference for intent_* commands
+   - Migration tools and processes
+   - Lessons learned from development
 
-4. The code is developed through "steel threads" which are incremental implementation stages
-5. Steel threads are now organized as directories (v1.2.1+) containing multiple files:
-   - info.md: Main information and metadata
-   - design.md: Design decisions and approach
-   - impl.md: Implementation details
-   - tasks.md: Task tracking (or linked to Backlog)
-   - results.md: Results and outcomes
-6. The system consists primarily of shell scripts and markdown templates
-7. The system is designed to integrate with existing development workflows
-8. The system integrates with Backlog.md for fine-grained task management while maintaining separation of concerns
-9. Key commands include:
-   - `stp st list`: List all steel threads with optional filtering by status
-   - `stp st sync`: Synchronize the steel_threads.md index with individual ST directories
-   - `stp st show ST0001 design`: Show specific file from steel thread directory
-   - `stp st edit ST0001 impl`: Edit specific file from steel thread directory
-   - `stp st organize`: Organize steel thread directories by status
-   - `stp upgrade`: Upgrade STP files to the latest format and standards
-   - `stp bl`: Wrapper for Backlog.md commands to avoid git errors
-   - `stp task`: Manage Backlog tasks linked to steel threads
-   - `stp status`: Synchronize steel thread status based on task completion
-   - `stp migrate`: Migrate embedded tasks from steel threads to Backlog
-   - `stp llm usage_rules`: Display usage patterns and workflows for LLMs
+5. The code is developed through "steel threads" which are incremental implementation stages
+6. Steel threads are organized as directories under intent/st/ containing:
+   - info.md: Main information and metadata (required)
+   - design.md: Design decisions and approach (optional)
+   - impl.md: Implementation details (optional)
+   - tasks.md: Task tracking or Backlog.md integration (optional)
+   - results.md: Results and outcomes (optional)
+7. The system consists of shell scripts and markdown templates
+8. Configuration uses JSON format (.intent/config.json) instead of YAML
+9. The system integrates with Backlog.md for task management with enhanced filtering
+10. Intent is self-hosting - this project is built using Intent v2.0.0
+11. Key commands include:
+   - `intent st list`: List all steel threads with status filtering
+   - `intent st new`: Create a new steel thread
+   - `intent st show`: Display steel thread contents
+   - `intent st edit`: Edit steel thread files
+   - `intent bl`: Enhanced Backlog.md wrapper with status filtering
+   - `intent task`: Manage Backlog tasks linked to steel threads
+   - `intent status`: Synchronize steel thread status with task completion
+   - `intent init`: Initialize a new Intent project
+   - `intent bootstrap`: Global Intent setup and configuration
+   - `intent doctor`: Diagnose and fix configuration issues
+   - `intent upgrade`: Migrate any STP version to Intent v2.0.0
+   - `intent help`: Unified help system for all commands
 
-# Steel Thread Process Technical Product Design
+# Intent v2.0.0 Technical Product Design
 
-This document serves as the central index for the Technical Product Design (TPD) of the Steel Thread Process (STP) system. The TPD is organized into sections that detail the architecture, implementation, and roadmap for the system.
+This document serves as the central index for the Technical Product Design (TPD) of Intent v2.0.0. The TPD has been forensically updated to reflect the actual as-built state of the system after the migration from STP to Intent. Sections marked with "[AS-BUILT]" indicate deviations from the original design.
 
 ## Table of Contents
 
@@ -55,6 +58,25 @@ This document serves as the central index for the Technical Product Design (TPD)
 7. [Technical Challenges and Mitigations](./7_technical_challenges_and_mitigations.md)
 8. [Appendices](./8_appendices.md)
 
+## Migration Notes
+
+Intent v2.0.0 represents a complete rebrand and restructuring from the Steel Thread Process (STP) to Intent:
+- Directory structure flattened: `stp/prj/st/` → `intent/st/`
+- Commands renamed: `stp_*` → `intent_*`
+- Configuration migrated: YAML → JSON
+- New features: bootstrap, doctor, upgrade commands
+- Enhanced Backlog.md integration with status filtering
+- Self-hosting success: Intent is built using Intent
+
+## Current Status
+
+- **Version**: 2.0.0 (Released July 2025)
+- **Tests**: 86/86 passing (reduced from 186 during migration)
+- **Commands**: 12 primary commands with full functionality
+- **Projects Using Intent**: Intent itself (self-hosting)
+
 ## Links
 
-[Steel Threads](../../prj/st/steel_threads.md)
+- [Current Steel Threads](../../st/)
+- [Intent Blog Series](../../../docs/blog/)
+- [Migration Guide](./6_deployment_and_operations.md#migration)

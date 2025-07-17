@@ -1,6 +1,6 @@
 ---
 verblock: "09 Jul 2025:v0.2: Matthew Sinclair - Updated for steel thread directory structure"
-stp_version: 2.0.0
+stp_version: 1.2.1
 ---
 # 5. Implementation Strategy
 
@@ -176,44 +176,3 @@ Testing will include:
 | Template maintenance overhead       | Medium | Low        | Design templates for minimal maintenance; use variables where appropriate      |
 | LLM integration challenges          | High   | Medium     | Focus on general principles; provide platform-specific options where necessary |
 | Documentation becoming outdated     | Medium | High       | Automate documentation updates; make updating easy                             |
-
-## 5.9 AS-BUILT Updates
-
-### 5.9.1 Actual Implementation Flow
-
-Intent v2.0.0 was developed through organic growth:
-
-```
-Phase 1: Foundation (v0.0.0)
-ST0001 → ST0002 → ST0003 → ST0004 → ST0005 → ST0006
-
-Phase 2: Enhancement (v1.0.0 - v1.2.1)  
-ST0007 → ST0008 → ST0009 → ST0010 → ST0011 → ST0012
-
-Phase 3: Rebrand (v2.0.0)
-ST0013 (blog) → ST0014 → ST0015 → ST0016 (migration)
-```
-
-### 5.9.2 Key Implementation Achievements
-
-1. **Self-Hosting Success**: Intent built using Intent methodology
-2. **Test Coverage**: 86 tests covering all critical functionality
-3. **Migration Tools**: Comprehensive upgrade from any version
-4. **User Experience**: Bootstrap, doctor, and upgrade commands
-5. **Documentation**: 7-part blog series and updated TPD
-
-### 5.9.3 Lessons Learned
-
-1. **JSON > YAML**: Better validation and hierarchy support
-2. **Flattened Structure**: Easier navigation than nested directories
-3. **Git Safety**: Wrapper commands prevent common errors
-4. **Progressive Enhancement**: Core functionality first, then UX
-5. **Self-Documentation**: Using the tool to build itself ensures accuracy
-
-### 5.9.4 Future Development
-
-Intent v2.0.0 provides a solid foundation for:
-- Community contributions
-- Enterprise adoption  
-- Educational use
-- AI/LLM integration enhancements

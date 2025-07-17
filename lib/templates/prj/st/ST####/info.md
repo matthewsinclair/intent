@@ -1,6 +1,6 @@
 ---
 verblock: "[Date]:v0.1: [Author] - Initial version"
-stp_version: 1.2.1
+stp_version: 2.0.0
 status: Not Started
 created: YYYYMMDD
 completed: 

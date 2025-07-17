@@ -35,28 +35,6 @@ stp_version: 1.2.0
 | FR-3.3 | The system shall track completion status of steel threads                    |
 | FR-3.4 | The system shall maintain independence from specific version control systems |
 
-### 2.1.4 Backlog Integration [AS-BUILT]
-
-| ID     | Requirement                                                                    | Status      |
-|--------|--------------------------------------------------------------------------------|-------------|
-| FR-4.1 | The system shall integrate with Backlog.md for task management                 | ✓ Implemented |
-| FR-4.2 | The system shall provide wrapper commands to avoid direct Backlog.md usage     | ✓ Implemented |
-| FR-4.3 | The system shall link tasks to steel threads using naming conventions          | ✓ Implemented |
-| FR-4.4 | The system shall synchronize steel thread status based on task completion      | ✓ Implemented |
-| FR-4.5 | The system shall support migration of embedded tasks to Backlog.md             | ✓ Implemented |
-| FR-4.6 | The system shall support configurable backlog_list_status filtering            | ✓ Implemented |
-
-### 2.1.5 Configuration Management [AS-BUILT]
-
-| ID     | Requirement                                                        | Status      |
-|--------|--------------------------------------------------------------------|--------------|
-| FR-5.1 | The system shall support project-specific configuration            | ✓ Implemented |
-| FR-5.2 | The system shall provide sensible defaults for all configurations  | ✓ Implemented |
-| FR-5.3 | The system shall validate configurations on startup                | ✓ Implemented |
-| FR-5.4 | The system shall support environment variable overrides            | ✓ Implemented |
-| FR-5.5 | Configuration shall use JSON format (.intent/config.json)          | ✓ Implemented |
-| FR-5.6 | Configuration shall support hierarchy (env→local→global→default)   | ✓ Implemented |
-
 ## 2.2 Non-Functional Requirements
 
 ### 2.2.1 Usability
@@ -99,16 +77,3 @@ stp_version: 1.2.0
 | CON-2 | The system must not require external dependencies beyond common shell utilities      |
 | CON-3 | The system must be agnostic to LLM platforms while supporting specific optimisations |
 | CON-4 | The system must respect the context window limitations of LLMs                       |
-| CON-5 | [AS-BUILT] The system requires jq for JSON configuration parsing                     |
-
-## 2.4 AS-BUILT Notes
-
-All original requirements have been met or exceeded in Intent v2.0.0. Key additions include:
-
-1. **Enhanced Configuration**: JSON-based configuration with hierarchy support
-2. **New Commands**: bootstrap, doctor, upgrade for better user experience  
-3. **Status Filtering**: Configurable backlog_list_status for focused task views
-4. **Self-Hosting**: Intent is developed using Intent itself
-5. **Migration Tools**: Comprehensive upgrade path from any STP version
-6. **Flattened Structure**: Simplified directory layout under intent/
-7. **Command Naming**: Consistent intent_* naming pattern

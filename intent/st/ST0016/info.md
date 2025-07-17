@@ -1,12 +1,11 @@
 ---
-verblock: "16 Jul 2025:v0.2: Matthew Sinclair - Updated with JSON config and new commands"\nstp_version: 1.2.1\nstatus: In Progress\ncreated: 20250716\ncompleted: \n
+verblock: "16 Jul 2025:v0.2: Matthew Sinclair - Updated with JSON config and new commands"
+stp_version: 2.0.0
+status: WIP
+created: 20250311
+completed: 20250708
 ---
 # ST0016: Rename STP CLI to INTENT (v2.0.0)
-
-- **Status**: In Progress
-- **Created**: 2025-07-16
-- **Completed**:
-- **Author**: Matthew Sinclair
 
 ## Objective
 

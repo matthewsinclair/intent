@@ -52,7 +52,7 @@ EOF
   legacy_dir="${TEST_TEMP_DIR}/legacy_project"
   mkdir -p "$legacy_dir/stp/prj/st"
   mkdir -p "$legacy_dir/stp/.config"
-  echo "stp_version: 1.2.1" > "$legacy_dir/stp/.config/version"
+  echo "stp_version: 2.0.0" > "$legacy_dir/stp/.config/version"
   
   cd "$legacy_dir"
   

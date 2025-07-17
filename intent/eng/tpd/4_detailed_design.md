@@ -1,94 +1,121 @@
 ---
-verblock: "09 Jul 2025:v0.3: Matthew Sinclair - Updated for steel thread directory structure"
-stp_version: 1.2.1
+verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Updated for Intent v2.0.0 (As-Built)"
+intent_version: 2.0.0
 ---
-# 4. Detailed Design
+# 4. Detailed Design [AS-BUILT]
 
 [index](<./technical_product_design.md>)
 
-## 4.1 Directory Structure
+## 4.1 Directory Structure [AS-BUILT]
 
-The STP system organizes documentation into a structured directory hierarchy:
+Intent v2.0.0 uses a flattened directory structure that simplifies navigation:
 
 ```
-stp/
-├── _templ/             # Templates directory
-│   ├── prj/            # Project document templates
-│   │   ├── _wip.md
-│   │   └── st/
-│   │       ├── _steel_threads.md
-│   │       └── ST####/
-│   │           ├── info.md
-│   │           ├── design.md
-│   │           ├── impl.md
-│   │           ├── tasks.md
-│   │           └── results.md
-│   ├── eng/            # Engineering document templates
-│   │   └── tpd/
-│   │       ├── _technical_product_design.md
-│   │       ├── _1_introduction.md
-│   │       ├── ...
-│   ├── usr/            # User document templates
-│   │   ├── _user_guide.md
-│   │   ├── _reference_guide.md
-│   │   └── _deployment_guide.md
-│   └── llm/            # LLM document templates
-│       └── _llm_preamble.md
-├── bin/                # STP scripts
-│   ├── stp             # Main STP command
-│   ├── stp_init        # Init command implementation
-│   ├── stp_st          # Steel thread command implementation
-│   ├── stp_help        # Help command implementation
-│   ├── stp_backlog     # Backlog wrapper implementation
-│   ├── stp_task        # Task management implementation
-│   ├── stp_status      # Status sync implementation
-│   ├── stp_migrate     # Task migration implementation
-│   └── ...             # Other command implementations
-├── prj/                # Project documentation
-│   ├── st/             # Steel threads
-│   │   ├── steel_threads.md   # Steel thread index
-│   │   ├── ST0001/           # Steel thread directory (v1.2.1+)
-│   │   │   ├── info.md        # Main information
-│   │   │   ├── design.md      # Design decisions
-│   │   │   ├── impl.md        # Implementation
-│   │   │   ├── tasks.md       # Task tracking
-│   │   │   └── results.md     # Results
-│   │   ├── ST0002/           # Another steel thread
-│   │   │   └── info.md        # Minimum required file
-│   │   ├── COMPLETED/         # Completed threads
-│   │   ├── NOT-STARTED/       # Not started threads
-│   │   ├── CANCELLED/         # Cancelled threads
+<project_root>/
+├── .intent/                    # Intent configuration
+│   └── config.json            # JSON configuration file
+├── intent/                     # Main Intent directory (flattened)
+│   ├── st/                    # Steel threads
+│   │   ├── ST0001/            # Steel thread directory
+│   │   │   ├── info.md       # Main information (required)
+│   │   │   ├── design.md     # Design decisions (optional)
+│   │   │   ├── impl.md       # Implementation (optional)
+│   │   │   ├── tasks.md      # Task tracking (optional)
+│   │   │   └── results.md    # Results (optional)
+│   │   ├── ST0002/            # Another steel thread
+│   │   │   └── info.md       # Minimum required file
 │   │   └── ...
-│   └── wip.md          # Work in progress
-├── eng/                # Engineering docs
-│   └── tpd/            # Technical Product Design
-│       ├── technical_product_design.md   # Main TPD document
-│       ├── 1_introduction.md            # TPD sections
-│       └── ...
-├── usr/                # User documentation
-│   ├── user_guide.md
-│   ├── reference_guide.md
-│   └── deployment_guide.md
-├── llm/                # LLM-specific content
-│   ├── llm_preamble.md
-│   └── *.prompt.md     # Canned prompts
-└── backlog/            # Backlog.md task management
-    ├── tasks/          # Active tasks
-    ├── drafts/         # Draft tasks
-    ├── archive/        # Archived tasks
-    └── config.yml      # Backlog configuration
+│   ├── docs/                  # Documentation
+│   │   ├── blog/              # Blog posts
+│   │   │   ├── 0000-motivation-for-intent.md
+│   │   │   ├── 0001-introduction-to-intent.md
+│   │   │   └── ...
+│   │   ├── eng/               # Engineering docs
+│   │   │   └── tpd/           # Technical Product Design
+│   │   └── usr/               # User documentation
+│   ├── llm/                   # LLM-specific content
+│   └── wip.md                 # Work in progress
+├── backlog/                    # Backlog.md integration
+│   ├── Backlog.md             # Main backlog file
+│   ├── tasks/                 # Task files
+│   └── ...
+├── bin/                        # Intent scripts
+│   ├── intent                 # Main command
+│   ├── intent_st              # Steel thread commands
+│   ├── intent_bl              # Backlog wrapper
+│   ├── intent_task            # Task management
+│   ├── intent_status          # Status sync
+│   ├── intent_init            # Project initialization
+│   ├── intent_bootstrap       # Global setup
+│   ├── intent_doctor          # Diagnostics
+│   ├── intent_upgrade         # Migration tool
+│   ├── intent_config          # Configuration library
+│   ├── intent_helpers         # Helper functions
+│   └── stp                    # Backward compatibility symlink
+└── CLAUDE.md                   # Project guidelines for LLMs
+
+[Legacy STP structure removed - see v1.2.1 documentation]
 ```
 
 ## 4.2 Document Templates
 
-### 4.2.1 Document Metadata
+### 4.2.1 Configuration System [AS-BUILT]
 
-All STP documents use YAML frontmatter to store structured metadata at the beginning of the file:
+Intent v2.0.0 uses JSON configuration with hierarchy support:
+
+#### Configuration File Format
+
+```json
+{
+  "version": "2.0.0",
+  "project_name": "MyProject",
+  "author": "username",
+  "created": "2025-07-17",
+  "st_prefix": "ST",
+  "backlog_dir": "backlog",
+  "intent_dir": "intent",
+  "backlog_list_status": "todo"
+}
+```
+
+#### Configuration Fields
+
+| Field | Description | Default | Added |
+|-------|-------------|---------|-------|
+| version | Intent version | 2.0.0 | v2.0.0 |
+| project_name | Project identifier | (required) | v2.0.0 |
+| author | Default author | $USER | v0.0.0 |
+| created | Creation date | (auto) | v2.0.0 |
+| st_prefix | Steel thread prefix | ST | v1.0.0 |
+| backlog_dir | Backlog directory | backlog | v1.2.0 |
+| intent_dir | Intent directory | intent | v2.0.0 |
+| backlog_list_status | Default list filter | (none) | v2.0.0 |
+
+#### Configuration Hierarchy
+
+```
+1. Environment Variables (highest priority)
+   - INTENT_* variables
+   - AUTHOR, EDITOR
+   
+2. Local Project Config
+   - .intent/config.json
+   
+3. Global User Config  
+   - ~/.config/intent/config.json
+   
+4. Built-in Defaults (lowest priority)
+   - Hardcoded in intent_config
+```
+
+### 4.2.2 Document Metadata
+
+Intent documents use YAML frontmatter for metadata:
 
 ```yaml
 ---
 verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
-stp_version: 1.2.1
+intent_version: 2.0.0
 status: Not Started|In Progress|Completed|On Hold|Cancelled
 created: YYYYMMDD
 completed: YYYYMMDD
@@ -96,8 +123,8 @@ completed: YYYYMMDD
 ```
 
 **Metadata Fields:**
-- `verblock`: Tracks version information with date, version number, author, and description
-- `stp_version`: Indicates the STP version used, for compatibility and upgrade purposes
+- `verblock`: Version tracking with date, version, author, description
+- `intent_version`: Intent version for compatibility
 - `status`: Current state of the document or steel thread
 - `created`: Creation date in YYYYMMDD format
 - `completed`: Completion date in YYYYMMDD format (when applicable)
@@ -202,7 +229,7 @@ ST####/
 ```markdown
 ---
 verblock: "DD MMM YYYY:v0.1: Author Name - Initial version"
-stp_version: 1.2.1
+stp_version: 2.0.0
 status: Not Started
 created: YYYYMMDD
 completed: 
@@ -315,55 +342,125 @@ The LLM Preamble template provides context and instructions for the LLM:
 [Guidelines for the steel thread process]
 ```
 
-## 4.3 Command-line Interface
+## 4.3 Command-line Interface [AS-BUILT]
 
 ### 4.3.1 Command Structure
 
-The STP command-line interface follows a subcommand pattern:
+Intent v2.0.0 uses a unified command structure:
 
 ```
-stp <command> [options] [arguments]
+intent <command> [options] [arguments]
 ```
 
-Main commands include:
+#### Primary Commands
 
-- `init`: Initialize STP in a project
-- `st`: Manage steel threads
-- `help`: Display help information
-- `upgrade`: Upgrade STP files to the latest format
-- `bl` / `backlog`: Wrapper for Backlog.md commands
-- `task`: Manage tasks linked to steel threads
-- `status`: Synchronize steel thread status with tasks
-- `migrate`: Migrate embedded tasks to Backlog
+| Command | Description | Added |
+|---------|-------------|-------|
+| init | Initialize Intent in a project | v0.0.0 |
+| st | Manage steel threads | v0.0.0 |
+| bl | Enhanced Backlog.md wrapper | v1.2.0 |
+| task | Manage tasks linked to threads | v1.2.0 |
+| status | Synchronize thread/task status | v1.2.0 |
+| bootstrap | Global Intent setup | v2.0.0 |
+| doctor | Diagnose configuration issues | v2.0.0 |
+| upgrade | Migrate from any STP version | v2.0.0 |
+| help | Display comprehensive help | v0.0.0 |
 
-Subcommands include:
+#### Steel Thread Subcommands
 
-- `st new`: Create a new steel thread
-- `st done`: Mark a steel thread as complete
-- `st list`: List all steel threads with optional filtering by status
-- `st sync`: Synchronize the steel_threads.md index file with individual ST files
-- `st show`: Show details of a specific steel thread
-- `st edit`: Open a steel thread in the default editor
-- `bl create`: Create a task linked to a steel thread
-- `bl list`: List all tasks without git errors
-- `task list`: List tasks for a specific steel thread
-- `status sync`: Update steel thread status based on tasks
+```
+intent st new [title]         # Create new steel thread
+intent st list [--status X]   # List threads with filtering
+intent st show ST####         # Display thread contents
+intent st edit ST#### [file]  # Edit thread files
+```
 
-### 4.3.2 Command Implementation
+#### Backlog Subcommands
 
-Each command is implemented as a separate shell script:
+```
+intent bl create [options]    # Create task (git-safe)
+intent bl list [--all]        # List tasks (respects config)
+intent bl done <task-id>      # Mark task complete
+```
 
-1. `stp`: Main dispatcher that validates input and calls appropriate subcommand
-2. `stp_<command>`: Implements specific command functionality
-3. `stp_help`: Displays help information from `.help` directory
-4. `stp_st`: Manages steel thread operations (new, done, list, sync, show, edit)
-5. `stp_upgrade`: Upgrades STP files to the latest format and standards
-6. `stp_backlog`: Wrapper for Backlog.md to avoid git errors and provide shortcuts
-7. `stp_task`: Manages tasks linked to steel threads (create, list, sync)
-8. `stp_status`: Synchronizes steel thread status based on task completion
-9. `stp_migrate`: Migrates embedded tasks from steel threads to Backlog
+#### New v2.0.0 Features
 
-### 4.3.3 Help System
+- **backlog_list_status**: Configurable default task filtering
+- **--all flag**: Override status filtering
+- **doctor --fix**: Automatic issue resolution
+- **bootstrap**: One-time global setup
+
+### 4.3.2 Command Implementation [AS-BUILT]
+
+Intent v2.0.0 uses modular shell scripts:
+
+#### Script Architecture
+
+```
+bin/
+├── intent              # Main dispatcher
+├── intent_<command>    # Command implementations
+├── intent_config       # Configuration loader (JSON)
+├── intent_helpers      # Shared utility functions
+└── stp                 # Backward compatibility symlink
+```
+
+#### Key Implementation Files
+
+| Script | Purpose | Key Features |
+|--------|---------|-------------|
+| intent | Main entry point | Command dispatch, version check |
+| intent_config | Config management | JSON parsing, hierarchy support |
+| intent_helpers | Utilities | Version detection, migration |
+| intent_st | Steel threads | Create, list, show, edit |
+| intent_bl | Backlog wrapper | Git-safe operations, filtering |
+| intent_task | Task management | Thread linking, status tracking |
+| intent_status | Status sync | Task completion analysis |
+| intent_bootstrap | Global setup | First-time configuration |
+| intent_doctor | Diagnostics | Issue detection and fixes |
+| intent_upgrade | Migration | Any version to v2.0.0 |
+
+### 4.3.3 Help System [AS-BUILT]
+
+Intent v2.0.0 provides comprehensive help:
+
+```
+intent help              # General help
+intent help <command>    # Command-specific help
+intent <command> -h      # Quick help
+```
+
+#### Help Implementation
+
+- Embedded help in each command script
+- Consistent format across all commands
+- Examples included for common usage
+- Version information displayed
+
+### 4.3.4 Configuration Loading [AS-BUILT]
+
+The configuration system loads settings in order:
+
+```bash
+# From intent_config
+load_intent_config() {
+  # 1. Set defaults
+  INTENT_DIR="intent"
+  BACKLOG_DIR="backlog"
+  
+  # 2. Find project root
+  PROJECT_ROOT=$(find_project_root)
+  
+  # 3. Load global config
+  parse_json "~/.config/intent/config.json"
+  
+  # 4. Load local config (overrides global)
+  parse_json ".intent/config.json"
+  
+  # 5. Apply environment variables (highest priority)
+  [ -n "$INTENT_DIR" ] && INTENT_DIR="$INTENT_DIR"
+}
+```
 
 The help system uses markdown files in a `.help` directory:
 
@@ -441,46 +538,55 @@ STP addresses security through:
 3. **Input Validation**: Sanitizing user input to prevent script injection
 4. **No Sensitive Data**: Avoiding storage of credentials or sensitive information
 
-## 4.8 Integration Implementations
+## 4.8 Integration Implementations [AS-BUILT]
 
-### 4.8.1 Backlog.md Integration Details
+### 4.8.1 Enhanced Backlog.md Integration
 
-The Backlog.md integration extends STP with task management capabilities through a set of wrapper commands and conventions.
+Intent v2.0.0 provides enhanced Backlog.md integration with configurable filtering and improved git safety.
 
-#### Command Implementations
+#### Command Implementations [AS-BUILT]
 
-**1. Backlog Wrapper (`stp_backlog`)**
+**1. Backlog Wrapper (`intent_bl`)**
 
-The `stp bl` command provides a wrapper around Backlog.md to:
-- Add `--plain` flag automatically to prevent git fetch errors
-- Provide shortcuts for common operations
-- Maintain consistent error handling
+The `intent bl` command provides enhanced functionality:
+- Automatic `--plain` flag for git safety
+- Configurable status filtering via `backlog_list_status`
+- `--all` flag to override filtering
+- Consistent error handling
 
 ```bash
 # Key wrapper behaviors
-stp bl list          → backlog task list --plain
-stp bl board         → backlog board --plain  
-stp bl create <args> → backlog task create <args>
+intent bl list         → backlog task list --plain [filtered]
+intent bl list --all   → backlog task list --plain
+intent bl board        → backlog board --plain  
+intent bl create       → backlog task create [with prefix]
 ```
 
-**2. Task Management (`stp_task`)**
-
-The `stp task` command manages the relationship between steel threads and Backlog tasks:
-
-```bash
-stp task create <ST####> <title>  # Creates task with ST prefix
-stp task list <ST####>            # Lists all tasks for a thread
-stp task sync <ST####>            # Updates thread status from tasks
+**Configuration:**
+```json
+{
+  "backlog_list_status": "todo"  // Default filter
+}
 ```
 
-**3. Status Synchronisation (`stp_status`)**
+**2. Task Management (`intent_task`)**
 
-The `stp status` command provides bidirectional status updates:
+The `intent task` command links steel threads to Backlog tasks:
 
 ```bash
-stp status show <ST####>   # Shows thread and task status
-stp status sync <ST####>   # Updates thread status from tasks
-stp status report          # Overall project status
+intent task create ST#### "title"  # Creates with ST prefix
+intent task list ST####            # Lists thread's tasks
+intent task count ST####           # Task completion stats
+```
+
+**3. Status Synchronisation (`intent_status`)**
+
+The `intent status` command synchronizes thread and task states:
+
+```bash
+intent status show ST####   # Display status comparison
+intent status sync ST####   # Update thread from tasks
+intent status check         # Project-wide status report
 ```
 
 Status mapping rules:
@@ -523,23 +629,24 @@ This convention enables:
 - Filtering and grouping operations
 - Status synchronisation
 
-#### File Structure Integration
+#### File Structure Integration [AS-BUILT]
 
 ```
-project/
-├── stp/
-│   └── prj/
-│       └── st/
-│           ├── steel_threads.md    # Thread index
-│           ├── ST0001.md          # Steel thread docs
-│           └── ...
+<project_root>/
+├── .intent/
+│   └── config.json              # Intent configuration
+├── intent/
+│   └── st/
+│       ├── ST0001/              # Steel thread directory
+│       │   ├── info.md
+│       │   └── tasks.md        # Links to Backlog
+│       └── ST0002/
 └── backlog/
-    ├── config.yml                 # Backlog configuration
-    ├── tasks/                     # Active tasks
-    │   ├── task-001 - ST0014 - Create structure.md
-    │   └── ...
-    ├── drafts/                    # Draft tasks
-    └── archive/                   # Completed tasks
+    ├── Backlog.md               # Main backlog file
+    ├── tasks/                   # Task files
+    │   ├── task-001.md         # ST0001 - Task title
+    │   └── task-002.md
+    └── ...
 ```
 
 Key principles:
@@ -625,3 +732,123 @@ Test coverage includes:
 - Error conditions
 - Edge cases
 - Integration workflows
+
+### 4.8.2 Migration System [AS-BUILT v2.0.0]
+
+Intent v2.0.0 includes comprehensive migration support for upgrading from any STP version:
+
+#### Migration Command
+
+```bash
+intent upgrade [--backup-dir DIR]
+```
+
+#### Migration Process
+
+1. **Version Detection**
+   - Checks for .stp-config (YAML) or .intent/config.json
+   - Identifies version from 0.0.0 to 1.2.1
+
+2. **Backup Creation**
+   - Creates timestamped backup directory
+   - Preserves entire project state
+
+3. **Structure Migration**
+   ```
+   stp/prj/st/ST####.md → intent/st/ST####/info.md
+   stp/eng/             → intent/docs/eng/
+   stp/usr/             → intent/docs/usr/
+   stp/llm/             → intent/llm/
+   ```
+
+4. **Configuration Conversion**
+   ```yaml
+   # Old YAML (.stp-config)
+   author: username
+   editor: vim
+   ```
+   
+   ```json
+   # New JSON (.intent/config.json)
+   {
+     "version": "2.0.0",
+     "author": "username",
+     "editor": "vim",
+     "intent_dir": "intent",
+     "backlog_dir": "backlog"
+   }
+   ```
+
+5. **YAML Frontmatter Fix**
+   - Handles files without frontmatter
+   - Preserves existing content
+
+### 4.8.3 Bootstrap System [AS-BUILT v2.0.0]
+
+Global Intent setup for first-time users:
+
+```bash
+intent bootstrap [--force]
+```
+
+#### Bootstrap Features
+
+1. **INTENT_HOME Detection**
+   - Automatically finds installation
+   - Validates directory structure
+
+2. **Global Configuration**
+   - Creates ~/.config/intent/config.json
+   - Sets default values
+
+3. **Shell Integration**
+   - Provides PATH setup instructions
+   - Detects shell type (bash/zsh/fish)
+
+4. **Validation**
+   - Checks all commands accessible
+   - Verifies jq availability
+
+### 4.8.4 Diagnostic System [AS-BUILT v2.0.0]
+
+Configuration diagnostics and automatic fixes:
+
+```bash
+intent doctor [--fix] [--verbose]
+```
+
+#### Diagnostic Checks
+
+1. **Project Detection**
+   - Validates .intent/config.json
+   - Checks directory structure
+
+2. **Configuration Validation**
+   - JSON syntax verification
+   - Required field checks
+   - Version compatibility
+
+3. **Directory Structure**
+   - Ensures intent/ exists
+   - Validates backlog/ setup
+
+4. **Dependencies**
+   - jq availability
+   - Command accessibility
+
+#### Automatic Fixes (--fix)
+
+- Creates missing directories
+- Initializes config files
+- Fixes JSON formatting
+- Updates version fields
+
+## 4.9 AS-BUILT Summary
+
+Intent v2.0.0 represents a complete implementation of the design with significant enhancements:
+
+1. **Unified Command Structure**: All commands follow intent_* pattern
+2. **JSON Configuration**: Hierarchical config with validation
+3. **Enhanced Integration**: Backlog.md with status filtering
+4. **User Experience**: Bootstrap, doctor, and upgrade commands
+5. **Self-Hosting**: Intent is developed using Intent itself

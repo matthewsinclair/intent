@@ -1,5 +1,9 @@
 ---
-verblock: "20 Mar 2025:v0.1: Matthew Sinclair - Updated via STP upgrade"\nstp_version: 1.2.1\nstatus: Completed\ncreated: 20250311\ncompleted: 20250708\n
+verblock: "20 Mar 2025:v0.1: Matthew Sinclair - Updated via STP upgrade"
+stp_version: 2.0.0
+status: Completed
+created: 20250311
+completed: 20250708
 ---
 # ST0013: STP Blog Post Series
 
