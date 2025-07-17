@@ -8,30 +8,102 @@ word_count: 2274
 
 # LLM Collaboration with Intent: Multiplying Development Capabilities
 
-We've built a foundation of [captured intention](./0003-intent-capture-in-software-development.md) using [steel threads](./0002-the-steel-thread-methodology.md). Now we explore how this foundation transforms collaboration with Large Language Models from hit-or-miss assistance into reliable development partnership.
+We've built a foundation of [captured intention](./0003-intent-capture-in-software-development.md) using [steel threads](./0002-the-steel-thread-methodology.md). Now let me show you exactly how this transforms your AI coding experience.
 
-Intent wasn't designed in isolation – it emerged from real-world experience working with LLMs like Claude. Every design decision, from markdown templates to the "Preamble to Claude" in our technical documentation, optimises for effective human-AI collaboration. Today, we'll explore how Intent multiplies your development capabilities when working with AI assistants.
+## The Difference is Night and Day
 
-## Intention-First LLM Collaboration
+### Without Intent
 
-Remember our [fundamental challenge](./0000-motivation-for-intent.md): LLMs perform sophisticated pattern matching without true understanding. They generate plausible code that might completely miss your actual needs. Intent solves this by making intention explicit and structural.
+```
+You: "Help me add caching to the user service"
+Claude: "Here's a simple Redis cache implementation..."
+[Generic code that misses your actual needs]
 
-The transformation is dramatic:
+You: "No, we need to handle traffic spikes"
+Claude: "Oh, here's a different approach..."
+[Still not right]
 
-**Without Intent**: "Build a caching system" → LLM guesses at requirements → Generic solution
+You: "Also, we have API rate limits"
+Claude: "Ah, now I understand. Let me start over..."
+[Finally getting closer after 3 attempts]
+```
 
-**With Intent**: Steel thread with clear objectives → LLM understands constraints → Purpose-built solution
+### With Intent
 
-### The Multiplier Effect
+```
+You: "I'm working on ST0042" [paste steel thread]
+Claude: "I see you need caching for:
+  - API rate limit: 100 req/min
+  - Expected traffic: 10K req/s during sales
+  - Constraint: Redis cluster already deployed
+  
+Here's a multi-layer cache with rate limiting, 
+burst handling, and automatic failover..."
+[Exactly what you need, first try]
+```
 
-When LLMs have access to clear intentions:
+The difference? Intent gives AI the context to understand your actual problem, not just your immediate request.
 
-- **Context becomes meaningful** rather than just available
-- **Suggestions align** with your actual goals, not assumed ones
-- **Iterations decrease** because the LLM starts closer to the target
-- **Quality improves** through understanding trade-offs and constraints
+## Why AI Assistants Need Intent
 
-This isn't about better prompts – it's about better context. Intent provides that context systematically.
+### The Token Economy
+
+Every conversation with an AI has a context limit. Without Intent, you waste tokens re-explaining:
+
+```markdown
+# Typical conversation without Intent:
+Tokens used on explanation: 2,000
+Tokens used on actual problem: 500
+Total: 2,500 tokens, mostly wasted
+
+# With Intent:
+Tokens for steel thread: 500
+Tokens for actual problem: 2,000
+Total: 2,500 tokens, mostly productive
+```
+
+### Intent Keeps AI Focused
+
+**Problem**: Give AI your entire codebase, it gets lost
+**Solution**: Give AI one steel thread, it stays focused
+
+```bash
+# This overwhelms the AI:
+$ find . -name "*.py" | xargs cat | wc -l
+45,000 lines of code
+
+# This focuses the AI:
+$ intent st show ST0042
+200 lines of structured context
+```
+
+### Real Example: Authentication Implementation
+
+I used Intent to build authentication with Claude:
+
+```markdown
+# ST0042: Multi-Service Authentication
+
+## Context
+- 5 microservices need shared auth
+- Cannot use sessions (stateless requirement)
+- Must support enterprise SSO
+- Peak load: 10K concurrent users
+
+## Constraints  
+- Existing users in PostgreSQL
+- 15-minute token expiry (security audit)
+- Zero-downtime migration required
+```
+
+Claude immediately suggested:
+
+- JWT with refresh tokens (not sessions)
+- Token relay pattern for microservices
+- Gradual migration strategy
+- Redis for token revocation
+
+No back-and-forth. No wrong assumptions. Just solutions that fit MY constraints.
 
 ## The LLM Collaboration Challenge
 
@@ -372,29 +444,59 @@ Anthropic's Machine Control Protocol opens new possibilities:
 
 ## Practical LLM Collaboration Workflow
 
-Here's how Intent transforms a typical development session:
+### Morning Standup with Your AI
 
+```bash
+# Start your day by loading context
+$ cat intent/wip.md
+Current focus: Implementing auth refresh tokens (ST0042)
+Blocker: Unsure about multi-device logout
+
+$ intent st show ST0042 | pbcopy
+# Paste to Claude/ChatGPT
 ```
-┌───────────────────────────────────────────────────────────┐
-│                  Intent-Powered LLM Workflow              │
-├──────────────────────────┬────────────────────────────────┤
-│ 1. Load Context          │ $ cat intent/prj/wip.md        │
-│                          │ $ intent st show ST0042        │
-├──────────────────────────┼────────────────────────────────┤
-│ 2. Share with LLM        │ "Working on ST0042, need help  │
-│                          │  with refresh token rotation"  │
-├──────────────────────────┼────────────────────────────────┤
-│ 3. LLM Understands       │ - Sees JWT token decision      │
-│                          │ - Knows security constraints   │
-│                          │ - Understands multi-device req │
-├──────────────────────────┼────────────────────────────────┤
-│ 4. Targeted Solution     │ LLM provides rotation strategy │
-│                          │ aligned with your architecture │
-├──────────────────────────┼────────────────────────────────┤
-│ 5. Update Documentation  │ Add decisions to steel thread  │
-│                          │ Update task status             │
-└──────────────────────────┴────────────────────────────────┘
+
+**You**: "I'm stuck on multi-device logout with our JWT strategy"
+
+**Claude**: "I see from ST0042 you're using 15-min access tokens with 7-day refresh tokens. For multi-device logout with your constraints:
+
+1. Add a token family ID to track related tokens
+2. Store revoked families in Redis (you already have it deployed)
+3. Check revocation on token refresh, not every request (performance)
+Here's the implementation..."
+
+### Discovering Your Own Code
+
+Six months later:
+
+```bash
+$ intent st list | grep cache
+ST0015  [Completed]  Implement multi-layer cache for API protection
+ST0023  [Completed]  Add cache warming for user profiles
+ST0031  [In Progress] Migrate cache to Redis cluster
+
+$ intent st show ST0015
+# Aha! That's why the cache is so complex
+# Shows: API limits, traffic patterns, decisions made
 ```
+
+### Team Knowledge Sharing
+
+New developer joins:
+
+```bash
+# Instead of: "Let me explain our auth system..."
+$ intent st show ST0042 > auth-context.md
+$ echo "Start here. This explains everything." 
+
+# They read:
+- Why JWT over sessions (microservices)
+- Why 15-min expiry (security audit)  
+- Why Redis for revocation (already in stack)
+- Implementation gotchas discovered
+```
+
+The new developer is productive in hours, not weeks.
 
 ## Transforming Development Through Collaboration
 

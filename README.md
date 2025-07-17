@@ -1,38 +1,130 @@
-# Intent: The Steel Thread Process
+# Intent: Build Software with AI by Capturing WHY Code Exists
 
 [![Intent Tests](https://github.com/matthewsinclair/intent/actions/workflows/tests.yml/badge.svg)](https://github.com/matthewsinclair/intent/actions/workflows/tests.yml)
 
-> **Transform how you build software by capturing the "why" alongside the "what"**
+Intent helps you build better software by capturing the "why" behind your code. When you document intentions, both your team and AI assistants understand not just what the code does, but why it exists.
 
-Intent is a lightweight, intention-aware development methodology that helps you build better software by preserving the context and reasoning behind every decision. It's designed from the ground up to enhance collaboration between developers and AI assistants, making your development process more efficient and your codebase more maintainable.
+## 🚀 See Intent in Action
 
-## 🎯 The Problem Intent Solves
+Instead of giving your AI assistant vague instructions:
 
-Ever joined a project and wondered:
+```bash
+# ❌ Without Intent:
+"Build a cache system for our API"
+# AI builds generic cache, misses critical requirements
+```
 
-- Why was this approach chosen over alternatives?
-- What problem was this code originally solving?
-- What were the trade-offs considered?
-- Why did we structure it this way?
+Capture your actual intention:
 
-Traditional documentation captures _what_ the code does, but rarely preserves _why_ it exists. This context loss leads to:
+```bash
+# ✅ With Intent:
+$ intent st new "Implement rate-limited cache for API protection"
+# Document: Need cache because API limits to 100 req/min
+# Document: Must handle Black Friday traffic spikes (10K req/s)
+# AI builds appropriate solution with rate limiting and burst handling
+```
 
-- 🔄 Repeated mistakes and circular discussions
-- 🤔 Confusion about design decisions
-- 🚫 Fear of changing "mysterious" code
-- 🤖 Poor AI assistance due to missing context
+**Result**: Your AI assistant understands the constraints and builds the right solution first time.
 
-## 💡 The Intent Solution
+## 💡 Why This Matters
 
-Intent introduces **Steel Threads** - self-contained units of work that capture not just tasks, but the entire context of why work is being done. Combined with **Backlog.md** for task management, Intent creates a two-tier system that preserves both strategic intent and tactical execution.
+### For Solo Developers
 
-### Key Benefits
+**Problem**: Your AI assistant forgets context between sessions  
+**Solution**: Intent preserves your project's "why" so AI always understands your goals
 
-- **📝 Never Lose Context**: Every decision is documented with its reasoning
-- **🤖 AI-Ready**: LLMs understand your project deeply, providing better assistance
-- **👥 Team Continuity**: New developers understand the "why" immediately
-- **🔍 Traceable Decisions**: See the evolution of your project's thinking
-- **🚀 Faster Development**: Less time explaining, more time building
+### For Teams  
+
+**Problem**: New members waste weeks doing "code archaeology"  
+**Solution**: Every feature has a Steel Thread documenting why it exists
+
+### For Future You
+
+**Problem**: "Why did I write this weird code 6 months ago?"  
+**Solution**: Your past self documented the API limits that forced that approach
+
+## 🎯 What is a Steel Thread?
+
+A **Steel Thread** is a self-contained feature with documented intentions. Think of it as a container that holds:
+
+- **WHY** you're building something (the intention)
+- **WHAT** you're building (the design)
+- **HOW** you're building it (the tasks)
+
+Example structure:
+
+```
+ST0042: Authentication System/
+├── info.md          # Why we need auth, what type, constraints
+├── design.md        # JWT vs sessions decision, security model  
+├── impl.md          # Technical implementation details
+└── tasks.md         # Linked Backlog tasks for execution
+```
+
+## 🤖 Intent + LLM in Action
+
+### Example 1: Context Persistence
+
+```markdown
+# ❌ Without Intent (every new session):
+You: "Help me optimize the user service"
+LLM: "What does the user service do? What are the constraints?"
+[You spend 10 minutes explaining...]
+
+# ✅ With Intent:
+You: "I'm working on ST0042" [paste steel thread]
+LLM: "I see you're using JWT tokens with 15-min expiry for stateless auth.
+      Given your multi-device requirement, here's a refresh token strategy..."
+```
+
+### Example 2: Discovering Hidden Knowledge
+
+```bash
+# Months later, you wonder: "Can I simplify this cache?"
+$ intent st show ST0015
+# Reveals: "Cache exists because API rate limits to 100 req/min"
+# Now you know why it's "complex" - it's handling burst traffic!
+```
+
+### Example 3: Focused AI Assistance
+
+```markdown
+# Steel threads keep AI focused:
+- Clear boundaries (one feature, not entire codebase)
+- Explicit constraints documented ("must handle 10K req/s")
+- Design decisions captured ("chose Redis over Memcached because...")
+- Result: AI suggestions align with YOUR architecture
+```
+
+## 🎯 What is Backlog.md?
+
+[Backlog.md](https://github.com/backlog/backlog) is a Git-native task manager that lives in your repository as markdown files. Intent integrates with it to create a two-tier system:
+
+- **Steel Threads** (Intent): High-level features with documented "why"
+- **Tasks** (Backlog.md): Day-to-day work items that implement the "how"
+
+```bash
+# Create a steel thread for the big picture
+$ intent st new "Add user authentication"
+Created: ST0001
+
+# Break it down into specific tasks
+$ intent bl create ST0001 "Research auth libraries"
+$ intent bl create ST0001 "Implement login endpoint"
+$ intent bl create ST0001 "Add password reset flow"
+
+# View your work visually
+$ intent bl board
+┌────────────────┬────────────────┬────────────────┐
+│      TODO      │   IN PROGRESS  │      DONE      │
+├────────────────┼────────────────┼────────────────┤
+│ Implement      │ Research auth  │                │
+│ login endpoint │ libraries      │                │
+│                │                │                │
+│ Add password   │                │                │
+│ reset flow     │                │                │
+└────────────────┴────────────────┴────────────────┘
+```
 
 ## 🚀 Quick Start
 
@@ -53,35 +145,60 @@ intent --version
 intent help
 ```
 
-### Your First Steel Thread
+### 🏆 5-Minute Win: Your First Steel Thread
 
 ```bash
-# Create a new steel thread
+# 1. Create a steel thread with clear intention
 $ intent st new "Add user authentication"
 Created: ST0001
 
-# Create associated tasks
-$ intent task create ST0001 "Research auth libraries"
-$ intent task create ST0001 "Implement login endpoint"
-$ intent task create ST0001 "Add session management"
+# 2. Document WHY you need auth (this is the magic!)
+$ intent st edit ST0001
+# Add: "Need auth because customer data must be protected"
+# Add: "Using JWT because we have multiple microservices"
+# Add: "Must support SSO for enterprise clients"
 
-# Check status
-$ intent status show ST0001
+# 3. Share with your AI assistant
+$ intent st show ST0001 | pbcopy
+# Now paste into Claude, ChatGPT, etc.
+# The AI immediately understands your constraints!
 ```
 
-### Integrate with Backlog.md
+### 🏆 15-Minute Win: Add Task Management
 
 ```bash
-# Install Backlog.md (npm required)
+# Install Backlog.md
 npm install -g backlog.md
 
-# Initialize Backlog in your project
+# Initialize in your project
 intent bl init
 
-# Create and manage tasks
-intent bl create ST0001 "Configure OAuth provider"
-intent bl list
+# Break down your steel thread into tasks
+intent bl create ST0001 "Research JWT libraries for Node.js"
+intent bl create ST0001 "Design token refresh strategy"
+intent bl create ST0001 "Implement login endpoint"
+
+# See your progress
 intent bl board
+```
+
+### 🏆 30-Minute Win: Complete First Feature
+
+```bash
+# Work through your tasks with AI assistance
+$ intent bl list ST0001
+# Copy relevant task to discuss with AI
+
+# As you complete work:
+$ intent bl move [task-id] doing
+$ intent bl move [task-id] done
+
+# Update steel thread with learnings
+$ intent st edit ST0001
+# Add: "Learned: JWT refresh tokens need rotation for security"
+# Add: "Decision: 15-min access token, 7-day refresh token"
+
+# Your future self (and team) will thank you!
 ```
 
 ## 📚 Documentation
@@ -185,26 +302,63 @@ We welcome contributions! The best way to contribute is to:
 
 See our [contribution workflow](./docs/blog/0006-next-steps-and-future-work.md#contributing-to-intent) for details.
 
-## 🎯 Use Cases
+## 🎗️ Real-World Examples
 
-Intent is particularly valuable for:
+### Building a REST API with Intent
 
-- **🚀 Startups**: Preserve founder vision through rapid pivots
-- **🏢 Enterprise**: Maintain knowledge through team changes
-- **🤖 AI Development**: Provide rich context for LLM assistance
-- **📚 Open Source**: Help contributors understand project decisions
-- **🎓 Education**: Teach software design thinking
+```bash
+# Capture the real requirements
+$ intent st new "Build REST API for mobile app"
+# Document: "Must support offline-first sync"
+# Document: "10K daily active users expected"
+# Document: "Must work on 3G connections"
 
-## 🔮 Future Vision
+# Result: Your API design includes sync strategies, caching, and compression
+```
 
-Intent is evolving to become the standard for intention-aware development:
+### Refactoring Legacy Code
 
-- **Q1 2025**: Enhanced configuration and reporting
-- **Q2 2025**: Multi-user collaboration features
-- **Q3 2025**: Native AI integrations (MCP support)
-- **Q4 2025**: Enterprise features and scalability
+```bash
+$ intent st new "Refactor payment processing"
+# Document: "Current system fails under Black Friday load"
+# Document: "PCI compliance required by Q2"
+# Document: "Cannot break existing integrations"
 
-See our [roadmap](./docs/blog/0006-next-steps-and-future-work.md#roadmap-the-next-12-months) for details.
+# AI understands constraints and suggests appropriate patterns
+```
+
+### Starting a New Project
+
+```bash
+$ intent st new "Project inception: E-commerce platform"
+# Document: "Target: Small businesses with <100 products"
+# Document: "Must integrate with Shopify/WooCommerce"
+# Document: "Budget: 3 developers, 6 months"
+
+# Every future decision references these constraints
+```
+
+## ❓ FAQ
+
+### How is this different from code comments?
+
+**Comments** explain what code does. **Intent** captures why the code exists, what problems it solves, and what constraints shaped it. This context is what AI assistants need to give good suggestions.
+
+### Do I need to use all features?
+
+No! Start with just steel threads to capture intentions. Add Backlog.md when you need task tracking. Intent grows with your needs.
+
+### How does this help with AI coding?
+
+AI assistants are great at writing code but terrible at understanding your specific context. Intent provides that context in a structured way that AIs can understand and use.
+
+### Can I use Intent without Backlog.md?
+
+Absolutely! Steel threads work independently. Backlog.md just adds visual task management when you need it.
+
+### Is this just more documentation to maintain?
+
+Unlike traditional docs that go stale, Intent documentation drives your development. When you update a steel thread, you're planning work, not writing about completed work.
 
 ## 📖 Philosophy
 

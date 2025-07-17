@@ -8,9 +8,39 @@ word_count: 1623
 
 # Introduction to Intent: A Better Way to Build Software
 
-If you've ever lost track of why a piece of code exists, struggled to onboard a new team member, or watched an LLM confidently solve the wrong problem, you understand the cost of lost intention in software development. In our [previous post](./0000-motivation-for-intent.md), we explored why capturing and preserving intention is crucial for modern development, especially when collaborating with AI.
+If you've ever lost track of why a piece of code exists, struggled to onboard a new team member, or watched an LLM confidently solve the wrong problem, you understand the cost of lost intention in software development.
 
-Today, I want to introduce you to the Intent (Intent) – a practical solution to the intention problem. Intent isn't another heavyweight methodology or a complex framework. It's a lightweight system that enhances your existing workflow with intention-aware structure, making both human and AI collaboration more effective.
+## See the Difference
+
+**Without Intent:**
+
+```python
+# cache.py
+def get_user_profile(user_id):
+    # Check cache first
+    cached = redis.get(f"user:{user_id}")
+    if cached:
+        return json.loads(cached)
+    
+    # Complex caching logic with multiple layers...
+    # 200 lines of sophisticated caching code
+```
+
+6 months later: "Why is this cache so complex? Let's simplify it!"
+
+**With Intent:**
+
+```bash
+$ intent st show ST0015
+# Reveals: "Multi-layer cache because:
+#   - API rate limits: 100 requests/minute
+#   - Black Friday traffic: 10,000 requests/second
+#   - Customer requirement: <50ms response time"
+```
+
+Now you know: That "complex" cache is saving your business!
+
+In our [previous post](./0000-motivation-for-intent.md), we explored why capturing and preserving intention is crucial for modern development, especially when collaborating with AI. Today, I'll show you exactly how Intent solves this problem with a practical, lightweight system that enhances your existing workflow.
 
 ## Building on the Intention Foundation
 
@@ -26,32 +56,73 @@ The shift from theoretical understanding to practical implementation happens thr
 
 ## What is Intent?
 
-The Intent is a lightweight methodology for structuring both development and documentation around clearly captured intentions. At its heart, Intent is surprisingly simple: shell scripts + markdown templates + task tracking = intention-aware development.
+Intent is a lightweight methodology that captures the "why" behind your code. Here's how it works in practice:
 
-Let me break this down:
+### Try This Example
 
-**Shell Scripts**: A collection of simple bash scripts that automate common tasks:
+```bash
+# 1. Start a new feature
+$ intent st new "Add password reset functionality"
+Created: ST0023
 
-- `intent st new` - Create a new steel thread with intention-capturing template
-- `intent st list` - View all steel threads and their status
-- `intent bl` - Integrate with Backlog.md for task management
-- `intent status` - Synchronise steel thread status with task completion
+# 2. Capture the REAL requirements (not just "add password reset")
+$ intent st edit ST0023
+```
 
-**Markdown Templates**: Structured documents that prompt for intention:
+In your editor, document the actual constraints:
 
-- Steel thread templates that start with "why" before "what"
-- Technical design documents with intention sections
-- User guides that explain purpose alongside usage
+```markdown
+## Objective
+Implement secure password reset that prevents account takeover
 
-**Task Tracking**: Fine-grained visibility through Backlog.md integration:
+## Context
+- Recent security audit flagged email-based reset as vulnerable
+- 15% of support tickets are password-related
+- Must comply with SOC2 requirements
+- Cannot break existing mobile app (v2.3.x)
 
-- Each steel thread can have multiple associated tasks
-- Tasks track the detailed work while threads maintain the big picture
-- Automatic status updates based on task completion
+## Approach
+- Time-limited tokens (15 minutes)
+- Rate limiting (3 attempts per hour)
+- Multi-factor verification for high-value accounts
+- Backward compatible API endpoints
+```
 
-The magic happens when these simple components work together. A steel thread captures your intention, tasks track your implementation, and templates ensure nothing important gets lost along the way.
+### Now Share with Your AI Assistant
 
-Importantly, Intent is designed to work alongside your existing practices. Whether you use Agile, Waterfall, or something in between, Intent adds intention-awareness without disrupting your workflow. It's an enhancement, not a replacement.
+```bash
+$ intent st show ST0023 | pbcopy
+# Paste into Claude/ChatGPT/Copilot
+```
+
+The AI immediately understands:
+
+- ❌ Not just "implement password reset"
+- ✅ Security requirements, compliance needs, compatibility constraints
+- ✅ Suggests appropriate security patterns
+- ✅ Knows to maintain backward compatibility
+
+### The Three Components
+
+**Shell Scripts**: Simple automation
+
+- `intent st new` - Create steel threads
+- `intent st show` - View intentions
+- `intent bl` - Manage tasks
+
+**Markdown Templates**: Structured capture
+
+- Forces "why" before "what"
+- Consistent format for AI parsing
+- Human-readable documentation
+
+**Task Tracking**: Execution management
+
+- Break threads into concrete tasks
+- Track progress visually
+- Maintain thread-to-task linkage
+
+The magic: Your future self (and AI) always knows WHY code exists.
 
 ## Core Principles of Intent
 
@@ -100,29 +171,32 @@ A steel thread is a complete, minimal path through your system that delivers val
 - Provides learning about the system
 - Captures clear intention
 
-Here's how the Intent workflow typically looks:
+### Real Impact: Intent at Work
 
-```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   Intention     │     │  Steel Thread    │     │     Tasks       │
-│   Capture       │────▶│   Creation       │────▶│   Definition    │
-│                 │     │  (intent st new) │     │  (intent bl)    │
-└─────────────────┘     └──────────────────┘     └─────────────────┘
-         │                       │                         │
-         │                       ▼                         ▼
-         │              ┌──────────────────┐     ┌─────────────────┐
-         │              │  Documentation   │     │ Implementation  │
-         │              │   Templates      │────▶│    (coding)     │
-         │              └──────────────────┘     └─────────────────┘
-         │                       │                         │
-         │                       ▼                         ▼
-         │              ┌──────────────────┐     ┌─────────────────┐
-         └─────────────▶│     Review &     │◀────│     Testing     │
-                        │   Validation     │     │                 │
-                        └──────────────────┘     └─────────────────┘
+Here's a real example from building Intent itself:
+
+```bash
+$ intent st show ST0012
+# "Document Sync Command - sync steel thread index"
+
+$ intent st show ST0016 
+# "Rename STP to Intent - complete v2.0.0 refactoring"
 ```
 
-This differs from traditional work organisation where tasks often lose connection to their original purpose. In Intent, every task links back to a steel thread, and every steel thread explicitly captures intention.
+These aren't just task lists. Each thread contains:
+
+- **Why** we needed these features
+- **What** constraints we faced
+- **How** we approached the solution
+- **Learnings** from implementation
+
+When working on ST0016 (the major refactoring), the AI assistant could see:
+
+- Why the rename was necessary
+- What backward compatibility to maintain
+- Which patterns to follow
+
+Result: The AI provided targeted, context-aware suggestions instead of generic refactoring advice.
 
 ## Benefits of Intent
 
