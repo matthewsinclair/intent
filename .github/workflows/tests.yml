@@ -23,12 +23,15 @@ jobs:
     
     - name: Install bats-core
       run: |
-        # Install bats from package manager
-        sudo apt-get update
-        sudo apt-get install -y bats
+        # Install bats-core v1.12.0 from GitHub
+        wget https://github.com/bats-core/bats-core/archive/v1.12.0.tar.gz
+        tar -xzf v1.12.0.tar.gz
+        cd bats-core-1.12.0
+        sudo ./install.sh /usr/local
         # Make sure bats is in PATH
-        echo "PATH=$PATH:/usr/bin" >> $GITHUB_ENV
+        echo "PATH=/usr/local/bin:$PATH" >> $GITHUB_ENV
         which bats
+        bats --version
     
     - name: Install Backlog.md
       run: |
@@ -48,30 +51,25 @@ jobs:
         [ ! -d "tests/lib/bats-file" ] && git clone https://github.com/bats-core/bats-file.git tests/lib/bats-file
     
     - name: Run unit tests
+      env:
+        BATS_LIB_PATH: ${{ github.workspace }}/tests/lib
       run: |
         cd tests
-        export BATS_LIB_PATH="$PWD/lib"
         if [ -f "./run_tests.sh" ]; then
           ./run_tests.sh
         else
-          # Run tests directly if run_tests.sh doesn't exist
-          for test_dir in */; do
-            if [ -d "$test_dir" ] && [ "$test_dir" != "lib/" ] && [ "$test_dir" != "integration/" ]; then
-              echo "Running tests in $test_dir"
-              for test_file in "$test_dir"/*test*.bats; do
-                if [ -f "$test_file" ]; then
-                  echo "  Running: $test_file"
-                  bats "$test_file" || true
-                fi
-              done
-            fi
+          # Run tests directly if run_tests.sh doesn't exist (excluding lib directory)
+          find . -name "*.bats" -type f -not -path "./lib/*" | sort | while read -r test_file; do
+            echo "Running: $test_file"
+            bats "$test_file" || true
           done
         fi
     
     - name: Run integration tests
+      env:
+        BATS_LIB_PATH: ${{ github.workspace }}/tests/lib
       run: |
         cd tests
-        export BATS_LIB_PATH="$PWD/lib"
         echo "Running integration tests..."
         if [ -f "integration/end_to_end.bats" ]; then
           bats integration/end_to_end.bats || echo "Integration tests completed with status: $?"
@@ -126,24 +124,18 @@ jobs:
         chmod +x tests/*.sh 2>/dev/null || true
     
     - name: Run tests
+      env:
+        BATS_LIB_PATH: ${{ github.workspace }}/tests/lib
       run: |
         cd tests
-        export BATS_LIB_PATH="$PWD/lib"
         if [ -f "./run_tests.sh" ]; then
           chmod +x run_tests.sh
           ./run_tests.sh
         else
-          # Run tests directly
-          for test_dir in */; do
-            if [ -d "$test_dir" ] && [ "$test_dir" != "lib/" ]; then
-              echo "Running tests in $test_dir"
-              for test_file in "$test_dir"/*test*.bats; do
-                if [ -f "$test_file" ]; then
-                  echo "  Running: $test_file"
-                  bats "$test_file" || true
-                fi
-              done
-            fi
+          # Run tests directly (excluding lib directory)
+          find . -name "*.bats" -type f -not -path "./lib/*" | sort | while read -r test_file; do
+            echo "Running: $test_file"
+            bats "$test_file" || true
           done
         fi
 
