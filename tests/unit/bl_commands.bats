@@ -316,3 +316,174 @@ EOF
   assert_output_contains "Warning: Invalid backlog_list_status 'invalid-status'"
   assert_output_contains "Valid statuses are: todo wip done cancelled archived"
 }
+
+@test "bl task pad requires --size argument" {
+  project_dir=$(create_test_project "BL Pad Size Test")
+  cd "$project_dir"
+  
+  run run_intent bl task pad task-9
+  assert_failure
+  assert_output_contains "Missing required argument: --size"
+}
+
+@test "bl task pad validates size is numeric" {
+  project_dir=$(create_test_project "BL Pad Size Numeric Test")
+  cd "$project_dir"
+  
+  run run_intent bl task pad task-9 --size abc
+  assert_failure
+  assert_output_contains "Invalid --size value. Must be a positive number"
+}
+
+@test "bl task pad requires task ID or --all" {
+  project_dir=$(create_test_project "BL Pad Args Test")
+  cd "$project_dir"
+  
+  run run_intent bl task pad --size 3
+  assert_failure
+  assert_output_contains "Must specify either a task ID or --all"
+}
+
+@test "bl task pad rejects both task ID and --all" {
+  project_dir=$(create_test_project "BL Pad Both Args Test")
+  cd "$project_dir"
+  
+  run run_intent bl task pad task-9 --all --size 3
+  assert_failure
+  assert_output_contains "Cannot specify both a task ID and --all"
+}
+
+@test "bl task pad pads single task correctly" {
+  project_dir=$(create_test_project "BL Pad Single Test")
+  cd "$project_dir"
+  
+  # Create backlog directory structure
+  mkdir -p backlog/tasks
+  
+  # Create a test task file
+  cat > "backlog/tasks/task-9 - ST0001-Test-task.md" << 'EOF'
+---
+id: task-9
+title: ST0001 - Test task
+status: todo
+assignee: []
+created_date: '2025-07-23'
+updated_date: '2025-07-23'
+labels: []
+dependencies: []
+---
+
+## Description
+Test task
+EOF
+  
+  run run_intent bl task pad task-9 --size 3
+  assert_success
+  assert_output_contains "Padding tasks to 3 digits..."
+  assert_output_contains "Padding: task-9 - ST0001-Test-task.md -> task-009 - ST0001-Test-task.md"
+  assert_output_contains "Successfully padded task"
+  assert_output_contains "intent bl config set zeroPaddedIds 3"
+  
+  # Verify file was renamed
+  assert_file_exists "backlog/tasks/task-009 - ST0001-Test-task.md"
+  [ ! -f "backlog/tasks/task-9 - ST0001-Test-task.md" ]
+  
+  # Verify ID was updated in file content
+  run grep "^id: task-009$" "backlog/tasks/task-009 - ST0001-Test-task.md"
+  assert_success
+}
+
+@test "bl task pad handles already padded tasks" {
+  project_dir=$(create_test_project "BL Pad Already Padded Test")
+  cd "$project_dir"
+  
+  # Create backlog directory structure
+  mkdir -p backlog/tasks
+  
+  # Create an already padded task file
+  cat > "backlog/tasks/task-009 - ST0001-Test-task.md" << 'EOF'
+---
+id: task-009
+title: ST0001 - Test task
+status: todo
+assignee: []
+created_date: '2025-07-23'
+updated_date: '2025-07-23'
+labels: []
+dependencies: []
+---
+
+## Description
+Test task
+EOF
+  
+  run run_intent bl task pad task-009 --size 3
+  assert_success
+  assert_output_contains "Task 'task-009' is already padded to 3 digits"
+}
+
+@test "bl task pad --all pads all tasks" {
+  project_dir=$(create_test_project "BL Pad All Test")
+  cd "$project_dir"
+  
+  # Create backlog directory structure
+  mkdir -p backlog/tasks
+  mkdir -p backlog/archive/tasks
+  
+  # Create test task files
+  cat > "backlog/tasks/task-1 - ST0001-First.md" << 'EOF'
+---
+id: task-1
+title: ST0001 - First
+status: todo
+---
+EOF
+  
+  cat > "backlog/tasks/task-10 - ST0002-Second.md" << 'EOF'
+---
+id: task-10
+title: ST0002 - Second
+status: todo
+---
+EOF
+  
+  cat > "backlog/archive/tasks/task-5 - ST0003-Archived.md" << 'EOF'
+---
+id: task-5
+title: ST0003 - Archived
+status: archived
+---
+EOF
+  
+  run run_intent bl task pad --all --size 3
+  assert_success
+  assert_output_contains "Padding tasks to 3 digits..."
+  assert_output_contains "Processed backlog/tasks/: 2 files updated, 0 already padded"
+  assert_output_contains "Processed backlog/archive/tasks/: 1 files updated, 0 already padded"
+  assert_output_contains "Total: 3 tasks updated"
+  
+  # Verify files were renamed
+  assert_file_exists "backlog/tasks/task-001 - ST0001-First.md"
+  assert_file_exists "backlog/tasks/task-010 - ST0002-Second.md"
+  assert_file_exists "backlog/archive/tasks/task-005 - ST0003-Archived.md"
+  
+  # Verify IDs were updated
+  run grep "^id: task-001$" "backlog/tasks/task-001 - ST0001-First.md"
+  assert_success
+  run grep "^id: task-010$" "backlog/tasks/task-010 - ST0002-Second.md"
+  assert_success
+  run grep "^id: task-005$" "backlog/archive/tasks/task-005 - ST0003-Archived.md"
+  assert_success
+}
+
+@test "bl task pad handles non-existent task" {
+  project_dir=$(create_test_project "BL Pad Not Found Test")
+  cd "$project_dir"
+  
+  # Create empty backlog directory
+  mkdir -p backlog/tasks
+  
+  run run_intent bl task pad task-999 --size 3
+  assert_failure
+  assert_output_contains "Error: Task 'task-999' not found"
+}

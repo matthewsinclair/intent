@@ -58,6 +58,7 @@ usage() {
   echo "Commands:"
   echo "  init                       Initialize backlog in current project"
   echo "  task <subcommand>          Task management (create, list, edit, etc.)"
+  echo "  task pad <id|--all> --size n  Zero-pad task IDs retroactively"
   echo "  list                       List tasks (uses backlog_list_status filter from config)"
   echo "  create <ST####> <title>    Create a task linked to a steel thread"
   echo "  board                      Display tasks in Kanban board"
@@ -75,6 +76,8 @@ usage() {
   echo "  intent bl list -s todo            # List only todo tasks"
   echo "  intent bl create ST0014 \"Fix bug\" # Create task linked to ST0014"
   echo "  intent bl task edit task-5        # Edit a specific task"
+  echo "  intent bl task pad task-9 --size 3  # Pad task-9 to task-009"
+  echo "  intent bl task pad --all --size 3   # Pad all tasks to 3 digits"
   echo ""
   echo "For full backlog documentation, run: backlog help"
 }
@@ -112,6 +115,165 @@ create_task() {
   # Create the task with full title
   local full_title="$st_id - $title"
   backlog task create "$full_title"
+}
+
+# Pad task IDs with zeros
+pad_tasks() {
+  local task_id=""
+  local size=""
+  local all_tasks=false
+  
+  # Parse arguments
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --all)
+        all_tasks=true
+        shift
+        ;;
+      --size)
+        if [ -z "$2" ] || ! [[ "$2" =~ ^[0-9]+$ ]]; then
+          error "Invalid --size value. Must be a positive number."
+        fi
+        size="$2"
+        shift 2
+        ;;
+      *)
+        if [ -z "$task_id" ] && [[ "$1" =~ ^task-[0-9]+$ ]]; then
+          task_id="$1"
+          shift
+        else
+          error "Invalid argument: $1"
+        fi
+        ;;
+    esac
+  done
+  
+  # Validate arguments
+  if [ -z "$size" ]; then
+    error "Missing required argument: --size n"
+  fi
+  
+  if [ "$all_tasks" = true ] && [ -n "$task_id" ]; then
+    error "Cannot specify both a task ID and --all"
+  fi
+  
+  if [ "$all_tasks" = false ] && [ -z "$task_id" ]; then
+    error "Must specify either a task ID or --all"
+  fi
+  
+  # Process tasks
+  echo "Padding tasks to $size digits..."
+  
+  # Initialize counters
+  local tasks_updated=0
+  local tasks_already_padded=0
+  local tasks_errors=0
+  local archive_updated=0
+  local archive_already_padded=0
+  local archive_errors=0
+  
+  # Process tasks in a directory
+  process_directory() {
+    local dir="$1"
+    local count_var_prefix="$2"
+    
+    if [ ! -d "$dir" ]; then
+      return
+    fi
+    
+    # Find all task files
+    for file in "$dir"/task-*; do
+      if [ -f "$file" ]; then
+        local filename=$(basename "$file")
+        
+        # Extract task number and rest of filename
+        if [[ $filename =~ ^task-([0-9]+)(.*)$ ]]; then
+          local task_num="${BASH_REMATCH[1]}"
+          local rest="${BASH_REMATCH[2]}"
+          
+          # Check if this is the specific task we're looking for (single task mode)
+          if [ "$all_tasks" = false ] && [ "task-$task_num" != "$task_id" ]; then
+            continue
+          fi
+          
+          # Pad the number (force base 10 to handle leading zeros)
+          local padded_num=$(printf "%0${size}d" $((10#$task_num)))
+          
+          # Only process if padding is needed
+          local old_filename="$filename"
+          local new_filename="task-${padded_num}${rest}"
+          local old_path="$dir/$old_filename"
+          local new_path="$dir/$new_filename"
+          
+          if [ "$old_filename" != "$new_filename" ]; then
+            echo "Padding: $old_filename -> $new_filename"
+            
+            # Rename the file
+            if ! mv "$old_path" "$new_path"; then
+              echo "Error: Failed to rename $old_path" >&2
+              eval "${count_var_prefix}_errors=\$((${count_var_prefix}_errors + 1))"
+              continue
+            fi
+            
+            # Update the id field in the file
+            local task_num_no_zeros=$((10#$task_num))
+            if grep -q "^id: task-${task_num_no_zeros}$" "$new_path"; then
+              if ! sed -i.bak "s/^id: task-${task_num_no_zeros}$/id: task-${padded_num}/" "$new_path"; then
+                echo "Error: Failed to update ID in $new_path" >&2
+                # Try to restore the original filename
+                mv "$new_path" "$old_path" 2>/dev/null
+                eval "${count_var_prefix}_errors=\$((${count_var_prefix}_errors + 1))"
+                continue
+              fi
+              rm -f "${new_path}.bak"
+            fi
+            
+            eval "${count_var_prefix}_updated=\$((${count_var_prefix}_updated + 1))"
+          else
+            eval "${count_var_prefix}_already_padded=\$((${count_var_prefix}_already_padded + 1))"
+          fi
+        fi
+      fi
+    done
+  }
+  
+  # Process main tasks directory
+  process_directory "backlog/tasks" "tasks"
+  
+  # Process archive tasks directory
+  process_directory "backlog/archive/tasks" "archive"
+  
+  # Calculate totals
+  local total_updated=$((tasks_updated + archive_updated))
+  local total_already_padded=$((tasks_already_padded + archive_already_padded))
+  local total_errors=$((tasks_errors + archive_errors))
+  
+  # Report results
+  if [ "$all_tasks" = true ]; then
+    echo "Processed backlog/tasks/: $tasks_updated files updated, $tasks_already_padded already padded"
+    echo "Processed backlog/archive/tasks/: $archive_updated files updated, $archive_already_padded already padded"
+    echo "Total: $total_updated tasks updated"
+  else
+    if [ $total_updated -eq 1 ]; then
+      echo "Successfully padded task"
+    elif [ $total_already_padded -gt 0 ]; then
+      echo "Task '$task_id' is already padded to $size digits"
+    else
+      echo "Error: Task '$task_id' not found"
+      exit 1
+    fi
+  fi
+  
+  if [ $total_errors -gt 0 ]; then
+    echo "Warning: $total_errors errors occurred during processing" >&2
+  fi
+  
+  # Suggest setting zeroPaddedIds if needed
+  if [ $total_updated -gt 0 ]; then
+    echo ""
+    echo "Note: To ensure new tasks use the same padding, run:"
+    echo "  intent bl config set zeroPaddedIds $size"
+  fi
 }
 
 # Process commands
@@ -238,6 +400,11 @@ case "${1:-}" in
         
         # Execute backlog command
         backlog task list "${cmd_args[@]}"
+        ;;
+      pad)
+        # Handle task padding
+        shift 2  # Remove 'task' and 'pad'
+        pad_tasks "$@"
         ;;
       *)
         # Pass through other task commands
