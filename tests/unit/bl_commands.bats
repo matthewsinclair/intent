@@ -24,7 +24,7 @@ load "../lib/test_helper.bash"
 echo "Backlog called with: $*"
 if [[ "$*" == "task list --plain" ]]; then
   echo "To Do:"
-  echo "  task-1 - Test task"
+  echo "  task-001 - Test task"
   exit 0
 fi
 exit 1
@@ -35,7 +35,7 @@ EOF
   run run_intent bl list
   assert_success
   assert_output_contains "Backlog called with: task list --plain"
-  assert_output_contains "task-1 - Test task"
+  assert_output_contains "task-001 - Test task"
 }
 
 @test "bl create validates and creates task" {
@@ -47,8 +47,8 @@ EOF
   cat > bin/backlog << 'EOF'
 #!/bin/bash
 if [[ "$1" == "task" && "$2" == "create" && "$3" == "ST0014 - Test task" ]]; then
-  echo "Created task task-1"
-  echo "File: backlog/tasks/task-1 - ST0014-Test-task.md"
+  echo "Created task task-001"
+  echo "File: backlog/tasks/task-001 - ST0014-Test-task.md"
   exit 0
 fi
 exit 1
@@ -58,7 +58,7 @@ EOF
   
   run run_intent bl create ST0014 "Test task"
   assert_success
-  assert_output_contains "Created task task-1"
+  assert_output_contains "Created task task-001"
 }
 
 @test "bl create rejects invalid steel thread ID" {
@@ -132,7 +132,7 @@ EOF
   cat > bin/backlog << 'EOF'
 #!/bin/bash
 echo "Backlog called with: $*"
-if [[ "$*" == "task edit task-5 --status Done" ]]; then
+if [[ "$*" == "task edit task-005 --status Done" ]]; then
   echo "Task updated"
   exit 0
 fi
@@ -141,9 +141,9 @@ EOF
   chmod +x bin/backlog
   export PATH="$PWD/bin:$PATH"
   
-  run run_intent bl task edit task-5 --status Done
+  run run_intent bl task edit task-005 --status Done
   assert_success
-  assert_output_contains "Backlog called with: task edit task-5 --status Done"
+  assert_output_contains "Backlog called with: task edit task-005 --status Done"
   assert_output_contains "Task updated"
 }
 
@@ -223,13 +223,13 @@ echo "Backlog called with: $*"
 if [[ "$*" == *"-s todo"* ]]; then
   echo "Filtering by status: todo"
   echo "todo:"
-  echo "  task-1 - ST0001 - Todo task"
+  echo "  task-001 - ST0001 - Todo task"
 else
   echo "No status filter applied"
   echo "todo:"
-  echo "  task-1 - ST0001 - Todo task"
+  echo "  task-001 - ST0001 - Todo task"
   echo "done:"
-  echo "  task-2 - ST0002 - Done task"
+  echo "  task-002 - ST0002 - Done task"
 fi
 exit 0
 EOF
@@ -240,8 +240,8 @@ EOF
   assert_success
   assert_output_contains "Backlog called with: task list --plain -s todo"
   assert_output_contains "Filtering by status: todo"
-  assert_output_contains "task-1 - ST0001 - Todo task"
-  ! assert_output_contains "task-2 - ST0002 - Done task"
+  assert_output_contains "task-001 - ST0001 - Todo task"
+  ! assert_output_contains "task-002 - ST0002 - Done task"
 }
 
 @test "bl list --all ignores backlog_list_status" {
@@ -269,9 +269,9 @@ echo "Backlog called with: $*"
 if [[ "$*" != *"-s"* ]]; then
   echo "Showing all tasks"
   echo "todo:"
-  echo "  task-1 - ST0001 - Todo task"
+  echo "  task-001 - ST0001 - Todo task"
   echo "done:"
-  echo "  task-2 - ST0002 - Done task"
+  echo "  task-002 - ST0002 - Done task"
 fi
 exit 0
 EOF
@@ -281,8 +281,8 @@ EOF
   run run_intent bl list --all
   assert_success
   assert_output_contains "Showing all tasks"
-  assert_output_contains "task-1 - ST0001 - Todo task"
-  assert_output_contains "task-2 - ST0002 - Done task"
+  assert_output_contains "task-001 - ST0001 - Todo task"
+  assert_output_contains "task-002 - ST0002 - Done task"
 }
 
 @test "bl list validates backlog_list_status" {
@@ -323,7 +323,7 @@ EOF
   
   run run_intent bl task pad task-9
   assert_failure
-  assert_output_contains "Missing required argument: --size"
+  assert_output_contains "No --size specified and backlog not configured"
 }
 
 @test "bl task pad validates size is numeric" {
@@ -486,4 +486,46 @@ EOF
   run run_intent bl task pad task-999 --size 3
   assert_failure
   assert_output_contains "Error: Task 'task-999' not found"
+}
+
+@test "bl task pad uses configured size when no --size provided" {
+  project_dir=$(create_test_project "BL Pad Config Size Test")
+  cd "$project_dir"
+  
+  # Create backlog directory and config
+  mkdir -p backlog/tasks
+  cat > backlog/config.yml << 'EOF'
+zeroPaddedIds: 2
+EOF
+  
+  # Create a test task file
+  cat > "backlog/tasks/task-5 - ST0001-Test.md" << 'EOF'
+---
+id: task-5
+title: ST0001 - Test
+status: todo
+---
+EOF
+  
+  # Mock backlog config get command
+  mkdir -p bin
+  cat > bin/backlog << 'EOF'
+#!/bin/bash
+if [[ "$1" == "config" && "$2" == "get" && "$3" == "zeroPaddedIds" ]]; then
+  echo "2"
+  exit 0
+fi
+echo "Unknown command"
+exit 1
+EOF
+  chmod +x bin/backlog
+  export PATH="$PWD/bin:$PATH"
+  
+  run run_intent bl task pad --all
+  assert_success
+  assert_output_contains "Using configured zero padding size: 2"
+  assert_output_contains "Padding tasks to 2 digits..."
+  
+  # Verify file was renamed
+  assert_file_exists "backlog/tasks/task-05 - ST0001-Test.md"
 }

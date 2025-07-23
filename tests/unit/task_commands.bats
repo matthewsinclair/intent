@@ -52,8 +52,8 @@ EOF
   cat > bin/backlog << 'EOF'
 #!/bin/bash
 if [[ "$1" == "task" && "$2" == "create" ]]; then
-  echo "Created task task-1"
-  echo "File: backlog/tasks/task-1.md"
+  echo "Created task task-001"
+  echo "File: backlog/tasks/task-001.md"
   exit 0
 fi
 exit 1
@@ -91,9 +91,9 @@ EOF
   
   # Create test task files
   mkdir -p backlog/tasks
-  cat > "backlog/tasks/task-1 - ST0014-First-task.md" << EOF
+  cat > "backlog/tasks/task-001 - ST0014-First-task.md" << EOF
 ---
-id: task-1
+id: task-001
 title: ST0014 - First task
 status: Done
 assignee: []
@@ -106,9 +106,9 @@ dependencies: []
 First task description
 EOF
 
-  cat > "backlog/tasks/task-2 - ST0014-Second-task.md" << EOF
+  cat > "backlog/tasks/task-002 - ST0014-Second-task.md" << EOF
 ---
-id: task-2
+id: task-002
 title: ST0014 - Second task
 status: To Do
 assignee: []
@@ -122,9 +122,9 @@ Second task description
 EOF
 
   # Create a task for different ST
-  cat > "backlog/tasks/task-3 - ST0015-Other-task.md" << EOF
+  cat > "backlog/tasks/task-003 - ST0015-Other-task.md" << EOF
 ---
-id: task-3
+id: task-003
 title: ST0015 - Other task
 status: To Do
 ---
@@ -133,8 +133,8 @@ EOF
   run run_intent task list ST0014
   assert_success
   assert_output_contains "Tasks for ST0014:"
-  assert_output_contains "task-1"
-  assert_output_contains "task-2"
+  assert_output_contains "task-001"
+  assert_output_contains "task-002"
   
   # Should not show task from other ST
   if [[ "$output" == *"ST0015"* ]]; then
@@ -169,9 +169,9 @@ EOF
 
   # Create completed tasks
   mkdir -p backlog/tasks
-  cat > "backlog/tasks/task-1 - ST0014-Task.md" << EOF
+  cat > "backlog/tasks/task-001 - ST0014-Task.md" << EOF
 ---
-id: task-1
+id: task-001
 title: ST0014 - Task
 status: Done
 ---
@@ -181,7 +181,7 @@ EOF
   mkdir -p bin
   cat > bin/backlog << 'EOF'
 #!/bin/bash
-if [[ "$1" == "task" && "$2" == "view" && "$3" == "task-1" ]]; then
+if [[ "$1" == "task" && "$2" == "view" && "$3" == "task-001" ]]; then
   echo "Status: done"
   exit 0
 fi

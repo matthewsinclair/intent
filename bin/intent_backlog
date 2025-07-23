@@ -58,7 +58,7 @@ usage() {
   echo "Commands:"
   echo "  init                       Initialize backlog in current project"
   echo "  task <subcommand>          Task management (create, list, edit, etc.)"
-  echo "  task pad <id|--all> --size n  Zero-pad task IDs retroactively"
+  echo "  task pad <id|--all> [--size n] Zero-pad task IDs retroactively"
   echo "  list                       List tasks (uses backlog_list_status filter from config)"
   echo "  create <ST####> <title>    Create a task linked to a steel thread"
   echo "  board                      Display tasks in Kanban board"
@@ -78,6 +78,7 @@ usage() {
   echo "  intent bl task edit task-5        # Edit a specific task"
   echo "  intent bl task pad task-9 --size 3  # Pad task-9 to task-009"
   echo "  intent bl task pad --all --size 3   # Pad all tasks to 3 digits"
+  echo "  intent bl task pad --all            # Pad all tasks using configured size"
   echo ""
   echo "For full backlog documentation, run: backlog help"
 }
@@ -148,9 +149,20 @@ pad_tasks() {
     esac
   done
   
-  # Validate arguments
+  # If no size specified, try to get it from backlog config
   if [ -z "$size" ]; then
-    error "Missing required argument: --size n"
+    # Check if backlog is configured with zeroPaddedIds
+    if command -v backlog &> /dev/null && [ -f "backlog/config.yml" ]; then
+      local configured_size=$(backlog config get zeroPaddedIds 2>/dev/null | grep -E '^[0-9]+$' || echo "")
+      if [ -n "$configured_size" ]; then
+        size="$configured_size"
+        echo "Using configured zero padding size: $size"
+      else
+        error "No --size specified and no zeroPaddedIds configured in backlog"
+      fi
+    else
+      error "No --size specified and backlog not configured"
+    fi
   fi
   
   if [ "$all_tasks" = true ] && [ -n "$task_id" ]; then
