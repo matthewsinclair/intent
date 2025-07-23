@@ -1052,6 +1052,11 @@ intent bl create ST0014 "Add validation"
 
 # View Kanban board
 intent bl board
+
+# Zero-pad task IDs retroactively
+intent bl task pad task-9 --size 3     # Pad single task to task-009
+intent bl task pad --all --size 3      # Pad all tasks to 3 digits
+intent bl task pad --all               # Pad using configured size
 ```
 
 The wrapper automatically:
@@ -1059,6 +1064,32 @@ The wrapper automatically:
 - Adds `--plain` to list/board commands to prevent git errors
 - Disables remote operations for local projects
 - Provides shortcuts for common workflows
+
+#### Task ID Padding
+
+The `intent bl task pad` command allows you to retroactively zero-pad task IDs for consistent sorting and display:
+
+```bash
+# Pad a specific task
+intent bl task pad task-9 --size 3    # Changes task-9 to task-009
+
+# Pad all tasks to 3 digits
+intent bl task pad --all --size 3
+
+# Use configured padding (reads from zeroPaddedIds config)
+intent bl task pad --all
+```
+
+This command:
+- Updates both the task filename and the `id:` field in the YAML frontmatter
+- Processes tasks in both `backlog/tasks/` and `backlog/archive/tasks/`
+- Only pads tasks that need it (skips already padded tasks)
+- Is idempotent - running it multiple times is safe
+
+After padding, ensure new tasks use the same padding by setting:
+```bash
+intent bl config set zeroPaddedIds 3
+```
 
 ### Naming Conventions
 

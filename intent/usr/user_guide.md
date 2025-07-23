@@ -282,12 +282,34 @@ intent migrate --dry-run ST0001
 intent migrate --all-active
 ```
 
+### Managing Task ID Format
+
+Backlog can use zero-padded task IDs (e.g., task-001 instead of task-1) for better sorting. To retroactively update existing tasks:
+
+```bash
+# Pad all tasks to 3 digits
+intent bl task pad --all --size 3
+
+# Or pad a specific task
+intent bl task pad task-9 --size 3
+
+# Use the configured padding size
+intent bl task pad --all
+```
+
+After padding tasks, ensure new tasks use the same format:
+
+```bash
+intent bl config set zeroPaddedIds 3
+```
+
 ### Best Practices
 
 1. **Use the wrapper**: Always use `intent bl` instead of `backlog` directly to avoid git errors
 2. **Task naming**: Tasks are automatically named with the pattern "ST#### - Description"
 3. **Regular syncing**: Run `intent status sync` to keep steel thread status current
-4. **Task granularity**: Create tasks that can be completed in 1-2 days
+4. **Consistent IDs**: Use zero-padded task IDs for better sorting and organization
+5. **Task granularity**: Create tasks that can be completed in 1-2 days
 
 ## Documentation Management
 
