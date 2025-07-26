@@ -897,8 +897,7 @@ Intent/
 │   │   │   ├── info.md       # Steel thread metadata
 │   │   │   ├── design.md     # Design documentation
 │   │   │   ├── impl.md       # Implementation notes
-│   │   │   ├── tasks.md      # Task tracking
-│   │   │   └── results.md    # Results and outcomes
+│   │   │   └── tasks.md      # Task tracking
 │   │   ├── COMPLETED/        # Completed steel threads
 │   │   ├── NOT-STARTED/      # Not started steel threads
 │   │   └── CANCELLED/        # Cancelled steel threads

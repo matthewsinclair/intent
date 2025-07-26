@@ -38,4 +38,3 @@ The detailed information for each steel thread is contained in its directory (e.
 - design.md: Design decisions and approach
 - impl.md: Implementation details
 - tasks.md: Task tracking
-- results.md: Results and outcomes

@@ -118,8 +118,7 @@ intent/st/ST0015/
 ├── info.md      # Main information (required)
 ├── design.md    # Design decisions (optional)
 ├── impl.md      # Implementation details (optional)
-├── tasks.md     # Task tracking (optional)
-└── results.md   # Results and outcomes (optional)
+└── tasks.md     # Task tracking (optional)
 ```
 
 ### Task Management Integration (`intent task`, `intent bl`)
