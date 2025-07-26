@@ -21,7 +21,7 @@ usage() {
   echo "  new <title>                       Create a new steel thread"
   echo "  start <id>                        Mark a steel thread as in progress"
   echo "  done <id>                         Mark a steel thread as complete"
-  echo "  list [--status <status>] [--width N] List all steel threads"
+  echo "  list [--status <status>] [--width N] List steel threads (default: in progress only)"
   echo "  sync [--write] [--width N]        Synchronize steel_threads.md with individual ST files"
   echo "  organize [--write]                Organize ST files in directories by status"
   echo "  show <id> [file]                  Show details of a specific steel thread"
@@ -35,11 +35,26 @@ usage() {
   echo "  tasks   - Task tracking"
   echo "  all     - Show all files combined (show only)"
   echo ""
+  echo ""
+  echo "Status options for list command:"
+  echo "  Default (no --status)             Show only WIP threads"
+  echo "  --status all                      Show all threads grouped by status"
+  echo "  --status \"status1,status2\"        Show specific statuses in order"
+  echo ""
+  echo "Valid status values (case-insensitive, normalised to caps):"
+  echo "  wip, in progress      → WIP       Work in progress"
+  echo "  tbc, not started      → TBC       To be commenced"
+  echo "  completed, done       → COMPLETED  Completed work"
+  echo "  cancelled, canceled   → CANCELLED  Cancelled threads"
+  echo "  hold, on hold         → HOLD      On hold"
+  echo ""
   echo "Examples:"
   echo "  intent st new \"Implement Feature X\""
   echo "  intent st start ST0001"
   echo "  intent st done ST0001"
-  echo "  intent st list --status \"In Progress\" --width 100"
+  echo "  intent st list                    # Show only in-progress threads"
+  echo "  intent st list --status all       # Show all threads grouped by status"
+  echo "  intent st list --status \"wip,notstarted\"  # Show WIP first, then not started"
   echo "  intent st show ST0001"
   echo "  intent st show ST0001 design"
   echo "  intent st edit ST0001 impl"
@@ -89,6 +104,42 @@ is_directory_structure() {
   else
     return 1  # false - using file structure
   fi
+}
+
+# Function to normalise status values
+normalise_status() {
+  local status="$1"
+  local normalised=""
+  
+  # Convert to lowercase for comparison
+  local status_lower=$(echo "$status" | tr '[:upper:]' '[:lower:]')
+  
+  case "$status_lower" in
+    "wip"|"in progress"|"inprogress"|"in-progress")
+      normalised="WIP"
+      ;;
+    "not started"|"notstarted"|"not-started"|"tbc"|"to be commenced")
+      normalised="TBC"
+      ;;
+    "completed"|"complete"|"done")
+      normalised="COMPLETED"
+      ;;
+    "cancelled"|"canceled")
+      normalised="CANCELLED"
+      ;;
+    "on hold"|"onhold"|"on-hold"|"hold")
+      normalised="HOLD"
+      ;;
+    "all")
+      normalised="all"
+      ;;
+    *)
+      # Return original if no match
+      normalised="$status"
+      ;;
+  esac
+  
+  echo "$normalised"
 }
 
 # Function to determine the appropriate path for a steel thread based on its status
@@ -599,6 +650,25 @@ EOF
       esac
     done
     
+    # Process status filter
+    declare -a STATUS_FILTER=()
+    if [ -z "$STATUS" ]; then
+      # Default: show only WIP threads (includes both WIP and In Progress)
+      STATUS_FILTER=("WIP")
+    elif [ "$STATUS" = "all" ]; then
+      # Special case: show all statuses
+      STATUS_FILTER=("all")
+    else
+      # Parse comma-separated list and normalise each status
+      IFS=',' read -ra STATUS_LIST <<< "$STATUS"
+      for status in "${STATUS_LIST[@]}"; do
+        # Trim whitespace
+        status=$(echo "$status" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        normalised=$(normalise_status "$status")
+        STATUS_FILTER+=("$normalised")
+      done
+    fi
+    
     ST_DIR="intent/st"
     
     # Check if ST directory exists
@@ -765,9 +835,22 @@ EOF
             fi
           fi
           
-          # Skip if the requested status doesn't match
-          if [ -n "$STATUS" ] && [ "$STATUS" != "$ST_STATUS" ]; then
-            continue
+          # Check if this status should be included
+          if [ "${STATUS_FILTER[0]}" != "all" ]; then
+            # Check if ST_STATUS is in the filter array
+            include_thread=0
+            for filter_status in "${STATUS_FILTER[@]}"; do
+              # Normalise both sides for comparison
+              normalised_filter=$(normalise_status "$filter_status")
+              normalised_st=$(normalise_status "$ST_STATUS")
+              if [ "$normalised_filter" = "$normalised_st" ]; then
+                include_thread=1
+                break
+              fi
+            done
+            if [ $include_thread -eq 0 ]; then
+              continue
+            fi
           fi
           
           st_data+=("$ID|$TITLE|$ST_STATUS|$CREATED|$COMPLETED")
@@ -820,8 +903,22 @@ EOF
             fi
           fi
           
-          if [ -n "$STATUS" ] && [ "$STATUS" != "$ST_STATUS" ]; then
-            continue
+          # Check if this status should be included
+          if [ "${STATUS_FILTER[0]}" != "all" ]; then
+            # Check if ST_STATUS is in the filter array
+            include_thread=0
+            for filter_status in "${STATUS_FILTER[@]}"; do
+              # Normalise both sides for comparison
+              normalised_filter=$(normalise_status "$filter_status")
+              normalised_st=$(normalise_status "$ST_STATUS")
+              if [ "$normalised_filter" = "$normalised_st" ]; then
+                include_thread=1
+                break
+              fi
+            done
+            if [ $include_thread -eq 0 ]; then
+              continue
+            fi
           fi
           
           st_data+=("$ID|$TITLE|$ST_STATUS|$CREATED|$COMPLETED")
@@ -829,28 +926,109 @@ EOF
       done
     fi
     
-    # Sort by ID in reverse order (newest first)
-    IFS=$'\n' sorted_data=($(sort -r <<<"${st_data[*]}"))
-    unset IFS
-    
-    # Process and display rows
-    for line in "${sorted_data[@]}"; do
-      ID=$(echo "$line" | cut -d'|' -f1)
-      TITLE=$(echo "$line" | cut -d'|' -f2)
-      ST_STATUS=$(echo "$line" | cut -d'|' -f3)
-      CREATED=$(echo "$line" | cut -d'|' -f4)
-      COMPLETED=$(echo "$line" | cut -d'|' -f5)
+    # Sort and display based on status filter
+    if [ "${STATUS_FILTER[0]}" = "all" ]; then
+      # Group by status with predefined order
+      declare -a status_order=("WIP" "In Progress" "TBC" "Not Started" "HOLD" "On Hold" "COMPLETED" "Completed" "CANCELLED" "Cancelled")
       
-      # Truncate values if needed
-      ID_TRUNC=$(truncate_string "$ID" $ID_WIDTH)
-      TITLE_TRUNC=$(truncate_string "$TITLE" $TITLE_WIDTH)
-      STATUS_TRUNC=$(truncate_string "$ST_STATUS" $STATUS_WIDTH)
-      CREATED_TRUNC=$(truncate_string "$CREATED" $DATE_WIDTH)
-      COMPLETED_TRUNC=$(truncate_string "$COMPLETED" $DATE_WIDTH)
+      for group_status in "${status_order[@]}"; do
+        # Filter data for this status
+        declare -a status_group=()
+        for line in "${st_data[@]}"; do
+          line_status=$(echo "$line" | cut -d'|' -f3)
+          # For "all" grouping, we need exact match since status_order has both forms
+          if [ "$line_status" = "$group_status" ]; then
+            status_group+=("$line")
+          fi
+        done
+        
+        # Sort this group by ID in reverse order and display
+        if [ ${#status_group[@]} -gt 0 ]; then
+          IFS=$'\n' sorted_group=($(sort -r <<<"${status_group[*]}"))
+          unset IFS
+          
+          for line in "${sorted_group[@]}"; do
+            ID=$(echo "$line" | cut -d'|' -f1)
+            TITLE=$(echo "$line" | cut -d'|' -f2)
+            ST_STATUS=$(echo "$line" | cut -d'|' -f3)
+            CREATED=$(echo "$line" | cut -d'|' -f4)
+            COMPLETED=$(echo "$line" | cut -d'|' -f5)
+            
+            # Truncate values if needed
+            ID_TRUNC=$(truncate_string "$ID" $ID_WIDTH)
+            TITLE_TRUNC=$(truncate_string "$TITLE" $TITLE_WIDTH)
+            STATUS_TRUNC=$(truncate_string "$ST_STATUS" $STATUS_WIDTH)
+            CREATED_TRUNC=$(truncate_string "$CREATED" $DATE_WIDTH)
+            COMPLETED_TRUNC=$(truncate_string "$COMPLETED" $DATE_WIDTH)
+            
+            printf "%-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s\n" \
+              "$ID_TRUNC" "$TITLE_TRUNC" "$STATUS_TRUNC" "$CREATED_TRUNC" "$COMPLETED_TRUNC"
+          done
+        fi
+      done
+    elif [ ${#STATUS_FILTER[@]} -gt 1 ]; then
+      # Multiple statuses specified - display in order requested
+      for filter_status in "${STATUS_FILTER[@]}"; do
+        # Filter data for this status
+        declare -a status_group=()
+        for line in "${st_data[@]}"; do
+          line_status=$(echo "$line" | cut -d'|' -f3)
+          # Normalise both for comparison
+          normalised_line=$(normalise_status "$line_status")
+          normalised_filter=$(normalise_status "$filter_status")
+          if [ "$normalised_line" = "$normalised_filter" ]; then
+            status_group+=("$line")
+          fi
+        done
+        
+        # Sort this group by ID in reverse order and display
+        if [ ${#status_group[@]} -gt 0 ]; then
+          IFS=$'\n' sorted_group=($(sort -r <<<"${status_group[*]}"))
+          unset IFS
+          
+          for line in "${sorted_group[@]}"; do
+            ID=$(echo "$line" | cut -d'|' -f1)
+            TITLE=$(echo "$line" | cut -d'|' -f2)
+            ST_STATUS=$(echo "$line" | cut -d'|' -f3)
+            CREATED=$(echo "$line" | cut -d'|' -f4)
+            COMPLETED=$(echo "$line" | cut -d'|' -f5)
+            
+            # Truncate values if needed
+            ID_TRUNC=$(truncate_string "$ID" $ID_WIDTH)
+            TITLE_TRUNC=$(truncate_string "$TITLE" $TITLE_WIDTH)
+            STATUS_TRUNC=$(truncate_string "$ST_STATUS" $STATUS_WIDTH)
+            CREATED_TRUNC=$(truncate_string "$CREATED" $DATE_WIDTH)
+            COMPLETED_TRUNC=$(truncate_string "$COMPLETED" $DATE_WIDTH)
+            
+            printf "%-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s\n" \
+              "$ID_TRUNC" "$TITLE_TRUNC" "$STATUS_TRUNC" "$CREATED_TRUNC" "$COMPLETED_TRUNC"
+          done
+        fi
+      done
+    else
+      # Single status or default - sort by ID in reverse order (newest first)
+      IFS=$'\n' sorted_data=($(sort -r <<<"${st_data[*]}"))
+      unset IFS
       
-      printf "%-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s\n" \
-        "$ID_TRUNC" "$TITLE_TRUNC" "$STATUS_TRUNC" "$CREATED_TRUNC" "$COMPLETED_TRUNC"
-    done
+      # Process and display rows
+      for line in "${sorted_data[@]}"; do
+        ID=$(echo "$line" | cut -d'|' -f1)
+        TITLE=$(echo "$line" | cut -d'|' -f2)
+        ST_STATUS=$(echo "$line" | cut -d'|' -f3)
+        CREATED=$(echo "$line" | cut -d'|' -f4)
+        COMPLETED=$(echo "$line" | cut -d'|' -f5)
+        
+        # Truncate values if needed
+        ID_TRUNC=$(truncate_string "$ID" $ID_WIDTH)
+        TITLE_TRUNC=$(truncate_string "$TITLE" $TITLE_WIDTH)
+        STATUS_TRUNC=$(truncate_string "$ST_STATUS" $STATUS_WIDTH)
+        CREATED_TRUNC=$(truncate_string "$CREATED" $DATE_WIDTH)
+        COMPLETED_TRUNC=$(truncate_string "$COMPLETED" $DATE_WIDTH)
+        
+        printf "%-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s\n" \
+          "$ID_TRUNC" "$TITLE_TRUNC" "$STATUS_TRUNC" "$CREATED_TRUNC" "$COMPLETED_TRUNC"
+      done
+    fi
     ;;
     
   "show")
