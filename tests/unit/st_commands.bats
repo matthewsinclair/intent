@@ -53,7 +53,7 @@ load "../lib/test_helper.bash"
 
 
 
-@test "st list shows all steel threads" {
+@test "st list shows only in-progress threads by default" {
   project_dir=$(create_test_project "ST List Test")
   cd "$project_dir"
   
@@ -94,13 +94,70 @@ author: test_user
 intent_version: 2.0.0
 ---
 EOF
+
+  mkdir -p intent/st/NOT-STARTED/ST0004
+  cat > intent/st/NOT-STARTED/ST0004/info.md << EOF
+---
+id: ST0004
+title: Fourth Steel Thread
+status: Not Started
+created: 2025-01-05
+author: test_user
+intent_version: 2.0.0
+---
+EOF
   
   run run_intent st list
   assert_success
   
-  # Check all threads are listed (just check IDs since titles aren't shown in table format)
+  # Check only in-progress threads are listed
   assert_output_contains "ST0001"
   assert_output_contains "ST0002"
+  
+  # Should not show completed or not started
+  if [[ "$output" == *"ST0003"* ]]; then
+    fail "Completed thread shown in default view"
+  fi
+  if [[ "$output" == *"ST0004"* ]]; then
+    fail "Not Started thread shown in default view"
+  fi
+}
+
+@test "st list --status all shows all steel threads" {
+  project_dir=$(create_test_project "ST List All Test")
+  cd "$project_dir"
+  
+  # Create steel threads with different statuses
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << EOF
+---
+id: ST0001
+title: First Steel Thread
+status: In Progress
+created: 2025-01-01
+author: test_user
+intent_version: 2.0.0
+---
+EOF
+
+  mkdir -p intent/st/COMPLETED/ST0003
+  cat > intent/st/COMPLETED/ST0003/info.md << EOF
+---
+id: ST0003
+title: Third Steel Thread
+status: Completed
+created: 2025-01-03
+completed: 2025-01-04
+author: test_user
+intent_version: 2.0.0
+---
+EOF
+  
+  run run_intent st list --status all
+  assert_success
+  
+  # Check all threads are listed
+  assert_output_contains "ST0001"
   assert_output_contains "ST0003"
 }
 
@@ -614,4 +671,135 @@ EOF
   # Check status was updated
   assert_file_contains "intent/st/ST0001/info.md" "status: In Progress"
   assert_file_contains "intent/st/ST0001/info.md" "**Status**: In Progress"
+}
+
+@test "st list with comma-separated statuses" {
+  project_dir=$(create_test_project "ST List Comma Test")
+  cd "$project_dir"
+  
+  # Create threads with different statuses
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << EOF
+---
+intent_version: 2.0.0
+status: WIP
+---
+# ST0001: WIP Thread
+EOF
+
+  mkdir -p intent/st/NOT-STARTED/ST0002
+  cat > intent/st/NOT-STARTED/ST0002/info.md << EOF
+---
+intent_version: 2.0.0
+status: Not Started
+---
+# ST0002: Not Started Thread
+EOF
+
+  mkdir -p intent/st/COMPLETED/ST0003
+  cat > intent/st/COMPLETED/ST0003/info.md << EOF
+---
+intent_version: 2.0.0
+status: Completed
+---
+# ST0003: Completed Thread
+EOF
+  
+  # Test comma-separated filtering
+  run run_intent st list --status "wip,completed"
+  assert_success
+  assert_output_contains "ST0001"
+  assert_output_contains "ST0003"
+  
+  # Should not contain not started
+  if [[ "$output" == *"ST0002"* ]]; then
+    fail "Not Started thread shown when not requested"
+  fi
+}
+
+@test "st list status ordering" {
+  project_dir=$(create_test_project "ST List Order Test")
+  cd "$project_dir"
+  
+  # Create threads with different statuses
+  mkdir -p intent/st/COMPLETED/ST0001
+  cat > intent/st/COMPLETED/ST0001/info.md << EOF
+---
+intent_version: 2.0.0
+status: Completed
+created: 20250101
+---
+# ST0001: Completed Thread
+EOF
+
+  mkdir -p intent/st/ST0002
+  cat > intent/st/ST0002/info.md << EOF
+---
+intent_version: 2.0.0
+status: WIP
+created: 20250102
+---
+# ST0002: WIP Thread
+EOF
+  
+  # Test that ordering is preserved
+  run run_intent st list --status "completed,wip"
+  assert_success
+  
+  # Extract the IDs in order from output
+  output_ids=$(echo "$output" | grep -E "^ST[0-9]+" | awk '{print $1}')
+  first_id=$(echo "$output_ids" | head -1)
+  second_id=$(echo "$output_ids" | tail -1)
+  
+  # Completed should come first as requested
+  [[ "$first_id" == "ST0001" ]] || fail "Completed thread should be listed first"
+  [[ "$second_id" == "ST0002" ]] || fail "WIP thread should be listed second"
+}
+
+@test "st list with TBC status" {
+  project_dir=$(create_test_project "ST List TBC Test")
+  cd "$project_dir"
+  
+  # Create thread with TBC status
+  mkdir -p intent/st/NOT-STARTED/ST0001
+  cat > intent/st/NOT-STARTED/ST0001/info.md << EOF
+---
+intent_version: 2.0.0
+status: Not Started
+---
+# ST0001: TBC Thread
+EOF
+  
+  # Test filtering with TBC
+  run run_intent st list --status "tbc"
+  assert_success
+  assert_output_contains "ST0001"
+}
+
+@test "st list with case-insensitive status" {
+  project_dir=$(create_test_project "ST List Case Test")
+  cd "$project_dir"
+  
+  # Create WIP thread
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << EOF
+---
+intent_version: 2.0.0
+status: WIP
+---
+# ST0001: WIP Thread
+EOF
+  
+  # Test case-insensitive filtering
+  run run_intent st list --status "WIP"
+  assert_success
+  assert_output_contains "ST0001"
+  
+  run run_intent st list --status "wip"
+  assert_success
+  assert_output_contains "ST0001"
+  
+  run run_intent st list --status "Wip"
+  assert_success
+  assert_output_contains "ST0001"
 }
