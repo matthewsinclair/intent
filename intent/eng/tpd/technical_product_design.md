@@ -24,7 +24,6 @@ This document is a Technical Product Design (TPD) for the Intent system (formerl
    - design.md: Design decisions and approach (optional)
    - impl.md: Implementation details (optional)
    - tasks.md: Task tracking or Backlog.md integration (optional)
-   - results.md: Results and outcomes (optional)
 7. The system consists of shell scripts and markdown templates
 8. Configuration uses JSON format (.intent/config.json) instead of YAML
 9. The system integrates with Backlog.md for task management with enhanced filtering

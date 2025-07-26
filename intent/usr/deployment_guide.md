@@ -521,6 +521,5 @@ intent/st/ST0001/
 ├── info.md          # Metadata and overview (required)
 ├── design.md        # Design documentation (optional)
 ├── impl.md          # Implementation details (optional)
-├── tasks.md         # Task breakdown (optional)
-└── results.md       # Results and outcomes (optional)
+└── tasks.md         # Task breakdown (optional)
 ```

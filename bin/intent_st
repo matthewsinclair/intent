@@ -33,7 +33,6 @@ usage() {
   echo "  design  - Design decisions and approach"
   echo "  impl    - Implementation details"
   echo "  tasks   - Task tracking"
-  echo "  results - Results and outcomes"
   echo "  all     - Show all files combined (show only)"
   echo ""
   echo "Examples:"
@@ -882,7 +881,7 @@ EOF
         fi
         
         # Display each file with a header
-        for file in info.md design.md impl.md tasks.md results.md; do
+        for file in info.md design.md impl.md tasks.md; do
           if [ -f "$ST_DIR/$file" ]; then
             echo "=== $file ==="
             cat "$ST_DIR/$file"
@@ -892,7 +891,7 @@ EOF
       else
         # Show specific file
         case "$FILE_TYPE" in
-          info|design|impl|tasks|results)
+          info|design|impl|tasks)
             ST_FILE=$(get_st_path "$ST_ID" "" "$FILE_TYPE.md")
             ;;
           *)

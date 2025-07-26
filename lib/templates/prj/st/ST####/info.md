@@ -7,11 +7,6 @@ completed:
 ---
 # ST####: [Title]
 
-- **Status**: [Not Started|In Progress|Completed|On Hold|Cancelled]
-- **Created**: YYYY-MM-DD
-- **Completed**: YYYY-MM-DD
-- **Author**: [Author Name]
-
 ## Objective
 
 [Clear statement of what this steel thread aims to accomplish]

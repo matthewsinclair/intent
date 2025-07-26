@@ -20,8 +20,7 @@ Intent v2.0.0 uses a flattened directory structure that simplifies navigation:
 │   │   │   ├── info.md       # Main information (required)
 │   │   │   ├── design.md     # Design decisions (optional)
 │   │   │   ├── impl.md       # Implementation (optional)
-│   │   │   ├── tasks.md      # Task tracking (optional)
-│   │   │   └── results.md    # Results (optional)
+│   │   │   └── tasks.md      # Task tracking (optional)
 │   │   ├── ST0002/            # Another steel thread
 │   │   │   └── info.md       # Minimum required file
 │   │   └── ...
@@ -220,8 +219,7 @@ ST####/
 ├── info.md      # Main information file (required)
 ├── design.md    # Design decisions and approach
 ├── impl.md      # Implementation details
-├── tasks.md     # Task tracking
-└── results.md   # Results and outcomes
+└── tasks.md     # Task tracking
 ```
 
 **info.md Template (Main Information File):**
@@ -289,27 +287,6 @@ Tasks are tracked in Backlog. View with: `stp task list ST####`
 [High-level summary of tasks if needed]
 ```
 
-**results.md Template:**
-
-```markdown
-# Results - ST####: [Title]
-
-## Outcomes
-[What was achieved]
-
-## Metrics
-[Any relevant metrics or measurements]
-
-## Lessons Learned
-[Key takeaways from this steel thread]
-```
-
-## Implementation Notes
-[Notes on implementation details, decisions, challenges, etc.]
-
-## Results
-[Summary of results after completion]
-```
 
 ### 4.2.2 Engineering Templates
 
