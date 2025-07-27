@@ -19,6 +19,7 @@ Fixed a critical bug where the upgrade process was creating agent directories in
 - **Impact**: Projects upgraded with the buggy version will have an incorrect `agents/` directory at root
 
 **To fix affected projects:**
+
 ```bash
 # Remove the incorrectly placed directory
 rm -rf ./agents
@@ -79,6 +80,7 @@ rm -rf ./agents
 ## Testing
 
 All 165 tests pass, including:
+
 - Agent directory creation tests
 - Upgrade process tests  
 - Agent initialization tests
@@ -93,5 +95,5 @@ None at this time.
 
 ## Support
 
-- **Issues**: https://github.com/matthewsinclair/intent/issues
+- **Issues**: <https://github.com/matthewsinclair/intent/issues>
 - **Help**: Run `intent help agents` for agent-specific help
