@@ -1,0 +1,8 @@
+{
+  "name": "elixir",
+  "version": "1.0.0",
+  "description": "Elixir code doctor with functional programming expertise and Usage Rules integration",
+  "author": "Intent Contributors",
+  "tools": ["Bash", "Read", "Write", "Edit", "Grep", "WebFetch"],
+  "tags": ["elixir", "functional-programming", "usage-rules", "ash-framework", "phoenix", "railway-oriented"]
+}
