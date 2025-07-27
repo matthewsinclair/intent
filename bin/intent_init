@@ -216,6 +216,27 @@ if command -v backlog >/dev/null 2>&1; then
   fi
 fi
 
+# Check for Claude Code and offer agent installation
+if [ -d "$HOME/.claude" ] || command -v claude >/dev/null 2>&1; then
+  echo ""
+  echo "Claude Code detected!"
+  echo -n "Would you like to install the Intent sub-agent for better Claude integration? [Y/n] "
+  read -r response
+  
+  if [[ "$response" =~ ^[Yy]?$ ]]; then
+    echo "Installing Intent agent..."
+    if "$SCRIPT_DIR/intent_agents" install intent --force >/dev/null 2>&1; then
+      echo "Intent agent installed successfully!"
+      echo "Claude will now understand Intent's steel thread methodology."
+    else
+      echo "Note: Could not install agent automatically."
+      echo "You can install it later with: intent agents install intent"
+    fi
+  else
+    echo "You can install agents later with: intent agents list"
+  fi
+fi
+
 echo ""
 echo "Intent project initialized successfully!"
 echo ""

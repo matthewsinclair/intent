@@ -323,6 +323,50 @@ doctor_check() {
     fi
   fi
   
+  # Check 8: Agent system
+  if [ "$QUIET" != true ]; then
+    echo -n "Checking agent system... "
+  fi
+  
+  # Check if agents directory exists
+  if [ -d "$INTENT_HOME/agents" ]; then
+    # Check manifest
+    if [ -f "$INTENT_HOME/agents/.manifest/global-agents.json" ]; then
+      # Validate manifest
+      if validate_json "$INTENT_HOME/agents/.manifest/global-agents.json"; then
+        AGENT_COUNT=$(jq -r '.agents | length' "$INTENT_HOME/agents/.manifest/global-agents.json" 2>/dev/null || echo 0)
+        show_ok
+        verbose "Found $AGENT_COUNT available agents"
+        
+        # Check if Claude is available
+        if [ -d "$HOME/.claude" ]; then
+          # Run quick agent status check
+          if command -v "$INTENT_HOME/bin/intent_agents" >/dev/null 2>&1; then
+            AGENT_STATUS=$("$INTENT_HOME/bin/intent_agents" status 2>&1 | grep -E "(OK|MISSING|ERROR)" | wc -l)
+            if [ "$AGENT_STATUS" -gt 0 ]; then
+              verbose "Installed agents detected (run 'intent agents status' for details)"
+            fi
+          fi
+        else
+          verbose "Claude Code not detected - agents not active"
+        fi
+      else
+        show_warning "Invalid agent manifest"
+        if [ "$FIX_MODE" = true ]; then
+          echo "  FIX: Please reinstall Intent to fix agent manifest"
+        fi
+      fi
+    else
+      show_warning "Agent manifest missing"
+      verbose "Expected: $INTENT_HOME/agents/.manifest/global-agents.json"
+    fi
+  else
+    if [ "$QUIET" != true ]; then
+      echo "Not available"
+    fi
+    verbose "Agents directory not found (may be older Intent version)"
+  fi
+  
   # Summary
   if [ "$QUIET" != true ]; then
     echo ""

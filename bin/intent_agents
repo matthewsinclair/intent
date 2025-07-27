@@ -21,7 +21,7 @@ Commands:
   sync        Sync installed agents with latest versions
   uninstall   Remove Intent-managed agents
   show        Display detailed agent information
-  status      Check agent installation status
+  status      Check agent health and integrity
 
 Examples:
   intent agents list              # Show all agents
@@ -552,6 +552,188 @@ intent_agents_uninstall() {
   fi
 }
 
+# Check status of installed agents
+intent_agents_status() {
+  # Parse flags
+  local VERBOSE=false
+  for arg in "$@"; do
+    if [ "$arg" = "--verbose" ] || [ "$arg" = "-v" ]; then
+      VERBOSE=true
+    fi
+  done
+  
+  # Color codes (if terminal)
+  if [ -t 1 ]; then
+    RED='\033[0;31m'
+    YELLOW='\033[0;33m'
+    GREEN='\033[0;32m'
+    NC='\033[0m' # No Color
+  else
+    RED=''
+    YELLOW=''
+    GREEN=''
+    NC=''
+  fi
+  
+  # Check for Claude
+  if [ ! -d "$HOME/.claude" ]; then
+    echo "Error: Claude Code not detected."
+    echo "Install Claude Code to use agents: https://claude.ai/download"
+    return 1
+  fi
+  
+  # Determine manifest location
+  local manifest_file
+  if [ -n "${PROJECT_ROOT:-}" ]; then
+    manifest_file="$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json"
+  else
+    manifest_file="$HOME/.intent/agents/installed-agents.json"
+  fi
+  
+  # Check if any agents are installed
+  if [ ! -f "$manifest_file" ]; then
+    echo "No installed agents found."
+    echo "Use 'intent agents install' to install agents."
+    return 0
+  fi
+  
+  echo "Checking agent status..."
+  echo ""
+  
+  # Read installed agents
+  local agents=$(jq -r '.installed[].name' "$manifest_file" 2>/dev/null)
+  if [ -z "$agents" ]; then
+    echo "No agents found in manifest."
+    return 0
+  fi
+  
+  # Counters
+  local total=0
+  local ok_count=0
+  local modified_count=0
+  local missing_count=0
+  local error_count=0
+  
+  # Check each agent
+  for agent in $agents; do
+    ((total++))
+    
+    # Get agent info from manifest
+    local agent_info=$(jq -r ".installed[] | select(.name == \"$agent\")" "$manifest_file")
+    local source=$(echo "$agent_info" | jq -r '.source')
+    local source_path=$(echo "$agent_info" | jq -r '.source_path')
+    local manifest_checksum=$(echo "$agent_info" | jq -r '.checksum')
+    local installed_at=$(echo "$agent_info" | jq -r '.installed_at // "Unknown"')
+    
+    # Check installed file
+    local installed_file="$HOME/.claude/agents/${agent}.md"
+    local status="OK"
+    local status_color="${GREEN}"
+    local details=""
+    
+    if [ ! -f "$installed_file" ]; then
+      status="MISSING"
+      status_color="${RED}"
+      details="Agent file not found"
+      ((missing_count++))
+    else
+      # Calculate current checksum
+      local current_checksum=$(calculate_checksum "$installed_file")
+      
+      # Check source file
+      local source_file
+      if [ "$source" = "global" ]; then
+        source_file="$source_path/agent.md"
+      else
+        # Local agents not yet fully implemented
+        source_file="$source_path/agent.md"
+      fi
+      
+      if [ ! -f "$source_file" ]; then
+        status="ERROR"
+        status_color="${RED}"
+        details="Source file missing: $source_file"
+        ((error_count++))
+      elif [ "$current_checksum" != "$manifest_checksum" ]; then
+        # Check if it matches source (user might have synced manually)
+        local source_checksum=$(calculate_checksum "$source_file")
+        if [ "$current_checksum" = "$source_checksum" ]; then
+          status="UPDATED"
+          status_color="${YELLOW}"
+          details="Synced but manifest outdated"
+          ((modified_count++))
+        else
+          status="MODIFIED"
+          status_color="${YELLOW}"
+          details="Local changes detected"
+          ((modified_count++))
+        fi
+      else
+        # Check if source has updates
+        local source_checksum=$(calculate_checksum "$source_file")
+        if [ "$source_checksum" != "$manifest_checksum" ]; then
+          status="UPDATE"
+          status_color="${YELLOW}"
+          details="Update available"
+          ((modified_count++))
+        else
+          ((ok_count++))
+        fi
+      fi
+    fi
+    
+    # Display status
+    printf "%-15s " "$agent"
+    printf "${status_color}%-10s${NC}" "[$status]"
+    if [ -n "$details" ]; then
+      echo " - $details"
+    else
+      echo ""
+    fi
+    
+    # Verbose details
+    if [ "$VERBOSE" = true ]; then
+      echo "  Source: $source"
+      echo "  Installed: $installed_at"
+      if [ "$status" != "MISSING" ] && [ "$status" != "ERROR" ]; then
+        echo "  Location: $installed_file"
+      fi
+      echo ""
+    fi
+  done
+  
+  # Summary
+  echo ""
+  echo "Summary:"
+  echo "  Total: $total"
+  [ $ok_count -gt 0 ] && echo "  OK: $ok_count"
+  [ $modified_count -gt 0 ] && echo "  Modified/Updates: $modified_count"
+  [ $missing_count -gt 0 ] && echo "  Missing: $missing_count"
+  [ $error_count -gt 0 ] && echo "  Errors: $error_count"
+  
+  # Recommendations
+  if [ $missing_count -gt 0 ] || [ $error_count -gt 0 ]; then
+    echo ""
+    echo "Recommendations:"
+    if [ $missing_count -gt 0 ]; then
+      echo "  - Run 'intent agents install' to restore missing agents"
+    fi
+    if [ $error_count -gt 0 ]; then
+      echo "  - Check error details above and reinstall affected agents"
+    fi
+  elif [ $modified_count -gt 0 ]; then
+    echo ""
+    echo "Run 'intent agents sync' to update agents with available changes."
+  fi
+  
+  # Return non-zero if issues found
+  if [ $missing_count -gt 0 ] || [ $error_count -gt 0 ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
 # Show detailed agent information
 intent_agents_show() {
   if [ "$#" -eq 0 ]; then
@@ -687,8 +869,8 @@ case "$1" in
     intent_agents_show "$@"
     ;;
   status)
-    echo "Error: 'intent agents $1' not yet implemented"
-    exit 1
+    shift
+    intent_agents_status "$@"
     ;;
   ""|help|-h|--help)
     intent_agents_help

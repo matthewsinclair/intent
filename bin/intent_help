@@ -56,6 +56,7 @@ Core:
   init             Initialize a new Intent project
   st               Manage steel threads
   bl               Backlog.md integration
+  agents           Manage Claude Code sub-agents
   doctor           Check and fix configuration
   upgrade          Upgrade from STP to Intent v2.0.0
   help             Display help information
@@ -80,9 +81,9 @@ for script in "$INTENT_HOME"/bin/intent_*; do
     # Extract command name from script name (remove intent_ prefix)
     cmd_name=$(basename "$script" | sed 's/^intent_//')
     
-    # Skip certain internal scripts
+    # Skip certain internal scripts and those manually listed above
     case "$cmd_name" in
-      config|helpers|main) continue ;;
+      config|helpers|main|agents|info|init|st|bl|doctor|upgrade|help|bootstrap|task|status|migrate|llm|organize) continue ;;
     esac
     
     # Construct help file path
