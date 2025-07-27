@@ -552,6 +552,118 @@ intent_agents_uninstall() {
   fi
 }
 
+# Show detailed agent information
+intent_agents_show() {
+  if [ "$#" -eq 0 ]; then
+    echo "Error: Agent name required"
+    echo "Usage: intent agents show <agent-name>"
+    return 1
+  fi
+  
+  local agent_name="$1"
+  
+  # Check global agents first
+  local global_manifest="$INTENT_HOME/agents/.manifest/global-agents.json"
+  local agent_info=""
+  local source_type=""
+  local source_path=""
+  
+  if [ -f "$global_manifest" ]; then
+    agent_info=$(jq -r ".agents[] | select(.name == \"$agent_name\")" "$global_manifest" 2>/dev/null)
+    if [ -n "$agent_info" ]; then
+      source_type="global"
+      source_path="$INTENT_HOME/agents/$agent_name"
+    fi
+  fi
+  
+  # TODO: Check local agents when implemented
+  
+  if [ -z "$agent_info" ]; then
+    echo "Error: Agent '$agent_name' not found"
+    return 1
+  fi
+  
+  # Parse agent info
+  local version=$(echo "$agent_info" | jq -r '.version // "unknown"')
+  local description=$(echo "$agent_info" | jq -r '.description // "No description"')
+  
+  # Check if installed
+  local status="NOT INSTALLED"
+  local installed_path=""
+  if [ -f "$HOME/.claude/agents/${agent_name}.md" ]; then
+    status="INSTALLED"
+    installed_path="$HOME/.claude/agents/${agent_name}.md"
+  fi
+  
+  # Read metadata if available
+  local metadata_file="$source_path/metadata.json"
+  local tools="Not specified"
+  local tags="None"
+  local author="Unknown"
+  
+  if [ -f "$metadata_file" ]; then
+    local metadata=$(cat "$metadata_file")
+    tools=$(echo "$metadata" | jq -r '.tools[]?' 2>/dev/null | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g' || echo "Not specified")
+    tags=$(echo "$metadata" | jq -r '.tags[]?' 2>/dev/null | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g' || echo "None")
+    author=$(echo "$metadata" | jq -r '.author // "Unknown"' 2>/dev/null)
+  fi
+  
+  # Display agent information
+  echo "Agent: $agent_name"
+  echo "Version: $version"
+  echo "Description: $description"
+  echo "Status: $status"
+  echo "Source: $source_type"
+  echo "Author: $author"
+  echo ""
+  echo "Tools: $tools"
+  echo "Tags: $tags"
+  
+  # Show installation info if installed
+  if [ "$status" = "INSTALLED" ]; then
+    # Check if modified
+    local manifest_file
+    if [ -n "${PROJECT_ROOT:-}" ]; then
+      manifest_file="$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json"
+    else
+      manifest_file="$HOME/.intent/agents/installed-agents.json"
+    fi
+    
+    if [ -f "$manifest_file" ]; then
+      local installed_info=$(jq -r ".installed[] | select(.name == \"$agent_name\")" "$manifest_file" 2>/dev/null)
+      if [ -n "$installed_info" ]; then
+        local installed_at=$(echo "$installed_info" | jq -r '.installed_at // "Unknown"')
+        local modified=$(echo "$installed_info" | jq -r '.modified // false')
+        echo ""
+        echo "Installed: $installed_at"
+        if [ "$modified" = "true" ]; then
+          echo "Modified: Yes (local changes present)"
+        fi
+      fi
+    fi
+  fi
+  
+  # Show content preview
+  local agent_file="$source_path/agent.md"
+  if [ -f "$agent_file" ]; then
+    echo ""
+    echo "System Prompt Preview:"
+    echo "---"
+    # Skip YAML frontmatter and show first 10 lines of content
+    awk 'BEGIN{fm=0} /^---$/{fm++; next} fm==2{lines++; print} lines>=10{exit}' "$agent_file"
+    echo "---"
+    echo ""
+    if [ "$status" = "INSTALLED" ]; then
+      echo "Full content: $installed_path"
+    else
+      echo "To install: intent agents install $agent_name"
+    fi
+  else
+    echo ""
+    echo "Error: Agent file not found at $agent_file"
+  fi
+}
+
 # Route commands
 case "$1" in
   list)
@@ -570,7 +682,11 @@ case "$1" in
     shift
     intent_agents_uninstall "$@"
     ;;
-  show|status)
+  show)
+    shift
+    intent_agents_show "$@"
+    ;;
+  status)
     echo "Error: 'intent agents $1' not yet implemented"
     exit 1
     ;;
