@@ -13,7 +13,11 @@ See the following files for detailed information about the project:
 
 Read CLAUDE.md then wait for instruction.
 
-#### Todo 
+#### Restart
+
+{{RESTART}}
+
+#### Todo
 
 {{TODO}}
 
