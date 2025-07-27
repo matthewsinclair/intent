@@ -7,7 +7,7 @@ load "../lib/test_helper.bash"
   # Help is a global command - doesn't need project context
   run run_intent help
   assert_success
-  assert_output_contains "Intent v2.0.0 - Structured Development Process"
+  assert_output_contains "Intent v2.1.0 - Structured Development Process"
   assert_output_contains "Usage:"
   assert_output_contains "Core:"
   assert_output_contains "st"
