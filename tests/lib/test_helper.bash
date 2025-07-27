@@ -134,6 +134,25 @@ assert_file_contains() {
   fi
 }
 
+# Helper to check if file does not exist
+assert_file_not_exists() {
+  local file="$1"
+  if [ -f "$file" ]; then
+    echo "Expected file to not exist: $file"
+    return 1
+  fi
+}
+
+# Helper to check if output does not contain text
+refute_output_contains() {
+  local text="$1"
+  if [[ "$output" == *"$text"* ]]; then
+    echo "Expected output to NOT contain: $text"
+    echo "Actual output: $output"
+    return 1
+  fi
+}
+
 # Load bats libraries if available
 # Note: bats libraries can be installed globally or added to tests/lib/
 # For now, we rely on the basic assert functions defined above

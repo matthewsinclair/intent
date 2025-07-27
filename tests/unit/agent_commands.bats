@@ -355,10 +355,154 @@ teardown() {
   assert_output_contains "Up to date"
 }
 
-@test "agents uninstall is not yet implemented" {
+# Uninstall command tests
+@test "agents uninstall requires an agent name" {
+  run run_intent agents uninstall
+  assert_failure
+  assert_output_contains "Error: No agent specified"
+  assert_output_contains "Usage: intent agents uninstall"
+}
+
+@test "agents uninstall removes a single agent" {
+  # Install an agent first
+  run run_intent agents install intent --force
+  assert_success
+  
+  # Uninstall with force
+  run run_intent agents uninstall intent --force
+  assert_success
+  assert_output_contains "Uninstalling agent: intent"
+  assert_output_contains "Removed successfully"
+  assert_output_contains "Removed: 1"
+  
+  # Verify it's gone
+  assert_file_not_exists "$HOME/.claude/agents/intent.md"
+  
+  # Verify it shows as not installed
+  run run_intent agents list
+  assert_success
+  assert_output_contains "intent       - Intent-aware development assistant [NOT INSTALLED]"
+}
+
+@test "agents uninstall prompts for confirmation" {
+  # Install an agent
+  run run_intent agents install intent --force
+  assert_success
+  
+  # Try to uninstall, saying no
+  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent agents uninstall intent"
+  assert_success
+  assert_output_contains "The following agents will be uninstalled:"
+  assert_output_contains "- intent"
+  assert_output_contains "Continue?"
+  assert_output_contains "Cancelled"
+  
+  # Verify agent still exists
+  assert_file_exists "$HOME/.claude/agents/intent.md"
+}
+
+@test "agents uninstall handles non-existent agent" {
+  run run_intent agents uninstall nonexistent --force
+  assert_success
+  assert_output_contains "Uninstalling agent: nonexistent"
+  assert_output_contains "Agent not found"
+  assert_output_contains "Skipped: 1"
+}
+
+@test "agents uninstall supports multiple agents" {
+  # Install multiple agents
+  run run_intent agents install intent elixir --force
+  assert_success
+  
+  # Uninstall both
+  run run_intent agents uninstall intent elixir --force
+  assert_success
+  assert_output_contains "Uninstalling agent: intent"
+  assert_output_contains "Uninstalling agent: elixir"
+  assert_output_contains "Removed: 2"
+  
+  # Verify both are gone
+  assert_file_not_exists "$HOME/.claude/agents/intent.md"
+  assert_file_not_exists "$HOME/.claude/agents/elixir.md"
+}
+
+@test "agents uninstall --all removes all agents" {
+  # Install multiple agents
+  run run_intent agents install intent elixir --force
+  assert_success
+  
+  # Uninstall all
+  run run_intent agents uninstall --all --force
+  assert_success
+  assert_output_contains "Uninstalling agent: intent"
+  assert_output_contains "Uninstalling agent: elixir"
+  assert_output_contains "Removed: 2"
+  
+  # Verify all are gone
+  run run_intent agents list
+  assert_success
+  assert_output_contains "[NOT INSTALLED]"
+}
+
+@test "agents uninstall updates manifest" {
+  # Install an agent
+  run run_intent agents install intent --force
+  assert_success
+  
+  # Verify manifest has the agent
+  run jq '.installed[].name' "$HOME/.intent/agents/installed-agents.json"
+  assert_success
+  assert_output_contains "intent"
+  
+  # Uninstall
+  run run_intent agents uninstall intent --force
+  assert_success
+  
+  # Verify manifest no longer has the agent
+  run jq '.installed[].name' "$HOME/.intent/agents/installed-agents.json"
+  assert_success
+  refute_output_contains "intent"
+}
+
+@test "agents uninstall warns about unmanaged agents" {
+  # Install a managed agent first to ensure manifest exists
+  run run_intent agents install intent --force
+  assert_success
+  
+  # Manually create an agent not in manifest
+  mkdir -p "$HOME/.claude/agents"
+  echo "# Manual agent" > "$HOME/.claude/agents/manual.md"
+  
+  # Try to uninstall - need to confirm twice (once for uninstall, once for unmanaged)
+  run bash -c "printf 'y\nn\n' | ${INTENT_BIN_DIR}/intent agents uninstall manual"
+  assert_success
+  assert_output_contains "Warning: Agent not managed by Intent"
+  assert_output_contains "Remove anyway?"
+  assert_output_contains "Skipped"
+  
+  # Verify it still exists
+  assert_file_exists "$HOME/.claude/agents/manual.md"
+  
+  # Clean up
+  rm -f "$HOME/.claude/agents/manual.md"
+}
+
+@test "agents uninstall handles missing Claude directory" {
+  # Remove .claude directory
+  rm -rf "$HOME/.claude"
+  
   run run_intent agents uninstall intent
   assert_failure
-  assert_output_contains "Error: 'intent agents uninstall' not yet implemented"
+  assert_output_contains "Error: Claude Code not detected"
+}
+
+@test "agents uninstall handles empty manifest" {
+  # Clean manifest
+  rm -rf "$HOME/.intent/agents" 2>/dev/null || true
+  
+  run run_intent agents uninstall --all
+  assert_success
+  assert_output_contains "No installed agents found"
 }
 
 @test "agents show is not yet implemented" {
