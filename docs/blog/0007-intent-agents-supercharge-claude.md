@@ -8,7 +8,7 @@ word_count: 1847
 
 # Intent Agents: Supercharging Claude Code Collaboration
 
-We've built a system that [captures intention](./0003-intent-capture-in-software-development.md) and enables [powerful LLM collaboration](./0004-llm-collaboration-with-intent.md). Now, Intent v2.1.0 takes this to the next level with Claude Code sub-agent integration.
+We've built a system that [captures intention](./0003-intent-capture-in-software-development.md) and enables [powerful LLM collaboration](./0004-llm-collaboration-with-intent.md). Now, Intent v2.0.0 takes this to the next level with Claude Code sub-agent integration.
 
 ## The Context Problem
 
@@ -29,7 +29,7 @@ It's like having a brilliant colleague with amnesia. Every. Single. Session.
 
 ## Enter Intent Agents
 
-With Intent v2.1.0, one command changes everything:
+With Intent v2.0.0, one command changes everything:
 
 ```bash
 $ intent agents install intent
