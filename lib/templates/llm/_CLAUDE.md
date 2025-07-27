@@ -1,6 +1,6 @@
-# . Project Guidelines
+# [[PROJECT_NAME]] Project Guidelines
 
-This is an Intent v2.1.0 project (formerly STP).
+This is an Intent v2.1.0 project.
 
 ## Project Structure
 
@@ -29,14 +29,6 @@ Steel threads are organized as directories under `intent/st/`:
 - `intent agents install <agent>` - Install an agent
 - `intent doctor` - Check configuration
 - `intent help` - Get help
-
-## Migration Notes
-
-This project was migrated from STP to Intent v2.0.0 on 2025-07-16 and upgraded to v2.1.0 on 2025-07-27.
-
-- Old structure: `stp/prj/st/`, `stp/eng/`, etc.
-- New structure: `intent/st/`, `intent/docs/`, etc.
-- Configuration moved from YAML to JSON format
 
 ## Intent Agents
 
@@ -98,6 +90,10 @@ Task(
 3. Agents work best with specific, bounded tasks
 4. Consider using multiple agents for complex workflows
 
+## Project-Specific Guidelines
+
+[[Add your project-specific guidelines here]]
+
 ## Author
 
-matts
+[[Your name]]

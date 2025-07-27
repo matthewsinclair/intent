@@ -1,15 +1,15 @@
 ---
 verblock: "20 Mar 2025:v0.1: Matthew Sinclair - Updated via STP upgrade"
 intent_version: 2.0.0
-status: In Progress
+status: Completed
 created: 20250311
-completed: 20250708
+completed: 20250727
 ---
 # ST0013: STP Blog Post Series
 
-- **Status**: In Progress
+- **Status**: Completed
 - **Created**: 2025-03-11
-- **Completed**: 
+- **Completed**: 2025-07-27
 - **Author**: Matthew Sinclair
 
 ## Summary
