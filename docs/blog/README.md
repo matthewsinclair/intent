@@ -25,6 +25,9 @@ A comprehensive blog series explaining the Intent methodology, from philosophy t
 7. **[Next Steps and Future Work](./0006-next-steps-and-future-work.md)**  
    The roadmap for Intent's evolution, integration opportunities, and vision for the future of intention-aware development.
 
+8. **[Intent Agents: Supercharging Claude Code Collaboration](./0007-intent-agents-supercharge-claude.md)**  
+   How Intent v2.1.0's agent system transforms AI pair programming by giving Claude permanent understanding of your methodology.
+
 ## About This Series
 
 This blog series was created using Intent itself (ST0013), demonstrating the methodology in action. The posts progress from conceptual understanding to practical implementation, suitable for developers, team leads, and anyone interested in improving their development process.

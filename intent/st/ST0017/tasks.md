@@ -3,53 +3,53 @@
 ## Tasks
 
 ### Phase 1: Infrastructure
-- [ ] Create agents directory structure in Intent core
-- [ ] Create agents/.manifest directory for global manifest
-- [ ] Implement JSON manifest parsing functions in intent_helpers
-- [ ] Add checksum calculation utility function
-- [ ] Implement Claude Code detection function
-- [ ] Create project agent directory template
+- [x] Create agents directory structure in Intent core
+- [x] Create agents/.manifest directory for global manifest
+- [x] Implement JSON manifest parsing functions in intent_helpers
+- [x] Add checksum calculation utility function
+- [x] Implement Claude Code detection function
+- [x] Create project agent directory template
 
 ### Phase 2: Core Commands
-- [ ] Create bin/intent_agents main command file
-- [ ] Implement intent_agents_list subcommand
-- [ ] Implement intent_agents_install subcommand
-- [ ] Implement intent_agents_sync subcommand
-- [ ] Implement intent_agents_uninstall subcommand
-- [ ] Implement intent_agents_show subcommand
-- [ ] Implement intent_agents_status subcommand
-- [ ] Add agents command to main intent router
-- [ ] Update help system with agents commands
+- [x] Create bin/intent_agents main command file
+- [x] Implement intent_agents_list subcommand
+- [x] Implement intent_agents_install subcommand
+- [x] Implement intent_agents_sync subcommand
+- [x] Implement intent_agents_uninstall subcommand
+- [x] Implement intent_agents_show subcommand
+- [x] Implement intent_agents_status subcommand
+- [x] Add agents command to main intent router
+- [x] Update help system with agents commands
 
 ### Phase 3: Agent Development
-- [ ] Create agents/intent directory
-- [ ] Write Intent sub-agent system prompt (agent.md)
-- [ ] Create Intent agent metadata.json
-- [ ] Create agents/elixir directory
-- [ ] Write Elixir sub-agent system prompt (agent.md)
-- [ ] Create Elixir agent metadata.json
-- [ ] Create global-agents.json manifest
+- [x] Create agents/intent directory
+- [x] Write Intent sub-agent system prompt (agent.md)
+- [x] Create Intent agent metadata.json
+- [x] Create agents/elixir directory
+- [x] Write Elixir sub-agent system prompt (agent.md)
+- [x] Create Elixir agent metadata.json
+- [x] Create global-agents.json manifest
 
 ### Phase 4: Integration
-- [ ] Update intent_init to detect Claude and offer agent installation
-- [ ] Add agent checks to intent_doctor
-- [ ] Update intent_upgrade to handle agent migration
-- [ ] Create agent installation documentation
+- [x] Update intent_init to detect Claude and offer agent installation
+- [x] Add agent checks to intent_doctor
+- [x] Update intent_upgrade to handle agent migration
+- [x] Create agent installation documentation
 - [ ] Update main README with agent examples
 
 ### Phase 5: Testing
-- [ ] Write unit tests for manifest operations
-- [ ] Write unit tests for checksum functions
-- [ ] Write integration tests for agent installation
-- [ ] Write integration tests for sync operations
-- [ ] Write end-to-end workflow tests
-- [ ] Test cross-platform compatibility (macOS/Linux)
-- [ ] Test Claude detection variations
+- [x] Write unit tests for manifest operations
+- [x] Write unit tests for checksum functions
+- [x] Write integration tests for agent installation
+- [x] Write integration tests for sync operations
+- [x] Write end-to-end workflow tests
+- [x] Test cross-platform compatibility (macOS/Linux)
+- [x] Test Claude detection variations
 
 ### Phase 6: Documentation
 - [ ] Write agent development guide
-- [ ] Document agent metadata format
-- [ ] Create troubleshooting guide
+- [x] Document agent metadata format
+- [x] Create troubleshooting guide
 - [ ] Update release notes for v2.1.0
 
 ## Task Notes

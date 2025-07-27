@@ -68,6 +68,15 @@ git init
 intent init
 ```
 
+If Claude Code is installed, Intent will offer to install the Intent agent:
+
+```
+Claude Code detected!
+Would you like to install the Intent sub-agent? [Y/n]
+```
+
+Say yes! This gives Claude instant understanding of Intent methodology.
+
 This creates the Intent directory structure:
 
 ```
@@ -391,6 +400,33 @@ Steel Thread: Add user notifications
 ├── Testing: Integration tests
 └── Documentation: Update API docs
 ```
+
+### Managing Claude Code Agents
+
+If you're using Claude Code, Intent's agent system supercharges your AI collaboration:
+
+```bash
+# Check available agents
+$ intent agents list
+Available Agents:
+  intent - Intent-aware development assistant [NOT INSTALLED]
+  elixir - Elixir code doctor with Usage Rules [NOT INSTALLED]
+
+# Install the Intent agent
+$ intent agents install intent
+Installing agent: intent
+Installed successfully
+
+# Verify installation
+$ intent agents status
+intent    [OK]
+```
+
+Now when you paste steel threads to Claude, it already understands:
+- How to create new steel threads
+- Intent command syntax
+- Project organization patterns
+- Backlog integration
 
 ### Essential Best Practices
 

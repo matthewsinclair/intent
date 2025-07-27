@@ -65,6 +65,61 @@ This creates the Intent v2.0.0 structure:
    - Mark completed tasks: `intent bl done <task-id>`
    - Sync thread status: `intent status sync ST0014`
 
+### Working with Claude Code Agents
+
+Intent v2.1.0 integrates with Claude Code's sub-agent system for enhanced AI assistance:
+
+1. **Initial Setup**
+
+   ```bash
+   # Check available agents
+   intent agents list
+   
+   # Install Intent agent (recommended for all projects)
+   intent agents install intent
+   ```
+
+2. **Using Agents with Claude**
+
+   When you start a Claude session, the Intent agent automatically:
+   - Understands steel thread methodology
+   - Knows all Intent commands and best practices
+   - Can navigate your project structure
+   - Helps maintain consistent documentation
+
+3. **Managing Agents**
+
+   ```bash
+   # Check agent health and integrity
+   intent agents status
+   
+   # Update agents with latest versions
+   intent agents sync
+   
+   # View agent details
+   intent agents show intent
+   ```
+
+**Example: Claude with Intent Agent**
+
+```markdown
+# Without Intent agent:
+You: "Create a new feature for user authentication"
+Claude: "I'll help you create authentication. What's your project structure?"
+[You spend time explaining Intent, steel threads, etc.]
+
+# With Intent agent:
+You: "Create a new feature for user authentication"  
+Claude: "I'll help you create a new steel thread for authentication:
+         
+         intent st new 'User Authentication System'
+         
+         This created ST0042. Let me help you document the intent and break
+         it down into backlog tasks using Intent's methodology..."
+```
+
+The Intent agent ensures Claude understands your project's conventions and can provide Intent-specific guidance without repeated explanations.
+
 ## Command Usage Patterns
 
 ### Steel Thread Management (`intent st`)
@@ -430,6 +485,7 @@ intent init "Project Name"
 
 # First-time setup
 intent bootstrap
+intent agents install intent  # Install Intent agent
 
 # Create work
 intent st new "Feature description"
@@ -444,6 +500,11 @@ intent bl list --all     # All tasks
 # Update status
 intent bl done task-id
 intent status sync ST####
+
+# Manage agents
+intent agents list       # Show available agents
+intent agents status     # Check agent health
+intent agents sync       # Update agents
 
 # Maintain system
 intent doctor --fix

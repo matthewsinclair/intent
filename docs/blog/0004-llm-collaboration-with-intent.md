@@ -390,6 +390,93 @@ Each cycle improves both documentation and code:
 
 This isn't just about current development – it's about building a knowledge base that makes every future interaction more effective.
 
+## Claude Code Sub-Agents: Taking Collaboration Further
+
+Intent v2.1.0 introduces integration with Claude Code's sub-agent system, revolutionizing AI-assisted development.
+
+### The Problem with Session Amnesia
+
+Every new Claude session typically means:
+- Re-explaining your project structure
+- Describing Intent and steel threads
+- Teaching command syntax again
+- Clarifying team conventions
+
+It's like working with a brilliant colleague who has amnesia every morning.
+
+### Intent Agent: Persistent Knowledge
+
+With one command:
+
+```bash
+$ intent agents install intent
+```
+
+Claude permanently understands:
+- Steel thread methodology
+- All Intent commands and workflows
+- Project organization patterns
+- Best practices and conventions
+
+### The Transformation in Practice
+
+**Without Intent agent:**
+```
+You: "I need to add user notifications"
+Claude: "I'll help you add notifications. What framework are you using?"
+You: "We use Intent for project management..."
+[5 minutes explaining]
+Claude: "Where should I put the notification code?"
+You: "First create a steel thread with intent st new..."
+[More back and forth]
+```
+
+**With Intent agent:**
+```
+You: "I need to add user notifications"
+Claude: "I'll help you create a steel thread for notifications:
+
+    intent st new 'User Notification System'
+    
+This creates ST0044. Let's document the intent:
+- What types of notifications (email, push, in-app)?
+- Real-time requirements?
+- User preferences and opt-out needs?
+
+I'll help structure this properly and create Backlog tasks."
+```
+
+The conversation starts at a much higher level because Claude already knows the foundation.
+
+### Custom Project Agents
+
+Beyond the Intent agent, create project-specific agents:
+
+```bash
+# Your team's conventions
+$ cat intent/agents/team-standards/agent.md
+---
+name: team-standards
+---
+You know our standards:
+- API versioning: /api/v{n}/{resource}
+- Error format: RFC 7807 Problem Details
+- Auth: JWT in Authorization: Bearer {token}
+- Testing: 80% coverage minimum
+- PR process: feature/* branches, 2 approvals
+```
+
+Now every Claude session knows YOUR specific rules without repeated explanation.
+
+### The Multiplier Effect
+
+Intent agents don't just save time – they change what's possible:
+
+1. **Deeper Conversations**: Skip basics, discuss architecture
+2. **Consistent Practices**: AI always follows your standards
+3. **Knowledge Preservation**: Team wisdom encoded in agents
+4. **Onboarding Acceleration**: New devs get AI that knows your ways
+
 ## Future Opportunities for LLM Integration
 
 We're just scratching the surface of what's possible when development methodologies embrace LLM collaboration.

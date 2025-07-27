@@ -28,7 +28,8 @@ This document is a Technical Product Design (TPD) for the Intent system (formerl
 8. Configuration uses JSON format (.intent/config.json) instead of YAML
 9. The system integrates with Backlog.md for task management with enhanced filtering
 10. Intent is self-hosting - this project is built using Intent v2.0.0
-11. Key commands include:
+11. Intent v2.1.0 includes Claude Code sub-agent integration for enhanced AI collaboration
+12. Key commands include:
 
 - `intent st list`: List all steel threads with status filtering
 - `intent st new`: Create a new steel thread
@@ -37,6 +38,7 @@ This document is a Technical Product Design (TPD) for the Intent system (formerl
 - `intent bl`: Enhanced Backlog.md wrapper with status filtering
 - `intent task`: Manage Backlog tasks linked to steel threads
 - `intent status`: Synchronize steel thread status with task completion
+- `intent agents`: Manage Claude Code sub-agents for Intent projects
 - `intent init`: Initialize a new Intent project
 - `intent bootstrap`: Global Intent setup and configuration
 - `intent doctor`: Diagnose and fix configuration issues
@@ -58,6 +60,33 @@ This document serves as the central index for the Technical Product Design (TPD)
 7. [Technical Challenges and Mitigations](./7_technical_challenges_and_mitigations.md)
 8. [Appendices](./8_appendices.md)
 
+## Agent System (v2.1.0) [AS-BUILT]
+
+Intent v2.1.0 introduces Claude Code sub-agent integration, enhancing AI collaboration:
+
+### Architecture
+- **Agent Storage**: `$INTENT_HOME/agents/` (global), `./intent/agents/` (project)
+- **Installation Target**: `~/.claude/agents/`
+- **Manifest Tracking**: JSON manifests track installations and checksums
+- **Sync Mechanism**: File-based sync with modification detection
+
+### Available Agents
+1. **Intent Agent**: Understands steel threads, Intent commands, and project structure
+2. **Elixir Agent**: Elixir code doctor with Usage Rules and Ash/Phoenix patterns
+
+### Agent Commands
+- `intent agents list`: Show available and installed agents
+- `intent agents install`: Install agents to Claude configuration
+- `intent agents sync`: Update agents while preserving modifications
+- `intent agents uninstall`: Remove Intent-managed agents
+- `intent agents show`: Display agent details and metadata
+- `intent agents status`: Check agent health and integrity
+
+### Integration Points
+- **intent init**: Detects Claude and offers agent installation
+- **intent doctor**: Includes agent health checks
+- **intent upgrade**: Preserves agent directories during migration
+
 ## Migration Notes
 
 Intent v2.0.0 represents a complete rebrand and restructuring from the Steel Thread Process (STP) to Intent:
@@ -71,9 +100,10 @@ Intent v2.0.0 represents a complete rebrand and restructuring from the Steel Thr
 
 ## Current Status
 
-- **Version**: 2.0.0 (Released July 2025)
-- **Tests**: 86/86 passing (reduced from 186 during migration)
-- **Commands**: 12 primary commands with full functionality
+- **Version**: 2.1.0 (Agent System Release - July 2025)
+- **Tests**: 165/165 passing (includes 50 new agent tests)
+- **Commands**: 13 primary commands including new `intent agents`
+- **Agents**: 2 built-in agents (Intent, Elixir)
 - **Projects Using Intent**: Intent itself (self-hosting)
 
 ## Links
