@@ -498,20 +498,6 @@ migrate_v2_0_to_v2_1() {
   
   echo "Upgrading v2.0.0 to v2.1.0 (agent initialization)..."
   
-  # Ensure agent directories exist
-  mkdir -p "$project_root/agents/.manifest"
-  
-  # Create global agents manifest if it doesn't exist
-  if [ ! -f "$project_root/agents/.manifest/global-agents.json" ]; then
-    echo "  Creating agent manifest..."
-    cat > "$project_root/agents/.manifest/global-agents.json" << 'EOF'
-{
-  "version": "1.0.0",
-  "agents": []
-}
-EOF
-  fi
-  
   # Update .intent/config.json to v2.1.0
   if [ -f "$project_root/.intent/config.json" ]; then
     echo "  Updating project version to 2.1.0..."
