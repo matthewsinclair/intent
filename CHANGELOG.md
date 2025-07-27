@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-07-27
+
+### Added
+
+- `intent agents init` command to initialize agent configuration
+- Support for upgrading from Intent v2.0.0 to v2.1.0
+- Enhanced agent manifest management with proper initialization
+- Improved agent setup workflow with explicit initialization step
+
+### Changed
+
+- Updated all version references from 2.0.0 to 2.1.0
+- Enhanced `intent upgrade` to support 2.0.0 → 2.1.0 migrations
+- Improved agent installation workflow to require initialization first
+- Updated documentation to reflect v2.1.0 features
+
+### Fixed
+
+- Agent directories not being properly created during upgrade
+- Missing agent initialization when upgrading from older versions
+- Agent manifest not being created in fresh installations
+
 ## [2.0.0] - 2025-07-17
 
 ### Added

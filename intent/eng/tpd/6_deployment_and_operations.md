@@ -1,6 +1,6 @@
 ---
-verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Updated for Intent v2.0.0 (As-Built)"
-intent_version: 2.0.0
+verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Updated for Intent v2.1.0"
+intent_version: 2.1.0
 ---
 # 6. Deployment and Operations [AS-BUILT]
 
@@ -8,7 +8,7 @@ intent_version: 2.0.0
 
 ## 6.1 Installation [AS-BUILT]
 
-Intent v2.0.0 provides multiple installation methods with enhanced setup:
+Intent v2.1.0 provides multiple installation methods with enhanced setup:
 
 ### 6.1.1 Global Installation with Bootstrap
 
@@ -72,7 +72,7 @@ export PATH=$PATH:$(pwd)/.intent-install/bin
 
 ## 6.2 Project Initialization [AS-BUILT]
 
-Intent v2.0.0 provides streamlined project setup:
+Intent v2.1.0 provides streamlined project setup:
 
 ```bash
 # Navigate to project directory
@@ -99,7 +99,7 @@ The init command prompts for:
 
 ## 6.3 Configuration [AS-BUILT]
 
-Intent v2.0.0 uses hierarchical JSON configuration:
+Intent v2.1.0 uses hierarchical JSON configuration:
 
 ### 6.3.1 Configuration Hierarchy
 
@@ -112,7 +112,7 @@ Intent v2.0.0 uses hierarchical JSON configuration:
 2. **Local Project Config** (`.intent/config.json`)
    ```json
    {
-     "version": "2.0.0",
+     "version": "2.1.0",
      "project_name": "My Project",
      "author": "username",
      "created": "2025-07-17",
@@ -206,7 +206,7 @@ intent bl done task-123
 ### 6.4.4 Migration from STP
 
 ```bash
-# Upgrade any STP version to Intent v2.0.0
+# Upgrade any STP/Intent version to Intent v2.1.0
 intent upgrade
 
 # Custom backup directory
@@ -288,7 +288,7 @@ cd $INTENT_HOME
 
 ## 6.6 Migration Guide [AS-BUILT]
 
-### 6.6.1 Migrating from STP to Intent v2.0.0
+### 6.6.1 Migrating from STP/Intent to Intent v2.1.0
 
 ```bash
 # 1. Check current version
@@ -307,7 +307,7 @@ alias stp=intent  # Temporary compatibility
 
 ### 6.6.2 Migration Changes
 
-| Old (STP) | New (Intent v2.0.0) |
+| Old (STP) | New (Intent v2.1.0) |
 |-----------|--------------------|
 | stp/* | intent/* |
 | .stp-config | .intent/config.json |
@@ -348,7 +348,7 @@ intent help --verbose
 
 ## 6.8 AS-BUILT Summary
 
-Intent v2.0.0 deployment features:
+Intent v2.1.0 deployment features:
 
 1. **Bootstrap**: Automated global setup
 2. **Doctor**: Diagnostics and fixes

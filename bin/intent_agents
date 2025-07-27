@@ -16,6 +16,7 @@ Usage: intent agents <command> [options]
 Manage Claude Code sub-agents for Intent projects.
 
 Commands:
+  init        Initialize agent configuration
   list        List available and installed agents
   install     Install agent(s) to Claude configuration
   sync        Sync installed agents with latest versions
@@ -24,6 +25,7 @@ Commands:
   status      Check agent health and integrity
 
 Examples:
+  intent agents init              # Initialize agent configuration
   intent agents list              # Show all agents
   intent agents install intent    # Install the Intent agent
   intent agents install --all     # Install all available agents
@@ -32,6 +34,115 @@ Examples:
 For help on a specific command:
   intent help agents <command>
 EOF
+}
+
+# Initialize agent configuration
+intent_agents_init() {
+  echo "Initializing agent configuration..."
+  
+  # Check for project or global init
+  local init_type="global"
+  local force=false
+  
+  for arg in "$@"; do
+    if [ "$arg" = "--project" ] || [ "$arg" = "-p" ]; then
+      init_type="project"
+    elif [ "$arg" = "--force" ] || [ "$arg" = "-f" ]; then
+      force=true
+    fi
+  done
+  
+  # Initialize based on type
+  if [ "$init_type" = "project" ]; then
+    # Project-level initialization
+    if [ -z "${PROJECT_ROOT:-}" ]; then
+      echo "Error: Not in an Intent project directory"
+      echo "Use 'intent agents init' without --project for global initialization"
+      return 1
+    fi
+    
+    echo "Initializing project agent configuration..."
+    
+    # Create project agent directories
+    mkdir -p "$PROJECT_ROOT/agents/.manifest"
+    
+    # Create project agent manifest if it doesn't exist
+    if [ ! -f "$PROJECT_ROOT/agents/.manifest/global-agents.json" ]; then
+      echo "  Creating project agent manifest..."
+      cat > "$PROJECT_ROOT/agents/.manifest/global-agents.json" << 'EOF'
+{
+  "version": "1.0.0",
+  "agents": []
+}
+EOF
+    elif [ "$force" = true ]; then
+      echo "  Project agent manifest already exists (use --force to overwrite)"
+    fi
+    
+    # Initialize project agent tracking
+    mkdir -p "$PROJECT_ROOT/intent/agents/.manifest"
+    if [ ! -f "$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json" ]; then
+      cat > "$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json" << 'EOF'
+{
+  "version": "1.0.0",
+  "installed": []
+}
+EOF
+    fi
+    
+    echo "Project agent configuration initialized successfully"
+  else
+    # Global initialization
+    echo "Initializing global agent configuration..."
+    
+    # Create user agent directory
+    local user_agent_dir="$HOME/.intent/agents"
+    mkdir -p "$user_agent_dir"
+    
+    # Create user installed agents manifest
+    if [ ! -f "$user_agent_dir/installed-agents.json" ] || [ "$force" = true ]; then
+      echo "  Creating user agent manifest..."
+      cat > "$user_agent_dir/installed-agents.json" << 'EOF'
+{
+  "version": "1.0.0",
+  "installed": []
+}
+EOF
+    else
+      echo "  User agent manifest already exists (use --force to recreate)"
+    fi
+    
+    # Check global Intent installation
+    if [ -n "$INTENT_HOME" ] && [ -d "$INTENT_HOME/agents" ]; then
+      # Ensure global agent manifest exists
+      if [ ! -f "$INTENT_HOME/agents/.manifest/global-agents.json" ]; then
+        echo "  Warning: Global agent manifest missing at $INTENT_HOME/agents/.manifest/"
+        echo "  This may indicate an incomplete Intent installation"
+      else
+        local agent_count=$(jq -r '.agents | length' "$INTENT_HOME/agents/.manifest/global-agents.json" 2>/dev/null || echo 0)
+        echo "  Found $agent_count available agents in Intent installation"
+      fi
+    else
+      echo "  Warning: INTENT_HOME not set or agents directory not found"
+      echo "  Some agent features may not work correctly"
+    fi
+    
+    # Check for Claude Code
+    if [ -d "$HOME/.claude" ]; then
+      echo "  Claude Code detected at $HOME/.claude"
+      mkdir -p "$HOME/.claude/agents"
+    else
+      echo "  Note: Claude Code not detected"
+      echo "  Install Claude Code to use agents: https://claude.ai/download"
+    fi
+    
+    echo ""
+    echo "Global agent configuration initialized successfully"
+    echo ""
+    echo "Next steps:"
+    echo "  intent agents list        # See available agents"
+    echo "  intent agents install <agent>  # Install an agent"
+  fi
 }
 
 # Helper: Check if agent is installed
@@ -848,6 +959,10 @@ intent_agents_show() {
 
 # Route commands
 case "$1" in
+  init)
+    shift
+    intent_agents_init "$@"
+    ;;
   list)
     shift
     intent_agents_list "$@"

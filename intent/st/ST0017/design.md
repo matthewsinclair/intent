@@ -93,12 +93,12 @@ $PROJECT_DIR/                          # User's project
   "agents": [
     {
       "name": "intent",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "description": "Intent-aware development assistant",
       "path": "intent",
       "checksum": "sha256:abc123...",
       "tools": ["Bash", "Read", "Write", "Edit"],
-      "min_intent_version": "2.0.0"
+      "min_intent_version": "2.1.0"
     }
   ]
 }
@@ -115,7 +115,7 @@ $PROJECT_DIR/                          # User's project
       "name": "intent",
       "source": "global",
       "source_path": "$INTENT_HOME/agents/intent",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "installed_at": "2025-01-27T10:00:00Z",
       "checksum": "sha256:abc123...",
       "modified": false

@@ -1,18 +1,18 @@
 ---
-verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Complete update for Intent v2.0.0 (As-Built)"
-intent_version: 2.0.0
+verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Update for Intent v2.1.0 with agent init"
+intent_version: 2.1.0
 ---
-# Intent Technical Product Design v2.0.0 (As-Built)
+# Intent Technical Product Design v2.1.0 (As-Built)
 
 ## Preamble to Claude
 
 This document is a Technical Product Design (TPD) for the Intent system (formerly known as STP - Steel Thread Process). When processing this document, please understand:
 
-1. This is the AS-BUILT documentation for Intent v2.0.0, reflecting the actual implementation
+1. This is the AS-BUILT documentation for Intent v2.1.0, reflecting the actual implementation
 2. Intent underwent a complete rebrand from STP to Intent in July 2025
 3. The system is designed to facilitate collaboration between developers and LLMs
 4. This document contains:
-   - Actual v2.0.0 architecture and implementation
+   - Actual v2.1.0 architecture and implementation
    - JSON-based configuration system
    - Complete command reference for intent_* commands
    - Migration tools and processes
@@ -27,8 +27,8 @@ This document is a Technical Product Design (TPD) for the Intent system (formerl
 7. The system consists of shell scripts and markdown templates
 8. Configuration uses JSON format (.intent/config.json) instead of YAML
 9. The system integrates with Backlog.md for task management with enhanced filtering
-10. Intent is self-hosting - this project is built using Intent v2.0.0
-11. Intent v2.0.0 includes Claude Code sub-agent integration for enhanced AI collaboration
+10. Intent is self-hosting - this project is built using Intent v2.1.0
+11. Intent v2.1.0 includes Claude Code sub-agent integration with proper initialization for enhanced AI collaboration
 12. Key commands include:
 
 - `intent st list`: List all steel threads with status filtering
@@ -42,12 +42,12 @@ This document is a Technical Product Design (TPD) for the Intent system (formerl
 - `intent init`: Initialize a new Intent project
 - `intent bootstrap`: Global Intent setup and configuration
 - `intent doctor`: Diagnose and fix configuration issues
-- `intent upgrade`: Migrate any STP version to Intent v2.0.0
+- `intent upgrade`: Migrate any STP/Intent version to Intent v2.1.0
 - `intent help`: Unified help system for all commands
 
-# Intent v2.0.0 Technical Product Design
+# Intent v2.1.0 Technical Product Design
 
-This document serves as the central index for the Technical Product Design (TPD) of Intent v2.0.0. The TPD has been forensically updated to reflect the actual as-built state of the system after the migration from STP to Intent. Sections marked with "[AS-BUILT]" indicate deviations from the original design.
+This document serves as the central index for the Technical Product Design (TPD) of Intent v2.1.0. The TPD has been forensically updated to reflect the actual as-built state of the system after the migration from STP to Intent and enhancement with agent initialization. Sections marked with "[AS-BUILT]" indicate deviations from the original design.
 
 ## Table of Contents
 
@@ -60,9 +60,9 @@ This document serves as the central index for the Technical Product Design (TPD)
 7. [Technical Challenges and Mitigations](./7_technical_challenges_and_mitigations.md)
 8. [Appendices](./8_appendices.md)
 
-## Agent System (v2.0.0) [AS-BUILT]
+## Agent System (v2.1.0) [AS-BUILT]
 
-Intent v2.0.0 includes Claude Code sub-agent integration, enhancing AI collaboration:
+Intent v2.1.0 includes Claude Code sub-agent integration with proper initialization, enhancing AI collaboration:
 
 ### Architecture
 - **Agent Storage**: `$INTENT_HOME/agents/` (global), `./intent/agents/` (project)
@@ -75,6 +75,7 @@ Intent v2.0.0 includes Claude Code sub-agent integration, enhancing AI collabora
 2. **Elixir Agent**: Elixir code doctor with Usage Rules and Ash/Phoenix patterns
 
 ### Agent Commands
+- `intent agents init`: Initialize agent configuration
 - `intent agents list`: Show available and installed agents
 - `intent agents install`: Install agents to Claude configuration
 - `intent agents sync`: Update agents while preserving modifications
@@ -89,7 +90,7 @@ Intent v2.0.0 includes Claude Code sub-agent integration, enhancing AI collabora
 
 ## Migration Notes
 
-Intent v2.0.0 represents a complete rebrand and restructuring from the Steel Thread Process (STP) to Intent:
+Intent v2.1.0 represents a complete rebrand and restructuring from the Steel Thread Process (STP) to Intent:
 
 - Directory structure flattened: `stp/prj/st/` → `intent/st/`
 - Commands renamed: `stp_*` → `intent_*`
@@ -100,7 +101,7 @@ Intent v2.0.0 represents a complete rebrand and restructuring from the Steel Thr
 
 ## Current Status
 
-- **Version**: 2.0.0 (Includes Agent System - July 2025)
+- **Version**: 2.1.0 (Enhanced Agent System with init command - July 2025)
 - **Tests**: 165/165 passing (includes 50 new agent tests)
 - **Commands**: 13 primary commands including new `intent agents`
 - **Agents**: 2 built-in agents (Intent, Elixir)

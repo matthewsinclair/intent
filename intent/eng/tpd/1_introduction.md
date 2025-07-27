@@ -1,6 +1,6 @@
 ---
-verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Updated for Intent v2.0.0 (As-Built)"
-intent_version: 2.0.0
+verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Updated for Intent v2.1.0"
+intent_version: 2.1.0
 ---
 # 1. Introduction
 
@@ -16,7 +16,7 @@ In July 2025, STP was rebranded to "Intent" to better reflect the system's core 
 
 ## 1.2 Scope
 
-Intent v2.0.0 encompasses:
+Intent v2.1.0 encompasses:
 
 - A flattened directory structure under `intent/` for organizing documentation
 - JSON-based configuration system (.intent/config.json)
@@ -25,7 +25,7 @@ Intent v2.0.0 encompasses:
 - Enhanced integration patterns for working with LLMs
 - Advanced Backlog.md integration with status filtering
 - Automated steel thread status synchronization
-- Migration tools for upgrading from any STP version
+- Migration tools for upgrading from any STP/Intent version
 - Diagnostic and setup tools (doctor, bootstrap)
 
 Intent is designed to be lightweight, adaptable, and to work alongside existing development workflows without requiring significant changes to development practices.
@@ -34,7 +34,7 @@ Intent is designed to be lightweight, adaptable, and to work alongside existing 
 
 | Term           | Definition                                                                                       |
 |----------------|--------------------------------------------------------------------------------------------------|
-| Intent         | The tool and framework for intention-aware development (v2.0.0)                                  |
+| Intent         | The tool and framework for intention-aware development (v2.1.0)                                  |
 | Steel Thread   | A self-contained unit of work that represents a logical piece of functionality to be implemented |
 | LLM            | Large Language Model, an AI system capable of understanding and generating text                  |
 | Context Window | The amount of text an LLM can process in a single interaction                                    |
@@ -45,7 +45,7 @@ Intent is designed to be lightweight, adaptable, and to work alongside existing 
 
 ## 1.4 System Overview
 
-Intent v2.0.0 operates as a meta-layer on top of existing development processes. It provides structure for:
+Intent v2.1.0 operates as a meta-layer on top of existing development processes. It provides structure for:
 
 1. **Documentation Management**: Flattened structure under `intent/` for all documentation
 2. **LLM Collaboration**: Enhanced guidelines and tools for effective AI assistance
@@ -65,7 +65,7 @@ The system remains intentionally simple, using markdown files and shell scripts 
 - Documentation-as-code methodologies
 - Incremental development processes
 - Intent Blog Series (docs/blog/)
-- Migration from STP to Intent v2.0.0
+- Migration from STP to Intent v2.1.0
 
 ## 1.6 Version History
 
@@ -76,3 +76,7 @@ The system remains intentionally simple, using markdown files and shell scripts 
   - New bootstrap, doctor, and upgrade commands
   - Enhanced Backlog.md integration
   - Self-hosting capability
+- **v2.1.0 (July 2025)**: Enhanced agent system with:
+  - Agent initialization command
+  - Improved upgrade from v2.0.0
+  - Better agent manifest management
