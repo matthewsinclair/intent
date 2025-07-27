@@ -51,7 +51,7 @@ fi
 BIN_DIR="$INTENT_HOME/bin"
 
 # Define global commands that don't require project context
-GLOBAL_COMMANDS="help doctor bootstrap init version info"
+GLOBAL_COMMANDS="help doctor bootstrap init version info agents"
 
 # Function to check if command is global
 is_global_command() {
@@ -92,6 +92,10 @@ case "$COMMAND" in
   bl)
     COMMAND="bl"
     COMMAND_SCRIPT="intent_bl"
+    ;;
+  agents)
+    COMMAND="agents"
+    COMMAND_SCRIPT="intent_agents"
     ;;
   *)
     # Default: prefix with intent_
