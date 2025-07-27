@@ -248,11 +248,111 @@ teardown() {
   assert_output_contains "Installed successfully"
 }
 
-# Future test placeholders for unimplemented commands
-@test "agents sync is not yet implemented" {
+# Sync command tests
+@test "agents sync requires installed agents" {
+  # Clean manifest
+  rm -rf "$HOME/.intent/agents" 2>/dev/null || true
+  
+  run run_intent agents sync
+  assert_success
+  assert_output_contains "No installed agents found"
+  assert_output_contains "Use 'intent agents install'"
+}
+
+@test "agents sync detects up-to-date agents" {
+  # Install an agent
+  run run_intent agents install intent --force
+  assert_success
+  
+  # Sync should find nothing to update
+  run run_intent agents sync
+  assert_success
+  assert_output_contains "Checking agent: intent"
+  assert_output_contains "Up to date"
+  assert_output_contains "Skipped: 1"
+}
+
+@test "agents sync detects local modifications" {
+  # Install an agent
+  run run_intent agents install intent --force
+  assert_success
+  
+  # Modify the agent
+  echo "# Test modification" >> "$HOME/.claude/agents/intent.md"
+  
+  # Sync should detect modification
+  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent agents sync"
+  assert_success
+  assert_output_contains "Warning: Agent has been modified locally"
+  assert_output_contains "Overwrite local changes?"
+  assert_output_contains "Skipped"
+}
+
+@test "agents sync can force overwrite modifications" {
+  # Install an agent
+  run run_intent agents install intent --force
+  assert_success
+  
+  # Modify the agent
+  echo "# Test modification" >> "$HOME/.claude/agents/intent.md"
+  
+  # Force sync should overwrite
+  run run_intent agents sync --force
+  assert_success
+  assert_output_contains "Warning: Agent has been modified locally"
+  assert_output_contains "Overwriting local changes (--force)"
+  assert_output_contains "Updated successfully"
+  
+  # Verify modification was removed
+  run grep "# Test modification" "$HOME/.claude/agents/intent.md"
+  assert_failure
+}
+
+@test "agents sync updates when source changes" {
+  # Install an agent
+  run run_intent agents install intent --force
+  assert_success
+  
+  # Simulate source update by modifying the source file
+  # (In real scenario, this would be from a git pull)
+  echo "# Source update" >> "$INTENT_HOME/agents/intent/agent.md"
+  
+  # Sync should detect and update
+  run run_intent agents sync
+  assert_success
+  assert_output_contains "Update available"
+  assert_output_contains "Updated successfully"
+  assert_output_contains "Updated: 1"
+  
+  # Verify update was applied
+  run grep "# Source update" "$HOME/.claude/agents/intent.md"
+  assert_success
+  
+  # Clean up source modification
+  sed -i.bak '/# Source update/d' "$INTENT_HOME/agents/intent/agent.md"
+  rm -f "$INTENT_HOME/agents/intent/agent.md.bak"
+}
+
+@test "agents sync handles missing Claude directory" {
+  # Remove .claude directory
+  rm -rf "$HOME/.claude"
+  
   run run_intent agents sync
   assert_failure
-  assert_output_contains "Error: 'intent agents sync' not yet implemented"
+  assert_output_contains "Error: Claude Code not detected"
+}
+
+@test "agents sync works with multiple agents" {
+  # Install multiple agents
+  run run_intent agents install intent elixir --force
+  assert_success
+  
+  # Sync should check both
+  run run_intent agents sync
+  assert_success
+  assert_output_contains "Checking agent: intent"
+  assert_output_contains "Checking agent: elixir"
+  assert_output_contains "Up to date"
 }
 
 @test "agents uninstall is not yet implemented" {
