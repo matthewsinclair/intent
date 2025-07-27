@@ -29,18 +29,19 @@ This document is a Technical Product Design (TPD) for the Intent system (formerl
 9. The system integrates with Backlog.md for task management with enhanced filtering
 10. Intent is self-hosting - this project is built using Intent v2.0.0
 11. Key commands include:
-   - `intent st list`: List all steel threads with status filtering
-   - `intent st new`: Create a new steel thread
-   - `intent st show`: Display steel thread contents
-   - `intent st edit`: Edit steel thread files
-   - `intent bl`: Enhanced Backlog.md wrapper with status filtering
-   - `intent task`: Manage Backlog tasks linked to steel threads
-   - `intent status`: Synchronize steel thread status with task completion
-   - `intent init`: Initialize a new Intent project
-   - `intent bootstrap`: Global Intent setup and configuration
-   - `intent doctor`: Diagnose and fix configuration issues
-   - `intent upgrade`: Migrate any STP version to Intent v2.0.0
-   - `intent help`: Unified help system for all commands
+
+- `intent st list`: List all steel threads with status filtering
+- `intent st new`: Create a new steel thread
+- `intent st show`: Display steel thread contents
+- `intent st edit`: Edit steel thread files
+- `intent bl`: Enhanced Backlog.md wrapper with status filtering
+- `intent task`: Manage Backlog tasks linked to steel threads
+- `intent status`: Synchronize steel thread status with task completion
+- `intent init`: Initialize a new Intent project
+- `intent bootstrap`: Global Intent setup and configuration
+- `intent doctor`: Diagnose and fix configuration issues
+- `intent upgrade`: Migrate any STP version to Intent v2.0.0
+- `intent help`: Unified help system for all commands
 
 # Intent v2.0.0 Technical Product Design
 
@@ -60,6 +61,7 @@ This document serves as the central index for the Technical Product Design (TPD)
 ## Migration Notes
 
 Intent v2.0.0 represents a complete rebrand and restructuring from the Steel Thread Process (STP) to Intent:
+
 - Directory structure flattened: `stp/prj/st/` → `intent/st/`
 - Commands renamed: `stp_*` → `intent_*`
 - Configuration migrated: YAML → JSON
