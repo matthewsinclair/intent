@@ -2,7 +2,7 @@
 
 ## Overview
 
-This directory contains the test suite for Intent v2.0.0. The tests are written using [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System).
+This directory contains the test suite for Intent v2.1.0. The tests are written using [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System).
 
 ## Directory Structure
 

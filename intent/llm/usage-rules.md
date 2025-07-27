@@ -1,10 +1,10 @@
 ---
-verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Updated for Intent v2.0.0"
-intent_version: 2.0.0
+verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Updated for Intent v2.1.0"
+intent_version: 2.1.0
 ---
 # Intent Usage Rules
 
-This document provides usage patterns and guidelines for working with Intent v2.0.0. It's designed to help Large Language Models (LLMs) understand how to effectively use Intent commands and workflows in development scenarios.
+This document provides usage patterns and guidelines for working with Intent v2.1.0. It's designed to help Large Language Models (LLMs) understand how to effectively use Intent commands and workflows in development scenarios.
 
 ## Introduction
 
@@ -27,7 +27,7 @@ intent init "My Project"
 intent init "My Project" ./my-project
 ```
 
-This creates the Intent v2.0.0 structure:
+This creates the Intent v2.1.0 structure:
 
 - `.intent/config.json` - Project configuration
 - `intent/` - Main documentation directory
@@ -67,7 +67,7 @@ This creates the Intent v2.0.0 structure:
 
 ### Working with Claude Code Agents
 
-Intent v2.0.0 integrates with Claude Code's sub-agent system for enhanced AI assistance:
+Intent v2.1.0 integrates with Claude Code's sub-agent system for enhanced AI assistance:
 
 1. **Initial Setup**
 
@@ -166,7 +166,7 @@ intent st repair ST0015      # Dry-run on specific thread
 
 #### Steel Thread Structure
 
-In Intent v2.0.0, each steel thread is a directory:
+In Intent v2.1.0, each steel thread is a directory:
 
 ```
 intent/st/ST0015/
@@ -178,7 +178,7 @@ intent/st/ST0015/
 
 ### Task Management Integration (`intent task`, `intent bl`)
 
-Intent v2.0.0 provides enhanced Backlog.md integration with configurable filtering.
+Intent v2.1.0 provides enhanced Backlog.md integration with configurable filtering.
 
 #### Task Creation and Management
 
@@ -247,10 +247,10 @@ Status rules:
 
 ### Migration and Upgrades
 
-#### Upgrading from STP to Intent v2.0.0
+#### Upgrading from STP to Intent v2.1.0
 
 ```bash
-# Upgrade any STP version to Intent v2.0.0
+# Upgrade any STP version to Intent v2.1.0
 intent upgrade
 
 # Custom backup directory
@@ -517,7 +517,7 @@ intent st repair --write # Fix metadata issues
 ```json
 // .intent/config.json
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "project_name": "My Project",
   "author": "username",
   "backlog_list_status": "todo"  // Filter default

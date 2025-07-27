@@ -180,7 +180,7 @@ $ intent st show ST0012
 # "Document Sync Command - sync steel thread index"
 
 $ intent st show ST0016 
-# "Rename STP to Intent - complete v2.0.0 refactoring"
+# "Rename STP to Intent - complete v2.1.0 refactoring"
 ```
 
 These aren't just task lists. Each thread contains:

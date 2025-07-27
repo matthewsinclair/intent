@@ -1,10 +1,10 @@
 ---
-verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Updated for Intent v2.0.0"
-intent_version: 2.0.0
+verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Updated for Intent v2.1.0"
+intent_version: 2.1.0
 ---
 # Reference Guide
 
-This reference guide provides comprehensive information about the Intent system (v2.0.0). Unlike the task-oriented User Guide, this reference guide serves as a complete reference for all aspects of the system.
+This reference guide provides comprehensive information about the Intent system (v2.1.0). Unlike the task-oriented User Guide, this reference guide serves as a complete reference for all aspects of the system.
 
 ## Table of Contents
 
@@ -22,7 +22,7 @@ This reference guide provides comprehensive information about the Intent system 
 
 #### `intent upgrade`
 
-Upgrades a project from an older version to Intent v2.0.0.
+Upgrades a project from an older version to Intent v2.1.0.
 
 **Usage:**
 
@@ -53,7 +53,7 @@ intent upgrade
 Example output:
 
 ```
-Starting upgrade to Intent v2.0.0...
+Starting upgrade to Intent v2.1.0...
 
 Detected version: 1.2.1
 Creating backup at .intent-backup-20250717-123456...
@@ -75,7 +75,7 @@ Migrating steel threads...
 Updating file references...
   Updated 15 files with Intent naming
 
-Upgrade complete! Intent v2.0.0 is ready.
+Upgrade complete! Intent v2.1.0 is ready.
 Run 'intent doctor' to verify configuration.
 ```
 
@@ -772,7 +772,7 @@ Each Intent file includes version information to track compatibility:
 
 ```yaml
 ---
-intent_version: 2.0.0
+intent_version: 2.1.0
 ---
 ```
 
@@ -953,7 +953,7 @@ Example:
 {
   "project_name": "Project Name",
   "author": "Default Author",
-  "intent_version": "2.0.0",
+  "intent_version": "2.1.0",
   "st_prefix": "ST"
 }
 ```
@@ -1197,7 +1197,7 @@ With Backlog integration, steel thread documents focus on intent and context:
 ```markdown
 ---
 verblock: "08 Jul 2025:v0.1: Author Name - Initial version"
-intent_version: 2.0.0
+intent_version: 2.1.0
 status: In Progress
 created: 20250708
 completed: 

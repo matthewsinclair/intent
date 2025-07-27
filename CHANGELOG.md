@@ -226,6 +226,7 @@ See [Release Notes](./docs/releases/2.0.0/RELEASE_NOTES.md) for complete details
 - `stp upgrade` - Upgrade STP files to latest format
 - `stp help` - Comprehensive help system
 
+[2.1.0]: https://github.com/matthewsinclair/intent/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/matthewsinclair/intent/compare/v1.2.1...v2.0.0
 [1.2.1]: https://github.com/matthewsinclair/intent/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/matthewsinclair/intent/compare/v1.0.0...v1.2.0

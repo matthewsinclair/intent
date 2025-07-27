@@ -26,7 +26,7 @@ A comprehensive blog series explaining the Intent methodology, from philosophy t
    The roadmap for Intent's evolution, integration opportunities, and vision for the future of intention-aware development.
 
 8. **[Intent Agents: Supercharging Claude Code Collaboration](./0007-intent-agents-supercharge-claude.md)**  
-   How Intent v2.0.0's agent system transforms AI pair programming by giving Claude permanent understanding of your methodology.
+   How Intent v2.1.0's agent system transforms AI pair programming by giving Claude permanent understanding of your methodology.
 
 ## About This Series
 

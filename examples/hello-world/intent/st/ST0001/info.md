@@ -1,6 +1,6 @@
 ---
 verblock: "01 Jul 2025:v0.1: Intent User - Initial version"
-intent_version: 2.0.0
+intent_version: 2.1.0
 status: Completed
 created: 20250701
 completed: 20250705

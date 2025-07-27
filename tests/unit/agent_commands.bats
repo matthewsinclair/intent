@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Tests for intent agents commands (v2.0.0)
+# Tests for intent agents commands (v2.1.0)
 
 load "../lib/test_helper.bash"
 

@@ -1,6 +1,6 @@
-# Hello World - Intent v2.0.0 Example
+# Hello World - Intent v2.1.0 Example
 
-This is an example project demonstrating the Intent v2.0.0 structure.
+This is an example project demonstrating the Intent v2.1.0 structure.
 
 ## Project Structure
 
@@ -31,7 +31,7 @@ hello-world/
 The `.intent/config.json` file:
 ```json
 {
-  "intent_version": "2.0.0",
+  "intent_version": "2.1.0",
   "intent_dir": "intent",
   "backlog_dir": "backlog",
   "author": "Intent User",
@@ -41,11 +41,14 @@ The `.intent/config.json` file:
 
 ## Usage
 
-After installing Intent v2.0.0:
+After installing Intent v2.1.0:
 
 ```bash
 # Initialize a new project
 intent init
+
+# Initialize agent configuration (new in v2.1.0)
+intent agents init
 
 # Create a steel thread
 intent st new "My Feature"

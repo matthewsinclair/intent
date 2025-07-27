@@ -5,7 +5,7 @@
 # Usage: stp <command> [options] [arguments]
 
 # Version
-INTENT_VERSION="2.0.0"
+INTENT_VERSION="2.1.0"
 
 # Exit on error
 set -e

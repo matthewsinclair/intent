@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Tests for intent bl (backlog) commands (v2.0.0)
+# Tests for intent bl (backlog) commands (v2.1.0)
 
 load "../lib/test_helper.bash"
 
@@ -205,7 +205,7 @@ EOF
   # Set backlog_list_status in config
   cat > .intent/config.json << 'EOF'
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "project_name": "Test Project",
   "author": "Test",
   "created": "2025-07-17",
@@ -251,7 +251,7 @@ EOF
   # Set backlog_list_status in config
   cat > .intent/config.json << 'EOF'
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "project_name": "Test Project",
   "author": "Test",
   "created": "2025-07-17",
@@ -292,7 +292,7 @@ EOF
   # Set invalid backlog_list_status in config
   cat > .intent/config.json << 'EOF'
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "project_name": "Test Project",
   "author": "Test",
   "created": "2025-07-17",

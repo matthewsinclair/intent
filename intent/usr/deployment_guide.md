@@ -1,10 +1,10 @@
 ---
-verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
-intent_version: 2.0.0
+verblock: "27 Jul 2025:v0.2: Matthew Sinclair - Updated to Intent v2.1.0"
+intent_version: 2.1.0
 ---
 # Deployment Guide
 
-This deployment guide provides instructions for deploying the Intent v2.0.0 system in various environments. It covers installation, configuration, and integration with other tools and workflows.
+This deployment guide provides instructions for deploying the Intent v2.1.0 system in various environments. It covers installation, configuration, and integration with other tools and workflows.
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@ This deployment guide provides instructions for deploying the Intent v2.0.0 syst
 4. [Maintenance](#maintenance)
 5. [Upgrading](#upgrading)
 6. [Troubleshooting](#troubleshooting)
-7. [New v2.0.0 Features](#new-v200-features)
+7. [New v2.1.0 Features](#new-v210-features)
 
 ## Installation
 
@@ -185,7 +185,7 @@ jobs:
 
 ```json
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "tasks": [
     {
       "label": "Run Intent Tests",
@@ -447,11 +447,11 @@ If you encounter issues:
 4. Submit issues to the Intent project repository
 5. Refer to the Bats documentation for test-specific problems
 
-## New v2.0.0 Features
+## New v2.1.0 Features
 
 ### Bootstrap Command
 
-Intent v2.0.0 introduces the `bootstrap` command for quick project initialization:
+Intent v2.1.0 introduces the `bootstrap` command for quick project initialization:
 
 ```bash
 # Bootstrap a new project with Intent
@@ -483,7 +483,7 @@ This command checks:
 
 ### Enhanced Directory Structure
 
-Intent v2.0.0 uses a simplified directory structure:
+Intent v2.1.0 uses a simplified directory structure:
 
 ```
 intent/
@@ -499,14 +499,14 @@ intent/
 
 ### JSON Configuration
 
-Intent v2.0.0 migrates from INI-style configuration to JSON:
+Intent v2.1.0 migrates from INI-style configuration to JSON:
 
 ```json
 {
   "project_name": "My Project",
   "author": "Jane Doe",
   "created_date": "2025-07-17",
-  "intent_version": "2.0.0",
+  "intent_version": "2.1.0",
   "st_prefix": "ST",
   "next_st_number": 1
 }

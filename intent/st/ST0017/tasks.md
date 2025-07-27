@@ -71,7 +71,7 @@
 - `sha256sum` or `shasum` for checksums (standard on all platforms)
 
 ### Internal Dependencies
-- Requires Intent v2.0.0 or higher
+- Requires Intent v2.1.0 or higher
 - Must maintain compatibility with existing command structure
 - Should integrate with existing helper functions
 

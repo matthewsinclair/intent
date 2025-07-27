@@ -1,6 +1,6 @@
 ---
-verblock: "17 Jul 2025:v0.2: Matthew Sinclair - Updated for Intent v2.0.0"
-intent_version: 2.0.0
+verblock: "27 Jul 2025:v0.3: Matthew Sinclair - Updated for Intent v2.1.0"
+intent_version: 2.1.0
 ---
 # Intent Deprecations
 
@@ -109,4 +109,4 @@ Users migrating from STP to Intent should:
 
 ### Version deprecated
 
-Intent version 2.0.0
+Intent version 2.1.0
