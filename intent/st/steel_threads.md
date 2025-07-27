@@ -55,4 +55,5 @@ This document provides an overview of all steel threads in the STP project. It h
 The detailed information for each steel thread is contained in its individual document (e.g., ST0001.md).
 | ST0014 | Directory Structure for Steel Threads | Completed |  | 2025-07-09 |
 | ST0015 | Enhanced Steel Thread Templates and File Types | Not Started | 2025-07-09 |  |
-| ST0017 | Test Steel Thread for Verification | Not Started | 2025-07-26 |  |
+| ST0017 | Add an Intent sub-agent for Claude Code to Intent | In Progress | 2025-07-27 |  |
+| ST0016 | Rename STP CLI to INTENT (v2.0.0) | Completed |  | 2025-07-27 |
