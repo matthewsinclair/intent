@@ -1,9 +1,9 @@
 ---
-verblock: "27 Jul 2025:v0.1: matts - Initial version"
+verblock: "27 Jul 2025:v0.2: matts - Completed implementation"
 stp_version: 2.0.0
-status: In Progress
+status: Completed
 created: 20250727
-completed: 
+completed: 20250727
 ---
 # ST0017: Add an Intent sub-agent for Claude Code to Intent
 

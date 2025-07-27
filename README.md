@@ -96,6 +96,46 @@ $ intent st show ST0015
 - Result: AI suggestions align with YOUR architecture
 ```
 
+## 🤖 Claude Code Integration
+
+Intent v2.1.0 integrates with [Claude Code](https://claude.ai/code) sub-agents to supercharge AI collaboration:
+
+```bash
+# Install the Intent agent (one-time setup)
+$ intent agents install intent
+
+# Now Claude automatically understands:
+# ✓ Steel thread methodology  
+# ✓ All Intent commands
+# ✓ Your project structure
+# ✓ Best practices
+```
+
+**The difference is dramatic:**
+
+Without Intent agent:
+
+```
+You: "Help me add caching"
+Claude: "What's your project structure? What caching do you need?"
+[10 minutes explaining Intent, constraints, etc.]
+```
+
+With Intent agent:
+
+```  
+You: "Help me add caching"
+Claude: "I'll create a steel thread for caching:
+         
+         intent st new 'Implement caching layer'
+         
+         Let's document the intent first - what are you caching?
+         Is this for API rate limits or performance? What's your
+         expected traffic pattern? I'll help structure this properly."
+```
+
+Claude becomes an Intent-fluent development partner from day one.
+
 ## 🎯 What is Backlog.md?
 
 [Backlog.md](https://github.com/backlog/backlog) is a Git-native task manager that lives in your repository as markdown files. Intent integrates with it to create a two-tier system:
@@ -143,6 +183,9 @@ intent --version
 
 # See available commands
 intent help
+
+# Install Claude Code agent (if using Claude)
+intent agents install intent
 ```
 
 ### 🏆 5-Minute Win: Your First Steel Thread
@@ -262,6 +305,17 @@ intent bl init                       # Initialize Backlog.md
 intent bl create <ST####> <title>    # Create a Backlog task
 intent bl list                       # List tasks (without git errors)
 intent bl board                      # View Kanban board
+```
+
+### Agent Management
+
+```bash
+intent agents list                   # Show available and installed agents
+intent agents install <name>        # Install an agent to Claude Code
+intent agents install --all         # Install all available agents
+intent agents status                 # Check agent health and integrity
+intent agents sync                   # Update agents with latest versions
+intent agents show <name>           # Display detailed agent information
 ```
 
 ### LLM Integration
