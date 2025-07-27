@@ -44,7 +44,7 @@ fi
 
 # Display general help
 cat << EOF
-Intent v2.0.0 - Structured Development Process
+Intent v2.1.0 - Structured Development Process
 
 A system for structured development and documentation with LLM collaboration.
 Formerly known as STP (Steel Thread Process).
@@ -58,7 +58,7 @@ Core:
   bl               Backlog.md integration
   agents           Manage Claude Code sub-agents
   doctor           Check and fix configuration
-  upgrade          Upgrade from STP to Intent v2.0.0
+  upgrade          Upgrade from STP to Intent v2.1.0
   help             Display help information
 
 Configuration:

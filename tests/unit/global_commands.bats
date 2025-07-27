@@ -14,14 +14,14 @@ load "../lib/test_helper.bash"
 @test "intent help works anywhere" {
   run run_intent help
   assert_success
-  assert_output_contains "Intent v2.0.0 - Structured Development Process"
+  assert_output_contains "Intent v2.1.0 - Structured Development Process"
   assert_output_contains "Usage: intent <command>"
 }
 
 @test "intent doctor works anywhere" {
   run run_intent doctor
   assert_success
-  assert_output_contains "Intent Doctor v2.0.0"
+  assert_output_contains "Intent Doctor v2.1.0"
   assert_output_contains "Checking INTENT_HOME"
 }
 
@@ -56,7 +56,7 @@ load "../lib/test_helper.bash"
   run run_intent init --help
   # Note: init --help exits with status 1
   assert_failure
-  assert_output_contains "Initialize a new Intent v2.0.0 project"
+  assert_output_contains "Initialize a new Intent v2.1.0 project"
 }
 
 @test "intent handles unknown command gracefully" {
