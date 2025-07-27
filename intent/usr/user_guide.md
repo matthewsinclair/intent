@@ -15,7 +15,9 @@ This user guide provides task-oriented instructions for using the Intent system.
 5. [Working with Backlog](#working-with-backlog)
 6. [Documentation Management](#documentation-management)
 7. [LLM Collaboration](#llm-collaboration)
-8. [Troubleshooting](#troubleshooting)
+8. [Agent Management](#agent-management)
+9. [Testing](#testing)
+10. [Troubleshooting](#troubleshooting)
 
 ## Introduction
 
@@ -382,6 +384,163 @@ intent st show ST0001 | [send to LLM]
 ```
 
 This provides the LLM with task-specific context for more effective collaboration.
+
+## Agent Management
+
+Intent v2.0.0 integrates with Claude Code sub-agents to provide specialized AI assistance that understands Intent methodology and your project conventions.
+
+### What are Intent Agents?
+
+Intent agents are Claude Code sub-agents - specialized AI assistants with focused knowledge:
+
+- **Intent Agent**: Understands steel threads, Intent commands, and project structure
+- **Elixir Agent**: Elixir code doctor with Usage Rules and Ash/Phoenix patterns
+- **Custom Agents**: Project-specific agents you can create
+
+### Setting Up Agents
+
+#### Installing the Intent Agent
+
+```bash
+# Check available agents
+intent agents list
+
+# Install the Intent agent (recommended for all projects)
+intent agents install intent
+
+# Install all available agents
+intent agents install --all
+```
+
+#### Verifying Installation
+
+```bash
+# Check agent status
+intent agents status
+
+# Show agent details
+intent agents show intent
+```
+
+### Managing Agents
+
+#### Keeping Agents Updated
+
+```bash
+# Update agents with latest versions
+intent agents sync
+
+# Check for modifications
+intent agents status
+```
+
+#### Removing Agents
+
+```bash
+# Remove specific agent
+intent agents uninstall intent
+
+# Remove all Intent-managed agents
+intent agents uninstall --all
+```
+
+### Using Agents with Claude
+
+Once installed, the Intent agent automatically provides Claude with:
+
+- Complete knowledge of Intent commands and methodology
+- Understanding of steel thread structure and workflows
+- Best practices for Intent project management
+- Backlog.md integration patterns
+
+**Example: Claude with Intent Agent**
+
+```
+# Without Intent agent:
+You: "Create a new feature for authentication"
+Claude: "I'll help create authentication. What's your project structure?"
+[You explain Intent, steel threads, etc.]
+
+# With Intent agent:
+You: "Create a new feature for authentication"  
+Claude: "I'll create a steel thread for authentication:
+         
+         intent st new 'User Authentication System'
+         
+         This creates ST0042. Let me help document the intent
+         and break it into backlog tasks using Intent methodology..."
+```
+
+### Creating Custom Agents
+
+For project-specific conventions, create custom agents:
+
+```bash
+# Create project agent directory
+mkdir -p intent/agents/myproject
+
+# Create agent definition
+cat > intent/agents/myproject/agent.md << 'EOF'
+---
+name: myproject
+description: Project-specific conventions and patterns
+tools: Bash, Read, Write, Edit
+---
+
+You understand our specific project conventions:
+
+## Architecture
+- API endpoints: /api/v2/{resource}
+- Authentication: JWT Bearer tokens
+- Database: PostgreSQL with migrations
+
+## Code Standards
+- Test coverage: minimum 80%
+- Documentation: JSDoc for all public APIs
+- Git: conventional commits format
+EOF
+
+# Install the custom agent
+intent agents install myproject
+```
+
+### Agent Integration with Intent Commands
+
+Agents are automatically integrated with Intent's core workflow:
+
+- **intent init**: Detects Claude Code and offers agent installation
+- **intent doctor**: Includes agent health checks
+- **intent upgrade**: Preserves agent directories during migrations
+
+### Troubleshooting Agents
+
+#### Agent Not Found
+
+```bash
+# Check if Claude Code is installed
+which claude
+
+# Verify Claude agents directory exists
+ls ~/.claude/agents/
+```
+
+#### Agent Out of Sync
+
+```bash
+# Check for local modifications
+intent agents status
+
+# Sync with latest versions (overwrites local changes)
+intent agents sync
+```
+
+#### Reinstalling Agents
+
+```bash
+# Remove and reinstall
+intent agents uninstall intent
+intent agents install intent
+```
 
 ## Testing
 

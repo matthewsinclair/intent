@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive test suite with GitHub Actions CI/CD
 - Example projects demonstrating migration paths
 - Support for `jq` dependency in workflows
+- **Claude Code Sub-Agent Integration**: Complete agent management system
+  - `intent agents` command suite (list, install, sync, uninstall, show, status)
+  - Intent agent with steel thread methodology knowledge
+  - Elixir agent with Usage Rules and Ash/Phoenix patterns
+  - Global and project-specific agent support
+  - Manifest-based tracking with checksum integrity
+  - Seamless integration with intent init, doctor, and upgrade commands
 
 ### Changed
 

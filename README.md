@@ -98,7 +98,7 @@ $ intent st show ST0015
 
 ## 🤖 Claude Code Integration
 
-Intent v2.1.0 integrates with [Claude Code](https://claude.ai/code) sub-agents to supercharge AI collaboration:
+Intent v2.0.0 integrates with [Claude Code](https://claude.ai/code) sub-agents to supercharge AI collaboration:
 
 ```bash
 # Install the Intent agent (one-time setup)
@@ -329,9 +329,13 @@ intent llm usage_rules --symlink     # Create usage-rules.md symlink
 
 ```
 .
+├── agents/        # Claude Code sub-agents (global)
+│   ├── intent/    # Intent methodology agent
+│   └── elixir/    # Elixir code doctor agent
 ├── bin/           # Intent command-line tools
 ├── docs/          # Documentation and blog posts
 ├── intent/        # Project artifacts (when using Intent)
+│   ├── agents/    # Project-specific sub-agents
 │   ├── st/        # Steel threads
 │   ├── eng/       # Engineering documentation
 │   │   └── tpd/   # Technical Product Design

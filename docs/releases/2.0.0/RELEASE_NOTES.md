@@ -1,12 +1,21 @@
 # Intent v2.0.0 Release Notes
 
-## Release Date: July 17, 2025
+## Release Date: July 17, 2025 (Updated: July 27, 2025)
 
 ## Overview
 
 Intent v2.0.0 marks a major milestone in the evolution of the Steel Thread Process tooling. This release represents a complete rebrand from STP to Intent, reflecting the tool's core mission of capturing and preserving the intention behind software development decisions.
 
 ## Major Changes
+
+### 🤖 Claude Code Sub-Agent Integration
+
+Intent v2.0.0 includes full integration with Claude Code's sub-agent system, revolutionizing AI-assisted development:
+
+- **Intent Agent**: Pre-built agent that understands steel threads, Intent commands, and project structure
+- **Elixir Agent**: Specialized agent for Elixir development with Usage Rules and Ash/Phoenix patterns
+- **Agent Management**: Complete suite of commands for installing, syncing, and managing agents
+- **Seamless Integration**: Agents work automatically with Claude Code sessions
 
 ### 🚀 Complete Rebrand: STP → Intent
 
@@ -30,8 +39,12 @@ stp/
 **After (Intent v2.0.0):**
 ```
 .
+├── agents/     # Claude Code sub-agents (global)
+│   ├── intent/ # Intent methodology agent
+│   └── elixir/ # Elixir code doctor agent
 ├── bin/        # Tool executables (top-level)
 ├── intent/     # Project artifacts (flattened)
+│   ├── agents/ # Project-specific sub-agents
 │   ├── st/     # Steel threads
 │   ├── eng/    # Engineering docs
 │   ├── usr/    # User docs
@@ -43,6 +56,13 @@ stp/
 
 - **`intent bootstrap`**: One-command global setup with clear instructions
 - **`intent doctor`**: Comprehensive diagnostics to troubleshoot issues
+- **`intent agents`**: Complete agent management system:
+  - `intent agents list` - Show available and installed agents
+  - `intent agents install` - Install agents to Claude configuration
+  - `intent agents sync` - Update agents while preserving modifications
+  - `intent agents uninstall` - Remove Intent-managed agents
+  - `intent agents show` - Display agent details and metadata
+  - `intent agents status` - Check agent health and integrity
 
 ### 📋 JSON Configuration
 
@@ -107,6 +127,25 @@ While we maintain backwards compatibility, these changes affect the underlying s
 
 ## New Features
 
+### Claude Code Agent Integration
+
+- **Pre-built Agents**: Intent and Elixir agents ready to use
+- **Agent Management**: Full lifecycle commands (install, sync, uninstall)
+- **Project & Global Agents**: Support for both scopes
+- **Integrity Checking**: Checksums track modifications
+- **Seamless Claude Integration**: Agents automatically enhance Claude sessions
+
+**Quick Start with Agents:**
+```bash
+# Install the Intent agent
+intent agents install intent
+
+# Check agent status
+intent agents status
+
+# Now Claude understands Intent methodology!
+```
+
 ### Enhanced User Experience
 
 - **Better error messages**: Clear, actionable feedback
@@ -127,6 +166,8 @@ While we maintain backwards compatibility, these changes affect the underlying s
 - **Better path handling**: Works in more environments
 - **Dependency management**: Clear requirements (jq, backlog.md)
 - **Configuration validation**: Catches errors early
+- **Agent manifest tracking**: JSON-based with checksums
+- **50 new tests**: Complete agent system test coverage
 
 ## Fixed Issues
 
@@ -163,11 +204,11 @@ All commands remain the same, just replace `stp` with `intent`:
 
 ## Future Roadmap
 
-With the rebrand complete, Intent is positioned for:
+With the rebrand complete and Claude Code integration shipped, Intent is positioned for:
 
-- **Q3 2025**: Native AI integrations (MCP protocol)
+- **Q3 2025**: Extended agent ecosystem (language-specific agents)
 - **Q4 2025**: Team collaboration features
-- **2026**: Enterprise scalability
+- **2026**: Enterprise scalability and custom agent marketplaces
 
 ## Support
 
