@@ -267,6 +267,132 @@ intent_agents_install() {
   fi
 }
 
+# Sync installed agents with latest versions
+intent_agents_sync() {
+  # Check for Claude
+  if [ ! -d "$HOME/.claude" ]; then
+    echo "Error: Claude Code not detected."
+    return 1
+  fi
+  
+  # Determine manifest location
+  local manifest_file
+  if [ -n "${PROJECT_ROOT:-}" ]; then
+    manifest_file="$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json"
+  else
+    manifest_file="$HOME/.intent/agents/installed-agents.json"
+  fi
+  
+  # Check if manifest exists
+  if [ ! -f "$manifest_file" ]; then
+    echo "No installed agents found."
+    echo "Use 'intent agents install' to install agents first."
+    return 0
+  fi
+  
+  # Parse force flag
+  local force=false
+  for arg in "$@"; do
+    if [ "$arg" = "--force" ] || [ "$arg" = "-f" ]; then
+      force=true
+      break
+    fi
+  done
+  
+  echo "Syncing installed agents..."
+  echo ""
+  
+  # Read installed agents
+  local agents=$(jq -r '.installed[].name' "$manifest_file" 2>/dev/null)
+  local updated_count=0
+  local skipped_count=0
+  local failed_count=0
+  
+  for agent in $agents; do
+    echo "Checking agent: $agent"
+    
+    # Get agent info from manifest
+    local agent_info=$(jq -r ".installed[] | select(.name == \"$agent\")" "$manifest_file")
+    local source=$(echo "$agent_info" | jq -r '.source')
+    local source_path=$(echo "$agent_info" | jq -r '.source_path')
+    local old_checksum=$(echo "$agent_info" | jq -r '.checksum')
+    
+    # Determine source file
+    local source_file
+    if [ "$source" = "global" ]; then
+      source_file="$source_path/agent.md"
+    else
+      # Local agents not yet implemented
+      echo "  Error: Local agent sync not yet implemented"
+      ((failed_count++))
+      continue
+    fi
+    
+    # Check if source exists
+    if [ ! -f "$source_file" ]; then
+      echo "  Error: Source file not found: $source_file"
+      ((failed_count++))
+      continue
+    fi
+    
+    # Calculate current checksums
+    local source_checksum=$(calculate_checksum "$source_file")
+    local target_file="$HOME/.claude/agents/${agent}.md"
+    local target_checksum=$(calculate_checksum "$target_file")
+    
+    # Check if update needed
+    if [ "$source_checksum" = "$old_checksum" ] && [ "$target_checksum" = "$old_checksum" ]; then
+      echo "  Up to date"
+      ((skipped_count++))
+      continue
+    fi
+    
+    # Check if user modified the agent
+    if [ "$target_checksum" != "$old_checksum" ] && [ "$source_checksum" = "$old_checksum" ]; then
+      echo "  Warning: Agent has been modified locally"
+      if [ "$force" = false ]; then
+        echo -n "  Overwrite local changes? [y/N] "
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+          echo "  Skipped"
+          ((skipped_count++))
+          continue
+        fi
+      else
+        echo "  Overwriting local changes (--force)"
+      fi
+    elif [ "$source_checksum" != "$old_checksum" ]; then
+      echo "  Update available"
+    fi
+    
+    # Copy updated agent
+    if cp "$source_file" "$target_file"; then
+      echo "  Updated successfully"
+      update_installed_manifest "$agent" "$source" "$source_path"
+      ((updated_count++))
+    else
+      echo "  Error: Failed to update"
+      ((failed_count++))
+    fi
+  done
+  
+  # Summary
+  echo ""
+  echo "Sync complete:"
+  echo "  Updated: $updated_count"
+  [ "$skipped_count" -gt 0 ] && echo "  Skipped: $skipped_count"
+  [ "$failed_count" -gt 0 ] && echo "  Failed: $failed_count"
+  
+  # Return status
+  if [ "$updated_count" -gt 0 ] || [ "$skipped_count" -gt 0 ]; then
+    return 0
+  elif [ "$failed_count" -gt 0 ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
 # Route commands
 case "$1" in
   list)
@@ -277,7 +403,11 @@ case "$1" in
     shift
     intent_agents_install "$@"
     ;;
-  sync|uninstall|show|status)
+  sync)
+    shift
+    intent_agents_sync "$@"
+    ;;
+  uninstall|show|status)
     echo "Error: 'intent agents $1' not yet implemented"
     exit 1
     ;;

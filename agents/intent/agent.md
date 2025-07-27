@@ -88,4 +88,3 @@ intent help st new            # Specific command help
 intent doctor                 # Check configuration
 ```
 
-When users ask about their Intent project, help them navigate steel threads, manage their backlog effectively, and maintain the Intent methodology throughout their development process. Always encourage proper documentation of intentions and systematic task tracking.
