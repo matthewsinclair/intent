@@ -1,6 +1,6 @@
 ---
-verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Updated to Intent v2.0.0"
-intent_version: 2.0.0
+verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Updated to Intent v2.1.0"
+intent_version: 2.1.0
 ---
 # User Guide
 
@@ -387,7 +387,7 @@ This provides the LLM with task-specific context for more effective collaboratio
 
 ## Agent Management
 
-Intent v2.0.0 integrates with Claude Code sub-agents to provide specialized AI assistance that understands Intent methodology and your project conventions.
+Intent v2.1.0 integrates with Claude Code sub-agents to provide specialized AI assistance that understands Intent methodology and your project conventions.
 
 ### What are Intent Agents?
 
@@ -398,6 +398,20 @@ Intent agents are Claude Code sub-agents - specialized AI assistants with focuse
 - **Custom Agents**: Project-specific agents you can create
 
 ### Setting Up Agents
+
+#### Initializing Agent Configuration
+
+Before installing agents, you need to initialize the agent configuration:
+
+```bash
+# Initialize global agent configuration
+intent agents init
+
+# Initialize project-specific agent configuration
+intent agents init --project
+```
+
+This creates the necessary directories and manifest files for agent management.
 
 #### Installing the Intent Agent
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# intent_helpers - Shared functions for Intent v2.0.0 migration and utilities
+# intent_helpers - Shared functions for Intent v2.1.0 migration and utilities
 
 # Convert YAML frontmatter to JSON format
 convert_yaml_frontmatter() {
@@ -144,7 +144,7 @@ convert_yaml_config_to_json() {
   fi
 }
 
-# Create standard v2.0.0 directory structure
+# Create standard v2.0.0+ directory structure
 create_v2_directory_structure() {
   local project_root=$1
   
@@ -323,11 +323,25 @@ needs_v2_migration() {
   local version=$1
   
   case "$version" in
-    "2.0.0")
+    "2.0.0"|"2.1.0")
       return 1  # Already v2
       ;;
     *)
       return 0  # Needs migration
+      ;;
+  esac
+}
+
+# Check if needs 2.1.0 upgrade (agent initialization)
+needs_v2_1_upgrade() {
+  local version=$1
+  
+  case "$version" in
+    "2.0.0")
+      return 0  # Needs agent initialization
+      ;;
+    *)
+      return 1  # Already upgraded or too old
       ;;
   esac
 }
@@ -478,6 +492,50 @@ migrate_v1_2_1_to_v2() {
   fi
 }
 
+# Migrate v2.0.0 to v2.1.0 (agent initialization)
+migrate_v2_0_to_v2_1() {
+  local project_root=$1
+  
+  echo "Upgrading v2.0.0 to v2.1.0 (agent initialization)..."
+  
+  # Ensure agent directories exist
+  mkdir -p "$project_root/agents/.manifest"
+  
+  # Create global agents manifest if it doesn't exist
+  if [ ! -f "$project_root/agents/.manifest/global-agents.json" ]; then
+    echo "  Creating agent manifest..."
+    cat > "$project_root/agents/.manifest/global-agents.json" << 'EOF'
+{
+  "version": "1.0.0",
+  "agents": []
+}
+EOF
+  fi
+  
+  # Update .intent/config.json to v2.1.0
+  if [ -f "$project_root/.intent/config.json" ]; then
+    echo "  Updating project version to 2.1.0..."
+    local temp_file=$(mktemp)
+    jq '.intent_version = "2.1.0" | .version = "2.1.0"' "$project_root/.intent/config.json" > "$temp_file"
+    mv "$temp_file" "$project_root/.intent/config.json"
+  fi
+  
+  # Initialize user agent manifest if needed
+  local user_manifest_dir="$HOME/.intent/agents"
+  if [ ! -d "$user_manifest_dir" ]; then
+    echo "  Initializing user agent configuration..."
+    mkdir -p "$user_manifest_dir"
+    cat > "$user_manifest_dir/installed-agents.json" << 'EOF'
+{
+  "version": "1.0.0",
+  "installed": []
+}
+EOF
+  fi
+  
+  echo "  Agent system initialized successfully"
+}
+
 # Migrate all remaining content from stp/ to intent/
 migrate_remaining_content() {
   local project_root=$1
@@ -563,16 +621,17 @@ create_default_v2_config() {
 EOF
 }
 
-# Create CLAUDE.md for Intent v2.0.0
+# Create CLAUDE.md for Intent v2.0.0+
 create_claude_md() {
   local project_root=$1
   local project_name=$(jq -r '.project_name // "Project"' "$project_root/.intent/config.json" 2>/dev/null || echo "Project")
   local author=$(jq -r '.author // "Unknown"' "$project_root/.intent/config.json" 2>/dev/null || echo "${USER:-Unknown}")
+  local version=$(jq -r '.intent_version // "2.0.0"' "$project_root/.intent/config.json" 2>/dev/null || echo "2.0.0")
   
   cat > "$project_root/CLAUDE.md" << EOF
 # $project_name Project Guidelines
 
-This is an Intent v2.0.0 project (formerly STP).
+This is an Intent v$version project (formerly STP).
 
 ## Project Structure
 
@@ -595,12 +654,15 @@ Steel threads are organized as directories under \`intent/st/\`:
 - \`intent st new "Title"\` - Create a new steel thread
 - \`intent st list\` - List all steel threads
 - \`intent st show <id>\` - Show steel thread details
+- \`intent agents init\` - Initialize agent configuration
+- \`intent agents list\` - List available agents
+- \`intent agents install <agent>\` - Install an agent
 - \`intent doctor\` - Check configuration
 - \`intent help\` - Get help
 
 ## Migration Notes
 
-This project was migrated from STP to Intent v2.0.0 on $(date +%Y-%m-%d).
+This project was migrated from STP to Intent v$version on $(date +%Y-%m-%d).
 - Old structure: \`stp/prj/st/\`, \`stp/eng/\`, etc.
 - New structure: \`intent/st/\`, \`intent/docs/\`, etc.
 - Configuration moved from YAML to JSON format

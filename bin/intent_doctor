@@ -1,5 +1,5 @@
 #!/bin/bash
-# intent_doctor - Configuration diagnostics and fixes for Intent v2.0.0
+# intent_doctor - Configuration diagnostics and fixes for Intent v2.1.0
 
 # Source the config library if we can find it
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -132,7 +132,7 @@ verbose() {
 # Main doctor function
 doctor_check() {
   if [ "$QUIET" != true ]; then
-    echo "Intent Doctor v2.0.0"
+    echo "Intent Doctor v2.1.0"
     echo "===================="
     echo ""
   fi
@@ -247,7 +247,7 @@ doctor_check() {
       # Check if this is a legacy project
       if [ -f "$PROJECT_ROOT/.stp-config" ] || [ -d "$PROJECT_ROOT/stp" ]; then
         show_warning "Legacy project without intent config"
-        verbose "Run 'intent upgrade' to migrate to v2.0.0"
+        verbose "Run 'intent upgrade' to migrate to v2.1.0"
       else
         info "Not found (using global config)"
       fi

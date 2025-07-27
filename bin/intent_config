@@ -1,9 +1,9 @@
 #!/bin/bash
-# intent_config - Shared configuration library for Intent v2.0.0
+# intent_config - Shared configuration library for Intent v2.1.0
 # Provides JSON parsing, config loading, and common functions
 
 # Version
-INTENT_VERSION="2.0.0"
+INTENT_VERSION="2.1.0"
 
 # Default values
 DEFAULT_INTENT_DIR="intent"
@@ -156,7 +156,7 @@ create_default_global_config() {
   
   cat > "$config_file" << EOF
 {
-  "intent_version": "2.0.0",
+  "intent_version": "2.1.0",
   "intent_dir": "intent",
   "backlog_dir": "backlog",
   "author": "${USER}",

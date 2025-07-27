@@ -1,6 +1,6 @@
 ---
-verblock: "27 Jul 2025:v0.2: matts - Completed implementation"
-stp_version: 2.0.0
+verblock: "27 Jul 2025:v0.3: matts - Updated for v2.1.0 with agent init"
+intent_version: 2.1.0
 status: Completed
 created: 20250727
 completed: 20250727
@@ -49,7 +49,7 @@ This will improve developer experience by providing contextual AI assistance tha
 
 ## Related Steel Threads
 
-- None currently - this is a new capability for Intent v2.0.0
+- None currently - this is a new capability introduced in Intent v2.1.0 (enhanced from v2.0.0)
 
 ## Context for LLM
 

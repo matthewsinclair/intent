@@ -1,6 +1,6 @@
 # . Project Guidelines
 
-This is an Intent v2.0.0 project (formerly STP).
+This is an Intent v2.1.0 project (formerly STP).
 
 ## Project Structure
 
@@ -23,12 +23,15 @@ Steel threads are organized as directories under `intent/st/`:
 - `intent st new "Title"` - Create a new steel thread
 - `intent st list` - List all steel threads
 - `intent st show <id>` - Show steel thread details
+- `intent agents init` - Initialize agent configuration
+- `intent agents list` - List available agents
+- `intent agents install <agent>` - Install an agent
 - `intent doctor` - Check configuration
 - `intent help` - Get help
 
 ## Migration Notes
 
-This project was migrated from STP to Intent v2.0.0 on 2025-07-16.
+This project was migrated from STP to Intent v2.0.0 on 2025-07-16 and upgraded to v2.1.0 on 2025-07-27.
 - Old structure: `stp/prj/st/`, `stp/eng/`, etc.
 - New structure: `intent/st/`, `intent/docs/`, etc.
 - Configuration moved from YAML to JSON format
