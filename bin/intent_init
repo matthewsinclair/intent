@@ -207,7 +207,8 @@ fi
 # Initialize Backlog.md if available
 if command -v backlog >/dev/null 2>&1; then
   echo "Initializing Backlog.md..."
-  backlog init
+  # Pass project name to backlog init to avoid prompt
+  echo "$PROJECT_NAME" | backlog init >/dev/null 2>&1 || true
   
   # Configure backlog for Intent
   if [ -f "backlog/.config" ]; then
@@ -216,24 +217,26 @@ if command -v backlog >/dev/null 2>&1; then
   fi
 fi
 
-# Check for Claude Code and offer agent installation
-if [ -d "$HOME/.claude" ] || command -v claude >/dev/null 2>&1; then
-  echo ""
-  echo "Claude Code detected!"
-  echo -n "Would you like to install the Intent sub-agent for better Claude integration? [Y/n] "
-  read -r response
-  
-  if [[ "$response" =~ ^[Yy]?$ ]]; then
-    echo "Installing Intent agent..."
-    if "$SCRIPT_DIR/intent_agents" install intent --force >/dev/null 2>&1; then
-      echo "Intent agent installed successfully!"
-      echo "Claude will now understand Intent's steel thread methodology."
+# Check for Claude Code and offer agent installation (only in interactive mode)
+if [ -t 0 ] && [ -t 1 ]; then  # Check if both stdin and stdout are TTY
+  if [ -d "$HOME/.claude" ] || command -v claude >/dev/null 2>&1; then
+    echo ""
+    echo "Claude Code detected!"
+    echo -n "Would you like to install the Intent sub-agent for better Claude integration? [Y/n] "
+    read -r response
+    
+    if [[ "$response" =~ ^[Yy]?$ ]]; then
+      echo "Installing Intent agent..."
+      if "$SCRIPT_DIR/intent_agents" install intent --force >/dev/null 2>&1; then
+        echo "Intent agent installed successfully!"
+        echo "Claude will now understand Intent's steel thread methodology."
+      else
+        echo "Note: Could not install agent automatically."
+        echo "You can install it later with: intent agents install intent"
+      fi
     else
-      echo "Note: Could not install agent automatically."
-      echo "You can install it later with: intent agents install intent"
+      echo "You can install agents later with: intent agents list"
     fi
-  else
-    echo "You can install agents later with: intent agents list"
   fi
 fi
 
