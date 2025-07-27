@@ -1,0 +1,8 @@
+{
+  "name": "intent",
+  "version": "1.0.0",
+  "description": "Intent-aware assistant for steel threads and backlog management",
+  "author": "Intent Contributors",
+  "tools": ["Bash", "Read", "Write", "Edit", "Grep"],
+  "tags": ["project-management", "steel-threads", "backlog", "task-tracking"]
+}

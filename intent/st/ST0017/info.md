@@ -35,15 +35,21 @@ When you're ready, let's dive in and build out a design.
 
 ## Objective
 
-[Clear statement of what this steel thread aims to accomplish]
+Create a sub-agent management system for Intent that integrates with Claude Code's sub-agent capability, allowing Intent projects to leverage specialized AI assistants for development tasks while maintaining Intent's architectural principles.
 
 ## Context
 
-[Background information and context for this steel thread, including why it's needed and how it fits into the larger project]
+Claude Code recently introduced [sub-agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents) - specialized AI assistants that can handle specific tasks with focused expertise. This presents an opportunity to enhance Intent with:
+
+1. **Intent-aware Assistant**: A sub-agent that understands Intent's steel thread methodology, project structure, and commands
+2. **Extensible Architecture**: A plugin system allowing users to add domain-specific sub-agents (e.g., Elixir code doctor)
+3. **Seamless Integration**: Automatic management of sub-agents within Intent projects
+
+This will improve developer experience by providing contextual AI assistance that understands both the project management framework (Intent) and specific technical domains.
 
 ## Related Steel Threads
 
-- [List any related steel threads here]
+- None currently - this is a new capability for Intent v2.0.0
 
 ## Context for LLM
 

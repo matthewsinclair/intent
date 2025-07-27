@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "agents": [
+    {
+      "name": "intent",
+      "version": "1.0.0",
+      "description": "Intent-aware development assistant",
+      "path": "intent"
+    }
+  ]
+}
