@@ -382,7 +382,7 @@ migrate_v0_to_v2() {
   
   cat > "$project_root/.intent/config.json" << EOF
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "project_name": "$project_name",
   "author": "$author",
   "created": "$(date +%Y-%m-%d)",
@@ -612,7 +612,7 @@ create_default_v2_config() {
   
   cat > "$project_root/.intent/config.json" << EOF
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "project_name": "$project_name",
   "author": "$author",
   "created": "$(date +%Y-%m-%d)",

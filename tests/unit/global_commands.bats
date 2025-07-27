@@ -35,13 +35,13 @@ load "../lib/test_helper.bash"
 @test "intent version works anywhere" {
   run run_intent version
   assert_success
-  assert_output_contains "Intent version 2.0.0"
+  assert_output_contains "Intent version 2.1.0"
 }
 
 @test "intent --version works anywhere" {
   run run_intent --version
   assert_success
-  assert_output_contains "Intent version 2.0.0"
+  assert_output_contains "Intent version 2.1.0"
 }
 
 @test "intent bootstrap works anywhere" {

@@ -11,7 +11,7 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 ID         | Title                     | Status       | Created    | Completed 
 -----------|---------------------------|--------------|------------|-----------
-ST0016     | Rename STP CLI to INTE... | WIP          | 2025-03-11 | 2025-07-08
+ST0016     | Rename STP CLI to INTE... | Completed    | 2025-03-11 | 2025-07-27
 ST0015     | Enhanced Steel Thread ... | Not Started  | 2025-07-09 |           
 ST0014     | Directory Structure fo... | Completed    | 2025-03-20 | 2025-07-09
 ST0013     | STP Blog Post Series      | In Progress  | 2025-03-11 | 2025-07-08
@@ -55,5 +55,5 @@ This document provides an overview of all steel threads in the STP project. It h
 The detailed information for each steel thread is contained in its individual document (e.g., ST0001.md).
 | ST0014 | Directory Structure for Steel Threads | Completed |  | 2025-07-09 |
 | ST0015 | Enhanced Steel Thread Templates and File Types | Not Started | 2025-07-09 |  |
-| ST0017 | Add an Intent sub-agent for Claude Code to Intent | In Progress | 2025-07-27 |  |
+| ST0017 | Add an Intent sub-agent for Claude Code to Intent | Completed | 2025-07-27 | 2025-07-27 |
 | ST0016 | Rename STP CLI to INTENT (v2.0.0) | Completed |  | 2025-07-27 |

@@ -71,7 +71,7 @@ mkdir -p backlog
 echo "Creating configuration..."
 cat > .intent/config.json << EOF
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "project_name": "$PROJECT_NAME",
   "author": "$AUTHOR",
   "created": "$DATE",

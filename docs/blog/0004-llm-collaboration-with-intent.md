@@ -392,7 +392,7 @@ This isn't just about current development – it's about building a knowledge ba
 
 ## Claude Code Sub-Agents: Taking Collaboration Further
 
-Intent v2.0.0 includes integration with Claude Code's sub-agent system, revolutionizing AI-assisted development.
+Intent v2.1.0 includes integration with Claude Code's sub-agent system, revolutionizing AI-assisted development.
 
 ### The Problem with Session Amnesia
 
