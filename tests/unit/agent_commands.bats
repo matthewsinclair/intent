@@ -505,10 +505,88 @@ teardown() {
   assert_output_contains "No installed agents found"
 }
 
-@test "agents show is not yet implemented" {
-  run run_intent agents show intent
+# Show command tests
+@test "agents show requires an agent name" {
+  run run_intent agents show
   assert_failure
-  assert_output_contains "Error: 'intent agents show' not yet implemented"
+  assert_output_contains "Error: Agent name required"
+  assert_output_contains "Usage: intent agents show"
+}
+
+@test "agents show displays agent information" {
+  run run_intent agents show intent
+  assert_success
+  assert_output_contains "Agent: intent"
+  assert_output_contains "Version: 1.0.0"
+  assert_output_contains "Description: Intent-aware development assistant"
+  assert_output_contains "Source: global"
+  assert_output_contains "Tools: Bash, Read, Write, Edit, Grep"
+  assert_output_contains "Tags: project-management, steel-threads, backlog, task-tracking"
+}
+
+@test "agents show indicates installation status" {
+  # First check when not installed
+  rm -f "$HOME/.claude/agents/intent.md" 2>/dev/null || true
+  run run_intent agents show intent
+  assert_success
+  assert_output_contains "Status: NOT INSTALLED"
+  assert_output_contains "To install: intent agents install intent"
+  
+  # Install and check again
+  run run_intent agents install intent --force
+  assert_success
+  
+  run run_intent agents show intent
+  assert_success
+  assert_output_contains "Status: INSTALLED"
+  assert_output_contains "Full content: $HOME/.claude/agents/intent.md"
+}
+
+@test "agents show displays metadata" {
+  run run_intent agents show elixir
+  assert_success
+  assert_output_contains "Agent: elixir"
+  assert_output_contains "Description: Elixir code doctor with Usage Rules"
+  assert_output_contains "Author: Intent Contributors"
+  assert_output_contains "Tools:"
+  assert_output_contains "Tags:"
+}
+
+@test "agents show includes system prompt preview" {
+  run run_intent agents show intent
+  assert_success
+  assert_output_contains "System Prompt Preview:"
+  assert_output_contains "You are an Intent-aware development assistant"
+  assert_output_contains "Intent Framework Knowledge"
+}
+
+@test "agents show displays installation info when installed" {
+  # Install agent
+  run run_intent agents install elixir --force
+  assert_success
+  
+  run run_intent agents show elixir
+  assert_success
+  assert_output_contains "Status: INSTALLED"
+  assert_output_contains "Installed: 202"  # Partial match for timestamp
+}
+
+@test "agents show handles non-existent agent" {
+  run run_intent agents show nonexistent
+  assert_failure
+  assert_output_contains "Error: Agent 'nonexistent' not found"
+}
+
+@test "agents show works for both agents" {
+  # Test both intent and elixir agents exist and can be shown
+  run run_intent agents show intent
+  assert_success
+  assert_output_contains "Agent: intent"
+  
+  run run_intent agents show elixir
+  assert_success
+  assert_output_contains "Agent: elixir"
+  assert_output_contains "Elixir code doctor"
 }
 
 @test "agents status is not yet implemented" {
