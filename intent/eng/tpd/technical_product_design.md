@@ -28,7 +28,7 @@ This document is a Technical Product Design (TPD) for the Intent system (formerl
 8. Configuration uses JSON format (.intent/config.json) instead of YAML
 9. The system integrates with Backlog.md for task management with enhanced filtering
 10. Intent is self-hosting - this project is built using Intent v2.0.0
-11. Intent v2.1.0 includes Claude Code sub-agent integration for enhanced AI collaboration
+11. Intent v2.0.0 includes Claude Code sub-agent integration for enhanced AI collaboration
 12. Key commands include:
 
 - `intent st list`: List all steel threads with status filtering
@@ -60,9 +60,9 @@ This document serves as the central index for the Technical Product Design (TPD)
 7. [Technical Challenges and Mitigations](./7_technical_challenges_and_mitigations.md)
 8. [Appendices](./8_appendices.md)
 
-## Agent System (v2.1.0) [AS-BUILT]
+## Agent System (v2.0.0) [AS-BUILT]
 
-Intent v2.1.0 introduces Claude Code sub-agent integration, enhancing AI collaboration:
+Intent v2.0.0 includes Claude Code sub-agent integration, enhancing AI collaboration:
 
 ### Architecture
 - **Agent Storage**: `$INTENT_HOME/agents/` (global), `./intent/agents/` (project)
@@ -100,7 +100,7 @@ Intent v2.0.0 represents a complete rebrand and restructuring from the Steel Thr
 
 ## Current Status
 
-- **Version**: 2.1.0 (Agent System Release - July 2025)
+- **Version**: 2.0.0 (Includes Agent System - July 2025)
 - **Tests**: 165/165 passing (includes 50 new agent tests)
 - **Commands**: 13 primary commands including new `intent agents`
 - **Agents**: 2 built-in agents (Intent, Elixir)

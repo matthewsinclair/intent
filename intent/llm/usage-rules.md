@@ -67,7 +67,7 @@ This creates the Intent v2.0.0 structure:
 
 ### Working with Claude Code Agents
 
-Intent v2.1.0 integrates with Claude Code's sub-agent system for enhanced AI assistance:
+Intent v2.0.0 integrates with Claude Code's sub-agent system for enhanced AI assistance:
 
 1. **Initial Setup**
 
