@@ -102,7 +102,7 @@ if [ "$NO_BACKUP" != true ]; then
   mkdir -p "$BACKUP_DIR"
   
   # Backup relevant directories
-  for dir in stp .stp-config backlog CLAUDE.md agents; do
+  for dir in stp .stp-config backlog CLAUDE.md; do
     if [ -e "$dir" ]; then
       cp -r "$dir" "$BACKUP_DIR/" 2>/dev/null || true
     fi
@@ -153,11 +153,6 @@ if [ -d "backlog" ]; then
   fi
 fi
 
-# Preserve agents directory if it exists
-if [ -d "agents" ]; then
-  echo "Agents directory found, preserving..."
-  # Agents directory is maintained as-is
-fi
 
 # Ensure agent initialization for all upgrades
 if [ "$VERSION" != "2.0.0" ]; then
@@ -190,9 +185,6 @@ echo "- Metadata updated to Intent v2.1.0 format"
 echo "- Created/updated .intent/config.json"
 echo "- Initialized agent configuration"
 echo "- Updated CLAUDE.md with Intent guidelines"
-if [ -d "agents" ]; then
-  echo "- Preserved agents directory and manifests"
-fi
 
 if [ "$NO_BACKUP" != true ]; then
   echo ""

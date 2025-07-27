@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Agent directories not being properly created during upgrade
 - Missing agent initialization when upgrading from older versions
 - Agent manifest not being created in fresh installations
+- Incorrect creation of `agents/` directory at project root instead of `intent/agents/`
+- Upgrade process incorrectly preserving root-level agent directories
 
 ## [2.0.0] - 2025-07-17
 

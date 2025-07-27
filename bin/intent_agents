@@ -63,31 +63,18 @@ intent_agents_init() {
     
     echo "Initializing project agent configuration..."
     
-    # Create project agent directories
-    mkdir -p "$PROJECT_ROOT/agents/.manifest"
-    
-    # Create project agent manifest if it doesn't exist
-    if [ ! -f "$PROJECT_ROOT/agents/.manifest/global-agents.json" ]; then
-      echo "  Creating project agent manifest..."
-      cat > "$PROJECT_ROOT/agents/.manifest/global-agents.json" << 'EOF'
-{
-  "version": "1.0.0",
-  "agents": []
-}
-EOF
-    elif [ "$force" = true ]; then
-      echo "  Project agent manifest already exists (use --force to overwrite)"
-    fi
-    
-    # Initialize project agent tracking
+    # Initialize project agent tracking in the correct location
     mkdir -p "$PROJECT_ROOT/intent/agents/.manifest"
     if [ ! -f "$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json" ]; then
+      echo "  Creating project agent manifest..."
       cat > "$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json" << 'EOF'
 {
   "version": "1.0.0",
   "installed": []
 }
 EOF
+    elif [ "$force" = false ]; then
+      echo "  Project agent manifest already exists (use --force to overwrite)"
     fi
     
     echo "Project agent configuration initialized successfully"
