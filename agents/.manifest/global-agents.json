@@ -6,6 +6,12 @@
       "version": "1.0.0",
       "description": "Intent-aware development assistant",
       "path": "intent"
+    },
+    {
+      "name": "elixir",
+      "version": "1.0.0",
+      "description": "Elixir code doctor with Usage Rules",
+      "path": "elixir"
     }
   ]
 }
