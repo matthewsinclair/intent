@@ -413,3 +413,219 @@ load ../lib/test_helper
   [ "$line1" -lt "$line2" ] || fail "File order not preserved"
   [ "$line2" -lt "$line3" ] || fail "File order not preserved"
 }
+
+# Check functionality tests
+@test "fileindex: check file from unchecked to checked" {
+  touch file1.ex file2.ex
+  
+  # Create index
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index
+  assert_success
+  
+  # Check file1.ex
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -C ./file1.ex
+  assert_success
+  assert_output "[x] ./file1.ex"
+  
+  # Verify state persisted
+  assert_file_contains test.index "[x] ./file1.ex"
+  assert_file_contains test.index "[ ] ./file2.ex"
+}
+
+@test "fileindex: check already checked file remains checked" {
+  touch file1.ex
+  
+  # Create index and manually mark as checked
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index
+  assert_success
+  sed -i.bak 's/\[ \] \.\/file1\.ex/[x] .\/file1.ex/' test.index
+  
+  # Check already checked file
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -C ./file1.ex
+  assert_success
+  assert_output "[x] ./file1.ex"
+  
+  # Verify still checked
+  assert_file_contains test.index "[x] ./file1.ex"
+}
+
+@test "fileindex: check with --check flag" {
+  touch file1.ex
+  
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index
+  assert_success
+  
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index --check ./file1.ex
+  assert_success
+  assert_output "[x] ./file1.ex"
+}
+
+@test "fileindex: check requires index file" {
+  touch file1.ex
+  
+  run "${INTENT_BIN_DIR}/intent_fileindex" -C ./file1.ex
+  assert_failure
+  assert_output_contains "Error: Check mode requires an index file"
+}
+
+@test "fileindex: check with non-existent file" {
+  touch file1.ex
+  
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index
+  assert_success
+  
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -C ./nonexistent.ex
+  assert_failure
+  assert_output_contains "Error: File './nonexistent.ex' not found in index"
+}
+
+@test "fileindex: check with non-existent index" {
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i nonexistent.index -C ./file.ex
+  assert_failure
+  assert_output_contains "Error: Index file"
+  assert_output_contains "does not exist"
+}
+
+# Uncheck functionality tests
+@test "fileindex: uncheck file from checked to unchecked" {
+  touch file1.ex file2.ex
+  
+  # Create index
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index
+  assert_success
+  
+  # Manually mark file1 as checked
+  sed -i.bak 's/\[ \] \.\/file1\.ex/[x] .\/file1.ex/' test.index
+  
+  # Uncheck file1.ex
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -U ./file1.ex
+  assert_success
+  assert_output "[ ] ./file1.ex"
+  
+  # Verify state persisted
+  assert_file_contains test.index "[ ] ./file1.ex"
+  assert_file_contains test.index "[ ] ./file2.ex"
+}
+
+@test "fileindex: uncheck already unchecked file remains unchecked" {
+  touch file1.ex
+  
+  # Create index (files are unchecked by default)
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index
+  assert_success
+  
+  # Uncheck already unchecked file
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -U ./file1.ex
+  assert_success
+  assert_output "[ ] ./file1.ex"
+  
+  # Verify still unchecked
+  assert_file_contains test.index "[ ] ./file1.ex"
+}
+
+@test "fileindex: uncheck with --uncheck flag" {
+  touch file1.ex
+  
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index
+  assert_success
+  
+  # Mark as checked first
+  sed -i.bak 's/\[ \] \.\/file1\.ex/[x] .\/file1.ex/' test.index
+  
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index --uncheck ./file1.ex
+  assert_success
+  assert_output "[ ] ./file1.ex"
+}
+
+@test "fileindex: uncheck requires index file" {
+  touch file1.ex
+  
+  run "${INTENT_BIN_DIR}/intent_fileindex" -U ./file1.ex
+  assert_failure
+  assert_output_contains "Error: Uncheck mode requires an index file"
+}
+
+@test "fileindex: uncheck with non-existent file" {
+  touch file1.ex
+  
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index
+  assert_success
+  
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -U ./nonexistent.ex
+  assert_failure
+  assert_output_contains "Error: File './nonexistent.ex' not found in index"
+}
+
+@test "fileindex: uncheck with non-existent index" {
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i nonexistent.index -U ./file.ex
+  assert_failure
+  assert_output_contains "Error: Index file"
+  assert_output_contains "does not exist"
+}
+
+# Combined tests
+@test "fileindex: check and uncheck preserve file order" {
+  touch a.ex b.ex c.ex
+  
+  # Create index
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index
+  assert_success
+  
+  # Check middle file
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -C ./b.ex
+  assert_success
+  
+  # Check first file
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -C ./a.ex
+  assert_success
+  
+  # Uncheck middle file
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -U ./b.ex
+  assert_success
+  
+  # Check order is preserved
+  grep -E "^\[.\]" test.index > actual_order.txt
+  assert_file_contains actual_order.txt "[x] ./a.ex"
+  assert_file_contains actual_order.txt "[ ] ./b.ex"
+  assert_file_contains actual_order.txt "[ ] ./c.ex"
+  
+  # Verify order
+  local line1=$(grep -n "a.ex" actual_order.txt | cut -d: -f1)
+  local line2=$(grep -n "b.ex" actual_order.txt | cut -d: -f1)
+  local line3=$(grep -n "c.ex" actual_order.txt | cut -d: -f1)
+  [ "$line1" -lt "$line2" ] || fail "File order not preserved"
+  [ "$line2" -lt "$line3" ] || fail "File order not preserved"
+}
+
+@test "fileindex: sequential check, uncheck, and toggle operations" {
+  touch file1.ex
+  
+  # Create index
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index
+  assert_success
+  assert_file_contains test.index "[ ] ./file1.ex"
+  
+  # Check the file
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -C ./file1.ex
+  assert_success
+  assert_output "[x] ./file1.ex"
+  assert_file_contains test.index "[x] ./file1.ex"
+  
+  # Uncheck the file
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -U ./file1.ex
+  assert_success
+  assert_output "[ ] ./file1.ex"
+  assert_file_contains test.index "[ ] ./file1.ex"
+  
+  # Toggle the file (should become checked)
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -X ./file1.ex
+  assert_success
+  assert_output "[x] ./file1.ex"
+  assert_file_contains test.index "[x] ./file1.ex"
+  
+  # Check the file (should remain checked)
+  run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -C ./file1.ex
+  assert_success
+  assert_output "[x] ./file1.ex"
+  assert_file_contains test.index "[x] ./file1.ex"
+}

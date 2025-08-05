@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `intent fileindex` command for systematic file tracking and progress management
-- Toggle functionality (`-X` flag) to mark files as checked/unchecked in the index
+- Check functionality (`-C` flag) to explicitly mark files as checked [x] in the index
+- Uncheck functionality (`-U` flag) to explicitly mark files as unchecked [ ] in the index
+- Toggle functionality (`-X` flag) to switch files between checked/unchecked states
 - Flexible operation modes - works both within Intent projects and standalone
 - Enhanced Elixir agent with systematic code review workflow using fileindex
 - Support for both Elixir module names and filesystem paths in the Elixir agent
-- Comprehensive test suite for fileindex command (33 tests)
+- Comprehensive test suite for fileindex command (47 tests including check/uncheck)
 - Demo mode (`--demo`) to showcase fileindex functionality
 
 ### Changed

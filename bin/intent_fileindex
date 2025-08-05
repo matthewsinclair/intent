@@ -26,6 +26,10 @@ NO_INTENT=false
 PROCESSED_COUNT=0
 TOGGLE_FILE=""
 TOGGLE_MODE=false
+CHECK_FILE=""
+CHECK_MODE=false
+UNCHECK_FILE=""
+UNCHECK_MODE=false
 
 # Function to find project root
 find_project_root() {
@@ -59,6 +63,10 @@ usage() {
     echo "  --index FILE    Use index file to maintain checked states"
     echo "  -X FILE         Toggle checked state of FILE in index"
     echo "  --toggle FILE   Toggle checked state of FILE in index"
+    echo "  -C FILE         Set FILE to checked [x] state in index"
+    echo "  --check FILE    Set FILE to checked [x] state in index"
+    echo "  -U FILE         Set FILE to unchecked [ ] state in index"
+    echo "  --uncheck FILE  Set FILE to unchecked [ ] state in index"
     echo "  --index-dir DIR Default directory for index files"
     echo "  --intent-dir    Specify Intent project directory"
     echo "  --no-intent     Disable Intent integration"
@@ -122,6 +130,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         -X|--toggle)
             TOGGLE_FILE="$2"
+            shift 2
+            ;;
+        -C|--check)
+            CHECK_FILE="$2"
+            shift 2
+            ;;
+        -U|--uncheck)
+            UNCHECK_FILE="$2"
             shift 2
             ;;
         -h|--help)
@@ -410,6 +426,102 @@ toggle_file_state() {
     } > "$INDEX_FILE"
 }
 
+# Function to check file state in index (set to [x])
+check_file_state() {
+    local target_file="$1"
+    local found=false
+    
+    # Normalize the target file path
+    local normalized_target=$(normalise_path "$target_file")
+    
+    # Find and set the file to checked
+    local i
+    for i in "${!file_paths[@]}"; do
+        if [[ "${file_paths[$i]}" == "$normalized_target" ]]; then
+            found=true
+            # Set the state to checked
+            file_check_states[$i]="x"
+            echo "[x] ${file_paths[$i]}"
+            break
+        fi
+    done
+    
+    if [[ "$found" == false ]]; then
+        echo "Error: File '$target_file' not found in index" >&2
+        exit 1
+    fi
+    
+    # Write updated index back to file
+    {
+        generate_config_json
+        echo ""
+        # Create sorted output
+        sort_indices=()
+        for i in "${!file_paths[@]}"; do
+            sort_indices+=("${file_paths[$i]}:$i")
+        done
+        
+        sorted_pairs=()
+        while IFS= read -r line; do
+            sorted_pairs+=("$line")
+        done < <(printf '%s\n' "${sort_indices[@]}" | sort)
+        
+        for pair in "${sorted_pairs[@]}"; do
+            file="${pair%:*}"
+            idx="${pair##*:}"
+            echo "[${file_check_states[$idx]}] $file"
+        done
+    } > "$INDEX_FILE"
+}
+
+# Function to uncheck file state in index (set to [ ])
+uncheck_file_state() {
+    local target_file="$1"
+    local found=false
+    
+    # Normalize the target file path
+    local normalized_target=$(normalise_path "$target_file")
+    
+    # Find and set the file to unchecked
+    local i
+    for i in "${!file_paths[@]}"; do
+        if [[ "${file_paths[$i]}" == "$normalized_target" ]]; then
+            found=true
+            # Set the state to unchecked
+            file_check_states[$i]=" "
+            echo "[ ] ${file_paths[$i]}"
+            break
+        fi
+    done
+    
+    if [[ "$found" == false ]]; then
+        echo "Error: File '$target_file' not found in index" >&2
+        exit 1
+    fi
+    
+    # Write updated index back to file
+    {
+        generate_config_json
+        echo ""
+        # Create sorted output
+        sort_indices=()
+        for i in "${!file_paths[@]}"; do
+            sort_indices+=("${file_paths[$i]}:$i")
+        done
+        
+        sorted_pairs=()
+        while IFS= read -r line; do
+            sorted_pairs+=("$line")
+        done < <(printf '%s\n' "${sort_indices[@]}" | sort)
+        
+        for pair in "${sorted_pairs[@]}"; do
+            file="${pair%:*}"
+            idx="${pair##*:}"
+            echo "[${file_check_states[$idx]}] $file"
+        done
+    } > "$INDEX_FILE"
+}
+
 # Setup output redirection
 if [[ -n "$OUTPUT_FILE" ]]; then
     exec 3>&1
@@ -434,6 +546,48 @@ if [[ -n "$TOGGLE_FILE" ]]; then
     
     read_index
     toggle_file_state "$TOGGLE_FILE"
+    exit 0
+fi
+
+# Check if we're in check mode
+if [[ -n "$CHECK_FILE" ]]; then
+    CHECK_MODE=true
+    
+    # Check requires an index file
+    if [[ -z "$INDEX_FILE" ]]; then
+        echo "Error: Check mode requires an index file (-i option)" >&2
+        exit 1
+    fi
+    
+    # Read the existing index
+    if [[ ! -f "$INDEX_FILE" ]]; then
+        echo "Error: Index file '$INDEX_FILE' does not exist" >&2
+        exit 1
+    fi
+    
+    read_index
+    check_file_state "$CHECK_FILE"
+    exit 0
+fi
+
+# Check if we're in uncheck mode
+if [[ -n "$UNCHECK_FILE" ]]; then
+    UNCHECK_MODE=true
+    
+    # Uncheck requires an index file
+    if [[ -z "$INDEX_FILE" ]]; then
+        echo "Error: Uncheck mode requires an index file (-i option)" >&2
+        exit 1
+    fi
+    
+    # Read the existing index
+    if [[ ! -f "$INDEX_FILE" ]]; then
+        echo "Error: Index file '$INDEX_FILE' does not exist" >&2
+        exit 1
+    fi
+    
+    read_index
+    uncheck_file_state "$UNCHECK_FILE"
     exit 0
 fi
 

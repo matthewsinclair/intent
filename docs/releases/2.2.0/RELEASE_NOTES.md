@@ -14,20 +14,24 @@ The `intent fileindex` command provides a persistent checkbox-based file trackin
 - **Progress Tracking**: Mark files as checked/unchecked with persistent state
 - **Flexible Integration**: Works both within Intent projects and standalone
 - **Toggle Functionality**: Quick marking/unmarking of files with `-X` flag
+- **Explicit State Control**: New `-C` (check) and `-U` (uncheck) flags for setting specific states
 
 #### Key Commands:
 ```bash
-# Index all Elixir files
-intent fileindex '**/*.ex'
+# Create an index of all Elixir files recursively
+intent fileindex -r -i project.index
 
-# Show current status
-intent fileindex --status
+# Check a specific file (mark as completed)
+intent fileindex -i project.index -C lib/my_app/user.ex
+
+# Uncheck a specific file (mark as pending)
+intent fileindex -i project.index -U lib/my_app/user.ex
 
 # Toggle a file's checked state
-intent fileindex -X lib/my_app/user.ex
+intent fileindex -i project.index -X lib/my_app/router.ex
 
-# Use with custom cache location
-intent fileindex --cache-dir /tmp/review '**/*.ex'
+# View current index with verbose output
+intent fileindex -v -i project.index
 ```
 
 ### 2. Enhanced Elixir Agent
