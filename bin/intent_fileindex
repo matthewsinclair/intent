@@ -442,19 +442,20 @@ process_files() {
     local find_args=()
     local current_files=()
     
-    if [[ "$RECURSIVE" == true ]]; then
-        find_args=("$search_dir")
-    else
-        find_args=("$search_dir" -maxdepth 1)
+    # Build find command arguments
+    find_args+=("$search_dir")
+    if [[ "$RECURSIVE" != true ]]; then
+        find_args+=(-maxdepth 1)
     fi
+    find_args+=(-type f)
     
-    # Convert filespec to find-compatible pattern
-    local pattern
+    # Add file pattern arguments
     if [[ "$FILESPEC" == *.{ex,exs} ]]; then
-        pattern="-name '*.ex' -o -name '*.exs'"
+        find_args+=(\( -name "*.ex" -o -name "*.exs" \))
     else
-        pattern="-name '$FILESPEC'"
+        find_args+=(-name "$FILESPEC")
     fi
+    find_args+=(-print0)
     
     # Find and collect all current files
     while IFS= read -r -d '' file; do
@@ -477,7 +478,7 @@ process_files() {
         # Update or add to file state
         set_file_state "$normalised_file" "$state"
         ((PROCESSED_COUNT++))
-    done < <(eval "find ${find_args[@]} -type f \( $pattern \) -print0" 2>/dev/null)
+    done < <(find "${find_args[@]}" 2>/dev/null)
     
     # If using index mode, remove files that no longer exist
     if [[ -n "$INDEX_FILE" ]]; then
