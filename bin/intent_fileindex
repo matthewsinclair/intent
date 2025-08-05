@@ -157,35 +157,45 @@ if [ "$NO_INTENT" = false ]; then
   fi
   
   # Apply intent dir override if specified
+  echo "DEBUG: Checking project - NO_INTENT=$NO_INTENT, INTENT_DIR_OVERRIDE='${INTENT_DIR_OVERRIDE:-}'" >&2
   if [ -n "$INTENT_DIR_OVERRIDE" ]; then
     # Check Intent project with override
     if [ -f "$INTENT_DIR_OVERRIDE/.intent/config.json" ]; then
         IN_INTENT_PROJECT=true
         PROJECT_ROOT="$INTENT_DIR_OVERRIDE"
         INTENT_VERSION=$(jq -r '.intent_version // "2.1.0"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null || echo "2.1.0")
+        echo "DEBUG: Found Intent project via override - PROJECT_ROOT=$PROJECT_ROOT" >&2
     fi
   else
     # Try to find project root
+    echo "DEBUG: Searching for project root from PWD=$PWD" >&2
     if PROJECT_ROOT=$(find_project_root 2>/dev/null); then
       IN_INTENT_PROJECT=true
       if [ -f "$PROJECT_ROOT/.intent/config.json" ]; then
         INTENT_VERSION=$(jq -r '.intent_version // "2.1.0"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null || echo "2.1.0")
       fi
+      echo "DEBUG: Found Intent project - PROJECT_ROOT=$PROJECT_ROOT" >&2
+    else
+      echo "DEBUG: No Intent project found" >&2
     fi
   fi
 fi
 
 # Set defaults based on context
+echo "DEBUG: Before defaults - STARTDIR='${STARTDIR:-not set}'" >&2
+echo "DEBUG: IN_INTENT_PROJECT=$IN_INTENT_PROJECT, NO_INTENT=$NO_INTENT" >&2
 if [ "$IN_INTENT_PROJECT" = true ] && [ "$NO_INTENT" = false ]; then
   # Intent project defaults - only use if not already set
   : ${STARTDIR:="lib"}
   : ${FILESPEC:="*.{ex,exs}"}
   : ${INDEX_DIR:=".intent/indexes"}
+  echo "DEBUG: Set Intent project defaults - STARTDIR=$STARTDIR" >&2
 else
   # Standalone defaults - only use if not already set
   : ${STARTDIR:="."}
   : ${FILESPEC:="*.{ex,exs}"}
   : ${INDEX_DIR:="."}
+  echo "DEBUG: Set standalone defaults - STARTDIR=$STARTDIR" >&2
 fi
 
 # Apply index dir override if specified
@@ -208,9 +218,17 @@ fi
 
 # Validate start directory
 if [[ ! -d "$STARTDIR" ]]; then
+    # Debug output to stderr
+    echo "DEBUG: STARTDIR='$STARTDIR' does not exist" >&2
+    echo "DEBUG: IN_INTENT_PROJECT=$IN_INTENT_PROJECT" >&2
+    echo "DEBUG: NO_INTENT=$NO_INTENT" >&2
+    echo "DEBUG: PWD=$PWD" >&2
+    echo "DEBUG: PROJECT_ROOT=${PROJECT_ROOT:-not set}" >&2
+    
     # If we're in an Intent project and tried to use lib but it doesn't exist,
     # fall back to current directory
     if [ "$IN_INTENT_PROJECT" = true ] && [ "$NO_INTENT" = false ] && [ "$STARTDIR" = "lib" ]; then
+        echo "DEBUG: Falling back to current directory" >&2
         STARTDIR="."
     else
         echo "Error: Directory '$STARTDIR' does not exist"
