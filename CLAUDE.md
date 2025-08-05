@@ -1,6 +1,6 @@
 # . Project Guidelines
 
-This is an Intent v2.1.0 project (formerly STP).
+This is an Intent v2.2.0 project (formerly STP).
 
 ## Project Structure
 
@@ -32,7 +32,7 @@ Steel threads are organized as directories under `intent/st/`:
 
 ## Migration Notes
 
-This project was migrated from STP to Intent v2.0.0 on 2025-07-16 and upgraded to v2.1.0 on 2025-07-27.
+This project was migrated from STP to Intent v2.0.0 on 2025-07-16, upgraded to v2.1.0 on 2025-07-27, and upgraded to v2.2.0 on 2025-08-05.
 
 - Old structure: `stp/prj/st/`, `stp/eng/`, etc.
 - New structure: `intent/st/`, `intent/docs/`, etc.

@@ -44,7 +44,7 @@ fi
 
 # Display general help
 cat << EOF
-Intent v2.1.0 - Structured Development Process
+Intent v2.2.0 - Structured Development Process
 
 A system for structured development and documentation with LLM collaboration.
 Formerly known as STP (Steel Thread Process).

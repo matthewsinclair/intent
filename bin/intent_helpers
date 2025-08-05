@@ -323,7 +323,7 @@ needs_v2_migration() {
   local version=$1
   
   case "$version" in
-    "2.0.0"|"2.1.0")
+    "2.0.0"|"2.1.0"|"2.2.0")
       return 1  # Already v2
       ;;
     *)
@@ -339,6 +339,20 @@ needs_v2_1_upgrade() {
   case "$version" in
     "2.0.0")
       return 0  # Needs agent initialization
+      ;;
+    *)
+      return 1  # Already upgraded or too old
+      ;;
+  esac
+}
+
+# Check if needs 2.2.0 upgrade (fileindex command)
+needs_v2_2_upgrade() {
+  local version=$1
+  
+  case "$version" in
+    "2.0.0"|"2.1.0")
+      return 0  # Needs fileindex upgrade
       ;;
     *)
       return 1  # Already upgraded or too old
@@ -382,7 +396,7 @@ migrate_v0_to_v2() {
   
   cat > "$project_root/.intent/config.json" << EOF
 {
-  "version": "2.1.0",
+  "version": "2.2.0",
   "project_name": "$project_name",
   "author": "$author",
   "created": "$(date +%Y-%m-%d)",
@@ -522,6 +536,23 @@ EOF
   echo "  Agent system initialized successfully"
 }
 
+# Migrate v2.1.0 to v2.2.0 (fileindex command)
+migrate_v2_1_to_v2_2() {
+  local project_root=$1
+  
+  echo "Upgrading v2.1.0 to v2.2.0 (fileindex command)..."
+  
+  # Update .intent/config.json to v2.2.0
+  if [ -f "$project_root/.intent/config.json" ]; then
+    echo "  Updating project version to 2.2.0..."
+    local temp_file=$(mktemp)
+    jq '.intent_version = "2.2.0" | .version = "2.2.0"' "$project_root/.intent/config.json" > "$temp_file"
+    mv "$temp_file" "$project_root/.intent/config.json"
+  fi
+  
+  echo "  Fileindex command now available"
+}
+
 # Migrate all remaining content from stp/ to intent/
 migrate_remaining_content() {
   local project_root=$1
@@ -598,7 +629,7 @@ create_default_v2_config() {
   
   cat > "$project_root/.intent/config.json" << EOF
 {
-  "version": "2.1.0",
+  "version": "2.2.0",
   "project_name": "$project_name",
   "author": "$author",
   "created": "$(date +%Y-%m-%d)",

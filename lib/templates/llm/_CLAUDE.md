@@ -1,6 +1,6 @@
 # [[PROJECT_NAME]] Project Guidelines
 
-This is an Intent v2.1.0 project.
+This is an Intent v2.2.0 project.
 
 ## Project Structure
 
