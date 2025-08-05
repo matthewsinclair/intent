@@ -101,3 +101,7 @@ Task(
 ## Author
 
 matts
+
+## Usage Rules
+
+- DO NOT ADD CLAUDE TO GIT COMMITS. EVER.
