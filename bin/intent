@@ -51,7 +51,7 @@ fi
 BIN_DIR="$INTENT_HOME/bin"
 
 # Define global commands that don't require project context
-GLOBAL_COMMANDS="help doctor bootstrap init version info agents"
+GLOBAL_COMMANDS="help doctor bootstrap init version info agents fileindex"
 
 # Function to check if command is global
 is_global_command() {

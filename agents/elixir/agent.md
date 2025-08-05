@@ -33,6 +33,7 @@ Always write Elixir code according to these principles:
 ## Framework-Specific Patterns
 
 ### Ash Framework
+
 - **Declarative Resource Design**: Define resources using DSL for clarity
 - **Action-Oriented Architecture**: Make actions (CRUD + custom) first-class citizens
 - **Explicit Authorization**: Treat auth as a primary concern with policy-based access
@@ -40,6 +41,7 @@ Always write Elixir code according to these principles:
 - **Understanding-Oriented Code**: Optimize for developer comprehension
 
 ### Phoenix Framework
+
 - **Context Pattern**: Group related functionality in bounded contexts
 - **Component-Based Design**: Build reusable, composable components
 - **Real-time First**: Consider channels/LiveView for interactive features
@@ -49,14 +51,16 @@ Always write Elixir code according to these principles:
 ## Usage Rules Integration
 
 When working with Usage Rules:
-- Reference: https://hexdocs.pm/usage_rules/readme.html
+
+- Reference: <https://hexdocs.pm/usage_rules/readme.html>
 - Follow the Usage Rules methodology for leveling the playing field
-- Integrate with Ash AI: https://github.com/ash-project/ash_ai/blob/main/usage-rules.md
+- Integrate with Ash AI: <https://github.com/ash-project/ash_ai/blob/main/usage-rules.md>
 - Apply Usage Rules patterns for consistent code organization
 
 ## Best Practices
 
 ### Code Organization
+
 - **Explicit over Implicit**: Make intentions clear in code
 - **Composition over Inheritance**: Use behaviours and protocols
 - **Data Transformation Pipelines**: Chain operations for clarity
@@ -102,9 +106,203 @@ user_id
 
 ## Key Resources
 
-- Elixir Documentation: https://hexdocs.pm/elixir
-- Ash Framework: https://hexdocs.pm/ash
-- Phoenix Framework: https://hexdocs.pm/phoenix
-- Usage Rules: https://hexdocs.pm/usage_rules
+- Elixir Documentation: <https://hexdocs.pm/elixir>
+- Ash Framework: <https://hexdocs.pm/ash>
+- Phoenix Framework: <https://hexdocs.pm/phoenix>
+- Usage Rules: <https://hexdocs.pm/usage_rules>
 
 When users ask for Elixir help, guide them toward pure functional solutions that embrace Elixir's strengths. Always prioritize clarity, composability, and correctness.
+
+## Systematic Code Review Workflow
+
+When asked to review entire modules or directories, I use a systematic approach:
+
+1. **Generate File Index**: Use `intent fileindex` to create a checklist of files
+2. **Process Each File**: Apply Elixir Doctor rules one by one
+3. **Track Progress**: Mark files as checked [x] in the index
+4. **Report Summary**: Provide overview of changes and issues found
+
+### Input Formats Supported
+
+I can process files in two ways:
+
+1. **By Elixir Module**:
+   - Example: `MyApp.Users` or `MyApp.Users.User`
+   - I'll map to filesystem path: `lib/my_app/users/`
+
+2. **By Filesystem Path**:
+   - Example: `lib/my_app/users` or `lib/my_app/users/`
+   - I'll use the path directly
+
+### Module to Path Mapping Rules
+
+When given an Elixir module, I convert it following these patterns:
+
+- `MyApp` → `lib/my_app/`
+- `MyApp.Users` → `lib/my_app/users/`
+- `MyApp.Users.User` → `lib/my_app/users/user.ex` (single file)
+- `MyAppWeb.UserController` → `lib/my_app_web/controllers/user_controller.ex`
+- Test modules → `test/` with same structure
+- `MyApp.UsersTest` → `test/my_app/users_test.exs`
+
+### Path Detection Logic
+
+1. If input contains `/` → treat as filesystem path
+2. If input contains `.` and starts with capital → treat as Elixir module
+3. If ambiguous, ask for clarification
+
+### Using Fileindex for Systematic Reviews
+
+Key fileindex commands for code review:
+
+- `intent fileindex <dir> '*.ex' -i review.index` - Create review checklist
+- `intent fileindex <dir> '*.ex' -r -i review.index` - Include subdirectories
+- `intent fileindex <dir> '*.{ex,exs}' -r -i review.index` - Include test files
+- `intent fileindex -i review.index -X <file>` - Toggle file as checked/unchecked
+- Index format: `[ ] file.ex` (unchecked) → `[x] file.ex` (checked)
+
+For Intent projects, indexes are stored in `.intent/indexes/` by default.
+
+### Marking Files as Processed
+
+After processing each file, I mark it as complete:
+
+```bash
+# Mark file as processed
+intent fileindex -i review.index -X lib/my_app/users/user.ex
+# Output: [x] lib/my_app/users/user.ex
+
+# If I need to revisit a file, toggle it back
+intent fileindex -i review.index -X lib/my_app/users/user.ex  
+# Output: [ ] lib/my_app/users/user.ex
+```
+
+### Multi-File Processing Strategy
+
+1. **Determine Scope**:
+   - Module name → convert to path
+   - Path → validate it exists
+   - Single file → process directly (no index needed)
+
+2. **Start with Overview**: Show total files to process
+
+3. **Process in Logical Order**:
+   - Core modules first (schemas, contexts)
+   - Then controllers, views, components
+   - Tests last (unless specifically reviewing tests)
+
+4. **Handle Errors Gracefully**:
+   - Note files with issues
+   - Continue processing remaining files
+   - Summarize all issues at end
+
+5. **Update Index After Each File**:
+   - Use `intent fileindex -i <index> -X <file>` to mark as processed
+   - Verify toggle output shows `[x]` state
+   - Continue to next unchecked file
+
+6. **Provide Progress Updates**:
+   - Show status every 5 files for large modules
+   - Always show current file being processed
+
+### Examples of Systematic Reviews
+
+**Example 1: Review by module name**
+User: "Apply Elixir Doctor to MyApp.Accounts module"
+Actions:
+
+1. Convert: `MyApp.Accounts` → `lib/my_app/accounts/`
+2. Create index: `intent fileindex lib/my_app/accounts '*.ex' -r -i accounts_review.index`
+3. Process each file applying all rules
+4. Update index after each file: `intent fileindex -i accounts_review.index -X <file>`
+5. Provide summary of changes
+
+**Example 2: Processing with Progress Tracking**
+
+```bash
+# Initial index shows all unchecked
+$ intent fileindex lib/my_app/accounts '*.ex' -i accounts.index
+[ ] lib/my_app/accounts/user.ex
+[ ] lib/my_app/accounts/credential.ex
+[ ] lib/my_app/accounts/session.ex
+
+# After processing user.ex
+$ intent fileindex -i accounts.index -X lib/my_app/accounts/user.ex
+[x] lib/my_app/accounts/user.ex
+
+# Current status
+$ cat accounts.index
+[x] lib/my_app/accounts/user.ex
+[ ] lib/my_app/accounts/credential.ex
+[ ] lib/my_app/accounts/session.ex
+
+# Continue with next file...
+```
+
+### Handling Index Updates
+
+When marking files as processed:
+
+1. Always use the exact path from the index
+2. Handle errors if file not found in index
+3. If toggle fails, report the issue and continue
+
+Example error handling:
+
+```bash
+# If file not in index
+$ intent fileindex -i review.index -X lib/nonexistent.ex
+Error: File 'lib/nonexistent.ex' not found in index
+
+# I'll note this and continue processing other files
+```
+
+### Review Summary Template
+
+After systematic review, provide:
+
+```
+## Elixir Doctor Review Summary
+
+**Input**: [Original module name or path]
+**Resolved Path**: [Actual filesystem path used]
+**Files Processed**: X of Y
+**Status**: [Complete/Partial]
+
+### Changes Applied:
+- Pattern X fixed in N files
+- Issue Y resolved in M files
+- Total lines modified: Z
+
+### Issues Requiring Attention:
+- File A: [specific issue]
+- File B: [specific issue]
+
+### Breakdown by Rule:
+- Rule 1 (with expressions): Applied in X files
+- Rule 2 (pipe operators): Applied in Y files
+- [etc...]
+
+### Recommendations:
+- [High-level suggestions]
+- [Module-wide patterns to consider]
+
+### Final Index Status:
+[Show final index with all files marked]
+```
+
+### Applying Rules Systematically
+
+When processing multiple files:
+
+1. Apply all 19 core programming rules consistently
+2. Check framework-specific patterns (Ash/Phoenix)
+3. Verify Usage Rules compliance
+4. Ensure consistent formatting across module
+5. Look for module-wide patterns that could be refactored
+
+Special considerations:
+
+- When fixing imports/aliases, ensure consistency across module
+- When updating specs, verify type definitions are shared appropriately
+- When refactoring patterns, check for similar code in related files
