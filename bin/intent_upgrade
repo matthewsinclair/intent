@@ -7,11 +7,12 @@ set -e
 
 # Source common libraries
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/intent_config"
 source "$SCRIPT_DIR/intent_helpers"
 
-# Load configuration
-load_intent_config
+# Set INTENT_HOME if not already set
+if [ -z "$INTENT_HOME" ]; then
+  export INTENT_HOME="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
 
 # Function to display error messages
 error() {
@@ -73,24 +74,37 @@ done
 
 # Detect current version
 echo "Detecting current project version..."
-VERSION=$(detect_stp_version .)
-
-if [ "$VERSION" = "2.2.0" ]; then
-  echo "Project is already at Intent v2.2.0"
-  exit 0
-fi
+VERSION=$(detect_stp_version . || echo "")
 
 if [ -z "$VERSION" ]; then
-  error "Could not detect STP version. Is this an STP project?"
+  echo "Could not detect project version."
+  echo ""
+  echo "This may not be an STP/Intent project, or it may be using an unrecognized structure."
+  echo "To create a new Intent project, use: intent init"
+  exit 1
 fi
 
+# Always show version information
+echo ""
 echo "Current version: $VERSION"
+echo "Target version:  2.2.0"
+echo ""
+
+# Check if already at target version
+if [ "$VERSION" = "2.2.0" ]; then
+  echo "✓ Project is already at Intent v2.2.0"
+  echo "  No upgrade needed."
+  exit 0
+fi
 
 # Determine if migration is needed
 if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION"; then
-  echo "Project is already up to date."
+  echo "✓ Project is already up to date at version $VERSION"
+  echo "  No upgrade path available from $VERSION to 2.2.0"
   exit 0
 fi
+
+echo "→ Upgrade available: $VERSION → 2.2.0"
 
 # Create backup unless disabled
 if [ "$NO_BACKUP" != true ]; then
@@ -184,7 +198,11 @@ create_claude_md .
 
 # Final message
 echo ""
-echo "Migration to Intent v2.2.0 completed successfully!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✓ Upgrade completed successfully!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Version upgraded: $VERSION → 2.2.0"
 echo ""
 echo "Summary of changes:"
 if [ "$VERSION" != "2.0.0" ]; then
