@@ -178,7 +178,13 @@ fi
 # Set defaults based on context
 if [ "$IN_INTENT_PROJECT" = true ] && [ "$NO_INTENT" = false ]; then
   # Intent project defaults - only use if not already set
-  : ${STARTDIR:="lib"}
+  # But first check if the default directory exists
+  if [ -z "${STARTDIR:-}" ] && [ -d "lib" ]; then
+    STARTDIR="lib"
+  elif [ -z "${STARTDIR:-}" ]; then
+    # If lib doesn't exist, fall back to current directory
+    STARTDIR="."
+  fi
   : ${FILESPEC:="*.{ex,exs}"}
   : ${INDEX_DIR:=".intent/indexes"}
 else
