@@ -450,7 +450,10 @@ process_files() {
     find_args+=(-type f)
     
     # Add file pattern arguments
-    if [[ "$FILESPEC" == *.{ex,exs} ]]; then
+    # Note: We use string comparison (=) not pattern matching (==) here because
+    # brace expansion doesn't occur in [[ ]] pattern contexts, and behavior
+    # varies between bash versions on different platforms
+    if [[ "$FILESPEC" = "*.{ex,exs}" ]]; then
         find_args+=(\( -name "*.ex" -o -name "*.exs" \))
     else
         find_args+=(-name "$FILESPEC")
