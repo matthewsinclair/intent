@@ -217,6 +217,8 @@ fi
 # Moved index file handling after Intent detection
 
 # Validate start directory
+echo "DEBUG: About to validate STARTDIR='$STARTDIR'" >&2
+echo "DEBUG: Directory test: [[ -d '$STARTDIR' ]] = $([[ -d "$STARTDIR" ]] && echo true || echo false)" >&2
 if [[ ! -d "$STARTDIR" ]]; then
     # Debug output to stderr
     echo "DEBUG: STARTDIR='$STARTDIR' does not exist" >&2
@@ -235,6 +237,7 @@ if [[ ! -d "$STARTDIR" ]]; then
         exit 1
     fi
 fi
+echo "DEBUG: Passed directory validation" >&2
 
 # Function to generate config JSON
 generate_config_json() {
@@ -435,7 +438,9 @@ if [[ -n "$OUTPUT_FILE" ]]; then
 fi
 
 # Check if we're in toggle mode
+echo "DEBUG: Checking toggle mode - TOGGLE_FILE='$TOGGLE_FILE'" >&2
 if [[ -n "$TOGGLE_FILE" ]]; then
+    echo "DEBUG: Entering toggle mode" >&2
     TOGGLE_MODE=true
     
     # Toggle requires an index file
@@ -545,9 +550,12 @@ process_files() {
 }
 
 # Process files
+echo "DEBUG: About to process files in STARTDIR='$STARTDIR'" >&2
 process_files "$STARTDIR"
+echo "DEBUG: Finished processing files" >&2
 
 # Output results
+echo "DEBUG: About to output results" >&2
 if [[ -n "$INDEX_FILE" ]]; then
     # Output config JSON block first
     generate_config_json
