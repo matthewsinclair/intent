@@ -153,6 +153,16 @@ refute_output_contains() {
   fi
 }
 
+# Helper to check exact output match
+assert_output() {
+  local expected="$1"
+  if [[ "$output" != "$expected" ]]; then
+    echo "Expected output: $expected"
+    echo "Actual output: $output"
+    return 1
+  fi
+}
+
 # Load bats libraries if available
 # Note: bats libraries can be installed globally or added to tests/lib/
 # For now, we rely on the basic assert functions defined above

@@ -1,0 +1,595 @@
+#!/bin/bash
+# intent_fileindex - Create and manage file indexes with checkbox states
+# Usage: intent fileindex [options] [startdir] [filespec]
+# Can be run standalone or as part of an Intent project
+
+# Exit on error
+set -e
+
+# Function to display error messages
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
+# Initial values
+IN_INTENT_PROJECT=false
+PROJECT_ROOT=""
+INTENT_VERSION=""
+RECURSIVE=false
+VERBOSE=false
+OUTPUT_FILE=""
+INDEX_FILE=""
+INDEX_DIR_OVERRIDE=""
+INTENT_DIR_OVERRIDE=""
+NO_INTENT=false
+PROCESSED_COUNT=0
+TOGGLE_FILE=""
+TOGGLE_MODE=false
+
+# Function to find project root
+find_project_root() {
+  local current_dir="$(pwd)"
+  while [ "$current_dir" != "/" ]; do
+    if [ -f "$current_dir/.intent/config.json" ]; then
+      echo "$current_dir"
+      return 0
+    fi
+    current_dir="$(dirname "$current_dir")"
+  done
+  return 1
+}
+
+# Arrays to store file paths and their states separately
+declare -a file_paths
+declare -a file_check_states
+
+# Function to display usage
+usage() {
+    echo "Usage: $(basename $0) [OPTIONS] [STARTDIR] [FILESPEC]"
+    echo ""
+    echo "Create and manage file indexes with checkbox states."
+    echo ""
+    echo "OPTIONS:"
+    echo "  -r              Recurse through subdirectories"
+    echo "  -v              Verbose mode (show processing and summary)"
+    echo "  -f FILE         Output to file instead of stdout"
+    echo "  --file FILE     Output to file instead of stdout"
+    echo "  -i FILE         Use index file to maintain checked states"
+    echo "  --index FILE    Use index file to maintain checked states"
+    echo "  -X FILE         Toggle checked state of FILE in index"
+    echo "  --toggle FILE   Toggle checked state of FILE in index"
+    echo "  --index-dir DIR Default directory for index files"
+    echo "  --intent-dir    Specify Intent project directory"
+    echo "  --no-intent     Disable Intent integration"
+    echo "  -h              Show this help message"
+    echo ""
+    echo "DEFAULTS:"
+    echo "  When in Intent project:"
+    echo "    STARTDIR: lib/"
+    echo "    FILESPEC: *.{ex,exs}"
+    echo "    INDEX_DIR: .intent/indexes/"
+    echo "  When standalone:"
+    echo "    STARTDIR: . (current directory)"
+    echo "    FILESPEC: *.{ex,exs}"
+    echo "    INDEX_DIR: . (current directory)"
+    echo ""
+    echo "EXAMPLES:"
+    echo "  # List all Elixir files recursively"
+    echo "  $(basename $0) -r"
+    echo ""
+    echo "  # Create an index file for tracking"
+    echo "  $(basename $0) -r -i myproject.index"
+    echo ""
+    echo "  # Search Python files in src/"
+    echo "  $(basename $0) src '*.py'"
+    echo ""
+    echo "  # Toggle file state in index"
+    echo "  $(basename $0) -i project.index -X lib/app.ex"
+    exit 1
+}
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -r)
+            RECURSIVE=true
+            shift
+            ;;
+        -v)
+            VERBOSE=true
+            shift
+            ;;
+        -f|--file)
+            OUTPUT_FILE="$2"
+            shift 2
+            ;;
+        -i|--index)
+            INDEX_FILE="$2"
+            shift 2
+            ;;
+        --index-dir)
+            INDEX_DIR_OVERRIDE="$2"
+            shift 2
+            ;;
+        --intent-dir)
+            INTENT_DIR_OVERRIDE="$2"
+            shift 2
+            ;;
+        --no-intent)
+            NO_INTENT=true
+            shift
+            ;;
+        -X|--toggle)
+            TOGGLE_FILE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            usage
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            usage
+            ;;
+        *)
+            if [[ -z "${STARTDIR_SET:-}" ]]; then
+                STARTDIR="$1"
+                STARTDIR_SET=true
+            elif [[ -z "${FILESPEC_SET:-}" ]]; then
+                FILESPEC="$1"
+                FILESPEC_SET=true
+            else
+                echo "Too many arguments"
+                usage
+            fi
+            shift
+            ;;
+    esac
+done
+
+# Detect Intent project context after parsing args
+if [ "$NO_INTENT" = false ]; then
+  # Check if intent_config is available
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [ -f "$SCRIPT_DIR/intent_config" ]; then
+    # Source it but don't fail if not in project
+    source "$SCRIPT_DIR/intent_config" 2>/dev/null || true
+  fi
+  
+  # Apply intent dir override if specified
+  if [ -n "$INTENT_DIR_OVERRIDE" ]; then
+    # Check Intent project with override
+    if [ -f "$INTENT_DIR_OVERRIDE/.intent/config.json" ]; then
+        IN_INTENT_PROJECT=true
+        PROJECT_ROOT="$INTENT_DIR_OVERRIDE"
+        INTENT_VERSION=$(jq -r '.intent_version // "2.1.0"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null || echo "2.1.0")
+    fi
+  else
+    # Try to find project root
+    if PROJECT_ROOT=$(find_project_root 2>/dev/null); then
+      IN_INTENT_PROJECT=true
+      if [ -f "$PROJECT_ROOT/.intent/config.json" ]; then
+        INTENT_VERSION=$(jq -r '.intent_version // "2.1.0"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null || echo "2.1.0")
+      fi
+    fi
+  fi
+fi
+
+# Set defaults based on context
+if [ "$IN_INTENT_PROJECT" = true ] && [ "$NO_INTENT" = false ]; then
+  # Intent project defaults - only use if not already set
+  : ${STARTDIR:="lib"}
+  : ${FILESPEC:="*.{ex,exs}"}
+  : ${INDEX_DIR:=".intent/indexes"}
+else
+  # Standalone defaults - only use if not already set
+  : ${STARTDIR:="."}
+  : ${FILESPEC:="*.{ex,exs}"}
+  : ${INDEX_DIR:="."}
+fi
+
+# Apply index dir override if specified
+if [ -n "$INDEX_DIR_OVERRIDE" ]; then
+    INDEX_DIR="$INDEX_DIR_OVERRIDE"
+fi
+
+# Handle index file path
+if [ -n "$INDEX_FILE" ] && [[ "$INDEX_FILE" != /* ]] && [[ "$INDEX_FILE" != */* ]]; then
+    # Just a filename, prepend index directory
+    if [ "$IN_INTENT_PROJECT" = true ] && [ "$NO_INTENT" = false ]; then
+        mkdir -p "$PROJECT_ROOT/$INDEX_DIR" 2>/dev/null || true
+        INDEX_FILE="$PROJECT_ROOT/$INDEX_DIR/$INDEX_FILE"
+    else
+        INDEX_FILE="$INDEX_DIR/$INDEX_FILE"
+    fi
+fi
+
+# Moved index file handling after Intent detection
+
+# Validate start directory
+if [[ ! -d "$STARTDIR" ]]; then
+    echo "Error: Directory '$STARTDIR' does not exist"
+    exit 1
+fi
+
+# Function to generate config JSON
+generate_config_json() {
+    local timestamp
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    local abs_startdir
+    abs_startdir=$(cd "$STARTDIR" && pwd)
+    local context="standalone"
+    
+    if [ "$IN_INTENT_PROJECT" = true ] && [ "$NO_INTENT" = false ]; then
+        context="intent_project"
+    fi
+    
+    cat << EOF
+{
+  "generator": "intent-fileindex",
+  "version": "1.1",
+  "timestamp": "$timestamp",
+  "context": "$context",
+  "config": {
+    "startdir": "$STARTDIR",
+    "absolute_startdir": "$abs_startdir",
+    "filespec": "$FILESPEC",
+    "recursive": $RECURSIVE,
+    "verbose": $VERBOSE,
+    "output_file": "${OUTPUT_FILE:-null}",
+    "index_file": "${INDEX_FILE:-null}",
+    "index_dir": "$INDEX_DIR"
+  }
+EOF
+    
+    if [ "$IN_INTENT_PROJECT" = true ] && [ "$NO_INTENT" = false ]; then
+        cat << EOF
+  ,
+  "intent": {
+    "project_root": "$PROJECT_ROOT",
+    "intent_version": "$INTENT_VERSION"
+  }
+EOF
+    fi
+    
+    echo "}"
+}
+
+# Function to find index of a file in arrays
+find_file_index() {
+    local search_file="$1"
+    local i
+    for i in "${!file_paths[@]}"; do
+        if [[ "${file_paths[$i]}" == "$search_file" ]]; then
+            echo "$i"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Function to add or update file state
+set_file_state() {
+    local filepath="$1"
+    local state="$2"
+    
+    if idx=$(find_file_index "$filepath"); then
+        # Update existing
+        file_check_states[$idx]="$state"
+    else
+        # Add new
+        file_paths+=("$filepath")
+        file_check_states+=("$state")
+    fi
+}
+
+# Function to get file state
+get_file_state() {
+    local filepath="$1"
+    
+    if idx=$(find_file_index "$filepath"); then
+        echo "${file_check_states[$idx]}"
+    else
+        echo " "
+    fi
+}
+
+# Function to read existing index file
+read_index() {
+    if [[ -f "$INDEX_FILE" ]]; then
+        local in_json_block=false
+        local json_content=""
+        
+        while IFS= read -r line; do
+            # Detect start of JSON block
+            if [[ "$line" == "{" ]]; then
+                in_json_block=true
+                json_content="$line"
+                continue
+            fi
+            
+            # If we're in JSON block, accumulate content
+            if [[ "$in_json_block" == true ]]; then
+                json_content+=$'\n'"$line"
+                # Detect end of JSON block
+                if [[ "$line" == "}" ]]; then
+                    in_json_block=false
+                    if [[ "$VERBOSE" == true ]]; then
+                        echo "Found existing config block in index" >&2
+                    fi
+                    continue
+                fi
+                continue
+            fi
+            
+            # Skip empty lines
+            [[ -z "$line" ]] && continue
+            
+            # Parse file entries
+            if [[ "$line" =~ ^\[([ x])\]\ (.+)$ ]]; then
+                local state="${BASH_REMATCH[1]}"
+                local filepath="${BASH_REMATCH[2]}"
+                set_file_state "$filepath" "$state"
+                if [[ "$VERBOSE" == true ]]; then
+                    echo "Loaded from index: [$state] $filepath" >&2
+                fi
+            fi
+        done < "$INDEX_FILE"
+    fi
+}
+
+# Function to normalise file path
+normalise_path() {
+    local path="$1"
+    # Convert to relative path from current directory if possible
+    if [[ "$path" == "$PWD"/* ]]; then
+        echo "${path#$PWD/}"
+    else
+        echo "$path"
+    fi
+}
+
+# Function to toggle file state in index
+toggle_file_state() {
+    local target_file="$1"
+    local found=false
+    local new_state=""
+    
+    # Normalize the target file path
+    local normalized_target=$(normalise_path "$target_file")
+    
+    # Find and toggle the file
+    local i
+    for i in "${!file_paths[@]}"; do
+        if [[ "${file_paths[$i]}" == "$normalized_target" ]]; then
+            found=true
+            # Toggle the state
+            if [[ "${file_check_states[$i]}" == " " ]]; then
+                file_check_states[$i]="x"
+                new_state="x"
+            else
+                file_check_states[$i]=" "
+                new_state=" "
+            fi
+            echo "[$new_state] ${file_paths[$i]}"
+            break
+        fi
+    done
+    
+    if [[ "$found" == false ]]; then
+        echo "Error: File '$target_file' not found in index" >&2
+        exit 1
+    fi
+    
+    # Write updated index back to file
+    {
+        generate_config_json
+        echo ""
+        # Create sorted output
+        sort_indices=()
+        for i in "${!file_paths[@]}"; do
+            sort_indices+=("${file_paths[$i]}:$i")
+        done
+        
+        sorted_pairs=()
+        while IFS= read -r line; do
+            sorted_pairs+=("$line")
+        done < <(printf '%s\n' "${sort_indices[@]}" | sort)
+        
+        for pair in "${sorted_pairs[@]}"; do
+            file="${pair%:*}"
+            idx="${pair##*:}"
+            echo "[${file_check_states[$idx]}] $file"
+        done
+    } > "$INDEX_FILE"
+}
+
+# Setup output redirection
+if [[ -n "$OUTPUT_FILE" ]]; then
+    exec 3>&1
+    exec 1>"$OUTPUT_FILE"
+fi
+
+# Check if we're in toggle mode
+if [[ -n "$TOGGLE_FILE" ]]; then
+    TOGGLE_MODE=true
+    
+    # Toggle requires an index file
+    if [[ -z "$INDEX_FILE" ]]; then
+        echo "Error: Toggle mode requires an index file (-i option)" >&2
+        exit 1
+    fi
+    
+    # Read the existing index
+    if [[ ! -f "$INDEX_FILE" ]]; then
+        echo "Error: Index file '$INDEX_FILE' does not exist" >&2
+        exit 1
+    fi
+    
+    read_index
+    toggle_file_state "$TOGGLE_FILE"
+    exit 0
+fi
+
+# Read existing index if using index mode
+if [[ -n "$INDEX_FILE" ]]; then
+    read_index
+fi
+
+# Function to process files
+process_files() {
+    local search_dir="$1"
+    local find_args=()
+    local current_files=()
+    
+    if [[ "$RECURSIVE" == true ]]; then
+        find_args=("$search_dir")
+    else
+        find_args=("$search_dir" -maxdepth 1)
+    fi
+    
+    # Convert filespec to find-compatible pattern
+    local pattern
+    if [[ "$FILESPEC" == *.{ex,exs} ]]; then
+        pattern="-name '*.ex' -o -name '*.exs'"
+    else
+        pattern="-name '$FILESPEC'"
+    fi
+    
+    # Find and collect all current files
+    while IFS= read -r -d '' file; do
+        local normalised_file
+        normalised_file=$(normalise_path "$file")
+        current_files+=("$normalised_file")
+        
+        if [[ "$VERBOSE" == true && -n "$OUTPUT_FILE" ]]; then
+            echo "Processing: $normalised_file" >&3
+        elif [[ "$VERBOSE" == true ]]; then
+            echo "Processing: $normalised_file" >&2
+        fi
+        
+        # Determine state for this file
+        local state=" "
+        if [[ -n "$INDEX_FILE" ]]; then
+            state=$(get_file_state "$normalised_file")
+        fi
+        
+        # Update or add to file state
+        set_file_state "$normalised_file" "$state"
+        ((PROCESSED_COUNT++))
+    done < <(eval "find ${find_args[@]} -type f \( $pattern \) -print0" 2>/dev/null)
+    
+    # If using index mode, remove files that no longer exist
+    if [[ -n "$INDEX_FILE" ]]; then
+        local new_paths=()
+        local new_states=()
+        local i
+        
+        for i in "${!file_paths[@]}"; do
+            local indexed_file="${file_paths[$i]}"
+            local found=false
+            
+            for current_file in "${current_files[@]}"; do
+                if [[ "$indexed_file" == "$current_file" ]]; then
+                    found=true
+                    break
+                fi
+            done
+            
+            if [[ "$found" == true ]]; then
+                new_paths+=("${file_paths[$i]}")
+                new_states+=("${file_check_states[$i]}")
+            else
+                if [[ "$VERBOSE" == true ]]; then
+                    if [[ -n "$OUTPUT_FILE" ]]; then
+                        echo "Removing from index (file no longer exists): $indexed_file" >&3
+                    else
+                        echo "Removing from index (file no longer exists): $indexed_file" >&2
+                    fi
+                fi
+            fi
+        done
+        
+        # Update arrays
+        file_paths=("${new_paths[@]}")
+        file_check_states=("${new_states[@]}")
+    fi
+}
+
+# Process files
+process_files "$STARTDIR"
+
+# Output results
+if [[ -n "$INDEX_FILE" ]]; then
+    # Output config JSON block first
+    generate_config_json
+    echo ""
+    
+    # Create sorted index pairs
+    sort_indices=()
+    i=0
+    for i in "${!file_paths[@]}"; do
+        sort_indices+=("${file_paths[$i]}:$i")
+    done
+    
+    # Sort and output
+    sorted_pairs=()
+    while IFS= read -r line; do
+        sorted_pairs+=("$line")
+    done < <(printf '%s\n' "${sort_indices[@]}" | sort)
+    
+    for pair in "${sorted_pairs[@]}"; do
+        file="${pair%:*}"
+        idx="${pair##*:}"
+        echo "[${file_check_states[$idx]}] $file"
+    done
+    
+    # Write back to index file
+    {
+        generate_config_json
+        echo ""
+        for pair in "${sorted_pairs[@]}"; do
+            file="${pair%:*}"
+            idx="${pair##*:}"
+            echo "[${file_check_states[$idx]}] $file"
+        done
+    } > "$INDEX_FILE"
+else
+    # Original behaviour - just output current files
+    sort_indices=()
+    i=0
+    for i in "${!file_paths[@]}"; do
+        sort_indices+=("${file_paths[$i]}:$i")
+    done
+    
+    sorted_pairs=()
+    while IFS= read -r line; do
+        sorted_pairs+=("$line")
+    done < <(printf '%s\n' "${sort_indices[@]}" | sort)
+    
+    for pair in "${sorted_pairs[@]}"; do
+        file="${pair%:*}"
+        echo "[ ] $file"
+    done
+fi
+
+# Show summary if verbose
+if [[ "$VERBOSE" == true ]]; then
+    if [[ -n "$OUTPUT_FILE" ]]; then
+        echo "Summary: Processed $PROCESSED_COUNT files" >&3
+        if [[ -n "$INDEX_FILE" ]]; then
+            echo "Index updated: $INDEX_FILE" >&3
+        fi
+    else
+        echo "Summary: Processed $PROCESSED_COUNT files" >&2
+        if [[ -n "$INDEX_FILE" ]]; then
+            echo "Index updated: $INDEX_FILE" >&2
+        fi
+    fi
+fi
+
+# Restore stdout if redirected
+if [[ -n "$OUTPUT_FILE" ]]; then
+    exec 1>&3
+    exec 3>&-
+fi
