@@ -21,7 +21,7 @@ error() {
 usage() {
   echo "Usage: intent init [project_name]"
   echo ""
-  echo "Initialize a new Intent v2.1.0 project in the current directory"
+  echo "Initialize a new Intent v2.2.0 project in the current directory"
   echo ""
   echo "Arguments:"
   echo "  project_name  Name of the project (optional, defaults to directory name)"

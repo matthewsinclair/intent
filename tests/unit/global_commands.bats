@@ -12,16 +12,18 @@ load "../lib/test_helper.bash"
 }
 
 @test "intent help works anywhere" {
+  local version=$(get_intent_version)
   run run_intent help
   assert_success
-  assert_output_contains "Intent v2.1.0 - Structured Development Process"
+  assert_output_contains "Intent v${version} - Structured Development Process"
   assert_output_contains "Usage: intent <command>"
 }
 
 @test "intent doctor works anywhere" {
+  local version=$(get_intent_version)
   run run_intent doctor
   assert_success
-  assert_output_contains "Intent Doctor v2.1.0"
+  assert_output_contains "Intent Doctor v${version}"
   assert_output_contains "Checking INTENT_HOME"
 }
 
@@ -33,15 +35,17 @@ load "../lib/test_helper.bash"
 }
 
 @test "intent version works anywhere" {
+  local version=$(get_intent_version)
   run run_intent version
   assert_success
-  assert_output_contains "Intent version 2.1.0"
+  assert_output_contains "Intent version ${version}"
 }
 
 @test "intent --version works anywhere" {
+  local version=$(get_intent_version)
   run run_intent --version
   assert_success
-  assert_output_contains "Intent version 2.1.0"
+  assert_output_contains "Intent version ${version}"
 }
 
 @test "intent bootstrap works anywhere" {
@@ -52,11 +56,12 @@ load "../lib/test_helper.bash"
 }
 
 @test "intent init works in empty directory" {
+  local version=$(get_intent_version)
   # Don't actually run init, just check help
   run run_intent init --help
   # Note: init --help exits with status 1
   assert_failure
-  assert_output_contains "Initialize a new Intent v2.1.0 project"
+  assert_output_contains "Initialize a new Intent v${version} project"
 }
 
 @test "intent handles unknown command gracefully" {

@@ -163,6 +163,15 @@ assert_output() {
   fi
 }
 
+# Helper to get Intent version from config
+get_intent_version() {
+  if [ -f "${INTENT_PROJECT_ROOT}/.intent/config.json" ]; then
+    jq -r '.version // .intent_version // "unknown"' "${INTENT_PROJECT_ROOT}/.intent/config.json"
+  else
+    echo "unknown"
+  fi
+}
+
 # Load bats libraries if available
 # Note: bats libraries can be installed globally or added to tests/lib/
 # For now, we rely on the basic assert functions defined above
