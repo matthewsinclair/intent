@@ -5,6 +5,12 @@
 # Exit on error
 set -e
 
+# Function to display error messages
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
 # Source common libraries
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/intent_helpers"
@@ -13,12 +19,6 @@ source "$SCRIPT_DIR/intent_helpers"
 if [ -z "$INTENT_HOME" ]; then
   export INTENT_HOME="$(cd "$SCRIPT_DIR/.." && pwd)"
 fi
-
-# Function to display error messages
-error() {
-  echo "Error: $1" >&2
-  exit 1
-}
 
 # Function to display usage information
 usage() {
