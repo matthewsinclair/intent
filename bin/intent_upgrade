@@ -11,14 +11,9 @@ error() {
   exit 1
 }
 
-# Source common libraries
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/intent_helpers"
-
-# Set INTENT_HOME if not already set
-if [ -z "$INTENT_HOME" ]; then
-  export INTENT_HOME="$(cd "$SCRIPT_DIR/.." && pwd)"
-fi
+# Source helpers
+INTENT_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$INTENT_BIN/intent_helpers"
 
 # Function to display usage information
 usage() {
