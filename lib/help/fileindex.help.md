@@ -18,6 +18,10 @@ intent fileindex [OPTIONS] [STARTDIR] [FILESPEC]
 --index FILE       Use index file to maintain checked states (alternative syntax)
 -X FILE            Toggle the checked state of FILE in the index
 --toggle FILE      Toggle the checked state of FILE in the index (alternative syntax)
+-C FILE            Set FILE to checked [x] state in the index
+--check FILE       Set FILE to checked [x] state in the index (alternative syntax)
+-U FILE            Set FILE to unchecked [ ] state in the index
+--uncheck FILE     Set FILE to unchecked [ ] state in the index (alternative syntax)
 --index-dir DIR    Specify default directory for index files
 --intent-dir DIR   Specify Intent project directory explicitly
 --no-intent        Disable Intent integration even if in a project
@@ -60,11 +64,31 @@ intent fileindex -r -f filelist.txt
 # Disable Intent integration in a project
 intent fileindex --no-intent
 
-# Toggle a file's checked state
+# Toggle a file's checked state (switches between [ ] and [x])
 intent fileindex -i project.index -X lib/myapp/user.ex
 # Output shows new state:
 # [x] lib/myapp/user.ex   (if it was unchecked)
 # [ ] lib/myapp/user.ex   (if it was checked)
+
+# Check a specific file (set to [x])
+intent fileindex -i project.index -C lib/myapp/user.ex
+# Output: [x] lib/myapp/user.ex
+
+# Uncheck a specific file (set to [ ])
+intent fileindex -i project.index -U lib/myapp/user.ex
+# Output: [ ] lib/myapp/user.ex
+
+# Example workflow: process files one by one
+# 1. Create initial index
+intent fileindex -r -i review.index
+# 2. Review first file and mark as checked
+vim lib/myapp/user.ex
+intent fileindex -i review.index -C lib/myapp/user.ex
+# 3. Continue with next file...
+vim lib/myapp/router.ex
+intent fileindex -i review.index -C lib/myapp/router.ex
+# 4. View current status
+cat review.index | grep "^\[.\]"
 
 @index_file_format:
 Index files contain:
@@ -107,3 +131,7 @@ Example index file:
 - The index file is updated atomically to prevent corruption
 - Toggle mode requires an existing index file with the target file present
 - Toggle output shows the new state of the file after toggling
+- Check/uncheck modes require an existing index file with the target file present
+- Check mode sets files to [x] state regardless of current state
+- Uncheck mode sets files to [ ] state regardless of current state
+- Check/uncheck operations are idempotent - checking an already checked file keeps it checked
