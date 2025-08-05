@@ -468,6 +468,59 @@ You know our standards:
 
 Now every Claude session knows YOUR specific rules without repeated explanation.
 
+### Specialized Global Agents
+
+Intent v2.2.0 includes specialized agents for common development scenarios:
+
+#### Elixir Agent
+For Elixir developers, the elixir agent provides:
+- Pure functional programming patterns and Usage Rules
+- Ash and Phoenix framework expertise
+- Idiomatic Elixir code review and refactoring
+- Railway-oriented error handling patterns
+
+```bash
+$ intent agents install elixir
+```
+
+#### Socrates Agent - CTO Review Mode
+The socrates agent facilitates technical decision-making through Socratic dialog:
+
+```bash
+$ intent agents install socrates
+```
+
+This agent creates structured conversations between two personas:
+- **Socrates (CTO)**: Strategic thinker with 30+ years experience
+- **Plato (Tech Lead)**: Implementation expert with deep technical knowledge
+
+Perfect for:
+- Architecture decisions (microservices vs monolith)
+- Technology selection (build vs buy, framework choices)
+- Complex refactoring strategies
+- API design and integration planning
+
+Example usage:
+```
+You: "I need to decide between PostgreSQL and DynamoDB"
+Claude (with socrates agent): "I'll facilitate a CTO Review Mode dialog:
+
+**Socrates (CTO):** What's driving this database decision? Are we 
+optimizing for consistency or scale?
+
+**Plato (Tech Lead):** We're expecting 1M users in year one with 
+burst traffic during sales. The team has PostgreSQL expertise...
+
+[Dialog continues exploring trade-offs, revealing hidden complexities]
+
+**Recommendation:** PostgreSQL with read replicas and caching layer
+- Leverages team expertise
+- Handles expected scale with proven patterns
+- Avoids NoSQL learning curve during critical growth phase"
+```
+
+The socrates agent transforms rubber-duck debugging into structured technical exploration, creating decision documentation that explains not just what was decided, but why.
+
 ### The Multiplier Effect
 
 Intent agents don't just save time – they change what's possible:

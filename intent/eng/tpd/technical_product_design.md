@@ -73,6 +73,7 @@ Intent v2.1.0 includes Claude Code sub-agent integration with proper initializat
 ### Available Agents
 1. **Intent Agent**: Understands steel threads, Intent commands, and project structure
 2. **Elixir Agent**: Elixir code doctor with Usage Rules and Ash/Phoenix patterns
+3. **Socrates Agent**: CTO Review Mode for technical decision-making via Socratic dialog
 
 ### Agent Commands
 - `intent agents init`: Initialize agent configuration
