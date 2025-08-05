@@ -28,7 +28,7 @@ Usage: intent upgrade [--backup-dir DIR]
 Upgrade any STP version project to Intent v2.2.0
 
 Options:
-  --backup-dir DIR    Custom backup directory (default: backup-TIMESTAMP)
+  --backup-dir DIR    Custom backup directory name (default: .backup/backup-TIMESTAMP)
   --no-backup         Skip backup creation (dangerous!)
   -h, --help          Show this help message
 
@@ -108,15 +108,22 @@ echo "→ Upgrade available: $VERSION → 2.2.0"
 
 # Create backup unless disabled
 if [ "$NO_BACKUP" != true ]; then
+  # Set backup directory name
   if [ -z "$BACKUP_DIR" ]; then
-    BACKUP_DIR="backup-$(date +%Y%m%d-%H%M%S)"
+    BACKUP_NAME="backup-$(date +%Y%m%d-%H%M%S)"
+  else
+    # If user provided a backup dir, extract just the name
+    BACKUP_NAME=$(basename "$BACKUP_DIR")
   fi
+  
+  # Always put backups under .backup directory
+  BACKUP_DIR=".backup/$BACKUP_NAME"
   
   echo "Creating backup in $BACKUP_DIR..."
   mkdir -p "$BACKUP_DIR"
   
   # Backup relevant directories
-  for dir in stp .stp-config backlog CLAUDE.md; do
+  for dir in stp .stp-config .intent intent backlog CLAUDE.md; do
     if [ -e "$dir" ]; then
       cp -r "$dir" "$BACKUP_DIR/" 2>/dev/null || true
     fi
