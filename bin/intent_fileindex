@@ -178,13 +178,7 @@ fi
 # Set defaults based on context
 if [ "$IN_INTENT_PROJECT" = true ] && [ "$NO_INTENT" = false ]; then
   # Intent project defaults - only use if not already set
-  # But first check if the default directory exists
-  if [ -z "${STARTDIR:-}" ] && [ -d "lib" ]; then
-    STARTDIR="lib"
-  elif [ -z "${STARTDIR:-}" ]; then
-    # If lib doesn't exist, fall back to current directory
-    STARTDIR="."
-  fi
+  : ${STARTDIR:="lib"}
   : ${FILESPEC:="*.{ex,exs}"}
   : ${INDEX_DIR:=".intent/indexes"}
 else
@@ -214,8 +208,14 @@ fi
 
 # Validate start directory
 if [[ ! -d "$STARTDIR" ]]; then
-    echo "Error: Directory '$STARTDIR' does not exist"
-    exit 1
+    # If we're in an Intent project and tried to use lib but it doesn't exist,
+    # fall back to current directory
+    if [ "$IN_INTENT_PROJECT" = true ] && [ "$NO_INTENT" = false ] && [ "$STARTDIR" = "lib" ]; then
+        STARTDIR="."
+    else
+        echo "Error: Directory '$STARTDIR' does not exist"
+        exit 1
+    fi
 fi
 
 # Function to generate config JSON
