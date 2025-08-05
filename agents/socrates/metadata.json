@@ -1,0 +1,8 @@
+{
+  "name": "socrates",
+  "version": "1.0.0",
+  "description": "CTO Review Mode - Socratic dialog for technical decision-making",
+  "author": "Intent Contributors",
+  "tools": ["Bash", "Read", "Write", "Edit", "Grep"],
+  "tags": ["technical-review", "decision-making", "socratic-dialog", "cto-review", "architecture", "design-review", "rubber-ducking"]
+}

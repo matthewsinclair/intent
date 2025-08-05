@@ -12,6 +12,12 @@
       "version": "1.0.0",
       "description": "Elixir code doctor with Usage Rules",
       "path": "elixir"
+    },
+    {
+      "name": "socrates",
+      "version": "1.0.0",
+      "description": "CTO Review Mode - Socratic dialog for technical decisions",
+      "path": "socrates"
     }
   ]
 }
