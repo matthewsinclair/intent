@@ -206,9 +206,10 @@ flatten_directory_structure() {
 detect_project_version() {
   local project_root=${1:-.}
   
-  # Check for v2.0.0 (Intent)
+  # Check for v2.0.0+ (Intent)
   if [ -f "$project_root/.intent/config.json" ]; then
-    local version=$(jq -r '.intent_version // empty' "$project_root/.intent/config.json" 2>/dev/null)
+    # Try intent_version first, then version field
+    local version=$(jq -r '.intent_version // .version // empty' "$project_root/.intent/config.json" 2>/dev/null)
     if [ -n "$version" ]; then
       echo "$version"
       return 0
