@@ -1,5 +1,5 @@
 #!/bin/bash
-# intent_upgrade - Upgrade any STP version to Intent v2.1.0
+# intent_upgrade - Upgrade any STP version to Intent v2.2.0
 # Usage: intent upgrade [--backup-dir DIR]
 
 # Exit on error
@@ -24,7 +24,7 @@ usage() {
   cat << EOF
 Usage: intent upgrade [--backup-dir DIR]
 
-Upgrade any STP version project to Intent v2.1.0
+Upgrade any STP version project to Intent v2.2.0
 
 Options:
   --backup-dir DIR    Custom backup directory (default: backup-TIMESTAMP)
@@ -42,8 +42,8 @@ This command will:
 4. Convert YAML configs to JSON format
 5. Update all metadata and file formats
 6. Create .intent/config.json
-7. Initialize agent configuration (v2.1.0)
-8. Update CLAUDE.md with Intent v2.1.0 guidelines
+7. Initialize agent configuration (v2.1.0+)
+8. Update CLAUDE.md with Intent v2.2.0 guidelines
 EOF
   exit 0
 }
@@ -75,8 +75,8 @@ done
 echo "Detecting current project version..."
 VERSION=$(detect_stp_version .)
 
-if [ "$VERSION" = "2.1.0" ]; then
-  echo "Project is already at Intent v2.1.0"
+if [ "$VERSION" = "2.2.0" ]; then
+  echo "Project is already at Intent v2.2.0"
   exit 0
 fi
 
@@ -87,7 +87,7 @@ fi
 echo "Current version: $VERSION"
 
 # Determine if migration is needed
-if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION"; then
+if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION"; then
   echo "Project is already up to date."
   exit 0
 fi
@@ -112,7 +112,7 @@ if [ "$NO_BACKUP" != true ]; then
 fi
 
 echo ""
-echo "Starting migration to Intent v2.1.0..."
+echo "Starting migration to Intent v2.2.0..."
 echo ""
 
 # Create v2.0.0 directory structure
@@ -137,6 +137,10 @@ case "$VERSION" in
     echo "Upgrading from v2.0.0 to v2.1.0..."
     migrate_v2_0_to_v2_1 .
     ;;
+  "2.1.0")
+    echo "Upgrading from v2.1.0 to v2.2.0..."
+    migrate_v2_1_to_v2_2 .
+    ;;
   *)
     error "Unknown version: $VERSION"
     ;;
@@ -154,10 +158,16 @@ if [ -d "backlog" ]; then
 fi
 
 
-# Ensure agent initialization for all upgrades
-if [ "$VERSION" != "2.0.0" ]; then
+# Ensure proper upgrade path to v2.2.0
+if [ "$VERSION" != "2.0.0" ] && [ "$VERSION" != "2.1.0" ]; then
   echo "Initializing agent configuration..."
   migrate_v2_0_to_v2_1 .
+fi
+
+# Ensure v2.2.0 upgrade for all versions
+if [ "$VERSION" != "2.1.0" ]; then
+  echo "Finalizing v2.2.0 upgrade..."
+  migrate_v2_1_to_v2_2 .
 fi
 
 # Preserve agent manifests
@@ -174,14 +184,14 @@ create_claude_md .
 
 # Final message
 echo ""
-echo "Migration to Intent v2.1.0 completed successfully!"
+echo "Migration to Intent v2.2.0 completed successfully!"
 echo ""
 echo "Summary of changes:"
 if [ "$VERSION" != "2.0.0" ]; then
   echo "- Directory structure migrated from stp/* to intent/*"
   echo "- Configuration converted from YAML to JSON"
 fi
-echo "- Metadata updated to Intent v2.1.0 format"
+echo "- Metadata updated to Intent v2.2.0 format"
 echo "- Created/updated .intent/config.json"
 echo "- Initialized agent configuration"
 echo "- Updated CLAUDE.md with Intent guidelines"

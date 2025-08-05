@@ -1,6 +1,6 @@
 ---
 verblock: "[Date]:v0.1: [Author] - Initial version"
-intent_version: 2.1.0
+intent_version: 2.2.0
 status: Not Started
 created: YYYYMMDD
 completed: 

@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-08-05
+
+### Added
+
+- `intent fileindex` command for systematic file tracking and progress management
+- Toggle functionality (`-X` flag) to mark files as checked/unchecked in the index
+- Flexible operation modes - works both within Intent projects and standalone
+- Enhanced Elixir agent with systematic code review workflow using fileindex
+- Support for both Elixir module names and filesystem paths in the Elixir agent
+- Comprehensive test suite for fileindex command (33 tests)
+- Demo mode (`--demo`) to showcase fileindex functionality
+
+### Changed
+
+- Updated all version references from 2.1.0 to 2.2.0
+- Enhanced `intent upgrade` to support 2.1.0 → 2.2.0 migrations
+- Improved upgrade path handling for incremental version upgrades
+- Updated Elixir agent documentation with systematic review workflow
+- Added fileindex to global commands list
+
+### Fixed
+
+- Bash compatibility issues on macOS (associative arrays, readarray command)
+- Local variable declarations at global scope in shell scripts
+- Missing `assert_output` function in test framework
+- Test expectations for error messages
+
+### Technical Improvements
+
+- Replaced bash associative arrays with parallel arrays for macOS compatibility
+- Replaced `readarray` with portable while loops
+- Added proper error handling for edge cases in file operations
+- Enhanced test helper with assert_output function
+
 ## [2.1.0] - 2025-07-27
 
 ### Added
@@ -116,7 +150,7 @@ See [Release Notes](./docs/releases/2.0.0/RELEASE_NOTES.md) for complete details
 ### Added
 
 - Directory-based structure for steel threads (replacing single files)
-- New steel thread file types: `info.md`, `design.md`, `impl.md`, `tasks.md`, `results.md`
+- New steel thread file types: `info.md`, `design.md`, `impl.md`, `tasks.md`
 - Migration script `migrate_st_to_dirs` for upgrading from v1.2.0 to v1.2.1
 - Support for editing/viewing specific steel thread files with `stp st show/edit <id> <file>`
 - `stp st show <id> all` command to view all steel thread files at once
@@ -228,6 +262,7 @@ See [Release Notes](./docs/releases/2.0.0/RELEASE_NOTES.md) for complete details
 - `stp upgrade` - Upgrade STP files to latest format
 - `stp help` - Comprehensive help system
 
+[2.2.0]: https://github.com/matthewsinclair/intent/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/matthewsinclair/intent/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/matthewsinclair/intent/compare/v1.2.1...v2.0.0
 [1.2.1]: https://github.com/matthewsinclair/intent/compare/v1.2.0...v1.2.1

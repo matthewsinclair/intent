@@ -39,7 +39,7 @@ echo
 # Display Intent installation info
 echo "Installation:"
 echo "  INTENT_HOME:     ${INTENT_HOME:-<not set>}"
-echo "  Version:         ${INTENT_VERSION:-2.0.0}"
+echo "  Version:         ${INTENT_VERSION:-2.2.0}"
 echo "  Executable:      $(which intent 2>/dev/null || echo '<not in PATH>')"
 echo
 

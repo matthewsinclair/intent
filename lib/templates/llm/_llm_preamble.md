@@ -1,6 +1,6 @@
 ---
-verblock: "27 Jul 2025:v0.2: Matthew Sinclair - Updated for Intent v2.1.0 with agent system"
-intent_version: 2.1.0
+verblock: "05 Aug 2025:v0.3: Matthew Sinclair - Updated for Intent v2.2.0 with fileindex"
+intent_version: 2.2.0
 ---
 # LLM Preamble
 

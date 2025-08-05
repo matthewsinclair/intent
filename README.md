@@ -98,7 +98,7 @@ $ intent st show ST0015
 
 ## 🤖 Claude Code Integration
 
-Intent v2.1.0 integrates with [Claude Code](https://claude.ai/code) sub-agents to supercharge AI collaboration:
+Intent v2.2.0 integrates with [Claude Code](https://claude.ai/code) sub-agents to supercharge AI collaboration:
 
 ```bash
 # Initialize agent configuration (one-time setup)

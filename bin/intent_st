@@ -1116,7 +1116,7 @@ EOF
     if is_directory_structure; then
       # Edit specific file
       case "$FILE_TYPE" in
-        info|design|impl|tasks|results)
+        info|design|impl|tasks)
           ST_FILE=$(get_st_path "$ST_ID" "" "$FILE_TYPE.md")
           ;;
         *)
