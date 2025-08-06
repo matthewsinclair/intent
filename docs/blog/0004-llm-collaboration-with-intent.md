@@ -397,6 +397,7 @@ Intent v2.1.0 includes integration with Claude Code's sub-agent system, revoluti
 ### The Problem with Session Amnesia
 
 Every new Claude session typically means:
+
 - Re-explaining your project structure
 - Describing Intent and steel threads
 - Teaching command syntax again
@@ -409,10 +410,11 @@ It's like working with a brilliant colleague who has amnesia every morning.
 With one command:
 
 ```bash
-$ intent agents install intent
+intent agents install intent
 ```
 
 Claude permanently understands:
+
 - Steel thread methodology
 - All Intent commands and workflows
 - Project organization patterns
@@ -421,6 +423,7 @@ Claude permanently understands:
 ### The Transformation in Practice
 
 **Without Intent agent:**
+
 ```
 You: "I need to add user notifications"
 Claude: "I'll help you add notifications. What framework are you using?"
@@ -432,6 +435,7 @@ You: "First create a steel thread with intent st new..."
 ```
 
 **With Intent agent:**
+
 ```
 You: "I need to add user notifications"
 Claude: "I'll help you create a steel thread for notifications:
@@ -473,34 +477,40 @@ Now every Claude session knows YOUR specific rules without repeated explanation.
 Intent v2.2.0 includes specialized agents for common development scenarios:
 
 #### Elixir Agent
+
 For Elixir developers, the elixir agent provides:
+
 - Pure functional programming patterns and Usage Rules
 - Ash and Phoenix framework expertise
 - Idiomatic Elixir code review and refactoring
 - Railway-oriented error handling patterns
 
 ```bash
-$ intent agents install elixir
+intent agents install elixir
 ```
 
 #### Socrates Agent - CTO Review Mode
+
 The socrates agent facilitates technical decision-making through Socratic dialog:
 
 ```bash
-$ intent agents install socrates
+intent agents install socrates
 ```
 
 This agent creates structured conversations between two personas:
+
 - **Socrates (CTO)**: Strategic thinker with 30+ years experience
 - **Plato (Tech Lead)**: Implementation expert with deep technical knowledge
 
 Perfect for:
+
 - Architecture decisions (microservices vs monolith)
 - Technology selection (build vs buy, framework choices)
 - Complex refactoring strategies
 - API design and integration planning
 
 Example usage:
+
 ```
 You: "I need to decide between PostgreSQL and DynamoDB"
 Claude (with socrates agent): "I'll facilitate a CTO Review Mode dialog:
