@@ -45,6 +45,7 @@ The `intent doctor` command now provides detailed dependency analysis:
 - Missing error messages for required tool dependencies
 - Inadequate installation guidance for different platforms
 - Version number inconsistencies across scripts
+- **Upgrade Path**: Added missing upgrade path from v2.2.0 to v2.2.1
 
 ## Installation & Upgrade
 

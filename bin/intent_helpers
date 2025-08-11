@@ -557,19 +557,49 @@ EOF
 migrate_v2_1_to_v2_2() {
   local project_root=$1
   
-  local target_version="$(get_intent_version 2>/dev/null || echo "2.2.1")"
-  echo "Upgrading v2.1.0 to v$target_version (fileindex command)..."
+  echo "Upgrading v2.1.0 to v2.2.0 (fileindex command)..."
   
   # Update .intent/config.json to v2.2.0
   if [ -f "$project_root/.intent/config.json" ]; then
-    local target_version="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+    echo "  Updating project version to 2.2.0..."
+    local temp_file=$(mktemp)
+    jq '.intent_version = "2.2.0" | .version = "2.2.0"' "$project_root/.intent/config.json" > "$temp_file"
+    mv "$temp_file" "$project_root/.intent/config.json"
+  fi
+  
+  echo "  Fileindex command now available"
+}
+
+# Check if needs 2.2.1 upgrade
+needs_v2_2_1_upgrade() {
+  local version=$1
+  
+  case "$version" in
+    "2.2.0")
+      return 0  # Needs 2.2.1 upgrade
+      ;;
+    *)
+      return 1  # Already upgraded or different version
+      ;;
+  esac
+}
+
+# Migrate v2.2.0 to v2.2.1
+migrate_v2_2_to_v2_2_1() {
+  local project_root=$1
+  
+  local target_version="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+  echo "Upgrading v2.2.0 to v$target_version..."
+  
+  # Update .intent/config.json to target version
+  if [ -f "$project_root/.intent/config.json" ]; then
     echo "  Updating project version to $target_version..."
     local temp_file=$(mktemp)
     jq --arg v "$target_version" '.intent_version = $v | .version = $v' "$project_root/.intent/config.json" > "$temp_file"
     mv "$temp_file" "$project_root/.intent/config.json"
   fi
   
-  echo "  Fileindex command now available"
+  echo "  Version updated to $target_version"
 }
 
 # Migrate all remaining content from stp/ to intent/
