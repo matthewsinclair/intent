@@ -97,7 +97,7 @@ if [ "$VERSION" = "$TARGET_VERSION" ]; then
 fi
 
 # Determine if migration is needed
-if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION"; then
+if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION"; then
   echo "✓ Project is already up to date at version $VERSION"
   echo "  No upgrade path available from $VERSION to $TARGET_VERSION"
   exit 0
@@ -161,6 +161,10 @@ case "$VERSION" in
     echo "Upgrading from v2.1.0 to v$TARGET_VERSION..."
     migrate_v2_1_to_v2_2 .
     ;;
+  "2.2.0")
+    echo "Upgrading from v2.2.0 to v$TARGET_VERSION..."
+    migrate_v2_2_to_v2_2_1 .
+    ;;
   *)
     error "Unknown version: $VERSION"
     ;;
@@ -179,16 +183,30 @@ fi
 
 
 # Ensure proper upgrade path to v$TARGET_VERSION
-if [ "$VERSION" != "2.0.0" ] && [ "$VERSION" != "2.1.0" ]; then
+# Only run intermediate upgrades for older versions
+if [ "$VERSION" != "2.0.0" ] && [ "$VERSION" != "2.1.0" ] && [ "$VERSION" != "2.2.0" ]; then
   echo "Initializing agent configuration..."
   migrate_v2_0_to_v2_1 .
-fi
-
-# Ensure v$TARGET_VERSION upgrade for all versions
-if [ "$VERSION" != "2.1.0" ]; then
-  echo "Finalizing v$TARGET_VERSION upgrade..."
+  echo "Applying v2.2.0 upgrade..."
   migrate_v2_1_to_v2_2 .
+  echo "Finalizing v$TARGET_VERSION upgrade..."
+  migrate_v2_2_to_v2_2_1 .
+elif [ "$VERSION" = "2.0.0" ]; then
+  # 2.0.0 needs all three upgrades
+  echo "Applying v2.1.0 upgrade..."
+  migrate_v2_0_to_v2_1 .
+  echo "Applying v2.2.0 upgrade..."
+  migrate_v2_1_to_v2_2 .
+  echo "Finalizing v$TARGET_VERSION upgrade..."
+  migrate_v2_2_to_v2_2_1 .
+elif [ "$VERSION" = "2.1.0" ]; then
+  # 2.1.0 needs 2.2.0 and 2.2.1 upgrades
+  echo "Applying v2.2.0 upgrade..."
+  migrate_v2_1_to_v2_2 .
+  echo "Finalizing v$TARGET_VERSION upgrade..."
+  migrate_v2_2_to_v2_2_1 .
 fi
+# 2.2.0 case is handled by the main switch statement above
 
 # Preserve agent manifests
 if [ -d ".intent/agents" ]; then
