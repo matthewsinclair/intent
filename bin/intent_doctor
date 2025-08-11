@@ -131,8 +131,15 @@ verbose() {
 
 # Main doctor function
 doctor_check() {
+  # Get version from helpers if available
+  local version="2.2.1"
+  if [ -n "$INTENT_HOME" ] && [ -f "$INTENT_HOME/bin/intent_helpers" ]; then
+    source "$INTENT_HOME/bin/intent_helpers"
+    version="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+  fi
+  
   if [ "$QUIET" != true ]; then
-    echo "Intent Doctor v2.2.0"
+    echo "Intent Doctor v$version"
     echo "===================="
     echo ""
   fi
@@ -281,24 +288,160 @@ doctor_check() {
     echo -n "Checking required tools... "
   fi
   
-  MISSING_TOOLS=""
-  for tool in bash sed grep mkdir jq; do
+  # Define tool categories
+  REQUIRED_TOOLS="bash sed grep mkdir"
+  CRITICAL_TOOLS="jq"  # Separate jq for special handling
+  CORE_TOOLS="git cat echo pwd dirname basename date cut tr awk"
+  OPTIONAL_TOOLS="backlog bats"
+  
+  # Check required tools
+  MISSING_REQUIRED=""
+  for tool in $REQUIRED_TOOLS; do
     if ! command -v "$tool" >/dev/null 2>&1; then
-      MISSING_TOOLS="$MISSING_TOOLS $tool"
+      MISSING_REQUIRED="$MISSING_REQUIRED $tool"
     fi
   done
   
-  if [ -z "$MISSING_TOOLS" ]; then
+  # Check jq specifically (critical for Intent)
+  JQ_MISSING=false
+  if ! command -v jq >/dev/null 2>&1; then
+    JQ_MISSING=true
+    MISSING_REQUIRED="$MISSING_REQUIRED jq"
+  fi
+  
+  if [ -z "$MISSING_REQUIRED" ]; then
     show_ok
     verbose "All required tools found"
   else
-    show_error "Missing tools:$MISSING_TOOLS"
-    echo "  FIX: Install missing tools using your package manager"
-    echo "       For macOS: brew install$MISSING_TOOLS"
-    echo "       For Ubuntu/Debian: sudo apt-get install$MISSING_TOOLS"
+    show_error "Missing required tools:$MISSING_REQUIRED"
+    echo ""
+    
+    # Platform-specific installation instructions
+    if [ "$(uname)" = "Darwin" ]; then
+      echo "  Installation instructions for macOS:"
+      if [ "$JQ_MISSING" = true ]; then
+        echo "    jq: brew install jq"
+        echo "        (Required for JSON config parsing and agent management)"
+      fi
+      for tool in $MISSING_REQUIRED; do
+        if [ "$tool" != "jq" ]; then
+          echo "    $tool: brew install $tool"
+        fi
+      done
+    elif [ "$(uname)" = "Linux" ]; then
+      echo "  Installation instructions for Linux:"
+      if [ "$JQ_MISSING" = true ]; then
+        echo "    jq: sudo apt-get install jq  # Debian/Ubuntu"
+        echo "        sudo yum install jq      # RedHat/CentOS"
+        echo "        sudo pacman -S jq        # Arch"
+        echo "        (Required for JSON config parsing and agent management)"
+      fi
+      for tool in $MISSING_REQUIRED; do
+        if [ "$tool" != "jq" ]; then
+          echo "    $tool: Usually pre-installed, check your package manager"
+        fi
+      done
+    else
+      echo "  Please install missing tools using your system's package manager"
+      if [ "$JQ_MISSING" = true ]; then
+        echo "  jq is CRITICAL for Intent - configs and agents won't work without it!"
+      fi
+    fi
+    echo ""
   fi
   
-  # Check 7: File permissions
+  # Check 7: Core tools (non-blocking warnings)
+  if [ "$VERBOSE" = true ]; then
+    if [ "$QUIET" != true ]; then
+      echo -n "Checking core tools... "
+    fi
+    
+    MISSING_CORE=""
+    for tool in $CORE_TOOLS; do
+      if ! command -v "$tool" >/dev/null 2>&1; then
+        MISSING_CORE="$MISSING_CORE $tool"
+      fi
+    done
+    
+    if [ -z "$MISSING_CORE" ]; then
+      show_ok
+      verbose "All core tools found"
+    else
+      show_warning "Missing core tools:$MISSING_CORE"
+      echo "  These tools are used by Intent but may not be critical"
+      echo "  Some features might not work without them"
+    fi
+  fi
+  
+  # Check 8: Optional tools
+  if [ "$QUIET" != true ]; then
+    echo -n "Checking optional tools... "
+  fi
+  
+  MISSING_OPTIONAL=""
+  OPTIONAL_STATUS=""
+  
+  # Check for backlog
+  if ! command -v backlog >/dev/null 2>&1; then
+    MISSING_OPTIONAL="$MISSING_OPTIONAL backlog"
+    OPTIONAL_STATUS="${OPTIONAL_STATUS}backlog:NOT_FOUND "
+  else
+    OPTIONAL_STATUS="${OPTIONAL_STATUS}backlog:OK "
+  fi
+  
+  # Check for bats (testing framework)
+  if ! command -v bats >/dev/null 2>&1; then
+    MISSING_OPTIONAL="$MISSING_OPTIONAL bats"
+    OPTIONAL_STATUS="${OPTIONAL_STATUS}bats:NOT_FOUND "
+  else
+    OPTIONAL_STATUS="${OPTIONAL_STATUS}bats:OK "
+  fi
+  
+  # Check for checksum tools (for agent management)
+  CHECKSUM_TOOL=""
+  if command -v sha256sum >/dev/null 2>&1; then
+    CHECKSUM_TOOL="sha256sum"
+  elif command -v shasum >/dev/null 2>&1; then
+    CHECKSUM_TOOL="shasum"
+  fi
+  
+  if [ -z "$CHECKSUM_TOOL" ]; then
+    MISSING_OPTIONAL="$MISSING_OPTIONAL checksum"
+    OPTIONAL_STATUS="${OPTIONAL_STATUS}checksum:NOT_FOUND "
+  else
+    OPTIONAL_STATUS="${OPTIONAL_STATUS}checksum:$CHECKSUM_TOOL "
+  fi
+  
+  if [ -z "$MISSING_OPTIONAL" ]; then
+    show_ok
+    verbose "All optional tools found: $OPTIONAL_STATUS"
+  else
+    if [ "$QUIET" != true ]; then
+      echo "Some missing"
+      verbose "Optional tools status: $OPTIONAL_STATUS"
+    fi
+    
+    # Provide installation instructions for optional tools
+    if echo "$MISSING_OPTIONAL" | grep -q "backlog"; then
+      verbose "Backlog.md: Task management system"
+      verbose "  Install: npm install -g backlog-md"
+      verbose "  More info: https://github.com/backlog-md/backlog-md"
+    fi
+    
+    if echo "$MISSING_OPTIONAL" | grep -q "bats"; then
+      verbose "BATS: Bash testing framework"
+      verbose "  Install: npm install -g bats (or brew install bats-core)"
+      verbose "  Used for: Running Intent test suite"
+    fi
+    
+    if echo "$MISSING_OPTIONAL" | grep -q "checksum"; then
+      verbose "Checksum tool: Required for agent integrity checks"
+      verbose "  macOS: shasum is usually pre-installed"
+      verbose "  Linux: Install coreutils package"
+    fi
+  fi
+  
+  # Check 9: File permissions
   if [ -n "$INTENT_HOME" ] && [ "$VERBOSE" = true ]; then
     if [ "$QUIET" != true ]; then
       echo -n "Checking file permissions... "
@@ -323,7 +466,7 @@ doctor_check() {
     fi
   fi
   
-  # Check 8: Agent system
+  # Check 10: Agent system
   if [ "$QUIET" != true ]; then
     echo -n "Checking agent system... "
   fi
@@ -332,28 +475,35 @@ doctor_check() {
   if [ -d "$INTENT_HOME/agents" ]; then
     # Check manifest
     if [ -f "$INTENT_HOME/agents/.manifest/global-agents.json" ]; then
-      # Validate manifest
-      if validate_json "$INTENT_HOME/agents/.manifest/global-agents.json"; then
-        AGENT_COUNT=$(jq -r '.agents | length' "$INTENT_HOME/agents/.manifest/global-agents.json" 2>/dev/null || echo 0)
-        show_ok
-        verbose "Found $AGENT_COUNT available agents"
-        
-        # Check if Claude is available
-        if [ -d "$HOME/.claude" ]; then
-          # Run quick agent status check
-          if command -v "$INTENT_HOME/bin/intent_agents" >/dev/null 2>&1; then
-            AGENT_STATUS=$("$INTENT_HOME/bin/intent_agents" status 2>&1 | grep -E "(OK|MISSING|ERROR)" | wc -l)
-            if [ "$AGENT_STATUS" -gt 0 ]; then
-              verbose "Installed agents detected (run 'intent agents status' for details)"
+      # Check if jq is available for agent operations
+      if ! command -v jq >/dev/null 2>&1; then
+        show_warning "Cannot validate (jq not installed)"
+        echo "  Agent system requires jq for JSON parsing"
+        echo "  Install jq to enable agent management features"
+      else
+        # Validate manifest
+        if validate_json "$INTENT_HOME/agents/.manifest/global-agents.json"; then
+          AGENT_COUNT=$(jq -r '.agents | length' "$INTENT_HOME/agents/.manifest/global-agents.json" 2>/dev/null || echo 0)
+          show_ok
+          verbose "Found $AGENT_COUNT available agents"
+          
+          # Check if Claude is available
+          if [ -d "$HOME/.claude" ]; then
+            # Run quick agent status check
+            if command -v "$INTENT_HOME/bin/intent_agents" >/dev/null 2>&1; then
+              AGENT_STATUS=$("$INTENT_HOME/bin/intent_agents" status 2>&1 | grep -E "(OK|MISSING|ERROR)" | wc -l)
+              if [ "$AGENT_STATUS" -gt 0 ]; then
+                verbose "Installed agents detected (run 'intent agents status' for details)"
+              fi
             fi
+          else
+            verbose "Claude Code not detected - agents not active"
           fi
         else
-          verbose "Claude Code not detected - agents not active"
-        fi
-      else
-        show_warning "Invalid agent manifest"
-        if [ "$FIX_MODE" = true ]; then
-          echo "  FIX: Please reinstall Intent to fix agent manifest"
+          show_warning "Invalid agent manifest"
+          if [ "$FIX_MODE" = true ]; then
+            echo "  FIX: Please reinstall Intent to fix agent manifest"
+          fi
         fi
       fi
     else

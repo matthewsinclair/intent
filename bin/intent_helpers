@@ -1,5 +1,20 @@
 #!/bin/bash
-# intent_helpers - Shared functions for Intent v2.1.0 migration and utilities
+# intent_helpers - Shared functions for Intent migration and utilities
+
+# Get Intent version from VERSION file
+get_intent_version() {
+  local version_file="${INTENT_HOME:-$(dirname "${BASH_SOURCE[0]}")/..}/VERSION"
+  
+  if [ -f "$version_file" ]; then
+    cat "$version_file"
+  else
+    # Fallback version if VERSION file doesn't exist
+    echo "2.2.1"
+  fi
+}
+
+# Export for use by other scripts
+export -f get_intent_version
 
 # Convert YAML frontmatter to JSON format
 convert_yaml_frontmatter() {
@@ -324,7 +339,7 @@ needs_v2_migration() {
   local version=$1
   
   case "$version" in
-    "2.0.0"|"2.1.0"|"2.2.0")
+    "2.0.0"|"2.1.0"|"2.2.0"|"2.2.1")
       return 1  # Already v2
       ;;
     *)
@@ -394,10 +409,11 @@ migrate_v0_to_v2() {
   # Create config
   local project_name=$(basename "$project_root")
   local author="${USER:-Unknown}"
+  local target_version="$(get_intent_version 2>/dev/null || echo "2.2.1")"
   
   cat > "$project_root/.intent/config.json" << EOF
 {
-  "version": "2.2.0",
+  "version": "$target_version",
   "project_name": "$project_name",
   "author": "$author",
   "created": "$(date +%Y-%m-%d)",
@@ -541,13 +557,15 @@ EOF
 migrate_v2_1_to_v2_2() {
   local project_root=$1
   
-  echo "Upgrading v2.1.0 to v2.2.0 (fileindex command)..."
+  local target_version="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+  echo "Upgrading v2.1.0 to v$target_version (fileindex command)..."
   
   # Update .intent/config.json to v2.2.0
   if [ -f "$project_root/.intent/config.json" ]; then
-    echo "  Updating project version to 2.2.0..."
+    local target_version="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+    echo "  Updating project version to $target_version..."
     local temp_file=$(mktemp)
-    jq '.intent_version = "2.2.0" | .version = "2.2.0"' "$project_root/.intent/config.json" > "$temp_file"
+    jq --arg v "$target_version" '.intent_version = $v | .version = $v' "$project_root/.intent/config.json" > "$temp_file"
     mv "$temp_file" "$project_root/.intent/config.json"
   fi
   
@@ -627,10 +645,11 @@ create_default_v2_config() {
   local project_root=$1
   local project_name=$(basename "$project_root")
   local author="${USER:-Unknown}"
+  local target_version="$(get_intent_version 2>/dev/null || echo "2.2.1")"
   
   cat > "$project_root/.intent/config.json" << EOF
 {
-  "version": "2.2.0",
+  "version": "$target_version",
   "project_name": "$project_name",
   "author": "$author",
   "created": "$(date +%Y-%m-%d)",

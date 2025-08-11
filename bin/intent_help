@@ -7,6 +7,15 @@ set -e
 
 # Source common library (but don't load project config - help is a global command)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INTENT_HOME="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Source helpers for version
+if [ -f "$INTENT_HOME/bin/intent_helpers" ]; then
+  source "$INTENT_HOME/bin/intent_helpers"
+fi
+
+# Get version
+INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
 
 # Function to display error messages
 error() {
@@ -44,7 +53,7 @@ fi
 
 # Display general help
 cat << EOF
-Intent v2.2.0 - Structured Development Process
+Intent v$INTENT_VERSION - Structured Development Process
 
 A system for structured development and documentation with LLM collaboration.
 Formerly known as STP (Steel Thread Process).

@@ -4,11 +4,17 @@
 # Licensed under the MIT License (see LICENSE file)
 # Usage: stp <command> [options] [arguments]
 
-# Version
-INTENT_VERSION="2.1.0"
-
 # Exit on error
 set -e
+
+# Source helpers for version
+if [ -z "$INTENT_HOME" ]; then
+  INTENT_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+fi
+if [ -f "$INTENT_HOME/bin/intent_helpers" ]; then
+  source "$INTENT_HOME/bin/intent_helpers"
+fi
+INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
 
 # Function to display error messages
 error() {
