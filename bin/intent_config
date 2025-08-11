@@ -1,9 +1,17 @@
 #!/bin/bash
-# intent_config - Shared configuration library for Intent v2.1.0
+# intent_config - Shared configuration library for Intent
 # Provides JSON parsing, config loading, and common functions
 
-# Version
-INTENT_VERSION="2.1.0"
+# Source helpers for version function if available
+if [ -z "$INTENT_HOME" ]; then
+  INTENT_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+fi
+if [ -f "$INTENT_HOME/bin/intent_helpers" ]; then
+  source "$INTENT_HOME/bin/intent_helpers"
+fi
+
+# Get version from centralized source
+INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
 
 # Default values
 DEFAULT_INTENT_DIR="intent"
@@ -21,7 +29,23 @@ parse_json() {
   
   # Check if jq is available
   if ! command -v jq >/dev/null 2>&1; then
-    error "jq is required but not installed. Please install jq to continue."
+    echo "Error: jq is required but not installed." >&2
+    echo "" >&2
+    echo "Intent requires jq for JSON configuration parsing." >&2
+    echo "" >&2
+    echo "Installation instructions:" >&2
+    if [ "$(uname)" = "Darwin" ]; then
+      echo "  macOS: brew install jq" >&2
+    elif [ "$(uname)" = "Linux" ]; then
+      echo "  Debian/Ubuntu: sudo apt-get install jq" >&2
+      echo "  RedHat/CentOS: sudo yum install jq" >&2
+      echo "  Arch Linux: sudo pacman -S jq" >&2
+    else
+      echo "  Please install jq using your system's package manager" >&2
+    fi
+    echo "" >&2
+    echo "For more information: https://stedolan.github.io/jq/download/" >&2
+    exit 1
   fi
   
   # Extract all key-value pairs as shell variable assignments
@@ -61,8 +85,7 @@ find_project_root() {
 
 # Load Intent configuration with hierarchy
 load_intent_config() {
-  # Initialize defaults
-  INTENT_VERSION="${INTENT_VERSION:-2.0.0}"
+  # Initialize defaults (INTENT_VERSION already set above)
   INTENT_DIR="${DEFAULT_INTENT_DIR}"
   BACKLOG_DIR="${DEFAULT_BACKLOG_DIR}"
   AUTHOR="${USER}"

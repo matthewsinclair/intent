@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.1] - 2025-08-11
+
+### Added
+
+- Centralized version management through VERSION file
+- `get_intent_version()` function in intent_helpers for consistent version retrieval
+- Comprehensive tool dependency checking in `intent doctor`
+- Platform-specific installation instructions for all required tools
+- Better error handling for missing jq dependency across all commands
+
+### Changed
+
+- Tool dependencies categorized as required, core, and optional in doctor command
+- Enhanced jq error messages with clear installation instructions
+- All scripts now read version from centralized VERSION file
+
+### Fixed
+
+- Silent failures when jq is missing during agent operations
+- Missing error messages for required tool dependencies
+- Inadequate installation guidance for different platforms
+- Version number inconsistencies across different scripts
+
+### Technical Improvements
+
+- Single source of truth for version management
+- Reduced maintenance overhead for version updates
+- Improved fallback behavior when tools are missing
+- Better user experience with actionable error messages
+
 ## [2.2.0] - 2025-08-05
 
 ### Added
@@ -264,6 +294,7 @@ See [Release Notes](./docs/releases/2.0.0/RELEASE_NOTES.md) for complete details
 - `stp upgrade` - Upgrade STP files to latest format
 - `stp help` - Comprehensive help system
 
+[2.2.1]: https://github.com/matthewsinclair/intent/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/matthewsinclair/intent/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/matthewsinclair/intent/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/matthewsinclair/intent/compare/v1.2.1...v2.0.0

@@ -8,8 +8,16 @@ set -e
 # Source common library (but don't load project config - init creates new projects)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Set default INTENT_VERSION if not already set
-INTENT_VERSION="${INTENT_VERSION:-2.0.0}"
+# Source helpers for version
+if [ -z "$INTENT_HOME" ]; then
+  INTENT_HOME="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
+if [ -f "$INTENT_HOME/bin/intent_helpers" ]; then
+  source "$INTENT_HOME/bin/intent_helpers"
+fi
+
+# Get version from centralized source
+INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
 
 # Function to display error messages
 error() {
@@ -21,7 +29,7 @@ error() {
 usage() {
   echo "Usage: intent init [project_name]"
   echo ""
-  echo "Initialize a new Intent v2.2.0 project in the current directory"
+  echo "Initialize a new Intent v$INTENT_VERSION project in the current directory"
   echo ""
   echo "Arguments:"
   echo "  project_name  Name of the project (optional, defaults to directory name)"

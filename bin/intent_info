@@ -39,7 +39,14 @@ echo
 # Display Intent installation info
 echo "Installation:"
 echo "  INTENT_HOME:     ${INTENT_HOME:-<not set>}"
-echo "  Version:         ${INTENT_VERSION:-2.2.0}"
+# Source helpers for version if available
+if [ -n "$INTENT_HOME" ] && [ -f "$INTENT_HOME/bin/intent_helpers" ]; then
+  source "$INTENT_HOME/bin/intent_helpers"
+  VERSION_DISPLAY="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+else
+  VERSION_DISPLAY="${INTENT_VERSION:-2.2.1}"
+fi
+echo "  Version:         $VERSION_DISPLAY"
 echo "  Executable:      $(which intent 2>/dev/null || echo '<not in PATH>')"
 echo
 

@@ -163,12 +163,18 @@ assert_output() {
   fi
 }
 
-# Helper to get Intent version from config
+# Helper to get Intent version from VERSION file
 get_intent_version() {
-  if [ -f "${INTENT_PROJECT_ROOT}/.intent/config.json" ]; then
-    jq -r '.version // .intent_version // "unknown"' "${INTENT_PROJECT_ROOT}/.intent/config.json"
+  # First try the VERSION file in the Intent installation
+  if [ -f "${INTENT_HOME}/VERSION" ]; then
+    cat "${INTENT_HOME}/VERSION"
+  elif [ -f "${INTENT_PROJECT_ROOT}/VERSION" ]; then
+    cat "${INTENT_PROJECT_ROOT}/VERSION"
+  elif [ -f "${INTENT_PROJECT_ROOT}/.intent/config.json" ]; then
+    # Fallback to config.json for compatibility
+    jq -r '.version // .intent_version // "2.2.1"' "${INTENT_PROJECT_ROOT}/.intent/config.json"
   else
-    echo "unknown"
+    echo "2.2.1"
   fi
 }
 

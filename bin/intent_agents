@@ -106,8 +106,13 @@ EOF
         echo "  Warning: Global agent manifest missing at $INTENT_HOME/agents/.manifest/"
         echo "  This may indicate an incomplete Intent installation"
       else
-        local agent_count=$(jq -r '.agents | length' "$INTENT_HOME/agents/.manifest/global-agents.json" 2>/dev/null || echo 0)
-        echo "  Found $agent_count available agents in Intent installation"
+        if command -v jq >/dev/null 2>&1; then
+          local agent_count=$(jq -r '.agents | length' "$INTENT_HOME/agents/.manifest/global-agents.json" 2>/dev/null || echo 0)
+          echo "  Found $agent_count available agents in Intent installation"
+        else
+          echo "  Warning: jq not installed - cannot read agent manifest"
+          echo "  Install jq to enable agent management: brew install jq (macOS) or apt-get install jq (Linux)"
+        fi
       fi
     else
       echo "  Warning: INTENT_HOME not set or agents directory not found"
@@ -144,7 +149,12 @@ get_agent_info() {
   local agent_name="$2"
   
   if [ -f "$manifest" ]; then
-    jq -r ".agents[] | select(.name == \"$agent_name\")" "$manifest" 2>/dev/null
+    if command -v jq >/dev/null 2>&1; then
+      jq -r ".agents[] | select(.name == \"$agent_name\")" "$manifest" 2>/dev/null
+    else
+      echo "Error: jq is required for agent operations but not installed" >&2
+      return 1
+    fi
   fi
 }
 
@@ -158,11 +168,22 @@ intent_agents_list() {
   if [ -f "$global_manifest" ]; then
     echo "Global:"
     
+    # Check for jq before proceeding
+    if ! command -v jq >/dev/null 2>&1; then
+      echo "Error: jq is required for agent operations but not installed"
+      echo ""
+      echo "Please install jq to use agent features:"
+      echo "  macOS: brew install jq"
+      echo "  Linux: sudo apt-get install jq (Debian/Ubuntu)"
+      echo "         sudo yum install jq (RedHat/CentOS)"
+      return 1
+    fi
+    
     # Read agent names from manifest
     local agents=$(jq -r '.agents[].name' "$global_manifest" 2>/dev/null)
     
     for agent in $agents; do
-      local info=$(jq -r ".agents[] | select(.name == \"$agent\") | .description" "$global_manifest" 2>/dev/null)
+      local info=$(jq -r ".agents[] | select(.name == \"$agent\") | .description" "$global_manifest" 2>/dev/null || echo "<unable to read description>")
       local status=""
       
       if is_agent_installed "$agent"; then
@@ -264,6 +285,16 @@ EOF
 
 # Install agents
 intent_agents_install() {
+  # Check for jq dependency
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "Error: jq is required for agent installation but not installed"
+    echo ""
+    echo "Please install jq first:"
+    echo "  macOS: brew install jq"
+    echo "  Linux: sudo apt-get install jq (Debian/Ubuntu)"
+    return 1
+  fi
+  
   # Check for Claude
   if [ ! -d "$HOME/.claude" ]; then
     echo "Error: Claude Code not detected. Please install Claude Code first."
@@ -367,6 +398,16 @@ intent_agents_install() {
 
 # Sync installed agents with latest versions
 intent_agents_sync() {
+  # Check for jq dependency
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "Error: jq is required for agent sync but not installed"
+    echo ""
+    echo "Please install jq first:"
+    echo "  macOS: brew install jq"
+    echo "  Linux: sudo apt-get install jq (Debian/Ubuntu)"
+    return 1
+  fi
+  
   # Check for Claude
   if [ ! -d "$HOME/.claude" ]; then
     echo "Error: Claude Code not detected."
@@ -834,6 +875,16 @@ intent_agents_status() {
 
 # Show detailed agent information
 intent_agents_show() {
+  # Check for jq dependency
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "Error: jq is required for agent info but not installed"
+    echo ""
+    echo "Please install jq first:"
+    echo "  macOS: brew install jq"
+    echo "  Linux: sudo apt-get install jq (Debian/Ubuntu)"
+    return 1
+  fi
+  
   if [ "$#" -eq 0 ]; then
     echo "Error: Agent name required"
     echo "Usage: intent agents show <agent-name>"
