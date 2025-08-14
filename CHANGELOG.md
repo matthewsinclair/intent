@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `intent upgrade` now preserves existing CLAUDE.md files instead of overwriting them
 - Silent failures when jq is missing during agent operations
 - Missing error messages for required tool dependencies
 - Inadequate installation guidance for different platforms

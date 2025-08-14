@@ -691,9 +691,15 @@ EOF
 # Create CLAUDE.md for Intent v2.0.0+
 create_claude_md() {
   local project_root=$1
+  local force_overwrite=${2:-false}
   local project_name=$(jq -r '.project_name // "Project"' "$project_root/.intent/config.json" 2>/dev/null || echo "Project")
   local author=$(jq -r '.author // "Unknown"' "$project_root/.intent/config.json" 2>/dev/null || echo "${USER:-Unknown}")
   local version=$(jq -r '.intent_version // "2.0.0"' "$project_root/.intent/config.json" 2>/dev/null || echo "2.0.0")
+  
+  # Check if CLAUDE.md already exists
+  if [ -f "$project_root/CLAUDE.md" ] && [ "$force_overwrite" != "true" ]; then
+    return 0  # File exists and we're not forcing overwrite
+  fi
   
   cat > "$project_root/CLAUDE.md" << EOF
 # $project_name Project Guidelines

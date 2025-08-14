@@ -217,8 +217,14 @@ if [ -d "intent/agents/.manifest" ]; then
 fi
 
 # Create or update CLAUDE.md
-echo "Updating CLAUDE.md..."
-create_claude_md .
+CLAUDE_EXISTED=false
+if [ -f "CLAUDE.md" ]; then
+  echo "Preserving existing CLAUDE.md..."
+  CLAUDE_EXISTED=true
+else
+  echo "Creating CLAUDE.md..."
+  create_claude_md .
+fi
 
 # Final message
 echo ""
@@ -236,7 +242,11 @@ fi
 echo "- Metadata updated to Intent v$TARGET_VERSION format"
 echo "- Created/updated .intent/config.json"
 echo "- Initialized agent configuration"
-echo "- Updated CLAUDE.md with Intent guidelines"
+if [ "$CLAUDE_EXISTED" = "true" ]; then
+  echo "- Preserved existing CLAUDE.md"
+else
+  echo "- Created CLAUDE.md with Intent guidelines"
+fi
 
 if [ "$NO_BACKUP" != true ]; then
   echo ""
