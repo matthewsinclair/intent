@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Steel threads now start with 'WIP' status instead of 'In Progress' when using `intent st start`
 - Tool dependencies categorized as required, core, and optional in doctor command
 - Enhanced jq error messages with clear installation instructions
 - All scripts now read version from centralized VERSION file
