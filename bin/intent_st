@@ -550,16 +550,16 @@ EOF
         exit 0
       fi
       
-      # Update status to In Progress
-      sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: In Progress/" "$ST_FILE"
-      sed -i.bak "s/^status: .*$/status: In Progress/" "$ST_FILE"
+      # Update status to WIP
+      sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: WIP/" "$ST_FILE"
+      sed -i.bak "s/^status: .*$/status: WIP/" "$ST_FILE"
       rm -f "$ST_FILE.bak"
       
       # Get current directory
       CURRENT_DIR=$(dirname "$ST_FILE")
       
-      # Get the target location (main directory for In Progress threads)
-      NEW_ST_FILE=$(get_st_path "$ST_ID" "In Progress" "info.md")
+      # Get the target location (main directory for WIP threads)
+      NEW_ST_FILE=$(get_st_path "$ST_ID" "WIP" "info.md")
       NEW_DIR=$(dirname "$NEW_ST_FILE")
       
       # Move the entire directory if it's different (e.g., from NOT-STARTED/)
@@ -594,11 +594,11 @@ EOF
         exit 0
       fi
       
-      sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: In Progress/" "$ST_FILE"
-      sed -i.bak "s/^status: .*$/status: In Progress/" "$ST_FILE"
+      sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: WIP/" "$ST_FILE"
+      sed -i.bak "s/^status: .*$/status: WIP/" "$ST_FILE"
       rm -f "$ST_FILE.bak"
       
-      NEW_ST_FILE=$(get_st_path "$ST_ID" "In Progress")
+      NEW_ST_FILE=$(get_st_path "$ST_ID" "WIP")
       
       if [ "$ST_FILE" != "$NEW_ST_FILE" ]; then
         mkdir -p "$(dirname "$NEW_ST_FILE")"
@@ -623,7 +623,7 @@ EOF
     fi
     
     # Update index
-    update_steel_threads_index "$ST_ID" "$TITLE" "In Progress" "$CREATED" ""
+    update_steel_threads_index "$ST_ID" "$TITLE" "WIP" "$CREATED" ""
     
     echo "Marked steel thread as in progress: $ST_ID: $TITLE"
     ;;

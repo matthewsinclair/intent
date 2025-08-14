@@ -489,8 +489,8 @@ EOF
   [ ! -d "intent/st/NOT-STARTED/ST0001" ] || fail "ST0001 still in NOT-STARTED directory"
   
   # Check status was updated
-  assert_file_contains "intent/st/ST0001/info.md" "status: In Progress"
-  assert_file_contains "intent/st/ST0001/info.md" "**Status**: In Progress"
+  assert_file_contains "intent/st/ST0001/info.md" "status: WIP"
+  assert_file_contains "intent/st/ST0001/info.md" "**Status**: WIP"
 }
 
 @test "st start works with just the number" {
@@ -585,8 +585,8 @@ EOF
   [ ! -d "intent/st/COMPLETED/ST0001" ] || fail "ST0001 still in COMPLETED directory"
   
   # Check status was updated
-  assert_file_contains "intent/st/ST0001/info.md" "status: In Progress"
-  assert_file_contains "intent/st/ST0001/info.md" "**Status**: In Progress"
+  assert_file_contains "intent/st/ST0001/info.md" "status: WIP"
+  assert_file_contains "intent/st/ST0001/info.md" "**Status**: WIP"
 }
 
 @test "st start updates steel_threads.md index" {
@@ -625,7 +625,7 @@ EOF
   assert_success
   
   # Check index was updated
-  assert_file_contains "intent/st/steel_threads.md" "| ST0001 | Test Thread | In Progress | $CURRENT_DATE |  |"
+  assert_file_contains "intent/st/steel_threads.md" "| ST0001 | Test Thread | WIP | $CURRENT_DATE |  |"
 }
 
 @test "st start errors on non-existent steel thread" {
@@ -669,8 +669,8 @@ EOF
   assert_directory_exists "intent/st/ST0001"
   
   # Check status was updated
-  assert_file_contains "intent/st/ST0001/info.md" "status: In Progress"
-  assert_file_contains "intent/st/ST0001/info.md" "**Status**: In Progress"
+  assert_file_contains "intent/st/ST0001/info.md" "status: WIP"
+  assert_file_contains "intent/st/ST0001/info.md" "**Status**: WIP"
 }
 
 @test "st list with comma-separated statuses" {
