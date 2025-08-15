@@ -1,0 +1,156 @@
+# Worker-Bee Driven Design Pattern Definitions
+# Used by the validation engine to identify WDD compliance
+
+functional_core_patterns:
+  pure_function_indicators:
+    - "def.*->.*"
+    - "defp.*->.*"
+    - "|>"
+    - "with.*<-"
+  
+  side_effect_violations:
+    - "GenServer\\."
+    - "Agent\\."
+    - "Task\\."
+    - "spawn"
+    - "Process\\."
+    - "File\\."
+    - "IO\\."
+    - "Logger\\."
+    - "Repo\\."
+    - "HTTPoison\\."
+    - "Tesla\\."
+  
+  composition_patterns:
+    - "\\|>"
+    - "with.*<-"
+    - "\\{:ok,.*\\}"
+    - "\\{:error,.*\\}"
+
+boundary_layer_patterns:
+  genserver_structure:
+    required_callbacks:
+      - "def init"
+    recommended_callbacks:
+      - "def handle_call"
+      - "def handle_cast"
+      - "def handle_info"
+  
+  error_handling:
+    - "with.*<-"
+    - "\\{:ok,.*\\}"
+    - "\\{:error,.*\\}"
+    - "else"
+  
+  api_design:
+    - "@spec"
+    - "def start_link"
+    - "GenServer\\.call"
+
+data_layer_patterns:
+  struct_patterns:
+    - "defstruct"
+    - "@type.*::"
+    - "\\%\\{.*\\|.*\\}"
+  
+  immutability_indicators:
+    - "\\%\\{.*\\|.*\\}"
+    - "Map\\.put"
+    - "struct\\("
+  
+  anti_patterns:
+    - "\\%\\{.*\\%\\{.*\\%\\{"  # Deep nesting
+
+testing_patterns:
+  organization:
+    - "describe.*do"
+    - "setup.*do"
+    - "test.*do"
+  
+  behavior_focus:
+    - "assert.*==.*"
+    - "refute.*==.*"
+    - "assert_receive"
+  
+  anti_patterns:
+    - "assert true"
+    - "assert false"
+    - "private_function"
+
+worker_patterns:
+  concurrency_indicators:
+    - "use GenServer"
+    - "Task\\."
+    - "Supervisor"
+    - "DynamicSupervisor"
+  
+  background_processing:
+    - "handle_cast"
+    - "handle_info"
+    - "Process\\.send_after"
+
+lifecycle_patterns:
+  supervision:
+    - "use Supervisor"
+    - "use Application"
+    - "children.*="
+    - "Supervisor\\.start_link"
+  
+  application_structure:
+    - "def start"
+    - "def stop"
+    - "child_spec"
+
+complexity_thresholds:
+  function_complexity:
+    low: 3
+    medium: 7
+    high: 10
+  
+  module_responsibilities:
+    max_responsibilities: 3
+  
+  function_parameters:
+    max_parameters: 4
+
+project_type_indicators:
+  phoenix_web:
+    - ":phoenix"
+    - "Phoenix\\."
+    - "router\\.ex"
+    - "endpoint\\.ex"
+    - "_web"
+  
+  phoenix_api:
+    - ":phoenix"
+    - "Phoenix\\."
+    - "router\\.ex"
+    - "api"
+  
+  otp_application:
+    - "use Application"
+    - "use Supervisor"
+    - "GenServer"
+  
+  library:
+    - "defmodule.*do"
+    - "def.*"
+    - "!.*Application"
+    - "!.*Supervisor"
+
+naming_conventions:
+  module_naming:
+    - "^[A-Z][a-zA-Z0-9]*$"
+  
+  function_naming:
+    - "^[a-z_][a-z0-9_]*[?!]?$"
+  
+  test_naming:
+    - ".*_test\\.exs$"
+  
+  avoid_names:
+    - "temp"
+    - "tmp" 
+    - "test"
+    - "foo"
+    - "bar"
