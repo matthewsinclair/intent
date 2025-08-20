@@ -1,8 +1,14 @@
 ---
-verblock: "27 Jul 2025:v0.2: Matthew Sinclair - Updated for Intent v2.1.0 with agent system"
+verblock: "20 Aug 2025:v0.3: DEPRECATED - Replaced by AGENTS.md in Intent v2.3.0"
 intent_version: 2.1.0
 ---
-# LLM Preamble
+# LLM Preamble [DEPRECATED]
+
+> **⚠️ DEPRECATION NOTICE**: This file is deprecated as of Intent v2.3.0.
+> LLM context is now provided via AGENTS.md which follows the universal 
+> AGENTS.md specification. See the AGENTS.md file in this project.
+>
+> This file is kept for backward compatibility but will be removed in a future version.
 
 This document provides essential context for LLMs working with Intent projects.
 
