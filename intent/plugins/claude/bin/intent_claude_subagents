@@ -997,42 +997,44 @@ intent_claude_subagents_show() {
   fi
 }
 
-# Route commands
-case "$1" in
-  init)
-    shift
-    intent_claude_subagents_init "$@"
-    ;;
-  list)
-    shift
-    intent_claude_subagents_list "$@"
-    ;;
-  install)
-    shift
-    intent_claude_subagents_install "$@"
-    ;;
-  sync)
-    shift
-    intent_claude_subagents_sync "$@"
-    ;;
-  uninstall)
-    shift
-    intent_claude_subagents_uninstall "$@"
-    ;;
-  show)
-    shift
-    intent_claude_subagents_show "$@"
-    ;;
-  status)
-    shift
-    intent_claude_subagents_status "$@"
-    ;;
-  ""|help|-h|--help)
-    intent_claude_subagents_help
-    ;;
-  *)
-    echo "Error: Unknown command 'intent claude subagents $1'"
-    echo "Run 'intent claude subagents help' for usage"
-    exit 1
-    ;;
-esac
+# Route commands - only run if script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  case "$1" in
+    init)
+      shift
+      intent_claude_subagents_init "$@"
+      ;;
+    list)
+      shift
+      intent_claude_subagents_list "$@"
+      ;;
+    install)
+      shift
+      intent_claude_subagents_install "$@"
+      ;;
+    sync)
+      shift
+      intent_claude_subagents_sync "$@"
+      ;;
+    uninstall)
+      shift
+      intent_claude_subagents_uninstall "$@"
+      ;;
+    show)
+      shift
+      intent_claude_subagents_show "$@"
+      ;;
+    status)
+      shift
+      intent_claude_subagents_status "$@"
+      ;;
+    ""|help|-h|--help)
+      intent_claude_subagents_help
+      ;;
+    *)
+      echo "Error: Unknown command 'intent claude subagents $1'"
+      echo "Run 'intent claude subagents help' for usage"
+      exit 1
+      ;;
+  esac
+fi

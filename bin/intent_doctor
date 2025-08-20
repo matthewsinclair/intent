@@ -5,8 +5,12 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -f "$SCRIPT_DIR/intent_config" ]; then
   source "$SCRIPT_DIR/intent_config"
+  # Load the configuration to set PROJECT_ROOT and other variables
+  load_intent_config
 elif [ -n "$INTENT_HOME" ] && [ -f "$INTENT_HOME/bin/intent_config" ]; then
   source "$INTENT_HOME/bin/intent_config"
+  # Load the configuration to set PROJECT_ROOT and other variables
+  load_intent_config
 else
   # Fallback - define minimal functions we need
   validate_json() {
@@ -263,6 +267,49 @@ doctor_check() {
     verbose "Not in a project directory"
   fi
   
+  # Check 4b: v2.3.0 features (if in a project with v2.3.0+)
+  if [ -n "$PROJECT_ROOT" ] && [ -f "$PROJECT_ROOT/.intent/config.json" ]; then
+    # Check version
+    local project_version=$(jq -r '.version // "0.0.0"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null)
+    if [[ "$project_version" == "2.3"* ]]; then
+      # Check for AGENTS.md
+      if [ "$QUIET" != true ]; then
+        echo -n "Checking AGENTS.md... "
+      fi
+      if [ -f "$PROJECT_ROOT/AGENTS.md" ] || [ -f "$PROJECT_ROOT/intent/llm/AGENTS.md" ]; then
+        show_ok
+        verbose "AGENTS.md found"
+      else
+        show_warning "Missing AGENTS.md"
+        verbose "Run 'intent agents init' to create AGENTS.md"
+        if [ "$FIX_MODE" = true ]; then
+          echo "  Creating AGENTS.md..."
+          (cd "$PROJECT_ROOT" && intent agents init)
+          show_fixed "Created AGENTS.md"
+        fi
+      fi
+      
+      # Check for plugins config
+      if [ "$QUIET" != true ]; then
+        echo -n "Checking plugins config... "
+      fi
+      if jq -e '.plugins' "$PROJECT_ROOT/.intent/config.json" >/dev/null 2>&1; then
+        show_ok
+        verbose "Plugins configured"
+      else
+        show_warning "Missing plugins configuration"
+        verbose "Configuration may be incomplete from upgrade"
+        if [ "$FIX_MODE" = true ]; then
+          echo "  Adding plugins configuration..."
+          local temp_file=$(mktemp)
+          jq '.plugins = {"claude": {"subagents_path": "intent/plugins/claude/subagents"}, "agents": {"config_path": "intent/plugins/agents"}}' "$PROJECT_ROOT/.intent/config.json" > "$temp_file"
+          mv "$temp_file" "$PROJECT_ROOT/.intent/config.json"
+          show_fixed "Added plugins configuration"
+        fi
+      fi
+    fi
+  fi
+  
   # Check 5: PATH
   if [ "$QUIET" != true ]; then
     echo -n "Checking PATH... "
@@ -471,8 +518,31 @@ doctor_check() {
     echo -n "Checking agent system... "
   fi
   
-  # Check if agents directory exists
-  if [ -d "$INTENT_HOME/agents" ]; then
+  # Check for new plugin structure (v2.3.0+)
+  if [ -d "$INTENT_HOME/intent/plugins/claude/subagents" ]; then
+    # New plugin-based structure
+    local subagent_count=0
+    if [ -d "$INTENT_HOME/intent/plugins/claude/subagents" ]; then
+      subagent_count=$(ls -1 "$INTENT_HOME/intent/plugins/claude/subagents" 2>/dev/null | wc -l)
+    fi
+    
+    show_ok
+    verbose "Found $subagent_count available Claude subagents"
+    
+    # Check if Claude is available
+    if [ -d "$HOME/.claude" ]; then
+      # Check installed agents manifest
+      if [ -f "$HOME/.intent/agents/installed-agents.json" ]; then
+        if command -v jq >/dev/null 2>&1; then
+          local installed_count=$(jq -r '.agents | length' "$HOME/.intent/agents/installed-agents.json" 2>/dev/null || echo 0)
+          verbose "$installed_count Claude subagents installed"
+        fi
+      fi
+    else
+      verbose "Claude Code not detected - subagents not active"
+    fi
+  elif [ -d "$INTENT_HOME/agents" ]; then
+    # Legacy agent structure (pre-v2.3.0)
     # Check manifest
     if [ -f "$INTENT_HOME/agents/.manifest/global-agents.json" ]; then
       # Check if jq is available for agent operations
@@ -485,7 +555,8 @@ doctor_check() {
         if validate_json "$INTENT_HOME/agents/.manifest/global-agents.json"; then
           AGENT_COUNT=$(jq -r '.agents | length' "$INTENT_HOME/agents/.manifest/global-agents.json" 2>/dev/null || echo 0)
           show_ok
-          verbose "Found $AGENT_COUNT available agents"
+          verbose "Found $AGENT_COUNT available agents (legacy structure)"
+          verbose "Consider upgrading Intent to v2.3.0+ for new plugin architecture"
           
           # Check if Claude is available
           if [ -d "$HOME/.claude" ]; then
