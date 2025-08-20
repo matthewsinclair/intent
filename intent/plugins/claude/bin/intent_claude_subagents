@@ -1,19 +1,21 @@
 #!/bin/bash
-# intent_agents - Manage Claude Code sub-agents for Intent projects
+# intent_claude_subagents - Manage Claude Code subagents for Intent projects
 # Copyright (c) 2024 Matthew Sinclair
 # Licensed under the MIT License (see LICENSE file)
 # Commands: list, install, sync, uninstall, show, status
 
-# Source helpers
-INTENT_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Source helpers from main bin directory
+PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INTENT_ROOT="$(cd "$PLUGIN_BIN/../../../.." && pwd)"
+INTENT_BIN="$INTENT_ROOT/bin"
 source "$INTENT_BIN/intent_helpers"
 
 # Show help
-intent_agents_help() {
+intent_claude_subagents_help() {
   cat << EOF
-Usage: intent agents <command> [options]
+Usage: intent claude subagents <command> [options]
 
-Manage Claude Code sub-agents for Intent projects.
+Manage Claude Code subagents for Intent projects.
 
 Commands:
   init        Initialize agent configuration
@@ -25,20 +27,20 @@ Commands:
   status      Check agent health and integrity
 
 Examples:
-  intent agents init              # Initialize agent configuration
-  intent agents list              # Show all agents
-  intent agents install intent    # Install the Intent agent
-  intent agents install --all     # Install all available agents
-  intent agents sync             # Update modified agents
+  intent claude subagents init              # Initialize subagent configuration
+  intent claude subagents list              # Show all subagents
+  intent claude subagents install intent    # Install the Intent subagent
+  intent claude subagents install --all     # Install all available subagents
+  intent claude subagents sync              # Update modified subagents
 
 For help on a specific command:
-  intent help agents <command>
+  intent help claude subagents <command>
 EOF
 }
 
-# Initialize agent configuration
-intent_agents_init() {
-  echo "Initializing agent configuration..."
+# Initialize subagent configuration
+intent_claude_subagents_init() {
+  echo "Initializing Claude subagent configuration..."
   
   # Check for project or global init
   local init_type="global"
@@ -57,17 +59,17 @@ intent_agents_init() {
     # Project-level initialization
     if [ -z "${PROJECT_ROOT:-}" ]; then
       echo "Error: Not in an Intent project directory"
-      echo "Use 'intent agents init' without --project for global initialization"
+      echo "Use 'intent claude subagents init' without --project for global initialization"
       return 1
     fi
     
     echo "Initializing project agent configuration..."
     
     # Initialize project agent tracking in the correct location
-    mkdir -p "$PROJECT_ROOT/intent/agents/.manifest"
-    if [ ! -f "$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json" ]; then
+    mkdir -p "$PROJECT_ROOT/intent/plugins/claude/subagents/.manifest"
+    if [ ! -f "$PROJECT_ROOT/intent/plugins/claude/subagents/.manifest/installed-agents.json" ]; then
       echo "  Creating project agent manifest..."
-      cat > "$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json" << 'EOF'
+      cat > "$PROJECT_ROOT/intent/plugins/claude/subagents/.manifest/installed-agents.json" << 'EOF'
 {
   "version": "1.0.0",
   "installed": []
@@ -100,14 +102,14 @@ EOF
     fi
     
     # Check global Intent installation
-    if [ -n "$INTENT_HOME" ] && [ -d "$INTENT_HOME/agents" ]; then
+    if [ -n "$INTENT_HOME" ] && [ -d "$INTENT_HOME/intent/plugins/claude/subagents" ]; then
       # Ensure global agent manifest exists
-      if [ ! -f "$INTENT_HOME/agents/.manifest/global-agents.json" ]; then
-        echo "  Warning: Global agent manifest missing at $INTENT_HOME/agents/.manifest/"
+      if [ ! -f "$INTENT_HOME/intent/plugins/claude/subagents/.manifest/global-agents.json" ]; then
+        echo "  Warning: Global agent manifest missing at $INTENT_HOME/intent/plugins/claude/subagents/.manifest/"
         echo "  This may indicate an incomplete Intent installation"
       else
         if command -v jq >/dev/null 2>&1; then
-          local agent_count=$(jq -r '.agents | length' "$INTENT_HOME/agents/.manifest/global-agents.json" 2>/dev/null || echo 0)
+          local agent_count=$(jq -r '.agents | length' "$INTENT_HOME/intent/plugins/claude/subagents/.manifest/global-agents.json" 2>/dev/null || echo 0)
           echo "  Found $agent_count available agents in Intent installation"
         else
           echo "  Warning: jq not installed - cannot read agent manifest"
@@ -159,12 +161,12 @@ get_agent_info() {
 }
 
 # List available and installed agents
-intent_agents_list() {
+intent_claude_subagents_list() {
   echo "Available Agents:"
   echo ""
   
   # Global agents
-  local global_manifest="$INTENT_HOME/agents/.manifest/global-agents.json"
+  local global_manifest="$INTENT_HOME/intent/plugins/claude/subagents/.manifest/global-agents.json"
   if [ -f "$global_manifest" ]; then
     echo "Global:"
     
@@ -202,7 +204,7 @@ intent_agents_list() {
   
   # Local agents (if in project)
   if [ -n "${PROJECT_ROOT:-}" ] && [ -d "$PROJECT_ROOT/intent/agents" ]; then
-    local local_manifest="$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json"
+    local local_manifest="$PROJECT_ROOT/intent/plugins/claude/subagents/.manifest/installed-agents.json"
     if [ -f "$local_manifest" ]; then
       echo "Local (Project-specific):"
       # TODO: Implement local agent listing
@@ -241,7 +243,7 @@ update_installed_manifest() {
   
   if [ -n "${PROJECT_ROOT:-}" ]; then
     # In a project - use project manifest
-    manifest_dir="$PROJECT_ROOT/intent/agents/.manifest"
+    manifest_dir="$PROJECT_ROOT/intent/plugins/claude/subagents/.manifest"
     manifest_file="$manifest_dir/installed-agents.json"
   else
     # Not in project - use global user manifest
@@ -284,7 +286,7 @@ EOF
 }
 
 # Install agents
-intent_agents_install() {
+intent_claude_subagents_install() {
   # Check for jq dependency
   if ! command -v jq >/dev/null 2>&1; then
     echo "Error: jq is required for agent installation but not installed"
@@ -308,7 +310,7 @@ intent_agents_install() {
   # Parse arguments
   if [ "$#" -eq 0 ]; then
     echo "Error: No agent specified"
-    echo "Usage: intent agents install <agent-name> [agent-name...]"
+    echo "Usage: intent claude subagents install <agent-name> [agent-name...]"
     echo "       intent agents install --all"
     return 1
   fi
@@ -330,7 +332,7 @@ intent_agents_install() {
   
   # Get list of available agents if --all
   if [ "$install_all" = true ]; then
-    local global_manifest="$INTENT_HOME/agents/.manifest/global-agents.json"
+    local global_manifest="$INTENT_HOME/intent/plugins/claude/subagents/.manifest/global-agents.json"
     if [ -f "$global_manifest" ]; then
       agents_to_install=($(jq -r '.agents[].name' "$global_manifest" 2>/dev/null))
     fi
@@ -345,7 +347,7 @@ intent_agents_install() {
     echo "Installing agent: $agent"
     
     # Check if agent exists in global manifest
-    local agent_path="$INTENT_HOME/agents/$agent/agent.md"
+    local agent_path="$INTENT_HOME/intent/plugins/claude/subagents/$agent/agent.md"
     if [ ! -f "$agent_path" ]; then
       echo "  Error: Agent '$agent' not found"
       ((failed_count++))
@@ -371,7 +373,7 @@ intent_agents_install() {
     # Copy agent
     if cp "$agent_path" "$target"; then
       echo "  Installed successfully"
-      update_installed_manifest "$agent" "global" "$INTENT_HOME/agents/$agent"
+      update_installed_manifest "$agent" "global" "$INTENT_HOME/intent/plugins/claude/subagents/$agent"
       ((installed_count++))
     else
       echo "  Error: Failed to install"
@@ -397,7 +399,7 @@ intent_agents_install() {
 }
 
 # Sync installed agents with latest versions
-intent_agents_sync() {
+intent_claude_subagents_sync() {
   # Check for jq dependency
   if ! command -v jq >/dev/null 2>&1; then
     echo "Error: jq is required for agent sync but not installed"
@@ -417,7 +419,7 @@ intent_agents_sync() {
   # Determine manifest location
   local manifest_file
   if [ -n "${PROJECT_ROOT:-}" ]; then
-    manifest_file="$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json"
+    manifest_file="$PROJECT_ROOT/intent/plugins/claude/subagents/.manifest/installed-agents.json"
   else
     manifest_file="$HOME/.intent/agents/installed-agents.json"
   fi
@@ -425,7 +427,7 @@ intent_agents_sync() {
   # Check if manifest exists
   if [ ! -f "$manifest_file" ]; then
     echo "No installed agents found."
-    echo "Use 'intent agents install' to install agents first."
+    echo "Use 'intent claude subagents install' to install agents first."
     return 0
   fi
   
@@ -539,7 +541,7 @@ remove_from_manifest() {
   # Determine manifest location
   local manifest_file
   if [ -n "${PROJECT_ROOT:-}" ]; then
-    manifest_file="$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json"
+    manifest_file="$PROJECT_ROOT/intent/plugins/claude/subagents/.manifest/installed-agents.json"
   else
     manifest_file="$HOME/.intent/agents/installed-agents.json"
   fi
@@ -555,7 +557,7 @@ remove_from_manifest() {
 }
 
 # Uninstall agents
-intent_agents_uninstall() {
+intent_claude_subagents_uninstall() {
   # Check for Claude
   if [ ! -d "$HOME/.claude" ]; then
     echo "Error: Claude Code not detected."
@@ -565,7 +567,7 @@ intent_agents_uninstall() {
   # Parse arguments
   if [ "$#" -eq 0 ]; then
     echo "Error: No agent specified"
-    echo "Usage: intent agents uninstall <agent-name> [agent-name...]"
+    echo "Usage: intent claude subagents uninstall <agent-name> [agent-name...]"
     echo "       intent agents uninstall --all"
     return 1
   fi
@@ -590,7 +592,7 @@ intent_agents_uninstall() {
     # Determine manifest location
     local manifest_file
     if [ -n "${PROJECT_ROOT:-}" ]; then
-      manifest_file="$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json"
+      manifest_file="$PROJECT_ROOT/intent/plugins/claude/subagents/.manifest/installed-agents.json"
     else
       manifest_file="$HOME/.intent/agents/installed-agents.json"
     fi
@@ -642,7 +644,7 @@ intent_agents_uninstall() {
     # Check if agent is managed by Intent
     local manifest_file
     if [ -n "${PROJECT_ROOT:-}" ]; then
-      manifest_file="$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json"
+      manifest_file="$PROJECT_ROOT/intent/plugins/claude/subagents/.manifest/installed-agents.json"
     else
       manifest_file="$HOME/.intent/agents/installed-agents.json"
     fi
@@ -692,7 +694,7 @@ intent_agents_uninstall() {
 }
 
 # Check status of installed agents
-intent_agents_status() {
+intent_claude_subagents_status() {
   # Parse flags
   local VERBOSE=false
   for arg in "$@"; do
@@ -724,7 +726,7 @@ intent_agents_status() {
   # Determine manifest location
   local manifest_file
   if [ -n "${PROJECT_ROOT:-}" ]; then
-    manifest_file="$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json"
+    manifest_file="$PROJECT_ROOT/intent/plugins/claude/subagents/.manifest/installed-agents.json"
   else
     manifest_file="$HOME/.intent/agents/installed-agents.json"
   fi
@@ -732,7 +734,7 @@ intent_agents_status() {
   # Check if any agents are installed
   if [ ! -f "$manifest_file" ]; then
     echo "No installed agents found."
-    echo "Use 'intent agents install' to install agents."
+    echo "Use 'intent claude subagents install' to install agents."
     return 0
   fi
   
@@ -855,14 +857,14 @@ intent_agents_status() {
     echo ""
     echo "Recommendations:"
     if [ $missing_count -gt 0 ]; then
-      echo "  - Run 'intent agents install' to restore missing agents"
+      echo "  - Run 'intent claude subagents install' to restore missing agents"
     fi
     if [ $error_count -gt 0 ]; then
       echo "  - Check error details above and reinstall affected agents"
     fi
   elif [ $modified_count -gt 0 ]; then
     echo ""
-    echo "Run 'intent agents sync' to update agents with available changes."
+    echo "Run 'intent claude subagents sync' to update agents with available changes."
   fi
   
   # Return non-zero if issues found
@@ -874,7 +876,7 @@ intent_agents_status() {
 }
 
 # Show detailed agent information
-intent_agents_show() {
+intent_claude_subagents_show() {
   # Check for jq dependency
   if ! command -v jq >/dev/null 2>&1; then
     echo "Error: jq is required for agent info but not installed"
@@ -887,14 +889,14 @@ intent_agents_show() {
   
   if [ "$#" -eq 0 ]; then
     echo "Error: Agent name required"
-    echo "Usage: intent agents show <agent-name>"
+    echo "Usage: intent claude subagents show <agent-name>"
     return 1
   fi
   
   local agent_name="$1"
   
   # Check global agents first
-  local global_manifest="$INTENT_HOME/agents/.manifest/global-agents.json"
+  local global_manifest="$INTENT_HOME/intent/plugins/claude/subagents/.manifest/global-agents.json"
   local agent_info=""
   local source_type=""
   local source_path=""
@@ -903,7 +905,7 @@ intent_agents_show() {
     agent_info=$(jq -r ".agents[] | select(.name == \"$agent_name\")" "$global_manifest" 2>/dev/null)
     if [ -n "$agent_info" ]; then
       source_type="global"
-      source_path="$INTENT_HOME/agents/$agent_name"
+      source_path="$INTENT_HOME/intent/plugins/claude/subagents/$agent_name"
     fi
   fi
   
@@ -955,7 +957,7 @@ intent_agents_show() {
     # Check if modified
     local manifest_file
     if [ -n "${PROJECT_ROOT:-}" ]; then
-      manifest_file="$PROJECT_ROOT/intent/agents/.manifest/installed-agents.json"
+      manifest_file="$PROJECT_ROOT/intent/plugins/claude/subagents/.manifest/installed-agents.json"
     else
       manifest_file="$HOME/.intent/agents/installed-agents.json"
     fi
@@ -999,38 +1001,38 @@ intent_agents_show() {
 case "$1" in
   init)
     shift
-    intent_agents_init "$@"
+    intent_claude_subagents_init "$@"
     ;;
   list)
     shift
-    intent_agents_list "$@"
+    intent_claude_subagents_list "$@"
     ;;
   install)
     shift
-    intent_agents_install "$@"
+    intent_claude_subagents_install "$@"
     ;;
   sync)
     shift
-    intent_agents_sync "$@"
+    intent_claude_subagents_sync "$@"
     ;;
   uninstall)
     shift
-    intent_agents_uninstall "$@"
+    intent_claude_subagents_uninstall "$@"
     ;;
   show)
     shift
-    intent_agents_show "$@"
+    intent_claude_subagents_show "$@"
     ;;
   status)
     shift
-    intent_agents_status "$@"
+    intent_claude_subagents_status "$@"
     ;;
   ""|help|-h|--help)
-    intent_agents_help
+    intent_claude_subagents_help
     ;;
   *)
-    echo "Error: Unknown command 'intent agents $1'"
-    echo "Run 'intent agents help' for usage"
+    echo "Error: Unknown command 'intent claude subagents $1'"
+    echo "Run 'intent claude subagents help' for usage"
     exit 1
     ;;
 esac

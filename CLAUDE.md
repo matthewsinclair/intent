@@ -21,18 +21,26 @@ Steel threads are organized as directories under `intent/st/`:
 
 ## Commands
 
+### Core Commands
 - `intent st new "Title"` - Create a new steel thread
 - `intent st list` - List all steel threads
 - `intent st show <id>` - Show steel thread details
-- `intent agents init` - Initialize agent configuration
-- `intent agents list` - List available agents
-- `intent agents install <agent>` - Install an agent
 - `intent doctor` - Check configuration
 - `intent help` - Get help
 
+### AGENTS.md Commands (NEW in v2.3.0)
+- `intent agents init` - Create AGENTS.md for the project
+- `intent agents sync` - Update AGENTS.md with latest project state
+- `intent agents validate` - Check AGENTS.md compliance
+
+### Claude Subagent Commands (renamed in v2.3.0)
+- `intent claude subagents init` - Initialize Claude subagent configuration
+- `intent claude subagents list` - List available Claude subagents
+- `intent claude subagents install <name>` - Install a Claude subagent
+
 ## Migration Notes
 
-This project was migrated from STP to Intent v2.0.0 on 2025-07-16, upgraded to v2.1.0 on 2025-07-27, and upgraded to v2.2.0 on 2025-08-05.
+This project was migrated from STP to Intent v2.0.0 on 2025-07-16, upgraded to v2.1.0 on 2025-07-27, upgraded to v2.2.0 on 2025-08-05, and upgraded to v2.3.0 on 2025-08-20 with plugin architecture and AGENTS.md support.
 
 - Old structure: `stp/prj/st/`, `stp/eng/`, etc.
 - New structure: `intent/st/`, `intent/docs/`, etc.

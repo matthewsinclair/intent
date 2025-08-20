@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Tests for intent agents commands (v2.1.0)
+# Tests for intent claude subagents commands (v2.3.0)
 
 load "../lib/test_helper.bash"
 
@@ -41,16 +41,16 @@ teardown() {
   rm -rf "$HOME/.intent/agents" 2>/dev/null || true
 }
 
-@test "agents command shows help when no subcommand given" {
-  run run_intent agents
+@test "claude subagents command shows help when no subcommand given" {
+  run run_intent claude subagents
   assert_success
-  assert_output_contains "Usage: intent agents <command>"
+  assert_output_contains "Usage: intent claude subagents <command>"
   assert_output_contains "list"
   assert_output_contains "install"
 }
 
-@test "agents list shows available agents" {
-  run run_intent agents list
+@test "claude subagents list shows available agents" {
+  run run_intent claude subagents list
   assert_success
   assert_output_contains "Available Agents:"
   assert_output_contains "Global:"
@@ -58,31 +58,31 @@ teardown() {
   assert_output_contains "elixir"
 }
 
-@test "agents list shows installation status" {
+@test "claude subagents list shows installation status" {
   # Initially nothing installed
-  run run_intent agents list
+  run run_intent claude subagents list
   assert_success
   assert_output_contains "[NOT INSTALLED]"
   
   # Install an agent manually
-  cp "${INTENT_HOME}/agents/intent/agent.md" "$HOME/.claude/agents/intent.md"
+  cp "${INTENT_HOME}/intent/plugins/claude/subagents/intent/agent.md" "$HOME/.claude/agents/intent.md"
   
   # Check it shows as installed
-  run run_intent agents list
+  run run_intent claude subagents list
   assert_success
-  assert_output_contains "intent       - Intent-aware development assistant [INSTALLED]"
-  assert_output_contains "elixir       - Elixir code doctor with Usage Rules [NOT INSTALLED]"
+  assert_output_contains "intent       - Intent-aware assistant for steel threads and backlog management [INSTALLED]"
+  assert_output_contains "elixir       - Elixir code doctor with Usage Rules and Ash/Phoenix patterns [NOT INSTALLED]"
 }
 
-@test "agents install requires an agent name" {
-  run run_intent agents install
+@test "claude subagents install requires an agent name" {
+  run run_intent claude subagents install
   assert_failure
   assert_output_contains "Error: No agent specified"
-  assert_output_contains "Usage: intent agents install"
+  assert_output_contains "Usage: intent claude subagents install"
 }
 
-@test "agents install installs a single agent" {
-  run run_intent agents install intent --force
+@test "claude subagents install installs a single agent" {
+  run run_intent claude subagents install intent --force
   assert_success
   assert_output_contains "Installing agent: intent"
   assert_output_contains "Installed successfully"
@@ -93,41 +93,41 @@ teardown() {
   assert_file_exists "$HOME/.claude/agents/intent.md"
   
   # Verify it shows as installed
-  run run_intent agents list
+  run run_intent claude subagents list
   assert_success
-  assert_output_contains "intent       - Intent-aware development assistant [INSTALLED]"
+  assert_output_contains "intent       - Intent-aware assistant for steel threads and backlog management [INSTALLED]"
 }
 
-@test "agents install handles non-existent agent" {
-  run run_intent agents install nonexistent
+@test "claude subagents install handles non-existent agent" {
+  run run_intent claude subagents install nonexistent
   assert_failure  # Command fails when no agents installed
   assert_output_contains "Error: Agent 'nonexistent' not found"
   assert_output_contains "Failed: 1"
 }
 
-@test "agents install prompts before overwriting" {
+@test "claude subagents install prompts before overwriting" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Try to install again, saying no to overwrite
-  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent agents install intent"
+  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent claude subagents install intent"
   assert_success
   assert_output_contains "Agent already exists"
   assert_output_contains "Skipped"
   assert_output_contains "Skipped: 1"
 }
 
-@test "agents install can overwrite when confirmed" {
+@test "claude subagents install can overwrite when confirmed" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Modify the agent to test overwrite
   echo "# Modified" >> "$HOME/.claude/agents/intent.md"
   
   # Try to install again, saying yes to overwrite
-  run bash -c "echo 'y' | ${INTENT_BIN_DIR}/intent agents install intent"
+  run bash -c "echo 'y' | ${INTENT_BIN_DIR}/intent claude subagents install intent"
   assert_success
   assert_output_contains "Agent already exists"
   assert_output_contains "Installed successfully"
@@ -139,8 +139,8 @@ teardown() {
   assert_failure
 }
 
-@test "agents install supports multiple agents" {
-  run run_intent agents install intent elixir --force
+@test "claude subagents install supports multiple agents" {
+  run run_intent claude subagents install intent elixir --force
   assert_success
   assert_output_contains "Installing agent: intent"
   assert_output_contains "Installing agent: elixir"
@@ -153,8 +153,8 @@ teardown() {
   assert_file_exists "$HOME/.claude/agents/elixir.md"
 }
 
-@test "agents install --all installs all available agents" {
-  run run_intent agents install --all --force
+@test "claude subagents install --all installs all available agents" {
+  run run_intent claude subagents install --all --force
   assert_success
   assert_output_contains "Installing agent: intent"
   assert_output_contains "Installing agent: elixir"
@@ -164,18 +164,18 @@ teardown() {
   assert_output_contains "Installed:"
   
   # Verify all agents are installed
-  run run_intent agents list
+  run run_intent claude subagents list
   assert_success
-  assert_output_contains "intent       - Intent-aware development assistant [INSTALLED]"
-  assert_output_contains "elixir       - Elixir code doctor with Usage Rules [INSTALLED]"
-  assert_output_contains "socrates     - CTO Review Mode - Socratic dialog for technical decisions [INSTALLED]"
+  assert_output_contains "intent       - Intent-aware assistant for steel threads and backlog management [INSTALLED]"
+  assert_output_contains "elixir       - Elixir code doctor with Usage Rules and Ash/Phoenix patterns [INSTALLED]"
+  assert_output_contains "socrates     - CTO Review Mode for technical decision-making via Socratic dialog [INSTALLED]"
 }
 
-@test "agents install creates manifest" {
+@test "claude subagents install creates manifest" {
   # Clean any existing manifest
   rm -rf "$HOME/.intent/agents" 2>/dev/null || true
   
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Check manifest was created
@@ -189,9 +189,9 @@ teardown() {
   assert_output_contains '"checksum":'
 }
 
-@test "agents install updates manifest on reinstall" {
+@test "claude subagents install updates manifest on reinstall" {
   # Install once
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Get original timestamp
@@ -199,7 +199,7 @@ teardown() {
   
   # Wait a moment and reinstall
   sleep 1
-  run bash -c "echo 'y' | ${INTENT_BIN_DIR}/intent agents install intent"
+  run bash -c "echo 'y' | ${INTENT_BIN_DIR}/intent claude subagents install intent"
   assert_success
   
   # Verify manifest was updated
@@ -215,11 +215,11 @@ teardown() {
   # Remove .claude directory
   rm -rf "$HOME/.claude"
   
-  run run_intent agents list
+  run run_intent claude subagents list
   assert_success
   assert_output_contains "Note: Claude Code not detected"
   
-  run run_intent agents install intent
+  run run_intent claude subagents install intent
   assert_failure
   assert_output_contains "Error: Claude Code not detected"
 }
@@ -229,17 +229,17 @@ teardown() {
   mkdir -p "$HOME/.claude"
   rm -rf "$HOME/.claude/agents"
   
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   assert_directory_exists "$HOME/.claude/agents"
   assert_file_exists "$HOME/.claude/agents/intent.md"
 }
 
 @test "agents command handles invalid subcommand" {
-  run run_intent agents invalid
+  run run_intent claude subagents invalid
   assert_failure
-  assert_output_contains "Error: Unknown command 'intent agents invalid'"
-  assert_output_contains "Run 'intent agents help' for usage"
+  assert_output_contains "Error: Unknown command 'intent claude subagents invalid'"
+  assert_output_contains "Run 'intent claude subagents help' for usage"
 }
 
 @test "agents works from within a project" {
@@ -247,65 +247,65 @@ teardown() {
   cd "$project_dir"
   
   # Should work the same from within a project
-  run run_intent agents list
+  run run_intent claude subagents list
   assert_success
   assert_output_contains "Available Agents:"
   
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   assert_output_contains "Installed successfully"
 }
 
 # Sync command tests
-@test "agents sync requires installed agents" {
+@test "claude subagents sync requires installed agents" {
   # Clean manifest
   rm -rf "$HOME/.intent/agents" 2>/dev/null || true
   
-  run run_intent agents sync
+  run run_intent claude subagents sync
   assert_success
   assert_output_contains "No installed agents found"
-  assert_output_contains "Use 'intent agents install'"
+  assert_output_contains "Use 'intent claude subagents install'"
 }
 
-@test "agents sync detects up-to-date agents" {
+@test "claude subagents sync detects up-to-date agents" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Sync should find nothing to update
-  run run_intent agents sync
+  run run_intent claude subagents sync
   assert_success
   assert_output_contains "Checking agent: intent"
   assert_output_contains "Up to date"
   assert_output_contains "Skipped: 1"
 }
 
-@test "agents sync detects local modifications" {
+@test "claude subagents sync detects local modifications" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Modify the agent
   echo "# Test modification" >> "$HOME/.claude/agents/intent.md"
   
   # Sync should detect modification
-  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent agents sync"
+  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent claude subagents sync"
   assert_success
   assert_output_contains "Warning: Agent has been modified locally"
   assert_output_contains "Overwrite local changes?"
   assert_output_contains "Skipped"
 }
 
-@test "agents sync can force overwrite modifications" {
+@test "claude subagents sync can force overwrite modifications" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Modify the agent
   echo "# Test modification" >> "$HOME/.claude/agents/intent.md"
   
   # Force sync should overwrite
-  run run_intent agents sync --force
+  run run_intent claude subagents sync --force
   assert_success
   assert_output_contains "Warning: Agent has been modified locally"
   assert_output_contains "Overwriting local changes (--force)"
@@ -316,17 +316,17 @@ teardown() {
   assert_failure
 }
 
-@test "agents sync updates when source changes" {
+@test "claude subagents sync updates when source changes" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Simulate source update by modifying the source file
   # (In real scenario, this would be from a git pull)
-  echo "# Source update" >> "$INTENT_HOME/agents/intent/agent.md"
+  echo "# Source update" >> "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md"
   
   # Sync should detect and update
-  run run_intent agents sync
+  run run_intent claude subagents sync
   assert_success
   assert_output_contains "Update available"
   assert_output_contains "Updated successfully"
@@ -337,26 +337,26 @@ teardown() {
   assert_success
   
   # Clean up source modification
-  sed -i.bak '/# Source update/d' "$INTENT_HOME/agents/intent/agent.md"
-  rm -f "$INTENT_HOME/agents/intent/agent.md.bak"
+  sed -i.bak '/# Source update/d' "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md"
+  rm -f "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md.bak"
 }
 
-@test "agents sync handles missing Claude directory" {
+@test "claude subagents sync handles missing Claude directory" {
   # Remove .claude directory
   rm -rf "$HOME/.claude"
   
-  run run_intent agents sync
+  run run_intent claude subagents sync
   assert_failure
   assert_output_contains "Error: Claude Code not detected"
 }
 
-@test "agents sync works with multiple agents" {
+@test "claude subagents sync works with multiple agents" {
   # Install multiple agents
-  run run_intent agents install intent elixir --force
+  run run_intent claude subagents install intent elixir --force
   assert_success
   
   # Sync should check both
-  run run_intent agents sync
+  run run_intent claude subagents sync
   assert_success
   assert_output_contains "Checking agent: intent"
   assert_output_contains "Checking agent: elixir"
@@ -364,20 +364,20 @@ teardown() {
 }
 
 # Uninstall command tests
-@test "agents uninstall requires an agent name" {
-  run run_intent agents uninstall
+@test "claude subagents uninstall requires an agent name" {
+  run run_intent claude subagents uninstall
   assert_failure
   assert_output_contains "Error: No agent specified"
-  assert_output_contains "Usage: intent agents uninstall"
+  assert_output_contains "Usage: intent claude subagents uninstall"
 }
 
-@test "agents uninstall removes a single agent" {
+@test "claude subagents uninstall removes a single agent" {
   # Install an agent first
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Uninstall with force
-  run run_intent agents uninstall intent --force
+  run run_intent claude subagents uninstall intent --force
   assert_success
   assert_output_contains "Uninstalling agent: intent"
   assert_output_contains "Removed successfully"
@@ -387,18 +387,18 @@ teardown() {
   assert_file_not_exists "$HOME/.claude/agents/intent.md"
   
   # Verify it shows as not installed
-  run run_intent agents list
+  run run_intent claude subagents list
   assert_success
-  assert_output_contains "intent       - Intent-aware development assistant [NOT INSTALLED]"
+  assert_output_contains "intent       - Intent-aware assistant for steel threads and backlog management [NOT INSTALLED]"
 }
 
-@test "agents uninstall prompts for confirmation" {
+@test "claude subagents uninstall prompts for confirmation" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Try to uninstall, saying no
-  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent agents uninstall intent"
+  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent claude subagents uninstall intent"
   assert_success
   assert_output_contains "The following agents will be uninstalled:"
   assert_output_contains "- intent"
@@ -409,21 +409,21 @@ teardown() {
   assert_file_exists "$HOME/.claude/agents/intent.md"
 }
 
-@test "agents uninstall handles non-existent agent" {
-  run run_intent agents uninstall nonexistent --force
+@test "claude subagents uninstall handles non-existent agent" {
+  run run_intent claude subagents uninstall nonexistent --force
   assert_success
   assert_output_contains "Uninstalling agent: nonexistent"
   assert_output_contains "Agent not found"
   assert_output_contains "Skipped: 1"
 }
 
-@test "agents uninstall supports multiple agents" {
+@test "claude subagents uninstall supports multiple agents" {
   # Install multiple agents
-  run run_intent agents install intent elixir --force
+  run run_intent claude subagents install intent elixir --force
   assert_success
   
   # Uninstall both
-  run run_intent agents uninstall intent elixir --force
+  run run_intent claude subagents uninstall intent elixir --force
   assert_success
   assert_output_contains "Uninstalling agent: intent"
   assert_output_contains "Uninstalling agent: elixir"
@@ -434,27 +434,27 @@ teardown() {
   assert_file_not_exists "$HOME/.claude/agents/elixir.md"
 }
 
-@test "agents uninstall --all removes all agents" {
+@test "claude subagents uninstall --all removes all agents" {
   # Install multiple agents
-  run run_intent agents install intent elixir --force
+  run run_intent claude subagents install intent elixir --force
   assert_success
   
   # Uninstall all
-  run run_intent agents uninstall --all --force
+  run run_intent claude subagents uninstall --all --force
   assert_success
   assert_output_contains "Uninstalling agent: intent"
   assert_output_contains "Uninstalling agent: elixir"
   assert_output_contains "Removed: 2"
   
   # Verify all are gone
-  run run_intent agents list
+  run run_intent claude subagents list
   assert_success
   assert_output_contains "[NOT INSTALLED]"
 }
 
-@test "agents uninstall updates manifest" {
+@test "claude subagents uninstall updates manifest" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Verify manifest has the agent
@@ -463,7 +463,7 @@ teardown() {
   assert_output_contains "intent"
   
   # Uninstall
-  run run_intent agents uninstall intent --force
+  run run_intent claude subagents uninstall intent --force
   assert_success
   
   # Verify manifest no longer has the agent
@@ -472,9 +472,9 @@ teardown() {
   refute_output_contains "intent"
 }
 
-@test "agents uninstall warns about unmanaged agents" {
+@test "claude subagents uninstall warns about unmanaged agents" {
   # Install a managed agent first to ensure manifest exists
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Manually create an agent not in manifest
@@ -482,7 +482,7 @@ teardown() {
   echo "# Manual agent" > "$HOME/.claude/agents/manual.md"
   
   # Try to uninstall - need to confirm twice (once for uninstall, once for unmanaged)
-  run bash -c "printf 'y\nn\n' | ${INTENT_BIN_DIR}/intent agents uninstall manual"
+  run bash -c "printf 'y\nn\n' | ${INTENT_BIN_DIR}/intent claude subagents uninstall manual"
   assert_success
   assert_output_contains "Warning: Agent not managed by Intent"
   assert_output_contains "Remove anyway?"
@@ -495,126 +495,126 @@ teardown() {
   rm -f "$HOME/.claude/agents/manual.md"
 }
 
-@test "agents uninstall handles missing Claude directory" {
+@test "claude subagents uninstall handles missing Claude directory" {
   # Remove .claude directory
   rm -rf "$HOME/.claude"
   
-  run run_intent agents uninstall intent
+  run run_intent claude subagents uninstall intent
   assert_failure
   assert_output_contains "Error: Claude Code not detected"
 }
 
-@test "agents uninstall handles empty manifest" {
+@test "claude subagents uninstall handles empty manifest" {
   # Clean manifest
   rm -rf "$HOME/.intent/agents" 2>/dev/null || true
   
-  run run_intent agents uninstall --all
+  run run_intent claude subagents uninstall --all
   assert_success
   assert_output_contains "No installed agents found"
 }
 
 # Show command tests
-@test "agents show requires an agent name" {
-  run run_intent agents show
+@test "claude subagents show requires an agent name" {
+  run run_intent claude subagents show
   assert_failure
   assert_output_contains "Error: Agent name required"
-  assert_output_contains "Usage: intent agents show"
+  assert_output_contains "Usage: intent claude subagents show"
 }
 
-@test "agents show displays agent information" {
-  run run_intent agents show intent
+@test "claude subagents show displays agent information" {
+  run run_intent claude subagents show intent
   assert_success
   assert_output_contains "Agent: intent"
   assert_output_contains "Version: 1.0.0"
-  assert_output_contains "Description: Intent-aware development assistant"
+  assert_output_contains "Description: Intent-aware assistant for steel threads and backlog management"
   assert_output_contains "Source: global"
   assert_output_contains "Tools: Bash, Read, Write, Edit, Grep"
   assert_output_contains "Tags: project-management, steel-threads, backlog, task-tracking"
 }
 
-@test "agents show indicates installation status" {
+@test "claude subagents show indicates installation status" {
   # First check when not installed
   rm -f "$HOME/.claude/agents/intent.md" 2>/dev/null || true
-  run run_intent agents show intent
+  run run_intent claude subagents show intent
   assert_success
   assert_output_contains "Status: NOT INSTALLED"
   assert_output_contains "To install: intent agents install intent"
   
   # Install and check again
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
-  run run_intent agents show intent
+  run run_intent claude subagents show intent
   assert_success
   assert_output_contains "Status: INSTALLED"
   assert_output_contains "Full content: $HOME/.claude/agents/intent.md"
 }
 
-@test "agents show displays metadata" {
-  run run_intent agents show elixir
+@test "claude subagents show displays metadata" {
+  run run_intent claude subagents show elixir
   assert_success
   assert_output_contains "Agent: elixir"
-  assert_output_contains "Description: Elixir code doctor with Usage Rules"
+  assert_output_contains "Description: Elixir code doctor with Usage Rules and Ash/Phoenix patterns"
   assert_output_contains "Author: Intent Contributors"
   assert_output_contains "Tools:"
   assert_output_contains "Tags:"
 }
 
-@test "agents show includes system prompt preview" {
-  run run_intent agents show intent
+@test "claude subagents show includes system prompt preview" {
+  run run_intent claude subagents show intent
   assert_success
   assert_output_contains "System Prompt Preview:"
-  assert_output_contains "You are an Intent-aware development assistant"
+  assert_output_contains "You are an Intent-aware development assistant specialized in the Intent project management framework"
   assert_output_contains "Intent Framework Knowledge"
 }
 
-@test "agents show displays installation info when installed" {
+@test "claude subagents show displays installation info when installed" {
   # Install agent
-  run run_intent agents install elixir --force
+  run run_intent claude subagents install elixir --force
   assert_success
   
-  run run_intent agents show elixir
+  run run_intent claude subagents show elixir
   assert_success
   assert_output_contains "Status: INSTALLED"
   assert_output_contains "Installed: 202"  # Partial match for timestamp
 }
 
-@test "agents show handles non-existent agent" {
-  run run_intent agents show nonexistent
+@test "claude subagents show handles non-existent agent" {
+  run run_intent claude subagents show nonexistent
   assert_failure
   assert_output_contains "Error: Agent 'nonexistent' not found"
 }
 
-@test "agents show works for both agents" {
+@test "claude subagents show works for both agents" {
   # Test both intent and elixir agents exist and can be shown
-  run run_intent agents show intent
+  run run_intent claude subagents show intent
   assert_success
   assert_output_contains "Agent: intent"
   
-  run run_intent agents show elixir
+  run run_intent claude subagents show elixir
   assert_success
   assert_output_contains "Agent: elixir"
   assert_output_contains "Elixir code doctor"
 }
 
 # Status command tests
-@test "agents status shows no agents when none installed" {
+@test "claude subagents status shows no agents when none installed" {
   # Clean any existing manifest
   rm -rf "$HOME/.intent/agents" 2>/dev/null || true
   
-  run run_intent agents status
+  run run_intent claude subagents status
   assert_success
   assert_output_contains "No installed agents found"
-  assert_output_contains "Use 'intent agents install'"
+  assert_output_contains "Use 'intent claude subagents install'"
 }
 
-@test "agents status checks agent integrity" {
+@test "claude subagents status checks agent integrity" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Status should show OK
-  run run_intent agents status
+  run run_intent claude subagents status
   assert_success
   assert_output_contains "Checking agent status"
   assert_output_contains "intent"
@@ -623,88 +623,88 @@ teardown() {
   assert_output_contains "OK: 1"
 }
 
-@test "agents status detects missing agents" {
+@test "claude subagents status detects missing agents" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Remove the agent file but keep manifest
   rm -f "$HOME/.claude/agents/intent.md"
   
   # Status should detect missing
-  run run_intent agents status
+  run run_intent claude subagents status
   assert_failure
   assert_output_contains "[MISSING]"
   assert_output_contains "Agent file not found"
   assert_output_contains "Missing: 1"
-  assert_output_contains "Run 'intent agents install' to restore missing agents"
+  assert_output_contains "Run 'intent claude subagents install' to restore missing agents"
 }
 
-@test "agents status detects modified agents" {
+@test "claude subagents status detects modified agents" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Modify the agent
   echo "# Modified" >> "$HOME/.claude/agents/intent.md"
   
   # Status should detect modification
-  run run_intent agents status
+  run run_intent claude subagents status
   assert_success
   assert_output_contains "[MODIFIED]"
   assert_output_contains "Local changes detected"
   assert_output_contains "Modified/Updates: 1"
 }
 
-@test "agents status detects available updates" {
+@test "claude subagents status detects available updates" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Simulate source update
-  echo "# Update" >> "$INTENT_HOME/agents/intent/agent.md"
+  echo "# Update" >> "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md"
   
   # Status should detect update available
-  run run_intent agents status
+  run run_intent claude subagents status
   assert_success
   assert_output_contains "[UPDATE]"
   assert_output_contains "Update available"
-  assert_output_contains "Run 'intent agents sync'"
+  assert_output_contains "Run 'intent claude subagents sync'"
   
   # Clean up
-  sed -i.bak '/# Update/d' "$INTENT_HOME/agents/intent/agent.md"
-  rm -f "$INTENT_HOME/agents/intent/agent.md.bak"
+  sed -i.bak '/# Update/d' "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md"
+  rm -f "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md.bak"
 }
 
-@test "agents status handles missing Claude directory" {
+@test "claude subagents status handles missing Claude directory" {
   # Remove .claude directory
   rm -rf "$HOME/.claude"
   
-  run run_intent agents status
+  run run_intent claude subagents status
   assert_failure
   assert_output_contains "Error: Claude Code not detected"
 }
 
-@test "agents status supports verbose flag" {
+@test "claude subagents status supports verbose flag" {
   # Install an agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Run with verbose
-  run run_intent agents status --verbose
+  run run_intent claude subagents status --verbose
   assert_success
   assert_output_contains "Source: global"
   assert_output_contains "Installed:"
   assert_output_contains "Location: $HOME/.claude/agents/intent.md"
 }
 
-@test "agents status works with multiple agents" {
+@test "claude subagents status works with multiple agents" {
   # Install multiple agents
-  run run_intent agents install intent elixir --force
+  run run_intent claude subagents install intent elixir --force
   assert_success
   
   # Check status
-  run run_intent agents status
+  run run_intent claude subagents status
   assert_success
   assert_output_contains "Total: 2"
   assert_output_contains "intent"
@@ -715,7 +715,7 @@ teardown() {
   rm -f "$HOME/.claude/agents/elixir.md"
   
   # Check mixed status
-  run run_intent agents status
+  run run_intent claude subagents status
   assert_failure
   assert_output_contains "[MODIFIED]"
   assert_output_contains "[MISSING]"
@@ -724,24 +724,24 @@ teardown() {
   refute_output_contains "OK:"
 }
 
-@test "agents status detects outdated manifest" {
+@test "claude subagents status detects outdated manifest" {
   # Install agent
-  run run_intent agents install intent --force
+  run run_intent claude subagents install intent --force
   assert_success
   
   # Manually sync without updating manifest
-  cp "$INTENT_HOME/agents/intent/agent.md" "$HOME/.claude/agents/intent.md"
+  cp "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md" "$HOME/.claude/agents/intent.md"
   
   # Add a change to source
-  echo "# Change" >> "$INTENT_HOME/agents/intent/agent.md"
+  echo "# Change" >> "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md"
   
   # Status should detect update available (since manifest shows old checksum)
-  run run_intent agents status
+  run run_intent claude subagents status
   assert_success
   assert_output_contains "[UPDATE]"
   assert_output_contains "Update available"
   
   # Clean up
-  sed -i.bak '/# Change/d' "$INTENT_HOME/agents/intent/agent.md"
-  rm -f "$INTENT_HOME/agents/intent/agent.md.bak"
+  sed -i.bak '/# Change/d' "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md"
+  rm -f "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md.bak"
 }

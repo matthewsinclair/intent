@@ -58,3 +58,4 @@ The detailed information for each steel thread is contained in its individual do
 | ST0017 | Add an Intent sub-agent for Claude Code to Intent | Completed |  | 2025-07-27 |
 | ST0016 | Rename STP CLI to INTENT (v2.0.0) | Completed |  | 2025-07-27 |
 | ST0013 | STP Blog Post Series | Completed |  | 2025-07-27 |
+| ST0018 | Upgrade Intent to support AGENTS.md | WIP | 2025-08-20 |  |

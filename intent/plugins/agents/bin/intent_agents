@@ -1,0 +1,493 @@
+#!/bin/bash
+# intent_agents - Manage AGENTS.md for Intent projects
+# Copyright (c) 2024 Matthew Sinclair
+# Licensed under the MIT License (see LICENSE file)
+# Commands: init, generate, sync, validate, template
+
+# Source helpers from main bin directory
+PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INTENT_ROOT="$(cd "$PLUGIN_BIN/../../../.." && pwd)"
+INTENT_BIN="$INTENT_ROOT/bin"
+source "$INTENT_BIN/intent_helpers"
+
+# Plugin paths
+PLUGIN_DIR="$INTENT_ROOT/intent/plugins/agents"
+TEMPLATES_DIR="$PLUGIN_DIR/templates"
+
+# Show help
+intent_agents_help() {
+  cat << EOF
+Usage: intent agents <command> [options]
+
+Manage AGENTS.md for Intent projects - provides instructions for AI coding agents.
+
+Commands:
+  init        Initialize AGENTS.md for the project
+  generate    Generate/regenerate AGENTS.md from project
+  sync        Update AGENTS.md with latest project state
+  validate    Validate AGENTS.md against specification
+  template    Manage AGENTS.md templates
+
+Examples:
+  intent agents init              # Create initial AGENTS.md
+  intent agents generate          # Regenerate from current state
+  intent agents sync              # Update with latest changes
+  intent agents validate          # Check AGENTS.md compliance
+
+For help on a specific command:
+  intent help agents <command>
+EOF
+}
+
+# Initialize AGENTS.md
+intent_agents_init() {
+  echo "Initializing AGENTS.md for Intent project..."
+  
+  # Check if we're in a project
+  if [ -z "${PROJECT_ROOT:-}" ]; then
+    # Source config to find project root
+    if [ -f "$INTENT_BIN/intent_config" ]; then
+      source "$INTENT_BIN/intent_config"
+      load_intent_config
+    fi
+    
+    if [ -z "${PROJECT_ROOT:-}" ]; then
+      echo "Error: Not in an Intent project directory"
+      echo "Run 'intent init' to create a new project first"
+      return 1
+    fi
+  fi
+  
+  # Check if AGENTS.md already exists
+  if [ -f "$PROJECT_ROOT/AGENTS.md" ] && [ "$1" != "--force" ]; then
+    echo "AGENTS.md already exists. Use --force to overwrite or 'intent agents sync' to update."
+    return 1
+  fi
+  
+  # Create intent/llm directory if it doesn't exist
+  mkdir -p "$PROJECT_ROOT/intent/llm"
+  
+  # Generate AGENTS.md content
+  intent_agents_generate_content > "$PROJECT_ROOT/intent/llm/AGENTS.md"
+  
+  # Create symlink at project root
+  if [ -L "$PROJECT_ROOT/AGENTS.md" ] || [ -f "$PROJECT_ROOT/AGENTS.md" ]; then
+    rm -f "$PROJECT_ROOT/AGENTS.md"
+  fi
+  ln -sf "intent/llm/AGENTS.md" "$PROJECT_ROOT/AGENTS.md"
+  
+  echo "✓ Created AGENTS.md at project root (symlink to intent/llm/AGENTS.md)"
+  echo ""
+  echo "AGENTS.md provides instructions for AI coding agents working with your project."
+  echo "Edit intent/llm/AGENTS.md to customize the instructions."
+}
+
+# Generate AGENTS.md content
+intent_agents_generate_content() {
+  local project_name=$(basename "$PROJECT_ROOT")
+  local has_package_json=false
+  local has_makefile=false
+  local has_bats=false
+  local test_command=""
+  local build_command=""
+  
+  # Detect project type and commands
+  if [ -f "$PROJECT_ROOT/package.json" ]; then
+    has_package_json=true
+    # Extract test command from package.json
+    test_command=$(jq -r '.scripts.test // ""' "$PROJECT_ROOT/package.json" 2>/dev/null)
+    build_command=$(jq -r '.scripts.build // ""' "$PROJECT_ROOT/package.json" 2>/dev/null)
+  fi
+  
+  if [ -f "$PROJECT_ROOT/Makefile" ]; then
+    has_makefile=true
+    if [ -z "$test_command" ]; then
+      test_command="make test"
+    fi
+    if [ -z "$build_command" ]; then
+      build_command="make build"
+    fi
+  fi
+  
+  # Check for bats tests
+  if [ -d "$PROJECT_ROOT/tests" ] && ls "$PROJECT_ROOT/tests"/*.bats >/dev/null 2>&1; then
+    has_bats=true
+    if [ -z "$test_command" ]; then
+      test_command="bats tests/*.bats"
+    fi
+  fi
+  
+  # Generate AGENTS.md content
+  cat << 'EOF'
+# AGENTS.md
+
+## Project Overview
+
+EOF
+  
+  # Add project description
+  if [ -f "$PROJECT_ROOT/CLAUDE.md" ]; then
+    # Extract project overview from CLAUDE.md if available
+    echo "This is an Intent project. See CLAUDE.md for project-specific guidelines."
+  else
+    echo "$project_name - An Intent project using the Steel Thread Process methodology."
+  fi
+  
+  cat << 'EOF'
+
+## Development Environment
+
+### Prerequisites
+- Bash 4.0 or higher
+- POSIX-compliant shell environment
+EOF
+
+  if [ "$has_package_json" = true ]; then
+    echo "- Node.js and npm/yarn"
+  fi
+  
+  if [ "$has_bats" = true ]; then
+    echo "- Bats testing framework"
+  fi
+
+  cat << 'EOF'
+
+### Setup
+```bash
+# Initialize Intent project
+intent init
+
+# Install dependencies (if applicable)
+EOF
+
+  if [ "$has_package_json" = true ]; then
+    echo "npm install"
+  fi
+  
+  cat << 'EOF'
+```
+
+## Build and Test Commands
+
+### Testing
+EOF
+
+  if [ -n "$test_command" ]; then
+    echo "\`\`\`bash"
+    echo "# Run tests"
+    echo "$test_command"
+    echo "\`\`\`"
+  else
+    echo "No automated tests configured yet."
+  fi
+  
+  cat << 'EOF'
+
+### Building
+EOF
+
+  if [ -n "$build_command" ]; then
+    echo "\`\`\`bash"
+    echo "# Build project"
+    echo "$build_command"
+    echo "\`\`\`"
+  else
+    echo "No build process required."
+  fi
+
+  cat << 'EOF'
+
+### Validation
+```bash
+# Check Intent configuration
+intent doctor
+
+# Validate project structure
+intent st list
+```
+
+## Code Style Guidelines
+
+- Shell scripts: 2-space indentation, POSIX compliance
+- Markdown: Standard formatting with verblock headers
+- Follow existing patterns in the codebase
+EOF
+
+  # Add usage rules if they exist
+  if [ -f "$PROJECT_ROOT/intent/llm/usage-rules.md" ]; then
+    cat << 'EOF'
+
+See `intent/llm/usage-rules.md` for detailed code style rules.
+EOF
+  fi
+
+  cat << 'EOF'
+
+## Testing Instructions
+
+All changes should be validated with the test suite before committing.
+
+1. Run the full test suite before making changes to establish baseline
+2. Make your changes
+3. Run tests again to ensure nothing broke
+4. Add new tests for new functionality
+
+## Commit and PR Guidelines
+
+### Commit Messages
+- Use conventional commit format when applicable
+- Be descriptive about what changed and why
+- Reference steel thread IDs (e.g., "ST0018: Add AGENTS.md support")
+
+### Pull Requests
+- Include test results in PR description
+- Reference related steel threads
+- Update documentation alongside code changes
+
+## Intent-Specific Information
+
+### Steel Thread Process
+This project uses Intent's Steel Thread Process for development:
+- Work is organized into steel threads (ST####)
+- Each thread is a self-contained unit of work
+- View threads: `intent st list`
+- Create thread: `intent st new "Title"`
+
+### Available Commands
+```bash
+intent st list              # List all steel threads
+intent st new "Title"       # Create new steel thread
+intent st show <id>         # Show steel thread details
+intent bl                   # Manage backlog (if configured)
+intent doctor              # Check configuration
+intent agents sync         # Update this AGENTS.md file
+```
+EOF
+
+  # List installed Claude subagents if any
+  local subagents_dir="$PROJECT_ROOT/intent/plugins/claude/subagents"
+  if [ -d "$subagents_dir" ] && [ "$(ls -A "$subagents_dir" 2>/dev/null)" ]; then
+    cat << 'EOF'
+
+### Claude Subagents
+This project has Claude Code subagents available:
+```bash
+intent claude subagents list      # List available subagents
+intent claude subagents install   # Install a subagent
+```
+
+Available subagents:
+EOF
+    for agent in "$subagents_dir"/*; do
+      if [ -d "$agent" ]; then
+        local agent_name=$(basename "$agent")
+        local desc=""
+        if [ -f "$agent/metadata.json" ]; then
+          desc=$(jq -r '.description // ""' "$agent/metadata.json" 2>/dev/null)
+        fi
+        echo "- **$agent_name**: $desc"
+      fi
+    done
+  fi
+
+  cat << 'EOF'
+
+## Security Considerations
+
+- Never commit sensitive information (keys, passwords, tokens)
+- Review all changes for security implications
+- Follow secure coding practices
+
+## Additional Resources
+
+- Project documentation: `intent/docs/`
+- Steel threads: `intent/st/`
+- LLM guidelines: `intent/llm/`
+EOF
+
+  # Add reference to CLAUDE.md if it exists
+  if [ -f "$PROJECT_ROOT/CLAUDE.md" ]; then
+    echo "- Claude-specific instructions: \`CLAUDE.md\`"
+  fi
+  
+  echo ""
+  echo "---"
+  echo "*Generated by Intent v$(get_intent_version) on $(date '+%Y-%m-%d')*"
+}
+
+# Sync AGENTS.md with latest project state
+intent_agents_sync() {
+  echo "Syncing AGENTS.md with latest project state..."
+  
+  # Check if we're in a project
+  if [ -z "${PROJECT_ROOT:-}" ]; then
+    # Source config to find project root
+    if [ -f "$INTENT_BIN/intent_config" ]; then
+      source "$INTENT_BIN/intent_config"
+      load_intent_config
+    fi
+    
+    if [ -z "${PROJECT_ROOT:-}" ]; then
+      echo "Error: Not in an Intent project directory"
+      return 1
+    fi
+  fi
+  
+  # Check if AGENTS.md exists
+  if [ ! -f "$PROJECT_ROOT/intent/llm/AGENTS.md" ]; then
+    echo "AGENTS.md not found. Run 'intent agents init' first."
+    return 1
+  fi
+  
+  # Backup existing AGENTS.md
+  cp "$PROJECT_ROOT/intent/llm/AGENTS.md" "$PROJECT_ROOT/intent/llm/AGENTS.md.bak"
+  
+  # Regenerate content
+  intent_agents_generate_content > "$PROJECT_ROOT/intent/llm/AGENTS.md"
+  
+  # Ensure symlink exists
+  if [ ! -L "$PROJECT_ROOT/AGENTS.md" ]; then
+    ln -sf "intent/llm/AGENTS.md" "$PROJECT_ROOT/AGENTS.md"
+    echo "✓ Recreated symlink at project root"
+  fi
+  
+  echo "✓ AGENTS.md updated successfully"
+  echo "  Backup saved to intent/llm/AGENTS.md.bak"
+}
+
+# Validate AGENTS.md
+intent_agents_validate() {
+  echo "Validating AGENTS.md..."
+  
+  # Check if we're in a project
+  if [ -z "${PROJECT_ROOT:-}" ]; then
+    # Source config to find project root
+    if [ -f "$INTENT_BIN/intent_config" ]; then
+      source "$INTENT_BIN/intent_config"
+      load_intent_config
+    fi
+    
+    if [ -z "${PROJECT_ROOT:-}" ]; then
+      echo "Error: Not in an Intent project directory"
+      return 1
+    fi
+  fi
+  
+  local errors=0
+  local warnings=0
+  
+  # Check if AGENTS.md exists
+  if [ ! -f "$PROJECT_ROOT/AGENTS.md" ]; then
+    echo "✗ AGENTS.md not found at project root"
+    ((errors++))
+  else
+    echo "✓ AGENTS.md found at project root"
+    
+    # Check if it's a symlink
+    if [ -L "$PROJECT_ROOT/AGENTS.md" ]; then
+      echo "✓ AGENTS.md is a symlink (Intent best practice)"
+      
+      # Check if symlink target exists
+      if [ ! -f "$PROJECT_ROOT/intent/llm/AGENTS.md" ]; then
+        echo "✗ Symlink target missing: intent/llm/AGENTS.md"
+        ((errors++))
+      fi
+    else
+      echo "⚠ AGENTS.md is not a symlink (consider using 'intent agents sync')"
+      ((warnings++))
+    fi
+    
+    # Check for required sections
+    local required_sections=(
+      "Project Overview"
+      "Development Environment"
+      "Build and Test Commands"
+      "Code Style"
+    )
+    
+    for section in "${required_sections[@]}"; do
+      if grep -q "## $section" "$PROJECT_ROOT/AGENTS.md" 2>/dev/null; then
+        echo "✓ Has section: $section"
+      else
+        echo "⚠ Missing recommended section: $section"
+        ((warnings++))
+      fi
+    done
+  fi
+  
+  # Summary
+  echo ""
+  if [ $errors -eq 0 ] && [ $warnings -eq 0 ]; then
+    echo "✓ AGENTS.md validation passed!"
+  elif [ $errors -eq 0 ]; then
+    echo "✓ AGENTS.md is valid with $warnings warning(s)"
+  else
+    echo "✗ AGENTS.md validation failed with $errors error(s) and $warnings warning(s)"
+    return 1
+  fi
+}
+
+# Template management
+intent_agents_template() {
+  local subcommand="${1:-list}"
+  shift
+  
+  case "$subcommand" in
+    list)
+      echo "Available AGENTS.md templates:"
+      for template in "$TEMPLATES_DIR"/*.md; do
+        if [ -f "$template" ]; then
+          local name=$(basename "$template" .md)
+          echo "  - $name"
+        fi
+      done
+      ;;
+    show)
+      local template_name="${1:-default}"
+      local template_file="$TEMPLATES_DIR/${template_name}.md"
+      if [ -f "$template_file" ]; then
+        cat "$template_file"
+      else
+        echo "Error: Template '$template_name' not found"
+        return 1
+      fi
+      ;;
+    *)
+      echo "Unknown template subcommand: $subcommand"
+      echo "Usage: intent agents template [list|show <name>]"
+      return 1
+      ;;
+  esac
+}
+
+# Main command dispatcher
+case "${1:-}" in
+  init)
+    shift
+    intent_agents_init "$@"
+    ;;
+  generate|regenerate)
+    shift
+    intent_agents_generate_content
+    ;;
+  sync|update)
+    shift
+    intent_agents_sync "$@"
+    ;;
+  validate|check)
+    shift
+    intent_agents_validate "$@"
+    ;;
+  template|templates)
+    shift
+    intent_agents_template "$@"
+    ;;
+  help|--help|-h|"")
+    intent_agents_help
+    ;;
+  *)
+    echo "Unknown command: $1"
+    intent_agents_help
+    exit 1
+    ;;
+esac
