@@ -38,7 +38,7 @@ fi
 BIN_DIR="$INTENT_HOME/bin"
 
 # Define global commands that don't require project context
-GLOBAL_COMMANDS="help doctor bootstrap init version info agents fileindex upgrade"
+GLOBAL_COMMANDS="help doctor bootstrap init version info fileindex upgrade"
 
 # Function to check if command is global
 is_global_command() {
@@ -70,8 +70,28 @@ if [ "$COMMAND" = "help" ] || [ "$COMMAND" = "--help" ] || [ "$COMMAND" = "-h" ]
   exec "$BIN_DIR/intent_help" "$@"
 fi
 
-# Map shortened commands to full names
+# Handle plugin commands
+PLUGIN_COMMAND=""
+PLUGIN_SUBCOMMAND=""
+
+# Check for plugin commands (claude, agents)
 case "$COMMAND" in
+  claude)
+    # Claude plugin - check for subcommand
+    if [ $# -ge 1 ] && [ "$1" = "subagents" ]; then
+      PLUGIN_COMMAND="claude"
+      PLUGIN_SUBCOMMAND="subagents"
+      shift  # Remove 'subagents' from arguments
+      COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_subagents"
+    else
+      error "Unknown claude subcommand. Try: intent claude subagents"
+    fi
+    ;;
+  agents)
+    # AGENTS.md plugin
+    PLUGIN_COMMAND="agents"
+    COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/agents/bin/intent_agents"
+    ;;
   st)
     COMMAND="st"
     COMMAND_SCRIPT="intent_st"
@@ -80,10 +100,6 @@ case "$COMMAND" in
     COMMAND="bl"
     COMMAND_SCRIPT="intent_bl"
     ;;
-  agents)
-    COMMAND="agents"
-    COMMAND_SCRIPT="intent_agents"
-    ;;
   *)
     # Default: prefix with intent_
     COMMAND_SCRIPT="intent_$COMMAND"
@@ -91,18 +107,39 @@ case "$COMMAND" in
 esac
 
 # Check if command script exists
-if [ ! -f "$BIN_DIR/$COMMAND_SCRIPT" ]; then
-  error "Unknown command '$COMMAND'. Run 'intent help' for usage information."
+if [ -n "$PLUGIN_COMMAND" ]; then
+  # For plugin commands, check plugin path
+  if [ ! -f "$COMMAND_SCRIPT" ]; then
+    error "Plugin command not found: $COMMAND_SCRIPT"
+  fi
+else
+  # For regular commands, check bin directory
+  if [ ! -f "$BIN_DIR/$COMMAND_SCRIPT" ]; then
+    error "Unknown command '$COMMAND'. Run 'intent help' for usage information."
+  fi
 fi
 
 # Check if script is executable
-if [ ! -x "$BIN_DIR/$COMMAND_SCRIPT" ]; then
-  echo "Warning: Making script executable: $COMMAND_SCRIPT" >&2
-  chmod +x "$BIN_DIR/$COMMAND_SCRIPT"
+if [ -n "$PLUGIN_COMMAND" ]; then
+  # For plugin commands
+  if [ ! -x "$COMMAND_SCRIPT" ]; then
+    echo "Warning: Making plugin script executable: $COMMAND_SCRIPT" >&2
+    chmod +x "$COMMAND_SCRIPT"
+  fi
+else
+  # For regular commands
+  if [ ! -x "$BIN_DIR/$COMMAND_SCRIPT" ]; then
+    echo "Warning: Making script executable: $COMMAND_SCRIPT" >&2
+    chmod +x "$BIN_DIR/$COMMAND_SCRIPT"
+  fi
 fi
 
-# Check if this is a global command
-if is_global_command "$COMMAND"; then
+# Check if this is a global command or plugin command
+if [ -n "$PLUGIN_COMMAND" ]; then
+  # Plugin commands may have their own context requirements
+  # Let the plugin handle it
+  exec "$COMMAND_SCRIPT" "$@"
+elif is_global_command "$COMMAND"; then
   # Execute without requiring project context
   exec "$BIN_DIR/$COMMAND_SCRIPT" "$@"
 fi
@@ -128,4 +165,8 @@ else
 fi
 
 # Execute command with remaining arguments
-exec "$BIN_DIR/$COMMAND_SCRIPT" "$@"
+if [ -n "$PLUGIN_COMMAND" ]; then
+  exec "$COMMAND_SCRIPT" "$@"
+else
+  exec "$BIN_DIR/$COMMAND_SCRIPT" "$@"
+fi

@@ -1,0 +1,26 @@
+{
+  "version": "1.0.0",
+  "agents": [
+    {
+      "name": "intent",
+      "version": "1.0.0",
+      "description": "Intent-aware assistant for steel threads and backlog management",
+      "path": "intent/plugins/claude/subagents/intent",
+      "checksum": ""
+    },
+    {
+      "name": "elixir",
+      "version": "1.0.0",
+      "description": "Elixir code doctor with Usage Rules and Ash/Phoenix patterns",
+      "path": "intent/plugins/claude/subagents/elixir",
+      "checksum": ""
+    },
+    {
+      "name": "socrates",
+      "version": "1.0.0",
+      "description": "CTO Review Mode for technical decision-making via Socratic dialog",
+      "path": "intent/plugins/claude/subagents/socrates",
+      "checksum": ""
+    }
+  ]
+}
