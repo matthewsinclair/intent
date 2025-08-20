@@ -97,7 +97,7 @@ if [ "$VERSION" = "$TARGET_VERSION" ]; then
 fi
 
 # Determine if migration is needed
-if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION"; then
+if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION"; then
   echo "✓ Project is already up to date at version $VERSION"
   echo "  No upgrade path available from $VERSION to $TARGET_VERSION"
   exit 0
@@ -154,16 +154,26 @@ case "$VERSION" in
     migrate_v1_2_1_to_v2 .
     ;;
   "2.0.0")
-    echo "Upgrading from v2.0.0 to v2.1.0..."
+    echo "Upgrading from v2.0.0 to v$TARGET_VERSION..."
     migrate_v2_0_to_v2_1 .
+    migrate_v2_1_to_v2_2 .
+    migrate_v2_2_to_v2_2_1 .
+    migrate_v2_2_to_v2_3_0 .
     ;;
   "2.1.0")
     echo "Upgrading from v2.1.0 to v$TARGET_VERSION..."
     migrate_v2_1_to_v2_2 .
+    migrate_v2_2_to_v2_2_1 .
+    migrate_v2_2_to_v2_3_0 .
     ;;
   "2.2.0")
     echo "Upgrading from v2.2.0 to v$TARGET_VERSION..."
     migrate_v2_2_to_v2_2_1 .
+    migrate_v2_2_to_v2_3_0 .
+    ;;
+  "2.2.1")
+    echo "Upgrading from v2.2.1 to v$TARGET_VERSION..."
+    migrate_v2_2_to_v2_3_0 .
     ;;
   *)
     error "Unknown version: $VERSION"
