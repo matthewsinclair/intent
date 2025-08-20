@@ -679,22 +679,22 @@ migrate_v2_2_to_v2_3_0() {
     echo "  Generating AGENTS.md..."
     mkdir -p "$project_root/intent/llm"
     
-    # Use the smart generator from intent_agents if available
-    local agents_script="$INTENT_HOME/intent/plugins/agents/bin/intent_agents"
-    if [ -f "$agents_script" ]; then
-      # Source the script to get the generator function
-      PROJECT_ROOT="$project_root" source "$agents_script" >/dev/null 2>&1
-      
-      # Generate project-specific AGENTS.md
-      if type intent_agents_generate_content >/dev/null 2>&1; then
-        intent_agents_generate_content > "$project_root/intent/llm/AGENTS.md"
-        echo "    Generated project-specific AGENTS.md"
+    # Try to use the smart generator via intent command
+    if [ -f "$INTENT_HOME/bin/intent" ] && [ -f "$INTENT_HOME/intent/plugins/agents/bin/intent_agents" ]; then
+      # Call the generator directly via intent command
+      if (cd "$project_root" && "$INTENT_HOME/bin/intent" agents generate > "intent/llm/AGENTS.md" 2>/dev/null); then
+        if [ -s "$project_root/intent/llm/AGENTS.md" ]; then
+          echo "    Generated project-specific AGENTS.md"
+        else
+          # Fallback if generation produced empty file
+          _generate_basic_agents_md "$project_root"
+        fi
       else
-        # Fallback to basic template if function not available
+        # Fallback if command failed
         _generate_basic_agents_md "$project_root"
       fi
     else
-      # Fallback to basic template if script not found
+      # Fallback to basic template if Intent not properly installed
       _generate_basic_agents_md "$project_root"
     fi
     

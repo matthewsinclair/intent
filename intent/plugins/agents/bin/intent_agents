@@ -460,34 +460,36 @@ intent_agents_template() {
   esac
 }
 
-# Main command dispatcher
-case "${1:-}" in
-  init)
-    shift
-    intent_agents_init "$@"
-    ;;
-  generate|regenerate)
-    shift
-    intent_agents_generate_content
-    ;;
-  sync|update)
-    shift
-    intent_agents_sync "$@"
-    ;;
-  validate|check)
-    shift
-    intent_agents_validate "$@"
-    ;;
-  template|templates)
-    shift
-    intent_agents_template "$@"
-    ;;
-  help|--help|-h|"")
-    intent_agents_help
-    ;;
-  *)
-    echo "Unknown command: $1"
-    intent_agents_help
-    exit 1
-    ;;
-esac
+# Main command dispatcher - only run if script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  case "${1:-}" in
+    init)
+      shift
+      intent_agents_init "$@"
+      ;;
+    generate|regenerate)
+      shift
+      intent_agents_generate_content
+      ;;
+    sync|update)
+      shift
+      intent_agents_sync "$@"
+      ;;
+    validate|check)
+      shift
+      intent_agents_validate "$@"
+      ;;
+    template|templates)
+      shift
+      intent_agents_template "$@"
+      ;;
+    help|--help|-h|"")
+      intent_agents_help
+      ;;
+    *)
+      echo "Unknown command: $1"
+      intent_agents_help
+      exit 1
+      ;;
+  esac
+fi
