@@ -1,11 +1,19 @@
 {
-  "version": "2.2.1",
-  "intent_version": "2.2.1",
+  "version": "2.3.0",
+  "intent_version": "2.3.0",
   "project_name": "Intent",
   "author": "matts",
   "created": "2025-07-16",
   "st_prefix": "ST",
   "backlog_dir": "backlog",
   "intent_dir": "intent",
-  "backlog_list_status": "todo"
+  "backlog_list_status": "todo",
+  "plugins": {
+    "claude": {
+      "subagents_path": "intent/plugins/claude/subagents"
+    },
+    "agents": {
+      "config_path": "intent/plugins/agents"
+    }
+  }
 }
