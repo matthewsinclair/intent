@@ -616,6 +616,43 @@ migrate_v2_2_to_v2_2_1() {
   echo "  Version updated to $target_version"
 }
 
+# Generate basic AGENTS.md as fallback
+_generate_basic_agents_md() {
+  local project_root=$1
+  cat > "$project_root/intent/llm/AGENTS.md" << 'EOF'
+# AGENTS.md
+
+## Project Overview
+This is an Intent project. See CLAUDE.md for project-specific guidelines.
+
+## Development Environment
+### Prerequisites
+- Bash 4.0 or higher
+- POSIX-compliant shell environment
+
+## Build and Test Commands
+### Testing
+```bash
+# Check for test scripts in your project
+intent doctor
+```
+
+## Code Style Guidelines
+- Follow existing patterns in the codebase
+- See CLAUDE.md for project-specific guidelines
+
+## Intent-Specific Information
+### Steel Thread Process
+Work is organized into steel threads (ST####) under intent/st/
+
+### Available Commands
+- `intent st list` - List all steel threads
+- `intent agents sync` - Update this AGENTS.md
+- `intent claude subagents list` - List Claude subagents
+EOF
+  echo "    Generated basic AGENTS.md template"
+}
+
 # Migrate v2.2.x to v2.3.0 - Plugin architecture and AGENTS.md support
 migrate_v2_2_to_v2_3_0() {
   local project_root=$1
@@ -642,43 +679,30 @@ migrate_v2_2_to_v2_3_0() {
     echo "  Generating AGENTS.md..."
     mkdir -p "$project_root/intent/llm"
     
-    # Generate basic AGENTS.md
-    cat > "$project_root/intent/llm/AGENTS.md" << 'EOF'
-# AGENTS.md
-
-## Project Overview
-This is an Intent project. See CLAUDE.md for project-specific guidelines.
-
-## Development Environment
-### Prerequisites
-- Bash 4.0 or higher
-- POSIX-compliant shell environment
-
-## Build and Test Commands
-### Testing
-```bash
-# Run tests if configured
-intent doctor
-```
-
-## Code Style Guidelines
-- Shell scripts: 2-space indentation, POSIX compliance
-- Markdown: Standard formatting with verblock headers
-- Follow existing patterns in the codebase
-
-## Intent-Specific Information
-### Steel Thread Process
-Work is organized into steel threads (ST####) under intent/st/
-
-### Available Commands
-- `intent st list` - List all steel threads
-- `intent agents init` - Initialize AGENTS.md
-- `intent claude subagents list` - List Claude subagents
-EOF
+    # Use the smart generator from intent_agents if available
+    local agents_script="$INTENT_HOME/intent/plugins/agents/bin/intent_agents"
+    if [ -f "$agents_script" ]; then
+      # Source the script to get the generator function
+      PROJECT_ROOT="$project_root" source "$agents_script" >/dev/null 2>&1
+      
+      # Generate project-specific AGENTS.md
+      if type intent_agents_generate_content >/dev/null 2>&1; then
+        intent_agents_generate_content > "$project_root/intent/llm/AGENTS.md"
+        echo "    Generated project-specific AGENTS.md"
+      else
+        # Fallback to basic template if function not available
+        _generate_basic_agents_md "$project_root"
+      fi
+    else
+      # Fallback to basic template if script not found
+      _generate_basic_agents_md "$project_root"
+    fi
     
     # Create symlink at project root
     ln -sf "intent/llm/AGENTS.md" "$project_root/AGENTS.md"
     echo "    Created AGENTS.md with symlink at project root"
+  elif [ -f "$project_root/AGENTS.md" ] || [ -f "$project_root/intent/llm/AGENTS.md" ]; then
+    echo "  AGENTS.md already exists, skipping generation"
   fi
   
   # 4. Update .intent/config.json

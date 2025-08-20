@@ -142,21 +142,50 @@ verblock: "$DATE:v0.1: $AUTHOR - Initial version"
 [Implementation details]
 EOF
 
-# Create LLM preamble
-cat > "intent/llm/llm_preamble.md" << EOF
----
-verblock: "$DATE:v0.1: $AUTHOR - Initial version"
----
-# LLM Preamble - $PROJECT_NAME
+# Helper function for basic AGENTS.md
+_create_basic_agents_md() {
+  cat > "intent/llm/AGENTS.md" << EOF
+# AGENTS.md
 
-## Project Context
+## Project Overview
+$PROJECT_NAME - Created by $AUTHOR on $DATE
 
-This is the $PROJECT_NAME project, created by $AUTHOR on $DATE.
+## Development Environment
+### Prerequisites
+- [Add your project requirements]
 
-## Instructions
+## Build and Test Commands
+### Testing
+\`\`\`bash
+# Add your test commands
+\`\`\`
 
-[Add specific instructions for AI assistants working on this project]
+## Code Style Guidelines
+- Follow existing patterns in the codebase
+- See CLAUDE.md for Intent-specific guidelines
+
+## Intent-Specific Information
+See CLAUDE.md for Intent project structure and commands.
 EOF
+}
+
+# Create AGENTS.md using smart generator
+echo "Creating AGENTS.md..."
+# Try to use the smart generator if Intent is installed
+if [ -n "$INTENT_HOME" ] && [ -f "$INTENT_HOME/intent/plugins/agents/bin/intent_agents" ]; then
+  # Call the generator directly
+  PROJECT_ROOT="$(pwd)" "$INTENT_HOME/bin/intent" agents generate > "intent/llm/AGENTS.md" 2>/dev/null
+  if [ ! -s "intent/llm/AGENTS.md" ]; then
+    # Fallback to basic template if generation failed
+    _create_basic_agents_md
+  fi
+else
+  # Fallback to basic template
+  _create_basic_agents_md
+fi
+
+# Create symlink at project root
+ln -sf "intent/llm/AGENTS.md" "AGENTS.md"
 
 # Create CLAUDE.md
 cat > "CLAUDE.md" << EOF
