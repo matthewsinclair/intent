@@ -1,0 +1,27 @@
+{
+  "name": "worker-bee",
+  "version": "1.0.0",
+  "description": "Worker-Bee Driven Design specialist for any Elixir application. Conducts interactive project structure mapping, enforces WDD 6-layer architecture compliance, validates functional core purity, and scaffolds WDD-compliant code. Works with Phoenix, OTP, libraries, and any Elixir project type.",
+  "author": "thebreakincoder",
+  "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob", "LS"],
+  "tags": [
+    "elixir",
+    "worker-bee-driven-design",
+    "wdd",
+    "architecture",
+    "functional-programming",
+    "otp",
+    "genserver",
+    "phoenix",
+    "code-review",
+    "scaffolding",
+    "validation",
+    "testing",
+    "functional-core",
+    "boundary-layer",
+    "railway-oriented-programming",
+    "pattern-matching",
+    "mix-tasks",
+    "project-structure"
+  ]
+}
