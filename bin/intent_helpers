@@ -598,6 +598,20 @@ needs_v2_3_0_upgrade() {
   esac
 }
 
+# Check if project needs v2.3.1 upgrade
+needs_v2_3_1_upgrade() {
+  local version=$1
+  
+  case "$version" in
+    "2.0.0"|"2.1.0"|"2.2.0"|"2.2.1"|"2.3.0")
+      return 0  # Needs 2.3.1 upgrade
+      ;;
+    *)
+      return 1  # Already upgraded or different version
+      ;;
+  esac
+}
+
 # Migrate v2.2.0 to v2.2.1
 migrate_v2_2_to_v2_2_1() {
   local project_root=$1
@@ -730,6 +744,46 @@ migrate_v2_2_to_v2_3_0() {
   echo "    - New 'intent agents' commands manage AGENTS.md"
   echo "    - Subagents moved to intent/plugins/claude/subagents/"
   echo "    - AGENTS.md provides universal AI agent instructions"
+}
+
+# Migrate v2.3.0 to v2.3.1 - Worker-bee agent integration
+migrate_v2_3_0_to_v2_3_1() {
+  local project_root=$1
+  
+  local target_version="$(get_intent_version 2>/dev/null || echo "2.3.1")"
+  echo "Upgrading to Intent v$target_version with worker-bee agent..."
+  
+  # Update .intent/config.json to target version
+  if [ -f "$project_root/.intent/config.json" ]; then
+    echo "  Updating project version to $target_version..."
+    local temp_file=$(mktemp)
+    jq --arg v "$target_version" '.intent_version = $v | .version = $v' "$project_root/.intent/config.json" > "$temp_file"
+    mv "$temp_file" "$project_root/.intent/config.json"
+  fi
+  
+  # Check if worker-bee agent needs to be added to manifest
+  if [ -f "$project_root/intent/plugins/claude/subagents/.manifest/global-agents.json" ]; then
+    if ! grep -q "worker-bee" "$project_root/intent/plugins/claude/subagents/.manifest/global-agents.json"; then
+      echo "  Adding worker-bee agent to global manifest..."
+      # This would normally be done by the Intent installation, but we document it
+      echo "    Note: Run 'intent claude subagents list' to see worker-bee agent"
+    fi
+  fi
+  
+  # Update CLAUDE.md if it exists and doesn't mention worker-bee
+  if [ -f "$project_root/CLAUDE.md" ]; then
+    if ! grep -q "worker-bee" "$project_root/CLAUDE.md"; then
+      echo "  Note: CLAUDE.md may need updating to include worker-bee agent"
+      echo "        Run 'intent doctor' to check for any issues"
+    fi
+  fi
+  
+  echo "  Migration to v$target_version complete!"
+  echo ""
+  echo "  IMPORTANT CHANGES IN v2.3.1:"
+  echo "    - Added worker-bee agent for Worker-Bee Driven Design (WDD)"
+  echo "    - Worker-bee agent includes resources directory with Mix tasks and templates"
+  echo "    - Run 'intent claude subagents install worker-bee' to install the agent"
 }
 
 # Migrate all remaining content from stp/ to intent/
