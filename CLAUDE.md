@@ -64,6 +64,18 @@ This project has access to specialized AI agents through Intent's agent system. 
    - Ash and Phoenix framework expertise
    - Code review and optimization
 
+3. **socrates** - CTO Review Mode
+   - Technical decision-making via Socratic dialog
+   - Architecture review and analysis
+   - Strategic technology choices
+   - Risk assessment and mitigation
+
+4. **worker-bee** - Worker-Bee Driven Design specialist
+   - WDD 6-layer architecture enforcement
+   - Project structure mapping and validation
+   - Code scaffolding with templates
+   - Mix task generation for WDD compliance
+
 ### Using Agents
 
 To delegate tasks to specialized agents, use the Task tool with the appropriate subagent_type:
@@ -91,6 +103,21 @@ Task(
 - Reviewing code for Usage Rules
 - Ash/Phoenix implementation guidance
 - Functional programming patterns
+
+**Use the socrates agent for:**
+
+- Technical architecture reviews
+- Strategic technology decisions
+- Risk assessment for technical choices
+- Facilitating thoughtful technical discussions
+
+**Use the worker-bee agent for:**
+
+- Enforcing Worker-Bee Driven Design principles
+- Mapping project structure to WDD layers
+- Validating WDD compliance
+- Scaffolding WDD-compliant code
+- Generating Mix tasks for WDD workflows
 
 **Use main Claude for:**
 

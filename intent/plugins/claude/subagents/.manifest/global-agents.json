@@ -21,6 +21,13 @@
       "description": "CTO Review Mode for technical decision-making via Socratic dialog",
       "path": "intent/plugins/claude/subagents/socrates",
       "checksum": ""
+    },
+    {
+      "name": "worker-bee",
+      "version": "1.0.0",
+      "description": "Worker-Bee Driven Design specialist for Elixir applications - enforces WDD architecture patterns, validates compliance, and scaffolds WDD-compliant code",
+      "path": "intent/plugins/claude/subagents/worker-bee",
+      "checksum": ""
     }
   ]
 }
