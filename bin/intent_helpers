@@ -612,6 +612,20 @@ needs_v2_3_1_upgrade() {
   esac
 }
 
+# Check if project needs v2.3.2 upgrade
+needs_v2_3_2_upgrade() {
+  local version=$1
+  
+  case "$version" in
+    "2.0.0"|"2.1.0"|"2.2.0"|"2.2.1"|"2.3.0"|"2.3.1")
+      return 0  # Needs 2.3.2 upgrade
+      ;;
+    *)
+      return 1  # Already upgraded or different version
+      ;;
+  esac
+}
+
 # Migrate v2.2.0 to v2.2.1
 migrate_v2_2_to_v2_2_1() {
   local project_root=$1
@@ -750,7 +764,7 @@ migrate_v2_2_to_v2_3_0() {
 migrate_v2_3_0_to_v2_3_1() {
   local project_root=$1
   
-  local target_version="$(get_intent_version 2>/dev/null || echo "2.3.1")"
+  local target_version="$(get_intent_version 2>/dev/null || echo "2.3.2")"
   echo "Upgrading to Intent v$target_version with worker-bee agent..."
   
   # Update .intent/config.json to target version
@@ -784,6 +798,37 @@ migrate_v2_3_0_to_v2_3_1() {
   echo "    - Added worker-bee agent for Worker-Bee Driven Design (WDD)"
   echo "    - Worker-bee agent includes resources directory with Mix tasks and templates"
   echo "    - Run 'intent claude subagents install worker-bee' to install the agent"
+}
+
+# Migrate v2.3.1 to v2.3.2 - Enhanced Elixir subagent with antipattern detection
+migrate_v2_3_1_to_v2_3_2() {
+  local project_root=$1
+  
+  local target_version="$(get_intent_version 2>/dev/null || echo "2.3.2")"
+  echo "Upgrading to Intent v$target_version with enhanced Elixir subagent..."
+  
+  # Update config version
+  echo "  Updating config version..."
+  update_config_version "$project_root" "$target_version"
+  
+  # The Elixir subagent enhancements are handled by intent claude subagents sync
+  echo "  Elixir subagent enhancements:"
+  echo "    - Added comprehensive antipattern detection (24 patterns)"
+  echo "    - Antipatterns categorized: Code, Design, Process, Meta-programming"
+  echo "    - Full documentation at intent/plugins/claude/subagents/elixir/antipatterns.md"
+  
+  # Check if elixir subagent is installed
+  if [ -f "$project_root/.claude/agents/elixir.md" ]; then
+    echo "  Elixir subagent detected. Run 'intent claude subagents sync' to update."
+  fi
+  
+  echo "  Migration to v$target_version complete!"
+  echo ""
+  echo "  IMPORTANT CHANGES IN v2.3.2:"
+  echo "    - Enhanced Elixir subagent with antipattern detection"
+  echo "    - Detects and remediates 24 common Elixir antipatterns"
+  echo "    - Antipatterns sourced from official Elixir documentation"
+  echo "    - Run 'intent claude subagents sync' to update installed agents"
 }
 
 # Migrate all remaining content from stp/ to intent/

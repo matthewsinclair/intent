@@ -5,6 +5,67 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.2] - 2025-09-04
+
+### Added
+
+- Comprehensive antipattern detection to Elixir subagent
+  - Detects and remediates 24 common Elixir antipatterns
+  - Antipatterns categorized into Code (9), Design (6), Process (4), and Meta-programming (5)
+  - Full documentation in `intent/plugins/claude/subagents/elixir/antipatterns.md`
+  - Antipatterns sourced from official Elixir documentation
+- Antipattern review workflow integrated into Elixir Doctor
+- Example usage commands and report formats for antipattern detection
+- Key principles for antipattern prevention
+
+### Changed
+
+- Enhanced Elixir subagent with antipattern detection capabilities
+- Updated systematic review template to include antipattern analysis
+- Elixir Doctor now automatically checks for antipatterns during code reviews
+
+### Technical Improvements
+
+- Better code quality guidance through antipattern detection
+- More comprehensive code review process
+- Proactive detection of common Elixir mistakes
+
+## [2.3.1] - 2025-08-29
+
+### Added
+
+- Worker-bee agent for Worker-Bee Driven Design (WDD) in Elixir applications
+- Resources directory structure for agents with templates and Mix tasks
+- Worker-bee agent includes comprehensive WDD validation and scaffolding tools
+
+### Changed
+
+- Enhanced agent system to support resource directories
+- Improved subagent installation and management
+
+## [2.3.0] - 2025-08-20
+
+### Added
+
+- Plugin architecture for Intent
+- Claude subagents system (renamed from agents)
+- AGENTS.md universal AI agent instructions
+- Support for multiple AI platforms through AGENTS.md
+- New `intent agents` commands for AGENTS.md management
+- New `intent claude subagents` commands (replacing old `intent agents`)
+
+### Changed
+
+- Renamed `intent agents` commands to `intent claude subagents`
+- Moved subagents to `intent/plugins/claude/subagents/`
+- Updated project structure to support plugins
+
+### Technical Improvements
+
+- More flexible agent system architecture
+- Better separation of concerns with plugin system
+- Universal agent instructions format
+
 ## [2.2.1] - 2025-08-11
 
 ### Added
