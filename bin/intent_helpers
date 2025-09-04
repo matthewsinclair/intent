@@ -800,6 +800,18 @@ migrate_v2_3_0_to_v2_3_1() {
   echo "    - Run 'intent claude subagents install worker-bee' to install the agent"
 }
 
+# Update config version helper function
+update_config_version() {
+  local project_root=$1
+  local target_version=$2
+  
+  if [ -f "$project_root/.intent/config.json" ]; then
+    local temp_file=$(mktemp)
+    jq --arg v "$target_version" '.intent_version = $v | .version = $v' "$project_root/.intent/config.json" > "$temp_file"
+    mv "$temp_file" "$project_root/.intent/config.json"
+  fi
+}
+
 # Migrate v2.3.1 to v2.3.2 - Enhanced Elixir subagent with antipattern detection
 migrate_v2_3_1_to_v2_3_2() {
   local project_root=$1
