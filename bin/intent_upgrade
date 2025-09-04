@@ -17,7 +17,7 @@ INTENT_HOME="$(cd "$INTENT_BIN/.." && pwd)"
 source "$INTENT_BIN/intent_helpers"
 
 # Get target version
-TARGET_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+TARGET_VERSION="$(get_intent_version 2>/dev/null || echo "2.3.2")"
 
 # Function to display usage information
 usage() {
@@ -160,6 +160,7 @@ case "$VERSION" in
     migrate_v2_2_to_v2_2_1 .
     migrate_v2_2_to_v2_3_0 .
     migrate_v2_3_0_to_v2_3_1 .
+    migrate_v2_3_1_to_v2_3_2 .
     ;;
   "2.1.0")
     echo "Upgrading from v2.1.0 to v$TARGET_VERSION..."
@@ -167,21 +168,29 @@ case "$VERSION" in
     migrate_v2_2_to_v2_2_1 .
     migrate_v2_2_to_v2_3_0 .
     migrate_v2_3_0_to_v2_3_1 .
+    migrate_v2_3_1_to_v2_3_2 .
     ;;
   "2.2.0")
     echo "Upgrading from v2.2.0 to v$TARGET_VERSION..."
     migrate_v2_2_to_v2_2_1 .
     migrate_v2_2_to_v2_3_0 .
     migrate_v2_3_0_to_v2_3_1 .
+    migrate_v2_3_1_to_v2_3_2 .
     ;;
   "2.2.1")
     echo "Upgrading from v2.2.1 to v$TARGET_VERSION..."
     migrate_v2_2_to_v2_3_0 .
     migrate_v2_3_0_to_v2_3_1 .
+    migrate_v2_3_1_to_v2_3_2 .
     ;;
   "2.3.0")
     echo "Upgrading from v2.3.0 to v$TARGET_VERSION..."
     migrate_v2_3_0_to_v2_3_1 .
+    migrate_v2_3_1_to_v2_3_2 .
+    ;;
+  "2.3.1")
+    echo "Upgrading from v2.3.1 to v$TARGET_VERSION..."
+    migrate_v2_3_1_to_v2_3_2 .
     ;;
   *)
     error "Unknown version: $VERSION"

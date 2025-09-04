@@ -301,6 +301,7 @@ intent st repair ST0001 --write
 ```
 
 The repair command fixes:
+
 - Malformed YAML frontmatter (escaped newlines)
 - Legacy field names (stp_version → intent_version)
 - Conflicting status values between frontmatter and body
