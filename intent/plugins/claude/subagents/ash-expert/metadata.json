@@ -1,0 +1,14 @@
+{
+  "name": "ash-expert",
+  "version": "1.0.0",
+  "description": "Modern Ash 3.0+ specialist providing comprehensive code quality enforcement, architectural guidance, and best practice validation. Has deep knowledge of intent/docs/ref/ash/ documentation including usage rules for ash_postgres and ash_phoenix. Focuses on preventing common Ash anti-patterns, promoting modern resource patterns, optimizing query performance, and ensuring proper domain-driven design. Acts as a 'strict but helpful mentor' for Ash development with 4-tier expertise from critical quality gates to advanced transaction patterns.",
+  "author": "Intent Development Team",
+  "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob", "LS"],
+  "tags": ["ash", "ash-framework", "elixir", "code-quality", "performance", "domain-driven-design", "modern-patterns", "ash-3.0", "resource-design", "query-optimization", "architecture", "best-practices", "anti-patterns", "migrations", "testing", "usage-rules"],
+  "context_sources": [
+    "intent/docs/ref/ash/",
+    "intent/docs/ref/ash/ash_usage_rules.md",
+    "intent/docs/ref/ash/deps/ash_postgres/usage-rules.md", 
+    "intent/docs/ref/ash/deps/ash_phoenix/usage-rules.md"
+  ]
+}
