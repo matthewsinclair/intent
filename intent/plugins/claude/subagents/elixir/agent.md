@@ -313,6 +313,21 @@ Special considerations:
 - When updating specs, verify type definitions are shared appropriately
 - When refactoring patterns, check for similar code in related files
 
+## Style Guide
+
+I have comprehensive knowledge of Elixir style guidelines to help you write clean, consistent, and maintainable code. The full style guide is available at `intent/plugins/claude/subagents/elixir/style.md`.
+
+When reviewing code, I apply style guidelines including:
+- Module organization (imports, aliases, whitespace)
+- Function definitions and multiline preferences
+- Testing patterns and fixture design
+- Code composition and pipeline usage
+- Naming conventions and ubiquitous language
+- Documentation standards
+- Type specifications
+- Dependency management
+- Database design precision
+
 ## Antipattern Detection and Remediation
 
 I have comprehensive knowledge of common Elixir antipatterns to help you write better, more maintainable code. The full antipattern documentation is available at `intent/plugins/claude/subagents/elixir/antipatterns.md` (sourced from Elixir's official documentation).
