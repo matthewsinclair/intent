@@ -615,10 +615,23 @@ needs_v2_3_1_upgrade() {
 # Check if project needs v2.3.2 upgrade
 needs_v2_3_2_upgrade() {
   local version=$1
-  
+
   case "$version" in
     "2.0.0"|"2.1.0"|"2.2.0"|"2.2.1"|"2.3.0"|"2.3.1")
       return 0  # Needs 2.3.2 upgrade
+      ;;
+    *)
+      return 1  # Already upgraded or different version
+      ;;
+  esac
+}
+
+needs_v2_3_3_upgrade() {
+  local version=$1
+
+  case "$version" in
+    "2.0.0"|"2.1.0"|"2.2.0"|"2.2.1"|"2.3.0"|"2.3.1"|"2.3.2")
+      return 0  # Needs 2.3.3 upgrade
       ;;
     *)
       return 1  # Already upgraded or different version
@@ -840,6 +853,38 @@ migrate_v2_3_1_to_v2_3_2() {
   echo "    - Enhanced Elixir subagent with antipattern detection"
   echo "    - Detects and remediates 24 common Elixir antipatterns"
   echo "    - Antipatterns sourced from official Elixir documentation"
+  echo "    - Run 'intent claude subagents sync' to update installed agents"
+}
+
+# Migrate v2.3.2 to v2.3.3 - Add Elixir style guide to subagent
+migrate_v2_3_2_to_v2_3_3() {
+  local project_root=$1
+
+  local target_version="$(get_intent_version 2>/dev/null || echo "2.3.3")"
+  echo "Upgrading to Intent v$target_version with Elixir style guide..."
+
+  # Update config version
+  echo "  Updating config version..."
+  update_config_version "$project_root" "$target_version"
+
+  # The Elixir subagent style guide is handled by intent claude subagents sync
+  echo "  Elixir subagent enhancements:"
+  echo "    - Added comprehensive Elixir style guide"
+  echo "    - Style guide covers: module organization, function definitions,"
+  echo "      testing patterns, code composition, naming, documentation,"
+  echo "      type specifications, dependency management, and database design"
+  echo "    - Full documentation at intent/plugins/claude/subagents/elixir/style.md"
+
+  # Check if elixir subagent is installed
+  if [ -f "$project_root/.claude/agents/elixir.md" ]; then
+    echo "  Elixir subagent detected. Run 'intent claude subagents sync' to update."
+  fi
+
+  echo "  Migration to v$target_version complete!"
+  echo ""
+  echo "  IMPORTANT CHANGES IN v2.3.3:"
+  echo "    - Elixir subagent now includes comprehensive style guide"
+  echo "    - Style guide complements antipattern detection from v2.3.2"
   echo "    - Run 'intent claude subagents sync' to update installed agents"
 }
 
