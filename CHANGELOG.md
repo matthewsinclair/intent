@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.3] - 2025-10-02
+
+### Added
+
+- Comprehensive Elixir style guide for the Elixir Claude subagent
+  - Module organization (imports, aliases, whitespace)
+  - Function definitions and multiline preferences
+  - Testing patterns and fixture design
+  - Code composition and pipeline usage
+  - Naming conventions and ubiquitous language
+  - Documentation standards
+  - Type specifications
+  - Dependency management
+  - Database design precision
+  - Version control conventions
+- Full style documentation in `intent/plugins/claude/subagents/elixir/style.md`
+- Release notes documentation in `docs/releases/2.3.3/RELEASE_NOTES.md`
+
+### Changed
+
+- Updated `intent/plugins/claude/subagents/elixir/agent.md` to reference style guide alongside antipatterns
+- Enhanced Elixir subagent now provides both antipattern detection (v2.3.2) and style guidance (v2.3.3)
+
+### Migration
+
+- Added `migrate_v2_3_2_to_v2_3_3()` function in `bin/intent_helpers`
+- Added `needs_v2_3_3_upgrade()` function in `bin/intent_helpers`
+- Updated `bin/intent_upgrade` to handle v2.3.2 → v2.3.3 upgrade path
+- All version upgrade paths updated to include v2.3.3 migration
+
+### Technical Improvements
+
+- Elixir subagent now provides holistic code quality guidance combining antipatterns and style
+- Style guide complements antipattern detection for comprehensive code reviews
+- Improved upgrade mechanism with full test coverage (212 tests passing)
+
 ## [2.3.2] - 2025-09-04
 
 ### Added
@@ -357,6 +393,10 @@ See [Release Notes](./docs/releases/2.0.0/RELEASE_NOTES.md) for complete details
 - `stp upgrade` - Upgrade STP files to latest format
 - `stp help` - Comprehensive help system
 
+[2.3.3]: https://github.com/matthewsinclair/intent/compare/v2.3.2...v2.3.3
+[2.3.2]: https://github.com/matthewsinclair/intent/compare/v2.3.1...v2.3.2
+[2.3.1]: https://github.com/matthewsinclair/intent/compare/v2.3.0...v2.3.1
+[2.3.0]: https://github.com/matthewsinclair/intent/compare/v2.2.1...v2.3.0
 [2.2.1]: https://github.com/matthewsinclair/intent/compare/v2.2.0...v2.2.1
 [2.2.0]: https://github.com/matthewsinclair/intent/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/matthewsinclair/intent/compare/v2.0.0...v2.1.0
