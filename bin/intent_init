@@ -67,7 +67,7 @@ fi
 AUTHOR="${INTENT_AUTHOR:-${USER:-Unknown}}"
 DATE="$(date '+%Y-%m-%d')"
 
-echo "Initializing Intent v2.0.0 project: $PROJECT_NAME"
+echo "Initializing Intent v$INTENT_VERSION project: $PROJECT_NAME"
 
 # Create directory structure
 echo "Creating directory structure..."
@@ -89,7 +89,7 @@ EOF
 
 # Create version file
 cat > .intent/version << EOF
-2.0.0
+$INTENT_VERSION
 EOF
 
 # Create initial files from templates
@@ -191,7 +191,7 @@ ln -sf "intent/llm/AGENTS.md" "AGENTS.md"
 cat > "CLAUDE.md" << EOF
 # $PROJECT_NAME Project Guidelines
 
-This is an Intent v2.0.0 project.
+This is an Intent v$INTENT_VERSION project.
 
 ## Project Structure
 
@@ -282,7 +282,7 @@ echo "Intent project initialized successfully!"
 echo ""
 echo "Project: $PROJECT_NAME"
 echo "Author: $AUTHOR"
-echo "Version: 2.0.0"
+echo "Version: $INTENT_VERSION"
 echo ""
 echo "Next steps:"
 echo "  1. Create your first steel thread: intent st new \"Initial Setup\""
