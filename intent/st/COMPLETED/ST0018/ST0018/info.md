@@ -1,9 +1,9 @@
 ---
 verblock: "20 Aug 2025:v0.1: matts - Initial version"
 intent_version: 2.2.0
-status: WIP
+status: Completed
 created: 20250820
-completed: 
+completed: 20251002
 ---
 # ST0018: Upgrade Intent to support AGENTS.md
 

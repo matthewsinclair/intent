@@ -9,24 +9,8 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 ## Index
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
-ID         | Title                     | Status       | Created    | Completed 
------------|---------------------------|--------------|------------|-----------
-ST0016     | Rename STP CLI to INTE... | Completed    | 2025-03-11 | 2025-07-27
-ST0015     | Enhanced Steel Thread ... | Not Started  | 2025-07-09 |           
-ST0014     | Directory Structure fo... | Completed    | 2025-03-20 | 2025-07-09
-ST0013     | STP Blog Post Series      | In Progress  | 2025-03-11 | 2025-07-08
-ST0012     | Document Sync Command     | Completed    | 2025-03-07 | 2025-03-07
-ST0011     | Test Suite Implementation | Completed    | 2025-06-03 | 2025-06-03
-ST0010     | Anthropic MCP Integration | Not Started  | 2025-06-03 |           
-ST0009     | Process Refinement        | Completed    | 2025-03-06 | 2025-06-03
-ST0008     | LLM Integration           | Completed    | 2025-03-06 | 2025-06-03
-ST0007     | User Documentation        | Completed    | 2025-03-06 | 2025-06-03
-ST0006     | Help System               | Completed    | 2025-03-06 | 2025-06-03
-ST0005     | Initialization Command    | Completed    | 2025-03-06 | 2025-06-03
-ST0004     | Steel Thread Commands     | Completed    | 2025-03-06 | 2025-06-03
-ST0003     | Template System           | Completed    | 2025-03-06 | 2025-06-03
-ST0002     | Core Script Framework     | Completed    | 2025-03-06 | 2025-06-03
-ST0001     | Directory Structure       | Completed    | 2025-03-06 | 2025-06-03
+ID         | Title                                                      | Status           | Created    | Completed
+-----------|------------------------------------------------------------|------------------|------------|-----------
 <!-- END: STEEL_THREAD_INDEX -->
 
 ## Steel Thread Status Definitions
@@ -53,9 +37,3 @@ This document provides an overview of all steel threads in the STP project. It h
 <!-- END: USAGE_INSTRUCTIONS -->
 
 The detailed information for each steel thread is contained in its individual document (e.g., ST0001.md).
-| ST0014 | Directory Structure for Steel Threads | Completed |  | 2025-07-09 |
-| ST0015 | Enhanced Steel Thread Templates and File Types | Not Started | 2025-07-09 |  |
-| ST0017 | Add an Intent sub-agent for Claude Code to Intent | Completed |  | 2025-07-27 |
-| ST0016 | Rename STP CLI to INTENT (v2.0.0) | Completed |  | 2025-07-27 |
-| ST0013 | STP Blog Post Series | Completed |  | 2025-07-27 |
-| ST0018 | Upgrade Intent to support AGENTS.md | WIP | 2025-08-20 |  |
