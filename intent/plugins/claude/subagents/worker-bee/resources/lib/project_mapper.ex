@@ -1,7 +1,7 @@
 defmodule WorkerBee.ProjectMapper do
   @moduledoc """
   Interactive project structure discovery and WDD layer mapping.
-  
+
   This module conducts discovery sessions to understand how a specific
   Elixir project should be organized according to WDD principles.
   """
@@ -54,7 +54,7 @@ defmodule WorkerBee.ProjectMapper do
     with {:ok, project_info} <- scan_project_structure(project_path),
          {:ok, project_type} <- determine_project_type(project_info),
          {:ok, layer_mapping} <- conduct_interactive_mapping(project_type, project_info) do
-      
+
       project_map = %__MODULE__{
         project_name: extract_project_name(project_path),
         project_type: project_type,
@@ -64,7 +64,7 @@ defmodule WorkerBee.ProjectMapper do
         naming_conventions: layer_mapping.naming_conventions,
         discovered_patterns: project_info.discovered_patterns
       }
-      
+
       {:ok, project_map}
     end
   end
@@ -83,9 +83,9 @@ defmodule WorkerBee.ProjectMapper do
       test_structure: scan_test_directory(project_path),
       existing_modules: discover_existing_modules(project_path)
     }
-    
+
     discovered_patterns = analyze_existing_patterns(patterns)
-    
+
     {:ok, %{
       patterns: patterns,
       discovered_patterns: discovered_patterns
@@ -99,19 +99,19 @@ defmodule WorkerBee.ProjectMapper do
     cond do
       project_info.patterns.has_phoenix and has_web_features?(project_info) ->
         {:ok, :phoenix_web}
-      
+
       project_info.patterns.has_phoenix ->
         {:ok, :phoenix_api}
-      
+
       project_info.patterns.has_otp_app and has_supervision_tree?(project_info) ->
         {:ok, :otp_application}
-      
+
       is_library_project?(project_info) ->
         {:ok, :library}
-      
+
       has_umbrella_structure?(project_info) ->
         {:ok, :umbrella}
-      
+
       true ->
         {:ok, :otp_application}  # Default fallback
     end
@@ -123,14 +123,14 @@ defmodule WorkerBee.ProjectMapper do
   def conduct_interactive_mapping(project_type, project_info) do
     IO.puts("\n🐝 Worker-Bee WDD Project Structure Discovery")
     IO.puts("=" |> String.duplicate(50))
-    
+
     IO.puts("\nProject Type Detected: #{format_project_type(project_type)}")
     display_discovered_patterns(project_info.discovered_patterns)
-    
+
     layer_paths = gather_layer_preferences(project_type, project_info)
     naming_conventions = gather_naming_conventions()
     framework_considerations = gather_framework_considerations(project_type)
-    
+
     {:ok, %{
       layer_paths: layer_paths,
       naming_conventions: naming_conventions,
@@ -143,11 +143,11 @@ defmodule WorkerBee.ProjectMapper do
   """
   def save_project_map(project_map, output_path \\ ".wdd_project_map.yaml") do
     yaml_content = generate_yaml_config(project_map)
-    
+
     case File.write(output_path, yaml_content) do
-      :ok -> 
+      :ok ->
         {:ok, "Project map saved to #{output_path}"}
-      {:error, reason} -> 
+      {:error, reason} ->
         {:error, "Failed to save project map: #{reason}"}
     end
   end
@@ -167,7 +167,7 @@ defmodule WorkerBee.ProjectMapper do
 
   defp detect_phoenix_project(project_path) do
     mix_exs = Path.join(project_path, "mix.exs")
-    
+
     case File.read(mix_exs) do
       {:ok, content} -> String.contains?(content, ":phoenix")
       _ -> false
@@ -181,7 +181,7 @@ defmodule WorkerBee.ProjectMapper do
 
   defp scan_lib_directory(project_path) do
     lib_path = Path.join(project_path, "lib")
-    
+
     if File.dir?(lib_path) do
       lib_path
       |> Path.join("**/*.ex")
@@ -195,7 +195,7 @@ defmodule WorkerBee.ProjectMapper do
 
   defp scan_test_directory(project_path) do
     test_path = Path.join(project_path, "test")
-    
+
     if File.dir?(test_path) do
       test_path
       |> Path.join("**/*_test.exs")
@@ -208,7 +208,7 @@ defmodule WorkerBee.ProjectMapper do
 
   defp discover_existing_modules(project_path) do
     lib_path = Path.join(project_path, "lib")
-    
+
     if File.dir?(lib_path) do
       lib_path
       |> Path.join("**/*.ex")
@@ -222,41 +222,41 @@ defmodule WorkerBee.ProjectMapper do
 
   defp analyze_existing_patterns(patterns) do
     discovered = []
-    
+
     discovered = if patterns.has_phoenix, do: ["Phoenix framework detected"] ++ discovered, else: discovered
     discovered = if patterns.has_otp_app, do: ["OTP application structure"] ++ discovered, else: discovered
     discovered = if has_functional_core_pattern?(patterns), do: ["Functional core pattern found"] ++ discovered, else: discovered
     discovered = if has_boundary_pattern?(patterns), do: ["Boundary layer pattern found"] ++ discovered, else: discovered
-    
+
     discovered
   end
 
   defp gather_layer_preferences(project_type, project_info) do
     IO.puts("\n📂 WDD Layer Structure Configuration")
     IO.puts("Let's define where each WDD layer should live in your project.\n")
-    
+
     suggested_paths = get_suggested_paths(project_type)
-    
+
     Enum.reduce(@wdd_layers, %{}, fn layer, acc ->
       suggestion = Map.get(suggested_paths, layer, "lib/#{layer}")
-      
+
       IO.puts("#{format_layer_name(layer)} Layer:")
       IO.puts("  Suggested: #{suggestion}")
-      
+
       prompt = "  Your choice (press Enter for suggestion): "
       user_input = IO.gets(prompt) |> String.trim()
-      
+
       chosen_path = if user_input == "", do: suggestion, else: user_input
-      
+
       Map.put(acc, layer, chosen_path)
     end)
   end
 
   defp gather_naming_conventions do
     IO.puts("\n🏷️  Naming Convention Preferences")
-    
+
     %{
-      module_prefix: get_user_preference("Module prefix (e.g., MyApp)", ""),
+      module_prefix: get_user_preference("Module prefix (eg MyApp)", ""),
       functional_core_suffix: get_user_preference("Functional core suffix", "Core"),
       boundary_suffix: get_user_preference("Boundary module suffix", ""),
       test_suffix: get_user_preference("Test module suffix", "Test")
@@ -265,7 +265,7 @@ defmodule WorkerBee.ProjectMapper do
 
   defp gather_framework_considerations(project_type) do
     considerations = []
-    
+
     considerations = case project_type do
       :phoenix_web -> ["Phoenix contexts as boundary layers", "LiveView components"] ++ considerations
       :phoenix_api -> ["Phoenix contexts as boundary layers", "JSON API design"] ++ considerations
@@ -273,12 +273,12 @@ defmodule WorkerBee.ProjectMapper do
       :library -> ["Pure functional design", "No process machinery"] ++ considerations
       _ -> considerations
     end
-    
+
     IO.puts("\n⚙️  Framework Considerations:")
     Enum.each(considerations, fn consideration ->
       IO.puts("  • #{consideration}")
     end)
-    
+
     considerations
   end
 
@@ -340,7 +340,7 @@ defmodule WorkerBee.ProjectMapper do
   defp get_user_preference(prompt, default) do
     full_prompt = if default != "", do: "#{prompt} [#{default}]: ", else: "#{prompt}: "
     user_input = IO.gets(full_prompt) |> String.trim()
-    
+
     if user_input == "", do: default, else: user_input
   end
 
@@ -378,20 +378,20 @@ defmodule WorkerBee.ProjectMapper do
     """
     # WDD Project Structure Map
     # Generated by Worker-Bee Agent
-    
+
     project_name: "#{project_map.project_name}"
     project_type: #{project_map.project_type}
     root_path: "#{project_map.root_path}"
-    
+
     wdd_layers:
     #{format_layer_paths_yaml(project_map.layer_paths)}
-    
+
     naming_conventions:
     #{format_naming_conventions_yaml(project_map.naming_conventions)}
-    
+
     framework_considerations:
     #{format_framework_considerations_yaml(project_map.framework_considerations)}
-    
+
     discovered_patterns:
     #{format_discovered_patterns_yaml(project_map.discovered_patterns)}
     """
@@ -428,7 +428,7 @@ defmodule WorkerBee.ProjectMapper do
   # Additional helper functions for pattern detection
   defp has_web_features?(project_info) do
     lib_files = project_info.patterns.lib_structure
-    
+
     web_indicators = [
       "router.ex",
       "endpoint.ex",
@@ -437,7 +437,7 @@ defmodule WorkerBee.ProjectMapper do
       "templates/",
       "live/"
     ]
-    
+
     Enum.any?(web_indicators, fn indicator ->
       Enum.any?(Map.keys(lib_files), fn file ->
         String.contains?(file, indicator)
@@ -462,13 +462,13 @@ defmodule WorkerBee.ProjectMapper do
 
   defp has_functional_core_pattern?(patterns) do
     lib_files = patterns.lib_structure
-    
+
     core_indicators = [
       "core/",
       "functional_core/",
       "business/"
     ]
-    
+
     Enum.any?(core_indicators, fn indicator ->
       Enum.any?(Map.keys(lib_files), fn file ->
         String.contains?(file, indicator)
@@ -478,14 +478,14 @@ defmodule WorkerBee.ProjectMapper do
 
   defp has_boundary_pattern?(patterns) do
     lib_files = patterns.lib_structure
-    
+
     boundary_indicators = [
       "boundary/",
       "api/",
       "web/",
       "controllers/"
     ]
-    
+
     Enum.any?(boundary_indicators, fn indicator ->
       Enum.any?(Map.keys(lib_files), fn file ->
         String.contains?(file, indicator)

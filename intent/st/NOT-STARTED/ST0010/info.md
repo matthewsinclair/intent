@@ -8,7 +8,7 @@ created: 20250603
 
 - **Status**: Not Started
 - **Created**: 2025-06-03
-- **Completed**: 
+- **Completed**:
 - **Author**: Matthew Sinclair
 
 ## Objective

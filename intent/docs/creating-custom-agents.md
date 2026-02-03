@@ -40,7 +40,7 @@ cd intent/agents/your-agent-name/
 ```
 
 **Naming Convention:**
-- Use lowercase with hyphens (e.g., `security-reviewer`, `api-designer`)
+- Use lowercase with hyphens (eg `security-reviewer`, `api-designer`)
 - Be descriptive but concise
 - Avoid spaces or special characters
 

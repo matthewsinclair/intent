@@ -32,7 +32,7 @@ defmodule Mix.Tasks.Wdd.Remap do
 
   Consider re-mapping when:
   - You've reorganized your project directories
-  - You've changed from one project type to another (e.g., library to Phoenix app)
+  - You've changed from one project type to another (eg library to Phoenix app)
   - You've added new layers or changed layer organization
   - WDD validation suggests your map is outdated
   - You want to adopt different naming conventions
@@ -81,17 +81,17 @@ defmodule Mix.Tasks.Wdd.Remap do
 
   defp remap_project(opts) do
     project_path = opts[:path] || File.cwd!()
-    
+
     unless opts[:quiet] do
       Mix.shell().info("🔄 Worker-Bee WDD Project Re-mapping")
       Mix.shell().info("=" |> String.duplicate(40))
     end
-    
+
     with :ok <- confirm_remapping(opts),
          :ok <- backup_existing_map(project_path, opts),
          {:ok, project_map} <- perform_discovery(project_path, opts),
          :ok <- save_new_map(project_map, project_path, opts) do
-      
+
       unless opts[:quiet] do
         Mix.shell().info("\n✅ Project re-mapping completed successfully!")
         display_new_mapping(project_map)
@@ -102,7 +102,7 @@ defmodule Mix.Tasks.Wdd.Remap do
         unless opts[:quiet] do
           Mix.shell().info("Re-mapping cancelled.")
         end
-      
+
       {:error, reason} ->
         Mix.shell().error("❌ Re-mapping failed: #{reason}")
         System.halt(1)
@@ -114,7 +114,7 @@ defmodule Mix.Tasks.Wdd.Remap do
       :ok
     else
       Mix.shell().info("\n⚠️  This will replace your current WDD project mapping.")
-      
+
       if Mix.shell().yes?("Continue with re-mapping?") do
         :ok
       else
@@ -126,17 +126,17 @@ defmodule Mix.Tasks.Wdd.Remap do
   defp backup_existing_map(project_path, opts) do
     map_file = Path.join(project_path, ".wdd_project_map.yaml")
     backup_enabled = Keyword.get(opts, :backup, true)
-    
+
     if File.exists?(map_file) and backup_enabled do
       backup_file = generate_backup_filename(project_path)
-      
+
       case File.copy(map_file, backup_file) do
         {:ok, _} ->
           unless opts[:quiet] do
             Mix.shell().info("📦 Existing map backed up to #{Path.basename(backup_file)}")
           end
           :ok
-        
+
         {:error, reason} ->
           {:error, "Failed to create backup: #{reason}"}
       end
@@ -147,7 +147,7 @@ defmodule Mix.Tasks.Wdd.Remap do
 
   defp generate_backup_filename(project_path) do
     base_backup = Path.join(project_path, ".wdd_project_map.yaml.backup")
-    
+
     if File.exists?(base_backup) do
       timestamp = DateTime.utc_now() |> DateTime.to_unix()
       Path.join(project_path, ".wdd_project_map.yaml.backup.#{timestamp}")
@@ -160,20 +160,20 @@ defmodule Mix.Tasks.Wdd.Remap do
     unless opts[:quiet] do
       Mix.shell().info("\n🔍 Starting project structure discovery...")
     end
-    
+
     ProjectMapper.discover_project_structure(project_path)
   end
 
   defp save_new_map(project_map, project_path, opts) do
     map_file = Path.join(project_path, ".wdd_project_map.yaml")
-    
+
     case ProjectMapper.save_project_map(project_map, map_file) do
       {:ok, _message} ->
         unless opts[:quiet] do
           Mix.shell().info("💾 New project map saved to #{Path.basename(map_file)}")
         end
         :ok
-      
+
       {:error, reason} ->
         {:error, "Failed to save project map: #{reason}"}
     end
@@ -182,7 +182,7 @@ defmodule Mix.Tasks.Wdd.Remap do
   defp display_new_mapping(project_map) do
     Mix.shell().info("\n📋 New WDD Layer Mapping:")
     Mix.shell().info("Project: #{project_map.project_name} (#{project_map.project_type})")
-    
+
     Enum.each(project_map.layer_paths, fn {layer, path} ->
       Mix.shell().info("  #{format_layer_name(layer)}: #{path}")
     end)
@@ -193,7 +193,7 @@ defmodule Mix.Tasks.Wdd.Remap do
     Mix.shell().info("  1. Run 'mix wdd.validate' to check compliance with new mapping")
     Mix.shell().info("  2. Use 'mix wdd.scaffold' to generate code following new structure")
     Mix.shell().info("  3. Update existing code to match new layer organization if needed")
-    
+
     Mix.shell().info("\n💡 Pro Tip:")
     Mix.shell().info("  Your old mapping is backed up - you can restore it if needed")
   end

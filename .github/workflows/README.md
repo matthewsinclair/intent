@@ -98,7 +98,7 @@ When adding new features:
 1. **Add unit tests** in the appropriate test directory
 2. **Update integration tests** if the feature affects STP-Backlog integration
 3. **Run tests locally** before pushing
-4. **Reference the steel thread** in your PR description (e.g., "Implements ST0042")
+4. **Reference the steel thread** in your PR description (eg "Implements ST0042")
 5. **Update documentation** if adding new commands or changing behavior
 
 ## Troubleshooting

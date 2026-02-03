@@ -155,7 +155,7 @@ The development environment requires:
 - POSIX-compliant shell (bash, zsh)
 - Git for version control
 - Text editor with markdown support
-- LLM access for assistance (e.g., Claude Code)
+- LLM access for assistance (eg Claude Code)
 
 ## 5.7 Testing Strategy
 

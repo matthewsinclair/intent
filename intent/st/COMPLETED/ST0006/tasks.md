@@ -4,7 +4,7 @@
 
 - [x] Design the help file format and structure
 - [x] Implement the `stp help` command
-- [x] Implement command-specific help (e.g., `stp help init`)
+- [x] Implement command-specific help (eg `stp help init`)
 - [x] Create help files for all existing commands
 - [x] Add functionality to list all available commands
 - [x] Implement dynamic discovery of commands for help listings

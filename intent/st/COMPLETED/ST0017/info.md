@@ -42,7 +42,7 @@ Create a sub-agent management system for Intent that integrates with Claude Code
 Claude Code recently introduced [sub-agents](https://docs.anthropic.com/en/docs/claude-code/sub-agents) - specialized AI assistants that can handle specific tasks with focused expertise. This presents an opportunity to enhance Intent with:
 
 1. **Intent-aware Assistant**: A sub-agent that understands Intent's steel thread methodology, project structure, and commands
-2. **Extensible Architecture**: A plugin system allowing users to add domain-specific sub-agents (e.g., Elixir code doctor)
+2. **Extensible Architecture**: A plugin system allowing users to add domain-specific sub-agents (eg Elixir code doctor)
 3. **Seamless Integration**: Automatic management of sub-agents within Intent projects
 
 This will improve developer experience by providing contextual AI assistance that understands both the project management framework (Intent) and specific technical domains.

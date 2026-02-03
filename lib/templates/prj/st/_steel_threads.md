@@ -33,7 +33,7 @@ This document provides an overview of all steel threads in the project. It helps
 3. Add completion dates when steel threads are finished
 4. Use this document to quickly locate specific steel thread documents
 
-The detailed information for each steel thread is contained in its directory (e.g., ST0001/) with multiple files:
+The detailed information for each steel thread is contained in its directory (eg ST0001/) with multiple files:
 - info.md: Main information and metadata
 - design.md: Design decisions and approach
 - impl.md: Implementation details

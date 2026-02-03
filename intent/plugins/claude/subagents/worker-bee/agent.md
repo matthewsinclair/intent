@@ -87,7 +87,7 @@ Special Considerations: [Any framework-specific patterns]
 - New directories created that don't match the project map
 - User mentions structural changes to their project
 - Validation results suggest architectural drift
-- Project type has changed (e.g., library became Phoenix app)
+- Project type has changed (eg library became Phoenix app)
 
 **How to suggest re-mapping:**
 - "I notice files in directories not covered by your current WDD map. Would you like to update your project structure mapping?"

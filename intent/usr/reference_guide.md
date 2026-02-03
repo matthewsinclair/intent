@@ -306,7 +306,7 @@ intent st repair [id] [--write]
 **Purpose:**
 
 Fixes common metadata issues in steel threads that may occur after migrations or manual edits:
-- Repairs malformed YAML frontmatter (e.g., escaped newlines)
+- Repairs malformed YAML frontmatter (eg escaped newlines)
 - Updates legacy field names (stp_version → intent_version)
 - Reconciles conflicting status values between frontmatter and body
 - Validates and fixes date formats

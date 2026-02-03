@@ -25,7 +25,7 @@ Help files are stored in the `.help` directory and follow a consistent format:
 
 The `stp help` command:
 1. Without arguments, displays a list of all available commands with short descriptions
-2. With a command argument (e.g., `stp help init`), displays detailed help for that command
+2. With a command argument (eg `stp help init`), displays detailed help for that command
 3. Dynamically discovers available commands by scanning for `stp_*` scripts
 
 ### Dynamic Command Discovery

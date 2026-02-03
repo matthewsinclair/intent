@@ -29,7 +29,7 @@ intent fileindex [OPTIONS] [STARTDIR] [FILESPEC]
 
 @arguments:
 STARTDIR           Directory to search in (defaults vary by context)
-FILESPEC           File pattern to match (e.g., "*.py", "*.{ex,exs}")
+FILESPEC           File pattern to match (eg "*.py", "*.{ex,exs}")
 
 @defaults:
 When run within an Intent project:

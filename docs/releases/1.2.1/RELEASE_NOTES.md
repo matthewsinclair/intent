@@ -105,7 +105,7 @@ The migration script:
 
 ## Future Enhancements
 
-- Consider adding more specialized files (e.g., `testing.md`, `metrics.md`)
+- Consider adding more specialized files (eg `testing.md`, `metrics.md`)
 - Enhanced templates for each file type
 - Better integration with external task management systems
 - Automated status updates based on file content

@@ -15,14 +15,14 @@ The steel thread command subsystem includes the following commands:
 ### Steel Thread ID Format
 
 Steel threads follow a consistent ID format:
-- IDs are in the format ST#### (e.g., ST0001)
+- IDs are in the format ST#### (eg ST0001)
 - Numbers are padded to 4 digits with leading zeros
 - IDs are automatically assigned in sequence
 
 To improve usability, commands accept abbreviated IDs:
-- Just the number (e.g., `1`)
-- The number with or without leading zeros (e.g., `0001`)
-- The full ID (e.g., `ST0001`)
+- Just the number (eg `1`)
+- The number with or without leading zeros (eg `0001`)
+- The full ID (eg `ST0001`)
 
 ### Steel Thread Index
 

@@ -6,7 +6,7 @@
 
 Several key workflow improvements were implemented:
 
-1. **Abbreviated ID Support**: Steel thread commands now accept abbreviated IDs (e.g., `stp st show 1` instead of `stp st show ST0001`)
+1. **Abbreviated ID Support**: Steel thread commands now accept abbreviated IDs (eg `stp st show 1` instead of `stp st show ST0001`)
 2. **Edit Command**: Added `stp st edit` command to quickly open steel thread files in the default editor
 3. **Improved Listing**: Enhanced the steel thread listing format with clear headers and formatting
 4. **Status Filtering**: Added ability to filter steel threads by status

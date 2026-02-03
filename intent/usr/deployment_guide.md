@@ -148,7 +148,7 @@ backlog/.git/
 #### Branch Strategy
 
 - Create feature branches based on steel threads
-- Name branches using steel thread IDs (e.g., `feature/ST0001`)
+- Name branches using steel thread IDs (eg `feature/ST0001`)
 
 ### CI/CD Integration
 

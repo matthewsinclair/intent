@@ -146,7 +146,7 @@ To create a new steel thread:
 intent st new "Implement Feature X"
 ```
 
-This creates a new steel thread directory (e.g., `intent/st/ST0001/`) with an `info.md` file containing metadata.
+This creates a new steel thread directory (eg `intent/st/ST0001/`) with an `info.md` file containing metadata.
 
 ### Viewing Steel Threads
 
@@ -286,7 +286,7 @@ intent migrate --all-active
 
 ### Managing Task ID Format
 
-Backlog can use zero-padded task IDs (e.g., task-001 instead of task-1) for better sorting. To retroactively update existing tasks:
+Backlog can use zero-padded task IDs (eg task-001 instead of task-1) for better sorting. To retroactively update existing tasks:
 
 ```bash
 # Pad all tasks to 3 digits
