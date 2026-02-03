@@ -9,8 +9,9 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 ## Index
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
-ID         | Title                                                      | Status           | Created    | Completed
+ID         | Title                                                      | Status           | Created    | Completed 
 -----------|------------------------------------------------------------|------------------|------------|-----------
+ST0019     | Treeindex Tool                                             | WIP              | 2026-02-03 |           
 <!-- END: STEEL_THREAD_INDEX -->
 
 ## Steel Thread Status Definitions
@@ -36,4 +37,4 @@ This document provides an overview of all steel threads in the STP project. It h
 4. Use this document to quickly locate specific steel thread documents
 <!-- END: USAGE_INSTRUCTIONS -->
 
-The detailed information for each steel thread is contained in its individual document (e.g., ST0001.md).
+The detailed information for each steel thread is contained in its individual document (eg ST0001.md).

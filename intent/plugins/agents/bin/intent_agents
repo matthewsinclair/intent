@@ -237,7 +237,7 @@ All changes should be validated with the test suite before committing.
 ### Commit Messages
 - Use conventional commit format when applicable
 - Be descriptive about what changed and why
-- Reference steel thread IDs (e.g., "ST0018: Add AGENTS.md support")
+- Reference steel thread IDs (eg "ST0018: Add AGENTS.md support")
 
 ### Pull Requests
 - Include test results in PR description

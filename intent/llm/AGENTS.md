@@ -7,11 +7,13 @@ This is an Intent project. See CLAUDE.md for project-specific guidelines.
 ## Development Environment
 
 ### Prerequisites
+
 - Bash 4.0 or higher
 - POSIX-compliant shell environment
 - Bats testing framework
 
 ### Setup
+
 ```bash
 # Initialize Intent project
 intent init
@@ -22,15 +24,18 @@ intent init
 ## Build and Test Commands
 
 ### Testing
+
 ```bash
 # Run tests
 bats tests/*.bats
 ```
 
 ### Building
+
 No build process required.
 
 ### Validation
+
 ```bash
 # Check Intent configuration
 intent doctor
@@ -59,11 +64,13 @@ All changes should be validated with the test suite before committing.
 ## Commit and PR Guidelines
 
 ### Commit Messages
+
 - Use conventional commit format when applicable
 - Be descriptive about what changed and why
-- Reference steel thread IDs (e.g., "ST0018: Add AGENTS.md support")
+- Reference steel thread IDs (eg "ST0018: Add AGENTS.md support")
 
 ### Pull Requests
+
 - Include test results in PR description
 - Reference related steel threads
 - Update documentation alongside code changes
@@ -71,13 +78,16 @@ All changes should be validated with the test suite before committing.
 ## Intent-Specific Information
 
 ### Steel Thread Process
+
 This project uses Intent's Steel Thread Process for development:
+
 - Work is organized into steel threads (ST####)
 - Each thread is a self-contained unit of work
 - View threads: `intent st list`
 - Create thread: `intent st new "Title"`
 
 ### Available Commands
+
 ```bash
 intent st list              # List all steel threads
 intent st new "Title"       # Create new steel thread
@@ -88,13 +98,16 @@ intent agents sync         # Update this AGENTS.md file
 ```
 
 ### Claude Subagents
+
 This project has Claude Code subagents available:
+
 ```bash
 intent claude subagents list      # List available subagents
 intent claude subagents install   # Install a subagent
 ```
 
 Available subagents:
+
 - **elixir**: Elixir code doctor with functional programming expertise and Usage Rules integration
 - **intent**: Intent-aware assistant for steel threads and backlog management
 - **socrates**: CTO Review Mode - Socratic dialog for technical decision-making

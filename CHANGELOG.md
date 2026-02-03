@@ -311,7 +311,7 @@ See [Release Notes](./docs/releases/2.0.0/RELEASE_NOTES.md) for complete details
 1. Run `stp upgrade` - it will detect old-format steel threads and offer to migrate them
 2. The migration will:
    - Create a backup in `.backup/1.2.1/`
-   - Create directories for each steel thread (e.g., `ST0001/`)
+   - Create directories for each steel thread (eg `ST0001/`)
    - Split content into separate files based on sections
    - Preserve all existing content and metadata
 3. After migration, use `stp st organize --write` to organize by status if desired

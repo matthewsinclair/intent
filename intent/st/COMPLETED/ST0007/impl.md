@@ -41,7 +41,7 @@ The documentation follows these principles:
 
 The documentation maintains consistent cross-references:
 
-- Between documents (e.g., from user guide to reference guide)
+- Between documents (eg from user guide to reference guide)
 - To specific command help documentation
 - To steel thread documents for technical details
 - To external resources where appropriate

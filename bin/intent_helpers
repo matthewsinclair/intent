@@ -200,8 +200,8 @@ EOF
 
 # Flatten nested directory structure
 flatten_directory_structure() {
-  local old_base=$1  # e.g., stp/prj/st
-  local new_base=$2  # e.g., intent/st
+  local old_base=$1  # eg stp/prj/st
+  local new_base=$2  # eg intent/st
   
   if [ ! -d "$old_base" ]; then
     return 0
@@ -1004,7 +1004,7 @@ This is an Intent v$version project (formerly STP).
 ## Steel Threads
 
 Steel threads are organized as directories under \`intent/st/\`:
-- Each steel thread has its own directory (e.g., ST0001/)
+- Each steel thread has its own directory (eg ST0001/)
 - Minimum required file is \`info.md\` with metadata
 - Optional files: design.md, impl.md, tasks.md
 

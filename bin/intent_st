@@ -271,37 +271,28 @@ get_next_steel_thread_id() {
 
 # Function to update steel threads index
 update_steel_threads_index() {
-  local id="$1"
-  local title="$2"
-  local status="$3"
-  local created="$4"
-  local completed="$5"
   local index_file="intent/st/steel_threads.md"
-  
+
   # Create index file if it doesn't exist
   if [ ! -f "$index_file" ]; then
     mkdir -p "$(dirname "$index_file")"
-    cat > "$index_file" << EOF
+    cat > "$index_file" << 'EOF'
+---
+verblock: "auto-generated"
+---
 # Steel Threads
 
 This document serves as an index of all steel threads in the project.
 
 ## Index
 
-| ID                       | Title                  | Status       | Created    | Completed  |
-| ----------------------- | -------------------- | ------------ | ---------- | ---------- |
+<!-- BEGIN: STEEL_THREAD_INDEX -->
+<!-- END: STEEL_THREAD_INDEX -->
 EOF
   fi
-  
-  # Check if entry already exists
-  if grep -q "^| $id " "$index_file"; then
-    # Update existing entry
-    sed -i.bak "s/^| $id .*$/| $id | $title | $status | $created | $completed |/" "$index_file"
-    rm -f "$index_file.bak"
-  else
-    # Add new entry
-    echo "| $id | $title | $status | $created | $completed |" >> "$index_file"
-  fi
+
+  # Highlander Rule: one code path for index updates
+  "${BASH_SOURCE[0]}" sync --write > /dev/null 2>&1
 }
 
 # Normalize the command (handle alternative spelling)
@@ -562,7 +553,7 @@ EOF
       NEW_ST_FILE=$(get_st_path "$ST_ID" "WIP" "info.md")
       NEW_DIR=$(dirname "$NEW_ST_FILE")
       
-      # Move the entire directory if it's different (e.g., from NOT-STARTED/)
+      # Move the entire directory if it's different (eg from NOT-STARTED/)
       if [ "$CURRENT_DIR" != "$NEW_DIR" ]; then
         mkdir -p "$(dirname "$NEW_DIR")"
         mv "$CURRENT_DIR" "$NEW_DIR"

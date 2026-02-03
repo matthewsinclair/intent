@@ -39,7 +39,7 @@ intent fileindex -v -i project.index
 The Elixir agent now supports systematic code review workflows using the fileindex command:
 
 - **Module-based Reviews**: Review entire Elixir modules systematically
-- **Path Flexibility**: Accept both module names (e.g., `MyApp.Users`) and filesystem paths
+- **Path Flexibility**: Accept both module names (eg `MyApp.Users`) and filesystem paths
 - **Progress Tracking**: Automatically track which files have been reviewed
 - **Smart Path Mapping**: Intelligent conversion between Elixir module names and file paths
 
