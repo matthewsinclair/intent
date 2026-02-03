@@ -289,6 +289,23 @@ This document serves as an index of all steel threads in the project.
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 <!-- END: STEEL_THREAD_INDEX -->
 EOF
+  elif ! grep -q '<!-- BEGIN: STEEL_THREAD_INDEX -->' "$index_file"; then
+    # File exists but lacks markers -- inject them at end of file,
+    # replacing any existing table content
+    local tmp_file
+    tmp_file=$(mktemp)
+    # Keep only lines before the first table (header row starting with |)
+    # or keep everything if no table found, then append markers
+    if grep -qn '^|' "$index_file"; then
+      # Find the first table line and keep everything before it
+      local first_table_line
+      first_table_line=$(grep -n '^|' "$index_file" | head -1 | cut -d: -f1)
+      head -n $((first_table_line - 1)) "$index_file" > "$tmp_file"
+    else
+      cat "$index_file" > "$tmp_file"
+    fi
+    printf '\n<!-- BEGIN: STEEL_THREAD_INDEX -->\n<!-- END: STEEL_THREAD_INDEX -->\n' >> "$tmp_file"
+    mv "$tmp_file" "$index_file"
   fi
 
   # Highlander Rule: one code path for index updates
