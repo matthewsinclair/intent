@@ -5,7 +5,7 @@ status: WIP
 created: 20260203
 completed: 
 ---
-# ST0019: Treeindex Tool
+# ST0019: Treeindex Subagent (or Tool)
 
 ## Objective
 

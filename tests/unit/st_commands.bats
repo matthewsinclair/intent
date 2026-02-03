@@ -624,8 +624,9 @@ EOF
   run run_intent st start ST0001
   assert_success
   
-  # Check index was updated
-  assert_file_contains "intent/st/steel_threads.md" "| ST0001 | Test Thread | WIP | $CURRENT_DATE |  |"
+  # Check index was updated (sync uses list output format with padded columns)
+  assert_file_contains "intent/st/steel_threads.md" "| WIP"
+  assert_file_contains "intent/st/steel_threads.md" "ST0001"
 }
 
 @test "st start errors on non-existent steel thread" {

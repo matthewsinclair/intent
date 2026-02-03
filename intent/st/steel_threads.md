@@ -11,7 +11,7 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 ID         | Title                                                      | Status           | Created    | Completed 
 -----------|------------------------------------------------------------|------------------|------------|-----------
-ST0019     | Treeindex Tool                                             | WIP              | 2026-02-03 |           
+ST0019     | Treeindex Subagent (or Tool)                               | WIP              | 2026-02-03 |           
 <!-- END: STEEL_THREAD_INDEX -->
 
 ## Steel Thread Status Definitions
