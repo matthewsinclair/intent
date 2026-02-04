@@ -1,7 +1,7 @@
 ---
 verblock: "04 Feb 2026:v0.5: matts - All WPs complete/skipped, as-built updates"
 intent_version: 2.3.4
-status: Done
+status: Completed
 created: 20260203
 completed: 20260204
 ---
