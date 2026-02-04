@@ -937,6 +937,68 @@ EOF
 }
 
 # ============================================================
+# README.md Auto-creation Tests
+# ============================================================
+
+@test "treeindex: auto-creates README.md on first run" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  mkdir -p lib/readme_test
+  echo "hello" > lib/readme_test/app.ex
+
+  # Remove README.md if it exists
+  rm -f "$project_dir/intent/.treeindex/README.md"
+
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib/readme_test --dry-run --depth 0
+  assert_success
+
+  [ -f "$project_dir/intent/.treeindex/README.md" ]
+}
+
+@test "treeindex: does not overwrite existing README.md" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  mkdir -p lib/readme_test
+  echo "hello" > lib/readme_test/app.ex
+
+  # Write custom content
+  echo "Custom README content" > "$project_dir/intent/.treeindex/README.md"
+
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib/readme_test --dry-run --depth 0
+  assert_success
+
+  # Verify custom content is preserved
+  run cat "$project_dir/intent/.treeindex/README.md"
+  assert_output_contains "Custom README content"
+}
+
+@test "treeindex: README.md contains expected content markers" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  mkdir -p lib/readme_test
+  echo "hello" > lib/readme_test/app.ex
+
+  # Remove and regenerate
+  rm -f "$project_dir/intent/.treeindex/README.md"
+
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib/readme_test --dry-run --depth 0
+  assert_success
+
+  local readme="$project_dir/intent/.treeindex/README.md"
+  [ -f "$readme" ]
+
+  run cat "$readme"
+  assert_output_contains "auto-generated"
+  assert_output_contains "shadow directory"
+  assert_output_contains "intent treeindex"
+  assert_output_contains "fingerprint"
+  assert_output_contains "Do not edit"
+}
+
+# ============================================================
 # Argument Validation Tests
 # ============================================================
 
