@@ -1,6 +1,6 @@
 ---
-verblock: "04 Feb 2026:v0.3: matts - WP01 complete, as-built updates"
-intent_version: 2.3.3
+verblock: "04 Feb 2026:v0.4: matts - WP03 complete (WP02 skipped), CLAUDE.md integration"
+intent_version: 2.3.4
 status: WIP
 created: 20260203
 completed:
@@ -37,8 +37,8 @@ Two deliverables:
 ## Work Packages
 
 - **WP01**: `bin/intent_treeindex` CLI command -- **COMPLETE**
-- **WP02**: Treeindex Claude Code subagent
-- **WP03**: Integration and registration (CLAUDE.md, global-agents.json, help, tests)
+- **WP02**: Treeindex Claude Code subagent -- **SKIPPED** (folded into WP03; CLI command + CLAUDE.md convention sufficient)
+- **WP03**: Integration (CLAUDE.md, tests) -- **COMPLETE**
 
 ## Related Steel Threads
 

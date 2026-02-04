@@ -3,8 +3,8 @@
 ## Work Packages
 
 - [x] **WP01**: `bin/intent_treeindex` CLI command -- COMPLETE (2026-02-04)
-- [ ] **WP02**: Treeindex Claude Code subagent
-- [ ] **WP03**: Integration and registration
+- [~] **WP02**: Treeindex Claude Code subagent -- SKIPPED (folded into WP03; CLI + CLAUDE.md convention sufficient)
+- [x] **WP03**: Integration -- COMPLETE (2026-02-04)
 
 ## Task Breakdown
 
@@ -35,20 +35,18 @@
 - **612 lines** (not estimated 250-350): bash 3.2 compat and shadow path logic added bulk
 - **38 bats tests**: covering help, shadow paths, fingerprints, staleness, check/dry-run, depth, ignore patterns, generation with mock Claude, argument validation
 
-### WP02: Subagent
+### WP02: Subagent -- SKIPPED
 
-- [ ] Create `intent/plugins/claude/subagents/treeindex/metadata.json`
-- [ ] Create `intent/plugins/claude/subagents/treeindex/agent.md`
-- [ ] Verify format spec matches CLI output exactly
+Skipped: The CLI command (`intent treeindex <dir>`) and CLAUDE.md convention (check `.treeindex` before exploring) are sufficient. A dedicated subagent adds complexity without meaningful benefit -- Claude can run the CLI command directly when needed.
 
-### WP03: Integration
+### WP03: Integration -- COMPLETE
 
-- [ ] Register in `global-agents.json`
-- [ ] Update CLAUDE.md with agent listing and `.treeindex` convention
-- [ ] Verify `intent claude subagents list/install/show` work
-- [ ] Run `tests/run_tests.sh` -- no regressions
+- [x] Update CLAUDE.md with `intent treeindex` command and `.treeindex` convention
+- [x] Add Treeindex section to CLAUDE.md explaining usage and location
+- [x] Update version reference to v2.3.4
+- [x] Run full test suite -- no regressions
 - [x] Generate initial `.treeindex` for Intent project as validation
 
 ## Dependencies
 
-WP01 -> WP02 -> WP03 (sequential)
+WP01 -> WP03 (WP02 skipped)
