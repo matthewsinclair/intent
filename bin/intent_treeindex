@@ -10,6 +10,7 @@
 # OPTIONS:
 #   -d, --depth N     Depth to traverse (default: 2)
 #   --check           Check staleness only, do not generate
+#   --prune           Remove orphaned .treeindex files (source dir removed)
 #   --force           Regenerate ignoring fingerprints
 #   --model MODEL     Claude model to use (default: haiku)
 #   --dry-run         Show what would be generated without doing it
@@ -20,6 +21,7 @@
 #   intent treeindex lib/ --depth 3        # 3 levels deep
 #   intent treeindex lib/ --check          # report stale indexes
 #   intent treeindex lib/my_app/ --force   # regenerate everything
+#   intent treeindex intent/ --prune       # remove orphaned treeindex files
 
 set -e
 
@@ -81,6 +83,7 @@ usage() {
   echo "OPTIONS:"
   echo "  -d, --depth N     Depth to traverse (default: 2)"
   echo "  --check           Check staleness only, do not generate"
+  echo "  --prune           Remove orphaned .treeindex files (source dir removed)"
   echo "  --force           Regenerate ignoring fingerprints"
   echo "  --model MODEL     Claude model to use (default: haiku)"
   echo "  --dry-run         Show what would be generated without doing it"
@@ -91,6 +94,7 @@ usage() {
   echo "  intent treeindex lib/ --depth 3        # 3 levels deep"
   echo "  intent treeindex lib/ --check          # report stale indexes"
   echo "  intent treeindex lib/my_app/ --force   # regenerate everything"
+  echo "  intent treeindex intent/ --prune       # remove orphaned treeindex files"
   exit 1
 }
 
@@ -370,6 +374,54 @@ has_content() {
   return 1
 }
 
+# Find orphaned .treeindex files whose source directories no longer exist
+# Outputs one relative path per line for each orphan found
+find_orphans() {
+  local shadow_subtree="$1"
+
+  [ -d "$shadow_subtree" ] || return
+
+  find "$shadow_subtree" -name .treeindex -type f 2>/dev/null | while IFS= read -r shadow_file; do
+    # Derive source directory: strip TREEINDEX_ROOT prefix and /.treeindex suffix
+    local shadow_rel="${shadow_file#$TREEINDEX_ROOT/}"
+    local source_rel="${shadow_rel%/.treeindex}"
+
+    # Check if source directory still exists
+    if [ ! -d "$PROJECT_ROOT/$source_rel" ]; then
+      echo "$source_rel"
+    fi
+  done
+}
+
+# Remove orphaned .treeindex files from the shadow tree
+prune_orphans() {
+  local shadow_subtree="$1"
+  local pruned=0
+
+  [ -d "$shadow_subtree" ] || {
+    echo "0 orphaned treeindex files pruned" >&2
+    return
+  }
+
+  while IFS= read -r shadow_file; do
+    # Derive source directory: strip TREEINDEX_ROOT prefix and /.treeindex suffix
+    local shadow_rel="${shadow_file#$TREEINDEX_ROOT/}"
+    local source_rel="${shadow_rel%/.treeindex}"
+
+    # Check if source directory still exists
+    if [ ! -d "$PROJECT_ROOT/$source_rel" ]; then
+      rm "$shadow_file"
+      echo "[pruned] $source_rel" >&2
+      pruned=$((pruned + 1))
+    fi
+  done < <(find "$shadow_subtree" -name .treeindex -type f 2>/dev/null)
+
+  # Clean up empty directories left behind
+  find "$shadow_subtree" -type d -empty -delete 2>/dev/null || true
+
+  echo "$pruned orphaned treeindex files pruned" >&2
+}
+
 # Create default .treeindexignore if not present
 ensure_treeindexignore() {
   local ignore_file="$TREEINDEX_ROOT/.treeindexignore"
@@ -451,6 +503,7 @@ load_treeindexignore() {
 DEPTH="$DEFAULT_DEPTH"
 MODEL="$DEFAULT_MODEL"
 CHECK_MODE=false
+PRUNE_MODE=false
 FORCE_MODE=false
 DRY_RUN=false
 TARGET_DIR=""
@@ -463,6 +516,10 @@ while [ $# -gt 0 ]; do
       ;;
     --check)
       CHECK_MODE=true
+      shift
+      ;;
+    --prune)
+      PRUNE_MODE=true
       shift
       ;;
     --force)
@@ -528,7 +585,7 @@ case "$ABS_TARGET_DIR" in
 esac
 
 # 4. Verify claude is on PATH (skip for --check/--dry-run)
-if [ "$CHECK_MODE" = false ] && [ "$DRY_RUN" = false ]; then
+if [ "$CHECK_MODE" = false ] && [ "$DRY_RUN" = false ] && [ "$PRUNE_MODE" = false ]; then
   if ! command -v claude >/dev/null 2>&1; then
     error "claude CLI not found on PATH. Install it or use --check/--dry-run mode."
   fi
@@ -545,6 +602,17 @@ mkdir -p "$TREEINDEX_ROOT"
 # Set up .treeindexignore (create default if missing, then load)
 ensure_treeindexignore
 load_treeindexignore
+
+# --- Prune Mode (standalone) ---
+if [ "$PRUNE_MODE" = true ]; then
+  # Compute shadow subtree for the target directory
+  pr_prefix="${PROJECT_ROOT}/"
+  target_rel="${ABS_TARGET_DIR#$pr_prefix}"
+  shadow_subtree="$TREEINDEX_ROOT/$target_rel"
+
+  prune_orphans "$shadow_subtree"
+  exit 0
+fi
 
 # Collect directories bottom-up into an array (bash 3.2 compatible)
 dirs=()
@@ -610,3 +678,21 @@ done
 # Summary
 echo "" >&2
 echo "${generated} generated, ${up_to_date} up-to-date, ${skipped} skipped, ${failed} failed, ${total} total" >&2
+
+# In --check mode, also report orphaned shadow entries
+if [ "$CHECK_MODE" = true ]; then
+  pr_prefix="${PROJECT_ROOT}/"
+  target_rel="${ABS_TARGET_DIR#$pr_prefix}"
+  shadow_subtree="$TREEINDEX_ROOT/$target_rel"
+
+  orphan_count=0
+  while IFS= read -r orphan_rel; do
+    echo "[orphan] $orphan_rel -- source directory removed" >&2
+    orphan_count=$((orphan_count + 1))
+  done < <(find_orphans "$shadow_subtree")
+
+  if [ "$orphan_count" -gt 0 ]; then
+    echo "" >&2
+    echo "$orphan_count orphaned treeindex files found (use --prune to remove)" >&2
+  fi
+fi
