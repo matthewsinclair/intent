@@ -2,7 +2,7 @@
 
 ## Status
 
-Design complete. Reviewed and approved 2026-02-04. Ready for implementation.
+Design complete. WP01 implemented 2026-02-04. See as-built notes below for deviations from original design.
 
 ## .treeindex File Format
 
@@ -74,11 +74,21 @@ Bottom-up. Leaf directories first, then parents.
 
 Uses `claude -p` (headless print mode) with:
 
-- `--model sonnet` -- cost-effective for summarization
+- `--model haiku` -- Claude Haiku 4.5, fast and cost-effective for summarization
 - `--no-session-persistence` -- no session clutter
-- `--max-budget-usd 0.02` -- safety cap per directory
+- `--max-budget-usd 0.50` -- safety cap per directory (original $0.02 was too low)
 - `--tools ""` -- disable tool use (text-in/text-out only)
-- `--append-system-prompt` -- format instructions
+- `--append-system-prompt` -- format instructions (stored as top-level single-quoted variable for bash 3.2 compat)
+
+## .treeindexignore
+
+Added during implementation. A gitignore-style file at `intent/.treeindex/.treeindexignore` that controls which directories and files are excluded from indexing:
+
+- Lines ending with `/` match directory names (pruned from find)
+- Other lines match file names (glob patterns passed to find `-name`)
+- Comments (`#`) and blank lines are ignored
+- Auto-created with sensible defaults on first run if missing
+- Never overwritten if already present
 
 ## Consumption Strategy
 
@@ -90,3 +100,16 @@ CLAUDE.md instructions tell Claude to check `.treeindex` before exploring unfami
 - **Claude Code hooks**: Rejected. Hooks cannot intercept or redirect built-in tool calls.
 - **Skill/slash command**: Rejected. Skills are for workflows, not persistent artifacts. The CLI command is the right entry point for generation.
 - **Pure CLI (no LLM)**: Rejected. Summarization requires understanding code semantics. AST parsing would be language-specific and shallow.
+
+## As-Built Deviations
+
+| Aspect        | Original Design                  | As-Built                                 | Reason                                              |
+|---------------|----------------------------------|------------------------------------------|-----------------------------------------------------|
+| Storage       | Inline `.treeindex` in each dir  | Centralized shadow at `intent/.treeindex/`| Keeps source tree clean                             |
+| DIR arg       | Optional, defaults to `.`        | Mandatory                                | Prevents accidental project-root indexing            |
+| Default depth | 1                                | 2                                        | More useful default coverage                        |
+| Model         | sonnet                           | haiku                                    | Cost-effective, Haiku 4.5 handles summarization well|
+| Budget cap    | $0.02/dir                        | $0.50/dir                                | $0.02 too low, caused false failures                |
+| Ignore config | Hardcoded lists                  | `.treeindexignore` file                  | User-configurable exclusions                        |
+| Scope         | Global command                   | Requires project context                 | Shadow dir needs `intent/.treeindex/`               |
+| Bash compat   | Not specified                    | Bash 3.2 required                        | macOS `/bin/bash` is 3.2.57                         |

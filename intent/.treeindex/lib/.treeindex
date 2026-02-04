@@ -1,0 +1,19 @@
+<!-- treeindex v1 fingerprint:0417f1fb generated:2026-02-04T11:49:06Z -->
+
+# lib/
+
+Core library implementation for Intent, providing the command-line interface, steel thread management, agent system integration, and project configuration handling. This directory contains the main executable logic and support modules for Intent workflows.
+
+## Dirs
+
+- `commands/` -- Command implementations for steel threads, agents, configuration, and project initialization
+- `support/` -- Utility modules for file operations, JSON handling, and system interaction
+
+## Files
+
+- `intent.ex` -- Main entry point and CLI dispatcher routing user commands to appropriate handlers
+- `intent_cli.ex` -- Command-line argument parsing and option processing for Intent commands
+- `agent_registry.ex` -- Agent system management with support for custom subagent installation and discovery
+- `file_index.ex` -- File indexing system with checkbox state tracking for progress management
+- `json_utils.ex` -- JSON serialization and deserialization utilities for configuration files
+- `shell_utils.ex` -- Shell command execution and output handling for system integration

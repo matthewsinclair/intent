@@ -1,5 +1,25 @@
 # Done - ST0019: Treeindex
 
+## Completed: WP01 -- CLI Command (2026-02-04)
+
+- [x] Created `bin/intent_treeindex` (612 lines, bash 3.2 compatible)
+- [x] Implemented centralized shadow directory at `intent/.treeindex/`
+- [x] Implemented fingerprint computation (filenames + sizes, 8-char SHA256)
+- [x] Implemented staleness checking with fingerprint comparison
+- [x] Implemented bottom-up directory walking with depth control
+- [x] Implemented file gathering with configurable exclusions
+- [x] Implemented Claude invocation via `claude -p` with Haiku model
+- [x] Implemented `--check`, `--dry-run`, `--force` modes
+- [x] Implemented progress reporting to stderr
+- [x] Implemented `.treeindexignore` (gitignore-style, auto-created with defaults)
+- [x] Created `tests/unit/treeindex_commands.bats` (38 tests, all passing)
+- [x] Full test suite 250/250 passing (no regressions)
+- [x] Generated initial `.treeindex` for `intent/`, `bin/`, `lib/` as validation
+- [x] Fixed shadow path leakage bug (absolute paths in shadow tree)
+- [x] Fixed self-referencing shadow directory bug (`.treeindex/` indexing itself)
+- [x] Fixed budget cap ($0.02 -> $0.50)
+- [x] Fixed bash 3.2 compatibility (no mapfile, no heredocs in $(), no [[ ]])
+
 ## Completed: Design Phase (2026-02-04)
 
 - [x] Rubber duck session -- explored concept, validated approach
@@ -16,7 +36,7 @@
 - [x] Created work packages WP01 (CLI), WP02 (subagent), WP03 (integration)
 - [x] Created tasks.md with detailed task breakdown
 
-## Also Completed This Session (not ST0019)
+## Also Completed in Design Session (not ST0019)
 
 - [x] Expanded Elixir subagent with Highlander Rule, architectural principles, Ash/Phoenix patterns, testing guidance (commit 06e11d3)
 - [x] Fixed intent_st update_steel_threads_index marker injection bug

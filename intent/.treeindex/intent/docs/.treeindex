@@ -1,0 +1,9 @@
+<!-- treeindex v1 fingerprint:a63aae2d generated:2026-02-04T11:45:48Z -->
+
+# docs/
+
+Documentation for the Intent project, including guides for creating custom agents, architectural principles, and project-specific procedures. Contains versioned documentation with YAML frontmatter for tracking and metadata.
+
+## Files
+
+- `creating-custom-agents.md` -- Step-by-step guide for creating specialized Intent agents with domain expertise, including directory structure, YAML frontmatter, and system prompt requirements

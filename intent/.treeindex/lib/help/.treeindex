@@ -1,0 +1,10 @@
+<!-- treeindex v1 fingerprint:85a20c28 generated:2026-02-04T11:49:01Z -->
+
+# help/
+
+Documentation and help files for Intent commands. Contains user-facing markdown references for command syntax, options, arguments, and examples.
+
+## Files
+
+- `agents.help.md` -- Intent agent system management and Claude Code sub-agent integration
+- `fileindex.help.md` -- File indexing tool with checkbox state tracking for progress management

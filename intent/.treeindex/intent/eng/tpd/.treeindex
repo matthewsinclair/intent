@@ -1,0 +1,17 @@
+<!-- treeindex v1 fingerprint:7206db78 generated:2026-02-04T11:45:31Z -->
+
+# tpd/
+
+Technical Product Design documentation for Intent v2.1.0, organized as a comprehensive reference guide covering system architecture, requirements, implementation strategy, and operational guidelines. This directory contains the complete as-built specification for the Intent system (formerly STP).
+
+## Files
+
+- `technical_product_design.md` -- Main TPD index and entry point with agent system overview
+- `1_introduction.md` -- Purpose, scope, system overview, and version history of Intent
+- `2_requirements.md` -- Functional and non-functional requirements with implementation status
+- `3_architecture.md` -- System architecture overview, component design, and data flow
+- `4_detailed_design.md` -- Directory structure, templates, configuration system, and JSON schema
+- `5_implementation_strategy.md` -- Development approach, steel thread breakdown, and task organization
+- `6_deployment_and_operations.md` -- Installation methods, project initialization, and operational procedures
+- `7_technical_challenges_and_mitigations.md` -- LLM context management, portability, and adoption strategies
+- `8_appendices.md` -- Glossary, command reference, configuration schema, and examples

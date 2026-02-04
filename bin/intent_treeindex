@@ -1,0 +1,612 @@
+#!/bin/bash
+# intent_treeindex - Generate .treeindex directory summaries using Claude
+# @usage: intent treeindex [OPTIONS] DIR
+# @description: Create and manage .treeindex directory summaries using Claude AI
+#
+# Walks directories bottom-up and uses `claude -p` to generate .treeindex
+# summary files with fingerprint-based staleness detection. Treeindex files
+# are stored in a centralized shadow directory at intent/.treeindex/.
+#
+# OPTIONS:
+#   -d, --depth N     Depth to traverse (default: 2)
+#   --check           Check staleness only, do not generate
+#   --force           Regenerate ignoring fingerprints
+#   --model MODEL     Claude model to use (default: haiku)
+#   --dry-run         Show what would be generated without doing it
+#   -h, --help        Show help
+#
+# EXAMPLES:
+#   intent treeindex lib/my_app/           # dir + 2 levels deep
+#   intent treeindex lib/ --depth 3        # 3 levels deep
+#   intent treeindex lib/ --check          # report stale indexes
+#   intent treeindex lib/my_app/ --force   # regenerate everything
+
+set -e
+
+# --- Constants ---
+TREEINDEX_VERSION="1"
+DEFAULT_DEPTH=2
+DEFAULT_MODEL="haiku"
+MAX_BUDGET="0.50"
+
+# Populated by load_treeindexignore() from intent/.treeindex/.treeindexignore
+IGNORE_DIRS=""
+IGNORE_FILES=""
+EXCLUDE_FILE_ARGS=()
+
+FORMAT_SPEC='You are generating a .treeindex file -- a concise directory summary for fast codebase navigation.
+
+FORMAT RULES (follow exactly):
+- First line: H1 with the leaf directory name and trailing slash, eg: # accounts/
+- Next: 2-3 sentence summary of the directory purpose and responsibility
+- If the directory has subdirectories, add a ## Dirs section: alphabetical, one-liner per subdirectory using format: - `dirname/` -- description
+- Add a ## Files section: ordered by architectural importance, one-liner per file using format: - `filename.ex` -- description
+- Omit ## Dirs section entirely if no subdirectories
+- Maximum 60 lines total
+- For directories with 20+ files, group by naming pattern
+- Do NOT include the HTML comment header line (it will be added automatically)
+- Do NOT wrap output in markdown code fences
+- Output ONLY the .treeindex content, nothing else'
+
+# --- Project Context ---
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/intent_config" ]; then
+  source "$SCRIPT_DIR/intent_config" 2>/dev/null || true
+  load_intent_config 2>/dev/null || true
+fi
+
+# Derive shadow root
+if [ -n "$PROJECT_ROOT" ]; then
+  TREEINDEX_ROOT="$PROJECT_ROOT/intent/.treeindex"
+fi
+
+# --- Functions ---
+
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
+usage() {
+  echo "Usage: intent treeindex [OPTIONS] DIR"
+  echo ""
+  echo "Generate .treeindex directory summaries using Claude AI."
+  echo ""
+  echo "Walks directories bottom-up and uses claude -p to generate .treeindex"
+  echo "summary files with fingerprint-based staleness detection. Treeindex files"
+  echo "are stored in a centralized shadow directory at intent/.treeindex/."
+  echo ""
+  echo "DIR is required and must be a subdirectory of the project root."
+  echo ""
+  echo "OPTIONS:"
+  echo "  -d, --depth N     Depth to traverse (default: 2)"
+  echo "  --check           Check staleness only, do not generate"
+  echo "  --force           Regenerate ignoring fingerprints"
+  echo "  --model MODEL     Claude model to use (default: haiku)"
+  echo "  --dry-run         Show what would be generated without doing it"
+  echo "  -h, --help        Show help"
+  echo ""
+  echo "EXAMPLES:"
+  echo "  intent treeindex lib/my_app/           # dir + 2 levels deep"
+  echo "  intent treeindex lib/ --depth 3        # 3 levels deep"
+  echo "  intent treeindex lib/ --check          # report stale indexes"
+  echo "  intent treeindex lib/my_app/ --force   # regenerate everything"
+  exit 1
+}
+
+# Detect platform for stat command (called once at startup)
+detect_stat_format() {
+  if stat -f '%N %z' /dev/null >/dev/null 2>&1; then
+    STAT_CMD="macos"
+  else
+    STAT_CMD="linux"
+  fi
+}
+
+# Map a real directory to its shadow .treeindex file path
+treeindex_shadow_path() {
+  local dir="$1"
+
+  # Resolve to absolute path
+  local abs_dir
+  if [ "${dir#/}" != "$dir" ]; then
+    abs_dir="$dir"
+  else
+    abs_dir="$(cd "$dir" 2>/dev/null && pwd)" || abs_dir="$PROJECT_ROOT/$dir"
+  fi
+
+  # Strip trailing slash
+  abs_dir="${abs_dir%/}"
+
+  # Strip PROJECT_ROOT prefix to get relative path
+  local pr_prefix="${PROJECT_ROOT}/"
+  local rel_path="${abs_dir#$pr_prefix}"
+
+  # Safety: if stripping failed (dir equals PROJECT_ROOT), rel_path still
+  # contains the absolute path. This should never happen because we reject
+  # the project root as a target, but guard against it.
+  if [ "$rel_path" = "$abs_dir" ]; then
+    error "Cannot create shadow path for project root itself."
+  fi
+
+  echo "$TREEINDEX_ROOT/$rel_path/.treeindex"
+}
+
+# Compute fingerprint of immediate directory contents
+treeindex_fingerprint() {
+  local dir="$1"
+
+  {
+    # Files: name + size, sorted (excluding ignored files)
+    if [ "$STAT_CMD" = "macos" ]; then
+      find "$dir" -maxdepth 1 -type f \
+        "${EXCLUDE_FILE_ARGS[@]}" \
+        -exec stat -f '%N %z' {} \; 2>/dev/null | sed "s|${dir}/||" | sort
+    else
+      find "$dir" -maxdepth 1 -type f \
+        "${EXCLUDE_FILE_ARGS[@]}" \
+        -exec stat --printf='%n %s\n' {} \; 2>/dev/null | sed "s|${dir}/||" | sort
+    fi
+    # Subdirectory names, sorted, suffixed with ' d'
+    find "$dir" -maxdepth 1 -type d ! -path "$dir" \
+      -exec basename {} \; 2>/dev/null | sort | sed 's/$/ d/'
+  } | shasum -a 256 | cut -c1-8
+}
+
+# Check if a treeindex is stale
+# Returns 0 if stale (needs regeneration), 1 if current
+treeindex_is_stale() {
+  local dir="$1"
+
+  local shadow_file
+  shadow_file="$(treeindex_shadow_path "$dir")"
+
+  # Missing shadow file -> stale
+  if [ ! -f "$shadow_file" ]; then
+    return 0
+  fi
+
+  # Extract stored fingerprint from line 1
+  local stored_fp
+  stored_fp="$(head -1 "$shadow_file" | sed -n 's/.*fingerprint:\([a-f0-9]*\).*/\1/p')"
+
+  # Compute current fingerprint
+  local current_fp
+  current_fp="$(treeindex_fingerprint "$dir")"
+
+  # Compare
+  if [ "$stored_fp" != "$current_fp" ]; then
+    return 0  # stale
+  fi
+  return 1  # current
+}
+
+# Walk root to depth, collect all dirs (excluding IGNORE_DIRS), sorted bottom-up
+collect_directories() {
+  local root="$1"
+  local depth="$2"
+
+  # Resolve to absolute path
+  local abs_root
+  if [ "${root#/}" != "$root" ]; then
+    abs_root="$root"
+  else
+    abs_root="$(cd "$root" && pwd)"
+  fi
+  abs_root="${abs_root%/}"
+
+  # Build find prune expression for ignored directories
+  local prune_expr=""
+  local first=true
+  for ig in $IGNORE_DIRS; do
+    if [ "$first" = true ]; then
+      prune_expr="-name $ig"
+      first=false
+    else
+      prune_expr="$prune_expr -o -name $ig"
+    fi
+  done
+
+  # Collect directories up to depth, excluding ignored ones
+  local pr_prefix="${PROJECT_ROOT}/"
+  if [ -n "$prune_expr" ]; then
+    find "$abs_root" -maxdepth "$depth" \( $prune_expr \) -prune -o -type d -print 2>/dev/null
+  else
+    find "$abs_root" -maxdepth "$depth" -type d -print 2>/dev/null
+  fi | while IFS= read -r d; do
+    [ -z "$d" ] && continue
+    # Must be strictly under PROJECT_ROOT (not the root itself)
+    case "$d" in
+      "$PROJECT_ROOT"/*) ;;
+      *) continue ;;
+    esac
+    # Output depth and path for sorting
+    local rel="${d#$pr_prefix}"
+    # Count slashes to determine depth
+    local stripped="${rel//[!\/]/}"
+    local depth_val=${#stripped}
+    echo "$depth_val $d"
+  done | sort -t' ' -k1 -rn | cut -d' ' -f2-
+}
+
+# List source files in dir and read head ~80 lines of each
+gather_files() {
+  local dir="$1"
+
+  find "$dir" -maxdepth 1 -type f \
+    "${EXCLUDE_FILE_ARGS[@]}" \
+    -print 2>/dev/null | sort | while IFS= read -r f; do
+    local fname
+    fname="$(basename "$f")"
+    echo "--- $fname ---"
+    head -80 "$f" 2>/dev/null
+    echo ""
+  done
+}
+
+# Construct the Claude prompt
+build_prompt() {
+  local dir="$1"
+
+  local dirname
+  dirname="$(basename "$dir")"
+
+  local prompt=""
+
+  # 1. File contents
+  local files_content
+  files_content="$(gather_files "$dir")"
+
+  if [ -n "$files_content" ]; then
+    prompt="Source files in ${dirname}/:
+
+${files_content}
+"
+  fi
+
+  # 2. Child .treeindex contents from shadow tree
+  local child_context=""
+  for subdir in "$dir"/*/; do
+    [ -d "$subdir" ] || continue
+    local child_shadow
+    child_shadow="$(treeindex_shadow_path "$subdir")"
+    if [ -f "$child_shadow" ]; then
+      local child_name
+      child_name="$(basename "$subdir")"
+      child_context="${child_context}Existing .treeindex for ${child_name}/:
+$(cat "$child_shadow")
+
+"
+    fi
+  done
+
+  if [ -n "$child_context" ]; then
+    prompt="${prompt}
+Child directory summaries:
+
+${child_context}"
+  fi
+
+  # 3. Instruction
+  prompt="${prompt}
+Generate a .treeindex for ${dirname}/"
+
+  echo "$prompt"
+}
+
+# Call claude -p to generate treeindex content
+invoke_claude() {
+  local prompt="$1"
+
+  echo "$prompt" | claude -p \
+    --model "$MODEL" \
+    --no-session-persistence \
+    --max-budget-usd "$MAX_BUDGET" \
+    --tools "" \
+    --append-system-prompt "$FORMAT_SPEC" 2>/dev/null
+}
+
+# Write treeindex file to shadow directory
+write_treeindex() {
+  local dir="$1"
+  local content="$2"
+
+  local shadow_file
+  shadow_file="$(treeindex_shadow_path "$dir")"
+
+  # Create shadow directory on demand
+  mkdir -p "$(dirname "$shadow_file")"
+
+  # Compute fingerprint and timestamp
+  local fingerprint
+  fingerprint="$(treeindex_fingerprint "$dir")"
+  local timestamp
+  timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+  # Write header + content
+  {
+    echo "<!-- treeindex v${TREEINDEX_VERSION} fingerprint:${fingerprint} generated:${timestamp} -->"
+    echo ""
+    echo "$content"
+  } > "$shadow_file"
+}
+
+# Helper: get relative path for display
+rel_path() {
+  local dir="$1"
+  local abs_dir
+  if [ "${dir#/}" != "$dir" ]; then
+    abs_dir="$dir"
+  else
+    abs_dir="$(cd "$dir" 2>/dev/null && pwd)" || abs_dir="$PROJECT_ROOT/$dir"
+  fi
+  local pr_prefix="${PROJECT_ROOT}/"
+  echo "${abs_dir#$pr_prefix}"
+}
+
+# Check if directory has source files or child treeindex files
+has_content() {
+  local dir="$1"
+
+  # Check for source files (excluding ignored files)
+  local file_count
+  file_count="$(find "$dir" -maxdepth 1 -type f \
+    "${EXCLUDE_FILE_ARGS[@]}" \
+    -print 2>/dev/null | wc -l | tr -d ' ')"
+  if [ "$file_count" -gt 0 ]; then
+    return 0
+  fi
+
+  # Check for child treeindex files in shadow tree
+  for subdir in "$dir"/*/; do
+    [ -d "$subdir" ] || continue
+    local child_shadow
+    child_shadow="$(treeindex_shadow_path "$subdir")"
+    if [ -f "$child_shadow" ]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+# Create default .treeindexignore if not present
+ensure_treeindexignore() {
+  local ignore_file="$TREEINDEX_ROOT/.treeindexignore"
+  [ -f "$ignore_file" ] && return
+
+  cat > "$ignore_file" << 'IGNOREEOF'
+# .treeindexignore - patterns to exclude from treeindex generation
+# Lines starting with # are comments
+# Lines ending with / match directory names
+# Other lines match file names (glob patterns)
+
+# Build artifacts
+_build/
+deps/
+node_modules/
+cover/
+
+# IDE and tool directories
+.git/
+.elixir_ls/
+.intent/
+.treeindex/
+
+# Generated assets
+priv/static/assets/
+
+# System files
+.DS_Store
+
+# Compiled files
+*.beam
+*.ez
+erl_crash.dump
+IGNOREEOF
+}
+
+# Load ignore patterns from .treeindexignore
+load_treeindexignore() {
+  IGNORE_DIRS=""
+  IGNORE_FILES=""
+  EXCLUDE_FILE_ARGS=()
+
+  local ignore_file="$TREEINDEX_ROOT/.treeindexignore"
+  [ -f "$ignore_file" ] || return
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    # Skip comments and empty lines
+    case "$line" in
+      "#"*|"") continue ;;
+    esac
+
+    # Trim leading/trailing whitespace
+    line="$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+    [ -z "$line" ] && continue
+
+    # Lines ending with / are directory patterns
+    case "$line" in
+      */)
+        local dirname="${line%/}"
+        if [ -n "$IGNORE_DIRS" ]; then
+          IGNORE_DIRS="$IGNORE_DIRS $dirname"
+        else
+          IGNORE_DIRS="$dirname"
+        fi
+        ;;
+      *)
+        if [ -n "$IGNORE_FILES" ]; then
+          IGNORE_FILES="$IGNORE_FILES $line"
+        else
+          IGNORE_FILES="$line"
+        fi
+        EXCLUDE_FILE_ARGS+=("!" "-name" "$line")
+        ;;
+    esac
+  done < "$ignore_file"
+}
+
+# --- Argument Parsing ---
+DEPTH="$DEFAULT_DEPTH"
+MODEL="$DEFAULT_MODEL"
+CHECK_MODE=false
+FORCE_MODE=false
+DRY_RUN=false
+TARGET_DIR=""
+
+while [ $# -gt 0 ]; do
+  case $1 in
+    -d|--depth)
+      DEPTH="$2"
+      shift 2
+      ;;
+    --check)
+      CHECK_MODE=true
+      shift
+      ;;
+    --force)
+      FORCE_MODE=true
+      shift
+      ;;
+    --model)
+      MODEL="$2"
+      shift 2
+      ;;
+    --dry-run)
+      DRY_RUN=true
+      shift
+      ;;
+    -h|--help)
+      usage
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      usage
+      ;;
+    *)
+      if [ -z "$TARGET_DIR" ]; then
+        TARGET_DIR="$1"
+      else
+        echo "Too many arguments" >&2
+        usage
+      fi
+      shift
+      ;;
+  esac
+done
+
+# DIR is mandatory
+if [ -z "$TARGET_DIR" ]; then
+  usage
+fi
+
+# --- Validation ---
+
+# 1. Verify PROJECT_ROOT is set
+if [ -z "$PROJECT_ROOT" ]; then
+  error "Not in an Intent project. Treeindex requires project context (intent/.treeindex/)."
+fi
+
+# 2. Verify TARGET_DIR exists
+if [ ! -d "$TARGET_DIR" ]; then
+  error "Directory does not exist: $TARGET_DIR"
+fi
+
+# 3. Resolve TARGET_DIR to absolute and verify it is strictly under PROJECT_ROOT
+ABS_TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+case "$ABS_TARGET_DIR" in
+  "$PROJECT_ROOT"/*)
+    # Good: strictly under project root
+    ;;
+  "$PROJECT_ROOT")
+    error "DIR must be a subdirectory of the project root, not the root itself."
+    ;;
+  *)
+    error "Directory must be under project root: $ABS_TARGET_DIR is not under $PROJECT_ROOT"
+    ;;
+esac
+
+# 4. Verify claude is on PATH (skip for --check/--dry-run)
+if [ "$CHECK_MODE" = false ] && [ "$DRY_RUN" = false ]; then
+  if ! command -v claude >/dev/null 2>&1; then
+    error "claude CLI not found on PATH. Install it or use --check/--dry-run mode."
+  fi
+fi
+
+# --- Platform Detection ---
+detect_stat_format
+
+# --- Main Logic ---
+
+# Ensure shadow root exists
+mkdir -p "$TREEINDEX_ROOT"
+
+# Set up .treeindexignore (create default if missing, then load)
+ensure_treeindexignore
+load_treeindexignore
+
+# Collect directories bottom-up into an array (bash 3.2 compatible)
+dirs=()
+while IFS= read -r line; do
+  [ -n "$line" ] && dirs+=("$line")
+done < <(collect_directories "$ABS_TARGET_DIR" "$DEPTH")
+
+total=${#dirs[@]}
+generated=0
+up_to_date=0
+skipped=0
+failed=0
+counter=0
+
+for dir in "${dirs[@]}"; do
+  counter=$((counter + 1))
+  rp="$(rel_path "$dir")"
+
+  # Check if directory has content worth indexing
+  if ! has_content "$dir"; then
+    echo "[$counter/$total] $rp -- empty, skipping" >&2
+    skipped=$((skipped + 1))
+    continue
+  fi
+
+  # Staleness check (unless --force)
+  if [ "$FORCE_MODE" = false ]; then
+    if ! treeindex_is_stale "$dir"; then
+      echo "[$counter/$total] $rp -- up to date" >&2
+      up_to_date=$((up_to_date + 1))
+      continue
+    fi
+  fi
+
+  # --check mode: report stale, do not generate
+  if [ "$CHECK_MODE" = true ]; then
+    echo "[$counter/$total] $rp -- stale" >&2
+    continue
+  fi
+
+  # --dry-run mode: show plan, do not write
+  if [ "$DRY_RUN" = true ]; then
+    echo "[$counter/$total] $rp -- would generate" >&2
+    continue
+  fi
+
+  # Build prompt and invoke Claude
+  prompt="$(build_prompt "$dir")"
+  content="$(invoke_claude "$prompt" 2>/dev/null)" || true
+
+  if [ -z "$content" ]; then
+    echo "[$counter/$total] $rp -- failed (empty response from Claude)" >&2
+    failed=$((failed + 1))
+    continue
+  fi
+
+  # Write treeindex
+  write_treeindex "$dir" "$content"
+  echo "[$counter/$total] $rp -- generated" >&2
+  generated=$((generated + 1))
+done
+
+# Summary
+echo "" >&2
+echo "${generated} generated, ${up_to_date} up-to-date, ${skipped} skipped, ${failed} failed, ${total} total" >&2
