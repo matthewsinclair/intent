@@ -1,27 +1,25 @@
 ---
-verblock: "04 Feb 2026:v0.4: matts - WP03 complete (WP02 skipped), CLAUDE.md integration"
+verblock: "04 Feb 2026:v0.5: matts - All WPs complete/skipped, as-built updates"
 intent_version: 2.3.4
-status: WIP
+status: Done
 created: 20260203
-completed:
+completed: 20260204
 ---
 # ST0019: Treeindex -- Directory Summaries for Claude Navigation
 
 ## Objective
 
-Build an `intent treeindex` CLI command and companion Claude Code subagent that generates `.treeindex` files -- concise directory summaries that let Claude quickly orient itself in a codebase without reading every file.
+Build an `intent treeindex` CLI command that generates `.treeindex` files -- concise directory summaries that let Claude quickly orient itself in a codebase without reading every file.
 
 ## Problem
 
 Every Claude Code session spends significant context on codebase exploration. Claude reads files, uses Glob/Grep, and runs Explore agents -- all to answer the question "what's in this directory and which files matter?" Pre-computed directory summaries eliminate this repeated cost.
 
-## Solution
+## Solution (As-Built)
 
-Two deliverables:
+**`intent treeindex <dir>`** -- A bash CLI command (612 lines, bash 3.2 compatible) that walks directories bottom-up, uses `claude -p` (headless mode) with Claude Haiku 4.5 to summarize source files, and writes `.treeindex` files with fingerprint-based staleness detection. Treeindex files are stored in a centralized shadow directory at `intent/.treeindex/`. CLAUDE.md instructs Claude to check `.treeindex` before exploring unfamiliar directories.
 
-1. **`intent treeindex <dir>`** -- A bash CLI command that walks directories bottom-up, uses `claude -p` (headless mode) to summarize source files, and writes `.treeindex` files with fingerprint-based staleness detection. Treeindex files are stored in a centralized shadow directory at `intent/.treeindex/`.
-
-2. **Treeindex subagent** -- A Claude Code subagent (`intent/plugins/claude/subagents/treeindex/`) that knows the `.treeindex` format and can generate/maintain them when asked within a Claude session.
+A dedicated subagent was originally planned but skipped -- the CLI command plus CLAUDE.md convention proved sufficient.
 
 ## Key Design Decisions
 
