@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Bottom-up directory indexing with Claude Haiku 4.5 for summarization
   - Centralized shadow directory at `intent/.treeindex/` keeps source tree clean
   - `.treeindexignore` configuration for excluding files/dirs from indexing
+  - Auto-generated `README.md` in `.treeindex/` shadow directory for LLM orientation
   - Fingerprint-based staleness detection (filenames + sizes, no mtime dependency)
   - `--check` mode for CI/reporting without regeneration
   - `--dry-run` mode to preview without writing
@@ -20,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `--depth N` to control directory traversal depth (default 2)
   - Platform-compatible (macOS/Linux stat differences handled)
   - Bash 3.2 compatible (works with macOS default `/bin/bash`)
-- 38 bats tests for treeindex command in `tests/unit/treeindex_commands.bats`
+- 41 bats tests for treeindex command in `tests/unit/treeindex_commands.bats`
 - CLAUDE.md convention: check `intent/.treeindex/<dir>/.treeindex` before exploring unfamiliar directories
 - Release notes documentation in `docs/releases/2.3.4/RELEASE_NOTES.md`
 
