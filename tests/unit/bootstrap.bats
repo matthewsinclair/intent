@@ -5,35 +5,22 @@ load "../lib/test_helper.bash"
 
 # Override setup to handle HOME directory for bootstrap tests
 setup() {
-  # First call parent setup to create TEST_TEMP_DIR
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-XXXXXX)"
   cd "${TEST_TEMP_DIR}" || exit 1
-  
-  # Backup real home config if it exists
-  if [ -d "$HOME/.config/intent" ]; then
-    export BACKUP_CONFIG=true
-    export BACKUP_DIR="$HOME/.config/intent.bak.$$"
-    mv "$HOME/.config/intent" "$BACKUP_DIR"
-  fi
-  
-  # Set test HOME
-  export ORIG_HOME="$HOME"
+
+  # Use a fake HOME so tests never touch real ~/.config/intent
+  REAL_HOME="$HOME"
   export HOME="${TEST_TEMP_DIR}/home"
-  mkdir -p "$HOME"
   mkdir -p "$HOME/.config"
 }
 
 # Clean up after each test
 teardown() {
-  # Restore original HOME
-  export HOME="$ORIG_HOME"
-  
-  # Restore backed up config
-  if [ "$BACKUP_CONFIG" = true ]; then
-    rm -rf "$ORIG_HOME/.config/intent"
-    if [ -d "$BACKUP_DIR" ]; then
-      mv "$BACKUP_DIR" "$ORIG_HOME/.config/intent"
-    fi
+  export HOME="$REAL_HOME"
+
+  if [ -d "${TEST_TEMP_DIR}" ]; then
+    cd "${INTENT_PROJECT_ROOT}" || exit 1
+    rm -rf "${TEST_TEMP_DIR}"
   fi
 }
 
