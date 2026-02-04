@@ -36,6 +36,22 @@
 - [x] Created work packages WP01 (CLI), WP02 (subagent), WP03 (integration)
 - [x] Created tasks.md with detailed task breakdown
 
+## Skipped: WP02 -- Subagent (2026-02-04)
+
+WP02 (dedicated treeindex subagent) was skipped. The CLI command (`intent treeindex <dir>`) and CLAUDE.md convention (check `.treeindex` before exploring) are sufficient. A dedicated subagent would add plugin registration, metadata, and agent prompt complexity without meaningful benefit -- Claude can run the CLI command directly when needed.
+
+## Completed: WP03 -- Integration (2026-02-04)
+
+- [x] Updated CLAUDE.md version reference to v2.3.4
+- [x] Added `intent treeindex <dir>` to CLAUDE.md Core Commands
+- [x] Added Treeindex section to CLAUDE.md with convention, location, and regeneration instructions
+- [x] Updated CHANGELOG.md with CLAUDE.md convention entry
+- [x] Updated RELEASE_NOTES.md with CLAUDE.md Convention section
+- [x] Updated ST0019 info.md, tasks.md, design.md, impl.md to as-built status
+- [x] Full test suite 250/250 passing (no regressions)
+- [x] `intent doctor` clean (0 errors, 0 warnings)
+- [x] Force-pushed v2.3.4 tag to local (Dropbox) and upstream (GitHub) remotes
+
 ## Also Completed in Design Session (not ST0019)
 
 - [x] Expanded Elixir subagent with Highlander Rule, architectural principles, Ash/Phoenix patterns, testing guidance (commit 06e11d3)

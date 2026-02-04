@@ -2,7 +2,7 @@
 
 ## Status
 
-Design complete. WP01 implemented 2026-02-04. See as-built notes below for deviations from original design.
+Design complete. All work packages resolved 2026-02-04. WP01 implemented, WP02 skipped (CLI + CLAUDE.md convention sufficient), WP03 implemented. See as-built notes below for deviations from original design.
 
 ## .treeindex File Format
 

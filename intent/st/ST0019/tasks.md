@@ -44,8 +44,18 @@ Skipped: The CLI command (`intent treeindex <dir>`) and CLAUDE.md convention (ch
 - [x] Update CLAUDE.md with `intent treeindex` command and `.treeindex` convention
 - [x] Add Treeindex section to CLAUDE.md explaining usage and location
 - [x] Update version reference to v2.3.4
-- [x] Run full test suite -- no regressions
+- [x] Update CHANGELOG.md and RELEASE_NOTES with CLAUDE.md convention
+- [x] Run full test suite -- 250/250 passing, no regressions
+- [x] Run `intent doctor` -- 0 errors, 0 warnings
 - [x] Generate initial `.treeindex` for Intent project as validation
+- [x] Force-push v2.3.4 tag to both remotes (local + upstream)
+
+#### WP03 As-Built Notes
+
+- **No subagent registration**: WP02 was skipped, so no `global-agents.json`, `metadata.json`, or `agent.md` changes needed
+- **No new subagent tests**: No `intent claude subagents list/install/show` testing since no subagent was created
+- **Scope reduced**: WP03 became purely CLAUDE.md updates, release docs, and verification
+- **Tag moved**: v2.3.4 tag was moved from the WP01-only commit to the WP03-inclusive commit
 
 ## Dependencies
 
