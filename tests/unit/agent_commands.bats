@@ -8,37 +8,30 @@ setup() {
   # Create temp dir outside of Intent project
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-XXXXXX)"
   cd "${TEST_TEMP_DIR}" || exit 1
-  
+
+  # Use a fake HOME so tests never touch real ~/.claude
+  REAL_HOME="$HOME"
+  export HOME="$TEST_TEMP_DIR/fakehome"
+  mkdir -p "$HOME"
+
   # Create a mock .claude directory for testing
   mkdir -p "$HOME/.claude/agents"
-  
-  # Save any existing agents
-  if [ -d "$HOME/.claude/agents.backup" ]; then
-    rm -rf "$HOME/.claude/agents.backup"
-  fi
-  if [ -d "$HOME/.claude/agents" ] && [ "$(ls -A $HOME/.claude/agents 2>/dev/null)" ]; then
-    cp -r "$HOME/.claude/agents" "$HOME/.claude/agents.backup"
-  fi
-  
-  # Clean the agents directory for testing
-  rm -f "$HOME/.claude/agents"/*.md 2>/dev/null || true
 }
 
 teardown() {
-  # Restore backed up agents if they exist
-  if [ -d "$HOME/.claude/agents.backup" ]; then
-    rm -rf "$HOME/.claude/agents"
-    mv "$HOME/.claude/agents.backup" "$HOME/.claude/agents"
-  fi
-  
+  # Restore real HOME
+  export HOME="$REAL_HOME"
+
+  # Restore any source files modified by sync/update tests
+  # (git checkout is safe even if the file wasn't modified)
+  git -C "${INTENT_PROJECT_ROOT}" checkout -- \
+    intent/plugins/claude/subagents/intent/agent.md 2>/dev/null || true
+
   # Clean up test directory
   if [ -d "${TEST_TEMP_DIR}" ]; then
     cd "${INTENT_PROJECT_ROOT}" || exit 1
     rm -rf "${TEST_TEMP_DIR}"
   fi
-  
-  # Clean up test manifests
-  rm -rf "$HOME/.intent/agents" 2>/dev/null || true
 }
 
 @test "claude subagents command shows help when no subcommand given" {

@@ -328,6 +328,262 @@ MOCK
 }
 
 # ============================================================
+# --prune Mode Tests
+# ============================================================
+
+@test "treeindex: --prune removes orphaned shadow entries" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  # Create a source dir and generate its treeindex
+  mkdir -p lib/will_delete
+  echo "hello" > lib/will_delete/file1.ex
+  setup_claude_mock
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib/will_delete --depth 0
+  assert_success
+  assert_file_exists "$project_dir/intent/.treeindex/lib/will_delete/.treeindex"
+
+  # Remove the source directory, making the shadow entry orphaned
+  rm -rf lib/will_delete
+
+  # Prune should remove the orphan
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib --prune
+  assert_success
+  assert_output_contains "[pruned] lib/will_delete"
+  assert_output_contains "1 orphaned treeindex files pruned"
+
+  # Shadow file should be gone
+  assert_file_not_exists "$project_dir/intent/.treeindex/lib/will_delete/.treeindex"
+}
+
+@test "treeindex: --prune reports zero when no orphans exist" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  mkdir -p lib/still_here
+  echo "hello" > lib/still_here/file1.ex
+  setup_claude_mock
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib/still_here --depth 0
+  assert_success
+
+  # Source dir still exists, nothing to prune
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib --prune
+  assert_success
+  assert_output_contains "0 orphaned treeindex files pruned"
+}
+
+@test "treeindex: --prune cleans up empty shadow directories" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  # Create nested source dirs and generate treeindex
+  mkdir -p lib/parent/child
+  echo "hello" > lib/parent/child/file1.ex
+  setup_claude_mock
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib/parent/child --depth 0
+  assert_success
+  assert_file_exists "$project_dir/intent/.treeindex/lib/parent/child/.treeindex"
+
+  # Remove the source directory
+  rm -rf lib/parent/child
+
+  # Prune should remove the orphan and clean up empty parent dirs
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib --prune
+  assert_success
+  assert_output_contains "[pruned] lib/parent/child"
+
+  # Shadow dir for child should be gone
+  [ ! -d "$project_dir/intent/.treeindex/lib/parent/child" ] || fail "Empty shadow directory was not cleaned up"
+}
+
+@test "treeindex: --prune only removes orphans under target dir" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  # Create two dirs and generate treeindex for both
+  mkdir -p lib/keep_this
+  mkdir -p lib/other/gone
+  echo "hello" > lib/keep_this/file1.ex
+  echo "hello" > lib/other/gone/file1.ex
+  setup_claude_mock
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib/keep_this --depth 0
+  assert_success
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib/other/gone --depth 0
+  assert_success
+
+  # Remove source for other/gone, but keep keep_this
+  rm -rf lib/other/gone
+
+  # Prune scoped to lib/keep_this -- should find nothing
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib/keep_this --prune
+  assert_success
+  assert_output_contains "0 orphaned treeindex files pruned"
+
+  # The orphan under lib/other should still exist
+  assert_file_exists "$project_dir/intent/.treeindex/lib/other/gone/.treeindex"
+}
+
+@test "treeindex: --prune handles multiple orphans" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  # Create and index several dirs
+  mkdir -p lib/alpha lib/beta lib/gamma
+  echo "a" > lib/alpha/a.ex
+  echo "b" > lib/beta/b.ex
+  echo "g" > lib/gamma/g.ex
+  setup_claude_mock
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib --depth 1
+  assert_success
+
+  # Remove two source dirs
+  rm -rf lib/alpha lib/gamma
+
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib --prune
+  assert_success
+  assert_output_contains "[pruned] lib/alpha"
+  assert_output_contains "[pruned] lib/gamma"
+  assert_output_contains "2 orphaned treeindex files pruned"
+
+  # beta should still be there
+  assert_file_exists "$project_dir/intent/.treeindex/lib/beta/.treeindex"
+}
+
+@test "treeindex: --prune does not require claude on PATH" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  # lib/ must exist as a valid target dir
+  mkdir -p lib
+
+  # Manually create an orphaned shadow entry
+  mkdir -p "$project_dir/intent/.treeindex/lib/phantom"
+  echo "<!-- treeindex v1 -->" > "$project_dir/intent/.treeindex/lib/phantom/.treeindex"
+
+  run env PATH="/usr/bin:/bin" "${INTENT_BIN_DIR}/intent_treeindex" lib --prune
+  assert_success
+  assert_output_contains "[pruned] lib/phantom"
+}
+
+@test "treeindex: --prune is idempotent" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  # lib/ must exist as a valid target dir
+  mkdir -p lib
+
+  # Create orphaned shadow entry
+  mkdir -p "$project_dir/intent/.treeindex/lib/removed"
+  echo "<!-- treeindex v1 -->" > "$project_dir/intent/.treeindex/lib/removed/.treeindex"
+
+  # First prune
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib --prune
+  assert_success
+  assert_output_contains "1 orphaned treeindex files pruned"
+
+  # Second prune -- nothing left
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib --prune
+  assert_success
+  assert_output_contains "0 orphaned treeindex files pruned"
+}
+
+@test "treeindex: --prune handles nonexistent shadow subtree gracefully" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  mkdir -p lib/fresh_dir
+  echo "hello" > lib/fresh_dir/file1.ex
+
+  # No shadow tree exists for lib/fresh_dir yet
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib/fresh_dir --prune
+  assert_success
+  assert_output_contains "0 orphaned treeindex files pruned"
+}
+
+# ============================================================
+# --check Orphan Reporting Tests
+# ============================================================
+
+@test "treeindex: --check reports orphaned shadow entries" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  # Create and index a dir
+  mkdir -p lib/will_move
+  echo "hello" > lib/will_move/file1.ex
+  setup_claude_mock
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib/will_move --depth 0
+  assert_success
+
+  # Remove the source dir
+  rm -rf lib/will_move
+
+  # --check should report the orphan
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib --check
+  assert_success
+  assert_output_contains "[orphan] lib/will_move -- source directory removed"
+  assert_output_contains "1 orphaned treeindex files found (use --prune to remove)"
+}
+
+@test "treeindex: --check does not report orphans when none exist" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  mkdir -p lib/healthy
+  echo "hello" > lib/healthy/file1.ex
+  setup_claude_mock
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib/healthy --depth 0
+  assert_success
+
+  # Source dir still exists -- no orphan report expected
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib --check
+  assert_success
+  refute_output_contains "[orphan]"
+  refute_output_contains "orphaned treeindex files found"
+}
+
+@test "treeindex: --check reports multiple orphans" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  mkdir -p lib/gone1 lib/gone2 lib/alive
+  echo "a" > lib/gone1/a.ex
+  echo "b" > lib/gone2/b.ex
+  echo "c" > lib/alive/c.ex
+  setup_claude_mock
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib --depth 1
+  assert_success
+
+  rm -rf lib/gone1 lib/gone2
+
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib --check
+  assert_success
+  assert_output_contains "[orphan] lib/gone1 -- source directory removed"
+  assert_output_contains "[orphan] lib/gone2 -- source directory removed"
+  assert_output_contains "2 orphaned treeindex files found (use --prune to remove)"
+  refute_output_contains "[orphan] lib/alive"
+}
+
+@test "treeindex: --check orphan report does not remove files" {
+  local project_dir=$(create_treeindex_project)
+  cd "$project_dir"
+
+  # lib/ must exist as a valid target dir
+  mkdir -p lib
+
+  # Create orphaned shadow entry directly
+  mkdir -p "$project_dir/intent/.treeindex/lib/ghost"
+  echo "<!-- treeindex v1 -->" > "$project_dir/intent/.treeindex/lib/ghost/.treeindex"
+
+  run "${INTENT_BIN_DIR}/intent_treeindex" lib --check
+  assert_success
+  assert_output_contains "[orphan] lib/ghost"
+
+  # Shadow file should still exist (check is read-only)
+  assert_file_exists "$project_dir/intent/.treeindex/lib/ghost/.treeindex"
+}
+
+# ============================================================
 # Directory Walking Tests
 # ============================================================
 
