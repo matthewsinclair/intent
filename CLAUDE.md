@@ -1,6 +1,6 @@
 # . Project Guidelines
 
-This is an Intent v2.2.0 project (formerly STP).
+This is an Intent v2.3.4 project (formerly STP).
 
 ## Project Structure
 
@@ -25,6 +25,7 @@ Steel threads are organized as directories under `intent/st/`:
 - `intent st new "Title"` - Create a new steel thread
 - `intent st list` - List all steel threads
 - `intent st show <id>` - Show steel thread details
+- `intent treeindex <dir>` - Generate `.treeindex` directory summaries
 - `intent doctor` - Check configuration
 - `intent help` - Get help
 
@@ -132,6 +133,15 @@ Task(
 2. Provide clear, focused prompts to agents
 3. Agents work best with specific, bounded tasks
 4. Consider using multiple agents for complex workflows
+
+## Treeindex
+
+`.treeindex` files are pre-computed directory summaries that let Claude quickly orient itself in a codebase without reading every file. They contain a concise overview of each directory's contents, purpose, and key files.
+
+**Convention:** Before exploring an unfamiliar directory, check `intent/.treeindex/<dir>/.treeindex` for an existing summary. This avoids redundant Glob/Grep/Read operations and saves context.
+
+- **Location:** All `.treeindex` files live in the `intent/.treeindex/` shadow directory (eg `intent/.treeindex/lib/.treeindex`)
+- **Regenerate:** Run `intent treeindex <dir>` to generate or refresh summaries for a directory tree
 
 ## Author
 

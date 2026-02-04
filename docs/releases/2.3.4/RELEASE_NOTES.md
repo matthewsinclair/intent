@@ -42,6 +42,10 @@ intent treeindex --force lib/    # Regenerate even if up-to-date
 | `--model MODEL` | Claude model to use (default: haiku)             |
 | `--verbose`     | Show detailed progress                           |
 
+### CLAUDE.md Convention (ST0019 WP03)
+
+CLAUDE.md now instructs Claude to check `.treeindex` files before exploring unfamiliar directories, avoiding redundant Glob/Grep/Read operations. The `intent treeindex <dir>` command is listed under Core Commands.
+
 ## Bug Fixes
 
 - **`intent init` version display**: Now reads from VERSION file instead of showing hardcoded 2.0.0

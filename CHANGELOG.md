@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Platform-compatible (macOS/Linux stat differences handled)
   - Bash 3.2 compatible (works with macOS default `/bin/bash`)
 - 38 bats tests for treeindex command in `tests/unit/treeindex_commands.bats`
+- CLAUDE.md convention: check `intent/.treeindex/<dir>/.treeindex` before exploring unfamiliar directories
 - Release notes documentation in `docs/releases/2.3.4/RELEASE_NOTES.md`
 
 ### Fixed
