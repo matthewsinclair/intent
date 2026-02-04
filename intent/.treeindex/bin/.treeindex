@@ -1,0 +1,29 @@
+<!-- treeindex v1 fingerprint:abaae3bc generated:2026-02-04T11:48:23Z -->
+
+# bin/
+
+Intent command-line tools and executable scripts for steel thread management, project configuration, and LLM integration. This directory contains the main CLI entry points and utilities for the Intent system.
+
+## Files
+
+- `intent` -- Main entry point; routes commands to subcommands and plugins
+- `intent_helpers` -- Shared utility functions for version management and YAML-to-JSON conversion
+- `intent_config` -- Configuration library; JSON parsing, project root detection, config loading
+- `intent_bootstrap` -- Initial Intent setup for first-time users
+- `intent_init` -- Create new Intent projects with directory structure and configuration
+- `intent_doctor` -- Diagnose and fix configuration issues
+- `intent_info` -- Display Intent installation and project status
+- `intent_help` -- Display help for Intent commands
+- `intent_st` -- Manage steel threads (create, list, edit, show)
+- `intent_backlog` -- Wrapper for Backlog.md task management integration
+- `intent_bl` -- Shorthand alias for backlog
+- `intent_task` -- Manage Backlog tasks linked to steel threads
+- `intent_status` -- Sync steel thread status with Backlog task completion
+- `intent_migrate` -- Migrate embedded tasks from steel threads to Backlog.md
+- `intent_upgrade` -- Upgrade STP projects to Intent v2.3.3
+- `intent_llm` -- Manage LLM prompts and context files
+- `intent_fileindex` -- Create and manage file indexes with checkbox states
+- `intent_treeindex` -- Generate .treeindex directory summaries using Claude
+- `intent_organise` -- Organize steel threads into status directories
+- `intent_main` -- Backward compatibility wrapper (stp command alias)
+- `intent_minimal` -- Minimal wrapper for Phase 1 testing

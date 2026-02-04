@@ -1,0 +1,11 @@
+<!-- treeindex v1 fingerprint:fcdce8d0 generated:2026-02-04T11:45:35Z -->
+
+# usr/
+
+User-facing documentation and deployment guides for Intent v2.1.0. Contains comprehensive task-oriented and reference materials for system installation, configuration, and usage.
+
+## Files
+
+- `user_guide.md` -- Task-oriented guide for using Intent, working with steel threads, backlog integration, and LLM collaboration
+- `reference_guide.md` -- Complete reference for Intent commands, templates, directory structure, configuration, and best practices
+- `deployment_guide.md` -- Installation and deployment instructions for various environments, configuration steps, and maintenance procedures

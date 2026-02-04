@@ -1,0 +1,10 @@
+<!-- treeindex v1 fingerprint:42ffd1d1 generated:2026-02-04T11:48:54Z -->
+
+# llm/
+
+This directory contains LLM-specific guidelines and preambles for the Intent project. These documents provide essential context for AI assistants working on the codebase and should be shared at the beginning of LLM sessions.
+
+## Files
+
+- `_CLAUDE.md` -- Project guidelines template covering Intent methodology, steel threads, commands, and agent system
+- `_llm_preamble.md` -- Essential LLM context document with navigation guide, documentation structure, and steel thread process overview

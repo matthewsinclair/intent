@@ -1,0 +1,20 @@
+<!-- treeindex v1 fingerprint:b5e0325e generated:2026-02-04T11:45:53Z -->
+
+# intent/
+
+Project artifacts and configuration for Intent v2.3.3, including steel threads, technical documentation, LLM guidelines, and agent specifications. Organizes work as self-contained steel threads with supporting docs and manages Claude Code subagent integrations.
+
+## Dirs
+
+- `docs/` -- Technical documentation and guides for creating custom agents
+- `eng/` -- Engineering work artifacts and experimental implementations
+- `llm/` -- LLM collaboration guidelines and AGENTS.md specification
+- `plugins/` -- Intent plugin system with Claude Code subagent implementations
+- `st/` -- Steel threads organized by ID with metadata and implementation tracking
+- `usr/` -- User-facing documentation for installation, configuration, and usage
+
+## Files
+
+- `.treeindex/` -- Generated .treeindex cache for fast codebase navigation
+- `restart.md` -- Session restart context with project status and next actions
+- `wip.md` -- Work-in-progress tracking for active steel threads

@@ -1,0 +1,11 @@
+<!-- treeindex v1 fingerprint:1bb76162 generated:2026-02-04T11:45:41Z -->
+
+# llm/
+
+Configuration and guidelines for LLM collaboration within Intent projects. Contains deprecated legacy documentation alongside the current AGENTS.md specification for agent configuration and development workflows.
+
+## Files
+
+- `AGENTS.md` -- Universal agent configuration and development environment setup for Intent v2.3.0+
+- `usage-rules.md` -- Intent workflow patterns and command reference for LLMs (Intent v2.1.0)
+- `llm_preamble.md` -- Deprecated legacy LLM context document (replaced by AGENTS.md)

@@ -1,0 +1,9 @@
+<!-- treeindex v1 fingerprint:f900cc25 generated:2026-02-04T11:45:38Z -->
+
+# st/
+
+Index of steel threads organized by ID. Steel threads are self-contained units of work implementing specific functionality, each with metadata, design, and implementation tracking.
+
+## Files
+
+- `steel_threads.md` -- Master index documenting all steel threads, their status, creation/completion dates, and usage guidelines

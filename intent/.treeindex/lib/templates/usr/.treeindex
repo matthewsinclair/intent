@@ -1,0 +1,11 @@
+<!-- treeindex v1 fingerprint:a6608bb6 generated:2026-02-04T11:48:46Z -->
+
+# usr/
+
+This directory contains user-facing documentation templates for the STP/Intent system, providing guides for deployment, reference, and general usage. These documents serve as templates and examples for creating project-specific documentation.
+
+## Files
+
+- `_deployment_guide.md` -- Instructions for installing and configuring STP in various environments, including global/project-specific installation and environment variables
+- `_reference_guide.md` -- Comprehensive reference documentation covering commands, templates, directory structure, and best practices
+- `_user_guide.md` -- Task-oriented user guide template with sections for installation, getting started, common tasks, and troubleshooting

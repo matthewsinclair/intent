@@ -1,0 +1,13 @@
+<!-- treeindex v1 fingerprint:38989ca6 generated:2026-02-04T11:48:58Z -->
+
+# templates/
+
+This directory contains file templates and scaffolding for Intent projects, providing standardized starting points for steel threads, documentation, and project artifacts. Templates accelerate project initialization and ensure consistency across Intent-managed codebases.
+
+## Files
+
+- `_steel_thread_template.md` -- Standard steel thread structure with sections for metadata, context, design, implementation, and task tracking
+- `_project_readme_template.md` -- Template for project README files covering overview, setup, architecture, and usage
+- `_documentation_template.md` -- Generic documentation template with sections for overview, concepts, examples, and troubleshooting
+- `_agents_template.md` -- AGENTS.md template for declaring project agents, capabilities, and delegation guidelines
+- `_claude_guidelines_template.md` -- Template for project-specific Claude guidelines covering codebase context, conventions, and best practices

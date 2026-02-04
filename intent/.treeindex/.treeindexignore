@@ -1,0 +1,27 @@
+# .treeindexignore - patterns to exclude from treeindex generation
+# Lines starting with # are comments
+# Lines ending with / match directory names
+# Other lines match file names (glob patterns)
+
+# Build artifacts
+_build/
+deps/
+node_modules/
+cover/
+
+# IDE and tool directories
+.git/
+.elixir_ls/
+.intent/
+.treeindex/
+
+# Generated assets
+priv/static/assets/
+
+# System files
+.DS_Store
+
+# Compiled files
+*.beam
+*.ez
+erl_crash.dump

@@ -1,0 +1,13 @@
+<!-- treeindex v1 fingerprint:523f0e31 generated:2026-02-04T11:45:27Z -->
+
+# ST0019/
+
+Steel thread for designing and implementing `.treeindex` directory summaries. Includes design documentation for a CLI command and Claude subagent that generate concise markdown files enabling fast codebase navigation without repeated exploration overhead.
+
+## Files
+
+- `info.md` -- Steel thread metadata and objective; problem statement and solution overview
+- `design.md` -- Technical design; file format spec, fingerprint mechanism, generation algorithm, Claude invocation pattern
+- `impl.md` -- Implementation notes; headless Claude invocation details, platform compatibility, file reading strategy
+- `done.md` -- Completion log; design phase finished 2026-02-04, tasks and deliverables documented
+- `tasks.md` -- Task breakdown across three work packages (CLI, subagent, integration); dependencies and validation steps

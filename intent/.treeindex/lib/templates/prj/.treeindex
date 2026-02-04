@@ -1,0 +1,18 @@
+<!-- treeindex v1 fingerprint:7c993520 generated:2026-02-04T11:48:50Z -->
+
+# prj/
+
+Central project coordination directory for Intent v2.2.0, containing work tracking, documentation, and project configuration. This is the main hub for steel thread management, technical docs, and LLM context.
+
+## Dirs
+
+- `intent/` -- Steel threads, technical documentation, and project artifacts organized by methodology
+- `backlog/` -- Task management and prioritized work items (if in use)
+- `tests/` -- Test suites for project validation and quality assurance
+
+## Files
+
+- `_wip.md` -- Work-in-progress tracking document capturing current focus, active steel threads, and upcoming work
+- `CLAUDE.md` -- Project guidelines, Intent command reference, and agent delegation instructions
+- `.gitignore` -- Git configuration for excluding temporary and build artifacts
+- `README.md` -- Project overview and setup instructions

@@ -639,6 +639,19 @@ needs_v2_3_3_upgrade() {
   esac
 }
 
+needs_v2_3_4_upgrade() {
+  local version=$1
+
+  case "$version" in
+    "2.0.0"|"2.1.0"|"2.2.0"|"2.2.1"|"2.3.0"|"2.3.1"|"2.3.2"|"2.3.3")
+      return 0  # Needs 2.3.4 upgrade
+      ;;
+    *)
+      return 1  # Already upgraded or different version
+      ;;
+  esac
+}
+
 # Migrate v2.2.0 to v2.2.1
 migrate_v2_2_to_v2_2_1() {
   local project_root=$1
@@ -885,6 +898,40 @@ migrate_v2_3_2_to_v2_3_3() {
   echo "  IMPORTANT CHANGES IN v2.3.3:"
   echo "    - Elixir subagent now includes comprehensive style guide"
   echo "    - Style guide complements antipattern detection from v2.3.2"
+  echo "    - Run 'intent claude subagents sync' to update installed agents"
+}
+
+# Migrate v2.3.3 to v2.3.4 - Treeindex CLI, bug fixes, Elixir subagent expansion
+migrate_v2_3_3_to_v2_3_4() {
+  local project_root=$1
+
+  local target_version="$(get_intent_version 2>/dev/null || echo "2.3.4")"
+  echo "Upgrading to Intent v$target_version with treeindex and bug fixes..."
+
+  # Update config version
+  echo "  Updating config version..."
+  update_config_version "$project_root" "$target_version"
+
+  echo "  New features:"
+  echo "    - 'intent treeindex DIR' command for LLM-optimized directory summaries"
+  echo "    - .treeindexignore configuration for excluding files/dirs from indexing"
+  echo "    - Centralized shadow directory at intent/.treeindex/"
+  echo "  Bug fixes:"
+  echo "    - Fixed 'intent init' displaying hardcoded version instead of actual version"
+  echo "    - Fixed --sync flag bug in steel thread management"
+  echo "  Enhancements:"
+  echo "    - Expanded Elixir subagent with architectural principles and Ash/Phoenix patterns"
+
+  # Check if elixir subagent is installed
+  if [ -f "$project_root/.claude/agents/elixir.md" ]; then
+    echo "  Elixir subagent detected. Run 'intent claude subagents sync' to update."
+  fi
+
+  echo "  Migration to v$target_version complete!"
+  echo ""
+  echo "  IMPORTANT CHANGES IN v2.3.4:"
+  echo "    - New 'intent treeindex' command for codebase navigation"
+  echo "    - Bug fixes for intent init and --sync"
   echo "    - Run 'intent claude subagents sync' to update installed agents"
 }
 

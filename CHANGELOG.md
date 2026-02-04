@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.4] - 2026-02-04
+
+### Added
+
+- `intent treeindex DIR` command for LLM-optimized directory summaries (ST0019 WP01)
+  - Bottom-up directory indexing with Claude Haiku 4.5 for summarization
+  - Centralized shadow directory at `intent/.treeindex/` keeps source tree clean
+  - `.treeindexignore` configuration for excluding files/dirs from indexing
+  - Fingerprint-based staleness detection (filenames + sizes, no mtime dependency)
+  - `--check` mode for CI/reporting without regeneration
+  - `--dry-run` mode to preview without writing
+  - `--force` to regenerate regardless of staleness
+  - `--depth N` to control directory traversal depth (default 2)
+  - Platform-compatible (macOS/Linux stat differences handled)
+  - Bash 3.2 compatible (works with macOS default `/bin/bash`)
+- 38 bats tests for treeindex command in `tests/unit/treeindex_commands.bats`
+- Release notes documentation in `docs/releases/2.3.4/RELEASE_NOTES.md`
+
+### Fixed
+
+- `intent init` now displays correct version from VERSION file instead of hardcoded 2.0.0
+- `--sync` flag bug in steel thread management
+
+### Changed
+
+- Expanded Elixir subagent with architectural principles, Ash/Phoenix patterns, and testing guidance
+- Replaced 'eg' abbreviation throughout documentation (was 'e.g.,')
+
+### Migration
+
+- Added `migrate_v2_3_3_to_v2_3_4()` function in `bin/intent_helpers`
+- Added `needs_v2_3_4_upgrade()` function in `bin/intent_helpers`
+- Updated `bin/intent_upgrade` to handle v2.3.3 -> v2.3.4 upgrade path
+- All version upgrade paths updated to include v2.3.4 migration
+
+### Technical Improvements
+
+- Treeindex uses headless `claude -p` with `--tools ""` for text-in/text-out summarization
+- Shadow directory design avoids polluting source tree with index files
+- Fingerprint design is git-clone-stable (no mtime dependency)
+- Full test suite now at 250 tests
+
 ## [2.3.3] - 2025-10-02
 
 ### Added
@@ -393,6 +435,7 @@ See [Release Notes](./docs/releases/2.0.0/RELEASE_NOTES.md) for complete details
 - `stp upgrade` - Upgrade STP files to latest format
 - `stp help` - Comprehensive help system
 
+[2.3.4]: https://github.com/matthewsinclair/intent/compare/v2.3.3...v2.3.4
 [2.3.3]: https://github.com/matthewsinclair/intent/compare/v2.3.2...v2.3.3
 [2.3.2]: https://github.com/matthewsinclair/intent/compare/v2.3.1...v2.3.2
 [2.3.1]: https://github.com/matthewsinclair/intent/compare/v2.3.0...v2.3.1

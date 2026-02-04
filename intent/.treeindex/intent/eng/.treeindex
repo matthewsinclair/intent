@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:e3c49c15 generated:2026-02-04T11:45:45Z -->
+
+# eng/
+
+Engineering work artifacts and experimental implementations, containing active development branches, prototype code, and work-in-progress projects that support the Intent system development.
+
+## Files
+
+- `treeindex_commands.md` -- Design and implementation specification for treeindex CLI commands and indexing system
+- `treeindex_design.md` -- Architecture and patterns for treeindex directory summarization and caching
+- `agents_design.md` -- Design specification for Intent's agent system and subagent integration
+- `agents_impl.md` -- Implementation details and code patterns for agent system components
