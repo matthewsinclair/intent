@@ -1,0 +1,23 @@
+<!-- treeindex v1 fingerprint:c094c55d generated:2026-02-05T11:37:29Z -->
+
+I need to examine the 2.3.4/ directory structure to generate an accurate `.treeindex` file.
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find /Users/matts/Devel/prj/Intent/2.3.4 -type f -maxdepth 2 | head -30</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Glob">
+<parameter name="command">/Users/matts/Devel/prj/Intent/2.3.4</parameter>
+</invoke>
+</function_calls>
+
+# 2.3.4/
+
+Release artifacts and documentation for Intent v2.3.4, including release notes, migration guides, and comprehensive feature documentation for the treeindex command and CLAUDE.md convention updates.
+
+## Files
+
+- `RELEASE_NOTES.md` -- Overview of v2.3.4 features, including treeindex CLI, CLAUDE.md convention, bug fixes, and upgrade instructions
+- `TREEINDEX_GUIDE.md` -- Complete guide to `.treeindex` file format, naming conventions, and best practices for LLM-friendly directory summaries
+- `MIGRATION.md` -- Step-by-step migration guide for upgrading from v2.3.3 to v2.3.4, including config updates and subagent management

@@ -1,0 +1,9 @@
+<!-- treeindex v1 fingerprint:5f1b39f6 generated:2026-02-05T11:37:33Z -->
+
+# lib/
+
+Contains test helper functions and utilities for the Intent test suite. Provides project path setup, temporary directory management, and convenience functions for running intent commands and creating test projects.
+
+## Files
+
+- `test_helper.bash` -- Core test setup with path initialization, temp directory management, and helper functions for creating test projects and running intent commands

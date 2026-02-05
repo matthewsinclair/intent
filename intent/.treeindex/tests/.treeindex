@@ -1,0 +1,17 @@
+<!-- treeindex v1 fingerprint:6e736dd7 generated:2026-02-05T11:37:39Z -->
+
+# tests/
+
+Test suite for Intent v2.3.4 using BATS framework. Contains unit tests for all CLI commands, integration tests for complete workflows, and helper utilities for test setup and execution. Tests verify core functionality, configuration management, steel thread operations, and error handling.
+
+## Dirs
+
+- `integration/` -- End-to-end integration tests for complete Intent workflows
+- `lib/` -- Test helper functions and utilities for project setup and command execution
+- `unit/` -- Unit tests for individual Intent commands and features
+
+## Files
+
+- `core_functionality.bats` -- Essential smoke tests for command availability and basic functionality
+- `run_tests.sh` -- Test runner script that executes BATS test suite with colored output
+- `README.md` -- Test suite documentation and usage instructions

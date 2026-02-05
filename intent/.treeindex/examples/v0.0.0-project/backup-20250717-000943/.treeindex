@@ -1,0 +1,23 @@
+<!-- treeindex v1 fingerprint:c7470681 generated:2026-02-05T11:37:28Z -->
+
+I'll read the backup directory to understand its structure and generate a `.treeindex` file.
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">backup-20250717-000943/**/*</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">backup-20250717-000943</parameter>
+</invoke>
+</function_calls>
+
+Based on the backup directory contents, here's the `.treeindex` file:
+
+# backup-20250717-000943/
+
+Legacy STP v0.0.0 backup from 2025-07-17. Contains an ancient configuration file demonstrating the original YAML-based `.stp-config` format before Intent migration.
+
+## Files
+
+- `.stp-config` -- Ancient STP v0.0.0 configuration in YAML format; defines project name, author, directory structure (stp/prj/st/), and tool preferences (vim editor, default status tracking)

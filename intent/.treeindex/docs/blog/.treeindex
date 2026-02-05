@@ -1,0 +1,17 @@
+<!-- treeindex v1 fingerprint:e3453caf generated:2026-02-05T11:38:13Z -->
+
+# blog/
+
+A series of 8 blog posts exploring Intent methodology, from foundational philosophy through practical implementation and AI integration. Covers intention capture, steel threads, LLM collaboration, and agent systems for enhanced development workflows.
+
+## Files
+
+- `README.md` -- Index and overview of the blog series with links to all 8 posts
+- `0000-motivation-for-intent.md` -- Why intention matters in modern software development and LLM collaboration
+- `0001-introduction-to-intent.md` -- Practical introduction to Intent as a solution for preserving developer intention
+- `0002-the-steel-thread-methodology.md` -- Deep dive into steel threads as self-contained units of intentional work
+- `0003-intent-capture-in-software-development.md` -- Techniques for capturing, documenting, and preserving intent throughout development
+- `0004-llm-collaboration-with-intent.md` -- How Intent's structure makes AI assistance more effective and focused
+- `0005-getting-started-with-intent.md` -- Installation guide and practical workflow for implementing Intent in projects
+- `0006-next-steps-and-future-work.md` -- Roadmap, lessons learned, and vision for Intent's evolution
+- `0007-intent-agents-supercharge-claude.md` -- Agent system integration for persistent AI understanding of Intent methodology

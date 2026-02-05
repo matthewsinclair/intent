@@ -1,0 +1,22 @@
+<!-- treeindex v1 fingerprint:e6833084 generated:2026-02-05T11:37:29Z -->
+
+# unit/
+
+Test suite using BATS framework. Contains unit tests for Intent commands, project configuration, migration, and treeindex functionality. Tests verify core CLI behavior, steel thread management, backlog integration, and configuration handling.
+
+## Files
+
+- `agent_commands.bats` -- Tests for intent claude subagents commands (install, list)
+- `basic.bats` -- Infrastructure tests verifying test helper and executable setup
+- `bl_commands.bats` -- Backlog command tests (list, create, board)
+- `bootstrap.bats` -- Global config and bootstrap command tests
+- `config.bats` -- PROJECT_ROOT detection and config.json loading tests
+- `fileindex_commands.bats` -- File index command tests with checkbox states
+- `global_commands.bats` -- Global commands that work without project context
+- `help_commands.bats` -- Help system tests for command documentation
+- `init_commands.bats` -- Project initialization tests
+- `migration.bats` -- Backup and legacy structure migration tests
+- `project_commands.bats` -- Steel thread, backlog, and task command tests
+- `st_commands.bats` -- Steel thread CRUD and listing tests
+- `task_commands.bats` -- Task creation and validation tests
+- `treeindex_commands.bats` -- Treeindex generation and shadow directory tests

@@ -1,0 +1,41 @@
+<!-- treeindex v1 fingerprint:edf28fd7 generated:2026-02-05T11:37:43Z -->
+
+I'll explore the v0.0.0-project directory to generate its `.treeindex` file.
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">v0.0.0-project/**/*</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">v0.0.0-project</parameter>
+</invoke>
+</function_calls>
+
+Now I'll check the key subdirectories:
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">v0.0.0-project/stp/**/*</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">v0.0.0-project/.stp/**/*</parameter>
+</invoke>
+</function_calls>
+
+Based on the v0.0.0-project directory structure:
+
+# v0.0.0-project/
+
+Original STP v0.0.0 project structure from before Intent migration. Demonstrates the legacy project layout with YAML configuration and the old `stp/` artifact directory organization.
+
+## Dirs
+
+- `.stp/` -- Configuration and metadata directory for STP v0.0.0
+- `stp/` -- Legacy STP artifacts directory (prj, eng, ops structure)
+
+## Files
+
+- `.gitignore` -- Standard ignore rules for Intent/STP projects
+- `.stp-config` -- STP v0.0.0 YAML configuration file with project metadata and tool preferences

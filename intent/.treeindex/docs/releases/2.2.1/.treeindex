@@ -1,0 +1,9 @@
+<!-- treeindex v1 fingerprint:47839a1e generated:2026-02-05T11:37:40Z -->
+
+# 2.2.1/
+
+Release notes and documentation for Intent v2.2.1, a maintenance release focusing on centralized version management, comprehensive tool dependency checking, and elimination of silent failures when required tools are missing.
+
+## Files
+
+- `RELEASE_NOTES.md` -- Overview of v2.2.1 improvements including version management, dependency checking, and error handling enhancements

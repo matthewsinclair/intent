@@ -1,0 +1,44 @@
+<!-- treeindex v1 fingerprint:54da458d generated:2026-02-05T11:37:57Z -->
+
+I'll generate a `.treeindex` file for the `2.0.0/` directory.
+<tool_calls>
+<invoke name="Read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/2.0.0</parameter>
+</invoke>
+</function_calls>
+<thinking>
+The user is asking me to generate a .treeindex file for the 2.0.0/ directory. Let me first explore what's in that directory to understand its structure and contents.
+</thinking>
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">/Users/matts/Devel/prj/Intent/2.0.0/**</parameter>
+</invoke>
+</function_calls>
+
+<thinking>
+Let me get a better view of the directory structure in 2.0.0/.
+</thinking>
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find /Users/matts/Devel/prj/Intent/2.0.0 -type f -o -type d | head -50</parameter>
+</invoke>
+</function_calls>
+
+<thinking>
+Let me check what files are actually in the 2.0.0/ directory.
+</thinking>
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">ls -la /Users/matts/Devel/prj/Intent/2.0.0/</parameter>
+</invoke>
+</function_calls>
+
+Based on the RELEASE_NOTES.md file you provided, here's the `.treeindex` for the `2.0.0/` directory:
+
+# 2.0.0/
+
+Release documentation for Intent v2.0.0, marking the major rebrand from STP to Intent and introduction of Claude Code sub-agent integration. Contains release notes outlining major changes, simplified directory structure, new commands, and migration guidance.
+
+## Files
+
+- `RELEASE_NOTES.md` -- Comprehensive release notes documenting the v2.0.0 rebrand, sub-agent integration, directory structure changes, and new commands

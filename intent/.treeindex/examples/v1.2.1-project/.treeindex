@@ -1,0 +1,43 @@
+<!-- treeindex v1 fingerprint:9e0c5ec1 generated:2026-02-05T11:37:34Z -->
+
+I'll generate a `.treeindex` file for the v1.2.1-project directory.
+<function_calls>
+<invoke name="glob">
+<parameter name="pattern">v1.2.1-project/**/*</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="read">
+<parameter name="path">v1.2.1-project</parameter>
+</invoke>
+</function_calls>
+
+Let me check the structure more carefully:
+<function_calls>
+<invoke name="bash">
+<parameter name="command">find v1.2.1-project -type f -o -type d | head -30</parameter>
+</invoke>
+</function_calls>
+
+Now I'll generate the `.treeindex` file:
+<function_calls>
+<invoke name="write">
+<parameter name="path">intent/.treeindex/v1.2.1-project/.treeindex</parameter>
+<parameter name="content"># v1.2.1-project/
+
+Example Intent v2.0.0 project demonstrating the migration from STP legacy structure. Contains project artifacts, steel threads, documentation, and configuration files showing the new Intent directory organization.
+
+## Dirs
+
+- `intent/` -- Project artifacts including steel threads, documentation, and LLM guidelines
+- `.intent/` -- Intent configuration and metadata
+
+## Files
+
+- `.gitignore` -- Version control exclusions for Intent/STP files, OS artifacts, and editor config
+- `CLAUDE.md` -- Project guidelines covering structure, steel threads, commands, and migration notes
+</parameter>
+</invoke>
+</function_calls>
+
+Done! I've generated a `.treeindex` file for v1.2.1-project at `intent/.treeindex/v1.2.1-project/.treeindex`. It documents the project as an example Intent v2.0.0 migration project with its directory structure and key files.
