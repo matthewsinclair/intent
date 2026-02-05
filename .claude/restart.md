@@ -2,32 +2,40 @@
 
 ## WIP
 
-**ST0019: Treeindex** -- build `intent treeindex` CLI command and companion Claude Code subagent.
-
-Design is complete. Implementation has not started.
+No active steel threads. Intent v2.3.4 is fully released with documentation current.
 
 ## TODO
 
-1. Read `intent/st/ST0019/info.md` for overview
-2. Read `intent/st/ST0019/design.md` for .treeindex format and algorithm
-3. Read `intent/st/ST0019/WP/01/info.md` for WP01 spec (CLI command -- start here)
-4. Implement WP01: create `bin/intent_treeindex` (use `bin/intent_fileindex` as a reference for bash patterns)
-5. Add `treeindex` to `GLOBAL_COMMANDS` in `bin/intent` line 41
-6. Implement WP02: create subagent at `intent/plugins/claude/subagents/treeindex/` (agent.md + metadata.json)
-7. Implement WP03: register in global-agents.json, update CLAUDE.md
-8. Run `tests/run_tests.sh` before committing
+Possible next actions (check with user for priority):
+
+1. **Parked steel threads** -- review ST0010 and ST0015 to decide if still relevant
+   - `intent/st/NOT-STARTED/ST0010/info.md`
+   - `intent/st/NOT-STARTED/ST0015/info.md`
+
+2. **Fix subagent sync false-positive** -- `intent claude subagents sync` reports "modified locally" when the source has changed but the installed copy is just stale (not user-modified). The checksum comparison logic is in `intent/plugins/claude/bin/intent_claude_subagents` around lines 485-507. Should distinguish "source updated" from "user modified locally"
+
+3. **New feature work** -- create a new steel thread with `intent st new "Title"`
 
 ## Key Files
 
-| File                                    | Purpose                          |
-|-----------------------------------------|----------------------------------|
-| `intent/st/ST0019/info.md`             | Steel thread overview            |
-| `intent/st/ST0019/design.md`           | Technical design                 |
-| `intent/st/ST0019/impl.md`             | Implementation notes             |
-| `intent/st/ST0019/tasks.md`            | Task checklist                   |
-| `intent/st/ST0019/WP/01/info.md`       | WP01: CLI command spec           |
-| `intent/st/ST0019/WP/02/info.md`       | WP02: subagent spec              |
-| `intent/st/ST0019/WP/03/info.md`       | WP03: integration spec           |
-| `.claude/plans/nested-tinkering-reddy.md` | Full implementation plan      |
-| `bin/intent_fileindex`                  | Reference for bash CLI patterns  |
-| `bin/intent` (line 41)                  | GLOBAL_COMMANDS registration     |
+| File                                              | Purpose                                |
+|---------------------------------------------------|----------------------------------------|
+| `CHANGELOG.md`                                    | Feature history (v1.0.0 through v2.3.4)|
+| `intent/wip.md`                                   | Work in progress tracker               |
+| `intent/restart.md`                               | Detailed session restart context       |
+| `intent/usr/user_guide.md`                        | User-facing guide (v2.3.4)            |
+| `intent/usr/reference_guide.md`                   | Command reference (v2.3.4)            |
+| `bin/intent`                                      | Main CLI (GLOBAL_COMMANDS on line 41)  |
+| `bin/intent_treeindex`                            | Treeindex CLI command                  |
+| `intent/plugins/claude/bin/intent_claude_subagents`| Claude subagent management            |
+| `intent/plugins/agents/bin/intent_agents`         | AGENTS.md management                   |
+| `tests/run_tests.sh`                              | Test runner (265 tests)                |
+
+## Project Conventions
+
+- Bash CLI tool, tests use BATS framework
+- Two git remotes: `local` (Dropbox), `upstream` (GitHub)
+- Tag workflow: `git tag -f v2.3.4 HEAD` then force-push to both remotes
+- NO Claude attribution in commit messages -- ever
+- Run `tests/run_tests.sh` before committing
+- Check `intent/.treeindex/<dir>/.treeindex` before exploring unfamiliar directories

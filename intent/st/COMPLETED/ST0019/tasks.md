@@ -21,8 +21,8 @@
 - [x] Implement `--dry-run` mode
 - [x] Implement progress reporting
 - [x] Implement `.treeindexignore` (auto-created, gitignore-style exclusions)
-- [x] Create `tests/unit/treeindex_commands.bats` (38 tests)
-- [x] Run full test suite -- 250/250 passing
+- [x] Create `tests/unit/treeindex_commands.bats` (53 tests)
+- [x] Run full test suite -- 265/265 passing
 - [x] Manual testing on `intent/`, `bin/`, `lib/` directories
 
 #### WP01 As-Built Notes
@@ -45,7 +45,7 @@ Skipped: The CLI command (`intent treeindex <dir>`) and CLAUDE.md convention (ch
 - [x] Add Treeindex section to CLAUDE.md explaining usage and location
 - [x] Update version reference to v2.3.4
 - [x] Update CHANGELOG.md and RELEASE_NOTES with CLAUDE.md convention
-- [x] Run full test suite -- 250/250 passing, no regressions
+- [x] Run full test suite -- 265/265 passing, no regressions
 - [x] Run `intent doctor` -- 0 errors, 0 warnings
 - [x] Generate initial `.treeindex` for Intent project as validation
 - [x] Force-push v2.3.4 tag to both remotes (local + upstream)

@@ -12,8 +12,8 @@
 - [x] Implemented `--check`, `--dry-run`, `--force` modes
 - [x] Implemented progress reporting to stderr
 - [x] Implemented `.treeindexignore` (gitignore-style, auto-created with defaults)
-- [x] Created `tests/unit/treeindex_commands.bats` (38 tests, all passing)
-- [x] Full test suite 250/250 passing (no regressions)
+- [x] Created `tests/unit/treeindex_commands.bats` (53 tests, all passing)
+- [x] Full test suite 265/265 passing (no regressions)
 - [x] Generated initial `.treeindex` for `intent/`, `bin/`, `lib/` as validation
 - [x] Fixed shadow path leakage bug (absolute paths in shadow tree)
 - [x] Fixed self-referencing shadow directory bug (`.treeindex/` indexing itself)
@@ -48,9 +48,25 @@ WP02 (dedicated treeindex subagent) was skipped. The CLI command (`intent treein
 - [x] Updated CHANGELOG.md with CLAUDE.md convention entry
 - [x] Updated RELEASE_NOTES.md with CLAUDE.md Convention section
 - [x] Updated ST0019 info.md, tasks.md, design.md, impl.md to as-built status
-- [x] Full test suite 250/250 passing (no regressions)
+- [x] Full test suite 265/265 passing (no regressions)
 - [x] `intent doctor` clean (0 errors, 0 warnings)
 - [x] Force-pushed v2.3.4 tag to local (Dropbox) and upstream (GitHub) remotes
+
+## Completed: Documentation Refresh (2026-02-05)
+
+- [x] Updated all 7 documentation files from v2.1.0 to v2.3.4
+  - `.github/workflows/README.md`: Full rewrite from STP to Intent
+  - `tests/README.md`: Updated version, added all 14 test files
+  - `README.md`: Fixed project structure, added treeindex/AGENTS.md/subagent commands
+  - `intent/usr/user_guide.md`: Added treeindex, AGENTS.md, Claude subagent sections
+  - `intent/usr/reference_guide.md`: Added treeindex, fileindex, agents, subagent references
+  - `intent/usr/deployment_guide.md`: Added plugin/subagent deployment, treeindex integration
+  - `examples/hello-world/README.md`: Updated to v2.3.4 with current structure
+- [x] Updated CHANGELOG.md with documentation refresh bullet
+- [x] Created GitHub release v2.3.4 (kept v2.0.0 as historical)
+- [x] Full test suite 265/265 passing (no regressions)
+- [x] Regenerated all .treeindex files
+- [x] Pushed to both remotes, force-pushed v2.3.4 tag
 
 ## Also Completed in Design Session (not ST0019)
 

@@ -101,5 +101,5 @@ For summarization, read enough of each file to understand its role but not so mu
 | File                                 | Lines | Description           |
 |--------------------------------------|-------|-----------------------|
 | `bin/intent_treeindex`               | 612   | Main CLI command      |
-| `tests/unit/treeindex_commands.bats` | ~580  | 38 bats tests         |
+| `tests/unit/treeindex_commands.bats` | ~580  | 53 bats tests         |
 | `intent/.treeindex/.treeindexignore` | 27    | Default ignore patterns|
