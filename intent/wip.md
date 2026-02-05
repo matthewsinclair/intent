@@ -1,42 +1,40 @@
 ---
-verblock: "04 Feb 2026:v0.2: matts - Updated for ST0019 treeindex"
-intent_version: 2.3.3
+verblock: "05 Feb 2026:v0.3: matts - Documentation refresh complete, no active work"
+intent_version: 2.3.4
 ---
 # Work In Progress
 
-## Active Steel Thread
+## Current State
 
-**ST0019: Treeindex -- Directory Summaries for Claude Navigation**
+No active steel threads. All work is complete and documentation is current at v2.3.4.
 
-Status: WIP -- design complete, implementation pending.
+### Recently Completed
 
-### What It Is
+**ST0019: Treeindex** -- Completed 2026-02-04
+- `intent treeindex` CLI command (612 lines, bash 3.2 compatible)
+- Shadow directory at `intent/.treeindex/`, fingerprint-based staleness
+- 53 bats tests, 265 total tests passing
 
-An `intent treeindex` CLI command and companion Claude Code subagent that generates `.treeindex` files -- concise directory summaries that let Claude quickly orient itself in a codebase without reading every file.
+**Documentation Refresh** -- Completed 2026-02-05
+- Updated all 7 documentation files from v2.1.0 to v2.3.4
+- Created GitHub release v2.3.4
+- All .treeindex files regenerated
 
-### What's Done
+### Not Started
 
-- Design phase complete (format spec, fingerprint mechanism, generation algorithm)
-- Steel thread docs fully populated (info.md, design.md, impl.md, tasks.md, done.md)
-- Work packages created (WP01, WP02, WP03)
+- **ST0010**: (parked, not started)
+- **ST0015**: (parked, not started)
 
-### What's Next
+## What's Next
 
-1. **WP01**: Build `bin/intent_treeindex` CLI command (~250-350 lines bash)
-2. **WP02**: Create treeindex Claude Code subagent (agent.md, metadata.json)
-3. **WP03**: Integration (global-agents.json, CLAUDE.md, help, testing)
-
-Implementation order is sequential: WP01 -> WP02 -> WP03.
+Possible directions:
+1. Pick up ST0010 or ST0015 if still relevant
+2. New feature work (no steel thread yet)
+3. Address subagent sync false-positive for "modified locally" detection (see session notes from 2026-02-05)
 
 ## Key References
 
-- Steel thread: `intent/st/ST0019/info.md`
-- Design: `intent/st/ST0019/design.md`
-- Implementation notes: `intent/st/ST0019/impl.md`
-- Tasks: `intent/st/ST0019/tasks.md`
-- Work packages: `intent/st/ST0019/WP/{01,02,03}/info.md`
-- Plan file: `.claude/plans/nested-tinkering-reddy.md`
-
-## Recent Commits
-
-- `06e11d3` -- Expanded Elixir subagent with architectural principles, Ash/Phoenix patterns, testing guidance + intent_st marker injection bug fix
+- Steel threads: `intent/st/COMPLETED/` (17 completed), `intent/st/NOT-STARTED/` (2 parked)
+- Changelog: `CHANGELOG.md`
+- Documentation: `intent/usr/user_guide.md`, `intent/usr/reference_guide.md`
+- Test suite: `tests/run_tests.sh` (265 tests)

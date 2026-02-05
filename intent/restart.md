@@ -2,29 +2,31 @@
 
 ## Project
 
-Intent v2.3.3 -- a CLI tool for managing steel threads and project documentation. Written in bash. Located at `/Users/matts/Devel/prj/Intent/`.
+Intent v2.3.4 -- a CLI tool for managing steel threads and project documentation. Written in bash, tests use BATS framework. Located at `/Users/matts/Devel/prj/Intent/`.
 
-## Current Work
+## Current State
 
-**ST0019: Treeindex** -- design complete, implementation pending.
+No active work. All steel threads complete or parked. Documentation is current at v2.3.4. GitHub release v2.3.4 is live.
 
-Read these files in order to get up to speed:
+## Parked Steel Threads
 
-1. `intent/st/ST0019/info.md` -- objective and solution overview
-2. `intent/st/ST0019/design.md` -- .treeindex format, fingerprint, algorithm
-3. `intent/st/ST0019/tasks.md` -- task breakdown and dependencies
-4. `intent/st/ST0019/WP/01/info.md` -- WP01: CLI command spec
-5. `intent/st/ST0019/WP/02/info.md` -- WP02: subagent spec
-6. `intent/st/ST0019/WP/03/info.md` -- WP03: integration spec
+- **ST0010**: `intent/st/NOT-STARTED/ST0010/info.md`
+- **ST0015**: `intent/st/NOT-STARTED/ST0015/info.md`
 
-## Next Action
+## Possible Next Work
 
-Start WP01: create `bin/intent_treeindex`. Reference `bin/intent_fileindex` for patterns (argument parsing, project detection, error handling). The plan file at `.claude/plans/nested-tinkering-reddy.md` has the full implementation plan.
+1. Review and pick up ST0010 or ST0015
+2. Fix subagent sync false-positive: `intent claude subagents sync` incorrectly reports "modified locally" when the source has changed but the installed file hasn't (version mismatch, not user modification). Logic is in `intent/plugins/claude/bin/intent_claude_subagents` around lines 485-507
+3. New feature work
 
 ## Key Patterns
 
 - Commands live in `bin/intent_<name>` and are auto-routed by `bin/intent`
 - Global commands are listed in `GLOBAL_COMMANDS` on line 41 of `bin/intent`
-- Subagents live in `intent/plugins/claude/subagents/<name>/` with agent.md + metadata.json
-- Tests are in `tests/` and run with `tests/run_tests.sh` (bats framework)
+- Plugin commands: `intent agents` -> `intent/plugins/agents/bin/intent_agents`
+- Plugin commands: `intent claude subagents` -> `intent/plugins/claude/bin/intent_claude_subagents`
+- Subagent definitions: `intent/plugins/claude/subagents/<name>/`
+- Tests are in `tests/unit/` (14 .bats files, 265 tests) and run with `tests/run_tests.sh`
+- Two git remotes: `local` (Dropbox) and `upstream` (GitHub)
 - Always run tests before committing
+- NO Claude attribution in commit messages
