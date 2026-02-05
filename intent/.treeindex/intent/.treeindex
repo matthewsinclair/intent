@@ -1,20 +1,39 @@
-<!-- treeindex v1 fingerprint:b5e0325e generated:2026-02-04T11:45:53Z -->
+<!-- treeindex v1 fingerprint:fcd71487 generated:2026-02-05T12:24:35Z -->
+
+Let me check the structure of the `intent/` directory first:
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">intent/*</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">intent</parameter>
+</invoke>
+</function_calls>
+
+Now let me check for any files at the root of `intent/`:
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find intent -maxdepth 1 -type f</parameter>
+</invoke>
+</function_calls>
 
 # intent/
 
-Project artifacts and configuration for Intent v2.3.3, including steel threads, technical documentation, LLM guidelines, and agent specifications. Organizes work as self-contained steel threads with supporting docs and manages Claude Code subagent integrations.
+Project artifacts and configuration for Intent v2.3.4, including steel threads for tracking work units, documentation for users and engineers, LLM collaboration guidelines, and the treeindex shadow directory for cached directory summaries.
 
 ## Dirs
 
-- `docs/` -- Technical documentation and guides for creating custom agents
-- `eng/` -- Engineering work artifacts and experimental implementations
-- `llm/` -- LLM collaboration guidelines and AGENTS.md specification
-- `plugins/` -- Intent plugin system with Claude Code subagent implementations
-- `st/` -- Steel threads organized by ID with metadata and implementation tracking
-- `usr/` -- User-facing documentation for installation, configuration, and usage
+- `.treeindex/` -- Shadow directory containing cached `.treeindex` files for fast codebase navigation
+- `docs/` -- Documentation for creating custom Intent agents and architectural patterns
+- `eng/` -- Engineering work artifacts, design specifications, and implementation notes
+- `llm/` -- LLM collaboration configuration, agent definitions, and usage guidelines
+- `plugins/` -- Plugin system for extending Intent with specialized commands
+- `st/` -- Steel threads: self-contained units of work with metadata and implementation details
+- `usr/` -- User-facing documentation: guides, reference materials, and deployment instructions
 
 ## Files
 
-- `.treeindex/` -- Generated .treeindex cache for fast codebase navigation
-- `restart.md` -- Session restart context with project status and next actions
-- `wip.md` -- Work-in-progress tracking for active steel threads
+- `restart.md` -- Session context and parked work tracking for project continuity
+- `wip.md` -- Work-in-progress status summary and next directions
