@@ -1,10 +1,10 @@
 ---
-verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Updated for Intent v2.1.0"
-intent_version: 2.1.0
+verblock: "05 Feb 2026:v2.3.4: Matthew Sinclair - Updated for Intent v2.3.4"
+intent_version: 2.3.4
 ---
 # Reference Guide
 
-This reference guide provides comprehensive information about the Intent system (v2.1.0). Unlike the task-oriented User Guide, this reference guide serves as a complete reference for all aspects of the system.
+This reference guide provides comprehensive information about the Intent system (v2.3.4). Unlike the task-oriented User Guide, this reference guide serves as a complete reference for all aspects of the system.
 
 ## Table of Contents
 
@@ -22,7 +22,7 @@ This reference guide provides comprehensive information about the Intent system 
 
 #### `intent upgrade`
 
-Upgrades a project from an older version to Intent v2.1.0.
+Upgrades a project from an older version to Intent v2.3.4.
 
 **Usage:**
 
@@ -450,6 +450,197 @@ intent llm usage_rules > intent-usage-rules.md
 - It follows the pattern established by the Elixir Hex package 'usage_rules'
 - The --symlink option creates a symlink named 'usage-rules.md' for integration with other tools
 
+#### `intent treeindex`
+
+Generates LLM-optimized directory summaries in a shadow directory.
+
+**Usage:**
+
+```bash
+intent treeindex [OPTIONS] DIR
+```
+
+**Parameters:**
+
+- `DIR`: Directory to index (required)
+
+**Options:**
+
+| Flag              | Description                                         |
+|-------------------|-----------------------------------------------------|
+| `-d, --depth N`   | Depth to traverse (default: 2)                      |
+| `--check`         | Check staleness only, do not generate               |
+| `--prune`         | Remove orphaned .treeindex files (source dir removed)|
+| `--force`         | Regenerate ignoring fingerprints                    |
+| `--model MODEL`   | Claude model to use (default: haiku)                |
+| `--dry-run`       | Show what would be generated without doing it       |
+| `-h, --help`      | Show help                                           |
+
+**Example:**
+
+```bash
+# Generate summaries for lib/ directory
+intent treeindex lib
+
+# Deep scan with forced regeneration
+intent treeindex --depth 4 --force src
+
+# CI staleness check
+intent treeindex --check lib
+```
+
+**Output:**
+
+- Creates/updates `intent/.treeindex/<dir>/.treeindex` summary files
+- Auto-creates `.treeindexignore` and `README.md` in `.treeindex/` on first run
+- Uses fingerprint-based staleness detection (filenames + sizes)
+
+#### `intent fileindex`
+
+Creates and manages file indexes with checkbox states for tracking progress.
+
+**Usage:**
+
+```bash
+intent fileindex [OPTIONS] [STARTDIR] [FILESPEC]
+```
+
+**Options:**
+
+| Flag                | Description                                           |
+|---------------------|-------------------------------------------------------|
+| `-r`                | Recurse through subdirectories                        |
+| `-v`                | Verbose mode (show processing and summary)            |
+| `-f, --file FILE`   | Output to file instead of stdout                     |
+| `-i, --index FILE`  | Use index file to maintain checked states            |
+| `-X, --toggle FILE` | Toggle checked state of FILE in index                |
+| `-C, --check FILE`  | Set FILE to checked [x] state in index               |
+| `-U, --uncheck FILE`| Set FILE to unchecked [ ] state in index             |
+| `--index-dir DIR`   | Default directory for index files                    |
+| `--intent-dir`      | Specify Intent project directory                     |
+| `--no-intent`       | Disable Intent integration                           |
+| `-h`                | Show help                                            |
+
+**Example:**
+
+```bash
+# Generate a file index for the current directory
+intent fileindex
+
+# Recursive index of Elixir files
+intent fileindex -r lib "*.{ex,exs}"
+
+# Mark a file as checked in an index
+intent fileindex -C lib/my_module.ex -i review.md
+
+# Toggle a file's checked state
+intent fileindex -X lib/my_module.ex -i review.md
+```
+
+**Defaults:**
+
+- In an Intent project: `STARTDIR=lib/`, `FILESPEC=*.{ex,exs}`, `INDEX_DIR=.intent/indexes/`
+- Standalone: `STARTDIR=.`, `FILESPEC=*.{ex,exs}`, `INDEX_DIR=.`
+
+#### `intent agents`
+
+Manages AGENTS.md, a universal format for AI agent instructions.
+
+**Usage:**
+
+```bash
+intent agents <command> [options]
+```
+
+**Subcommands:**
+
+| Command    | Description                                          |
+|------------|------------------------------------------------------|
+| `init`     | Initialize AGENTS.md for the project                 |
+| `generate` | Generate/regenerate AGENTS.md from project state     |
+| `sync`     | Update AGENTS.md with latest project state           |
+| `validate` | Validate AGENTS.md against specification             |
+| `template` | Manage AGENTS.md templates                           |
+
+**Example:**
+
+```bash
+# Initialize AGENTS.md
+intent agents init
+
+# Regenerate from current project state
+intent agents generate
+
+# Validate structure
+intent agents validate
+
+# List available templates
+intent agents template list
+```
+
+**Output:**
+
+- Creates `intent/llm/AGENTS.md` with project-specific instructions
+- Creates a symlink at the project root: `AGENTS.md` -> `intent/llm/AGENTS.md`
+
+#### `intent claude subagents`
+
+Manages Claude Code subagents for Intent projects.
+
+**Usage:**
+
+```bash
+intent claude subagents <command> [options]
+```
+
+**Subcommands:**
+
+| Command     | Description                                         |
+|-------------|-----------------------------------------------------|
+| `init`      | Initialize subagent configuration                   |
+| `list`      | List available and installed subagents               |
+| `install`   | Install subagent(s) to Claude configuration          |
+| `sync`      | Sync installed subagents with latest versions        |
+| `uninstall` | Remove Intent-managed subagents                      |
+| `show`      | Display detailed subagent information                |
+| `status`    | Check subagent health and integrity                  |
+
+**Options:**
+
+| Flag            | Description                                     |
+|-----------------|-------------------------------------------------|
+| `--project, -p` | Project-level initialization                    |
+| `--force, -f`   | Force operation                                 |
+| `--all`         | Apply to all subagents                          |
+| `--verbose, -v` | Verbose output for status                       |
+
+**Available Subagents:**
+
+| Name        | Description                                                  |
+|-------------|--------------------------------------------------------------|
+| `intent`    | Intent methodology, steel threads, and project structure     |
+| `elixir`    | Elixir code doctor with antipatterns, style, and Ash/Phoenix |
+| `socrates`  | CTO Review Mode via Socratic dialog                          |
+| `worker-bee`| Worker-Bee Driven Design specialist                          |
+
+**Example:**
+
+```bash
+# Initialize subagent configuration
+intent claude subagents init
+
+# Install the Intent subagent
+intent claude subagents install intent
+
+# Install all subagents
+intent claude subagents install --all
+
+# Check subagent health
+intent claude subagents status --verbose
+```
+
+**Plugin Location:** Subagent definitions live in `intent/plugins/claude/subagents/`.
+
 #### `intent bl` / `intent backlog`
 
 Intent wrapper for Backlog.md task management.
@@ -734,23 +925,16 @@ The Intent test suite provides commands for verifying system functionality:
 
 ```bash
 # Run all tests
-cd intent/tests/
-./run_tests.sh
+./tests/run_tests.sh
 
-# Run specific test suite
-./run_tests.sh bootstrap
-./run_tests.sh init
-./run_tests.sh st
-./run_tests.sh help
-./run_tests.sh main
-./run_tests.sh task
-./run_tests.sh status
-./run_tests.sh migrate
-./run_tests.sh backlog
-./run_tests.sh bl
+# Run a specific test file
+./tests/run_tests.sh tests/unit/treeindex_commands.bats
+
+# Run all unit tests
+./tests/run_tests.sh tests/unit/
 
 # Set up test environment
-./setup_test_env.sh
+./tests/setup_test_env.sh
 ```
 
 The test environment setup script installs necessary dependencies, including:
@@ -772,7 +956,7 @@ Each Intent file includes version information to track compatibility:
 
 ```yaml
 ---
-intent_version: 2.1.0
+intent_version: 2.3.4
 ---
 ```
 
@@ -890,44 +1074,50 @@ LLM-specific templates are located in `intent/_templ/llm/`:
 
 ```
 Intent/
-├── intent/             # Main Intent directory
-│   ├── _templ/         # Templates directory
-│   ├── st/             # Steel threads
-│   │   ├── ST####/     # Individual steel thread directories
-│   │   │   ├── info.md       # Steel thread metadata
-│   │   │   ├── design.md     # Design documentation
-│   │   │   ├── impl.md       # Implementation notes
-│   │   │   └── tasks.md      # Task tracking
-│   │   ├── COMPLETED/        # Completed steel threads
-│   │   ├── NOT-STARTED/      # Not started steel threads
-│   │   └── CANCELLED/        # Cancelled steel threads
-│   ├── wip.md          # Work in progress
-│   ├── eng/            # Engineering docs
-│   │   └── tpd/        # Technical Product Design
-│   ├── usr/            # User documentation
-│   ├── llm/            # LLM-specific content
-│   └── tests/          # Test suite
-│       ├── bootstrap/  # Bootstrap tests
-│       ├── init/       # Init command tests
-│       ├── st/         # Steel thread command tests
-│       ├── task/       # Task management tests
-│       ├── status/     # Status sync tests
-│       ├── migrate/    # Migration tests
-│       ├── backlog/    # Backlog wrapper tests
-│       ├── bl/         # bl command tests
-│       ├── help/       # Help system tests
-│       ├── main/       # Main script tests
-│       ├── lib/        # Test helper libraries
-│       ├── fixtures/   # Test fixtures
-│       └── run_tests.sh # Test runner script
-├── bin/                # Intent scripts (executable)
-├── .intent/            # Intent configuration
-│   └── config.json     # Project configuration
-└── backlog/            # Backlog.md task management
-    ├── tasks/          # Active tasks
-    ├── drafts/         # Draft tasks
-    ├── archive/        # Archived tasks
-    └── config.yml      # Backlog configuration
+├── intent/                # Main Intent directory
+│   ├── .treeindex/        # Shadow directory for LLM-oriented summaries
+│   │   ├── .treeindexignore  # Files/dirs to exclude from indexing
+│   │   └── README.md      # Treeindex orientation for LLMs
+│   ├── _templ/            # Templates directory
+│   ├── st/                # Steel threads
+│   │   ├── ST####/        # Individual steel thread directories
+│   │   │   ├── info.md          # Steel thread metadata
+│   │   │   ├── design.md        # Design documentation
+│   │   │   ├── impl.md          # Implementation notes
+│   │   │   └── tasks.md         # Task tracking
+│   │   ├── COMPLETED/           # Completed steel threads
+│   │   ├── NOT-STARTED/         # Not started steel threads
+│   │   └── CANCELLED/           # Cancelled steel threads
+│   ├── wip.md             # Work in progress
+│   ├── eng/               # Engineering docs
+│   │   └── tpd/           # Technical Product Design
+│   ├── usr/               # User documentation
+│   ├── llm/               # LLM-specific content
+│   │   └── AGENTS.md      # Universal AI agent instructions
+│   └── plugins/           # Plugin architecture
+│       ├── agents/        # AGENTS.md plugin
+│       │   └── bin/       # Plugin scripts
+│       └── claude/        # Claude Code integration
+│           ├── bin/       # Plugin scripts
+│           └── subagents/ # Subagent definitions
+│               ├── intent/
+│               ├── elixir/
+│               ├── socrates/
+│               └── worker-bee/
+├── bin/                   # Intent scripts (executable)
+├── tests/                 # Test suite
+│   ├── unit/              # Unit tests (14 .bats files)
+│   ├── integration/       # Integration tests
+│   ├── lib/               # Test helper libraries
+│   ├── fixtures/          # Test fixtures
+│   └── run_tests.sh       # Test runner script
+├── .intent/               # Intent configuration
+│   └── config.json        # Project configuration
+└── backlog/               # Backlog.md task management
+    ├── tasks/             # Active tasks
+    ├── drafts/            # Draft tasks
+    ├── archive/           # Archived tasks
+    └── config.yml         # Backlog configuration
 ```
 
 ## Configuration Options
@@ -953,7 +1143,7 @@ Example:
 {
   "project_name": "Project Name",
   "author": "Default Author",
-  "intent_version": "2.1.0",
+  "intent_version": "2.3.4",
   "st_prefix": "ST"
 }
 ```
@@ -995,16 +1185,21 @@ Example:
 
 ## Concepts and Terminology
 
-| Term | Definition |
-|------|------------|
-| Steel Thread | A self-contained unit of work representing a logical piece of functionality |
-| LLM | Large Language Model, an AI system capable of understanding and generating text |
-| Context Window | The amount of text an LLM can process in a single interaction |
-| Canned Prompt | A pre-defined, reusable instruction template for an LLM |
-| WIP | Work in Progress, a document tracking current development focus |
-| Backlog | Task management system integrated with Intent for fine-grained work tracking |
-| Task | Individual unit of work linked to a steel thread, tracked in Backlog |
-| Task Status | State of a task: "To Do", "In Progress", or "Done" |
+| Term           | Definition                                                                       |
+|----------------|----------------------------------------------------------------------------------|
+| Steel Thread   | A self-contained unit of work representing a logical piece of functionality       |
+| LLM            | Large Language Model, an AI system capable of understanding and generating text   |
+| Context Window | The amount of text an LLM can process in a single interaction                    |
+| Canned Prompt  | A pre-defined, reusable instruction template for an LLM                          |
+| WIP            | Work in Progress, a document tracking current development focus                  |
+| Backlog        | Task management system integrated with Intent for fine-grained work tracking     |
+| Task           | Individual unit of work linked to a steel thread, tracked in Backlog             |
+| Task Status    | State of a task: "To Do", "In Progress", or "Done"                               |
+| Treeindex      | LLM-oriented directory summaries stored in a shadow directory                    |
+| Fileindex      | File tracking tool with checkbox states for progress management                  |
+| AGENTS.md      | Universal AI agent instructions file for any AI platform                         |
+| Subagent       | A Claude Code sub-agent with domain-specific expertise                           |
+| Plugin         | An extension module for Intent (eg agents, claude)                               |
 
 ## Backlog.md Integration
 
@@ -1197,7 +1392,7 @@ With Backlog integration, steel thread documents focus on intent and context:
 ```markdown
 ---
 verblock: "08 Jul 2025:v0.1: Author Name - Initial version"
-intent_version: 2.1.0
+intent_version: 2.3.4
 status: In Progress
 created: 20250708
 completed: 
@@ -1357,20 +1552,17 @@ intent status show ST0017
 The integration includes comprehensive test coverage:
 
 ```bash
-# Run all integration tests
-cd intent/tests
-./run_tests.sh task
-./run_tests.sh status  
-./run_tests.sh migrate
+# Run all tests
+./tests/run_tests.sh
 
-# Or run specific test files
-bats task/task_test.bats
-bats status/status_test.bats
-bats migrate/migrate_test.bats
+# Run specific test files
+bats tests/unit/task_commands.bats
+bats tests/unit/bl_commands.bats
+bats tests/unit/project_commands.bats
 ```
 
-Test files are located in:
+Test files are located in `tests/unit/`:
 
-- `intent/tests/task/task_test.bats` - Task command tests
-- `intent/tests/status/status_test.bats` - Status command tests  
-- `intent/tests/migrate/migrate_test.bats` - Migration command tests
+- `task_commands.bats` - Task management command tests
+- `bl_commands.bats` - Backlog wrapper command tests
+- `project_commands.bats` - Project-specific command tests (including status and migration)

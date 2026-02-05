@@ -98,17 +98,17 @@ $ intent st show ST0015
 
 ## 🤖 Claude Code Integration
 
-Intent v2.2.0 integrates with [Claude Code](https://claude.ai/code) sub-agents to supercharge AI collaboration:
+Intent v2.3.4 integrates with [Claude Code](https://claude.ai/code) sub-agents to supercharge AI collaboration:
 
 ```bash
-# Initialize agent configuration (one-time setup)
-$ intent agents init
+# Initialize subagent configuration (one-time setup)
+$ intent claude subagents init
 
-# Install the Intent agent
-$ intent agents install intent
+# Install the Intent subagent
+$ intent claude subagents install intent
 
 # Now Claude automatically understands:
-# ✓ Steel thread methodology  
+# ✓ Steel thread methodology
 # ✓ All Intent commands
 # ✓ Your project structure
 # ✓ Best practices
@@ -187,8 +187,8 @@ intent --version
 # See available commands
 intent help
 
-# Install Claude Code agent (if using Claude)
-intent agents install intent
+# Install Claude Code subagent (if using Claude)
+intent claude subagents install intent
 ```
 
 ### 🏆 5-Minute Win: Your First Steel Thread
@@ -310,15 +310,35 @@ intent bl list                       # List tasks (without git errors)
 intent bl board                      # View Kanban board
 ```
 
-### Agent Management
+### Treeindex (Directory Summaries)
 
 ```bash
-intent agents list                   # Show available and installed agents
-intent agents install <name>        # Install an agent to Claude Code
-intent agents install --all         # Install all available agents
-intent agents status                 # Check agent health and integrity
-intent agents sync                   # Update agents with latest versions
-intent agents show <name>           # Display detailed agent information
+intent treeindex <dir>               # Generate .treeindex directory summaries
+intent treeindex --depth 3 <dir>     # Control traversal depth (default: 2)
+intent treeindex --check <dir>       # Check staleness without regenerating
+intent treeindex --prune <dir>       # Remove orphaned shadow entries
+intent treeindex --force <dir>       # Regenerate regardless of staleness
+intent treeindex --dry-run <dir>     # Preview without writing
+```
+
+### AGENTS.md Management
+
+```bash
+intent agents init                   # Initialize AGENTS.md for the project
+intent agents generate               # Generate/regenerate AGENTS.md
+intent agents sync                   # Update AGENTS.md with latest project state
+intent agents validate               # Validate AGENTS.md against specification
+```
+
+### Claude Subagent Management
+
+```bash
+intent claude subagents list         # Show available and installed subagents
+intent claude subagents install <name>  # Install a subagent to Claude Code
+intent claude subagents install --all   # Install all available subagents
+intent claude subagents status       # Check subagent health and integrity
+intent claude subagents sync         # Update subagents with latest versions
+intent claude subagents show <name>  # Display detailed subagent information
 ```
 
 ### LLM Integration
@@ -332,24 +352,26 @@ intent llm usage_rules --symlink     # Create usage-rules.md symlink
 
 ```
 .
-├── agents/        # Claude Code sub-agents (global)
-│   ├── intent/    # Intent methodology agent
-│   └── elixir/    # Elixir code doctor agent
-├── bin/           # Intent command-line tools
-├── docs/          # Documentation and blog posts
-├── intent/        # Project artifacts (when using Intent)
-│   ├── agents/    # Project-specific sub-agents
-│   ├── st/        # Steel threads
-│   ├── eng/       # Engineering documentation
-│   │   └── tpd/   # Technical Product Design
-│   ├── usr/       # User documentation
-│   └── wip.md     # Current work
-├── lib/           # Templates and libraries
-├── tests/         # Test suites
-└── backlog/       # Backlog.md tasks (if integrated)
-    ├── tasks/     # Active tasks
-    ├── drafts/    # Draft tasks
-    └── config.yml # Backlog configuration
+├── bin/              # Intent command-line tools
+├── docs/             # Documentation and blog posts
+├── intent/           # Project artifacts (when using Intent)
+│   ├── .treeindex/   # Shadow directory for LLM-oriented summaries
+│   ├── st/           # Steel threads
+│   ├── eng/          # Engineering documentation
+│   │   └── tpd/      # Technical Product Design
+│   ├── usr/          # User documentation
+│   ├── llm/          # LLM-specific content (AGENTS.md, usage-rules)
+│   ├── plugins/      # Plugin architecture
+│   │   ├── agents/   # AGENTS.md plugin
+│   │   └── claude/   # Claude Code integration
+│   │       └── subagents/  # Subagent definitions
+│   └── wip.md        # Current work
+├── lib/              # Templates and libraries
+├── tests/            # Test suites
+└── backlog/          # Backlog.md tasks (if integrated)
+    ├── tasks/        # Active tasks
+    ├── drafts/       # Draft tasks
+    └── config.yml    # Backlog configuration
 ```
 
 ## 🤝 Contributing

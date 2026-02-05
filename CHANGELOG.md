@@ -34,6 +34,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Expanded Elixir subagent with architectural principles, Ash/Phoenix patterns, and testing guidance
 - Replaced 'eg' abbreviation throughout documentation (was 'e.g.,')
+- Updated all documentation to match as-built codebase (was frozen at v2.1.0)
+  - `.github/workflows/README.md`: Full rewrite from STP to Intent
+  - `tests/README.md`: Updated to v2.3.4 with all 14 test files
+  - `README.md`: Fixed project structure, added treeindex/AGENTS.md/subagent commands
+  - `intent/usr/user_guide.md`: Added treeindex, AGENTS.md, Claude subagent sections
+  - `intent/usr/reference_guide.md`: Added treeindex, fileindex, agents, subagent command references
+  - `intent/usr/deployment_guide.md`: Added plugin/subagent deployment and treeindex integration
+  - `examples/hello-world/README.md`: Updated to v2.3.4 with current structure
 
 ### Migration
 
@@ -47,7 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Treeindex uses headless `claude -p` with `--tools ""` for text-in/text-out summarization
 - Shadow directory design avoids polluting source tree with index files
 - Fingerprint design is git-clone-stable (no mtime dependency)
-- Full test suite now at 250 tests
+- Full test suite now at 265 tests
 
 ## [2.3.3] - 2025-10-02
 
