@@ -1,0 +1,9 @@
+<!-- treeindex v1 fingerprint:3954602f generated:2026-02-05T11:37:32Z -->
+
+# 2.3.3/
+
+Release artifacts and documentation for Intent v2.3.3, which adds a comprehensive Elixir style guide to the Elixir Claude subagent. Contains release notes and upgraded plugin files reflecting the v2.3.2 → v2.3.3 migration.
+
+## Files
+
+- `RELEASE_NOTES.md` -- Overview of v2.3.3 features, upgrade instructions, and migration details from v2.3.2

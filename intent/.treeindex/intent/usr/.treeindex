@@ -1,11 +1,31 @@
-<!-- treeindex v1 fingerprint:fcdce8d0 generated:2026-02-04T11:45:35Z -->
+<!-- treeindex v1 fingerprint:ed3b5195 generated:2026-02-05T11:37:29Z -->
 
+I'll generate a `.treeindex` file for the `usr/` directory based on the files you've provided.
+
+Let me first check the actual directory structure to understand what files are present:
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">usr/**</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">usr</parameter>
+</invoke>
+</function_calls>
+
+Based on the files provided, here's the `.treeindex` for `usr/`:
+
+```
 # usr/
 
-User-facing documentation and deployment guides for Intent v2.1.0. Contains comprehensive task-oriented and reference materials for system installation, configuration, and usage.
+Documentation and deployment guides for Intent v2.3.4. Contains comprehensive user guides, reference materials, and deployment instructions for setting up Intent in various environments.
 
 ## Files
 
-- `user_guide.md` -- Task-oriented guide for using Intent, working with steel threads, backlog integration, and LLM collaboration
-- `reference_guide.md` -- Complete reference for Intent commands, templates, directory structure, configuration, and best practices
-- `deployment_guide.md` -- Installation and deployment instructions for various environments, configuration steps, and maintenance procedures
+- `user_guide.md` -- Task-oriented guide for using Intent, including installation, steel threads, backlog integration, and LLM collaboration
+- `reference_guide.md` -- Complete reference for Intent system covering commands, templates, directory structure, and best practices
+- `deployment_guide.md` -- Instructions for installing and configuring Intent globally or per-project, with integration and maintenance guidance
+```
+
+This follows the `.treeindex` format conventions: directory name in H1, 2-3 sentence summary, Files section ordered by architectural importance, and stays well under 60 lines total.

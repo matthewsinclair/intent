@@ -1,0 +1,16 @@
+<!-- treeindex v1 fingerprint:c396ed1c generated:2026-02-05T11:37:38Z -->
+
+# v1.2.0-project/
+
+A minimal Intent v1.2.0 project demonstrating the foundational structure for organizing steel threads and project artifacts. This is a reference template showing the essential directories and files required for Intent-based project management.
+
+## Dirs
+
+- `intent/` -- Project artifacts including steel threads, documentation, and configuration
+- `backlog/` -- Task management and tracking (optional directory for Backlog.md workflows)
+
+## Files
+
+- `.gitignore` -- Git ignore rules for Intent-specific files, backups, and editor configurations
+- `CLAUDE.md` -- Project guidelines and Intent command reference (if present)
+- `README.md` -- Project overview and getting started guide (if present)

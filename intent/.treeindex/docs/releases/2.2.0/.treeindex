@@ -1,0 +1,46 @@
+<!-- treeindex v1 fingerprint:1485c05e generated:2026-02-05T11:37:46Z -->
+
+I'll generate a .treeindex file for the 2.2.0 directory. Let me first explore its structure.
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">2.2.0/**/*</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">2.2.0</parameter>
+</invoke>
+</function_calls>
+
+Let me check what files are in this directory:
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find 2.2.0 -type f | head -20</parameter>
+</invoke>
+</function_calls>
+
+Let me try a different approach:
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">ls -la 2.2.0/</parameter>
+</invoke>
+</function_calls>
+
+It looks like the 2.2.0 directory only contains the RELEASE_NOTES.md file that was provided in your message. Based on the context, this appears to be release documentation rather than a source code directory structure.
+
+However, if you're asking me to generate a .treeindex file for this directory as it would exist in the Intent project structure, here's what that would look like:
+
+# 2.2.0/
+
+Release documentation and migration notes for Intent v2.2.0, introducing the fileindex command for file tracking and progress management through large codebases.
+
+## Files
+
+- `RELEASE_NOTES.md` -- Release notes covering new fileindex command, enhanced Elixir agent, upgrade improvements, and migration notes from v2.1.0
+
+---
+
+Could you clarify if you'd like me to:
+1. Save this as a formal `.treeindex` file in the shadow directory?
+2. Review actual source code files in a 2.2.0 release directory?
+3. Generate documentation for a different directory structure?

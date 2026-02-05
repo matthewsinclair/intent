@@ -1,0 +1,17 @@
+<!-- treeindex v1 fingerprint:13db2c34 generated:2026-02-05T11:37:46Z -->
+
+I'll generate a `.treeindex` file for the `hello-world/` directory based on the README structure provided.
+
+# hello-world/
+
+Example project demonstrating Intent v2.3.4 structure with flattened paths, JSON configuration, and shadow directory support for LLM-oriented summaries. This project showcases the modern Intent architecture including steel threads, treeindex system, and plugin support.
+
+## Dirs
+
+- `.intent/` -- Configuration and metadata
+- `backlog/` -- Task management and work tracking
+- `intent/` -- Project artifacts including steel threads, documentation, and shadow directories
+
+## Files
+
+- `README.md` -- Project overview and Intent v2.3.4 structure documentation

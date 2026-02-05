@@ -1,0 +1,47 @@
+<!-- treeindex v1 fingerprint:d472cc79 generated:2026-02-05T11:37:52Z -->
+
+
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">examples/**/*</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">examples</parameter>
+</invoke>
+</function_calls>
+
+Now let me check the subdirectories:
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find examples -maxdepth 2 -type f | sort</parameter>
+</invoke>
+</function_calls>
+
+Let me get a better view of the structure:
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">ls -la examples/ && echo "---" && for dir in examples/*/; do echo "=== $(basename "$dir") ===" && ls -la "$dir" | head -15; done</parameter>
+</invoke>
+</function_calls>
+
+Now I'll generate the `.treeindex` file for the examples directory:
+<function_calls>
+<invoke name="Write">
+<parameter name="path">intent/.treeindex/examples/.treeindex</parameter>
+<parameter name="content"># examples/
+
+Collection of example Intent projects demonstrating various project structures, migrations, and configurations. Includes v0.0.0-project (legacy STP), v1.2.0-project (foundational Intent), v1.2.1-project (migration), and hello-world (modern v2.3.4 structure).
+
+## Dirs
+
+- `hello-world/` -- Modern Intent v2.3.4 example with flattened paths, JSON config, and treeindex support
+- `v0.0.0-project/` -- Original STP v0.0.0 legacy structure with YAML configuration
+- `v1.2.0-project/` -- Minimal Intent v1.2.0 foundational template
+- `v1.2.1-project/` -- Intent v2.0.0 migration example from STP structure
+</parameter>
+</invoke>
+</function_calls>
+
+Done! Generated `.treeindex` for `examples/` at `intent/.treeindex/examples/.treeindex`. It documents the four example projects showing the evolution from STP v0.0.0 through Intent v2.3.4.

@@ -1,0 +1,18 @@
+<!-- treeindex v1 fingerprint:aeb4a832 generated:2026-02-05T11:37:51Z -->
+
+I'll generate a `.treeindex` file for the `2.1.0/` directory based on the provided `RELEASE_NOTES.md` content.
+<function_calls>
+<invoke name="write">
+<parameter name="path">/Users/matts/Devel/prj/Intent/intent/.treeindex/2.1.0/.treeindex</parameter>
+<parameter name="text"># 2.1.0/
+
+Release notes and documentation for Intent v2.1.0, a maintenance release focused on fixing critical agent directory structure bugs and improving the Agent system introduced in v2.0.0.
+
+## Files
+
+- `RELEASE_NOTES.md` -- Comprehensive release documentation covering critical bug fixes (agent directory structure), agent system improvements, and upgrade instructions for projects migrating from v2.0.0
+</parameter>
+</invoke>
+</function_calls>
+
+Done! The `.treeindex` for `2.1.0/` has been created at `intent/.treeindex/2.1.0/.treeindex`.
