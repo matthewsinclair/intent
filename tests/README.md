@@ -2,25 +2,34 @@
 
 ## Overview
 
-This directory contains the test suite for Intent v2.2.0. The tests are written using [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System).
+This directory contains the test suite for Intent v2.3.4. The tests are written using [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System).
 
 ## Directory Structure
 
 ```
 tests/
-├── unit/              # Unit tests for individual commands
-│   ├── basic.bats     # Basic infrastructure tests
-│   ├── config.bats    # Configuration and PROJECT_ROOT tests
-│   ├── global_commands.bats  # Tests for global commands
-│   ├── migration.bats # Migration and backup tests
-│   └── project_commands.bats # Tests for project-specific commands
-├── integration/       # Integration tests
-│   └── end_to_end.bats # Full workflow tests
-├── fixtures/          # Test fixtures (sample files, etc.)
-├── lib/               # Test libraries
-│   └── test_helper.bash # Common test functions
-├── run_tests.sh       # Main test runner
-└── README.md          # This file
+├── unit/                          # Unit tests for individual commands
+│   ├── agent_commands.bats        # AGENTS.md management tests
+│   ├── basic.bats                 # Basic infrastructure tests
+│   ├── bl_commands.bats           # Backlog wrapper command tests
+│   ├── bootstrap.bats             # Bootstrap command tests
+│   ├── config.bats                # Configuration and PROJECT_ROOT tests
+│   ├── fileindex_commands.bats    # Fileindex command tests
+│   ├── global_commands.bats       # Tests for global commands
+│   ├── help_commands.bats         # Help system tests
+│   ├── init_commands.bats         # Init command tests
+│   ├── migration.bats             # Migration and backup tests
+│   ├── project_commands.bats      # Tests for project-specific commands
+│   ├── st_commands.bats           # Steel thread command tests
+│   ├── task_commands.bats         # Task management command tests
+│   └── treeindex_commands.bats    # Treeindex command tests
+├── integration/                   # Integration tests
+│   └── end_to_end.bats            # Full workflow tests
+├── fixtures/                      # Test fixtures (sample files, etc.)
+├── lib/                           # Test libraries
+│   └── test_helper.bash           # Common test functions
+├── run_tests.sh                   # Main test runner
+└── README.md                      # This file
 ```
 
 ## Prerequisites
@@ -72,10 +81,10 @@ load "../lib/test_helper.bash"
   # Setup
   project_dir=$(create_test_project "Test Project")
   cd "$project_dir"
-  
+
   # Run command
   run run_intent <command> <args>
-  
+
   # Assert results
   assert_success  # or assert_failure
   assert_output_contains "expected text"
@@ -99,10 +108,20 @@ load "../lib/test_helper.bash"
 
 Unit tests focus on individual commands and features:
 
-- **global_commands.bats** - Tests commands that work without a project (help, doctor, info, etc.)
-- **project_commands.bats** - Tests commands that require a project context (st, bl, task, etc.)
+- **agent_commands.bats** - Tests for AGENTS.md management (`intent agents init/generate/sync/validate`)
+- **basic.bats** - Tests for basic infrastructure and environment setup
+- **bl_commands.bats** - Tests for the Backlog wrapper (`intent bl`)
+- **bootstrap.bats** - Tests for the bootstrap command
 - **config.bats** - Tests configuration loading and PROJECT_ROOT detection
+- **fileindex_commands.bats** - Tests for the fileindex command (file tracking and checkbox states)
+- **global_commands.bats** - Tests commands that work without a project (help, doctor, info, etc.)
+- **help_commands.bats** - Tests for the help system
+- **init_commands.bats** - Tests for the init command
 - **migration.bats** - Tests backup creation and version migration
+- **project_commands.bats** - Tests commands that require a project context
+- **st_commands.bats** - Tests for steel thread management commands
+- **task_commands.bats** - Tests for task management commands
+- **treeindex_commands.bats** - Tests for the treeindex command (directory summaries)
 
 ### Integration Tests
 
@@ -144,9 +163,9 @@ bats -t tests/unit/config.bats
 
 ## CI/CD
 
-Tests should be run on:
-- Every push to main
-- Every pull request
-- Multiple OS versions (macOS, Linux)
+Tests run automatically via GitHub Actions on:
+- Every push to `main`
+- Every pull request targeting `main`
+- Both Ubuntu and macOS environments
 
-See `.github/workflows/test.yml` for CI configuration (TODO).
+See `.github/workflows/tests.yml` for the CI configuration.

@@ -1,10 +1,10 @@
 ---
-verblock: "27 Jul 2025:v0.2: Matthew Sinclair - Updated to Intent v2.1.0"
-intent_version: 2.1.0
+verblock: "05 Feb 2026:v0.3: Matthew Sinclair - Updated to Intent v2.3.4"
+intent_version: 2.3.4
 ---
 # Deployment Guide
 
-This deployment guide provides instructions for deploying the Intent v2.1.0 system in various environments. It covers installation, configuration, and integration with other tools and workflows.
+This deployment guide provides instructions for deploying the Intent v2.3.4 system in various environments. It covers installation, configuration, and integration with other tools and workflows.
 
 ## Table of Contents
 
@@ -14,7 +14,8 @@ This deployment guide provides instructions for deploying the Intent v2.1.0 syst
 4. [Maintenance](#maintenance)
 5. [Upgrading](#upgrading)
 6. [Troubleshooting](#troubleshooting)
-7. [New v2.1.0 Features](#new-v210-features)
+7. [Plugin and Subagent Deployment](#plugin-and-subagent-deployment)
+8. [Treeindex Integration](#treeindex-integration)
 
 ## Installation
 
@@ -166,11 +167,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up test environment
-        run: ./intent/tests/setup_test_env.sh
+        run: ./tests/setup_test_env.sh
       - name: Run tests
-        run: cd intent/tests && ./run_tests.sh
+        run: ./tests/run_tests.sh
 ```
 
 2. Configure notifications for test failures
@@ -185,12 +186,12 @@ jobs:
 
 ```json
 {
-  "version": "2.1.0",
+  "version": "2.0.0",
   "tasks": [
     {
       "label": "Run Intent Tests",
       "type": "shell",
-      "command": "cd ${workspaceFolder}/intent/tests && ./run_tests.sh",
+      "command": "${workspaceFolder}/tests/run_tests.sh",
       "group": {
         "kind": "test",
         "isDefault": true
@@ -326,7 +327,7 @@ The test suite requires the following dependencies:
 Run the setup script to install all dependencies:
 
 ```bash
-cd intent/tests/
+cd tests/
 ./setup_test_env.sh
 ```
 
@@ -341,11 +342,11 @@ This script will:
 
 The test suite can be configured through environment variables:
 
-| Variable          | Purpose                             | Default                       |
-|-------------------|-------------------------------------|-------------------------------|
-| BATS_LIB_PATH     | Location of Bats libraries          | intent/tests/lib              |
-| INTENT_TEST_TEMP  | Temporary directory for test files  | /tmp/intent-test-XXXXXX       |
-| INTENT_BIN_PATH   | Path to Intent executables          | Determined from current path  |
+| Variable         | Purpose                            | Default                      |
+|------------------|------------------------------------|------------------------------|
+| BATS_LIB_PATH    | Location of Bats libraries         | tests/lib                    |
+| INTENT_TEST_TEMP | Temporary directory for test files | /tmp/intent-test-XXXXXX      |
+| INTENT_BIN_PATH  | Path to Intent executables         | Determined from current path |
 
 ### Running Tests in Different Environments
 
@@ -355,8 +356,7 @@ export INTENT_BIN_PATH=/custom/path/to/intent/bin
 export BATS_LIB_PATH=/custom/path/to/bats/libs
 
 # Run tests with custom configuration
-cd intent/tests/
-./run_tests.sh
+./tests/run_tests.sh
 ```
 
 ## Troubleshooting
@@ -385,7 +385,7 @@ If test dependencies are missing:
 
 ```bash
 # Re-run the setup script
-cd intent/tests/
+cd tests/
 ./setup_test_env.sh
 ```
 
@@ -404,9 +404,8 @@ If you encounter permission errors:
 
 ```bash
 # Make scripts executable
-chmod +x intent/bin/*
-chmod +x intent/tests/*.sh
-chmod +x intent/tests/lib/*/src/*.bash
+chmod +x bin/*
+chmod +x tests/*.sh
 ```
 
 #### Task Synchronization Issues
@@ -447,79 +446,114 @@ If you encounter issues:
 4. Submit issues to the Intent project repository
 5. Refer to the Bats documentation for test-specific problems
 
-## New v2.1.0 Features
+## Plugin and Subagent Deployment
 
-### Bootstrap Command
+### Plugin Architecture
 
-Intent v2.1.0 introduces the `bootstrap` command for quick project initialization:
+Intent v2.3.0 introduced a plugin architecture. Plugins live in `intent/plugins/` and extend Intent's functionality:
+
+```
+intent/plugins/
+├── agents/              # AGENTS.md management plugin
+│   ├── bin/
+│   │   └── intent_agents
+│   └── templates/
+│       └── default.md
+└── claude/              # Claude Code integration plugin
+    ├── bin/
+    │   └── intent_claude_subagents
+    └── subagents/
+        ├── intent/
+        ├── elixir/
+        ├── socrates/
+        └── worker-bee/
+```
+
+### Deploying AGENTS.md
+
+AGENTS.md provides universal AI agent instructions that work across platforms:
 
 ```bash
-# Bootstrap a new project with Intent
-intent bootstrap "My New Project"
+# Initialize AGENTS.md in a project
+intent agents init
+
+# Validate the AGENTS.md structure
+intent agents validate
+
+# Keep AGENTS.md in sync with project changes
+intent agents sync
 ```
 
-This command:
-- Creates the Intent directory structure
-- Initializes configuration
-- Sets up initial steel thread
-- Configures Backlog integration if available
+The `init` command creates `intent/llm/AGENTS.md` and a symlink at the project root.
 
-### Doctor Command
+### Deploying Claude Subagents
 
-The new `doctor` command helps diagnose configuration and environment issues:
+Claude subagents install to `~/.claude/agents/` for global availability:
 
 ```bash
-# Check Intent configuration and environment
-intent doctor
+# Initialize subagent configuration
+intent claude subagents init
+
+# Install subagents
+intent claude subagents install --all
+
+# Verify installation
+intent claude subagents status
 ```
 
-This command checks:
-- Intent installation integrity
-- Configuration file validity
-- Environment variable setup
-- Directory permissions
-- Backlog integration status
-- Git configuration
+For team deployments, each developer runs `intent claude subagents install` after cloning the project.
 
-### Enhanced Directory Structure
+### Subagent Maintenance
 
-Intent v2.1.0 uses a simplified directory structure:
+```bash
+# Check for modifications or version drift
+intent claude subagents status --verbose
 
-```
-intent/
-├── st/              # Steel threads (each in its own directory)
-├── docs/            # Technical documentation
-├── llm/             # LLM-specific guidelines
-├── usr/             # User documentation
-└── eng/             # Engineering resources
+# Sync with latest versions from the project
+intent claude subagents sync
 
-.intent/
-└── config.json      # Project configuration (JSON format)
+# Force reinstall if needed
+intent claude subagents uninstall --all
+intent claude subagents install --all
 ```
 
-### JSON Configuration
+## Treeindex Integration
 
-Intent v2.1.0 migrates from INI-style configuration to JSON:
+### Setting Up Treeindex
 
-```json
-{
-  "project_name": "My Project",
-  "author": "Jane Doe",
-  "created_date": "2025-07-17",
-  "intent_version": "2.1.0",
-  "st_prefix": "ST",
-  "next_st_number": 1
-}
+Treeindex generates LLM-oriented directory summaries. It requires Claude CLI for AI-powered summarization.
+
+```bash
+# Generate summaries for key directories
+intent treeindex lib
+intent treeindex src
+
+# Set custom depth
+intent treeindex --depth 3 lib
 ```
 
-### Steel Thread Organization
+### CI/CD Integration for Treeindex
 
-Each steel thread now has its own directory with standardized files:
+Use `--check` mode to verify summaries are up to date in CI:
 
+```bash
+# Check if summaries are stale (non-zero exit = stale)
+intent treeindex --check lib
 ```
-intent/st/ST0001/
-├── info.md          # Metadata and overview (required)
-├── design.md        # Design documentation (optional)
-├── impl.md          # Implementation details (optional)
-└── tasks.md         # Task breakdown (optional)
+
+### Treeindex Maintenance
+
+```bash
+# Remove orphaned shadow entries
+intent treeindex --prune lib
+
+# Force regeneration
+intent treeindex --force lib
+
+# Preview without writing
+intent treeindex --dry-run lib
 ```
+
+### Configuring Treeindex Exclusions
+
+Edit `intent/.treeindex/.treeindexignore` to exclude files or directories from indexing. The format follows `.gitignore` conventions.

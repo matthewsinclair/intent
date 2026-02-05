@@ -1,6 +1,6 @@
 ---
-verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Updated to Intent v2.1.0"
-intent_version: 2.1.0
+verblock: "05 Feb 2026:v2.3.4: Matthew Sinclair - Updated to Intent v2.3.4"
+intent_version: 2.3.4
 ---
 # User Guide
 
@@ -15,9 +15,11 @@ This user guide provides task-oriented instructions for using the Intent system.
 5. [Working with Backlog](#working-with-backlog)
 6. [Documentation Management](#documentation-management)
 7. [LLM Collaboration](#llm-collaboration)
-8. [Agent Management](#agent-management)
-9. [Testing](#testing)
-10. [Troubleshooting](#troubleshooting)
+8. [Treeindex](#treeindex)
+9. [AGENTS.md](#agentsmd)
+10. [Claude Subagent Management](#claude-subagent-management)
+11. [Testing](#testing)
+12. [Troubleshooting](#troubleshooting)
 
 ## Introduction
 
@@ -385,150 +387,183 @@ intent st show ST0001 | [send to LLM]
 
 This provides the LLM with task-specific context for more effective collaboration.
 
-## Agent Management
+## Treeindex
 
-Intent v2.1.0 integrates with Claude Code sub-agents to provide specialized AI assistance that understands Intent methodology and your project conventions.
+Intent v2.3.4 includes the `treeindex` command for generating LLM-optimized directory summaries. These summaries let Claude (or any LLM) quickly orient itself in a codebase without reading every file.
 
-### What are Intent Agents?
+### What is Treeindex?
 
-Intent agents are Claude Code sub-agents - specialized AI assistants with focused knowledge:
+Treeindex creates a shadow directory at `intent/.treeindex/` that mirrors your project structure. Each directory gets a `.treeindex` file containing a concise summary of the directory's contents, purpose, and key files. These summaries are generated using Claude AI.
 
-- **Intent Agent**: Understands steel threads, Intent commands, and project structure
-- **Elixir Agent**: Elixir code doctor with Usage Rules and Ash/Phoenix patterns
-- **Custom Agents**: Project-specific agents you can create
-
-### Setting Up Agents
-
-#### Initializing Agent Configuration
-
-Before installing agents, you need to initialize the agent configuration:
+### Generating Directory Summaries
 
 ```bash
-# Initialize global agent configuration
-intent agents init
+# Generate summaries for a directory tree
+intent treeindex lib
 
-# Initialize project-specific agent configuration
-intent agents init --project
+# Control traversal depth (default: 2)
+intent treeindex --depth 3 src
+
+# Preview what would be generated without writing
+intent treeindex --dry-run lib
+
+# Force regeneration regardless of staleness
+intent treeindex --force lib
 ```
 
-This creates the necessary directories and manifest files for agent management.
-
-#### Installing the Intent Agent
+### Checking and Maintaining Summaries
 
 ```bash
-# Check available agents
-intent agents list
+# Check which summaries are stale (useful in CI)
+intent treeindex --check lib
 
-# Install the Intent agent (recommended for all projects)
-intent agents install intent
+# Remove orphaned shadow entries (source directory was deleted)
+intent treeindex --prune lib
+```
 
-# Install all available agents
-intent agents install --all
+### How It Works
+
+- **Shadow directory**: Summaries are stored in `intent/.treeindex/`, keeping your source tree clean
+- **Fingerprint-based staleness**: Uses filenames and sizes (not timestamps) for git-clone-stable detection
+- **Bottom-up indexing**: Processes leaf directories first, building context upward
+- **Auto-created files**: `.treeindexignore` and `README.md` are created in `.treeindex/` on first run
+
+### CLAUDE.md Convention
+
+Add this to your project's `CLAUDE.md` to help Claude use treeindex summaries:
+
+> Before exploring an unfamiliar directory, check `intent/.treeindex/<dir>/.treeindex` for an existing summary.
+
+## AGENTS.md
+
+Intent v2.3.0 introduced AGENTS.md, a universal format for AI agent instructions that works across AI platforms (Claude, GPT, Gemini, etc.).
+
+### What is AGENTS.md?
+
+AGENTS.md is a standardized markdown file that captures project-specific instructions for AI assistants. Unlike Claude-specific subagents, AGENTS.md works with any AI tool that reads project documentation.
+
+### Setting Up AGENTS.md
+
+```bash
+# Initialize AGENTS.md for your project
+intent agents init
+
+# Generate/regenerate AGENTS.md from project state
+intent agents generate
+
+# Update AGENTS.md with latest project state
+intent agents sync
+
+# Validate AGENTS.md against specification
+intent agents validate
+```
+
+The `intent agents init` command creates `intent/llm/AGENTS.md` and a symlink at the project root for discoverability.
+
+### Managing Templates
+
+```bash
+# List available AGENTS.md templates
+intent agents template list
+
+# Show a specific template
+intent agents template show default
+```
+
+## Claude Subagent Management
+
+Intent v2.3.0 introduced a plugin architecture and renamed the old `intent agents` commands to `intent claude subagents`. Claude subagents are specialized AI assistants with focused knowledge that integrate directly with Claude Code.
+
+### Available Subagents
+
+| Subagent    | Description                                                  |
+|-------------|--------------------------------------------------------------|
+| intent      | Intent methodology, steel threads, and project structure     |
+| elixir      | Elixir code doctor with Usage Rules and Ash/Phoenix patterns |
+| socrates    | CTO Review Mode via Socratic dialog                          |
+| worker-bee  | Worker-Bee Driven Design specialist for Elixir applications  |
+
+### Setting Up Subagents
+
+#### Initializing Configuration
+
+Before installing subagents, initialize the configuration:
+
+```bash
+# Initialize global subagent configuration
+intent claude subagents init
+
+# Initialize project-specific configuration
+intent claude subagents init --project
+```
+
+#### Installing Subagents
+
+```bash
+# List available subagents
+intent claude subagents list
+
+# Install a specific subagent
+intent claude subagents install intent
+
+# Install all available subagents
+intent claude subagents install --all
 ```
 
 #### Verifying Installation
 
 ```bash
-# Check agent status
-intent agents status
+# Check subagent health and integrity
+intent claude subagents status
 
-# Show agent details
-intent agents show intent
+# Show detailed subagent information
+intent claude subagents show intent
 ```
 
-### Managing Agents
+### Managing Subagents
 
-#### Keeping Agents Updated
+#### Keeping Subagents Updated
 
 ```bash
-# Update agents with latest versions
-intent agents sync
+# Sync installed subagents with latest versions
+intent claude subagents sync
 
 # Check for modifications
-intent agents status
+intent claude subagents status
 ```
 
-#### Removing Agents
+#### Removing Subagents
 
 ```bash
-# Remove specific agent
-intent agents uninstall intent
+# Remove a specific subagent
+intent claude subagents uninstall intent
 
-# Remove all Intent-managed agents
-intent agents uninstall --all
+# Remove all Intent-managed subagents
+intent claude subagents uninstall --all
 ```
 
-### Using Agents with Claude
+### Using Subagents with Claude
 
-Once installed, the Intent agent automatically provides Claude with:
+Once installed, subagents automatically provide Claude with domain-specific expertise:
 
-- Complete knowledge of Intent commands and methodology
-- Understanding of steel thread structure and workflows
-- Best practices for Intent project management
-- Backlog.md integration patterns
+- **intent**: Complete knowledge of Intent commands, steel thread methodology, and project structure
+- **elixir**: Elixir coding patterns, antipattern detection, style guidance, and Ash/Phoenix expertise
+- **socrates**: Facilitates Socratic dialog for technical decision-making and architecture review
+- **worker-bee**: Worker-Bee Driven Design (WDD) validation, scaffolding, and compliance checking
 
-**Example: Claude with Intent Agent**
+### Subagent vs AGENTS.md
 
-```
-# Without Intent agent:
-You: "Create a new feature for authentication"
-Claude: "I'll help create authentication. What's your project structure?"
-[You explain Intent, steel threads, etc.]
+| Feature             | Claude Subagents                    | AGENTS.md                        |
+|---------------------|-------------------------------------|----------------------------------|
+| Platform            | Claude Code only                    | Any AI assistant                 |
+| Location            | `intent/plugins/claude/subagents/`  | `intent/llm/AGENTS.md`          |
+| Command             | `intent claude subagents <cmd>`     | `intent agents <cmd>`            |
+| Scope               | Deep, domain-specific expertise     | General project instructions     |
+| Installation        | Installed to `~/.claude/agents/`    | Symlinked to project root        |
 
-# With Intent agent:
-You: "Create a new feature for authentication"  
-Claude: "I'll create a steel thread for authentication:
-         
-         intent st new 'User Authentication System'
-         
-         This creates ST0042. Let me help document the intent
-         and break it into backlog tasks using Intent methodology..."
-```
+### Troubleshooting Subagents
 
-### Creating Custom Agents
-
-For project-specific conventions, create custom agents:
-
-```bash
-# Create project agent directory
-mkdir -p intent/agents/myproject
-
-# Create agent definition
-cat > intent/agents/myproject/agent.md << 'EOF'
----
-name: myproject
-description: Project-specific conventions and patterns
-tools: Bash, Read, Write, Edit
----
-
-You understand our specific project conventions:
-
-## Architecture
-- API endpoints: /api/v2/{resource}
-- Authentication: JWT Bearer tokens
-- Database: PostgreSQL with migrations
-
-## Code Standards
-- Test coverage: minimum 80%
-- Documentation: JSDoc for all public APIs
-- Git: conventional commits format
-EOF
-
-# Install the custom agent
-intent agents install myproject
-```
-
-### Agent Integration with Intent Commands
-
-Agents are automatically integrated with Intent's core workflow:
-
-- **intent init**: Detects Claude Code and offers agent installation
-- **intent doctor**: Includes agent health checks
-- **intent upgrade**: Preserves agent directories during migrations
-
-### Troubleshooting Agents
-
-#### Agent Not Found
+#### Subagent Not Found
 
 ```bash
 # Check if Claude Code is installed
@@ -538,27 +573,27 @@ which claude
 ls ~/.claude/agents/
 ```
 
-#### Agent Out of Sync
+#### Subagent Out of Sync
 
 ```bash
 # Check for local modifications
-intent agents status
+intent claude subagents status
 
 # Sync with latest versions (overwrites local changes)
-intent agents sync
+intent claude subagents sync
 ```
 
-#### Reinstalling Agents
+#### Reinstalling Subagents
 
 ```bash
 # Remove and reinstall
-intent agents uninstall intent
-intent agents install intent
+intent claude subagents uninstall intent
+intent claude subagents install intent
 ```
 
 ## Testing
 
-Intent includes a comprehensive test suite to verify functionality:
+Intent includes a comprehensive test suite (250+ tests) to verify functionality:
 
 ### Running Tests
 
@@ -566,21 +601,35 @@ To run the test suite:
 
 ```bash
 # Run all tests
-cd intent/tests/
-./run_tests.sh
+./tests/run_tests.sh
 
-# Run specific test suite
-./run_tests.sh bootstrap
+# Run a specific test file
+./tests/run_tests.sh tests/unit/treeindex_commands.bats
+
+# Run all unit tests
+./tests/run_tests.sh tests/unit/
 ```
 
 ### Test Structure
 
-Tests are organized by component:
-- `bootstrap_test.bats`: Tests for bootstrap script
-- `init_test.bats`: Tests for init command
-- `st_test.bats`: Tests for steel thread commands
-- `help_test.bats`: Tests for help system
-- `main_test.bats`: Tests for main script
+Tests are organized in `tests/unit/` with 14 test files covering all commands:
+
+| Test File                     | Tests                                           |
+|-------------------------------|--------------------------------------------------|
+| `agent_commands.bats`         | AGENTS.md management (init, generate, sync, validate) |
+| `basic.bats`                  | Basic infrastructure and environment             |
+| `bl_commands.bats`            | Backlog wrapper commands                         |
+| `bootstrap.bats`              | Bootstrap command                                |
+| `config.bats`                 | Configuration and PROJECT_ROOT detection         |
+| `fileindex_commands.bats`     | Fileindex (file tracking and checkbox states)    |
+| `global_commands.bats`        | Global commands (help, doctor, info, etc.)       |
+| `help_commands.bats`          | Help system                                      |
+| `init_commands.bats`          | Init command                                     |
+| `migration.bats`              | Migration and backup                             |
+| `project_commands.bats`       | Project-specific commands                        |
+| `st_commands.bats`            | Steel thread management                         |
+| `task_commands.bats`          | Task management                                  |
+| `treeindex_commands.bats`     | Treeindex (directory summaries)                  |
 
 ## Upgrading Intent
 

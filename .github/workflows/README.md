@@ -1,10 +1,10 @@
 # GitHub Actions Workflows
 
-This directory contains automated workflows that run on GitHub to ensure code quality and test coverage for the STP project.
+This directory contains automated workflows that run on GitHub to ensure code quality and test coverage for the Intent project.
 
 ## Workflows
 
-### 1. STP Tests (`tests.yml`)
+### 1. Intent Tests (`tests.yml`)
 
 **Triggers**: On push to `main` branch and on all pull requests
 
@@ -15,10 +15,10 @@ This directory contains automated workflows that run on GitHub to ensure code qu
 - Provides a summary of test results
 
 **Jobs**:
-- `test-linux`: Runs full test suite on Ubuntu with Node.js for Backlog.md
-- `test-macos`: Runs full test suite on macOS with Node.js for Backlog.md
-- `shellcheck`: Static analysis of shell scripts (non-blocking)
-- `test-summary`: Aggregates results from all test jobs
+- `test-linux` (Test on Ubuntu): Runs full test suite on Ubuntu with Node.js for Backlog.md
+- `test-macos` (Test on macOS): Runs full test suite on macOS with Node.js for Backlog.md
+- `shellcheck` (Shell Script Analysis): Static analysis of shell scripts (non-blocking)
+- `test-summary` (Test Summary): Aggregates results from all test jobs
 
 **Key Features**:
 - Tests on both Ubuntu and macOS to ensure cross-platform compatibility
@@ -49,7 +49,7 @@ This directory contains automated workflows that run on GitHub to ensure code qu
 The test status badge in the README shows the status of the latest test run:
 
 ```markdown
-[![STP Tests](https://github.com/matthewsinclair/dev-stp/actions/workflows/tests.yml/badge.svg)](https://github.com/matthewsinclair/dev-stp/actions/workflows/tests.yml)
+[![Intent Tests](https://github.com/matthewsinclair/intent/actions/workflows/tests.yml/badge.svg)](https://github.com/matthewsinclair/intent/actions/workflows/tests.yml)
 ```
 
 ## Local Testing
@@ -58,17 +58,17 @@ Before pushing, you can run tests locally:
 
 ```bash
 # Run all tests
-cd stp/tests
+cd tests
 ./run_tests.sh
 
-# Run specific test suite
-bats task/task_test.bats
+# Run specific test file
+bats tests/unit/global_commands.bats
 
 # Run integration tests
-bats integration/stp_backlog_integration_test.bats
+bats tests/integration/end_to_end.bats
 
 # Run ShellCheck locally
-shellcheck stp/bin/stp*
+shellcheck bin/intent*
 ```
 
 ## Workflow Maintenance
@@ -77,8 +77,8 @@ shellcheck stp/bin/stp*
 - **GitHub Actions**: Uses `actions/checkout@v4` and `actions/setup-node@v4`
 - **Node.js**: Version 20 for Backlog.md compatibility
 - **Backlog.md**: Installed via `npm install -g backlog.md`
-- **Bats**: Installed via system package manager
-- **Bats Libraries**: Cloned from GitHub if not present
+- **Bats**: Installed via system package manager (Homebrew on macOS, from source on Ubuntu)
+- **Bats Libraries**: Cloned from GitHub if not present (bats-support, bats-assert, bats-file)
 
 ### Test Environments
 - **Ubuntu**: Latest version with apt package manager
@@ -95,8 +95,8 @@ shellcheck stp/bin/stp*
 
 When adding new features:
 
-1. **Add unit tests** in the appropriate test directory
-2. **Update integration tests** if the feature affects STP-Backlog integration
+1. **Add unit tests** in `tests/unit/` as a `.bats` file
+2. **Update integration tests** if the feature affects Intent-Backlog integration
 3. **Run tests locally** before pushing
 4. **Reference the steel thread** in your PR description (eg "Implements ST0042")
 5. **Update documentation** if adding new commands or changing behavior
