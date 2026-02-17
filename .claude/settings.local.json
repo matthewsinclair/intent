@@ -38,7 +38,8 @@
       "Bash(git ls-tree:*)",
       "Bash(./bin/intent:*)",
       "Bash(git tag:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": []
   }

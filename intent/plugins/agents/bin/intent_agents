@@ -1,6 +1,6 @@
 #!/bin/bash
 # intent_agents - Manage AGENTS.md for Intent projects
-# Copyright (c) 2024 Matthew Sinclair
+# Copyright (c) 2026 Matthew Sinclair
 # Licensed under the MIT License (see LICENSE file)
 # Commands: init, generate, sync, validate, template
 
@@ -42,7 +42,7 @@ EOF
 # Initialize AGENTS.md
 intent_agents_init() {
   echo "Initializing AGENTS.md for Intent project..."
-  
+
   # Check if we're in a project
   if [ -z "${PROJECT_ROOT:-}" ]; then
     # Source config to find project root
@@ -50,36 +50,102 @@ intent_agents_init() {
       source "$INTENT_BIN/intent_config"
       load_intent_config
     fi
-    
+
     if [ -z "${PROJECT_ROOT:-}" ]; then
       echo "Error: Not in an Intent project directory"
       echo "Run 'intent init' to create a new project first"
       return 1
     fi
   fi
-  
+
+  # Parse arguments
+  local force=false
+  local template=""
+  for arg in "$@"; do
+    if [ "$arg" = "--force" ] || [ "$arg" = "-f" ]; then
+      force=true
+    elif [ "${arg#--template}" != "$arg" ]; then
+      # Handle --template=value or next arg
+      if [[ "$arg" == *"="* ]]; then
+        template="${arg#*=}"
+      fi
+    elif [ -n "$prev_was_template" ]; then
+      template="$arg"
+      prev_was_template=""
+    fi
+    if [ "$arg" = "--template" ]; then
+      prev_was_template=true
+    fi
+  done
+
   # Check if AGENTS.md already exists
-  if [ -f "$PROJECT_ROOT/AGENTS.md" ] && [ "$1" != "--force" ]; then
+  if [ -f "$PROJECT_ROOT/AGENTS.md" ] && [ "$force" = false ]; then
     echo "AGENTS.md already exists. Use --force to overwrite or 'intent agents sync' to update."
     return 1
   fi
-  
+
   # Create intent/llm directory if it doesn't exist
   mkdir -p "$PROJECT_ROOT/intent/llm"
-  
-  # Generate AGENTS.md content
-  intent_agents_generate_content > "$PROJECT_ROOT/intent/llm/AGENTS.md"
-  
+
+  # Use template if specified
+  if [ -n "$template" ]; then
+    local template_dir="$TEMPLATES_DIR/$template"
+    if [ ! -d "$template_dir" ]; then
+      echo "Error: Template '$template' not found"
+      echo "Available templates:"
+      for tdir in "$TEMPLATES_DIR"/*/; do
+        [ -d "$tdir" ] && echo "  - $(basename "$tdir")"
+      done
+      return 1
+    fi
+
+    # Copy template files
+    if [ -f "$template_dir/AGENTS.md" ]; then
+      cp "$template_dir/AGENTS.md" "$PROJECT_ROOT/intent/llm/AGENTS.md"
+      echo "  Created AGENTS.md from $template template"
+    fi
+
+    if [ -f "$template_dir/RULES.md" ]; then
+      if [ ! -f "$PROJECT_ROOT/intent/llm/RULES.md" ] || [ "$force" = true ]; then
+        cp "$template_dir/RULES.md" "$PROJECT_ROOT/intent/llm/RULES.md"
+        echo "  Created RULES.md from $template template"
+      else
+        echo "  RULES.md already exists (skipped -- human-curated)"
+      fi
+    fi
+
+    if [ -f "$template_dir/ARCHITECTURE.md" ]; then
+      if [ ! -f "$PROJECT_ROOT/intent/llm/ARCHITECTURE.md" ] || [ "$force" = true ]; then
+        cp "$template_dir/ARCHITECTURE.md" "$PROJECT_ROOT/intent/llm/ARCHITECTURE.md"
+        echo "  Created ARCHITECTURE.md from $template template"
+      else
+        echo "  ARCHITECTURE.md already exists (skipped -- human-curated)"
+      fi
+    fi
+  else
+    # Generate default AGENTS.md content
+    intent_agents_generate_content > "$PROJECT_ROOT/intent/llm/AGENTS.md"
+  fi
+
   # Create symlink at project root
   if [ -L "$PROJECT_ROOT/AGENTS.md" ] || [ -f "$PROJECT_ROOT/AGENTS.md" ]; then
     rm -f "$PROJECT_ROOT/AGENTS.md"
   fi
   ln -sf "intent/llm/AGENTS.md" "$PROJECT_ROOT/AGENTS.md"
-  
-  echo "✓ Created AGENTS.md at project root (symlink to intent/llm/AGENTS.md)"
+
+  echo ""
+  echo "Created AGENTS.md at project root (symlink to intent/llm/AGENTS.md)"
   echo ""
   echo "AGENTS.md provides instructions for AI coding agents working with your project."
   echo "Edit intent/llm/AGENTS.md to customize the instructions."
+
+  if [ -n "$template" ]; then
+    echo ""
+    echo "Template '$template' applied. Customize:"
+    echo "  intent/llm/AGENTS.md        -- project overview, commands, setup"
+    echo "  intent/llm/RULES.md         -- coding rules (human-curated)"
+    echo "  intent/llm/ARCHITECTURE.md  -- system architecture (human-curated)"
+  fi
 }
 
 # Generate AGENTS.md content
