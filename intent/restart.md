@@ -6,42 +6,26 @@ Intent v2.4.0 -- a CLI tool for managing steel threads, project documentation, a
 
 ## Current State
 
-ST0020 (Modernizing Elixir Support) is complete. v2.4.0 is on main but not yet tagged/released.
+No active work. v2.4.0 is released and tagged on GitHub. 302 tests passing.
 
-### What v2.4.0 Added
+## What's Next
 
-- **Skills system**: `intent claude skills list/install/sync/uninstall/show` — installs SKILL.md files into `.claude/skills/` in target projects
-- **Three Elixir skills**: elixir-essentials (8 rules), ash-ecto-essentials (7 rules), phoenix-liveview (7 rules)
-- **Upgrade command**: `intent claude upgrade [--apply] [--project-dir DIR]` — diagnoses and upgrades project LLM guidance files
-- **Elixir templates**: `intent agents init --template elixir` creates RULES.md + ARCHITECTURE.md
-- **Reference docs**: ash-ecto.md, liveview.md, testing.md, project-structure.md added to elixir subagent
-- **usage-rules.md**: Intent's own LLM usage guide (root directory)
-- **agent.md refactor**: 23 overlapping rules distilled to 12 non-overlapping
-
-### Remaining v2.4.0 Tasks
-
-1. Tag v2.4.0 and push to both remotes
-2. Create GitHub release (demote v2.3.4 first: `gh release edit v2.3.4 --latest=false`)
-3. Update user_guide.md and reference_guide.md for new commands
-4. Regenerate .treeindex files
-
-## Parked Steel Threads
-
-- **ST0010**: `intent/st/NOT-STARTED/ST0010/info.md`
-- **ST0015**: `intent/st/NOT-STARTED/ST0015/info.md`
+1. Review ST0010 and ST0015 to decide if still relevant
+2. Regenerate .treeindex files for new/changed directories
+3. Fix subagent sync false-positive ("modified locally" when source changed)
 
 ## Key Patterns
 
 - Commands live in `bin/intent_<name>` and are auto-routed by `bin/intent`
-- Global commands are listed in `GLOBAL_COMMANDS` on line 41 of `bin/intent`
-- Plugin commands: `intent agents` -> `intent/plugins/agents/bin/intent_agents`
-- Plugin commands: `intent claude subagents` -> `intent/plugins/claude/bin/intent_claude_subagents`
+- Global commands: `GLOBAL_COMMANDS` on line 41 of `bin/intent`
 - Plugin commands: `intent claude skills` -> `intent/plugins/claude/bin/intent_claude_skills`
+- Plugin commands: `intent claude subagents` -> `intent/plugins/claude/bin/intent_claude_subagents`
 - Plugin commands: `intent claude upgrade` -> `intent/plugins/claude/bin/intent_claude_upgrade`
-- Subagent definitions: `intent/plugins/claude/subagents/<name>/`
+- Plugin commands: `intent agents` -> `intent/plugins/agents/bin/intent_agents`
 - Skill definitions: `intent/plugins/claude/skills/<name>/SKILL.md`
-- Templates: `intent/plugins/agents/templates/<name>/` (currently: default, elixir)
-- Tests are in `tests/unit/` (15 .bats files, 302 tests) and run with `tests/run_tests.sh`
+- Subagent definitions: `intent/plugins/claude/subagents/<name>/`
+- Templates: `intent/plugins/agents/templates/<name>/` (default, elixir)
+- Tests: `tests/unit/` (15 .bats files, 302 tests), run with `tests/run_tests.sh`
 - Two git remotes: `local` (Dropbox) and `upstream` (GitHub)
-- Always run tests before committing
 - NO Claude attribution in commit messages
+- Never use em dashes in skill files (multi-byte truncation bugs)
