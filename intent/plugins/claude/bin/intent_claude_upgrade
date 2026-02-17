@@ -225,7 +225,7 @@ fi
 echo ""
 echo "Checking installed skills..."
 
-for skill in elixir-essentials ash-ecto-essentials phoenix-liveview; do
+for skill in intent-essentials elixir-essentials ash-ecto-essentials phoenix-liveview; do
   if [ -f "$HOME/.claude/skills/$skill/SKILL.md" ]; then
     local_checksum=""
     source_checksum=""

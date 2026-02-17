@@ -25,7 +25,7 @@ shape code as it is generated, complementing subagents which review after
 the fact.
 
 Commands:
-  list        List available and installed skills
+  list        List available and installed skills (-v for details)
   install     Install skill(s) to Claude configuration
   sync        Sync installed skills with latest versions
   uninstall   Remove Intent-managed skills
@@ -33,6 +33,7 @@ Commands:
 
 Examples:
   intent claude skills list                    # Show all skills
+  intent claude skills list -v                 # Show full descriptions
   intent claude skills install elixir-essentials  # Install a skill
   intent claude skills install --all           # Install all available skills
   intent claude skills sync                    # Update modified skills
@@ -157,24 +158,67 @@ intent_claude_skills_list() {
     return 0
   fi
 
+  # Calculate terminal width
+  # $COLUMNS is set by interactive shells but not exported; stty reads the tty directly
+  local term_width
+  term_width="${COLUMNS:-}"
+  if [ -z "$term_width" ] && [ -t 1 ]; then
+    term_width=$(stty size < /dev/tty 2>/dev/null | cut -d' ' -f2)
+  fi
+  : "${term_width:=$(tput cols 2>/dev/null)}"
+  : "${term_width:=100}"
+
+  # Layout: "  " (2) + skill (25) + " - " (3) = 30 left, status right-aligned
+  local desc_width=$(( term_width - 30 - 16 ))
+  [ "$desc_width" -lt 20 ] && desc_width=20
+
+  # Parse --verbose flag
+  local verbose=false
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -v|--verbose) verbose=true; shift ;;
+      *) shift ;;
+    esac
+  done
+
   for skill in $skills; do
     local skill_file="$SKILLS_SOURCE_DIR/$skill/SKILL.md"
     local status=""
 
     if is_skill_installed "$skill"; then
-      status=" [INSTALLED]"
+      status="[INSTALLED]"
     else
-      status=" [NOT INSTALLED]"
+      status="[NOT INSTALLED]"
     fi
 
-    # Extract description from first non-header line
-    local description
-    description=$(sed -n '3p' "$skill_file" 2>/dev/null | head -c 80)
-    if [ -z "$description" ]; then
-      description="No description"
-    fi
+    # Build left side and compute padding to right-align status
+    # Using ${#var} (char count) avoids multi-byte printf padding bugs
+    if [ "$verbose" = true ]; then
+      local full_desc left pad
+      full_desc=$(sed -n '3p' "$skill_file" 2>/dev/null)
+      [ -z "$full_desc" ] && full_desc="No description"
+      left="$(printf '%-25s' "$skill")"
+      pad=$(( term_width - 2 - ${#left} - ${#status} ))
+      [ "$pad" -lt 1 ] && pad=1
+      printf "  %s%*s%s\n" "$left" "$pad" "" "$status"
+      printf "    %s\n\n" "$full_desc"
+    else
+      local description full_desc left pad
+      full_desc=$(sed -n '3p' "$skill_file" 2>/dev/null)
+      if [ -z "$full_desc" ]; then
+        description="No description"
+      elif [ ${#full_desc} -le $desc_width ]; then
+        description="$full_desc"
+      else
+        description="${full_desc:0:$((desc_width - 3))}"
+        description="${description% *}..."
+      fi
 
-    printf "  %-25s - %s%s\n" "$skill" "$description" "$status"
+      left="$(printf '%-25s' "$skill") - $description"
+      pad=$(( term_width - 2 - ${#left} - ${#status} ))
+      [ "$pad" -lt 1 ] && pad=1
+      printf "  %s%*s%s\n" "$left" "$pad" "" "$status"
+    fi
   done
 
   # Check for Claude installation

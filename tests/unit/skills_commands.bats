@@ -66,6 +66,7 @@ teardown() {
   run run_intent claude skills list
   assert_success
   assert_output_contains "Available Skills:"
+  assert_output_contains "intent-essentials"
   assert_output_contains "elixir-essentials"
   assert_output_contains "ash-ecto-essentials"
   assert_output_contains "phoenix-liveview"
@@ -174,12 +175,14 @@ teardown() {
 @test "claude skills install --all installs all available skills" {
   run run_intent claude skills install --all --force
   assert_success
+  assert_output_contains "Installing skill: intent-essentials"
   assert_output_contains "Installing skill: ash-ecto-essentials"
   assert_output_contains "Installing skill: elixir-essentials"
   assert_output_contains "Installing skill: phoenix-liveview"
   assert_output_contains "Installation complete:"
 
   # Verify all skills are installed
+  assert_file_exists "$HOME/.claude/skills/intent-essentials/SKILL.md"
   assert_file_exists "$HOME/.claude/skills/elixir-essentials/SKILL.md"
   assert_file_exists "$HOME/.claude/skills/ash-ecto-essentials/SKILL.md"
   assert_file_exists "$HOME/.claude/skills/phoenix-liveview/SKILL.md"
@@ -507,16 +510,16 @@ teardown() {
   run run_intent claude skills install --all --force
   assert_success
 
-  # Check manifest has all three
+  # Check manifest has all four
   local count
   count=$(jq '.installed | length' "$HOME/.intent/skills/installed-skills.json")
-  [ "$count" -eq 3 ] || fail "Expected 3 installed skills, got $count"
+  [ "$count" -eq 4 ] || fail "Expected 4 installed skills, got $count"
 
   # Uninstall one
   run run_intent claude skills uninstall ash-ecto-essentials --force
   assert_success
 
-  # Check manifest has two
+  # Check manifest has three
   count=$(jq '.installed | length' "$HOME/.intent/skills/installed-skills.json")
-  [ "$count" -eq 2 ] || fail "Expected 2 installed skills, got $count"
+  [ "$count" -eq 3 ] || fail "Expected 3 installed skills, got $count"
 }
