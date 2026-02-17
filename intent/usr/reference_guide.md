@@ -672,6 +672,7 @@ intent claude skills <command> [options]
 
 | Name                   | Rules | Description                                    |
 |------------------------|:-----:|------------------------------------------------|
+| `intent-essentials`    |   7   | Intent workflow rules (CLI usage, conventions) |
 | `elixir-essentials`    |   8   | Core Elixir rules (pattern matching, pipes)    |
 | `ash-ecto-essentials`  |   7   | Ash/Ecto rules (code interfaces, migrations)   |
 | `phoenix-liveview`     |   7   | LiveView rules (streams, two-phase mount)      |
@@ -1195,6 +1196,7 @@ Intent/
 │       └── claude/        # Claude Code integration
 │           ├── bin/       # Plugin scripts
 │           ├── skills/    # Skill definitions
+│           │   ├── intent-essentials/
 │           │   ├── elixir-essentials/
 │           │   ├── ash-ecto-essentials/
 │           │   └── phoenix-liveview/

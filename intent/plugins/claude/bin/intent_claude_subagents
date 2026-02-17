@@ -19,7 +19,7 @@ Manage Claude Code subagents for Intent projects.
 
 Commands:
   init        Initialize agent configuration
-  list        List available and installed agents
+  list        List available and installed agents (-v for details)
   install     Install agent(s) to Claude configuration
   sync        Sync installed agents with latest versions
   uninstall   Remove Intent-managed agents
@@ -29,6 +29,7 @@ Commands:
 Examples:
   intent claude subagents init              # Initialize subagent configuration
   intent claude subagents list              # Show all subagents
+  intent claude subagents list -v           # Show full descriptions
   intent claude subagents install intent    # Install the Intent subagent
   intent claude subagents install --all     # Install all available subagents
   intent claude subagents sync              # Update modified subagents
@@ -164,12 +165,36 @@ get_agent_info() {
 intent_claude_subagents_list() {
   echo "Available Agents:"
   echo ""
-  
+
+  # Terminal width for right-aligned status
+  local term_width
+  term_width="${COLUMNS:-}"
+  if [ -z "$term_width" ] && [ -t 1 ]; then
+    term_width=$(stty size < /dev/tty 2>/dev/null | cut -d' ' -f2)
+  fi
+  : "${term_width:=$(tput cols 2>/dev/null)}"
+  : "${term_width:=100}"
+
+  # Layout: "  " (2) + agent name (12) + " - " (3) = 17 left
+  local desc_width=$(( term_width - 17 - 16 ))
+  [ "$desc_width" -lt 20 ] && desc_width=20
+
+  # Parse --verbose flag
+  local verbose=false
+  local args=()
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -v|--verbose) verbose=true; shift ;;
+      *) args+=("$1"); shift ;;
+    esac
+  done
+  set -- "${args[@]}"
+
   # Global agents
   local global_manifest="$INTENT_HOME/intent/plugins/claude/subagents/.manifest/global-agents.json"
   if [ -f "$global_manifest" ]; then
     echo "Global:"
-    
+
     # Check for jq before proceeding
     if ! command -v jq >/dev/null 2>&1; then
       echo "Error: jq is required for agent operations but not installed"
@@ -180,21 +205,40 @@ intent_claude_subagents_list() {
       echo "         sudo yum install jq (RedHat/CentOS)"
       return 1
     fi
-    
+
     # Read agent names from manifest
     local agents=$(jq -r '.agents[].name' "$global_manifest" 2>/dev/null)
-    
+
     for agent in $agents; do
       local info=$(jq -r ".agents[] | select(.name == \"$agent\") | .description" "$global_manifest" 2>/dev/null || echo "<unable to read description>")
       local status=""
-      
+
       if is_agent_installed "$agent"; then
-        status=" [INSTALLED]"
+        status="[INSTALLED]"
       else
-        status=" [NOT INSTALLED]"
+        status="[NOT INSTALLED]"
       fi
-      
-      printf "  %-12s - %s%s\n" "$agent" "$info" "$status"
+
+      if [ "$verbose" = true ]; then
+        local left pad
+        left="$(printf '%-12s' "$agent")"
+        pad=$(( term_width - 2 - ${#left} - ${#status} ))
+        [ "$pad" -lt 1 ] && pad=1
+        printf "  %s%*s%s\n" "$left" "$pad" "" "$status"
+        printf "    %s\n\n" "$info"
+      else
+        local description left pad
+        if [ ${#info} -le $desc_width ]; then
+          description="$info"
+        else
+          description="${info:0:$((desc_width - 3))}"
+          description="${description% *}..."
+        fi
+        left="$(printf '%-12s' "$agent") - $description"
+        pad=$(( term_width - 2 - ${#left} - ${#status} ))
+        [ "$pad" -lt 1 ] && pad=1
+        printf "  %s%*s%s\n" "$left" "$pad" "" "$status"
+      fi
     done
   else
     echo "  No global agents found"

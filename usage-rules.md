@@ -153,6 +153,7 @@ Subagents install to `~/.claude/agents/<name>.md`. They run in separate context 
 intent claude skills list
 
 # Install a skill
+intent claude skills install intent-essentials
 intent claude skills install elixir-essentials
 intent claude skills install --all
 

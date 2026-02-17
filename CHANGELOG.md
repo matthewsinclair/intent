@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `intent claude skills uninstall <name>` — remove Intent-managed skills
   - `intent claude skills show <name>` — display skill content and status
   - SHA256 checksum-based manifest tracking at `~/.intent/skills/installed-skills.json`
-- Three Elixir skills for proactive code enforcement:
+- Four skills for proactive code enforcement (one universal + three Elixir):
+  - `intent-essentials` — 7 Intent workflow rules (CLI usage, treeindex, steel thread conventions)
   - `elixir-essentials` — 8 core rules (pattern matching, tagged tuples, pipes, naming)
   - `ash-ecto-essentials` — 7 Ash/Ecto rules (code interfaces, migrations, actor placement)
   - `phoenix-liveview` — 7 LiveView rules (two-phase mount, streams, components)

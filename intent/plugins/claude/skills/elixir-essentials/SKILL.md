@@ -1,6 +1,6 @@
 # Elixir Essentials
 
-Core Elixir coding rules enforced on every line of generated code. These are mandatory — no exceptions.
+Core Elixir coding rules enforced on every line of generated code. These are mandatory -- no exceptions.
 
 ## Rules
 
@@ -160,18 +160,18 @@ def process(_user, data), do: transform(data)
 Use `struct.field` for required keys (fails fast). Use `map[:key]` only for truly optional keys. Pattern match to destructure and validate simultaneously.
 
 ```elixir
-# BAD — defensive access on required fields
+# BAD -- defensive access on required fields
 name = user[:name]
 email = user[:email]
 
-# GOOD — assertive access on required fields
+# GOOD -- assertive access on required fields
 name = user.name
 email = user.email
 
-# GOOD — pattern match to destructure
+# GOOD -- pattern match to destructure
 %{name: name, email: email} = user
 
-# GOOD — optional key access (key genuinely might not exist)
+# GOOD -- optional key access (key genuinely might not exist)
 nickname = user[:nickname]
 ```
 
@@ -180,7 +180,7 @@ nickname = user[:nickname]
 No `IO.inspect/2`, no `dbg()`, no `IO.puts` for debugging. Use `dbg()` during development (better pipeline visibility than `IO.inspect`), but never commit either.
 
 ```elixir
-# BAD — committed to source
+# BAD -- committed to source
 def process(data) do
   data
   |> transform()
@@ -188,7 +188,7 @@ def process(data) do
   |> finalize()
 end
 
-# GOOD — clean committed code
+# GOOD -- clean committed code
 def process(data) do
   data
   |> transform()

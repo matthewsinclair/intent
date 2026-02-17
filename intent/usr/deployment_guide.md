@@ -568,6 +568,7 @@ Available skills:
 
 | Skill                | Purpose                                    |
 |----------------------|--------------------------------------------|
+| intent-essentials    | Intent workflow rules (7 mandatory)        |
 | elixir-essentials    | Core Elixir coding rules (8 mandatory)     |
 | ash-ecto-essentials  | Ash/Ecto database patterns (7 mandatory)   |
 | phoenix-liveview     | LiveView patterns and rules (7 mandatory)  |

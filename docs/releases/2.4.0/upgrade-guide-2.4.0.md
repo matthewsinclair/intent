@@ -56,13 +56,14 @@ intent claude subagents status
 
 ## Step 3: Install Skills
 
-Skills are new in 2.4.0. Three Elixir skills are available:
+Skills are new in 2.4.0. Four skills are available (one universal + three Elixir):
 
 ```bash
-# Install all Elixir skills
+# Install all skills
 intent claude skills install --all
 
 # Or install individually
+intent claude skills install intent-essentials
 intent claude skills install elixir-essentials
 intent claude skills install ash-ecto-essentials
 intent claude skills install phoenix-liveview
@@ -73,6 +74,7 @@ intent claude skills list
 
 ### What each skill does
 
+- **intent-essentials** — Intent workflow enforcement (CLI usage, treeindex, steel thread conventions, session wrap-up)
 - **elixir-essentials** — core Elixir patterns (pattern matching, tagged tuples, pipes, naming, assertive access)
 - **ash-ecto-essentials** — Ash-first database access (code interfaces, migrations, actor placement, atomic changes)
 - **phoenix-liveview** — LiveView lifecycle (two-phase mount, streams, navigation, assign_async, components)
@@ -196,6 +198,7 @@ Install jq: `brew install jq` (macOS) or `sudo apt-get install jq` (Linux).
 Verify skills are in the correct location:
 
 ```bash
+ls ~/.claude/skills/intent-essentials/SKILL.md
 ls ~/.claude/skills/elixir-essentials/SKILL.md
 ls ~/.claude/skills/ash-ecto-essentials/SKILL.md
 ls ~/.claude/skills/phoenix-liveview/SKILL.md

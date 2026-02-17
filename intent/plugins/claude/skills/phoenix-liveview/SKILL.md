@@ -1,22 +1,22 @@
 # Phoenix LiveView Essentials
 
-LiveView lifecycle and rendering rules enforced on every LiveView module. These are mandatory — no exceptions.
+LiveView lifecycle and rendering rules enforced on every LiveView module. These are mandatory -- no exceptions.
 
 ## Rules
 
-### 1. Two-phase mount — guard async operations with `connected?(socket)`
+### 1. Two-phase mount -- guard async operations with `connected?(socket)`
 
 Mount is called twice: once for static HTML render (disconnected), once for WebSocket (connected). Never subscribe to PubSub, start timers, or spawn async work during the static render.
 
 ```elixir
-# BAD — subscribes during static render
+# BAD -- subscribes during static render
 @impl true
 def mount(_params, _session, socket) do
   Phoenix.PubSub.subscribe(MyApp.PubSub, "updates")
   {:ok, assign(socket, :items, load_items())}
 end
 
-# GOOD — guard with connected?
+# GOOD -- guard with connected?
 @impl true
 def mount(_params, _session, socket) do
   if connected?(socket) do
@@ -32,7 +32,7 @@ end
 Never assign full collections that grow or update frequently. Use `stream/3` for memory-efficient rendering where only changes are sent to the client.
 
 ```elixir
-# BAD — full list re-rendered on every update
+# BAD -- full list re-rendered on every update
 @impl true
 def mount(_params, _session, socket) do
   {:ok, assign(socket, :messages, list_messages())}
@@ -42,7 +42,7 @@ def handle_info({:new_message, msg}, socket) do
   {:noreply, update(socket, :messages, &[msg | &1])}
 end
 
-# GOOD — stream, only diffs sent
+# GOOD -- stream, only diffs sent
 @impl true
 def mount(_params, _session, socket) do
   {:ok, stream(socket, :messages, list_messages())}
@@ -78,12 +78,12 @@ def mount(_params, _session, socket), do: {:ok, socket}
 def handle_event("click", _params, socket), do: {:noreply, socket}
 ```
 
-### 4. Thin LiveViews — domain logic in context/domain modules
+### 4. Thin LiveViews -- domain logic in context/domain modules
 
 LiveViews are coordinators. They assign state, dispatch to domain, and update assigns. No business logic, data transformation, or aggregation queries.
 
 ```elixir
-# BAD — business logic in LiveView
+# BAD -- business logic in LiveView
 @impl true
 def handle_event("publish", %{"id" => id}, socket) do
   post = MyApp.Content.get_post!(id)
@@ -93,7 +93,7 @@ def handle_event("publish", %{"id" => id}, socket) do
   end
 end
 
-# GOOD — domain function handles all logic
+# GOOD -- domain function handles all logic
 @impl true
 def handle_event("publish", %{"id" => id}, socket) do
   case MyApp.Content.publish_post(id, actor: socket.assigns.current_user) do
@@ -103,22 +103,22 @@ def handle_event("publish", %{"id" => id}, socket) do
 end
 ```
 
-### 5. `push_navigate` vs `push_patch` — correct semantics
+### 5. `push_navigate` vs `push_patch` -- correct semantics
 
 `push_patch` stays in the same LiveView (triggers `handle_params`). `push_navigate` goes to a different LiveView (triggers full mount).
 
 ```elixir
-# GOOD — same LiveView, updating filters
+# GOOD -- same LiveView, updating filters
 def handle_event("filter", %{"status" => status}, socket) do
   {:noreply, push_patch(socket, to: ~p"/posts?status=#{status}")}
 end
 
-# GOOD — different LiveView, navigating away
+# GOOD -- different LiveView, navigating away
 def handle_event("view_details", %{"id" => id}, socket) do
   {:noreply, push_navigate(socket, to: ~p"/posts/#{id}")}
 end
 
-# BAD — push_patch to a different LiveView (won't remount)
+# BAD -- push_patch to a different LiveView (won't remount)
 def handle_event("go_home", _params, socket) do
   {:noreply, push_patch(socket, to: ~p"/")}
 end
@@ -129,14 +129,14 @@ end
 Never block mount with expensive operations. Use `assign_async/3` for concurrent data loading after initial render.
 
 ```elixir
-# BAD — blocks initial render
+# BAD -- blocks initial render
 @impl true
 def mount(_params, _session, socket) do
   stats = MyApp.Analytics.compute_stats!()  # slow query
   {:ok, assign(socket, :stats, stats)}
 end
 
-# GOOD — non-blocking, shows loading state
+# GOOD -- non-blocking, shows loading state
 @impl true
 def mount(_params, _session, socket) do
   {:ok,
@@ -161,14 +161,14 @@ Handle async states in template:
 When the same HTML structure appears twice, extract it into a function component with typed attributes.
 
 ```elixir
-# BAD — duplicated markup across LiveViews
+# BAD -- duplicated markup across LiveViews
 ~H"""
 <span class="badge badge-green">Active</span>
 ...
 <span class="badge badge-red">Inactive</span>
 """
 
-# GOOD — reusable component
+# GOOD -- reusable component
 attr :color, :atom, values: [:green, :red, :yellow, :gray], required: true
 attr :label, :string, required: true
 
