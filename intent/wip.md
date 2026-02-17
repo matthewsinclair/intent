@@ -45,6 +45,6 @@ Possible directions:
 - Steel threads: `intent/st/` (ST0020 most recent)
 - Changelog: `CHANGELOG.md`
 - Documentation: `intent/usr/user_guide.md`, `intent/usr/reference_guide.md`
-- Test suite: `tests/run_tests.sh` (292 tests across 15 files)
+- Test suite: `tests/run_tests.sh` (302 tests across 15 files)
 - Skills source: `intent/plugins/claude/skills/`
 - Upgrade command: `intent/plugins/claude/bin/intent_claude_upgrade`

@@ -90,7 +90,7 @@ The Elixir subagent's core rules were refactored from 23 overlapping rules to 12
 ## Testing
 
 - 37 new BATS tests for skills commands (`tests/unit/skills_commands.bats`)
-- Full test suite: **292 tests** across **15 test files**
+- Full test suite: **302 tests** across **15 test files**
 - All tests passing on macOS and Linux
 
 ## Upgrade Guide

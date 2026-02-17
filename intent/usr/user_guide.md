@@ -654,7 +654,7 @@ This creates AGENTS.md, RULES.md, and ARCHITECTURE.md with Elixir-specific defau
 
 ## Testing
 
-Intent includes a comprehensive test suite (292 tests across 15 files) to verify functionality:
+Intent includes a comprehensive test suite (302 tests across 15 files) to verify functionality:
 
 ### Running Tests
 

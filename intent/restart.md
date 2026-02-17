@@ -41,7 +41,7 @@ ST0020 (Modernizing Elixir Support) is complete. v2.4.0 is on main but not yet t
 - Subagent definitions: `intent/plugins/claude/subagents/<name>/`
 - Skill definitions: `intent/plugins/claude/skills/<name>/SKILL.md`
 - Templates: `intent/plugins/agents/templates/<name>/` (currently: default, elixir)
-- Tests are in `tests/unit/` (15 .bats files, 292 tests) and run with `tests/run_tests.sh`
+- Tests are in `tests/unit/` (15 .bats files, 302 tests) and run with `tests/run_tests.sh`
 - Two git remotes: `local` (Dropbox) and `upstream` (GitHub)
 - Always run tests before committing
 - NO Claude attribution in commit messages
