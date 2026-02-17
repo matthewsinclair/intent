@@ -34,7 +34,7 @@ Longer-term (check with user):
 | `intent/plugins/claude/bin/intent_claude_subagents`| Claude subagent management             |
 | `intent/plugins/agents/bin/intent_agents`          | AGENTS.md management                   |
 | `usage-rules.md`                                   | Intent's own LLM usage guide           |
-| `tests/run_tests.sh`                               | Test runner (292 tests, 15 files)      |
+| `tests/run_tests.sh`                               | Test runner (302 tests, 15 files)      |
 
 ## Project Conventions
 

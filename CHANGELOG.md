@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - RULES.md and ARCHITECTURE.md are human-curated (not overwritten without `--force`)
 - Added NEVER DO rule: never put `require` inside a function body (module level only)
 - Updated copyright to 2026 across all source files
-- Full test suite now at 292 tests across 15 test files
+- Full test suite now at 302 tests across 15 test files
 
 ## [2.3.4] - 2026-02-04
 
