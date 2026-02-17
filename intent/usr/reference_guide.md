@@ -1,10 +1,10 @@
 ---
-verblock: "05 Feb 2026:v2.3.4: Matthew Sinclair - Updated for Intent v2.3.4"
-intent_version: 2.3.4
+verblock: "17 Feb 2026:v2.4.0: Matthew Sinclair - Updated for Intent v2.4.0"
+intent_version: 2.4.0
 ---
 # Reference Guide
 
-This reference guide provides comprehensive information about the Intent system (v2.3.4). Unlike the task-oriented User Guide, this reference guide serves as a complete reference for all aspects of the system.
+This reference guide provides comprehensive information about the Intent system (v2.4.0). Unlike the task-oriented User Guide, this reference guide serves as a complete reference for all aspects of the system.
 
 ## Table of Contents
 
@@ -22,7 +22,7 @@ This reference guide provides comprehensive information about the Intent system 
 
 #### `intent upgrade`
 
-Upgrades a project from an older version to Intent v2.3.4.
+Upgrades a project from an older version to Intent v2.4.0.
 
 **Usage:**
 
@@ -641,6 +641,98 @@ intent claude subagents status --verbose
 
 **Plugin Location:** Subagent definitions live in `intent/plugins/claude/subagents/`.
 
+#### `intent claude skills`
+
+Manages Claude Code skills for Intent projects. Skills are always-on enforcement rules loaded into every session.
+
+**Usage:**
+
+```bash
+intent claude skills <command> [options]
+```
+
+**Subcommands:**
+
+| Command     | Description                                         |
+|-------------|-----------------------------------------------------|
+| `list`      | List available and installed skills                 |
+| `install`   | Install skill(s) to `.claude/skills/`               |
+| `sync`      | Sync installed skills with latest versions          |
+| `uninstall` | Remove Intent-managed skills                         |
+| `show`      | Display skill content and status                    |
+
+**Options:**
+
+| Flag            | Description                                     |
+|-----------------|-------------------------------------------------|
+| `--force, -f`   | Force operation                                 |
+| `--all`         | Apply to all skills                             |
+
+**Available Skills:**
+
+| Name                   | Rules | Description                                    |
+|------------------------|:-----:|------------------------------------------------|
+| `elixir-essentials`    |   8   | Core Elixir rules (pattern matching, pipes)    |
+| `ash-ecto-essentials`  |   7   | Ash/Ecto rules (code interfaces, migrations)   |
+| `phoenix-liveview`     |   7   | LiveView rules (streams, two-phase mount)      |
+
+**Example:**
+
+```bash
+# List skills
+intent claude skills list
+
+# Install all skills
+intent claude skills install --all
+
+# Check for updates
+intent claude skills sync
+
+# View skill content
+intent claude skills show elixir-essentials
+```
+
+**Plugin Location:** Skill definitions live in `intent/plugins/claude/skills/`.
+**Install Location:** Skills install to `.claude/skills/<name>/SKILL.md` in the target project.
+
+#### `intent claude upgrade`
+
+Diagnoses and upgrades LLM guidance files in existing Intent projects.
+
+**Usage:**
+
+```bash
+intent claude upgrade [options]
+```
+
+**Options:**
+
+| Flag                    | Description                                    |
+|-------------------------|------------------------------------------------|
+| `--apply`               | Apply changes (default is dry-run)             |
+| `--project-dir DIR`     | Target external project directory              |
+
+**Example:**
+
+```bash
+# Dry-run: diagnose and show plan
+intent claude upgrade
+
+# Apply upgrade to current project
+intent claude upgrade --apply
+
+# Apply upgrade to external project
+intent claude upgrade --apply --project-dir /path/to/project
+```
+
+**What it does:**
+
+1. Diagnoses current LLM guidance files (AGENTS.md, RULES.md, ARCHITECTURE.md)
+2. Detects deprecated files (AGENTS-phx.md, llm_preamble.md, usage-rules.md)
+3. Checks subagent and skill installation status
+4. Generates a project-specific upgrade plan
+5. With `--apply`, executes the plan
+
 #### `intent bl` / `intent backlog`
 
 Intent wrapper for Backlog.md task management.
@@ -956,7 +1048,7 @@ Each Intent file includes version information to track compatibility:
 
 ```yaml
 ---
-intent_version: 2.3.4
+intent_version: 2.4.0
 ---
 ```
 
@@ -1093,12 +1185,19 @@ Intent/
 │   │   └── tpd/           # Technical Product Design
 │   ├── usr/               # User documentation
 │   ├── llm/               # LLM-specific content
-│   │   └── AGENTS.md      # Universal AI agent instructions
+│   │   ├── AGENTS.md      # Universal AI agent instructions (auto-generated)
+│   │   ├── RULES.md       # Coding rules and conventions (human-curated)
+│   │   └── ARCHITECTURE.md # System architecture (human-curated)
 │   └── plugins/           # Plugin architecture
 │       ├── agents/        # AGENTS.md plugin
-│       │   └── bin/       # Plugin scripts
+│       │   ├── bin/       # Plugin scripts
+│       │   └── templates/ # AGENTS.md templates (default, elixir)
 │       └── claude/        # Claude Code integration
 │           ├── bin/       # Plugin scripts
+│           ├── skills/    # Skill definitions
+│           │   ├── elixir-essentials/
+│           │   ├── ash-ecto-essentials/
+│           │   └── phoenix-liveview/
 │           └── subagents/ # Subagent definitions
 │               ├── intent/
 │               ├── elixir/
@@ -1106,7 +1205,7 @@ Intent/
 │               └── worker-bee/
 ├── bin/                   # Intent scripts (executable)
 ├── tests/                 # Test suite
-│   ├── unit/              # Unit tests (14 .bats files)
+│   ├── unit/              # Unit tests (15 .bats files)
 │   ├── integration/       # Integration tests
 │   ├── lib/               # Test helper libraries
 │   ├── fixtures/          # Test fixtures
@@ -1143,7 +1242,7 @@ Example:
 {
   "project_name": "Project Name",
   "author": "Default Author",
-  "intent_version": "2.3.4",
+  "intent_version": "2.4.0",
   "st_prefix": "ST"
 }
 ```
@@ -1200,6 +1299,9 @@ Example:
 | AGENTS.md      | Universal AI agent instructions file for any AI platform                         |
 | Subagent       | A Claude Code sub-agent with domain-specific expertise                           |
 | Plugin         | An extension module for Intent (eg agents, claude)                               |
+| Skill          | An always-on Claude Code enforcement file installed to `.claude/skills/`          |
+| RULES.md       | Human-curated coding rules and conventions file in `intent/llm/`                 |
+| ARCHITECTURE.md| Human-curated system architecture description in `intent/llm/`                   |
 
 ## Backlog.md Integration
 

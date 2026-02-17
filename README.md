@@ -98,7 +98,7 @@ $ intent st show ST0015
 
 ## 🤖 Claude Code Integration
 
-Intent v2.3.4 integrates with [Claude Code](https://claude.ai/code) sub-agents to supercharge AI collaboration:
+Intent v2.4.0 integrates with [Claude Code](https://claude.ai/code) through sub-agents and skills to supercharge AI collaboration:
 
 ```bash
 # Initialize subagent configuration (one-time setup)
@@ -341,11 +341,23 @@ intent claude subagents sync         # Update subagents with latest versions
 intent claude subagents show <name>  # Display detailed subagent information
 ```
 
-### LLM Integration
+### Claude Skills Management
 
 ```bash
-intent llm usage_rules               # Display Intent usage patterns for LLMs
-intent llm usage_rules --symlink     # Create usage-rules.md symlink
+intent claude skills list            # Show available and installed skills
+intent claude skills install <name>  # Install a skill to .claude/skills/
+intent claude skills install --all   # Install all available skills
+intent claude skills sync            # Update installed skills with latest versions
+intent claude skills uninstall <name>  # Remove Intent-managed skills
+intent claude skills show <name>     # Display skill content and status
+```
+
+### LLM Guidance Upgrade
+
+```bash
+intent claude upgrade                # Diagnose LLM guidance files (dry-run)
+intent claude upgrade --apply        # Apply upgrade changes
+intent claude upgrade --project-dir DIR  # Target external project
 ```
 
 ## 🏗️ Project Structure
@@ -362,9 +374,10 @@ intent llm usage_rules --symlink     # Create usage-rules.md symlink
 │   ├── usr/          # User documentation
 │   ├── llm/          # LLM-specific content (AGENTS.md, usage-rules)
 │   ├── plugins/      # Plugin architecture
-│   │   ├── agents/   # AGENTS.md plugin
+│   │   ├── agents/   # AGENTS.md plugin (inc. templates)
 │   │   └── claude/   # Claude Code integration
-│   │       └── subagents/  # Subagent definitions
+│   │       ├── subagents/  # Subagent definitions
+│   │       └── skills/     # Skill definitions
 │   └── wip.md        # Current work
 ├── lib/              # Templates and libraries
 ├── tests/            # Test suites

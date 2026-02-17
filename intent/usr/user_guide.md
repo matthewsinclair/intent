@@ -1,6 +1,6 @@
 ---
-verblock: "05 Feb 2026:v2.3.4: Matthew Sinclair - Updated to Intent v2.3.4"
-intent_version: 2.3.4
+verblock: "17 Feb 2026:v2.4.0: Matthew Sinclair - Updated to Intent v2.4.0"
+intent_version: 2.4.0
 ---
 # User Guide
 
@@ -18,8 +18,10 @@ This user guide provides task-oriented instructions for using the Intent system.
 8. [Treeindex](#treeindex)
 9. [AGENTS.md](#agentsmd)
 10. [Claude Subagent Management](#claude-subagent-management)
-11. [Testing](#testing)
-12. [Troubleshooting](#troubleshooting)
+11. [Claude Skills Management](#claude-skills-management)
+12. [LLM Guidance Upgrade](#llm-guidance-upgrade)
+13. [Testing](#testing)
+14. [Troubleshooting](#troubleshooting)
 
 ## Introduction
 
@@ -344,37 +346,21 @@ Update these documents as features are added or changed.
 
 Intent is designed for effective collaboration with Large Language Models like Claude:
 
-### Using the LLM Preamble
+### Three-File LLM Guidance System
 
-The LLM preamble file contains context that should be shared with LLMs at the beginning of each session:
+Intent v2.4.0 uses a rationalized three-file system for LLM guidance:
 
-```bash
-# View the LLM preamble
-cat intent/llm/llm_preamble.md
-```
+| File              | Purpose                          | Management        |
+|-------------------|----------------------------------|-------------------|
+| `AGENTS.md`       | Factual project overview         | Auto-generated    |
+| `RULES.md`        | Mandatory coding rules           | Human-curated     |
+| `ARCHITECTURE.md` | System structure and decisions   | Human-curated     |
 
-Include this preamble when starting new sessions with an LLM to provide essential context.
+These files live in `intent/llm/`. AGENTS.md is managed by `intent agents sync`. RULES.md and ARCHITECTURE.md are human-curated and never overwritten by Intent commands.
 
-### Understanding Intent Usage Patterns
+### Usage Rules
 
-Intent provides usage rules documentation specifically designed for LLMs:
-
-```bash
-# Display usage patterns and workflows for LLMs
-intent llm usage_rules
-
-# Create symlink for Elixir projects (or other tools expecting usage-rules.md)
-intent llm usage_rules --symlink
-
-# Save to a file for reference
-intent llm usage_rules > usage-rules.md
-```
-
-This document helps LLMs understand:
-- How to use Intent commands effectively
-- Common workflows and best practices
-- Steel thread management patterns
-- Task integration with Backlog.md
+Intent ships with `usage-rules.md` in the project root -- an LLM-optimized reference for how to use Intent itself. This file follows the pattern established by `deps/ash/usage-rules.md` in Ash projects.
 
 ### Contextualizing Work with Steel Threads
 
@@ -591,9 +577,83 @@ intent claude subagents uninstall intent
 intent claude subagents install intent
 ```
 
+## Claude Skills Management
+
+Intent v2.4.0 introduces skills -- always-on Claude Code enforcement rules that shape code as it is generated. Unlike subagents (which review after the fact), skills are proactive.
+
+### Available Skills
+
+| Skill                  | Rules | Focus                                        |
+|------------------------|:-----:|----------------------------------------------|
+| `elixir-essentials`    |   8   | Pattern matching, tagged tuples, pipes, naming |
+| `ash-ecto-essentials`  |   7   | Code interfaces, migrations, actor placement  |
+| `phoenix-liveview`     |   7   | Two-phase mount, streams, components          |
+
+### Installing Skills
+
+```bash
+# List available and installed skills
+intent claude skills list
+
+# Install a specific skill
+intent claude skills install elixir-essentials
+
+# Install all available skills
+intent claude skills install --all
+```
+
+### Managing Skills
+
+```bash
+# Check for updates
+intent claude skills sync
+
+# View skill content
+intent claude skills show elixir-essentials
+
+# Remove a skill
+intent claude skills uninstall elixir-essentials
+```
+
+Skills install to `.claude/skills/<name>/SKILL.md` in the target project and are loaded into every Claude Code session automatically.
+
+## LLM Guidance Upgrade
+
+Intent v2.4.0 includes an upgrade command for migrating existing projects to the new LLM guidance structure.
+
+### Running the Upgrade
+
+```bash
+# Dry-run: diagnose and show upgrade plan
+intent claude upgrade
+
+# Apply the upgrade
+intent claude upgrade --apply
+
+# Target a different project
+intent claude upgrade --apply --project-dir /path/to/project
+```
+
+### What Gets Upgraded
+
+- Stale AGENTS.md files are regenerated
+- Missing RULES.md and ARCHITECTURE.md are created from templates (Elixir projects)
+- Deprecated files (AGENTS-phx.md, llm_preamble.md) are flagged for removal
+- Subagents and skills are installed/updated
+
+### Elixir Project Templates
+
+For Elixir projects, initialize the three-file system from templates:
+
+```bash
+intent agents init --template elixir
+```
+
+This creates AGENTS.md, RULES.md, and ARCHITECTURE.md with Elixir-specific defaults.
+
 ## Testing
 
-Intent includes a comprehensive test suite (250+ tests) to verify functionality:
+Intent includes a comprehensive test suite (292 tests across 15 files) to verify functionality:
 
 ### Running Tests
 
@@ -612,7 +672,7 @@ To run the test suite:
 
 ### Test Structure
 
-Tests are organized in `tests/unit/` with 14 test files covering all commands:
+Tests are organized in `tests/unit/` with 15 test files covering all commands:
 
 | Test File                     | Tests                                           |
 |-------------------------------|--------------------------------------------------|
@@ -628,6 +688,7 @@ Tests are organized in `tests/unit/` with 14 test files covering all commands:
 | `migration.bats`              | Migration and backup                             |
 | `project_commands.bats`       | Project-specific commands                        |
 | `st_commands.bats`            | Steel thread management                         |
+| `skills_commands.bats`        | Skills management (install, sync, uninstall, show) |
 | `task_commands.bats`          | Task management                                  |
 | `treeindex_commands.bats`     | Treeindex (directory summaries)                  |
 
