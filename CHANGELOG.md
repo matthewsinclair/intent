@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2026-02-17
+
+### Added
+
+- **Skills system** — new always-on enforcement layer for Claude Code (ST0020)
+  - `intent claude skills list` — show available and installed skills
+  - `intent claude skills install <name>` — install skill(s) to `.claude/skills/`
+  - `intent claude skills sync` — update installed skills with latest versions
+  - `intent claude skills uninstall <name>` — remove Intent-managed skills
+  - `intent claude skills show <name>` — display skill content and status
+  - SHA256 checksum-based manifest tracking at `~/.intent/skills/installed-skills.json`
+- Three Elixir skills for proactive code enforcement:
+  - `elixir-essentials` — 8 core rules (pattern matching, tagged tuples, pipes, naming)
+  - `ash-ecto-essentials` — 7 Ash/Ecto rules (code interfaces, migrations, actor placement)
+  - `phoenix-liveview` — 7 LiveView rules (two-phase mount, streams, components)
+- `intent claude upgrade` command for diagnosing and upgrading LLM guidance layer
+  - Dry-run by default (use `--apply` to execute)
+  - `--project-dir DIR` to target external projects
+  - Diagnoses files, subagents, and skills; generates upgrade plan; applies changes
+- Elixir subagent reference documents:
+  - `ash-ecto.md` — Ash/Ecto database patterns (Ash-first, never raw Ecto)
+  - `liveview.md` — LiveView operational patterns (two-phase rendering, streams, uploads)
+  - `testing.md` — Testing reference (DataCase, ConnCase, LiveView, Mox, Ash testing)
+  - `project-structure.md` — Standard Phoenix/Ash project layout
+- Elixir project templates for `intent agents init --template elixir`:
+  - `AGENTS.md` template with Elixir project overview and commands
+  - `RULES.md` template with 9 core rules + framework rules + NEVER DO list
+  - `ARCHITECTURE.md` template with domain map and directory structure skeleton
+- `usage-rules.md` — Intent's own LLM-optimized usage reference (~310 lines)
+- `docs/upgrade-guide-2.4.0.md` — human-readable upgrade guide for Intent projects
+- 37 BATS tests for skills commands in `tests/unit/skills_commands.bats`
+
+### Changed
+
+- Refactored Elixir subagent rules from 23 overlapping to 12 non-overlapping rules
+  - Organized into 5 categories: Data Access, Control Flow, Composition, Error Handling, Code Hygiene
+  - Each rule is distinct with no overlap between categories
+- Updated `intent agents init` to support `--template <name>` flag
+  - Template copies AGENTS.md, RULES.md, ARCHITECTURE.md from template directory
+  - RULES.md and ARCHITECTURE.md are human-curated (not overwritten without `--force`)
+- Added NEVER DO rule: never put `require` inside a function body (module level only)
+- Updated copyright to 2026 across all source files
+- Full test suite now at 292 tests across 15 test files
+
 ## [2.3.4] - 2026-02-04
 
 ### Added
@@ -307,10 +351,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    # Clone Intent repository
    git clone https://github.com/matthewsinclair/intent.git
    cd intent
-   
+
    # Add to PATH
    export PATH="$PATH:$(pwd)/bin"
-   
+
    # Bootstrap global configuration
    intent bootstrap
    ```
@@ -445,6 +489,7 @@ See [Release Notes](./docs/releases/2.0.0/RELEASE_NOTES.md) for complete details
 - `stp upgrade` - Upgrade STP files to latest format
 - `stp help` - Comprehensive help system
 
+[2.4.0]: https://github.com/matthewsinclair/intent/compare/v2.3.4...v2.4.0
 [2.3.4]: https://github.com/matthewsinclair/intent/compare/v2.3.3...v2.3.4
 [2.3.3]: https://github.com/matthewsinclair/intent/compare/v2.3.2...v2.3.3
 [2.3.2]: https://github.com/matthewsinclair/intent/compare/v2.3.1...v2.3.2
