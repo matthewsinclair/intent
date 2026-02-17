@@ -260,7 +260,7 @@ fi
 
 if [ ${#ACTIONS[@]} -gt 0 ]; then
   echo "Actions to perform:"
-  local idx=1
+  idx=1
   for action in "${ACTIONS[@]}"; do
     echo "  $idx. $action"
     ((idx++))
