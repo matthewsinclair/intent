@@ -2,7 +2,7 @@
 
 ## Overview
 
-This directory contains the test suite for Intent v2.3.4. The tests are written using [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System).
+This directory contains the test suite for Intent v2.4.0. The tests are written using [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System).
 
 ## Directory Structure
 
@@ -20,6 +20,7 @@ tests/
 │   ├── init_commands.bats         # Init command tests
 │   ├── migration.bats             # Migration and backup tests
 │   ├── project_commands.bats      # Tests for project-specific commands
+│   ├── skills_commands.bats       # Skills management command tests
 │   ├── st_commands.bats           # Steel thread command tests
 │   ├── task_commands.bats         # Task management command tests
 │   └── treeindex_commands.bats    # Treeindex command tests
@@ -121,6 +122,7 @@ Unit tests focus on individual commands and features:
 - **project_commands.bats** - Tests commands that require a project context
 - **st_commands.bats** - Tests for steel thread management commands
 - **task_commands.bats** - Tests for task management commands
+- **skills_commands.bats** - Tests for skills management (`intent claude skills install/list/sync/uninstall/show`)
 - **treeindex_commands.bats** - Tests for the treeindex command (directory summaries)
 
 ### Integration Tests

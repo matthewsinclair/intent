@@ -1,6 +1,6 @@
-# Hello World - Intent v2.3.4 Example
+# Hello World - Intent v2.4.0 Example
 
-This is an example project demonstrating the Intent v2.3.4 structure.
+This is an example project demonstrating the Intent v2.4.0 structure.
 
 ## Project Structure
 
@@ -30,13 +30,15 @@ hello-world/
 4. **Plugin Architecture**: Subagents live in `intent/plugins/claude/subagents/`
 5. **Treeindex**: LLM-oriented directory summaries in `intent/.treeindex/`
 6. **AGENTS.md**: Universal AI agent instructions in `intent/llm/AGENTS.md`
+7. **Skills**: Always-on Claude Code enforcement in `.claude/skills/`
+8. **Three-file system**: AGENTS.md + RULES.md + ARCHITECTURE.md in `intent/llm/`
 
 ## Configuration
 
 The `.intent/config.json` file:
 ```json
 {
-  "intent_version": "2.3.4",
+  "intent_version": "2.4.0",
   "intent_dir": "intent",
   "backlog_dir": "backlog",
   "author": "Intent User",
@@ -46,7 +48,7 @@ The `.intent/config.json` file:
 
 ## Usage
 
-After installing Intent v2.3.4:
+After installing Intent v2.4.0:
 
 ```bash
 # Initialize a new project
@@ -60,6 +62,9 @@ intent claude subagents init
 
 # Create a steel thread
 intent st new "My Feature"
+
+# Install Claude Code skills (Elixir projects)
+intent claude skills install --all
 
 # Generate directory summaries for LLM orientation
 intent treeindex lib

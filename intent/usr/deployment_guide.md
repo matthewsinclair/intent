@@ -1,10 +1,10 @@
 ---
-verblock: "05 Feb 2026:v0.3: Matthew Sinclair - Updated to Intent v2.3.4"
-intent_version: 2.3.4
+verblock: "17 Feb 2026:v0.4: Matthew Sinclair - Updated to Intent v2.4.0"
+intent_version: 2.4.0
 ---
 # Deployment Guide
 
-This deployment guide provides instructions for deploying the Intent v2.3.4 system in various environments. It covers installation, configuration, and integration with other tools and workflows.
+This deployment guide provides instructions for deploying the Intent v2.4.0 system in various environments. It covers installation, configuration, and integration with other tools and workflows.
 
 ## Table of Contents
 
@@ -211,25 +211,46 @@ jobs:
 
 #### Claude Code Integration
 
-To integrate Intent with Claude Code:
+Intent v2.4.0 integrates with Claude Code through a three-layer system:
 
-1. Share the `intent/llm/llm_preamble.md` at the beginning of each session
-2. Keep relevant steel thread documents in the context window
-3. Use structured templates for consistent information sharing
+1. **LLM Guidance Files** — Three files in `intent/llm/`:
+   - `AGENTS.md` — Auto-generated project overview (run `intent agents sync` to update)
+   - `RULES.md` — Human-curated coding rules and conventions
+   - `ARCHITECTURE.md` — Human-curated system architecture description
 
-Example Claude Code command:
+2. **Claude Skills** — Always-on enforcement files installed to `.claude/skills/`:
+   ```bash
+   # Install Elixir skills (for Elixir/Phoenix/Ash projects)
+   intent claude skills install --all
+
+   # Or install individually
+   intent claude skills install elixir-essentials
+   intent claude skills install ash-ecto-essentials
+   intent claude skills install phoenix-liveview
+   ```
+
+3. **Claude Subagents** — Specialized agents for deep review:
+   ```bash
+   intent claude subagents install --all
+   ```
+
+To upgrade an existing project's LLM guidance to the v2.4.0 structure:
 
 ```bash
-claude code --context intent/llm/llm_preamble.md --context intent/st/ST0001/info.md
+# Diagnose current state (dry-run)
+intent claude upgrade
+
+# Apply changes
+intent claude upgrade --apply
 ```
 
 #### Other LLM Integration
 
 For other LLM platforms:
 
-1. Create platform-specific scripts to extract and format Intent context
-2. Maintain a consistent formatting pattern when sharing information
-3. Consider implementing automatic context extraction helpers
+1. Share `intent/llm/AGENTS.md` as the project entry point
+2. Include relevant steel thread documents for task context
+3. Reference `intent/llm/RULES.md` for coding conventions
 
 ## Maintenance
 
@@ -450,7 +471,7 @@ If you encounter issues:
 
 ### Plugin Architecture
 
-Intent v2.3.0 introduced a plugin architecture. Plugins live in `intent/plugins/` and extend Intent's functionality:
+Intent v2.3.0 introduced a plugin architecture, extended in v2.4.0 with skills support. Plugins live in `intent/plugins/` and extend Intent's functionality:
 
 ```
 intent/plugins/
@@ -458,11 +479,17 @@ intent/plugins/
 │   ├── bin/
 │   │   └── intent_agents
 │   └── templates/
-│       └── default.md
+│       ├── default.md
+│       └── elixir/      # Elixir project templates (AGENTS.md, RULES.md, ARCHITECTURE.md)
 └── claude/              # Claude Code integration plugin
     ├── bin/
-    │   └── intent_claude_subagents
-    └── subagents/
+    │   ├── intent_claude_subagents
+    │   └── intent_claude_skills
+    ├── skills/          # Skill definitions
+    │   ├── elixir-essentials/
+    │   ├── ash-ecto-essentials/
+    │   └── phoenix-liveview/
+    └── subagents/       # Subagent definitions
         ├── intent/
         ├── elixir/
         ├── socrates/
@@ -516,6 +543,70 @@ intent claude subagents sync
 intent claude subagents uninstall --all
 intent claude subagents install --all
 ```
+
+### Deploying Claude Skills
+
+Skills are always-on enforcement files that install to `.claude/skills/` in target projects:
+
+```bash
+# List available skills
+intent claude skills list
+
+# Install all skills (for Elixir/Phoenix/Ash projects)
+intent claude skills install --all
+
+# Install individually
+intent claude skills install elixir-essentials
+intent claude skills install ash-ecto-essentials
+intent claude skills install phoenix-liveview
+
+# Check installation status
+intent claude skills show elixir-essentials
+```
+
+Available skills:
+
+| Skill                | Purpose                                    |
+|----------------------|--------------------------------------------|
+| elixir-essentials    | Core Elixir coding rules (8 mandatory)     |
+| ash-ecto-essentials  | Ash/Ecto database patterns (7 mandatory)   |
+| phoenix-liveview     | LiveView patterns and rules (7 mandatory)  |
+
+### Skill Maintenance
+
+```bash
+# Sync installed skills with latest versions
+intent claude skills sync
+
+# Uninstall a skill
+intent claude skills uninstall elixir-essentials
+
+# Uninstall all Intent-managed skills
+intent claude skills uninstall --all
+```
+
+### Upgrading LLM Guidance
+
+For projects upgrading from Intent v2.3.x to v2.4.0:
+
+```bash
+# Diagnose current state (dry-run, shows what would change)
+intent claude upgrade
+
+# Apply changes to current project
+intent claude upgrade --apply
+
+# Upgrade a different project
+intent claude upgrade --apply --project-dir /path/to/project
+```
+
+The upgrade command:
+- Regenerates `AGENTS.md` with current project state
+- Creates `RULES.md` from template if missing
+- Creates `ARCHITECTURE.md` from template if missing
+- Merges deprecated `AGENTS-phx.md` content into `RULES.md`
+- Removes deprecated files (`llm_preamble.md`, `usage-rules.md`)
+- Installs recommended skills
 
 ## Treeindex Integration
 
