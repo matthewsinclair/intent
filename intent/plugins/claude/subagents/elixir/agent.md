@@ -27,12 +27,14 @@ We NEVER have duplicated code paths for the same thing. There are no exceptions.
 Controllers and LiveViews are coordinators, not containers for business logic.
 
 **LiveViews should only contain:**
+
 - `mount/3` -- assign initial state from domain calls
 - `render/1` -- template
 - `handle_event/3` -- dispatch to domain, update assigns
 - `handle_info/2` -- handle async messages
 
 **BAD -- business logic in LiveView:**
+
 ```elixir
 def mount(_params, _session, socket) do
   items = MyApp.Domain.list_items!(user.id, actor: user)
@@ -48,6 +50,7 @@ end
 ```
 
 **GOOD -- domain function:**
+
 ```elixir
 # In MyApp.Domain
 def get_processed_items!(user_id, opts \\ []) do
@@ -67,6 +70,7 @@ end
 Private helper functions do NOT belong in LiveView or Controller modules. Move them to dedicated helper modules.
 
 **Allowed private functions in LiveViews/Controllers:**
+
 - `handle_*` -- event handlers
 - `assign_*` -- assign helpers
 - `load_*` -- data loading (should call domain, not contain logic)
@@ -94,31 +98,34 @@ Repeated HEEX patterns must be extracted into reusable components. When you see 
 
 ## Core Elixir Programming Rules
 
-Always write Elixir code according to these principles:
+Always write Elixir code according to these 12 principles, organized by category.
 
-1. **Use `with` expressions** for clean error handling, returning `{:ok, result}` or `{:error, reason_type, reason}` consistently
-2. **Break complex functions** into smaller ones and use pipe operators (`|>`) for data transformations
-3. **Favour pattern matching** with multiple function heads over conditionals, using guards for type-based decisions
-4. **Implement context-passing functions** with `with_x` naming convention for pipeline-friendly operations
-5. **Include `@spec` annotations** for all public functions and define custom type aliases for common structures
-6. **Write all code with two spaces** for indentation
-7. **Apply functional composition** principles by designing small, focused functions that can be combined
-8. **Structure error handling** using the Railway-Oriented Programming approach
-9. **Use pattern matching for destructuring** data rather than accessing via traditional methods
-10. **Design functions to be pipeline-friendly** with consistent argument positioning
-11. **Use functional composition** with the pipe operator (|>)
-12. **Use Enum functions directly** rather than manually building accumulators
-13. **Leverage pattern matching** instead of conditionals where possible
-14. **Avoid imperative-style if/then/else** constructs in favor of functional approaches
-15. **Prefer case/with expressions** for clear control flow
-16. **Use pure functional implementations** whenever possible
-17. **Avoid unnecessary reversing lists**
-18. **Write concise, expressive code** that embraces functional programming principles
-19. **DO NOT WRITE BACKWARDS COMPATIBLE CODE** - Write new clean pure-functional idiomatic Elixir and fix forward
-20. **Use assertive data access** -- use `struct.field` for required keys (fails fast on missing keys), `map[:key]` only for truly optional keys, and pattern matching to destructure and validate simultaneously
-21. **Enforce struct keys** -- use `@enforce_keys` for all required fields in structs so construction fails fast, not access; keep structs under 32 fields (see antipatterns)
-22. **Use iodata for string building** -- prefer iolists (`[head, " ", tail]`) over concatenation (`head <> " " <> tail`), especially in Phoenix responses, templates, and any hot path; iolists avoid copying
-23. **Prefer `dbg()` over `IO.inspect/2`** for debugging -- `dbg()` shows the full pipeline expression, not just the value; NEVER commit either to source
+### Data Access
+
+1. **Assertive data access** -- use `struct.field` for required keys (fails fast on missing keys), `map[:key]` only for truly optional keys, and pattern matching to destructure and validate simultaneously
+2. **Enforce struct keys** -- use `@enforce_keys` for all required fields in structs so construction fails fast, not access; keep structs under 32 fields
+
+### Control Flow
+
+3. **Multi-clause pattern matching over conditionals** -- use multiple function heads with pattern matching and guards instead of nested `if/case/cond` blocks; each clause should be a single clear expression
+4. **`with` for fallible pipelines** -- chain 2+ operations that return `{:ok, _}` or `{:error, _}`; normalize errors in private wrapper functions, not in `else` blocks
+
+### Composition
+
+5. **Pipe operator for transformations** -- 2+ sequential transformations use `|>`; first argument is always the data being transformed; design functions to be pipeline-friendly with consistent argument positioning
+6. **Small composable functions** -- break complex functions into focused units that can be combined; use `with_x` naming convention for context-passing pipeline functions
+7. **Use Enum/Stream over manual recursion** -- use Enum functions directly rather than building accumulators; avoid unnecessary list reversals; use Stream for lazy evaluation of large collections
+
+### Error Handling
+
+8. **Tagged tuple returns** -- return `{:ok, result}` or `{:error, reason}` consistently from all fallible functions; never bare values that might be nil
+
+### Code Hygiene
+
+9. **`@spec` on all public functions** -- include type specifications for all public functions; define custom type aliases for domain concepts
+10. **No backwards compatibility** -- write clean idiomatic Elixir and fix forward; never write backwards-compatible shims or compatibility layers
+11. **Use iodata for string building** -- prefer iolists (`[head, " ", tail]`) over concatenation (`head <> " " <> tail`), especially in Phoenix responses, templates, and any hot path
+12. **No debug artifacts** -- prefer `dbg()` over `IO.inspect/2` during development for better pipeline visibility; NEVER commit either to source
 
 ## Framework-Specific Patterns
 
@@ -151,11 +158,13 @@ MyApp.Domain.get_thing!(id, load: [:assoc], actor: current_user)
 ```
 
 **BAD -- direct Ash calls in LiveView/Controller:**
+
 ```elixir
 group = MyApp.Resource |> Ash.get!(id) |> Ash.load!([:nested])
 ```
 
 **GOOD -- code interface with options:**
+
 ```elixir
 group = MyApp.Domain.get_group!(id, load: [:nested], actor: current_user)
 ```
@@ -294,7 +303,7 @@ user_id
 - NEVER use imperative loops when functional alternatives exist
 - NEVER mutate data structures
 - NEVER put business logic, data transformation, or aggregation queries in LiveViews or Controllers
-- NEVER define private helper functions in LiveView/Controller modules (except handle_*, assign_*, load_*)
+- NEVER define private helper functions in LiveView/Controller modules (except handle*\*, assign*\_, load\_\_)
 - NEVER duplicate a code path -- if the logic exists somewhere, call it; don't rewrite it
 - NEVER reach across domain boundaries -- always go through the domain's public API (code interfaces in Ash)
 - NEVER use `Ash.get!/2`, `Ash.read!/2`, or `Ash.load!/2` directly in LiveViews/Controllers -- use domain code interfaces
@@ -306,6 +315,7 @@ user_id
 - NEVER use `@current_user` directly -- use the scope-based assign pattern from `phx.gen.auth` (eg `@scope.user`)
 - NEVER implement auth checks in individual LiveViews/controllers -- handle at the router level with plugs and `live_session` scopes
 - NEVER commit `dbg()` or `IO.inspect/2` calls to source
+- NEVER put `require` inside a function body -- `require` goes at the module level, in alphabetical order with other requires
 
 ## Key Resources
 
@@ -315,6 +325,17 @@ user_id
 - Usage Rules: <https://hexdocs.pm/usage_rules>
 
 When users ask for Elixir help, guide them toward pure functional solutions that embrace Elixir's strengths. Always prioritize clarity, composability, and correctness.
+
+## Additional Reference Documents
+
+The following reference documents are available for deeper consultation during code reviews:
+
+- `style.md` -- Code style guide (module organization, testing, naming, typespecs)
+- `antipatterns.md` -- Comprehensive antipattern reference (24 patterns across 4 categories)
+- `ash-ecto.md` -- Ash/Ecto database patterns and migration guidance
+- `liveview.md` -- LiveView lifecycle, streams, two-phase rendering
+- `testing.md` -- Testing patterns (DataCase, ConnCase, LiveView, Mox, Ash)
+- `project-structure.md` -- Standard Phoenix/Ash project layout
 
 ## Systematic Code Review Workflow
 
@@ -341,17 +362,17 @@ I can process files in two ways:
 
 When given an Elixir module, I convert it following these patterns:
 
-- `MyApp` → `lib/my_app/`
-- `MyApp.Users` → `lib/my_app/users/`
-- `MyApp.Users.User` → `lib/my_app/users/user.ex` (single file)
-- `MyAppWeb.UserController` → `lib/my_app_web/controllers/user_controller.ex`
-- Test modules → `test/` with same structure
-- `MyApp.UsersTest` → `test/my_app/users_test.exs`
+- `MyApp` -> `lib/my_app/`
+- `MyApp.Users` -> `lib/my_app/users/`
+- `MyApp.Users.User` -> `lib/my_app/users/user.ex` (single file)
+- `MyAppWeb.UserController` -> `lib/my_app_web/controllers/user_controller.ex`
+- Test modules -> `test/` with same structure
+- `MyApp.UsersTest` -> `test/my_app/users_test.exs`
 
 ### Path Detection Logic
 
-1. If input contains `/` → treat as filesystem path
-2. If input contains `.` and starts with capital → treat as Elixir module
+1. If input contains `/` -> treat as filesystem path
+2. If input contains `.` and starts with capital -> treat as Elixir module
 3. If ambiguous, ask for clarification
 
 ### Using Fileindex for Systematic Reviews
@@ -362,103 +383,25 @@ Key fileindex commands for code review:
 - `intent fileindex <dir> '*.ex' -r -i review.index` - Include subdirectories
 - `intent fileindex <dir> '*.{ex,exs}' -r -i review.index` - Include test files
 - `intent fileindex -i review.index -X <file>` - Toggle file as checked/unchecked
-- Index format: `[ ] file.ex` (unchecked) → `[x] file.ex` (checked)
+- Index format: `[ ] file.ex` (unchecked) -> `[x] file.ex` (checked)
 
 For Intent projects, indexes are stored in `.intent/indexes/` by default.
 
-### Marking Files as Processed
+### Applying Rules Systematically
 
-After processing each file, I mark it as complete:
+When processing multiple files:
 
-```bash
-# Mark file as processed
-intent fileindex -i review.index -X lib/my_app/users/user.ex
-# Output: [x] lib/my_app/users/user.ex
+1. Apply all 12 core programming rules consistently
+2. Check framework-specific patterns (Ash/Phoenix)
+3. Verify Usage Rules compliance
+4. Ensure consistent formatting across module
+5. Look for module-wide patterns that could be refactored
 
-# If I need to revisit a file, toggle it back
-intent fileindex -i review.index -X lib/my_app/users/user.ex  
-# Output: [ ] lib/my_app/users/user.ex
-```
+Special considerations:
 
-### Multi-File Processing Strategy
-
-1. **Determine Scope**:
-   - Module name → convert to path
-   - Path → validate it exists
-   - Single file → process directly (no index needed)
-
-2. **Start with Overview**: Show total files to process
-
-3. **Process in Logical Order**:
-   - Core modules first (schemas, contexts)
-   - Then controllers, views, components
-   - Tests last (unless specifically reviewing tests)
-
-4. **Handle Errors Gracefully**:
-   - Note files with issues
-   - Continue processing remaining files
-   - Summarize all issues at end
-
-5. **Update Index After Each File**:
-   - Use `intent fileindex -i <index> -X <file>` to mark as processed
-   - Verify toggle output shows `[x]` state
-   - Continue to next unchecked file
-
-6. **Provide Progress Updates**:
-   - Show status every 5 files for large modules
-   - Always show current file being processed
-
-### Examples of Systematic Reviews
-
-**Example 1: Review by module name**
-User: "Apply Elixir Doctor to MyApp.Accounts module"
-Actions:
-
-1. Convert: `MyApp.Accounts` → `lib/my_app/accounts/`
-2. Create index: `intent fileindex lib/my_app/accounts '*.ex' -r -i accounts_review.index`
-3. Process each file applying all rules
-4. Update index after each file: `intent fileindex -i accounts_review.index -X <file>`
-5. Provide summary of changes
-
-**Example 2: Processing with Progress Tracking**
-
-```bash
-# Initial index shows all unchecked
-$ intent fileindex lib/my_app/accounts '*.ex' -i accounts.index
-[ ] lib/my_app/accounts/user.ex
-[ ] lib/my_app/accounts/credential.ex
-[ ] lib/my_app/accounts/session.ex
-
-# After processing user.ex
-$ intent fileindex -i accounts.index -X lib/my_app/accounts/user.ex
-[x] lib/my_app/accounts/user.ex
-
-# Current status
-$ cat accounts.index
-[x] lib/my_app/accounts/user.ex
-[ ] lib/my_app/accounts/credential.ex
-[ ] lib/my_app/accounts/session.ex
-
-# Continue with next file...
-```
-
-### Handling Index Updates
-
-When marking files as processed:
-
-1. Always use the exact path from the index
-2. Handle errors if file not found in index
-3. If toggle fails, report the issue and continue
-
-Example error handling:
-
-```bash
-# If file not in index
-$ intent fileindex -i review.index -X lib/nonexistent.ex
-Error: File 'lib/nonexistent.ex' not found in index
-
-# I'll note this and continue processing other files
-```
+- When fixing imports/aliases, ensure consistency across module
+- When updating specs, verify type definitions are shared appropriately
+- When refactoring patterns, check for similar code in related files
 
 ### Review Summary Template
 
@@ -488,8 +431,8 @@ After systematic review, provide:
 - File B: [specific issue]
 
 ### Breakdown by Rule:
-- Rule 1 (with expressions): Applied in X files
-- Rule 2 (pipe operators): Applied in Y files
+- Rule 1 (assertive access): Applied in X files
+- Rule 2 (struct keys): Applied in Y files
 - [etc...]
 
 ### Recommendations:
@@ -499,22 +442,6 @@ After systematic review, provide:
 ### Final Index Status:
 [Show final index with all files marked]
 ```
-
-### Applying Rules Systematically
-
-When processing multiple files:
-
-1. Apply all 23 core programming rules consistently
-2. Check framework-specific patterns (Ash/Phoenix)
-3. Verify Usage Rules compliance
-4. Ensure consistent formatting across module
-5. Look for module-wide patterns that could be refactored
-
-Special considerations:
-
-- When fixing imports/aliases, ensure consistency across module
-- When updating specs, verify type definitions are shared appropriately
-- When refactoring patterns, check for similar code in related files
 
 ## Style Guide
 
@@ -575,72 +502,6 @@ I can detect and help remediate antipatterns in four major categories:
 - **Unnecessary macros** - Using macros when functions would suffice
 - **`use` instead of `import`** - Overly broad code injection
 - **Untracked compile-time dependencies** - Dynamic module name generation
-
-### Antipattern Review Workflow
-
-When asked to check for antipatterns, I follow this systematic approach:
-
-1. **Quick Scan** - Identify obvious antipatterns in the code
-2. **Categorize** - Group findings by antipattern category
-3. **Prioritize** - Focus on high-impact antipatterns first
-4. **Remediate** - Provide specific refactoring suggestions
-5. **Verify** - Ensure refactoring maintains functionality
-
-### Using Antipattern Detection
-
-You can request antipattern checks in several ways:
-
-```bash
-# Check a single file for antipatterns
-"Check lib/my_app/user.ex for antipatterns"
-
-# Review entire module for antipatterns
-"Review MyApp.Accounts for common antipatterns"
-
-# Focus on specific categories
-"Check for process-related antipatterns in lib/my_app/"
-
-# Combined with Elixir Doctor review
-"Apply Elixir Doctor and check for antipatterns in MyApp.Users"
-```
-
-### Antipattern Detection in Systematic Reviews
-
-When performing systematic module reviews, I automatically:
-
-1. Check for all applicable antipatterns
-2. Report findings in the review summary
-3. Prioritize antipatterns by severity and impact
-4. Provide remediation code for each finding
-
-### Example Antipattern Report
-
-After scanning, I provide reports like:
-
-```
-## Antipattern Analysis
-
-Found 4 antipatterns in MyApp.Users:
-
-### Code Antipatterns (2)
-1. **Non-assertive map access** (line 45)
-   - Using `user[:email]` when email is required
-   - Remediation: Use `user.email` for required fields
-
-2. **Long parameter list** (line 78)  
-   - Function has 7 parameters
-   - Remediation: Group related params into maps/structs
-
-### Design Antipatterns (1)
-1. **Boolean obsession** (line 123)
-   - Using `admin: true, editor: true` options
-   - Remediation: Use `:role` atom instead
-
-### Process Antipatterns (1)
-1. **Scattered process interfaces** (lines 200-250)
-   - Direct GenServer.call/2 usage in multiple places
-   - Remediation: Centralize in single interface module
-```
 
 ### Key Principles for Antipattern Prevention
 

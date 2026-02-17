@@ -1,0 +1,408 @@
+#!/bin/bash
+# intent_claude_upgrade - Upgrade LLM guidance layer for Intent projects
+# Copyright (c) 2026 Matthew Sinclair
+# Licensed under the MIT License (see LICENSE file)
+# Usage: intent claude upgrade [--apply] [--project-dir DIR]
+#
+# Dry-run by default. Shows what changes would be made.
+# Use --apply to actually execute the changes.
+
+# Source helpers from main bin directory
+PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INTENT_ROOT="$(cd "$PLUGIN_BIN/../../../.." && pwd)"
+INTENT_BIN="$INTENT_ROOT/bin"
+source "$INTENT_BIN/intent_helpers"
+
+# Configuration
+SKILLS_SOURCE="$INTENT_ROOT/intent/plugins/claude/skills"
+SUBAGENTS_SOURCE="$INTENT_ROOT/intent/plugins/claude/subagents"
+TEMPLATES_SOURCE="$INTENT_ROOT/intent/plugins/agents/templates/elixir"
+
+# Show help
+intent_claude_upgrade_help() {
+  cat << EOF
+Usage: intent claude upgrade [options]
+
+Diagnose and upgrade the LLM guidance layer of an Intent project.
+
+This command is DRY-RUN by default. It shows what changes would be made
+without modifying anything. Use --apply to execute the changes.
+
+Options:
+  --apply              Execute the upgrade (default is dry-run)
+  --project-dir DIR    Target project directory (default: current directory)
+  -h, --help           Show this help
+
+The upgrade covers:
+  - Subagent updates (Elixir subagent with 12 distilled rules)
+  - Skill installation (elixir-essentials, ash-ecto-essentials, phoenix-liveview)
+  - LLM guidance files (AGENTS.md, RULES.md, ARCHITECTURE.md)
+  - Deprecated file cleanup (llm_preamble.md, old usage-rules.md)
+
+Examples:
+  intent claude upgrade                           # Dry-run on current project
+  intent claude upgrade --apply                    # Apply changes
+  intent claude upgrade --project-dir ~/prolix     # Diagnose another project
+  intent claude upgrade --project-dir ~/prolix --apply  # Upgrade another project
+EOF
+}
+
+# Parse arguments
+DRY_RUN=true
+PROJECT_DIR=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --apply)
+      DRY_RUN=false
+      shift
+      ;;
+    --project-dir)
+      PROJECT_DIR="$2"
+      shift 2
+      ;;
+    -h|--help)
+      intent_claude_upgrade_help
+      exit 0
+      ;;
+    *)
+      echo "Error: Unknown option '$1'"
+      intent_claude_upgrade_help
+      exit 1
+      ;;
+  esac
+done
+
+# Determine project directory
+if [ -z "$PROJECT_DIR" ]; then
+  if [ -n "${PROJECT_ROOT:-}" ]; then
+    PROJECT_DIR="$PROJECT_ROOT"
+  else
+    PROJECT_DIR="$(pwd)"
+  fi
+fi
+
+# Validate it's an Intent project
+if [ ! -d "$PROJECT_DIR/intent" ] && [ ! -d "$PROJECT_DIR/.intent" ]; then
+  echo "Error: '$PROJECT_DIR' does not appear to be an Intent project"
+  echo "  (no intent/ or .intent/ directory found)"
+  exit 1
+fi
+
+PROJECT_NAME="$(basename "$PROJECT_DIR")"
+
+# Color codes (if terminal)
+if [ -t 1 ]; then
+  RED='\033[0;31m'
+  YELLOW='\033[0;33m'
+  GREEN='\033[0;32m'
+  BLUE='\033[0;34m'
+  BOLD='\033[1m'
+  NC='\033[0m'
+else
+  RED=''
+  YELLOW=''
+  GREEN=''
+  BLUE=''
+  BOLD=''
+  NC=''
+fi
+
+# Action tracking
+declare -a ACTIONS=()
+declare -a WARNINGS=()
+
+add_action() {
+  ACTIONS+=("$1")
+}
+
+add_warning() {
+  WARNINGS+=("$1")
+}
+
+# ============================================================
+# PHASE 1: DIAGNOSE
+# ============================================================
+
+echo ""
+echo -e "${BOLD}Intent LLM Guidance Upgrade — $PROJECT_NAME${NC}"
+echo -e "${BOLD}$(printf '%.0s─' {1..60})${NC}"
+if [ "$DRY_RUN" = true ]; then
+  echo -e "${YELLOW}Mode: DRY-RUN (use --apply to execute)${NC}"
+else
+  echo -e "${GREEN}Mode: APPLY${NC}"
+fi
+echo ""
+
+echo -e "${BOLD}Phase 1: Diagnosis${NC}"
+echo ""
+
+# Check LLM guidance files
+echo "Checking intent/llm/ files..."
+
+# AGENTS.md
+if [ -f "$PROJECT_DIR/intent/llm/AGENTS.md" ]; then
+  # Check if stale
+  local_version=$(grep -o 'intent_version: [0-9.]*' "$PROJECT_DIR/intent/llm/AGENTS.md" 2>/dev/null | head -1 | cut -d' ' -f2)
+  if [ -z "$local_version" ]; then
+    local_version=$(grep -o 'v[0-9]\.[0-9]\.[0-9]' "$PROJECT_DIR/intent/llm/AGENTS.md" 2>/dev/null | head -1)
+  fi
+  echo -e "  AGENTS.md:          ${YELLOW}EXISTS${NC} (version: ${local_version:-unknown})"
+  add_action "REGENERATE intent/llm/AGENTS.md (currently ${local_version:-unknown}, target 2.4.0)"
+else
+  echo -e "  AGENTS.md:          ${RED}MISSING${NC}"
+  add_action "CREATE intent/llm/AGENTS.md from Elixir template"
+fi
+
+# RULES.md
+if [ -f "$PROJECT_DIR/intent/llm/RULES.md" ]; then
+  rule_count=$(grep -c '^\(###\|^[0-9]\.\)' "$PROJECT_DIR/intent/llm/RULES.md" 2>/dev/null || echo 0)
+  echo -e "  RULES.md:           ${GREEN}EXISTS${NC} ($rule_count rules/sections)"
+  add_warning "REVIEW intent/llm/RULES.md against template for missing rules"
+else
+  echo -e "  RULES.md:           ${RED}MISSING${NC}"
+  add_action "CREATE intent/llm/RULES.md from Elixir template"
+fi
+
+# ARCHITECTURE.md
+if [ -f "$PROJECT_DIR/intent/llm/ARCHITECTURE.md" ]; then
+  echo -e "  ARCHITECTURE.md:    ${GREEN}EXISTS${NC}"
+  add_warning "REVIEW intent/llm/ARCHITECTURE.md for completeness"
+else
+  echo -e "  ARCHITECTURE.md:    ${RED}MISSING${NC}"
+  add_action "CREATE intent/llm/ARCHITECTURE.md from Elixir template"
+fi
+
+# Deprecated files
+echo ""
+echo "Checking for deprecated files..."
+
+if [ -f "$PROJECT_DIR/intent/llm/AGENTS-phx.md" ]; then
+  echo -e "  AGENTS-phx.md:      ${YELLOW}DEPRECATED${NC}"
+  add_action "MERGE intent/llm/AGENTS-phx.md Phoenix rules into RULES.md"
+  add_action "DELETE intent/llm/AGENTS-phx.md (after merge)"
+else
+  echo -e "  AGENTS-phx.md:      ${GREEN}not present${NC}"
+fi
+
+if [ -f "$PROJECT_DIR/intent/llm/llm_preamble.md" ]; then
+  echo -e "  llm_preamble.md:    ${YELLOW}DEPRECATED${NC}"
+  add_action "DELETE intent/llm/llm_preamble.md"
+else
+  echo -e "  llm_preamble.md:    ${GREEN}not present${NC}"
+fi
+
+if [ -f "$PROJECT_DIR/intent/llm/usage-rules.md" ]; then
+  echo -e "  usage-rules.md:     ${YELLOW}DEPRECATED${NC} (replaced by skills)"
+  add_action "DELETE intent/llm/usage-rules.md"
+else
+  echo -e "  usage-rules.md:     ${GREEN}not present${NC}"
+fi
+
+# Check subagents
+echo ""
+echo "Checking installed subagents..."
+
+if [ -f "$HOME/.claude/agents/elixir.md" ]; then
+  local_checksum=""
+  source_checksum=""
+  if command -v shasum >/dev/null 2>&1; then
+    local_checksum=$(shasum -a 256 "$HOME/.claude/agents/elixir.md" 2>/dev/null | cut -d' ' -f1)
+    source_checksum=$(shasum -a 256 "$SUBAGENTS_SOURCE/elixir/agent.md" 2>/dev/null | cut -d' ' -f1)
+  fi
+  if [ "$local_checksum" = "$source_checksum" ] && [ -n "$local_checksum" ]; then
+    echo -e "  elixir subagent:    ${GREEN}UP TO DATE${NC}"
+  else
+    echo -e "  elixir subagent:    ${YELLOW}OUTDATED${NC}"
+    add_action "UPDATE ~/.claude/agents/elixir.md (12 distilled rules, new reference docs)"
+  fi
+else
+  echo -e "  elixir subagent:    ${RED}NOT INSTALLED${NC}"
+  add_action "INSTALL elixir subagent to ~/.claude/agents/elixir.md"
+fi
+
+# Check skills
+echo ""
+echo "Checking installed skills..."
+
+for skill in elixir-essentials ash-ecto-essentials phoenix-liveview; do
+  if [ -f "$HOME/.claude/skills/$skill/SKILL.md" ]; then
+    local_checksum=""
+    source_checksum=""
+    if command -v shasum >/dev/null 2>&1; then
+      local_checksum=$(shasum -a 256 "$HOME/.claude/skills/$skill/SKILL.md" 2>/dev/null | cut -d' ' -f1)
+      source_checksum=$(shasum -a 256 "$SKILLS_SOURCE/$skill/SKILL.md" 2>/dev/null | cut -d' ' -f1)
+    fi
+    if [ "$local_checksum" = "$source_checksum" ] && [ -n "$local_checksum" ]; then
+      echo -e "  $skill:$(printf '%*s' $((25 - ${#skill})) '')${GREEN}UP TO DATE${NC}"
+    else
+      echo -e "  $skill:$(printf '%*s' $((25 - ${#skill})) '')${YELLOW}OUTDATED${NC}"
+      add_action "UPDATE ~/.claude/skills/$skill/SKILL.md"
+    fi
+  else
+    echo -e "  $skill:$(printf '%*s' $((25 - ${#skill})) '')${RED}NOT INSTALLED${NC}"
+    add_action "INSTALL skill $skill to ~/.claude/skills/$skill/SKILL.md"
+  fi
+done
+
+# ============================================================
+# PHASE 2: PLAN
+# ============================================================
+
+echo ""
+echo -e "${BOLD}Phase 2: Upgrade Plan${NC}"
+echo ""
+
+if [ ${#ACTIONS[@]} -eq 0 ] && [ ${#WARNINGS[@]} -eq 0 ]; then
+  echo -e "${GREEN}No changes needed. Project is up to date.${NC}"
+  exit 0
+fi
+
+if [ ${#ACTIONS[@]} -gt 0 ]; then
+  echo "Actions to perform:"
+  local idx=1
+  for action in "${ACTIONS[@]}"; do
+    echo "  $idx. $action"
+    ((idx++))
+  done
+fi
+
+if [ ${#WARNINGS[@]} -gt 0 ]; then
+  echo ""
+  echo "Manual review needed:"
+  for warning in "${WARNINGS[@]}"; do
+    echo -e "  ${YELLOW}!${NC} $warning"
+  done
+fi
+
+# ============================================================
+# PHASE 3: EXECUTE (if --apply)
+# ============================================================
+
+if [ "$DRY_RUN" = true ]; then
+  echo ""
+  echo -e "${BOLD}$(printf '%.0s─' {1..60})${NC}"
+  echo -e "${YELLOW}Dry-run complete. Review the plan above.${NC}"
+  echo ""
+  echo "To apply these changes:"
+  echo "  intent claude upgrade --apply"
+  if [ "$PROJECT_DIR" != "$(pwd)" ]; then
+    echo "  intent claude upgrade --project-dir $PROJECT_DIR --apply"
+  fi
+  exit 0
+fi
+
+echo ""
+echo -e "${BOLD}Phase 3: Applying Changes${NC}"
+echo ""
+
+# Execute each action
+for action in "${ACTIONS[@]}"; do
+  case "$action" in
+    "DELETE intent/llm/llm_preamble.md")
+      echo "  Deleting intent/llm/llm_preamble.md..."
+      rm -f "$PROJECT_DIR/intent/llm/llm_preamble.md"
+      echo -e "    ${GREEN}Done${NC}"
+      ;;
+
+    "DELETE intent/llm/usage-rules.md")
+      echo "  Deleting intent/llm/usage-rules.md..."
+      rm -f "$PROJECT_DIR/intent/llm/usage-rules.md"
+      echo -e "    ${GREEN}Done${NC}"
+      ;;
+
+    "DELETE intent/llm/AGENTS-phx.md"*)
+      echo "  Deleting intent/llm/AGENTS-phx.md..."
+      rm -f "$PROJECT_DIR/intent/llm/AGENTS-phx.md"
+      echo -e "    ${GREEN}Done${NC}"
+      ;;
+
+    REGENERATE*)
+      echo "  Regenerating intent/llm/AGENTS.md..."
+      if [ -f "$TEMPLATES_SOURCE/AGENTS.md" ]; then
+        cp "$TEMPLATES_SOURCE/AGENTS.md" "$PROJECT_DIR/intent/llm/AGENTS.md"
+        echo -e "    ${GREEN}Done${NC} (from template -- customize for your project)"
+      else
+        echo -e "    ${YELLOW}Skipped${NC} (template not found)"
+      fi
+      ;;
+
+    "CREATE intent/llm/AGENTS.md"*)
+      echo "  Creating intent/llm/AGENTS.md..."
+      mkdir -p "$PROJECT_DIR/intent/llm"
+      cp "$TEMPLATES_SOURCE/AGENTS.md" "$PROJECT_DIR/intent/llm/AGENTS.md"
+      echo -e "    ${GREEN}Done${NC}"
+      ;;
+
+    "CREATE intent/llm/RULES.md"*)
+      echo "  Creating intent/llm/RULES.md..."
+      mkdir -p "$PROJECT_DIR/intent/llm"
+      cp "$TEMPLATES_SOURCE/RULES.md" "$PROJECT_DIR/intent/llm/RULES.md"
+      echo -e "    ${GREEN}Done${NC} (customize for your project)"
+      ;;
+
+    "CREATE intent/llm/ARCHITECTURE.md"*)
+      echo "  Creating intent/llm/ARCHITECTURE.md..."
+      mkdir -p "$PROJECT_DIR/intent/llm"
+      cp "$TEMPLATES_SOURCE/ARCHITECTURE.md" "$PROJECT_DIR/intent/llm/ARCHITECTURE.md"
+      echo -e "    ${GREEN}Done${NC} (fill in project-specific content)"
+      ;;
+
+    "MERGE intent/llm/AGENTS-phx.md"*)
+      echo "  AGENTS-phx.md merge requires manual review."
+      echo "    Content has been preserved for review."
+      echo -e "    ${YELLOW}ACTION NEEDED: Merge Phoenix rules into RULES.md manually${NC}"
+      ;;
+
+    "INSTALL elixir subagent"*)
+      echo "  Installing elixir subagent..."
+      mkdir -p "$HOME/.claude/agents"
+      cp "$SUBAGENTS_SOURCE/elixir/agent.md" "$HOME/.claude/agents/elixir.md"
+      echo -e "    ${GREEN}Done${NC}"
+      ;;
+
+    "UPDATE ~/.claude/agents/elixir.md"*)
+      echo "  Updating elixir subagent..."
+      cp "$SUBAGENTS_SOURCE/elixir/agent.md" "$HOME/.claude/agents/elixir.md"
+      echo -e "    ${GREEN}Done${NC}"
+      ;;
+
+    "INSTALL skill"*)
+      skill_name=$(echo "$action" | sed 's/INSTALL skill \(.*\) to.*/\1/')
+      echo "  Installing skill $skill_name..."
+      mkdir -p "$HOME/.claude/skills/$skill_name"
+      cp "$SKILLS_SOURCE/$skill_name/SKILL.md" "$HOME/.claude/skills/$skill_name/SKILL.md"
+      echo -e "    ${GREEN}Done${NC}"
+      ;;
+
+    "UPDATE ~/.claude/skills/"*)
+      skill_name=$(echo "$action" | sed 's|UPDATE ~/.claude/skills/\(.*\)/SKILL.md|\1|')
+      echo "  Updating skill $skill_name..."
+      mkdir -p "$HOME/.claude/skills/$skill_name"
+      cp "$SKILLS_SOURCE/$skill_name/SKILL.md" "$HOME/.claude/skills/$skill_name/SKILL.md"
+      echo -e "    ${GREEN}Done${NC}"
+      ;;
+
+    *)
+      echo -e "  ${YELLOW}Skipped: $action${NC}"
+      ;;
+  esac
+done
+
+echo ""
+echo -e "${BOLD}$(printf '%.0s─' {1..60})${NC}"
+echo -e "${GREEN}Upgrade applied successfully.${NC}"
+
+if [ ${#WARNINGS[@]} -gt 0 ]; then
+  echo ""
+  echo "Remaining manual tasks:"
+  for warning in "${WARNINGS[@]}"; do
+    echo -e "  ${YELLOW}!${NC} $warning"
+  done
+fi
+
+echo ""
+echo "Next steps:"
+echo "  1. Review generated files and customize for your project"
+echo "  2. Run 'intent doctor' to verify configuration"
+echo "  3. Commit changes"
