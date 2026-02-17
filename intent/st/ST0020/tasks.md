@@ -63,9 +63,9 @@
 ## Phase 6: Roll-out
 
 - [x] Run upgrade on Intent project (cleaned deprecated files, updated subagent, installed skills)
-- [ ] Run upgrade on Prolix (dry-run, review, apply)
-- [ ] Run upgrade on Laksa-web (dry-run, review, apply)
-- [ ] Run upgrade on Lamplight (dry-run, review, apply)
+- [x] Run upgrade on Prolix (new RULES.md + ARCHITECTURE.md, merged AGENTS-phx.md)
+- [x] Run upgrade on Laksa-web (new AGENTS.md + ARCHITECTURE.md, merged AGENTS-phx.md, deleted llm_preamble.md)
+- [ ] Run upgrade on Lamplight (deferred -- user working on it)
 - [x] Write upgrade guide (docs/upgrade-guide-2.4.0.md)
 
 ## Dependencies
