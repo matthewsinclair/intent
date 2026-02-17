@@ -65,8 +65,13 @@
 - [x] Run upgrade on Intent project (cleaned deprecated files, updated subagent, installed skills)
 - [x] Run upgrade on Prolix (new RULES.md + ARCHITECTURE.md, merged AGENTS-phx.md)
 - [x] Run upgrade on Laksa-web (new AGENTS.md + ARCHITECTURE.md, merged AGENTS-phx.md, deleted llm_preamble.md)
-- [ ] Run upgrade on Lamplight (deferred -- user working on it)
+- [x] Run upgrade on Lamplight (regenerated AGENTS.md, already had RULES.md + ARCHITECTURE.md)
+- [x] Run upgrade on Anvil (new RULES.md + ARCHITECTURE.md from template, deleted llm_preamble.md)
+- [x] Run upgrade on MeetZaya (new RULES.md + ARCHITECTURE.md, merged AGENTS-phx.md, deleted llm_preamble.md)
+- [x] Run upgrade on Multiplyer (new RULES.md + ARCHITECTURE.md from template, deleted llm_preamble.md)
+- [x] Run upgrade on Utilz (regenerated AGENTS.md only, non-Elixir project)
 - [x] Write upgrade guide (docs/upgrade-guide-2.4.0.md)
+- [x] Merge upgrade branches to main
 
 ## Dependencies
 
