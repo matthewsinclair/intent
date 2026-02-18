@@ -18,9 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - SHA256 checksum-based manifest tracking at `~/.intent/skills/installed-skills.json`
 - Four skills for proactive code enforcement (one universal + three Elixir):
   - `intent-essentials` — 7 Intent workflow rules (CLI usage, treeindex, steel thread conventions)
-  - `elixir-essentials` — 8 core rules (pattern matching, tagged tuples, pipes, naming)
-  - `ash-ecto-essentials` — 7 Ash/Ecto rules (code interfaces, migrations, actor placement)
-  - `phoenix-liveview` — 7 LiveView rules (two-phase mount, streams, components)
+  - `intent-elixir-essentials` — 8 core rules (pattern matching, tagged tuples, pipes, naming)
+  - `intent-ash-ecto-essentials` — 7 Ash/Ecto rules (code interfaces, migrations, actor placement)
+  - `intent-phoenix-liveview` — 7 LiveView rules (two-phase mount, streams, components)
 - `intent claude upgrade` command for diagnosing and upgrading LLM guidance layer
   - Dry-run by default (use `--apply` to execute)
   - `--project-dir DIR` to target external projects

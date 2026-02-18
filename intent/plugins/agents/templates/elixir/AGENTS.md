@@ -65,6 +65,6 @@ mix dialyzer              # Type checking (if configured)
 <!-- Updated by intent agents sync -->
 
 - **intent-essentials** — Intent workflow enforcement rules
-- **elixir-essentials** — Core Elixir coding patterns
-- **ash-ecto-essentials** — Ash/Ecto database access rules
-- **phoenix-liveview** — LiveView lifecycle and rendering rules
+- **intent-elixir-essentials** — Core Elixir coding patterns
+- **intent-ash-ecto-essentials** — Ash/Ecto database access rules
+- **intent-phoenix-liveview** — LiveView lifecycle and rendering rules

@@ -70,9 +70,9 @@ NEVER manually create or edit files in `.claude/skills/`. Use the CLI for instal
 cp some-skill/SKILL.md ~/.claude/skills/my-skill/SKILL.md
 
 # GOOD — use the CLI
-intent claude skills install elixir-essentials
+intent claude skills install intent-elixir-essentials
 intent claude skills sync
-intent claude skills uninstall elixir-essentials
+intent claude skills uninstall intent-elixir-essentials
 ```
 
 ### 6. Steel thread document conventions
