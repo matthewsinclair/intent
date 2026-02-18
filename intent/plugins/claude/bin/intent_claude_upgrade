@@ -35,7 +35,7 @@ Options:
 
 The upgrade covers:
   - Subagent updates (Elixir subagent with 12 distilled rules)
-  - Skill installation (elixir-essentials, ash-ecto-essentials, phoenix-liveview)
+  - Skill installation (intent-elixir-essentials, intent-ash-ecto-essentials, intent-phoenix-liveview)
   - LLM guidance files (AGENTS.md, RULES.md, ARCHITECTURE.md)
   - Deprecated file cleanup (llm_preamble.md, old usage-rules.md)
 
@@ -225,7 +225,7 @@ fi
 echo ""
 echo "Checking installed skills..."
 
-for skill in intent-essentials elixir-essentials ash-ecto-essentials phoenix-liveview; do
+for skill in intent-essentials intent-elixir-essentials intent-ash-ecto-essentials intent-phoenix-liveview; do
   if [ -f "$HOME/.claude/skills/$skill/SKILL.md" ]; then
     local_checksum=""
     source_checksum=""
@@ -234,13 +234,13 @@ for skill in intent-essentials elixir-essentials ash-ecto-essentials phoenix-liv
       source_checksum=$(shasum -a 256 "$SKILLS_SOURCE/$skill/SKILL.md" 2>/dev/null | cut -d' ' -f1)
     fi
     if [ "$local_checksum" = "$source_checksum" ] && [ -n "$local_checksum" ]; then
-      echo -e "  $skill:$(printf '%*s' $((25 - ${#skill})) '')${GREEN}UP TO DATE${NC}"
+      echo -e "  $skill:$(printf '%*s' $((30 - ${#skill})) '')${GREEN}UP TO DATE${NC}"
     else
-      echo -e "  $skill:$(printf '%*s' $((25 - ${#skill})) '')${YELLOW}OUTDATED${NC}"
+      echo -e "  $skill:$(printf '%*s' $((30 - ${#skill})) '')${YELLOW}OUTDATED${NC}"
       add_action "UPDATE ~/.claude/skills/$skill/SKILL.md"
     fi
   else
-    echo -e "  $skill:$(printf '%*s' $((25 - ${#skill})) '')${RED}NOT INSTALLED${NC}"
+    echo -e "  $skill:$(printf '%*s' $((30 - ${#skill})) '')${RED}NOT INSTALLED${NC}"
     add_action "INSTALL skill $skill to ~/.claude/skills/$skill/SKILL.md"
   fi
 done

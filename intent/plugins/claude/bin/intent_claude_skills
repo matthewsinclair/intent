@@ -34,7 +34,7 @@ Commands:
 Examples:
   intent claude skills list                    # Show all skills
   intent claude skills list -v                 # Show full descriptions
-  intent claude skills install elixir-essentials  # Install a skill
+  intent claude skills install intent-elixir-essentials  # Install a skill
   intent claude skills install --all           # Install all available skills
   intent claude skills sync                    # Update modified skills
 
@@ -168,8 +168,8 @@ intent_claude_skills_list() {
   : "${term_width:=$(tput cols 2>/dev/null)}"
   : "${term_width:=100}"
 
-  # Layout: "  " (2) + skill (25) + " - " (3) = 30 left, status right-aligned
-  local desc_width=$(( term_width - 30 - 16 ))
+  # Layout: "  " (2) + skill (30) + " - " (3) = 35 left, status right-aligned
+  local desc_width=$(( term_width - 35 - 16 ))
   [ "$desc_width" -lt 20 ] && desc_width=20
 
   # Parse --verbose flag
@@ -197,7 +197,7 @@ intent_claude_skills_list() {
       local full_desc left pad
       full_desc=$(sed -n '3p' "$skill_file" 2>/dev/null)
       [ -z "$full_desc" ] && full_desc="No description"
-      left="$(printf '%-25s' "$skill")"
+      left="$(printf '%-30s' "$skill")"
       pad=$(( term_width - 2 - ${#left} - ${#status} ))
       [ "$pad" -lt 1 ] && pad=1
       printf "  %s%*s%s\n" "$left" "$pad" "" "$status"
@@ -214,7 +214,7 @@ intent_claude_skills_list() {
         description="${description% *}..."
       fi
 
-      left="$(printf '%-25s' "$skill") - $description"
+      left="$(printf '%-30s' "$skill") - $description"
       pad=$(( term_width - 2 - ${#left} - ${#status} ))
       [ "$pad" -lt 1 ] && pad=1
       printf "  %s%*s%s\n" "$left" "$pad" "" "$status"

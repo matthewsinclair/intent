@@ -226,9 +226,9 @@ Intent v2.4.0 integrates with Claude Code through a three-layer system:
    intent claude skills install --all
 
    # Or install individually
-   intent claude skills install elixir-essentials
-   intent claude skills install ash-ecto-essentials
-   intent claude skills install phoenix-liveview
+   intent claude skills install intent-elixir-essentials
+   intent claude skills install intent-ash-ecto-essentials
+   intent claude skills install intent-phoenix-liveview
    ```
 
 3. **Claude Subagents** — Specialized agents for deep review:
@@ -488,9 +488,9 @@ intent/plugins/
     │   ├── intent_claude_subagents
     │   └── intent_claude_skills
     ├── skills/          # Skill definitions
-    │   ├── elixir-essentials/
-    │   ├── ash-ecto-essentials/
-    │   └── phoenix-liveview/
+    │   ├── intent-elixir-essentials/
+    │   ├── intent-ash-ecto-essentials/
+    │   └── intent-phoenix-liveview/
     └── subagents/       # Subagent definitions
         ├── intent/
         ├── elixir/
@@ -558,22 +558,22 @@ intent claude skills list
 intent claude skills install --all
 
 # Install individually
-intent claude skills install elixir-essentials
-intent claude skills install ash-ecto-essentials
-intent claude skills install phoenix-liveview
+intent claude skills install intent-elixir-essentials
+intent claude skills install intent-ash-ecto-essentials
+intent claude skills install intent-phoenix-liveview
 
 # Check installation status
-intent claude skills show elixir-essentials
+intent claude skills show intent-elixir-essentials
 ```
 
 Available skills:
 
-| Skill               | Purpose                                   |
-| ------------------- | ----------------------------------------- |
-| intent-essentials   | Intent workflow rules (7 mandatory)       |
-| elixir-essentials   | Core Elixir coding rules (8 mandatory)    |
-| ash-ecto-essentials | Ash/Ecto database patterns (7 mandatory)  |
-| phoenix-liveview    | LiveView patterns and rules (7 mandatory) |
+| Skill                        | Purpose                                   |
+| ---------------------------- | ----------------------------------------- |
+| intent-essentials            | Intent workflow rules (7 mandatory)       |
+| intent-elixir-essentials     | Core Elixir coding rules (8 mandatory)    |
+| intent-ash-ecto-essentials   | Ash/Ecto database patterns (7 mandatory)  |
+| intent-phoenix-liveview      | LiveView patterns and rules (7 mandatory) |
 
 ### Skill Maintenance
 
@@ -582,7 +582,7 @@ Available skills:
 intent claude skills sync
 
 # Uninstall a skill
-intent claude skills uninstall elixir-essentials
+intent claude skills uninstall intent-elixir-essentials
 
 # Uninstall all Intent-managed skills
 intent claude skills uninstall --all

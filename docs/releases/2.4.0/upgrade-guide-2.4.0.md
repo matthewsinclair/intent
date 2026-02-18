@@ -64,9 +64,9 @@ intent claude skills install --all
 
 # Or install individually
 intent claude skills install intent-essentials
-intent claude skills install elixir-essentials
-intent claude skills install ash-ecto-essentials
-intent claude skills install phoenix-liveview
+intent claude skills install intent-elixir-essentials
+intent claude skills install intent-ash-ecto-essentials
+intent claude skills install intent-phoenix-liveview
 
 # Verify
 intent claude skills list
@@ -75,9 +75,9 @@ intent claude skills list
 ### What each skill does
 
 - **intent-essentials** — Intent workflow enforcement (CLI usage, treeindex, steel thread conventions, session wrap-up)
-- **elixir-essentials** — core Elixir patterns (pattern matching, tagged tuples, pipes, naming, assertive access)
-- **ash-ecto-essentials** — Ash-first database access (code interfaces, migrations, actor placement, atomic changes)
-- **phoenix-liveview** — LiveView lifecycle (two-phase mount, streams, navigation, assign_async, components)
+- **intent-elixir-essentials** — core Elixir patterns (pattern matching, tagged tuples, pipes, naming, assertive access)
+- **intent-ash-ecto-essentials** — Ash-first database access (code interfaces, migrations, actor placement, atomic changes)
+- **intent-phoenix-liveview** — LiveView lifecycle (two-phase mount, streams, navigation, assign_async, components)
 
 ## Step 4: Set Up Three-File Guidance
 
@@ -199,9 +199,9 @@ Verify skills are in the correct location:
 
 ```bash
 ls ~/.claude/skills/intent-essentials/SKILL.md
-ls ~/.claude/skills/elixir-essentials/SKILL.md
-ls ~/.claude/skills/ash-ecto-essentials/SKILL.md
-ls ~/.claude/skills/phoenix-liveview/SKILL.md
+ls ~/.claude/skills/intent-elixir-essentials/SKILL.md
+ls ~/.claude/skills/intent-ash-ecto-essentials/SKILL.md
+ls ~/.claude/skills/intent-phoenix-liveview/SKILL.md
 ```
 
 ### Subagent sync reports "modified locally"

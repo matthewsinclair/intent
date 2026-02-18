@@ -672,12 +672,12 @@ intent claude skills <command> [options]
 
 **Available Skills:**
 
-| Name                  | Rules | Description                                    |
-| --------------------- | :---: | ---------------------------------------------- |
-| `intent-essentials`   |   7   | Intent workflow rules (CLI usage, conventions) |
-| `elixir-essentials`   |   8   | Core Elixir rules (pattern matching, pipes)    |
-| `ash-ecto-essentials` |   7   | Ash/Ecto rules (code interfaces, migrations)   |
-| `phoenix-liveview`    |   7   | LiveView rules (streams, two-phase mount)      |
+| Name                           | Rules | Description                                    |
+| ------------------------------ | :---: | ---------------------------------------------- |
+| `intent-essentials`            |   7   | Intent workflow rules (CLI usage, conventions) |
+| `intent-elixir-essentials`     |   8   | Core Elixir rules (pattern matching, pipes)    |
+| `intent-ash-ecto-essentials`   |   7   | Ash/Ecto rules (code interfaces, migrations)   |
+| `intent-phoenix-liveview`      |   7   | LiveView rules (streams, two-phase mount)      |
 
 **Example:**
 
@@ -692,7 +692,7 @@ intent claude skills install --all
 intent claude skills sync
 
 # View skill content
-intent claude skills show elixir-essentials
+intent claude skills show intent-elixir-essentials
 ```
 
 **Plugin Location:** Skill definitions live in `intent/plugins/claude/skills/`.
@@ -1201,9 +1201,9 @@ Intent/
 │           ├── bin/       # Plugin scripts
 │           ├── skills/    # Skill definitions
 │           │   ├── intent-essentials/
-│           │   ├── elixir-essentials/
-│           │   ├── ash-ecto-essentials/
-│           │   └── phoenix-liveview/
+│           │   ├── intent-elixir-essentials/
+│           │   ├── intent-ash-ecto-essentials/
+│           │   └── intent-phoenix-liveview/
 │           └── subagents/ # Subagent definitions
 │               ├── intent/
 │               ├── elixir/

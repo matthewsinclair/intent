@@ -584,12 +584,12 @@ Intent v2.4.0 introduces skills -- always-on Claude Code enforcement rules that 
 
 ### Available Skills
 
-| Skill                 | Rules | Focus                                          |
-| --------------------- | :---: | ---------------------------------------------- |
-| `intent-essentials`   |   7   | CLI usage, treeindex, steel thread conventions |
-| `elixir-essentials`   |   8   | Pattern matching, tagged tuples, pipes, naming |
-| `ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement   |
-| `phoenix-liveview`    |   7   | Two-phase mount, streams, components           |
+| Skill                        | Rules | Focus                                          |
+| ---------------------------- | :---: | ---------------------------------------------- |
+| `intent-essentials`          |   7   | CLI usage, treeindex, steel thread conventions |
+| `intent-elixir-essentials`   |   8   | Pattern matching, tagged tuples, pipes, naming |
+| `intent-ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement   |
+| `intent-phoenix-liveview`    |   7   | Two-phase mount, streams, components           |
 
 ### Installing Skills
 
@@ -598,7 +598,7 @@ Intent v2.4.0 introduces skills -- always-on Claude Code enforcement rules that 
 intent claude skills list
 
 # Install a specific skill
-intent claude skills install elixir-essentials
+intent claude skills install intent-elixir-essentials
 
 # Install all available skills
 intent claude skills install --all
@@ -611,10 +611,10 @@ intent claude skills install --all
 intent claude skills sync
 
 # View skill content
-intent claude skills show elixir-essentials
+intent claude skills show intent-elixir-essentials
 
 # Remove a skill
-intent claude skills uninstall elixir-essentials
+intent claude skills uninstall intent-elixir-essentials
 ```
 
 Skills install to `.claude/skills/<name>/SKILL.md` in the target project and are loaded into every Claude Code session automatically.

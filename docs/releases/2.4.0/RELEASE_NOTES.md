@@ -24,12 +24,12 @@ intent claude skills show <name>       # Display skill content
 
 **Four skills ship with v2.4.0** (one universal + three Elixir):
 
-| Skill                 | Rules | Focus                                          |
-| --------------------- | :---: | ---------------------------------------------- |
-| `intent-essentials`   |   7   | CLI usage, treeindex, steel thread conventions |
-| `elixir-essentials`   |   8   | Pattern matching, tagged tuples, pipes, naming |
-| `ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement   |
-| `phoenix-liveview`    |   7   | Two-phase mount, streams, components           |
+| Skill                        | Rules | Focus                                          |
+| ---------------------------- | :---: | ---------------------------------------------- |
+| `intent-essentials`          |   7   | CLI usage, treeindex, steel thread conventions |
+| `intent-elixir-essentials`   |   8   | Pattern matching, tagged tuples, pipes, naming |
+| `intent-ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement   |
+| `intent-phoenix-liveview`    |   7   | Two-phase mount, streams, components           |
 
 Skills install to `.claude/skills/<name>/SKILL.md` in the target project and use SHA256 checksum manifests for sync tracking.
 

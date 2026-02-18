@@ -154,17 +154,17 @@ intent claude skills list
 
 # Install a skill
 intent claude skills install intent-essentials
-intent claude skills install elixir-essentials
+intent claude skills install intent-elixir-essentials
 intent claude skills install --all
 
 # Update installed skills to latest versions
 intent claude skills sync
 
 # Remove a skill
-intent claude skills uninstall elixir-essentials
+intent claude skills uninstall intent-elixir-essentials
 
 # Show skill details
-intent claude skills show elixir-essentials
+intent claude skills show intent-elixir-essentials
 ```
 
 Skills install to `~/.claude/skills/<name>/SKILL.md`. They load into every Claude Code session automatically, shaping code as it is generated.
