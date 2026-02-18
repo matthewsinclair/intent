@@ -5,6 +5,7 @@ status: Completed
 created: 20250727
 completed: 20250727
 ---
+
 # ST0017: Add an Intent sub-agent for Claude Code to Intent
 
 ## Brief to prime Claude Code

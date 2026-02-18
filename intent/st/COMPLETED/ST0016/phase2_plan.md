@@ -20,6 +20,7 @@ Phase 2 focuses on implementing the migration functionality that will transform 
 **File**: `/Users/matts/Devel/prj/STP/bin/intent_init`
 
 This command creates a new Intent v2.0.0 project structure:
+
 - Create `.intent/config.json` with project settings
 - Create `intent/` directory structure (flattened)
 - Create `backlog/` directory with config.yml
@@ -27,6 +28,7 @@ This command creates a new Intent v2.0.0 project structure:
 - Set up `.gitignore` appropriately
 
 Key features:
+
 - Use loaded configuration for defaults
 - Allow customization via flags
 - Create clean v2.0.0 structure (no legacy)
@@ -39,6 +41,7 @@ Key features:
 This is the core migration command that handles all version upgrades:
 
 #### 2.1 Version Detection
+
 ```bash
 detect_stp_version() {
   # Check .intent/config.json (v2.0.0)
@@ -50,6 +53,7 @@ detect_stp_version() {
 ```
 
 #### 2.2 Backup Creation
+
 ```bash
 create_backup() {
   local backup_dir=".backup_$(date +%Y%m%d_%H%M%S)"
@@ -60,6 +64,7 @@ create_backup() {
 ```
 
 #### 2.3 Migration Functions
+
 ```bash
 migrate_v0_0_0_to_v2_0_0() {
   # Convert .stp-config to .intent/config.json
@@ -82,6 +87,7 @@ migrate_v1_2_1_to_v2_0_0() {
 ```
 
 #### 2.4 Command Options
+
 - `--dry-run`: Show what would be done without changes
 - `--yes`: Skip confirmation prompts
 - `--verbose`: Show detailed progress
@@ -92,6 +98,7 @@ migrate_v1_2_1_to_v2_0_0() {
 **File**: `/Users/matts/Devel/prj/STP/bin/intent`
 
 Add routing for new commands:
+
 - `intent init [project-name]`
 - `intent upgrade [options]`
 
@@ -100,6 +107,7 @@ Add routing for new commands:
 **File**: `/Users/matts/Devel/prj/STP/bin/intent_helpers`
 
 Shared functions for migration:
+
 - `convert_yaml_to_json()` - Convert YAML frontmatter
 - `update_frontmatter()` - Change stp_version to intent_version
 - `flatten_directory()` - Remove prj/ nesting
@@ -108,13 +116,16 @@ Shared functions for migration:
 ### 5. Testing Strategy
 
 #### 5.1 Test intent_init
+
 - Create new project in temp directory
 - Verify all directories created
 - Check config.json is valid
 - Ensure backlog integration works
 
 #### 5.2 Test intent_upgrade
+
 For each example project (v0.0.0, v1.2.0, v1.2.1):
+
 1. Copy to temp directory
 2. Run upgrade
 3. Verify:
@@ -125,6 +136,7 @@ For each example project (v0.0.0, v1.2.0, v1.2.1):
    - Commands work post-migration
 
 #### 5.3 Edge Cases
+
 - Empty projects
 - Projects with custom structures
 - Projects with invalid configs

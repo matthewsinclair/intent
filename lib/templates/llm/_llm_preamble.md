@@ -2,6 +2,7 @@
 verblock: "05 Aug 2025:v0.3: Matthew Sinclair - Updated for Intent v2.2.0 with fileindex"
 intent_version: 2.2.0
 ---
+
 # LLM Preamble
 
 This document provides essential context for LLMs working on the [[PROJECT_NAME]] project. Share this document at the beginning of each LLM session to establish baseline understanding.

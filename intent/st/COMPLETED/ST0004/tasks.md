@@ -11,4 +11,3 @@
 - [x] Create a steel thread index file and update mechanism
 - [x] Add error handling and user-friendly messages
 - [x] Write documentation for the steel thread commands
-

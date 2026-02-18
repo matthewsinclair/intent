@@ -33,7 +33,7 @@ $ intent st new "Implement rate-limited cache for API protection"
 **Problem**: Your AI assistant forgets context between sessions  
 **Solution**: Intent preserves your project's "why" so AI always understands your goals
 
-### For Teams  
+### For Teams
 
 **Problem**: New members waste weeks doing "code archaeology"  
 **Solution**: Every feature has a Steel Thread documenting why it exists
@@ -56,7 +56,7 @@ Example structure:
 ```
 ST0042: Authentication System/
 ├── info.md          # Why we need auth, what type, constraints
-├── design.md        # JWT vs sessions decision, security model  
+├── design.md        # JWT vs sessions decision, security model
 ├── impl.md          # Technical implementation details
 └── tasks.md         # Linked Backlog tasks for execution
 ```
@@ -67,14 +67,16 @@ ST0042: Authentication System/
 
 ```markdown
 # ❌ Without Intent (every new session):
+
 You: "Help me optimize the user service"
 LLM: "What does the user service do? What are the constraints?"
 [You spend 10 minutes explaining...]
 
 # ✅ With Intent:
+
 You: "I'm working on ST0042" [paste steel thread]
 LLM: "I see you're using JWT tokens with 15-min expiry for stateless auth.
-      Given your multi-device requirement, here's a refresh token strategy..."
+Given your multi-device requirement, here's a refresh token strategy..."
 ```
 
 ### Example 2: Discovering Hidden Knowledge
@@ -90,6 +92,7 @@ $ intent st show ST0015
 
 ```markdown
 # Steel threads keep AI focused:
+
 - Clear boundaries (one feature, not entire codebase)
 - Explicit constraints documented ("must handle 10K req/s")
 - Design decisions captured ("chose Redis over Memcached because...")
@@ -126,12 +129,12 @@ Claude: "What's your project structure? What caching do you need?"
 
 With Intent agent:
 
-```  
+```
 You: "Help me add caching"
 Claude: "I'll create a steel thread for caching:
-         
+
          intent st new 'Implement caching layer'
-         
+
          Let's document the intent first - what are you caching?
          Is this for API rate limits or performance? What's your
          expected traffic pattern? I'll help structure this properly."

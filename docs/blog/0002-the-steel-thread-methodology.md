@@ -114,24 +114,31 @@ status: Not Started|In Progress|Completed|On Hold
 created: YYYYMMDD
 completed: YYYYMMDD
 ---
+
 # ST####: Title
 
 ## Objective
+
 [Clear statement of what this thread aims to achieve]
 
 ## Context
+
 [Why this work matters and how it fits the bigger picture]
 
 ## Approach
+
 [High-level strategy for implementation]
 
 ## Tasks
+
 [Linked to Backlog tasks or embedded checklist]
 
 ## Implementation Notes
+
 [Decisions, learnings, and details that emerge during work]
 
 ## Results
+
 [What was actually delivered and learned]
 ```
 
@@ -266,7 +273,7 @@ This thread reorganised completed steel threads:
 **Why This Works Well**:
 
 - Addresses a scaling problem
-- Simple, achievable scope  
+- Simple, achievable scope
 - Clear success criteria
 - Benefits immediately visible
 
@@ -335,7 +342,7 @@ Steel threads create shared understanding:
 No more arguing about whether something is "done":
 
 - Objective met? ✓
-- Tasks complete? ✓  
+- Tasks complete? ✓
 - Documentation updated? ✓
 - Results captured? ✓
 

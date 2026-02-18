@@ -5,6 +5,7 @@ status: Completed
 created: 20250306
 completed: 20250603
 ---
+
 # ST0003: Template System
 
 - **Status**: Completed

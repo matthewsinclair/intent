@@ -36,6 +36,7 @@ hello-world/
 ## Configuration
 
 The `.intent/config.json` file:
+
 ```json
 {
   "intent_version": "2.4.0",

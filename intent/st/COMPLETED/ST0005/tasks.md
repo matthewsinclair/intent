@@ -11,4 +11,3 @@
 - [x] Implement error handling and user feedback
 - [x] Document the initialization process
 - [x] Test initialization on different operating systems
-

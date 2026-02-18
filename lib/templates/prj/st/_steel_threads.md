@@ -1,17 +1,21 @@
 ---
 verblock: "09 Jul 2025:v0.2: Matthew Sinclair - Updated for directory structure"
 ---
+
 # Steel Threads
 
 This document serves as an index of all steel threads in the project. A steel thread represents a self-contained unit of work that focuses on implementing a specific piece of functionality.
 
 ## Index
+
 <!-- BEGIN: STEEL_THREAD_INDEX -->
-| ID                      | Title   | Status   | Created  | Completed |
-|-------------------------|---------|----------|----------|-----------|
-| [ST0002](<./ST0002/>) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
-| [ST0001](<./ST0001/>) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
-| ...                     | ...     | ...      | ...      | ...       |
+
+| ID                  | Title   | Status   | Created  | Completed |
+| ------------------- | ------- | -------- | -------- | --------- |
+| [ST0002](./ST0002/) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
+| [ST0001](./ST0001/) | [Title] | [Status] | YYYYMMDD | YYYYMMDD  |
+| ...                 | ...     | ...      | ...      | ...       |
+
 <!-- END: STEEL_THREAD_INDEX -->
 
 ## Steel Thread Status Definitions
@@ -34,6 +38,7 @@ This document provides an overview of all steel threads in the project. It helps
 4. Use this document to quickly locate specific steel thread documents
 
 The detailed information for each steel thread is contained in its directory (eg ST0001/) with multiple files:
+
 - info.md: Main information and metadata
 - design.md: Design decisions and approach
 - impl.md: Implementation details

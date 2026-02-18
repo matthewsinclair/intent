@@ -24,12 +24,12 @@ intent claude skills show <name>       # Display skill content
 
 **Four skills ship with v2.4.0** (one universal + three Elixir):
 
-| Skill                  | Rules | Focus                                        |
-|------------------------|:-----:|----------------------------------------------|
-| `intent-essentials`    |   7   | CLI usage, treeindex, steel thread conventions |
-| `elixir-essentials`    |   8   | Pattern matching, tagged tuples, pipes, naming |
-| `ash-ecto-essentials`  |   7   | Code interfaces, migrations, actor placement  |
-| `phoenix-liveview`     |   7   | Two-phase mount, streams, components          |
+| Skill                 | Rules | Focus                                          |
+| --------------------- | :---: | ---------------------------------------------- |
+| `intent-essentials`   |   7   | CLI usage, treeindex, steel thread conventions |
+| `elixir-essentials`   |   8   | Pattern matching, tagged tuples, pipes, naming |
+| `ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement   |
+| `phoenix-liveview`    |   7   | Two-phase mount, streams, components           |
 
 Skills install to `.claude/skills/<name>/SKILL.md` in the target project and use SHA256 checksum manifests for sync tracking.
 
@@ -44,6 +44,7 @@ intent claude upgrade --project-dir DIR   # Target external project
 ```
 
 The upgrade command:
+
 - Scans for existing files (AGENTS.md, RULES.md, ARCHITECTURE.md)
 - Detects deprecated files (AGENTS-phx.md, llm_preamble.md)
 - Checks subagent and skill installation status
@@ -55,11 +56,11 @@ The upgrade command:
 Four new reference documents added to the Elixir subagent:
 
 | Document               | Lines | Coverage                                        |
-|------------------------|:-----:|------------------------------------------------|
-| `ash-ecto.md`          |  ~300 | Ash code interfaces, migrations, query patterns |
-| `liveview.md`          |  ~280 | Two-phase rendering, streams, uploads, forms    |
-| `testing.md`           |  ~350 | DataCase, ConnCase, LiveView, Mox, Ash testing  |
-| `project-structure.md` |  ~220 | Standard Phoenix/Ash project layout             |
+| ---------------------- | :---: | ----------------------------------------------- |
+| `ash-ecto.md`          | ~300  | Ash code interfaces, migrations, query patterns |
+| `liveview.md`          | ~280  | Two-phase rendering, streams, uploads, forms    |
+| `testing.md`           | ~350  | DataCase, ConnCase, LiveView, Mox, Ash testing  |
+| `project-structure.md` | ~220  | Standard Phoenix/Ash project layout             |
 
 ### Elixir Project Templates
 
@@ -73,11 +74,11 @@ Four new reference documents added to the Elixir subagent:
 
 Intent projects now use a rationalized three-file system:
 
-| File              | Purpose                          | Management        |
-|-------------------|----------------------------------|-------------------|
-| `AGENTS.md`       | Factual project overview         | Auto-generated    |
-| `RULES.md`        | Mandatory coding rules           | Human-curated     |
-| `ARCHITECTURE.md` | System structure and decisions   | Human-curated     |
+| File              | Purpose                        | Management     |
+| ----------------- | ------------------------------ | -------------- |
+| `AGENTS.md`       | Factual project overview       | Auto-generated |
+| `RULES.md`        | Mandatory coding rules         | Human-curated  |
+| `ARCHITECTURE.md` | System structure and decisions | Human-curated  |
 
 ### Intent Usage Rules
 
@@ -118,16 +119,16 @@ intent claude upgrade --apply --project-dir /path/to/project
 
 The v2.4.0 upgrade was tested and applied to 8 projects:
 
-| Project    | Type     | Actions                                          |
-|------------|----------|--------------------------------------------------|
-| Intent     | Bash     | Deprecated files removed, AGENTS.md regenerated  |
-| Prolix     | Elixir   | RULES.md + ARCHITECTURE.md created, AGENTS-phx.md merged |
-| Laksa-web  | Elixir   | Phoenix rules merged into RULES.md, deprecated files removed |
-| Lamplight  | Elixir   | AGENTS.md regenerated (already had RULES.md + ARCHITECTURE.md) |
-| Anvil      | Elixir   | RULES.md + ARCHITECTURE.md from template         |
-| MeetZaya   | Elixir   | RULES.md + ARCHITECTURE.md created, AGENTS-phx.md merged |
-| Multiplyer | Elixir   | RULES.md + ARCHITECTURE.md from template         |
-| Utilz      | Bash     | AGENTS.md regenerated only                       |
+| Project    | Type   | Actions                                                        |
+| ---------- | ------ | -------------------------------------------------------------- |
+| Intent     | Bash   | Deprecated files removed, AGENTS.md regenerated                |
+| Prolix     | Elixir | RULES.md + ARCHITECTURE.md created, AGENTS-phx.md merged       |
+| Laksa-web  | Elixir | Phoenix rules merged into RULES.md, deprecated files removed   |
+| Lamplight  | Elixir | AGENTS.md regenerated (already had RULES.md + ARCHITECTURE.md) |
+| Anvil      | Elixir | RULES.md + ARCHITECTURE.md from template                       |
+| MeetZaya   | Elixir | RULES.md + ARCHITECTURE.md created, AGENTS-phx.md merged       |
+| Multiplyer | Elixir | RULES.md + ARCHITECTURE.md from template                       |
+| Utilz      | Bash   | AGENTS.md regenerated only                                     |
 
 ## Breaking Changes
 

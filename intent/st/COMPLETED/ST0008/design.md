@@ -7,4 +7,3 @@
 3. Create LLM-specific sections in templates
 4. Implement LLM preamble files to provide consistent context
 5. Develop documentation for effective LLM use within STP
-

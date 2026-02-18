@@ -5,6 +5,7 @@ status: Completed
 created: 20250306
 completed: 20250603
 ---
+
 # ST0005: Initialization Command
 
 - **Status**: Completed

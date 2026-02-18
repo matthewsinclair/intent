@@ -2,20 +2,21 @@
 verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Updated for Intent v2.0.0 (As-Built)"
 intent_version: 2.0.0
 ---
+
 # 8. Appendices
 
-[index](<./technical_product_design.md>)
+[index](./technical_product_design.md)
 
 ## 8.1 Glossary
 
 | Term           | Definition                                                                                       |
-|----------------|--------------------------------------------------------------------------------------------------|
+| -------------- | ------------------------------------------------------------------------------------------------ |
 | LLM            | Large Language Model - An AI system capable of understanding and generating human language,      |
 |                | such as Claude, GPT, etc.                                                                        |
 | Steel Thread   | A self-contained unit of work that represents a logical piece of functionality to be implemented |
 | Context Window | The amount of text an LLM can process in a single interaction                                    |
 | Intent         | The system described in this document - captures and preserves development intention             |
-| STP            | Steel Thread Process - The original name for Intent (pre-v2.0.0)                                |
+| STP            | Steel Thread Process - The original name for Intent (pre-v2.0.0)                                 |
 | TPD            | Technical Product Design - A comprehensive technical specification document                      |
 | Backlog.md     | Task management system integrated with Intent for fine-grained task tracking                     |
 | Bootstrap      | Automated setup process for Intent global installation                                           |
@@ -24,32 +25,32 @@ intent_version: 2.0.0
 
 ### 8.2.1 Primary Commands
 
-| Command | Description | Usage |
-|---------|-------------|-------|
-| `intent init` | Initialize Intent in a project | `intent init "Project Name"` |
-| `intent st` | Manage steel threads | `intent st new/list/show/edit` |
-| `intent bl` | Enhanced Backlog.md wrapper | `intent bl list/create/done` |
-| `intent task` | Manage tasks linked to threads | `intent task create/list/count` |
-| `intent status` | Synchronize thread/task status | `intent status show/sync/check` |
-| `intent bootstrap` | Global Intent setup | `intent bootstrap [--force]` |
-| `intent doctor` | Diagnose configuration | `intent doctor [--fix]` |
-| `intent upgrade` | Migrate from STP | `intent upgrade [--backup-dir]` |
-| `intent help` | Display help | `intent help [command]` |
-| `intent llm` | LLM integration | `intent llm usage_rules` |
+| Command            | Description                    | Usage                           |
+| ------------------ | ------------------------------ | ------------------------------- |
+| `intent init`      | Initialize Intent in a project | `intent init "Project Name"`    |
+| `intent st`        | Manage steel threads           | `intent st new/list/show/edit`  |
+| `intent bl`        | Enhanced Backlog.md wrapper    | `intent bl list/create/done`    |
+| `intent task`      | Manage tasks linked to threads | `intent task create/list/count` |
+| `intent status`    | Synchronize thread/task status | `intent status show/sync/check` |
+| `intent bootstrap` | Global Intent setup            | `intent bootstrap [--force]`    |
+| `intent doctor`    | Diagnose configuration         | `intent doctor [--fix]`         |
+| `intent upgrade`   | Migrate from STP               | `intent upgrade [--backup-dir]` |
+| `intent help`      | Display help                   | `intent help [command]`         |
+| `intent llm`       | LLM integration                | `intent llm usage_rules`        |
 
 ### 8.2.2 Configuration Schema
 
 ```json
 // .intent/config.json
 {
-  "version": "2.0.0",              // Required: Intent version
-  "project_name": "string",        // Required: Project name
-  "author": "string",              // Optional: Default author
-  "created": "YYYY-MM-DD",         // Auto-generated: Creation date
-  "st_prefix": "ST",               // Optional: Steel thread prefix (default: ST)
-  "backlog_dir": "backlog",        // Optional: Backlog directory (default: backlog)
-  "intent_dir": "intent",          // Optional: Intent directory (default: intent)
-  "backlog_list_status": "todo"    // Optional: Default status filter (default: todo)
+  "version": "2.0.0", // Required: Intent version
+  "project_name": "string", // Required: Project name
+  "author": "string", // Optional: Default author
+  "created": "YYYY-MM-DD", // Auto-generated: Creation date
+  "st_prefix": "ST", // Optional: Steel thread prefix (default: ST)
+  "backlog_dir": "backlog", // Optional: Backlog directory (default: backlog)
+  "intent_dir": "intent", // Optional: Intent directory (default: intent)
+  "backlog_list_status": "todo" // Optional: Default status filter (default: todo)
 }
 ```
 
@@ -58,9 +59,9 @@ intent_version: 2.0.0
 ```json
 // ~/.config/intent/config.json
 {
-  "author": "Your Name",           // Default author for all projects
-  "editor": "vim",                 // Preferred text editor
-  "backlog_list_status": "wip"     // Global default status filter
+  "author": "Your Name", // Default author for all projects
+  "editor": "vim", // Preferred text editor
+  "backlog_list_status": "wip" // Global default status filter
 }
 ```
 
@@ -94,15 +95,16 @@ intent bootstrap --force
 
 ### 8.2.5 Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|----------|
-| `INTENT_HOME` | Intent installation directory | Required |
-| `AUTHOR` | Default author name | $USER |
-| `EDITOR` | Preferred text editor | vim |
-| `INTENT_DEBUG` | Enable debug output | unset |
-| `INTENT_*` | Override any config value | unset |
+| Variable       | Description                   | Default  |
+| -------------- | ----------------------------- | -------- |
+| `INTENT_HOME`  | Intent installation directory | Required |
+| `AUTHOR`       | Default author name           | $USER    |
+| `EDITOR`       | Preferred text editor         | vim      |
+| `INTENT_DEBUG` | Enable debug output           | unset    |
+| `INTENT_*`     | Override any config value     | unset    |
 
 Example usage:
+
 ```bash
 export INTENT_HOME=~/intent
 export INTENT_BACKLOG_LIST_STATUS=wip  # Override default filter
@@ -117,17 +119,21 @@ export INTENT_DEBUG=1                  # Enable debug mode
 # Work In Progress
 
 ## Current Focus
+
 [Brief description of the current development focus]
 
 ## Active Steel Threads
+
 - ST####: [Brief description]
 - ...
 
 ## Upcoming Work
+
 - [Item 1]
 - ...
 
 ## Notes
+
 [Any additional notes about the current work]
 ```
 
@@ -141,23 +147,29 @@ export INTENT_DEBUG=1                  # Enable debug mode
 - **Completed**: YYYY-MM-DD
 
 ## Objective
+
 [Clear statement of what this steel thread aims to accomplish]
 
 ## Context
+
 [Background information and context for this steel thread]
 
 ## Approach
+
 [Planned approach for implementing this steel thread]
 
 ## Tasks
+
 - [ ] Task 1
 - [ ] Task 2
 - ...
 
 ## Implementation Notes
+
 [Notes on implementation details, decisions, challenges, etc.]
 
 ## Results
+
 [Summary of results after completion]
 ```
 
@@ -234,6 +246,7 @@ I'll help you create a new steel thread for user authentication. Let's use Inten
 ### 8.7.2 Integration Architecture
 
 For technical details on the Backlog.md integration architecture, see:
+
 - Section 3.6.1: Backlog.md Integration Architecture
 - Section 4.8.1: Backlog.md Integration Implementation Details
 - Blog Post: [LLM Collaboration with Intent](../../docs/blog/0004-llm-collaboration-with-intent.md)
@@ -242,11 +255,11 @@ For technical details on the Backlog.md integration architecture, see:
 
 ### 8.8.1 Version History
 
-| Version | Date | Changes |
-|---------|------|---------|  
-| 2.0.0 | 2025-07-17 | Complete rebrand to Intent, JSON config, enhanced UX |
-| 1.2.1 | 2025-07-09 | Added Backlog.md integration |
-| 1.0.0 | 2025-06-15 | Initial STP release |
+| Version | Date       | Changes                                              |
+| ------- | ---------- | ---------------------------------------------------- |
+| 2.0.0   | 2025-07-17 | Complete rebrand to Intent, JSON config, enhanced UX |
+| 1.2.1   | 2025-07-09 | Added Backlog.md integration                         |
+| 1.0.0   | 2025-06-15 | Initial STP release                                  |
 
 ### 8.8.2 Test Coverage
 

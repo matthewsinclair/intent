@@ -7,4 +7,3 @@
 3. Write comprehensive documentation for all STP features
 4. Include examples, use cases, and best practices
 5. Organize documentation in a logical, accessible manner
-

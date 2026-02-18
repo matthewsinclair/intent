@@ -11,4 +11,3 @@
 - [x] Implement the steel thread management script
 - [x] Test script functionality in various environments
 - [x] Add verbose output mode for debugging
-

@@ -25,8 +25,6 @@ This allows for automatic updates to specific sections while preserving the rest
 4. **Configurable Output**: Added options to customize the output:
    - `--write`: Updates the steel_threads.md file directly
    - `--width N`: Specifies the width of the output table for proper column alignment
-   
 5. **Format Consistency**: Ensures proper table formatting and column alignment for better readability.
 
 This approach makes the system more maintainable by ensuring the steel_threads.md document stays in sync with the individual ST files, reducing manual maintenance work.
-

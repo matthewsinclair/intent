@@ -2,13 +2,14 @@
 stp_version: 1.2.0
 status: In Progress
 created: 20240201
-completed: 
+completed:
 ---
+
 # ST0002: Feature Development
 
 - **Status**: In Progress
 - **Created**: 2024-02-01
-- **Completed**: 
+- **Completed**:
 - **Author**: v1.2.0 User
 
 ## Objective

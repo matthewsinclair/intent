@@ -2,6 +2,7 @@
 verblock: "16 Jul 2025:v0.2: Matthew Sinclair - Updated with Phase 0 and new commands"
 stp_version: 2.0.0
 ---
+
 # ST0016: Task Tracking
 
 ## Overview
@@ -54,10 +55,10 @@ intent bl list | grep ST0016
 
 ### Phase 3: Repository Restructuring
 
-- [ ] Move stp/bin/* to bin/
-- [ ] Rename executables (stp → intent, stp_*→ intent_*)
+- [ ] Move stp/bin/\* to bin/
+- [ ] Rename executables (stp → intent, stp*\*→ intent*\*)
 - [ ] Create backwards compatibility symlinks
-- [ ] Move stp/_templ/ to lib/templates/
+- [ ] Move stp/\_templ/ to lib/templates/
 - [ ] Update all template references
 - [ ] Test executable paths
 

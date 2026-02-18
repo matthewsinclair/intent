@@ -2,9 +2,10 @@
 verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Updated for Intent v2.0.0 (As-Built)"
 intent_version: 2.0.0
 ---
+
 # 7. Technical Challenges and Mitigations [AS-BUILT]
 
-[index](<./technical_product_design.md>)
+[index](./technical_product_design.md)
 
 ## 7.1 LLM Context Window Management
 
@@ -153,6 +154,7 @@ Documentation may inadvertently contain sensitive information that should not be
 **Challenge**: Files without YAML frontmatter caused migration failures.
 
 **Resolution**: Modified `convert_yaml_frontmatter` to handle edge case:
+
 ```bash
 if ! head -1 "$file" | grep -q "^---$"; then
   cp "$file" "$temp_file"  # Just copy if no frontmatter
@@ -164,7 +166,8 @@ fi
 
 **Challenge**: Lost ~100 tests during v2.0.0 migration.
 
-**Resolution**: 
+**Resolution**:
+
 - Focused on core functionality (86 tests)
 - Documented lost tests for future recovery
 - Prioritized critical path testing
@@ -174,6 +177,7 @@ fi
 **Challenge**: `intent bl list` not respecting configuration.
 
 **Resolution**:
+
 - Added `backlog_list_status` to config loading
 - Implemented `--all` flag override
 - Test-driven development approach
@@ -183,6 +187,7 @@ fi
 **Challenge**: Blog posts accidentally deleted during cleanup.
 
 **Resolution**:
+
 - Restored from git history (commit b65b8c9)
 - Updated all STP references to Intent
 - Fixed internal links between posts
@@ -192,6 +197,7 @@ fi
 **Challenge**: Complex migration from nested to flat structure.
 
 **Resolution**:
+
 - Comprehensive upgrade script
 - Automatic backup creation
 - Clear migration path documentation

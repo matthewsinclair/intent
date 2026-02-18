@@ -11,4 +11,3 @@
 - [x] Document customization options
 - [x] Test documentation clarity with sample users
 - [x] Implement feedback from documentation testing
-

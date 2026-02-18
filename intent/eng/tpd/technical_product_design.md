@@ -2,6 +2,7 @@
 verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Update for Intent v2.1.0 with agent init"
 intent_version: 2.1.0
 ---
+
 # Intent Technical Product Design v2.1.0 (As-Built)
 
 ## Preamble to Claude
@@ -14,7 +15,7 @@ This document is a Technical Product Design (TPD) for the Intent system (formerl
 4. This document contains:
    - Actual v2.1.0 architecture and implementation
    - JSON-based configuration system
-   - Complete command reference for intent_* commands
+   - Complete command reference for intent\_\* commands
    - Migration tools and processes
    - Lessons learned from development
 
@@ -65,17 +66,20 @@ This document serves as the central index for the Technical Product Design (TPD)
 Intent v2.1.0 includes Claude Code sub-agent integration with proper initialization, enhancing AI collaboration:
 
 ### Architecture
+
 - **Agent Storage**: `$INTENT_HOME/agents/` (global), `./intent/agents/` (project)
 - **Installation Target**: `~/.claude/agents/`
 - **Manifest Tracking**: JSON manifests track installations and checksums
 - **Sync Mechanism**: File-based sync with modification detection
 
 ### Available Agents
+
 1. **Intent Agent**: Understands steel threads, Intent commands, and project structure
 2. **Elixir Agent**: Elixir code doctor with Usage Rules and Ash/Phoenix patterns
 3. **Socrates Agent**: CTO Review Mode for technical decision-making via Socratic dialog
 
 ### Agent Commands
+
 - `intent agents init`: Initialize agent configuration
 - `intent agents list`: Show available and installed agents
 - `intent agents install`: Install agents to Claude configuration
@@ -85,6 +89,7 @@ Intent v2.1.0 includes Claude Code sub-agent integration with proper initializat
 - `intent agents status`: Check agent health and integrity
 
 ### Integration Points
+
 - **intent init**: Detects Claude and offers agent installation
 - **intent doctor**: Includes agent health checks
 - **intent upgrade**: Preserves agent directories during migration

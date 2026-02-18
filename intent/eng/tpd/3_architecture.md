@@ -2,9 +2,10 @@
 verblock: "08 Jul 2025:v0.2: Matthew Sinclair - Added Backlog.md integration architecture"
 stp_version: 1.2.0
 ---
+
 # 3. Architecture
 
-[index](<./technical_product_design.md>)
+[index](./technical_product_design.md)
 
 ## 3.1 System Architecture Overview
 
@@ -108,7 +109,7 @@ Intent v2.0.0 uses a hierarchical JSON configuration system:
 Configuration Hierarchy (highest to lowest priority):
 1. Environment Variables (INTENT_*, AUTHOR, EDITOR)
 2. Local Project Config (.intent/config.json)
-3. Global User Config (~/.config/intent/config.json)  
+3. Global User Config (~/.config/intent/config.json)
 4. Built-in Defaults
 
 Example .intent/config.json:
@@ -160,7 +161,7 @@ STP is designed to interface with:
 ## 3.5 Architectural Decisions
 
 | Decision                     | Rationale                                                                  |
-|------------------------------|----------------------------------------------------------------------------|
+| ---------------------------- | -------------------------------------------------------------------------- |
 | Use of Markdown              | Maximizes portability and readability for both humans and LLMs             |
 | Shell Scripts Only           | Ensures compatibility across development environments without dependencies |
 | Directory-Based Organization | Creates clear structure while maintaining simplicity                       |
@@ -210,17 +211,20 @@ The integration with Backlog.md extends STP's capabilities with fine-grained tas
 #### Component Responsibilities [AS-BUILT]
 
 **Intent Core Components:**
+
 - **Steel Threads**: Capture objectives, context, and design in intent/st/
 - **Documentation**: Maintain narrative and specs in intent/docs/
 - **Configuration**: JSON-based settings in .intent/config.json
 - **Process Coordination**: Orchestrate development workflow
 
 **Backlog.md Integration:**
+
 - **Task Management**: Track implementation tasks with metadata
 - **Status Filtering**: Configurable backlog_list_status for focused views
 - **Visualisation**: Kanban board and browser interfaces
 
 **Integration Layer:**
+
 - **Command Wrappers**: `intent bl`, `intent task`, `intent status`
 - **Status Synchronisation**: Task completion drives thread status
 - **Naming Conventions**: ST#### prefix links tasks to threads
@@ -235,7 +239,7 @@ The integration with Backlog.md extends STP's capabilities with fine-grained tas
 
 #### Integration Points [AS-BUILT]
 
-1. **File System**: 
+1. **File System**:
    - Intent: `/intent/st/` for steel threads (flattened)
    - Backlog: `/backlog/` for task management
    - Config: `/.intent/config.json` for settings
@@ -243,7 +247,7 @@ The integration with Backlog.md extends STP's capabilities with fine-grained tas
 
 2. **Command Interface**:
    - Unified `intent` command with subcommands
-   - All commands follow intent_* pattern
+   - All commands follow intent\_\* pattern
    - Wrapper commands prevent git conflicts
    - Help system integrated
 
@@ -282,6 +286,7 @@ Supported Versions:
 ## 3.7 AS-BUILT Summary
 
 Intent v2.0.0 represents a significant evolution from STP:
+
 - Complete rebrand with consistent naming
 - Flattened, intuitive directory structure
 - JSON-based hierarchical configuration

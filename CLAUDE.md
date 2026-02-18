@@ -22,6 +22,7 @@ Steel threads are organized as directories under `intent/st/`:
 ## Commands
 
 ### Core Commands
+
 - `intent st new "Title"` - Create a new steel thread
 - `intent st list` - List all steel threads
 - `intent st show <id>` - Show steel thread details
@@ -30,11 +31,13 @@ Steel threads are organized as directories under `intent/st/`:
 - `intent help` - Get help
 
 ### AGENTS.md Commands (NEW in v2.3.0)
+
 - `intent agents init` - Create AGENTS.md for the project
 - `intent agents sync` - Update AGENTS.md with latest project state
 - `intent agents validate` - Check AGENTS.md compliance
 
 ### Claude Subagent Commands (renamed in v2.3.0)
+
 - `intent claude subagents init` - Initialize Claude subagent configuration
 - `intent claude subagents list` - List available Claude subagents
 - `intent claude subagents install <name>` - Install a Claude subagent

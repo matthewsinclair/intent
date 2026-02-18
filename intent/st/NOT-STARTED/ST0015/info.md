@@ -3,8 +3,9 @@ verblock: "09 Jul 2025:v0.1: Matthew Sinclair - Initial version"
 intent_version: 2.0.0
 status: Not Started
 created: 20250709
-completed: 
+completed:
 ---
+
 # ST0015: Enhanced Steel Thread Templates and File Types
 
 - **Status**: Not Started

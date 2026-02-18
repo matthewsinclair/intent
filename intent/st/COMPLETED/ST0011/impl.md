@@ -90,4 +90,3 @@ cd stp/tests/
 ./run_tests.sh           # Run all tests
 ./run_tests.sh bootstrap # Run only bootstrap tests
 ```
-

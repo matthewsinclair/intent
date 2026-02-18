@@ -26,6 +26,7 @@ The project has been renamed from "STP" (Steel Thread Process) to "Intent" to be
 The project structure has been flattened and simplified:
 
 **Before (STP v1.x):**
+
 ```
 stp/
 ├── bin/        # Executables mixed with project
@@ -37,6 +38,7 @@ stp/
 ```
 
 **After (Intent v2.0.0):**
+
 ```
 .
 ├── agents/     # Claude Code sub-agents (global)
@@ -67,6 +69,7 @@ stp/
 ### 📋 JSON Configuration
 
 Configuration has moved from YAML to JSON format with proper local/global hierarchy:
+
 - Local: `.intent/config.json`
 - Global: `~/.config/intent/config.json` (follows XDG standard)
 
@@ -136,6 +139,7 @@ While we maintain backwards compatibility, these changes affect the underlying s
 - **Seamless Claude Integration**: Agents automatically enhance Claude sessions
 
 **Quick Start with Agents:**
+
 ```bash
 # Install the Intent agent
 intent agents install intent
@@ -195,12 +199,12 @@ None at this time. All tests passing on Ubuntu and macOS.
 
 All commands remain the same, just replace `stp` with `intent`:
 
-| Old Command | New Command |
-|-------------|-------------|
-| `stp st new` | `intent st new` |
-| `stp bl list` | `intent bl list` |
+| Old Command       | New Command          |
+| ----------------- | -------------------- |
+| `stp st new`      | `intent st new`      |
+| `stp bl list`     | `intent bl list`     |
 | `stp task create` | `intent task create` |
-| `stp help` | `intent help` |
+| `stp help`        | `intent help`        |
 
 ## Future Roadmap
 

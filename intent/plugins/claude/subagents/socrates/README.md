@@ -14,6 +14,7 @@ Technical decisions often suffer from single-perspective analysis, unexplored ed
 ## When to Use
 
 ### Ideal For:
+
 - Architecture decisions (microservices vs monolith, database selection)
 - Technology selection (framework choices, build vs buy)
 - Complex refactoring strategies
@@ -22,6 +23,7 @@ Technical decisions often suffer from single-perspective analysis, unexplored ed
 - Integration planning
 
 ### Not Necessary For:
+
 - Simple bug fixes
 - Routine updates
 - Well-established patterns
@@ -44,9 +46,9 @@ The agent facilitates a dialog through five phases:
 Simply ask Claude to use CTO Review Mode for your technical decision:
 
 ```
-"I need to decide between PostgreSQL and DynamoDB for our new service. 
-Can you conduct a CTO Review Mode dialog exploring this decision? 
-Context: 5-person team, expecting 1M users in year one, 
+"I need to decide between PostgreSQL and DynamoDB for our new service.
+Can you conduct a CTO Review Mode dialog exploring this decision?
+Context: 5-person team, expecting 1M users in year one,
 strong PostgreSQL experience but no NoSQL experience."
 ```
 
@@ -56,10 +58,11 @@ When delegating to the Socrates agent as a sub-agent:
 
 ```javascript
 Task(
-  description="Review authentication architecture",
-  prompt="Conduct CTO Review Mode dialog for our authentication system redesign. We need to support enterprise SSO, maintain 15-minute token expiry for compliance, and ensure zero-downtime migration.",
-  subagent_type="socrates"
-)
+  (description = "Review authentication architecture"),
+  (prompt =
+    "Conduct CTO Review Mode dialog for our authentication system redesign. We need to support enterprise SSO, maintain 15-minute token expiry for compliance, and ensure zero-downtime migration."),
+  (subagent_type = "socrates"),
+);
 ```
 
 ## Integration with Intent
@@ -85,14 +88,17 @@ The Socrates agent is Intent-aware and integrates seamlessly:
 [Dialog continues through exploration]
 
 ## Recommendation
+
 [Clear, actionable recommendation]
 
 ## Key Trade-offs
+
 - Performance vs simplicity
 - Time to market vs technical debt
 - [etc.]
 
 ## Next Steps
+
 - [ ] Create steel thread for implementation
 - [ ] Document in design.md
 - [ ] Create backlog tasks

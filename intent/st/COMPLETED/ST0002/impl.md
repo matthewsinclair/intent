@@ -51,4 +51,3 @@ Help documentation follows a standard format with sections:
 - `@short`: Brief one-line description
 - `@desc`: Detailed description
 - `@usage`: Usage information, parameters, and examples
-

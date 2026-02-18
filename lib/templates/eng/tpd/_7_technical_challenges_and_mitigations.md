@@ -1,6 +1,7 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
+
 # 7. Technical Challenges and Mitigations
 
 ## 7.1 [Challenge Area 1]
@@ -91,7 +92,7 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ## 7.6 Risk Assessment Matrix
 
 | Challenge     | Likelihood        | Impact            | Risk Level        | Mitigation Effectiveness |
-|---------------|-------------------|-------------------|-------------------|--------------------------|
+| ------------- | ----------------- | ----------------- | ----------------- | ------------------------ |
 | [Challenge 1] | [Low/Medium/High] | [Low/Medium/High] | [Low/Medium/High] | [Low/Medium/High]        |
 | [Challenge 2] | [Low/Medium/High] | [Low/Medium/High] | [Low/Medium/High] | [Low/Medium/High]        |
 | ...           | ...               | ...               | ...               | ...                      |

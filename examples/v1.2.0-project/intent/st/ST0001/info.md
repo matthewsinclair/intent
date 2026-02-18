@@ -1,6 +1,7 @@
 ---
 intent_version: 2.0.0
 ---
+
 # ST0001: Project Setup
 
 - **Status**: Completed
@@ -15,9 +16,9 @@ Initialize the project with v1.2.0 structure.
 ## Context
 
 This example demonstrates the v1.2.0 format with:
+
 - YAML frontmatter
 - File-based steel threads (not directories)
 - Version tracking in stp/.config/version
 
 ## Implementation
-

@@ -4,6 +4,7 @@ wp: "03"
 title: "Integration and registration"
 status: Not Started
 ---
+
 # WP03: Integration and Registration
 
 ## Objective
@@ -41,6 +42,7 @@ Add "When to Use" guidance:
 
 ```markdown
 **Use the treeindex agent for:**
+
 - Generating .treeindex summaries for directories
 - Checking staleness of existing .treeindex files
 - Understanding the .treeindex format
@@ -72,7 +74,7 @@ Run `intent treeindex intent/plugins/claude/subagents/ --depth 1` to create the 
 ## Files to Modify
 
 | File                                                           | Action                                                          |
-|----------------------------------------------------------------|-----------------------------------------------------------------|
+| -------------------------------------------------------------- | --------------------------------------------------------------- |
 | `intent/plugins/claude/subagents/.manifest/global-agents.json` | Add treeindex entry                                             |
 | `CLAUDE.md`                                                    | Add agent listing + `.treeindex` convention                     |
 | `bin/intent_help`                                              | Verify treeindex appears (may auto-detect from GLOBAL_COMMANDS) |

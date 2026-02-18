@@ -1,6 +1,7 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
+
 # 6. Deployment and Operations
 
 ## 6.1 Deployment Architecture

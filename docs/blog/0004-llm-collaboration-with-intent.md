@@ -36,8 +36,8 @@ Claude: "I see you need caching for:
   - API rate limit: 100 req/min
   - Expected traffic: 10K req/s during sales
   - Constraint: Redis cluster already deployed
-  
-Here's a multi-layer cache with rate limiting, 
+
+Here's a multi-layer cache with rate limiting,
 burst handling, and automatic failover..."
 [Exactly what you need, first try]
 ```
@@ -52,11 +52,13 @@ Every conversation with an AI has a context limit. Without Intent, you waste tok
 
 ```markdown
 # Typical conversation without Intent:
+
 Tokens used on explanation: 2,000
 Tokens used on actual problem: 500
 Total: 2,500 tokens, mostly wasted
 
 # With Intent:
+
 Tokens for steel thread: 500
 Tokens for actual problem: 2,000
 Total: 2,500 tokens, mostly productive
@@ -85,12 +87,14 @@ I used Intent to build authentication with Claude:
 # ST0042: Multi-Service Authentication
 
 ## Context
+
 - 5 microservices need shared auth
 - Cannot use sessions (stateless requirement)
 - Must support enterprise SSO
 - Peak load: 10K concurrent users
 
-## Constraints  
+## Constraints
+
 - Existing users in PostgreSQL
 - 15-minute token expiry (security audit)
 - Zero-downtime migration required
@@ -205,12 +209,15 @@ The WIP document acts as a conversation starter:
 # Work in Progress
 
 ## Current Focus
+
 Implementing authentication system (ST0042)
+
 - Decided on JWT tokens over sessions
 - Need to handle refresh token rotation
 - Integrating with existing user service
 
 ## Blockers
+
 - Unclear how to handle multi-device login
 ```
 
@@ -272,15 +279,19 @@ LLMs excel at pattern recognition. Consistent structure becomes a pattern they c
 status: In Progress
 created: 20250308
 ---
+
 # ST0042: Authentication System
 
 ## Objective
+
 [LLMs immediately understand this is the goal]
 
 ## Context
+
 [LLMs know to find background information here]
 
 ## Approach
+
 [LLMs expect implementation strategy here]
 ```
 
@@ -292,11 +303,11 @@ YAML frontmatter provides machine-readable context:
 
 ```yaml
 ---
-status: In Progress       # LLM knows work is active
-created: 20250308         # LLM understands timeline
-completed:                # LLM sees this isn't done
-author: Jane Smith        # LLM knows who to reference
-dependencies: [ST0038]    # LLM understands relationships
+status: In Progress # LLM knows work is active
+created: 20250308 # LLM understands timeline
+completed: # LLM sees this isn't done
+author: Jane Smith # LLM knows who to reference
+dependencies: [ST0038] # LLM understands relationships
 ---
 ```
 
@@ -320,8 +331,8 @@ This progression helps LLMs understand not just the current state but the journe
 Intent uses consistent markers that LLMs can recognise:
 
 - `## Section Headers` for major divisions
-- `- [ ] Task items` for work tracking  
-- `` ```language `` for code blocks
+- `- [ ] Task items` for work tracking
+- ` ```language ` for code blocks
 - `**Bold**` for emphasis
 - `[Links](./file.md)` for relationships
 
@@ -350,6 +361,7 @@ As you code, discoveries flow back:
 
 ```markdown
 ## Implementation Notes
+
 [2024-03-15] Discovered rate limiting issue with auth tokens
 [2024-03-16] Switched to sliding window approach
 [2024-03-17] Added token bucket for burst capacity
@@ -363,6 +375,7 @@ LLMs learn from these updates, improving future suggestions.
 
 ```markdown
 ## Approach
+
 Implement simple cache with 1-hour TTL
 ```
 
@@ -372,7 +385,9 @@ Implement simple cache with 1-hour TTL
 
 ```markdown
 ## Approach
+
 Implement cache with 1-hour TTL
+
 - Use event-based invalidation for consistency
 - Redis pub/sub for multi-region coordination
 ```
@@ -384,7 +399,7 @@ Implement cache with 1-hour TTL
 Each cycle improves both documentation and code:
 
 - **Clearer intent** → Better LLM suggestions
-- **Better suggestions** → Improved implementation  
+- **Better suggestions** → Improved implementation
 - **Improved implementation** → Refined documentation
 - **Refined documentation** → Even clearer intent
 
@@ -441,7 +456,7 @@ You: "I need to add user notifications"
 Claude: "I'll help you create a steel thread for notifications:
 
     intent st new 'User Notification System'
-    
+
 This creates ST0044. Let's document the intent:
 - What types of notifications (email, push, in-app)?
 - Real-time requirements?
@@ -515,10 +530,10 @@ Example usage:
 You: "I need to decide between PostgreSQL and DynamoDB"
 Claude (with socrates agent): "I'll facilitate a CTO Review Mode dialog:
 
-**Socrates (CTO):** What's driving this database decision? Are we 
+**Socrates (CTO):** What's driving this database decision? Are we
 optimizing for consistency or scale?
 
-**Plato (Tech Lead):** We're expecting 1M users in year one with 
+**Plato (Tech Lead):** We're expecting 1M users in year one with
 burst traffic during sales. The team has PostgreSQL expertise...
 
 [Dialog continues exploring trade-offs, revealing hidden complexities]
@@ -613,7 +628,7 @@ $ intent st show ST0042 | pbcopy
 1. Add a token family ID to track related tokens
 2. Store revoked families in Redis (you already have it deployed)
 3. Check revocation on token refresh, not every request (performance)
-Here's the implementation..."
+   Here's the implementation..."
 
 ### Discovering Your Own Code
 
@@ -637,11 +652,11 @@ New developer joins:
 ```bash
 # Instead of: "Let me explain our auth system..."
 $ intent st show ST0042 > auth-context.md
-$ echo "Start here. This explains everything." 
+$ echo "Start here. This explains everything."
 
 # They read:
 - Why JWT over sessions (microservices)
-- Why 15-min expiry (security audit)  
+- Why 15-min expiry (security audit)
 - Why Redis for revocation (already in stack)
 - Implementation gotchas discovered
 ```

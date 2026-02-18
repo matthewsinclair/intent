@@ -36,4 +36,3 @@ The implementation includes:
 2. Guidance on prompt construction
 3. Strategies for effective LLM collaboration
 4. Troubleshooting techniques for common LLM challenges
-

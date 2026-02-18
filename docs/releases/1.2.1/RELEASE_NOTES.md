@@ -86,12 +86,14 @@ ST####/
 ### Version Detection
 
 STP now uses a version file (`.config/version`) to detect the structure:
+
 - v1.2.0 and below: Single file structure
 - v1.2.1 and above: Directory structure
 
 ### Migration Process
 
 The migration script:
+
 1. Creates backup directory `.stp_backup/1.2.1/`
 2. Copies original files to backup
 3. Creates new directory structure
@@ -118,6 +120,7 @@ The migration script:
 ## Support
 
 For issues or questions, please refer to:
+
 - STP Documentation: `stp/usr/reference_guide.md`
 - Help System: `stp help st`
 - GitHub Issues: [Create an issue](https://github.com/matthewsinclair/stp/issues)

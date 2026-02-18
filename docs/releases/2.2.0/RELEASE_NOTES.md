@@ -17,6 +17,7 @@ The `intent fileindex` command provides a persistent checkbox-based file trackin
 - **Explicit State Control**: New `-C` (check) and `-U` (uncheck) flags for setting specific states
 
 #### Key Commands:
+
 ```bash
 # Create an index of all Elixir files recursively
 intent fileindex -r -i project.index
@@ -44,6 +45,7 @@ The Elixir agent now supports systematic code review workflows using the fileind
 - **Smart Path Mapping**: Intelligent conversion between Elixir module names and file paths
 
 #### Example Usage:
+
 ```
 Review the MyApp.Users module systematically, checking each file as you complete it
 ```
@@ -51,11 +53,13 @@ Review the MyApp.Users module systematically, checking each file as you complete
 ## Improvements
 
 ### Upgrade Command
+
 - Updated to support migrations to v2.2.0
 - Improved version detection and upgrade path handling
 - Better support for incremental upgrades (2.0.0 → 2.1.0 → 2.2.0)
 
 ### Bash Compatibility
+
 - Fixed macOS compatibility issues with associative arrays
 - Replaced `readarray` with portable alternatives
 - Improved shell script portability
@@ -63,11 +67,13 @@ Review the MyApp.Users module systematically, checking each file as you complete
 ## Installation
 
 ### New Installation
+
 ```bash
 curl -sSL https://intent.dev/install.sh | bash
 ```
 
 ### Upgrade from Previous Versions
+
 ```bash
 intent upgrade
 ```

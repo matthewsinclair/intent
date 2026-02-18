@@ -8,4 +8,3 @@
 - [x] Document directory structure in the technical product design
 - [ ] Create symbolic links or references between related directories
 - [ ] Validate directory structure against requirements
-

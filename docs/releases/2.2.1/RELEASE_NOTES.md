@@ -29,6 +29,7 @@ The `intent doctor` command now provides detailed dependency analysis:
 ## What's New
 
 ### Added
+
 - `VERSION` file for centralized version management
 - `get_intent_version()` function in intent_helpers
 - Comprehensive tool dependency checking in `intent doctor`
@@ -36,11 +37,13 @@ The `intent doctor` command now provides detailed dependency analysis:
 - Better error handling for missing dependencies
 
 ### Changed
+
 - Tool dependencies categorized as required, core, and optional
 - Enhanced error messages with installation instructions
 - All scripts now use centralized version management
 
 ### Fixed
+
 - Silent failures when jq is missing during agent operations
 - Missing error messages for required tool dependencies
 - Inadequate installation guidance for different platforms
@@ -50,6 +53,7 @@ The `intent doctor` command now provides detailed dependency analysis:
 ## Installation & Upgrade
 
 ### For New Users
+
 ```bash
 git clone https://github.com/matthewsinclair/intent.git
 cd intent
@@ -58,6 +62,7 @@ intent bootstrap
 ```
 
 ### For Existing Users
+
 ```bash
 cd /path/to/intent
 git pull origin main
@@ -67,6 +72,7 @@ intent doctor  # Check for any missing dependencies
 ## Tool Requirements
 
 ### Required Tools
+
 - **bash**: Shell interpreter
 - **sed**: Text processing
 - **grep**: Pattern matching
@@ -74,6 +80,7 @@ intent doctor  # Check for any missing dependencies
 - **jq**: JSON processing (critical for configs and agents)
 
 ### Optional Tools
+
 - **backlog**: Task management system
 - **bats**: Test framework
 - **sha256sum/shasum**: Checksum verification for agents
@@ -102,6 +109,7 @@ No breaking changes in this release. The version management improvements are bac
 ## Support
 
 For issues or questions:
+
 - GitHub Issues: https://github.com/matthewsinclair/intent/issues
 - Documentation: Run `intent help` for command documentation
 
@@ -111,4 +119,4 @@ This release was developed by Matthew Sinclair with automated assistance.
 
 ---
 
-*Intent v2.2.1 - Structured Development Process with Improved Reliability*
+_Intent v2.2.1 - Structured Development Process with Improved Reliability_

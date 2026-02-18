@@ -7,13 +7,16 @@ Phase 1 (New Commands Implementation) has been completed successfully. All new I
 ## Completed Items
 
 ### 1. Directory Structure
+
 - Created `/Users/matts/Devel/prj/STP/bin/` (top-level executables)
 - Created `/Users/matts/Devel/prj/STP/lib/` (for future templates)
 
 ### 2. Core Library: intent_config
+
 **Location**: `/Users/matts/Devel/prj/STP/bin/intent_config`
 
 Features implemented:
+
 - JSON parsing using `jq` (simplified from regex approach)
 - Configuration loading hierarchy (global → local → environment)
 - Project root detection (supports v0.0.0, v1.2.0, v1.2.1, and v2.0.0)
@@ -22,9 +25,11 @@ Features implemented:
 - Shared functions for all intent commands
 
 ### 3. Bootstrap Command: intent_bootstrap
+
 **Location**: `/Users/matts/Devel/prj/STP/bin/intent_bootstrap`
 
 Features implemented:
+
 - Auto-detects INTENT_HOME from script location
 - Creates `~/.config/intent/config.json` (XDG standard)
 - Provides clear PATH setup instructions
@@ -33,9 +38,11 @@ Features implemented:
 - Handles existing configs gracefully
 
 ### 4. Doctor Command: intent_doctor
+
 **Location**: `/Users/matts/Devel/prj/STP/bin/intent_doctor`
 
 Features implemented:
+
 - Checks INTENT_HOME environment
 - Validates intent executable
 - Verifies JSON configuration syntax
@@ -46,9 +53,11 @@ Features implemented:
 - Clear error/warning reporting with counts
 
 ### 5. Main Wrapper: intent
+
 **Location**: `/Users/matts/Devel/prj/STP/bin/intent`
 
 Features implemented:
+
 - Minimal wrapper for Phase 1 testing
 - Routes to bootstrap and doctor commands
 - Version reporting (2.0.0-alpha)
@@ -58,6 +67,7 @@ Features implemented:
 ## Key Design Decision: Using jq
 
 After initially implementing regex-based JSON parsing, we switched to requiring `jq` as a dependency. This decision:
+
 - Simplifies code significantly
 - Provides robust JSON handling
 - Follows the same pattern as Backlog.md dependency
@@ -66,6 +76,7 @@ After initially implementing regex-based JSON parsing, we switched to requiring 
 ## Testing Results
 
 ### Command Tests
+
 ✅ `intent version` - Shows version 2.0.0-alpha
 ✅ `intent help` - Displays usage information
 ✅ `intent bootstrap` - Creates global config successfully
@@ -74,6 +85,7 @@ After initially implementing regex-based JSON parsing, we switched to requiring 
 ✅ `intent doctor --fix` - Can repair issues
 
 ### Configuration Tests
+
 ✅ Global config loaded from `~/.config/intent/config.json`
 ✅ Local config overrides global settings
 ✅ Legacy project detection (STP directory)
@@ -82,6 +94,7 @@ After initially implementing regex-based JSON parsing, we switched to requiring 
 ## Next Steps
 
 Ready for Phase 2: Configuration System
+
 - Enhance config loading for all commands
 - Implement project initialization with new structure
 - Prepare for migration implementation
@@ -89,12 +102,14 @@ Ready for Phase 2: Configuration System
 ## Files Created/Modified
 
 ### Created
+
 - `/bin/intent` - Main command wrapper
 - `/bin/intent_bootstrap` - Setup command
 - `/bin/intent_doctor` - Diagnostic command
 - `/bin/intent_config` - Shared configuration library
 
 ### Modified
+
 - Updated to use `jq` for JSON parsing throughout
 
 ## Key Insights

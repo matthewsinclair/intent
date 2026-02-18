@@ -1,6 +1,7 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
+
 # 4. Detailed Design
 
 ## 4.1 [Component 1] Design
@@ -80,7 +81,7 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 **Endpoints:**
 
 | Method        | Path   | Description   |
-|---------------|--------|---------------|
+| ------------- | ------ | ------------- |
 | [HTTP Method] | [Path] | [Description] |
 | [HTTP Method] | [Path] | [Description] |
 | ...           | ...    | ...           |

@@ -26,12 +26,14 @@ mkdir -p /Users/matts/Devel/prj/STP/lib
 **File**: `/Users/matts/Devel/prj/STP/bin/intent_config`
 
 This shared library will provide:
+
 - `parse_json()` function using sed/grep (no jq dependency)
 - `load_intent_config()` function for config hierarchy
 - `find_project_root()` function for project detection
 - Common variables and defaults
 
 Key features:
+
 - Parse JSON without external tools
 - Handle global → local → environment variable precedence
 - Support legacy STP project detection
@@ -42,6 +44,7 @@ Key features:
 **File**: `/Users/matts/Devel/prj/STP/bin/intent_bootstrap`
 
 Functionality:
+
 1. **Auto-detect INTENT_HOME**:
    - If not set, crawl up from script location
    - Look for bin/intent and lib/ directory
@@ -65,6 +68,7 @@ Functionality:
 **File**: `/Users/matts/Devel/prj/STP/bin/intent_doctor`
 
 Checks to perform:
+
 1. **INTENT_HOME**: Set and valid directory exists
 2. **Executables**: intent binary exists and is executable
 3. **Global config**: Exists and has valid JSON syntax
@@ -74,6 +78,7 @@ Checks to perform:
 7. **Dependencies**: Verify required tools (bash, sed, grep)
 
 Features:
+
 - Normal mode: Report issues
 - `--fix` mode: Attempt automatic repairs
 - Summary with error/warning counts
@@ -84,9 +89,10 @@ Features:
 **File**: `/Users/matts/Devel/prj/STP/bin/intent`
 
 This will be a copy of the current `stp` script, modified to:
+
 - Load the new config system
 - Detect if called as 'stp' for compatibility warnings
-- Route to intent_* subcommands
+- Route to intent\_\* subcommands
 - Support both old and new project structures during transition
 
 ### 6. Testing Strategy
@@ -94,7 +100,7 @@ This will be a copy of the current `stp` script, modified to:
 After implementing each command:
 
 1. **Unit tests**: Run the BATS tests we created in Phase 0
-2. **Integration tests**: 
+2. **Integration tests**:
    - Test bootstrap on clean system
    - Test doctor with various configurations
    - Test config loading hierarchy
@@ -112,6 +118,7 @@ After implementing each command:
 ## File Permissions
 
 All executables will need:
+
 ```bash
 chmod +x /Users/matts/Devel/prj/STP/bin/intent*
 ```
@@ -136,14 +143,15 @@ chmod +x /Users/matts/Devel/prj/STP/bin/intent*
 
 ## Notes
 
-- These commands will initially coexist with stp/bin/* commands
-- The actual migration (moving stp/bin/* to bin/) happens in Phase 3
+- These commands will initially coexist with stp/bin/\* commands
+- The actual migration (moving stp/bin/\* to bin/) happens in Phase 3
 - Focus on getting the new commands working perfectly first
 - Use the implementation details from ST0016/impl.md as reference
 
 ## Next Steps After Phase 1
 
 Once these commands are working:
+
 - Phase 2: Implement full configuration system
 - Phase 3: Repository restructuring with intent_upgrade
 - Phase 4: Update all existing commands

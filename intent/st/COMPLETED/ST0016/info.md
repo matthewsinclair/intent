@@ -5,6 +5,7 @@ status: Completed
 created: 20250311
 completed: 20250727
 ---
+
 # ST0016: Rename STP CLI to INTENT (v2.0.0)
 
 ## Objective

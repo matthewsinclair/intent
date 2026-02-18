@@ -21,7 +21,7 @@ This creates what I call the "illusion of understanding." The LLM's responses ar
 Consider a typical interaction:
 
 - Developer: "Create a user authentication system"
-- LLM: *Generates a complete auth system with login, registration, and password reset*
+- LLM: _Generates a complete auth system with login, registration, and password reset_
 
 On the surface, this looks like success. But what if your intention was to create a passwordless system for enhanced security? What if you needed integration with an existing SSO provider? What if this was for an internal tool where email verification would be counterproductive?
 
@@ -107,7 +107,7 @@ The return on investment in intention clarification is substantial:
 Consider how intention transforms implementation approaches. The same requirement – "add user notifications" – leads to vastly different solutions depending on intention:
 
 - Intention: Increase engagement → Rich, frequent notifications
-- Intention: Reduce cognitive load → Minimal, batched notifications  
+- Intention: Reduce cognitive load → Minimal, batched notifications
 - Intention: Meet compliance requirements → Audit-focused notifications
 
 Intention becomes the cornerstone of technical intuition. When we make intentions explicit, we're not just documenting for others – we're clarifying our own thinking and creating a foundation for better technical decisions.

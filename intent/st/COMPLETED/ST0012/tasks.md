@@ -10,4 +10,3 @@
 - [x] Add `--width` option for configurable table formatting
 - [x] Add documentation for the new command
 - [x] Update tests to ensure proper functionality
-

@@ -7,4 +7,3 @@
 3. Create templates for steel thread documents
 4. Implement a steel thread index for tracking all threads
 5. Ensure user-friendly error handling and documentation
-

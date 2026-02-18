@@ -9,4 +9,3 @@
 - [x] Add LLM-specific guidance sections to all templates
 - [x] Test template instantiation process
 - [x] Document template system in the technical product design
-

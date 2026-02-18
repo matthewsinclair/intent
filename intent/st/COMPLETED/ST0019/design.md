@@ -103,13 +103,13 @@ CLAUDE.md instructions tell Claude to check `.treeindex` before exploring unfami
 
 ## As-Built Deviations
 
-| Aspect        | Original Design                  | As-Built                                 | Reason                                              |
-|---------------|----------------------------------|------------------------------------------|-----------------------------------------------------|
-| Storage       | Inline `.treeindex` in each dir  | Centralized shadow at `intent/.treeindex/`| Keeps source tree clean                             |
-| DIR arg       | Optional, defaults to `.`        | Mandatory                                | Prevents accidental project-root indexing            |
-| Default depth | 1                                | 2                                        | More useful default coverage                        |
-| Model         | sonnet                           | haiku                                    | Cost-effective, Haiku 4.5 handles summarization well|
-| Budget cap    | $0.02/dir                        | $0.50/dir                                | $0.02 too low, caused false failures                |
-| Ignore config | Hardcoded lists                  | `.treeindexignore` file                  | User-configurable exclusions                        |
-| Scope         | Global command                   | Requires project context                 | Shadow dir needs `intent/.treeindex/`               |
-| Bash compat   | Not specified                    | Bash 3.2 required                        | macOS `/bin/bash` is 3.2.57                         |
+| Aspect        | Original Design                 | As-Built                                   | Reason                                               |
+| ------------- | ------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
+| Storage       | Inline `.treeindex` in each dir | Centralized shadow at `intent/.treeindex/` | Keeps source tree clean                              |
+| DIR arg       | Optional, defaults to `.`       | Mandatory                                  | Prevents accidental project-root indexing            |
+| Default depth | 1                               | 2                                          | More useful default coverage                         |
+| Model         | sonnet                          | haiku                                      | Cost-effective, Haiku 4.5 handles summarization well |
+| Budget cap    | $0.02/dir                       | $0.50/dir                                  | $0.02 too low, caused false failures                 |
+| Ignore config | Hardcoded lists                 | `.treeindexignore` file                    | User-configurable exclusions                         |
+| Scope         | Global command                  | Requires project context                   | Shadow dir needs `intent/.treeindex/`                |
+| Bash compat   | Not specified                   | Bash 3.2 required                          | macOS `/bin/bash` is 3.2.57                          |

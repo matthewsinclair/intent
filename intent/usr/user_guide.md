@@ -2,6 +2,7 @@
 verblock: "17 Feb 2026:v2.4.0: Matthew Sinclair - Updated to Intent v2.4.0"
 intent_version: 2.4.0
 ---
+
 # User Guide
 
 This user guide provides task-oriented instructions for using the Intent system. It explains how to accomplish common tasks and provides workflow guidance.
@@ -93,7 +94,7 @@ intent init "Project Name"
 # Or specify which directories to include
 intent init --dirs "eng,llm,st,usr" "Project Name"
 
-# Or include all directories (including bin, _templ, tests) 
+# Or include all directories (including bin, _templ, tests)
 intent init --all "Project Name"
 
 # Initialize Backlog for task management
@@ -350,11 +351,11 @@ Intent is designed for effective collaboration with Large Language Models like C
 
 Intent v2.4.0 uses a rationalized three-file system for LLM guidance:
 
-| File              | Purpose                          | Management        |
-|-------------------|----------------------------------|-------------------|
-| `AGENTS.md`       | Factual project overview         | Auto-generated    |
-| `RULES.md`        | Mandatory coding rules           | Human-curated     |
-| `ARCHITECTURE.md` | System structure and decisions   | Human-curated     |
+| File              | Purpose                        | Management     |
+| ----------------- | ------------------------------ | -------------- |
+| `AGENTS.md`       | Factual project overview       | Auto-generated |
+| `RULES.md`        | Mandatory coding rules         | Human-curated  |
+| `ARCHITECTURE.md` | System structure and decisions | Human-curated  |
 
 These files live in `intent/llm/`. AGENTS.md is managed by `intent agents sync`. RULES.md and ARCHITECTURE.md are human-curated and never overwritten by Intent commands.
 
@@ -462,12 +463,12 @@ Intent v2.3.0 introduced a plugin architecture and renamed the old `intent agent
 
 ### Available Subagents
 
-| Subagent    | Description                                                  |
-|-------------|--------------------------------------------------------------|
-| intent      | Intent methodology, steel threads, and project structure     |
-| elixir      | Elixir code doctor with Usage Rules and Ash/Phoenix patterns |
-| socrates    | CTO Review Mode via Socratic dialog                          |
-| worker-bee  | Worker-Bee Driven Design specialist for Elixir applications  |
+| Subagent   | Description                                                  |
+| ---------- | ------------------------------------------------------------ |
+| intent     | Intent methodology, steel threads, and project structure     |
+| elixir     | Elixir code doctor with Usage Rules and Ash/Phoenix patterns |
+| socrates   | CTO Review Mode via Socratic dialog                          |
+| worker-bee | Worker-Bee Driven Design specialist for Elixir applications  |
 
 ### Setting Up Subagents
 
@@ -539,13 +540,13 @@ Once installed, subagents automatically provide Claude with domain-specific expe
 
 ### Subagent vs AGENTS.md
 
-| Feature             | Claude Subagents                    | AGENTS.md                        |
-|---------------------|-------------------------------------|----------------------------------|
-| Platform            | Claude Code only                    | Any AI assistant                 |
-| Location            | `intent/plugins/claude/subagents/`  | `intent/llm/AGENTS.md`          |
-| Command             | `intent claude subagents <cmd>`     | `intent agents <cmd>`            |
-| Scope               | Deep, domain-specific expertise     | General project instructions     |
-| Installation        | Installed to `~/.claude/agents/`    | Symlinked to project root        |
+| Feature      | Claude Subagents                   | AGENTS.md                    |
+| ------------ | ---------------------------------- | ---------------------------- |
+| Platform     | Claude Code only                   | Any AI assistant             |
+| Location     | `intent/plugins/claude/subagents/` | `intent/llm/AGENTS.md`       |
+| Command      | `intent claude subagents <cmd>`    | `intent agents <cmd>`        |
+| Scope        | Deep, domain-specific expertise    | General project instructions |
+| Installation | Installed to `~/.claude/agents/`   | Symlinked to project root    |
 
 ### Troubleshooting Subagents
 
@@ -583,12 +584,12 @@ Intent v2.4.0 introduces skills -- always-on Claude Code enforcement rules that 
 
 ### Available Skills
 
-| Skill                  | Rules | Focus                                        |
-|------------------------|:-----:|----------------------------------------------|
-| `intent-essentials`    |   7   | CLI usage, treeindex, steel thread conventions |
-| `elixir-essentials`    |   8   | Pattern matching, tagged tuples, pipes, naming |
-| `ash-ecto-essentials`  |   7   | Code interfaces, migrations, actor placement  |
-| `phoenix-liveview`     |   7   | Two-phase mount, streams, components          |
+| Skill                 | Rules | Focus                                          |
+| --------------------- | :---: | ---------------------------------------------- |
+| `intent-essentials`   |   7   | CLI usage, treeindex, steel thread conventions |
+| `elixir-essentials`   |   8   | Pattern matching, tagged tuples, pipes, naming |
+| `ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement   |
+| `phoenix-liveview`    |   7   | Two-phase mount, streams, components           |
 
 ### Installing Skills
 
@@ -675,23 +676,23 @@ To run the test suite:
 
 Tests are organized in `tests/unit/` with 15 test files covering all commands:
 
-| Test File                     | Tests                                           |
-|-------------------------------|--------------------------------------------------|
-| `agent_commands.bats`         | AGENTS.md management (init, generate, sync, validate) |
-| `basic.bats`                  | Basic infrastructure and environment             |
-| `bl_commands.bats`            | Backlog wrapper commands                         |
-| `bootstrap.bats`              | Bootstrap command                                |
-| `config.bats`                 | Configuration and PROJECT_ROOT detection         |
-| `fileindex_commands.bats`     | Fileindex (file tracking and checkbox states)    |
-| `global_commands.bats`        | Global commands (help, doctor, info, etc.)       |
-| `help_commands.bats`          | Help system                                      |
-| `init_commands.bats`          | Init command                                     |
-| `migration.bats`              | Migration and backup                             |
-| `project_commands.bats`       | Project-specific commands                        |
-| `st_commands.bats`            | Steel thread management                         |
-| `skills_commands.bats`        | Skills management (install, sync, uninstall, show) |
-| `task_commands.bats`          | Task management                                  |
-| `treeindex_commands.bats`     | Treeindex (directory summaries)                  |
+| Test File                 | Tests                                                 |
+| ------------------------- | ----------------------------------------------------- |
+| `agent_commands.bats`     | AGENTS.md management (init, generate, sync, validate) |
+| `basic.bats`              | Basic infrastructure and environment                  |
+| `bl_commands.bats`        | Backlog wrapper commands                              |
+| `bootstrap.bats`          | Bootstrap command                                     |
+| `config.bats`             | Configuration and PROJECT_ROOT detection              |
+| `fileindex_commands.bats` | Fileindex (file tracking and checkbox states)         |
+| `global_commands.bats`    | Global commands (help, doctor, info, etc.)            |
+| `help_commands.bats`      | Help system                                           |
+| `init_commands.bats`      | Init command                                          |
+| `migration.bats`          | Migration and backup                                  |
+| `project_commands.bats`   | Project-specific commands                             |
+| `st_commands.bats`        | Steel thread management                               |
+| `skills_commands.bats`    | Skills management (install, sync, uninstall, show)    |
+| `task_commands.bats`      | Task management                                       |
+| `treeindex_commands.bats` | Treeindex (directory summaries)                       |
 
 ## Upgrading Intent
 
@@ -706,6 +707,7 @@ intent upgrade
 ```
 
 This command:
+
 - Updates metadata in all Intent files
 - Adds or updates JSON configuration
 - Ensures files follow the current format standards

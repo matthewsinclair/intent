@@ -118,7 +118,7 @@ Created: ST0015
 
 # List all steel threads
 $ intent st list
-ID     | Title                  | Status      | Created    
+ID     | Title                  | Status      | Created
 -------|------------------------|-------------|------------
 ST0015 | Implement user auth... | Not Started | 2025-07-08
 ST0014 | Directory Structure... | In Progress | 2025-03-20
@@ -206,17 +206,21 @@ The template guides you:
 status: Not Started
 created: 20250708
 ---
+
 # ST0016: Add user profile editing
 
 ## Objective
-Enable users to update their profile information including 
+
+Enable users to update their profile information including
 name, email, and preferences.
 
 ## Context
-User feedback shows frustration with inability to update 
+
+User feedback shows frustration with inability to update
 profiles after registration. This impacts user retention.
 
 ## Approach
+
 1. Create profile edit API endpoints
 2. Add validation for email uniqueness
 3. Implement UI with real-time validation
@@ -280,7 +284,7 @@ $ intent st show ST0013
 - **Author**: Matthew Sinclair
 
 ## Objective
-Create a series of blog posts about the Intent (Intent) 
+Create a series of blog posts about the Intent (Intent)
 to explain its purpose, philosophy, and implementation.
 ```
 
@@ -310,7 +314,7 @@ $ edit "task-6 - ST0013-Research-existing-docs.md"
 # status: In Progress → Done
 
 # Move to writing
-$ edit "task-7 - ST0013-Write-introduction.md" 
+$ edit "task-7 - ST0013-Write-introduction.md"
 # status: To Do → In Progress
 ```
 
@@ -328,7 +332,7 @@ Current Status: Not Started
 Task Summary:
   Total Tasks: 52
   - Done: 29
-  - In Progress: 1  
+  - In Progress: 1
   - Todo: 22
 Recommended Status: In Progress
 ```
@@ -423,6 +427,7 @@ intent    [OK]
 ```
 
 Now when you paste steel threads to Claude, it already understands:
+
 - How to create new steel threads
 - Intent command syntax
 - Project organization patterns
@@ -435,7 +440,7 @@ Now when you paste steel threads to Claude, it already understands:
    ```bash
    # Good
    $ intent bl list
-   
+
    # Avoid
    $ backlog list  # May cause git conflicts
    ```
@@ -457,10 +462,10 @@ Now when you paste steel threads to Claude, it already understands:
    ```bash
    # 1. Share context
    $ cat intent/prj/st/ST0016.md | pbcopy
-   
+
    # 2. Get LLM help
    "I'm working on ST0016, need help with..."
-   
+
    # 3. Update documentation
    $ edit intent/prj/st/ST0016.md
    # Add new insights to Implementation Notes

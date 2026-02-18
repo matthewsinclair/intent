@@ -50,21 +50,25 @@ cd bats-core
 ## Running Tests
 
 ### Run all tests:
+
 ```bash
 ./tests/run_tests.sh
 ```
 
 ### Run specific test file:
+
 ```bash
 ./tests/run_tests.sh tests/unit/global_commands.bats
 ```
 
 ### Run all unit tests:
+
 ```bash
 ./tests/run_tests.sh tests/unit/
 ```
 
 ### Run all integration tests:
+
 ```bash
 ./tests/run_tests.sh tests/integration/
 ```
@@ -155,6 +159,7 @@ Integration tests verify complete workflows:
 ## Debugging Tests
 
 To see more output when debugging:
+
 ```bash
 # Run with verbose output
 bats -v tests/unit/config.bats
@@ -166,6 +171,7 @@ bats -t tests/unit/config.bats
 ## CI/CD
 
 Tests run automatically via GitHub Actions on:
+
 - Every push to `main`
 - Every pull request targeting `main`
 - Both Ubuntu and macOS environments

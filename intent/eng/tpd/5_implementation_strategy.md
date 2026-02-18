@@ -2,9 +2,10 @@
 verblock: "09 Jul 2025:v0.2: Matthew Sinclair - Updated for steel thread directory structure"
 stp_version: 2.0.0
 ---
+
 # 5. Implementation Strategy
 
-[index](<./technical_product_design.md>)
+[index](./technical_product_design.md)
 
 ## 5.1 Development Approach
 
@@ -22,8 +23,8 @@ The implementation will proceed in phases:
 
 The STP system will be implemented through the following steel threads:
 
-| ID                               | Title                  | Description                                                  |
-|----------------------------------|------------------------|--------------------------------------------------------------|
+| ID                             | Title                  | Description                                                  |
+| ------------------------------ | ---------------------- | ------------------------------------------------------------ |
 | [ST0009](../../prj/st/ST0009/) | Process Refinement     | Refine overall process based on experience                   |
 | [ST0008](../../prj/st/ST0008/) | LLM Integration        | Create LLM preamble and canned prompts                       |
 | [ST0007](../../prj/st/ST0007/) | User Documentation     | Create user, reference, and deployment guides                |
@@ -141,12 +142,12 @@ ST0003 ────────────────► ST0008
 
 ## 5.5 Timeline
 
-| Phase | Steel Threads | Timeline |
-|-------|---------------|----------|
-| Foundation | ST0001, ST0002, ST0003 | Week 1 |
-| Functionality | ST0004, ST0005, ST0006 | Week 2 |
-| Documentation | ST0007, ST0008 | Week 3 |
-| Refinement | ST0009 | Week 4 |
+| Phase         | Steel Threads          | Timeline |
+| ------------- | ---------------------- | -------- |
+| Foundation    | ST0001, ST0002, ST0003 | Week 1   |
+| Functionality | ST0004, ST0005, ST0006 | Week 2   |
+| Documentation | ST0007, ST0008         | Week 3   |
+| Refinement    | ST0009                 | Week 4   |
 
 ## 5.6 Environment Setup
 
@@ -170,7 +171,7 @@ Testing will include:
 ## 5.8 Implementation Risks and Mitigations
 
 | Risk                                | Impact | Likelihood | Mitigation                                                                     |
-|-------------------------------------|--------|------------|--------------------------------------------------------------------------------|
+| ----------------------------------- | ------ | ---------- | ------------------------------------------------------------------------------ |
 | Shell script compatibility issues   | High   | Medium     | Stick to POSIX-compatible features; test across environments                   |
 | Complex workflows becoming unwieldy | Medium | Medium     | Focus on simplicity; implement only essential functionality                    |
 | Template maintenance overhead       | Medium | Low        | Design templates for minimal maintenance; use variables where appropriate      |
@@ -187,7 +188,7 @@ Intent v2.0.0 was developed through organic growth:
 Phase 1: Foundation (v0.0.0)
 ST0001 → ST0002 → ST0003 → ST0004 → ST0005 → ST0006
 
-Phase 2: Enhancement (v1.0.0 - v1.2.1)  
+Phase 2: Enhancement (v1.0.0 - v1.2.1)
 ST0007 → ST0008 → ST0009 → ST0010 → ST0011 → ST0012
 
 Phase 3: Rebrand (v2.0.0)
@@ -213,7 +214,8 @@ ST0013 (blog) → ST0014 → ST0015 → ST0016 (migration)
 ### 5.9.4 Future Development
 
 Intent v2.0.0 provides a solid foundation for:
+
 - Community contributions
-- Enterprise adoption  
+- Enterprise adoption
 - Educational use
 - AI/LLM integration enhancements

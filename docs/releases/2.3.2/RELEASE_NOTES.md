@@ -140,7 +140,7 @@ Found 4 antipatterns in MyApp.Users:
    - Using `user[:email]` when email is required
    - Remediation: Use `user.email` for required fields
 
-2. **Long parameter list** (line 78)  
+2. **Long parameter list** (line 78)
    - Function has 7 parameters
    - Remediation: Group related params into maps/structs
 
@@ -197,4 +197,4 @@ This release was developed by Matthew Sinclair with the antipatterns documentati
 
 ---
 
-*Intent v2.3.2 - Structured Development Process with Enhanced Elixir Code Quality*
+_Intent v2.3.2 - Structured Development Process with Enhanced Elixir Code Quality_

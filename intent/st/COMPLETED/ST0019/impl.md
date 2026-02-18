@@ -20,6 +20,7 @@ echo "$prompt" | claude -p \
 ```
 
 Key flags:
+
 - `--tools ""` disables tool use (text-in/text-out only)
 - `--no-session-persistence` avoids session clutter
 - `--max-budget-usd 0.50` caps cost per directory (bumped from $0.02 which was too low)
@@ -41,6 +42,7 @@ The `treeindex_shadow_path()` function resolves any directory (relative or absol
 ### Platform Compatibility
 
 The fingerprint function uses `stat` which differs between macOS and Linux:
+
 - macOS: `stat -f '%N %z'`
 - Linux: `stat --printf='%n %s\n'`
 
@@ -58,6 +60,7 @@ macOS ships `/bin/bash` 3.2.57. The script must work under this version. Key con
 ### .treeindexignore
 
 Gitignore-style config file at `intent/.treeindex/.treeindexignore`. The `load_treeindexignore()` function parses it into:
+
 - `IGNORE_DIRS` (space-separated string) -- used by `collect_directories()` for find prune expressions
 - `EXCLUDE_FILE_ARGS` (bash array) -- used by `gather_files()`, `treeindex_fingerprint()`, and `has_content()` as find exclusion arguments
 
@@ -66,6 +69,7 @@ The array approach (`"${EXCLUDE_FILE_ARGS[@]}"`) properly handles glob patterns 
 ### File Reading Strategy
 
 For summarization, read enough of each file to understand its role but not so much that we blow the context window:
+
 - Source files: first ~80 lines (captures module doc, struct defs, public function heads)
 - All file types treated equally (no special handling for config/markdown)
 - Skip files matching `.treeindexignore` patterns
@@ -98,8 +102,8 @@ For summarization, read enough of each file to understand its role but not so mu
 
 ## Files
 
-| File                                 | Lines | Description           |
-|--------------------------------------|-------|-----------------------|
-| `bin/intent_treeindex`               | 612   | Main CLI command      |
-| `tests/unit/treeindex_commands.bats` | ~580  | 53 bats tests         |
-| `intent/.treeindex/.treeindexignore` | 27    | Default ignore patterns|
+| File                                 | Lines | Description             |
+| ------------------------------------ | ----- | ----------------------- |
+| `bin/intent_treeindex`               | 612   | Main CLI command        |
+| `tests/unit/treeindex_commands.bats` | ~580  | 53 bats tests           |
+| `intent/.treeindex/.treeindexignore` | 27    | Default ignore patterns |

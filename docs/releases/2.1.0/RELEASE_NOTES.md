@@ -46,7 +46,7 @@ The correct agent directory structure is:
 
 ```
 $INTENT_HOME/agents/          # Global agents shipped with Intent
-./intent/agents/              # Project-specific custom agents  
+./intent/agents/              # Project-specific custom agents
 ~/.claude/agents/             # Where Claude Code reads installed agents
 ~/.intent/agents/             # Intent's tracking of installed agents
 ```
@@ -82,7 +82,7 @@ rm -rf ./agents
 All 165 tests pass, including:
 
 - Agent directory creation tests
-- Upgrade process tests  
+- Upgrade process tests
 - Agent initialization tests
 
 ## Known Issues

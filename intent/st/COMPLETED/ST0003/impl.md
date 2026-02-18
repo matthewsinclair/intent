@@ -29,7 +29,7 @@ _templ/
 
 ### Template Design Principles
 
-1. All templates begin with an underscore (_) to distinguish them from actual documents
+1. All templates begin with an underscore (\_) to distinguish them from actual documents
 2. Templates include placeholders marked with [brackets] to indicate information that needs to be filled in
 3. Each template includes guidance text that explains its purpose and how to complete it
 4. Templates for modular documents (like technical product design) are split into logical sections
@@ -38,8 +38,8 @@ _templ/
 ### LLM Integration
 
 Each template includes a "Context for LLM" section that provides:
+
 - The purpose of the document type
 - Instructions for updating and maintaining the document
 - Guidance on what information to include in each section
 - Related documents that may be relevant
-
