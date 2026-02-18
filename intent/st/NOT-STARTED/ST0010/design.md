@@ -8,4 +8,3 @@
 4. Prototype the integration with at least one STP command (eg "stp st done STID")
 5. Evaluate effectiveness and limitations
 6. Document the approach and implementation details
-

@@ -2,9 +2,10 @@
 verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Updated for Intent v2.1.0"
 intent_version: 2.1.0
 ---
+
 # 1. Introduction
 
-[index](<./technical_product_design.md>)
+[index](./technical_product_design.md)
 
 ## 1.1 Purpose
 
@@ -20,7 +21,7 @@ Intent v2.1.0 encompasses:
 
 - A flattened directory structure under `intent/` for organizing documentation
 - JSON-based configuration system (.intent/config.json)
-- Shell scripts for managing Intent workflows (intent_* commands)
+- Shell scripts for managing Intent workflows (intent\_\* commands)
 - The Steel Thread Process methodology for incremental development
 - Enhanced integration patterns for working with LLMs
 - Advanced Backlog.md integration with status filtering
@@ -33,7 +34,7 @@ Intent is designed to be lightweight, adaptable, and to work alongside existing 
 ## 1.3 Definitions
 
 | Term           | Definition                                                                                       |
-|----------------|--------------------------------------------------------------------------------------------------|
+| -------------- | ------------------------------------------------------------------------------------------------ |
 | Intent         | The tool and framework for intention-aware development (v2.1.0)                                  |
 | Steel Thread   | A self-contained unit of work that represents a logical piece of functionality to be implemented |
 | LLM            | Large Language Model, an AI system capable of understanding and generating text                  |

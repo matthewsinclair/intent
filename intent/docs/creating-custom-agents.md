@@ -10,6 +10,7 @@ This guide provides step-by-step instructions for creating custom Intent agents 
 ## Overview
 
 Intent agents are specialized AI assistants with domain-specific knowledge and focused expertise. They extend Claude's capabilities by providing:
+
 - Dedicated context windows separate from main conversation
 - Specialized system prompts and knowledge
 - Focused tool access appropriate to their domain
@@ -24,6 +25,7 @@ Intent agents are specialized AI assistants with domain-specific knowledge and f
 ## Agent Structure
 
 Each Intent agent consists of:
+
 - **Directory**: `intent/agents/agent-name/`
 - **Agent Definition**: `agent.md` with YAML frontmatter and system prompt
 - **Metadata**: `metadata.json` with version and configuration details
@@ -40,6 +42,7 @@ cd intent/agents/your-agent-name/
 ```
 
 **Naming Convention:**
+
 - Use lowercase with hyphens (eg `security-reviewer`, `api-designer`)
 - Be descriptive but concise
 - Avoid spaces or special characters
@@ -60,14 +63,16 @@ You are a specialized [DOMAIN] expert assistant with deep knowledge in [SPECIFIC
 ## Your Expertise
 
 You have extensive experience in:
+
 - [Primary capability 1]
-- [Primary capability 2] 
+- [Primary capability 2]
 - [Primary capability 3]
 - [Framework/tool expertise if applicable]
 
 ## Your Role
 
 When working with users, you should:
+
 1. [Specific behavior 1]
 2. [Specific behavior 2]
 3. [Domain-specific guidelines]
@@ -75,6 +80,7 @@ When working with users, you should:
 ## Best Practices
 
 Always follow these principles:
+
 - [Domain-specific best practice 1]
 - [Domain-specific best practice 2]
 - [Quality standards for your domain]
@@ -82,6 +88,7 @@ Always follow these principles:
 ## When to Use This Agent
 
 Use this agent for:
+
 - [Specific use case 1]
 - [Specific use case 2]
 - [Complex workflow description]
@@ -89,6 +96,7 @@ Use this agent for:
 ## Integration with Intent
 
 When working within Intent projects:
+
 - Reference steel threads when relevant
 - Document decisions in appropriate locations
 - Generate tasks for backlog when needed
@@ -98,11 +106,13 @@ When working within Intent projects:
 
 ### Basic Pattern
 ```
+
 Task(
-  description="Short description of task",
-  prompt="Detailed instructions for the agent including context and requirements",
-  subagent_type="your-agent-name"
+description="Short description of task",
+prompt="Detailed instructions for the agent including context and requirements",
+subagent_type="your-agent-name"
 )
+
 ```
 
 ### Complex Workflow
@@ -117,11 +127,13 @@ Ensure your responses:
 ```
 
 **Required YAML Fields:**
+
 - `name`: Must match directory name
 - `description`: One-line summary (used in agent listings)
 - `tools`: Array of Claude Code tools this agent can access
 
 **Available Tools:**
+
 - `Bash`: Execute shell commands
 - `Read`: Read files from filesystem
 - `Write`: Create new files
@@ -147,6 +159,7 @@ Create the metadata configuration:
 ```
 
 **Required Fields:**
+
 - `name`: Must match directory name and agent.md frontmatter
 - `version`: Semantic version (start with 1.0.0)
 - `description`: Detailed explanation of capabilities
@@ -165,6 +178,7 @@ intent agents install your-agent-name
 This copies the agent to `~/.claude/agents/` where Claude Code can access it.
 
 **Installation Options:**
+
 - `intent agents install your-agent-name` - Install specific agent
 - `intent agents install --force` - Skip confirmation prompts
 - `intent agents install --all` - Install all available agents
@@ -203,6 +217,7 @@ Here's a complete example for a security-focused agent:
 **Directory:** `intent/agents/security-reviewer/`
 
 **agent.md:**
+
 ```markdown
 ---
 name: security-reviewer
@@ -215,6 +230,7 @@ You are a cybersecurity expert specializing in application security, code review
 ## Your Expertise
 
 You have deep knowledge in:
+
 - OWASP Top 10 vulnerabilities and mitigations
 - Secure coding practices across multiple languages
 - Authentication and authorization patterns
@@ -224,6 +240,7 @@ You have deep knowledge in:
 ## Your Role
 
 When reviewing code or designs:
+
 1. Identify potential security vulnerabilities
 2. Suggest specific remediation strategies
 3. Recommend security best practices
@@ -232,6 +249,7 @@ When reviewing code or designs:
 ## Security Review Checklist
 
 Always evaluate:
+
 - Input validation and sanitization
 - Authentication and session management
 - Authorization and access controls
@@ -248,6 +266,7 @@ Always evaluate:
 ```
 
 **metadata.json:**
+
 ```json
 {
   "name": "security-reviewer",
@@ -262,23 +281,27 @@ Always evaluate:
 ## Best Practices for Agent Creation
 
 ### System Prompt Design
+
 1. **Be Specific**: Define clear expertise boundaries and capabilities
 2. **Provide Context**: Explain when and how the agent should be used
 3. **Include Examples**: Show typical usage patterns and workflows
 4. **Set Quality Standards**: Define output expectations and quality criteria
 
 ### Tool Selection
+
 1. **Minimal Necessary**: Only include tools the agent actually needs
 2. **Consider Security**: Be cautious with Bash access for security-focused agents
 3. **Match Capabilities**: Ensure tools align with agent's intended functionality
 
 ### Documentation Quality
+
 1. **Clear Instructions**: Write for someone unfamiliar with your domain
 2. **Complete Examples**: Provide full, working examples
 3. **Integration Guidance**: Explain how agent fits into Intent workflows
 4. **Maintenance Notes**: Include version history and update guidance
 
 ### Testing and Validation
+
 1. **Functional Testing**: Verify all advertised capabilities work
 2. **Integration Testing**: Test within actual Intent project workflows
 3. **Documentation Testing**: Ensure examples and instructions are accurate
@@ -289,21 +312,25 @@ Always evaluate:
 ### Common Issues
 
 **Agent Not Listed**
+
 - Check directory structure matches `intent/agents/agent-name/`
 - Verify `agent.md` and `metadata.json` exist
 - Ensure JSON syntax is valid
 
 **Installation Fails**
+
 - Verify name consistency across directory, agent.md, and metadata.json
 - Check YAML frontmatter syntax in agent.md
 - Ensure tools list is valid
 
 **Agent Doesn't Respond Properly**
+
 - Review system prompt clarity and specificity
 - Check tool permissions and availability
 - Verify agent scope matches intended use cases
 
 **Performance Issues**
+
 - Simplify system prompt if too complex
 - Reduce tool set to essential capabilities only
 - Focus agent scope on specific domain
@@ -354,11 +381,13 @@ Agents can implement custom slash commands for specialized workflows:
 This agent supports these slash commands:
 
 ### /security-scan
+
 Performs comprehensive security scan of specified files or directories.
 
 Usage: `/security-scan path/to/code`
 
 ### /compliance-check
+
 Evaluates code against specific compliance standards.
 
 Usage: `/compliance-check --standard=SOC2 path/to/files`
@@ -372,6 +401,7 @@ Design agents to work together in complex workflows:
 ## Workflow Integration
 
 This agent works well with:
+
 - `intent` agent for project structure
 - `code-reviewer` agent for general code quality
 - `documentation` agent for security documentation
@@ -387,6 +417,7 @@ This agent works well with:
 ---
 
 **Need Help?**
+
 - Run `intent help agents` for command reference
 - Use `intent doctor` to check configuration
 - Check existing agents in `agents/` directory for examples

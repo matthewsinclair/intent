@@ -1,6 +1,7 @@
 ---
 verblock: "15 Jan 2025:v0.1: Directory User - Initial version"\nstp_version: 1.2.1\nstatus: Completed\ncreated: 20250115\ncompleted: 20250120\n
 ---
+
 # ST0001: Directory-Based Structure
 
 - **Status**: Completed
@@ -23,6 +24,7 @@ None - this is the first steel thread.
 ## Context for LLM
 
 This example shows the new directory structure where each steel thread has its own folder containing:
+
 - info.md (this file)
 - design.md
 - impl.md

@@ -7,9 +7,11 @@ Phase 2 (Migration Implementation) has been completed successfully. We now have 
 ## Completed Items
 
 ### 1. Helper Functions: intent_helpers
+
 **Location**: `/Users/matts/Devel/prj/STP/bin/intent_helpers`
 
 Shared utilities implemented:
+
 - `convert_yaml_frontmatter()` - Convert YAML to v2.0.0 format
 - `update_version_in_frontmatter()` - Change stp_version to intent_version
 - `convert_yaml_config_to_json()` - Handle .stp-config conversion
@@ -20,9 +22,11 @@ Shared utilities implemented:
 - Migration helpers for counting files and showing summaries
 
 ### 2. Init Command: intent_init
+
 **Location**: `/Users/matts/Devel/prj/STP/bin/intent_init`
 
 Features implemented:
+
 - Create new Intent v2.0.0 projects
 - Clean directory structure (no legacy)
 - JSON configuration from the start
@@ -32,9 +36,11 @@ Features implemented:
 - Proper error handling for existing projects
 
 ### 3. Upgrade Command: intent_upgrade
+
 **Location**: `/Users/matts/Devel/prj/STP/bin/intent_upgrade`
 
 Features implemented:
+
 - Detect all STP versions (0.0.0, 1.x, 1.2.0, 1.2.1)
 - Clear error messages for unknown versions
 - Timestamped backups before migration
@@ -51,6 +57,7 @@ Features implemented:
 - Clean up empty directories after migration
 
 ### 4. Main Script Updates
+
 **Location**: `/Users/matts/Devel/prj/STP/bin/intent`
 
 - Added routing for `init` and `upgrade` commands
@@ -59,6 +66,7 @@ Features implemented:
 ## Testing Results
 
 ### Intent Init Test
+
 ✅ Created new project with v2.0.0 structure
 ✅ Generated valid JSON config
 ✅ Created steel thread with --with-st
@@ -66,6 +74,7 @@ Features implemented:
 ✅ Backlog.md integration worked
 
 ### Intent Upgrade Tests
+
 ✅ v0.0.0 → v2.0.0 migration successful
 ✅ Dry-run mode showed accurate preview
 ✅ .stp-config converted to JSON correctly
@@ -74,6 +83,7 @@ Features implemented:
 ✅ Verbose mode provided detailed output
 
 ### Example Migration (v0.0.0)
+
 ```
 Before:
   .stp-config
@@ -102,8 +112,9 @@ After:
 ## Next Steps
 
 Ready for Phase 3: Repository Restructuring
-- Move executables from stp/bin/* to bin/*
-- Rename all commands from stp_* to intent_*
+
+- Move executables from stp/bin/_ to bin/_
+- Rename all commands from stp*\* to intent*\*
 - Create compatibility symlinks
 - Update all command implementations
 - Perform self-migration on the STP project itself
@@ -111,11 +122,13 @@ Ready for Phase 3: Repository Restructuring
 ## Files Created/Modified
 
 ### Created
+
 - `/bin/intent_helpers` - Shared migration utilities
 - `/bin/intent_init` - New project initialization
 - `/bin/intent_upgrade` - Migration command
 
 ### Modified
+
 - `/bin/intent` - Added new command routing
 
 ## Time Spent

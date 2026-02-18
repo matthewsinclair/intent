@@ -3,6 +3,7 @@
 ## Implementation Plan
 
 ### Phase 1: Infrastructure (Days 1-2)
+
 1. Create directory structures
    - Add `agents/` to Intent core
    - Create `.manifest/` subdirectories
@@ -19,6 +20,7 @@
    - Handle missing Claude gracefully
 
 ### Phase 2: Core Commands (Days 3-4)
+
 1. Implement `intent_agents` base command
    - Command routing
    - Help system integration
@@ -32,6 +34,7 @@
    - `show` - Display agent details
 
 ### Phase 3: Agent Development (Days 5-6)
+
 1. Create Intent sub-agent
    - System prompt for Intent awareness
    - Steel thread methodology knowledge
@@ -43,6 +46,7 @@
    - Functional programming focus
 
 ### Phase 4: Integration & Testing (Days 7-8)
+
 1. Integration with existing commands
    - Auto-install on `intent init`
    - Doctor command checks
@@ -139,22 +143,22 @@ fi
 handle_conflict() {
   local target="$1"
   local source="$2"
-  
+
   if [ -f "$target" ]; then
     local target_sum=$(calculate_checksum "$target")
     local source_sum=$(calculate_checksum "$source")
-    
+
     if [ "$target_sum" != "$source_sum" ]; then
       echo "Warning: Agent already exists and has been modified"
       echo "Target: $target"
       echo "[O]verwrite, [S]kip, [D]iff, [B]ackup?"
       read -r choice
-      
+
       case "$choice" in
         [Oo]) cp "$source" "$target" ;;
         [Ss]) return 1 ;;
         [Dd]) diff "$target" "$source" | less ;;
-        [Bb]) 
+        [Bb])
           backup="$target.backup.$(date +%Y%m%d_%H%M%S)"
           cp "$target" "$backup"
           cp "$source" "$target"
@@ -170,37 +174,40 @@ handle_conflict() {
 ## Testing Strategy
 
 ### Unit Tests
+
 - Manifest reading/writing
 - Checksum calculation
 - Path resolution
 - JSON validation
 
 ### Integration Tests
+
 - Agent installation flow
 - Sync with modifications
 - Uninstall cleanup
 - Claude detection
 
 ### End-to-End Tests
+
 ```bash
 # Test full workflow
 test_agent_workflow() {
   # Setup
   intent init test-project
   cd test-project
-  
+
   # Install
   intent agents install intent
   assert_file_exists ".claude/agents/intent.md"
-  
+
   # Verify manifest
   assert_json_contains "intent/agents/.manifest/installed-agents.json" \
     '.installed[0].name == "intent"'
-  
+
   # Sync
   touch .claude/agents/intent.md
   intent agents sync
-  
+
   # Uninstall
   intent agents uninstall intent
   assert_file_not_exists ".claude/agents/intent.md"
@@ -210,6 +217,7 @@ test_agent_workflow() {
 ## Rollout Plan
 
 ### Release Strategy
+
 1. **v2.1.0-beta**: Initial release with agent support
    - Core commands functional
    - Intent and Elixir agents included
@@ -221,12 +229,14 @@ test_agent_workflow() {
    - Additional agents based on demand
 
 ### Migration Steps
+
 1. No breaking changes - additive feature
 2. Existing projects gain agent commands automatically
 3. Optional auto-install on first use
 4. Clear documentation in release notes
 
 ### Documentation Updates
+
 - Update main README with agent examples
 - Add agents section to user guide
 - Create agent development guide
@@ -235,17 +245,21 @@ test_agent_workflow() {
 ## Challenges & Solutions
 
 ### Challenge 1: Cross-Platform Compatibility
+
 **Issue**: Checksum commands differ between macOS/Linux
 **Solution**: Detect available command and use appropriate syntax
 
 ### Challenge 2: Claude Installation Variations
+
 **Issue**: Claude might be installed in different ways (homebrew, direct, etc.)
 **Solution**: Multiple detection methods, graceful fallback
 
 ### Challenge 3: User Customization Preservation
+
 **Issue**: Users might modify agents after installation
 **Solution**: Checksum tracking, conflict resolution options
 
 ### Challenge 4: Backwards Compatibility
+
 **Issue**: Need to support projects without agent capability
 **Solution**: Additive design, no breaking changes to existing commands

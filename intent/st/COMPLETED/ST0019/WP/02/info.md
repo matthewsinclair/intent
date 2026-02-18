@@ -4,6 +4,7 @@ wp: "02"
 title: "Treeindex Claude Code subagent"
 status: Not Started
 ---
+
 # WP02: Treeindex Claude Code Subagent
 
 ## Objective
@@ -54,14 +55,20 @@ tools: Bash, Read, Write, Glob, Grep
   "description": "Generates and maintains .treeindex directory summaries for fast codebase navigation",
   "author": "Intent Contributors",
   "tools": ["Bash", "Read", "Write", "Glob", "Grep"],
-  "tags": ["treeindex", "navigation", "documentation", "directory-summary", "codebase-orientation"]
+  "tags": [
+    "treeindex",
+    "navigation",
+    "documentation",
+    "directory-summary",
+    "codebase-orientation"
+  ]
 }
 ```
 
 ## Files to Create
 
 | File                                                      | Action |
-|-----------------------------------------------------------|--------|
+| --------------------------------------------------------- | ------ |
 | `intent/plugins/claude/subagents/treeindex/agent.md`      | Create |
 | `intent/plugins/claude/subagents/treeindex/metadata.json` | Create |
 

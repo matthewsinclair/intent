@@ -7,4 +7,3 @@
 3. Create a modular framework for command implementations
 4. Implement error handling and usage information
 5. Create a help system for displaying command documentation
-

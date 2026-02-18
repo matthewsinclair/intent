@@ -18,7 +18,7 @@
 - [x] Fixed shadow path leakage bug (absolute paths in shadow tree)
 - [x] Fixed self-referencing shadow directory bug (`.treeindex/` indexing itself)
 - [x] Fixed budget cap ($0.02 -> $0.50)
-- [x] Fixed bash 3.2 compatibility (no mapfile, no heredocs in $(), no [[ ]])
+- [x] Fixed bash 3.2 compatibility (no mapfile, no heredocs in $(), no [[]])
 
 ## Completed: Design Phase (2026-02-04)
 

@@ -3,13 +3,14 @@ verblock: "01 Feb 2025:v0.1: Directory User - Initial version"
 stp_version: 1.2.1
 status: In Progress
 created: 20250201
-completed: 
+completed:
 ---
+
 # ST0002: Feature Implementation
 
 - **Status**: In Progress
 - **Created**: 2025-02-01
-- **Completed**: 
+- **Completed**:
 - **Author**: Directory User
 
 ## Objective

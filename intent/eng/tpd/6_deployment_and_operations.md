@@ -2,9 +2,10 @@
 verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Updated for Intent v2.1.0"
 intent_version: 2.1.0
 ---
+
 # 6. Deployment and Operations [AS-BUILT]
 
-[index](<./technical_product_design.md>)
+[index](./technical_product_design.md)
 
 ## 6.1 Installation [AS-BUILT]
 
@@ -83,6 +84,7 @@ intent init "Project Name"
 ```
 
 This creates:
+
 - `.intent/config.json` - Project configuration
 - `intent/` - Main directory structure
 - `intent/st/` - Steel threads directory
@@ -92,6 +94,7 @@ This creates:
 ### 6.2.1 Configuration During Init
 
 The init command prompts for:
+
 - Project name
 - Author name (defaults to $USER)
 - Editor preference (defaults to $EDITOR)
@@ -110,6 +113,7 @@ Intent v2.1.0 uses hierarchical JSON configuration:
    - `INTENT_*` - Override any config value
 
 2. **Local Project Config** (`.intent/config.json`)
+
    ```json
    {
      "version": "2.1.0",
@@ -124,6 +128,7 @@ Intent v2.1.0 uses hierarchical JSON configuration:
    ```
 
 3. **Global User Config** (`~/.config/intent/config.json`)
+
    ```json
    {
      "author": "Your Name",
@@ -158,6 +163,7 @@ intent st new "Implement Feature X"
 ```
 
 Features:
+
 - Auto-increments thread ID
 - Creates directory structure
 - Populates info.md template
@@ -242,6 +248,7 @@ intent doctor --verbose
 ```
 
 Doctor checks:
+
 - Configuration validity
 - Directory structure
 - JSON syntax
@@ -307,26 +314,26 @@ alias stp=intent  # Temporary compatibility
 
 ### 6.6.2 Migration Changes
 
-| Old (STP) | New (Intent v2.1.0) |
-|-----------|--------------------|
-| stp/* | intent/* |
-| .stp-config | .intent/config.json |
-| stp commands | intent commands |
-| YAML config | JSON config |
-| Nested dirs | Flattened structure |
+| Old (STP)    | New (Intent v2.1.0) |
+| ------------ | ------------------- |
+| stp/\*       | intent/\*           |
+| .stp-config  | .intent/config.json |
+| stp commands | intent commands     |
+| YAML config  | JSON config         |
+| Nested dirs  | Flattened structure |
 
 ## 6.7 Troubleshooting [AS-BUILT]
 
 Common issues and solutions:
 
-| Issue | Solution |
-|-------|----------|
-| Command not found | Run `intent bootstrap` and add to PATH |
-| jq not found | Install jq: `brew install jq` or `apt install jq` |
-| Permission denied | Run `chmod +x $INTENT_HOME/bin/*` |
-| Config errors | Run `intent doctor --fix` |
-| Migration fails | Check backup, run with `--no-backup` if safe |
-| Tests fail | Ensure bash 3.2+ and BATS installed |
+| Issue             | Solution                                          |
+| ----------------- | ------------------------------------------------- |
+| Command not found | Run `intent bootstrap` and add to PATH            |
+| jq not found      | Install jq: `brew install jq` or `apt install jq` |
+| Permission denied | Run `chmod +x $INTENT_HOME/bin/*`                 |
+| Config errors     | Run `intent doctor --fix`                         |
+| Migration fails   | Check backup, run with `--no-backup` if safe      |
+| Tests fail        | Ensure bash 3.2+ and BATS installed               |
 
 ### 6.7.1 Debug Mode
 

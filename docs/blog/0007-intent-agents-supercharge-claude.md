@@ -37,6 +37,7 @@ $ intent agents install intent  # Install the Intent agent
 ```
 
 Now Claude instantly knows:
+
 - What steel threads are and how to use them
 - All Intent commands and their purposes
 - Your project organization patterns
@@ -106,16 +107,18 @@ tools: Bash, Read, Write, Edit, Grep
 ---
 
 You are an Intent-aware development assistant specialized in:
+
 - Steel thread methodology
 - Intent project management
 - Backlog task integration
 - Structured documentation
 
 ## Key Commands
+
 - intent st new "Title" - Create steel thread
 - intent bl task new ST#### "Task" - Create linked task
 - intent agents status - Check agent health
-[... comprehensive Intent knowledge ...]
+  [... comprehensive Intent knowledge ...]
 ```
 
 ### Installation and Management
@@ -152,12 +155,14 @@ intent    [UP TO DATE]
 ### Scenario 1: New Feature Development
 
 **Without agent:**
+
 - 10 minutes explaining Intent
 - 5 minutes clarifying commands
 - Back-and-forth on structure
 - Finally start actual work
 
 **With agent:**
+
 - 0 minutes on Intent explanation
 - Immediate strategic discussion
 - Claude suggests proper structure
@@ -166,12 +171,14 @@ intent    [UP TO DATE]
 ### Scenario 2: Code Review
 
 **Without agent:**
+
 ```
 You: "Review this steel thread implementation"
 Claude: "What's a steel thread? What should I look for?"
 ```
 
 **With agent:**
+
 ```
 You: "Review this steel thread implementation"
 Claude: "I'll review ST0043 against Intent best practices:
@@ -237,18 +244,23 @@ Now Claude knows YOUR specific rules too.
 Intent agents don't just save time – they fundamentally change what's possible:
 
 ### 1. Higher-Level Conversations
+
 Skip the basics, discuss architecture and design decisions immediately.
 
 ### 2. Consistent Practices
+
 Every Claude session follows the same patterns, maintaining code quality.
 
 ### 3. Knowledge Preservation
+
 Team conventions are encoded, not just documented.
 
 ### 4. Accelerated Onboarding
+
 New team members get AI that already knows your ways.
 
 ### 5. Evolution Support
+
 As Intent evolves, update the agent – all future sessions improve.
 
 ## Implementation Details
@@ -259,12 +271,14 @@ Intent tracks installed agents with checksums:
 
 ```json
 {
-  "installed": [{
-    "name": "intent",
-    "source": "global",
-    "checksum": "sha256:abc123...",
-    "installed_at": "2025-07-27T10:00:00Z"
-  }]
+  "installed": [
+    {
+      "name": "intent",
+      "source": "global",
+      "checksum": "sha256:abc123...",
+      "installed_at": "2025-07-27T10:00:00Z"
+    }
+  ]
 }
 ```
 

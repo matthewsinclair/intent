@@ -3,13 +3,14 @@ verblock: "10 Jul 2025:v0.1: Intent User - Initial version"
 intent_version: 2.1.0
 status: In Progress
 created: 20250710
-completed: 
+completed:
 ---
+
 # ST0002: Implement Core Feature
 
 - **Status**: In Progress
 - **Created**: 2025-07-10
-- **Completed**: 
+- **Completed**:
 - **Author**: Intent User
 
 ## Objective

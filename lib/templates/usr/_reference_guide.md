@@ -1,6 +1,7 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
+
 # Reference Guide
 
 This reference guide provides comprehensive information about the Steel Thread Process (STP) system. Unlike the task-oriented User Guide, this reference guide serves as a complete reference for all aspects of the system.
@@ -227,12 +228,12 @@ stp/
 
 ### Environment Variables
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| STP_HOME | Location of STP installation | Path to cloned repository |
-| STP_PROJECT | Current project name | Determined from initialization |
-| STP_AUTHOR | Default author name | Determined from git configuration |
-| STP_EDITOR | Preferred text editor | Determined from system defaults |
+| Variable    | Purpose                      | Default                           |
+| ----------- | ---------------------------- | --------------------------------- |
+| STP_HOME    | Location of STP installation | Path to cloned repository         |
+| STP_PROJECT | Current project name         | Determined from initialization    |
+| STP_AUTHOR  | Default author name          | Determined from git configuration |
+| STP_EDITOR  | Preferred text editor        | Determined from system defaults   |
 
 ### Project Configuration
 
@@ -277,13 +278,13 @@ ST_PREFIX="ST"
 
 ## Concepts and Terminology
 
-| Term | Definition |
-|------|------------|
-| Steel Thread | A self-contained unit of work representing a logical piece of functionality |
-| LLM | Large Language Model, an AI system capable of understanding and generating text |
-| Context Window | The amount of text an LLM can process in a single interaction |
-| Canned Prompt | A pre-defined, reusable instruction template for an LLM |
-| WIP | Work in Progress, a document tracking current development focus |
+| Term           | Definition                                                                      |
+| -------------- | ------------------------------------------------------------------------------- |
+| Steel Thread   | A self-contained unit of work representing a logical piece of functionality     |
+| LLM            | Large Language Model, an AI system capable of understanding and generating text |
+| Context Window | The amount of text an LLM can process in a single interaction                   |
+| Canned Prompt  | A pre-defined, reusable instruction template for an LLM                         |
+| WIP            | Work in Progress, a document tracking current development focus                 |
 
 ---
 

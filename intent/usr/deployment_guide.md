@@ -2,6 +2,7 @@
 verblock: "17 Feb 2026:v0.4: Matthew Sinclair - Updated to Intent v2.4.0"
 intent_version: 2.4.0
 ---
+
 # Deployment Guide
 
 This deployment guide provides instructions for deploying the Intent v2.4.0 system in various environments. It covers installation, configuration, and integration with other tools and workflows.
@@ -94,12 +95,12 @@ intent bl init
 
 Configure Intent behavior using these environment variables:
 
-| Variable      | Purpose                        | Default                           |
-|---------------|--------------------------------|-----------------------------------|
-| INTENT_HOME   | Location of Intent installation| Path to cloned repository         |
-| INTENT_PROJECT| Current project name           | Determined from initialization    |
-| INTENT_AUTHOR | Default author name            | Determined from git configuration |
-| INTENT_EDITOR | Preferred text editor          | Determined from system defaults   |
+| Variable       | Purpose                         | Default                           |
+| -------------- | ------------------------------- | --------------------------------- |
+| INTENT_HOME    | Location of Intent installation | Path to cloned repository         |
+| INTENT_PROJECT | Current project name            | Determined from initialization    |
+| INTENT_AUTHOR  | Default author name             | Determined from git configuration |
+| INTENT_EDITOR  | Preferred text editor           | Determined from system defaults   |
 
 Example configuration in `.bashrc` or `.zshrc`:
 
@@ -219,6 +220,7 @@ Intent v2.4.0 integrates with Claude Code through a three-layer system:
    - `ARCHITECTURE.md` — Human-curated system architecture description
 
 2. **Claude Skills** — Always-on enforcement files installed to `.claude/skills/`:
+
    ```bash
    # Install Elixir skills (for Elixir/Phoenix/Ash projects)
    intent claude skills install --all
@@ -302,7 +304,7 @@ When upgrading Intent with Backlog integration:
    ```bash
    # Backup steel threads
    cp -r intent/st intent/st.backup
-   
+
    # Backup Backlog data
    cp -r backlog backlog.backup
    ```
@@ -325,7 +327,7 @@ When upgrading Intent with Backlog integration:
    ```bash
    # Check task status
    intent status report
-   
+
    # Verify tasks in Backlog
    intent bl list
    ```
@@ -364,7 +366,7 @@ This script will:
 The test suite can be configured through environment variables:
 
 | Variable         | Purpose                            | Default                      |
-|------------------|------------------------------------|------------------------------|
+| ---------------- | ---------------------------------- | ---------------------------- |
 | BATS_LIB_PATH    | Location of Bats libraries         | tests/lib                    |
 | INTENT_TEST_TEMP | Temporary directory for test files | /tmp/intent-test-XXXXXX      |
 | INTENT_BIN_PATH  | Path to Intent executables         | Determined from current path |
@@ -566,12 +568,12 @@ intent claude skills show elixir-essentials
 
 Available skills:
 
-| Skill                | Purpose                                    |
-|----------------------|--------------------------------------------|
-| intent-essentials    | Intent workflow rules (7 mandatory)        |
-| elixir-essentials    | Core Elixir coding rules (8 mandatory)     |
-| ash-ecto-essentials  | Ash/Ecto database patterns (7 mandatory)   |
-| phoenix-liveview     | LiveView patterns and rules (7 mandatory)  |
+| Skill               | Purpose                                   |
+| ------------------- | ----------------------------------------- |
+| intent-essentials   | Intent workflow rules (7 mandatory)       |
+| elixir-essentials   | Core Elixir coding rules (8 mandatory)    |
+| ash-ecto-essentials | Ash/Ecto database patterns (7 mandatory)  |
+| phoenix-liveview    | LiveView patterns and rules (7 mandatory) |
 
 ### Skill Maintenance
 
@@ -602,6 +604,7 @@ intent claude upgrade --apply --project-dir /path/to/project
 ```
 
 The upgrade command:
+
 - Regenerates `AGENTS.md` with current project state
 - Creates `RULES.md` from template if missing
 - Creates `ARCHITECTURE.md` from template if missing

@@ -6,4 +6,3 @@
 2. Create placeholder files to maintain directory structure
 3. Set up the necessary template directory structure
 4. Document the directory layout for future reference
-

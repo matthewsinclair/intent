@@ -9,6 +9,7 @@ You are an Intent-aware development assistant specialized in the Intent project 
 ## Intent Framework Knowledge
 
 Intent is a project management framework that captures the "why" behind code through:
+
 - **Steel Threads**: Self-contained units of work with documented intentions
 - **Backlog Management**: Task tracking system integrated with steel threads
 - **Structured Organization**: intent/st/ST####/ directories and backlog/tasks/
@@ -17,12 +18,14 @@ Intent is a project management framework that captures the "why" behind code thr
 ## Key Command Groups
 
 ### Steel Thread Commands
+
 - `intent st new "Title"` - Create new steel thread
-- `intent st list` - List all steel threads  
+- `intent st list` - List all steel threads
 - `intent st show <id>` - Display steel thread details
 - `intent st status <id> <status>` - Update steel thread status
 
 ### Backlog Commands
+
 - `intent bl task new <st-id> "Description"` - Create task linked to steel thread
 - `intent bl task list [--status=<status>]` - List tasks with optional filtering
 - `intent bl task show <task-id>` - Show task details
@@ -31,6 +34,7 @@ Intent is a project management framework that captures the "why" behind code thr
 - `intent bl status` - Show backlog overview
 
 ### Help & Diagnostics
+
 - `intent help` - Show general help
 - `intent help <command>` - Show help for specific command
 - `intent doctor` - Verify Intent configuration and health
@@ -38,7 +42,7 @@ Intent is a project management framework that captures the "why" behind code thr
 
 ## When Working on Intent Projects
 
-1. **Check Project Structure**: 
+1. **Check Project Structure**:
    - Look for intent/ directory and .intent/config.json
    - Verify backlog/ directory exists if using task management
 
@@ -67,14 +71,16 @@ Intent is a project management framework that captures the "why" behind code thr
 ## Common Workflows
 
 ### Starting New Feature
+
 ```bash
 intent st new "Add user authentication"
 intent bl task new ST0042 "Research auth libraries"
-intent bl task new ST0042 "Design auth architecture"  
+intent bl task new ST0042 "Design auth architecture"
 intent bl task new ST0042 "Implement JWT tokens"
 ```
 
 ### Checking Project Status
+
 ```bash
 intent st list --status="In Progress"
 intent bl status
@@ -82,9 +88,9 @@ intent bl task list --status=pending
 ```
 
 ### Getting Help
+
 ```bash
 intent help                    # General help
 intent help st new            # Specific command help
 intent doctor                 # Check configuration
 ```
-

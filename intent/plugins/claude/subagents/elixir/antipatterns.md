@@ -10,7 +10,7 @@ This document outlines potential anti-patterns related to your code and particul
 
 **Problem**
 
-When you overuse comments or comment self-explanatory code, it can have the effect of making code *less readable*.
+When you overuse comments or comment self-explanatory code, it can have the effect of making code _less readable_.
 
 **Example**
 
@@ -103,7 +103,7 @@ end
 
 **Problem**
 
-When we use multi-clause functions, it is possible to extract values in the clauses for further usage and for pattern matching/guard checking. This extraction itself does not represent an anti-pattern, but when you have *extractions made across several clauses and several arguments of the same function*, it becomes hard to know which extracted parts are used for pattern/guards and what is used only inside the function body. This anti-pattern is related to Unrelated multi-clause function, but with implications of its own. It impairs the code readability in a different way.
+When we use multi-clause functions, it is possible to extract values in the clauses for further usage and for pattern matching/guard checking. This extraction itself does not represent an anti-pattern, but when you have _extractions made across several clauses and several arguments of the same function_, it becomes hard to know which extracted parts are used for pattern/guards and what is used only inside the function body. This anti-pattern is related to Unrelated multi-clause function, but with implications of its own. It impairs the code readability in a different way.
 
 **Example**
 
@@ -141,9 +141,9 @@ end
 
 **Problem**
 
-An `Atom` is an Elixir basic type whose value is its own name. Atoms are often useful to identify resources or express the state, or result, of an operation. Creating atoms dynamically is not an anti-pattern by itself. However, atoms are not garbage collected by the Erlang Virtual Machine, so values of this type live in memory during a software's entire execution lifetime. The Erlang VM limits the number of atoms that can exist in an application by default to *1_048_576*, which is more than enough to cover all atoms defined in a program, but attempts to serve as an early limit for applications which are "leaking atoms" through dynamic creation.
+An `Atom` is an Elixir basic type whose value is its own name. Atoms are often useful to identify resources or express the state, or result, of an operation. Creating atoms dynamically is not an anti-pattern by itself. However, atoms are not garbage collected by the Erlang Virtual Machine, so values of this type live in memory during a software's entire execution lifetime. The Erlang VM limits the number of atoms that can exist in an application by default to _1_048_576_, which is more than enough to cover all atoms defined in a program, but attempts to serve as an early limit for applications which are "leaking atoms" through dynamic creation.
 
-For these reasons, creating atoms dynamically can be considered an anti-pattern when the developer has no control over how many atoms will be created during the software execution. This unpredictable scenario can expose the software to unexpected behaviour caused by excessive memory usage, or even by reaching the maximum number of *atoms* possible.
+For these reasons, creating atoms dynamically can be considered an anti-pattern when the developer has no control over how many atoms will be created during the software execution. This unpredictable scenario can expose the software to unexpected behaviour caused by excessive memory usage, or even by reaching the maximum number of _atoms_ possible.
 
 **Example**
 
@@ -259,7 +259,7 @@ For this particular example, the arguments to `loan/6` can be grouped into two d
 
 ```elixir
 defmodule Library do
-  def loan(%{name: name, email: email, password: password, alias: alias} = user, 
+  def loan(%{name: name, email: email, password: password, alias: alias} = user,
            %{title: title, ed: ed} = book) do
     ...
   end
@@ -322,9 +322,9 @@ When you use `map[:key]` to access a key that always exists in the map, you are 
 
 #### Comparison of map access notations
 
-| Access notation | Key exists        | Key doesn't exist | Use case |
-| --------------- | ----------------- | ----------------- | -------- |
-| `map.key`       | Returns the value | Raises `KeyError` | Structs and maps with known atom keys |
+| Access notation | Key exists        | Key doesn't exist | Use case                                         |
+| --------------- | ----------------- | ----------------- | ------------------------------------------------ |
+| `map.key`       | Returns the value | Raises `KeyError` | Structs and maps with known atom keys            |
 | `map[:key]`     | Returns the value | Returns `nil`     | Any `Access`-based data structure, optional keys |
 
 **Example**
@@ -605,7 +605,7 @@ end
 
 The Erlang VM has two internal representations for maps: a flat map and a hash map. A flat map is represented internally as two tuples: one tuple containing the keys and another tuple holding the values. Whenever you update a flat map, the tuple keys are shared, reducing the amount of memory used by the update. A hash map has a more complex structure, which is efficient for a large amount of keys, but it does not share the key space.
 
-Maps of up to 32 keys are represented as flat maps. All others are hash map. Structs *are* maps (with a metadata field called `__struct__`) and so any struct with fewer than 32 fields is represented as a flat map. This allows us to optimise several struct operations, as we never add or remove fields to structs, we simply update them.
+Maps of up to 32 keys are represented as flat maps. All others are hash map. Structs _are_ maps (with a metadata field called `__struct__`) and so any struct with fewer than 32 fields is represented as a flat map. This allows us to optimise several struct operations, as we never add or remove fields to structs, we simply update them.
 
 Furthermore, structs of the same name "instantiated" in the same module will share the same "tuple keys" at compilation times, as long as they have fewer than 32 fields. For example, in the following code:
 
@@ -637,7 +637,7 @@ This document outlines potential anti-patterns related to your modules, function
 
 **Problem**
 
-This anti-pattern refers to functions that receive options (typically as a *keyword list* parameter) that drastically change their return type. Because options are optional and sometimes set dynamically, if they also change the return type, it may be hard to understand what the function actually returns.
+This anti-pattern refers to functions that receive options (typically as a _keyword list_ parameter) that drastically change their return type. Because options are optional and sometimes set dynamically, if they also change the return type, it may be hard to understand what the function actually returns.
 
 **Example**
 
@@ -700,9 +700,9 @@ iex> AlternativeInteger.parse_discard_rest("13")
 
 **Problem**
 
-This anti-pattern happens when booleans are used instead of atoms to encode information. The usage of booleans themselves is not an anti-pattern, but whenever multiple booleans are used with overlapping states, replacing the booleans by atoms (or composite data types such as *tuples*) may lead to clearer code.
+This anti-pattern happens when booleans are used instead of atoms to encode information. The usage of booleans themselves is not an anti-pattern, but whenever multiple booleans are used with overlapping states, replacing the booleans by atoms (or composite data types such as _tuples_) may lead to clearer code.
 
-This is a special case of *Primitive obsession*, specific to boolean values.
+This is a special case of _Primitive obsession_, specific to boolean values.
 
 **Example**
 
@@ -830,11 +830,11 @@ This anti-pattern was formerly known as Using exceptions for control-flow.
 
 **Problem**
 
-This anti-pattern happens when Elixir basic types (for example, *integer*, *float*, and *string*) are excessively used to carry structured information, rather than creating specific composite data types (for example, *tuples*, *maps*, and *structs*) that can better represent a domain.
+This anti-pattern happens when Elixir basic types (for example, _integer_, _float_, and _string_) are excessively used to carry structured information, rather than creating specific composite data types (for example, _tuples_, _maps_, and _structs_) that can better represent a domain.
 
 **Example**
 
-An example of this anti-pattern is the use of a single *string* to represent an `Address`. An `Address` is a more complex structure than a simple basic (aka, primitive) value.
+An example of this anti-pattern is the use of a single _string_ to represent an `Address`. An `Address` is a more complex structure than a simple basic (aka, primitive) value.
 
 ```elixir
 defmodule MyApp do
@@ -882,7 +882,7 @@ end
 
 **Problem**
 
-Using multi-clause functions is a powerful Elixir feature. However, some developers may abuse this feature to group *unrelated* functionality, which is an anti-pattern.
+Using multi-clause functions is a powerful Elixir feature. However, some developers may abuse this feature to group _unrelated_ functionality, which is an anti-pattern.
 
 **Example**
 
@@ -974,11 +974,11 @@ The difference here is that the `struct/2` function behaves precisely the same f
 
 **Problem**
 
-The *application environment* can be used to parameterise global values that can be used in an Elixir system. This mechanism can be very useful and therefore is not considered an anti-pattern by itself. However, library authors should avoid using the application environment to configure their library. The reason is exactly that the application environment is a **global** state, so there can only be a single value for each key in the environment for an application. This makes it impossible for multiple applications depending on the same library to configure the same aspect of the library in different ways.
+The _application environment_ can be used to parameterise global values that can be used in an Elixir system. This mechanism can be very useful and therefore is not considered an anti-pattern by itself. However, library authors should avoid using the application environment to configure their library. The reason is exactly that the application environment is a **global** state, so there can only be a single value for each key in the environment for an application. This makes it impossible for multiple applications depending on the same library to configure the same aspect of the library in different ways.
 
 **Example**
 
-The `DashSplitter` module represents a library that configures the behaviour of its functions through the global application environment. These configurations are concentrated in the *config/config.exs* file, shown below:
+The `DashSplitter` module represents a library that configures the behaviour of its functions through the global application environment. These configurations are concentrated in the _config/config.exs_ file, shown below:
 
 ```elixir
 import Config
@@ -1053,7 +1053,7 @@ children = [
 ]
 ```
 
-Some libraries, such as Ecto, allow you to pass your application name as an option (called `:otp_app` or similar) and then automatically read the environment from *your* application. While this addresses the issue with the application environment being global, as they read from each individual application, it comes at the cost of some indirection, compared to the example above where users explicitly read their application environment from their own code, whenever desired.
+Some libraries, such as Ecto, allow you to pass your application name as an option (called `:otp_app` or similar) and then automatically read the environment from _your_ application. While this addresses the issue with the application environment being global, as they read from each individual application, it comes at the cost of some indirection, compared to the example above where users explicitly read their application environment from their own code, whenever desired.
 
 **Additional remarks: Compile-time configuration**
 
@@ -1338,7 +1338,7 @@ This anti-pattern has many potential remedies:
 - If the only process that needs data is the one you are sending to, consider making the process fetch that data instead of passing it.
 - Some abstractions, such as `:persistent_term`, allows you to share data between processes, as long as such data changes infrequently.
 
-In our case, limiting the input data is a reasonable strategy. If all we need *right now* is the IP address, then let's only work with that and make sure we're only passing the IP address into the closure, like so:
+In our case, limiting the input data is a reasonable strategy. If all we need _right now_ is the IP address, then let's only work with that and make sure we're only passing the IP address into the closure, like so:
 
 ```elixir
 ip_address = conn.remote_ip
@@ -1359,7 +1359,7 @@ In Elixir, creating a process outside a supervision tree is not an anti-pattern 
 
 **Example**
 
-The following code example seeks to illustrate a library responsible for maintaining a numerical `Counter` through a `GenServer` process *outside a supervision tree*. Multiple counters can be created simultaneously by a client (one process for each counter), making these *unsupervised* processes difficult to manage. This can cause problems with the initialisation, restart, and shutdown of a system.
+The following code example seeks to illustrate a library responsible for maintaining a numerical `Counter` through a `GenServer` process _outside a supervision tree_. Multiple counters can be created simultaneously by a client (one process for each counter), making these _unsupervised_ processes difficult to manage. This can cause problems with the initialisation, restart, and shutdown of a system.
 
 ```elixir
 defmodule Counter do
@@ -1597,7 +1597,7 @@ end
 
 **Problem**
 
-*Macros* are powerful meta-programming mechanisms that can be used in Elixir to extend the language. While using macros is not an anti-pattern in itself, this meta-programming mechanism should only be used when absolutely necessary. Whenever a macro is used, but it would have been possible to solve the same problem using functions or other existing Elixir structures, the code becomes unnecessarily more complex and less readable. Because macros are more difficult to implement and reason about, their indiscriminate use can compromise the evolution of a system, reducing its maintainability.
+_Macros_ are powerful meta-programming mechanisms that can be used in Elixir to extend the language. While using macros is not an anti-pattern in itself, this meta-programming mechanism should only be used when absolutely necessary. Whenever a macro is used, but it would have been possible to solve the same problem using functions or other existing Elixir structures, the code becomes unnecessarily more complex and less readable. Because macros are more difficult to implement and reason about, their indiscriminate use can compromise the evolution of a system, reducing its maintainability.
 
 **Example**
 
@@ -1645,7 +1645,7 @@ iex> MyMath.sum(3+1, 5+6)
 
 **Problem**
 
-Elixir has mechanisms such as `import/1`, `alias/1`, and `use/1` to establish dependencies between modules. Code implemented with these mechanisms does not characterise a smell by itself. However, while the `import/1` and `alias/1` directives have lexical scope and only facilitate a module calling functions of another, the `use/1` directive has a *broader scope*, which can be problematic.
+Elixir has mechanisms such as `import/1`, `alias/1`, and `use/1` to establish dependencies between modules. Code implemented with these mechanisms does not characterise a smell by itself. However, while the `import/1` and `alias/1` directives have lexical scope and only facilitate a module calling functions of another, the `use/1` directive has a _broader scope_, which can be problematic.
 
 The `use/1` directive allows a module to inject any type of code into another, including propagating dependencies. In this way, using the `use/1` directive makes code harder to read, because to understand exactly what will happen when it references a module, it is necessary to have knowledge of the internal details of the referenced module.
 

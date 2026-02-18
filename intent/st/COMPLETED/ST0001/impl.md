@@ -58,11 +58,10 @@ STP/
 
 ### Naming Conventions
 
-- All templates begin with an underscore (_)
+- All templates begin with an underscore (\_)
 - All steel thread documents follow the pattern ST####.md (with 4-digit IDs)
 - All scripts follow the pattern stp_command
 
 ### Template Organization
 
 Templates are organized to mirror the actual directory structure where the instantiated files will reside. This makes it easier to understand the relationship between templates and their final locations.
-

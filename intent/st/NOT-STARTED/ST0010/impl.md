@@ -3,4 +3,3 @@
 ## Implementation Notes
 
 [Notes on implementation details, decisions, challenges, and their resolutions]
-

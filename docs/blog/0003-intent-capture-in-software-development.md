@@ -138,12 +138,15 @@ Intent templates ask the right questions at the right time:
 
 ```markdown
 ## Objective
+
 [Forces you to articulate the goal clearly]
 
-## Context  
+## Context
+
 [Prompts for the "why now" and background]
 
 ## Approach
+
 [Captures your intended solution strategy]
 ```
 
@@ -154,7 +157,7 @@ The structure guides without constraining. You can't skip intent because the tem
 Intent maintains intent at multiple levels:
 
 - **Technical Product Design**: System-wide architectural intent
-- **Steel Threads**: Feature-level implementation intent  
+- **Steel Threads**: Feature-level implementation intent
 - **Journal**: Daily decisions and discoveries
 - **WIP**: Current thinking and active problems
 
@@ -179,9 +182,11 @@ Future developers need to know what you rejected and why:
 
 ```markdown
 ## Approach
+
 Implementing rate limiting using token bucket algorithm.
 
 ### Alternatives Considered:
+
 1. **Fixed window**: Rejected - allows burst attacks at window boundaries
 2. **Sliding window**: Rejected - memory intensive at our scale
 3. **Token bucket**: Selected - smooth rate limiting with burst capacity
@@ -193,6 +198,7 @@ Connect technical decisions to business needs:
 
 ```markdown
 ## Context
+
 Compliance requires us to retain user data for 7 years (REQ-2.3.1).
 This drives our archive strategy and database partitioning scheme.
 ```
@@ -203,6 +209,7 @@ Intent isn't static. As you learn, update the documentation:
 
 ```markdown
 ## Implementation Notes
+
 [2024-03-01] Initial approach used simple caching
 [2024-03-15] Discovered cache invalidation issues with multi-region
 [2024-03-20] Moved to event-based invalidation - more complex but reliable
@@ -266,13 +273,16 @@ LLMs can transform rough notes into structured intent:
 
 ```markdown
 ## Objective
+
 Reduce login latency from current 3-5 seconds to under 500ms
 
-## Context  
-User complaints about slow login are our #1 support issue. 
+## Context
+
+User complaints about slow login are our #1 support issue.
 Profiling shows session validation queries taking 2-4 seconds.
 
 ## Approach
+
 Implement Redis-based session cache to avoid database queries
 for active sessions.
 ```
@@ -302,16 +312,20 @@ class RateLimiter:
 # ST0042: API Rate Limiting Implementation
 
 ## Objective
+
 Protect our API from abuse while ensuring legitimate users maintain access
 
 ## Context
+
 - Experiencing DoS attacks overwhelming our infrastructure
 - Legitimate users making 20-50 requests/hour on average
 - Need solution that scales horizontally across multiple servers
 - Must not impact user experience for normal usage patterns
 
 ## Approach
+
 Token bucket algorithm with Redis backend:
+
 - 100 requests/hour limit (2x normal peak usage)
 - Tokens refill continuously (smooth experience)
 - Redis enables sharing state across servers
@@ -324,8 +338,8 @@ class RateLimiter:
         # Limits based on usage analysis (ST0042)
         # 99th percentile legitimate usage: 47 req/hour
         # Limit set to 2x that for safety margin
-        self.limit = 100  
-        
+        self.limit = 100
+
         # 1-hour window matches our abuse detection cycle
         # Shorter windows allowed attackers to burst
         self.window = 3600

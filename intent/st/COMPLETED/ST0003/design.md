@@ -7,4 +7,3 @@
 3. Design a template directory structure that mirrors the final document structure
 4. Implement consistent formatting and styles across all templates
 5. Add LLM-specific guidance within templates
-

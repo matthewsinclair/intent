@@ -2,6 +2,7 @@
 verblock: "20 Mar 2025:v0.1: Claude - Updated with new directory structure"
 stp_version: 1.2.0
 ---
+
 # Steel Threads
 
 This document serves as an index of all steel threads in the Steel Thread Process (STP) system. A steel thread represents a self-contained unit of work that focuses on implementing a specific piece of functionality.
@@ -9,14 +10,17 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 ## Index
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
-ID         | Title                     | Status       | Created    | Completed 
------------|---------------------------|--------------|------------|-----------
-ST0020     | Updated with latest th... | WIP          | 2026-02-17 |           
+
+| ID     | Title                     | Status | Created    | Completed |
+| ------ | ------------------------- | ------ | ---------- | --------- |
+| ST0020 | Updated with latest th... | WIP    | 2026-02-17 |
+
 <!-- END: STEEL_THREAD_INDEX -->
 
 ## Steel Thread Status Definitions
 
 <!-- BEGIN: STATUS_DEFINITIONS -->
+
 - **Not Started**: Steel thread has been created but work has not begun (stp/prj/st/NOT-STARTED/)
 - **In Progress**: Work is actively being done on this steel thread (stp/prj/st/)
 - **Completed**: All tasks have been completed and the steel thread is finished (stp/prj/st/COMPLETED)
@@ -31,6 +35,7 @@ This document provides an overview of all steel threads in the STP project. It h
 ### How to use this document
 
 <!-- BEGIN: USAGE_INSTRUCTIONS -->
+
 1. Update the index when creating new steel threads
 2. Update the status of steel threads as they progress
 3. Add completion dates when steel threads are finished

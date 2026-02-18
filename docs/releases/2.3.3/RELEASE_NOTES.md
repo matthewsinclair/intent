@@ -49,6 +49,7 @@ intent claude subagents sync
 ### Migration Details
 
 The v2.3.2 → v2.3.3 migration:
+
 1. Updates project version in `.intent/config.json` and `VERSION`
 2. No structural changes required
 3. Elixir subagent enhancements are available via `intent claude subagents sync`

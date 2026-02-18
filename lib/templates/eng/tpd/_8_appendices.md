@@ -1,12 +1,13 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
+
 # 8. Appendices
 
 ## 8.1 Glossary
 
 | Term     | Definition     |
-|----------|----------------|
+| -------- | -------------- |
 | [Term 1] | [Definition 1] |
 | [Term 2] | [Definition 2] |
 | ...      | ...            |
@@ -14,7 +15,7 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ## 8.2 References
 
 | Reference ID | Description   | URL/Location   |
-|--------------|---------------|----------------|
+| ------------ | ------------- | -------------- |
 | [REF-1]      | [Description] | [URL/Location] |
 | [REF-2]      | [Description] | [URL/Location] |
 | ...          | ...           | ...            |

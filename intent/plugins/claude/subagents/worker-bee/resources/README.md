@@ -27,7 +27,7 @@ Before any validation or scaffolding, the agent conducts an interactive session 
 Enforces the 6-layer Worker-Bee Driven Design architecture:
 
 - **Data** - Immutable data structures and types
-- **Functions** - Pure business logic without side effects  
+- **Functions** - Pure business logic without side effects
 - **Tests** - Behavior-focused testing at all layers
 - **Boundaries** - GenServers, APIs, and side effect management
 - **Lifecycles** - OTP supervision and application management
@@ -96,13 +96,15 @@ Task(
 ## Validation Rules
 
 ### Functional Core Layer
+
 - No side effects (no GenServer calls, file I/O, network operations)
 - Pure function composition with pipes
 - Single-purpose functions
 - Pattern matching over conditionals
 - Proper error handling with tagged tuples
 
-### Boundary Layer  
+### Boundary Layer
+
 - Proper GenServer patterns
 - Railway-Oriented Programming with `with` statements
 - Input validation at API boundaries
@@ -110,12 +112,14 @@ Task(
 - Delegation to functional core for business logic
 
 ### Data Layer
+
 - Immutable data structures
 - Proper struct definitions with defaults
 - Appropriate data structure choices
 - Flat structure over deep nesting
 
 ### Testing Layer
+
 - Behavior-focused tests (not implementation)
 - Descriptive test names
 - Proper test organization with describe blocks
@@ -126,7 +130,7 @@ Task(
 Works with any Elixir project type:
 
 - **Phoenix** - Web applications and APIs
-- **OTP Applications** - Process-oriented systems  
+- **OTP Applications** - Process-oriented systems
 - **Libraries** - Pure functional libraries
 - **Nerves** - Embedded systems
 - **Umbrella Projects** - Multi-application systems
@@ -176,18 +180,21 @@ naming_conventions:
 ### Typical Usage Flow
 
 1. **Initial Setup**
+
    ```bash
    # Agent discovers your project structure
    mix wdd.validate  # Triggers discovery session
    ```
 
 2. **Generate Components**
+
    ```bash
    # Create new WDD-compliant component
    mix wdd.scaffold component OrderProcessor
    ```
 
 3. **Validate Compliance**
+
    ```bash
    # Check compliance regularly
    mix wdd.validate --min-score 75.0
@@ -202,12 +209,15 @@ naming_conventions:
 ## Troubleshooting
 
 ### No Project Map Found
+
 Run `mix wdd.validate` to trigger interactive discovery session.
 
 ### Validation Failures
+
 Use `--verbose` flag to see detailed violation information and recommendations.
 
 ### Generation Conflicts
+
 Use `--force` flag to overwrite existing files, or `--dry-run` to preview changes.
 
 ## Contributing
@@ -215,7 +225,7 @@ Use `--force` flag to overwrite existing files, or `--dry-run` to preview change
 This agent follows Worker-Bee Driven Design principles in its own implementation:
 
 - Pure validation logic in functional core modules
-- GenServer boundaries for state management  
+- GenServer boundaries for state management
 - Comprehensive test coverage
 - Clear separation of concerns
 

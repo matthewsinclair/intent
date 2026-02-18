@@ -21,7 +21,7 @@ def get_user_profile(user_id):
     cached = redis.get(f"user:{user_id}")
     if cached:
         return json.loads(cached)
-    
+
     # Complex caching logic with multiple layers...
     # 200 lines of sophisticated caching code
 ```
@@ -73,15 +73,18 @@ In your editor, document the actual constraints:
 
 ```markdown
 ## Objective
+
 Implement secure password reset that prevents account takeover
 
 ## Context
+
 - Recent security audit flagged email-based reset as vulnerable
 - 15% of support tickets are password-related
 - Must comply with SOC2 requirements
 - Cannot break existing mobile app (v2.3.x)
 
 ## Approach
+
 - Time-limited tokens (15 minutes)
 - Rate limiting (3 attempts per hour)
 - Multi-factor verification for high-value accounts
@@ -179,7 +182,7 @@ Here's a real example from building Intent itself:
 $ intent st show ST0012
 # "Document Sync Command - sync steel thread index"
 
-$ intent st show ST0016 
+$ intent st show ST0016
 # "Rename STP to Intent - complete v2.1.0 refactoring"
 ```
 

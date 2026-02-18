@@ -1,6 +1,7 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
+
 # Deployment Guide
 
 This deployment guide provides instructions for deploying the Steel Thread Process (STP) system in various environments. It covers installation, configuration, and integration with other tools and workflows.
@@ -68,12 +69,12 @@ This should display the help information for STP commands.
 
 Configure STP behavior using these environment variables:
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| STP_HOME | Location of STP installation | Path to cloned repository |
-| STP_PROJECT | Current project name | Determined from initialization |
-| STP_AUTHOR | Default author name | Determined from git configuration |
-| STP_EDITOR | Preferred text editor | Determined from system defaults |
+| Variable    | Purpose                      | Default                           |
+| ----------- | ---------------------------- | --------------------------------- |
+| STP_HOME    | Location of STP installation | Path to cloned repository         |
+| STP_PROJECT | Current project name         | Determined from initialization    |
+| STP_AUTHOR  | Default author name          | Determined from git configuration |
+| STP_EDITOR  | Preferred text editor        | Determined from system defaults   |
 
 Example configuration in `.bashrc` or `.zshrc`:
 

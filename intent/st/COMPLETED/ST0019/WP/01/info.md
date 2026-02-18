@@ -4,6 +4,7 @@ wp: "01"
 title: "intent treeindex CLI command"
 status: Complete
 ---
+
 # WP01: `bin/intent_treeindex` CLI Command
 
 ## Status
@@ -50,25 +51,25 @@ EXAMPLES:
 
 ## Deviations from Original Design
 
-| Aspect         | Original Design                  | As-Built                               |
-|----------------|----------------------------------|----------------------------------------|
-| DIR argument   | Optional, defaults to `.`        | Mandatory, rejects project root        |
-| Default depth  | 1                                | 2                                      |
-| Model          | sonnet                           | haiku (Claude Haiku 4.5)               |
-| Budget cap     | $0.02/dir                        | $0.50/dir                              |
-| Ignore config  | Hardcoded lists                  | `.treeindexignore` file                |
-| Scope          | Global command (no project req)  | Requires Intent project context        |
-| Estimated size | 250-350 lines                    | 612 lines                              |
-| Tests          | Not specified                    | 38 bats tests                          |
-| Bash compat    | Not specified                    | Bash 3.2 required (macOS constraint)   |
+| Aspect         | Original Design                 | As-Built                             |
+| -------------- | ------------------------------- | ------------------------------------ |
+| DIR argument   | Optional, defaults to `.`       | Mandatory, rejects project root      |
+| Default depth  | 1                               | 2                                    |
+| Model          | sonnet                          | haiku (Claude Haiku 4.5)             |
+| Budget cap     | $0.02/dir                       | $0.50/dir                            |
+| Ignore config  | Hardcoded lists                 | `.treeindexignore` file              |
+| Scope          | Global command (no project req) | Requires Intent project context      |
+| Estimated size | 250-350 lines                   | 612 lines                            |
+| Tests          | Not specified                   | 38 bats tests                        |
+| Bash compat    | Not specified                   | Bash 3.2 required (macOS constraint) |
 
 ## Files Created
 
-| File                                       | Action  | Lines |
-|--------------------------------------------|---------|-------|
-| `bin/intent_treeindex`                     | Created | 612   |
-| `tests/unit/treeindex_commands.bats`       | Created | ~580  |
-| `intent/.treeindex/.treeindexignore`       | Created | 27    |
+| File                                 | Action  | Lines |
+| ------------------------------------ | ------- | ----- |
+| `bin/intent_treeindex`               | Created | 612   |
+| `tests/unit/treeindex_commands.bats` | Created | ~580  |
+| `intent/.treeindex/.treeindexignore` | Created | 27    |
 
 ## Acceptance Criteria
 

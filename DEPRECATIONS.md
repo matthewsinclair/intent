@@ -2,6 +2,7 @@
 verblock: "27 Jul 2025:v0.3: Matthew Sinclair - Updated for Intent v2.1.0"
 intent_version: 2.1.0
 ---
+
 # Intent Deprecations
 
 This document tracks features, files, and functionality that have been deprecated in Intent (formerly STP).

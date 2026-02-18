@@ -5,28 +5,33 @@ Complete guide for using the Worker-Bee Intent agent to enforce Worker-Bee Drive
 ## Quick Start
 
 ### 1. Install the Agent
+
 ```bash
 intent agents install worker-bee
 ```
 
 ### 2. Initial Project Discovery
+
 Run this command in your Elixir project to trigger the interactive project mapping:
+
 ```bash
 mix wdd.validate
 ```
 
 The agent will:
+
 - Scan your project structure
 - Ask targeted questions about your layer organization
 - Create a `.wdd_project_map.yaml` file with your specific structure
 - Remember your choices for future validations
 
 ### 3. Daily Development Workflow
+
 ```bash
 # Generate WDD-compliant components
 mix wdd.scaffold component UserService
 
-# Validate architecture compliance  
+# Validate architecture compliance
 mix wdd.validate --min-score 75.0
 
 # Create specific layer components
@@ -50,6 +55,7 @@ Worker-Bee uses a mnemonic: **"Do Fun Things with Big, Loud Worker-Bees"**
 ### Key Principles
 
 **Functional Core**
+
 - No side effects (no GenServer calls, file I/O, network operations)
 - Pure function composition using pipes (`|>`)
 - Single-purpose functions with clear responsibilities
@@ -57,6 +63,7 @@ Worker-Bee uses a mnemonic: **"Do Fun Things with Big, Loud Worker-Bees"**
 - Railway-Oriented Programming with tagged tuples
 
 **Boundary Layer**
+
 - Separate process machinery from business logic
 - Use `with` statements for error composition
 - Return `{:ok, result}` or `{:error, reason}`
@@ -68,6 +75,7 @@ Worker-Bee uses a mnemonic: **"Do Fun Things with Big, Loud Worker-Bees"**
 ### When Discovery Happens
 
 The agent **only** conducts discovery when:
+
 - No `.wdd_project_map.yaml` file exists
 - You explicitly run `mix wdd.remap`
 - You use the `--remap` flag with validation/scaffolding
@@ -81,7 +89,7 @@ The agent will ask about your specific project:
 What type of Elixir project is this?
 [1] Phoenix Web Application
 [2] Phoenix API
-[3] OTP Application  
+[3] OTP Application
 [4] Library
 [5] Nerves/Embedded
 [6] Umbrella Project
@@ -106,7 +114,7 @@ root_path: "/path/to/project"
 
 wdd_layers:
   data: "lib/my_app/types"
-  functions: "lib/my_app/core" 
+  functions: "lib/my_app/core"
   tests: "test"
   boundaries: "lib/my_app_web"
   lifecycles: "lib/my_app/application.ex"
@@ -132,6 +140,7 @@ Task(
 ### Specific Use Cases
 
 **Architecture Review**
+
 ```
 Task(
   description="WDD architecture review",
@@ -141,6 +150,7 @@ Task(
 ```
 
 **Code Generation**
+
 ```
 Task(
   description="Generate WDD component",
@@ -150,15 +160,17 @@ Task(
 ```
 
 **Compliance Validation**
+
 ```
 Task(
-  description="Check WDD compliance", 
+  description="Check WDD compliance",
   prompt="Validate this module for functional core purity: [paste your code]. Check for side effects and suggest improvements.",
   subagent_type="worker-bee"
 )
 ```
 
 **Refactoring Guidance**
+
 ```
 Task(
   description="WDD refactoring advice",
@@ -180,7 +192,7 @@ mix wdd.validate
 # Validate specific layer
 mix wdd.validate --layer functions
 
-# Validate single file  
+# Validate single file
 mix wdd.validate --file lib/my_app/core/user_service.ex
 
 # Set minimum compliance score
@@ -194,6 +206,7 @@ mix wdd.validate --output json
 ```
 
 **Example Output:**
+
 ```
 🔍 Worker-Bee WDD Validation Report
 =====================================
@@ -205,7 +218,7 @@ Overall Compliance: 78.5/100
    - Proper struct definitions
    - Good use of defaults
 
-⚠️  Functions Layer (lib/my_app/core): 65/100  
+⚠️  Functions Layer (lib/my_app/core): 65/100
    - VIOLATION: GenServer.call found in user_service.ex:42
    - SUGGESTION: Move side effects to boundary layer
 
@@ -224,7 +237,7 @@ mix wdd.scaffold component UserManagement
 
 # Generate specific layers
 mix wdd.scaffold functional PaymentProcessor
-mix wdd.scaffold boundary EmailService  
+mix wdd.scaffold boundary EmailService
 mix wdd.scaffold data User
 mix wdd.scaffold worker BackgroundProcessor
 mix wdd.scaffold supervisor TaskSupervisor
@@ -237,13 +250,14 @@ mix wdd.scaffold functional UserService --force
 ```
 
 **Generated Structure:**
+
 ```
 lib/my_app/
 ├── core/
 │   ├── user_management.ex           # Functional core
 │   └── user_management/
 │       ├── user_validator.ex
-│       └── user_transformer.ex  
+│       └── user_transformer.ex
 ├── types/
 │   └── user.ex                     # Data structures
 └── boundaries/
@@ -252,7 +266,7 @@ lib/my_app/
 test/
 ├── core/
 │   └── user_management_test.exs    # Unit tests
-└── boundaries/  
+└── boundaries/
     └── user_management_server_test.exs  # Integration tests
 ```
 
@@ -279,6 +293,7 @@ mix wdd.remap --quiet
 ### Starting a New Feature
 
 1. **Plan the Component**
+
    ```bash
    # Use agent to design the architecture
    Task(
@@ -289,6 +304,7 @@ mix wdd.remap --quiet
    ```
 
 2. **Generate the Scaffold**
+
    ```bash
    mix wdd.scaffold component UserNotifications
    ```
@@ -306,11 +322,13 @@ mix wdd.remap --quiet
 ### Refactoring Existing Code
 
 1. **Assess Current State**
+
    ```bash
    mix wdd.validate --file lib/my_app/problematic_module.ex
    ```
 
 2. **Get Refactoring Guidance**
+
    ```
    Task(
      description="WDD refactoring plan",
@@ -333,11 +351,13 @@ mix wdd.remap --quiet
 ### Code Review Process
 
 1. **Pre-commit Validation**
+
    ```bash
    mix wdd.validate --min-score 75.0
    ```
 
 2. **Agent-Assisted Review**
+
    ```
    Task(
      description="WDD code review",
@@ -360,16 +380,19 @@ mix wdd.remap --quiet
 ### Phoenix Applications
 
 **Contexts as Boundaries**
+
 - Phoenix contexts naturally map to WDD boundary layer
 - Keep business logic in functional core, not contexts
 - Use contexts for API and side effect coordination
 
 **Controllers**
+
 - Thin controllers that delegate to contexts
 - Input validation and serialization only
 - No business logic in controllers
 
 **LiveView Components**
+
 - UI logic separate from business logic
 - Event handlers delegate to contexts
 - Pure functions for data transformation
@@ -377,11 +400,13 @@ mix wdd.remap --quiet
 ### OTP Applications
 
 **Supervision Trees**
+
 - Map to WDD lifecycle layer
 - Keep supervisor logic simple
 - Business logic in supervised processes
 
 **GenServers**
+
 - Focus on process management, not business logic
 - Delegate complex operations to functional core
 - Use `with` statements for error handling
@@ -389,6 +414,7 @@ mix wdd.remap --quiet
 ### Libraries
 
 **Pure Functional APIs**
+
 - Emphasize functional core layer
 - Minimal or no process machinery
 - Clear module organization
@@ -399,21 +425,25 @@ mix wdd.remap --quiet
 ### Do's
 
 ✅ **Start with Data and Functions**
+
 - Define your data structures first
 - Build pure functions that transform data
 - Add boundaries only when needed
 
 ✅ **Use Agent for Architecture Decisions**
+
 - Consult the agent when designing new components
 - Ask for WDD-specific guidance
 - Get explanations of violations
 
 ✅ **Validate Regularly**
+
 - Run `mix wdd.validate` frequently
 - Set compliance score targets
 - Address violations early
 
 ✅ **Embrace the Discovery Process**
+
 - Answer mapping questions thoughtfully
 - Consider your team's conventions
 - Update mapping when project evolves
@@ -421,16 +451,19 @@ mix wdd.remap --quiet
 ### Don'ts
 
 ❌ **Don't Skip Project Mapping**
+
 - Always let the agent understand your structure
 - Don't assume default layouts
 - Don't ignore re-mapping suggestions
 
 ❌ **Don't Mix Concerns**
+
 - Keep business logic out of GenServers
 - Avoid side effects in functional core
 - Don't put UI logic in business modules
 
 ❌ **Don't Ignore Validation Warnings**
+
 - Address compliance violations promptly
 - Understand WHY rules exist
 - Ask agent for clarification when confused
@@ -440,7 +473,8 @@ mix wdd.remap --quiet
 ### Agent Not Finding Project Map
 
 **Problem:** Agent keeps asking for project structure
-**Solution:** 
+**Solution:**
+
 ```bash
 # Check if map file exists
 ls -la .wdd_project_map.yaml
@@ -456,6 +490,7 @@ mix wdd.remap
 
 **Problem:** Validation shows low scores
 **Solution:**
+
 ```bash
 # Get detailed feedback
 mix wdd.validate --verbose
@@ -472,6 +507,7 @@ Task(
 
 **Problem:** Scaffolded code doesn't follow your patterns
 **Solution:**
+
 ```bash
 # Update project mapping
 mix wdd.remap
@@ -487,6 +523,7 @@ mix wdd.scaffold component MyComponent --force
 
 **Problem:** Agent suggestions don't fit your project type
 **Solution:**
+
 ```
 Task(
   description="Update project understanding",
@@ -528,6 +565,7 @@ fi
 ### Custom Templates
 
 The agent uses EEx templates that can be customized:
+
 - `templates/functional_core.ex.eex`
 - `templates/boundary_genserver.ex.eex`
 - Add your own templates to match team conventions

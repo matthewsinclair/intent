@@ -33,14 +33,14 @@ intent treeindex --force lib/    # Regenerate even if up-to-date
 
 **CLI options:**
 
-| Option          | Description                                      |
-|-----------------|--------------------------------------------------|
-| `--depth N`     | Directory traversal depth (default: 2)           |
-| `--check`       | Report staleness without generating              |
-| `--dry-run`     | Preview plan without writing files               |
-| `--force`       | Regenerate even when fingerprint matches         |
-| `--model MODEL` | Claude model to use (default: haiku)             |
-| `--verbose`     | Show detailed progress                           |
+| Option          | Description                              |
+| --------------- | ---------------------------------------- |
+| `--depth N`     | Directory traversal depth (default: 2)   |
+| `--check`       | Report staleness without generating      |
+| `--dry-run`     | Preview plan without writing files       |
+| `--force`       | Regenerate even when fingerprint matches |
+| `--model MODEL` | Claude model to use (default: haiku)     |
+| `--verbose`     | Show detailed progress                   |
 
 ### CLAUDE.md Convention (ST0019 WP03)
 

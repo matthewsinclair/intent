@@ -2,7 +2,7 @@
 
 - **Status**: In Progress
 - **Created**: 2023-02-01
-- **Completed**: 
+- **Completed**:
 - **Author**: Test User
 
 ## Objective

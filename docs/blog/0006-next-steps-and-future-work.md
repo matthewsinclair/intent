@@ -164,7 +164,6 @@ Intent's design philosophy embraces integration rather than isolation. Here's ho
   - Quick commands from command palette
   - Inline task status indicators
   - Template snippets
-  
 - **IntelliJ/WebStorm Plugin**:
   - Project tool window for Intent
   - Integrated task management
@@ -186,10 +185,10 @@ nnoremap <leader>tl :!intent task list <C-R><C-W><CR>
 # GitHub Actions example
 - name: Validate Intent Structure
   run: stp validate
-  
+
 - name: Generate Release Notes
   run: stp release-notes --from=${{ github.event.before }}
-  
+
 - name: Update Thread Status
   run: intent status sync --all
 ```
@@ -326,12 +325,15 @@ intent st new
 
 ```markdown
 ## Objective
+
 Enable direct GitHub issue creation from steel threads
 
 ## Context
+
 Users want seamless integration with GitHub workflow
 
 ## Approach
+
 1. Add gh CLI wrapper commands
 2. Map thread metadata to issue fields
 3. Bidirectional status sync
@@ -392,18 +394,22 @@ mycommand_function() {
 **Template Creation**:
 
 ```markdown
-<!-- intent/_templ/industry/healthcare-thread.md -->
----
+## <!-- intent/_templ/industry/healthcare-thread.md -->
+
 status: Not Started
 compliance: HIPAA
 risk_assessment: Required
+
 ---
+
 # {{THREAD_ID}}: {{TITLE}}
 
 ## Clinical Objective
+
 [Healthcare-specific intent]
 
 ## Regulatory Considerations
+
 [Compliance requirements]
 ```
 
@@ -488,8 +494,8 @@ The future of software development is intention-aware, and it starts with your n
 
 ---
 
-*Thank you for joining us on this journey through Intent. From understanding [why intention matters](./0000-motivation-for-intent.md) to envisioning the future of development, you now have the knowledge to transform how your team builds software.*
+_Thank you for joining us on this journey through Intent. From understanding [why intention matters](./0000-motivation-for-intent.md) to envisioning the future of development, you now have the knowledge to transform how your team builds software._
 
-*Ready to start? [Install Intent](./0005-getting-started-with-intent.md#installation-and-setup) and create your first steel thread today.*
+_Ready to start? [Install Intent](./0005-getting-started-with-intent.md#installation-and-setup) and create your first steel thread today._
 
 **Remember**: Great software isn't just about what it does – it's about why it exists.

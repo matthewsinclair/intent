@@ -29,6 +29,7 @@ project/
 ### Template Instantiation
 
 During initialization, the system:
+
 1. Creates all required directories
 2. Copies template files from the template directory to their respective locations
 3. Removes the leading underscore from template filenames
@@ -37,6 +38,7 @@ During initialization, the system:
 ### Configuration Management
 
 The initialization process creates a `.stp-config` file that contains:
+
 - Project name
 - Project creation date
 - Author information
@@ -48,9 +50,9 @@ This configuration file is used by other STP commands to locate resources and cu
 ### User Interaction
 
 The initialization command:
+
 - Prompts for project name if not provided as an argument
 - Automatically detects the current user as the author (can be overridden)
 - Provides clear feedback during initialization
 - Warns if attempting to initialize an existing project
 - Displays a success message with next steps after completion
-

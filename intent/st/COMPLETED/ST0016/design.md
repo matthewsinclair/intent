@@ -2,16 +2,18 @@
 verblock: "16 Jul 2025:v0.2: Matthew Sinclair - Updated with JSON config and new commands"
 stp_version: 2.0.0
 ---
+
 # ST0016: Design Document
 
 ## Overview
 
-This design document details the comprehensive refactoring of the CLI tool from "stp" to "intent", addressing architectural concerns and modernizing the tool structure. 
+This design document details the comprehensive refactoring of the CLI tool from "stp" to "intent", addressing architectural concerns and modernizing the tool structure.
 
 **Key Terminology**:
+
 - **intent**: The command-line tool (lowercase)
 - **STP**: Steel Thread Process methodology (unchanged)
-- **intent_***: Subcommands following the new naming convention
+- **intent\_\***: Subcommands following the new naming convention
 - **Fail-forward approach**: Direct migration to v2.0.0 without incremental steps
 
 ## Phase 0: Test Infrastructure (Foundation)
@@ -24,7 +26,7 @@ Before any implementation, create comprehensive test fixtures:
 examples/
 ├── v0.0.0-project/     # Ancient .stp-config format
 ├── v1.2.0-project/     # File-based steel threads
-├── v1.2.1-project/     # Directory-based steel threads  
+├── v1.2.1-project/     # Directory-based steel threads
 └── hello-world/        # Clean v2.0.0 structure
 ```
 
@@ -115,11 +117,13 @@ Benefits:
 ### 2.3 Config Loading
 
 **Loading Order**:
+
 1. Load global config first (`~/.config/intent/config.json`)
 2. Overlay local config (`.intent/config.json`)
 3. Apply environment variable overrides (highest priority)
 
 **Project Detection**:
+
 ```bash
 find_project_root() {
   current_dir=$(pwd)
@@ -143,6 +147,7 @@ find_project_root() {
 ### 2.4 New Commands
 
 #### intent bootstrap
+
 - Initial setup for new installations
 - Creates global config directory
 - Sets up PATH recommendations
@@ -150,6 +155,7 @@ find_project_root() {
 - Validates installation
 
 #### intent doctor
+
 - Configuration diagnostics
 - Validates JSON syntax
 - Checks for missing dependencies
@@ -206,19 +212,19 @@ Validation tests:
   # Setup test project
   cp -r examples/v1.2.1-project "$TEST_DIR/project"
   cd "$TEST_DIR/project"
-  
+
   # Take snapshot
   find . -type f | sort > before.txt
-  
+
   # Run upgrade
   run intent upgrade --yes
-  
+
   # Verify structure
   assert_success
   assert [ -f ".intent/config.json" ]
   assert [ -d "intent/st" ]
   assert [ ! -d "stp/prj/st" ]
-  
+
   # Verify no data loss
   # ... detailed checks
 }
@@ -234,7 +240,7 @@ intent upgrade [--dry-run] [--yes]
 
 Migration steps:
 
-1. **Detect Version**: 
+1. **Detect Version**:
    - Check stp_version in known locations
    - If unable to determine: fail with clear error message
    - No assumptions about unknown versions
@@ -242,6 +248,7 @@ Migration steps:
 2. **Backup**: Create .backup/ with timestamp
 
 3. **Migrate Structure**:
+
    ```
    Old                          New
    stp/bin/*                 → bin/*
@@ -261,6 +268,7 @@ Migration steps:
 ### 4.2 Failure Handling
 
 **Fail-forward approach**:
+
 - No rollback mechanism (not needed)
 - Clear error messages on failure
 - Backup available for manual recovery if needed
@@ -335,6 +343,7 @@ export INTENT_HOME=$(pwd)
 ## Additional Considerations
 
 ### Error Handling Strategy
+
 - Clear, actionable error messages
 - Specific version detection failures
 - Migration interruption detection
@@ -342,11 +351,13 @@ export INTENT_HOME=$(pwd)
 - Dependency check failures
 
 ### Performance Optimization
+
 - Config caching within session
 - Efficient directory traversal
 - Minimal overhead on command execution
 
 ### Integration Updates
+
 - CI/CD pipeline modifications
 - GitHub Actions workflow updates
 - Documentation site updates

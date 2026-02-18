@@ -5,6 +5,7 @@ status: Completed
 created: 20260203
 completed: 20260204
 ---
+
 # ST0019: Treeindex -- Directory Summaries for Claude Navigation
 
 ## Objective

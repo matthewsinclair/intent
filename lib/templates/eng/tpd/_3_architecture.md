@@ -1,6 +1,7 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
+
 # 3. Architecture
 
 ## 3.1 System Architecture Overview
@@ -82,7 +83,7 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ## 3.7 Architectural Decisions
 
 | Decision     | Alternatives Considered          | Rationale                |
-|--------------|----------------------------------|--------------------------|
+| ------------ | -------------------------------- | ------------------------ |
 | [Decision 1] | [Alternative 1], [Alternative 2] | [Rationale for decision] |
 | [Decision 2] | [Alternative 1], [Alternative 2] | [Rationale for decision] |
 | ...          | ...                              | ...                      |

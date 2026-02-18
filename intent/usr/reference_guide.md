@@ -2,6 +2,7 @@
 verblock: "17 Feb 2026:v2.4.0: Matthew Sinclair - Updated for Intent v2.4.0"
 intent_version: 2.4.0
 ---
+
 # Reference Guide
 
 This reference guide provides comprehensive information about the Intent system (v2.4.0). Unlike the task-oriented User Guide, this reference guide serves as a complete reference for all aspects of the system.
@@ -44,7 +45,7 @@ intent upgrade
 **Output:**
 
 - Creates timestamped backup of existing structure
-- Migrates directory structure (legacy paths → intent/*)
+- Migrates directory structure (legacy paths → intent/\*)
 - Converts YAML configuration to JSON
 - Updates all file references and frontmatter
 - Converts single steel thread files to directory structure
@@ -242,11 +243,11 @@ intent st list --status "In Progress" --width 100
 **Output:**
 
 ```
-ID     | Title                                | Status      | Created    | Completed  
+ID     | Title                                | Status      | Created    | Completed
 -------|--------------------------------------|-------------|------------|-----------
-ST0003 | Implement Feature X                  | In Progress | 2025-03-08 |            
-ST0002 | Design Database Schema               | In Progress | 2025-03-07 |            
-ST0001 | Project Setup                        | Completed   | 2025-03-05 | 2025-03-06 
+ST0003 | Implement Feature X                  | In Progress | 2025-03-08 |
+ST0002 | Design Database Schema               | In Progress | 2025-03-07 |
+ST0001 | Project Setup                        | Completed   | 2025-03-05 | 2025-03-06
 ```
 
 `intent st show`
@@ -306,6 +307,7 @@ intent st repair [id] [--write]
 **Purpose:**
 
 Fixes common metadata issues in steel threads that may occur after migrations or manual edits:
+
 - Repairs malformed YAML frontmatter (eg escaped newlines)
 - Updates legacy field names (stp_version → intent_version)
 - Reconciles conflicting status values between frontmatter and body
@@ -466,15 +468,15 @@ intent treeindex [OPTIONS] DIR
 
 **Options:**
 
-| Flag              | Description                                         |
-|-------------------|-----------------------------------------------------|
-| `-d, --depth N`   | Depth to traverse (default: 2)                      |
-| `--check`         | Check staleness only, do not generate               |
-| `--prune`         | Remove orphaned .treeindex files (source dir removed)|
-| `--force`         | Regenerate ignoring fingerprints                    |
-| `--model MODEL`   | Claude model to use (default: haiku)                |
-| `--dry-run`       | Show what would be generated without doing it       |
-| `-h, --help`      | Show help                                           |
+| Flag            | Description                                           |
+| --------------- | ----------------------------------------------------- |
+| `-d, --depth N` | Depth to traverse (default: 2)                        |
+| `--check`       | Check staleness only, do not generate                 |
+| `--prune`       | Remove orphaned .treeindex files (source dir removed) |
+| `--force`       | Regenerate ignoring fingerprints                      |
+| `--model MODEL` | Claude model to use (default: haiku)                  |
+| `--dry-run`     | Show what would be generated without doing it         |
+| `-h, --help`    | Show help                                             |
 
 **Example:**
 
@@ -507,19 +509,19 @@ intent fileindex [OPTIONS] [STARTDIR] [FILESPEC]
 
 **Options:**
 
-| Flag                | Description                                           |
-|---------------------|-------------------------------------------------------|
-| `-r`                | Recurse through subdirectories                        |
-| `-v`                | Verbose mode (show processing and summary)            |
-| `-f, --file FILE`   | Output to file instead of stdout                     |
-| `-i, --index FILE`  | Use index file to maintain checked states            |
-| `-X, --toggle FILE` | Toggle checked state of FILE in index                |
-| `-C, --check FILE`  | Set FILE to checked [x] state in index               |
-| `-U, --uncheck FILE`| Set FILE to unchecked [ ] state in index             |
-| `--index-dir DIR`   | Default directory for index files                    |
-| `--intent-dir`      | Specify Intent project directory                     |
-| `--no-intent`       | Disable Intent integration                           |
-| `-h`                | Show help                                            |
+| Flag                 | Description                                |
+| -------------------- | ------------------------------------------ |
+| `-r`                 | Recurse through subdirectories             |
+| `-v`                 | Verbose mode (show processing and summary) |
+| `-f, --file FILE`    | Output to file instead of stdout           |
+| `-i, --index FILE`   | Use index file to maintain checked states  |
+| `-X, --toggle FILE`  | Toggle checked state of FILE in index      |
+| `-C, --check FILE`   | Set FILE to checked [x] state in index     |
+| `-U, --uncheck FILE` | Set FILE to unchecked [ ] state in index   |
+| `--index-dir DIR`    | Default directory for index files          |
+| `--intent-dir`       | Specify Intent project directory           |
+| `--no-intent`        | Disable Intent integration                 |
+| `-h`                 | Show help                                  |
 
 **Example:**
 
@@ -554,13 +556,13 @@ intent agents <command> [options]
 
 **Subcommands:**
 
-| Command    | Description                                          |
-|------------|------------------------------------------------------|
-| `init`     | Initialize AGENTS.md for the project                 |
-| `generate` | Generate/regenerate AGENTS.md from project state     |
-| `sync`     | Update AGENTS.md with latest project state           |
-| `validate` | Validate AGENTS.md against specification             |
-| `template` | Manage AGENTS.md templates                           |
+| Command    | Description                                      |
+| ---------- | ------------------------------------------------ |
+| `init`     | Initialize AGENTS.md for the project             |
+| `generate` | Generate/regenerate AGENTS.md from project state |
+| `sync`     | Update AGENTS.md with latest project state       |
+| `validate` | Validate AGENTS.md against specification         |
+| `template` | Manage AGENTS.md templates                       |
 
 **Example:**
 
@@ -595,33 +597,33 @@ intent claude subagents <command> [options]
 
 **Subcommands:**
 
-| Command     | Description                                         |
-|-------------|-----------------------------------------------------|
-| `init`      | Initialize subagent configuration                   |
-| `list`      | List available and installed subagents               |
-| `install`   | Install subagent(s) to Claude configuration          |
-| `sync`      | Sync installed subagents with latest versions        |
-| `uninstall` | Remove Intent-managed subagents                      |
-| `show`      | Display detailed subagent information                |
-| `status`    | Check subagent health and integrity                  |
+| Command     | Description                                   |
+| ----------- | --------------------------------------------- |
+| `init`      | Initialize subagent configuration             |
+| `list`      | List available and installed subagents        |
+| `install`   | Install subagent(s) to Claude configuration   |
+| `sync`      | Sync installed subagents with latest versions |
+| `uninstall` | Remove Intent-managed subagents               |
+| `show`      | Display detailed subagent information         |
+| `status`    | Check subagent health and integrity           |
 
 **Options:**
 
-| Flag            | Description                                     |
-|-----------------|-------------------------------------------------|
-| `--project, -p` | Project-level initialization                    |
-| `--force, -f`   | Force operation                                 |
-| `--all`         | Apply to all subagents                          |
-| `--verbose, -v` | Verbose output for status                       |
+| Flag            | Description                  |
+| --------------- | ---------------------------- |
+| `--project, -p` | Project-level initialization |
+| `--force, -f`   | Force operation              |
+| `--all`         | Apply to all subagents       |
+| `--verbose, -v` | Verbose output for status    |
 
 **Available Subagents:**
 
-| Name        | Description                                                  |
-|-------------|--------------------------------------------------------------|
-| `intent`    | Intent methodology, steel threads, and project structure     |
-| `elixir`    | Elixir code doctor with antipatterns, style, and Ash/Phoenix |
-| `socrates`  | CTO Review Mode via Socratic dialog                          |
-| `worker-bee`| Worker-Bee Driven Design specialist                          |
+| Name         | Description                                                  |
+| ------------ | ------------------------------------------------------------ |
+| `intent`     | Intent methodology, steel threads, and project structure     |
+| `elixir`     | Elixir code doctor with antipatterns, style, and Ash/Phoenix |
+| `socrates`   | CTO Review Mode via Socratic dialog                          |
+| `worker-bee` | Worker-Bee Driven Design specialist                          |
 
 **Example:**
 
@@ -653,29 +655,29 @@ intent claude skills <command> [options]
 
 **Subcommands:**
 
-| Command     | Description                                         |
-|-------------|-----------------------------------------------------|
-| `list`      | List available and installed skills                 |
-| `install`   | Install skill(s) to `.claude/skills/`               |
-| `sync`      | Sync installed skills with latest versions          |
-| `uninstall` | Remove Intent-managed skills                         |
-| `show`      | Display skill content and status                    |
+| Command     | Description                                |
+| ----------- | ------------------------------------------ |
+| `list`      | List available and installed skills        |
+| `install`   | Install skill(s) to `.claude/skills/`      |
+| `sync`      | Sync installed skills with latest versions |
+| `uninstall` | Remove Intent-managed skills               |
+| `show`      | Display skill content and status           |
 
 **Options:**
 
-| Flag            | Description                                     |
-|-----------------|-------------------------------------------------|
-| `--force, -f`   | Force operation                                 |
-| `--all`         | Apply to all skills                             |
+| Flag          | Description         |
+| ------------- | ------------------- |
+| `--force, -f` | Force operation     |
+| `--all`       | Apply to all skills |
 
 **Available Skills:**
 
-| Name                   | Rules | Description                                    |
-|------------------------|:-----:|------------------------------------------------|
-| `intent-essentials`    |   7   | Intent workflow rules (CLI usage, conventions) |
-| `elixir-essentials`    |   8   | Core Elixir rules (pattern matching, pipes)    |
-| `ash-ecto-essentials`  |   7   | Ash/Ecto rules (code interfaces, migrations)   |
-| `phoenix-liveview`     |   7   | LiveView rules (streams, two-phase mount)      |
+| Name                  | Rules | Description                                    |
+| --------------------- | :---: | ---------------------------------------------- |
+| `intent-essentials`   |   7   | Intent workflow rules (CLI usage, conventions) |
+| `elixir-essentials`   |   8   | Core Elixir rules (pattern matching, pipes)    |
+| `ash-ecto-essentials` |   7   | Ash/Ecto rules (code interfaces, migrations)   |
+| `phoenix-liveview`    |   7   | LiveView rules (streams, two-phase mount)      |
 
 **Example:**
 
@@ -708,10 +710,10 @@ intent claude upgrade [options]
 
 **Options:**
 
-| Flag                    | Description                                    |
-|-------------------------|------------------------------------------------|
-| `--apply`               | Apply changes (default is dry-run)             |
-| `--project-dir DIR`     | Target external project directory              |
+| Flag                | Description                        |
+| ------------------- | ---------------------------------- |
+| `--apply`           | Apply changes (default is dry-run) |
+| `--project-dir DIR` | Target external project directory  |
 
 **Example:**
 
@@ -1070,7 +1072,7 @@ Steel thread files can use YAML frontmatter at the beginning of the file to stor
 verblock: "06 Mar 2025:v0.1: Author Name - Initial version"
 status: In Progress
 created: 20250307
-completed: 
+completed:
 ---
 ```
 
@@ -1090,7 +1092,7 @@ Steel thread documents also include metadata within the document body in a human
 
 - **Status**: In Progress
 - **Created**: 2025-03-07
-- **Completed**: 
+- **Completed**:
 - **Author**: Author Name
 ```
 
@@ -1102,7 +1104,9 @@ The steel_threads.md document uses HTML comment markers to identify sections tha
 
 ```markdown
 <!-- BEGIN: STEEL_THREAD_INDEX -->
+
 (content here will be replaced by sync command)
+
 <!-- END: STEEL_THREAD_INDEX -->
 ```
 
@@ -1225,12 +1229,12 @@ Intent/
 
 ### Environment Variables
 
-| Variable    | Purpose                      | Default                           |
-|-------------|------------------------------|-----------------------------------|
-| INTENT_HOME | Location of Intent installation | Path to cloned repository      |
-| INTENT_PROJECT | Current project name      | Determined from initialization    |
-| INTENT_AUTHOR | Default author name       | Determined from git configuration |
-| INTENT_EDITOR | Preferred text editor     | Determined from system defaults   |
+| Variable       | Purpose                         | Default                           |
+| -------------- | ------------------------------- | --------------------------------- |
+| INTENT_HOME    | Location of Intent installation | Path to cloned repository         |
+| INTENT_PROJECT | Current project name            | Determined from initialization    |
+| INTENT_AUTHOR  | Default author name             | Determined from git configuration |
+| INTENT_EDITOR  | Preferred text editor           | Determined from system defaults   |
 
 ### Project Configuration
 
@@ -1286,24 +1290,24 @@ Example:
 
 ## Concepts and Terminology
 
-| Term           | Definition                                                                       |
-|----------------|----------------------------------------------------------------------------------|
-| Steel Thread   | A self-contained unit of work representing a logical piece of functionality       |
-| LLM            | Large Language Model, an AI system capable of understanding and generating text   |
-| Context Window | The amount of text an LLM can process in a single interaction                    |
-| Canned Prompt  | A pre-defined, reusable instruction template for an LLM                          |
-| WIP            | Work in Progress, a document tracking current development focus                  |
-| Backlog        | Task management system integrated with Intent for fine-grained work tracking     |
-| Task           | Individual unit of work linked to a steel thread, tracked in Backlog             |
-| Task Status    | State of a task: "To Do", "In Progress", or "Done"                               |
-| Treeindex      | LLM-oriented directory summaries stored in a shadow directory                    |
-| Fileindex      | File tracking tool with checkbox states for progress management                  |
-| AGENTS.md      | Universal AI agent instructions file for any AI platform                         |
-| Subagent       | A Claude Code sub-agent with domain-specific expertise                           |
-| Plugin         | An extension module for Intent (eg agents, claude)                               |
-| Skill          | An always-on Claude Code enforcement file installed to `.claude/skills/`          |
-| RULES.md       | Human-curated coding rules and conventions file in `intent/llm/`                 |
-| ARCHITECTURE.md| Human-curated system architecture description in `intent/llm/`                   |
+| Term            | Definition                                                                      |
+| --------------- | ------------------------------------------------------------------------------- |
+| Steel Thread    | A self-contained unit of work representing a logical piece of functionality     |
+| LLM             | Large Language Model, an AI system capable of understanding and generating text |
+| Context Window  | The amount of text an LLM can process in a single interaction                   |
+| Canned Prompt   | A pre-defined, reusable instruction template for an LLM                         |
+| WIP             | Work in Progress, a document tracking current development focus                 |
+| Backlog         | Task management system integrated with Intent for fine-grained work tracking    |
+| Task            | Individual unit of work linked to a steel thread, tracked in Backlog            |
+| Task Status     | State of a task: "To Do", "In Progress", or "Done"                              |
+| Treeindex       | LLM-oriented directory summaries stored in a shadow directory                   |
+| Fileindex       | File tracking tool with checkbox states for progress management                 |
+| AGENTS.md       | Universal AI agent instructions file for any AI platform                        |
+| Subagent        | A Claude Code sub-agent with domain-specific expertise                          |
+| Plugin          | An extension module for Intent (eg agents, claude)                              |
+| Skill           | An always-on Claude Code enforcement file installed to `.claude/skills/`        |
+| RULES.md        | Human-curated coding rules and conventions file in `intent/llm/`                |
+| ARCHITECTURE.md | Human-curated system architecture description in `intent/llm/`                  |
 
 ## Backlog.md Integration
 
@@ -1342,7 +1346,7 @@ Intent provides a wrapper command `intent backlog` (or `intent bl` for short) th
 # Initialize backlog with Intent-friendly settings
 intent bl init
 
-# List tasks without git fetch errors  
+# List tasks without git fetch errors
 intent bl list
 
 # Create tasks linked to steel threads
@@ -1379,12 +1383,14 @@ intent bl task pad --all
 ```
 
 This command:
+
 - Updates both the task filename and the `id:` field in the YAML frontmatter
 - Processes tasks in both `backlog/tasks/` and `backlog/archive/tasks/`
 - Only pads tasks that need it (skips already padded tasks)
 - Is idempotent - running it multiple times is safe
 
 After padding, ensure new tasks use the same padding by setting:
+
 ```bash
 intent bl config set zeroPaddedIds 3
 ```
@@ -1499,26 +1505,33 @@ verblock: "08 Jul 2025:v0.1: Author Name - Initial version"
 intent_version: 2.3.4
 status: In Progress
 created: 20250708
-completed: 
+completed:
 ---
+
 # ST0015: Feature Title
 
 ## Objective
+
 High-level goal and business value
 
 ## Context
+
 Background information and rationale
 
 ## Approach
+
 Strategic approach and key decisions
 
 ## Tasks
+
 Tasks are tracked in Backlog. View with: `intent task list ST0015`
 
 ## Implementation Notes
+
 Key technical decisions and learnings
 
 ## Results
+
 Outcomes and metrics (completed threads)
 ```
 

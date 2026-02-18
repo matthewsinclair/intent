@@ -3,8 +3,9 @@ verblock: "[Date]:v0.1: [Author] - Initial version"
 intent_version: 2.2.0
 status: Not Started
 created: YYYYMMDD
-completed: 
+completed:
 ---
+
 # ST####: [Title]
 
 ## Objective

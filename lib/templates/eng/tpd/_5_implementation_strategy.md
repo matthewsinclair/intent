@@ -1,6 +1,7 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
+
 # 5. Implementation Strategy
 
 ## 5.1 Development Approach
@@ -10,7 +11,7 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ## 5.2 Implementation Phases
 
 | Phase     | Description   | Timeline   | Deliverables   |
-|-----------|---------------|------------|----------------|
+| --------- | ------------- | ---------- | -------------- |
 | [Phase 1] | [Description] | [Timeline] | [Deliverables] |
 | [Phase 2] | [Description] | [Timeline] | [Deliverables] |
 | ...       | ...           | ...        | ...            |
@@ -20,7 +21,7 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ### 5.3.1 [Phase 1] Tasks
 
 | Task ID | Description   | Estimated Effort | Dependencies   | Assigned To |
-|---------|---------------|------------------|----------------|-------------|
+| ------- | ------------- | ---------------- | -------------- | ----------- |
 | [ID]    | [Description] | [Effort]         | [Dependencies] | [Assignee]  |
 | [ID]    | [Description] | [Effort]         | [Dependencies] | [Assignee]  |
 | ...     | ...           | ...              | ...            | ...         |
@@ -28,7 +29,7 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ### 5.3.2 [Phase 2] Tasks
 
 | Task ID | Description   | Estimated Effort | Dependencies   | Assigned To |
-|---------|---------------|------------------|----------------|-------------|
+| ------- | ------------- | ---------------- | -------------- | ----------- |
 | [ID]    | [Description] | [Effort]         | [Dependencies] | [Assignee]  |
 | [ID]    | [Description] | [Effort]         | [Dependencies] | [Assignee]  |
 | ...     | ...           | ...              | ...            | ...         |
@@ -70,7 +71,7 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ## 5.9 Implementation Risks and Mitigations
 
 | Risk     | Impact   | Likelihood   | Mitigation   |
-|----------|----------|--------------|--------------|
+| -------- | -------- | ------------ | ------------ |
 | [Risk 1] | [Impact] | [Likelihood] | [Mitigation] |
 | [Risk 2] | [Impact] | [Likelihood] | [Mitigation] |
 | ...      | ...      | ...          | ...          |

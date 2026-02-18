@@ -11,4 +11,3 @@
 - [x] Add examples and usage scenarios to help documentation
 - [x] Document the help system and how to extend it
 - [x] Test help system with various commands and scenarios
-

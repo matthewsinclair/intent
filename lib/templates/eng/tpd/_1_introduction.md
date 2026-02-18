@@ -1,6 +1,7 @@
 ---
 verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 ---
+
 # 1. Introduction
 
 ## 1.1 Purpose
@@ -13,11 +14,11 @@ verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
 
 ## 1.3 Definitions
 
-| Term | Definition |
-|------|------------|
+| Term     | Definition     |
+| -------- | -------------- |
 | [Term 1] | [Definition 1] |
 | [Term 2] | [Definition 2] |
-| ... | ... |
+| ...      | ...            |
 
 ## 1.4 System Overview
 

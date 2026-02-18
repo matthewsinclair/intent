@@ -4,6 +4,7 @@ intent_version: 2.0.0
 status: Not Started
 created: 20250603
 ---
+
 # ST0010: Anthropic MCP Integration
 
 - **Status**: Not Started
