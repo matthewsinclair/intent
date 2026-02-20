@@ -705,7 +705,7 @@ Tests are organized in `tests/unit/` with 17 test files covering all commands:
 | `st_commands.bats`        | Steel thread management                               |
 | `skills_commands.bats`    | Skills management (install, sync, uninstall, show)    |
 | `task_commands.bats`      | Task management                                       |
-| `test_autopsy.bats`       | Autopsy skill and full directory install               |
+| `test_autopsy.bats`       | Autopsy skill and full directory install              |
 | `test_diogenes.bats`      | Diogenes subagent and testing skill                   |
 | `treeindex_commands.bats` | Treeindex (directory summaries)                       |
 

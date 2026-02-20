@@ -3,7 +3,7 @@ verblock: "20 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-03
 title: "-s|--start Flag for st new"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-03: `-s|--start` Flag for `st new`

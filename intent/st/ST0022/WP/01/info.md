@@ -3,7 +3,7 @@ verblock: "20 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-01
 title: Special Character Handling
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-01: Special Character Handling

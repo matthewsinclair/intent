@@ -1,7 +1,8 @@
 ---
-verblock: "20 Feb 2026:v0.2: matts - Elaborated docs from skeleton"
+verblock: "20 Feb 2026:v0.3: matts - As-built update, all WPs implemented"
 intent_version: 2.4.0
 status: WIP
+slug: harden-st-new
 created: 20260220
 completed:
 ---
@@ -28,7 +29,7 @@ Fix three shortcomings in `intent st new`:
 
 Three independent fixes to `bin/intent_st`, phased to avoid conflicts:
 
-1. **Escape function** -- `escape_sed_replacement()` that escapes `/ & \ $` in sed replacement strings; also fix the heredoc fallback to use `printf` for the title line
+1. **Escape function** -- `escape_sed_replacement()` that escapes `/ & \` in sed replacement strings; fix the heredoc fallback to use a quoted heredoc (`<< 'TEMPLATE'`) with sed substitution
 2. **Slug system** -- `slugify()` function (lowercase, collapse non-alnum to hyphens, max 50 chars); add `slug:` field to frontmatter template and info.md; show slug instead of title in `st list` and `steel_threads.md`
 3. **`--start` flag** -- Parse `-s|--start` before the positional title argument; after creation, call existing start logic inline
 
@@ -61,4 +62,4 @@ Linear: WP-01 -> WP-02 -> WP-03 -> WP-04
 - Slug is frontmatter-only, not an alternative ST identifier -- no `intent st show my-cool-feature`
 - Max slug length 50 chars, truncated on word boundary where possible
 - `--start` reuses existing start logic inline, not via subprocess
-- Escape function handles `/`, `&`, `\`, `$` -- the four characters that break sed replacement strings
+- Escape function handles `/`, `&`, `\` -- the three characters that break sed replacement strings (`$` is not special in sed replacement context)
