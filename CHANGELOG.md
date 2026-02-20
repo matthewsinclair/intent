@@ -21,11 +21,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Slug generation** -- `st new` auto-generates a URL-safe `slug:` field in frontmatter, max 50 chars (ST0022 WP-02)
 - **`-s|--start` flag** for `st new` -- create and immediately start a steel thread in one command (ST0022 WP-03)
 - 15 BATS tests for special chars, slugs, and --start flag in st_commands.bats
+- **intent-autopsy skill** -- session forensics and memory meta-learning (ST0021)
+  - Elixir script (`autopsy.exs`) pre-processes JSONL session files
+  - Detects correction pairs, frustration signals, capability regressions, banned patterns
+  - Memory-aware analysis: compares findings against MEMORY.md and CLAUDE.md rules
+  - Identifies memory gaps, enforcement failures, undocumented conventions, stale memory
+  - Ships default `banned-words.txt` with common AI-isms (delve, unfortunately, etc.)
+- 19 BATS tests for intent-autopsy skill and full directory install
+- `intent doctor` now checks for Elixir installation (optional, needed for autopsy)
 
 ### Changed
 
+- `intent claude skills install` now copies entire skill directory (not just SKILL.md)
+  - Scripts and supporting files installed alongside SKILL.md
+  - `intent claude skills sync` also copies full directory on update
+  - Future-proofs for skills with supporting files
 - `st list` and `st sync` now show "Slug" column instead of "Title" (falls back to title for older threads)
-- Full test suite now at 327 tests across 16 test files
+- Full test suite now at 17 test files
 
 ## [2.4.0] - 2026-02-17
 

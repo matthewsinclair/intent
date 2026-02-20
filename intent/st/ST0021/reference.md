@@ -72,6 +72,7 @@ This is not optional.
 The first scan is always too generous. We learned this by running the original autopsy. Pass 1 reported 0% identity loss. Pass 2 found 42%. The first pass was checking shape. The second was checking substance.
 
 After your initial findings:
+
 - **Correction pairs:** Were there corrections where the assistant did NOT acknowledge being wrong? Just... proceeded in the wrong direction? Confident wrong guesses leave no trace in the "You're right" scan. Look for them.
 - **Rule violations:** Did you check tool_use inputs? Not just response text. The deep scan matters. The real violations are in what Claude wrote into files and prompts. Not what it said.
 - **Regressions:** Could the assistant actually have done the thing it deferred? Or was the deferral legitimate? "You'll need to log into the browser" is real. "You'll need to check your email" when the assistant has Gmail API is not.

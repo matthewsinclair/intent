@@ -593,13 +593,14 @@ Intent v2.4.0 introduces skills -- always-on Claude Code enforcement rules that 
 
 ### Available Skills
 
-| Skill                        | Rules | Focus                                          |
-| ---------------------------- | :---: | ---------------------------------------------- |
-| `intent-essentials`          |   7   | CLI usage, treeindex, steel thread conventions |
-| `intent-elixir-essentials`   |   8   | Pattern matching, tagged tuples, pipes, naming |
-| `intent-ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement   |
-| `intent-phoenix-liveview`    |   7   | Two-phase mount, streams, components           |
-| `intent-elixir-testing`      |   8   | Strong assertions, no control flow, spec-driven|
+| Skill                        | Rules | Focus                                           |
+| ---------------------------- | :---: | ----------------------------------------------- |
+| `intent-essentials`          |   7   | CLI usage, treeindex, steel thread conventions  |
+| `intent-elixir-essentials`   |   8   | Pattern matching, tagged tuples, pipes, naming  |
+| `intent-ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement    |
+| `intent-phoenix-liveview`    |   7   | Two-phase mount, streams, components            |
+| `intent-elixir-testing`      |   8   | Strong assertions, no control flow, spec-driven |
+| `intent-autopsy`             |  --   | Session forensics, memory meta-learning         |
 
 ### Installing Skills
 
@@ -627,7 +628,9 @@ intent claude skills show intent-elixir-essentials
 intent claude skills uninstall intent-elixir-essentials
 ```
 
-Skills install to `.claude/skills/<name>/SKILL.md` in the target project and are loaded into every Claude Code session automatically.
+Skills install to `.claude/skills/<name>/` in the user's home directory. The entire skill directory is copied, including any supporting scripts. Skills are loaded into every Claude Code session automatically.
+
+> **Note:** The `intent-autopsy` skill requires Elixir to be installed. Run `intent doctor` to check.
 
 ## LLM Guidance Upgrade
 
@@ -665,7 +668,7 @@ This creates AGENTS.md, RULES.md, and ARCHITECTURE.md with Elixir-specific defau
 
 ## Testing
 
-Intent includes a comprehensive test suite (302 tests across 15 files) to verify functionality:
+Intent includes a comprehensive test suite to verify functionality:
 
 ### Running Tests
 
@@ -684,7 +687,7 @@ To run the test suite:
 
 ### Test Structure
 
-Tests are organized in `tests/unit/` with 15 test files covering all commands:
+Tests are organized in `tests/unit/` with 17 test files covering all commands:
 
 | Test File                 | Tests                                                 |
 | ------------------------- | ----------------------------------------------------- |
@@ -702,6 +705,8 @@ Tests are organized in `tests/unit/` with 15 test files covering all commands:
 | `st_commands.bats`        | Steel thread management                               |
 | `skills_commands.bats`    | Skills management (install, sync, uninstall, show)    |
 | `task_commands.bats`      | Task management                                       |
+| `test_autopsy.bats`       | Autopsy skill and full directory install               |
+| `test_diogenes.bats`      | Diogenes subagent and testing skill                   |
 | `treeindex_commands.bats` | Treeindex (directory summaries)                       |
 
 ## Upgrading Intent

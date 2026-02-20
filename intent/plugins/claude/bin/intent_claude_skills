@@ -336,9 +336,9 @@ intent_claude_skills_install() {
       fi
     fi
 
-    # Create target directory and copy skill
+    # Create target directory and copy entire skill directory
     mkdir -p "$target_dir"
-    if cp "$source_file" "$target_file"; then
+    if cp -r "$SKILLS_SOURCE_DIR/$skill/"* "$target_dir/"; then
       echo "  Installed successfully"
       update_skill_manifest "$skill" "$SKILLS_SOURCE_DIR/$skill"
       ((installed_count++))
@@ -460,9 +460,9 @@ intent_claude_skills_sync() {
       echo "  Update available"
     fi
 
-    # Copy updated skill
+    # Copy updated skill (entire directory)
     mkdir -p "$HOME/.claude/skills/$skill"
-    if cp "$source_file" "$target_file"; then
+    if cp -r "$source_path/"* "$HOME/.claude/skills/$skill/"; then
       echo "  Updated successfully"
       update_skill_manifest "$skill" "$source_path"
       ((updated_count++))

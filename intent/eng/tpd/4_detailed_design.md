@@ -360,22 +360,22 @@ intent <command> [options] [arguments]
 
 #### Primary Commands
 
-| Command           | Description                       | Added  |
-| ----------------- | --------------------------------- | ------ |
-| init              | Initialize Intent in a project    | v0.0.0 |
-| st                | Manage steel threads              | v0.0.0 |
-| bl                | Enhanced Backlog.md wrapper       | v1.2.0 |
-| task              | Manage tasks linked to threads    | v1.2.0 |
-| status            | Synchronize thread/task status    | v1.2.0 |
-| bootstrap         | Global Intent setup               | v2.0.0 |
-| doctor            | Diagnose configuration issues     | v2.0.0 |
-| agents            | Manage AGENTS.md                  | v2.3.0 |
-| claude subagents  | Manage Claude Code subagents      | v2.3.0 |
-| claude skills     | Manage Claude Code skills         | v2.4.0 |
-| claude upgrade    | Upgrade project LLM guidance      | v2.4.0 |
-| treeindex         | Generate directory summaries      | v2.4.0 |
-| fileindex         | Generate file summaries           | v2.4.0 |
-| help              | Display comprehensive help        | v0.0.0 |
+| Command          | Description                    | Added  |
+| ---------------- | ------------------------------ | ------ |
+| init             | Initialize Intent in a project | v0.0.0 |
+| st               | Manage steel threads           | v0.0.0 |
+| bl               | Enhanced Backlog.md wrapper    | v1.2.0 |
+| task             | Manage tasks linked to threads | v1.2.0 |
+| status           | Synchronize thread/task status | v1.2.0 |
+| bootstrap        | Global Intent setup            | v2.0.0 |
+| doctor           | Diagnose configuration issues  | v2.0.0 |
+| agents           | Manage AGENTS.md               | v2.3.0 |
+| claude subagents | Manage Claude Code subagents   | v2.3.0 |
+| claude skills    | Manage Claude Code skills      | v2.4.0 |
+| claude upgrade   | Upgrade project LLM guidance   | v2.4.0 |
+| treeindex        | Generate directory summaries   | v2.4.0 |
+| fileindex        | Generate file summaries        | v2.4.0 |
+| help             | Display comprehensive help     | v0.0.0 |
 
 #### Steel Thread Subcommands
 
@@ -418,18 +418,18 @@ bin/
 
 #### Key Implementation Files
 
-| Script                             | Purpose              | Key Features                      |
-| ---------------------------------- | -------------------- | --------------------------------- |
-| bin/intent                         | Main entry point     | Command dispatch, plugin routing  |
-| bin/intent_config                  | Config management    | JSON parsing, hierarchy support   |
-| bin/intent_helpers                 | Utilities            | Version detection, shared funcs   |
-| bin/intent_st                      | Steel threads        | Create, list, show, edit          |
-| bin/intent_treeindex               | Directory summaries  | Shadow dir, LLM-generated         |
-| bin/intent_fileindex               | File summaries       | Single-file analysis              |
-| plugins/agents/bin/intent_agents   | AGENTS.md management | Init, generate, sync, validate    |
-| plugins/claude/bin/intent_claude_subagents | Subagent lifecycle | Install, sync, uninstall, show |
-| plugins/claude/bin/intent_claude_skills    | Skill lifecycle    | Install, sync, uninstall, show |
-| plugins/claude/bin/intent_claude_upgrade   | Project upgrade    | Diagnose, plan, execute        |
+| Script                                     | Purpose              | Key Features                     |
+| ------------------------------------------ | -------------------- | -------------------------------- |
+| bin/intent                                 | Main entry point     | Command dispatch, plugin routing |
+| bin/intent_config                          | Config management    | JSON parsing, hierarchy support  |
+| bin/intent_helpers                         | Utilities            | Version detection, shared funcs  |
+| bin/intent_st                              | Steel threads        | Create, list, show, edit         |
+| bin/intent_treeindex                       | Directory summaries  | Shadow dir, LLM-generated        |
+| bin/intent_fileindex                       | File summaries       | Single-file analysis             |
+| plugins/agents/bin/intent_agents           | AGENTS.md management | Init, generate, sync, validate   |
+| plugins/claude/bin/intent_claude_subagents | Subagent lifecycle   | Install, sync, uninstall, show   |
+| plugins/claude/bin/intent_claude_skills    | Skill lifecycle      | Install, sync, uninstall, show   |
+| plugins/claude/bin/intent_claude_upgrade   | Project upgrade      | Diagnose, plan, execute          |
 
 ### 4.3.3 Help System [AS-BUILT]
 
@@ -870,8 +870,8 @@ intent doctor [--fix] [--verbose]
 Intent v2.4.0 represents a complete implementation with significant enhancements beyond the original design:
 
 1. **Plugin Architecture**: Extensible command system under `intent/plugins/`
-2. **Skills System**: 4 built-in skills for proactive code shaping
-3. **Subagent System**: 4 built-in subagents for on-demand review
+2. **Skills System**: 6 built-in skills for proactive code shaping and session analysis
+3. **Subagent System**: 5 built-in subagents for on-demand review
 4. **Treeindex**: Pre-computed directory summaries for codebase navigation
 5. **AGENTS.md Management**: Project-level LLM guidance generation
 6. **Claude Upgrade**: Automated project modernization tool

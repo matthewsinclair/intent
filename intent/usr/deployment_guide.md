@@ -24,8 +24,10 @@ This deployment guide provides instructions for deploying the Intent v2.4.0 syst
 
 - POSIX-compatible shell environment (bash, zsh)
 - Git (optional, for version control)
+- jq (required for JSON config parsing and agent management)
 - Text editor with markdown support
-- Backlog.md (for task management integration)
+- Backlog.md (optional, for task management integration)
+- Elixir (optional, required for `intent-autopsy` session analysis skill)
 
 ### Installation Methods
 
@@ -551,7 +553,7 @@ intent claude subagents install --all
 
 ### Deploying Claude Skills
 
-Skills are always-on enforcement files that install to `.claude/skills/` in target projects:
+Skills are always-on enforcement files that install to `~/.claude/skills/` (entire directory, including any supporting scripts):
 
 ```bash
 # List available skills
@@ -571,13 +573,16 @@ intent claude skills show intent-elixir-essentials
 
 Available skills:
 
-| Skill                        | Purpose                                   |
-| ---------------------------- | ----------------------------------------- |
-| intent-essentials            | Intent workflow rules (7 mandatory)       |
-| intent-elixir-essentials     | Core Elixir coding rules (8 mandatory)    |
-| intent-elixir-testing        | Elixir test quality rules (8 mandatory)   |
-| intent-ash-ecto-essentials   | Ash/Ecto database patterns (7 mandatory)  |
-| intent-phoenix-liveview      | LiveView patterns and rules (7 mandatory) |
+| Skill                      | Purpose                                    |
+| -------------------------- | ------------------------------------------ |
+| intent-essentials          | Intent workflow rules (7 mandatory)        |
+| intent-elixir-essentials   | Core Elixir coding rules (8 mandatory)     |
+| intent-elixir-testing      | Elixir test quality rules (8 mandatory)    |
+| intent-ash-ecto-essentials | Ash/Ecto database patterns (7 mandatory)   |
+| intent-phoenix-liveview    | LiveView patterns and rules (7 mandatory)  |
+| intent-autopsy             | Session forensics and memory meta-learning |
+
+> **Note:** `intent-autopsy` requires Elixir. Run `intent doctor` to verify prerequisites.
 
 ### Skill Maintenance
 

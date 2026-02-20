@@ -22,6 +22,7 @@ tests/
 │   ├── project_commands.bats      # Tests for project-specific commands
 │   ├── skills_commands.bats       # Skills management command tests
 │   ├── st_commands.bats           # Steel thread command tests
+│   ├── test_autopsy.bats           # Autopsy skill + directory install tests
 │   ├── test_diogenes.bats         # Diogenes subagent + testing skill tests
 │   ├── task_commands.bats         # Task management command tests
 │   └── treeindex_commands.bats    # Treeindex command tests

@@ -114,22 +114,37 @@ Checks and diagnoses Intent configuration and environment.
 **Usage:**
 
 ```bash
-intent doctor
+intent doctor [options]
 ```
+
+**Flags:**
+
+- `-f|--fix`: Attempt to fix issues automatically
+- `-v|--verbose`: Show detailed information (core tools, permissions)
+- `-q|--quiet`: Only show errors and warnings
+
+**Checks performed:**
+
+| Check            | Level    | Description                                          |
+| ---------------- | -------- | ---------------------------------------------------- |
+| INTENT_HOME      | Required | Environment variable set and directory exists        |
+| Executable       | Required | `intent` found and executable                        |
+| Global config    | Warning  | `~/.config/intent/config.json` exists and valid JSON |
+| Local config     | Info     | Project `.intent/config.json` if in a project        |
+| AGENTS.md        | Warning  | Present for v2.3+ projects                           |
+| PATH             | Warning  | `$INTENT_HOME/bin` in PATH                           |
+| Required tools   | Required | bash, sed, grep, mkdir, jq                           |
+| Optional tools   | Info     | backlog, bats, elixir, checksum (sha256sum/shasum)   |
+| File permissions | Verbose  | All bin/ files executable                            |
+| Agent system     | Info     | Subagent availability and installation status        |
 
 **Example:**
 
 ```bash
-intent doctor
+intent doctor              # standard check
+intent doctor -v           # verbose (includes optional tools detail)
+intent doctor --fix        # attempt automatic fixes
 ```
-
-**Output:**
-
-- Validates Intent installation
-- Checks project configuration
-- Verifies directory structure
-- Reports any issues found
-- Suggests fixes for common problems
 
 #### `intent init`
 
@@ -663,7 +678,7 @@ intent claude skills <command> [options]
 | Command     | Description                                |
 | ----------- | ------------------------------------------ |
 | `list`      | List available and installed skills        |
-| `install`   | Install skill(s) to `.claude/skills/`      |
+| `install`   | Install skill(s) to `~/.claude/skills/`    |
 | `sync`      | Sync installed skills with latest versions |
 | `uninstall` | Remove Intent-managed skills               |
 | `show`      | Display skill content and status           |
@@ -677,13 +692,14 @@ intent claude skills <command> [options]
 
 **Available Skills:**
 
-| Name                           | Rules | Description                                    |
-| ------------------------------ | :---: | ---------------------------------------------- |
-| `intent-essentials`            |   7   | Intent workflow rules (CLI usage, conventions) |
-| `intent-elixir-essentials`     |   8   | Core Elixir rules (pattern matching, pipes)    |
-| `intent-ash-ecto-essentials`   |   7   | Ash/Ecto rules (code interfaces, migrations)   |
-| `intent-phoenix-liveview`      |   7   | LiveView rules (streams, two-phase mount)      |
-| `intent-elixir-testing`        |   8   | Test quality rules (strong assertions, specs)  |
+| Name                         | Rules | Description                                    |
+| ---------------------------- | :---: | ---------------------------------------------- |
+| `intent-essentials`          |   7   | Intent workflow rules (CLI usage, conventions) |
+| `intent-elixir-essentials`   |   8   | Core Elixir rules (pattern matching, pipes)    |
+| `intent-ash-ecto-essentials` |   7   | Ash/Ecto rules (code interfaces, migrations)   |
+| `intent-phoenix-liveview`    |   7   | LiveView rules (streams, two-phase mount)      |
+| `intent-elixir-testing`      |   8   | Test quality rules (strong assertions, specs)  |
+| `intent-autopsy`             |  --   | Session forensics and memory meta-learning     |
 
 **Example:**
 
@@ -702,7 +718,9 @@ intent claude skills show intent-elixir-essentials
 ```
 
 **Plugin Location:** Skill definitions live in `intent/plugins/claude/skills/`.
-**Install Location:** Skills install to `.claude/skills/<name>/SKILL.md` in the target project.
+**Install Location:** Skills install to `~/.claude/skills/<name>/` (entire directory, including scripts).
+
+> **Note:** `intent-autopsy` requires Elixir. Run `intent doctor` to check prerequisites.
 
 #### `intent claude upgrade`
 
@@ -1213,12 +1231,19 @@ Intent/
 │           │   ├── intent-essentials/
 │           │   ├── intent-elixir-essentials/
 │           │   ├── intent-ash-ecto-essentials/
-│           │   └── intent-phoenix-liveview/
+│           │   ├── intent-phoenix-liveview/
+│           │   ├── intent-elixir-testing/
+│           │   └── intent-autopsy/
+│           │       ├── SKILL.md
+│           │       └── scripts/
+│           │           ├── autopsy.exs
+│           │           └── banned-words.txt
 │           └── subagents/ # Subagent definitions
 │               ├── intent/
 │               ├── elixir/
 │               ├── socrates/
-│               └── worker-bee/
+│               ├── worker-bee/
+│               └── diogenes/
 ├── bin/                   # Intent scripts (executable)
 ├── tests/                 # Test suite
 │   ├── unit/              # Unit tests (15 .bats files)
