@@ -1,31 +1,11 @@
-<!-- treeindex v1 fingerprint:ed3b5195 generated:2026-02-05T11:37:29Z -->
+<!-- treeindex v1 fingerprint:18550405 generated:2026-02-20T11:29:36Z -->
 
-I'll generate a `.treeindex` file for the `usr/` directory based on the files you've provided.
-
-Let me first check the actual directory structure to understand what files are present:
-<function_calls>
-<invoke name="Glob">
-<parameter name="pattern">usr/**</parameter>
-</invoke>
-</function_calls>
-<function_calls>
-<invoke name="Read">
-<parameter name="path">usr</parameter>
-</invoke>
-</function_calls>
-
-Based on the files provided, here's the `.treeindex` for `usr/`:
-
-```
 # usr/
 
-Documentation and deployment guides for Intent v2.3.4. Contains comprehensive user guides, reference materials, and deployment instructions for setting up Intent in various environments.
+User-facing documentation for Intent v2.4.0. Contains three comprehensive guides covering installation, task-oriented workflows, and system reference. These documents are the primary resources for users learning and using Intent.
 
 ## Files
 
-- `user_guide.md` -- Task-oriented guide for using Intent, including installation, steel threads, backlog integration, and LLM collaboration
-- `reference_guide.md` -- Complete reference for Intent system covering commands, templates, directory structure, and best practices
-- `deployment_guide.md` -- Instructions for installing and configuring Intent globally or per-project, with integration and maintenance guidance
-```
-
-This follows the `.treeindex` format conventions: directory name in H1, 2-3 sentence summary, Files section ordered by architectural importance, and stays well under 60 lines total.
+- `user_guide.md` -- Task-oriented guide for common Intent workflows: steel threads, backlog, documentation, LLM collaboration, treeindex, skills, and subagent management
+- `reference_guide.md` -- Comprehensive reference covering all commands, document templates, directory structure, configuration options, and best practices
+- `deployment_guide.md` -- Deployment instructions for various environments: installation methods, configuration, integration, maintenance, upgrading, and troubleshooting

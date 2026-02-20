@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:8f5f88cf generated:2026-02-20T11:25:42Z -->
+
+# ST0012/
+
+This is a completed steel thread for implementing a document sync command. The steel thread documents the design, implementation, and tracking of a feature that automatically maintains the steel_threads.md summary document in sync with individual steel thread files.
+
+## Files
+
+- `info.md` -- Steel thread metadata and objective statement (v2.0.0, completed 2025-03-07)
+- `design.md` -- Design approach using HTML-style section markers for automatic document synchronization
+- `impl.md` -- Implementation details including metadata extraction, section markers, and configurable output options
+- `tasks.md` -- Task checklist tracking all completed work items

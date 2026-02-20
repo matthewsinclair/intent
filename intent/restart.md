@@ -7,6 +7,7 @@ Intent v2.4.0 -- a CLI tool for managing steel threads, project documentation, a
 ## Current State
 
 ST0022 (Harden `st new`) implemented with three features:
+
 - `escape_sed_replacement()` -- safe handling of `/`, `&`, `\` in steel thread titles
 - `slugify()` -- auto-generates `slug:` frontmatter field (max 50 chars), replaces Title column in listings
 - `-s|--start` flag -- create and immediately start a steel thread in one command

@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:9e3010dd generated:2026-02-20T11:26:58Z -->
+
+# ST0003/
+
+Completed steel thread for implementing the Intent template system, which provides standardized starting points for all document types and ensures consistency across project documentation. Contains design, implementation notes, and task tracking for this steel thread.
+
+## Files
+
+- `info.md` -- Steel thread metadata, objectives, and context
+- `design.md` -- Design approach for template organization and structure
+- `impl.md` -- Implementation notes and template directory organization
+- `tasks.md` -- Task checklist for template system implementation

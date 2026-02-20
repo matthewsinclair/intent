@@ -1,41 +1,23 @@
-<!-- treeindex v1 fingerprint:a3b5912c generated:2026-02-05T11:38:09Z -->
+<!-- treeindex v1 fingerprint:6aea040a generated:2026-02-20T11:22:36Z -->
 
-I'll examine the releases/ directory structure and generate a `.treeindex` file for it.
-<tool_calls>
-<invoke name="Bash">
-<parameter name="command">find /Users/matts/Devel/prj/Intent/releases -type d | sort</parameter>
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">/Users/matts/Devel/prj/Intent/docs/releases/*/RELEASE_NOTES.md</parameter>
 </invoke>
 </function_calls>
-<tool_calls>
-<invoke name="Bash">
-<parameter name="command">ls -la /Users/matts/Devel/prj/Intent/releases/</parameter>
-</invoke>
-</tool_calls>
 
-Now I'll create the `.treeindex` file for the releases/ directory:
-<tool_calls>
-<invoke name="Write">
-<parameter name="path">intent/.treeindex/releases/.treeindex</parameter>
-<parameter name="content"># releases/
+# releases/
 
-Archive of Intent release documentation organized by version number. Contains release notes, migration guides, and feature documentation for each major and minor release from v1.2.1 through v2.3.4.
+Archive of Intent release documentation organized by version. Each release directory contains complete release notes, upgrade guides, and migration instructions for that version, spanning from v1.2.1 (directory-based steel threads) through v2.4.0 (skills system and project upgrades).
 
 ## Dirs
 
-- `1.2.1/` -- STP v1.2.1 release notes documenting directory-based steel thread structure introduction
-- `2.0.0/` -- Intent v2.0.0 rebrand release with Claude Code sub-agent integration
-- `2.1.0/` -- Maintenance release fixing critical agent directory structure bugs
-- `2.2.0/` -- Release introducing fileindex command for file tracking and progress management
-- `2.2.1/` -- Maintenance release with centralized version management and dependency checking
-- `2.3.2/` -- Elixir subagent enhancement with 24-pattern antipattern detection
-- `2.3.3/` -- Elixir subagent upgrade with comprehensive style guide
-- `2.3.4/` -- Current release with treeindex CLI, CLAUDE.md convention, comprehensive guides
-
-## Files
-
-- `RELEASE_NOTES.md` -- Current release notes for Intent v2.3.4
-</parameter>
-</invoke>
-</function_calls>
-
-Done! I've generated the `.treeindex` file for the `releases/` directory at `intent/.treeindex/releases/.treeindex`. It documents the release archive structure with subdirectories for each version and notes the current release notes file.
+- `1.2.1/` -- Steel thread directory reorganization and task tracking improvements
+- `2.0.0/` -- Complete rebrand from STP to Intent with agent integration
+- `2.1.0/` -- Bug fixes for agent system and upgrade process
+- `2.2.0/` -- Fileindex command and enhanced Elixir agent capabilities
+- `2.2.1/` -- Centralized tool dependency management and version control
+- `2.3.2/` -- Antipattern detection for Elixir code review
+- `2.3.3/` -- AGENTS.md integration and plugin architecture
+- `2.3.4/` -- Continuation of plugin-based enhancements
+- `2.4.0/` -- Skills system, upgrade command, and Elixir reference documentation

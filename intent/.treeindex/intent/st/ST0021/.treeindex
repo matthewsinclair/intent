@@ -1,0 +1,13 @@
+<!-- treeindex v1 fingerprint:4f761914 generated:2026-02-20T11:28:18Z -->
+
+# ST0021/
+
+Session analysis system that detects corrections, regressions, rule violations, and memory gaps in compacted Claude Code sessions. Integrates Elixir script for JSONL preprocessing with Claude analysis to identify enforcement failures and propose memory updates.
+
+## Files
+
+- `info.md` -- Steel thread metadata, scope, and deliverables
+- `design.md` -- Architecture (script, skill, Claude analysis), data flow, and design decisions
+- `reference.md` -- Autopsy skill definition, voice guidance, and procedures
+- `impl.md` -- Elixir script modules, JSONL format details, pattern matching, and challenges solved
+- `tasks.md` -- Work packages (core, infrastructure, testing, docs) with completion status

@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:6851ad91 generated:2026-02-20T11:23:58Z -->
+
+# ST0015/
+
+Steel thread for enhancing steel thread templates with specialized file types (testing.md, metrics.md, dependencies.md) and improved templates. Extends ST0014 foundation to support more comprehensive documentation patterns.
+
+## Files
+
+- `info.md` -- Root metadata and objective for the steel thread
+- `design.md` -- Design decisions and template enhancement strategy
+- `impl.md` -- Implementation details and technical considerations
+- `tasks.md` -- Task tracking and dependencies

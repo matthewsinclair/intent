@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:49b8fabf generated:2026-02-20T11:25:54Z -->
+
+# ST0011/
+
+Documentation and tracking for the test suite implementation steel thread (completed in v2.0.0). Establishes a BATS-based testing framework for STP with comprehensive test coverage for bootstrap, init, and steel thread commands.
+
+## Files
+
+- `info.md` -- Steel thread metadata, objective, and completion status
+- `design.md` -- Test framework design and architecture approach
+- `impl.md` -- Implementation notes, framework selection rationale, and test suite structure
+- `tasks.md` -- Task tracking reference

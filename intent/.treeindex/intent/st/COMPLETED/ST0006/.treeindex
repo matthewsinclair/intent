@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:3f3a2db9 generated:2026-02-20T11:26:31Z -->
+
+# ST0006/
+
+This steel thread documents the design, implementation, and completion of a comprehensive help system for the STP/Intent CLI tool. It includes command-specific guidance, usage examples, and a methodology for maintaining help documentation.
+
+## Files
+
+- `info.md` -- Steel thread metadata, objective, and completion status (completed 2025-06-03)
+- `design.md` -- Help system architecture, help file format, and command discovery approach
+- `impl.md` -- Implementation notes on help file structure, command discovery, and multi-line formatting
+- `tasks.md` -- Task checklist for help system implementation (all tasks completed)

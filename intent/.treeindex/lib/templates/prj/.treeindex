@@ -1,18 +1,23 @@
-<!-- treeindex v1 fingerprint:7c993520 generated:2026-02-04T11:48:50Z -->
+<!-- treeindex v1 fingerprint:60046257 generated:2026-02-20T11:32:03Z -->
 
 # prj/
 
-Central project coordination directory for Intent v2.2.0, containing work tracking, documentation, and project configuration. This is the main hub for steel thread management, technical docs, and LLM context.
+Intent v2.4.0 is a Bash-based CLI tool for managing "steel threads," self-contained work units that organize project artifacts and development planning. The project includes CLI commands, comprehensive BATS unit tests, shared libraries and templates, and extensive documentation. It supports plugins for agent management, skills distribution, and treeindex generation.
 
 ## Dirs
 
-- `intent/` -- Steel threads, technical documentation, and project artifacts organized by methodology
-- `backlog/` -- Task management and prioritized work items (if in use)
-- `tests/` -- Test suites for project validation and quality assurance
+- `.github/` -- GitHub Actions workflows and CI/CD configuration
+- `.intent/` -- Intent tool configuration and metadata
+- `bin/` -- CLI entry points and command implementations
+- `docs/` -- External documentation and deployment guides
+- `examples/` -- Example Intent projects demonstrating best practices
+- `intent/` -- Project artifacts, steel threads, work tracking, and LLM guidance
+- `lib/` -- Shared library code and project templates
+- `tests/` -- BATS unit test suites
 
 ## Files
 
-- `_wip.md` -- Work-in-progress tracking document capturing current focus, active steel threads, and upcoming work
-- `CLAUDE.md` -- Project guidelines, Intent command reference, and agent delegation instructions
-- `.gitignore` -- Git configuration for excluding temporary and build artifacts
-- `README.md` -- Project overview and setup instructions
+- `CLAUDE.md` -- Project guidelines, command reference, and agent directory
+- `README.md` -- Main documentation and project overview
+- `CHANGELOG.md` -- Version history and release notes
+- `_wip.md` -- Work in progress tracking and development context

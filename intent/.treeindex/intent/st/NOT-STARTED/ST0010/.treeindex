@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:c947c7a8 generated:2026-02-20T11:24:08Z -->
+
+# ST0010/
+
+Exploration of Anthropic's Machine Control Protocol (MCP) integration for STP scripts. Evaluates MCP capabilities for standardized LLM interactions and designs a prototype implementation for at least one command.
+
+## Files
+
+- `info.md` -- Steel thread metadata and objective overview
+- `design.md` -- Research approach and integration architecture design
+- `tasks.md` -- Task tracking and implementation checklist
+- `impl.md` -- Implementation notes and decision log

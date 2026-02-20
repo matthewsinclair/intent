@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:2720fb19 generated:2026-02-20T11:26:13Z -->
+
+# ST0008/
+
+ST0008 is a completed steel thread (v0.1, completed 2025-06-03) implementing LLM integration into Intent. It establishes a preamble system, document-specific context sections, and prompt engineering guidance to assist with document generation, code creation, and project management tasks.
+
+## Files
+
+- `info.md` -- Steel thread metadata, objective, context, and relationship to other threads
+- `design.md` -- Design approach and integration points for LLM capabilities
+- `impl.md` -- Implementation details including preamble system, document structure, and prompt engineering
+- `tasks.md` -- Completed task list for LLM integration features

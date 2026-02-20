@@ -1,0 +1,10 @@
+<!-- treeindex v1 fingerprint:3102266b generated:2026-02-20T11:25:31Z -->
+
+# ST0013/
+
+Completed steel thread documenting a seven-part blog post series explaining the Steel Thread Process (STP). Covers STP motivation, methodology, intent capture, LLM collaboration, getting started, and future work. Completed 2025-07-27.
+
+## Files
+
+- `info.md` -- Steel thread metadata and blog post series plan (7 posts: motivation, introduction, methodology, intent capture, LLM collaboration, getting started, future work)
+- `impl.md` -- Implementation plan, success criteria, and content guidelines (1000-1500 words per post, ASCII diagrams, code examples)

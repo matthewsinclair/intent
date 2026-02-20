@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:7e1bbf7f generated:2026-02-20T11:26:22Z -->
+
+# ST0007/
+
+ST0007 is a completed steel thread focused on creating comprehensive user documentation for Intent. The documentation includes a user guide, reference guide, and deployment guide, organized around user tasks with progressive disclosure and rich examples.
+
+## Files
+
+- `info.md` -- Steel thread metadata, objective, and completion status (completed 2025-06-03)
+- `design.md` -- Documentation approach and structure for user guide, reference guide, and deployment guide
+- `impl.md` -- Implementation notes on documentation design principles and cross-referencing strategy
+- `tasks.md` -- Completed tasks checklist for documentation creation and testing

@@ -1,0 +1,13 @@
+<!-- treeindex v1 fingerprint:70d06940 generated:2026-02-20T11:24:27Z -->
+
+# ST0019/
+
+Steel thread for the Treeindex feature. Documents design, implementation, and completion of the CLI command that generates `.treeindex` directory summaries for fast codebase navigation. All work packages resolved as of 2026-02-04.
+
+## Files
+
+- `info.md` -- Steel thread metadata, objective, problem statement, and solution overview
+- `design.md` -- Technical design: .treeindex file format, fingerprint mechanism, bottom-up generation algorithm, Claude invocation pattern
+- `impl.md` -- Implementation notes: headless Claude invocation, centralized shadow directory, bash 3.2 compatibility, .treeindexignore handling
+- `tasks.md` -- Work package breakdown (WP01 CLI command, WP02 subagent skipped, WP03 integration) and task assignments
+- `done.md` -- Completion checklist and as-built notes for all work packages

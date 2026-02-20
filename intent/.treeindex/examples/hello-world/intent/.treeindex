@@ -1,0 +1,40 @@
+<!-- treeindex v1 fingerprint:bed8f6e1 generated:2026-02-20T11:23:31Z -->
+
+I'll read the `intent/` directory structure to generate an accurate `.treeindex` file.
+<function_calls>
+<invoke name="read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/intent</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="bash">
+<parameter name="command">ls -la /Users/matts/Devel/prj/Intent/intent/ | head -30</parameter>
+</invoke>
+</function_calls>
+
+<function_calls>
+<invoke name="bash">
+<parameter name="command">find /Users/matts/Devel/prj/Intent/intent -maxdepth 1 -type f -o -type d | sort</parameter>
+</invoke>
+</function_calls>
+
+# intent/
+
+Core project workspace containing steel thread definitions, technical documentation, LLM-specific guidelines, automation plugins, and project metadata. This is the primary working directory for Intent project management and development.
+
+## Dirs
+
+- `.treeindex/` -- Shadow directory with pre-computed summaries of project structure for fast navigation
+- `autopsy/` -- Intent Autopsy analysis tools and configuration
+- `docs/` -- Technical documentation including architecture, deployment, and release notes
+- `llm/` -- LLM-specific guidelines and agent configurations for Claude integration
+- `plugins/` -- Extensible plugin system for agents, skills, and command modules
+- `st/` -- Steel threads (work packages) organized as numbered directories with metadata and tracking
+- `usr/` -- User-facing documentation including guides and reference materials
+
+## Files
+
+- `wip.md` -- Work-in-progress tracking with current status and next steps
+- `restart.md` -- Session restart context and handoff documentation
+- `AGENTS.md` -- Centralized agent registry and LLM guidance for the project
+- `.treeindexignore` -- Configuration file for treeindex exclusion patterns

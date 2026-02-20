@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:8e04c15e generated:2026-02-20T11:25:13Z -->
+
+# ST0014/
+
+ST0014 is a completed steel thread that implements directory structure for steel threads based on status. It documents the design and implementation of organizing steel threads into COMPLETED, NOT-STARTED, and CANCELLED subdirectories.
+
+## Files
+
+- `info.md` -- Steel thread metadata and objective (status: Completed, v0.1)
+- `design.md` -- Architectural approach for status-based directory organization
+- `impl.md` -- Implementation details including organize_st.sh script and upgrade integration
+- `tasks.md` -- Task tracking and backlog reference for ST0014

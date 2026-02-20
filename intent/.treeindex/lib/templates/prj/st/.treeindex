@@ -1,0 +1,17 @@
+<!-- treeindex v1 fingerprint:748badc1 generated:2026-02-20T11:31:13Z -->
+
+# st/
+
+Steel threads directory organizing self-contained work units for the Intent project. Each steel thread (ST####/) contains lifecycle documentation files (info.md, design.md, impl.md, tasks.md) that track metadata, design decisions, implementation details, and task status. Active threads remain in the main directory; completed work and queued threads are organized in status folders.
+
+## Dirs
+
+- `COMPLETED/` -- Finished steel threads
+- `NOT-STARTED/` -- Steel threads created but not yet started
+- `ST0020/` -- Steel thread work unit
+- `ST0021/` -- Intent Autopsy skill implementation
+- `ST0022/` -- Hardening st new command
+
+## Files
+
+- `_steel_threads.md` -- Master index of all steel threads with status and completion tracking

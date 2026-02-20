@@ -1,0 +1,26 @@
+<!-- treeindex v1 fingerprint:9503b4f0 generated:2026-02-20T11:29:47Z -->
+
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find /Users/matts/Devel/prj/Intent/intent/plugins -type f -o -type d | head -40</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">/Users/matts/Devel/prj/Intent/intent/plugins/*</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/intent/plugins</parameter>
+</invoke>
+</function_calls>
+
+# plugins/
+
+Plugin architecture for Intent providing modular subsystems. Currently houses the Claude Code integration plugin with subagents, skills, and upgrade utilities.
+
+## Dirs
+
+- `agents/` -- AGENTS.md management (deprecated; see claude/subagents/)
+- `claude/` -- Claude Code integration with subagent and skill management

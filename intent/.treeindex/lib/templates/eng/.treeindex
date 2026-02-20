@@ -1,0 +1,30 @@
+<!-- treeindex v1 fingerprint:e3c49c15 generated:2026-02-20T11:32:20Z -->
+
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">/Users/matts/Devel/prj/Intent/intent/eng</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find /Users/matts/Devel/prj/Intent/intent/eng -maxdepth 2 -type f -o -type d | head -30</parameter>
+</invoke>
+</function_calls>
+
+<function_calls>
+<invoke name="Read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/intent/eng</parameter>
+</invoke>
+</function_calls>
+
+# eng/
+
+Engineering documentation and design frameworks for the Intent project. Contains templates and guidance for technical product design, architectural decisions, implementation strategies, and operational procedures.
+
+## Dirs
+
+- `tpd/` -- Technical Product Design (TPD) documentation framework with 8 interconnected markdown templates covering introduction, requirements, architecture, implementation, and operations
+
+## Files
+
+- `README.md` -- Overview and navigation guide for engineering documentation

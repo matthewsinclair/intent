@@ -1,0 +1,23 @@
+<!-- treeindex v1 fingerprint:ed6db67d generated:2026-02-20T11:23:15Z -->
+
+I'll explore the `st/` directory structure first to generate an accurate `.treeindex` file.
+
+<read>
+/Users/matts/Devel/prj/Intent/intent/st
+</read>
+
+Now I'll generate the `.treeindex` file:
+
+# st/
+
+Steel threads are self-contained work packages that deliver incremental value. Each steel thread directory contains metadata, design docs, implementation notes, and task tracking for a specific feature or improvement.
+
+## Dirs
+
+- `ST0001/` -- Hello World Project Setup (completed)
+- `ST0002/` -- Implement Core Feature (in progress)
+- `ST0022/` -- Harden st new with special char escaping, slug generation, and --start flag
+
+## Files
+
+- `steel_threads.md` -- Master index of all steel threads with status tracking and definitions

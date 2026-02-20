@@ -1,0 +1,17 @@
+<!-- treeindex v1 fingerprint:2401feba generated:2026-02-20T11:25:04Z -->
+
+# ST0016/
+
+Steel thread documenting the major v2.0.0 refactoring to rename STP to Intent, addressing architectural concerns by separating tool executables from project artifacts. Implements new commands (bootstrap, doctor, init, upgrade) and robust migration logic for upgrading existing STP projects across all versions. Phases 0-2 complete: test infrastructure, new commands, and migration functionality fully implemented.
+
+## Files
+
+- `info.md` -- Steel thread objective: rename CLI to Intent with clean architecture, new commands, and fail-forward migration
+- `design.md` -- 7-phase architectural design addressing repository structure, configuration system, and migration approach
+- `impl.md` -- Technical implementation details for config loading, command structure, and version handling
+- `phase0_summary.md` -- Phase 0 completion: example projects (v0.0.0 through v2.0.0) and test infrastructure established
+- `phase1_plan.md` -- Phase 1 planning: intent_bootstrap, intent_doctor, and intent_config library design
+- `phase1_summary.md` -- Phase 1 completion: bootstrap and doctor commands working with JSON configuration and jq dependency
+- `phase2_plan.md` -- Phase 2 planning: version detection, backup mechanism, and per-version migration logic
+- `phase2_summary.md` -- Phase 2 completion: intent_init and intent_upgrade commands fully functional with version detection
+- `tasks.md` -- Task breakdown for all 7 phases with completed and remaining work items

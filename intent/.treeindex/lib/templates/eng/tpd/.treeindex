@@ -1,0 +1,17 @@
+<!-- treeindex v1 fingerprint:c2f84b12 generated:2026-02-20T11:31:21Z -->
+
+# tpd/
+
+This directory contains the Technical Product Design (TPD) documentation template and framework for the Intent project. It provides a comprehensive structure for documenting system architecture, requirements, implementation strategy, and operational procedures through a series of interconnected markdown files.
+
+## Files
+
+- `_technical_product_design.md` -- Main TPD index document with preamble and table of contents
+- `_1_introduction.md` -- System purpose, scope, definitions, overview, and references
+- `_2_requirements.md` -- Functional and non-functional requirements, constraints, and assumptions
+- `_3_architecture.md` -- System and component architecture, data flows, interfaces, and deployment
+- `_4_detailed_design.md` -- Component designs, algorithms, data structures, database schema, and APIs
+- `_5_implementation_strategy.md` -- Development approach, phases, task breakdown, testing, and deployment strategy
+- `_6_deployment_and_operations.md` -- Installation, deployment process, operational procedures, maintenance, and scaling
+- `_7_technical_challenges_and_mitigations.md` -- Technical challenges and mitigation strategies
+- `_8_appendices.md` -- Glossary, references, specifications, API documentation, and decision records
