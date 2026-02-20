@@ -444,6 +444,14 @@ doctor_check() {
     OPTIONAL_STATUS="${OPTIONAL_STATUS}bats:OK "
   fi
   
+  # Check for elixir (for intent-autopsy skill)
+  if ! command -v elixir >/dev/null 2>&1; then
+    MISSING_OPTIONAL="$MISSING_OPTIONAL elixir"
+    OPTIONAL_STATUS="${OPTIONAL_STATUS}elixir:NOT_FOUND "
+  else
+    OPTIONAL_STATUS="${OPTIONAL_STATUS}elixir:OK "
+  fi
+
   # Check for checksum tools (for agent management)
   CHECKSUM_TOOL=""
   if command -v sha256sum >/dev/null 2>&1; then
@@ -451,7 +459,7 @@ doctor_check() {
   elif command -v shasum >/dev/null 2>&1; then
     CHECKSUM_TOOL="shasum"
   fi
-  
+
   if [ -z "$CHECKSUM_TOOL" ]; then
     MISSING_OPTIONAL="$MISSING_OPTIONAL checksum"
     OPTIONAL_STATUS="${OPTIONAL_STATUS}checksum:NOT_FOUND "
@@ -481,6 +489,12 @@ doctor_check() {
       verbose "  Used for: Running Intent test suite"
     fi
     
+    if echo "$MISSING_OPTIONAL" | grep -q "elixir"; then
+      verbose "Elixir: Required for intent-autopsy session analysis"
+      verbose "  macOS: brew install elixir"
+      verbose "  Linux: See https://elixir-lang.org/install.html"
+    fi
+
     if echo "$MISSING_OPTIONAL" | grep -q "checksum"; then
       verbose "Checksum tool: Required for agent integrity checks"
       verbose "  macOS: shasum is usually pre-installed"

@@ -25,22 +25,22 @@ intent_version: 2.4.0
 
 ### 8.2.1 Primary Commands
 
-| Command                  | Description                    | Usage                                          |
-| ------------------------ | ------------------------------ | ---------------------------------------------- |
-| `intent init`            | Initialize Intent in a project | `intent init "Project Name"`                   |
-| `intent st`              | Manage steel threads           | `intent st new/list/show/edit`                 |
-| `intent bl`              | Enhanced Backlog.md wrapper    | `intent bl list/create/done`                   |
-| `intent task`            | Manage tasks linked to threads | `intent task create/list/count`                |
-| `intent status`          | Synchronize thread/task status | `intent status show/sync/check`                |
-| `intent agents`          | Manage AGENTS.md               | `intent agents init/sync/validate/template`    |
-| `intent claude subagents`| Manage Claude subagents        | `intent claude subagents list/install/sync`    |
-| `intent claude skills`   | Manage Claude skills           | `intent claude skills list/install/sync`       |
-| `intent claude upgrade`  | Upgrade project LLM guidance   | `intent claude upgrade [--apply]`              |
-| `intent treeindex`       | Generate directory summaries   | `intent treeindex <dir> [--depth N]`           |
-| `intent fileindex`       | Generate file summaries        | `intent fileindex <file>`                      |
-| `intent bootstrap`       | Global Intent setup            | `intent bootstrap [--force]`                   |
-| `intent doctor`          | Diagnose configuration         | `intent doctor [--fix]`                        |
-| `intent help`            | Display help                   | `intent help [command]`                        |
+| Command                   | Description                    | Usage                                       |
+| ------------------------- | ------------------------------ | ------------------------------------------- |
+| `intent init`             | Initialize Intent in a project | `intent init "Project Name"`                |
+| `intent st`               | Manage steel threads           | `intent st new/list/show/edit`              |
+| `intent bl`               | Enhanced Backlog.md wrapper    | `intent bl list/create/done`                |
+| `intent task`             | Manage tasks linked to threads | `intent task create/list/count`             |
+| `intent status`           | Synchronize thread/task status | `intent status show/sync/check`             |
+| `intent agents`           | Manage AGENTS.md               | `intent agents init/sync/validate/template` |
+| `intent claude subagents` | Manage Claude subagents        | `intent claude subagents list/install/sync` |
+| `intent claude skills`    | Manage Claude skills           | `intent claude skills list/install/sync`    |
+| `intent claude upgrade`   | Upgrade project LLM guidance   | `intent claude upgrade [--apply]`           |
+| `intent treeindex`        | Generate directory summaries   | `intent treeindex <dir> [--depth N]`        |
+| `intent fileindex`        | Generate file summaries        | `intent fileindex <file>`                   |
+| `intent bootstrap`        | Global Intent setup            | `intent bootstrap [--force]`                |
+| `intent doctor`           | Diagnose configuration         | `intent doctor [--fix]`                     |
+| `intent help`             | Display help                   | `intent help [command]`                     |
 
 ### 8.2.2 Configuration Schema
 
@@ -259,15 +259,15 @@ For technical details on the Backlog.md integration architecture, see:
 
 ### 8.8.1 Version History
 
-| Version | Date       | Changes                                                      |
-| ------- | ---------- | ------------------------------------------------------------ |
-| 2.4.0   | 2026-02-18 | Skills system, treeindex, Claude upgrade, skill namespacing  |
-| 2.3.0   | 2025-08-20 | AGENTS.md commands, Claude subagent rename, plugin arch      |
-| 2.2.0   | 2025-08-05 | Plugin architecture                                          |
-| 2.1.0   | 2025-07-27 | Agent init command, manifest management                      |
-| 2.0.0   | 2025-07-17 | Complete rebrand to Intent, JSON config, enhanced UX         |
-| 1.2.1   | 2025-07-09 | Added Backlog.md integration                                 |
-| 1.0.0   | 2025-06-15 | Initial STP release                                          |
+| Version | Date       | Changes                                                     |
+| ------- | ---------- | ----------------------------------------------------------- |
+| 2.4.0   | 2026-02-18 | Skills system, treeindex, Claude upgrade, skill namespacing |
+| 2.3.0   | 2025-08-20 | AGENTS.md commands, Claude subagent rename, plugin arch     |
+| 2.2.0   | 2025-08-05 | Plugin architecture                                         |
+| 2.1.0   | 2025-07-27 | Agent init command, manifest management                     |
+| 2.0.0   | 2025-07-17 | Complete rebrand to Intent, JSON config, enhanced UX        |
+| 1.2.1   | 2025-07-09 | Added Backlog.md integration                                |
+| 1.0.0   | 2025-06-15 | Initial STP release                                         |
 
 ### 8.8.2 Test Coverage
 

@@ -39,13 +39,13 @@ slugify(title):
 
 **Examples**:
 
-| Title                                             | Slug                              |
-|---------------------------------------------------|-----------------------------------|
-| My Cool Feature                                   | my-cool-feature                   |
-| Ash/Ecto Database Layer                           | ash-ecto-database-layer           |
-| Costs & Benefits                                  | costs-benefits                    |
-| Price is $100                                     | price-is-100                      |
-| A Very Long Title That Exceeds Fifty Characters   | a-very-long-title-that-exceeds-fifty              |
+| Title                                           | Slug                                 |
+| ----------------------------------------------- | ------------------------------------ |
+| My Cool Feature                                 | my-cool-feature                      |
+| Ash/Ecto Database Layer                         | ash-ecto-database-layer              |
+| Costs & Benefits                                | costs-benefits                       |
+| Price is $100                                   | price-is-100                         |
+| A Very Long Title That Exceeds Fifty Characters | a-very-long-title-that-exceeds-fifty |
 
 ### 3. Slug in Frontmatter
 

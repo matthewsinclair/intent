@@ -1,0 +1,40 @@
+# Default banned words for Intent Autopsy
+# Format: pattern|label
+# Labels: ai_ism, hedging, deferral, identity_break, filler
+# Lines starting with # are comments
+
+# AI-isms
+delve|ai_ism
+I'd be happy to|ai_ism
+I'll be happy to|ai_ism
+Let me help you with|ai_ism
+Great question|ai_ism
+Absolutely|ai_ism
+Certainly|ai_ism
+
+# Hedging
+unfortunately|hedging
+I believe|hedging
+it seems like|hedging
+it appears that|hedging
+if I understand correctly|hedging
+
+# Deferral patterns
+you'll need to|deferral
+you would need to|deferral
+you should manually|deferral
+I can't access|deferral
+I don't have access|deferral
+outside my capabilities|deferral
+
+# Identity breaks
+as an AI|identity_break
+as a language model|identity_break
+I don't have feelings|identity_break
+I'm just an AI|identity_break
+
+# Filler
+overall|filler
+in summary|filler
+to summarize|filler
+in conclusion|filler

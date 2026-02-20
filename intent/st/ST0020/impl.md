@@ -61,7 +61,7 @@
 ### Phase 7: Testing Quality (WP-11)
 
 - Created Diogenes subagent (Socratic dialog test architect with Aristotle + Diogenes personas)
-- Two modes: specify (5-phase dialog producing *.spec.md files) and validate (gap analysis)
+- Two modes: specify (5-phase dialog producing \*.spec.md files) and validate (gap analysis)
 - Created intent-elixir-testing skill (8 mandatory test quality rules)
 - Added diogenes to global-agents.json manifest
 - 19 BATS tests for both artifacts
@@ -78,44 +78,44 @@
 
 ### New Files
 
-| File                                                                    | WP    | Purpose                  |
-| ----------------------------------------------------------------------- | ----- | ------------------------ |
-| `intent/plugins/claude/skills/intent-elixir-essentials/SKILL.md`        | WP-02 | Core Elixir skill        |
-| `intent/plugins/claude/skills/intent-ash-ecto-essentials/SKILL.md`      | WP-03 | Ash/Ecto skill           |
-| `intent/plugins/claude/skills/intent-phoenix-liveview/SKILL.md`         | WP-04 | LiveView skill           |
-| `intent/plugins/claude/subagents/elixir/ash-ecto.md`                    | WP-03 | Ash/Ecto reference       |
-| `intent/plugins/claude/subagents/elixir/liveview.md`                    | WP-04 | LiveView reference       |
-| `intent/plugins/claude/subagents/elixir/testing.md`                     | WP-05 | Testing reference        |
-| `intent/plugins/claude/subagents/elixir/project-structure.md`           | WP-08 | Project layout reference |
-| `intent/plugins/claude/bin/intent_claude_skills`                        | WP-06 | Skill lifecycle CLI      |
-| `intent/plugins/claude/bin/intent_claude_upgrade`                       | WP-09 | Project upgrade CLI      |
-| `intent/plugins/agents/templates/elixir/AGENTS.md`                      | WP-07 | Elixir AGENTS template   |
-| `intent/plugins/agents/templates/elixir/RULES.md`                       | WP-07 | Elixir RULES template    |
-| `intent/plugins/agents/templates/elixir/ARCHITECTURE.md`                | WP-07 | Elixir ARCH template     |
-| `usage-rules.md`                                                        | WP-10 | Intent's own usage-rules |
-| `intent/plugins/claude/skills/intent-essentials/SKILL.md`               | post  | Universal essentials     |
-| `intent/plugins/claude/subagents/diogenes/agent.md`                     | WP-11 | Test architect subagent  |
-| `intent/plugins/claude/skills/intent-elixir-testing/SKILL.md`           | WP-11 | Testing quality skill    |
-| `tests/unit/test_diogenes.bats`                                         | WP-11 | BATS tests for WP-11     |
+| File                                                               | WP    | Purpose                  |
+| ------------------------------------------------------------------ | ----- | ------------------------ |
+| `intent/plugins/claude/skills/intent-elixir-essentials/SKILL.md`   | WP-02 | Core Elixir skill        |
+| `intent/plugins/claude/skills/intent-ash-ecto-essentials/SKILL.md` | WP-03 | Ash/Ecto skill           |
+| `intent/plugins/claude/skills/intent-phoenix-liveview/SKILL.md`    | WP-04 | LiveView skill           |
+| `intent/plugins/claude/subagents/elixir/ash-ecto.md`               | WP-03 | Ash/Ecto reference       |
+| `intent/plugins/claude/subagents/elixir/liveview.md`               | WP-04 | LiveView reference       |
+| `intent/plugins/claude/subagents/elixir/testing.md`                | WP-05 | Testing reference        |
+| `intent/plugins/claude/subagents/elixir/project-structure.md`      | WP-08 | Project layout reference |
+| `intent/plugins/claude/bin/intent_claude_skills`                   | WP-06 | Skill lifecycle CLI      |
+| `intent/plugins/claude/bin/intent_claude_upgrade`                  | WP-09 | Project upgrade CLI      |
+| `intent/plugins/agents/templates/elixir/AGENTS.md`                 | WP-07 | Elixir AGENTS template   |
+| `intent/plugins/agents/templates/elixir/RULES.md`                  | WP-07 | Elixir RULES template    |
+| `intent/plugins/agents/templates/elixir/ARCHITECTURE.md`           | WP-07 | Elixir ARCH template     |
+| `usage-rules.md`                                                   | WP-10 | Intent's own usage-rules |
+| `intent/plugins/claude/skills/intent-essentials/SKILL.md`          | post  | Universal essentials     |
+| `intent/plugins/claude/subagents/diogenes/agent.md`                | WP-11 | Test architect subagent  |
+| `intent/plugins/claude/skills/intent-elixir-testing/SKILL.md`      | WP-11 | Testing quality skill    |
+| `tests/unit/test_diogenes.bats`                                    | WP-11 | BATS tests for WP-11     |
 
 ### Deleted Files
 
-| File                            | Reason     |
-| ------------------------------- | ---------- |
-| `intent/llm/llm_preamble.md`   | Deprecated |
-| `intent/llm/usage-rules.md`    | Deprecated |
+| File                         | Reason     |
+| ---------------------------- | ---------- |
+| `intent/llm/llm_preamble.md` | Deprecated |
+| `intent/llm/usage-rules.md`  | Deprecated |
 
 ### Regenerated Files
 
-| File                   | Reason                   |
-| ---------------------- | ------------------------ |
-| `intent/llm/AGENTS.md` | Was stale at v2.2.1     |
+| File                   | Reason              |
+| ---------------------- | ------------------- |
+| `intent/llm/AGENTS.md` | Was stale at v2.2.1 |
 
 ## Challenges & Solutions
 
-| Challenge                                     | Solution                                                      |
-| --------------------------------------------- | ------------------------------------------------------------- |
-| Em dashes in skill files caused truncation     | Replaced all em dashes with double hyphens in SKILL.md files  |
-| List padding broke with namespaced skill names | Switched to char-count based padding (`${#var}`)              |
-| Terminal width detection unreliable            | Cascading fallback: $COLUMNS, stty, tput, hardcoded 100       |
-| Skills not auto-discovered by Claude Code      | Added YAML frontmatter with name/description to SKILL.md      |
+| Challenge                                      | Solution                                                     |
+| ---------------------------------------------- | ------------------------------------------------------------ |
+| Em dashes in skill files caused truncation     | Replaced all em dashes with double hyphens in SKILL.md files |
+| List padding broke with namespaced skill names | Switched to char-count based padding (`${#var}`)             |
+| Terminal width detection unreliable            | Cascading fallback: $COLUMNS, stty, tput, hardcoded 100      |
+| Skills not auto-discovered by Claude Code      | Added YAML frontmatter with name/description to SKILL.md     |

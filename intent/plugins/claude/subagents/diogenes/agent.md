@@ -135,10 +135,10 @@ Source: lib/my_app/module_name.ex
 
 ## Public Contract
 
-| Function           | Purpose                    | Returns                           |
-|--------------------|----------------------------|-----------------------------------|
-| register_user/2    | Create new user account    | {:ok, User} / {:error, changeset} |
-| get_user/1         | Fetch user by ID           | {:ok, User} / {:error, :not_found}|
+| Function        | Purpose                 | Returns                            |
+| --------------- | ----------------------- | ---------------------------------- |
+| register_user/2 | Create new user account | {:ok, User} / {:error, changeset}  |
+| get_user/1      | Fetch user by ID        | {:ok, User} / {:error, :not_found} |
 
 ## Test Assertions
 

@@ -104,22 +104,22 @@ intent_version: 2.4.0
 
 ### 2.1.6 Claude Code Integration [AS-BUILT v2.4.0]
 
-| ID     | Requirement                                                             | Status        |
-| ------ | ----------------------------------------------------------------------- | ------------- |
-| FR-6.1 | The system shall manage Claude Code skills (install, sync, uninstall)   | Implemented   |
-| FR-6.2 | The system shall manage Claude Code subagents (install, sync, uninstall)| Implemented   |
-| FR-6.3 | The system shall provide AGENTS.md generation for projects              | Implemented   |
-| FR-6.4 | The system shall support project LLM guidance upgrades                  | Implemented   |
-| FR-6.5 | The system shall track installed artifacts via SHA256 manifests         | Implemented   |
+| ID     | Requirement                                                              | Status      |
+| ------ | ------------------------------------------------------------------------ | ----------- |
+| FR-6.1 | The system shall manage Claude Code skills (install, sync, uninstall)    | Implemented |
+| FR-6.2 | The system shall manage Claude Code subagents (install, sync, uninstall) | Implemented |
+| FR-6.3 | The system shall provide AGENTS.md generation for projects               | Implemented |
+| FR-6.4 | The system shall support project LLM guidance upgrades                   | Implemented |
+| FR-6.5 | The system shall track installed artifacts via SHA256 manifests          | Implemented |
 
 ### 2.1.7 Codebase Navigation [AS-BUILT v2.4.0]
 
-| ID     | Requirement                                                          | Status        |
-| ------ | -------------------------------------------------------------------- | ------------- |
-| FR-7.1 | The system shall generate directory summaries (treeindex)            | Implemented   |
-| FR-7.2 | The system shall generate file summaries (fileindex)                 | Implemented   |
-| FR-7.3 | The system shall maintain a shadow directory for treeindex files     | Implemented   |
-| FR-7.4 | The system shall detect stale summaries and support pruning          | Implemented   |
+| ID     | Requirement                                                      | Status      |
+| ------ | ---------------------------------------------------------------- | ----------- |
+| FR-7.1 | The system shall generate directory summaries (treeindex)        | Implemented |
+| FR-7.2 | The system shall generate file summaries (fileindex)             | Implemented |
+| FR-7.3 | The system shall maintain a shadow directory for treeindex files | Implemented |
+| FR-7.4 | The system shall detect stale summaries and support pruning      | Implemented |
 
 ## 2.4 AS-BUILT Notes
 

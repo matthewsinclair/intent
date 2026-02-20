@@ -15,10 +15,10 @@ Root cause: most training data contains mediocre tests. The AI has learned to pr
 
 ### Two-Part Approach
 
-| Component              | Type      | When Active       | Purpose                                |
-| ---------------------- | --------- | ----------------- | -------------------------------------- |
-| Diogenes subagent      | Subagent  | On-demand (Task)  | Deep analysis, spec generation, review |
-| intent-elixir-testing  | Skill     | Always-on         | Real-time enforcement of test quality  |
+| Component             | Type     | When Active      | Purpose                                |
+| --------------------- | -------- | ---------------- | -------------------------------------- |
+| Diogenes subagent     | Subagent | On-demand (Task) | Deep analysis, spec generation, review |
+| intent-elixir-testing | Skill    | Always-on        | Real-time enforcement of test quality  |
 
 The skill prevents bad patterns as code is written. The subagent provides deeper analysis when needed -- producing formal specifications that the skill then enforces.
 
@@ -49,12 +49,14 @@ The approach mirrors the successful `socrates` subagent (CTO Review Mode), which
 #### Specify Mode (5 Phases)
 
 **Phase 1 -- Intent Discovery** (Aristotle leads)
+
 - Read the module under test
 - Identify domain purpose (WHY this module exists)
 - Enumerate public contract (each public function's role)
 - Note dependencies and side effects
 
 **Phase 2 -- Outcome Definition** (Both personas)
+
 - For each public function, define:
   - Success outcomes (happy path returns)
   - Failure outcomes (specific errors and conditions)
@@ -62,16 +64,19 @@ The approach mirrors the successful `socrates` subagent (CTO Review Mode), which
   - Side effects (observable external effects)
 
 **Phase 3 -- Challenge** (Diogenes leads)
+
 - For each assertion: "Is this strong enough?"
 - "What if the function returned a hardcoded struct?"
 - "You're checking `is_struct` -- that's a shape test. What field values prove correctness?"
 - "This error check matches `{:error, _}` -- what if it's the wrong error?"
 
 **Phase 4 -- Specification** (Aristotle writes, Diogenes reviews)
+
 - Produce the formal test spec in template format
 - Each assertion must survive Diogenes' scrutiny
 
 **Phase 5 -- Conclusion**
+
 - Write spec to `test/<path>/<module>_test.spec.md`
 - Summary: N functions, M assertions, K edge cases
 
@@ -81,6 +86,7 @@ Input: a spec file + corresponding test file
 Output: gap analysis
 
 Checks:
+
 - Every spec assertion has a corresponding ExUnit test
 - No test body contains control flow (if/case/cond/||/&&)
 - All assertions check concrete values (not shapes)
@@ -103,7 +109,7 @@ Source: lib/my_app/accounts.ex
 ## Public Contract
 
 | Function        | Purpose                 | Returns                           |
-|-----------------|-------------------------|-----------------------------------|
+| --------------- | ----------------------- | --------------------------------- |
 | register_user/2 | Create new user account | {:ok, User} / {:error, changeset} |
 
 ## Test Assertions
@@ -151,13 +157,13 @@ Each rule includes BAD/GOOD Elixir code examples.
 
 ## Key Design Decisions
 
-| Decision | Choice | Rationale |
-| --- | --- | --- |
-| Standalone subagent vs. elixir extension | Standalone `diogenes` | Testing architect is a distinct role; keeps elixir subagent focused on code |
-| Persona names | Aristotle + Diogenes | Aristotle = empirical observation; Diogenes = cynical truth-seeking |
-| Spec file location | Next to test file | Easy to find; `.spec.md` extension distinguishes from test code |
-| Rule count for skill | 8 rules | Consistent with other Elixir skills (7-8 rules each) |
-| Skill name | `intent-elixir-testing` | Follows `intent-elixir-*` namespace convention |
+| Decision                                 | Choice                  | Rationale                                                                   |
+| ---------------------------------------- | ----------------------- | --------------------------------------------------------------------------- |
+| Standalone subagent vs. elixir extension | Standalone `diogenes`   | Testing architect is a distinct role; keeps elixir subagent focused on code |
+| Persona names                            | Aristotle + Diogenes    | Aristotle = empirical observation; Diogenes = cynical truth-seeking         |
+| Spec file location                       | Next to test file       | Easy to find; `.spec.md` extension distinguishes from test code             |
+| Rule count for skill                     | 8 rules                 | Consistent with other Elixir skills (7-8 rules each)                        |
+| Skill name                               | `intent-elixir-testing` | Follows `intent-elixir-*` namespace convention                              |
 
 ## Alternatives Considered
 
