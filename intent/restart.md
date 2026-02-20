@@ -6,20 +6,19 @@ Intent v2.4.0 -- a CLI tool for managing steel threads, project documentation, a
 
 ## Current State
 
-ST0022 (Harden `st new`) implemented with three features:
+v2.4.0 released and tagged. All steel threads completed:
 
-- `escape_sed_replacement()` -- safe handling of `/`, `&`, `\` in steel thread titles
-- `slugify()` -- auto-generates `slug:` frontmatter field (max 50 chars), replaces Title column in listings
-- `-s|--start` flag -- create and immediately start a steel thread in one command
+- ST0020: Modernizing Elixir support -- 6 skills, 5 subagents, 8 project upgrades
+- ST0021: Intent Autopsy -- Elixir session analysis + memory meta-learning
+- ST0022: Harden `st new` -- special char escaping, slug generation, --start flag
 
-327 tests passing across 16 files. Docs updated (reference guide, user guide, CHANGELOG).
+No active steel threads. ST0010 and ST0015 parked in NOT-STARTED/.
 
 ## What's Next
 
-1. Bump tag and push to include ST0022 changes
-2. Regenerate .treeindex files for changed directories
-3. Fix subagent sync false-positive ("modified locally" when source changed)
-4. Review ST0010 and ST0015 to decide if still relevant
+1. Fix subagent sync false-positive ("modified locally" when source changed)
+2. Review ST0010 and ST0015 to decide if still relevant
+3. Consider v2.5.0 scope
 
 ## Key Patterns
 
@@ -32,7 +31,7 @@ ST0022 (Harden `st new`) implemented with three features:
 - Skill definitions: `intent/plugins/claude/skills/<name>/SKILL.md`
 - Subagent definitions: `intent/plugins/claude/subagents/<name>/`
 - Templates: `intent/plugins/agents/templates/<name>/` (default, elixir)
-- Tests: `tests/unit/` (16 .bats files, 327 tests), run with `tests/run_tests.sh`
+- Tests: `tests/unit/` (17 .bats files), run with `tests/run_tests.sh`
 - Two git remotes: `local` (Dropbox) and `upstream` (GitHub)
 - NO Claude attribution in commit messages
 - Never use em dashes in skill files (multi-byte truncation bugs)

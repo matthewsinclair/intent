@@ -61,4 +61,6 @@ Both directory-structure and legacy paths handle `--start`.
 - 1 slug fallback test (old ST without slug field)
 - 5 start flag tests (-s, --start, without flag, flag after title, slug in started thread)
 
-Full suite: 327 tests across 16 files, all passing.
+## Status
+
+Completed 20 Feb 2026. All deliverables shipped as part of v2.4.0.
