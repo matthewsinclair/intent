@@ -179,24 +179,28 @@ Creates a new steel thread.
 **Usage:**
 
 ```bash
-intent st new <title>
+intent st new [-s|--start] <title>
 ```
 
 **Parameters:**
 
 - `title`: Title of the steel thread (required)
+- `-s|--start`: Immediately start the thread (creates in `intent/st/` with `status: WIP` instead of `NOT-STARTED/`)
 
-**Example:**
+**Examples:**
 
 ```bash
 intent st new "Implement User Authentication"
+intent st new -s "Quick Fix"          # create and start in one command
+intent st new "My Feature" --start    # flag can come after title
 ```
 
 **Output:**
 
-- Creates directory `intent/st/ST####/`
-- Creates `info.md` with metadata and template
+- Creates directory `intent/st/NOT-STARTED/ST####/` (or `intent/st/ST####/` with `--start`)
+- Creates `info.md` with metadata, template, and auto-generated slug
 - Auto-increments thread ID
+- Special characters in titles (`/`, `&`, `\`) are handled safely
 - Reports: "Created new steel thread: ST####"
 
 `intent st done`
@@ -1073,6 +1077,7 @@ Steel thread files can use YAML frontmatter at the beginning of the file to stor
 ---
 verblock: "06 Mar 2025:v0.1: Author Name - Initial version"
 status: In Progress
+slug: implement-user-auth
 created: 20250307
 completed:
 ---
@@ -1081,9 +1086,12 @@ completed:
 **Supported Metadata Fields:**
 
 - `status`: Current state of the steel thread (Not Started, In Progress, Completed, On Hold, or Cancelled)
+- `slug`: URL-safe identifier auto-generated from the title (max 50 chars, lowercase, hyphens for non-alphanumeric)
 - `created`: Creation date in YYYYMMDD format
 - `completed`: Completion date in YYYYMMDD format (omit or leave empty if not completed)
 - `verblock`: Version tracking information
+
+The `slug` field is generated automatically by `intent st new` and displayed in `intent st list` instead of the full title. For steel threads created before this feature, the list falls back to the title from the heading.
 
 #### Document Body Metadata
 

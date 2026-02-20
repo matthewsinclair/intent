@@ -9,18 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Diogenes subagent** — Elixir Test Architect using Socratic dialog (ST0020 WP-11)
+- **Diogenes subagent** -- Elixir Test Architect using Socratic dialog (ST0020 WP-11)
   - Two personas: Aristotle (Empiricist) and Diogenes (Skeptic)
   - Specify mode: 5-phase dialog producing `*.spec.md` test specifications
   - Validate mode: gap analysis comparing specs to test files
-- **intent-elixir-testing skill** — 8 mandatory test quality rules (ST0020 WP-11)
+- **intent-elixir-testing skill** -- 8 mandatory test quality rules (ST0020 WP-11)
   - No control flow in test bodies, strong assertions, one focus per test
   - Real code over mocks, spec-driven tests, globally unique test data
 - 19 BATS tests for diogenes subagent and intent-elixir-testing skill
+- **Special character handling** in `st new` -- titles with `/`, `&`, `\` no longer break creation (ST0022 WP-01)
+- **Slug generation** -- `st new` auto-generates a URL-safe `slug:` field in frontmatter, max 50 chars (ST0022 WP-02)
+- **`-s|--start` flag** for `st new` -- create and immediately start a steel thread in one command (ST0022 WP-03)
+- 15 BATS tests for special chars, slugs, and --start flag in st_commands.bats
 
 ### Changed
 
-- Full test suite now at 321 tests across 16 test files
+- `st list` and `st sync` now show "Slug" column instead of "Title" (falls back to title for older threads)
+- Full test suite now at 327 tests across 16 test files
 
 ## [2.4.0] - 2026-02-17
 
