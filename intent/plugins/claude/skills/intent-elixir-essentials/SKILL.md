@@ -1,3 +1,7 @@
+---
+description: "Elixir coding rules: pattern matching, tagged tuples, pipes, naming conventions, callback annotations"
+---
+
 # Elixir Essentials
 
 Core Elixir coding rules enforced on every line of generated code. These are mandatory -- no exceptions.

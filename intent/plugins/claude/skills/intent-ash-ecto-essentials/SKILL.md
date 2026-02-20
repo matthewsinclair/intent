@@ -1,3 +1,7 @@
+---
+description: "Ash Framework database access rules: domain code interfaces, migrations, actor authorization, atomic changes"
+---
+
 # Ash/Ecto Essentials
 
 Database access rules for Ash Framework projects. All database access goes through Ash -- never raw Ecto in application code. Authoritative reference: `deps/ash/usage-rules.md`.

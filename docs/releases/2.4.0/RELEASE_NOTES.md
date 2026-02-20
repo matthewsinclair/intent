@@ -31,7 +31,7 @@ intent claude skills show <name>       # Display skill content
 | `intent-ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement   |
 | `intent-phoenix-liveview`    |   7   | Two-phase mount, streams, components           |
 
-Skills install to `.claude/skills/<name>/SKILL.md` in the target project and use SHA256 checksum manifests for sync tracking.
+Skills install to `.claude/skills/<name>/SKILL.md` in the target project and use SHA256 checksum manifests for sync tracking. Each SKILL.md includes YAML frontmatter with a `description` field so Claude Code automatically discovers and lists them in the system prompt.
 
 ### Upgrade Command
 
@@ -90,8 +90,8 @@ The Elixir subagent's core rules were refactored from 23 overlapping rules to 12
 
 ## Testing
 
-- 37 new BATS tests for skills commands (`tests/unit/skills_commands.bats`)
-- Full test suite: **302 tests** across **15 test files**
+- 38 BATS tests for skills commands (`tests/unit/skills_commands.bats`)
+- Full test suite: **303 tests** across **15 test files**
 - All tests passing on macOS and Linux
 
 ## Upgrade Guide

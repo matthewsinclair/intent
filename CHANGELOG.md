@@ -47,8 +47,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Template copies AGENTS.md, RULES.md, ARCHITECTURE.md from template directory
   - RULES.md and ARCHITECTURE.md are human-curated (not overwritten without `--force`)
 - Added NEVER DO rule: never put `require` inside a function body (module level only)
+- Added YAML frontmatter with `description` field to all four SKILL.md files so Claude Code discovers and lists them in the system prompt
+- Updated `intent_claude_skills` to extract title/description from frontmatter (with legacy fallback)
 - Updated copyright to 2026 across all source files
-- Full test suite now at 302 tests across 15 test files
+- Full test suite now at 303 tests across 15 test files
 
 ## [2.3.4] - 2026-02-04
 

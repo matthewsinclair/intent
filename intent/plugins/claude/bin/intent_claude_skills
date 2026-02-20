@@ -85,6 +85,32 @@ is_skill_installed() {
   [ -f "$HOME/.claude/skills/${skill_name}/SKILL.md" ]
 }
 
+# Helper: Extract description from a SKILL.md file
+# Handles both frontmatter format and legacy plain-markdown format
+get_skill_description() {
+  local file="$1"
+  if head -1 "$file" | grep -q '^---$'; then
+    # Frontmatter: extract description field
+    grep '^description:' "$file" | head -1 | sed 's/^description: *//; s/^["'"'"']//; s/["'"'"']$//'
+  else
+    # Legacy: line 3
+    sed -n '3p' "$file"
+  fi
+}
+
+# Helper: Extract title from a SKILL.md file
+# Handles both frontmatter format and legacy plain-markdown format
+get_skill_title() {
+  local file="$1"
+  if head -1 "$file" | grep -q '^---$'; then
+    # Frontmatter: find first H1 after closing ---
+    sed -n '/^---$/,/^---$/d; /^# /{ s/^# //; p; q; }' "$file"
+  else
+    # Legacy: first line
+    head -1 "$file" | sed 's/^# //'
+  fi
+}
+
 # Helper: Get available skills from source directory
 get_available_skills() {
   local skills=""
@@ -195,7 +221,7 @@ intent_claude_skills_list() {
     # Using ${#var} (char count) avoids multi-byte printf padding bugs
     if [ "$verbose" = true ]; then
       local full_desc left pad
-      full_desc=$(sed -n '3p' "$skill_file" 2>/dev/null)
+      full_desc=$(get_skill_description "$skill_file" 2>/dev/null)
       [ -z "$full_desc" ] && full_desc="No description"
       left="$(printf '%-30s' "$skill")"
       pad=$(( term_width - 2 - ${#left} - ${#status} ))
@@ -204,7 +230,7 @@ intent_claude_skills_list() {
       printf "    %s\n\n" "$full_desc"
     else
       local description full_desc left pad
-      full_desc=$(sed -n '3p' "$skill_file" 2>/dev/null)
+      full_desc=$(get_skill_description "$skill_file" 2>/dev/null)
       if [ -z "$full_desc" ]; then
         description="No description"
       elif [ ${#full_desc} -le $desc_width ]; then
@@ -584,9 +610,9 @@ intent_claude_skills_show() {
 
   # Extract title and description
   local title
-  title=$(head -1 "$source_file" | sed 's/^# //')
+  title=$(get_skill_title "$source_file")
   local description
-  description=$(sed -n '3p' "$source_file")
+  description=$(get_skill_description "$source_file")
 
   # Check installation status
   local status="NOT INSTALLED"
