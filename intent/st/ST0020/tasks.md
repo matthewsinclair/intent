@@ -73,6 +73,17 @@
 - [x] Write upgrade guide (docs/upgrade-guide-2.4.0.md)
 - [x] Merge upgrade branches to main
 
+## Phase 7: Testing Quality (WP-11)
+
+- [x] WP-11: Finalize WP-11 design docs (info.md, design.md, tasks.md)
+- [x] WP-11: Create Diogenes subagent (agent.md with Aristotle + Diogenes personas)
+- [x] WP-11: Create intent-elixir-testing skill (8 rules with BAD/GOOD examples)
+- [x] WP-11: Add diogenes to global-agents.json manifest
+- [x] WP-11: Write BATS tests (19 tests for subagent + skill)
+- [x] WP-11: Fix skills_commands.bats manifest test (use relative counts)
+- [x] WP-11: Update all project documentation
+- [ ] WP-11: Manual test on a real Elixir project
+
 ## Dependencies
 
 ```
@@ -80,5 +91,6 @@ WP-01 ──┬── WP-02 ──── WP-06 ──┬── WP-09
          │                       ├── WP-07
          ├── WP-03 ──── WP-05   └── WP-10
          ├── WP-04 ──┘
-         └── (WP-08 runs in parallel, no deps)
+         ├── (WP-08 runs in parallel, no deps)
+         └── WP-05 + WP-06 ──── WP-11
 ```

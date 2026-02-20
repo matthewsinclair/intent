@@ -3,7 +3,7 @@ verblock: "17 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-07
 title: RULES.md / ARCHITECTURE.md Templates and Tooling
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-07: RULES.md / ARCHITECTURE.md Templates and Tooling

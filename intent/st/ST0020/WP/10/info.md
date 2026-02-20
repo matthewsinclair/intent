@@ -3,7 +3,7 @@ verblock: "17 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-10
 title: Intent Usage-Rules.md
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-10: Intent Usage-Rules.md

@@ -3,7 +3,7 @@ verblock: "17 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-09
 title: Elixir Upgrade Skill
 scope: Medium-Large
-status: Not Started
+status: Done
 ---
 
 # WP-09: Elixir Upgrade Skill

@@ -1,6 +1,6 @@
 ---
-verblock: "08 Jul 2025:v0.2: Matthew Sinclair - Added Backlog.md integration architecture"
-stp_version: 1.2.0
+verblock: "20 Feb 2026:v2.4.0: Matthew Sinclair - Updated for Intent v2.4.0"
+intent_version: 2.4.0
 ---
 
 # 3. Architecture
@@ -283,13 +283,69 @@ Supported Versions:
 - v1.2.1 → v2.0.0
 ```
 
-## 3.7 AS-BUILT Summary
+## 3.7 Plugin Architecture [AS-BUILT v2.4.0]
 
-Intent v2.0.0 represents a significant evolution from STP:
+Intent v2.2.0+ uses a plugin architecture for extensible commands:
 
-- Complete rebrand with consistent naming
-- Flattened, intuitive directory structure
-- JSON-based hierarchical configuration
-- Enhanced Backlog.md integration
-- New user-friendly commands
-- Proven through self-hosting
+### Plugin Structure
+
+```
+intent/plugins/
+├── agents/                          # AGENTS.md management plugin
+│   ├── bin/intent_agents            # Command implementation
+│   └── templates/elixir/            # Project templates
+└── claude/                          # Claude Code integration plugin
+    ├── bin/
+    │   ├── intent_claude_subagents  # Subagent lifecycle
+    │   ├── intent_claude_skills     # Skill lifecycle
+    │   └── intent_claude_upgrade    # Project upgrade
+    ├── subagents/                   # Subagent definitions
+    └── skills/                      # Skill definitions
+```
+
+### Plugin Command Routing
+
+The main `bin/intent` dispatcher routes plugin commands:
+
+- `intent agents *` routes to `intent/plugins/agents/bin/intent_agents`
+- `intent claude subagents *` routes to `intent/plugins/claude/bin/intent_claude_subagents`
+- `intent claude skills *` routes to `intent/plugins/claude/bin/intent_claude_skills`
+- `intent claude upgrade` routes to `intent/plugins/claude/bin/intent_claude_upgrade`
+
+### Skills vs Subagents Architecture
+
+| Dimension      | Subagents                         | Skills                          |
+| -------------- | --------------------------------- | ------------------------------- |
+| Context window | Separate -- no main impact        | Consumes main context tokens    |
+| Activation     | Explicit delegation via Task tool | Always-on or slash-command      |
+| Enforcement    | Reviews after the fact            | Shapes generation in real-time  |
+| Scope          | Bounded tasks (review module X)   | Ambient standards (always do Y) |
+
+Skills and subagents are complementary: skills shape code as it is generated, subagents do deep review on demand.
+
+### Treeindex Architecture
+
+- Shadow directory at `intent/.treeindex/` mirrors project structure
+- Each `.treeindex` file contains a concise summary of a directory's contents
+- Generated via `intent treeindex <dir>` using LLM analysis
+- Supports `--depth`, `--check`, `--prune`, `--force`, `--model`, `--dry-run`
+
+### Manifest-Based Lifecycle
+
+Both subagents and skills use SHA256 checksum manifests:
+
+- Subagent manifest: `~/.intent/agents/installed-agents.json`
+- Skill manifest: `~/.intent/skills/installed-skills.json`
+- Sync detects modified, stale, and up-to-date artifacts
+
+## 3.8 AS-BUILT Summary
+
+Intent v2.4.0 represents a significant evolution:
+
+- Plugin architecture for extensible commands
+- Skills system for proactive code shaping
+- Subagent system for on-demand deep review
+- Treeindex for codebase navigation
+- AGENTS.md management for project LLM guidance
+- Claude upgrade command for project modernization
+- 302 tests across 15 files, proven through self-hosting and 8 target projects

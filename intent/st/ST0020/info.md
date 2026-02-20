@@ -1,6 +1,6 @@
 ---
-verblock: "17 Feb 2026:v0.1: matts - Initial version"
-intent_version: 2.3.4
+verblock: "20 Feb 2026:v0.2: matts - As-built update, add WP-11"
+intent_version: 2.4.0
 status: WIP
 created: 20260217
 completed:
@@ -43,6 +43,7 @@ A layered approach:
 - **WP-08**: Project structure reference doc
 - **WP-09**: Elixir upgrade skill for existing projects
 - **WP-10**: Intent usage-rules.md
+- **WP-11**: Elixir testing subagent + skill
 
 ## Sequencing
 
@@ -53,6 +54,8 @@ Phase 2 (skills):        WP-02 + WP-03 + WP-04 in parallel
 Phase 3 (testing):       WP-05
 Phase 4 (infrastructure): WP-06 + WP-07
 Phase 5 (upgrade+docs):  WP-09 + WP-10 in parallel
+Phase 6 (roll-out):      Upgrade 8 target projects
+Phase 7 (testing):       WP-11
 ```
 
 ## Related Steel Threads

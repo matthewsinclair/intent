@@ -3,7 +3,7 @@ verblock: "17 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-08
 title: Project Structure Reference Doc
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-08: Project Structure Reference Doc

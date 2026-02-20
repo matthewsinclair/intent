@@ -3,7 +3,7 @@ verblock: "17 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-04
 title: Create LiveView Reference Doc + Skill
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-04: Create LiveView Reference Doc + Skill

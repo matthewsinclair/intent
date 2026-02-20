@@ -624,6 +624,7 @@ intent claude subagents <command> [options]
 | `elixir`     | Elixir code doctor with antipatterns, style, and Ash/Phoenix |
 | `socrates`   | CTO Review Mode via Socratic dialog                          |
 | `worker-bee` | Worker-Bee Driven Design specialist                          |
+| `diogenes`   | Elixir Test Architect via Socratic dialog                    |
 
 **Example:**
 
@@ -678,6 +679,7 @@ intent claude skills <command> [options]
 | `intent-elixir-essentials`     |   8   | Core Elixir rules (pattern matching, pipes)    |
 | `intent-ash-ecto-essentials`   |   7   | Ash/Ecto rules (code interfaces, migrations)   |
 | `intent-phoenix-liveview`      |   7   | LiveView rules (streams, two-phase mount)      |
+| `intent-elixir-testing`        |   8   | Test quality rules (strong assertions, specs)  |
 
 **Example:**
 

@@ -1,6 +1,6 @@
 ---
-verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
-stp_version: 1.2.0
+verblock: "20 Feb 2026:v2.4.0: Matthew Sinclair - Updated for Intent v2.4.0"
+intent_version: 2.4.0
 ---
 
 # 2. Requirements
@@ -102,14 +102,32 @@ stp_version: 1.2.0
 | CON-4 | The system must respect the context window limitations of LLMs                       |
 | CON-5 | [AS-BUILT] The system requires jq for JSON configuration parsing                     |
 
+### 2.1.6 Claude Code Integration [AS-BUILT v2.4.0]
+
+| ID     | Requirement                                                             | Status        |
+| ------ | ----------------------------------------------------------------------- | ------------- |
+| FR-6.1 | The system shall manage Claude Code skills (install, sync, uninstall)   | Implemented   |
+| FR-6.2 | The system shall manage Claude Code subagents (install, sync, uninstall)| Implemented   |
+| FR-6.3 | The system shall provide AGENTS.md generation for projects              | Implemented   |
+| FR-6.4 | The system shall support project LLM guidance upgrades                  | Implemented   |
+| FR-6.5 | The system shall track installed artifacts via SHA256 manifests         | Implemented   |
+
+### 2.1.7 Codebase Navigation [AS-BUILT v2.4.0]
+
+| ID     | Requirement                                                          | Status        |
+| ------ | -------------------------------------------------------------------- | ------------- |
+| FR-7.1 | The system shall generate directory summaries (treeindex)            | Implemented   |
+| FR-7.2 | The system shall generate file summaries (fileindex)                 | Implemented   |
+| FR-7.3 | The system shall maintain a shadow directory for treeindex files     | Implemented   |
+| FR-7.4 | The system shall detect stale summaries and support pruning          | Implemented   |
+
 ## 2.4 AS-BUILT Notes
 
-All original requirements have been met or exceeded in Intent v2.0.0. Key additions include:
+All original requirements have been met or exceeded. Key additions through v2.4.0:
 
-1. **Enhanced Configuration**: JSON-based configuration with hierarchy support
-2. **New Commands**: bootstrap, doctor, upgrade for better user experience
-3. **Status Filtering**: Configurable backlog_list_status for focused task views
-4. **Self-Hosting**: Intent is developed using Intent itself
-5. **Migration Tools**: Comprehensive upgrade path from any STP version
-6. **Flattened Structure**: Simplified directory layout under intent/
-7. **Command Naming**: Consistent intent\_\* naming pattern
+1. **Plugin Architecture**: Extensible command system (v2.2.0)
+2. **Claude Code Integration**: Skills, subagents, and upgrade management (v2.3.0-v2.4.0)
+3. **Codebase Navigation**: Treeindex and fileindex for LLM-friendly summaries (v2.4.0)
+4. **AGENTS.md Management**: Project-level LLM guidance generation (v2.3.0)
+5. **Self-Hosting**: Intent developed using Intent, proven across 8 projects
+6. **302 Tests**: Comprehensive BATS coverage across 15 test files

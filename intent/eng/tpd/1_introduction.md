@@ -1,6 +1,6 @@
 ---
-verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Updated for Intent v2.1.0"
-intent_version: 2.1.0
+verblock: "20 Feb 2026:v2.4.0: Matthew Sinclair - Updated for Intent v2.4.0"
+intent_version: 2.4.0
 ---
 
 # 1. Introduction
@@ -17,16 +17,17 @@ In July 2025, STP was rebranded to "Intent" to better reflect the system's core 
 
 ## 1.2 Scope
 
-Intent v2.1.0 encompasses:
+Intent v2.4.0 encompasses:
 
 - A flattened directory structure under `intent/` for organizing documentation
 - JSON-based configuration system (.intent/config.json)
-- Shell scripts for managing Intent workflows (intent\_\* commands)
+- Plugin architecture for extensible command system
+- Shell scripts for managing Intent workflows
 - The Steel Thread Process methodology for incremental development
-- Enhanced integration patterns for working with LLMs
-- Advanced Backlog.md integration with status filtering
-- Automated steel thread status synchronization
-- Migration tools for upgrading from any STP/Intent version
+- Claude Code skills for proactive code shaping during generation
+- Claude Code subagents for on-demand deep review
+- Treeindex system for pre-computed directory summaries
+- AGENTS.md management for project LLM guidance
 - Diagnostic and setup tools (doctor, bootstrap)
 
 Intent is designed to be lightweight, adaptable, and to work alongside existing development workflows without requiring significant changes to development practices.
@@ -35,27 +36,30 @@ Intent is designed to be lightweight, adaptable, and to work alongside existing 
 
 | Term           | Definition                                                                                       |
 | -------------- | ------------------------------------------------------------------------------------------------ |
-| Intent         | The tool and framework for intention-aware development (v2.1.0)                                  |
+| Intent         | The tool and framework for intention-aware development (v2.4.0)                                  |
 | Steel Thread   | A self-contained unit of work that represents a logical piece of functionality to be implemented |
+| Work Package   | A subdivision of a steel thread for large-scope work                                             |
 | LLM            | Large Language Model, an AI system capable of understanding and generating text                  |
 | Context Window | The amount of text an LLM can process in a single interaction                                    |
-| Backlog        | Task management system integrated with Intent for tracking fine-grained work items               |
-| Task           | Individual unit of work linked to a steel thread, tracked in Backlog                             |
+| Skill          | An always-on Claude Code artifact that shapes code generation in real-time                       |
+| Subagent       | An on-demand Claude Code agent for bounded review/analysis tasks                                 |
+| Treeindex      | Pre-computed directory summaries for fast codebase navigation                                    |
+| Plugin         | An extensible command module under intent/plugins/                                               |
 | Bootstrap      | Initial global setup process for Intent installation                                             |
 | Doctor         | Diagnostic tool for identifying and fixing Intent configuration issues                           |
 
 ## 1.4 System Overview
 
-Intent v2.1.0 operates as a meta-layer on top of existing development processes. It provides structure for:
+Intent v2.4.0 operates as a meta-layer on top of existing development processes. It provides structure for:
 
 1. **Documentation Management**: Flattened structure under `intent/` for all documentation
-2. **LLM Collaboration**: Enhanced guidelines and tools for effective AI assistance
+2. **LLM Collaboration**: Skills for proactive code shaping, subagents for deep review
 3. **Incremental Development**: The Steel Thread methodology for breaking work into manageable units
 4. **Project Tracking**: Work-in-progress tracking and project history
-5. **Task Management**: Advanced Backlog.md integration with configurable status filtering
-6. **Status Synchronization**: Automatic steel thread status updates based on task completion
+5. **Plugin Architecture**: Extensible command system under `intent/plugins/`
+6. **Codebase Navigation**: Treeindex for pre-computed directory summaries
 7. **Configuration Management**: JSON-based configuration with hierarchy support
-8. **Migration Support**: Tools to upgrade from any previous STP version
+8. **Project Guidance**: AGENTS.md generation and management for LLM context
 9. **Self-Hosting**: Intent is developed using Intent itself
 
 The system remains intentionally simple, using markdown files and shell scripts to maximize portability and minimize dependencies.
@@ -81,3 +85,16 @@ The system remains intentionally simple, using markdown files and shell scripts 
   - Agent initialization command
   - Improved upgrade from v2.0.0
   - Better agent manifest management
+- **v2.2.0 (August 2025)**: Plugin architecture:
+  - Commands moved to `intent/plugins/`
+  - Extensible command routing
+- **v2.3.0 (August 2025)**: AGENTS.md and subagent rename:
+  - `intent agents` now manages AGENTS.md (init, generate, sync, validate, template)
+  - Claude subagents moved to `intent claude subagents`
+  - Added socrates and worker-bee subagents
+- **v2.4.0 (February 2026)**: Skills, treeindex, and Claude upgrade:
+  - `intent claude skills` for skill lifecycle management
+  - `intent claude upgrade` for project LLM guidance upgrades
+  - `intent treeindex` / `intent fileindex` for codebase navigation
+  - 4 built-in skills: intent-essentials, intent-elixir-essentials, intent-ash-ecto-essentials, intent-phoenix-liveview
+  - 302 tests across 15 test files

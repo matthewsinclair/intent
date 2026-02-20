@@ -1,6 +1,6 @@
 ---
-verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Updated for Intent v2.0.0 (As-Built)"
-intent_version: 2.0.0
+verblock: "20 Feb 2026:v2.4.0: Matthew Sinclair - Updated for Intent v2.4.0"
+intent_version: 2.4.0
 ---
 
 # 4. Detailed Design [AS-BUILT]
@@ -360,17 +360,22 @@ intent <command> [options] [arguments]
 
 #### Primary Commands
 
-| Command   | Description                    | Added  |
-| --------- | ------------------------------ | ------ |
-| init      | Initialize Intent in a project | v0.0.0 |
-| st        | Manage steel threads           | v0.0.0 |
-| bl        | Enhanced Backlog.md wrapper    | v1.2.0 |
-| task      | Manage tasks linked to threads | v1.2.0 |
-| status    | Synchronize thread/task status | v1.2.0 |
-| bootstrap | Global Intent setup            | v2.0.0 |
-| doctor    | Diagnose configuration issues  | v2.0.0 |
-| upgrade   | Migrate from any STP version   | v2.0.0 |
-| help      | Display comprehensive help     | v0.0.0 |
+| Command           | Description                       | Added  |
+| ----------------- | --------------------------------- | ------ |
+| init              | Initialize Intent in a project    | v0.0.0 |
+| st                | Manage steel threads              | v0.0.0 |
+| bl                | Enhanced Backlog.md wrapper       | v1.2.0 |
+| task              | Manage tasks linked to threads    | v1.2.0 |
+| status            | Synchronize thread/task status    | v1.2.0 |
+| bootstrap         | Global Intent setup               | v2.0.0 |
+| doctor            | Diagnose configuration issues     | v2.0.0 |
+| agents            | Manage AGENTS.md                  | v2.3.0 |
+| claude subagents  | Manage Claude Code subagents      | v2.3.0 |
+| claude skills     | Manage Claude Code skills         | v2.4.0 |
+| claude upgrade    | Upgrade project LLM guidance      | v2.4.0 |
+| treeindex         | Generate directory summaries      | v2.4.0 |
+| fileindex         | Generate file summaries           | v2.4.0 |
+| help              | Display comprehensive help        | v0.0.0 |
 
 #### Steel Thread Subcommands
 
@@ -413,18 +418,18 @@ bin/
 
 #### Key Implementation Files
 
-| Script           | Purpose           | Key Features                    |
-| ---------------- | ----------------- | ------------------------------- |
-| intent           | Main entry point  | Command dispatch, version check |
-| intent_config    | Config management | JSON parsing, hierarchy support |
-| intent_helpers   | Utilities         | Version detection, migration    |
-| intent_st        | Steel threads     | Create, list, show, edit        |
-| intent_bl        | Backlog wrapper   | Git-safe operations, filtering  |
-| intent_task      | Task management   | Thread linking, status tracking |
-| intent_status    | Status sync       | Task completion analysis        |
-| intent_bootstrap | Global setup      | First-time configuration        |
-| intent_doctor    | Diagnostics       | Issue detection and fixes       |
-| intent_upgrade   | Migration         | Any version to v2.0.0           |
+| Script                             | Purpose              | Key Features                      |
+| ---------------------------------- | -------------------- | --------------------------------- |
+| bin/intent                         | Main entry point     | Command dispatch, plugin routing  |
+| bin/intent_config                  | Config management    | JSON parsing, hierarchy support   |
+| bin/intent_helpers                 | Utilities            | Version detection, shared funcs   |
+| bin/intent_st                      | Steel threads        | Create, list, show, edit          |
+| bin/intent_treeindex               | Directory summaries  | Shadow dir, LLM-generated         |
+| bin/intent_fileindex               | File summaries       | Single-file analysis              |
+| plugins/agents/bin/intent_agents   | AGENTS.md management | Init, generate, sync, validate    |
+| plugins/claude/bin/intent_claude_subagents | Subagent lifecycle | Install, sync, uninstall, show |
+| plugins/claude/bin/intent_claude_skills    | Skill lifecycle    | Install, sync, uninstall, show |
+| plugins/claude/bin/intent_claude_upgrade   | Project upgrade    | Diagnose, plan, execute        |
 
 ### 4.3.3 Help System [AS-BUILT]
 
@@ -862,10 +867,13 @@ intent doctor [--fix] [--verbose]
 
 ## 4.9 AS-BUILT Summary
 
-Intent v2.0.0 represents a complete implementation of the design with significant enhancements:
+Intent v2.4.0 represents a complete implementation with significant enhancements beyond the original design:
 
-1. **Unified Command Structure**: All commands follow intent\_\* pattern
-2. **JSON Configuration**: Hierarchical config with validation
-3. **Enhanced Integration**: Backlog.md with status filtering
-4. **User Experience**: Bootstrap, doctor, and upgrade commands
-5. **Self-Hosting**: Intent is developed using Intent itself
+1. **Plugin Architecture**: Extensible command system under `intent/plugins/`
+2. **Skills System**: 4 built-in skills for proactive code shaping
+3. **Subagent System**: 4 built-in subagents for on-demand review
+4. **Treeindex**: Pre-computed directory summaries for codebase navigation
+5. **AGENTS.md Management**: Project-level LLM guidance generation
+6. **Claude Upgrade**: Automated project modernization tool
+7. **302 Tests**: Comprehensive BATS test coverage across 15 files
+8. **Self-Hosting**: Intent is developed using Intent itself, proven across 8 projects

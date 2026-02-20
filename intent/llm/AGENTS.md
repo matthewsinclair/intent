@@ -110,6 +110,7 @@ Available subagents:
 - **intent**: Intent-aware assistant for steel threads and backlog management
 - **socrates**: CTO Review Mode - Socratic dialog for technical decision-making
 - **worker-bee**: Worker-Bee Driven Design specialist for any Elixir application. Conducts interactive project structure mapping, enforces WDD 6-layer architecture compliance, validates functional core purity, and scaffolds WDD-compliant code. Works with Phoenix, OTP, libraries, and any Elixir project type.
+- **diogenes**: Elixir Test Architect - Socratic dialog that produces test specifications and validates test quality. Uses two personas (Aristotle the Empiricist + Diogenes the Skeptic) to eliminate shape tests, weak assertions, and stub coupling.
 
 ## Security Considerations
 

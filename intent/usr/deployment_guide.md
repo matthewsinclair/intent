@@ -488,14 +488,17 @@ intent/plugins/
     │   ├── intent_claude_subagents
     │   └── intent_claude_skills
     ├── skills/          # Skill definitions
+    │   ├── intent-essentials/
     │   ├── intent-elixir-essentials/
+    │   ├── intent-elixir-testing/
     │   ├── intent-ash-ecto-essentials/
     │   └── intent-phoenix-liveview/
     └── subagents/       # Subagent definitions
         ├── intent/
         ├── elixir/
         ├── socrates/
-        └── worker-bee/
+        ├── worker-bee/
+        └── diogenes/
 ```
 
 ### Deploying AGENTS.md
@@ -572,6 +575,7 @@ Available skills:
 | ---------------------------- | ----------------------------------------- |
 | intent-essentials            | Intent workflow rules (7 mandatory)       |
 | intent-elixir-essentials     | Core Elixir coding rules (8 mandatory)    |
+| intent-elixir-testing        | Elixir test quality rules (8 mandatory)   |
 | intent-ash-ecto-essentials   | Ash/Ecto database patterns (7 mandatory)  |
 | intent-phoenix-liveview      | LiveView patterns and rules (7 mandatory) |
 
