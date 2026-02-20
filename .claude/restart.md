@@ -2,13 +2,14 @@
 
 ## WIP
 
-None. v2.4.0 is released.
+ST0022 implemented (special chars, slugs, --start flag). Needs tag bump and push.
 
 ## TODO
 
-1. **Parked steel threads** -- review ST0010 and ST0015
-2. **Regenerate .treeindex** -- new directories added (intent-essentials skill)
+1. **Tag bump** -- `git tag -f v2.4.0 HEAD` then force-push to both remotes
+2. **Regenerate .treeindex** -- directories changed by ST0022
 3. **Fix subagent sync false-positive** -- reports "modified locally" when source changed but installed copy is just stale
+4. **Parked steel threads** -- review ST0010 and ST0015
 
 ## Key Files
 
@@ -16,13 +17,14 @@ None. v2.4.0 is released.
 |----------------------------------------------------|----------------------------------------|
 | `CHANGELOG.md`                                     | Feature history (v1.0.0 through v2.4.0)|
 | `VERSION`                                          | Current version (2.4.0)                |
+| `bin/intent_st`                                    | Steel thread commands (modified by ST0022)|
 | `intent/wip.md`                                    | Work in progress tracker               |
 | `intent/restart.md`                                | Session restart context                |
 | `bin/intent`                                       | Main CLI (GLOBAL_COMMANDS on line 41)  |
 | `intent/plugins/claude/bin/intent_claude_skills`   | Skills lifecycle management            |
 | `intent/plugins/claude/bin/intent_claude_subagents`| Claude subagent management             |
 | `intent/plugins/claude/bin/intent_claude_upgrade`  | Project upgrade command                |
-| `tests/run_tests.sh`                               | Test runner (302 tests, 15 files)      |
+| `tests/run_tests.sh`                               | Test runner (327 tests, 16 files)      |
 
 ## Project Conventions
 

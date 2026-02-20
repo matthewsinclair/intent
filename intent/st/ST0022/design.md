@@ -8,9 +8,9 @@ Three independent fixes to `bin/intent_st`, phased linearly to avoid merge confl
 
 ### 1. Sed Escaping Strategy
 
-The `new` command uses `sed -e "s/\[Title\]/$TITLE/g"` to substitute the title into template files. Characters `/`, `&`, `\`, and `$` have special meaning in sed replacement strings and must be escaped.
+The `new` command uses `sed -e "s/\[Title\]/$TITLE/g"` to substitute the title into template files. Characters `/`, `&`, and `\` have special meaning in sed replacement strings and must be escaped. (`$` is not special in sed replacement context -- it is only special in sed patterns.)
 
-**Implementation**: Add `escape_sed_replacement()` function that escapes these four characters:
+**Implementation (as-built)**: `escape_sed_replacement()` escapes three characters:
 
 ```bash
 escape_sed_replacement() {
@@ -18,12 +18,11 @@ escape_sed_replacement() {
   s="${s//\\/\\\\}"   # \ -> \\  (must be first)
   s="${s//\//\\/}"     # / -> \/
   s="${s//&/\\&}"      # & -> \&
-  s="${s//$/\\$}"      # $ -> \$  (Note: use single quotes around pattern)
   echo "$s"
 }
 ```
 
-Also fix the heredoc fallback path (lines 374-400): the `cat > "$ST_DIR/info.md" << EOF` uses an unquoted heredoc delimiter, which causes shell expansion of `$` and backticks in the title. Change to `printf` for the title line, or use a quoted heredoc (`<< 'EOF'`) with explicit variable substitution afterward.
+The heredoc fallback was fixed by using a quoted heredoc (`<< 'TEMPLATE'`) with placeholder tokens (`__TITLE__`, `__SLUG__`, `__AUTHOR__`, etc.) that are then substituted via a single `sed -i.bak` call with properly escaped values. This avoids all shell expansion issues.
 
 ### 2. Slug Algorithm
 
@@ -79,19 +78,20 @@ The slug is extracted from frontmatter (`grep -m 1 "^slug:" "$file"`). For steel
 
 ### 5. `-s|--start` Flag
 
-Parsed before the positional title argument in the `new` command:
+Parsed alongside positional arguments using an ARGS array, so the flag can appear before or after the title:
 
 ```bash
 # Parse flags
 START_FLAG=0
+ARGS=()
 while [ $# -gt 0 ]; do
   case "$1" in
     -s|--start) START_FLAG=1; shift ;;
     -*) error "Unknown option: $1" ;;
-    *) break ;;
+    *) ARGS+=("$1"); shift ;;
   esac
 done
-TITLE="$1"
+TITLE="${ARGS[0]}"
 ```
 
 After successful creation, if `START_FLAG=1`, invoke start logic inline (not a subprocess):
@@ -132,7 +132,7 @@ bin/intent_st
   |   +-- escape title for sed     (NEW -- WP-01)
   |   +-- generate slug            (NEW -- WP-02)
   |   +-- sed with escaped title + slug  (MODIFIED -- WP-01/02)
-  |   +-- heredoc fallback with printf   (MODIFIED -- WP-01)
+  |   +-- heredoc fallback with quoted heredoc + sed  (MODIFIED -- WP-01)
   |   +-- inline start logic       (NEW -- WP-03)
   |
   case "list")

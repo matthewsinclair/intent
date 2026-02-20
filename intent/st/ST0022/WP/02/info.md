@@ -3,7 +3,7 @@ verblock: "20 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-02
 title: Slug Generation System
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-02: Slug Generation System

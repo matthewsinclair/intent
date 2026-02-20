@@ -3,7 +3,7 @@ verblock: "20 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-04
 title: Documentation and Wrap-up
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-04: Documentation and Wrap-up
