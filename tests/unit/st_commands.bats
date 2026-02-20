@@ -804,3 +804,201 @@ EOF
   assert_success
   assert_output_contains "ST0001"
 }
+
+# ====================================================================
+# Special character handling in st new (WP-01)
+# ====================================================================
+
+@test "st new handles slash in title" {
+  project_dir=$(create_test_project "ST Slash Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new "Features/Improvements"
+  assert_success
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/info.md" "Features/Improvements"
+}
+
+@test "st new handles ampersand in title" {
+  project_dir=$(create_test_project "ST Ampersand Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new "Costs & Benefits"
+  assert_success
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/info.md" "Costs & Benefits"
+}
+
+@test "st new handles backslash in title" {
+  project_dir=$(create_test_project "ST Backslash Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new 'Back\slash'
+  assert_success
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/info.md" 'Back\slash'
+}
+
+@test "st new handles mixed special characters in title" {
+  project_dir=$(create_test_project "ST Mixed Special Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new "A/B & C\D"
+  assert_success
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/info.md" "A/B & C"
+}
+
+# ====================================================================
+# Slug generation (WP-02)
+# ====================================================================
+
+@test "st new generates slug in frontmatter" {
+  project_dir=$(create_test_project "ST Slug Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new "My Cool Feature"
+  assert_success
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/info.md" "slug: my-cool-feature"
+}
+
+@test "st new generates slug from title with slashes" {
+  project_dir=$(create_test_project "ST Slug Slash Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new "Ash/Ecto Database Layer"
+  assert_success
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/info.md" "slug: ash-ecto-database-layer"
+}
+
+@test "st new generates slug from title with ampersand" {
+  project_dir=$(create_test_project "ST Slug Ampersand Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new "Costs & Benefits"
+  assert_success
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/info.md" "slug: costs-benefits"
+}
+
+@test "st new truncates slug to 50 chars" {
+  project_dir=$(create_test_project "ST Slug Truncate Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new "A Very Long Title That Exceeds Fifty Characters For Sure Yes Indeed"
+  assert_success
+
+  # Extract slug from the created file
+  slug=$(grep -m 1 "^slug:" intent/st/NOT-STARTED/ST0001/info.md | sed "s/^slug: *//")
+  [ ${#slug} -le 50 ] || fail "Slug length ${#slug} exceeds 50: $slug"
+  # Should not end with a hyphen
+  [[ "$slug" != *- ]] || fail "Slug ends with hyphen: $slug"
+}
+
+@test "st list shows Slug column header" {
+  project_dir=$(create_test_project "ST List Slug Header Test")
+  cd "$project_dir"
+
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << 'EOF'
+---
+intent_version: 2.0.0
+status: WIP
+slug: my-cool-feature
+---
+# ST0001: My Cool Feature
+EOF
+
+  run run_intent st list
+  assert_success
+  assert_output_contains "Slug"
+  assert_output_contains "my-cool-feature"
+}
+
+@test "st list falls back to title when no slug field" {
+  project_dir=$(create_test_project "ST List Slug Fallback Test")
+  cd "$project_dir"
+
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << 'EOF'
+---
+intent_version: 2.0.0
+status: WIP
+---
+# ST0001: Old Thread Without Slug
+EOF
+
+  run run_intent st list
+  assert_success
+  assert_output_contains "Old Thread Without Slug"
+}
+
+# ====================================================================
+# --start flag for st new (WP-03)
+# ====================================================================
+
+@test "st new -s creates and starts steel thread" {
+  project_dir=$(create_test_project "ST Start Flag Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new -s "Quick Fix"
+  assert_success
+
+  # Should be in main directory, not NOT-STARTED
+  assert_directory_exists "intent/st/ST0001"
+  [ ! -d "intent/st/NOT-STARTED/ST0001" ] || fail "ST0001 still in NOT-STARTED"
+  assert_file_contains "intent/st/ST0001/info.md" "status: WIP"
+}
+
+@test "st new --start creates and starts steel thread" {
+  project_dir=$(create_test_project "ST Start Long Flag Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new --start "Quick Fix"
+  assert_success
+
+  assert_directory_exists "intent/st/ST0001"
+  [ ! -d "intent/st/NOT-STARTED/ST0001" ] || fail "ST0001 still in NOT-STARTED"
+  assert_file_contains "intent/st/ST0001/info.md" "status: WIP"
+}
+
+@test "st new without --start creates in NOT-STARTED" {
+  project_dir=$(create_test_project "ST No Start Flag Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new "Regular Thread"
+  assert_success
+
+  assert_directory_exists "intent/st/NOT-STARTED/ST0001"
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/info.md" "status: Not Started"
+}
+
+@test "st new with flag after title works" {
+  project_dir=$(create_test_project "ST Flag After Title Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new "Quick Fix" -s
+  assert_success
+
+  assert_directory_exists "intent/st/ST0001"
+  [ ! -d "intent/st/NOT-STARTED/ST0001" ] || fail "ST0001 still in NOT-STARTED"
+  assert_file_contains "intent/st/ST0001/info.md" "status: WIP"
+}
+
+@test "st new -s generates slug in started thread" {
+  project_dir=$(create_test_project "ST Start Slug Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+  run run_intent st new -s "Quick Fix"
+  assert_success
+
+  assert_file_contains "intent/st/ST0001/info.md" "slug: quick-fix"
+}

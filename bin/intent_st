@@ -18,7 +18,7 @@ usage() {
   echo "Manage steel threads for the project"
   echo ""
   echo "Commands:"
-  echo "  new <title>                       Create a new steel thread"
+  echo "  new [-s|--start] <title>          Create a new steel thread"
   echo "  start <id>                        Mark a steel thread as in progress"
   echo "  done <id>                         Mark a steel thread as complete"
   echo "  list [--status <status>] [--width N] List steel threads (default: in progress only)"
@@ -264,9 +264,46 @@ get_next_steel_thread_id() {
   
   # Increment for the next ID
   next_id=$((max_id + 1))
-  
+
   # Format with leading zeros (4 digits)
   printf "%s%04d" "$st_prefix" $next_id
+}
+
+# Function to escape special characters for sed replacement strings
+escape_sed_replacement() {
+  local s="$1"
+  s="${s//\\/\\\\}"   # \ -> \\  (must be first)
+  s="${s//\//\\/}"     # / -> \/
+  s="${s//&/\\&}"      # & -> \&
+  echo "$s"
+}
+
+# Function to generate a URL-safe slug from a title (max 50 chars)
+slugify() {
+  local title="$1"
+  local slug
+
+  # Lowercase
+  slug=$(echo "$title" | tr '[:upper:]' '[:lower:]')
+
+  # Replace any run of non-alphanumeric chars with a single hyphen
+  slug=$(echo "$slug" | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g')
+
+  # Strip leading and trailing hyphens
+  slug=$(echo "$slug" | sed 's/^-//;s/-$//')
+
+  # Truncate to 50 chars on word boundary
+  if [ ${#slug} -gt 50 ]; then
+    local truncated="${slug:0:50}"
+    if [[ "$truncated" == *-* ]]; then
+      slug="${truncated%-*}"
+    else
+      slug="$truncated"
+    fi
+    slug="${slug%-}"
+  fi
+
+  echo "$slug"
 }
 
 # Function to update steel threads index
@@ -320,13 +357,27 @@ fi
 # Handle different commands
 case "$ST_COMMAND" in
   "new")
+    # Parse flags
+    START_FLAG=0
+    ARGS=()
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        -s|--start) START_FLAG=1; shift ;;
+        -*) error "Unknown option: $1" ;;
+        *) ARGS+=("$1"); shift ;;
+      esac
+    done
+
     # Check for required arguments
-    if [ $# -lt 1 ]; then
+    if [ ${#ARGS[@]} -lt 1 ]; then
       error "Steel thread title is required"
       usage
     fi
-    
-    TITLE="$1"
+
+    TITLE="${ARGS[0]}"
+    SLUG=$(slugify "$TITLE")
+    ESCAPED_TITLE=$(escape_sed_replacement "$TITLE")
+    ESCAPED_SLUG=$(escape_sed_replacement "$SLUG")
     ST_ID=$(get_next_steel_thread_id)
     ST_STATUS="Not Started"
     DATE=$(date '+%Y-%m-%d')
@@ -352,39 +403,44 @@ case "$ST_COMMAND" in
         DATE_COMPACT=$(date '+%Y%m%d')
         DATE_VERBOSE=$(date '+%d %b %Y')
         
+        ESCAPED_AUTHOR=$(escape_sed_replacement "$AUTHOR")
+        ESCAPED_DATE_VERBOSE=$(escape_sed_replacement "$DATE_VERBOSE")
+
         # Copy and process each template file
         for template in "$TEMPLATE_DIR"/*.md; do
           if [ -f "$template" ]; then
             filename=$(basename "$template")
             output_file="$ST_DIR/$filename"
-            
+
             sed -e "s/ST####/$ST_ID/g" \
-                -e "s/\[Title\]/$TITLE/g" \
+                -e "s/\[Title\]/$ESCAPED_TITLE/g" \
+                -e "s/\[Slug\]/$ESCAPED_SLUG/g" \
                 -e "s/\[Not Started|In Progress|Completed|On Hold|Cancelled\]/$ST_STATUS/g" \
                 -e "s/YYYY-MM-DD/$DATE/g" \
                 -e "s/YYYYMMDD/$DATE_COMPACT/g" \
-                -e "s/\[Date\]/$DATE_VERBOSE/g" \
-                -e "s/\[Author Name\]/$AUTHOR/g" \
-                -e "s/\[Author\]/$AUTHOR/g" \
+                -e "s/\[Date\]/$ESCAPED_DATE_VERBOSE/g" \
+                -e "s/\[Author Name\]/$ESCAPED_AUTHOR/g" \
+                -e "s/\[Author\]/$ESCAPED_AUTHOR/g" \
                 "$template" > "$output_file"
           fi
         done
       else
-        # Create minimal info.md if no templates
-        cat > "$ST_DIR/info.md" << EOF
+        # Create minimal info.md if no templates (quoted heredoc prevents expansion)
+        cat > "$ST_DIR/info.md" << 'TEMPLATE'
 ---
-verblock: "$(date '+%d %b %Y'):v0.1: $AUTHOR - Initial version"
+verblock: "__VERBLOCK__"
 intent_version: 2.0.0
-status: $ST_STATUS
-created: $(date '+%Y%m%d')
-completed: 
+status: __STATUS__
+slug: __SLUG__
+created: __CREATED__
+completed:
 ---
-# $ST_ID: $TITLE
+# __STID__: __TITLE__
 
-- **Status**: $ST_STATUS
-- **Created**: $DATE
-- **Completed**: 
-- **Author**: $AUTHOR
+- **Status**: __STATUS__
+- **Created**: __DATE__
+- **Completed**:
+- **Author**: __AUTHOR__
 
 ## Objective
 
@@ -397,11 +453,43 @@ completed:
 ## Related Steel Threads
 
 - [List any related steel threads here]
-EOF
+TEMPLATE
+        ESCAPED_AUTHOR=$(escape_sed_replacement "$AUTHOR")
+        ESCAPED_VERBLOCK=$(escape_sed_replacement "$(date '+%d %b %Y'):v0.1: $AUTHOR - Initial version")
+        sed -i.bak \
+          -e "s/__VERBLOCK__/$ESCAPED_VERBLOCK/g" \
+          -e "s/__STATUS__/$ST_STATUS/g" \
+          -e "s/__SLUG__/$ESCAPED_SLUG/g" \
+          -e "s/__CREATED__/$(date '+%Y%m%d')/g" \
+          -e "s/__STID__/$ST_ID/g" \
+          -e "s/__TITLE__/$ESCAPED_TITLE/g" \
+          -e "s/__DATE__/$DATE/g" \
+          -e "s/__AUTHOR__/$ESCAPED_AUTHOR/g" \
+          "$ST_DIR/info.md"
+        rm -f "$ST_DIR/info.md.bak"
       fi
       
       echo "Created steel thread directory: $ST_DIR"
       echo "Main file: $ST_DIR/info.md"
+
+      # Handle --start flag: create and immediately start
+      if [ $START_FLAG -eq 1 ]; then
+        ST_FILE="$ST_DIR/info.md"
+        sed -i.bak "s/^status: .*$/status: WIP/" "$ST_FILE"
+        sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: WIP/" "$ST_FILE"
+        rm -f "$ST_FILE.bak"
+
+        # Move from NOT-STARTED to main directory
+        NEW_DIR="intent/st/$ST_ID"
+        if [ "$ST_DIR" != "$NEW_DIR" ]; then
+          mkdir -p "$(dirname "$NEW_DIR")"
+          mv "$ST_DIR" "$NEW_DIR"
+          ST_DIR="$NEW_DIR"
+          echo "Moved steel thread to: $ST_DIR"
+        fi
+        ST_STATUS="WIP"
+        echo "Started steel thread: $ST_ID"
+      fi
     else
       # Legacy: Create single file
       ST_FILE=$(get_st_path "$ST_ID" "$ST_STATUS")
@@ -409,20 +497,38 @@ EOF
       
       if [ -f "${INTENT_HOME}/lib/templates/prj/st/_ST####.md" ]; then
         DATE_COMPACT=$(date '+%Y%m%d')
-        
+        ESCAPED_AUTHOR=$(escape_sed_replacement "$AUTHOR")
+
         sed -e "s/ST####/$ST_ID/g" \
-            -e "s/\[Title\]/$TITLE/g" \
+            -e "s/\[Title\]/$ESCAPED_TITLE/g" \
+            -e "s/\[Slug\]/$ESCAPED_SLUG/g" \
             -e "s/\[Not Started|In Progress|Completed|On Hold|Cancelled\]/$ST_STATUS/g" \
             -e "s/YYYY-MM-DD/$DATE/g" \
             -e "s/YYYYMMDD/$DATE_COMPACT/g" \
-            -e "s/\[Author Name\]/$AUTHOR/g" \
+            -e "s/\[Author Name\]/$ESCAPED_AUTHOR/g" \
             "${INTENT_HOME}/lib/templates/prj/st/_ST####.md" > "$ST_FILE"
       fi
-      
+
       echo "Created steel thread: $ST_ID: $TITLE"
       echo "Edit file: $ST_FILE"
+
+      # Handle --start flag for legacy path
+      if [ $START_FLAG -eq 1 ]; then
+        sed -i.bak "s/^status: .*$/status: WIP/" "$ST_FILE"
+        sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: WIP/" "$ST_FILE"
+        rm -f "$ST_FILE.bak"
+
+        NEW_FILE=$(get_st_path "$ST_ID" "WIP")
+        if [ "$ST_FILE" != "$NEW_FILE" ]; then
+          mkdir -p "$(dirname "$NEW_FILE")"
+          mv "$ST_FILE" "$NEW_FILE"
+          echo "Moved steel thread to: $NEW_FILE"
+        fi
+        ST_STATUS="WIP"
+        echo "Started steel thread: $ST_ID"
+      fi
     fi
-    
+
     # Update index
     update_steel_threads_index "$ST_ID" "$TITLE" "$ST_STATUS" "$DATE" ""
     ;;
@@ -781,7 +887,7 @@ EOF
     
     # Display header
     printf "%-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s\n" \
-      "ID" "Title" "Status" "Created" "Completed"
+      "ID" "Slug" "Status" "Created" "Completed"
     printf "%-${ID_WIDTH}s-|-%-${TITLE_WIDTH}s-|-%-${STATUS_WIDTH}s-|-%-${DATE_WIDTH}s-|-%-${DATE_WIDTH}s\n" \
       "$(printf '%0.s-' $(seq 1 $ID_WIDTH))" \
       "$(printf '%0.s-' $(seq 1 $TITLE_WIDTH))" \
@@ -798,13 +904,13 @@ EOF
         if [ -f "$dir/info.md" ]; then
           # Extract ID from directory name
           ID=$(basename "$dir")
-          
+
           # Read metadata from info.md
           file="$dir/info.md"
-          
+
           YAML_STATUS=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
           BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-          
+
           if [ -n "$YAML_STATUS" ]; then
             ST_STATUS="$YAML_STATUS"
           elif [ -n "$BODY_STATUS" ]; then
@@ -812,8 +918,11 @@ EOF
           else
             ST_STATUS="Not Started"
           fi
-          
-          TITLE=$(grep "^# $ID:" "$file" | sed "s/^# $ID: //")
+
+          TITLE=$(grep -m 1 "^slug:" "$file" | sed "s/^slug: *//")
+          if [ -z "$TITLE" ]; then
+            TITLE=$(grep "^# $ID:" "$file" | sed "s/^# $ID: //")
+          fi
           
           CREATED=$(grep -m 1 "^\- \*\*Created\*\*:" "$file" | sed "s/^\- \*\*Created\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
           COMPLETED=$(grep -m 1 "^\- \*\*Completed\*\*:" "$file" | sed "s/^\- \*\*Completed\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
@@ -869,11 +978,11 @@ EOF
       for file in $(find "$ST_DIR" -type f -name "ST[0-9][0-9][0-9][0-9].md"); do
         if [ -f "$file" ]; then
           ID=$(basename "$file" .md)
-          
+
           # (Rest of legacy processing same as original)
           YAML_STATUS=$(grep -m 1 "^status:" "$file" | sed "s/^status: *//")
           BODY_STATUS=$(grep -m 1 "^\- \*\*Status\*\*:" "$file" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-          
+
           if [ -n "$YAML_STATUS" ]; then
             ST_STATUS="$YAML_STATUS"
           elif [ -n "$BODY_STATUS" ]; then
@@ -881,8 +990,11 @@ EOF
           else
             ST_STATUS="Not Started"
           fi
-          
-          TITLE=$(grep "^# $ID:" "$file" | sed "s/^# $ID: //")
+
+          TITLE=$(grep -m 1 "^slug:" "$file" | sed "s/^slug: *//")
+          if [ -z "$TITLE" ]; then
+            TITLE=$(grep "^# $ID:" "$file" | sed "s/^# $ID: //")
+          fi
           
           CREATED=$(grep -m 1 "^\- \*\*Created\*\*:" "$file" | sed "s/^\- \*\*Created\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
           COMPLETED=$(grep -m 1 "^\- \*\*Completed\*\*:" "$file" | sed "s/^\- \*\*Completed\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
