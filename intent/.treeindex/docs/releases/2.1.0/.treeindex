@@ -1,18 +1,30 @@
-<!-- treeindex v1 fingerprint:aeb4a832 generated:2026-02-05T11:37:51Z -->
+<!-- treeindex v1 fingerprint:68c22c04 generated:2026-02-20T11:22:07Z -->
 
-I'll generate a `.treeindex` file for the `2.1.0/` directory based on the provided `RELEASE_NOTES.md` content.
+I'll help you generate a `.treeindex` file for the `2.1.0/` directory. First, let me check what files are in that directory.
 <function_calls>
-<invoke name="write">
-<parameter name="path">/Users/matts/Devel/prj/Intent/intent/.treeindex/2.1.0/.treeindex</parameter>
-<parameter name="text"># 2.1.0/
-
-Release notes and documentation for Intent v2.1.0, a maintenance release focused on fixing critical agent directory structure bugs and improving the Agent system introduced in v2.0.0.
-
-## Files
-
-- `RELEASE_NOTES.md` -- Comprehensive release documentation covering critical bug fixes (agent directory structure), agent system improvements, and upgrade instructions for projects migrating from v2.0.0
-</parameter>
+<invoke name="Glob">
+<parameter name="pattern">**/2.1.0/*</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">**/2.1.0/</parameter>
 </invoke>
 </function_calls>
 
-Done! The `.treeindex` for `2.1.0/` has been created at `intent/.treeindex/2.1.0/.treeindex`.
+Let me check the docs/releases structure:
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">docs/releases/</parameter>
+</invoke>
+</function_calls>
+
+Based on the context and the RELEASE_NOTES.md file you provided, here's the `.treeindex` for the `2.1.0/` release directory:
+
+# 2.1.0/
+
+Release notes and documentation for Intent v2.1.0 (July 27, 2025), a maintenance release fixing critical bugs in the agent system and upgrade process. Clarifies the correct agent directory structure and provides migration guidance for projects affected by the buggy v2.0.0 upgrade.
+
+## Files
+
+- `RELEASE_NOTES.md` -- July 27 release notes with bug fixes, agent system improvements, and upgrade guidance

@@ -5,86 +5,71 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.4.0] - 2026-02-17
 
 ### Added
 
+- **Skills system** -- new always-on enforcement layer for Claude Code (ST0020)
+  - `intent claude skills list` -- show available and installed skills
+  - `intent claude skills install <name>` -- install skill(s) to `.claude/skills/`
+  - `intent claude skills sync` -- update installed skills with latest versions
+  - `intent claude skills uninstall <name>` -- remove Intent-managed skills
+  - `intent claude skills show <name>` -- display skill content and status
+  - SHA256 checksum-based manifest tracking at `~/.intent/skills/installed-skills.json`
+- Six skills for proactive code enforcement:
+  - `intent-essentials` -- 7 Intent workflow rules (CLI usage, treeindex, steel thread conventions)
+  - `intent-elixir-essentials` -- 8 core rules (pattern matching, tagged tuples, pipes, naming)
+  - `intent-ash-ecto-essentials` -- 7 Ash/Ecto rules (code interfaces, migrations, actor placement)
+  - `intent-phoenix-liveview` -- 7 LiveView rules (two-phase mount, streams, components)
+  - `intent-elixir-testing` -- 8 mandatory test quality rules (no control flow in tests, strong assertions, spec-driven)
+  - `intent-autopsy` -- session forensics and memory meta-learning (ST0021)
 - **Diogenes subagent** -- Elixir Test Architect using Socratic dialog (ST0020 WP-11)
   - Two personas: Aristotle (Empiricist) and Diogenes (Skeptic)
   - Specify mode: 5-phase dialog producing `*.spec.md` test specifications
   - Validate mode: gap analysis comparing specs to test files
-- **intent-elixir-testing skill** -- 8 mandatory test quality rules (ST0020 WP-11)
-  - No control flow in test bodies, strong assertions, one focus per test
-  - Real code over mocks, spec-driven tests, globally unique test data
-- 19 BATS tests for diogenes subagent and intent-elixir-testing skill
-- **Special character handling** in `st new` -- titles with `/`, `&`, `\` no longer break creation (ST0022 WP-01)
-- **Slug generation** -- `st new` auto-generates a URL-safe `slug:` field in frontmatter, max 50 chars (ST0022 WP-02)
-- **`-s|--start` flag** for `st new` -- create and immediately start a steel thread in one command (ST0022 WP-03)
-- 15 BATS tests for special chars, slugs, and --start flag in st_commands.bats
 - **intent-autopsy skill** -- session forensics and memory meta-learning (ST0021)
+  - Inspired by [@chickensintrees](https://github.com/chickensintrees) and adapted from his work with STEF
   - Elixir script (`autopsy.exs`) pre-processes JSONL session files
   - Detects correction pairs, frustration signals, capability regressions, banned patterns
   - Memory-aware analysis: compares findings against MEMORY.md and CLAUDE.md rules
   - Identifies memory gaps, enforcement failures, undocumented conventions, stale memory
   - Ships default `banned-words.txt` with common AI-isms (delve, unfortunately, etc.)
-- 19 BATS tests for intent-autopsy skill and full directory install
-- `intent doctor` now checks for Elixir installation (optional, needed for autopsy)
-
-### Changed
-
-- `intent claude skills install` now copies entire skill directory (not just SKILL.md)
-  - Scripts and supporting files installed alongside SKILL.md
-  - `intent claude skills sync` also copies full directory on update
-  - Future-proofs for skills with supporting files
-- `st list` and `st sync` now show "Slug" column instead of "Title" (falls back to title for older threads)
-- Full test suite now at 17 test files
-
-## [2.4.0] - 2026-02-17
-
-### Added
-
-- **Skills system** — new always-on enforcement layer for Claude Code (ST0020)
-  - `intent claude skills list` — show available and installed skills
-  - `intent claude skills install <name>` — install skill(s) to `.claude/skills/`
-  - `intent claude skills sync` — update installed skills with latest versions
-  - `intent claude skills uninstall <name>` — remove Intent-managed skills
-  - `intent claude skills show <name>` — display skill content and status
-  - SHA256 checksum-based manifest tracking at `~/.intent/skills/installed-skills.json`
-- Four skills for proactive code enforcement (one universal + three Elixir):
-  - `intent-essentials` — 7 Intent workflow rules (CLI usage, treeindex, steel thread conventions)
-  - `intent-elixir-essentials` — 8 core rules (pattern matching, tagged tuples, pipes, naming)
-  - `intent-ash-ecto-essentials` — 7 Ash/Ecto rules (code interfaces, migrations, actor placement)
-  - `intent-phoenix-liveview` — 7 LiveView rules (two-phase mount, streams, components)
 - `intent claude upgrade` command for diagnosing and upgrading LLM guidance layer
   - Dry-run by default (use `--apply` to execute)
   - `--project-dir DIR` to target external projects
   - Diagnoses files, subagents, and skills; generates upgrade plan; applies changes
 - Elixir subagent reference documents:
-  - `ash-ecto.md` — Ash/Ecto database patterns (Ash-first, never raw Ecto)
-  - `liveview.md` — LiveView operational patterns (two-phase rendering, streams, uploads)
-  - `testing.md` — Testing reference (DataCase, ConnCase, LiveView, Mox, Ash testing)
-  - `project-structure.md` — Standard Phoenix/Ash project layout
+  - `ash-ecto.md` -- Ash/Ecto database patterns (Ash-first, never raw Ecto)
+  - `liveview.md` -- LiveView operational patterns (two-phase rendering, streams, uploads)
+  - `testing.md` -- Testing reference (DataCase, ConnCase, LiveView, Mox, Ash testing)
+  - `project-structure.md` -- Standard Phoenix/Ash project layout
 - Elixir project templates for `intent agents init --template elixir`:
   - `AGENTS.md` template with Elixir project overview and commands
   - `RULES.md` template with 9 core rules + framework rules + NEVER DO list
   - `ARCHITECTURE.md` template with domain map and directory structure skeleton
-- `usage-rules.md` — Intent's own LLM-optimized usage reference (~310 lines)
-- `docs/upgrade-guide-2.4.0.md` — human-readable upgrade guide for Intent projects
-- 37 BATS tests for skills commands in `tests/unit/skills_commands.bats`
+- `usage-rules.md` -- Intent's own LLM-optimized usage reference (~310 lines)
+- `docs/upgrade-guide-2.4.0.md` -- human-readable upgrade guide for Intent projects
+- **Special character handling** in `st new` -- titles with `/`, `&`, `\` no longer break creation (ST0022)
+- **Slug generation** -- `st new` auto-generates a URL-safe `slug:` field in frontmatter, max 50 chars (ST0022)
+- **`-s|--start` flag** for `st new` -- create and immediately start a steel thread in one command (ST0022)
+- `intent doctor` now checks for Elixir installation (optional, needed for autopsy)
+- BATS tests across 17 test files
 
 ### Changed
 
 - Refactored Elixir subagent rules from 23 overlapping to 12 non-overlapping rules
   - Organized into 5 categories: Data Access, Control Flow, Composition, Error Handling, Code Hygiene
   - Each rule is distinct with no overlap between categories
+- `intent claude skills install` now copies entire skill directory (not just SKILL.md)
+  - Scripts and supporting files installed alongside SKILL.md
+  - `intent claude skills sync` also copies full directory on update
 - Updated `intent agents init` to support `--template <name>` flag
   - Template copies AGENTS.md, RULES.md, ARCHITECTURE.md from template directory
   - RULES.md and ARCHITECTURE.md are human-curated (not overwritten without `--force`)
 - Added NEVER DO rule: never put `require` inside a function body (module level only)
-- Added YAML frontmatter with `description` field to all four SKILL.md files so Claude Code discovers and lists them in the system prompt
-- Updated `intent_claude_skills` to extract title/description from frontmatter (with legacy fallback)
+- Added YAML frontmatter with `description` field to all SKILL.md files for Claude Code discovery
+- `st list` and `st sync` now show "Slug" column instead of "Title" (falls back to title for older threads)
 - Updated copyright to 2026 across all source files
-- Full test suite now at 303 tests across 15 test files
 
 ## [2.3.4] - 2026-02-04
 

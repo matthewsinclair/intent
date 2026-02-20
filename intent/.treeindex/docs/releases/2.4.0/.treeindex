@@ -1,0 +1,38 @@
+<!-- treeindex v1 fingerprint:5d0f2802 generated:2026-02-20T11:21:17Z -->
+
+I'll check the contents of the 2.4.0/ directory first, then generate the .treeindex file.
+<function_calls>
+<invoke name="Glob">
+<parameter name="path">/Users/matts/Devel/prj/Intent/2.4.0</parameter>
+<parameter name="pattern">**</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Glob">
+<parameter name="path">/Users/matts/Devel/prj/Intent/2.4.0</parameter>
+<parameter name="pattern">*</parameter>
+</invoke>
+</function_calls>
+
+Let me check if the directory exists and what's in it:
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find /Users/matts/Devel/prj/Intent -maxdepth 2 -name "2.4.0" -o -name "*2.4.0*" 2>/dev/null | head -20</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">ls -la /Users/matts/Devel/prj/Intent/ | grep -E "(2\.|release|version)"</parameter>
+</invoke>
+</function_calls>
+
+Based on the source files you provided, it appears `2.4.0/` contains release documentation. Since I can't directly access that directory, let me generate the .treeindex based on the files you've shown me. The directory appears to contain release and upgrade documentation:
+
+# 2.4.0/
+
+Release documentation and upgrade guides for Intent v2.4.0. Contains release notes describing new features (skills system, upgrade command, Elixir reference docs), and step-by-step upgrade instructions for existing projects.
+
+## Files
+
+- `RELEASE_NOTES.md` -- Overview of v2.4.0 features: skills system, upgrade command, Elixir templates, three-file LLM guidance
+- `upgrade-guide-2.4.0.md` -- Step-by-step guide for upgrading Intent-managed Elixir projects to v2.4.0

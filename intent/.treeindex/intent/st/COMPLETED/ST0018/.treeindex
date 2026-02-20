@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:ab2f3989 generated:2026-02-20T11:24:37Z -->
+
+# ST0018/
+
+Steel thread documenting implementation of the Worker-Bee Intent agent for WDD architecture enforcement. Includes comprehensive design specifications, implementation details, task breakdown, and project mapping discovery patterns for Elixir-based projects.
+
+## Files
+
+- `info.md` -- Overview, objectives, status, and context for WDD specialist agent
+- `design.md` -- Architecture, design decisions, 6-layer enforcement approach, validation engine
+- `impl.md` -- Implementation details, agent system prompt, Mix task patterns, code examples
+- `tasks.md` -- Complete task breakdown across 9 phases, all completed

@@ -1,22 +1,25 @@
-<!-- treeindex v1 fingerprint:e6833084 generated:2026-02-05T11:37:29Z -->
+<!-- treeindex v1 fingerprint:e31e3e4a generated:2026-02-20T11:32:43Z -->
 
 # unit/
 
-Test suite using BATS framework. Contains unit tests for Intent commands, project configuration, migration, and treeindex functionality. Tests verify core CLI behavior, steel thread management, backlog integration, and configuration handling.
+BATS test suite for Intent CLI covering all commands and subsystems. Tests are organized by command domain and include infrastructure tests, configuration validation, project operations, and core features like steel threads, backlog, and Claude integration.
 
 ## Files
 
-- `agent_commands.bats` -- Tests for intent claude subagents commands (install, list)
-- `basic.bats` -- Infrastructure tests verifying test helper and executable setup
-- `bl_commands.bats` -- Backlog command tests (list, create, board)
-- `bootstrap.bats` -- Global config and bootstrap command tests
-- `config.bats` -- PROJECT_ROOT detection and config.json loading tests
-- `fileindex_commands.bats` -- File index command tests with checkbox states
-- `global_commands.bats` -- Global commands that work without project context
-- `help_commands.bats` -- Help system tests for command documentation
-- `init_commands.bats` -- Project initialization tests
-- `migration.bats` -- Backup and legacy structure migration tests
-- `project_commands.bats` -- Steel thread, backlog, and task command tests
-- `st_commands.bats` -- Steel thread CRUD and listing tests
-- `task_commands.bats` -- Task creation and validation tests
-- `treeindex_commands.bats` -- Treeindex generation and shadow directory tests
+- `basic.bats` -- Infrastructure and test helper verification
+- `global_commands.bats` -- Global commands (version, help, doctor, info, bootstrap)
+- `init_commands.bats` -- Project initialization and setup
+- `config.bats` -- Configuration loading and PROJECT_ROOT detection
+- `bootstrap.bats` -- Bootstrap installation and global config
+- `help_commands.bats` -- Help system and command documentation
+- `project_commands.bats` -- Commands that require project context
+- `st_commands.bats` -- Steel thread lifecycle (new, list, show, move, delete)
+- `bl_commands.bats` -- Backlog command integration and task bridging
+- `task_commands.bats` -- Task creation and backlog synchronization
+- `agent_commands.bats` -- Claude subagent installation and management
+- `skills_commands.bats` -- Claude skills lifecycle (list, install, sync, uninstall)
+- `test_autopsy.bats` -- intent-autopsy skill installation and directory handling
+- `test_diogenes.bats` -- Diogenes subagent and intent-elixir-testing skill
+- `migration.bats` -- Migration utilities and backup functionality
+- `fileindex_commands.bats` -- File indexing utility with checkbox tracking
+- `treeindex_commands.bats` -- Directory summary generation via Claude AI

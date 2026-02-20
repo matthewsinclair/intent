@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:e932204b generated:2026-02-20T11:27:17Z -->
+
+# ST0001/
+
+Steel thread documenting the initial directory structure and placeholder files for the STP (Steel Thread Process) system. This foundational steel thread establishes the directory organization for templates, scripts, and documentation that underpins the entire STP system.
+
+## Files
+
+- `info.md` -- Metadata, status, objective, and context for the steel thread
+- `design.md` -- Design approach for creating the directory structure
+- `impl.md` -- Implementation notes with complete directory structure diagram and naming conventions
+- `tasks.md` -- Task checklist with completion status

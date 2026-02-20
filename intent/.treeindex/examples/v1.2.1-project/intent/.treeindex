@@ -1,0 +1,39 @@
+<!-- treeindex v1 fingerprint:993dc106 generated:2026-02-20T11:23:23Z -->
+
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">intent/*</parameter>
+</invoke>
+</function_calls>
+<parameter name="start">0</parameter>
+<parameter name="start">0</parameter>
+<parameter name="limit">50</parameter>
+
+Let me get more detail on the subdirectories and files:
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find intent -maxdepth 1 -type f -o -type d | sort</parameter>
+</invoke>
+</function_calls>
+
+Now I'll generate the .treeindex for the `intent/` directory:
+
+# intent/
+
+Root directory for project artifacts, documentation, and work tracking. Contains steel threads organized by concern, technical documentation, LLM guidance, and configuration for the Intent CLI system itself.
+
+## Dirs
+
+- `st/` -- Steel threads organized by ID, each containing design, implementation, and task tracking
+- `docs/` -- Technical documentation and user guides
+- `llm/` -- LLM-specific guidelines and agent configuration
+- `.treeindex/` -- Shadow directory with pre-computed directory summaries for fast navigation
+- `usr/` -- User-facing documentation (user guide, reference guide, deployment guide)
+- `plugins/` -- Intent plugin system (agents, Claude subagents, skills)
+- `autopsy/` -- Intent autopsy analysis (skill-related tooling)
+
+## Files
+
+- `wip.md` -- Current work-in-progress state and active tasks
+- `restart.md` -- Session restart context and previous progress notes
+- `AGENTS.md` -- Intent agents configuration and installed agent tracking

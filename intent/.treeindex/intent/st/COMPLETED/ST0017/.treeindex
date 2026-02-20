@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:a589f1e8 generated:2026-02-20T11:24:50Z -->
+
+# ST0017/
+
+Tracks implementation of Claude Code sub-agent integration for Intent, enabling project-specific and global agent management. Contains design decisions, implementation plan, task checklist, and metadata for a completed steel thread.
+
+## Files
+
+- `info.md` -- Steel thread metadata (Completed, v0.3, intent_version 2.1.0), objective summary
+- `design.md` -- Design approach, decisions on sync vs symlinks, manifest tracking, dual-level agent system, architecture
+- `impl.md` -- Implementation plan in 4 phases, command structure, manifest operations, technical details
+- `tasks.md` -- Task checklist across 6 phases, critical path items, external dependencies (jq, sha256sum)

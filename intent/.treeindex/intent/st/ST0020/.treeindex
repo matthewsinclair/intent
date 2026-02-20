@@ -1,0 +1,16 @@
+<!-- treeindex v1 fingerprint:ac6fa3fb generated:2026-02-20T11:28:29Z -->
+
+# ST0020/
+
+Steel thread documenting the modernization of Intent's Elixir support from subagents-only to a layered skills + subagent architecture. Includes 11 work packages covering rule distillation, skill creation, infrastructure, testing, and project rollout across 7 implementation phases.
+
+## Dirs
+
+- `WP/` -- 11 work packages (WP-01 through WP-11) with individual info.md files for each phase
+
+## Files
+
+- `info.md` -- Steel thread metadata, objective, problem statement, solution architecture, work packages, and sequencing
+- `design.md` -- Architecture decisions: skills vs subagents, three-file LLM guidance (AGENTS/RULES/ARCHITECTURE), Ash-first, rule consolidation, skill sizing
+- `impl.md` -- Implementation phases (0-7), file inventory of new/modified files, and rollout status across 8 target projects
+- `tasks.md` -- Complete task checklist organized by phase (0-7) covering documentation, foundation, skills, testing, infrastructure, upgrade, and rollout

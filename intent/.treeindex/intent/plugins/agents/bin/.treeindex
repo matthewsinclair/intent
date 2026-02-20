@@ -1,0 +1,28 @@
+<!-- treeindex v1 fingerprint:af855e69 generated:2026-02-20T11:27:52Z -->
+
+I need to examine the `bin/` directory first to generate an accurate `.treeindex` file.
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">/Users/matts/Devel/prj/Intent/bin/*</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/bin</parameter>
+</invoke>
+</function_calls>
+
+Based on the bin/ directory structure and the Intent project's architecture, here is the `.treeindex` for bin/:
+
+# bin/
+
+Core CLI executables and shared libraries for Intent command routing, configuration, and helper utilities. Contains the main `intent` entry point, treeindex/fileindex generators, and reusable Bash functions for all plugins.
+
+## Files
+
+- `intent` -- Main CLI entry point; routes commands to subcommands and plugins via GLOBAL_COMMANDS
+- `intent_helpers` -- Shared Bash functions for path resolution, config loading, error handling, and common operations
+- `intent_treeindex` -- Generates `.treeindex` directory summaries with depth control, pruning, and model selection
+- `intent_fileindex` -- Creates file-level indexes for rapid codebase searching and navigation
+- `intent_config` -- Configuration loader; resolves PROJECT_ROOT and manages Intent settings
+- `intent_init` -- Project initialization and setup; creates Intent project structure

@@ -1,9 +1,62 @@
-<!-- treeindex v1 fingerprint:a63aae2d generated:2026-02-04T11:45:48Z -->
+<!-- treeindex v1 fingerprint:2bfe85b7 generated:2026-02-20T11:30:08Z -->
+
+<function_calls>
+[{"tool_name": "Glob", "arguments": {"pattern": "docs/**", "maxDepth": 3}}]
+</function_calls>
+
+```
+docs/
+docs/README.md
+docs/blog/
+docs/blog/README.md
+docs/releases/
+docs/releases/README.md
+docs/releases/1.2.1/
+docs/releases/1.2.1/RELEASE_NOTES.md
+docs/releases/2.0.0/
+docs/releases/2.0.0/RELEASE_NOTES.md
+docs/releases/2.1.0/
+docs/releases/2.1.0/RELEASE_NOTES.md
+docs/releases/2.2.0/
+docs/releases/2.2.0/RELEASE_NOTES.md
+docs/releases/2.2.1/
+docs/releases/2.2.1/RELEASE_NOTES.md
+docs/releases/2.3.2/
+docs/releases/2.3.2/RELEASE_NOTES.md
+docs/releases/2.3.3/
+docs/releases/2.3.3/RELEASE_NOTES.md
+docs/releases/2.3.4/
+docs/releases/2.3.4/RELEASE_NOTES.md
+docs/releases/2.4.0/
+docs/releases/2.4.0/RELEASE_NOTES.md
+```
+
+Now let me read the docs/README.md to understand the purpose:
+<function_calls>
+[{"tool_name": "Read", "arguments": {"path": "docs/README.md"}}]
+</function_calls>
+
+```
+# Documentation
+
+This directory contains public-facing documentation, release notes, and blog content for the Intent project.
+
+**Organization:**
+- `releases/` - Version-specific release notes and announcements
+- `blog/` - Project blog posts and announcements
+
+**Maintenance:** Documentation is version-controlled and updated with each release.
+```
 
 # docs/
 
-Documentation for the Intent project, including guides for creating custom agents, architectural principles, and project-specific procedures. Contains versioned documentation with YAML frontmatter for tracking and metadata.
+Public-facing documentation, release notes, and blog content for the Intent project. Organized by release version and editorial content.
+
+## Dirs
+
+- `blog/` -- Project blog posts and announcements
+- `releases/` -- Version-specific release notes organized by version number (1.2.1 through 2.4.0)
 
 ## Files
 
-- `creating-custom-agents.md` -- Step-by-step guide for creating specialized Intent agents with domain expertise, including directory structure, YAML frontmatter, and system prompt requirements
+- `README.md` -- Documentation directory overview and organization guide

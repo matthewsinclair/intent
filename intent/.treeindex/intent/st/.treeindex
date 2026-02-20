@@ -1,32 +1,17 @@
-<!-- treeindex v1 fingerprint:066c7b47 generated:2026-02-04T23:03:03Z -->
+<!-- treeindex v1 fingerprint:c6ac593e generated:2026-02-20T11:29:43Z -->
 
 # st/
 
-Steel threads directory containing self-contained units of work focused on implementing specific functionality. Each steel thread has its own subdirectory with metadata and implementation details tracked in `info.md` and related documentation files.
+Container directory for steel threads organized by status and identifier. Steel threads (ST####) are self-contained units of work that implement specific features or improvements to Intent. The directory structure separates active work from completed and not-yet-started steel threads.
 
 ## Dirs
 
-- `ST0001/` -- Steel thread unit of work directory
-- `ST0002/` -- Steel thread unit of work directory
-- `ST0003/` -- Steel thread unit of work directory
-- `ST0004/` -- Steel thread unit of work directory
-- `ST0005/` -- Steel thread unit of work directory
-- `ST0006/` -- Steel thread unit of work directory
-- `ST0007/` -- Steel thread unit of work directory
-- `ST0008/` -- Steel thread unit of work directory
-- `ST0009/` -- Steel thread unit of work directory
-- `ST0010/` -- Steel thread unit of work directory
-- `ST0011/` -- Steel thread unit of work directory
-- `ST0012/` -- Steel thread unit of work directory
-- `ST0013/` -- Steel thread unit of work directory
-- `ST0014/` -- Steel thread unit of work directory
-- `ST0015/` -- Steel thread unit of work directory
-- `ST0016/` -- Steel thread unit of work directory
-- `ST0017/` -- Steel thread unit of work directory
-- `ST0018/` -- Steel thread unit of work directory
-- `ST0019/` -- Steel thread unit of work directory
-- `ST0020/` -- Steel thread unit of work directory
+- `COMPLETED/` -- Archived steel threads (ST0001 through ST0019) that have finished implementation
+- `NOT-STARTED/` -- Planned steel threads awaiting resources or priority
+- `ST0020/` -- Modernizing Intent's Elixir support with skills and subagents
+- `ST0021/` -- Intent Autopsy: session analysis system for detecting corrections and regressions
+- `ST0022/` -- Hardening `intent st new`: special char escaping, slugs, and --start flag
 
 ## Files
 
-- `steel_threads.md` -- Index of all steel threads with status tracking and usage instructions
+- `steel_threads.md` -- Master index of all steel threads with status tracking and navigation

@@ -1,11 +1,29 @@
-<!-- treeindex v1 fingerprint:1bb76162 generated:2026-02-04T11:45:41Z -->
+<!-- treeindex v1 fingerprint:18358dd3 generated:2026-02-20T11:29:55Z -->
+
+I'll explore the `llm/` directory first to understand its structure and contents.
+<function_calls>
+<invoke name="Glob">
+<parameter name="glob">/Users/matts/Devel/prj/Intent/llm/**/*</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/llm</parameter>
+</invoke>
+</function_calls>
+
+Now I'll generate the .treeindex file:
 
 # llm/
 
-Configuration and guidelines for LLM collaboration within Intent projects. Contains deprecated legacy documentation alongside the current AGENTS.md specification for agent configuration and development workflows.
+Central repository for LLM-specific guidelines and configurations used to shape AI agent behavior and project understanding. Contains Claude subagent definitions, skill libraries, and project upgrade guidance.
+
+## Dirs
+
+- `plugins/` -- Claude plugin ecosystem with subagents and skills management
+- `upgrades/` -- Project upgrade versioning and migration guides
 
 ## Files
 
-- `AGENTS.md` -- Universal agent configuration and development environment setup for Intent v2.3.0+
-- `usage-rules.md` -- Intent workflow patterns and command reference for LLMs (Intent v2.1.0)
-- `llm_preamble.md` -- Deprecated legacy LLM context document (replaced by AGENTS.md)
+- `AGENTS.md` -- Project agent configuration and development environment setup
+- `README.md` -- LLM module overview and usage patterns

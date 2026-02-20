@@ -1,0 +1,29 @@
+<!-- treeindex v1 fingerprint:ca20b446 generated:2026-02-20T11:23:05Z -->
+
+I'll generate a .treeindex file for the `st/` directory. Let me first check what steel threads and files are currently in the directory.
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">intent/st/**</parameter>
+</invoke>
+</function_calls>
+<parameter name="start">0</parameter>
+<parameter name="limit">100</parameter>
+
+Now I'll generate the .treeindex file:
+
+# st/
+
+Directory containing all project steel threads. Each steel thread is a self-contained directory with metadata, design documentation, implementation notes, and task tracking. Steel threads drive the project roadmap and organize work by architectural or feature concerns.
+
+## Dirs
+
+- `ST0001/` -- Directory-Based Structure (completed foundational work)
+- `ST0002/` -- Feature Implementation (in progress)
+- `ST0003/` -- Future Enhancement (planned)
+- `ST0020/` -- Claude Agents & Skills Integration
+- `ST0021/` -- Intent Autopsy (Elixir analysis skill)
+- `ST0022/` -- Harden st new (special chars, slugs, --start flag)
+
+## Files
+
+- `steel_threads.md` -- Master index of all steel threads with status tracking and definitions

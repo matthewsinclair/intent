@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:048f9bbc generated:2026-02-20T11:26:48Z -->
+
+# ST0004/
+
+Completed steel thread for the core `stp st` command subsystem. Implements the command-line interface for creating, managing, and tracking steel threads, including new, list, show, done, and edit commands with automatic ID assignment and cross-platform editor support.
+
+## Files
+
+- `info.md` -- Steel thread metadata, status, and completion dates
+- `design.md` -- Command-line interface design and architectural approach
+- `impl.md` -- Implementation notes on command structure, ID format, indexing, and cross-platform support
+- `tasks.md` -- Task checklist with all items completed

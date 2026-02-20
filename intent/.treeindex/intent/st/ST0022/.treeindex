@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:0f48cfa5 generated:2026-02-20T11:28:09Z -->
+
+# ST0022/
+
+Steel thread for hardening the `intent st new` command with three features: escaping special characters in titles via sed, auto-generating slugs (URL-safe identifiers up to 50 chars), and a `-s|--start` flag to create and immediately start a steel thread in one command. All three work packages implemented and tested (327 tests passing).
+
+## Files
+
+- `info.md` -- Steel thread objective, problem statement, and work package summary
+- `design.md` -- Design decisions and implementation approach (escaping strategy, slug algorithm, frontmatter format, slug in listings)
+- `impl.md` -- As-built implementation details for all three work packages with code examples and test coverage
+- `tasks.md` -- Phase-by-phase task tracking; all phases complete (WP-01 through WP-04)

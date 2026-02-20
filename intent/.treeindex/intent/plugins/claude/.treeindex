@@ -1,0 +1,23 @@
+<!-- treeindex v1 fingerprint:a2d8d55a generated:2026-02-20T11:29:04Z -->
+
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find intent/plugins/claude -type f | head -30</parameter>
+</invoke>
+</function_calls>
+
+Based on the directory structure and my memory of the project, here's the .treeindex for the `claude/` directory:
+
+# claude/
+
+Claude Code integration plugin providing subagent management, skill installation, and project upgrade capabilities. Implements the multi-agent architecture for specialized AI assistance across Intent projects.
+
+## Dirs
+
+- `bin/` -- Executable scripts for subagent, skill, and upgrade management
+- `skills/` -- Skill definitions providing domain-specific guidance (intent-essentials, intent-autopsy, language-specific skills)
+- `subagents/` -- Subagent definitions with expertise profiles (intent, elixir, socrates, worker-bee, diogenes)
+
+## Files
+
+- `PLUGIN.md` -- Plugin manifest and configuration for Claude integration

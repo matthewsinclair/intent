@@ -1,0 +1,9 @@
+<!-- treeindex v1 fingerprint:044e1306 generated:2026-02-20T11:22:54Z -->
+
+# .config/
+
+Legacy configuration directory for the Intent project (formerly STP). Contains version metadata and project configuration.
+
+## Files
+
+- `version` - STP version specification (legacy, currently v1.2.1)

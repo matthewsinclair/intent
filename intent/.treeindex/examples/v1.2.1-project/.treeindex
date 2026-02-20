@@ -1,43 +1,27 @@
-<!-- treeindex v1 fingerprint:9e0c5ec1 generated:2026-02-05T11:37:34Z -->
+<!-- treeindex v1 fingerprint:464373fe generated:2026-02-20T11:23:40Z -->
 
-I'll generate a `.treeindex` file for the v1.2.1-project directory.
+Let me explore the v1.2.1-project/ directory structure:
 <function_calls>
-<invoke name="glob">
-<parameter name="pattern">v1.2.1-project/**/*</parameter>
+<invoke name="Bash">
+<parameter name="command">find examples/v1.2.1-project -maxdepth 2 -type f -o -type d | sort</parameter>
 </invoke>
 </function_calls>
 <function_calls>
-<invoke name="read">
-<parameter name="path">v1.2.1-project</parameter>
+<invoke name="Glob">
+<parameter name="pattern">examples/v1.2.1-project/**</parameter>
 </invoke>
 </function_calls>
 
-Let me check the structure more carefully:
-<function_calls>
-<invoke name="bash">
-<parameter name="command">find v1.2.1-project -type f -o -type d | head -30</parameter>
-</invoke>
-</function_calls>
+# v1.2.1-project/
 
-Now I'll generate the `.treeindex` file:
-<function_calls>
-<invoke name="write">
-<parameter name="path">intent/.treeindex/v1.2.1-project/.treeindex</parameter>
-<parameter name="content"># v1.2.1-project/
-
-Example Intent v2.0.0 project demonstrating the migration from STP legacy structure. Contains project artifacts, steel threads, documentation, and configuration files showing the new Intent directory organization.
+Example Intent v2.0.0 project demonstrating the steel thread workflow and project structure. This minimal project showcases how to initialize and use Intent for artifact tracking, documentation, and LLM-guided development.
 
 ## Dirs
 
-- `intent/` -- Project artifacts including steel threads, documentation, and LLM guidelines
-- `.intent/` -- Intent configuration and metadata
+- `intent/` -- Project artifacts, steel threads, documentation, and Intent configuration
+- `.intent/` -- Intent system configuration and metadata files
 
 ## Files
 
-- `.gitignore` -- Version control exclusions for Intent/STP files, OS artifacts, and editor config
-- `CLAUDE.md` -- Project guidelines covering structure, steel threads, commands, and migration notes
-</parameter>
-</invoke>
-</function_calls>
-
-Done! I've generated a `.treeindex` file for v1.2.1-project at `intent/.treeindex/v1.2.1-project/.treeindex`. It documents the project as an example Intent v2.0.0 migration project with its directory structure and key files.
+- `.gitignore` -- Git ignore rules for Intent artifacts and temporary files
+- `CLAUDE.md` -- Project guidelines and Intent v2.0.0 setup documentation

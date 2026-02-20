@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:a345b33d generated:2026-02-20T11:26:41Z -->
+
+# ST0005/
+
+Steel thread for implementing the initialization command (`stp init`) to bootstrap new STP projects. Completed 2025-06-03. Contains design, implementation notes, task tracking, and project status.
+
+## Files
+
+- `info.md` -- Steel thread metadata, status, objectives, and completion record
+- `design.md` -- Design approach for directory structure and initialization workflow
+- `impl.md` -- Implementation details for directory creation and template instantiation
+- `tasks.md` -- Task checklist for initialization feature (all completed)

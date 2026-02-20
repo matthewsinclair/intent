@@ -1,0 +1,20 @@
+<!-- treeindex v1 fingerprint:fc0a6f87 generated:2026-02-20T11:27:39Z -->
+
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">templates/**</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">templates</parameter>
+</invoke>
+</function_calls>
+
+# templates/
+
+Template files for Intent project initialization and documentation generation. Contains standardized templates for AGENTS.md and other project configuration files to ensure consistent documentation across Intent projects.
+
+## Files
+
+- `default.md` -- Standard AGENTS.md template with sections for overview, environment, build/test commands, code style, testing, commits, security, and resources

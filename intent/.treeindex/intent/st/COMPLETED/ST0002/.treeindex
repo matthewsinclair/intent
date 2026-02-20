@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:6d32e878 generated:2026-02-20T11:27:09Z -->
+
+# ST0002/
+
+Core script framework and command dispatching system for the STP CLI. Implements the main `stp` script, environment variable handling, modular command architecture, and help system. Completed as of 2025-06-03.
+
+## Files
+
+- `info.md` -- Steel thread metadata, objective, and completion status
+- `design.md` -- High-level design approach and architecture decisions
+- `impl.md` -- Detailed implementation notes and patterns
+- `tasks.md` -- Task checklist for core script development
