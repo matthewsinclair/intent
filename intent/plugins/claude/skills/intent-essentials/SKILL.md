@@ -1,3 +1,7 @@
+---
+description: "Core Intent workflow rules for steel threads, agents, treeindex, and session management"
+---
+
 # Intent Essentials
 
 Core Intent workflow rules enforced on every interaction. These are mandatory -- no exceptions.

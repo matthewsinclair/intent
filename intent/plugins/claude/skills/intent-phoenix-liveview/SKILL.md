@@ -1,3 +1,7 @@
+---
+description: "Phoenix LiveView lifecycle rules: two-phase mount, streams, async loading, thin LiveViews, components"
+---
+
 # Phoenix LiveView Essentials
 
 LiveView lifecycle and rendering rules enforced on every LiveView module. These are mandatory -- no exceptions.

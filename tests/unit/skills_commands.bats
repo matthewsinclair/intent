@@ -441,6 +441,13 @@ teardown() {
   assert_output_contains "Content:"
 }
 
+@test "claude skills show extracts description from frontmatter" {
+  run run_intent claude skills show intent-elixir-essentials
+  assert_success
+  assert_output_contains "Title: Elixir Essentials"
+  assert_output_contains "Description: Elixir coding rules"
+}
+
 @test "claude skills show indicates installation status" {
   # Check when not installed
   run run_intent claude skills show intent-elixir-essentials
