@@ -151,7 +151,15 @@ To create a new steel thread:
 intent st new "Implement Feature X"
 ```
 
-This creates a new steel thread directory (eg `intent/st/ST0001/`) with an `info.md` file containing metadata.
+This creates a new steel thread directory (eg `intent/st/NOT-STARTED/ST0001/`) with an `info.md` file containing metadata and an auto-generated slug.
+
+To create and immediately start a steel thread (skips NOT-STARTED, goes straight to WIP):
+
+```bash
+intent st new -s "Quick Fix"
+```
+
+Titles can contain special characters like `/`, `&`, and `\` safely.
 
 ### Viewing Steel Threads
 
