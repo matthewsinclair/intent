@@ -1,9 +1,9 @@
 ---
-verblock: "20 Feb 2026:v0.2: matts - As-built update, add WP-11"
+verblock: "20 Feb 2026:v0.3: matts - Completed"
 intent_version: 2.4.0
 status: Completed
 created: 20260217
-completed:
+completed: 20260220
 ---
 
 # ST0020: Modernizing Intent's Elixir Support for Agentic Coding

@@ -1,5 +1,11 @@
 # Implementation - ST0021: Intent Autopsy
 
+## Status
+
+Completed 20 Feb 2026. All deliverables shipped as part of v2.4.0. First autopsy report
+generated at `intent/autopsy/20260220.md` from 12 real sessions, resulting in 6 memory
+updates applied to MEMORY.md.
+
 ## Implementation
 
 ### Elixir Script (`autopsy.exs`)
@@ -72,3 +78,14 @@ The autopsy plan itself mentions banned words as examples (e.g., "delve", "I'd b
 When running against sessions that discussed the plan, these show up as violations. The negation
 detection helps somewhat, but some meta-references are expected. The skill's second-pass
 instructions tell Claude to account for this.
+
+## File Inventory
+
+| File                                                                | Action  | Purpose                          |
+| ------------------------------------------------------------------- | ------- | -------------------------------- |
+| `intent/plugins/claude/skills/intent-autopsy/SKILL.md`             | Created | Skill definition and methodology |
+| `intent/plugins/claude/skills/intent-autopsy/scripts/autopsy.exs`  | Created | Elixir JSONL preprocessor        |
+| `intent/plugins/claude/skills/intent-autopsy/scripts/banned-words.txt` | Created | Default banned word patterns  |
+| `intent/plugins/claude/bin/intent_claude_skills`                    | Modified | Full directory install (cp -r)  |
+| `bin/intent_doctor`                                                 | Modified | Elixir optional dependency check |
+| `tests/unit/test_autopsy.bats`                                     | Created | 19 BATS tests                    |

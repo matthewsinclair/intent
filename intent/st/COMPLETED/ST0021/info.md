@@ -1,9 +1,9 @@
 ---
-verblock: "20 Feb 2026:v0.2: matts - Architecture and implementation plan"
+verblock: "20 Feb 2026:v0.3: matts - Completed"
 intent_version: 2.4.0
 status: Completed
 created: 20260220
-completed:
+completed: 20260220
 ---
 
 # ST0021: Intent Autopsy -- Session Analysis & Memory Meta-Learning
@@ -43,4 +43,4 @@ Build a memory-aware session analysis system that compares Claude Code session b
 
 ## Context for LLM
 
-This steel thread adds the fifth Intent skill. Unlike the four existing skills (which are always-on enforcement rules), `intent-autopsy` is an analysis/diagnostic skill invoked on-demand via `/intent-autopsy`. It requires an Elixir script installed alongside the SKILL.md, which motivated extending the skills install mechanism to copy full directories.
+This steel thread added the sixth Intent skill. Unlike the other skills (which are always-on enforcement rules), `intent-autopsy` is an analysis/diagnostic skill invoked on-demand via `/intent-autopsy`. It requires an Elixir script installed alongside the SKILL.md, which motivated extending the skills install mechanism to copy full directories.
