@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Diogenes subagent** — Elixir Test Architect using Socratic dialog (ST0020 WP-11)
+  - Two personas: Aristotle (Empiricist) and Diogenes (Skeptic)
+  - Specify mode: 5-phase dialog producing `*.spec.md` test specifications
+  - Validate mode: gap analysis comparing specs to test files
+- **intent-elixir-testing skill** — 8 mandatory test quality rules (ST0020 WP-11)
+  - No control flow in test bodies, strong assertions, one focus per test
+  - Real code over mocks, spec-driven tests, globally unique test data
+- 19 BATS tests for diogenes subagent and intent-elixir-testing skill
+
+### Changed
+
+- Full test suite now at 321 tests across 16 test files
+
 ## [2.4.0] - 2026-02-17
 
 ### Added

@@ -3,7 +3,7 @@ verblock: "17 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-02
 title: Create elixir-essentials Skill
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-02: Create elixir-essentials Skill

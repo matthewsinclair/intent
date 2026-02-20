@@ -3,7 +3,7 @@ verblock: "17 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-06
 title: Skill Installation Infrastructure
 scope: Large
-status: Not Started
+status: Done
 ---
 
 # WP-06: Skill Installation Infrastructure

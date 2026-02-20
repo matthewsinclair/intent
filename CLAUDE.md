@@ -80,6 +80,12 @@ This project has access to specialized AI agents through Intent's agent system. 
    - Code scaffolding with templates
    - Mix task generation for WDD compliance
 
+5. **diogenes** - Elixir Test Architect
+   - Socratic dialog for test specification generation
+   - Two personas: Aristotle (Empiricist) + Diogenes (Skeptic)
+   - Specify mode: produces formal test specs from module analysis
+   - Validate mode: gap analysis of tests vs specifications
+
 ### Using Agents
 
 To delegate tasks to specialized agents, use the Task tool with the appropriate subagent_type:

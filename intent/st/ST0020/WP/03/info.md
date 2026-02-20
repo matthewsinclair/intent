@@ -3,7 +3,7 @@ verblock: "17 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-03
 title: Create Ash/Ecto Reference Doc + Skill
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-03: Create Ash/Ecto Reference Doc + Skill

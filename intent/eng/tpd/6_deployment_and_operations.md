@@ -1,6 +1,6 @@
 ---
-verblock: "27 Jul 2025:v2.1.0: Matthew Sinclair - Updated for Intent v2.1.0"
-intent_version: 2.1.0
+verblock: "20 Feb 2026:v2.4.0: Matthew Sinclair - Updated for Intent v2.4.0"
+intent_version: 2.4.0
 ---
 
 # 6. Deployment and Operations [AS-BUILT]
@@ -353,13 +353,70 @@ intent help --verbose
 - CLAUDE.md: Project-specific help
 - This TPD: Technical reference
 
-## 6.8 AS-BUILT Summary
+## 6.8 Skills and Subagent Deployment [AS-BUILT v2.4.0]
 
-Intent v2.1.0 deployment features:
+### Installing Skills
+
+```bash
+# List available skills
+intent claude skills list
+
+# Install a skill to project
+intent claude skills install intent-elixir-essentials
+
+# Sync all installed skills
+intent claude skills sync
+
+# Uninstall a skill
+intent claude skills uninstall intent-elixir-essentials
+```
+
+### Installing Subagents
+
+```bash
+# List available subagents
+intent claude subagents list
+
+# Install a subagent
+intent claude subagents install elixir
+
+# Sync all installed subagents
+intent claude subagents sync
+```
+
+### Generating Treeindex
+
+```bash
+# Generate directory summaries
+intent treeindex lib
+
+# Check for stale summaries
+intent treeindex --check lib
+
+# Prune orphaned summaries
+intent treeindex --prune lib
+```
+
+### Upgrading Projects
+
+```bash
+# Diagnose project state (dry-run)
+intent claude upgrade
+
+# Apply upgrades
+intent claude upgrade --apply
+```
+
+## 6.9 AS-BUILT Summary
+
+Intent v2.4.0 deployment features:
 
 1. **Bootstrap**: Automated global setup
 2. **Doctor**: Diagnostics and fixes
-3. **Upgrade**: Migration from any version
-4. **JSON Config**: Hierarchical settings
-5. **Enhanced UX**: Better error messages
-6. **Self-Hosting**: Proven through use
+3. **Plugin Commands**: Extensible via intent/plugins/
+4. **Skills Lifecycle**: Install, sync, uninstall with SHA256 tracking
+5. **Subagent Lifecycle**: Install, sync, uninstall with SHA256 tracking
+6. **Claude Upgrade**: Automated project modernization
+7. **Treeindex**: Pre-computed codebase navigation
+8. **302 Tests**: Comprehensive BATS test coverage
+9. **Self-Hosting**: Proven across 8 target projects

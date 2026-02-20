@@ -28,6 +28,13 @@
       "description": "Worker-Bee Driven Design specialist for Elixir applications - enforces WDD architecture patterns, validates compliance, and scaffolds WDD-compliant code",
       "path": "intent/plugins/claude/subagents/worker-bee",
       "checksum": ""
+    },
+    {
+      "name": "diogenes",
+      "version": "1.0.0",
+      "description": "Elixir Test Architect - Socratic dialog that produces test specifications and validates test quality",
+      "path": "intent/plugins/claude/subagents/diogenes",
+      "checksum": ""
     }
   ]
 }

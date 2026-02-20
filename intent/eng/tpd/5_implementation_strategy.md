@@ -1,6 +1,6 @@
 ---
-verblock: "09 Jul 2025:v0.2: Matthew Sinclair - Updated for steel thread directory structure"
-stp_version: 2.0.0
+verblock: "20 Feb 2026:v2.4.0: Matthew Sinclair - Updated for Intent v2.4.0"
+intent_version: 2.4.0
 ---
 
 # 5. Implementation Strategy
@@ -195,7 +195,7 @@ Phase 3: Rebrand (v2.0.0)
 ST0013 (blog) → ST0014 → ST0015 → ST0016 (migration)
 ```
 
-### 5.9.2 Key Implementation Achievements
+### 5.9.2 Key Implementation Achievements (v2.0.0)
 
 1. **Self-Hosting Success**: Intent built using Intent methodology
 2. **Test Coverage**: 86 tests covering all critical functionality
@@ -203,7 +203,7 @@ ST0013 (blog) → ST0014 → ST0015 → ST0016 (migration)
 4. **User Experience**: Bootstrap, doctor, and upgrade commands
 5. **Documentation**: 7-part blog series and updated TPD
 
-### 5.9.3 Lessons Learned
+### 5.9.3 Lessons Learned (v2.0.0)
 
 1. **JSON > YAML**: Better validation and hierarchy support
 2. **Flattened Structure**: Easier navigation than nested directories
@@ -211,11 +211,38 @@ ST0013 (blog) → ST0014 → ST0015 → ST0016 (migration)
 4. **Progressive Enhancement**: Core functionality first, then UX
 5. **Self-Documentation**: Using the tool to build itself ensures accuracy
 
-### 5.9.4 Future Development
+## 5.10 AS-BUILT: v2.1.0 through v2.4.0
 
-Intent v2.0.0 provides a solid foundation for:
+### 5.10.1 Implementation Flow (v2.1.0 - v2.4.0)
 
-- Community contributions
-- Enterprise adoption
-- Educational use
-- AI/LLM integration enhancements
+```
+Phase 4: Agent Init (v2.1.0)
+ST0017 (agent init command, manifest management)
+
+Phase 5: Plugin Architecture (v2.2.0)
+ST0018 (plugin architecture, command routing)
+
+Phase 6: AGENTS.md + Subagent Rename (v2.3.0)
+ST0019 (treeindex system)
+AGENTS.md commands, Claude subagent namespace
+
+Phase 7: Skills + Elixir Modernization (v2.4.0)
+ST0020 (WP-01..WP-10: skills, subagent refactor, treeindex, upgrade)
+```
+
+### 5.10.2 Key Achievements (v2.4.0)
+
+1. **Plugin Architecture**: Extensible command system proven across 4 plugins
+2. **Skills System**: 4 skills with lifecycle management (install, sync, uninstall)
+3. **Treeindex**: Pre-computed codebase navigation across all projects
+4. **302 Tests**: Up from 86 at v2.0.0, comprehensive BATS coverage
+5. **8 Target Projects**: Skills and subagents deployed to production projects
+6. **Claude Upgrade Tool**: Automated project modernization with diagnose/plan/execute
+
+### 5.10.3 Lessons Learned (v2.4.0)
+
+1. **Skills + Subagents complementary**: Skills shape generation, subagents do deep review
+2. **SHA256 manifests**: Reliable artifact tracking, but sync needs source-vs-local distinction
+3. **Em dashes cause multi-byte truncation**: Use only ASCII in CLI-displayed content
+4. **Terminal width detection unreliable**: Need cascading fallback strategy
+5. **YAML frontmatter enables discovery**: Claude Code picks up skills with proper metadata

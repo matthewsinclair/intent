@@ -1,6 +1,6 @@
 ---
-verblock: "17 Jul 2025:v2.0.0: Matthew Sinclair - Updated for Intent v2.0.0 (As-Built)"
-intent_version: 2.0.0
+verblock: "20 Feb 2026:v2.4.0: Matthew Sinclair - Updated for Intent v2.4.0"
+intent_version: 2.4.0
 ---
 
 # 7. Technical Challenges and Mitigations [AS-BUILT]
@@ -202,10 +202,44 @@ fi
 - Automatic backup creation
 - Clear migration path documentation
 
-## 7.12 Lessons Learned
+## 7.12 AS-BUILT: v2.4.0 Specific Challenges
+
+### 7.12.1 Em Dash Multi-Byte Truncation
+
+**Challenge**: Em dashes (U+2014, 3 bytes) in skill SKILL.md files caused list display truncation when using bash string length operations.
+
+**Resolution**: Replaced all em dashes with double hyphens in all SKILL.md files. Added to project conventions: never use em dashes in CLI-displayed content.
+
+### 7.12.2 Terminal Width Detection
+
+**Challenge**: `$COLUMNS` not always set in non-interactive shells; `tput cols` unreliable in some environments.
+
+**Resolution**: Cascading fallback: `$COLUMNS` then `stty size < /dev/tty` then `tput cols` then hardcoded 100.
+
+### 7.12.3 Skill Namespacing
+
+**Challenge**: Original skill names (e.g., `elixir-essentials`) conflicted with potential third-party skills.
+
+**Resolution**: Namespaced all skills with `intent-` prefix. Updated list display padding widths from 20 to 30 characters.
+
+### 7.12.4 Subagent Sync False Positive
+
+**Challenge**: `intent claude subagents sync` reports "modified locally" when the source has changed but the installed copy is just stale (not user-modified).
+
+**Status**: Known issue. Should distinguish "source updated" from "user modified locally" in a future release.
+
+### 7.12.5 Skills Not Auto-Discovered
+
+**Challenge**: Claude Code did not automatically pick up installed skills.
+
+**Resolution**: Added YAML frontmatter with `name` and `description` fields to SKILL.md files, enabling Claude Code's skill discovery mechanism.
+
+## 7.13 Lessons Learned
 
 1. **Self-Hosting Validates Design**: Using Intent to build Intent exposed issues early
-2. **Test Coverage Essential**: BATS tests prevented regressions during migration
+2. **Test Coverage Essential**: BATS tests prevented regressions during migration and refactoring
 3. **Git History Invaluable**: Ability to restore lost files saved the project
-4. **User Experience Matters**: Bootstrap, doctor, upgrade commands improve adoption
-5. **Documentation as Code**: Blog series and TPD updates tracked in git
+4. **Skills + Subagents Complementary**: Neither replaces the other; both are needed
+5. **Multi-Byte Characters Dangerous in CLI**: Stick to ASCII for anything that gets measured/padded
+6. **SHA256 Manifests Work Well**: Reliable artifact tracking across installs
+7. **Incremental Rollout**: Upgrading 8 projects one at a time caught issues early

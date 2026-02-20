@@ -10,11 +10,11 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 ## Index
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
-
-| ID     | Title                     | Status | Created    | Completed |
-| ------ | ------------------------- | ------ | ---------- | --------- |
-| ST0020 | Updated with latest th... | WIP    | 2026-02-17 |
-
+ID         | Title                     | Status       | Created    | Completed 
+-----------|---------------------------|--------------|------------|-----------
+ST0022     | Adding in --start to n... | WIP          | 2026-02-20 |           
+ST0021     | Intent Autopsy            | WIP          | 2026-02-20 |           
+ST0020     | Modernizing Intent's E... | WIP          | 2026-02-17 |           
 <!-- END: STEEL_THREAD_INDEX -->
 
 ## Steel Thread Status Definitions

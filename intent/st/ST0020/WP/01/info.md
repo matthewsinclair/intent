@@ -3,7 +3,7 @@ verblock: "17 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-01
 title: Distill Core Elixir Rules
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-01: Distill Core Elixir Rules

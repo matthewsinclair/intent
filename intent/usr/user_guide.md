@@ -469,6 +469,7 @@ Intent v2.3.0 introduced a plugin architecture and renamed the old `intent agent
 | elixir     | Elixir code doctor with Usage Rules and Ash/Phoenix patterns |
 | socrates   | CTO Review Mode via Socratic dialog                          |
 | worker-bee | Worker-Bee Driven Design specialist for Elixir applications  |
+| diogenes   | Elixir Test Architect via Socratic dialog                    |
 
 ### Setting Up Subagents
 
@@ -590,6 +591,7 @@ Intent v2.4.0 introduces skills -- always-on Claude Code enforcement rules that 
 | `intent-elixir-essentials`   |   8   | Pattern matching, tagged tuples, pipes, naming |
 | `intent-ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement   |
 | `intent-phoenix-liveview`    |   7   | Two-phase mount, streams, components           |
+| `intent-elixir-testing`      |   8   | Strong assertions, no control flow, spec-driven|
 
 ### Installing Skills
 

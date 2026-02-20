@@ -3,7 +3,7 @@ verblock: "17 Feb 2026:v0.1: matts - Initial version"
 wp_id: WP-05
 title: Expand Testing Reference
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-05: Expand Testing Reference

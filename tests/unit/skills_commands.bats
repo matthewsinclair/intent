@@ -517,16 +517,17 @@ teardown() {
   run run_intent claude skills install --all --force
   assert_success
 
-  # Check manifest has all four
-  local count
-  count=$(jq '.installed | length' "$HOME/.intent/skills/installed-skills.json")
-  [ "$count" -eq 4 ] || fail "Expected 4 installed skills, got $count"
+  # Record count after install-all
+  local count_before
+  count_before=$(jq '.installed | length' "$HOME/.intent/skills/installed-skills.json")
+  [ "$count_before" -gt 0 ] || fail "Expected at least 1 installed skill"
 
   # Uninstall one
   run run_intent claude skills uninstall intent-ash-ecto-essentials --force
   assert_success
 
-  # Check manifest has three
-  count=$(jq '.installed | length' "$HOME/.intent/skills/installed-skills.json")
-  [ "$count" -eq 3 ] || fail "Expected 3 installed skills, got $count"
+  # Manifest should have one fewer entry
+  local count_after
+  count_after=$(jq '.installed | length' "$HOME/.intent/skills/installed-skills.json")
+  [ "$count_after" -eq $((count_before - 1)) ] || fail "Expected $((count_before - 1)) installed skills after uninstall, got $count_after"
 }
