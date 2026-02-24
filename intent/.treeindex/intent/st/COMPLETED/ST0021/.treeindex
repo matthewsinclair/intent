@@ -1,14 +1,14 @@
-<!-- treeindex v1 fingerprint:ca0eb8a3 generated:2026-02-24T09:31:44Z -->
+<!-- treeindex v1 fingerprint:48cd4bbe generated:2026-02-24T15:19:32Z -->
 
 # ST0021/
 
-Session analysis tool for Claude Code projects. Combines an Elixir preprocessor (autopsy.exs) for JSONL mining with a Claude skill (intent-autopsy) for forensic analysis. Identifies memory gaps, rule violations, capability regressions, and stale memory entries to close the feedback loop.
+Completed steel thread for Intent Autopsy, a session analysis system that compares Claude Code behavior against stated rules (MEMORY.md, CLAUDE.md) to identify gaps, enforcement failures, undocumented conventions, and stale memory. ST0021 shipped the `intent-autopsy` skill, an Elixir preprocessing script (`autopsy.exs`), and extended the skills infrastructure for full directory installation.
 
 ## Files
 
 - `info.md` -- Steel thread metadata, objective, scope, and deliverables
 - `design.md` -- Architecture, data flow, analysis categories, and design decisions
-- `impl.md` -- Implementation details, Elixir modules, session format, and technical solutions
-- `reference.md` -- User-facing forensic analysis skill with procedures and voice guidelines
-- `tasks.md` -- Task dependencies and work package organization
-- `done.md` -- Completion status and deliverable checklist
+- `impl.md` -- Implementation details for the Elixir script, skills infrastructure, and JSONL parsing
+- `done.md` -- Completion summary for all 4 work packages
+- `tasks.md` -- Task dependencies and sequencing (all completed)
+- `reference.md` -- User-invocable skill reference and forensic analysis procedure

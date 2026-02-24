@@ -1,17 +1,17 @@
-<!-- treeindex v1 fingerprint:e476fc10 generated:2026-02-24T09:32:42Z -->
+<!-- treeindex v1 fingerprint:139c15c8 generated:2026-02-24T15:21:08Z -->
 
 # tpd/
 
-Complete Technical Product Design (TPD) documentation for Intent v2.4.0. Organized as a nine-part design specification covering introduction, requirements, architecture, implementation, and operations. All documents updated to reflect the as-built system with plugin architecture, skills, subagents, and treeindex integration.
+Technical Product Design documentation for Intent v2.4.0 (as-built). This directory contains a comprehensive specification covering the Intent system's architecture, requirements, implementation strategy, and operational guidelines, with emphasis on the plugin architecture, Claude Code integration, and steel thread process methodology.
 
 ## Files
 
-- `technical_product_design.md` -- Index and preamble, contains overview and command reference
-- `1_introduction.md` -- Purpose, scope, definitions, system overview, and version history
+- `technical_product_design.md` -- Main index and table of contents; entry point for TPD v2.4.0 with preamble for Claude
+- `1_introduction.md` -- Purpose, scope, definitions, and system overview; rebrand history from STP to Intent
 - `2_requirements.md` -- Functional and non-functional requirements with implementation status
-- `3_architecture.md` -- System architecture overview, component design, and data flow
-- `4_detailed_design.md` -- Directory structure, configuration schema, and template specifications (as-built)
-- `5_implementation_strategy.md` -- Development phases, steel threads, and task breakdown
-- `6_deployment_and_operations.md` -- Installation methods, project initialization, and operations (as-built)
-- `7_technical_challenges_and_mitigations.md` -- LLM context, portability, maintenance, and adoption challenges
-- `8_appendices.md` -- Glossary, command reference, configuration schema, and examples (as-built)
+- `3_architecture.md` -- System architecture overview, component architecture, and design patterns
+- `4_detailed_design.md` -- Directory structure (as-built), JSON configuration schema, document templates
+- `5_implementation_strategy.md` -- Development approach using steel threads, phase breakdown, task organization
+- `6_deployment_and_operations.md` -- Installation methods (global, manual, project-specific), project initialization
+- `7_technical_challenges_and_mitigations.md` -- LLM context management, shell portability, documentation maintenance, adoption barriers
+- `8_appendices.md` -- Glossary, command reference, configuration schema, examples

@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:b1bd24ca generated:2026-02-24T15:19:20Z -->
+
+# ST0023/
+
+Completed steel thread for removing Backlog.md integration from Intent v2.4.0→2.5.0. Encompasses CLI commands, documentation, templates, tests, CI/CD pipeline, and example cleanup across 8 work packages.
+
+## Files
+
+- `info.md` -- Steel thread metadata, status, and work package summary
+- `design.md` -- Design decisions, approach rationale, and alternatives considered
+- `impl.md` -- Implementation log with per-WP details and test sandbox solution
+- `tasks.md` -- Checklist of completed tasks and interdependencies

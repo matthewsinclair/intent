@@ -1,24 +1,24 @@
-<!-- treeindex v1 fingerprint:ec43ab1c generated:2026-02-24T09:30:29Z -->
+<!-- treeindex v1 fingerprint:07686195 generated:2026-02-24T15:18:58Z -->
 
 # bin/
 
-Core executable scripts and command implementations for the Intent CLI tool. Includes the main dispatcher, configuration libraries, and command handlers for project initialization, steel thread management, diagnostics, and artifact organization.
+The bin/ directory contains the CLI implementation for Intent. It includes the main entry point (`intent`), shared infrastructure (`intent_helpers`, `intent_config`), core domain commands for managing steel threads and work packages, and utility scripts for project initialization, diagnostics, and documentation.
 
 ## Files
 
-- `intent` -- Main command dispatcher and entry point for Intent CLI
-- `intent_config` -- Shared configuration library with JSON parsing and project detection
-- `intent_helpers` -- Utility functions for version detection and file format conversion
+- `intent` -- Main CLI entry point and command router; handles global commands and delegates to plugins
+- `intent_helpers` -- Shared helper functions (version, checksums, terminal width, error handling)
+- `intent_config` -- Configuration library for JSON parsing and project root detection
+- `intent_st` -- Steel thread management (create, list, show, edit, repair, organize)
+- `intent_wp` -- Work package management (create, start, done, list, show)
+- `intent_init` -- Initialize new Intent projects with directory structure and config.json
+- `intent_treeindex` -- Generate .treeindex directory summaries using Claude; manages shadow directory
+- `intent_fileindex` -- Create and manage file indexes with checkbox state tracking
+- `intent_doctor` -- Configuration diagnostics and auto-fixes for Intent projects
+- `intent_upgrade` -- Upgrade STP projects to Intent with backup and migration
 - `intent_bootstrap` -- Initial Intent setup for first-time installations
-- `intent_init` -- Create and initialize new Intent projects
-- `intent_doctor` -- Configuration diagnostics with automated issue detection and repair
-- `intent_help` -- Help system and documentation for Intent commands
+- `intent_help` -- Command help display system and usage information
 - `intent_info` -- Display Intent installation and project information
-- `intent_upgrade` -- Upgrade and migrate projects between STP/Intent versions
-- `intent_st` -- Steel thread management (create, list, show, edit, organize)
-- `intent_llm` -- LLM guidance and context file management
-- `intent_treeindex` -- Generate .treeindex directory summaries using Claude AI
-- `intent_fileindex` -- File indexing system with checkbox state tracking
-- `intent_organise` -- Organize steel threads by completion status
-- `intent_main` -- Legacy `stp` command compatibility wrapper
-- `intent_minimal` -- Minimal Intent wrapper for testing and development
+- `intent_llm` -- Manage LLM prompts, context files, and usage rules
+- `intent_main` -- Legacy stp command wrapper for backward compatibility
+- `intent_minimal` -- Minimal CLI wrapper for Phase 1 testing and validation

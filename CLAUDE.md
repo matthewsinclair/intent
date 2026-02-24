@@ -30,6 +30,8 @@ Steel threads are organized as directories under `intent/st/`:
 - `intent wp start <STID/NN>` - Mark work package as WIP
 - `intent wp done <STID/NN>` - Mark work package as Done
 - `intent wp show <STID/NN>` - Show work package details
+- Specifiers accept bare numbers (`5` = `ST0005`, `5/01` = `ST0005/01`)
+- WP directories live under `STXXXX/WP/NN/info.md`; titles support special characters
 - `intent treeindex <dir>` - Generate `.treeindex` directory summaries
 - `intent doctor` - Check configuration
 - `intent help` - Get help

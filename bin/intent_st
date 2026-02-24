@@ -70,9 +70,8 @@ fi
 
 # Load project configuration if available
 if [ -f .intent/config.json ]; then
-  # Parse JSON config (simplified extraction)
-  ST_PREFIX=$(grep -oE '"st_prefix"[[:space:]]*:[[:space:]]*"[^"]+"' .intent/config.json | cut -d'"' -f4 || echo "ST")
-  AUTHOR=$(grep -oE '"author"[[:space:]]*:[[:space:]]*"[^"]+"' .intent/config.json | cut -d'"' -f4 || echo "$USER")
+  ST_PREFIX=$(get_config_field "st_prefix" "ST")
+  AUTHOR=$(get_config_field "author" "$USER")
 elif [ -f intent/.config/config ]; then
   source intent/.config/config
 elif [ -f .stp-config ]; then

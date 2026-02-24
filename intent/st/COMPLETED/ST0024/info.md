@@ -1,7 +1,7 @@
 ---
 verblock: "24 Feb 2026:v0.1: matts - Initial version"
 intent_version: 2.5.0
-status: WIP
+status: Completed
 slug: add-work-packages-as-first-class-citizens-within
 created: 20260224
 completed:

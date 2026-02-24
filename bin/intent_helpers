@@ -48,6 +48,22 @@ get_terminal_width() {
 }
 export -f get_terminal_width
 
+# Extract a field from .intent/config.json without jq
+get_config_field() {
+  local field="$1"
+  local default="${2:-}"
+  if [ -f .intent/config.json ]; then
+    local val
+    val=$(grep -oE "\"${field}\"[[:space:]]*:[[:space:]]*\"[^\"]+\"" .intent/config.json | cut -d'"' -f4)
+    if [ -n "$val" ]; then
+      echo "$val"
+      return 0
+    fi
+  fi
+  echo "$default"
+}
+export -f get_config_field
+
 # Require jq to be installed (returns 1 with instructions if not)
 require_jq() {
   if command -v jq >/dev/null 2>&1; then

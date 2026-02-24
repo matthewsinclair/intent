@@ -25,10 +25,16 @@ create_source_sandbox() {
   ln -sf "$INTENT_HOME/VERSION" "$sandbox/VERSION"
   ln -sf "$INTENT_HOME/.intent/config.json" "$sandbox/.intent/config.json"
 
-  # Symlink plugin bin scripts
+  # Symlink plugin bin scripts and lib
   for f in "$INTENT_HOME/intent/plugins/claude/bin/"*; do
     [ -f "$f" ] && ln -sf "$f" "$sandbox/intent/plugins/claude/bin/$(basename "$f")"
   done
+  if [ -d "$INTENT_HOME/intent/plugins/claude/lib" ]; then
+    mkdir -p "$sandbox/intent/plugins/claude/lib"
+    for f in "$INTENT_HOME/intent/plugins/claude/lib/"*; do
+      [ -f "$f" ] && ln -sf "$f" "$sandbox/intent/plugins/claude/lib/$(basename "$f")"
+    done
+  fi
   for f in "$INTENT_HOME/intent/plugins/agents/bin/"*; do
     [ -f "$f" ] && ln -sf "$f" "$sandbox/intent/plugins/agents/bin/$(basename "$f")"
   done

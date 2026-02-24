@@ -435,6 +435,8 @@ intent wp show ST0005/01
 - WP numbers are auto-assigned sequentially (01-99)
 - When the last WP is marked done, a hint to complete the ST is printed
 - The `WP/` directory is created automatically on first `wp new`
+- Titles can contain special characters (`/`, `&`, `\`) safely
+- Template: `lib/templates/prj/st/WP/info.md`
 
 #### `intent help`
 
@@ -973,7 +975,10 @@ Intent/
 │   │   │   ├── info.md          # Steel thread metadata
 │   │   │   ├── design.md        # Design documentation
 │   │   │   ├── impl.md          # Implementation notes
-│   │   │   └── tasks.md         # Task tracking
+│   │   │   ├── tasks.md         # Task tracking
+│   │   │   └── WP/              # Work packages (optional)
+│   │   │       └── NN/          # WP directory (01-99)
+│   │   │           └── info.md  # WP metadata and details
 │   │   ├── COMPLETED/           # Completed steel threads
 │   │   ├── NOT-STARTED/         # Not started steel threads
 │   │   └── CANCELLED/           # Cancelled steel threads

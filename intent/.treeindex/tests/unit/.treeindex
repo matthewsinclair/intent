@@ -1,23 +1,23 @@
-<!-- treeindex v1 fingerprint:a56ad295 generated:2026-02-24T09:34:32Z -->
+<!-- treeindex v1 fingerprint:d8d689da generated:2026-02-24T15:22:52Z -->
 
 # unit/
 
-BATS unit test suite for Intent CLI commands and functionality. Tests are organized by command category with shared helpers, setup/teardown handling, and comprehensive assertion utilities.
+BATS test suite for Intent CLI covering command routing, project initialization, steel thread and work package management, skill/agent systems, and CLI utilities. All tests use shared test helpers and sandbox environments to ensure isolation and repeatability.
 
 ## Files
 
-- `test_helper.bash` -- Shared test utilities, assertions, and test project creation helpers
-- `basic.bats` -- Infrastructure smoke tests for test setup and CLI basics
-- `global_commands.bats` -- Global commands (help, doctor, version, bootstrap, info)
-- `bootstrap.bats` -- intent bootstrap command for global config initialization
-- `config.bats` -- Configuration loading, PROJECT_ROOT detection, legacy project support
-- `init_commands.bats` -- intent init command for new project creation
-- `project_commands.bats` -- Commands requiring project context (st list, info)
-- `st_commands.bats` -- Steel thread commands (st new, st list, sequential ID generation)
-- `help_commands.bats` -- Help command with categories, descriptions, and command-specific help
-- `agent_commands.bats` -- intent claude subagents commands (list, install, sync)
-- `skills_commands.bats` -- intent claude skills commands (list, install, sync, uninstall, show)
-- `fileindex_commands.bats` -- intent_fileindex command for file listing with recursion and filtering
-- `treeindex_commands.bats` -- intent_treeindex command for .treeindex generation and validation
-- `test_autopsy.bats` -- intent-autopsy skill with full directory install (ST0021)
-- `test_diogenes.bats` -- diogenes subagent and intent-elixir-testing skill tests
+- `basic.bats` -- Test infrastructure verification and helper function validation
+- `config.bats` -- Configuration loading, PROJECT_ROOT detection, legacy structure support
+- `global_commands.bats` -- Global commands (help, version, doctor, info, bootstrap) that work anywhere
+- `bootstrap.bats` -- Bootstrap command for initial Intent setup and ~/.config/intent initialization
+- `init_commands.bats` -- Project initialization with directory structure and config.json creation
+- `project_commands.bats` -- Project detection and project-context-dependent commands
+- `st_commands.bats` -- Steel thread lifecycle (create, list, show, start, complete)
+- `wp_commands.bats` -- Work package management within steel threads
+- `agent_commands.bats` -- Claude subagent system with install/sync/list/status operations
+- `skills_commands.bats` -- Claude skill installation, listing, syncing, and status tracking
+- `help_commands.bats` -- Help system and command documentation display
+- `treeindex_commands.bats` -- Treeindex generation with flags and directory processing
+- `fileindex_commands.bats` -- Fileindex generation with filtering and output options
+- `test_autopsy.bats` -- Intent-autopsy skill full directory install and scripts verification
+- `test_diogenes.bats` -- Diogenes subagent and intent-elixir-testing skill integration
