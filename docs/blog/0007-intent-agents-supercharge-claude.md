@@ -6,6 +6,8 @@ draft: false
 word_count: 1847
 ---
 
+> **Editor's note (v2.5.0):** Backlog.md integration was removed in Intent v2.5.0.
+
 # Intent Agents: Supercharging Claude Code Collaboration
 
 We've built a system that [captures intention](./0003-intent-capture-in-software-development.md) and enables [powerful LLM collaboration](./0004-llm-collaboration-with-intent.md). Now, Intent v2.1.0 takes this to the next level with Claude Code sub-agent integration and proper initialization.

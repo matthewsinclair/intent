@@ -35,16 +35,16 @@ Intent v2.0.0 uses a flattened directory structure that simplifies navigation:
 │   │   └── usr/               # User documentation
 │   ├── llm/                   # LLM-specific content
 │   └── wip.md                 # Work in progress
-├── backlog/                    # Backlog.md integration
+├── backlog/                    # Backlog.md integration [Removed in v2.5.0]
 │   ├── Backlog.md             # Main backlog file
 │   ├── tasks/                 # Task files
 │   └── ...
 ├── bin/                        # Intent scripts
 │   ├── intent                 # Main command
 │   ├── intent_st              # Steel thread commands
-│   ├── intent_bl              # Backlog wrapper
-│   ├── intent_task            # Task management
-│   ├── intent_status          # Status sync
+│   ├── intent_bl              # Backlog wrapper [Removed in v2.5.0]
+│   ├── intent_task            # Task management [Removed in v2.5.0]
+│   ├── intent_status          # Status sync [Removed in v2.5.0]
 │   ├── intent_init            # Project initialization
 │   ├── intent_bootstrap       # Global setup
 │   ├── intent_doctor          # Diagnostics
@@ -72,24 +72,24 @@ Intent v2.0.0 uses JSON configuration with hierarchy support:
   "author": "username",
   "created": "2025-07-17",
   "st_prefix": "ST",
-  "backlog_dir": "backlog",
+  "backlog_dir": "backlog", // [Removed in v2.5.0]
   "intent_dir": "intent",
-  "backlog_list_status": "todo"
+  "backlog_list_status": "todo" // [Removed in v2.5.0]
 }
 ```
 
 #### Configuration Fields
 
-| Field               | Description         | Default    | Added  |
-| ------------------- | ------------------- | ---------- | ------ |
-| version             | Intent version      | 2.0.0      | v2.0.0 |
-| project_name        | Project identifier  | (required) | v2.0.0 |
-| author              | Default author      | $USER      | v0.0.0 |
-| created             | Creation date       | (auto)     | v2.0.0 |
-| st_prefix           | Steel thread prefix | ST         | v1.0.0 |
-| backlog_dir         | Backlog directory   | backlog    | v1.2.0 |
-| intent_dir          | Intent directory    | intent     | v2.0.0 |
-| backlog_list_status | Default list filter | (none)     | v2.0.0 |
+| Field               | Description                             | Default    | Added  |
+| ------------------- | --------------------------------------- | ---------- | ------ |
+| version             | Intent version                          | 2.0.0      | v2.0.0 |
+| project_name        | Project identifier                      | (required) | v2.0.0 |
+| author              | Default author                          | $USER      | v0.0.0 |
+| created             | Creation date                           | (auto)     | v2.0.0 |
+| st_prefix           | Steel thread prefix                     | ST         | v1.0.0 |
+| backlog_dir         | Backlog directory [Removed in v2.5.0]   | backlog    | v1.2.0 |
+| intent_dir          | Intent directory                        | intent     | v2.0.0 |
+| backlog_list_status | Default list filter [Removed in v2.5.0] | (none)     | v2.0.0 |
 
 #### Configuration Hierarchy
 
@@ -305,7 +305,7 @@ completed:
 ```markdown
 # Tasks - ST####: [Title]
 
-Tasks are tracked in Backlog. View with: `stp task list ST####`
+Tasks are tracked in Backlog. View with: `stp task list ST####` [Removed in v2.5.0]
 
 ## Task Summary
 
@@ -360,22 +360,22 @@ intent <command> [options] [arguments]
 
 #### Primary Commands
 
-| Command          | Description                    | Added  |
-| ---------------- | ------------------------------ | ------ |
-| init             | Initialize Intent in a project | v0.0.0 |
-| st               | Manage steel threads           | v0.0.0 |
-| bl               | Enhanced Backlog.md wrapper    | v1.2.0 |
-| task             | Manage tasks linked to threads | v1.2.0 |
-| status           | Synchronize thread/task status | v1.2.0 |
-| bootstrap        | Global Intent setup            | v2.0.0 |
-| doctor           | Diagnose configuration issues  | v2.0.0 |
-| agents           | Manage AGENTS.md               | v2.3.0 |
-| claude subagents | Manage Claude Code subagents   | v2.3.0 |
-| claude skills    | Manage Claude Code skills      | v2.4.0 |
-| claude upgrade   | Upgrade project LLM guidance   | v2.4.0 |
-| treeindex        | Generate directory summaries   | v2.4.0 |
-| fileindex        | Generate file summaries        | v2.4.0 |
-| help             | Display comprehensive help     | v0.0.0 |
+| Command          | Description                                        | Added  |
+| ---------------- | -------------------------------------------------- | ------ |
+| init             | Initialize Intent in a project                     | v0.0.0 |
+| st               | Manage steel threads                               | v0.0.0 |
+| bl               | Enhanced Backlog.md wrapper [Removed in v2.5.0]    | v1.2.0 |
+| task             | Manage tasks linked to threads [Removed in v2.5.0] | v1.2.0 |
+| status           | Synchronize thread/task status [Removed in v2.5.0] | v1.2.0 |
+| bootstrap        | Global Intent setup                                | v2.0.0 |
+| doctor           | Diagnose configuration issues                      | v2.0.0 |
+| agents           | Manage AGENTS.md                                   | v2.3.0 |
+| claude subagents | Manage Claude Code subagents                       | v2.3.0 |
+| claude skills    | Manage Claude Code skills                          | v2.4.0 |
+| claude upgrade   | Upgrade project LLM guidance                       | v2.4.0 |
+| treeindex        | Generate directory summaries                       | v2.4.0 |
+| fileindex        | Generate file summaries                            | v2.4.0 |
+| help             | Display comprehensive help                         | v0.0.0 |
 
 #### Steel Thread Subcommands
 
@@ -388,6 +388,8 @@ intent st edit ST#### [file]  # Edit thread files
 
 #### Backlog Subcommands
 
+> **[Removed in v2.5.0]** Backlog.md integration was removed in Intent v2.5.0.
+
 ```
 intent bl create [options]    # Create task (git-safe)
 intent bl list [--all]        # List tasks (respects config)
@@ -396,8 +398,8 @@ intent bl done <task-id>      # Mark task complete
 
 #### New v2.0.0 Features
 
-- **backlog_list_status**: Configurable default task filtering
-- **--all flag**: Override status filtering
+- **backlog_list_status**: Configurable default task filtering — **[Removed in v2.5.0]**
+- **--all flag**: Override status filtering — **[Removed in v2.5.0]**
 - **doctor --fix**: Automatic issue resolution
 - **bootstrap**: One-time global setup
 
@@ -552,6 +554,8 @@ STP addresses security through:
 ## 4.8 Integration Implementations [AS-BUILT]
 
 ### 4.8.1 Enhanced Backlog.md Integration
+
+> **[Removed in v2.5.0]** Backlog.md integration was removed in Intent v2.5.0.
 
 Intent v2.0.0 provides enhanced Backlog.md integration with configurable filtering and improved git safety.
 

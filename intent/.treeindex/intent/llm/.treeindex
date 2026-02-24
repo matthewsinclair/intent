@@ -1,9 +1,9 @@
-<!-- treeindex v1 fingerprint:18358dd3 generated:2026-02-20T11:29:55Z -->
+<!-- treeindex v1 fingerprint:36cede41 generated:2026-02-24T09:33:10Z -->
 
 I'll explore the `llm/` directory first to understand its structure and contents.
 <function_calls>
-<invoke name="Glob">
-<parameter name="glob">/Users/matts/Devel/prj/Intent/llm/**/*</parameter>
+<invoke name="Bash">
+<parameter name="command">find /Users/matts/Devel/prj/Intent/llm -type f -o -type d | head -30</parameter>
 </invoke>
 </function_calls>
 <function_calls>
@@ -12,18 +12,21 @@ I'll explore the `llm/` directory first to understand its structure and contents
 </invoke>
 </function_calls>
 
-Now I'll generate the .treeindex file:
+Now let me read the key files to understand their purpose:
+<function_calls>
+<invoke name="Read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/llm/AGENTS.md</parameter>
+</invoke>
+</function_calls>
+
+Perfect. I have what I need. Here's the .treeindex for the llm/ directory:
 
 # llm/
 
-Central repository for LLM-specific guidelines and configurations used to shape AI agent behavior and project understanding. Contains Claude subagent definitions, skill libraries, and project upgrade guidance.
-
-## Dirs
-
-- `plugins/` -- Claude plugin ecosystem with subagents and skills management
-- `upgrades/` -- Project upgrade versioning and migration guides
+Contains LLM-specific guidelines and agent definitions for the Intent project. Includes subagent manifests, configuration files, and documentation for Claude AI integration and agent management.
 
 ## Files
 
-- `AGENTS.md` -- Project agent configuration and development environment setup
-- `README.md` -- LLM module overview and usage patterns
+- `AGENTS.md` -- Project-specific AGENTS.md with development environment setup, testing, build commands, and Intent steel thread process documentation
+- `CLAUDE.md` -- Claude LLM context and behavior guidelines for the Intent project
+- `README.md` -- Overview of LLM features, agent definitions, and subagent management system

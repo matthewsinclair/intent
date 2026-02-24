@@ -5,11 +5,9 @@
 # Exit on error
 set -e
 
-# Function to display error messages
-error() {
-  echo "Error: $1" >&2
-  exit 1
-}
+# Source shared helpers
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
 
 # Function to display usage information
 usage() {
@@ -790,26 +788,14 @@ TEMPLATE
       error "Steel threads directory not found"
     fi
     
-    # Determine table width (same as original)
+    # Determine table width
     if [ "$WIDTH" -gt 0 ]; then
       TABLE_WIDTH=$WIDTH
     else
       if [ "$ST_COMMAND" = "sync" ] && [ $WRITE_MODE -eq 1 ]; then
         TABLE_WIDTH=80
       else
-        if [ -n "$COLUMNS" ]; then
-          TABLE_WIDTH=$COLUMNS
-        elif [ -t 1 ]; then
-          STTY_SIZE=$( (stty size 2>/dev/null || echo "24 80") | cut -d' ' -f2)
-          if [ -n "$STTY_SIZE" ] && [ "$STTY_SIZE" -gt 0 ]; then
-            TABLE_WIDTH=$STTY_SIZE
-          else
-            TPUT_COLS=$(tput cols 2>/dev/null || echo 80)
-            TABLE_WIDTH=$TPUT_COLS
-          fi
-        else
-          TABLE_WIDTH=80
-        fi
+        TABLE_WIDTH=$(get_terminal_width)
       fi
     fi
     

@@ -264,7 +264,7 @@ ST_PREFIX="ST"
 
 - Use consistent formatting across documents
 - Keep the WIP document updated with current focus
-- Document decisions and their rationale in steel threads and Backlog tasks
+- Document decisions and their rationale in steel threads
 - Use clear, descriptive titles for steel threads
 - Maintain cross-references between related documents
 

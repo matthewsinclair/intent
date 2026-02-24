@@ -124,7 +124,6 @@ bootstrap_intent() {
 {
   "intent_version": "2.1.0",
   "intent_dir": "intent",
-  "backlog_dir": "backlog",
   "author": "${USER}",
   "editor": "${EDITOR:-vim}"
 }

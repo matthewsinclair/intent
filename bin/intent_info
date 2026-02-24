@@ -5,11 +5,9 @@
 # Exit on error
 set -e
 
-# Function to display error messages
-error() {
-  echo "Error: $1" >&2
-  exit 1
-}
+# Source shared helpers
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
 
 # Function to count files in a directory
 count_files() {
@@ -94,18 +92,6 @@ if [ -n "$PROJECT_ROOT" ]; then
     echo "  Cancelled:       $cancelled"
   else
     echo "  No steel threads found"
-  fi
-  
-  # Check for Backlog integration
-  if [ -f "$PROJECT_ROOT/backlog/Backlog.md" ]; then
-    echo
-    echo "Backlog:"
-    echo "  Status:          Active"
-    if command -v backlog &> /dev/null; then
-      # Try to get task count
-      task_count=$(cd "$PROJECT_ROOT" && backlog stat --format json 2>/dev/null | jq -r '.totalTasks // 0' 2>/dev/null || echo "Unknown")
-      echo "  Tasks:           $task_count"
-    fi
   fi
   
 else

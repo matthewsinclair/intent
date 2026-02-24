@@ -270,7 +270,7 @@ doctor_check() {
   # Check 4b: v2.3.0 features (if in a project with v2.3.0+)
   if [ -n "$PROJECT_ROOT" ] && [ -f "$PROJECT_ROOT/.intent/config.json" ]; then
     # Check version
-    local project_version=$(jq -r '.version // "0.0.0"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null)
+    local project_version=$(jq -r '.intent_version // "0.0.0"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null)
     if [[ "$project_version" == "2.3"* ]]; then
       # Check for AGENTS.md
       if [ "$QUIET" != true ]; then
@@ -339,7 +339,7 @@ doctor_check() {
   REQUIRED_TOOLS="bash sed grep mkdir"
   CRITICAL_TOOLS="jq"  # Separate jq for special handling
   CORE_TOOLS="git cat echo pwd dirname basename date cut tr awk"
-  OPTIONAL_TOOLS="backlog bats"
+  OPTIONAL_TOOLS="bats"
   
   # Check required tools
   MISSING_REQUIRED=""
@@ -428,14 +428,6 @@ doctor_check() {
   MISSING_OPTIONAL=""
   OPTIONAL_STATUS=""
   
-  # Check for backlog
-  if ! command -v backlog >/dev/null 2>&1; then
-    MISSING_OPTIONAL="$MISSING_OPTIONAL backlog"
-    OPTIONAL_STATUS="${OPTIONAL_STATUS}backlog:NOT_FOUND "
-  else
-    OPTIONAL_STATUS="${OPTIONAL_STATUS}backlog:OK "
-  fi
-  
   # Check for bats (testing framework)
   if ! command -v bats >/dev/null 2>&1; then
     MISSING_OPTIONAL="$MISSING_OPTIONAL bats"
@@ -477,12 +469,6 @@ doctor_check() {
     fi
     
     # Provide installation instructions for optional tools
-    if echo "$MISSING_OPTIONAL" | grep -q "backlog"; then
-      verbose "Backlog.md: Task management system"
-      verbose "  Install: npm install -g backlog-md"
-      verbose "  More info: https://github.com/backlog-md/backlog-md"
-    fi
-    
     if echo "$MISSING_OPTIONAL" | grep -q "bats"; then
       verbose "BATS: Bash testing framework"
       verbose "  Install: npm install -g bats (or brew install bats-core)"

@@ -125,7 +125,7 @@ When working within Intent projects:
 
 1. **Steel Thread Context**: Reference specific steel threads in the dialog
 2. **Decision Documentation**: Output can become part of steel thread design docs
-3. **Task Generation**: Dialog conclusions can generate backlog tasks
+3. **Task Generation**: Dialog conclusions can generate implementation tasks
 4. **Team Alignment**: Share dialogs for team review and input
 
 Example integration:

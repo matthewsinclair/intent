@@ -6,6 +6,8 @@ draft: false
 word_count: 2274
 ---
 
+> **Editor's note (v2.5.0):** Backlog.md integration was removed in Intent v2.5.0.
+
 # LLM Collaboration with Intent: Multiplying Development Capabilities
 
 We've built a foundation of [captured intention](./0003-intent-capture-in-software-development.md) using [steel threads](./0002-the-steel-thread-methodology.md). Now let me show you exactly how this transforms your AI coding experience.

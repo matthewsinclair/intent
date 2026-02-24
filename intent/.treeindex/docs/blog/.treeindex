@@ -1,17 +1,17 @@
-<!-- treeindex v1 fingerprint:4e08ab73 generated:2026-02-20T11:22:46Z -->
+<!-- treeindex v1 fingerprint:0e7ca8c5 generated:2026-02-24T09:30:40Z -->
 
 # blog/
 
-This directory contains a comprehensive blog series explaining the Intent methodology – a framework for intention-aware software development. The posts progress from philosophical motivation through practical implementation, suitable for developers and team leads. All content was created using Intent itself (ST0013), demonstrating the methodology in action.
+Comprehensive blog series documenting the Intent methodology for intention-aware development. Posts progress from foundational philosophy through practical implementation, roadmap planning, and agent system integration. All content is markdown-based and suitable for both developers and non-technical stakeholders.
 
 ## Files
 
-- `README.md` -- Index and navigation guide for the blog series with post summaries and key concepts
-- `0000-motivation-for-intent.md` -- Explores the fundamental challenge of maintaining developer intention in modern software development and why LLMs amplify this problem
-- `0001-introduction-to-intent.md` -- Introduces Intent as a practical solution for intention-aware development with concrete examples of the difference it makes
-- `0002-the-steel-thread-methodology.md` -- Deep dive into steel threads as self-contained units of work that capture clear intention and deliver tangible value
-- `0003-intent-capture-in-software-development.md` -- Practical techniques for capturing, preserving, and leveraging intention throughout the development process
-- `0004-llm-collaboration-with-intent.md` -- How Intent's structure makes AI assistance more effective by giving LLMs the context they need
-- `0005-getting-started-with-intent.md` -- Practical implementation guide with installation, daily workflow, and real examples from creating this blog series
-- `0006-next-steps-and-future-work.md` -- Roadmap for Intent's evolution, integration opportunities, and vision for intention-aware development
-- `0007-intent-agents-supercharge-claude.md` -- How Intent v2.1.0's agent system transforms AI pair programming with permanent methodology understanding
+- `README.md` -- Navigation guide and overview of all blog posts with key concepts
+- `0000-motivation-for-intent.md` -- Philosophical foundation: why intention matters in LLM-assisted development
+- `0001-introduction-to-intent.md` -- Core concepts and practical examples of Intent methodology
+- `0002-the-steel-thread-methodology.md` -- Deep dive into steel threads as units of work and comparison with traditional approaches
+- `0003-intent-capture-in-software-development.md` -- Techniques for capturing and preserving intention throughout development
+- `0004-llm-collaboration-with-intent.md` -- How Intent structure enhances AI assistance and transforms LLM collaboration
+- `0005-getting-started-with-intent.md` -- Installation, setup, and practical workflow with real command examples
+- `0006-next-steps-and-future-work.md` -- Roadmap, current limitations, lessons learned, and integration opportunities
+- `0007-intent-agents-supercharge-claude.md` -- Intent v2.1.0 agent system for Claude Code integration

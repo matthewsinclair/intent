@@ -20,12 +20,6 @@ fi
 # Get version from centralized source
 INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
 
-# Function to display error messages
-error() {
-  echo "Error: $1" >&2
-  exit 1
-}
-
 # Export INTENT_HOME
 export INTENT_HOME
 
@@ -105,10 +99,6 @@ case "$COMMAND" in
   st)
     COMMAND="st"
     COMMAND_SCRIPT="intent_st"
-    ;;
-  bl)
-    COMMAND="bl"
-    COMMAND_SCRIPT="intent_bl"
     ;;
   *)
     # Default: prefix with intent_

@@ -6,6 +6,8 @@ draft: false
 word_count: 1608
 ---
 
+> **Editor's note (v2.5.0):** Backlog.md integration was removed in Intent v2.5.0.
+
 # Next Steps and Future Work: The Evolution of Intent
 
 Through this blog series, we've explored the [motivation](./0000-motivation-for-intent.md), [methodology](./0002-the-steel-thread-methodology.md), and [practical implementation](./0005-getting-started-with-intent.md) of Intent. Now we look forward – where is Intent heading, and how can you be part of its evolution?

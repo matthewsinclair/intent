@@ -166,14 +166,8 @@ intent_claude_subagents_list() {
   echo "Available Agents:"
   echo ""
 
-  # Terminal width for right-aligned status
   local term_width
-  term_width="${COLUMNS:-}"
-  if [ -z "$term_width" ] && [ -t 1 ]; then
-    term_width=$(stty size < /dev/tty 2>/dev/null | cut -d' ' -f2)
-  fi
-  : "${term_width:=$(tput cols 2>/dev/null)}"
-  : "${term_width:=100}"
+  term_width=$(get_terminal_width)
 
   # Layout: "  " (2) + agent name (12) + " - " (3) = 17 left
   local desc_width=$(( term_width - 17 - 16 ))
@@ -195,16 +189,7 @@ intent_claude_subagents_list() {
   if [ -f "$global_manifest" ]; then
     echo "Global:"
 
-    # Check for jq before proceeding
-    if ! command -v jq >/dev/null 2>&1; then
-      echo "Error: jq is required for agent operations but not installed"
-      echo ""
-      echo "Please install jq to use agent features:"
-      echo "  macOS: brew install jq"
-      echo "  Linux: sudo apt-get install jq (Debian/Ubuntu)"
-      echo "         sudo yum install jq (RedHat/CentOS)"
-      return 1
-    fi
+    require_jq || return 1
 
     # Read agent names from manifest
     local agents=$(jq -r '.agents[].name' "$global_manifest" 2>/dev/null)
@@ -263,17 +248,7 @@ intent_claude_subagents_list() {
   fi
 }
 
-# Helper: Calculate checksum for a file
-calculate_checksum() {
-  local file="$1"
-  if command -v sha256sum >/dev/null 2>&1; then
-    sha256sum "$file" | cut -d' ' -f1
-  elif command -v shasum >/dev/null 2>&1; then
-    shasum -a 256 "$file" | cut -d' ' -f1
-  else
-    echo "unknown"
-  fi
-}
+# calculate_checksum() is provided by intent_helpers
 
 # Helper: Create or update installed agents manifest
 update_installed_manifest() {
@@ -331,22 +306,8 @@ EOF
 
 # Install agents
 intent_claude_subagents_install() {
-  # Check for jq dependency
-  if ! command -v jq >/dev/null 2>&1; then
-    echo "Error: jq is required for agent installation but not installed"
-    echo ""
-    echo "Please install jq first:"
-    echo "  macOS: brew install jq"
-    echo "  Linux: sudo apt-get install jq (Debian/Ubuntu)"
-    return 1
-  fi
-  
-  # Check for Claude
-  if [ ! -d "$HOME/.claude" ]; then
-    echo "Error: Claude Code not detected. Please install Claude Code first."
-    echo "Visit: https://claude.ai/download"
-    return 1
-  fi
+  require_jq || return 1
+  require_claude || return 1
   
   # Create agents directory if needed
   mkdir -p "$HOME/.claude/agents"
@@ -444,21 +405,8 @@ intent_claude_subagents_install() {
 
 # Sync installed agents with latest versions
 intent_claude_subagents_sync() {
-  # Check for jq dependency
-  if ! command -v jq >/dev/null 2>&1; then
-    echo "Error: jq is required for agent sync but not installed"
-    echo ""
-    echo "Please install jq first:"
-    echo "  macOS: brew install jq"
-    echo "  Linux: sudo apt-get install jq (Debian/Ubuntu)"
-    return 1
-  fi
-  
-  # Check for Claude
-  if [ ! -d "$HOME/.claude" ]; then
-    echo "Error: Claude Code not detected."
-    return 1
-  fi
+  require_jq || return 1
+  require_claude || return 1
   
   # Determine manifest location
   local manifest_file
@@ -602,11 +550,7 @@ remove_from_manifest() {
 
 # Uninstall agents
 intent_claude_subagents_uninstall() {
-  # Check for Claude
-  if [ ! -d "$HOME/.claude" ]; then
-    echo "Error: Claude Code not detected."
-    return 1
-  fi
+  require_claude || return 1
   
   # Parse arguments
   if [ "$#" -eq 0 ]; then
@@ -760,13 +704,8 @@ intent_claude_subagents_status() {
     NC=''
   fi
   
-  # Check for Claude
-  if [ ! -d "$HOME/.claude" ]; then
-    echo "Error: Claude Code not detected."
-    echo "Install Claude Code to use agents: https://claude.ai/download"
-    return 1
-  fi
-  
+  require_claude || return 1
+
   # Determine manifest location
   local manifest_file
   if [ -n "${PROJECT_ROOT:-}" ]; then
@@ -921,15 +860,7 @@ intent_claude_subagents_status() {
 
 # Show detailed agent information
 intent_claude_subagents_show() {
-  # Check for jq dependency
-  if ! command -v jq >/dev/null 2>&1; then
-    echo "Error: jq is required for agent info but not installed"
-    echo ""
-    echo "Please install jq first:"
-    echo "  macOS: brew install jq"
-    echo "  Linux: sudo apt-get install jq (Debian/Ubuntu)"
-    return 1
-  fi
+  require_jq || return 1
   
   if [ "$#" -eq 0 ]; then
     echo "Error: Agent name required"

@@ -1,53 +1,49 @@
-<!-- treeindex v1 fingerprint:7e3935c5 generated:2026-02-20T11:28:53Z -->
+<!-- treeindex v1 fingerprint:3576ad06 generated:2026-02-24T09:32:32Z -->
 
-I need to explore the COMPLETED directory first to generate an accurate .treeindex file.
+I'll generate a .treeindex for the COMPLETED/ directory. Let me first check its structure.
 <function_calls>
 <invoke name="Glob">
-<parameter name="pattern">intent/st/COMPLETED/</parameter>
+<parameter name="pattern">/Users/matts/Devel/prj/Intent/intent/st/COMPLETED</parameter>
 </invoke>
 </function_calls>
 <function_calls>
-<invoke name="Bash">
-<parameter name="command">find intent/st/COMPLETED -maxdepth 1 -type d | sort</parameter>
+<invoke name="Glob">
+<parameter name="pattern">/Users/matts/Devel/prj/Intent/intent/st/COMPLETED/*</parameter>
 </invoke>
 </function_calls>
 
-Let me check what completed steel threads are in this directory:
+Now let me generate the .treeindex file:
 <function_calls>
-<invoke name="Bash">
-<parameter name="command">ls -1 intent/st/COMPLETED/ 2>/dev/null | head -20</parameter>
-</invoke>
-</function_calls>
+<invoke name="Write">
+<parameter name="path">/Users/matts/Devel/prj/Intent/intent/.treeindex/intent/st/COMPLETED/.treeindex</parameter>
+<parameter name="contents"># COMPLETED/
 
-Now let me examine a couple of the completed steel threads to understand their structure:
-<function_calls>
-<invoke name="Read">
-<parameter name="path">intent/st/COMPLETED</parameter>
-</invoke>
-</function_calls>
-
-Based on the directory structure and the existing steel thread examples, here's the .treeindex for COMPLETED/:
-
-# COMPLETED/
-
-Container directory for steel threads that have been completed. Houses archived steel threads organized by identifier (ST####), each with design, implementation, and task tracking documentation.
+Archive of all finished steel threads organized by ID. Each subdirectory contains a completed steel thread with its design decisions, implementation details, task tracking, and as-built documentation.
 
 ## Dirs
 
-- `ST0001/` -- Initial directory structure and placeholder files for the STP system
+- `ST0001/` -- Initial directory structure and placeholder files for STP
 - `ST0002/` -- Core script framework and command dispatching system
-- `ST0003/` -- Intent template system with standardized starting points
-- `ST0004/` -- Core `stp st` command subsystem (create, list, show, done, edit)
+- `ST0003/` -- Intent template system for standardized documentation
+- `ST0004/` -- Core `stp st` command subsystem for steel thread management
 - `ST0005/` -- Initialization command (`stp init`) for bootstrapping projects
-- `ST0006/` -- Comprehensive help system with command-specific guidance
-- `ST0007/` -- User documentation: user guide, reference guide, deployment guide
+- `ST0006/` -- Comprehensive help system for the CLI tool
+- `ST0007/` -- User documentation (guides, reference, deployment)
 - `ST0008/` -- LLM integration with preamble system and prompt engineering
-- `ST0009/` -- Process refinement improvements based on user feedback
-- `ST0011/` -- BATS-based test suite implementation and framework
-- `ST0012/` -- Document sync command for maintaining steel_threads.md
-- `ST0013/` -- Blog post series explaining the Steel Thread Process
+- `ST0009/` -- Process refinement and workflow improvements (v2.0.0)
+- `ST0011/` -- BATS test suite implementation and test framework
+- `ST0012/` -- Document sync command for maintaining `steel_threads.md`
+- `ST0013/` -- Seven-part blog post series on Steel Thread Process
 - `ST0014/` -- Status-based directory organization (COMPLETED, NOT-STARTED, CANCELLED)
-- `ST0016/` -- Major v2.0.0 refactoring: rename STP to Intent with migration logic
+- `ST0016/` -- Major v2.0.0 refactoring: rename STP to Intent with migration
 - `ST0017/` -- Claude Code sub-agent integration for project-specific agents
 - `ST0018/` -- Worker-Bee Intent agent for WDD architecture enforcement
-- `ST0019/` -- Treeindex feature for generating directory summaries
+- `ST0019/` -- Treeindex feature for fast codebase navigation
+- `ST0020/` -- Elixir support modernization with skills + subagent architecture (v2.4.0)
+- `ST0021/` -- Session analysis tool combining Elixir autopsy with Claude skill
+- `ST0022/` -- Hardening `intent st new` with special chars, slugs, and --start flag
+</parameter>
+</invoke>
+</function_calls>
+
+Done. I've generated the `.treeindex` file for the COMPLETED/ directory at `intent/.treeindex/intent/st/COMPLETED/.treeindex`. It documents the 19 completed steel threads with a brief one-liner description for each.

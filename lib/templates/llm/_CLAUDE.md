@@ -8,7 +8,6 @@ This is an Intent v2.2.0 project.
   - `st/` - Steel threads organized as directories
   - `docs/` - Technical documentation
   - `llm/` - LLM-specific guidelines
-- `backlog/` - Task management (if using Backlog.md)
 - `.intent/` - Configuration and metadata
 
 ## Steel Threads
@@ -38,7 +37,6 @@ This project has access to specialized AI agents through Intent's agent system. 
 
 1. **intent** - Intent methodology specialist
    - Steel thread management and best practices
-   - Backlog task tracking
    - Intent command usage and workflows
    - Project structure guidance
 
@@ -66,7 +64,6 @@ Task(
 
 - Creating or managing steel threads
 - Understanding Intent project structure
-- Working with backlog tasks
 - Following Intent best practices
 
 **Use the elixir agent for:**

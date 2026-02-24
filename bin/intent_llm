@@ -5,11 +5,9 @@
 # Exit on error
 set -e
 
-# Function to display error messages
-error() {
-  echo "Error: $1" >&2
-  exit 1
-}
+# Source shared helpers
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
 
 # Function to display usage
 usage() {

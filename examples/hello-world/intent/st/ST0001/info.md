@@ -37,4 +37,4 @@ This is a clean v2.0.0 project showing the target structure after migration. Key
 
 1. Configuration is JSON-based
 2. Directory structure is flattened
-3. Clear separation of tool (bin/, lib/) from project artifacts (intent/, backlog/)
+3. Clear separation of tool (bin/, lib/) from project artifacts (intent/)

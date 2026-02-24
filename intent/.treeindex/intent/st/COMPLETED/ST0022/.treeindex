@@ -1,0 +1,13 @@
+<!-- treeindex v1 fingerprint:d4ebe70e generated:2026-02-24T09:31:28Z -->
+
+# ST0022/
+
+ST0022 is a completed steel thread for hardening the `intent st new` command. The directory documents the design, implementation, and completion of three features: special character escaping in titles, automatic slug generation, and a `--start` flag for immediate startup.
+
+## Files
+
+- `info.md` -- Steel thread metadata, problem statement, and solution overview
+- `design.md` -- Architecture and design decisions for the three work packages
+- `impl.md` -- Implementation details and test coverage
+- `done.md` -- Completion checklist for all four work packages
+- `tasks.md` -- Task dependency graph (WP-01 -> WP-02 -> WP-03 -> WP-04)

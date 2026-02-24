@@ -2,23 +2,34 @@
 
 ## Project
 
-Intent v2.4.0 -- a CLI tool for managing steel threads, project documentation, and LLM guidance (skills, subagents, templates). Written in bash, tests use BATS framework. Located at `/Users/matts/Devel/prj/Intent/`.
+Intent v2.5.0 -- a CLI tool for managing steel threads, project documentation, and LLM guidance (skills, subagents, templates). Written in bash, tests use BATS framework. Located at `/Users/matts/Devel/prj/Intent/`.
 
 ## Current State
 
-v2.4.0 released and tagged. All steel threads completed:
+v2.5.0 released. Two completed steel threads this session:
 
-- ST0020: Modernizing Elixir support -- 6 skills, 5 subagents, 8 project upgrades
-- ST0021: Intent Autopsy -- Elixir session analysis + memory meta-learning
-- ST0022: Harden `st new` -- special char escaping, slug generation, --start flag
+- ST0023: Remove Backlog from Intent (all 8 WPs done, 70+ files changed)
+- ST0025: Fix Highlander Violations (audit done, plan documented, implementation pending)
 
-No active steel threads. ST0010 and ST0015 parked in NOT-STARTED/.
+Key changes in v2.5.0:
+
+- Deleted CLI commands: bl, task, status, migrate, backlog
+- Removed Node.js from CI pipeline
+- Cleaned all docs, templates, subagents, examples
+- Consolidated version/intent_version config fields
+- Fixed test side-effect (sandbox approach in agent_commands.bats)
+- Test suite: 14 files, 318 tests, all passing
+
+## Active Steel Threads
+
+- ST0024: Add work packages as first-class citizens (not started)
+- ST0025: Fix Highlander Violations (25 violations documented, 6 WPs planned)
 
 ## What's Next
 
-1. Fix subagent sync false-positive ("modified locally" when source changed)
-2. Review ST0010 and ST0015 to decide if still relevant
-3. Consider v2.5.0 scope
+1. ST0025 implementation: Extract shared helpers, consolidate templates, dedup plugins
+2. ST0024: Work packages as first-class citizens
+3. Review ST0010 and ST0015
 
 ## Key Patterns
 
@@ -31,7 +42,7 @@ No active steel threads. ST0010 and ST0015 parked in NOT-STARTED/.
 - Skill definitions: `intent/plugins/claude/skills/<name>/SKILL.md`
 - Subagent definitions: `intent/plugins/claude/subagents/<name>/`
 - Templates: `intent/plugins/agents/templates/<name>/` (default, elixir)
-- Tests: `tests/unit/` (17 .bats files), run with `tests/run_tests.sh`
+- Tests: `tests/unit/` (14 .bats files), run with `tests/run_tests.sh`
 - Two git remotes: `local` (Dropbox) and `upstream` (GitHub)
 - NO Claude attribution in commit messages
 - Never use em dashes in skill files (multi-byte truncation bugs)

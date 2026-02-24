@@ -1,9 +1,0 @@
-#!/bin/bash
-# intent_bl - Shorthand alias for intent_backlog
-# This simply calls intent_backlog with all arguments
-
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# Call intent_backlog with all arguments
-exec "$SCRIPT_DIR/intent_backlog" "$@"

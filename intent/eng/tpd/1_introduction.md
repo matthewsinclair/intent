@@ -79,7 +79,7 @@ The system remains intentionally simple, using markdown files and shell scripts 
   - Flattened directory structure
   - JSON configuration system
   - New bootstrap, doctor, and upgrade commands
-  - Enhanced Backlog.md integration
+  - Enhanced Backlog.md integration [Removed in v2.5.0]
   - Self-hosting capability
 - **v2.1.0 (July 2025)**: Enhanced agent system with:
   - Agent initialization command

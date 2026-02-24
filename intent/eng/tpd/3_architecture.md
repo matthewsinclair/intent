@@ -119,9 +119,9 @@ Example .intent/config.json:
   "author": "username",
   "created": "2025-07-17",
   "st_prefix": "ST",
-  "backlog_dir": "backlog",
+  "backlog_dir": "backlog",          // [Removed in v2.5.0]
   "intent_dir": "intent",
-  "backlog_list_status": "todo"  // New in v2.0.0
+  "backlog_list_status": "todo"      // [Removed in v2.5.0]
 }
 ```
 
@@ -133,7 +133,7 @@ Intent manages several types of data:
 2. **Steel Thread Data**: Markdown files in intent/st/ directories
 3. **Project Metadata**: Steel thread status, creation dates
 4. **Work History**: Journal entries and completed threads
-5. **Task Data**: Backlog.md integration with status tracking
+5. **Task Data**: Backlog.md integration with status tracking — **[Removed in v2.5.0]**
 
 All data uses plain text formats (JSON and markdown) for maximum portability.
 
@@ -156,7 +156,7 @@ STP is designed to interface with:
 1. **Version Control Systems**: Through normal file operations
 2. **LLM Systems**: Through document content and canned prompts
 3. **Development Environments**: Through standard shell integration
-4. **Task Management Systems**: Through Backlog.md integration for fine-grained task tracking
+4. **Task Management Systems**: Through Backlog.md integration for fine-grained task tracking — **[Removed in v2.5.0]**
 
 ## 3.5 Architectural Decisions
 
@@ -173,6 +173,8 @@ STP is designed to interface with:
 STP is designed as an extensible system that can integrate with complementary tools while maintaining its core philosophy of simplicity and portability.
 
 ### 3.6.1 Backlog.md Integration
+
+> **[Removed in v2.5.0]** Backlog.md integration was removed in Intent v2.5.0.
 
 The integration with Backlog.md extends STP's capabilities with fine-grained task management while preserving the separation of concerns:
 

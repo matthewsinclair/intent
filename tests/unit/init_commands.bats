@@ -35,7 +35,7 @@ load "../lib/test_helper.bash"
   
   # Check config content
   assert_file_contains ".intent/config.json" '"project_name": "Test Project"'
-  assert_file_contains ".intent/config.json" '"version": "2.1.0"'
+  assert_file_contains ".intent/config.json" '"intent_version": "2.1.0"'
   
   # Cleanup
   cd - > /dev/null
@@ -72,7 +72,7 @@ load "../lib/test_helper.bash"
   
   # Check configuration content
   assert_file_contains ".intent/config.json" '"project_name": "My Test Project"'
-  assert_file_contains ".intent/config.json" '"version": "2.1.0"'
+  assert_file_contains ".intent/config.json" '"intent_version": "2.1.0"'
   assert_file_contains ".intent/config.json" '"created":'
   assert_file_contains ".intent/config.json" '"author":'
   

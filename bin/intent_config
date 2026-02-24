@@ -15,7 +15,6 @@ INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
 
 # Default values
 DEFAULT_INTENT_DIR="intent"
-DEFAULT_BACKLOG_DIR="backlog"
 
 # Parse JSON file using jq
 parse_json() {
@@ -27,26 +26,7 @@ parse_json() {
     return 1
   fi
   
-  # Check if jq is available
-  if ! command -v jq >/dev/null 2>&1; then
-    echo "Error: jq is required but not installed." >&2
-    echo "" >&2
-    echo "Intent requires jq for JSON configuration parsing." >&2
-    echo "" >&2
-    echo "Installation instructions:" >&2
-    if [ "$(uname)" = "Darwin" ]; then
-      echo "  macOS: brew install jq" >&2
-    elif [ "$(uname)" = "Linux" ]; then
-      echo "  Debian/Ubuntu: sudo apt-get install jq" >&2
-      echo "  RedHat/CentOS: sudo yum install jq" >&2
-      echo "  Arch Linux: sudo pacman -S jq" >&2
-    else
-      echo "  Please install jq using your system's package manager" >&2
-    fi
-    echo "" >&2
-    echo "For more information: https://stedolan.github.io/jq/download/" >&2
-    exit 1
-  fi
+  require_jq || exit 1
   
   # Extract all key-value pairs as shell variable assignments
   jq -r 'to_entries | .[] | "\(.key)=\"\(.value)\""' "$file" 2>/dev/null | \
@@ -87,7 +67,6 @@ find_project_root() {
 load_intent_config() {
   # Initialize defaults (INTENT_VERSION already set above)
   INTENT_DIR="${DEFAULT_INTENT_DIR}"
-  BACKLOG_DIR="${DEFAULT_BACKLOG_DIR}"
   AUTHOR="${USER}"
   EDITOR="${EDITOR:-vim}"
   
@@ -101,10 +80,8 @@ load_intent_config() {
     if [ $? -eq 0 ]; then
       eval "$global_config"
       [ -n "$global_intent_dir" ] && INTENT_DIR="$global_intent_dir"
-      [ -n "$global_backlog_dir" ] && BACKLOG_DIR="$global_backlog_dir"
       [ -n "$global_author" ] && AUTHOR="$global_author"
       [ -n "$global_editor" ] && EDITOR="$global_editor"
-      [ -n "$global_backlog_list_status" ] && BACKLOG_LIST_STATUS="$global_backlog_list_status"
     fi
   fi
   
@@ -115,17 +92,14 @@ load_intent_config() {
     if [ $? -eq 0 ]; then
       eval "$local_config"
       [ -n "$local_intent_dir" ] && INTENT_DIR="$local_intent_dir"
-      [ -n "$local_backlog_dir" ] && BACKLOG_DIR="$local_backlog_dir"
       [ -n "$local_author" ] && AUTHOR="$local_author"
       [ -n "$local_editor" ] && EDITOR="$local_editor"
       [ -n "$local_intent_version" ] && INTENT_VERSION="$local_intent_version"
-      [ -n "$local_backlog_list_status" ] && BACKLOG_LIST_STATUS="$local_backlog_list_status"
     fi
   fi
   
   # Environment variables override all
   [ -n "$INTENT_DIR_OVERRIDE" ] && INTENT_DIR="$INTENT_DIR_OVERRIDE"
-  [ -n "$BACKLOG_DIR_OVERRIDE" ] && BACKLOG_DIR="$BACKLOG_DIR_OVERRIDE"
   
   # Legacy support: check for stp directory if intent doesn't exist
   if [ -n "$PROJECT_ROOT" ]; then
@@ -135,7 +109,7 @@ load_intent_config() {
   fi
   
   # Export for use in subcommands
-  export INTENT_VERSION INTENT_DIR BACKLOG_DIR AUTHOR EDITOR PROJECT_ROOT BACKLOG_LIST_STATUS
+  export INTENT_VERSION INTENT_DIR AUTHOR EDITOR PROJECT_ROOT
 }
 
 # Validate JSON syntax using jq
@@ -146,10 +120,7 @@ validate_json() {
     return 1
   fi
   
-  # Check if jq is available
-  if ! command -v jq >/dev/null 2>&1; then
-    return 1
-  fi
+  require_jq 2>/dev/null || return 1
   
   # Use jq to validate JSON syntax
   if jq . "$file" >/dev/null 2>&1; then
@@ -165,7 +136,6 @@ show_config() {
   echo "  INTENT_VERSION: $INTENT_VERSION"
   echo "  PROJECT_ROOT: ${PROJECT_ROOT:-<not in project>}"
   echo "  INTENT_DIR: $INTENT_DIR"
-  echo "  BACKLOG_DIR: $BACKLOG_DIR"
   echo "  AUTHOR: $AUTHOR"
   echo "  EDITOR: $EDITOR"
 }
@@ -181,7 +151,6 @@ create_default_global_config() {
 {
   "intent_version": "2.1.0",
   "intent_dir": "intent",
-  "backlog_dir": "backlog",
   "author": "${USER}",
   "editor": "${EDITOR:-vim}"
 }
@@ -203,13 +172,7 @@ is_legacy_project() {
   return 1
 }
 
-# Common error handling
-error() {
-  echo "Error: $1" >&2
-  exit 1
-}
-
-# Common warning handling  
+# Common warning handling
 warning() {
   echo "Warning: $1" >&2
 }
@@ -222,5 +185,4 @@ export -f validate_json
 export -f show_config
 export -f create_default_global_config
 export -f is_legacy_project
-export -f error
 export -f warning

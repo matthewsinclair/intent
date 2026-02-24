@@ -97,7 +97,6 @@ The Intent-aware development assistant that understands:
 
 - Steel thread methodology
 - Intent commands and structure
-- Backlog task management
 - Project organization
 
 ### elixir

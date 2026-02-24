@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:baa98548 generated:2026-02-24T09:32:18Z -->
+
+# ST0023/
+
+Steel thread for removing Backlog.md integration from Intent (v2.4.0 -> v2.5.0). This removes the deprecated npm-based backlog tool wrapper along with CLI commands (`bl`, `task`, `status`, `migrate`), documentation, templates, tests, and CI/CD dependencies affecting ~70+ files across the codebase.
+
+## Files
+
+- `info.md` -- Steel thread metadata, objectives, and work package definitions (WP01-WP08)
+- `design.md` -- Design decisions: doc-first methodology, blog editor's notes, TPD annotations, Node.js CI removal, and alternatives considered
+- `impl.md` -- Implementation progress tracking across eight work packages
+- `tasks.md` -- Task checklist and work package dependencies

@@ -12,8 +12,8 @@ load "../lib/test_helper.bash"
   assert_output_contains "Usage:"
   assert_output_contains "Core:"
   assert_output_contains "st"
-  assert_output_contains "bl"
-  assert_output_contains "task"
+  assert_output_contains "init"
+  assert_output_contains "doctor"
 }
 
 @test "help displays command-specific help when a command is specified" {
@@ -29,8 +29,6 @@ load "../lib/test_helper.bash"
   
   # Check for core commands
   assert_output_contains "st"
-  assert_output_contains "bl"
-  assert_output_contains "task"
   assert_output_contains "init"
   assert_output_contains "doctor"
 }
@@ -57,5 +55,5 @@ load "../lib/test_helper.bash"
   
   # Verify commands exist
   assert_output_contains "st"
-  assert_output_contains "bl"
+  assert_output_contains "init"
 }

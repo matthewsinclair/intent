@@ -64,11 +64,6 @@ fi
 
 # --- Functions ---
 
-error() {
-  echo "Error: $1" >&2
-  exit 1
-}
-
 usage() {
   echo "Usage: intent treeindex [OPTIONS] DIR"
   echo ""

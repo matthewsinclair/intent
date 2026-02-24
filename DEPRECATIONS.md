@@ -1,11 +1,41 @@
 ---
-verblock: "27 Jul 2025:v0.3: Matthew Sinclair - Updated for Intent v2.1.0"
-intent_version: 2.1.0
+verblock: "24 Feb 2026:v0.4: Matthew Sinclair - Updated for Intent v2.5.0"
+intent_version: 2.5.0
 ---
 
 # Intent Deprecations
 
 This document tracks features, files, and functionality that have been deprecated in Intent (formerly STP).
+
+## February 24, 2026: Backlog.md integration removed
+
+### What was deprecated
+
+The Backlog.md integration and all associated commands (`intent bl`, `intent task`, `intent migrate`) have been removed.
+
+### Why it was deprecated
+
+Backlog.md task management added complexity without sufficient value. Steel threads and their associated task files (`tasks.md`, `done.md`) provide adequate tracking for Intent's workflow. Removing the Backlog integration simplifies the codebase and reduces maintenance burden.
+
+### Migration path
+
+Users who were using Backlog.md should:
+
+1. Move any active tasks into steel thread `tasks.md` files
+2. Archive historical task data if needed
+3. Remove `Backlog.md` from project roots
+
+### Impact
+
+- The `intent bl` command has been removed
+- The `intent task` command has been removed
+- The `intent migrate` command has been removed
+- Associated test files (`bl_commands.bats`, `task_commands.bats`, `migration.bats`) have been removed
+- Documentation updated to remove Backlog references
+
+### Version deprecated
+
+Intent version 2.5.0
 
 ## July 9, 2025: journal.md
 

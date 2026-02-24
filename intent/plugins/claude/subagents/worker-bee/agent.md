@@ -227,7 +227,6 @@ When working within Intent projects:
 
 - Reference steel threads for feature context
 - Document WDD decisions in appropriate steel thread docs
-- Generate tasks for backlog when refactoring is needed
 - Follow Intent project structure and conventions
 - Update documentation to reflect WDD compliance progress
 

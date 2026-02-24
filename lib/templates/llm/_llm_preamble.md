@@ -17,8 +17,7 @@ When working with this repository, focus on these key documents in order:
 
 1. **START HERE**: `CLAUDE.md` - Project-specific guidelines and instructions
 2. **NEXT**: `intent/st/` - Review steel thread directories for project history
-3. **THEN**: `Backlog.md` (if exists) - Current tasks and priorities
-4. **REFERENCE**: `intent/docs/` - Technical documentation
+3. **REFERENCE**: `intent/docs/` - Technical documentation
 
 ## Documentation Structure
 
@@ -28,7 +27,6 @@ The Intent methodology organizes project information through this directory stru
   - **intent/st/**: Steel thread directories (ST0001/, ST0002/, etc.)
   - **intent/docs/**: Technical documentation
   - **intent/llm/**: LLM-specific guidelines
-- **backlog/**: Task management (if using Backlog.md)
 - **.intent/**: Configuration and metadata
 
 ## Steel Thread Process
@@ -51,7 +49,6 @@ This project can leverage specialized AI agents through Intent's agent system:
 
 1. **intent** - Intent methodology specialist
    - Steel thread management and best practices
-   - Backlog task tracking
    - Intent command usage and workflows
    - Project structure guidance
 
@@ -125,8 +122,7 @@ When assisting with this project:
 2. Use specialized agents for domain-specific tasks
 3. Maintain consistency with existing patterns
 4. Update documentation alongside code changes
-5. Track progress using Backlog.md if available
-6. Create steel threads for new features or significant work
+5. Create steel threads for new features or significant work
 
 ## Project-Specific Information
 

@@ -1,17 +1,18 @@
-<!-- treeindex v1 fingerprint:5bcda26a generated:2026-02-20T11:32:54Z -->
+<!-- treeindex v1 fingerprint:fcc15b03 generated:2026-02-24T09:35:05Z -->
 
 # tests/
 
-Comprehensive BATS (Bash Automated Testing System) test suite for the Intent CLI tool. Includes unit tests for individual commands, integration tests for complete workflows, and test infrastructure with helper utilities. Currently 327 tests passing across 17 test files.
+Comprehensive BATS-based test suite for Intent v2.5.0 with 15+ tests validating CLI commands, workflows, and core functionality. Tests are organized into unit tests (by command category), integration tests (full workflows), and shared test utilities. Ensures Intent CLI works correctly across its feature set.
 
 ## Dirs
 
-- `fixtures/` -- Test fixtures and sample files used by test cases
-- `integration/` -- End-to-end integration tests validating complete workflows
-- `lib/` -- Test helper functions and setup utilities (test_helper.bash)
-- `unit/` -- Unit tests for individual Intent commands organized by domain
+- `fixtures/` -- Test fixtures and sample files for tests
+- `integration/` -- Integration tests validating complete user workflows and end-to-end scenarios
+- `lib/` -- Shared BATS test libraries, helpers, and assertion utilities
+- `unit/` -- Unit tests organized by command category (14 test files for individual commands)
 
 ## Files
 
-- `run_tests.sh` -- Main test runner script that executes BATS tests with colored output and status reporting
-- `README.md` -- Test suite documentation with structure, prerequisites, and test writing guidelines
+- `run_tests.sh` -- Test runner script with Bats orchestration, color output, and configuration
+- `core_functionality.bats` -- Essential smoke tests validating Intent infrastructure and core functionality
+- `README.md` -- Test documentation, prerequisites, running instructions, and structure guide

@@ -10,19 +10,17 @@ This directory contains automated workflows that run on GitHub to ensure code qu
 
 **What it does**:
 - Runs all unit tests on Ubuntu and macOS
-- Runs integration tests with Backlog.md
 - Performs ShellCheck analysis on all scripts
 - Provides a summary of test results
 
 **Jobs**:
-- `test-linux` (Test on Ubuntu): Runs full test suite on Ubuntu with Node.js for Backlog.md
-- `test-macos` (Test on macOS): Runs full test suite on macOS with Node.js for Backlog.md
+- `test-linux` (Test on Ubuntu): Runs full test suite on Ubuntu
+- `test-macos` (Test on macOS): Runs full test suite on macOS
 - `shellcheck` (Shell Script Analysis): Static analysis of shell scripts (non-blocking)
 - `test-summary` (Test Summary): Aggregates results from all test jobs
 
 **Key Features**:
 - Tests on both Ubuntu and macOS to ensure cross-platform compatibility
-- Installs Backlog.md to test integration features
 - Includes both unit tests and integration tests
 - ShellCheck provides code quality feedback without blocking
 
@@ -74,9 +72,7 @@ shellcheck bin/intent*
 ## Workflow Maintenance
 
 ### Dependencies
-- **GitHub Actions**: Uses `actions/checkout@v4` and `actions/setup-node@v4`
-- **Node.js**: Version 20 for Backlog.md compatibility
-- **Backlog.md**: Installed via `npm install -g backlog.md`
+- **GitHub Actions**: Uses `actions/checkout@v4`
 - **Bats**: Installed via system package manager (Homebrew on macOS, from source on Ubuntu)
 - **Bats Libraries**: Cloned from GitHub if not present (bats-support, bats-assert, bats-file)
 
@@ -88,7 +84,7 @@ shellcheck bin/intent*
 ### Best Practices
 - ShellCheck runs are non-blocking to allow gradual improvements
 - Tests continue running even if some fail (using `|| true`)
-- Integration tests check for Backlog.md availability
+- Integration tests validate end-to-end functionality
 - All scripts are made executable before running
 
 ## Adding New Tests
@@ -96,7 +92,7 @@ shellcheck bin/intent*
 When adding new features:
 
 1. **Add unit tests** in `tests/unit/` as a `.bats` file
-2. **Update integration tests** if the feature affects Intent-Backlog integration
+2. **Update integration tests** if the feature affects end-to-end workflows
 3. **Run tests locally** before pushing
 4. **Reference the steel thread** in your PR description (eg "Implements ST0042")
 5. **Update documentation** if adding new commands or changing behavior
@@ -111,8 +107,8 @@ When adding new features:
    - Verify file permissions are set correctly
 
 2. **Integration tests fail**
-   - Backlog.md might not be installed correctly
-   - Check Node.js version compatibility
+   - Check for missing dependencies
+   - Verify file permissions are set correctly
 
 3. **ShellCheck warnings**
    - These are non-blocking but should be addressed

@@ -38,6 +38,8 @@ intent_version: 2.4.0
 
 ### 2.1.4 Backlog Integration [AS-BUILT]
 
+> **[Removed in v2.5.0]** Backlog.md integration was removed in Intent v2.5.0.
+
 | ID     | Requirement                                                                | Status        |
 | ------ | -------------------------------------------------------------------------- | ------------- |
 | FR-4.1 | The system shall integrate with Backlog.md for task management             | ✓ Implemented |

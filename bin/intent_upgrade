@@ -5,19 +5,13 @@
 # Exit on error
 set -e
 
-# Function to display error messages
-error() {
-  echo "Error: $1" >&2
-  exit 1
-}
-
 # Source helpers
 INTENT_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INTENT_HOME="$(cd "$INTENT_BIN/.." && pwd)"
 source "$INTENT_BIN/intent_helpers"
 
 # Get target version
-TARGET_VERSION="$(get_intent_version 2>/dev/null || echo "2.3.4")"
+TARGET_VERSION="$(get_intent_version 2>/dev/null || echo "2.5.0")"
 
 # Function to display usage information
 usage() {
@@ -97,7 +91,7 @@ if [ "$VERSION" = "$TARGET_VERSION" ]; then
 fi
 
 # Determine if migration is needed
-if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION" && ! needs_v2_3_1_upgrade "$VERSION" && ! needs_v2_3_2_upgrade "$VERSION" && ! needs_v2_3_3_upgrade "$VERSION" && ! needs_v2_3_4_upgrade "$VERSION"; then
+if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION" && ! needs_v2_3_1_upgrade "$VERSION" && ! needs_v2_3_2_upgrade "$VERSION" && ! needs_v2_3_3_upgrade "$VERSION" && ! needs_v2_3_4_upgrade "$VERSION" && ! needs_v2_4_0_upgrade "$VERSION" && ! needs_v2_5_0_upgrade "$VERSION"; then
   echo "✓ Project is already up to date at version $VERSION"
   echo "  No upgrade path available from $VERSION to $TARGET_VERSION"
   exit 0
@@ -122,7 +116,7 @@ if [ "$NO_BACKUP" != true ]; then
   mkdir -p "$BACKUP_DIR"
   
   # Backup relevant directories
-  for dir in stp .stp-config .intent intent backlog CLAUDE.md; do
+  for dir in stp .stp-config .intent intent CLAUDE.md; do
     if [ -e "$dir" ]; then
       cp -r "$dir" "$BACKUP_DIR/" 2>/dev/null || true
     fi
@@ -163,6 +157,8 @@ case "$VERSION" in
     migrate_v2_3_1_to_v2_3_2 .
     migrate_v2_3_2_to_v2_3_3 .
     migrate_v2_3_3_to_v2_3_4 .
+    migrate_v2_3_4_to_v2_4_0 .
+    migrate_v2_4_0_to_v2_5_0 .
     ;;
   "2.1.0")
     echo "Upgrading from v2.1.0 to v$TARGET_VERSION..."
@@ -173,6 +169,8 @@ case "$VERSION" in
     migrate_v2_3_1_to_v2_3_2 .
     migrate_v2_3_2_to_v2_3_3 .
     migrate_v2_3_3_to_v2_3_4 .
+    migrate_v2_3_4_to_v2_4_0 .
+    migrate_v2_4_0_to_v2_5_0 .
     ;;
   "2.2.0")
     echo "Upgrading from v2.2.0 to v$TARGET_VERSION..."
@@ -182,6 +180,8 @@ case "$VERSION" in
     migrate_v2_3_1_to_v2_3_2 .
     migrate_v2_3_2_to_v2_3_3 .
     migrate_v2_3_3_to_v2_3_4 .
+    migrate_v2_3_4_to_v2_4_0 .
+    migrate_v2_4_0_to_v2_5_0 .
     ;;
   "2.2.1")
     echo "Upgrading from v2.2.1 to v$TARGET_VERSION..."
@@ -190,6 +190,8 @@ case "$VERSION" in
     migrate_v2_3_1_to_v2_3_2 .
     migrate_v2_3_2_to_v2_3_3 .
     migrate_v2_3_3_to_v2_3_4 .
+    migrate_v2_3_4_to_v2_4_0 .
+    migrate_v2_4_0_to_v2_5_0 .
     ;;
   "2.3.0")
     echo "Upgrading from v2.3.0 to v$TARGET_VERSION..."
@@ -197,64 +199,63 @@ case "$VERSION" in
     migrate_v2_3_1_to_v2_3_2 .
     migrate_v2_3_2_to_v2_3_3 .
     migrate_v2_3_3_to_v2_3_4 .
+    migrate_v2_3_4_to_v2_4_0 .
+    migrate_v2_4_0_to_v2_5_0 .
     ;;
   "2.3.1")
     echo "Upgrading from v2.3.1 to v$TARGET_VERSION..."
     migrate_v2_3_1_to_v2_3_2 .
     migrate_v2_3_2_to_v2_3_3 .
     migrate_v2_3_3_to_v2_3_4 .
+    migrate_v2_3_4_to_v2_4_0 .
+    migrate_v2_4_0_to_v2_5_0 .
     ;;
   "2.3.2")
     echo "Upgrading from v2.3.2 to v$TARGET_VERSION..."
     migrate_v2_3_2_to_v2_3_3 .
     migrate_v2_3_3_to_v2_3_4 .
+    migrate_v2_3_4_to_v2_4_0 .
+    migrate_v2_4_0_to_v2_5_0 .
     ;;
   "2.3.3")
     echo "Upgrading from v2.3.3 to v$TARGET_VERSION..."
     migrate_v2_3_3_to_v2_3_4 .
+    migrate_v2_3_4_to_v2_4_0 .
+    migrate_v2_4_0_to_v2_5_0 .
+    ;;
+  "2.3.4")
+    echo "Upgrading from v2.3.4 to v$TARGET_VERSION..."
+    migrate_v2_3_4_to_v2_4_0 .
+    migrate_v2_4_0_to_v2_5_0 .
+    ;;
+  "2.4.0")
+    echo "Upgrading from v2.4.0 to v$TARGET_VERSION..."
+    migrate_v2_4_0_to_v2_5_0 .
     ;;
   *)
     error "Unknown version: $VERSION"
     ;;
 esac
 
-# Migrate backlog if it exists
-if [ -d "backlog" ]; then
-  echo "Backlog directory found, preserving..."
-  # Update backlog config if needed
-  if [ -f "backlog/.config" ]; then
-    if ! grep -q "task_prefix=ST" "backlog/.config"; then
-      echo "task_prefix=ST" >> "backlog/.config"
-    fi
-  fi
-fi
-
-
-# Ensure proper upgrade path to v$TARGET_VERSION
-# Only run intermediate upgrades for older versions
-if [ "$VERSION" != "2.0.0" ] && [ "$VERSION" != "2.1.0" ] && [ "$VERSION" != "2.2.0" ]; then
-  echo "Initializing agent configuration..."
-  migrate_v2_0_to_v2_1 .
-  echo "Applying v2.2.0 upgrade..."
-  migrate_v2_1_to_v2_2 .
-  echo "Finalizing v$TARGET_VERSION upgrade..."
-  migrate_v2_2_to_v2_2_1 .
-elif [ "$VERSION" = "2.0.0" ]; then
-  # 2.0.0 needs all three upgrades
-  echo "Applying v2.1.0 upgrade..."
-  migrate_v2_0_to_v2_1 .
-  echo "Applying v2.2.0 upgrade..."
-  migrate_v2_1_to_v2_2 .
-  echo "Finalizing v$TARGET_VERSION upgrade..."
-  migrate_v2_2_to_v2_2_1 .
-elif [ "$VERSION" = "2.1.0" ]; then
-  # 2.1.0 needs 2.2.0 and 2.2.1 upgrades
-  echo "Applying v2.2.0 upgrade..."
-  migrate_v2_1_to_v2_2 .
-  echo "Finalizing v$TARGET_VERSION upgrade..."
-  migrate_v2_2_to_v2_2_1 .
-fi
-# 2.2.0 case is handled by the main switch statement above
+# Ensure proper upgrade path for pre-v2 migrations
+# Pre-v2 versions (0.0.0, 1.x) migrate to v2.0.0 structure first, then need
+# the full v2.x chain applied. v2.x versions are already fully chained in the
+# case statement above.
+case "$VERSION" in
+  "0.0.0"|"1.0.0"|"1.2.0"|"1.2.1")
+    echo "Applying v2.x upgrade chain..."
+    migrate_v2_0_to_v2_1 .
+    migrate_v2_1_to_v2_2 .
+    migrate_v2_2_to_v2_2_1 .
+    migrate_v2_2_to_v2_3_0 .
+    migrate_v2_3_0_to_v2_3_1 .
+    migrate_v2_3_1_to_v2_3_2 .
+    migrate_v2_3_2_to_v2_3_3 .
+    migrate_v2_3_3_to_v2_3_4 .
+    migrate_v2_3_4_to_v2_4_0 .
+    migrate_v2_4_0_to_v2_5_0 .
+    ;;
+esac
 
 # Preserve agent manifests
 if [ -d ".intent/agents" ]; then

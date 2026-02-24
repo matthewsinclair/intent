@@ -39,7 +39,6 @@ Tool components:
 
 Project artifacts:
 - intent/      (steel threads, engineering docs)
-- backlog/     (task management)
 ```
 
 ## Benefits
@@ -47,4 +46,4 @@ Project artifacts:
 1. **Clarity**: Clear separation between tool and usage
 2. **Simplicity**: Flattened structure is easier to navigate
 3. **Deployment**: Can deploy just bin/ and lib/ for the tool
-4. **Flexibility**: Projects can customize intent_dir and backlog_dir
+4. **Flexibility**: Projects can customize intent_dir

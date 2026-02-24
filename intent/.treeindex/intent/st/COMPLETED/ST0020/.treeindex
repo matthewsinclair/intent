@@ -1,0 +1,13 @@
+<!-- treeindex v1 fingerprint:601f1acf generated:2026-02-24T09:32:00Z -->
+
+# ST0020/
+
+Completed steel thread that modernized Intent's Elixir support with a layered skills + subagent architecture. Delivered 6 new skills (essentials, elixir-essentials, ash-ecto-essentials, phoenix-liveview, elixir-testing, autopsy), refactored 23 overlapping rules to 12, and built skill lifecycle infrastructure. Released v2.4.0 with 11 work packages across 7 phases, upgraded 8 target projects.
+
+## Files
+
+- `info.md` -- Steel thread metadata, objective, scope, and 11 work packages across 7 phases
+- `design.md` -- Architecture decisions: skills vs subagents, three-file guidance system, Ash-first approach, rule consolidation
+- `done.md` -- Completion checklist for all 11 work packages and Phase 6 roll-out to 8 projects
+- `impl.md` -- Implementation notes, file inventory updates, and post-release v2.4.0 changes
+- `tasks.md` -- Task dependency graph with 5-phase chain and parallel work package branches

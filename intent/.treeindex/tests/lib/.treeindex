@@ -1,9 +1,44 @@
-<!-- treeindex v1 fingerprint:5f1b39f6 generated:2026-02-05T11:37:33Z -->
+<!-- treeindex v1 fingerprint:a10e6280 generated:2026-02-24T09:34:38Z -->
+
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">lib/**/*</parameter>
+</invoke>
+</function_calls>
+<parameter name="max_depth">3</parameter>
+<invoke name="Read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/lib</parameter>
+</invoke>
+</function_calls>
+
+Now let me read the key files to understand their purposes:
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">lib/help/*.md</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">lib/templates/**/*</parameter>
+</invoke>
+</function_calls>
+
+Let me get a better view of the structure:
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find /Users/matts/Devel/prj/Intent/lib -type f | head -30</parameter>
+</invoke>
+</function_calls>
 
 # lib/
 
-Contains test helper functions and utilities for the Intent test suite. Provides project path setup, temporary directory management, and convenience functions for running intent commands and creating test projects.
+Library directory containing reusable help templates, output formatting utilities, and scaffolding templates for Intent projects. Provides shared resources for steel thread creation and user guidance documentation.
+
+## Dirs
+
+- `help/` -- Help documentation templates and command reference material
+- `templates/` -- Scaffolding templates for LLM guidance and user documentation
 
 ## Files
 
-- `test_helper.bash` -- Core test setup with path initialization, temp directory management, and helper functions for creating test projects and running intent commands
+- `test_helper.bash` -- BATS test setup with project creation helpers, environment initialization, and assertion utilities

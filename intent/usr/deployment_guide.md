@@ -26,7 +26,6 @@ This deployment guide provides instructions for deploying the Intent v2.4.0 syst
 - Git (optional, for version control)
 - jq (required for JSON config parsing and agent management)
 - Text editor with markdown support
-- Backlog.md (optional, for task management integration)
 - Elixir (optional, required for `intent-autopsy` session analysis skill)
 
 ### Installation Methods
@@ -68,28 +67,6 @@ intent help
 ```
 
 This should display the help information for Intent commands.
-
-#### Installing Backlog.md
-
-Install Backlog.md for task management:
-
-```bash
-# Install Backlog globally
-npm install -g backlog.md
-
-# Or install locally in your project
-npm install backlog.md
-
-# Verify installation
-backlog --version
-```
-
-Initialize Backlog in your project:
-
-```bash
-# Initialize Backlog with Intent-friendly settings
-intent bl init
-```
 
 ## Configuration
 
@@ -138,10 +115,6 @@ Intent works seamlessly with git and other version control systems:
 
 # Intent configuration (contains local paths)
 .intent/config.json
-
-# Backlog configuration
-backlog/config.yml
-backlog/.git/
 ```
 
 #### Commit Practices
@@ -263,21 +236,12 @@ For other LLM platforms:
 - Update Intent installation periodically
 - Review and clean up completed steel threads
 - Archive older project documents
-- Sync steel thread status with Backlog tasks
-- Archive completed tasks in Backlog
 - Run `intent doctor` to check configuration health
 
 ### Backup Practices
 
 - Include Intent documents in regular backups
 - Ensure documentation is committed to version control
-- Back up Backlog task data (backlog/tasks/, backlog/archive/)
-- Export task data periodically:
-
-  ```bash
-  # Export all tasks to JSON
-  backlog task list --export > backlog-export-$(date +%Y%m%d).json
-  ```
 
 ## Upgrading
 
@@ -299,16 +263,13 @@ git pull
 
 ### Migrating Between Versions
 
-When upgrading Intent with Backlog integration:
+When upgrading Intent:
 
 1. **Backup existing data**:
 
    ```bash
    # Backup steel threads
    cp -r intent/st intent/st.backup
-
-   # Backup Backlog data
-   cp -r backlog backlog.backup
    ```
 
 2. **Run upgrade command**:
@@ -317,21 +278,11 @@ When upgrading Intent with Backlog integration:
    intent upgrade
    ```
 
-3. **Migrate embedded tasks** (if upgrading from pre-Backlog version):
+3. **Verify**:
 
    ```bash
-   # Migrate all active steel threads
-   intent migrate --all-active
-   ```
-
-4. **Verify integration**:
-
-   ```bash
-   # Check task status
-   intent status report
-
-   # Verify tasks in Backlog
-   intent bl list
+   # Check configuration health
+   intent doctor
    ```
 
 ## Test Suite Deployment
@@ -388,22 +339,6 @@ export BATS_LIB_PATH=/custom/path/to/bats/libs
 
 ### Common Issues
 
-#### Backlog Git Fetch Errors
-
-If you encounter git fetch errors with Backlog:
-
-```bash
-# Use the Intent wrapper instead of direct backlog commands
-intent bl list  # Instead of: backlog task list
-
-# Verify remote operations are disabled
-backlog config get remoteOperations
-# Should return: false
-
-# If not disabled, fix it:
-backlog config set remoteOperations false
-```
-
 #### Missing Test Dependencies
 
 If test dependencies are missing:
@@ -431,23 +366,6 @@ If you encounter permission errors:
 # Make scripts executable
 chmod +x bin/*
 chmod +x tests/*.sh
-```
-
-#### Task Synchronization Issues
-
-If tasks aren't syncing properly with steel threads:
-
-```bash
-# Check task naming convention (should be "ST#### - Description")
-intent bl list | grep "ST[0-9]"
-
-# Manually sync a specific steel thread
-intent status sync ST0001
-
-# Force sync all active threads
-for st in $(intent st list --status "In Progress" | awk '{print $1}' | grep "^ST"); do
-  intent status sync "$st"
-done
 ```
 
 ### Diagnostic Tools

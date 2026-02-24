@@ -1,29 +1,24 @@
-<!-- treeindex v1 fingerprint:f864062b generated:2026-02-20T11:21:08Z -->
+<!-- treeindex v1 fingerprint:ec43ab1c generated:2026-02-24T09:30:29Z -->
 
 # bin/
 
-Central command router and command implementations for Intent CLI. Contains the main entry point, configuration management utilities, and specialized handlers for project initialization, steel thread management, diagnostics, and third-party integrations.
+Core executable scripts and command implementations for the Intent CLI tool. Includes the main dispatcher, configuration libraries, and command handlers for project initialization, steel thread management, diagnostics, and artifact organization.
 
 ## Files
 
-- `intent` -- Main CLI entry point and command router; dispatches to subcommands and plugins
-- `intent_config` -- Shared configuration library for JSON parsing and project detection
-- `intent_helpers` -- Utility functions for version management and YAML-to-JSON conversion
-- `intent_bootstrap` -- First-time setup for Intent installations
-- `intent_init` -- Initialize new Intent projects with directory structure and configuration
-- `intent_doctor` -- Diagnose and fix configuration issues
-- `intent_upgrade` -- Migrate existing STP projects to Intent v2.4.0
-- `intent_info` -- Display installation status and project information
-- `intent_help` -- Help system and command reference documentation
-- `intent_st` -- Steel thread lifecycle management (new, list, show, edit, repair, sync)
-- `intent_treeindex` -- Generate `.treeindex` directory summaries using Claude AI
-- `intent_fileindex` -- Create and manage file indexes with checkbox state tracking
-- `intent_backlog` -- Wrapper for Backlog.md task management integration
-- `intent_bl` -- Shorthand alias for backlog commands
-- `intent_task` -- Create and manage tasks linked to steel threads
-- `intent_status` -- Sync steel thread status with Backlog task completion
-- `intent_migrate` -- Migrate embedded tasks from steel threads to Backlog.md
-- `intent_llm` -- LLM utilities for usage rules and context management
-- `intent_organise` -- Organize steel threads into status directories
-- `intent_main` -- Backward compatibility wrapper (stp alias)
-- `intent_minimal` -- Minimal CLI wrapper for early testing phases
+- `intent` -- Main command dispatcher and entry point for Intent CLI
+- `intent_config` -- Shared configuration library with JSON parsing and project detection
+- `intent_helpers` -- Utility functions for version detection and file format conversion
+- `intent_bootstrap` -- Initial Intent setup for first-time installations
+- `intent_init` -- Create and initialize new Intent projects
+- `intent_doctor` -- Configuration diagnostics with automated issue detection and repair
+- `intent_help` -- Help system and documentation for Intent commands
+- `intent_info` -- Display Intent installation and project information
+- `intent_upgrade` -- Upgrade and migrate projects between STP/Intent versions
+- `intent_st` -- Steel thread management (create, list, show, edit, organize)
+- `intent_llm` -- LLM guidance and context file management
+- `intent_treeindex` -- Generate .treeindex directory summaries using Claude AI
+- `intent_fileindex` -- File indexing system with checkbox state tracking
+- `intent_organise` -- Organize steel threads by completion status
+- `intent_main` -- Legacy `stp` command compatibility wrapper
+- `intent_minimal` -- Minimal Intent wrapper for testing and development
