@@ -6,32 +6,15 @@ Intent v2.5.0 -- a CLI tool for managing steel threads, project documentation, a
 
 ## Current State
 
-v2.5.0 released. Two completed steel threads this session:
+v2.5.0 released. All steel threads completed or parked. 339 tests passing.
 
-- ST0023: Remove Backlog from Intent (all 8 WPs done, 70+ files changed)
-- ST0025: Fix Highlander Violations (audit done, plan documented, implementation pending)
+Recent completions:
 
-Key changes in v2.5.0:
+- ST0023: Remove Backlog from Intent (70+ files, simplified CI)
+- ST0024: Add work packages (`intent wp` command, 29 tests)
+- ST0025: Fix Highlander Violations (shared helpers + plugin callback library)
 
-- Deleted CLI commands: bl, task, status, migrate, backlog
-- Removed Node.js from CI pipeline
-- Cleaned all docs, templates, subagents, examples
-- Consolidated version/intent_version config fields
-- Fixed test side-effect (sandbox approach in agent_commands.bats)
-- Test suite: 14 files, 318 tests, all passing
-
-## Active Steel Threads
-
-- ST0024: Add work packages as first-class citizens (not started)
-- ST0025: Fix Highlander Violations (25 violations documented, 6 WPs planned)
-
-## What's Next
-
-1. ST0025 implementation: Extract shared helpers, consolidate templates, dedup plugins
-2. ST0024: Work packages as first-class citizens
-3. Review ST0010 and ST0015
-
-## Key Patterns
+## Architecture
 
 - Commands live in `bin/intent_<name>` and are auto-routed by `bin/intent`
 - Global commands: `GLOBAL_COMMANDS` on line 41 of `bin/intent`
@@ -39,10 +22,26 @@ Key changes in v2.5.0:
 - Plugin commands: `intent claude subagents` -> `intent/plugins/claude/bin/intent_claude_subagents`
 - Plugin commands: `intent claude upgrade` -> `intent/plugins/claude/bin/intent_claude_upgrade`
 - Plugin commands: `intent agents` -> `intent/plugins/agents/bin/intent_agents`
+- Shared plugin library: `intent/plugins/claude/lib/claude_plugin_helpers.sh` (callback pattern)
+- Shared helpers: `bin/intent_helpers` (error, checksum, terminal width, require_jq, require_claude, etc.)
 - Skill definitions: `intent/plugins/claude/skills/<name>/SKILL.md`
 - Subagent definitions: `intent/plugins/claude/subagents/<name>/`
-- Templates: `intent/plugins/agents/templates/<name>/` (default, elixir)
-- Tests: `tests/unit/` (14 .bats files), run with `tests/run_tests.sh`
+- Templates: `lib/templates/` (ST, WP, LLM)
+- Tests: `tests/unit/` (17 .bats files), run with `tests/run_tests.sh`
 - Two git remotes: `local` (Dropbox) and `upstream` (GitHub)
-- NO Claude attribution in commit messages
+
+## Deferred Work (ST0025)
+
+Highlander violations still open (lower priority):
+
+- WP02: Template/config consolidation (V09-V15) -- CLAUDE.md generated in 3 places, config JSON in 4+ places
+- WP04: Correctness issues (V20-V21) -- upgrade bypasses install lifecycle, early migrations bypass update_config_version
+- WP05: Legacy/minor cleanup (V22-V25) -- intent_main near-duplicates intent, info() helper duplicated
+
+## Conventions
+
+- NO Claude attribution in commit messages -- ever
+- Tag workflow: `git tag -f vX.Y.Z HEAD` then force-push to both remotes
 - Never use em dashes in skill files (multi-byte truncation bugs)
+- User typically pastes full implementation plans as opening messages
+- A markdown linter auto-formats files on save
