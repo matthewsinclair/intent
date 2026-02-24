@@ -210,13 +210,14 @@ Internal to one file.
 
 ## Design Decisions
 
-1. **`intent_helpers` as the consolidation target** -- Already sourced by all scripts. No new files needed.
-2. **Backwards compatibility** -- Functions keep existing signatures. Consumers just delete their local copies.
-3. **Test-first validation** -- Run full 318-test suite after each WP to catch regressions.
-4. **No version bump** -- This is internal refactoring with no user-facing changes. Include in next feature release.
+1. **`intent_helpers` as the consolidation target** -- Already sourced by all scripts. No new files needed for WP01.
+2. **Shared plugin helper library with callbacks** -- For WP07, created `intent/plugins/claude/lib/claude_plugin_helpers.sh`. Each plugin script defines callbacks for its specific source/target/copy semantics, then delegates install/sync/uninstall to shared functions. This preserves script-specific behavior while eliminating ~80% duplicated code.
+3. **Backwards compatibility** -- Functions keep existing signatures. Consumers just delete their local copies.
+4. **Test-first validation** -- Run full test suite after each WP to catch regressions.
+5. **Config variables + callbacks pattern** -- Plugin scripts set `PLUGIN_TYPE`, `PLUGIN_TYPE_CAP`, `PLUGIN_CMD`, `PLUGIN_TYPE_PLURAL` and define 8 callbacks before sourcing the shared library.
 
 ## Alternatives Considered
 
-1. **New `intent_common.sh` file** -- Rejected. `intent_helpers` already serves this role.
-2. **Shared plugin library** -- Rejected. Too much new structure for what's achievable with `intent_helpers`.
-3. **Merge subagents + skills scripts** -- Rejected. They're different enough in semantics to justify separate scripts; just share the mechanical parts.
+1. **New `intent_common.sh` file** -- Rejected for WP01. `intent_helpers` already serves this role.
+2. **Merge subagents + skills into one script** -- Rejected. They're different enough in semantics (init, status, show differ significantly) to justify separate scripts; just share the mechanical parts via callbacks.
+3. **`${PLUGIN_TYPE^}` for capitalization** -- Rejected. macOS ships bash 3.x which doesn't support this syntax. Used explicit `PLUGIN_TYPE_CAP` variable instead.

@@ -1,5 +1,5 @@
 ---
-verblock: "24 Feb 2026:v0.2: matts - WP01 complete, ST closed"
+verblock: "24 Feb 2026:v0.3: matts - WP01+WP07 complete, ST closed"
 intent_version: 2.5.0
 status: Completed
 slug: fix-highlander-violations
@@ -27,7 +27,9 @@ The test side-effect issue (tests modifying real `intent/plugins/claude/subagent
 
 **Completed (WP01):** 8 violations resolved (V01-V08) -- shared helper function extraction.
 
-**Deferred (WP02-WP06):** 17 remaining violations across template consolidation, plugin dedup, correctness fixes, and legacy cleanup. These are lower priority and can be addressed in future steel threads.
+**Completed (WP07):** 3 violations resolved (V16-V18) -- plugin script refactoring via shared callback library.
+
+**Deferred (WP02-WP05):** Remaining violations across template consolidation, correctness fixes, and legacy cleanup. Lower priority, addressable in future steel threads.
 
 ### WP01 -- Completed
 
@@ -44,3 +46,15 @@ The test side-effect issue (tests modifying real `intent/plugins/claude/subagent
 V02 (INTENT_HOME dedup) deferred -- low risk, guard pattern is a harmless safety net.
 
 16 files changed, ~150 lines of duplicated code removed. All 318 tests passing.
+
+### WP07 -- Completed
+
+Shared plugin callback library eliminates ~350 lines of duplicated install/sync/uninstall code:
+
+- Created `intent/plugins/claude/lib/claude_plugin_helpers.sh` (~400 lines)
+- Refactored `intent_claude_skills` (654 -> 299 lines)
+- Refactored `intent_claude_subagents` (1015 -> 613 lines)
+- Added `get_config_field()` to `bin/intent_helpers`
+- Updated `intent_st` and `intent_wp` to use `get_config_field()`
+
+7 files changed, ~350 lines of duplicated code removed. All 339 tests passing.
