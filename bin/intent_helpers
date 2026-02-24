@@ -95,6 +95,29 @@ require_project_root() {
 }
 export -f require_project_root
 
+# Normalise a steel thread ID (bare number or partial -> ST####)
+normalise_st_id() {
+  local id="$1"
+  if [[ "$id" =~ ^[0-9]+$ ]]; then
+    printf "ST%04d" "$id"
+  elif [[ ! "$id" =~ ^ST ]]; then
+    echo "ST$id"
+  else
+    echo "$id"
+  fi
+}
+export -f normalise_st_id
+
+# Escape special characters for sed replacement strings
+escape_sed_replacement() {
+  local s="$1"
+  s="${s//\\/\\\\}"   # \ -> \\  (must be first)
+  s="${s//\//\\/}"     # / -> \/
+  s="${s//&/\\&}"      # & -> \&
+  echo "$s"
+}
+export -f escape_sed_replacement
+
 # ---- Migration and Utility Functions ----
 
 # Convert YAML frontmatter to JSON format

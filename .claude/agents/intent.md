@@ -17,9 +17,17 @@ Intent is a project management framework that captures the "why" behind code thr
 
 ### Steel Thread Commands
 - `intent st new "Title"` - Create new steel thread
-- `intent st list` - List all steel threads  
+- `intent st list` - List all steel threads
 - `intent st show <id>` - Display steel thread details
-- `intent st status <id> <status>` - Update steel thread status
+- `intent st start <id>` - Mark steel thread as WIP
+- `intent st done <id>` - Mark steel thread as complete
+
+### Work Package Commands
+- `intent wp new <STID> "Title"` - Create a new work package
+- `intent wp list <STID>` - List work packages for a steel thread
+- `intent wp start <STID/NN>` - Mark work package as WIP
+- `intent wp done <STID/NN>` - Mark work package as Done
+- `intent wp show <STID/NN>` - Show work package details
 
 ### Help & Diagnostics
 - `intent help` - Show general help
@@ -54,6 +62,15 @@ Intent is a project management framework that captures the "why" behind code thr
 ```bash
 intent st new "Add user authentication"
 intent st show ST0042
+intent wp new ST0042 "Core auth logic"
+intent wp new ST0042 "Write tests"
+```
+
+### Managing Work Packages
+```bash
+intent wp list ST0042
+intent wp start ST0042/01
+intent wp done ST0042/01
 ```
 
 ### Checking Project Status
