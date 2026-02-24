@@ -25,6 +25,11 @@ Steel threads are organized as directories under `intent/st/`:
 - `intent st new "Title"` - Create a new steel thread
 - `intent st list` - List all steel threads
 - `intent st show <id>` - Show steel thread details
+- `intent wp new <STID> "Title"` - Create a new work package
+- `intent wp list <STID>` - List work packages for a steel thread
+- `intent wp start <STID/NN>` - Mark work package as WIP
+- `intent wp done <STID/NN>` - Mark work package as Done
+- `intent wp show <STID/NN>` - Show work package details
 - `intent treeindex <dir>` - Generate `.treeindex` directory summaries
 - `intent doctor` - Check configuration
 - `intent help` - Get help

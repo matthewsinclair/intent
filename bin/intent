@@ -100,6 +100,10 @@ case "$COMMAND" in
     COMMAND="st"
     COMMAND_SCRIPT="intent_st"
     ;;
+  wp)
+    COMMAND="wp"
+    COMMAND_SCRIPT="intent_wp"
+    ;;
   *)
     # Default: prefix with intent_
     COMMAND_SCRIPT="intent_$COMMAND"

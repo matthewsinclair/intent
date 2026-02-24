@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.5.0] - 2026-02-24
 
+### Added
+
+- **Work package management** -- `intent wp` as a top-level command (ST0024)
+  - `intent wp new <STID> "Title"` -- create next WP in STID/WP/NN/info.md
+  - `intent wp done <STID/NN>` -- mark WP as Done, hint when all WPs complete
+  - `intent wp start <STID/NN>` -- mark WP as WIP
+  - `intent wp list <STID>` -- table with WP, Title, Scope, Status columns
+  - `intent wp show <STID/NN>` -- display WP info.md
+  - `intent wp help` -- show usage
+  - Specifier syntax: `ST0011/01` or shorthand `11/01`
+  - WP info.md template at `lib/templates/prj/st/WP/info.md`
+  - 29 new BATS tests in `tests/unit/wp_commands.bats`
+- Shared helpers extracted to `bin/intent_helpers`:
+  - `normalise_st_id()` -- normalizes bare numbers and partial IDs to ST#### format
+  - `escape_sed_replacement()` -- escapes special characters for sed substitutions
+- `intent-essentials` skill Rule 8: "Use `intent wp` commands for work package management"
+
 ### Removed
 
 - **Backlog.md integration** -- all backlog commands and configuration removed (ST0023)

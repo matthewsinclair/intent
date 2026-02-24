@@ -90,6 +90,9 @@ This project uses Intent's Steel Thread Process for development:
 intent st list              # List all steel threads
 intent st new "Title"       # Create new steel thread
 intent st show <id>         # Show steel thread details
+intent wp new <STID> "Title"  # Create a work package
+intent wp list <STID>       # List work packages
+intent wp done <STID/NN>    # Mark work package as Done
 intent doctor              # Check configuration
 intent agents sync         # Update this AGENTS.md file
 ```

@@ -227,6 +227,16 @@ intent st edit <ST####>        # Edit a steel thread
 intent st sync                 # Synchronise the steel thread index
 ```
 
+### Work Package Management
+
+```bash
+intent wp new <STID> "Title"   # Create a new work package in a steel thread
+intent wp list <STID>          # List work packages for a steel thread
+intent wp start <STID/NN>      # Mark a work package as WIP
+intent wp done <STID/NN>       # Mark a work package as Done
+intent wp show <STID/NN>       # Show work package details
+```
+
 ### Treeindex (Directory Summaries)
 
 ```bash

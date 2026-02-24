@@ -267,14 +267,7 @@ get_next_steel_thread_id() {
   printf "%s%04d" "$st_prefix" $next_id
 }
 
-# Function to escape special characters for sed replacement strings
-escape_sed_replacement() {
-  local s="$1"
-  s="${s//\\/\\\\}"   # \ -> \\  (must be first)
-  s="${s//\//\\/}"     # / -> \/
-  s="${s//&/\\&}"      # & -> \&
-  echo "$s"
-}
+# escape_sed_replacement() and normalise_st_id() are in intent_helpers
 
 # Function to generate a URL-safe slug from a title (max 50 chars)
 slugify() {
@@ -537,18 +530,10 @@ TEMPLATE
       error "Steel thread ID is required"
       usage
     fi
-    
+
     # Process the steel thread ID
-    ST_ID="$1"
-    
-    # If just a number is provided, format it as ST#### (with leading zeros)
-    if [[ "$ST_ID" =~ ^[0-9]+$ ]]; then
-      ST_ID=$(printf "ST%04d" "$ST_ID")
-    # If the ID doesn't start with ST, prepend it
-    elif [[ ! "$ST_ID" =~ ^ST ]]; then
-      ST_ID="ST$ST_ID"
-    fi
-    
+    ST_ID=$(normalise_st_id "$1")
+
     DATE=$(date '+%Y-%m-%d')
     
     if is_directory_structure; then
@@ -620,18 +605,10 @@ TEMPLATE
       error "Steel thread ID is required"
       usage
     fi
-    
+
     # Process the steel thread ID
-    ST_ID="$1"
-    
-    # If just a number is provided, format it as ST#### (with leading zeros)
-    if [[ "$ST_ID" =~ ^[0-9]+$ ]]; then
-      ST_ID=$(printf "ST%04d" "$ST_ID")
-    # If the ID doesn't start with ST, prepend it
-    elif [[ ! "$ST_ID" =~ ^ST ]]; then
-      ST_ID="ST$ST_ID"
-    fi
-    
+    ST_ID=$(normalise_st_id "$1")
+
     DATE=$(date '+%Y-%m-%d')
     
     if is_directory_structure; then
@@ -1143,17 +1120,10 @@ TEMPLATE
       error "Steel thread ID is required"
       usage
     fi
-    
+
     # Process the steel thread ID
-    ST_ID="$1"
+    ST_ID=$(normalise_st_id "$1")
     FILE_TYPE="${2:-info}"  # Default to info
-    
-    # If just a number is provided, format it as ST#### (with leading zeros)
-    if [[ "$ST_ID" =~ ^[0-9]+$ ]]; then
-      ST_ID=$(printf "ST%04d" "$ST_ID")
-    elif [[ ! "$ST_ID" =~ ^ST ]]; then
-      ST_ID="ST$ST_ID"
-    fi
     
     if is_directory_structure; then
       if [ "$FILE_TYPE" = "all" ]; then
@@ -1207,17 +1177,10 @@ TEMPLATE
       error "Steel thread ID is required"
       usage
     fi
-    
+
     # Process the steel thread ID
-    ST_ID="$1"
+    ST_ID=$(normalise_st_id "$1")
     FILE_TYPE="${2:-info}"  # Default to info
-    
-    # If just a number is provided, format it as ST#### (with leading zeros)
-    if [[ "$ST_ID" =~ ^[0-9]+$ ]]; then
-      ST_ID=$(printf "ST%04d" "$ST_ID")
-    elif [[ ! "$ST_ID" =~ ^ST ]]; then
-      ST_ID="ST$ST_ID"
-    fi
     
     if is_directory_structure; then
       # Edit specific file

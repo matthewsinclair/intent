@@ -394,6 +394,48 @@ Moved ST0001 to intent/st/COMPLETED
 Updated steel threads index.
 ```
 
+#### `intent wp`
+
+Manages work packages within steel threads.
+
+**Usage:**
+
+```bash
+intent wp new <STID> "Title"     # Create a new work package
+intent wp done <STID/NN>         # Mark WP as Done
+intent wp start <STID/NN>        # Mark WP as WIP
+intent wp list <STID>            # List WPs for a steel thread
+intent wp show <STID/NN>         # Show WP info.md
+intent wp help                   # Show help
+```
+
+**Specifier syntax:**
+
+- STID: `ST0011` or `11` (bare number, zero-padded to ST####)
+- STID/NN: `ST0011/01` or `11/1` (slash-separated, WP zero-padded to 2 digits)
+
+**Examples:**
+
+```bash
+# Create work packages
+intent wp new ST0005 "Implement core logic"
+intent wp new 5 "Write tests"
+
+# Manage status
+intent wp start 5/01
+intent wp done 5/01
+
+# View work packages
+intent wp list ST0005
+intent wp show ST0005/01
+```
+
+**Notes:**
+
+- WP numbers are auto-assigned sequentially (01-99)
+- When the last WP is marked done, a hint to complete the ST is printed
+- The `WP/` directory is created automatically on first `wp new`
+
 #### `intent help`
 
 Displays help information.

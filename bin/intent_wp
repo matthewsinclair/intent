@@ -1,0 +1,344 @@
+#!/bin/bash
+# intent_wp - Manage work packages within steel threads
+# Usage: intent_wp <command> [options] [arguments]
+
+# Exit on error
+set -e
+
+# Source shared helpers
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
+
+# Function to display usage information
+usage() {
+  echo "Usage: intent wp <command> [options] [arguments]"
+  echo ""
+  echo "Manage work packages within steel threads"
+  echo ""
+  echo "Commands:"
+  echo "  new <STID> \"Title\"     Create a new work package"
+  echo "  done <STID/NN>         Mark a work package as Done"
+  echo "  start <STID/NN>        Mark a work package as WIP"
+  echo "  list <STID>            List work packages for a steel thread"
+  echo "  show <STID/NN>         Show work package info.md"
+  echo "  help                   Show this help"
+  echo ""
+  echo "Specifier syntax:"
+  echo "  STID:    ST0011 or 11 (bare number)"
+  echo "  STID/NN: ST0011/01 or 11/01"
+  echo ""
+  echo "Examples:"
+  echo "  intent wp new ST0005 \"Implement core logic\""
+  echo "  intent wp list ST0005"
+  echo "  intent wp start ST0005/01"
+  echo "  intent wp done ST0005/01"
+  echo "  intent wp show 5/01"
+  exit 1
+}
+
+# Parse a WP specifier (STID/NN) into ST_ID and WP_NUM
+# Sets global variables: ST_ID, WP_NUM
+parse_wp_specifier() {
+  local spec="$1"
+  local require_wp="${2:-true}"
+
+  if [[ "$spec" == */* ]]; then
+    # Has a slash: STID/NN
+    local st_part="${spec%/*}"
+    local wp_part="${spec##*/}"
+    ST_ID=$(normalise_st_id "$st_part")
+    WP_NUM=$(printf "%02d" "$((10#$wp_part))")
+  else
+    # No slash: just STID
+    ST_ID=$(normalise_st_id "$spec")
+    WP_NUM=""
+    if [ "$require_wp" = "true" ]; then
+      error "Work package number is required (e.g., $ST_ID/01)"
+    fi
+  fi
+}
+
+# Find ST directory regardless of status subdirectory
+resolve_st_dir() {
+  local st_id="$1"
+  local base_dir="intent/st"
+
+  local locations=(
+    "$base_dir/$st_id"
+    "$base_dir/NOT-STARTED/$st_id"
+    "$base_dir/COMPLETED/$st_id"
+    "$base_dir/CANCELLED/$st_id"
+  )
+
+  for location in "${locations[@]}"; do
+    if [ -d "$location" ]; then
+      echo "$location"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+# Get the next WP number for a steel thread
+get_next_wp_number() {
+  local st_dir="$1"
+  local wp_dir="$st_dir/WP"
+  local max_num=0
+
+  if [ -d "$wp_dir" ]; then
+    for dir in "$wp_dir"/[0-9][0-9]; do
+      if [ -d "$dir" ]; then
+        local num_str
+        num_str=$(basename "$dir")
+        local num=$((10#$num_str))
+        if [ $num -gt $max_num ]; then
+          max_num=$num
+        fi
+      fi
+    done
+  fi
+
+  local next=$((max_num + 1))
+  if [ $next -gt 99 ]; then
+    error "Maximum of 99 work packages per steel thread reached"
+  fi
+
+  printf "%02d" $next
+}
+
+# Check for required arguments
+if [ $# -lt 1 ]; then
+  error "Work package command is required"
+fi
+
+# Load project configuration if available
+if [ -f .intent/config.json ]; then
+  AUTHOR=$(grep -oE '"author"[[:space:]]*:[[:space:]]*"[^"]+"' .intent/config.json | cut -d'"' -f4 || echo "$USER")
+fi
+
+# Get command
+WP_COMMAND="$1"
+shift
+
+# Handle different commands
+case "$WP_COMMAND" in
+  "new")
+    # Requires STID and title
+    if [ $# -lt 2 ]; then
+      error "Usage: intent wp new <STID> \"Title\""
+    fi
+
+    parse_wp_specifier "$1" "false"
+    shift
+    TITLE="$1"
+
+    # Find the ST directory
+    ST_DIR=$(resolve_st_dir "$ST_ID") || error "Steel thread not found: $ST_ID"
+
+    # Get next WP number
+    WP_NUM=$(get_next_wp_number "$ST_DIR")
+    WP_DIR="$ST_DIR/WP/$WP_NUM"
+
+    # Create WP directory
+    mkdir -p "$WP_DIR"
+
+    # Process template
+    TEMPLATE_FILE="${INTENT_HOME}/lib/templates/prj/st/WP/info.md"
+    AUTHOR="${INTENT_AUTHOR:-${AUTHOR:-$(git config user.name 2>/dev/null || echo "$USER")}}"
+    DATE_VERBOSE=$(date '+%d %b %Y')
+
+    ESCAPED_TITLE=$(escape_sed_replacement "$TITLE")
+    ESCAPED_AUTHOR=$(escape_sed_replacement "$AUTHOR")
+    ESCAPED_DATE_VERBOSE=$(escape_sed_replacement "$DATE_VERBOSE")
+
+    if [ -f "$TEMPLATE_FILE" ]; then
+      sed -e "s/WP-NN/WP-$WP_NUM/g" \
+          -e "s/\[Title\]/$ESCAPED_TITLE/g" \
+          -e "s/\[Date\]/$ESCAPED_DATE_VERBOSE/g" \
+          -e "s/\[Author\]/$ESCAPED_AUTHOR/g" \
+          "$TEMPLATE_FILE" > "$WP_DIR/info.md"
+    else
+      # Fallback: create minimal info.md
+      cat > "$WP_DIR/info.md" << 'TEMPLATE'
+---
+verblock: "__VERBLOCK__"
+wp_id: WP-__WPNUM__
+title: "__TITLE__"
+scope: Small
+status: Not Started
+---
+# WP-__WPNUM__: __TITLE__
+
+## Objective
+
+[Clear statement of what this work package aims to accomplish]
+
+## Deliverables
+
+- [List of concrete deliverables]
+
+## Acceptance Criteria
+
+- [ ] Criterion 1
+- [ ] Criterion 2
+
+## Dependencies
+
+- [List any dependencies on other WPs or external factors]
+TEMPLATE
+      ESCAPED_VERBLOCK=$(escape_sed_replacement "$DATE_VERBOSE:v0.1: $AUTHOR - Initial version")
+      sed -i.bak \
+        -e "s/__VERBLOCK__/$ESCAPED_VERBLOCK/g" \
+        -e "s/__WPNUM__/$WP_NUM/g" \
+        -e "s/__TITLE__/$ESCAPED_TITLE/g" \
+        "$WP_DIR/info.md"
+      rm -f "$WP_DIR/info.md.bak"
+    fi
+
+    echo "Created work package: $ST_ID/WP-$WP_NUM"
+    echo "  Directory: $WP_DIR"
+    echo "  File: $WP_DIR/info.md"
+    ;;
+
+  "done")
+    if [ $# -lt 1 ]; then
+      error "Usage: intent wp done <STID/NN>"
+    fi
+
+    parse_wp_specifier "$1" "true"
+
+    # Find the ST directory
+    ST_DIR=$(resolve_st_dir "$ST_ID") || error "Steel thread not found: $ST_ID"
+    WP_DIR="$ST_DIR/WP/$WP_NUM"
+    WP_FILE="$WP_DIR/info.md"
+
+    if [ ! -f "$WP_FILE" ]; then
+      error "Work package not found: $ST_ID/$WP_NUM"
+    fi
+
+    # Update status to Done
+    sed -i.bak "s/^status: .*$/status: Done/" "$WP_FILE"
+    rm -f "$WP_FILE.bak"
+
+    # Extract title for display
+    WP_TITLE=$(grep -m 1 "^title:" "$WP_FILE" | sed 's/^title: *//; s/^"//; s/"$//')
+
+    echo "Marked work package as Done: $ST_ID/WP-$WP_NUM"
+    [ -n "$WP_TITLE" ] && echo "  Title: $WP_TITLE"
+
+    # Check if all WPs are complete
+    ALL_DONE=true
+    for wp_check in "$ST_DIR/WP"/[0-9][0-9]; do
+      if [ -d "$wp_check" ] && [ -f "$wp_check/info.md" ]; then
+        wp_check_status=$(grep -m 1 "^status:" "$wp_check/info.md" | sed 's/^status: *//')
+        if [ "$wp_check_status" != "Done" ]; then
+          ALL_DONE=false
+          break
+        fi
+      fi
+    done
+
+    if [ "$ALL_DONE" = "true" ]; then
+      echo ""
+      echo "All WPs complete. Consider: intent st done $ST_ID"
+    fi
+    ;;
+
+  "start")
+    if [ $# -lt 1 ]; then
+      error "Usage: intent wp start <STID/NN>"
+    fi
+
+    parse_wp_specifier "$1" "true"
+
+    # Find the ST directory
+    ST_DIR=$(resolve_st_dir "$ST_ID") || error "Steel thread not found: $ST_ID"
+    WP_DIR="$ST_DIR/WP/$WP_NUM"
+    WP_FILE="$WP_DIR/info.md"
+
+    if [ ! -f "$WP_FILE" ]; then
+      error "Work package not found: $ST_ID/$WP_NUM"
+    fi
+
+    # Update status to WIP
+    sed -i.bak "s/^status: .*$/status: WIP/" "$WP_FILE"
+    rm -f "$WP_FILE.bak"
+
+    # Extract title for display
+    WP_TITLE=$(grep -m 1 "^title:" "$WP_FILE" | sed 's/^title: *//; s/^"//; s/"$//')
+
+    echo "Marked work package as WIP: $ST_ID/WP-$WP_NUM"
+    [ -n "$WP_TITLE" ] && echo "  Title: $WP_TITLE"
+    ;;
+
+  "list")
+    if [ $# -lt 1 ]; then
+      error "Usage: intent wp list <STID>"
+    fi
+
+    parse_wp_specifier "$1" "false"
+
+    # Find the ST directory
+    ST_DIR=$(resolve_st_dir "$ST_ID") || error "Steel thread not found: $ST_ID"
+    WP_BASE="$ST_DIR/WP"
+
+    if [ ! -d "$WP_BASE" ] || [ -z "$(ls -A "$WP_BASE" 2>/dev/null)" ]; then
+      echo "No work packages found for $ST_ID"
+      exit 0
+    fi
+
+    # Table header
+    printf "%-6s | %-30s | %-8s | %-12s\n" "WP" "Title" "Scope" "Status"
+    printf "%-6s-|-%-30s-|-%-8s-|-%-12s\n" "------" "------------------------------" "--------" "------------"
+
+    # List each WP
+    for wp_entry in "$WP_BASE"/[0-9][0-9]; do
+      if [ -d "$wp_entry" ] && [ -f "$wp_entry/info.md" ]; then
+        wp_num=$(basename "$wp_entry")
+        wp_title=$(grep -m 1 "^title:" "$wp_entry/info.md" | sed 's/^title: *//; s/^"//; s/"$//')
+        wp_scope=$(grep -m 1 "^scope:" "$wp_entry/info.md" | sed 's/^scope: *//')
+        wp_status=$(grep -m 1 "^status:" "$wp_entry/info.md" | sed 's/^status: *//')
+
+        # Fallback to heading parse if no frontmatter title
+        if [ -z "$wp_title" ]; then
+          wp_title=$(grep -m 1 "^# WP-" "$wp_entry/info.md" | sed 's/^# WP-[0-9]*: *//')
+        fi
+
+        # Truncate title if needed
+        if [ ${#wp_title} -gt 30 ]; then
+          wp_title="${wp_title:0:27}..."
+        fi
+
+        printf "%-6s | %-30s | %-8s | %-12s\n" "$wp_num" "$wp_title" "$wp_scope" "$wp_status"
+      fi
+    done
+    ;;
+
+  "show")
+    if [ $# -lt 1 ]; then
+      error "Usage: intent wp show <STID/NN>"
+    fi
+
+    parse_wp_specifier "$1" "true"
+
+    # Find the ST directory
+    ST_DIR=$(resolve_st_dir "$ST_ID") || error "Steel thread not found: $ST_ID"
+    WP_DIR="$ST_DIR/WP/$WP_NUM"
+    WP_FILE="$WP_DIR/info.md"
+
+    if [ ! -f "$WP_FILE" ]; then
+      error "Work package not found: $ST_ID/$WP_NUM"
+    fi
+
+    cat "$WP_FILE"
+    ;;
+
+  "help"|"--help"|"-h")
+    usage
+    ;;
+
+  *)
+    error "Unknown wp command: $WP_COMMAND. Run 'intent wp help' for usage."
+    ;;
+esac

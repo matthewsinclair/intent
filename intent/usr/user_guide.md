@@ -205,6 +205,45 @@ intent st done ST0001
 
 This updates the status and completion date.
 
+### Working with Work Packages
+
+Work packages (WPs) break a steel thread into smaller units of work. Each WP lives in a numbered subdirectory under `STXXXX/WP/NN/`.
+
+#### Creating Work Packages
+
+```bash
+# Create a work package for ST0005
+intent wp new ST0005 "Implement core logic"
+
+# Create another (auto-assigns next number)
+intent wp new ST0005 "Write tests"
+
+# Use bare number shorthand
+intent wp new 5 "Update docs"
+```
+
+#### Managing Work Package Status
+
+```bash
+# Start working on a WP
+intent wp start ST0005/01
+
+# Mark as done
+intent wp done ST0005/01
+```
+
+When the last WP is marked done, you'll see a hint to complete the steel thread.
+
+#### Viewing Work Packages
+
+```bash
+# List all WPs for a steel thread
+intent wp list ST0005
+
+# Show a specific WP's info
+intent wp show ST0005/01
+```
+
 ## Documentation Management
 
 Intent provides a structured approach to managing project documentation:

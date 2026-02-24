@@ -99,3 +99,19 @@ Before ending a session, update tracking files to preserve context for the next 
 2. Update `intent/restart.md` with session restart context
 3. Update `.claude/restart.md` with WIP/TODO focus
 4. Commit changes before ending session
+
+### 8. Use `intent wp` commands for work package management
+
+NEVER manually create directories under `intent/st/STXXXX/WP/`. Use the CLI.
+
+```bash
+# BAD -- manual creation
+mkdir -p intent/st/ST0005/WP/01
+echo "status: WIP" > intent/st/ST0005/WP/01/info.md
+
+# GOOD -- use the CLI
+intent wp new ST0005 "Implement core logic"
+intent wp list ST0005
+intent wp start ST0005/01
+intent wp done ST0005/01
+```
