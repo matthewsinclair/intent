@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `normalise_st_id()` -- normalizes bare numbers and partial IDs to ST#### format
   - `escape_sed_replacement()` -- escapes special characters for sed substitutions
 - `intent-essentials` skill Rule 8: "Use `intent wp` commands for work package management"
+- **Shared plugin helper library** -- Highlander audit refactoring
+  - `intent/plugins/claude/lib/claude_plugin_helpers.sh` -- shared install/sync/uninstall via callbacks
+  - `intent_claude_skills` reduced from 654 to 299 lines
+  - `intent_claude_subagents` reduced from 1015 to 613 lines
+  - `get_config_field()` in `bin/intent_helpers` replaces inline `grep -oE` config extraction
 
 ### Removed
 
@@ -41,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Documentation updated with WP bare number syntax, special character support, and directory structure
 - CI pipeline simplified: no longer requires Node.js installation
 - `intent help` no longer lists backlog-related commands
 - `intent info` no longer shows Backlog section
