@@ -7,6 +7,7 @@
 New command script with 6 subcommands: `new`, `done`, `start`, `list`, `show`, `help`.
 
 Key functions:
+
 - `parse_wp_specifier()` -- parses `STID/NN` into `ST_ID` and `WP_NUM` globals, supports bare numbers
 - `resolve_st_dir()` -- finds ST directory regardless of status subdirectory (root, NOT-STARTED, COMPLETED, CANCELLED)
 - `get_next_wp_number()` -- scans existing WP directories for next sequential number (01-99)
@@ -24,6 +25,7 @@ Config extraction uses shared `get_config_field()` from intent_helpers instead o
 ### Documentation
 
 All key docs updated with WP commands, bare number syntax, special character support, and WP directory structure:
+
 - README.md, CLAUDE.md, user_guide.md, reference_guide.md
 
 ## Challenges & Solutions

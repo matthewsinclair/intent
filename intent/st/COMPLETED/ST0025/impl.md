@@ -69,27 +69,27 @@ Fixed by:
 
 **8 callbacks defined by each plugin script:**
 
-| Callback                   | Purpose                           |
-| -------------------------- | --------------------------------- |
-| `plugin_get_manifest_path` | Returns manifest file path        |
-| `plugin_get_source_file`   | Returns source file path by name  |
-| `plugin_is_installed`      | Returns 0 if installed            |
-| `plugin_copy_to_target`    | Copies source to target location  |
-| `plugin_remove_target`     | Removes installed item            |
-| `plugin_checksum_target`   | Returns checksum of installed file|
-| `plugin_get_available_names` | Returns list of available items |
-| `plugin_manifest_extra`    | Returns extra jq fields for manifest |
+| Callback                     | Purpose                              |
+| ---------------------------- | ------------------------------------ |
+| `plugin_get_manifest_path`   | Returns manifest file path           |
+| `plugin_get_source_file`     | Returns source file path by name     |
+| `plugin_is_installed`        | Returns 0 if installed               |
+| `plugin_copy_to_target`      | Copies source to target location     |
+| `plugin_remove_target`       | Removes installed item               |
+| `plugin_checksum_target`     | Returns checksum of installed file   |
+| `plugin_get_available_names` | Returns list of available items      |
+| `plugin_manifest_extra`      | Returns extra jq fields for manifest |
 
 **Shared functions provided:**
 
-| Function                       | Replaces                                                                       |
-| ------------------------------ | ------------------------------------------------------------------------------ |
-| `plugin_ensure_manifest`       | `ensure_skill_manifest()`, inline init in `update_installed_manifest()`        |
-| `plugin_update_manifest`       | `update_skill_manifest()`, `update_installed_manifest()`                       |
-| `plugin_remove_from_manifest`  | `remove_skill_from_manifest()`, `remove_from_manifest()`                       |
-| `plugin_install`               | `intent_claude_skills_install()`, `intent_claude_subagents_install()`          |
-| `plugin_sync`                  | `intent_claude_skills_sync()`, `intent_claude_subagents_sync()`                |
-| `plugin_uninstall`             | `intent_claude_skills_uninstall()`, `intent_claude_subagents_uninstall()`      |
+| Function                      | Replaces                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| `plugin_ensure_manifest`      | `ensure_skill_manifest()`, inline init in `update_installed_manifest()`   |
+| `plugin_update_manifest`      | `update_skill_manifest()`, `update_installed_manifest()`                  |
+| `plugin_remove_from_manifest` | `remove_skill_from_manifest()`, `remove_from_manifest()`                  |
+| `plugin_install`              | `intent_claude_skills_install()`, `intent_claude_subagents_install()`     |
+| `plugin_sync`                 | `intent_claude_skills_sync()`, `intent_claude_subagents_sync()`           |
+| `plugin_uninstall`            | `intent_claude_skills_uninstall()`, `intent_claude_subagents_uninstall()` |
 
 **Files changed:**
 

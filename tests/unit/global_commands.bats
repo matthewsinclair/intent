@@ -64,6 +64,12 @@ load "../lib/test_helper.bash"
   assert_output_contains "Initialize a new Intent v${version} project"
 }
 
+@test "intent plugin works anywhere" {
+  run run_intent plugin
+  assert_success
+  assert_output_contains "Intent Plugins"
+}
+
 @test "intent handles unknown command gracefully" {
   run run_intent nonexistentcommand
   assert_failure

@@ -1,0 +1,19 @@
+{
+  "name": "claude",
+  "version": "1.0.0",
+  "description": "Claude Code integration for Intent projects",
+  "commands": [
+    {
+      "syntax": "intent claude subagents <command>",
+      "description": "Manage Claude subagents (init, list, install, sync, uninstall, show, status)"
+    },
+    {
+      "syntax": "intent claude skills <command>",
+      "description": "Manage Claude skills (list, install, sync, uninstall, show)"
+    },
+    {
+      "syntax": "intent claude upgrade [--apply]",
+      "description": "Diagnose and upgrade project LLM guidance files"
+    }
+  ]
+}

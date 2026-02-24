@@ -59,7 +59,9 @@ Core:
   init             Initialize a new Intent project
   st               Manage steel threads
   wp               Manage work packages within steel threads
-  agents           Manage Claude Code sub-agents
+  agents           Manage AGENTS.md for projects
+  claude           Claude Code integration (subagents, skills, upgrade)
+  plugin           Discover plugins and their commands
   doctor           Check and fix configuration
   upgrade          Upgrade from STP to Intent v2.1.0
   help             Display help information
@@ -83,7 +85,7 @@ for script in "$INTENT_HOME"/bin/intent_*; do
     
     # Skip certain internal scripts and those manually listed above
     case "$cmd_name" in
-      config|helpers|main|agents|info|init|st|wp|doctor|upgrade|help|bootstrap|llm|organize) continue ;;
+      config|helpers|main|agents|info|init|st|wp|doctor|upgrade|help|bootstrap|llm|organize|plugin) continue ;;
     esac
     
     # Construct help file path
@@ -110,6 +112,9 @@ for script in "$INTENT_HOME"/bin/intent_*; do
 done
 
 cat << EOF
+
+Plugins:
+  Run 'intent plugin' to see all plugin commands.
 
 For more information on a specific command, run:
   intent help <command>

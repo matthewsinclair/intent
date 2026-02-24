@@ -1,8 +1,8 @@
-@short: Manage Claude Code sub-agents for Intent projects
+@short: Manage AGENTS.md for Intent projects
 
 # intent agents
 
-Manage Claude Code sub-agents for Intent projects.
+Manage AGENTS.md files for Intent projects.
 
 ## Synopsis
 
@@ -12,151 +12,82 @@ intent agents <command> [options]
 
 ## Description
 
-The Intent agent system integrates with Claude Code's sub-agent feature to provide specialized AI assistants that understand Intent's methodology and can help with specific development tasks.
+The `intent agents` command manages AGENTS.md files -- universal AI agent instructions that work across Claude Code, Cursor, Windsurf, and other AI-powered editors. AGENTS.md provides a standardized way to give AI tools project-specific context and rules.
 
 ## Commands
 
-### list
+### init
 
-List available and installed agents.
-
-```
-intent agents list
-```
-
-Shows all available agents (global and project-specific) with their installation status.
-
-### install
-
-Install agent(s) to Claude configuration.
+Initialize AGENTS.md for the current project.
 
 ```
-intent agents install <agent-name> [agent-name...]
-intent agents install --all
-intent agents install intent --force
+intent agents init
+intent agents init --template elixir
 ```
 
 Options:
 
-- `--all` - Install all available agents
-- `--force`, `-f` - Skip confirmation prompts
+- `--template <name>` - Use a project template (copies AGENTS.md, RULES.md, ARCHITECTURE.md)
+- `--force`, `-f` - Overwrite existing files
+
+### generate
+
+Generate AGENTS.md from project structure and configuration.
+
+```
+intent agents generate
+```
+
+Analyzes the project and produces an AGENTS.md reflecting current state.
 
 ### sync
 
-Sync installed agents with latest versions.
+Update AGENTS.md with latest project state.
 
 ```
-intent agents sync [--force]
+intent agents sync
 ```
 
-Updates installed agents while respecting local modifications. Use `--force` to overwrite local changes.
+Re-syncs the AGENTS.md content based on current project configuration.
 
-### uninstall
+### validate
 
-Remove Intent-managed agents.
-
-```
-intent agents uninstall <agent-name> [agent-name...]
-intent agents uninstall --all
-```
-
-Options:
-
-- `--all` - Uninstall all Intent-managed agents
-- `--force`, `-f` - Skip confirmation prompts
-
-### show
-
-Display detailed agent information.
+Check AGENTS.md for compliance and completeness.
 
 ```
-intent agents show <agent-name>
+intent agents validate
 ```
 
-Shows metadata, installation status, and system prompt preview for a specific agent.
+Reports missing sections, stale references, and structural issues.
 
-### status
+### template
 
-Check agent health and integrity.
+List or show available project templates.
 
 ```
-intent agents status [--verbose]
+intent agents template
+intent agents template list
+intent agents template show <name>
 ```
-
-Verifies installed agents against manifests, checks for modifications, and reports any issues.
-
-Options:
-
-- `--verbose`, `-v` - Show detailed information for each agent
-
-## Available Agents
-
-### intent
-
-The Intent-aware development assistant that understands:
-
-- Steel thread methodology
-- Intent commands and structure
-- Project organization
-
-### elixir
-
-Elixir code doctor featuring:
-
-- 19 Elixir best practices
-- Usage Rules methodology
-- Ash and Phoenix patterns
-- Functional programming guidance
 
 ## Examples
 
 ```bash
-# List all available agents
-intent agents list
+# Initialize AGENTS.md for a new project
+intent agents init
 
-# Install the Intent agent
-intent agents install intent
+# Initialize with Elixir template
+intent agents init --template elixir
 
-# Install all available agents
-intent agents install --all
+# Validate AGENTS.md
+intent agents validate
 
-# Check agent status
-intent agents status
-
-# Update agents with available changes
+# Re-sync after project changes
 intent agents sync
-
-# Show details about an agent
-intent agents show elixir
-
-# Uninstall a specific agent
-intent agents uninstall elixir
 ```
-
-## Agent Locations
-
-- **Global agents**: `$INTENT_HOME/agents/`
-- **Project agents**: `./intent/agents/`
-- **Installed to**: `~/.claude/agents/`
-- **Manifests**: `.manifest/` subdirectories
-
-## Creating Custom Agents
-
-To create a custom agent for your project:
-
-1. Create directory: `intent/agents/my-agent/`
-2. Add `agent.md` with YAML frontmatter and system prompt
-3. Add `metadata.json` with version and description
-4. Install with: `intent agents install my-agent`
-
-## Troubleshooting
-
-- **"Claude Code not detected"**: Install Claude Code from https://claude.ai/download
-- **"Agent file not found"**: Run `intent agents install` to restore missing agents
-- **"Local changes detected"**: Your modifications are preserved; use `sync --force` to overwrite
 
 ## See Also
 
+- `intent help claude` - Claude Code integration
+- `intent help plugin` - Discover all plugins
 - `intent help` - General help
-- `intent doctor` - Check system configuration
-- Claude Code sub-agents documentation: https://docs.anthropic.com/en/docs/claude-code/sub-agents
