@@ -85,12 +85,15 @@ intent wp help
 ## Specifier Syntax
 
 The ST part accepts bare numbers or full IDs:
+
 - `11` or `ST0011` both resolve to `ST0011`
 
 The WP part is a 1-2 digit number:
+
 - `1` or `01` both resolve to `01`
 
 Combined specifiers use a slash:
+
 - `ST0011/01` or `11/1` both resolve to `ST0011/01`
 
 ## WP Directory Structure

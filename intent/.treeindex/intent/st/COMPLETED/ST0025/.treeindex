@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:602c3c57 generated:2026-02-24T15:19:11Z -->
+
+# ST0025/
+
+Completed steel thread eliminating Highlander Rule violations (duplicated code paths) across Intent CLI. WP01 extracted 7 shared helper functions to `bin/intent_helpers`, removing ~150 lines of duplication from 16 files. WP02-WP06 (template consolidation, plugin dedup) deferred.
+
+## Files
+
+- `info.md` -- Steel thread metadata; status: Completed; created/completed 24 Feb 2026
+- `design.md` -- Design approach with comprehensive audit findings (25 violations categorized V01-V25)
+- `impl.md` -- WP01 implementation log; test side-effect fix, 7 shared functions, 16 files changed, all 318 tests passing
+- `tasks.md` -- Work package tracking; WP01 complete, WP02-WP06 deferred

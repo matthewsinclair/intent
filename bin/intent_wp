@@ -113,9 +113,7 @@ if [ $# -lt 1 ]; then
 fi
 
 # Load project configuration if available
-if [ -f .intent/config.json ]; then
-  AUTHOR=$(grep -oE '"author"[[:space:]]*:[[:space:]]*"[^"]+"' .intent/config.json | cut -d'"' -f4 || echo "$USER")
-fi
+AUTHOR=$(get_config_field "author" "$USER")
 
 # Get command
 WP_COMMAND="$1"

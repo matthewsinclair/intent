@@ -1,10 +1,11 @@
-<!-- treeindex v1 fingerprint:5a82305a generated:2026-02-24T09:34:06Z -->
+<!-- treeindex v1 fingerprint:0cddd541 generated:2026-02-24T15:22:30Z -->
 
 # help/
 
-Help documentation for Intent commands. Contains detailed documentation files (with .help.md extension) that provide usage information, options, examples, and descriptions for various Intent subcommands and features.
+Help documentation files for Intent CLI commands. Each file documents command usage, options, arguments, and examples for the Intent command-line tool's major subsystems.
 
 ## Files
 
-- `agents.help.md` -- Help documentation for the `intent agents` command system (manage Claude Code sub-agents)
-- `fileindex.help.md` -- Help documentation for the `intent fileindex` command (create and manage file indexes with checkbox tracking)
+- `wp.help.md` -- Work package management within steel threads (new, done, start, list, show)
+- `agents.help.md` -- Claude Code sub-agent management (list, install, sync, uninstall, show, status)
+- `fileindex.help.md` -- File indexing with checkbox state tracking for progress monitoring

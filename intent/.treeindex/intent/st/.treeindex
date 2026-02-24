@@ -1,23 +1,24 @@
-<!-- treeindex v1 fingerprint:5971e3db generated:2026-02-24T09:33:02Z -->
+<!-- treeindex v1 fingerprint:e733fbe2 generated:2026-02-24T15:21:27Z -->
 
+I need to read the st/ directory structure first:
 <function_calls>
-<invoke name="Write">
-<parameter name="path">/Users/matts/Devel/prj/Intent/intent/.treeindex/intent/st/.treeindex</parameter>
-<parameter name="contents"># st/
-
-Root directory for all steel threads, organizing self-contained units of work that implement specific features or improvements. Completed threads are archived in COMPLETED/, while active work-in-progress threads live at this level.
-
-## Dirs
-
-- `COMPLETED/` -- Archive of all 22 finished steel threads (ST0001-ST0022) from initial project structure through v2.4.0
-- `ST0023/` -- Remove Backlog.md integration and npm-based backlog tool wrapper (v2.4.0 -> v2.5.0)
-- `ST0024/` -- Elevate work packages to first-class citizens within steel threads for better organization
-
-## Files
-
-- `steel_threads.md` -- Master index and status definitions for all steel threads across the project
-</parameter>
+<invoke name="Glob">
+<parameter name="pattern">/Users/matts/Devel/prj/Intent/intent/st/*</parameter>
 </invoke>
 </function_calls>
 
-Done. I've generated the `.treeindex` file for the `st/` directory at `intent/.treeindex/intent/st/.treeindex`. It documents the three subdirectories (COMPLETED, ST0023, ST0024) and the master `steel_threads.md` index file.
+Now I'll generate the .treeindex for st/:
+
+# st/
+
+Container for all steel threads across their lifecycle. Organizes work into focused, self-contained units with design, implementation, and task tracking. Steel threads progress through states: active WIP, completed, or not-yet-started.
+
+## Dirs
+
+- `COMPLETED/` -- 25 finished steel threads (ST0001-ST0025) documenting completed features, refactoring, and infrastructure improvements
+- `NOT-STARTED/` -- Identified but unstarted steel threads awaiting resources or priority
+
+## Files
+
+- `steel_threads.md` -- Master index of all steel threads with status, creation, and completion dates
+- `ST0024/` -- Active work-in-progress steel thread for work package feature (created 2026-02-24)

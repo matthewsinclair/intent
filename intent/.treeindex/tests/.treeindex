@@ -1,18 +1,18 @@
-<!-- treeindex v1 fingerprint:fcc15b03 generated:2026-02-24T09:35:05Z -->
+<!-- treeindex v1 fingerprint:28f0a6b8 generated:2026-02-24T15:23:04Z -->
 
 # tests/
 
-Comprehensive BATS-based test suite for Intent v2.5.0 with 15+ tests validating CLI commands, workflows, and core functionality. Tests are organized into unit tests (by command category), integration tests (full workflows), and shared test utilities. Ensures Intent CLI works correctly across its feature set.
+BATS test suite for Intent CLI covering command routing, project initialization, steel thread management, skill/agent systems, and CLI utilities. Tests are organized by functionality with shared helpers for sandbox environments and assertion utilities. Includes unit tests, integration tests, and test fixtures for comprehensive CLI validation.
 
 ## Dirs
 
-- `fixtures/` -- Test fixtures and sample files for tests
-- `integration/` -- Integration tests validating complete user workflows and end-to-end scenarios
-- `lib/` -- Shared BATS test libraries, helpers, and assertion utilities
-- `unit/` -- Unit tests organized by command category (14 test files for individual commands)
+- `fixtures/` -- Test fixtures and sample files for test scenarios
+- `integration/` -- End-to-end workflow tests validating complete user journeys
+- `lib/` -- Shared test libraries and helper functions (test_helper.bash)
+- `unit/` -- Unit tests for individual commands and subsystems
 
 ## Files
 
-- `run_tests.sh` -- Test runner script with Bats orchestration, color output, and configuration
-- `core_functionality.bats` -- Essential smoke tests validating Intent infrastructure and core functionality
-- `README.md` -- Test documentation, prerequisites, running instructions, and structure guide
+- `run_tests.sh` -- Main test runner that executes BATS tests with environment setup
+- `core_functionality.bats` -- Essential core functionality tests that must always pass
+- `README.md` -- Test suite documentation and running instructions

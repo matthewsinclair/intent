@@ -13,6 +13,56 @@ source "$INTENT_BIN/intent_helpers"
 # Skills source directory
 SKILLS_SOURCE_DIR="$INTENT_ROOT/intent/plugins/claude/skills"
 
+# ---- Plugin callbacks ----
+
+PLUGIN_TYPE="skill"
+PLUGIN_TYPE_CAP="Skill"
+PLUGIN_TYPE_PLURAL="skills"
+PLUGIN_CMD="skills"
+
+plugin_get_manifest_path() {
+  echo "$HOME/.intent/skills/installed-skills.json"
+}
+
+plugin_get_source_file() {
+  echo "$SKILLS_SOURCE_DIR/$1/SKILL.md"
+}
+
+plugin_is_installed() {
+  [ -f "$HOME/.claude/skills/$1/SKILL.md" ]
+}
+
+plugin_copy_to_target() {
+  mkdir -p "$HOME/.claude/skills/$1" && cp -r "$SKILLS_SOURCE_DIR/$1/"* "$HOME/.claude/skills/$1/"
+}
+
+plugin_remove_target() {
+  rm -rf "$HOME/.claude/skills/$1"
+}
+
+plugin_checksum_target() {
+  calculate_checksum "$HOME/.claude/skills/$1/SKILL.md"
+}
+
+plugin_get_available_names() {
+  local s=""
+  if [ -d "$SKILLS_SOURCE_DIR" ]; then
+    for d in "$SKILLS_SOURCE_DIR"/*/; do
+      [ -f "${d}SKILL.md" ] && s="$s $(basename "$d")"
+    done
+  fi
+  echo "$s"
+}
+
+plugin_manifest_extra() {
+  echo ""
+}
+
+# Source shared plugin logic (install, sync, uninstall, manifest ops)
+source "$PLUGIN_BIN/../lib/claude_plugin_helpers.sh"
+
+# ---- Skill-specific functions ----
+
 # Show help
 intent_claude_skills_help() {
   cat << EOF
@@ -43,38 +93,6 @@ For help on a specific command:
 EOF
 }
 
-# calculate_checksum() is provided by intent_helpers
-
-# Helper: Get skill manifest path
-get_skill_manifest_path() {
-  echo "$HOME/.intent/skills/installed-skills.json"
-}
-
-# Helper: Ensure manifest exists
-ensure_skill_manifest() {
-  local manifest_file
-  manifest_file="$(get_skill_manifest_path)"
-  local manifest_dir
-  manifest_dir="$(dirname "$manifest_file")"
-
-  mkdir -p "$manifest_dir"
-
-  if [ ! -f "$manifest_file" ]; then
-    cat > "$manifest_file" << 'MANIFEST'
-{
-  "version": "1.0.0",
-  "installed": []
-}
-MANIFEST
-  fi
-}
-
-# Helper: Check if skill is installed
-is_skill_installed() {
-  local skill_name="$1"
-  [ -f "$HOME/.claude/skills/${skill_name}/SKILL.md" ]
-}
-
 # Helper: Extract description from a SKILL.md file
 # Handles both frontmatter format and legacy plain-markdown format
 get_skill_description() {
@@ -101,73 +119,13 @@ get_skill_title() {
   fi
 }
 
-# Helper: Get available skills from source directory
-get_available_skills() {
-  local skills=""
-  if [ -d "$SKILLS_SOURCE_DIR" ]; then
-    for dir in "$SKILLS_SOURCE_DIR"/*/; do
-      if [ -f "${dir}SKILL.md" ]; then
-        skills="$skills $(basename "$dir")"
-      fi
-    done
-  fi
-  echo "$skills"
-}
-
-# Helper: Update installed skills manifest
-update_skill_manifest() {
-  local skill_name="$1"
-  local source_path="$2"
-
-  ensure_skill_manifest
-  local manifest_file
-  manifest_file="$(get_skill_manifest_path)"
-
-  # Calculate checksum
-  local checksum
-  checksum=$(calculate_checksum "$HOME/.claude/skills/${skill_name}/SKILL.md")
-  local timestamp
-  timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-  # Remove existing entry if present
-  local temp_file
-  temp_file=$(mktemp)
-  jq "del(.installed[] | select(.name == \"$skill_name\"))" "$manifest_file" > "$temp_file"
-
-  # Add new entry
-  jq ".installed += [{
-    \"name\": \"$skill_name\",
-    \"source_path\": \"$source_path\",
-    \"installed_at\": \"$timestamp\",
-    \"checksum\": \"$checksum\"
-  }]" "$temp_file" > "$manifest_file"
-
-  rm -f "$temp_file"
-}
-
-# Helper: Remove skill from manifest
-remove_skill_from_manifest() {
-  local skill_name="$1"
-  local manifest_file
-  manifest_file="$(get_skill_manifest_path)"
-
-  if [ ! -f "$manifest_file" ]; then
-    return 0
-  fi
-
-  local temp_file
-  temp_file=$(mktemp)
-  jq "del(.installed[] | select(.name == \"$skill_name\"))" "$manifest_file" > "$temp_file"
-  mv "$temp_file" "$manifest_file"
-}
-
 # List available and installed skills
 intent_claude_skills_list() {
   echo "Available Skills:"
   echo ""
 
   local skills
-  skills=$(get_available_skills)
+  skills=$(plugin_get_available_names)
 
   if [ -z "$skills" ]; then
     echo "  No skills found in $SKILLS_SOURCE_DIR"
@@ -194,7 +152,7 @@ intent_claude_skills_list() {
     local skill_file="$SKILLS_SOURCE_DIR/$skill/SKILL.md"
     local status=""
 
-    if is_skill_installed "$skill"; then
+    if plugin_is_installed "$skill"; then
       status="[INSTALLED]"
     else
       status="[NOT INSTALLED]"
@@ -237,318 +195,6 @@ intent_claude_skills_list() {
   fi
 }
 
-# Install skills
-intent_claude_skills_install() {
-  require_jq || return 1
-  require_claude || return 1
-
-  # Parse arguments
-  if [ "$#" -eq 0 ]; then
-    echo "Error: No skill specified"
-    echo "Usage: intent claude skills install <skill-name> [skill-name...]"
-    echo "       intent claude skills install --all"
-    return 1
-  fi
-
-  local skills_to_install=()
-  local install_all=false
-  local force=false
-
-  # Check for flags
-  for arg in "$@"; do
-    if [ "$arg" = "--all" ]; then
-      install_all=true
-    elif [ "$arg" = "--force" ] || [ "$arg" = "-f" ]; then
-      force=true
-    else
-      skills_to_install+=("$arg")
-    fi
-  done
-
-  # Get list of available skills if --all
-  if [ "$install_all" = true ]; then
-    local available
-    available=$(get_available_skills)
-    skills_to_install=($available)
-  fi
-
-  # Install each skill
-  local installed_count=0
-  local skipped_count=0
-  local failed_count=0
-
-  for skill in "${skills_to_install[@]}"; do
-    echo "Installing skill: $skill"
-
-    # Check if skill source exists
-    local source_file="$SKILLS_SOURCE_DIR/$skill/SKILL.md"
-    if [ ! -f "$source_file" ]; then
-      echo "  Error: Skill '$skill' not found"
-      ((failed_count++))
-      continue
-    fi
-
-    # Check if already installed
-    local target_dir="$HOME/.claude/skills/$skill"
-    local target_file="$target_dir/SKILL.md"
-    if [ -f "$target_file" ]; then
-      if [ "$force" = false ]; then
-        echo -n "  Skill already exists. Overwrite? [y/N] "
-        read -r response
-        if [[ ! "$response" =~ ^[Yy]$ ]]; then
-          echo "  Skipped"
-          ((skipped_count++))
-          continue
-        fi
-      else
-        echo "  Skill already exists. Overwriting (--force)"
-      fi
-    fi
-
-    # Create target directory and copy entire skill directory
-    mkdir -p "$target_dir"
-    if cp -r "$SKILLS_SOURCE_DIR/$skill/"* "$target_dir/"; then
-      echo "  Installed successfully"
-      update_skill_manifest "$skill" "$SKILLS_SOURCE_DIR/$skill"
-      ((installed_count++))
-    else
-      echo "  Error: Failed to install"
-      ((failed_count++))
-    fi
-  done
-
-  # Summary
-  echo ""
-  echo "Installation complete:"
-  echo "  Installed: $installed_count"
-  [ "$skipped_count" -gt 0 ] && echo "  Skipped: $skipped_count"
-  [ "$failed_count" -gt 0 ] && echo "  Failed: $failed_count"
-
-  if [ "$installed_count" -gt 0 ] || [ "$skipped_count" -gt 0 ]; then
-    return 0
-  elif [ "$failed_count" -gt 0 ]; then
-    return 1
-  else
-    return 0
-  fi
-}
-
-# Sync installed skills with latest versions
-intent_claude_skills_sync() {
-  require_jq || return 1
-  require_claude || return 1
-
-  local manifest_file
-  manifest_file="$(get_skill_manifest_path)"
-
-  # Check if manifest exists
-  if [ ! -f "$manifest_file" ]; then
-    echo "No installed skills found."
-    echo "Use 'intent claude skills install' to install skills first."
-    return 0
-  fi
-
-  # Parse force flag
-  local force=false
-  for arg in "$@"; do
-    if [ "$arg" = "--force" ] || [ "$arg" = "-f" ]; then
-      force=true
-      break
-    fi
-  done
-
-  echo "Syncing installed skills..."
-  echo ""
-
-  # Read installed skills
-  local skills
-  skills=$(jq -r '.installed[].name' "$manifest_file" 2>/dev/null)
-  local updated_count=0
-  local skipped_count=0
-  local failed_count=0
-
-  for skill in $skills; do
-    echo "Checking skill: $skill"
-
-    # Get skill info from manifest
-    local skill_info
-    skill_info=$(jq -r ".installed[] | select(.name == \"$skill\")" "$manifest_file")
-    local source_path
-    source_path=$(echo "$skill_info" | jq -r '.source_path')
-    local old_checksum
-    old_checksum=$(echo "$skill_info" | jq -r '.checksum')
-
-    # Determine source and target files
-    local source_file="$source_path/SKILL.md"
-    local target_file="$HOME/.claude/skills/$skill/SKILL.md"
-
-    # Check if source exists
-    if [ ! -f "$source_file" ]; then
-      echo "  Error: Source file not found: $source_file"
-      ((failed_count++))
-      continue
-    fi
-
-    # Calculate current checksums
-    local source_checksum
-    source_checksum=$(calculate_checksum "$source_file")
-    local target_checksum
-    target_checksum=$(calculate_checksum "$target_file")
-
-    # Check if update needed
-    if [ "$source_checksum" = "$old_checksum" ] && [ "$target_checksum" = "$old_checksum" ]; then
-      echo "  Up to date"
-      ((skipped_count++))
-      continue
-    fi
-
-    # Check if user modified the skill locally
-    if [ "$target_checksum" != "$old_checksum" ] && [ "$source_checksum" = "$old_checksum" ]; then
-      echo "  Warning: Skill has been modified locally"
-      if [ "$force" = false ]; then
-        echo -n "  Overwrite local changes? [y/N] "
-        read -r response
-        if [[ ! "$response" =~ ^[Yy]$ ]]; then
-          echo "  Skipped"
-          ((skipped_count++))
-          continue
-        fi
-      else
-        echo "  Overwriting local changes (--force)"
-      fi
-    elif [ "$source_checksum" != "$old_checksum" ]; then
-      echo "  Update available"
-    fi
-
-    # Copy updated skill (entire directory)
-    mkdir -p "$HOME/.claude/skills/$skill"
-    if cp -r "$source_path/"* "$HOME/.claude/skills/$skill/"; then
-      echo "  Updated successfully"
-      update_skill_manifest "$skill" "$source_path"
-      ((updated_count++))
-    else
-      echo "  Error: Failed to update"
-      ((failed_count++))
-    fi
-  done
-
-  # Summary
-  echo ""
-  echo "Sync complete:"
-  echo "  Updated: $updated_count"
-  [ "$skipped_count" -gt 0 ] && echo "  Skipped: $skipped_count"
-  [ "$failed_count" -gt 0 ] && echo "  Failed: $failed_count"
-
-  if [ "$updated_count" -gt 0 ] || [ "$skipped_count" -gt 0 ]; then
-    return 0
-  elif [ "$failed_count" -gt 0 ]; then
-    return 1
-  else
-    return 0
-  fi
-}
-
-# Uninstall skills
-intent_claude_skills_uninstall() {
-  # Parse arguments
-  if [ "$#" -eq 0 ]; then
-    echo "Error: No skill specified"
-    echo "Usage: intent claude skills uninstall <skill-name> [skill-name...]"
-    echo "       intent claude skills uninstall --all"
-    return 1
-  fi
-
-  local skills_to_remove=()
-  local remove_all=false
-  local force=false
-
-  # Check for flags
-  for arg in "$@"; do
-    if [ "$arg" = "--all" ]; then
-      remove_all=true
-    elif [ "$arg" = "--force" ] || [ "$arg" = "-f" ]; then
-      force=true
-    else
-      skills_to_remove+=("$arg")
-    fi
-  done
-
-  # Get list of installed skills if --all
-  if [ "$remove_all" = true ]; then
-    local manifest_file
-    manifest_file="$(get_skill_manifest_path)"
-
-    if [ ! -f "$manifest_file" ]; then
-      echo "No installed skills found."
-      return 0
-    fi
-
-    skills_to_remove=($(jq -r '.installed[].name' "$manifest_file" 2>/dev/null))
-
-    if [ ${#skills_to_remove[@]} -eq 0 ]; then
-      echo "No Intent-managed skills found."
-      return 0
-    fi
-  fi
-
-  # Confirm if not forced
-  if [ "$force" = false ]; then
-    echo "The following skills will be uninstalled:"
-    for skill in "${skills_to_remove[@]}"; do
-      echo "  - $skill"
-    done
-    echo -n "Continue? [y/N] "
-    read -r response
-    if [[ ! "$response" =~ ^[Yy]$ ]]; then
-      echo "Cancelled"
-      return 0
-    fi
-  fi
-
-  # Uninstall each skill
-  local removed_count=0
-  local skipped_count=0
-  local failed_count=0
-
-  for skill in "${skills_to_remove[@]}"; do
-    echo "Uninstalling skill: $skill"
-
-    local skill_dir="$HOME/.claude/skills/$skill"
-
-    # Check if skill exists
-    if [ ! -d "$skill_dir" ]; then
-      echo "  Skill not found"
-      ((skipped_count++))
-      continue
-    fi
-
-    # Remove skill directory
-    if rm -rf "$skill_dir"; then
-      echo "  Removed successfully"
-      remove_skill_from_manifest "$skill"
-      ((removed_count++))
-    else
-      echo "  Error: Failed to remove"
-      ((failed_count++))
-    fi
-  done
-
-  # Summary
-  echo ""
-  echo "Uninstall complete:"
-  echo "  Removed: $removed_count"
-  [ "$skipped_count" -gt 0 ] && echo "  Skipped: $skipped_count"
-  [ "$failed_count" -gt 0 ] && echo "  Failed: $failed_count"
-
-  if [ "$removed_count" -gt 0 ] || [ "$skipped_count" -gt 0 ]; then
-    return 0
-  elif [ "$failed_count" -gt 0 ]; then
-    return 1
-  else
-    return 0
-  fi
-}
-
 # Show detailed skill information
 intent_claude_skills_show() {
   if [ "$#" -eq 0 ]; then
@@ -576,7 +222,7 @@ intent_claude_skills_show() {
 
   # Check installation status
   local status="NOT INSTALLED"
-  if is_skill_installed "$skill_name"; then
+  if plugin_is_installed "$skill_name"; then
     status="INSTALLED"
   fi
 
@@ -590,7 +236,7 @@ intent_claude_skills_show() {
   # Show installation info
   if [ "$status" = "INSTALLED" ]; then
     local manifest_file
-    manifest_file="$(get_skill_manifest_path)"
+    manifest_file="$(plugin_get_manifest_path)"
 
     if [ -f "$manifest_file" ] && command -v jq >/dev/null 2>&1; then
       local installed_info
@@ -627,15 +273,15 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
       ;;
     install)
       shift
-      intent_claude_skills_install "$@"
+      plugin_install "$@"
       ;;
     sync)
       shift
-      intent_claude_skills_sync "$@"
+      plugin_sync "$@"
       ;;
     uninstall)
       shift
-      intent_claude_skills_uninstall "$@"
+      plugin_uninstall "$@"
       ;;
     show)
       shift

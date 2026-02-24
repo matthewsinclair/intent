@@ -1,15 +1,65 @@
-<!-- treeindex v1 fingerprint:23730423 generated:2026-02-20T11:27:32Z -->
+<!-- treeindex v1 fingerprint:cd470586 generated:2026-02-24T15:19:52Z -->
+
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">/Users/matts/Devel/prj/Intent/bin/*</parameter>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
+
+<function_calls>
+<invoke name="Read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/bin</parameter>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
+
+Now let me check a few key files to understand their purposes:
+<function_calls>
+<invoke name="Read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/bin/intent</parameter>
+<parameter name="lineStart">1</parameter>
+<parameter name="lineEnd">60</parameter>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
+
+<function_calls>
+<invoke name="Read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/bin/intent_helpers</parameter>
+<parameter name="lineStart">1</parameter>
+<parameter name="lineEnd">50</parameter>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
+
+<function_calls>
+<invoke name="Read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/bin/intent_st</parameter>
+<parameter name="lineStart">1</parameter>
+<parameter name="lineEnd">40</parameter>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
+
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">ls -la /Users/matts/Devel/prj/Intent/bin/ | tail -20</parameter>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
 
 # bin/
 
-Main CLI entry point and core utilities for the Intent project management system. Contains the primary executable (`intent`) that routes to subcommands, helpers shared across plugins, and support scripts for tree and file indexing.
+The Intent CLI entry point and core command implementations. Contains the main `intent` dispatcher and subcommand handlers for steel threads, work packages, treeindex generation, and plugin management.
 
 ## Files
 
-- `intent` -- Main CLI router; parses commands and delegates to subcommands or plugins
-- `intent_helpers` -- Shared utility functions (path resolution, color output, validation, formatting)
-- `intent_treeindex` -- Generate .treeindex directory summaries for fast codebase navigation
-- `intent_fileindex` -- Build file indexes for codebase search and analysis
-- `intent_claude_skills` -- Manage Claude Code skills (list, install, sync, uninstall, show)
-- `intent_claude_subagents` -- Manage Claude Code subagents (init, list, install, sync, uninstall, show, status)
-- `intent_claude_upgrade` -- Diagnose and upgrade project LLM guidance layer
+- `intent` -- Main CLI dispatcher (GLOBAL_COMMANDS registry on line 41)
+- `intent_helpers` -- Shared utility functions for all commands (formatting, git, file ops)
+- `intent_st` -- Steel thread management (new, list, show, start, done)
+- `intent_wp` -- Work package management (new, list, show, start, done)
+- `intent_treeindex` -- Generate `.treeindex` directory summaries with depth control
+- `intent_fileindex` -- Generate `fileindex` summaries for file-level navigation
+- `intent_doctor` -- Project configuration diagnostics
+- `intent_agents` -- AGENTS.md lifecycle management (init, sync, validate)

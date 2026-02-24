@@ -222,6 +222,8 @@ intent wp new ST0005 "Write tests"
 intent wp new 5 "Update docs"
 ```
 
+Titles can contain special characters like `/`, `&`, and `\` safely. The WP info.md is generated from the template at `lib/templates/prj/st/WP/info.md`.
+
 #### Managing Work Package Status
 
 ```bash

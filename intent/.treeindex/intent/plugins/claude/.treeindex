@@ -1,23 +1,73 @@
-<!-- treeindex v1 fingerprint:a2d8d55a generated:2026-02-20T11:29:04Z -->
+<!-- treeindex v1 fingerprint:2df8acac generated:2026-02-24T15:20:55Z -->
 
 <function_calls>
 <invoke name="Bash">
-<parameter name="command">find intent/plugins/claude -type f | head -30</parameter>
+<parameter name="command">find intent/plugins/claude -type f | sort</parameter>
 </invoke>
 </function_calls>
+<parameter name="timeout">10</parameter>
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find intent/plugins/claude -type d | sort</parameter>
+</invoke>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
 
-Based on the directory structure and my memory of the project, here's the .treeindex for the `claude/` directory:
+Now let me examine key files to understand the purpose:
+<function_calls>
+<invoke name="Read">
+<parameter name="path">intent/plugins/claude/bin/intent_claude_subagents</parameter>
+<parameter name="lineStart">1</parameter>
+<parameter name="lineEnd">40</parameter>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">intent/plugins/claude/bin/intent_claude_skills</parameter>
+<parameter name="lineStart">1</parameter>
+<parameter name="lineEnd">40</parameter>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">ls -la intent/plugins/claude/subagents/ | head -15</parameter>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">ls -la intent/plugins/claude/skills/ | head -15</parameter>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">intent/plugins/claude/lib</parameter>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">ls -la intent/plugins/claude/lib/</parameter>
+</invoke>
+</function_calls>
+<parameter name="timeout">10</parameter>
 
-# claude/
+# intent/plugins/claude/
 
-Claude Code integration plugin providing subagent management, skill installation, and project upgrade capabilities. Implements the multi-agent architecture for specialized AI assistance across Intent projects.
+Claude plugin system providing AI subagents and skills integration for the Intent project. Manages domain-specific Claude agents (intent, elixir, socrates, worker-bee, diogenes) and reusable skill libraries for augmenting Claude Code's capabilities.
 
 ## Dirs
 
-- `bin/` -- Executable scripts for subagent, skill, and upgrade management
-- `skills/` -- Skill definitions providing domain-specific guidance (intent-essentials, intent-autopsy, language-specific skills)
-- `subagents/` -- Subagent definitions with expertise profiles (intent, elixir, socrates, worker-bee, diogenes)
+- `bin/` -- Plugin command handlers (subagents, skills, upgrade management)
+- `lib/` -- Shared plugin libraries (Claude configuration, manifest utilities)
+- `subagents/` -- Domain-specific Claude agent definitions (intent, elixir, socrates, worker-bee, diogenes)
+- `skills/` -- Reusable skill libraries with SKILL.md definitions and supporting files
 
 ## Files
 
-- `PLUGIN.md` -- Plugin manifest and configuration for Claude integration
+- `PLUGIN.md` -- Claude plugin metadata and registration (v2.3.0+)
+- `README.md` -- Plugin documentation and architecture overview

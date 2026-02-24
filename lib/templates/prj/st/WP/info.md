@@ -5,6 +5,7 @@ title: "[Title]"
 scope: Small
 status: Not Started
 ---
+
 # WP-NN: [Title]
 
 ## Objective

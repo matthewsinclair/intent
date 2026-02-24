@@ -237,6 +237,8 @@ intent wp done <STID/NN>       # Mark a work package as Done
 intent wp show <STID/NN>       # Show work package details
 ```
 
+Specifiers accept bare numbers: `intent wp new 5 "Title"` is equivalent to `intent wp new ST0005 "Title"`. WP numbers auto-assign (01-99) and titles can contain special characters (`/`, `&`, `\`) safely.
+
 ### Treeindex (Directory Summaries)
 
 ```bash

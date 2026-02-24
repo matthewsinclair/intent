@@ -17,15 +17,15 @@ Fixed by:
 
 **7 shared functions added to `bin/intent_helpers`** (top of file, before migration functions), all with `export -f`:
 
-| Function               | Replaces                                                    |
-| ---------------------- | ----------------------------------------------------------- |
-| `error()`              | Identical definition in 10 scripts                          |
-| `calculate_checksum()` | `calculate_checksum()` in subagents, `calculate_skill_checksum()` in skills, inline shasum in upgrade |
-| `get_terminal_width()` | 6-line terminal width detection blocks in subagents, skills, intent_st |
-| `require_jq()`         | 8 inline jq guard blocks with inconsistent error messages   |
-| `require_claude()`     | 6 inline Claude detection blocks                            |
-| `require_project_root()` | 3 identical 8-line blocks in intent_agents                |
-| (sourcing fix)         | Duplicate `find_project_root()` in fileindex                |
+| Function                 | Replaces                                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `error()`                | Identical definition in 10 scripts                                                                    |
+| `calculate_checksum()`   | `calculate_checksum()` in subagents, `calculate_skill_checksum()` in skills, inline shasum in upgrade |
+| `get_terminal_width()`   | 6-line terminal width detection blocks in subagents, skills, intent_st                                |
+| `require_jq()`           | 8 inline jq guard blocks with inconsistent error messages                                             |
+| `require_claude()`       | 6 inline Claude detection blocks                                                                      |
+| `require_project_root()` | 3 identical 8-line blocks in intent_agents                                                            |
+| (sourcing fix)           | Duplicate `find_project_root()` in fileindex                                                          |
 
 **16 files changed:**
 

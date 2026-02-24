@@ -1,0 +1,55 @@
+<!-- treeindex v1 fingerprint:ba2aa59c generated:2026-02-24T15:19:42Z -->
+
+I'll explore the `lib/` directory to generate the `.treeindex` file.
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">lib/**</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Read">
+<parameter name="path">lib</parameter>
+</invoke>
+</function_calls>
+
+Let me get a better view of the structure:
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find lib -type f | head -30</parameter>
+</invoke>
+</function_calls>
+
+Now let me read the key files to understand their purpose:
+<function_calls>
+<invoke name="Read">
+<parameter name="path">lib/claude_plugin_helpers.sh</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">ls -la lib/ | grep -v "^total"</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">find lib -type d | sort</parameter>
+</invoke>
+</function_calls>
+
+# lib/
+
+Core helper libraries and templates used by Intent commands. Includes shared shell functions for plugin architecture (install/sync/uninstall workflows), command helpers, help documentation, and project template scaffolding.
+
+## Dirs
+
+- `help/` -- Command help documentation files
+- `templates/` -- Project scaffolding templates for steel threads and work packages
+
+## Files
+
+- `claude_plugin_helpers.sh` -- Shared manifest, install, sync, and uninstall logic for Claude skills and subagents
+- `helpers.sh` -- Core utility functions (paths, formatting, validation, git operations)
+- `st_helpers.sh` -- Steel thread management functions (create, list, status, slug generation)
+- `wp_helpers.sh` -- Work package management functions (create, list, status, metadata)
+- `agent_commands.sh` -- Agent command dispatching and execution framework
+- `treeindex_helpers.sh` -- Treeindex generation and file index utilities
