@@ -81,11 +81,11 @@ instructions tell Claude to account for this.
 
 ## File Inventory
 
-| File                                                                | Action  | Purpose                          |
-| ------------------------------------------------------------------- | ------- | -------------------------------- |
-| `intent/plugins/claude/skills/intent-autopsy/SKILL.md`             | Created | Skill definition and methodology |
-| `intent/plugins/claude/skills/intent-autopsy/scripts/autopsy.exs`  | Created | Elixir JSONL preprocessor        |
-| `intent/plugins/claude/skills/intent-autopsy/scripts/banned-words.txt` | Created | Default banned word patterns  |
-| `intent/plugins/claude/bin/intent_claude_skills`                    | Modified | Full directory install (cp -r)  |
-| `bin/intent_doctor`                                                 | Modified | Elixir optional dependency check |
-| `tests/unit/test_autopsy.bats`                                     | Created | 19 BATS tests                    |
+| File                                                                   | Action   | Purpose                          |
+| ---------------------------------------------------------------------- | -------- | -------------------------------- |
+| `intent/plugins/claude/skills/intent-autopsy/SKILL.md`                 | Created  | Skill definition and methodology |
+| `intent/plugins/claude/skills/intent-autopsy/scripts/autopsy.exs`      | Created  | Elixir JSONL preprocessor        |
+| `intent/plugins/claude/skills/intent-autopsy/scripts/banned-words.txt` | Created  | Default banned word patterns     |
+| `intent/plugins/claude/bin/intent_claude_skills`                       | Modified | Full directory install (cp -r)   |
+| `bin/intent_doctor`                                                    | Modified | Elixir optional dependency check |
+| `tests/unit/test_autopsy.bats`                                         | Created  | 19 BATS tests                    |

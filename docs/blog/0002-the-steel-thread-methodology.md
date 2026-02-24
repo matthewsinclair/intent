@@ -6,6 +6,8 @@ draft: false
 word_count: 1842
 ---
 
+> **Editor's note (v2.5.0):** Backlog.md integration was removed in Intent v2.5.0.
+
 # The Steel Thread Methodology: Development with Purpose
 
 In our [previous post](./0001-introduction-to-intent.md), we introduced Intent as a lightweight system for intention-aware development. At the heart of Intent lies a simple yet powerful concept: the steel thread. Today, we'll explore what steel threads are, how they work, and why they're more effective than traditional approaches to organising development work.

@@ -6,6 +6,8 @@ draft: false
 word_count: 2489
 ---
 
+> **Editor's note (v2.5.0):** Backlog.md integration was removed in Intent v2.5.0.
+
 # Getting Started with Intent: Your Practical Implementation Guide
 
 After exploring the [philosophy](./0000-motivation-for-intent.md) and [methodology](./0002-the-steel-thread-methodology.md) behind Intent, you're ready to implement it in your own projects. This guide walks you through installation, daily workflow, and practical tips for success.

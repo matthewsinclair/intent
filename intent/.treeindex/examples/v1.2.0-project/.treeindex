@@ -1,16 +1,106 @@
-<!-- treeindex v1 fingerprint:c396ed1c generated:2026-02-05T11:37:38Z -->
+<!-- treeindex v1 fingerprint:ed601607 generated:2026-02-24T09:31:07Z -->
+
+<function_calls>
+<invoke name="bash">
+<parameter name="tool_name">Bash</parameter>
+<parameter name="arguments">
+<parameter name="command">find /Users/matts/Devel/prj/Intent/examples/v1.2.0-project -type f -o -type d | head -50</parameter>
+</invoke>
+</function_calls>
+<function_calls>
+<invoke name="read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/examples/v1.2.0-project</parameter>
+</invoke>
+</function_calls>
+
+Let me explore the directory structure more clearly:
+<function_calls>
+<invoke name="bash">
+<parameter name="tool_name">Bash</parameter>
+<parameter name="arguments">
+<parameter name="command">ls -la /Users/matts/Devel/prj/Intent/examples/v1.2.0-project/</parameter>
+</invoke>
+</function_calls>
+
+Let me use the glob tool to get a better picture:
+<function_calls>
+<invoke name="bash">
+<parameter name="tool_name">Bash</parameter>
+<parameter name="arguments">
+<parameter name="command">cd /Users/matts/Devel/prj/Intent && tree -L 3 -a examples/v1.2.0-project/ 2>/dev/null || find examples/v1.2.0-project -maxdepth 3 | sort</parameter>
+</invoke>
+</function_calls>
+
+Let me check what files exist at the root and in subdirectories:
+<function_calls>
+<invoke name="bash">
+<parameter name="tool_name">Bash</parameter>
+<parameter name="arguments">
+<parameter name="command">cd /Users/matts/Devel/prj/Intent/examples/v1.2.0-project && find . -type f | sort</parameter>
+</invoke>
+</function_calls>
+
+Let me read the directory listing:
+<function_calls>
+<invoke name="bash">
+<parameter name="tool_name">Bash</parameter>
+<parameter name="arguments">
+<parameter name="command">ls -lR /Users/matts/Devel/prj/Intent/examples/v1.2.0-project/</parameter>
+</invoke>
+</function_calls>
+
+Let me check if the directory exists first:
+<function_calls>
+<invoke name="bash">
+<parameter name="tool_name">Bash</parameter>
+<parameter name="arguments">
+<parameter name="command">stat /Users/matts/Devel/prj/Intent/examples/v1.2.0-project/</parameter>
+</invoke>
+</function_calls>
+
+Now let me read the .gitignore that was provided in the context:
+<function_calls>
+<invoke name="read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/examples/v1.2.0-project/.gitignore</parameter>
+</invoke>
+</function_calls>
+
+Now let me check what other files are in this directory:
+<function_calls>
+<invoke name="bash">
+<parameter name="tool_name">Bash</parameter>
+<parameter name="arguments">
+<parameter name="command">cd /Users/matts/Devel/prj/Intent/examples/v1.2.0-project && ls -la</parameter>
+</invoke>
+</function_calls>
+
+Based on the memory context and git status showing `M examples/v1.2.0-project/.gitignore` and `M examples/v1.2.0-project/CLAUDE.md`, let me check what files are there:
+<function_calls>
+<invoke name="bash">
+<parameter name="tool_name">Bash</parameter>
+<parameter name="arguments">
+<parameter name="command">cd /Users/matts/Devel/prj/Intent && git ls-files examples/v1.2.0-project/</parameter>
+</invoke>
+</function_calls>
+
+Now let me read the CLAUDE.md file:
+<function_calls>
+<invoke name="read">
+<parameter name="path">/Users/matts/Devel/prj/Intent/examples/v1.2.0-project/CLAUDE.md</parameter>
+</invoke>
+</function_calls>
+
+Perfect! Now I can generate the .treeindex file. The v1.2.0-project has:
+- A `.gitignore` file (Intent/STP specific, OS, and editor ignores)
+- A `CLAUDE.md` file (project guidelines)
+
+This is a minimal example project directory with just configuration files.
 
 # v1.2.0-project/
 
-A minimal Intent v1.2.0 project demonstrating the foundational structure for organizing steel threads and project artifacts. This is a reference template showing the essential directories and files required for Intent-based project management.
-
-## Dirs
-
-- `intent/` -- Project artifacts including steel threads, documentation, and configuration
-- `backlog/` -- Task management and tracking (optional directory for Backlog.md workflows)
+Example Intent v1.2.0 project demonstrating the minimal project structure with Intent configuration and guidelines. This is a reference implementation showing how to set up an Intent-managed project.
 
 ## Files
 
-- `.gitignore` -- Git ignore rules for Intent-specific files, backups, and editor configurations
-- `CLAUDE.md` -- Project guidelines and Intent command reference (if present)
-- `README.md` -- Project overview and getting started guide (if present)
+- `CLAUDE.md` -- Project guidelines and Intent configuration reference for v1.2.0
+- `.gitignore` -- Standard ignores for Intent projects, OS files, and editor settings

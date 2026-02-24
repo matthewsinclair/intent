@@ -204,13 +204,9 @@ echo ""
 echo "Checking installed subagents..."
 
 if [ -f "$HOME/.claude/agents/elixir.md" ]; then
-  local_checksum=""
-  source_checksum=""
-  if command -v shasum >/dev/null 2>&1; then
-    local_checksum=$(shasum -a 256 "$HOME/.claude/agents/elixir.md" 2>/dev/null | cut -d' ' -f1)
-    source_checksum=$(shasum -a 256 "$SUBAGENTS_SOURCE/elixir/agent.md" 2>/dev/null | cut -d' ' -f1)
-  fi
-  if [ "$local_checksum" = "$source_checksum" ] && [ -n "$local_checksum" ]; then
+  local_checksum=$(calculate_checksum "$HOME/.claude/agents/elixir.md" 2>/dev/null)
+  source_checksum=$(calculate_checksum "$SUBAGENTS_SOURCE/elixir/agent.md" 2>/dev/null)
+  if [ "$local_checksum" = "$source_checksum" ] && [ -n "$local_checksum" ] && [ "$local_checksum" != "unknown" ]; then
     echo -e "  elixir subagent:    ${GREEN}UP TO DATE${NC}"
   else
     echo -e "  elixir subagent:    ${YELLOW}OUTDATED${NC}"
@@ -227,13 +223,9 @@ echo "Checking installed skills..."
 
 for skill in intent-essentials intent-elixir-essentials intent-ash-ecto-essentials intent-phoenix-liveview; do
   if [ -f "$HOME/.claude/skills/$skill/SKILL.md" ]; then
-    local_checksum=""
-    source_checksum=""
-    if command -v shasum >/dev/null 2>&1; then
-      local_checksum=$(shasum -a 256 "$HOME/.claude/skills/$skill/SKILL.md" 2>/dev/null | cut -d' ' -f1)
-      source_checksum=$(shasum -a 256 "$SKILLS_SOURCE/$skill/SKILL.md" 2>/dev/null | cut -d' ' -f1)
-    fi
-    if [ "$local_checksum" = "$source_checksum" ] && [ -n "$local_checksum" ]; then
+    local_checksum=$(calculate_checksum "$HOME/.claude/skills/$skill/SKILL.md" 2>/dev/null)
+    source_checksum=$(calculate_checksum "$SKILLS_SOURCE/$skill/SKILL.md" 2>/dev/null)
+    if [ "$local_checksum" = "$source_checksum" ] && [ -n "$local_checksum" ] && [ "$local_checksum" != "unknown" ]; then
       echo -e "  $skill:$(printf '%*s' $((30 - ${#skill})) '')${GREEN}UP TO DATE${NC}"
     else
       echo -e "  $skill:$(printf '%*s' $((30 - ${#skill})) '')${YELLOW}OUTDATED${NC}"

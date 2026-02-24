@@ -71,7 +71,6 @@ The Socrates agent is Intent-aware and integrates seamlessly:
 
 - References steel threads in dialogs
 - Outputs can become part of steel thread design documentation
-- Dialog conclusions can generate backlog tasks
 - Facilitates team alignment through shared decision records
 
 ## Example Output Structure
@@ -101,7 +100,6 @@ The Socrates agent is Intent-aware and integrates seamlessly:
 
 - [ ] Create steel thread for implementation
 - [ ] Document in design.md
-- [ ] Create backlog tasks
 ```
 
 ## Benefits

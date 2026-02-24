@@ -8,7 +8,6 @@ This is an Intent v2.0.0 project (formerly STP).
   - `st/` - Steel threads organized as directories
   - `docs/` - Technical documentation
   - `llm/` - LLM-specific guidelines
-- `backlog/` - Task management (if using Backlog.md)
 - `.intent/` - Configuration and metadata
 
 ## Steel Threads

@@ -1,0 +1,12 @@
+<!-- treeindex v1 fingerprint:6269f13a generated:2026-02-24T09:32:09Z -->
+
+# ST0024/
+
+This steel thread focuses on elevating work packages to first-class citizens within steel threads, enabling better organization and structured tracking of work units. It includes design, implementation, task breakdown, and metadata for the steel thread lifecycle.
+
+## Files
+
+- `info.md` -- Steel thread metadata, objective, context, and status (WIP, v2.4.0, created 2026-02-24)
+- `design.md` -- Approach, design decisions, architecture, and alternative approaches for work package integration
+- `tasks.md` -- Task breakdown and dependencies for implementing the work package feature
+- `impl.md` -- Implementation details, code examples, technical considerations, and challenges encountered

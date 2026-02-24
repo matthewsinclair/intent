@@ -174,6 +174,8 @@ fi
 
 ### 7.11.3 Configuration Filtering
 
+> **[Removed in v2.5.0]** Backlog.md integration was removed in Intent v2.5.0.
+
 **Challenge**: `intent bl list` not respecting configuration.
 
 **Resolution**:

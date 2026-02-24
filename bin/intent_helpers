@@ -1,10 +1,19 @@
 #!/bin/bash
 # intent_helpers - Shared functions for Intent migration and utilities
 
+# ---- Core Shared Helpers ----
+
+# Display an error message and exit
+error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+export -f error
+
 # Get Intent version from VERSION file
 get_intent_version() {
   local version_file="${INTENT_HOME:-$(dirname "${BASH_SOURCE[0]}")/..}/VERSION"
-  
+
   if [ -f "$version_file" ]; then
     cat "$version_file"
   else
@@ -12,9 +21,81 @@ get_intent_version() {
     echo "2.2.1"
   fi
 }
-
-# Export for use by other scripts
 export -f get_intent_version
+
+# Calculate SHA256 checksum for a file
+calculate_checksum() {
+  local file="$1"
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$file" | cut -d' ' -f1
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$file" | cut -d' ' -f1
+  else
+    echo "unknown"
+  fi
+}
+export -f calculate_checksum
+
+# Get terminal width with fallback chain
+get_terminal_width() {
+  local width="${COLUMNS:-}"
+  if [ -z "$width" ] && [ -t 1 ]; then
+    width=$(stty size < /dev/tty 2>/dev/null | cut -d' ' -f2)
+  fi
+  : "${width:=$(tput cols 2>/dev/null)}"
+  : "${width:=100}"
+  echo "$width"
+}
+export -f get_terminal_width
+
+# Require jq to be installed (returns 1 with instructions if not)
+require_jq() {
+  if command -v jq >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "Error: jq is required but not installed." >&2
+  echo "" >&2
+  echo "Intent requires jq for JSON configuration parsing." >&2
+  echo "" >&2
+  echo "Installation instructions:" >&2
+  if [ "$(uname)" = "Darwin" ]; then
+    echo "  macOS: brew install jq" >&2
+  elif [ "$(uname)" = "Linux" ]; then
+    echo "  Debian/Ubuntu: sudo apt-get install jq" >&2
+    echo "  RedHat/CentOS: sudo yum install jq" >&2
+    echo "  Arch Linux: sudo pacman -S jq" >&2
+  else
+    echo "  Please install jq using your system's package manager" >&2
+  fi
+  echo "" >&2
+  echo "For more information: https://stedolan.github.io/jq/download/" >&2
+  return 1
+}
+export -f require_jq
+
+# Require Claude Code to be installed
+require_claude() {
+  if [ -d "$HOME/.claude" ]; then
+    return 0
+  fi
+  echo "Error: Claude Code not detected. Please install Claude Code first." >&2
+  echo "Visit: https://claude.ai/download" >&2
+  return 1
+}
+export -f require_claude
+
+# Require a project root to be set (caller must load config first)
+require_project_root() {
+  if [ -n "${PROJECT_ROOT:-}" ]; then
+    return 0
+  fi
+  echo "Error: Not in an Intent project directory" >&2
+  echo "Run 'intent init' to create a new project first" >&2
+  return 1
+}
+export -f require_project_root
+
+# ---- Migration and Utility Functions ----
 
 # Convert YAML frontmatter to JSON format
 convert_yaml_frontmatter() {
@@ -139,9 +220,8 @@ convert_yaml_config_to_json() {
       # Add standard v2.0.0 fields
       [ "$first" = false ] && echo ","
       echo "  \"intent_version\": \"2.0.0\","
-      echo "  \"intent_dir\": \"intent\","
-      echo "  \"backlog_dir\": \"backlog\""
-      
+      echo "  \"intent_dir\": \"intent\""
+
       echo "}"
     } > "$json_file"
   else
@@ -152,8 +232,7 @@ convert_yaml_config_to_json() {
       # Fallback: create minimal JSON
       echo "{" > "$json_file"
       echo "  \"intent_version\": \"2.0.0\"," >> "$json_file"
-      echo "  \"intent_dir\": \"intent\"," >> "$json_file"
-      echo "  \"backlog_dir\": \"backlog\"" >> "$json_file"
+      echo "  \"intent_dir\": \"intent\"" >> "$json_file"
       echo "}" >> "$json_file"
     fi
   fi
@@ -171,8 +250,6 @@ create_v2_directory_structure() {
   mkdir -p "$project_root/intent/eng/tpd"
   mkdir -p "$project_root/intent/ref"
   mkdir -p "$project_root/intent/llm"
-  mkdir -p "$project_root/backlog"
-  
   # Create .gitignore if it doesn't exist
   if [ ! -f "$project_root/.gitignore" ]; then
     cat > "$project_root/.gitignore" << 'EOF'
@@ -180,9 +257,6 @@ create_v2_directory_structure() {
 .intent/local.json
 *.bak
 .backup_*
-
-# Backlog.md
-backlog/.backlog-md/
 
 # OS specific
 .DS_Store
@@ -273,7 +347,7 @@ create_project_backup() {
   } > "$project_root/$backup_dir/manifest.txt"
   
   # Backup relevant directories and files
-  for item in stp .stp-config .intent intent backlog; do
+  for item in stp .stp-config .intent intent; do
     if [ -e "$project_root/$item" ]; then
       echo "Backing up $item..."
       cp -r "$project_root/$item" "$project_root/$backup_dir/"
@@ -413,7 +487,7 @@ migrate_v0_to_v2() {
   
   cat > "$project_root/.intent/config.json" << EOF
 {
-  "version": "$target_version",
+  "intent_version": "$target_version",
   "project_name": "$project_name",
   "author": "$author",
   "created": "$(date +%Y-%m-%d)",
@@ -533,7 +607,7 @@ migrate_v2_0_to_v2_1() {
   if [ -f "$project_root/.intent/config.json" ]; then
     echo "  Updating project version to 2.1.0..."
     local temp_file=$(mktemp)
-    jq '.intent_version = "2.1.0" | .version = "2.1.0"' "$project_root/.intent/config.json" > "$temp_file"
+    jq '.intent_version = "2.1.0" | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
     mv "$temp_file" "$project_root/.intent/config.json"
   fi
   
@@ -563,7 +637,7 @@ migrate_v2_1_to_v2_2() {
   if [ -f "$project_root/.intent/config.json" ]; then
     echo "  Updating project version to 2.2.0..."
     local temp_file=$(mktemp)
-    jq '.intent_version = "2.2.0" | .version = "2.2.0"' "$project_root/.intent/config.json" > "$temp_file"
+    jq '.intent_version = "2.2.0" | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
     mv "$temp_file" "$project_root/.intent/config.json"
   fi
   
@@ -652,6 +726,32 @@ needs_v2_3_4_upgrade() {
   esac
 }
 
+needs_v2_4_0_upgrade() {
+  local version=$1
+
+  case "$version" in
+    "2.0.0"|"2.1.0"|"2.2.0"|"2.2.1"|"2.3.0"|"2.3.1"|"2.3.2"|"2.3.3"|"2.3.4")
+      return 0  # Needs 2.4.0 upgrade
+      ;;
+    *)
+      return 1  # Already upgraded or different version
+      ;;
+  esac
+}
+
+needs_v2_5_0_upgrade() {
+  local version=$1
+
+  case "$version" in
+    "2.0.0"|"2.1.0"|"2.2.0"|"2.2.1"|"2.3.0"|"2.3.1"|"2.3.2"|"2.3.3"|"2.3.4"|"2.4.0")
+      return 0  # Needs 2.5.0 upgrade
+      ;;
+    *)
+      return 1  # Already upgraded or different version
+      ;;
+  esac
+}
+
 # Migrate v2.2.0 to v2.2.1
 migrate_v2_2_to_v2_2_1() {
   local project_root=$1
@@ -663,7 +763,7 @@ migrate_v2_2_to_v2_2_1() {
   if [ -f "$project_root/.intent/config.json" ]; then
     echo "  Updating project version to $target_version..."
     local temp_file=$(mktemp)
-    jq --arg v "$target_version" '.intent_version = $v | .version = $v' "$project_root/.intent/config.json" > "$temp_file"
+    jq --arg v "$target_version" '.intent_version = $v | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
     mv "$temp_file" "$project_root/.intent/config.json"
   fi
   
@@ -763,7 +863,7 @@ migrate_v2_2_to_v2_3_0() {
   if [ -f "$project_root/.intent/config.json" ]; then
     echo "  Updating configuration for v$target_version..."
     local temp_file=$(mktemp)
-    jq --arg v "$target_version" '.intent_version = $v | .version = $v | .plugins = {"claude": {"subagents_path": "intent/plugins/claude/subagents"}, "agents": {"config_path": "intent/plugins/agents"}}' "$project_root/.intent/config.json" > "$temp_file"
+    jq --arg v "$target_version" '.intent_version = $v | del(.version) | .plugins = {"claude": {"subagents_path": "intent/plugins/claude/subagents"}, "agents": {"config_path": "intent/plugins/agents"}}' "$project_root/.intent/config.json" > "$temp_file"
     mv "$temp_file" "$project_root/.intent/config.json"
   fi
   
@@ -797,7 +897,7 @@ migrate_v2_3_0_to_v2_3_1() {
   if [ -f "$project_root/.intent/config.json" ]; then
     echo "  Updating project version to $target_version..."
     local temp_file=$(mktemp)
-    jq --arg v "$target_version" '.intent_version = $v | .version = $v' "$project_root/.intent/config.json" > "$temp_file"
+    jq --arg v "$target_version" '.intent_version = $v | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
     mv "$temp_file" "$project_root/.intent/config.json"
   fi
   
@@ -833,7 +933,7 @@ update_config_version() {
   
   if [ -f "$project_root/.intent/config.json" ]; then
     local temp_file=$(mktemp)
-    jq --arg v "$target_version" '.intent_version = $v | .version = $v' "$project_root/.intent/config.json" > "$temp_file"
+    jq --arg v "$target_version" '.intent_version = $v | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
     mv "$temp_file" "$project_root/.intent/config.json"
   fi
 }
@@ -935,6 +1035,99 @@ migrate_v2_3_3_to_v2_3_4() {
   echo "    - Run 'intent claude subagents sync' to update installed agents"
 }
 
+# Migrate v2.3.4 to v2.4.0 - Skills system, diogenes subagent, upgrade command
+migrate_v2_3_4_to_v2_4_0() {
+  local project_root=$1
+
+  local target_version="$(get_intent_version 2>/dev/null || echo "2.4.0")"
+  echo "Upgrading to Intent v2.4.0 with skills system..."
+
+  # Update config version
+  echo "  Updating config version..."
+  update_config_version "$project_root" "2.4.0"
+
+  # Initialize skills manifest if needed
+  local user_skills_dir="$HOME/.intent/skills"
+  if [ ! -d "$user_skills_dir" ]; then
+    echo "  Initializing skills configuration..."
+    mkdir -p "$user_skills_dir"
+    cat > "$user_skills_dir/installed-skills.json" << 'EOF'
+{
+  "version": "1.0.0",
+  "installed": []
+}
+EOF
+  fi
+
+  # Check if subagents are installed and suggest sync
+  if [ -d "$project_root/.claude/agents" ]; then
+    echo "  Subagents detected. Run 'intent claude subagents sync' to update."
+  fi
+
+  echo "  Migration to v2.4.0 complete!"
+  echo ""
+  echo "  IMPORTANT CHANGES IN v2.4.0:"
+  echo "    - New skills system: 'intent claude skills' commands"
+  echo "    - Six skills available: intent-essentials, intent-elixir-essentials,"
+  echo "      intent-ash-ecto-essentials, intent-phoenix-liveview,"
+  echo "      intent-elixir-testing, intent-autopsy"
+  echo "    - New diogenes subagent (Elixir Test Architect)"
+  echo "    - New 'intent claude upgrade' command for project upgrades"
+  echo "    - Steel thread improvements: slug field, --start flag"
+  echo "    - Run 'intent claude skills list' to see available skills"
+  echo "    - Run 'intent claude subagents sync' to update installed agents"
+}
+
+# Migrate v2.4.0 to v2.5.0 - Remove Backlog.md integration
+migrate_v2_4_0_to_v2_5_0() {
+  local project_root=$1
+
+  local target_version="$(get_intent_version 2>/dev/null || echo "2.5.0")"
+  echo "Upgrading to Intent v2.5.0 (Backlog.md removal)..."
+
+  # 1. Remove backlog config keys from project config
+  if [ -f "$project_root/.intent/config.json" ]; then
+    echo "  Removing backlog configuration keys..."
+    local temp_file=$(mktemp)
+    jq --arg v "2.5.0" '.intent_version = $v | del(.version) | del(.backlog_dir) | del(.backlog_list_status)' "$project_root/.intent/config.json" > "$temp_file"
+    mv "$temp_file" "$project_root/.intent/config.json"
+  fi
+
+  # 2. Remove backlog directory if it exists
+  if [ -d "$project_root/backlog" ]; then
+    echo "  Removing backlog/ directory..."
+    rm -rf "$project_root/backlog"
+    echo "    Removed backlog/ directory"
+  fi
+
+  # 3. Clean .gitignore of backlog entries
+  if [ -f "$project_root/.gitignore" ]; then
+    if grep -q "backlog" "$project_root/.gitignore"; then
+      echo "  Cleaning backlog entries from .gitignore..."
+      local temp_file=$(mktemp)
+      grep -v "backlog" "$project_root/.gitignore" > "$temp_file"
+      mv "$temp_file" "$project_root/.gitignore"
+    fi
+  fi
+
+  # 4. Update CLAUDE.md to remove backlog references
+  if [ -f "$project_root/CLAUDE.md" ]; then
+    if grep -q "backlog" "$project_root/CLAUDE.md" 2>/dev/null; then
+      echo "  Note: CLAUDE.md may contain backlog references."
+      echo "        Run 'intent claude upgrade' to regenerate LLM guidance."
+    fi
+  fi
+
+  echo "  Migration to v2.5.0 complete!"
+  echo ""
+  echo "  IMPORTANT CHANGES IN v2.5.0:"
+  echo "    - Backlog.md integration has been removed"
+  echo "    - Removed commands: bl, task, status, migrate, backlog"
+  echo "    - Removed backlog_dir and backlog_list_status from config"
+  echo "    - If you used Backlog.md, consider alternative task management"
+  echo "    - Run 'intent claude upgrade' to update LLM guidance files"
+}
+
 # Migrate all remaining content from stp/ to intent/
 migrate_remaining_content() {
   local project_root=$1
@@ -1012,7 +1205,7 @@ create_default_v2_config() {
   
   cat > "$project_root/.intent/config.json" << EOF
 {
-  "version": "$target_version",
+  "intent_version": "$target_version",
   "project_name": "$project_name",
   "author": "$author",
   "created": "$(date +%Y-%m-%d)",
@@ -1045,7 +1238,6 @@ This is an Intent v$version project (formerly STP).
   - \`st/\` - Steel threads organized as directories
   - \`docs/\` - Technical documentation
   - \`llm/\` - LLM-specific guidelines
-- \`backlog/\` - Task management (if using Backlog.md)
 - \`.intent/\` - Configuration and metadata
 
 ## Steel Threads

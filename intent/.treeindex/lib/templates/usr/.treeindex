@@ -1,11 +1,11 @@
-<!-- treeindex v1 fingerprint:3ffbb488 generated:2026-02-20T11:31:31Z -->
+<!-- treeindex v1 fingerprint:15b4a53b generated:2026-02-24T09:33:51Z -->
 
 # usr/
 
-User-facing documentation and guides for Intent. Contains comprehensive guides covering installation, deployment, day-to-day usage, and complete command reference for users and operators.
+This directory contains user-facing documentation for the Intent system, including getting started guides, comprehensive command references, and deployment instructions. All files are maintained with verblock metadata and are part of the official Intent documentation suite.
 
 ## Files
 
-- `_user_guide.md` -- Task-oriented guide for common workflows, getting started, and troubleshooting
-- `_reference_guide.md` -- Complete reference for all commands, templates, configuration, and best practices
-- `_deployment_guide.md` -- Installation, configuration, integration, maintenance, and upgrade instructions
+- `user_guide.md` -- Task-oriented guide for getting started with Intent and accomplishing common workflows
+- `reference_guide.md` -- Comprehensive reference for commands, templates, configuration, and best practices
+- `deployment_guide.md` -- Installation and deployment instructions for various environments

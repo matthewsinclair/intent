@@ -4,7 +4,7 @@
     {
       "name": "intent",
       "version": "1.0.0",
-      "description": "Intent-aware assistant for steel threads and backlog management",
+      "description": "Intent-aware assistant for steel threads methodology",
       "path": "intent/plugins/claude/subagents/intent",
       "checksum": ""
     },

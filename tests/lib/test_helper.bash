@@ -60,8 +60,7 @@ EOF
   mkdir -p "$dir/intent/eng/tpd"
   mkdir -p "$dir/intent/ref"
   mkdir -p "$dir/intent/llm"
-  mkdir -p "$dir/backlog"
-  
+
   echo "$dir"
 }
 

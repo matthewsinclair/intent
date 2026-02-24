@@ -24,18 +24,6 @@ load "lib/test_helper.bash"
   assert_output_contains "The 'st' command requires an Intent project"
 }
 
-@test "intent bl command is fixed and callable" {
-  # Create project for bl test
-  project_dir=$(create_test_project "BL Test")
-  cd "$project_dir"
-  touch backlog/Backlog.md
-  
-  # Should show help since bl needs subcommand
-  run run_intent bl
-  assert_success
-  assert_output_contains "backlog"
-}
-
 @test "no more silent failures - all commands give feedback" {
   # Test a project command outside project
   run run_intent st new "Test"
@@ -65,12 +53,3 @@ load "lib/test_helper.bash"
   fi
 }
 
-@test "all bin scripts use intent not stp references" {
-  # Check intent_bl calls intent_backlog not stp_backlog
-  assert_file_contains "${INTENT_BIN_DIR}/intent_bl" "intent_backlog"
-  
-  # Should not contain old stp_backlog reference
-  if grep -q "stp_backlog" "${INTENT_BIN_DIR}/intent_bl"; then
-    fail "intent_bl still contains stp_backlog reference"
-  fi
-}

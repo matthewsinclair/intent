@@ -1,11 +1,5 @@
-<!-- treeindex v1 fingerprint:464373fe generated:2026-02-20T11:23:40Z -->
+<!-- treeindex v1 fingerprint:db8335f7 generated:2026-02-24T09:30:54Z -->
 
-Let me explore the v1.2.1-project/ directory structure:
-<function_calls>
-<invoke name="Bash">
-<parameter name="command">find examples/v1.2.1-project -maxdepth 2 -type f -o -type d | sort</parameter>
-</invoke>
-</function_calls>
 <function_calls>
 <invoke name="Glob">
 <parameter name="pattern">examples/v1.2.1-project/**</parameter>
@@ -14,14 +8,9 @@ Let me explore the v1.2.1-project/ directory structure:
 
 # v1.2.1-project/
 
-Example Intent v2.0.0 project demonstrating the steel thread workflow and project structure. This minimal project showcases how to initialize and use Intent for artifact tracking, documentation, and LLM-guided development.
-
-## Dirs
-
-- `intent/` -- Project artifacts, steel threads, documentation, and Intent configuration
-- `.intent/` -- Intent system configuration and metadata files
+Example Intent v1.2.1 project demonstrating a minimal project structure after upgrade to the v1.2.1 release. Used for testing migration paths and showcasing the project layout with upgraded configuration files.
 
 ## Files
 
-- `.gitignore` -- Git ignore rules for Intent artifacts and temporary files
-- `CLAUDE.md` -- Project guidelines and Intent v2.0.0 setup documentation
+- `CLAUDE.md` -- Project guidelines for Intent v1.2.1 setup
+- `.gitignore` -- Standard gitignore for Intent projects (excludes local configs, editor files, OS artifacts)

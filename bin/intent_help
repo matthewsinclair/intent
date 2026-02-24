@@ -17,12 +17,6 @@ fi
 # Get version
 INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
 
-# Function to display error messages
-error() {
-  echo "Error: $1" >&2
-  exit 1
-}
-
 # Check if INTENT_HOME is set
 if [ -z "$INTENT_HOME" ]; then
   error "INTENT_HOME environment variable is not set"
@@ -64,7 +58,6 @@ Core:
   info             Display Intent status and project information
   init             Initialize a new Intent project
   st               Manage steel threads
-  bl               Backlog.md integration
   agents           Manage Claude Code sub-agents
   doctor           Check and fix configuration
   upgrade          Upgrade from STP to Intent v2.1.0
@@ -75,9 +68,6 @@ Configuration:
   config           Display configuration settings
 
 Utility:
-  task             Create and manage tasks linked to steel threads
-  status           Show project and steel thread status
-  migrate          Migrate tasks from steel threads to Backlog.md
   llm              Display LLM-specific guidance
   organize         Organize steel threads by status
 
@@ -92,7 +82,7 @@ for script in "$INTENT_HOME"/bin/intent_*; do
     
     # Skip certain internal scripts and those manually listed above
     case "$cmd_name" in
-      config|helpers|main|agents|info|init|st|bl|doctor|upgrade|help|bootstrap|task|status|migrate|llm|organize) continue ;;
+      config|helpers|main|agents|info|init|st|doctor|upgrade|help|bootstrap|llm|organize) continue ;;
     esac
     
     # Construct help file path

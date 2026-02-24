@@ -1,11 +1,11 @@
-<!-- treeindex v1 fingerprint:18550405 generated:2026-02-20T11:29:36Z -->
+<!-- treeindex v1 fingerprint:7425f446 generated:2026-02-24T09:32:52Z -->
 
 # usr/
 
-User-facing documentation for Intent v2.4.0. Contains three comprehensive guides covering installation, task-oriented workflows, and system reference. These documents are the primary resources for users learning and using Intent.
+User-facing documentation for Intent system, including installation guides, command references, and workflow tutorials. This directory contains three primary guides: a User Guide (task-oriented), a Reference Guide (comprehensive), and a Deployment Guide (installation and configuration).
 
 ## Files
 
-- `user_guide.md` -- Task-oriented guide for common Intent workflows: steel threads, backlog, documentation, LLM collaboration, treeindex, skills, and subagent management
-- `reference_guide.md` -- Comprehensive reference covering all commands, document templates, directory structure, configuration options, and best practices
-- `deployment_guide.md` -- Deployment instructions for various environments: installation methods, configuration, integration, maintenance, upgrading, and troubleshooting
+- `user_guide.md` -- Task-oriented guide covering installation, getting started, steel threads, documentation, LLM collaboration, treeindex, AGENTS.md, Claude subagents, skills, upgrades, and troubleshooting
+- `reference_guide.md` -- Comprehensive reference for commands, templates, directory structure, configuration options, best practices, and terminology
+- `deployment_guide.md` -- Installation and configuration instructions for various environments, including global and project-specific installation methods

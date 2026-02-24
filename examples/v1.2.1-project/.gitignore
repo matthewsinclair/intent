@@ -3,9 +3,6 @@
 *.bak
 .backup_*
 
-# Backlog.md
-backlog/.backlog-md/
-
 # OS specific
 .DS_Store
 Thumbs.db

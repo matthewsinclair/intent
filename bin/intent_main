@@ -16,12 +16,6 @@ if [ -f "$INTENT_HOME/bin/intent_helpers" ]; then
 fi
 INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
 
-# Function to display error messages
-error() {
-  echo "Error: $1" >&2
-  exit 1
-}
-
 # Determine INTENT_HOME if not set
 if [ -z "$INTENT_HOME" ]; then
   # First try to determine from the script location

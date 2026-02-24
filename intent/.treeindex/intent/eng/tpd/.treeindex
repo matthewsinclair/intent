@@ -1,17 +1,17 @@
-<!-- treeindex v1 fingerprint:64ed280c generated:2026-02-20T11:29:20Z -->
+<!-- treeindex v1 fingerprint:e476fc10 generated:2026-02-24T09:32:42Z -->
 
 # tpd/
 
-The Technical Product Design (TPD) for Intent v2.4.0 provides comprehensive technical specification covering system architecture, requirements, design decisions, implementation strategy, deployment guidance, and technical challenges. The TPD is organized as a numbered series of markdown documents with a central index file for navigation and includes a preamble for Claude explaining the document's purpose and key concepts.
+Complete Technical Product Design (TPD) documentation for Intent v2.4.0. Organized as a nine-part design specification covering introduction, requirements, architecture, implementation, and operations. All documents updated to reflect the as-built system with plugin architecture, skills, subagents, and treeindex integration.
 
 ## Files
 
-- `technical_product_design.md` -- Main index and entry point for the TPD; contains preamble to Claude and links to all sections with plugin architecture overview
-- `1_introduction.md` -- Purpose, scope, definitions, system overview, and references for Intent v2.4.0 rebrand from STP
-- `2_requirements.md` -- Functional and non-functional requirements for documentation, LLM collaboration, backlog integration, configuration, and process support
-- `3_architecture.md` -- System architecture overview with documentation structure, command-line interface design, and process guidelines
-- `4_detailed_design.md` -- Directory structure, JSON configuration system, document templates, and component implementation details (AS-BUILT)
-- `5_implementation_strategy.md` -- Development approach, steel thread breakdown, and phased task organization for building Intent
-- `6_deployment_and_operations.md` -- Installation methods (global bootstrap, manual, project-specific), initialization procedures, and system requirements (AS-BUILT)
-- `7_technical_challenges_and_mitigations.md` -- LLM context window management, shell portability, documentation maintenance, and adoption barriers (AS-BUILT)
-- `8_appendices.md` -- Glossary, command reference, configuration schema, and command usage examples (AS-BUILT)
+- `technical_product_design.md` -- Index and preamble, contains overview and command reference
+- `1_introduction.md` -- Purpose, scope, definitions, system overview, and version history
+- `2_requirements.md` -- Functional and non-functional requirements with implementation status
+- `3_architecture.md` -- System architecture overview, component design, and data flow
+- `4_detailed_design.md` -- Directory structure, configuration schema, and template specifications (as-built)
+- `5_implementation_strategy.md` -- Development phases, steel threads, and task breakdown
+- `6_deployment_and_operations.md` -- Installation methods, project initialization, and operations (as-built)
+- `7_technical_challenges_and_mitigations.md` -- LLM context, portability, maintenance, and adoption challenges
+- `8_appendices.md` -- Glossary, command reference, configuration schema, and examples (as-built)

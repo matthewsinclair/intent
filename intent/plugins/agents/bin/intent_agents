@@ -43,20 +43,12 @@ EOF
 intent_agents_init() {
   echo "Initializing AGENTS.md for Intent project..."
 
-  # Check if we're in a project
-  if [ -z "${PROJECT_ROOT:-}" ]; then
-    # Source config to find project root
-    if [ -f "$INTENT_BIN/intent_config" ]; then
-      source "$INTENT_BIN/intent_config"
-      load_intent_config
-    fi
-
-    if [ -z "${PROJECT_ROOT:-}" ]; then
-      echo "Error: Not in an Intent project directory"
-      echo "Run 'intent init' to create a new project first"
-      return 1
-    fi
+  # Load config if needed and require project context
+  if [ -z "${PROJECT_ROOT:-}" ] && [ -f "$INTENT_BIN/intent_config" ]; then
+    source "$INTENT_BIN/intent_config"
+    load_intent_config
   fi
+  require_project_root || return 1
 
   # Parse arguments
   local force=false
@@ -384,20 +376,13 @@ EOF
 # Sync AGENTS.md with latest project state
 intent_agents_sync() {
   echo "Syncing AGENTS.md with latest project state..."
-  
-  # Check if we're in a project
-  if [ -z "${PROJECT_ROOT:-}" ]; then
-    # Source config to find project root
-    if [ -f "$INTENT_BIN/intent_config" ]; then
-      source "$INTENT_BIN/intent_config"
-      load_intent_config
-    fi
-    
-    if [ -z "${PROJECT_ROOT:-}" ]; then
-      echo "Error: Not in an Intent project directory"
-      return 1
-    fi
+
+  # Load config if needed and require project context
+  if [ -z "${PROJECT_ROOT:-}" ] && [ -f "$INTENT_BIN/intent_config" ]; then
+    source "$INTENT_BIN/intent_config"
+    load_intent_config
   fi
+  require_project_root || return 1
   
   # Check if AGENTS.md exists
   if [ ! -f "$PROJECT_ROOT/intent/llm/AGENTS.md" ]; then
@@ -425,20 +410,13 @@ intent_agents_sync() {
 intent_agents_validate() {
   echo "Validating AGENTS.md..."
   
-  # Check if we're in a project
-  if [ -z "${PROJECT_ROOT:-}" ]; then
-    # Source config to find project root
-    if [ -f "$INTENT_BIN/intent_config" ]; then
-      source "$INTENT_BIN/intent_config"
-      load_intent_config
-    fi
-    
-    if [ -z "${PROJECT_ROOT:-}" ]; then
-      echo "Error: Not in an Intent project directory"
-      return 1
-    fi
+  # Load config if needed and require project context
+  if [ -z "${PROJECT_ROOT:-}" ] && [ -f "$INTENT_BIN/intent_config" ]; then
+    source "$INTENT_BIN/intent_config"
+    load_intent_config
   fi
-  
+  require_project_root || return 1
+
   local errors=0
   local warnings=0
   

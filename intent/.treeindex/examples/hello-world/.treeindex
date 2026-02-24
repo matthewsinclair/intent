@@ -1,26 +1,22 @@
-<!-- treeindex v1 fingerprint:eb30fa62 generated:2026-02-20T11:23:46Z -->
+<!-- treeindex v1 fingerprint:e7ac6988 generated:2026-02-24T09:31:18Z -->
 
 <function_calls>
 <invoke name="bash">
-<parameter name="command">find /Users/matts/Devel/prj/Intent/examples/hello-world -maxdepth 2 -type f -o -type d | sort</parameter>
-</invoke>
-</function_calls>
-<function_calls>
-<invoke name="bash">
-<parameter name="command">ls -la /Users/matts/Devel/prj/Intent/examples/hello-world/</parameter>
+<parameter name="command">find /Users/matts/Devel/prj/Intent/examples/hello-world -type f -o -type d | sort</parameter>
 </invoke>
 </function_calls>
 
+```
 # hello-world/
 
-Example Intent v2.4.0 project demonstrating the flattened directory structure, JSON configuration, plugin architecture, and LLM integration patterns. Serves as a reference template for new Intent projects.
+Example Intent v2.4.0 project demonstrating the standard project structure with configuration, steel threads, and documentation templates. Serves as a reference implementation for new Intent projects.
 
 ## Dirs
 
-- `.intent/` -- JSON configuration directory with config.json and project metadata
-- `backlog/` -- Task management and backlog tracking
-- `intent/` -- Core workspace with steel threads, docs, LLM guidelines, and plugin system
+- `.intent/` -- Project configuration and metadata (JSON format)
+- `intent/` -- Core project workspace with steel threads, documentation, and plugins
 
 ## Files
 
-- `README.md` -- Project overview, structure guide, usage examples, and configuration reference
+- `README.md` -- Project overview and usage instructions
+```

@@ -68,7 +68,7 @@ EOF
 
 @test "error handling: project commands fail gracefully outside project" {
   # Commands that require project
-  local project_commands=("st" "bl" "task" "migrate" "status")
+  local project_commands=("st")
   
   for cmd in "${project_commands[@]}"; do
     run run_intent "$cmd"

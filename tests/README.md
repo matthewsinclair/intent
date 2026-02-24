@@ -2,7 +2,7 @@
 
 ## Overview
 
-This directory contains the test suite for Intent v2.4.0. The tests are written using [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System).
+This directory contains the test suite for Intent v2.5.0. The tests are written using [Bats](https://github.com/bats-core/bats-core) (Bash Automated Testing System).
 
 ## Directory Structure
 
@@ -11,20 +11,17 @@ tests/
 ├── unit/                          # Unit tests for individual commands
 │   ├── agent_commands.bats        # AGENTS.md management tests
 │   ├── basic.bats                 # Basic infrastructure tests
-│   ├── bl_commands.bats           # Backlog wrapper command tests
 │   ├── bootstrap.bats             # Bootstrap command tests
 │   ├── config.bats                # Configuration and PROJECT_ROOT tests
 │   ├── fileindex_commands.bats    # Fileindex command tests
 │   ├── global_commands.bats       # Tests for global commands
 │   ├── help_commands.bats         # Help system tests
 │   ├── init_commands.bats         # Init command tests
-│   ├── migration.bats             # Migration and backup tests
 │   ├── project_commands.bats      # Tests for project-specific commands
 │   ├── skills_commands.bats       # Skills management command tests
 │   ├── st_commands.bats           # Steel thread command tests
 │   ├── test_autopsy.bats           # Autopsy skill + directory install tests
 │   ├── test_diogenes.bats         # Diogenes subagent + testing skill tests
-│   ├── task_commands.bats         # Task management command tests
 │   └── treeindex_commands.bats    # Treeindex command tests
 ├── integration/                   # Integration tests
 │   └── end_to_end.bats            # Full workflow tests
@@ -117,17 +114,14 @@ Unit tests focus on individual commands and features:
 
 - **agent_commands.bats** - Tests for AGENTS.md management (`intent agents init/generate/sync/validate`)
 - **basic.bats** - Tests for basic infrastructure and environment setup
-- **bl_commands.bats** - Tests for the Backlog wrapper (`intent bl`)
 - **bootstrap.bats** - Tests for the bootstrap command
 - **config.bats** - Tests configuration loading and PROJECT_ROOT detection
 - **fileindex_commands.bats** - Tests for the fileindex command (file tracking and checkbox states)
 - **global_commands.bats** - Tests commands that work without a project (help, doctor, info, etc.)
 - **help_commands.bats** - Tests for the help system
 - **init_commands.bats** - Tests for the init command
-- **migration.bats** - Tests backup creation and version migration
 - **project_commands.bats** - Tests commands that require a project context
 - **st_commands.bats** - Tests for steel thread management commands
-- **task_commands.bats** - Tests for task management commands
 - **skills_commands.bats** - Tests for skills management (`intent claude skills install/list/sync/uninstall/show`)
 - **test_diogenes.bats** - Tests for Diogenes subagent and intent-elixir-testing skill (install/list/sync/show/uninstall)
 - **treeindex_commands.bats** - Tests for the treeindex command (directory summaries)

@@ -1,7 +1,6 @@
 {
   "intent_version": "2.1.0",
   "intent_dir": "intent",
-  "backlog_dir": "backlog",
   "author": "Intent User",
   "editor": "vim"
 }

@@ -69,7 +69,7 @@ export PATH=$PATH:$(pwd)/.intent-install/bin
 - POSIX-compliant shell (bash 3.2+, zsh)
 - Git for version control
 - jq for JSON parsing (required)
-- Optional: Backlog.md for task management
+- Optional: Backlog.md for task management — **[Removed in v2.5.0]**
 
 ## 6.2 Project Initialization [AS-BUILT]
 
@@ -98,7 +98,7 @@ The init command prompts for:
 - Project name
 - Author name (defaults to $USER)
 - Editor preference (defaults to $EDITOR)
-- Backlog directory (defaults to "backlog")
+- Backlog directory (defaults to "backlog") — **[Removed in v2.5.0]**
 
 ## 6.3 Configuration [AS-BUILT]
 
@@ -121,9 +121,9 @@ Intent v2.1.0 uses hierarchical JSON configuration:
      "author": "username",
      "created": "2025-07-17",
      "st_prefix": "ST",
-     "backlog_dir": "backlog",
+     "backlog_dir": "backlog", // [Removed in v2.5.0]
      "intent_dir": "intent",
-     "backlog_list_status": "todo"
+     "backlog_list_status": "todo" // [Removed in v2.5.0]
    }
    ```
 
@@ -133,7 +133,7 @@ Intent v2.1.0 uses hierarchical JSON configuration:
    {
      "author": "Your Name",
      "editor": "vim",
-     "backlog_list_status": "wip"
+     "backlog_list_status": "wip" // [Removed in v2.5.0]
    }
    ```
 
@@ -194,6 +194,8 @@ intent status sync ST0001
 ```
 
 ### 6.4.3 Enhanced Backlog Integration
+
+> **[Removed in v2.5.0]** Backlog.md integration was removed in Intent v2.5.0.
 
 ```bash
 # List tasks (respects backlog_list_status config)
@@ -275,7 +277,7 @@ Intent documents should be version controlled:
 git add .intent/ intent/ CLAUDE.md
 git commit -m "Update Intent documentation"
 
-# Exclude Backlog.md (has own git repo)
+# Exclude Backlog.md (has own git repo) [Removed in v2.5.0]
 echo "backlog/" >> .gitignore
 ```
 

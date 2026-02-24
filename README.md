@@ -58,7 +58,7 @@ ST0042: Authentication System/
 ├── info.md          # Why we need auth, what type, constraints
 ├── design.md        # JWT vs sessions decision, security model
 ├── impl.md          # Technical implementation details
-└── tasks.md         # Linked Backlog tasks for execution
+└── tasks.md         # Implementation tasks and tracking
 ```
 
 ## 🤖 Intent + LLM in Action
@@ -142,36 +142,6 @@ Claude: "I'll create a steel thread for caching:
 
 Claude becomes an Intent-fluent development partner from day one.
 
-## 🎯 What is Backlog.md?
-
-[Backlog.md](https://github.com/backlog/backlog) is a Git-native task manager that lives in your repository as markdown files. Intent integrates with it to create a two-tier system:
-
-- **Steel Threads** (Intent): High-level features with documented "why"
-- **Tasks** (Backlog.md): Day-to-day work items that implement the "how"
-
-```bash
-# Create a steel thread for the big picture
-$ intent st new "Add user authentication"
-Created: ST0001
-
-# Break it down into specific tasks
-$ intent bl create ST0001 "Research auth libraries"
-$ intent bl create ST0001 "Implement login endpoint"
-$ intent bl create ST0001 "Add password reset flow"
-
-# View your work visually
-$ intent bl board
-┌────────────────┬────────────────┬────────────────┐
-│      TODO      │   IN PROGRESS  │      DONE      │
-├────────────────┼────────────────┼────────────────┤
-│ Implement      │ Research auth  │                │
-│ login endpoint │ libraries      │                │
-│                │                │                │
-│ Add password   │                │                │
-│ reset flow     │                │                │
-└────────────────┴────────────────┴────────────────┘
-```
-
 ## 🚀 Quick Start
 
 ### Installation
@@ -213,43 +183,6 @@ $ intent st show ST0001 | pbcopy
 # The AI immediately understands your constraints!
 ```
 
-### 🏆 15-Minute Win: Add Task Management
-
-```bash
-# Install Backlog.md
-npm install -g backlog.md
-
-# Initialize in your project
-intent bl init
-
-# Break down your steel thread into tasks
-intent bl create ST0001 "Research JWT libraries for Node.js"
-intent bl create ST0001 "Design token refresh strategy"
-intent bl create ST0001 "Implement login endpoint"
-
-# See your progress
-intent bl board
-```
-
-### 🏆 30-Minute Win: Complete First Feature
-
-```bash
-# Work through your tasks with AI assistance
-$ intent bl list ST0001
-# Copy relevant task to discuss with AI
-
-# As you complete work:
-$ intent bl move [task-id] doing
-$ intent bl move [task-id] done
-
-# Update steel thread with learnings
-$ intent st edit ST0001
-# Add: "Learned: JWT refresh tokens need rotation for security"
-# Add: "Decision: 15-min access token, 7-day refresh token"
-
-# Your future self (and team) will thank you!
-```
-
 ## 📚 Documentation
 
 ### Getting Started
@@ -274,7 +207,6 @@ $ intent st edit ST0001
 
 - **[Work in Progress (WIP)](./intent/wip.md)** - Current tasks and daily focus
 - **[Steel Threads Index](./intent/st/steel_threads.md)** - All steel threads and their status
-- **[Backlog Integration](./CLAUDE.md#task-management-with-backlogmd)** - Task tracking and project history
 
 ### Development
 
@@ -293,24 +225,6 @@ intent st list                 # List all steel threads
 intent st show <ST####>        # Show details of a specific thread
 intent st edit <ST####>        # Edit a steel thread
 intent st sync                 # Synchronise the steel thread index
-```
-
-### Task Management
-
-```bash
-intent task create <ST####> <title>  # Create a task linked to a thread
-intent task list <ST####>            # List tasks for a thread
-intent status show <ST####>          # Show thread and task status
-intent status sync <ST####>          # Sync thread status with tasks
-```
-
-### Backlog Integration
-
-```bash
-intent bl init                       # Initialize Backlog.md
-intent bl create <ST####> <title>    # Create a Backlog task
-intent bl list                       # List tasks (without git errors)
-intent bl board                      # View Kanban board
 ```
 
 ### Treeindex (Directory Summaries)
@@ -383,11 +297,7 @@ intent claude upgrade --project-dir DIR  # Target external project
 │   │       └── skills/     # Skill definitions
 │   └── wip.md        # Current work
 ├── lib/              # Templates and libraries
-├── tests/            # Test suites
-└── backlog/          # Backlog.md tasks (if integrated)
-    ├── tasks/        # Active tasks
-    ├── drafts/       # Draft tasks
-    └── config.yml    # Backlog configuration
+└── tests/            # Test suites
 ```
 
 ## 🤝 Contributing
@@ -396,8 +306,7 @@ We welcome contributions! The best way to contribute is to:
 
 1. Create a steel thread for your contribution
 2. Document your intent and approach
-3. Break down work into Backlog tasks
-4. Submit a PR referencing your steel thread
+3. Submit a PR referencing your steel thread
 
 See our [contribution workflow](./docs/blog/0006-next-steps-and-future-work.md#contributing-to-intent) for details.
 
@@ -445,15 +354,11 @@ $ intent st new "Project inception: E-commerce platform"
 
 ### Do I need to use all features?
 
-No! Start with just steel threads to capture intentions. Add Backlog.md when you need task tracking. Intent grows with your needs.
+No! Start with just steel threads to capture intentions. Add treeindex for LLM context, Claude subagents for AI integration, and skills for specialized workflows. Intent grows with your needs.
 
 ### How does this help with AI coding?
 
 AI assistants are great at writing code but terrible at understanding your specific context. Intent provides that context in a structured way that AIs can understand and use.
-
-### Can I use Intent without Backlog.md?
-
-Absolutely! Steel threads work independently. Backlog.md just adds visual task management when you need it.
 
 ### Is this just more documentation to maintain?
 

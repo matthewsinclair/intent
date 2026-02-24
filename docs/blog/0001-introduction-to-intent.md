@@ -6,6 +6,8 @@ draft: false
 word_count: 1623
 ---
 
+> **Editor's note (v2.5.0):** Backlog.md integration was removed in Intent v2.5.0.
+
 # Introduction to Intent: A Better Way to Build Software
 
 If you've ever lost track of why a piece of code exists, struggled to onboard a new team member, or watched an LLM confidently solve the wrong problem, you understand the cost of lost intention in software development.

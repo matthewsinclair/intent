@@ -99,7 +99,7 @@ When working within Intent projects:
 
 - Reference steel threads when relevant
 - Document decisions in appropriate locations
-- Generate tasks for backlog when needed
+- Generate tasks for tracking when needed
 - Follow Intent project structure and conventions
 
 ## Example Usage Patterns
@@ -260,7 +260,7 @@ Always evaluate:
 ## Integration with Intent
 
 - Document security findings in steel thread design docs
-- Create security tasks in backlog for remediation
+- Create security tasks for remediation
 - Reference security requirements in steel threads
 - Maintain security documentation in intent/docs/
 ```

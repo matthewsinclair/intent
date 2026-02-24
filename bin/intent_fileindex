@@ -6,11 +6,10 @@
 # Exit on error
 set -e
 
-# Function to display error messages
-error() {
-  echo "Error: $1" >&2
-  exit 1
-}
+# Source shared helpers and config (provides find_project_root, error, etc.)
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
+source "$INTENT_HOME/bin/intent_config" 2>/dev/null || true
 
 # Initial values
 IN_INTENT_PROJECT=false
@@ -30,19 +29,6 @@ CHECK_FILE=""
 CHECK_MODE=false
 UNCHECK_FILE=""
 UNCHECK_MODE=false
-
-# Function to find project root
-find_project_root() {
-  local current_dir="$(pwd)"
-  while [ "$current_dir" != "/" ]; do
-    if [ -f "$current_dir/.intent/config.json" ]; then
-      echo "$current_dir"
-      return 0
-    fi
-    current_dir="$(dirname "$current_dir")"
-  done
-  return 1
-}
 
 # Arrays to store file paths and their states separately
 declare -a file_paths

@@ -3,6 +3,42 @@
 
 load "../lib/test_helper.bash"
 
+# Create a sandboxed INTENT_HOME with copied subagent sources.
+# Tests that simulate source changes use this instead of modifying
+# the real project files. The sandbox mirrors just enough structure
+# for the dispatcher and plugin scripts to work.
+create_source_sandbox() {
+  local sandbox="$TEST_TEMP_DIR/source-sandbox"
+
+  # Real directories (not symlinks) so BASH_SOURCE resolves correctly
+  mkdir -p "$sandbox/bin"
+  mkdir -p "$sandbox/intent/plugins/claude/bin"
+  mkdir -p "$sandbox/intent/plugins/agents/bin"
+  mkdir -p "$sandbox/.intent"
+
+  # Symlink bin scripts (file symlinks, not directory symlinks)
+  for f in "$INTENT_HOME/bin/"*; do
+    [ -f "$f" ] && ln -sf "$f" "$sandbox/bin/$(basename "$f")"
+  done
+
+  # Symlink VERSION and config
+  ln -sf "$INTENT_HOME/VERSION" "$sandbox/VERSION"
+  ln -sf "$INTENT_HOME/.intent/config.json" "$sandbox/.intent/config.json"
+
+  # Symlink plugin bin scripts
+  for f in "$INTENT_HOME/intent/plugins/claude/bin/"*; do
+    [ -f "$f" ] && ln -sf "$f" "$sandbox/intent/plugins/claude/bin/$(basename "$f")"
+  done
+  for f in "$INTENT_HOME/intent/plugins/agents/bin/"*; do
+    [ -f "$f" ] && ln -sf "$f" "$sandbox/intent/plugins/agents/bin/$(basename "$f")"
+  done
+
+  # COPY subagent sources (the part tests need to modify safely)
+  cp -r "$INTENT_HOME/intent/plugins/claude/subagents" "$sandbox/intent/plugins/claude/subagents"
+
+  echo "$sandbox"
+}
+
 # Setup/teardown for agent tests
 setup() {
   # Create temp dir outside of Intent project
@@ -11,6 +47,7 @@ setup() {
 
   # Use a fake HOME so tests never touch real ~/.claude
   REAL_HOME="$HOME"
+  REAL_INTENT_HOME="$INTENT_HOME"
   export HOME="$TEST_TEMP_DIR/fakehome"
   mkdir -p "$HOME"
 
@@ -19,13 +56,9 @@ setup() {
 }
 
 teardown() {
-  # Restore real HOME
+  # Restore real HOME and INTENT_HOME
   export HOME="$REAL_HOME"
-
-  # Restore any source files modified by sync/update tests
-  # (git checkout is safe even if the file wasn't modified)
-  git -C "${INTENT_PROJECT_ROOT}" checkout -- \
-    intent/plugins/claude/subagents/intent/agent.md 2>/dev/null || true
+  export INTENT_HOME="$REAL_INTENT_HOME"
 
   # Clean up test directory
   if [ -d "${TEST_TEMP_DIR}" ]; then
@@ -315,28 +348,26 @@ teardown() {
 }
 
 @test "claude subagents sync updates when source changes" {
-  # Install an agent
+  # Use sandbox from the start so manifest records sandbox paths
+  export INTENT_HOME="$(create_source_sandbox)"
+
+  # Install an agent (manifest records sandbox source path)
   run run_intent claude subagents install intent --force
   assert_success
-  
-  # Simulate source update by modifying the source file
-  # (In real scenario, this would be from a git pull)
+
+  # Simulate source update by modifying the sandbox copy
   echo "# Source update" >> "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md"
-  
+
   # Sync should detect and update
   run run_intent claude subagents sync
   assert_success
   assert_output_contains "Update available"
   assert_output_contains "Updated successfully"
   assert_output_contains "Updated: 1"
-  
+
   # Verify update was applied
   run grep "# Source update" "$HOME/.claude/agents/intent.md"
   assert_success
-  
-  # Clean up source modification
-  sed -i.bak '/# Source update/d' "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md"
-  rm -f "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md.bak"
 }
 
 @test "claude subagents sync handles missing Claude directory" {
@@ -525,10 +556,10 @@ teardown() {
   assert_success
   assert_output_contains "Agent: intent"
   assert_output_contains "Version: 1.0.0"
-  assert_output_contains "Description: Intent-aware assistant for steel threads and backlog management"
+  assert_output_contains "Description: Intent-aware assistant for steel threads methodology"
   assert_output_contains "Source: global"
   assert_output_contains "Tools: Bash, Read, Write, Edit, Grep"
-  assert_output_contains "Tags: project-management, steel-threads, backlog, task-tracking"
+  assert_output_contains "Tags: project-management, steel-threads"
 }
 
 @test "claude subagents show indicates installation status" {
@@ -656,23 +687,22 @@ teardown() {
 }
 
 @test "claude subagents status detects available updates" {
-  # Install an agent
+  # Use sandbox from the start so manifest records sandbox paths
+  export INTENT_HOME="$(create_source_sandbox)"
+
+  # Install an agent (manifest records sandbox source path)
   run run_intent claude subagents install intent --force
   assert_success
-  
-  # Simulate source update
+
+  # Simulate source update in sandbox
   echo "# Update" >> "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md"
-  
+
   # Status should detect update available
   run run_intent claude subagents status
   assert_success
   assert_output_contains "[UPDATE]"
   assert_output_contains "Update available"
   assert_output_contains "Run 'intent claude subagents sync'"
-  
-  # Clean up
-  sed -i.bak '/# Update/d' "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md"
-  rm -f "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md.bak"
 }
 
 @test "claude subagents status handles missing Claude directory" {
@@ -724,23 +754,22 @@ teardown() {
 }
 
 @test "claude subagents status detects outdated manifest" {
-  # Install agent
+  # Use sandbox from the start so manifest records sandbox paths
+  export INTENT_HOME="$(create_source_sandbox)"
+
+  # Install agent (manifest records sandbox source path)
   run run_intent claude subagents install intent --force
   assert_success
-  
+
   # Manually sync without updating manifest
   cp "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md" "$HOME/.claude/agents/intent.md"
-  
-  # Add a change to source
+
+  # Add a change to sandbox source
   echo "# Change" >> "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md"
-  
+
   # Status should detect update available (since manifest shows old checksum)
   run run_intent claude subagents status
   assert_success
   assert_output_contains "[UPDATE]"
   assert_output_contains "Update available"
-  
-  # Clean up
-  sed -i.bak '/# Change/d' "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md"
-  rm -f "$INTENT_HOME/intent/plugins/claude/subagents/intent/agent.md.bak"
 }

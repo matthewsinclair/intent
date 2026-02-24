@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-02-24
+
+### Removed
+
+- **Backlog.md integration** -- all backlog commands and configuration removed (ST0023)
+  - Removed `intent bl` / `intent backlog` wrapper command
+  - Removed `intent task` command (create, list, sync)
+  - Removed `intent status` command (show, sync, report)
+  - Removed `intent migrate` command (embedded task migration)
+  - Removed `backlog_dir` and `backlog_list_status` configuration keys
+  - Removed backlog directory creation from `intent init`
+  - Removed backlog optional tool check from `intent doctor`
+  - Removed backlog references from all subagent definitions
+  - Removed Node.js setup from CI pipeline (was only needed for Backlog.md)
+  - Deleted 3 test files (bl_commands.bats, task_commands.bats, migration.bats)
+  - Test suite reduced from 17 to 14 files
+
+### Changed
+
+- CI pipeline simplified: no longer requires Node.js installation
+- `intent help` no longer lists backlog-related commands
+- `intent info` no longer shows Backlog section
+- Consolidated duplicate `version`/`intent_version` config fields to just `intent_version`
+- TPD files annotated with "[Removed in v2.5.0]" for historical backlog sections
+- Blog posts annotated with editor's notes about removal
+
+### Fixed
+
+- Test side-effect: `agent_commands.bats` no longer modifies real source files during test runs
+  - Added `create_source_sandbox()` for tests that simulate source changes
+  - Removed `git checkout` from teardown that was reverting uncommitted edits
+
 ## [2.4.0] - 2026-02-17
 
 ### Added
@@ -511,6 +543,7 @@ See [Release Notes](./docs/releases/2.0.0/RELEASE_NOTES.md) for complete details
 - `stp upgrade` - Upgrade STP files to latest format
 - `stp help` - Comprehensive help system
 
+[2.5.0]: https://github.com/matthewsinclair/intent/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/matthewsinclair/intent/compare/v2.3.4...v2.4.0
 [2.3.4]: https://github.com/matthewsinclair/intent/compare/v2.3.3...v2.3.4
 [2.3.3]: https://github.com/matthewsinclair/intent/compare/v2.3.2...v2.3.3

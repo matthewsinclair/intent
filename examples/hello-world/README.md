@@ -19,7 +19,6 @@ hello-world/
 │   └── plugins/         # Plugin architecture
 │       ├── agents/      # AGENTS.md plugin
 │       └── claude/      # Claude subagents
-└── backlog/             # Task management
 ```
 
 ## Key Differences from v1.x
@@ -41,7 +40,6 @@ The `.intent/config.json` file:
 {
   "intent_version": "2.4.0",
   "intent_dir": "intent",
-  "backlog_dir": "backlog",
   "author": "Intent User",
   "editor": "vim"
 }

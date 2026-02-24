@@ -19,12 +19,6 @@ fi
 # Get version from centralized source
 INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
 
-# Function to display error messages
-error() {
-  echo "Error: $1" >&2
-  exit 1
-}
-
 # Function to display usage information
 usage() {
   echo "Usage: intent init [project_name]"
@@ -73,13 +67,12 @@ echo "Initializing Intent v$INTENT_VERSION project: $PROJECT_NAME"
 echo "Creating directory structure..."
 mkdir -p .intent
 mkdir -p intent/{st,docs,llm}
-mkdir -p backlog
 
 # Create local configuration
 echo "Creating configuration..."
 cat > .intent/config.json << EOF
 {
-  "version": "2.1.0",
+  "intent_version": "2.1.0",
   "project_name": "$PROJECT_NAME",
   "author": "$AUTHOR",
   "created": "$DATE",
@@ -196,7 +189,6 @@ This is an Intent v$INTENT_VERSION project.
 ## Project Structure
 
 - \`intent/\` - Project artifacts (steel threads, docs, work tracking)
-- \`backlog/\` - Task management (if using Backlog.md)
 - \`.intent/\` - Configuration and metadata
 
 ## Steel Threads
@@ -239,19 +231,6 @@ Thumbs.db
 .vscode/
 .idea/
 EOF
-fi
-
-# Initialize Backlog.md if available
-if command -v backlog >/dev/null 2>&1; then
-  echo "Initializing Backlog.md..."
-  # Pass project name to backlog init to avoid prompt
-  echo "$PROJECT_NAME" | backlog init >/dev/null 2>&1 || true
-  
-  # Configure backlog for Intent
-  if [ -f "backlog/.config" ]; then
-    echo "task_prefix=ST" >> backlog/.config
-    echo "default_status=todo" >> backlog/.config
-  fi
 fi
 
 # Check for Claude Code and offer agent installation (only in interactive mode)

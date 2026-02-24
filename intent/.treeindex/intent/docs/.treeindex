@@ -1,62 +1,70 @@
-<!-- treeindex v1 fingerprint:2bfe85b7 generated:2026-02-20T11:30:08Z -->
+<!-- treeindex v1 fingerprint:836049ad generated:2026-02-24T09:33:19Z -->
 
 <function_calls>
-[{"tool_name": "Glob", "arguments": {"pattern": "docs/**", "maxDepth": 3}}]
+[{"tool_name": "Glob", "arguments": {"pattern": "docs/**/*", "maxDepth": 2}},
+{"tool_name": "Read", "arguments": {"path": "docs"}}]
 </function_calls>
 
 ```
-docs/
-docs/README.md
+docs/:
 docs/blog/
-docs/blog/README.md
-docs/releases/
-docs/releases/README.md
-docs/releases/1.2.1/
-docs/releases/1.2.1/RELEASE_NOTES.md
-docs/releases/2.0.0/
-docs/releases/2.0.0/RELEASE_NOTES.md
-docs/releases/2.1.0/
-docs/releases/2.1.0/RELEASE_NOTES.md
-docs/releases/2.2.0/
-docs/releases/2.2.0/RELEASE_NOTES.md
-docs/releases/2.2.1/
-docs/releases/2.2.1/RELEASE_NOTES.md
-docs/releases/2.3.2/
-docs/releases/2.3.2/RELEASE_NOTES.md
-docs/releases/2.3.3/
-docs/releases/2.3.3/RELEASE_NOTES.md
-docs/releases/2.3.4/
-docs/releases/2.3.4/RELEASE_NOTES.md
-docs/releases/2.4.0/
-docs/releases/2.4.0/RELEASE_NOTES.md
+docs/blog/0001-introduction-to-intent.md
+docs/blog/0002-the-steel-thread-methodology.md
+docs/blog/0004-llm-collaboration-with-intent.md
+docs/blog/0005-getting-started-with-intent.md
+docs/blog/0006-next-steps-and-future-work.md
+docs/blog/0007-intent-agents-supercharge-claude.md
 ```
 
-Now let me read the docs/README.md to understand the purpose:
+Now let me check the content of a few blog posts to understand their purpose:
 <function_calls>
-[{"tool_name": "Read", "arguments": {"path": "docs/README.md"}}]
+[{"tool_name": "Read", "arguments": {"path": "docs/blog/0001-introduction-to-intent.md", "lineStart": 1, "lineEnd": 30}},
+{"tool_name": "Read", "arguments": {"path": "docs/blog/0005-getting-started-with-intent.md", "lineStart": 1, "lineEnd": 30}}]
 </function_calls>
 
 ```
-# Documentation
+docs/blog/0001-introduction-to-intent.md:
+---
+title: Introduction to Intent
+description: "Core concepts behind the Intent methodology for capturing and managing project intent"
+author: matts
+date: 2025-08-20
+updated: 2025-08-20
+status: published
+verblock: "20 Aug 2025:v2.3.0: Matthew Sinclair - Published introduction to Intent"
+---
 
-This directory contains public-facing documentation, release notes, and blog content for the Intent project.
+# Introduction to Intent
 
-**Organization:**
-- `releases/` - Version-specific release notes and announcements
-- `blog/` - Project blog posts and announcements
+This blog post explores the core concepts behind the Intent methodology...
 
-**Maintenance:** Documentation is version-controlled and updated with each release.
+---
+
+docs/blog/0005-getting-started-with-intent.md:
+---
+title: Getting Started with Intent
+description: "Practical guide to installing and using Intent for your projects"
+author: matts
+date: 2025-08-20
+updated: 2025-08-20
+status: published
+verblock: "20 Aug 2025:v2.3.0: Matthew Sinclair - Published getting started guide"
+---
+
+# Getting Started with Intent
+
+This practical guide shows how to install and use Intent...
 ```
 
 # docs/
 
-Public-facing documentation, release notes, and blog content for the Intent project. Organized by release version and editorial content.
-
-## Dirs
-
-- `blog/` -- Project blog posts and announcements
-- `releases/` -- Version-specific release notes organized by version number (1.2.1 through 2.4.0)
+Public documentation and blog posts explaining Intent methodology, concepts, and usage patterns. Contains published articles on steel threads, LLM collaboration, and getting started guides.
 
 ## Files
 
-- `README.md` -- Documentation directory overview and organization guide
+- `0001-introduction-to-intent.md` -- Core concepts and philosophy behind Intent methodology
+- `0002-the-steel-thread-methodology.md` -- Detailed explanation of steel thread approach and benefits
+- `0004-llm-collaboration-with-intent.md` -- Patterns for effective LLM-assisted development with Intent
+- `0005-getting-started-with-intent.md` -- Practical installation and usage guide for new users
+- `0006-next-steps-and-future-work.md` -- Roadmap and future directions for Intent ecosystem
+- `0007-intent-agents-supercharge-claude.md` -- How Intent agents extend Claude Code capabilities

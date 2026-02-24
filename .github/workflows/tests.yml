@@ -16,11 +16,6 @@ jobs:
       with:
         fetch-depth: 0  # Fetch all history for proper testing
     
-    - name: Install Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    
     - name: Install bats-core
       run: |
         # Install bats-core v1.12.0 from GitHub
@@ -32,15 +27,12 @@ jobs:
         echo "PATH=/usr/local/bin:$PATH" >> $GITHUB_ENV
         which bats
         bats --version
-    
+
     - name: Install dependencies
       run: |
         # Install jq
         sudo apt-get update
         sudo apt-get install -y jq
-        # Install Backlog.md
-        npm install -g backlog.md
-        backlog --version || echo "Backlog installation status: $?"
     
     - name: Make scripts executable
       run: |
@@ -90,11 +82,6 @@ jobs:
       with:
         fetch-depth: 0  # Fetch all history for proper testing
     
-    - name: Install Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    
     - name: Install bats-core
       run: |
         # Install bats with Homebrew
@@ -103,14 +90,11 @@ jobs:
         echo "PATH=$PATH:/usr/local/bin:/opt/homebrew/bin" >> $GITHUB_ENV
         which bats
         bats --version
-    
+
     - name: Install dependencies
       run: |
         # Install jq
         brew install jq
-        # Install Backlog.md
-        npm install -g backlog.md
-        backlog --version || echo "Backlog installation status: $?"
     
     - name: Set up test environment
       run: |
