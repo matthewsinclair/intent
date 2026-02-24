@@ -32,6 +32,7 @@ Steel threads are organized as directories under `intent/st/`:
 - `intent wp show <STID/NN>` - Show work package details
 - Specifiers accept bare numbers (`5` = `ST0005`, `5/01` = `ST0005/01`)
 - WP directories live under `STXXXX/WP/NN/info.md`; titles support special characters
+- `intent plugin` - Discover plugins and their commands
 - `intent treeindex <dir>` - Generate `.treeindex` directory summaries
 - `intent doctor` - Check configuration
 - `intent help` - Get help
@@ -42,11 +43,11 @@ Steel threads are organized as directories under `intent/st/`:
 - `intent agents sync` - Update AGENTS.md with latest project state
 - `intent agents validate` - Check AGENTS.md compliance
 
-### Claude Subagent Commands (renamed in v2.3.0)
+### Claude Commands
 
-- `intent claude subagents init` - Initialize Claude subagent configuration
-- `intent claude subagents list` - List available Claude subagents
-- `intent claude subagents install <name>` - Install a Claude subagent
+- `intent claude subagents <command>` - Manage Claude subagents (init, list, install, sync, uninstall, show, status)
+- `intent claude skills <command>` - Manage Claude skills (list, install, sync, uninstall, show)
+- `intent claude upgrade [--apply]` - Diagnose and upgrade project LLM guidance files
 
 ## Migration Notes
 

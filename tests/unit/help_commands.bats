@@ -48,12 +48,44 @@ load "../lib/test_helper.bash"
 @test "help shows proper command categories" {
   run run_intent help
   assert_success
-  
+
   # Check for category headers
   assert_output_contains "Core:"
   assert_output_contains "Utility:"
-  
+
   # Verify commands exist
   assert_output_contains "st"
   assert_output_contains "init"
+}
+
+@test "help shows claude and plugin in core section" {
+  run run_intent help
+  assert_success
+  assert_output_contains "claude"
+  assert_output_contains "plugin"
+  assert_output_contains "Plugins:"
+}
+
+@test "help plugin shows plugin help file" {
+  run run_intent help plugin
+  assert_success
+  assert_output_contains "intent plugin"
+  assert_output_contains "Discover"
+}
+
+@test "help claude shows claude help file" {
+  run run_intent help claude
+  assert_success
+  assert_output_contains "intent claude"
+  assert_output_contains "subagents"
+  assert_output_contains "skills"
+  assert_output_contains "upgrade"
+}
+
+@test "help agents shows corrected agents help" {
+  run run_intent help agents
+  assert_success
+  assert_output_contains "AGENTS.md"
+  assert_output_contains "init"
+  assert_output_contains "validate"
 }

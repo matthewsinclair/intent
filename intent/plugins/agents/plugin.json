@@ -1,0 +1,11 @@
+{
+  "name": "agents",
+  "version": "1.0.0",
+  "description": "AGENTS.md management for Intent projects",
+  "commands": [
+    {
+      "syntax": "intent agents <command>",
+      "description": "Manage AGENTS.md (init, generate, sync, validate, template)"
+    }
+  ]
+}

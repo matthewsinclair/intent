@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Plugin discovery** -- `intent plugin` command for discovering plugins and their commands
+  - `intent plugin` / `intent plugin list` -- lists all plugins with command syntax
+  - `intent plugin show <name>` -- detailed view of a single plugin
+  - `plugin.json` metadata files in each plugin directory for structured discovery
+- `intent help claude` -- help file for the claude command namespace
+- `intent help plugin` -- help file for the plugin command
+
+### Fixed
+
+- `intent help` now shows `claude` and `plugin` commands in Core section
+- `intent help` agents description corrected from "Manage Claude Code sub-agents" to "Manage AGENTS.md for projects"
+- `lib/help/agents.help.md` rewritten to document actual AGENTS.md commands (was documenting subagent operations)
+- `intent help` now shows Plugins section pointing to `intent plugin`
+
 ## [2.5.0] - 2026-02-24
 
 ### Added

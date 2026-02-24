@@ -1,0 +1,160 @@
+#!/bin/bash
+# intent_plugin - Discover Intent plugins and their commands
+# Copyright (c) 2026 Matthew Sinclair
+# Licensed under the MIT License (see LICENSE file)
+# Usage: intent plugin [list|show|help] [options]
+
+# Exit on error
+set -e
+
+# Source shared helpers
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
+
+PLUGINS_DIR="$INTENT_HOME/intent/plugins"
+
+# ============================================================
+# Display functions
+# ============================================================
+
+show_usage() {
+  cat << 'EOF'
+Usage: intent plugin [command]
+
+Commands:
+  list           List all plugins and their commands (default)
+  show <name>    Show detailed information for a plugin
+  help           Show this usage information
+
+Examples:
+  intent plugin               # List all plugins
+  intent plugin list          # Same as above
+  intent plugin show claude   # Show claude plugin details
+EOF
+}
+
+# Detect terminal width
+get_terminal_width() {
+  local width
+  width="${COLUMNS:-}"
+  if [ -z "$width" ]; then
+    width=$(stty size 2>/dev/null < /dev/tty | awk '{print $2}') 2>/dev/null
+  fi
+  if [ -z "$width" ]; then
+    width=$(tput cols 2>/dev/null)
+  fi
+  if [ -z "$width" ]; then
+    width=100
+  fi
+  echo "$width"
+}
+
+# ============================================================
+# Core functions
+# ============================================================
+
+# List all plugins with their commands
+plugin_list() {
+  require_jq
+
+  local found=0
+  local term_width
+  term_width=$(get_terminal_width)
+
+  echo "Intent Plugins"
+  echo ""
+
+  for plugin_json in "$PLUGINS_DIR"/*/plugin.json; do
+    [ -f "$plugin_json" ] || continue
+    found=1
+
+    local name description cmd_count
+    name=$(jq -r '.name' "$plugin_json")
+    description=$(jq -r '.description' "$plugin_json")
+    cmd_count=$(jq '.commands | length' "$plugin_json")
+
+    echo "  $name"
+    echo "    $description"
+    echo ""
+
+    # Show commands
+    local i=0
+    while [ "$i" -lt "$cmd_count" ]; do
+      local syntax cmd_desc
+      syntax=$(jq -r ".commands[$i].syntax" "$plugin_json")
+      cmd_desc=$(jq -r ".commands[$i].description" "$plugin_json")
+      printf "    %-40s %s\n" "$syntax" "$cmd_desc"
+      i=$((i + 1))
+    done
+    echo ""
+  done
+
+  if [ "$found" -eq 0 ]; then
+    echo "  No plugins found."
+    echo ""
+  fi
+
+  echo "Run 'intent plugin show <name>' for detailed plugin information."
+}
+
+# Show detailed info for a single plugin
+plugin_show() {
+  require_jq
+
+  local name="$1"
+  local plugin_json="$PLUGINS_DIR/$name/plugin.json"
+
+  if [ ! -f "$plugin_json" ]; then
+    error "Unknown plugin '$name'. Run 'intent plugin list' to see available plugins."
+  fi
+
+  local description version cmd_count
+  description=$(jq -r '.description' "$plugin_json")
+  version=$(jq -r '.version' "$plugin_json")
+  cmd_count=$(jq '.commands | length' "$plugin_json")
+
+  echo "Plugin: $name"
+  echo "  Version:     $version"
+  echo "  Description: $description"
+  echo "  Location:    $PLUGINS_DIR/$name"
+  echo ""
+  echo "Commands ($cmd_count):"
+  echo ""
+
+  local i=0
+  while [ "$i" -lt "$cmd_count" ]; do
+    local syntax cmd_desc
+    syntax=$(jq -r ".commands[$i].syntax" "$plugin_json")
+    cmd_desc=$(jq -r ".commands[$i].description" "$plugin_json")
+    echo "  $syntax"
+    echo "    $cmd_desc"
+    echo ""
+    i=$((i + 1))
+  done
+
+  echo "Run 'intent help $name' for full command documentation."
+}
+
+# ============================================================
+# Main
+# ============================================================
+
+SUBCOMMAND="${1:-list}"
+
+case "$SUBCOMMAND" in
+  list)
+    plugin_list
+    ;;
+  show)
+    if [ -z "${2:-}" ]; then
+      error "Usage: intent plugin show <name>"
+    fi
+    plugin_show "$2"
+    ;;
+  help|--help|-h)
+    show_usage
+    ;;
+  *)
+    error "Unknown plugin subcommand '$SUBCOMMAND'. Run 'intent plugin help' for usage."
+    ;;
+esac
