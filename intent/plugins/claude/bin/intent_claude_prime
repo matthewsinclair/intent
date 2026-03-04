@@ -1,0 +1,247 @@
+#!/bin/bash
+# intent_claude_prime - Pre-load Claude Code project memory
+# Usage: intent claude prime [--refresh] [--dry-run] [--from <project>]
+
+# Source helpers
+PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INTENT_ROOT="$(cd "$PLUGIN_BIN/../../../.." && pwd)"
+INTENT_BIN="$INTENT_ROOT/bin"
+source "$INTENT_BIN/intent_helpers"
+
+# Show help
+show_help() {
+  cat << 'EOF'
+Usage: intent claude prime [options]
+
+Pre-load Claude Code's persistent project memory with operational
+knowledge, project rules, canonical modules, and decision trees.
+
+Options:
+  --refresh          Full overwrite of existing MEMORY.md
+  --dry-run          Show what would be written without writing
+  --from <project>   Import learnings from another project directory
+  -h, --help         Show this help
+
+Source files (all optional, skipped if missing):
+  intent/llm/MODULES.md         Module registry
+  intent/llm/DECISION_TREE.md   Code placement guide
+  intent/llm/ARCHETYPES.md      Template reference
+  .intent/learnings.md          Project-specific footguns
+
+The output is written to Claude Code's project memory path:
+  ~/.claude/projects/-<path-with-dashes>/memory/MEMORY.md
+
+MEMORY.md is auto-loaded into every Claude Code conversation.
+Lines after 200 are truncated, so content is condensed.
+EOF
+  exit 0
+}
+
+# Compute Claude Code memory path for a project directory
+compute_memory_path() {
+  local project_dir="$1"
+  # Claude Code uses: absolute path, / replaced with -, prepended with -
+  local path_hash
+  path_hash=$(echo "$project_dir" | sed 's|/|-|g')
+  echo "$HOME/.claude/projects/$path_hash/memory/MEMORY.md"
+}
+
+# Read a file if it exists, otherwise return empty string
+read_if_exists() {
+  local file="$1"
+  if [ -f "$file" ]; then
+    cat "$file"
+  fi
+}
+
+# Condense a section: strip comments, blank line runs, and leading/trailing whitespace
+condense() {
+  # Remove HTML comments, collapse multiple blank lines to one
+  sed '/^<!--/,/-->/d' | sed '/^$/N;/^\n$/d'
+}
+
+# Build the MEMORY.md content
+build_memory() {
+  local project_root="$1"
+  local from_project="$2"
+  local project_name
+  project_name=$(jq -r '.project_name // "Project"' "$project_root/.intent/config.json" 2>/dev/null || echo "Project")
+
+  # Start output
+  echo "# $project_name Project Memory"
+  echo ""
+
+  # Operational knowledge (bundled with Intent)
+  local op_knowledge="$INTENT_ROOT/lib/templates/prime/operational-knowledge.md"
+  if [ -f "$op_knowledge" ]; then
+    cat "$op_knowledge"
+    echo ""
+  fi
+
+  # Project rules from CLAUDE.md (extract Rules section only)
+  if [ -f "$project_root/CLAUDE.md" ]; then
+    local rules
+    rules=$(sed -n '/^## Rules$/,/^## /{ /^## Rules$/d; /^## /d; p; }' "$project_root/CLAUDE.md" | condense)
+    if [ -n "$rules" ]; then
+      echo "## Project Rules"
+      echo ""
+      echo "$rules"
+      echo ""
+    fi
+  fi
+
+  # Canonical modules
+  local modules_file="$project_root/intent/llm/MODULES.md"
+  if [ -f "$modules_file" ]; then
+    # Extract just the tables, skip header and instructions
+    local modules
+    modules=$(sed -n '/^## /,$ p' "$modules_file" | grep -E '^\||^## ' | head -40)
+    if [ -n "$modules" ]; then
+      echo "## Canonical Modules"
+      echo ""
+      echo "$modules"
+      echo ""
+    fi
+  fi
+
+  # Decision tree (condensed)
+  local dt_file="$project_root/intent/llm/DECISION_TREE.md"
+  if [ -f "$dt_file" ]; then
+    local dt
+    dt=$(sed -n '/^## /,$ p' "$dt_file" | grep -v '^>' | condense | head -30)
+    if [ -n "$dt" ]; then
+      echo "## Decision Tree"
+      echo ""
+      echo "$dt"
+      echo ""
+    fi
+  fi
+
+  # Archetypes (just the table)
+  local arch_file="$project_root/intent/llm/ARCHETYPES.md"
+  if [ -f "$arch_file" ]; then
+    local arch
+    arch=$(grep -E '^\|' "$arch_file" | head -12)
+    if [ -n "$arch" ]; then
+      echo "## Archetypes"
+      echo ""
+      echo "$arch"
+      echo ""
+    fi
+  fi
+
+  # Learnings / footguns
+  local learnings_file="$project_root/.intent/learnings.md"
+  if [ -f "$learnings_file" ]; then
+    echo "## Known Footguns"
+    echo ""
+    cat "$learnings_file" | condense | head -20
+    echo ""
+  fi
+
+  # Import from another project
+  if [ -n "$from_project" ] && [ -d "$from_project" ]; then
+    local from_learnings="$from_project/.intent/learnings.md"
+    if [ -f "$from_learnings" ]; then
+      local from_name
+      from_name=$(jq -r '.project_name // "Unknown"' "$from_project/.intent/config.json" 2>/dev/null || basename "$from_project")
+      echo "## Imported Learnings ($from_name)"
+      echo ""
+      cat "$from_learnings" | condense | head -15
+      echo ""
+    fi
+  fi
+
+  # Session checklist
+  echo "## Session Checklist"
+  echo ""
+  echo "Re-read on every context reset:"
+  echo ""
+  echo "- CLAUDE.md"
+  echo "- intent/llm/MODULES.md"
+  echo "- intent/llm/DECISION_TREE.md"
+  echo "- intent/wip.md"
+  echo "- intent/restart.md (if exists)"
+}
+
+# --- Main ---
+
+# Parse arguments
+refresh=false
+dry_run=false
+from_project=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help) show_help ;;
+    --refresh) refresh=true; shift ;;
+    --dry-run) dry_run=true; shift ;;
+    --from)
+      shift
+      if [ $# -eq 0 ]; then
+        error "Missing project path after --from"
+      fi
+      from_project="$1"
+      shift
+      ;;
+    *)
+      error "Unknown option: $1"
+      ;;
+  esac
+done
+
+# Determine project root
+if [ -z "${PROJECT_ROOT:-}" ]; then
+  # Plugin commands don't get PROJECT_ROOT from dispatcher; detect it
+  if [ -f "$(pwd)/.intent/config.json" ]; then
+    PROJECT_ROOT="$(pwd)"
+  else
+    error "Not in an Intent project. Run this from within a project directory."
+  fi
+fi
+
+# Compute memory path
+memory_path=$(compute_memory_path "$PROJECT_ROOT")
+
+# Build content
+content=$(build_memory "$PROJECT_ROOT" "$from_project")
+
+# Check line count
+line_count=$(echo "$content" | wc -l | tr -d ' ')
+if [ "$line_count" -gt 200 ]; then
+  echo "Warning: Generated content is $line_count lines (limit: 200). Truncating."
+  content=$(echo "$content" | head -200)
+  line_count=200
+fi
+
+# Dry run
+if [ "$dry_run" = true ]; then
+  echo "--- DRY RUN: would write to $memory_path ---"
+  echo "--- ($line_count lines) ---"
+  echo ""
+  echo "$content"
+  exit 0
+fi
+
+# Check for existing file
+if [ -f "$memory_path" ] && [ "$refresh" = false ]; then
+  echo "MEMORY.md already exists at: $memory_path"
+  echo "Use --refresh to overwrite, or --dry-run to preview."
+  echo ""
+  echo "Current file: $(wc -l < "$memory_path" | tr -d ' ') lines"
+  echo "New content: $line_count lines"
+  echo ""
+  echo -n "Overwrite? [y/N] "
+  read -r response
+  if [[ ! "$response" =~ ^[Yy]$ ]]; then
+    echo "Aborted."
+    exit 0
+  fi
+fi
+
+# Write
+memory_dir=$(dirname "$memory_path")
+mkdir -p "$memory_dir"
+echo "$content" > "$memory_path"
+echo "Wrote MEMORY.md ($line_count lines) to:"
+echo "  $memory_path"

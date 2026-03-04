@@ -1,4 +1,4 @@
-@short: Claude Code integration (subagents, skills, upgrade)
+@short: Claude Code integration (subagents, skills, upgrade, prime)
 
 # intent claude
 
@@ -54,6 +54,19 @@ intent claude upgrade --project-dir <dir>
 
 Dry-run by default. Use `--apply` to execute the upgrade plan.
 
+### prime
+
+Pre-load Claude Code's persistent project memory with operational knowledge, rules, modules, and decision trees.
+
+```
+intent claude prime
+intent claude prime --refresh
+intent claude prime --dry-run
+intent claude prime --from <project>
+```
+
+Without `--refresh`, prompts before overwriting existing MEMORY.md. Output stays under 200 lines (Claude Code's truncation limit).
+
 ## Examples
 
 ```bash
@@ -74,6 +87,12 @@ intent claude upgrade
 
 # Apply upgrades
 intent claude upgrade --apply
+
+# Preview memory injection
+intent claude prime --dry-run
+
+# Write project memory
+intent claude prime --refresh
 ```
 
 ## See Also

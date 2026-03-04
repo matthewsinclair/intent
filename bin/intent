@@ -87,8 +87,13 @@ case "$COMMAND" in
       PLUGIN_SUBCOMMAND="upgrade"
       shift  # Remove 'upgrade' from arguments
       COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_upgrade"
+    elif [ $# -ge 1 ] && [ "$1" = "prime" ]; then
+      PLUGIN_COMMAND="claude"
+      PLUGIN_SUBCOMMAND="prime"
+      shift  # Remove 'prime' from arguments
+      COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_prime"
     else
-      error "Unknown claude subcommand. Try: intent claude subagents, intent claude skills, intent claude upgrade"
+      error "Unknown claude subcommand. Try: intent claude subagents, intent claude skills, intent claude upgrade, intent claude prime"
     fi
     ;;
   agents)
