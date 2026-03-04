@@ -180,36 +180,28 @@ fi
 # Create symlink at project root
 ln -sf "intent/llm/AGENTS.md" "AGENTS.md"
 
-# Create CLAUDE.md
-cat > "CLAUDE.md" << EOF
-# $PROJECT_NAME Project Guidelines
+# Create CLAUDE.md from template
+if [ -f "$TEMPLATE_DIR/llm/_CLAUDE.md" ]; then
+  sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
+      -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
+      -e "s/\[\[DATE\]\]/$DATE/g" \
+      -e "s/\[\[INTENT_VERSION\]\]/$INTENT_VERSION/g" \
+      "$TEMPLATE_DIR/llm/_CLAUDE.md" > "CLAUDE.md"
+else
+  error "Template not found: $TEMPLATE_DIR/llm/_CLAUDE.md"
+fi
 
-This is an Intent v$INTENT_VERSION project.
-
-## Project Structure
-
-- \`intent/\` - Project artifacts (steel threads, docs, work tracking)
-- \`.intent/\` - Configuration and metadata
-
-## Steel Threads
-
-Steel threads are organized as directories under \`intent/st/\`:
-- Each steel thread has its own directory (eg ST0001/)
-- Minimum required file is \`info.md\` with metadata
-- Optional files: design.md, impl.md, tasks.md
-
-## Commands
-
-- \`intent st new "Title"\` - Create a new steel thread
-- \`intent st list\` - List all steel threads
-- \`intent st show <id>\` - Show steel thread details
-- \`intent doctor\` - Check configuration
-- \`intent help\` - Get help
-
-## Author
-
-$AUTHOR
-EOF
+# Create LLM guidance files from templates
+for tmpl in _MODULES.md _DECISION_TREE.md; do
+  if [ -f "$TEMPLATE_DIR/llm/$tmpl" ]; then
+    local_name="${tmpl#_}"
+    sed -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
+        -e "s/\[\[AUTHOR\]\]/$AUTHOR/g" \
+        -e "s/\[\[DATE\]\]/$DATE/g" \
+        -e "s/\[\[INTENT_VERSION\]\]/$INTENT_VERSION/g" \
+        "$TEMPLATE_DIR/llm/$tmpl" > "intent/llm/$local_name"
+  fi
+done
 
 # Initialize git if not already a repository
 if [ ! -d .git ]; then

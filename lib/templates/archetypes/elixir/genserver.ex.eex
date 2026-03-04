@@ -1,0 +1,50 @@
+defmodule <%= @app_module %>.<%= @server_name %> do
+  @moduledoc """
+  GenServer for <%= String.downcase(@server_name) %> state management.
+
+  This GenServer manages state only. Business logic belongs in service modules.
+  DO NOT put complex logic in handle_call/handle_cast/handle_info callbacks.
+  """
+
+  use GenServer
+
+  # Client API
+
+  @doc """
+  Starts the server.
+  """
+  def start_link(opts \\ []) do
+    name = Keyword.get(opts, :name, __MODULE__)
+    GenServer.start_link(__MODULE__, opts, name: name)
+  end
+
+  @doc """
+  Gets the current state.
+  """
+  @spec get_state(GenServer.server()) :: term()
+  def get_state(server \\ __MODULE__) do
+    GenServer.call(server, :get_state)
+  end
+
+  # Server callbacks
+
+  @impl true
+  def init(opts) do
+    {:ok, %{opts: opts}}
+  end
+
+  @impl true
+  def handle_call(:get_state, _from, state) do
+    {:reply, state, state}
+  end
+
+  @impl true
+  def handle_cast(_msg, state) do
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info(_msg, state) do
+    {:noreply, state}
+  end
+end

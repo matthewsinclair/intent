@@ -1266,46 +1266,15 @@ create_claude_md() {
     return 0  # File exists and we're not forcing overwrite
   fi
   
-  cat > "$project_root/CLAUDE.md" << EOF
-# $project_name Project Guidelines
-
-This is an Intent v$version project (formerly STP).
-
-## Project Structure
-
-- \`intent/\` - Project artifacts (steel threads, docs, work tracking)
-  - \`st/\` - Steel threads organized as directories
-  - \`docs/\` - Technical documentation
-  - \`llm/\` - LLM-specific guidelines
-- \`.intent/\` - Configuration and metadata
-
-## Steel Threads
-
-Steel threads are organized as directories under \`intent/st/\`:
-- Each steel thread has its own directory (eg ST0001/)
-- Minimum required file is \`info.md\` with metadata
-- Optional files: design.md, impl.md, tasks.md
-
-## Commands
-
-- \`intent st new "Title"\` - Create a new steel thread
-- \`intent st list\` - List all steel threads
-- \`intent st show <id>\` - Show steel thread details
-- \`intent agents init\` - Initialize agent configuration
-- \`intent agents list\` - List available agents
-- \`intent agents install <agent>\` - Install an agent
-- \`intent doctor\` - Check configuration
-- \`intent help\` - Get help
-
-## Migration Notes
-
-This project was migrated from STP to Intent v$version on $(date +%Y-%m-%d).
-- Old structure: \`stp/prj/st/\`, \`stp/eng/\`, etc.
-- New structure: \`intent/st/\`, \`intent/docs/\`, etc.
-- Configuration moved from YAML to JSON format
-
-## Author
-
-$author
-EOF
+  local template_file="$INTENT_HOME/lib/templates/llm/_CLAUDE.md"
+  if [ -f "$template_file" ]; then
+    local date_str=$(date +%Y-%m-%d)
+    sed -e "s/\[\[PROJECT_NAME\]\]/$project_name/g" \
+        -e "s/\[\[AUTHOR\]\]/$author/g" \
+        -e "s/\[\[DATE\]\]/$date_str/g" \
+        -e "s/\[\[INTENT_VERSION\]\]/$version/g" \
+        "$template_file" > "$project_root/CLAUDE.md"
+  else
+    error "Template not found: $template_file"
+  fi
 }

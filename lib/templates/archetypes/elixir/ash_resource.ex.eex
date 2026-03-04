@@ -1,0 +1,48 @@
+defmodule <%= @app_module %>.<%= @domain_name %>.<%= @resource_name %> do
+  @moduledoc """
+  The <%= @resource_name %> resource.
+
+  Check MODULES.md before creating new resources -- another resource may already own this concern.
+  """
+
+  use Ash.Resource,
+    domain: <%= @app_module %>.<%= @domain_name %>,
+    data_layer: AshPostgres.DataLayer
+
+  postgres do
+    table "<%= Macro.underscore(@resource_name) %>s"
+    repo <%= @app_module %>.Repo
+  end
+
+  actions do
+    defaults [:read, :destroy]
+
+    create :create do
+      primary? true
+      accept [:name]
+    end
+
+    update :update do
+      primary? true
+      accept [:name]
+    end
+  end
+
+  attributes do
+    uuid_primary_key :id
+
+    attribute :name, :string do
+      allow_nil? false
+      public? true
+    end
+
+    timestamps()
+  end
+
+  policies do
+    # Authorize with actor -- DO NOT skip authorization
+    policy action_type(:read) do
+      authorize_if always()
+    end
+  end
+end

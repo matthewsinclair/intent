@@ -1,0 +1,50 @@
+defmodule <%= @app_module %>Web.<%= @controller_name %>Controller do
+  @moduledoc """
+  Handles HTTP requests for <%= String.downcase(@controller_name) %>.
+
+  This controller is THIN: parse params, call service, render response.
+  DO NOT put business logic here -- delegate to service modules.
+  """
+
+  use <%= @app_module %>Web, :controller
+
+  alias <%= @app_module %>.<%= @service_module %>
+
+  def index(conn, params) do
+    case <%= @service_module %>.list(params) do
+      {:ok, items} ->
+        render(conn, :index, items: items)
+
+      {:error, reason} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> render(:error, reason: reason)
+    end
+  end
+
+  def show(conn, %{"id" => id}) do
+    case <%= @service_module %>.get(id) do
+      {:ok, item} ->
+        render(conn, :show, item: item)
+
+      {:error, :not_found} ->
+        conn
+        |> put_status(:not_found)
+        |> render(:error, reason: :not_found)
+    end
+  end
+
+  def create(conn, %{"<%= Macro.underscore(@controller_name) %>" => params}) do
+    case <%= @service_module %>.create(params) do
+      {:ok, item} ->
+        conn
+        |> put_status(:created)
+        |> render(:show, item: item)
+
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> render(:error, changeset: changeset)
+    end
+  end
+end

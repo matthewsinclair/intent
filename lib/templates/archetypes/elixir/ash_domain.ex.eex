@@ -1,0 +1,18 @@
+defmodule <%= @app_module %>.<%= @domain_name %> do
+  @moduledoc """
+  The <%= @domain_name %> domain.
+
+  All external access to <%= String.downcase(@domain_name) %> resources goes through this module.
+  DO NOT bypass this domain by calling resources directly.
+  """
+
+  use Ash.Domain
+
+  resources do
+    # Register resources here
+    # resource <%= @app_module %>.<%= @domain_name %>.<%= @resource_name %>
+  end
+
+  # DO NOT put business logic here -- domains are registries and code interfaces only.
+  # Business logic belongs in service modules.
+end

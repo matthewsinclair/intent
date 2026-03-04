@@ -1,0 +1,58 @@
+defmodule <%= @app_module %>.<%= @service_name %> do
+  @moduledoc """
+  Service module for <%= String.downcase(@service_name) %> operations.
+
+  This is where business logic lives. Controllers, LiveViews, and CLI commands
+  delegate here. Check MODULES.md before creating new service modules.
+  """
+
+  @doc """
+  Lists items with optional filters.
+
+  ## Examples
+
+      iex> list(%{})
+      {:ok, [%Item{}]}
+  """
+  @spec list(map()) :: {:ok, list()} | {:error, term()}
+  def list(params \\ %{}) do
+    # Implementation here
+    {:ok, []}
+  end
+
+  @doc """
+  Gets a single item by ID.
+  """
+  @spec get(String.t()) :: {:ok, struct()} | {:error, :not_found}
+  def get(id) do
+    # Implementation here
+    {:error, :not_found}
+  end
+
+  @doc """
+  Creates an item with the given attributes.
+  """
+  @spec create(map()) :: {:ok, struct()} | {:error, term()}
+  def create(attrs) do
+    # Implementation here
+    {:ok, attrs}
+  end
+
+  @doc """
+  Updates an item with the given attributes.
+  """
+  @spec update(struct(), map()) :: {:ok, struct()} | {:error, term()}
+  def update(item, attrs) do
+    # Implementation here
+    {:ok, item}
+  end
+
+  @doc """
+  Deletes an item.
+  """
+  @spec delete(struct()) :: {:ok, struct()} | {:error, term()}
+  def delete(item) do
+    # Implementation here
+    {:ok, item}
+  end
+end
