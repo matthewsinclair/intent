@@ -3,7 +3,7 @@ verblock: "04 Mar 2026:v0.1: matts - Initial version"
 wp_id: WP-02
 title: "Workflow Skills"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-02: Workflow Skills

@@ -158,6 +158,28 @@ lib/help/
 | P3 mechanical         | Custom Credo checks + `intent audit quick`          | Every compile / CI      |
 | Dependency violations | Dependency graph in `intent audit quick`            | Audit                   |
 
+## As-Built Deviations
+
+### Execution order differed from plan
+
+The plan had WP-01 -> WP-02 -> WP-03+05 -> WP-04 -> WP-11. Actual execution reordered to: WP-01 -> WP-03+05 -> WP-02 -> WP-04 -> WP-11. This unblocked WP-04 (memory injection) one session earlier by doing templates before workflow skills.
+
+### WP-03 and WP-05 combined in one commit
+
+Templates and archetypes were delivered together as `ef46eea` since they share the same template directory structure and have no dependency conflict.
+
+### Rename migration added to plugin sync
+
+Not in original design. During WP-01, recognized that users with old `intent-*` skills installed would need automatic migration. Added rename detection logic to `plugin_sync()` in the shared plugin library.
+
+### Highlander fix added to WP-03 scope
+
+Original WP-03 spec didn't mention consolidating the three CLAUDE.md heredocs. This was identified during implementation as a Highlander violation and fixed as part of WP-03 -- all three copies now use the single template.
+
+### TN004 filename simplified
+
+Original spec placed the tech note at `intent/docs/tn004-total-codebase-audit.md`. Renamed to `intent/docs/total-codebase-audit.md` since the `tn004` prefix is a deliverable identifier, not part of the filename convention.
+
 ## Alternatives Considered
 
 ### Alt 1: Single Monolithic Skill Instead of Templates

@@ -2,34 +2,36 @@
 
 ## WIP
 
-ST0026 (Steel Thread Zero) is active. Fully elaborated with 11 work packages, 15 deliverables, 80+ tasks. No code written yet -- planning phase complete, ready for implementation.
+ST0026 (Steel Thread Zero) Phase 1 complete (WP-01 through WP-05 + WP-11). Version bump to v2.6.0 pending. Phase 2 (WP-06 through WP-10) not started.
 
 ## TODO
 
-1. **Start WP-01**: Rename 6 skills from `intent-*` to `in-*` prefix. See `intent/st/ST0026/WP/01/info.md`.
-2. **Then WP-02**: Create 5 new workflow skills (/in-start, /in-plan, /in-standards, /in-next, /in-finish). See `intent/st/ST0026/WP/02/info.md`.
-3. **Parallel WP-03**: LLM templates (CLAUDE.md, MODULES.md, DECISION_TREE.md). See `intent/st/ST0026/WP/03/info.md`.
-4. **Parallel WP-05**: Archetype templates (9 Elixir module templates). See `intent/st/ST0026/WP/05/info.md`.
-5. **Then WP-04**: Memory injection (`intent claude prime`). See `intent/st/ST0026/WP/04/info.md`.
-6. **Anytime WP-11**: Port TN004 tech note from laksa-web. See `intent/st/ST0026/WP/11/info.md`.
+1. **Version bump**: Bump to v2.6.0, update CHANGELOG.md, tag and push to both remotes.
+2. **WP-06**: Automated enforcement -- 6 Credo check templates + `intent audit quick` command. See `intent/st/ST0026/WP/06/info.md`.
+3. **WP-07**: Health checks + learnings -- `intent audit health` + `intent learn`. See `intent/st/ST0026/WP/07/info.md`.
+4. **WP-08**: Guardrails -- `intent modules check` + dependency graph enforcement. See `intent/st/ST0026/WP/08/info.md`.
+5. **WP-09**: Retrofit installation -- `intent st zero install` for brownfield projects. See `intent/st/ST0026/WP/09/info.md`.
+6. **WP-10**: Integrator command -- `intent init --with-st0000` for greenfield. See `intent/st/ST0026/WP/10/info.md`.
 
 ## Key Files
 
-| File                                                 | Purpose                                    |
-| ---------------------------------------------------- | ------------------------------------------ |
-| `intent/st/ST0026/info.md`                           | Full ST spec (472 lines, 15 deliverables)  |
-| `intent/st/ST0026/design.md`                         | Design (7 decisions, dependency graph)     |
-| `intent/st/ST0026/tasks.md`                          | Task breakdown (80+ tasks by WP)           |
-| `intent/st/ST0026/impl.md`                           | Implementation tracking                    |
-| `intent/st/ST0026/WP/*/info.md`                      | 11 work package specs                      |
-| `intent/wip.md`                                      | Work in progress tracker                   |
-| `intent/restart.md`                                  | Session restart context                    |
-| `bin/intent`                                         | Main CLI (GLOBAL_COMMANDS on line 41)      |
-| `bin/intent_helpers`                                 | Shared helpers                             |
-| `intent/plugins/claude/skills/`                      | Skill source dirs (6 skills, intent-* prefix) |
-| `intent/plugins/claude/bin/intent_claude_skills`     | Skills lifecycle (299 lines)               |
-| `intent/plugins/claude/lib/claude_plugin_helpers.sh` | Shared plugin callback library             |
-| `tests/run_tests.sh`                                 | Test runner (17 .bats files, 339 tests)    |
+| File                                                 | Purpose                                       |
+| ---------------------------------------------------- | --------------------------------------------- |
+| `intent/st/ST0026/info.md`                           | Full ST spec (474 lines, 15 deliverables)     |
+| `intent/st/ST0026/design.md`                         | Design decisions + as-built deviations        |
+| `intent/st/ST0026/impl.md`                           | As-built implementation notes (Phase 1)       |
+| `intent/st/ST0026/done.md`                           | Completed Phase 1 tasks                       |
+| `intent/st/ST0026/tasks.md`                          | Remaining Phase 2 tasks                       |
+| `intent/wip.md`                                      | Work in progress tracker                      |
+| `intent/restart.md`                                  | Session restart context                       |
+| `intent/llm/MODULES.md`                              | Intent's own module registry (26 modules)     |
+| `intent/llm/DECISION_TREE.md`                        | Intent's own code placement guide             |
+| `bin/intent`                                         | Main CLI entry point                          |
+| `bin/intent_helpers`                                 | Shared helpers                                |
+| `intent/plugins/claude/skills/`                      | 11 skills (6 renamed in-* + 5 new workflow)   |
+| `intent/plugins/claude/bin/intent_claude_prime`      | Memory injection command (new in Phase 1)     |
+| `intent/plugins/claude/lib/claude_plugin_helpers.sh` | Shared plugin callback library                |
+| `tests/run_tests.sh`                                 | Test runner (18 .bats files, 365 tests)       |
 
 ## Project Conventions
 

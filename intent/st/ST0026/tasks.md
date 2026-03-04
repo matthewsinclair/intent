@@ -1,67 +1,8 @@
 # Tasks - ST0026: Steel Thread Zero
 
-## WP-01: Skill Rename (intent-_ to in-_)
+Phase 1 (WP-01 through WP-05 + WP-11) complete. See `done.md` for completed tasks.
 
-- [ ] Rename 6 skill source directories from `intent-*` to `in-*`
-- [ ] Update self-references inside SKILL.md files (autopsy script path, essentials install example)
-- [ ] Update `lib/help/claude.help.md` examples
-- [ ] Update project `CLAUDE.md` skill references
-- [ ] Update `lib/templates/llm/_CLAUDE.md` template
-- [ ] Update MEMORY.md skill names
-- [ ] Update any test file references
-- [ ] Uninstall old skills, install new via `intent claude skills sync`
-- [ ] Run full test suite
-
-## WP-02: Workflow Skills
-
-- [ ] Create `in-start/SKILL.md` (session start procedure)
-- [ ] Create `in-plan/SKILL.md` (planning kickoff procedure)
-- [ ] Create `in-standards/SKILL.md` (coding standards primer)
-- [ ] Create `in-next/SKILL.md` (next step identification)
-- [ ] Create `in-finish/SKILL.md` (session finish procedure)
-- [ ] Install all 5 new skills
-- [ ] Test each skill invocation in Claude Code
-
-## WP-03: LLM Templates (D2, D3, D6)
-
-- [ ] Rewrite `lib/templates/llm/_CLAUDE.md` (enhanced v2.6.0 template)
-- [ ] Update `create_claude_md()` in `bin/intent_helpers` to use enhanced template
-- [ ] Update heredoc in `bin/intent_init` to use template
-- [ ] Create `lib/templates/llm/_MODULES.md`
-- [ ] Create `lib/templates/llm/_DECISION_TREE.md`
-- [ ] Test `intent init` creates all 3 files correctly
-- [ ] Verify variable substitution works
-
-## WP-04: Memory Injection (D8)
-
-- [ ] Create `lib/templates/prime/operational-knowledge.md` (bundled knowledge)
-- [ ] Create `intent/plugins/claude/bin/intent_claude_prime` script
-- [ ] Implement memory path computation (project path -> ~/.claude/projects/HASH/memory/)
-- [ ] Implement source file reading with graceful missing-file handling
-- [ ] Implement MEMORY.md synthesis (condensation, not verbatim)
-- [ ] Implement `--refresh` flag (full overwrite)
-- [ ] Implement `--dry-run` flag (show output, don't write)
-- [ ] Implement `--from <project>` flag (import learnings)
-- [ ] Add to `intent/plugins/claude/plugin.json`
-- [ ] Add prime section to `lib/help/claude.help.md`
-- [ ] Verify output stays under 200 lines
-- [ ] Test with missing source files
-- [ ] Test with complete source files
-
-## WP-05: Archetype Templates (D4)
-
-- [ ] Create `lib/templates/archetypes/elixir/` directory
-- [ ] Create `ash_domain.ex.eex`
-- [ ] Create `ash_resource.ex.eex`
-- [ ] Create `phoenix_controller.ex.eex`
-- [ ] Create `live_view.ex.eex`
-- [ ] Create `service.ex.eex`
-- [ ] Create `cli_command.ex.eex`
-- [ ] Create `genserver.ex.eex`
-- [ ] Create `oban_worker.ex.eex`
-- [ ] Create `test.ex.eex`
-- [ ] Create `lib/templates/llm/_ARCHETYPES.md` reference document
-- [ ] Verify templates are syntactically valid Elixir
+## Phase 2: Remaining Work Packages
 
 ## WP-06: Automated Enforcement (D5a, D5b)
 
@@ -125,23 +66,9 @@
 - [ ] Test existing project: `intent st zero` delegates to retrofit
 - [ ] Run `intent audit quick` on bootstrapped project (expect zero violations)
 
-## WP-11: TN004 Tech Note (Total Codebase Audit)
-
-- [ ] Copy TN004 from `../Laksa/laksa-web/intent/eng/notes/tn004-total-codebase-audit.md`
-- [ ] Replace project-specific references (laksa-web, Lamplight, ST0058, ST0098) with generic examples
-- [ ] Generalize stats and specific module names
-- [ ] Extract universal lessons from Appendix F into main text
-- [ ] Add Prerequisites section
-- [ ] Add cross-references to ST0026 deliverables
-- [ ] Drop project-specific appendix data
-- [ ] Place at `intent/docs/total-codebase-audit.md`
-
 ## Dependencies
 
 ```
-WP-01 -> WP-02
-WP-03 -> WP-04 -> WP-10
-WP-05 -> WP-04
 WP-06 -> WP-07
 WP-03 -> WP-08
 WP-06 -> WP-08
