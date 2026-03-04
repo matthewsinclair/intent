@@ -319,7 +319,7 @@ teardown() {
   mkdir -p "$manifest_dir"
   local source_path="$INTENT_PROJECT_ROOT/intent/plugins/claude/skills/intent-elixir-essentials/SKILL.md"
   local checksum
-  checksum=$(md5 -q "$HOME/.claude/skills/intent-elixir-essentials/SKILL.md")
+  checksum="fake-checksum-for-test"
   cat > "$manifest_dir/installed-skills.json" << EOF
 {
   "version": "1.0.0",
