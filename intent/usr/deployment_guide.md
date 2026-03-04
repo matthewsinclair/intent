@@ -491,8 +491,8 @@ intent claude skills show in-elixir-essentials
 
 Available skills:
 
-| Skill                      | Purpose                                    |
-| -------------------------- | ------------------------------------------ |
+| Skill                  | Purpose                                    |
+| ---------------------- | ------------------------------------------ |
 | in-essentials          | Intent workflow rules (7 mandatory)        |
 | in-elixir-essentials   | Core Elixir coding rules (8 mandatory)     |
 | in-elixir-testing      | Elixir test quality rules (8 mandatory)    |

@@ -58,10 +58,10 @@ If you're tempted to...
 
 | Temptation                                    | Correct Location                            |
 | --------------------------------------------- | ------------------------------------------- |
-| Duplicate a helper function in a new script   | `bin/intent_helpers` (Highlander Rule)       |
-| Write install/sync/uninstall from scratch     | Plugin callback library                      |
-| Inline a heredoc that exists as a template    | Use sed substitution on the template file    |
-| Put business logic in command dispatch        | Dedicated script sourced by `bin/intent`     |
-| Create a new config parser                    | `get_config_field()` in intent_helpers       |
-| Hardcode terminal width                       | `detect_terminal_width()` in intent_helpers  |
-| Add error handling without `error()` function | Use `error()` from intent_helpers            |
+| Duplicate a helper function in a new script   | `bin/intent_helpers` (Highlander Rule)      |
+| Write install/sync/uninstall from scratch     | Plugin callback library                     |
+| Inline a heredoc that exists as a template    | Use sed substitution on the template file   |
+| Put business logic in command dispatch        | Dedicated script sourced by `bin/intent`    |
+| Create a new config parser                    | `get_config_field()` in intent_helpers      |
+| Hardcode terminal width                       | `detect_terminal_width()` in intent_helpers |
+| Add error handling without `error()` function | Use `error()` from intent_helpers           |

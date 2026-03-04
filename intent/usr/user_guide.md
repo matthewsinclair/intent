@@ -513,8 +513,8 @@ Intent v2.4.0 introduces skills -- always-on Claude Code enforcement rules that 
 
 ### Available Skills
 
-| Skill                        | Rules | Focus                                           |
-| ---------------------------- | :---: | ----------------------------------------------- |
+| Skill                    | Rules | Focus                                           |
+| ------------------------ | :---: | ----------------------------------------------- |
 | `in-essentials`          |   7   | CLI usage, treeindex, steel thread conventions  |
 | `in-elixir-essentials`   |   8   | Pattern matching, tagged tuples, pipes, naming  |
 | `in-ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement    |
