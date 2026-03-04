@@ -2,39 +2,40 @@
 
 ## WIP
 
-No active steel threads. v2.5.0 released with ST0023, ST0024, ST0025 all completed. 339 tests passing across 17 BATS test files.
+ST0026 (Steel Thread Zero) is active. Fully elaborated with 11 work packages, 15 deliverables, 80+ tasks. No code written yet -- planning phase complete, ready for implementation.
 
 ## TODO
 
-1. **Review parked STs** -- ST0010 and ST0015 in `intent/st/NOT-STARTED/`. Decide if still relevant or should be cancelled.
-2. **ST0025 deferred violations** -- Template consolidation (CLAUDE.md generated in 3 places, config JSON in 4+ places), correctness fixes (upgrade bypasses install lifecycle), legacy cleanup. See `intent/st/COMPLETED/ST0025/design.md` for full audit.
-3. **Consider v2.6.0 scope** -- Review project needs and decide on next features.
+1. **Start WP-01**: Rename 6 skills from `intent-*` to `in-*` prefix. See `intent/st/ST0026/WP/01/info.md`.
+2. **Then WP-02**: Create 5 new workflow skills (/in-start, /in-plan, /in-standards, /in-next, /in-finish). See `intent/st/ST0026/WP/02/info.md`.
+3. **Parallel WP-03**: LLM templates (CLAUDE.md, MODULES.md, DECISION_TREE.md). See `intent/st/ST0026/WP/03/info.md`.
+4. **Parallel WP-05**: Archetype templates (9 Elixir module templates). See `intent/st/ST0026/WP/05/info.md`.
+5. **Then WP-04**: Memory injection (`intent claude prime`). See `intent/st/ST0026/WP/04/info.md`.
+6. **Anytime WP-11**: Port TN004 tech note from laksa-web. See `intent/st/ST0026/WP/11/info.md`.
 
 ## Key Files
 
-| File                                                | Purpose                                               |
-| --------------------------------------------------- | ----------------------------------------------------- |
-| `CHANGELOG.md`                                      | Feature history (v1.0.0 through v2.5.0)               |
-| `VERSION`                                           | Current version (2.5.0)                               |
-| `intent/wip.md`                                     | Work in progress tracker                              |
-| `intent/restart.md`                                 | Session restart context                               |
-| `bin/intent`                                        | Main CLI (GLOBAL_COMMANDS on line 41)                 |
-| `bin/intent_helpers`                                | Shared helpers (error, checksum, require_jq, etc.)    |
-| `bin/intent_wp`                                     | Work package management                               |
-| `intent/plugins/claude/lib/claude_plugin_helpers.sh` | Shared plugin callback library                        |
-| `intent/plugins/claude/bin/intent_claude_skills`    | Skills lifecycle (299 lines, uses callback pattern)   |
-| `intent/plugins/claude/bin/intent_claude_subagents` | Subagent management (613 lines, uses callback pattern)|
-| `intent/plugins/claude/bin/intent_claude_upgrade`   | Project upgrade command                               |
-| `intent/st/COMPLETED/ST0025/design.md`              | Full Highlander audit with 25 violations              |
-| `tests/run_tests.sh`                                | Test runner (17 .bats files, 339 tests)               |
+| File                                                 | Purpose                                    |
+| ---------------------------------------------------- | ------------------------------------------ |
+| `intent/st/ST0026/info.md`                           | Full ST spec (472 lines, 15 deliverables)  |
+| `intent/st/ST0026/design.md`                         | Design (7 decisions, dependency graph)     |
+| `intent/st/ST0026/tasks.md`                          | Task breakdown (80+ tasks by WP)           |
+| `intent/st/ST0026/impl.md`                           | Implementation tracking                    |
+| `intent/st/ST0026/WP/*/info.md`                      | 11 work package specs                      |
+| `intent/wip.md`                                      | Work in progress tracker                   |
+| `intent/restart.md`                                  | Session restart context                    |
+| `bin/intent`                                         | Main CLI (GLOBAL_COMMANDS on line 41)      |
+| `bin/intent_helpers`                                 | Shared helpers                             |
+| `intent/plugins/claude/skills/`                      | Skill source dirs (6 skills, intent-* prefix) |
+| `intent/plugins/claude/bin/intent_claude_skills`     | Skills lifecycle (299 lines)               |
+| `intent/plugins/claude/lib/claude_plugin_helpers.sh` | Shared plugin callback library             |
+| `tests/run_tests.sh`                                 | Test runner (17 .bats files, 339 tests)    |
 
 ## Project Conventions
 
 - Bash CLI tool, tests use BATS framework
 - Two git remotes: `local` (Dropbox), `upstream` (GitHub)
-- Tag workflow: `git tag -f v2.5.0 HEAD` then force-push to both remotes
 - NO Claude attribution in commit messages -- ever
 - Run `tests/run_tests.sh` before committing
 - Never use em dashes in skill files -- multi-byte truncation in list display
-- User typically pastes full implementation plans as opening messages
-- A markdown linter auto-formats files on save (table alignment, spacing)
+- Markdown linter auto-formats files on save (table alignment, spacing)
