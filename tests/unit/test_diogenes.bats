@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Tests for diogenes subagent and intent-elixir-testing skill (WP-11)
+# Tests for diogenes subagent and in-elixir-testing skill (WP-11)
 
 load "../lib/test_helper.bash"
 
@@ -149,41 +149,41 @@ teardown() {
 }
 
 # ====================================================================
-# intent-elixir-testing skill: list
+# in-elixir-testing skill: list
 # ====================================================================
 
-@test "claude skills list includes intent-elixir-testing" {
+@test "claude skills list includes in-elixir-testing" {
   run run_intent claude skills list
   assert_success
-  assert_output_contains "intent-elixir-testing"
+  assert_output_contains "in-elixir-testing"
 }
 
-@test "claude skills list shows intent-elixir-testing description" {
+@test "claude skills list shows in-elixir-testing description" {
   run run_intent claude skills list -v
   assert_success
-  assert_output_contains "intent-elixir-testing"
+  assert_output_contains "in-elixir-testing"
   assert_output_contains "testing"
 }
 
 # ====================================================================
-# intent-elixir-testing skill: install
+# in-elixir-testing skill: install
 # ====================================================================
 
-@test "claude skills install intent-elixir-testing installs successfully" {
-  run run_intent claude skills install intent-elixir-testing --force
+@test "claude skills install in-elixir-testing installs successfully" {
+  run run_intent claude skills install in-elixir-testing --force
   assert_success
-  assert_output_contains "Installing skill: intent-elixir-testing"
+  assert_output_contains "Installing skill: in-elixir-testing"
   assert_output_contains "Installed successfully"
 
   # Verify the file was created
-  assert_file_exists "$HOME/.claude/skills/intent-elixir-testing/SKILL.md"
+  assert_file_exists "$HOME/.claude/skills/in-elixir-testing/SKILL.md"
 }
 
-@test "claude skills install intent-elixir-testing creates manifest entry" {
+@test "claude skills install in-elixir-testing creates manifest entry" {
   # Clean any existing manifest
   rm -rf "$HOME/.intent/skills" 2>/dev/null || true
 
-  run run_intent claude skills install intent-elixir-testing --force
+  run run_intent claude skills install in-elixir-testing --force
   assert_success
 
   # Check manifest was created
@@ -192,85 +192,85 @@ teardown() {
   # Verify manifest content
   run cat "$HOME/.intent/skills/installed-skills.json"
   assert_success
-  assert_output_contains '"name": "intent-elixir-testing"'
+  assert_output_contains '"name": "in-elixir-testing"'
   assert_output_contains '"checksum":'
 }
 
-@test "claude skills install intent-elixir-testing file has correct content" {
-  run run_intent claude skills install intent-elixir-testing --force
+@test "claude skills install in-elixir-testing file has correct content" {
+  run run_intent claude skills install in-elixir-testing --force
   assert_success
 
   # Verify key content in the installed file
-  assert_file_contains "$HOME/.claude/skills/intent-elixir-testing/SKILL.md" "Elixir Testing Essentials"
-  assert_file_contains "$HOME/.claude/skills/intent-elixir-testing/SKILL.md" "No control flow in test bodies"
-  assert_file_contains "$HOME/.claude/skills/intent-elixir-testing/SKILL.md" "Strong assertions"
+  assert_file_contains "$HOME/.claude/skills/in-elixir-testing/SKILL.md" "Elixir Testing Essentials"
+  assert_file_contains "$HOME/.claude/skills/in-elixir-testing/SKILL.md" "No control flow in test bodies"
+  assert_file_contains "$HOME/.claude/skills/in-elixir-testing/SKILL.md" "Strong assertions"
 }
 
-@test "claude skills install --all includes intent-elixir-testing" {
+@test "claude skills install --all includes in-elixir-testing" {
   run run_intent claude skills install --all --force
   assert_success
-  assert_output_contains "Installing skill: intent-elixir-testing"
+  assert_output_contains "Installing skill: in-elixir-testing"
   assert_output_contains "Installed successfully"
 
   # Verify it was installed
-  assert_file_exists "$HOME/.claude/skills/intent-elixir-testing/SKILL.md"
+  assert_file_exists "$HOME/.claude/skills/in-elixir-testing/SKILL.md"
 }
 
 # ====================================================================
-# intent-elixir-testing skill: show
+# in-elixir-testing skill: show
 # ====================================================================
 
-@test "claude skills show intent-elixir-testing displays content" {
-  run run_intent claude skills show intent-elixir-testing
+@test "claude skills show in-elixir-testing displays content" {
+  run run_intent claude skills show in-elixir-testing
   assert_success
-  assert_output_contains "intent-elixir-testing"
+  assert_output_contains "in-elixir-testing"
   assert_output_contains "testing"
 }
 
 # ====================================================================
-# intent-elixir-testing skill: sync
+# in-elixir-testing skill: sync
 # ====================================================================
 
-@test "claude skills sync detects intent-elixir-testing as up-to-date" {
+@test "claude skills sync detects in-elixir-testing as up-to-date" {
   # Install the skill
-  run run_intent claude skills install intent-elixir-testing --force
+  run run_intent claude skills install in-elixir-testing --force
   assert_success
 
   # Sync should find nothing to update
   run run_intent claude skills sync
   assert_success
-  assert_output_contains "intent-elixir-testing"
+  assert_output_contains "in-elixir-testing"
   assert_output_contains "Up to date"
 }
 
-@test "claude skills sync detects intent-elixir-testing modification" {
+@test "claude skills sync detects in-elixir-testing modification" {
   # Install the skill
-  run run_intent claude skills install intent-elixir-testing --force
+  run run_intent claude skills install in-elixir-testing --force
   assert_success
 
   # Modify the installed file
-  echo "# Modified locally" >> "$HOME/.claude/skills/intent-elixir-testing/SKILL.md"
+  echo "# Modified locally" >> "$HOME/.claude/skills/in-elixir-testing/SKILL.md"
 
   # Sync should detect the modification
   run run_intent claude skills sync
   assert_success
-  assert_output_contains "intent-elixir-testing"
+  assert_output_contains "in-elixir-testing"
   refute_output_contains "Up to date"
 }
 
 # ====================================================================
-# intent-elixir-testing skill: uninstall
+# in-elixir-testing skill: uninstall
 # ====================================================================
 
-@test "claude skills uninstall intent-elixir-testing removes the file" {
+@test "claude skills uninstall in-elixir-testing removes the file" {
   # Install first
-  run run_intent claude skills install intent-elixir-testing --force
+  run run_intent claude skills install in-elixir-testing --force
   assert_success
-  assert_file_exists "$HOME/.claude/skills/intent-elixir-testing/SKILL.md"
+  assert_file_exists "$HOME/.claude/skills/in-elixir-testing/SKILL.md"
 
   # Uninstall
-  run run_intent claude skills uninstall intent-elixir-testing --force
+  run run_intent claude skills uninstall in-elixir-testing --force
   assert_success
-  assert_output_contains "intent-elixir-testing"
-  assert_file_not_exists "$HOME/.claude/skills/intent-elixir-testing/SKILL.md"
+  assert_output_contains "in-elixir-testing"
+  assert_file_not_exists "$HOME/.claude/skills/in-elixir-testing/SKILL.md"
 }

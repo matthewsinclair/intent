@@ -515,12 +515,12 @@ Intent v2.4.0 introduces skills -- always-on Claude Code enforcement rules that 
 
 | Skill                        | Rules | Focus                                           |
 | ---------------------------- | :---: | ----------------------------------------------- |
-| `intent-essentials`          |   7   | CLI usage, treeindex, steel thread conventions  |
-| `intent-elixir-essentials`   |   8   | Pattern matching, tagged tuples, pipes, naming  |
-| `intent-ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement    |
-| `intent-phoenix-liveview`    |   7   | Two-phase mount, streams, components            |
-| `intent-elixir-testing`      |   8   | Strong assertions, no control flow, spec-driven |
-| `intent-autopsy`             |  --   | Session forensics, memory meta-learning         |
+| `in-essentials`          |   7   | CLI usage, treeindex, steel thread conventions  |
+| `in-elixir-essentials`   |   8   | Pattern matching, tagged tuples, pipes, naming  |
+| `in-ash-ecto-essentials` |   7   | Code interfaces, migrations, actor placement    |
+| `in-phoenix-liveview`    |   7   | Two-phase mount, streams, components            |
+| `in-elixir-testing`      |   8   | Strong assertions, no control flow, spec-driven |
+| `in-autopsy`             |  --   | Session forensics, memory meta-learning         |
 
 ### Installing Skills
 
@@ -529,7 +529,7 @@ Intent v2.4.0 introduces skills -- always-on Claude Code enforcement rules that 
 intent claude skills list
 
 # Install a specific skill
-intent claude skills install intent-elixir-essentials
+intent claude skills install in-elixir-essentials
 
 # Install all available skills
 intent claude skills install --all
@@ -542,15 +542,15 @@ intent claude skills install --all
 intent claude skills sync
 
 # View skill content
-intent claude skills show intent-elixir-essentials
+intent claude skills show in-elixir-essentials
 
 # Remove a skill
-intent claude skills uninstall intent-elixir-essentials
+intent claude skills uninstall in-elixir-essentials
 ```
 
 Skills install to `.claude/skills/<name>/` in the user's home directory. The entire skill directory is copied, including any supporting scripts. Skills are loaded into every Claude Code session automatically.
 
-> **Note:** The `intent-autopsy` skill requires Elixir to be installed. Run `intent doctor` to check.
+> **Note:** The `in-autopsy` skill requires Elixir to be installed. Run `intent doctor` to check.
 
 ## LLM Guidance Upgrade
 

@@ -123,7 +123,7 @@ Unit tests focus on individual commands and features:
 - **project_commands.bats** - Tests commands that require a project context
 - **st_commands.bats** - Tests for steel thread management commands
 - **skills_commands.bats** - Tests for skills management (`intent claude skills install/list/sync/uninstall/show`)
-- **test_diogenes.bats** - Tests for Diogenes subagent and intent-elixir-testing skill (install/list/sync/show/uninstall)
+- **test_diogenes.bats** - Tests for Diogenes subagent and in-elixir-testing skill (install/list/sync/show/uninstall)
 - **treeindex_commands.bats** - Tests for the treeindex command (directory summaries)
 
 ### Integration Tests
