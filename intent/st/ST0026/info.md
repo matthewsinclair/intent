@@ -22,12 +22,14 @@ The goal: make it structurally impossible (or at least very hard) for the violat
 Across two independent projects, total codebase audits found a combined **797 violations**:
 
 **laksa-web (ST0058)**: 408 violations in ~258 files
+
 - 7 P0 bugs/crash risks (bare `=` on fallible calls, `String.to_atom` on user input, etc.)
 - 14 P1 Highlander duplications (same logic in 2-12 places)
 - ~50 P2 thick coordinators (business logic in controllers/LiveViews/CLI commands)
 - ~337 P3 mechanical style violations (boolean operators, missing @impl, etc.)
 
 **Lamplight (ST0098)**: 389 violations in ~724 files (5-app umbrella)
+
 - P0 bugs: `String.to_atom` on LLM output, dependency graph violations, non-exhaustive `with`
 - 88 P1 Highlander duplications (23% of all violations — dominant issue)
 - 35 P2 thick coordinators (REPL commands, LiveViews with 50+ line handlers)
@@ -364,13 +366,13 @@ For umbrella/monorepo projects, enforce the intended dependency graph:
 ```markdown
 ## Dependency Graph
 
-| App        | May depend on   | Must NOT depend on        |
-| ---------- | --------------- | ------------------------- |
-| llclient   | (nothing)       | lamplight, frontdesk, ... |
-| lamplight  | (nothing)       | llclient, frontdesk, ...  |
-| frontdesk  | lamplight, llclient | storyfield, aigency   |
-| storyfield | lamplight, llclient | frontdesk, aigency    |
-| aigency    | (nothing)       | lamplight, llclient, ...  |
+| App        | May depend on       | Must NOT depend on        |
+| ---------- | ------------------- | ------------------------- |
+| llclient   | (nothing)           | lamplight, frontdesk, ... |
+| lamplight  | (nothing)           | llclient, frontdesk, ...  |
+| frontdesk  | lamplight, llclient | storyfield, aigency       |
+| storyfield | lamplight, llclient | frontdesk, aigency        |
+| aigency    | (nothing)           | lamplight, llclient, ...  |
 ```
 
 **Enforcement**: A check (Credo or `intent audit quick`) that scans `alias`/`import`/`use` statements and flags references to modules in apps that aren't in the dependency list. This catches violations like `lamplight` importing from `llclient` — which compile fine in dev (all apps loaded) but represent an architectural boundary violation.
@@ -409,18 +411,18 @@ The retrofit process:
 
 ## Implementation Priority
 
-| Deliverable                      | Impact     | Effort | Priority            |
-| -------------------------------- | ---------- | ------ | ------------------- |
-| D8: Memory injection             | Highest    | Medium | 1st                 |
-| D2: CLAUDE.md template           | Highest    | Low    | 1st                 |
-| D3: MODULES.md                   | High       | Low    | 1st                 |
-| D6: Decision tree                | High       | Low    | 1st                 |
-| D12: Retrofit installation       | High       | Medium | 1st (parallel w/D1) |
-| D4: Archetype templates          | High       | Medium | 2nd                 |
-| D5b: `intent audit quick`        | High       | Medium | 2nd                 |
-| D11: Dependency graph enforce    | High       | Low    | 2nd                 |
-| D7: `intent audit health`        | Medium     | Medium | 3rd                 |
-| D5a: Custom Credo checks         | Medium     | High   | 3rd                 |
-| D10: Learnings accumulator       | Medium     | Low    | 3rd                 |
-| D9: New module checklist         | Medium     | Medium | 4th                 |
-| D1: `intent init --with-st0000`  | Integrator | Medium | Last (wraps D2-D12) |
+| Deliverable                     | Impact     | Effort | Priority            |
+| ------------------------------- | ---------- | ------ | ------------------- |
+| D8: Memory injection            | Highest    | Medium | 1st                 |
+| D2: CLAUDE.md template          | Highest    | Low    | 1st                 |
+| D3: MODULES.md                  | High       | Low    | 1st                 |
+| D6: Decision tree               | High       | Low    | 1st                 |
+| D12: Retrofit installation      | High       | Medium | 1st (parallel w/D1) |
+| D4: Archetype templates         | High       | Medium | 2nd                 |
+| D5b: `intent audit quick`       | High       | Medium | 2nd                 |
+| D11: Dependency graph enforce   | High       | Low    | 2nd                 |
+| D7: `intent audit health`       | Medium     | Medium | 3rd                 |
+| D5a: Custom Credo checks        | Medium     | High   | 3rd                 |
+| D10: Learnings accumulator      | Medium     | Low    | 3rd                 |
+| D9: New module checklist        | Medium     | Medium | 4th                 |
+| D1: `intent init --with-st0000` | Integrator | Medium | Last (wraps D2-D12) |
