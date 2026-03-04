@@ -353,11 +353,38 @@ During development:
 | P2 thick coordinators | Archetype templates + decision tree + line threshold check | Module creation + audit |
 | P3 mechanical         | Custom Credo checks                                        | Every compile / CI      |
 
+### D13: Skill Rename (`intent-*` to `in-*`)
+
+Rename all existing Intent skills from the verbose `intent-*` prefix to the shorter `in-*` prefix. Typing `/intent-elixir-essentials` is tedious; `/in-elixir-essentials` is faster, memorable, and still clearly namespaced.
+
+| Current Name                 | New Name                 |
+| ---------------------------- | ------------------------ |
+| `intent-essentials`          | `in-essentials`          |
+| `intent-elixir-essentials`   | `in-elixir-essentials`   |
+| `intent-ash-ecto-essentials` | `in-ash-ecto-essentials` |
+| `intent-phoenix-liveview`    | `in-phoenix-liveview`    |
+| `intent-elixir-testing`      | `in-elixir-testing`      |
+| `intent-autopsy`             | `in-autopsy`             |
+
+### D14: Workflow Skills (5 new `/in-*` skills)
+
+Convert frequently used session management prompts (currently copy-pasted from an Emacs buffer) into proper skills:
+
+| Skill           | Purpose                                      | Type       |
+| --------------- | -------------------------------------------- | ---------- |
+| `/in-start`     | Session start: read context, review STs      | Procedural |
+| `/in-plan`      | Planning kickoff: workplan, enforce rules    | Procedural |
+| `/in-standards` | Coding standards: re-read rules, prime PFIC  | Procedural |
+| `/in-next`      | Next step: smallest coherent piece of work   | Procedural |
+| `/in-finish`    | Session finish: update docs, restart context | Procedural |
+
+These are **procedural** skills (step-by-step workflows invoked on demand), unlike the existing **enforcement** skills (always-on rules). Both types use the SKILL.md format.
+
 ## Non-Goals
 
 - This is NOT a full audit framework (that's TN004)
 - This is NOT a CI/CD integration (that's a follow-on)
-- This does NOT replace human judgement — it augments it with guardrails
+- This does NOT replace human judgement -- it augments it with guardrails
 
 ### D11: Umbrella Dependency Graph Enforcement
 
@@ -411,18 +438,36 @@ The retrofit process:
 
 ## Implementation Priority
 
-| Deliverable                     | Impact     | Effort | Priority            |
-| ------------------------------- | ---------- | ------ | ------------------- |
-| D8: Memory injection            | Highest    | Medium | 1st                 |
-| D2: CLAUDE.md template          | Highest    | Low    | 1st                 |
-| D3: MODULES.md                  | High       | Low    | 1st                 |
-| D6: Decision tree               | High       | Low    | 1st                 |
-| D12: Retrofit installation      | High       | Medium | 1st (parallel w/D1) |
-| D4: Archetype templates         | High       | Medium | 2nd                 |
-| D5b: `intent audit quick`       | High       | Medium | 2nd                 |
-| D11: Dependency graph enforce   | High       | Low    | 2nd                 |
-| D7: `intent audit health`       | Medium     | Medium | 3rd                 |
-| D5a: Custom Credo checks        | Medium     | High   | 3rd                 |
-| D10: Learnings accumulator      | Medium     | Low    | 3rd                 |
-| D9: New module checklist        | Medium     | Medium | 4th                 |
-| D1: `intent init --with-st0000` | Integrator | Medium | Last (wraps D2-D12) |
+| Deliverable                     | Impact     | Effort | Priority | WP    |
+| ------------------------------- | ---------- | ------ | -------- | ----- |
+| D13: Skill rename (in-\*)       | High       | Low    | 1st      | WP-01 |
+| D14: Workflow skills            | High       | Medium | 1st      | WP-02 |
+| D2: CLAUDE.md template          | Highest    | Low    | 1st      | WP-03 |
+| D3: MODULES.md                  | High       | Low    | 1st      | WP-03 |
+| D6: Decision tree               | High       | Low    | 1st      | WP-03 |
+| D8: Memory injection            | Highest    | Medium | 2nd      | WP-04 |
+| D4: Archetype templates         | High       | Medium | 2nd      | WP-05 |
+| D5a: Custom Credo checks        | Medium     | High   | 3rd      | WP-06 |
+| D5b: `intent audit quick`       | High       | Medium | 3rd      | WP-06 |
+| D7: `intent audit health`       | Medium     | Medium | 3rd      | WP-07 |
+| D10: Learnings accumulator      | Medium     | Low    | 3rd      | WP-07 |
+| D9: New module checklist        | Medium     | Medium | 4th      | WP-08 |
+| D11: Dependency graph enforce   | High       | Low    | 4th      | WP-08 |
+| D12: Retrofit installation      | High       | Medium | 5th      | WP-09 |
+| D1: `intent init --with-st0000` | Integrator | Medium | Last     | WP-10 |
+
+## Work Packages
+
+| WP    | Title                    | Deliverables | Dependencies        |
+| ----- | ------------------------ | ------------ | ------------------- |
+| WP-01 | Skill Rename             | D13          | None                |
+| WP-02 | Workflow Skills          | D14          | WP-01               |
+| WP-03 | LLM Templates            | D2, D3, D6   | None                |
+| WP-04 | Memory Injection         | D8           | WP-03, WP-05        |
+| WP-05 | Archetype Templates      | D4           | None                |
+| WP-06 | Automated Enforcement    | D5a, D5b     | WP-03               |
+| WP-07 | Health Check & Learnings | D7, D10      | WP-06               |
+| WP-08 | Guardrails               | D9, D11      | WP-03, WP-06        |
+| WP-09 | Retrofit Installation    | D12          | WP-03, WP-04, WP-06 |
+| WP-10 | Integrator Command       | D1           | All                 |
+| WP-11 | TN004 Tech Note          | --           | None                |
