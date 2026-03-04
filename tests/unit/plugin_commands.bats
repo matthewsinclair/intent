@@ -48,10 +48,11 @@ load "../lib/test_helper.bash"
   assert_output_contains "Plugin: claude"
   assert_output_contains "Version:"
   assert_output_contains "Description:"
-  assert_output_contains "Commands (3):"
+  assert_output_contains "Commands (4):"
   assert_output_contains "intent claude subagents"
   assert_output_contains "intent claude skills"
   assert_output_contains "intent claude upgrade"
+  assert_output_contains "intent claude prime"
 }
 
 @test "plugin show agents shows detailed info" {

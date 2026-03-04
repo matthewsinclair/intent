@@ -14,6 +14,10 @@
     {
       "syntax": "intent claude upgrade [--apply]",
       "description": "Diagnose and upgrade project LLM guidance files"
+    },
+    {
+      "syntax": "intent claude prime [--refresh] [--dry-run] [--from <project>]",
+      "description": "Pre-load Claude Code project memory with rules, modules, and operational knowledge"
     }
   ]
 }

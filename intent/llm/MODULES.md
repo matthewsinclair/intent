@@ -27,6 +27,7 @@
 | Subagent lifecycle    | `intent/plugins/claude/bin/intent_claude_subagents`  | install, sync, uninstall, show, status |
 | Skill lifecycle       | `intent/plugins/claude/bin/intent_claude_skills`     | install, sync, uninstall, show, list   |
 | Project upgrade       | `intent/plugins/claude/bin/intent_claude_upgrade`    | LLM guidance file upgrades             |
+| Memory injection      | `intent/plugins/claude/bin/intent_claude_prime`      | prime MEMORY.md with project knowledge |
 | Plugin shared library | `intent/plugins/claude/lib/claude_plugin_helpers.sh` | install/sync/uninstall/manifest logic  |
 
 ## Plugin: Agents
