@@ -1,0 +1,44 @@
+defmodule <%= @app_module %>.<%= @module_name %>Test do
+  @moduledoc false
+
+  use ExUnit.Case, async: true
+
+  alias <%= @app_module %>.<%= @module_name %>
+
+  describe "<%= Macro.underscore(@module_name) %>/1" do
+    setup do
+      # Setup test data here
+      {:ok, %{}}
+    end
+
+    test "succeeds with valid input", %{} do
+      # Arrange
+      input = %{}
+
+      # Act
+      result = <%= @module_name %>.call(input)
+
+      # Assert -- use STRONG assertions, not just assert/refute
+      assert {:ok, value} = result
+      assert value != nil
+    end
+
+    test "returns error with invalid input" do
+      # Arrange
+      input = nil
+
+      # Act
+      result = <%= @module_name %>.call(input)
+
+      # Assert
+      assert {:error, reason} = result
+      assert reason == :invalid_input
+    end
+  end
+
+  # DO NOT use:
+  # - assert true (vacuous)
+  # - Mocks when real modules work
+  # - Control flow (if/cond/case) in tests
+  # - Shared assertion helpers that hide what's being tested
+end

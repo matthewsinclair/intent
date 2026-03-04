@@ -1,14 +1,33 @@
 # [[PROJECT_NAME]] Project Guidelines
 
-This is an Intent v2.2.0 project.
+This is an Intent v[[INTENT_VERSION]] project.
+
+## Rules
+
+1. **The Highlander Rule**: There can be only one. Never duplicate code paths, modules, or logic for the same concern. Before creating anything new, check MODULES.md.
+2. **Thin controllers and LiveViews**: Business logic lives in service modules or Ash domains, never in controllers, LiveViews, or CLI commands.
+3. **Tagged tuples everywhere**: Functions return `{:ok, result}` or `{:error, reason}`. Never return bare values from fallible operations.
+4. **No silent failures**: Every error path must be handled explicitly. No bare `rescue`, no `catch-all` that swallows errors.
+5. **Check before you create**: Before creating a new module, check MODULES.md. If a module already owns that concern, use it.
+6. **Register before you code**: When you must create a new module, add it to MODULES.md FIRST, then create the file.
 
 ## Project Structure
 
 - `intent/` - Project artifacts (steel threads, docs, work tracking)
   - `st/` - Steel threads organized as directories
   - `docs/` - Technical documentation
-  - `llm/` - LLM-specific guidelines
+  - `llm/` - LLM-specific guidelines (MODULES.md, DECISION_TREE.md, ARCHETYPES.md)
 - `.intent/` - Configuration and metadata
+
+## Key Reference Files
+
+Read these on every session start and after every context reset:
+
+- `CLAUDE.md` (this file) - Project rules and structure
+- `intent/llm/MODULES.md` - Module registry (the Highlander enforcer)
+- `intent/llm/DECISION_TREE.md` - Where does this code belong?
+- `intent/wip.md` - Current work in progress
+- `intent/restart.md` - Session restart context (if exists)
 
 ## Steel Threads
 
@@ -20,80 +39,44 @@ Steel threads are organized as directories under `intent/st/`:
 
 ## Commands
 
+### Core Commands
+
 - `intent st new "Title"` - Create a new steel thread
 - `intent st list` - List all steel threads
 - `intent st show <id>` - Show steel thread details
 - `intent wp new <STID> "Title"` - Create a new work package
 - `intent wp list <STID>` - List work packages for a steel thread
+- `intent wp start <STID/NN>` - Mark work package as WIP
 - `intent wp done <STID/NN>` - Mark work package as Done
-- `intent agents init` - Initialize agent configuration
-- `intent agents list` - List available agents
-- `intent agents install <agent>` - Install an agent
 - `intent doctor` - Check configuration
 - `intent help` - Get help
 
-## Intent Agents
+### Claude Commands
 
-This project has access to specialized AI agents through Intent's agent system. These agents are Claude Code sub-agents with domain-specific expertise.
+- `intent claude subagents <command>` - Manage Claude subagents
+- `intent claude skills <command>` - Manage Claude skills
+- `intent claude prime` - Synthesize project knowledge into MEMORY.md
 
-### Available Agents
+## Session Workflow
 
-1. **intent** - Intent methodology specialist
-   - Steel thread management and best practices
-   - Intent command usage and workflows
-   - Project structure guidance
+### On session start
 
-2. **elixir** - Elixir code doctor
-   - Functional programming patterns
-   - Elixir Usage Rules and best practices
-   - Ash and Phoenix framework expertise
-   - Code review and optimization
+1. Read this file, MODULES.md, DECISION_TREE.md, wip.md, restart.md
+2. Understand current state before making any changes
+3. Ask clarifying questions if the task is ambiguous
 
-### Using Agents
+### Before creating code
 
-To delegate tasks to specialized agents, use the Task tool with the appropriate subagent_type:
+1. Check MODULES.md -- does a module already own this concern?
+2. Check DECISION_TREE.md -- where does this code belong?
+3. If creating a new module: register in MODULES.md first
 
-```
-Task(
-  description="Review Elixir code",
-  prompt="Review the authentication module for Usage Rules compliance",
-  subagent_type="elixir"
-)
-```
+### On session end
 
-### When to Use Agents
-
-**Use the intent agent for:**
-
-- Creating or managing steel threads
-- Understanding Intent project structure
-- Following Intent best practices
-
-**Use the elixir agent for:**
-
-- Writing idiomatic Elixir code
-- Reviewing code for Usage Rules
-- Ash/Phoenix implementation guidance
-- Functional programming patterns
-
-**Use main Claude for:**
-
-- General programming tasks
-- Cross-cutting concerns
-- Integration between systems
-- Tasks requiring broad context
-
-### Best Practices
-
-1. Delegate specialized tasks to appropriate agents
-2. Provide clear, focused prompts to agents
-3. Agents work best with specific, bounded tasks
-4. Consider using multiple agents for complex workflows
-
-## Project-Specific Guidelines
-
-[[Add your project-specific guidelines here]]
+1. Update intent/wip.md with current state
+2. Update intent/restart.md with context for next session
+3. Commit with descriptive message
 
 ## Author
 
-[[Your name]]
+[[AUTHOR]]

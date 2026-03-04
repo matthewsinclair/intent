@@ -1,0 +1,70 @@
+defmodule <%= @app_module %>Web.<%= @live_view_name %>Live do
+  @moduledoc """
+  LiveView for <%= String.downcase(@live_view_name) %>.
+
+  This LiveView is THIN: handle events delegate to service modules.
+  DO NOT put business logic here.
+  """
+
+  use <%= @app_module %>Web, :live_view
+
+  alias <%= @app_module %>.<%= @service_module %>
+
+  @impl true
+  def mount(_params, _session, socket) do
+    # Two-phase mount: only load data when connected
+    socket = assign(socket, loading: !connected?(socket), items: [])
+
+    if connected?(socket) do
+      {:ok, load_data(socket)}
+    else
+      {:ok, socket}
+    end
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  @impl true
+  def handle_event("save", %{"form" => params}, socket) do
+    # Delegate to service -- DO NOT put logic here
+    case <%= @service_module %>.create(params) do
+      {:ok, item} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Created successfully")
+         |> push_navigate(to: ~p"/<%= Macro.underscore(@live_view_name) %>s/#{item.id}")}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, changeset: changeset)}
+    end
+  end
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div>
+      <%= if @loading do %>
+        <p>Loading...</p>
+      <% else %>
+        <!-- Render content here -->
+      <% end %>
+    </div>
+    """
+  end
+
+  # Private helpers
+
+  defp load_data(socket) do
+    case <%= @service_module %>.list() do
+      {:ok, items} -> assign(socket, items: items, loading: false)
+      {:error, _reason} -> assign(socket, items: [], loading: false)
+    end
+  end
+
+  defp apply_action(socket, :index, _params) do
+    assign(socket, page_title: "<%= @live_view_name %>")
+  end
+end

@@ -1,0 +1,60 @@
+defmodule <%= @app_module %>.CLI.<%= @command_name %> do
+  @moduledoc """
+  CLI command for <%= String.downcase(@command_name) %>.
+
+  This command is THIN: parse args, call service, format output.
+  DO NOT put business logic here -- delegate to service modules.
+  """
+
+  alias <%= @app_module %>.<%= @service_module %>
+
+  @doc """
+  Runs the command with the given args.
+  """
+  @spec run(list(String.t())) :: :ok | {:error, term()}
+  def run(args) do
+    case parse_args(args) do
+      {:ok, opts} ->
+        execute(opts)
+
+      {:error, reason} ->
+        IO.puts(:stderr, "Error: #{reason}")
+        print_usage()
+        {:error, reason}
+    end
+  end
+
+  # Private helpers -- keep these minimal
+
+  defp parse_args(args) do
+    # Parse command-line arguments
+    # Return {:ok, opts} or {:error, reason}
+    {:ok, %{args: args}}
+  end
+
+  defp execute(opts) do
+    # Delegate to service module -- DO NOT put logic here
+    case <%= @service_module %>.run(opts) do
+      {:ok, result} ->
+        IO.puts(format_output(result))
+        :ok
+
+      {:error, reason} ->
+        IO.puts(:stderr, "Error: #{inspect(reason)}")
+        {:error, reason}
+    end
+  end
+
+  defp format_output(result) do
+    inspect(result, pretty: true)
+  end
+
+  defp print_usage do
+    IO.puts("""
+    Usage: <%= Macro.underscore(@command_name) %> [options]
+
+    Options:
+      --help    Show this help message
+    """)
+  end
+end

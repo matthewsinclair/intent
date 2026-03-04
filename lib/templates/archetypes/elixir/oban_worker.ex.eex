@@ -1,0 +1,26 @@
+defmodule <%= @app_module %>.Workers.<%= @worker_name %> do
+  @moduledoc """
+  Oban worker for <%= String.downcase(@worker_name) %> jobs.
+
+  This worker is THIN: delegate to service modules for actual logic.
+  DO NOT put business logic in perform/1.
+  """
+
+  use Oban.Worker,
+    queue: :<%= Macro.underscore(@worker_name) %>,
+    max_attempts: 3
+
+  alias <%= @app_module %>.<%= @service_module %>
+
+  @impl true
+  def perform(%Oban.Job{args: args}) do
+    # Delegate to service -- DO NOT put logic here
+    case <%= @service_module %>.process(args) do
+      {:ok, _result} ->
+        :ok
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+end
