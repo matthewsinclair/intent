@@ -25,7 +25,8 @@
       "Bash(git push:*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(wc:*)"
     ],
     "deny": []
   }
