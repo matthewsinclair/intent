@@ -734,8 +734,8 @@ intent claude skills <command> [options]
 
 **Available Skills:**
 
-| Name                         | Rules | Description                                    |
-| ---------------------------- | :---: | ---------------------------------------------- |
+| Name                     | Rules | Description                                    |
+| ------------------------ | :---: | ---------------------------------------------- |
 | `in-essentials`          |   7   | Intent workflow rules (CLI usage, conventions) |
 | `in-elixir-essentials`   |   8   | Core Elixir rules (pattern matching, pipes)    |
 | `in-ash-ecto-essentials` |   7   | Ash/Ecto rules (code interfaces, migrations)   |
