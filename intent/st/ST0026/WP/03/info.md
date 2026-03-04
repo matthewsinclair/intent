@@ -3,7 +3,7 @@ verblock: "04 Mar 2026:v0.1: matts - Initial version"
 wp_id: WP-03
 title: "LLM Templates (D2, D3, D6)"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-03: LLM Templates (D2, D3, D6)

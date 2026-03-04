@@ -903,14 +903,14 @@ Phase B batch 2 had one agent (B.2, helpers expansion) and the main session both
 ### Scale Comparison
 
 | Metric              | Example A (single-app) | Example B (umbrella) | Ratio |
-| ------------------- | ------------------ | ------------------ | ----- |
-| Files audited       | ~258               | ~724               | 2.8x  |
-| Violations found    | 408                | 389                | 0.95x |
-| WPs                 | 14 + 1             | 17 + 1             | 1.2x  |
-| New modules created | 12                 | ~30                | 2.5x  |
-| Test suite size     | ~600               | 3,912              | 6.5x  |
-| Wall clock (audit)  | ~4 hrs             | ~6 hrs             | 1.5x  |
-| Wall clock (fix)    | ~3 hrs             | ~2 hrs             | 0.67x |
+| ------------------- | ---------------------- | -------------------- | ----- |
+| Files audited       | ~258                   | ~724                 | 2.8x  |
+| Violations found    | 408                    | 389                  | 0.95x |
+| WPs                 | 14 + 1                 | 17 + 1               | 1.2x  |
+| New modules created | 12                     | ~30                  | 2.5x  |
+| Test suite size     | ~600                   | 3,912                | 6.5x  |
+| Wall clock (audit)  | ~4 hrs                 | ~6 hrs               | 1.5x  |
+| Wall clock (fix)    | ~3 hrs                 | ~2 hrs               | 0.67x |
 
 **Notable**: The umbrella project had FEWER violations despite being 2.8x larger, because it already had stronger architectural patterns (Ash resources, domain modules, shared helper layers). The violations it did have were more deeply embedded in LiveView and REPL layers — areas that grew organically with feature work.
 

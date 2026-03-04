@@ -3,7 +3,7 @@ verblock: "04 Mar 2026:v0.1: matts - Initial version"
 wp_id: WP-01
 title: "Skill Rename (intent-* to in-*)"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-01: Skill Rename (intent-_ to in-_)

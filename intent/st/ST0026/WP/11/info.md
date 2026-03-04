@@ -3,7 +3,7 @@ verblock: "04 Mar 2026:v0.1: matts - Initial version"
 wp_id: WP-11
 title: "TN004 Tech Note (Total Codebase Audit)"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-11: TN004 Tech Note (Total Codebase Audit)
@@ -20,7 +20,7 @@ The result should be a standalone tech note that any Intent-managed project can 
 
 ## Target
 
-`intent/docs/tn004-total-codebase-audit.md`
+`intent/docs/total-codebase-audit.md`
 
 ## What to Keep (as-is or lightly edited)
 
@@ -55,7 +55,7 @@ The result should be a standalone tech note that any Intent-managed project can 
 
 ## Acceptance Criteria
 
-- [ ] Tech note exists at `intent/docs/tn004-total-codebase-audit.md`
+- [ ] Tech note exists at `intent/docs/total-codebase-audit.md`
 - [ ] No references to laksa-web, Lamplight, ST0058, or ST0098 remain
 - [ ] Process is clearly described as applicable to any polyglot project
 - [ ] Cross-references to ST0026 deliverables are present
