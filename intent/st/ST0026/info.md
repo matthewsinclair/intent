@@ -19,14 +19,21 @@ The goal: make it structurally impossible (or at least very hard) for the violat
 
 ### The Problem
 
-In laksa-web (ST0058), a total codebase audit found 408 violations:
+Across two independent projects, total codebase audits found a combined **797 violations**:
 
+**laksa-web (ST0058)**: 408 violations in ~258 files
 - 7 P0 bugs/crash risks (bare `=` on fallible calls, `String.to_atom` on user input, etc.)
 - 14 P1 Highlander duplications (same logic in 2-12 places)
 - ~50 P2 thick coordinators (business logic in controllers/LiveViews/CLI commands)
 - ~337 P3 mechanical style violations (boolean operators, missing @impl, etc.)
 
-These accumulated over months of development. Each violation was individually small, but collectively they represented significant technical debt. The remediation (ST0058 Phase 4 + ST0060) took substantial effort.
+**Lamplight (ST0098)**: 389 violations in ~724 files (5-app umbrella)
+- P0 bugs: `String.to_atom` on LLM output, dependency graph violations, non-exhaustive `with`
+- 88 P1 Highlander duplications (23% of all violations — dominant issue)
+- 35 P2 thick coordinators (REPL commands, LiveViews with 50+ line handlers)
+- ~200 P3 mechanical style violations
+
+These accumulated over months of development. Each violation was individually small, but collectively they represented significant technical debt. The remediation took substantial effort (~5 hours per project).
 
 ### The Root Cause
 
@@ -39,15 +46,33 @@ The violations weren't caused by ignorance — the rules existed in `RULES.md`. 
 5. **No "where does this go?" guidance** — the decision of where to put logic was left to ad-hoc judgement
 6. **Session amnesia** — Claude Code lost learned patterns on every context reset, re-learning the same mistakes
 7. **No periodic health checks** — violations accumulated silently until the audit
+8. **No dependency graph enforcement** — umbrella apps allowed cross-app imports that violated the intended architecture (Lamplight-specific)
+9. **No trust-boundary awareness** — blanket safety rules (e.g., `String.to_existing_atom` everywhere) were applied without distinguishing controlled inputs from untrusted inputs (Lamplight-specific)
 
 ### The Solution: Prevention Over Remediation
 
 ST0000 addresses each root cause with a specific countermeasure, delivered as Intent infrastructure that applies to every new project.
 
+### Retrofit Requirement
+
+ST0000 must work in TWO modes:
+
+1. **Bootstrap mode**: `intent init --with-st0000` on a new project (greenfield)
+2. **Retrofit mode**: `intent st zero install` on an existing project (brownfield)
+
+Both laksa-web and Lamplight need retrofit installation. The retrofit process must:
+
+- Audit the existing codebase to populate `MODULES.md` from actual module usage (not from scratch)
+- Detect existing patterns (controller styles, service module conventions) and encode them rather than imposing new ones
+- Generate a gap analysis: "these countermeasures are already present, these are missing"
+- Be incremental — install one deliverable at a time, don't require big-bang adoption
+- Not break existing CLAUDE.md content — merge new rules alongside existing project-specific instructions
+
 ## Related Steel Threads
 
-- **laksa-web ST0058**: Total Codebase Audit (the audit that revealed the need)
-- **laksa-web ST0060**: P2 Thick Coordinator Extractions (the remediation)
+- **laksa-web ST0058**: Total Codebase Audit — 408 violations in a single Phoenix app
+- **laksa-web ST0060**: P2 Thick Coordinator Extractions
+- **Lamplight ST0098**: Total Codebase Audit — 389 violations in a 5-app umbrella
 - **TN004**: Total Codebase Audit process tech note
 
 ## Deliverables
@@ -332,25 +357,70 @@ During development:
 - This is NOT a CI/CD integration (that's a follow-on)
 - This does NOT replace human judgement — it augments it with guardrails
 
+### D11: Umbrella Dependency Graph Enforcement
+
+For umbrella/monorepo projects, enforce the intended dependency graph:
+
+```markdown
+## Dependency Graph
+
+| App        | May depend on   | Must NOT depend on        |
+| ---------- | --------------- | ------------------------- |
+| llclient   | (nothing)       | lamplight, frontdesk, ... |
+| lamplight  | (nothing)       | llclient, frontdesk, ...  |
+| frontdesk  | lamplight, llclient | storyfield, aigency   |
+| storyfield | lamplight, llclient | frontdesk, aigency    |
+| aigency    | (nothing)       | lamplight, llclient, ...  |
+```
+
+**Enforcement**: A check (Credo or `intent audit quick`) that scans `alias`/`import`/`use` statements and flags references to modules in apps that aren't in the dependency list. This catches violations like `lamplight` importing from `llclient` — which compile fine in dev (all apps loaded) but represent an architectural boundary violation.
+
+**Lesson from Lamplight**: `output.ex` (in lamplight) imported `Lamplight.Core.Client.Helpers` (in llclient). This compiled fine but violated the dependency graph. It was only caught by the human-level audit, not by any tooling.
+
+### D12: Retrofit Installation (`intent st zero install`)
+
+Install ST0000 countermeasures into an **existing** project that wasn't bootstrapped with them. This is the brownfield counterpart to D1's greenfield `intent init --with-st0000`.
+
+The retrofit process:
+
+1. **Audit existing state**: Scan the codebase to understand current patterns
+   - Discover existing modules and their responsibilities → populate `MODULES.md`
+   - Detect existing architectural patterns (controller styles, service conventions)
+   - Identify existing rules in CLAUDE.md that should be preserved
+2. **Gap analysis**: Compare what ST0000 provides vs what already exists
+   - "RULES.md exists but is missing R11, R14, R15"
+   - "MODULES.md doesn't exist — generating from codebase scan"
+   - "CLAUDE.md exists — merging new sections alongside existing content"
+3. **Incremental installation**: Install one deliverable at a time
+   - Each deliverable is independent — install D3 without D4 if desired
+   - Never overwrite existing content — merge or append
+   - Generate a diff for review before applying
+4. **Verification**: Run `intent audit quick` to validate the installation
+
+**Key constraint**: Retrofit must be non-destructive. An existing project with 6 months of CLAUDE.md customization must not have that wiped out. The command should generate proposed changes for human review, not apply them blindly.
+
 ## Success Criteria
 
 1. A new Intent project bootstrapped with `intent init --with-st0000` should have all countermeasures in place before the first feature commit
 2. Running `intent audit quick` on a freshly bootstrapped project should produce zero violations
 3. A Claude Code session on a primed project should never need to be told "check MODULES.md first" — it already knows
-4. After 3 months of development, running a full TN004 audit should find <50 violations (vs 408 in laksa-web)
+4. After 3 months of development, running a full TN004 audit should find <50 violations (vs 408 in laksa-web, 389 in Lamplight)
+5. `intent st zero install` on an existing project should produce a gap analysis and incremental installation plan without breaking existing configuration
 
 ## Implementation Priority
 
-| Deliverable                     | Impact     | Effort | Priority            |
-| ------------------------------- | ---------- | ------ | ------------------- |
-| D8: Memory injection            | Highest    | Medium | 1st                 |
-| D2: CLAUDE.md template          | Highest    | Low    | 1st                 |
-| D3: MODULES.md                  | High       | Low    | 1st                 |
-| D6: Decision tree               | High       | Low    | 1st                 |
-| D4: Archetype templates         | High       | Medium | 2nd                 |
-| D5b: `intent audit quick`       | High       | Medium | 2nd                 |
-| D7: `intent audit health`       | Medium     | Medium | 3rd                 |
-| D5a: Custom Credo checks        | Medium     | High   | 3rd                 |
-| D10: Learnings accumulator      | Medium     | Low    | 3rd                 |
-| D9: New module checklist        | Medium     | Medium | 4th                 |
-| D1: `intent init --with-st0000` | Integrator | Medium | Last (wraps D2-D10) |
+| Deliverable                      | Impact     | Effort | Priority            |
+| -------------------------------- | ---------- | ------ | ------------------- |
+| D8: Memory injection             | Highest    | Medium | 1st                 |
+| D2: CLAUDE.md template           | Highest    | Low    | 1st                 |
+| D3: MODULES.md                   | High       | Low    | 1st                 |
+| D6: Decision tree                | High       | Low    | 1st                 |
+| D12: Retrofit installation       | High       | Medium | 1st (parallel w/D1) |
+| D4: Archetype templates          | High       | Medium | 2nd                 |
+| D5b: `intent audit quick`        | High       | Medium | 2nd                 |
+| D11: Dependency graph enforce    | High       | Low    | 2nd                 |
+| D7: `intent audit health`        | Medium     | Medium | 3rd                 |
+| D5a: Custom Credo checks         | Medium     | High   | 3rd                 |
+| D10: Learnings accumulator       | Medium     | Low    | 3rd                 |
+| D9: New module checklist         | Medium     | Medium | 4th                 |
+| D1: `intent init --with-st0000`  | Integrator | Medium | Last (wraps D2-D12) |
