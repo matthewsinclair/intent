@@ -1,13 +1,32 @@
-# . Project Guidelines
+# Intent Project Guidelines
 
-This is an Intent v2.3.4 project (formerly STP).
+This is an Intent v2.5.0 project.
+
+## Rules
+
+1. **The Highlander Rule**: There can be only one. Never duplicate code paths, modules, or logic for the same concern. Before creating anything new, check MODULES.md.
+2. **Thin scripts**: Business logic lives in dedicated modules, not in command dispatch or inline heredocs.
+3. **No silent failures**: Every error path must be handled explicitly via `error()` from intent_helpers.
+4. **Check before you create**: Before creating a new script or function, check `intent/llm/MODULES.md`.
+5. **Register before you code**: When you must create a new module, add it to MODULES.md FIRST, then create the file.
+6. **Single template source**: All generated content comes from `lib/templates/` via sed substitution. No inline heredocs duplicating template content.
+
+## Key Reference Files
+
+Read these on every session start and after every context reset:
+
+- `CLAUDE.md` (this file)
+- `intent/llm/MODULES.md` - Module registry (the Highlander enforcer)
+- `intent/llm/DECISION_TREE.md` - Where does this code belong?
+- `intent/wip.md` - Current work in progress
+- `intent/restart.md` - Session restart context (if exists)
 
 ## Project Structure
 
 - `intent/` - Project artifacts (steel threads, docs, work tracking)
   - `st/` - Steel threads organized as directories
   - `docs/` - Technical documentation
-  - `llm/` - LLM-specific guidelines
+  - `llm/` - LLM-specific guidelines (MODULES.md, DECISION_TREE.md)
 - `.intent/` - Configuration and metadata
 
 ## Steel Threads
@@ -51,7 +70,7 @@ Steel threads are organized as directories under `intent/st/`:
 
 ## Migration Notes
 
-This project was migrated from STP to Intent v2.0.0 on 2025-07-16, upgraded to v2.1.0 on 2025-07-27, upgraded to v2.2.0 on 2025-08-05, and upgraded to v2.3.0 on 2025-08-20 with plugin architecture and AGENTS.md support.
+This project was migrated from STP to Intent v2.0.0 on 2025-07-16, through v2.1.0, v2.2.0, v2.3.0, and is now at v2.5.0.
 
 - Old structure: `stp/prj/st/`, `stp/eng/`, etc.
 - New structure: `intent/st/`, `intent/docs/`, etc.
