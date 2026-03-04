@@ -436,7 +436,7 @@ doctor_check() {
     OPTIONAL_STATUS="${OPTIONAL_STATUS}bats:OK "
   fi
   
-  # Check for elixir (for intent-autopsy skill)
+  # Check for elixir (for in-autopsy skill)
   if ! command -v elixir >/dev/null 2>&1; then
     MISSING_OPTIONAL="$MISSING_OPTIONAL elixir"
     OPTIONAL_STATUS="${OPTIONAL_STATUS}elixir:NOT_FOUND "
@@ -476,7 +476,7 @@ doctor_check() {
     fi
     
     if echo "$MISSING_OPTIONAL" | grep -q "elixir"; then
-      verbose "Elixir: Required for intent-autopsy session analysis"
+      verbose "Elixir: Required for in-autopsy session analysis"
       verbose "  macOS: brew install elixir"
       verbose "  Linux: See https://elixir-lang.org/install.html"
     fi

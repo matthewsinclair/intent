@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Tests for intent-autopsy skill and full directory install (ST0021)
+# Tests for in-autopsy skill and full directory install (ST0021)
 
 load "../lib/test_helper.bash"
 
@@ -33,43 +33,43 @@ teardown() {
 # Skill source existence
 # ====================================================================
 
-@test "intent-autopsy SKILL.md exists in source" {
-  assert_file_exists "${INTENT_HOME}/intent/plugins/claude/skills/intent-autopsy/SKILL.md"
+@test "in-autopsy SKILL.md exists in source" {
+  assert_file_exists "${INTENT_HOME}/intent/plugins/claude/skills/in-autopsy/SKILL.md"
 }
 
-@test "intent-autopsy scripts directory exists" {
-  assert_directory_exists "${INTENT_HOME}/intent/plugins/claude/skills/intent-autopsy/scripts"
+@test "in-autopsy scripts directory exists" {
+  assert_directory_exists "${INTENT_HOME}/intent/plugins/claude/skills/in-autopsy/scripts"
 }
 
-@test "intent-autopsy autopsy.exs exists" {
-  assert_file_exists "${INTENT_HOME}/intent/plugins/claude/skills/intent-autopsy/scripts/autopsy.exs"
+@test "in-autopsy autopsy.exs exists" {
+  assert_file_exists "${INTENT_HOME}/intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs"
 }
 
-@test "intent-autopsy banned-words.txt exists" {
-  assert_file_exists "${INTENT_HOME}/intent/plugins/claude/skills/intent-autopsy/scripts/banned-words.txt"
+@test "in-autopsy banned-words.txt exists" {
+  assert_file_exists "${INTENT_HOME}/intent/plugins/claude/skills/in-autopsy/scripts/banned-words.txt"
 }
 
-@test "intent-autopsy SKILL.md has frontmatter with description" {
-  run head -3 "${INTENT_HOME}/intent/plugins/claude/skills/intent-autopsy/SKILL.md"
+@test "in-autopsy SKILL.md has frontmatter with description" {
+  run head -3 "${INTENT_HOME}/intent/plugins/claude/skills/in-autopsy/SKILL.md"
   assert_success
   assert_output_contains "---"
   assert_output_contains "description:"
 }
 
 # ====================================================================
-# Skill list includes intent-autopsy
+# Skill list includes in-autopsy
 # ====================================================================
 
-@test "claude skills list shows intent-autopsy" {
+@test "claude skills list shows in-autopsy" {
   run run_intent claude skills list
   assert_success
-  assert_output_contains "intent-autopsy"
+  assert_output_contains "in-autopsy"
 }
 
-@test "claude skills list shows intent-autopsy as NOT INSTALLED" {
+@test "claude skills list shows in-autopsy as NOT INSTALLED" {
   run run_intent claude skills list
   assert_success
-  assert_output_contains "intent-autopsy"
+  assert_output_contains "in-autopsy"
   assert_output_contains "[NOT INSTALLED]"
 }
 
@@ -77,44 +77,44 @@ teardown() {
 # Full directory install
 # ====================================================================
 
-@test "claude skills install copies SKILL.md for intent-autopsy" {
-  run run_intent claude skills install intent-autopsy --force
+@test "claude skills install copies SKILL.md for in-autopsy" {
+  run run_intent claude skills install in-autopsy --force
   assert_success
-  assert_output_contains "Installing skill: intent-autopsy"
+  assert_output_contains "Installing skill: in-autopsy"
   assert_output_contains "Installed successfully"
-  assert_file_exists "$HOME/.claude/skills/intent-autopsy/SKILL.md"
+  assert_file_exists "$HOME/.claude/skills/in-autopsy/SKILL.md"
 }
 
-@test "claude skills install copies scripts directory for intent-autopsy" {
-  run run_intent claude skills install intent-autopsy --force
+@test "claude skills install copies scripts directory for in-autopsy" {
+  run run_intent claude skills install in-autopsy --force
   assert_success
-  assert_directory_exists "$HOME/.claude/skills/intent-autopsy/scripts"
-  assert_file_exists "$HOME/.claude/skills/intent-autopsy/scripts/autopsy.exs"
-  assert_file_exists "$HOME/.claude/skills/intent-autopsy/scripts/banned-words.txt"
+  assert_directory_exists "$HOME/.claude/skills/in-autopsy/scripts"
+  assert_file_exists "$HOME/.claude/skills/in-autopsy/scripts/autopsy.exs"
+  assert_file_exists "$HOME/.claude/skills/in-autopsy/scripts/banned-words.txt"
 }
 
-@test "claude skills install --all includes intent-autopsy with scripts" {
+@test "claude skills install --all includes in-autopsy with scripts" {
   run run_intent claude skills install --all --force
   assert_success
-  assert_output_contains "Installing skill: intent-autopsy"
-  assert_file_exists "$HOME/.claude/skills/intent-autopsy/SKILL.md"
-  assert_file_exists "$HOME/.claude/skills/intent-autopsy/scripts/autopsy.exs"
-  assert_file_exists "$HOME/.claude/skills/intent-autopsy/scripts/banned-words.txt"
+  assert_output_contains "Installing skill: in-autopsy"
+  assert_file_exists "$HOME/.claude/skills/in-autopsy/SKILL.md"
+  assert_file_exists "$HOME/.claude/skills/in-autopsy/scripts/autopsy.exs"
+  assert_file_exists "$HOME/.claude/skills/in-autopsy/scripts/banned-words.txt"
 }
 
 @test "existing skills still install correctly with directory copy" {
-  run run_intent claude skills install intent-essentials --force
+  run run_intent claude skills install in-essentials --force
   assert_success
-  assert_file_exists "$HOME/.claude/skills/intent-essentials/SKILL.md"
+  assert_file_exists "$HOME/.claude/skills/in-essentials/SKILL.md"
 }
 
-@test "intent-autopsy shows as INSTALLED after install" {
-  run run_intent claude skills install intent-autopsy --force
+@test "in-autopsy shows as INSTALLED after install" {
+  run run_intent claude skills install in-autopsy --force
   assert_success
 
   run run_intent claude skills list
   assert_success
-  assert_output_contains "intent-autopsy"
+  assert_output_contains "in-autopsy"
   assert_output_contains "[INSTALLED]"
 }
 
@@ -122,24 +122,24 @@ teardown() {
 # Sync with full directory
 # ====================================================================
 
-@test "claude skills sync updates intent-autopsy scripts" {
+@test "claude skills sync updates in-autopsy scripts" {
   # Install first
-  run run_intent claude skills install intent-autopsy --force
+  run run_intent claude skills install in-autopsy --force
   assert_success
 
   # Modify the installed script to simulate a change
-  echo "# modified" >> "$HOME/.claude/skills/intent-autopsy/scripts/autopsy.exs"
+  echo "# modified" >> "$HOME/.claude/skills/in-autopsy/scripts/autopsy.exs"
 
   # Modify source SKILL.md checksum by touching the installed one
-  echo "# checksum change" >> "$HOME/.claude/skills/intent-autopsy/SKILL.md"
+  echo "# checksum change" >> "$HOME/.claude/skills/in-autopsy/SKILL.md"
 
   # Sync should detect change and update
   run run_intent claude skills sync --force
   assert_success
-  assert_output_contains "intent-autopsy"
+  assert_output_contains "in-autopsy"
 
   # The modification to autopsy.exs should be overwritten
-  run grep "# modified" "$HOME/.claude/skills/intent-autopsy/scripts/autopsy.exs"
+  run grep "# modified" "$HOME/.claude/skills/in-autopsy/scripts/autopsy.exs"
   assert_failure
 }
 
@@ -147,16 +147,16 @@ teardown() {
 # Show command
 # ====================================================================
 
-@test "claude skills show displays intent-autopsy info" {
-  run run_intent claude skills show intent-autopsy
+@test "claude skills show displays in-autopsy info" {
+  run run_intent claude skills show in-autopsy
   assert_success
-  assert_output_contains "Skill: intent-autopsy"
+  assert_output_contains "Skill: in-autopsy"
   assert_output_contains "Description:"
   assert_output_contains "Content:"
 }
 
-@test "claude skills show intent-autopsy extracts description from frontmatter" {
-  run run_intent claude skills show intent-autopsy
+@test "claude skills show in-autopsy extracts description from frontmatter" {
+  run run_intent claude skills show in-autopsy
   assert_success
   assert_output_contains "Session forensics"
 }
@@ -165,20 +165,20 @@ teardown() {
 # Uninstall
 # ====================================================================
 
-@test "claude skills uninstall removes intent-autopsy completely" {
+@test "claude skills uninstall removes in-autopsy completely" {
   # Install first
-  run run_intent claude skills install intent-autopsy --force
+  run run_intent claude skills install in-autopsy --force
   assert_success
-  assert_file_exists "$HOME/.claude/skills/intent-autopsy/SKILL.md"
-  assert_file_exists "$HOME/.claude/skills/intent-autopsy/scripts/autopsy.exs"
+  assert_file_exists "$HOME/.claude/skills/in-autopsy/SKILL.md"
+  assert_file_exists "$HOME/.claude/skills/in-autopsy/scripts/autopsy.exs"
 
   # Uninstall
-  run run_intent claude skills uninstall intent-autopsy --force
+  run run_intent claude skills uninstall in-autopsy --force
   assert_success
   assert_output_contains "Removed successfully"
 
   # Verify entire directory is gone
-  [ ! -d "$HOME/.claude/skills/intent-autopsy" ] || fail "Skill directory should be removed"
+  [ ! -d "$HOME/.claude/skills/in-autopsy" ] || fail "Skill directory should be removed"
 }
 
 # ====================================================================
@@ -187,7 +187,7 @@ teardown() {
 
 @test "autopsy.exs --help shows usage" {
   skip_if_no_elixir
-  run elixir "${INTENT_HOME}/intent/plugins/claude/skills/intent-autopsy/scripts/autopsy.exs" --help
+  run elixir "${INTENT_HOME}/intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs" --help
   assert_success
   assert_output_contains "autopsy.exs"
   assert_output_contains "Usage:"
@@ -195,7 +195,7 @@ teardown() {
 }
 
 @test "banned-words.txt has expected format" {
-  local bw="${INTENT_HOME}/intent/plugins/claude/skills/intent-autopsy/scripts/banned-words.txt"
+  local bw="${INTENT_HOME}/intent/plugins/claude/skills/in-autopsy/scripts/banned-words.txt"
 
   # Should have pattern|label lines
   run grep "|" "$bw"
@@ -218,12 +218,12 @@ teardown() {
 # Full lifecycle
 # ====================================================================
 
-@test "intent-autopsy full lifecycle: install, sync, uninstall" {
+@test "in-autopsy full lifecycle: install, sync, uninstall" {
   # Install
-  run run_intent claude skills install intent-autopsy --force
+  run run_intent claude skills install in-autopsy --force
   assert_success
-  assert_file_exists "$HOME/.claude/skills/intent-autopsy/SKILL.md"
-  assert_file_exists "$HOME/.claude/skills/intent-autopsy/scripts/autopsy.exs"
+  assert_file_exists "$HOME/.claude/skills/in-autopsy/SKILL.md"
+  assert_file_exists "$HOME/.claude/skills/in-autopsy/scripts/autopsy.exs"
 
   # Sync (should be up to date)
   run run_intent claude skills sync
@@ -231,14 +231,14 @@ teardown() {
   assert_output_contains "Up to date"
 
   # Uninstall
-  run run_intent claude skills uninstall intent-autopsy --force
+  run run_intent claude skills uninstall in-autopsy --force
   assert_success
-  [ ! -d "$HOME/.claude/skills/intent-autopsy" ] || fail "Skill directory should be removed"
+  [ ! -d "$HOME/.claude/skills/in-autopsy" ] || fail "Skill directory should be removed"
 
   # List should show not installed
   run run_intent claude skills list
   assert_success
-  assert_output_contains "intent-autopsy"
+  assert_output_contains "in-autopsy"
   assert_output_contains "[NOT INSTALLED]"
 }
 

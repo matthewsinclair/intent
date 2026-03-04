@@ -67,7 +67,7 @@ intent claude subagents install --all
 intent claude skills list
 
 # Install a specific skill
-intent claude skills install intent-essentials
+intent claude skills install in-essentials
 
 # Check for LLM guidance upgrades
 intent claude upgrade

@@ -736,12 +736,12 @@ intent claude skills <command> [options]
 
 | Name                         | Rules | Description                                    |
 | ---------------------------- | :---: | ---------------------------------------------- |
-| `intent-essentials`          |   7   | Intent workflow rules (CLI usage, conventions) |
-| `intent-elixir-essentials`   |   8   | Core Elixir rules (pattern matching, pipes)    |
-| `intent-ash-ecto-essentials` |   7   | Ash/Ecto rules (code interfaces, migrations)   |
-| `intent-phoenix-liveview`    |   7   | LiveView rules (streams, two-phase mount)      |
-| `intent-elixir-testing`      |   8   | Test quality rules (strong assertions, specs)  |
-| `intent-autopsy`             |  --   | Session forensics and memory meta-learning     |
+| `in-essentials`          |   7   | Intent workflow rules (CLI usage, conventions) |
+| `in-elixir-essentials`   |   8   | Core Elixir rules (pattern matching, pipes)    |
+| `in-ash-ecto-essentials` |   7   | Ash/Ecto rules (code interfaces, migrations)   |
+| `in-phoenix-liveview`    |   7   | LiveView rules (streams, two-phase mount)      |
+| `in-elixir-testing`      |   8   | Test quality rules (strong assertions, specs)  |
+| `in-autopsy`             |  --   | Session forensics and memory meta-learning     |
 
 **Example:**
 
@@ -756,13 +756,13 @@ intent claude skills install --all
 intent claude skills sync
 
 # View skill content
-intent claude skills show intent-elixir-essentials
+intent claude skills show in-elixir-essentials
 ```
 
 **Plugin Location:** Skill definitions live in `intent/plugins/claude/skills/`.
 **Install Location:** Skills install to `~/.claude/skills/<name>/` (entire directory, including scripts).
 
-> **Note:** `intent-autopsy` requires Elixir. Run `intent doctor` to check prerequisites.
+> **Note:** `in-autopsy` requires Elixir. Run `intent doctor` to check prerequisites.
 
 #### `intent claude upgrade`
 
@@ -997,12 +997,12 @@ Intent/
 │       └── claude/        # Claude Code integration
 │           ├── bin/       # Plugin scripts
 │           ├── skills/    # Skill definitions
-│           │   ├── intent-essentials/
-│           │   ├── intent-elixir-essentials/
-│           │   ├── intent-ash-ecto-essentials/
-│           │   ├── intent-phoenix-liveview/
-│           │   ├── intent-elixir-testing/
-│           │   └── intent-autopsy/
+│           │   ├── in-essentials/
+│           │   ├── in-elixir-essentials/
+│           │   ├── in-ash-ecto-essentials/
+│           │   ├── in-phoenix-liveview/
+│           │   ├── in-elixir-testing/
+│           │   └── in-autopsy/
 │           │       ├── SKILL.md
 │           │       └── scripts/
 │           │           ├── autopsy.exs

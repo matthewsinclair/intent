@@ -22,7 +22,7 @@ Ask the user:
 The script lives alongside this SKILL.md:
 
 ```bash
-elixir "$(dirname "$(find ~/.claude/skills/intent-autopsy -name autopsy.exs 2>/dev/null | head -1)")/autopsy.exs" \
+elixir "$(dirname "$(find ~/.claude/skills/in-autopsy -name autopsy.exs 2>/dev/null | head -1)")/autopsy.exs" \
   --days 7 \
   -o /tmp/autopsy-findings.json
 ```

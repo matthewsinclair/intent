@@ -153,18 +153,18 @@ Subagents install to `~/.claude/agents/<name>.md`. They run in separate context 
 intent claude skills list
 
 # Install a skill
-intent claude skills install intent-essentials
-intent claude skills install intent-elixir-essentials
+intent claude skills install in-essentials
+intent claude skills install in-elixir-essentials
 intent claude skills install --all
 
 # Update installed skills to latest versions
 intent claude skills sync
 
 # Remove a skill
-intent claude skills uninstall intent-elixir-essentials
+intent claude skills uninstall in-elixir-essentials
 
 # Show skill details
-intent claude skills show intent-elixir-essentials
+intent claude skills show in-elixir-essentials
 ```
 
 Skills install to `~/.claude/skills/<name>/SKILL.md`. They load into every Claude Code session automatically, shaping code as it is generated.

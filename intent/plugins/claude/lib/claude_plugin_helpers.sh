@@ -228,6 +228,19 @@ plugin_sync() {
     source_file=$(plugin_get_source_file "$name")
 
     if [ ! -f "$source_file" ]; then
+      # Check for renamed skill (intent-* -> in-*)
+      local new_name="${name/#intent-/in-}"
+      local new_source
+      new_source=$(plugin_get_source_file "$new_name")
+      if [ "$new_name" != "$name" ] && [ -f "$new_source" ]; then
+        echo "  Renamed: $name -> $new_name"
+        plugin_remove_target "$name"
+        plugin_remove_from_manifest "$name"
+        plugin_copy_to_target "$new_name"
+        plugin_update_manifest "$new_name" "$new_source"
+        ((updated_count++))
+        continue
+      fi
       echo "  Error: Source file not found: $source_file"
       ((failed_count++))
       continue

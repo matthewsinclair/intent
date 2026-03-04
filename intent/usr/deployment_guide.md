@@ -26,7 +26,7 @@ This deployment guide provides instructions for deploying the Intent v2.4.0 syst
 - Git (optional, for version control)
 - jq (required for JSON config parsing and agent management)
 - Text editor with markdown support
-- Elixir (optional, required for `intent-autopsy` session analysis skill)
+- Elixir (optional, required for `in-autopsy` session analysis skill)
 
 ### Installation Methods
 
@@ -201,9 +201,9 @@ Intent v2.4.0 integrates with Claude Code through a three-layer system:
    intent claude skills install --all
 
    # Or install individually
-   intent claude skills install intent-elixir-essentials
-   intent claude skills install intent-ash-ecto-essentials
-   intent claude skills install intent-phoenix-liveview
+   intent claude skills install in-elixir-essentials
+   intent claude skills install in-ash-ecto-essentials
+   intent claude skills install in-phoenix-liveview
    ```
 
 3. **Claude Subagents** — Specialized agents for deep review:
@@ -408,11 +408,11 @@ intent/plugins/
     │   ├── intent_claude_subagents
     │   └── intent_claude_skills
     ├── skills/          # Skill definitions
-    │   ├── intent-essentials/
-    │   ├── intent-elixir-essentials/
-    │   ├── intent-elixir-testing/
-    │   ├── intent-ash-ecto-essentials/
-    │   └── intent-phoenix-liveview/
+    │   ├── in-essentials/
+    │   ├── in-elixir-essentials/
+    │   ├── in-elixir-testing/
+    │   ├── in-ash-ecto-essentials/
+    │   └── in-phoenix-liveview/
     └── subagents/       # Subagent definitions
         ├── intent/
         ├── elixir/
@@ -481,26 +481,26 @@ intent claude skills list
 intent claude skills install --all
 
 # Install individually
-intent claude skills install intent-elixir-essentials
-intent claude skills install intent-ash-ecto-essentials
-intent claude skills install intent-phoenix-liveview
+intent claude skills install in-elixir-essentials
+intent claude skills install in-ash-ecto-essentials
+intent claude skills install in-phoenix-liveview
 
 # Check installation status
-intent claude skills show intent-elixir-essentials
+intent claude skills show in-elixir-essentials
 ```
 
 Available skills:
 
 | Skill                      | Purpose                                    |
 | -------------------------- | ------------------------------------------ |
-| intent-essentials          | Intent workflow rules (7 mandatory)        |
-| intent-elixir-essentials   | Core Elixir coding rules (8 mandatory)     |
-| intent-elixir-testing      | Elixir test quality rules (8 mandatory)    |
-| intent-ash-ecto-essentials | Ash/Ecto database patterns (7 mandatory)   |
-| intent-phoenix-liveview    | LiveView patterns and rules (7 mandatory)  |
-| intent-autopsy             | Session forensics and memory meta-learning |
+| in-essentials          | Intent workflow rules (7 mandatory)        |
+| in-elixir-essentials   | Core Elixir coding rules (8 mandatory)     |
+| in-elixir-testing      | Elixir test quality rules (8 mandatory)    |
+| in-ash-ecto-essentials | Ash/Ecto database patterns (7 mandatory)   |
+| in-phoenix-liveview    | LiveView patterns and rules (7 mandatory)  |
+| in-autopsy             | Session forensics and memory meta-learning |
 
-> **Note:** `intent-autopsy` requires Elixir. Run `intent doctor` to verify prerequisites.
+> **Note:** `in-autopsy` requires Elixir. Run `intent doctor` to verify prerequisites.
 
 ### Skill Maintenance
 
@@ -509,7 +509,7 @@ Available skills:
 intent claude skills sync
 
 # Uninstall a skill
-intent claude skills uninstall intent-elixir-essentials
+intent claude skills uninstall in-elixir-essentials
 
 # Uninstall all Intent-managed skills
 intent claude skills uninstall --all
