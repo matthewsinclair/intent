@@ -160,8 +160,8 @@ Each template includes:
 Programmatic enforcement of mechanical rules that can be checked statically:
 
 | Check                   | Rule | What it catches                                    |
-| ----------------------- | ---- | -------------------------------------------------- | --- | ------------------------------ |
-| `BooleanOperators`      | R8   | `&&`/`                                             |     | ` on known boolean expressions |
+| ----------------------- | ---- | -------------------------------------------------- |
+| `BooleanOperators`      | R8   | `&&`/`\|\| ` on known boolean expressions          |
 | `MissingImplAnnotation` | R11  | Behaviour callbacks without `@impl true`           |
 | `DebugArtifacts`        | R15  | `IO.inspect`, `IO.puts`, `dbg()` in lib/           |
 | `MapGetOnStruct`        | R7   | `Map.get(known_struct, :field)`                    |
