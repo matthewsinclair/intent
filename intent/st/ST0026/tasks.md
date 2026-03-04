@@ -134,7 +134,7 @@
 - [ ] Add Prerequisites section
 - [ ] Add cross-references to ST0026 deliverables
 - [ ] Drop project-specific appendix data
-- [ ] Place at `intent/docs/tn004-total-codebase-audit.md`
+- [ ] Place at `intent/docs/total-codebase-audit.md`
 
 ## Dependencies
 
