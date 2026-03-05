@@ -238,7 +238,7 @@ load "../lib/test_helper.bash"
 
   run run_intent audit health
   assert_success
-  assert_output_contains "[SKIP]"
+  assert_output_contains "[skip]"
 }
 
 @test "audit health with --report saves file" {

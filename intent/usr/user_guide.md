@@ -619,11 +619,11 @@ intent audit quick --fix
 Available rules:
 
 | Rule | Check                    | Description                               |
-| ---- | ------------------------ | ----------------------------------------- | --- | --------------------- |
+| ---- | ------------------------ | ----------------------------------------- |
 | R2   | Thick coordinator        | Controllers/LiveViews with business logic |
 | R6   | Highlander suspect       | Potential code duplication                |
 | R7   | Map.get on struct        | Unsafe struct field access                |
-| R8   | Boolean operators        | `&&`/`                                    |     | `instead of`and`/`or` |
+| R8   | Boolean operators        | `&&`/`\|\|` instead of `and`/`or`         |
 | R11  | Missing @impl annotation | Callback without @impl true               |
 | R15  | Debug artifacts          | IO.inspect, dbg() left in code            |
 | D11  | Dependency graph         | Cross-app dependency violations           |

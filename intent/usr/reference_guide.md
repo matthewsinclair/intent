@@ -834,15 +834,15 @@ Runs custom Credo checks against the project.
 
 **Available Rules:**
 
-| Rule | Template                     | Description                     |
-| ---- | ---------------------------- | ------------------------------- | --- | --------------------- |
-| R2   | `thick_coordinator.ex`       | Controllers with business logic |
-| R6   | `highlander_suspect.ex`      | Potential code duplication      |
-| R7   | `map_get_on_struct.ex`       | Unsafe struct field access      |
-| R8   | `boolean_operators.ex`       | `&&`/`                          |     | `instead of`and`/`or` |
-| R11  | `missing_impl_annotation.ex` | Callback without @impl true     |
-| R15  | `debug_artifacts.ex`         | IO.inspect, dbg() in code       |
-| D11  | `dependency_graph.ex`        | Cross-app dependency violations |
+| Rule | Template                     | Description                       |
+| ---- | ---------------------------- | --------------------------------- |
+| R2   | `thick_coordinator.ex`       | Controllers with business logic   |
+| R6   | `highlander_suspect.ex`      | Potential code duplication        |
+| R7   | `map_get_on_struct.ex`       | Unsafe struct field access        |
+| R8   | `boolean_operators.ex`       | `&&`/`\|\|` instead of `and`/`or` |
+| R11  | `missing_impl_annotation.ex` | Callback without @impl true       |
+| R15  | `debug_artifacts.ex`         | IO.inspect, dbg() in code         |
+| D11  | `dependency_graph.ex`        | Cross-app dependency violations   |
 
 `intent audit health`
 

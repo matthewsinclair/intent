@@ -339,7 +339,7 @@ check_modules_coverage() {
   fi
 
   if [ -z "$modules_file" ]; then
-    echo "  [SKIP] No MODULES.md found"
+    echo "  [skip] No MODULES.md found"
     return 0
   fi
 
@@ -352,7 +352,7 @@ check_modules_coverage() {
   fi
 
   if [ -z "$files_to_check" ]; then
-    echo "  [PASS] No lib/*.ex files to check"
+    echo "  [ok] No lib/*.ex files to check"
     return 0
   fi
 
@@ -370,9 +370,9 @@ check_modules_coverage() {
   done <<< "$files_to_check"
 
   if [ "$issues" -gt 0 ]; then
-    echo "  [WARN] $issues module(s) not in MODULES.md:$(echo -e "$unregistered")"
+    echo "  [warn] $issues module(s) not in MODULES.md:$(echo -e "$unregistered")"
   else
-    echo "  [PASS] All modules registered in MODULES.md"
+    echo "  [ok] All modules registered in MODULES.md"
   fi
 
   return $issues
@@ -392,7 +392,7 @@ check_thick_coordinators() {
   fi
 
   if [ -z "$files_to_check" ]; then
-    echo "  [PASS] No lib/*.ex files to check"
+    echo "  [ok] No lib/*.ex files to check"
     return 0
   fi
 
@@ -411,9 +411,9 @@ check_thick_coordinators() {
   done <<< "$files_to_check"
 
   if [ "$issues" -gt 0 ]; then
-    echo "  [WARN] $issues thick coordinator(s) (>$max_lines lines):$(echo -e "$thick")"
+    echo "  [warn] $issues thick coordinator(s) (>$max_lines lines):$(echo -e "$thick")"
   else
-    echo "  [PASS] No thick coordinators found"
+    echo "  [ok] No thick coordinators found"
   fi
 
   return $issues
@@ -432,7 +432,7 @@ check_highlander_suspects() {
   fi
 
   if [ -z "$files_to_check" ]; then
-    echo "  [PASS] No lib/*.ex files to check"
+    echo "  [ok] No lib/*.ex files to check"
     return 0
   fi
 
@@ -471,9 +471,9 @@ check_highlander_suspects() {
   rm -f "$defs_file"
 
   if [ "$issues" -gt 0 ]; then
-    echo "  [WARN] $issues Highlander suspect(s):$(echo -e "$duplicates")"
+    echo "  [warn] $issues Highlander suspect(s):$(echo -e "$duplicates")"
   else
-    echo "  [PASS] No Highlander suspects found"
+    echo "  [ok] No Highlander suspects found"
   fi
 
   return $issues
@@ -554,21 +554,21 @@ cmd_health() {
       local credo_exit=0
       credo_result=$(mix credo --strict --checks-dir "$CHECKS_TARGET_DIR" 2>&1) || credo_exit=$?
       if [ "$credo_exit" -eq 0 ]; then
-        report="$report  [PASS] Credo checks passed
+        report="$report  [ok] Credo checks passed
 "
       else
         local credo_issue_count
-        credo_issue_count=$(echo "$credo_result" | grep -cE '^\[' 2>/dev/null || echo "0")
-        report="$report  [WARN] Credo: $credo_issue_count issue(s) found
+        credo_issue_count=$(echo "$credo_result" | grep -cE '^\[' 2>/dev/null || true)
+        report="$report  [warn] Credo: $credo_issue_count issue(s) found
 "
         total_issues=$((total_issues + 1))
       fi
     else
-      report="$report  [SKIP] Credo not available
+      report="$report  [skip] Credo not available
 "
     fi
   else
-    report="$report  [SKIP] No lib/ directory (not an Elixir project?)
+    report="$report  [skip] No lib/ directory (not an Elixir project?)
 "
   fi
 
