@@ -109,6 +109,10 @@ case "$COMMAND" in
     COMMAND="wp"
     COMMAND_SCRIPT="intent_wp"
     ;;
+  audit)
+    COMMAND="audit"
+    COMMAND_SCRIPT="intent_audit"
+    ;;
   *)
     # Default: prefix with intent_
     COMMAND_SCRIPT="intent_$COMMAND"

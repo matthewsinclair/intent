@@ -1,0 +1,325 @@
+#!/bin/bash
+# intent_audit - Automated code quality checks for Elixir projects
+# Usage: intent audit <command> [options]
+
+# Exit on error
+set -e
+
+# Source shared helpers
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
+
+# Template source directory
+CHECKS_TEMPLATE_DIR="$INTENT_HOME/lib/templates/credo_checks/elixir"
+
+# Target directory in the project
+CHECKS_TARGET_DIR="lib/mix/checks"
+
+# Valid rules list
+VALID_RULES="R2 R6 R7 R8 R11 R15"
+
+# Rules that support auto-fix
+FIXABLE_RULES="R8 R11 R15"
+
+# ============================================================
+# Rule -> Template Mapping (bash 3.x compatible)
+# ============================================================
+
+get_rule_template() {
+  local rule="$1"
+  case "$rule" in
+    R2)  echo "thick_coordinator.ex" ;;
+    R6)  echo "highlander_suspect.ex" ;;
+    R7)  echo "map_get_on_struct.ex" ;;
+    R8)  echo "boolean_operators.ex" ;;
+    R11) echo "missing_impl_annotation.ex" ;;
+    R15) echo "debug_artifacts.ex" ;;
+    *)   return 1 ;;
+  esac
+}
+
+is_valid_rule() {
+  local rule="$1"
+  case "$rule" in
+    R2|R6|R7|R8|R11|R15) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# ============================================================
+# Usage
+# ============================================================
+
+usage() {
+  echo "Usage: intent audit <command> [options]"
+  echo ""
+  echo "Run automated code quality checks on Elixir projects."
+  echo ""
+  echo "Commands:"
+  echo "  quick              Run Credo with Intent custom checks"
+  echo "  help               Show this help"
+  echo ""
+  echo "Options (for quick):"
+  echo "  --rule RN          Run only the specified rule (R2, R6, R7, R8, R11, R15)"
+  echo "  --fix              Apply auto-fixes for fixable rules (R8, R11, R15)"
+  echo "  --json             Output results as JSON"
+  echo "  --checks-only      Only copy check templates, don't run credo"
+  echo ""
+  echo "Rules:"
+  echo "  R2   Thick coordinator (controllers/LiveViews exceeding line limit)"
+  echo "  R6   Highlander suspect (same function name in multiple modules)"
+  echo "  R7   Map.get on struct (use dot access instead)"
+  echo "  R8   Boolean operators (use and/or for booleans)"
+  echo "  R11  Missing @impl annotation on callbacks"
+  echo "  R15  Debug artifacts (IO.inspect, dbg, IO.puts in lib/)"
+  echo ""
+  echo "Examples:"
+  echo "  intent audit quick                  # Run all checks"
+  echo "  intent audit quick --rule R8        # Run only boolean operator check"
+  echo "  intent audit quick --fix            # Auto-fix fixable rules"
+  echo "  intent audit quick --json           # JSON output"
+  echo "  intent audit quick --checks-only    # Just install check templates"
+  exit 0
+}
+
+# ============================================================
+# Check Prerequisites
+# ============================================================
+
+require_mix_project() {
+  if [ ! -f "mix.exs" ]; then
+    error "No mix.exs found. The audit command requires an Elixir/Mix project."
+  fi
+}
+
+require_credo() {
+  if ! mix deps 2>/dev/null | grep -q "credo"; then
+    echo "Warning: Credo dependency not found in mix.exs." >&2
+    echo "" >&2
+    echo "Add {:credo, \"~> 1.7\", only: [:dev, :test], runtime: false} to your deps." >&2
+    echo "" >&2
+    return 1
+  fi
+  return 0
+}
+
+# ============================================================
+# Template Management
+# ============================================================
+
+# Copy check templates to project if missing
+ensure_checks_installed() {
+  local copied=0
+
+  if [ ! -d "$CHECKS_TEMPLATE_DIR" ]; then
+    error "Check templates not found at $CHECKS_TEMPLATE_DIR. Intent installation may be corrupted."
+  fi
+
+  # Create target directory if needed
+  if [ ! -d "$CHECKS_TARGET_DIR" ]; then
+    echo "Creating $CHECKS_TARGET_DIR/..."
+    mkdir -p "$CHECKS_TARGET_DIR"
+    copied=1
+  fi
+
+  # Copy any missing templates
+  for template in "$CHECKS_TEMPLATE_DIR"/*.ex; do
+    local basename
+    basename=$(basename "$template")
+    if [ ! -f "$CHECKS_TARGET_DIR/$basename" ]; then
+      cp "$template" "$CHECKS_TARGET_DIR/$basename"
+      echo "  Installed check: $basename"
+      copied=$((copied + 1))
+    fi
+  done
+
+  if [ "$copied" -gt 0 ]; then
+    echo "  $copied check(s) installed to $CHECKS_TARGET_DIR/"
+    echo ""
+  fi
+}
+
+# ============================================================
+# Credo Integration
+# ============================================================
+
+run_credo() {
+  local rule_filter="$1"
+  local json_mode="$2"
+  local fix_mode="$3"
+
+  local credo_args="--strict --checks-dir $CHECKS_TARGET_DIR"
+
+  # Filter to specific check if rule specified
+  if [ -n "$rule_filter" ]; then
+    local template_file
+    template_file=$(get_rule_template "$rule_filter") || {
+      error "Unknown rule: $rule_filter. Valid rules: $VALID_RULES"
+    }
+
+    # Extract module name from template file
+    local check_module
+    check_module=$(grep "^defmodule" "$CHECKS_TARGET_DIR/$template_file" 2>/dev/null | head -1 | sed 's/defmodule \(.*\) do/\1/')
+
+    if [ -n "$check_module" ]; then
+      credo_args="$credo_args --checks $check_module"
+    fi
+  fi
+
+  # JSON output mode
+  if [ "$json_mode" = "true" ]; then
+    credo_args="$credo_args --format json"
+  fi
+
+  echo "Running Credo with Intent checks..."
+  echo ""
+
+  # Run credo and capture output
+  local exit_code=0
+  local credo_output
+  credo_output=$(eval mix credo $credo_args 2>&1) || exit_code=$?
+
+  if [ "$json_mode" = "true" ]; then
+    echo "$credo_output"
+  else
+    format_report "$credo_output" "$exit_code" "$rule_filter" "$fix_mode"
+  fi
+
+  return $exit_code
+}
+
+# ============================================================
+# Report Formatting
+# ============================================================
+
+format_report() {
+  local credo_output="$1"
+  local exit_code="$2"
+  local rule_filter="$3"
+  local fix_mode="$4"
+
+  local width
+  width=$(get_terminal_width)
+  local separator
+  separator=$(printf '%*s' "$width" '' | tr ' ' '-')
+
+  echo "$separator"
+  echo "Intent Audit Report"
+  echo "$separator"
+  echo ""
+
+  if [ -n "$rule_filter" ]; then
+    echo "Rule filter: $rule_filter"
+    echo ""
+  fi
+
+  # Display credo output
+  echo "$credo_output"
+
+  echo ""
+  echo "$separator"
+
+  if [ "$exit_code" -eq 0 ]; then
+    echo "Result: PASS -- no issues found"
+  else
+    echo "Result: ISSUES FOUND"
+
+    if [ "$fix_mode" = "true" ]; then
+      echo ""
+      echo "Note: Auto-fix requested but Credo auto-fix requires manual application."
+      echo "Review the issues above and apply fixes as needed."
+    fi
+  fi
+
+  echo "$separator"
+}
+
+# ============================================================
+# Command: quick
+# ============================================================
+
+cmd_quick() {
+  local rule_filter=""
+  local json_mode="false"
+  local fix_mode="false"
+  local checks_only="false"
+
+  # Parse options
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --rule)
+        [ $# -lt 2 ] && error "Missing argument for --rule"
+        rule_filter="$2"
+        shift 2
+        ;;
+      --json)
+        json_mode="true"
+        shift
+        ;;
+      --fix)
+        fix_mode="true"
+        shift
+        ;;
+      --checks-only)
+        checks_only="true"
+        shift
+        ;;
+      *)
+        error "Unknown option: $1. Run 'intent audit help' for usage."
+        ;;
+    esac
+  done
+
+  # Validate rule if specified
+  if [ -n "$rule_filter" ]; then
+    local upper_rule
+    upper_rule=$(echo "$rule_filter" | tr '[:lower:]' '[:upper:]')
+    if ! is_valid_rule "$upper_rule"; then
+      error "Unknown rule: $rule_filter. Valid rules: $VALID_RULES"
+    fi
+    rule_filter="$upper_rule"
+  fi
+
+  # Require mix project
+  require_mix_project
+
+  # Install check templates
+  ensure_checks_installed
+
+  # If checks-only, we're done
+  if [ "$checks_only" = "true" ]; then
+    echo "Check templates installed. Run 'mix credo --checks-dir $CHECKS_TARGET_DIR' manually."
+    exit 0
+  fi
+
+  # Verify credo is available
+  if ! require_credo; then
+    exit 1
+  fi
+
+  # Run credo
+  run_credo "$rule_filter" "$json_mode" "$fix_mode"
+}
+
+# ============================================================
+# Main Dispatch
+# ============================================================
+
+if [ $# -eq 0 ]; then
+  usage
+fi
+
+SUBCOMMAND="$1"
+shift
+
+case "$SUBCOMMAND" in
+  quick)
+    cmd_quick "$@"
+    ;;
+  help|--help|-h)
+    usage
+    ;;
+  *)
+    error "Unknown audit command: $SUBCOMMAND. Run 'intent audit help' for usage."
+    ;;
+esac

@@ -791,6 +791,40 @@ needs_v2_5_0_upgrade() {
   esac
 }
 
+needs_v2_6_0_upgrade() {
+  local version=$1
+
+  case "$version" in
+    "2.0.0"|"2.1.0"|"2.2.0"|"2.2.1"|"2.3.0"|"2.3.1"|"2.3.2"|"2.3.3"|"2.3.4"|"2.4.0"|"2.5.0")
+      return 0  # Needs 2.6.0 upgrade
+      ;;
+    *)
+      return 1  # Already upgraded or different version
+      ;;
+  esac
+}
+
+# Migrate v2.5.0 to v2.6.0 - Automated enforcement (audit command)
+migrate_v2_5_0_to_v2_6_0() {
+  local project_root=$1
+
+  echo "Upgrading to Intent v2.6.0 (automated enforcement)..."
+
+  # Just stamp the version
+  if [ -f "$project_root/.intent/config.json" ]; then
+    local temp_file=$(mktemp)
+    jq --arg v "2.6.0" '.intent_version = $v | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
+    mv "$temp_file" "$project_root/.intent/config.json"
+  fi
+
+  echo "  Migration to v2.6.0 complete!"
+  echo ""
+  echo "  IMPORTANT CHANGES IN v2.6.0:"
+  echo "    - New 'intent audit quick' command for automated code quality checks"
+  echo "    - 6 custom Credo check templates (R2, R6, R7, R8, R11, R15)"
+  echo "    - Auto-copies check templates into target project on first run"
+}
+
 # Migrate v2.2.0 to v2.2.1
 migrate_v2_2_to_v2_2_1() {
   local project_root=$1

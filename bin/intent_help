@@ -60,6 +60,7 @@ Core:
   st               Manage steel threads
   wp               Manage work packages within steel threads
   agents           Manage AGENTS.md for projects
+  audit            Run automated code quality checks (Elixir)
   claude           Claude Code integration (subagents, skills, upgrade)
   plugin           Discover plugins and their commands
   doctor           Check and fix configuration
@@ -85,7 +86,7 @@ for script in "$INTENT_HOME"/bin/intent_*; do
     
     # Skip certain internal scripts and those manually listed above
     case "$cmd_name" in
-      config|helpers|main|agents|info|init|st|wp|doctor|upgrade|help|bootstrap|llm|organize|plugin) continue ;;
+      config|helpers|main|agents|info|init|st|wp|audit|doctor|upgrade|help|bootstrap|llm|organize|plugin) continue ;;
     esac
     
     # Construct help file path
