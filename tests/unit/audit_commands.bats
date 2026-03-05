@@ -96,6 +96,7 @@ load "../lib/test_helper.bash"
   [ -f "lib/mix/checks/map_get_on_struct.ex" ]
   [ -f "lib/mix/checks/thick_coordinator.ex" ]
   [ -f "lib/mix/checks/highlander_suspect.ex" ]
+  [ -f "lib/mix/checks/dependency_graph.ex" ]
 }
 
 @test "audit quick --checks-only is idempotent" {
@@ -179,10 +180,16 @@ load "../lib/test_helper.bash"
   done
 }
 
-@test "credo check templates have 6 files" {
+@test "credo check templates have 7 files" {
   local count
   count=$(ls -1 "$INTENT_HOME/lib/templates/credo_checks/elixir/"*.ex | wc -l | tr -d ' ')
-  [ "$count" -eq 6 ]
+  [ "$count" -eq 7 ]
+}
+
+@test "D11 dependency graph template exists" {
+  [ -f "$INTENT_HOME/lib/templates/credo_checks/elixir/dependency_graph.ex" ]
+  grep -q "defmodule Mix.Checks.DependencyGraph" "$INTENT_HOME/lib/templates/credo_checks/elixir/dependency_graph.ex"
+  grep -q "EX4007" "$INTENT_HOME/lib/templates/credo_checks/elixir/dependency_graph.ex"
 }
 
 # ============================================================
@@ -201,6 +208,7 @@ load "../lib/test_helper.bash"
   assert_output_contains "R8"
   assert_output_contains "R11"
   assert_output_contains "R15"
+  assert_output_contains "D11"
 }
 
 @test "audit requires project context" {
@@ -220,8 +228,8 @@ load "../lib/test_helper.bash"
 
   run run_intent audit health
   assert_success
-  assert_output_contains "Intent Health Check"
-  assert_output_contains "Result:"
+  assert_output_contains "health:"
+  assert_output_contains "ok: healthy"
 }
 
 @test "audit health shows SKIP when no lib/ directory" {
@@ -242,7 +250,7 @@ load "../lib/test_helper.bash"
 
   run run_intent audit health --report
   assert_success
-  assert_output_contains "Report saved to:"
+  assert_output_contains "saved:"
 
   # Check report file exists
   [ -d "intent/audit" ]

@@ -60,7 +60,7 @@ EOF
   run run_intent doctor
   assert_success
   # Should show it found a project needing upgrade
-  assert_output_contains "Intent Doctor"
+  assert_output_contains "doctor:"
 }
 
 @test "missing config shows appropriate error" {
@@ -70,5 +70,5 @@ EOF
   
   run run_intent st list
   assert_failure
-  assert_output_contains "Not in an Intent project directory"
+  assert_output_contains "not in an Intent project directory"
 }

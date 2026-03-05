@@ -326,7 +326,7 @@ EOF
   
   run run_intent st repair ST0001
   assert_success
-  assert_output_contains "Processing: ST0001"
+  assert_output_contains "checking: ST0001"
   assert_output_contains "Found malformed frontmatter"
   assert_output_contains "Would fix malformed frontmatter"
   # Note: When frontmatter is malformed, it doesn't have separate status field
@@ -402,9 +402,9 @@ EOF
   
   run run_intent st repair
   assert_success
-  assert_output_contains "Processing: ST0001"
+  assert_output_contains "checking: ST0001"
   assert_output_contains "Found legacy stp_version field"
-  assert_output_contains "Processing: ST0002"
+  assert_output_contains "checking: ST0002"
   assert_output_contains "Found conflicting status:"
   assert_output_contains "Dry run complete"
 }
@@ -550,7 +550,7 @@ EOF
   
   run run_intent st start ST0001
   assert_success
-  assert_output_contains "Steel thread is already in progress: ST0001: Already Active Thread"
+  assert_output_contains "skipped: ST0001 already in progress"
   
   # Thread should remain in main directory
   assert_directory_exists "intent/st/ST0001"

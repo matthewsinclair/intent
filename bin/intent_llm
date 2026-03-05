@@ -84,11 +84,11 @@ case "$SUBCOMMAND" in
           
           # Check if symlink already exists
           if [ -e "$SYMLINK_PATH" ]; then
-            echo "Warning: $SYMLINK_PATH already exists" >&2
+            echo "warning: $SYMLINK_PATH already exists" >&2
             read -p "Overwrite? (y/N) " -n 1 -r
             echo
             if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-              echo "Cancelled."
+              echo "cancelled"
               exit 0
             fi
             rm -f "$SYMLINK_PATH"
@@ -96,7 +96,7 @@ case "$SUBCOMMAND" in
           
           # Create the symlink
           ln -s "$USAGE_RULES_FILE" "$SYMLINK_PATH"
-          echo "Created symlink: $SYMLINK_PATH -> $USAGE_RULES_FILE"
+          echo "created: $SYMLINK_PATH -> $USAGE_RULES_FILE"
           ;;
           
         *)

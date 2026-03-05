@@ -167,7 +167,7 @@ load ../lib/test_helper
   
   run "${INTENT_BIN_DIR}/intent_fileindex" -v
   assert_success
-  assert_output_contains "Processing:"
+  assert_output_contains "checking:"
   assert_output_contains "Summary: Processed 2 files"
 }
 
@@ -255,7 +255,7 @@ load ../lib/test_helper
 @test "fileindex: handles non-existent directory" {
   run "${INTENT_BIN_DIR}/intent_fileindex" nonexistent
   assert_failure
-  assert_output_contains "Error: Directory 'nonexistent' does not exist"
+  assert_output_contains "error: Directory 'nonexistent' does not exist"
 }
 
 @test "fileindex: handles empty directory" {
@@ -368,7 +368,7 @@ load ../lib/test_helper
   
   run "${INTENT_BIN_DIR}/intent_fileindex" -X ./file1.ex
   assert_failure
-  assert_output_contains "Error: Toggle mode requires an index file"
+  assert_output_contains "error: Toggle mode requires an index file"
 }
 
 @test "fileindex: toggle with non-existent file" {
@@ -379,13 +379,13 @@ load ../lib/test_helper
   
   run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -X ./nonexistent.ex
   assert_failure
-  assert_output_contains "Error: File './nonexistent.ex' not found in index"
+  assert_output_contains "error: File './nonexistent.ex' not found in index"
 }
 
 @test "fileindex: toggle with non-existent index" {
   run "${INTENT_BIN_DIR}/intent_fileindex" -i nonexistent.index -X ./file.ex
   assert_failure
-  assert_output_contains "Error: Index file"
+  assert_output_contains "error: Index file"
   assert_output_contains "does not exist"
 }
 
@@ -465,7 +465,7 @@ load ../lib/test_helper
   
   run "${INTENT_BIN_DIR}/intent_fileindex" -C ./file1.ex
   assert_failure
-  assert_output_contains "Error: Check mode requires an index file"
+  assert_output_contains "error: Check mode requires an index file"
 }
 
 @test "fileindex: check with non-existent file" {
@@ -476,13 +476,13 @@ load ../lib/test_helper
   
   run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -C ./nonexistent.ex
   assert_failure
-  assert_output_contains "Error: File './nonexistent.ex' not found in index"
+  assert_output_contains "error: File './nonexistent.ex' not found in index"
 }
 
 @test "fileindex: check with non-existent index" {
   run "${INTENT_BIN_DIR}/intent_fileindex" -i nonexistent.index -C ./file.ex
   assert_failure
-  assert_output_contains "Error: Index file"
+  assert_output_contains "error: Index file"
   assert_output_contains "does not exist"
 }
 
@@ -542,7 +542,7 @@ load ../lib/test_helper
   
   run "${INTENT_BIN_DIR}/intent_fileindex" -U ./file1.ex
   assert_failure
-  assert_output_contains "Error: Uncheck mode requires an index file"
+  assert_output_contains "error: Uncheck mode requires an index file"
 }
 
 @test "fileindex: uncheck with non-existent file" {
@@ -553,13 +553,13 @@ load ../lib/test_helper
   
   run "${INTENT_BIN_DIR}/intent_fileindex" -i test.index -U ./nonexistent.ex
   assert_failure
-  assert_output_contains "Error: File './nonexistent.ex' not found in index"
+  assert_output_contains "error: File './nonexistent.ex' not found in index"
 }
 
 @test "fileindex: uncheck with non-existent index" {
   run "${INTENT_BIN_DIR}/intent_fileindex" -i nonexistent.index -U ./file.ex
   assert_failure
-  assert_output_contains "Error: Index file"
+  assert_output_contains "error: Index file"
   assert_output_contains "does not exist"
 }
 

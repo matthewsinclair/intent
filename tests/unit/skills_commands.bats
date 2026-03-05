@@ -104,17 +104,17 @@ teardown() {
 @test "claude skills install requires a skill name" {
   run run_intent claude skills install
   assert_failure
-  assert_output_contains "Error: No skill specified"
-  assert_output_contains "Usage: intent claude skills install"
+  assert_output_contains "error: no skill specified"
+  assert_output_contains "usage: intent claude skills install"
 }
 
 @test "claude skills install installs a single skill" {
   run run_intent claude skills install in-elixir-essentials --force
   assert_success
-  assert_output_contains "Installing skill: in-elixir-essentials"
-  assert_output_contains "Installed successfully"
-  assert_output_contains "Installation complete:"
-  assert_output_contains "Installed:"
+  assert_output_contains "installing: in-elixir-essentials"
+  assert_output_contains "installed"
+  assert_output_contains "ok:"
+  assert_output_contains "installed"
 
   # Verify the file was created
   assert_file_exists "$HOME/.claude/skills/in-elixir-essentials/SKILL.md"
@@ -123,8 +123,8 @@ teardown() {
 @test "claude skills install handles non-existent skill" {
   run run_intent claude skills install nonexistent
   assert_failure
-  assert_output_contains "Error: Skill 'nonexistent' not found"
-  assert_output_contains "Failed: 1"
+  assert_output_contains "error: 'nonexistent' not found"
+  assert_output_contains "failed"
 }
 
 @test "claude skills install prompts before overwriting" {
@@ -135,9 +135,9 @@ teardown() {
   # Try to install again, saying no to overwrite
   run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent claude skills install in-elixir-essentials"
   assert_success
-  assert_output_contains "Skill already exists"
-  assert_output_contains "Skipped"
-  assert_output_contains "Skipped: 1"
+  assert_output_contains "already exists"
+  assert_output_contains "skipped"
+  assert_output_contains "skipped"
 }
 
 @test "claude skills install can overwrite when confirmed" {
@@ -151,8 +151,8 @@ teardown() {
   # Try to install again, saying yes to overwrite
   run bash -c "echo 'y' | ${INTENT_BIN_DIR}/intent claude skills install in-elixir-essentials"
   assert_success
-  assert_output_contains "Skill already exists"
-  assert_output_contains "Installed successfully"
+  assert_output_contains "already exists"
+  assert_output_contains "installed"
 
   # Verify modification was overwritten
   run grep "# Modified" "$HOME/.claude/skills/in-elixir-essentials/SKILL.md"
@@ -162,10 +162,10 @@ teardown() {
 @test "claude skills install supports multiple skills" {
   run run_intent claude skills install in-elixir-essentials in-ash-ecto-essentials --force
   assert_success
-  assert_output_contains "Installing skill: in-elixir-essentials"
-  assert_output_contains "Installing skill: in-ash-ecto-essentials"
-  assert_output_contains "Installation complete:"
-  assert_output_contains "Installed:"
+  assert_output_contains "installing: in-elixir-essentials"
+  assert_output_contains "installing: in-ash-ecto-essentials"
+  assert_output_contains "ok:"
+  assert_output_contains "installed"
 
   # Verify both files exist
   assert_file_exists "$HOME/.claude/skills/in-elixir-essentials/SKILL.md"
@@ -175,11 +175,11 @@ teardown() {
 @test "claude skills install --all installs all available skills" {
   run run_intent claude skills install --all --force
   assert_success
-  assert_output_contains "Installing skill: in-essentials"
-  assert_output_contains "Installing skill: in-ash-ecto-essentials"
-  assert_output_contains "Installing skill: in-elixir-essentials"
-  assert_output_contains "Installing skill: in-phoenix-liveview"
-  assert_output_contains "Installation complete:"
+  assert_output_contains "installing: in-essentials"
+  assert_output_contains "installing: in-ash-ecto-essentials"
+  assert_output_contains "installing: in-elixir-essentials"
+  assert_output_contains "installing: in-phoenix-liveview"
+  assert_output_contains "ok:"
 
   # Verify all skills are installed
   assert_file_exists "$HOME/.claude/skills/in-essentials/SKILL.md"
@@ -234,8 +234,8 @@ teardown() {
 
   run run_intent claude skills sync
   assert_success
-  assert_output_contains "No installed skills found"
-  assert_output_contains "Use 'intent claude skills install'"
+  assert_output_contains "no installed skills found"
+  assert_output_contains "intent claude skills install"
 }
 
 @test "claude skills sync detects up-to-date skills" {
@@ -247,8 +247,8 @@ teardown() {
   run run_intent claude skills sync
   assert_success
   assert_output_contains "Checking skill: in-elixir-essentials"
-  assert_output_contains "Up to date"
-  assert_output_contains "Skipped: 1"
+  assert_output_contains "up to date"
+  assert_output_contains "skipped"
 }
 
 @test "claude skills sync detects local modifications" {
@@ -262,9 +262,9 @@ teardown() {
   # Sync should detect modification
   run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent claude skills sync"
   assert_success
-  assert_output_contains "Warning: Skill has been modified locally"
-  assert_output_contains "Overwrite local changes?"
-  assert_output_contains "Skipped"
+  assert_output_contains "warning: modified locally"
+  assert_output_contains "overwrite local changes?"
+  assert_output_contains "skipped"
 }
 
 @test "claude skills sync can force overwrite modifications" {
@@ -278,9 +278,9 @@ teardown() {
   # Force sync should overwrite
   run run_intent claude skills sync --force
   assert_success
-  assert_output_contains "Warning: Skill has been modified locally"
-  assert_output_contains "Overwriting local changes (--force)"
-  assert_output_contains "Updated successfully"
+  assert_output_contains "warning: modified locally"
+  assert_output_contains "overwriting local changes"
+  assert_output_contains "updated"
 
   # Verify modification was removed
   run grep "# Test modification" "$HOME/.claude/skills/in-elixir-essentials/SKILL.md"
@@ -305,7 +305,7 @@ teardown() {
   assert_success
   assert_output_contains "Checking skill: in-elixir-essentials"
   assert_output_contains "Checking skill: in-ash-ecto-essentials"
-  assert_output_contains "Up to date"
+  assert_output_contains "up to date"
 }
 
 @test "claude skills sync migrates renamed skills (intent-* to in-*)" {
@@ -337,7 +337,7 @@ EOF
   # Sync should detect the rename and migrate
   run run_intent claude skills sync
   assert_success
-  assert_output_contains "Renamed: intent-elixir-essentials -> in-elixir-essentials"
+  assert_output_contains "renamed: intent-elixir-essentials -> in-elixir-essentials"
 
   # Old directory should be gone, new one should exist
   [ ! -d "$HOME/.claude/skills/intent-elixir-essentials" ] || fail "Old skill directory should be removed"
@@ -356,7 +356,7 @@ EOF
 @test "claude skills uninstall requires a skill name" {
   run run_intent claude skills uninstall
   assert_failure
-  assert_output_contains "Error: No skill specified"
+  assert_output_contains "error: no skill specified"
   assert_output_contains "Usage: intent claude skills uninstall"
 }
 
@@ -368,9 +368,9 @@ EOF
   # Uninstall with force
   run run_intent claude skills uninstall in-elixir-essentials --force
   assert_success
-  assert_output_contains "Uninstalling skill: in-elixir-essentials"
-  assert_output_contains "Removed successfully"
-  assert_output_contains "Removed: 1"
+  assert_output_contains "removing: in-elixir-essentials"
+  assert_output_contains "removed"
+  assert_output_contains "removed"
 
   # Verify it's gone
   [ ! -d "$HOME/.claude/skills/in-elixir-essentials" ] || fail "Skill directory should have been removed"
@@ -384,10 +384,10 @@ EOF
   # Try to uninstall, saying no
   run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent claude skills uninstall in-elixir-essentials"
   assert_success
-  assert_output_contains "The following skills will be uninstalled:"
+  assert_output_contains "will remove:"
   assert_output_contains "- in-elixir-essentials"
   assert_output_contains "Continue?"
-  assert_output_contains "Cancelled"
+  assert_output_contains "cancelled"
 
   # Verify skill still exists
   assert_file_exists "$HOME/.claude/skills/in-elixir-essentials/SKILL.md"
@@ -396,9 +396,9 @@ EOF
 @test "claude skills uninstall handles non-existent skill" {
   run run_intent claude skills uninstall nonexistent --force
   assert_success
-  assert_output_contains "Uninstalling skill: nonexistent"
-  assert_output_contains "Skill not found"
-  assert_output_contains "Skipped: 1"
+  assert_output_contains "removing: nonexistent"
+  assert_output_contains "not found"
+  assert_output_contains "skipped"
 }
 
 @test "claude skills uninstall supports multiple skills" {
@@ -409,9 +409,9 @@ EOF
   # Uninstall both
   run run_intent claude skills uninstall in-elixir-essentials in-ash-ecto-essentials --force
   assert_success
-  assert_output_contains "Uninstalling skill: in-elixir-essentials"
-  assert_output_contains "Uninstalling skill: in-ash-ecto-essentials"
-  assert_output_contains "Removed: 2"
+  assert_output_contains "removing: in-elixir-essentials"
+  assert_output_contains "removing: in-ash-ecto-essentials"
+  assert_output_contains "2 removed"
 
   # Verify both are gone
   [ ! -d "$HOME/.claude/skills/in-elixir-essentials" ] || fail "Skill directory should have been removed"
@@ -426,9 +426,9 @@ EOF
   # Uninstall all
   run run_intent claude skills uninstall --all --force
   assert_success
-  assert_output_contains "Uninstalling skill: in-elixir-essentials"
-  assert_output_contains "Uninstalling skill: in-ash-ecto-essentials"
-  assert_output_contains "Removed: 2"
+  assert_output_contains "removing: in-elixir-essentials"
+  assert_output_contains "removing: in-ash-ecto-essentials"
+  assert_output_contains "2 removed"
 
   # Verify all are gone
   run run_intent claude skills list
@@ -461,7 +461,7 @@ EOF
 
   run run_intent claude skills uninstall --all
   assert_success
-  assert_output_contains "No installed skills found"
+  assert_output_contains "no installed skills found"
 }
 
 # ====================================================================
@@ -539,7 +539,7 @@ EOF
   # Sync (should be up to date)
   run run_intent claude skills sync
   assert_success
-  assert_output_contains "Up to date"
+  assert_output_contains "up to date"
 
   # Uninstall
   run run_intent claude skills uninstall in-elixir-essentials --force

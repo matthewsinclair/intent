@@ -76,6 +76,6 @@ teardown() {
   assert_success
   
   # Should see doctor output at the end
-  assert_output_contains "Intent Doctor"
-  assert_output_contains "Checking INTENT_HOME"
+  assert_output_contains "doctor:"
+  assert_output_contains "checking: intent_home"
 }

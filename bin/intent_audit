@@ -16,7 +16,7 @@ CHECKS_TEMPLATE_DIR="$INTENT_HOME/lib/templates/credo_checks/elixir"
 CHECKS_TARGET_DIR="lib/mix/checks"
 
 # Valid rules list
-VALID_RULES="R2 R6 R7 R8 R11 R15"
+VALID_RULES="R2 R6 R7 R8 R11 R15 D11"
 
 # Rules that support auto-fix
 FIXABLE_RULES="R8 R11 R15"
@@ -34,6 +34,7 @@ get_rule_template() {
     R8)  echo "boolean_operators.ex" ;;
     R11) echo "missing_impl_annotation.ex" ;;
     R15) echo "debug_artifacts.ex" ;;
+    D11) echo "dependency_graph.ex" ;;
     *)   return 1 ;;
   esac
 }
@@ -41,7 +42,7 @@ get_rule_template() {
 is_valid_rule() {
   local rule="$1"
   case "$rule" in
-    R2|R6|R7|R8|R11|R15) return 0 ;;
+    R2|R6|R7|R8|R11|R15|D11) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -61,7 +62,7 @@ usage() {
   echo "  help               Show this help"
   echo ""
   echo "Options (for quick):"
-  echo "  --rule RN          Run only the specified rule (R2, R6, R7, R8, R11, R15)"
+  echo "  --rule RN          Run only the specified rule (R2, R6, R7, R8, R11, R15, D11)"
   echo "  --fix              Apply auto-fixes for fixable rules (R8, R11, R15)"
   echo "  --json             Output results as JSON"
   echo "  --checks-only      Only copy check templates, don't run credo"
@@ -77,6 +78,7 @@ usage() {
   echo "  R8   Boolean operators (use and/or for booleans)"
   echo "  R11  Missing @impl annotation on callbacks"
   echo "  R15  Debug artifacts (IO.inspect, dbg, IO.puts in lib/)"
+  echo "  D11  Dependency graph (cross-app dependency enforcement)"
   echo ""
   echo "Examples:"
   echo "  intent audit quick                  # Run all checks"
@@ -102,10 +104,8 @@ require_mix_project() {
 
 require_credo() {
   if ! mix deps 2>/dev/null | grep -q "credo"; then
-    echo "Warning: Credo dependency not found in mix.exs." >&2
-    echo "" >&2
-    echo "Add {:credo, \"~> 1.7\", only: [:dev, :test], runtime: false} to your deps." >&2
-    echo "" >&2
+    echo "warning: credo dependency not found in mix.exs" >&2
+    echo "  hint: add {:credo, \"~> 1.7\", only: [:dev, :test], runtime: false} to deps" >&2
     return 1
   fi
   return 0
@@ -179,7 +179,7 @@ run_credo() {
     credo_args="$credo_args --format json"
   fi
 
-  echo "Running Credo with Intent checks..."
+  echo "running: credo with intent checks"
   echo ""
 
   # Run credo and capture output
@@ -206,40 +206,24 @@ format_report() {
   local rule_filter="$3"
   local fix_mode="$4"
 
-  local width
-  width=$(get_terminal_width)
-  local separator
-  separator=$(printf '%*s' "$width" '' | tr ' ' '-')
-
-  echo "$separator"
-  echo "Intent Audit Report"
-  echo "$separator"
-  echo ""
-
   if [ -n "$rule_filter" ]; then
-    echo "Rule filter: $rule_filter"
+    echo "  filter: $rule_filter"
     echo ""
   fi
 
   # Display credo output
   echo "$credo_output"
-
   echo ""
-  echo "$separator"
 
   if [ "$exit_code" -eq 0 ]; then
-    echo "Result: PASS -- no issues found"
+    echo "ok: no issues found"
   else
-    echo "Result: ISSUES FOUND"
+    echo "error: issues found"
 
     if [ "$fix_mode" = "true" ]; then
-      echo ""
-      echo "Note: Auto-fix requested but Credo auto-fix requires manual application."
-      echo "Review the issues above and apply fixes as needed."
+      echo "  hint: auto-fix requires manual application -- review issues above"
     fi
   fi
-
-  echo "$separator"
 }
 
 # ============================================================
@@ -516,10 +500,6 @@ cmd_health() {
     esac
   done
 
-  local width
-  width=$(get_terminal_width)
-  local separator
-  separator=$(printf '%*s' "$width" '' | tr ' ' '-')
   local date_str
   date_str=$(date +%Y-%m-%d)
   local project_name
@@ -529,28 +509,22 @@ cmd_health() {
   local report=""
   local total_issues=0
 
-  report="$separator
-Intent Health Check -- $project_name
-Date: $date_str
-$separator
+  report="health: $project_name ($date_str)
 "
 
   if [ "$diff_mode" = "true" ]; then
     if [ -f "$HEALTH_TIMESTAMP_FILE" ]; then
       local last_sha
       last_sha=$(cat "$HEALTH_TIMESTAMP_FILE")
-      report="$report
-Mode: diff (changes since $(echo "$last_sha" | cut -c1-8))
+      report="${report}  mode: diff (since $(echo "$last_sha" | cut -c1-8))
 "
     else
-      report="$report
-Mode: diff (no previous check -- scanning all files)
+      report="${report}  mode: diff (no previous check, scanning all)
 "
     fi
   fi
 
   report="$report
-Checks:
 "
 
   # 1. Check if lib/ exists (Elixir project)
@@ -590,27 +564,24 @@ Checks:
         total_issues=$((total_issues + 1))
       fi
     else
-      report="$report  [SKIP] Credo not available (no mix.exs or credo dependency)
+      report="$report  [SKIP] Credo not available
 "
     fi
   else
-    report="$report  [SKIP] No lib/ directory found (not an Elixir project?)
+    report="$report  [SKIP] No lib/ directory (not an Elixir project?)
 "
   fi
 
   report="$report
-$separator
 "
 
   if [ "$total_issues" -eq 0 ]; then
-    report="${report}Result: HEALTHY -- no issues found
+    report="${report}ok: healthy
 "
   else
-    report="${report}Result: $total_issues area(s) need attention
+    report="${report}warning: $total_issues area(s) need attention
 "
   fi
-
-  report="$report$separator"
 
   # Output report
   echo "$report"
@@ -621,8 +592,7 @@ $separator
     mkdir -p "$report_dir"
     local report_file="$report_dir/$(date +%Y%m%d)-health.md"
     echo "$report" > "$report_file"
-    echo ""
-    echo "Report saved to: $report_file"
+    echo "  saved: $report_file"
   fi
 
   # Update timestamp

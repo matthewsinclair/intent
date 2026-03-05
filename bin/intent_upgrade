@@ -85,19 +85,18 @@ echo ""
 
 # Check if already at target version
 if [ "$VERSION" = "$TARGET_VERSION" ]; then
-  echo "✓ Project is already at Intent v$TARGET_VERSION"
-  echo "  No upgrade needed."
+  echo "ok: already at intent v$TARGET_VERSION"
   exit 0
 fi
 
 # Determine if migration is needed
 if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION" && ! needs_v2_3_1_upgrade "$VERSION" && ! needs_v2_3_2_upgrade "$VERSION" && ! needs_v2_3_3_upgrade "$VERSION" && ! needs_v2_3_4_upgrade "$VERSION" && ! needs_v2_4_0_upgrade "$VERSION" && ! needs_v2_5_0_upgrade "$VERSION" && ! needs_v2_6_0_upgrade "$VERSION"; then
-  echo "✓ Project is already up to date at version $VERSION"
-  echo "  No upgrade path available from $VERSION to $TARGET_VERSION"
+  echo "ok: up to date at v$VERSION"
+  echo "  no upgrade path to $TARGET_VERSION"
   exit 0
 fi
 
-echo "→ Upgrade available: $VERSION → $TARGET_VERSION"
+echo "upgrading: $VERSION -> $TARGET_VERSION"
 
 # Create backup unless disabled
 if [ "$NO_BACKUP" != true ]; then
@@ -292,13 +291,8 @@ fi
 
 # Final message
 echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✓ Upgrade completed successfully!"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "ok: upgraded $VERSION -> $TARGET_VERSION"
 echo ""
-echo "Version upgraded: $VERSION → $TARGET_VERSION"
-echo ""
-echo "Summary of changes:"
 if [ "$VERSION" != "2.0.0" ]; then
   echo "- Directory structure migrated from stp/* to intent/*"
   echo "- Configuration converted from YAML to JSON"

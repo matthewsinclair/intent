@@ -100,23 +100,23 @@ fi
 # Status display functions
 show_ok() {
   if [ "$QUIET" != true ]; then
-    echo -e "${GREEN}OK${NC}"
+    echo -e "${GREEN}ok${NC}"
   fi
 }
 
 show_error() {
-  echo -e "${RED}ERROR${NC}: $1"
+  echo -e "${RED}error${NC}: $1"
   ((ERRORS++))
 }
 
 show_warning() {
-  echo -e "${YELLOW}WARNING${NC}: $1"
+  echo -e "${YELLOW}warning${NC}: $1"
   ((WARNINGS++))
 }
 
 show_fixed() {
   if [ "$FIX_MODE" = true ]; then
-    echo -e "  ${GREEN}FIXED${NC}: $1"
+    echo -e "  ${GREEN}fixed${NC}: $1"
     ((FIXED++))
   fi
 }
@@ -143,20 +143,19 @@ doctor_check() {
   fi
   
   if [ "$QUIET" != true ]; then
-    echo "Intent Doctor v$version"
-    echo "===================="
+    echo "doctor: intent v$version"
     echo ""
   fi
   
   # Check 1: INTENT_HOME
   if [ "$QUIET" != true ]; then
-    echo -n "Checking INTENT_HOME... "
+    echo -n "  checking: intent_home "
   fi
   
   if [ -z "$INTENT_HOME" ]; then
     show_error "Not set"
     if [ "$FIX_MODE" = true ]; then
-      echo "  FIX: Please run 'intent_bootstrap' to set up INTENT_HOME"
+      echo "  fix: Please run 'intent_bootstrap' to set up INTENT_HOME"
       echo "       Or set it manually: export INTENT_HOME=/path/to/intent"
     fi
   elif [ ! -d "$INTENT_HOME" ]; then
@@ -168,7 +167,7 @@ doctor_check() {
   
   # Check 2: Intent executable
   if [ "$QUIET" != true ]; then
-    echo -n "Checking intent executable... "
+    echo -n "  checking: intent executable "
   fi
   
   INTENT_FOUND=false
@@ -190,7 +189,7 @@ doctor_check() {
   
   # Check 3: Global config
   if [ "$QUIET" != true ]; then
-    echo -n "Checking global config... "
+    echo -n "  checking: global config "
   fi
   
   GLOBAL_CONFIG="$HOME/.config/intent/config.json"
@@ -217,7 +216,7 @@ doctor_check() {
           "$INTENT_HOME/bin/intent_bootstrap" --quiet
           show_fixed "Created new global config"
         else
-          echo "  FIX: Run 'intent_bootstrap' to create new config"
+          echo "  fix: Run 'intent_bootstrap' to create new config"
         fi
       fi
     fi
@@ -229,7 +228,7 @@ doctor_check() {
         "$INTENT_HOME/bin/intent_bootstrap" --quiet
         show_fixed "Created global config"
       else
-        echo "  FIX: Run 'intent_bootstrap' to create config"
+        echo "  fix: Run 'intent_bootstrap' to create config"
       fi
     else
       verbose "Run 'intent_bootstrap' to create global config"
@@ -239,7 +238,7 @@ doctor_check() {
   # Check 4: Local config (if in a project)
   if [ -n "$PROJECT_ROOT" ]; then
     if [ "$QUIET" != true ]; then
-      echo -n "Checking local config... "
+      echo -n "  checking: local config "
     fi
     
     LOCAL_CONFIG="$PROJECT_ROOT/.intent/config.json"
@@ -250,7 +249,7 @@ doctor_check() {
       else
         show_error "Invalid JSON syntax"
         if [ "$FIX_MODE" = true ]; then
-          echo "  FIX: Please fix JSON syntax in $LOCAL_CONFIG"
+          echo "  fix: Please fix JSON syntax in $LOCAL_CONFIG"
           echo "       Or remove it to use global config only"
         fi
       fi
@@ -274,7 +273,7 @@ doctor_check() {
     if [[ "$project_version" == "2.3"* ]]; then
       # Check for AGENTS.md
       if [ "$QUIET" != true ]; then
-        echo -n "Checking AGENTS.md... "
+        echo -n "  checking: agents.md "
       fi
       if [ -f "$PROJECT_ROOT/AGENTS.md" ] || [ -f "$PROJECT_ROOT/intent/llm/AGENTS.md" ]; then
         show_ok
@@ -283,7 +282,7 @@ doctor_check() {
         show_warning "Missing AGENTS.md"
         verbose "Run 'intent agents init' to create AGENTS.md"
         if [ "$FIX_MODE" = true ]; then
-          echo "  Creating AGENTS.md..."
+          echo "  creating: AGENTS.md"
           (cd "$PROJECT_ROOT" && intent agents init)
           show_fixed "Created AGENTS.md"
         fi
@@ -291,7 +290,7 @@ doctor_check() {
       
       # Check for plugins config
       if [ "$QUIET" != true ]; then
-        echo -n "Checking plugins config... "
+        echo -n "  checking: plugins config "
       fi
       if jq -e '.plugins' "$PROJECT_ROOT/.intent/config.json" >/dev/null 2>&1; then
         show_ok
@@ -312,7 +311,7 @@ doctor_check() {
   
   # Check 5: PATH
   if [ "$QUIET" != true ]; then
-    echo -n "Checking PATH... "
+    echo -n "  checking: path "
   fi
   
   if [ -n "$INTENT_HOME" ]; then
@@ -322,7 +321,7 @@ doctor_check() {
     else
       show_warning "$INTENT_HOME/bin not in PATH"
       if [ "$FIX_MODE" = true ]; then
-        echo "  FIX: Add to your shell configuration:"
+        echo "  fix: Add to your shell configuration:"
         echo "       export PATH=\"\$INTENT_HOME/bin:\$PATH\""
       fi
     fi
@@ -332,7 +331,7 @@ doctor_check() {
   
   # Check 6: Required tools
   if [ "$QUIET" != true ]; then
-    echo -n "Checking required tools... "
+    echo -n "  checking: required tools "
   fi
   
   # Define tool categories
@@ -400,7 +399,7 @@ doctor_check() {
   # Check 7: Core tools (non-blocking warnings)
   if [ "$VERBOSE" = true ]; then
     if [ "$QUIET" != true ]; then
-      echo -n "Checking core tools... "
+      echo -n "  checking: core tools "
     fi
     
     MISSING_CORE=""
@@ -422,7 +421,7 @@ doctor_check() {
   
   # Check 8: Optional tools
   if [ "$QUIET" != true ]; then
-    echo -n "Checking optional tools... "
+    echo -n "  checking: optional tools "
   fi
   
   MISSING_OPTIONAL=""
@@ -491,7 +490,7 @@ doctor_check() {
   # Check 9: File permissions
   if [ -n "$INTENT_HOME" ] && [ "$VERBOSE" = true ]; then
     if [ "$QUIET" != true ]; then
-      echo -n "Checking file permissions... "
+      echo -n "  checking: file permissions "
     fi
     
     PERM_ISSUES=false
@@ -515,7 +514,7 @@ doctor_check() {
   
   # Check 10: Agent system
   if [ "$QUIET" != true ]; then
-    echo -n "Checking agent system... "
+    echo -n "  checking: agent system "
   fi
   
   # Check for new plugin structure (v2.3.0+)
@@ -573,7 +572,7 @@ doctor_check() {
         else
           show_warning "Invalid agent manifest"
           if [ "$FIX_MODE" = true ]; then
-            echo "  FIX: Please reinstall Intent to fix agent manifest"
+            echo "  fix: Please reinstall Intent to fix agent manifest"
           fi
         fi
       fi
@@ -591,24 +590,19 @@ doctor_check() {
   # Summary
   if [ "$QUIET" != true ]; then
     echo ""
-    echo "Summary:"
-    echo "  Errors: $ERRORS"
-    echo "  Warnings: $WARNINGS"
-    if [ "$FIX_MODE" = true ]; then
-      echo "  Fixed: $FIXED"
-    fi
-    echo ""
-    
+
     if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
-      echo -e "${GREEN}✓ All checks passed!${NC}"
+      echo -e "${GREEN}ok${NC}: all checks passed"
     elif [ $ERRORS -eq 0 ]; then
-      echo -e "${YELLOW}⚠ Some warnings found but no errors${NC}"
+      echo -e "${YELLOW}warning${NC}: $WARNINGS warning(s), 0 errors"
     else
-      echo -e "${RED}✗ Issues found that need attention${NC}"
+      echo -e "${RED}error${NC}: $ERRORS error(s), $WARNINGS warning(s)"
       if [ "$FIX_MODE" != true ]; then
-        echo ""
-        echo "Run 'intent_doctor --fix' to attempt automatic fixes"
+        echo "  hint: run 'intent doctor --fix' to attempt automatic fixes"
       fi
+    fi
+    if [ "$FIX_MODE" = true ] && [ $FIXED -gt 0 ]; then
+      echo "  fixed: $FIXED issue(s)"
     fi
   fi
   

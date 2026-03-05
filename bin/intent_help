@@ -34,7 +34,7 @@ if [ $# -eq 1 ]; then
     # Check if command exists but doesn't have help
     COMMAND_SCRIPT="$INTENT_HOME/bin/intent_$COMMAND"
     if [ -f "$COMMAND_SCRIPT" ]; then
-      echo "No help available for command '$COMMAND'"
+      echo "no help available for '$COMMAND'"
       echo ""
       echo "Usage information may be available by running:"
       echo "  intent $COMMAND --help"
@@ -62,6 +62,7 @@ Core:
   agents           Manage AGENTS.md for projects
   audit            Run automated code quality checks (Elixir)
   learn            Capture project learnings for future sessions
+  modules          Module registry guardrails and enforcement
   claude           Claude Code integration (subagents, skills, upgrade)
   plugin           Discover plugins and their commands
   doctor           Check and fix configuration
@@ -87,7 +88,7 @@ for script in "$INTENT_HOME"/bin/intent_*; do
     
     # Skip certain internal scripts and those manually listed above
     case "$cmd_name" in
-      config|helpers|main|agents|info|init|st|wp|audit|learn|doctor|upgrade|help|bootstrap|llm|organize|plugin) continue ;;
+      config|helpers|main|agents|info|init|st|wp|audit|learn|modules|doctor|upgrade|help|bootstrap|llm|organize|plugin) continue ;;
     esac
     
     # Construct help file path

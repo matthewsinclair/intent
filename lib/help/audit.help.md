@@ -75,6 +75,7 @@ intent audit help
 | R8   | Boolean operators  | Readability | Yes      |
 | R11  | Missing @impl      | Readability | Yes      |
 | R15  | Debug artifacts    | Warning     | Yes      |
+| D11  | Dependency graph   | Design      | No       |
 
 ## Prerequisites
 

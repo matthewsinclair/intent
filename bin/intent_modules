@@ -1,0 +1,297 @@
+#!/bin/bash
+# intent_modules - Module registry guardrails and enforcement
+# Usage: intent modules <command> [options]
+
+# Exit on error
+set -e
+
+# Source shared helpers
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
+
+# MODULES.md location (relative to project root)
+MODULES_FILE="intent/llm/MODULES.md"
+
+# ============================================================
+# Usage
+# ============================================================
+
+usage() {
+  echo "Usage: intent modules <command> [options]"
+  echo ""
+  echo "Module registry guardrails and enforcement."
+  echo ""
+  echo "Commands:"
+  echo "  check              Compare MODULES.md registry against filesystem"
+  echo "  find <term>        Search MODULES.md for a term"
+  echo "  help               Show this help"
+  echo ""
+  echo "Options (for check):"
+  echo "  --register         Interactively register unregistered modules"
+  echo ""
+  echo "Exit codes (for check):"
+  echo "  0   Registry is clean (no issues)"
+  echo "  1   Issues found (unregistered or stale entries)"
+  echo ""
+  echo "Examples:"
+  echo "  intent modules check                # Check registry vs filesystem"
+  echo "  intent modules check --register     # Check and offer to register"
+  echo "  intent modules find helpers          # Search for 'helpers' in registry"
+  exit 0
+}
+
+# ============================================================
+# MODULES.md Parsing
+# ============================================================
+
+# Extract backtick-wrapped paths from MODULES.md table column 2/3
+parse_modules_registry() {
+  if [ ! -f "$MODULES_FILE" ]; then
+    error "No MODULES.md found at $MODULES_FILE"
+  fi
+
+  grep '|' "$MODULES_FILE" \
+    | grep -v '| Concern' \
+    | grep -v '| ---' \
+    | grep -v '^<!--' \
+    | awk -F'|' '{print $3}' \
+    | grep '`' \
+    | sed 's/.*`\([^`]*\)`.*/\1/' \
+    | sort
+}
+
+# ============================================================
+# Filesystem Scanning
+# ============================================================
+
+# Find project files that should be registered
+scan_project_files() {
+  local files=""
+
+  # Collect directory entries from MODULES.md (paths ending with /)
+  local registered_dirs=""
+  if [ -f "$MODULES_FILE" ]; then
+    registered_dirs=$(grep '|' "$MODULES_FILE" \
+      | grep -v '| Concern' \
+      | grep -v '| ---' \
+      | grep -v '^<!--' \
+      | awk -F'|' '{print $3}' \
+      | grep '`' \
+      | sed 's/.*`\([^`]*\)`.*/\1/' \
+      | grep '/$' || true)
+  fi
+
+  # bin/* scripts (intent_* pattern)
+  if [ -d "bin" ]; then
+    for f in bin/intent_*; do
+      [ -f "$f" ] && files="$files$f"$'\n'
+    done
+  fi
+
+  # lib/**/*.ex files (skip files under registered directories)
+  if [ -d "lib" ]; then
+    local ex_files
+    ex_files=$(find lib -name '*.ex' -type f 2>/dev/null | sort || true)
+    if [ -n "$ex_files" ]; then
+      while IFS= read -r f; do
+        [ -z "$f" ] && continue
+        local skip=false
+        while IFS= read -r dir; do
+          [ -z "$dir" ] && continue
+          case "$f" in
+            "$dir"*) skip=true; break ;;
+          esac
+        done <<< "$registered_dirs"
+        if [ "$skip" = false ]; then
+          files="$files$f"$'\n'
+        fi
+      done <<< "$ex_files"
+    fi
+  fi
+
+  # lib/**/*.sh files (skip files under registered directories)
+  if [ -d "lib" ]; then
+    local sh_files
+    sh_files=$(find lib -name '*.sh' -type f 2>/dev/null | sort || true)
+    if [ -n "$sh_files" ]; then
+      while IFS= read -r f; do
+        [ -z "$f" ] && continue
+        local skip=false
+        while IFS= read -r dir; do
+          [ -z "$dir" ] && continue
+          case "$f" in
+            "$dir"*) skip=true; break ;;
+          esac
+        done <<< "$registered_dirs"
+        if [ "$skip" = false ]; then
+          files="$files$f"$'\n'
+        fi
+      done <<< "$sh_files"
+    fi
+  fi
+
+  # intent/plugins/**/bin/* scripts
+  if [ -d "intent/plugins" ]; then
+    local plugin_scripts
+    plugin_scripts=$(find intent/plugins -path '*/bin/*' -type f 2>/dev/null | sort || true)
+    if [ -n "$plugin_scripts" ]; then
+      files="$files$plugin_scripts"$'\n'
+    fi
+  fi
+
+  # intent/plugins/**/lib/*.sh
+  if [ -d "intent/plugins" ]; then
+    local plugin_libs
+    plugin_libs=$(find intent/plugins -path '*/lib/*.sh' -type f 2>/dev/null | sort || true)
+    if [ -n "$plugin_libs" ]; then
+      files="$files$plugin_libs"$'\n'
+    fi
+  fi
+
+  echo "$files" | grep -v '^$' | sort -u
+}
+
+# ============================================================
+# Command: check
+# ============================================================
+
+cmd_check() {
+  local register_mode="false"
+
+  # Parse options
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --register)
+        register_mode="true"
+        shift
+        ;;
+      *)
+        error "Unknown option: $1. Run 'intent modules help' for usage."
+        ;;
+    esac
+  done
+
+  if [ ! -f "$MODULES_FILE" ]; then
+    error "No MODULES.md found at $MODULES_FILE. Is this an Intent project?"
+  fi
+
+  # Get registered paths and actual files
+  local registered
+  registered=$(parse_modules_registry)
+
+  local actual_files
+  actual_files=$(scan_project_files)
+
+  local issues=0
+  local unregistered_files=""
+  local stale_files=""
+
+  # Check for unregistered files (in filesystem but not in MODULES.md)
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    if ! echo "$registered" | grep -qF "$file"; then
+      unregistered_files="$unregistered_files$file"$'\n'
+      issues=$((issues + 1))
+    fi
+  done <<< "$actual_files"
+
+  # Check for stale entries (in MODULES.md but not in filesystem)
+  while IFS= read -r path; do
+    [ -z "$path" ] && continue
+    # Skip directory entries (ending with /)
+    case "$path" in
+      */) continue ;;
+    esac
+    if [ ! -e "$path" ]; then
+      stale_files="$stale_files$path"$'\n'
+      issues=$((issues + 1))
+    fi
+  done <<< "$registered"
+
+  # Report results
+  if [ -n "$unregistered_files" ]; then
+    echo "warning: unregistered files"
+    while IFS= read -r f; do
+      [ -z "$f" ] && continue
+      echo "  + $f"
+    done <<< "$unregistered_files"
+    echo ""
+  fi
+
+  if [ -n "$stale_files" ]; then
+    echo "warning: stale registry entries"
+    while IFS= read -r f; do
+      [ -z "$f" ] && continue
+      echo "  - $f"
+    done <<< "$stale_files"
+    echo ""
+  fi
+
+  if [ "$issues" -eq 0 ]; then
+    echo "ok: registry matches filesystem"
+    return 0
+  else
+    echo "error: $issues issue(s) found"
+
+    # Interactive registration
+    if [ "$register_mode" = "true" ] && [ -n "$unregistered_files" ]; then
+      echo ""
+      echo "hint: add these to $MODULES_FILE in the appropriate section"
+    fi
+
+    return 1
+  fi
+}
+
+# ============================================================
+# Command: find
+# ============================================================
+
+cmd_find() {
+  if [ $# -eq 0 ]; then
+    error "Missing search term. Usage: intent modules find <term>"
+  fi
+
+  local term="$1"
+
+  if [ ! -f "$MODULES_FILE" ]; then
+    error "No MODULES.md found at $MODULES_FILE. Is this an Intent project?"
+  fi
+
+  local results
+  results=$(grep -i "$term" "$MODULES_FILE" | grep '|' || true)
+
+  if [ -z "$results" ]; then
+    echo "no matches for '$term'"
+    return 1
+  fi
+
+  echo "$results"
+  return 0
+}
+
+# ============================================================
+# Main Dispatch
+# ============================================================
+
+if [ $# -eq 0 ]; then
+  usage
+fi
+
+SUBCOMMAND="$1"
+shift
+
+case "$SUBCOMMAND" in
+  check)
+    cmd_check "$@"
+    ;;
+  find)
+    cmd_find "$@"
+    ;;
+  help|--help|-h)
+    usage
+    ;;
+  *)
+    error "Unknown modules command: $SUBCOMMAND. Run 'intent modules help' for usage."
+    ;;
+esac
