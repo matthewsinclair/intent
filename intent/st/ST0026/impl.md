@@ -15,7 +15,7 @@ Phase 1 (WP-01 through WP-05 + WP-11) complete. Phase 2 in progress: WP-06 done.
 | 5     | WP-04 | Memory Injection         | D8           | Done        |
 | 6     | WP-11 | TN004 Tech Note          | --           | Done        |
 | 7     | WP-06 | Automated Enforcement    | D5a, D5b     | Done        |
-| 8     | WP-07 | Health Check & Learnings | D7, D10      | Not Started |
+| 8     | WP-07 | Health Check & Learnings | D7, D10      | Done        |
 | 9     | WP-08 | Guardrails               | D9, D11      | Not Started |
 | 10    | WP-09 | Retrofit Installation    | D12          | Not Started |
 | 11    | WP-10 | Integrator Command       | D1           | Not Started |
@@ -162,6 +162,29 @@ Added v2.5.0->v2.6.0 upgrade path (version-stamp-only, no directory creation).
 
 **Commit:** `3aa8aa6 ST0026/WP-06: audit command and Credo check templates`
 
+### WP-07: Health Check & Learnings (Done)
+
+Created `bin/intent_learn` (~170 lines) for capturing project learnings with 3 categories (footgun/worked/failed). Learnings stored in `.intent/learnings.md` with date-prefixed entries under section headers. Already integrated with `intent claude prime` (reads `.intent/learnings.md` at line 134).
+
+Added `cmd_health()` to `bin/intent_audit` (~200 lines added, total ~500 lines). Health check runs 4 checks: MODULES.md coverage, thick coordinators, Highlander suspects, and Credo status. Supports `--report` (save markdown to `intent/audit/YYYYMMDD-health.md`), `--diff` (git-based changed files only), and timestamp tracking in `.intent/last-health-check`.
+
+**Files created (3):**
+
+- `bin/intent_learn` -- learn command (footgun/worked/failed categories)
+- `lib/help/learn.help.md` -- help file
+- `tests/unit/learn_commands.bats` -- 18 tests
+
+**Files modified (6):**
+
+- `bin/intent_audit` -- added `cmd_health()` + 4 health check functions
+- `lib/help/audit.help.md` -- added health subcommand docs
+- `bin/intent` -- learn dispatch case
+- `bin/intent_help` -- learn in help display + skip list
+- `intent/llm/MODULES.md` -- registered learn command + tests
+- `tests/unit/audit_commands.bats` -- 7 additional health tests (17->24)
+
+**Commit:** `39dda74 ST0026/WP-07: audit health + learn commands`
+
 ## Test Status
 
-All 382 tests passing across 19 BATS test files.
+All 407 tests passing across 20 BATS test files.

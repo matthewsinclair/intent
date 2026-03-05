@@ -6,27 +6,34 @@ Intent v2.6.0 -- CLI tool for managing steel threads, project docs, and LLM guid
 
 ## Current State
 
-ST0026 (Steel Thread Zero) Phase 2 in progress. WP-06 complete (audit command + Credo checks). WP-07 next.
+ST0026 (Steel Thread Zero) Phase 2 in progress. WP-06 and WP-07 complete. WP-08 next.
 
 ## TODO
 
-### Next: WP-07 (Health Check & Learnings)
+### Next: WP-08 (Guardrails)
 
-- `intent audit health` subcommand in existing `bin/intent_audit`
-- `--report` flag (save markdown), `--diff` flag (git-based changed files only)
-- Timestamp tracking in `.intent/last-health-check`
-- `bin/intent_learn` command (`intent learn "description"`, `--category`, `--list`)
-- Test learnings integration with `intent claude prime`
+- Create `bin/intent_modules` command script
+- Implement `intent modules check` (scan modules vs MODULES.md)
+- Implement `intent modules check --register` (auto-register missing)
+- Implement `intent modules find` (locate module by concern)
+- Create Claude Code hook for `Write` to `lib/**/*.ex`
+- Create `lib/templates/llm/_DEPENDENCY_GRAPH.md` template
+- Implement dependency graph check (scan alias/import/use vs declared deps)
+- Integrate with `intent audit quick`
 
-### Remaining Phase 2: WP-08 through WP-10
+### Remaining Phase 2: WP-09 through WP-10
 
 | WP    | Title                 | Key deliverables                          |
 | ----- | --------------------- | ----------------------------------------- |
-| WP-08 | Guardrails            | `intent modules check` + dependency graph |
 | WP-09 | Retrofit Installation | `intent st zero install` (brownfield)     |
 | WP-10 | Integrator Command    | `intent init --with-st0000` (greenfield)  |
 
-Dependencies: WP-06 -> WP-07, WP-06 -> WP-08, WP-06+03+04 -> WP-09 -> WP-10
+### Documentation
+
+- Comprehensive update: README, CHANGELOG, blog posts
+- New blog post for agent/claude work (rather than updating existing posts)
+
+Dependencies: WP-06+03+04 -> WP-09 -> WP-10
 
 See `intent/st/ST0026/tasks.md` for detailed task lists.
 
@@ -45,5 +52,5 @@ See `intent/st/ST0026/tasks.md` for detailed task lists.
 - NO Claude attribution in commit messages
 - Tag workflow: `git tag -f vX.Y.Z HEAD` then force-push to both remotes
 - Never use em dashes in skill files (multi-byte truncation bugs)
-- Run `tests/run_tests.sh` before committing (382 tests across 19 files)
+- Run `tests/run_tests.sh` before committing (407 tests across 20 files)
 - Two git remotes: `local` (Dropbox) and `upstream` (GitHub)
