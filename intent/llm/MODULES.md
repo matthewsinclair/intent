@@ -18,7 +18,8 @@
 | File indexing        | `bin/intent_fileindex` | File listing, checkbox state tracking               |
 | Health checks        | `bin/intent_doctor`    | Dependency checks, config validation                |
 | Plugin discovery     | `bin/intent_plugin`    | list, show, help for installed plugins              |
-| Audit command        | `bin/intent_audit`     | quick, help; Elixir credo integration               |
+| Audit command        | `bin/intent_audit`     | quick, health, help; Elixir credo integration       |
+| Learn command        | `bin/intent_learn`     | Capture project learnings for future sessions       |
 | Bootstrap            | `bin/intent_bootstrap` | First-run setup, PATH instructions                  |
 
 ## Plugin: Claude
@@ -62,6 +63,7 @@
 | WP help      | `lib/help/wp.help.md`        | Work package help     |
 | Fileindex    | `lib/help/fileindex.help.md` | Fileindex help        |
 | Audit help   | `lib/help/audit.help.md`     | Audit command help    |
+| Learn help   | `lib/help/learn.help.md`     | Learn command help    |
 
 ## Tests
 
@@ -70,3 +72,4 @@
 | Test helper/fixtures | `tests/lib/test_helper.bash`     | Shared setup, assertions     |
 | Test runner          | `tests/run_tests.sh`             | Discovers and runs all BATS  |
 | Audit tests          | `tests/unit/audit_commands.bats` | BATS tests for audit command |
+| Learn tests          | `tests/unit/learn_commands.bats` | BATS tests for learn command |

@@ -57,6 +57,7 @@ usage() {
   echo ""
   echo "Commands:"
   echo "  quick              Run Credo with Intent custom checks"
+  echo "  health             Lightweight periodic health check"
   echo "  help               Show this help"
   echo ""
   echo "Options (for quick):"
@@ -64,6 +65,10 @@ usage() {
   echo "  --fix              Apply auto-fixes for fixable rules (R8, R11, R15)"
   echo "  --json             Output results as JSON"
   echo "  --checks-only      Only copy check templates, don't run credo"
+  echo ""
+  echo "Options (for health):"
+  echo "  --report           Save markdown report to intent/audit/"
+  echo "  --diff             Only check files changed since last health check"
   echo ""
   echo "Rules:"
   echo "  R2   Thick coordinator (controllers/LiveViews exceeding line limit)"
@@ -79,6 +84,9 @@ usage() {
   echo "  intent audit quick --fix            # Auto-fix fixable rules"
   echo "  intent audit quick --json           # JSON output"
   echo "  intent audit quick --checks-only    # Just install check templates"
+  echo "  intent audit health                 # Run health check"
+  echo "  intent audit health --report        # Save markdown report"
+  echo "  intent audit health --diff          # Only check changed files"
   exit 0
 }
 
@@ -302,6 +310,331 @@ cmd_quick() {
 }
 
 # ============================================================
+# Command: health
+# ============================================================
+
+# Timestamp file for --diff mode
+HEALTH_TIMESTAMP_FILE=".intent/last-health-check"
+
+# Get changed files since last health check
+get_changed_files() {
+  local since_timestamp=""
+
+  if [ -f "$HEALTH_TIMESTAMP_FILE" ]; then
+    since_timestamp=$(cat "$HEALTH_TIMESTAMP_FILE")
+  fi
+
+  if [ -n "$since_timestamp" ]; then
+    # Files changed since last health check (tracked files only)
+    git diff --name-only "$since_timestamp" HEAD -- '*.ex' '*.exs' 2>/dev/null || true
+    # Also include untracked .ex files
+    git ls-files --others --exclude-standard -- '*.ex' '*.exs' 2>/dev/null || true
+  else
+    # No previous timestamp: check all tracked .ex/.exs files
+    git ls-files -- '*.ex' '*.exs' 2>/dev/null || true
+  fi
+}
+
+# Save current git HEAD as timestamp
+save_health_timestamp() {
+  local head_sha
+  head_sha=$(git rev-parse HEAD 2>/dev/null) || return 0
+  mkdir -p "$(dirname "$HEALTH_TIMESTAMP_FILE")"
+  echo "$head_sha" > "$HEALTH_TIMESTAMP_FILE"
+}
+
+# Check for modules not registered in MODULES.md
+check_modules_coverage() {
+  local diff_only="$1"
+  local issues=0
+
+  # Find the MODULES.md file
+  local modules_file=""
+  if [ -f "intent/llm/MODULES.md" ]; then
+    modules_file="intent/llm/MODULES.md"
+  fi
+
+  if [ -z "$modules_file" ]; then
+    echo "  [SKIP] No MODULES.md found"
+    return 0
+  fi
+
+  # Get list of .ex files to check
+  local files_to_check
+  if [ "$diff_only" = "true" ]; then
+    files_to_check=$(get_changed_files | grep '^lib/' | grep '\.ex$' || true)
+  else
+    files_to_check=$(find lib -name '*.ex' -type f 2>/dev/null | sort || true)
+  fi
+
+  if [ -z "$files_to_check" ]; then
+    echo "  [PASS] No lib/*.ex files to check"
+    return 0
+  fi
+
+  # Extract module names from source files and check against MODULES.md
+  local unregistered=""
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    # Extract the defmodule name
+    local module_name
+    module_name=$(grep -m1 "^defmodule " "$file" 2>/dev/null | sed 's/defmodule \([^ ]*\).*/\1/' || true)
+    if [ -n "$module_name" ] && ! grep -q "$file" "$modules_file" 2>/dev/null; then
+      unregistered="$unregistered\n    $file ($module_name)"
+      issues=$((issues + 1))
+    fi
+  done <<< "$files_to_check"
+
+  if [ "$issues" -gt 0 ]; then
+    echo "  [WARN] $issues module(s) not in MODULES.md:$(echo -e "$unregistered")"
+  else
+    echo "  [PASS] All modules registered in MODULES.md"
+  fi
+
+  return $issues
+}
+
+# Check for thick coordinators (controllers/LiveViews over line limit)
+check_thick_coordinators() {
+  local diff_only="$1"
+  local max_lines=100
+  local issues=0
+
+  local files_to_check
+  if [ "$diff_only" = "true" ]; then
+    files_to_check=$(get_changed_files | grep '^lib/' | grep '\.ex$' || true)
+  else
+    files_to_check=$(find lib -name '*.ex' -type f 2>/dev/null | sort || true)
+  fi
+
+  if [ -z "$files_to_check" ]; then
+    echo "  [PASS] No lib/*.ex files to check"
+    return 0
+  fi
+
+  local thick=""
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    # Check if it's a coordinator
+    if grep -qE "use (Phoenix\.Controller|Phoenix\.LiveView|Phoenix\.LiveComponent)" "$file" 2>/dev/null; then
+      local line_count
+      line_count=$(wc -l < "$file" | tr -d ' ')
+      if [ "$line_count" -gt "$max_lines" ]; then
+        thick="$thick\n    $file ($line_count lines)"
+        issues=$((issues + 1))
+      fi
+    fi
+  done <<< "$files_to_check"
+
+  if [ "$issues" -gt 0 ]; then
+    echo "  [WARN] $issues thick coordinator(s) (>$max_lines lines):$(echo -e "$thick")"
+  else
+    echo "  [PASS] No thick coordinators found"
+  fi
+
+  return $issues
+}
+
+# Check for duplicate function names across modules
+check_highlander_suspects() {
+  local diff_only="$1"
+  local issues=0
+
+  local files_to_check
+  if [ "$diff_only" = "true" ]; then
+    files_to_check=$(get_changed_files | grep '^lib/' | grep '\.ex$' || true)
+  else
+    files_to_check=$(find lib -name '*.ex' -type f 2>/dev/null | sort || true)
+  fi
+
+  if [ -z "$files_to_check" ]; then
+    echo "  [PASS] No lib/*.ex files to check"
+    return 0
+  fi
+
+  # Collect all public def names with their files
+  local common_names="new|get|list|create|update|delete|changeset|render|init|call|handle_call|handle_cast|handle_info|handle_event|mount|handle_params|terminate|code_change|start_link|child_spec"
+  local defs_file
+  defs_file=$(mktemp)
+
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    grep -n "^  def [a-z]" "$file" 2>/dev/null | while IFS= read -r line; do
+      local func_name
+      func_name=$(echo "$line" | sed 's/.*def \([a-z_]*\).*/\1/')
+      if ! echo "$func_name" | grep -qE "^($common_names)$"; then
+        echo "$func_name|$file" >> "$defs_file"
+      fi
+    done
+  done <<< "$files_to_check"
+
+  # Find duplicates
+  local duplicates=""
+  if [ -s "$defs_file" ]; then
+    local dup_names
+    dup_names=$(cut -d'|' -f1 "$defs_file" | sort | uniq -d)
+    if [ -n "$dup_names" ]; then
+      while IFS= read -r name; do
+        [ -z "$name" ] && continue
+        local locations
+        locations=$(grep "^${name}|" "$defs_file" | cut -d'|' -f2 | sort -u | tr '\n' ', ' | sed 's/,$//')
+        duplicates="$duplicates\n    $name: $locations"
+        issues=$((issues + 1))
+      done <<< "$dup_names"
+    fi
+  fi
+
+  rm -f "$defs_file"
+
+  if [ "$issues" -gt 0 ]; then
+    echo "  [WARN] $issues Highlander suspect(s):$(echo -e "$duplicates")"
+  else
+    echo "  [PASS] No Highlander suspects found"
+  fi
+
+  return $issues
+}
+
+cmd_health() {
+  local report_mode="false"
+  local diff_mode="false"
+
+  # Parse options
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --report)
+        report_mode="true"
+        shift
+        ;;
+      --diff)
+        diff_mode="true"
+        shift
+        ;;
+      *)
+        error "Unknown option: $1. Run 'intent audit help' for usage."
+        ;;
+    esac
+  done
+
+  local width
+  width=$(get_terminal_width)
+  local separator
+  separator=$(printf '%*s' "$width" '' | tr ' ' '-')
+  local date_str
+  date_str=$(date +%Y-%m-%d)
+  local project_name
+  project_name=$(basename "$(pwd)")
+
+  # Build report output
+  local report=""
+  local total_issues=0
+
+  report="$separator
+Intent Health Check -- $project_name
+Date: $date_str
+$separator
+"
+
+  if [ "$diff_mode" = "true" ]; then
+    if [ -f "$HEALTH_TIMESTAMP_FILE" ]; then
+      local last_sha
+      last_sha=$(cat "$HEALTH_TIMESTAMP_FILE")
+      report="$report
+Mode: diff (changes since $(echo "$last_sha" | cut -c1-8))
+"
+    else
+      report="$report
+Mode: diff (no previous check -- scanning all files)
+"
+    fi
+  fi
+
+  report="$report
+Checks:
+"
+
+  # 1. Check if lib/ exists (Elixir project)
+  if [ -d "lib" ]; then
+    # 2. MODULES.md coverage
+    local modules_result
+    modules_result=$(check_modules_coverage "$diff_mode" 2>&1) || total_issues=$((total_issues + $?))
+    report="$report$modules_result
+"
+
+    # 3. Thick coordinators
+    local thick_result
+    thick_result=$(check_thick_coordinators "$diff_mode" 2>&1) || total_issues=$((total_issues + $?))
+    report="$report$thick_result
+"
+
+    # 4. Highlander suspects
+    local highlander_result
+    highlander_result=$(check_highlander_suspects "$diff_mode" 2>&1) || total_issues=$((total_issues + $?))
+    report="$report$highlander_result
+"
+
+    # 5. Credo checks (if mix.exs and credo available)
+    if [ -f "mix.exs" ] && mix deps 2>/dev/null | grep -q "credo"; then
+      ensure_checks_installed 2>/dev/null
+      local credo_result
+      local credo_exit=0
+      credo_result=$(mix credo --strict --checks-dir "$CHECKS_TARGET_DIR" 2>&1) || credo_exit=$?
+      if [ "$credo_exit" -eq 0 ]; then
+        report="$report  [PASS] Credo checks passed
+"
+      else
+        local credo_issue_count
+        credo_issue_count=$(echo "$credo_result" | grep -cE '^\[' 2>/dev/null || echo "0")
+        report="$report  [WARN] Credo: $credo_issue_count issue(s) found
+"
+        total_issues=$((total_issues + 1))
+      fi
+    else
+      report="$report  [SKIP] Credo not available (no mix.exs or credo dependency)
+"
+    fi
+  else
+    report="$report  [SKIP] No lib/ directory found (not an Elixir project?)
+"
+  fi
+
+  report="$report
+$separator
+"
+
+  if [ "$total_issues" -eq 0 ]; then
+    report="${report}Result: HEALTHY -- no issues found
+"
+  else
+    report="${report}Result: $total_issues area(s) need attention
+"
+  fi
+
+  report="$report$separator"
+
+  # Output report
+  echo "$report"
+
+  # Save report if requested
+  if [ "$report_mode" = "true" ]; then
+    local report_dir="intent/audit"
+    mkdir -p "$report_dir"
+    local report_file="$report_dir/$(date +%Y%m%d)-health.md"
+    echo "$report" > "$report_file"
+    echo ""
+    echo "Report saved to: $report_file"
+  fi
+
+  # Update timestamp
+  save_health_timestamp
+
+  if [ "$total_issues" -gt 0 ]; then
+    return 1
+  fi
+  return 0
+}
+
+# ============================================================
 # Main Dispatch
 # ============================================================
 
@@ -315,6 +648,9 @@ shift
 case "$SUBCOMMAND" in
   quick)
     cmd_quick "$@"
+    ;;
+  health)
+    cmd_health "$@"
     ;;
   help|--help|-h)
     usage
