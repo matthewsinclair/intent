@@ -209,3 +209,86 @@ load "../lib/test_helper.bash"
   assert_failure
   assert_output_contains "Intent project"
 }
+
+# ============================================================
+# Health Subcommand
+# ============================================================
+
+@test "audit health runs without errors in project" {
+  project_dir=$(create_test_project "Audit Health Test")
+  cd "$project_dir"
+
+  run run_intent audit health
+  assert_success
+  assert_output_contains "Intent Health Check"
+  assert_output_contains "Result:"
+}
+
+@test "audit health shows SKIP when no lib/ directory" {
+  project_dir=$(create_test_project "Audit Health Test")
+  cd "$project_dir"
+
+  run run_intent audit health
+  assert_success
+  assert_output_contains "[SKIP]"
+}
+
+@test "audit health with --report saves file" {
+  project_dir=$(create_test_project "Audit Health Test")
+  cd "$project_dir"
+
+  # Need to init git for timestamp tracking
+  git init -q .
+
+  run run_intent audit health --report
+  assert_success
+  assert_output_contains "Report saved to:"
+
+  # Check report file exists
+  [ -d "intent/audit" ]
+  local report_file
+  report_file=$(ls intent/audit/*-health.md 2>/dev/null | head -1)
+  [ -n "$report_file" ]
+}
+
+@test "audit health with --diff works" {
+  project_dir=$(create_test_project "Audit Health Test")
+  cd "$project_dir"
+
+  git init -q .
+
+  run run_intent audit health --diff
+  assert_success
+  assert_output_contains "diff"
+}
+
+@test "audit health saves timestamp" {
+  project_dir=$(create_test_project "Audit Health Test")
+  cd "$project_dir"
+
+  git init -q .
+  git add -A && git commit -q -m "init"
+
+  run run_intent audit health
+  assert_success
+
+  [ -f ".intent/last-health-check" ]
+}
+
+@test "audit health unknown option shows error" {
+  project_dir=$(create_test_project "Audit Health Test")
+  cd "$project_dir"
+
+  run run_intent audit health --bogus
+  assert_failure
+  assert_output_contains "Unknown option: --bogus"
+}
+
+@test "audit help shows health subcommand" {
+  project_dir=$(create_test_project "Audit Test")
+  cd "$project_dir"
+
+  run run_intent audit help
+  assert_success
+  assert_output_contains "health"
+}

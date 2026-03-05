@@ -1,0 +1,203 @@
+#!/bin/bash
+# intent_learn - Capture project learnings for future sessions
+# Usage: intent learn [options] "description"
+
+# Exit on error
+set -e
+
+# Source shared helpers
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
+
+# Learnings file location (relative to project root)
+LEARNINGS_FILE=".intent/learnings.md"
+
+# Valid categories
+VALID_CATEGORIES="footgun worked failed"
+
+# ============================================================
+# Usage
+# ============================================================
+
+usage() {
+  echo "Usage: intent learn [options] \"description\""
+  echo ""
+  echo "Capture project-specific learnings for future LLM sessions."
+  echo ""
+  echo "Commands:"
+  echo "  intent learn \"description\"                   Add a footgun (default)"
+  echo "  intent learn --category worked \"description\" Pattern that worked"
+  echo "  intent learn --category failed \"description\" Pattern that failed"
+  echo "  intent learn --list                           Show all learnings"
+  echo "  intent learn help                             Show this help"
+  echo ""
+  echo "Options:"
+  echo "  --category CAT    Category: footgun (default), worked, failed"
+  echo "  --list            Show all learnings"
+  echo ""
+  echo "Storage: .intent/learnings.md"
+  echo ""
+  echo "Learnings are consumed by 'intent claude prime' for MEMORY.md injection."
+  echo ""
+  echo "Examples:"
+  echo "  intent learn \"Never use Map.get on User struct\""
+  echo "  intent learn --category worked \"Ash bulk actions handle 10k+ rows fine\""
+  echo "  intent learn --category failed \"Ecto.Multi nesting caused deadlocks\""
+  echo "  intent learn --list"
+  exit 0
+}
+
+# ============================================================
+# Learnings File Management
+# ============================================================
+
+# Ensure learnings file exists with proper structure
+ensure_learnings_file() {
+  if [ ! -f "$LEARNINGS_FILE" ]; then
+    cat > "$LEARNINGS_FILE" << 'EOF'
+# Project Learnings
+
+## Footguns
+
+## Patterns That Worked
+
+## Patterns That Failed
+EOF
+    echo "Created $LEARNINGS_FILE"
+  fi
+}
+
+# Map category to section header
+category_to_header() {
+  local category="$1"
+  case "$category" in
+    footgun) echo "## Footguns" ;;
+    worked)  echo "## Patterns That Worked" ;;
+    failed)  echo "## Patterns That Failed" ;;
+    *)       error "Unknown category: $category. Valid: $VALID_CATEGORIES" ;;
+  esac
+}
+
+# Append a learning to the correct section
+append_learning() {
+  local category="$1"
+  local description="$2"
+  local date_str
+  date_str=$(date +%Y-%m-%d)
+
+  local header
+  header=$(category_to_header "$category")
+  local entry="- $date_str: $description"
+
+  # Find the section and append after it (before the next section or EOF)
+  local temp_file
+  temp_file=$(mktemp)
+  local in_section=false
+  local appended=false
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    if [ "$line" = "$header" ]; then
+      echo "$line" >> "$temp_file"
+      in_section=true
+    elif [[ "$line" =~ ^## ]] && [ "$in_section" = true ]; then
+      # We hit the next section; insert entry before it
+      if [ "$appended" = false ]; then
+        echo "$entry" >> "$temp_file"
+        echo "" >> "$temp_file"
+        appended=true
+      fi
+      in_section=false
+      echo "$line" >> "$temp_file"
+    else
+      echo "$line" >> "$temp_file"
+    fi
+  done < "$LEARNINGS_FILE"
+
+  # If we were still in section at EOF, append there
+  if [ "$in_section" = true ] && [ "$appended" = false ]; then
+    echo "$entry" >> "$temp_file"
+    appended=true
+  fi
+
+  if [ "$appended" = true ]; then
+    mv "$temp_file" "$LEARNINGS_FILE"
+  else
+    rm -f "$temp_file"
+    error "Could not find section '$header' in $LEARNINGS_FILE"
+  fi
+}
+
+# List all learnings
+list_learnings() {
+  if [ ! -f "$LEARNINGS_FILE" ]; then
+    echo "No learnings file found. Add one with: intent learn \"description\""
+    exit 0
+  fi
+
+  cat "$LEARNINGS_FILE"
+}
+
+# ============================================================
+# Main
+# ============================================================
+
+if [ $# -eq 0 ]; then
+  usage
+fi
+
+# Parse arguments
+category="footgun"
+list_mode=false
+description=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    help|--help|-h)
+      usage
+      ;;
+    --list)
+      list_mode=true
+      shift
+      ;;
+    --category)
+      [ $# -lt 2 ] && error "Missing argument for --category"
+      category="$2"
+      # Validate category
+      case "$category" in
+        footgun|worked|failed) ;;
+        *) error "Unknown category: $category. Valid: $VALID_CATEGORIES" ;;
+      esac
+      shift 2
+      ;;
+    -*)
+      error "Unknown option: $1. Run 'intent learn help' for usage."
+      ;;
+    *)
+      if [ -z "$description" ]; then
+        description="$1"
+      else
+        description="$description $1"
+      fi
+      shift
+      ;;
+  esac
+done
+
+# Handle list mode
+if [ "$list_mode" = true ]; then
+  list_learnings
+  exit 0
+fi
+
+# Require description for non-list mode
+if [ -z "$description" ]; then
+  error "Missing description. Usage: intent learn \"description\""
+fi
+
+# Ensure learnings file exists
+ensure_learnings_file
+
+# Append the learning
+append_learning "$category" "$description"
+
+echo "Added $category learning: $description"

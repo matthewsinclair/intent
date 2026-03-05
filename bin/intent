@@ -113,6 +113,10 @@ case "$COMMAND" in
     COMMAND="audit"
     COMMAND_SCRIPT="intent_audit"
     ;;
+  learn)
+    COMMAND="learn"
+    COMMAND_SCRIPT="intent_learn"
+    ;;
   *)
     # Default: prefix with intent_
     COMMAND_SCRIPT="intent_$COMMAND"

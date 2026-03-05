@@ -35,6 +35,28 @@ Options:
 - `--json` -- Output results as JSON
 - `--checks-only` -- Only install check templates, don't run credo
 
+### health
+
+Lightweight periodic health check for end-of-day use.
+
+```
+intent audit health
+intent audit health --report
+intent audit health --diff
+```
+
+Options:
+
+- `--report` -- Save markdown report to `intent/audit/YYYYMMDD-health.md`
+- `--diff` -- Only check files changed since last health check
+
+Checks performed:
+
+1. Modules not registered in MODULES.md
+2. Thick coordinators (controllers/LiveViews over 100 lines)
+3. Highlander suspects (duplicate function names across modules)
+4. Credo checks (if credo is available)
+
 ### help
 
 Display usage information.
@@ -73,9 +95,19 @@ intent audit quick --json
 
 # Just install check templates
 intent audit quick --checks-only
+
+# Health check
+intent audit health
+
+# Health check with report
+intent audit health --report
+
+# Health check on changed files only
+intent audit health --diff
 ```
 
 ## See Also
 
+- `intent help learn` -- Capture project learnings
 - `intent help` -- General help
 - `intent claude upgrade` -- Upgrade project LLM guidance
