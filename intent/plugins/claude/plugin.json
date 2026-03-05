@@ -18,6 +18,10 @@
     {
       "syntax": "intent claude prime [--refresh] [--dry-run] [--from <project>]",
       "description": "Pre-load Claude Code project memory with rules, modules, and operational knowledge"
+    },
+    {
+      "syntax": "intent audit <command>",
+      "description": "Run automated code quality checks (quick)"
     }
   ]
 }

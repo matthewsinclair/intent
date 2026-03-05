@@ -18,6 +18,7 @@
 | File indexing        | `bin/intent_fileindex` | File listing, checkbox state tracking               |
 | Health checks        | `bin/intent_doctor`    | Dependency checks, config validation                |
 | Plugin discovery     | `bin/intent_plugin`    | list, show, help for installed plugins              |
+| Audit command        | `bin/intent_audit`     | quick, help; Elixir credo integration               |
 | Bootstrap            | `bin/intent_bootstrap` | First-run setup, PATH instructions                  |
 
 ## Plugin: Claude
@@ -38,16 +39,17 @@
 
 ## Templates
 
-| Concern              | THE Module                            | Notes                                   |
-| -------------------- | ------------------------------------- | --------------------------------------- |
-| CLAUDE.md template   | `lib/templates/llm/_CLAUDE.md`        | Single source -- used by init + upgrade |
-| Module registry      | `lib/templates/llm/_MODULES.md`       | Highlander registry template            |
-| Decision tree        | `lib/templates/llm/_DECISION_TREE.md` | Code placement guide template           |
-| Archetypes reference | `lib/templates/llm/_ARCHETYPES.md`    | Archetype listing template              |
-| Elixir archetypes    | `lib/templates/archetypes/elixir/`    | 9 .ex.eex code templates                |
-| ST info template     | `lib/templates/prj/st/ST####/info.md` | Steel thread frontmatter                |
-| WP info template     | `lib/templates/prj/st/WP/info.md`     | Work package frontmatter                |
-| WIP template         | `lib/templates/prj/_wip.md`           | Work-in-progress file                   |
+| Concern               | THE Module                            | Notes                                   |
+| --------------------- | ------------------------------------- | --------------------------------------- |
+| CLAUDE.md template    | `lib/templates/llm/_CLAUDE.md`        | Single source -- used by init + upgrade |
+| Module registry       | `lib/templates/llm/_MODULES.md`       | Highlander registry template            |
+| Decision tree         | `lib/templates/llm/_DECISION_TREE.md` | Code placement guide template           |
+| Archetypes reference  | `lib/templates/llm/_ARCHETYPES.md`    | Archetype listing template              |
+| Elixir archetypes     | `lib/templates/archetypes/elixir/`    | 9 .ex.eex code templates                |
+| ST info template      | `lib/templates/prj/st/ST####/info.md` | Steel thread frontmatter                |
+| WP info template      | `lib/templates/prj/st/WP/info.md`     | Work package frontmatter                |
+| WIP template          | `lib/templates/prj/_wip.md`           | Work-in-progress file                   |
+| Credo check templates | `lib/templates/credo_checks/elixir/`  | 6 checks: R2, R6, R7, R8, R11, R15      |
 
 ## Help Files
 
@@ -59,10 +61,12 @@
 | Plugin help  | `lib/help/plugin.help.md`    | Plugin discovery help |
 | WP help      | `lib/help/wp.help.md`        | Work package help     |
 | Fileindex    | `lib/help/fileindex.help.md` | Fileindex help        |
+| Audit help   | `lib/help/audit.help.md`     | Audit command help    |
 
 ## Tests
 
-| Concern              | THE Module                   | Notes                       |
-| -------------------- | ---------------------------- | --------------------------- |
-| Test helper/fixtures | `tests/lib/test_helper.bash` | Shared setup, assertions    |
-| Test runner          | `tests/run_tests.sh`         | Discovers and runs all BATS |
+| Concern              | THE Module                       | Notes                        |
+| -------------------- | -------------------------------- | ---------------------------- |
+| Test helper/fixtures | `tests/lib/test_helper.bash`     | Shared setup, assertions     |
+| Test runner          | `tests/run_tests.sh`             | Discovers and runs all BATS  |
+| Audit tests          | `tests/unit/audit_commands.bats` | BATS tests for audit command |

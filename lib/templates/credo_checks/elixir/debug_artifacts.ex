@@ -1,0 +1,67 @@
+defmodule Mix.Checks.DebugArtifacts do
+  @moduledoc false
+
+  use Credo.Check,
+    id: "EX4003",
+    base_priority: :high,
+    category: :warning,
+    explanations: [
+      check: """
+      R15: Remove debug artifacts (`IO.inspect`, `IO.puts`, `dbg()`) from `lib/`.
+
+      Debug calls left in production code cause noisy logs and may leak
+      sensitive data.
+
+          # avoid in lib/
+          IO.inspect(data, label: "debug")
+          dbg(value)
+          IO.puts("got here")
+      """
+    ]
+
+  @debug_calls [
+    {IO, :inspect},
+    {IO, :puts},
+    {Kernel, :dbg}
+  ]
+
+  @impl Credo.Check
+  def run(%SourceFile{} = source_file, params) do
+    # Only check files under lib/
+    if String.contains?(source_file.filename, "/lib/") do
+      issue_meta = IssueMeta.for(source_file, params)
+
+      source_file
+      |> SourceFile.ast()
+      |> find_debug_calls(issue_meta)
+    else
+      []
+    end
+  end
+
+  defp find_debug_calls(ast, issue_meta) do
+    {_, issues} = Macro.prewalk(ast, [], &do_traverse(&1, &2, issue_meta))
+    issues
+  end
+
+  defp do_traverse({{:., _, [{:__aliases__, _, [:IO]}, func]}, meta, _args} = ast, issues, issue_meta)
+       when func in [:inspect, :puts] do
+    issue = format_issue(issue_meta,
+      message: "Debug artifact `IO.#{func}` found in lib/.",
+      trigger: "IO.#{func}",
+      line_no: meta[:line]
+    )
+    {ast, [issue | issues]}
+  end
+
+  defp do_traverse({:dbg, meta, _args} = ast, issues, issue_meta) do
+    issue = format_issue(issue_meta,
+      message: "Debug artifact `dbg()` found in lib/.",
+      trigger: "dbg",
+      line_no: meta[:line]
+    )
+    {ast, [issue | issues]}
+  end
+
+  defp do_traverse(ast, issues, _issue_meta), do: {ast, issues}
+end
