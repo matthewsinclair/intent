@@ -3,7 +3,7 @@ verblock: "04 Mar 2026:v0.1: matts - Initial version"
 wp_id: WP-06
 title: "Automated Enforcement (D5a, D5b)"
 scope: Large
-status: Not Started
+status: Done
 ---
 
 # WP-06: Automated Enforcement (D5a, D5b)
