@@ -459,8 +459,8 @@ TEMPLATE
         rm -f "$ST_DIR/info.md.bak"
       fi
       
-      echo "Created steel thread directory: $ST_DIR"
-      echo "Main file: $ST_DIR/info.md"
+      echo "created: $ST_DIR"
+      echo "    file: $ST_DIR/info.md"
 
       # Handle --start flag: create and immediately start
       if [ $START_FLAG -eq 1 ]; then
@@ -475,10 +475,10 @@ TEMPLATE
           mkdir -p "$(dirname "$NEW_DIR")"
           mv "$ST_DIR" "$NEW_DIR"
           ST_DIR="$NEW_DIR"
-          echo "Moved steel thread to: $ST_DIR"
+          echo "  moved: $ST_DIR"
         fi
         ST_STATUS="WIP"
-        echo "Started steel thread: $ST_ID"
+        echo "started: $ST_ID"
       fi
     else
       # Legacy: Create single file
@@ -499,8 +499,8 @@ TEMPLATE
             "${INTENT_HOME}/lib/templates/prj/st/_ST####.md" > "$ST_FILE"
       fi
 
-      echo "Created steel thread: $ST_ID: $TITLE"
-      echo "Edit file: $ST_FILE"
+      echo "created: $ST_ID -- $TITLE"
+      echo "    file: $ST_FILE"
 
       # Handle --start flag for legacy path
       if [ $START_FLAG -eq 1 ]; then
@@ -512,10 +512,10 @@ TEMPLATE
         if [ "$ST_FILE" != "$NEW_FILE" ]; then
           mkdir -p "$(dirname "$NEW_FILE")"
           mv "$ST_FILE" "$NEW_FILE"
-          echo "Moved steel thread to: $NEW_FILE"
+          echo "  moved: $NEW_FILE"
         fi
         ST_STATUS="WIP"
-        echo "Started steel thread: $ST_ID"
+        echo "started: $ST_ID"
       fi
     fi
 
@@ -565,7 +565,7 @@ TEMPLATE
       if [ "$CURRENT_DIR" != "$NEW_DIR" ]; then
         mkdir -p "$(dirname "$NEW_DIR")"
         mv "$CURRENT_DIR" "$NEW_DIR"
-        echo "Moved steel thread to: $NEW_DIR"
+        echo "  moved: $NEW_DIR"
       fi
     else
       # Legacy: Handle single file
@@ -588,7 +588,7 @@ TEMPLATE
       if [ "$ST_FILE" != "$NEW_ST_FILE" ]; then
         mkdir -p "$(dirname "$NEW_ST_FILE")"
         mv "$ST_FILE" "$NEW_ST_FILE"
-        echo "Moved steel thread to: $NEW_ST_FILE"
+        echo "  moved: $NEW_ST_FILE"
       fi
     fi
     
@@ -634,7 +634,7 @@ TEMPLATE
       
       # Check if already in progress
       if [ "$CURRENT_STATUS" = "In Progress" ]; then
-        echo "Steel thread is already in progress: $ST_ID: $TITLE"
+        echo "skipped: $ST_ID already in progress"
         exit 0
       fi
       
@@ -654,7 +654,7 @@ TEMPLATE
       if [ "$CURRENT_DIR" != "$NEW_DIR" ]; then
         mkdir -p "$(dirname "$NEW_DIR")"
         mv "$CURRENT_DIR" "$NEW_DIR"
-        echo "Moved steel thread to: $NEW_DIR"
+        echo "  moved: $NEW_DIR"
       fi
     else
       # Legacy: Handle single file
@@ -678,7 +678,7 @@ TEMPLATE
       
       # Check if already in progress
       if [ "$CURRENT_STATUS" = "In Progress" ]; then
-        echo "Steel thread is already in progress: $ST_ID: $TITLE"
+        echo "skipped: $ST_ID already in progress"
         exit 0
       fi
       
@@ -691,7 +691,7 @@ TEMPLATE
       if [ "$ST_FILE" != "$NEW_ST_FILE" ]; then
         mkdir -p "$(dirname "$NEW_ST_FILE")"
         mv "$ST_FILE" "$NEW_ST_FILE"
-        echo "Moved steel thread to: $NEW_ST_FILE"
+        echo "  moved: $NEW_ST_FILE"
       fi
     fi
     
@@ -1136,7 +1136,7 @@ TEMPLATE
         # Display each file with a header
         for file in info.md design.md impl.md tasks.md; do
           if [ -f "$ST_DIR/$file" ]; then
-            echo "=== $file ==="
+            echo "-- $file"
             cat "$ST_DIR/$file"
             echo ""
           fi
@@ -1197,7 +1197,7 @@ TEMPLATE
         ST_DIR=$(dirname "$ST_FILE")
         if [ -d "$ST_DIR" ]; then
           touch "$ST_FILE"
-          echo "Created new file: $FILE_TYPE.md"
+          echo "created: $FILE_TYPE.md"
         else
           error "Steel thread not found: $ST_ID"
         fi
@@ -1281,7 +1281,7 @@ TEMPLATE
       mv "$TMP_FILE" "$INDEX_FILE"
       rm "$LIST_OUTPUT"
       
-      echo "Updated steel threads index file: $INDEX_FILE"
+      echo "updated: $INDEX_FILE"
     else
       # For display, just run the list command
       SCRIPT_PATH="${BASH_SOURCE[0]}"
@@ -1328,11 +1328,11 @@ TEMPLATE
       local changes_made=0
       
       if [ ! -f "$info_file" ]; then
-        echo "Warning: No info.md found for $st_id"
+        echo "warning: no info.md for $st_id"
         return
       fi
       
-      echo "Processing: $st_id"
+      echo "  checking: $st_id"
       
       # Read the file content
       local content=$(cat "$info_file")
@@ -1507,7 +1507,7 @@ status: '$status "$info_file"
       fi
     else
       # Repair all steel threads
-      echo "Scanning all steel threads for repairs..."
+      echo "scanning: all steel threads for repairs"
       echo ""
       
       # Find all steel thread directories
@@ -1622,7 +1622,7 @@ status: '$status "$info_file"
           
           # Check if already in correct location
           if [ "$CURRENT_PARENT" != "$CORRECT_PARENT" ]; then
-            echo "Processing: $ID (Status: $STATUS)"
+            echo "  checking: $ID ($STATUS)"
             echo "  Current location: $CURRENT_PARENT"
             echo "  Should be in: $CORRECT_PARENT"
             
@@ -1637,7 +1637,7 @@ status: '$status "$info_file"
             echo "Already organized: $ID in $CORRECT_PARENT (Status: $STATUS)"
           fi
         else
-          echo "Warning: No info.md found for $ID"
+          echo "warning: no info.md for $ID"
         fi
       done
     else
@@ -1662,7 +1662,7 @@ status: '$status "$info_file"
           STATUS="Not Started"
         fi
         
-        echo "Processing file: $file"
+        echo "  checking: $file"
         echo "  File: $ID - Status: $STATUS"
         
         TARGET_FILE=$(get_st_path "$ID" "$STATUS")
@@ -1685,11 +1685,11 @@ status: '$status "$info_file"
     if [ $WRITE_MODE -eq 1 ]; then
       SCRIPT_PATH="${BASH_SOURCE[0]}"
       "$SCRIPT_PATH" sync --write
-      echo "Updated steel threads index."
+      echo "updated: steel threads index"
     fi
     ;;
     
-  "help")
+  "help"|"--help"|"-h")
     usage
     ;;
     

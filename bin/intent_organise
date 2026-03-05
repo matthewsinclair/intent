@@ -112,7 +112,7 @@ get_st_status() {
 status_dirs=("COMPLETED" "NOT-STARTED" "CANCELLED")
 for dir in "${status_dirs[@]}"; do
   if [ "$DRY_RUN" = true ]; then
-    echo "[DRY RUN] Would create directory: $INTENT_DIR/st/$dir"
+    echo "[dry run] would create: $INTENT_DIR/st/$dir"
   else
     mkdir -p "$INTENT_DIR/st/$dir"
   fi
@@ -133,15 +133,15 @@ for st_dir in "$INTENT_DIR/st"/ST*/; do
     case "$status" in
       COMPLETED|NOT-STARTED|CANCELLED)
         if [ "$DRY_RUN" = true ]; then
-          echo "[DRY RUN] Would move $st_name to $status/"
+          echo "[dry run] would move $st_name to $status/"
         else
-          echo "Moving $st_name to $status/"
+          echo "  moving: $st_name to $status/"
           mv "$st_dir" "$INTENT_DIR/st/$status/"
         fi
         ((moved_count++))
         ;;
       ACTIVE|UNKNOWN)
-        echo "Keeping $st_name at root (status: $status)"
+        echo "  keeping: $st_name at root (status: $status)"
         ((kept_count++))
         ;;
     esac
@@ -162,17 +162,17 @@ for status_dir in "${status_dirs[@]}"; do
           if [ "$actual_status" = "ACTIVE" ] || [ "$actual_status" = "UNKNOWN" ]; then
             # Move to root
             if [ "$DRY_RUN" = true ]; then
-              echo "[DRY RUN] Would move $st_name from $status_dir/ to root"
+              echo "[dry run] would move $st_name from $status_dir/ to root"
             else
-              echo "Moving $st_name from $status_dir/ to root"
+              echo "  moving: $st_name from $status_dir/ to root"
               mv "$st_dir" "$INTENT_DIR/st/"
             fi
           else
             # Move to correct status dir
             if [ "$DRY_RUN" = true ]; then
-              echo "[DRY RUN] Would move $st_name from $status_dir/ to $actual_status/"
+              echo "[dry run] would move $st_name from $status_dir/ to $actual_status/"
             else
-              echo "Moving $st_name from $status_dir/ to $actual_status/"
+              echo "  moving: $st_name from $status_dir/ to $actual_status/"
               mv "$st_dir" "$INTENT_DIR/st/$actual_status/"
             fi
           fi
@@ -186,16 +186,12 @@ done
 # Summary
 echo ""
 if [ "$DRY_RUN" = true ]; then
-  echo "[DRY RUN] Would have moved $moved_count steel threads"
-  echo "[DRY RUN] Would have kept $kept_count steel threads at root"
+  echo "[dry run] would move $moved_count, keep $kept_count"
 else
-  echo "Organization complete:"
-  echo "- Moved $moved_count steel threads to status directories"
-  echo "- Kept $kept_count steel threads at root"
-  
+  echo "ok: moved $moved_count, kept $kept_count"
+
   # Show current structure
   echo ""
-  echo "Current structure:"
   for dir in "$INTENT_DIR/st"/*; do
     if [ -d "$dir" ]; then
       name=$(basename "$dir")

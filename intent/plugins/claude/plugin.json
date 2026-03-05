@@ -22,6 +22,10 @@
     {
       "syntax": "intent audit <command>",
       "description": "Run automated code quality checks (quick)"
+    },
+    {
+      "syntax": "intent modules <command>",
+      "description": "Module registry guardrails and enforcement (check, find)"
     }
   ]
 }

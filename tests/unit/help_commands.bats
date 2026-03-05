@@ -19,7 +19,7 @@ load "../lib/test_helper.bash"
 @test "help displays command-specific help when a command is specified" {
   run run_intent help st
   assert_success
-  assert_output_contains "No help available for command 'st'"
+  assert_output_contains "no help available for 'st'"
   assert_output_contains "intent st --help"
 }
 

@@ -73,8 +73,8 @@ EOF
   for cmd in "${project_commands[@]}"; do
     run run_intent "$cmd"
     assert_failure
-    assert_output_contains "Not in an Intent project directory"
-    assert_output_contains "The '$cmd' command requires an Intent project"
+    assert_output_contains "not in an Intent project directory"
+    assert_output_contains "'$cmd' requires an Intent project"
   done
 }
 
@@ -90,7 +90,7 @@ EOF
   
   run run_intent doctor
   assert_success
-  assert_output_contains "Intent Doctor"
+  assert_output_contains "doctor:"
   
   run run_intent info
   assert_success

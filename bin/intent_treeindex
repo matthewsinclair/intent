@@ -237,7 +237,7 @@ gather_files() {
     -print 2>/dev/null | sort | while IFS= read -r f; do
     local fname
     fname="$(basename "$f")"
-    echo "--- $fname ---"
+    echo "-- $fname"
     head -80 "$f" 2>/dev/null
     echo ""
   done

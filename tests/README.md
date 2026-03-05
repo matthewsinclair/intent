@@ -13,6 +13,7 @@ tests/
 │   ├── audit_commands.bats       # Audit command tests
 │   ├── basic.bats                 # Basic infrastructure tests
 │   ├── learn_commands.bats       # Learn command tests
+│   ├── modules_commands.bats    # Modules command tests
 │   ├── bootstrap.bats             # Bootstrap command tests
 │   ├── config.bats                # Configuration and PROJECT_ROOT tests
 │   ├── fileindex_commands.bats    # Fileindex command tests
@@ -118,6 +119,7 @@ Unit tests focus on individual commands and features:
 - **audit_commands.bats** - Tests for the audit command (`intent audit quick`, `intent audit health`)
 - **basic.bats** - Tests for basic infrastructure and environment setup
 - **learn_commands.bats** - Tests for the learn command (`intent learn`)
+- **modules_commands.bats** - Tests for the modules command (`intent modules check`, `intent modules find`)
 - **bootstrap.bats** - Tests for the bootstrap command
 - **config.bats** - Tests configuration loading and PROJECT_ROOT detection
 - **fileindex_commands.bats** - Tests for the fileindex command (file tracking and checkbox states)

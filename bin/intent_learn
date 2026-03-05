@@ -63,7 +63,7 @@ ensure_learnings_file() {
 
 ## Patterns That Failed
 EOF
-    echo "Created $LEARNINGS_FILE"
+    echo "created: $LEARNINGS_FILE"
   fi
 }
 
@@ -130,7 +130,7 @@ append_learning() {
 # List all learnings
 list_learnings() {
   if [ ! -f "$LEARNINGS_FILE" ]; then
-    echo "No learnings file found. Add one with: intent learn \"description\""
+    echo "no learnings file found -- add one with: intent learn \"description\""
     exit 0
   fi
 
@@ -200,4 +200,4 @@ ensure_learnings_file
 # Append the learning
 append_learning "$category" "$description"
 
-echo "Added $category learning: $description"
+echo "added: $category -- $description"

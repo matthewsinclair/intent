@@ -20,6 +20,15 @@
 | Plugin discovery     | `bin/intent_plugin`    | list, show, help for installed plugins              |
 | Audit command        | `bin/intent_audit`     | quick, health, help; Elixir credo integration       |
 | Learn command        | `bin/intent_learn`     | Capture project learnings for future sessions       |
+| Module registry      | `bin/intent_modules`   | check, find; MODULES.md enforcement                 |
+| Help display         | `bin/intent_help`      | General and command-specific help display            |
+| Config loading       | `bin/intent_config`    | PROJECT_ROOT detection, load_intent_config           |
+| Project info         | `bin/intent_info`      | Status display, no-args default                     |
+| LLM guidance         | `bin/intent_llm`       | Display LLM-specific guidance files                 |
+| Organise             | `bin/intent_organise`  | Organize steel threads by status                    |
+| Upgrade              | `bin/intent_upgrade`   | STP to Intent migration                             |
+| Minimal bootstrap    | `bin/intent_minimal`   | Minimal no-dependency bootstrap                     |
+| Main (legacy)        | `bin/intent_main`      | Legacy entry point                                  |
 | Bootstrap            | `bin/intent_bootstrap` | First-run setup, PATH instructions                  |
 
 ## Plugin: Claude
@@ -50,13 +59,15 @@
 | ST info template      | `lib/templates/prj/st/ST####/info.md` | Steel thread frontmatter                |
 | WP info template      | `lib/templates/prj/st/WP/info.md`     | Work package frontmatter                |
 | WIP template          | `lib/templates/prj/_wip.md`           | Work-in-progress file                   |
-| Credo check templates | `lib/templates/credo_checks/elixir/`  | 6 checks: R2, R6, R7, R8, R11, R15      |
+| Dependency graph template | `lib/templates/llm/_DEPENDENCY_GRAPH.md`                | Dependency rules template                 |
+| D11 Credo check           | `lib/templates/credo_checks/elixir/dependency_graph.ex` | Cross-app dependency enforcement          |
+| Hook template             | `lib/templates/hooks/module_check_hook.json`            | Advisory write hook for Claude Code       |
+| Credo check templates     | `lib/templates/credo_checks/elixir/`                    | 7 checks: R2, R6, R7, R8, R11, R15, D11  |
 
 ## Help Files
 
 | Concern      | THE Module                   | Notes                 |
 | ------------ | ---------------------------- | --------------------- |
-| General help | `lib/help/general.help.md`   | Top-level help output |
 | Claude help  | `lib/help/claude.help.md`    | Claude plugin help    |
 | Agents help  | `lib/help/agents.help.md`    | Agents plugin help    |
 | Plugin help  | `lib/help/plugin.help.md`    | Plugin discovery help |
@@ -64,6 +75,7 @@
 | Fileindex    | `lib/help/fileindex.help.md` | Fileindex help        |
 | Audit help   | `lib/help/audit.help.md`     | Audit command help    |
 | Learn help   | `lib/help/learn.help.md`     | Learn command help    |
+| Modules help | `lib/help/modules.help.md`   | Modules command help  |
 
 ## Tests
 
@@ -72,4 +84,5 @@
 | Test helper/fixtures | `tests/lib/test_helper.bash`     | Shared setup, assertions     |
 | Test runner          | `tests/run_tests.sh`             | Discovers and runs all BATS  |
 | Audit tests          | `tests/unit/audit_commands.bats` | BATS tests for audit command |
-| Learn tests          | `tests/unit/learn_commands.bats` | BATS tests for learn command |
+| Learn tests          | `tests/unit/learn_commands.bats`   | BATS tests for learn command   |
+| Modules tests        | `tests/unit/modules_commands.bats` | BATS tests for modules command |

@@ -194,9 +194,9 @@ TEMPLATE
       rm -f "$WP_DIR/info.md.bak"
     fi
 
-    echo "Created work package: $ST_ID/WP-$WP_NUM"
-    echo "  Directory: $WP_DIR"
-    echo "  File: $WP_DIR/info.md"
+    echo "created: $ST_ID/WP-$WP_NUM"
+    echo "    dir: $WP_DIR"
+    echo "   file: $WP_DIR/info.md"
     ;;
 
   "done")
@@ -222,8 +222,8 @@ TEMPLATE
     # Extract title for display
     WP_TITLE=$(grep -m 1 "^title:" "$WP_FILE" | sed 's/^title: *//; s/^"//; s/"$//')
 
-    echo "Marked work package as Done: $ST_ID/WP-$WP_NUM"
-    [ -n "$WP_TITLE" ] && echo "  Title: $WP_TITLE"
+    echo "done: $ST_ID/WP-$WP_NUM"
+    [ -n "$WP_TITLE" ] && echo "  title: $WP_TITLE"
 
     # Check if all WPs are complete
     ALL_DONE=true
@@ -239,7 +239,7 @@ TEMPLATE
 
     if [ "$ALL_DONE" = "true" ]; then
       echo ""
-      echo "All WPs complete. Consider: intent st done $ST_ID"
+      echo "hint: all WPs complete -- consider: intent st done $ST_ID"
     fi
     ;;
 
@@ -266,8 +266,8 @@ TEMPLATE
     # Extract title for display
     WP_TITLE=$(grep -m 1 "^title:" "$WP_FILE" | sed 's/^title: *//; s/^"//; s/"$//')
 
-    echo "Marked work package as WIP: $ST_ID/WP-$WP_NUM"
-    [ -n "$WP_TITLE" ] && echo "  Title: $WP_TITLE"
+    echo "started: $ST_ID/WP-$WP_NUM"
+    [ -n "$WP_TITLE" ] && echo "  title: $WP_TITLE"
     ;;
 
   "list")
@@ -282,7 +282,7 @@ TEMPLATE
     WP_BASE="$ST_DIR/WP"
 
     if [ ! -d "$WP_BASE" ] || [ -z "$(ls -A "$WP_BASE" 2>/dev/null)" ]; then
-      echo "No work packages found for $ST_ID"
+      echo "no work packages for $ST_ID"
       exit 0
     fi
 

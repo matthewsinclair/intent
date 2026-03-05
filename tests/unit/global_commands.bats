@@ -23,8 +23,8 @@ load "../lib/test_helper.bash"
   local version=$(get_intent_version)
   run run_intent doctor
   assert_success
-  assert_output_contains "Intent Doctor v${version}"
-  assert_output_contains "Checking INTENT_HOME"
+  assert_output_contains "doctor: intent v${version}"
+  assert_output_contains "checking: intent_home"
 }
 
 @test "intent info works anywhere" {

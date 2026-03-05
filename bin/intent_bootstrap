@@ -60,8 +60,7 @@ info() {
 # Main bootstrap function
 bootstrap_intent() {
   if [ "$QUIET" != true ]; then
-    echo "Intent Bootstrap v2.0.0"
-    echo "======================="
+    echo "bootstrap: intent v2.0.0"
     echo ""
   fi
   
@@ -99,7 +98,7 @@ bootstrap_intent() {
   
   # 2. Validate installation
   if [ ! -d "$INTENT_HOME/bin" ]; then
-    echo "ERROR: Invalid INTENT_HOME - bin directory not found at $INTENT_HOME/bin" >&2
+    echo "error: invalid INTENT_HOME -- bin directory not found at $INTENT_HOME/bin" >&2
     exit 1
   fi
   
@@ -132,7 +131,7 @@ EOF
     if [ $? -eq 0 ]; then
       info "Configuration created successfully at $config_file"
     else
-      echo "ERROR: Failed to create configuration file" >&2
+      echo "error: failed to create configuration file" >&2
       exit 1
     fi
   fi
@@ -140,7 +139,7 @@ EOF
   # 5. PATH setup recommendations
   if [ "$QUIET" != true ]; then
     echo ""
-    echo "Setup complete! Add the following to your shell configuration:"
+    echo "ok: setup complete -- add the following to your shell configuration:"
     echo ""
     echo "  export INTENT_HOME=\"$INTENT_HOME\""
     echo "  export PATH=\"\$INTENT_HOME/bin:\$PATH\""
@@ -153,7 +152,7 @@ EOF
   # 6. Run doctor to verify (only if doctor exists)
   if [ -f "$INTENT_HOME/bin/intent_doctor" ] && [ -x "$INTENT_HOME/bin/intent_doctor" ]; then
     if [ "$QUIET" != true ]; then
-      echo "Running intent doctor to verify installation..."
+      echo "running: intent doctor"
       echo ""
     fi
     "$INTENT_HOME/bin/intent_doctor"

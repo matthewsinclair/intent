@@ -270,7 +270,7 @@ EOF
 
   run run_intent wp done ST0001/01
   assert_success
-  assert_output_contains "Marked work package as Done"
+  assert_output_contains "done:"
   assert_file_contains "intent/st/ST0001/WP/01/info.md" "status: Done"
 }
 
@@ -313,7 +313,7 @@ EOF
 
   run run_intent wp done 11/01
   assert_success
-  assert_output_contains "Marked work package as Done"
+  assert_output_contains "done:"
   assert_file_contains "intent/st/ST0011/WP/01/info.md" "status: Done"
 }
 
@@ -348,7 +348,7 @@ EOF
 
   run run_intent wp done ST0001/02
   assert_success
-  assert_output_contains "All WPs complete"
+  assert_output_contains "all WPs complete"
   assert_output_contains "intent st done ST0001"
 }
 
@@ -378,7 +378,7 @@ EOF
 
   run run_intent wp start ST0001/01
   assert_success
-  assert_output_contains "Marked work package as WIP"
+  assert_output_contains "started:"
   assert_file_contains "intent/st/ST0001/WP/01/info.md" "status: WIP"
 }
 
@@ -456,7 +456,7 @@ EOF
 
   run run_intent wp list ST0001
   assert_success
-  assert_output_contains "No work packages found"
+  assert_output_contains "no work packages"
 }
 
 @test "wp list works with bare number STID" {

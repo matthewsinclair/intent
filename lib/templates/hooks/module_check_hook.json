@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f intent/llm/MODULES.md ] && ! grep -qF \"$CLAUDE_FILE_PATH\" intent/llm/MODULES.md 2>/dev/null; then echo \"Advisory: $CLAUDE_FILE_PATH is not registered in MODULES.md. Run 'intent modules check' to review.\"; fi",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

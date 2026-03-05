@@ -72,7 +72,7 @@ load "../lib/test_helper.bash"
 
   run run_intent learn "Never use Map.get on structs"
   assert_success
-  assert_output_contains "Added footgun learning"
+  assert_output_contains "added: footgun"
 
   # Check file was created
   [ -f ".intent/learnings.md" ]
@@ -87,7 +87,7 @@ load "../lib/test_helper.bash"
 
   run run_intent learn --category worked "Ash bulk actions work great"
   assert_success
-  assert_output_contains "Added worked learning"
+  assert_output_contains "added: worked"
 
   # Check it's under the right section
   grep -q "Ash bulk actions work great" ".intent/learnings.md"
@@ -99,7 +99,7 @@ load "../lib/test_helper.bash"
 
   run run_intent learn --category failed "Ecto.Multi nesting deadlocks"
   assert_success
-  assert_output_contains "Added failed learning"
+  assert_output_contains "added: failed"
 
   grep -q "Ecto.Multi nesting deadlocks" ".intent/learnings.md"
 }
@@ -141,7 +141,7 @@ load "../lib/test_helper.bash"
   assert_success
 
   [ -f ".intent/learnings.md" ]
-  assert_output_contains "Created .intent/learnings.md"
+  assert_output_contains "created: .intent/learnings.md"
 }
 
 @test "learn appends multiple learnings to same category" {
@@ -192,7 +192,7 @@ load "../lib/test_helper.bash"
 
   run run_intent learn --list
   assert_success
-  assert_output_contains "No learnings file found"
+  assert_output_contains "no learnings file found"
 }
 
 # ============================================================

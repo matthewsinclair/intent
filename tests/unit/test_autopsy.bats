@@ -80,8 +80,8 @@ teardown() {
 @test "claude skills install copies SKILL.md for in-autopsy" {
   run run_intent claude skills install in-autopsy --force
   assert_success
-  assert_output_contains "Installing skill: in-autopsy"
-  assert_output_contains "Installed successfully"
+  assert_output_contains "installing: in-autopsy"
+  assert_output_contains "installed"
   assert_file_exists "$HOME/.claude/skills/in-autopsy/SKILL.md"
 }
 
@@ -96,7 +96,7 @@ teardown() {
 @test "claude skills install --all includes in-autopsy with scripts" {
   run run_intent claude skills install --all --force
   assert_success
-  assert_output_contains "Installing skill: in-autopsy"
+  assert_output_contains "installing: in-autopsy"
   assert_file_exists "$HOME/.claude/skills/in-autopsy/SKILL.md"
   assert_file_exists "$HOME/.claude/skills/in-autopsy/scripts/autopsy.exs"
   assert_file_exists "$HOME/.claude/skills/in-autopsy/scripts/banned-words.txt"
@@ -175,7 +175,7 @@ teardown() {
   # Uninstall
   run run_intent claude skills uninstall in-autopsy --force
   assert_success
-  assert_output_contains "Removed successfully"
+  assert_output_contains "removed"
 
   # Verify entire directory is gone
   [ ! -d "$HOME/.claude/skills/in-autopsy" ] || fail "Skill directory should be removed"
@@ -228,7 +228,7 @@ teardown() {
   # Sync (should be up to date)
   run run_intent claude skills sync
   assert_success
-  assert_output_contains "Up to date"
+  assert_output_contains "up to date"
 
   # Uninstall
   run run_intent claude skills uninstall in-autopsy --force

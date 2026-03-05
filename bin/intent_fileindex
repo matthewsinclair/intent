@@ -215,7 +215,7 @@ if [[ ! -d "$STARTDIR" ]]; then
     if [ "$IN_INTENT_PROJECT" = true ] && [ "$NO_INTENT" = false ] && [ "$STARTDIR" = "lib" ]; then
         STARTDIR="."
     else
-        echo "Error: Directory '$STARTDIR' does not exist"
+        echo "error: Directory '$STARTDIR' does not exist"
         exit 1
     fi
 fi
@@ -323,7 +323,7 @@ read_index() {
                 if [[ "$line" == "}" ]]; then
                     in_json_block=false
                     if [[ "$VERBOSE" == true ]]; then
-                        echo "Found existing config block in index" >&2
+                        echo "found existing config block" >&2
                     fi
                     continue
                 fi
@@ -385,7 +385,7 @@ toggle_file_state() {
     done
     
     if [[ "$found" == false ]]; then
-        echo "Error: File '$target_file' not found in index" >&2
+        echo "error: File '$target_file' not found in index" >&2
         exit 1
     fi
     
@@ -433,7 +433,7 @@ check_file_state() {
     done
     
     if [[ "$found" == false ]]; then
-        echo "Error: File '$target_file' not found in index" >&2
+        echo "error: File '$target_file' not found in index" >&2
         exit 1
     fi
     
@@ -481,7 +481,7 @@ uncheck_file_state() {
     done
     
     if [[ "$found" == false ]]; then
-        echo "Error: File '$target_file' not found in index" >&2
+        echo "error: File '$target_file' not found in index" >&2
         exit 1
     fi
     
@@ -520,13 +520,13 @@ if [[ -n "$TOGGLE_FILE" ]]; then
     
     # Toggle requires an index file
     if [[ -z "$INDEX_FILE" ]]; then
-        echo "Error: Toggle mode requires an index file (-i option)" >&2
+        echo "error: Toggle mode requires an index file (-i option)" >&2
         exit 1
     fi
     
     # Read the existing index
     if [[ ! -f "$INDEX_FILE" ]]; then
-        echo "Error: Index file '$INDEX_FILE' does not exist" >&2
+        echo "error: Index file '$INDEX_FILE' does not exist" >&2
         exit 1
     fi
     
@@ -541,13 +541,13 @@ if [[ -n "$CHECK_FILE" ]]; then
     
     # Check requires an index file
     if [[ -z "$INDEX_FILE" ]]; then
-        echo "Error: Check mode requires an index file (-i option)" >&2
+        echo "error: Check mode requires an index file (-i option)" >&2
         exit 1
     fi
     
     # Read the existing index
     if [[ ! -f "$INDEX_FILE" ]]; then
-        echo "Error: Index file '$INDEX_FILE' does not exist" >&2
+        echo "error: Index file '$INDEX_FILE' does not exist" >&2
         exit 1
     fi
     
@@ -562,13 +562,13 @@ if [[ -n "$UNCHECK_FILE" ]]; then
     
     # Uncheck requires an index file
     if [[ -z "$INDEX_FILE" ]]; then
-        echo "Error: Uncheck mode requires an index file (-i option)" >&2
+        echo "error: Uncheck mode requires an index file (-i option)" >&2
         exit 1
     fi
     
     # Read the existing index
     if [[ ! -f "$INDEX_FILE" ]]; then
-        echo "Error: Index file '$INDEX_FILE' does not exist" >&2
+        echo "error: Index file '$INDEX_FILE' does not exist" >&2
         exit 1
     fi
     
@@ -613,9 +613,9 @@ process_files() {
         current_files+=("$normalised_file")
         
         if [[ "$VERBOSE" == true && -n "$OUTPUT_FILE" ]]; then
-            echo "Processing: $normalised_file" >&3
+            echo "  checking: $normalised_file" >&3
         elif [[ "$VERBOSE" == true ]]; then
-            echo "Processing: $normalised_file" >&2
+            echo "  checking: $normalised_file" >&2
         fi
         
         # Determine state for this file

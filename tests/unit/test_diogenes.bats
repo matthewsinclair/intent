@@ -54,8 +54,8 @@ teardown() {
 @test "claude subagents install diogenes installs successfully" {
   run run_intent claude subagents install diogenes --force
   assert_success
-  assert_output_contains "Installing agent: diogenes"
-  assert_output_contains "Installed successfully"
+  assert_output_contains "installing: diogenes"
+  assert_output_contains "installed"
 
   # Verify the file was created
   assert_file_exists "$HOME/.claude/agents/diogenes.md"
@@ -112,7 +112,7 @@ teardown() {
   run run_intent claude subagents sync
   assert_success
   assert_output_contains "diogenes"
-  assert_output_contains "Up to date"
+  assert_output_contains "up to date"
 }
 
 @test "claude subagents sync detects diogenes modification" {
@@ -128,7 +128,7 @@ teardown() {
   assert_success
   assert_output_contains "diogenes"
   # Should detect it is not up to date (either "modified" or "Updated")
-  refute_output_contains "Up to date"
+  refute_output_contains "up to date"
 }
 
 # ====================================================================
@@ -172,8 +172,8 @@ teardown() {
 @test "claude skills install in-elixir-testing installs successfully" {
   run run_intent claude skills install in-elixir-testing --force
   assert_success
-  assert_output_contains "Installing skill: in-elixir-testing"
-  assert_output_contains "Installed successfully"
+  assert_output_contains "installing: in-elixir-testing"
+  assert_output_contains "installed"
 
   # Verify the file was created
   assert_file_exists "$HOME/.claude/skills/in-elixir-testing/SKILL.md"
@@ -209,8 +209,8 @@ teardown() {
 @test "claude skills install --all includes in-elixir-testing" {
   run run_intent claude skills install --all --force
   assert_success
-  assert_output_contains "Installing skill: in-elixir-testing"
-  assert_output_contains "Installed successfully"
+  assert_output_contains "installing: in-elixir-testing"
+  assert_output_contains "installed"
 
   # Verify it was installed
   assert_file_exists "$HOME/.claude/skills/in-elixir-testing/SKILL.md"
@@ -240,7 +240,7 @@ teardown() {
   run run_intent claude skills sync
   assert_success
   assert_output_contains "in-elixir-testing"
-  assert_output_contains "Up to date"
+  assert_output_contains "up to date"
 }
 
 @test "claude skills sync detects in-elixir-testing modification" {
@@ -255,7 +255,7 @@ teardown() {
   run run_intent claude skills sync
   assert_success
   assert_output_contains "in-elixir-testing"
-  refute_output_contains "Up to date"
+  refute_output_contains "up to date"
 }
 
 # ====================================================================

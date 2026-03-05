@@ -105,8 +105,8 @@ plugin_install() {
   require_claude || return 1
 
   if [ "$#" -eq 0 ]; then
-    echo "Error: No ${PLUGIN_TYPE} specified"
-    echo "Usage: intent claude ${PLUGIN_CMD} install <name> [name...]"
+    echo "error: no ${PLUGIN_TYPE} specified"
+    echo "usage: intent claude ${PLUGIN_CMD} install <name> [name...]"
     echo "       intent claude ${PLUGIN_CMD} install --all"
     return 1
   fi
@@ -134,45 +134,42 @@ plugin_install() {
   local failed_count=0
 
   for name in "${items_to_install[@]}"; do
-    echo "Installing ${PLUGIN_TYPE}: $name"
+    echo "installing: $name"
 
     local source_file
     source_file=$(plugin_get_source_file "$name")
     if [ ! -f "$source_file" ]; then
-      echo "  Error: ${PLUGIN_TYPE_CAP} '$name' not found"
+      echo "  error: '$name' not found"
       ((failed_count++))
       continue
     fi
 
     if plugin_is_installed "$name"; then
       if [ "$force" = false ]; then
-        echo -n "  ${PLUGIN_TYPE_CAP} already exists. Overwrite? [y/N] "
+        echo -n "  already exists, overwrite? [y/N] "
         read -r response
         if [[ ! "$response" =~ ^[Yy]$ ]]; then
-          echo "  Skipped"
+          echo "  skipped"
           ((skipped_count++))
           continue
         fi
       else
-        echo "  ${PLUGIN_TYPE_CAP} already exists. Overwriting (--force)"
+        echo "  already exists, overwriting"
       fi
     fi
 
     if plugin_copy_to_target "$name"; then
-      echo "  Installed successfully"
+      echo "  installed"
       plugin_update_manifest "$name" "$(dirname "$source_file")"
       ((installed_count++))
     else
-      echo "  Error: Failed to install"
+      echo "  error: failed to install"
       ((failed_count++))
     fi
   done
 
   echo ""
-  echo "Installation complete:"
-  echo "  Installed: $installed_count"
-  [ "$skipped_count" -gt 0 ] && echo "  Skipped: $skipped_count"
-  [ "$failed_count" -gt 0 ] && echo "  Failed: $failed_count"
+  echo "ok: $installed_count installed, $skipped_count skipped, $failed_count failed"
 
   if [ "$installed_count" -gt 0 ] || [ "$skipped_count" -gt 0 ]; then
     return 0
@@ -193,8 +190,8 @@ plugin_sync() {
   manifest_file="$(plugin_get_manifest_path)"
 
   if [ ! -f "$manifest_file" ]; then
-    echo "No installed ${PLUGIN_TYPE_PLURAL} found."
-    echo "Use 'intent claude ${PLUGIN_CMD} install' to install ${PLUGIN_TYPE_PLURAL} first."
+    echo "no installed ${PLUGIN_TYPE_PLURAL} found"
+    echo "hint: use 'intent claude ${PLUGIN_CMD} install' first"
     return 0
   fi
 
@@ -205,7 +202,7 @@ plugin_sync() {
     esac
   done
 
-  echo "Syncing installed ${PLUGIN_TYPE_PLURAL}..."
+  echo "syncing: installed ${PLUGIN_TYPE_PLURAL}"
   echo ""
 
   local names
@@ -233,7 +230,7 @@ plugin_sync() {
       local new_source
       new_source=$(plugin_get_source_file "$new_name")
       if [ "$new_name" != "$name" ] && [ -f "$new_source" ]; then
-        echo "  Renamed: $name -> $new_name"
+        echo "  renamed: $name -> $new_name"
         plugin_remove_target "$name"
         plugin_remove_from_manifest "$name"
         plugin_copy_to_target "$new_name"
@@ -241,7 +238,7 @@ plugin_sync() {
         ((updated_count++))
         continue
       fi
-      echo "  Error: Source file not found: $source_file"
+      echo "  error: source file not found: $source_file"
       ((failed_count++))
       continue
     fi
@@ -253,43 +250,40 @@ plugin_sync() {
 
     # Three-way comparison
     if [ "$source_checksum" = "$old_checksum" ] && [ "$target_checksum" = "$old_checksum" ]; then
-      echo "  Up to date"
+      echo "  up to date"
       ((skipped_count++))
       continue
     fi
 
     if [ "$target_checksum" != "$old_checksum" ] && [ "$source_checksum" = "$old_checksum" ]; then
-      echo "  Warning: ${PLUGIN_TYPE_CAP} has been modified locally"
+      echo "  warning: modified locally"
       if [ "$force" = false ]; then
-        echo -n "  Overwrite local changes? [y/N] "
+        echo -n "  overwrite local changes? [y/N] "
         read -r response
         if [[ ! "$response" =~ ^[Yy]$ ]]; then
-          echo "  Skipped"
+          echo "  skipped"
           ((skipped_count++))
           continue
         fi
       else
-        echo "  Overwriting local changes (--force)"
+        echo "  overwriting local changes"
       fi
     elif [ "$source_checksum" != "$old_checksum" ]; then
-      echo "  Update available"
+      echo "  update available"
     fi
 
     if plugin_copy_to_target "$name"; then
-      echo "  Updated successfully"
+      echo "  updated"
       plugin_update_manifest "$name" "$source_path"
       ((updated_count++))
     else
-      echo "  Error: Failed to update"
+      echo "  error: failed to update"
       ((failed_count++))
     fi
   done
 
   echo ""
-  echo "Sync complete:"
-  echo "  Updated: $updated_count"
-  [ "$skipped_count" -gt 0 ] && echo "  Skipped: $skipped_count"
-  [ "$failed_count" -gt 0 ] && echo "  Failed: $failed_count"
+  echo "ok: $updated_count updated, $skipped_count skipped, $failed_count failed"
 
   if [ "$updated_count" -gt 0 ] || [ "$skipped_count" -gt 0 ]; then
     return 0
@@ -306,7 +300,7 @@ plugin_uninstall() {
   require_claude || return 1
 
   if [ "$#" -eq 0 ]; then
-    echo "Error: No ${PLUGIN_TYPE} specified"
+    echo "error: no ${PLUGIN_TYPE} specified"
     echo "Usage: intent claude ${PLUGIN_CMD} uninstall <name> [name...]"
     echo "       intent claude ${PLUGIN_CMD} uninstall --all"
     return 1
@@ -329,27 +323,27 @@ plugin_uninstall() {
     manifest_file="$(plugin_get_manifest_path)"
 
     if [ ! -f "$manifest_file" ]; then
-      echo "No installed ${PLUGIN_TYPE_PLURAL} found."
+      echo "no installed ${PLUGIN_TYPE_PLURAL} found"
       return 0
     fi
 
     items_to_remove=($(jq -r '.installed[].name' "$manifest_file" 2>/dev/null))
 
     if [ ${#items_to_remove[@]} -eq 0 ]; then
-      echo "No Intent-managed ${PLUGIN_TYPE_PLURAL} found."
+      echo "no intent-managed ${PLUGIN_TYPE_PLURAL} found"
       return 0
     fi
   fi
 
   if [ "$force" = false ]; then
-    echo "The following ${PLUGIN_TYPE_PLURAL} will be uninstalled:"
+    echo "will remove:"
     for name in "${items_to_remove[@]}"; do
       echo "  - $name"
     done
     echo -n "Continue? [y/N] "
     read -r response
     if [[ ! "$response" =~ ^[Yy]$ ]]; then
-      echo "Cancelled"
+      echo "cancelled"
       return 0
     fi
   fi
@@ -359,10 +353,10 @@ plugin_uninstall() {
   local failed_count=0
 
   for name in "${items_to_remove[@]}"; do
-    echo "Uninstalling ${PLUGIN_TYPE}: $name"
+    echo "removing: $name"
 
     if ! plugin_is_installed "$name"; then
-      echo "  ${PLUGIN_TYPE_CAP} not found"
+      echo "  not found"
       ((skipped_count++))
       continue
     fi
@@ -374,12 +368,12 @@ plugin_uninstall() {
       local is_managed
       is_managed=$(jq -r ".installed[] | select(.name == \"$name\") | .name" "$manifest_file" 2>/dev/null)
       if [ -z "$is_managed" ]; then
-        echo "  Warning: ${PLUGIN_TYPE_CAP} not managed by Intent"
+        echo "  warning: not managed by intent"
         if [ "$force" = false ]; then
           echo -n "  Remove anyway? [y/N] "
           read -r response
           if [[ ! "$response" =~ ^[Yy]$ ]]; then
-            echo "  Skipped"
+            echo "  skipped"
             ((skipped_count++))
             continue
           fi
@@ -388,20 +382,17 @@ plugin_uninstall() {
     fi
 
     if plugin_remove_target "$name"; then
-      echo "  Removed successfully"
+      echo "  removed"
       plugin_remove_from_manifest "$name"
       ((removed_count++))
     else
-      echo "  Error: Failed to remove"
+      echo "  error: failed to remove"
       ((failed_count++))
     fi
   done
 
   echo ""
-  echo "Uninstall complete:"
-  echo "  Removed: $removed_count"
-  [ "$skipped_count" -gt 0 ] && echo "  Skipped: $skipped_count"
-  [ "$failed_count" -gt 0 ] && echo "  Failed: $failed_count"
+  echo "ok: $removed_count removed, $skipped_count skipped, $failed_count failed"
 
   if [ "$removed_count" -gt 0 ] || [ "$skipped_count" -gt 0 ]; then
     return 0

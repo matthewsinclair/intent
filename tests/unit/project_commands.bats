@@ -8,9 +8,9 @@ load "../lib/test_helper.bash"
   # Use 'list' subcommand to trigger project check
   run run_intent st list
   assert_failure
-  assert_output_contains "Not in an Intent project directory"
-  assert_output_contains "The 'st' command requires an Intent project"
-  assert_output_contains "To create a new project:  intent init"
+  assert_output_contains "not in an Intent project directory"
+  assert_output_contains "'st' requires an Intent project"
+  assert_output_contains "intent init"
 }
 
 @test "intent st list works inside project" {

@@ -20,8 +20,8 @@ load "lib/test_helper.bash"
   # Outside project
   run run_intent st list
   assert_failure
-  assert_output_contains "Not in an Intent project directory"
-  assert_output_contains "The 'st' command requires an Intent project"
+  assert_output_contains "not in an Intent project directory"
+  assert_output_contains "'st' requires an Intent project"
 }
 
 @test "no more silent failures - all commands give feedback" {
@@ -30,7 +30,7 @@ load "lib/test_helper.bash"
   assert_failure
   # Should see error, not silence
   [ -n "$output" ] || fail "Expected output but got none"
-  assert_output_contains "Not in an Intent project"
+  assert_output_contains "not in an Intent project"
 }
 
 @test "backup uses new .backup_ prefix not .stp_backup_" {

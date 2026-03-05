@@ -117,6 +117,10 @@ case "$COMMAND" in
     COMMAND="learn"
     COMMAND_SCRIPT="intent_learn"
     ;;
+  modules)
+    COMMAND="modules"
+    COMMAND_SCRIPT="intent_modules"
+    ;;
   *)
     # Default: prefix with intent_
     COMMAND_SCRIPT="intent_$COMMAND"
@@ -140,13 +144,13 @@ fi
 if [ -n "$PLUGIN_COMMAND" ]; then
   # For plugin commands
   if [ ! -x "$COMMAND_SCRIPT" ]; then
-    echo "Warning: Making plugin script executable: $COMMAND_SCRIPT" >&2
+    echo "warning: making plugin script executable: $COMMAND_SCRIPT" >&2
     chmod +x "$COMMAND_SCRIPT"
   fi
 else
   # For regular commands
   if [ ! -x "$BIN_DIR/$COMMAND_SCRIPT" ]; then
-    echo "Warning: Making script executable: $COMMAND_SCRIPT" >&2
+    echo "warning: making script executable: $COMMAND_SCRIPT" >&2
     chmod +x "$BIN_DIR/$COMMAND_SCRIPT"
   fi
 fi
@@ -169,12 +173,9 @@ if [ -f "$BIN_DIR/intent_config" ]; then
   
   # Check if we found a project root (check for empty or unset)
   if [ -z "${PROJECT_ROOT:-}" ] || [ "$PROJECT_ROOT" = "" ]; then
-    echo "Error: Not in an Intent project directory." >&2
-    echo "" >&2
-    echo "The '$COMMAND' command requires an Intent project." >&2
-    echo "" >&2
-    echo "To create a new project:  intent init" >&2
-    echo "To see all commands:      intent help" >&2
+    echo "error: not in an Intent project directory" >&2
+    echo "  '$COMMAND' requires an Intent project" >&2
+    echo "  hint: intent init | intent help" >&2
     exit 1
   fi
 else
