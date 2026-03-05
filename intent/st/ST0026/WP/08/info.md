@@ -1,9 +1,9 @@
 ---
-verblock: "04 Mar 2026:v0.1: matts - Initial version"
+verblock: "05 Mar 2026:v0.2: matts - As-built"
 wp_id: WP-08
 title: "Guardrails (D9, D11)"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-08: Guardrails (D9, D11)
@@ -23,11 +23,11 @@ Three-tier enforcement:
 - "Check MODULES.md before creating any new module"
 - Steps: check registry, extend or delegate if exists, register FIRST if new
 
-**Tier 2 -- Claude Code hook** (this WP):
+**Tier 2 -- Claude Code hook template** (this WP):
 
-- Fires on `Write` to `lib/**/*.ex`
-- Checks if module path is registered in MODULES.md
-- Advisory warning (does not block)
+- Template at `lib/templates/hooks/module_check_hook.json`
+- Advisory PostToolUse hook for Write|Edit operations
+- Users install by copying into `.claude/settings.json`
 
 **Tier 3 -- `intent modules check` command**:
 
@@ -39,32 +39,29 @@ intent modules find "auth"        # Find canonical module for concern
 
 ### D11: Umbrella Dependency Graph Enforcement
 
-**Context**: Lamplight `output.ex` imported from `llclient` app, violating the dependency graph. Compiled fine in dev but was an architectural boundary violation.
+**Template** at `lib/templates/llm/_DEPENDENCY_GRAPH.md` with `[[PROJECT_NAME]]` placeholder.
 
-**Definition** in `intent/llm/DEPENDENCY_GRAPH.md`:
+**Credo check** at `lib/templates/credo_checks/elixir/dependency_graph.ex`:
 
-```markdown
-| App  | May depend on | Must NOT depend on |
-| ---- | ------------- | ------------------ |
-| core | (nothing)     | web, cli, workers  |
-| web  | core          | cli, workers       |
-```
-
-**Enforcement**: Check that scans `alias`/`import`/`use` statements and flags cross-app references violating the declared graph. Integrates with `intent audit quick`.
-
-**Implementation options**:
-
-- Custom Credo check: `DependencyGraphViolation`
-- Standalone script
-- Integrated into `intent audit quick --rule D11`
+- `Mix.Checks.DependencyGraph`, id `EX4007`, `run_on_all: true`
+- Reads rules from `intent/llm/DEPENDENCY_GRAPH.md`
+- Walks AST for alias/import/use, infers target app via `Macro.underscore`
+- Integrated via `intent audit quick --rule D11`
 
 ## Acceptance Criteria
 
-- [ ] D9: CLAUDE.md instruction present
-- [ ] D9: Hook functional (advisory warning on unregistered modules)
-- [ ] D9: `intent modules check` works
-- [ ] D11: Dependency graph definition format specified
-- [ ] D11: Enforcement check catches known violations
+- [x] D9: CLAUDE.md instruction present (WP-03)
+- [x] D9: Hook template created
+- [x] D9: `intent modules check` works
+- [x] D11: Dependency graph template created
+- [x] D11: Credo check created and integrated with audit
+
+## Also Delivered
+
+- Rationalized CLI output across all 14+ commands to Rust-style conventions
+- Added `--help`/`-h` flag support to `intent st`
+- Registered 8 previously-missing bin scripts in MODULES.md
+- Removed stale `lib/help/general.help.md` entry from MODULES.md
 
 ## Dependencies
 

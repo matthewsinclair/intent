@@ -6,27 +6,28 @@ Intent v2.6.0 -- CLI tool for managing steel threads, project docs, and LLM guid
 
 ## Current State
 
-ST0026 (Steel Thread Zero) Phase 2 in progress. WP-06 and WP-07 complete. WP-08 next.
+ST0026 (Steel Thread Zero) Phase 2 in progress. WP-06, WP-07, WP-08 complete. WP-09 next.
 
 ## TODO
 
-### Next: WP-08 (Guardrails)
+### Next: WP-09 (Retrofit Installation)
 
-- Create `bin/intent_modules` command script
-- Implement `intent modules check` (scan modules vs MODULES.md)
-- Implement `intent modules check --register` (auto-register missing)
-- Implement `intent modules find` (locate module by concern)
-- Create Claude Code hook for `Write` to `lib/**/*.ex`
-- Create `lib/templates/llm/_DEPENDENCY_GRAPH.md` template
-- Implement dependency graph check (scan alias/import/use vs declared deps)
-- Integrate with `intent audit quick`
+- Create `bin/intent_st_zero` (or extend `bin/intent_st`)
+- Implement `intent st zero install` with 4 phases
+- Implement module auto-discovery algorithm
+- Implement gap analysis report
+- Implement proposal generation
+- Implement interactive apply with confirmation
+- Implement `--audit-only` flag
+- Implement `--deliverable` filter
+- Implement `--dry-run` flag
+- Test on Intent project itself (eating our own dogfood)
 
-### Remaining Phase 2: WP-09 through WP-10
+### Remaining Phase 2: WP-10
 
-| WP    | Title                 | Key deliverables                          |
-| ----- | --------------------- | ----------------------------------------- |
-| WP-09 | Retrofit Installation | `intent st zero install` (brownfield)     |
-| WP-10 | Integrator Command    | `intent init --with-st0000` (greenfield)  |
+| WP    | Title              | Key deliverables                         |
+| ----- | ------------------ | ---------------------------------------- |
+| WP-10 | Integrator Command | `intent init --with-st0000` (greenfield) |
 
 ### Documentation
 
@@ -52,5 +53,5 @@ See `intent/st/ST0026/tasks.md` for detailed task lists.
 - NO Claude attribution in commit messages
 - Tag workflow: `git tag -f vX.Y.Z HEAD` then force-push to both remotes
 - Never use em dashes in skill files (multi-byte truncation bugs)
-- Run `tests/run_tests.sh` before committing (407 tests across 20 files)
+- Run `tests/run_tests.sh` before committing (427 tests across 21 files)
 - Two git remotes: `local` (Dropbox) and `upstream` (GitHub)

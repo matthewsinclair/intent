@@ -1,6 +1,6 @@
 ---
-verblock: "17 Feb 2026:v2.4.0: Matthew Sinclair - Updated to Intent v2.4.0"
-intent_version: 2.4.0
+verblock: "05 Mar 2026:v2.6.0: Matthew Sinclair - Updated to Intent v2.6.0"
+intent_version: 2.6.0
 ---
 
 # User Guide
@@ -20,8 +20,11 @@ This user guide provides task-oriented instructions for using the Intent system.
 9. [Claude Subagent Management](#claude-subagent-management)
 10. [Claude Skills Management](#claude-skills-management)
 11. [LLM Guidance Upgrade](#llm-guidance-upgrade)
-12. [Testing](#testing)
-13. [Troubleshooting](#troubleshooting)
+12. [Code Quality](#code-quality)
+13. [Module Guardrails](#module-guardrails)
+14. [Plugin Discovery](#plugin-discovery)
+15. [Testing](#testing)
+16. [Troubleshooting](#troubleshooting)
 
 ## Introduction
 
@@ -521,6 +524,11 @@ Intent v2.4.0 introduces skills -- always-on Claude Code enforcement rules that 
 | `in-phoenix-liveview`    |   7   | Two-phase mount, streams, components            |
 | `in-elixir-testing`      |   8   | Strong assertions, no control flow, spec-driven |
 | `in-autopsy`             |  --   | Session forensics, memory meta-learning         |
+| `in-start`               |  --   | Session start: read restart files, orientation  |
+| `in-plan`                |  --   | Planning kickoff: show workplan, invoke skills  |
+| `in-standards`           |  --   | Coding standards: re-read rules, enforce checks |
+| `in-next`                |  --   | Next step: review state, identify work unit     |
+| `in-finish`              |  --   | Session finish: update docs, commit cleanly     |
 
 ### Installing Skills
 
@@ -586,6 +594,135 @@ intent agents init --template elixir
 
 This creates AGENTS.md, RULES.md, and ARCHITECTURE.md with Elixir-specific defaults.
 
+## Code Quality
+
+Intent v2.6.0 includes automated code quality enforcement for Elixir projects.
+
+### Quick Audit
+
+Run targeted code quality checks using custom Credo rules:
+
+```bash
+# Run all custom checks
+intent audit quick
+
+# Run a specific rule
+intent audit quick --rule R2
+
+# Get machine-readable output
+intent audit quick --json
+
+# Auto-fix issues where possible
+intent audit quick --fix
+```
+
+Available rules:
+
+| Rule | Check                     | Description                              |
+| ---- | ------------------------- | ---------------------------------------- |
+| R2   | Thick coordinator         | Controllers/LiveViews with business logic |
+| R6   | Highlander suspect        | Potential code duplication                |
+| R7   | Map.get on struct         | Unsafe struct field access               |
+| R8   | Boolean operators         | `&&`/`||` instead of `and`/`or`          |
+| R11  | Missing @impl annotation  | Callback without @impl true              |
+| R15  | Debug artifacts           | IO.inspect, dbg() left in code           |
+| D11  | Dependency graph          | Cross-app dependency violations          |
+
+### Health Check
+
+Run a comprehensive project health assessment:
+
+```bash
+# Run health check
+intent audit health
+
+# Save report to intent/audit/
+intent audit health --report
+
+# Check only files changed since last check
+intent audit health --diff
+```
+
+Health checks: MODULES.md coverage, thick coordinators, Highlander suspects, Credo status.
+
+### Capturing Learnings
+
+Record project learnings for future sessions:
+
+```bash
+# Record a footgun (default category)
+intent learn "Never use Map.get on structs"
+
+# Record what worked
+intent learn --category worked "Ash code interfaces simplify everything"
+
+# Record what failed
+intent learn --category failed "Tried raw Ecto, broke the dependency graph"
+
+# List all learnings
+intent learn --list
+```
+
+Learnings are stored in `.intent/learnings.md` and automatically included by `intent claude prime`.
+
+## Module Guardrails
+
+Intent v2.6.0 provides module registry guardrails via `intent modules`.
+
+### Checking the Registry
+
+Compare MODULES.md against actual project files:
+
+```bash
+# Check for unregistered files and stale entries
+intent modules check
+
+# Interactively register missing files
+intent modules check --register
+```
+
+Output uses `+` for unregistered files and `-` for stale entries. Exit code 0 means clean, 1 means issues found.
+
+### Searching the Registry
+
+Find the canonical module for a concern:
+
+```bash
+intent modules find "auth"
+intent modules find "helpers"
+```
+
+### Dependency Graph
+
+For Elixir umbrella apps, declare allowed dependencies in `intent/llm/DEPENDENCY_GRAPH.md`:
+
+```markdown
+| App  | May depend on | Must NOT depend on |
+| ---- | ------------- | ------------------ |
+| core | (nothing)     | web, cli, workers  |
+| web  | core          | cli, workers       |
+```
+
+Enforce with `intent audit quick --rule D11`. A template is available at `lib/templates/llm/_DEPENDENCY_GRAPH.md`.
+
+### Claude Code Hook
+
+An advisory hook template is available at `lib/templates/hooks/module_check_hook.json`. Copy it into your `.claude/settings.json` to get warnings when writing to unregistered module paths.
+
+## Plugin Discovery
+
+Intent v2.6.0 includes a plugin discovery system:
+
+```bash
+# List all plugins and their commands
+intent plugin
+
+# Show details for a specific plugin
+intent plugin show claude
+```
+
+Plugins are defined by `plugin.json` files in `intent/plugins/*/`.
+
 ## Testing
 
 Intent includes a comprehensive test suite to verify functionality:
@@ -607,25 +744,31 @@ To run the test suite:
 
 ### Test Structure
 
-Tests are organized in `tests/unit/` with 15 test files covering all commands:
+Tests are organized in `tests/unit/` with 21 test files covering all commands:
 
-| Test File                 | Tests                                                 |
-| ------------------------- | ----------------------------------------------------- |
-| `agent_commands.bats`     | AGENTS.md management (init, generate, sync, validate) |
-| `basic.bats`              | Basic infrastructure and environment                  |
-| `bootstrap.bats`          | Bootstrap command                                     |
-| `config.bats`             | Configuration and PROJECT_ROOT detection              |
-| `fileindex_commands.bats` | Fileindex (file tracking and checkbox states)         |
-| `global_commands.bats`    | Global commands (help, doctor, info, etc.)            |
-| `help_commands.bats`      | Help system                                           |
-| `init_commands.bats`      | Init command                                          |
-| `migration.bats`          | Migration and backup                                  |
-| `project_commands.bats`   | Project-specific commands                             |
-| `st_commands.bats`        | Steel thread management                               |
-| `skills_commands.bats`    | Skills management (install, sync, uninstall, show)    |
-| `test_autopsy.bats`       | Autopsy skill and full directory install              |
-| `test_diogenes.bats`      | Diogenes subagent and testing skill                   |
-| `treeindex_commands.bats` | Treeindex (directory summaries)                       |
+| Test File                  | Tests                                                 |
+| -------------------------- | ----------------------------------------------------- |
+| `agent_commands.bats`      | AGENTS.md management (init, generate, sync, validate) |
+| `audit_commands.bats`      | Audit command (quick, health)                         |
+| `basic.bats`               | Basic infrastructure and environment                  |
+| `bootstrap.bats`           | Bootstrap command                                     |
+| `config.bats`              | Configuration and PROJECT_ROOT detection              |
+| `fileindex_commands.bats`  | Fileindex (file tracking and checkbox states)         |
+| `global_commands.bats`     | Global commands (help, doctor, info, etc.)            |
+| `help_commands.bats`       | Help system                                           |
+| `init_commands.bats`       | Init command                                          |
+| `learn_commands.bats`      | Learn command (footgun, worked, failed)               |
+| `migration.bats`           | Migration and backup                                  |
+| `modules_commands.bats`    | Modules command (check, find)                         |
+| `plugin_commands.bats`     | Plugin discovery (list, show)                         |
+| `project_commands.bats`    | Project-specific commands                             |
+| `st_commands.bats`         | Steel thread management                               |
+| `skills_commands.bats`     | Skills management (install, sync, uninstall, show)    |
+| `subagent_commands.bats`   | Subagent management                                   |
+| `test_autopsy.bats`        | Autopsy skill and full directory install              |
+| `test_diogenes.bats`       | Diogenes subagent and testing skill                   |
+| `treeindex_commands.bats`  | Treeindex (directory summaries)                       |
+| `wp_commands.bats`         | Work package management                               |
 
 ## Upgrading Intent
 

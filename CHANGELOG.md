@@ -24,6 +24,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 9 Elixir archetype templates in `lib/templates/archetypes/elixir/`
   - 5 workflow skills: `in-start`, `in-plan`, `in-next`, `in-standards`, `in-finish`
   - TN004 total codebase audit tech note
+- **ST0026 Phase 2** -- Automated enforcement and guardrails
+  - `intent audit quick` command with 7 custom Credo check templates (R2, R6, R7, R8, R11, R15, D11)
+  - `intent audit health` command with 4 health checks, `--report` and `--diff` flags
+  - `intent learn` command for capturing project learnings (footgun/worked/failed)
+  - `intent modules check` command for module registry guardrails
+  - `intent modules find` command for searching the registry
+  - Dependency graph Credo check template (`dependency_graph.ex`, rule D11)
+  - Dependency graph template (`_DEPENDENCY_GRAPH.md`) for umbrella apps
+  - Claude Code advisory hook template for unregistered module warnings
+
+### Changed
+
+- Rationalized CLI output across all commands to Rust-style conventions
+  - Lowercase status prefixes: `ok:`, `error:`, `warning:`, `hint:`
+  - Action prefixes: `created:`, `updated:`, `removed:`, `started:`, `done:`
+  - No separator bars, banners, or unicode decorations
+- `intent st` now supports `--help`/`-h` flags
 
 ### Fixed
 

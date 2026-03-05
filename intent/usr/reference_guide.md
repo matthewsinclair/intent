@@ -1,11 +1,11 @@
 ---
-verblock: "17 Feb 2026:v2.4.0: Matthew Sinclair - Updated for Intent v2.4.0"
-intent_version: 2.4.0
+verblock: "05 Mar 2026:v2.6.0: Matthew Sinclair - Updated for Intent v2.6.0"
+intent_version: 2.6.0
 ---
 
 # Reference Guide
 
-This reference guide provides comprehensive information about the Intent system (v2.4.0). Unlike the task-oriented User Guide, this reference guide serves as a complete reference for all aspects of the system.
+This reference guide provides comprehensive information about the Intent system (v2.6.0). Unlike the task-oriented User Guide, this reference guide serves as a complete reference for all aspects of the system.
 
 ## Table of Contents
 
@@ -22,7 +22,7 @@ This reference guide provides comprehensive information about the Intent system 
 
 #### `intent upgrade`
 
-Upgrades a project from an older version to Intent v2.4.0.
+Upgrades a project from an older version to Intent v2.6.0.
 
 **Usage:**
 
@@ -742,6 +742,11 @@ intent claude skills <command> [options]
 | `in-phoenix-liveview`    |   7   | LiveView rules (streams, two-phase mount)      |
 | `in-elixir-testing`      |   8   | Test quality rules (strong assertions, specs)  |
 | `in-autopsy`             |  --   | Session forensics and memory meta-learning     |
+| `in-start`               |  --   | Session start: orientation and context loading  |
+| `in-plan`                |  --   | Planning kickoff: workplan and skill invocation |
+| `in-standards`           |  --   | Coding standards: rules enforcement             |
+| `in-next`                |  --   | Next step: identify smallest coherent work unit |
+| `in-finish`              |  --   | Session finish: update docs, commit cleanly     |
 
 **Example:**
 
@@ -801,6 +806,195 @@ intent claude upgrade --apply --project-dir /path/to/project
 3. Checks subagent and skill installation status
 4. Generates a project-specific upgrade plan
 5. With `--apply`, executes the plan
+
+#### `intent audit`
+
+Runs automated code quality checks for Elixir projects.
+
+**Usage:**
+
+```bash
+intent audit <subcommand> [options]
+```
+
+**Subcommands:**
+
+`intent audit quick`
+
+Runs custom Credo checks against the project.
+
+**Options:**
+
+| Flag             | Description                         |
+| ---------------- | ----------------------------------- |
+| `--rule RN`      | Run a specific rule only            |
+| `--fix`          | Auto-fix issues where possible      |
+| `--json`         | Machine-readable JSON output        |
+| `--checks-only`  | Install checks without running them |
+
+**Available Rules:**
+
+| Rule | Template                      | Description                     |
+| ---- | ----------------------------- | ------------------------------- |
+| R2   | `thick_coordinator.ex`        | Controllers with business logic |
+| R6   | `highlander_suspect.ex`       | Potential code duplication      |
+| R7   | `map_get_on_struct.ex`        | Unsafe struct field access      |
+| R8   | `boolean_operators.ex`        | `&&`/`||` instead of `and`/`or` |
+| R11  | `missing_impl_annotation.ex`  | Callback without @impl true     |
+| R15  | `debug_artifacts.ex`          | IO.inspect, dbg() in code       |
+| D11  | `dependency_graph.ex`         | Cross-app dependency violations |
+
+`intent audit health`
+
+Runs comprehensive project health assessment.
+
+**Options:**
+
+| Flag       | Description                             |
+| ---------- | --------------------------------------- |
+| `--report` | Save report to `intent/audit/`          |
+| `--diff`   | Check only files changed since last run |
+
+**Health checks:** MODULES.md coverage, thick coordinators, Highlander suspects, Credo status.
+
+**Example:**
+
+```bash
+intent audit quick                # Run all custom checks
+intent audit quick --rule R2      # Check for thick coordinators only
+intent audit health --report      # Save health report
+intent audit health --diff        # Check changed files only
+```
+
+**Notes:**
+
+- Templates auto-copied to project's `lib/mix/checks/` on first run
+- Requires an Elixir project with Credo configured
+
+#### `intent learn`
+
+Captures project learnings for future sessions.
+
+**Usage:**
+
+```bash
+intent learn "description" [--category <cat>]
+intent learn --list
+```
+
+**Options:**
+
+| Flag               | Description                                 |
+| ------------------ | ------------------------------------------- |
+| `--category <cat>` | Category: footgun (default), worked, failed |
+| `--list`           | List all recorded learnings                 |
+
+**Example:**
+
+```bash
+intent learn "Never use Map.get on structs"
+intent learn --category worked "Ash code interfaces simplify everything"
+intent learn --list
+```
+
+**Notes:**
+
+- Stores in `.intent/learnings.md` with date-prefixed entries
+- Automatically included by `intent claude prime`
+
+#### `intent modules`
+
+Module registry guardrails and enforcement.
+
+**Usage:**
+
+```bash
+intent modules <subcommand> [options]
+```
+
+**Subcommands:**
+
+| Command | Description                                  |
+| ------- | -------------------------------------------- |
+| `check` | Compare MODULES.md against filesystem        |
+| `find`  | Search MODULES.md for a term                 |
+| `help`  | Show usage                                   |
+
+**Options for check:**
+
+| Flag         | Description                           |
+| ------------ | ------------------------------------- |
+| `--register` | Interactively register missing files  |
+
+**Example:**
+
+```bash
+intent modules check              # Report unregistered/stale entries
+intent modules check --register   # Interactive registration
+intent modules find "helpers"     # Find modules matching a term
+```
+
+**Output:**
+
+- `+` prefix: unregistered file (exists but not in MODULES.md)
+- `-` prefix: stale entry (in MODULES.md but file missing)
+- Exit code 0: clean, exit code 1: issues found
+
+#### `intent plugin`
+
+Discovers installed plugins and their commands.
+
+**Usage:**
+
+```bash
+intent plugin [list]              # List all plugins
+intent plugin show <name>         # Show details for a plugin
+intent plugin help                # Show usage
+```
+
+**Example:**
+
+```bash
+intent plugin                     # List all plugins
+intent plugin show claude         # Show claude plugin details
+```
+
+**Notes:**
+
+- Global command (works without project context)
+- Reads `plugin.json` metadata from `intent/plugins/*/`
+
+#### `intent claude prime`
+
+Synthesizes operational knowledge into MEMORY.md for Claude Code sessions.
+
+**Usage:**
+
+```bash
+intent claude prime [options]
+```
+
+**Options:**
+
+| Flag               | Description                     |
+| ------------------ | ------------------------------- |
+| `--refresh`        | Overwrite existing MEMORY.md    |
+| `--dry-run`        | Preview without writing         |
+| `--from <project>` | Source from a different project |
+
+**Example:**
+
+```bash
+intent claude prime               # Generate MEMORY.md
+intent claude prime --refresh     # Overwrite existing
+intent claude prime --dry-run     # Preview output
+```
+
+**Notes:**
+
+- Reads MODULES.md, DECISION_TREE.md, ARCHETYPES.md, learnings
+- Enforces 200-line limit with truncation warning
+- Output goes to `.claude/projects/.../memory/MEMORY.md`
 
 ### Additional Commands
 
@@ -1013,9 +1207,19 @@ Intent/
 │               ├── socrates/
 │               ├── worker-bee/
 │               └── diogenes/
+│   │   ├── MODULES.md      # Module registry (Highlander enforcer)
+│   │   └── DECISION_TREE.md # Code placement guide
+├── lib/                   # Templates and libraries
+│   ├── templates/
+│   │   ├── llm/           # LLM guidance templates
+│   │   ├── archetypes/    # Code archetype templates
+│   │   ├── credo_checks/  # Custom Credo check templates (7)
+│   │   ├── hooks/         # Claude Code hook templates
+│   │   └── prime/         # Operational knowledge for prime
+│   └── help/              # Help files for commands
 ├── bin/                   # Intent scripts (executable)
 ├── tests/                 # Test suite
-│   ├── unit/              # Unit tests (15 .bats files)
+│   ├── unit/              # Unit tests (21 .bats files)
 │   ├── integration/       # Integration tests
 │   ├── lib/               # Test helper libraries
 │   ├── fixtures/          # Test fixtures
@@ -1047,7 +1251,7 @@ Example:
 {
   "project_name": "Project Name",
   "author": "Default Author",
-  "intent_version": "2.4.0",
+  "intent_version": "2.6.0",
   "st_prefix": "ST"
 }
 ```
@@ -1095,3 +1299,8 @@ Example:
 | Skill           | An always-on Claude Code enforcement file installed to `.claude/skills/`        |
 | RULES.md        | Human-curated coding rules and conventions file in `intent/llm/`                |
 | ARCHITECTURE.md | Human-curated system architecture description in `intent/llm/`                  |
+| MODULES.md      | Module registry for the Highlander Rule (one module per concern)                 |
+| Audit           | Automated code quality checks using custom Credo rules                           |
+| Health check    | Comprehensive project quality assessment via `intent audit health`               |
+| Learning        | Captured project insight stored in `.intent/learnings.md`                        |
+| Prime           | Memory injection via `intent claude prime` for session context                   |

@@ -2,7 +2,7 @@
 
 ## Implementation Status
 
-Phase 1 (WP-01 through WP-05 + WP-11) complete. Phase 2 in progress: WP-06 done.
+Phase 1 (WP-01 through WP-05 + WP-11) complete. Phase 2 in progress: WP-06, WP-07, WP-08 done.
 
 ## Execution Order
 
@@ -16,7 +16,7 @@ Phase 1 (WP-01 through WP-05 + WP-11) complete. Phase 2 in progress: WP-06 done.
 | 6     | WP-11 | TN004 Tech Note          | --           | Done        |
 | 7     | WP-06 | Automated Enforcement    | D5a, D5b     | Done        |
 | 8     | WP-07 | Health Check & Learnings | D7, D10      | Done        |
-| 9     | WP-08 | Guardrails               | D9, D11      | Not Started |
+| 9     | WP-08 | Guardrails               | D9, D11      | Done        |
 | 10    | WP-09 | Retrofit Installation    | D12          | Not Started |
 | 11    | WP-10 | Integrator Command       | D1           | Not Started |
 
@@ -185,6 +185,42 @@ Added `cmd_health()` to `bin/intent_audit` (~200 lines added, total ~500 lines).
 
 **Commit:** `39dda74 ST0026/WP-07: audit health + learn commands`
 
+### WP-08: Guardrails (Done)
+
+Created `bin/intent_modules` (~230 lines) for module registry guardrails. The `check` subcommand compares MODULES.md registry entries against the filesystem, reporting unregistered files (`+ path`) and stale entries (`- path`). The `find` subcommand searches the registry by keyword. Scanner intelligently skips individual files under directory-registered entries (e.g., won't flag `dependency_graph.ex` when `lib/templates/credo_checks/elixir/` is registered).
+
+Created dependency graph Credo check template (`lib/templates/credo_checks/elixir/dependency_graph.ex`, ~160 lines). Uses `run_on_all: true` pattern (like `highlander_suspect.ex`). Reads rules from `intent/llm/DEPENDENCY_GRAPH.md`, walks AST for alias/import/use, infers target app via `Macro.underscore`, reports forbidden cross-app dependencies. Integrated as D11 rule in `intent audit quick`.
+
+Created advisory Claude Code hook template (`lib/templates/hooks/module_check_hook.json`) for projects to install -- not installed in Intent's own settings.
+
+Also rationalized CLI output across all 14+ source scripts and plugin helpers to Rust-style conventions: lowercase status prefixes (`ok:`, `error:`, `warning:`, `hint:`), action prefixes (`created:`, `updated:`, `removed:`), no separator bars or banners. Added `--help`/`-h` flag support to `intent st`. Registered 8 previously-missing bin scripts and removed 1 stale entry in MODULES.md.
+
+**Files created (5):**
+
+- `bin/intent_modules` -- modules command (check, find, help)
+- `lib/templates/hooks/module_check_hook.json` -- advisory hook template
+- `lib/templates/llm/_DEPENDENCY_GRAPH.md` -- dependency rules template
+- `lib/templates/credo_checks/elixir/dependency_graph.ex` -- D11 Credo check
+- `lib/help/modules.help.md` -- help file
+- `tests/unit/modules_commands.bats` -- 19 tests
+
+**Files modified (14+ for output rationalization):**
+
+- `bin/intent` -- modules dispatch + lowercase output
+- `bin/intent_help` -- modules in Core list + skip list
+- `bin/intent_audit` -- D11 rule + output rationalization
+- `lib/help/audit.help.md` -- D11 rule documentation
+- `intent/plugins/claude/plugin.json` -- modules command entry
+- `intent/llm/MODULES.md` -- registered new modules + 8 missing scripts, removed stale entry
+- `bin/intent_st` -- `--help` flag + output rationalization
+- `bin/intent_wp`, `bin/intent_learn`, `bin/intent_doctor`, `bin/intent_bootstrap` -- output rationalization
+- `bin/intent_organise`, `bin/intent_upgrade`, `bin/intent_llm`, `bin/intent_fileindex`, `bin/intent_treeindex` -- output rationalization
+- `intent/plugins/claude/lib/claude_plugin_helpers.sh` -- output rationalization
+- `tests/README.md` -- modules_commands.bats entry
+- 14 test files updated for new output assertions
+
+**Commit:** `f03e75a ST0026/WP-08: guardrails + rationalized CLI output`
+
 ## Test Status
 
-All 407 tests passing across 20 BATS test files.
+All 427 tests passing across 21 BATS test files.
