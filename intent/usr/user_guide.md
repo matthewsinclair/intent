@@ -618,15 +618,15 @@ intent audit quick --fix
 
 Available rules:
 
-| Rule | Check                     | Description                              |
-| ---- | ------------------------- | ---------------------------------------- |
-| R2   | Thick coordinator         | Controllers/LiveViews with business logic |
-| R6   | Highlander suspect        | Potential code duplication                |
-| R7   | Map.get on struct         | Unsafe struct field access               |
-| R8   | Boolean operators         | `&&`/`||` instead of `and`/`or`          |
-| R11  | Missing @impl annotation  | Callback without @impl true              |
-| R15  | Debug artifacts           | IO.inspect, dbg() left in code           |
-| D11  | Dependency graph          | Cross-app dependency violations          |
+| Rule | Check                    | Description                               |
+| ---- | ------------------------ | ----------------------------------------- | --- | --------------------- |
+| R2   | Thick coordinator        | Controllers/LiveViews with business logic |
+| R6   | Highlander suspect       | Potential code duplication                |
+| R7   | Map.get on struct        | Unsafe struct field access                |
+| R8   | Boolean operators        | `&&`/`                                    |     | `instead of`and`/`or` |
+| R11  | Missing @impl annotation | Callback without @impl true               |
+| R15  | Debug artifacts          | IO.inspect, dbg() left in code            |
+| D11  | Dependency graph         | Cross-app dependency violations           |
 
 ### Health Check
 
@@ -746,29 +746,29 @@ To run the test suite:
 
 Tests are organized in `tests/unit/` with 21 test files covering all commands:
 
-| Test File                  | Tests                                                 |
-| -------------------------- | ----------------------------------------------------- |
-| `agent_commands.bats`      | AGENTS.md management (init, generate, sync, validate) |
-| `audit_commands.bats`      | Audit command (quick, health)                         |
-| `basic.bats`               | Basic infrastructure and environment                  |
-| `bootstrap.bats`           | Bootstrap command                                     |
-| `config.bats`              | Configuration and PROJECT_ROOT detection              |
-| `fileindex_commands.bats`  | Fileindex (file tracking and checkbox states)         |
-| `global_commands.bats`     | Global commands (help, doctor, info, etc.)            |
-| `help_commands.bats`       | Help system                                           |
-| `init_commands.bats`       | Init command                                          |
-| `learn_commands.bats`      | Learn command (footgun, worked, failed)               |
-| `migration.bats`           | Migration and backup                                  |
-| `modules_commands.bats`    | Modules command (check, find)                         |
-| `plugin_commands.bats`     | Plugin discovery (list, show)                         |
-| `project_commands.bats`    | Project-specific commands                             |
-| `st_commands.bats`         | Steel thread management                               |
-| `skills_commands.bats`     | Skills management (install, sync, uninstall, show)    |
-| `subagent_commands.bats`   | Subagent management                                   |
-| `test_autopsy.bats`        | Autopsy skill and full directory install              |
-| `test_diogenes.bats`       | Diogenes subagent and testing skill                   |
-| `treeindex_commands.bats`  | Treeindex (directory summaries)                       |
-| `wp_commands.bats`         | Work package management                               |
+| Test File                 | Tests                                                 |
+| ------------------------- | ----------------------------------------------------- |
+| `agent_commands.bats`     | AGENTS.md management (init, generate, sync, validate) |
+| `audit_commands.bats`     | Audit command (quick, health)                         |
+| `basic.bats`              | Basic infrastructure and environment                  |
+| `bootstrap.bats`          | Bootstrap command                                     |
+| `config.bats`             | Configuration and PROJECT_ROOT detection              |
+| `fileindex_commands.bats` | Fileindex (file tracking and checkbox states)         |
+| `global_commands.bats`    | Global commands (help, doctor, info, etc.)            |
+| `help_commands.bats`      | Help system                                           |
+| `init_commands.bats`      | Init command                                          |
+| `learn_commands.bats`     | Learn command (footgun, worked, failed)               |
+| `migration.bats`          | Migration and backup                                  |
+| `modules_commands.bats`   | Modules command (check, find)                         |
+| `plugin_commands.bats`    | Plugin discovery (list, show)                         |
+| `project_commands.bats`   | Project-specific commands                             |
+| `st_commands.bats`        | Steel thread management                               |
+| `skills_commands.bats`    | Skills management (install, sync, uninstall, show)    |
+| `subagent_commands.bats`  | Subagent management                                   |
+| `test_autopsy.bats`       | Autopsy skill and full directory install              |
+| `test_diogenes.bats`      | Diogenes subagent and testing skill                   |
+| `treeindex_commands.bats` | Treeindex (directory summaries)                       |
+| `wp_commands.bats`        | Work package management                               |
 
 ## Upgrading Intent
 

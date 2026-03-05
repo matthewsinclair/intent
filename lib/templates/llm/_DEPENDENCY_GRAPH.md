@@ -20,12 +20,12 @@
 ## Examples
 
 ```markdown
-| App       | May depend on        | Must NOT depend on     |
-| --------- | -------------------- | ---------------------- |
-| core      |                      | web, admin             |
-| web       | core                 | admin                  |
-| admin     | core                 |                        |
-| reporting | core                 | web, admin             |
+| App       | May depend on | Must NOT depend on |
+| --------- | ------------- | ------------------ |
+| core      |               | web, admin         |
+| web       | core          | admin              |
+| admin     | core          |                    |
+| reporting | core          | web, admin         |
 ```
 
 In this example, `core` cannot depend on `web` or `admin` (it is a foundation layer),
