@@ -20,11 +20,11 @@ ST0026 (Steel Thread Zero) Phase 2 in progress. WP-06 complete (audit command + 
 
 ### Remaining Phase 2: WP-08 through WP-10
 
-| WP    | Title                    | Key deliverables                          |
-| ----- | ------------------------ | ----------------------------------------- |
-| WP-08 | Guardrails               | `intent modules check` + dependency graph |
-| WP-09 | Retrofit Installation    | `intent st zero install` (brownfield)     |
-| WP-10 | Integrator Command       | `intent init --with-st0000` (greenfield)  |
+| WP    | Title                 | Key deliverables                          |
+| ----- | --------------------- | ----------------------------------------- |
+| WP-08 | Guardrails            | `intent modules check` + dependency graph |
+| WP-09 | Retrofit Installation | `intent st zero install` (brownfield)     |
+| WP-10 | Integrator Command    | `intent init --with-st0000` (greenfield)  |
 
 Dependencies: WP-06 -> WP-07, WP-06 -> WP-08, WP-06+03+04 -> WP-09 -> WP-10
 
