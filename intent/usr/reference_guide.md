@@ -734,14 +734,14 @@ intent claude skills <command> [options]
 
 **Available Skills:**
 
-| Name                     | Rules | Description                                    |
-| ------------------------ | :---: | ---------------------------------------------- |
-| `in-essentials`          |   7   | Intent workflow rules (CLI usage, conventions) |
-| `in-elixir-essentials`   |   8   | Core Elixir rules (pattern matching, pipes)    |
-| `in-ash-ecto-essentials` |   7   | Ash/Ecto rules (code interfaces, migrations)   |
-| `in-phoenix-liveview`    |   7   | LiveView rules (streams, two-phase mount)      |
-| `in-elixir-testing`      |   8   | Test quality rules (strong assertions, specs)  |
-| `in-autopsy`             |  --   | Session forensics and memory meta-learning     |
+| Name                     | Rules | Description                                     |
+| ------------------------ | :---: | ----------------------------------------------- |
+| `in-essentials`          |   7   | Intent workflow rules (CLI usage, conventions)  |
+| `in-elixir-essentials`   |   8   | Core Elixir rules (pattern matching, pipes)     |
+| `in-ash-ecto-essentials` |   7   | Ash/Ecto rules (code interfaces, migrations)    |
+| `in-phoenix-liveview`    |   7   | LiveView rules (streams, two-phase mount)       |
+| `in-elixir-testing`      |   8   | Test quality rules (strong assertions, specs)   |
+| `in-autopsy`             |  --   | Session forensics and memory meta-learning      |
 | `in-start`               |  --   | Session start: orientation and context loading  |
 | `in-plan`                |  --   | Planning kickoff: workplan and skill invocation |
 | `in-standards`           |  --   | Coding standards: rules enforcement             |
@@ -825,24 +825,24 @@ Runs custom Credo checks against the project.
 
 **Options:**
 
-| Flag             | Description                         |
-| ---------------- | ----------------------------------- |
-| `--rule RN`      | Run a specific rule only            |
-| `--fix`          | Auto-fix issues where possible      |
-| `--json`         | Machine-readable JSON output        |
-| `--checks-only`  | Install checks without running them |
+| Flag            | Description                         |
+| --------------- | ----------------------------------- |
+| `--rule RN`     | Run a specific rule only            |
+| `--fix`         | Auto-fix issues where possible      |
+| `--json`        | Machine-readable JSON output        |
+| `--checks-only` | Install checks without running them |
 
 **Available Rules:**
 
-| Rule | Template                      | Description                     |
-| ---- | ----------------------------- | ------------------------------- |
-| R2   | `thick_coordinator.ex`        | Controllers with business logic |
-| R6   | `highlander_suspect.ex`       | Potential code duplication      |
-| R7   | `map_get_on_struct.ex`        | Unsafe struct field access      |
-| R8   | `boolean_operators.ex`        | `&&`/`||` instead of `and`/`or` |
-| R11  | `missing_impl_annotation.ex`  | Callback without @impl true     |
-| R15  | `debug_artifacts.ex`          | IO.inspect, dbg() in code       |
-| D11  | `dependency_graph.ex`         | Cross-app dependency violations |
+| Rule | Template                     | Description                     |
+| ---- | ---------------------------- | ------------------------------- | --- | --------------------- |
+| R2   | `thick_coordinator.ex`       | Controllers with business logic |
+| R6   | `highlander_suspect.ex`      | Potential code duplication      |
+| R7   | `map_get_on_struct.ex`       | Unsafe struct field access      |
+| R8   | `boolean_operators.ex`       | `&&`/`                          |     | `instead of`and`/`or` |
+| R11  | `missing_impl_annotation.ex` | Callback without @impl true     |
+| R15  | `debug_artifacts.ex`         | IO.inspect, dbg() in code       |
+| D11  | `dependency_graph.ex`        | Cross-app dependency violations |
 
 `intent audit health`
 
@@ -914,17 +914,17 @@ intent modules <subcommand> [options]
 
 **Subcommands:**
 
-| Command | Description                                  |
-| ------- | -------------------------------------------- |
-| `check` | Compare MODULES.md against filesystem        |
-| `find`  | Search MODULES.md for a term                 |
-| `help`  | Show usage                                   |
+| Command | Description                           |
+| ------- | ------------------------------------- |
+| `check` | Compare MODULES.md against filesystem |
+| `find`  | Search MODULES.md for a term          |
+| `help`  | Show usage                            |
 
 **Options for check:**
 
-| Flag         | Description                           |
-| ------------ | ------------------------------------- |
-| `--register` | Interactively register missing files  |
+| Flag         | Description                          |
+| ------------ | ------------------------------------ |
+| `--register` | Interactively register missing files |
 
 **Example:**
 
@@ -1299,8 +1299,8 @@ Example:
 | Skill           | An always-on Claude Code enforcement file installed to `.claude/skills/`        |
 | RULES.md        | Human-curated coding rules and conventions file in `intent/llm/`                |
 | ARCHITECTURE.md | Human-curated system architecture description in `intent/llm/`                  |
-| MODULES.md      | Module registry for the Highlander Rule (one module per concern)                 |
-| Audit           | Automated code quality checks using custom Credo rules                           |
-| Health check    | Comprehensive project quality assessment via `intent audit health`               |
-| Learning        | Captured project insight stored in `.intent/learnings.md`                        |
-| Prime           | Memory injection via `intent claude prime` for session context                   |
+| MODULES.md      | Module registry for the Highlander Rule (one module per concern)                |
+| Audit           | Automated code quality checks using custom Credo rules                          |
+| Health check    | Comprehensive project quality assessment via `intent audit health`              |
+| Learning        | Captured project insight stored in `.intent/learnings.md`                       |
+| Prime           | Memory injection via `intent claude prime` for session context                  |

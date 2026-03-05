@@ -207,11 +207,13 @@ Intent v2.6.0 integrates with Claude Code through a multi-layer system:
    ```
 
 3. **Claude Subagents** — Specialized agents for deep review:
+
    ```bash
    intent claude subagents install --all
    ```
 
 4. **Memory Injection** -- `intent claude prime` synthesizes context:
+
    ```bash
    intent claude prime
    ```
