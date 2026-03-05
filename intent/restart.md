@@ -2,29 +2,29 @@
 
 ## Project
 
-Intent v2.5.0 -- CLI tool for managing steel threads, project docs, and LLM guidance. Bash + BATS tests. Located at `/Users/matts/Devel/prj/Intent/`.
+Intent v2.6.0 -- CLI tool for managing steel threads, project docs, and LLM guidance. Bash + BATS tests. Located at `/Users/matts/Devel/prj/Intent/`.
 
 ## Current State
 
-ST0026 (Steel Thread Zero) Phase 1 complete. Version bump to v2.6.0 pending.
+ST0026 (Steel Thread Zero) Phase 2 in progress. WP-06 complete (audit command + Credo checks). WP-07 next.
 
 ## TODO
 
-### Immediate: Version Bump
+### Next: WP-07 (Health Check & Learnings)
 
-- Bump version to v2.6.0 in relevant files
-- Update CHANGELOG.md with Phase 1 deliverables
-- Tag and push to both remotes (`local` + `upstream`)
+- `intent audit health` subcommand in existing `bin/intent_audit`
+- `--report` flag (save markdown), `--diff` flag (git-based changed files only)
+- Timestamp tracking in `.intent/last-health-check`
+- `bin/intent_learn` command (`intent learn "description"`, `--category`, `--list`)
+- Test learnings integration with `intent claude prime`
 
-### Phase 2: ST0026 WP-06 through WP-10
+### Remaining Phase 2: WP-08 through WP-10
 
-| WP    | Title                    | Key deliverables                               |
-| ----- | ------------------------ | ---------------------------------------------- |
-| WP-06 | Automated Enforcement    | 6 Credo check templates + `intent audit quick` |
-| WP-07 | Health Check & Learnings | `intent audit health` + `intent learn`         |
-| WP-08 | Guardrails               | `intent modules check` + dependency graph      |
-| WP-09 | Retrofit Installation    | `intent st zero install` (brownfield)          |
-| WP-10 | Integrator Command       | `intent init --with-st0000` (greenfield)       |
+| WP    | Title                    | Key deliverables                          |
+| ----- | ------------------------ | ----------------------------------------- |
+| WP-08 | Guardrails               | `intent modules check` + dependency graph |
+| WP-09 | Retrofit Installation    | `intent st zero install` (brownfield)     |
+| WP-10 | Integrator Command       | `intent init --with-st0000` (greenfield)  |
 
 Dependencies: WP-06 -> WP-07, WP-06 -> WP-08, WP-06+03+04 -> WP-09 -> WP-10
 
@@ -45,5 +45,5 @@ See `intent/st/ST0026/tasks.md` for detailed task lists.
 - NO Claude attribution in commit messages
 - Tag workflow: `git tag -f vX.Y.Z HEAD` then force-push to both remotes
 - Never use em dashes in skill files (multi-byte truncation bugs)
-- Run `tests/run_tests.sh` before committing (365 tests across 18 files)
+- Run `tests/run_tests.sh` before committing (382 tests across 19 files)
 - Two git remotes: `local` (Dropbox) and `upstream` (GitHub)

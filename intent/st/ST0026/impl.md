@@ -2,7 +2,7 @@
 
 ## Implementation Status
 
-Phase 1 (WP-01 through WP-05 + WP-11) complete. Phase 2 (WP-06 through WP-10) not started.
+Phase 1 (WP-01 through WP-05 + WP-11) complete. Phase 2 in progress: WP-06 done.
 
 ## Execution Order
 
@@ -14,7 +14,7 @@ Phase 1 (WP-01 through WP-05 + WP-11) complete. Phase 2 (WP-06 through WP-10) no
 | 4     | WP-02 | Workflow Skills          | D14          | Done        |
 | 5     | WP-04 | Memory Injection         | D8           | Done        |
 | 6     | WP-11 | TN004 Tech Note          | --           | Done        |
-| 7     | WP-06 | Automated Enforcement    | D5a, D5b     | Not Started |
+| 7     | WP-06 | Automated Enforcement    | D5a, D5b     | Done        |
 | 8     | WP-07 | Health Check & Learnings | D7, D10      | Not Started |
 | 9     | WP-08 | Guardrails               | D9, D11      | Not Started |
 | 10    | WP-09 | Retrofit Installation    | D12          | Not Started |
@@ -126,8 +126,42 @@ The rename migration test used `md5 -q` which is macOS-only. CI on Ubuntu failed
 
 ### Brittle count assertions in tests
 
-Adding the prime command changed "Commands (3):" to "Commands (4):" in `plugin show claude` output. This is the kind of brittle assertion that `/in-elixir-testing` warns against -- testing exact counts instead of behavior.
+Adding the prime command changed "Commands (3):" to "Commands (4):" in `plugin show claude` output. This is the kind of brittle assertion that `/in-elixir-testing` warns against -- testing exact counts instead of behavior. Happened again with WP-06 (4->5).
+
+## Phase 2 As-Built Notes
+
+### WP-06: Automated Enforcement (Done)
+
+Created 6 custom Credo check templates in `lib/templates/credo_checks/elixir/` and `bin/intent_audit` command (~250 lines). The audit command auto-copies check templates into the target project's `lib/mix/checks/` on first run, then delegates to `mix credo`.
+
+Bash 3.x compatibility: replaced `declare -A` (associative arrays, bash 4+ only) with a `case` statement for rule-to-template mapping. macOS ships bash 3.x.
+
+Added v2.5.0->v2.6.0 upgrade path (version-stamp-only, no directory creation).
+
+**Files created (9):**
+
+- `lib/templates/credo_checks/elixir/boolean_operators.ex` -- R8
+- `lib/templates/credo_checks/elixir/missing_impl_annotation.ex` -- R11
+- `lib/templates/credo_checks/elixir/debug_artifacts.ex` -- R15
+- `lib/templates/credo_checks/elixir/map_get_on_struct.ex` -- R7
+- `lib/templates/credo_checks/elixir/thick_coordinator.ex` -- R2
+- `lib/templates/credo_checks/elixir/highlander_suspect.ex` -- R6
+- `bin/intent_audit` -- main audit command
+- `lib/help/audit.help.md` -- help file
+- `tests/unit/audit_commands.bats` -- 17 tests
+
+**Files modified (7):**
+
+- `bin/intent_helpers` -- `needs_v2_6_0_upgrade()`, `migrate_v2_5_0_to_v2_6_0()`
+- `bin/intent_upgrade` -- wired v2.6.0 into all upgrade paths
+- `bin/intent` -- audit dispatch case
+- `bin/intent_help` -- audit in help display + skip list
+- `intent/plugins/claude/plugin.json` -- audit command entry
+- `intent/llm/MODULES.md` -- registered 4 new entries
+- `tests/unit/plugin_commands.bats` -- command count 4->5
+
+**Commit:** `3aa8aa6 ST0026/WP-06: audit command and Credo check templates`
 
 ## Test Status
 
-All 365 tests passing across 18 BATS test files.
+All 382 tests passing across 19 BATS test files.

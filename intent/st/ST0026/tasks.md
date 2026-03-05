@@ -4,21 +4,23 @@ Phase 1 (WP-01 through WP-05 + WP-11) complete. See `done.md` for completed task
 
 ## Phase 2: Remaining Work Packages
 
-## WP-06: Automated Enforcement (D5a, D5b)
+## WP-06: Automated Enforcement (D5a, D5b) -- Done
 
-- [ ] Create `lib/templates/credo_checks/elixir/boolean_operators.ex`
-- [ ] Create `lib/templates/credo_checks/elixir/missing_impl_annotation.ex`
-- [ ] Create `lib/templates/credo_checks/elixir/debug_artifacts.ex`
-- [ ] Create `lib/templates/credo_checks/elixir/map_get_on_struct.ex`
-- [ ] Create `lib/templates/credo_checks/elixir/thick_coordinator.ex`
-- [ ] Create `lib/templates/credo_checks/elixir/highlander_suspect.ex`
-- [ ] Create `bin/intent_audit` command script
-- [ ] Implement `intent audit quick` subcommand
-- [ ] Implement `--rule` filter
-- [ ] Implement `--fix` auto-fix for R8, R11, R15
-- [ ] Implement `--json` output mode
-- [ ] Create `lib/help/audit.help.md`
-- [ ] Test against known-clean and known-dirty codebases
+- [x] Create `lib/templates/credo_checks/elixir/boolean_operators.ex`
+- [x] Create `lib/templates/credo_checks/elixir/missing_impl_annotation.ex`
+- [x] Create `lib/templates/credo_checks/elixir/debug_artifacts.ex`
+- [x] Create `lib/templates/credo_checks/elixir/map_get_on_struct.ex`
+- [x] Create `lib/templates/credo_checks/elixir/thick_coordinator.ex`
+- [x] Create `lib/templates/credo_checks/elixir/highlander_suspect.ex`
+- [x] Create `bin/intent_audit` command script
+- [x] Implement `intent audit quick` subcommand
+- [x] Implement `--rule` filter
+- [x] Implement `--fix` flag
+- [x] Implement `--json` output mode
+- [x] Create `lib/help/audit.help.md`
+- [x] Add v2.5.0->v2.6.0 upgrade path
+- [x] Wire into CLI dispatch, help, plugin.json
+- [x] 17 BATS tests (382 total passing)
 
 ## WP-07: Health Check & Learnings (D7, D10)
 
