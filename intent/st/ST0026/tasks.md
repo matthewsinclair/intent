@@ -22,17 +22,18 @@ Phase 1 (WP-01 through WP-05 + WP-11) complete. See `done.md` for completed task
 - [x] Wire into CLI dispatch, help, plugin.json
 - [x] 17 BATS tests (382 total passing)
 
-## WP-07: Health Check & Learnings (D7, D10)
+## WP-07: Health Check & Learnings (D7, D10) -- Done
 
-- [ ] Implement `intent audit health` subcommand in `bin/intent_audit`
-- [ ] Implement `--report` flag (save markdown)
-- [ ] Implement `--diff` flag (git-based changed files only)
-- [ ] Implement timestamp tracking in `.intent/last-health-check`
-- [ ] Create `bin/intent_learn` command script
-- [ ] Implement `intent learn "description"` (append to .intent/learnings.md)
-- [ ] Implement `--category` flag (footgun/worked/failed)
-- [ ] Implement `--list` flag
-- [ ] Test learnings integration with `intent claude prime`
+- [x] Implement `intent audit health` subcommand in `bin/intent_audit`
+- [x] Implement `--report` flag (save markdown to `intent/audit/YYYYMMDD-health.md`)
+- [x] Implement `--diff` flag (git-based changed files only)
+- [x] Implement timestamp tracking in `.intent/last-health-check`
+- [x] Create `bin/intent_learn` command script
+- [x] Implement `intent learn "description"` (append to .intent/learnings.md)
+- [x] Implement `--category` flag (footgun/worked/failed)
+- [x] Implement `--list` flag
+- [x] Learnings integration with `intent claude prime` (already wired -- reads `.intent/learnings.md`)
+- [x] 25 BATS tests (407 total passing)
 
 ## WP-08: Guardrails (D9, D11)
 
@@ -67,6 +68,13 @@ Phase 1 (WP-01 through WP-05 + WP-11) complete. See `done.md` for completed task
 - [ ] Test greenfield: `intent init --with-st0000` creates fully equipped project
 - [ ] Test existing project: `intent st zero` delegates to retrofit
 - [ ] Run `intent audit quick` on bootstrapped project (expect zero violations)
+
+## Documentation (post-Phase 2)
+
+- [ ] Comprehensive README update
+- [ ] CHANGELOG update for v2.6.0
+- [ ] New blog post for agent/claude work (not shoe-horned into existing posts)
+- [ ] Update existing blog posts where needed
 
 ## Dependencies
 

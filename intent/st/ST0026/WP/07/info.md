@@ -3,7 +3,7 @@ verblock: "04 Mar 2026:v0.1: matts - Initial version"
 wp_id: WP-07
 title: "Health Check & Learnings (D7, D10)"
 scope: Medium
-status: WIP
+status: Done
 ---
 
 # WP-07: Health Check & Learnings (D7, D10)
