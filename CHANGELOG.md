@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-03-05
+
 ### Added
 
 - **Plugin discovery** -- `intent plugin` command for discovering plugins and their commands
@@ -15,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `plugin.json` metadata files in each plugin directory for structured discovery
 - `intent help claude` -- help file for the claude command namespace
 - `intent help plugin` -- help file for the plugin command
+- **ST0026 Phase 1** -- Steel Thread Zero code quality enforcement
+  - Skills renamed from `intent-*` to `in-*` prefix
+  - `intent claude prime` command for memory injection
+  - LLM templates: `_CLAUDE.md`, `_MODULES.md`, `_DECISION_TREE.md`, `_ARCHETYPES.md`
+  - 9 Elixir archetype templates in `lib/templates/archetypes/elixir/`
+  - 5 workflow skills: `in-start`, `in-plan`, `in-next`, `in-standards`, `in-finish`
+  - TN004 total codebase audit tech note
 
 ### Fixed
 
@@ -584,6 +593,7 @@ See [Release Notes](./docs/releases/2.0.0/RELEASE_NOTES.md) for complete details
 - `stp upgrade` - Upgrade STP files to latest format
 - `stp help` - Comprehensive help system
 
+[2.6.0]: https://github.com/matthewsinclair/intent/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/matthewsinclair/intent/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/matthewsinclair/intent/compare/v2.3.4...v2.4.0
 [2.3.4]: https://github.com/matthewsinclair/intent/compare/v2.3.3...v2.3.4
