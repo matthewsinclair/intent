@@ -35,16 +35,23 @@ Phase 1 (WP-01 through WP-05 + WP-11) complete. See `done.md` for completed task
 - [x] Learnings integration with `intent claude prime` (already wired -- reads `.intent/learnings.md`)
 - [x] 25 BATS tests (407 total passing)
 
-## WP-08: Guardrails (D9, D11)
+## WP-08: Guardrails (D9, D11) -- Done
 
-- [ ] Create `bin/intent_modules` command script
-- [ ] Implement `intent modules check`
-- [ ] Implement `intent modules check --register`
-- [ ] Implement `intent modules find`
-- [ ] Create Claude Code hook for `Write` to `lib/**/*.ex`
-- [ ] Create `lib/templates/llm/_DEPENDENCY_GRAPH.md` template
-- [ ] Implement dependency graph check (scan alias/import/use vs declared deps)
-- [ ] Integrate with `intent audit quick`
+- [x] Create `bin/intent_modules` command script (~230 lines)
+- [x] Implement `intent modules check` (compare MODULES.md vs filesystem)
+- [x] Implement `intent modules check --register` (interactive registration)
+- [x] Implement `intent modules find` (search registry)
+- [x] Create Claude Code hook template (`lib/templates/hooks/module_check_hook.json`)
+- [x] Create `lib/templates/llm/_DEPENDENCY_GRAPH.md` template
+- [x] Create `lib/templates/credo_checks/elixir/dependency_graph.ex` (D11 Credo check)
+- [x] Integrate D11 with `intent audit quick --rule D11`
+- [x] Create `lib/help/modules.help.md`
+- [x] Wire into CLI dispatch, help, plugin.json
+- [x] 19 BATS tests in `tests/unit/modules_commands.bats`
+- [x] Rationalize CLI output across all commands (Rust-style conventions)
+- [x] Add `--help`/`-h` flag support to `intent st`
+- [x] Register missing bin scripts + remove stale entries in MODULES.md
+- [x] 427 total tests passing across 21 BATS test files
 
 ## WP-09: Retrofit Installation (D12)
 

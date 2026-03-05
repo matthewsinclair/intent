@@ -101,7 +101,7 @@ $ intent st show ST0015
 
 ## 🤖 Claude Code Integration
 
-Intent v2.4.0 integrates with [Claude Code](https://claude.ai/code) through sub-agents and skills to supercharge AI collaboration:
+Intent v2.6.0 integrates with [Claude Code](https://claude.ai/code) through sub-agents, skills, and automated enforcement to supercharge AI collaboration:
 
 ```bash
 # Initialize subagent configuration (one-time setup)
@@ -289,6 +289,40 @@ intent claude upgrade --apply        # Apply upgrade changes
 intent claude upgrade --project-dir DIR  # Target external project
 ```
 
+### Code Quality (Elixir)
+
+```bash
+intent audit quick                   # Run custom Credo checks
+intent audit quick --rule R2         # Run a specific rule
+intent audit quick --fix             # Auto-fix where possible
+intent audit health                  # Project health assessment
+intent audit health --report         # Save report to intent/audit/
+intent audit health --diff           # Check changed files only
+```
+
+### Learnings
+
+```bash
+intent learn "description"           # Record a footgun (default)
+intent learn --category worked "..."  # Record what worked
+intent learn --list                  # List all learnings
+```
+
+### Module Guardrails
+
+```bash
+intent modules check                 # Compare registry vs filesystem
+intent modules check --register      # Interactive registration
+intent modules find "auth"           # Search the module registry
+```
+
+### Plugin Discovery
+
+```bash
+intent plugin                        # List all plugins and commands
+intent plugin show claude            # Show details for a plugin
+```
+
 ## 🏗️ Project Structure
 
 ```
@@ -301,15 +335,17 @@ intent claude upgrade --project-dir DIR  # Target external project
 │   ├── eng/          # Engineering documentation
 │   │   └── tpd/      # Technical Product Design
 │   ├── usr/          # User documentation
-│   ├── llm/          # LLM-specific content (AGENTS.md, usage-rules)
+│   ├── llm/          # LLM-specific content (AGENTS.md, MODULES.md, etc.)
 │   ├── plugins/      # Plugin architecture
 │   │   ├── agents/   # AGENTS.md plugin (inc. templates)
 │   │   └── claude/   # Claude Code integration
 │   │       ├── subagents/  # Subagent definitions
-│   │       └── skills/     # Skill definitions
+│   │       └── skills/     # Skill definitions (11 skills)
 │   └── wip.md        # Current work
 ├── lib/              # Templates and libraries
-└── tests/            # Test suites
+│   ├── templates/    # LLM, archetype, Credo, hook templates
+│   └── help/         # Help files for all commands
+└── tests/            # Test suites (21 files, 427 tests)
 ```
 
 ## 🤝 Contributing

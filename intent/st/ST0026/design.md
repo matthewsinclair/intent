@@ -176,6 +176,10 @@ Not in original design. During WP-01, recognized that users with old `intent-*` 
 
 Original WP-03 spec didn't mention consolidating the three CLAUDE.md heredocs. This was identified during implementation as a Highlander violation and fixed as part of WP-03 -- all three copies now use the single template.
 
+### WP-08 scope expanded with output rationalization
+
+WP-08 originally scoped to D9 (module checklist) and D11 (dependency graph). During implementation, user requested rationalization of all CLI output to Rust-style conventions (lowercase prefixes, no separator bars). This touched 14+ source scripts and 14 test files beyond the original WP-08 scope.
+
 ### TN004 filename simplified
 
 Original spec placed the tech note at `intent/docs/tn004-total-codebase-audit.md`. Renamed to `intent/docs/total-codebase-audit.md` since the `tn004` prefix is a deliverable identifier, not part of the filename convention.

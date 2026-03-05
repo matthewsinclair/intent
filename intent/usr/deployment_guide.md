@@ -1,11 +1,11 @@
 ---
-verblock: "17 Feb 2026:v0.4: Matthew Sinclair - Updated to Intent v2.4.0"
-intent_version: 2.4.0
+verblock: "05 Mar 2026:v0.5: Matthew Sinclair - Updated to Intent v2.6.0"
+intent_version: 2.6.0
 ---
 
 # Deployment Guide
 
-This deployment guide provides instructions for deploying the Intent v2.4.0 system in various environments. It covers installation, configuration, and integration with other tools and workflows.
+This deployment guide provides instructions for deploying the Intent v2.6.0 system in various environments. It covers installation, configuration, and integration with other tools and workflows.
 
 ## Table of Contents
 
@@ -187,7 +187,7 @@ jobs:
 
 #### Claude Code Integration
 
-Intent v2.4.0 integrates with Claude Code through a three-layer system:
+Intent v2.6.0 integrates with Claude Code through a multi-layer system:
 
 1. **LLM Guidance Files** — Three files in `intent/llm/`:
    - `AGENTS.md` — Auto-generated project overview (run `intent agents sync` to update)
@@ -211,7 +211,19 @@ Intent v2.4.0 integrates with Claude Code through a three-layer system:
    intent claude subagents install --all
    ```
 
-To upgrade an existing project's LLM guidance to the v2.4.0 structure:
+4. **Memory Injection** -- `intent claude prime` synthesizes context:
+   ```bash
+   intent claude prime
+   ```
+
+5. **Code Quality** -- Automated enforcement via Credo checks:
+   ```bash
+   intent audit quick              # Run custom checks
+   intent audit health --report    # Project health assessment
+   intent modules check            # Module registry guardrails
+   ```
+
+To upgrade an existing project's LLM guidance to the v2.6.0 structure:
 
 ```bash
 # Diagnose current state (dry-run)
@@ -393,7 +405,7 @@ If you encounter issues:
 
 ### Plugin Architecture
 
-Intent v2.3.0 introduced a plugin architecture, extended in v2.4.0 with skills support. Plugins live in `intent/plugins/` and extend Intent's functionality:
+Intent v2.3.0 introduced a plugin architecture, extended in v2.4.0 with skills and v2.6.0 with audit/modules commands. Plugins live in `intent/plugins/` and extend Intent's functionality:
 
 ```
 intent/plugins/
@@ -517,7 +529,30 @@ intent claude skills uninstall --all
 
 ### Upgrading LLM Guidance
 
-For projects upgrading from Intent v2.3.x to v2.4.0:
+### Deploying Code Quality Checks
+
+For Elixir projects, deploy custom Credo checks:
+
+```bash
+# Install check templates (auto-copies to lib/mix/checks/)
+intent audit quick --checks-only
+
+# Set up dependency graph for umbrella apps
+cp $(intent treeindex --dry-run 2>/dev/null; echo "$INTENT_HOME/lib/templates/llm/_DEPENDENCY_GRAPH.md") intent/llm/DEPENDENCY_GRAPH.md
+# Edit the table to define your app dependencies
+```
+
+### Deploying Module Guardrails
+
+```bash
+# Verify module registry
+intent modules check
+
+# Install Claude Code hook (optional, advisory)
+# Copy lib/templates/hooks/module_check_hook.json into .claude/settings.json
+```
+
+For projects upgrading from older versions:
 
 ```bash
 # Diagnose current state (dry-run, shows what would change)
@@ -538,6 +573,7 @@ The upgrade command:
 - Merges deprecated `AGENTS-phx.md` content into `RULES.md`
 - Removes deprecated files (`llm_preamble.md`, `usage-rules.md`)
 - Installs recommended skills
+- Installs custom Credo check templates
 
 ## Treeindex Integration
 
