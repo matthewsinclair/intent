@@ -1,5 +1,5 @@
 ---
-title: "TN004: Total Codebase Audit -- Forensic Process Tech Note"
+title: "Total Codebase Audit -- Forensic Process Tech Note"
 version: "v2.0"
 date: "2026-03-04"
 author: "Intent Project"
