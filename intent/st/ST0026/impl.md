@@ -18,7 +18,7 @@ Phase 1 (WP-01 through WP-05 + WP-11) complete. Phase 2 in progress: WP-06 throu
 | 8     | WP-07 | Health Check & Learnings | D7, D10      | Done        |
 | 9     | WP-08 | Guardrails               | D9, D11      | Done        |
 | 10    | WP-09 | Retrofit Installation    | D12          | Done        |
-| 11    | WP-10 | Integrator Command       | D1           | Not Started |
+| 11    | WP-10 | Integrator Command       | D1           | Done        |
 
 ## As-Built Notes
 
@@ -261,4 +261,17 @@ Tested against 3 real projects: Laksa (380 modules), Conflab (150 modules), Lamp
 
 ## Test Status
 
-All 458 tests passing across 22 BATS test files.
+### WP-10: Integrator Command (Done)
+
+Added `--with-st0000` flag to `bin/intent_init`. After standard project initialization, runs `intent st zero install` to bootstrap all ST0000 deliverables. Reuses all WP-09 logic -- no duplication.
+
+**Files modified (2):**
+
+- `bin/intent_init` -- `--with-st0000` flag parsing, st zero install call
+- `tests/unit/init_commands.bats` -- 4 new tests (8->12)
+
+**Commit:** TBD
+
+## Test Status
+
+All 462 tests passing across 22 BATS test files.

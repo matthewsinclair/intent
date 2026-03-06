@@ -138,6 +138,79 @@ load "../lib/test_helper.bash"
   rm -rf "$test_dir"
 }
 
+# ============================================================
+# --with-st0000 Flag
+# ============================================================
+
+@test "init --with-st0000 creates project with ST0000 deliverables" {
+  test_dir=$(mktemp -d)
+  cd "$test_dir"
+
+  run run_intent init "ST0000 Test" --with-st0000
+  assert_success
+  assert_output_contains "Bootstrapping ST0000 deliverables"
+  assert_output_contains "Intent project initialized successfully"
+
+  # Core project files
+  assert_file_exists ".intent/config.json"
+  assert_file_exists "CLAUDE.md"
+
+  # ST0000 deliverables
+  assert_file_exists "intent/llm/DECISION_TREE.md"
+  assert_file_exists ".intent/learnings.md"
+
+  # Cleanup
+  cd - > /dev/null
+  rm -rf "$test_dir"
+}
+
+@test "init --with-st0000 flag works before project name" {
+  test_dir=$(mktemp -d)
+  cd "$test_dir"
+
+  run run_intent init --with-st0000 "Flag First"
+  assert_success
+  assert_output_contains "Bootstrapping ST0000 deliverables"
+  assert_file_contains ".intent/config.json" '"project_name": "Flag First"'
+
+  # Cleanup
+  cd - > /dev/null
+  rm -rf "$test_dir"
+}
+
+@test "init without --with-st0000 does not run ST0000 bootstrap" {
+  test_dir=$(mktemp -d)
+  cd "$test_dir"
+
+  run run_intent init "Plain Project"
+  assert_success
+  # Should not mention ST0000
+  [[ "$output" != *"Bootstrapping ST0000"* ]]
+  # learnings.md should not be created by plain init
+  [ ! -f ".intent/learnings.md" ]
+
+  # Cleanup
+  cd - > /dev/null
+  rm -rf "$test_dir"
+}
+
+@test "init --with-st0000 installs Elixir deliverables when mix.exs present" {
+  test_dir=$(mktemp -d)
+  cd "$test_dir"
+
+  # Pre-create mix.exs before init
+  echo 'defmodule MyApp.MixProject do end' > mix.exs
+
+  run run_intent init "Elixir Test" --with-st0000
+  assert_success
+  assert_file_exists "intent/llm/ARCHETYPES.md"
+  assert_file_exists "intent/llm/DEPENDENCY_GRAPH.md"
+
+  # Cleanup
+  cd - > /dev/null
+  rm -rf "$test_dir"
+}
+
 @test "init respects author from git config" {
   # Create temporary directory
   test_dir=$(mktemp -d)
