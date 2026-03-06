@@ -2,23 +2,23 @@
 
 ## Implementation Status
 
-Phase 1 (WP-01 through WP-05 + WP-11) complete. Phase 2 in progress: WP-06 through WP-09 done.
+Complete. Phase 1 (WP-01 through WP-05 + WP-11) and Phase 2 (WP-06 through WP-10) all done.
 
 ## Execution Order
 
-| Order | WP    | Title                    | Deliverables | Status      |
-| ----- | ----- | ------------------------ | ------------ | ----------- |
-| 1     | WP-01 | Skill Rename             | D13          | Done        |
-| 2     | WP-03 | LLM Templates            | D2, D3, D6   | Done        |
-| 3     | WP-05 | Archetype Templates      | D4           | Done        |
-| 4     | WP-02 | Workflow Skills          | D14          | Done        |
-| 5     | WP-04 | Memory Injection         | D8           | Done        |
-| 6     | WP-11 | TN004 Tech Note          | --           | Done        |
-| 7     | WP-06 | Automated Enforcement    | D5a, D5b     | Done        |
-| 8     | WP-07 | Health Check & Learnings | D7, D10      | Done        |
-| 9     | WP-08 | Guardrails               | D9, D11      | Done        |
-| 10    | WP-09 | Retrofit Installation    | D12          | Done        |
-| 11    | WP-10 | Integrator Command       | D1           | Done        |
+| Order | WP    | Title                    | Deliverables | Status |
+| ----- | ----- | ------------------------ | ------------ | ------ |
+| 1     | WP-01 | Skill Rename             | D13          | Done   |
+| 2     | WP-03 | LLM Templates            | D2, D3, D6   | Done   |
+| 3     | WP-05 | Archetype Templates      | D4           | Done   |
+| 4     | WP-02 | Workflow Skills          | D14          | Done   |
+| 5     | WP-04 | Memory Injection         | D8           | Done   |
+| 6     | WP-11 | TN004 Tech Note          | --           | Done   |
+| 7     | WP-06 | Automated Enforcement    | D5a, D5b     | Done   |
+| 8     | WP-07 | Health Check & Learnings | D7, D10      | Done   |
+| 9     | WP-08 | Guardrails               | D9, D11      | Done   |
+| 10    | WP-09 | Retrofit Installation    | D12          | Done   |
+| 11    | WP-10 | Integrator Command       | D1           | Done   |
 
 ## As-Built Notes
 
@@ -250,7 +250,7 @@ Tested against 3 real projects: Laksa (380 modules), Conflab (150 modules), Lamp
 - `bin/intent_help` -- st_zero in skip list
 - `bin/intent_audit` -- umbrella support, Highlander format, Credo exclusion, --checks-only force-copy
 - `lib/templates/credo_checks/elixir/thick_coordinator.ex` -- fix @default_params warning
-- `lib/templates/credo_checks/elixir/highlander_suspect.ex` -- fix _arity warning
+- `lib/templates/credo_checks/elixir/highlander_suspect.ex` -- fix \_arity warning
 - `lib/templates/credo_checks/elixir/debug_artifacts.ex` -- remove unused @debug_calls
 - `intent/llm/MODULES.md` -- registered 3 new entries
 - `tests/README.md` -- st_zero_commands.bats entry

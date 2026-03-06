@@ -308,6 +308,21 @@ intent learn --category worked "..."  # Record what worked
 intent learn --list                  # List all learnings
 ```
 
+### ST Zero Retrofit
+
+```bash
+intent st zero install               # Audit and install missing ST0000 deliverables
+intent st zero install --audit-only  # Gap analysis only (no changes)
+intent st zero install --dry-run     # Show what would change
+intent st zero install --deliverable D3  # Target a single deliverable
+```
+
+### Greenfield Bootstrap
+
+```bash
+intent init "Project" --with-st0000  # Init project + install all ST0000 deliverables
+```
+
 ### Module Guardrails
 
 ```bash
@@ -345,7 +360,7 @@ intent plugin show claude            # Show details for a plugin
 ├── lib/              # Templates and libraries
 │   ├── templates/    # LLM, archetype, Credo, hook templates
 │   └── help/         # Help files for all commands
-└── tests/            # Test suites (21 files, 427 tests)
+└── tests/            # Test suites (22 files, 462 tests)
 ```
 
 ## 🤝 Contributing

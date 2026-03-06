@@ -152,7 +152,7 @@ Initializes a new Intent project.
 **Usage:**
 
 ```bash
-intent init <project_name> [directory]
+intent init [--with-st0000] <project_name> [directory]
 ```
 
 **Parameters:**
@@ -160,10 +160,15 @@ intent init <project_name> [directory]
 - `project_name`: Name of the project (required)
 - `directory`: Target directory (optional, defaults to current directory)
 
+**Options:**
+
+- `--with-st0000`: After init, run `intent st zero install` to bootstrap all ST0000 deliverables
+
 **Example:**
 
 ```bash
 intent init "My Project" ./my-project
+intent init "My Project" --with-st0000    # Init + full ST0000 bootstrap
 ```
 
 **Output:**
@@ -173,6 +178,7 @@ intent init "My Project" ./my-project
 - Initializes `intent/` directories (st/, eng/, usr/, llm/)
 - Creates `CLAUDE.md` with project instructions
 - Creates `intent/wip.md` for work tracking
+- With `--with-st0000`: additionally installs all ST0000 deliverables (MODULES.md, DECISION_TREE.md, learnings.md, etc.)
 
 #### `intent st`
 
@@ -807,6 +813,61 @@ intent claude upgrade --apply --project-dir /path/to/project
 4. Generates a project-specific upgrade plan
 5. With `--apply`, executes the plan
 
+#### `intent st zero`
+
+Retrofit installation of ST0000 deliverables for existing (brownfield) projects.
+
+**Usage:**
+
+```bash
+intent st zero install [options]
+intent st zero help
+```
+
+**Subcommands:**
+
+| Command   | Description                                   |
+| --------- | --------------------------------------------- |
+| `install` | Audit and install missing ST0000 deliverables |
+| `help`    | Show usage                                    |
+
+**Options for install:**
+
+| Flag                 | Description                            |
+| -------------------- | -------------------------------------- |
+| `--audit-only`       | Gap analysis only (no changes applied) |
+| `--dry-run`          | Show what would change without writing |
+| `--deliverable <ID>` | Target a single deliverable (e.g. D3)  |
+
+**Deliverables checked:**
+
+| ID  | File/Target                         | Notes                        |
+| --- | ----------------------------------- | ---------------------------- |
+| D2  | `CLAUDE.md`                         | Never overwritten            |
+| D3  | `intent/llm/MODULES.md`             | Auto-generated from codebase |
+| D4  | `intent/llm/ARCHETYPES.md`          | Elixir only                  |
+| D5a | `lib/mix/checks/*.ex`               | Elixir only (7 Credo checks) |
+| D6  | `intent/llm/DECISION_TREE.md`       | From template                |
+| D8  | MEMORY.md via `intent claude prime` | Delegates to prime           |
+| D9  | Module check hook                   | From template                |
+| D10 | `.intent/learnings.md`              | Empty structure              |
+| D11 | `intent/llm/DEPENDENCY_GRAPH.md`    | Elixir only                  |
+
+**Example:**
+
+```bash
+intent st zero install --audit-only   # See what's missing
+intent st zero install --dry-run      # Preview changes
+intent st zero install                # Install everything missing
+intent st zero install --deliverable D3  # Just MODULES.md
+```
+
+**Notes:**
+
+- Umbrella-aware: detects `apps/` and scans `apps/*/lib/` for module discovery
+- CLAUDE.md (D2) is never overwritten -- only shows diff of missing sections
+- Elixir-specific deliverables (D4, D5a, D11) require `mix.exs`
+
 #### `intent audit`
 
 Runs automated code quality checks for Elixir projects.
@@ -862,6 +923,7 @@ Runs comprehensive project health assessment.
 ```bash
 intent audit quick                # Run all custom checks
 intent audit quick --rule R2      # Check for thick coordinators only
+intent audit quick --checks-only  # Force-copy check templates
 intent audit health --report      # Save health report
 intent audit health --diff        # Check changed files only
 ```
@@ -869,6 +931,8 @@ intent audit health --diff        # Check changed files only
 **Notes:**
 
 - Templates auto-copied to project's `lib/mix/checks/` on first run
+- `--checks-only` force-copies templates (ensures updates are applied on re-run)
+- Umbrella-aware: health checks scan `apps/*/lib/` in umbrella projects
 - Requires an Elixir project with Credo configured
 
 #### `intent learn`
@@ -1219,7 +1283,7 @@ Intent/
 │   └── help/              # Help files for commands
 ├── bin/                   # Intent scripts (executable)
 ├── tests/                 # Test suite
-│   ├── unit/              # Unit tests (21 .bats files)
+│   ├── unit/              # Unit tests (22 .bats files)
 │   ├── integration/       # Integration tests
 │   ├── lib/               # Test helper libraries
 │   ├── fixtures/          # Test fixtures
@@ -1304,3 +1368,4 @@ Example:
 | Health check    | Comprehensive project quality assessment via `intent audit health`              |
 | Learning        | Captured project insight stored in `.intent/learnings.md`                       |
 | Prime           | Memory injection via `intent claude prime` for session context                  |
+| ST Zero         | Retrofit installation of ST0000 deliverables for brownfield projects            |

@@ -33,9 +33,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Dependency graph Credo check template (`dependency_graph.ex`, rule D11)
   - Dependency graph template (`_DEPENDENCY_GRAPH.md`) for umbrella apps
   - Claude Code advisory hook template for unregistered module warnings
+  - `intent st zero install` command for brownfield project retrofit (D12)
+    - 4-phase process: Audit, Gap Analysis, Proposals, Apply
+    - 9 ST0000 deliverables checked (D2-D11): CLAUDE.md, MODULES.md, ARCHETYPES.md, Credo checks, DECISION_TREE.md, MEMORY.md, module hook, learnings.md, DEPENDENCY_GRAPH.md
+    - Auto-discovers modules from `.ex` files in `lib/` (or `apps/*/lib/` for umbrellas)
+    - Flags: `--audit-only`, `--dry-run`, `--deliverable <ID>`
+    - Elixir-specific deliverables (D4, D5a, D11) only installed when `mix.exs` present
+  - `intent init --with-st0000` flag for greenfield projects (D1)
+    - Runs full ST0000 bootstrap after standard project initialization
 
 ### Changed
 
+- `intent audit health` now umbrella-aware -- scans `apps/*/lib/` in umbrella projects
+- `intent audit health` Highlander suspects reformatted to multi-line output (function name + indented files)
+- `intent audit quick --checks-only` now force-copies templates (ensures updates applied on re-run)
 - Rationalized CLI output across all commands to Rust-style conventions
   - Lowercase status prefixes: `ok:`, `error:`, `warning:`, `hint:`
   - Action prefixes: `created:`, `updated:`, `removed:`, `started:`, `done:`
@@ -44,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Credo template `thick_coordinator.ex`: `@default_params` interpolation before definition
+- Credo template `highlander_suspect.ex`: unused variable warning on `_arity`
+- Credo template `debug_artifacts.ex`: unused `@debug_calls` module attribute removed
 - `intent help` now shows `claude` and `plugin` commands in Core section
 - `intent help` agents description corrected from "Manage Claude Code sub-agents" to "Manage AGENTS.md for projects"
 - `lib/help/agents.help.md` rewritten to document actual AGENTS.md commands (was documenting subagent operations)

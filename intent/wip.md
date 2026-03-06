@@ -1,5 +1,5 @@
 ---
-verblock: "06 Mar 2026:v0.16: matts - ST0026/WP-09 complete"
+verblock: "06 Mar 2026:v0.17: matts - ST0026 complete, docs updated"
 intent_version: 2.6.0
 ---
 
@@ -7,27 +7,15 @@ intent_version: 2.6.0
 
 ## Current State
 
-v2.6.0 in progress. ST0026 Phase 2: WP-06 through WP-09 complete. WP-10 next.
+v2.6.0 complete. ST0026 done (all 11 WPs across Phase 1 and Phase 2). 462 tests passing across 22 files.
 
 ## Active Steel Threads
 
-### ST0026: Steel Thread Zero
-
-**Status**: WIP -- Phase 2 in progress
-
-| WP    | Title                    | Status      |
-| ----- | ------------------------ | ----------- |
-| WP-06 | Automated Enforcement    | Done        |
-| WP-07 | Health Check & Learnings | Done        |
-| WP-08 | Guardrails               | Done        |
-| WP-09 | Retrofit Installation    | Done        |
-| WP-10 | Integrator Command       | Done        |
+None -- all steel threads complete or parked.
 
 ## TODO
 
-1. All WPs complete -- mark ST0026 done
-2. Comprehensive docs update: README, CHANGELOG
-3. Update CHANGELOG.md, tag v2.6.0 and push
+1. Tag v2.6.0 and push
 
 ## Parked
 
@@ -36,8 +24,5 @@ v2.6.0 in progress. ST0026 Phase 2: WP-06 through WP-09 complete. WP-10 next.
 
 ## Key References
 
-- ST0026 tasks (Phase 2): `intent/st/ST0026/tasks.md`
-- ST0026 done (Phase 1): `intent/st/ST0026/done.md`
-- ST0026 impl (as-built): `intent/st/ST0026/impl.md`
-- ST0026 design: `intent/st/ST0026/design.md`
-- Test suite: `tests/run_tests.sh` (22 .bats files, 458 tests)
+- ST0026 (completed): `intent/st/COMPLETED/ST0026/`
+- Test suite: `tests/run_tests.sh` (22 .bats files, 462 tests)
