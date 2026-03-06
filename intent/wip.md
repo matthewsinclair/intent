@@ -21,13 +21,13 @@ v2.6.0 in progress. ST0026 Phase 2: WP-06 through WP-09 complete. WP-10 next.
 | WP-07 | Health Check & Learnings | Done        |
 | WP-08 | Guardrails               | Done        |
 | WP-09 | Retrofit Installation    | Done        |
-| WP-10 | Integrator Command       | Not Started |
+| WP-10 | Integrator Command       | Done        |
 
 ## TODO
 
-1. WP-10: integrator `intent init --with-st0000` for greenfield (D1)
+1. All WPs complete -- mark ST0026 done
 2. Comprehensive docs update: README, CHANGELOG
-3. Update CHANGELOG.md, tag v2.6.0 and push when Phase 2 complete
+3. Update CHANGELOG.md, tag v2.6.0 and push
 
 ## Parked
 

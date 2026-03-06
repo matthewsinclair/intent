@@ -3,7 +3,7 @@ verblock: "04 Mar 2026:v0.1: matts - Initial version"
 wp_id: WP-09
 title: "Retrofit Installation (D12)"
 scope: Large
-status: Not Started
+status: Done
 ---
 
 # WP-09: Retrofit Installation (D12)

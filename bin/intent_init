@@ -28,29 +28,39 @@ usage() {
   echo "Arguments:"
   echo "  project_name  Name of the project (optional, defaults to directory name)"
   echo ""
-  echo "Example:"
+  echo "Options:"
+  echo "  --with-st0000  Bootstrap all ST0000 deliverables after init"
+  echo ""
+  echo "Examples:"
   echo "  intent init \"My Project\""
+  echo "  intent init \"My Project\" --with-st0000"
   exit 1
 }
 
 # Parse options
+WITH_ST0000=false
+ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h|--help)
       usage
       ;;
+    --with-st0000)
+      WITH_ST0000=true
+      shift
+      ;;
     -*)
       error "Unknown option: $1"
       ;;
     *)
-      # First non-option argument is project name
-      break
+      ARGS+=("$1")
+      shift
       ;;
   esac
 done
 
 # Get project name (default to current directory name)
-PROJECT_NAME="${1:-$(basename "$(pwd)")}"
+PROJECT_NAME="${ARGS[0]:-$(basename "$(pwd)")}"
 
 # Check if already initialized
 if [ -f ".intent/config.json" ]; then
@@ -246,6 +256,13 @@ if [ -t 0 ] && [ -t 1 ]; then  # Check if both stdin and stdout are TTY
       echo "You can install agents later with: intent agents list"
     fi
   fi
+fi
+
+# Run ST0000 bootstrap if requested
+if [ "$WITH_ST0000" = true ]; then
+  echo ""
+  echo "Bootstrapping ST0000 deliverables..."
+  "$INTENT_HOME/bin/intent_st_zero" install
 fi
 
 echo ""

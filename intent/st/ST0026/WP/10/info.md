@@ -3,7 +3,7 @@ verblock: "04 Mar 2026:v0.1: matts - Initial version"
 wp_id: WP-10
 title: "Integrator Command (D1)"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-10: Integrator Command (D1)
