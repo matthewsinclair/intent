@@ -2,7 +2,7 @@
 
 ## Implementation Status
 
-Phase 1 (WP-01 through WP-05 + WP-11) complete. Phase 2 in progress: WP-06, WP-07, WP-08 done.
+Phase 1 (WP-01 through WP-05 + WP-11) complete. Phase 2 in progress: WP-06 through WP-09 done.
 
 ## Execution Order
 
@@ -17,7 +17,7 @@ Phase 1 (WP-01 through WP-05 + WP-11) complete. Phase 2 in progress: WP-06, WP-0
 | 7     | WP-06 | Automated Enforcement    | D5a, D5b     | Done        |
 | 8     | WP-07 | Health Check & Learnings | D7, D10      | Done        |
 | 9     | WP-08 | Guardrails               | D9, D11      | Done        |
-| 10    | WP-09 | Retrofit Installation    | D12          | Not Started |
+| 10    | WP-09 | Retrofit Installation    | D12          | Done        |
 | 11    | WP-10 | Integrator Command       | D1           | Not Started |
 
 ## As-Built Notes
@@ -226,6 +226,39 @@ Also rationalized CLI output across all 14+ source scripts and plugin helpers to
 - `92e41f1` -- fix CI: configure git identity in audit health test
 - `1411655` -- fix: lowercase health tags `[skip]`/`[warn]`/`[ok]`, Credo count `grep -c` bug, escaped pipes in doc tables
 
+### WP-09: Retrofit Installation (Done)
+
+Created `bin/intent_st_zero` (~430 lines) for brownfield project retrofitting. 4-phase process: audit each of 9 ST0000 deliverables (D2-D11), display gap analysis with `[present]`/`[missing]`/`[partial]` status, generate proposals, apply with per-deliverable output. Dispatched from `bin/intent_st` via `zero` subcommand.
+
+Module auto-discovery (D3) scans `lib/` for `.ex` files, extracts `defmodule` declarations, classifies by path (controller, LiveView, component, service, schema, Ash resource/domain, worker, mix task). Umbrella-aware: detects `apps/` directory and generates per-app sections in MODULES.md.
+
+Also made `audit health` umbrella-aware: `get_lib_dirs()` helper returns `apps/*/lib/` directories for umbrella projects. All 3 health checks (modules coverage, thick coordinators, Highlander suspects) now scan umbrella apps. Added `lib/mix/checks/` exclusion from unregistered modules check (Intent-managed Credo templates). Added `run` to common callback names. Reformatted Highlander suspects output to multi-line format. Fixed `--checks-only` to force-overwrite existing templates.
+
+Fixed 3 compiler warnings in Credo check templates: `@default_params` interpolation before definition (hardcoded value), `_arity` underscore mismatch, unused `@debug_calls` attribute.
+
+Tested against 3 real projects: Laksa (380 modules), Conflab (150 modules), Lamplight umbrella (751 modules across 5 apps).
+
+**Files created (3):**
+
+- `bin/intent_st_zero` -- st zero command (audit, install, help)
+- `lib/help/stzero.help.md` -- help file
+- `tests/unit/st_zero_commands.bats` -- 31 tests
+
+**Files modified (8):**
+
+- `bin/intent_st` -- zero dispatch case
+- `bin/intent_help` -- st_zero in skip list
+- `bin/intent_audit` -- umbrella support, Highlander format, Credo exclusion, --checks-only force-copy
+- `lib/templates/credo_checks/elixir/thick_coordinator.ex` -- fix @default_params warning
+- `lib/templates/credo_checks/elixir/highlander_suspect.ex` -- fix _arity warning
+- `lib/templates/credo_checks/elixir/debug_artifacts.ex` -- remove unused @debug_calls
+- `intent/llm/MODULES.md` -- registered 3 new entries
+- `tests/README.md` -- st_zero_commands.bats entry
+
+**Other:** Moved `tests/core_functionality.bats` to `tests/integration/`
+
+**Commit:** `e50da0a ST0026/WP-09: st zero retrofit + umbrella-aware audit health`
+
 ## Test Status
 
-All 427 tests passing across 21 BATS test files.
+All 458 tests passing across 22 BATS test files.

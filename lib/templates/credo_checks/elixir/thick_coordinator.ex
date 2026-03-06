@@ -11,7 +11,7 @@ defmodule Mix.Checks.ThickCoordinator do
       R2: Keep controllers and LiveViews thin.
 
       Coordinators (controllers, LiveViews) should delegate to service modules.
-      When they exceed #{inspect(@default_params[:max_lines])} lines, business
+      When they exceed 80 lines, business
       logic has likely leaked in.
 
       Extract logic into a dedicated context or service module.

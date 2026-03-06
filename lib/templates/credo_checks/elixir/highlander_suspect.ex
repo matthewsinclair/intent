@@ -36,15 +36,15 @@ defmodule Mix.Checks.HighlanderSuspect do
     # Group by function name, find duplicates
     duplicates =
       all_defs
-      |> Enum.group_by(fn {name, _arity, _module, _file, _line} -> {name, _arity} end)
+      |> Enum.group_by(fn {name, arity, _module, _file, _line} -> {name, arity} end)
       |> Enum.filter(fn {_key, entries} -> length(entries) > 1 end)
       |> Enum.reject(fn {{name, _arity}, _entries} -> MapSet.member?(@common_names, name) end)
 
     # Generate issues for each duplicate group
-    Enum.flat_map(duplicates, fn {{name, arity}, entries} ->
+    Enum.flat_map(duplicates, fn {{name, _arity}, entries} ->
       modules = entries |> Enum.map(fn {_, _, mod, _, _} -> mod end) |> Enum.join(", ")
 
-      Enum.map(entries, fn {_name, _arity, _module, source_file, line} ->
+      Enum.map(entries, fn {_name, arity, _module, source_file, line} ->
         issue_meta = IssueMeta.for(source_file, params)
 
         format_issue(issue_meta,

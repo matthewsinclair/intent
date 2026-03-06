@@ -85,8 +85,7 @@ load "../lib/test_helper.bash"
 
   run run_intent audit quick --checks-only
   assert_success
-  assert_output_contains "Installed check:"
-  assert_output_contains "Check templates installed"
+  assert_output_contains "check templates installed"
 
   # Verify templates were copied
   [ -d "lib/mix/checks" ]
@@ -99,7 +98,7 @@ load "../lib/test_helper.bash"
   [ -f "lib/mix/checks/dependency_graph.ex" ]
 }
 
-@test "audit quick --checks-only is idempotent" {
+@test "audit quick --checks-only force-copies on re-run" {
   project_dir=$(create_test_project "Audit Test")
   cd "$project_dir"
 
@@ -108,12 +107,12 @@ load "../lib/test_helper.bash"
   # First run installs
   run run_intent audit quick --checks-only
   assert_success
-  assert_output_contains "Installed check:"
+  assert_output_contains "check templates installed"
 
-  # Second run should not reinstall
+  # Second run also force-copies (ensures updates are applied)
   run run_intent audit quick --checks-only
   assert_success
-  refute_output_contains "Installed check:"
+  assert_output_contains "check templates installed"
 }
 
 # ============================================================
