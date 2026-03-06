@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # Core functionality tests - the essential tests that must pass
 
-load "lib/test_helper.bash"
+load "../lib/test_helper.bash"
 
 @test "intent shows info when run with no args" {
   run run_intent

@@ -21,6 +21,7 @@
 | Audit command        | `bin/intent_audit`     | quick, health, help; Elixir credo integration       |
 | Learn command        | `bin/intent_learn`     | Capture project learnings for future sessions       |
 | Module registry      | `bin/intent_modules`   | check, find; MODULES.md enforcement                 |
+| STZero retrofit      | `bin/intent_st_zero`   | Brownfield project retrofit installation            |
 | Help display         | `bin/intent_help`      | General and command-specific help display           |
 | Config loading       | `bin/intent_config`    | PROJECT_ROOT detection, load_intent_config          |
 | Project info         | `bin/intent_info`      | Status display, no-args default                     |
@@ -76,6 +77,7 @@
 | Audit help   | `lib/help/audit.help.md`     | Audit command help    |
 | Learn help   | `lib/help/learn.help.md`     | Learn command help    |
 | Modules help | `lib/help/modules.help.md`   | Modules command help  |
+| STZero help  | `lib/help/stzero.help.md`    | STZero command help   |
 
 ## Tests
 
@@ -86,3 +88,4 @@
 | Audit tests          | `tests/unit/audit_commands.bats`   | BATS tests for audit command   |
 | Learn tests          | `tests/unit/learn_commands.bats`   | BATS tests for learn command   |
 | Modules tests        | `tests/unit/modules_commands.bats` | BATS tests for modules command |
+| STZero tests         | `tests/unit/st_zero_commands.bats` | BATS tests for st zero command |

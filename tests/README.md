@@ -23,6 +23,7 @@ tests/
 │   ├── project_commands.bats      # Tests for project-specific commands
 │   ├── skills_commands.bats       # Skills management command tests
 │   ├── st_commands.bats           # Steel thread command tests
+│   ├── st_zero_commands.bats     # ST Zero retrofit command tests
 │   ├── test_autopsy.bats           # Autopsy skill + directory install tests
 │   ├── test_diogenes.bats         # Diogenes subagent + testing skill tests
 │   └── treeindex_commands.bats    # Treeindex command tests
@@ -128,6 +129,7 @@ Unit tests focus on individual commands and features:
 - **init_commands.bats** - Tests for the init command
 - **project_commands.bats** - Tests commands that require a project context
 - **st_commands.bats** - Tests for steel thread management commands
+- **st_zero_commands.bats** - Tests for ST Zero retrofit command (`intent st zero install`)
 - **skills_commands.bats** - Tests for skills management (`intent claude skills install/list/sync/uninstall/show`)
 - **test_diogenes.bats** - Tests for Diogenes subagent and in-elixir-testing skill (install/list/sync/show/uninstall)
 - **treeindex_commands.bats** - Tests for the treeindex command (directory summaries)
