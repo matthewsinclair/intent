@@ -19,12 +19,6 @@ defmodule Mix.Checks.DebugArtifacts do
       """
     ]
 
-  @debug_calls [
-    {IO, :inspect},
-    {IO, :puts},
-    {Kernel, :dbg}
-  ]
-
   @impl Credo.Check
   def run(%SourceFile{} = source_file, params) do
     # Only check files under lib/

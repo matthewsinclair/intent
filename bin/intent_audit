@@ -275,14 +275,22 @@ cmd_quick() {
   # Require mix project
   require_mix_project
 
-  # Install check templates
-  ensure_checks_installed
-
-  # If checks-only, we're done
+  # Install check templates (force-copy in checks-only mode)
   if [ "$checks_only" = "true" ]; then
-    echo "Check templates installed. Run 'mix credo --checks-dir $CHECKS_TARGET_DIR' manually."
+    mkdir -p "$CHECKS_TARGET_DIR"
+    local count=0
+    for template in "$CHECKS_TEMPLATE_DIR"/*.ex; do
+      local basename
+      basename=$(basename "$template")
+      cp "$template" "$CHECKS_TARGET_DIR/$basename"
+      count=$((count + 1))
+    done
+    echo "ok: $count check templates installed to $CHECKS_TARGET_DIR/"
     exit 0
   fi
+
+  # Normal mode: only copy missing templates
+  ensure_checks_installed
 
   # Verify credo is available
   if ! require_credo; then
