@@ -6,19 +6,24 @@ Intent v2.6.0 -- CLI tool for managing steel threads, project docs, and LLM guid
 
 ## Current State
 
-ST0026 (Steel Thread Zero) complete. All 11 WPs done. 462 tests passing across 22 files. CHANGELOG and docs updated.
+ST0027 complete. New `in-cost-analysis` skill added (12th skill, 12 total). v2.6.0 tagged and pushed.
+
+## Recent Work (ST0027)
+
+- `/in-cost-analysis` skill: estimates development cost of reproducing a codebase
+- Includes agentic leverage ratio (human-equivalent hours / agentic hours)
+- `intent/analysis/` convention established for dated cost analysis reports
+- Generated analyses for Intent (10.5x leverage), Lamplight (83.2x), laksa-web (97.1x), Conflab (88.0x)
 
 ## TODO
 
-1. Tag v2.6.0 and push to both remotes (`local` and `upstream`)
-2. Create GitHub release notes
+None pending.
 
 ## Key Files
 
-- `intent/st/COMPLETED/ST0026/` -- completed ST with all docs
-- `intent/llm/MODULES.md` -- Intent's own module registry
-- `intent/llm/DECISION_TREE.md` -- Intent's own code placement guide
-- `CHANGELOG.md` -- updated with WP-09/WP-10 additions
+- `intent/plugins/claude/skills/in-cost-analysis/` -- skill source (SKILL.md, scripts/, data/)
+- `intent/analysis/` -- cost analysis reports
+- `intent/st/COMPLETED/ST0027/` -- completed ST with all docs
 - `intent/wip.md` -- current state tracker
 
 ## Conventions
