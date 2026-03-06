@@ -22,9 +22,10 @@ This user guide provides task-oriented instructions for using the Intent system.
 11. [LLM Guidance Upgrade](#llm-guidance-upgrade)
 12. [Code Quality](#code-quality)
 13. [Module Guardrails](#module-guardrails)
-14. [Plugin Discovery](#plugin-discovery)
-15. [Testing](#testing)
-16. [Troubleshooting](#troubleshooting)
+14. [ST Zero Retrofit](#st-zero-retrofit)
+15. [Plugin Discovery](#plugin-discovery)
+16. [Testing](#testing)
+17. [Troubleshooting](#troubleshooting)
 
 ## Introduction
 
@@ -643,7 +644,7 @@ intent audit health --report
 intent audit health --diff
 ```
 
-Health checks: MODULES.md coverage, thick coordinators, Highlander suspects, Credo status.
+Health checks: MODULES.md coverage, thick coordinators, Highlander suspects, Credo status. Umbrella-aware -- scans `apps/*/lib/` in umbrella projects.
 
 ### Capturing Learnings
 
@@ -709,6 +710,41 @@ Enforce with `intent audit quick --rule D11`. A template is available at `lib/te
 
 An advisory hook template is available at `lib/templates/hooks/module_check_hook.json`. Copy it into your `.claude/settings.json` to get warnings when writing to unregistered module paths.
 
+## ST Zero Retrofit
+
+Intent v2.6.0 includes a retrofit command for installing ST0000 deliverables into existing (brownfield) projects.
+
+### For Existing Projects
+
+```bash
+# Audit what's present/missing/partial
+intent st zero install --audit-only
+
+# Preview what would be installed
+intent st zero install --dry-run
+
+# Install missing deliverables
+intent st zero install
+
+# Install a specific deliverable only
+intent st zero install --deliverable D3
+```
+
+The command checks 9 ST0000 deliverables (D2-D11): CLAUDE.md, MODULES.md, ARCHETYPES.md, Credo check templates, DECISION_TREE.md, MEMORY.md, module check hook, learnings.md, and DEPENDENCY_GRAPH.md.
+
+Elixir-specific deliverables (ARCHETYPES.md, Credo checks, DEPENDENCY_GRAPH.md) are only installed when `mix.exs` is present. CLAUDE.md is never overwritten -- only a diff of missing sections is shown.
+
+For umbrella projects, module auto-discovery scans `apps/*/lib/` and generates per-app sections in MODULES.md.
+
+### For New Projects
+
+```bash
+# Initialize project with all ST0000 deliverables
+intent init "My Project" --with-st0000
+```
+
+This runs the standard `intent init` followed by `intent st zero install`, giving new projects the full code quality enforcement stack from day one.
+
 ## Plugin Discovery
 
 Intent v2.6.0 includes a plugin discovery system:
@@ -744,7 +780,7 @@ To run the test suite:
 
 ### Test Structure
 
-Tests are organized in `tests/unit/` with 21 test files covering all commands:
+Tests are organized in `tests/unit/` with 22 test files covering all commands:
 
 | Test File                 | Tests                                                 |
 | ------------------------- | ----------------------------------------------------- |
@@ -756,13 +792,14 @@ Tests are organized in `tests/unit/` with 21 test files covering all commands:
 | `fileindex_commands.bats` | Fileindex (file tracking and checkbox states)         |
 | `global_commands.bats`    | Global commands (help, doctor, info, etc.)            |
 | `help_commands.bats`      | Help system                                           |
-| `init_commands.bats`      | Init command                                          |
+| `init_commands.bats`      | Init command (including --with-st0000)                |
 | `learn_commands.bats`     | Learn command (footgun, worked, failed)               |
 | `migration.bats`          | Migration and backup                                  |
 | `modules_commands.bats`   | Modules command (check, find)                         |
 | `plugin_commands.bats`    | Plugin discovery (list, show)                         |
 | `project_commands.bats`   | Project-specific commands                             |
 | `st_commands.bats`        | Steel thread management                               |
+| `st_zero_commands.bats`   | ST Zero retrofit (install, audit, gap analysis)       |
 | `skills_commands.bats`    | Skills management (install, sync, uninstall, show)    |
 | `subagent_commands.bats`  | Subagent management                                   |
 | `test_autopsy.bats`       | Autopsy skill and full directory install              |

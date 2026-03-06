@@ -43,17 +43,17 @@ intent st zero help
 
 ## Deliverables
 
-| ID  | File                        | Notes                     |
-| --- | --------------------------- | ------------------------- |
-| D2  | CLAUDE.md                   | Never overwritten         |
-| D3  | intent/llm/MODULES.md      | Auto-generated from code  |
-| D4  | intent/llm/ARCHETYPES.md   | Elixir only               |
-| D5a | lib/mix/checks/*.ex         | Elixir only               |
-| D6  | intent/llm/DECISION_TREE.md | Template                 |
-| D8  | MEMORY.md                   | Via intent claude prime   |
-| D9  | Module check hook           | .claude/settings.local    |
-| D10 | .intent/learnings.md        | Empty structure           |
-| D11 | intent/llm/DEPENDENCY_GRAPH.md | Elixir only            |
+| ID  | File                           | Notes                    |
+| --- | ------------------------------ | ------------------------ |
+| D2  | CLAUDE.md                      | Never overwritten        |
+| D3  | intent/llm/MODULES.md          | Auto-generated from code |
+| D4  | intent/llm/ARCHETYPES.md       | Elixir only              |
+| D5a | lib/mix/checks/\*.ex           | Elixir only              |
+| D6  | intent/llm/DECISION_TREE.md    | Template                 |
+| D8  | MEMORY.md                      | Via intent claude prime  |
+| D9  | Module check hook              | .claude/settings.local   |
+| D10 | .intent/learnings.md           | Empty structure          |
+| D11 | intent/llm/DEPENDENCY_GRAPH.md | Elixir only              |
 
 ## 4-Phase Process
 
