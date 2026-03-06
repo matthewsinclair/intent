@@ -320,6 +320,21 @@ get_changed_files() {
 }
 
 # Save current git HEAD as timestamp
+# Get lib source directories (umbrella-aware)
+get_lib_dirs() {
+  if [ -d "apps" ]; then
+    # Umbrella: each app's lib/ plus root lib/ if it has .ex files
+    local dirs=""
+    for app_dir in apps/*/lib; do
+      [ -d "$app_dir" ] && dirs="$dirs $app_dir"
+    done
+    [ -d "lib" ] && dirs="$dirs lib"
+    echo "$dirs"
+  else
+    echo "lib"
+  fi
+}
+
 save_health_timestamp() {
   local head_sha
   head_sha=$(git rev-parse HEAD 2>/dev/null) || return 0
@@ -346,9 +361,11 @@ check_modules_coverage() {
   # Get list of .ex files to check
   local files_to_check
   if [ "$diff_only" = "true" ]; then
-    files_to_check=$(get_changed_files | grep '^lib/' | grep '\.ex$' || true)
+    files_to_check=$(get_changed_files | grep -E '^(lib/|apps/)' | grep '\.ex$' || true)
   else
-    files_to_check=$(find lib -name '*.ex' -type f 2>/dev/null | sort || true)
+    local lib_dirs
+    lib_dirs=$(get_lib_dirs)
+    files_to_check=$(find $lib_dirs -name '*.ex' -type f 2>/dev/null | sort || true)
   fi
 
   if [ -z "$files_to_check" ]; then
@@ -356,10 +373,34 @@ check_modules_coverage() {
     return 0
   fi
 
+  # Collect directory entries from MODULES.md (paths ending with /)
+  local registered_dirs=""
+  registered_dirs=$(grep '|' "$modules_file" \
+    | grep -v '| Concern' \
+    | grep -v '| ---' \
+    | grep -v '^<!--' \
+    | awk -F'|' '{print $3}' \
+    | grep '`' \
+    | sed 's/.*`\([^`]*\)`.*/\1/' \
+    | grep '/$' || true)
+
   # Extract module names from source files and check against MODULES.md
   local unregistered=""
   while IFS= read -r file; do
     [ -z "$file" ] && continue
+    # Skip files under directory-registered entries
+    local skip=false
+    while IFS= read -r dir; do
+      [ -z "$dir" ] && continue
+      case "$file" in
+        "$dir"*) skip=true; break ;;
+      esac
+    done <<< "$registered_dirs"
+    [ "$skip" = true ] && continue
+    # Skip Intent-managed Credo check templates
+    case "$file" in
+      "$CHECKS_TARGET_DIR"/*) continue ;;
+    esac
     # Extract the defmodule name
     local module_name
     module_name=$(grep -m1 "^defmodule " "$file" 2>/dev/null | sed 's/defmodule \([^ ]*\).*/\1/' || true)
@@ -386,9 +427,11 @@ check_thick_coordinators() {
 
   local files_to_check
   if [ "$diff_only" = "true" ]; then
-    files_to_check=$(get_changed_files | grep '^lib/' | grep '\.ex$' || true)
+    files_to_check=$(get_changed_files | grep -E '^(lib/|apps/)' | grep '\.ex$' || true)
   else
-    files_to_check=$(find lib -name '*.ex' -type f 2>/dev/null | sort || true)
+    local lib_dirs
+    lib_dirs=$(get_lib_dirs)
+    files_to_check=$(find $lib_dirs -name '*.ex' -type f 2>/dev/null | sort || true)
   fi
 
   if [ -z "$files_to_check" ]; then
@@ -426,9 +469,11 @@ check_highlander_suspects() {
 
   local files_to_check
   if [ "$diff_only" = "true" ]; then
-    files_to_check=$(get_changed_files | grep '^lib/' | grep '\.ex$' || true)
+    files_to_check=$(get_changed_files | grep -E '^(lib/|apps/)' | grep '\.ex$' || true)
   else
-    files_to_check=$(find lib -name '*.ex' -type f 2>/dev/null | sort || true)
+    local lib_dirs
+    lib_dirs=$(get_lib_dirs)
+    files_to_check=$(find $lib_dirs -name '*.ex' -type f 2>/dev/null | sort || true)
   fi
 
   if [ -z "$files_to_check" ]; then
@@ -437,7 +482,7 @@ check_highlander_suspects() {
   fi
 
   # Collect all public def names with their files
-  local common_names="new|get|list|create|update|delete|changeset|render|init|call|handle_call|handle_cast|handle_info|handle_event|mount|handle_params|terminate|code_change|start_link|child_spec"
+  local common_names="new|get|list|create|update|delete|changeset|render|init|call|run|handle_call|handle_cast|handle_info|handle_event|mount|handle_params|terminate|code_change|start_link|child_spec"
   local defs_file
   defs_file=$(mktemp)
 
@@ -461,8 +506,13 @@ check_highlander_suspects() {
       while IFS= read -r name; do
         [ -z "$name" ] && continue
         local locations
-        locations=$(grep "^${name}|" "$defs_file" | cut -d'|' -f2 | sort -u | tr '\n' ', ' | sed 's/,$//')
-        duplicates="$duplicates\n    $name: $locations"
+        local loc_lines
+        loc_lines=$(grep "^${name}|" "$defs_file" | cut -d'|' -f2 | sort -u)
+        duplicates="$duplicates\n    $name:"
+        while IFS= read -r loc; do
+          [ -z "$loc" ] && continue
+          duplicates="$duplicates\n      $loc"
+        done <<< "$loc_lines"
         issues=$((issues + 1))
       done <<< "$dup_names"
     fi
@@ -527,8 +577,8 @@ cmd_health() {
   report="$report
 "
 
-  # 1. Check if lib/ exists (Elixir project)
-  if [ -d "lib" ]; then
+  # 1. Check if lib/ or apps/ exists (Elixir project, umbrella-aware)
+  if [ -d "lib" ] || [ -d "apps" ]; then
     # 2. MODULES.md coverage
     local modules_result
     modules_result=$(check_modules_coverage "$diff_mode" 2>&1) || total_issues=$((total_issues + $?))

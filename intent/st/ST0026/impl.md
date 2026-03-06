@@ -219,7 +219,12 @@ Also rationalized CLI output across all 14+ source scripts and plugin helpers to
 - `tests/README.md` -- modules_commands.bats entry
 - 14 test files updated for new output assertions
 
-**Commit:** `f03e75a ST0026/WP-08: guardrails + rationalized CLI output`
+**Commits:**
+
+- `f03e75a` -- guardrails + rationalized CLI output (41 files)
+- `23a516c` -- docs updated to as-built state (11 files)
+- `92e41f1` -- fix CI: configure git identity in audit health test
+- `1411655` -- fix: lowercase health tags `[skip]`/`[warn]`/`[ok]`, Credo count `grep -c` bug, escaped pipes in doc tables
 
 ## Test Status
 

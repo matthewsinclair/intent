@@ -88,7 +88,7 @@ for script in "$INTENT_HOME"/bin/intent_*; do
     
     # Skip certain internal scripts and those manually listed above
     case "$cmd_name" in
-      config|helpers|main|agents|info|init|st|wp|audit|learn|modules|doctor|upgrade|help|bootstrap|llm|organize|plugin) continue ;;
+      config|helpers|main|agents|info|init|st|st_zero|wp|audit|learn|modules|doctor|upgrade|help|bootstrap|llm|organize|plugin) continue ;;
     esac
     
     # Construct help file path

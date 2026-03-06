@@ -1689,10 +1689,14 @@ status: '$status "$info_file"
     fi
     ;;
     
+  "zero")
+    exec "$INTENT_HOME/bin/intent_st_zero" "$@"
+    ;;
+
   "help"|"--help"|"-h")
     usage
     ;;
-    
+
   *)
     error "Unknown command: $ST_COMMAND"
     usage

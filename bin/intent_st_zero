@@ -1,0 +1,717 @@
+#!/bin/bash
+# intent_st_zero - ST Zero retrofit for brownfield projects
+# Usage: intent st zero <command> [options]
+
+# Exit on error
+set -e
+
+# Source shared helpers
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
+
+# Template directory
+TEMPLATE_DIR="$INTENT_HOME/lib/templates"
+
+# Credo check templates
+CHECKS_TEMPLATE_DIR="$TEMPLATE_DIR/credo_checks/elixir"
+
+# Hook template
+HOOK_TEMPLATE="$TEMPLATE_DIR/hooks/module_check_hook.json"
+
+# ============================================================
+# Usage
+# ============================================================
+
+usage() {
+  echo "Usage: intent st zero install [options]"
+  echo ""
+  echo "Retrofit ST0000 deliverables into brownfield projects."
+  echo ""
+  echo "Commands:"
+  echo "  install            Audit, analyse gaps, and install missing deliverables"
+  echo "  help               Show this help"
+  echo ""
+  echo "Options:"
+  echo "  --audit-only       Show gap analysis only (no changes)"
+  echo "  --dry-run          Show what would change (no writes)"
+  echo "  --deliverable ID   Target a single deliverable (D2-D11)"
+  echo ""
+  echo "Deliverables checked:"
+  echo "  D2   CLAUDE.md (never overwritten)"
+  echo "  D3   intent/llm/MODULES.md (auto-generated from codebase)"
+  echo "  D4   intent/llm/ARCHETYPES.md (Elixir only)"
+  echo "  D5a  lib/mix/checks/*.ex (Elixir only)"
+  echo "  D6   intent/llm/DECISION_TREE.md"
+  echo "  D8   MEMORY.md via intent claude prime"
+  echo "  D9   Module check hook"
+  echo "  D10  .intent/learnings.md"
+  echo "  D11  intent/llm/DEPENDENCY_GRAPH.md (Elixir only)"
+  echo ""
+  echo "Examples:"
+  echo "  intent st zero install --audit-only"
+  echo "  intent st zero install --dry-run"
+  echo "  intent st zero install --deliverable D3"
+  exit 0
+}
+
+# ============================================================
+# Helpers
+# ============================================================
+
+# Install a template file with sed substitution
+install_from_template() {
+  local template="$1"
+  local target="$2"
+  local project_name
+  project_name=$(get_config_field "project_name" "$(basename "$(pwd)")")
+  local author
+  author=$(get_config_field "author" "unknown")
+  local date_str
+  date_str=$(date +%Y-%m-%d)
+  local intent_version
+  intent_version=$(get_intent_version)
+
+  mkdir -p "$(dirname "$target")"
+  sed -e "s/\[\[PROJECT_NAME\]\]/$project_name/g" \
+      -e "s/\[\[AUTHOR\]\]/$author/g" \
+      -e "s/\[\[DATE\]\]/$date_str/g" \
+      -e "s/\[\[INTENT_VERSION\]\]/$intent_version/g" \
+      "$template" > "$target"
+}
+
+# Check if this is an Elixir project
+is_elixir_project() {
+  [ -f "mix.exs" ]
+}
+
+# ============================================================
+# Deliverable Checks
+# ============================================================
+
+# Each check_* function sets:
+#   STATUS = PRESENT | MISSING | PARTIAL
+#   DETAIL = human-readable detail
+
+check_d2_claude_md() {
+  if [ -f "CLAUDE.md" ]; then
+    STATUS="PRESENT"
+    DETAIL="CLAUDE.md exists (never overwritten)"
+  else
+    STATUS="MISSING"
+    DETAIL="CLAUDE.md not found"
+  fi
+}
+
+check_d3_modules_md() {
+  if [ -f "intent/llm/MODULES.md" ]; then
+    # Check if it has actual module entries (not just template)
+    local entry_count
+    entry_count=$(grep '|' "intent/llm/MODULES.md" \
+      | grep -v '| Concern' \
+      | grep -v '| ---' \
+      | grep -v '^<!--' \
+      | grep '`' \
+      | wc -l | tr -d ' ')
+    if [ "$entry_count" -gt 0 ]; then
+      STATUS="PRESENT"
+      DETAIL="MODULES.md with $entry_count entries"
+    else
+      STATUS="PARTIAL"
+      DETAIL="MODULES.md exists but has no module entries"
+    fi
+  else
+    STATUS="MISSING"
+    DETAIL="intent/llm/MODULES.md not found"
+  fi
+}
+
+check_d4_archetypes() {
+  if ! is_elixir_project; then
+    STATUS="PRESENT"
+    DETAIL="skipped (not an Elixir project)"
+    return
+  fi
+
+  if [ -f "intent/llm/ARCHETYPES.md" ]; then
+    STATUS="PRESENT"
+    DETAIL="ARCHETYPES.md exists"
+  else
+    STATUS="MISSING"
+    DETAIL="intent/llm/ARCHETYPES.md not found"
+  fi
+}
+
+check_d5a_credo() {
+  if ! is_elixir_project; then
+    STATUS="PRESENT"
+    DETAIL="skipped (not an Elixir project)"
+    return
+  fi
+
+  if [ -d "lib/mix/checks" ]; then
+    local check_count
+    check_count=$(find lib/mix/checks -name '*.ex' -type f 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$check_count" -ge 7 ]; then
+      STATUS="PRESENT"
+      DETAIL="$check_count Credo check templates installed"
+    elif [ "$check_count" -gt 0 ]; then
+      STATUS="PARTIAL"
+      DETAIL="$check_count of 7 Credo check templates installed"
+    else
+      STATUS="MISSING"
+      DETAIL="lib/mix/checks/ exists but has no .ex files"
+    fi
+  else
+    STATUS="MISSING"
+    DETAIL="lib/mix/checks/ not found"
+  fi
+}
+
+check_d6_decision_tree() {
+  if [ -f "intent/llm/DECISION_TREE.md" ]; then
+    STATUS="PRESENT"
+    DETAIL="DECISION_TREE.md exists"
+  else
+    STATUS="MISSING"
+    DETAIL="intent/llm/DECISION_TREE.md not found"
+  fi
+}
+
+check_d8_memory() {
+  local project_dir
+  project_dir=$(pwd)
+  local path_hash
+  path_hash=$(echo "$project_dir" | sed 's|/|-|g')
+  local memory_path="$HOME/.claude/projects/$path_hash/memory/MEMORY.md"
+
+  if [ -f "$memory_path" ]; then
+    STATUS="PRESENT"
+    DETAIL="MEMORY.md exists"
+  else
+    STATUS="MISSING"
+    DETAIL="MEMORY.md not found (run: intent claude prime)"
+  fi
+}
+
+check_d9_hook() {
+  local hook_target=".claude/settings.local.json"
+
+  if [ -f "$hook_target" ]; then
+    if grep -q "MODULES.md" "$hook_target" 2>/dev/null; then
+      STATUS="PRESENT"
+      DETAIL="module check hook configured"
+    else
+      STATUS="PARTIAL"
+      DETAIL="settings.local.json exists but no module check hook"
+    fi
+  else
+    STATUS="MISSING"
+    DETAIL=".claude/settings.local.json not found"
+  fi
+}
+
+check_d10_learnings() {
+  if [ -f ".intent/learnings.md" ]; then
+    STATUS="PRESENT"
+    DETAIL="learnings.md exists"
+  else
+    STATUS="MISSING"
+    DETAIL=".intent/learnings.md not found"
+  fi
+}
+
+check_d11_dep_graph() {
+  if ! is_elixir_project; then
+    STATUS="PRESENT"
+    DETAIL="skipped (not an Elixir project)"
+    return
+  fi
+
+  if [ -f "intent/llm/DEPENDENCY_GRAPH.md" ]; then
+    STATUS="PRESENT"
+    DETAIL="DEPENDENCY_GRAPH.md exists"
+  else
+    STATUS="MISSING"
+    DETAIL="intent/llm/DEPENDENCY_GRAPH.md not found"
+  fi
+}
+
+# ============================================================
+# Module Auto-Discovery (D3)
+# ============================================================
+
+discover_modules() {
+  local output_file="$1"
+  local project_name
+  project_name=$(get_config_field "project_name" "$(basename "$(pwd)")")
+
+  cat > "$output_file" << 'HEADER'
+# Module Registry
+
+> **The Highlander Rule**: There can be only one module per concern.
+> ALWAYS check this file before creating a new script or helper function.
+> If a module already owns that concern, use it.
+> When you must create a new module, register it here FIRST, then create the file.
+
+HEADER
+
+  # Collect source directories to scan
+  local scan_dirs=""
+  if [ -d "apps" ]; then
+    # Umbrella project: scan each app's lib/
+    for app_dir in apps/*/lib; do
+      [ -d "$app_dir" ] && scan_dirs="$scan_dirs $app_dir"
+    done
+    # Also scan root lib/ if it has .ex files
+    if [ -d "lib" ] && [ -n "$(find lib -name '*.ex' -type f 2>/dev/null | head -1)" ]; then
+      scan_dirs="$scan_dirs lib"
+    fi
+  elif [ -d "lib" ]; then
+    scan_dirs="lib"
+  fi
+
+  # Discover .ex files from all source directories
+  for scan_dir in $scan_dirs; do
+    local ex_files
+    ex_files=$(find "$scan_dir" -name '*.ex' -type f 2>/dev/null | sort || true)
+    [ -z "$ex_files" ] && continue
+
+    # Section header: use app name for umbrella, generic for single-app
+    local section_name
+    case "$scan_dir" in
+      apps/*/lib)
+        local app_name
+        app_name=$(echo "$scan_dir" | cut -d'/' -f2)
+        section_name="$app_name"
+        ;;
+      *)
+        section_name="Application Modules"
+        ;;
+    esac
+
+    echo "## $section_name" >> "$output_file"
+    echo "" >> "$output_file"
+    echo "| Module | Path | Notes |" >> "$output_file"
+    echo "| ------ | ---- | ----- |" >> "$output_file"
+
+    while IFS= read -r file; do
+      [ -z "$file" ] && continue
+      # Extract defmodule name
+      local module_name
+      module_name=$(grep -m 1 'defmodule ' "$file" 2>/dev/null | sed 's/.*defmodule \([^ ]*\).*/\1/' || true)
+      [ -z "$module_name" ] && continue
+
+      # Classify by path
+      local note="auto-discovered"
+      case "$file" in
+        *_web/controllers/*) note="controller" ;;
+        *_web/live/*)        note="LiveView" ;;
+        *_web/components/*)  note="component" ;;
+        *_web/*)             note="web" ;;
+        */workers/*)         note="worker" ;;
+        */services/*)        note="service" ;;
+        */schemas/*)         note="schema" ;;
+        */contexts/*)        note="context" ;;
+        */resources/*)       note="Ash resource" ;;
+        */domains/*)         note="Ash domain" ;;
+        */mix/*)             note="mix task/check" ;;
+      esac
+
+      echo "| \`$module_name\` | \`$file\` | $note |" >> "$output_file"
+    done <<< "$ex_files"
+    echo "" >> "$output_file"
+  done
+
+  # Also discover bin/ scripts if they exist
+  if [ -d "bin" ]; then
+    local bin_scripts
+    bin_scripts=$(find bin -maxdepth 1 -type f -name '*.sh' -o -name '*.bash' 2>/dev/null | sort || true)
+    if [ -z "$bin_scripts" ]; then
+      bin_scripts=$(find bin -maxdepth 1 -type f ! -name '.*' 2>/dev/null | sort || true)
+    fi
+
+    if [ -n "$bin_scripts" ]; then
+      echo "## Scripts" >> "$output_file"
+      echo "" >> "$output_file"
+      echo "| Concern | Path | Notes |" >> "$output_file"
+      echo "| ------- | ---- | ----- |" >> "$output_file"
+
+      while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        local name
+        name=$(basename "$file")
+        echo "| $name | \`$file\` | auto-discovered |" >> "$output_file"
+      done <<< "$bin_scripts"
+      echo "" >> "$output_file"
+    fi
+  fi
+}
+
+# ============================================================
+# Phase 1: Audit Deliverables
+# ============================================================
+
+# Deliverable IDs and their check functions
+DELIVERABLE_IDS="D2 D3 D4 D5a D6 D8 D9 D10 D11"
+
+get_deliverable_label() {
+  case "$1" in
+    D2)  echo "CLAUDE.md" ;;
+    D3)  echo "MODULES.md" ;;
+    D4)  echo "ARCHETYPES.md" ;;
+    D5a) echo "Credo checks" ;;
+    D6)  echo "DECISION_TREE.md" ;;
+    D8)  echo "MEMORY.md" ;;
+    D9)  echo "Module check hook" ;;
+    D10) echo "learnings.md" ;;
+    D11) echo "DEPENDENCY_GRAPH.md" ;;
+    *)   echo "Unknown" ;;
+  esac
+}
+
+run_check() {
+  case "$1" in
+    D2)  check_d2_claude_md ;;
+    D3)  check_d3_modules_md ;;
+    D4)  check_d4_archetypes ;;
+    D5a) check_d5a_credo ;;
+    D6)  check_d6_decision_tree ;;
+    D8)  check_d8_memory ;;
+    D9)  check_d9_hook ;;
+    D10) check_d10_learnings ;;
+    D11) check_d11_dep_graph ;;
+    *)   error "Unknown deliverable: $1" ;;
+  esac
+}
+
+audit_deliverables() {
+  local filter_id="${1:-}"
+  local ids="$DELIVERABLE_IDS"
+
+  if [ -n "$filter_id" ]; then
+    # Validate deliverable ID
+    case "$filter_id" in
+      D2|D3|D4|D5a|D6|D8|D9|D10|D11) ;;
+      *) error "Unknown deliverable: $filter_id. Valid: $DELIVERABLE_IDS" ;;
+    esac
+    ids="$filter_id"
+  fi
+
+  # Run each check and store results
+  AUDIT_RESULTS=""
+  MISSING_COUNT=0
+  PARTIAL_COUNT=0
+  PRESENT_COUNT=0
+
+  for id in $ids; do
+    STATUS=""
+    DETAIL=""
+    run_check "$id"
+    AUDIT_RESULTS="$AUDIT_RESULTS$id|$STATUS|$DETAIL"$'\n'
+    case "$STATUS" in
+      MISSING) MISSING_COUNT=$((MISSING_COUNT + 1)) ;;
+      PARTIAL) PARTIAL_COUNT=$((PARTIAL_COUNT + 1)) ;;
+      PRESENT) PRESENT_COUNT=$((PRESENT_COUNT + 1)) ;;
+    esac
+  done
+}
+
+# ============================================================
+# Phase 2: Gap Analysis Display
+# ============================================================
+
+show_gap_analysis() {
+  echo ""
+  echo "ST Zero Gap Analysis"
+  echo ""
+
+  if is_elixir_project; then
+    echo "  project type: Elixir (mix.exs detected)"
+  else
+    echo "  project type: non-Elixir (Elixir-specific deliverables skipped)"
+  fi
+  echo ""
+
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    local id status detail
+    id=$(echo "$line" | cut -d'|' -f1)
+    status=$(echo "$line" | cut -d'|' -f2)
+    detail=$(echo "$line" | cut -d'|' -f3)
+    local label
+    label=$(get_deliverable_label "$id")
+
+    local tag
+    case "$status" in
+      PRESENT) tag="present" ;;
+      MISSING) tag="missing" ;;
+      PARTIAL) tag="partial" ;;
+    esac
+
+    printf "  %-4s %-22s [%s] %s\n" "$id" "$label" "$tag" "$detail"
+  done <<< "$AUDIT_RESULTS"
+
+  echo ""
+  echo "  summary: $PRESENT_COUNT present, $PARTIAL_COUNT partial, $MISSING_COUNT missing"
+}
+
+# ============================================================
+# Phase 3+4: Generate and Apply Proposals
+# ============================================================
+
+apply_deliverable() {
+  local id="$1"
+  local dry_run="$2"
+  local label
+  label=$(get_deliverable_label "$id")
+
+  case "$id" in
+    D2)
+      # Never overwrite CLAUDE.md
+      if [ ! -f "CLAUDE.md" ]; then
+        if [ "$dry_run" = "true" ]; then
+          echo "  would create: CLAUDE.md from template"
+        else
+          install_from_template "$TEMPLATE_DIR/llm/_CLAUDE.md" "CLAUDE.md"
+          echo "  created: CLAUDE.md"
+        fi
+      else
+        echo "  skipped: CLAUDE.md (never overwritten)"
+      fi
+      ;;
+
+    D3)
+      if [ "$dry_run" = "true" ]; then
+        echo "  would create: intent/llm/MODULES.md (auto-discovered from codebase)"
+      else
+        mkdir -p "intent/llm"
+        discover_modules "intent/llm/MODULES.md"
+        echo "  created: intent/llm/MODULES.md (auto-discovered)"
+      fi
+      ;;
+
+    D4)
+      if ! is_elixir_project; then
+        echo "  skipped: $label (not an Elixir project)"
+        return
+      fi
+      if [ "$dry_run" = "true" ]; then
+        echo "  would create: intent/llm/ARCHETYPES.md from template"
+      else
+        install_from_template "$TEMPLATE_DIR/llm/_ARCHETYPES.md" "intent/llm/ARCHETYPES.md"
+        echo "  created: intent/llm/ARCHETYPES.md"
+      fi
+      ;;
+
+    D5a)
+      if ! is_elixir_project; then
+        echo "  skipped: $label (not an Elixir project)"
+        return
+      fi
+      if [ "$dry_run" = "true" ]; then
+        echo "  would copy: Credo check templates to lib/mix/checks/"
+      else
+        mkdir -p "lib/mix/checks"
+        if [ -d "$CHECKS_TEMPLATE_DIR" ]; then
+          local count=0
+          for tmpl in "$CHECKS_TEMPLATE_DIR"/*.ex; do
+            [ -f "$tmpl" ] || continue
+            local basename
+            basename=$(basename "$tmpl")
+            cp "$tmpl" "lib/mix/checks/$basename"
+            count=$((count + 1))
+          done
+          echo "  created: $count Credo check templates in lib/mix/checks/"
+        else
+          echo "  warning: Credo check template directory not found"
+        fi
+      fi
+      ;;
+
+    D6)
+      if [ "$dry_run" = "true" ]; then
+        echo "  would create: intent/llm/DECISION_TREE.md from template"
+      else
+        install_from_template "$TEMPLATE_DIR/llm/_DECISION_TREE.md" "intent/llm/DECISION_TREE.md"
+        echo "  created: intent/llm/DECISION_TREE.md"
+      fi
+      ;;
+
+    D8)
+      if [ "$dry_run" = "true" ]; then
+        echo "  would run: intent claude prime"
+      else
+        echo "  hint: run 'intent claude prime' to generate MEMORY.md"
+      fi
+      ;;
+
+    D9)
+      if [ "$dry_run" = "true" ]; then
+        echo "  would create: .claude/settings.local.json from template"
+      else
+        if [ -f ".claude/settings.local.json" ]; then
+          if grep -q "MODULES.md" ".claude/settings.local.json" 2>/dev/null; then
+            echo "  skipped: module check hook already configured"
+          else
+            echo "  hint: merge module check hook from $HOOK_TEMPLATE into .claude/settings.local.json"
+          fi
+        else
+          mkdir -p ".claude"
+          cp "$HOOK_TEMPLATE" ".claude/settings.local.json"
+          echo "  created: .claude/settings.local.json (module check hook)"
+        fi
+      fi
+      ;;
+
+    D10)
+      if [ "$dry_run" = "true" ]; then
+        echo "  would create: .intent/learnings.md"
+      else
+        mkdir -p ".intent"
+        cat > ".intent/learnings.md" << 'EOF'
+# Project Learnings
+
+## Footguns
+
+## Patterns That Worked
+
+## Patterns That Failed
+EOF
+        echo "  created: .intent/learnings.md"
+      fi
+      ;;
+
+    D11)
+      if ! is_elixir_project; then
+        echo "  skipped: $label (not an Elixir project)"
+        return
+      fi
+      if [ "$dry_run" = "true" ]; then
+        echo "  would create: intent/llm/DEPENDENCY_GRAPH.md from template"
+      else
+        install_from_template "$TEMPLATE_DIR/llm/_DEPENDENCY_GRAPH.md" "intent/llm/DEPENDENCY_GRAPH.md"
+        echo "  created: intent/llm/DEPENDENCY_GRAPH.md"
+      fi
+      ;;
+  esac
+}
+
+apply_proposals() {
+  local dry_run="$1"
+  local filter_id="${2:-}"
+
+  echo ""
+  if [ "$dry_run" = "true" ]; then
+    echo "Dry run -- no changes will be made"
+  else
+    echo "Applying missing deliverables"
+  fi
+  echo ""
+
+  local applied=0
+
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    local id status
+    id=$(echo "$line" | cut -d'|' -f1)
+    status=$(echo "$line" | cut -d'|' -f2)
+
+    # Skip present deliverables
+    [ "$status" = "PRESENT" ] && continue
+
+    apply_deliverable "$id" "$dry_run"
+    applied=$((applied + 1))
+  done <<< "$AUDIT_RESULTS"
+
+  echo ""
+  if [ "$applied" -eq 0 ]; then
+    echo "ok: all deliverables present"
+  elif [ "$dry_run" = "true" ]; then
+    echo "ok: $applied deliverable(s) would be installed"
+  else
+    echo "ok: $applied deliverable(s) installed"
+  fi
+}
+
+# ============================================================
+# Command: install
+# ============================================================
+
+cmd_install() {
+  local audit_only=false
+  local dry_run=false
+  local filter_id=""
+
+  # Parse options
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --audit-only)
+        audit_only=true
+        shift
+        ;;
+      --dry-run)
+        dry_run=true
+        shift
+        ;;
+      --deliverable)
+        [ $# -lt 2 ] && error "Missing argument for --deliverable"
+        filter_id="$2"
+        shift 2
+        ;;
+      -*)
+        error "Unknown option: $1. Run 'intent st zero help' for usage."
+        ;;
+      *)
+        error "Unknown argument: $1. Run 'intent st zero help' for usage."
+        ;;
+    esac
+  done
+
+  # Require project context
+  if [ ! -f ".intent/config.json" ]; then
+    error "Not an Intent project (no .intent/config.json). Run 'intent init' first."
+  fi
+
+  # Phase 1: Audit
+  audit_deliverables "$filter_id"
+
+  # Phase 2: Gap analysis
+  show_gap_analysis
+
+  # Stop here if audit-only
+  if [ "$audit_only" = true ]; then
+    return 0
+  fi
+
+  # Phase 3+4: Apply (or dry-run)
+  if [ "$MISSING_COUNT" -eq 0 ] && [ "$PARTIAL_COUNT" -eq 0 ]; then
+    echo ""
+    echo "ok: nothing to install"
+    return 0
+  fi
+
+  apply_proposals "$dry_run" "$filter_id"
+}
+
+# ============================================================
+# Main Dispatch
+# ============================================================
+
+if [ $# -eq 0 ]; then
+  usage
+fi
+
+SUBCOMMAND="$1"
+shift
+
+case "$SUBCOMMAND" in
+  install)
+    cmd_install "$@"
+    ;;
+  help|--help|-h)
+    usage
+    ;;
+  *)
+    error "Unknown st zero command: $SUBCOMMAND. Run 'intent st zero help' for usage."
+    ;;
+esac
