@@ -12,7 +12,7 @@ intent audit <command> [options]
 
 ## Description
 
-The audit command provides automated enforcement of Intent coding rules via custom Credo checks. On first run, check templates are automatically copied into the target project's `lib/mix/checks/` directory.
+The audit command provides automated enforcement of Intent coding rules via custom Credo checks. On first run, check templates are automatically copied into the target project's `credo_checks/` directory.
 
 ## Commands
 

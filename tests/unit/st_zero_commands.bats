@@ -355,10 +355,10 @@ EOF
   run run_intent st zero install --deliverable D5a
   assert_success
   assert_output_contains "Credo check templates"
-  [ -d "lib/mix/checks" ]
+  [ -d "credo_checks" ]
   # Should have .ex files
   local count
-  count=$(find lib/mix/checks -name '*.ex' -type f | wc -l | tr -d ' ')
+  count=$(find credo_checks -name '*.ex' -type f | wc -l | tr -d ' ')
   [ "$count" -gt 0 ]
 }
 

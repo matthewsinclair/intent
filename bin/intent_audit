@@ -13,7 +13,7 @@ source "$INTENT_HOME/bin/intent_helpers"
 CHECKS_TEMPLATE_DIR="$INTENT_HOME/lib/templates/credo_checks/elixir"
 
 # Target directory in the project
-CHECKS_TARGET_DIR="lib/mix/checks"
+CHECKS_TARGET_DIR="credo_checks"
 
 # Valid rules list
 VALID_RULES="R2 R6 R7 R8 R11 R15 D11"
@@ -123,10 +123,13 @@ ensure_checks_installed() {
     error "Check templates not found at $CHECKS_TEMPLATE_DIR. Intent installation may be corrupted."
   fi
 
+  local first_install="false"
+
   # Create target directory if needed
   if [ ! -d "$CHECKS_TARGET_DIR" ]; then
     echo "Creating $CHECKS_TARGET_DIR/..."
     mkdir -p "$CHECKS_TARGET_DIR"
+    first_install="true"
     copied=1
   fi
 
@@ -143,6 +146,9 @@ ensure_checks_installed() {
 
   if [ "$copied" -gt 0 ]; then
     echo "  $copied check(s) installed to $CHECKS_TARGET_DIR/"
+    if [ "$first_install" = "true" ]; then
+      echo "  hint: add \"credo_checks\" to elixirc_paths(:dev) and elixirc_paths(:test) in mix.exs"
+    fi
     echo ""
   fi
 }
