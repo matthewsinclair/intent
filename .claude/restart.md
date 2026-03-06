@@ -2,25 +2,22 @@
 
 ## WIP
 
-v2.6.0 complete. ST0026 done (moved to COMPLETED). All docs updated.
+v2.6.0 with ST0027 complete. 12 skills, 5 subagents. No active work.
 
 ## TODO
 
-1. Tag v2.6.0 and push to both remotes
-2. Create GitHub release notes
+None pending.
 
 ## Key Files
 
-| File                                | Purpose                                  |
-| ----------------------------------- | ---------------------------------------- |
-| `intent/st/COMPLETED/ST0026/`       | Completed ST with all docs               |
-| `intent/wip.md`                     | Work in progress tracker                 |
-| `intent/restart.md`                 | Session restart context                  |
-| `CHANGELOG.md`                      | Updated with all WP-09/WP-10 additions   |
-| `intent/llm/MODULES.md`            | Intent's own module registry             |
-| `bin/intent_st_zero`               | ST Zero retrofit command (new in WP-09)  |
-| `bin/intent_audit`                 | Audit command (umbrella-aware)           |
-| `tests/run_tests.sh`              | Test runner (22 .bats files, 462 tests)  |
+| File                                              | Purpose                                 |
+| ------------------------------------------------- | --------------------------------------- |
+| `intent/plugins/claude/skills/in-cost-analysis/`  | New cost analysis skill (ST0027)        |
+| `intent/analysis/`                                | Dated cost analysis reports             |
+| `intent/st/COMPLETED/ST0027/`                     | Completed ST with all docs              |
+| `intent/wip.md`                                   | Work in progress tracker                |
+| `intent/restart.md`                               | Session restart context                 |
+| `tests/run_tests.sh`                              | Test runner (22 .bats files, 462 tests) |
 
 ## Project Conventions
 
