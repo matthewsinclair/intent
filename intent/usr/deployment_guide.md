@@ -536,7 +536,7 @@ intent claude skills uninstall --all
 For Elixir projects, deploy custom Credo checks:
 
 ```bash
-# Install check templates (auto-copies to lib/mix/checks/)
+# Install check templates (auto-copies to credo_checks/)
 intent audit quick --checks-only
 
 # Set up dependency graph for umbrella apps

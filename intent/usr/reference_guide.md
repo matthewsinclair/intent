@@ -846,7 +846,7 @@ intent st zero help
 | D2  | `CLAUDE.md`                         | Never overwritten            |
 | D3  | `intent/llm/MODULES.md`             | Auto-generated from codebase |
 | D4  | `intent/llm/ARCHETYPES.md`          | Elixir only                  |
-| D5a | `lib/mix/checks/*.ex`               | Elixir only (7 Credo checks) |
+| D5a | `credo_checks/*.ex`                 | Elixir only (7 Credo checks) |
 | D6  | `intent/llm/DECISION_TREE.md`       | From template                |
 | D8  | MEMORY.md via `intent claude prime` | Delegates to prime           |
 | D9  | Module check hook                   | From template                |
@@ -930,7 +930,7 @@ intent audit health --diff        # Check changed files only
 
 **Notes:**
 
-- Templates auto-copied to project's `lib/mix/checks/` on first run
+- Templates auto-copied to project's `credo_checks/` on first run
 - `--checks-only` force-copies templates (ensures updates are applied on re-run)
 - Umbrella-aware: health checks scan `apps/*/lib/` in umbrella projects
 - Requires an Elixir project with Credo configured

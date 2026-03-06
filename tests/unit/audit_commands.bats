@@ -88,14 +88,14 @@ load "../lib/test_helper.bash"
   assert_output_contains "check templates installed"
 
   # Verify templates were copied
-  [ -d "lib/mix/checks" ]
-  [ -f "lib/mix/checks/boolean_operators.ex" ]
-  [ -f "lib/mix/checks/missing_impl_annotation.ex" ]
-  [ -f "lib/mix/checks/debug_artifacts.ex" ]
-  [ -f "lib/mix/checks/map_get_on_struct.ex" ]
-  [ -f "lib/mix/checks/thick_coordinator.ex" ]
-  [ -f "lib/mix/checks/highlander_suspect.ex" ]
-  [ -f "lib/mix/checks/dependency_graph.ex" ]
+  [ -d "credo_checks" ]
+  [ -f "credo_checks/boolean_operators.ex" ]
+  [ -f "credo_checks/missing_impl_annotation.ex" ]
+  [ -f "credo_checks/debug_artifacts.ex" ]
+  [ -f "credo_checks/map_get_on_struct.ex" ]
+  [ -f "credo_checks/thick_coordinator.ex" ]
+  [ -f "credo_checks/highlander_suspect.ex" ]
+  [ -f "credo_checks/dependency_graph.ex" ]
 }
 
 @test "audit quick --checks-only force-copies on re-run" {

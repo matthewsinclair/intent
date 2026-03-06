@@ -40,7 +40,7 @@ usage() {
   echo "  D2   CLAUDE.md (never overwritten)"
   echo "  D3   intent/llm/MODULES.md (auto-generated from codebase)"
   echo "  D4   intent/llm/ARCHETYPES.md (Elixir only)"
-  echo "  D5a  lib/mix/checks/*.ex (Elixir only)"
+  echo "  D5a  credo_checks/*.ex (Elixir only)"
   echo "  D6   intent/llm/DECISION_TREE.md"
   echo "  D8   MEMORY.md via intent claude prime"
   echo "  D9   Module check hook"
@@ -148,9 +148,9 @@ check_d5a_credo() {
     return
   fi
 
-  if [ -d "lib/mix/checks" ]; then
+  if [ -d "credo_checks" ]; then
     local check_count
-    check_count=$(find lib/mix/checks -name '*.ex' -type f 2>/dev/null | wc -l | tr -d ' ')
+    check_count=$(find credo_checks -name '*.ex' -type f 2>/dev/null | wc -l | tr -d ' ')
     if [ "$check_count" -ge 7 ]; then
       STATUS="PRESENT"
       DETAIL="$check_count Credo check templates installed"
@@ -159,11 +159,11 @@ check_d5a_credo() {
       DETAIL="$check_count of 7 Credo check templates installed"
     else
       STATUS="MISSING"
-      DETAIL="lib/mix/checks/ exists but has no .ex files"
+      DETAIL="credo_checks/ exists but has no .ex files"
     fi
   else
     STATUS="MISSING"
-    DETAIL="lib/mix/checks/ not found"
+    DETAIL="credo_checks/ not found"
   fi
 }
 
@@ -509,19 +509,26 @@ apply_deliverable() {
         return
       fi
       if [ "$dry_run" = "true" ]; then
-        echo "  would copy: Credo check templates to lib/mix/checks/"
+        echo "  would copy: Credo check templates to credo_checks/"
       else
-        mkdir -p "lib/mix/checks"
+        local first_install="false"
+        if [ ! -d "credo_checks" ]; then
+          first_install="true"
+        fi
+        mkdir -p "credo_checks"
         if [ -d "$CHECKS_TEMPLATE_DIR" ]; then
           local count=0
           for tmpl in "$CHECKS_TEMPLATE_DIR"/*.ex; do
             [ -f "$tmpl" ] || continue
             local basename
             basename=$(basename "$tmpl")
-            cp "$tmpl" "lib/mix/checks/$basename"
+            cp "$tmpl" "credo_checks/$basename"
             count=$((count + 1))
           done
-          echo "  created: $count Credo check templates in lib/mix/checks/"
+          echo "  created: $count Credo check templates in credo_checks/"
+          if [ "$first_install" = "true" ]; then
+            echo "  hint: add \"credo_checks\" to elixirc_paths(:dev) and elixirc_paths(:test) in mix.exs"
+          fi
         else
           echo "  warning: Credo check template directory not found"
         fi
