@@ -2,7 +2,7 @@
 
 ## WIP
 
-v2.6.0 with ST0027 complete. 12 skills, 5 subagents. No active work.
+v2.6.0 -- Credo checks target dir fix applied. 12 skills, 5 subagents. No active work.
 
 ## TODO
 
