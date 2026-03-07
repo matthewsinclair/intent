@@ -1,5 +1,5 @@
 ---
-verblock: "06 Mar 2026:v0.18: matts - ST0027 complete, cost analysis skill"
+verblock: "07 Mar 2026:v0.19: matts - Credo checks target dir fix"
 intent_version: 2.6.0
 ---
 
@@ -7,17 +7,15 @@ intent_version: 2.6.0
 
 ## Current State
 
-v2.6.0 with ST0027 complete. New `in-cost-analysis` skill added (12th skill). Tagged and pushed.
+v2.6.0 with Credo checks target directory fix applied. Tagged and pushed.
 
 ## This Session
 
-- ST0027: Added `/in-cost-analysis` skill (3 WPs, all done)
-  - SKILL.md: 6-step procedural guide with agentic leverage section
-  - scripts/cost-metrics.sh: bash LOC counter, tier classification, git session clustering
-  - data/reference-rates.md: rate tables, overhead multipliers, org factors
-- Established `intent/analysis/` convention for dated cost analysis reports
-- Generated cost analyses for Intent, Lamplight, laksa-web, and Conflab
-- Performance fix: rewrote line counting from bash while-read to awk (200x faster on large codebases)
+- Bugfix: moved Credo checks target from `lib/mix/checks/` to `credo_checks/`
+  - Prevents prod compile failures (Credo is dev/test-only dep)
+  - Updated `bin/intent_audit`, `bin/intent_st_zero`, help files, tests, docs
+  - Added `elixirc_paths` hint on first install in both audit and st zero
+  - All 462 tests passing
 
 ## Active Steel Threads
 

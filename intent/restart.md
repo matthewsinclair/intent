@@ -6,14 +6,13 @@ Intent v2.6.0 -- CLI tool for managing steel threads, project docs, and LLM guid
 
 ## Current State
 
-ST0027 complete. New `in-cost-analysis` skill added (12th skill, 12 total). v2.6.0 tagged and pushed.
+v2.6.0 tagged and pushed. No active steel threads.
 
-## Recent Work (ST0027)
+## Recent Work
 
-- `/in-cost-analysis` skill: estimates development cost of reproducing a codebase
-- Includes agentic leverage ratio (human-equivalent hours / agentic hours)
-- `intent/analysis/` convention established for dated cost analysis reports
-- Generated analyses for Intent (10.5x leverage), Lamplight (83.2x), laksa-web (97.1x), Conflab (88.0x)
+- Bugfix: Credo checks target moved from `lib/mix/checks/` to `credo_checks/` (outside `lib/`)
+- Prevents prod compile failures since Credo is a dev/test-only dependency
+- Added `elixirc_paths` hint on first directory creation
 
 ## TODO
 
