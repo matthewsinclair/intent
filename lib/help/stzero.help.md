@@ -48,7 +48,7 @@ intent st zero help
 | D2  | CLAUDE.md                      | Never overwritten        |
 | D3  | intent/llm/MODULES.md          | Auto-generated from code |
 | D4  | intent/llm/ARCHETYPES.md       | Elixir only              |
-| D5a | credo_checks/\*.ex           | Elixir only              |
+| D5a | credo_checks/\*.ex             | Elixir only              |
 | D6  | intent/llm/DECISION_TREE.md    | Template                 |
 | D8  | MEMORY.md                      | Via intent claude prime  |
 | D9  | Module check hook              | .claude/settings.local   |
