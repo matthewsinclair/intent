@@ -8,8 +8,14 @@
 set -e
 
 # Determine INTENT_HOME early for version loading
+# Resolve symlinks so INTENT_HOME works when invoked via symlink (e.g. ~/bin/intent)
 if [ -z "$INTENT_HOME" ]; then
-  INTENT_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  _intent_self="${BASH_SOURCE[0]}"
+  while [ -L "$_intent_self" ]; do
+    _intent_self="$(readlink "$_intent_self")"
+  done
+  INTENT_HOME="$(cd "$(dirname "$_intent_self")/.." && pwd)"
+  unset _intent_self
 fi
 
 # Source helpers for version function
