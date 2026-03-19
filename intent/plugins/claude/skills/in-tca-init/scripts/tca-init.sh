@@ -1,0 +1,145 @@
+#!/bin/bash
+# tca-init.sh - Create TCA work package directory structure
+# Generates WP/01..WP/NN directories with templated info.md and empty socrates.md.
+# The last WP is always the synthesis WP.
+# bash 3.x compatible. No external dependencies.
+#
+# Usage:
+#   tca-init.sh --st-dir PATH --wp-count N --project NAME
+
+set -euo pipefail
+
+# ---- Defaults ----
+
+ST_DIR=""
+WP_COUNT=0
+PROJECT_NAME=""
+
+# ---- Usage ----
+
+usage() {
+  echo "Usage: tca-init.sh --st-dir PATH --wp-count N --project NAME"
+  echo ""
+  echo "Options:"
+  echo "  --st-dir PATH    Steel thread directory (e.g., intent/st/ST0055)"
+  echo "  --wp-count N     Number of work packages to create (including synthesis)"
+  echo "  --project NAME   Project name for templates"
+  echo "  -h, --help       Show this help"
+  exit 0
+}
+
+# ---- Parse args ----
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --st-dir)    ST_DIR="$2"; shift 2 ;;
+    --wp-count)  WP_COUNT="$2"; shift 2 ;;
+    --project)   PROJECT_NAME="$2"; shift 2 ;;
+    -h|--help)   usage ;;
+    *)           echo "error: unknown option: $1" >&2; exit 1 ;;
+  esac
+done
+
+# ---- Validate ----
+
+if [ -z "$ST_DIR" ]; then
+  echo "error: --st-dir is required" >&2
+  exit 1
+fi
+
+if [ "$WP_COUNT" -lt 2 ]; then
+  echo "error: --wp-count must be at least 2 (1 component + 1 synthesis)" >&2
+  exit 1
+fi
+
+if [ -z "$PROJECT_NAME" ]; then
+  echo "error: --project is required" >&2
+  exit 1
+fi
+
+if [ ! -d "$ST_DIR" ]; then
+  echo "error: steel thread directory not found: $ST_DIR" >&2
+  exit 1
+fi
+
+# ---- Create WP directories ----
+
+WP_DIR="$ST_DIR/WP"
+
+if [ ! -d "$WP_DIR" ]; then
+  mkdir -p "$WP_DIR"
+fi
+
+SYNTHESIS_WP="$WP_COUNT"
+
+i=1
+while [ "$i" -le "$WP_COUNT" ]; do
+  # Zero-pad to 2 digits
+  if [ "$i" -lt 10 ]; then
+    WP_NUM="0${i}"
+  else
+    WP_NUM="$i"
+  fi
+
+  WP_PATH="$WP_DIR/$WP_NUM"
+
+  if [ -d "$WP_PATH" ]; then
+    echo "warning: WP/$WP_NUM already exists, skipping" >&2
+    i=$((i + 1))
+    continue
+  fi
+
+  mkdir -p "$WP_PATH"
+
+  # Determine if this is the synthesis WP
+  if [ "$i" -eq "$SYNTHESIS_WP" ]; then
+    WP_TITLE="Cross-Component Synthesis"
+    WP_SCOPE="Synthesis of all component audit findings into a prioritized remediation backlog."
+    WP_SIZE="Large"
+  else
+    WP_TITLE="Component $WP_NUM"
+    WP_SCOPE="[Component description -- fill in during provisioning]"
+    WP_SIZE="Medium"
+  fi
+
+  # Write info.md
+  cat > "$WP_PATH/info.md" << HEREDOC
+---
+wp_id: WP-${WP_NUM}
+title: "${WP_TITLE}"
+scope: ${WP_SIZE}
+status: Not Started
+project: ${PROJECT_NAME}
+---
+
+# WP-${WP_NUM}: ${WP_TITLE}
+
+## Scope
+
+${WP_SCOPE}
+
+## Files
+
+- [List files to audit]
+
+## Applicable Rules
+
+All rules. Special focus: [identify 3-4 rules most likely to surface violations]
+
+## Cross-WP Highlander Dependencies
+
+- WP-XX: [what might be duplicated and why]
+HEREDOC
+
+  # Write empty socrates.md
+  touch "$WP_PATH/socrates.md"
+
+  echo "created: WP/$WP_NUM/"
+
+  i=$((i + 1))
+done
+
+echo ""
+echo "ok: created $WP_COUNT work packages in $WP_DIR"
+echo "    WP/01-$(printf '%02d' $((WP_COUNT - 1))): component audit WPs"
+echo "    WP/$(printf '%02d' $WP_COUNT): synthesis WP"

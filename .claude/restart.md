@@ -2,7 +2,7 @@
 
 ## WIP
 
-v2.6.0 -- Credo checks target dir fix applied. 12 skills, 5 subagents. No active work.
+v2.7.0 -- TCA v3.0 + 5 TCA skills. 17 skills, 5 subagents. No active work.
 
 ## TODO
 
@@ -10,14 +10,14 @@ None pending.
 
 ## Key Files
 
-| File                                              | Purpose                                 |
-| ------------------------------------------------- | --------------------------------------- |
-| `intent/plugins/claude/skills/in-cost-analysis/`  | New cost analysis skill (ST0027)        |
-| `intent/analysis/`                                | Dated cost analysis reports             |
-| `intent/st/COMPLETED/ST0027/`                     | Completed ST with all docs              |
-| `intent/wip.md`                                   | Work in progress tracker                |
-| `intent/restart.md`                               | Session restart context                 |
-| `tests/run_tests.sh`                              | Test runner (22 .bats files, 462 tests) |
+| File                                     | Purpose                                 |
+| ---------------------------------------- | --------------------------------------- |
+| `intent/plugins/claude/skills/in-tca-*/` | TCA skill suite (5 skills, 3 scripts)   |
+| `intent/docs/total-codebase-audit.md`    | TCA v3.0 reference doc                  |
+| `intent/st/ST0028/`                      | Completed ST with all docs              |
+| `intent/wip.md`                          | Work in progress tracker                |
+| `intent/restart.md`                      | Session restart context                 |
+| `tests/run_tests.sh`                     | Test runner (22 .bats files, 462 tests) |
 
 ## Project Conventions
 

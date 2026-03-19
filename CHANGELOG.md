@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-03-19
+
+### Added
+
+- **TCA v3.0** -- Total Codebase Audit process document updated from v2.0 to v3.0 (ST0028)
+  - Validated Rust and Swift rules replacing hypothetical ones (from real polyglot audit)
+  - Ash Framework supplemental rules (A1-A5) as first-class audit rules
+  - Rule precision boundaries (R5 matchable-values-only, R7 defstruct-only)
+  - Effective file count model for WP sizing (weight table: Ash DSL 0.25x, Rust 1.5x, etc.)
+  - Phase 0.5 pre-filtering of mechanical rules via grep
+  - Confidence field (HIGH/MEDIUM/LOW) on audit findings
+  - 5-tier priority scheme (P0/P1/P2a/P2b/P3) replacing 4-tier
+  - Deduplication by root cause, not rule number
+  - Main conversation remediation model (not sub-agents)
+  - Test optimization with `mix test --failed`
+  - Example C (polyglot: 256 files, 59% dedup rate)
+  - New lessons: anti-hallucination, R5 over-reporting, remediation agent failures, R7 false positives
+- **TCA skill suite** -- 5 operational skills with 3 automation scripts
+  - `/in-tca-init` -- provisioning (SKILL.md + tca-init.sh)
+  - `/in-tca-audit` -- component audit execution (SKILL.md + tca-progress.sh)
+  - `/in-tca-synthesize` -- cross-component synthesis
+  - `/in-tca-remediate` -- batched remediation in main conversation
+  - `/in-tca-finish` -- wrap-up and feedback report (SKILL.md + tca-report.sh)
+
 ## [2.6.0] - 2026-03-05
 
 ### Added

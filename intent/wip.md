@@ -1,29 +1,36 @@
 ---
-verblock: "07 Mar 2026:v0.19: matts - Credo checks target dir fix"
-intent_version: 2.6.0
+verblock: "19 Mar 2026:v0.20: matts - TCA v3.0 + skill suite"
+intent_version: 2.7.0
 ---
 
 # Work In Progress
 
 ## Current State
 
-v2.6.0 with Credo checks target directory fix applied. Tagged and pushed.
+v2.7.0 with TCA v3.0 process doc update and 5 TCA skills. Ready to tag and release.
 
 ## This Session
 
-- Bugfix: moved Credo checks target from `lib/mix/checks/` to `credo_checks/`
-  - Prevents prod compile failures (Credo is dev/test-only dep)
-  - Updated `bin/intent_audit`, `bin/intent_st_zero`, help files, tests, docs
-  - Added `elixirc_paths` hint on first install in both audit and st zero
-  - All 462 tests passing
+- ST0028: TCA v3.0 -- Process Doc Update + Skill Suite
+  - Stream A: Updated `intent/docs/total-codebase-audit.md` from v2.0 to v3.0 (~226 net new lines)
+    - Validated Rust/Swift rules, Ash A1-A5, rule precision, effective file count
+    - Phase 0.5 pre-filtering, confidence field, 5-tier priority, cluster dedup
+    - Main conversation remediation, test optimization, Example C, new lessons
+  - Stream B: Created 5 TCA skills with 3 automation scripts
+    - in-tca-init (+ tca-init.sh), in-tca-audit (+ tca-progress.sh)
+    - in-tca-synthesize, in-tca-remediate, in-tca-finish (+ tca-report.sh)
+    - All scripts tested, all skills installed
+  - Version bumped to v2.7.0, CHANGELOG updated
 
 ## Active Steel Threads
 
-None -- all steel threads complete or parked.
+- ST0028: WIP -- ready for commit and release
 
 ## TODO
 
-None pending.
+- Commit all changes
+- Tag v2.7.0 and push to both remotes
+- Create GitHub release
 
 ## Parked
 
@@ -32,7 +39,7 @@ None pending.
 
 ## Key References
 
-- ST0027 (completed): `intent/st/COMPLETED/ST0027/`
-- Skill source: `intent/plugins/claude/skills/in-cost-analysis/`
-- Analysis: `intent/analysis/20260306-Intent-cost-analysis.md`
+- ST0028: `intent/st/ST0028/`
+- TCA doc: `intent/docs/total-codebase-audit.md`
+- TCA skills: `intent/plugins/claude/skills/in-tca-*/`
 - Test suite: `tests/run_tests.sh` (22 .bats files, 462 tests)

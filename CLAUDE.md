@@ -1,6 +1,6 @@
 # Intent Project Guidelines
 
-This is an Intent v2.6.0 project.
+This is an Intent v2.7.0 project.
 
 ## Rules
 
@@ -70,7 +70,7 @@ Steel threads are organized as directories under `intent/st/`:
 
 ## Migration Notes
 
-This project was migrated from STP to Intent v2.0.0 on 2025-07-16, through v2.1.0, v2.2.0, v2.3.0, and is now at v2.6.0.
+This project was migrated from STP to Intent v2.0.0 on 2025-07-16, through v2.1.0, v2.2.0, v2.3.0, and is now at v2.7.0.
 
 - Old structure: `stp/prj/st/`, `stp/eng/`, etc.
 - New structure: `intent/st/`, `intent/docs/`, etc.

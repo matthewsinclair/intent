@@ -79,6 +79,16 @@
 | Modules help | `lib/help/modules.help.md`   | Modules command help  |
 | STZero help  | `lib/help/stzero.help.md`    | STZero command help   |
 
+## Skills: TCA Suite
+
+| Concern             | THE Module                                        | Notes                      |
+| ------------------- | ------------------------------------------------- | -------------------------- |
+| TCA provisioning    | `intent/plugins/claude/skills/in-tca-init/`       | SKILL.md + tca-init.sh     |
+| TCA audit execution | `intent/plugins/claude/skills/in-tca-audit/`      | SKILL.md + tca-progress.sh |
+| TCA synthesis       | `intent/plugins/claude/skills/in-tca-synthesize/` | SKILL.md only              |
+| TCA remediation     | `intent/plugins/claude/skills/in-tca-remediate/`  | SKILL.md only              |
+| TCA wrap-up         | `intent/plugins/claude/skills/in-tca-finish/`     | SKILL.md + tca-report.sh   |
+
 ## Tests
 
 | Concern              | THE Module                         | Notes                          |
