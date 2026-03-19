@@ -6,18 +6,19 @@ Intent v2.7.0 -- CLI tool for managing steel threads, project docs, and LLM guid
 
 ## Current State
 
-v2.7.0 tagged and pushed. ST0028 complete.
+v2.7.0 committed and pushed. No active steel threads.
 
 ## Recent Work
 
-- ST0028: TCA v3.0 -- Process Doc Update + Skill Suite
+- ST0028: TCA v3.0 -- Process Doc Update + Skill Suite (completed 2026-03-19)
   - Updated `intent/docs/total-codebase-audit.md` from v2.0 to v3.0
   - Created 5 TCA skills: in-tca-init, in-tca-audit, in-tca-synthesize, in-tca-remediate, in-tca-finish
   - 3 automation scripts: tca-init.sh, tca-progress.sh, tca-report.sh
+  - 17 skills total, 5 subagents
 
 ## TODO
 
-None pending.
+- Consider peer language skills (in-rust-essentials, in-swift-essentials)
 
 ## Key Files
 
