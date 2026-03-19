@@ -11,9 +11,9 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 
-| ID     | Slug                                  | Status | Created    | Completed |
-| ------ | ------------------------------------- | ------ | ---------- | --------- |
-| ST0028 | tca-v3-process-doc-update-skill-suite | WIP    | 2026-03-19 |
+| ID     | Slug                                  | Status | Created    | Completed  |
+| ------ | ------------------------------------- | ------ | ---------- | ---------- |
+| ST0028 | tca-v3-process-doc-update-skill-suite | Done   | 2026-03-19 | 2026-03-19 |
 
 <!-- END: STEEL_THREAD_INDEX -->
 

@@ -6,7 +6,7 @@ v2.7.0 -- TCA v3.0 + 5 TCA skills. 17 skills, 5 subagents. No active work.
 
 ## TODO
 
-None pending.
+- Consider peer language skills (in-rust-essentials, in-swift-essentials)
 
 ## Key Files
 
