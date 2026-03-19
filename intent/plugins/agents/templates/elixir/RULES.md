@@ -22,7 +22,9 @@ Repeated HEEX patterns must be extracted into reusable components. When you see 
 
 ### 5. Multi-Head Functions
 
-Use multiple function heads with pattern matching instead of nested `if/case/cond`. Each clause should be a single clear expression. Use guards for type-based decisions.
+Prefer multi-head function definitions when branching on **pattern-matchable values** (atoms, structs, tuples, tagged tuples). Each clause should be a single clear expression. Use guards for type-based decisions.
+
+**Acceptable uses of `cond`/`if`**: Runtime-computed booleans, CLI flags, `function_exported?` checks, and state-machine transitions. `case` on return values from function calls is acceptable.
 
 ### 6. The Highlander Rule
 
@@ -30,7 +32,9 @@ There can be only one. Every piece of business logic has exactly ONE authoritati
 
 ### 7. Assertive Data Access
 
-Use `struct.field` for required keys, `map[:key]` for optional. Use `and`/`or` (not `&&`/`||`) when operands are guaranteed boolean. Use `@enforce_keys` for required struct fields.
+Use `struct.field` for required keys on **known Elixir structs** where field existence is guaranteed by `defstruct`. Use `@enforce_keys` for required struct fields.
+
+**`Map.get` is correct on**: (1) IR/intermediary representation maps from YAML/JSON parsing, (2) framework-managed state maps (Jido schemas, Ecto embedded schemas loaded as maps), (3) partial data from LLM/external response parsing. When unsure, check the data type — if defined with `defstruct`, use dot access; if plain map, use `Map.get`.
 
 ### 8. Boolean Operators
 
@@ -39,6 +43,10 @@ Use `and`/`or` when operands are boolean. Use `&&`/`||` only when operands may b
 ### 9. Exhaustive With
 
 Every `with` clause must have a matching `else` clause or all called functions must return tagged tuples. Never let unexpected errors silently pass through.
+
+### 10. No Unless
+
+`unless` is deprecated in Elixir. Use negated `if` or pattern matching instead.
 
 ## Framework Rules
 
