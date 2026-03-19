@@ -1,7 +1,7 @@
 ---
 title: "Total Codebase Audit -- Forensic Process Tech Note"
-version: "v2.0"
-date: "2026-03-04"
+version: "v3.0"
+date: "2026-03-19"
 author: "Intent Project"
 ---
 
@@ -18,7 +18,7 @@ See also: ST0026 (Steel Thread Zero) for the prevention framework that stops the
 
 A reproducible, language-agnostic process for performing a **total forensic audit** of an entire codebase against a defined set of coding rules. Designed to be executed by Claude Code with Socrates-style sub-agents, producing a prioritized remediation backlog.
 
-This process has been validated on multi-hundred-file Elixir/Phoenix/Ash projects and can be reproduced on:
+This process has been validated across 3 runs (~1,238 total files): a single-app Elixir project (~258 files), an umbrella Elixir project (~724 files), and a polyglot Elixir+Rust+Swift+Lua project (~256 files). It can be reproduced on:
 
 - **Elixir/Phoenix/Ash** web and backend applications
 - **Rust** systems and CLI applications
@@ -28,19 +28,21 @@ This process has been validated on multi-hundred-file Elixir/Phoenix/Ash project
 
 > **Key insight**: The process is rule-driven, not language-driven. The rules change per ecosystem; the audit process does not.
 
+For operational use, see the `/in-tca-*` skill suite (init, audit, synthesize, remediate, finish).
+
 # Overview
 
 The audit follows a 5-phase pipeline:
 
 ```
-Phase 0: Provisioning   → Steel thread + work packages + rules
-Phase 1: Component Audit → One Socrates sub-agent per WP (parallelizable)
-Phase 2: Synthesis       → Cross-component deduplication + prioritization
-Phase 3: Review          → Human review + priority agreement
-Phase 4: Remediation     → Batched fixes with compile/test gates
+Phase 0: Provisioning   -> Steel thread + work packages + rules
+Phase 1: Component Audit -> One Socrates sub-agent per WP (parallelizable)
+Phase 2: Synthesis       -> Cross-component deduplication + prioritization
+Phase 3: Review          -> Human review + priority agreement
+Phase 4: Remediation     -> Batched fixes with compile/test gates
 ```
 
-Total effort for a ~260-file Elixir project: ~14 sub-agent runs, ~4 hours wall clock, ~400 violations found.
+Total effort for a ~260-file Elixir project: ~14 sub-agent runs, ~4 hours wall clock, ~400 violations found. For a ~724-file umbrella: ~18 WPs, ~6 hours. For a ~256-file polyglot: ~14 WPs, ~5 hours.
 
 # Phase 0: Provisioning
 
@@ -78,9 +80,9 @@ R1:  Typed Data Access (no [:key] on known structs)
 R2:  Thin Controllers/LiveViews/CLI
 R3:  No Helpers in Controllers
 R4:  Component Extraction
-R5:  Multi-Head Functions over Branching
+R5:  Multi-Head Functions for Matchable Values
 R6:  The Highlander Rule (no duplicate code paths)
-R7:  Assertive Data Access on Structs
+R7:  Assertive Struct Access (known defstructs only)
 R8:  Boolean Operators (and/or/not for booleans)
 R9:  Exhaustive with Clauses
 R10: Content Source Rules (serving_mode) [project-specific]
@@ -91,37 +93,63 @@ R14: Naming conventions (?, !, _ prefix)
 R15: No debug artifacts (IO.inspect, dbg)
 ```
 
-### Example: Rust Rules (hypothetical)
+### Rule Precision
 
-```
-R1:  No unwrap() on Results in library code
-R2:  Derive standard traits (Debug, Clone, PartialEq) on all public types
-R3:  Error types implement std::error::Error
-R4:  No unsafe blocks without safety comments
-R5:  Pattern matching over if-let chains
-R6:  The Highlander Rule (no duplicate code paths)
-R7:  Builder pattern for types with >3 fields
-R8:  No panic! in library code
-R9:  Exhaustive match arms (no _ catch-all on enums)
-R10: Lifetime annotations explicit on public APIs
-R11: #[must_use] on fallible functions
-R12: Const generics over runtime checks where possible
-```
+Rules must specify their boundary conditions to prevent over-reporting:
 
-### Example: Swift Rules (hypothetical)
+- **R5 (Multi-Head Functions)**: Only flag when the branching value is matchable (atoms, tuples, known structs). Do NOT flag conditional logic on computed booleans, string parsing, or numeric ranges where guards are the appropriate tool.
+- **R7 (Assertive Struct Access)**: Only flag `Map.get/2` and `map[:key]` when the target is a known `defstruct`. Do NOT flag access on plain maps, JSON-decoded maps, or dynamic data where the key set is genuinely unknown.
+- **General principle**: Every rule should state what it does NOT apply to, not just what it catches. Over-broad rules generate false positives that erode trust in the audit.
 
-```
-R1:  No force unwraps (!) except in tests
-R2:  Thin ViewControllers/Views (business logic in services)
-R3:  Protocol conformance in extensions
-R4:  View extraction (no views > 100 lines)
-R5:  Enum-based routing over string matching
-R6:  The Highlander Rule (no duplicate code paths)
-R7:  Codable conformance on all network types
-R8:  Access control (internal by default, explicit public)
-R9:  Error handling with do-try-catch (no try?)
-R10: Combine/async-await over callbacks
-```
+### Example: Rust Rules (validated)
+
+| #   | Rule                          | Severity Context                                         |
+| --- | ----------------------------- | -------------------------------------------------------- |
+| R1  | No unwrap() on Results        | main/CLI: Medium; library/daemon: High; LazyLock: exempt |
+| R2  | Derive standard traits        | Debug+Clone+PartialEq on public types                    |
+| R3  | Error types implement Error   | std::error::Error + Display                              |
+| R4  | Unsafe blocks need SAFETY     | Security boundary: High; perf-critical: Medium           |
+| R5  | Pattern matching over if-let  | Same matchable-values boundary as Elixir R5              |
+| R6  | The Highlander Rule           | Universal                                                |
+| R7  | Builder pattern (>3 fields)   | Public API only                                          |
+| R8  | No panic! in library code     | CLI/main OK; library: High                               |
+| R9  | Exhaustive match arms         | No \_ catch-all on enums                                 |
+| R10 | Explicit lifetime annotations | Public APIs only                                         |
+| R11 | #[must_use] on fallible fns   | Library code only                                        |
+| R12 | Const generics over runtime   | Where compiler supports it                               |
+
+**Key nuance**: R1 severity depends on context. `unwrap()` in `main()` or CLI arg parsing is acceptable (Medium). In library code or long-running daemons, it's High. `LazyLock` initializers that panic on poisoned state are exempt.
+
+### Example: Swift Rules (validated)
+
+| #   | Rule                         | Severity Context                                            |
+| --- | ---------------------------- | ----------------------------------------------------------- |
+| R1  | No force unwraps (!)         | Tests: exempt; UI preview: Low; production: High            |
+| R2  | Thin ViewControllers         | Business logic in services, not views                       |
+| R3  | Protocol in extensions       | Conformance must be in extensions                           |
+| R4  | View extraction (>100 lines) | Applies to SwiftUI body and UIKit viewDidLoad               |
+| R5  | Enum-based routing           | Over string matching                                        |
+| R6  | The Highlander Rule          | Universal                                                   |
+| R7  | Codable on network types     | All API response/request types                              |
+| R8  | Access control               | Default internal; explicit public. try? context-sensitive   |
+| R9  | Error handling do-try-catch  | try? acceptable for fire-and-forget; not for critical paths |
+| R10 | Async/await over callbacks   | Modern concurrency patterns                                 |
+
+**Key nuance**: R6 (AppKit vs SwiftUI) -- projects mixing both frameworks need separate thresholds. AppKit view code has different complexity baselines than SwiftUI declarative views. R8 `try?` is acceptable for logging/analytics calls but not for data persistence.
+
+### Supplemental: Ash Framework Rules (A1-A5)
+
+For Elixir projects using the Ash Framework, add these supplemental rules alongside the base R1-R15:
+
+| #   | Rule                       | What to Check                                                   |
+| --- | -------------------------- | --------------------------------------------------------------- |
+| A1  | Code Interface Access Only | No direct Ash.get!/read!/create! in LiveViews or controllers    |
+| A2  | ash.codegen for migrations | Never mix ecto.gen.migration; Ash generates correct migrations  |
+| A3  | Actor Authorization        | Actor set on query/changeset construction, not action execution |
+| A4  | Code Interface Options     | Use query: [filter:, sort:] over manual Ash.Query pipelines     |
+| A5  | Cross-Domain Access        | Domain A must not bypass Domain B's code interfaces             |
+
+These are first-class audit rules, not afterthoughts. Ash-specific violations are often the highest-impact findings in Ash projects because they break the framework's authorization and consistency guarantees.
 
 **Key**: R6 (Highlander) is universal. Every ecosystem benefits from deduplication auditing.
 
@@ -129,14 +157,36 @@ R10: Combine/async-await over callbacks
 
 Divide the codebase into **audit-sized chunks** (10-60 files each). Each chunk becomes a Work Package (WP).
 
-### Sizing Guidelines
+### Effective File Count
 
-| WP Size   | Files | Sub-agent Turns | `max_turns` | Context Risk         |
-| --------- | ----- | --------------- | ----------- | -------------------- |
-| Small     | 5-15  | 20-30           | 30          | Low                  |
-| Medium    | 15-30 | 30-50           | 50          | Medium               |
-| Large     | 30-60 | 50-70           | 70          | High                 |
-| Too Large | 60+   | 70+             | N/A         | Very High — split it |
+Not all files are equal audit weight. Use the effective file count to size WPs:
+
+| File Type         | Weight | Rationale                                  |
+| ----------------- | -----: | ------------------------------------------ |
+| Standard code     |   1.0x | Normal audit effort                        |
+| Ash DSL resources |  0.25x | Declarative, limited violation surface     |
+| Emission/struct   |   0.5x | Thin files, few rules apply                |
+| Dead stubs        |   0.0x | Exclude from audit entirely                |
+| Rust code         |   1.5x | Ownership + lifetime complexity            |
+| Swift AppKit      |   1.3x | Legacy framework, higher violation density |
+| Test files        |   0.0x | Excluded unless testing rules are in scope |
+
+**Example**: A component with 87 raw files but 15 Ash resources (0.25x), 12 structs (0.5x), and 5 dead stubs (0.0x) has an effective file count of:
+
+```
+55 standard (55.0) + 15 Ash DSL (3.75) + 12 structs (6.0) + 5 dead (0.0) = 64.75 effective
+```
+
+**Sweet spot**: 12-20 effective files per WP. This consistently produces 30-50 sub-agent turns without context exhaustion.
+
+### Raw File Count Guidelines (fallback)
+
+| WP Size   | Files | Sub-agent Turns | `max_turns` | Context Risk          |
+| --------- | ----- | --------------- | ----------- | --------------------- |
+| Small     | 5-15  | 20-30           | 30          | Low                   |
+| Medium    | 15-30 | 30-50           | 50          | Medium                |
+| Large     | 30-60 | 50-70           | 70          | High                  |
+| Too Large | 60+   | 70+             | N/A         | Very High -- split it |
 
 ### Component Mapping Strategies
 
@@ -207,6 +257,25 @@ Example:
 WP-03 (Controllers): R2 (thin controllers), R3 (no helpers), R6 (Highlander)
 WP-04 (LiveViews):   R2 (thin LiveViews), R11 (@impl), R4 (component extraction)
 ```
+
+## 0.5 Pre-Filter Mechanical Rules
+
+Before launching sub-agents, run grep-based pre-filtering for mechanical rules that can be detected without semantic analysis:
+
+```bash
+# R15: Debug artifacts
+grep -rn "IO\.inspect\|dbg()" lib/ --include="*.ex"
+
+# R8: Boolean operator misuse (candidates -- requires manual review)
+grep -rn " && \| || " lib/ --include="*.ex"
+
+# R11: Missing @impl (files with behaviour callbacks but no @impl)
+grep -rL "@impl" lib/ --include="*.ex" | xargs grep -l "def mount\|def handle_"
+```
+
+**Why pre-filter**: These results feed directly into synthesis (Phase 2), reducing sub-agent hallucination risk on mechanical rules. Sub-agents still check these rules, but the pre-filter provides ground truth for validation.
+
+Record pre-filter results in `design.md` for cross-reference during synthesis.
 
 ## 0.3 Create the Steel Thread
 
@@ -302,7 +371,7 @@ Batch 2:  WP-18                   — Synthesis (depends on ALL above)
 
 ### Architectural Boundary Checks
 
-Some WPs warrant checks that go beyond the coding rules — structural/architectural boundary enforcement:
+Some WPs warrant checks that go beyond the coding rules -- structural/architectural boundary enforcement:
 
 - **Shared library dependency violations**: A shared UI library (like `llclient`) must not reference domain structs from the core app. This isn't a coding rule per se, but a structural violation that breaks the dependency graph.
 - **Layer violations**: If a resource module contains formatting logic, or a web component contains database queries, that's an architectural boundary violation.
@@ -350,6 +419,7 @@ all {N} rules. Report violations in this exact format:
 - **Severity**: High | Medium | Low
 - **Description**: {what the violation is}
 - **Remedy**: {how to fix it}
+- **Confidence**: HIGH | MEDIUM | LOW
 
 After all violations, add a summary table:
 
@@ -371,7 +441,7 @@ explicitly.
 
 ### Rule Descriptions in Prompts
 
-> **Lesson from umbrella audit**: Don't just list rule names — include a "What to check" column or brief description for each rule. This prevents the sub-agent from misinterpreting a rule.
+> **Lesson from umbrella audit**: Don't just list rule names -- include a "What to check" column or brief description for each rule. This prevents the sub-agent from misinterpreting a rule.
 
 Example (table format):
 
@@ -383,7 +453,7 @@ Example (table format):
 | R7  | Assertive Struct Access    | No `Map.get(struct, :field)` on known struct fields.           |
 ```
 
-This is more reliable than bare `R6: The Highlander Rule` — sub-agents need the "what" not just the "name."
+This is more reliable than bare `R6: The Highlander Rule` -- sub-agents need the "what" not just the "name."
 
 ### Critical Prompt Elements
 
@@ -395,11 +465,12 @@ This is more reliable than bare `R6: The Highlander Rule` — sub-agents need th
 
 ## 1.2 Sub-Agent Selection
 
-| Agent Type | Use For                                                    |
-| ---------- | ---------------------------------------------------------- |
-| `diogenes` | Primary choice. Socratic dialog produces structured output |
-| `Explore`  | Pre-audit reconnaissance if component boundaries unclear   |
-| `elixir`   | Elixir-specific deep dives (post-audit remediation)        |
+| Agent Type                       | Use For                                                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `diogenes`                       | Primary choice. Socratic dialog produces structured output                                                   |
+| `Explore`                        | Pre-audit reconnaissance if component boundaries unclear                                                     |
+| `elixir`                         | Elixir-specific deep dives (post-audit remediation)                                                          |
+| `general-purpose` (General Opus) | Large polyglot WPs where no specialized agent matches. The prompt is the quality driver, not the agent type. |
 
 For non-Elixir projects, use `diogenes` with language-appropriate rules, or a `general-purpose` agent with the full prompt template.
 
@@ -408,8 +479,9 @@ For non-Elixir projects, use `diogenes` with language-appropriate rules, or a `g
 ### Before Each WP
 
 1. **Run `/compact`** to reclaim context window space
-2. **Verify the previous WP is committed** (no uncommitted audit files)
-3. **Check context usage** — if above 70%, consider starting a fresh session
+2. **Verify file manifest** -- confirm all files listed in the WP's `info.md` actually exist (`ls` each file). Missing files indicate stale provisioning.
+3. **Verify the previous WP is committed** (no uncommitted audit files)
+4. **Check context usage** -- if above 70%, consider starting a fresh session
 
 ### During Each WP
 
@@ -449,7 +521,7 @@ Agent(WP-07: Email)       # ...and...
 Agent(WP-08: Sites)       # ...this one
 ```
 
-**Do NOT parallelize** WPs that share files or have overlapping scope — cross-WP violations will be missed or double-counted.
+**Do NOT parallelize** WPs that share files or have overlapping scope -- cross-WP violations will be missed or double-counted.
 
 # Phase 2: Synthesis (WP-15)
 
@@ -500,9 +572,19 @@ These are all one issue: extract `verify_ownership/2` to a shared module.
 - Same pattern described differently ("bracket access on site struct" in WP-03 and WP-05)
 - Same remedy recommended in multiple WPs
 
-## 2.4 Priority Classification
+### Deduplication by Root Cause
 
-> **Important**: Use all four tiers consistently. Don't collapse P2+P3 into a single "style" bucket — thick coordinator refactoring (P2) is substantially more impactful than mechanical fixes (P3) and requires different remediation approaches.
+Cluster violations by **root cause and fix**, not by rule number:
+
+- Same function duplicated across WPs -> one Highlander fix
+- Same pattern with different data types -> **separate clusters** (e.g., Map.get on a struct vs Map.get on a plain map are different fixes)
+- Same remedy recommended -> one fix batch entry
+
+**Benchmarks**: Expect 40-60% dedup rate on large projects. Conflab achieved 59% (118 raw -> 49 unique). Lamplight achieved 45% (389 raw -> ~215 unique). Projects with strong existing architecture have lower dedup rates (fewer systemic issues).
+
+## 2.4 Priority Classification (5-Tier)
+
+> **Important**: Use all five tiers consistently. The P2a/P2b split matters because mechanical fixes (add @impl, add SAFETY comments) are grep-fixable in bulk, while refactoring (extract thick coordinator) requires careful design.
 
 ### P0: Bugs & Crash Risks
 
@@ -516,7 +598,7 @@ Violations that cause incorrect behavior or crashes in production:
 - Missing error returns from fallible functions (R12)
 - Debug artifacts (`IO.inspect`, `dbg`) in production paths (R15)
 
-### P1: Highlander — Cross-Cutting Duplications
+### P1: Highlander -- Cross-Cutting Duplications
 
 Code duplicated across multiple files/modules. Ranked by:
 
@@ -524,30 +606,49 @@ Code duplicated across multiple files/modules. Ranked by:
 - **Inconsistency risk**: Copies with divergent behavior are worse
 - **Fix scope**: How many files need updating
 
-### P2: Thick Coordinators
+### P2a: Mechanical Quality Gaps
 
-Business logic in the wrong layer (controllers, LiveViews, CLI commands). Ranked by:
+Bulk-fixable quality issues that don't require design decisions:
 
-- **Lines of business logic**: More = worse
-- **Testability impact**: Untestable logic in UI layer = worse
+- Missing `@impl true` annotations (R11)
+- Missing SAFETY comments on unsafe blocks (R4 Rust)
+- Missing `@doc`/`@spec` on public functions
+- Boolean operator misuse where fix is unambiguous (R8)
+- Debug artifacts (R15)
+
+### P2b: Minor Refactoring
+
+Requires design decisions but scoped to single modules:
+
+- Thick coordinator extraction (R2)
+- Multi-head function conversion (R5)
+- Component extraction (R4)
+- Builder pattern introduction (R7 Rust)
 
 ### P3: Style & Convention
 
-Mechanical fixes (boolean operators, @impl annotations, naming). Low risk, high volume. Often grep-fixable.
+Lowest-impact mechanical fixes:
+
+- Naming convention alignment (R14)
+- Pipe operator adoption (R13)
+- Access control tightening (R8 Swift)
 
 ## 2.5 Fix Batches
 
-Group related fixes into batches for implementation:
+Group related fixes into batches. Allow interleaving when dependencies permit:
 
 ```
-Batch A: P0 critical bugs (small, targeted)
-Batch B: Highest-impact Highlander fix (e.g., extract shared module)
-Batch C: Second-highest Highlander fix
-Batch D: Domain-scoped dedup (all fixes within one domain)
-Batch E: Thick coordinator refactoring
-Batch F: Mechanical style fixes (grep-and-replace)
-Batch G: Multi-head conversions (incremental)
+Batch A: P0 critical bugs (small, targeted, test after each)
+Batch B: P1 highest-impact Highlander fix (extract shared module)
+Batch C: P1 second-highest Highlander fix
+Batch D: P1 domain-scoped dedup (all fixes within one domain)
+Batch E: P2a mechanical fixes (grep-and-fix in bulk)
+Batch F: P2b thick coordinator refactoring (one per batch)
+Batch G: P2b multi-head conversions (incremental)
+Batch H: P3 style fixes (batch by rule, one commit per rule)
 ```
+
+**Interleaving**: P2a mechanical fixes can be interleaved with P1 Highlander work since they touch different files. P2b refactoring should wait until P1 shared modules exist (they may be extraction targets).
 
 # Phase 3: Review
 
@@ -555,21 +656,54 @@ Present the synthesis to the project owner for review. Key discussion points:
 
 1. **P0 items**: Any that are false positives? Any missing?
 2. **P1 priority order**: Which Highlander fixes matter most for the next quarter?
-3. **P2 scope**: Which thick coordinators are worth refactoring now vs later?
+3. **P2a/P2b scope**: Which mechanical fixes to batch first? Which thick coordinators are worth refactoring now vs later?
 4. **P3 approach**: Mechanical fixes in one big PR vs incremental?
 
 # Phase 4: Remediation
 
-## 4.1 Execution Order
+## 4.1 Execution Model
+
+**Do all remediation in the main conversation, not in sub-agents.** Sub-agents cannot coordinate compile+test cycles and hit permission walls on file edits. The main conversation has full filesystem access and can run verification gates inline.
+
+### Execution Order
 
 ```
 1. P0 fixes (each as a separate commit, test after each)
 2. P1 fixes (each batch as a branch, test after each batch)
-3. P2 fixes (each refactoring as a separate steel thread)
-4. P3 fixes (batch by rule, one commit per rule)
+3. P2a fixes (bulk mechanical, one commit per rule)
+4. P2b fixes (each refactoring as a separate commit)
+5. P3 fixes (batch by rule, one commit per rule)
 ```
 
-## 4.2 Verification Gates
+### Exception: Parallel Extraction
+
+For P1/P2b extraction work ONLY, when file scopes are completely disjoint:
+
+- Sub-agents may be used for extraction
+- Main session does verification pass after all agents complete
+- Create target modules FIRST, then update callers (creation-before-migration)
+- Ensure file scopes are truly disjoint before launching parallel agents
+
+## 4.2 Test Optimization
+
+Run targeted tests between individual edits; full suite at batch boundaries:
+
+```bash
+# Between edits (fast feedback)
+mix test --failed
+mix test test/specific_file_test.exs
+
+# At batch boundaries (full verification)
+mix compile --warnings-as-errors && mix test && mix credo --strict
+
+# Rust equivalent
+cargo test --failed  # (if using nextest)
+cargo check && cargo test && cargo clippy -- -D warnings
+```
+
+**Handle false positives**: If a fix breaks tests, investigate the data type. `Map.get` on a plain map is correct -- only flag on known defstructs (R7). Revert and mark as false positive rather than forcing a broken fix.
+
+## 4.3 Verification Gates
 
 After each batch:
 
@@ -590,7 +724,7 @@ swift test
 swiftlint lint --strict
 ```
 
-## 4.3 Regression Prevention
+## 4.4 Regression Prevention
 
 After remediation, add enforcement:
 
@@ -625,7 +759,7 @@ After remediation, add enforcement:
 ## Monorepos / Umbrella Apps
 
 - Treat each app/package as a top-level component group
-- Create WPs within each group — decompose by **domain** within apps, not just per-app
+- Create WPs within each group -- decompose by **domain** within apps, not just per-app
 - Add a cross-app synthesis WP that looks for inter-app duplications
 - Use batch ordering to audit foundational/leaf apps first (e.g., shared UI libraries, core domain) before apps that depend on them
 - Encode cross-app dependency constraints as architectural boundary checks (e.g., "shared UI library must NOT reference core domain structs")
@@ -638,28 +772,59 @@ After remediation, add enforcement:
 - Group WPs by language first, then by domain
 - Cross-language synthesis focuses on R6 (Highlander) and API consistency
 
+### Polyglot Considerations
+
+- **X-rules**: Cross-ecosystem rules (e.g., "API contracts match between Rust backend and Swift client"). Define these as X1, X2, etc. alongside per-ecosystem R-rules.
+- **Two-pass synthesis**: First synthesize within each ecosystem, then run a cross-ecosystem pass focusing on X-rules and shared patterns.
+- **Effective file count**: Apply ecosystem-specific weights (Rust 1.5x, Swift AppKit 1.3x) when sizing WPs. A 256-file polyglot project with Rust and Swift code may have 300+ effective files.
+
 # Appendix B: Prompt Variations by Language
 
 ## Rust-Specific Additions to Prompt
 
 ```
 Additional context for Rust audits:
+- R1 (unwrap): Check context -- main/CLI is Medium, library/daemon is High.
+  LazyLock initializers with expect() on static initialization are exempt.
+- R4 (unsafe): Severity scales with security boundary. Unsafe in FFI/system
+  calls near user input: High. Unsafe in performance-critical inner loops
+  with documented invariants: Medium.
 - Check trait implementations for missing derive macros
 - Look for .unwrap() and .expect() in non-test code
-- Verify error types implement std::error::Error
+- Verify error types implement std::error::Error + Display
 - Check for unnecessary clones (ownership violations)
-- Verify unsafe blocks have safety comments
+- Verify unsafe blocks have SAFETY comments explaining the invariant
 ```
 
 ## Swift-Specific Additions to Prompt
 
 ```
 Additional context for Swift audits:
+- R1 (force unwrap): Tests and previews are exempt. Production force
+  unwraps on IBOutlets are High (crash on load).
+- R6 (Highlander): AppKit and SwiftUI views have different complexity
+  baselines. Don't cross-compare line counts between frameworks.
+- R8 (try?): Acceptable for fire-and-forget (logging, analytics).
+  Not acceptable for data persistence or network calls.
 - Check for force unwraps (!) outside test targets
 - Verify protocol conformances are in extensions
-- Look for massive view bodies (>100 lines)
+- Look for massive view bodies (>100 lines in body or viewDidLoad)
 - Check for retain cycles in closures (missing [weak self])
 - Verify Codable conformance on network types
+```
+
+## Ash-Specific Additions to Prompt
+
+```
+Additional context for Ash Framework audits:
+- A1: Any Ash.get!/read!/create!/load! call outside a domain module's
+  code interface is a violation. Severity: High (breaks authorization).
+- A3: Actor must be set at query construction time, not at read/action
+  time. Check for |> Ash.read!(actor: user) patterns.
+- A5: Cross-domain access -- Domain A calling Domain B's resources
+  directly (bypassing B's code interfaces) breaks domain boundaries.
+- Check for mix ecto.gen.migration (should be mix ash.codegen)
+- Verify require Ash.Query at module level (not inside function body)
 ```
 
 ## TypeScript/React-Specific Additions to Prompt
@@ -675,24 +840,31 @@ Additional context for TypeScript/React audits:
 
 # Appendix C: Quick-Start Checklist
 
-For a new project audit, follow this checklist:
+For a new project audit, use `/in-tca-init` or follow this manual checklist:
 
-- [ ] Define rule set (15-20 rules, numbered R1-R{N})
+- [ ] Define rule set (15-20 rules, numbered R1-R{N}; add A1-A5 for Ash projects)
+- [ ] Specify rule precision boundaries (what each rule does NOT apply to)
+- [ ] For polyglot: define X-rules for cross-ecosystem concerns
 - [ ] Enumerate all source files (`find . -name "*.{ext}" | wc -l`)
-- [ ] Map files into 8-15 WPs (10-60 files each)
+- [ ] Calculate effective file counts using weight table
+- [ ] Identify Ash DSL resources, emission/struct files, dead stubs
+- [ ] Map files into 8-15 WPs (12-20 effective files each)
 - [ ] Create steel thread with info.md, design.md, tasks.md
 - [ ] Create WP directories with info.md and empty socrates.md
-- [ ] For each WP:
+- [ ] Run Phase 0.5 pre-filtering (grep for R15/R8/R11)
+- [ ] Verify file manifests (all listed files exist)
+- [ ] For each WP (`/in-tca-audit`):
   - [ ] Run `/compact` first
-  - [ ] Launch sub-agent with full prompt template
+  - [ ] Launch sub-agent with full prompt template (include confidence field)
   - [ ] Commit socrates.md immediately after completion
-- [ ] Write WP-{N} synthesis (cross-cutting dedup + prioritization)
-- [ ] Review with project owner
-- [ ] Execute remediation batches with verification gates
+- [ ] Write synthesis WP (`/in-tca-synthesize`): cluster by root cause, 5-tier priority
+- [ ] Review with project owner (`/in-tca-remediate` for execution)
+- [ ] Execute remediation batches in main conversation with verification gates
+- [ ] Wrap up (`/in-tca-finish`): feedback report, ST doc updates
 
 # Appendix D: Reference Implementations
 
-## Example A — Single-App Elixir
+## Example A -- Single-App Elixir
 
 ```
 intent/st/STNNNN/                # Steel thread root
@@ -707,7 +879,7 @@ Rules: 15 (R1-R15)
 Total violations: 408 (50 High, 150 Medium, 208 Low)
 Dominant rule: R6 (Highlander) at 32% of all violations
 
-## Example B — Umbrella Elixir (5 apps)
+## Example B -- Umbrella Elixir (5 apps)
 
 ```
 intent/st/STNNNN/                # Steel thread root
@@ -723,11 +895,33 @@ Rules: 15 (R1-R15) + architectural boundary checks
 Innovations over Example A:
 
 - Cross-WP Highlander dependency encoding at provisioning time
-- Dependency-ordered batch parallelization (1A→1E→2)
+- Dependency-ordered batch parallelization (1A->1E->2)
 - Explicit violation output format (`V{N}`) for synthesis parsing
 - Anti-hallucination instruction in all prompts
 - 4-tier priority classification (P0 bugs, P1 Highlander, P2 thick coordinators, P3 style)
 - Phase 5: Regression prevention (custom Credo checks, CI gates)
+
+## Example C -- Polyglot (Elixir + Rust + Swift + Lua)
+
+```
+intent/st/STNNNN/                # Steel thread root
+├── design.md               # 3 ecosystem rule sets + X-rules, 14 components
+├── tasks.md                # Phase checklist with per-ecosystem tracking
+├── WP/01-13/socrates.md   # Component audits (grouped by ecosystem)
+└── WP/14/socrates.md      # Cross-ecosystem synthesis
+```
+
+Project: Polyglot application (~256 files: Elixir, Rust, Swift, Lua)
+Rules: 3 rule sets (Elixir R1-R15, Rust R1-R12, Swift R1-R10) + X-rules
+Total raw violations: 118
+Unique after dedup: 49 (59% dedup rate)
+Innovations over Examples A and B:
+
+- Per-ecosystem rule sets with ecosystem-specific severity contexts
+- X-rules for cross-ecosystem API contract consistency
+- Two-pass synthesis (within-ecosystem then cross-ecosystem)
+- Effective file count weighting (Rust 1.5x, Swift AppKit 1.3x)
+- Higher dedup rate due to cross-ecosystem pattern overlap (same Highlander violation manifesting in different languages)
 
 # Appendix E: Lessons Learned from Single-App Audit + Remediation
 
@@ -739,15 +933,27 @@ Running 4-9 extraction agents in parallel dramatically reduced wall-clock time. 
 
 ### Batched remediation with verification gates
 
-Committing after each batch (A through G) with `mix compile --warnings-as-errors` + `mix test` between batches caught integration issues early. The WP-03 agent changed `&&` to `and` on a non-boolean value — tests caught it immediately.
+Committing after each batch (A through G) with `mix compile --warnings-as-errors` + `mix test` between batches caught integration issues early. The WP-03 agent changed `&&` to `and` on a non-boolean value -- tests caught it immediately.
 
 ### Service extraction pattern consistency
 
-Every extraction followed the same pattern: business logic → service module with tagged tuple returns, coordinator stays thin (parse → call → render/assign). This made the work predictable and parallelizable.
+Every extraction followed the same pattern: business logic -> service module with tagged tuple returns, coordinator stays thin (parse -> call -> render/assign). This made the work predictable and parallelizable.
 
 ### P0-first ordering
 
 Fixing crash risks before refactoring prevented the "fix creates a new bug" cascading failure mode.
+
+### Anti-hallucination instruction effectiveness
+
+Including "Do NOT invent violations -- only report what you actually see in the code" in every sub-agent prompt reduced false positives by ~30% compared to prompts without this instruction. The most common hallucination mode is reporting violations in functions that don't exist or attributing behavior to the wrong file.
+
+**Lesson**: Anti-hallucination is not optional. Include it in every prompt, even for experienced operators. Sub-agents under context pressure will fabricate findings to appear thorough.
+
+### R5 over-reporting in polyglot audits
+
+When R5 (Multi-Head Functions) lacks the "matchable values only" boundary, sub-agents flag every `if` statement as a potential multi-head conversion. In one polyglot audit, R5 was the most-reported rule (23 raw violations) but had the highest false positive rate (>60%) because agents flagged conditional logic on computed booleans and string parsing.
+
+**Lesson**: Rule precision boundaries are not optional refinements -- they are load-bearing constraints that determine whether a rule produces signal or noise.
 
 ## What Didn't Work / Hard Lessons
 
@@ -761,15 +967,15 @@ One agent mechanically changed `&&` to `and` in `put_last_modified_header/2` whe
 
 ### Error message drift during extraction
 
-A controller extraction changed "You must be signed in to subscribe" to the generic "You must be signed in", breaking a test. **Lesson**: When extracting to services, preserve exact user-facing strings. Tests are the safety net here — always run them.
+A controller extraction changed "You must be signed in to subscribe" to the generic "You must be signed in", breaking a test. **Lesson**: When extracting to services, preserve exact user-facing strings. Tests are the safety net here -- always run them.
 
 ### Future-dating Highlander violation
 
-The most insidious bug: file-path code used the `date` frontmatter field (date granularity — visible all day), while DB code used `published_at` column (datetime granularity — hidden until exact time). Both were "correct" independently but produced different results for the same content. **Lesson**: When there are two code paths for the same concern (Highlander violation), they WILL diverge in subtle ways. The fix is always elimination, not synchronization.
+The most insidious bug: file-path code used the `date` frontmatter field (date granularity -- visible all day), while DB code used `published_at` column (datetime granularity -- hidden until exact time). Both were "correct" independently but produced different results for the same content. **Lesson**: When there are two code paths for the same concern (Highlander violation), they WILL diverge in subtle ways. The fix is always elimination, not synchronization.
 
 ### Context exhaustion across sessions
 
-The full audit + remediation spanned 3+ sessions. Knowledge was lost at each boundary. The plan file (fluttering-wondering-journal.md) was essential for continuity but required manual re-reading. **Lesson**: This is exactly why Steel Thread Zero's memory injection (D8) is needed — learnings should persist automatically.
+The full audit + remediation spanned 3+ sessions. Knowledge was lost at each boundary. The plan file (fluttering-wondering-journal.md) was essential for continuity but required manual re-reading. **Lesson**: This is exactly why Steel Thread Zero's memory injection (D8) is needed -- learnings should persist automatically.
 
 ## Metrics
 
@@ -801,13 +1007,13 @@ After the single-app audit + extraction, 3 P1 Highlander violations remained unf
 
 The violations found in both audits were preventable. See **Intent ST0026 (Steel Thread Zero)** for a comprehensive prevention framework that addresses each root cause:
 
-1. **Rules from commit one** → CLAUDE.md template with rules baked in
-2. **Canonical module registry** → MODULES.md with ownership declarations
-3. **Archetype templates** → pre-wired thin coordinators
-4. **Automated enforcement** → custom Credo checks for mechanical rules
-5. **Decision tree** → "where does this go?" flowchart
-6. **Memory injection** → `intent claude prime` for session knowledge
-7. **Periodic health checks** → `intent audit health` for drift detection
+1. **Rules from commit one** -> CLAUDE.md template with rules baked in
+2. **Canonical module registry** -> MODULES.md with ownership declarations
+3. **Archetype templates** -> pre-wired thin coordinators
+4. **Automated enforcement** -> custom Credo checks for mechanical rules
+5. **Decision tree** -> "where does this go?" flowchart
+6. **Memory injection** -> `intent claude prime` for session knowledge
+7. **Periodic health checks** -> `intent audit health` for drift detection
 
 # Appendix F: Lessons Learned from Umbrella Project Remediation
 
@@ -815,9 +1021,9 @@ The umbrella audit covered a 5-app Elixir umbrella (~734 files, ~126k LOC) and r
 
 ## What Worked Well
 
-### Phased remediation with priority ordering (A→B→C→D→E)
+### Phased remediation with priority ordering (A->B->C->D->E)
 
-Strict ordering by priority (P0 bugs → P1 Highlander → P2 thick coordinators → P3 style → E verification) was essential. P0 fixes were small and targeted, making them safe to do first. P1 Highlander extractions created the shared modules that P2 coordinator refactoring then delegated to. Reversing this order would have created circular dependencies.
+Strict ordering by priority (P0 bugs -> P1 Highlander -> P2 thick coordinators -> P3 style -> E verification) was essential. P0 fixes were small and targeted, making them safe to do first. P1 Highlander extractions created the shared modules that P2 coordinator refactoring then delegated to. Reversing this order would have created circular dependencies.
 
 ### Parallel sub-agents for remediation (not just audit)
 
@@ -825,7 +1031,7 @@ Launched 4 `elixir` sub-agents simultaneously for extraction work, each touching
 
 ### `defdelegate` as Highlander consolidation pattern
 
-For functions duplicated across many files (e.g., `truncate/2` in 9 files, `get_action/1` in 3 files), the pattern was: extract to a canonical module (`MyApp.Helpers`), then replace each copy with `defdelegate truncate(str, max), to: MyApp.Helpers`. This is the lowest-risk consolidation — callers don't change their API, just their implementation source.
+For functions duplicated across many files (e.g., `truncate/2` in 9 files, `get_action/1` in 3 files), the pattern was: extract to a canonical module (`MyApp.Helpers`), then replace each copy with `defdelegate truncate(str, max), to: MyApp.Helpers`. This is the lowest-risk consolidation -- callers don't change their API, just their implementation source.
 
 ### Cross-WP Highlander dependency encoding at provisioning time
 
@@ -841,18 +1047,18 @@ Each WP's `socrates.md` included a "Cross-WP Highlander Check" section listing s
 
 The project's code formatting hook (linter) ran automatically after every file edit. When sub-agents extracted functions from LiveViews, the linter sometimes:
 
-1. **Removed too aggressively** — deleted `defp` functions it thought were unused (because callers had been updated to use the helper module), but some functions were still called locally without the module prefix
-2. **Created invalid syntax** — tried to rewrite `defp function_name(...)` as `defp ModuleName.function_name(...)` which is invalid Elixir
-3. **Removed code the agent hadn't finished with** — agent edits file A, linter cleans file A, agent tries to edit file A again and finds its previous changes gone
+1. **Removed too aggressively** -- deleted `defp` functions it thought were unused (because callers had been updated to use the helper module), but some functions were still called locally without the module prefix
+2. **Created invalid syntax** -- tried to rewrite `defp function_name(...)` as `defp ModuleName.function_name(...)` which is invalid Elixir
+3. **Removed code the agent hadn't finished with** -- agent edits file A, linter cleans file A, agent tries to edit file A again and finds its previous changes gone
 
 **Lesson**: Linters and sub-agents are adversaries in a concurrent editing scenario. Options: (a) disable formatting hooks during batch remediation, (b) use `isolation: "worktree"` to keep agent work separate until verified, (c) have the agent do a final compile check after all edits. We used (c) but (a) would have been better.
 
 ### `String.to_existing_atom` is not always the right fix
 
-Phase A changed `String.to_atom` → `String.to_existing_atom` across the board as a P0 safety fix. This broke 10 tests because:
+Phase A changed `String.to_atom` -> `String.to_existing_atom` across the board as a P0 safety fix. This broke 10 tests because:
 
-- `parse_character_id` in the markdown importer tried to convert tags like `"@ASIDE"` to existing atoms — but these atoms are created by the parser itself, they don't pre-exist
-- `collect_mentions` in the input parser tried to convert user-typed character names — these may be new atoms that don't exist yet
+- `parse_character_id` in the markdown importer tried to convert tags like `"@ASIDE"` to existing atoms -- but these atoms are created by the parser itself, they don't pre-exist
+- `collect_mentions` in the input parser tried to convert user-typed character names -- these may be new atoms that don't exist yet
 
 **Lesson**: `String.to_existing_atom` is the right fix for LLM output (untrusted, could be anything). It is the WRONG fix for controlled inputs (markdown tags, user-typed names in a known domain). The remediation agent needs context about the trust boundary of each call site, not a blanket rule.
 
@@ -864,7 +1070,7 @@ The agents consolidated `humanize_id/1` from `llclient` (the leaf UI library) in
 
 ### Sub-agents creating references to non-existent modules
 
-One extraction agent updated callers to use `DashHelpers.compute_stats/2` and removed the original `defp` — but never created the `DashHelpers` module. The agent's transcript showed it planned to create it, but hit its turn limit before doing so.
+One extraction agent updated callers to use `DashHelpers.compute_stats/2` and removed the original `defp` -- but never created the `DashHelpers` module. The agent's transcript showed it planned to create it, but hit its turn limit before doing so.
 
 **Lesson**: Set `max_turns` high enough for extraction work (at least 40). Better yet, have agents create the target module FIRST, then update callers. Creation-before-migration is safer than the reverse.
 
@@ -873,6 +1079,26 @@ One extraction agent updated callers to use `DashHelpers.compute_stats/2` and re
 Phase B batch 2 had one agent (B.2, helpers expansion) and the main session both editing the same module. The main session added a `defdelegate truncate`, then the agent tried to edit the same file and got a "File has been modified since read" error.
 
 **Lesson**: Before launching parallel agents, ensure their file scopes are truly disjoint. If in doubt, handle the overlapping files in the main session after agents complete.
+
+### Remediation agent failure modes
+
+When remediation was attempted in sub-agents (rather than main conversation), three failure modes emerged:
+
+1. **Permission walls**: Sub-agents hit "file has been modified since read" errors when concurrent agents edited overlapping files
+2. **Compile-test cycles**: Sub-agents cannot run `mix compile && mix test` inline -- they need to return to the orchestrator, breaking flow
+3. **Context loss**: Sub-agents doing remediation lose the synthesis context, leading to fixes that address the symptom but not the root cause
+
+**Lesson**: Remediation belongs in the main conversation. The only exception is parallel extraction work where file scopes are completely disjoint and the target module is created FIRST.
+
+### R7 false positives on plain maps
+
+R7 (Assertive Struct Access) without the "known defstructs only" boundary causes false positives on:
+
+- JSON-decoded maps (keys genuinely unknown at compile time)
+- Config maps loaded from external sources
+- Dynamic maps built from user input
+
+**Lesson**: R7 must specify that it only applies to known `defstruct` types. `Map.get(plain_map, :key)` is correct code, not a violation.
 
 ## Metrics
 
@@ -893,25 +1119,26 @@ Phase B batch 2 had one agent (B.2, helpers expansion) and the main session both
 
 ### Violation Distribution by Rule
 
-- R6 (Highlander): 88 — dominant issue (23%)
-- R9 (Missing else): 45 — highest-risk systemic pattern
-- R3 (Helpers in controllers): 35 — web app hygiene
-- R11 (Missing @impl): 28 — mechanical
-- R5 (Multi-head): 25 — refactoring opportunities
+- R6 (Highlander): 88 -- dominant issue (23%)
+- R9 (Missing else): 45 -- highest-risk systemic pattern
+- R3 (Helpers in controllers): 35 -- web app hygiene
+- R11 (Missing @impl): 28 -- mechanical
+- R5 (Multi-head): 25 -- refactoring opportunities
 - Remaining rules: 168 combined
 
 ### Scale Comparison
 
-| Metric              | Example A (single-app) | Example B (umbrella) | Ratio |
-| ------------------- | ---------------------- | -------------------- | ----- |
-| Files audited       | ~258                   | ~724                 | 2.8x  |
-| Violations found    | 408                    | 389                  | 0.95x |
-| WPs                 | 14 + 1                 | 17 + 1               | 1.2x  |
-| New modules created | 12                     | ~30                  | 2.5x  |
-| Test suite size     | ~600                   | 3,912                | 6.5x  |
-| Wall clock (audit)  | ~4 hrs                 | ~6 hrs               | 1.5x  |
-| Wall clock (fix)    | ~3 hrs                 | ~2 hrs               | 0.67x |
+| Metric              | Example A (single-app) | Example B (umbrella) | Example C (polyglot) |
+| ------------------- | ---------------------- | -------------------- | -------------------- |
+| Files audited       | ~258                   | ~724                 | ~256                 |
+| Violations found    | 408                    | 389                  | 118 (49 unique)      |
+| WPs                 | 14 + 1                 | 17 + 1               | 13 + 1               |
+| New modules created | 12                     | ~30                  | N/A (audit only)     |
+| Test suite size     | ~600                   | 3,912                | ~400                 |
+| Wall clock (audit)  | ~4 hrs                 | ~6 hrs               | ~5 hrs               |
+| Wall clock (fix)    | ~3 hrs                 | ~2 hrs               | TBD                  |
+| Dedup rate          | N/A                    | ~45%                 | 59%                  |
 
-**Notable**: The umbrella project had FEWER violations despite being 2.8x larger, because it already had stronger architectural patterns (Ash resources, domain modules, shared helper layers). The violations it did have were more deeply embedded in LiveView and REPL layers — areas that grew organically with feature work.
+**Notable**: The umbrella project had FEWER violations despite being 2.8x larger, because it already had stronger architectural patterns (Ash resources, domain modules, shared helper layers). The violations it did have were more deeply embedded in LiveView and REPL layers -- areas that grew organically with feature work.
 
 **Also notable**: Remediation was FASTER on the larger project because the parallel agent pattern was refined from the single-app audit's experience. More agents, better scoping, fewer conflicts.

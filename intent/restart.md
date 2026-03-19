@@ -2,17 +2,18 @@
 
 ## Project
 
-Intent v2.6.0 -- CLI tool for managing steel threads, project docs, and LLM guidance. Bash + BATS tests. Located at `/Users/matts/Devel/prj/Intent/`.
+Intent v2.7.0 -- CLI tool for managing steel threads, project docs, and LLM guidance. Bash + BATS tests. Located at `/Users/matts/Devel/prj/Intent/`.
 
 ## Current State
 
-v2.6.0 tagged and pushed. No active steel threads.
+v2.7.0 tagged and pushed. ST0028 complete.
 
 ## Recent Work
 
-- Bugfix: Credo checks target moved from `lib/mix/checks/` to `credo_checks/` (outside `lib/`)
-- Prevents prod compile failures since Credo is a dev/test-only dependency
-- Added `elixirc_paths` hint on first directory creation
+- ST0028: TCA v3.0 -- Process Doc Update + Skill Suite
+  - Updated `intent/docs/total-codebase-audit.md` from v2.0 to v3.0
+  - Created 5 TCA skills: in-tca-init, in-tca-audit, in-tca-synthesize, in-tca-remediate, in-tca-finish
+  - 3 automation scripts: tca-init.sh, tca-progress.sh, tca-report.sh
 
 ## TODO
 
@@ -20,9 +21,9 @@ None pending.
 
 ## Key Files
 
-- `intent/plugins/claude/skills/in-cost-analysis/` -- skill source (SKILL.md, scripts/, data/)
-- `intent/analysis/` -- cost analysis reports
-- `intent/st/COMPLETED/ST0027/` -- completed ST with all docs
+- `intent/plugins/claude/skills/in-tca-*/` -- TCA skill suite (5 skills, 3 scripts)
+- `intent/docs/total-codebase-audit.md` -- TCA v3.0 reference doc
+- `intent/st/ST0028/` -- completed ST with all docs
 - `intent/wip.md` -- current state tracker
 
 ## Conventions
