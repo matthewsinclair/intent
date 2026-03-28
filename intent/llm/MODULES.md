@@ -89,6 +89,12 @@
 | TCA remediation     | `intent/plugins/claude/skills/in-tca-remediate/`  | SKILL.md only              |
 | TCA wrap-up         | `intent/plugins/claude/skills/in-tca-finish/`     | SKILL.md + tca-report.sh   |
 
+## Skills: Detrope
+
+| Concern        | THE Module                                 | Notes                    |
+| -------------- | ------------------------------------------ | ------------------------ |
+| Trope analysis | `intent/plugins/claude/skills/in-detrope/` | SKILL.md + trope-catalog |
+
 ## Tests
 
 | Concern              | THE Module                         | Notes                          |

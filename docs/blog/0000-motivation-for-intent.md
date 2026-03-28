@@ -8,13 +8,13 @@ word_count: 1507
 
 # The Motivation for Intent: Why Intention Matters in LLM-Assisted Development
 
-In the rapidly evolving landscape of AI-assisted software development, we stand at a critical juncture. Large Language Models (LLMs) like Claude have transformed how we write code, debug systems, and architect solutions. Yet, despite their remarkable capabilities, a fundamental challenge persists: how do we ensure that these powerful tools truly understand not just what we want to build, but why we want to build it?
+LLMs like Claude have changed how we write code, debug systems, and design solutions. But a hard problem remains: how do we make sure these tools understand not just what we want to build, but why we want to build it?
 
-This is the story of the Intent (Intent) – a response to the growing disconnect between developer intention and LLM execution. It's a framework born from the realisation that in our rush to leverage AI capabilities, we've overlooked the most crucial element of successful collaboration: shared understanding of purpose.
+Intent is a response to the growing disconnect between developer intention and LLM execution. In our rush to use AI capabilities, we've overlooked the most important element of successful collaboration: shared understanding of purpose.
 
-## The Fundamental Challenge of LLM Collaboration
+## The Challenge of LLM Collaboration
 
-When you sit down with an LLM to solve a coding problem, something remarkable happens. You describe what you need, the LLM responds with seemingly perfect understanding, and code appears as if by magic. But there's a hidden problem lurking beneath this seamless interaction: the LLM doesn't actually understand your intentions – it's performing sophisticated pattern matching based on your words.
+When you sit down with an LLM to solve a coding problem, you describe what you need, the LLM responds with seemingly perfect understanding, and code appears. But there's a hidden problem: the LLM doesn't actually understand your intentions. It's performing sophisticated pattern matching based on your words.
 
 This creates what I call the "illusion of understanding." The LLM's responses are so coherent, so contextually appropriate, that we assume it grasps not just what we're asking for, but why we're asking for it. This assumption becomes dangerous as projects grow in complexity.
 
@@ -25,13 +25,13 @@ Consider a typical interaction:
 
 On the surface, this looks like success. But what if your intention was to create a passwordless system for enhanced security? What if you needed integration with an existing SSO provider? What if this was for an internal tool where email verification would be counterproductive?
 
-The gap between what you want and what you get widens with each assumption the LLM makes. And here's the crucial point: standard prompting often leads to misalignment because we focus on describing the "what" rather than communicating the "why."
+The gap between what you want and what you get widens with each assumption the LLM makes. Standard prompting often leads to misalignment because we focus on describing the "what" rather than communicating the "why."
 
 As projects grow, this miscommunication compounds. Each misunderstood intention becomes technical debt. Each assumption becomes a constraint. What started as rapid development transforms into a tangled web of corrections, clarifications, and workarounds.
 
 ## The Problem of Lost Intention
 
-In traditional software development, we've long recognised the importance of requirements gathering and documentation. Yet even with these practices, we regularly see software solutions that are technically correct but fundamentally disconnected from the original problems they were meant to solve.
+In traditional software development, we've long recognised the importance of requirements gathering and documentation. Yet even with these practices, we regularly see software that is technically correct but disconnected from the original problems it was meant to solve.
 
 With LLM-assisted development, this problem intensifies. The speed at which we can now generate code means we can travel much farther down the wrong path before realising we've lost our way. The question "what problem are we solving?" becomes not just important, but critical to project success.
 
@@ -41,7 +41,7 @@ I've witnessed this firsthand in numerous projects:
 - An elegant API that satisfied all technical requirements but failed to meet actual user needs
 - A refactoring that improved code quality while eliminating features users depended on
 
-The business cost of this intention-implementation misalignment is staggering. Industry studies consistently show that fixing problems in production costs 100x more than preventing them during design. When working with LLMs, this multiplier effect accelerates because we can implement misaligned solutions faster than ever before.
+The business cost of this misalignment is real. Industry studies consistently show that fixing problems in production costs 100x more than preventing them during design. When working with LLMs, this multiplier accelerates because we can implement misaligned solutions faster than ever before.
 
 Intention gets diluted through implementation phases in predictable ways:
 
@@ -54,7 +54,7 @@ At each translation, a little more of the "why" gets lost. By the time we're wri
 
 ## Enhancing Traditional Approaches for LLM Collaboration
 
-You might be thinking, "Don't existing methodologies already address this?" It's true that Agile, Lean, XP, and other approaches emphasise understanding user needs and maintaining alignment with business value. But there's a crucial intention-capture gap when these methodologies meet LLM collaboration.
+You might be thinking, "Don't existing methodologies already address this?" Agile, Lean, XP, and other approaches do emphasise understanding user needs and maintaining alignment with business value. But there's a real intention-capture gap when these methodologies meet LLM collaboration.
 
 Traditional approaches were designed for human-to-human communication. They assume shared context, cultural understanding, and the ability to read between the lines. LLMs, however brilliant, lack these implicit understandings. They need explicit intention to guide their pattern matching toward useful outcomes.
 

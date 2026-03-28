@@ -10,15 +10,15 @@ word_count: 2156
 
 We've explored [why intention matters](./0000-motivation-for-intent.md) and how [steel threads](./0002-the-steel-thread-methodology.md) provide a framework for preserving it. Now we turn to the critical skill that makes it all work: intent capture. How do we extract, document, and preserve the intentions that drive great software?
 
-Intent capture isn't just about writing better documentation – it's about creating a shared understanding that survives the journey from conception to production and beyond. Today, we'll explore practical techniques for capturing intent effectively, whether you're working solo, with a team, or alongside AI assistants.
+Good intent capture creates a shared understanding that survives the journey from conception to production and beyond. This post covers practical techniques for capturing intent effectively, whether you're working solo, with a team, or alongside AI assistants.
 
 ## Applying Intention Principles in Practice
 
-The journey from understanding why intention matters to actually capturing it requires practical techniques and deliberate practice. Intent capture transforms abstract understanding into concrete documentation that serves both current and future needs.
+The journey from understanding why intention matters to actually capturing it requires practical techniques and deliberate practice. Intent capture turns abstract understanding into concrete documentation that works for both current and future readers.
 
 Think of intent capture as archaeology in reverse. Instead of future developers excavating your code to understand what you were thinking, you preserve those thoughts as you have them. The key shift: recognise that your current clarity is a perishable resource.
 
-Let's explore how to capture that clarity before it fades.
+Here's how to capture that clarity before it fades.
 
 ## The Intent Problem in Software Development
 
@@ -289,7 +289,7 @@ for active sessions.
 
 ## Case Study: Before and After Intent Capture
 
-Let's examine a real feature implemented both ways to see the dramatic difference intent capture makes.
+Consider a real feature implemented both ways to see the difference intent capture makes.
 
 ### The Feature: API Rate Limiting
 
