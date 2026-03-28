@@ -62,13 +62,13 @@ Intent doesn't seek to replace your existing methodology. Instead, it adds a lay
 
 In practice, this means:
 
-- **Agile stories** gain intention statements that explain why this feature matters
-- **Lean experiments** document not just what to measure, but what we hope to learn
-- **XP practices** include intention context that helps LLMs suggest appropriate solutions
+- Agile stories gain intention statements that explain why this feature matters
+- Lean experiments document not just what to measure, but what we hope to learn
+- XP practices include intention context that helps LLMs suggest appropriate solutions
 
-Documentation transforms from an afterthought into a framework for understanding. Instead of documenting what we built after the fact, we document why we're building it before we start. This isn't additional overhead – it's front-loading the thinking we'd do anyway, but in a format that both humans and LLMs can leverage.
+Documentation transforms from an afterthought into a tool for understanding. Instead of documenting what we built after the fact, we document why we're building it before we start. This isn't additional overhead -- it's front-loading the thinking we'd do anyway, in a format that both humans and LLMs can use.
 
-The impact on technical debt is profound. When every piece of code can be traced back to a clear intention, refactoring becomes purposeful rather than aesthetic. We can ask, "Does this still serve its original intention?" rather than just "Is this clean code?"
+The impact on technical debt is worth noting. When every piece of code can be traced back to a clear intention, refactoring becomes purposeful rather than aesthetic. We can ask, "Does this still serve its original intention?" rather than just "Is this clean code?"
 
 ## The Missing Layer: Intent Architecture
 
@@ -82,27 +82,27 @@ The relationship between intention clarity and implementation quality is direct 
 - Vague intention → Over-engineered or off-target implementations
 - No stated intention → Solutions in search of problems
 
-More importantly, intention acts as a filter for evaluating LLM suggestions. When an LLM proposes a solution, we can ask: "Does this serve our stated intention?" This simple question transforms LLM collaboration from a hit-or-miss affair into a guided process.
+Intention also works as a filter for evaluating LLM suggestions. When an LLM proposes a solution, we can ask: "Does this serve our stated intention?" This simple question turns LLM collaboration from a hit-or-miss affair into a guided process.
 
 Building a shared mental model between humans and LLMs requires making our mental models explicit. We can't expect an LLM to infer our intentions from context clues the way a human colleague might. Instead, we need to architect our intentions as deliberately as we architect our systems.
 
-## Intention-First Development as a Paradigm Shift
+## Intention-First Development
 
-Intent represents a paradigm shift in how we approach development. Instead of starting with "what to build," we start with "why we're building it." This isn't just philosophical – it fundamentally changes how we interact with LLMs and how they can assist us.
+Intent changes how we approach development. Instead of starting with "what to build," we start with "why we're building it." This isn't just philosophical -- it changes how we interact with LLMs and how they can assist us.
 
 When intention leads, the developer-LLM conversation transforms:
 
 - Before: "Build me a REST API for user management"
 - After: "We need to enable self-service user onboarding to reduce support load. Let's design an API that prioritises ease of use over flexibility."
 
-The second prompt doesn't just describe what to build – it provides the context needed for intelligent trade-offs. The LLM can now suggest solutions optimised for your actual goals, not just technical correctness.
+The second prompt gives the LLM context for intelligent trade-offs. It can now suggest solutions optimised for your actual goals, not just technical correctness.
 
 The return on investment in intention clarification is substantial:
 
-- **Reduced rework**: Solutions align with goals from the start
-- **Better suggestions**: LLMs provide more relevant options
-- **Clearer evaluation**: Easy to assess if solutions meet intentions
-- **Knowledge preservation**: Future developers (and LLMs) understand the why
+- Reduced rework: solutions align with goals from the start
+- Better suggestions: LLMs provide more relevant options
+- Clearer evaluation: easy to assess if solutions meet intentions
+- Knowledge preservation: future developers (and LLMs) understand the why
 
 Consider how intention transforms implementation approaches. The same requirement – "add user notifications" – leads to vastly different solutions depending on intention:
 
@@ -127,14 +127,14 @@ This structure prioritises the "why" before the "what." By the time we get to im
 
 Intent creates intention alignment throughout development by:
 
-1. **Capturing intention** at the moment of conception
-2. **Preserving intention** through structured documentation
-3. **Referencing intention** during implementation decisions
-4. **Validating against intention** when evaluating solutions
+1. Capturing intention at the moment of conception
+2. Preserving intention through structured documentation
+3. Referencing intention during implementation decisions
+4. Validating against intention when evaluating solutions
 
-The difference between tool-first and intention-first methodologies is profound. Tool-first approaches ask "How can we use this LLM?" Intention-first asks "What are we trying to achieve, and how can an LLM help?"
+The difference between tool-first and intention-first approaches matters. Tool-first asks "How can we use this LLM?" Intention-first asks "What are we trying to achieve, and how can an LLM help?"
 
-In the following posts in this series, we'll explore how Intent implements these principles, dive deep into the steel thread methodology, and see real examples of intention-driven development in action. But the journey starts here, with a simple recognition: in the age of AI-assisted development, intention isn't just important – it's essential.
+In the following posts, we'll explore how Intent implements these principles, look closely at the steel thread methodology, and walk through real examples of intention-driven development. The starting point is simple: when working with AI, making your intentions explicit pays for itself many times over.
 
 ## Next Steps
 

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-03-28
+
+### Added
+
+- **Detrope skill** -- `/in-detrope` for LLM trope detection and stylometric analysis
+  - Trope catalog vendored from [llm-tropes](https://github.com/matthewsinclair/llm-tropes) (44 tropes, 8 categories)
+  - Context-aware severity assessment (reads project CLAUDE.md for audience/purpose)
+  - Two modes: `quick` (diagnosis) and `full` (diagnosis + concrete rewrites)
+  - Stylometric profile with AI signal strength rating
+  - Integrates with Utilz `cleanz --detrope` for automated pre-scanning
+
+### Changed
+
+- **Blog series detroped** -- all 8 blog posts revised to remove LLM writing tropes
+  - Removed magic adverbs, landscape metaphors, negative parallelism, stakes inflation
+  - Rewrote to sound human: varied rhythm, concrete detail, reduced AI cadence
+
 ## [2.7.0] - 2026-03-19
 
 ### Added

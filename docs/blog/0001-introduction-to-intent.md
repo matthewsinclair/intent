@@ -42,19 +42,19 @@ $ intent st show ST0015
 
 Now you know: That "complex" cache is saving your business!
 
-In our [previous post](./0000-motivation-for-intent.md), we explored why capturing and preserving intention is crucial for modern development, especially when collaborating with AI. Today, I'll show you exactly how Intent solves this problem with a practical, lightweight system that enhances your existing workflow.
+In our [previous post](./0000-motivation-for-intent.md), we explored why capturing and preserving intention matters for modern development, especially when collaborating with AI. Today, I'll show you exactly how Intent solves this problem with a practical, lightweight system that enhances your existing workflow.
 
 ## Building on the Intention Foundation
 
-We established that the fundamental challenge in modern development isn't just building software – it's ensuring that what we build aligns with why we're building it. This challenge intensifies when working with LLMs, which excel at pattern matching but lack understanding of underlying purpose.
+We established that the core challenge in modern development is ensuring that what we build aligns with why we're building it. This challenge intensifies when working with LLMs, which excel at pattern matching but lack understanding of underlying purpose.
 
 Intent addresses this challenge by making intention explicit and structural. Rather than hoping developers will document the "why" or expecting LLMs to infer our goals, Intent builds intention capture into the development workflow itself.
 
-The shift from theoretical understanding to practical implementation happens through three key innovations:
+The shift from understanding to practice happens through three ideas:
 
-1. **Steel threads** that encapsulate both intent and implementation
-2. **Structured templates** that prompt for intention at every stage
-3. **Integration with task management** that maintains the intent-to-execution link
+1. Steel threads that encapsulate both intent and implementation
+2. Structured templates that prompt for intention at every stage
+3. Integration with task management that maintains the intent-to-execution link
 
 ## What is Intent?
 
@@ -135,11 +135,11 @@ Intent is built on eight core principles that guide its design and implementatio
 
 ### 1. Documentation as a First-Class Citizen
 
-In Intent, documentation isn't something you do after coding – it's an integral part of the development process. Every steel thread starts with documentation that captures intention, and this documentation evolves alongside the code. When documentation drives development, both humans and LLMs have the context they need to make good decisions.
+In Intent, documentation is part of the development process, not something you do after coding. Every steel thread starts with documentation that captures intention, and this documentation evolves alongside the code. When documentation drives development, both humans and LLMs have the context they need to make good decisions.
 
 ### 2. Intent Capture Throughout the Lifecycle
 
-Intention isn't just captured at the beginning – it's maintained and referenced throughout development. From initial conception through implementation to future maintenance, the "why" remains visible and relevant. This creates a traceable lineage from business need to technical implementation.
+Intention is maintained and referenced throughout development, not just captured at the beginning. From initial conception through implementation to future maintenance, the "why" remains visible and relevant. This creates a traceable lineage from business need to technical implementation.
 
 ### 3. Incremental Development Through Steel Threads
 
@@ -167,7 +167,7 @@ Intent was designed in the age of AI-assisted development. Its structured approa
 
 ## The Steel Thread Concept
 
-While we'll dive deep into steel threads in the next post, it's worth understanding the basic concept as it's central to how Intent works.
+We'll cover steel threads in detail in the next post, but the basic concept is central to how Intent works.
 
 A steel thread is a complete, minimal path through your system that delivers value. Think of it as the thinnest possible slice that:
 
@@ -190,10 +190,10 @@ $ intent st show ST0016
 
 These aren't just task lists. Each thread contains:
 
-- **Why** we needed these features
-- **What** constraints we faced
-- **How** we approached the solution
-- **Learnings** from implementation
+- Why we needed these features
+- What constraints we faced
+- How we approached the solution
+- Learnings from implementation
 
 When working on ST0016 (the major refactoring), the AI assistant could see:
 
@@ -225,7 +225,7 @@ As tasks complete, steel thread status updates automatically. This isn't just co
 
 ### Improved Onboarding Experience
 
-New team members can understand not just what the code does, but why it exists. Each steel thread tells a complete story from intention to implementation. This context dramatically reduces the time needed to become productive.
+New team members can understand not just what the code does, but why it exists. Each steel thread tells a complete story from intention to implementation. This context cuts the time needed to become productive.
 
 ### Enhanced Collaboration with LLMs
 
@@ -233,7 +233,7 @@ When working with AI assistants, the structured intention and context in Intent 
 
 ### More Efficient Development Process
 
-While it might seem like additional overhead, Intent actually streamlines development by:
+While it might seem like additional overhead, Intent actually speeds up development by:
 
 - Reducing rework from misunderstood requirements
 - Eliminating redundant status tracking
@@ -242,11 +242,11 @@ While it might seem like additional overhead, Intent actually streamlines develo
 
 ## What's Coming in This Blog Series
 
-This introduction has given you a high-level view of Intent, but there's much more to explore. Here's what's coming in the rest of this series:
+There's more to explore. Here's what's coming in the rest of this series:
 
-**[The Steel Thread Methodology](./0002-the-steel-thread-methodology.md)**: A deep dive into steel threads – what they are, how to create them, and why they're more effective than traditional work organisation.
+**[The Steel Thread Methodology](./0002-the-steel-thread-methodology.md)**: A detailed look at steel threads -- what they are, how to create them, and why they're more effective than traditional work organisation.
 
-**[Intent Capture in Software Development](./0003-intent-capture-in-software-development.md)**: Practical techniques for capturing, preserving, and leveraging intention throughout your development process.
+**[Intent Capture in Software Development](./0003-intent-capture-in-software-development.md)**: Practical techniques for capturing, preserving, and applying intention throughout your development process.
 
 **[LLM Collaboration with Intent](./0004-llm-collaboration-with-intent.md)**: How Intent's structure makes AI assistance more effective, with real examples of improved LLM interactions.
 
@@ -254,9 +254,9 @@ This introduction has given you a high-level view of Intent, but there's much mo
 
 **[Next Steps and Future Work](./0006-next-steps-and-future-work.md)**: Where Intent is heading and how you can contribute to its development.
 
-## Ready to Transform Your Development Process?
+## Getting Started
 
-Intent offers a pragmatic solution to the intention problem in modern software development. By making intention explicit and structural, it bridges the gap between why we build and what we build, creating better outcomes for both human and AI collaboration.
+Intent offers a pragmatic solution to the intention problem in modern software development. By making intention explicit and structural, it bridges the gap between why we build and what we build.
 
 In the next post, we'll explore the steel thread methodology in detail, showing you exactly how to break down work in a way that preserves intention while enabling incremental progress.
 

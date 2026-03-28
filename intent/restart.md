@@ -2,29 +2,31 @@
 
 ## Project
 
-Intent v2.7.0 -- CLI tool for managing steel threads, project docs, and LLM guidance. Bash + BATS tests. Located at `/Users/matts/Devel/prj/Intent/`.
+Intent v2.8.0 -- CLI tool for managing steel threads, project docs, and LLM guidance. Bash + BATS tests. Located at `/Users/matts/Devel/prj/Intent/`.
 
 ## Current State
 
-v2.7.0 committed and pushed. No active steel threads.
+v2.8.0 committed and pushed. No active steel threads.
 
 ## Recent Work
 
-- ST0028: TCA v3.0 -- Process Doc Update + Skill Suite (completed 2026-03-19)
-  - Updated `intent/docs/total-codebase-audit.md` from v2.0 to v3.0
-  - Created 5 TCA skills: in-tca-init, in-tca-audit, in-tca-synthesize, in-tca-remediate, in-tca-finish
-  - 3 automation scripts: tca-init.sh, tca-progress.sh, tca-report.sh
-  - 17 skills total, 5 subagents
+- v2.8.0: Detrope skill + blog remediation (2026-03-28)
+  - Created [llm-tropes](https://github.com/matthewsinclair/llm-tropes) repo (44 tropes, 8 categories)
+  - Created `/in-detrope` skill for LLM trope detection and stylometric analysis
+  - Added `cleanz --detrope` to Utilz for automated mechanical detection
+  - Detroped all 8 blog posts in docs/blog/
+  - 18 skills total, 5 subagents
+- ST0028: TCA v3.0 (completed 2026-03-19)
 
 ## TODO
 
 - Consider peer language skills (in-rust-essentials, in-swift-essentials)
+- Run detrope on other Intent docs (intent/docs/\*.md)
 
 ## Key Files
 
-- `intent/plugins/claude/skills/in-tca-*/` -- TCA skill suite (5 skills, 3 scripts)
-- `intent/docs/total-codebase-audit.md` -- TCA v3.0 reference doc
-- `intent/st/ST0028/` -- completed ST with all docs
+- `intent/plugins/claude/skills/in-detrope/` -- detrope skill (SKILL.md + trope-catalog)
+- `docs/blog/` -- detroped blog series (8 posts)
 - `intent/wip.md` -- current state tracker
 
 ## Conventions

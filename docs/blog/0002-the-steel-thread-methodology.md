@@ -18,10 +18,10 @@ If you've ever struggled with work items that are too large to complete quickly 
 
 The term "steel thread" comes from systems engineering, where it represents the thinnest possible slice of functionality that connects all parts of a system. In Intent, a steel thread is a self-contained unit of work that:
 
-1. **Captures clear intention** - Why this work matters
-2. **Delivers tangible value** - A complete, usable outcome
-3. **Maintains focus** - One primary objective
-4. **Preserves context** - Documentation that travels with the code
+1. Captures clear intention -- why this work matters
+2. Delivers tangible value -- a complete, usable outcome
+3. Maintains focus -- one primary objective
+4. Preserves context -- documentation that travels with the code
 
 Think of a steel thread as stronger than a "golden thread" (which might be beautiful but fragile) or a "silver thread" (which might tarnish over time). Steel threads are durable, practical, and built to last – just like the documentation and code they produce.
 
@@ -90,7 +90,7 @@ Instead, they ensure that however you work, the "why" travels with the "what."
 
 ## Anatomy of a Steel Thread
 
-Every steel thread follows a consistent structure that captures intention and guides implementation. Let's examine the key components:
+Every steel thread follows a consistent structure that captures intention and guides implementation.
 
 ### Steel Thread Lifecycle
 
@@ -240,12 +240,12 @@ Updated ST0015 status from 'Not Started' to 'In Progress'
 
 ### Team Collaboration
 
-Steel threads facilitate team coordination:
+Steel threads support team coordination:
 
-1. **Shared Context**: Team members understand not just what to build but why
-2. **Clear Ownership**: Assign threads to individuals while tasks can be distributed
-3. **Progress Visibility**: Everyone sees the same status through unified commands
-4. **Knowledge Transfer**: Completed threads document decisions for future reference
+1. Shared context: team members understand not just what to build but why
+2. Clear ownership: assign threads to individuals while tasks can be distributed
+3. Progress visibility: everyone sees the same status through unified commands
+4. Knowledge transfer: completed threads document decisions for future reference
 
 ## Real-world Examples
 
@@ -322,9 +322,9 @@ Steel threads force clarity about what constitutes "done." Each thread delivers 
 
 The two-tier system provides perfect visibility:
 
-- **Strategic View**: `intent st list` shows high-level progress
-- **Tactical View**: `intent task list` reveals detailed work status
-- **Automatic Sync**: Status updates based on actual task completion
+- `intent st list` shows high-level progress (strategic view)
+- `intent task list` reveals detailed work status (tactical view)
+- Status updates automatically based on actual task completion
 
 ### Documentation That Evolves Naturally
 
@@ -350,8 +350,8 @@ No more arguing about whether something is "done":
 
 ## Transforming Your Development Process
 
-Steel threads represent more than a documentation format – they embody a philosophy of intentional, value-focused development. By capturing why before what, maintaining context through implementation, and preserving learnings for the future, steel threads create a development process that's both more effective and more humane.
+Steel threads are a philosophy of intentional, value-focused development expressed as a practical format. By capturing why before what, maintaining context through implementation, and preserving learnings for the future, they make development both more effective and more sustainable.
 
-In our next post, we'll dive deep into intent capture – the critical skill that makes steel threads powerful. You'll learn practical techniques for extracting, documenting, and preserving the intentions that drive great software.
+In our next post, we'll look at intent capture -- the skill that makes steel threads powerful. You'll see practical techniques for extracting, documenting, and preserving the intentions that drive good software.
 
 [Continue to: Intent Capture in Software Development →](./0003-intent-capture-in-software-development.md)

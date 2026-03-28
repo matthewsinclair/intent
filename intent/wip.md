@@ -1,28 +1,30 @@
 ---
-verblock: "19 Mar 2026:v0.21: matts - Session finish"
-intent_version: 2.7.0
+verblock: "28 Mar 2026:v0.22: matts - Detrope skill + blog remediation"
+intent_version: 2.8.0
 ---
 
 # Work In Progress
 
 ## Current State
 
-v2.7.0 with TCA v3.0 process doc and 5 TCA skills. Committed and pushed to both remotes.
+v2.8.0 with detrope skill and blog series remediation. Committed and pushed to both remotes.
 
 ## This Session
 
-- ST0028: TCA v3.0 -- Process Doc Update + Skill Suite (COMPLETE)
-  - Stream A: Updated `intent/docs/total-codebase-audit.md` v2.0 -> v3.0 (226 net new lines)
-  - Stream B: Created 5 TCA skills + 3 scripts, all installed
-  - Version bumped to v2.7.0, all docs updated, pushed to both remotes
+- Created [llm-tropes](https://github.com/matthewsinclair/llm-tropes) repo (44 tropes, 8 categories)
+- Created `/in-detrope` skill (SKILL.md + vendored trope-catalog.md)
+- Added `cleanz --detrope` to Utilz for automated trope detection
+- Detroped all 8 blog posts in docs/blog/
+- Version bumped to v2.8.0, all docs updated
 
 ## Active Steel Threads
 
-None -- ST0028 complete.
+None.
 
 ## TODO
 
 - Consider peer language skills (in-rust-essentials, in-swift-essentials)
+- Run detrope on other Intent docs (intent/docs/\*.md)
 
 ## Parked
 
@@ -31,7 +33,7 @@ None -- ST0028 complete.
 
 ## Key References
 
-- ST0028 (completed): `intent/st/ST0028/`
-- TCA doc: `intent/docs/total-codebase-audit.md`
-- TCA skills: `intent/plugins/claude/skills/in-tca-*/`
+- llm-tropes repo: `https://github.com/matthewsinclair/llm-tropes`
+- Detrope skill: `intent/plugins/claude/skills/in-detrope/`
+- Blog posts: `docs/blog/`
 - Test suite: `tests/run_tests.sh` (22 .bats files, 462 tests)
