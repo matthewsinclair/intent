@@ -12,7 +12,7 @@ word_count: 1608
 
 Through this blog series, we've explored the [motivation](./0000-motivation-for-intent.md), [methodology](./0002-the-steel-thread-methodology.md), and [practical implementation](./0005-getting-started-with-intent.md) of Intent. Now we look forward – where is Intent heading, and how can you be part of its evolution?
 
-This final post examines the current state of Intent, explores planned enhancements, and shares our vision for the future of intention-aware development. Whether you're considering adopting Intent or already using it, this roadmap shows where we're going together.
+This post covers where Intent stands today, what's planned, and where intention-aware development might go from here.
 
 ## Current State of Intent
 
@@ -32,19 +32,19 @@ Intent has evolved from concept to practical tool, currently offering:
 
 **Key Strengths**:
 
-- **Lightweight**: Simple bash scripts and markdown files
-- **Flexible**: Adapts to any development methodology
-- **Practical**: Solves real documentation and context problems
-- **Proven**: Used to build Intent itself (and write this blog series!)
+- Simple bash scripts and markdown files -- lightweight by design
+- Adapts to any development methodology
+- Solves real documentation and context problems
+- Used to build Intent itself (and write this blog series!)
 
 ### Early Adoption Insights
 
 Teams using Intent report:
 
-- **Reduced onboarding time**: New developers productive 50% faster
-- **Better LLM interactions**: More relevant suggestions, fewer iterations
-- **Improved project visibility**: Clear status without status meetings
-- **Preserved knowledge**: Decisions and context survive team changes
+- New developers productive 50% faster during onboarding
+- More relevant LLM suggestions, fewer iterations
+- Clear project status without status meetings
+- Decisions and context that survive team changes
 
 ### Current Limitations
 
@@ -62,7 +62,7 @@ These limitations guide our development priorities.
 
 ### The Power of Dogfooding
 
-Using Intent to build Intent revealed crucial insights:
+Using Intent to build Intent taught us a few things:
 
 - **Templates need flexibility**: Rigid structures frustrate users
 - **Granularity matters**: Too fine and it's overhead, too coarse and you lose visibility
