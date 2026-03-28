@@ -152,7 +152,7 @@ This document is a Technical Product Design (TPD) for the Intent (Intent) system
 2. The system is designed to facilitate collaboration between developers and LLMs...
 ```
 
-This isn't just documentation – it's a handshake protocol between human intent and AI understanding.
+This acts as a handshake protocol between human intent and AI understanding.
 
 ### Structured Documentation That Fits LLM Thinking
 
@@ -274,7 +274,7 @@ Intent templates aren't arbitrary – they're designed to match how LLMs process
 
 ### Why Structure Matters to LLMs
 
-LLMs excel at pattern recognition. Consistent structure becomes a pattern they can leverage:
+LLMs excel at pattern recognition. Consistent structure becomes a pattern they can exploit:
 
 ```markdown
 ---
@@ -405,11 +405,11 @@ Each cycle improves both documentation and code:
 - **Improved implementation** → Refined documentation
 - **Refined documentation** → Even clearer intent
 
-This isn't just about current development – it's about building a knowledge base that makes every future interaction more effective.
+Beyond the current task, you're building a knowledge base that makes every future interaction more effective.
 
 ## Claude Code Sub-Agents: Taking Collaboration Further
 
-Intent v2.1.0 includes integration with Claude Code's sub-agent system, revolutionizing AI-assisted development.
+Intent v2.1.0 includes integration with Claude Code's sub-agent system, which substantially improves AI-assisted development.
 
 ### The Problem with Session Amnesia
 
@@ -541,16 +541,16 @@ burst traffic during sales. The team has PostgreSQL expertise...
 [Dialog continues exploring trade-offs, revealing hidden complexities]
 
 **Recommendation:** PostgreSQL with read replicas and caching layer
-- Leverages team expertise
+- Builds on existing team expertise
 - Handles expected scale with proven patterns
 - Avoids NoSQL learning curve during critical growth phase"
 ```
 
 The socrates agent transforms rubber-duck debugging into structured technical exploration, creating decision documentation that explains not just what was decided, but why.
 
-### The Multiplier Effect
+### What Agents Make Possible
 
-Intent agents don't just save time – they change what's possible:
+Agents go beyond saving time -- they raise the ceiling on what you can accomplish:
 
 1. **Deeper Conversations**: Skip basics, discuss architecture
 2. **Consistent Practices**: AI always follows your standards
@@ -667,9 +667,9 @@ The new developer is productive in hours, not weeks.
 
 ## Transforming Development Through Collaboration
 
-Intent doesn't just make LLM collaboration possible – it makes it powerful. By providing structure, context, and clear intention, Intent transforms LLMs from code generators into true development partners.
+By providing structure, context, and clear intention, Intent turns LLMs from generic code generators into effective development partners.
 
-The future of software development isn't human or AI – it's human and AI, working together with shared understanding. Intent provides the foundation for that collaboration.
+The future of software development is human and AI working together with shared understanding. Intent provides the foundation for that collaboration.
 
 Ready to put this into practice? Our next post will guide you through setting up Intent in your own projects and creating your first intention-aware, LLM-collaborative development workflow.
 

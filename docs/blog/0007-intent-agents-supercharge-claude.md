@@ -3,7 +3,7 @@ title: "Intent Agents: Supercharging Claude Code Collaboration"
 date: "2025-07-27"
 author: "Matthew Sinclair"
 draft: false
-word_count: 1847
+word_count: 1650
 ---
 
 > **Editor's note (v2.5.0):** Backlog.md integration was removed in Intent v2.5.0.
@@ -156,14 +156,14 @@ intent    [UP TO DATE]
 
 ### Scenario 1: New Feature Development
 
-**Without agent:**
+Without agent:
 
 - 10 minutes explaining Intent
 - 5 minutes clarifying commands
 - Back-and-forth on structure
 - Finally start actual work
 
-**With agent:**
+With agent:
 
 - 0 minutes on Intent explanation
 - Immediate strategic discussion
@@ -172,14 +172,14 @@ intent    [UP TO DATE]
 
 ### Scenario 2: Code Review
 
-**Without agent:**
+Without agent:
 
 ```
 You: "Review this steel thread implementation"
 Claude: "What's a steel thread? What should I look for?"
 ```
 
-**With agent:**
+With agent:
 
 ```
 You: "Review this steel thread implementation"
@@ -243,27 +243,9 @@ Now Claude knows YOUR specific rules too.
 
 ## The Compound Effect
 
-Intent agents don't just save time – they fundamentally change what's possible:
+The time savings add up, but the bigger payoff is qualitative:
 
-### 1. Higher-Level Conversations
-
-Skip the basics, discuss architecture and design decisions immediately.
-
-### 2. Consistent Practices
-
-Every Claude session follows the same patterns, maintaining code quality.
-
-### 3. Knowledge Preservation
-
-Team conventions are encoded, not just documented.
-
-### 4. Accelerated Onboarding
-
-New team members get AI that already knows your ways.
-
-### 5. Evolution Support
-
-As Intent evolves, update the agent – all future sessions improve.
+You skip the basics and go straight to architecture and design decisions. Every Claude session follows the same patterns, so code quality stays consistent. Team conventions are encoded, not just documented, which means new team members get AI that already knows your ways. And as Intent evolves, you update the agent once and all future sessions improve.
 
 ## Implementation Details
 
@@ -328,12 +310,12 @@ $ intent agents status
 
 ## The Future
 
-This is just the beginning. Imagine:
+What's next:
 
-- **Language-specific agents**: Python, Go, Rust experts
-- **Framework agents**: React, Django, Rails specialists
-- **Domain agents**: Financial, healthcare, gaming knowledge
-- **Team agents**: Your specific architectural decisions
+- Language-specific agents for Python, Go, Rust
+- Framework agents for React, Django, Rails
+- Domain agents covering financial, healthcare, gaming contexts
+- Team agents encoding your specific architectural decisions
 
 Each agent layers additional expertise while maintaining Intent's structured approach.
 
@@ -349,12 +331,10 @@ That's it. Your next Claude session will be transformed.
 
 If you're not using Intent yet, [get started here](./0005-getting-started-with-intent.md).
 
-## Conclusion
+## Wrapping Up
 
-Intent agents solve the context problem permanently. No more explaining your methodology every session. No more reminding Claude about your commands. No more inconsistent suggestions.
+Intent agents solve the context problem permanently. You stop explaining your methodology every session, stop reminding Claude about your commands, and get consistent suggestions from day one.
 
-Just intelligent, context-aware assistance that understands your project as well as you do.
-
-The future of development isn't just AI-assisted – it's AI that truly understands your intent.
+The result: context-aware assistance that understands your project as well as you do.
 
 [Back to Intent Blog Index](./README.md)

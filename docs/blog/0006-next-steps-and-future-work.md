@@ -64,28 +64,28 @@ These limitations guide our development priorities.
 
 Using Intent to build Intent taught us a few things:
 
-- **Templates need flexibility**: Rigid structures frustrate users
-- **Granularity matters**: Too fine and it's overhead, too coarse and you lose visibility
-- **Integration beats isolation**: The Backlog.md integration multiplied Intent's value
-- **Simplicity wins**: Every complex feature we removed improved adoption
+- Rigid template structures frustrate users -- templates need flexibility
+- Granularity is a tradeoff: too fine and it's overhead, too coarse and you lose visibility
+- The Backlog.md integration multiplied Intent's value; integration beats isolation
+- Every complex feature we removed improved adoption
 
 ### Unexpected Benefits
 
 Some outcomes surprised us:
 
-- **Journal as team memory**: Daily entries became invaluable for debugging months later
-- **WIP as conversation starter**: The simple WIP doc improved team communication
-- **Steel threads as onboarding tool**: New developers could understand project structure instantly
-- **Meta-documentation power**: Using Intent for non-code projects (like this blog series) proved its versatility
+- Daily journal entries became invaluable for debugging months later
+- The simple WIP doc improved team communication more than expected
+- New developers could understand project structure instantly from steel threads
+- Using Intent for non-code projects (like this blog series) proved its versatility
 
 ### What Didn't Work
 
 Honesty about failures improves the tool:
 
-- **Automated git commits**: Too magical, removed user control
-- **Complex status rules**: Simple percentage-based sync worked better
-- **Mandatory fields**: Flexibility trumped enforced completeness
-- **GUI attempts**: Command-line interface proved more efficient
+- Automated git commits were too magical and removed user control
+- Complex status rules lost out to simple percentage-based sync
+- Mandatory fields: flexibility trumped enforced completeness
+- GUI attempts: the command-line interface proved more efficient
 
 ## Roadmap: The Next 12 Months
 
@@ -155,7 +155,7 @@ Honesty about failures improves the tool:
 
 ## Integration Opportunities
 
-Intent's design philosophy embraces integration rather than isolation. Here's how we're building bridges to your existing tools and workflows.
+Intent is designed to plug into your existing tools and workflows, not replace them.
 
 ### Development Environment Integration
 
@@ -281,7 +281,7 @@ intent status check --fail-on-mismatch
 
 ## Contributing to Intent
 
-Intent thrives on community contributions. Here's how you can help shape its future.
+Intent thrives on community contributions. Several areas could use help.
 
 ### Ways to Contribute
 
@@ -479,7 +479,7 @@ We envision Intent becoming the de facto standard for intention-aware developmen
 - 1M+ active users
 - Native cloud platform support
 
-**2030: Paradigm Shift**
+**2030: A Different Default**
 
 - Intent-first becomes default methodology
 - Code generation from steel threads
@@ -500,4 +500,4 @@ _Thank you for joining us on this journey through Intent. From understanding [wh
 
 _Ready to start? [Install Intent](./0005-getting-started-with-intent.md#installation-and-setup) and create your first steel thread today._
 
-**Remember**: Great software isn't just about what it does – it's about why it exists.
+**Remember**: The best software knows why it exists, not just what it does.

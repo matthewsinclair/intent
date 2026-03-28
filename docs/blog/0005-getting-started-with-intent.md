@@ -12,7 +12,7 @@ word_count: 2489
 
 After exploring the [philosophy](./0000-motivation-for-intent.md) and [methodology](./0002-the-steel-thread-methodology.md) behind Intent, you're ready to implement it in your own projects. This guide walks you through installation, daily workflow, and practical tips for success.
 
-What makes this guide unique? We used Intent itself to manage the creation of this blog series. Throughout this post, I'll share real command outputs and workflow states from our actual process, giving you an authentic view of Intent in action.
+We used Intent itself to manage the creation of this blog series. Throughout this post, I'll share real command outputs and workflow states from our actual process, giving you a concrete view of Intent in action.
 
 ## Installation and Setup
 
@@ -50,7 +50,7 @@ Intent version 1.0.0
 
 ### Installing Backlog.md
 
-Intent integrates beautifully with Backlog.md for task management:
+Intent integrates with Backlog.md for task management:
 
 ```bash
 # Install Backlog globally
@@ -409,7 +409,7 @@ Steel Thread: Add user notifications
 
 ### Managing Claude Code Agents
 
-If you're using Claude Code, Intent's agent system supercharges your AI collaboration:
+If you're using Claude Code, Intent's agent system significantly improves your AI collaboration:
 
 ```bash
 # Check available agents
@@ -517,7 +517,7 @@ You now have everything needed to implement Intent in your projects. Start small
 3. Break it into tasks
 4. Experience the clarity
 
-Remember: Intent isn't about perfect documentation. It's about capturing enough intention to make future development decisions with confidence.
+Remember: Intent is about capturing enough intention to make future development decisions with confidence, not about perfect documentation.
 
 The journey from confusion to clarity starts with a single steel thread.
 

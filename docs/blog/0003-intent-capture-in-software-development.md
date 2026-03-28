@@ -389,7 +389,7 @@ Teams using Intent-style intent capture report:
 
 ## Making Intent Capture a Habit
 
-Intent capture isn't a one-time activity – it's a continuous practice. Start small:
+Intent capture is a continuous practice, not a one-time activity. Start small:
 
 1. **Next PR**: Add a "Why" section to your description
 2. **Next function**: Include a comment explaining the approach
@@ -400,8 +400,8 @@ The goal isn't perfect documentation. The goal is preserving enough context that
 
 ## Intent Capture Transforms Development
 
-When intent becomes explicit, development transforms from archaeology to architecture. Instead of excavating meaning from cryptic code, developers build on a foundation of clear purpose. LLMs shift from guessing your needs to understanding your goals. Teams move from confusion to clarity.
+When intent becomes explicit, developers stop excavating meaning from cryptic code and start building on a foundation of clear purpose. LLMs can understand your goals instead of guessing at them. Teams gain the shared context they need to move quickly.
 
-In our next post, we'll explore how this foundation of captured intent enables unprecedented collaboration with LLMs, turning AI assistants from code generators into true development partners.
+In our next post, we'll look at how captured intent changes the way you work with LLMs, turning AI assistants from code generators into effective development partners.
 
 [Continue to: LLM Collaboration with Intent →](./0004-llm-collaboration-with-intent.md)
