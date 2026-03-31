@@ -6,16 +6,16 @@ Intent v2.8.0 -- CLI tool for managing steel threads, project docs, and LLM guid
 
 ## Current State
 
-v2.8.0 committed and pushed. No active steel threads.
+v2.8.0 committed and pushed. No active steel threads. 19 skills, 5 subagents.
 
 ## Recent Work
 
+- v2.8.0: /in-handoff skill + skills list display fixes (2026-03-31)
+  - Created `/in-handoff` skill for permanent session handoff documents (ST0029)
+  - Handoff docs stored at `intent/.handoff/YYYYMMDD-NNN-<slug>.md`
+  - Fixed skills list: dynamic name column, terminal-width-aware, compact format
+  - Fixed `get_terminal_width()` fallback chain
 - v2.8.0: Detrope skill + blog remediation (2026-03-28)
-  - Created [llm-tropes](https://github.com/matthewsinclair/llm-tropes) repo (44 tropes, 8 categories)
-  - Created `/in-detrope` skill for LLM trope detection and stylometric analysis
-  - Added `cleanz --detrope` to Utilz for automated mechanical detection
-  - Detroped all 8 blog posts in docs/blog/
-  - 18 skills total, 5 subagents
 - ST0028: TCA v3.0 (completed 2026-03-19)
 
 ## TODO
@@ -25,8 +25,8 @@ v2.8.0 committed and pushed. No active steel threads.
 
 ## Key Files
 
-- `intent/plugins/claude/skills/in-detrope/` -- detrope skill (SKILL.md + trope-catalog)
-- `docs/blog/` -- detroped blog series (8 posts)
+- `intent/plugins/claude/skills/in-handoff/` -- handoff skill (SKILL.md + handoff-prep.sh)
+- `intent/.handoff/` -- handoff document archive
 - `intent/wip.md` -- current state tracker
 
 ## Conventions
