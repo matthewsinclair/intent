@@ -121,7 +121,6 @@ get_skill_title() {
 
 # List available and installed skills
 intent_claude_skills_list() {
-  echo "Available Skills:"
   echo ""
 
   local skills
@@ -135,8 +134,14 @@ intent_claude_skills_list() {
   local term_width
   term_width=$(get_terminal_width)
 
-  # Layout: "  " (2) + skill (30) + " - " (3) = 35 left, status right-aligned
-  local desc_width=$(( term_width - 35 - 16 ))
+  # Find widest skill name for column sizing
+  local name_col=10
+  for skill in $skills; do
+    [ ${#skill} -gt $name_col ] && name_col=${#skill}
+  done
+
+  # Layout: name (name_col) + ": " (2) + desc + gap + status (16)
+  local desc_width=$(( term_width - name_col - 2 - 16 ))
   [ "$desc_width" -lt 20 ] && desc_width=20
 
   # Parse --verbose flag
@@ -164,11 +169,11 @@ intent_claude_skills_list() {
       local full_desc left pad
       full_desc=$(get_skill_description "$skill_file" 2>/dev/null)
       [ -z "$full_desc" ] && full_desc="No description"
-      left="$(printf '%-30s' "$skill")"
-      pad=$(( term_width - 2 - ${#left} - ${#status} ))
+      left="$(printf "%-${name_col}s" "$skill")"
+      pad=$(( term_width - ${#left} - ${#status} ))
       [ "$pad" -lt 1 ] && pad=1
-      printf "  %s%*s%s\n" "$left" "$pad" "" "$status"
-      printf "    %s\n\n" "$full_desc"
+      printf "%s%*s%s\n" "$left" "$pad" "" "$status"
+      printf "  %s\n\n" "$full_desc"
     else
       local description full_desc left pad
       full_desc=$(get_skill_description "$skill_file" 2>/dev/null)
@@ -181,10 +186,11 @@ intent_claude_skills_list() {
         description="${description% *}..."
       fi
 
-      left="$(printf '%-30s' "$skill") - $description"
-      pad=$(( term_width - 2 - ${#left} - ${#status} ))
+      local name_with_colon="${skill}:"
+      left="$(printf "%-$((name_col + 1))s" "$name_with_colon") $description"
+      pad=$(( term_width - ${#left} - ${#status} ))
       [ "$pad" -lt 1 ] && pad=1
-      printf "  %s%*s%s\n" "$left" "$pad" "" "$status"
+      printf "%s%*s%s\n" "$left" "$pad" "" "$status"
     fi
   done
 

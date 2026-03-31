@@ -1,10 +1,10 @@
 ---
 verblock: "19 Mar 2026:v0.1: matts - Initial version"
 intent_version: 2.7.0
-status: Done
+status: Completed
 slug: tca-v3-process-doc-update-skill-suite
 created: 20260319
-completed: 20260319
+completed: 20260331
 ---
 
 # ST0028: TCA v3.0 -- Process Doc Update + Skill Suite

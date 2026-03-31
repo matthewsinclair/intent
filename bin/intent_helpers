@@ -39,11 +39,9 @@ export -f calculate_checksum
 # Get terminal width with fallback chain
 get_terminal_width() {
   local width="${COLUMNS:-}"
-  if [ -z "$width" ] && [ -t 1 ]; then
-    width=$(stty size < /dev/tty 2>/dev/null | cut -d' ' -f2)
-  fi
-  : "${width:=$(tput cols 2>/dev/null)}"
-  : "${width:=100}"
+  [ -z "$width" ] && width=$(stty size < /dev/tty 2>/dev/null | cut -d' ' -f2)
+  [ -z "$width" ] && width=$(tput cols 2>/dev/null)
+  [ -z "$width" ] && width=100
   echo "$width"
 }
 export -f get_terminal_width

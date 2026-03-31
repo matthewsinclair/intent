@@ -89,6 +89,12 @@
 | TCA remediation     | `intent/plugins/claude/skills/in-tca-remediate/`  | SKILL.md only              |
 | TCA wrap-up         | `intent/plugins/claude/skills/in-tca-finish/`     | SKILL.md + tca-report.sh   |
 
+## Skills: Handoff
+
+| Concern         | THE Module                                 | Notes                      |
+| --------------- | ------------------------------------------ | -------------------------- |
+| Session handoff | `intent/plugins/claude/skills/in-handoff/` | SKILL.md + handoff-prep.sh |
+
 ## Skills: Detrope
 
 | Concern        | THE Module                                 | Notes                    |

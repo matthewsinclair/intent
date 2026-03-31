@@ -65,7 +65,6 @@ teardown() {
 @test "claude skills list shows available skills" {
   run run_intent claude skills list
   assert_success
-  assert_output_contains "Available Skills:"
   assert_output_contains "in-essentials"
   assert_output_contains "in-elixir-essentials"
   assert_output_contains "in-ash-ecto-essentials"

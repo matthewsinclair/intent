@@ -1,5 +1,5 @@
 ---
-verblock: "28 Mar 2026:v0.22: matts - Detrope skill + blog remediation"
+verblock: "31 Mar 2026:v0.23: matts - Add /in-handoff skill + skills list display fixes"
 intent_version: 2.8.0
 ---
 
@@ -7,15 +7,17 @@ intent_version: 2.8.0
 
 ## Current State
 
-v2.8.0 with detrope skill and blog series remediation. Committed and pushed to both remotes.
+v2.8.0 with /in-handoff skill and skills list display improvements. 19 skills, 5 subagents.
 
 ## This Session
 
-- Created [llm-tropes](https://github.com/matthewsinclair/llm-tropes) repo (44 tropes, 8 categories)
-- Created `/in-detrope` skill (SKILL.md + vendored trope-catalog.md)
-- Added `cleanz --detrope` to Utilz for automated trope detection
-- Detroped all 8 blog posts in docs/blog/
-- Version bumped to v2.8.0, all docs updated
+- Created `/in-handoff` skill (ST0029) -- permanent session handoff documents at `intent/.handoff/`
+- Helper script `handoff-prep.sh` automates date/sequence/slug/git-context gathering
+- Fixed `intent claude skills list` display:
+  - Dynamic name column (auto-sizes to widest skill)
+  - Terminal-width-aware right-aligned status tags
+  - Compact format: `name: description` (no indent, no header)
+- Fixed `get_terminal_width()` -- removed `[ -t 1 ]` guard blocking fallback chain
 
 ## Active Steel Threads
 
@@ -33,7 +35,6 @@ None.
 
 ## Key References
 
-- llm-tropes repo: `https://github.com/matthewsinclair/llm-tropes`
-- Detrope skill: `intent/plugins/claude/skills/in-detrope/`
-- Blog posts: `docs/blog/`
+- Handoff skill: `intent/plugins/claude/skills/in-handoff/`
+- Handoff docs: `intent/.handoff/`
 - Test suite: `tests/run_tests.sh` (22 .bats files, 462 tests)
