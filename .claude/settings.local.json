@@ -30,7 +30,8 @@
       "Bash(tests/run_tests.sh)",
       "Bash(gh release:*)",
       "Bash(/Users/matts/Devel/prj/Intent/intent/plugins/claude/bin/intent_claude_upgrade)",
-      "Bash(git status:*)"
+      "Bash(git status:*)",
+      "Bash(intent wp:*)"
     ],
     "deny": []
   }
