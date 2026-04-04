@@ -11,8 +11,10 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 
-| ID  | Slug | Status | Created | Completed |
-| --- | ---- | ------ | ------- | --------- |
+| ID     | Slug                      | Status | Created    | Completed |
+| ------ | ------------------------- | ------ | ---------- | --------- |
+| ST0031 | agentic-coding-course-... | WIP    | 2026-04-04 |
+| ST0030 | cherry-pick-superpower... | WIP    | 2026-04-04 |
 
 <!-- END: STEEL_THREAD_INDEX -->
 

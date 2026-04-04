@@ -1,5 +1,6 @@
 ---
 description: "Next step: review state, identify smallest coherent work unit, wait for go"
+chains_to: ["in-plan"]
 ---
 
 # Next Step
@@ -35,3 +36,9 @@ Present:
 ### 4. Wait for instructions
 
 Do not start coding. Present the next step and wait for the user to confirm or redirect.
+
+## Skill Chain
+
+If the next work unit needs detailed planning, consider:
+
+- `/in-plan` -- if the work needs a full plan before starting

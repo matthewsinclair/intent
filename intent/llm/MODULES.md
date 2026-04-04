@@ -89,6 +89,14 @@
 | TCA remediation     | `intent/plugins/claude/skills/in-tca-remediate/`  | SKILL.md only              |
 | TCA wrap-up         | `intent/plugins/claude/skills/in-tca-finish/`     | SKILL.md + tca-report.sh   |
 
+## Skills: Superpowers Cherry-Picks
+
+| Concern              | THE Module                                | Notes         |
+| -------------------- | ----------------------------------------- | ------------- |
+| Verification gate    | `intent/plugins/claude/skills/in-verify/` | SKILL.md only |
+| Systematic debugging | `intent/plugins/claude/skills/in-debug/`  | SKILL.md only |
+| Two-stage review     | `intent/plugins/claude/skills/in-review/` | SKILL.md only |
+
 ## Skills: Handoff
 
 | Concern         | THE Module                                 | Notes                      |

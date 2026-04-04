@@ -1,5 +1,6 @@
 ---
 description: "Session finish: update ST docs, wip.md, restart.md, commit cleanly"
+chains_to: ["in-verify"]
 ---
 
 # Session Finish
@@ -47,3 +48,17 @@ Rewrite `.claude/restart.md` with:
 ### 5. ONLY update .md doc files
 
 Do NOT write new code during session finish. This step is documentation only. Commit the documentation updates.
+
+## Skill Chain
+
+Before finishing, consider:
+
+- `/in-verify` -- verify any completion claims made this session
+
+## Red Flags
+
+| Rationalization                          | Reality                                                      |
+| ---------------------------------------- | ------------------------------------------------------------ |
+| "I'll update restart.md next session"    | Next session won't have this context. Write it now.          |
+| "The code speaks for itself"             | Code changes without docs are invisible to the next session. |
+| "Just one more quick fix before wrap-up" | Finish means finish. No new code.                            |

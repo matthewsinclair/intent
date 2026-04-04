@@ -53,3 +53,11 @@ Pure-Functional Idiomatic Code:
 - All markdown tables must be column-aligned
 - No non-printing characters (proper emojis and ASCII only)
 - No em dashes in skill files
+
+## Red Flags
+
+| Rationalization                           | Reality                                           |
+| ----------------------------------------- | ------------------------------------------------- |
+| "This helper is only used once, it's OK"  | Check MODULES.md. Someone else may have built it. |
+| "The coordinator needs this logic inline" | If it's more than parse/call/format, extract it.  |
+| "Pattern matching is overkill here"       | It's never overkill. It's the Elixir way.         |

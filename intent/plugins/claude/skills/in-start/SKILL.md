@@ -1,5 +1,6 @@
 ---
 description: "Session start: read restart files, review STs, orientation overview before coding"
+chains_to: ["in-plan", "in-next"]
 ---
 
 # Session Start
@@ -39,3 +40,10 @@ Summarize:
 ### 5. Wait for instructions
 
 DO NOT WRITE ANY CODE. This is a read-only orientation step. Wait for the user to direct what to work on.
+
+## Skill Chain
+
+After orientation, consider:
+
+- `/in-plan` -- if starting new work that needs planning
+- `/in-next` -- if continuing existing work

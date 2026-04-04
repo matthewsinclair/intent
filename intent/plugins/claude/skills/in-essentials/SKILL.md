@@ -115,3 +115,12 @@ intent wp list ST0005
 intent wp start ST0005/01
 intent wp done ST0005/01
 ```
+
+## Red Flags
+
+| Rationalization                           | Reality                                                |
+| ----------------------------------------- | ------------------------------------------------------ |
+| "I'll use the CLI later"                  | Manual creation causes drift. Use the CLI now.         |
+| "This is too small for a steel thread"    | Every piece of work gets tracked. No exceptions.       |
+| "I know where things are, skip treeindex" | You lose context on compaction. Check treeindex first. |
+| "I'll update docs at the end"             | Sessions get interrupted. Update docs as you go.       |
