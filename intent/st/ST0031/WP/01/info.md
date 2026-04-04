@@ -1,7 +1,7 @@
 ---
 verblock: "04 Apr 2026:v0.1: matts - Initial version"
 intent_version: 2.8.0
-status: Not Started
+status: Done
 ---
 
 # WP-01: ACI Format & Extraction Protocol

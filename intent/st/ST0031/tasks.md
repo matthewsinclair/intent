@@ -1,13 +1,16 @@
 # Tasks - ST0031: Agentic Coding Course
 
-## WP-01: ACI Format & Extraction Protocol
+## WP-01: ACI Format & Extraction Protocol (Done)
 
-- [ ] Define final ACI markdown template
-- [ ] Write 3-5 hand-crafted ACIs from known lessons to validate format
-- [ ] Document extraction protocol (6 lenses, tools, commands per lens)
-- [ ] Evaluate autopsy Elixir script for Lens 3 reuse
-- [ ] User review and approval of ACI format
-- [ ] Create `docs/course/templates/aci-template.md`
+- [x] Define final ACI markdown template
+- [x] Write 3-5 hand-crafted ACIs from known lessons to validate format (wrote 5)
+- [x] Document extraction protocol (6 lenses, tools, commands per lens)
+- [x] Evaluate autopsy Elixir script for Lens 3 reuse (verdict: use as-is)
+- [x] User review and approval of ACI format
+- [x] Create `docs/course/content/templates/aci-template.md`
+- [x] Create detrope checklist and integrate into every content step
+- [x] Start "How This Course Was Built" meta-chapter
+- [x] Full LLM-based detrope analysis on all content files (0 flags, AI signal "low")
 
 ## WP-02: Pilot Extraction -- Intent + Lamplight + MeetZaya
 

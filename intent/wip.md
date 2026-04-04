@@ -1,5 +1,5 @@
 ---
-verblock: "04 Apr 2026:v0.24: matts - ST0031 elaboration complete, ready for WP-01"
+verblock: "04 Apr 2026:v0.25: matts - ST0031/WP-01 complete"
 intent_version: 2.8.0
 ---
 
@@ -7,25 +7,30 @@ intent_version: 2.8.0
 
 ## Current State
 
-v2.8.0 with 22 skills, 5 subagents, 462 tests. ST0030 complete. ST0031 fully elaborated.
+v2.8.0 with 22 skills, 5 subagents, 462 tests. ST0031/WP-01 complete. WP-02 and WP-03 ready to start in parallel.
 
-## This Session
+## This Session (2026-04-04, session 2)
 
-- Completed ST0030 via `intent st done ST0030`
-- Ran autopsy (20260404): 14 sessions, clean results, "overall" removed from banned words
-- Consolidated MEMORY.md from 213 to 55 lines
-- Fully elaborated ST0031: info.md, design.md, tasks.md, 7 WP info.md files
-- Created `docs/course/` directory
+- Completed ST0031/WP-01: ACI Format & Extraction Protocol
+- Created 10 files under `docs/course/` (process/ and content/ split)
+- Defined ACI template with 5 mandatory sections and structured frontmatter
+- Hand-crafted 5 sample ACIs covering 5 of 6 extraction lenses
+- Wrote 6-lens extraction protocol with concrete commands per lens
+- Assessed autopsy script for Lens 3 reuse (verdict: use as-is, no changes needed)
+- Established detrope quality gate (mechanical + full LLM-based analysis)
+- Started "How This Course Was Built" meta-chapter
+- Collected 3 external blog post references from user
+- Full detrope analysis: 0 flags, AI signal "low" across all content files
 
 ## Active Steel Threads
 
-- ST0031: Agentic Coding Course -- elaborated, ready for WP-01
+- ST0031: Agentic Coding Course -- WP-01 done, WP-02 and WP-03 next (parallel)
 
 ## TODO
 
-- ST0031/WP-01: Define ACI format, hand-craft 3-5 sample ACIs, document extraction protocol
-- ST0031/WP-02: Pilot extraction on Intent + Lamplight + MeetZaya (parallel with WP-03)
-- ST0031/WP-03: Landscape research (parallel with WP-02)
+- ST0031/WP-02: Pilot extraction on Intent + Lamplight + MeetZaya (20-25 ACI candidates)
+- ST0031/WP-03: Landscape research -- 7 dimensions, evaluation framework, 8-12 landscape ACIs
+- After WP-02+03: WP-04 (taxonomy + course structure)
 
 ## Parked
 
@@ -37,6 +42,6 @@ v2.8.0 with 22 skills, 5 subagents, 462 tests. ST0030 complete. ST0031 fully ela
 ## Key References
 
 - ST0031 steel thread: `intent/st/ST0031/`
-- Course content: `docs/course/`
-- Plan file: `~/.claude/plans/temporal-wishing-panda.md`
+- Course content: `docs/course/` (process/ for methodology, content/ for deliverables)
+- Plan file: `~/.claude/plans/dynamic-hatching-shannon.md`
 - Test suite: `tests/run_tests.sh` (22 .bats files, 462 tests)
