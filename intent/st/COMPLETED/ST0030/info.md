@@ -1,10 +1,10 @@
 ---
-verblock: "04 Apr 2026:v0.1: matts - Initial version"
+verblock: "04 Apr 2026:v0.2: matts - Completed, all 6 WPs done"
 intent_version: 2.8.0
-status: WIP
+status: Completed
 slug: cherry-pick-superpowers-skills-and-bring-them
 created: 20260404
-completed:
+completed: 20260404
 ---
 
 # ST0030: Cherry-Pick Superpowers Patterns for Intent
