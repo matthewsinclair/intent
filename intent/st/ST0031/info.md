@@ -1,5 +1,5 @@
 ---
-verblock: "04 Apr 2026:v0.2: matts - Full elaboration with 7 WPs, ACI model, landscape research"
+verblock: "05 Apr 2026:v0.3: matts - WP-02+WP-03 substantially complete, 22 ACIs, detrope done"
 intent_version: 2.8.0
 status: WIP
 slug: agentic-coding-course-using-intent

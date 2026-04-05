@@ -14,36 +14,40 @@
 
 ## WP-02: Pilot Extraction -- Intent + Lamplight + MeetZaya
 
-- [ ] Lens 1 (Rule Archaeology): Intent CLAUDE.md evolution (28 edits)
-- [ ] Lens 1 (Rule Archaeology): Lamplight CLAUDE.md evolution (10 edits)
-- [ ] Lens 1 (Rule Archaeology): MeetZaya CLAUDE.md evolution (17 edits)
-- [ ] Lens 2 (Plan-Outcome Delta): Intent STs (sample of 29 completed)
-- [ ] Lens 2 (Plan-Outcome Delta): Lamplight STs (sample from 96 completed)
-- [ ] Lens 2 (Plan-Outcome Delta): MeetZaya STs (sample from 52 completed)
-- [ ] Lens 3 (Correction Mining): Intent sessions (14 files, 46MB)
-- [ ] Lens 3 (Correction Mining): Lamplight sessions (70 files, 861MB)
-- [ ] Lens 4 (Architecture Forensics): Lamplight major refactors
-- [ ] Lens 4 (Architecture Forensics): MeetZaya architecture evolution
-- [ ] Lens 5 (Methodology Evolution): Cross-repo timeline
-- [ ] Lens 6 (Failure Archaeology): MeetZaya full case study
-- [ ] Lens 6 (Failure Archaeology): Lamplight cancelled STs (17)
+- [x] Lens 1 (Rule Archaeology): Intent CLAUDE.md evolution (28 edits)
+- [x] Lens 1 (Rule Archaeology): Lamplight CLAUDE.md evolution (10 edits)
+- [x] Lens 1 (Rule Archaeology): MeetZaya CLAUDE.md evolution (17 edits)
+- [x] Lens 2 (Plan-Outcome Delta): Intent STs (4 sampled: ST0025, 0026, 0028, 0030)
+- [x] Lens 2 (Plan-Outcome Delta): Lamplight STs (4 sampled: ST0037, 0044, 0046, 0048)
+- [x] Lens 2 (Plan-Outcome Delta): MeetZaya STs (5 sampled: ST0038, 0039, 0040, 0062, 0065)
+- [x] Lens 3 (Correction Mining): Intent sessions (14 files, autopsy run)
+- [ ] Lens 3 (Correction Mining): Lamplight sessions (70 files, 861MB -- deferred, large corpus)
+- [x] Lens 4 (Architecture Forensics): Lamplight major refactors (cafe namespace, app rename oscillation)
+- [x] Lens 4 (Architecture Forensics): MeetZaya architecture evolution (regression cascade)
+- [x] Lens 5 (Methodology Evolution): Cross-repo timeline (3 repos)
+- [x] Lens 6 (Failure Archaeology): MeetZaya failure trajectory (from ST artifacts + git history)
+- [x] Lens 6 (Failure Archaeology): Lamplight cancelled STs (17 analyzed)
 - [ ] User interview: MeetZaya non-coding failure reasons
-- [ ] Compile raw ACI candidates (target: 20-25)
-- [ ] Protocol calibration notes
+- [x] Compile raw ACI candidates (22 total, target was 20-25)
+- [x] Protocol calibration notes (all 6 lenses checked off in extraction-protocol.md)
+- [x] Detrope gate: mechanical 0 flags, full LLM analysis (26 flags found and fixed)
 
 ## WP-03: Landscape Research (parallel with WP-02)
 
-- [ ] Dimension A: Anthropic's official agentic coding guidance
-- [ ] Dimension B: Tool landscape (Claude Code, Cursor, Aider, Windsurf, etc.)
-- [ ] Dimension C: Skills/plugins ecosystem assessment
-- [ ] Dimension D: Open source agentic methodology survey
-- [ ] Dimension E: Enterprise adoption patterns
-- [ ] Dimension F: Mental models and paradigms
-- [ ] Dimension G: Notable practitioners and voices
-- [ ] Write evaluation framework document
-- [ ] Compile landscape ACIs (target: 8-12)
-- [ ] Create `docs/course/landscape.md`
-- [ ] Create `docs/course/evaluation-framework.md`
+- [x] Dimension A: Anthropic's official agentic coding guidance
+- [x] Dimension B: Tool landscape (Claude Code, Cursor, Aider, Windsurf, etc.)
+- [x] Dimension C: Skills/plugins ecosystem assessment
+- [x] Dimension D: Open source agentic methodology survey
+- [x] Dimension E: Enterprise adoption patterns
+- [x] Dimension F: Mental models and paradigms
+- [x] Dimension G: Notable practitioners and voices
+- [x] Write evaluation framework document
+- [x] Compile landscape ACIs (8 produced: ACI-013 through ACI-020)
+- [x] Create `docs/course/landscape.md`
+- [x] Create `docs/course/evaluation-framework.md`
+- [ ] Live web verification of post-mid-2025 developments (see Freshness Notes)
+- [ ] Tool comparison matrix as standalone artifact
+- [ ] Reading list / resource guide as standalone artifact
 
 ## WP-04: Taxonomy & Course Structure
 
