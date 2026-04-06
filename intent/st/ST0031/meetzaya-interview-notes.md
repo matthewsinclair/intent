@@ -62,14 +62,32 @@ The irony is not "we had a working product and nobody to use it." It is: we had 
 
 ## Rules Violated
 
-The founder has a personal framework: "10 Rules for Building Stuff People Give a Shit About" (inspired by Jakob Nielsen's 10 Usability Heuristics, unpublished). MeetZaya violated several of these rules:
+The founder has a personal framework: "10 Rules for Building Stuff People Give a Shit About" (inspired by Jakob Nielsen's 10 Usability Heuristics, unpublished).
 
-1. "You get one miracle, spend it wisely" -- MeetZaya needed multiple miracles (data moat + user engagement + positioning clarity + funding)
-2. "Match between who pays and who benefits" -- The commercial model (hiring managers pay, candidates use) had a payer/beneficiary mismatch
-3. "Be careful removing obvious inefficiency from a value chain" -- Entrenched incumbents (LinkedIn) actively protect their position
-4. "Failure is a better teacher than success" -- This project is now teaching more in death than it ever did in development
-5. "Scratch an itch" -- The founders would have used the tools themselves ("chat with my CV," "publish my CV to a hosted website"), but the deeper question is whether these are features of another product rather than tentpole features of a standalone product. MeetZaya likely failed the "feature not a product" test.
-6. "Seek counterfactuals" -- Insufficient effort to disprove the hypothesis before committing to building
+### The full 10 Rules
+
+1. "You get one miracle, spend it wisely"
+2. "Make sure the person who pays is the same person who benefits"
+3. "The pay/use corollary" (reverse of #2: if the beneficiary doesn't pay, they won't respect it)
+4. "Be careful removing an 'obvious' inefficiency from a value chain"
+5. "Failure is a better teacher than success"
+6. "No new physics"
+7. "Stop selling maps to the minefield"
+8. "Scratch an itch"
+9. "Seek counterfactuals"
+10. "Write your own list"
+    Bonus 1: "Get into trouble slowly" (don't solve a new business problem with new tech simultaneously)
+    Bonus 2: "When drunk, stay at ground level"
+
+### Rules MeetZaya violated
+
+1. (#1) "You get one miracle" -- MeetZaya needed multiple miracles (data moat + user engagement + positioning clarity + funding)
+2. (#2) "Who pays, who benefits" -- The commercial model (hiring managers pay, candidates use) had a payer/beneficiary mismatch
+3. (#4) "Obvious inefficiency" -- Entrenched incumbents (LinkedIn) actively protect their position
+4. (#5) "Failure teaches" -- This project is now teaching more in death than it ever did in development
+5. (#8) "Scratch an itch" -- The founders would have used the tools themselves ("chat with my CV," "publish my CV to a hosted website"), but the deeper question is whether these are features of another product rather than tentpole features of a standalone product. MeetZaya likely failed the "feature not a product" test.
+6. (#9) "Seek counterfactuals" -- Insufficient effort to disprove the hypothesis before committing to building
+7. (Bonus 1) "Get into trouble slowly" -- Used new tech (agentic coding) to solve a new business problem simultaneously
 
 ## The Agentic Coding Confession
 
