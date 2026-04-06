@@ -96,12 +96,18 @@
 
 ## WP-07: Packaging & Delivery Assets
 
-- [ ] Course README with setup instructions
-- [ ] Per-day handout materials
-- [ ] Sample/exercise repo for practical sessions
-- [ ] Enterprise-specific framing materials (ROI, governance)
-- [ ] Evaluation framework as standalone handout
-- [ ] Reading list / resource guide
+All new files go in `docs/course/delivery/`.
+
+- [ ] Course README with setup instructions and file map (`delivery/README.md`)
+- [ ] Per-day summary sheets -- desk reference cards, not exercise extracts (`delivery/day-{1-5}-summary.md`)
+- [ ] Sample repo specification -- requirements per exercise, build guide, fallbacks (`delivery/sample-repo-spec.md`). Actual repo construction is a separate future task.
+- [ ] Enterprise pathway supplement -- ROI (ACI-025), governance, risk, blog 0197 framing (`delivery/enterprise-supplement.md`)
+- [ ] Reading list / resource guide -- annotated, tiered (essential/supplementary/reference), per-day mapping (`delivery/reading-list.md`). Tool comparison matrix folded in (data from `landscape.md` Section B).
+- [ ] Facilitation guide -- logistics, daily schedule, pathway selection, timing, material distribution (`delivery/facilitation-guide.md`)
+- [ ] Day 5 facilitation addendum -- case study storytelling, blog 0196 integration, Oxford Ionics parallel (`delivery/day-5-facilitation-addendum.md`)
+- [ ] Evaluation framework: already standalone at `evaluation-framework.md` -- no new file needed, README references it
+- [ ] Update how-this-course-was-built.md with WP-07 process notes
+- [ ] Final consistency checks (cross-refs, file map, ROI data match)
 
 ## Dependencies
 

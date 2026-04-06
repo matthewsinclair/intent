@@ -23,9 +23,11 @@ v2.8.0 with 22 skills, 5 subagents, 462 tests. ST0031/WP-06 complete. Full cours
 
 ## TODO
 
-- WP-07: Packaging (README, handouts, sample repo, tool matrix, reading list, facilitation guide)
-- Note: Blog 0196 (storytelling as truth vehicle) for WP-07 facilitation guide
-- Note: Blog 0197 (expanding pie) for enterprise framing materials
+- WP-07: Packaging -- 11 new files in `docs/course/delivery/`:
+  - README, 5 summary sheets, sample repo spec, enterprise supplement, facilitation guide, Day 5 addendum, reading list
+  - Plan at `.claude/plans/immutable-cooking-simon.md` (5 phases, 5 commits)
+- Note: Blog 0196 (storytelling) for Day 5 facilitation addendum
+- Note: Blog 0197 (expanding pie) for enterprise supplement
 
 ## Parked
 
