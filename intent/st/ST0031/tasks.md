@@ -12,7 +12,7 @@
 - [x] Start "How This Course Was Built" meta-chapter
 - [x] Full LLM-based detrope analysis on all content files (0 flags, AI signal "low")
 
-## WP-02: Pilot Extraction -- Intent + Lamplight + MeetZaya
+## WP-02: Pilot Extraction -- Intent + Lamplight + MeetZaya (Done, 2 items deferred)
 
 - [x] Lens 1 (Rule Archaeology): Intent CLAUDE.md evolution (28 edits)
 - [x] Lens 1 (Rule Archaeology): Lamplight CLAUDE.md evolution (10 edits)
@@ -21,18 +21,18 @@
 - [x] Lens 2 (Plan-Outcome Delta): Lamplight STs (4 sampled: ST0037, 0044, 0046, 0048)
 - [x] Lens 2 (Plan-Outcome Delta): MeetZaya STs (5 sampled: ST0038, 0039, 0040, 0062, 0065)
 - [x] Lens 3 (Correction Mining): Intent sessions (14 files, autopsy run)
-- [ ] Lens 3 (Correction Mining): Lamplight sessions (70 files, 861MB -- deferred, large corpus)
+- [ ] Lens 3 (Correction Mining): Lamplight sessions (70 files, 861MB -- DEFERRED to WP-05 pending gap analysis)
 - [x] Lens 4 (Architecture Forensics): Lamplight major refactors (cafe namespace, app rename oscillation)
 - [x] Lens 4 (Architecture Forensics): MeetZaya architecture evolution (regression cascade)
 - [x] Lens 5 (Methodology Evolution): Cross-repo timeline (3 repos)
 - [x] Lens 6 (Failure Archaeology): MeetZaya failure trajectory (from ST artifacts + git history)
 - [x] Lens 6 (Failure Archaeology): Lamplight cancelled STs (17 analyzed)
-- [ ] User interview: MeetZaya non-coding failure reasons
+- [ ] User interview: MeetZaya non-coding failure reasons (BLOCKED -- requires user input, deferred to WP-06)
 - [x] Compile raw ACI candidates (22 total, target was 20-25)
 - [x] Protocol calibration notes (all 6 lenses checked off in extraction-protocol.md)
 - [x] Detrope gate: mechanical 0 flags, full LLM analysis (26 flags found and fixed)
 
-## WP-03: Landscape Research (parallel with WP-02)
+## WP-03: Landscape Research (Done, 2 items deferred to WP-07)
 
 - [x] Dimension A: Anthropic's official agentic coding guidance
 - [x] Dimension B: Tool landscape (Claude Code, Cursor, Aider, Windsurf, etc.)
@@ -45,20 +45,23 @@
 - [x] Compile landscape ACIs (8 produced: ACI-013 through ACI-020)
 - [x] Create `docs/course/landscape.md`
 - [x] Create `docs/course/evaluation-framework.md`
-- [ ] Live web verification of post-mid-2025 developments (see Freshness Notes)
-- [ ] Tool comparison matrix as standalone artifact
-- [ ] Reading list / resource guide as standalone artifact
+- [x] Live web verification of post-mid-2025 developments (done: tool table, Section A, C updated; Cursor needs manual check)
+- [ ] Tool comparison matrix as standalone artifact (DEFERRED to WP-07 -- data exists in landscape.md)
+- [ ] Reading list / resource guide as standalone artifact (DEFERRED to WP-07 -- sources exist in landscape.md)
 
 ## WP-04: Taxonomy & Course Structure
 
-- [ ] Cluster all ACIs (internal + landscape) into categories
-- [ ] Build taxonomy document with definitions
-- [ ] Map ACIs to 5-day structure
-- [ ] Design individual pathway (sequencing + framing)
-- [ ] Design enterprise pathway (sequencing + framing)
-- [ ] Gap analysis: identify thin days/categories
-- [ ] Create `docs/course/taxonomy.md`
-- [ ] Create `docs/course/outline.md`
+- [x] Cluster all ACIs (internal + landscape) into 5 refined categories
+- [x] Build taxonomy document with definitions (`docs/course/taxonomy.md`)
+- [x] Map ACIs to 5-day structure (4/4/6/6/2 distribution)
+- [x] Design individual pathway (sequencing + framing per day)
+- [x] Design enterprise pathway (sequencing + framing per day)
+- [x] Gap analysis: Day 2 tight (need prompt quality ACI), Day 5 thin (need recovery + productivity ACIs)
+- [x] Create `docs/course/taxonomy.md`
+- [x] Create `docs/course/outline.md`
+- [x] Update ACI frontmatter categories for 3 migrated ACIs (009, 012, 014)
+- [x] Update `how-this-course-was-built.md` with WP-02/03 process notes
+- [x] Full detrope pass on ACIs 010-011, 015-022 (mechanical + LLM)
 
 ## WP-05: Scale Extraction
 

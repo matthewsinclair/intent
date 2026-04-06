@@ -1,5 +1,5 @@
 ---
-verblock: "05 Apr 2026:v0.3: matts - WP-02+WP-03 substantially complete, 22 ACIs, detrope done"
+verblock: "06 Apr 2026:v0.4: matts - WP-04 complete: taxonomy, 5-day outline, dual pathways, gap analysis"
 intent_version: 2.8.0
 status: WIP
 slug: agentic-coding-course-using-intent

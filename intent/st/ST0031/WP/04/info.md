@@ -1,7 +1,7 @@
 ---
-verblock: "04 Apr 2026:v0.1: matts - Initial version"
+verblock: "06 Apr 2026:v0.2: matts - Complete: taxonomy, outline, gap analysis, dual pathways"
 intent_version: 2.8.0
-status: Not Started
+status: Done
 ---
 
 # WP-04: Taxonomy & Course Structure

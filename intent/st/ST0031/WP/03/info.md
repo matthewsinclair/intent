@@ -1,7 +1,7 @@
 ---
 verblock: "05 Apr 2026:v0.2: matts - As-built: 7 dimensions, 8 landscape ACIs, 2 framework docs"
 intent_version: 2.8.0
-status: WIP
+status: Done
 ---
 
 # WP-03: Landscape Research

@@ -1,7 +1,7 @@
 ---
 verblock: "05 Apr 2026:v0.2: matts - As-built: 6 lenses complete, 9 internal ACIs"
 intent_version: 2.8.0
-status: WIP
+status: Done
 ---
 
 # WP-02: Pilot Extraction -- Intent + Lamplight + MeetZaya
