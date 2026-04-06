@@ -31,7 +31,13 @@
       "Bash(gh release:*)",
       "Bash(/Users/matts/Devel/prj/Intent/intent/plugins/claude/bin/intent_claude_upgrade)",
       "Bash(git status:*)",
-      "Bash(intent wp:*)"
+      "Bash(intent wp:*)",
+      "Bash([ -f \"/Users/matts/Devel/prj/Conflab/intent/st/COMPLETED/$st/design.md\" ])",
+      "Bash([ -f \"/Users/matts/Devel/prj/Conflab/intent/st/CANCELLED/$st/design.md\" ])",
+      "Bash(intent help:*)",
+      "Bash(cleanz --detrope docs/course/content/insights/ACI-023-the-recovery-protocol.md)",
+      "Bash(cleanz --detrope docs/course/content/insights/ACI-025-the-productivity-claim.md)",
+      "Bash(cleanz --detrope docs/course/content/exercises/day-3-exercises.md)"
     ],
     "deny": []
   }
