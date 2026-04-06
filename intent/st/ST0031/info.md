@@ -1,5 +1,5 @@
 ---
-verblock: "06 Apr 2026:v0.4: matts - WP-04 complete: taxonomy, 5-day outline, dual pathways, gap analysis"
+verblock: "06 Apr 2026:v0.6: matts - WP-05 complete: 4 new ACIs (023-026), MeetZaya interview, Day 5 restructured"
 intent_version: 2.8.0
 status: WIP
 slug: agentic-coding-course-using-intent

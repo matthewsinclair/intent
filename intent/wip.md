@@ -1,5 +1,5 @@
 ---
-verblock: "06 Apr 2026:v0.27: matts - ST0031 WP-04 complete, taxonomy + outline + gap analysis"
+verblock: "06 Apr 2026:v0.29: matts - MeetZaya interview done, ACI-026, Day 5 restructured"
 intent_version: 2.8.0
 ---
 
@@ -7,45 +7,37 @@ intent_version: 2.8.0
 
 ## Current State
 
-v2.8.0 with 22 skills, 5 subagents, 462 tests. ST0031/WP-04 complete. 22 ACIs organized into 5-day course structure with dual audience pathways.
+v2.8.0 with 22 skills, 5 subagents, 462 tests. ST0031/WP-05 complete. 26 ACIs organized into 5-day course structure with dual audience pathways. MeetZaya interview complete -- Day 5 restructured with 3-part case study.
 
 ## This Session (2026-04-06)
 
-- WP-02/WP-03 closed (with noted deferrals)
-- Full detrope pass on ACIs 010-011, 015-022 (mechanical + LLM, all below 2/1000w target)
-- Updated how-this-course-was-built.md with WP-02/03 process notes
-- WP-04 Taxonomy & Course Structure: complete
-  - 5 refined categories: Landscape & Orientation (4), Agent Communication (4), Codebase Architecture (6), Development Process (6), Failure & Evaluation (2)
-  - 3 ACIs migrated: ACI-014 methodology→communication, ACI-009 methodology→process, ACI-012 methodology→process
-  - `docs/course/taxonomy.md` created with category definitions, cross-reference map, difficulty distribution, migration log, gap analysis
-  - `docs/course/outline.md` created with 5-day arc, ACI sequencing per day, individual + enterprise pathway framing
-  - Gap analysis: Day 2 tight (need prompt quality ACI), Day 5 thin (need recovery + productivity ACIs, MeetZaya interview)
-  - WP-05 extraction targets prioritized (Lamplight recovery, Conflab/Laksa prompt quality, cross-repo productivity)
-- Web verification of landscape data: in progress (agent may have stalled, needs manual completion)
+- WP-05 Scale Extraction: complete (3 ACIs: 023, 024, 025)
+- MeetZaya non-coding failure interview: complete (8 failure reasons)
+- ACI-026 The Generation Trap: drafted and detroped (from interview + blog posts 0194, 0195)
+- Day 5 restructured: 5 ACIs + 3-part case study (technical trajectory, strategic failure + 10 Rules self-audit, When Code is Free thesis)
+- Blog 0196 (Storytelling) noted as meta-reference for WP-07 facilitation guide
+- All tracking docs updated
 
 ## Active Steel Threads
 
-- ST0031: Agentic Coding Course -- WP-04 done, WP-05 next
+- ST0031: Agentic Coding Course -- WP-05 done, WP-06 next
 
 ## TODO
 
-- Complete web verification of landscape.md post-mid-2025 claims
-- User interview: MeetZaya non-coding failure reasons (blocker for Day 5 case study)
-- WP-05: Scale extraction on Conflab, Laksa, Molt, Prolix (guided by gap analysis)
-- After WP-05: WP-06 (content production)
+- WP-06: Content production -- polish ACIs, theory guides, exercises, 3-part MeetZaya case study, syllabus
+- WP-07: Packaging (after WP-06)
+- Note: Blog 0196 (storytelling as truth vehicle) for WP-07 facilitation guide
 
 ## Parked
 
 - ST0010: Not started, in `intent/st/NOT-STARTED/`
 - ST0015: Not started, in `intent/st/NOT-STARTED/`
-- Consider peer language skills (in-rust-essentials, in-swift-essentials)
-- Run detrope on other Intent docs
 
 ## Key References
 
 - ST0031 steel thread: `intent/st/ST0031/`
+- MeetZaya interview: `intent/st/ST0031/meetzaya-interview-notes.md`
 - Course content: `docs/course/` (process/ for methodology, content/ for deliverables)
-- Taxonomy: `docs/course/taxonomy.md` (categories + gap analysis)
-- Outline: `docs/course/outline.md` (5-day arc + dual pathways)
-- Test suite: `tests/run_tests.sh` (22 .bats files, 462 tests)
-- ACI inventory: 22 files in `docs/course/content/insights/`
+- ACI inventory: 26 files in `docs/course/content/insights/`
+- Blog sources: `/Users/matts/Devel/prj/Sites/matthewsinclair/posts/2026/` (0194-0197)
+- "10 Rules": in interview notes (unpublished, plan to publish)

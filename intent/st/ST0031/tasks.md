@@ -27,7 +27,7 @@
 - [x] Lens 5 (Methodology Evolution): Cross-repo timeline (3 repos)
 - [x] Lens 6 (Failure Archaeology): MeetZaya failure trajectory (from ST artifacts + git history)
 - [x] Lens 6 (Failure Archaeology): Lamplight cancelled STs (17 analyzed)
-- [ ] User interview: MeetZaya non-coding failure reasons (BLOCKED -- requires user input, deferred to WP-06)
+- [x] User interview: MeetZaya non-coding failure reasons (DONE -- 8 failure reasons, 10 Rules self-audit, blog refs)
 - [x] Compile raw ACI candidates (22 total, target was 20-25)
 - [x] Protocol calibration notes (all 6 lenses checked off in extraction-protocol.md)
 - [x] Detrope gate: mechanical 0 flags, full LLM analysis (26 flags found and fixed)
@@ -63,15 +63,22 @@
 - [x] Update `how-this-course-was-built.md` with WP-02/03 process notes
 - [x] Full detrope pass on ACIs 010-011, 015-022 (mechanical + LLM)
 
-## WP-05: Scale Extraction
+## WP-05: Scale Extraction (Done)
 
-- [ ] Apply protocol to Conflab
-- [ ] Apply protocol to Laksa
-- [ ] Apply protocol to Molt
-- [ ] Apply protocol to Prolix
-- [ ] Identify cross-repo patterns
-- [ ] Fill taxonomy gaps from WP-04
-- [ ] Update taxonomy with new categories if needed
+- [x] Priority 1: Lamplight Lens 4 → ACI-023 The Recovery Protocol (Day 5)
+- [x] Priority 2: Laksa+Conflab Lens 2 → ACI-024 The Prompt That Worked (Day 2)
+- [x] Priority 3: Cross-repo Lens 5 → ACI-025 The Productivity Claim (Day 5)
+- [ ] Priority 4: Lamplight Lens 3 autopsy (SKIPPED -- gaps filled by 1-3)
+- [ ] Priority 5: Molt/Prolix Lens 1 CLAUDE.md (SKIPPED -- folded into cross-repo patterns)
+- [x] Identify cross-repo patterns (`docs/course/process/cross-repo-patterns.md`)
+- [x] Fill taxonomy gaps from WP-04 (Day 2: 4→5, Day 5: 2→4)
+- [x] Update taxonomy with new ACIs (3 added, total 25)
+- [x] Update outline with new ACI placements and pathway framing
+- [x] Detrope gate on all 3 new ACIs (mechanical + full LLM, all pass)
+- [x] MeetZaya non-coding failure interview (UNBLOCKED -- 8 failure reasons captured)
+- [x] ACI-026 The Generation Trap (Day 5, failure, advanced) -- from interview + blog posts
+- [x] Detrope gate on ACI-026 (mechanical + full LLM, pass)
+- [x] Updated taxonomy (26 ACIs), outline (Day 5 restructured with 3-part case study)
 
 ## WP-06: Course Content Production
 
