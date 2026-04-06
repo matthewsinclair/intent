@@ -1,5 +1,5 @@
 ---
-verblock: "06 Apr 2026:v0.29: matts - MeetZaya interview done, ACI-026, Day 5 restructured"
+verblock: "06 Apr 2026:v0.30: matts - WP-06 complete: case study, theory guides, exercises, syllabus"
 intent_version: 2.8.0
 ---
 
@@ -7,26 +7,25 @@ intent_version: 2.8.0
 
 ## Current State
 
-v2.8.0 with 22 skills, 5 subagents, 462 tests. ST0031/WP-05 complete. 26 ACIs organized into 5-day course structure with dual audience pathways. MeetZaya interview complete -- Day 5 restructured with 3-part case study.
+v2.8.0 with 22 skills, 5 subagents, 462 tests. ST0031/WP-06 complete. Full course content produced: 26 polished ACIs, 5 theory guides, 5 exercise documents, 3-part MeetZaya case study with full "10 Rules" framework, course syllabus. WP-07 (packaging) is next.
 
 ## This Session (2026-04-06)
 
-- WP-05 Scale Extraction: complete (3 ACIs: 023, 024, 025)
-- MeetZaya non-coding failure interview: complete (8 failure reasons)
-- ACI-026 The Generation Trap: drafted and detroped (from interview + blog posts 0194, 0195)
-- Day 5 restructured: 5 ACIs + 3-part case study (technical trajectory, strategic failure + 10 Rules self-audit, When Code is Free thesis)
-- Blog 0196 (Storytelling) noted as meta-reference for WP-07 facilitation guide
-- All tracking docs updated
+- WP-06 Phase 1: ACI polish (5 frontmatter fixes, 1 cross-ref, template audit, detrope)
+- WP-06 Phase 2: MeetZaya case study (2,984 words, 3 parts, full 10 Rules + 2 bonus)
+- WP-06 Phase 3: Theory guides (5 files, 5,360 words) + exercises (5 files, 4,181 words)
+- WP-06 Phase 4: Syllabus, integration updates, WP-06 done
+- MeetZaya interview notes updated with full "10 Rules" framework (10 rules + 2 bonus)
 
 ## Active Steel Threads
 
-- ST0031: Agentic Coding Course -- WP-05 done, WP-06 next
+- ST0031: Agentic Coding Course -- WP-06 done, WP-07 next
 
 ## TODO
 
-- WP-06: Content production -- polish ACIs, theory guides, exercises, 3-part MeetZaya case study, syllabus
-- WP-07: Packaging (after WP-06)
+- WP-07: Packaging (README, handouts, sample repo, tool matrix, reading list, facilitation guide)
 - Note: Blog 0196 (storytelling as truth vehicle) for WP-07 facilitation guide
+- Note: Blog 0197 (expanding pie) for enterprise framing materials
 
 ## Parked
 
@@ -39,5 +38,8 @@ v2.8.0 with 22 skills, 5 subagents, 462 tests. ST0031/WP-05 complete. 26 ACIs or
 - MeetZaya interview: `intent/st/ST0031/meetzaya-interview-notes.md`
 - Course content: `docs/course/` (process/ for methodology, content/ for deliverables)
 - ACI inventory: 26 files in `docs/course/content/insights/`
+- Theory guides: 5 files in `docs/course/content/days/`
+- Exercises: 5 files in `docs/course/content/exercises/`
+- Case study: `docs/course/content/meetzaya-case-study.md`
+- Syllabus: `docs/course/content/syllabus.md`
 - Blog sources: `/Users/matts/Devel/prj/Sites/matthewsinclair/posts/2026/` (0194-0197)
-- "10 Rules": in interview notes (unpublished, plan to publish)

@@ -80,17 +80,19 @@
 - [x] Detrope gate on ACI-026 (mechanical + full LLM, pass)
 - [x] Updated taxonomy (26 ACIs), outline (Day 5 restructured with 3-part case study)
 
-## WP-06: Course Content Production
+## WP-06: Course Content Production (Done)
 
-- [ ] Polish all ACIs into final form
-- [ ] Write Day 1 theory guides (individual + enterprise)
-- [ ] Write Day 2 theory guides (individual + enterprise)
-- [ ] Write Day 3 theory guides (individual + enterprise)
-- [ ] Write Day 4 theory guides (individual + enterprise)
-- [ ] Write Day 5 theory guides (individual + enterprise)
-- [ ] Design practical exercises for each day
-- [ ] Write MeetZaya case study document
-- [ ] Write course overview / syllabus
+- [x] Polish all ACIs into final form (5 frontmatter fixes, 1 cross-ref added, template audit 26/26 pass, detrope pass)
+- [x] Write Day 1 theory guide (830 words, dual pathway sections)
+- [x] Write Day 2 theory guide (947 words, dual pathway sections)
+- [x] Write Day 3 theory guide (1,080 words, dual pathway sections)
+- [x] Write Day 4 theory guide (1,201 words, dual pathway sections)
+- [x] Write Day 5 theory guide (1,302 words, dual pathway sections, case study integration)
+- [x] Design practical exercises for each day (5 files, 4,181 words total)
+- [x] Write MeetZaya case study document (2,984 words, 3 parts, full "10 Rules" framework)
+- [x] Write course overview / syllabus
+- [x] Update how-this-course-was-built.md with WP-06 process notes
+- [x] Detrope gate on all new content (0 HIGH substantive, all false positives on subject matter)
 
 ## WP-07: Packaging & Delivery Assets
 

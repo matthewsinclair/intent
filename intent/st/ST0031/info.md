@@ -1,5 +1,5 @@
 ---
-verblock: "06 Apr 2026:v0.6: matts - WP-05 complete: 4 new ACIs (023-026), MeetZaya interview, Day 5 restructured"
+verblock: "06 Apr 2026:v0.7: matts - WP-06 complete: case study, theory guides, exercises, syllabus"
 intent_version: 2.8.0
 status: WIP
 slug: agentic-coding-course-using-intent
