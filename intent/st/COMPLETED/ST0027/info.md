@@ -4,7 +4,7 @@ intent_version: 2.6.0
 status: Completed
 slug: add-in-cost-analysis-skill
 created: 20260306
-completed:
+completed: 20260307
 ---
 
 # ST0027: Add /in-cost-analysis skill

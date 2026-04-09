@@ -4,7 +4,7 @@ intent_version: 2.4.0
 status: Completed
 slug: steel-thread-zero
 created: 20260304
-completed:
+completed: 20260305
 ---
 
 # ST0026: Steel Thread Zero

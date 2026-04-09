@@ -4,7 +4,7 @@ intent_version: 2.4.0
 status: Completed
 slug: tca-suite-hardening-post-lamplight-st0121
 created: 20260409
-completed:
+completed: 20260409
 ---
 
 # ST0031: TCA suite hardening (post-Lamplight ST0121)
