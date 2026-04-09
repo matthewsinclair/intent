@@ -1,8 +1,13 @@
 #!/bin/bash
-# intent_bootstrap - Initial setup for Intent v2.0.0 installations
+# intent_bootstrap - Initial setup for Intent installations
 
 # Exit on error
 set -e
+
+# Source helpers for get_intent_version
+INTENT_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$INTENT_BIN/intent_helpers"
+INTENT_VERSION="$(get_intent_version)"
 
 # Function to display usage
 usage() {
@@ -121,7 +126,7 @@ bootstrap_intent() {
     info "Creating default global configuration..."
     cat > "$config_file" << EOF
 {
-  "intent_version": "2.1.0",
+  "intent_version": "$INTENT_VERSION",
   "intent_dir": "intent",
   "author": "${USER}",
   "editor": "${EDITOR:-vim}"

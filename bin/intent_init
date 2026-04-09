@@ -82,17 +82,12 @@ mkdir -p intent/{st,docs,llm}
 echo "Creating configuration..."
 cat > .intent/config.json << EOF
 {
-  "intent_version": "2.1.0",
+  "intent_version": "$INTENT_VERSION",
   "project_name": "$PROJECT_NAME",
   "author": "$AUTHOR",
   "created": "$DATE",
   "st_prefix": "ST"
 }
-EOF
-
-# Create version file
-cat > .intent/version << EOF
-$INTENT_VERSION
 EOF
 
 # Create initial files from templates

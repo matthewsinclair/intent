@@ -42,8 +42,9 @@ teardown() {
   assert_success
   
   # Verify config was created with correct content
+  local version=$(get_intent_version)
   assert_file_exists "$HOME/.config/intent/config.json"
-  assert_file_contains "$HOME/.config/intent/config.json" '"intent_version": "2.1.0"'
+  assert_file_contains "$HOME/.config/intent/config.json" "\"intent_version\": \"${version}\""
   assert_file_contains "$HOME/.config/intent/config.json" '"intent_dir": "intent"'
 }
 
