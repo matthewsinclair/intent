@@ -37,7 +37,22 @@
       "Bash(intent help:*)",
       "Bash(cleanz --detrope docs/course/content/insights/ACI-023-the-recovery-protocol.md)",
       "Bash(cleanz --detrope docs/course/content/insights/ACI-025-the-productivity-claim.md)",
-      "Bash(cleanz --detrope docs/course/content/exercises/day-3-exercises.md)"
+      "Bash(cleanz --detrope docs/course/content/exercises/day-3-exercises.md)",
+      "Bash(bash -n intent/plugins/claude/skills/in-tca-init/scripts/tca-init.sh)",
+      "Bash(bash intent/plugins/claude/skills/in-tca-init/scripts/tca-init.sh --st-dir intent/st/ST0030/WP/01 --wp-count 2 --project Test)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(bash intent/plugins/claude/skills/in-tca-init/scripts/tca-init.sh --st-dir intent/st/ST0031 --wp-count 2 --project Test)",
+      "Bash(bash intent/plugins/claude/skills/in-tca-init/scripts/tca-init.sh --st-dir /tmp/sandbox/ST9999 --wp-count 2 --project Test)",
+      "Bash(git -C /Users/matts/Devel/prj/MicroGPTEx status --short)",
+      "Bash(git -C /Users/matts/Devel/prj/Molt status --short)",
+      "Bash(git -C /Users/matts/Devel/prj/Molt-matts status --short)",
+      "Bash(git -C /Users/matts/Devel/prj/Multiplyer status --short)",
+      "Bash(git -C /Users/matts/Devel/prj/Prolix status --short)",
+      "Bash(git -C /Users/matts/Devel/prj/Utilz status --short)",
+      "Bash(git:*)",
+      "Bash([ -d \"$dir/.backup\" ])",
+      "Bash([ -f \"$dir/.gitignore\" ])",
+      "Bash([ -f \"$dir/.intent/config.json\" ])"
     ],
     "deny": []
   }
