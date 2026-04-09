@@ -11,8 +11,9 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 
-| ID  | Slug | Status | Created | Completed |
-| --- | ---- | ------ | ------- | --------- |
+| ID     | Slug                      | Status | Created    | Completed |
+| ------ | ------------------------- | ------ | ---------- | --------- |
+| ST0031 | tca-suite-hardening-po... | WIP    | 2026-04-09 |
 
 <!-- END: STEEL_THREAD_INDEX -->
 

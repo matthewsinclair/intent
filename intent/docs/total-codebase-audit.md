@@ -46,6 +46,53 @@ Total effort for a ~260-file Elixir project: ~14 sub-agent runs, ~4 hours wall c
 
 # Phase 0: Provisioning
 
+## 0.0 Provisioning Invariants
+
+Before any work starts, four invariants govern how a TCA is provisioned. Violating them produces predictable, load-bearing failure modes — the Lamplight ST0121 incident (2026-04-08) hit all four simultaneously.
+
+### Invariant 1: A TCA is always its own dedicated steel thread
+
+Create the audit via `intent st new "TCA: <scope>" --start`. **Never** provision a TCA as a work package inside the audited steel thread. A Total Codebase Audit is always the outer wrapper, never a child of someone else's work.
+
+Why it matters — four failure modes that manifest together:
+
+- **Close-out deadlock**: the audited steel thread cannot finish until the audit WP finishes, which creates pressure to declare the audit complete prematurely.
+- **Template mismatch**: the TCA phase structure (0, 0.5, 1, 2, 3, 4) does not fit feature-WP templates, producing hybrid docs with mixed vocabularies.
+- **False peer relationship**: treating the audit as a peer WP implies a dependency graph that does not exist — the audit does not depend on the feature WPs and vice versa.
+- **Acceptance-criteria collision**: the feedback report becomes a single checkbox that blocks the entire steel thread's close-out.
+
+Reference: the Lamplight ST0121/WP/24 incident (commits 75706c18 → 98616a0c, 2026-04-08). A 24-hour window existed where every top-level session doc lied about the steel thread state — `wip.md`, `intent/restart.md`, `.claude/restart.md`, and `impl.md` all claimed ST0121 was complete before `feedback-report.md` existed. A full doc-reconciliation commit was required to repair the damage.
+
+### Invariant 2: Work packages are flat
+
+Every component audit is a top-level `WP/NN` directly under the TCA steel thread. **Never** nest WPs inside WPs. Intent's WP model does not support nested specifiers (`ST/WP/NN/WP/MM`) and the `intent wp` CLI will reject them. Sub-WP structures trap their `info.md` files in a state where they cannot be closed via `intent wp done`.
+
+Correct layout for a fresh TCA:
+
+```
+intent/st/STXXXX/               <- the TCA as its own dedicated steel thread
+├── info.md                     <- TCA scope + acceptance criteria
+├── design.md                   <- rule set + FP Guidance + component map
+├── tasks.md                    <- phase checklist
+├── feedback-report.md          <- final artifact, top-level
+└── WP/
+    ├── 01/                     <- Component 01 audit (top-level WP)
+    ├── 02/                     <- Component 02 audit
+    ├── 03/                     <- Component 03 audit
+    ├── 04/                     <- Synthesis
+    └── 05/                     <- Remediation log
+```
+
+The flat layout used to repair the Lamplight ST0121/WP/24 state (phase-numbered markdown files directly inside WP/24/) is a legacy patch for the "TCA-inside-another-ST" antipattern. It is NOT the recommended layout for a fresh TCA — a fresh TCA should always use top-level WPs under its own dedicated steel thread.
+
+### Invariant 3: The last work package is the synthesis WP
+
+`tca-init.sh` enforces this by convention (`SYNTHESIS_WP="$WP_COUNT"`). Stating it as an invariant gives the provisioning guards something explicit to check for and makes the expected layout unambiguous for operators reviewing the structure mid-audit.
+
+### Invariant 4: Rank components by later-pain impact, not raw violation count
+
+When reviewing component audits in Phase 2, sort by "findings that would have caused later pain" rather than by raw violation count. Lamplight ST0121 Component 03 had the lowest raw count (2 violations) but the highest per-finding impact — one of those findings was a latent circular dependency between modules that would have silently degraded the compile topology. A component with 2 high-impact findings is more valuable than a component with 9 mechanical findings. Use the 5-tier priority (Phase 2.4) when ranking in post-mortems.
+
 ## 0.1 Define the Rule Set
 
 The audit is only as good as its rules. Before anything else, define the complete, numbered rule set that every file will be checked against.
@@ -100,6 +147,8 @@ Rules must specify their boundary conditions to prevent over-reporting:
 - **R5 (Multi-Head Functions)**: Only flag when the branching value is matchable (atoms, tuples, known structs). Do NOT flag conditional logic on computed booleans, string parsing, or numeric ranges where guards are the appropriate tool.
 - **R7 (Assertive Struct Access)**: Only flag `Map.get/2` and `map[:key]` when the target is a known `defstruct`. Do NOT flag access on plain maps, JSON-decoded maps, or dynamic data where the key set is genuinely unknown.
 - **General principle**: Every rule should state what it does NOT apply to, not just what it catches. Over-broad rules generate false positives that erode trust in the audit.
+
+**Empirical benchmark — pre-classification at Phase 0 vs triage at synthesis**: Pre-classifying acceptable patterns in a design.md **False Positive Guidance** section (REQUIRED — see Phase 0.1 and the `in-tca-init` skill) dramatically improves signal. Lamplight ST0121 (2026-04-08): R8 (Assertive Struct Access) achieved a 0% false-positive rate with pre-classification. Without it, the FP rate would have been ~82% — roughly 18 additional `Map.get` calls would have been flagged as violations on plain maps, Jido plugin configs, LLM response maps, and Ash metadata, all of which are legitimate uses that do not touch `defstruct`-defined modules. Pre-classification belongs at Phase 0 authoring time, not at synthesis-time triage. An auditor drowning in synthesis FPs will lose signal on the real findings.
 
 ### Example: Rust Rules (validated)
 
@@ -581,6 +630,8 @@ Cluster violations by **root cause and fix**, not by rule number:
 - Same remedy recommended -> one fix batch entry
 
 **Benchmarks**: Expect 40-60% dedup rate on large projects. Conflab achieved 59% (118 raw -> 49 unique). Lamplight achieved 45% (389 raw -> ~215 unique). Projects with strong existing architecture have lower dedup rates (fewer systemic issues).
+
+**Low dedup rate on newly-authored code is a positive signal**: On greenfield or recently-rewritten code, a low dedup rate means the code was written with rule awareness from the start, not that the audit is broken or the rules are wrong. Lamplight ST0121 (Gen 3.0 Architecture Rollout, 2026-04-09) achieved 12% (17 raw -> 15 unique, 10 actionable after FP filtering) — read that as evidence that the Gen 3.0 code was authored rule-aware throughout, not as an unexpectedly thin audit. Track dedup rate as a codebase-quality KPI: high dedup on old code signals accumulated duplication that needs attention; low dedup on new code signals disciplined authorship.
 
 ## 2.4 Priority Classification (5-Tier)
 
