@@ -1,5 +1,6 @@
 ---
 description: "TCA finish: final verification, ST doc updates, feedback report generation, and session wrap-up"
+chains_to: ["in-finish"]
 ---
 
 # TCA Finish
@@ -64,7 +65,7 @@ Run the report script and write directly to the canonical path at the TCA ST roo
 
 ```bash
 bash "$(find ~/.claude/skills/in-tca-finish -name tca-report.sh 2>/dev/null | head -1)" \
-  --st-dir intent/st/STXXXX \
+  --tca-dir intent/st/STXXXX \
   -o intent/st/STXXXX/feedback-report.md
 ```
 
@@ -91,7 +92,7 @@ Run the guard in `--check-only` mode:
 
 ```bash
 bash "$(find ~/.claude/skills/in-tca-finish -name tca-report.sh 2>/dev/null | head -1)" \
-  --st-dir intent/st/STXXXX \
+  --tca-dir intent/st/STXXXX \
   --check-only
 ```
 

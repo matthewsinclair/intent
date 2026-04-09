@@ -1,5 +1,6 @@
 ---
 description: "TCA audit: execute component audits with sub-agents, track progress, manage context"
+chains_to: ["in-tca-synthesize"]
 ---
 
 # TCA Audit
@@ -16,7 +17,7 @@ Run the progress script to see current state:
 
 ```bash
 bash "$(find ~/.claude/skills/in-tca-audit -name tca-progress.sh 2>/dev/null | head -1)" \
-  --st-dir intent/st/STXXXX
+  --tca-dir intent/st/STXXXX
 ```
 
 This shows which WPs are complete, pending, or in-progress, with violation counts.
@@ -116,9 +117,10 @@ The prompt is the quality driver, not the agent type.
 
 After each sub-agent completes:
 
-1. **Commit immediately**: `git add WP/{NN}/socrates.md && git commit -m "audit: WP-{NN} {component}"`
-2. **Log the summary** in your running tally
-3. **Run progress check** to update status
+1. **Record metadata** at the top of `WP/{NN}/socrates.md` as the first non-heading line (or right after the H1 title). Format: `**Agent**: {type}; **Turns**: N; **Raw hits**: N; **FPs**: N`. Example: `**Agent**: elixir; **Turns**: 24; **Raw hits**: 9; **FPs**: 2`. This line is queryable across audits and feeds directly into the "Sub-Agent Effectiveness" section of the final feedback report. Without it, cross-TCA comparisons have to record "not tracked" for agent effectiveness, which is exactly what happened on the Lamplight ST0121 run that motivated this rule.
+2. **Commit immediately**: `git add WP/{NN}/socrates.md && git commit -m "audit: WP-{NN} {component}"`
+3. **Log the summary** in your running tally
+4. **Run progress check** to update status
 
 ### 6. Repeat
 
@@ -130,7 +132,7 @@ After all component WPs are done, run the progress script one final time:
 
 ```bash
 bash "$(find ~/.claude/skills/in-tca-audit -name tca-progress.sh 2>/dev/null | head -1)" \
-  --st-dir intent/st/STXXXX
+  --tca-dir intent/st/STXXXX
 ```
 
 Exit code 0 confirms all WPs complete. Proceed to `/in-tca-synthesize`.

@@ -1,5 +1,6 @@
 ---
 description: "TCA remediate: execute prioritized fix batches in main conversation with compile/test gates"
+chains_to: ["in-tca-finish"]
 ---
 
 # TCA Remediate

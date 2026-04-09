@@ -5,23 +5,23 @@
 # bash 3.x compatible. No external dependencies.
 #
 # Usage:
-#   tca-init.sh --st-dir PATH --wp-count N --project NAME
+#   tca-init.sh --tca-dir PATH --wp-count N --project NAME
 
 set -euo pipefail
 
 # ---- Defaults ----
 
-ST_DIR=""
+TCA_DIR=""
 WP_COUNT=0
 PROJECT_NAME=""
 
 # ---- Usage ----
 
 usage() {
-  echo "Usage: tca-init.sh --st-dir PATH --wp-count N --project NAME"
+  echo "Usage: tca-init.sh --tca-dir PATH --wp-count N --project NAME"
   echo ""
   echo "Options:"
-  echo "  --st-dir PATH    Steel thread directory (e.g., intent/st/ST0055)"
+  echo "  --tca-dir PATH    TCA steel thread directory (e.g., intent/st/ST0055)"
   echo "  --wp-count N     Number of work packages to create (including synthesis)"
   echo "  --project NAME   Project name for templates"
   echo "  -h, --help       Show this help"
@@ -32,7 +32,7 @@ usage() {
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --st-dir)    ST_DIR="$2"; shift 2 ;;
+    --tca-dir)    TCA_DIR="$2"; shift 2 ;;
     --wp-count)  WP_COUNT="$2"; shift 2 ;;
     --project)   PROJECT_NAME="$2"; shift 2 ;;
     -h|--help)   usage ;;
@@ -42,8 +42,8 @@ done
 
 # ---- Validate ----
 
-if [ -z "$ST_DIR" ]; then
-  echo "error: --st-dir is required" >&2
+if [ -z "$TCA_DIR" ]; then
+  echo "error: --tca-dir is required" >&2
   exit 1
 fi
 
@@ -60,13 +60,13 @@ fi
 # ---- Provisioning invariants (see intent/docs/total-codebase-audit.md section 0.0) ----
 
 # Invariant 1: a TCA must be its own dedicated steel thread.
-# Detect the antipattern by looking for an Intent WP path component inside $ST_DIR.
+# Detect the antipattern by looking for an Intent WP path component inside $TCA_DIR.
 # A correct TCA path looks like intent/st/STXXXX/ and never contains /WP/ anywhere.
 # This guard runs BEFORE the existence check so it fires whether the path exists or not --
 # an operator pointing at a nested WP path is making the same mistake either way.
-case "$ST_DIR" in
+case "$TCA_DIR" in
   */intent/st/ST*/WP/*|intent/st/ST*/WP/*)
-    echo "error: $ST_DIR is inside an existing Intent work package" >&2
+    echo "error: $TCA_DIR is inside an existing Intent work package" >&2
     echo "" >&2
     echo "A Total Codebase Audit must always be its own dedicated steel thread." >&2
     echo "Never provision a TCA as a work package inside another steel thread." >&2
@@ -80,18 +80,18 @@ case "$ST_DIR" in
     ;;
 esac
 
-if [ ! -d "$ST_DIR" ]; then
-  echo "error: steel thread directory not found: $ST_DIR" >&2
+if [ ! -d "$TCA_DIR" ]; then
+  echo "error: steel thread directory not found: $TCA_DIR" >&2
   exit 1
 fi
 
 # Invariant 2: refuse to overwrite an audit that already has populated socrates.md files.
 # Empty WP/ directories are fine (a previous run may have stubbed them out).
 # Populated socrates.md means real audit work has been committed; overwriting loses it.
-if [ -d "$ST_DIR/WP" ]; then
-  populated=$(find "$ST_DIR/WP" -name socrates.md -size +0 2>/dev/null | wc -l | tr -d ' ')
+if [ -d "$TCA_DIR/WP" ]; then
+  populated=$(find "$TCA_DIR/WP" -name socrates.md -size +0 2>/dev/null | wc -l | tr -d ' ')
   if [ "$populated" -gt 0 ]; then
-    echo "error: $ST_DIR/WP already contains $populated populated socrates.md file(s)" >&2
+    echo "error: $TCA_DIR/WP already contains $populated populated socrates.md file(s)" >&2
     echo "" >&2
     echo "Refusing to overwrite an in-progress or completed audit." >&2
     echo "Delete the steel thread and re-run, or provision a fresh ST." >&2
@@ -101,7 +101,7 @@ fi
 
 # ---- Create WP directories ----
 
-WP_DIR="$ST_DIR/WP"
+WP_DIR="$TCA_DIR/WP"
 
 if [ ! -d "$WP_DIR" ]; then
   mkdir -p "$WP_DIR"

@@ -1,5 +1,6 @@
 ---
 description: "TCA synthesize: cross-component deduplication, priority classification, and fix batch ordering"
+chains_to: ["in-tca-remediate"]
 ---
 
 # TCA Synthesize

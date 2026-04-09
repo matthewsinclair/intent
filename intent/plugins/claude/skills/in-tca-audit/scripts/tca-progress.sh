@@ -4,21 +4,21 @@
 # bash 3.x compatible. No external dependencies.
 #
 # Usage:
-#   tca-progress.sh --st-dir PATH
+#   tca-progress.sh --tca-dir PATH
 
 set -euo pipefail
 
 # ---- Defaults ----
 
-ST_DIR=""
+TCA_DIR=""
 
 # ---- Usage ----
 
 usage() {
-  echo "Usage: tca-progress.sh --st-dir PATH"
+  echo "Usage: tca-progress.sh --tca-dir PATH"
   echo ""
   echo "Options:"
-  echo "  --st-dir PATH    Steel thread directory (e.g., intent/st/ST0055)"
+  echo "  --tca-dir PATH    TCA steel thread directory (e.g., intent/st/ST0055)"
   echo "  -h, --help       Show this help"
   exit 0
 }
@@ -27,7 +27,7 @@ usage() {
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --st-dir)  ST_DIR="$2"; shift 2 ;;
+    --tca-dir)  TCA_DIR="$2"; shift 2 ;;
     -h|--help) usage ;;
     *)         echo "error: unknown option: $1" >&2; exit 1 ;;
   esac
@@ -35,12 +35,12 @@ done
 
 # ---- Validate ----
 
-if [ -z "$ST_DIR" ]; then
-  echo "error: --st-dir is required" >&2
+if [ -z "$TCA_DIR" ]; then
+  echo "error: --tca-dir is required" >&2
   exit 1
 fi
 
-WP_DIR="$ST_DIR/WP"
+WP_DIR="$TCA_DIR/WP"
 
 if [ ! -d "$WP_DIR" ]; then
   echo "error: no WP directory found at $WP_DIR" >&2

@@ -5,24 +5,24 @@
 # bash 3.x compatible. No external dependencies.
 #
 # Usage:
-#   tca-report.sh --st-dir PATH [-o FILE]     # generate report (default)
-#   tca-report.sh --st-dir PATH --check-only  # run guards only, exit 0 on pass
+#   tca-report.sh --tca-dir PATH [-o FILE]     # generate report (default)
+#   tca-report.sh --tca-dir PATH --check-only  # run guards only, exit 0 on pass
 
 set -euo pipefail
 
 # ---- Defaults ----
 
-ST_DIR=""
+TCA_DIR=""
 OUTPUT_FILE=""
 CHECK_ONLY=0
 
 # ---- Usage ----
 
 usage() {
-  echo "Usage: tca-report.sh --st-dir PATH [-o FILE] [--check-only]"
+  echo "Usage: tca-report.sh --tca-dir PATH [-o FILE] [--check-only]"
   echo ""
   echo "Options:"
-  echo "  --st-dir PATH    Steel thread directory (e.g., intent/st/ST0055)"
+  echo "  --tca-dir PATH    TCA steel thread directory (e.g., intent/st/ST0055)"
   echo "  -o FILE          Output file (default: stdout)"
   echo "  --check-only     Run pre-flight guards only, no report generation"
   echo "  -h, --help       Show this help"
@@ -33,7 +33,7 @@ usage() {
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --st-dir)     ST_DIR="$2"; shift 2 ;;
+    --tca-dir)     TCA_DIR="$2"; shift 2 ;;
     -o)           OUTPUT_FILE="$2"; shift 2 ;;
     --check-only) CHECK_ONLY=1; shift ;;
     -h|--help)    usage ;;
@@ -43,12 +43,12 @@ done
 
 # ---- Validate ----
 
-if [ -z "$ST_DIR" ]; then
-  echo "error: --st-dir is required" >&2
+if [ -z "$TCA_DIR" ]; then
+  echo "error: --tca-dir is required" >&2
   exit 1
 fi
 
-WP_DIR="$ST_DIR/WP"
+WP_DIR="$TCA_DIR/WP"
 
 # ---- Shape guard (always runs, even in normal report-generation mode) ----
 #
@@ -61,14 +61,14 @@ if [ ! -d "$WP_DIR" ]; then
   exit 1
 fi
 
-if [ ! -f "$ST_DIR/design.md" ]; then
-  echo "error: $ST_DIR/design.md not found" >&2
+if [ ! -f "$TCA_DIR/design.md" ]; then
+  echo "error: $TCA_DIR/design.md not found" >&2
   echo "       in-tca-finish only operates on TCA-shaped steel threads." >&2
   exit 1
 fi
 
-if ! grep -qE "rule set|Rule [0-9]|\bR[0-9]+" "$ST_DIR/design.md" 2>/dev/null; then
-  echo "error: $ST_DIR/design.md does not contain a recognizable rule set" >&2
+if ! grep -qE "rule set|Rule [0-9]|\bR[0-9]+" "$TCA_DIR/design.md" 2>/dev/null; then
+  echo "error: $TCA_DIR/design.md does not contain a recognizable rule set" >&2
   echo "       (expected 'rule set', 'Rule N', or 'RN' patterns)" >&2
   echo "       in-tca-finish only operates on TCA-shaped steel threads." >&2
   exit 1
@@ -91,13 +91,13 @@ fi
 if [ "$CHECK_ONLY" = "1" ]; then
 
   # Guard 1a: feedback-report.md must exist at the canonical location
-  FEEDBACK_PATH="$ST_DIR/feedback-report.md"
+  FEEDBACK_PATH="$TCA_DIR/feedback-report.md"
   if [ ! -f "$FEEDBACK_PATH" ]; then
     echo "error: feedback-report.md not found at $FEEDBACK_PATH" >&2
     echo "" >&2
     echo "Cannot close a TCA before the feedback report exists." >&2
     echo "Generate the template and fill in the analytical sections first:" >&2
-    echo "  tca-report.sh --st-dir $ST_DIR -o $FEEDBACK_PATH" >&2
+    echo "  tca-report.sh --tca-dir $TCA_DIR -o $FEEDBACK_PATH" >&2
     echo "" >&2
     echo "Then fill in Rule Analysis, WP Sizing, Sub-Agent Effectiveness," >&2
     echo "and Process Improvements, save the file, and re-run this guard." >&2
@@ -127,15 +127,15 @@ if [ "$CHECK_ONLY" = "1" ]; then
 
   # Guard 2: no unchecked acceptance criteria in info.md.
   # Same pure-shell counter pattern as guard 1b, for the same pipefail reason.
-  if [ -f "$ST_DIR/info.md" ]; then
+  if [ -f "$TCA_DIR/info.md" ]; then
     unchecked=0
     while IFS= read -r line; do
       if [[ "$line" == "- [ ]"* ]]; then
         unchecked=$((unchecked + 1))
       fi
-    done < "$ST_DIR/info.md"
+    done < "$TCA_DIR/info.md"
     if [ "$unchecked" -gt 0 ]; then
-      echo "error: $unchecked unchecked acceptance criteria in $ST_DIR/info.md" >&2
+      echo "error: $unchecked unchecked acceptance criteria in $TCA_DIR/info.md" >&2
       echo "" >&2
       echo "Close all - [ ] boxes in info.md before running in-tca-finish." >&2
       echo "Unchecked criteria indicate TCA work that has not been completed." >&2
@@ -143,7 +143,7 @@ if [ "$CHECK_ONLY" = "1" ]; then
     fi
   fi
 
-  echo "ok: pre-flight guards passed for $ST_DIR" >&2
+  echo "ok: pre-flight guards passed for $TCA_DIR" >&2
   exit 0
 fi
 
@@ -237,10 +237,10 @@ fi
 
 # ---- Get ST info ----
 
-ST_NAME="$(basename "$ST_DIR")"
+ST_NAME="$(basename "$TCA_DIR")"
 PROJECT_NAME=""
-if [ -f "$ST_DIR/info.md" ]; then
-  proj_line="$(grep "^# " "$ST_DIR/info.md" 2>/dev/null | head -1 || true)"
+if [ -f "$TCA_DIR/info.md" ]; then
+  proj_line="$(grep "^# " "$TCA_DIR/info.md" 2>/dev/null | head -1 || true)"
   if [ -n "$proj_line" ]; then
     PROJECT_NAME="$(echo "$proj_line" | sed 's/^# //')"
   fi

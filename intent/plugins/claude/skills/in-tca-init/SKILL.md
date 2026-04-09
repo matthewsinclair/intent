@@ -1,5 +1,6 @@
 ---
 description: "TCA init: provision steel thread, rule set, component map, and work packages for a Total Codebase Audit"
+chains_to: ["in-tca-audit"]
 ---
 
 # TCA Init
@@ -75,7 +76,7 @@ The script lives alongside this SKILL.md:
 
 ```bash
 bash "$(find ~/.claude/skills/in-tca-init -name tca-init.sh 2>/dev/null | head -1)" \
-  --st-dir intent/st/STXXXX \
+  --tca-dir intent/st/STXXXX \
   --wp-count N \
   --project "ProjectName"
 ```
