@@ -4,7 +4,11 @@ description: "TCA finish: final verification, ST doc updates, feedback report ge
 
 # TCA Finish
 
-Wraps up a Total Codebase Audit: runs final verification, updates steel thread documents, generates a feedback report, and performs standard session cleanup.
+> **Invariant (load-bearing)**: This skill refuses to touch high-level session docs (`intent/wip.md`, `intent/restart.md`, `.claude/restart.md`, audited ST docs) until the pre-flight guard passes. The guard is enforced by `tca-report.sh --check-only` and cannot be bypassed without editing the script. It exists to prevent the Lamplight ST0121 premature-close-out incident (2026-04-08) from recurring. See `intent/docs/total-codebase-audit.md` section 0.0.
+
+Wraps up a Total Codebase Audit: runs final verification, updates steel thread documents, generates a feedback report, verifies completion via pre-flight guard, and performs standard session cleanup.
+
+The feedback report lives at `$TCA_DIR/feedback-report.md` as a top-level artifact of the TCA steel thread. It is NOT a work package -- a report about all the WPs should not itself be a WP.
 
 For reference: `intent/docs/total-codebase-audit.md`
 
@@ -54,42 +58,62 @@ All must pass before proceeding.
 - False positive patterns discovered
 - Process improvements for next audit
 
-### 3. Generate feedback report
+### 3. Generate feedback report template
 
-Run the report script:
+Run the report script and write directly to the canonical path at the TCA ST root:
 
 ```bash
 bash "$(find ~/.claude/skills/in-tca-finish -name tca-report.sh 2>/dev/null | head -1)" \
-  --st-dir intent/st/STXXXX
+  --st-dir intent/st/STXXXX \
+  -o intent/st/STXXXX/feedback-report.md
 ```
 
-This generates a feedback report template pre-populated with audit data. Fill in the analytical sections:
+This generates a pre-populated template with audit data (WP breakdown, per-WP counts, dedup rate estimate). The analytical sections are left as `[Fill in: ...]` placeholders.
 
-- **Rule-by-rule analysis**: Which rules had most value? Which were noisy?
-- **WP sizing assessment**: What worked? What was too large/small?
-- **Sub-agent effectiveness**: Turns used, false positive rate per agent type
-- **Process improvements**: Recommendations for TCA doc updates
+### 4. Fill in the feedback report
 
-### 4. Write feedback WP
+Open `intent/st/STXXXX/feedback-report.md` and replace every `[Fill in: ...]` placeholder with real analysis:
 
-Create a final WP for the feedback report:
+- **Rule-by-rule analysis**: which rules had most value, which were noisy, rule-by-rule FP rates
+- **WP sizing assessment**: which WPs were appropriately sized, which were too large or too small
+- **Sub-agent effectiveness**: turns used per WP, FP rate per agent type (use the metadata lines in each WP's socrates.md)
+- **Process improvements**: concrete recommendations for the TCA doc or skill suite based on what went wrong this audit
+
+The pre-flight guard will refuse to close the audit while any `[Fill in:` placeholders remain in the report.
+
+### 5. Close acceptance criteria
+
+Open `intent/st/STXXXX/info.md` and close every `- [ ]` checkbox under Acceptance Criteria. An unchecked box signals that the TCA has not actually finished -- the pre-flight guard will refuse to close the audit if any remain unchecked.
+
+### 6. Pre-flight guard
+
+Run the guard in `--check-only` mode:
 
 ```bash
-intent wp new STXXXX "Feedback Report"
+bash "$(find ~/.claude/skills/in-tca-finish -name tca-report.sh 2>/dev/null | head -1)" \
+  --st-dir intent/st/STXXXX \
+  --check-only
 ```
 
-Write the completed feedback report to this WP's `socrates.md`.
+The guard verifies:
 
-### 5. Commit everything
+- The TCA ST is properly shaped (WP/ directory, design.md with rule set)
+- `feedback-report.md` exists at the canonical location
+- The feedback report contains no unfilled `[Fill in:` placeholders
+- `info.md` has zero unchecked `- [ ]` acceptance criteria
+
+If the guard fails, fix the flagged issue and re-run. **Do NOT hand-edit session docs or run `/in-finish` manually until this guard passes.** The failure mode this guard prevents is the Lamplight ST0121 24-hour window of lying docs (commits 75706c18 to 98616a0c, 2026-04-08) -- closing the TCA before the feedback report exists or before acceptance criteria are actually met.
+
+### 7. Commit everything
 
 ```bash
 git add intent/st/STXXXX/
-git commit -m "audit: TCA complete -- {unique} violations, {fixed} fixed"
+git commit -m "TCA finish: STXXXX complete -- {unique} violations, {fixed} fixed"
 ```
 
-### 6. Standard session wrap-up
+### 8. Standard session wrap-up
 
-Run `/in-finish` for standard session cleanup:
+Only after the pre-flight guard has passed in step 6, run `/in-finish` for standard session cleanup:
 
 - Update `intent/wip.md`
 - Update `intent/restart.md`
@@ -102,3 +126,6 @@ Run `/in-finish` for standard session cleanup:
 - Include both what worked and what did not work in the report
 - Compare metrics with previous TCAs if applicable
 - Deferred items must be explicitly listed with reasons
+- **The `--check-only` pre-flight guard is load-bearing.** If it fails, do NOT hand-edit session docs or run `/in-finish` manually. Fix the underlying issue (missing feedback report, unfilled placeholders, unchecked acceptance criteria, or non-TCA-shaped ST) and re-run the guard.
+- **The feedback report lives at `$TCA_DIR/feedback-report.md`**, not in a "Feedback WP". A report about all WPs should not itself be a WP, and the pre-flight guard expects the canonical path.
+- **The Lamplight ST0121 incident is the reason this guard exists.** Commit 75706c18 wrote "ST0121 complete" into wip.md, intent/restart.md, .claude/restart.md, and impl.md before feedback-report.md existed, producing a 24-hour window of lying docs that required commit 98616a0c to repair. Do not repeat this.
