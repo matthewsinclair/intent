@@ -57,9 +57,46 @@ if [ -z "$PROJECT_NAME" ]; then
   exit 1
 fi
 
+# ---- Provisioning invariants (see intent/docs/total-codebase-audit.md section 0.0) ----
+
+# Invariant 1: a TCA must be its own dedicated steel thread.
+# Detect the antipattern by looking for an Intent WP path component inside $ST_DIR.
+# A correct TCA path looks like intent/st/STXXXX/ and never contains /WP/ anywhere.
+# This guard runs BEFORE the existence check so it fires whether the path exists or not --
+# an operator pointing at a nested WP path is making the same mistake either way.
+case "$ST_DIR" in
+  */intent/st/ST*/WP/*|intent/st/ST*/WP/*)
+    echo "error: $ST_DIR is inside an existing Intent work package" >&2
+    echo "" >&2
+    echo "A Total Codebase Audit must always be its own dedicated steel thread." >&2
+    echo "Never provision a TCA as a work package inside another steel thread." >&2
+    echo "" >&2
+    echo "To start a TCA correctly:" >&2
+    echo "  intent st new \"TCA: <project and scope>\" --start" >&2
+    echo "" >&2
+    echo "See intent/docs/total-codebase-audit.md section 0.0 for rationale" >&2
+    echo "and recovery steps if you have already started wrong." >&2
+    exit 1
+    ;;
+esac
+
 if [ ! -d "$ST_DIR" ]; then
   echo "error: steel thread directory not found: $ST_DIR" >&2
   exit 1
+fi
+
+# Invariant 2: refuse to overwrite an audit that already has populated socrates.md files.
+# Empty WP/ directories are fine (a previous run may have stubbed them out).
+# Populated socrates.md means real audit work has been committed; overwriting loses it.
+if [ -d "$ST_DIR/WP" ]; then
+  populated=$(find "$ST_DIR/WP" -name socrates.md -size +0 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$populated" -gt 0 ]; then
+    echo "error: $ST_DIR/WP already contains $populated populated socrates.md file(s)" >&2
+    echo "" >&2
+    echo "Refusing to overwrite an in-progress or completed audit." >&2
+    echo "Delete the steel thread and re-run, or provision a fresh ST." >&2
+    exit 1
+  fi
 fi
 
 # ---- Create WP directories ----

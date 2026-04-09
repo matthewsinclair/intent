@@ -4,6 +4,8 @@ description: "TCA init: provision steel thread, rule set, component map, and wor
 
 # TCA Init
 
+> **Invariant (load-bearing)**: A TCA is always its own dedicated steel thread. NEVER provision a TCA as a work package inside the audited ST. See `intent/docs/total-codebase-audit.md` section 0.0 for the four failure modes this rule prevents. The `tca-init.sh` script enforces this with a provisioning guard and will refuse to run against a path that looks like it is inside an existing work package.
+
 Provisions a Total Codebase Audit: creates the steel thread, defines the rule set, maps the codebase into components, and generates work package directories with templated info.md files.
 
 For reference: `intent/docs/total-codebase-audit.md`
@@ -60,10 +62,12 @@ Guided discovery:
 ### 4. Create steel thread
 
 ```bash
-intent st new "Total Codebase Audit" --start
+intent st new "TCA: <project and scope>" --start
 ```
 
-Capture the ST ID from the output.
+The title should describe the audited project and scope, not just say "TCA". Examples: `"TCA: Lamplight Gen 3.0"`, `"TCA: Intent v2.8 core"`, `"TCA: Conflab umbrella polyglot"`. Informative titles prevent collisions across multiple audits on the same codebase over time.
+
+Capture the ST ID from the output -- this is the TCA steel thread that all subsequent work lives in. The audited project's steel thread is not involved.
 
 ### 5. Run tca-init.sh
 
@@ -95,6 +99,34 @@ The steel thread's design.md should contain:
 - Component map with effective file counts
 - Batch ordering for parallelization (dependency-ordered)
 - Pre-filter results (Phase 0.5)
+- **False Positive Guidance (REQUIRED -- not optional)**: for each rule with known non-violations, list the acceptable patterns BEFORE Phase 1 starts. Without this section, mechanical rules generate high FP rates at synthesis time. In Lamplight ST0121, R8 pre-classification dropped the FP rate from an estimated 82% to 0%. If this section is missing or contains placeholder text, do NOT proceed to Phase 1 -- go back and author it.
+
+#### False Positive Guidance format
+
+For each rule that has known non-violations, add a subsection like this:
+
+```markdown
+### R8 False Positive Guidance
+
+Map.get is CORRECT on:
+
+- Plain map types (config.properties, counters, LLM response maps)
+- Ash metadata maps
+- Jido plugin config maps
+- Any `%{}` not defined with `defstruct`
+
+Map.get is a VIOLATION on:
+
+- Any module defined with `defstruct`
+- Known typed state containers (Pctx, Pctx.Mechanic, PhaseState, etc.)
+
+### R9 False Positive Guidance
+
+`||` and `&&` are CORRECT for nil-coalescing on truthy/falsy values.
+`and`/`or`/`not` are REQUIRED only when both operands are known booleans.
+```
+
+Rules without known non-violations can be omitted from this section. Rules that do have non-violations MUST be documented -- an unsure auditor is a noisy auditor.
 
 ### 8. Write tasks.md
 
@@ -143,3 +175,5 @@ Fix any stale references before proceeding to Phase 1.
 - Always create a synthesis WP as the last WP
 - Encode cross-WP Highlander dependencies at provisioning time, not synthesis time
 - Pre-filter results are ground truth for validating sub-agent findings
+- **WP layout is FLAT**. Component audits are top-level `WP/NN` under the TCA ST. Never create `WP/NN/WP/MM` sub-WPs -- the `intent wp` CLI rejects nested specifiers and Intent's WP model does not support them. See Invariant 2 in `intent/docs/total-codebase-audit.md` section 0.0.
+- **False Positive Guidance is load-bearing**. Skipping the FP Guidance section produces noisy audits with low signal-to-noise ratios. Budget time at Phase 0 for pre-classification; that time pays for itself by eliminating synthesis-time triage.
