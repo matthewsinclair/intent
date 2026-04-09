@@ -1,7 +1,7 @@
 ---
 verblock: "09 Apr 2026:v0.1: matts - Initial version"
 intent_version: 2.4.0
-status: WIP
+status: Completed
 slug: tca-suite-hardening-post-lamplight-st0121
 created: 20260409
 completed:
