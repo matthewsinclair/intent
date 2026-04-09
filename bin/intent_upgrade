@@ -90,7 +90,7 @@ if [ "$VERSION" = "$TARGET_VERSION" ]; then
 fi
 
 # Determine if migration is needed
-if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION" && ! needs_v2_3_1_upgrade "$VERSION" && ! needs_v2_3_2_upgrade "$VERSION" && ! needs_v2_3_3_upgrade "$VERSION" && ! needs_v2_3_4_upgrade "$VERSION" && ! needs_v2_4_0_upgrade "$VERSION" && ! needs_v2_5_0_upgrade "$VERSION" && ! needs_v2_6_0_upgrade "$VERSION"; then
+if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION" && ! needs_v2_3_1_upgrade "$VERSION" && ! needs_v2_3_2_upgrade "$VERSION" && ! needs_v2_3_3_upgrade "$VERSION" && ! needs_v2_3_4_upgrade "$VERSION" && ! needs_v2_4_0_upgrade "$VERSION" && ! needs_v2_5_0_upgrade "$VERSION" && ! needs_v2_6_0_upgrade "$VERSION" && ! needs_v2_8_1_upgrade "$VERSION"; then
   echo "ok: up to date at v$VERSION"
   echo "  no upgrade path to $TARGET_VERSION"
   exit 0
@@ -244,6 +244,10 @@ case "$VERSION" in
   "2.5.0")
     echo "Upgrading from v2.5.0 to v$TARGET_VERSION..."
     migrate_v2_5_0_to_v2_6_0 .
+    ;;
+  "2.8.0")
+    echo "Upgrading from v2.8.0 to v$TARGET_VERSION..."
+    migrate_v2_8_0_to_v2_8_1 .
     ;;
   *)
     error "Unknown version: $VERSION"

@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.1] - 2026-04-09
+
+### Added
+
+- **TCA pre-flight guard** (`tca-report.sh --check-only`) with 4 checks: shape (WP/ dir, design.md with rule set), feedback-report.md exists, no unfilled `[Fill in:` placeholders, zero unchecked `- [ ]` acceptance criteria in info.md
+- **Provisioning Invariants** (§ 0.0 in `intent/docs/total-codebase-audit.md`): four load-bearing rules -- TCA is its own dedicated steel thread, WPs are flat, last WP is synthesis, rank components by later-pain impact not raw violation count
+- **`tca-init.sh` provisioning guards**: refuse to provision inside an existing `intent/st/ST*/WP/*` path, refuse to overwrite an audit with populated `socrates.md` files
+- **False Positive Guidance as REQUIRED** in the `in-tca-init` design.md template, with an R8/R9 example. Lamplight benchmark: R8 false-positive rate dropped from ~82% to 0% with pre-classification.
+- **Audit metadata line** in `in-tca-audit` Post-WP section: `**Agent**: {type}; **Turns**: N; **Raw hits**: N; **FPs**: N` at the top of each component audit's `socrates.md`
+- **`chains_to:` frontmatter** on all 5 TCA skills: `in-tca-init` -> `in-tca-audit` -> `in-tca-synthesize` -> `in-tca-remediate` -> `in-tca-finish` -> `in-finish`
+
+### Changed
+
+- **BREAKING (internal TCA scripts)**: `--st-dir` renamed to `--tca-dir` across `tca-init.sh`, `tca-progress.sh`, `tca-report.sh`, and their SKILL.md invocations. 33 occurrences across 6 files. Shell variable `ST_DIR` renamed to `TCA_DIR`. Direct callers of these scripts must update their invocations.
+- **`in-tca-finish` skill restructured**: feedback report is now a top-level artifact at `$TCA_DIR/feedback-report.md` rather than a "Feedback WP" `socrates.md`. The `/in-finish` wrap-up is gated on the pre-flight guard passing.
+- **Dedup-rate KPI framing** in the TCA reference doc: low dedup rate on newly-authored code is now framed as a positive signal about rule-aware authorship.
+
+### Fixed
+
+- **Premature TCA close-out failure mode**: prevents the "lying session docs" window that occurred during Lamplight ST0121 (commits 75706c18 -> 98616a0c, 2026-04-08). The pre-flight guard makes this mechanically impossible.
+- **Silent guard failures** in `tca-report.sh`: `grep -c` and `grep | wc -l` pipelines interacted badly with `set -euo pipefail` (grep returning 1 on zero matches killed the script silently on assignment). Replaced with pure-shell while-loop counters.
+
+### Motivation
+
+Integrates feedback from the Lamplight ST0121 TCA run (2026-04-08/09). The audit worked -- 17 raw violations found, 10 fixed -- but exposed 8 corrections in provisioning and close-out discipline. Documentation was not enough: an eager operator skipped past written guidance. This release replaces guidance with mechanical guards wherever the failure modes allow it. See ST0031 (5 commits, `58143ae..5b4435f`) for implementation detail.
+
 ## [2.8.0] - 2026-03-28
 
 ### Added

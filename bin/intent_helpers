@@ -802,6 +802,19 @@ needs_v2_6_0_upgrade() {
   esac
 }
 
+needs_v2_8_1_upgrade() {
+  local version=$1
+
+  case "$version" in
+    "2.8.0")
+      return 0  # Needs 2.8.1 upgrade
+      ;;
+    *)
+      return 1  # Already upgraded or different version
+      ;;
+  esac
+}
+
 # Migrate v2.5.0 to v2.6.0 - Automated enforcement (audit command)
 migrate_v2_5_0_to_v2_6_0() {
   local project_root=$1
@@ -821,6 +834,34 @@ migrate_v2_5_0_to_v2_6_0() {
   echo "    - New 'intent audit quick' command for automated code quality checks"
   echo "    - 6 custom Credo check templates (R2, R6, R7, R8, R11, R15)"
   echo "    - Auto-copies check templates into target project on first run"
+}
+
+# Migrate v2.8.0 to v2.8.1 - TCA suite hardening (post-Lamplight ST0121)
+# Pure version stamp -- no structural changes to project state.
+# All changes in v2.8.1 are to Intent's own scripts and skills (tca-* scripts,
+# in-tca-* SKILL.md files, total-codebase-audit.md doc), none of which mutate
+# an existing project's files.
+migrate_v2_8_0_to_v2_8_1() {
+  local project_root=$1
+
+  echo "Upgrading to Intent v2.8.1 (TCA suite hardening)..."
+
+  # Stamp the version
+  if [ -f "$project_root/.intent/config.json" ]; then
+    local temp_file=$(mktemp)
+    jq --arg v "2.8.1" '.intent_version = $v | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
+    mv "$temp_file" "$project_root/.intent/config.json"
+  fi
+
+  echo "  Migration to v2.8.1 complete!"
+  echo ""
+  echo "  IMPORTANT CHANGES IN v2.8.1:"
+  echo "    - TCA pre-flight guard (tca-report.sh --check-only) blocks premature close-out"
+  echo "    - Provisioning Invariants section in intent/docs/total-codebase-audit.md"
+  echo "    - tca-init.sh refuses nested-WP paths and overwrite of populated audits"
+  echo "    - False Positive Guidance is REQUIRED in design.md (in-tca-init template)"
+  echo "    - BREAKING (internal): --st-dir renamed to --tca-dir in tca-* scripts"
+  echo "    - Feedback report path: \$TCA_DIR/feedback-report.md (top-level artifact)"
 }
 
 # Migrate v2.2.0 to v2.2.1
