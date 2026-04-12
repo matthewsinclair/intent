@@ -15,11 +15,14 @@ CHECKS_TEMPLATE_DIR="$INTENT_HOME/lib/templates/credo_checks/elixir"
 # Target directory in the project
 CHECKS_TARGET_DIR="credo_checks"
 
+# Credo configuration script
+CONFIGURE_CREDO_SCRIPT="$INTENT_HOME/lib/scripts/configure_credo.exs"
+
 # Valid rules list
-VALID_RULES="R2 R6 R7 R8 R11 R15 D11"
+VALID_RULES="R2 R6 R7 R11 R15 R16"
 
 # Rules that support auto-fix
-FIXABLE_RULES="R8 R11 R15"
+FIXABLE_RULES="R11 R15"
 
 # ============================================================
 # Rule -> Template Mapping (bash 3.x compatible)
@@ -31,10 +34,9 @@ get_rule_template() {
     R2)  echo "thick_coordinator.ex" ;;
     R6)  echo "highlander_suspect.ex" ;;
     R7)  echo "map_get_on_struct.ex" ;;
-    R8)  echo "boolean_operators.ex" ;;
     R11) echo "missing_impl_annotation.ex" ;;
     R15) echo "debug_artifacts.ex" ;;
-    D11) echo "dependency_graph.ex" ;;
+    R16) echo "bracket_access_on_struct.ex" ;;
     *)   return 1 ;;
   esac
 }
@@ -42,7 +44,7 @@ get_rule_template() {
 is_valid_rule() {
   local rule="$1"
   case "$rule" in
-    R2|R6|R7|R8|R11|R15|D11) return 0 ;;
+    R2|R6|R7|R11|R15|R16) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -62,8 +64,8 @@ usage() {
   echo "  help               Show this help"
   echo ""
   echo "Options (for quick):"
-  echo "  --rule RN          Run only the specified rule (R2, R6, R7, R8, R11, R15, D11)"
-  echo "  --fix              Apply auto-fixes for fixable rules (R8, R11, R15)"
+  echo "  --rule RN          Run only the specified rule (R2, R6, R7, R11, R15, R16)"
+  echo "  --fix              Apply auto-fixes for fixable rules (R11, R15)"
   echo "  --json             Output results as JSON"
   echo "  --checks-only      Only copy check templates, don't run credo"
   echo ""
@@ -75,14 +77,13 @@ usage() {
   echo "  R2   Thick coordinator (controllers/LiveViews exceeding line limit)"
   echo "  R6   Highlander suspect (same function name in multiple modules)"
   echo "  R7   Map.get on struct (use dot access instead)"
-  echo "  R8   Boolean operators (use and/or for booleans)"
   echo "  R11  Missing @impl annotation on callbacks"
   echo "  R15  Debug artifacts (IO.inspect, dbg, IO.puts in lib/)"
-  echo "  D11  Dependency graph (cross-app dependency enforcement)"
+  echo "  R16  Bracket access on struct (use dot access instead)"
   echo ""
   echo "Examples:"
   echo "  intent audit quick                  # Run all checks"
-  echo "  intent audit quick --rule R8        # Run only boolean operator check"
+  echo "  intent audit quick --rule R7        # Run only Map.get on struct check"
   echo "  intent audit quick --fix            # Auto-fix fixable rules"
   echo "  intent audit quick --json           # JSON output"
   echo "  intent audit quick --checks-only    # Just install check templates"
@@ -144,12 +145,19 @@ ensure_checks_installed() {
     fi
   done
 
+  # Remove deprecated check templates
+  rm -f "$CHECKS_TARGET_DIR/boolean_operators.ex"
+  rm -f "$CHECKS_TARGET_DIR/dependency_graph.ex"
+
   if [ "$copied" -gt 0 ]; then
     echo "  $copied check(s) installed to $CHECKS_TARGET_DIR/"
-    if [ "$first_install" = "true" ]; then
-      echo "  hint: add \"credo_checks\" to elixirc_paths(:dev) and elixirc_paths(:test) in mix.exs"
-    fi
     echo ""
+  fi
+
+  # Configure .credo.exs on first install
+  if [ "$first_install" = "true" ] && command -v elixir >/dev/null 2>&1; then
+    elixir "$CONFIGURE_CREDO_SCRIPT" --remove-stale 2>/dev/null && \
+      echo "  configured: .credo.exs" || true
   fi
 }
 
@@ -162,7 +170,7 @@ run_credo() {
   local json_mode="$2"
   local fix_mode="$3"
 
-  local credo_args="--strict --checks-dir $CHECKS_TARGET_DIR"
+  local credo_args="--strict"
 
   # Filter to specific check if rule specified
   if [ -n "$rule_filter" ]; then
@@ -291,7 +299,14 @@ cmd_quick() {
       cp "$template" "$CHECKS_TARGET_DIR/$basename"
       count=$((count + 1))
     done
+    # Remove deprecated check templates
+    rm -f "$CHECKS_TARGET_DIR/boolean_operators.ex"
+    rm -f "$CHECKS_TARGET_DIR/dependency_graph.ex"
     echo "ok: $count check templates installed to $CHECKS_TARGET_DIR/"
+    # Configure .credo.exs
+    if command -v elixir >/dev/null 2>&1; then
+      elixir "$CONFIGURE_CREDO_SCRIPT" --remove-stale 2>/dev/null || true
+    fi
     exit 0
   fi
 
@@ -616,7 +631,7 @@ cmd_health() {
       ensure_checks_installed 2>/dev/null
       local credo_result
       local credo_exit=0
-      credo_result=$(mix credo --strict --checks-dir "$CHECKS_TARGET_DIR" 2>&1) || credo_exit=$?
+      credo_result=$(mix credo --strict 2>&1) || credo_exit=$?
       if [ "$credo_exit" -eq 0 ]; then
         report="$report  [ok] Credo checks passed
 "

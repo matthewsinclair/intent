@@ -50,20 +50,21 @@
 
 ## Templates
 
-| Concern                   | THE Module                                              | Notes                                   |
-| ------------------------- | ------------------------------------------------------- | --------------------------------------- |
-| CLAUDE.md template        | `lib/templates/llm/_CLAUDE.md`                          | Single source -- used by init + upgrade |
-| Module registry           | `lib/templates/llm/_MODULES.md`                         | Highlander registry template            |
-| Decision tree             | `lib/templates/llm/_DECISION_TREE.md`                   | Code placement guide template           |
-| Archetypes reference      | `lib/templates/llm/_ARCHETYPES.md`                      | Archetype listing template              |
-| Elixir archetypes         | `lib/templates/archetypes/elixir/`                      | 9 .ex.eex code templates                |
-| ST info template          | `lib/templates/prj/st/ST####/info.md`                   | Steel thread frontmatter                |
-| WP info template          | `lib/templates/prj/st/WP/info.md`                       | Work package frontmatter                |
-| WIP template              | `lib/templates/prj/_wip.md`                             | Work-in-progress file                   |
-| Dependency graph template | `lib/templates/llm/_DEPENDENCY_GRAPH.md`                | Dependency rules template               |
-| D11 Credo check           | `lib/templates/credo_checks/elixir/dependency_graph.ex` | Cross-app dependency enforcement        |
-| Hook template             | `lib/templates/hooks/module_check_hook.json`            | Advisory write hook for Claude Code     |
-| Credo check templates     | `lib/templates/credo_checks/elixir/`                    | 7 checks: R2, R6, R7, R8, R11, R15, D11 |
+| Concern                   | THE Module                                              | Notes                                    |
+| ------------------------- | ------------------------------------------------------- | ---------------------------------------- |
+| CLAUDE.md template        | `lib/templates/llm/_CLAUDE.md`                          | Single source -- used by init + upgrade  |
+| Module registry           | `lib/templates/llm/_MODULES.md`                         | Highlander registry template             |
+| Decision tree             | `lib/templates/llm/_DECISION_TREE.md`                   | Code placement guide template            |
+| Archetypes reference      | `lib/templates/llm/_ARCHETYPES.md`                      | Archetype listing template               |
+| Elixir archetypes         | `lib/templates/archetypes/elixir/`                      | 9 .ex.eex code templates                 |
+| ST info template          | `lib/templates/prj/st/ST####/info.md`                   | Steel thread frontmatter                 |
+| WP info template          | `lib/templates/prj/st/WP/info.md`                       | Work package frontmatter                 |
+| WIP template              | `lib/templates/prj/_wip.md`                             | Work-in-progress file                    |
+| Dependency graph template | `lib/templates/llm/_DEPENDENCY_GRAPH.md`                | Dependency rules template                |
+| D11 Credo check           | `lib/templates/credo_checks/elixir/dependency_graph.ex` | Cross-app dependency enforcement         |
+| Hook template             | `lib/templates/hooks/module_check_hook.json`            | Advisory write hook for Claude Code      |
+| Credo check templates     | `lib/templates/credo_checks/elixir/`                    | 6 checks: R2, R6, R7, R11, R15, R16      |
+| Credo config script       | `lib/scripts/configure_credo.exs`                       | Configures .credo.exs in target projects |
 
 ## Help Files
 

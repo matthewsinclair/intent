@@ -34,15 +34,18 @@ defmodule Mix.Checks.ThickCoordinator do
 
     source = SourceFile.source(source_file)
 
-    if is_coordinator?(source) do
+    if is_coordinator?(source, source_file.filename) do
       line_count = source |> String.split("\n") |> length()
 
       if line_count > max_lines do
-        [format_issue(issue_meta,
-          message: "Coordinator module has #{line_count} lines (max #{max_lines}). Extract business logic to a service module.",
-          trigger: source_file.filename,
-          line_no: 1
-        )]
+        [
+          format_issue(issue_meta,
+            message:
+              "Coordinator module has #{line_count} lines (max #{max_lines}). Extract business logic to a service module.",
+            trigger: source_file.filename,
+            line_no: 1
+          )
+        ]
       else
         []
       end
@@ -51,7 +54,31 @@ defmodule Mix.Checks.ThickCoordinator do
     end
   end
 
-  defp is_coordinator?(source) do
-    Enum.any?(@coordinator_indicators, &String.contains?(source, &1))
+  defp is_coordinator?(source, filename) do
+    # Strip content inside quote do...end blocks to avoid false positives
+    # on *_web.ex entrypoint modules that delegate via macros
+    check_source =
+      if String.ends_with?(filename, "_web.ex") do
+        strip_quote_blocks(source)
+      else
+        source
+      end
+
+    Enum.any?(@coordinator_indicators, &String.contains?(check_source, &1))
+  end
+
+  # Remove content between `quote do` and its matching `end` to avoid
+  # flagging macro delegation as coordinator usage.
+  defp strip_quote_blocks(source) do
+    # Split on quote do blocks and remove their content
+    # This is a heuristic -- handles the common single-level case
+    source
+    |> String.split(~r/quote\s+do\b/, parts: :infinity)
+    |> Enum.map_join("", fn segment ->
+      case String.split(segment, ~r/\bend\b/, parts: 2) do
+        [_quoted, rest] -> rest
+        [only] -> only
+      end
+    end)
   end
 end

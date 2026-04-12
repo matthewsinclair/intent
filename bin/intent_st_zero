@@ -15,6 +15,9 @@ TEMPLATE_DIR="$INTENT_HOME/lib/templates"
 # Credo check templates
 CHECKS_TEMPLATE_DIR="$TEMPLATE_DIR/credo_checks/elixir"
 
+# Credo configuration script
+CONFIGURE_CREDO_SCRIPT="$INTENT_HOME/lib/scripts/configure_credo.exs"
+
 # Hook template
 HOOK_TEMPLATE="$TEMPLATE_DIR/hooks/module_check_hook.json"
 
@@ -151,12 +154,19 @@ check_d5a_credo() {
   if [ -d "credo_checks" ]; then
     local check_count
     check_count=$(find credo_checks -name '*.ex' -type f 2>/dev/null | wc -l | tr -d ' ')
-    if [ "$check_count" -ge 7 ]; then
+    if [ "$check_count" -ge 6 ]; then
       STATUS="PRESENT"
       DETAIL="$check_count Credo check templates installed"
+      # Verify .credo.exs is configured to load them
+      if [ -f ".credo.exs" ] && grep -q 'credo_checks' ".credo.exs"; then
+        DETAIL="$DETAIL, .credo.exs configured"
+      else
+        STATUS="PARTIAL"
+        DETAIL="$DETAIL, .credo.exs not configured"
+      fi
     elif [ "$check_count" -gt 0 ]; then
       STATUS="PARTIAL"
-      DETAIL="$check_count of 7 Credo check templates installed"
+      DETAIL="$check_count of 6 Credo check templates installed"
     else
       STATUS="MISSING"
       DETAIL="credo_checks/ exists but has no .ex files"
@@ -525,9 +535,15 @@ apply_deliverable() {
             cp "$tmpl" "credo_checks/$basename"
             count=$((count + 1))
           done
+          # Remove deprecated check templates
+          rm -f "credo_checks/boolean_operators.ex"
+          rm -f "credo_checks/dependency_graph.ex"
           echo "  created: $count Credo check templates in credo_checks/"
-          if [ "$first_install" = "true" ]; then
-            echo "  hint: add \"credo_checks\" to elixirc_paths(:dev) and elixirc_paths(:test) in mix.exs"
+          if command -v elixir >/dev/null 2>&1; then
+            local config_result
+            config_result=$(elixir "$CONFIGURE_CREDO_SCRIPT" --remove-stale 2>&1) && \
+              echo "  $config_result" || \
+              echo "  warning: could not auto-configure .credo.exs"
           fi
         else
           echo "  warning: Credo check template directory not found"

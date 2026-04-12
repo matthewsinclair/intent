@@ -89,13 +89,16 @@ load "../lib/test_helper.bash"
 
   # Verify templates were copied
   [ -d "credo_checks" ]
-  [ -f "credo_checks/boolean_operators.ex" ]
+  [ -f "credo_checks/bracket_access_on_struct.ex" ]
   [ -f "credo_checks/missing_impl_annotation.ex" ]
   [ -f "credo_checks/debug_artifacts.ex" ]
   [ -f "credo_checks/map_get_on_struct.ex" ]
   [ -f "credo_checks/thick_coordinator.ex" ]
   [ -f "credo_checks/highlander_suspect.ex" ]
-  [ -f "credo_checks/dependency_graph.ex" ]
+
+  # Verify deprecated templates are NOT present
+  [ ! -f "credo_checks/boolean_operators.ex" ]
+  [ ! -f "credo_checks/dependency_graph.ex" ]
 }
 
 @test "audit quick --checks-only force-copies on re-run" {
@@ -158,7 +161,7 @@ load "../lib/test_helper.bash"
 
 @test "credo check templates exist in INTENT_HOME" {
   [ -d "$INTENT_HOME/lib/templates/credo_checks/elixir" ]
-  [ -f "$INTENT_HOME/lib/templates/credo_checks/elixir/boolean_operators.ex" ]
+  [ -f "$INTENT_HOME/lib/templates/credo_checks/elixir/bracket_access_on_struct.ex" ]
   [ -f "$INTENT_HOME/lib/templates/credo_checks/elixir/missing_impl_annotation.ex" ]
   [ -f "$INTENT_HOME/lib/templates/credo_checks/elixir/debug_artifacts.ex" ]
   [ -f "$INTENT_HOME/lib/templates/credo_checks/elixir/map_get_on_struct.ex" ]
@@ -179,16 +182,16 @@ load "../lib/test_helper.bash"
   done
 }
 
-@test "credo check templates have 7 files" {
+@test "credo check templates have 6 files" {
   local count
   count=$(ls -1 "$INTENT_HOME/lib/templates/credo_checks/elixir/"*.ex | wc -l | tr -d ' ')
-  [ "$count" -eq 7 ]
+  [ "$count" -eq 6 ]
 }
 
-@test "D11 dependency graph template exists" {
-  [ -f "$INTENT_HOME/lib/templates/credo_checks/elixir/dependency_graph.ex" ]
-  grep -q "defmodule Mix.Checks.DependencyGraph" "$INTENT_HOME/lib/templates/credo_checks/elixir/dependency_graph.ex"
-  grep -q "EX4007" "$INTENT_HOME/lib/templates/credo_checks/elixir/dependency_graph.ex"
+@test "R16 bracket access on struct template exists" {
+  [ -f "$INTENT_HOME/lib/templates/credo_checks/elixir/bracket_access_on_struct.ex" ]
+  grep -q "defmodule Mix.Checks.BracketAccessOnStruct" "$INTENT_HOME/lib/templates/credo_checks/elixir/bracket_access_on_struct.ex"
+  grep -q "EX4008" "$INTENT_HOME/lib/templates/credo_checks/elixir/bracket_access_on_struct.ex"
 }
 
 # ============================================================
@@ -204,10 +207,9 @@ load "../lib/test_helper.bash"
   assert_output_contains "R2"
   assert_output_contains "R6"
   assert_output_contains "R7"
-  assert_output_contains "R8"
   assert_output_contains "R11"
   assert_output_contains "R15"
-  assert_output_contains "D11"
+  assert_output_contains "R16"
 }
 
 @test "audit requires project context" {

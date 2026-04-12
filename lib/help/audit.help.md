@@ -22,7 +22,7 @@ Run Credo with Intent's custom check templates.
 
 ```
 intent audit quick
-intent audit quick --rule R8
+intent audit quick --rule R7
 intent audit quick --fix
 intent audit quick --json
 intent audit quick --checks-only
@@ -31,7 +31,7 @@ intent audit quick --checks-only
 Options:
 
 - `--rule RN` -- Run only the specified rule
-- `--fix` -- Apply auto-fixes for fixable rules (R8, R11, R15)
+- `--fix` -- Apply auto-fixes for fixable rules (R11, R15)
 - `--json` -- Output results as JSON
 - `--checks-only` -- Only install check templates, don't run credo
 
@@ -67,15 +67,14 @@ intent audit help
 
 ## Rules
 
-| Rule | Check              | Category    | Auto-fix |
-| ---- | ------------------ | ----------- | -------- |
-| R2   | Thick coordinator  | Design      | No       |
-| R6   | Highlander suspect | Design      | No       |
-| R7   | Map.get on struct  | Refactor    | No       |
-| R8   | Boolean operators  | Readability | Yes      |
-| R11  | Missing @impl      | Readability | Yes      |
-| R15  | Debug artifacts    | Warning     | Yes      |
-| D11  | Dependency graph   | Design      | No       |
+| Rule | Check                    | Category    | Auto-fix |
+| ---- | ------------------------ | ----------- | -------- |
+| R2   | Thick coordinator        | Design      | No       |
+| R6   | Highlander suspect       | Design      | No       |
+| R7   | Map.get on struct        | Refactor    | No       |
+| R11  | Missing @impl            | Readability | Yes      |
+| R15  | Debug artifacts          | Warning     | Yes      |
+| R16  | Bracket access on struct | Warning     | No       |
 
 ## Prerequisites
 
@@ -88,8 +87,8 @@ intent audit help
 # Run all checks
 intent audit quick
 
-# Run only boolean operator check
-intent audit quick --rule R8
+# Run only Map.get on struct check
+intent audit quick --rule R7
 
 # Get JSON output
 intent audit quick --json

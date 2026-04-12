@@ -1,23 +1,22 @@
-defmodule Mix.Checks.MapGetOnStruct do
+defmodule Mix.Checks.BracketAccessOnStruct do
   @moduledoc false
 
   use Credo.Check,
-    id: "EX4004",
-    base_priority: :normal,
-    category: :refactor,
+    id: "EX4008",
+    base_priority: :high,
+    category: :warning,
     explanations: [
       check: """
-      R7: Use dot access (`struct.field`) instead of `Map.get(struct, :field)`.
+      R16: Do not use bracket access on structs.
 
-      Dot access on structs is clearer and raises on missing keys, catching
-      typos at compile time. This check only flags `Map.get` calls where the
-      first argument is a variable known to be a struct.
+      Structs do not implement the `Access` behaviour. Using `struct[:field]`
+      will crash at runtime with a `UndefinedFunctionError`.
 
           # preferred
-          user.email
+          user.name
 
-          # avoid
-          Map.get(user, :email)
+          # avoid -- crashes at runtime
+          user[:name]
       """
     ]
 
@@ -27,22 +26,22 @@ defmodule Mix.Checks.MapGetOnStruct do
 
     source_file
     |> SourceFile.ast()
-    |> find_map_get_on_structs(issue_meta)
+    |> find_bracket_access_on_structs(issue_meta)
   end
 
-  defp find_map_get_on_structs(ast, issue_meta) do
+  defp find_bracket_access_on_structs(ast, issue_meta) do
     struct_vars = collect_struct_vars(ast)
 
     if MapSet.size(struct_vars) == 0 do
       []
     else
-      {_, issues} = Macro.prewalk(ast, [], &check_map_get(&1, &2, struct_vars, issue_meta))
+      {_, issues} = Macro.prewalk(ast, [], &check_access(&1, &2, struct_vars, issue_meta))
       issues
     end
   end
 
   # Collect variables that are bound to struct literals.
-  # Matches: %Module{} = var, var = %Module{}, and function head patterns.
+  # Matches: %Module{} = var, var = %Module{}, and function params like fn(%Module{} = var)
   defp collect_struct_vars(ast) do
     {_, vars} =
       Macro.prewalk(ast, MapSet.new(), fn
@@ -54,7 +53,7 @@ defmodule Mix.Checks.MapGetOnStruct do
         {:=, _, [{var_name, _, nil}, {:%, _, _}]} = node, acc when is_atom(var_name) ->
           {node, MapSet.put(acc, var_name)}
 
-        # Function head pattern match contexts
+        # Function head pattern match: fn(%Module{} = var) or def foo(%Module{} = var)
         {:=, _, [{:%, _, _}, {var_name, _, ctx}]} = node, acc
         when is_atom(var_name) and is_atom(ctx) ->
           {node, MapSet.put(acc, var_name)}
@@ -70,18 +69,20 @@ defmodule Mix.Checks.MapGetOnStruct do
     vars
   end
 
-  defp check_map_get(
-         {{:., _, [{:__aliases__, _, [:Map]}, :get]}, meta, [{var_name, _, nil}, key | _]} = ast,
+  # Bracket access compiles to Access.get(var, key)
+  defp check_access(
+         {{:., _, [Access, :get]}, meta, [{var_name, _, nil}, _key]} = ast,
          issues,
          struct_vars,
          issue_meta
        )
-       when is_atom(var_name) and is_atom(key) do
+       when is_atom(var_name) do
     if MapSet.member?(struct_vars, var_name) do
       issue =
         format_issue(issue_meta,
-          message: "Use dot access instead of `Map.get(#{var_name}, :#{key})`.",
-          trigger: "Map.get",
+          message:
+            "Bracket access `#{var_name}[:key]` on a struct variable. Use dot access instead.",
+          trigger: "#{var_name}",
           line_no: meta[:line]
         )
 
@@ -91,5 +92,5 @@ defmodule Mix.Checks.MapGetOnStruct do
     end
   end
 
-  defp check_map_get(ast, issues, _struct_vars, _issue_meta), do: {ast, issues}
+  defp check_access(ast, issues, _struct_vars, _issue_meta), do: {ast, issues}
 end

@@ -100,14 +100,14 @@ The steel thread's design.md should contain:
 - Component map with effective file counts
 - Batch ordering for parallelization (dependency-ordered)
 - Pre-filter results (Phase 0.5)
-- **False Positive Guidance (REQUIRED -- not optional)**: for each rule with known non-violations, list the acceptable patterns BEFORE Phase 1 starts. Without this section, mechanical rules generate high FP rates at synthesis time. In Lamplight ST0121, R8 pre-classification dropped the FP rate from an estimated 82% to 0%. If this section is missing or contains placeholder text, do NOT proceed to Phase 1 -- go back and author it.
+- **False Positive Guidance (REQUIRED -- not optional)**: for each rule with known non-violations, list the acceptable patterns BEFORE Phase 1 starts. Without this section, mechanical rules generate high FP rates at synthesis time. In Lamplight ST0121, R7 pre-classification dropped the FP rate from an estimated 82% to 0%. If this section is missing or contains placeholder text, do NOT proceed to Phase 1 -- go back and author it.
 
 #### False Positive Guidance format
 
 For each rule that has known non-violations, add a subsection like this:
 
 ```markdown
-### R8 False Positive Guidance
+### R7 False Positive Guidance
 
 Map.get is CORRECT on:
 
@@ -121,10 +121,13 @@ Map.get is a VIOLATION on:
 - Any module defined with `defstruct`
 - Known typed state containers (Pctx, Pctx.Mechanic, PhaseState, etc.)
 
-### R9 False Positive Guidance
+### R16 False Positive Guidance
 
-`||` and `&&` are CORRECT for nil-coalescing on truthy/falsy values.
-`and`/`or`/`not` are REQUIRED only when both operands are known booleans.
+Bracket access `struct[:field]` is CORRECT on:
+
+- Plain maps (config, params, assigns)
+- Keyword lists
+- Any `%{}` not defined with `defstruct`
 ```
 
 Rules without known non-violations can be omitted from this section. Rules that do have non-violations MUST be documented -- an unsure auditor is a noisy auditor.
@@ -148,8 +151,8 @@ Run grep for mechanical rules before launching sub-agents:
 # R15: Debug artifacts
 grep -rn "IO\.inspect\|dbg()" lib/ --include="*.ex"
 
-# R8: Boolean operator candidates
-grep -rn " && \| || " lib/ --include="*.ex"
+# R7: Map.get on struct candidates
+grep -rn "Map\.get(" lib/ --include="*.ex"
 
 # R11: Missing @impl candidates
 grep -rL "@impl" lib/ --include="*.ex" | xargs grep -l "def mount\|def handle_"

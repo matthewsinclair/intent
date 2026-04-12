@@ -130,7 +130,7 @@ R4:  Component Extraction
 R5:  Multi-Head Functions for Matchable Values
 R6:  The Highlander Rule (no duplicate code paths)
 R7:  Assertive Struct Access (known defstructs only)
-R8:  Boolean Operators (and/or/not for booleans)
+R8:  [retired -- 100% false positives, removed in v2.9.0]
 R9:  Exhaustive with Clauses
 R10: Content Source Rules (serving_mode) [project-specific]
 R11: @impl true on all behaviour callbacks
@@ -138,6 +138,7 @@ R12: Tagged tuples for fallible functions
 R13: Pipe operator for sequential transforms
 R14: Naming conventions (?, !, _ prefix)
 R15: No debug artifacts (IO.inspect, dbg)
+R16: Bracket access on struct (use dot access)
 ```
 
 ### Rule Precision
@@ -315,8 +316,8 @@ Before launching sub-agents, run grep-based pre-filtering for mechanical rules t
 # R15: Debug artifacts
 grep -rn "IO\.inspect\|dbg()" lib/ --include="*.ex"
 
-# R8: Boolean operator misuse (candidates -- requires manual review)
-grep -rn " && \| || " lib/ --include="*.ex"
+# R7: Map.get on struct candidates
+grep -rn "Map\.get(" lib/ --include="*.ex"
 
 # R11: Missing @impl (files with behaviour callbacks but no @impl)
 grep -rL "@impl" lib/ --include="*.ex" | xargs grep -l "def mount\|def handle_"
@@ -664,7 +665,6 @@ Bulk-fixable quality issues that don't require design decisions:
 - Missing `@impl true` annotations (R11)
 - Missing SAFETY comments on unsafe blocks (R4 Rust)
 - Missing `@doc`/`@spec` on public functions
-- Boolean operator misuse where fix is unambiguous (R8)
 - Debug artifacts (R15)
 
 ### P2b: Minor Refactoring
@@ -902,7 +902,7 @@ For a new project audit, use `/in-tca-init` or follow this manual checklist:
 - [ ] Map files into 8-15 WPs (12-20 effective files each)
 - [ ] Create steel thread with info.md, design.md, tasks.md
 - [ ] Create WP directories with info.md and empty socrates.md
-- [ ] Run Phase 0.5 pre-filtering (grep for R15/R8/R11)
+- [ ] Run Phase 0.5 pre-filtering (grep for R7/R11/R15)
 - [ ] Verify file manifests (all listed files exist)
 - [ ] For each WP (`/in-tca-audit`):
   - [ ] Run `/compact` first
