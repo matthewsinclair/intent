@@ -2,12 +2,26 @@
 
 ## Current State
 
-Intent v2.8.1. No active steel threads. Clean working tree.
+ST0032 (Fix Intent's Elixir Credo Checks) -- implementation complete, uncommitted. All 462 BATS tests pass.
 
-## Recent Activity
+## What Was Done (2026-04-11)
 
-- **2026-04-09**: v2.8.1 released. ST0031 (TCA suite hardening, post-Lamplight ST0121) complete -- pre-flight guard in `tca-report.sh --check-only`, Provisioning Invariants doc section, provisioning guards in `tca-init.sh`, False Positive Guidance as a REQUIRED design.md section, `--st-dir` to `--tca-dir` rename (breaking, internal TCA scripts only).
-- **2026-04-06**: ST0031 (Agentic Coding Course, earlier numbering) migrated to `../Courses/Agentic Coding/` project and renumbered to ST0001 there.
+ST0032 fixed the broken Credo check installation system:
+
+- Deleted 2 broken templates (boolean_operators, dependency_graph)
+- Created `bracket_access_on_struct.ex` (R16) with struct-variable tracking
+- Fixed 4 buggy templates (map_get_on_struct, missing_impl_annotation, debug_artifacts, thick_coordinator)
+- Created `lib/scripts/configure_credo.exs` -- standalone Elixir script that patches `.credo.exs` using `Code.eval_file`
+- Updated `bin/intent_st_zero` and `bin/intent_audit` to call configure script, removed wrong `elixirc_paths` hints and `--checks-dir` workaround
+- Updated rules: dropped R8/D11, added R16
+- Updated all docs, help files, TCA skill, MODULES.md, tests
+
+## What Needs Doing
+
+1. Commit ST0032 changes
+2. Bump version, update CHANGELOG.md, update wip.md
+3. Tag and push to both remotes
+4. Create GitHub release
 
 ## Parked
 
