@@ -819,7 +819,7 @@ needs_v2_8_2_upgrade() {
   local version=$1
 
   case "$version" in
-    "2.8.0"|"2.8.1")
+    "2.6.0"|"2.7.0"|"2.8.0"|"2.8.1")
       return 0  # Needs 2.8.2 upgrade
       ;;
     *)
@@ -875,6 +875,24 @@ migrate_v2_8_0_to_v2_8_1() {
   echo "    - False Positive Guidance is REQUIRED in design.md (in-tca-init template)"
   echo "    - BREAKING (internal): --st-dir renamed to --tca-dir in tca-* scripts"
   echo "    - Feedback report path: \$TCA_DIR/feedback-report.md (top-level artifact)"
+}
+
+# Migrate v2.6.0 to v2.8.0 - pure version stamp
+# Intent v2.7.0 and v2.8.0 were Intent-side-only releases (Detrope skill,
+# trope catalog vendoring, blog-series detroping). No project-state mutation
+# is needed to cross the 2.6.0 -> 2.8.0 boundary.
+migrate_v2_6_0_to_v2_8_0() {
+  local project_root=$1
+
+  echo "Upgrading to Intent v2.8.0 (Detrope skill, trope catalog)..."
+
+  if [ -f "$project_root/.intent/config.json" ]; then
+    local temp_file=$(mktemp)
+    jq --arg v "2.8.0" '.intent_version = $v | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
+    mv "$temp_file" "$project_root/.intent/config.json"
+  fi
+
+  echo "  Migration to v2.8.0 complete!"
 }
 
 # Migrate v2.8.1 to v2.8.2 - cwd-resilient dispatch + Credo wiring
