@@ -1,6 +1,6 @@
 # Intent Project Guidelines
 
-This is an Intent v2.8.1 project.
+This is an Intent v2.8.2 project.
 
 ## Rules
 

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.8.2] - 2026-04-15
+
+### Fixed
+
+- **ST0033: cwd-resilient dispatch.** `intent` subcommands now work from any directory inside an Intent project, not only from the project root. The dispatcher (`bin/intent`) exports `INTENT_ORIG_CWD` and `cd`s to `$PROJECT_ROOT` before `exec`'ing the subcommand, so every subcommand runs with a known-correct cwd. Outside any project, commands fail cleanly with "not in an Intent project" and no longer create stray `.intent/` or `intent/` directories at the invoker's cwd. `intent treeindex` and `intent fileindex` consult `INTENT_ORIG_CWD` when resolving relative path arguments.
+- **ST0032: Credo custom checks wired into `.credo.exs`.** `intent st zero` (D5a) and `intent audit` now use a standalone `lib/scripts/configure_credo.exs` to programmatically patch `.credo.exs`, replacing the earlier wrong hint about `elixirc_paths` in `mix.exs` and the `intent audit --checks-dir` workaround. Removed 2 broken check templates (`boolean_operators`, `dependency_graph`), fixed 4 buggy ones (`map_get_on_struct`, `missing_impl_annotation`, `debug_artifacts`, `thick_coordinator`), and added `bracket_access_on_struct`. Existing projects that went through `st zero` can re-run D5a to pick up the wiring.
+
 ## [2.8.1] - 2026-04-09
 
 ### Added

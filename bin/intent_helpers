@@ -815,6 +815,19 @@ needs_v2_8_1_upgrade() {
   esac
 }
 
+needs_v2_8_2_upgrade() {
+  local version=$1
+
+  case "$version" in
+    "2.8.0"|"2.8.1")
+      return 0  # Needs 2.8.2 upgrade
+      ;;
+    *)
+      return 1  # Already upgraded or different version
+      ;;
+  esac
+}
+
 # Migrate v2.5.0 to v2.6.0 - Automated enforcement (audit command)
 migrate_v2_5_0_to_v2_6_0() {
   local project_root=$1
@@ -862,6 +875,32 @@ migrate_v2_8_0_to_v2_8_1() {
   echo "    - False Positive Guidance is REQUIRED in design.md (in-tca-init template)"
   echo "    - BREAKING (internal): --st-dir renamed to --tca-dir in tca-* scripts"
   echo "    - Feedback report path: \$TCA_DIR/feedback-report.md (top-level artifact)"
+}
+
+# Migrate v2.8.1 to v2.8.2 - cwd-resilient dispatch + Credo wiring
+# Pure version stamp -- no structural changes to project state.
+# The ST0033 fix is entirely in intent's own dispatcher; the ST0032 fix lives
+# in Intent's own Credo templates and scripts. Projects that went through
+# 'st zero' can re-run D5a if they want the new wiring, but nothing in an
+# existing project needs to be mutated here.
+migrate_v2_8_1_to_v2_8_2() {
+  local project_root=$1
+
+  echo "Upgrading to Intent v2.8.2 (cwd-resilient dispatch, Credo wiring)..."
+
+  # Stamp the version
+  if [ -f "$project_root/.intent/config.json" ]; then
+    local temp_file=$(mktemp)
+    jq --arg v "2.8.2" '.intent_version = $v | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
+    mv "$temp_file" "$project_root/.intent/config.json"
+  fi
+
+  echo "  Migration to v2.8.2 complete!"
+  echo ""
+  echo "  IMPORTANT CHANGES IN v2.8.2:"
+  echo "    - intent subcommands now work from any subdirectory (ST0033)"
+  echo "    - Credo custom checks wired into .credo.exs via configure_credo.exs (ST0032)"
+  echo "    - st zero projects: re-run D5a to pick up the Credo wiring"
 }
 
 # Migrate v2.2.0 to v2.2.1

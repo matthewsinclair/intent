@@ -188,6 +188,12 @@ else
   error "Missing intent_config library. Intent installation may be corrupted."
 fi
 
+# Preserve the invoker's working directory so subcommands that accept a path
+# argument (treeindex, fileindex) can resolve relative paths correctly, then
+# enter the project root so subcommands can safely use project-relative paths.
+export INTENT_ORIG_CWD="$(pwd)"
+cd "$PROJECT_ROOT" || { echo "error: cannot enter project root: $PROJECT_ROOT" >&2; exit 1; }
+
 # Execute command with remaining arguments
 if [ -n "$PLUGIN_COMMAND" ]; then
   exec "$COMMAND_SCRIPT" "$@"

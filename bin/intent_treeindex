@@ -624,6 +624,16 @@ if [ -z "$PROJECT_ROOT" ]; then
 fi
 
 # 2. Verify TARGET_DIR exists
+# If the path is relative and we were invoked from outside the project root,
+# resolve it against the invoker's original cwd before checking.
+case "$TARGET_DIR" in
+  /*) ;;
+  *)
+    if [ -n "${INTENT_ORIG_CWD:-}" ] && [ ! -d "$TARGET_DIR" ] && [ -d "$INTENT_ORIG_CWD/$TARGET_DIR" ]; then
+      TARGET_DIR="$INTENT_ORIG_CWD/$TARGET_DIR"
+    fi
+    ;;
+esac
 if [ ! -d "$TARGET_DIR" ]; then
   error "Directory does not exist: $TARGET_DIR"
 fi

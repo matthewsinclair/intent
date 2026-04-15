@@ -1,10 +1,10 @@
 ---
 verblock: "11 Apr 2026:v0.1: matts - Initial version"
 intent_version: 2.8.1
-status: WIP
+status: Completed
 slug: fix-intent-s-elixir-credo-checks
 created: 20260411
-completed:
+completed: 20260415
 ---
 
 # ST0032: Fix Intent's Elixir Credo Checks

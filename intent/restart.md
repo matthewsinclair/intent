@@ -2,26 +2,14 @@
 
 ## Current State
 
-ST0032 (Fix Intent's Elixir Credo Checks) -- implementation complete, uncommitted. All 462 BATS tests pass.
+Intent v2.8.2. No active steel threads. Clean working tree.
 
-## What Was Done (2026-04-11)
+## Recent (2026-04-15)
 
-ST0032 fixed the broken Credo check installation system:
+v2.8.2 released, containing:
 
-- Deleted 2 broken templates (boolean_operators, dependency_graph)
-- Created `bracket_access_on_struct.ex` (R16) with struct-variable tracking
-- Fixed 4 buggy templates (map_get_on_struct, missing_impl_annotation, debug_artifacts, thick_coordinator)
-- Created `lib/scripts/configure_credo.exs` -- standalone Elixir script that patches `.credo.exs` using `Code.eval_file`
-- Updated `bin/intent_st_zero` and `bin/intent_audit` to call configure script, removed wrong `elixirc_paths` hints and `--checks-dir` workaround
-- Updated rules: dropped R8/D11, added R16
-- Updated all docs, help files, TCA skill, MODULES.md, tests
-
-## What Needs Doing
-
-1. Commit ST0032 changes
-2. Bump version, update CHANGELOG.md, update wip.md
-3. Tag and push to both remotes
-4. Create GitHub release
+- **ST0033** -- cwd-resilient dispatch. `bin/intent` exports `INTENT_ORIG_CWD=$(pwd)` and `cd "$PROJECT_ROOT"` before `exec`ing project subcommands, so `intent <cmd>` now works from any directory inside a project. `intent_treeindex` and `intent_fileindex` consult `INTENT_ORIG_CWD` when resolving relative path arguments. Outside any project, commands fail cleanly ("not in an Intent project") and no longer create stray `.intent/` or `intent/` at cwd. Regression tests in `tests/unit/subdir_invocation.bats`.
+- **ST0032** -- Credo check wiring. `intent st zero` (D5a) and `intent audit` now patch `.credo.exs` via `lib/scripts/configure_credo.exs`. 2 broken templates deleted, 4 fixed, `bracket_access_on_struct` added.
 
 ## Parked
 

@@ -208,6 +208,17 @@ fi
 
 # Moved index file handling after Intent detection
 
+# If STARTDIR is relative and we were invoked from outside the project root,
+# resolve it against the invoker's original cwd before validating.
+case "$STARTDIR" in
+  /*) ;;
+  *)
+    if [ -n "${INTENT_ORIG_CWD:-}" ] && [ ! -d "$STARTDIR" ] && [ -d "$INTENT_ORIG_CWD/$STARTDIR" ]; then
+      STARTDIR="$INTENT_ORIG_CWD/$STARTDIR"
+    fi
+    ;;
+esac
+
 # Validate start directory
 if [[ ! -d "$STARTDIR" ]]; then
     # If we're in an Intent project and tried to use lib but it doesn't exist,
