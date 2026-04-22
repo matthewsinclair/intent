@@ -275,11 +275,210 @@ ext_show() {
   fi
 }
 
-# ---- Subcommand: validate (stubbed until Session 3) ----
+# ---- Subcommand: validate ----
+# Validate one extension by name. Prints per-issue lines indented under the
+# caller-provided banner. Returns 0 when clean, 1 when any error accumulated.
+ext_validate_one() {
+  local name="$1"
+  local root
+  root="$(ext_root_dir)"
+  local ext_dir="$root/$name"
+  local manifest="$ext_dir/extension.json"
+  local errors=0
+
+  if [ ! -d "$ext_dir" ]; then
+    echo "  error: $ext_dir does not exist"
+    return 1
+  fi
+
+  if [ ! -f "$manifest" ]; then
+    echo "  error: extension.json missing"
+    return 1
+  fi
+
+  if ! jq -e . "$manifest" >/dev/null 2>&1; then
+    echo "  error: extension.json is not valid JSON"
+    return 1
+  fi
+
+  # Required top-level fields
+  local schema mname mversion
+  schema=$(jq -r '.schema // empty' "$manifest" 2>/dev/null || echo "")
+  mname=$(jq -r '.name // empty' "$manifest" 2>/dev/null || echo "")
+  mversion=$(jq -r '.version // empty' "$manifest" 2>/dev/null || echo "")
+
+  if [ -z "$schema" ]; then
+    echo "  error: missing required field 'schema'"
+    errors=$((errors + 1))
+  elif [ "$schema" != "intent-extension/v1" ]; then
+    echo "  error: schema must be 'intent-extension/v1', got '$schema'"
+    errors=$((errors + 1))
+  fi
+
+  if [ -z "$mname" ]; then
+    echo "  error: missing required field 'name'"
+    errors=$((errors + 1))
+  else
+    if [ "$mname" != "$name" ]; then
+      echo "  error: manifest name '$mname' does not match directory '$name'"
+      errors=$((errors + 1))
+    fi
+    if ! echo "$mname" | grep -qE '^[a-z0-9][a-z0-9-]*$'; then
+      echo "  error: name '$mname' must match ^[a-z0-9][a-z0-9-]*$"
+      errors=$((errors + 1))
+    fi
+  fi
+
+  if [ -z "$mversion" ]; then
+    echo "  error: missing required field 'version'"
+    errors=$((errors + 1))
+  elif ! echo "$mversion" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$'; then
+    echo "  error: version '$mversion' must match semver (MAJOR.MINOR.PATCH[-PRERELEASE])"
+    errors=$((errors + 1))
+  fi
+
+  # Reject unknown top-level keys (schema is additionalProperties:false)
+  local known='["schema","name","version","description","author","license","homepage","intent_compat","contributes","checksums"]'
+  local unknown_keys
+  unknown_keys=$(jq -r --argjson known "$known" 'keys - $known | .[]' "$manifest" 2>/dev/null || true)
+  if [ -n "$unknown_keys" ]; then
+    local uk
+    while IFS= read -r uk; do
+      [ -z "$uk" ] && continue
+      echo "  error: unknown top-level field '$uk' (schema disallows additional properties)"
+      errors=$((errors + 1))
+    done <<< "$unknown_keys"
+  fi
+
+  # intent_compat.min compatibility with current Intent
+  local compat_min
+  compat_min=$(jq -r '.intent_compat.min // empty' "$manifest" 2>/dev/null || echo "")
+  if [ -n "$compat_min" ]; then
+    local current_ver
+    current_ver=$(get_intent_version 2>/dev/null || echo "2.9.0")
+    local lowest
+    lowest=$(printf '%s\n%s\n' "$compat_min" "$current_ver" | sort -V | head -1)
+    if [ "$lowest" != "$compat_min" ]; then
+      echo "  error: intent_compat.min='$compat_min' exceeds current Intent version '$current_ver'"
+      errors=$((errors + 1))
+    fi
+  fi
+
+  # Contributions: path traversal + file existence
+  local type count idx cname cpath expected_file
+  for type in subagents skills rules; do
+    count=$(jq ".contributes.${type} // [] | length" "$manifest" 2>/dev/null || echo 0)
+    count="${count:-0}"
+    idx=0
+    while [ "$idx" -lt "$count" ]; do
+      cname=$(jq -r ".contributes.${type}[$idx].name // empty" "$manifest" 2>/dev/null || echo "")
+      cpath=$(jq -r ".contributes.${type}[$idx].path // empty" "$manifest" 2>/dev/null || echo "")
+
+      if [ -z "$cname" ]; then
+        echo "  error: contributes.${type}[$idx].name missing"
+        errors=$((errors + 1))
+      fi
+
+      if [ -z "$cpath" ]; then
+        echo "  error: contributes.${type}[$idx].path missing"
+        errors=$((errors + 1))
+        idx=$((idx + 1))
+        continue
+      fi
+
+      # Path traversal: reject absolute paths and '..' segments
+      if [[ "$cpath" = /* ]]; then
+        echo "  error: contributes.${type}[$idx].path '$cpath' is absolute (rejected)"
+        errors=$((errors + 1))
+        idx=$((idx + 1))
+        continue
+      fi
+
+      case "/$cpath/" in
+        */../*)
+          echo "  error: contributes.${type}[$idx].path '$cpath' contains '..' (path traversal rejected)"
+          errors=$((errors + 1))
+          idx=$((idx + 1))
+          continue
+          ;;
+      esac
+
+      # Contribution file presence
+      case "$type" in
+        subagents) expected_file="$ext_dir/$cpath/agent.md" ;;
+        skills)    expected_file="$ext_dir/$cpath/SKILL.md" ;;
+        rules)     expected_file="$ext_dir/$cpath/RULE.md" ;;
+      esac
+
+      if [ ! -f "$expected_file" ]; then
+        echo "  error: contributes.${type}[$idx] expects $expected_file (missing)"
+        errors=$((errors + 1))
+      fi
+
+      idx=$((idx + 1))
+    done
+  done
+
+  if [ "$errors" -eq 0 ]; then
+    return 0
+  fi
+  return 1
+}
+
 ext_validate() {
-  echo "error: 'intent ext validate' lands in WP02 Session 3" >&2
-  echo "       (JSON schema + path-traversal + contribution-path checks)" >&2
-  return 2
+  local target_name="${1:-}"
+  local root
+  root="$(ext_root_dir)"
+  if [ -z "$root" ]; then
+    echo "error: ext discovery disabled (INTENT_EXT_DISABLE=1)" >&2
+    return 1
+  fi
+  if [ ! -d "$root" ]; then
+    echo "ok: no extensions to validate ($root does not exist)"
+    return 0
+  fi
+
+  require_jq || return 1
+
+  local names
+  if [ -n "$target_name" ]; then
+    local target_dir="$root/$target_name"
+    if [ ! -d "$target_dir" ]; then
+      echo "error: extension '$target_name' not found at $target_dir" >&2
+      return 1
+    fi
+    names="$target_name"
+  else
+    names="$(ext_enumerate_names)"
+  fi
+
+  if [ -z "$names" ]; then
+    echo "ok: no extensions to validate ($root is empty)"
+    return 0
+  fi
+
+  local total=0 ok_count=0 fail_count=0
+  local name
+
+  while IFS= read -r name; do
+    [ -z "$name" ] && continue
+    total=$((total + 1))
+    echo "$name:"
+    if ext_validate_one "$name"; then
+      ok_count=$((ok_count + 1))
+      echo "  ok"
+    else
+      fail_count=$((fail_count + 1))
+    fi
+  done <<< "$names"
+
+  echo ""
+  echo "summary: $total checked, $ok_count ok, $fail_count failed"
+
+  if [ "$fail_count" -gt 0 ]; then
+    return 1
+  fi
+  return 0
 }
 
 # ---- Subcommand: new (stubbed until Session 4) ----

@@ -3,7 +3,7 @@ verblock: "22 Apr 2026:v0.2: matts - Detailed plan"
 wp_id: WP-01
 title: "Architecture and rule schema"
 scope: Medium
-status: WIP
+status: Done
 ---
 
 # WP-01: Architecture and rule schema
@@ -130,11 +130,37 @@ None. This WP is the foundation for everything else.
 
 Before closing WP01:
 
-- [ ] All acceptance criteria met
-- [ ] User-approved schema (explicit confirmation)
-- [ ] No TODOs in `_schema/` files
-- [ ] `_attribution/elixir-test-critic.md` committed with pinned-commit SHA verified against upstream
-- [ ] MODULES.md committed with all planned registrations
-- [ ] Both archetype `.exs` files exit 0 under `elixir <path>` (exit-code contract)
-- [ ] `./tests/run_tests.sh` exits 0 with ≥469 passing
-- [ ] Upstream commit hash recorded in `attribution-policy.md`
+- [x] All acceptance criteria met
+- [x] User-approved schema (explicit confirmation)
+- [x] No TODOs in `_schema/` files
+- [x] `_attribution/elixir-test-critic.md` committed with pinned-commit SHA verified against upstream
+- [x] MODULES.md committed with all planned registrations
+- [x] Both archetype `.exs` files exit 0 under `elixir <path>` (exit-code contract)
+- [x] `./tests/run_tests.sh` exits 0 with ≥469 passing
+- [x] Upstream commit hash recorded in `attribution-policy.md`
+
+## As-Built
+
+Closed at commit `3625b18` (ST0034:01 Done).
+
+### Shipped artefacts
+
+| Path                                                                            | Purpose                                                                           |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `intent/plugins/claude/rules/_schema/rule-schema.md`                            | Frontmatter reference + 9 mandatory sections + 2-space indentation invariant      |
+| `intent/plugins/claude/rules/_schema/id-scheme.md`                              | `IN-<LANG>-<CAT>-<NNN>` with real upstream-slug cross-reference table             |
+| `intent/plugins/claude/rules/_schema/attribution-policy.md`                     | Tier 1 / 2 / 3 attribution rules + slug-existence verification snippet            |
+| `intent/plugins/claude/rules/_schema/index-generator.md`                        | Full pipeline spec for `intent claude rules index` (deterministic, skip-tolerant) |
+| `intent/plugins/claude/rules/_schema/archetype/strong-assertions/RULE.md`       | Exemplar rule (Intent-original IN-EX-TEST-001, no `upstream_id`)                  |
+| `intent/plugins/claude/rules/_schema/archetype/strong-assertions/good_test.exs` | Pattern-match assertion; exits 0 under `elixir <path>`                            |
+| `intent/plugins/claude/rules/_schema/archetype/strong-assertions/bad_test.exs`  | Shape-only antipattern; exits 0 (Critic is enforcer, not ExUnit)                  |
+| `intent/plugins/claude/rules/_attribution/elixir-test-critic.md`                | MIT text + pinned commit `1d9aa40700dab7370b4abd338ce11b922e914b14` (2026-04-22)  |
+| `intent/plugins/claude/rules/index.json.template`                               | Target shape with 3 sample entries; validated by jq                               |
+| `intent/st/ST0034/design.md`                                                    | Testing Strategy section with 469-test pristine invariant + per-WP test surfaces  |
+
+### Design shifts vs original plan
+
+- **`bad_test.exs` exit contract reversed**: original plan said it should fail; upstream convention is both files exit 0 with Critic as enforcer. Acceptance criterion updated.
+- **Archetype made Intent-original**: originally I tried to cite upstream's `test-shape-not-values`, but that slug is telemetry-scoped. IN-EX-TEST-001 ships without `upstream_id` — the cleanest Tier-2 exemplar for WP05 will be `no-process-sleep` instead.
+- **Upstream heading wording**: rule schema now mandates `## When This Applies` / `## When This Does Not Apply` verbatim (upstream form, was `## When It Applies`).
+- **2-space indentation everywhere**: explicit Intent-wide rule recorded in `rule-schema.md` Formatting Invariants section; overrides Rust/Swift/Lua/Python language defaults for content under `intent/`.

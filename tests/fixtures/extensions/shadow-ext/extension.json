@@ -5,7 +5,7 @@
   "description": "Contributes a subagent named 'intent' to collide with canon",
   "author": "intent-tests",
   "license": "MIT",
-  "intent_compat": { "min": "2.9.0", "max": "3.x" },
+  "intent_compat": { "min": "2.8.0", "max": "3.x" },
   "contributes": {
     "subagents": [
       { "name": "intent", "path": "subagents/intent" }

@@ -2,21 +2,21 @@
 
 ## Progress Tracker
 
-Status as of: 2026-04-22 (plan accepted, WP docs drafted, coding not yet started)
+Status as of: 2026-04-22 (WP02 Session 3 in flight; Sessions 1-3 shipped)
 
-| WP   | Title                              | Status      | Notes                            |
-| ---- | ---------------------------------- | ----------- | -------------------------------- |
-| WP01 | Architecture and rule schema       | Not started | Foundation; blocks all other WPs |
-| WP02 | Extension system foundation        | Not started | Depends WP01                     |
-| WP03 | Skill and subagent rationalisation | Not started | Depends WP01                     |
-| WP04 | Agnostic rule pack                 | Not started | Depends WP01                     |
-| WP05 | Elixir rule pack                   | Not started | Depends WP01, WP04               |
-| WP06 | Rust/Swift/Lua rule packs          | Not started | Depends WP01, WP04               |
-| WP07 | Critic subagent family             | Not started | Depends WP03, WP04, WP05, WP06   |
-| WP08 | Worker-bee extraction              | Not started | Depends WP02                     |
-| WP09 | Migration and upgrade chain        | Not started | Depends WP02, WP08               |
-| WP10 | Documentation                      | Not started | Depends WP02, WP07, WP08         |
-| WP11 | Release and fleet upgrade          | Not started | Depends WP01-WP10                |
+| WP   | Title                              | Status      | Notes                                                              |
+| ---- | ---------------------------------- | ----------- | ------------------------------------------------------------------ |
+| WP01 | Architecture and rule schema       | Done        | Closed 3625b18; schema + archetype + attribution landed            |
+| WP02 | Extension system foundation        | WIP         | Sessions 1-3 shipped; Sessions 4-6 remain (new + rules CLI + BATS) |
+| WP03 | Skill and subagent rationalisation | Not started | Depends WP01                                                       |
+| WP04 | Agnostic rule pack                 | Not started | Depends WP01                                                       |
+| WP05 | Elixir rule pack                   | Not started | Depends WP01, WP04                                                 |
+| WP06 | Rust/Swift/Lua rule packs          | Not started | Depends WP01, WP04                                                 |
+| WP07 | Critic subagent family             | Not started | Depends WP03, WP04, WP05, WP06                                     |
+| WP08 | Worker-bee extraction              | Not started | Depends WP02                                                       |
+| WP09 | Migration and upgrade chain        | Not started | Depends WP02, WP08                                                 |
+| WP10 | Documentation                      | Not started | Depends WP02, WP07, WP08                                           |
+| WP11 | Release and fleet upgrade          | Not started | Depends WP01-WP10                                                  |
 
 ## Implementation Notes
 
@@ -31,40 +31,60 @@ This section accumulates implementation detail, gotchas, and decisions taken dur
 
 ## Code Examples
 
-### Rule schema archetype (WP01 deliverable)
+### Rule schema archetype (WP01 as-built)
+
+Shipped at `intent/plugins/claude/rules/_schema/archetype/strong-assertions/` with the final frontmatter shape (upstream_id removed — IN-EX-TEST-001 is Intent-original since upstream's `test-shape-not-values` is telemetry-scoped). Runnable `good_test.exs` / `bad_test.exs` both exit 0; Critic is the enforcer. See commit `3625b18`.
 
 ```yaml
 ---
 id: IN-EX-TEST-001
-upstream_id: test-critic-strong-assertions
-slug: no-shape-tests
 title: Strong assertions against concrete values
 language: elixir
 category: test
 severity: critical
+summary: Shape assertions pass for any value of the right type ...
+principles: [honest-data, public-interface]
 applies_to: ["test/**/*_test.exs"]
-references:
-  - IN-AG-HIGHLANDER-001
-aliases: []
+references: [IN-AG-HIGHLANDER-001]
+related_rules: [IN-EX-TEST-002]
+...
 version: 1
 ---
 ```
 
-### Callback signature (WP02 deliverable)
+### Callback signature (WP02 Session 1 as-built)
+
+`intent/plugins/claude/lib/claude_plugin_helpers.sh` grew `plugin_get_source_roots` + `plugin_source_path_in_root` with conditional defaults so existing plugins that override still win, plus `plugin_resolve_source_file`, `plugin_list_source_origins`, `plugin_root_tag`, `plugin_detect_shadow`. Commit `1d3924f`.
 
 ```bash
-# plugin_get_source_roots  -- echo newline-separated root directories
-#                             to search, in precedence order (highest first).
-#                             If undefined, defaults to a single root
-#                             (the canon subagents/skills dir).
+if ! declare -f plugin_get_source_roots >/dev/null 2>&1; then
+  plugin_get_source_roots() {
+    echo "$INTENT_HOME/intent/plugins/claude/${PLUGIN_CMD}"
+  }
+fi
+```
+
+Subagent plugin override (Session 1 as-built):
+
+```bash
 plugin_get_source_roots() {
-  [ -n "${INTENT_EXT_DIR:-}" ] && echo "$INTENT_EXT_DIR"
-  if [ -d "$HOME/.intent/ext" ]; then
-    for e in "$HOME/.intent/ext"/*/subagents; do
-      [ -d "$e" ] && echo "$e"
+  local canon_root="$INTENT_HOME/intent/plugins/claude/subagents"
+  if [ "${INTENT_EXT_DISABLE:-}" = "1" ]; then
+    echo "$canon_root"
+    return 0
+  fi
+  local ext_base="${INTENT_EXT_DIR:-$HOME/.intent/ext}"
+  if [ -d "$ext_base" ]; then
+    local ext_dir ext_name ext_subagents
+    for ext_dir in "$ext_base"/*/; do
+      [ -d "$ext_dir" ] || continue
+      ext_name="$(basename "$ext_dir")"
+      case "$ext_name" in .*|_*) continue ;; esac
+      ext_subagents="${ext_dir%/}/subagents"
+      [ -d "$ext_subagents" ] && echo "$ext_subagents"
     done
   fi
-  echo "$INTENT_HOME/intent/plugins/claude/subagents"
+  echo "$canon_root"
 }
 ```
 
@@ -133,7 +153,37 @@ migrate_v2_8_2_to_v2_9_0() {
 
 ## Challenges & Solutions
 
-Populate as implementation proceeds. Template:
+### Challenge: Upstream heading wording and slug accuracy drift
+
+**Context**: WP01. Drafting the rule schema, I had been writing `## When It Applies` and referencing upstream slugs like `test-critic-strong-assertions` that do not exist. `elixir-test-critic` uses `## When This Applies` verbatim and its real slugs are `no-process-sleep`, `async-by-default`, `start-supervised`, `test-shape-not-values` (telemetry-scoped).
+**Solution**: Fetched the upstream tree via GitHub API at the pinned commit `1d9aa40700dab7370b4abd338ce11b922e914b14`, replaced every fabricated slug with a verified upstream slug, and rewrote heading references to match. IN-EX-TEST-001 is now explicitly Intent-original (no `upstream_id`) because upstream's `test-shape-not-values` has a narrower scope.
+**Rationale**: Attribution tiers are only credible if upstream IDs resolve. Fabricated slugs break the Tier-2 contract.
+
+### Challenge: `bad_test.exs` exit-code contract
+
+**Context**: WP01. Initial draft of WP01 acceptance criteria said `bad.exs` should fail `mix test`. Upstream convention is the opposite: both `good_test.exs` and `bad_test.exs` exit 0; the Critic reads source to detect the antipattern.
+**Solution**: Rewrote the archetype so `bad_test.exs` uses shape-only assertions (`assert is_struct/...`) with a `# BAD PRACTICE:` comment. ExUnit passes; the Critic (not ExUnit) is the enforcer.
+**Rationale**: Aligns with upstream and with the `critic-<lang>` responsibility boundary. A failing ExUnit run would be noise, not signal.
+
+### Challenge: Callback overwrite order in library bootstrap
+
+**Context**: WP02 Session 1. Adding `plugin_get_source_roots` defaults in `claude_plugin_helpers.sh`. Plugins define callbacks **before** sourcing the library. A naive definition in the library would overwrite any plugin override.
+**Solution**: Wrapped library defaults in `if ! declare -f <name> >/dev/null 2>&1; then ... fi` so the default only takes effect when the plugin did not define its own. Zero behavioural change for existing plugins (none override), opt-in pathway for new ones.
+**Rationale**: Keeps the existing "define callbacks, then source" ordering intact — anything else would force the subagents/skills plugins to invert their structure.
+
+### Challenge: `set -e` killed `ext_show` mid-iteration
+
+**Context**: WP02 Session 2. Running `intent ext show valid-ext` printed the Subagents section then truncated. `ext_show_shadow_warning` returned the exit status of its final `[ -f ] && echo` compound, which is 1 when there is no shadow, which under `set -e` aborts the script.
+**Solution**: Wrapped the file test in `if ... fi` and added explicit `return 0` at the end of the function.
+**Rationale**: Bash's `set -e` + last-command-return semantics means helper functions need to exit 0 deliberately when their "nothing to do" path is the common case.
+
+### Challenge: Fixture `intent_compat.min` vs current VERSION
+
+**Context**: WP02 Session 3. Fixtures declared `intent_compat.min = "2.9.0"` matching the target release. Current VERSION is 2.8.2, so the validator correctly flagged every fixture as incompatible.
+**Solution**: Lowered fixture `intent_compat.min` to `"2.8.0"` so all four fixtures run under the current Intent version. The fixture still represents a plausible extension — most real extensions will declare lower min bounds for broader compat.
+**Rationale**: Fixtures exist to exercise validator code paths, not to model future-version behaviour. Bumping them to 2.9.0 at release time is cleaner than skipping the compat check in tests.
+
+### Template
 
 ### Challenge: [description]
 

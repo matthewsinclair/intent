@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://intent.dev/schemas/extension/v1",
+  "title": "Intent Extension Manifest",
+  "description": "Schema for ~/.intent/ext/<name>/extension.json files.",
+  "type": "object",
+  "required": ["schema", "name", "version"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "intent-extension/v1",
+      "description": "Schema identifier. Must be the exact literal 'intent-extension/v1'."
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "minLength": 2,
+      "maxLength": 64,
+      "description": "Extension name. Lowercase, digits, and hyphens. Must match the directory name under ~/.intent/ext/."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[A-Za-z0-9.-]+)?$",
+      "description": "Semantic version (major.minor.patch, optional pre-release suffix)."
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 280
+    },
+    "author": {
+      "type": "string"
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX identifier (e.g. 'MIT', 'Apache-2.0') or free-form text for non-SPDX licences."
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri"
+    },
+    "intent_compat": {
+      "type": "object",
+      "required": ["min"],
+      "additionalProperties": false,
+      "properties": {
+        "min": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "description": "Minimum Intent version that will load this extension."
+        },
+        "max": {
+          "type": "string",
+          "pattern": "^[0-9]+(\\.[0-9]+)?(\\.[0-9]+|\\.x)?$",
+          "description": "Maximum Intent major/minor/x-range that will load this extension (inclusive)."
+        }
+      }
+    },
+    "contributes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "subagents": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contribution" }
+        },
+        "skills": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contribution" }
+        },
+        "rules": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contribution" }
+        }
+      }
+    },
+    "checksums": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^(sha256|sha512):[a-f0-9]{32,128}$"
+      },
+      "description": "Optional per-file SHA checksums for tamper detection. Keys are paths relative to the extension root."
+    }
+  },
+  "$defs": {
+    "contribution": {
+      "type": "object",
+      "required": ["name", "path"],
+      "additionalProperties": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Public name of the contributed item (must match the directory basename)."
+        },
+        "path": {
+          "type": "string",
+          "description": "Path within the extension root that holds the contribution. Must not contain '..' segments."
+        }
+      }
+    }
+  }
+}
