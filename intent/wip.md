@@ -1,5 +1,5 @@
 ---
-verblock: "15 Apr 2026:v0.33: matts - v2.8.2 release"
+verblock: "22 Apr 2026:v0.34: matts - ST0034 active"
 intent_version: 2.8.2
 ---
 
@@ -7,7 +7,7 @@ intent_version: 2.8.2
 
 ## Current State
 
-Intent v2.8.2. No active steel threads. Clean working tree.
+Intent v2.8.2. **ST0034 (Agentic Software Engineering Suite) active** — 11 work packages, target release v2.9.0. Plan approved; WP docs populated; coding not yet started.
 
 ## Recent
 
@@ -21,7 +21,7 @@ Intent v2.8.2. No active steel threads. Clean working tree.
 
 ## Active Steel Threads
 
-None.
+- **ST0034**: Agentic Software Engineering Suite. v2.9.0 target. 11 WPs. Rules as first-class citizens, critic-`<lang>` family (elixir/rust/swift/lua) with code+test modes, `~/.intent/ext/` extension system, worker-bee pruned from canon to reference extension, elixir subagent deleted. Fail-forward design. See `intent/st/ST0034/design.md` for full architecture.
 
 ## Parked
 

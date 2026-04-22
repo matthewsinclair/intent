@@ -52,7 +52,8 @@
       "Bash(git:*)",
       "Bash([ -d \"$dir/.backup\" ])",
       "Bash([ -f \"$dir/.gitignore\" ])",
-      "Bash([ -f \"$dir/.intent/config.json\" ])"
+      "Bash([ -f \"$dir/.intent/config.json\" ])",
+      "WebFetch(domain:api.github.com)"
     ],
     "deny": []
   }

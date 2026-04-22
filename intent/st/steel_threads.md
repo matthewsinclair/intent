@@ -11,8 +11,9 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 
-| ID  | Slug | Status | Created | Completed |
-| --- | ---- | ------ | ------- | --------- |
+| ID     | Slug                               | Status | Created    | Completed |
+| ------ | ---------------------------------- | ------ | ---------- | --------- |
+| ST0034 | agentic-software-engineering-suite | WIP    | 2026-04-22 |
 
 <!-- END: STEEL_THREAD_INDEX -->
 
