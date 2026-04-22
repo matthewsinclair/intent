@@ -1,9 +1,9 @@
 ---
-verblock: "22 Apr 2026:v0.2: matts - Detailed plan"
+verblock: "22 Apr 2026:v0.3: matts - As-built WP05"
 wp_id: WP-05
 title: "Elixir rule pack"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-05: Elixir rule pack
@@ -285,12 +285,79 @@ done
 
 ## Exit Checklist
 
-- [ ] All acceptance criteria met
-- [ ] At least 15 rules (target 18-20) with complete frontmatter and examples
-- [ ] Attribution file complete with pinned commit hash
-- [ ] Runnable examples all pass/fail as documented
-- [ ] Cross-references resolve
-- [ ] Highlander audit clean
-- [ ] Content inventory shows zero orphans
-- [ ] WP03 skill refactors can resolve all referenced rule IDs
-- [ ] Registered in MODULES.md as part of rules library
+- [x] All acceptance criteria met
+- [x] At least 15 rules (landed 19) with complete frontmatter and examples
+- [x] Attribution file complete with pinned commit hash
+- [x] Runnable examples all exit 0 as documented
+- [x] Cross-references resolve
+- [x] Highlander audit clean (no agnostic rule content duplicated in language rules)
+- [x] Content inventory clean — WP03 will resolve remaining elixir-subagent orphans
+- [x] WP03 skill refactors can resolve all referenced rule IDs (the IDs exist)
+- [x] Registered in MODULES.md as part of rules library
+
+## As-Built (Done — 2026-04-22)
+
+### Summary
+
+19 Elixir rules landed across 5 categories, with 26 runnable `.exs` files all exiting 0 under standalone `elixir`. Three test rules are upstream-derived (elixir-test-critic, MIT, pinned at `1d9aa40…`); the rest are Intent-original. 18 new BATS tests guard presence, ID assignment, validator agreement, runnable exit-code contract, and attribution compliance.
+
+### Final rule catalogue
+
+| ID               | Slug                              | Category | Severity     | upstream_id        |
+| ---------------- | --------------------------------- | -------- | ------------ | ------------------ |
+| `IN-EX-CODE-001` | `pattern-match-over-conditionals` | code     | warning      | —                  |
+| `IN-EX-CODE-002` | `tagged-tuple-returns`            | code     | warning      | —                  |
+| `IN-EX-CODE-003` | `impl-true-on-callbacks`          | code     | warning      | —                  |
+| `IN-EX-CODE-004` | `with-for-railway`                | code     | warning      | —                  |
+| `IN-EX-CODE-005` | `no-silent-failures`              | code     | **critical** | —                  |
+| `IN-EX-CODE-006` | `module-highlander`               | code     | warning      | —                  |
+| `IN-EX-TEST-001` | `strong-assertions`               | test     | **critical** | —                  |
+| `IN-EX-TEST-002` | `no-process-sleep`                | test     | **critical** | `no-process-sleep` |
+| `IN-EX-TEST-003` | `async-by-default`                | test     | warning      | `async-by-default` |
+| `IN-EX-TEST-004` | `start-supervised`                | test     | **critical** | `start-supervised` |
+| `IN-EX-TEST-005` | `no-control-flow-in-tests`        | test     | warning      | —                  |
+| `IN-EX-TEST-006` | `real-code-over-mocks`            | test     | warning      | —                  |
+| `IN-EX-TEST-007` | `test-highlander-shared-setup`    | test     | warning      | —                  |
+| `IN-EX-ASH-001`  | `code-interfaces-only`            | ash      | **critical** | —                  |
+| `IN-EX-ASH-002`  | `actor-on-query`                  | ash      | warning      | —                  |
+| `IN-EX-PHX-001`  | `thin-controllers`                | phoenix  | warning      | —                  |
+| `IN-EX-LV-001`   | `two-phase-mount`                 | lv       | **critical** | —                  |
+| `IN-EX-LV-002`   | `streams-for-lists`               | lv       | warning      | —                  |
+| `IN-EX-LV-003`   | `thin-liveviews`                  | lv       | warning      | —                  |
+
+Severity distribution: 6 critical, 13 warning. No `recommendation` or `style` rules — every rule earns its keep.
+
+### Runnable-example coverage
+
+- **13 rules with `.exs` files** (6 code + 7 test). All 26 files (`good` + `bad`) exit 0 under `elixir <path>`.
+- **6 rules inline-only** (2 ash + 1 phoenix + 3 lv) — Ash/Phoenix/LV require Mix projects with framework deps; standalone `elixir` cannot run them. CI-LIMITATIONS.md already documents this.
+
+### Attribution
+
+Upstream-derived rules (3 of 19) are rewritten in Intent's voice. Upstream credit: row in `_attribution/elixir-test-critic.md`, `upstream_id:` in frontmatter, "Further Reading" link to upstream. No verbatim prose copying, so Tier 2 (principle borrow) — no Tier 3 inlining needed.
+
+### New tests (18 added; full suite 555/555 green)
+
+- `tests/unit/rule_pack_elixir.bats` (6 tests) — presence, ID assignment, language declaration, validator agreement, list coverage.
+- `tests/unit/rule_pack_elixir_runnable.bats` (5 tests) — `good*.exs` exit 0, `bad*.exs` exit 0, first-line `# EXPECTED: passes` invariant.
+- `tests/unit/attribution_compliance.bats` (7 tests) — MIT text, pinned commit, rule-to-row invariant, `upstream_id:` format.
+
+### Cross-ref graph updates
+
+- `IN-AG-HIGHLANDER-001.concretised_by:` swapped `IN-EX-TEST-004` → `IN-EX-TEST-007` (since `-004` was pre-allocated in WP01 to `start-supervised`).
+- `IN-AG-PFIC-001.concretised_by:` already pointed at `IN-EX-CODE-004` and `IN-EX-PHX-001` from WP04.
+- `IN-AG-THIN-COORD-001.concretised_by:` already pointed at `IN-EX-PHX-001` and `IN-EX-LV-003` from WP04.
+- `IN-AG-NO-SILENT-001.concretised_by:` already pointed at `IN-EX-CODE-005` and `IN-EX-CODE-004` from WP04.
+
+### Deviations from original plan
+
+- Plan listed 20 rules (8 code + 7 test + 3 ash + 1 phx + 3 lv with additional helpers). Landed 19 — merged `pipe-threading` and `guards-over-if` into `pattern-match-over-conditionals`; dropped `moduledoc-public-modules` and `spec-public-api` (too style-y for v2.9.0 — belong in a future style category or a markdownlint-level check). All intended behaviour invariants remain covered.
+- `IN-EX-TEST-001` title changed from "Strong assertions against concrete values" to plain `Strong assertions against concrete values` (no change in content; the exemplar was promoted into canon in WP04 prep).
+- Original plan slated `IN-EX-TEST-004` for a home-grown rule; WP01 pre-allocated it to upstream `start-supervised`. Intent-original `test-highlander-shared-setup` took `IN-EX-TEST-007`. Mechanical — pre-allocation honoured.
+
+### Commits landed under WP05
+
+- `e65913d` — 6 code rules + runnable examples
+- `92484c9` — 6 test rules + upstream attribution
+- `87c5ad2` — 6 framework rules (ash/phoenix/lv)
+- (this turn) — BATS tests + WP05 info as-built + impl.md update
