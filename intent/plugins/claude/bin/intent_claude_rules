@@ -319,6 +319,20 @@ rules_validate_one() {
     errors=$((errors + 1))
   fi
 
+  # Unknown frontmatter keys (warning only — schema may evolve)
+  local known_keys='id title language category severity summary principles applies_to applies_when does_not_apply_when upstream_id references related_rules concretised_by aliases tags sources conflicts_with status version'
+  local fm_keys seen_key
+  fm_keys=$(echo "$fm" | awk -F: '/^[A-Za-z]/ { print $1 }')
+  while IFS= read -r seen_key; do
+    [ -z "$seen_key" ] && continue
+    case " $known_keys " in
+      *" $seen_key "*) : ;;
+      *)
+        echo "  warning: frontmatter key '$seen_key' is not part of the declared schema"
+        ;;
+    esac
+  done <<< "$fm_keys"
+
   # upstream_id => attribution file must reference this slug
   local upstream_id
   upstream_id="$(rule_fm_scalar "$path" upstream_id)"
@@ -399,8 +413,21 @@ rules_validate() {
     return 0
   fi
 
+  # Duplicate-id pre-scan: map every id -> count of files that declare it.
+  local id_tally
+  id_tally=$(mktemp)
+  local path id
+  while IFS= read -r path; do
+    [ -z "$path" ] && continue
+    id="$(rule_fm_scalar "$path" id)"
+    [ -n "$id" ] && echo "$id" >> "$id_tally"
+  done <<< "$files"
+
+  local duplicate_ids
+  duplicate_ids=$(sort "$id_tally" | uniq -d)
+
   local total=0 ok_count=0 fail_count=0
-  local path prov id
+  local prov is_dup
 
   while IFS= read -r path; do
     [ -z "$path" ] && continue
@@ -409,7 +436,12 @@ rules_validate() {
     id="$(rule_fm_scalar "$path" id)"
     [ -z "$id" ] && id="(missing id)"
     echo "$id  [$prov]  $path"
-    if rules_validate_one "$path"; then
+    is_dup=0
+    if [ -n "$duplicate_ids" ] && echo "$duplicate_ids" | grep -qxF "$id"; then
+      echo "  error: id '$id' is declared by more than one RULE.md"
+      is_dup=1
+    fi
+    if rules_validate_one "$path" && [ "$is_dup" -eq 0 ]; then
       ok_count=$((ok_count + 1))
       echo "  ok"
     else
@@ -417,6 +449,7 @@ rules_validate() {
     fi
   done <<< "$files"
 
+  rm -f "$id_tally"
   echo ""
   echo "summary: $total checked, $ok_count ok, $fail_count failed"
   [ "$fail_count" -gt 0 ] && return 1

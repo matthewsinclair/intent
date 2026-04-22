@@ -2,21 +2,21 @@
 
 ## Progress Tracker
 
-Status as of: 2026-04-22 (WP02 Session 3 in flight; Sessions 1-3 shipped)
+Status as of: 2026-04-22 (WP02 closed; WP01 + WP02 done)
 
-| WP   | Title                              | Status      | Notes                                                              |
-| ---- | ---------------------------------- | ----------- | ------------------------------------------------------------------ |
-| WP01 | Architecture and rule schema       | Done        | Closed 3625b18; schema + archetype + attribution landed            |
-| WP02 | Extension system foundation        | WIP         | Sessions 1-3 shipped; Sessions 4-6 remain (new + rules CLI + BATS) |
-| WP03 | Skill and subagent rationalisation | Not started | Depends WP01                                                       |
-| WP04 | Agnostic rule pack                 | Not started | Depends WP01                                                       |
-| WP05 | Elixir rule pack                   | Not started | Depends WP01, WP04                                                 |
-| WP06 | Rust/Swift/Lua rule packs          | Not started | Depends WP01, WP04                                                 |
-| WP07 | Critic subagent family             | Not started | Depends WP03, WP04, WP05, WP06                                     |
-| WP08 | Worker-bee extraction              | Not started | Depends WP02                                                       |
-| WP09 | Migration and upgrade chain        | Not started | Depends WP02, WP08                                                 |
-| WP10 | Documentation                      | Not started | Depends WP02, WP07, WP08                                           |
-| WP11 | Release and fleet upgrade          | Not started | Depends WP01-WP10                                                  |
+| WP   | Title                              | Status      | Notes                                                                                                   |
+| ---- | ---------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------- |
+| WP01 | Architecture and rule schema       | Done        | Closed 3625b18; schema + archetype + attribution landed                                                 |
+| WP02 | Extension system foundation        | Done        | 6 sessions: callback refactor, ext dispatcher, validator, scaffolding, rules CLI, BATS. 526 tests pass. |
+| WP03 | Skill and subagent rationalisation | Not started | Depends WP01                                                                                            |
+| WP04 | Agnostic rule pack                 | Not started | Depends WP01                                                                                            |
+| WP05 | Elixir rule pack                   | Not started | Depends WP01, WP04                                                                                      |
+| WP06 | Rust/Swift/Lua rule packs          | Not started | Depends WP01, WP04                                                                                      |
+| WP07 | Critic subagent family             | Not started | Depends WP03, WP04, WP05, WP06                                                                          |
+| WP08 | Worker-bee extraction              | Not started | Depends WP02                                                                                            |
+| WP09 | Migration and upgrade chain        | Not started | Depends WP02, WP08                                                                                      |
+| WP10 | Documentation                      | Not started | Depends WP02, WP07, WP08                                                                                |
+| WP11 | Release and fleet upgrade          | Not started | Depends WP01-WP10                                                                                       |
 
 ## Implementation Notes
 
