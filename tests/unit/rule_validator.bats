@@ -61,7 +61,9 @@ EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
 
 @test "rules validate detects duplicate ids across files" {
   # Construct a temporary ext directory holding both duplicate-id fixtures
-  # under the canonical ext rule layout.
+  # under the canonical ext rule layout. `rules validate` with no argument
+  # walks canon + ext, so the summary line reflects BOTH the canon rules
+  # (expected to pass) and the two duplicate fixtures (expected to fail).
   local sandbox="$TEST_TEMP_DIR/ext-dup-ids"
   mkdir -p "$sandbox/ext-dup/rules/agnostic/a" "$sandbox/ext-dup/rules/agnostic/b"
   cp "$RULE_FIXTURES/duplicate-id-a/RULE.md" "$sandbox/ext-dup/rules/agnostic/a/RULE.md"
@@ -71,23 +73,27 @@ EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
   run run_intent claude rules validate
   assert_failure
   assert_output_contains "declared by more than one RULE.md"
-  assert_output_contains "2 checked"
-  assert_output_contains "0 ok"
+  # Both duplicate fixtures must be flagged failed; their exact path + id
+  # pair shows up in the body. The summary always reports 2 failures from
+  # the fixtures regardless of how many canon rules pass alongside.
+  assert_output_contains "2 failed"
 }
 
 # ====================================================================
-# Archetype: forward-reference behaviour
+# Archetype: cross-reference resolves after WP04
 # ====================================================================
 
-@test "rules validate against archetype surfaces expected forward-reference error" {
-  # The archetype references IN-AG-HIGHLANDER-001 which does not exist until
-  # WP04 lands. Validating the archetype directly should fail loudly with
-  # that specific message — confirming the cross-reference check works
-  # against real content, not just fixtures.
+@test "rules validate against archetype passes once IN-AG-HIGHLANDER-001 exists" {
+  # The archetype references IN-AG-HIGHLANDER-001. Prior to WP04 this forward
+  # reference failed validation (and this test asserted the failure). After
+  # WP04 the agnostic pack defines IN-AG-HIGHLANDER-001, so the cross-reference
+  # now resolves and the archetype validates clean — this test guards that
+  # transition and acts as a canary if the agnostic rule's id ever shifts.
   run run_intent claude rules validate "$ARCHETYPE_RULE"
-  assert_failure
-  assert_output_contains "IN-AG-HIGHLANDER-001"
-  assert_output_contains "does not resolve"
+  assert_success
+  assert_output_contains "IN-EX-TEST-001"
+  assert_output_contains "1 ok"
+  refute_output_contains "does not resolve"
 }
 
 # ====================================================================

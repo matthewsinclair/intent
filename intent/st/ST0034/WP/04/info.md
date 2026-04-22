@@ -1,9 +1,9 @@
 ---
-verblock: "22 Apr 2026:v0.2: matts - Detailed plan"
+verblock: "22 Apr 2026:v0.3: matts - As-built after close"
 wp_id: WP-04
 title: "Agnostic rule pack"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-04: Agnostic rule pack
@@ -78,24 +78,25 @@ Each rule's "Further reading" section points at:
 
 ## Acceptance Criteria
 
-- [ ] All 4 rule files exist at paths listed above
-- [ ] Each rule's frontmatter has required fields per schema: `id`, `title`, `language: agnostic`, `category`, `severity`, `summary`, `principles`, `applies_when`
-- [ ] Each rule's `concretised_by:` lists at least 2 language-specific rule IDs (placeholders acceptable if WP05/06 not yet complete; finalise before WP07)
-- [ ] Each rule has all 9 structural elements per schema: H1 + tagline + `## Problem`, `## Detection`, `## Bad` (may be `N/A — see concretised_by`), `## Good` (same), `## When This Applies`, `## When This Does Not Apply`, `## Further Reading`
-- [ ] Each rule body is under 200 lines (agnostic rules should be concise; detail lives in concretising rules)
-- [ ] No two agnostic rules duplicate prose (intra-agnostic Highlander audit)
-- [ ] Each rule cites a concrete Intent-project or industry source in Further Reading
-- [ ] `intent claude rules validate rules/agnostic/` passes (validator from WP02)
+- [x] All 4 rule files exist at paths listed above
+- [x] Each rule's frontmatter has required fields per schema: `id`, `title`, `language: agnostic`, `category`, `severity`, `summary`, `principles`, `applies_when`
+- [x] Each rule's `concretised_by:` lists at least 2 language-specific rule IDs (forward references to WP05 IDs; validator does not enforce resolution on `concretised_by:` so this is safe)
+- [x] Each rule has all 9 structural elements per schema: H1 + tagline + `## Problem`, `## Detection`, `## Bad`, `## Good`, `## When This Applies`, `## When This Does Not Apply`, `## Further Reading`
+- [x] Each rule body is under 200 lines (longest: `no-silent-errors` at ~150)
+- [x] No two agnostic rules duplicate prose (Highlander, PFIC, Thin Coordinator, No Silent Errors each have distinct Problem/Detection/Good/Bad framing; cross-links via `references:` and `related_rules:`)
+- [x] Each rule cites a concrete Intent-project or industry source in Further Reading
+- [x] `intent claude rules validate rules/agnostic/` passes (4 of 4 rules ok)
 
 ### Tests to add
 
-See `intent/st/ST0034/design.md` §Testing Strategy §WP04.
-
-- [ ] `tests/unit/rule_pack_agnostic.bats` — presence of all 4 rules, frontmatter well-formed, `concretised_by:` ≥ 2 (invariant gate — prevents `agnostic/` from becoming a dumping ground)
+- [x] `tests/unit/rule_pack_agnostic.bats` — 11 tests covering presence, frontmatter shape, `concretised_by:` ≥ 2 invariant, and validator cross-check
 
 ### Tests to update
 
-- [ ] `./tests/run_tests.sh` exits 0 after commit (pristine invariant)
+- [x] `tests/unit/rule_validator.bats::rules validate against archetype` — archetype now validates clean because `IN-AG-HIGHLANDER-001` resolves; test renamed and inverted from "surfaces expected forward-reference error" to "passes once IN-AG-HIGHLANDER-001 exists"
+- [x] `tests/unit/rule_validator.bats::rules validate detects duplicate ids across files` — `validate` (no arg) now walks canon+ext so the "2 checked / 0 ok" assertions updated to "2 failed" (canon rules also validate alongside the duplicate fixtures)
+- [x] `tests/unit/rule_index.bats::rules index emits an empty rules array` — canon no longer empty; renamed to "includes the four agnostic rules after WP04" and asserts `rule_count: 4` + all four IDs present
+- [x] `./tests/run_tests.sh` exits 0 after commit (pristine invariant: 526 → 537, +11 rule_pack_agnostic)
 
 ## Dependencies
 
@@ -220,9 +221,52 @@ Some might argue Thin Coordinator is Elixir/Phoenix-specific. The concretised_by
 
 ## Exit Checklist
 
-- [ ] All 4 rule files committed
-- [ ] All acceptance criteria met
-- [ ] Schema validation passes
-- [ ] Cross-references at least provisionally populated (finalised after WP05/06)
-- [ ] Each rule has a clear "When Does Not Apply" section (prevents critic noise)
-- [ ] Registered in MODULES.md as part of the rules library
+- [x] All 4 rule files committed
+- [x] All acceptance criteria met
+- [x] Schema validation passes (4 of 4 ok via `intent claude rules validate`)
+- [x] Cross-references provisionally populated — `concretised_by:` points at forward-reference IDs (`IN-EX-CODE-004/005/006`, `IN-EX-TEST-004`, `IN-EX-PHX-001`, `IN-EX-LV-003`) that WP05 will create
+- [x] Each rule has a substantive "When This Does Not Apply" section (not "No known exceptions")
+- [x] Registered in MODULES.md as part of the rules library (entry was pre-seeded at line 132)
+
+## As-Built
+
+### Shipped artefacts
+
+| Path                                                            | Role                                                           |
+| --------------------------------------------------------------- | -------------------------------------------------------------- |
+| `intent/plugins/claude/rules/agnostic/highlander/RULE.md`       | `IN-AG-HIGHLANDER-001` — There can be only one                 |
+| `intent/plugins/claude/rules/agnostic/pfic/RULE.md`             | `IN-AG-PFIC-001` — Pure Function, Impure Coordination          |
+| `intent/plugins/claude/rules/agnostic/thin-coordinator/RULE.md` | `IN-AG-THIN-COORD-001` — Thin Coordinator                      |
+| `intent/plugins/claude/rules/agnostic/no-silent-errors/RULE.md` | `IN-AG-NO-SILENT-001` — No Silent Errors                       |
+| `intent/plugins/claude/rules/index.json`                        | Regenerated via `intent claude rules index` — now 4 entries    |
+| `tests/unit/rule_pack_agnostic.bats`                            | 11 invariant tests for the pack                                |
+| `tests/unit/rule_validator.bats` (edited)                       | Archetype forward-ref test inverted; duplicate-id test updated |
+| `tests/unit/rule_index.bats` (edited)                           | Empty-canon test replaced with post-WP04 expectations          |
+
+### Cross-reference graph as shipped
+
+```
+IN-AG-HIGHLANDER-001 ──── references: []
+                          related_rules: [PFIC, THIN-COORD]
+                          concretised_by: [IN-EX-CODE-006, IN-EX-TEST-004]
+
+IN-AG-PFIC-001 ────────── references: []
+                          related_rules: [THIN-COORD, NO-SILENT]
+                          concretised_by: [IN-EX-CODE-004, IN-EX-PHX-001]
+
+IN-AG-THIN-COORD-001 ──── references: [PFIC]
+                          related_rules: [HIGHLANDER, NO-SILENT]
+                          concretised_by: [IN-EX-PHX-001, IN-EX-LV-003]
+
+IN-AG-NO-SILENT-001 ───── references: [PFIC]
+                          related_rules: [THIN-COORD]
+                          concretised_by: [IN-EX-CODE-005, IN-EX-CODE-004]
+```
+
+The `references:` edges are minimal (PFIC is the anchor); richer cross-links live in `related_rules:` which are softer suggestions. The `concretised_by:` targets must exist after WP05 completes — WP05 is the validator of WP04's forward references.
+
+### Design shifts during the work
+
+- **No "N/A" placeholder sections.** WP04 info.md suggested `## Bad` / `## Good` could be `N/A — see concretised_by`. As drafted, each agnostic rule carries a textual Bad / Good illustrating the principle in pseudo-code across multiple languages. This is more useful to a Critic reading the rule than a terse "see concretising rule" pointer and matches how the schema's archetype handles it.
+- **`references:` kept minimal.** Only Thin Coordinator and No Silent Errors carry hard `references: [IN-AG-PFIC-001]` edges (validator-enforced). Everything else lives in `related_rules:` which is a softer signal. This avoids an explosion of cross-reference edges that would churn as the agnostic pack grows.
+- **Test-suite downstream fixes.** Three prior BATS tests had baked-in assumptions ("canon is empty," "archetype's forward reference fails," "validate sees only the fixture rules"). WP04 surfaces all three. Each was updated in-place rather than skipped; the new assertions reflect the post-WP04 reality and the old comments were rewritten to describe the transition, not hide it.

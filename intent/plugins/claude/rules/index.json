@@ -1,7 +1,171 @@
 {
   "intent_version": "2.8.2",
-  "rule_count": 0,
-  "rules": [],
+  "rule_count": 4,
+  "rules": [
+    {
+      "aliases": [],
+      "applies_to": [],
+      "applies_when": [
+        "Validation, formatting, error handling, configuration loading, or I/O wrappers that could be implemented in more than one place",
+        "A new helper function whose responsibility overlaps an existing module",
+        "A CLI subcommand, skill, or rule that restates logic already owned elsewhere"
+      ],
+      "category": "architecture",
+      "concretised_by": [
+        "IN-EX-CODE-006",
+        "IN-EX-TEST-004"
+      ],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Localisation files where the same key is legitimately translated into many languages",
+        "Test fixtures where repeated setup is clearer than an over-extracted helper",
+        "Vendor-specific adapters where each third-party integration is genuinely its own concern"
+      ],
+      "id": "IN-AG-HIGHLANDER-001",
+      "language": "agnostic",
+      "principles": [
+        "highlander"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-AG-PFIC-001",
+        "IN-AG-THIN-COORD-001"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/agnostic/highlander/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [],
+      "title": "There can be only one",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [],
+      "applies_when": [
+        "Library code, domain logic, and any code with downstream consumers",
+        "Long-running processes where a swallowed error today becomes a mysterious outage tomorrow",
+        "Coordinators receiving tagged-result tuples from the domain"
+      ],
+      "category": "architecture",
+      "concretised_by": [
+        "IN-EX-CODE-005",
+        "IN-EX-CODE-004"
+      ],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Best-effort telemetry, logging, or cache-warming where a failure is genuinely ignorable",
+        "Supervisor `let it crash` boundaries where the supervisor is the explicit handler",
+        "Fire-and-forget notifications where the caller has decided the downstream outcome is not their concern and logs the attempt"
+      ],
+      "id": "IN-AG-NO-SILENT-001",
+      "language": "agnostic",
+      "principles": [
+        "no-silent-errors",
+        "pfic"
+      ],
+      "references": [
+        "IN-AG-PFIC-001"
+      ],
+      "related_rules": [
+        "IN-AG-THIN-COORD-001"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/agnostic/no-silent-errors/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [],
+      "title": "No Silent Errors",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [],
+      "applies_when": [
+        "Any module that encodes domain logic: validation, calculation, transformation, decision",
+        "Any function deeper than one call away from I/O that still performs I/O",
+        "A refactor opportunity where tests are slow because the unit under test is indirectly hitting the network or filesystem"
+      ],
+      "category": "architecture",
+      "concretised_by": [
+        "IN-EX-CODE-004",
+        "IN-EX-PHX-001"
+      ],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Boundary adapters — HTTP clients, database repositories, OS shims — whose entire purpose is to perform the side effect",
+        "One-shot scripts where the indirection cost outweighs the testability gain",
+        "Trivial procedural code that never becomes a library and has no consumers beyond its script file"
+      ],
+      "id": "IN-AG-PFIC-001",
+      "language": "agnostic",
+      "principles": [
+        "pfic",
+        "functional-core",
+        "honest-data"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-AG-THIN-COORD-001",
+        "IN-AG-NO-SILENT-001"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/agnostic/pfic/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [],
+      "title": "Pure Function, Impure Coordination",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [],
+      "applies_when": [
+        "HTTP controllers, LiveView callbacks, CLI command handlers, Oban workers, GenServer callbacks",
+        "Any adapter layer that sits between a transport (HTTP, WebSocket, argv, queue) and the domain",
+        "Refactor review: a coordinator function body exceeds ~20 lines or contains more than one non-trivial branch"
+      ],
+      "category": "architecture",
+      "concretised_by": [
+        "IN-EX-PHX-001",
+        "IN-EX-LV-003"
+      ],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Trivial scripts whose entire purpose is transport-level plumbing",
+        "Prototype sketches that have not yet earned a domain boundary",
+        "Adapters translating between wire formats where the translation is the only interesting thing"
+      ],
+      "id": "IN-AG-THIN-COORD-001",
+      "language": "agnostic",
+      "principles": [
+        "thin-coordinator",
+        "pfic"
+      ],
+      "references": [
+        "IN-AG-PFIC-001"
+      ],
+      "related_rules": [
+        "IN-AG-HIGHLANDER-001",
+        "IN-AG-NO-SILENT-001"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/agnostic/thin-coordinator/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [],
+      "title": "Thin Coordinator",
+      "upstream_id": null,
+      "version": 1
+    }
+  ],
   "schema": "intent-rule-index/v1",
   "upstream_pin": "1d9aa40700dab7370b4abd338ce11b922e914b14"
 }

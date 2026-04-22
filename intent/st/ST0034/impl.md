@@ -2,14 +2,14 @@
 
 ## Progress Tracker
 
-Status as of: 2026-04-22 (WP02 closed; WP01 + WP02 done)
+Status as of: 2026-04-22 (WP04 closed; WP01 + WP02 + WP04 done)
 
 | WP   | Title                              | Status      | Notes                                                                                                   |
 | ---- | ---------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------- |
 | WP01 | Architecture and rule schema       | Done        | Closed 3625b18; schema + archetype + attribution landed                                                 |
 | WP02 | Extension system foundation        | Done        | 6 sessions: callback refactor, ext dispatcher, validator, scaffolding, rules CLI, BATS. 526 tests pass. |
-| WP03 | Skill and subagent rationalisation | Not started | Depends WP01                                                                                            |
-| WP04 | Agnostic rule pack                 | Not started | Depends WP01                                                                                            |
+| WP03 | Skill and subagent rationalisation | Not started | Depends WP01. Sequenced after WP05 so rule-by-ID references resolve.                                    |
+| WP04 | Agnostic rule pack                 | Done        | 4 rules (Highlander, PFIC, Thin Coordinator, No Silent Errors); +11 BATS tests = 537 total.             |
 | WP05 | Elixir rule pack                   | Not started | Depends WP01, WP04                                                                                      |
 | WP06 | Rust/Swift/Lua rule packs          | Not started | Depends WP01, WP04                                                                                      |
 | WP07 | Critic subagent family             | Not started | Depends WP03, WP04, WP05, WP06                                                                          |
@@ -176,6 +176,18 @@ migrate_v2_8_2_to_v2_9_0() {
 **Context**: WP02 Session 2. Running `intent ext show valid-ext` printed the Subagents section then truncated. `ext_show_shadow_warning` returned the exit status of its final `[ -f ] && echo` compound, which is 1 when there is no shadow, which under `set -e` aborts the script.
 **Solution**: Wrapped the file test in `if ... fi` and added explicit `return 0` at the end of the function.
 **Rationale**: Bash's `set -e` + last-command-return semantics means helper functions need to exit 0 deliberately when their "nothing to do" path is the common case.
+
+### Challenge: Test-suite assumptions baked in during WP02 broke when canon populated
+
+**Context**: WP04. Three pre-existing BATS tests encoded assumptions that were true during WP02 (canon rule dir empty) but invalid after WP04 (4 agnostic rules present):
+
+1. `rule_validator.bats::rules validate against archetype` expected failure on `IN-AG-HIGHLANDER-001` forward reference.
+2. `rule_validator.bats::rules validate detects duplicate ids` asserted "2 checked" assuming canon had 0 rules contributing to the walk.
+3. `rule_index.bats::rules index emits an empty rules array` asserted `rule_count: 0`.
+
+**Solution**: Updated each test in-place rather than skipping. For (1), inverted the assertion from "expect failure" to "expect success with '1 ok'" and rewrote the comment to describe the WP02-to-WP04 transition. For (2), switched the summary-line assertion from "2 checked / 0 ok" (which depends on canon count) to "2 failed" (invariant: the duplicate fixtures always fail, regardless of canon's rule count). For (3), replaced with positive assertions that the four new agnostic IDs appear in the index.
+
+**Rationale**: Deleting the tests would lose coverage; `_ = run ...`-ing to skip them leaves orphan comments. Updating in-place preserves intent and makes the WP02-to-WP04 transition visible in the test history.
 
 ### Challenge: Fixture `intent_compat.min` vs current VERSION
 

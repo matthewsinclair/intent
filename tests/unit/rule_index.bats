@@ -61,13 +61,18 @@ teardown() {
   assert_file_contains "$CANON_INDEX" '1d9aa40700dab7370b4abd338ce11b922e914b14'
 }
 
-@test "rules index emits an empty rules array when canon has no rule packs yet" {
-  # Canon has only _schema/ and _attribution/ during WP02; real rule packs
-  # land in WP04-WP06. An empty-but-valid index is the expected state today.
+@test "rules index includes the four agnostic rules after WP04" {
+  # Canon had only _schema/ and _attribution/ during WP02; WP04 lands the
+  # agnostic rule pack (Highlander, PFIC, Thin Coordinator, No Silent Errors).
+  # The index should now report exactly those four canon rules and no others
+  # until WP05/WP06 add language packs.
   run run_intent claude rules index
   assert_success
-  assert_file_contains "$CANON_INDEX" '"rule_count": 0'
-  assert_file_contains "$CANON_INDEX" '"rules": []'
+  assert_file_contains "$CANON_INDEX" '"rule_count": 4'
+  assert_file_contains "$CANON_INDEX" '"IN-AG-HIGHLANDER-001"'
+  assert_file_contains "$CANON_INDEX" '"IN-AG-PFIC-001"'
+  assert_file_contains "$CANON_INDEX" '"IN-AG-THIN-COORD-001"'
+  assert_file_contains "$CANON_INDEX" '"IN-AG-NO-SILENT-001"'
 }
 
 @test "rules index does not include ext rules (extensions are runtime-only)" {
