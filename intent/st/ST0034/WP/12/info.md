@@ -1,12 +1,64 @@
 ---
-verblock: "22 Apr 2026:v0.2: matts - Detailed plan + dogfood journal"
+verblock: "22 Apr 2026:v0.3: matts - Done"
 wp_id: WP-12
 title: "Shell rule pack (bash + zsh)"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-12: Shell rule pack (bash + zsh)
+
+## As-Built (2026-04-22)
+
+Shell rule pack shipped with 6 rules, `critic-shell` subagent, dogfood journal, and blog-post draft. Total rule count rose 42 -> 48.
+
+### Rules shipped
+
+| ID             | Slug                      | Severity | Dialect       |
+| -------------- | ------------------------- | -------- | ------------- |
+| IN-SH-CODE-001 | code/quote-expansions     | critical | bash + zsh    |
+| IN-SH-CODE-002 | code/no-parse-ls          | warning  | bash + zsh    |
+| IN-SH-CODE-003 | code/set-euo-pipefail     | warning  | bash-specific |
+| IN-SH-CODE-004 | code/setopt-err-exit      | warning  | zsh-specific  |
+| IN-SH-CODE-005 | code/no-silent-exit-codes | critical | bash + zsh    |
+| IN-SH-CODE-006 | code/module-highlander    | warning  | bash + zsh    |
+
+### critic-shell subagent
+
+`intent/plugins/claude/subagents/critic-shell/` ships with:
+
+- `agent.md` — thin-coordinator prompt. Reads agnostic + shell rules, detects dialect from shebang, applies Detection heuristics, emits stable severity-grouped report. No autofix, no external linting.
+- `metadata.json` — declares tools (Read, Grep, Glob, Bash) and tags.
+- Registered in `intent/plugins/claude/subagents/.manifest/global-agents.json`.
+
+This is the first `critic-<lang>` to ship in v2.9.0. WP07 will add Elixir/Rust/Swift/Lua counterparts.
+
+### Agnostic concretised_by updates
+
+- HIGHLANDER: +IN-SH-CODE-006
+- NO-SILENT-ERRORS: +IN-SH-CODE-005
+- (Body "Concretising rules" lines updated with same IDs.)
+
+### Tests
+
+`tests/unit/rule_pack_shell.bats` — 14 tests covering presence, ID declaration, language field, dialect-specific tags, validator agreement, `rules list --lang shell` membership, Bad/Good fenced code blocks, concretised_by backlinks, critic-shell registration.
+
+Suite rose 619 -> 633 (+14).
+
+### Dogfood journal + blog draft
+
+- `intent/st/ST0034/WP/12/dogfood-journal.md` — Entry 0 (rule authorship pass) complete. Entries 1-3 placeholders for post-WP12 subagent invocations against `bin/intent*`.
+- `docs/blog-drafts/shell-critic-inception.md` — draft narrative "Using Intent's critic-shell on Intent: Inception Edition". Publication blocked on real subagent dogfood runs.
+
+### Deviations from plan
+
+- First subagent dogfood run deferred. Rationale: critic-shell is invoked via Task() from a Claude Code session, not from bash — its first invocation belongs to a future session. Entry 0 of the journal documents the authorship-pass substitute (rules authored by reading Intent's corpus, so critic-shell against Intent is expected-clean by construction).
+- Three-iteration acceptance criterion partially satisfied: the authorship pass is Entry 0; Entries 1-3 land in follow-up work.
+- Blog-post draft kept short and explicitly flagged "publication deferred". Real findings content fills in after Entry 1+.
+
+### Commits
+
+- (current session) — shell pack (6 rules) + critic-shell subagent + agnostic concretised_by updates + 14 BATS tests + dogfood journal + blog draft = 633 total.
 
 ## Objective
 

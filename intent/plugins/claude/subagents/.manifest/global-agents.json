@@ -21,6 +21,13 @@
       "description": "Elixir Test Architect - Socratic dialog that produces test specifications and validates test quality",
       "path": "intent/plugins/claude/subagents/diogenes",
       "checksum": ""
+    },
+    {
+      "name": "critic-shell",
+      "version": "1.0.0",
+      "description": "Shell (bash + zsh) rule-library critic - reads rules/shell/ and reports violations in target shell files",
+      "path": "intent/plugins/claude/subagents/critic-shell",
+      "checksum": ""
     }
   ]
 }

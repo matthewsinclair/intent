@@ -1,0 +1,8 @@
+{
+  "name": "critic-shell",
+  "version": "1.0.0",
+  "description": "Shell (bash + zsh) rule-library critic. Reads rules/shell/ and reports violations in target shell files, grouped by severity.",
+  "author": "Intent Contributors",
+  "tools": ["Read", "Grep", "Glob", "Bash"],
+  "tags": ["shell", "bash", "zsh", "critic", "code-review", "rule-enforcement"]
+}

@@ -2,7 +2,7 @@
 
 ## Progress Tracker
 
-Status as of: 2026-04-22 (WP06 closed; WP01 + WP02 + WP03 + WP04 + WP05 + WP06 + WP08 done; `/in-session` bootstrap skill shipped)
+Status as of: 2026-04-22 (WP12 closed; WP01 + WP02 + WP03 + WP04 + WP05 + WP06 + WP08 + WP12 done; `/in-session` bootstrap skill + `critic-shell` subagent shipped)
 
 | WP   | Title                              | Status      | Notes                                                                                                                     |
 | ---- | ---------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
@@ -17,7 +17,7 @@ Status as of: 2026-04-22 (WP06 closed; WP01 + WP02 + WP03 + WP04 + WP05 + WP06 +
 | WP09 | Migration and upgrade chain        | Not started | Depends WP02, WP08                                                                                                        |
 | WP10 | Documentation                      | Not started | Depends WP02, WP07, WP08                                                                                                  |
 | WP11 | Release and fleet upgrade          | Not started | Depends WP01-WP10, WP12                                                                                                   |
-| WP12 | Shell rule pack (bash + zsh)       | Not started | Added 2026-04-22 by user request. Dogfooded against `bin/intent*`; blog-post journal kept.                                |
+| WP12 | Shell rule pack (bash + zsh)       | Done        | 6 rules (IN-SH-CODE-001..006) + critic-shell subagent + dogfood journal + blog draft; 14 BATS = 633 total.                |
 
 ## Implementation Notes
 

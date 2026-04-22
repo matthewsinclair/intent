@@ -1,6 +1,6 @@
 {
   "intent_version": "2.8.2",
-  "rule_count": 42,
+  "rule_count": 48,
   "rules": [
     {
       "aliases": [],
@@ -16,7 +16,8 @@
         "IN-EX-TEST-007",
         "IN-RS-CODE-002",
         "IN-SW-CODE-004",
-        "IN-LU-CODE-005"
+        "IN-LU-CODE-005",
+        "IN-SH-CODE-006"
       ],
       "conflicts_with": [],
       "does_not_apply_when": [
@@ -58,7 +59,8 @@
         "IN-EX-CODE-004",
         "IN-RS-CODE-001",
         "IN-SW-CODE-002",
-        "IN-LU-CODE-004"
+        "IN-LU-CODE-004",
+        "IN-SH-CODE-005"
       ],
       "conflicts_with": [],
       "does_not_apply_when": [
@@ -1561,6 +1563,283 @@
         "assertions"
       ],
       "title": "assert_matches! for tagged variants",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.sh",
+        "**/*.bash",
+        "**/*.zsh",
+        "bin/*"
+      ],
+      "applies_when": [
+        "Passing a variable as an argument to any command",
+        "Using a variable in a string context ([ ], [[ ]], test)",
+        "Expanding an array: always `\\\"${arr[@]}\\\"`, never `${arr[@]}`"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Intentional word-splitting for a single-purpose utility (rare; document with a comment)",
+        "Expansion inside `[[ ]]` where bash performs no word-splitting on the right of `==`, `!=`, `=~` (but keep quoting for consistency)"
+      ],
+      "id": "IN-SH-CODE-001",
+      "language": "shell",
+      "principles": [
+        "no-silent-errors",
+        "honest-data"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-SH-CODE-005"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/shell/code/quote-expansions/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "shell",
+        "bash",
+        "zsh",
+        "quoting"
+      ],
+      "title": "Always quote variable expansions",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.sh",
+        "**/*.bash",
+        "**/*.zsh",
+        "bin/*"
+      ],
+      "applies_when": [
+        "Iterating over the contents of a directory",
+        "Filtering files by pattern and doing something per-file",
+        "Counting files in a directory (`ls | wc -l` has the same problem)"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Displaying a listing to a human (`ls` is the right tool for terminal output)",
+        "Scripts explicitly documented to run only in controlled environments where filenames are known-simple"
+      ],
+      "id": "IN-SH-CODE-002",
+      "language": "shell",
+      "principles": [
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-SH-CODE-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/shell/code/no-parse-ls/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "shell",
+        "bash",
+        "zsh",
+        "filenames"
+      ],
+      "title": "Do not parse ls output",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.sh",
+        "**/*.bash",
+        "bin/*"
+      ],
+      "applies_when": [
+        "Any new bash script intended for production, CI, or release",
+        "Any script more than a handful of lines whose failure could leave the system partially changed",
+        "Scripts that build, deploy, migrate, or modify any external state"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Interactive scripts (.bashrc, .bash_profile) where strict modes break unrelated interactive behaviours",
+        "Legacy scripts where retrofit would require auditing every unset-var usage (document and track)",
+        "Bash 3.x compatibility constraints where `-o pipefail` has known edge cases — Intent itself uses just `set -e` for macOS bash 3.x"
+      ],
+      "id": "IN-SH-CODE-003",
+      "language": "shell",
+      "principles": [
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-SH-CODE-004",
+        "IN-SH-CODE-005"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/shell/code/set-euo-pipefail/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "shell",
+        "bash",
+        "bash-specific",
+        "error-handling",
+        "strict-mode"
+      ],
+      "title": "set -euo pipefail at top of every bash script",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.zsh"
+      ],
+      "applies_when": [
+        "New zsh script (shebang `#!/bin/zsh` or `#!/usr/bin/env zsh`)",
+        "Zsh functions stored in `$fpath` for autoload",
+        "Cross-shell scripts that need to behave strictly under both bash and zsh"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Interactive zsh startup (`.zshrc`) where strict modes break unrelated behaviours",
+        "Zsh-emulation-in-bash mode (`emulate sh`) where `set -e` is already active"
+      ],
+      "id": "IN-SH-CODE-004",
+      "language": "shell",
+      "principles": [
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-SH-CODE-003",
+        "IN-SH-CODE-005"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/shell/code/setopt-err-exit/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "shell",
+        "zsh",
+        "zsh-specific",
+        "error-handling"
+      ],
+      "title": "setopt err_exit pipe_fail no_unset in zsh",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.sh",
+        "**/*.bash",
+        "**/*.zsh",
+        "bin/*"
+      ],
+      "applies_when": [
+        "Running any external command whose failure would be meaningful",
+        "Piping to another command, file, or `/dev/null`",
+        "Using `||` to branch on failure, or `&&` to chain on success"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Best-effort cleanup where failure is explicitly tolerated (`|| true` with comment)",
+        "Intentional capture of stderr for diagnostic output that would otherwise clutter",
+        "Nested subshells where the inner exit code is intentionally not propagated"
+      ],
+      "id": "IN-SH-CODE-005",
+      "language": "shell",
+      "principles": [
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-SH-CODE-003",
+        "IN-SH-CODE-004"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/shell/code/no-silent-exit-codes/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "shell",
+        "bash",
+        "zsh",
+        "error-handling"
+      ],
+      "title": "Never discard command exit codes",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "bin/*",
+        "**/*.sh"
+      ],
+      "applies_when": [
+        "Writing a new shell dispatcher or subcommand in a multi-script project",
+        "Copy-pasting a helper from another script rather than sourcing it",
+        "Adding the same `N+1`th definition of a utility already defined elsewhere"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Truly self-contained one-file utilities with no siblings",
+        "Cases where sourcing a shared library is impossible (cross-host transfers, installer bundles)"
+      ],
+      "id": "IN-SH-CODE-006",
+      "language": "shell",
+      "principles": [
+        "highlander"
+      ],
+      "references": [
+        "IN-AG-HIGHLANDER-001"
+      ],
+      "related_rules": [
+        "IN-EX-CODE-006"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/shell/code/module-highlander/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "shell",
+        "bash",
+        "zsh",
+        "highlander"
+      ],
+      "title": "One helper function per concern across bin/",
       "upstream_id": null,
       "version": 1
     },

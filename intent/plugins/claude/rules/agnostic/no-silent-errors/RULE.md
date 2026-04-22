@@ -30,6 +30,7 @@ concretised_by:
   - IN-RS-CODE-001
   - IN-SW-CODE-002
   - IN-LU-CODE-004
+  - IN-SH-CODE-005
 aliases: []
 status: active
 version: 1
@@ -156,4 +157,4 @@ The distinguishing question: **would an operator, reading only the code, know wh
 - Rob Pike, "Errors are values" — the Go community's framing; error paths are data, not exceptions.
 - Intent `IN-AG-PFIC-001` — pure cores return tagged results; coordinators must handle both arms.
 - Intent `IN-AG-THIN-COORD-001` — coordinators are where domain errors are translated to transport errors; a coordinator that swallows the error arm is also violating Thin Coordinator.
-- Concretising rules: `IN-EX-CODE-005` (Elixir tagged tuples + no empty rescues), `IN-EX-CODE-004` (Elixir `with`-railway with explicit `else`), `IN-RS-CODE-001` (Rust Result over panic), `IN-SW-CODE-002` (Swift optionals over sentinels), `IN-LU-CODE-004` (Lua pcall for error boundaries).
+- Concretising rules: `IN-EX-CODE-005` (Elixir tagged tuples + no empty rescues), `IN-EX-CODE-004` (Elixir `with`-railway with explicit `else`), `IN-RS-CODE-001` (Rust Result over panic), `IN-SW-CODE-002` (Swift optionals over sentinels), `IN-LU-CODE-004` (Lua pcall for error boundaries), `IN-SH-CODE-005` (shell never discard exit codes).
