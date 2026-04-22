@@ -1,6 +1,6 @@
 {
   "intent_version": "2.8.2",
-  "rule_count": 17,
+  "rule_count": 23,
   "rules": [
     {
       "aliases": [],
@@ -162,6 +162,93 @@
       "summary": ">",
       "tags": [],
       "title": "Thin Coordinator",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "lib/**/*.ex",
+        "lib/**/live/**/*.ex",
+        "lib/**/controllers/**/*.ex"
+      ],
+      "applies_when": [
+        "Any LiveView, controller, channel, or channel join that needs to read or mutate an Ash resource",
+        "Any Oban worker or mix task that touches the database",
+        "Any module in the web/ directory or equivalent outside the domain"
+      ],
+      "category": "ash",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Domain modules themselves (the code interface is *defined* in the domain, not called through it)",
+        "Ash-internal migrations or seeds where there is no domain yet",
+        "Test fixture helpers that need to bypass policy for setup (document the bypass explicitly)"
+      ],
+      "id": "IN-EX-ASH-001",
+      "language": "elixir",
+      "principles": [
+        "thin-coordinator",
+        "ash-usage-rules"
+      ],
+      "references": [
+        "IN-AG-THIN-COORD-001"
+      ],
+      "related_rules": [
+        "IN-EX-ASH-002"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/elixir/ash/code-interfaces-only/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "ash",
+        "domain-boundary"
+      ],
+      "title": "All database access through Ash domain code interfaces",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "lib/**/*.ex"
+      ],
+      "applies_when": [
+        "Manually building an Ash.Query or Ash.Changeset before calling Ash.read/2 or Ash.create/2",
+        "Policies or calculations depend on the actor",
+        "Passing actor through a service-layer function that composes queries"
+      ],
+      "category": "ash",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Using a domain code interface (`MyApp.Content.list_posts!(actor: user)`) — the interface routes the actor correctly by construction",
+        "Actions that are genuinely public (no actor, no policy)"
+      ],
+      "id": "IN-EX-ASH-002",
+      "language": "elixir",
+      "principles": [
+        "ash-usage-rules"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-EX-ASH-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/ash/actor-on-query/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "ash",
+        "actor",
+        "policy"
+      ],
+      "title": "Set actor on query/changeset, not on action call",
       "upstream_id": null,
       "version": 1
     },
@@ -431,6 +518,178 @@
     {
       "aliases": [],
       "applies_to": [
+        "lib/**/live/**/*.ex"
+      ],
+      "applies_when": [
+        "Any `mount/3` that subscribes to `Phoenix.PubSub`",
+        "Any `mount/3` that starts a timer (`Process.send_after/3`, `:timer.send_interval/2`)",
+        "Any `mount/3` that spawns a Task or sends a message to another process",
+        "Any `mount/3` that does a slow external call suitable for `assign_async`"
+      ],
+      "category": "lv",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Idempotent, cheap mount-time work (e.g. assigning derived values from params)",
+        "Operations that deliberately need to run on both disconnected and connected mounts (rare)"
+      ],
+      "id": "IN-EX-LV-001",
+      "language": "elixir",
+      "principles": [
+        "liveview-lifecycle"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-EX-LV-003"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/elixir/lv/two-phase-mount/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "liveview",
+        "lifecycle",
+        "mount"
+      ],
+      "title": "Two-phase LiveView mount — guard async work with `connected?/1`",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "lib/**/live/**/*.ex"
+      ],
+      "applies_when": [
+        "Rendering a list that can grow past ~20 items",
+        "A list that receives individual inserts (new messages, new rows from PubSub)",
+        "A list that needs item-level delete/update"
+      ],
+      "category": "lv",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Small, static lists rendered once and never updated (nav menus, short tabs)",
+        "Lists where every update replaces the whole list (search results that rebuild)",
+        "Lists that must support client-side reordering (`phx-update=\\\"stream\\\"` has specific idioms)"
+      ],
+      "id": "IN-EX-LV-002",
+      "language": "elixir",
+      "principles": [
+        "liveview-efficiency"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-EX-LV-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/lv/streams-for-lists/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "liveview",
+        "streams",
+        "performance"
+      ],
+      "title": "Use LiveView streams for large or dynamic lists",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "lib/**/live/**/*.ex"
+      ],
+      "applies_when": [
+        "A LiveView event handler does more than parse → call → update assigns",
+        "A LiveView does domain queries beyond what is needed to render",
+        "A LiveView branches on domain state to decide business outcomes"
+      ],
+      "category": "lv",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Purely presentational computation (formatting a date, building a CSS class, ordering assigns for display)",
+        "Framework-level LiveView concerns (handling navigation, flashes, redirects)",
+        "LiveViews that are effectively components with tiny amounts of state"
+      ],
+      "id": "IN-EX-LV-003",
+      "language": "elixir",
+      "principles": [
+        "thin-coordinator"
+      ],
+      "references": [
+        "IN-AG-THIN-COORD-001"
+      ],
+      "related_rules": [
+        "IN-EX-PHX-001",
+        "IN-EX-LV-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/lv/thin-liveviews/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "liveview",
+        "thin-coordinator"
+      ],
+      "title": "Thin LiveViews — delegate domain logic to the domain",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "lib/**/controllers/**/*.ex"
+      ],
+      "applies_when": [
+        "Any Phoenix controller action (index, show, create, update, delete, custom)",
+        "An action that is about to grow past ~15 lines",
+        "An action that branches on domain state (role, status, visibility)"
+      ],
+      "category": "phoenix",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Extremely thin actions already (parse + call + render) — there is nothing to thin",
+        "Framework-level concerns (error wrapping, content negotiation) that genuinely belong in the controller layer",
+        "Fallback controllers that normalise errors — their purpose is orchestration of shape"
+      ],
+      "id": "IN-EX-PHX-001",
+      "language": "elixir",
+      "principles": [
+        "thin-coordinator"
+      ],
+      "references": [
+        "IN-AG-THIN-COORD-001"
+      ],
+      "related_rules": [
+        "IN-EX-ASH-001",
+        "IN-EX-LV-003"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/phoenix/thin-controllers/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "phoenix",
+        "thin-coordinator"
+      ],
+      "title": "Thin Phoenix controllers",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
         "test/**/*_test.exs"
       ],
       "applies_when": [
@@ -608,7 +867,7 @@
         "test/**/*_test.exs"
       ],
       "applies_when": [
-        "Inside a `test \\\"...\\\" do ... end` block",
+        "Inside a `test \"...\" do ... end` block",
         "Inside a `describe` block's setup where branching would select different assertions"
       ],
       "category": "test",
