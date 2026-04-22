@@ -1,6 +1,6 @@
 {
   "intent_version": "2.8.2",
-  "rule_count": 23,
+  "rule_count": 42,
   "rules": [
     {
       "aliases": [],
@@ -13,7 +13,10 @@
       "category": "architecture",
       "concretised_by": [
         "IN-EX-CODE-006",
-        "IN-EX-TEST-007"
+        "IN-EX-TEST-007",
+        "IN-RS-CODE-002",
+        "IN-SW-CODE-004",
+        "IN-LU-CODE-005"
       ],
       "conflicts_with": [],
       "does_not_apply_when": [
@@ -52,7 +55,10 @@
       "category": "architecture",
       "concretised_by": [
         "IN-EX-CODE-005",
-        "IN-EX-CODE-004"
+        "IN-EX-CODE-004",
+        "IN-RS-CODE-001",
+        "IN-SW-CODE-002",
+        "IN-LU-CODE-004"
       ],
       "conflicts_with": [],
       "does_not_apply_when": [
@@ -93,7 +99,10 @@
       "category": "architecture",
       "concretised_by": [
         "IN-EX-CODE-004",
-        "IN-EX-PHX-001"
+        "IN-EX-PHX-001",
+        "IN-RS-CODE-003",
+        "IN-SW-CODE-001",
+        "IN-LU-CODE-002"
       ],
       "conflicts_with": [],
       "does_not_apply_when": [
@@ -573,7 +582,7 @@
       "does_not_apply_when": [
         "Small, static lists rendered once and never updated (nav menus, short tabs)",
         "Lists where every update replaces the whole list (search results that rebuild)",
-        "Lists that must support client-side reordering (`phx-update=\\\"stream\\\"` has specific idioms)"
+        "Lists that must support client-side reordering (`phx-update=\"stream\"` has specific idioms)"
       ],
       "id": "IN-EX-LV-002",
       "language": "elixir",
@@ -989,6 +998,834 @@
         "highlander"
       ],
       "title": "Highlander Rule for tests — shared setup and fixtures",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.lua"
+      ],
+      "applies_when": [
+        "Writing any Lua module that will be loaded alongside other modules",
+        "Embedding Lua inside a host application (game engine, Neovim, Redis)",
+        "Adapting a snippet from a tutorial that uses bare assignments"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Deliberately exposing a global API for host-application introspection",
+        "Interactive REPL experimentation (not committed code)"
+      ],
+      "id": "IN-LU-CODE-001",
+      "language": "lua",
+      "principles": [
+        "honest-data",
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-HIGHLANDER-001",
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-LU-CODE-005"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/lua/code/local-over-global/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "lua",
+        "globals",
+        "scoping"
+      ],
+      "title": "local over global",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [],
+      "applies_when": [
+        "Representing domain data (users, events, configuration)",
+        "Modelling a small set of related values together",
+        "Porting an OOP design from another language to Lua"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Genuine polymorphism where dispatch on type is a natural fit",
+        "Host-framework conventions that require metatable-based classes (Love2D, Defold)",
+        "Libraries where class-like semantics are documented expectations"
+      ],
+      "id": "IN-LU-CODE-002",
+      "language": "lua",
+      "principles": [
+        "pfic"
+      ],
+      "references": [
+        "IN-AG-PFIC-001"
+      ],
+      "related_rules": [
+        "IN-LU-CODE-003"
+      ],
+      "severity": "recommendation",
+      "source_path": "intent/plugins/claude/rules/lua/code/tables-as-structs/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "lua",
+        "tables",
+        "style"
+      ],
+      "title": "Tables as structs, not OOP reflex",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.lua"
+      ],
+      "applies_when": [
+        "Installing `__index`, `__newindex`, `__call`, `__add`, `__eq`, `__tostring`, or other metamethods",
+        "Using metatables to implement inheritance, proxies, or lazy fields",
+        "Writing libraries others will consume (metatable surprises bite consumers hardest)"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Idiomatic uses in frameworks (Love2D `Object`, OO via metatable chains in Defold) where the pattern is the convention",
+        "Operator overloading for domain types (vectors, currency) where the overload is the point"
+      ],
+      "id": "IN-LU-CODE-003",
+      "language": "lua",
+      "principles": [
+        "public-interface"
+      ],
+      "references": [
+        "IN-AG-HIGHLANDER-001"
+      ],
+      "related_rules": [
+        "IN-LU-CODE-002"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/lua/code/metatables-sparingly/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "lua",
+        "metatables",
+        "action-at-a-distance"
+      ],
+      "title": "Metatables sparingly, document when used",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.lua"
+      ],
+      "applies_when": [
+        "Calling a library function that may `error(...)` on bad input",
+        "Implementing error boundaries around user-provided code (plugins, scripts)",
+        "Writing a module API that needs to express 'this can fail' in the return value"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Programmer errors that should crash and surface (invariant violations)",
+        "Startup code where failure is immediately fatal and a stack trace is wanted",
+        "Tests that use `assert` / `error` as the failure mechanism"
+      ],
+      "id": "IN-LU-CODE-004",
+      "language": "lua",
+      "principles": [
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-LU-CODE-001"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/lua/code/pcall-for-errors/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "lua",
+        "error-handling",
+        "pcall"
+      ],
+      "title": "pcall for error boundaries, tagged results",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.lua"
+      ],
+      "applies_when": [
+        "Writing a new Lua module that other files will require",
+        "Refactoring a global-heavy file into a proper module",
+        "Embedding Lua in a host application where module isolation matters"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Top-level application scripts that are entry points, not modules",
+        "Dot-files (`init.lua` for host apps) where the host's convention overrides"
+      ],
+      "id": "IN-LU-CODE-005",
+      "language": "lua",
+      "principles": [
+        "public-interface",
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-HIGHLANDER-001",
+        "IN-LU-CODE-001"
+      ],
+      "related_rules": [
+        "IN-LU-CODE-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/lua/code/module-return-pattern/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "lua",
+        "modules",
+        "require"
+      ],
+      "title": "Module return pattern",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "spec/**/*.lua",
+        "test/**/*.lua",
+        "tests/**/*.lua"
+      ],
+      "applies_when": [
+        "Writing tests with `busted` or another BDD-style Lua test framework",
+        "Porting ad-hoc `assert(x == y)` scripts into a runnable test suite",
+        "Adding regression tests alongside a bug fix"
+      ],
+      "category": "test",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Quick sanity scripts not part of the committed test suite",
+        "Self-check code inside a library using bare `assert` for invariants"
+      ],
+      "id": "IN-LU-TEST-001",
+      "language": "lua",
+      "principles": [
+        "public-interface"
+      ],
+      "references": [
+        "IN-EX-TEST-001"
+      ],
+      "related_rules": [],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/lua/test/busted-describe-it-structure/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "lua",
+        "testing",
+        "busted"
+      ],
+      "title": "busted describe/it structure",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "src/**/*.rs"
+      ],
+      "applies_when": [
+        "Functions in a library crate (`src/lib.rs` and descendants)",
+        "Any fallible operation: I/O, parsing, database lookup, network",
+        "Methods that return `Option<T>` or `Result<T, E>` from upstream APIs"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Binary crate `main.rs` where panics terminate the process cleanly",
+        "Tests (`#[cfg(test)]`, `tests/`, `benches/`) — panic is the failure signal",
+        "Infallible invariants documented with `// SAFETY:` or `// INVARIANT:` comments"
+      ],
+      "id": "IN-RS-CODE-001",
+      "language": "rust",
+      "principles": [
+        "no-silent-errors",
+        "honest-data"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-RS-CODE-004"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/rust/code/result-over-panic/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "rust",
+        "error-handling",
+        "no-silent-errors"
+      ],
+      "title": "Result over panic in library code",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "src/**/*.rs"
+      ],
+      "applies_when": [
+        "Function signatures that take `Vec<T>` or `String` when a slice or `&str` would do",
+        "`.clone()` calls inside hot paths, loops, or trait impls",
+        "`.to_owned()` / `.to_string()` on values already owned elsewhere"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Types that are `Copy` — `.clone()` compiles to a bitwise copy, no allocation",
+        "Spawning work onto another thread: `move` captures require owned data",
+        "Cross-`Arc<Mutex<T>>` boundaries where cloning the `Arc` is the intended cheap operation"
+      ],
+      "id": "IN-RS-CODE-002",
+      "language": "rust",
+      "principles": [
+        "pfic",
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-HIGHLANDER-001"
+      ],
+      "related_rules": [
+        "IN-RS-CODE-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/rust/code/ownership-before-clone/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "rust",
+        "ownership",
+        "performance"
+      ],
+      "title": "Ownership before clone",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "src/**/*.rs"
+      ],
+      "applies_when": [
+        "Enums whose variants each carry different data and trigger different handlers",
+        "`match` expressions that dispatch to per-variant logic longer than 2-3 lines per arm",
+        "New variants require touching every `match` in the codebase"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Closed data shapes — AST nodes, message types, state-machine states — where exhaustive `match` is the point",
+        "Enums with fewer than 3 variants or uniform arm bodies",
+        "FFI or serialisation boundaries where the tagged union shape is part of the contract"
+      ],
+      "id": "IN-RS-CODE-003",
+      "language": "rust",
+      "principles": [
+        "pfic"
+      ],
+      "references": [
+        "IN-AG-PFIC-001"
+      ],
+      "related_rules": [
+        "IN-RS-CODE-004"
+      ],
+      "severity": "recommendation",
+      "source_path": "intent/plugins/claude/rules/rust/code/traits-over-enums-for-behaviour/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "rust",
+        "traits",
+        "polymorphism"
+      ],
+      "title": "Traits over enums for behavioural polymorphism",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "src/**/*.rs"
+      ],
+      "applies_when": [
+        "Designing the error type for a new module or crate",
+        "Converting errors from upstream libraries (`io::Error`, `serde_json::Error`, ...)",
+        "Returning `Result<T, String>` or `Result<T, Box<dyn Error>>`"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Tiny single-file scripts where an ad-hoc error type is more ceremony than value",
+        "Prototypes not yet stabilised — `anyhow` everywhere is fine during exploration",
+        "Errors explicitly modelled as data (state machines where errors are expected return values)"
+      ],
+      "id": "IN-RS-CODE-004",
+      "language": "rust",
+      "principles": [
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001",
+        "IN-RS-CODE-001"
+      ],
+      "related_rules": [
+        "IN-RS-CODE-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/rust/code/error-types-thiserror-anyhow/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "rust",
+        "error-handling",
+        "thiserror",
+        "anyhow"
+      ],
+      "title": "thiserror for libraries, anyhow for applications",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "src/**/*.rs"
+      ],
+      "applies_when": [
+        "Function signatures with reference parameters or reference return types",
+        "Struct definitions embedding references",
+        "Impl blocks binding lifetimes"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Signatures where elision would pick the wrong lifetime (rare — the compiler rejects these)",
+        "Struct types genuinely parameterised over lifetimes",
+        "Cases where the relationship between multiple input references needs to be visible to readers"
+      ],
+      "id": "IN-RS-CODE-005",
+      "language": "rust",
+      "principles": [
+        "pfic"
+      ],
+      "references": [
+        "IN-AG-PFIC-001"
+      ],
+      "related_rules": [],
+      "severity": "style",
+      "source_path": "intent/plugins/claude/rules/rust/code/lifetime-elision-first/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "rust",
+        "lifetimes",
+        "style"
+      ],
+      "title": "Lifetime elision first",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "src/**/*.rs",
+        "tests/**/*.rs"
+      ],
+      "applies_when": [
+        "Writing a unit test that calls a `pub(crate)` or private function",
+        "Adding regression tests alongside a fix",
+        "Deciding between `#[cfg(test)]` vs `tests/` for a new test file"
+      ],
+      "category": "test",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Integration tests that exercise only the public API and read like a consumer would",
+        "Benchmarks under `benches/`",
+        "Doc tests in `///` comments (already colocated by definition)"
+      ],
+      "id": "IN-RS-TEST-001",
+      "language": "rust",
+      "principles": [
+        "public-interface"
+      ],
+      "references": [
+        "IN-AG-HIGHLANDER-001"
+      ],
+      "related_rules": [
+        "IN-RS-TEST-002"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/rust/test/cfg-test-colocated/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "rust",
+        "testing",
+        "cfg-test"
+      ],
+      "title": "Colocated cfg(test) modules for unit tests",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "src/**/*.rs",
+        "tests/**/*.rs"
+      ],
+      "applies_when": [
+        "Asserting on a `Result<T, E>` where `T` or `E` is a complex struct",
+        "Asserting on an `Option<T>` where `T` has many fields",
+        "Asserting on a custom enum variant that wraps a struct"
+      ],
+      "category": "test",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Unit-type variants: `assert_eq!(result, Err(Error::NotFound))` is as specific as it gets",
+        "Primitive payloads: `assert_eq!(res, Ok(42))` is fine",
+        "Tests where the entire wrapped struct genuinely matters"
+      ],
+      "id": "IN-RS-TEST-002",
+      "language": "rust",
+      "principles": [
+        "honest-data",
+        "public-interface"
+      ],
+      "references": [
+        "IN-EX-TEST-001",
+        "IN-AG-HIGHLANDER-001"
+      ],
+      "related_rules": [
+        "IN-RS-TEST-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/rust/test/assert-matches-for-variants/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "rust",
+        "testing",
+        "assertions"
+      ],
+      "title": "assert_matches! for tagged variants",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.swift"
+      ],
+      "applies_when": [
+        "A function that unwraps one or more optionals before doing its work",
+        "Any precondition check whose failure returns, throws, or aborts",
+        "Nested `if let` chains that push the core logic three or more levels deep"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Control flow that genuinely needs the negative branch to run (not a guard)",
+        "Single-condition `if let` where the body is one line"
+      ],
+      "id": "IN-SW-CODE-001",
+      "language": "swift",
+      "principles": [
+        "pfic"
+      ],
+      "references": [
+        "IN-AG-PFIC-001"
+      ],
+      "related_rules": [
+        "IN-SW-CODE-002"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/swift/code/guard-over-nested-if/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "swift",
+        "control-flow",
+        "guard"
+      ],
+      "title": "guard over nested if",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.swift"
+      ],
+      "applies_when": [
+        "Function signatures returning `Int`, `String`, or a custom type where `-1` / empty / `nil`-default could mean 'not found'",
+        "Protocol methods whose documentation says 'returns X if absent'",
+        "Bridged Objective-C APIs surfacing `NSNotFound`, `NSNull`, sentinel enums"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "APIs constrained by protocol conformance that already returns sentinels (wrap at the boundary, don't export)",
+        "Bit-packed numeric fields where a designated value is the documented absence indicator and `Int?` would cost too much"
+      ],
+      "id": "IN-SW-CODE-002",
+      "language": "swift",
+      "principles": [
+        "honest-data",
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-SW-CODE-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/swift/code/optionals-over-sentinels/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "swift",
+        "optionals",
+        "type-safety"
+      ],
+      "title": "Optionals over sentinel values",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.swift"
+      ],
+      "applies_when": [
+        "New asynchronous code on Swift 5.5+ / iOS 15+ / macOS 12+",
+        "Refactoring completion-handler APIs to produce readable call sites",
+        "Coordinating concurrent work that shares state (use `actor`)"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Maintaining codebases targeting pre-Swift-5.5 platforms",
+        "Interop with C / Objective-C APIs that only expose `dispatch_async` / completion handlers",
+        "Low-latency audio, graphics, or realtime paths where GCD's scheduling guarantees are load-bearing"
+      ],
+      "id": "IN-SW-CODE-003",
+      "language": "swift",
+      "principles": [
+        "pfic",
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-SW-CODE-002"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/swift/code/structured-concurrency/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "swift",
+        "concurrency",
+        "async-await",
+        "actor"
+      ],
+      "title": "Structured concurrency over GCD",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.swift"
+      ],
+      "applies_when": [
+        "Declaring any type, method, property, or initialiser",
+        "Exposing helpers across files or modules",
+        "Marking symbols public to satisfy a unit test or sample-app import"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Symbols that are genuinely part of a library's documented public API",
+        "`@testable import` usage where internal symbols are the test surface",
+        "Protocol requirements that must match the protocol's visibility"
+      ],
+      "id": "IN-SW-CODE-004",
+      "language": "swift",
+      "principles": [
+        "public-interface"
+      ],
+      "references": [
+        "IN-AG-HIGHLANDER-001"
+      ],
+      "related_rules": [
+        "IN-SW-CODE-001"
+      ],
+      "severity": "recommendation",
+      "source_path": "intent/plugins/claude/rules/swift/code/access-control-narrowest/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "swift",
+        "access-control",
+        "api-design"
+      ],
+      "title": "Access control — narrowest first",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.swift"
+      ],
+      "applies_when": [
+        "Parsing or emitting JSON at an API boundary (HTTP, persistence, IPC)",
+        "Converting a model to / from `Data` for storage",
+        "Interop with services returning JSON payloads"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Genuinely dynamic payloads where the schema is not known ahead of time",
+        "Partial updates against a known schema that would force an explosion of optional fields",
+        "Performance-critical paths where `JSONDecoder` overhead is measured and problematic"
+      ],
+      "id": "IN-SW-CODE-005",
+      "language": "swift",
+      "principles": [
+        "honest-data",
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-SW-CODE-002"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/swift/code/codable-over-manual-json/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "swift",
+        "codable",
+        "json",
+        "type-safety"
+      ],
+      "title": "Codable over manual JSON parsing",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*Tests.swift",
+        "**/Tests/**/*.swift"
+      ],
+      "applies_when": [
+        "Any XCTest assertion on a return value or computed property",
+        "Tests that currently rely on `XCTAssertNotNil`, `XCTAssertTrue(!= nil)`, or type checks",
+        "Async tests awaiting a value and then asserting"
+      ],
+      "category": "test",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Tests where the shape itself is the contract (protocol conformance, instance identity)",
+        "Existence-only tests verifying a side effect fired — in which case assert the effect, not the return",
+        "Property-based tests that assert invariants rather than exact values"
+      ],
+      "id": "IN-SW-TEST-001",
+      "language": "swift",
+      "principles": [
+        "honest-data",
+        "public-interface"
+      ],
+      "references": [
+        "IN-EX-TEST-001",
+        "IN-AG-HIGHLANDER-001"
+      ],
+      "related_rules": [
+        "IN-SW-CODE-002"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/swift/test/xctassertequal-specific-values/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "swift",
+        "xctest",
+        "testing",
+        "assertions"
+      ],
+      "title": "XCTAssertEqual with specific values",
       "upstream_id": null,
       "version": 1
     }

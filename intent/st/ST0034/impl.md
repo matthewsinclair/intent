@@ -2,7 +2,7 @@
 
 ## Progress Tracker
 
-Status as of: 2026-04-22 (WP08 closed; WP01 + WP02 + WP03 + WP04 + WP05 + WP08 done; `/in-session` bootstrap skill shipped)
+Status as of: 2026-04-22 (WP06 closed; WP01 + WP02 + WP03 + WP04 + WP05 + WP06 + WP08 done; `/in-session` bootstrap skill shipped)
 
 | WP   | Title                              | Status      | Notes                                                                                                                     |
 | ---- | ---------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
@@ -11,7 +11,7 @@ Status as of: 2026-04-22 (WP08 closed; WP01 + WP02 + WP03 + WP04 + WP05 + WP08 d
 | WP03 | Skill and subagent rationalisation | Done        | Elixir subagent deleted; 5 skills refactored to reference rules by ID; in-review parameterised; 9 new BATS = 564 total.   |
 | WP04 | Agnostic rule pack                 | Done        | 4 rules (Highlander, PFIC, Thin Coordinator, No Silent Errors); +11 BATS tests = 537 total.                               |
 | WP05 | Elixir rule pack                   | Done        | 19 rules (6 code + 7 test + 2 ash + 1 phx + 3 lv); 26 runnable `.exs` all exit 0; 18 BATS tests = 555 total.              |
-| WP06 | Rust/Swift/Lua rule packs          | Not started | Depends WP01, WP04                                                                                                        |
+| WP06 | Rust/Swift/Lua rule packs          | Done        | 19 rules (7 Rust + 6 Swift + 6 Lua); agnostic concretised_by extended cross-language; 27 BATS tests = 619 total.          |
 | WP07 | Critic subagent family             | Not started | Depends WP03, WP04, WP05, WP06, WP12. Now delivers 5 critics (elixir, rust, swift, lua, shell).                           |
 | WP08 | Worker-bee extraction              | Done        | git mv to `lib/templates/ext-seeds/worker-bee/`; manifest + README authored; canon manifest cleaned; 18 BATS = 592 total. |
 | WP09 | Migration and upgrade chain        | Not started | Depends WP02, WP08                                                                                                        |

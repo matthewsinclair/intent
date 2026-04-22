@@ -1,12 +1,81 @@
 ---
-verblock: "22 Apr 2026:v0.2: matts - Detailed plan"
+verblock: "22 Apr 2026:v0.3: matts - Done"
 wp_id: WP-06
 title: "Rust Swift Lua rule packs"
 scope: Large
-status: Not Started
+status: Done
 ---
 
 # WP-06: Rust, Swift, Lua rule packs
+
+## As-Built (2026-04-22)
+
+19 new rules shipped — 7 Rust + 6 Swift + 6 Lua — all inside WP06's 5-15-per-language cap. Every rule passes `intent claude rules validate`. Total rule count rose from 23 to 42 (+19).
+
+### Rules shipped
+
+#### Rust (7)
+
+| ID             | Slug                                 | Category | Severity       |
+| -------------- | ------------------------------------ | -------- | -------------- |
+| IN-RS-CODE-001 | code/result-over-panic               | code     | critical       |
+| IN-RS-CODE-002 | code/ownership-before-clone          | code     | warning        |
+| IN-RS-CODE-003 | code/traits-over-enums-for-behaviour | code     | recommendation |
+| IN-RS-CODE-004 | code/error-types-thiserror-anyhow    | code     | warning        |
+| IN-RS-CODE-005 | code/lifetime-elision-first          | code     | style          |
+| IN-RS-TEST-001 | test/cfg-test-colocated              | test     | warning        |
+| IN-RS-TEST-002 | test/assert-matches-for-variants     | test     | warning        |
+
+#### Swift (6)
+
+| ID             | Slug                                | Category | Severity       |
+| -------------- | ----------------------------------- | -------- | -------------- |
+| IN-SW-CODE-001 | code/guard-over-nested-if           | code     | warning        |
+| IN-SW-CODE-002 | code/optionals-over-sentinels       | code     | warning        |
+| IN-SW-CODE-003 | code/structured-concurrency         | code     | warning        |
+| IN-SW-CODE-004 | code/access-control-narrowest       | code     | recommendation |
+| IN-SW-CODE-005 | code/codable-over-manual-json       | code     | warning        |
+| IN-SW-TEST-001 | test/xctassertequal-specific-values | test     | warning        |
+
+#### Lua (6)
+
+| ID             | Slug                              | Category | Severity       |
+| -------------- | --------------------------------- | -------- | -------------- |
+| IN-LU-CODE-001 | code/local-over-global            | code     | critical       |
+| IN-LU-CODE-002 | code/tables-as-structs            | code     | recommendation |
+| IN-LU-CODE-003 | code/metatables-sparingly         | code     | warning        |
+| IN-LU-CODE-004 | code/pcall-for-errors             | code     | critical       |
+| IN-LU-CODE-005 | code/module-return-pattern        | code     | warning        |
+| IN-LU-TEST-001 | test/busted-describe-it-structure | test     | warning        |
+
+### Agnostic concretised_by updates
+
+Extended every agnostic rule (except THIN-COORD, which has no Rust/Swift/Lua equivalent yet) to reference at least one rule per language:
+
+- HIGHLANDER: +IN-RS-CODE-002, IN-SW-CODE-004, IN-LU-CODE-005
+- PFIC: +IN-RS-CODE-003, IN-SW-CODE-001, IN-LU-CODE-002
+- NO-SILENT-ERRORS: +IN-RS-CODE-001, IN-SW-CODE-002, IN-LU-CODE-004
+- THIN-COORD: unchanged (Elixir-only concretisations until critic-rust/swift/lua land)
+
+### Tests
+
+- `tests/unit/rule_pack_rust.bats` — 9 tests
+- `tests/unit/rule_pack_swift.bats` — 9 tests
+- `tests/unit/rule_pack_lua.bats` — 9 tests
+
+Each file enforces: catalog presence, total count invariant, canonical ID declaration, `language:` field matches, validator agreement, `intent claude rules list --lang <lang>` includes every id, fenced language-tagged code blocks in both ## Bad and ## Good sections, and no sibling `.rs` / `.swift` / `.lua` files (textual-only invariant per CI-LIMITATIONS.md).
+
+Suite rose 592 -> 619 (+27).
+
+### Deviations from plan
+
+- BATS preprocessor quirk: two consecutive `@test` blocks whose bodies both embed literal triple-backtick strings caused one test to be silently dropped from the plan count. Worked around by moving the fence marker into a `local fence='...'` variable, which BATS's preprocessor handles cleanly.
+- No per-pack `index.json` regeneration test — the root-level `intent claude rules index` invariant is covered by existing WP01 tests, and this WP's 27 BATS tests already fail if any rule is missing.
+- Highlander cross-language audit conducted manually: rule bodies are independently written; shared agnostic IDs cited via `references:` not restated.
+
+### Commits
+
+- (current session) — Rust pack (7 rules) + Swift pack (6 rules) + Lua pack (6 rules); agnostic concretised_by extended; 3 BATS files (27 tests) = 619 total.
 
 ## Objective
 
