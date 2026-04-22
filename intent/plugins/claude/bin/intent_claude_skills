@@ -25,7 +25,41 @@ plugin_get_manifest_path() {
 }
 
 plugin_get_source_file() {
+  # Legacy single-root (canon) resolver. plugin_resolve_source_file is the
+  # multi-root-aware replacement.
   echo "$SKILLS_SOURCE_DIR/$1/SKILL.md"
+}
+
+# Enumerate source roots in precedence order. Ext roots win over canon.
+# Format: one path per line. Honours INTENT_EXT_DISABLE and INTENT_EXT_DIR.
+plugin_get_source_roots() {
+  if [ "${INTENT_EXT_DISABLE:-}" = "1" ]; then
+    echo "$SKILLS_SOURCE_DIR"
+    return 0
+  fi
+
+  local ext_base="${INTENT_EXT_DIR:-$HOME/.intent/ext}"
+  if [ -d "$ext_base" ]; then
+    local ext_dir ext_name ext_skills
+    for ext_dir in "$ext_base"/*/; do
+      [ -d "$ext_dir" ] || continue
+      ext_name="$(basename "$ext_dir")"
+      case "$ext_name" in
+        .*|_*) continue ;;
+      esac
+      ext_skills="${ext_dir%/}/skills"
+      [ -d "$ext_skills" ] && echo "$ext_skills"
+    done
+  fi
+
+  echo "$SKILLS_SOURCE_DIR"
+}
+
+# Map (root, name) to the expected SKILL.md path inside a root.
+plugin_source_path_in_root() {
+  local root="$1"
+  local name="$2"
+  echo "$root/$name/SKILL.md"
 }
 
 plugin_is_installed() {
@@ -33,7 +67,12 @@ plugin_is_installed() {
 }
 
 plugin_copy_to_target() {
-  mkdir -p "$HOME/.claude/skills/$1" && cp -r "$SKILLS_SOURCE_DIR/$1/"* "$HOME/.claude/skills/$1/"
+  local source
+  source="$(plugin_resolve_source_file "$1")"
+  [ -n "$source" ] && [ -f "$source" ] || return 1
+  local source_dir
+  source_dir="$(dirname "$source")"
+  mkdir -p "$HOME/.claude/skills/$1" && cp -r "$source_dir"/* "$HOME/.claude/skills/$1/"
 }
 
 plugin_remove_target() {
@@ -194,6 +233,79 @@ intent_claude_skills_list() {
     fi
   done
 
+  # Extensions (v2.9.0+): user extensions under ~/.intent/ext/
+  if [ "${INTENT_EXT_DISABLE:-}" != "1" ]; then
+    local ext_base="${INTENT_EXT_DIR:-$HOME/.intent/ext}"
+    local any_ext=0
+    if [ -d "$ext_base" ]; then
+      local ext_dir ext_name ext_sub skill_dir skill_name
+      for ext_dir in "$ext_base"/*/; do
+        [ -d "$ext_dir" ] || continue
+        ext_name="$(basename "$ext_dir")"
+        case "$ext_name" in
+          .*|_*) continue ;;
+        esac
+        ext_sub="${ext_dir%/}/skills"
+        [ -d "$ext_sub" ] || continue
+        for skill_dir in "$ext_sub"/*/; do
+          [ -f "${skill_dir}SKILL.md" ] || continue
+          skill_name="$(basename "$skill_dir")"
+          if [ "$any_ext" = 0 ]; then
+            echo ""
+            echo "Extensions:"
+            any_ext=1
+          fi
+
+          # Detect shadow (also exists in canon)
+          local tag canon_skill
+          canon_skill="$SKILLS_SOURCE_DIR/$skill_name/SKILL.md"
+          if [ -f "$canon_skill" ]; then
+            tag="[ext:${ext_name}, shadows canon]"
+            echo "warning: skill '${skill_name}' in ${ext_dir%/} shadows canon skill" >&2
+          else
+            tag="[ext:${ext_name}]"
+          fi
+
+          # Description
+          local ext_desc
+          ext_desc=$(get_skill_description "${skill_dir}SKILL.md" 2>/dev/null)
+          [ -z "$ext_desc" ] && ext_desc="No description"
+
+          # Install status
+          local status
+          if plugin_is_installed "$skill_name"; then
+            status="[INSTALLED]"
+          else
+            status="[NOT INSTALLED]"
+          fi
+
+          if [ "$verbose" = true ]; then
+            local left pad
+            left="$(printf "%-${name_col}s" "$skill_name")"
+            pad=$(( term_width - ${#left} - ${#tag} ))
+            [ "$pad" -lt 1 ] && pad=1
+            printf "%s%*s%s\n" "$left" "$pad" "" "$tag"
+            printf "  %s  %s\n\n" "$status" "$ext_desc"
+          else
+            local description left pad name_with_colon
+            if [ ${#ext_desc} -le $desc_width ]; then
+              description="$ext_desc"
+            else
+              description="${ext_desc:0:$((desc_width - 3))}"
+              description="${description% *}..."
+            fi
+            name_with_colon="${skill_name}:"
+            left="$(printf "%-$((name_col + 1))s" "$name_with_colon") $description"
+            pad=$(( term_width - ${#left} - ${#tag} ))
+            [ "$pad" -lt 1 ] && pad=1
+            printf "%s%*s%s\n" "$left" "$pad" "" "$tag"
+            printf "%*s%s\n" $(( term_width - ${#status} )) "" "$status"
+          fi
+        done
+      done
+    fi
+  fi
+
   # Check for Claude installation
   if [ ! -d "$HOME/.claude" ]; then
     echo ""
@@ -211,11 +323,16 @@ intent_claude_skills_show() {
 
   local skill_name="$1"
 
-  # Check if skill source exists
-  local source_dir="$SKILLS_SOURCE_DIR/$skill_name"
-  local source_file="$source_dir/SKILL.md"
+  # Emit shadow warning when multiple roots hold this skill
+  plugin_detect_shadow "$skill_name" || true
 
-  if [ ! -f "$source_file" ]; then
+  # Resolve source across roots (ext wins over canon)
+  local source_file
+  source_file="$(plugin_resolve_source_file "$skill_name" 2>/dev/null)"
+  local source_dir=""
+  [ -n "$source_file" ] && source_dir="$(dirname "$source_file")"
+
+  if [ -z "$source_file" ] || [ ! -f "$source_file" ]; then
     echo "Error: Skill '$skill_name' not found"
     return 1
   fi

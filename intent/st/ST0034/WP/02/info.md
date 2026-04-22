@@ -3,7 +3,7 @@ verblock: "22 Apr 2026:v0.2: matts - Detailed plan"
 wp_id: WP-02
 title: "Extension system foundation"
 scope: Large
-status: Not Started
+status: WIP
 ---
 
 # WP-02: Extension system foundation

@@ -12,13 +12,157 @@
 #
 # Required callbacks (defined before sourcing):
 #   plugin_get_manifest_path        -- echo manifest file path
-#   plugin_get_source_file NAME     -- echo source file path
+#   plugin_get_source_file NAME     -- echo source file path (legacy single-root)
 #   plugin_is_installed NAME        -- return 0 if installed
 #   plugin_copy_to_target NAME      -- copy source to target location
 #   plugin_remove_target NAME       -- remove installed item
 #   plugin_checksum_target NAME     -- echo checksum of installed file
 #   plugin_get_available_names      -- echo space-separated available names
 #   plugin_manifest_extra NAME      -- echo extra jq fields (or empty)
+#
+# Optional callbacks (v2.9.0+, for multi-root discovery):
+#   plugin_get_source_roots         -- echo newline-separated root dirs in
+#                                      precedence order (highest first).
+#                                      Default: single canon root.
+#   plugin_source_path_in_root R N  -- map (root, name) to expected source path.
+#                                      Required if plugin_get_source_roots is
+#                                      overridden. Default derives from layout
+#                                      of plugin_get_source_file.
+#
+# Multi-root helpers (provided by this library):
+#   plugin_resolve_source_file NAME    -- first-existing source across roots
+#   plugin_list_source_origins NAME    -- every root where NAME exists
+#   plugin_root_tag ROOT               -- "canon" | "ext:<name>"
+#   plugin_detect_shadow NAME          -- stderr warning if NAME in >1 root
+
+# ---- Multi-Root Source Discovery (v2.9.0+) ----
+#
+# Default: single canon root. Plugins override to add ext roots.
+# Output: one root path per line, highest precedence first.
+# Honoured env vars:
+#   INTENT_EXT_DISABLE=1  -- return canon root only (escape hatch)
+#   INTENT_EXT_DIR=<path> -- override default ~/.intent/ext location
+if ! declare -f plugin_get_source_roots >/dev/null 2>&1; then
+  plugin_get_source_roots() {
+    echo "$INTENT_HOME/intent/plugins/claude/${PLUGIN_CMD}"
+  }
+fi
+
+# Default path resolver: derives from plugin_get_source_file's layout by
+# replacing the canon root prefix with the given root. Plugins can override
+# for more control.
+if ! declare -f plugin_source_path_in_root >/dev/null 2>&1; then
+  plugin_source_path_in_root() {
+    local root="$1"
+    local name="$2"
+    local canon_root="$INTENT_HOME/intent/plugins/claude/${PLUGIN_CMD}"
+    local canon_path
+    canon_path="$(plugin_get_source_file "$name")"
+    case "$canon_path" in
+      "$canon_root"*)
+        echo "${root}${canon_path#$canon_root}"
+        ;;
+      *)
+        echo "$canon_path"
+        ;;
+    esac
+  }
+fi
+
+# Tag a root path with its provenance: "canon" or "ext:<name>".
+plugin_root_tag() {
+  local root="$1"
+  local canon_root="$INTENT_HOME/intent/plugins/claude/${PLUGIN_CMD}"
+  if [ "$root" = "$canon_root" ]; then
+    echo "canon"
+    return 0
+  fi
+  local ext_base="${INTENT_EXT_DIR:-$HOME/.intent/ext}"
+  case "$root" in
+    "$ext_base"/*)
+      local trimmed="${root#$ext_base/}"
+      local ext_name="${trimmed%%/*}"
+      echo "ext:${ext_name}"
+      ;;
+    *)
+      echo "unknown"
+      ;;
+  esac
+}
+
+# Resolve NAME to the first source file that exists across source roots.
+# Returns 0 with the path on stdout, or 1 if no root has the file.
+plugin_resolve_source_file() {
+  local name="$1"
+  local roots_out root candidate
+  roots_out="$(plugin_get_source_roots 2>/dev/null || true)"
+
+  if [ -z "$roots_out" ]; then
+    # No roots declared -- fall back to legacy single-root callback
+    plugin_get_source_file "$name"
+    return $?
+  fi
+
+  while IFS= read -r root; do
+    [ -z "$root" ] && continue
+    candidate="$(plugin_source_path_in_root "$root" "$name" 2>/dev/null)"
+    [ -z "$candidate" ] && continue
+    if [ -f "$candidate" ]; then
+      echo "$candidate"
+      return 0
+    fi
+  done <<< "$roots_out"
+
+  return 1
+}
+
+# List every root where NAME exists, as "TAG|PATH" lines in precedence order.
+plugin_list_source_origins() {
+  local name="$1"
+  local roots_out root candidate tag
+  roots_out="$(plugin_get_source_roots 2>/dev/null || true)"
+
+  if [ -z "$roots_out" ]; then
+    local single
+    single="$(plugin_get_source_file "$name" 2>/dev/null)"
+    if [ -n "$single" ] && [ -f "$single" ]; then
+      echo "canon|$single"
+    fi
+    return 0
+  fi
+
+  while IFS= read -r root; do
+    [ -z "$root" ] && continue
+    candidate="$(plugin_source_path_in_root "$root" "$name" 2>/dev/null)"
+    [ -z "$candidate" ] && continue
+    if [ -f "$candidate" ]; then
+      tag="$(plugin_root_tag "$root")"
+      echo "${tag}|${candidate}"
+    fi
+  done <<< "$roots_out"
+}
+
+# Print a shadow warning on stderr when NAME exists in more than one root.
+# Returns 0 when single origin; 1 when shadow detected.
+plugin_detect_shadow() {
+  local name="$1"
+  local origins
+  origins="$(plugin_list_source_origins "$name")"
+
+  [ -z "$origins" ] && return 0
+
+  local hit_count
+  hit_count=$(echo "$origins" | grep -c '|')
+  [ "$hit_count" -le 1 ] && return 0
+
+  # First origin wins (ext); report it as the shadower
+  local first_tag first_path
+  first_tag=$(echo "$origins" | head -1 | cut -d'|' -f1)
+  first_path=$(echo "$origins" | head -1 | cut -d'|' -f2)
+  echo "warning: '${name}' in ${first_path%/*} shadows canon ${PLUGIN_TYPE} (${first_tag})" >&2
+  echo "  to use canon: set INTENT_EXT_DISABLE=1" >&2
+  return 1
+}
 
 # ---- Manifest Operations ----
 
@@ -137,12 +281,15 @@ plugin_install() {
     echo "installing: $name"
 
     local source_file
-    source_file=$(plugin_get_source_file "$name")
-    if [ ! -f "$source_file" ]; then
+    source_file=$(plugin_resolve_source_file "$name")
+    if [ -z "$source_file" ] || [ ! -f "$source_file" ]; then
       echo "  error: '$name' not found"
       ((failed_count++))
       continue
     fi
+
+    # Emit shadow warning if NAME exists in both ext and canon
+    plugin_detect_shadow "$name" >&2 || true
 
     if plugin_is_installed "$name"; then
       if [ "$force" = false ]; then
@@ -222,14 +369,14 @@ plugin_sync() {
     old_checksum=$(echo "$item_info" | jq -r '.checksum')
 
     local source_file
-    source_file=$(plugin_get_source_file "$name")
+    source_file=$(plugin_resolve_source_file "$name")
 
-    if [ ! -f "$source_file" ]; then
+    if [ -z "$source_file" ] || [ ! -f "$source_file" ]; then
       # Check for renamed skill (intent-* -> in-*)
       local new_name="${name/#intent-/in-}"
       local new_source
-      new_source=$(plugin_get_source_file "$new_name")
-      if [ "$new_name" != "$name" ] && [ -f "$new_source" ]; then
+      new_source=$(plugin_resolve_source_file "$new_name")
+      if [ "$new_name" != "$name" ] && [ -n "$new_source" ] && [ -f "$new_source" ]; then
         echo "  renamed: $name -> $new_name"
         plugin_remove_target "$name"
         plugin_remove_from_manifest "$name"

@@ -26,7 +26,43 @@ plugin_get_manifest_path() {
 }
 
 plugin_get_source_file() {
+  # Legacy single-root (canon) resolver. plugin_resolve_source_file is the
+  # multi-root-aware replacement.
   echo "$INTENT_HOME/intent/plugins/claude/subagents/$1/agent.md"
+}
+
+# Enumerate source roots in precedence order. Ext roots win over canon.
+# Format: one path per line. Honours INTENT_EXT_DISABLE and INTENT_EXT_DIR.
+plugin_get_source_roots() {
+  local canon_root="$INTENT_HOME/intent/plugins/claude/subagents"
+
+  if [ "${INTENT_EXT_DISABLE:-}" = "1" ]; then
+    echo "$canon_root"
+    return 0
+  fi
+
+  local ext_base="${INTENT_EXT_DIR:-$HOME/.intent/ext}"
+  if [ -d "$ext_base" ]; then
+    local ext_dir ext_name ext_subagents
+    for ext_dir in "$ext_base"/*/; do
+      [ -d "$ext_dir" ] || continue
+      ext_name="$(basename "$ext_dir")"
+      case "$ext_name" in
+        .*|_*) continue ;;
+      esac
+      ext_subagents="${ext_dir%/}/subagents"
+      [ -d "$ext_subagents" ] && echo "$ext_subagents"
+    done
+  fi
+
+  echo "$canon_root"
+}
+
+# Map (root, name) to the expected agent.md path inside a root.
+plugin_source_path_in_root() {
+  local root="$1"
+  local name="$2"
+  echo "$root/$name/agent.md"
 }
 
 plugin_is_installed() {
@@ -34,7 +70,10 @@ plugin_is_installed() {
 }
 
 plugin_copy_to_target() {
-  mkdir -p "$HOME/.claude/agents" && cp "$(plugin_get_source_file "$1")" "$HOME/.claude/agents/$1.md"
+  local source
+  source="$(plugin_resolve_source_file "$1")"
+  [ -n "$source" ] && [ -f "$source" ] || return 1
+  mkdir -p "$HOME/.claude/agents" && cp "$source" "$HOME/.claude/agents/$1.md"
 }
 
 plugin_remove_target() {
@@ -274,6 +313,80 @@ intent_claude_subagents_list() {
 
   echo ""
 
+  # Extensions (v2.9.0+): user extensions under ~/.intent/ext/
+  if [ "${INTENT_EXT_DISABLE:-}" != "1" ]; then
+    local ext_base="${INTENT_EXT_DIR:-$HOME/.intent/ext}"
+    local any_ext=0
+    if [ -d "$ext_base" ]; then
+      local ext_dir ext_name ext_sub agent_dir agent_name desc_file
+      for ext_dir in "$ext_base"/*/; do
+        [ -d "$ext_dir" ] || continue
+        ext_name="$(basename "$ext_dir")"
+        case "$ext_name" in
+          .*|_*) continue ;;
+        esac
+        ext_sub="${ext_dir%/}/subagents"
+        [ -d "$ext_sub" ] || continue
+        for agent_dir in "$ext_sub"/*/; do
+          [ -f "${agent_dir}agent.md" ] || continue
+          agent_name="$(basename "$agent_dir")"
+          if [ "$any_ext" = 0 ]; then
+            echo "Extensions:"
+            any_ext=1
+          fi
+
+          # Detect shadow (also exists in canon)
+          local tag shadow_note canon_agent
+          canon_agent="$INTENT_HOME/intent/plugins/claude/subagents/$agent_name/agent.md"
+          if [ -f "$canon_agent" ]; then
+            tag="[ext:${ext_name}, shadows canon]"
+            shadow_note=1
+            echo "warning: subagent '${agent_name}' in ${ext_dir%/} shadows canon subagent" >&2
+          else
+            tag="[ext:${ext_name}]"
+            shadow_note=0
+          fi
+
+          # Installation status
+          local status
+          if plugin_is_installed "$agent_name"; then
+            status="[INSTALLED]"
+          else
+            status="[NOT INSTALLED]"
+          fi
+
+          # Short description from the agent's frontmatter if available
+          local ext_desc
+          ext_desc=$(grep -m1 '^description:' "${agent_dir}agent.md" 2>/dev/null | sed 's/^description: *//; s/^"//; s/"$//')
+          [ -z "$ext_desc" ] && ext_desc="<no description>"
+
+          if [ "$verbose" = true ]; then
+            local left pad
+            left="$(printf '%-12s' "$agent_name")"
+            pad=$(( term_width - 2 - ${#left} - ${#tag} ))
+            [ "$pad" -lt 1 ] && pad=1
+            printf "  %s%*s%s\n" "$left" "$pad" "" "$tag"
+            printf "    %s  %s\n\n" "$status" "$ext_desc"
+          else
+            local description left pad
+            if [ ${#ext_desc} -le $desc_width ]; then
+              description="$ext_desc"
+            else
+              description="${ext_desc:0:$((desc_width - 3))}"
+              description="${description% *}..."
+            fi
+            left="$(printf '%-12s' "$agent_name") - $description"
+            pad=$(( term_width - 2 - ${#left} - ${#tag} ))
+            [ "$pad" -lt 1 ] && pad=1
+            printf "  %s%*s%s\n" "$left" "$pad" "" "$tag"
+            printf "  %*s%s\n" $(( term_width - 2 - ${#status} )) "" "$status"
+          fi
+        done
+      done
+    fi
+    [ "$any_ext" = 1 ] && echo ""
+  fi
+
   # Local agents (if in project)
   if [ -n "${PROJECT_ROOT:-}" ] && [ -d "$PROJECT_ROOT/intent/agents" ]; then
     local local_manifest="$PROJECT_ROOT/intent/plugins/claude/subagents/.manifest/installed-agents.json"
@@ -475,6 +588,13 @@ intent_claude_subagents_show() {
 
   local agent_name="$1"
 
+  # Emit shadow warning when multiple roots hold this agent
+  plugin_detect_shadow "$agent_name" || true
+
+  # Resolve source across roots (ext wins over canon)
+  local resolved_file
+  resolved_file="$(plugin_resolve_source_file "$agent_name" 2>/dev/null)"
+
   # Check global agents first
   local global_manifest="$INTENT_HOME/intent/plugins/claude/subagents/.manifest/global-agents.json"
   local agent_info=""
@@ -487,6 +607,17 @@ intent_claude_subagents_show() {
       source_type="global"
       source_path="$INTENT_HOME/intent/plugins/claude/subagents/$agent_name"
     fi
+  fi
+
+  # If not in canon manifest but exists in an ext, synthesise agent_info
+  if [ -z "$agent_info" ] && [ -n "$resolved_file" ] && [ -f "$resolved_file" ]; then
+    source_type="ext"
+    source_path="$(dirname "$resolved_file")"
+    local ext_desc
+    ext_desc=$(grep -m1 '^description:' "$resolved_file" 2>/dev/null | sed 's/^description: *//; s/^"//; s/"$//')
+    [ -z "$ext_desc" ] && ext_desc="<no description>"
+    agent_info=$(jq -nc --arg name "$agent_name" --arg desc "$ext_desc" \
+      '{name: $name, description: $desc, version: "ext"}')
   fi
 
   if [ -z "$agent_info" ]; then
