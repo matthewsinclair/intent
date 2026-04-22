@@ -2,22 +2,22 @@
 
 ## Progress Tracker
 
-Status as of: 2026-04-22 (WP05 closed; WP01 + WP02 + WP04 + WP05 done)
+Status as of: 2026-04-22 (WP03 closed; WP01 + WP02 + WP03 + WP04 + WP05 done)
 
-| WP   | Title                              | Status      | Notes                                                                                                        |
-| ---- | ---------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------ |
-| WP01 | Architecture and rule schema       | Done        | Closed 3625b18; schema + archetype + attribution landed                                                      |
-| WP02 | Extension system foundation        | Done        | 6 sessions: callback refactor, ext dispatcher, validator, scaffolding, rules CLI, BATS. 526 tests pass.      |
-| WP03 | Skill and subagent rationalisation | Not started | Depends WP01. Sequenced after WP05/WP12 so rule-by-ID references resolve.                                    |
-| WP04 | Agnostic rule pack                 | Done        | 4 rules (Highlander, PFIC, Thin Coordinator, No Silent Errors); +11 BATS tests = 537 total.                  |
-| WP05 | Elixir rule pack                   | Done        | 19 rules (6 code + 7 test + 2 ash + 1 phx + 3 lv); 26 runnable `.exs` all exit 0; 18 BATS tests = 555 total. |
-| WP06 | Rust/Swift/Lua rule packs          | Not started | Depends WP01, WP04                                                                                           |
-| WP07 | Critic subagent family             | Not started | Depends WP03, WP04, WP05, WP06, WP12. Now delivers 5 critics (elixir, rust, swift, lua, shell).              |
-| WP08 | Worker-bee extraction              | Not started | Depends WP02                                                                                                 |
-| WP09 | Migration and upgrade chain        | Not started | Depends WP02, WP08                                                                                           |
-| WP10 | Documentation                      | Not started | Depends WP02, WP07, WP08                                                                                     |
-| WP11 | Release and fleet upgrade          | Not started | Depends WP01-WP10, WP12                                                                                      |
-| WP12 | Shell rule pack (bash + zsh)       | Not started | Added 2026-04-22 by user request. Dogfooded against `bin/intent*`; blog-post journal kept.                   |
+| WP   | Title                              | Status      | Notes                                                                                                                   |
+| ---- | ---------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
+| WP01 | Architecture and rule schema       | Done        | Closed 3625b18; schema + archetype + attribution landed                                                                 |
+| WP02 | Extension system foundation        | Done        | 6 sessions: callback refactor, ext dispatcher, validator, scaffolding, rules CLI, BATS. 526 tests pass.                 |
+| WP03 | Skill and subagent rationalisation | Done        | Elixir subagent deleted; 5 skills refactored to reference rules by ID; in-review parameterised; 9 new BATS = 564 total. |
+| WP04 | Agnostic rule pack                 | Done        | 4 rules (Highlander, PFIC, Thin Coordinator, No Silent Errors); +11 BATS tests = 537 total.                             |
+| WP05 | Elixir rule pack                   | Done        | 19 rules (6 code + 7 test + 2 ash + 1 phx + 3 lv); 26 runnable `.exs` all exit 0; 18 BATS tests = 555 total.            |
+| WP06 | Rust/Swift/Lua rule packs          | Not started | Depends WP01, WP04                                                                                                      |
+| WP07 | Critic subagent family             | Not started | Depends WP03, WP04, WP05, WP06, WP12. Now delivers 5 critics (elixir, rust, swift, lua, shell).                         |
+| WP08 | Worker-bee extraction              | Not started | Depends WP02                                                                                                            |
+| WP09 | Migration and upgrade chain        | Not started | Depends WP02, WP08                                                                                                      |
+| WP10 | Documentation                      | Not started | Depends WP02, WP07, WP08                                                                                                |
+| WP11 | Release and fleet upgrade          | Not started | Depends WP01-WP10, WP12                                                                                                 |
+| WP12 | Shell rule pack (bash + zsh)       | Not started | Added 2026-04-22 by user request. Dogfooded against `bin/intent*`; blog-post journal kept.                              |
 
 ## Implementation Notes
 

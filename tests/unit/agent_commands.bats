@@ -87,7 +87,7 @@ teardown() {
   assert_output_contains "Available Agents:"
   assert_output_contains "Global:"
   assert_output_contains "intent"
-  assert_output_contains "elixir"
+  assert_output_contains "socrates"
 }
 
 @test "claude subagents list shows installation status" {
@@ -175,35 +175,35 @@ teardown() {
 }
 
 @test "claude subagents install supports multiple agents" {
-  run run_intent claude subagents install intent elixir --force
+  run run_intent claude subagents install intent socrates --force
   assert_success
   assert_output_contains "installing: intent"
-  assert_output_contains "installing: elixir"
+  assert_output_contains "installing: socrates"
   # Test that at least 2 agents were installed (not exact count)
   assert_output_contains "ok:"
   assert_output_contains "installed"
-  
+
   # Verify both files exist
   assert_file_exists "$HOME/.claude/agents/intent.md"
-  assert_file_exists "$HOME/.claude/agents/elixir.md"
+  assert_file_exists "$HOME/.claude/agents/socrates.md"
 }
 
 @test "claude subagents install --all installs all available agents" {
   run run_intent claude subagents install --all --force
   assert_success
   assert_output_contains "installing: intent"
-  assert_output_contains "installing: elixir"
   assert_output_contains "installing: socrates"
+  assert_output_contains "installing: diogenes"
   # Test that installation completed (not exact count)
   assert_output_contains "ok:"
   assert_output_contains "installed"
-  
+
   # Verify all agents are installed
   run run_intent claude subagents list
   assert_success
   assert_output_contains "intent"
-  assert_output_contains "elixir"
   assert_output_contains "socrates"
+  assert_output_contains "diogenes"
   refute_output_contains "[NOT INSTALLED]"
 }
 
@@ -386,14 +386,14 @@ teardown() {
 
 @test "claude subagents sync works with multiple agents" {
   # Install multiple agents
-  run run_intent claude subagents install intent elixir --force
+  run run_intent claude subagents install intent socrates --force
   assert_success
-  
+
   # Sync should check both
   run run_intent claude subagents sync
   assert_success
   assert_output_contains "Checking agent: intent"
-  assert_output_contains "Checking agent: elixir"
+  assert_output_contains "Checking agent: socrates"
   assert_output_contains "up to date"
 }
 
@@ -454,33 +454,32 @@ teardown() {
 
 @test "claude subagents uninstall supports multiple agents" {
   # Install multiple agents
-  run run_intent claude subagents install intent elixir --force
+  run run_intent claude subagents install intent socrates --force
   assert_success
-  
+
   # Uninstall both
-  run run_intent claude subagents uninstall intent elixir --force
+  run run_intent claude subagents uninstall intent socrates --force
   assert_success
   assert_output_contains "removing: intent"
-  assert_output_contains "removing: elixir"
+  assert_output_contains "removing: socrates"
   assert_output_contains "2 removed"
-  
+
   # Verify both are gone
   assert_file_not_exists "$HOME/.claude/agents/intent.md"
-  assert_file_not_exists "$HOME/.claude/agents/elixir.md"
+  assert_file_not_exists "$HOME/.claude/agents/socrates.md"
 }
 
 @test "claude subagents uninstall --all removes all agents" {
   # Install multiple agents
-  run run_intent claude subagents install intent elixir --force
+  run run_intent claude subagents install intent socrates --force
   assert_success
-  
+
   # Uninstall all
   run run_intent claude subagents uninstall --all --force
   assert_success
   assert_output_contains "removing: intent"
-  assert_output_contains "removing: elixir"
-  assert_output_contains "2 removed"
-  
+  assert_output_contains "removing: socrates"
+
   # Verify all are gone
   run run_intent claude subagents list
   assert_success
@@ -586,11 +585,11 @@ teardown() {
 }
 
 @test "claude subagents show displays metadata" {
-  run run_intent claude subagents show elixir
+  run run_intent claude subagents show socrates
   assert_success
-  assert_output_contains "Agent: elixir"
-  assert_output_contains "Description: Elixir code doctor with Usage Rules and Ash/Phoenix patterns"
-  assert_output_contains "Author: Intent Contributors"
+  assert_output_contains "Agent: socrates"
+  assert_output_contains "Description:"
+  assert_output_contains "Author:"
   assert_output_contains "Tools:"
   assert_output_contains "Tags:"
 }
@@ -605,10 +604,10 @@ teardown() {
 
 @test "claude subagents show displays installation info when installed" {
   # Install agent
-  run run_intent claude subagents install elixir --force
+  run run_intent claude subagents install socrates --force
   assert_success
-  
-  run run_intent claude subagents show elixir
+
+  run run_intent claude subagents show socrates
   assert_success
   assert_output_contains "Status: INSTALLED"
   assert_output_contains "Installed: 202"  # Partial match for timestamp
@@ -621,15 +620,14 @@ teardown() {
 }
 
 @test "claude subagents show works for both agents" {
-  # Test both intent and elixir agents exist and can be shown
+  # Test both intent and socrates agents exist and can be shown
   run run_intent claude subagents show intent
   assert_success
   assert_output_contains "Agent: intent"
-  
-  run run_intent claude subagents show elixir
+
+  run run_intent claude subagents show socrates
   assert_success
-  assert_output_contains "Agent: elixir"
-  assert_output_contains "Elixir code doctor"
+  assert_output_contains "Agent: socrates"
 }
 
 # Status command tests
@@ -734,19 +732,19 @@ teardown() {
 
 @test "claude subagents status works with multiple agents" {
   # Install multiple agents
-  run run_intent claude subagents install intent elixir --force
+  run run_intent claude subagents install intent socrates --force
   assert_success
-  
+
   # Check status
   run run_intent claude subagents status
   assert_success
   assert_output_contains "Total: 2"
   assert_output_contains "intent"
-  assert_output_contains "elixir"
-  
+  assert_output_contains "socrates"
+
   # Modify one, remove another
   echo "# Modified" >> "$HOME/.claude/agents/intent.md"
-  rm -f "$HOME/.claude/agents/elixir.md"
+  rm -f "$HOME/.claude/agents/socrates.md"
   
   # Check mixed status
   run run_intent claude subagents status

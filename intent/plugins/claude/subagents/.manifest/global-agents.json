@@ -9,13 +9,6 @@
       "checksum": ""
     },
     {
-      "name": "elixir",
-      "version": "1.0.0",
-      "description": "Elixir code doctor with Usage Rules and Ash/Phoenix patterns",
-      "path": "intent/plugins/claude/subagents/elixir",
-      "checksum": ""
-    },
-    {
       "name": "socrates",
       "version": "1.0.0",
       "description": "CTO Review Mode for technical decision-making via Socratic dialog",

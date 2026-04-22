@@ -1,186 +1,51 @@
 ---
-description: "Phoenix LiveView lifecycle rules: two-phase mount, streams, async loading, thin LiveViews, components"
+description: "Phoenix LiveView rules: two-phase mount, streams for lists, thin LiveViews, @impl true on callbacks"
 ---
 
 # Phoenix LiveView Essentials
 
-LiveView lifecycle and rendering rules enforced on every LiveView module. These are mandatory -- no exceptions.
+Load the Intent LiveView and Phoenix rule pack into context. LiveView-specific rules live in `rules/elixir/lv/`; shared controller-layer rules live in `rules/elixir/phoenix/`.
 
-## Rules
+## Procedure
 
-### 1. Two-phase mount -- guard async operations with `connected?(socket)`
+### 1. Load the LiveView rules
 
-Mount is called twice: once for static HTML render (disconnected), once for WebSocket (connected). Never subscribe to PubSub, start timers, or spawn async work during the static render.
+| Rule ID        | Slug                | What it enforces                                                    |
+| -------------- | ------------------- | ------------------------------------------------------------------- |
+| `IN-EX-LV-001` | `two-phase-mount`   | Guard `subscribe`, timers, async work with `if connected?(socket)`. |
+| `IN-EX-LV-002` | `streams-for-lists` | Use `stream/3` for lists that grow; only deltas go over the wire.   |
+| `IN-EX-LV-003` | `thin-liveviews`    | LiveView event handlers delegate to the domain; no business logic.  |
 
-```elixir
-# BAD -- subscribes during static render
-@impl true
-def mount(_params, _session, socket) do
-  Phoenix.PubSub.subscribe(MyApp.PubSub, "updates")
-  {:ok, assign(socket, :items, load_items())}
-end
+### 2. Load the Phoenix controller rules
 
-# GOOD -- guard with connected?
-@impl true
-def mount(_params, _session, socket) do
-  if connected?(socket) do
-    Phoenix.PubSub.subscribe(MyApp.PubSub, "updates")
-  end
+| Rule ID         | Slug               | What it enforces                                              |
+| --------------- | ------------------ | ------------------------------------------------------------- |
+| `IN-EX-PHX-001` | `thin-controllers` | Controllers parse, call, shape. No business logic in actions. |
 
-  {:ok, assign(socket, :items, load_items())}
-end
-```
+### 3. Load the shared Elixir rules that apply to LiveView code
 
-### 2. Streams for large or dynamic lists
+| Rule ID          | Slug                              | Why it matters for LiveView                                                                  |
+| ---------------- | --------------------------------- | -------------------------------------------------------------------------------------------- |
+| `IN-EX-CODE-003` | `impl-true-on-callbacks`          | `@impl true` on `mount/3`, `render/1`, `handle_event/3`, `handle_info/2`, `handle_params/2`. |
+| `IN-EX-CODE-004` | `with-for-railway`                | `handle_event/3` bodies often chain fallible operations — use `with`.                        |
+| `IN-EX-CODE-001` | `pattern-match-over-conditionals` | Branch `handle_event/3` clauses on event name or params shape, not nested `if`.              |
 
-Never assign full collections that grow or update frequently. Use `stream/3` for memory-efficient rendering where only changes are sent to the client.
+### 4. Additional operational conventions
 
-```elixir
-# BAD -- full list re-rendered on every update
-@impl true
-def mount(_params, _session, socket) do
-  {:ok, assign(socket, :messages, list_messages())}
-end
+Not yet first-class rules:
 
-def handle_info({:new_message, msg}, socket) do
-  {:noreply, update(socket, :messages, &[msg | &1])}
-end
+- **`push_navigate` vs `push_patch`.** `push_patch` stays in the same LiveView and triggers `handle_params/2`. `push_navigate` goes to a _different_ LiveView and triggers a full `mount/3`. Do not `push_patch` to a route served by a different LiveView.
+- **`assign_async/3` for slow data loads.** Never block `mount/3` with an expensive query. Wrap in `assign_async/3` and render a loading state via `<.async_result>`.
+- **Extract repeated HEEX into function components.** When the same HTML block appears in two places, pull it into a component with typed `attr/3` declarations for compile-time validation.
 
-# GOOD -- stream, only diffs sent
-@impl true
-def mount(_params, _session, socket) do
-  {:ok, stream(socket, :messages, list_messages())}
-end
+### 5. Check Phoenix / LiveView Usage Rules
 
-def handle_info({:new_message, msg}, socket) do
-  {:noreply, stream_insert(socket, :messages, msg, at: 0)}
-end
-```
+Read `deps/phoenix_live_view/usage-rules.md` for the upstream authoritative contract. Anything the rules above do not cover defaults to upstream Usage Rules.
 
-Template requires `phx-update="stream"`:
+## Red Flags
 
-```heex
-<ul id="messages" phx-update="stream">
-  <li :for={{dom_id, msg} <- @streams.messages} id={dom_id}>{msg.body}</li>
-</ul>
-```
-
-### 3. `@impl true` on all LiveView callbacks
-
-Every callback must be annotated. Catches typos at compile time and makes callback vs custom function distinction clear.
-
-```elixir
-# BAD
-def mount(_params, _session, socket), do: {:ok, socket}
-def handle_event("click", _params, socket), do: {:noreply, socket}
-
-# GOOD
-@impl true
-def mount(_params, _session, socket), do: {:ok, socket}
-
-@impl true
-def handle_event("click", _params, socket), do: {:noreply, socket}
-```
-
-### 4. Thin LiveViews -- domain logic in context/domain modules
-
-LiveViews are coordinators. They assign state, dispatch to domain, and update assigns. No business logic, data transformation, or aggregation queries.
-
-```elixir
-# BAD -- business logic in LiveView
-@impl true
-def handle_event("publish", %{"id" => id}, socket) do
-  post = MyApp.Content.get_post!(id)
-  if post.status == :draft and post.word_count > 100 do
-    MyApp.Content.update_post(post, %{status: :published, published_at: DateTime.utc_now()})
-    # send notification, update analytics...
-  end
-end
-
-# GOOD -- domain function handles all logic
-@impl true
-def handle_event("publish", %{"id" => id}, socket) do
-  case MyApp.Content.publish_post(id, actor: socket.assigns.current_user) do
-    {:ok, post} -> {:noreply, stream_insert(socket, :posts, post)}
-    {:error, reason} -> {:noreply, put_flash(socket, :error, reason)}
-  end
-end
-```
-
-### 5. `push_navigate` vs `push_patch` -- correct semantics
-
-`push_patch` stays in the same LiveView (triggers `handle_params`). `push_navigate` goes to a different LiveView (triggers full mount).
-
-```elixir
-# GOOD -- same LiveView, updating filters
-def handle_event("filter", %{"status" => status}, socket) do
-  {:noreply, push_patch(socket, to: ~p"/posts?status=#{status}")}
-end
-
-# GOOD -- different LiveView, navigating away
-def handle_event("view_details", %{"id" => id}, socket) do
-  {:noreply, push_navigate(socket, to: ~p"/posts/#{id}")}
-end
-
-# BAD -- push_patch to a different LiveView (won't remount)
-def handle_event("go_home", _params, socket) do
-  {:noreply, push_patch(socket, to: ~p"/")}
-end
-```
-
-### 6. `assign_async` for non-blocking data loading
-
-Never block mount with expensive operations. Use `assign_async/3` for concurrent data loading after initial render.
-
-```elixir
-# BAD -- blocks initial render
-@impl true
-def mount(_params, _session, socket) do
-  stats = MyApp.Analytics.compute_stats!()  # slow query
-  {:ok, assign(socket, :stats, stats)}
-end
-
-# GOOD -- non-blocking, shows loading state
-@impl true
-def mount(_params, _session, socket) do
-  {:ok,
-   assign_async(socket, :stats, fn ->
-     {:ok, %{stats: MyApp.Analytics.compute_stats!()}}
-   end)}
-end
-```
-
-Handle async states in template:
-
-```heex
-<.async_result :let={stats} assign={@stats}>
-  <:loading>Computing stats...</:loading>
-  <:failed :let={_reason}>Failed to load stats</:failed>
-  <div>Total: {stats.total}</div>
-</.async_result>
-```
-
-### 7. Extract repeated HEEX into reusable components
-
-When the same HTML structure appears twice, extract it into a function component with typed attributes.
-
-```elixir
-# BAD -- duplicated markup across LiveViews
-~H"""
-<span class="badge badge-green">Active</span>
-...
-<span class="badge badge-red">Inactive</span>
-"""
-
-# GOOD -- reusable component
-attr :color, :atom, values: [:green, :red, :yellow, :gray], required: true
-attr :label, :string, required: true
-
-def status_badge(assigns) do
-  ~H"""
-  <span class={["badge", "badge-#{@color}"]}>{@label}</span>
-  """
-end
-```
-
-Use `attr` declarations for compile-time validation of component inputs.
+| Rationalisation                                          | Reality                                                                |
+| -------------------------------------------------------- | ---------------------------------------------------------------------- |
+| "Subscribing in mount is fine; it works."                | See IN-EX-LV-001. It double-subscribes and wastes the SSR render.      |
+| "Assigning the full list is simpler than streams."       | See IN-EX-LV-002. Simpler until the list grows; then it is a refactor. |
+| "The business logic is too small to move to the domain." | See IN-EX-LV-003. Even small logic duplicates when Oban needs it.      |

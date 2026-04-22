@@ -1,5 +1,5 @@
 ---
-description: "Coding standards: re-read rules, usage rules, enforce Highlander and PFIC"
+description: "Coding standards: agnostic principles (Highlander, PFIC, Thin Coordinator, No Silent Errors) + project rules"
 ---
 
 # Coding Standards
@@ -14,50 +14,46 @@ Load coding discipline into context. Invoke at the start of coding or after any 
 - `intent/llm/MODULES.md` (module registry)
 - `intent/llm/DECISION_TREE.md` (code placement)
 
-### 2. Re-read relevant usage rules
+### 2. Load the agnostic rule pack
 
-Check for and read any usage rules files:
+These are the cross-language principles. Every language pack (Elixir, Rust, Swift, Lua, Shell) concretises them. Read each `RULE.md` on demand when the situation matches; the full text lives in `intent/plugins/claude/rules/agnostic/<slug>/RULE.md`.
+
+| Rule ID                | Slug               | What it enforces                                                           |
+| ---------------------- | ------------------ | -------------------------------------------------------------------------- |
+| `IN-AG-HIGHLANDER-001` | `highlander`       | There can be only one. No divergent copies of the same concern.            |
+| `IN-AG-PFIC-001`       | `pfic`             | Pure-Functional-Idiomatic-Coordination: pattern match, pipe, tag, compose. |
+| `IN-AG-THIN-COORD-001` | `thin-coordinator` | Coordinators parse → call → render. Business logic lives elsewhere.        |
+| `IN-AG-NO-SILENT-001`  | `no-silent-errors` | Every failure is surfaced. Rescue-and-swallow is forbidden.                |
+
+Each rule has `concretised_by:` language-specific rules. For Elixir: `IN-EX-CODE-006` concretises Highlander, `IN-EX-CODE-004` concretises PFIC (with-railway), `IN-EX-PHX-001` / `IN-EX-LV-003` concretise Thin Coordinator, `IN-EX-CODE-005` concretises No Silent Errors.
+
+### 3. Load relevant framework Usage Rules
 
 - `deps/ash/usage-rules.md`
 - `deps/ash_postgres/usage-rules.md`
 - `deps/phoenix_live_view/usage-rules.md`
-- Any other `deps/*/usage-rules.md` or `deps/*/AGENTS.md` relevant to the current task
+- Any other `deps/*/usage-rules.md` or `deps/*/AGENTS.md` relevant to the task
 
-### 3. Enforce the Highlander Rule
+### 4. Load the language skill when coding begins
 
-- No duplicated code paths, ever
-- Before creating a module, check MODULES.md
-- Before adding a function, check if one already exists
-- If tempted to copy-paste, refactor to share
+The agnostic rules are universal; the language-specific application lives in the language skill:
 
-### 4. Enforce Thin Coordinators
+- Elixir: `/in-elixir-essentials`, `/in-elixir-testing`, `/in-ash-ecto-essentials`, `/in-phoenix-liveview`
+- (Rust/Swift/Lua/Shell language skills land in later WPs.)
 
-- CLI commands: parse args, call service, format output
-- Controllers: parse params, call service, render
-- LiveViews: handle events by delegating to services
-- Oban workers: call service in perform/1
-- GenServers: manage state, delegate logic to services
+### 5. Formatting standards
 
-### 5. Enforce PFIC
-
-Pure-Functional Idiomatic Code:
-
-- Pattern matching over conditionals
-- Tagged tuples (`{:ok, _}` / `{:error, _}`) for fallible operations
-- Pipe chains for data transformations
-- `@impl true` on all callbacks
-- Descriptive function names (verbs for actions, nouns for getters)
-
-### 6. Formatting standards
-
-- All markdown tables must be column-aligned
-- No non-printing characters (proper emojis and ASCII only)
-- No em dashes in skill files
+- All markdown tables must be column-aligned.
+- No non-printing characters (proper ASCII, emojis only if explicitly requested).
+- No em dashes in skill files (multi-byte truncation bug in list display).
+- 2-space indentation in all code, in all languages, in Intent.
 
 ## Red Flags
 
-| Rationalization                           | Reality                                           |
-| ----------------------------------------- | ------------------------------------------------- |
-| "This helper is only used once, it's OK"  | Check MODULES.md. Someone else may have built it. |
-| "The coordinator needs this logic inline" | If it's more than parse/call/format, extract it.  |
-| "Pattern matching is overkill here"       | It's never overkill. It's the Elixir way.         |
+| Rationalisation                                 | Reality                                                                       |
+| ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| "This helper is only used once, it's OK."       | Check MODULES.md. Someone else may already own it.                            |
+| "The coordinator needs this logic inline."      | See IN-AG-THIN-COORD-001. If it's not parse/call/render, extract it.          |
+| "Pattern matching is overkill here."            | See IN-AG-PFIC-001. Pattern matching is the default tool.                     |
+| "Rescuing and returning :ok is easier."         | See IN-AG-NO-SILENT-001. Easier now; invisible in prod.                       |
+| "Two copies are fine; they're almost the same." | See IN-AG-HIGHLANDER-001. "Almost the same" becomes "drift" within a quarter. |

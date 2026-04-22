@@ -200,10 +200,13 @@ teardown() {
   run run_intent claude skills install in-elixir-testing --force
   assert_success
 
-  # Verify key content in the installed file
+  # Verify key content in the installed file. After WP03, the skill points at
+  # rules by ID rather than inlining rule prose, so the assertions pivot to
+  # the rule IDs themselves.
   assert_file_contains "$HOME/.claude/skills/in-elixir-testing/SKILL.md" "Elixir Testing Essentials"
-  assert_file_contains "$HOME/.claude/skills/in-elixir-testing/SKILL.md" "No control flow in test bodies"
-  assert_file_contains "$HOME/.claude/skills/in-elixir-testing/SKILL.md" "Strong assertions"
+  assert_file_contains "$HOME/.claude/skills/in-elixir-testing/SKILL.md" "IN-EX-TEST-001"
+  assert_file_contains "$HOME/.claude/skills/in-elixir-testing/SKILL.md" "IN-EX-TEST-005"
+  assert_file_contains "$HOME/.claude/skills/in-elixir-testing/SKILL.md" "strong-assertions"
 }
 
 @test "claude skills install --all includes in-elixir-testing" {

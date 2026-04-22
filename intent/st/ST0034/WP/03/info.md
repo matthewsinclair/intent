@@ -1,9 +1,9 @@
 ---
-verblock: "22 Apr 2026:v0.2: matts - Detailed plan"
+verblock: "22 Apr 2026:v0.3: matts - As-built WP03"
 wp_id: WP-03
 title: "Skill and subagent rationalisation"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-03: Skill and subagent rationalisation
@@ -285,11 +285,50 @@ grep -rn "strong assertion" intent/plugins/claude/skills/   # should be zero hit
 
 ## Exit Checklist
 
-- [ ] All acceptance criteria met
-- [ ] Content inventory documented and confirmed complete
-- [ ] Highlander grep audit passes
-- [ ] elixir subagent directory removed
-- [ ] global-agents.json updated
-- [ ] MODULES.md reflects new canonical surface
-- [ ] `intent claude rules validate` passes (every skill's rule reference resolves)
-- [ ] Release notes draft includes "BREAKING: elixir subagent removed; use critic-elixir instead"
+- [x] All acceptance criteria met
+- [x] Content inventory documented and confirmed complete (covered by WP05 rule pack)
+- [x] Highlander grep audit passes (zero fenced code blocks in refactored skills)
+- [x] elixir subagent directory removed
+- [x] global-agents.json updated
+- [x] MODULES.md reflects new canonical surface (rule-reference-skills + highlander-audit BATS already rowed)
+- [x] `intent claude rules validate` passes — 23/23 ok
+- [ ] Release notes draft includes "BREAKING: elixir subagent removed; use critic-elixir instead" (deferred to WP11)
+
+## As-Built (Done — 2026-04-22)
+
+### Summary
+
+Canon `elixir` subagent fully removed — 8 files (4,255 lines) deleted. All rule-like content now lives in the atomic RULE.md files WP05 authored. Five skills (`in-elixir-essentials`, `in-elixir-testing`, `in-ash-ecto-essentials`, `in-phoenix-liveview`, `in-standards`) were rewritten as thin pointer files referencing rules by ID. `in-review` stage-2 was language-parameterised with a critic-`<lang>` dispatcher placeholder (actual critic subagents land in WP07). Two new BATS files guard the invariants: every refactored skill references the right rule IDs, and no skill carries fenced code blocks (Highlander proxy).
+
+### Deletions
+
+- `intent/plugins/claude/subagents/elixir/` — entire directory, 8 files (`agent.md`, `antipatterns.md`, `ash-ecto.md`, `liveview.md`, `project-structure.md`, `style.md`, `testing.md`, `metadata.json`).
+- Removed `elixir` entry from `intent/plugins/claude/subagents/.manifest/global-agents.json`.
+
+### Refactors
+
+| Skill                      | Before (lines) | After (lines) | Rules referenced                                       |
+| -------------------------- | -------------- | ------------- | ------------------------------------------------------ |
+| `in-elixir-essentials`     | 202            | ~50           | IN-EX-CODE-001..006                                    |
+| `in-elixir-testing`        | 199            | ~50           | IN-EX-TEST-001..007                                    |
+| `in-ash-ecto-essentials`   | 165            | ~35           | IN-EX-ASH-001..002                                     |
+| `in-phoenix-liveview`      | 186            | ~55           | IN-EX-LV-001..003, IN-EX-PHX-001, + shared code rules  |
+| `in-standards`             | 64             | ~55           | IN-AG-HIGHLANDER/PFIC/THIN-COORD/NO-SILENT-001         |
+| `in-review` (stage-2 only) | —              | —             | Language dispatcher added; critic-`<lang>` placeholder |
+
+Zero fenced code blocks in any refactored skill — rule prose lives exclusively in `rules/**/RULE.md` now.
+
+### New tests (9 added; suite grows 555 → 564)
+
+- `tests/unit/rule_reference_skills.bats` (5 tests) — each refactored skill references the correct rule IDs.
+- `tests/unit/highlander_audit.bats` (4 tests) — zero code fences, thin (<150 lines), canon dir gone, manifest clean.
+
+### Tests updated (elixir references swapped to socrates)
+
+- `tests/unit/agent_commands.bats` — 8 test cases updated (list, install multi, install --all, sync multi, uninstall multi, uninstall --all, show metadata, show installation info, show works-for-both, status multi).
+- `tests/unit/ext_discovery.bats` — 1 test case (`subagents list still shows canon agents`).
+- `tests/unit/test_diogenes.bats` — 1 test case (`in-elixir-testing file has correct content`) — swap from inline-rule-prose assertions to rule-ID-reference assertions.
+
+### Commits landed under WP03
+
+- (this turn) — canon deletion + 5 skill rewrites + in-review refactor + 2 BATS files + test updates.

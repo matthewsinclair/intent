@@ -42,7 +42,7 @@ EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
   assert_success
   assert_output_contains "Global:"
   assert_output_contains "intent"
-  assert_output_contains "elixir"
+  assert_output_contains "socrates"
 }
 
 # ====================================================================
