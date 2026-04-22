@@ -1,0 +1,127 @@
+{
+  "schema": "intent-rule-index/v1",
+  "intent_version": "2.9.0",
+  "rule_count": 0,
+  "upstream_pin": "1d9aa40700dab7370b4abd338ce11b922e914b14",
+  "rules": [
+    {
+      "id": "IN-EX-TEST-001",
+      "title": "Strong assertions against concrete values",
+      "language": "elixir",
+      "category": "test",
+      "severity": "critical",
+      "summary": "Shape assertions pass for any value of the right type; they do not prove the function did what the test claims. Assert on concrete field values and return shapes — usually by pattern matching.",
+      "principles": [
+        "honest-data",
+        "public-interface"
+      ],
+      "applies_to": [
+        "test/**/*_test.exs"
+      ],
+      "applies_when": [
+        "Any ExUnit test asserting on a return value of a fallible function",
+        "Assertions on struct fields, map values, or list contents"
+      ],
+      "does_not_apply_when": [
+        "Property-based tests asserting invariants rather than specific values",
+        "Tests where the shape itself is the contract"
+      ],
+      "upstream_id": null,
+      "references": [
+        "IN-AG-HIGHLANDER-001"
+      ],
+      "related_rules": [
+        "IN-EX-TEST-002"
+      ],
+      "concretised_by": [],
+      "aliases": [],
+      "tags": [
+        "elixir",
+        "exunit",
+        "assertions"
+      ],
+      "sources": [],
+      "conflicts_with": [],
+      "status": "active",
+      "version": 1,
+      "source_path": "intent/plugins/claude/rules/elixir/test/strong-assertions/RULE.md"
+    },
+    {
+      "id": "IN-EX-TEST-002",
+      "title": "Never use Process.sleep for synchronisation in tests",
+      "language": "elixir",
+      "category": "test",
+      "severity": "critical",
+      "summary": "Process.sleep/1 to wait for asynchronous work creates timing-dependent tests that are flaky under load and arbitrarily slow on fast machines. Use assert_receive, GenServer.call, or process monitoring instead.",
+      "principles": [
+        "assert-not-sleep"
+      ],
+      "applies_to": [
+        "test/**/*_test.exs"
+      ],
+      "applies_when": [
+        "Any test starting an async operation and asserting on its side effects",
+        "Any test waiting for a message, state change, or side effect in another process"
+      ],
+      "does_not_apply_when": [
+        "Deliberate timing tests for rate limiters or debounce logic where sleep IS the behaviour under test"
+      ],
+      "upstream_id": "no-process-sleep",
+      "references": [],
+      "related_rules": [
+        "IN-EX-TEST-001"
+      ],
+      "concretised_by": [],
+      "aliases": [],
+      "tags": [
+        "elixir",
+        "exunit",
+        "synchronisation"
+      ],
+      "sources": [],
+      "conflicts_with": [],
+      "status": "active",
+      "version": 1,
+      "source_path": "intent/plugins/claude/rules/elixir/test/no-process-sleep/RULE.md"
+    },
+    {
+      "id": "IN-AG-HIGHLANDER-001",
+      "title": "There can be only one",
+      "language": "agnostic",
+      "category": "architecture",
+      "severity": "critical",
+      "summary": "Never duplicate code paths, modules, or logic for the same concern. Duplicate paths drift over time, creating inconsistent behaviour and silent bugs.",
+      "principles": [
+        "highlander"
+      ],
+      "applies_to": [
+        "**/*"
+      ],
+      "applies_when": [
+        "Validation, formatting, error handling, configuration loading, I/O wrappers",
+        "Any code concern that could be implemented in more than one place"
+      ],
+      "does_not_apply_when": [
+        "Localisation files (same key, different language translations)",
+        "Test fixtures where repeated setup is clearer than extracted helpers"
+      ],
+      "upstream_id": null,
+      "references": [],
+      "related_rules": [],
+      "concretised_by": [
+        "IN-EX-CODE-001",
+        "IN-RS-CODE-002"
+      ],
+      "aliases": [],
+      "tags": [
+        "architecture",
+        "agnostic"
+      ],
+      "sources": [],
+      "conflicts_with": [],
+      "status": "active",
+      "version": 1,
+      "source_path": "intent/plugins/claude/rules/agnostic/highlander/RULE.md"
+    }
+  ]
+}

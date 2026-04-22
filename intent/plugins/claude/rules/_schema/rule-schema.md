@@ -294,6 +294,19 @@ db.find(id).ok_or(Error::NotFound)
 
 See `CI-LIMITATIONS.md` for the rationale. Runnable examples for these languages are a future-work item; they'd require a Rust / Swift / Lua CI environment in the Intent repo.
 
+## Formatting invariants
+
+Two-space indentation is mandatory throughout the rule library, regardless of what the target language's ecosystem conventionally uses.
+
+- **All fenced code blocks** in `RULE.md` use 2-space indentation — Elixir, Rust, Swift, Lua, Python, Bash, YAML, JSON, everything. Rust (conventionally 4), Swift (conventionally 4), Lua (conventionally 4), Python (conventionally 4): reformat to 2 before committing.
+- **All runnable `.exs` files** (`good_test.exs`, `bad_test.exs`, `good.exs`, `bad.exs`) use 2-space indentation. Elixir's own convention is already 2-space, so no reformatting is needed for Elixir — but always verify when adapting upstream snippets.
+- **All YAML frontmatter** uses 2-space indentation (matches YAML's standard).
+- **All tables** in `RULE.md` use consistent column alignment; the markdown linter may adjust spacing around pipes — that's fine and expected.
+
+The rationale is consistency across the Intent repo, not fidelity to any given language's style guide. The scope is Intent-internal: external sources quoted verbatim in "Further Reading" need not be reformatted.
+
+When authoring a new rule, a quick check: `grep -nE '^    [^ ]' <rule-dir>/RULE.md` should return nothing. Four leading spaces on any non-comment line is a violation.
+
 ## Field consumers (every field must have a consumer)
 
 Anti-bloat invariant: no field in this schema exists without a named consumer. The consumers are:
