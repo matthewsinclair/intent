@@ -1,0 +1,21 @@
+{
+  "schema": "intent-extension/v1",
+  "name": "valid-ext",
+  "version": "1.0.0",
+  "description": "Fixture extension exercising the happy path",
+  "author": "intent-tests",
+  "license": "MIT",
+  "homepage": "https://example.invalid/valid-ext",
+  "intent_compat": { "min": "2.9.0", "max": "3.x" },
+  "contributes": {
+    "subagents": [
+      { "name": "ext-sample-agent", "path": "subagents/ext-sample-agent" }
+    ],
+    "skills": [
+      { "name": "in-ext-sample", "path": "skills/in-ext-sample" }
+    ],
+    "rules": [
+      { "name": "IN-AG-EXT-001", "path": "rules/agnostic/ext-sample-rule" }
+    ]
+  }
+}

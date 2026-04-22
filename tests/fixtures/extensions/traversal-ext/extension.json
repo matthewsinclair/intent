@@ -1,0 +1,16 @@
+{
+  "schema": "intent-extension/v1",
+  "name": "traversal-ext",
+  "version": "1.0.0",
+  "description": "Declares a contributes path with .. traversal to test validator rejection",
+  "author": "intent-tests",
+  "license": "MIT",
+  "intent_compat": { "min": "2.9.0", "max": "3.x" },
+  "contributes": {
+    "subagents": [
+      { "name": "traversal-agent", "path": "../../../escape-target" }
+    ],
+    "skills": [],
+    "rules": []
+  }
+}

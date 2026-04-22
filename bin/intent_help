@@ -65,6 +65,7 @@ Core:
   modules          Module registry guardrails and enforcement
   claude           Claude Code integration (subagents, skills, upgrade)
   plugin           Discover plugins and their commands
+  ext              Manage user extensions at ~/.intent/ext/
   doctor           Check and fix configuration
   upgrade          Upgrade from STP to Intent v2.1.0
   help             Display help information
@@ -88,7 +89,7 @@ for script in "$INTENT_HOME"/bin/intent_*; do
     
     # Skip certain internal scripts and those manually listed above
     case "$cmd_name" in
-      config|helpers|main|agents|info|init|st|st_zero|wp|audit|learn|modules|doctor|upgrade|help|bootstrap|llm|organize|plugin) continue ;;
+      config|helpers|main|agents|info|init|st|st_zero|wp|audit|learn|modules|doctor|upgrade|help|bootstrap|llm|organize|plugin|ext) continue ;;
     esac
     
     # Construct help file path

@@ -1,0 +1,342 @@
+#!/bin/bash
+# intent_ext - Manage Intent user extensions at ~/.intent/ext/<name>/
+# Copyright (c) 2026 Matthew Sinclair
+# Licensed under the MIT License (see LICENSE file)
+# Usage: intent ext [list|show|validate|new] [options]
+
+set -e
+
+# ---- Bootstrap ----
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
+
+# ---- Ext root resolution ----
+# Honours INTENT_EXT_DIR (used by tests) and INTENT_EXT_DISABLE=1
+ext_root_dir() {
+  if [ "${INTENT_EXT_DISABLE:-}" = "1" ]; then
+    echo ""
+    return 0
+  fi
+  echo "${INTENT_EXT_DIR:-$HOME/.intent/ext}"
+}
+
+# Enumerate extension directory names under the ext root (dotfiles and _*
+# excluded). Output one name per line.
+ext_enumerate_names() {
+  local root
+  root="$(ext_root_dir)"
+  [ -z "$root" ] && return 0
+  [ -d "$root" ] || return 0
+
+  local ext_dir name
+  for ext_dir in "$root"/*/; do
+    [ -d "$ext_dir" ] || continue
+    name="$(basename "$ext_dir")"
+    case "$name" in
+      .*|_*) continue ;;
+    esac
+    echo "$name"
+  done
+}
+
+# Classify an extension by inspecting its manifest.
+# Outputs one of: valid | malformed | missing-manifest
+ext_status() {
+  local name="$1"
+  local root
+  root="$(ext_root_dir)"
+  local manifest="$root/$name/extension.json"
+
+  if [ ! -f "$manifest" ]; then
+    echo "missing-manifest"
+    return 0
+  fi
+
+  # jq must parse the file AND it must declare a schema of intent-extension/v1
+  local schema
+  schema=$(jq -r '.schema // empty' "$manifest" 2>/dev/null) || {
+    echo "malformed"
+    return 0
+  }
+
+  if [ -z "$schema" ] || [ "$schema" != "intent-extension/v1" ]; then
+    echo "malformed"
+    return 0
+  fi
+
+  # name and version are mandatory for minimum viability
+  local mname mver
+  mname=$(jq -r '.name // empty' "$manifest" 2>/dev/null)
+  mver=$(jq -r '.version // empty' "$manifest" 2>/dev/null)
+  if [ -z "$mname" ] || [ -z "$mver" ]; then
+    echo "malformed"
+    return 0
+  fi
+
+  echo "valid"
+}
+
+# Read a jq expression from an extension's manifest. Silently echoes empty on
+# parse failure.
+ext_manifest_get() {
+  local name="$1"
+  local expr="$2"
+  local root
+  root="$(ext_root_dir)"
+  local manifest="$root/$name/extension.json"
+  [ -f "$manifest" ] || return 0
+  jq -r "$expr" "$manifest" 2>/dev/null || true
+}
+
+# ---- Subcommand: list ----
+ext_list() {
+  local root
+  root="$(ext_root_dir)"
+
+  if [ -z "$root" ]; then
+    echo "ok: ext discovery disabled (INTENT_EXT_DISABLE=1)"
+    return 0
+  fi
+
+  if [ ! -d "$root" ]; then
+    echo "ok: no extensions installed ($root does not exist)"
+    return 0
+  fi
+
+  require_jq || return 1
+
+  local names
+  names=$(ext_enumerate_names)
+
+  if [ -z "$names" ]; then
+    echo "ok: no extensions installed ($root is empty)"
+    return 0
+  fi
+
+  local term_width
+  term_width=$(get_terminal_width 2>/dev/null || echo 100)
+
+  echo "Extensions in $root:"
+  echo ""
+
+  local name status version description line
+  while IFS= read -r name; do
+    [ -z "$name" ] && continue
+    status="$(ext_status "$name")"
+    version="$(ext_manifest_get "$name" '.version // "?"')"
+    description="$(ext_manifest_get "$name" '.description // ""')"
+
+    case "$status" in
+      valid)        line="$(printf "  %-20s %-10s %s" "$name" "$version" "$description")" ;;
+      malformed)    line="$(printf "  %-20s %-10s [malformed manifest]" "$name" "$version")" ;;
+      missing-manifest)
+                    line="$(printf "  %-20s %-10s [missing extension.json]" "$name" "-")" ;;
+      *)            line="$(printf "  %-20s %-10s [%s]" "$name" "$version" "$status")" ;;
+    esac
+    echo "$line"
+  done <<< "$names"
+
+  echo ""
+  echo "run: intent ext show <name>   for details"
+}
+
+# ---- Subcommand: show ----
+# Emit a shadow warning for a canon subagent or skill overridden by an ext.
+ext_show_shadow_warning() {
+  local type="$1"  # "subagent" or "skill"
+  local ext_name="$2"
+  local contrib_name="$3"
+  local canon_path
+
+  case "$type" in
+    subagents|subagent)
+      canon_path="$INTENT_HOME/intent/plugins/claude/subagents/$contrib_name/agent.md"
+      if [ -f "$canon_path" ]; then
+        echo "  warning: subagent '$contrib_name' shadows canon" >&2
+      fi
+      ;;
+    skills|skill)
+      canon_path="$INTENT_HOME/intent/plugins/claude/skills/$contrib_name/SKILL.md"
+      if [ -f "$canon_path" ]; then
+        echo "  warning: skill '$contrib_name' shadows canon" >&2
+      fi
+      ;;
+  esac
+  return 0
+}
+
+ext_show() {
+  local name="${1:-}"
+  if [ -z "$name" ]; then
+    echo "error: extension name required" >&2
+    echo "usage: intent ext show <name>" >&2
+    return 1
+  fi
+
+  local root
+  root="$(ext_root_dir)"
+  if [ -z "$root" ]; then
+    echo "error: ext discovery disabled (INTENT_EXT_DISABLE=1)" >&2
+    return 1
+  fi
+
+  local ext_dir="$root/$name"
+  if [ ! -d "$ext_dir" ]; then
+    echo "error: extension '$name' not found at $ext_dir" >&2
+    return 1
+  fi
+
+  require_jq || return 1
+
+  local status
+  status="$(ext_status "$name")"
+
+  echo "Extension: $name"
+  echo "  Location:     $ext_dir"
+  echo "  Status:       $status"
+
+  if [ "$status" != "valid" ]; then
+    if [ "$status" = "missing-manifest" ]; then
+      echo ""
+      echo "error: $ext_dir/extension.json is absent"
+      return 1
+    fi
+    if [ "$status" = "malformed" ]; then
+      echo ""
+      echo "error: $ext_dir/extension.json is malformed (schema, name, or version missing)"
+      return 1
+    fi
+  fi
+
+  echo "  Version:      $(ext_manifest_get "$name" '.version // "?"')"
+  echo "  Author:       $(ext_manifest_get "$name" '.author // "unknown"')"
+  echo "  License:      $(ext_manifest_get "$name" '.license // "unspecified"')"
+  echo "  Homepage:     $(ext_manifest_get "$name" '.homepage // "n/a"')"
+  echo "  Description:  $(ext_manifest_get "$name" '.description // ""')"
+
+  local compat_min compat_max
+  compat_min="$(ext_manifest_get "$name" '.intent_compat.min // "?"')"
+  compat_max="$(ext_manifest_get "$name" '.intent_compat.max // "?"')"
+  echo "  Intent compat: min=$compat_min max=$compat_max"
+  echo ""
+
+  # Contributions breakdown
+  local subagents_count skills_count rules_count
+  subagents_count=$(ext_manifest_get "$name" '.contributes.subagents // [] | length')
+  skills_count=$(ext_manifest_get "$name" '.contributes.skills // [] | length')
+  rules_count=$(ext_manifest_get "$name" '.contributes.rules // [] | length')
+  subagents_count="${subagents_count:-0}"
+  skills_count="${skills_count:-0}"
+  rules_count="${rules_count:-0}"
+
+  echo "Contributes:"
+  echo "  subagents: $subagents_count"
+  echo "  skills:    $skills_count"
+  echo "  rules:     $rules_count"
+
+  local i contrib_name contrib_path
+
+  if [ "$subagents_count" -gt 0 ]; then
+    echo ""
+    echo "Subagents:"
+    i=0
+    while [ "$i" -lt "$subagents_count" ]; do
+      contrib_name="$(ext_manifest_get "$name" ".contributes.subagents[$i].name // \"?\"")"
+      contrib_path="$(ext_manifest_get "$name" ".contributes.subagents[$i].path // \"?\"")"
+      echo "  - $contrib_name  ($contrib_path)"
+      ext_show_shadow_warning "subagents" "$name" "$contrib_name"
+      i=$((i + 1))
+    done
+  fi
+
+  if [ "$skills_count" -gt 0 ]; then
+    echo ""
+    echo "Skills:"
+    i=0
+    while [ "$i" -lt "$skills_count" ]; do
+      contrib_name="$(ext_manifest_get "$name" ".contributes.skills[$i].name // \"?\"")"
+      contrib_path="$(ext_manifest_get "$name" ".contributes.skills[$i].path // \"?\"")"
+      echo "  - $contrib_name  ($contrib_path)"
+      ext_show_shadow_warning "skills" "$name" "$contrib_name"
+      i=$((i + 1))
+    done
+  fi
+
+  if [ "$rules_count" -gt 0 ]; then
+    echo ""
+    echo "Rules:"
+    i=0
+    while [ "$i" -lt "$rules_count" ]; do
+      contrib_name="$(ext_manifest_get "$name" ".contributes.rules[$i].name // \"?\"")"
+      contrib_path="$(ext_manifest_get "$name" ".contributes.rules[$i].path // \"?\"")"
+      echo "  - $contrib_name  ($contrib_path)"
+      i=$((i + 1))
+    done
+  fi
+}
+
+# ---- Subcommand: validate (stubbed until Session 3) ----
+ext_validate() {
+  echo "error: 'intent ext validate' lands in WP02 Session 3" >&2
+  echo "       (JSON schema + path-traversal + contribution-path checks)" >&2
+  return 2
+}
+
+# ---- Subcommand: new (stubbed until Session 4) ----
+ext_new() {
+  echo "error: 'intent ext new' lands in WP02 Session 4" >&2
+  echo "       (scaffolding for --subagent, --skill, --rule-pack)" >&2
+  return 2
+}
+
+# ---- Help ----
+show_usage() {
+  cat << 'EOF'
+Usage: intent ext <command> [options]
+
+Manage Intent user extensions at ~/.intent/ext/<name>/.
+
+Commands:
+  list                 List installed extensions (default)
+  show <name>          Show manifest + contributions for one extension
+  validate [<name>]    Validate extension manifests [Session 3]
+  new <name> --type    Scaffold a new extension         [Session 4]
+  help                 Show this usage
+
+Env vars:
+  INTENT_EXT_DIR       Override default ~/.intent/ext/ (used by tests)
+  INTENT_EXT_DISABLE   Set to 1 to suppress ext discovery entirely
+
+Examples:
+  intent ext                        # list all extensions
+  intent ext list
+  intent ext show worker-bee
+EOF
+}
+
+# ---- Main dispatch ----
+SUBCOMMAND="${1:-list}"
+shift || true
+
+case "$SUBCOMMAND" in
+  list)
+    ext_list "$@"
+    ;;
+  show)
+    ext_show "$@"
+    ;;
+  validate)
+    ext_validate "$@"
+    ;;
+  new)
+    ext_new "$@"
+    ;;
+  help|--help|-h)
+    show_usage
+    ;;
+  *)
+    echo "error: unknown ext subcommand '$SUBCOMMAND'" >&2
+    echo "run 'intent ext help' for usage" >&2
+    exit 1
+    ;;
+esac

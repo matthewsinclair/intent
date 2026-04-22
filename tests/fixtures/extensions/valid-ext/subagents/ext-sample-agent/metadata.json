@@ -1,0 +1,8 @@
+{
+  "name": "ext-sample-agent",
+  "version": "1.0.0",
+  "description": "Sample ext subagent used by WP02 fixtures",
+  "author": "intent-tests",
+  "tools": [],
+  "tags": ["fixture", "ext"]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "malformed-ext",
+  "version": "0.1.0",
+  "description": "Missing the schema field on purpose",
+  "contributes": {
+    "subagents": [],
+    "skills": [],
+    "rules": []
+  }
+}
