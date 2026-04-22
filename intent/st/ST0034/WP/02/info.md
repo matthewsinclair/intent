@@ -148,12 +148,22 @@ Bash 3.x compatibility is non-negotiable (macOS default). All iteration uses new
 - [ ] `INTENT_EXT_DIR` env var overrides default `~/.intent/ext/` (used by tests)
 - [ ] No auto-execution of extension code; extensions are content-only in v2.9.0
 
-### Tests
+### Tests to add
 
-- [ ] `tests/unit/ext_commands.bats` covers all 4 subcommands + fixtures
-- [ ] `tests/unit/ext_discovery.bats` covers precedence, shadowing, env-var overrides
-- [ ] Existing BATS suite remains green
-- [ ] All tests run on macOS bash 3.x
+See `intent/st/ST0034/design.md` §Testing Strategy §WP02 for the authoritative list. WP02-specific surfaces:
+
+- [ ] `tests/unit/ext_commands.bats` — `intent ext list|show|validate|new` command surface (argument parsing, error paths, output format)
+- [ ] `tests/unit/ext_discovery.bats` — multi-root search order (`$INTENT_EXT_DIR` → `~/.intent/ext/` → canon), shadow warning emission on collisions, `INTENT_EXT_DISABLE=1` escape hatch
+- [ ] `tests/unit/rule_validator.bats` — `intent claude rules validate` against the archetype (must pass) and against fixtures with known frontmatter errors (each error path exercised)
+- [ ] `tests/unit/rule_index.bats` — `intent claude rules index` shell+jq pipeline: index.json is regenerable and byte-identical on re-run
+- [ ] Fixtures committed under `tests/fixtures/extensions/{valid-ext,malformed-ext,shadow-ext,traversal-ext}/`
+- [ ] Fixtures committed under `tests/fixtures/rules/{valid,missing-frontmatter,bad-id,duplicate-id,unresolved-reference,unknown-field}/`
+- [ ] All tests run on macOS bash 3.x (no `declare -A`, no `readarray`, no `${VAR^}`)
+
+### Tests to update
+
+- [ ] Existing 469-test baseline remains green after WP02 commits (pristine invariant)
+- [ ] No existing test is modified; WP02 is additive from the BATS suite's perspective
 
 ### Discoverability
 

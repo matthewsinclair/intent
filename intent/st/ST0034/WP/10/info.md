@@ -269,6 +269,19 @@ Rule schema inspired by elixir-test-critic (MIT, 2026 Manuel Zubieta). See `inte
 - [ ] All cross-links between docs resolve
 - [ ] `intent doctor` reports clean on Intent repo
 
+### Tests to add
+
+See `intent/st/ST0034/design.md` §Testing Strategy §WP10.
+
+- [ ] `tests/unit/docs_completeness.bats` — presence of `intent/docs/writing-extensions.md`, `intent/docs/rules.md`, `intent/docs/critics.md`; all cross-references from CLAUDE.md / MODULES.md / DECISION_TREE.md resolve to existing files
+- [ ] `tests/unit/docs_completeness.bats::no_dead_refs` — no doc references the deleted `elixir` subagent path or `subagents/worker-bee/` canon path
+- [ ] `tests/unit/docs_completeness.bats::agents_sync_idempotent` — `intent agents sync` run twice produces identical AGENTS.md (regeneration is deterministic)
+
+### Tests to update
+
+- [ ] `tests/unit/agent_commands.bats::AGENTS_sync` round-trip test stays green with regenerated AGENTS.md (may need updated expected output)
+- [ ] `./tests/run_tests.sh` exits 0 after commit (pristine invariant)
+
 ## Dependencies
 
 - **WP02** (extension system): documents rely on ext mechanism being real.

@@ -127,12 +127,20 @@ Same. A3/\* skipped.
 
 ## Acceptance Criteria
 
-### Pre-release
+### Pre-release gate
+
+Per `intent/st/ST0034/design.md` §Testing Strategy §Release gate. Every item below must be green before `git tag -f v2.9.0 HEAD`:
 
 - [ ] All WP01-WP10 exit checklists green
-- [ ] `tests/run_tests.sh` all green
-- [ ] `intent doctor` clean
+- [ ] `./tests/run_tests.sh` exits 0 with no skips attributable to ST0034, total test count ≥ 469 (baseline) + WP additions documented in each WP's impl.md
+- [ ] `intent doctor` clean on the Intent repo
+- [ ] `intent claude rules validate` exits 0 across the whole rule library (agnostic + elixir + rust + swift + lua)
+- [ ] `intent claude rules index` produces a byte-identical `rules/index.json` on re-run (deterministic)
+- [ ] `elixir intent/plugins/claude/rules/_schema/archetype/strong-assertions/good_test.exs` exits 0
+- [ ] `elixir intent/plugins/claude/rules/_schema/archetype/strong-assertions/bad_test.exs` exits 0
 - [ ] Canary dry-run (WP09) passed
+
+If any gate fails: do not tag. Fix root cause, re-run from gate 1.
 
 ### Release commit
 

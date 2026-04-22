@@ -113,19 +113,28 @@ Each `good.exs` passes `mix test` in a standard Elixir 1.17 project; each `bad.e
 
 - [ ] At least 15 rules authored across all categories (target: 18-20)
 - [ ] Each rule has complete frontmatter conforming to WP01 schema
-- [ ] Each rule has all required Markdown sections
-- [ ] Each rule has `good.exs` that passes `mix test` in a standard Elixir 1.17 project
-- [ ] Each rule has `bad.exs` that either fails ExUnit or demonstrably violates the rule Detection
-- [ ] `_attribution/elixir-test-critic.md` exists with:
-  - Full MIT license text
-  - Copyright line (2026 Manuel Zubieta)
-  - Source URL and pinned commit hash
-  - List of Intent rules with `upstream_id:`
-- [ ] Every rule whose principle or detection derives from upstream has `upstream_id:` frontmatter
-- [ ] `intent claude rules validate rules/elixir/` passes (once WP02 validator exists)
+- [ ] Each rule has all 9 structural elements per schema
+- [ ] Each test-category rule has `good_test.exs` + `bad_test.exs`; each code-category rule has `good.exs` + `bad.exs`
+- [ ] All `.exs` files exit 0 under `elixir <path>` (upstream exit-code contract — Critic is the enforcer, not ExUnit)
+- [ ] Each `bad_test.exs` first non-empty line is `# EXPECTED: passes`
+- [ ] `_attribution/elixir-test-critic.md` (seeded in WP01) has the "Rules derived from upstream principles" table populated with actual rules added in this WP
+- [ ] Every rule whose principle or detection derives from upstream has `upstream_id:` frontmatter pointing to a real upstream slug (verified via `curl` against pinned commit)
+- [ ] `intent claude rules validate rules/elixir/` exits 0 (WP02 validator)
 - [ ] Highlander audit: no Elixir rule duplicates agnostic rule prose
 - [ ] Content inventory (shared with WP03) shows every source entry has a destination in `rules/elixir/**`
 - [ ] `in-elixir-*/SKILL.md` rule IDs (from WP03) all resolve to RULE.md files in this WP
+
+### Tests to add
+
+See `intent/st/ST0034/design.md` §Testing Strategy §WP05.
+
+- [ ] `tests/unit/rule_pack_elixir.bats` — frontmatter validity, required sections, attribution cross-check
+- [ ] `tests/unit/rule_pack_elixir_runnable.bats` — for each rule with `good_test.exs` / `bad_test.exs` (or `good.exs` / `bad.exs`), `elixir <path>` exits 0. Gated by `skip_if_no_elixir`
+- [ ] `tests/unit/attribution_compliance.bats` — every `upstream_id:` value resolves to a real slug at the pinned commit SHA (`curl` check); attribution file's pinned-SHA matches the verification snippet
+
+### Tests to update
+
+- [ ] `./tests/run_tests.sh` exits 0 after commit (pristine invariant)
 
 ## Dependencies
 

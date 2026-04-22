@@ -129,6 +129,20 @@ WP03 coordinates tightly with WP05 (Elixir rule pack): WP03 deletes and refactor
 - [ ] Same for other representative rule phrases
 - [ ] No skill duplicates content from another skill
 
+### Tests to add
+
+See `intent/st/ST0034/design.md` §Testing Strategy §WP03 for the authoritative list.
+
+- [ ] `tests/unit/rule_reference_skills.bats` — asserts `in-standards`, `in-elixir-essentials`, `in-elixir-testing`, `in-phoenix-liveview`, `in-ash-ecto-essentials` each have a `rules:` list in frontmatter; every listed ID resolves against the rule library
+- [ ] `tests/unit/highlander_audit.bats` — greps for duplicated rule prose across skills + rules; returns no hits (Highlander enforcement for rule content)
+- [ ] Negative case: `intent claude subagents show elixir` returns non-zero with "not found" (proves deletion completed)
+
+### Tests to update
+
+- [ ] `tests/unit/agent_commands.bats` — swap all `elixir` subagent fixture usages to `intent` (and `diogenes` for dual-agent cases). Affected lines from baseline grep: 90, 178, 181, 188, 195, 205, 389, 396, 457, 461, 464, 469, 474, 481, 589, 591, 608, 611, 624, 629, 631, 737, 745, 749
+- [ ] `tests/unit/skills_commands.bats` — skills that reference `in-elixir-essentials` continue to install/uninstall/sync cleanly (skill survives WP03; only content shifts). Any assertion on SKILL.md text content must be refreshed against the refactored SKILL.md
+- [ ] Post-update: `./tests/run_tests.sh` exits 0 with count ≥ 469 (baseline) + new WP03 additions — 0 skips introduced by this WP
+
 ## Dependencies
 
 - **WP01** (schema): required. Skills must reference rules via well-formed IDs.

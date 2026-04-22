@@ -192,10 +192,24 @@ Not BATS (critics are Claude-side, not shell-side). Instead:
 
 ### Fixtures
 
-- [ ] 4 languages × 2 modes × 2 categories (catch/miss) = 16 fixture directories
+- [ ] 4 languages × 2 modes × 2 categories (catch/miss) = 16 fixture directories under `tests/fixtures/critics/<lang>/{known-violating,known-clean}/`
 - [ ] Each would-catch fixture contains at least one unambiguous rule violation
 - [ ] Each would-miss fixture contains zero violations
+- [ ] Each fixture directory has a `manifest.txt` listing expected rule-ID triggers (or explicitly "no triggers")
 - [ ] Manual verification documented: each critic run on its fixture produces expected findings
+
+### Tests to add
+
+See `intent/st/ST0034/design.md` §Testing Strategy §WP07.
+
+- [ ] `tests/unit/critic_dispatch.bats` — `in-review` stage-2 language detection via filesystem probes (`mix.exs` → elixir, `Cargo.toml` → rust, `Package.swift` → swift, `.lua` files → lua); verifies correct Critic is selected
+- [ ] `tests/unit/critic_report_format.bats` — stable report shape across all four Critics (severity grouping, rule-ID citation format, suggested-fix line, summary line)
+- [ ] `tests/unit/critic_config.bats` — `.intent_critic.yml` honoured (disabled list, severity_min); invalid config reported not silently ignored
+- [ ] Optionally: `tests/unit/critic_fixture_smoke.bats` — loads each `tests/fixtures/critics/<lang>/known-violating/` file and checks the Critic's rule-loading logic would find the expected rule (structural test; does not run the Claude subagent)
+
+### Tests to update
+
+- [ ] `./tests/run_tests.sh` exits 0 after commit (pristine invariant)
 
 ### Documentation
 

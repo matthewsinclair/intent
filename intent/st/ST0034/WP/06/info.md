@@ -113,14 +113,28 @@ Each rule's Further Reading section cites canonical sources:
 - [ ] Swift pack: at least 5 rules (target 6) with full RULE.md
 - [ ] Lua pack: at least 5 rules (target 6) with full RULE.md
 - [ ] Each rule has complete frontmatter conforming to schema
-- [ ] Each rule has textual good/bad examples as fenced code blocks
+- [ ] Each rule has textual good/bad examples as fenced code blocks with correct `language:` tag (`rust`, `swift`, `lua`)
+- [ ] All fenced code uses 2-space indentation per Intent standard (regardless of language default)
 - [ ] Each rule cites at least one canonical source (book, guide, Evolution proposal, Clippy lint name)
 - [ ] Every rule's `references:` field resolves (no dangling IDs)
 - [ ] Agnostic rules (WP04) have `concretised_by:` fully populated with real Rust/Swift/Lua IDs
-- [ ] `CI-LIMITATIONS.md` documents the textual-only scope
+- [ ] `CI-LIMITATIONS.md` (from WP01) remains accurate for this pack
 - [ ] Highlander audit: no cross-language rule prose duplication
 - [ ] Rule content aligns with TCA v3.0 where overlap exists
 - [ ] `intent claude rules validate rules/{rust,swift,lua}/` passes
+- [ ] No `.rs` / `.swift` / `.lua` sibling files alongside any RULE.md (textual-only invariant)
+
+### Tests to add
+
+See `intent/st/ST0034/design.md` §Testing Strategy §WP06.
+
+- [ ] `tests/unit/rule_pack_rust.bats` — frontmatter validity, required sections, fenced `rust` blocks in `## Bad` / `## Good`, no sibling `.rs` files
+- [ ] `tests/unit/rule_pack_swift.bats` — same for Swift (`swift` fence tag)
+- [ ] `tests/unit/rule_pack_lua.bats` — same for Lua (`lua` fence tag)
+
+### Tests to update
+
+- [ ] `./tests/run_tests.sh` exits 0 after commit (pristine invariant)
 
 ## Dependencies
 

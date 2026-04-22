@@ -155,6 +155,21 @@ lib/templates/ext-seeds/worker-bee/
 - [ ] `intent/docs/writing-extensions.md` references worker-bee (full walkthrough expanded in WP10)
 - [ ] MODULES.md updated with new paths, old rows removed
 
+### Tests to add
+
+See `intent/st/ST0034/design.md` §Testing Strategy §WP08.
+
+- [ ] `tests/unit/ext_seed_validity.bats` — seed directory passes `intent ext validate worker-bee` as-shipped
+- [ ] `tests/unit/ext_migration.bats::seed_first_run` — first-run migration copies `lib/templates/ext-seeds/worker-bee/` into `~/.intent/ext/worker-bee/`
+- [ ] `tests/unit/ext_migration.bats::seed_idempotent` — second run is a no-op; pre-existing `~/.intent/ext/worker-bee/` preserved (no overwrite)
+- [ ] `tests/unit/ext_migration.bats::prune_installed_worker_bee` — if `~/.claude/agents/worker-bee.md` exists pre-migration, it is deleted; if not, no error
+- [ ] `tests/unit/ext_migration.bats::prune_installed_registry` — `~/.intent/agents/installed-agents.json` has no row for `worker-bee` after migration
+
+### Tests to update
+
+- [ ] `tests/unit/agent_commands.bats` — any test that lists canon subagents must no longer expect `worker-bee` in output
+- [ ] `./tests/run_tests.sh` exits 0 after commit (pristine invariant)
+
 ## Dependencies
 
 - **WP02** (extension system): the `extension.json` schema and `intent ext validate` must exist before WP08 can author and validate the manifest.

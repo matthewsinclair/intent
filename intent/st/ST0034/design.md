@@ -376,27 +376,184 @@ Run from `/Users/matts/Devel/prj/Intent`:
 
 If a slipstream is needed: prefer v2.9.1 over re-tagging.
 
-## Verification Plan
+## Testing Strategy
 
-### Per-WP verification
+Testing discipline is a first-class ST0034 concern, not an afterthought. The BATS suite at `tests/run_tests.sh` is the canonical gate: every WP lands with the suite green, and release v2.9.0 does not ship until it is pristine.
 
-- **WP01-WP02**: BATS tests for extension discovery, shadow precedence, manifest schema validation.
-- **WP03**: Highlander audit grep — no rule text duplicated between skills and rule files; manual review of `in-review` stage-2 dispatch logic.
-- **WP04-WP06**: Each rule file validated by `intent claude rules validate` — frontmatter well-formed, required sections present, IDs unique, references resolve.
-- **WP07**: Fixture tests under `tests/fixtures/critics/<lang>/` with "would catch" / "would miss" pairs.
-- **WP08**: BATS test confirming `~/.intent/ext/worker-bee/` seeded correctly; idempotent re-run is a no-op; canon path is gone.
-- **WP09**: BATS test exercising the full chain from every prior Intent version to 2.9.0.
-- **WP10**: Manual doc review; `intent doctor` passes; AGENTS.md sync round-trip clean.
-- **WP11**: Fleet-wide smoke test after each batch.
+### The pristine invariant
 
-### Integration tests
+**At the end of every WP, `./tests/run_tests.sh` must exit 0 with no skips attributable to ST0034 work.** Pre-existing environment-gated skips (e.g. `skip_if_no_elixir` when the Elixir runtime is missing) are acceptable; new skips introduced to paper over broken tests are not.
 
-- Fresh clone → `intent upgrade --apply` in a v2.0.0 project → verify lands at 2.9.0 clean.
-- User-ext shadow scenario: install a test extension that shadows `in-standards`; verify warning + ext wins.
-- User-ext non-shadow: install a novel skill; verify it appears in list.
-- Ext discovery: after upgrade, `intent claude subagents list` shows worker-bee sourced from ext, no `elixir`, new `critic-*` all present.
+Concretely, a WP is not considered "done" for the purposes of this ST until:
 
-### Fleet validation
+1. `./tests/run_tests.sh` exits 0.
+2. Total test count has not regressed.
+3. Any tests disabled or refactored as part of the WP are documented in that WP's `impl.md`.
+
+This invariant is enforced by the release checklist (see §Release gate below) — but operationally, the author runs the suite after every WP's commits, not only at release time.
+
+### Baseline at WP-01 start
+
+469 BATS tests across 21 unit + 2 integration files, all passing. This is the starting line; no regressions allowed.
+
+### Per-WP test surfaces
+
+#### WP01 — Architecture and rule schema (design-only)
+
+No runtime changes; no test additions. The archetype's `good_test.exs` / `bad_test.exs` are validated ad-hoc by `elixir <path>` during WP01 authoring (both must exit 0) and become CI inputs once WP02 ships the rule validator.
+
+- **Tests to add**: none.
+- **Tests to update**: none.
+
+#### WP02 — Extension system foundation
+
+Core test territory. All new.
+
+- **Tests to add**:
+  - `tests/unit/ext_commands.bats` — `intent ext list|show|validate|new` command surface (argument parsing, error paths, output format).
+  - `tests/unit/ext_discovery.bats` — multi-root search order (`$INTENT_EXT_DIR` → `~/.intent/ext/` → canon), shadow warning emission on collisions, `INTENT_EXT_DISABLE=1` escape hatch.
+  - `tests/unit/rule_validator.bats` — `intent claude rules validate` against the archetype (must pass) and against fixtures with known frontmatter errors (must report specific violations).
+  - `tests/unit/rule_index.bats` — `intent claude rules index` shell+jq pipeline round-trip (index.json is regenerable and deterministic).
+- **Fixtures to add**:
+  - `tests/fixtures/extensions/valid-ext/` — minimal manifest, one skill, one subagent.
+  - `tests/fixtures/extensions/malformed-ext/` — invalid `extension.json` (missing `schema`, unknown keys, bad semver).
+  - `tests/fixtures/extensions/shadow-ext/` — name collides with a canon skill (`in-standards`).
+  - `tests/fixtures/extensions/traversal-ext/` — manifest declares paths with `../` (must be rejected).
+  - `tests/fixtures/rules/{valid,missing-frontmatter,bad-id,duplicate-id,unresolved-reference,unknown-field}/` — validator error paths.
+- **Tests to update**: none from the pristine suite; WP02 adds net-new code paths.
+
+#### WP03 — Skill and subagent rationalisation
+
+Deletes the `elixir` subagent from canon. Existing tests that use `elixir` as a fixture must swap.
+
+- **Tests to update** (in `tests/unit/agent_commands.bats`):
+  - ~15 cases at lines 90, 178, 181, 188, 195, 205, 389, 396, 457, 461, 464, 469, 474, 481, 589, 591, 608, 611, 624, 629, 631, 737, 745, 749 (baseline grep).
+  - Swap strategy: use `intent` (existing, always shipping) as the primary canonical subagent fixture. For tests that need _two_ subagents to exercise batch paths, use `intent` + `diogenes`.
+  - One negative case added explicitly: `intent claude subagents show elixir` must report "not found" (proves WP03 completed the deletion).
+- **Tests to update** (in `tests/unit/skills_commands.bats`):
+  - Cases that currently install `in-elixir-essentials`: skill still exists after WP03 (content shifts to rule references). Tests that assert only on install/uninstall/sync mechanics continue to pass unchanged. Any test that greps SKILL.md for specific content must be refreshed against the refactored SKILL.md.
+- **Tests to add**:
+  - `tests/unit/rule_reference_skills.bats` — asserts that `in-standards`, `in-elixir-essentials`, `in-elixir-testing`, `in-phoenix-liveview`, `in-ash-ecto-essentials` each have a `rules:` list in frontmatter, and every listed ID resolves against the rule library.
+  - `tests/unit/highlander_audit.bats` — greps for duplicated rule prose across skills + rules (the Highlander enforcement for rule content). Builds on the existing Highlander rule in CLAUDE.md.
+
+#### WP04 — Agnostic rule pack
+
+- **Tests to add**:
+  - `tests/unit/rule_pack_agnostic.bats` — Highlander, PFIC, Thin Coordinator, No Silent Errors each have a well-formed `RULE.md`, each cites at least 2 `concretised_by:` language rules (invariant gate).
+- **Tests to update**: none.
+
+#### WP05 — Elixir rule pack
+
+- **Tests to add**:
+  - `tests/unit/rule_pack_elixir.bats` — every rule under `rules/elixir/**/RULE.md` has valid frontmatter and passes the validator. Rules with `upstream_id:` have a matching row in `_attribution/elixir-test-critic.md`.
+  - `tests/unit/rule_pack_elixir_runnable.bats` — for each Elixir rule with `good_test.exs` / `bad_test.exs`, both exit 0 under `elixir <path>`. Gated by `skip_if_no_elixir`.
+  - `tests/unit/attribution_compliance.bats` — every `upstream_id:` value corresponds to a real slug at the pinned commit; attribution file's pinned commit SHA matches the verification snippet.
+- **Tests to update**: none.
+
+#### WP06 — Rust, Swift, Lua rule packs
+
+- **Tests to add**:
+  - `tests/unit/rule_pack_rust.bats` — frontmatter validity, required sections present, fenced `rust` blocks in `## Bad` / `## Good`.
+  - `tests/unit/rule_pack_swift.bats` — same for Swift.
+  - `tests/unit/rule_pack_lua.bats` — same for Lua.
+  - All three verify textual-only convention per `CI-LIMITATIONS.md`: no `.rs` / `.swift` / `.lua` sibling files exist.
+- **Tests to update**: none.
+
+#### WP07 — Critic subagent family
+
+- **Fixtures to add**: `tests/fixtures/critics/<lang>/` for each language, each containing:
+  - `known-violating/` — source files that MUST be flagged by the Critic (positive detection).
+  - `known-clean/` — source files that MUST NOT be flagged (negative detection).
+  - A `manifest.txt` listing the rule IDs each file is expected to trigger (or not).
+- **Tests to add**:
+  - `tests/unit/critic_dispatch.bats` — `in-review` stage-2 language detection (filesystem probes for `mix.exs`, `Cargo.toml`, `Package.swift`, `.lua` files); verifies correct Critic is selected per ecosystem.
+  - `tests/unit/critic_report_format.bats` — stable report shape across all four Critics: severity grouping, rule-ID citation format, suggested-fix line, summary line.
+  - `tests/unit/critic_config.bats` — `.intent_critic.yml` per-project config (disabled rules, severity threshold) is honoured; invalid config is reported not silently ignored.
+- **Tests to update**: none from pristine; new critic-\* subagents are net-new to `agent_commands.bats`-style fixtures (consider adding a `critic-elixir` install test case, optional).
+
+#### WP08 — Worker-bee extraction
+
+- **Tests to add**:
+  - `tests/unit/ext_migration.bats` — first-run seed copies `lib/templates/ext-seeds/worker-bee/` into `~/.intent/ext/worker-bee/`; second run is a no-op; pre-existing `~/.intent/ext/worker-bee/` is preserved.
+  - `tests/unit/ext_migration.bats::prune_installed_worker_bee` — if `~/.claude/agents/worker-bee.md` exists pre-migration, it is deleted; if not, no error.
+  - `tests/unit/ext_seed_validity.bats` — the seed directory passes `intent ext validate worker-bee` as-shipped.
+- **Tests to update**: `tests/unit/agent_commands.bats` — any test that lists canon subagents must no longer see `worker-bee`.
+
+#### WP09 — Migration and upgrade chain
+
+- **Tests to add** (extend `tests/unit/ext_migration.bats`):
+  - One case per prior version (2.0.0 → 2.1.0 → 2.2.0 → 2.3.0 → 2.5.0 → 2.6.0 → 2.7.0 → 2.8.0 → 2.8.1 → 2.8.2 → 2.9.0) exercising the full chain through `migrate_v2_8_2_to_v2_9_0`.
+  - Idempotency gate: run migration twice in a row, second run is a no-op, no errors.
+  - Aggressive-prune assertions: after migration, `~/.claude/agents/elixir.md` and `~/.claude/agents/worker-bee.md` do not exist even if they did pre-migration.
+  - `~/.intent/agents/installed-agents.json` has no rows for `elixir` or `worker-bee`.
+- **Tests to update**: any existing upgrade-chain test (if present) gets the new case appended without disrupting prior cases.
+
+#### WP10 — Documentation
+
+- **Tests to add**: `tests/unit/docs_completeness.bats` — presence of `intent/docs/writing-extensions.md`, `intent/docs/rules.md`, `intent/docs/critics.md`, and cross-references from CLAUDE.md / MODULES.md resolve.
+- **Tests to update**: `tests/unit/agent_commands.bats::AGENTS_sync` round-trip test stays green with regenerated AGENTS.md.
+
+#### WP11 — Release and fleet upgrade
+
+No test additions. Release gate is the full suite (see below).
+
+### Fixture inventory (consolidated)
+
+All WP02-WP09 fixtures live under `tests/fixtures/`. Organisation:
+
+```
+tests/fixtures/
+├── extensions/
+│   ├── valid-ext/               # WP02
+│   ├── malformed-ext/           # WP02
+│   ├── shadow-ext/              # WP02
+│   └── traversal-ext/           # WP02
+├── rules/
+│   ├── valid/                   # WP02 — validator happy path
+│   ├── missing-frontmatter/     # WP02 — validator error paths
+│   ├── bad-id/                  # WP02
+│   ├── duplicate-id/            # WP02
+│   ├── unresolved-reference/    # WP02
+│   └── unknown-field/           # WP02
+├── critics/
+│   ├── elixir/
+│   │   ├── known-violating/     # WP07
+│   │   ├── known-clean/         # WP07
+│   │   └── manifest.txt         # WP07
+│   ├── rust/…                   # WP07
+│   ├── swift/…                  # WP07
+│   └── lua/…                    # WP07
+└── upgrade/                     # WP09
+    ├── v2.0.0-project/          # simulated stale project
+    ├── v2.7.0-project/
+    └── v2.8.2-project/
+```
+
+Fixtures are checked into the repo. They are NOT generated by tests — they are inputs. Fixture rot is itself a test failure: if a fixture goes stale (e.g. a manifest.json format change), the fixture is updated, not the assertion relaxed.
+
+### Release gate
+
+Before tagging v2.9.0:
+
+1. `./tests/run_tests.sh` — exits 0, total test count ≥ 469 (baseline) + WP additions.
+2. `intent doctor` in the Intent repo — clean.
+3. Rule validator full pass (WP02 delivers): `intent claude rules validate` exits 0.
+4. Rule index regenerates cleanly: `intent claude rules index` produces a deterministic `rules/index.json` (byte-identical on re-run).
+5. Archetype runnable: `elixir intent/plugins/claude/rules/_schema/archetype/strong-assertions/good_test.exs` and `elixir .../bad_test.exs` both exit 0.
+6. Canary fleet batch (5 projects): each passes post-upgrade acceptance before batch 2 begins.
+
+If any gate fails, do not tag. Fix root cause, re-run from gate 1.
+
+### Integration scenarios
+
+Covered in the BATS suite where possible, documented here when they exercise cross-component behaviour:
+
+- **Fresh clone upgrade**: clone Intent at a 2.0.0-era checkpoint, `intent upgrade --apply`, verify landing at 2.9.0 clean. Exercised by `tests/unit/ext_migration.bats` via fixture projects.
+- **User-ext shadow scenario**: install a test extension named `in-standards` (colliding with canon); verify warning on every list/show/install, verify ext version is served by discovery. Covered by `tests/unit/ext_discovery.bats`.
+- **User-ext non-shadow**: install a novel extension with a unique skill name; verify it appears in `intent claude skills list`. Covered by `tests/unit/ext_commands.bats`.
+- **Ext discovery post-upgrade**: after upgrade, `intent claude subagents list` shows no `elixir`, no `worker-bee` from canon; `worker-bee` sourced from `~/.intent/ext/` if seeded; new `critic-*` all present. Covered by fleet validation (manual) because it exercises `~/.intent/` state on the author's machine.
+
+### Fleet validation (unchanged from prior section)
 
 Canary batch (5 projects) runs full post-upgrade acceptance before batch 2 starts:
 
@@ -406,3 +563,13 @@ Canary batch (5 projects) runs full post-upgrade acceptance before batch 2 start
 - `~/.intent/ext/worker-bee/` exists and validates.
 - Critic subagents discoverable.
 - Existing STs and WPs unchanged.
+
+### What "pristine" excludes
+
+The pristine invariant is about the BATS suite specifically. It does NOT require:
+
+- All skill/subagent `.md` files to be unchanged (WP03/WP10 modify many).
+- All upstream-sourced content to be stable (we pin, but upstream can force-push — tracked separately in `_attribution/`).
+- Zero lint warnings across the repo (linter discipline is a separate concern; see MEMORY.md for `feedback_markdownlint_baseline.md` once it exists).
+
+Scope: `./tests/run_tests.sh` exits 0, no new skips attributable to this ST, total count ≥ 469 + WP additions.

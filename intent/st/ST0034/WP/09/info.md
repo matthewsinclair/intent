@@ -196,16 +196,26 @@ EOF
 - [ ] Gate check at `bin/intent_upgrade:93` includes `! needs_v2_9_0_upgrade`
 - [ ] `intent upgrade` from v2.0.0 through v2.8.1 all land at v2.9.0 after one run
 
-### BATS
+### Tests to add
 
-- [ ] `tests/unit/ext_migration.bats` covers fresh-install case
-- [ ] Covers already-migrated (no-op) case
-- [ ] Covers prune of installed elixir
-- [ ] Covers prune of installed worker-bee
-- [ ] Covers seed of worker-bee when absent
-- [ ] Covers skip of seed when worker-bee already present
-- [ ] Covers old-version chain (v2.0.0 → v2.9.0 in one run)
-- [ ] All BATS tests pass on macOS bash 3.x
+See `intent/st/ST0034/design.md` §Testing Strategy §WP09.
+
+- [ ] `tests/unit/ext_migration.bats` extended to cover:
+  - [ ] Fresh-install case (v2.8.2 → v2.9.0 clean)
+  - [ ] Already-migrated no-op (second run is idempotent)
+  - [ ] Prune of installed elixir (`~/.claude/agents/elixir.md` removed if present; no error if absent)
+  - [ ] Prune of installed worker-bee (`~/.claude/agents/worker-bee.md` removed if present; no error if absent)
+  - [ ] Seed of worker-bee when `~/.intent/ext/worker-bee/` absent (copy from `lib/templates/ext-seeds/`)
+  - [ ] Skip of seed when `~/.intent/ext/worker-bee/` already present (respects user customisation)
+  - [ ] Registry cleanup: `~/.intent/agents/installed-agents.json` has no rows for `elixir` or `worker-bee` post-migration
+  - [ ] Chain coverage: one case per prior version (2.0.0 through 2.8.1) exercising `migrate_v2_8_2_to_v2_9_0`
+- [ ] Fixtures under `tests/fixtures/upgrade/{v2.0.0-project,v2.7.0-project,v2.8.2-project}/` simulating stale project states
+- [ ] All BATS tests pass on macOS bash 3.x (no `declare -A`, no `readarray`, no `${VAR^}`)
+
+### Tests to update
+
+- [ ] Any existing upgrade-chain test (if present) gets the new v2.9.0 case appended without disrupting prior cases
+- [ ] `./tests/run_tests.sh` exits 0 after commit (pristine invariant)
 
 ### Canary verification
 

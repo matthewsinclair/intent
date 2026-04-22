@@ -3,7 +3,7 @@ verblock: "22 Apr 2026:v0.2: matts - Detailed plan"
 wp_id: WP-01
 title: "Architecture and rule schema"
 scope: Medium
-status: Not Started
+status: WIP
 ---
 
 # WP-01: Architecture and rule schema
@@ -71,13 +71,23 @@ Entries added to `intent/llm/MODULES.md` for:
 - [ ] `rules/_schema/attribution-policy.md` specifies when `upstream_id:` must be used and the MIT notice structure
 - [ ] `rules/_schema/critic-contract.md` specifies Critic input, rule-loading order, mode semantics, and report format with at least one sample report
 - [ ] `rules/_schema/archetype/strong-assertions/RULE.md` exists and conforms to the documented schema
-- [ ] `archetype/strong-assertions/good.exs` passes `mix test`
-- [ ] `archetype/strong-assertions/bad.exs` fails `mix test` with the documented violation
+- [ ] `archetype/strong-assertions/good_test.exs` exits 0 under `elixir <path>`
+- [ ] `archetype/strong-assertions/bad_test.exs` exits 0 under `elixir <path>` (exit-code contract: both examples pass; Critic — not ExUnit — is the enforcer)
+- [ ] `_attribution/elixir-test-critic.md` exists with verbatim MIT notice and pinned commit `1d9aa40700dab7370b4abd338ce11b922e914b14`
 - [ ] `rules/index.json.template` exists with the planned JSON shape
 - [ ] `rules/_schema/CI-LIMITATIONS.md` documents the non-Elixir runnable-example exclusion
 - [ ] `intent/llm/MODULES.md` lists every planned module for ST0034 (rule library, rule validator, critic family, ext discovery, all rule packs)
 - [ ] No CLI code, no subagent files, no migration code in this WP — design only
+- [ ] `./tests/run_tests.sh` exits 0 (pristine invariant — WP01 adds no runtime changes, so baseline holds)
 - [ ] User confirms schema before WP02 begins
+
+### Tests to add
+
+None. WP01 is design-only; all test additions land in downstream WPs per `design.md` §Testing Strategy.
+
+### Tests to update
+
+None. The existing 469-test baseline stays green.
 
 ## Dependencies
 
@@ -85,11 +95,13 @@ None. This WP is the foundation for everything else.
 
 ## Implementation Notes
 
-- **Upstream reference commit**: capture the elixir-test-critic HEAD commit hash at WP01 start and record it in `attribution-policy.md`. WP05 uses this same hash for rule porting. This pins Intent to a known upstream state.
+- **Upstream reference commit** pinned: `1d9aa40700dab7370b4abd338ce11b922e914b14` (captured 2026-04-22 at WP01 start). Recorded in `_attribution/elixir-test-critic.md` and `attribution-policy.md`. WP05 uses this same hash for rule porting.
 - **Schema extension fields** are strictly optional: upstream tools must still be able to consume Intent rules, which means unknown fields are ignored. Keep `upstream_id`, `references`, `aliases` as scalars or simple arrays (no nested maps).
-- **Archetype choice**: IN-EX-TEST-001 (strong assertions) is a good archetype because it maps cleanly to an upstream rule (`test-critic-strong-assertions`), exercises the `upstream_id` field, has a simple runnable example, and applies to a common Elixir testing antipattern.
-- **Critic contract sample report** should include all severity levels with at least one finding each to make the format unambiguous for WP07.
-- **Bash 3.x constraint** for index.json consumers: the generator must handle flat fields with `jq`. Documentation should say "all top-level frontmatter fields must be scalars or flat arrays" to prevent future schema drift.
+- **Archetype choice**: IN-EX-TEST-001 (strong assertions) is Intent-original (no upstream counterpart — upstream's `test-shape-not-values` is telemetry-scoped, not general). The archetype demonstrates the full frontmatter and the nine-section body shape. A second exemplar exercising `upstream_id:` (e.g. IN-EX-TEST-002 no-process-sleep) is deferred to WP05; the schema document itself cites real upstream slugs where applicable.
+- **Upstream convention for section headings**: `## When This Applies` / `## When This Does Not Apply` (verified against multiple upstream RULE.md files). Intent adopts verbatim for compatibility. Frontmatter keys (`applies_when:`, `does_not_apply_when:`) keep Intent's internal names.
+- **Runnable-example contract**: both `good_test.exs` and `bad_test.exs` exit 0 when run (upstream convention). Canonical invocation is `elixir <path>` standalone; `mix test <path>` works inside a Mix project. Enforcement of the antipattern is the Critic's job, not ExUnit's.
+- **Critic contract sample report** includes all four severity levels with at least one finding each to make the format unambiguous for WP07.
+- **Bash 3.x constraint** for index.json consumers: the generator must handle flat fields with `jq`. Documentation says "all top-level frontmatter fields must be scalars or flat arrays" to prevent future schema drift.
 - **MODULES.md discipline**: register every planned module path, even those not yet existing. This prevents Highlander violations during WP02-WP11 when new files are created.
 
 ## Risks and Edge Cases
@@ -101,10 +113,11 @@ None. This WP is the foundation for everything else.
 
 ## Testing Approach
 
-- No BATS tests in this WP (no code to test).
-- Archetype validation: manually run `mix test` on `good.exs` and `bad.exs` in a local Elixir project.
+- No BATS additions in this WP (no code to test); pristine invariant holds trivially.
+- Archetype validation: run `elixir <path>/good_test.exs` and `elixir <path>/bad_test.exs` standalone; both must exit 0.
 - Schema validation: hand-check archetype frontmatter against `rule-schema.md` field by field.
-- Cross-reference with upstream: pick one real elixir-test-critic rule and verify its frontmatter would parse correctly against Intent's schema (schema compatibility smoke test).
+- Cross-reference with upstream: fetch `rules/core/no-process-sleep/RULE.md` at the pinned commit and verify its frontmatter parses correctly against Intent's schema (schema compatibility smoke test).
+- Baseline run of `./tests/run_tests.sh` before WP01 commit, and again at WP01 close — both must report 469 passing (or 469 + any pre-existing additions).
 
 ## Size and Estimate
 
@@ -120,6 +133,8 @@ Before closing WP01:
 - [ ] All acceptance criteria met
 - [ ] User-approved schema (explicit confirmation)
 - [ ] No TODOs in `_schema/` files
+- [ ] `_attribution/elixir-test-critic.md` committed with pinned-commit SHA verified against upstream
 - [ ] MODULES.md committed with all planned registrations
-- [ ] Archetype runnable-examples pass/fail as documented
+- [ ] Both archetype `.exs` files exit 0 under `elixir <path>` (exit-code contract)
+- [ ] `./tests/run_tests.sh` exits 0 with ≥469 passing
 - [ ] Upstream commit hash recorded in `attribution-policy.md`

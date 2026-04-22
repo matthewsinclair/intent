@@ -79,13 +79,23 @@ Each rule's "Further reading" section points at:
 ## Acceptance Criteria
 
 - [ ] All 4 rule files exist at paths listed above
-- [ ] Each rule's frontmatter has: `id`, `slug`, `title`, `language: agnostic`, `category`, `severity`, `applies_to`, `references`, `concretised_by`, `aliases: []`, `version: 1`
+- [ ] Each rule's frontmatter has required fields per schema: `id`, `title`, `language: agnostic`, `category`, `severity`, `summary`, `principles`, `applies_when`
 - [ ] Each rule's `concretised_by:` lists at least 2 language-specific rule IDs (placeholders acceptable if WP05/06 not yet complete; finalise before WP07)
-- [ ] Each rule has all required Markdown sections: Problem, Detection, When Applies, When Does Not Apply, Further Reading
+- [ ] Each rule has all 9 structural elements per schema: H1 + tagline + `## Problem`, `## Detection`, `## Bad` (may be `N/A — see concretised_by`), `## Good` (same), `## When This Applies`, `## When This Does Not Apply`, `## Further Reading`
 - [ ] Each rule body is under 200 lines (agnostic rules should be concise; detail lives in concretising rules)
 - [ ] No two agnostic rules duplicate prose (intra-agnostic Highlander audit)
 - [ ] Each rule cites a concrete Intent-project or industry source in Further Reading
-- [ ] `intent claude rules validate rules/agnostic/` passes (once validator lands in WP02)
+- [ ] `intent claude rules validate rules/agnostic/` passes (validator from WP02)
+
+### Tests to add
+
+See `intent/st/ST0034/design.md` §Testing Strategy §WP04.
+
+- [ ] `tests/unit/rule_pack_agnostic.bats` — presence of all 4 rules, frontmatter well-formed, `concretised_by:` ≥ 2 (invariant gate — prevents `agnostic/` from becoming a dumping ground)
+
+### Tests to update
+
+- [ ] `./tests/run_tests.sh` exits 0 after commit (pristine invariant)
 
 ## Dependencies
 
