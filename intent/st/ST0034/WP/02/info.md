@@ -373,8 +373,15 @@ BATS: 469/469 passed after commit.
 
 Smoke: `intent ext validate` reports `2 ok, 2 failed` across fixtures (valid-ext and shadow-ext pass; malformed-ext fails on missing schema; traversal-ext fails on `..` rejection). BATS 469/469 still green.
 
-### Sessions 4-6 remaining
+### Session 4 — `ext new` scaffolding (this session, uncommitted)
 
-- Session 4: `ext new` scaffolding for `--subagent` / `--skill` / `--rule-pack`.
+| Path             | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bin/intent_ext` | `ext_new` replaces the Session 4 stub. Accepts `<name> --subagent \| --skill \| --rule-pack`. Validates name regex (`^[a-z0-9][a-z0-9-]*$`), refuses to overwrite an existing target, builds `extension.json` via `jq -n` with the current Intent VERSION as `intent_compat.min`, generates `README.md` with type-specific "next steps", and scaffolds the placeholder contribution (`subagents/<name>/agent.md` + `metadata.json`, `skills/<name>/SKILL.md`, or `rules/agnostic/<name>-sample/RULE.md` with a generated `IN-AG-EXT-<UPPER>-001` id). Scaffolds pass `intent ext validate <name>` on first try for all three types. |
+
+Smoke: created all three types under a tmp `INTENT_EXT_DIR`, validated each, confirmed overwrite refusal and unknown-flag rejection. BATS 469/469 still green.
+
+### Sessions 5-6 remaining
+
 - Session 5: `bin/intent_claude_rules` with `list` / `show` / `validate` / `index`; JSON output deterministic under `jq -S`.
 - Session 6: `tests/unit/ext_commands.bats`, `tests/unit/ext_discovery.bats`, `tests/unit/rule_validator.bats`, `tests/unit/rule_index.bats`; MODULES.md registrations; `intent/docs/writing-extensions.md` skeleton; exit checklist closeout.

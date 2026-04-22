@@ -481,11 +481,319 @@ ext_validate() {
   return 0
 }
 
-# ---- Subcommand: new (stubbed until Session 4) ----
+# ---- Subcommand: new ----
+# Emit an extension.json tailored to a single contribution type.
+ext_new_manifest() {
+  local name="$1"
+  local type="$2"   # subagent | skill | rule-pack
+  local intent_ver
+  intent_ver=$(get_intent_version 2>/dev/null || echo "2.8.0")
+
+  local contributes
+  case "$type" in
+    subagent)
+      contributes=$(jq -n --arg n "$name" '{
+        subagents: [ { name: $n, path: ("subagents/" + $n) } ],
+        skills: [],
+        rules: []
+      }')
+      ;;
+    skill)
+      contributes=$(jq -n --arg n "$name" '{
+        subagents: [],
+        skills: [ { name: $n, path: ("skills/" + $n) } ],
+        rules: []
+      }')
+      ;;
+    rule-pack)
+      # Rule-pack scaffolds at least one sample agnostic rule so the
+      # generated extension passes ext validate immediately.
+      local rule_id
+      rule_id="IN-AG-EXT-$(echo "$name" | tr '[:lower:]' '[:upper:]')-001"
+      contributes=$(jq -n --arg id "$rule_id" --arg n "$name" '{
+        subagents: [],
+        skills: [],
+        rules: [ { name: $id, path: ("rules/agnostic/" + $n + "-sample") } ]
+      }')
+      ;;
+    *)
+      echo "error: unknown type '$type' (expected subagent | skill | rule-pack)" >&2
+      return 1
+      ;;
+  esac
+
+  jq -n \
+    --arg name "$name" \
+    --arg min "$intent_ver" \
+    --argjson contributes "$contributes" \
+    '{
+      schema: "intent-extension/v1",
+      name: $name,
+      version: "0.1.0",
+      description: ("User extension: " + $name),
+      author: "",
+      license: "MIT",
+      intent_compat: { min: $min, max: "3.x" },
+      contributes: $contributes
+    }'
+}
+
+ext_new_readme() {
+  local name="$1"
+  local type="$2"
+
+  local edit_path install_hint
+  case "$type" in
+    subagent)
+      edit_path="subagents/$name/agent.md"
+      install_hint="Install via \`intent claude subagents install $name\`."
+      ;;
+    skill)
+      edit_path="skills/$name/SKILL.md"
+      install_hint="Install via \`intent claude skills install $name\`."
+      ;;
+    rule-pack)
+      edit_path="rules/agnostic/$name-sample/RULE.md"
+      install_hint="Rules are consumed by \`critic-*\` subagents and do not need a separate install step."
+      ;;
+  esac
+
+  cat << EOF
+# $name
+
+User-local Intent extension ($type). Scaffolded by \`intent ext new\`.
+
+## What this is
+
+A self-contained directory installed at \`\$INTENT_EXT_DIR/$name/\` (default \`~/.intent/ext/$name/\`) that contributes a $type into Intent without modifying canon. See \`intent help ext\` and \`intent/docs/writing-extensions.md\` for authoring guidance.
+
+## Next steps
+
+1. Edit the placeholder contribution under \`$edit_path\` to describe what your extension actually does.
+2. Update the \`author\` and \`description\` fields in \`extension.json\`.
+3. Run \`intent ext validate $name\` to confirm the manifest is well-formed.
+4. $install_hint
+EOF
+}
+
+ext_new_placeholder_agent() {
+  local name="$1"
+  cat << EOF
+---
+name: $name
+description: Placeholder ext subagent scaffolded by 'intent ext new'
+tools: []
+---
+
+# $name
+
+Describe what this subagent does, its inputs and outputs, and when to invoke it.
+
+## Responsibilities
+
+- Replace this placeholder with the agent's system prompt.
+
+## Invocation
+
+- \`Task(subagent_type="$name", prompt="...")\`
+EOF
+}
+
+ext_new_placeholder_metadata() {
+  local name="$1"
+  jq -n --arg n "$name" '{
+    name: $n,
+    version: "0.1.0",
+    description: ("Placeholder ext subagent: " + $n),
+    author: "",
+    tools: [],
+    tags: []
+  }'
+}
+
+ext_new_placeholder_skill() {
+  local name="$1"
+  cat << EOF
+---
+name: $name
+description: Placeholder ext skill scaffolded by 'intent ext new'
+---
+
+# $name
+
+Describe the coding discipline this skill enforces and when Claude should load it.
+
+## Procedure
+
+1. Replace this placeholder with your skill's step-by-step instructions.
+
+## Red Flags
+
+| Rationalization     | Reality |
+| ------------------- | ------- |
+| "This will do for now" | Placeholder content ships; refine before publishing. |
+EOF
+}
+
+ext_new_placeholder_rule() {
+  local rule_id="$1"
+  local ext_name="$2"
+  cat << EOF
+---
+id: $rule_id
+title: Sample ext rule
+language: agnostic
+category: ext
+severity: recommendation
+summary: Placeholder ext rule scaffolded by 'intent ext new'. Replace this summary.
+principles: []
+applies_to: []
+applies_when: []
+does_not_apply_when: []
+upstream_id: null
+references: []
+related_rules: []
+concretised_by: []
+aliases: []
+tags: ["ext", "$ext_name"]
+sources: []
+conflicts_with: []
+status: active
+version: 1
+---
+
+# Sample ext rule
+
+Describe the principle or antipattern this rule encodes.
+
+## Problem
+
+Placeholder.
+
+## Detection
+
+Placeholder.
+
+## Bad
+
+Placeholder.
+
+## Good
+
+Placeholder.
+
+## When This Applies
+
+Placeholder.
+
+## When This Does Not Apply
+
+Placeholder.
+
+## Further Reading
+
+- \`intent help rules\` (WP10)
+EOF
+}
+
 ext_new() {
-  echo "error: 'intent ext new' lands in WP02 Session 4" >&2
-  echo "       (scaffolding for --subagent, --skill, --rule-pack)" >&2
-  return 2
+  local name=""
+  local type=""
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --subagent)   type="subagent"; shift ;;
+      --skill)      type="skill"; shift ;;
+      --rule-pack)  type="rule-pack"; shift ;;
+      --help|-h)
+        cat << 'EOF'
+Usage: intent ext new <name> --subagent | --skill | --rule-pack
+
+Scaffolds a self-contained extension under $INTENT_EXT_DIR/<name>/ (or
+~/.intent/ext/<name>/ by default) with a manifest and one placeholder
+contribution of the chosen type.
+
+The generated extension passes 'intent ext validate <name>' immediately.
+
+Examples:
+  intent ext new hello-world --subagent
+  intent ext new hello-world --skill
+  intent ext new hello-rules --rule-pack
+EOF
+        return 0
+        ;;
+      --*)
+        echo "error: unknown flag '$1'" >&2
+        return 1
+        ;;
+      *)
+        if [ -z "$name" ]; then
+          name="$1"
+        else
+          echo "error: unexpected argument '$1'" >&2
+          return 1
+        fi
+        shift
+        ;;
+    esac
+  done
+
+  if [ -z "$name" ]; then
+    echo "error: extension name required" >&2
+    echo "usage: intent ext new <name> --subagent | --skill | --rule-pack" >&2
+    return 1
+  fi
+
+  if [ -z "$type" ]; then
+    echo "error: --subagent, --skill, or --rule-pack required" >&2
+    return 1
+  fi
+
+  if ! echo "$name" | grep -qE '^[a-z0-9][a-z0-9-]*$'; then
+    echo "error: name '$name' must match ^[a-z0-9][a-z0-9-]*$ (lowercase, digits, hyphens)" >&2
+    return 1
+  fi
+
+  local root
+  root="$(ext_root_dir)"
+  if [ -z "$root" ]; then
+    echo "error: ext discovery disabled (INTENT_EXT_DISABLE=1)" >&2
+    return 1
+  fi
+
+  local target="$root/$name"
+  if [ -e "$target" ]; then
+    echo "error: $target already exists (refusing to overwrite)" >&2
+    return 1
+  fi
+
+  require_jq || return 1
+
+  mkdir -p "$target"
+
+  ext_new_manifest "$name" "$type" > "$target/extension.json"
+  ext_new_readme "$name" "$type" > "$target/README.md"
+
+  case "$type" in
+    subagent)
+      mkdir -p "$target/subagents/$name"
+      ext_new_placeholder_agent "$name" > "$target/subagents/$name/agent.md"
+      ext_new_placeholder_metadata "$name" > "$target/subagents/$name/metadata.json"
+      ;;
+    skill)
+      mkdir -p "$target/skills/$name"
+      ext_new_placeholder_skill "$name" > "$target/skills/$name/SKILL.md"
+      ;;
+    rule-pack)
+      mkdir -p "$target/rules/agnostic/$name-sample"
+      local rule_id
+      rule_id="IN-AG-EXT-$(echo "$name" | tr '[:lower:]' '[:upper:]')-001"
+      ext_new_placeholder_rule "$rule_id" "$name" > "$target/rules/agnostic/$name-sample/RULE.md"
+      ;;
+  esac
+
+  echo "ok: scaffolded $type extension at $target"
+  echo "  next: edit the placeholder contribution, then 'intent ext validate $name'"
 }
 
 # ---- Help ----
