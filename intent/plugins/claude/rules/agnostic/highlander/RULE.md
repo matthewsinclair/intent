@@ -24,7 +24,7 @@ related_rules:
   - IN-AG-THIN-COORD-001
 concretised_by:
   - IN-EX-CODE-006
-  - IN-EX-TEST-004
+  - IN-EX-TEST-007
 aliases: []
 status: active
 version: 1
@@ -121,4 +121,4 @@ The test for whether the exception applies is whether changing the behaviour of 
 - Intent `CLAUDE.md` — "Check before you create", "Register before you code" project rules.
 - Intent `intent/llm/MODULES.md` — the authoritative module registry; the concrete enforcer of this rule for the Intent codebase itself.
 - Andy Hunt & Dave Thomas, _The Pragmatic Programmer_ — the DRY principle as originally articulated (broader than code duplication; covers knowledge duplication).
-- Concretising rules: `IN-EX-CODE-006` (Elixir module Highlander), `IN-EX-TEST-004` (Highlander for tests — shared setup, not repeated setup).
+- Concretising rules: `IN-EX-CODE-006` (Elixir module Highlander), `IN-EX-TEST-007` (Highlander for tests — shared setup, not repeated setup).

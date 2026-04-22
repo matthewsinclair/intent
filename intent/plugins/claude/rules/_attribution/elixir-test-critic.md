@@ -50,12 +50,15 @@ SOFTWARE.
 
 These Intent rules borrow principle and/or Detection heuristic from upstream rules at the pinned commit. Each Intent rule is re-written in Intent's voice; the `upstream_id:` frontmatter field points to the source slug.
 
-| Intent rule | Upstream slug | Upstream path | What was borrowed |
-| ----------- | ------------- | ------------- | ----------------- |
+| Intent rule      | Upstream slug      | Upstream path                         | What was borrowed                                                                                                                       |
+| ---------------- | ------------------ | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `IN-EX-TEST-002` | `no-process-sleep` | `rules/core/no-process-sleep/RULE.md` | Principle (never sleep for synchronisation) + Detection signals (`Process.sleep` near an assertion).                                    |
+| `IN-EX-TEST-003` | `async-by-default` | `rules/core/async-by-default/RULE.md` | Principle (async by default, opt out deliberately) + Detection signal (`use ExUnit.Case` without `async: true`).                        |
+| `IN-EX-TEST-004` | `start-supervised` | `rules/core/start-supervised/RULE.md` | Principle (supervise processes for per-test cleanup) + Detection signal (`GenServer.start_link` in `setup` without `start_supervised`). |
 
-_No rules populated yet._
+Voice, runnable examples, and section structure are Intent's. Upstream is credited by slug in each rule's "Further Reading" section.
 
-This table is populated by WP05 (Elixir rule pack) as each rule lands. The `intent claude rules validate` tool (WP02) enforces the invariant that every rule with `upstream_id:` set has a matching row here.
+The `intent claude rules validate` tool (WP02) enforces the invariant that every rule with `upstream_id:` set has a matching row here.
 
 Per `../_schema/attribution-policy.md`:
 

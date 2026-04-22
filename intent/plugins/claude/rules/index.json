@@ -1,6 +1,6 @@
 {
   "intent_version": "2.8.2",
-  "rule_count": 11,
+  "rule_count": 17,
   "rules": [
     {
       "aliases": [],
@@ -13,7 +13,7 @@
       "category": "architecture",
       "concretised_by": [
         "IN-EX-CODE-006",
-        "IN-EX-TEST-004"
+        "IN-EX-TEST-007"
       ],
       "conflicts_with": [],
       "does_not_apply_when": [
@@ -469,6 +469,267 @@
         "assertions"
       ],
       "title": "Strong assertions against concrete values",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "test/**/*_test.exs"
+      ],
+      "applies_when": [
+        "A test starts an async operation and then asserts on its side effects",
+        "A test waits for a message, state change, or side effect in another process",
+        "A test uses `Process.sleep` immediately before an assertion"
+      ],
+      "category": "test",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Rate limiter tests where `sleep` is testing actual wall-clock behaviour",
+        "Debounce tests where the system under test is time-based",
+        "Backoff/TTL/scheduled-job tests where elapsed time is the invariant"
+      ],
+      "id": "IN-EX-TEST-002",
+      "language": "elixir",
+      "principles": [
+        "assert-not-sleep"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-EX-TEST-003"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/elixir/test/no-process-sleep/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "testing",
+        "synchronisation",
+        "flakiness"
+      ],
+      "title": "Never use Process.sleep for synchronisation",
+      "upstream_id": "no-process-sleep",
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "test/**/*_test.exs"
+      ],
+      "applies_when": [
+        "Any ExUnit test module that does not mutate shared global state",
+        "Tests that use Ecto SQL Sandbox (supports async)",
+        "Tests that use Mox (async-safe with allowances)",
+        "Tests for pure functions, data transformations, or stateless logic"
+      ],
+      "category": "test",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Tests that call `Application.put_env/3` or `Application.delete_env/2`",
+        "Tests that write to named ETS tables shared across processes",
+        "Tests that depend on a singleton named process with no isolation",
+        "Tests that mutate global Logger or Telemetry configuration"
+      ],
+      "id": "IN-EX-TEST-003",
+      "language": "elixir",
+      "principles": [
+        "async-default"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-EX-TEST-002",
+        "IN-EX-TEST-004"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/test/async-by-default/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "testing",
+        "async",
+        "isolation"
+      ],
+      "title": "`async: true` by default",
+      "upstream_id": "async-by-default",
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "test/**/*_test.exs"
+      ],
+      "applies_when": [
+        "A test starts a GenServer, Agent, Task, or other long-lived process",
+        "A test needs a supervised process that should not outlive the test",
+        "Tests that register named processes or attach telemetry handlers"
+      ],
+      "category": "test",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Testing `start_link/1` itself — you need the raw result to assert on the pid/error",
+        "Testing name-registration conflicts where you deliberately start two processes with the same name",
+        "One-off Tasks whose entire lifetime is a synchronous `Task.await/1` in the test body"
+      ],
+      "id": "IN-EX-TEST-004",
+      "language": "elixir",
+      "principles": [
+        "async-default",
+        "thin-processes"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-EX-TEST-003"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/elixir/test/start-supervised/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "testing",
+        "supervision",
+        "cleanup"
+      ],
+      "title": "Use start_supervised for process cleanup",
+      "upstream_id": "start-supervised",
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "test/**/*_test.exs"
+      ],
+      "applies_when": [
+        "Inside a `test \\\"...\\\" do ... end` block",
+        "Inside a `describe` block's setup where branching would select different assertions"
+      ],
+      "category": "test",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Helpers in `test/support/` — those are regular Elixir and use all language constructs",
+        "Pattern-matching assertions (`assert {:ok, _} = call()`) — that is a match, not control flow",
+        "Guards on `setup` callbacks or test tags — those select which tests run, not which branch runs within a test"
+      ],
+      "id": "IN-EX-TEST-005",
+      "language": "elixir",
+      "principles": [
+        "pattern-matching",
+        "test-determinism"
+      ],
+      "references": [
+        "IN-EX-CODE-001"
+      ],
+      "related_rules": [
+        "IN-EX-TEST-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/test/no-control-flow-in-tests/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "testing",
+        "determinism"
+      ],
+      "title": "No control flow in test bodies",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "test/**/*_test.exs"
+      ],
+      "applies_when": [
+        "Writing a test for a module in the same app that calls another module in the same app",
+        "Introducing Mox to stub a function that could be called directly",
+        "Using `Mox.expect/3` on a module whose behaviour is owned by the same app"
+      ],
+      "category": "test",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Stubbing a true external boundary (HTTP client, mailer, payment gateway, SMS, push)",
+        "Stubbing time (`DateTime.utc_now/0`) or randomness (`:rand.uniform/1`) for deterministic assertions",
+        "Testing a protocol or behaviour implementation where the mock *is* the contract under test"
+      ],
+      "id": "IN-EX-TEST-006",
+      "language": "elixir",
+      "principles": [
+        "integration-over-isolation"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-EX-TEST-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/test/real-code-over-mocks/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "testing",
+        "mocks",
+        "integration"
+      ],
+      "title": "Real code over mocks",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "test/**/*_test.exs",
+        "test/support/**/*.ex"
+      ],
+      "applies_when": [
+        "Three or more tests duplicate the same setup lines verbatim",
+        "A fixture helper is being copy-pasted into multiple test files",
+        "A hard-coded identity (email, slug, token) is used across tests and will collide under `async: true`"
+      ],
+      "category": "test",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "One-off tests that genuinely share no setup with the rest of the suite",
+        "Tests whose setup is intentionally varied to exercise a specific branch",
+        "Trivial single-line assertions that are easier to read inline than extract"
+      ],
+      "id": "IN-EX-TEST-007",
+      "language": "elixir",
+      "principles": [
+        "highlander"
+      ],
+      "references": [
+        "IN-AG-HIGHLANDER-001"
+      ],
+      "related_rules": [
+        "IN-EX-TEST-001",
+        "IN-EX-CODE-006"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/test/test-highlander-shared-setup/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "testing",
+        "fixtures",
+        "highlander"
+      ],
+      "title": "Highlander Rule for tests — shared setup and fixtures",
       "upstream_id": null,
       "version": 1
     }
