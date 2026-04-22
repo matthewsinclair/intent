@@ -8,12 +8,12 @@ Every rule in Intent's rule library has a stable, cite-able identifier.
 
 Three fixed segments separated by hyphens:
 
-| Segment  | Values                                                                                               |
-| -------- | ---------------------------------------------------------------------------------------------------- |
-| `IN-`    | Prefix. Fixed. Distinguishes Intent rules from `ETC-*` (elixir-test-critic) when both are loaded.    |
-| `<LANG>` | Language code. One of: `AG` (agnostic), `EX` (elixir), `RS` (rust), `SW` (swift), `LU` (lua).        |
-| `<CAT>`  | Category code. Short abbreviation in uppercase (`CODE`, `TEST`, `ASH`, `PHX`, `LV`, `ARCH`, `MOCK`). |
-| `<NNN>`  | Zero-padded 3-digit sequence, starting at `001`. Scope: unique within a `<LANG>-<CAT>` prefix.       |
+| Segment  | Values                                                                                                                   |
+| -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `IN-`    | Prefix. Fixed. Distinguishes Intent rules from `ETC-*` (elixir-test-critic) when both are loaded.                        |
+| `<LANG>` | Language code. One of: `AG` (agnostic), `EX` (elixir), `RS` (rust), `SW` (swift), `LU` (lua), `SH` (shell — bash + zsh). |
+| `<CAT>`  | Category code. Short abbreviation in uppercase (`CODE`, `TEST`, `ASH`, `PHX`, `LV`, `ARCH`, `MOCK`).                     |
+| `<NNN>`  | Zero-padded 3-digit sequence, starting at `001`. Scope: unique within a `<LANG>-<CAT>` prefix.                           |
 
 ## Examples
 
@@ -39,10 +39,13 @@ Fixed, two-letter, uppercase. Extending this list requires a schema bump.
 - `RS` — Rust
 - `SW` — Swift
 - `LU` — Lua
+- `SH` — Shell (bash + zsh both fall under this code; per-rule frontmatter tags distinguish bash-specific, zsh-specific, or both)
 
 Why two letters: short enough to read inline in Critic reports; distinct enough to grep.
 
 Why not `EL` for Elixir: `EX` matches the `.ex` / `.exs` file extensions and reads as "Elixir" in context.
+
+Why not `BA`/`ZS` for bash/zsh separately: about 80% of shell rules (quoting discipline, `$()` over backticks, no-parse-`ls`, no `eval` on untrusted input) apply identically to both. Splitting into two language codes would force Highlander violations for every shared rule. Shell-dialect divergence is real (`set -e` vs `setopt err_exit`, 0- vs 1-based array indexing, word-splitting defaults) and is handled by splitting THAT concern into two separate `IN-SH-*` rules with distinct slugs, tagged `bash-specific` or `zsh-specific`. The language code stays `SH`.
 
 ## Category codes
 
@@ -149,7 +152,7 @@ See `attribution-policy.md` for the attribution discipline.
 
 The `intent claude rules validate` tool (spec in WP02) checks:
 
-- ID matches regex `^IN-(AG|EX|RS|SW|LU)-[A-Z][A-Z0-9-]*-[0-9]{3}$`.
+- ID matches regex `^IN-(AG|EX|RS|SW|LU|SH)-[A-Z][A-Z0-9-]*-[0-9]{3}$`.
 - ID directory path matches ID structure: `rules/<lang>/<category>/<slug>/` where `<lang>` and `<category>` are the lowercase forms of the ID segments.
 - IDs are unique across the entire library (no two rules share a full ID, even across language packs).
 - `aliases:` do not collide with other rules' current slugs.
@@ -173,6 +176,8 @@ Adding a new language requires:
 - New two-letter language code, agreed on.
 - Documentation update here.
 - Rule directory `rules/<lang>/` created.
-- `rules/_schema/archetype/` seed rule for the new language.
+- At least one seed rule in the new pack — subsequent rules copy from it.
+- `LANG_SUBDIRS` updated in `intent/plugins/claude/bin/intent_claude_rules`.
+- Validator regex updated in the same file.
 
 Adding a new category code within an existing language: lighter process. Add the category code to the `rule-schema.md` category table and start numbering from `001`.

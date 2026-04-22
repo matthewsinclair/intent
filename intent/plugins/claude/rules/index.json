@@ -1,6 +1,6 @@
 {
   "intent_version": "2.8.2",
-  "rule_count": 4,
+  "rule_count": 5,
   "rules": [
     {
       "aliases": [],
@@ -162,6 +162,50 @@
       "summary": ">",
       "tags": [],
       "title": "Thin Coordinator",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "test/**/*_test.exs"
+      ],
+      "applies_when": [
+        "Any ExUnit test asserting on a return value of a fallible function",
+        "Assertions on struct fields, map values, or list contents",
+        "Assertions that a non-nil return was produced (without checking what it is)"
+      ],
+      "category": "test",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Property-based tests asserting invariants rather than specific values",
+        "Tests where the shape itself is the contract (GenServer callback return, `{:ok, socket}` etc.)",
+        "Contract/type tests whose sole purpose is to verify a return type"
+      ],
+      "id": "IN-EX-TEST-001",
+      "language": "elixir",
+      "principles": [
+        "honest-data",
+        "public-interface"
+      ],
+      "references": [
+        "IN-AG-HIGHLANDER-001"
+      ],
+      "related_rules": [
+        "IN-EX-TEST-002"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/elixir/test/strong-assertions/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "exunit",
+        "assertions"
+      ],
+      "title": "Strong assertions against concrete values",
       "upstream_id": null,
       "version": 1
     }

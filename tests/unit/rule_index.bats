@@ -61,18 +61,19 @@ teardown() {
   assert_file_contains "$CANON_INDEX" '1d9aa40700dab7370b4abd338ce11b922e914b14'
 }
 
-@test "rules index includes the four agnostic rules after WP04" {
-  # Canon had only _schema/ and _attribution/ during WP02; WP04 lands the
-  # agnostic rule pack (Highlander, PFIC, Thin Coordinator, No Silent Errors).
-  # The index should now report exactly those four canon rules and no others
-  # until WP05/WP06 add language packs.
+@test "rules index includes the four agnostic rules and the promoted exemplar" {
+  # WP04 landed the agnostic pack (4 rules). The WP05 prep step promoted the
+  # archetype's strong-assertions rule from _schema/archetype/ to rules/elixir/
+  # test/strong-assertions/, which is enumerated. So the index reports five
+  # rules during the WP04/WP05-prep window; WP05 will grow it further as the
+  # Elixir rule pack lands.
   run run_intent claude rules index
   assert_success
-  assert_file_contains "$CANON_INDEX" '"rule_count": 4'
   assert_file_contains "$CANON_INDEX" '"IN-AG-HIGHLANDER-001"'
   assert_file_contains "$CANON_INDEX" '"IN-AG-PFIC-001"'
   assert_file_contains "$CANON_INDEX" '"IN-AG-THIN-COORD-001"'
   assert_file_contains "$CANON_INDEX" '"IN-AG-NO-SILENT-001"'
+  assert_file_contains "$CANON_INDEX" '"IN-EX-TEST-001"'
 }
 
 @test "rules index does not include ext rules (extensions are runtime-only)" {

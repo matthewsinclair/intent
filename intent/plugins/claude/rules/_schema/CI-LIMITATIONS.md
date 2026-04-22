@@ -7,6 +7,7 @@ Intent's rule library supports runnable good / bad examples for some languages a
 | Language | Runnable examples | File convention                                                                  | Validator                                     |
 | -------- | :---------------: | -------------------------------------------------------------------------------- | --------------------------------------------- |
 | Elixir   |        Yes        | `good_test.exs`, `bad_test.exs` (test rules); `good.exs`, `bad.exs` (code rules) | `mix test` via `intent claude rules validate` |
+| Shell    |       Mixed       | Optional `good.sh` / `bad.sh` where feasible; fenced blocks otherwise            | `bash -n` / `zsh -n` syntax check             |
 | Agnostic |        N/A        | No examples; `concretised_by:` language-specific rules                           | —                                             |
 | Rust     |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                   | Syntax review only                            |
 | Swift    |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                   | Syntax review only                            |
@@ -98,7 +99,7 @@ If you are authoring an Elixir rule:
 
 ## Consequences for Critics
 
-Each language Critic (`critic-elixir`, `critic-rust`, `critic-swift`, `critic-lua`) reads RULE.md and extracts:
+Each language Critic (`critic-elixir`, `critic-rust`, `critic-swift`, `critic-lua`, `critic-shell`) reads RULE.md and extracts:
 
 - The Detection heuristic (grep pattern, structural signal) from the `## Detection` section.
 - Bad / Good examples for reference when composing findings.

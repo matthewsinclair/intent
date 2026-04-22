@@ -5,7 +5,10 @@
 load "../lib/test_helper.bash"
 
 RULE_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/rules"
-ARCHETYPE_RULE="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/_schema/archetype/strong-assertions/RULE.md"
+# The WP01 archetype was promoted to a production rule under rules/elixir/test/
+# when WP05 populated the Elixir rule pack. The path below is the canonical
+# location; the test below guards that this one real rule keeps validating.
+EXEMPLAR_RULE="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/elixir/test/strong-assertions/RULE.md"
 EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
 
 # ====================================================================
@@ -80,16 +83,17 @@ EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
 }
 
 # ====================================================================
-# Archetype: cross-reference resolves after WP04
+# Exemplar: cross-reference resolves after WP04
 # ====================================================================
 
-@test "rules validate against archetype passes once IN-AG-HIGHLANDER-001 exists" {
-  # The archetype references IN-AG-HIGHLANDER-001. Prior to WP04 this forward
-  # reference failed validation (and this test asserted the failure). After
-  # WP04 the agnostic pack defines IN-AG-HIGHLANDER-001, so the cross-reference
-  # now resolves and the archetype validates clean — this test guards that
-  # transition and acts as a canary if the agnostic rule's id ever shifts.
-  run run_intent claude rules validate "$ARCHETYPE_RULE"
+@test "rules validate against strong-assertions exemplar passes" {
+  # IN-EX-TEST-001 references IN-AG-HIGHLANDER-001. Prior to WP04 the
+  # reference failed validation; after WP04 the agnostic pack defines
+  # IN-AG-HIGHLANDER-001 so it resolves. This test also guards the
+  # WP05 archetype-to-production promotion — the rule used to live
+  # under _schema/archetype/ and was moved to its real home under
+  # rules/elixir/test/ at WP05 start.
+  run run_intent claude rules validate "$EXEMPLAR_RULE"
   assert_success
   assert_output_contains "IN-EX-TEST-001"
   assert_output_contains "1 ok"

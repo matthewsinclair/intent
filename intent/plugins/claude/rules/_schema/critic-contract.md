@@ -1,6 +1,6 @@
 # Critic Subagent Contract
 
-This document is the contract that every Critic subagent in Intent must satisfy. WP07 implements four concrete Critics (`critic-elixir`, `critic-rust`, `critic-swift`, `critic-lua`), all sharing the contract defined here. The `in-review` skill's stage-2 dispatches to one of these Critics based on project language indicators.
+This document is the contract that every Critic subagent in Intent must satisfy. WP07 implements four concrete Critics (`critic-elixir`, `critic-rust`, `critic-swift`, `critic-lua`) and WP12 adds a fifth (`critic-shell`) — all share the contract defined here. The `in-review` skill's stage-2 dispatches to one of these Critics based on project language indicators.
 
 Draft lives here under `_schema/` for WP01. At WP10 this content migrates to `intent/docs/critics.md` as the user-facing reference; the copy here remains as the canonical schema-side definition.
 
@@ -20,8 +20,8 @@ A Critic's prompt (the `agent.md` body) contains only orchestration logic: mode 
 
 Each Critic has:
 
-- Name: `critic-<lang>` where `<lang>` matches the language segment of rule IDs (`elixir`, `rust`, `swift`, `lua`).
-- Language code match: `EX` → `critic-elixir`, `RS` → `critic-rust`, `SW` → `critic-swift`, `LU` → `critic-lua`.
+- Name: `critic-<lang>` where `<lang>` matches the language segment of rule IDs (`elixir`, `rust`, `swift`, `lua`, `shell`).
+- Language code match: `EX` → `critic-elixir`, `RS` → `critic-rust`, `SW` → `critic-swift`, `LU` → `critic-lua`, `SH` → `critic-shell`.
 - Tool loadout (declared in `agent.md` frontmatter): `Read`, `Grep`, `Bash`. No `Write` or `Edit` — Critics report, they do not modify.
 - Subagent registration: in `intent/plugins/claude/subagents/.manifest/global-agents.json`.
 

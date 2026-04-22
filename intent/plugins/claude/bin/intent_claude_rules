@@ -15,7 +15,7 @@ source "$INTENT_ROOT/bin/intent_helpers"
 CANON_RULES_ROOT="$INTENT_HOME/intent/plugins/claude/rules"
 CANON_INDEX_PATH="$CANON_RULES_ROOT/index.json"
 EXT_BASE="${INTENT_EXT_DIR:-$HOME/.intent/ext}"
-LANG_SUBDIRS="agnostic elixir rust swift lua"
+LANG_SUBDIRS="agnostic elixir rust swift lua shell"
 
 # ---- Discovery ----
 
@@ -182,9 +182,15 @@ rules_list() {
   local count=0
   local path id severity language category title prov
 
-  # Print header
-  printf "%-20s %-14s %-10s %-6s %s\n" "id" "severity" "language" "prov" "title"
-  printf "%-20s %-14s %-10s %-6s %s\n" "--" "--------" "--------" "----" "-----"
+  # Column widths are picked so the widest real value in each column fits with
+  # at least two characters of slack. `id` dominates (IN-AG-THIN-COORD-001 is
+  # 20 chars); `severity` is bounded by the `recommendation` enum (14 chars);
+  # `category` fits `architecture` (12). The `prov` column carries either
+  # `canon` or `ext:<name>` and is allowed a wider slot for common ext names.
+  local fmt='%-22s %-14s %-10s %-14s %-14s %s\n'
+
+  printf "$fmt" "id" "severity" "language" "category" "prov" "title"
+  printf "$fmt" "--" "--------" "--------" "--------" "----" "-----"
 
   while IFS= read -r path; do
     [ -z "$path" ] && continue
@@ -198,7 +204,7 @@ rules_list() {
     [ -n "$lang_filter" ] && [ "$language" != "$lang_filter" ] && continue
     [ -n "$severity_filter" ] && [ "$severity" != "$severity_filter" ] && continue
 
-    printf "%-20s %-14s %-10s %-6s %s\n" "${id:-?}" "${severity:-?}" "${language:-?}/${category:-?}" "${prov:-?}" "${title:-?}"
+    printf "$fmt" "${id:-?}" "${severity:-?}" "${language:-?}" "${category:-?}" "${prov:-?}" "${title:-?}"
     count=$((count + 1))
   done <<< "$files"
 
@@ -284,8 +290,8 @@ rules_validate_one() {
   if [ -z "$id" ]; then
     echo "  error: frontmatter missing 'id'"
     errors=$((errors + 1))
-  elif ! echo "$id" | grep -qE '^IN-(AG|EX|RS|SW|LU)-[A-Z][A-Z0-9-]*-[0-9]{3}$'; then
-    echo "  error: id '$id' does not match ^IN-(AG|EX|RS|SW|LU)-[A-Z][A-Z0-9-]*-[0-9]{3}$"
+  elif ! echo "$id" | grep -qE '^IN-(AG|EX|RS|SW|LU|SH)-[A-Z][A-Z0-9-]*-[0-9]{3}$'; then
+    echo "  error: id '$id' does not match ^IN-(AG|EX|RS|SW|LU|SH)-[A-Z][A-Z0-9-]*-[0-9]{3}$"
     errors=$((errors + 1))
   fi
 

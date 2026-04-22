@@ -10,7 +10,7 @@ This spec defines the generator's contract. The implementation ships in WP02 as 
 - **Idempotent.** No side effects besides writing `index.json`. Running against an unchanged tree regenerates the same bytes.
 - **Flat.** All fields at the top level of the per-rule object are scalars or flat arrays. No nested maps. This keeps `jq` queries simple and bash `read` loops reliable.
 - **Skip-tolerant.** A malformed `RULE.md` does not abort generation. The bad rule is omitted from `index.json` and reported on stderr. Generation exits non-zero only if zero rules are indexed at all.
-- **Scope.** The generator walks `rules/{agnostic,elixir,rust,swift,lua}/**/RULE.md` only. `rules/_schema/`, `rules/_attribution/`, and any other top-level `_*` directories are excluded — the archetype at `_schema/archetype/strong-assertions/RULE.md` is template, not rule.
+- **Scope.** The generator walks `rules/{agnostic,elixir,rust,swift,lua,shell}/**/RULE.md` only. `rules/_schema/`, `rules/_attribution/`, and any other top-level `_*` directories are excluded — they are documentation, not enforced rules.
 
 ## Input
 
@@ -125,7 +125,7 @@ Output of stage 3: a per-rule JSON fragment with all frontmatter keys present (d
 
 For each JSON fragment:
 
-- Verify `id` matches `^IN-(AG|EX|RS|SW|LU)-[A-Z][A-Z0-9-]*-[0-9]{3}$` (per `id-scheme.md`).
+- Verify `id` matches `^IN-(AG|EX|RS|SW|LU|SH)-[A-Z][A-Z0-9-]*-[0-9]{3}$` (per `id-scheme.md`).
 - Verify required fields exist and match type.
 - Fill defaults: `aliases: []`, `status: "active"`, `version: 1`, optional arrays as `[]`, optional scalars as `null`.
 - Add `source_path` (repo-relative).

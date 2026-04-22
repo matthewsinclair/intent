@@ -35,7 +35,7 @@ YAML frontmatter at the top of every `RULE.md`, between `---` delimiters. All to
 | -------------- | ------------ | ------------------------------------------------------------------------------------------------- |
 | `id`           | string       | Rule identifier. Format: `IN-<LANG>-<CAT>-<NNN>`. See `id-scheme.md`.                             |
 | `title`        | string       | Human-readable one-line name. Matches the H1 heading in the body.                                 |
-| `language`     | enum         | One of `agnostic`, `elixir`, `rust`, `swift`, `lua`. Drives rule-pack location.                   |
+| `language`     | enum         | One of `agnostic`, `elixir`, `rust`, `swift`, `lua`, `shell`. Drives rule-pack location.          |
 | `category`     | string       | Kebab-case category slug (`code`, `test`, `ash`, `phoenix`, `lv`, `architecture`, etc.).          |
 | `severity`     | enum         | One of `critical`, `warning`, `recommendation`, `style`.                                          |
 | `summary`      | string       | One or two sentences. YAML multiline with `>` encouraged. Shown in `intent claude rules list`.    |
@@ -340,7 +340,7 @@ Fields with zero ✓s are candidates for removal. None currently.
 
 1. Identify the rule pack. Use `language` + `category` to find the directory. See `DECISION_TREE.md` (post-WP10) for placement.
 2. Assign an ID. Use the next free `IN-<LANG>-<CAT>-<NNN>`. Never reuse a numeric suffix, including for deleted rules.
-3. Copy the archetype at `_schema/archetype/strong-assertions/` as a template.
+3. Copy any existing rule directory as a template. `rules/elixir/test/strong-assertions/` is the canonical exemplar (runnable examples + full schema); a simpler starting point is any agnostic rule under `rules/agnostic/`.
 4. Fill frontmatter per this schema.
 5. Write the nine Markdown sections.
 6. Author runnable examples (Elixir) or textual examples (Rust/Swift/Lua).
