@@ -2,18 +2,31 @@
 
 ## WIP
 
-No active steel threads. Intent v2.8.2 is stable. All 16 managed Intent projects in `~/Devel/prj/` at 2.8.2.
+**ST0034 active, 8/12 WPs done.** Intent v2.8.2 (release bump is WP11). 48 rules validator-clean. 633/633 BATS green. Tree clean.
+
+**Next up: WP07 (Critic subagent family)** — author `critic-elixir` first from the `critic-shell` template at `intent/plugins/claude/subagents/critic-shell/agent.md`, then clone for Rust/Swift/Lua. Size: Large (3-5 focused hours). Acceptance criteria in `intent/st/ST0034/WP/07/info.md`.
+
+Remaining after WP07: WP09 (migration chain) · WP10 (docs) · WP11 (release + fleet). Critical path is **WP07 → WP09 → WP10 → WP11**.
+
+## Session bootstrap
+
+After `/compact` or context reset, run **`/in-session`** — loads `/in-essentials`, `/in-standards`, and language-specific skills (Elixir/Ash/LiveView when `mix.exs` matches). Intent itself is a bash project but the Elixir skills are the right set because Intent authors rules _for_ Elixir projects.
 
 ## Recent
 
-- **2026-04-15**: v2.8.2 released (two commits under one tag). ST0033 (cwd-resilient dispatch) + ST0032 (Credo check wiring) + upgrade-chain gap fix (`migrate_v2_6_0_to_v2_8_0`, every case chains through to 2.8.2). Tag force-moved once after the slipstream. Fleet of 16 external projects brought to 2.8.2.
-- **2026-04-09**: v2.8.1 released -- ST0031 (TCA suite hardening, post-Lamplight) landed. Pre-flight guard in `tca-report.sh --check-only`, provisioning invariants doc section, `tca-init.sh` guards, FP Guidance as REQUIRED, `--st-dir` to `--tca-dir` rename (breaking, internal only).
-- **2026-04-06**: ST0031 (Agentic Coding Course, earlier numbering) migrated to `../Courses/Agentic Coding/` and renumbered to ST0001 there. Course content removed from Intent history via `git filter-repo`.
+- **2026-04-22**: WP06 + WP08 + WP12 shipped in one pre-compact session. Commits `44e05d1`, `c17d03b`, `65f3cea`, `d2edb59`. `/in-session` skill authored in the repo and installed globally the following session.
+- **2026-04-15**: v2.8.2 released. ST0032 + ST0033 + upgrade-chain gap fix. Fleet of 16 projects at 2.8.2.
+
+## Deferred
+
+- **TCA suite retrospection**: `in-tca-*` likely subsumed by `critic-<lang>` family — rewrite or retire post-WP07. Tomorrow's problem.
+- **WP12 dogfood journal Entries 1-3**: post-release. Requires live `Task(subagent_type="critic-shell")` invocations.
+- **Blog draft** `docs/blog-drafts/shell-critic-inception.md`: publication gated on real dogfood runs.
+- **Worker-bee seed `intent_compat.min` bump**: WP11 must bump 2.8.2 → 2.9.0 in lockstep with VERSION.
 
 ## Parked
 
-- ST0010: Not started, in `intent/st/NOT-STARTED/`
-- ST0015: Not started, in `intent/st/NOT-STARTED/`
+- ST0010, ST0015: in `intent/st/NOT-STARTED/`
 
 ## Conventions
 

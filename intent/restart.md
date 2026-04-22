@@ -2,20 +2,39 @@
 
 ## Current State
 
-Intent v2.8.2. No active steel threads. Clean working tree. All 16 managed Intent projects in `~/Devel/prj/` now at 2.8.2.
+Intent v2.8.2 (VERSION unchanged; release bump is WP11). **ST0034 active — 8/12 WPs done.** Tree clean. 48 rules validator-clean. 633/633 BATS green. Next WP: **WP07 critic subagent family**.
 
-## Recent (2026-04-15)
+## ST0034 status (as of 2026-04-23)
 
-v2.8.2 released in two commits under one tag:
+| Status        | WPs                                                                                                                                                               |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Done (8)      | WP01 schema · WP02 ext system · WP03 rationalisation · WP04 agnostic · WP05 Elixir · WP06 Rust/Swift/Lua · WP08 worker-bee extraction · WP12 shell + critic-shell |
+| Remaining (4) | WP07 critic family · WP09 migration chain · WP10 docs · WP11 release + fleet upgrade                                                                              |
 
-- `1059dc7` -- **ST0033** cwd-resilient dispatch (`bin/intent` exports `INTENT_ORIG_CWD` and `cd`s to `$PROJECT_ROOT` before `exec`ing subcommands; `intent_treeindex` and `intent_fileindex` consult `INTENT_ORIG_CWD` for relative path arguments) and **ST0032** close-out (Credo checks wired into `.credo.exs` via `lib/scripts/configure_credo.exs`). Regression tests in `tests/unit/subdir_invocation.bats`.
-- `84a3a5f` -- **Upgrade chain gap.** `bin/intent_upgrade` previously halted mid-chain at 2.6.0. New `migrate_v2_6_0_to_v2_8_0` (pure stamp), every starting-version case chains through 2.8.0 -> 2.8.1 -> 2.8.2, 2.6.0/2.7.0 added as starting cases, pre-v2 fallback chain extended. Tag force-moved and pushed.
+Critical path: **WP07 → WP09 → WP10 → WP11**.
 
-461/461 BATS tests green. E2E verified: 2.6.0 project upgrades cleanly to 2.8.2.
+## Next WP: WP07 (Large)
 
-## Fleet Upgrade
+Four critic subagents cloned from the `critic-shell` template at `intent/plugins/claude/subagents/critic-shell/agent.md`:
 
-All 16 Intent projects in `~/Devel/prj/` stamped at 2.8.2 (skipped `A3/*` per user direction). 11 went via `intent upgrade` from 2.8.1; 4 older projects (Courses/Agentic Coding, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex) landed at 2.6.0 and were finished by direct `jq` stamp before the chain-gap fix shipped -- any future chain run from them will now complete cleanly.
+- `critic-elixir` (author first — largest rule pack, refines the template)
+- `critic-rust` / `critic-swift` / `critic-lua` (mechanical clone with language substitutions)
+
+Plus: `global-agents.json` entries, `in-review` stage-2 language dispatcher, `.intent_critic.yml` config schema, `intent/docs/critics.md` expansion, 16 fixture directories (`tests/fixtures/critics/<lang>/{code,test}/{would-catch,would-miss}/`). Acceptance criteria in `intent/st/ST0034/WP/07/info.md`. Estimated 3-5 focused hours.
+
+## Recent commits
+
+- `44e05d1` — WP12: shell rule pack + critic-shell subagent
+- `c17d03b` — WP06: Rust, Swift, Lua rule packs
+- `65f3cea` — WP08: extract worker-bee from canon to ext-seed
+- `d2edb59` — Add /in-session bootstrap skill
+
+## Deferred / observations
+
+- **TCA skills retrospection**: `in-tca-*` suite likely needs rewrite or retirement once `critic-<lang>` lands in WP07 (TCA becomes "run the critics and synthesize findings"). Tomorrow's problem.
+- **WP12 dogfood journal Entries 1-3**: deferred post-release (requires `Task(subagent_type="critic-shell")` invocations from a live session).
+- **Blog draft**: publication gated on real dogfood findings.
+- **Worker-bee seed manifest `intent_compat.min`**: currently 2.8.2 (matches VERSION). WP11 must bump this to 2.9.0 in lockstep with VERSION bump.
 
 ## Parked
 
