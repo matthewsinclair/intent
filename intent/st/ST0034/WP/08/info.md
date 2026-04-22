@@ -1,12 +1,48 @@
 ---
-verblock: "22 Apr 2026:v0.2: matts - Detailed plan"
+verblock: "22 Apr 2026:v0.3: matts - Done"
 wp_id: WP-08
 title: "Worker-bee extraction"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-08: Worker-bee extraction
+
+## As-Built (2026-04-22)
+
+Worker-bee removed from canon and relocated to `lib/templates/ext-seeds/worker-bee/` as the reference extension. All 17 files preserved via `git mv` (history intact). Canon `global-agents.json` no longer lists worker-bee. Seed is self-contained (zero absolute/`$INTENT_HOME`/canon-path references) and passes `intent ext validate`.
+
+### Deliverables landed
+
+- `lib/templates/ext-seeds/worker-bee/extension.json` — manifest conforming to `intent-extension/v1`. One declared contribution: `subagents/worker-bee`. `intent_compat.min` set to `2.8.2` (current VERSION); WP11 will bump to `2.9.0` when VERSION rolls over.
+- `lib/templates/ext-seeds/worker-bee/README.md` — explains seed vs runtime, migration behaviour, structure, further reading.
+- `lib/templates/ext-seeds/worker-bee/subagents/worker-bee/` — all 17 original files (agent.md, metadata.json, 15 resources).
+- `intent/plugins/claude/subagents/worker-bee/` — directory deleted.
+- `intent/plugins/claude/subagents/.manifest/global-agents.json` — worker-bee row removed; remaining agents: intent, socrates, diogenes.
+
+### Tests
+
+- `tests/unit/ext_seed_validity.bats` (18 tests) — seed layout, manifest well-formedness, self-containment audit, end-to-end `intent ext validate` pass, canon cleanliness.
+- Suite grew from 574 to 592 passing. Zero regressions.
+
+### Deviations from plan
+
+- `intent_compat.min` set to `2.8.2` (not `2.9.0` as the plan showed). Reason: VERSION file still reads `2.8.2` until WP11, and the validator compares `intent_compat.min` against the current Intent version. Pragmatic interim; WP11 release commit bumps both together.
+- Checksums left empty (`{}`) per plan — populating is optional in v2.9.0.
+- No `LICENSE` file shipped in the seed; upstream worker-bee's `metadata.json` declared no license, and the Intent-level MIT LICENSE in the repo root covers the bundled distribution.
+
+### References to old canon path (intentionally not updated)
+
+- `intent/st/COMPLETED/ST0023/**` — historical ST record; path is correct as-of-record.
+- `intent/st/ST0034/WP/08/info.md` and `WP/10/info.md` — plan text; references are contextual.
+
+### WP09 handoff
+
+Migration `migrate_v2_8_2_to_v2_9_0` should `cp -r lib/templates/ext-seeds/worker-bee/ ~/.intent/ext/worker-bee/` only if the target does not already exist. Seed path is stable and self-contained.
+
+### Commits
+
+- (current session) — move worker-bee from canon to ext-seeds; author manifest + README; remove from global-agents.json; add ext_seed_validity.bats (18 tests).
 
 ## Objective
 

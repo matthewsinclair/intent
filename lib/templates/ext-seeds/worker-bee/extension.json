@@ -1,0 +1,17 @@
+{
+  "schema": "intent-extension/v1",
+  "name": "worker-bee",
+  "version": "1.0.0",
+  "description": "Worker-Bee Driven Design specialist for Elixir applications - enforces WDD 6-layer architecture, validates functional core purity, and scaffolds WDD-compliant code",
+  "author": "thebreakincoder",
+  "license": "MIT",
+  "intent_compat": { "min": "2.8.2", "max": "3.x" },
+  "contributes": {
+    "subagents": [
+      { "name": "worker-bee", "path": "subagents/worker-bee" }
+    ],
+    "skills": [],
+    "rules": []
+  },
+  "checksums": {}
+}
