@@ -1,6 +1,6 @@
 {
   "intent_version": "2.8.2",
-  "rule_count": 5,
+  "rule_count": 11,
   "rules": [
     {
       "aliases": [],
@@ -162,6 +162,269 @@
       "summary": ">",
       "tags": [],
       "title": "Thin Coordinator",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "lib/**/*.ex"
+      ],
+      "applies_when": [
+        "Dispatching on the shape of a struct, map, or tuple",
+        "Switching behaviour based on a field value or a type class",
+        "Any chain of nested `if ... else if ... else` on the same data"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Single-branch conditionals used once for clarity",
+        "Boolean gates where all three decisions (`if/else`) are a single pure expression",
+        "Branches on computed values where pattern-match would require match specs outside the core language"
+      ],
+      "id": "IN-EX-CODE-001",
+      "language": "elixir",
+      "principles": [
+        "pattern-matching",
+        "public-interface"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-EX-CODE-003",
+        "IN-EX-CODE-004"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/code/pattern-match-over-conditionals/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "pattern-matching"
+      ],
+      "title": "Pattern matching over conditionals",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "lib/**/*.ex"
+      ],
+      "applies_when": [
+        "Any function whose success path has a value and whose failure path has a reason",
+        "Repo/API/parsing wrappers that could previously return `nil` or raise",
+        "Boundary between a coordinator and a service that may fail"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Functions that genuinely cannot fail (pure transformations on their own output)",
+        "Bang variants (`fetch!/1`) whose contract is to raise on failure",
+        "Boolean predicates (`valid?/1`, `active?/1`) — tag is already in the name"
+      ],
+      "id": "IN-EX-CODE-002",
+      "language": "elixir",
+      "principles": [
+        "pattern-matching",
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-EX-CODE-004",
+        "IN-EX-CODE-005"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/code/tagged-tuple-returns/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "error-handling",
+        "tagged-tuples"
+      ],
+      "title": "Tagged tuples for fallible functions",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "lib/**/*.ex"
+      ],
+      "applies_when": [
+        "A module `use`s a behaviour (GenServer, LiveView, Phoenix.Controller, Plug, Ash.Resource.Change, etc.)",
+        "A module implements a behaviour with `@behaviour MyBehaviour`",
+        "A function name matches a known callback name for a behaviour the module uses"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Plain custom functions in a module that does not `use` or `@behaviour` anything",
+        "Private helper functions (`defp`)",
+        "Functions in modules using a behaviour whose callbacks are not being implemented by that function"
+      ],
+      "id": "IN-EX-CODE-003",
+      "language": "elixir",
+      "principles": [
+        "compile-time-enforcement"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-EX-CODE-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/code/impl-true-on-callbacks/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "callbacks",
+        "compile-time"
+      ],
+      "title": "@impl true on behaviour callbacks",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "lib/**/*.ex"
+      ],
+      "applies_when": [
+        "Composing two or more `{:ok, _}` / `{:error, _}` functions in sequence",
+        "Replacing nested `case` blocks where each inner branch handles `{:error, _}`",
+        "Coordinator functions (controllers, LiveView handlers, Oban workers) that dispatch to multiple services"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Single-step operations — a single `case` is clearer",
+        "All steps are infallible — a pipe chain is the right tool",
+        "The `else` needs more than two clauses for error normalisation — extract each step into a private helper with tagged-tuple wrapping instead"
+      ],
+      "id": "IN-EX-CODE-004",
+      "language": "elixir",
+      "principles": [
+        "pattern-matching",
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001",
+        "IN-AG-PFIC-001"
+      ],
+      "related_rules": [
+        "IN-EX-CODE-002",
+        "IN-EX-CODE-005"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/code/with-for-railway/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "railway",
+        "control-flow",
+        "with"
+      ],
+      "title": "`with` for railway-oriented composition",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "lib/**/*.ex"
+      ],
+      "applies_when": [
+        "Calling a function that can return `{:error, _}`",
+        "Wrapping code in `try/rescue`",
+        "Assigning a result to `_` or an unused variable",
+        "Catching all exceptions (`rescue _ -> ...`) without inspecting"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Returning `{:error, reason}` from the calling function is the intentional response",
+        "`try/rescue` where the rescued exception is inspected, logged, and converted to a tagged return",
+        "Fire-and-forget notifications where the business-level contract genuinely does not care if delivery failed (rare — usually wrong)"
+      ],
+      "id": "IN-EX-CODE-005",
+      "language": "elixir",
+      "principles": [
+        "no-silent-errors"
+      ],
+      "references": [
+        "IN-AG-NO-SILENT-001"
+      ],
+      "related_rules": [
+        "IN-EX-CODE-002",
+        "IN-EX-CODE-004"
+      ],
+      "severity": "critical",
+      "source_path": "intent/plugins/claude/rules/elixir/code/no-silent-failures/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "error-handling",
+        "no-silent-errors"
+      ],
+      "title": "No silent failures",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "lib/**/*.ex"
+      ],
+      "applies_when": [
+        "Adding a new function that performs a calculation, validation, parsing, or domain action",
+        "Noticing the same regex, constant, or helper appearing in two modules",
+        "Copying a function from one module to another because 'we need it here too'"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Internal helpers specific to a module's implementation (truly private, not reused)",
+        "Tiny formatters (`def upper(s), do: String.upcase(s)`) where centralising is more cost than benefit",
+        "Framework-required callback names that must exist in each module (`mount/3`, `render/1`)"
+      ],
+      "id": "IN-EX-CODE-006",
+      "language": "elixir",
+      "principles": [
+        "highlander"
+      ],
+      "references": [
+        "IN-AG-HIGHLANDER-001"
+      ],
+      "related_rules": [
+        "IN-EX-CODE-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/elixir/code/module-highlander/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "elixir",
+        "highlander",
+        "module-boundaries"
+      ],
+      "title": "Module-level Highlander (one canonical home per concern)",
       "upstream_id": null,
       "version": 1
     },
