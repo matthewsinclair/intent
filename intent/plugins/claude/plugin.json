@@ -20,6 +20,10 @@
       "description": "Pre-load Claude Code project memory with rules, modules, and operational knowledge"
     },
     {
+      "syntax": "intent claude rules <command>",
+      "description": "Enumerate, show, validate, and index Intent rules (canon + extensions)"
+    },
+    {
       "syntax": "intent audit <command>",
       "description": "Run automated code quality checks (quick)"
     },

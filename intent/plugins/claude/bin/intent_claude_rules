@@ -1,0 +1,648 @@
+#!/bin/bash
+# intent_claude_rules - Enumerate, show, validate, and index Intent rules
+# Copyright (c) 2026 Matthew Sinclair
+# Licensed under the MIT License (see LICENSE file)
+# Usage: intent claude rules [list|show|validate|index] [args...]
+
+set -e
+
+# ---- Bootstrap ----
+PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INTENT_ROOT="$(cd "$PLUGIN_BIN/../../../.." && pwd)"
+: "${INTENT_HOME:=$INTENT_ROOT}"
+source "$INTENT_ROOT/bin/intent_helpers"
+
+CANON_RULES_ROOT="$INTENT_HOME/intent/plugins/claude/rules"
+CANON_INDEX_PATH="$CANON_RULES_ROOT/index.json"
+EXT_BASE="${INTENT_EXT_DIR:-$HOME/.intent/ext}"
+LANG_SUBDIRS="agnostic elixir rust swift lua"
+
+# ---- Discovery ----
+
+# Emit every canon RULE.md path on stdout (excludes _schema/, _attribution/,
+# and any other top-level _* directories under rules/).
+enumerate_canon_rule_files() {
+  local sub
+  [ -d "$CANON_RULES_ROOT" ] || return 0
+  for sub in $LANG_SUBDIRS; do
+    local dir="$CANON_RULES_ROOT/$sub"
+    [ -d "$dir" ] || continue
+    find "$dir" -name 'RULE.md' -type f 2>/dev/null
+  done
+}
+
+# Emit every ext RULE.md path on stdout. Honours INTENT_EXT_DISABLE and
+# INTENT_EXT_DIR. Extensions under ${ext_base}/*/rules/<lang>/...
+enumerate_ext_rule_files() {
+  [ "${INTENT_EXT_DISABLE:-}" = "1" ] && return 0
+  [ -d "$EXT_BASE" ] || return 0
+
+  local ext_dir ext_name ext_rules sub dir
+  for ext_dir in "$EXT_BASE"/*/; do
+    [ -d "$ext_dir" ] || continue
+    ext_name="$(basename "$ext_dir")"
+    case "$ext_name" in
+      .*|_*) continue ;;
+    esac
+    ext_rules="${ext_dir%/}/rules"
+    [ -d "$ext_rules" ] || continue
+    for sub in $LANG_SUBDIRS; do
+      dir="$ext_rules/$sub"
+      [ -d "$dir" ] || continue
+      find "$dir" -name 'RULE.md' -type f 2>/dev/null
+    done
+  done
+}
+
+# Emit every RULE.md path (canon first, then ext) on stdout.
+enumerate_all_rule_files() {
+  enumerate_canon_rule_files
+  enumerate_ext_rule_files
+}
+
+# Tag a rule-file path with its provenance: "canon" or "ext:<name>".
+rule_file_provenance() {
+  local path="$1"
+  case "$path" in
+    "$CANON_RULES_ROOT"/*) echo "canon"; return 0 ;;
+    "$EXT_BASE"/*)
+      local trimmed="${path#$EXT_BASE/}"
+      local ext_name="${trimmed%%/*}"
+      echo "ext:${ext_name}"
+      return 0
+      ;;
+    *)
+      echo "unknown"
+      return 0
+      ;;
+  esac
+}
+
+# Extract the YAML frontmatter body (between the first two --- lines)
+# from a RULE.md file.
+rule_frontmatter() {
+  local path="$1"
+  awk '
+    /^---$/ { count++; if (count == 1) next; if (count == 2) exit; next }
+    count == 1 { print }
+  ' "$path"
+}
+
+# Read a simple top-level scalar key from the frontmatter. Returns empty if
+# absent. Value trimming strips surrounding single/double quotes.
+rule_fm_scalar() {
+  local path="$1"
+  local key="$2"
+  rule_frontmatter "$path" \
+    | awk -v k="$key" '
+        $0 ~ "^"k":" {
+          sub("^"k":[[:space:]]*", "")
+          sub("[[:space:]]+$", "")
+          gsub("^[\"'\'']", "")
+          gsub("[\"'\'']$", "")
+          print
+          exit
+        }
+      '
+}
+
+# Read a flat list-of-strings frontmatter key. Accepts either inline-array
+# form `key: [a, b]` or block form. One item per line on stdout. Block-form
+# detection requires that list items are indented with `-` below the key and
+# terminated by the next top-level key or end of frontmatter.
+rule_fm_list() {
+  local path="$1"
+  local key="$2"
+  rule_frontmatter "$path" \
+    | awk -v k="$key" '
+        BEGIN { inside = 0 }
+        # inline array on the key line: key: [a, b, "c"]
+        $0 ~ "^"k":[[:space:]]*\\[" {
+          line = $0
+          sub(".*\\[", "", line)
+          sub("\\].*", "", line)
+          gsub("[[:space:]]", "", line)
+          if (line == "") { next }
+          n = split(line, parts, ",")
+          for (i = 1; i <= n; i++) {
+            it = parts[i]
+            gsub("^[\"'\'']", "", it)
+            gsub("[\"'\'']$", "", it)
+            if (it != "") print it
+          }
+          next
+        }
+        # block form opens with key:
+        $0 ~ "^"k":[[:space:]]*$" { inside = 1; next }
+        inside == 1 {
+          if ($0 ~ /^[[:space:]]+-/) {
+            it = $0
+            sub("^[[:space:]]+-[[:space:]]*", "", it)
+            gsub("[[:space:]]+$", "", it)
+            gsub("^[\"'\'']", "", it)
+            gsub("[\"'\'']$", "", it)
+            if (it != "") print it
+          } else if ($0 ~ /^[A-Za-z]/) {
+            inside = 0
+          }
+        }
+      '
+}
+
+# ---- list ----
+rules_list() {
+  require_jq || return 1
+
+  local lang_filter=""
+  local severity_filter=""
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --lang)     lang_filter="$2"; shift 2 ;;
+      --severity) severity_filter="$2"; shift 2 ;;
+      --help|-h)
+        echo "usage: intent claude rules list [--lang <l>] [--severity <s>]"
+        return 0
+        ;;
+      *)
+        echo "error: unknown flag '$1'" >&2
+        return 1
+        ;;
+    esac
+  done
+
+  local files
+  files="$(enumerate_all_rule_files)"
+
+  if [ -z "$files" ]; then
+    echo "ok: no rules found (canon is empty; WP04-WP06 populate the rule packs)"
+    return 0
+  fi
+
+  local count=0
+  local path id severity language category title prov
+
+  # Print header
+  printf "%-20s %-14s %-10s %-6s %s\n" "id" "severity" "language" "prov" "title"
+  printf "%-20s %-14s %-10s %-6s %s\n" "--" "--------" "--------" "----" "-----"
+
+  while IFS= read -r path; do
+    [ -z "$path" ] && continue
+    id="$(rule_fm_scalar "$path" id)"
+    severity="$(rule_fm_scalar "$path" severity)"
+    language="$(rule_fm_scalar "$path" language)"
+    category="$(rule_fm_scalar "$path" category)"
+    title="$(rule_fm_scalar "$path" title)"
+    prov="$(rule_file_provenance "$path")"
+
+    [ -n "$lang_filter" ] && [ "$language" != "$lang_filter" ] && continue
+    [ -n "$severity_filter" ] && [ "$severity" != "$severity_filter" ] && continue
+
+    printf "%-20s %-14s %-10s %-6s %s\n" "${id:-?}" "${severity:-?}" "${language:-?}/${category:-?}" "${prov:-?}" "${title:-?}"
+    count=$((count + 1))
+  done <<< "$files"
+
+  echo ""
+  echo "total: $count rule(s)"
+}
+
+# ---- show ----
+rules_show() {
+  local id="${1:-}"
+  if [ -z "$id" ]; then
+    echo "error: rule id required" >&2
+    echo "usage: intent claude rules show <id>" >&2
+    return 1
+  fi
+
+  local files path this_id prov
+  files="$(enumerate_all_rule_files)"
+
+  while IFS= read -r path; do
+    [ -z "$path" ] && continue
+    this_id="$(rule_fm_scalar "$path" id)"
+    if [ "$this_id" = "$id" ]; then
+      prov="$(rule_file_provenance "$path")"
+      echo "# Rule: $id"
+      echo "# Provenance: $prov"
+      echo "# Source: $path"
+      echo ""
+      cat "$path"
+      return 0
+    fi
+  done <<< "$files"
+
+  echo "error: rule '$id' not found" >&2
+  return 1
+}
+
+# ---- validate ----
+
+# Required Markdown sections (exact H2 wording, upstream convention).
+required_sections() {
+  cat << 'EOF'
+## Problem
+## Detection
+## Bad
+## Good
+## When This Applies
+## When This Does Not Apply
+## Further Reading
+EOF
+}
+
+# Validate a single RULE.md file. Prints issues to stdout indented with "  ".
+# Returns 0 when clean, 1 when any issue accumulated.
+rules_validate_one() {
+  local path="$1"
+  local errors=0
+
+  if [ ! -f "$path" ]; then
+    echo "  error: file not found"
+    return 1
+  fi
+
+  # Frontmatter presence
+  local fm
+  fm="$(rule_frontmatter "$path")"
+  if [ -z "$fm" ]; then
+    echo "  error: no YAML frontmatter"
+    return 1
+  fi
+
+  # Required scalar fields
+  local id title language category severity summary status version
+  id="$(rule_fm_scalar "$path" id)"
+  title="$(rule_fm_scalar "$path" title)"
+  language="$(rule_fm_scalar "$path" language)"
+  category="$(rule_fm_scalar "$path" category)"
+  severity="$(rule_fm_scalar "$path" severity)"
+  summary="$(rule_fm_scalar "$path" summary)"
+  status="$(rule_fm_scalar "$path" status)"
+  version="$(rule_fm_scalar "$path" version)"
+
+  if [ -z "$id" ]; then
+    echo "  error: frontmatter missing 'id'"
+    errors=$((errors + 1))
+  elif ! echo "$id" | grep -qE '^IN-(AG|EX|RS|SW|LU)-[A-Z][A-Z0-9-]*-[0-9]{3}$'; then
+    echo "  error: id '$id' does not match ^IN-(AG|EX|RS|SW|LU)-[A-Z][A-Z0-9-]*-[0-9]{3}$"
+    errors=$((errors + 1))
+  fi
+
+  [ -z "$title" ]    && { echo "  error: frontmatter missing 'title'"; errors=$((errors + 1)); }
+  [ -z "$language" ] && { echo "  error: frontmatter missing 'language'"; errors=$((errors + 1)); }
+  [ -z "$category" ] && { echo "  error: frontmatter missing 'category'"; errors=$((errors + 1)); }
+  [ -z "$severity" ] && { echo "  error: frontmatter missing 'severity'"; errors=$((errors + 1)); }
+  [ -z "$summary" ]  && { echo "  error: frontmatter missing 'summary'"; errors=$((errors + 1)); }
+
+  case "$severity" in
+    ""|critical|warning|recommendation|style) : ;;
+    *)
+      echo "  error: severity '$severity' must be one of critical|warning|recommendation|style"
+      errors=$((errors + 1))
+      ;;
+  esac
+
+  # Required H2 sections
+  local section
+  while IFS= read -r section; do
+    [ -z "$section" ] && continue
+    if ! grep -qxF "$section" "$path"; then
+      echo "  error: missing required section '$section'"
+      errors=$((errors + 1))
+    fi
+  done <<< "$(required_sections)"
+
+  # H1 presence
+  if ! grep -q '^# ' "$path"; then
+    echo "  error: missing H1 heading"
+    errors=$((errors + 1))
+  fi
+
+  # upstream_id => attribution file must reference this slug
+  local upstream_id
+  upstream_id="$(rule_fm_scalar "$path" upstream_id)"
+  if [ -n "$upstream_id" ] && [ "$upstream_id" != "null" ]; then
+    local attribution_file="$CANON_RULES_ROOT/_attribution/elixir-test-critic.md"
+    if [ ! -f "$attribution_file" ]; then
+      echo "  error: upstream_id='$upstream_id' set but $attribution_file missing"
+      errors=$((errors + 1))
+    elif ! grep -qF "$upstream_id" "$attribution_file"; then
+      echo "  warning: upstream_id='$upstream_id' not yet listed in $attribution_file"
+      # warning, not error
+    fi
+  fi
+
+  # references: each must resolve to some other rule's id
+  local refs
+  refs="$(rule_fm_list "$path" references)"
+  if [ -n "$refs" ]; then
+    # Cache all known ids into a temp file (includes canon + ext)
+    local ids_file
+    ids_file="$(mktemp)"
+    local other_path other_id
+    while IFS= read -r other_path; do
+      [ -z "$other_path" ] && continue
+      [ "$other_path" = "$path" ] && continue
+      other_id="$(rule_fm_scalar "$other_path" id)"
+      [ -n "$other_id" ] && echo "$other_id" >> "$ids_file"
+    done <<< "$(enumerate_all_rule_files)"
+
+    local ref
+    while IFS= read -r ref; do
+      [ -z "$ref" ] && continue
+      if ! grep -qxF "$ref" "$ids_file"; then
+        echo "  error: references: '$ref' does not resolve to any known rule id"
+        errors=$((errors + 1))
+      fi
+    done <<< "$refs"
+    rm -f "$ids_file"
+  fi
+
+  if [ "$errors" -eq 0 ]; then
+    return 0
+  fi
+  return 1
+}
+
+rules_validate() {
+  local target="${1:-}"
+
+  local files
+  if [ -n "$target" ]; then
+    # Target can be a file path or an id
+    if [ -f "$target" ]; then
+      files="$target"
+    else
+      # Treat as id; find matching file
+      local path this_id found=""
+      while IFS= read -r path; do
+        [ -z "$path" ] && continue
+        this_id="$(rule_fm_scalar "$path" id)"
+        if [ "$this_id" = "$target" ]; then
+          found="$path"
+          break
+        fi
+      done <<< "$(enumerate_all_rule_files)"
+      if [ -z "$found" ]; then
+        echo "error: '$target' is neither a readable file nor a known rule id" >&2
+        return 1
+      fi
+      files="$found"
+    fi
+  else
+    files="$(enumerate_all_rule_files)"
+  fi
+
+  if [ -z "$files" ]; then
+    echo "ok: no rules to validate"
+    return 0
+  fi
+
+  local total=0 ok_count=0 fail_count=0
+  local path prov id
+
+  while IFS= read -r path; do
+    [ -z "$path" ] && continue
+    total=$((total + 1))
+    prov="$(rule_file_provenance "$path")"
+    id="$(rule_fm_scalar "$path" id)"
+    [ -z "$id" ] && id="(missing id)"
+    echo "$id  [$prov]  $path"
+    if rules_validate_one "$path"; then
+      ok_count=$((ok_count + 1))
+      echo "  ok"
+    else
+      fail_count=$((fail_count + 1))
+    fi
+  done <<< "$files"
+
+  echo ""
+  echo "summary: $total checked, $ok_count ok, $fail_count failed"
+  [ "$fail_count" -gt 0 ] && return 1
+  return 0
+}
+
+# ---- index ----
+
+# Read the upstream pin from _attribution/elixir-test-critic.md.
+read_upstream_pin() {
+  local attribution="$CANON_RULES_ROOT/_attribution/elixir-test-critic.md"
+  if [ ! -f "$attribution" ]; then
+    echo ""
+    return 0
+  fi
+  # Match "Pinned commit" row in a table and extract the hash-looking token.
+  grep -iE 'pinned[[:space:]]*commit' "$attribution" \
+    | grep -oE '[0-9a-f]{40}' \
+    | head -1
+}
+
+# Convert one RULE.md's frontmatter to a flat JSON object (matches
+# rules/index.json.template shape). Output is compact JSON on stdout, or
+# empty + stderr warning if the file is malformed.
+rule_to_json_fragment() {
+  local path="$1"
+  local id title language category severity summary upstream_id version status
+  id="$(rule_fm_scalar "$path" id)"
+  title="$(rule_fm_scalar "$path" title)"
+  language="$(rule_fm_scalar "$path" language)"
+  category="$(rule_fm_scalar "$path" category)"
+  severity="$(rule_fm_scalar "$path" severity)"
+  summary="$(rule_fm_scalar "$path" summary)"
+  upstream_id="$(rule_fm_scalar "$path" upstream_id)"
+  version="$(rule_fm_scalar "$path" version)"
+  status="$(rule_fm_scalar "$path" status)"
+
+  # Required for indexing
+  if [ -z "$id" ] || [ -z "$title" ] || [ -z "$language" ] || [ -z "$category" ] || [ -z "$severity" ]; then
+    echo "skip: $path: missing required frontmatter (id, title, language, category, severity)" >&2
+    return 1
+  fi
+
+  # Defaults
+  [ -z "$status" ] && status="active"
+  [ -z "$version" ] && version="1"
+
+  # Lists
+  local principles applies_to applies_when does_not_apply_when references related_rules concretised_by aliases tags sources conflicts_with
+  principles=$(rule_fm_list "$path" principles | jq -R . | jq -s .)
+  applies_to=$(rule_fm_list "$path" applies_to | jq -R . | jq -s .)
+  applies_when=$(rule_fm_list "$path" applies_when | jq -R . | jq -s .)
+  does_not_apply_when=$(rule_fm_list "$path" does_not_apply_when | jq -R . | jq -s .)
+  references=$(rule_fm_list "$path" references | jq -R . | jq -s .)
+  related_rules=$(rule_fm_list "$path" related_rules | jq -R . | jq -s .)
+  concretised_by=$(rule_fm_list "$path" concretised_by | jq -R . | jq -s .)
+  aliases=$(rule_fm_list "$path" aliases | jq -R . | jq -s .)
+  tags=$(rule_fm_list "$path" tags | jq -R . | jq -s .)
+  sources=$(rule_fm_list "$path" sources | jq -R . | jq -s .)
+  conflicts_with=$(rule_fm_list "$path" conflicts_with | jq -R . | jq -s .)
+
+  # upstream_id becomes null if empty or literal "null"
+  local upstream_json
+  if [ -z "$upstream_id" ] || [ "$upstream_id" = "null" ]; then
+    upstream_json="null"
+  else
+    upstream_json=$(jq -nc --arg v "$upstream_id" '$v')
+  fi
+
+  # Compute source_path relative to INTENT_ROOT
+  local source_path="${path#$INTENT_HOME/}"
+
+  jq -n \
+    --arg id "$id" \
+    --arg title "$title" \
+    --arg language "$language" \
+    --arg category "$category" \
+    --arg severity "$severity" \
+    --arg summary "$summary" \
+    --argjson principles "$principles" \
+    --argjson applies_to "$applies_to" \
+    --argjson applies_when "$applies_when" \
+    --argjson does_not_apply_when "$does_not_apply_when" \
+    --argjson upstream_id "$upstream_json" \
+    --argjson references "$references" \
+    --argjson related_rules "$related_rules" \
+    --argjson concretised_by "$concretised_by" \
+    --argjson aliases "$aliases" \
+    --argjson tags "$tags" \
+    --argjson sources "$sources" \
+    --argjson conflicts_with "$conflicts_with" \
+    --arg status "$status" \
+    --argjson version "$version" \
+    --arg source_path "$source_path" \
+    '{
+      id: $id,
+      title: $title,
+      language: $language,
+      category: $category,
+      severity: $severity,
+      summary: $summary,
+      principles: $principles,
+      applies_to: $applies_to,
+      applies_when: $applies_when,
+      does_not_apply_when: $does_not_apply_when,
+      upstream_id: $upstream_id,
+      references: $references,
+      related_rules: $related_rules,
+      concretised_by: $concretised_by,
+      aliases: $aliases,
+      tags: $tags,
+      sources: $sources,
+      conflicts_with: $conflicts_with,
+      status: $status,
+      version: $version,
+      source_path: $source_path
+    }'
+}
+
+rules_index() {
+  require_jq || return 1
+
+  local out_path="$CANON_INDEX_PATH"
+  local intent_ver
+  intent_ver=$(get_intent_version 2>/dev/null || echo "2.8.2")
+  local upstream_pin
+  upstream_pin="$(read_upstream_pin)"
+  [ -z "$upstream_pin" ] && upstream_pin="unpinned"
+
+  local files
+  files="$(enumerate_canon_rule_files | sort)"
+
+  local fragments_file
+  fragments_file="$(mktemp)"
+  local skipped=0
+  local indexed=0
+  local path
+
+  if [ -n "$files" ]; then
+    while IFS= read -r path; do
+      [ -z "$path" ] && continue
+      local frag
+      if frag=$(rule_to_json_fragment "$path" 2>&2); then
+        echo "$frag" >> "$fragments_file"
+        indexed=$((indexed + 1))
+      else
+        skipped=$((skipped + 1))
+      fi
+    done <<< "$files"
+  fi
+
+  # Aggregate fragments into final JSON structure. Sort by id for determinism.
+  local aggregate
+  if [ "$indexed" -eq 0 ]; then
+    aggregate=$(jq -n \
+      --arg v "$intent_ver" \
+      --arg pin "$upstream_pin" \
+      '{
+        schema: "intent-rule-index/v1",
+        intent_version: $v,
+        rule_count: 0,
+        upstream_pin: $pin,
+        rules: []
+      }')
+  else
+    aggregate=$(jq -s \
+      --arg v "$intent_ver" \
+      --arg pin "$upstream_pin" \
+      '{
+        schema: "intent-rule-index/v1",
+        intent_version: $v,
+        rule_count: length,
+        upstream_pin: $pin,
+        rules: sort_by(.id)
+      }' "$fragments_file")
+  fi
+
+  # Byte-exact, sorted-keys output
+  echo "$aggregate" | jq -S . > "$out_path"
+  rm -f "$fragments_file"
+
+  if [ "$skipped" -gt 0 ]; then
+    echo "ok: indexed $indexed rules ($skipped skipped) to $out_path"
+  else
+    echo "ok: indexed $indexed rules to $out_path"
+  fi
+}
+
+# ---- help ----
+show_usage() {
+  cat << 'EOF'
+Usage: intent claude rules <command> [args]
+
+Commands:
+  list [--lang L] [--severity S]   List all rules across canon + extensions
+  show <id>                        Print a rule's Markdown body
+  validate [<id>|<path>]           Validate frontmatter + required sections
+  index                            Regenerate rules/index.json (canon only)
+  help                             Show this usage
+
+Env vars:
+  INTENT_EXT_DIR       Override default ~/.intent/ext/ for ext rule discovery
+  INTENT_EXT_DISABLE   Set to 1 to ignore ext rules entirely
+
+Examples:
+  intent claude rules list
+  intent claude rules list --lang elixir --severity critical
+  intent claude rules show IN-EX-TEST-001
+  intent claude rules validate
+  intent claude rules index
+EOF
+}
+
+# ---- Main dispatch ----
+SUBCOMMAND="${1:-list}"
+shift || true
+
+case "$SUBCOMMAND" in
+  list)     rules_list "$@" ;;
+  show)     rules_show "$@" ;;
+  validate) rules_validate "$@" ;;
+  index)    rules_index "$@" ;;
+  help|--help|-h) show_usage ;;
+  *)
+    echo "error: unknown rules subcommand '$SUBCOMMAND'" >&2
+    echo "run 'intent claude rules help' for usage" >&2
+    exit 1
+    ;;
+esac

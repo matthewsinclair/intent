@@ -1,0 +1,7 @@
+{
+  "intent_version": "2.8.2",
+  "rule_count": 0,
+  "rules": [],
+  "schema": "intent-rule-index/v1",
+  "upstream_pin": "1d9aa40700dab7370b4abd338ce11b922e914b14"
+}
