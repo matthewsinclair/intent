@@ -2,6 +2,10 @@
 
 This is an Intent v2.8.2 project.
 
+## On every session start and after every `/compact`
+
+Invoke `/in-session` before doing anything else. It auto-detects the project language and loads the right coding skills (`/in-essentials`, `/in-standards`, plus Elixir / Ash / LiveView skills when `mix.exs` matches). One command replaces the manual skill-reload list.
+
 ## Rules
 
 1. **The Highlander Rule**: There can be only one. Never duplicate code paths, modules, or logic for the same concern. Before creating anything new, check MODULES.md.
