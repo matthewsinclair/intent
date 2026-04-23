@@ -921,6 +921,132 @@ migrate_v2_8_1_to_v2_8_2() {
   echo "    - st zero projects: re-run D5a to pick up the Credo wiring"
 }
 
+# needs_v2_9_0_upgrade VERSION
+# Returns 0 if VERSION is older than 2.9.0 (and therefore needs the migration).
+# Returns 1 for 2.9.x and forward.
+needs_v2_9_0_upgrade() {
+  local version=$1
+
+  case "$version" in
+    "2.9.0"|"2.9."*|"2.10."*|"3."*)
+      return 1
+      ;;
+    *)
+      return 0
+      ;;
+  esac
+}
+
+# generate_ext_readme TARGET_PATH
+# Writes the README that ships with a freshly bootstrapped ~/.intent/ext/.
+# Pure file emission; safe to call repeatedly.
+generate_ext_readme() {
+  local target=$1
+
+  cat > "$target" << 'EOF'
+# Intent User Extensions
+
+This directory holds user-local Intent extensions: skills, subagents, and rule
+packs that you install without forking the Intent repo. Anything you drop under
+`~/.intent/ext/<name>/` (with a valid `extension.json`) is discovered the next
+time `intent` runs.
+
+## Listing extensions
+
+    intent ext list
+
+## Inspecting an extension
+
+    intent ext show <name>
+
+## Validating an extension
+
+    intent ext validate <name>
+
+## Creating an extension
+
+    intent ext new <name> --subagent     # scaffold a subagent
+    intent ext new <name> --skill        # scaffold a skill
+    intent ext new <name> --rule-pack    # scaffold a rule pack
+
+## Reference example
+
+`worker-bee/` (seeded here on Intent v2.9.0 upgrade if absent) is the worked
+example. See `intent/docs/writing-extensions.md` in the Intent repo for the
+end-to-end walkthrough.
+EOF
+}
+
+# Migrate v2.8.2 to v2.9.0 - extension system + critic subagent family
+#
+# Fail-forward migration:
+#   1. Stamp .intent/config.json:intent_version to 2.9.0
+#   2. Bootstrap ~/.intent/ext/ (user-global, one-shot) with README
+#   3. Seed ~/.intent/ext/worker-bee/ from lib/templates/ext-seeds/worker-bee
+#      (skip if already present so user customisation survives)
+#   4. Prune installed copies of subagents removed from canon (elixir, worker-bee)
+#      and remove their entries from ~/.intent/agents/installed-agents.json
+#
+# Idempotent: a second run is a no-op (presence checks at every step).
+migrate_v2_8_2_to_v2_9_0() {
+  local project_root=$1
+
+  echo "Upgrading to Intent v2.9.0 (extension system, critic subagent family)..."
+
+  # 1. Version stamp
+  if [ -f "$project_root/.intent/config.json" ]; then
+    local temp_file
+    temp_file=$(mktemp)
+    jq --arg v "2.9.0" '.intent_version = $v | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
+    mv "$temp_file" "$project_root/.intent/config.json"
+    echo "  stamped: intent_version = 2.9.0"
+  fi
+
+  # 2. Bootstrap ~/.intent/ext/ (user-global; one-time effect)
+  local ext_dir="$HOME/.intent/ext"
+  if [ ! -d "$ext_dir" ]; then
+    mkdir -p "$ext_dir"
+    generate_ext_readme "$ext_dir/README.md"
+    echo "  bootstrapped: $ext_dir"
+  fi
+
+  # 3. Seed worker-bee ext (only if not already present)
+  local wb_ext="$ext_dir/worker-bee"
+  local wb_seed="$INTENT_HOME/lib/templates/ext-seeds/worker-bee"
+  if [ ! -d "$wb_ext" ] && [ -d "$wb_seed" ]; then
+    cp -r "$wb_seed" "$wb_ext"
+    echo "  seeded: ~/.intent/ext/worker-bee (from canon ext-seeds)"
+  elif [ -d "$wb_ext" ]; then
+    echo "  skipped: ~/.intent/ext/worker-bee (already present, not overwriting)"
+  fi
+
+  # 4. Prune installed copies of removed subagents
+  local agent installed manifest temp_file
+  for agent in elixir worker-bee; do
+    installed="$HOME/.claude/agents/${agent}.md"
+    if [ -f "$installed" ]; then
+      rm "$installed"
+      echo "  pruned: ~/.claude/agents/${agent}.md"
+    fi
+    manifest="$HOME/.intent/agents/installed-agents.json"
+    if [ -f "$manifest" ]; then
+      temp_file=$(mktemp)
+      jq --arg name "$agent" '(.installed) |= map(select(.name != $name))' "$manifest" > "$temp_file" \
+        && mv "$temp_file" "$manifest"
+    fi
+  done
+
+  echo "  Migration to v2.9.0 complete!"
+  echo ""
+  echo "  IMPORTANT CHANGES IN v2.9.0:"
+  echo "    - NEW: ~/.intent/ext/ extension system for user skills/subagents/rules"
+  echo "    - NEW: critic-{elixir,rust,swift,lua,shell} subagents (rule-library enforcers)"
+  echo "    - REMOVED: elixir subagent (content split into rule library + critic-elixir)"
+  echo "    - RELOCATED: worker-bee now seeded at ~/.intent/ext/worker-bee/"
+  echo "    - Installed copies of elixir and worker-bee have been pruned."
+  echo "    - To reinstall worker-bee from the seed: intent ext show worker-bee"
+}
+
 # Migrate v2.2.0 to v2.2.1
 migrate_v2_2_to_v2_2_1() {
   local project_root=$1

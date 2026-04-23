@@ -87,7 +87,8 @@
       "Read(//private/tmp/**)",
       "Bash(tee /tmp/wp12_full.log)",
       "Bash(/Users/matts/Devel/prj/Intent/bin/intent wp *)",
-      "Bash(jq '.rules[] | select\\(.language == \"agnostic\"\\) | {id: .id, title: .title, concretised_by: .concretised_by}' -r)"
+      "Bash(jq '.rules[] | select\\(.language == \"agnostic\"\\) | {id: .id, title: .title, concretised_by: .concretised_by}' -r)",
+      "Bash(bash *)"
     ],
     "deny": []
   }

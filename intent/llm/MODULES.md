@@ -163,6 +163,7 @@ User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; sh
 | User-ext root (runtime)  | `~/.intent/ext/` (outside repo)                          | Created by migration; README stub included                              |
 | Migration function       | `bin/intent_helpers::migrate_v2_8_2_to_v2_9_0`           | Creates ext root, seeds worker-bee, prunes elixir + worker-bee installs |
 | Upgrade predicate        | `bin/intent_helpers::needs_v2_9_0_upgrade`               | Returns true when project's `.intent/config.json` is < 2.9.0            |
+| Ext README emitter       | `bin/intent_helpers::generate_ext_readme`                | Writes ~/.intent/ext/README.md on first bootstrap                       |
 
 ## Tests
 
