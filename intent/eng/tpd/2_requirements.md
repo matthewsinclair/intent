@@ -36,20 +36,7 @@ intent_version: 2.4.0
 | FR-3.3 | The system shall track completion status of steel threads                    |
 | FR-3.4 | The system shall maintain independence from specific version control systems |
 
-### 2.1.4 Backlog Integration [AS-BUILT]
-
-> **[Removed in v2.5.0]** Backlog.md integration was removed in Intent v2.5.0.
-
-| ID     | Requirement                                                                | Status        |
-| ------ | -------------------------------------------------------------------------- | ------------- |
-| FR-4.1 | The system shall integrate with Backlog.md for task management             | ✓ Implemented |
-| FR-4.2 | The system shall provide wrapper commands to avoid direct Backlog.md usage | ✓ Implemented |
-| FR-4.3 | The system shall link tasks to steel threads using naming conventions      | ✓ Implemented |
-| FR-4.4 | The system shall synchronize steel thread status based on task completion  | ✓ Implemented |
-| FR-4.5 | The system shall support migration of embedded tasks to Backlog.md         | ✓ Implemented |
-| FR-4.6 | The system shall support configurable backlog_list_status filtering        | ✓ Implemented |
-
-### 2.1.5 Configuration Management [AS-BUILT]
+### 2.1.4 Configuration Management [AS-BUILT]
 
 | ID     | Requirement                                                       | Status        |
 | ------ | ----------------------------------------------------------------- | ------------- |
@@ -104,7 +91,7 @@ intent_version: 2.4.0
 | CON-4 | The system must respect the context window limitations of LLMs                       |
 | CON-5 | [AS-BUILT] The system requires jq for JSON configuration parsing                     |
 
-### 2.1.6 Claude Code Integration [AS-BUILT v2.4.0]
+### 2.1.5 Claude Code Integration [AS-BUILT v2.4.0]
 
 | ID     | Requirement                                                              | Status      |
 | ------ | ------------------------------------------------------------------------ | ----------- |
@@ -114,7 +101,7 @@ intent_version: 2.4.0
 | FR-6.4 | The system shall support project LLM guidance upgrades                   | Implemented |
 | FR-6.5 | The system shall track installed artifacts via SHA256 manifests          | Implemented |
 
-### 2.1.7 Codebase Navigation [AS-BUILT v2.4.0]
+### 2.1.6 Codebase Navigation [AS-BUILT v2.4.0]
 
 | ID     | Requirement                                                      | Status      |
 | ------ | ---------------------------------------------------------------- | ----------- |

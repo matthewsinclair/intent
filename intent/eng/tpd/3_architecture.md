@@ -119,9 +119,7 @@ Example .intent/config.json:
   "author": "username",
   "created": "2025-07-17",
   "st_prefix": "ST",
-  "backlog_dir": "backlog",          // [Removed in v2.5.0]
-  "intent_dir": "intent",
-  "backlog_list_status": "todo"      // [Removed in v2.5.0]
+  "intent_dir": "intent"
 }
 ```
 
@@ -133,7 +131,6 @@ Intent manages several types of data:
 2. **Steel Thread Data**: Markdown files in intent/st/ directories
 3. **Project Metadata**: Steel thread status, creation dates
 4. **Work History**: Journal entries and completed threads
-5. **Task Data**: Backlog.md integration with status tracking — **[Removed in v2.5.0]**
 
 All data uses plain text formats (JSON and markdown) for maximum portability.
 
@@ -156,7 +153,6 @@ STP is designed to interface with:
 1. **Version Control Systems**: Through normal file operations
 2. **LLM Systems**: Through document content and canned prompts
 3. **Development Environments**: Through standard shell integration
-4. **Task Management Systems**: Through Backlog.md integration for fine-grained task tracking — **[Removed in v2.5.0]**
 
 ## 3.5 Architectural Decisions
 
@@ -172,100 +168,7 @@ STP is designed to interface with:
 
 STP is designed as an extensible system that can integrate with complementary tools while maintaining its core philosophy of simplicity and portability.
 
-### 3.6.1 Backlog.md Integration
-
-> **[Removed in v2.5.0]** Backlog.md integration was removed in Intent v2.5.0.
-
-The integration with Backlog.md extends STP's capabilities with fine-grained task management while preserving the separation of concerns:
-
-#### Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      STP System                             │
-│                                                             │
-│  ┌───────────────┐    ┌───────────────┐    ┌───────────────┐│
-│  │ Steel Threads │    │  STP Commands │    │   Templates   ││
-│  │  (Intent)     │◄───┤  (Workflow)   │────►  (Structure)  ││
-│  └───────────────┘    └───────────────┘    └───────────────┘│
-│         ▲                     │                             │
-│         │              ┌──────▼──────┐                      │
-│         └──────────────┤ Integration │                      │
-│                        │   Layer     │                      │
-│                        └──────┬──────┘                      │
-└───────────────────────────────┼─────────────────────────────┘
-                                │
-┌───────────────────────────────┼─────────────────────────────┐
-│                               ▼                             │
-│                        ┌─────────────┐                      │
-│                        │ Backlog.md  │                      │
-│                        │   System    │                      │
-│                        └─────────────┘                      │
-│  ┌───────────────┐    ┌───────────────┐    ┌───────────────┐│
-│  │ Task Tracking │    │    Kanban     │    │  Task Files  ││
-│  │  (Execution)  │◄───┤    Board      │────►  (Storage)   ││
-│  └───────────────┘    └───────────────┘    └───────────────┘│
-│                                                             │
-│                    External Task Management                 │
-└─────────────────────────────────────────────────────────────┘
-```
-
-#### Component Responsibilities [AS-BUILT]
-
-**Intent Core Components:**
-
-- **Steel Threads**: Capture objectives, context, and design in intent/st/
-- **Documentation**: Maintain narrative and specs in intent/docs/
-- **Configuration**: JSON-based settings in .intent/config.json
-- **Process Coordination**: Orchestrate development workflow
-
-**Backlog.md Integration:**
-
-- **Task Management**: Track implementation tasks with metadata
-- **Status Filtering**: Configurable backlog_list_status for focused views
-- **Visualisation**: Kanban board and browser interfaces
-
-**Integration Layer:**
-
-- **Command Wrappers**: `intent bl`, `intent task`, `intent status`
-- **Status Synchronisation**: Task completion drives thread status
-- **Naming Conventions**: ST#### prefix links tasks to threads
-- **Git Safety**: Wrappers prevent git operation conflicts
-
-#### Data Flow
-
-1. **Steel Thread Creation** → Integration layer creates linked task structure
-2. **Task Updates** → Status changes propagate to steel thread status
-3. **Migration** → Embedded tasks convert to Backlog.md format
-4. **Queries** → Unified view of steel thread and task information
-
-#### Integration Points [AS-BUILT]
-
-1. **File System**:
-   - Intent: `/intent/st/` for steel threads (flattened)
-   - Backlog: `/backlog/` for task management
-   - Config: `/.intent/config.json` for settings
-   - No overlap in storage locations
-
-2. **Command Interface**:
-   - Unified `intent` command with subcommands
-   - All commands follow intent\_\* pattern
-   - Wrapper commands prevent git conflicts
-   - Help system integrated
-
-3. **Status Model**:
-   - Steel thread status derived from task completion
-   - Automatic synchronisation via `intent status sync`
-   - Manual override supported
-   - Configurable list filtering
-
-4. **Workflow Integration**:
-   - Steel threads define "what" and "why" (intent)
-   - Backlog tasks define "how" and "when" (execution)
-   - Clear separation of concerns
-   - Self-hosting proven
-
-### 3.6.2 Migration Architecture [AS-BUILT]
+### 3.6.1 Migration Architecture [AS-BUILT]
 
 Intent v2.0.0 includes comprehensive migration support:
 

@@ -246,7 +246,7 @@ Rule schema inspired by elixir-test-critic (MIT, 2026 Manuel Zubieta). See `inte
 
 ### Regenerated
 
-- [ ] `intent agents sync` produces no diff beyond the ST0034 changes — **NOT MET**: pre-existing generator regressions surfaced (`intent wp` commands replaced with stale `intent bl`, Bats test command dropped, diogenes description rendered empty). Tracked as follow-up; not WP10 scope. The ST0034-driven changes (critic-\* family, removed elixir, removed canon worker-bee) landed correctly.
+- [x] `intent agents sync` produces no diff beyond the ST0034 changes — **MET (post-WP10)**: pre-existing generator regressions surfaced during WP10 (`intent wp` commands replaced with stale `intent bl`, Bats test command dropped, diogenes description rendered empty) were tracked as Task #26 and fixed in `f2beaed`. A follow-on cleanup commit removed the dead `bl)` dispatch case from `bin/intent_main` and swept the TPD `intent bl` residue from v2.5.0's Backlog.md removal.
 - [x] `AGENTS.md` reflects the new subagent landscape (no elixir, no canon worker-bee; new critic-\* family)
 
 ### Help files
@@ -468,9 +468,11 @@ The originally-planned WP10 scope didn't include the TCA suite refactor or the `
 - **`intent/docs/total-codebase-audit.md`** updated for v2.9.0 surfaces: `§0.1` rewritten as "Select the Rule Packs" (replaces the per-audit invented R1-R15 list); `§1.1` rewritten as "The Critic Dispatch" (replaces the 100-line custom audit-prompt template); `§1.2` rewritten as "Critic Selection"; `§2.1` and `§2.2` updated for stable critic schema; Phase 0.5 grep examples now reference IN-\* IDs; Appendix B replaced with a pointer to per-language Detection in the rule library; Appendix C checklist updated; Appendices D / E / F preserved as historical content with explicit pre-v2.9.0 framing notes; doc-level v2.9.0 update note at the top.
 - **`rules:` frontmatter** added to `in-elixir-essentials` and `in-elixir-testing` (both already cited IN-\* IDs in body tables; now machine-readable so `tests/unit/rule_reference_skills.bats` can verify).
 
-### Regression noted but not fixed
+### Regression closed post-WP10 (Task #26)
 
-`intent agents sync` regenerates AGENTS.md correctly for the new subagent landscape (critic-\* family, removed elixir, removed canon worker-bee), but pre-existing generator deficiencies surface in the diff: `intent wp` commands get stripped (replaced with stale `intent bl` placeholder), the Bats test command is dropped (renders "No automated tests configured yet"), and the `diogenes` subagent description comes through empty. This is a generator bug that predates ST0034 — committed as-is with a follow-up to fix the generator.
+`intent agents sync` initially regenerated AGENTS.md correctly for the new subagent landscape (critic-\* family, removed elixir, removed canon worker-bee), but pre-existing generator deficiencies surfaced in the diff: `intent wp` commands got stripped (replaced with stale `intent bl` placeholder), the Bats test command was dropped (rendered "No automated tests configured yet"), and the `diogenes` subagent description came through empty. Committed as-is at WP10 close with a follow-up tracked as Task #26.
+
+Task #26 closed in `f2beaed`: generator now emits the current `intent wp` command quartet, detects nested Bats layouts via recursive find (`bats -r tests/`), and falls back to `agent.md` frontmatter when `metadata.json` is missing. A follow-on cleanup commit removed the dead `bl)` dispatch case from `bin/intent_main` (also a v2.5.0 leftover) and swept the TPD `intent bl` residue across `intent/eng/tpd/`.
 
 ### Verification
 

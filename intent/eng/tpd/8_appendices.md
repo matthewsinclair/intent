@@ -9,38 +9,35 @@ intent_version: 2.4.0
 
 ## 8.1 Glossary
 
-| Term           | Definition                                                                                             |
-| -------------- | ------------------------------------------------------------------------------------------------------ |
-| LLM            | Large Language Model - An AI system capable of understanding and generating human language,            |
-|                | such as Claude, GPT, etc.                                                                              |
-| Steel Thread   | A self-contained unit of work that represents a logical piece of functionality to be implemented       |
-| Context Window | The amount of text an LLM can process in a single interaction                                          |
-| Intent         | The system described in this document - captures and preserves development intention                   |
-| STP            | Steel Thread Process - The original name for Intent (pre-v2.0.0)                                       |
-| TPD            | Technical Product Design - A comprehensive technical specification document                            |
-| Backlog.md     | Task management system integrated with Intent for fine-grained task tracking — **[Removed in v2.5.0]** |
-| Bootstrap      | Automated setup process for Intent global installation                                                 |
+| Term           | Definition                                                                                       |
+| -------------- | ------------------------------------------------------------------------------------------------ |
+| LLM            | Large Language Model - An AI system capable of understanding and generating human language,      |
+|                | such as Claude, GPT, etc.                                                                        |
+| Steel Thread   | A self-contained unit of work that represents a logical piece of functionality to be implemented |
+| Context Window | The amount of text an LLM can process in a single interaction                                    |
+| Intent         | The system described in this document - captures and preserves development intention             |
+| STP            | Steel Thread Process - The original name for Intent (pre-v2.0.0)                                 |
+| TPD            | Technical Product Design - A comprehensive technical specification document                      |
+| Bootstrap      | Automated setup process for Intent global installation                                           |
 
 ## 8.2 Command Reference [AS-BUILT]
 
 ### 8.2.1 Primary Commands
 
-| Command                   | Description                                        | Usage                                       |
-| ------------------------- | -------------------------------------------------- | ------------------------------------------- |
-| `intent init`             | Initialize Intent in a project                     | `intent init "Project Name"`                |
-| `intent st`               | Manage steel threads                               | `intent st new/list/show/edit`              |
-| `intent bl`               | Enhanced Backlog.md wrapper [Removed in v2.5.0]    | `intent bl list/create/done`                |
-| `intent task`             | Manage tasks linked to threads [Removed in v2.5.0] | `intent task create/list/count`             |
-| `intent status`           | Synchronize thread/task status [Removed in v2.5.0] | `intent status show/sync/check`             |
-| `intent agents`           | Manage AGENTS.md                                   | `intent agents init/sync/validate/template` |
-| `intent claude subagents` | Manage Claude subagents                            | `intent claude subagents list/install/sync` |
-| `intent claude skills`    | Manage Claude skills                               | `intent claude skills list/install/sync`    |
-| `intent claude upgrade`   | Upgrade project LLM guidance                       | `intent claude upgrade [--apply]`           |
-| `intent treeindex`        | Generate directory summaries                       | `intent treeindex <dir> [--depth N]`        |
-| `intent fileindex`        | Generate file summaries                            | `intent fileindex <file>`                   |
-| `intent bootstrap`        | Global Intent setup                                | `intent bootstrap [--force]`                |
-| `intent doctor`           | Diagnose configuration                             | `intent doctor [--fix]`                     |
-| `intent help`             | Display help                                       | `intent help [command]`                     |
+| Command                   | Description                    | Usage                                       |
+| ------------------------- | ------------------------------ | ------------------------------------------- |
+| `intent init`             | Initialize Intent in a project | `intent init "Project Name"`                |
+| `intent st`               | Manage steel threads           | `intent st new/list/show/edit`              |
+| `intent wp`               | Manage work packages           | `intent wp new/list/show/start/done`        |
+| `intent agents`           | Manage AGENTS.md               | `intent agents init/sync/validate/template` |
+| `intent claude subagents` | Manage Claude subagents        | `intent claude subagents list/install/sync` |
+| `intent claude skills`    | Manage Claude skills           | `intent claude skills list/install/sync`    |
+| `intent claude upgrade`   | Upgrade project LLM guidance   | `intent claude upgrade [--apply]`           |
+| `intent treeindex`        | Generate directory summaries   | `intent treeindex <dir> [--depth N]`        |
+| `intent fileindex`        | Generate file summaries        | `intent fileindex <file>`                   |
+| `intent bootstrap`        | Global Intent setup            | `intent bootstrap [--force]`                |
+| `intent doctor`           | Diagnose configuration         | `intent doctor [--fix]`                     |
+| `intent help`             | Display help                   | `intent help [command]`                     |
 
 ### 8.2.2 Configuration Schema
 
@@ -52,9 +49,7 @@ intent_version: 2.4.0
   "author": "string", // Optional: Default author
   "created": "YYYY-MM-DD", // Auto-generated: Creation date
   "st_prefix": "ST", // Optional: Steel thread prefix (default: ST)
-  "backlog_dir": "backlog", // Optional: Backlog directory [Removed in v2.5.0]
-  "intent_dir": "intent", // Optional: Intent directory (default: intent)
-  "backlog_list_status": "todo" // Optional: Default status filter [Removed in v2.5.0]
+  "intent_dir": "intent" // Optional: Intent directory (default: intent)
 }
 ```
 
@@ -64,8 +59,7 @@ intent_version: 2.4.0
 // ~/.config/intent/config.json
 {
   "author": "Your Name", // Default author for all projects
-  "editor": "vim", // Preferred text editor
-  "backlog_list_status": "wip" // Global default status filter [Removed in v2.5.0]
+  "editor": "vim" // Preferred text editor
 }
 ```
 
@@ -81,15 +75,11 @@ intent st list --status "In Progress"
 intent st show ST0015
 intent st edit ST0015 design
 
-# Task management with Backlog integration [Removed in v2.5.0]
-intent task create ST0015 "Design auth flow"
-intent bl list           # Filtered by config
-intent bl list --all     # All tasks
-intent bl done task-123
-
-# Status synchronization [Removed in v2.5.0]
-intent status show ST0015
-intent status sync ST0015
+# Work package lifecycle
+intent wp new ST0015 "Design auth flow"
+intent wp list ST0015
+intent wp start ST0015/01
+intent wp done ST0015/01
 
 # System maintenance
 intent doctor --fix
@@ -111,7 +101,6 @@ Example usage:
 
 ```bash
 export INTENT_HOME=~/intent
-export INTENT_BACKLOG_LIST_STATUS=wip  # Override default filter
 export INTENT_DEBUG=1                  # Enable debug mode
 ```
 
@@ -230,38 +219,9 @@ I'll help you create a new steel thread for user authentication. Let's use Inten
 - **AI Integration**: Enhanced LLM workflows and context management
 - **Mobile Support**: Mobile-friendly documentation viewing
 
-## 8.7 Integration References
+## 8.7 AS-BUILT Notes
 
-### 8.7.1 Backlog.md Integration
-
-> **[Removed in v2.5.0]** Backlog.md integration was removed in Intent v2.5.0.
-
-- **Integration Guide**: `/intent/llm/usage-rules.md#task-management-integration` - Comprehensive guide for using the integration
-- **Backlog.md Documentation**: [https://github.com/slune-org/backlog](https://github.com/slune-org/backlog)
-- **Integration Tests**:
-  - `/tests/unit/task_commands.bats` - Task management command tests
-  - `/tests/unit/status_commands.bats` - Status synchronisation tests
-  - `/tests/unit/backlog_wrapper.bats` - Wrapper command tests
-  - `/tests/integration/` - End-to-end tests
-- **Implementation Scripts**:
-  - `/bin/intent_backlog` - Backlog wrapper implementation
-  - `/bin/intent_task` - Task management implementation
-  - `/bin/intent_status` - Status synchronisation implementation
-  - `/bin/intent_migrate` - Migration tool implementation
-
-### 8.7.2 Integration Architecture
-
-> **[Removed in v2.5.0]** Backlog.md integration was removed in Intent v2.5.0.
-
-For technical details on the Backlog.md integration architecture, see:
-
-- Section 3.6.1: Backlog.md Integration Architecture
-- Section 4.8.1: Backlog.md Integration Implementation Details
-- Blog Post: [LLM Collaboration with Intent](../../docs/blog/0004-llm-collaboration-with-intent.md)
-
-## 8.8 AS-BUILT Notes
-
-### 8.8.1 Version History
+### 8.7.1 Version History
 
 | Version | Date       | Changes                                                     |
 | ------- | ---------- | ----------------------------------------------------------- |
@@ -273,7 +233,7 @@ For technical details on the Backlog.md integration architecture, see:
 | 1.2.1   | 2025-07-09 | Added Backlog.md integration                                |
 | 1.0.0   | 2025-06-15 | Initial STP release                                         |
 
-### 8.8.2 Test Coverage
+### 8.7.2 Test Coverage
 
 - 302 tests passing across 15 test files (BATS framework)
 - Core commands: st, init, bootstrap, doctor
@@ -281,7 +241,7 @@ For technical details on the Backlog.md integration architecture, see:
 - Treeindex and fileindex commands
 - Skills and subagent lifecycle (install, sync, uninstall, list, show)
 
-### 8.8.3 Known Limitations
+### 8.7.3 Known Limitations
 
 1. **Subagent sync false positive**: Reports "modified locally" for stale (not user-modified) copies
 2. **Platform testing**: Primarily tested on macOS

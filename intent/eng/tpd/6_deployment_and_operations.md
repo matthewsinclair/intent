@@ -69,7 +69,6 @@ export PATH=$PATH:$(pwd)/.intent-install/bin
 - POSIX-compliant shell (bash 3.2+, zsh)
 - Git for version control
 - jq for JSON parsing (required)
-- Optional: Backlog.md for task management — **[Removed in v2.5.0]**
 
 ## 6.2 Project Initialization [AS-BUILT]
 
@@ -98,7 +97,6 @@ The init command prompts for:
 - Project name
 - Author name (defaults to $USER)
 - Editor preference (defaults to $EDITOR)
-- Backlog directory (defaults to "backlog") — **[Removed in v2.5.0]**
 
 ## 6.3 Configuration [AS-BUILT]
 
@@ -121,9 +119,7 @@ Intent v2.1.0 uses hierarchical JSON configuration:
      "author": "username",
      "created": "2025-07-17",
      "st_prefix": "ST",
-     "backlog_dir": "backlog", // [Removed in v2.5.0]
-     "intent_dir": "intent",
-     "backlog_list_status": "todo" // [Removed in v2.5.0]
+     "intent_dir": "intent"
    }
    ```
 
@@ -132,8 +128,7 @@ Intent v2.1.0 uses hierarchical JSON configuration:
    ```json
    {
      "author": "Your Name",
-     "editor": "vim",
-     "backlog_list_status": "wip" // [Removed in v2.5.0]
+     "editor": "vim"
    }
    ```
 
@@ -185,30 +180,25 @@ intent st show ST0001 design  # Show specific file
 # Edit thread files
 intent st edit ST0001         # Edit info.md
 intent st edit ST0001 tasks   # Edit tasks.md
-
-# Task integration
-intent task create ST0001 "Implement login"
-intent task list ST0001
-intent status show ST0001
-intent status sync ST0001
 ```
 
-### 6.4.3 Enhanced Backlog Integration
-
-> **[Removed in v2.5.0]** Backlog.md integration was removed in Intent v2.5.0.
+### 6.4.3 Working with Work Packages
 
 ```bash
-# List tasks (respects backlog_list_status config)
-intent bl list
+# Create a new work package within a thread
+intent wp new ST0001 "Implement login endpoint"
 
-# List all tasks regardless of status
-intent bl list --all
+# List work packages for a thread
+intent wp list ST0001
 
-# Create task linked to thread
-intent bl create "ST0001 - Implement feature"
+# Show work package contents
+intent wp show ST0001/01
 
-# Mark task complete
-intent bl done task-123
+# Mark a work package as in progress
+intent wp start ST0001/01
+
+# Mark a work package as done
+intent wp done ST0001/01
 ```
 
 ### 6.4.4 Migration from STP
@@ -276,9 +266,6 @@ Intent documents should be version controlled:
 # Add Intent files to git
 git add .intent/ intent/ CLAUDE.md
 git commit -m "Update Intent documentation"
-
-# Exclude Backlog.md (has own git repo) [Removed in v2.5.0]
-echo "backlog/" >> .gitignore
 ```
 
 ### 6.5.4 Testing

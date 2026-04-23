@@ -172,19 +172,7 @@ fi
 - Documented lost tests for future recovery
 - Prioritized critical path testing
 
-### 7.11.3 Configuration Filtering
-
-> **[Removed in v2.5.0]** Backlog.md integration was removed in Intent v2.5.0.
-
-**Challenge**: `intent bl list` not respecting configuration.
-
-**Resolution**:
-
-- Added `backlog_list_status` to config loading
-- Implemented `--all` flag override
-- Test-driven development approach
-
-### 7.11.4 Blog Post Recovery
+### 7.11.3 Blog Post Recovery
 
 **Challenge**: Blog posts accidentally deleted during cleanup.
 
@@ -194,7 +182,7 @@ fi
 - Updated all STP references to Intent
 - Fixed internal links between posts
 
-### 7.11.5 Directory Structure Flattening
+### 7.11.4 Directory Structure Flattening
 
 **Challenge**: Complex migration from nested to flat structure.
 
