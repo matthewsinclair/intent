@@ -1,5 +1,5 @@
 ---
-verblock: "23 Apr 2026:v0.38: matts - ST0034 WP10 done; WP11 next (release)"
+verblock: "23 Apr 2026:v0.39: matts - ST0034 WP10 + Task #26 done; WP11 next (release)"
 intent_version: 2.8.2
 ---
 
@@ -7,7 +7,7 @@ intent_version: 2.8.2
 
 ## Current State
 
-Intent v2.8.2 (VERSION unchanged; release bump is WP11). **ST0034 active — 11/12 WPs done.** WP10 (Documentation) closed in this session. Three new docs landed (`intent/docs/rules.md`, expanded `intent/docs/writing-extensions.md`, updated `intent/docs/critics.md`); CLAUDE.md / MODULES.md / DECISION_TREE.md / creating-custom-agents.md / `lib/help/*.help.md` updated for v2.9.0; AGENTS.md regenerated via `intent agents sync` (with a noted generator-deficiency follow-up); CHANGELOG + release-notes drafts staged for WP11. Mid-WP scope expansion: full TCA suite refactor (5 skills) for rule library + 1195-line `intent/docs/total-codebase-audit.md` updated + `rules:` frontmatter added to in-elixir-essentials/in-elixir-testing. WP11 (release + fleet upgrade) is the only remaining WP.
+Intent v2.8.2 (VERSION unchanged; release bump is WP11). **ST0034 active — 11/12 WPs done.** WP10 (Documentation) closed in this session. Three new docs landed (`intent/docs/rules.md`, expanded `intent/docs/writing-extensions.md`, updated `intent/docs/critics.md`); CLAUDE.md / MODULES.md / DECISION_TREE.md / creating-custom-agents.md / `lib/help/*.help.md` updated for v2.9.0; AGENTS.md regenerated via `intent agents sync`; CHANGELOG + release-notes drafts staged for WP11. Mid-WP scope expansion: full TCA suite refactor (5 skills) for rule library + 1195-line `intent/docs/total-codebase-audit.md` updated + `rules:` frontmatter added to in-elixir-essentials/in-elixir-testing. Task #26 (generator fixes for `intent agents sync`) closed in `f2beaed`. WP11 (release + fleet upgrade) is the only remaining WP.
 
 ## Recent
 
@@ -24,15 +24,14 @@ Intent v2.8.2 (VERSION unchanged; release bump is WP11). **ST0034 active — 11/
 
 ## Next Up
 
-1. **Task #26 (small, pre-WP11)**: fix `intent agents sync` generator deficiencies surfaced during WP10. Generator at `intent/plugins/agents/bin/intent_agents` drops `intent wp` commands (replaced with stale `intent bl`), can't detect Bats test framework, renders empty descriptions for some subagents (e.g. `diogenes`). Fixing this before WP11 means the fleet-wide AGENTS.md regen during the v2.9.0 rollout produces clean output instead of the regression we noted. No ST overhead — standalone fix.
-2. **WP11 (Medium)**: release + fleet upgrade. Bump `VERSION` to `2.9.0`; tag `v2.9.0` and force-push to both remotes; publish GitHub release using the v2.9.0 release-notes draft (`docs/releases/2.9.0/RELEASE_NOTES.md`) and the CHANGELOG v2.9.0 entry. Bump worker-bee seed `intent_compat.min` in lockstep with VERSION. Run WP09 canary dry-run against fleet projects (Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex, Conflab) before tagging. Roll upgrade across the 16-project fleet. See `intent/st/ST0034/WP/11/info.md` for the tagged plan.
+1. **WP11 (Medium)**: release + fleet upgrade. Bump `VERSION` to `2.9.0`; tag `v2.9.0` and force-push to both remotes; publish GitHub release using the v2.9.0 release-notes draft (`docs/releases/2.9.0/RELEASE_NOTES.md`) and the CHANGELOG v2.9.0 entry. Bump worker-bee seed `intent_compat.min` in lockstep with VERSION. Run WP09 canary dry-run against fleet projects (Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex, Conflab) before tagging. Roll upgrade across the 16-project fleet. See `intent/st/ST0034/WP/11/info.md` for the tagged plan.
 
 ## Deferred observations
 
 - **TCA skills retrospection: closed in WP10.** Full TCA suite (5 skills + total-codebase-audit.md) refactored against the critic contract — drops ad-hoc R-numbering, dispatches `critic-<lang>`, consumes the stable severity-grouped report.
 - **WP12 dogfood journal Entries 1-3**: deferred post-release. `critic-shell` is Claude-side, invoked via `Task()` from a session, not via `bash`; its first real invocation belongs to a future session. Journal Entry 0 documents the authorship-pass substitute.
 - **Blog draft `docs/blog-drafts/shell-critic-inception.md`**: publication gated on real dogfood Entries 1-3.
-- **`intent agents sync` generator deficiencies**: surfaced during WP10. Generator drops `intent wp` commands (replaced with stale `intent bl`), can't detect Bats test framework, renders empty descriptions for some subagents (e.g. diogenes). Not WP10 scope — needs a dedicated ST or WP. Workaround until then: hand-edits to AGENTS.md will be wiped by the next sync.
+- **`intent agents sync` generator deficiencies: fixed in `f2beaed` (Task #26).** Generator now emits current `intent wp` commands, detects nested Bats layouts via recursive find (`bats -r tests/`), and falls back to `agent.md` frontmatter when `metadata.json` is missing. Follow-on commit removed the dead `bl)` dispatch case from `bin/intent_main` and swept the TPD `intent bl` residue from v2.5.0's Backlog.md removal.
 
 ## Parked
 

@@ -83,10 +83,6 @@ case "$COMMAND" in
     COMMAND="st"
     COMMAND_SCRIPT="intent_st"
     ;;
-  bl)
-    COMMAND="bl"
-    COMMAND_SCRIPT="intent_bl"
-    ;;
   *)
     # Default: prefix with intent_
     COMMAND_SCRIPT="intent_$COMMAND"

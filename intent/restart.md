@@ -2,7 +2,7 @@
 
 ## Current State
 
-Intent v2.8.2 (VERSION unchanged; release bump is WP11). **ST0034 active — 11/12 WPs done.** WP10 (Documentation) closed and committed (`6bb9d0d`). Tree is clean. Next: fix Task #26 (`intent agents sync` generator regressions surfaced during WP10) before WP11, so the fleet upgrade in WP11 regenerates clean AGENTS.md files.
+Intent v2.8.2 (VERSION unchanged; release bump is WP11). **ST0034 active — 11/12 WPs done.** WP10 (Documentation) closed and committed (`6bb9d0d`). Task #26 (`intent agents sync` generator fixes + dead `bl)` dispatch removal + TPD `intent bl` sweep) closed in `f2beaed` and the follow-on cleanup commit. Tree is clean. Next: WP11 (release + fleet upgrade).
 
 ## ST0034 status (as of 2026-04-23)
 
@@ -53,9 +53,9 @@ Originally out of WP10 scope, folded in mid-WP after the TCA suite was found to 
 - `intent claude rules validate`: 48/48 ok.
 - `intent doctor`: clean.
 
-## WP10 follow-up (do not block WP11)
+## Task #26 closed (post-WP10)
 
-- **`intent agents sync` generator deficiencies**: drops `intent wp` commands (replaced with stale `intent bl`), can't detect Bats test framework, renders empty descriptions for some subagents. Not WP10 scope; needs dedicated ST or WP. Hand-edits to AGENTS.md get wiped by the next sync until fixed.
+- **`intent agents sync` generator: fixed in `f2beaed`.** Generator now emits current `intent wp` commands, detects nested Bats layouts via `bats -r tests/`, and falls back to `agent.md` frontmatter when `metadata.json` is missing. Follow-on commit removed the dead `bl)` dispatch case from `bin/intent_main` and swept TPD `intent bl` residue left over from v2.5.0's Backlog.md removal.
 
 ## What WP09 shipped (prior session)
 
