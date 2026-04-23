@@ -1,5 +1,13 @@
 ---
 description: "Elixir testing rules: strong assertions, no control flow in tests, async by default, real code over mocks, Highlander for tests"
+rules:
+  - IN-EX-TEST-001
+  - IN-EX-TEST-002
+  - IN-EX-TEST-003
+  - IN-EX-TEST-004
+  - IN-EX-TEST-005
+  - IN-EX-TEST-006
+  - IN-EX-TEST-007
 ---
 
 # Elixir Testing Essentials

@@ -1,5 +1,12 @@
 ---
 description: "Elixir coding rules: pattern matching, tagged tuples, with-railways, @impl true, Highlander"
+rules:
+  - IN-EX-CODE-001
+  - IN-EX-CODE-002
+  - IN-EX-CODE-003
+  - IN-EX-CODE-004
+  - IN-EX-CODE-005
+  - IN-EX-CODE-006
 ---
 
 # Elixir Essentials

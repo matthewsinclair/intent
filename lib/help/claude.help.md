@@ -18,7 +18,7 @@ The `intent claude` namespace provides commands for managing Claude Code subagen
 
 ### subagents
 
-Manage Claude Code subagents -- specialized AI assistants with domain-specific expertise.
+Manage Claude Code subagents -- specialized AI assistants with domain-specific expertise. The canon family includes `intent`, `socrates`, `diogenes`, and the `critic-<lang>` rule-library critics (`critic-elixir`, `critic-rust`, `critic-swift`, `critic-lua`, `critic-shell`). Extension-supplied subagents (e.g. `worker-bee` post-v2.9.0) are listed transparently alongside canon entries.
 
 ```
 intent claude subagents init
@@ -41,6 +41,19 @@ intent claude skills sync [--force]
 intent claude skills uninstall <name> [--all]
 intent claude skills show <name>
 ```
+
+### rules
+
+Manage Intent's rule library -- the single source of truth that Critic subagents enforce against code and tests.
+
+```
+intent claude rules list [--lang <lang>] [--severity <level>]
+intent claude rules show <id>
+intent claude rules validate [<id>|<path>]
+intent claude rules index
+```
+
+See `intent help rules` for full usage and `intent/docs/rules.md` for the authoring guide.
 
 ### upgrade
 
@@ -99,4 +112,8 @@ intent claude prime --refresh
 
 - `intent help agents` - AGENTS.md management
 - `intent help plugin` - Discover all plugins
+- `intent help rules` - Rule library CLI
+- `intent help ext` - User extensions
+- `intent/docs/critics.md` - Critic subagent contract
+- `intent/docs/writing-extensions.md` - Extension authoring
 - `intent help` - General help

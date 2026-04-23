@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.0] - 2026-XX-XX
+
+### Added
+
+- **ST0034: Agentic Software Engineering Suite.** Rules become first-class citizens of Intent. Each rule is an atomic Markdown file with structured frontmatter, a Detection heuristic, and bad/good examples. Skills cite rules by stable `IN-*` IDs; Critic subagents enforce them.
+- **Rule library** at `intent/plugins/claude/rules/` with packs for `agnostic`, `elixir`, `rust`, `swift`, `lua`, and `shell`. Schema reference at `intent/plugins/claude/rules/_schema/rule-schema.md`. Schema is intentionally compatible with [`iautom8things/elixir-test-critic`](https://github.com/iautom8things/elixir-test-critic) (MIT, 2026 Manuel Zubieta) so upstream rules drop into Intent's discovery unchanged.
+- **`intent claude rules`** command surface: `list`, `show`, `validate`, `index`. The `validate` subcommand is the canonical authoring gate; `index` regenerates a deterministic, sorted `index.json`.
+- **Critic subagent family**: `critic-elixir`, `critic-rust`, `critic-swift`, `critic-lua`, `critic-shell`. Thin orchestrators that read the rule library at invocation time, apply each rule's Detection heuristic to target source files, and emit a stable severity-grouped report. Modes: `code` and `test` (`critic-shell` is `code` only).
+- **`.intent_critic.yml`** per-project config for disabling rules and adjusting severity thresholds. Sample at `intent/plugins/claude/rules/_schema/sample-intent-critic.yml`.
+- **User extension system** at `~/.intent/ext/<name>/` with the `intent ext` command surface (`list`, `show`, `validate`, `new`). Extensions contribute subagents, skills, or rule packs without modifying canon. Discovery is layered: canon is the default; user extensions override by name with a visible shadow warning. Manifest schema at `intent/plugins/claude/ext-schema/extension.schema.json`.
+- **Reference extension `worker-bee`** at `~/.intent/ext/worker-bee/`. The migration seeds it from `lib/templates/ext-seeds/worker-bee/` on first run; further development happens at the user-local path, not in canon.
+- **Authoritative documentation**: `intent/docs/rules.md` (rule library guide), `intent/docs/critics.md` (critic contract and report format), `intent/docs/writing-extensions.md` (extension authoring guide with worker-bee worked example).
+- **Migration `migrate_v2_8_2_to_v2_9_0`** in `bin/intent_helpers`: stamps version, bootstraps `~/.intent/ext/`, seeds worker-bee, prunes installed copies of the deleted `elixir` subagent and the relocated `worker-bee` from `~/.claude/agents/` and `~/.intent/agents/installed-agents.json`. Idempotent — running the upgrade twice is safe and never overwrites user state.
+- **`/in-session` bootstrap skill** for post-`/compact` skill loading.
+- **`tests/unit/docs_completeness.bats`** verifies the new docs are present, cross-referenced, and that `intent agents sync` is idempotent.
+
+### Removed
+
+- **`elixir` subagent** (replaced by `critic-elixir` plus the Elixir rule pack). The migration aggressively prunes installed copies on upgrade.
+- **`worker-bee` from Intent canon** (relocated to the reference extension at `~/.intent/ext/worker-bee/`). Re-install via `intent claude subagents install worker-bee` after the v2.9.0 upgrade.
+
+### Changed
+
+- **`in-standards` skill** loads agnostic rules by ID (no longer a "re-read CLAUDE.md" reminder).
+- **`in-review` skill** stage-2 dispatches to `critic-<lang>` based on project language detection.
+- **`in-elixir-essentials` and `in-elixir-testing` skills** declare machine-readable `rules:` frontmatter listing the IN-\* IDs they cite. Bodies remain rule-reference tables — content lives in the rule files.
+- **TCA suite refactored for the rule library**: `in-tca-init` selects rule packs by ecosystem instead of inventing per-audit R-numbering; `in-tca-audit` dispatches `critic-<lang>` per WP and captures the verbatim critic report; `in-tca-synthesize` consumes the stable critic schema (CRITICAL/WARNING/RECOMMENDATION/STYLE + IN-_ IDs); `in-tca-remediate` and `in-tca-finish` cite IN-_ IDs throughout. The 1195-line `intent/docs/total-codebase-audit.md` is updated for v2.9.0; pre-v2.9.0 lessons-learned appendices are preserved with a historical-context note.
+- **CLAUDE.md, MODULES.md, DECISION_TREE.md** updated for the v2.9.0 surfaces. DECISION_TREE.md gains three new branches: rule placement, skill placement, and rule-vs-skill-vs-subagent.
+- **Help files** updated: `lib/help/ext.help.md`, `lib/help/rules.help.md`, `lib/help/claude.help.md` (now lists the `rules` subcommand and the `critic-*` family).
+- **`creating-custom-agents.md`** distinguishes canon subagents from extension subagents; cross-links `writing-extensions.md`.
+
+### Attribution
+
+- Rule schema and selected rule principles inspired by [`iautom8things/elixir-test-critic`](https://github.com/iautom8things/elixir-test-critic) (MIT, copyright 2026 Manuel Zubieta), pinned at commit `1d9aa40700dab7370b4abd338ce11b922e914b14`. See `intent/plugins/claude/rules/_attribution/elixir-test-critic.md`.
+
 ## [2.8.2] - 2026-04-15
 
 ### Fixed

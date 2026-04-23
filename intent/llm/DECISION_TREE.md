@@ -52,7 +52,62 @@
 2. If yes: add code to that module
 3. If no: register in MODULES.md first, then create the file
 
-### Step 3: Anti-patterns
+### Step 3: Where does this rule belong?
+
+**Is the principle language-agnostic?** (Highlander, PFIC, Thin Coordinator, No Silent Errors)
+
+- `intent/plugins/claude/rules/agnostic/<slug>/RULE.md`
+- Must list at least two `concretised_by:` language-specific rule IDs
+
+**Is it Elixir-specific?**
+
+- `intent/plugins/claude/rules/elixir/<category>/<slug>/RULE.md`
+- Categories: `code`, `test`, `ash`, `phoenix`, `lv`
+- Must include runnable `good_test.exs` + `bad_test.exs` (test rules) or `good.exs` + `bad.exs` (code rules)
+
+**Is it Rust / Swift / Lua / Shell-specific?**
+
+- `intent/plugins/claude/rules/{rust,swift,lua,shell}/<category>/<slug>/RULE.md`
+- Textual examples only (per `_schema/CI-LIMITATIONS.md`)
+
+**Does the rule only apply to a specific team or project?**
+
+- User extension: `~/.intent/ext/<ext-name>/rules/<lang>/<category>/<slug>/RULE.md`
+- See `intent/docs/writing-extensions.md`
+
+Always run `intent claude rules validate <id>` before committing a new rule.
+
+### Step 4: Where does this skill belong?
+
+**Is it broadly applicable to Intent users?**
+
+- Canon: `intent/plugins/claude/skills/<slug>/SKILL.md`
+- Install via `intent claude skills install <slug>`
+
+**Is it specific to a user, team, or domain workflow?**
+
+- User extension: `~/.intent/ext/<ext-name>/skills/<slug>/SKILL.md`
+- Discovered transparently alongside canon skills; shadow warning if name collides
+
+### Step 5: Is this a rule, a skill, or a subagent?
+
+**An atomic, cite-able standard with Detection and good/bad examples?**
+
+- Rule. `intent/plugins/claude/rules/<lang>/<category>/<slug>/RULE.md`
+- Owned by the rule file. Skills cite it; Critics enforce it.
+
+**A procedural guide loaded on demand (e.g. "session kick-off", "test writing")?**
+
+- Skill. `intent/plugins/claude/skills/<slug>/SKILL.md`
+- Skills can list rule IDs in frontmatter; never restate rule prose.
+
+**A focused worker with its own context window and tool loadout (e.g. "critic", "test-spec generator")?**
+
+- Subagent. `intent/plugins/claude/subagents/<name>/agent.md` (canon) or `~/.intent/ext/<name>/subagents/<name>/agent.md` (extension).
+
+If the same prose lives in two of these layers, the duplicate is the bug. The rule file always wins.
+
+### Step 6: Anti-patterns
 
 If you're tempted to...
 

@@ -1,6 +1,6 @@
 ---
-verblock: "15 Aug 2025:v1.0: Created comprehensive guide for Intent agent creation"
-intent_version: 2.2.0
+verblock: "23 Apr 2026:v1.1: Canon vs extension subagents (v2.9.0)"
+intent_version: 2.9.0
 ---
 
 # Creating Custom Intent Agents
@@ -16,29 +16,45 @@ Intent agents are specialized AI assistants with domain-specific knowledge and f
 - Focused tool access appropriate to their domain
 - Comprehensive results for specific tasks
 
+## Canon vs extension subagents
+
+As of Intent v2.9.0, subagents come in two flavours:
+
+- **Canon subagents** ship with Intent itself, in `intent/plugins/claude/subagents/<name>/`. They are part of the Intent codebase and benefit every Intent user. Examples: `intent`, `socrates`, `diogenes`, the `critic-<lang>` family.
+- **Extension subagents** live in user-local extensions at `~/.intent/ext/<name>/subagents/<name>/`. They are not part of canon — they belong to one user, one team, or one domain. Example: `worker-bee` (relocated from canon to a reference extension in v2.9.0).
+
+The choice between them is one question: **is this useful to every Intent user, or only to some?**
+
+- Useful to every Intent user → canon. The remainder of this guide applies.
+- Useful only to some users → extension. See `intent/docs/writing-extensions.md` for the authoring guide. The agent definition (the `agent.md` shape) is identical to canon; the difference is where it lives and how it is distributed.
+
+A subagent that started as canon can be promoted to an extension (see worker-bee's migration), and vice versa. The agent.md shape is the same either way, so the move is mostly a directory rename plus a manifest.
+
 ## Prerequisites
 
-- Intent v2.2.0 or later installed
+- Intent v2.9.0 or later installed
 - Claude Code CLI installed and configured
 - Basic understanding of YAML frontmatter and JSON
 
 ## Agent Structure
 
-Each Intent agent consists of:
+Each Intent canon subagent consists of:
 
-- **Directory**: `intent/agents/agent-name/`
+- **Directory**: `intent/plugins/claude/subagents/<name>/`
 - **Agent Definition**: `agent.md` with YAML frontmatter and system prompt
 - **Metadata**: `metadata.json` with version and configuration details
 
-## Step-by-Step Creation Process
+(For extension subagents, the directory is `~/.intent/ext/<ext-name>/subagents/<name>/` and the manifest declares the contribution. Otherwise the file shape is identical.)
+
+## Step-by-Step Creation Process (Canon Subagent)
 
 ### 1. Create Agent Directory
 
-Create a new directory under `intent/agents/` for your agent:
+Create a new directory under `intent/plugins/claude/subagents/` for your agent:
 
 ```bash
-mkdir -p intent/agents/your-agent-name/
-cd intent/agents/your-agent-name/
+mkdir -p intent/plugins/claude/subagents/your-agent-name/
+cd intent/plugins/claude/subagents/your-agent-name/
 ```
 
 **Naming Convention:**

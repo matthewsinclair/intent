@@ -23,20 +23,35 @@ Ask the user:
 - Whether the project uses Ash Framework
 - Whether it is an umbrella/monorepo
 
-### 2. Define the rule set
+### 2. Select the rule packs
 
-Load ecosystem-appropriate defaults from the TCA reference doc:
+A TCA enforces Intent's rule library. There is no per-audit invented rule numbering — every cited rule has a stable `IN-*` ID and lives at `intent/plugins/claude/rules/<lang>/<category>/<slug>/RULE.md`. See `intent/docs/rules.md` for the schema.
 
-- **Elixir**: R1-R15 (add A1-A5 if Ash)
-- **Rust**: R1-R12 (validated rules with context-severity)
-- **Swift**: R1-R10 (validated rules with context-sensitivity)
-- **Polyglot**: separate rule sets per ecosystem + X-rules for cross-ecosystem concerns
+Default rule packs by ecosystem:
 
-Customize with the user:
+| Ecosystem | Packs to load                                                                                               |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+| Elixir    | `agnostic` + `elixir/code` + `elixir/test` (+ `elixir/ash`, `elixir/phoenix`, `elixir/lv` per dependencies) |
+| Rust      | `agnostic` + `rust/code` + `rust/test`                                                                      |
+| Swift     | `agnostic` + `swift/code` + `swift/test`                                                                    |
+| Lua       | `agnostic` + `lua/code` + `lua/test`                                                                        |
+| Shell     | `agnostic` + `shell/code`                                                                                   |
+| Polyglot  | Union of the above per ecosystem; agnostic loads once                                                       |
 
-- Remove rules that don't apply (e.g., R10 content source rules)
-- Add project-specific rules
-- Define rule precision boundaries (what each rule does NOT apply to)
+Enumerate the actual rule IDs to be enforced for this audit:
+
+```bash
+intent claude rules list --lang elixir
+intent claude rules list --lang agnostic
+```
+
+Customize with the user via `.intent_critic.yml` at the audited project root, **not** by inventing a new rule numbering:
+
+- Disable rules that don't apply: `disabled: [IN-EX-CODE-007]` (with a `# reason:` comment per rule).
+- Set the body threshold: `severity_min: warning` (default) or `style` to see everything.
+- Project-specific rules belong in a user extension at `~/.intent/ext/<project>-rules/rules/<lang>/<category>/<slug>/RULE.md`. See `intent/docs/writing-extensions.md`.
+
+The rule set for the audit is the canonical IN-\* IDs minus anything in the project's `.intent_critic.yml` `disabled:` list, plus any extension rules. Critics enforce this set automatically — no per-audit prompt template required.
 
 ### 3. Map codebase into components
 
@@ -89,39 +104,40 @@ For each WP, fill in:
 
 - Scope description (1-2 sentences)
 - Complete file list (every file to be audited)
-- Applicable rules with special focus
+- Applicable rule packs (per §2) and the language critic to dispatch (`critic-elixir`, `critic-rust`, etc.)
+- Special-focus IN-\* rule IDs for this WP (e.g. `IN-EX-CODE-006` for a known-Highlander-prone subsystem)
 - Cross-WP Highlander dependencies (2-4 other WPs that might overlap)
 
 ### 7. Write design.md
 
 The steel thread's design.md should contain:
 
-- Complete rule set with "What to Check" descriptions
-- Component map with effective file counts
+- Rule packs loaded for this audit (per §2), with the actual IN-\* IDs enumerated
+- `.intent_critic.yml` content if any rules are disabled or thresholds adjusted
+- Component map with effective file counts (per §3 file weights)
 - Batch ordering for parallelization (dependency-ordered)
 - Pre-filter results (Phase 0.5)
-- **False Positive Guidance (REQUIRED -- not optional)**: for each rule with known non-violations, list the acceptable patterns BEFORE Phase 1 starts. Without this section, mechanical rules generate high FP rates at synthesis time. In Lamplight ST0121, R7 pre-classification dropped the FP rate from an estimated 82% to 0%. If this section is missing or contains placeholder text, do NOT proceed to Phase 1 -- go back and author it.
+- **False Positive Guidance (REQUIRED -- not optional)**: for each IN-\* rule with known non-violations in this codebase, list the acceptable patterns BEFORE Phase 1 starts. Without this section, mechanical rules generate high FP rates at synthesis time. In Lamplight ST0121, the R7-equivalent pre-classification dropped the FP rate from an estimated 82% to 0%. If this section is missing or contains placeholder text, do NOT proceed to Phase 1 -- go back and author it.
 
 #### False Positive Guidance format
 
-For each rule that has known non-violations, add a subsection like this:
+For each IN-\* rule that has known non-violations in this codebase, add a subsection like this:
 
 ```markdown
-### R7 False Positive Guidance
+### IN-EX-CODE-002 (tagged-tuple-returns) False Positive Guidance
 
-Map.get is CORRECT on:
+`Map.get/2` returning a value that may be `nil` is CORRECT on:
 
 - Plain map types (config.properties, counters, LLM response maps)
 - Ash metadata maps
-- Jido plugin config maps
 - Any `%{}` not defined with `defstruct`
 
-Map.get is a VIOLATION on:
+`Map.get/2` returning `nil` is a VIOLATION on:
 
-- Any module defined with `defstruct`
+- Any module defined with `defstruct` where a missing key indicates an error
 - Known typed state containers (Pctx, Pctx.Mechanic, PhaseState, etc.)
 
-### R16 False Positive Guidance
+### IN-EX-CODE-NNN (bracket-access-on-structs) False Positive Guidance
 
 Bracket access `struct[:field]` is CORRECT on:
 
@@ -130,7 +146,7 @@ Bracket access `struct[:field]` is CORRECT on:
 - Any `%{}` not defined with `defstruct`
 ```
 
-Rules without known non-violations can be omitted from this section. Rules that do have non-violations MUST be documented -- an unsure auditor is a noisy auditor.
+Rules without known non-violations can be omitted. Rules that do have non-violations MUST be documented -- an unsure auditor is a noisy auditor. Where a project-wide disable is the right answer, lift the rule into `.intent_critic.yml` instead.
 
 ### 8. Write tasks.md
 
@@ -145,20 +161,20 @@ Phase checklist:
 
 ### 9. Pre-filter mechanical rules (Phase 0.5)
 
-Run grep for mechanical rules before launching sub-agents:
+Mechanical rules with stable grep signals can be pre-filtered before launching critics. The critics will catch the same violations, but pre-filtering gives Phase 0 ground truth that disagreements between mechanical hits and critic findings are signal worth investigating.
 
 ```bash
-# R15: Debug artifacts
+# Debug artifacts (Elixir): IO.inspect / dbg() in production paths
 grep -rn "IO\.inspect\|dbg()" lib/ --include="*.ex"
 
-# R7: Map.get on struct candidates
+# Bare Map.get on struct candidates (Elixir): IN-EX-CODE-002 territory
 grep -rn "Map\.get(" lib/ --include="*.ex"
 
-# R11: Missing @impl candidates
+# Missing @impl on behaviour callbacks (Elixir): IN-EX-CODE-003
 grep -rL "@impl" lib/ --include="*.ex" | xargs grep -l "def mount\|def handle_"
 ```
 
-Adapt patterns for the project's ecosystem. Record results in design.md.
+Adapt patterns for the project's ecosystem. Record results in design.md so synthesis can cross-check critic output against the mechanical baseline.
 
 ### 10. Verify file manifests
 

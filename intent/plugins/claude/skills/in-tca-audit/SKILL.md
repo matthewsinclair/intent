@@ -40,91 +40,71 @@ Before launching each sub-agent:
 3. **Check context usage** -- if above 70%, consider fresh session
 4. **Verify previous WP committed** -- no uncommitted audit files
 
-### 4. Launch sub-agent
+### 4. Dispatch the critic
 
-Use the prompt template with these required elements:
+Per WP, dispatch the language critic against the WP's file set. There is no custom prompt template — the critic enforces the rule library automatically and emits a stable severity-grouped report (see `intent/docs/critics.md`).
 
 ```
-You are performing a forensic code audit of the **{Component Name}** subsystem
-in the {Project} application.
-
-### Audit Rules
-
-| #   | Rule                    | What to Check                              |
-| --- | ----------------------- | ------------------------------------------ |
-| R1  | {rule name}             | {brief description of what to look for}    |
-...
-
-### Files to Audit
-
-1. `{path/to/file1}`
-2. `{path/to/file2}`
-...
-
-### Special Focus
-
-{R-numbers and why they matter for this component}
-
-### Cross-WP Highlander Check
-
-- vs. WP-XX: {what logic might be duplicated and why}
-- vs. WP-YY: {what logic might be duplicated and why}
-
-### Instructions
-
-Read EVERY file listed above. For each file, check every function against
-all rules. Report violations in this exact format:
-
-#### V{N}: {short title}
-
-- **File**: `{path}:{line(s)}`
-- **Rule**: R{N} -- {rule name}
-- **Severity**: High | Medium | Low
-- **Confidence**: HIGH | MEDIUM | LOW
-- **Description**: {what the violation is}
-- **Remedy**: {how to fix it}
-
-After all violations, add a summary table:
-
-### Summary
-
-| Severity  | Count |
-| --------- | ----- |
-| High      | X     |
-| Medium    | Y     |
-| Low       | Z     |
-| **Total** | **T** |
-
-Write the complete audit to `{path/to/WP/NN/socrates.md}`.
-
-Be thorough. Do NOT skip files. Do NOT invent violations -- only report
-what you actually see in the code. If a file has no violations, say so
-explicitly.
+Task(subagent_type="critic-<lang>", prompt="review <file1> <file2> ...")
 ```
 
-**Agent selection**:
+For test files in the WP's manifest, also run `test-check`:
 
-| Agent Type        | Use For                                                  |
-| ----------------- | -------------------------------------------------------- |
-| `diogenes`        | Primary choice -- Socratic dialog, structured output     |
-| `general-purpose` | Large polyglot WPs where no specialized agent matches    |
-| `Explore`         | Pre-audit reconnaissance if component boundaries unclear |
-| `elixir`          | Elixir-specific deep dives (post-audit)                  |
+```
+Task(subagent_type="critic-<lang>", prompt="test-check <test_file1> <test_file2> ...")
+```
 
-The prompt is the quality driver, not the agent type.
+`<lang>` is the WP's language per `info.md`. Polyglot WPs run one dispatch per language. The critic auto-loads the right rule packs (agnostic + language code/test + framework subdirs) and honours the project's `.intent_critic.yml`.
+
+**Critic selection**:
+
+| Project signal    | Critic to dispatch |
+| ----------------- | ------------------ |
+| `mix.exs`         | `critic-elixir`    |
+| `Cargo.toml`      | `critic-rust`      |
+| `Package.swift`   | `critic-swift`     |
+| `.luarc.json`     | `critic-lua`       |
+| Bash/zsh shebangs | `critic-shell`     |
+
+This matches the `/in-review` stage-2 dispatcher.
+
+### 4a. Capture the critic report
+
+Write the captured critic output to `WP/{NN}/socrates.md` verbatim, with a small header for context:
+
+```markdown
+# WP-{NN} {Component Name} -- Critic Audit
+
+**Critic**: critic-<lang> (review + test-check)
+**Files**: {N} ({code count} code, {test count} test)
+**Date**: {YYYY-MM-DD}
+
+<critic report verbatim, including all severity sections and the Summary line>
+
+## Cross-WP Highlander notes
+
+- vs. WP-XX: {what to investigate at synthesis}
+- vs. WP-YY: {what to investigate at synthesis}
+```
+
+The critic report itself owns the rule IDs (IN-\*), severities (CRITICAL/WARNING/RECOMMENDATION/STYLE), file:line citations, and one-line violation descriptions. The wrapper only adds component identity, dispatch metadata, and cross-WP Highlander handoffs that synthesis will consume.
+
+If the critic emits zero findings, the report still includes the bare `Summary: 0 critical, 0 warning, 0 recommendation, 0 style.` line — record it. Absence of findings is a first-class outcome.
 
 ### 5. Post-WP
 
-After each sub-agent completes:
+After each critic dispatch completes:
 
-1. **Record metadata** at the top of `WP/{NN}/socrates.md` as the first non-heading line (or right after the H1 title). Format: `**Agent**: {type}; **Turns**: N; **Raw hits**: N; **FPs**: N`. Example: `**Agent**: elixir; **Turns**: 24; **Raw hits**: 9; **FPs**: 2`. This line is queryable across audits and feeds directly into the "Sub-Agent Effectiveness" section of the final feedback report. Without it, cross-TCA comparisons have to record "not tracked" for agent effectiveness, which is exactly what happened on the Lamplight ST0121 run that motivated this rule.
+1. **Record metadata** at the top of `WP/{NN}/socrates.md` immediately under the H1. Format: `**Critic**: critic-<lang>; **Files**: N (code:M test:K); **Findings**: critical=A warning=B recommendation=C style=D; **FPs noted**: N`. The findings counts come straight from the critic's `Summary:` line; FPs noted is the count flagged in §4a's cross-check against pre-filter ground truth. This line is queryable across audits and feeds the "Critic Effectiveness" section of the final feedback report.
 2. **Commit immediately**: `git add WP/{NN}/socrates.md && git commit -m "audit: WP-{NN} {component}"`
 3. **Log the summary** in your running tally
 4. **Run progress check** to update status
 
 ### 6. Repeat
 
-Continue launching sub-agents for each WP in the current batch, then move to the next batch per the ordering in design.md.
+Continue dispatching the critic for each WP in the current batch, then move to the next batch per the ordering in design.md. WPs within a batch can run in parallel if they don't share files; dispatch them in the same message so the critics run concurrently.
+
+**Critic registration freeze**: if any critic was installed mid-session (`intent claude subagents install critic-<lang>`), the `Task()` dispatch will fail with "subagent not found" until the next session starts. Restart Claude Code before launching the audit. See `intent/docs/critics.md` §Operational note.
 
 ### 7. Final check
 
@@ -139,18 +119,18 @@ Exit code 0 confirms all WPs complete. Proceed to `/in-tca-synthesize`.
 
 ## Crash Prevention
 
-| Risk             | Mitigation                             |
-| ---------------- | -------------------------------------- |
-| Context overflow | `/compact` before each WP              |
-| Lost work        | Commit after every WP (never batch)    |
-| Sub-agent stall  | Set max_turns limit on large WPs       |
-| Session crash    | Keep a running log outside the session |
-| WP too large     | Split WPs with >60 files into sub-WPs  |
-| File manifest    | Verify files exist before each WP      |
+| Risk             | Mitigation                                                         |
+| ---------------- | ------------------------------------------------------------------ |
+| Context overflow | `/compact` before each WP                                          |
+| Lost work        | Commit after every WP (never batch)                                |
+| Critic not found | Restart session before audit if critics were installed mid-session |
+| Session crash    | Keep a running log outside the session                             |
+| WP too large     | Split WPs with >60 files into sub-WPs                              |
+| File manifest    | Verify files exist before each WP                                  |
 
 ## Important Notes
 
 - Never batch commits -- commit after every single WP
-- The anti-hallucination instruction is not optional
-- Include the confidence field in every violation
-- If context usage exceeds 70%, start a fresh session rather than risk truncation
+- Capture the critic report verbatim. Critics never invent IN-\* IDs and never invent file:line citations; the report is ground truth for synthesis.
+- Cross-WP Highlander notes are the wrapper's job — the critic does not see other WPs.
+- If context usage exceeds 70%, start a fresh session rather than risk truncation.

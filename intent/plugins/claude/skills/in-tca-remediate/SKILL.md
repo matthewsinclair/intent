@@ -101,11 +101,11 @@ swift build && swift test
 
 If a fix breaks tests, investigate the data type before forcing the fix:
 
-- `Map.get` on a plain map is correct -- only flag on known defstructs (R7)
-- `&&` on a truthy non-boolean value may be intentional (R8)
+- `Map.get` on a plain map is correct -- only flag on known defstructs (`IN-EX-CODE-002` carve-outs)
+- `&&` on a truthy non-boolean value may be intentional
 - `String.to_atom` on controlled inputs may be correct (not user input)
 
-Revert broken fixes immediately. Mark as false positive with explanation in the synthesis doc.
+Revert broken fixes immediately. Mark as false positive with explanation in the synthesis doc, citing the IN-\* rule ID and the carve-out condition. If the FP is project-wide (not WP-local), consider lifting it into `.intent_critic.yml` `disabled:` so future audits don't re-flag the same pattern.
 
 ### 8. Final verification
 

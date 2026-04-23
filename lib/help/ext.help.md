@@ -45,7 +45,7 @@ intent ext show <name>
 
 ### validate
 
-Validate extension manifests against the JSON schema, reject path-traversal attempts, and check that every declared contribution path exists. _Lands in WP02 Session 3._
+Validate extension manifests against the JSON schema, reject path-traversal attempts, and check that every declared contribution path exists.
 
 ```
 intent ext validate              # validate every extension
@@ -54,7 +54,7 @@ intent ext validate <name>       # validate one
 
 ### new
 
-Scaffold a new extension skeleton. _Lands in WP02 Session 4._
+Scaffold a new extension skeleton with a valid manifest and placeholder contribution. The generated extension passes `intent ext validate` immediately.
 
 ```
 intent ext new <name> --subagent
@@ -86,3 +86,5 @@ intent claude subagents install worker-bee
 
 - `intent help claude` — subagents and skills consume extensions through the claude plugin
 - `intent help plugin` — the plugin architecture ext builds on
+- `intent/docs/writing-extensions.md` — full extension authoring guide with worker-bee worked example
+- `intent/plugins/claude/ext-schema/extension.schema.json` — manifest JSON Schema

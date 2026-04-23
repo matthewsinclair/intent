@@ -1,15 +1,18 @@
 ---
 title: "Total Codebase Audit -- Forensic Process Tech Note"
-version: "v3.0"
-date: "2026-03-19"
+version: "v4.0"
+date: "2026-04-23"
 author: "Intent Project"
 ---
+
+> **v2.9.0 update**: TCAs from Intent v2.9.0 onward enforce the rule library at `intent/plugins/claude/rules/` via the `critic-<lang>` subagent family. There is no per-audit invented R-numbering and no custom audit-prompt template. Rule IDs are stable across audits (`IN-EX-CODE-006`, `IN-AG-HIGHLANDER-001`, etc.). See `intent/docs/rules.md` for the rule library and `intent/docs/critics.md` for the critic contract. Appendices D, E, and F preserve historical content from pre-v2.9.0 audits — the lessons remain valid but the rule citations should be read against today's IN-\* schema.
 
 # Prerequisites
 
 - An Intent project with steel thread infrastructure
-- Claude Code with Intent subagents installed (`intent claude subagents install --all`)
-- A defined set of coding rules (see Phase 0.1)
+- Claude Code with the `critic-<lang>` family installed (`intent claude subagents install critic-elixir`, etc.)
+- The rule packs that match the audited project's languages (canon ships agnostic + elixir + rust + swift + lua + shell)
+- Optionally: a project-level `.intent_critic.yml` to disable rules or adjust severity thresholds (see `intent/docs/critics.md`)
 - Project-level MODULES.md and DECISION_TREE.md (created by `intent init` or `intent claude prime`)
 
 See also: ST0026 (Steel Thread Zero) for the prevention framework that stops these violations from recurring.
@@ -93,115 +96,78 @@ The flat layout used to repair the Lamplight ST0121/WP/24 state (phase-numbered 
 
 When reviewing component audits in Phase 2, sort by "findings that would have caused later pain" rather than by raw violation count. Lamplight ST0121 Component 03 had the lowest raw count (2 violations) but the highest per-finding impact — one of those findings was a latent circular dependency between modules that would have silently degraded the compile topology. A component with 2 high-impact findings is more valuable than a component with 9 mechanical findings. Use the 5-tier priority (Phase 2.4) when ranking in post-mortems.
 
-## 0.1 Define the Rule Set
+## 0.1 Select the Rule Packs
 
-The audit is only as good as its rules. Before anything else, define the complete, numbered rule set that every file will be checked against.
+The audit is only as good as its rules. Intent v2.9.0 introduced a first-class rule library at `intent/plugins/claude/rules/`, with stable IN-\* rule IDs and a Detection heuristic per rule. **TCAs from v2.9.0 onward enforce the rule library — no per-audit invented R-numbering.** See `intent/docs/rules.md` for the schema and `intent/docs/critics.md` for how critics consume rules.
 
-### Rule Set Structure
+### Rule packs by ecosystem
 
-Each rule needs:
+| Ecosystem | Rule packs to load                                                                                          |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+| Elixir    | `agnostic` + `elixir/code` + `elixir/test` (+ `elixir/ash`, `elixir/phoenix`, `elixir/lv` per dependencies) |
+| Rust      | `agnostic` + `rust/code` + `rust/test`                                                                      |
+| Swift     | `agnostic` + `swift/code` + `swift/test`                                                                    |
+| Lua       | `agnostic` + `lua/code` + `lua/test`                                                                        |
+| Shell     | `agnostic` + `shell/code`                                                                                   |
+| Polyglot  | Union of the above per ecosystem; `agnostic` loads once                                                     |
 
-| Field        | Description                                      | Example              |
-| ------------ | ------------------------------------------------ | -------------------- |
-| **ID**       | Short identifier (R1, R2, ...)                   | R6                   |
-| **Name**     | Human-readable name                              | The Highlander Rule  |
-| **Source**   | Where the rule is defined                        | RULES.md #6          |
-| **Check**    | What to look for (positive or negative)          | Duplicate code paths |
-| **Applies**  | Which file types / components it applies to      | All .ex files        |
-| **Severity** | Default severity when violated (High/Medium/Low) | High                 |
+Enumerate the actual rule IDs to be enforced for this audit:
 
-### Rule Sources by Ecosystem
-
-| Ecosystem        | Typical Rule Sources                                                |
-| ---------------- | ------------------------------------------------------------------- |
-| Elixir/Phoenix   | RULES.md, Elixir Essentials, Credo config, usage-rules.md           |
-| Rust             | clippy.toml, .rustfmt.toml, project CONTRIBUTING.md, API guidelines |
-| Swift            | SwiftLint config, Apple HIG, project style guide                    |
-| TypeScript/React | ESLint config, project CONTRIBUTING.md, component patterns          |
-| General          | OWASP top 10, DRY/SOLID principles, project CLAUDE.md               |
-
-### Example: Elixir Combined Rules (15 rules)
-
-```
-R1:  Typed Data Access (no [:key] on known structs)
-R2:  Thin Controllers/LiveViews/CLI
-R3:  No Helpers in Controllers
-R4:  Component Extraction
-R5:  Multi-Head Functions for Matchable Values
-R6:  The Highlander Rule (no duplicate code paths)
-R7:  Assertive Struct Access (known defstructs only)
-R8:  [retired -- 100% false positives, removed in v2.9.0]
-R9:  Exhaustive with Clauses
-R10: Content Source Rules (serving_mode) [project-specific]
-R11: @impl true on all behaviour callbacks
-R12: Tagged tuples for fallible functions
-R13: Pipe operator for sequential transforms
-R14: Naming conventions (?, !, _ prefix)
-R15: No debug artifacts (IO.inspect, dbg)
-R16: Bracket access on struct (use dot access)
+```bash
+intent claude rules list --lang elixir
+intent claude rules list --lang agnostic
+intent claude rules show IN-EX-CODE-006
 ```
 
-### Rule Precision
+### Customising the rule set for a project
 
-Rules must specify their boundary conditions to prevent over-reporting:
+The audit's rule set is the canonical IN-\* IDs from the loaded packs, minus any rules suppressed by the audited project's `.intent_critic.yml`, plus any user-extension rules at `~/.intent/ext/<name>/rules/<lang>/<category>/<slug>/RULE.md`.
 
-- **R5 (Multi-Head Functions)**: Only flag when the branching value is matchable (atoms, tuples, known structs). Do NOT flag conditional logic on computed booleans, string parsing, or numeric ranges where guards are the appropriate tool.
-- **R7 (Assertive Struct Access)**: Only flag `Map.get/2` and `map[:key]` when the target is a known `defstruct`. Do NOT flag access on plain maps, JSON-decoded maps, or dynamic data where the key set is genuinely unknown.
-- **General principle**: Every rule should state what it does NOT apply to, not just what it catches. Over-broad rules generate false positives that erode trust in the audit.
+Project-level customisation lives in `.intent_critic.yml` at the audited project root:
 
-**Empirical benchmark — pre-classification at Phase 0 vs triage at synthesis**: Pre-classifying acceptable patterns in a design.md **False Positive Guidance** section (REQUIRED — see Phase 0.1 and the `in-tca-init` skill) dramatically improves signal. Lamplight ST0121 (2026-04-08): R8 (Assertive Struct Access) achieved a 0% false-positive rate with pre-classification. Without it, the FP rate would have been ~82% — roughly 18 additional `Map.get` calls would have been flagged as violations on plain maps, Jido plugin configs, LLM response maps, and Ash metadata, all of which are legitimate uses that do not touch `defstruct`-defined modules. Pre-classification belongs at Phase 0 authoring time, not at synthesis-time triage. An auditor drowning in synthesis FPs will lose signal on the real findings.
+```yaml
+disabled:
+  - IN-EX-CODE-007 # reason: moduledoc noise not valued in this project
 
-### Example: Rust Rules (validated)
+severity_min: warning # default — body shows critical + warning, summary shows all
+```
 
-| #   | Rule                          | Severity Context                                         |
-| --- | ----------------------------- | -------------------------------------------------------- |
-| R1  | No unwrap() on Results        | main/CLI: Medium; library/daemon: High; LazyLock: exempt |
-| R2  | Derive standard traits        | Debug+Clone+PartialEq on public types                    |
-| R3  | Error types implement Error   | std::error::Error + Display                              |
-| R4  | Unsafe blocks need SAFETY     | Security boundary: High; perf-critical: Medium           |
-| R5  | Pattern matching over if-let  | Same matchable-values boundary as Elixir R5              |
-| R6  | The Highlander Rule           | Universal                                                |
-| R7  | Builder pattern (>3 fields)   | Public API only                                          |
-| R8  | No panic! in library code     | CLI/main OK; library: High                               |
-| R9  | Exhaustive match arms         | No \_ catch-all on enums                                 |
-| R10 | Explicit lifetime annotations | Public APIs only                                         |
-| R11 | #[must_use] on fallible fns   | Library code only                                        |
-| R12 | Const generics over runtime   | Where compiler supports it                               |
+See `intent/docs/critics.md` §`.intent_critic.yml` schema for the full reference.
 
-**Key nuance**: R1 severity depends on context. `unwrap()` in `main()` or CLI arg parsing is acceptable (Medium). In library code or long-running daemons, it's High. `LazyLock` initializers that panic on poisoned state are exempt.
+Project-specific rules belong in a user extension. Do **not** invent ad-hoc R-numbering for one project's needs — it forks the rule space and breaks every cross-audit comparison. Author the rule under `~/.intent/ext/<project>-rules/rules/<lang>/<category>/<slug>/RULE.md` per `intent/docs/writing-extensions.md`. Extension rules participate in critic discovery automatically.
 
-### Example: Swift Rules (validated)
+### False Positive Guidance: still load-bearing
 
-| #   | Rule                         | Severity Context                                            |
-| --- | ---------------------------- | ----------------------------------------------------------- |
-| R1  | No force unwraps (!)         | Tests: exempt; UI preview: Low; production: High            |
-| R2  | Thin ViewControllers         | Business logic in services, not views                       |
-| R3  | Protocol in extensions       | Conformance must be in extensions                           |
-| R4  | View extraction (>100 lines) | Applies to SwiftUI body and UIKit viewDidLoad               |
-| R5  | Enum-based routing           | Over string matching                                        |
-| R6  | The Highlander Rule          | Universal                                                   |
-| R7  | Codable on network types     | All API response/request types                              |
-| R8  | Access control               | Default internal; explicit public. try? context-sensitive   |
-| R9  | Error handling do-try-catch  | try? acceptable for fire-and-forget; not for critical paths |
-| R10 | Async/await over callbacks   | Modern concurrency patterns                                 |
+Even with stable IN-* rules and `.intent_critic.yml`, codebase-specific carve-outs exist. The `design.md` **False Positive Guidance** section (REQUIRED — see Phase 0.1 and the `in-tca-init` skill) documents the conditions under which a flagged rule is a known non-violation in *this\* codebase, distinct from a project-wide disable.
 
-**Key nuance**: R6 (AppKit vs SwiftUI) -- projects mixing both frameworks need separate thresholds. AppKit view code has different complexity baselines than SwiftUI declarative views. R8 `try?` is acceptable for logging/analytics calls but not for data persistence.
+**Empirical benchmark — pre-classification at Phase 0 vs triage at synthesis**: Lamplight ST0121 (2026-04-08): the `Map.get`-on-defstruct rule (which would be `IN-EX-CODE-002` carve-out territory in the v2.9.0 schema) achieved a 0% false-positive rate _with_ pre-classification. Without it, FP rate would have been ~82% — roughly 18 additional `Map.get` calls flagged on plain maps, Jido plugin configs, LLM response maps, and Ash metadata, all legitimate uses that don't touch `defstruct`-defined modules. Pre-classification belongs at Phase 0 authoring time, not synthesis-time triage. An auditor drowning in synthesis FPs loses signal on real findings.
 
-### Supplemental: Ash Framework Rules (A1-A5)
+For each IN-\* rule with known non-violations in the codebase, document the carve-out in `design.md`:
 
-For Elixir projects using the Ash Framework, add these supplemental rules alongside the base R1-R15:
+```markdown
+### IN-EX-CODE-002 (tagged-tuple-returns) False Positive Guidance
 
-| #   | Rule                       | What to Check                                                   |
-| --- | -------------------------- | --------------------------------------------------------------- |
-| A1  | Code Interface Access Only | No direct Ash.get!/read!/create! in LiveViews or controllers    |
-| A2  | ash.codegen for migrations | Never mix ecto.gen.migration; Ash generates correct migrations  |
-| A3  | Actor Authorization        | Actor set on query/changeset construction, not action execution |
-| A4  | Code Interface Options     | Use query: [filter:, sort:] over manual Ash.Query pipelines     |
-| A5  | Cross-Domain Access        | Domain A must not bypass Domain B's code interfaces             |
+`Map.get/2` returning `nil` is CORRECT on:
 
-These are first-class audit rules, not afterthoughts. Ash-specific violations are often the highest-impact findings in Ash projects because they break the framework's authorization and consistency guarantees.
+- Plain map types (config.properties, counters, LLM response maps)
+- Ash metadata maps
+- Any `%{}` not defined with `defstruct`
 
-**Key**: R6 (Highlander) is universal. Every ecosystem benefits from deduplication auditing.
+`Map.get/2` returning `nil` is a VIOLATION on:
+
+- Any module defined with `defstruct` where a missing key indicates an error
+- Known typed state containers (Pctx, Pctx.Mechanic, PhaseState, etc.)
+```
+
+If a carve-out is project-wide rather than WP-local, lift it into `.intent_critic.yml` `disabled:` instead of repeating it across WP design notes.
+
+### Framework-specific rule packs
+
+Frameworks like Ash and Phoenix LiveView ship as subdirectories of the language pack: `intent/plugins/claude/rules/elixir/ash/`, `intent/plugins/claude/rules/elixir/phoenix/`, `intent/plugins/claude/rules/elixir/lv/`. The `critic-elixir` subagent auto-loads these when `code` mode is requested, so a Phoenix-on-Ash project's TCA gets all framework rules without explicit configuration.
+
+For Ash-on-Elixir specifically, the `IN-EX-ASH-*` rules cover the same ground as the historical "A1-A5" supplemental rules — code-interface access only, ash.codegen for migrations, actor authorisation, code-interface options, cross-domain access. They are first-class audit rules, not afterthoughts.
+
+**Key**: `IN-AG-HIGHLANDER-001` (concretised as `IN-EX-CODE-006`, `IN-RS-CODE-002`, etc.) is universal. Every ecosystem benefits from deduplication auditing.
 
 ## 0.2 Map the Codebase into Components
 
@@ -310,20 +276,20 @@ WP-04 (LiveViews):   R2 (thin LiveViews), R11 (@impl), R4 (component extraction)
 
 ## 0.5 Pre-Filter Mechanical Rules
 
-Before launching sub-agents, run grep-based pre-filtering for mechanical rules that can be detected without semantic analysis:
+Before dispatching critics, run grep-based pre-filtering for mechanical rules that can be detected without semantic analysis. Critics will catch the same violations, but pre-filtering gives Phase 0 ground truth that any disagreement between mechanical hits and critic findings is signal worth investigating.
 
 ```bash
-# R15: Debug artifacts
+# Debug artifacts (Elixir)
 grep -rn "IO\.inspect\|dbg()" lib/ --include="*.ex"
 
-# R7: Map.get on struct candidates
+# Bare Map.get on struct candidates (Elixir): IN-EX-CODE-002 territory
 grep -rn "Map\.get(" lib/ --include="*.ex"
 
-# R11: Missing @impl (files with behaviour callbacks but no @impl)
+# Missing @impl on behaviour callbacks (Elixir): IN-EX-CODE-003
 grep -rL "@impl" lib/ --include="*.ex" | xargs grep -l "def mount\|def handle_"
 ```
 
-**Why pre-filter**: These results feed directly into synthesis (Phase 2), reducing sub-agent hallucination risk on mechanical rules. Sub-agents still check these rules, but the pre-filter provides ground truth for validation.
+**Why pre-filter**: These results feed directly into synthesis (Phase 2). The critic enforces the same rules through its IN-\* Detection heuristics, but mechanical pre-filter results are independent ground truth. A critic finding that doesn't appear in the pre-filter, or vice versa, is worth investigating — usually it's a Detection refinement opportunity.
 
 Record pre-filter results in `design.md` for cross-reference during synthesis.
 
@@ -372,9 +338,11 @@ status: Not Started
 - `path/to/file2.ex`
   ...
 
-## Applicable Rules
+## Applicable Rule Packs
 
-All {N} rules. Special focus: R{X} ({reason}), R{Y} ({reason}).
+`agnostic` + `<lang>/code` + `<lang>/test` (+ framework subdirs as applicable).
+Critic to dispatch: `critic-<lang>`.
+Special focus: `IN-<LANG>-<CAT>-NNN` ({reason}), `IN-<LANG>-<CAT>-MMM` ({reason}).
 
 ## Cross-WP Highlander Dependencies
 
@@ -430,99 +398,74 @@ Encode these as first-class concerns in the relevant WP's `socrates.md`, separat
 
 # Phase 1: Component Audit
 
-## 1.1 The Sub-Agent Prompt
+## 1.1 The Critic Dispatch
 
-Each WP audit is driven by a single sub-agent invocation. The prompt must be precise and self-contained.
+Each WP audit is driven by dispatching the language critic against the WP's file set. The critic enforces the rule library automatically and emits a stable severity-grouped report. There is no custom prompt template — the audit is `Task(subagent_type="critic-<lang>", prompt="review <files>")`.
 
-### Prompt Template
+### Dispatch shape
 
-```
-You are performing a forensic code audit of the **{Component Name}** subsystem
-in the {Project} application.
-
-### Audit Rules
-
-- R1: {rule name and brief description}
-- R2: {rule name and brief description}
-...
-- R{N}: {rule name and brief description}
-
-### Files to Audit
-
-1. `{path/to/file1}`
-2. `{path/to/file2}`
-...
-
-### Special Focus
-
-{R-numbers and why they matter for this component}
-
-### Instructions
-
-Read EVERY file listed above. For each file, check every function against
-all {N} rules. Report violations in this exact format:
-
-#### V{N}: {short title}
-
-- **File**: `{path}:{line(s)}`
-- **Rule**: R{N} — {rule name}
-- **Severity**: High | Medium | Low
-- **Description**: {what the violation is}
-- **Remedy**: {how to fix it}
-- **Confidence**: HIGH | MEDIUM | LOW
-
-After all violations, add a summary table:
-
-### Summary
-
-| Severity | Count |
-| -------- | ----- |
-| High     | X     |
-| Medium   | Y     |
-| Low      | Z     |
-| **Total**| **T** |
-
-Write the complete audit to `{path/to/WP/NN/socrates.md}`.
-
-Be thorough. Do NOT skip files. Do NOT invent violations — only report
-what you actually see in the code. If a file has no violations, say so
-explicitly.
-```
-
-### Rule Descriptions in Prompts
-
-> **Lesson from umbrella audit**: Don't just list rule names -- include a "What to check" column or brief description for each rule. This prevents the sub-agent from misinterpreting a rule.
-
-Example (table format):
+For code files:
 
 ```
-| #   | Rule                       | What to check                                                  |
-| --- | -------------------------- | -------------------------------------------------------------- |
-| R1  | Typed Data Access          | No `map[:key]` on known structs. Use `struct.field`.           |
-| R6  | Highlander Rule            | Never duplicate code paths. Each concern has one implementation|
-| R7  | Assertive Struct Access    | No `Map.get(struct, :field)` on known struct fields.           |
+Task(subagent_type="critic-<lang>", prompt="review <file1> <file2> ...")
 ```
 
-This is more reliable than bare `R6: The Highlander Rule` -- sub-agents need the "what" not just the "name."
+For test files in the WP's manifest:
 
-### Critical Prompt Elements
+```
+Task(subagent_type="critic-<lang>", prompt="test-check <test_file1> <test_file2> ...")
+```
 
-1. **Explicit file list**: Every file must be named. Sub-agents will not discover files on their own reliably.
-2. **Exact output format**: The violation format must be specified precisely so synthesis can parse it.
-3. **"Read EVERY file"**: Without this, sub-agents may skip files they consider "simple."
-4. **"Do NOT invent violations"**: Without this, sub-agents may hallucinate violations.
-5. **Write destination**: Tell the sub-agent exactly where to write the output.
+`<lang>` is the WP's language per `info.md`. Polyglot WPs run one dispatch per language. The critic auto-loads the right rule packs (agnostic + language code/test + framework subdirs) and honours `.intent_critic.yml` from the audited project root.
 
-## 1.2 Sub-Agent Selection
+### Capturing the report
 
-| Agent Type                       | Use For                                                                                                      |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `diogenes`                       | Primary choice. Socratic dialog produces structured output                                                   |
-| `Explore`                        | Pre-audit reconnaissance if component boundaries unclear                                                     |
-| `elixir`                         | Elixir-specific deep dives (post-audit remediation)                                                          |
-| `general-purpose` (General Opus) | Large polyglot WPs where no specialized agent matches. The prompt is the quality driver, not the agent type. |
+The critic writes its report directly to its return value. The audit wrapper (`/in-tca-audit` skill) writes the verbatim report to `WP/{NN}/socrates.md` with a small header:
 
-For non-Elixir projects, use `diogenes` with language-appropriate rules, or a `general-purpose` agent with the full prompt template.
+```markdown
+# WP-{NN} {Component Name} -- Critic Audit
+
+**Critic**: critic-<lang> (review + test-check)
+**Files**: {N} ({code count} code, {test count} test)
+**Date**: {YYYY-MM-DD}
+
+<critic report verbatim, including all severity sections and the Summary line>
+
+## Cross-WP Highlander notes
+
+- vs. WP-XX: {what to investigate at synthesis}
+- vs. WP-YY: {what to investigate at synthesis}
+```
+
+The critic report itself owns the rule IDs (IN-\*), severities (CRITICAL/WARNING/RECOMMENDATION/STYLE), file:line citations, and one-line violation descriptions. The wrapper only adds component identity, dispatch metadata, and cross-WP Highlander handoffs that synthesis will consume. See `intent/docs/critics.md` for the full report format and parse-stable invariants.
+
+### Why critic dispatch beats a custom prompt template
+
+Pre-v2.9.0, every TCA invented a per-audit R-numbered rule list and embedded a 100-line custom prompt template that named the rule format, output schema, and anti-hallucination guardrails. With the rule library and critic family:
+
+- Rule IDs are stable across audits — `IN-EX-CODE-006` means the same thing on every project.
+- The output format is the critic contract (parse-stable, severity-grouped); synthesis reads it without per-audit parsing.
+- The Detection heuristic lives in each `RULE.md` — the critic reads it, no need to embed "what to check" prose in the prompt.
+- "Do NOT invent violations" is built into the critic contract; every finding cites a rule ID that resolves to a real RULE.md.
+- Per-project carve-outs live in `.intent_critic.yml`, not in per-audit prompt mods.
+
+The lesson from prior audits — "include a 'What to check' description, not just the rule name" — is now satisfied structurally: every IN-\* ID in a critic report resolves to its full RULE.md.
+
+## 1.2 Critic Selection
+
+Critic dispatch is mechanical — match the project's language signal to the right critic.
+
+| Project signal                              | Critic to dispatch | Rule packs auto-loaded                                           |
+| ------------------------------------------- | ------------------ | ---------------------------------------------------------------- |
+| `mix.exs`                                   | `critic-elixir`    | agnostic + elixir/code + elixir/test (+ ash/phoenix/lv per deps) |
+| `Cargo.toml`                                | `critic-rust`      | agnostic + rust/code + rust/test                                 |
+| `Package.swift`                             | `critic-swift`     | agnostic + swift/code + swift/test                               |
+| `.luarc.json` or .lua-dominant tree         | `critic-lua`       | agnostic + lua/code + lua/test                                   |
+| `bin/` or `scripts/` with bash/zsh shebangs | `critic-shell`     | agnostic + shell/code                                            |
+
+Polyglot projects dispatch one critic per language per WP. For pre-audit reconnaissance (component boundary discovery), `Explore` agent is still the right tool — but the audit itself goes through critics, not free-form sub-agents.
+
+**Critic registration freeze**: if any critic was installed mid-session, the `Task()` dispatch will fail with "subagent not found" until the next session starts. Restart Claude Code before launching the audit. See `intent/docs/critics.md` §Operational note.
 
 ## 1.3 Execution Protocol
 
@@ -535,12 +478,12 @@ For non-Elixir projects, use `diogenes` with language-appropriate rules, or a `g
 
 ### During Each WP
 
-The sub-agent runs autonomously. It will:
+The critic dispatch runs autonomously. It will:
 
-1. Read every listed file
-2. Check every function against every rule
-3. Write findings to `socrates.md`
-4. Return a summary
+1. Re-read the rule library (no caching across invocations)
+2. Apply each rule's Detection heuristic to each listed file
+3. Emit a severity-grouped report (CRITICAL / WARNING / RECOMMENDATION / STYLE) with a `Summary:` line
+4. Return the report; the audit wrapper writes it verbatim to `WP/{NN}/socrates.md`
 
 ### After Each WP
 
@@ -552,23 +495,23 @@ The sub-agent runs autonomously. It will:
 
 Context exhaustion is the primary risk. Mitigations:
 
-| Risk             | Mitigation                             |
-| ---------------- | -------------------------------------- |
-| Context overflow | `/compact` before each WP              |
-| Lost work        | Commit after every WP (never batch)    |
-| Sub-agent stall  | Set max_turns limit on large WPs       |
-| Session crash    | Keep a running log outside the session |
-| WP too large     | Split WPs with >60 files into sub-WPs  |
+| Risk             | Mitigation                                                    |
+| ---------------- | ------------------------------------------------------------- |
+| Context overflow | `/compact` before each WP                                     |
+| Lost work        | Commit after every WP (never batch)                           |
+| Critic not found | Restart session before audit if critics installed mid-session |
+| Session crash    | Keep a running log outside the session                        |
+| WP too large     | Split WPs with >60 files into sub-WPs                         |
 
 ### Parallelization
 
-WPs can be run in parallel if they don't share files. Use the Agent tool's parallel invocation:
+WPs can be run in parallel if they don't share files. Dispatch multiple critics in the same message so they run concurrently:
 
 ```
-# Independent WPs — run in parallel
-Agent(WP-06: Accounts)    # runs simultaneously with...
-Agent(WP-07: Email)       # ...and...
-Agent(WP-08: Sites)       # ...this one
+# Independent WPs — run in parallel (single message, multiple Task() calls)
+Task(subagent_type="critic-elixir", prompt="review <WP-06 files>")
+Task(subagent_type="critic-elixir", prompt="review <WP-07 files>")
+Task(subagent_type="critic-elixir", prompt="review <WP-08 files>")
 ```
 
 **Do NOT parallelize** WPs that share files or have overlapping scope -- cross-WP violations will be missed or double-counted.
@@ -579,30 +522,33 @@ After all component audits are complete, synthesize findings into a single prior
 
 ## 2.1 Aggregate Statistics
 
-Compile a per-WP summary table:
+Compile a per-WP summary table from each WP's critic `Summary:` line:
 
 ```markdown
-| WP    | Component | Total | High | Medium | Low |
-| ----- | --------- | ----- | ---- | ------ | --- |
-| WP-01 | {name}    | X     | X    | X      | X   |
+| WP    | Component | Critical | Warning | Recommendation | Style | Total |
+| ----- | --------- | -------: | ------: | -------------: | ----: | ----: |
+| WP-01 | {name}    |        X |       X |              X |     X |     X |
 
 ...
-| **∑** | **All** | **T** | **H**| **M** | **L**|
+| **∑** | **All** | **C** | **W** | **R** | **S** | **T** |
 ```
+
+The four columns map directly to the critic's severity tiers — synthesis copies them verbatim, no translation needed.
 
 ## 2.2 Rule Distribution
 
-Count violations per rule across all WPs:
+Count findings per IN-\* rule ID across all WPs:
 
 ```markdown
-| Rule | Name            | Count | Dominant WPs |
-| ---- | --------------- | ----- | ------------ |
-| R6   | Highlander Rule | ~130  | All          |
+| Rule ID              | Slug                 | Count | Dominant WPs |
+| -------------------- | -------------------- | ----: | ------------ |
+| IN-AG-HIGHLANDER-001 | highlander           |  ~130 | All          |
+| IN-EX-CODE-002       | tagged-tuple-returns |    XX | WP-04, WP-07 |
 
 ...
 ```
 
-This reveals **systemic issues** (rules violated everywhere) vs **localized issues** (one bad module).
+The IN-\* IDs come straight from the critic reports. Sort by count descending. This reveals **systemic issues** (rules violated everywhere) vs **localized issues** (one bad module). Each ID resolves to `intent/plugins/claude/rules/<lang>/<cat>/<slug>/RULE.md` for the Detection heuristic and the canonical fix pattern.
 
 ## 2.3 Cross-Cutting Deduplication
 
@@ -829,91 +775,61 @@ After remediation, add enforcement:
 - **Two-pass synthesis**: First synthesize within each ecosystem, then run a cross-ecosystem pass focusing on X-rules and shared patterns.
 - **Effective file count**: Apply ecosystem-specific weights (Rust 1.5x, Swift AppKit 1.3x) when sizing WPs. A 256-file polyglot project with Rust and Swift code may have 300+ effective files.
 
-# Appendix B: Prompt Variations by Language
+# Appendix B: Per-Language Detection Lives in the Rule Library (v2.9.0)
 
-## Rust-Specific Additions to Prompt
+Pre-v2.9.0, this appendix listed per-language additions to the custom audit prompt — Rust unwrap-context nuances, Swift force-unwrap exemptions, Ash code-interface enforcement, TypeScript any-type checks. With critic dispatch (`critic-rust`, `critic-swift`, `critic-elixir` with the `ash/` subdirectory loaded), every per-language nuance lives in the `RULE.md` Detection section of the rule itself.
 
-```
-Additional context for Rust audits:
-- R1 (unwrap): Check context -- main/CLI is Medium, library/daemon is High.
-  LazyLock initializers with expect() on static initialization are exempt.
-- R4 (unsafe): Severity scales with security boundary. Unsafe in FFI/system
-  calls near user input: High. Unsafe in performance-critical inner loops
-  with documented invariants: Medium.
-- Check trait implementations for missing derive macros
-- Look for .unwrap() and .expect() in non-test code
-- Verify error types implement std::error::Error + Display
-- Check for unnecessary clones (ownership violations)
-- Verify unsafe blocks have SAFETY comments explaining the invariant
+To audit per-language Detection rationale, browse the rule packs:
+
+```bash
+intent claude rules list --lang rust
+intent claude rules show IN-RS-CODE-001            # for a specific rule
 ```
 
-## Swift-Specific Additions to Prompt
+Or read the rule files directly:
 
-```
-Additional context for Swift audits:
-- R1 (force unwrap): Tests and previews are exempt. Production force
-  unwraps on IBOutlets are High (crash on load).
-- R6 (Highlander): AppKit and SwiftUI views have different complexity
-  baselines. Don't cross-compare line counts between frameworks.
-- R8 (try?): Acceptable for fire-and-forget (logging, analytics).
-  Not acceptable for data persistence or network calls.
-- Check for force unwraps (!) outside test targets
-- Verify protocol conformances are in extensions
-- Look for massive view bodies (>100 lines in body or viewDidLoad)
-- Check for retain cycles in closures (missing [weak self])
-- Verify Codable conformance on network types
-```
+- Rust: `intent/plugins/claude/rules/rust/code/<slug>/RULE.md`
+- Swift: `intent/plugins/claude/rules/swift/<category>/<slug>/RULE.md`
+- Lua: `intent/plugins/claude/rules/lua/<category>/<slug>/RULE.md`
+- Shell: `intent/plugins/claude/rules/shell/code/<slug>/RULE.md`
+- Elixir + Ash: `intent/plugins/claude/rules/elixir/ash/<slug>/RULE.md`
+- Elixir + Phoenix: `intent/plugins/claude/rules/elixir/phoenix/<slug>/RULE.md`
+- Elixir + LiveView: `intent/plugins/claude/rules/elixir/lv/<slug>/RULE.md`
 
-## Ash-Specific Additions to Prompt
+Each rule's `## Detection` section captures the language-specific signal the critic uses, including severity-context and exemption guidance that previously had to be smuggled into per-audit prompts. New per-language nuance gets added by editing the rule's RULE.md (validated by `intent claude rules validate`), not by amending this doc.
 
-```
-Additional context for Ash Framework audits:
-- A1: Any Ash.get!/read!/create!/load! call outside a domain module's
-  code interface is a violation. Severity: High (breaks authorization).
-- A3: Actor must be set at query construction time, not at read/action
-  time. Check for |> Ash.read!(actor: user) patterns.
-- A5: Cross-domain access -- Domain A calling Domain B's resources
-  directly (bypassing B's code interfaces) breaks domain boundaries.
-- Check for mix ecto.gen.migration (should be mix ash.codegen)
-- Verify require Ash.Query at module level (not inside function body)
-```
-
-## TypeScript/React-Specific Additions to Prompt
-
-```
-Additional context for TypeScript/React audits:
-- Check for any types (should be explicitly typed)
-- Look for business logic in React components (should be in hooks/services)
-- Verify error boundaries around async operations
-- Check for missing dependency arrays in useEffect
-- Look for prop drilling (>3 levels should use context)
-```
+TypeScript / React rules are a future-work item — no `typescript/` or `react/` rule pack exists in v2.9.0. When that pack lands, this appendix can be deleted or repurposed.
 
 # Appendix C: Quick-Start Checklist
 
 For a new project audit, use `/in-tca-init` or follow this manual checklist:
 
-- [ ] Define rule set (15-20 rules, numbered R1-R{N}; add A1-A5 for Ash projects)
-- [ ] Specify rule precision boundaries (what each rule does NOT apply to)
-- [ ] For polyglot: define X-rules for cross-ecosystem concerns
+- [ ] Select rule packs per ecosystem (`agnostic` + `<lang>/code` + `<lang>/test`; framework subdirs auto-load via critic)
+- [ ] Author project `.intent_critic.yml` if any IN-\* rules need to be disabled or thresholds adjusted
+- [ ] Author project-specific rules as a user extension at `~/.intent/ext/<name>/rules/`, not as ad-hoc R-numbering
+- [ ] Document FP carve-outs per IN-\* rule in `design.md` (load-bearing — see §0.1)
 - [ ] Enumerate all source files (`find . -name "*.{ext}" | wc -l`)
 - [ ] Calculate effective file counts using weight table
 - [ ] Identify Ash DSL resources, emission/struct files, dead stubs
 - [ ] Map files into 8-15 WPs (12-20 effective files each)
 - [ ] Create steel thread with info.md, design.md, tasks.md
 - [ ] Create WP directories with info.md and empty socrates.md
-- [ ] Run Phase 0.5 pre-filtering (grep for R7/R11/R15)
+- [ ] Run Phase 0.5 pre-filtering (grep for IN-EX-CODE-002 / -003 / debug artifacts)
 - [ ] Verify file manifests (all listed files exist)
+- [ ] Confirm critics are registered (restart session if any installed mid-session)
 - [ ] For each WP (`/in-tca-audit`):
   - [ ] Run `/compact` first
-  - [ ] Launch sub-agent with full prompt template (include confidence field)
+  - [ ] Dispatch `Task(subagent_type="critic-<lang>", prompt="review <files>")` (+ `test-check` for test files)
+  - [ ] Capture critic report verbatim into WP/{NN}/socrates.md with the wrapper header
   - [ ] Commit socrates.md immediately after completion
-- [ ] Write synthesis WP (`/in-tca-synthesize`): cluster by root cause, 5-tier priority
+- [ ] Write synthesis WP (`/in-tca-synthesize`): cluster by root cause across IN-\* IDs, 5-tier priority
 - [ ] Review with project owner (`/in-tca-remediate` for execution)
 - [ ] Execute remediation batches in main conversation with verification gates
 - [ ] Wrap up (`/in-tca-finish`): feedback report, ST doc updates
 
 # Appendix D: Reference Implementations
+
+> **Note on rule numbering**: The examples below use the historical R1-R15 numbering from pre-v2.9.0 audits, preserved as written. Rule mappings are roughly: R1↔IN-EX-CODE-001 (typed access), R5↔IN-EX-CODE-001 (multi-clause), R6↔IN-AG-HIGHLANDER-001 / IN-EX-CODE-006, R11↔IN-EX-CODE-003 (@impl), R12↔IN-EX-CODE-002 (tagged tuples). New audits should cite IN-\* IDs throughout per Phase 0.1.
 
 ## Example A -- Single-App Elixir
 
@@ -975,6 +891,8 @@ Innovations over Examples A and B:
 - Higher dedup rate due to cross-ecosystem pattern overlap (same Highlander violation manifesting in different languages)
 
 # Appendix E: Lessons Learned from Single-App Audit + Remediation
+
+> **Historical context**: This appendix preserves findings from a pre-v2.9.0 audit that used custom R-numbered rules and a free-form sub-agent prompt template. The lessons remain valid; the R-rule citations should be read as "the pre-v2.9.0 equivalent of today's IN-\* rule pack."
 
 ## What Worked Well
 
@@ -1067,6 +985,8 @@ The violations found in both audits were preventable. See **Intent ST0026 (Steel
 7. **Periodic health checks** -> `intent audit health` for drift detection
 
 # Appendix F: Lessons Learned from Umbrella Project Remediation
+
+> **Historical context**: As with Appendix E, this appendix is from a pre-v2.9.0 audit. R-rule citations map to the IN-\* rule library per the note at the top of Appendix D.
 
 The umbrella audit covered a 5-app Elixir umbrella (~734 files, ~126k LOC) and remediated 389 violations across Phases A-E. This was 3x the scale of the single-app audit and revealed additional failure modes.
 

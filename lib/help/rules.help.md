@@ -21,7 +21,7 @@ The `intent claude rules` command surface exposes the rule library to Bash consu
 - **Validate**: `validate [<id>|<path>]` checks frontmatter, required sections, cross-references, and attribution presence.
 - **Index**: `index` regenerates the canonical `rules/index.json` for fast jq-driven consumption.
 
-The library itself is populated by WP04 (agnostic), WP05 (elixir), and WP06 (rust / swift / lua). Running `rules list` during WP02 is expected to report an empty canon — extensions provide content where they exist.
+The library is populated across the agnostic, Elixir, Rust, Swift, Lua, and Shell rule packs. Extensions can contribute additional rule packs at `~/.intent/ext/<name>/rules/<lang>/<category>/<slug>/RULE.md`.
 
 ## Commands
 
@@ -74,7 +74,7 @@ Regenerate `intent/plugins/claude/rules/index.json` from every canon RULE.md. Th
 intent claude rules index
 ```
 
-Extensions are **not** included in the canon index; ext-shipped rules are discovered at runtime. An empty canon (WP02 era) produces an empty `rules: []` array — that is not an error.
+Extensions are **not** included in the canon index; ext-shipped rules are discovered at runtime.
 
 ## Environment
 
@@ -86,5 +86,7 @@ Extensions are **not** included in the canon index; ext-shipped rules are discov
 ## See Also
 
 - `intent help ext` — user extensions
+- `intent/docs/rules.md` — rule authoring guide (schema, IDs, validation, attribution)
+- `intent/docs/critics.md` — Critic subagent contract (rules are consumed here)
 - `intent/plugins/claude/rules/_schema/rule-schema.md` — authoritative frontmatter reference
 - `intent/plugins/claude/rules/_schema/index-generator.md` — pipeline spec for `index` subcommand

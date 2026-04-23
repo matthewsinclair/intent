@@ -1,6 +1,6 @@
 # Intent Project Guidelines
 
-This is an Intent v2.8.2 project.
+This is an Intent v2.9.0 project.
 
 ## On every session start and after every `/compact`
 
@@ -22,6 +22,9 @@ Read these on every session start and after every context reset:
 - `CLAUDE.md` (this file)
 - `intent/llm/MODULES.md` - Module registry (the Highlander enforcer)
 - `intent/llm/DECISION_TREE.md` - Where does this code belong?
+- `intent/docs/rules.md` - Rule library: schema, authoring, validation
+- `intent/docs/critics.md` - Critic subagent contract and report format
+- `intent/docs/writing-extensions.md` - User extensions at `~/.intent/ext/`
 - `intent/wip.md` - Current work in progress
 - `intent/restart.md` - Session restart context (if exists)
 
@@ -72,13 +75,60 @@ Steel threads are organized as directories under `intent/st/`:
 - `intent claude skills <command>` - Manage Claude skills (list, install, sync, uninstall, show)
 - `intent claude upgrade [--apply]` - Diagnose and upgrade project LLM guidance files
 
+## Rules library
+
+Intent's rule library is the single source of truth for coding standards. Each rule is a small Markdown file with structured frontmatter, a Detection heuristic, and bad/good examples. Skills cite rules by ID; Critic subagents enforce them.
+
+- Library root: `intent/plugins/claude/rules/`
+- Authoring guide: `intent/docs/rules.md`
+- Schema reference: `intent/plugins/claude/rules/_schema/rule-schema.md`
+- CLI: `intent claude rules list | show | validate | index`
+
+## Critic subagents
+
+Critics are thin orchestrators: they read the rule library at invocation time, apply each rule's Detection heuristic to target source files, and emit a stable severity-grouped report. They never autofix or shell out to external linters.
+
+- Family: `critic-elixir`, `critic-rust`, `critic-swift`, `critic-lua`, `critic-shell`
+- Modes: `code` and `test` (`critic-shell` is `code` only)
+- Contract: `intent/docs/critics.md`
+- Per-project config: `.intent_critic.yml` at the project root (disable rules, set severity threshold)
+
+## User extensions
+
+Extensions live at `~/.intent/ext/<name>/` and contribute subagents, skills, or rule packs without modifying canon. Discovery is layered: canon is the default; user extensions override by name with a visible shadow warning.
+
+- Authoring guide: `intent/docs/writing-extensions.md`
+- Manifest schema: `intent/plugins/claude/ext-schema/extension.schema.json`
+- CLI: `intent ext list | show | validate | new`
+- Reference extension: `worker-bee` (relocated from canon in v2.9.0)
+
 ## Migration Notes
 
-This project was migrated from STP to Intent v2.0.0 on 2025-07-16, through v2.1.0, v2.2.0, v2.3.0, and is now at v2.8.0.
+This project was migrated from STP to Intent v2.0.0 on 2025-07-16, through v2.1.0, v2.2.0, v2.3.0, v2.8.x, and is now at v2.9.0.
 
 - Old structure: `stp/prj/st/`, `stp/eng/`, etc.
 - New structure: `intent/st/`, `intent/docs/`, etc.
 - Configuration moved from YAML to JSON format
+
+### v2.8.2 → v2.9.0 jump
+
+The v2.9.0 migration (`migrate_v2_8_2_to_v2_9_0` in `bin/intent_helpers`) does four things:
+
+1. Stamps `.intent/config.json` with `intent_version: 2.9.0`.
+2. Bootstraps `~/.intent/ext/` with a README on first run.
+3. Seeds `~/.intent/ext/worker-bee/` from `lib/templates/ext-seeds/worker-bee/` (skipped if already present — the migration never overwrites user state).
+4. Prunes installed copies of the deleted `elixir` subagent and the relocated `worker-bee` from `~/.claude/agents/` and `~/.intent/agents/installed-agents.json`.
+
+To verify post-upgrade state:
+
+```bash
+intent doctor                                  # general health check
+cat .intent/config.json | jq .intent_version   # should print "2.9.0"
+intent ext list                                # should show worker-bee
+intent claude subagents list | grep critic-    # should show 5 critic-* entries
+```
+
+Mid-session subagent registration freezes per Claude Code session — start a new session before invoking any newly-installed Critic via `Task()`.
 
 ## Intent Agents
 
@@ -91,29 +141,26 @@ This project has access to specialized AI agents through Intent's agent system. 
    - Intent command usage and workflows
    - Project structure guidance
 
-2. **elixir** - Elixir code doctor
-   - Functional programming patterns
-   - Elixir Usage Rules and best practices
-   - Ash and Phoenix framework expertise
-   - Code review and optimization
-
-3. **socrates** - CTO Review Mode
+2. **socrates** - CTO Review Mode
    - Technical decision-making via Socratic dialog
    - Architecture review and analysis
    - Strategic technology choices
    - Risk assessment and mitigation
 
-4. **worker-bee** - Worker-Bee Driven Design specialist
-   - WDD 6-layer architecture enforcement
-   - Project structure mapping and validation
-   - Code scaffolding with templates
-   - Mix task generation for WDD compliance
-
-5. **diogenes** - Elixir Test Architect
+3. **diogenes** - Elixir Test Architect
    - Socratic dialog for test specification generation
    - Two personas: Aristotle (Empiricist) + Diogenes (Skeptic)
    - Specify mode: produces formal test specs from module analysis
    - Validate mode: gap analysis of tests vs specifications
+
+4. **critic-elixir** / **critic-rust** / **critic-swift** / **critic-lua** / **critic-shell** - Rule-library critics
+   - Thin orchestrators: read `intent/plugins/claude/rules/`, apply Detection heuristics, report findings by severity
+   - One critic per language; modes are `code` and `test` (`critic-shell` is `code` only)
+   - Output is a stable severity-grouped report; never autofix, never shell out to external linters
+   - Invocation: `Task(subagent_type="critic-<lang>", prompt="review <targets>")` or `prompt="test-check <targets>"`
+   - See `intent/docs/critics.md` for the full contract
+
+**Note:** The standalone `elixir` subagent was removed in v2.9.0. Its rule content lives in `intent/plugins/claude/rules/elixir/` and is enforced by `critic-elixir`. The `worker-bee` subagent was relocated from canon to the reference extension at `~/.intent/ext/worker-bee/` — install via `intent claude subagents install worker-bee` after a v2.9.0 upgrade. See `intent/docs/writing-extensions.md`.
 
 ### Using Agents
 
@@ -122,8 +169,8 @@ To delegate tasks to specialized agents, use the Task tool with the appropriate 
 ```
 Task(
   description="Review Elixir code",
-  prompt="Review the authentication module for Usage Rules compliance",
-  subagent_type="elixir"
+  prompt="review lib/myapp/accounts.ex lib/myapp/accounts_test.exs",
+  subagent_type="critic-elixir"
 )
 ```
 
@@ -135,12 +182,12 @@ Task(
 - Understanding Intent project structure
 - Following Intent best practices
 
-**Use the elixir agent for:**
+**Use a critic-<lang> agent for:**
 
-- Writing idiomatic Elixir code
-- Reviewing code for Usage Rules
-- Ash/Phoenix implementation guidance
-- Functional programming patterns
+- Reviewing source files against Intent's rule library
+- Stage-2 of `/in-review` (the skill auto-detects language and dispatches)
+- Per-language code or test review with stable, severity-grouped output
+- See `intent/docs/critics.md` for the contract
 
 **Use the socrates agent for:**
 
@@ -149,7 +196,7 @@ Task(
 - Risk assessment for technical choices
 - Facilitating thoughtful technical discussions
 
-**Use the worker-bee agent for:**
+**Use the worker-bee agent for** (install from `~/.intent/ext/worker-bee/` after v2.9.0 upgrade):
 
 - Enforcing Worker-Bee Driven Design principles
 - Mapping project structure to WDD layers

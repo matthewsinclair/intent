@@ -158,6 +158,12 @@ RECOMMENDATION
 
 Same constraint: recommend, never invoke. Reserve the advisory for genuinely cross-cutting cases; do not tag every finding with it.
 
+## Operational note: subagent registration freezes per session
+
+Claude Code reads the subagent registry once at session start. Subagents installed mid-session — including the Critic family on a fresh upgrade — are not visible to `Task()` until the next session starts. After running `intent claude subagents install critic-elixir` (or any other Critic), close the current Claude Code session and start a new one before invoking the Critic; otherwise the `Task(subagent_type="critic-elixir", ...)` call resolves to "subagent not found".
+
+This is a Claude Code constraint, not an Intent behaviour. The registration freeze applies equally to canon subagents, extension subagents, and any subagent installed by hand. The `migrate_v2_8_2_to_v2_9_0` migration relies on this — it prunes the deleted `elixir` subagent from `~/.claude/agents/`, but the prune only takes effect on the next session start.
+
 ## Verification
 
 To run a Critic by hand against a fixture:
