@@ -3,9 +3,9 @@
 ## First actions after `/compact`
 
 1. **Invoke `/in-session`.** Loads `/in-essentials`, `/in-standards`, Elixir skills (Intent authors Elixir rules even though it is itself a bash project), and the Persistent reminders block (Highlander / Thin Coordinator / PFIC diligence + NEVER MANUALLY WRAP .MD FILES).
-2. **Verify tree is clean.** The `Session finish: v2.9.0 wrap-up + fleet rollout complete` commit (or whatever followed) should be the most recent. If `git status` shows uncommitted work, investigate.
+2. **Verify tree is clean.** Most recent commit should be `983ccbf` (stp/ prompt fix) or whatever followed. If `git status` shows uncommitted work, investigate.
 3. **Read `intent/restart.md`** for the post-release state summary.
-4. **Open queue is empty** — pick from Parked (ST0010, ST0015) or initiate a new ST when work surfaces.
+4. **Run `critic-shell` on Intent's own bash code** — see Next-up below.
 
 ## State
 
@@ -13,7 +13,14 @@
 
 ## Next up
 
-Open queue is empty. Pick from Parked (ST0010, ST0015) or initiate a new ST when work surfaces.
+1. **Run `critic-shell` on Intent's bash codebase** — first real-world dogfood of the new critic against Intent's own code. Satisfies WP12 dogfood journal Entry 1 simultaneously.
+   - **Targets** (in scope): `bin/intent`, `bin/intent_main`, `bin/intent_helpers`, `bin/intent_st`, `bin/intent_wp`, `bin/intent_upgrade`, `bin/intent_init`, `bin/intent_doctor`, `bin/intent_bootstrap`, `bin/intent_config`, `bin/intent_help`, `bin/intent_ext`, `bin/intent_treeindex`, `bin/intent_fileindex`, `bin/intent_audit`, `bin/intent_learn`, `bin/intent_modules`, `bin/intent_organize`, `bin/intent_organise`, `bin/intent_minimal`, `bin/intent_info`, `bin/intent_plugin`, `intent/plugins/agents/bin/intent_agents`, `intent/plugins/claude/bin/intent_claude_*`, `tests/run_tests.sh`.
+   - **Targets** (out of scope, this pass): `tests/setup_*.sh`, `tests/*.bats` themselves (test files are bats, not strict bash; critic-shell rules target production bash).
+   - **Dispatch**: `Task(subagent_type="critic-shell", prompt="review <space-separated paths>")`. Consume the severity-grouped report (CRITICAL / WARNING / RECOMMENDATION / STYLE).
+   - **Triage**: classify findings into P0/P1/P2a/P2b/P3 tiers per `/in-tca-synthesize` mapping. Decide what to fix now vs queue as a follow-up ST. Genuine false positives → consider lifting into `.intent_critic.yml` `disabled:` (project-wide carve-out).
+   - **Output**: at minimum, append a Dogfood Journal Entry 1 to `intent/st/COMPLETED/ST0034/WP/12/dogfood-journal.md` with: rule findings counts, top P0/P1 hits, decisions taken, FP rate, time-to-first-finding.
+
+2. Open queue otherwise empty. Pick from Parked (ST0010, ST0015) or initiate a new ST when work surfaces.
 
 ## Session conventions
 

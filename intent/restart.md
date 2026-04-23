@@ -2,7 +2,7 @@
 
 ## Current State
 
-**Intent v2.9.0 released 2026-04-23 — fleet rollout complete.** ST0034 (Agentic Software Engineering Suite) closed; all 12 WPs done. Release commit `d1b0fe1`; tag `v2.9.0` on `local` + `upstream`; GitHub release at <https://github.com/matthewsinclair/intent/releases/tag/v2.9.0>. **13/13 active projects upgraded to 2.9.0**: canary (Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex), batch 2 (Laksa, MeetZaya, MicroGPTEx, Molt, Molt-matts), batch 3 (Multiplyer, Prolix, Utilz, Courses/Agentic Coding). Conflab + Lamplight + A3/\* skipped per direction. Zero rollbacks. CI workflow retry-fixed in same session after a transient GitHub HTTP 500 broke the macOS bats-library clone on the release push.
+**Intent v2.9.0 released 2026-04-23 — fleet rollout complete.** ST0034 (Agentic Software Engineering Suite) closed; all 12 WPs done. Release commit `d1b0fe1`; tag `v2.9.0` on `local` + `upstream`; GitHub release at <https://github.com/matthewsinclair/intent/releases/tag/v2.9.0>. **13/13 active projects upgraded to 2.9.0**: canary (Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex), batch 2 (Laksa, MeetZaya, MicroGPTEx, Molt, Molt-matts), batch 3 (Multiplyer, Prolix, Utilz, Courses/Agentic Coding). Conflab + Lamplight + A3/\* skipped per direction. Zero rollbacks. CI workflow retry-fixed (`237f5ce`) after transient GitHub HTTP 500. False-positive `stp/` removal prompt on `intent upgrade` fixed in `983ccbf` (now gated on actual `stp/` directory presence). **Next: dogfood `critic-shell` against Intent's own bash.**
 
 ## ST0034 status (closed)
 
