@@ -2,7 +2,7 @@
 
 ## Current State
 
-Intent v2.8.2 (VERSION unchanged; release bump is WP11). **ST0034 active — 11/12 WPs done.** WP10 (Documentation) closed in this session. Working tree has uncommitted WP10 work; commit pending review (see `.claude/restart.md`).
+Intent v2.8.2 (VERSION unchanged; release bump is WP11). **ST0034 active — 11/12 WPs done.** WP10 (Documentation) closed and committed (`6bb9d0d`). Tree is clean. Next: fix Task #26 (`intent agents sync` generator regressions surfaced during WP10) before WP11, so the fleet upgrade in WP11 regenerates clean AGENTS.md files.
 
 ## ST0034 status (as of 2026-04-23)
 
@@ -65,6 +65,7 @@ Originally out of WP10 scope, folded in mid-WP after the TCA suite was found to 
 
 ## Recent commits
 
+- `6bb9d0d` — WP10: documentation pass + TCA suite refactor for rule library
 - `b79e1a2` — WP09: v2.8.2 -> v2.9.0 migration step + chain wiring
 - `398de76` — WP07: critic subagent family (elixir/rust/swift/lua)
 - `44e05d1` — WP12: shell rule pack + critic-shell subagent

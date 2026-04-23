@@ -24,7 +24,8 @@ Intent v2.8.2 (VERSION unchanged; release bump is WP11). **ST0034 active — 11/
 
 ## Next Up
 
-- **WP11 (Medium)**: release + fleet upgrade. Bump `VERSION` to `2.9.0`; tag `v2.9.0` and force-push to both remotes; publish GitHub release using the v2.9.0 release-notes draft (`docs/releases/2.9.0/RELEASE_NOTES.md`) and the CHANGELOG v2.9.0 entry. Bump worker-bee seed `intent_compat.min` in lockstep with VERSION. Run WP09 canary dry-run against fleet projects (Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex, Conflab) before tagging. Roll upgrade across the 16-project fleet. See `intent/st/ST0034/WP/11/info.md` for the tagged plan.
+1. **Task #26 (small, pre-WP11)**: fix `intent agents sync` generator deficiencies surfaced during WP10. Generator at `intent/plugins/agents/bin/intent_agents` drops `intent wp` commands (replaced with stale `intent bl`), can't detect Bats test framework, renders empty descriptions for some subagents (e.g. `diogenes`). Fixing this before WP11 means the fleet-wide AGENTS.md regen during the v2.9.0 rollout produces clean output instead of the regression we noted. No ST overhead — standalone fix.
+2. **WP11 (Medium)**: release + fleet upgrade. Bump `VERSION` to `2.9.0`; tag `v2.9.0` and force-push to both remotes; publish GitHub release using the v2.9.0 release-notes draft (`docs/releases/2.9.0/RELEASE_NOTES.md`) and the CHANGELOG v2.9.0 entry. Bump worker-bee seed `intent_compat.min` in lockstep with VERSION. Run WP09 canary dry-run against fleet projects (Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex, Conflab) before tagging. Roll upgrade across the 16-project fleet. See `intent/st/ST0034/WP/11/info.md` for the tagged plan.
 
 ## Deferred observations
 
