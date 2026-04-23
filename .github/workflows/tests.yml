@@ -42,9 +42,21 @@ jobs:
     - name: Install bats libraries manually
       run: |
         mkdir -p tests/lib
-        [ ! -d "tests/lib/bats-support" ] && git clone https://github.com/bats-core/bats-support.git tests/lib/bats-support
-        [ ! -d "tests/lib/bats-assert" ] && git clone https://github.com/bats-core/bats-assert.git tests/lib/bats-assert
-        [ ! -d "tests/lib/bats-file" ] && git clone https://github.com/bats-core/bats-file.git tests/lib/bats-file
+        # Retry each clone up to 3 times to absorb transient GitHub HTTP 500s.
+        clone_with_retry() {
+          local url="$1" dest="$2" i
+          [ -d "$dest" ] && return 0
+          for i in 1 2 3; do
+            git clone "$url" "$dest" && return 0
+            echo "clone failed (attempt $i/3): $url" >&2
+            rm -rf "$dest"
+            sleep 5
+          done
+          return 1
+        }
+        clone_with_retry https://github.com/bats-core/bats-support.git tests/lib/bats-support
+        clone_with_retry https://github.com/bats-core/bats-assert.git tests/lib/bats-assert
+        clone_with_retry https://github.com/bats-core/bats-file.git tests/lib/bats-file
     
     - name: Run unit tests
       env:
@@ -99,16 +111,22 @@ jobs:
     - name: Set up test environment
       run: |
         cd tests
-        if [ -f "setup_test_env.sh" ]; then
-          chmod +x setup_test_env.sh
-          ./setup_test_env.sh
-        else
-          # Manual setup if script doesn't exist
-          mkdir -p lib
-          [ ! -d "lib/bats-support" ] && git clone https://github.com/bats-core/bats-support.git lib/bats-support
-          [ ! -d "lib/bats-assert" ] && git clone https://github.com/bats-core/bats-assert.git lib/bats-assert
-          [ ! -d "lib/bats-file" ] && git clone https://github.com/bats-core/bats-file.git lib/bats-file
-        fi
+        mkdir -p lib
+        # Retry each clone up to 3 times to absorb transient GitHub HTTP 500s.
+        clone_with_retry() {
+          local url="$1" dest="$2" i
+          [ -d "$dest" ] && return 0
+          for i in 1 2 3; do
+            git clone "$url" "$dest" && return 0
+            echo "clone failed (attempt $i/3): $url" >&2
+            rm -rf "$dest"
+            sleep 5
+          done
+          return 1
+        }
+        clone_with_retry https://github.com/bats-core/bats-support.git lib/bats-support
+        clone_with_retry https://github.com/bats-core/bats-assert.git lib/bats-assert
+        clone_with_retry https://github.com/bats-core/bats-file.git lib/bats-file
     
     - name: Make scripts executable
       run: |
