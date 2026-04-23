@@ -387,21 +387,26 @@ echo "1. Review the migrated content in the intent/ directory"
 echo "2. Test commands with 'intent' instead of 'stp'"
 echo "3. Run 'intent doctor' to verify configuration"
 echo "4. Run 'intent agents list' to see available agents"
-echo "5. Delete the old stp/ directory when ready"
 
-# Offer to remove old stp directory
-echo ""
-echo "The old stp/ directory is still present. You can:"
-echo "- Keep it for reference"
-echo "- Remove it manually with: rm -rf stp/"
-echo "- Let this script remove it (type 'yes' to confirm)"
-echo ""
-read -p "Remove old stp/ directory now? (yes/no): " response
+# Offer to remove old stp directory only when one is actually present.
+# Pre-v2.0.0 projects had a stp/ tree at the project root; v2.x rebrand
+# moved everything to intent/. Anything past v2.0.0 has no stp/, so this
+# block stays silent for them.
+if [ -d stp ]; then
+  echo "5. Delete the old stp/ directory when ready"
+  echo ""
+  echo "The old stp/ directory is still present. You can:"
+  echo "- Keep it for reference"
+  echo "- Remove it manually with: rm -rf stp/"
+  echo "- Let this script remove it (type 'yes' to confirm)"
+  echo ""
+  read -p "Remove old stp/ directory now? (yes/no): " response
 
-if [ "$response" = "yes" ]; then
-  echo "Removing stp/ directory..."
-  rm -rf stp/
-  echo "Old directory removed."
-else
-  echo "Keeping old stp/ directory for reference."
+  if [ "$response" = "yes" ]; then
+    echo "Removing stp/ directory..."
+    rm -rf stp/
+    echo "Old directory removed."
+  else
+    echo "Keeping old stp/ directory for reference."
+  fi
 fi
