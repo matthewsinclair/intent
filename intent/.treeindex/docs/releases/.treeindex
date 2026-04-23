@@ -1,23 +1,18 @@
-<!-- treeindex v1 fingerprint:6aea040a generated:2026-02-20T11:22:36Z -->
-
-<function_calls>
-<invoke name="Glob">
-<parameter name="pattern">/Users/matts/Devel/prj/Intent/docs/releases/*/RELEASE_NOTES.md</parameter>
-</invoke>
-</function_calls>
+<!-- treeindex v1 fingerprint:da7b4f16 generated:2026-04-23T16:16:48Z -->
 
 # releases/
 
-Archive of Intent release documentation organized by version. Each release directory contains complete release notes, upgrade guides, and migration instructions for that version, spanning from v1.2.1 (directory-based steel threads) through v2.4.0 (skills system and project upgrades).
+Archival of release documentation for Intent versions 1.2.1 through 2.9.0. Each version directory contains RELEASE_NOTES.md documenting features, improvements, breaking changes, and upgrade instructions. Covers the evolution from STP v1.2.1 through Intent's introduction, agent system maturation, and the Agentic Software Engineering Suite in v2.9.0.
 
 ## Dirs
 
-- `1.2.1/` -- Steel thread directory reorganization and task tracking improvements
-- `2.0.0/` -- Complete rebrand from STP to Intent with agent integration
-- `2.1.0/` -- Bug fixes for agent system and upgrade process
-- `2.2.0/` -- Fileindex command and enhanced Elixir agent capabilities
-- `2.2.1/` -- Centralized tool dependency management and version control
-- `2.3.2/` -- Antipattern detection for Elixir code review
-- `2.3.3/` -- AGENTS.md integration and plugin architecture
-- `2.3.4/` -- Continuation of plugin-based enhancements
-- `2.4.0/` -- Skills system, upgrade command, and Elixir reference documentation
+- `1.2.1/` -- STP v1.2.1 release notes (directory-based steel thread organization)
+- `2.0.0/` -- Intent v2.0.0 rebrand release with Claude Code agent integration
+- `2.1.0/` -- Intent v2.1.0 maintenance release with agent system bug fixes
+- `2.2.0/` -- Intent v2.2.0 with fileindex command and enhanced Elixir agent
+- `2.2.1/` -- Intent v2.2.1 maintenance release for dependency management
+- `2.3.2/` -- Intent v2.3.2 with Elixir antipattern detection (24 patterns)
+- `2.3.3/` -- Intent v2.3.3 maintenance release
+- `2.4.0/` -- Intent v2.4.0 with skills system and upgrade command
+- `2.5.0/` -- Intent v2.5.0 with work package management and Highlander audit
+- `2.9.0/` -- Intent v2.9.0 Agentic Software Engineering Suite (rules library, critic subagents, extensions)

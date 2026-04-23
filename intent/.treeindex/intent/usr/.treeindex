@@ -1,11 +1,11 @@
-<!-- treeindex v1 fingerprint:f7356148 generated:2026-02-24T15:21:19Z -->
+<!-- treeindex v1 fingerprint:9bb57bc9 generated:2026-04-23T16:19:29Z -->
 
 # usr/
 
-User-facing documentation for the Intent system, providing task-oriented guides, comprehensive references, and deployment instructions for end users and developers.
+User-facing documentation for Intent, organized as task-oriented guides and reference materials. Contains installation instructions, workflow guidance, command references, and best practices for LLM collaboration.
 
 ## Files
 
-- `user_guide.md` -- Task-oriented guide for using Intent, including installation, getting started, working with steel threads, documentation management, and LLM collaboration
-- `reference_guide.md` -- Comprehensive reference covering all Intent commands, document templates, directory structure, configuration options, best practices, and terminology
-- `deployment_guide.md` -- Deployment instructions for installing Intent globally or per-project, with configuration, integration, maintenance, and troubleshooting guidance
+- `user_guide.md` -- Task-oriented guide covering installation, getting started, steel threads, documentation management, LLM collaboration, and common workflows
+- `reference_guide.md` -- Complete reference for commands, document templates, directory structure, configuration options, and terminology
+- `deployment_guide.md` -- Installation methods, configuration, integration, maintenance, upgrading, and troubleshooting for various environments

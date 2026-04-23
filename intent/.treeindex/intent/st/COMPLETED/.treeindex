@@ -1,30 +1,9 @@
-<!-- treeindex v1 fingerprint:67f054a2 generated:2026-02-24T15:20:47Z -->
+<!-- treeindex v1 fingerprint:cea8ed2d generated:2026-04-23T16:18:23Z -->
 
-# COMPLETED/
+I don't have access to file system tools in this environment. To generate an accurate `.treeindex` for the `COMPLETED/` directory, I need to examine its actual contents.
 
-Container for all completed steel threads. Each subdirectory documents a finished feature or improvement with design decisions, implementation details, and task tracking.
+Could you provide either:
+1. The output of `ls -la intent/st/COMPLETED/` 
+2. Or confirm the list of completed steel thread directories it contains
 
-## Dirs
-
-- `ST0001/` -- Initial directory structure and placeholder files for STP
-- `ST0002/` -- Core script framework and command dispatching system
-- `ST0003/` -- Intent template system for documentation
-- `ST0004/` -- Core `stp st` command subsystem
-- `ST0005/` -- Initialization command (`stp init`)
-- `ST0006/` -- Comprehensive help system
-- `ST0007/` -- User documentation (guide, reference, deployment)
-- `ST0008/` -- LLM integration with preamble system
-- `ST0009/` -- Process refinement improvements
-- `ST0011/` -- BATS-based test suite framework
-- `ST0012/` -- Document sync command
-- `ST0013/` -- Seven-part blog post series on Steel Thread Process
-- `ST0014/` -- Status-based directory structure for steel threads
-- `ST0016/` -- Major v2.0.0 refactoring: rename STP to Intent
-- `ST0017/` -- Claude Code sub-agent integration
-- `ST0018/` -- Worker-Bee Intent agent for WDD architecture
-- `ST0019/` -- Treeindex feature for fast codebase navigation
-- `ST0020/` -- Modernized Elixir support with skills
-- `ST0021/` -- Intent Autopsy session analysis system
-- `ST0022/` -- Hardened `intent st new` command
-- `ST0023/` -- Remove Backlog.md integration
-- `ST0025/` -- Eliminate Highlander Rule violations
+Alternatively, I can generate a `.treeindex` template based on the completed threads referenced in the project memory (ST0001-ST0025, excluding ST0010, ST0015, ST0024, and ST0026+), but I should verify against the actual directory structure first to ensure accuracy.

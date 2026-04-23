@@ -1,34 +1,17 @@
-<!-- treeindex v1 fingerprint:3fe75269 generated:2026-02-05T11:38:19Z -->
+<!-- treeindex v1 fingerprint:db872174 generated:2026-04-23T16:17:30Z -->
 
-I'll examine the docs/ directory structure and generate a `.treeindex` file for it.
-<tool_calls>
-<invoke name="Bash">
-<parameter name="command">find /Users/matts/Devel/prj/Intent/docs -type f -o -type d | sort</parameter>
-</invoke>
-</tool_calls>
+# docs/
 
-Now I'll create the `.treeindex` file for the docs/ directory:
-<tool_calls>
-<invoke name="Write">
-<parameter name="path">intent/.treeindex/docs/.treeindex</parameter>
-<parameter name="content"># docs/
+Technical documentation for Intent covering methodology, rules library, agent systems, and extension architecture. Guides for authoring rules, implementing critics, and extending Intent via user plugins.
 
-Technical documentation for Intent v2.3.4 covering project structure, steel thread methodology, command reference, and integration with Claude Code sub-agents. Primary reference for understanding Intent concepts and workflows.
+## Dirs
+
+- `blog/` -- Intent methodology blog series exploring foundational philosophy through AI integration
+- `blog-drafts/` -- Works-in-progress blog posts and narrative documentation
+- `releases/` -- Archival release notes for Intent v1.2.1 through v2.9.0
 
 ## Files
 
-- `README.md` -- Documentation index and navigation guide
-- `1-getting-started.md` -- Quick start guide for installing and using Intent
-- `2-steel-threads.md` -- Comprehensive guide to steel thread creation, organization, and best practices
-- `3-project-structure.md` -- Overview of Intent project layout and directory conventions
-- `4-commands.md` -- Complete reference for all Intent CLI commands and options
-- `5-agents.md` -- Guide to Claude Code sub-agents, agent system configuration, and usage patterns
-- `6-best-practices.md` -- Recommended workflows, patterns, and principles for Intent-driven development
-- `7-treeindex.md` -- Detailed documentation of treeindex system for fast codebase navigation
-- `8-faq.md` -- Frequently asked questions and troubleshooting guide
-- `STEEL_THREAD_TEMPLATE.md` -- Template for creating new steel threads with required sections
-</parameter>
-</invoke>
-</function_calls>
-
-Done! I've generated the `.treeindex` file for the `docs/` directory at `intent/.treeindex/docs/.treeindex`. It documents the technical documentation structure covering getting started, steel threads, project structure, commands, agents, best practices, treeindex, FAQs, and templates.
+- `rules.md` -- Rule library authoring guide with schema reference and examples
+- `critics.md` -- Critic subagent contract, report format, and invocation patterns
+- `writing-extensions.md` -- Extension authoring guide for ~/.intent/ext/ user customizations

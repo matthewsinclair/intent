@@ -1,6 +1,6 @@
 # Intent v2.9.0 Release Notes
 
-**Release Date**: TBD (WP11)
+**Release Date**: 2026-04-23
 
 ## Overview
 

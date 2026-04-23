@@ -1,17 +1,17 @@
-<!-- treeindex v1 fingerprint:139c15c8 generated:2026-02-24T15:21:08Z -->
+<!-- treeindex v1 fingerprint:9427f407 generated:2026-04-23T16:19:11Z -->
 
 # tpd/
 
-Technical Product Design documentation for Intent v2.4.0 (as-built). This directory contains a comprehensive specification covering the Intent system's architecture, requirements, implementation strategy, and operational guidelines, with emphasis on the plugin architecture, Claude Code integration, and steel thread process methodology.
+Intent's Technical Product Design (TPD) documentation — a comprehensive technical specification for the Intent system (formerly STP). The TPD is the authoritative design document covering requirements, architecture, implementation strategy, and deployment guidance for Intent v2.4.0, and serves as the preamble context for Claude on Intent projects.
 
 ## Files
 
-- `technical_product_design.md` -- Main index and table of contents; entry point for TPD v2.4.0 with preamble for Claude
-- `1_introduction.md` -- Purpose, scope, definitions, and system overview; rebrand history from STP to Intent
-- `2_requirements.md` -- Functional and non-functional requirements with implementation status
-- `3_architecture.md` -- System architecture overview, component architecture, and design patterns
-- `4_detailed_design.md` -- Directory structure (as-built), JSON configuration schema, document templates
-- `5_implementation_strategy.md` -- Development approach using steel threads, phase breakdown, task organization
-- `6_deployment_and_operations.md` -- Installation methods (global, manual, project-specific), project initialization
-- `7_technical_challenges_and_mitigations.md` -- LLM context management, shell portability, documentation maintenance, adoption barriers
-- `8_appendices.md` -- Glossary, command reference, configuration schema, examples
+- `technical_product_design.md` -- Master index and preamble to Claude; central entry point for all TPD sections
+- `1_introduction.md` -- Purpose, scope, definitions, system overview, and version history
+- `2_requirements.md` -- Functional and non-functional requirements with status and acceptance criteria
+- `3_architecture.md` -- System architecture overview, component design, and layered structure
+- `4_detailed_design.md` -- Directory structure, document templates, configuration system (as-built)
+- `5_implementation_strategy.md` -- Development approach, steel thread breakdown, and task planning
+- `6_deployment_and_operations.md` -- Installation methods, project initialization, environment setup (as-built)
+- `7_technical_challenges_and_mitigations.md` -- LLM context management, portability, documentation maintenance strategies
+- `8_appendices.md` -- Glossary, command reference, configuration schema, examples (as-built)

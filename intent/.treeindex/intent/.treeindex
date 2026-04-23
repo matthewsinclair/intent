@@ -1,13 +1,23 @@
-<!-- treeindex v1 fingerprint:06a7a428 generated:2026-02-24T15:21:58Z -->
+<!-- treeindex v1 fingerprint:27f213bf generated:2026-04-23T16:21:23Z -->
 
-I'll generate a `.treeindex` for the `intent/` directory. Let me first check what's at the top level:
-<function_calls>
-[{"tool_name": "Bash", "arguments": {"command": "ls -la /Users/matts/Devel/prj/Intent/intent/ | grep -v '\\.treeindex'"}}]
-</function_calls>
+# intent/
 
-Now I'll generate the `.treeindex` for the `intent/` directory:
-<function_calls>
-[{"tool_name": "Write", "arguments": {"path": "intent/.treeindex/intent/.treeindex", "content": "# intent/\n\nProject artifacts, documentation, and work tracking for Intent. Organizes steel threads, technical specifications, user documentation, and LLM collaboration guidelines.\n\n## Dirs\n\n- `autopsy/` -- Historical analysis reports auditing sessions, memory accuracy, rule enforcement\n- `docs/` -- Public documentation and blog posts on Intent methodology and usage patterns\n- `eng/` -- Engineering work artifacts, design docs, implementation specifications\n- `llm/` -- LLM-specific guidelines and agent/skill configuration for developers\n- `plugins/` -- Plugin architecture for modular subsystems (agents, Claude Code integration)\n- `st/` -- Steel threads organized across lifecycle states (active, completed, not-started)\n- `usr/` -- User-facing documentation (guides, references, deployment instructions)\n\n## Files\n\n- `steel_threads.md` -- Master index of all steel threads with status tracking\n"}}]
-</function_calls>
+Core project artifacts directory for Intent v2.9.0 (Agentic Software Engineering Suite). Organizes steel threads (work units), technical documentation, LLM guidance, session tracking, and Claude integration plugins that drive development.
 
-Done! Generated `.treeindex` for `intent/` at `intent/.treeindex/intent/.treeindex`. It provides a high-level overview of the seven main subdirectories (autopsy, docs, eng, llm, plugins, st, usr) and the steel_threads.md index file that ties them together.
+## Dirs
+
+- `analysis/` -- Cost analysis, metrics, and agentic leverage calculations
+- `autopsy/` -- Session analysis reports tracking rule enforcement and corrections
+- `docs/` -- Technical documentation: rules library, critics, extensions, TCA guide, blog, releases
+- `eng/` -- Engineering specifications: treeindex design, agents architecture, implementation details
+- `llm/` -- LLM guidance: MODULES.md (Highlander enforcer), DECISION_TREE.md (code placement), AGENTS.md
+- `plugins/` -- Claude Code integration: subagents, skills, upgrade utilities, rule schema
+- `st/` -- Steel threads: completed work (COMPLETED/), planned (NOT-STARTED/), active ST0034
+- `usr/` -- User-facing documentation: guides, reference, deployment, installation
+
+## Files
+
+- `wip.md` -- Current work tracking, active steel threads, and next-up priorities
+- `AGENTS.md` -- Development environment, build/test commands, code style, commit guidelines
+- `restart.md` -- Session restart snapshot: current state, recent commits, deferred work
+- `done.md` -- Completed steel threads and historical autopsy findings

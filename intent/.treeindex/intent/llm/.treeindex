@@ -1,39 +1,11 @@
-<!-- treeindex v1 fingerprint:95c80649 generated:2026-02-24T15:21:36Z -->
+<!-- treeindex v1 fingerprint:5387a82b generated:2026-04-23T16:19:58Z -->
 
-I'll generate a `.treeindex` for the `llm/` directory. Let me first explore its structure.
-<function_calls>
-<invoke name="Glob">
-<parameter name="pattern">llm/**</parameter>
-</invoke>
-</function_calls>
-<function_calls>
-<invoke name="Read">
-<parameter name="path">llm</parameter>
-</invoke>
-</function_calls>
+# llm/
 
-Now let me check what's actually in the llm directory at the top level:
-<function_calls>
-<invoke name="Bash">
-<parameter name="command">ls -la llm/ 2>/dev/null | head -20</parameter>
-</invoke>
-</function_calls>
-
-Now I'll generate the `.treeindex` file for the `llm/` directory:
-<function_calls>
-<invoke name="Write">
-<parameter name="path">intent/.treeindex/llm/.treeindex</parameter>
-<parameter name="content"># llm/
-
-This directory contains LLM-specific guidelines and configuration for the Intent project, including agent definitions, skill configurations, and Claude-related documentation for developers using Language Models in this codebase.
+This directory contains LLM-specific guidance files for the Intent project. These are core reference documents that establish coding standards, module ownership, and code placement rules via the Highlander principle.
 
 ## Files
 
-- `AGENTS.md` -- Project development environment setup, build/test commands, code style guidelines, and commit/PR conventions for Intent projects
-</parameter>
-</invoke>
-</function_calls>
-
-Done! I've generated the `.treeindex` file for the `llm/` directory at `intent/.treeindex/llm/.treeindex`. 
-
-The directory currently contains just the `AGENTS.md` file, which documents the project's development environment, testing strategy, and commit conventions. The `.treeindex` provides a quick reference for understanding what this directory contains.
+- `MODULES.md` -- Module registry enforcing the Highlander Rule; definitive mapping of concerns to Bash scripts and helpers
+- `DECISION_TREE.md` -- Code placement decision tree with cross-references to MODULES.md; answers where new code belongs
+- `AGENTS.md` -- Development environment, build/test commands, code style, Intent steel thread process, and commit guidelines

@@ -1,17 +1,18 @@
 ---
-verblock: "23 Apr 2026:v0.39: matts - ST0034 WP10 + Task #26 done; WP11 next (release)"
-intent_version: 2.8.2
+verblock: "23 Apr 2026:v0.40: matts - Intent v2.9.0 release (ST0034 done)"
+intent_version: 2.9.0
 ---
 
 # Work In Progress
 
 ## Current State
 
-Intent v2.8.2 (VERSION unchanged; release bump is WP11). **ST0034 active — 11/12 WPs done.** WP10 (Documentation) closed in this session. Three new docs landed (`intent/docs/rules.md`, expanded `intent/docs/writing-extensions.md`, updated `intent/docs/critics.md`); CLAUDE.md / MODULES.md / DECISION_TREE.md / creating-custom-agents.md / `lib/help/*.help.md` updated for v2.9.0; AGENTS.md regenerated via `intent agents sync`; CHANGELOG + release-notes drafts staged for WP11. Mid-WP scope expansion: full TCA suite refactor (5 skills) for rule library + 1195-line `intent/docs/total-codebase-audit.md` updated + `rules:` frontmatter added to in-elixir-essentials/in-elixir-testing. Task #26 (generator fixes for `intent agents sync`) closed in `f2beaed`. WP11 (release + fleet upgrade) is the only remaining WP.
+**Intent v2.9.0 — Agentic Software Engineering Suite (ST0034) released 2026-04-23.** All 12 WPs done. `VERSION` bumped to 2.9.0; `CHANGELOG.md [2.9.0]` dated; `docs/releases/2.9.0/RELEASE_NOTES.md` finalised; worker-bee seed `intent_compat.min` bumped to 2.9.0 in lockstep. Tag `v2.9.0` on both remotes; GitHub release published from `RELEASE_NOTES.md`. Fleet upgrade across the 16-project fleet pending in WP11 sessions 2-3 (canary batch first: Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex, Conflab; then batch 2 + batch 3; A3/\* skipped per existing direction). No active steel threads remaining.
 
 ## Recent
 
-- **2026-04-23**: WP10 (Documentation) closed. New canonical docs (rules.md, expanded writing-extensions.md, updated critics.md), all reference files updated, CHANGELOG + release-notes drafts. Mid-WP scope expansion absorbed the TCA suite refactor (in-tca-init/audit/synthesize/remediate/finish drop ad-hoc R-numbering and dispatch critic-<lang>) and 1195-line total-codebase-audit.md update for v2.9.0. `tests/unit/docs_completeness.bats` ships (11 tests). 707/707 BATS green; 48/48 rules validate ok.
+- **2026-04-23**: **v2.9.0 released.** ST0034 (Agentic Software Engineering Suite) complete. Tag `v2.9.0` pushed to `local` + `upstream`; GitHub release published. `VERSION` 2.9.0; CHANGELOG dated; release notes finalised; worker-bee seed `intent_compat.min` bumped to 2.9.0. Pre-release gate green: bats suite ok, `intent claude rules validate` 48/48 ok, `intent doctor` clean, ext_seed_validity 18/18 ok. Fleet rollout (canary + batch 2 + batch 3) pending WP11 sessions 2-3.
+- **2026-04-23**: WP10 (Documentation) closed. New canonical docs (rules.md, expanded writing-extensions.md, updated critics.md), all reference files updated, CHANGELOG + release-notes drafts. Mid-WP scope expansion absorbed the TCA suite refactor (in-tca-init/audit/synthesize/remediate/finish drop ad-hoc R-numbering and dispatch critic-<lang>) and 1195-line total-codebase-audit.md update for v2.9.0. `tests/unit/docs_completeness.bats` ships. Task #26 (generator fixes for `intent agents sync`) closed in `f2beaed`; follow-on cleanup commit removed dead `bl)` dispatch case from `bin/intent_main` and swept TPD `intent bl` residue from v2.5.0's Backlog.md removal.
 - **2026-04-23**: WP09 (migration chain) closed. v2.8.2 → v2.9.0 migration step authored; chain extended in `bin/intent_upgrade` (gate check + 16 chain-tails + new `"2.8.2"` case); 28 BATS tests in `ext_migration.bats`; full suite 696 ok.
 - **2026-04-23**: WP07 (critic subagent family) closed in a single cohesive commit (`398de76`). Four critics + 16-row verification matrix green; critic-shell retrofitted; in-review stage-2 dispatcher; `.intent_critic.yml` schema + sample; intent/docs/critics.md; three new BATS suites (critic_dispatch, critic_report_format, critic_config).
 - **2026-04-22**: WP12 (shell rule pack + `critic-shell` subagent) + WP06 (Rust/Swift/Lua rule packs) + WP08 (worker-bee extracted to `lib/templates/ext-seeds/` with `git mv` so history is preserved) + `/in-session` bootstrap skill shipped. Commits `44e05d1`, `c17d03b`, `65f3cea`, `d2edb59`.
@@ -20,11 +21,11 @@ Intent v2.8.2 (VERSION unchanged; release bump is WP11). **ST0034 active — 11/
 
 ## Active Steel Threads
 
-- **ST0034 (Agentic Software Engineering Suite)** — v2.9.0 target. 12 WPs. 11 done: WP01 schema, WP02 ext system, WP03 skill/subagent rationalisation (elixir subagent deleted), WP04 agnostic pack, WP05 Elixir pack, WP06 Rust/Swift/Lua packs, WP07 critic family, WP08 worker-bee extraction, WP09 migration chain, WP10 documentation (this session), WP12 shell pack + critic-shell. Remaining: **WP11 release + fleet upgrade**. See `intent/st/ST0034/impl.md` for the full progress tracker.
+None. ST0034 (Agentic Software Engineering Suite) closed at v2.9.0 release.
 
 ## Next Up
 
-1. **WP11 (Medium)**: release + fleet upgrade. Bump `VERSION` to `2.9.0`; tag `v2.9.0` and force-push to both remotes; publish GitHub release using the v2.9.0 release-notes draft (`docs/releases/2.9.0/RELEASE_NOTES.md`) and the CHANGELOG v2.9.0 entry. Bump worker-bee seed `intent_compat.min` in lockstep with VERSION. Run WP09 canary dry-run against fleet projects (Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex, Conflab) before tagging. Roll upgrade across the 16-project fleet. See `intent/st/ST0034/WP/11/info.md` for the tagged plan.
+1. **WP11 sessions 2-3 (fleet rollout)**: canary batch (Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex, Conflab) — serial, halt-on-error. Then batch 2 (Laksa, Lamplight, MeetZaya, MicroGPTEx, Molt, Molt-matts) and batch 3 (Multiplyer, Prolix, Utilz, Courses/Agentic Coding) — parallel within batch. A3/\* skipped per existing direction. Per-project verification: `intent_version: 2.9.0`, `intent doctor` clean, no `elixir` or `worker-bee` in `~/.claude/agents/`, `~/.intent/ext/worker-bee/` seeded.
 
 ## Deferred observations
 

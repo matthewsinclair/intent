@@ -2,16 +2,13 @@
 
 ## Current State
 
-Intent v2.8.2 (VERSION unchanged; release bump is WP11). **ST0034 active — 11/12 WPs done.** WP10 (Documentation) closed and committed (`6bb9d0d`). Task #26 (`intent agents sync` generator fixes + dead `bl)` dispatch removal + TPD `intent bl` sweep) closed in `f2beaed` and the follow-on cleanup commit. Tree is clean. Next: WP11 (release + fleet upgrade).
+**Intent v2.9.0 released 2026-04-23.** ST0034 (Agentic Software Engineering Suite) complete — all 12 WPs done. `VERSION` 2.9.0; tag `v2.9.0` on `local` + `upstream`; GitHub release published from `docs/releases/2.9.0/RELEASE_NOTES.md`; CHANGELOG `[2.9.0]` dated 2026-04-23; worker-bee seed `intent_compat.min` bumped to 2.9.0 in lockstep. Pre-release gate green: bats suite ok, `intent claude rules validate` 48/48 ok, `intent doctor` clean, `tests/unit/ext_seed_validity.bats` 18/18 ok. Next: WP11 fleet rollout (canary → batch 2 → batch 3) across the 16-project fleet.
 
-## ST0034 status (as of 2026-04-23)
+## ST0034 status (closed)
 
-| Status        | WPs                                                                                                                                                                                                                                |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Done (11)     | WP01 schema · WP02 ext system · WP03 rationalisation · WP04 agnostic · WP05 Elixir · WP06 Rust/Swift/Lua · WP07 critic family · WP08 worker-bee extraction · WP09 migration chain · WP10 documentation · WP12 shell + critic-shell |
-| Remaining (1) | WP11 release + fleet upgrade                                                                                                                                                                                                       |
-
-Critical path: **WP11**.
+| Status    | WPs                                                                                                                                                                                                                                               |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Done (12) | WP01 schema · WP02 ext system · WP03 rationalisation · WP04 agnostic · WP05 Elixir · WP06 Rust/Swift/Lua · WP07 critic family · WP08 worker-bee extraction · WP09 migration chain · WP10 documentation · WP11 release · WP12 shell + critic-shell |
 
 ## What WP10 shipped
 

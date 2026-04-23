@@ -549,9 +549,9 @@ TEMPLATE
       
       # Update status and completion date
       sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: Completed/" "$ST_FILE"
-      sed -i.bak "s/^\- \*\*Completed\*\*: .*$/- **Completed**: $DATE/" "$ST_FILE"
+      sed -i.bak "s/^\- \*\*Completed\*\*:.*$/- **Completed**: $DATE/" "$ST_FILE"
       sed -i.bak "s/^status: .*$/status: Completed/" "$ST_FILE"
-      sed -i.bak "s/^completed: .*$/completed: $(date '+%Y%m%d')/" "$ST_FILE"
+      sed -i.bak "s/^completed:.*$/completed: $(date '+%Y%m%d')/" "$ST_FILE"
       rm -f "$ST_FILE.bak"
       
       # Get current directory
@@ -578,9 +578,9 @@ TEMPLATE
       TITLE=$(grep "^# $ST_ID:" "$ST_FILE" | sed "s/^# $ST_ID: //")
       
       sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: Completed/" "$ST_FILE"
-      sed -i.bak "s/^\- \*\*Completed\*\*: .*$/- **Completed**: $DATE/" "$ST_FILE"
+      sed -i.bak "s/^\- \*\*Completed\*\*:.*$/- **Completed**: $DATE/" "$ST_FILE"
       sed -i.bak "s/^status: .*$/status: Completed/" "$ST_FILE"
-      sed -i.bak "s/^completed: .*$/completed: $(date '+%Y%m%d')/" "$ST_FILE"
+      sed -i.bak "s/^completed:.*$/completed: $(date '+%Y%m%d')/" "$ST_FILE"
       rm -f "$ST_FILE.bak"
       
       NEW_ST_FILE=$(get_st_path "$ST_ID" "Completed")

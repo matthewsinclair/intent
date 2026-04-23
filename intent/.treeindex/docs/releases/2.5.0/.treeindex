@@ -1,0 +1,11 @@
+<!-- treeindex v1 fingerprint:8b52da4a generated:2026-04-23T16:16:31Z -->
+
+Based on the source files you've provided for the 2.5.0 directory:
+
+# 2.5.0/
+
+Release documentation for Intent v2.5.0. Contains detailed release notes covering new features (work package management), architectural improvements (plugin refactoring), and migration guidance.
+
+## Files
+
+- `RELEASE_NOTES.md` -- Release notes for v2.5.0 covering WP commands, Highlander audit, shared plugin helpers, and backlog removal

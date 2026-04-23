@@ -1,0 +1,9 @@
+<!-- treeindex v1 fingerprint:80436a39 generated:2026-04-23T16:22:11Z -->
+
+# hooks/
+
+Stores Claude Code hook configurations that automate workflow validation and compliance checks. Hooks are triggered on specific events (PostToolUse, etc.) and enforce project conventions — in this case, the Highlander Rule by validating that newly created files are registered in the Intent module registry.
+
+## Files
+
+- `module_check_hook.json` -- PostToolUse hook that validates new files against intent/llm/MODULES.md registration

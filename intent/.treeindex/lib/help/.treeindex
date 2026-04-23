@@ -1,11 +1,19 @@
-<!-- treeindex v1 fingerprint:0cddd541 generated:2026-02-24T15:22:30Z -->
+<!-- treeindex v1 fingerprint:c0324574 generated:2026-04-23T16:23:29Z -->
 
 # help/
 
-Help documentation files for Intent CLI commands. Each file documents command usage, options, arguments, and examples for the Intent command-line tool's major subsystems.
+Help documentation for Intent CLI commands. Each `.help.md` file provides detailed usage information, options, and examples for a specific intent subcommand.
 
 ## Files
 
-- `wp.help.md` -- Work package management within steel threads (new, done, start, list, show)
-- `agents.help.md` -- Claude Code sub-agent management (list, install, sync, uninstall, show, status)
-- `fileindex.help.md` -- File indexing with checkbox state tracking for progress monitoring
+- `claude.help.md` -- Claude Code integration (subagents, skills, rules, upgrade, prime)
+- `agents.help.md` -- AGENTS.md management (initialize, sync, validate agent instructions)
+- `wp.help.md` -- Work package management (create, list, track within steel threads)
+- `modules.help.md` -- Module registry (Highlander enforcement, detect unregistered modules)
+- `audit.help.md` -- Code quality checks (Credo, custom rules, auto-fix, health reports)
+- `rules.help.md` -- Rule library (enumerate, validate, index rules across languages)
+- `learn.help.md` -- Capture learnings (footguns, patterns worked/failed for sessions)
+- `plugin.help.md` -- Plugin discovery (list, show, help for Intent plugins)
+- `ext.help.md` -- User extensions (list, validate, scaffold at ~/.intent/ext/)
+- `fileindex.help.md` -- File indexing (create indexes with checkbox states)
+- `stzero.help.md` -- Steel Thread Zero retrofit (onboard projects, audit deliverables)

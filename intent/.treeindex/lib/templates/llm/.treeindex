@@ -1,10 +1,15 @@
-<!-- treeindex v1 fingerprint:52d45a1b generated:2026-02-24T15:22:20Z -->
+<!-- treeindex v1 fingerprint:76c6272c generated:2026-04-23T16:22:00Z -->
 
 # llm/
 
-Contains LLM-specific guidelines and preamble documentation for the Intent project. These files establish baseline understanding and context for AI agents working on the project, including agent system capabilities, steel thread methodology, and project navigation guidance.
+LLM-specific guidelines and templates for Intent projects. Contains the module registry (Highlander Rule enforcer), decision trees for code placement, agent documentation, code archetypes, and template files for project-specific guidance.
 
 ## Files
 
-- `_CLAUDE.md` -- Project guidelines template with command reference, agent system overview, and usage patterns
-- `_llm_preamble.md` -- LLM session preamble providing essential context, documentation structure, and agent delegation guidance
+- `MODULES.md` -- Module registry enforcing the Highlander Rule (one module per concern)
+- `DECISION_TREE.md` -- Decision tree for determining where code should live (which module/layer)
+- `AGENTS.md` -- Intent agent system documentation; available agents and their specialties
+- `ARCHETYPES.md` -- Code templates for Elixir/Phoenix (services, controllers, LiveViews, etc.)
+- `_CLAUDE.md` -- Template for project-specific CLAUDE.md guidelines (project-level rules and structure)
+- `_DEPENDENCY_GRAPH.md` -- Template for app-level dependency rules in umbrella applications
+- `_llm_preamble.md` -- Template for LLM session preamble; baseline context for new sessions

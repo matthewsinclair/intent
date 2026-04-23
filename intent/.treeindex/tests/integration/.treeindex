@@ -1,9 +1,10 @@
-<!-- treeindex v1 fingerprint:b3204c64 generated:2026-02-24T09:34:45Z -->
+<!-- treeindex v1 fingerprint:003e67ab generated:2026-04-23T16:24:22Z -->
 
 # integration/
 
-Integration test suite using BATS framework for end-to-end testing of Intent workflows. Tests verify complete user journeys including project creation, steel thread management, and command interactions. These tests validate the CLI tool's core functionality across the full stack.
+BATS integration test suite for Intent. Tests core functionality, project workflows, and end-to-end scenarios including project initialization, steel thread creation, and error handling.
 
 ## Files
 
-- `end_to_end.bats` -- Complete workflow tests including project initialization, steel thread creation, listing, and error handling for commands outside projects
+- `core_functionality.bats` -- Essential functionality tests: help, project detection, backup naming, silent failure prevention
+- `end_to_end.bats` -- Workflow integration tests: project creation, steel thread management, error handling across commands

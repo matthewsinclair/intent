@@ -1,0 +1,9 @@
+<!-- treeindex v1 fingerprint:c98ed8cb generated:2026-04-23T16:23:05Z -->
+
+# scripts/
+
+Utility scripts for project setup, configuration, and automation. Contains Elixir Mix scripts and helpers used during installation and upgrades.
+
+## Files
+
+- `configure_credo.exs` -- Configures `.credo.exs` to load Intent custom checks (BracketAccessOnStruct, DebugArtifacts, HighlanderSuspect, MapGetOnStruct, MissingImplAnnotation, ThickCoordinator); idempotent, safe to run on install and upgrade

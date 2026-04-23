@@ -1,10 +1,11 @@
-<!-- treeindex v1 fingerprint:52bfd62a generated:2026-02-24T15:21:49Z -->
+<!-- treeindex v1 fingerprint:55dea347 generated:2026-04-23T16:20:24Z -->
 
 # autopsy/
 
-This directory stores historical autopsy reports that analyze project sessions, memory accuracy, rule enforcement, and undocumented conventions. Reports use date-suffixed naming (e.g., `20260220.md`, `20260220b.md`) to track multiple analyses on the same day.
+Session autopsy reports that analyze conversation patterns across multiple sessions, detect rule enforcement failures, identify memory gaps, and propose convention updates. Each report contains findings organized by violation severity, enforcement failures, and undocumented conventions.
 
 ## Files
 
-- `20260220.md` -- Initial analysis of 12 sessions from Feb 17-20; identified 4 corrections, 5 user flag false positives, 84 banned word violations; proposed 6 memory updates
-- `20260220b.md` -- Post-update verification confirming all 6 memory updates applied; re-analyzed same sessions with 8 false positive flags and no new enforcement failures
+- `20260404.md` -- Latest autopsy (14 sessions, 2026-03-05 to 2026-04-04); detrope false positives identified, "overall" usage analysis, no enforcement failures
+- `20260220b.md` -- Verification run post-memory-update (12 sessions with 7 compactions); confirms 6 memory updates applied, same false positive findings as 20260220.md
+- `20260220.md` -- First autopsy report (12 sessions, 2026-02-17 to 2026-02-20); identified 4 corrections, 2 memory gaps, 3 real banned violations among 84 total

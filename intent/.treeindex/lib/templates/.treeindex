@@ -1,13 +1,10 @@
-<!-- treeindex v1 fingerprint:38989ca6 generated:2026-02-04T11:48:58Z -->
+<!-- treeindex v1 fingerprint:ae64db9a generated:2026-04-23T16:22:36Z -->
 
-# templates/
+I don't have access to file system tools in this context to explore the `templates/` directory. Could you provide:
 
-This directory contains file templates and scaffolding for Intent projects, providing standardized starting points for steel threads, documentation, and project artifacts. Templates accelerate project initialization and ensure consistency across Intent-managed codebases.
+1. The directory listing (subdirectories and files in `lib/templates/`)
+2. The purpose of each subdirectory
 
-## Files
+From the git status, I can see there are untracked `.treeindex` directories for `lib/templates/hooks/` and `lib/templates/prime/`, and the CLAUDE.md mentions `lib/templates/ext-seeds/worker-bee/extension.json`, but I need the complete inventory to generate an accurate treeindex.
 
-- `_steel_thread_template.md` -- Standard steel thread structure with sections for metadata, context, design, implementation, and task tracking
-- `_project_readme_template.md` -- Template for project README files covering overview, setup, architecture, and usage
-- `_documentation_template.md` -- Generic documentation template with sections for overview, concepts, examples, and troubleshooting
-- `_agents_template.md` -- AGENTS.md template for declaring project agents, capabilities, and delegation guidelines
-- `_claude_guidelines_template.md` -- Template for project-specific Claude guidelines covering codebase context, conventions, and best practices
+Alternatively, you could run `ls -la /Users/matts/Devel/prj/Intent/lib/templates/` and paste the output, and I can generate the file from that.

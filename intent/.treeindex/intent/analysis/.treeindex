@@ -1,0 +1,9 @@
+<!-- treeindex v1 fingerprint:52517b4a generated:2026-04-23T16:20:35Z -->
+
+# analysis/
+
+This directory contains cost estimates, metrics analysis, and project assessments. It stores detailed codebase metrics, development time projections, and agentic leverage calculations for Intent and related projects.
+
+## Files
+
+- `20260306-Intent-cost-analysis.md` -- Codebase metrics, complexity assessment, development time estimates, and agentic leverage ratios for Intent v2.8.0+

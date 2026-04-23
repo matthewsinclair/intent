@@ -1,23 +1,65 @@
-<!-- treeindex v1 fingerprint:d8d689da generated:2026-02-24T15:22:52Z -->
+<!-- treeindex v1 fingerprint:b49afb1a generated:2026-04-23T16:24:11Z -->
 
 # unit/
 
-BATS test suite for Intent CLI covering command routing, project initialization, steel thread and work package management, skill/agent systems, and CLI utilities. All tests use shared test helpers and sandbox environments to ensure isolation and repeatability.
+BATS test suite for Intent CLI, covering command routing, project operations, rule library validation, extension system, and critic infrastructure. 42 test files organized into suites for core commands, rule packs, skill/agent operations, and feature verification.
 
 ## Files
 
-- `basic.bats` -- Test infrastructure verification and helper function validation
-- `config.bats` -- Configuration loading, PROJECT_ROOT detection, legacy structure support
-- `global_commands.bats` -- Global commands (help, version, doctor, info, bootstrap) that work anywhere
-- `bootstrap.bats` -- Bootstrap command for initial Intent setup and ~/.config/intent initialization
-- `init_commands.bats` -- Project initialization with directory structure and config.json creation
-- `project_commands.bats` -- Project detection and project-context-dependent commands
-- `st_commands.bats` -- Steel thread lifecycle (create, list, show, start, complete)
-- `wp_commands.bats` -- Work package management within steel threads
-- `agent_commands.bats` -- Claude subagent system with install/sync/list/status operations
-- `skills_commands.bats` -- Claude skill installation, listing, syncing, and status tracking
-- `help_commands.bats` -- Help system and command documentation display
-- `treeindex_commands.bats` -- Treeindex generation with flags and directory processing
-- `fileindex_commands.bats` -- Fileindex generation with filtering and output options
-- `test_autopsy.bats` -- Intent-autopsy skill full directory install and scripts verification
-- `test_diogenes.bats` -- Diogenes subagent and intent-elixir-testing skill integration
+**Core command tests (st, wp, help)**
+- `st_commands.bats` -- Steel thread CRUD, sequencing, status transitions
+- `wp_commands.bats` -- Work package creation, lifecycle, specifier resolution
+- `st_zero_commands.bats` -- ST Zero retrofit installation and gap analysis
+- `help_commands.bats` -- Help routing and command-specific documentation
+- `global_commands.bats` -- Commands that work without project context
+- `project_commands.bats` -- Commands that require Intent project structure
+
+**Project setup and configuration**
+- `basic.bats` -- Infrastructure: test helper, executable paths, project creation
+- `init_commands.bats` -- Project initialization and directory structure
+- `bootstrap.bats` -- Global configuration bootstrap at ~/.config/intent
+- `config.bats` -- Configuration loading, PROJECT_ROOT detection, legacy detection
+
+**Plugin and extension system**
+- `agent_commands.bats` -- Claude subagent list, install, sync, uninstall, show
+- `plugin_commands.bats` -- Plugin discovery and per-plugin command routing
+- `ext_commands.bats` -- Extension list, show, validate, new commands
+- `ext_discovery.bats` -- Multi-root ext discovery, precedence, shadow warnings
+- `ext_migration.bats` -- v2.8.2 → v2.9.0 migration: version stamp, seed copy, prune
+- `ext_seed_validity.bats` -- worker-bee seed manifest and directory validation
+
+**Rule library validation**
+- `rule_index.bats` -- Deterministic index.json generation and schema compliance
+- `rule_validator.bats` -- Rule RULE.md validation against archetype and error fixtures
+- `rule_pack_agnostic.bats` -- Agnostic rule presence, frontmatter, concretised_by invariant
+- `rule_pack_elixir.bats` -- Elixir rule catalog, ID uniqueness, validator agreement
+- `rule_pack_elixir_runnable.bats` -- Runnable code/test examples exit 0 under standalone elixir
+- `rule_pack_rust.bats` -- Rust code and test rules, ID assignment, validation
+- `rule_pack_swift.bats` -- Swift rule pack presence and validation
+- `rule_pack_lua.bats` -- Lua rule pack presence and validation
+- `rule_pack_shell.bats` -- Shell rule pack with bash/zsh dialect tagging
+- `attribution_compliance.bats` -- MIT attribution table sync with upstream_id frontmatter
+- `rule_reference_skills.bats` -- Skills reference rules by ID, not inlined prose
+
+**Critic system tests**
+- `critic_config.bats` -- .intent_critic.yml parsing and schema edge cases
+- `critic_dispatch.bats` -- Language detection and critic-<lang> routing from in-review
+- `critic_report_format.bats` -- Report heading, severity sections, finding format stability
+
+**Skills and agents**
+- `in_session_skill.bats` -- /in-session bootstrap skill existence, language detection, CLAUDE.md wiring
+- `test_autopsy.bats` -- in-autopsy skill source, directory install, file structure
+- `test_diogenes.bats` -- diogenes subagent list, install, manifest creation
+- `skills_commands.bats` -- Skill list, install, sync, uninstall, show commands
+
+**Utility commands and tools**
+- `audit_commands.bats` -- Audit quick, prerequisites, template copy
+- `learn_commands.bats` -- Learning capture with category and default footgun type
+- `modules_commands.bats` -- Module registry check, find, update operations
+- `fileindex_commands.bats` -- File index generation, recursive search, output formatting
+- `treeindex_commands.bats` -- .treeindex directory summary generation and shadow dir
+
+**Feature and compliance audits**
+- `highlander_audit.bats` -- WP03-refactored skills carry no fenced code blocks
+- `docs_completeness.bats` -- v2.9.0 docs exist, cross-references resolve, no dead refs to deleted subagents
+- `subdir_invocation.bats` -- Commands work from any subdirectory; no stray .intent/ creation outside project

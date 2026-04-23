@@ -1,20 +1,9 @@
-<!-- treeindex v1 fingerprint:b9bc0260 generated:2026-02-20T11:29:09Z -->
+<!-- treeindex v1 fingerprint:474f91e2 generated:2026-04-23T16:19:01Z -->
 
-<function_calls>
-<invoke name="Glob">
-<parameter name="pattern">/Users/matts/Devel/prj/Intent/agents/*</parameter>
-</invoke>
-</function_calls>
-<function_calls>
-<invoke name="Read">
-<parameter name="path">/Users/matts/Devel/prj/Intent/agents</parameter>
-</invoke>
-</function_calls>
+I need access to the `intent/plugins/agents/` directory structure to generate the `.treeindex` file. The tools I need (Read/Glob) aren't currently enabled in this context.
 
-# agents/
+Could you either:
+1. Run `intent treeindex agents` to generate it automatically, or
+2. Enable file access tools for me so I can read the directory contents and generate the `.treeindex`
 
-Deprecated legacy agent definitions directory. Contains older AGENTS.md file and configuration that has been superseded by the Intent plugins architecture with specialized agents (elixir, socrates, worker-bee, diogenes) now located in `intent/plugins/claude/subagents/`.
-
-## Files
-
-- `AGENTS.md` -- Legacy agent documentation with descriptions of available agents and their capabilities (deprecated; see intent/plugins/claude/subagents/ for current agents)
+Once I can see the files and subdirectories in `intent/plugins/agents/`, I'll generate the `.treeindex` following the format rules.

@@ -1,24 +1,15 @@
-<!-- treeindex v1 fingerprint:e733fbe2 generated:2026-02-24T15:21:27Z -->
-
-I need to read the st/ directory structure first:
-<function_calls>
-<invoke name="Glob">
-<parameter name="pattern">/Users/matts/Devel/prj/Intent/intent/st/*</parameter>
-</invoke>
-</function_calls>
-
-Now I'll generate the .treeindex for st/:
+<!-- treeindex v1 fingerprint:42d55493 generated:2026-04-23T16:19:47Z -->
 
 # st/
 
-Container for all steel threads across their lifecycle. Organizes work into focused, self-contained units with design, implementation, and task tracking. Steel threads progress through states: active WIP, completed, or not-yet-started.
+Steel threads are self-contained units of work, each implementing a specific piece of functionality or improvement. This directory organizes both completed threads (in COMPLETED/) and planned threads awaiting resources (in NOT-STARTED/), plus active work directories like ST0034/.
 
 ## Dirs
 
-- `COMPLETED/` -- 25 finished steel threads (ST0001-ST0025) documenting completed features, refactoring, and infrastructure improvements
-- `NOT-STARTED/` -- Identified but unstarted steel threads awaiting resources or priority
+- `COMPLETED/` -- Finished steel threads (ST0001–ST0033, with some gaps)
+- `NOT-STARTED/` -- Planned steel threads awaiting work initiation
+- `ST0034/` -- Agentic Software Engineering Suite (v2.9.0 target; 12 WPs)
 
 ## Files
 
-- `steel_threads.md` -- Master index of all steel threads with status, creation, and completion dates
-- `ST0024/` -- Active work-in-progress steel thread for work package feature (created 2026-02-24)
+- `steel_threads.md` -- Master index tracking all steel threads by ID, slug, status, and dates

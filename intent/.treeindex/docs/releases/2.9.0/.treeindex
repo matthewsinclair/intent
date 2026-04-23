@@ -1,0 +1,9 @@
+<!-- treeindex v1 fingerprint:d3951e47 generated:2026-04-23T16:16:07Z -->
+
+# 2.9.0/
+
+Release documentation and artifacts for Intent v2.9.0 (Agentic Software Engineering Suite). This release introduces rules as first-class citizens, a critic-<lang> subagent family for code review, and a user extension system at ~/.intent/ext/.
+
+## Files
+
+- `RELEASE_NOTES.md` -- Overview of v2.9.0 features, rules library, critic subagents, extension system, breaking changes, and upgrade path

@@ -1,18 +1,17 @@
-<!-- treeindex v1 fingerprint:28f0a6b8 generated:2026-02-24T15:23:04Z -->
+<!-- treeindex v1 fingerprint:50c77f88 generated:2026-04-23T16:24:34Z -->
 
 # tests/
 
-BATS test suite for Intent CLI covering command routing, project initialization, steel thread management, skill/agent systems, and CLI utilities. Tests are organized by functionality with shared helpers for sandbox environments and assertion utilities. Includes unit tests, integration tests, and test fixtures for comprehensive CLI validation.
+Comprehensive BATS test suite for Intent CLI covering unit and integration scenarios. Tests include command routing, project operations, rule library validation, critic infrastructure, and end-to-end workflows. Suite runs via run_tests.sh with configurable test paths and colored output.
 
 ## Dirs
 
-- `fixtures/` -- Test fixtures and sample files for test scenarios
-- `integration/` -- End-to-end workflow tests validating complete user journeys
-- `lib/` -- Shared test libraries and helper functions (test_helper.bash)
-- `unit/` -- Unit tests for individual commands and subsystems
+- `fixtures/` -- Test fixtures and sample files
+- `integration/` -- End-to-end workflow and integration tests
+- `lib/` -- BATS helper libraries and utilities
+- `unit/` -- Unit tests for all CLI commands and subsystems
 
 ## Files
 
-- `run_tests.sh` -- Main test runner that executes BATS tests with environment setup
-- `core_functionality.bats` -- Essential core functionality tests that must always pass
-- `README.md` -- Test suite documentation and running instructions
+- `README.md` -- Test suite documentation and prerequisites
+- `run_tests.sh` -- Main test runner with Bats configuration and colored output

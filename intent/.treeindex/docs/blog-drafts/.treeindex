@@ -1,0 +1,9 @@
+<!-- treeindex v1 fingerprint:38e68731 generated:2026-04-23T16:16:57Z -->
+
+# blog-drafts/
+
+This directory contains draft blog posts and articles documenting Intent features, releases, and project updates. Drafts are works-in-progress that may be deferred, revised, or published after dependent work (e.g., subagent dogfood runs) completes.
+
+## Files
+
+- `shell-critic-inception.md` -- Dogfood journal and narrative for critic-shell WP12; documents rule authorship from corpus, dialect handling via shebang detection, and inception-pattern validation
