@@ -44,7 +44,7 @@ Entry 0 predicted "near-zero critical findings". Actual count of seven critical 
 
 ### What was fixed this session
 
-P0/P1 fixes shipped in commit `12cf05f`. All seven CRITICAL plus three of the WARNING tier resolved. Bats remained 707/707 green throughout.
+P0/P1 fixes shipped in commit `a9ee349`. All seven CRITICAL plus three of the WARNING tier resolved. Bats remained 707/707 green throughout.
 
 ### What was queued
 
