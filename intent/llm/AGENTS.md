@@ -10,6 +10,7 @@ This is an Intent project. See CLAUDE.md for project-specific guidelines.
 
 - Bash 4.0 or higher
 - POSIX-compliant shell environment
+- Bats testing framework
 
 ### Setup
 
@@ -24,7 +25,10 @@ intent init
 
 ### Testing
 
-No automated tests configured yet.
+```bash
+# Run tests
+bats -r tests/
+```
 
 ### Building
 
@@ -83,12 +87,15 @@ This project uses Intent's Steel Thread Process for development:
 ### Available Commands
 
 ```bash
-intent st list              # List all steel threads
-intent st new "Title"       # Create new steel thread
-intent st show <id>         # Show steel thread details
-intent bl                   # Manage backlog (if configured)
-intent doctor              # Check configuration
-intent agents sync         # Update this AGENTS.md file
+intent st list                  # List all steel threads
+intent st new "Title"           # Create new steel thread
+intent st show <id>             # Show steel thread details
+intent wp list <STID>           # List work packages for a steel thread
+intent wp new <STID> "Title"    # Create a new work package
+intent wp start <STID/NN>       # Mark work package as WIP
+intent wp done <STID/NN>        # Mark work package as Done
+intent doctor                   # Check configuration
+intent agents sync              # Update this AGENTS.md file
 ```
 
 ### Claude Subagents
@@ -107,7 +114,7 @@ Available subagents:
 - **critic-rust**: Rust rule-library critic. Reads rules/rust/ (code, test) and agnostic rules, applies Detection heuristics to .rs files, and emits a machine-parseable report grouped by severity.
 - **critic-shell**: Shell (bash + zsh) rule-library critic. Reads rules/shell/ and reports violations in target shell files, grouped by severity.
 - **critic-swift**: Swift rule-library critic. Reads rules/swift/ (code, test) and agnostic rules, applies Detection heuristics to .swift files, and emits a machine-parseable report grouped by severity.
-- **diogenes**:
+- **diogenes**: Elixir Test Architect - Socratic dialog that produces test specifications and validates test quality
 - **intent**: Intent-aware assistant for steel threads methodology
 - **socrates**: CTO Review Mode - Socratic dialog for technical decision-making
 

@@ -167,11 +167,12 @@ intent_agents_generate_content() {
     fi
   fi
   
-  # Check for bats tests
-  if [ -d "$PROJECT_ROOT/tests" ] && ls "$PROJECT_ROOT/tests"/*.bats >/dev/null 2>&1; then
+  # Check for bats tests (search recursively under tests/)
+  if [ -d "$PROJECT_ROOT/tests" ] && find "$PROJECT_ROOT/tests" -name "*.bats" -type f -print -quit 2>/dev/null | grep -q .; then
     has_bats=true
     if [ -z "$test_command" ]; then
-      test_command="bats tests/*.bats"
+      # bats -r recurses; works for both flat (tests/*.bats) and nested (tests/unit/*.bats) layouts
+      test_command="bats -r tests/"
     fi
   fi
   
@@ -313,12 +314,15 @@ This project uses Intent's Steel Thread Process for development:
 
 ### Available Commands
 ```bash
-intent st list              # List all steel threads
-intent st new "Title"       # Create new steel thread
-intent st show <id>         # Show steel thread details
-intent bl                   # Manage backlog (if configured)
-intent doctor              # Check configuration
-intent agents sync         # Update this AGENTS.md file
+intent st list                  # List all steel threads
+intent st new "Title"           # Create new steel thread
+intent st show <id>             # Show steel thread details
+intent wp list <STID>           # List work packages for a steel thread
+intent wp new <STID> "Title"    # Create a new work package
+intent wp start <STID/NN>       # Mark work package as WIP
+intent wp done <STID/NN>        # Mark work package as Done
+intent doctor                   # Check configuration
+intent agents sync              # Update this AGENTS.md file
 ```
 EOF
 
@@ -340,8 +344,22 @@ EOF
       if [ -d "$agent" ]; then
         local agent_name=$(basename "$agent")
         local desc=""
+        # Prefer metadata.json when present and populated.
         if [ -f "$agent/metadata.json" ]; then
           desc=$(jq -r '.description // ""' "$agent/metadata.json" 2>/dev/null)
+        fi
+        # Fall back to the description: field in agent.md frontmatter.
+        # Some subagents (eg diogenes) ship without metadata.json.
+        if [ -z "$desc" ] && [ -f "$agent/agent.md" ]; then
+          desc=$(awk '
+            /^---[[:space:]]*$/ { c++; if (c == 2) exit; next }
+            c == 1 && /^description:[[:space:]]*/ {
+              sub(/^description:[[:space:]]*/, "")
+              gsub(/^"|"$/, "")
+              print
+              exit
+            }
+          ' "$agent/agent.md" 2>/dev/null)
         fi
         echo "- **$agent_name**: $desc"
       fi
