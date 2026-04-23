@@ -2,7 +2,7 @@
 
 ## Current State
 
-**Intent v2.9.0 released 2026-04-23.** ST0034 (Agentic Software Engineering Suite) complete — all 12 WPs done. `VERSION` 2.9.0; tag `v2.9.0` on `local` + `upstream`; GitHub release published from `docs/releases/2.9.0/RELEASE_NOTES.md`; CHANGELOG `[2.9.0]` dated 2026-04-23; worker-bee seed `intent_compat.min` bumped to 2.9.0 in lockstep. Pre-release gate green: bats suite ok, `intent claude rules validate` 48/48 ok, `intent doctor` clean, `tests/unit/ext_seed_validity.bats` 18/18 ok. Next: WP11 fleet rollout (canary → batch 2 → batch 3) across the 16-project fleet.
+**Intent v2.9.0 released 2026-04-23 — fleet rollout complete.** ST0034 (Agentic Software Engineering Suite) closed; all 12 WPs done. Release commit `d1b0fe1`; tag `v2.9.0` on `local` + `upstream`; GitHub release at <https://github.com/matthewsinclair/intent/releases/tag/v2.9.0>. **13/13 active projects upgraded to 2.9.0**: canary (Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex), batch 2 (Laksa, MeetZaya, MicroGPTEx, Molt, Molt-matts), batch 3 (Multiplyer, Prolix, Utilz, Courses/Agentic Coding). Conflab + Lamplight + A3/\* skipped per direction. Zero rollbacks. CI workflow retry-fixed in same session after a transient GitHub HTTP 500 broke the macOS bats-library clone on the release push.
 
 ## ST0034 status (closed)
 
