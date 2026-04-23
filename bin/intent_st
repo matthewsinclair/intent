@@ -375,7 +375,7 @@ case "$ST_COMMAND" in
     
     if is_directory_structure; then
       # Create directory structure
-      ST_DIR=$(dirname $(get_st_path "$ST_ID" "$ST_STATUS" "info.md"))
+      ST_DIR=$(dirname "$(get_st_path "$ST_ID" "$ST_STATUS" "info.md")")
       mkdir -p "$ST_DIR"
       
       # Create files from templates
@@ -862,7 +862,7 @@ TEMPLATE
     
     if is_directory_structure; then
       # Loop through all ST directories
-      for dir in $(find "$ST_DIR" -type d -name "ST[0-9][0-9][0-9][0-9]"); do
+      while IFS= read -r -d '' dir; do
         if [ -f "$dir/info.md" ]; then
           # Extract ID from directory name
           ID=$(basename "$dir")
@@ -934,10 +934,10 @@ TEMPLATE
           
           st_data+=("$ID|$TITLE|$ST_STATUS|$CREATED|$COMPLETED")
         fi
-      done
+      done < <(find "$ST_DIR" -type d -name "ST[0-9][0-9][0-9][0-9]" -print0)
     else
       # Legacy: Loop through all ST####.md files
-      for file in $(find "$ST_DIR" -type f -name "ST[0-9][0-9][0-9][0-9].md"); do
+      while IFS= read -r -d '' file; do
         if [ -f "$file" ]; then
           ID=$(basename "$file" .md)
 
@@ -1005,9 +1005,9 @@ TEMPLATE
           
           st_data+=("$ID|$TITLE|$ST_STATUS|$CREATED|$COMPLETED")
         fi
-      done
+      done < <(find "$ST_DIR" -type f -name "ST[0-9][0-9][0-9][0-9].md" -print0)
     fi
-    
+
     # Sort and display based on status filter
     if [ "${STATUS_FILTER[0]}" = "all" ]; then
       # Group by status with predefined order
@@ -1127,7 +1127,7 @@ TEMPLATE
     if is_directory_structure; then
       if [ "$FILE_TYPE" = "all" ]; then
         # Show all files in the steel thread directory
-        ST_DIR=$(dirname $(get_st_path "$ST_ID" "" "info.md"))
+        ST_DIR=$(dirname "$(get_st_path "$ST_ID" "" "info.md")")
         
         if [ ! -d "$ST_DIR" ]; then
           error "Steel thread not found: $ST_ID"

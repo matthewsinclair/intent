@@ -351,16 +351,16 @@ get_changed_files() {
 # Save current git HEAD as timestamp
 # Get lib source directories (umbrella-aware)
 get_lib_dirs() {
+  # Print one directory per line so callers can populate an array safely
+  # via `while IFS= read -r dir; do lib_dirs+=("$dir"); done < <(get_lib_dirs)`
+  # (avoids word-splitting on paths with spaces).
   if [ -d "apps" ]; then
-    # Umbrella: each app's lib/ plus root lib/ if it has .ex files
-    local dirs=""
     for app_dir in apps/*/lib; do
-      [ -d "$app_dir" ] && dirs="$dirs $app_dir"
+      [ -d "$app_dir" ] && printf '%s\n' "$app_dir"
     done
-    [ -d "lib" ] && dirs="$dirs lib"
-    echo "$dirs"
+    [ -d "lib" ] && printf '%s\n' "lib"
   else
-    echo "lib"
+    printf '%s\n' "lib"
   fi
 }
 
@@ -392,9 +392,15 @@ check_modules_coverage() {
   if [ "$diff_only" = "true" ]; then
     files_to_check=$(get_changed_files | grep -E '^(lib/|apps/)' | grep '\.ex$' || true)
   else
-    local lib_dirs
-    lib_dirs=$(get_lib_dirs)
-    files_to_check=$(find $lib_dirs -name '*.ex' -type f 2>/dev/null | sort || true)
+    local -a lib_dirs=()
+    while IFS= read -r dir; do
+      [ -n "$dir" ] && lib_dirs+=("$dir")
+    done < <(get_lib_dirs)
+    if [ ${#lib_dirs[@]} -gt 0 ]; then
+      files_to_check=$(find "${lib_dirs[@]}" -name '*.ex' -type f 2>/dev/null | sort || true)
+    else
+      files_to_check=""
+    fi
   fi
 
   if [ -z "$files_to_check" ]; then
@@ -458,9 +464,15 @@ check_thick_coordinators() {
   if [ "$diff_only" = "true" ]; then
     files_to_check=$(get_changed_files | grep -E '^(lib/|apps/)' | grep '\.ex$' || true)
   else
-    local lib_dirs
-    lib_dirs=$(get_lib_dirs)
-    files_to_check=$(find $lib_dirs -name '*.ex' -type f 2>/dev/null | sort || true)
+    local -a lib_dirs=()
+    while IFS= read -r dir; do
+      [ -n "$dir" ] && lib_dirs+=("$dir")
+    done < <(get_lib_dirs)
+    if [ ${#lib_dirs[@]} -gt 0 ]; then
+      files_to_check=$(find "${lib_dirs[@]}" -name '*.ex' -type f 2>/dev/null | sort || true)
+    else
+      files_to_check=""
+    fi
   fi
 
   if [ -z "$files_to_check" ]; then
@@ -500,9 +512,15 @@ check_highlander_suspects() {
   if [ "$diff_only" = "true" ]; then
     files_to_check=$(get_changed_files | grep -E '^(lib/|apps/)' | grep '\.ex$' || true)
   else
-    local lib_dirs
-    lib_dirs=$(get_lib_dirs)
-    files_to_check=$(find $lib_dirs -name '*.ex' -type f 2>/dev/null | sort || true)
+    local -a lib_dirs=()
+    while IFS= read -r dir; do
+      [ -n "$dir" ] && lib_dirs+=("$dir")
+    done < <(get_lib_dirs)
+    if [ ${#lib_dirs[@]} -gt 0 ]; then
+      files_to_check=$(find "${lib_dirs[@]}" -name '*.ex' -type f 2>/dev/null | sort || true)
+    else
+      files_to_check=""
+    fi
   fi
 
   if [ -z "$files_to_check" ]; then

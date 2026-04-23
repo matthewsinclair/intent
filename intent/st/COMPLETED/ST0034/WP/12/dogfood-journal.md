@@ -23,23 +23,40 @@ Chronologically ordered record of `critic-shell` runs against Intent's own `bin/
 
 **Lessons:** Authoring rules against a real codebase (rather than a whiteboard set of ideals) produced tighter Detection heuristics. Writing "`ls | while read` is always wrong" is easy; writing "here is Intent's real iteration pattern using `find -print0 | while IFS= read -r -d ''`" anchors the good side of the rule.
 
-## Entry 1 -- TBD -- First subagent dogfood pass
+## Entry 1 -- 2026-04-23 -- First subagent dogfood pass (post-release)
 
-**Status:** Deferred until `critic-shell` is invoked via the Task tool in a follow-up session. The subagent's agent.md ships in this WP; the first real critic invocation is a post-WP12 activity (possibly WP07 integration work or a standalone "inception" session).
+**Invocation:** `Task(subagent_type="critic-shell", prompt="review <27 paths>")` against the full `bin/intent*` quartet, both `intent/plugins/agents/bin/intent_agents` and the four `intent/plugins/claude/bin/intent_claude_*` plugin dispatchers, plus `tests/run_tests.sh`. Tree at commit `b020fbe`. No `.intent_critic.yml` at project root (defaults applied). All targets bash; IN-SH-CODE-004 (zsh) not applied.
 
-Planned invocation:
+**Counts:** 7 CRITICAL · 16 WARNING · 17 RECOMMENDATION · 14 STYLE.
 
-```
-Task(subagent_type="critic-shell", prompt="review bin/intent bin/intent_helpers bin/intent_upgrade")
-```
+Entry 0 predicted "near-zero critical findings". Actual count of seven critical findings refutes that prediction. Reading: rule authorship anchored to Intent's broad style (no `set -u`/`pipefail` exception, helper-naming conventions) but did not catch every concrete instance of IN-SH-CODE-001 / 005. Authorship-as-corpus aligns the broad shape; only a critic pass exercises the narrow Detection heuristics. Both are needed.
 
-Expected outcome: zero critical findings. If critical findings surface, the triage is:
+### Triage
 
-- True positive -- fix Intent's script (should be near-zero such cases given Entry 0's authorship path).
-- False positive -- tighten the rule's Detection in its RULE.md.
-- Genuine new concern -- draft IN-SH-CODE-007, repeat.
+| Tier | Maps to        | Action                                                                            | Findings                                                                                                                                                                                                                    |
+| ---- | -------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P0   | CRITICAL true  | Fix this session                                                                  | IN-SH-CODE-001 `intent_st:378,1130` (unquoted `$()` -- paths-with-spaces bug); IN-SH-CODE-005 `intent_st:865,940` (`for x in $(find ...)` swallows find exit); IN-SH-CODE-001 `intent_audit:397,463,505` (`$lib_dirs`).     |
+| P1   | WARNING        | Fix this session                                                                  | IN-SH-CODE-002 `intent_doctor:525` (`ls \| wc -l`); IN-SH-CODE-002 `tests/run_tests.sh:77` (`find \| xargs` no `-print0`); IN-SH-CODE-006 `intent_plugin:37` (silent shadow of canonical `get_terminal_width`).             |
+| P2a  | RECOMMENDATION | Sweep commit (this session or follow-up ST)                                       | IN-SH-CODE-003 missing `set -e` in 7 files (`intent_doctor`, `intent_minimal`, `intent_agents`, three `intent_claude_*`, `tests/run_tests.sh`); `intent_config` separate (sourced library -- comment, not flag).            |
+| P2b  | RECOMMENDATION | Lift `info()` / `warning()` into `intent_helpers`, then strip duplicates          | IN-SH-CODE-006 `intent_doctor:107,112,124`; `intent_bootstrap:59`; `intent_config:176`; `tests/run_tests.sh:13-31`. Net Highlander pass.                                                                                    |
+| P3   | STYLE          | Defer; revisit if a `.intent_critic.yml` carve-out is preferred to a quoting pass | 14 unquoted `[ $n -gt $m ]` arithmetic comparisons across 7 files; project's de-facto convention has historically allowed bare numerics in test brackets.                                                                   |
+| FP   | --             | Accept                                                                            | IN-SH-CODE-006 `plugin_*` clones across `intent_claude_skills` / `intent_claude_subagents` -- legitimate per-plugin callbacks, refactor only when a 3rd plugin appears (critic itself flagged "defer to author judgement"). |
 
-Journal entry will record results, rule changes, and commit hash.
+### What was fixed this session
+
+P0/P1 fixes shipped in commit `12cf05f`. All seven CRITICAL plus three of the WARNING tier resolved. Bats remained 707/707 green throughout.
+
+### What was queued
+
+P2a (`set -e` sweep) and P2b (lift `info`/`warning` into `intent_helpers`, strip 4 duplicate sites) folded into a follow-up ST: see `intent/st/<ID>` (or filed inline in this entry's "Follow-on" section if the ST is opened later).
+
+### What was learned
+
+- **Authorship-as-corpus catches the silhouette; subagent dogfooding catches the joints.** Entry 0's "zero critical findings" prediction was wrong by seven. The shape of the rules was right; the line-by-line application was always going to need a real run.
+- **`for x in $(find ...)` is everywhere.** Two CRITICAL hits in `intent_st` alone, plus several RECOMMENDATION-tier echoes. The rule's bad/good examples should be promoted to a runnable `bad.sh`/`good.sh` pair so the conversion idiom is unmistakable.
+- **No false positives on the rules themselves.** Every CRITICAL was a real bug; every WARNING was a defensible re-shaping. The "defer to author judgement" plugin-clone case was correctly self-flagged by the critic, not by Intent's review.
+- **Time to first finding:** ~13 minutes (single subagent invocation, 27 files, 100k tokens).
+- **No `.intent_critic.yml` carve-outs were warranted.** The bracket-quoting STYLE class is the only candidate; deferred until a future style-pass decision.
 
 ## Entry 2 -- TBD -- Widened corpus
 

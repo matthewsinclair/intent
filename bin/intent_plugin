@@ -33,25 +33,10 @@ Examples:
 EOF
 }
 
-# Detect terminal width
-get_terminal_width() {
-  local width
-  width="${COLUMNS:-}"
-  if [ -z "$width" ]; then
-    width=$(stty size 2>/dev/null < /dev/tty | awk '{print $2}') 2>/dev/null
-  fi
-  if [ -z "$width" ]; then
-    width=$(tput cols 2>/dev/null)
-  fi
-  if [ -z "$width" ]; then
-    width=100
-  fi
-  echo "$width"
-}
-
 # ============================================================
 # Core functions
 # ============================================================
+# get_terminal_width() is sourced from bin/intent_helpers (Highlander).
 
 # List all plugins with their commands
 plugin_list() {

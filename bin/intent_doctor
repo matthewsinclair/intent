@@ -522,7 +522,7 @@ doctor_check() {
     # New plugin-based structure
     local subagent_count=0
     if [ -d "$INTENT_HOME/intent/plugins/claude/subagents" ]; then
-      subagent_count=$(ls -1 "$INTENT_HOME/intent/plugins/claude/subagents" 2>/dev/null | wc -l)
+      subagent_count=$(find "$INTENT_HOME/intent/plugins/claude/subagents" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
     fi
     
     show_ok
