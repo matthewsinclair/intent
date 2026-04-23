@@ -3,7 +3,7 @@ verblock: "22 Apr 2026:v0.2: matts - Detailed plan"
 wp_id: WP-07
 title: "Critic subagent family"
 scope: Large
-status: Not Started
+status: Done
 ---
 
 # WP-07: Critic subagent family
@@ -135,29 +135,29 @@ Not BATS (critics are Claude-side, not shell-side). Instead:
 
 ### Subagents
 
-- [ ] Four subagent directories exist with `agent.md` + `metadata.json`
-- [ ] Each `agent.md` frontmatter has: `name`, `description`, `tools` (Read, Grep, Bash at minimum)
-- [ ] Each `agent.md` body follows the shared template (role, mode dispatch, rule loading, detection, report, config)
-- [ ] Each critic's prompt stays under 300 lines (thin orchestrator)
-- [ ] `global-agents.json` contains 4 new entries
-- [ ] `intent claude subagents list` shows all 4 critics
+- [x] Four subagent directories exist with `agent.md` + `metadata.json`
+- [x] Each `agent.md` frontmatter has: `name`, `description`, `tools` (Read, Grep, Bash at minimum)
+- [x] Each `agent.md` body follows the shared template (role, mode dispatch, rule loading, detection, report, config)
+- [x] Each critic's prompt stays under 300 lines (thin orchestrator)
+- [x] `global-agents.json` contains 4 new entries
+- [x] `intent claude subagents list` shows all 4 critics
 
 ### Mode dispatch
 
-- [ ] `Task(subagent_type="critic-elixir", prompt="review lib/x.ex")` triggers code mode
-- [ ] `Task(subagent_type="critic-elixir", prompt="test-check test/x_test.exs")` triggers test mode
-- [ ] Ambiguous prompts fall back to code mode with warning
+- [x] `Task(subagent_type="critic-elixir", prompt="review lib/x.ex")` triggers code mode
+- [x] `Task(subagent_type="critic-elixir", prompt="test-check test/x_test.exs")` triggers test mode
+- [x] Ambiguous prompts fall back to code mode with warning
 
 ### Rule loading
 
-- [ ] Each critic reads `rules/agnostic/*/RULE.md` as a first pass
-- [ ] Each critic reads `rules/<lang>/<mode>/*/RULE.md`
-- [ ] elixir-test-critic interop: if the upstream plugin is installed in `~/.claude/`, critic-elixir also loads upstream rules; dedupes by `upstream_id`
-- [ ] Critic does not hard-fail if a rule file is malformed; logs a warning and continues
+- [x] Each critic reads `rules/agnostic/*/RULE.md` as a first pass
+- [x] Each critic reads `rules/<lang>/<mode>/*/RULE.md`
+- [x] elixir-test-critic interop: if the upstream plugin is installed in `~/.claude/`, critic-elixir also loads upstream rules; dedupes by `upstream_id`
+- [x] Critic does not hard-fail if a rule file is malformed; logs a warning and continues
 
 ### Detection and reporting
 
-- [ ] Report format is stable and machine-parseable:
+- [x] Report format is stable and machine-parseable:
 
   ```
   ## Critic Report: critic-<lang> <mode> <target>
@@ -174,47 +174,47 @@ Not BATS (critics are Claude-side, not shell-side). Instead:
   Rules applied: N agnostic, N language-specific.
   ```
 
-- [ ] Severity tiers respected: default shows CRITICAL and WARNING only; RECOMMENDATION and STYLE shown only when requested or configured
-- [ ] Findings cite rule ID with slug in parentheses
-- [ ] Findings include file:line and a short quoted snippet or description
+- [x] Severity tiers respected: default shows CRITICAL and WARNING only; RECOMMENDATION and STYLE shown only when requested or configured
+- [x] Findings cite rule ID with slug in parentheses
+- [x] Findings include file:line and a short quoted snippet or description
 
 ### Per-project config
 
-- [ ] Critic reads `.intent_critic.yml` from project root if present
-- [ ] `disabled` list suppresses matching rule IDs
-- [ ] `severity_min` filters output
-- [ ] Config file absent → critic uses defaults (all rules, warning+ severity)
+- [x] Critic reads `.intent_critic.yml` from project root if present
+- [x] `disabled` list suppresses matching rule IDs
+- [x] `severity_min` filters output
+- [x] Config file absent → critic uses defaults (all rules, warning+ severity)
 
 ### `in-review` integration
 
-- [ ] `in-review/SKILL.md` stage-2 dispatches to right critic by language indicator
-- [ ] Dispatcher tested for all four languages
+- [x] `in-review/SKILL.md` stage-2 dispatches to right critic by language indicator
+- [x] Dispatcher tested for all four languages
 
 ### Fixtures
 
-- [ ] 4 languages × 2 modes × 2 categories (catch/miss) = 16 fixture directories under `tests/fixtures/critics/<lang>/{known-violating,known-clean}/`
-- [ ] Each would-catch fixture contains at least one unambiguous rule violation
-- [ ] Each would-miss fixture contains zero violations
-- [ ] Each fixture directory has a `manifest.txt` listing expected rule-ID triggers (or explicitly "no triggers")
-- [ ] Manual verification documented: each critic run on its fixture produces expected findings
+- [x] 4 languages × 2 modes × 2 categories (catch/miss) = 16 fixture directories under `tests/fixtures/critics/<lang>/{known-violating,known-clean}/`
+- [x] Each would-catch fixture contains at least one unambiguous rule violation
+- [x] Each would-miss fixture contains zero violations
+- [x] Each fixture directory has a `manifest.txt` listing expected rule-ID triggers (or explicitly "no triggers")
+- [x] Manual verification documented: each critic run on its fixture produces expected findings
 
 ### Tests to add
 
 See `intent/st/ST0034/design.md` §Testing Strategy §WP07.
 
-- [ ] `tests/unit/critic_dispatch.bats` — `in-review` stage-2 language detection via filesystem probes (`mix.exs` → elixir, `Cargo.toml` → rust, `Package.swift` → swift, `.lua` files → lua); verifies correct Critic is selected
-- [ ] `tests/unit/critic_report_format.bats` — stable report shape across all four Critics (severity grouping, rule-ID citation format, suggested-fix line, summary line)
-- [ ] `tests/unit/critic_config.bats` — `.intent_critic.yml` honoured (disabled list, severity_min); invalid config reported not silently ignored
-- [ ] Optionally: `tests/unit/critic_fixture_smoke.bats` — loads each `tests/fixtures/critics/<lang>/known-violating/` file and checks the Critic's rule-loading logic would find the expected rule (structural test; does not run the Claude subagent)
+- [x] `tests/unit/critic_dispatch.bats` — `in-review` stage-2 language detection via filesystem probes (`mix.exs` → elixir, `Cargo.toml` → rust, `Package.swift` → swift, `.lua` files → lua); verifies correct Critic is selected
+- [x] `tests/unit/critic_report_format.bats` — stable report shape across all four Critics (severity grouping, rule-ID citation format, suggested-fix line, summary line)
+- [x] `tests/unit/critic_config.bats` — `.intent_critic.yml` honoured (disabled list, severity_min); invalid config reported not silently ignored
+- [ ] Optionally: `tests/unit/critic_fixture_smoke.bats` — loads each `tests/fixtures/critics/<lang>/known-violating/` file and checks the Critic's rule-loading logic would find the expected rule (structural test; does not run the Claude subagent) **[deliberately skipped — Phase 7 manual matrix supersedes]**
 
 ### Tests to update
 
-- [ ] `./tests/run_tests.sh` exits 0 after commit (pristine invariant)
+- [x] `./tests/run_tests.sh` exits 0 after commit (pristine invariant)
 
 ### Documentation
 
-- [ ] `intent/docs/critics.md` covers contract, invocation, rule loading order, report format, `.intent_critic.yml` schema, integration with `in-review`, `diogenes` handoff
-- [ ] `.intent_critic.yml` sample file committed to `intent/plugins/claude/rules/_schema/sample-intent-critic.yml`
+- [x] `intent/docs/critics.md` covers contract, invocation, rule loading order, report format, `.intent_critic.yml` schema, integration with `in-review`, `diogenes` handoff
+- [x] `.intent_critic.yml` sample file committed to `intent/plugins/claude/rules/_schema/sample-intent-critic.yml`
 
 ## Dependencies
 
@@ -426,12 +426,35 @@ Document the procedure in `critics.md` under "Verification".
 
 ## Exit Checklist
 
-- [ ] All acceptance criteria met
-- [ ] Four critics function against fixtures
-- [ ] Reports format-consistent across all four
-- [ ] `in-review` dispatcher verified for all four languages + polyglot case
-- [ ] `.intent_critic.yml` schema documented; sample committed
-- [ ] `critics.md` is the authoritative reference
-- [ ] No rule-specific logic in critic prompts (thin orchestrator invariant)
-- [ ] Registered in MODULES.md
-- [ ] global-agents.json updated
+- [x] All acceptance criteria met
+- [x] Four critics function against fixtures
+- [x] Reports format-consistent across all four
+- [x] `in-review` dispatcher verified for all four languages + polyglot case
+- [x] `.intent_critic.yml` schema documented; sample committed
+- [x] `critics.md` is the authoritative reference
+- [x] No rule-specific logic in critic prompts (thin orchestrator invariant)
+- [x] Registered in MODULES.md
+- [x] global-agents.json updated
+
+## As-built notes (2026-04-23)
+
+### Decisions locked
+
+- **A1 — Report format alignment**: adopted the WP07-spec report format across all five critics (elixir, rust, swift, lua, shell). `critic-shell/agent.md` retrofitted in the same WP. Rationale: parse-stable shape (`grep 'IN-'`, `(slug)` after IDs, bottom `Summary:` line) was designed up-front in WP01; per-critic drift is a Highlander violation.
+- **D1 — Elixir rule subcategories**: in code mode, `critic-elixir` reads `rules/elixir/{code,ash,lv,phoenix}/*/RULE.md`; in test mode, only `rules/elixir/test/*/RULE.md`. Each rule's own `applies_to` glob filters further. Documented inline in `critic-elixir/agent.md`.
+- **D2 — Diogenes/Socrates handoffs are language-agnostic from day 1**: the critic side of the test-spec handoff (Diogenes) and the architectural-escalation pattern (Socrates) is the same in all four critics. The Diogenes subagent itself remains Elixir-specialised; cross-language generalisation is a future ST.
+- **D3 — elixir-test-critic interop**: best-effort detection at `~/.claude/plugins/elixir-test-critic/rules/`; silent when absent; deduped by `upstream_id`. Currently not installed locally, so interop is a no-op until the upstream plugin lands.
+
+### Phase 7 verification matrix outcome (16/16 green)
+
+All 16 rows ran in a fresh session (the three new critics were installed mid-prior-session, so registration only became visible after restart). Every `would-catch` fixture surfaced its manifest rule IDs; every `would-miss` fixture returned `Summary: 0 critical, 0 warning, ...` with bonus findings limited to legitimate Diogenes recommendations and one filtered STYLE-tier hit (acceptable per the plan).
+
+### Follow-ups surfaced during verification
+
+- **Inconsistent fixture-context handling for the test-spec handoff.** `critic-elixir` (test mode, `would-miss/clean_test.exs`) emits the Diogenes RECOMMENDATION; `critic-rust`, `critic-swift`, `critic-lua` suppress it citing fixture context. The shared handoff prose in the four critic agent.md files should align — either always emit or always suppress for `tests/fixtures/critics/`. Tracked as a small follow-up; does not block WP07 closure.
+- **`critic-rust` flagged a STYLE-tier finding on `clean.rs`** (IN-RS-CODE-005, lifetime-elision-first at `pick<'a>(items: &'a [String], ...) -> Option<&'a String>`). Fixture-vs-rule tension: the explicit lifetime is teaching contrast against a (notional) `bad.rs` sibling. Either tighten the rule's "When This Does Not Apply" carve-out for teaching fixtures, or simplify the fixture to elide. Tracked for the next pass over `rules/rust/code/lifetime-elision-first/RULE.md`.
+- No RULE.md Detection bugs were surfaced — all 16 rows produced the manifest-expected findings.
+
+### Operational note
+
+`Task(subagent_type="critic-<lang>", ...)` registration is frozen at session start. Installing a new critic mid-session means the verification has to wait for the next session. Worth noting in `intent/docs/critics.md` if not already present.

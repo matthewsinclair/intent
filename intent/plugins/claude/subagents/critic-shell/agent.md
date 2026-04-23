@@ -38,48 +38,45 @@ Example: `Task(subagent_type="critic-shell", prompt="review bin/intent bin/inten
 ### Output format
 
 ```
-# critic-shell report
+## Critic Report: critic-shell code <target>
 
-## Summary
+CRITICAL
+- <id> (<slug>) <file>:<line>
+  <violation description>
+  <suggested fix summary>
 
-- Files reviewed: 3
-- Rules applied: 6 (agnostic: 4, shell: 6, filtered out: 0)
-- Findings: 0 critical, 2 warning, 1 recommendation, 0 style
+WARNING
+- <id> (<slug>) <file>:<line>
+  <violation description>
+  <suggested fix summary>
 
-## Critical
+RECOMMENDATION
+- <id> (<slug>) <file>:<line>
+  <violation description>
+  <suggested fix summary>
 
-(none)
+STYLE
+- <id> (<slug>) <file>:<line>
+  <violation description>
+  <suggested fix summary>
 
-## Warning
-
-### bin/example
-
-Line 12: IN-SH-CODE-001 — Always quote variable expansions
-  rm $file
-  --->
-  Expanding `$file` without quotes word-splits on spaces. Use `rm "$file"`.
-
-Line 34: IN-SH-CODE-005 — Never discard command exit codes
-  curl -s https://host | grep ok
-  --->
-  Pipeline without `set -o pipefail` drops curl's exit code. Either set pipefail or check ${PIPESTATUS[@]}.
-
-## Recommendation
-
-### bin/other_example
-
-Line 1: IN-SH-CODE-003 — set -euo pipefail at top of every bash script
-  (missing strict-mode directive)
-  --->
-  Add `set -euo pipefail` or document the reason for a relaxed set.
+Summary: N critical, N warning, N recommendation, N style.
+Rules applied: N agnostic, N language-specific.
 ```
 
-Every finding must cite a rule ID. No freestanding recommendations outside the rule library.
+Rules: every finding cites a rule id with its slug in parentheses (e.g. `IN-SH-CODE-001 (quote-variable-expansions)`). Sections with no findings are omitted. The `Summary:` line reports counts at every severity, even for severities filtered out of the body. The `Rules applied:` line reports how many rules were actually applied (after `.intent_critic.yml` filtering).
+
+If there are no violations at all: emit the heading, then `Summary: 0 critical, 0 warning, 0 recommendation, 0 style.` and the `Rules applied:` line.
 
 ### Severity filtering
 
-- Default: report critical + warning. Recommendation and style shown only when the invocation explicitly asks for them (`--all`) or a project-root `.intent_critic.yml` sets `show_all: true`.
-- `.intent_critic.yml` can disable specific rules by ID (`disable: [IN-SH-CODE-005]`). Document each disable with a reason comment; critic respects the opt-out but does not require the reason to be parseable.
+- **Default**: show CRITICAL and WARNING findings in the body. RECOMMENDATION and STYLE are counted in the `Summary:` line but not rendered unless the invocation or config opts in.
+- `.intent_critic.yml` keys:
+  - `disabled: [IN-SH-CODE-005, ...]` - suppress matching rule ids.
+  - `severity_min: critical | warning | recommendation | style` - raise or lower the body-render threshold.
+  - `show_all: true` - shorthand for `severity_min: style`.
+- If the yml file is malformed, log a single warning line at the top of the report (`(warning: .intent_critic.yml is malformed; using defaults)`) and proceed with defaults. Never hard-fail on yml parse errors.
+- If the yml file is absent, use defaults silently.
 
 ### What critic-shell does NOT do
 

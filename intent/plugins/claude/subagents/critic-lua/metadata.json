@@ -1,0 +1,8 @@
+{
+  "name": "critic-lua",
+  "version": "1.0.0",
+  "description": "Lua rule-library critic. Reads rules/lua/ (code, test) and agnostic rules, applies Detection heuristics to .lua files, and emits a machine-parseable report grouped by severity.",
+  "author": "Intent Contributors",
+  "tools": ["Read", "Grep", "Glob", "Bash"],
+  "tags": ["lua", "critic", "code-review", "rule-enforcement"]
+}

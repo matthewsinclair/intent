@@ -1,0 +1,8 @@
+{
+  "name": "critic-swift",
+  "version": "1.0.0",
+  "description": "Swift rule-library critic. Reads rules/swift/ (code, test) and agnostic rules, applies Detection heuristics to .swift files, and emits a machine-parseable report grouped by severity.",
+  "author": "Intent Contributors",
+  "tools": ["Read", "Grep", "Glob", "Bash"],
+  "tags": ["swift", "critic", "code-review", "rule-enforcement"]
+}

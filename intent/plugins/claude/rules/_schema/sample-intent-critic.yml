@@ -1,0 +1,28 @@
+# Sample .intent_critic.yml — copy to the project root and edit as needed.
+#
+# The Critic subagents (critic-elixir, critic-rust, critic-swift, critic-lua,
+# critic-shell) read this file at invocation time. Absence is silent; malformed
+# YAML triggers a single warning line in the report and the critic proceeds
+# with defaults.
+#
+# Schema (all keys optional):
+#
+#   disabled:        list of rule IDs to suppress entirely for this project.
+#                    Add a trailing `# reason: ...` comment on each entry so
+#                    future readers see why the rule was opted out.
+#
+#   severity_min:    minimum severity rendered in the report body. One of
+#                    `critical` | `warning` | `recommendation` | `style`.
+#                    Default: `warning` (body shows CRITICAL + WARNING; the
+#                    `Summary:` line still counts every severity).
+#
+#   show_all:        shorthand for `severity_min: style`. Renders every
+#                    finding, including recommendation and style.
+
+disabled:
+  - IN-EX-CODE-007  # reason: moduledoc noise not valued by this team
+  - IN-RS-CODE-005  # reason: explicit lifetimes preferred in our domain code
+
+severity_min: warning
+
+# show_all: true    # uncomment to show recommendation + style in the body

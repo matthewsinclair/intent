@@ -28,6 +28,34 @@
       "description": "Shell (bash + zsh) rule-library critic - reads rules/shell/ and reports violations in target shell files",
       "path": "intent/plugins/claude/subagents/critic-shell",
       "checksum": ""
+    },
+    {
+      "name": "critic-elixir",
+      "version": "1.0.0",
+      "description": "Elixir rule-library critic - reads rules/elixir/ (code, test, ash, lv, phoenix) and agnostic rules, reports violations in .ex/.exs files",
+      "path": "intent/plugins/claude/subagents/critic-elixir",
+      "checksum": ""
+    },
+    {
+      "name": "critic-rust",
+      "version": "1.0.0",
+      "description": "Rust rule-library critic - reads rules/rust/ (code, test) and agnostic rules, reports violations in .rs files",
+      "path": "intent/plugins/claude/subagents/critic-rust",
+      "checksum": ""
+    },
+    {
+      "name": "critic-swift",
+      "version": "1.0.0",
+      "description": "Swift rule-library critic - reads rules/swift/ (code, test) and agnostic rules, reports violations in .swift files",
+      "path": "intent/plugins/claude/subagents/critic-swift",
+      "checksum": ""
+    },
+    {
+      "name": "critic-lua",
+      "version": "1.0.0",
+      "description": "Lua rule-library critic - reads rules/lua/ (code, test) and agnostic rules, reports violations in .lua files",
+      "path": "intent/plugins/claude/subagents/critic-lua",
+      "checksum": ""
     }
   ]
 }

@@ -1,0 +1,8 @@
+{
+  "name": "critic-elixir",
+  "version": "1.0.0",
+  "description": "Elixir rule-library critic. Reads rules/elixir/ (code, test, ash, lv, phoenix) and agnostic rules, applies Detection heuristics to .ex/.exs files, and emits a machine-parseable report grouped by severity.",
+  "author": "Intent Contributors",
+  "tools": ["Read", "Grep", "Glob", "Bash"],
+  "tags": ["elixir", "ash", "liveview", "phoenix", "critic", "code-review", "rule-enforcement"]
+}

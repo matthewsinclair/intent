@@ -53,6 +53,13 @@ When `mix.exs` is present, read it and invoke by dependency:
 
 Report the skill set loaded in one line so the user can spot an unexpected match. Do not wait for further instructions; proceed with whatever the user was already asking for.
 
+## Persistent reminders
+
+Hold these regardless of which language skills get loaded above. They do not expire at the end of `/in-session`; they apply for the rest of the session.
+
+- Be diligent for any Highlander, Thin Coordinator, and PFIC violations (adjust for language-specifics, ie Elixir, Rust, Lua, and Swift, as appropriate).
+- NEVER MANUALLY WRAP .MD FILES.
+
 ## Why this exists
 
 After `/compact`, the conversation summary is regenerated but skill invocations are not replayed. Without a bootstrap, the user has to paste the skill list manually every reset. This skill is a Thin Coordinator: parse the project, call the right skills, done. One command instead of six.

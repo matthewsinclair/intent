@@ -54,19 +54,29 @@ Confirm no concretised-by rule is violated at the agnostic level:
 - [ ] `IN-AG-PFIC-001` — pattern-match, pipe, tagged-tuple, compose idioms in play
 - [ ] `IN-AG-NO-SILENT-001` — no rescue-and-swallow, no discarded fallible results
 
-#### Delegate to `critic-<lang>` (WP07; for v2.9.0 use the rule pack directly)
+#### Delegate to `critic-<lang>`
 
-Until WP07 ships the critic subagents, perform Stage 2 manually by reading the rules in the language pack:
-
-- **Elixir** → `intent/plugins/claude/rules/elixir/{code,test,ash,phoenix,lv}/` — 19 rules
-- **Rust/Swift/Lua** → delivered in WP06
-- **Shell** → delivered in WP12
-
-When WP07 lands, Stage 2 becomes:
+The critic reads the rule library, applies each rule's Detection heuristic, and emits a report grouped by severity (CRITICAL, WARNING, RECOMMENDATION, STYLE). The skill invokes the critic once for code and once for tests, then reports the union:
 
 ```
-Task(subagent_type="critic-elixir", prompt="review lib/**/*.ex test/**/*.exs")
+Task(subagent_type="critic-elixir", prompt="review lib/**/*.ex")
+Task(subagent_type="critic-elixir", prompt="test-check test/**/*_test.exs")
+
+Task(subagent_type="critic-rust",   prompt="review src/**/*.rs")
+Task(subagent_type="critic-rust",   prompt="test-check tests/**/*.rs")
+
+Task(subagent_type="critic-swift",  prompt="review Sources/**/*.swift")
+Task(subagent_type="critic-swift",  prompt="test-check Tests/**/*.swift")
+
+Task(subagent_type="critic-lua",    prompt="review src/**/*.lua")
+Task(subagent_type="critic-lua",    prompt="test-check spec/**/*_spec.lua")
+
+Task(subagent_type="critic-shell",  prompt="review bin/* scripts/*")
 ```
+
+**Polyglot projects**: when more than one language indicator is present (e.g., `mix.exs` and `Cargo.toml` at the same root), ask the user which language's files to review rather than dispatching every critic. Alternatively, invoke each critic with a narrowed target glob for its own subtree.
+
+**Project-local config**: critics honour `.intent_critic.yml` at the project root for `disabled:` and `severity_min:` overrides. See `intent/docs/critics.md` and `intent/plugins/claude/rules/_schema/sample-intent-critic.yml`.
 
 ### Stage 3: After both stages
 

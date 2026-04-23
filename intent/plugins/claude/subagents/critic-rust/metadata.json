@@ -1,0 +1,8 @@
+{
+  "name": "critic-rust",
+  "version": "1.0.0",
+  "description": "Rust rule-library critic. Reads rules/rust/ (code, test) and agnostic rules, applies Detection heuristics to .rs files, and emits a machine-parseable report grouped by severity.",
+  "author": "Intent Contributors",
+  "tools": ["Read", "Grep", "Glob", "Bash"],
+  "tags": ["rust", "cargo", "critic", "code-review", "rule-enforcement"]
+}

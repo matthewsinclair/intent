@@ -193,7 +193,6 @@ User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; sh
 | Critic dispatch (v2.9.0)        | `tests/unit/critic_dispatch.bats`           | `in-review` stage-2 language detection (WP07)         |
 | Critic report format (v2.9.0)   | `tests/unit/critic_report_format.bats`      | Stable report shape across four Critics (WP07)        |
 | Critic config (v2.9.0)          | `tests/unit/critic_config.bats`             | `.intent_critic.yml` honoured (WP07)                  |
-| Critic fixture smoke (v2.9.0)   | `tests/unit/critic_fixture_smoke.bats`      | Fixture pairs exercise rule-loading (WP07)            |
 | Docs completeness (v2.9.0)      | `tests/unit/docs_completeness.bats`         | New-doc presence + cross-ref resolution (WP10)        |
 
 ## Docs (v2.9.0 / WP10)

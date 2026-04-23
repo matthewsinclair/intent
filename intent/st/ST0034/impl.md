@@ -2,22 +2,22 @@
 
 ## Progress Tracker
 
-Status as of: 2026-04-22 (WP12 closed; WP01 + WP02 + WP03 + WP04 + WP05 + WP06 + WP08 + WP12 done; `/in-session` bootstrap skill + `critic-shell` subagent shipped)
+Status as of: 2026-04-23 (WP07 closed; WP01 + WP02 + WP03 + WP04 + WP05 + WP06 + WP07 + WP08 + WP12 done — 9/12; critic-{elixir,rust,swift,lua} family shipped, `critic-shell` retrofitted to family format, 16-row Phase 7 verification matrix green)
 
-| WP   | Title                              | Status      | Notes                                                                                                                     |
-| ---- | ---------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
-| WP01 | Architecture and rule schema       | Done        | Closed 3625b18; schema + archetype + attribution landed                                                                   |
-| WP02 | Extension system foundation        | Done        | 6 sessions: callback refactor, ext dispatcher, validator, scaffolding, rules CLI, BATS. 526 tests pass.                   |
-| WP03 | Skill and subagent rationalisation | Done        | Elixir subagent deleted; 5 skills refactored to reference rules by ID; in-review parameterised; 9 new BATS = 564 total.   |
-| WP04 | Agnostic rule pack                 | Done        | 4 rules (Highlander, PFIC, Thin Coordinator, No Silent Errors); +11 BATS tests = 537 total.                               |
-| WP05 | Elixir rule pack                   | Done        | 19 rules (6 code + 7 test + 2 ash + 1 phx + 3 lv); 26 runnable `.exs` all exit 0; 18 BATS tests = 555 total.              |
-| WP06 | Rust/Swift/Lua rule packs          | Done        | 19 rules (7 Rust + 6 Swift + 6 Lua); agnostic concretised_by extended cross-language; 27 BATS tests = 619 total.          |
-| WP07 | Critic subagent family             | Not started | Depends WP03, WP04, WP05, WP06, WP12. Now delivers 5 critics (elixir, rust, swift, lua, shell).                           |
-| WP08 | Worker-bee extraction              | Done        | git mv to `lib/templates/ext-seeds/worker-bee/`; manifest + README authored; canon manifest cleaned; 18 BATS = 592 total. |
-| WP09 | Migration and upgrade chain        | Not started | Depends WP02, WP08                                                                                                        |
-| WP10 | Documentation                      | Not started | Depends WP02, WP07, WP08                                                                                                  |
-| WP11 | Release and fleet upgrade          | Not started | Depends WP01-WP10, WP12                                                                                                   |
-| WP12 | Shell rule pack (bash + zsh)       | Done        | 6 rules (IN-SH-CODE-001..006) + critic-shell subagent + dogfood journal + blog draft; 14 BATS = 633 total.                |
+| WP   | Title                              | Status      | Notes                                                                                                                                                                                    |
+| ---- | ---------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WP01 | Architecture and rule schema       | Done        | Closed 3625b18; schema + archetype + attribution landed                                                                                                                                  |
+| WP02 | Extension system foundation        | Done        | 6 sessions: callback refactor, ext dispatcher, validator, scaffolding, rules CLI, BATS. 526 tests pass.                                                                                  |
+| WP03 | Skill and subagent rationalisation | Done        | Elixir subagent deleted; 5 skills refactored to reference rules by ID; in-review parameterised; 9 new BATS = 564 total.                                                                  |
+| WP04 | Agnostic rule pack                 | Done        | 4 rules (Highlander, PFIC, Thin Coordinator, No Silent Errors); +11 BATS tests = 537 total.                                                                                              |
+| WP05 | Elixir rule pack                   | Done        | 19 rules (6 code + 7 test + 2 ash + 1 phx + 3 lv); 26 runnable `.exs` all exit 0; 18 BATS tests = 555 total.                                                                             |
+| WP06 | Rust/Swift/Lua rule packs          | Done        | 19 rules (7 Rust + 6 Swift + 6 Lua); agnostic concretised_by extended cross-language; 27 BATS tests = 619 total.                                                                         |
+| WP07 | Critic subagent family             | Done        | 4 critics (elixir, rust, swift, lua) + critic-shell retrofit; 16 fixtures + manifests; in-review stage-2 dispatcher; intent/docs/critics.md; 3 BATS suites; 16-row Phase 7 matrix green. |
+| WP08 | Worker-bee extraction              | Done        | git mv to `lib/templates/ext-seeds/worker-bee/`; manifest + README authored; canon manifest cleaned; 18 BATS = 592 total.                                                                |
+| WP09 | Migration and upgrade chain        | Not started | Depends WP02, WP08                                                                                                                                                                       |
+| WP10 | Documentation                      | Not started | Depends WP02, WP07, WP08                                                                                                                                                                 |
+| WP11 | Release and fleet upgrade          | Not started | Depends WP01-WP10, WP12                                                                                                                                                                  |
+| WP12 | Shell rule pack (bash + zsh)       | Done        | 6 rules (IN-SH-CODE-001..006) + critic-shell subagent + dogfood journal + blog draft; 14 BATS = 633 total.                                                                               |
 
 ## Implementation Notes
 
