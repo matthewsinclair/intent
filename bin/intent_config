@@ -1,6 +1,9 @@
 #!/bin/bash
 # intent_config - Shared configuration library for Intent
 # Provides JSON parsing, config loading, and common functions
+#
+# This file is sourced by other scripts; it deliberately does not set `set -e`
+# so callers retain control of strict-mode semantics.
 
 # Source helpers for version function if available
 if [ -z "$INTENT_HOME" ]; then
@@ -172,10 +175,7 @@ is_legacy_project() {
   return 1
 }
 
-# Common warning handling
-warning() {
-  echo "Warning: $1" >&2
-}
+# warning() is sourced from bin/intent_helpers (Highlander).
 
 # Export functions for use by other scripts
 export -f parse_json
@@ -185,4 +185,3 @@ export -f validate_json
 export -f show_config
 export -f create_default_global_config
 export -f is_legacy_project
-export -f warning

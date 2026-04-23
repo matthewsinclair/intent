@@ -55,12 +55,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Function to print unless quiet mode
-info() {
-  if [ "$QUIET" != true ]; then
-    echo "$@"
-  fi
-}
+# info() is sourced from intent_helpers and honours QUIET.
 
 # Main bootstrap function
 bootstrap_intent() {

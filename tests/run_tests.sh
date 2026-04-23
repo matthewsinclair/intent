@@ -2,33 +2,12 @@
 # run_tests.sh - Run the Intent test suite
 # Usage: ./run_tests.sh [test_path]
 
-# Set up colors for output
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+set -e
 
-# Function to display error messages
-error() {
-  echo -e "${RED}Error: $1${NC}" >&2
-  exit 1
-}
-
-# Function to display success messages
-success() {
-  echo -e "${GREEN}$1${NC}"
-}
-
-# Function to display warning messages
-warning() {
-  echo -e "${YELLOW}Warning: $1${NC}"
-}
-
-# Function to display information messages
-info() {
-  echo -e "${BLUE}$1${NC}"
-}
+# Locate the project root and source canonical helpers (error/warning/info).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "$PROJECT_ROOT/bin/intent_helpers"
 
 # Check if bats is installed
 if ! command -v bats &> /dev/null; then
@@ -42,10 +21,6 @@ Or install from source:
   cd bats-core
   ./install.sh /usr/local"
 fi
-
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Export INTENT_HOME for tests
 export INTENT_HOME="$PROJECT_ROOT"
@@ -70,25 +45,24 @@ info "INTENT_HOME: $INTENT_HOME"
 info "Test path: $TEST_PATH"
 echo
 
-# Run the tests
+# Run the tests. Capture the exit code without aborting under `set -e` so we
+# can report a final pass/fail line.
+EXIT_STATUS=0
 if [ -d "$TEST_PATH" ]; then
   # If directory, run all .bats files in it (excluding lib directory)
   info "Running all tests in directory: $TEST_PATH"
-  find "$TEST_PATH" -name "*.bats" -type f -not -path "*/lib/*" -print0 | sort -z | xargs -0 bats
+  find "$TEST_PATH" -name "*.bats" -type f -not -path "*/lib/*" -print0 | sort -z | xargs -0 bats || EXIT_STATUS=$?
 else
   # If file, run just that file
   info "Running test file: $TEST_PATH"
-  bats "$TEST_PATH"
+  bats "$TEST_PATH" || EXIT_STATUS=$?
 fi
 
-# Check exit status
-EXIT_STATUS=$?
-
 echo
-if [ $EXIT_STATUS -eq 0 ]; then
-  success "All tests passed!"
+if [ "$EXIT_STATUS" -eq 0 ]; then
+  info "All tests passed!"
 else
   error "Some tests failed!"
 fi
 
-exit $EXIT_STATUS
+exit "$EXIT_STATUS"

@@ -6,6 +6,10 @@
 #
 # Dry-run by default. Shows what changes would be made.
 # Use --apply to actually execute the changes.
+#
+# Note: `set -e` deferred (see WP12 dogfood Entry 1) -- diagnostic checks
+# return non-zero to signal "needs upgrade"; strict mode would abort
+# instead of reporting.
 
 # Source helpers from main bin directory
 PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -3,6 +3,9 @@
 # Copyright (c) 2026 Matthew Sinclair
 # Licensed under the MIT License (see LICENSE file)
 # Commands: init, generate, sync, validate, template
+#
+# Note: `set -e` deferred (see WP12 dogfood Entry 1) -- subcommands signal
+# status via non-zero exit; strict mode would abort prematurely.
 
 # Source helpers from main bin directory
 PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -441,7 +444,7 @@ intent_agents_validate() {
   # Check if AGENTS.md exists
   if [ ! -f "$PROJECT_ROOT/AGENTS.md" ]; then
     echo "✗ AGENTS.md not found at project root"
-    ((errors++))
+    ((++errors))
   else
     echo "✓ AGENTS.md found at project root"
     
@@ -452,11 +455,11 @@ intent_agents_validate() {
       # Check if symlink target exists
       if [ ! -f "$PROJECT_ROOT/intent/llm/AGENTS.md" ]; then
         echo "✗ Symlink target missing: intent/llm/AGENTS.md"
-        ((errors++))
+        ((++errors))
       fi
     else
       echo "⚠ AGENTS.md is not a symlink (consider using 'intent agents sync')"
-      ((warnings++))
+      ((++warnings))
     fi
     
     # Check for required sections
@@ -472,7 +475,7 @@ intent_agents_validate() {
         echo "✓ Has section: $section"
       else
         echo "⚠ Missing recommended section: $section"
-        ((warnings++))
+        ((++warnings))
       fi
     done
   fi

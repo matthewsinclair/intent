@@ -10,6 +10,20 @@ error() {
 }
 export -f error
 
+# Display a warning to stderr (non-fatal).
+warning() {
+  echo "Warning: $1" >&2
+}
+export -f warning
+
+# Print informational output to stdout. Honours the optional QUIET env var
+# so callers that respect --quiet can rely on this helper directly.
+info() {
+  [ "${QUIET:-}" = true ] && return 0
+  echo "$@"
+}
+export -f info
+
 # Get Intent version from VERSION file
 get_intent_version() {
   local version_file="${INTENT_HOME:-$(dirname "${BASH_SOURCE[0]}")/..}/VERSION"

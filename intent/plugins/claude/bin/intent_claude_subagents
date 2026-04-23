@@ -3,6 +3,10 @@
 # Copyright (c) 2026 Matthew Sinclair
 # Licensed under the MIT License (see LICENSE file)
 # Commands: list, install, sync, uninstall, show, status
+#
+# Note: `set -e` deferred (see WP12 dogfood Entry 1) -- early validation
+# checks signal "not found" via non-zero exit before reaching the
+# error-printing branch; strict mode would mask those messages.
 
 # Source helpers from main bin directory
 PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -459,7 +463,7 @@ intent_claude_subagents_status() {
 
   # Check each agent
   for agent in $agents; do
-    ((total++))
+    ((++total))
 
     # Get agent info from manifest
     local agent_info=$(jq -r ".installed[] | select(.name == \"$agent\")" "$manifest_file")
@@ -478,7 +482,7 @@ intent_claude_subagents_status() {
       status="MISSING"
       status_color="${RED}"
       details="Agent file not found"
-      ((missing_count++))
+      ((++missing_count))
     else
       # Calculate current checksum
       local current_checksum=$(calculate_checksum "$installed_file")
@@ -495,7 +499,7 @@ intent_claude_subagents_status() {
         status="ERROR"
         status_color="${RED}"
         details="Source file missing: $source_file"
-        ((error_count++))
+        ((++error_count))
       elif [ "$current_checksum" != "$manifest_checksum" ]; then
         # Check if it matches source (user might have synced manually)
         local source_checksum=$(calculate_checksum "$source_file")
@@ -503,12 +507,12 @@ intent_claude_subagents_status() {
           status="UPDATED"
           status_color="${YELLOW}"
           details="Synced but manifest outdated"
-          ((modified_count++))
+          ((++modified_count))
         else
           status="MODIFIED"
           status_color="${YELLOW}"
           details="Local changes detected"
-          ((modified_count++))
+          ((++modified_count))
         fi
       else
         # Check if source has updates
@@ -517,9 +521,9 @@ intent_claude_subagents_status() {
           status="UPDATE"
           status_color="${YELLOW}"
           details="Update available"
-          ((modified_count++))
+          ((++modified_count))
         else
-          ((ok_count++))
+          ((++ok_count))
         fi
       fi
     fi

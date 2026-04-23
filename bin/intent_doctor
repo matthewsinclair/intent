@@ -1,5 +1,9 @@
 #!/bin/bash
 # intent_doctor - Configuration diagnostics and fixes for Intent v2.1.0
+#
+# Note: `set -e` is intentionally not used. Several of doctor's checks
+# signal status via non-zero exit (e.g. "not found"); strict mode would
+# abort before the error-printing branch. See WP12 dogfood Entry 1.
 
 # Source the config library if we can find it
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -104,28 +108,27 @@ show_ok() {
   fi
 }
 
+# show_error and show_warning are doctor-specific: they bump ERRORS/WARNINGS
+# counters in addition to printing. They are not duplicates of intent_helpers'
+# error()/warning() (which are pure logging) and intentionally diverge.
 show_error() {
   echo -e "${RED}error${NC}: $1"
-  ((ERRORS++))
+  ((++ERRORS))
 }
 
 show_warning() {
   echo -e "${YELLOW}warning${NC}: $1"
-  ((WARNINGS++))
+  ((++WARNINGS))
 }
 
 show_fixed() {
   if [ "$FIX_MODE" = true ]; then
     echo -e "  ${GREEN}fixed${NC}: $1"
-    ((FIXED++))
+    ((++FIXED))
   fi
 }
 
-info() {
-  if [ "$QUIET" != true ]; then
-    echo "$@"
-  fi
-}
+# info() is sourced from intent_helpers and honours QUIET.
 
 verbose() {
   if [ "$VERBOSE" = true ] && [ "$QUIET" != true ]; then

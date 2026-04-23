@@ -1,6 +1,9 @@
 #!/bin/bash
 # intent_minimal - Minimal Intent wrapper for testing
 # This is a minimal wrapper for Phase 1 testing
+#
+# Note: `set -e` deferred (see WP12 dogfood Entry 1) -- needs a sweep for
+# checks that signal status via non-zero exit before strict mode is safe.
 
 # Version
 VERSION="2.0.0-alpha"
