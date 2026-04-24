@@ -3,7 +3,7 @@ verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-06
 title: "Ship .git/hooks/pre-commit template for critic gate"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-06: Ship .git/hooks/pre-commit template for critic gate

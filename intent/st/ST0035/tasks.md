@@ -7,7 +7,7 @@
 - [x] **WP03** — Write `intent/docs/working-with-llms.md` canon tech note. `WP/03/info.md`. Size: M. Deps: WP02.
 - [x] **WP04** — Ship `.claude/settings.json` template with SessionStart + Stop hooks. `WP/04/info.md`. Size: M. Deps: WP01.
 - [x] **WP05** — Implement `bin/intent_critic` headless critic runner. `WP/05/info.md`. Size: L. Deps: —.
-- [ ] **WP06** — Ship `.git/hooks/pre-commit` template (critic gate). `WP/06/info.md`. Size: S. Deps: WP05.
+- [x] **WP06** — Ship `.git/hooks/pre-commit` template (critic gate). `WP/06/info.md`. Size: S. Deps: WP05.
 - [x] **WP07** — Ship `.intent_critic.yml` default template. `WP/07/info.md`. Size: XS. Deps: WP05.
 - [ ] **WP08** — Rewrite root `AGENTS.md` generator (move from intent/llm/ to root). `WP/08/info.md`. Size: M. Deps: WP03.
 - [ ] **WP09** — Rewrite root `CLAUDE.md` template (Claude-specific overlay). `WP/09/info.md`. Size: S. Deps: WP08.
