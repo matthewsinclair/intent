@@ -11,8 +11,9 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 
-| ID  | Slug | Status | Created | Completed |
-| --- | ---- | ------ | ------- | --------- |
+| ID     | Slug                      | Status | Created    | Completed |
+| ------ | ------------------------- | ------ | ---------- | --------- |
+| ST0035 | canonical-llm-config-f... | WIP    | 2026-04-24 |
 
 <!-- END: STEEL_THREAD_INDEX -->
 
