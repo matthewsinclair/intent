@@ -3,7 +3,7 @@ verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-01
 title: "Self-upgrade Intent to v2.9.1 and cancel ST0010 and ST0015"
 scope: ExtraSmall
-status: WIP
+status: Done
 ---
 
 # WP-01: Self-upgrade Intent to v2.9.1 and cancel ST0010 and ST0015
