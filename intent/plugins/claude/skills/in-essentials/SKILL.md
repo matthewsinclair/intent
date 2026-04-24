@@ -26,11 +26,11 @@ intent st edit ST0005
 
 ### 2. Use `intent agents sync` to update AGENTS.md
 
-NEVER edit `intent/llm/AGENTS.md` directly — it is auto-generated from project state. Manual edits will be overwritten on next sync.
+NEVER edit root `AGENTS.md` directly — it is auto-generated from project state by `intent agents sync`. Manual edits will be overwritten on the next sync. `AGENTS.md` lives at the project root as a real file (not a symlink); older projects may still have a legacy `intent/llm/AGENTS.md` which is retired and should be removed.
 
 ```bash
 # BAD — direct edit
-echo "New section" >> intent/llm/AGENTS.md
+echo "New section" >> AGENTS.md
 
 # GOOD — regenerate from project state
 intent agents sync
