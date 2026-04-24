@@ -13,7 +13,7 @@
 - [ ] **WP09** — Rewrite root `CLAUDE.md` template (Claude-specific overlay). `WP/09/info.md`. Size: S. Deps: WP08.
 - [ ] **WP10** — Delete deprecated artefacts (intent/llm/AGENTS.md, \_llm_preamble.md). `WP/10/info.md`. Size: XS. Deps: WP08.
 - [ ] **WP11** — Extend `intent claude upgrade` to apply all canon artefacts. `WP/11/info.md`. Size: M. Deps: WP04, WP06, WP07, WP08, WP09.
-- [ ] **WP12** — Socrates/Diogenes FAQ + cross-refs in agent.md files. `WP/12/info.md`. Size: XS. Deps: WP03.
+- [x] **WP12** — Socrates/Diogenes FAQ + cross-refs in agent.md files. `WP/12/info.md`. Size: XS. Deps: WP03.
 - [ ] **WP13** — Update Intent's own CLAUDE.md to reference canon. `WP/13/info.md`. Size: S. Deps: WP03, WP09.
 - [ ] **WP14** — Self-apply canon to Intent repo (dogfood). `WP/14/info.md`. Size: S. Deps: WP11, WP13.
 - [ ] **WP15** — Canary rollout: Conflab, Lamplight, Laksa. `WP/15/info.md`. Size: M. Deps: WP14.

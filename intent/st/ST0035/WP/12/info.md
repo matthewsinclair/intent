@@ -3,7 +3,7 @@ verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-12
 title: "Socrates Diogenes FAQ and cross-refs"
 scope: ExtraSmall
-status: Not Started
+status: Done
 ---
 
 # WP-12: Socrates / Diogenes FAQ and cross-refs

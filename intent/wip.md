@@ -24,7 +24,7 @@ intent_version: 2.9.1
 | Not Started | 09  | Root `CLAUDE.md` overlay template                                                     | S    |
 | Not Started | 10  | Delete deprecated artefacts                                                           | XS   |
 | Not Started | 11  | Extend `intent claude upgrade`                                                        | M    |
-| Not Started | 12  | Socrates/Diogenes FAQ cross-refs                                                      | XS   |
+| Done        | 12  | Socrates/Diogenes FAQ cross-refs                                                      | XS   |
 | Not Started | 13  | Update Intent's own CLAUDE.md                                                         | S    |
 | Not Started | 14  | Self-apply canon to Intent (dogfood)                                                  | S    |
 | Not Started | 15  | Canary rollout (Conflab, Lamplight, Laksa)                                            | M    |
