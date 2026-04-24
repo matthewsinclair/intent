@@ -7,7 +7,7 @@ intent_version: 2.10.0
 
 ## Current State
 
-**ST0035 (Canonical LLM Config + Fleet Rollout) active — retargeted to v2.10.0 bundling ST0036. WP01–WP09 and WP12 Done (10 of 18).** Intent stamped at `2.10.0`. Canon docs + hooks + headless critic + pre-commit gate + root AGENTS.md generator + root CLAUDE.md overlay template all shipped. **WP08 shipped**: `intent agents sync` writes root `AGENTS.md` as a real file (retired `intent/llm/AGENTS.md`), enriched content with 16 canon sections, dynamic discovery of installed skills/subagents from `.claude/`, symlink-migration helper, `validate` semantics inverted, `templates/default.md` deleted, 12 new BATS scenarios. **WP09 shipped**: `lib/templates/llm/_CLAUDE.md` rewritten as Claude overlay (58 lines), reference-block to AGENTS.md, `/in-session` + memory dir + hooks + rules-of-the-road via agnostic rule IDs + critic dispatch + user-preservation markers. 12 new BATS scenarios. **Retarget**: v2.9.1 → v2.10.0 to bundle ST0036 (directory relocation `.intent/` → `intent/.config/`) as a single breaking release. **ST0036 opened as Phase 0 stub**. **Next up**: WP10 (XS — delete deprecated artefacts; needs WP08 ✓).
+**ST0035 (Canonical LLM Config + Fleet Rollout) active — retargeted to v2.10.0 bundling ST0036. WP01–WP10 and WP12 Done (11 of 18).** Intent stamped at `2.10.0`. Canon docs + hooks + headless critic + pre-commit gate + root AGENTS.md generator + root CLAUDE.md overlay template all shipped. Deprecated artefacts removed. **WP10 shipped**: deleted `intent/llm/AGENTS.md` + `lib/templates/llm/_llm_preamble.md`; flipped residual code paths (`intent_init`, `_generate_basic_agents_md`, `intent_doctor`, `intent_claude_upgrade`) to write root AGENTS.md; updated `docs_completeness.bats` idempotency test to point at root. **Retarget**: v2.9.1 → v2.10.0 to bundle ST0036 (directory relocation `.intent/` → `intent/.config/`) as a single breaking release. **ST0036 opened as Phase 0 stub** — implementation WPs interleave between ST0035/WP13 and WP14. **Next up**: WP11 (M — extend `intent claude upgrade --apply` to ship the full canon; needs WP04, WP06, WP07, WP08, WP09 — all ✓).
 
 ## ST0035 progress
 
@@ -22,7 +22,7 @@ intent_version: 2.10.0
 | Done        | 07  | `.intent_critic.yml` default template                                                 | XS   |
 | Done        | 08  | Root `AGENTS.md` generator rewrite                                                    | M    |
 | Done        | 09  | Root `CLAUDE.md` overlay template                                                     | S    |
-| Not Started | 10  | Delete deprecated artefacts                                                           | XS   |
+| Done        | 10  | Delete deprecated artefacts                                                           | XS   |
 | Not Started | 11  | Extend `intent claude upgrade`                                                        | M    |
 | Done        | 12  | Socrates/Diogenes FAQ cross-refs                                                      | XS   |
 | Not Started | 13  | Update Intent's own CLAUDE.md                                                         | S    |
@@ -42,6 +42,7 @@ intent_version: 2.10.0
 
 ## Recent
 
+- **2026-04-24**: WP-10 complete. Deleted `intent/llm/AGENTS.md` + `lib/templates/llm/_llm_preamble.md`. Flipped residual code paths that still wrote to `intent/llm/AGENTS.md`: `bin/intent_init::_create_basic_agents_md`, `bin/intent_helpers::_generate_basic_agents_md` + `migrate_v2_2_to_v2_3_0`, `bin/intent_doctor` (AGENTS.md check simplified), `intent/plugins/claude/bin/intent_claude_upgrade` (diagnosis + CREATE + REGENERATE paths flipped), `tests/unit/docs_completeness.bats::agents_sync_idempotent` (path to root). `intent/docs/working-with-llms.md` troubleshooting bumped to v2.10.0. Full suite 762/762 green. Commits: `1ae5f61` content · `2e99857` Done.
 - **2026-04-24**: **Retarget ST0035 v2.9.1 → v2.10.0** + **ST0036 opened (Phase 0 stub)**. Mid-ST decision to bundle directory relocation (`.intent/` → `intent/.config/`) into the same release. Semver-breaking directory move forces the minor bump within 2.x. ST0036 lands its implementation WPs between ST0035/WP13 and ST0035/WP14; canary + fleet rollout (WP15/WP16) carry both concerns in one pass. Commits: `b760b39` retarget.
 - **2026-04-24**: WP-09 complete. `lib/templates/llm/_CLAUDE.md` rewritten as a short overlay (58 lines) pointing at root AGENTS.md as primary contract. Canon placeholders preserved. 12 new BATS scenarios covering length budget, landmarks, placeholder substitution via `intent init`. Commits: `d3c147d` content · `09cad07` Done.
 - **2026-04-24**: WP-08 complete. `intent agents sync/init/validate` flip to root `AGENTS.md` (real file, not symlink). 16 canon sections; dynamic skills/subagents rendering from `.claude/`; symlink-migration helper. `templates/default.md` deleted (Highlander). Pre-existing source-tree bug fixed (renderer now reads per-project `.claude/` not Intent canon). 12 new BATS scenarios. Full suite 750/750 green. Commits: `546dc3d` content · `61fad69` Done.
@@ -59,12 +60,13 @@ intent_version: 2.10.0
 
 ## Next Up
 
-1. **Resume WP04** (currently WIP, no content). Draft `lib/templates/.claude/settings.json` with three default hook stanzas (SessionStart / strict UserPromptSubmit / Stop; PostToolUse opt-in only). Author three helper scripts (`session-context.sh`, `require-in-session.sh`, `post-tool-advisory.sh`). Add cooperating sentinel-write step to `/in-session` SKILL.md. Register in MODULES.md. Add BATS test for `session-context.sh`. Full spec in `intent/st/ST0035/WP/04/info.md`.
-2. **WP12** (XS): Socrates/Diogenes FAQ cross-refs in `socrates/agent.md` and `diogenes/agent.md` pointing at `intent/docs/working-with-llms.md` FAQ section. Quick win.
-3. **WP05** (L, parallelisable): `bin/intent_critic` headless runner.
-4. **WP18**: audit can start any time post-WP03; applied updates soft-gated on WP14 dogfood.
+1. **WP11** (M) — Extend `intent claude upgrade --apply` to ship the full canon in one shot: `.claude/settings.json` template + hooks scripts, pre-commit hook, `.intent_critic.yml`, root AGENTS.md regeneration, root CLAUDE.md overlay from refreshed template, plus the existing intent/llm/MODULES.md + DECISION_TREE.md. Dependencies (WP04, WP06, WP07, WP08, WP09) all ✓.
+2. **WP13** (S) — Rewrite Intent's own `CLAUDE.md` to match the refreshed canon. Depends on WP09 (template) ✓.
+3. **ST0036 Phase 0 elaboration** — after WP13 lands: populate all 9 `WP/NN/info.md` files for directory relocation. Phase 0 review gate before any ST0036 WP starts.
+4. **WP14** (S) — Self-apply canon to Intent (dogfood). Carries both ST0035 canon AND ST0036 directory relocation post-Phase-0.
+5. **WP18** — `intent/usr/*.md` audit can run in parallel with WP15/WP16; must land before WP17.
 
-See `intent/st/ST0035/tasks.md` for full dependency graph.
+See `intent/st/ST0035/tasks.md` for ST0035 dependency graph; `intent/st/NOT-STARTED/ST0036/tasks.md` for ST0036.
 
 ## Deferred observations
 

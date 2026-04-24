@@ -3,42 +3,48 @@
 ## First actions after `/compact`
 
 1. **Invoke `/in-session`.** Loads `/in-essentials`, `/in-standards`, Elixir skills (Intent authors Elixir rules even though it is itself a bash project), and the Persistent reminders block (Highlander / Thin Coordinator / PFIC diligence + NEVER MANUALLY WRAP .MD FILES).
-2. **Verify tree is clean.** Expected recent commits (top to bottom): `aa9b7ca` · `c994579` · `21ed9c4` · `0b0d72d` · `cab9e06` · `c47fbfc` · `cfdcb51` · `c01d9fe` · `8c4df6f` · `e36b6f1`. If `git status` shows uncommitted work beyond `.claude/settings.local.json` (user-local, ignore), investigate.
-3. **Read `intent/restart.md` + `intent/wip.md`** for state summary + WP queue.
-4. **Read `intent/st/ST0035/WP/08/info.md`** — the next active WP. Continue from its Deliverables list.
-5. If time permits before the active WP, **read `intent/st/ST0035/info.md` + `design.md`** for canon decisions refresher.
+2. **Verify tree is clean.** Expected top commits (newest first): `2e99857` · `1ae5f61` · `f4c68b9` · `b760b39` · `09cad07` · `d3c147d` · `61fad69` · `546dc3d` · `199c605` · `aa9b7ca`. If `git status` shows uncommitted work beyond `.claude/settings.local.json` (user-local, ignore), investigate.
+3. **Read `intent/restart.md` + `intent/wip.md`** for narrative state.
+4. **Read `intent/st/ST0035/WP/11/info.md`** — the next active WP. Continue from its Deliverables list.
+5. If time permits before the active WP, **read `intent/st/ST0035/info.md` + `design.md`** for canon decisions refresher, and **`intent/st/NOT-STARTED/ST0036/info.md` + `design.md` + `tasks.md`** for the ST0036 context that bundles into v2.10.0.
 
-## State (2026-04-24, end of session — 8 of 18 Done, no WIP)
+## State (2026-04-24, end of session — 11 of 18 Done + ST0036 opened)
 
-**ST0035 active.** Canon docs (usage-rules, working-with-llms) + hooks template (.claude/settings.json + 3 scripts + /in-session cooperating sentinel) + headless critic runner (bin/intent_critic + rules_lib.sh + critic_runner.sh) + pre-commit gate (.git/hooks/pre-commit) + critic config template (.intent_critic.yml) + Socrates/Diogenes cross-refs all shipped.
+**Intent v2.10.0 in progress. ST0035 active; ST0036 sibling Phase 0 stub opened (ships bundled).**
 
-- 8 of 18 WPs Done: **WP01–WP07 + WP12**. No WIP — clean handoff.
-- Decisions all resolved (1–5).
-- `.intent/config.json`: `intent_version: 2.10.0` (retargeted from 2.9.1 to bundle ST0036 directory relocation).
+- 11 of 18 WPs Done: **WP01–WP10 + WP12**. No WIP — clean handoff.
+- Retargeted v2.9.1 → v2.10.0 to bundle ST0036 (directory relocation `.intent/` → `intent/.config/`).
+- Decisions 1–5 resolved; decision 1 retargeted to 2.10.0.
+- `.intent/config.json`: `intent_version: 2.10.0`.
+- `VERSION`: `2.10.0`.
+- Full test suite: 762/762 green.
+- `intent doctor`: clean.
 
-## WP-08 resume target
+## WP-11 resume target
 
-Full spec: `intent/st/ST0035/WP/08/info.md`. Summary of remaining work:
+Full spec: `intent/st/ST0035/WP/11/info.md`. Summary of work:
 
-1. Change `intent agents sync` output path from `intent/llm/AGENTS.md` to root `AGENTS.md` (as a real file, NOT a symlink).
-2. Enrich AGENTS.md contents per canon D3: project overview, build/test commands, coding conventions summary, steel-thread process, installed skills/subagents, rule library pointer, critic invocation, Socrates/Diogenes FAQ paragraph.
-3. Idempotency preserved: existing `agents_sync_idempotent` BATS test must still pass (two sync runs produce byte-identical output).
-4. MODULES.md registration updated.
-5. BATS tests for new root-level output + enriched contents.
+Extend `intent claude upgrade --apply` to ship the full canon in one shot. Today it handles AGENTS.md + intent/llm/RULES.md + ARCHITECTURE.md (after WP10's flip). WP11 adds idempotent installation of:
 
-Downstream: WP09 (Claude overlay) and WP10 (delete deprecated artefacts at `intent/llm/AGENTS.md` + `_llm_preamble.md`) gate on WP08. WP11 (installer) depends on WP08 for the generator shape.
+1. `.claude/settings.json` from `lib/templates/.claude/settings.json` + three helper scripts (`session-context.sh`, `require-in-session.sh`, `post-tool-advisory.sh`) → `.claude/scripts/`.
+2. `.git/hooks/pre-commit` from `lib/templates/hooks/pre-commit.sh` (chmod +x).
+3. `.intent_critic.yml` from `lib/templates/_intent_critic.yml` (only if absent — respect user customisation).
+4. Root `CLAUDE.md` from `lib/templates/llm/_CLAUDE.md` (only if absent or if Intent-generated marker present and user hasn't edited outside `<!-- user:start --> / <!-- user:end -->`).
 
-## Next up after WP-08
+Idempotency: running `--apply` twice produces byte-identical output. MODULES.md update. BATS scenarios for each install target + the absence/presence/user-edit matrix.
 
-1. **WP09** (S) — Rewrite root `CLAUDE.md` template as a Claude-specific overlay that imports AGENTS.md.
-2. **WP10** (XS) — Delete `intent/llm/AGENTS.md` (retired) and `lib/templates/llm/_llm_preamble.md` (legacy).
-3. **WP11** (M) — Extend `intent claude upgrade --apply` to install the full canon (settings.json + hooks + critic config + AGENTS.md + CLAUDE.md).
-4. **WP13** (S) — Update Intent's own CLAUDE.md to reference the canon (needs WP09).
-5. **WP14** (S) — Self-apply canon to Intent repo (dogfood).
-6. **WP15/WP16/WP17** — Canary + fleet rollout + verification sweep.
-7. **WP18** (M) — `intent/usr/*.md` audit (can run in parallel with WP15/16; must land before WP17).
+Downstream: WP14 (Intent self-dogfood) is the first consumer. WP15 (canary) + WP16 (fleet) use this as the rollout machinery.
 
-See `intent/st/ST0035/tasks.md` for the full dependency graph.
+## Next up after WP-11
+
+1. **WP13** (S) — Update Intent's own `CLAUDE.md` to reference the canon. Needs WP09 ✓.
+2. **ST0036 Phase 0 elaboration** — populate 9 `WP/NN/info.md` files. Gate before ST0036/WP01 starts.
+3. **ST0036/WP01–WP08** — migration function, path probes, literal sweep, templates, BATS, gitignore, migration guide, Intent self-apply. Land BEFORE ST0035/WP14.
+4. **WP14** (S) — Self-apply canon to Intent (dogfood). Post-ST0036, this carries BOTH canon + directory relocation in one pass.
+5. **WP15/WP16/WP17** — Canary + fleet rollout + verification sweep. Fleet rollout also carries both concerns.
+6. **WP18** (M) — `intent/usr/*.md` audit (can run in parallel with WP15/16; must land before WP17).
+
+See `intent/st/ST0035/tasks.md` + `intent/st/NOT-STARTED/ST0036/tasks.md` for dependency graphs.
 
 ## Session conventions
 
@@ -49,16 +55,16 @@ See `intent/st/ST0035/tasks.md` for the full dependency graph.
 - NO Claude attribution in commits.
 - NEVER report test/skill/subagent counts in release notes, CHANGELOG, wip.md, or session docs.
 - Fail-forward: no backwards-compat shims, no deprecation stubs.
-- Document first, code next, with a hard review gate after Phase 0 (passed for ST0035 long since).
+- Document first, code next, with a hard review gate after Phase 0.
 
 ## Lessons worth keeping from this session
 
-- **awk exit-code trap**: `awk ... && return 0` is wrong when the awk script uses `exit 0` for "matched" — awk's natural completion also exits 0, so the caller can't distinguish. Fix: use a distinct exit sentinel (exit 10) for "matched". See `critic_rule_disabled()` in `intent/plugins/claude/lib/critic_runner.sh` for the canonical pattern.
-- **`.intent_critic.yml` canonical field is `disabled:`** (not `disabled_rules:`). Schema lives in `intent/docs/critics.md` and the sample at `intent/plugins/claude/rules/_schema/sample-intent-critic.yml`.
-- **UserPromptSubmit strict gate must pass-through slash commands**: otherwise `/in-session` itself is blocked — chicken-and-egg. `require-in-session.sh` reads the prompt from stdin JSON and bails out cleanly on `/*`.
-- **`intent critic` exit contract**: 0 clean / 1 findings / 2 error. Pre-commit hook treats 2 as "fail-open" (don't block a commit on broken tooling).
+- **Mid-ST version retargets are cheap before release tag.** v2.9.1 → v2.10.0 was ~5 files of string replacement when no tag existed. Check the "is it tagged?" question before committing to a bundling strategy.
+- **Deprecation sweeps leave ghost readers.** Deleting `intent/llm/AGENTS.md` required updating 5 other code paths that still wrote to it (`intent_init`, `_generate_basic_agents_md`, `intent_doctor`, `intent_claude_upgrade`, a BATS test). Always grep for the deleted path and scope the WP accordingly.
+- **Test suite hides stale-file false positives.** `docs_completeness.bats::agents_sync_idempotent` was passing on stale `intent/llm/AGENTS.md` content post-WP08 — both runs copied the same file that `sync` wasn't even writing anymore. Periodic audit: does each test actually exercise the code path it claims to?
+- **`_replace_symlink_if_present` is the migration primitive.** Any fleet project arriving with the old layout (root AGENTS.md → symlink to intent/llm/AGENTS.md) gets transparent, idempotent migration during `intent agents sync`.
 
-## Open follow-ups (outside ST0035)
+## Open follow-ups (outside ST0035 + ST0036)
 
 - `docs/blog/_drafts/####-shell-critic-inception.md` — blog draft; publication gated on real dogfood runs.
-- WP07 follow-ups from ST0034: align Diogenes fixture-context handling across critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures. Not in ST0035 scope.
+- WP07 follow-ups from ST0034: align Diogenes fixture-context handling across critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures. Not in ST0035 / ST0036 scope.
