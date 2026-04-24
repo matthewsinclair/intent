@@ -94,17 +94,15 @@ This steel thread was scaffolded under the "document first, code next" disciplin
 
 Plan source: `/Users/matts/.claude/plans/ultrathink-on-please-ingest-elegant-sundae.md` (approved 2026-04-24).
 
-## Open Decisions (carried from plan)
+## Open Decisions — resolved 2026-04-24
 
-Five decisions remain open at Phase 0 close — user resolution required before WP01 begins:
+All five open decisions from Phase 0 are now resolved. Resolutions baked into the relevant WP `info.md` files.
 
-1. **Version bump**: 2.9.1 (refinement, default in these docs) vs 2.10.0 (treat canon as a capability drop).
-2. **Hook enforcement strictness**: soft reminder via SessionStart (default) vs hard gate via UserPromptSubmit (blocks first prompt until `/in-session` runs).
-3. **Pre-commit critic threshold**: block on CRITICAL + WARNING (default) vs block on CRITICAL only.
-4. **PostToolUse advisory critic**: off by default (default) vs on by default.
-5. **(Resolved during Phase 0)** Cancelled ST location: `intent/st/CANCELLED/` exists → ST0010/ST0015 move there via `intent` CLI.
-
-Defaults listed above are what's assumed in each WP's acceptance criteria. Any change to a default triggers a WP revision.
+1. **Version bump**: **2.9.1** — a refinement release, not a feature drop.
+2. **Hook enforcement strictness**: **strict** — `UserPromptSubmit` hard gate that blocks the first prompt until `/in-session` has run in the conversation. User will reassess intrusiveness post-rollout; if it's too noisy, flip to soft-reminder via a template override. Affects WP04 acceptance criteria and the `.claude/settings.json` template.
+3. **Pre-commit critic threshold**: **CRITICAL + WARNING** (`--warnings-are-errors` posture). Default already in `.intent_critic.yml` template (WP07).
+4. **PostToolUse advisory critic**: **off by default** — would be too noisy (fires on every intermediate edit during multi-step work) and too expensive in tokens (every tool use injecting advisory findings into the context). Pre-commit gate catches everything at the canonical checkpoint. Helper script still ships so users can opt in via `.intent_critic.yml post_tool_use_advisory: true`, but the default `.claude/settings.json` stanza omits the PostToolUse hook entirely.
+5. **Cancelled ST location**: `intent/st/CANCELLED/` — the existing graveyard. Headstones (deprecation annotations) go in the info.md of the corpse.
 
 ## Context for LLM
 

@@ -18,13 +18,16 @@ Fleet audit showed `.claude/` is universally empty across all Intent projects �
 
 Claude Code hooks are configured in `.claude/settings.json` (project-level) and/or `.claude/settings.local.json` (user-local overrides). Hook commands emit text on stdout that Claude reads as a system-reminder. Hooks cannot directly invoke slash commands; the reminder is injected and the model is trained to act on critical-skill notices.
 
-From design D7: soft reminder is the default (not a hard-gating `UserPromptSubmit` hook). Open decision #2 lets the user flip to strict.
+Open decisions resolved 2026-04-24:
 
-WP04 ships the template only — installation into projects is WP11.
+- **#2 (enforcement strictness)** = **strict**. Hard `UserPromptSubmit` gate that blocks the first prompt until `/in-session` has been invoked in the conversation. SessionStart + Stop reminders stay as a belt-and-braces layer. User will reassess intrusiveness after rollout.
+- **#4 (PostToolUse advisory critic)** = **off by default**. Too noisy (every intermediate edit during multi-step work would fire) and too costly in tokens (every tool use would inject advisory findings). Pre-commit gate catches everything at the canonical checkpoint. Helper script `post-tool-advisory.sh` still ships so users can opt in via `.intent_critic.yml post_tool_use_advisory: true` + adding the PostToolUse stanza to their `.claude/settings.local.json`, but the **default** `.claude/settings.json` template **omits the PostToolUse stanza**.
+
+WP04 ships the template only — installation into projects is WP11. Coordinates with WP05 (intent_critic must support single-file low-latency invocation for the opt-in PostToolUse path, even though it's off by default).
 
 ## Deliverables
 
-1. **Template file** at `lib/templates/.claude/settings.json`. JSON shape:
+1. **Template file** at `lib/templates/.claude/settings.json`. Shape (final syntax verified against Claude Code hook spec during WP04 kickoff):
 
    ```json
    {
@@ -35,7 +38,18 @@ WP04 ships the template only — installation into projects is WP11.
            "hooks": [
              {
                "type": "command",
-               "command": "echo 'Intent project detected. Run /in-session before your first response to load coding standards, rules, and session discipline.'"
+               "command": "/path/to/session-context.sh"
+             }
+           ]
+         }
+       ],
+       "UserPromptSubmit": [
+         {
+           "matcher": "",
+           "hooks": [
+             {
+               "type": "command",
+               "command": "/path/to/require-in-session.sh"
              }
            ]
          }
@@ -55,51 +69,60 @@ WP04 ships the template only — installation into projects is WP11.
    }
    ```
 
-   (Final shape verified against Claude Code hook spec during WP04.)
+   Three default hook types: `SessionStart` (context inject), `UserPromptSubmit` (strict `/in-session` gate, per decision #2), `Stop` (wrap-up reminder). **`PostToolUse` is NOT in the default stanza (decision #4 = off).** Users who want advisory critic add the stanza themselves (example shown in `pre-commit-hook.md` / `working-with-llms.md`) and flip `.intent_critic.yml post_tool_use_advisory: true`.
 
-2. **Intent-aware context**: the SessionStart hook command should be richer than `echo` — pipe in:
-   - Current git branch + short SHA.
-   - Current `intent wp` WIP (if any) from `intent/wip.md`.
-   - Active ST ID.
-   - Project name.
+2. **Helper scripts** at `lib/templates/.claude/scripts/`:
+   - `session-context.sh` (SessionStart) — idempotent, < 200ms. Emits: project name, git branch, short SHA, active ST, WIP summary. Becomes the system-reminder content.
+   - `require-in-session.sh` (UserPromptSubmit) — hard gate. Checks for a per-session marker (e.g., `~/.claude/projects/<dir>/.in-session-ran-<session-id>` sentinel file); if absent, emits a blocking response via exit code 2 with a stderr message directing the user to run `/in-session`. Once `/in-session` runs, it writes the sentinel; subsequent prompts pass through. The sentinel is per-session so each new session re-gates.
+   - `post-tool-advisory.sh` (**opt-in** PostToolUse Write|Edit|MultiEdit) — reads tool-use JSON from stdin; extracts the target file path; if it's a source file in a supported language AND `.intent_critic.yml post_tool_use_advisory: true`, runs `intent critic <lang> --files <path> --format text` and emits findings as a system-reminder. Non-blocking (exit 0 always). **Ships with the template but is not wired into the default settings.json stanza**; users who want it add the stanza themselves.
 
-   This becomes a helper script at `lib/templates/.claude/scripts/session-context.sh` that the hook `command:` invokes. The script must be idempotent and fast (<200ms) — it runs on every session start.
+3. **Template placeholders** if any project-specific content is needed (likely none — scripts discover project details dynamically).
 
-3. **Template placeholders** if any project-specific content is needed (likely none — session-context.sh discovers project details dynamically).
+4. **MODULES.md registration** for `lib/templates/.claude/` and all three helper scripts.
 
-4. **MODULES.md registration** for the new template dir `lib/templates/.claude/` and the helper script.
-
-5. **User-level opt-out documentation** in `working-with-llms.md` (WP03 cross-references this) — how to disable hooks per-session in `.claude/settings.local.json` for users who don't want them.
+5. **User-level opt-out documentation** in `working-with-llms.md` (WP03 cross-references this) — how to disable the `UserPromptSubmit` gate per-session in `.claude/settings.local.json` (set hook to empty or use `.intent_critic.yml post_tool_use_advisory: false` for the PostToolUse path). Strict is canon; opt-out is per-user.
 
 ## Approach
 
 1. **Read Claude Code hooks docs** to confirm exact JSON schema and matcher regex semantics. Anthropic docs: https://docs.claude.com/en/docs/claude-code/hooks (verify URL at WP04 start).
-2. **Confirm hook command behaviour**:
-   - Stdout → injected as system-reminder.
-   - Exit 0 → allow; exit 2 → block (don't block on SessionStart).
-3. **Author the template** with the JSON structure above. Keep permissive matchers so hooks fire on all session-start variations.
-4. **Author session-context.sh**:
-   - Detect git repo (`git rev-parse --is-inside-work-tree`); if no git, skip git-context injection gracefully.
-   - Read `intent/wip.md` if present; echo the first non-empty line or "No active WIP".
-   - Echo current branch, short SHA, project name (from `.intent/config.json`).
-   - All output goes to stdout — becomes the system-reminder content.
-5. **Reasonable defaults for local.json precedence**: user overrides in `.claude/settings.local.json` win. Document the precedence in the template's comments / header (JSON with comments isn't valid, so comment in the `/*` section of adjacent MODULES entry and in working-with-llms.md).
-6. **Sanity-test** the template by copying it to Intent's own `.claude/settings.json` in a scratch worktree and confirming hooks fire — but don't commit Intent's settings yet (that's WP14's dogfood).
-7. **Commit** the template files and MODULES.md update.
+2. **Confirm hook command behaviour** per event type:
+   - `SessionStart` — stdout injected as system-reminder; exit 0.
+   - `UserPromptSubmit` — stdout + non-zero exit can block the user's prompt before it reaches the model; exit 2 is the documented "block" code. Confirm syntax for blocking message.
+   - `PostToolUse` — tool-use JSON on stdin; stdout injected as system-reminder; exit 0 (non-blocking).
+   - `Stop` — stdout injected; exit 0.
+3. **Author the four hook stanzas** in the JSON template with absolute-path `command:` entries pointing at the helper scripts (installer in WP11 substitutes the real path).
+4. **Author `session-context.sh`**: detect git repo, read `intent/wip.md`, echo project name + branch + short SHA + active ST + WIP summary. Graceful degradation when git or wip.md absent.
+5. **Author `require-in-session.sh`** (strict gate):
+   - Sentinel file path: `~/.claude/projects/<project-hash>/.intent-in-session-<session-id>`.
+   - On invocation, check for sentinel. If present: exit 0 (pass through). If absent: emit message "Intent project requires `/in-session` to run before your first prompt. Run it now." to stderr, exit 2 (block).
+   - A complementary hook on PostToolUse (or inside `/in-session` itself) writes the sentinel once `/in-session` has run.
+   - Test the session-id propagation — confirm Claude Code passes session ID to hooks via env var or stdin JSON.
+6. **Author `post-tool-advisory.sh`**:
+   - Parse the tool-use JSON from stdin (fields: `tool_name`, `tool_input.file_path`).
+   - If `tool_name` ∈ {Write, Edit, MultiEdit} and file extension maps to a supported critic language → continue; else exit 0.
+   - Check `.intent_critic.yml`: if `post_tool_use_advisory: false`, exit 0.
+   - Run `intent critic <lang> --files <file> --severity-min warning --format text`, capture stdout.
+   - Echo findings as system-reminder with a clear "advisory — does not block" prefix.
+   - Exit 0 always (advisory, not blocking).
+7. **Sanity-test** the template + scripts in a scratch worktree.
+8. **Commit** the template files, helper scripts, and MODULES.md update.
 
 ## Acceptance Criteria
 
 - [ ] `lib/templates/.claude/settings.json` exists and is valid JSON (`jq . lib/templates/.claude/settings.json` returns 0).
-- [ ] Template has `hooks.SessionStart` with matcher covering `startup|resume|clear|compact`.
-- [ ] Template has `hooks.Stop` with a matcher that fires after every assistant turn.
-- [ ] Template's SessionStart command invokes `session-context.sh` (or inlines a reasonable subset).
-- [ ] `lib/templates/.claude/scripts/session-context.sh` exists, is executable, and completes in < 200ms on a typical project.
-- [ ] `session-context.sh` emits: project name, git branch, short SHA, and WIP summary (when available).
-- [ ] `session-context.sh` degrades gracefully when not in a git repo or when `intent/wip.md` is absent.
-- [ ] Tested: dropping the template into Intent's `.claude/settings.json` (in a scratch worktree) produces the expected system-reminder injection on session start. (Documented observation in WP14 when self-apply runs.)
-- [ ] `intent/llm/MODULES.md` registers `lib/templates/.claude/` and `lib/templates/.claude/scripts/session-context.sh`.
-- [ ] Template uses permissive matchers — no missed session-start events.
-- [ ] Opt-out mechanism documented in `working-with-llms.md` (WP03 cross-ref).
+- [ ] Template has three default hook stanzas: `SessionStart`, `UserPromptSubmit`, `Stop`. PostToolUse is **not** in the default.
+- [ ] `SessionStart` matcher covers `startup|resume|clear|compact`.
+- [ ] `UserPromptSubmit` invokes `require-in-session.sh`.
+- [ ] `Stop` fires after every assistant turn.
+- [ ] `post-tool-advisory.sh` ships with the template but is not referenced by the default settings.json stanza.
+- [ ] Opt-in example for PostToolUse stanza is documented in `working-with-llms.md` (WP03) and `pre-commit-hook.md` (WP06).
+- [ ] `lib/templates/.claude/scripts/session-context.sh` exists, is executable, completes in < 200ms.
+- [ ] `lib/templates/.claude/scripts/require-in-session.sh` exists, is executable, enforces the sentinel-file gate, emits blocking exit 2 when `/in-session` has not run.
+- [ ] `lib/templates/.claude/scripts/post-tool-advisory.sh` exists, is executable, parses tool-use JSON from stdin, short-circuits on `.intent_critic.yml post_tool_use_advisory: false`, invokes `intent critic` on single file, exits 0 always.
+- [ ] All three scripts degrade gracefully on missing dependencies (no git, no `intent/wip.md`, no `.intent_critic.yml`, no `intent` on PATH).
+- [ ] Tested: dropping the template into a scratch project's `.claude/settings.json` produces the expected system-reminder injection on session start, blocks a first-prompt without `/in-session`, and injects advisory findings after a Write to a rule-violating file.
+- [ ] `intent/llm/MODULES.md` registers `lib/templates/.claude/` and all three helper scripts.
+- [ ] Opt-out mechanism documented in `working-with-llms.md` (WP03 cross-ref) — both for the strict gate and the PostToolUse advisory.
 - [ ] Commit follows Intent conventions.
 
 ### Tests to add
