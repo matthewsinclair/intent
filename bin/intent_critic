@@ -1,0 +1,227 @@
+#!/bin/bash
+# intent_critic -- Headless critic runner for Intent rule library (ST0035/WP-05)
+# Copyright (c) 2026 Matthew Sinclair
+# Licensed under the MIT License (see LICENSE file)
+#
+# Usage:
+#   intent critic <lang> [options]
+#
+# Options:
+#   --files <path> ...     Explicit list of files to scan.
+#   --staged               Scan files in git staging area (for pre-commit).
+#   --severity-min <lvl>   critical | warning (default) | recommendation | style.
+#   --format text|json     Output format. Default: text.
+#   --rules <dir>          Alternative rules directory. Default: canon.
+#   -h, --help             Show this help.
+#
+# Exit codes:
+#   0  no findings at or above threshold
+#   1  findings at or above threshold
+#   2  invocation error
+
+set -u
+
+# ---- Bootstrap ----
+_intent_critic_self="${BASH_SOURCE[0]}"
+while [ -L "$_intent_critic_self" ]; do
+  _intent_critic_self="$(readlink "$_intent_critic_self")"
+done
+BIN_DIR="$(cd "$(dirname "$_intent_critic_self")" && pwd)"
+INTENT_ROOT="$(cd "$BIN_DIR/.." && pwd)"
+: "${INTENT_HOME:=$INTENT_ROOT}"
+export INTENT_HOME
+unset _intent_critic_self
+
+source "$INTENT_ROOT/intent/plugins/claude/lib/critic_runner.sh"
+
+# ---- CLI ----
+
+print_help() {
+  cat <<'EOF'
+intent critic <lang> [options]
+
+Run Intent rule-library critics against source files without invoking an LLM.
+Mechanical subset only: rules that publish a Greppable proxy are enforced.
+Richer review is available via `Task(subagent_type="critic-<lang>")`.
+
+Positional:
+  <lang>                 elixir | rust | swift | lua | shell
+
+Options:
+  --files <path> ...     Explicit file list. Default: scan nothing unless --staged.
+  --staged               Scan files in git staging area (pre-commit mode).
+  --severity-min <lvl>   Minimum severity to report. Default: warning.
+                         Levels: critical, warning, recommendation, style.
+  --format text|json     Output format. Default: text.
+  --rules <dir>          Alternative rules root (overrides canon discovery).
+  -h, --help             Show this help.
+
+Exit codes:
+  0  no findings at or above threshold
+  1  findings at or above threshold
+  2  invocation error
+
+Examples:
+  intent critic elixir --files lib/foo.ex test/foo_test.exs
+  intent critic elixir --staged
+  intent critic shell --files bin/intent --format json
+  intent critic elixir --staged --severity-min critical
+EOF
+}
+
+# ---- Arg parsing ----
+
+LANG=""
+FILES=()
+STAGED=0
+SEVERITY_MIN="warning"
+FORMAT="text"
+RULES_DIR=""
+
+error_out() {
+  printf 'error: %s\n' "$1" >&2
+  exit 2
+}
+
+# Positional language first
+if [ $# -eq 0 ]; then
+  print_help
+  exit 2
+fi
+
+case "$1" in
+  -h|--help)
+    print_help
+    exit 0
+    ;;
+  agnostic|elixir|rust|swift|lua|shell)
+    LANG="$1"
+    shift
+    ;;
+  *)
+    error_out "first argument must be a language: elixir | rust | swift | lua | shell"
+    ;;
+esac
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --files)
+      shift
+      while [ $# -gt 0 ] && [[ "$1" != --* ]]; do
+        FILES+=("$1")
+        shift
+      done
+      ;;
+    --staged)
+      STAGED=1
+      shift
+      ;;
+    --severity-min)
+      SEVERITY_MIN="$2"
+      shift 2
+      ;;
+    --format)
+      FORMAT="$2"
+      shift 2
+      ;;
+    --rules)
+      RULES_DIR="$2"
+      shift 2
+      ;;
+    -h|--help)
+      print_help
+      exit 0
+      ;;
+    *)
+      error_out "unknown flag '$1' (try --help)"
+      ;;
+  esac
+done
+
+case "$SEVERITY_MIN" in
+  critical|warning|recommendation|style) ;;
+  *) error_out "invalid --severity-min '$SEVERITY_MIN' (expected critical|warning|recommendation|style)" ;;
+esac
+
+case "$FORMAT" in
+  text|json) ;;
+  *) error_out "invalid --format '$FORMAT' (expected text|json)" ;;
+esac
+
+# Override CANON_RULES_ROOT if --rules was given
+if [ -n "$RULES_DIR" ]; then
+  [ -d "$RULES_DIR" ] || error_out "rules directory does not exist: $RULES_DIR"
+  CANON_RULES_ROOT="$RULES_DIR"
+fi
+
+# Resolve staged files if --staged
+if [ "$STAGED" -eq 1 ]; then
+  if ! command -v git >/dev/null 2>&1; then
+    error_out "--staged requires git"
+  fi
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    error_out "--staged must be run inside a git repository"
+  fi
+  staged_list="$(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null || true)"
+  if [ -n "$staged_list" ]; then
+    # Filter by language extension
+    while IFS= read -r f; do
+      [ -z "$f" ] && continue
+      [ -f "$f" ] || continue
+      case "$LANG:$f" in
+        elixir:*.ex|elixir:*.exs)                      FILES+=("$f") ;;
+        rust:*.rs)                                     FILES+=("$f") ;;
+        swift:*.swift)                                 FILES+=("$f") ;;
+        lua:*.lua)                                     FILES+=("$f") ;;
+        shell:*.sh|shell:*.bash|shell:*.zsh)           FILES+=("$f") ;;
+        shell:*)
+          # Include shell files without extension but with a shell shebang
+          if head -n1 "$f" 2>/dev/null | grep -qE '^#![[:space:]]*(/[^[:space:]]+/)?(bash|zsh|sh)([[:space:]]|$)'; then
+            FILES+=("$f")
+          fi
+          ;;
+      esac
+    done <<< "$staged_list"
+  fi
+fi
+
+if [ "${#FILES[@]}" -eq 0 ]; then
+  if [ "$STAGED" -eq 1 ]; then
+    printf 'ok: no staged %s files to scan\n' "$LANG"
+    exit 0
+  fi
+  error_out "no files specified (use --files <path> ... or --staged)"
+fi
+
+# ---- Locate project config ----
+
+PROJECT_ROOT="$(critic_resolve_project_root "$PWD" 2>/dev/null || true)"
+CRITIC_CONFIG=""
+if [ -n "$PROJECT_ROOT" ] && [ -f "$PROJECT_ROOT/.intent_critic.yml" ]; then
+  CRITIC_CONFIG="$PROJECT_ROOT/.intent_critic.yml"
+fi
+
+# ---- Run ----
+
+min_rank="$(critic_severity_rank "$SEVERITY_MIN")"
+
+findings="$(
+  critic_scan_files "$LANG" "$CRITIC_CONFIG" "${FILES[@]}" \
+    | critic_filter_severity "$min_rank"
+)"
+
+if [ -z "$findings" ]; then
+  case "$FORMAT" in
+    json) echo "[]" ;;
+    text) printf 'ok: no %s findings at severity >= %s across %d file(s)\n' \
+           "$LANG" "$SEVERITY_MIN" "${#FILES[@]}" ;;
+  esac
+  exit 0
+fi
+
+case "$FORMAT" in
+  text) printf '%s\n' "$findings" | critic_format_text ;;
+  json) printf '%s\n' "$findings" | critic_format_json ;;
+esac
+
+exit 1

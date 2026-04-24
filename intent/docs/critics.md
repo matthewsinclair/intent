@@ -116,6 +116,32 @@ Behaviour under edge conditions:
 - **Malformed YAML**: print one top-of-report warning line (`(warning: .intent_critic.yml is malformed; using defaults)`) and proceed with defaults. Never hard-fail on parse errors.
 - **Unknown rule id in `disabled`**: tolerated silently — rule ids vanish from the pack as rules are renamed or retired, and a hard failure on stale config is disproportionate.
 
+## Headless runner (`bin/intent_critic`)
+
+The same rule library is also enforceable without an LLM round-trip via `bin/intent_critic`. The runner parses each rule's YAML frontmatter, extracts the Greppable proxy fenced bash block from the Detection section, and applies the grep regex to target files. Output matches the Critic subagent's severity-grouped text format (and a parallel `--format json` is available for CI).
+
+```
+intent critic <lang> [--files <path> ...] [--staged] [--severity-min <level>] [--format text|json] [--rules <dir>]
+```
+
+Use cases:
+
+- **Pre-commit gate** (ST0035/WP-06): `intent critic <lang> --staged --severity-min warning` on the staged file list. Blocks the commit on findings at or above the threshold. Runs in well under a second on a typical staged slice.
+- **CI gate**: the same invocation from a GitHub Actions step or equivalent.
+- **Fast local sanity check**: `intent critic elixir --files lib/foo.ex` while iterating, before asking the LLM subagent for the fuller review.
+
+Exit codes:
+
+| Exit | Meaning                                               |
+| ---- | ----------------------------------------------------- |
+| `0`  | No findings at or above `--severity-min`.             |
+| `1`  | Findings at or above `--severity-min` (text or JSON). |
+| `2`  | Invocation error (bad flags, missing git, etc.).      |
+
+**Mechanical subset only**: only rules that publish a Greppable proxy block in their Detection section are runnable by the headless runner. Rules whose Detection is purely prose (e.g. "any function body longer than 50 lines") are skipped silently — the LLM subagent (`Task(subagent_type="critic-<lang>")`) remains the canonical path for those.
+
+The runner layers canon (`intent/plugins/claude/rules/`) and user extensions (`~/.intent/ext/*/rules/`) using the same discovery order as the subagents. Agnostic rules are intentionally skipped (they are concretised by language rules and would double-report). Per-project opt-out of specific rule IDs flows through `.intent_critic.yml disabled_rules:` — see the schema section below.
+
 ## Integration with `/in-review`
 
 The two-stage review skill (`intent/plugins/claude/skills/in-review/SKILL.md`) dispatches to the right Critic at Stage 2. Stage-2 detection probes the project root in this order:

@@ -7,31 +7,32 @@
 
 ## Core CLI
 
-| Concern                 | THE Module             | Notes                                               |
-| ----------------------- | ---------------------- | --------------------------------------------------- |
-| Main entry point        | `bin/intent`           | Command dispatch, global commands, INTENT_HOME      |
-| Shared helpers          | `bin/intent_helpers`   | error(), checksum, terminal width, get_config_field |
-| Project init            | `bin/intent_init`      | Creates new Intent projects from templates          |
-| Steel thread mgmt       | `bin/intent_st`        | new, list, show, start, done, cancel, organize      |
-| Work package mgmt       | `bin/intent_wp`        | new, list, show, start, done                        |
-| Treeindex generation    | `bin/intent_treeindex` | Shadow directory index generation with Claude       |
-| File indexing           | `bin/intent_fileindex` | File listing, checkbox state tracking               |
-| Health checks           | `bin/intent_doctor`    | Dependency checks, config validation                |
-| Plugin discovery        | `bin/intent_plugin`    | list, show, help for installed plugins              |
-| Audit command           | `bin/intent_audit`     | quick, health, help; Elixir credo integration       |
-| Learn command           | `bin/intent_learn`     | Capture project learnings for future sessions       |
-| Module registry         | `bin/intent_modules`   | check, find; MODULES.md enforcement                 |
-| STZero retrofit         | `bin/intent_st_zero`   | Brownfield project retrofit installation            |
-| Help display            | `bin/intent_help`      | General and command-specific help display           |
-| Config loading          | `bin/intent_config`    | PROJECT_ROOT detection, load_intent_config          |
-| Project info            | `bin/intent_info`      | Status display, no-args default                     |
-| LLM guidance            | `bin/intent_llm`       | Display LLM-specific guidance files                 |
-| Organise                | `bin/intent_organise`  | Organize steel threads by status                    |
-| Upgrade                 | `bin/intent_upgrade`   | STP to Intent migration                             |
-| Minimal bootstrap       | `bin/intent_minimal`   | Minimal no-dependency bootstrap                     |
-| Main (legacy)           | `bin/intent_main`      | Legacy entry point                                  |
-| Bootstrap               | `bin/intent_bootstrap` | First-run setup, PATH instructions                  |
-| Extension mgmt (v2.9.0) | `bin/intent_ext`       | list, show, validate, new (WP02)                    |
+| Concern                 | THE Module             | Notes                                                                  |
+| ----------------------- | ---------------------- | ---------------------------------------------------------------------- |
+| Main entry point        | `bin/intent`           | Command dispatch, global commands, INTENT_HOME                         |
+| Shared helpers          | `bin/intent_helpers`   | error(), checksum, terminal width, get_config_field                    |
+| Project init            | `bin/intent_init`      | Creates new Intent projects from templates                             |
+| Steel thread mgmt       | `bin/intent_st`        | new, list, show, start, done, cancel, organize                         |
+| Work package mgmt       | `bin/intent_wp`        | new, list, show, start, done                                           |
+| Treeindex generation    | `bin/intent_treeindex` | Shadow directory index generation with Claude                          |
+| File indexing           | `bin/intent_fileindex` | File listing, checkbox state tracking                                  |
+| Health checks           | `bin/intent_doctor`    | Dependency checks, config validation                                   |
+| Plugin discovery        | `bin/intent_plugin`    | list, show, help for installed plugins                                 |
+| Audit command           | `bin/intent_audit`     | quick, health, help; Elixir credo integration                          |
+| Learn command           | `bin/intent_learn`     | Capture project learnings for future sessions                          |
+| Module registry         | `bin/intent_modules`   | check, find; MODULES.md enforcement                                    |
+| STZero retrofit         | `bin/intent_st_zero`   | Brownfield project retrofit installation                               |
+| Help display            | `bin/intent_help`      | General and command-specific help display                              |
+| Config loading          | `bin/intent_config`    | PROJECT_ROOT detection, load_intent_config                             |
+| Project info            | `bin/intent_info`      | Status display, no-args default                                        |
+| LLM guidance            | `bin/intent_llm`       | Display LLM-specific guidance files                                    |
+| Organise                | `bin/intent_organise`  | Organize steel threads by status                                       |
+| Upgrade                 | `bin/intent_upgrade`   | STP to Intent migration                                                |
+| Minimal bootstrap       | `bin/intent_minimal`   | Minimal no-dependency bootstrap                                        |
+| Main (legacy)           | `bin/intent_main`      | Legacy entry point                                                     |
+| Bootstrap               | `bin/intent_bootstrap` | First-run setup, PATH instructions                                     |
+| Extension mgmt (v2.9.0) | `bin/intent_ext`       | list, show, validate, new (WP02)                                       |
+| Headless critic runner  | `bin/intent_critic`    | Runs rule-library Detection heuristics; text/json output (ST0035/WP05) |
 
 ## Plugin: Claude
 
@@ -43,6 +44,8 @@
 | Project upgrade           | `intent/plugins/claude/bin/intent_claude_upgrade`    | LLM guidance file upgrades                                                                             |
 | Memory injection          | `intent/plugins/claude/bin/intent_claude_prime`      | prime MEMORY.md with project knowledge                                                                 |
 | Plugin shared library     | `intent/plugins/claude/lib/claude_plugin_helpers.sh` | install/sync/uninstall/manifest logic; `plugin_get_source_roots` + `plugin_resolve_source_file` (WP02) |
+| Rule-library primitives   | `intent/plugins/claude/lib/rules_lib.sh`             | Sourced by `intent_claude_rules` + `critic_runner.sh`; frontmatter parsing, enumeration (ST0035/WP05)  |
+| Critic runner library     | `intent/plugins/claude/lib/critic_runner.sh`         | Detection extraction, rule application, text/json report formatters (ST0035/WP05)                      |
 
 ## Plugin: Agents
 
@@ -172,35 +175,36 @@ User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; sh
 
 ## Tests
 
-| Concern                         | THE Module                                  | Notes                                                          |
-| ------------------------------- | ------------------------------------------- | -------------------------------------------------------------- |
-| Test helper/fixtures            | `tests/lib/test_helper.bash`                | Shared setup, assertions                                       |
-| Test runner                     | `tests/run_tests.sh`                        | Discovers and runs all BATS                                    |
-| Audit tests                     | `tests/unit/audit_commands.bats`            | BATS tests for audit command                                   |
-| Learn tests                     | `tests/unit/learn_commands.bats`            | BATS tests for learn command                                   |
-| Modules tests                   | `tests/unit/modules_commands.bats`          | BATS tests for modules command                                 |
-| STZero tests                    | `tests/unit/st_zero_commands.bats`          | BATS tests for st zero command                                 |
-| Ext commands (v2.9.0)           | `tests/unit/ext_commands.bats`              | `intent ext list/show/validate/new` (WP02)                     |
-| Ext discovery (v2.9.0)          | `tests/unit/ext_discovery.bats`             | Precedence, shadowing, env-var overrides (WP02)                |
-| Ext migration (v2.9.0)          | `tests/unit/ext_migration.bats`             | Seed copy, idempotency, prune (WP08 + WP09)                    |
-| Ext seed validity (v2.9.0)      | `tests/unit/ext_seed_validity.bats`         | Worker-bee seed passes `intent ext validate` (WP08)            |
-| Rule validator (v2.9.0)         | `tests/unit/rule_validator.bats`            | `intent claude rules validate` (WP02)                          |
-| Rule index (v2.9.0)             | `tests/unit/rule_index.bats`                | `intent claude rules index` determinism (WP02)                 |
-| Rule pack — agnostic (v2.9.0)   | `tests/unit/rule_pack_agnostic.bats`        | Presence + `concretised_by:` ≥ 2 invariant (WP04)              |
-| Rule pack — elixir (v2.9.0)     | `tests/unit/rule_pack_elixir.bats`          | Frontmatter, sections, attribution cross-check (WP05)          |
-| Rule pack — elixir runnable     | `tests/unit/rule_pack_elixir_runnable.bats` | Each `.exs` exits 0 under `elixir <path>` (WP05)               |
-| Rule pack — rust (v2.9.0)       | `tests/unit/rule_pack_rust.bats`            | Textual-only; `rust` fence tag (WP06)                          |
-| Rule pack — swift (v2.9.0)      | `tests/unit/rule_pack_swift.bats`           | Textual-only; `swift` fence tag (WP06)                         |
-| Rule pack — lua (v2.9.0)        | `tests/unit/rule_pack_lua.bats`             | Textual-only; `lua` fence tag (WP06)                           |
-| Rule pack — shell (v2.9.0)      | `tests/unit/rule_pack_shell.bats`           | bash + zsh; `bash -n` / `zsh -n` syntax gate (WP12)            |
-| Attribution compliance (v2.9.0) | `tests/unit/attribution_compliance.bats`    | `upstream_id:` slugs resolve at pinned commit (WP05)           |
-| Rule-reference skills (v2.9.0)  | `tests/unit/rule_reference_skills.bats`     | `rules:` frontmatter resolves in each skill (WP03)             |
-| Highlander audit (v2.9.0)       | `tests/unit/highlander_audit.bats`          | No duplicated rule prose across skills + rules (WP03)          |
-| Critic dispatch (v2.9.0)        | `tests/unit/critic_dispatch.bats`           | `in-review` stage-2 language detection (WP07)                  |
-| Critic report format (v2.9.0)   | `tests/unit/critic_report_format.bats`      | Stable report shape across four Critics (WP07)                 |
-| Critic config (v2.9.0)          | `tests/unit/critic_config.bats`             | `.intent_critic.yml` honoured (WP07)                           |
-| Docs completeness (v2.9.0)      | `tests/unit/docs_completeness.bats`         | New-doc presence + cross-ref resolution (WP10)                 |
-| Session-context hook (ST0035)   | `tests/unit/session_context_script.bats`    | SessionStart hook: three scenarios + session-id capture (WP04) |
+| Concern                         | THE Module                                  | Notes                                                             |
+| ------------------------------- | ------------------------------------------- | ----------------------------------------------------------------- |
+| Test helper/fixtures            | `tests/lib/test_helper.bash`                | Shared setup, assertions                                          |
+| Test runner                     | `tests/run_tests.sh`                        | Discovers and runs all BATS                                       |
+| Audit tests                     | `tests/unit/audit_commands.bats`            | BATS tests for audit command                                      |
+| Learn tests                     | `tests/unit/learn_commands.bats`            | BATS tests for learn command                                      |
+| Modules tests                   | `tests/unit/modules_commands.bats`          | BATS tests for modules command                                    |
+| STZero tests                    | `tests/unit/st_zero_commands.bats`          | BATS tests for st zero command                                    |
+| Ext commands (v2.9.0)           | `tests/unit/ext_commands.bats`              | `intent ext list/show/validate/new` (WP02)                        |
+| Ext discovery (v2.9.0)          | `tests/unit/ext_discovery.bats`             | Precedence, shadowing, env-var overrides (WP02)                   |
+| Ext migration (v2.9.0)          | `tests/unit/ext_migration.bats`             | Seed copy, idempotency, prune (WP08 + WP09)                       |
+| Ext seed validity (v2.9.0)      | `tests/unit/ext_seed_validity.bats`         | Worker-bee seed passes `intent ext validate` (WP08)               |
+| Rule validator (v2.9.0)         | `tests/unit/rule_validator.bats`            | `intent claude rules validate` (WP02)                             |
+| Rule index (v2.9.0)             | `tests/unit/rule_index.bats`                | `intent claude rules index` determinism (WP02)                    |
+| Rule pack — agnostic (v2.9.0)   | `tests/unit/rule_pack_agnostic.bats`        | Presence + `concretised_by:` ≥ 2 invariant (WP04)                 |
+| Rule pack — elixir (v2.9.0)     | `tests/unit/rule_pack_elixir.bats`          | Frontmatter, sections, attribution cross-check (WP05)             |
+| Rule pack — elixir runnable     | `tests/unit/rule_pack_elixir_runnable.bats` | Each `.exs` exits 0 under `elixir <path>` (WP05)                  |
+| Rule pack — rust (v2.9.0)       | `tests/unit/rule_pack_rust.bats`            | Textual-only; `rust` fence tag (WP06)                             |
+| Rule pack — swift (v2.9.0)      | `tests/unit/rule_pack_swift.bats`           | Textual-only; `swift` fence tag (WP06)                            |
+| Rule pack — lua (v2.9.0)        | `tests/unit/rule_pack_lua.bats`             | Textual-only; `lua` fence tag (WP06)                              |
+| Rule pack — shell (v2.9.0)      | `tests/unit/rule_pack_shell.bats`           | bash + zsh; `bash -n` / `zsh -n` syntax gate (WP12)               |
+| Attribution compliance (v2.9.0) | `tests/unit/attribution_compliance.bats`    | `upstream_id:` slugs resolve at pinned commit (WP05)              |
+| Rule-reference skills (v2.9.0)  | `tests/unit/rule_reference_skills.bats`     | `rules:` frontmatter resolves in each skill (WP03)                |
+| Highlander audit (v2.9.0)       | `tests/unit/highlander_audit.bats`          | No duplicated rule prose across skills + rules (WP03)             |
+| Critic dispatch (v2.9.0)        | `tests/unit/critic_dispatch.bats`           | `in-review` stage-2 language detection (WP07)                     |
+| Critic report format (v2.9.0)   | `tests/unit/critic_report_format.bats`      | Stable report shape across four Critics (WP07)                    |
+| Critic config (v2.9.0)          | `tests/unit/critic_config.bats`             | `.intent_critic.yml` honoured (WP07)                              |
+| Docs completeness (v2.9.0)      | `tests/unit/docs_completeness.bats`         | New-doc presence + cross-ref resolution (WP10)                    |
+| Session-context hook (ST0035)   | `tests/unit/session_context_script.bats`    | SessionStart hook: three scenarios + session-id capture (WP04)    |
+| Headless critic (ST0035)        | `tests/unit/intent_critic.bats`             | CLI surface + detection against rule fixtures + exit codes (WP05) |
 
 ## Docs (v2.9.0 / WP10)
 
