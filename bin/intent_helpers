@@ -1145,10 +1145,11 @@ migrate_v2_2_to_v2_2_1() {
   echo "  Version updated to $target_version"
 }
 
-# Generate basic AGENTS.md as fallback
+# Generate basic AGENTS.md at project root as fallback (no generator available).
+# Canonical location since v2.10.0 (see ST0035/WP08).
 _generate_basic_agents_md() {
   local project_root=$1
-  cat > "$project_root/intent/llm/AGENTS.md" << 'EOF'
+  cat > "$project_root/AGENTS.md" << 'EOF'
 # AGENTS.md
 
 ## Project Overview
@@ -1203,34 +1204,21 @@ migrate_v2_2_to_v2_3_0() {
     # Keep old agents directory for now, will be cleaned up later
   fi
   
-  # 3. Create AGENTS.md if it doesn't exist
-  if [ ! -f "$project_root/AGENTS.md" ] && [ ! -f "$project_root/intent/llm/AGENTS.md" ]; then
+  # 3. Create AGENTS.md at project root if it doesn't exist.
+  # Canon since v2.10.0: root AGENTS.md is a real file (no symlink, no intent/llm/ copy).
+  if [ ! -f "$project_root/AGENTS.md" ]; then
     echo "  Generating AGENTS.md..."
-    mkdir -p "$project_root/intent/llm"
-    
-    # Try to use the smart generator via intent command
+
     if [ -f "$INTENT_HOME/bin/intent" ] && [ -f "$INTENT_HOME/intent/plugins/agents/bin/intent_agents" ]; then
-      # Call the generator directly via intent command
-      if (cd "$project_root" && "$INTENT_HOME/bin/intent" agents generate > "intent/llm/AGENTS.md" 2>/dev/null); then
-        if [ -s "$project_root/intent/llm/AGENTS.md" ]; then
-          echo "    Generated project-specific AGENTS.md"
-        else
-          # Fallback if generation produced empty file
-          _generate_basic_agents_md "$project_root"
-        fi
+      if (cd "$project_root" && "$INTENT_HOME/bin/intent" agents generate > "AGENTS.md" 2>/dev/null) && [ -s "$project_root/AGENTS.md" ]; then
+        echo "    Generated project-specific AGENTS.md"
       else
-        # Fallback if command failed
         _generate_basic_agents_md "$project_root"
       fi
     else
-      # Fallback to basic template if Intent not properly installed
       _generate_basic_agents_md "$project_root"
     fi
-    
-    # Create symlink at project root
-    ln -sf "intent/llm/AGENTS.md" "$project_root/AGENTS.md"
-    echo "    Created AGENTS.md with symlink at project root"
-  elif [ -f "$project_root/AGENTS.md" ] || [ -f "$project_root/intent/llm/AGENTS.md" ]; then
+  else
     echo "  AGENTS.md already exists, skipping generation"
   fi
   

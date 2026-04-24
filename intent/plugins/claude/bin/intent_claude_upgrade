@@ -166,19 +166,19 @@ fi
 
 # Check LLM guidance files
 echo ""
-echo "Checking intent/llm/ files..."
+echo "Checking LLM guidance files..."
 
-# AGENTS.md
-if [ -f "$PROJECT_DIR/intent/llm/AGENTS.md" ]; then
-  local_version=$(grep -o 'intent_version: [0-9.]*' "$PROJECT_DIR/intent/llm/AGENTS.md" 2>/dev/null | head -1 | cut -d' ' -f2)
+# AGENTS.md (canonical location: project root, since v2.10.0 -- see ST0035/WP08).
+if [ -f "$PROJECT_DIR/AGENTS.md" ]; then
+  local_version=$(grep -o 'intent_version: [0-9.]*' "$PROJECT_DIR/AGENTS.md" 2>/dev/null | head -1 | cut -d' ' -f2)
   if [ -z "$local_version" ]; then
-    local_version=$(grep -o 'v[0-9]\.[0-9]\.[0-9]' "$PROJECT_DIR/intent/llm/AGENTS.md" 2>/dev/null | head -1)
+    local_version=$(grep -o 'v[0-9]\.[0-9]\.[0-9]' "$PROJECT_DIR/AGENTS.md" 2>/dev/null | head -1)
   fi
   echo -e "  AGENTS.md:          ${YELLOW}EXISTS${NC} (version: ${local_version:-unknown})"
-  add_action "REGENERATE intent/llm/AGENTS.md (currently ${local_version:-unknown}, target $TARGET_VERSION)"
+  add_action "REGENERATE AGENTS.md (currently ${local_version:-unknown}, target $TARGET_VERSION)"
 else
   echo -e "  AGENTS.md:          ${RED}MISSING${NC}"
-  add_action "CREATE intent/llm/AGENTS.md from Elixir template"
+  add_action "CREATE AGENTS.md from Elixir template"
 fi
 
 # RULES.md
@@ -396,19 +396,18 @@ for action in "${ACTIONS[@]}"; do
       ;;
 
     REGENERATE*)
-      echo "  Regenerating intent/llm/AGENTS.md..."
+      echo "  Regenerating AGENTS.md..."
       if [ -f "$TEMPLATES_SOURCE/AGENTS.md" ]; then
-        cp "$TEMPLATES_SOURCE/AGENTS.md" "$PROJECT_DIR/intent/llm/AGENTS.md"
+        cp "$TEMPLATES_SOURCE/AGENTS.md" "$PROJECT_DIR/AGENTS.md"
         echo -e "    ${GREEN}ok${NC} (from template -- customize for your project)"
       else
         echo -e "    ${YELLOW}skipped${NC} (template not found)"
       fi
       ;;
 
-    "CREATE intent/llm/AGENTS.md"*)
-      echo "  Creating intent/llm/AGENTS.md..."
-      mkdir -p "$PROJECT_DIR/intent/llm"
-      cp "$TEMPLATES_SOURCE/AGENTS.md" "$PROJECT_DIR/intent/llm/AGENTS.md"
+    "CREATE AGENTS.md"*)
+      echo "  Creating AGENTS.md..."
+      cp "$TEMPLATES_SOURCE/AGENTS.md" "$PROJECT_DIR/AGENTS.md"
       echo -e "    ${GREEN}ok${NC}"
       ;;
 

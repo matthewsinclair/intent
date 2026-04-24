@@ -278,7 +278,7 @@ doctor_check() {
       if [ "$QUIET" != true ]; then
         echo -n "  checking: agents.md "
       fi
-      if [ -f "$PROJECT_ROOT/AGENTS.md" ] || [ -f "$PROJECT_ROOT/intent/llm/AGENTS.md" ]; then
+      if [ -f "$PROJECT_ROOT/AGENTS.md" ]; then
         show_ok
         verbose "AGENTS.md found"
       else

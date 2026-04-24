@@ -119,7 +119,7 @@ DELETED_PATHS=(
   # Run sync twice in the real Intent project root; second run must produce
   # byte-identical output. Backups created by the sync command are removed
   # at the end of the test to leave the tree clean.
-  local agents_md="${INTENT_PROJECT_ROOT}/intent/llm/AGENTS.md"
+  local agents_md="${INTENT_PROJECT_ROOT}/AGENTS.md"
   local first second
   first="$(mktemp /tmp/agents-sync-1-XXXXXX.md)"
   second="$(mktemp /tmp/agents-sync-2-XXXXXX.md)"

@@ -140,9 +140,10 @@ verblock: "$DATE:v0.1: $AUTHOR - Initial version"
 [Implementation details]
 EOF
 
-# Helper function for basic AGENTS.md
+# Helper function for basic AGENTS.md (fallback when the generator plugin
+# is not available). Writes directly to the canonical root location.
 _create_basic_agents_md() {
-  cat > "intent/llm/AGENTS.md" << EOF
+  cat > "AGENTS.md" << EOF
 # AGENTS.md
 
 ## Project Overview
@@ -167,23 +168,18 @@ See CLAUDE.md for Intent project structure and commands.
 EOF
 }
 
-# Create AGENTS.md using smart generator
+# Create root AGENTS.md using the agents plugin generator (canonical path
+# since v2.10.0; see ST0035/WP08). Fall back to the minimal template above
+# if the generator is not available.
 echo "Creating AGENTS.md..."
-# Try to use the smart generator if Intent is installed
 if [ -n "$INTENT_HOME" ] && [ -f "$INTENT_HOME/intent/plugins/agents/bin/intent_agents" ]; then
-  # Call the generator directly
-  PROJECT_ROOT="$(pwd)" "$INTENT_HOME/bin/intent" agents generate > "intent/llm/AGENTS.md" 2>/dev/null
-  if [ ! -s "intent/llm/AGENTS.md" ]; then
-    # Fallback to basic template if generation failed
+  PROJECT_ROOT="$(pwd)" "$INTENT_HOME/bin/intent" agents generate > "AGENTS.md" 2>/dev/null
+  if [ ! -s "AGENTS.md" ]; then
     _create_basic_agents_md
   fi
 else
-  # Fallback to basic template
   _create_basic_agents_md
 fi
-
-# Create symlink at project root
-ln -sf "intent/llm/AGENTS.md" "AGENTS.md"
 
 # Create CLAUDE.md from template
 if [ -f "$TEMPLATE_DIR/llm/_CLAUDE.md" ]; then
