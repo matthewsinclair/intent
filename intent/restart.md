@@ -1,61 +1,75 @@
 # Claude Code Session Restart — narrative state
 
-## Current state (2026-04-24, end of WP03 + WP18 added; WP04 WIP scaffold-only)
+## Current state (2026-04-24, end of session — 8 of 18 WPs Done)
 
 **Intent v2.9.1 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) active, WIP.**
 
-### Progress since last restart-note
+### ST0035 shape
 
-- **WP02 Done**: root `usage-rules.md` refreshed; `lib/templates/llm/_usage-rules.md` template shipped with `[[PROJECT_NAME]] / [[INTENT_VERSION]] / [[LANG]]` placeholders; MODULES.md registers template. Commits `4e75ebd` content · `357e0c4` Done.
-- **WP03 Done**: `intent/docs/working-with-llms.md` authored — 459 lines, D1–D10 as H2 sections, ASCII three-file architecture diagram, `.claude/settings.json` JSON snippet, critic cadence split, Socrates/Diogenes FAQ (with git hashes `7f4529e` + `37a0ed0`), seven troubleshooting gotchas. README.md gained a "For LLM Collaboration" section linking the new doc. MODULES.md registers it under Docs. Commits `983ffdb` content · `b148ac0` Done.
-- **WP18 added (late)**: audit `intent/usr/user_guide.md` (877L), `reference_guide.md` (1370L), `deployment_guide.md` (619L) — all pre-v2.9.0 — against v2.9.1 canon and apply per-file keep / update / throw before release. Deps: WP03 (hard) + WP14 (soft). Blocks WP17. Phase 0 forensic detail populated in `WP/18/info.md`. Tasks.md + ST0035/info.md WP table + WP17 deps updated. Commit `b6fc2fe`.
-- **WP04 WIP but scaffold-only**: `intent wp start ST0035/04` ran to flip status; no deliverables yet authored. Resume target is `WP/04/info.md` Deliverables list.
+- **Done (8)**: WP01, WP02, WP03, WP04, WP05, WP06, WP07, WP12.
+- **Not Started (10)**: WP08, WP09, WP10, WP11, WP13, WP14, WP15, WP16, WP17, WP18.
+- **WIP (0)** — session ended cleanly; nothing scaffold-only.
 
-### ST0035 shape post-WP03
+Critical path remaining: `WP08 → WP09 → WP11 → WP14 → WP15 → WP16 → WP17`. WP17 has a second gating input (WP18 — user-doc audit).
 
-- Done: WP01, WP02, WP03.
-- WIP (scaffold): WP04.
-- Not Started (15): WP05, WP06, WP07, WP08, WP09, WP10, WP11, WP12, WP13, WP14, WP15, WP16, WP17, WP18.
+### Progress since last restart-note (`/compact` checkpoint after WP03)
 
-Critical path unchanged: `WP01 → WP02 → WP03 → WP08 → WP09 → WP11 → WP14 → WP15 → WP16 → WP17`. WP17 now has a second gating input (WP18). Parallelisable: WP04 (WIP) and WP05 (not started) independent of the docs chain; WP12 (XS quick win, WP03-gated); WP18 audit can start any time, applied updates soft-gated on WP14.
+This session shipped five WPs:
 
-## Resume target (WP04)
+- **WP04 (M) Done**: `lib/templates/.claude/settings.json` + three helper scripts (`session-context.sh`, `require-in-session.sh`, `post-tool-advisory.sh`) + `/in-session` SKILL.md cooperating sentinel step + BATS. Commits `e36b6f1` content · `8c4df6f` Done.
+- **WP12 (XS) Done**: Socrates/Diogenes FAQ cross-refs in both `socrates/agent.md` and `diogenes/agent.md` pointing at `intent/docs/working-with-llms.md#socrates-vs-diogenes-faq`. Commits `c01d9fe` content · `cfdcb51` Done.
+- **WP05 (L) Done**: `bin/intent_critic` headless runner + `intent/plugins/claude/lib/rules_lib.sh` (extracted from `intent_claude_rules` for Highlander) + `intent/plugins/claude/lib/critic_runner.sh` + `tests/unit/intent_critic.bats`. `intent/docs/critics.md` gained a "Headless runner" section. Commits `c47fbfc` content · `cab9e06` Done.
+- **WP07 (XS) Done**: `lib/templates/_intent_critic.yml` default template + `post_tool_use_advisory` row added to critics.md schema table. **Also fixed a critical WP-05 bug** caught during schema review: `critic_rule_disabled()` was returning "disabled" for every rule because awk's natural exit-0 collided with match-exit-0; now uses exit code 10 as a distinct sentinel. Renamed field from nonstandard `disabled_rules:` to canonical `disabled:`. 2 regression BATS added. Commits `0b0d72d` content · `21ed9c4` Done.
+- **WP06 (S) Done**: `lib/templates/hooks/pre-commit.sh` scans staged files per detected language (`mix.exs`/`Cargo.toml`/`Package.swift`/`.luarc.json`; shell always included), runs `intent critic <lang> --staged --severity-min <sev>`, blocks on findings. Fail-open on missing `git`/`intent`/`.intent/config.json`. `intent/docs/pre-commit-hook.md` covers install/configure/opt-out/CI/troubleshooting. 9 BATS scenarios (scratch-repo end-to-end). Commits `c994579` content · `aa9b7ca` Done.
 
-WP04 spec in `intent/st/ST0035/WP/04/info.md`. Summary of what's owed:
+Test suite total across affected areas: ~75 BATS tests green.
 
-1. **`lib/templates/.claude/settings.json`** — JSON template with three default hook stanzas:
-   - `SessionStart` (matchers: `startup|resume|clear|compact`) → runs `session-context.sh`.
-   - `UserPromptSubmit` (strict gate, per resolved decision #2) → runs `require-in-session.sh`. Blocks first prompt until `/in-session` sentinel is written.
-   - `Stop` → echoes `/in-finish` reminder.
-   - **No `PostToolUse` in the default stanza** (resolved decision #4 — off by default; helper script ships for opt-in via `.intent_critic.yml post_tool_use_advisory: true`).
-2. **Helper scripts at `lib/templates/.claude/scripts/`**:
-   - `session-context.sh` (< 200ms) — emits project name, git branch, short SHA, active ST, WIP summary. Graceful degradation when git or `intent/wip.md` absent. Writes session_id to `/tmp/intent-claude-session-current-id`.
-   - `require-in-session.sh` — reads session_id from stdin JSON; checks `/tmp/intent/in-session-${session_id}.sentinel`; exit 2 + stderr block if absent, exit 0 pass-through if present.
-   - `post-tool-advisory.sh` (opt-in, non-blocking) — parses tool-use JSON from stdin; if Write|Edit|MultiEdit on a supported source language AND `.intent_critic.yml post_tool_use_advisory: true`, runs `intent critic <lang> --files <path>` and emits findings as system-reminder. Exit 0 always.
-3. **`/in-session` SKILL.md cooperating step** — add a final "write sentinel" step (`mkdir -p /tmp/intent && touch /tmp/intent/in-session-$(cat /tmp/intent-claude-session-current-id 2>/dev/null || echo unknown).sentinel`) so the strict gate releases after `/in-session` runs.
-4. **MODULES.md registration** — `lib/templates/.claude/` + all three helper scripts.
-5. **BATS test** for `session-context.sh` — three scenarios: git+wip present, git only, no git. All green.
-6. **Verification**: `jq . lib/templates/.claude/settings.json` exits 0; scripts executable; BATS suite still green.
+### Lessons learned worth keeping
 
-Use `[[INTENT_HOME]]` placeholder for absolute paths in `settings.json`. WP11 (installer) substitutes at install time.
+- **awk exit-code trap**: `awk ... && return 0` is wrong when awk uses `exit 0` as "match" — natural completion also exits 0. Use a distinct sentinel (exit 10) for "matched" and check it in the caller. See `critic_rule_disabled()` in `critic_runner.sh`.
+- **Field name canon**: `.intent_critic.yml` uses `disabled:` (not `disabled_rules:`). Canon is `intent/docs/critics.md` schema table + `intent/plugins/claude/rules/_schema/sample-intent-critic.yml`.
+- **Slash-command pass-through in UserPromptSubmit gate**: without pass-through, the strict gate would block `/in-session` itself — chicken-and-egg. `require-in-session.sh` checks the prompt text from stdin JSON; any `/*` prompt passes.
+- **`intent critic` exit contract**: 0 clean / 1 findings / 2 error. The pre-commit hook interprets 2 as "fail-open" (don't block commit on broken tooling).
 
-## Resolved decisions (all 5)
+## Resume target (WP08 — Root AGENTS.md generator rewrite)
 
-1. **Version**: 2.9.1.
-2. **Hook enforcement**: strict `UserPromptSubmit` gate blocking first prompt until `/in-session` runs. Reassess post-rollout.
-3. **Pre-commit critic threshold**: CRITICAL + WARNING blocks.
-4. **PostToolUse advisory critic**: off by default. Helper script ships; opt-in via `.intent_critic.yml post_tool_use_advisory: true` + user adds PostToolUse stanza to `.claude/settings.local.json`.
-5. **Cancelled STs** go to `intent/st/CANCELLED/`; deprecation annotation inline.
+WP08 spec in `intent/st/ST0035/WP/08/info.md`. Summary (read the info.md for the forensic detail):
 
-## Rollout universe (17 projects)
+Today: `intent agents sync` writes `intent/llm/AGENTS.md` and the root `AGENTS.md` is a symlink to it.
+
+Canon per D3: root `AGENTS.md` becomes a real file (the primary LLM-facing doc). `intent/llm/AGENTS.md` retires (WP10 deletes it).
+
+Scope:
+
+1. Change the generator (`intent/plugins/agents/bin/intent_agents`) output path from `intent/llm/AGENTS.md` to root `AGENTS.md` (real file, not a symlink).
+2. Enrich contents per canon: project overview, build/test commands, coding conventions summary, steel-thread process, installed skills/subagents, rule library pointer, critic invocation, Socrates/Diogenes FAQ paragraph.
+3. Idempotency: regenerating the same content produces a byte-identical file (existing `agents_sync_idempotent` test must still pass).
+4. MODULES.md update.
+5. BATS test for the new output location + enriched contents.
+
+Downstream consequences to watch:
+
+- WP09 needs this WP's new root-level shape for the Claude-specific overlay.
+- WP10 (trivial — delete `intent/llm/AGENTS.md` + `lib/templates/llm/_llm_preamble.md`) unblocks once WP08 lands.
+- WP11 (`intent claude upgrade --apply`) depends on WP08's generator.
+
+## Rollout universe (17 projects, unchanged)
 
 - 15 downstream Intent projects: Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex, Conflab, Courses/Agentic Coding, Laksa, Lamplight, MeetZaya, MicroGPTEx, Molt, Molt-matts, Multiplyer, Prolix, Utilz.
 - Intent (self) — dogfooded in WP14.
 - Pplr — non-Intent today; `intent init` first, then canon apply.
 
-Excluded: Sites (handled inside Laksa as a subdir), llm-tropes (content-only), A3/\* (content-only).
+Excluded: Sites (inside Laksa), llm-tropes (content-only), A3/\* (content-only).
 
-Canary order (WP15): Conflab → Lamplight → Laksa. Fleet sweep (WP16) starts with highest-delta projects (Multiplyer, Arca trio) and ends with Pplr (bootstrap + apply).
+Canary order (WP15): Conflab → Lamplight → Laksa. Fleet (WP16) highest-delta first (Multiplyer, Arca trio), ends with Pplr.
+
+## Resolved decisions (all 5, unchanged)
+
+1. Version: 2.9.1.
+2. Hook enforcement: strict `UserPromptSubmit` gate blocking first prompt until `/in-session` runs. Reassess post-rollout.
+3. Pre-commit critic threshold: CRITICAL + WARNING blocks (default; tunable per-project via `.intent_critic.yml severity_min`).
+4. PostToolUse advisory critic: off by default. Opt-in via `.intent_critic.yml post_tool_use_advisory: true` + manual stanza add to `.claude/settings.local.json`.
+5. Cancelled STs go to `intent/st/CANCELLED/`; deprecation annotation inline.
 
 ## Session conventions (unchanged)
 
@@ -68,16 +82,20 @@ Canary order (WP15): Conflab → Lamplight → Laksa. Fleet sweep (WP16) starts 
 - Document first, code next, hard review gate.
 - NEVER report test/skill/subagent counts in release notes, CHANGELOG, wip.md, or session docs.
 
-## Recent commits
+## Recent commits (chronological)
 
-- `b6fc2fe` — add WP-18 (review intent/usr/\*.md) + WP-03 close (tasks checkbox flips).
+- `aa9b7ca` — mark ST0035/WP-06 Done.
+- `c994579` — WP-06: pre-commit critic gate template.
+- `21ed9c4` — mark ST0035/WP-07 Done.
+- `0b0d72d` — WP-07: `.intent_critic.yml` template + WP-05 bug fix.
+- `cab9e06` — mark ST0035/WP-05 Done.
+- `c47fbfc` — WP-05: `bin/intent_critic` headless runner.
+- `cfdcb51` — mark ST0035/WP-12 Done.
+- `c01d9fe` — WP-12: Socrates/Diogenes FAQ cross-refs.
+- `8c4df6f` — mark ST0035/WP-04 Done.
+- `e36b6f1` — WP-04: `.claude/settings.json` template + hook scripts.
+- `4e6076c` — (prev session wrap) WP-04 WIP scaffold-only.
+- `b6fc2fe` — add ST0035/WP-18 + WP-03 close.
 - `b148ac0` — mark ST0035/WP-03 Done.
 - `983ffdb` — WP-03: working-with-llms.md canon tech note.
-- `362e444` — wip.md update for WP-02 close.
-- `357e0c4` — mark ST0035/WP-02 Done.
-- `4e75ebd` — WP-02: refresh root usage-rules.md + add downstream template.
-- `22ff450` — restart docs for WP-01 close.
-- `1472cca` — mark ST0035/WP-01 Done.
 - `567d5d1` — WP-01: bump to v2.9.1 + cancel ST0010/ST0015.
-- `b265987` — resolve ST0035 open decisions.
-- `055a7e4` — ST0035 Phase 0 scope and work packages.
