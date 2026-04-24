@@ -1,5 +1,5 @@
 ---
-verblock: "24 Apr 2026:v0.48: matts - WP04 Done (settings.json + hook scripts)"
+verblock: "24 Apr 2026:v0.49: matts - WP04, WP12, WP05 Done"
 intent_version: 2.9.1
 ---
 
@@ -7,7 +7,7 @@ intent_version: 2.9.1
 
 ## Current State
 
-**ST0035 (Canonical LLM Config + Fleet Rollout) active. WP01–WP04 Done.** Intent stamped at `2.9.1`. Canon docs in place: root `usage-rules.md` refreshed, `lib/templates/llm/_usage-rules.md` template shipped, `intent/docs/working-with-llms.md` authored (459 lines, D1–D10 as H2, ASCII arch diagram, hooks JSON, critic cadence, Socrates/Diogenes FAQ, seven troubleshooting gotchas). **WP04 shipped**: `lib/templates/.claude/settings.json` with three default hook stanzas (SessionStart → `session-context.sh`, strict `UserPromptSubmit` → `require-in-session.sh`, `Stop` → `/in-finish` reminder; no `PostToolUse` in default per decision #4). Three helper scripts (`session-context.sh` < 200ms with session_id capture; `require-in-session.sh` with slash-command pass-through and sentinel gate; `post-tool-advisory.sh` opt-in PostToolUse). `/in-session` SKILL.md step 4 cooperates by writing `/tmp/intent/in-session-${session_id}.sentinel`. MODULES.md + BATS test updated. **WP18 still open** (intent/usr/\*.md audit). **Next up**: WP05 (L — `bin/intent_critic` headless runner; parallelisable) or WP12 (XS quick win — Socrates/Diogenes FAQ cross-refs).
+**ST0035 (Canonical LLM Config + Fleet Rollout) active. WP01–WP05 and WP12 Done (6 of 18).** Intent stamped at `2.9.1`. Canon docs + hooks + headless critic runner all shipped. **WP05 shipped**: `bin/intent_critic` headless runner — parses rule frontmatter + Detection "Greppable proxy" blocks, applies patterns via grep, emits severity-grouped text or JSON. Exit codes 0/1/2. `rules_lib.sh` extracted from `intent_claude_rules` for Highlander (both CLIs now source the same primitives). 15 new BATS tests green; 17 existing rule-validator/index tests still green. Self-critique on bin/intent_critic: 0 critical findings. **WP12 shipped**: Socrates/Diogenes FAQ cross-refs in both agent.md files pointing at the canonical FAQ in working-with-llms.md. **WP18 still open** (intent/usr/\*.md audit). **Next up**: WP06 (S — pre-commit hook template; needs WP05 ✓) + WP07 (XS — .intent_critic.yml template; needs WP05 ✓) + WP08 (M — root AGENTS.md generator rewrite; needs WP03 ✓).
 
 ## ST0035 progress
 
@@ -17,7 +17,7 @@ intent_version: 2.9.1
 | Done        | 02  | Refresh root `usage-rules.md`                                                         | S    |
 | Done        | 03  | Write `intent/docs/working-with-llms.md`                                              | M    |
 | Done        | 04  | `.claude/settings.json` template (SessionStart + UserPromptSubmit strict gate + Stop) | M    |
-| Not Started | 05  | `bin/intent_critic` headless runner                                                   | L    |
+| Done        | 05  | `bin/intent_critic` headless runner                                                   | L    |
 | Not Started | 06  | `.git/hooks/pre-commit` template                                                      | S    |
 | Not Started | 07  | `.intent_critic.yml` default template                                                 | XS   |
 | Not Started | 08  | Root `AGENTS.md` generator rewrite                                                    | M    |
@@ -42,6 +42,8 @@ intent_version: 2.9.1
 
 ## Recent
 
+- **2026-04-24**: WP-05 complete. `bin/intent_critic` — headless runner for the mechanical subset of the rule library (Greppable-proxy rules). `rules_lib.sh` extracted from `intent_claude_rules` (Highlander refactor — both CLIs now source the same primitives). `critic_runner.sh` implements Detection extraction, rule application with disabled_rules honouring, text + JSON report formatters. `intent/docs/critics.md` documents the headless-runner surface. 15 new BATS tests green; 62 tests total across 7 suites pass without regression. Self-critique of `bin/intent_critic` under shell rules: 0 critical findings. Commit `c47fbfc`.
+- **2026-04-24**: WP-12 complete. Socrates/Diogenes FAQ cross-refs in `intent/plugins/claude/subagents/socrates/agent.md` and `diogenes/agent.md` pointing at `intent/docs/working-with-llms.md#socrates-vs-diogenes-faq`. Commit `c01d9fe`.
 - **2026-04-24**: WP-04 complete. `lib/templates/.claude/settings.json` shipped with three default hook stanzas (SessionStart + strict UserPromptSubmit + Stop; no PostToolUse in default). Three helper scripts at `lib/templates/.claude/scripts/` (`session-context.sh`, `require-in-session.sh`, `post-tool-advisory.sh`) — all executable, all green. `/in-session` SKILL.md step 4 writes cooperating sentinel at `/tmp/intent/in-session-${session_id}.sentinel`; require-in-session.sh passes through slash commands so `/in-session` itself can run. MODULES.md registers template + 3 scripts + 1 BATS. New BATS test covers git+wip / git-only / no-git / session-id-capture — 5/5 green; existing `in_session_skill.bats` still 10/10. Commit `e36b6f1`.
 - **2026-04-24**: WP-18 added to ST0035 (late addition per user request). Review `intent/usr/*.md` (user_guide 877L, reference_guide 1370L, deployment_guide 619L — all pre-v2.9.0) and apply keep / update / throw before v2.9.1 release. `WP/18/info.md` populated Phase 0-style; tasks.md + ST0035/info.md WP table updated; WP17 now gated on WP16 + WP18. Commit `b6fc2fe`.
 - **2026-04-24**: WP03 complete. New `intent/docs/working-with-llms.md` (459 lines, D1–D10 as H2, ASCII arch diagram, hooks JSON, critic cadence, Socrates/Diogenes FAQ with commits `7f4529e` + `37a0ed0`, seven troubleshooting gotchas). Cross-refs in README.md ("For LLM Collaboration" section) and MODULES.md registration. Commits: `983ffdb` content · `b148ac0` Done.

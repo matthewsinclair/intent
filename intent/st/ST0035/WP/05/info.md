@@ -3,7 +3,7 @@ verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-05
 title: "Implement bin/intent_critic headless critic runner"
 scope: Large
-status: Not Started
+status: Done
 ---
 
 # WP-05: Implement bin/intent_critic headless critic runner
