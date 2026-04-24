@@ -19,7 +19,7 @@ intent_version: 2.9.1
 | Done        | 04  | `.claude/settings.json` template (SessionStart + UserPromptSubmit strict gate + Stop) | M    |
 | Done        | 05  | `bin/intent_critic` headless runner                                                   | L    |
 | Not Started | 06  | `.git/hooks/pre-commit` template                                                      | S    |
-| Not Started | 07  | `.intent_critic.yml` default template                                                 | XS   |
+| Done        | 07  | `.intent_critic.yml` default template                                                 | XS   |
 | Not Started | 08  | Root `AGENTS.md` generator rewrite                                                    | M    |
 | Not Started | 09  | Root `CLAUDE.md` overlay template                                                     | S    |
 | Not Started | 10  | Delete deprecated artefacts                                                           | XS   |
