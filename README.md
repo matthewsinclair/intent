@@ -215,6 +215,13 @@ $ intent st show ST0001 | pbcopy
 - **[Detailed Design](./intent/eng/tpd/4_detailed_design.md)** - Implementation details
 - **[Testing Guide](./tests/)** - Test suites and integration tests
 
+### For LLM Collaboration
+
+- **[Working with LLMs](./intent/docs/working-with-llms.md)** - Canonical narrative for Intent's LLM-facing surface: the three-file architecture (AGENTS.md / CLAUDE.md / usage-rules.md), session hooks, critic cadence, skills and `/in-session` auto-load, Socrates vs Diogenes FAQ, troubleshooting
+- **[Rules guide](./intent/docs/rules.md)** - Schema, authoring, and validation of the rule library
+- **[Critics guide](./intent/docs/critics.md)** - Contract, modes, and report format for critic subagents
+- **[Writing extensions](./intent/docs/writing-extensions.md)** - Authoring guide for extensions at `~/.intent/ext/`
+
 ## 🛠️ Core Commands
 
 ### Steel Thread Management

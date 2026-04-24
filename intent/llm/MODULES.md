@@ -204,6 +204,7 @@ User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; sh
 | Writing extensions | `intent/docs/writing-extensions.md` | Walkthrough with worker-bee as the worked example                   |
 | Rules guide        | `intent/docs/rules.md`              | Schema, authoring, validation, attribution, skill-reference pattern |
 | Critics guide      | `intent/docs/critics.md`            | Contract, modes, report format, `.intent_critic.yml` schema         |
+| Working-with-LLMs  | `intent/docs/working-with-llms.md`  | Canon narrative: D1–D10, three-file arch, hooks, critics (ST0035)   |
 
 ## Fixture Roots (v2.9.0 / tests)
 
