@@ -5,7 +5,7 @@
 - [x] **WP01** — Self-upgrade Intent to v2.9.1 + cancel ST0010 / ST0015. `WP/01/info.md`. Size: XS. Deps: —.
 - [x] **WP02** — Refresh root `usage-rules.md` to current-as-built state. `WP/02/info.md`. Size: S. Deps: WP01.
 - [x] **WP03** — Write `intent/docs/working-with-llms.md` canon tech note. `WP/03/info.md`. Size: M. Deps: WP02.
-- [ ] **WP04** — Ship `.claude/settings.json` template with SessionStart + Stop hooks. `WP/04/info.md`. Size: M. Deps: WP01.
+- [x] **WP04** — Ship `.claude/settings.json` template with SessionStart + Stop hooks. `WP/04/info.md`. Size: M. Deps: WP01.
 - [ ] **WP05** — Implement `bin/intent_critic` headless critic runner. `WP/05/info.md`. Size: L. Deps: —.
 - [ ] **WP06** — Ship `.git/hooks/pre-commit` template (critic gate). `WP/06/info.md`. Size: S. Deps: WP05.
 - [ ] **WP07** — Ship `.intent_critic.yml` default template. `WP/07/info.md`. Size: XS. Deps: WP05.
