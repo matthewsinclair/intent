@@ -1119,12 +1119,21 @@ migrate_v2_9_0_to_v2_10_0() {
     echo "  stamped: intent_version = 2.10.0"
   fi
 
+  # Canon apply (ST0035/WP-11): installs .claude/settings.json + hook scripts,
+  # .git/hooks/pre-commit, .intent_critic.yml, root CLAUDE.md, usage-rules.md,
+  # plants intent/llm/MODULES.md + DECISION_TREE.md if missing, deletes any
+  # legacy intent/llm/AGENTS.md. Idempotent.
+  if command -v intent >/dev/null 2>&1; then
+    echo "  Applying v2.10.0 canon (intent claude upgrade --apply)..."
+    if ! intent claude upgrade --project-dir "$project_root" --apply >&2; then
+      echo "  warning: canon apply reported a non-zero exit; review output and re-run." >&2
+    fi
+  else
+    echo "  warning: 'intent' CLI not on PATH; skipping canon apply." >&2
+    echo "  run 'intent claude upgrade --apply' manually once Intent is installed." >&2
+  fi
+
   echo "  Migration to v2.10.0 complete."
-  echo ""
-  echo "  NEXT STEP: run 'intent claude upgrade --apply' to install the"
-  echo "  v2.10.0 canon (root AGENTS.md + CLAUDE.md + usage-rules.md,"
-  echo "  .claude/settings.json hooks, .git/hooks/pre-commit critic gate,"
-  echo "  .intent_critic.yml). Canon apply is intentionally a separate step."
 }
 
 # Migrate v2.2.0 to v2.2.1

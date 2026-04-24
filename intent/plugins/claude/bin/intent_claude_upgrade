@@ -22,6 +22,23 @@ SKILLS_SOURCE="$INTENT_ROOT/intent/plugins/claude/skills"
 SUBAGENTS_SOURCE="$INTENT_ROOT/intent/plugins/claude/subagents"
 TEMPLATES_SOURCE="$INTENT_ROOT/intent/plugins/agents/templates/elixir"
 
+# Canon template paths (ST0035 / v2.10.0). Each artefact ships through the
+# --apply path; probes in Phase 1 enqueue installs when the target is absent
+# or diverges from the canon template.
+CANON_SETTINGS_SRC="$INTENT_ROOT/lib/templates/.claude/settings.json"
+CANON_SCRIPTS_SRC="$INTENT_ROOT/lib/templates/.claude/scripts"
+CANON_PRE_COMMIT_SRC="$INTENT_ROOT/lib/templates/hooks/pre-commit.sh"
+CANON_CRITIC_YML_SRC="$INTENT_ROOT/lib/templates/_intent_critic.yml"
+CANON_CLAUDE_MD_SRC="$INTENT_ROOT/lib/templates/llm/_CLAUDE.md"
+CANON_USAGE_RULES_SRC="$INTENT_ROOT/lib/templates/llm/_usage-rules.md"
+CANON_MODULES_SRC="$INTENT_ROOT/lib/templates/llm/_MODULES.md"
+CANON_DECISION_TREE_SRC="$INTENT_ROOT/lib/templates/llm/_DECISION_TREE.md"
+
+# Canon user-section preservation markers (keep in sync with _CLAUDE.md).
+CANON_USER_MARK_START="<!-- user:start -->"
+CANON_USER_MARK_END="<!-- user:end -->"
+CANON_INTENT_FOOTER_MARK="Generated from \`lib/templates/llm/_CLAUDE.md\`"
+
 # Read target version from VERSION file (single source of truth)
 TARGET_VERSION="$(cat "$INTENT_ROOT/VERSION" 2>/dev/null | tr -d '[:space:]')"
 if [ -z "$TARGET_VERSION" ]; then
@@ -133,6 +150,146 @@ add_warning() {
 }
 
 # ============================================================
+# Canon-install helpers (ST0035/WP-11)
+# ============================================================
+#
+# These helpers are invoked in Phase 3 (--apply). Each returns 0 on success
+# and a non-zero on recoverable failure; the caller surfaces the diagnostic.
+# Fail-forward: one artefact's failure does not roll back others.
+
+# Substitute the canon placeholders in $1 in-place.
+# Expects PROJECT_NAME, CANON_AUTHOR, CANON_DATE, TARGET_VERSION, INTENT_ROOT
+# in scope.
+canon_substitute_placeholders() {
+  local file="$1"
+  # Use | as sed delimiter for INTENT_HOME to tolerate / in paths.
+  sed -i '' \
+    -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
+    -e "s/\[\[AUTHOR\]\]/$CANON_AUTHOR/g" \
+    -e "s/\[\[DATE\]\]/$CANON_DATE/g" \
+    -e "s/\[\[INTENT_VERSION\]\]/$TARGET_VERSION/g" \
+    -e "s|\[\[INTENT_HOME\]\]|$INTENT_ROOT|g" \
+    "$file"
+}
+
+# Copy $src -> $dst. Parent dir created if absent. Placeholder-substituted.
+canon_install_file() {
+  local src="$1"
+  local dst="$2"
+  mkdir -p "$(dirname "$dst")"
+  cp "$src" "$dst"
+  canon_substitute_placeholders "$dst"
+}
+
+# Copy $src -> $dst, then chmod +x. Placeholder-substituted.
+canon_install_script() {
+  local src="$1"
+  local dst="$2"
+  canon_install_file "$src" "$dst"
+  chmod +x "$dst"
+}
+
+# Remove $path if it exists. No error if absent (idempotent).
+canon_delete_file() {
+  local path="$1"
+  [ -e "$path" ] && rm -f "$path"
+  return 0
+}
+
+# Extract content between CANON_USER_MARK_START / CANON_USER_MARK_END in $1.
+# Emits (exclusive of the markers) to stdout. Empty output if markers absent.
+canon_extract_user_section() {
+  local file="$1"
+  [ -f "$file" ] || return 0
+  awk -v s="$CANON_USER_MARK_START" -v e="$CANON_USER_MARK_END" '
+    index($0, s) { cap = 1; next }
+    index($0, e) { cap = 0; next }
+    cap { print }
+  ' "$file"
+}
+
+# Refresh $dst from canon template $src, preserving any user-section content
+# already present in $dst (between the HTML-comment markers). If no markers
+# in existing $dst, behaves like canon_install_file (clean overwrite).
+canon_refresh_with_user_section() {
+  local src="$1"
+  local dst="$2"
+  local preserved
+  preserved="$(canon_extract_user_section "$dst")"
+
+  # Fresh install path -- no existing user content to preserve.
+  if [ -z "$preserved" ] || ! grep -qF "$CANON_USER_MARK_START" "$dst" 2>/dev/null; then
+    canon_install_file "$src" "$dst"
+    return 0
+  fi
+
+  # Splice: new template, then replace its user block with the preserved one.
+  local tmp
+  tmp="$(mktemp)"
+  cp "$src" "$tmp"
+  canon_substitute_placeholders "$tmp"
+
+  # Rewrite $tmp replacing lines between the markers with $preserved.
+  local out
+  out="$(mktemp)"
+  awk -v s="$CANON_USER_MARK_START" -v e="$CANON_USER_MARK_END" -v pres="$preserved" '
+    index($0, s) { print; in_user = 1; printf "%s\n", pres; next }
+    index($0, e) { in_user = 0; print; next }
+    !in_user { print }
+  ' "$tmp" > "$out"
+
+  mv "$out" "$dst"
+  rm -f "$tmp"
+}
+
+# Probe whether two files are byte-identical. 0 = identical, 1 = differ or
+# either missing. Uses `cmp -s` (present on every POSIX system we target).
+canon_files_identical() {
+  cmp -s "$1" "$2" 2>/dev/null
+}
+
+# Compare an on-disk canon file against a template, accounting for
+# placeholder substitution. Returns 0 if the installed file matches a
+# freshly-substituted template (i.e. no install needed).
+canon_template_matches_installed() {
+  local src="$1"
+  local dst="$2"
+  [ -f "$dst" ] || return 1
+  local tmp
+  tmp="$(mktemp)"
+  cp "$src" "$tmp"
+  canon_substitute_placeholders "$tmp"
+  if canon_files_identical "$tmp" "$dst"; then
+    rm -f "$tmp"
+    return 0
+  fi
+  rm -f "$tmp"
+  return 1
+}
+
+# Check whether the destination CLAUDE.md carries the Intent-generated footer
+# marker. A user-authored CLAUDE.md without the marker is left alone.
+canon_claude_md_is_generated() {
+  local dst="$1"
+  [ -f "$dst" ] && grep -qF "$CANON_INTENT_FOOTER_MARK" "$dst" 2>/dev/null
+}
+
+# Resolve author for placeholder substitution. Preference: .intent/config.json
+# author field -> $INTENT_AUTHOR -> $USER -> "Unknown".
+canon_resolve_author() {
+  local cfg="$PROJECT_DIR/.intent/config.json"
+  local author=""
+  if [ -f "$cfg" ] && command -v jq >/dev/null 2>&1; then
+    author="$(jq -r '.author // ""' "$cfg" 2>/dev/null)"
+  fi
+  [ -z "$author" ] && author="${INTENT_AUTHOR:-${USER:-Unknown}}"
+  echo "$author"
+}
+
+CANON_AUTHOR="$(canon_resolve_author)"
+CANON_DATE="$(date '+%Y-%m-%d')"
+
+# ============================================================
 # PHASE 1: DIAGNOSE
 # ============================================================
 
@@ -170,12 +327,16 @@ echo "Checking LLM guidance files..."
 
 # AGENTS.md (canonical location: project root, since v2.10.0 -- see ST0035/WP08).
 if [ -f "$PROJECT_DIR/AGENTS.md" ]; then
-  local_version=$(grep -o 'intent_version: [0-9.]*' "$PROJECT_DIR/AGENTS.md" 2>/dev/null | head -1 | cut -d' ' -f2)
+  local_version=$(grep -o 'intent_version: [0-9][0-9.]*' "$PROJECT_DIR/AGENTS.md" 2>/dev/null | head -1 | cut -d' ' -f2)
   if [ -z "$local_version" ]; then
-    local_version=$(grep -o 'v[0-9]\.[0-9]\.[0-9]' "$PROJECT_DIR/AGENTS.md" 2>/dev/null | head -1)
+    local_version=$(grep -o 'v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*' "$PROJECT_DIR/AGENTS.md" 2>/dev/null | head -1 | sed 's/^v//')
   fi
-  echo -e "  AGENTS.md:          ${YELLOW}EXISTS${NC} (version: ${local_version:-unknown})"
-  add_action "REGENERATE AGENTS.md (currently ${local_version:-unknown}, target $TARGET_VERSION)"
+  if [ "$local_version" = "$TARGET_VERSION" ]; then
+    echo -e "  AGENTS.md:          ${GREEN}UP TO DATE${NC} (version: $local_version)"
+  else
+    echo -e "  AGENTS.md:          ${YELLOW}EXISTS${NC} (version: ${local_version:-unknown})"
+    add_action "REGENERATE AGENTS.md (currently ${local_version:-unknown}, target $TARGET_VERSION)"
+  fi
 else
   echo -e "  AGENTS.md:          ${RED}MISSING${NC}"
   add_action "CREATE AGENTS.md from Elixir template"
@@ -285,6 +446,145 @@ for skill_dir in "$HOME/.claude/skills"/in-*/; do
 done
 
 # ============================================================
+# Canon artefact probes (ST0035/WP-11)
+# ============================================================
+
+echo ""
+echo "Checking canon artefacts..."
+
+# .claude/settings.json -- hooks for /in-session, /in-finish, UserPromptSubmit.
+if [ -f "$PROJECT_DIR/.claude/settings.json" ]; then
+  if canon_template_matches_installed "$CANON_SETTINGS_SRC" "$PROJECT_DIR/.claude/settings.json"; then
+    echo -e "  .claude/settings.json:        ${GREEN}UP TO DATE${NC}"
+  else
+    echo -e "  .claude/settings.json:        ${YELLOW}DIVERGED${NC}"
+    add_action "INSTALL_SETTINGS"
+  fi
+else
+  echo -e "  .claude/settings.json:        ${RED}MISSING${NC}"
+  add_action "INSTALL_SETTINGS"
+fi
+
+# .claude/scripts/*.sh -- three hook helper scripts.
+for _script in session-context.sh require-in-session.sh post-tool-advisory.sh; do
+  _src="$CANON_SCRIPTS_SRC/$_script"
+  _dst="$PROJECT_DIR/.claude/scripts/$_script"
+  _label=".claude/scripts/$_script"
+  _pad=$((38 - ${#_label}))
+  [ "$_pad" -lt 1 ] && _pad=1
+  _spaces="$(printf '%*s' "$_pad" '')"
+  if [ -f "$_dst" ] && canon_template_matches_installed "$_src" "$_dst"; then
+    echo -e "  $_label:$_spaces${GREEN}UP TO DATE${NC}"
+  elif [ -f "$_dst" ]; then
+    echo -e "  $_label:$_spaces${YELLOW}DIVERGED${NC}"
+    add_action "INSTALL_HOOK_SCRIPT:$_script"
+  else
+    echo -e "  $_label:$_spaces${RED}MISSING${NC}"
+    add_action "INSTALL_HOOK_SCRIPT:$_script"
+  fi
+done
+
+# .git/hooks/pre-commit -- critic gate. Chain if a pre-existing non-Intent
+# hook is present (detect by absence of our canonical banner string).
+_pre_commit="$PROJECT_DIR/.git/hooks/pre-commit"
+_pre_commit_intent="$PROJECT_DIR/.git/hooks/pre-commit.intent"
+if [ ! -d "$PROJECT_DIR/.git" ]; then
+  echo -e "  .git/hooks/pre-commit:        ${BLUE}skipped (no .git)${NC}"
+elif [ -f "$_pre_commit" ]; then
+  if grep -qF "intent critic gate" "$_pre_commit" 2>/dev/null; then
+    if canon_files_identical "$CANON_PRE_COMMIT_SRC" "$_pre_commit"; then
+      echo -e "  .git/hooks/pre-commit:        ${GREEN}UP TO DATE${NC}"
+    else
+      echo -e "  .git/hooks/pre-commit:        ${YELLOW}DIVERGED${NC}"
+      add_action "INSTALL_PRE_COMMIT"
+    fi
+  else
+    if [ -f "$_pre_commit_intent" ] && canon_files_identical "$CANON_PRE_COMMIT_SRC" "$_pre_commit_intent"; then
+      echo -e "  .git/hooks/pre-commit:        ${YELLOW}CHAINED (existing hook preserved)${NC}"
+    else
+      echo -e "  .git/hooks/pre-commit:        ${YELLOW}NON-INTENT HOOK PRESENT${NC}"
+      add_action "CHAIN_PRE_COMMIT"
+    fi
+  fi
+else
+  echo -e "  .git/hooks/pre-commit:        ${RED}MISSING${NC}"
+  add_action "INSTALL_PRE_COMMIT"
+fi
+
+# .intent_critic.yml -- install only if absent (user-editable).
+if [ -f "$PROJECT_DIR/.intent_critic.yml" ]; then
+  echo -e "  .intent_critic.yml:           ${GREEN}PRESENT${NC} (user-owned)"
+else
+  echo -e "  .intent_critic.yml:           ${RED}MISSING${NC}"
+  add_action "INSTALL_CRITIC_CONFIG"
+fi
+
+# Root CLAUDE.md -- install if absent; refresh if Intent-generated (preserve
+# user section); leave alone if user-authored (no Intent footer marker).
+if [ -f "$PROJECT_DIR/CLAUDE.md" ]; then
+  if canon_claude_md_is_generated "$PROJECT_DIR/CLAUDE.md"; then
+    # Compare against a placeholder-substituted template for drift.
+    _tmp_canon_claude="$(mktemp)"
+    cp "$CANON_CLAUDE_MD_SRC" "$_tmp_canon_claude"
+    canon_substitute_placeholders "$_tmp_canon_claude"
+    _preserved_section="$(canon_extract_user_section "$PROJECT_DIR/CLAUDE.md")"
+    # Splice the preserved section into the canon template in a scratch file
+    # and compare with actual CLAUDE.md for drift.
+    _tmp_refresh_preview="$(mktemp)"
+    awk -v s="$CANON_USER_MARK_START" -v e="$CANON_USER_MARK_END" -v pres="$_preserved_section" '
+      index($0, s) { print; in_user = 1; printf "%s\n", pres; next }
+      index($0, e) { in_user = 0; print; next }
+      !in_user { print }
+    ' "$_tmp_canon_claude" > "$_tmp_refresh_preview"
+    if canon_files_identical "$PROJECT_DIR/CLAUDE.md" "$_tmp_refresh_preview"; then
+      echo -e "  CLAUDE.md (root):             ${GREEN}UP TO DATE${NC}"
+    else
+      echo -e "  CLAUDE.md (root):             ${YELLOW}REFRESH (user section preserved)${NC}"
+      add_action "REFRESH_CLAUDE_MD"
+    fi
+    rm -f "$_tmp_canon_claude" "$_tmp_refresh_preview"
+  else
+    echo -e "  CLAUDE.md (root):             ${BLUE}user-authored (left alone)${NC}"
+    add_warning "CLAUDE.md at root is user-authored (no Intent footer marker); not refreshed. Compare with \`lib/templates/llm/_CLAUDE.md\` if you want to adopt the canon overlay."
+  fi
+else
+  echo -e "  CLAUDE.md (root):             ${RED}MISSING${NC}"
+  add_action "INSTALL_CLAUDE_MD"
+fi
+
+# Root usage-rules.md -- install only if absent. Users customise freely.
+if [ -f "$PROJECT_DIR/usage-rules.md" ]; then
+  echo -e "  usage-rules.md (root):        ${GREEN}PRESENT${NC} (user-owned)"
+else
+  echo -e "  usage-rules.md (root):        ${RED}MISSING${NC}"
+  add_action "INSTALL_USAGE_RULES"
+fi
+
+# intent/llm/MODULES.md -- plant canonical seed if absent (audit showed 9
+# fleet projects need this).
+if [ -f "$PROJECT_DIR/intent/llm/MODULES.md" ]; then
+  echo -e "  intent/llm/MODULES.md:        ${GREEN}PRESENT${NC}"
+else
+  echo -e "  intent/llm/MODULES.md:        ${RED}MISSING${NC}"
+  add_action "PLANT_MODULES"
+fi
+
+# intent/llm/DECISION_TREE.md -- plant canonical seed if absent.
+if [ -f "$PROJECT_DIR/intent/llm/DECISION_TREE.md" ]; then
+  echo -e "  intent/llm/DECISION_TREE.md:  ${GREEN}PRESENT${NC}"
+else
+  echo -e "  intent/llm/DECISION_TREE.md:  ${RED}MISSING${NC}"
+  add_action "PLANT_DECISION_TREE"
+fi
+
+# Legacy intent/llm/AGENTS.md -- delete if present (canon moved to root in
+# v2.10.0; most projects already caught up via WP-10).
+if [ -f "$PROJECT_DIR/intent/llm/AGENTS.md" ] || [ -L "$PROJECT_DIR/intent/llm/AGENTS.md" ]; then
+  echo -e "  intent/llm/AGENTS.md:         ${YELLOW}LEGACY (will delete)${NC}"
+  add_action "DELETE_LEGACY_AGENTS"
+fi
+
+# ============================================================
 # PHASE 2: PLAN
 # ============================================================
 
@@ -322,6 +622,40 @@ if [ ${#ACTIONS[@]} -gt 0 ]; then
       UPDATE_SKILL:*)
         sk_name="${action#UPDATE_SKILL:}"
         echo "  $idx. Update skill: $sk_name"
+        ;;
+      INSTALL_SETTINGS)
+        echo "  $idx. Install .claude/settings.json (SessionStart / UserPromptSubmit / Stop hooks)"
+        ;;
+      INSTALL_HOOK_SCRIPT:*)
+        sh_name="${action#INSTALL_HOOK_SCRIPT:}"
+        echo "  $idx. Install .claude/scripts/$sh_name (+x)"
+        ;;
+      INSTALL_PRE_COMMIT)
+        echo "  $idx. Install .git/hooks/pre-commit (intent critic gate, +x)"
+        ;;
+      CHAIN_PRE_COMMIT)
+        echo "  $idx. Chain .git/hooks/pre-commit.intent (existing non-Intent hook preserved)"
+        ;;
+      INSTALL_CRITIC_CONFIG)
+        echo "  $idx. Install .intent_critic.yml (severity defaults)"
+        ;;
+      INSTALL_CLAUDE_MD)
+        echo "  $idx. Install root CLAUDE.md (Claude overlay pointing at AGENTS.md)"
+        ;;
+      REFRESH_CLAUDE_MD)
+        echo "  $idx. Refresh root CLAUDE.md (preserve user section between markers)"
+        ;;
+      INSTALL_USAGE_RULES)
+        echo "  $idx. Install root usage-rules.md (terse DO / NEVER contract)"
+        ;;
+      PLANT_MODULES)
+        echo "  $idx. Plant intent/llm/MODULES.md (Highlander registry seed)"
+        ;;
+      PLANT_DECISION_TREE)
+        echo "  $idx. Plant intent/llm/DECISION_TREE.md (code-placement flow chart seed)"
+        ;;
+      DELETE_LEGACY_AGENTS)
+        echo "  $idx. Delete legacy intent/llm/AGENTS.md (canon moved to root in v2.10.0)"
         ;;
       *)
         echo "  $idx. $action"
@@ -396,19 +730,21 @@ for action in "${ACTIONS[@]}"; do
       ;;
 
     REGENERATE*)
-      echo "  Regenerating AGENTS.md..."
-      if [ -f "$TEMPLATES_SOURCE/AGENTS.md" ]; then
-        cp "$TEMPLATES_SOURCE/AGENTS.md" "$PROJECT_DIR/AGENTS.md"
-        echo -e "    ${GREEN}ok${NC} (from template -- customize for your project)"
+      echo "  Regenerating AGENTS.md (via intent agents sync)..."
+      if ( cd "$PROJECT_DIR" && "$INTENT_BIN/intent" agents sync >/dev/null 2>&1 ); then
+        echo -e "    ${GREEN}ok${NC}"
       else
-        echo -e "    ${YELLOW}skipped${NC} (template not found)"
+        echo -e "    ${YELLOW}warning${NC}: intent agents sync exited non-zero; leaving AGENTS.md as-is"
       fi
       ;;
 
     "CREATE AGENTS.md"*)
-      echo "  Creating AGENTS.md..."
-      cp "$TEMPLATES_SOURCE/AGENTS.md" "$PROJECT_DIR/AGENTS.md"
-      echo -e "    ${GREEN}ok${NC}"
+      echo "  Creating AGENTS.md (via intent agents sync)..."
+      if ( cd "$PROJECT_DIR" && "$INTENT_BIN/intent" agents sync >/dev/null 2>&1 ); then
+        echo -e "    ${GREEN}ok${NC}"
+      else
+        echo -e "    ${YELLOW}warning${NC}: intent agents sync exited non-zero; AGENTS.md not written"
+      fi
       ;;
 
     "CREATE intent/llm/RULES.md"*)
@@ -458,6 +794,75 @@ for action in "${ACTIONS[@]}"; do
       mkdir -p "$HOME/.claude/skills/$sk_name"
       cp -r "$SKILLS_SOURCE/$sk_name/"* "$HOME/.claude/skills/$sk_name/"
       echo -e "    ${GREEN}ok${NC}"
+      ;;
+
+    INSTALL_SETTINGS)
+      echo "  Installing .claude/settings.json..."
+      canon_install_file "$CANON_SETTINGS_SRC" "$PROJECT_DIR/.claude/settings.json"
+      echo -e "    ${GREEN}ok${NC}"
+      ;;
+
+    INSTALL_HOOK_SCRIPT:*)
+      sh_name="${action#INSTALL_HOOK_SCRIPT:}"
+      echo "  Installing .claude/scripts/$sh_name..."
+      canon_install_script "$CANON_SCRIPTS_SRC/$sh_name" "$PROJECT_DIR/.claude/scripts/$sh_name"
+      echo -e "    ${GREEN}ok${NC} (+x)"
+      ;;
+
+    INSTALL_PRE_COMMIT)
+      echo "  Installing .git/hooks/pre-commit..."
+      canon_install_script "$CANON_PRE_COMMIT_SRC" "$PROJECT_DIR/.git/hooks/pre-commit"
+      echo -e "    ${GREEN}ok${NC} (+x; severity threshold from .intent_critic.yml)"
+      ;;
+
+    CHAIN_PRE_COMMIT)
+      echo "  Chaining .git/hooks/pre-commit.intent..."
+      canon_install_script "$CANON_PRE_COMMIT_SRC" "$PROJECT_DIR/.git/hooks/pre-commit.intent"
+      echo -e "    ${GREEN}ok${NC} (existing hook preserved)"
+      echo -e "    ${YELLOW}hint:${NC} add this line to your existing .git/hooks/pre-commit to chain:"
+      echo "      \"\$(git rev-parse --show-toplevel)/.git/hooks/pre-commit.intent\" || exit \$?"
+      ;;
+
+    INSTALL_CRITIC_CONFIG)
+      echo "  Installing .intent_critic.yml..."
+      canon_install_file "$CANON_CRITIC_YML_SRC" "$PROJECT_DIR/.intent_critic.yml"
+      echo -e "    ${GREEN}ok${NC} (severity_min=warning; edit to tune)"
+      ;;
+
+    INSTALL_CLAUDE_MD)
+      echo "  Installing root CLAUDE.md..."
+      canon_install_file "$CANON_CLAUDE_MD_SRC" "$PROJECT_DIR/CLAUDE.md"
+      echo -e "    ${GREEN}ok${NC}"
+      ;;
+
+    REFRESH_CLAUDE_MD)
+      echo "  Refreshing root CLAUDE.md (preserving user section)..."
+      canon_refresh_with_user_section "$CANON_CLAUDE_MD_SRC" "$PROJECT_DIR/CLAUDE.md"
+      echo -e "    ${GREEN}ok${NC}"
+      ;;
+
+    INSTALL_USAGE_RULES)
+      echo "  Installing root usage-rules.md..."
+      canon_install_file "$CANON_USAGE_RULES_SRC" "$PROJECT_DIR/usage-rules.md"
+      echo -e "    ${GREEN}ok${NC}"
+      ;;
+
+    PLANT_MODULES)
+      echo "  Planting intent/llm/MODULES.md..."
+      canon_install_file "$CANON_MODULES_SRC" "$PROJECT_DIR/intent/llm/MODULES.md"
+      echo -e "    ${GREEN}ok${NC} (seed; populate as you register modules)"
+      ;;
+
+    PLANT_DECISION_TREE)
+      echo "  Planting intent/llm/DECISION_TREE.md..."
+      canon_install_file "$CANON_DECISION_TREE_SRC" "$PROJECT_DIR/intent/llm/DECISION_TREE.md"
+      echo -e "    ${GREEN}ok${NC} (seed; adapt to your project)"
+      ;;
+
+    DELETE_LEGACY_AGENTS)
+      echo "  Deleting legacy intent/llm/AGENTS.md..."
+      canon_delete_file "$PROJECT_DIR/intent/llm/AGENTS.md"
+      echo -e "    ${GREEN}ok${NC} (canonical location is project root since v2.10.0)"
       ;;
 
     *)
