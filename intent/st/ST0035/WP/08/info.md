@@ -3,7 +3,7 @@ verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-08
 title: "Rewrite root AGENTS.md generator"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-08: Rewrite root AGENTS.md generator
