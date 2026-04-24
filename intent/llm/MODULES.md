@@ -58,6 +58,7 @@
 | Module registry           | `lib/templates/llm/_MODULES.md`                         | Highlander registry template             |
 | Decision tree             | `lib/templates/llm/_DECISION_TREE.md`                   | Code placement guide template            |
 | Archetypes reference      | `lib/templates/llm/_ARCHETYPES.md`                      | Archetype listing template               |
+| Usage rules template      | `lib/templates/llm/_usage-rules.md`                     | Downstream project DO / NEVER scaffold   |
 | Elixir archetypes         | `lib/templates/archetypes/elixir/`                      | 9 .ex.eex code templates                 |
 | ST info template          | `lib/templates/prj/st/ST####/info.md`                   | Steel thread frontmatter                 |
 | WP info template          | `lib/templates/prj/st/WP/info.md`                       | Work package frontmatter                 |

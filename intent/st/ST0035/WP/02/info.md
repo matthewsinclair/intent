@@ -3,7 +3,7 @@ verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-02
 title: "Refresh root usage-rules.md to current state"
 scope: Small
-status: Not Started
+status: WIP
 ---
 
 # WP-02: Refresh root usage-rules.md to current state
