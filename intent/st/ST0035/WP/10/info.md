@@ -3,7 +3,7 @@ verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-10
 title: "Delete deprecated intent/llm/AGENTS.md and _llm_preamble.md"
 scope: ExtraSmall
-status: Not Started
+status: Done
 ---
 
 # WP-10: Delete deprecated intent/llm/AGENTS.md and \_llm_preamble.md
