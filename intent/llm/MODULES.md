@@ -66,6 +66,10 @@
 | Dependency graph template | `lib/templates/llm/_DEPENDENCY_GRAPH.md`                | Dependency rules template                |
 | D11 Credo check           | `lib/templates/credo_checks/elixir/dependency_graph.ex` | Cross-app dependency enforcement         |
 | Hook template             | `lib/templates/hooks/module_check_hook.json`            | Advisory write hook for Claude Code      |
+| Claude settings template  | `lib/templates/.claude/settings.json`                   | Canonical hook stanzas (ST0035)          |
+| Session context hook      | `lib/templates/.claude/scripts/session-context.sh`      | SessionStart: project/git/WIP context    |
+| In-session gate hook      | `lib/templates/.claude/scripts/require-in-session.sh`   | UserPromptSubmit strict gate (ST0035)    |
+| Post-tool advisory hook   | `lib/templates/.claude/scripts/post-tool-advisory.sh`   | Opt-in PostToolUse critic (off default)  |
 | Credo check templates     | `lib/templates/credo_checks/elixir/`                    | 6 checks: R2, R6, R7, R11, R15, R16      |
 | Credo config script       | `lib/scripts/configure_credo.exs`                       | Configures .credo.exs in target projects |
 
@@ -168,34 +172,35 @@ User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; sh
 
 ## Tests
 
-| Concern                         | THE Module                                  | Notes                                                 |
-| ------------------------------- | ------------------------------------------- | ----------------------------------------------------- |
-| Test helper/fixtures            | `tests/lib/test_helper.bash`                | Shared setup, assertions                              |
-| Test runner                     | `tests/run_tests.sh`                        | Discovers and runs all BATS                           |
-| Audit tests                     | `tests/unit/audit_commands.bats`            | BATS tests for audit command                          |
-| Learn tests                     | `tests/unit/learn_commands.bats`            | BATS tests for learn command                          |
-| Modules tests                   | `tests/unit/modules_commands.bats`          | BATS tests for modules command                        |
-| STZero tests                    | `tests/unit/st_zero_commands.bats`          | BATS tests for st zero command                        |
-| Ext commands (v2.9.0)           | `tests/unit/ext_commands.bats`              | `intent ext list/show/validate/new` (WP02)            |
-| Ext discovery (v2.9.0)          | `tests/unit/ext_discovery.bats`             | Precedence, shadowing, env-var overrides (WP02)       |
-| Ext migration (v2.9.0)          | `tests/unit/ext_migration.bats`             | Seed copy, idempotency, prune (WP08 + WP09)           |
-| Ext seed validity (v2.9.0)      | `tests/unit/ext_seed_validity.bats`         | Worker-bee seed passes `intent ext validate` (WP08)   |
-| Rule validator (v2.9.0)         | `tests/unit/rule_validator.bats`            | `intent claude rules validate` (WP02)                 |
-| Rule index (v2.9.0)             | `tests/unit/rule_index.bats`                | `intent claude rules index` determinism (WP02)        |
-| Rule pack — agnostic (v2.9.0)   | `tests/unit/rule_pack_agnostic.bats`        | Presence + `concretised_by:` ≥ 2 invariant (WP04)     |
-| Rule pack — elixir (v2.9.0)     | `tests/unit/rule_pack_elixir.bats`          | Frontmatter, sections, attribution cross-check (WP05) |
-| Rule pack — elixir runnable     | `tests/unit/rule_pack_elixir_runnable.bats` | Each `.exs` exits 0 under `elixir <path>` (WP05)      |
-| Rule pack — rust (v2.9.0)       | `tests/unit/rule_pack_rust.bats`            | Textual-only; `rust` fence tag (WP06)                 |
-| Rule pack — swift (v2.9.0)      | `tests/unit/rule_pack_swift.bats`           | Textual-only; `swift` fence tag (WP06)                |
-| Rule pack — lua (v2.9.0)        | `tests/unit/rule_pack_lua.bats`             | Textual-only; `lua` fence tag (WP06)                  |
-| Rule pack — shell (v2.9.0)      | `tests/unit/rule_pack_shell.bats`           | bash + zsh; `bash -n` / `zsh -n` syntax gate (WP12)   |
-| Attribution compliance (v2.9.0) | `tests/unit/attribution_compliance.bats`    | `upstream_id:` slugs resolve at pinned commit (WP05)  |
-| Rule-reference skills (v2.9.0)  | `tests/unit/rule_reference_skills.bats`     | `rules:` frontmatter resolves in each skill (WP03)    |
-| Highlander audit (v2.9.0)       | `tests/unit/highlander_audit.bats`          | No duplicated rule prose across skills + rules (WP03) |
-| Critic dispatch (v2.9.0)        | `tests/unit/critic_dispatch.bats`           | `in-review` stage-2 language detection (WP07)         |
-| Critic report format (v2.9.0)   | `tests/unit/critic_report_format.bats`      | Stable report shape across four Critics (WP07)        |
-| Critic config (v2.9.0)          | `tests/unit/critic_config.bats`             | `.intent_critic.yml` honoured (WP07)                  |
-| Docs completeness (v2.9.0)      | `tests/unit/docs_completeness.bats`         | New-doc presence + cross-ref resolution (WP10)        |
+| Concern                         | THE Module                                  | Notes                                                          |
+| ------------------------------- | ------------------------------------------- | -------------------------------------------------------------- |
+| Test helper/fixtures            | `tests/lib/test_helper.bash`                | Shared setup, assertions                                       |
+| Test runner                     | `tests/run_tests.sh`                        | Discovers and runs all BATS                                    |
+| Audit tests                     | `tests/unit/audit_commands.bats`            | BATS tests for audit command                                   |
+| Learn tests                     | `tests/unit/learn_commands.bats`            | BATS tests for learn command                                   |
+| Modules tests                   | `tests/unit/modules_commands.bats`          | BATS tests for modules command                                 |
+| STZero tests                    | `tests/unit/st_zero_commands.bats`          | BATS tests for st zero command                                 |
+| Ext commands (v2.9.0)           | `tests/unit/ext_commands.bats`              | `intent ext list/show/validate/new` (WP02)                     |
+| Ext discovery (v2.9.0)          | `tests/unit/ext_discovery.bats`             | Precedence, shadowing, env-var overrides (WP02)                |
+| Ext migration (v2.9.0)          | `tests/unit/ext_migration.bats`             | Seed copy, idempotency, prune (WP08 + WP09)                    |
+| Ext seed validity (v2.9.0)      | `tests/unit/ext_seed_validity.bats`         | Worker-bee seed passes `intent ext validate` (WP08)            |
+| Rule validator (v2.9.0)         | `tests/unit/rule_validator.bats`            | `intent claude rules validate` (WP02)                          |
+| Rule index (v2.9.0)             | `tests/unit/rule_index.bats`                | `intent claude rules index` determinism (WP02)                 |
+| Rule pack — agnostic (v2.9.0)   | `tests/unit/rule_pack_agnostic.bats`        | Presence + `concretised_by:` ≥ 2 invariant (WP04)              |
+| Rule pack — elixir (v2.9.0)     | `tests/unit/rule_pack_elixir.bats`          | Frontmatter, sections, attribution cross-check (WP05)          |
+| Rule pack — elixir runnable     | `tests/unit/rule_pack_elixir_runnable.bats` | Each `.exs` exits 0 under `elixir <path>` (WP05)               |
+| Rule pack — rust (v2.9.0)       | `tests/unit/rule_pack_rust.bats`            | Textual-only; `rust` fence tag (WP06)                          |
+| Rule pack — swift (v2.9.0)      | `tests/unit/rule_pack_swift.bats`           | Textual-only; `swift` fence tag (WP06)                         |
+| Rule pack — lua (v2.9.0)        | `tests/unit/rule_pack_lua.bats`             | Textual-only; `lua` fence tag (WP06)                           |
+| Rule pack — shell (v2.9.0)      | `tests/unit/rule_pack_shell.bats`           | bash + zsh; `bash -n` / `zsh -n` syntax gate (WP12)            |
+| Attribution compliance (v2.9.0) | `tests/unit/attribution_compliance.bats`    | `upstream_id:` slugs resolve at pinned commit (WP05)           |
+| Rule-reference skills (v2.9.0)  | `tests/unit/rule_reference_skills.bats`     | `rules:` frontmatter resolves in each skill (WP03)             |
+| Highlander audit (v2.9.0)       | `tests/unit/highlander_audit.bats`          | No duplicated rule prose across skills + rules (WP03)          |
+| Critic dispatch (v2.9.0)        | `tests/unit/critic_dispatch.bats`           | `in-review` stage-2 language detection (WP07)                  |
+| Critic report format (v2.9.0)   | `tests/unit/critic_report_format.bats`      | Stable report shape across four Critics (WP07)                 |
+| Critic config (v2.9.0)          | `tests/unit/critic_config.bats`             | `.intent_critic.yml` honoured (WP07)                           |
+| Docs completeness (v2.9.0)      | `tests/unit/docs_completeness.bats`         | New-doc presence + cross-ref resolution (WP10)                 |
+| Session-context hook (ST0035)   | `tests/unit/session_context_script.bats`    | SessionStart hook: three scenarios + session-id capture (WP04) |
 
 ## Docs (v2.9.0 / WP10)
 

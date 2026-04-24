@@ -49,7 +49,19 @@ When `mix.exs` is present, read it and invoke by dependency:
 - Depends on `:ash` or `:ash_postgres` -> invoke `/in-ash-ecto-essentials`
 - Depends on `:phoenix_live_view` -> invoke `/in-phoenix-liveview`
 
-### 4. Confirm and proceed
+### 4. Release the UserPromptSubmit gate
+
+Intent projects ship a strict `UserPromptSubmit` hook (`require-in-session.sh`) that blocks the first prompt until `/in-session` has been run. Releasing the gate is cooperative: this skill writes a per-session sentinel that the hook looks for.
+
+Run the following Bash command now (it is idempotent and fast):
+
+```bash
+mkdir -p /tmp/intent && touch "/tmp/intent/in-session-$(cat /tmp/intent-claude-session-current-id 2>/dev/null || echo unknown).sentinel"
+```
+
+The session_id is written by the `SessionStart` hook (`session-context.sh`) to `/tmp/intent-claude-session-current-id`. If that file is missing (hook did not run, non-Intent project, etc.) the sentinel falls back to `/tmp/intent/in-session-unknown.sentinel`, which still releases the gate.
+
+### 5. Confirm and proceed
 
 Report the skill set loaded in one line so the user can spot an unexpected match. Do not wait for further instructions; proceed with whatever the user was already asking for.
 
