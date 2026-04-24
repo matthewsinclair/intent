@@ -1,82 +1,58 @@
-# [[PROJECT_NAME]] Project Guidelines
+# [[PROJECT_NAME]]
 
-This is an Intent v[[INTENT_VERSION]] project.
+This project uses Intent v[[INTENT_VERSION]]. The primary config file for AI coding agents is `AGENTS.md` at the project root -- read that first. `CLAUDE.md` is a Claude Code-specific overlay that adds directives beyond the tool-agnostic contract.
 
-## Rules
+## Required on every session
 
-1. **The Highlander Rule**: There can be only one. Never duplicate code paths, modules, or logic for the same concern. Before creating anything new, check MODULES.md.
-2. **Thin controllers and LiveViews**: Business logic lives in service modules or Ash domains, never in controllers, LiveViews, or CLI commands.
-3. **Tagged tuples everywhere**: Functions return `{:ok, result}` or `{:error, reason}`. Never return bare values from fallible operations.
-4. **No silent failures**: Every error path must be handled explicitly. No bare `rescue`, no `catch-all` that swallows errors.
-5. **Check before you create**: Before creating a new module, check MODULES.md. If a module already owns that concern, use it.
-6. **Register before you code**: When you must create a new module, add it to MODULES.md FIRST, then create the file.
+Run `/in-session` immediately after session start and after every `/compact` or context reset. It auto-detects the project language and loads the right skills (`/in-essentials`, `/in-standards`, plus language-specific). Rationale: `intent/docs/working-with-llms.md#skills-and-in-session-auto-load`.
 
-## Project Structure
+## Persistent memory
 
-- `intent/` - Project artifacts (steel threads, docs, work tracking)
-  - `st/` - Steel threads organized as directories
-  - `docs/` - Technical documentation
-  - `llm/` - LLM-specific guidelines (MODULES.md, DECISION_TREE.md, ARCHETYPES.md)
-- `.intent/` - Configuration and metadata
+Claude Code persists cross-session memories at `~/.claude/projects/<project-dir>/memory/`. Notes about user preferences, design decisions not derivable from code, and project context live there. See Claude Code's memory docs for management.
 
-## Key Reference Files
+## Session hooks
 
-Read these on every session start and after every context reset:
+`.claude/settings.json` wires Claude Code lifecycle hooks: `SessionStart` (inject project context + `/in-session` reminder), `UserPromptSubmit` (strict gate -- block first prompt until `/in-session` runs), `Stop` (remind `/in-finish` at wrap-up). Hook scripts live under `.claude/scripts/`. Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture`.
 
-- `CLAUDE.md` (this file) - Project rules and structure
-- `intent/llm/MODULES.md` - Module registry (the Highlander enforcer)
-- `intent/llm/DECISION_TREE.md` - Where does this code belong?
-- `intent/wip.md` - Current work in progress
-- `intent/restart.md` - Session restart context (if exists)
+## File map
 
-## Steel Threads
+- `AGENTS.md` -- primary tool-agnostic contract. Read first.
+- `usage-rules.md` -- terse DO / NEVER rules (Elixir convention; honoured by `mix usage_rules.sync`).
+- `intent/docs/working-with-llms.md` -- canon narrative on how AGENTS.md + CLAUDE.md + usage-rules.md + hooks + critics + skills compose.
+- `intent/llm/MODULES.md` -- Highlander registry; check before creating new modules.
+- `intent/llm/DECISION_TREE.md` -- code-placement flow chart.
+- `intent/` -- steel threads (`st/`), project docs (`docs/`), work tracking (`wip.md`, `restart.md`).
+- `.intent/` -- configuration and metadata.
 
-Steel threads are organized as directories under `intent/st/`:
+## Rules of the road
 
-- Each steel thread has its own directory (eg ST0001/)
-- Minimum required file is `info.md` with metadata
-- Optional files: design.md, impl.md, tasks.md
+Four cross-language principles govern all Intent projects:
 
-## Commands
+- **Highlander** (`IN-AG-HIGHLANDER-001`) -- there can be only one; no divergent copies of the same concern.
+- **PFIC** (`IN-AG-PFIC-001`) -- Pure-Functional-Idiomatic-Coordination; pattern match, pipe, tag, compose.
+- **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
+- **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
 
-### Core Commands
+Full rule files live at `intent/plugins/claude/rules/agnostic/`. The terse DO / NEVER contract for this project lives in `usage-rules.md`. Language-specific concretisations at `intent/plugins/claude/rules/<lang>/`.
 
-- `intent st new "Title"` - Create a new steel thread
-- `intent st list` - List all steel threads
-- `intent st show <id>` - Show steel thread details
-- `intent wp new <STID> "Title"` - Create a new work package
-- `intent wp list <STID>` - List work packages for a steel thread
-- `intent wp start <STID/NN>` - Mark work package as WIP
-- `intent wp done <STID/NN>` - Mark work package as Done
-- `intent doctor` - Check configuration
-- `intent help` - Get help
+## Critic dispatch
 
-### Claude Commands
+Per-language rule enforcement via thin subagents that read the rule library at invocation:
 
-- `intent claude subagents <command>` - Manage Claude subagents
-- `intent claude skills <command>` - Manage Claude skills
-- `intent claude prime` - Synthesize project knowledge into MEMORY.md
+```
+Task(subagent_type="critic-<lang>", prompt="review <paths>")
+Task(subagent_type="critic-<lang>", prompt="test-check <paths>")
+```
 
-## Session Workflow
+`/in-review` auto-detects language and dispatches. Headless runner `bin/intent_critic` powers the pre-commit gate. Contract: `intent/docs/critics.md`.
 
-### On session start
+## Project-specific
 
-1. Read this file, MODULES.md, DECISION_TREE.md, wip.md, restart.md
-2. Understand current state before making any changes
-3. Ask clarifying questions if the task is ambiguous
+<!-- user:start -->
+<!-- Author: [[AUTHOR]], created [[DATE]]. Add project-specific Claude directives below this line. Preserved across regeneration. -->
 
-### Before creating code
+<!-- user:end -->
 
-1. Check MODULES.md -- does a module already own this concern?
-2. Check DECISION_TREE.md -- where does this code belong?
-3. If creating a new module: register in MODULES.md first
+---
 
-### On session end
-
-1. Update intent/wip.md with current state
-2. Update intent/restart.md with context for next session
-3. Commit with descriptive message
-
-## Author
-
-[[AUTHOR]]
+_Generated from `lib/templates/llm/_CLAUDE.md` on [[DATE]] for Intent v[[INTENT_VERSION]]._
