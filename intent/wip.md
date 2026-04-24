@@ -1,47 +1,63 @@
 ---
-verblock: "24 Apr 2026:v0.42: matts - ST0035 Phase 0 elaborated, awaiting review"
-intent_version: 2.9.0
+verblock: "24 Apr 2026:v0.43: matts - ST0035 Phase 0 + WP01 complete; WP02 next"
+intent_version: 2.9.1
 ---
 
 # Work In Progress
 
 ## Current State
 
-**ST0035 (Canonical LLM Config + Fleet Rollout) opened 2026-04-24.** Phase 0 complete — full scope elaboration committed: `info.md`, `design.md` (10 canon decisions D1–D10 + risk register), `tasks.md` (master checklist), and 17 × `WP/NN/info.md` files with forensic detail (objective, deliverables, approach, acceptance criteria, dependencies, risks, verification, sizing). No production code touched. **Awaiting user review of Phase 0 before WP01 begins.**
+**ST0035 (Canonical LLM Config + Fleet Rollout) active. Phase 0 complete, all 5 open decisions resolved, WP01 (self-upgrade + cancellations) Done.** Intent stamped at `2.9.1`. ST0010 and ST0015 cancelled + moved to `intent/st/CANCELLED/` with deprecation annotations. Chain extended in `bin/intent_upgrade` (new gate, new case, 16 new chain tails). `migrate_v2_9_0_to_v2_9_1()` stub in place (stamp-only at WP01; canon-apply lands in WP11). 707 BATS tests green. **WP02 (refresh root `usage-rules.md` to current-as-built state) is next.**
 
-Five open decisions carried from planning — user resolution required before WP01:
+## ST0035 progress
 
-1. Version bump: 2.9.1 (default) vs 2.10.0.
-2. Hook enforcement strictness: soft reminder (default) vs hard gate via UserPromptSubmit.
-3. Pre-commit critic threshold: block on CRITICAL + WARNING (default) vs CRITICAL only.
-4. PostToolUse advisory critic: off by default (default) vs on.
-5. (Resolved during Phase 0) Cancelled ST location: `intent/st/CANCELLED/` convention confirmed.
+| Status      | WP  | Title                                                                                 | Size |
+| ----------- | --- | ------------------------------------------------------------------------------------- | ---- |
+| Done        | 01  | Self-upgrade to v2.9.1 + cancel ST0010 / ST0015                                       | XS   |
+| Not Started | 02  | Refresh root `usage-rules.md`                                                         | S    |
+| Not Started | 03  | Write `intent/docs/working-with-llms.md`                                              | M    |
+| Not Started | 04  | `.claude/settings.json` template (SessionStart + UserPromptSubmit strict gate + Stop) | M    |
+| Not Started | 05  | `bin/intent_critic` headless runner                                                   | L    |
+| Not Started | 06  | `.git/hooks/pre-commit` template                                                      | S    |
+| Not Started | 07  | `.intent_critic.yml` default template                                                 | XS   |
+| Not Started | 08  | Root `AGENTS.md` generator rewrite                                                    | M    |
+| Not Started | 09  | Root `CLAUDE.md` overlay template                                                     | S    |
+| Not Started | 10  | Delete deprecated artefacts                                                           | XS   |
+| Not Started | 11  | Extend `intent claude upgrade`                                                        | M    |
+| Not Started | 12  | Socrates/Diogenes FAQ cross-refs                                                      | XS   |
+| Not Started | 13  | Update Intent's own CLAUDE.md                                                         | S    |
+| Not Started | 14  | Self-apply canon to Intent (dogfood)                                                  | S    |
+| Not Started | 15  | Canary rollout (Conflab, Lamplight, Laksa)                                            | M    |
+| Not Started | 16  | Fleet rollout (12 Intent + Pplr)                                                      | L    |
+| Not Started | 17  | Verification sweep + dogfood journal                                                  | S    |
+
+## Resolved decisions
+
+1. **Version**: 2.9.1.
+2. **Hook enforcement**: strict `UserPromptSubmit` gate blocking first prompt until `/in-session` runs. User will reassess intrusiveness post-rollout.
+3. **Pre-commit critic threshold**: CRITICAL + WARNING blocks (`--warnings-are-errors` posture).
+4. **PostToolUse advisory critic**: off by default (too noisy + too costly in tokens). Helper script ships; opt-in via `.intent_critic.yml post_tool_use_advisory: true` + user adds the stanza to `.claude/settings.local.json`.
+5. **Cancelled STs** go to `intent/st/CANCELLED/`; deprecation annotations inline in the cancelled ST's `info.md`.
 
 ## Recent
 
-- **2026-04-24**: **ST0035 opened; Phase 0 complete.** Scope: canonical LLM-config surface (AGENTS.md / CLAUDE.md / usage-rules.md / intent/llm/ / .claude/settings.json hooks / pre-commit critic gate) refreshed to state-of-the-art (AGENTS.md community spec, Linux Foundation Agentic AI Foundation governance, Elixir `usage-rules.md` convention preserved), ship as v2.9.1, roll to 17 projects (16 Intent + Pplr). 17 WPs sized XS–L, total ST size XL. Phase 0 committed; implementation gated on user review.
-- **2026-04-23 to 2026-04-24**: `critic-shell` dogfood on Intent's own bash codebase. Findings classified P0/P1/P2. Fix commits: `a9ee349` (P0/P1), `0de89cd` (P2 sweep); prompt-fix `60dfcd6`. WP12 dogfood journal Entry 1 complete.
-- **2026-04-23**: **v2.9.0 released + fleet rollout complete.** ST0034 closed. Release commit `d1b0fe1`; tag `v2.9.0` on `local` + `upstream`; GitHub release published. Canary (Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex) + batch 2 (Laksa, MeetZaya, MicroGPTEx, Molt, Molt-matts) + batch 3 (Multiplyer, Prolix, Utilz, Courses/Agentic Coding) — 13/13 active projects upgraded clean. `intent st done` empty-`completed:` field bug fixed in the release commit. CI workflow retry-fixed (`237f5ce`) after transient GitHub HTTP 500 broke the macOS bats-library clone. False-positive stp/ removal prompt fixed in `983ccbf` (now gated on actual `stp/` directory presence).
-- **2026-04-23**: WP10 (Documentation) closed. New canonical docs (rules.md, expanded writing-extensions.md, updated critics.md), all reference files updated, CHANGELOG + release-notes drafts. Mid-WP scope expansion absorbed the TCA suite refactor (in-tca-init/audit/synthesize/remediate/finish drop ad-hoc R-numbering and dispatch critic-<lang>) and 1195-line total-codebase-audit.md update for v2.9.0. `tests/unit/docs_completeness.bats` ships. Task #26 (generator fixes for `intent agents sync`) closed in `f2beaed`; follow-on cleanup commit removed dead `bl)` dispatch case from `bin/intent_main` and swept TPD `intent bl` residue from v2.5.0's Backlog.md removal.
-- **2026-04-23**: WP09 (migration chain) closed. v2.8.2 → v2.9.0 migration step authored; chain extended in `bin/intent_upgrade` (gate check + 16 chain-tails + new `"2.8.2"` case); 28 BATS tests in `ext_migration.bats`; full suite 696 ok.
-- **2026-04-23**: WP07 (critic subagent family) closed in a single cohesive commit (`398de76`). Four critics + 16-row verification matrix green; critic-shell retrofitted; in-review stage-2 dispatcher; `.intent_critic.yml` schema + sample; intent/docs/critics.md; three new BATS suites (critic_dispatch, critic_report_format, critic_config).
-- **2026-04-22**: WP12 (shell rule pack + `critic-shell` subagent) + WP06 (Rust/Swift/Lua rule packs) + WP08 (worker-bee extracted to `lib/templates/ext-seeds/` with `git mv` so history is preserved) + `/in-session` bootstrap skill shipped. Commits `44e05d1`, `c17d03b`, `65f3cea`, `d2edb59`.
-
-## Active Steel Threads
-
-- **ST0035**: Canonical LLM Config + Fleet Rollout (WIP). Phase 0 docs elaborated; implementation gated on user review. `intent/st/ST0035/` — see `info.md`, `design.md`, `tasks.md`, `WP/01/` through `WP/17/`. Plan source: `/Users/matts/.claude/plans/ultrathink-on-please-ingest-elegant-sundae.md`.
+- **2026-04-24**: ST0035 opened and populated. Phase 0 forensic elaboration across `info.md`, `design.md` (10 canon decisions D1–D10 + risk register), `tasks.md`, 17 × `WP/NN/info.md`. Decisions resolved 2026-04-24. WP01 complete: VERSION → 2.9.1, `.intent/config.json` stamped, migration chain extended, ST0010 + ST0015 cancelled to `intent/st/CANCELLED/`. Commits: `055a7e4` Phase 0 · `b265987` decisions resolved · `567d5d1` WP01 · `1472cca` WP01 marked Done.
+- **2026-04-23 to 2026-04-24**: `critic-shell` dogfood on Intent's own bash. WP12 dogfood journal Entry 1 complete. Commits: `a9ee349` P0/P1 · `0de89cd` P2 sweep · `60dfcd6` prompt-fix.
+- **2026-04-23**: v2.9.0 released + fleet rollout complete. ST0034 closed. Tag `v2.9.0` on both remotes; GitHub release published.
 
 ## Next Up
 
-1. **Review ST0035 Phase 0** — user review of `info.md` + `design.md` + 17 × WP/NN/info.md. Resolve 5 open decisions. Approve implementation start.
-2. **WP01 begins after Phase 0 approval**: self-upgrade Intent to v2.9.1 + cancel ST0010/ST0015 via existing `Cancelled` status with deprecation annotations.
+1. **WP02**: refresh root `usage-rules.md` to current-as-built (adds /in-\* skill family, critic family, extension system, hooks overview) and author `lib/templates/llm/_usage-rules.md` template for downstream projects. Size S.
+2. **WP03**: author `intent/docs/working-with-llms.md` (canon tech note). Size M.
+3. **WP05** can start in parallel with WP02/03 — `bin/intent_critic` runner has no doc dependencies.
+
+See `intent/st/ST0035/tasks.md` for full dependency graph.
 
 ## Deferred observations
 
-- **`critic-shell` dogfood blog post**: path updated to `docs/blog/_drafts/####-shell-critic-inception.md` (2026-04-24). Working title "Using Intent's critic-shell on Intent: Inception Edition". Publication gated on real dogfood runs (Entries 1-3, now underway post-v2.9.0).
-- **WP07 follow-ups (from ST0034)**: align Diogenes fixture-context handling across four critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures. Not in ST0035 scope.
+- **Blog draft path**: `docs/blog/_drafts/####-shell-critic-inception.md` (updated from `docs/blog-drafts/` on 2026-04-24). Publication gated on real dogfood runs.
+- **WP07 follow-ups (from ST0034)**: align Diogenes fixture-context handling across the critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures. Not in ST0035 scope.
 
 ## Parked
 
-- ST0010 (Anthropic MCP Integration, v2.0.0-era) — cancelled via ST0035 WP01 with deprecation annotation.
-- ST0015 (Enhanced Steel Thread Templates, v2.0.0-era) — cancelled via ST0035 WP01 with deprecation annotation.
+_(None — ST0010 and ST0015 cancelled in WP01.)_

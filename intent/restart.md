@@ -1,82 +1,65 @@
-# Claude Code Session Restart
+# Claude Code Session Restart — narrative state
 
-## Current State
+## Current state (2026-04-24, end of WP01)
 
-**Intent v2.9.0 released 2026-04-23 — fleet rollout complete.** ST0034 (Agentic Software Engineering Suite) closed; all 12 WPs done. Release commit `d1b0fe1`; tag `v2.9.0` on `local` + `upstream`; GitHub release at <https://github.com/matthewsinclair/intent/releases/tag/v2.9.0>. **13/13 active projects upgraded to 2.9.0**: canary (Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex), batch 2 (Laksa, MeetZaya, MicroGPTEx, Molt, Molt-matts), batch 3 (Multiplyer, Prolix, Utilz, Courses/Agentic Coding). Conflab + Lamplight + A3/\* skipped per direction. Zero rollbacks. CI workflow retry-fixed (`237f5ce`) after transient GitHub HTTP 500. False-positive `stp/` removal prompt on `intent upgrade` fixed in `983ccbf` (now gated on actual `stp/` directory presence). **Next: dogfood `critic-shell` against Intent's own bash.**
+**Intent v2.9.1 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) active, WIP.** Intent's own version stamped at `2.9.1` via WP01. The canon artefacts (AGENTS.md-at-root, CLAUDE.md overlay, refreshed usage-rules.md, `.claude/settings.json` hooks, pre-commit critic gate, `bin/intent_critic` runner) are defined in Phase 0 docs and land across WP02–WP11 before self-apply (WP14), canary (WP15), fleet rollout (WP16), and verification (WP17).
 
-## ST0034 status (closed)
+Phase 0 was the "document first, code next" elaboration: `info.md`, `design.md` (10 canon decisions D1–D10 + risk register), `tasks.md` (critical path + dependency matrix), and all 17 × `WP/NN/info.md` files with forensic detail. Committed as `055a7e4` and reviewed. All 5 open decisions from planning are resolved (see `intent/st/ST0035/info.md` Open Decisions section).
 
-| Status    | WPs                                                                                                                                                                                                                                               |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Done (12) | WP01 schema · WP02 ext system · WP03 rationalisation · WP04 agnostic · WP05 Elixir · WP06 Rust/Swift/Lua · WP07 critic family · WP08 worker-bee extraction · WP09 migration chain · WP10 documentation · WP11 release · WP12 shell + critic-shell |
+## ST0035 context
 
-## What WP10 shipped
+Driven by fleet audit findings:
 
-### Three new docs
+- The LLM-facing config surface had drifted — root `CLAUDE.md` / `AGENTS.md` / `usage-rules.md` / `intent/llm/*` overlapping with no single canon.
+- Fleet-wide `.claude/` was universally empty: no session hooks, no auto-loaded skills, no critic scheduling. Capability existed; enforcement didn't.
+- 9 of the 15 upgraded projects were missing `intent/llm/DECISION_TREE.md`. Multiplyer was missing root `AGENTS.md` entirely.
+- Root `usage-rules.md` was current-ish but pre-dated the `/in-*` skill family, critic subagents, and extensions.
+- External state of the art: AGENTS.md is the de facto standard (60k+ repos, Linux Foundation governance); CLAUDE.md is positioned as a Claude-specific overlay; Elixir's per-package `usage-rules.md` convention is strong and worth honouring.
+- Two stale NOT-STARTED steel threads (ST0010 MCP exploration, ST0015 enhanced ST templates) were overtaken — cancelled in WP01.
 
-- `intent/docs/rules.md` — rule library guide (schema, IDs, authoring, validation, attribution, rule-reference skill pattern, critic consumption, ext-supplied rules).
-- `intent/docs/writing-extensions.md` — expanded from the WP02 skeleton with the worker-bee worked example: anatomy on disk, manifest, lifecycle (scaffold/author/validate/install), debugging, deferred-publishing note.
-- `intent/docs/critics.md` — added the registration-freeze operational note (subagent installs only visible after next session start).
+## ST0035 progress
 
-### Updated docs and config
+Done: WP01 (self-upgrade + cancel ST0010/ST0015).
 
-- CLAUDE.md (v2.9.0 architecture, drops elixir, adds critic-\* family, worker-bee relocation note, Migration Notes for v2.8.2 → v2.9.0).
-- DECISION_TREE.md (three new branches: rule placement, skill placement, rule-vs-skill-vs-subagent).
-- creating-custom-agents.md (canon vs ext distinction).
-- Help files: `lib/help/{ext,rules,claude}.help.md` updated.
-- AGENTS.md regenerated via `intent agents sync` (with a noted generator-deficiency follow-up).
+Not Started (16): WP02 through WP17. Critical path is WP01 → WP02 → WP03 → WP08 → WP09 → WP11 → WP14 → WP15 → WP16 → WP17. WP05 (`bin/intent_critic`) can start in parallel with WP02/03.
 
-### Mid-WP scope expansion (TCA suite + Elixir skill frontmatter)
+## Resolved decisions (all 5)
 
-Originally out of WP10 scope, folded in mid-WP after the TCA suite was found to still use pre-v2.9.0 R-numbering. Full Option A refactor:
+1. **Version**: 2.9.1.
+2. **Hook enforcement**: strict `UserPromptSubmit` gate blocking first prompt until `/in-session` runs. Reassess post-rollout.
+3. **Pre-commit critic threshold**: CRITICAL + WARNING blocks.
+4. **PostToolUse advisory critic**: off by default. Helper script ships; opt-in via `.intent_critic.yml post_tool_use_advisory: true`.
+5. **Cancelled STs** go to `intent/st/CANCELLED/`; deprecation annotation inline.
 
-- `in-tca-init` selects rule packs by ecosystem; drops invented R1-R15 numbering.
-- `in-tca-audit` dispatches `critic-<lang>` per WP; drops the 100-line custom audit-prompt template.
-- `in-tca-synthesize` consumes the stable critic report schema (CRITICAL/WARNING/RECOMMENDATION/STYLE + IN-\* IDs); maps cleanly to the existing P0/P1/P2a/P2b/P3 priority tiers.
-- `in-tca-remediate` and `in-tca-finish` cite IN-\* IDs throughout; remediation FP guidance points at `.intent_critic.yml` for project-wide carve-outs.
-- `intent/docs/total-codebase-audit.md` (1195 lines) updated: §0.1, §1.1, §1.2, §2.1, §2.2, Phase 0.5 grep section, Appendix B, Appendix C all reworked. Appendices D / E / F preserved with explicit pre-v2.9.0 framing notes.
-- `in-elixir-essentials` and `in-elixir-testing` declare machine-readable `rules:` frontmatter listing the 13 IN-EX-CODE-_ and IN-EX-TEST-_ IDs they cite.
+## Rollout universe (17 projects)
 
-### CHANGELOG and release notes drafts (staged for WP11)
+- 15 downstream Intent projects: Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex, Conflab, Courses/Agentic Coding, Laksa, Lamplight, MeetZaya, MicroGPTEx, Molt, Molt-matts, Multiplyer, Prolix, Utilz.
+- Intent (self) — dogfooded in WP14.
+- Pplr — non-Intent today; `intent init` first, then canon apply.
 
-- `CHANGELOG.md` v2.9.0 entry drafted under `[Unreleased]` → `[2.9.0]`. No vanity metrics.
-- `docs/releases/2.9.0/RELEASE_NOTES.md` drafted with full narrative (Rules library, Critic subagents, User extensions, Breaking changes, Upgrade, Acknowledgements, Migration notes for fleet projects).
-- Both include the elixir-test-critic acknowledgement.
+Excluded: Sites (handled inside Laksa as a subdir), llm-tropes (content-only), A3/\* (content-only).
 
-### Tests
+Canary order (WP15): Conflab → Lamplight → Laksa. Fleet sweep (WP16) starts with highest-delta projects (Multiplyer, Arca trio) and ends with Pplr (bootstrap + apply).
 
-- `tests/unit/docs_completeness.bats` (11 tests): 3 docs presence; cross-references from CLAUDE.md / MODULES.md / DECISION_TREE.md resolve; rule library + ext system mentioned in DECISION_TREE; cross-refs from new docs to siblings resolve; no_dead_refs to deleted elixir/canon worker-bee paths; agents_sync_idempotent.
-- Full BATS suite: 707/707 ok (was 696 before WP10).
-- `intent claude rules validate`: 48/48 ok.
-- `intent doctor`: clean.
+## Next up
 
-## Task #26 closed (post-WP10)
+**WP02 — Refresh root `usage-rules.md`.** Size S. Updates the hand-authored file to cover /in-\* skill family, critic-\* subagents, extension system, hooks overview. Also author `lib/templates/llm/_usage-rules.md` template for downstream rollout. Keep the DO / NEVER structure — rules only; narrative lives in `working-with-llms.md` (WP03).
 
-- **`intent agents sync` generator: fixed in `f2beaed`.** Generator now emits current `intent wp` commands, detects nested Bats layouts via `bats -r tests/`, and falls back to `agent.md` frontmatter when `metadata.json` is missing. Follow-on commit removed the dead `bl)` dispatch case from `bin/intent_main` and swept TPD `intent bl` residue left over from v2.5.0's Backlog.md removal.
+## Session conventions (unchanged)
 
-## What WP09 shipped (prior session)
-
-- `bin/intent_helpers`: `migrate_v2_8_2_to_v2_9_0`, `needs_v2_9_0_upgrade`, `generate_ext_readme`. All idempotent.
-- `bin/intent_upgrade` chain wiring: gate check + `"2.8.2"` case + 16 chain-tails.
-- `tests/unit/ext_migration.bats`: 28 tests.
+- T-shirt sizing only.
+- Compact/refresh at ~200-250k tokens.
+- ALWAYS use `intent` CLI for ST/WP operations (gotcha: `ST0035` or `35`, not `0035` — leading zero is parsed as octal).
+- NEVER manually wrap lines in markdown.
+- NO Claude attribution in commits.
+- Fail-forward: no backwards-compat shims.
+- Document first, code next, hard review gate.
 
 ## Recent commits
 
-- `6bb9d0d` — WP10: documentation pass + TCA suite refactor for rule library
-- `b79e1a2` — WP09: v2.8.2 -> v2.9.0 migration step + chain wiring
-- `398de76` — WP07: critic subagent family (elixir/rust/swift/lua)
-- `44e05d1` — WP12: shell rule pack + critic-shell subagent
-- `c17d03b` — WP06: Rust, Swift, Lua rule packs
-- `65f3cea` — WP08: extract worker-bee from canon to ext-seed
-
-## Deferred / observations
-
-- **WP09 canary dry-run**: against fleet projects (Anvil, Arca/arca_cli, Arca/arca_config, Arca/arca_notionex, Conflab). Procedure documented in WP/09/info.md §Canary projects. Touches real fleet projects outside this repo, so deliberately gated on user. Run before WP11 tags v2.9.0.
-- **WP12 dogfood journal Entries 1-3**: deferred post-release.
-- **Blog draft `docs/blog-drafts/shell-critic-inception.md`**: publication gated on real dogfood findings.
-- **Worker-bee seed manifest `intent_compat.min`**: currently 2.8.2. WP11 must bump to 2.9.0 in lockstep with VERSION.
-- **WP07 follow-ups** (small): align Diogenes fixture-context handling across the four critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures.
-
-## Parked
-
-- ST0010, ST0015: in `intent/st/NOT-STARTED/`
+- `1472cca` — mark ST0035/WP-01 Done.
+- `567d5d1` — WP01: bump to v2.9.1 + cancel ST0010/ST0015.
+- `b265987` — resolve ST0035 open decisions.
+- `aa9e0dc` — Moved (blog-drafts path change).
+- `055a7e4` — ST0035 Phase 0 scope and work packages.
+- `0de89cd` — critic-shell dogfood Entry 1 P2 sweep.
