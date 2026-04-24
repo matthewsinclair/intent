@@ -66,7 +66,7 @@ The dogfood journal is not optional — it's the load-bearing QA signal. Every r
 - [ ] `intent st done ST0035` executed; ST0035 now in COMPLETED.
 - [ ] `intent/wip.md` updated; `intent/restart.md` updated.
 - [ ] User's `MEMORY.md` Active Work section updated to reflect v2.9.1 shipped.
-- [ ] All previous WP01–WP16 exit checklists verified complete.
+- [ ] All previous WP01–WP16 and WP18 exit checklists verified complete.
 - [ ] Commit messages follow Intent conventions, no Claude attribution.
 
 ### Tests to add
@@ -79,7 +79,7 @@ None.
 
 ## Dependencies
 
-- **Blocked by**: WP16 (fleet applied).
+- **Blocked by**: WP16 (fleet applied), WP18 (user-doc review closed).
 - **Blocks**: None — WP17 closes ST0035.
 
 ## Implementation Notes

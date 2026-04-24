@@ -84,7 +84,8 @@ ST0035 resolves the drift with a single release. Fail-forward, no backwards-comp
 | WP14 | Self-apply canon to Intent repo (dogfood)                             | WP11, WP13                   | S    | Med  |
 | WP15 | Canary rollout: Conflab, Lamplight, Laksa                             | WP14                         | M    | Med  |
 | WP16 | Fleet rollout: remaining 13 projects (12 Intent + Pplr)               | WP15                         | L    | Med  |
-| WP17 | Verification sweep + dogfood journal                                  | WP16                         | S    | Low  |
+| WP17 | Verification sweep + dogfood journal                                  | WP16, WP18                   | S    | Low  |
+| WP18 | Review and update (or retire) `intent/usr/*.md`                       | WP03 (soft WP14)             | M    | Low  |
 
 See `design.md` for the full canon decision rationale, per-WP acceptance-criteria philosophy, risk register, and fail-forward stance. Each `WP/NN/info.md` carries its own forensic detail: objective, deliverables, approach, acceptance criteria, risks, verification.
 

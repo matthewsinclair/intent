@@ -1,5 +1,5 @@
 ---
-verblock: "24 Apr 2026:v0.44: matts - ST0035 WP02 complete; WP03 next"
+verblock: "24 Apr 2026:v0.46: matts - ST0035 WP03 complete; WP18 added; WP04/12/05 next"
 intent_version: 2.9.1
 ---
 
@@ -7,7 +7,7 @@ intent_version: 2.9.1
 
 ## Current State
 
-**ST0035 (Canonical LLM Config + Fleet Rollout) active. WP01 + WP02 Done.** Intent stamped at `2.9.1`. Root `usage-rules.md` refreshed to v2.9.0+ surface (/in-\* skill family, critic-\* subagents, rule library, extensions, session hooks, pre-commit). Downstream template shipped at `lib/templates/llm/_usage-rules.md`. **WP03 (write `intent/docs/working-with-llms.md` canon tech note) is next.**
+**ST0035 (Canonical LLM Config + Fleet Rollout) active. WP01, WP02, WP03 Done.** Intent stamped at `2.9.1`. `intent/docs/working-with-llms.md` now lives at 459 lines with D1–D10 as H2 sections, ASCII architecture diagram, hooks JSON snippet, critic cadence, Socrates/Diogenes FAQ (with git hashes `7f4529e` + `37a0ed0`), and seven troubleshooting gotchas. Cross-refs in place from README.md (new "For LLM Collaboration" section) and usage-rules.md. **WP18 added** (late addition): review `intent/usr/*.md` (`user_guide.md`, `reference_guide.md`, `deployment_guide.md` — ~2866 lines total, all pre-v2.9.0) against the v2.9.1 canon and apply per-file keep / update / throw before release. Deps: WP03 hard, WP14 soft. Blocks WP17. **WP04 is next in the main dependency chain; WP12 (XS) and WP05 (L) are independent and can run in parallel.**
 
 ## ST0035 progress
 
@@ -15,7 +15,7 @@ intent_version: 2.9.1
 | ----------- | --- | ------------------------------------------------------------------------------------- | ---- |
 | Done        | 01  | Self-upgrade to v2.9.1 + cancel ST0010 / ST0015                                       | XS   |
 | Done        | 02  | Refresh root `usage-rules.md`                                                         | S    |
-| Not Started | 03  | Write `intent/docs/working-with-llms.md`                                              | M    |
+| Done        | 03  | Write `intent/docs/working-with-llms.md`                                              | M    |
 | Not Started | 04  | `.claude/settings.json` template (SessionStart + UserPromptSubmit strict gate + Stop) | M    |
 | Not Started | 05  | `bin/intent_critic` headless runner                                                   | L    |
 | Not Started | 06  | `.git/hooks/pre-commit` template                                                      | S    |
@@ -30,6 +30,7 @@ intent_version: 2.9.1
 | Not Started | 15  | Canary rollout (Conflab, Lamplight, Laksa)                                            | M    |
 | Not Started | 16  | Fleet rollout (12 Intent + Pplr)                                                      | L    |
 | Not Started | 17  | Verification sweep + dogfood journal                                                  | S    |
+| Not Started | 18  | Review and update (or retire) `intent/usr/*.md`                                       | M    |
 
 ## Resolved decisions
 
@@ -41,6 +42,8 @@ intent_version: 2.9.1
 
 ## Recent
 
+- **2026-04-24**: WP-18 added to ST0035 (late addition per user request). Review `intent/usr/*.md` (user_guide 877L, reference_guide 1370L, deployment_guide 619L — all pre-v2.9.0) and apply keep / update / throw before v2.9.1 release. `WP/18/info.md` populated Phase 0-style; tasks.md + ST0035/info.md WP table updated; WP17 now gated on WP16 + WP18.
+- **2026-04-24**: WP03 complete. New `intent/docs/working-with-llms.md` (459 lines, D1–D10 as H2, ASCII arch diagram, hooks JSON, critic cadence, Socrates/Diogenes FAQ with commits `7f4529e` + `37a0ed0`, seven troubleshooting gotchas). Cross-refs in README.md ("For LLM Collaboration" section) and MODULES.md registration. Commits: `983ffdb` content · `b148ac0` Done.
 - **2026-04-24**: WP02 complete. Root `usage-rules.md` refreshed to v2.9.0+ surface; `lib/templates/llm/_usage-rules.md` template added with `[[PROJECT_NAME]] / [[INTENT_VERSION]] / [[LANG]]` placeholders; MODULES.md registers the template. Commits: `4e75ebd` content · `357e0c4` Done.
 - **2026-04-24**: ST0035 opened and populated. Phase 0 forensic elaboration across `info.md`, `design.md` (10 canon decisions D1–D10 + risk register), `tasks.md`, 17 × `WP/NN/info.md`. Decisions resolved 2026-04-24. WP01 complete: VERSION → 2.9.1, `.intent/config.json` stamped, migration chain extended, ST0010 + ST0015 cancelled to `intent/st/CANCELLED/`. Commits: `055a7e4` Phase 0 · `b265987` decisions resolved · `567d5d1` WP01 · `1472cca` WP01 marked Done.
 - **2026-04-23 to 2026-04-24**: `critic-shell` dogfood on Intent's own bash. WP12 dogfood journal Entry 1 complete. Commits: `a9ee349` P0/P1 · `0de89cd` P2 sweep · `60dfcd6` prompt-fix.
@@ -48,8 +51,10 @@ intent_version: 2.9.1
 
 ## Next Up
 
-1. **WP03**: author `intent/docs/working-with-llms.md` (canon tech note — narrative guide explaining the three-file canon, how skills / subagents / rules / critics / hooks / extensions fit together, Socrates vs Diogenes FAQ). Size M.
-2. **WP05** can start in parallel with WP03 — `bin/intent_critic` runner has no doc dependencies. Size L (biggest engineering WP in the ST).
+1. **WP04**: `.claude/settings.json` template with SessionStart + strict `UserPromptSubmit` + Stop hooks. Size M. Main-chain next.
+2. **WP12**: Socrates/Diogenes FAQ cross-refs in `critic-*`/`socrates`/`diogenes` agent.md files. Size XS. Quick win (WP03 already authored the canonical FAQ content).
+3. **WP05** can start in parallel with WP04/12 — `bin/intent_critic` runner has no doc dependencies. Size L (biggest engineering WP in the ST).
+4. **WP18** (user-doc review) can start once WP03 lands (it has) — soft-gated on WP14 for final updates, so the audit can run early but applied updates may want to wait until after dogfood.
 
 See `intent/st/ST0035/tasks.md` for full dependency graph.
 

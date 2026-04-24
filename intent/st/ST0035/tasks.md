@@ -2,9 +2,9 @@
 
 ## Work packages (forensic detail lives in each `WP/NN/info.md`)
 
-- [ ] **WP01** — Self-upgrade Intent to v2.9.1 + cancel ST0010 / ST0015. `WP/01/info.md`. Size: XS. Deps: —.
-- [ ] **WP02** — Refresh root `usage-rules.md` to current-as-built state. `WP/02/info.md`. Size: S. Deps: WP01.
-- [ ] **WP03** — Write `intent/docs/working-with-llms.md` canon tech note. `WP/03/info.md`. Size: M. Deps: WP02.
+- [x] **WP01** — Self-upgrade Intent to v2.9.1 + cancel ST0010 / ST0015. `WP/01/info.md`. Size: XS. Deps: —.
+- [x] **WP02** — Refresh root `usage-rules.md` to current-as-built state. `WP/02/info.md`. Size: S. Deps: WP01.
+- [x] **WP03** — Write `intent/docs/working-with-llms.md` canon tech note. `WP/03/info.md`. Size: M. Deps: WP02.
 - [ ] **WP04** — Ship `.claude/settings.json` template with SessionStart + Stop hooks. `WP/04/info.md`. Size: M. Deps: WP01.
 - [ ] **WP05** — Implement `bin/intent_critic` headless critic runner. `WP/05/info.md`. Size: L. Deps: —.
 - [ ] **WP06** — Ship `.git/hooks/pre-commit` template (critic gate). `WP/06/info.md`. Size: S. Deps: WP05.
@@ -18,11 +18,14 @@
 - [ ] **WP14** — Self-apply canon to Intent repo (dogfood). `WP/14/info.md`. Size: S. Deps: WP11, WP13.
 - [ ] **WP15** — Canary rollout: Conflab, Lamplight, Laksa. `WP/15/info.md`. Size: M. Deps: WP14.
 - [ ] **WP16** — Fleet rollout: remaining 13 projects (12 Intent + Pplr). `WP/16/info.md`. Size: L. Deps: WP15.
-- [ ] **WP17** — Verification sweep + dogfood journal. `WP/17/info.md`. Size: S. Deps: WP16.
+- [ ] **WP17** — Verification sweep + dogfood journal. `WP/17/info.md`. Size: S. Deps: WP16, WP18.
+- [ ] **WP18** — Review and update (or retire) `intent/usr/*.md`. `WP/18/info.md`. Size: M. Deps: WP03 (soft WP14).
 
 ## Critical path
 
 WP01 → WP02 → WP03 → WP08 → WP09 → WP11 → WP14 → WP15 → WP16 → WP17.
+
+WP17 has two gating inputs: the fleet rollout (WP16) and the user-doc review close (WP18).
 
 Parallelisable branches once WP01 lands:
 
@@ -31,6 +34,7 @@ Parallelisable branches once WP01 lands:
 - WP06, WP07 need WP05.
 - WP12 needs WP03 but doesn't block WP11.
 - WP13 can start as soon as WP09 lands.
+- WP18 needs WP03 (done) plus a soft dep on WP14; it runs in parallel with WP15/WP16 and must land before WP17 verification starts.
 
 ## Dependencies at a glance
 
@@ -52,7 +56,8 @@ Parallelisable branches once WP01 lands:
 | WP14 | 15                               | 11, 13             |
 | WP15 | 16                               | 14                 |
 | WP16 | 17                               | 15                 |
-| WP17 | — (ST completion)                | 16                 |
+| WP17 | — (ST completion)                | 16, 18             |
+| WP18 | 17                               | 03 (soft 14)       |
 
 ## Phase 0 gate
 
