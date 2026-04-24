@@ -125,6 +125,40 @@ FIX_GOOD="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/elixir/test/strong-
 # Dispatch: `intent critic` delegates correctly
 # ====================================================================
 
+@test "disabled rule in .intent_critic.yml is suppressed" {
+  cd "$TEST_TEMP_DIR"
+  mkdir -p .intent
+  cat > .intent/config.json <<'EOF'
+{"intent_version":"2.9.1","project_name":"Disabled Test","author":"t","created_date":"2026-04-24T00:00:00Z"}
+EOF
+  cat > .intent_critic.yml <<'EOF'
+disabled:
+  - IN-EX-TEST-001
+severity_min: critical
+EOF
+  run "$SCRIPT" elixir --files "$FIX_BAD" --severity-min critical
+  # With IN-EX-TEST-001 disabled and no other critical rules firing on
+  # the fixture, the runner should exit 0 clean.
+  assert_success
+  refute_output_contains "IN-EX-TEST-001"
+}
+
+@test "non-disabled rule still fires when config disables a different rule" {
+  cd "$TEST_TEMP_DIR"
+  mkdir -p .intent
+  cat > .intent/config.json <<'EOF'
+{"intent_version":"2.9.1","project_name":"Disabled Test","author":"t","created_date":"2026-04-24T00:00:00Z"}
+EOF
+  cat > .intent_critic.yml <<'EOF'
+disabled:
+  - IN-EX-TEST-999
+severity_min: critical
+EOF
+  run "$SCRIPT" elixir --files "$FIX_BAD" --severity-min critical
+  [ "$status" -eq 1 ]
+  assert_output_contains "IN-EX-TEST-001"
+}
+
 @test "intent critic dispatches to bin/intent_critic" {
   # `intent critic` is a project command and requires a valid .intent/
   # project root. Run from INTENT_PROJECT_ROOT itself (the Intent repo).

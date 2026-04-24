@@ -102,13 +102,14 @@ severity_min: warning
 # show_all: true    # uncomment to render recommendation + style in the body
 ```
 
-| Key            | Value                                                                   | Default   |
-| -------------- | ----------------------------------------------------------------------- | --------- |
-| `disabled`     | List of rule IDs to suppress entirely for this project.                 | `[]`      |
-| `severity_min` | `critical` \| `warning` \| `recommendation` \| `style`. Body threshold. | `warning` |
-| `show_all`     | Shorthand for `severity_min: style`.                                    | `false`   |
+| Key                      | Value                                                                           | Default   |
+| ------------------------ | ------------------------------------------------------------------------------- | --------- |
+| `disabled`               | List of rule IDs to suppress entirely for this project.                         | `[]`      |
+| `severity_min`           | `critical` \| `warning` \| `recommendation` \| `style`. Body threshold.         | `warning` |
+| `show_all`               | Shorthand for `severity_min: style`.                                            | `false`   |
+| `post_tool_use_advisory` | Opt-in PostToolUse critic advisory via `.claude/scripts/post-tool-advisory.sh`. | `false`   |
 
-A canonical sample lives at `intent/plugins/claude/rules/_schema/sample-intent-critic.yml`. Copy it to the project root and edit; annotate every `disabled` entry with a trailing `# reason: ...` comment.
+The install template is `lib/templates/_intent_critic.yml` (empty defaults; `intent claude upgrade --apply` installs it per project). A worked sample with example `disabled:` entries lives at `intent/plugins/claude/rules/_schema/sample-intent-critic.yml`.
 
 Behaviour under edge conditions:
 
@@ -140,7 +141,7 @@ Exit codes:
 
 **Mechanical subset only**: only rules that publish a Greppable proxy block in their Detection section are runnable by the headless runner. Rules whose Detection is purely prose (e.g. "any function body longer than 50 lines") are skipped silently — the LLM subagent (`Task(subagent_type="critic-<lang>")`) remains the canonical path for those.
 
-The runner layers canon (`intent/plugins/claude/rules/`) and user extensions (`~/.intent/ext/*/rules/`) using the same discovery order as the subagents. Agnostic rules are intentionally skipped (they are concretised by language rules and would double-report). Per-project opt-out of specific rule IDs flows through `.intent_critic.yml disabled_rules:` — see the schema section below.
+The runner layers canon (`intent/plugins/claude/rules/`) and user extensions (`~/.intent/ext/*/rules/`) using the same discovery order as the subagents. Agnostic rules are intentionally skipped (they are concretised by language rules and would double-report). Per-project opt-out of specific rule IDs flows through `.intent_critic.yml disabled:` — see the schema section above.
 
 ## Integration with `/in-review`
 

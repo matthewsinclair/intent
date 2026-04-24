@@ -107,8 +107,13 @@ critic_load_rule_paths() {
 }
 
 # Check whether a rule is disabled in the given .intent_critic.yml file.
-# Looks for a flat `disabled_rules:` list with the rule ID. Returns 0 if
-# disabled, 1 otherwise.
+# Looks for a flat `disabled:` list with the rule ID. Returns 0 if
+# disabled, 1 otherwise. Field name aligns with intent/docs/critics.md
+# and the canonical sample at
+# intent/plugins/claude/rules/_schema/sample-intent-critic.yml.
+#
+# Awk emits exit code 10 on match; bash distinguishes this from awk's
+# natural exit 0 (finished without matching).
 critic_rule_disabled() {
   local rule_id="$1"
   local config="$2"
@@ -116,7 +121,7 @@ critic_rule_disabled() {
   [ -f "$config" ] || return 1
   awk -v id="$rule_id" '
     BEGIN { inside = 0 }
-    /^disabled_rules:[[:space:]]*\[/ {
+    /^disabled:[[:space:]]*\[/ {
       line = $0
       sub(".*\\[", "", line)
       sub("\\].*", "", line)
@@ -124,20 +129,24 @@ critic_rule_disabled() {
       for (i = 1; i <= n; i++) {
         it = parts[i]
         gsub("[[:space:]\"'\'']", "", it)
-        if (it == id) { exit 0 }
+        sub("#.*$", "", it)
+        if (it == id) { exit 10 }
       }
       next
     }
-    /^disabled_rules:[[:space:]]*$/ { inside = 1; next }
+    /^disabled:[[:space:]]*$/ { inside = 1; next }
     inside == 1 && /^[[:space:]]+-/ {
       it = $0
       sub("^[[:space:]]+-[[:space:]]*", "", it)
+      sub("#.*$", "", it)
       gsub("[[:space:]\"'\'']", "", it)
-      if (it == id) { exit 0 }
+      if (it == id) { exit 10 }
       next
     }
     inside == 1 && /^[A-Za-z]/ { inside = 0 }
-  ' "$config" && return 0
+  ' "$config"
+  local rc=$?
+  [ "$rc" -eq 10 ] && return 0
   return 1
 }
 

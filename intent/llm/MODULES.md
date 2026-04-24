@@ -55,26 +55,27 @@
 
 ## Templates
 
-| Concern                   | THE Module                                              | Notes                                    |
-| ------------------------- | ------------------------------------------------------- | ---------------------------------------- |
-| CLAUDE.md template        | `lib/templates/llm/_CLAUDE.md`                          | Single source -- used by init + upgrade  |
-| Module registry           | `lib/templates/llm/_MODULES.md`                         | Highlander registry template             |
-| Decision tree             | `lib/templates/llm/_DECISION_TREE.md`                   | Code placement guide template            |
-| Archetypes reference      | `lib/templates/llm/_ARCHETYPES.md`                      | Archetype listing template               |
-| Usage rules template      | `lib/templates/llm/_usage-rules.md`                     | Downstream project DO / NEVER scaffold   |
-| Elixir archetypes         | `lib/templates/archetypes/elixir/`                      | 9 .ex.eex code templates                 |
-| ST info template          | `lib/templates/prj/st/ST####/info.md`                   | Steel thread frontmatter                 |
-| WP info template          | `lib/templates/prj/st/WP/info.md`                       | Work package frontmatter                 |
-| WIP template              | `lib/templates/prj/_wip.md`                             | Work-in-progress file                    |
-| Dependency graph template | `lib/templates/llm/_DEPENDENCY_GRAPH.md`                | Dependency rules template                |
-| D11 Credo check           | `lib/templates/credo_checks/elixir/dependency_graph.ex` | Cross-app dependency enforcement         |
-| Hook template             | `lib/templates/hooks/module_check_hook.json`            | Advisory write hook for Claude Code      |
-| Claude settings template  | `lib/templates/.claude/settings.json`                   | Canonical hook stanzas (ST0035)          |
-| Session context hook      | `lib/templates/.claude/scripts/session-context.sh`      | SessionStart: project/git/WIP context    |
-| In-session gate hook      | `lib/templates/.claude/scripts/require-in-session.sh`   | UserPromptSubmit strict gate (ST0035)    |
-| Post-tool advisory hook   | `lib/templates/.claude/scripts/post-tool-advisory.sh`   | Opt-in PostToolUse critic (off default)  |
-| Credo check templates     | `lib/templates/credo_checks/elixir/`                    | 6 checks: R2, R6, R7, R11, R15, R16      |
-| Credo config script       | `lib/scripts/configure_credo.exs`                       | Configures .credo.exs in target projects |
+| Concern                   | THE Module                                              | Notes                                              |
+| ------------------------- | ------------------------------------------------------- | -------------------------------------------------- |
+| CLAUDE.md template        | `lib/templates/llm/_CLAUDE.md`                          | Single source -- used by init + upgrade            |
+| Module registry           | `lib/templates/llm/_MODULES.md`                         | Highlander registry template                       |
+| Decision tree             | `lib/templates/llm/_DECISION_TREE.md`                   | Code placement guide template                      |
+| Archetypes reference      | `lib/templates/llm/_ARCHETYPES.md`                      | Archetype listing template                         |
+| Usage rules template      | `lib/templates/llm/_usage-rules.md`                     | Downstream project DO / NEVER scaffold             |
+| Elixir archetypes         | `lib/templates/archetypes/elixir/`                      | 9 .ex.eex code templates                           |
+| ST info template          | `lib/templates/prj/st/ST####/info.md`                   | Steel thread frontmatter                           |
+| WP info template          | `lib/templates/prj/st/WP/info.md`                       | Work package frontmatter                           |
+| WIP template              | `lib/templates/prj/_wip.md`                             | Work-in-progress file                              |
+| Dependency graph template | `lib/templates/llm/_DEPENDENCY_GRAPH.md`                | Dependency rules template                          |
+| D11 Credo check           | `lib/templates/credo_checks/elixir/dependency_graph.ex` | Cross-app dependency enforcement                   |
+| Hook template             | `lib/templates/hooks/module_check_hook.json`            | Advisory write hook for Claude Code                |
+| Critic config template    | `lib/templates/_intent_critic.yml`                      | `.intent_critic.yml` install default (ST0035/WP07) |
+| Claude settings template  | `lib/templates/.claude/settings.json`                   | Canonical hook stanzas (ST0035)                    |
+| Session context hook      | `lib/templates/.claude/scripts/session-context.sh`      | SessionStart: project/git/WIP context              |
+| In-session gate hook      | `lib/templates/.claude/scripts/require-in-session.sh`   | UserPromptSubmit strict gate (ST0035)              |
+| Post-tool advisory hook   | `lib/templates/.claude/scripts/post-tool-advisory.sh`   | Opt-in PostToolUse critic (off default)            |
+| Credo check templates     | `lib/templates/credo_checks/elixir/`                    | 6 checks: R2, R6, R7, R11, R15, R16                |
+| Credo config script       | `lib/scripts/configure_credo.exs`                       | Configures .credo.exs in target projects           |
 
 ## Help Files
 
