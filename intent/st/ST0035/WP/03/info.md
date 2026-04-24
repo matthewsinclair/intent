@@ -3,7 +3,7 @@ verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-03
 title: "Write intent/docs/working-with-llms.md canon tech note"
 scope: Medium
-status: WIP
+status: Done
 ---
 
 # WP-03: Write intent/docs/working-with-llms.md canon tech note
