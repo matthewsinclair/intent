@@ -90,7 +90,12 @@
       "Bash(jq '.rules[] | select\\(.language == \"agnostic\"\\) | {id: .id, title: .title, concretised_by: .concretised_by}' -r)",
       "Bash(bash *)",
       "Bash(bin/intent doctor *)",
-      "Bash(bin/intent plugin *)"
+      "Bash(bin/intent plugin *)",
+      "WebSearch",
+      "WebFetch(domain:agents.md)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(bin/intent st *)",
+      "Bash(bin/intent wp *)"
     ],
     "deny": []
   }
