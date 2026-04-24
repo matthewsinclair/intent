@@ -3,7 +3,7 @@ verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-04
 title: "Ship .claude/settings.json template with session hooks"
 scope: Medium
-status: Not Started
+status: WIP
 ---
 
 # WP-04: Ship .claude/settings.json template with session hooks
