@@ -1,5 +1,5 @@
 ---
-verblock: "24 Apr 2026:v0.43: matts - ST0035 Phase 0 + WP01 complete; WP02 next"
+verblock: "24 Apr 2026:v0.44: matts - ST0035 WP02 complete; WP03 next"
 intent_version: 2.9.1
 ---
 
@@ -7,14 +7,14 @@ intent_version: 2.9.1
 
 ## Current State
 
-**ST0035 (Canonical LLM Config + Fleet Rollout) active. Phase 0 complete, all 5 open decisions resolved, WP01 (self-upgrade + cancellations) Done.** Intent stamped at `2.9.1`. ST0010 and ST0015 cancelled + moved to `intent/st/CANCELLED/` with deprecation annotations. Chain extended in `bin/intent_upgrade` (new gate, new case, 16 new chain tails). `migrate_v2_9_0_to_v2_9_1()` stub in place (stamp-only at WP01; canon-apply lands in WP11). 707 BATS tests green. **WP02 (refresh root `usage-rules.md` to current-as-built state) is next.**
+**ST0035 (Canonical LLM Config + Fleet Rollout) active. WP01 + WP02 Done.** Intent stamped at `2.9.1`. Root `usage-rules.md` refreshed to v2.9.0+ surface (/in-\* skill family, critic-\* subagents, rule library, extensions, session hooks, pre-commit). Downstream template shipped at `lib/templates/llm/_usage-rules.md`. **WP03 (write `intent/docs/working-with-llms.md` canon tech note) is next.**
 
 ## ST0035 progress
 
 | Status      | WP  | Title                                                                                 | Size |
 | ----------- | --- | ------------------------------------------------------------------------------------- | ---- |
 | Done        | 01  | Self-upgrade to v2.9.1 + cancel ST0010 / ST0015                                       | XS   |
-| Not Started | 02  | Refresh root `usage-rules.md`                                                         | S    |
+| Done        | 02  | Refresh root `usage-rules.md`                                                         | S    |
 | Not Started | 03  | Write `intent/docs/working-with-llms.md`                                              | M    |
 | Not Started | 04  | `.claude/settings.json` template (SessionStart + UserPromptSubmit strict gate + Stop) | M    |
 | Not Started | 05  | `bin/intent_critic` headless runner                                                   | L    |
@@ -41,15 +41,15 @@ intent_version: 2.9.1
 
 ## Recent
 
+- **2026-04-24**: WP02 complete. Root `usage-rules.md` refreshed to v2.9.0+ surface; `lib/templates/llm/_usage-rules.md` template added with `[[PROJECT_NAME]] / [[INTENT_VERSION]] / [[LANG]]` placeholders; MODULES.md registers the template. Commits: `4e75ebd` content · `357e0c4` Done.
 - **2026-04-24**: ST0035 opened and populated. Phase 0 forensic elaboration across `info.md`, `design.md` (10 canon decisions D1–D10 + risk register), `tasks.md`, 17 × `WP/NN/info.md`. Decisions resolved 2026-04-24. WP01 complete: VERSION → 2.9.1, `.intent/config.json` stamped, migration chain extended, ST0010 + ST0015 cancelled to `intent/st/CANCELLED/`. Commits: `055a7e4` Phase 0 · `b265987` decisions resolved · `567d5d1` WP01 · `1472cca` WP01 marked Done.
 - **2026-04-23 to 2026-04-24**: `critic-shell` dogfood on Intent's own bash. WP12 dogfood journal Entry 1 complete. Commits: `a9ee349` P0/P1 · `0de89cd` P2 sweep · `60dfcd6` prompt-fix.
 - **2026-04-23**: v2.9.0 released + fleet rollout complete. ST0034 closed. Tag `v2.9.0` on both remotes; GitHub release published.
 
 ## Next Up
 
-1. **WP02**: refresh root `usage-rules.md` to current-as-built (adds /in-\* skill family, critic family, extension system, hooks overview) and author `lib/templates/llm/_usage-rules.md` template for downstream projects. Size S.
-2. **WP03**: author `intent/docs/working-with-llms.md` (canon tech note). Size M.
-3. **WP05** can start in parallel with WP02/03 — `bin/intent_critic` runner has no doc dependencies.
+1. **WP03**: author `intent/docs/working-with-llms.md` (canon tech note — narrative guide explaining the three-file canon, how skills / subagents / rules / critics / hooks / extensions fit together, Socrates vs Diogenes FAQ). Size M.
+2. **WP05** can start in parallel with WP03 — `bin/intent_critic` runner has no doc dependencies. Size L (biggest engineering WP in the ST).
 
 See `intent/st/ST0035/tasks.md` for full dependency graph.
 
