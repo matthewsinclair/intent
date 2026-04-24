@@ -10,7 +10,7 @@ status: Not Started
 
 ## Objective
 
-After the fleet rollout (WP16), sweep all 17 projects (Intent self + 16 downstream) for compliance with the canon. Produce a ST0035 feedback report and a dogfood journal capturing surprises, rough edges, and lessons. Close the ST, mark CHANGELOG v2.9.1 final, push upstream.
+After the fleet rollout (WP16), sweep all 17 projects (Intent self + 16 downstream) for compliance with the canon. Produce a ST0035 feedback report and a dogfood journal capturing surprises, rough edges, and lessons. Close the ST, mark CHANGELOG v2.10.0 final, push upstream.
 
 ## Context
 
@@ -30,23 +30,23 @@ The dogfood journal is not optional — it's the load-bearing QA signal. Every r
    - What broke (with specifics). What was rough (friction points, unclear docs). What surprised.
    - Lessons for future STs (e.g., "always dogfood the canon on Intent before canary" — already our pattern, but reinforce).
    - Suggestions for v2.9.2 / v2.10.0 follow-ups.
-3. **CHANGELOG v2.9.1 final**: assemble the full v2.9.1 entry from all WP contributions (Added, Changed, Removed sections).
+3. **CHANGELOG v2.10.0 final**: assemble the full v2.10.0 entry from all WP contributions (Added, Changed, Removed sections).
 4. **Tag and push**:
-   - `git tag -f v2.9.1 HEAD` in Intent.
+   - `git tag -f v2.10.0 HEAD` in Intent.
    - Push to `local` (Dropbox) and `upstream` (GitHub).
-   - GitHub release: `gh release edit v2.9.1 --notes-file CHANGELOG-v2.9.1.md` or similar.
+   - GitHub release: `gh release edit v2.10.0 --notes-file CHANGELOG-v2.10.0.md` or similar.
 5. **Close ST0035**:
    - `intent st done ST0035` (marks Completed status, moves to COMPLETED dir).
    - Update `intent/wip.md` to reflect no active ST.
    - Update `intent/restart.md` with post-release context.
-6. **Memory update**: auto-memory entries updated to reflect v2.9.1 release (user's `MEMORY.md` Active Work section).
+6. **Memory update**: auto-memory entries updated to reflect v2.10.0 release (user's `MEMORY.md` Active Work section).
 
 ## Approach
 
 1. Walk through each of 17 projects (Intent + 16 downstream) and run the 10-point verification, capturing results.
 2. Assemble the feedback report (table form).
 3. Review WP-by-WP commit logs + per-WP reports (from WP14/WP15/WP16) to assemble dogfood journal entries.
-4. Draft CHANGELOG v2.9.1:
+4. Draft CHANGELOG v2.10.0:
    - **Added**: `bin/intent_critic`; `.claude/settings.json` hooks canon; `.git/hooks/pre-commit` critic gate; `.intent_critic.yml` config; `intent/docs/working-with-llms.md`; `intent/docs/pre-commit-hook.md`; `lib/templates/.claude/`; `lib/templates/hooks/`.
    - **Changed**: `intent agents sync` now writes to root `AGENTS.md`; root `CLAUDE.md` template is now Claude-specific overlay; root `usage-rules.md` refreshed to v2.9.0+ surface.
    - **Removed**: `intent/llm/AGENTS.md` (moved to root); `lib/templates/llm/_llm_preamble.md` (deprecated); ST0010 (cancelled); ST0015 (cancelled).
@@ -58,14 +58,14 @@ The dogfood journal is not optional — it's the load-bearing QA signal. Every r
 
 - [ ] Feedback report exists with 17 rows, 10 checks each.
 - [ ] Dogfood journal has ≥ one entry per WP (chronological).
-- [ ] CHANGELOG v2.9.1 has Added / Changed / Removed sections.
+- [ ] CHANGELOG v2.10.0 has Added / Changed / Removed sections.
 - [ ] Zero outstanding critical issues (tickets filed for anything non-critical).
-- [ ] `git tag v2.9.1` present in Intent.
+- [ ] `git tag v2.10.0` present in Intent.
 - [ ] Tag pushed to `local` and `upstream`.
-- [ ] GitHub release for v2.9.1 visible.
+- [ ] GitHub release for v2.10.0 visible.
 - [ ] `intent st done ST0035` executed; ST0035 now in COMPLETED.
 - [ ] `intent/wip.md` updated; `intent/restart.md` updated.
-- [ ] User's `MEMORY.md` Active Work section updated to reflect v2.9.1 shipped.
+- [ ] User's `MEMORY.md` Active Work section updated to reflect v2.10.0 shipped.
 - [ ] All previous WP01–WP16 and WP18 exit checklists verified complete.
 - [ ] Commit messages follow Intent conventions, no Claude attribution.
 
@@ -88,7 +88,7 @@ None.
 - **Dogfood journal voice**: first-person or passive voice, whichever feels natural. Focus on _surprises_, not confirmations. "The XY generator needed an extra path-escape step" matters; "canon applied successfully" is not journal-worthy.
 - **CHANGELOG format**: follow Intent's existing CHANGELOG.md style. Check previous v2.9.0 entry as template.
 - **Tag push confirmation**: per user's past convention (from memory), tag workflow is `git tag -f vX.Y.Z HEAD` then force-push to both remotes. Confirm with user before force-pushing if any ambiguity.
-- **Release notes**: assemble CHANGELOG v2.9.1 section as the release notes; `gh release edit` or `gh release create` per user's usual flow.
+- **Release notes**: assemble CHANGELOG v2.10.0 section as the release notes; `gh release edit` or `gh release create` per user's usual flow.
 - **MEMORY.md update**: remove ST0034-era "Active Work" entries; add ST0035 completion note.
 
 ## Risks and Edge Cases
@@ -112,7 +112,7 @@ See Acceptance Criteria. WP17 is itself the verification WP.
 
 - [ ] Feedback report complete.
 - [ ] Dogfood journal complete.
-- [ ] CHANGELOG v2.9.1 finalised.
+- [ ] CHANGELOG v2.10.0 finalised.
 - [ ] Tag pushed to both remotes.
 - [ ] GitHub release published.
 - [ ] ST0035 in COMPLETED.

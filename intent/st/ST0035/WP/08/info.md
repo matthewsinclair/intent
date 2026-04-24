@@ -98,7 +98,7 @@ Design D1 and D4: AGENTS.md lives at root as a real file, matching community con
 
 ## Risks and Edge Cases
 
-- **Risk**: Some fleet projects have hand-edited `intent/llm/AGENTS.md` content that must survive the move. **Mitigation**: WP08 generator detects non-template content in `intent/llm/AGENTS.md`, archives it to `intent/llm/AGENTS.md.pre-v2.9.1.bak`, and prints a migration notice. WP10 deletes `intent/llm/AGENTS.md` but preserves the `.bak` for a release cycle.
+- **Risk**: Some fleet projects have hand-edited `intent/llm/AGENTS.md` content that must survive the move. **Mitigation**: WP08 generator detects non-template content in `intent/llm/AGENTS.md`, archives it to `intent/llm/AGENTS.md.pre-v2.10.0.bak`, and prints a migration notice. WP10 deletes `intent/llm/AGENTS.md` but preserves the `.bak` for a release cycle.
 - **Risk**: Root AGENTS.md as a symlink breaks some tool. **Mitigation**: D1 already decided real file; the migration is one-way.
 - **Risk**: Enriched template becomes too long — AGENTS.md is usually expected to be scannable. **Mitigation**: target < 200 lines generated. Longer narrative goes in `working-with-llms.md`.
 - **Edge**: `.claude/` absent. Dynamic sections emit "No skills installed" / "No subagents installed" gracefully.

@@ -2,7 +2,7 @@
 
 ## Work packages (forensic detail lives in each `WP/NN/info.md`)
 
-- [x] **WP01** — Self-upgrade Intent to v2.9.1 + cancel ST0010 / ST0015. `WP/01/info.md`. Size: XS. Deps: —.
+- [x] **WP01** — Self-upgrade Intent to v2.10.0 + cancel ST0010 / ST0015. `WP/01/info.md`. Size: XS. Deps: —.
 - [x] **WP02** — Refresh root `usage-rules.md` to current-as-built state. `WP/02/info.md`. Size: S. Deps: WP01.
 - [x] **WP03** — Write `intent/docs/working-with-llms.md` canon tech note. `WP/03/info.md`. Size: M. Deps: WP02.
 - [x] **WP04** — Ship `.claude/settings.json` template with SessionStart + Stop hooks. `WP/04/info.md`. Size: M. Deps: WP01.

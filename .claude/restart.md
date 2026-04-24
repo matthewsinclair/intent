@@ -14,7 +14,7 @@
 
 - 8 of 18 WPs Done: **WP01–WP07 + WP12**. No WIP — clean handoff.
 - Decisions all resolved (1–5).
-- `.intent/config.json`: `intent_version: 2.9.1`.
+- `.intent/config.json`: `intent_version: 2.10.0` (retargeted from 2.9.1 to bundle ST0036 directory relocation).
 
 ## WP-08 resume target
 

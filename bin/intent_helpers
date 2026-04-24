@@ -951,14 +951,16 @@ needs_v2_9_0_upgrade() {
   esac
 }
 
-# needs_v2_9_1_upgrade VERSION
-# Returns 0 if VERSION is older than 2.9.1 (and therefore needs the v2.9.1 migration step).
-# Returns 1 for 2.9.1 and forward.
-needs_v2_9_1_upgrade() {
+# needs_v2_10_0_upgrade VERSION
+# Returns 0 if VERSION is older than 2.10.0 (and therefore needs the v2.10.0 migration step).
+# Returns 1 for 2.10.0 and forward.
+# Note: v2.9.1 through v2.9.9 were never released; the jump is v2.9.0 -> v2.10.0
+# (LLM canon + directory relocation bundled together as one breaking release).
+needs_v2_10_0_upgrade() {
   local version=$1
 
   case "$version" in
-    "2.9.1"|"2.9.2"|"2.9.3"|"2.9.4"|"2.9.5"|"2.9.6"|"2.9.7"|"2.9.8"|"2.9.9"|"2.10."*|"3."*)
+    "2.10."*|"2.11."*|"2.12."*|"2.13."*|"2.14."*|"2.15."*|"2.16."*|"2.17."*|"2.18."*|"2.19."*|"3."*)
       return 1
       ;;
     *)
@@ -1077,41 +1079,50 @@ migrate_v2_8_2_to_v2_9_0() {
   echo "    - To reinstall worker-bee from the seed: intent ext show worker-bee"
 }
 
-# Migrate v2.9.0 to v2.9.1 - canonical LLM config + fleet rollout (ST0035)
+# Migrate v2.9.0 to v2.10.0 - canonical LLM config + directory relocation (ST0035 + ST0036)
 #
-# At WP01 this is a stamp-only bump. The canon-apply logic (session hooks,
-# pre-commit critic gate, refreshed AGENTS.md / CLAUDE.md / usage-rules.md,
-# deletion of intent/llm/AGENTS.md) lands in WP11 by extending
-# intent_claude_upgrade, which is invoked separately via `intent claude
-# upgrade --apply`. Keeping the version migration a pure stamp bump means
-# `intent upgrade` stays fast and safe; canon apply is a deliberate,
-# reviewable step.
+# Two bundled concerns:
+# 1. ST0035 canon-apply (session hooks, pre-commit critic gate, refreshed root
+#    AGENTS.md + CLAUDE.md + usage-rules.md, deletion of intent/llm/AGENTS.md)
+#    lands in ST0035/WP11 by extending intent_claude_upgrade, invoked separately
+#    via `intent claude upgrade --apply`.
+# 2. ST0036 directory relocation (.intent/ -> intent/.config/) is BREAKING and
+#    lands in the migration function proper (ST0036/WP01+). This function
+#    performs the atomic move as part of the upgrade.
+#
+# Keeping the version-stamp part fast + safe; canon apply is a deliberate,
+# reviewable step the user runs separately. Directory relocation is intrinsic
+# to the version bump (can't defer; semver-breaking).
 #
 # Idempotent: a second run is a no-op (stamp check at the top).
-migrate_v2_9_0_to_v2_9_1() {
+migrate_v2_9_0_to_v2_10_0() {
   local project_root=$1
 
-  echo "Upgrading to Intent v2.9.1 (canonical LLM config; see ST0035)..."
+  echo "Upgrading to Intent v2.10.0 (canonical LLM config + directory relocation; see ST0035 + ST0036)..."
+
+  # NB: directory-relocation logic (.intent/ -> intent/.config/) is added here
+  # by ST0036/WP01. Keep stamp logic below it so the stamp always reflects the
+  # post-relocation state.
 
   if [ -f "$project_root/.intent/config.json" ]; then
     local current
     current=$(jq -r '.intent_version // ""' "$project_root/.intent/config.json")
-    if [ "$current" = "2.9.1" ]; then
-      echo "  already at v2.9.1 (no-op)"
+    if [ "$current" = "2.10.0" ]; then
+      echo "  already at v2.10.0 (no-op)"
       return 0
     fi
 
     local temp_file
     temp_file=$(mktemp)
-    jq --arg v "2.9.1" '.intent_version = $v | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
+    jq --arg v "2.10.0" '.intent_version = $v | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
     mv "$temp_file" "$project_root/.intent/config.json"
-    echo "  stamped: intent_version = 2.9.1"
+    echo "  stamped: intent_version = 2.10.0"
   fi
 
-  echo "  Migration to v2.9.1 complete."
+  echo "  Migration to v2.10.0 complete."
   echo ""
   echo "  NEXT STEP: run 'intent claude upgrade --apply' to install the"
-  echo "  v2.9.1 canon (root AGENTS.md + CLAUDE.md + usage-rules.md,"
+  echo "  v2.10.0 canon (root AGENTS.md + CLAUDE.md + usage-rules.md,"
   echo "  .claude/settings.json hooks, .git/hooks/pre-commit critic gate,"
   echo "  .intent_critic.yml). Canon apply is intentionally a separate step."
 }

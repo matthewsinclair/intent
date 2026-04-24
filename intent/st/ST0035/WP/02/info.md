@@ -76,7 +76,7 @@ The refresh must stay terse and prescriptive (DO / NEVER form) — if the narrat
 
 ## Dependencies
 
-- **Blocked by**: WP01 (version bump done; we can now reference v2.9.1 semantics).
+- **Blocked by**: WP01 (version bump done; we can now reference v2.10.0 semantics).
 - **Blocks**: WP03 (working-with-llms.md cross-references this file).
 
 ## Implementation Notes

@@ -7,17 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.9.1] - in progress (ST0035)
+## [2.10.0] - in progress (ST0035 + ST0036)
+
+Retargeted from v2.9.1 mid-development to bundle ST0036 (directory relocation, breaking change) into the same release. Version bump reflects the semver-breaking directory move; LLM canon work (originally scoped as v2.9.1) ships alongside.
 
 ### Added
 
-- In progress — ST0035 (Canonical LLM Config + Fleet Rollout).
+- In progress — **ST0035** (Canonical LLM Config + Fleet Rollout).
+- In progress — **ST0036** (Directory relocation: `.intent/` → `intent/.config/`). Breaking change: Intent's per-project metadata directory moves from top-level `.intent/` to nested `intent/.config/`, eliminating the "two top-level dirs" smell. Migration handled atomically by `migrate_v2_9_0_to_v2_10_0` on `intent upgrade`.
 
 ### Changed
 
-- `bin/intent_helpers`: `migrate_v2_9_0_to_v2_9_1()` stub added. Stamp-only at WP01; canon-apply logic lands in WP11 via `intent claude upgrade --apply`.
-- `bin/intent_upgrade`: chain extended to v2.9.1 (new gate, new case, new chain tail).
-- Root `VERSION` bumped to `2.9.1`.
+- `bin/intent_helpers`: `migrate_v2_9_0_to_v2_10_0()` replaces the earlier `migrate_v2_9_0_to_v2_9_1()` stub. Bundles version stamp + ST0036 directory relocation. Canon-apply logic still lands in ST0035/WP11 via `intent claude upgrade --apply` (separate step).
+- `bin/intent_upgrade`: chain extended to v2.10.0 (new gate `needs_v2_10_0_upgrade`, new case, new chain tail).
+- Root `VERSION` bumped to `2.10.0`.
+
+### Breaking
+
+- **Per-project metadata directory relocated**: `.intent/config.json` → `intent/.config/config.json`. Same for `.intent/backup/` → `intent/.config/backup/`. Anything scripting against `.intent/` (CI, editor plugins, ad-hoc `jq`) breaks on upgrade; update to `intent/.config/`. Migration is fail-forward: old location is pruned, no backwards-compat symlink.
 
 ### Removed
 

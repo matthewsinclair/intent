@@ -1,19 +1,19 @@
 ---
 verblock: "24 Apr 2026:v0.50: matts - WP04, WP05, WP06, WP07, WP12 Done (8 of 18)"
-intent_version: 2.9.1
+intent_version: 2.10.0
 ---
 
 # Work In Progress
 
 ## Current State
 
-**ST0035 (Canonical LLM Config + Fleet Rollout) active. WP01–WP07 and WP12 Done (8 of 18).** Intent stamped at `2.9.1`. Canon docs + hooks + headless critic + pre-commit gate + config template all shipped. **WP06 shipped**: `lib/templates/hooks/pre-commit.sh` — scans staged files per detected language (`mix.exs`/`Cargo.toml`/etc.; shell always included), runs `intent critic <lang> --staged --severity-min <sev>`, blocks on findings. Fail-open on missing `git`/`intent`/`.intent/config.json`. Reads `severity_min` from `.intent_critic.yml`. `intent/docs/pre-commit-hook.md` covers install/configure/opt-out/CI/troubleshooting. 9 new BATS tests green (scratch-repo end-to-end). **WP07 shipped**: `lib/templates/_intent_critic.yml` with canonical defaults (`severity_min: warning`, `disabled: []`, `post_tool_use_advisory: false`). `critics.md` schema table extended. **Bonus**: caught + fixed a critical WP-05 bug — `critic_rule_disabled()` returning 0 for every rule (awk natural-exit-0 colliding with match-exit-0); now uses exit code 10 to distinguish, field name aligned with canon `disabled:`. 2 new regression BATS tests. **WP18 still open** (intent/usr/\*.md audit). **Next up**: WP08 (M — root AGENTS.md generator rewrite; needs WP03 ✓) + WP09 (S — root CLAUDE.md template; needs WP08).
+**ST0035 (Canonical LLM Config + Fleet Rollout) active. WP01–WP07 and WP12 Done (8 of 18).** Intent stamped at `2.10.0`. Canon docs + hooks + headless critic + pre-commit gate + config template all shipped. **WP06 shipped**: `lib/templates/hooks/pre-commit.sh` — scans staged files per detected language (`mix.exs`/`Cargo.toml`/etc.; shell always included), runs `intent critic <lang> --staged --severity-min <sev>`, blocks on findings. Fail-open on missing `git`/`intent`/`.intent/config.json`. Reads `severity_min` from `.intent_critic.yml`. `intent/docs/pre-commit-hook.md` covers install/configure/opt-out/CI/troubleshooting. 9 new BATS tests green (scratch-repo end-to-end). **WP07 shipped**: `lib/templates/_intent_critic.yml` with canonical defaults (`severity_min: warning`, `disabled: []`, `post_tool_use_advisory: false`). `critics.md` schema table extended. **Bonus**: caught + fixed a critical WP-05 bug — `critic_rule_disabled()` returning 0 for every rule (awk natural-exit-0 colliding with match-exit-0); now uses exit code 10 to distinguish, field name aligned with canon `disabled:`. 2 new regression BATS tests. **WP18 still open** (intent/usr/\*.md audit). **Next up**: WP08 (M — root AGENTS.md generator rewrite; needs WP03 ✓) + WP09 (S — root CLAUDE.md template; needs WP08).
 
 ## ST0035 progress
 
 | Status      | WP  | Title                                                                                 | Size |
 | ----------- | --- | ------------------------------------------------------------------------------------- | ---- |
-| Done        | 01  | Self-upgrade to v2.9.1 + cancel ST0010 / ST0015                                       | XS   |
+| Done        | 01  | Self-upgrade to v2.10.0 + cancel ST0010 / ST0015                                      | XS   |
 | Done        | 02  | Refresh root `usage-rules.md`                                                         | S    |
 | Done        | 03  | Write `intent/docs/working-with-llms.md`                                              | M    |
 | Done        | 04  | `.claude/settings.json` template (SessionStart + UserPromptSubmit strict gate + Stop) | M    |
@@ -34,7 +34,7 @@ intent_version: 2.9.1
 
 ## Resolved decisions
 
-1. **Version**: 2.9.1.
+1. **Version**: 2.10.0 (retargeted from 2.9.1 mid-ST to bundle ST0036 directory relocation).
 2. **Hook enforcement**: strict `UserPromptSubmit` gate blocking first prompt until `/in-session` runs. User will reassess intrusiveness post-rollout.
 3. **Pre-commit critic threshold**: CRITICAL + WARNING blocks (`--warnings-are-errors` posture).
 4. **PostToolUse advisory critic**: off by default (too noisy + too costly in tokens). Helper script ships; opt-in via `.intent_critic.yml post_tool_use_advisory: true` + user adds the stanza to `.claude/settings.local.json`.
@@ -47,7 +47,7 @@ intent_version: 2.9.1
 - **2026-04-24**: WP-05 complete. `bin/intent_critic` — headless runner for the mechanical subset of the rule library (Greppable-proxy rules). `rules_lib.sh` extracted from `intent_claude_rules` (Highlander refactor — both CLIs now source the same primitives). `critic_runner.sh` implements Detection extraction, rule application with disabled honouring, text + JSON report formatters. `intent/docs/critics.md` documents the headless-runner surface. 15 new BATS tests green; 62 tests total across 7 suites pass without regression. Self-critique of `bin/intent_critic` under shell rules: 0 critical findings. Commit `c47fbfc`.
 - **2026-04-24**: WP-12 complete. Socrates/Diogenes FAQ cross-refs in `intent/plugins/claude/subagents/socrates/agent.md` and `diogenes/agent.md` pointing at `intent/docs/working-with-llms.md#socrates-vs-diogenes-faq`. Commit `c01d9fe`.
 - **2026-04-24**: WP-04 complete. `lib/templates/.claude/settings.json` shipped with three default hook stanzas (SessionStart + strict UserPromptSubmit + Stop; no PostToolUse in default). Three helper scripts at `lib/templates/.claude/scripts/` (`session-context.sh`, `require-in-session.sh`, `post-tool-advisory.sh`) — all executable, all green. `/in-session` SKILL.md step 4 writes cooperating sentinel at `/tmp/intent/in-session-${session_id}.sentinel`; require-in-session.sh passes through slash commands so `/in-session` itself can run. MODULES.md registers template + 3 scripts + 1 BATS. New BATS test covers git+wip / git-only / no-git / session-id-capture — 5/5 green; existing `in_session_skill.bats` still 10/10. Commit `e36b6f1`.
-- **2026-04-24**: WP-18 added to ST0035 (late addition per user request). Review `intent/usr/*.md` (user_guide 877L, reference_guide 1370L, deployment_guide 619L — all pre-v2.9.0) and apply keep / update / throw before v2.9.1 release. `WP/18/info.md` populated Phase 0-style; tasks.md + ST0035/info.md WP table updated; WP17 now gated on WP16 + WP18. Commit `b6fc2fe`.
+- **2026-04-24**: WP-18 added to ST0035 (late addition per user request). Review `intent/usr/*.md` (user_guide 877L, reference_guide 1370L, deployment_guide 619L — all pre-v2.9.0) and apply keep / update / throw before v2.10.0 release. `WP/18/info.md` populated Phase 0-style; tasks.md + ST0035/info.md WP table updated; WP17 now gated on WP16 + WP18. Commit `b6fc2fe`.
 - **2026-04-24**: WP03 complete. New `intent/docs/working-with-llms.md` (459 lines, D1–D10 as H2, ASCII arch diagram, hooks JSON, critic cadence, Socrates/Diogenes FAQ with commits `7f4529e` + `37a0ed0`, seven troubleshooting gotchas). Cross-refs in README.md ("For LLM Collaboration" section) and MODULES.md registration. Commits: `983ffdb` content · `b148ac0` Done.
 - **2026-04-24**: WP02 complete. Root `usage-rules.md` refreshed to v2.9.0+ surface; `lib/templates/llm/_usage-rules.md` template added with `[[PROJECT_NAME]] / [[INTENT_VERSION]] / [[LANG]]` placeholders; MODULES.md registers the template. Commits: `4e75ebd` content · `357e0c4` Done.
 - **2026-04-24**: ST0035 opened and populated. Phase 0 forensic elaboration across `info.md`, `design.md` (10 canon decisions D1–D10 + risk register), `tasks.md`, 17 × `WP/NN/info.md`. Decisions resolved 2026-04-24. WP01 complete: VERSION → 2.9.1, `.intent/config.json` stamped, migration chain extended, ST0010 + ST0015 cancelled to `intent/st/CANCELLED/`. Commits: `055a7e4` Phase 0 · `b265987` decisions resolved · `567d5d1` WP01 · `1472cca` WP01 marked Done.

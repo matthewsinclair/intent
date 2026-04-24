@@ -61,7 +61,7 @@ WP05 ports that Detection logic to bash. The LLM subagents remain available for 
    - `<lang>/good/` and `<lang>/bad/` dirs for each of the 5 languages.
    - Each rule that has runnable examples in `rules/<lang>/` gets a corresponding `good_test.*` / `bad_test.*` fixture (reuse what already exists).
 
-6. **Acceptance parity test**: same file + same rules — `bin/intent_critic elixir <file>` and `Task(subagent_type="critic-elixir")` produce identical findings lists. Implemented as a manual verification step recorded in as-built (fully automated parity test is out of scope for v2.9.1; documented as follow-up).
+6. **Acceptance parity test**: same file + same rules — `bin/intent_critic elixir <file>` and `Task(subagent_type="critic-elixir")` produce identical findings lists. Implemented as a manual verification step recorded in as-built (fully automated parity test is out of scope for v2.10.0; documented as follow-up).
 
 7. **Documentation**: `intent/docs/pre-commit-hook.md` (WP06 authors) references this binary. `intent/docs/critics.md` gets an "also available as bin/intent_critic" note.
 

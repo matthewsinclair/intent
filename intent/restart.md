@@ -2,7 +2,7 @@
 
 ## Current state (2026-04-24, end of session — 8 of 18 WPs Done)
 
-**Intent v2.9.1 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) active, WIP.**
+**Intent v2.10.0 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) active, WIP.**
 
 ### ST0035 shape
 
@@ -65,7 +65,7 @@ Canary order (WP15): Conflab → Lamplight → Laksa. Fleet (WP16) highest-delta
 
 ## Resolved decisions (all 5, unchanged)
 
-1. Version: 2.9.1.
+1. Version: 2.10.0 (retargeted from 2.9.1 mid-ST to bundle ST0036 directory relocation).
 2. Hook enforcement: strict `UserPromptSubmit` gate blocking first prompt until `/in-session` runs. Reassess post-rollout.
 3. Pre-commit critic threshold: CRITICAL + WARNING blocks (default; tunable per-project via `.intent_critic.yml severity_min`).
 4. PostToolUse advisory critic: off by default. Opt-in via `.intent_critic.yml post_tool_use_advisory: true` + manual stanza add to `.claude/settings.local.json`.
@@ -98,4 +98,4 @@ Canary order (WP15): Conflab → Lamplight → Laksa. Fleet (WP16) highest-delta
 - `b6fc2fe` — add ST0035/WP-18 + WP-03 close.
 - `b148ac0` — mark ST0035/WP-03 Done.
 - `983ffdb` — WP-03: working-with-llms.md canon tech note.
-- `567d5d1` — WP-01: bump to v2.9.1 + cancel ST0010/ST0015.
+- `567d5d1` — WP-01: bump to v2.10.0 + cancel ST0010/ST0015.

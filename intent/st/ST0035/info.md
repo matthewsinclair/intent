@@ -11,7 +11,7 @@ completed:
 
 ## Objective
 
-Define Intent's canonical, opinionated configuration surface for LLM–codebase interaction — a single agreed answer to AGENTS.md, CLAUDE.md, usage-rules.md, `intent/llm/`, `.claude/settings.json` hooks, and pre-commit critic scheduling. Refresh Intent's own artefacts to that canon. Extend `intent claude upgrade` to ship the canon into any project. Roll out to all 17 active Intent-using projects (16 under Intent governance + Pplr via `intent init`). Ship as Intent v2.9.1.
+Define Intent's canonical, opinionated configuration surface for LLM–codebase interaction — a single agreed answer to AGENTS.md, CLAUDE.md, usage-rules.md, `intent/llm/`, `.claude/settings.json` hooks, and pre-commit critic scheduling. Refresh Intent's own artefacts to that canon. Extend `intent claude upgrade` to ship the canon into any project. Roll out to all 17 active Intent-using projects (16 under Intent governance + Pplr via `intent init`). Ship as Intent v2.10.0.
 
 ## Context
 
@@ -31,14 +31,14 @@ ST0035 resolves the drift with a single release. Fail-forward, no backwards-comp
 
 ## Scope
 
-### In scope (v2.9.1)
+### In scope (v2.10.0)
 
 - **Canon definition**: three root files with clear ownership — `AGENTS.md` (auto-generated, primary, tool-agnostic), `CLAUDE.md` (Claude-specific overlay, templated), `usage-rules.md` (hand-authored, refreshed, Elixir-convention-aligned). `intent/llm/` retains MODULES.md + DECISION_TREE.md only; `intent/llm/AGENTS.md` retires.
 - **New narrative doc**: `intent/docs/working-with-llms.md` explaining the canon, the hook system, the critic cadence, and the Socrates/Diogenes FAQ.
 - **Session hooks**: ship `.claude/settings.json` template that wires `SessionStart` → "Run /in-session" reminder and `Stop` → "Run /in-finish" reminder. `intent claude upgrade` installs per project.
 - **Critic scheduling**: new `bin/intent_critic` headless runner (parses rules and applies Detection heuristics in bash — no LLM round-trip required for mechanical checks). Shipped `.git/hooks/pre-commit` template that blocks commits on CRITICAL/WARNING findings. Per-project `.intent_critic.yml` config for threshold overrides.
 - **Generator extensions**: `intent claude upgrade --apply` applies all canon artefacts idempotently. `intent agents sync` writes `AGENTS.md` to root (not `intent/llm/`). `intent claude upgrade` prunes deprecated artefacts.
-- **Self-dogfood**: apply canon to Intent itself first (bumping `.intent/config.json` to 2.9.1), before fleet rollout.
+- **Self-dogfood**: apply canon to Intent itself first (bumping `.intent/config.json` to 2.10.0), before fleet rollout.
 - **Fleet rollout**: 16 Intent projects + Pplr (via `intent init`) = 17 total. Canary in three (Conflab, Lamplight, Laksa) before sweep.
 - **ST cancellations**: ST0010 and ST0015 cancelled via existing `Cancelled` status, moved to `intent/st/CANCELLED/`, annotated with one-liner explaining deprecation.
 - **Socrates/Diogenes FAQ**: one-paragraph sidebar in `working-with-llms.md`, cross-reference in both `agent.md` files.
@@ -68,7 +68,7 @@ ST0035 resolves the drift with a single release. Fail-forward, no backwards-comp
 
 | WP   | Title                                                                 | Deps                         | Size | Risk |
 | ---- | --------------------------------------------------------------------- | ---------------------------- | ---- | ---- |
-| WP01 | Self-upgrade Intent to v2.9.1 + cancel ST0010/ST0015                  | —                            | XS   | Low  |
+| WP01 | Self-upgrade Intent to v2.10.0 + cancel ST0010/ST0015                 | —                            | XS   | Low  |
 | WP02 | Refresh root `usage-rules.md` to current-as-built state               | WP01                         | S    | Low  |
 | WP03 | Write `intent/docs/working-with-llms.md` (canon tech note)            | WP02                         | M    | Low  |
 | WP04 | `.claude/settings.json` template (hooks for /in-session, /in-finish)  | WP01                         | M    | Med  |
@@ -99,7 +99,7 @@ Plan source: `/Users/matts/.claude/plans/ultrathink-on-please-ingest-elegant-sun
 
 All five open decisions from Phase 0 are now resolved. Resolutions baked into the relevant WP `info.md` files.
 
-1. **Version bump**: **2.9.1** — a refinement release, not a feature drop.
+1. **Version bump**: **2.10.0** — initially scoped as refinement (2.9.1), retargeted mid-ST to bundle ST0036 (directory relocation, `.intent/` → `intent/.config/`) into a single breaking release. Semver-breaking directory move forces the minor bump within 2.x.
 2. **Hook enforcement strictness**: **strict** — `UserPromptSubmit` hard gate that blocks the first prompt until `/in-session` has run in the conversation. User will reassess intrusiveness post-rollout; if it's too noisy, flip to soft-reminder via a template override. Affects WP04 acceptance criteria and the `.claude/settings.json` template.
 3. **Pre-commit critic threshold**: **CRITICAL + WARNING** (`--warnings-are-errors` posture). Default already in `.intent_critic.yml` template (WP07).
 4. **PostToolUse advisory critic**: **off by default** — would be too noisy (fires on every intermediate edit during multi-step work) and too expensive in tokens (every tool use injecting advisory findings into the context). Pre-commit gate catches everything at the canonical checkpoint. Helper script still ships so users can opt in via `.intent_critic.yml post_tool_use_advisory: true`, but the default `.claude/settings.json` stanza omits the PostToolUse hook entirely.
