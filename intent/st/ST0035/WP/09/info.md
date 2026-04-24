@@ -3,7 +3,7 @@ verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-09
 title: "Rewrite root CLAUDE.md template as Claude overlay"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-09: Rewrite root CLAUDE.md template as Claude overlay
