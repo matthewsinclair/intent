@@ -90,7 +90,7 @@ if [ "$VERSION" = "$TARGET_VERSION" ]; then
 fi
 
 # Determine if migration is needed
-if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION" && ! needs_v2_3_1_upgrade "$VERSION" && ! needs_v2_3_2_upgrade "$VERSION" && ! needs_v2_3_3_upgrade "$VERSION" && ! needs_v2_3_4_upgrade "$VERSION" && ! needs_v2_4_0_upgrade "$VERSION" && ! needs_v2_5_0_upgrade "$VERSION" && ! needs_v2_6_0_upgrade "$VERSION" && ! needs_v2_8_1_upgrade "$VERSION" && ! needs_v2_8_2_upgrade "$VERSION" && ! needs_v2_9_0_upgrade "$VERSION"; then
+if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION" && ! needs_v2_3_1_upgrade "$VERSION" && ! needs_v2_3_2_upgrade "$VERSION" && ! needs_v2_3_3_upgrade "$VERSION" && ! needs_v2_3_4_upgrade "$VERSION" && ! needs_v2_4_0_upgrade "$VERSION" && ! needs_v2_5_0_upgrade "$VERSION" && ! needs_v2_6_0_upgrade "$VERSION" && ! needs_v2_8_1_upgrade "$VERSION" && ! needs_v2_8_2_upgrade "$VERSION" && ! needs_v2_9_0_upgrade "$VERSION" && ! needs_v2_9_1_upgrade "$VERSION"; then
   echo "ok: up to date at v$VERSION"
   echo "  no upgrade path to $TARGET_VERSION"
   exit 0
@@ -163,6 +163,7 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.1.0")
     echo "Upgrading from v2.1.0 to v$TARGET_VERSION..."
@@ -180,6 +181,7 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.2.0")
     echo "Upgrading from v2.2.0 to v$TARGET_VERSION..."
@@ -196,6 +198,7 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.2.1")
     echo "Upgrading from v2.2.1 to v$TARGET_VERSION..."
@@ -211,6 +214,7 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.3.0")
     echo "Upgrading from v2.3.0 to v$TARGET_VERSION..."
@@ -225,6 +229,7 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.3.1")
     echo "Upgrading from v2.3.1 to v$TARGET_VERSION..."
@@ -238,6 +243,7 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.3.2")
     echo "Upgrading from v2.3.2 to v$TARGET_VERSION..."
@@ -250,6 +256,7 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.3.3")
     echo "Upgrading from v2.3.3 to v$TARGET_VERSION..."
@@ -261,6 +268,7 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.3.4")
     echo "Upgrading from v2.3.4 to v$TARGET_VERSION..."
@@ -271,6 +279,7 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.4.0")
     echo "Upgrading from v2.4.0 to v$TARGET_VERSION..."
@@ -280,6 +289,7 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.5.0")
     echo "Upgrading from v2.5.0 to v$TARGET_VERSION..."
@@ -288,6 +298,7 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.6.0"|"2.7.0")
     echo "Upgrading from v$VERSION to v$TARGET_VERSION..."
@@ -295,21 +306,29 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.8.0")
     echo "Upgrading from v2.8.0 to v$TARGET_VERSION..."
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.8.1")
     echo "Upgrading from v2.8.1 to v$TARGET_VERSION..."
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   "2.8.2")
     echo "Upgrading from v2.8.2 to v$TARGET_VERSION..."
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
+    ;;
+  "2.9.0")
+    echo "Upgrading from v2.9.0 to v$TARGET_VERSION..."
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
   *)
     error "Unknown version: $VERSION"
@@ -338,6 +357,7 @@ case "$VERSION" in
     migrate_v2_8_0_to_v2_8_1 .
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
+    migrate_v2_9_0_to_v2_9_1 .
     ;;
 esac
 

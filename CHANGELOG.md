@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.1] - in progress (ST0035)
+
+### Added
+
+- In progress — ST0035 (Canonical LLM Config + Fleet Rollout).
+
+### Changed
+
+- `bin/intent_helpers`: `migrate_v2_9_0_to_v2_9_1()` stub added. Stamp-only at WP01; canon-apply logic lands in WP11 via `intent claude upgrade --apply`.
+- `bin/intent_upgrade`: chain extended to v2.9.1 (new gate, new case, new chain tail).
+- Root `VERSION` bumped to `2.9.1`.
+
+### Removed
+
+- **ST0010** (Anthropic MCP Integration, v2.0.0-era) cancelled — superseded by v2.9.0 skills / subagents / extensions. Moved to `intent/st/CANCELLED/` with deprecation annotation.
+- **ST0015** (Enhanced Steel Thread Templates, v2.0.0-era) cancelled — superseded by v2.9.0 tooling. Moved to `intent/st/CANCELLED/` with deprecation annotation.
+
 ## [2.9.0] - 2026-04-23
 
 ### Added

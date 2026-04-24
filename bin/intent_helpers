@@ -936,13 +936,29 @@ migrate_v2_8_1_to_v2_8_2() {
 }
 
 # needs_v2_9_0_upgrade VERSION
-# Returns 0 if VERSION is older than 2.9.0 (and therefore needs the migration).
-# Returns 1 for 2.9.x and forward.
+# Returns 0 if VERSION is older than 2.9.0 (and therefore needs the v2.9.0 migration step).
+# Returns 1 for 2.9.0 and forward (the 2.9.0 step itself has already run).
 needs_v2_9_0_upgrade() {
   local version=$1
 
   case "$version" in
     "2.9.0"|"2.9."*|"2.10."*|"3."*)
+      return 1
+      ;;
+    *)
+      return 0
+      ;;
+  esac
+}
+
+# needs_v2_9_1_upgrade VERSION
+# Returns 0 if VERSION is older than 2.9.1 (and therefore needs the v2.9.1 migration step).
+# Returns 1 for 2.9.1 and forward.
+needs_v2_9_1_upgrade() {
+  local version=$1
+
+  case "$version" in
+    "2.9.1"|"2.9.2"|"2.9.3"|"2.9.4"|"2.9.5"|"2.9.6"|"2.9.7"|"2.9.8"|"2.9.9"|"2.10."*|"3."*)
       return 1
       ;;
     *)
@@ -1059,6 +1075,45 @@ migrate_v2_8_2_to_v2_9_0() {
   echo "    - RELOCATED: worker-bee now seeded at ~/.intent/ext/worker-bee/"
   echo "    - Installed copies of elixir and worker-bee have been pruned."
   echo "    - To reinstall worker-bee from the seed: intent ext show worker-bee"
+}
+
+# Migrate v2.9.0 to v2.9.1 - canonical LLM config + fleet rollout (ST0035)
+#
+# At WP01 this is a stamp-only bump. The canon-apply logic (session hooks,
+# pre-commit critic gate, refreshed AGENTS.md / CLAUDE.md / usage-rules.md,
+# deletion of intent/llm/AGENTS.md) lands in WP11 by extending
+# intent_claude_upgrade, which is invoked separately via `intent claude
+# upgrade --apply`. Keeping the version migration a pure stamp bump means
+# `intent upgrade` stays fast and safe; canon apply is a deliberate,
+# reviewable step.
+#
+# Idempotent: a second run is a no-op (stamp check at the top).
+migrate_v2_9_0_to_v2_9_1() {
+  local project_root=$1
+
+  echo "Upgrading to Intent v2.9.1 (canonical LLM config; see ST0035)..."
+
+  if [ -f "$project_root/.intent/config.json" ]; then
+    local current
+    current=$(jq -r '.intent_version // ""' "$project_root/.intent/config.json")
+    if [ "$current" = "2.9.1" ]; then
+      echo "  already at v2.9.1 (no-op)"
+      return 0
+    fi
+
+    local temp_file
+    temp_file=$(mktemp)
+    jq --arg v "2.9.1" '.intent_version = $v | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
+    mv "$temp_file" "$project_root/.intent/config.json"
+    echo "  stamped: intent_version = 2.9.1"
+  fi
+
+  echo "  Migration to v2.9.1 complete."
+  echo ""
+  echo "  NEXT STEP: run 'intent claude upgrade --apply' to install the"
+  echo "  v2.9.1 canon (root AGENTS.md + CLAUDE.md + usage-rules.md,"
+  echo "  .claude/settings.json hooks, .git/hooks/pre-commit critic gate,"
+  echo "  .intent_critic.yml). Canon apply is intentionally a separate step."
 }
 
 # Migrate v2.2.0 to v2.2.1

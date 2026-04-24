@@ -1,16 +1,18 @@
 ---
-verblock: "09 Jul 2025:v0.1: Matthew Sinclair - Initial version"
-intent_version: 2.0.0
-status: Not Started
+verblock: "24 Apr 2026:v0.2: matts - Cancelled (superseded by ST0034 directory structure and v2.9.x tooling)"
+intent_version: 2.9.1
+status: Cancelled
 created: 20250709
-completed:
+completed: 20260424
 ---
+
+> **Deprecated 2026-04-24.** Superseded by later work on steel-thread directory structure (ST0034 era) and the v2.9.0 tooling (`intent wp`, work-package directories, `/in-*` skill family, extension system). The aspirational enhancements listed below (testing.md, metrics.md, dependencies.md) either landed in other forms or are no longer load-bearing. Cancelled under ST0035 (canonical LLM config). Historical content preserved below.
 
 # ST0015: Enhanced Steel Thread Templates and File Types
 
-- **Status**: Not Started
+- **Status**: Cancelled
 - **Created**: 2025-07-09
-- **Completed**:
+- **Completed**: 2026-04-24
 - **Author**: Matthew Sinclair
 
 ## Objective
