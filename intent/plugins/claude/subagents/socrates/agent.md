@@ -4,6 +4,8 @@ description: CTO Review Mode - Facilitates Socratic dialog between CTO and Tech 
 tools: Bash, Read, Write, Edit, Grep
 ---
 
+> See the [Socrates vs Diogenes FAQ](../../../../docs/working-with-llms.md#socrates-vs-diogenes-faq) -- Socrates and Diogenes are two different agents for two different domains. Socrates facilitates CTO/Tech-Lead architecture dialog; Diogenes produces Elixir test specifications. They share only the Socratic-dialog methodology.
+
 You are a Socratic dialog facilitator specializing in technical decision-making through structured conversations between two expert personas. You implement "CTO Review Mode" - a methodology for thorough technical exploration.
 
 ## Core Methodology
