@@ -59,6 +59,12 @@ without modifying anything. Use --apply to execute the changes.
 Options:
   --apply              Execute the upgrade (default is dry-run)
   --project-dir DIR    Target project directory (default: current directory)
+  --force              Overwrite user-edited canon files (CLAUDE.md without
+                       the Intent footer marker, .intent_critic.yml,
+                       usage-rules.md). Destructive; pair with --dry-run first.
+  --skip-settings      Skip .claude/settings.json + 3 hook scripts. Useful for
+                       projects with deeply customised settings that do not
+                       fit the marker-preservation pattern.
   -h, --help           Show this help
 
 The upgrade covers:
@@ -66,6 +72,8 @@ The upgrade covers:
   - Subagent updates (all installed subagents synced to latest)
   - Skill updates (all installed skills synced to latest)
   - LLM guidance files (AGENTS.md, RULES.md, ARCHITECTURE.md)
+  - Canon artefacts (.claude/settings.json + scripts, .git/hooks/pre-commit,
+    .intent_critic.yml, root CLAUDE.md, root usage-rules.md, intent/llm seeds)
   - Deprecated file cleanup (llm_preamble.md, old usage-rules.md, intent-* skills)
 
 Examples:
@@ -73,12 +81,16 @@ Examples:
   intent claude upgrade --apply                    # Apply changes
   intent claude upgrade --project-dir ~/prolix     # Diagnose another project
   intent claude upgrade --project-dir ~/prolix --apply  # Upgrade another project
+  intent claude upgrade --apply --skip-settings    # Skip the .claude/ stack
+  intent claude upgrade --apply --force            # Overwrite user-edited canon
 EOF
 }
 
 # Parse arguments
 DRY_RUN=true
 PROJECT_DIR=""
+FORCE=false
+SKIP_SETTINGS=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -89,6 +101,14 @@ while [[ $# -gt 0 ]]; do
     --project-dir)
       PROJECT_DIR="$2"
       shift 2
+      ;;
+    --force)
+      FORCE=true
+      shift
+      ;;
+    --skip-settings)
+      SKIP_SETTINGS=true
+      shift
       ;;
     -h|--help)
       intent_claude_upgrade_help
@@ -119,6 +139,18 @@ if [ ! -d "$PROJECT_DIR/intent" ] && [ ! -d "$PROJECT_DIR/.intent" ]; then
 fi
 
 PROJECT_NAME="$(basename "$PROJECT_DIR")"
+
+# Writability probe -- bail with a clear error before doing any work if the
+# filesystem is read-only. Dry-run never writes, so this only matters on apply.
+if [ "$DRY_RUN" = false ]; then
+  _writable_probe="$(mktemp "$PROJECT_DIR/.intent_writable_probe.XXXXXX" 2>/dev/null)"
+  if [ -z "$_writable_probe" ] || [ ! -f "$_writable_probe" ]; then
+    echo "Error: '$PROJECT_DIR' is not writable (read-only filesystem?)"
+    echo "  Re-run from a writable copy of the project, or fix permissions."
+    exit 1
+  fi
+  rm -f "$_writable_probe"
+fi
 
 # Color codes (if terminal)
 if [ -t 1 ]; then
@@ -210,10 +242,17 @@ canon_extract_user_section() {
 
 # Refresh $dst from canon template $src, preserving any user-section content
 # already present in $dst (between the HTML-comment markers). If no markers
-# in existing $dst, behaves like canon_install_file (clean overwrite).
+# in existing $dst, behaves like canon_install_file (clean overwrite). When
+# --force is set, the preserve step is skipped and $dst is clean-overwritten.
 canon_refresh_with_user_section() {
   local src="$1"
   local dst="$2"
+
+  if [ "$FORCE" = true ]; then
+    canon_install_file "$src" "$dst"
+    return 0
+  fi
+
   local preserved
   preserved="$(canon_extract_user_section "$dst")"
 
@@ -223,23 +262,48 @@ canon_refresh_with_user_section() {
     return 0
   fi
 
-  # Splice: new template, then replace its user block with the preserved one.
-  local tmp
+  local out
+  out="$(mktemp)"
+  canon_compute_refresh_preview "$src" "$dst" "$out"
+  mv "$out" "$dst"
+}
+
+# Compute what $dst would look like after a refresh from $src that preserves
+# its user section (between the HTML-comment markers). Writes the result to
+# $out_path. Used by both Phase 1 (drift probe) and Phase 2 (dry-run diff).
+#
+# The preserved user content is staged in a temp file (not a shell variable)
+# so trailing blank lines round-trip exactly. Command substitution strips
+# trailing newlines, which would corrupt the round-trip and report bogus
+# drift on every re-run.
+canon_compute_refresh_preview() {
+  local src="$1"
+  local dst="$2"
+  local out_path="$3"
+
+  local tmp preserved_file
   tmp="$(mktemp)"
+  preserved_file="$(mktemp)"
   cp "$src" "$tmp"
   canon_substitute_placeholders "$tmp"
 
-  # Rewrite $tmp replacing lines between the markers with $preserved.
-  local out
-  out="$(mktemp)"
-  awk -v s="$CANON_USER_MARK_START" -v e="$CANON_USER_MARK_END" -v pres="$preserved" '
-    index($0, s) { print; in_user = 1; printf "%s\n", pres; next }
+  if [ -f "$dst" ] && grep -qF "$CANON_USER_MARK_START" "$dst" 2>/dev/null; then
+    canon_extract_user_section "$dst" > "$preserved_file"
+  fi
+
+  awk -v s="$CANON_USER_MARK_START" -v e="$CANON_USER_MARK_END" -v pf="$preserved_file" '
+    index($0, s) {
+      print
+      in_user = 1
+      while ((getline line < pf) > 0) print line
+      close(pf)
+      next
+    }
     index($0, e) { in_user = 0; print; next }
     !in_user { print }
-  ' "$tmp" > "$out"
+  ' "$tmp" > "$out_path"
 
-  mv "$out" "$dst"
-  rm -f "$tmp"
+  rm -f "$tmp" "$preserved_file"
 }
 
 # Probe whether two files are byte-identical. 0 = identical, 1 = differ or
@@ -286,8 +350,32 @@ canon_resolve_author() {
   echo "$author"
 }
 
+# Resolve the actual git hooks directory for $1. Returns 0 with the absolute
+# path on stdout when the project is a git repo (including worktrees and
+# submodules where .git is a file gitlink). Returns 1 with no output when
+# git is unavailable, $1 is not a repo, or rev-parse fails.
+canon_hooks_dir() {
+  local proj="$1"
+  command -v git >/dev/null 2>&1 || return 1
+  [ -e "$proj/.git" ] || return 1
+  local hooks
+  hooks="$(cd "$proj" && git rev-parse --git-path hooks 2>/dev/null)" || return 1
+  [ -n "$hooks" ] || return 1
+  case "$hooks" in
+    /*) ;;
+    *) hooks="$proj/$hooks" ;;
+  esac
+  echo "$hooks"
+}
+
 CANON_AUTHOR="$(canon_resolve_author)"
 CANON_DATE="$(date '+%Y-%m-%d')"
+
+# Resolved at Phase 1; used in Phase 2 hints + Phase 3 execute. Empty when
+# the project has no .git (worktree-aware via git rev-parse).
+PRE_COMMIT_HOOKS_DIR=""
+PRE_COMMIT_PATH=""
+PRE_COMMIT_INTENT_PATH=""
 
 # ============================================================
 # PHASE 1: DIAGNOSE
@@ -300,6 +388,12 @@ if [ "$DRY_RUN" = true ]; then
   echo -e "${YELLOW}Mode: DRY-RUN (use --apply to execute)${NC}"
 else
   echo -e "${GREEN}Mode: APPLY${NC}"
+fi
+if [ "$FORCE" = true ]; then
+  echo -e "${RED}--force: user-edited canon files WILL BE OVERWRITTEN.${NC}"
+fi
+if [ "$SKIP_SETTINGS" = true ]; then
+  echo -e "${YELLOW}--skip-settings: .claude/settings.json + hook scripts will be skipped.${NC}"
 fi
 echo ""
 
@@ -453,99 +547,110 @@ echo ""
 echo "Checking canon artefacts..."
 
 # .claude/settings.json -- hooks for /in-session, /in-finish, UserPromptSubmit.
-if [ -f "$PROJECT_DIR/.claude/settings.json" ]; then
-  if canon_template_matches_installed "$CANON_SETTINGS_SRC" "$PROJECT_DIR/.claude/settings.json"; then
-    echo -e "  .claude/settings.json:        ${GREEN}UP TO DATE${NC}"
+# .claude/scripts/*.sh -- three hook helper scripts.
+# Both blocks gated on --skip-settings (single escape hatch for projects with
+# deeply customised settings.json that does not fit the marker pattern).
+if [ "$SKIP_SETTINGS" = true ]; then
+  echo -e "  .claude/settings.json:        ${BLUE}skipped (--skip-settings)${NC}"
+  echo -e "  .claude/scripts/*.sh:         ${BLUE}skipped (--skip-settings)${NC}"
+else
+  if [ -f "$PROJECT_DIR/.claude/settings.json" ]; then
+    if canon_template_matches_installed "$CANON_SETTINGS_SRC" "$PROJECT_DIR/.claude/settings.json"; then
+      echo -e "  .claude/settings.json:        ${GREEN}UP TO DATE${NC}"
+    else
+      echo -e "  .claude/settings.json:        ${YELLOW}DIVERGED${NC}"
+      add_action "INSTALL_SETTINGS"
+    fi
   else
-    echo -e "  .claude/settings.json:        ${YELLOW}DIVERGED${NC}"
+    echo -e "  .claude/settings.json:        ${RED}MISSING${NC}"
     add_action "INSTALL_SETTINGS"
   fi
-else
-  echo -e "  .claude/settings.json:        ${RED}MISSING${NC}"
-  add_action "INSTALL_SETTINGS"
-fi
 
-# .claude/scripts/*.sh -- three hook helper scripts.
-for _script in session-context.sh require-in-session.sh post-tool-advisory.sh; do
-  _src="$CANON_SCRIPTS_SRC/$_script"
-  _dst="$PROJECT_DIR/.claude/scripts/$_script"
-  _label=".claude/scripts/$_script"
-  _pad=$((38 - ${#_label}))
-  [ "$_pad" -lt 1 ] && _pad=1
-  _spaces="$(printf '%*s' "$_pad" '')"
-  if [ -f "$_dst" ] && canon_template_matches_installed "$_src" "$_dst"; then
-    echo -e "  $_label:$_spaces${GREEN}UP TO DATE${NC}"
-  elif [ -f "$_dst" ]; then
-    echo -e "  $_label:$_spaces${YELLOW}DIVERGED${NC}"
-    add_action "INSTALL_HOOK_SCRIPT:$_script"
-  else
-    echo -e "  $_label:$_spaces${RED}MISSING${NC}"
-    add_action "INSTALL_HOOK_SCRIPT:$_script"
-  fi
-done
+  for _script in session-context.sh require-in-session.sh post-tool-advisory.sh; do
+    _src="$CANON_SCRIPTS_SRC/$_script"
+    _dst="$PROJECT_DIR/.claude/scripts/$_script"
+    _label=".claude/scripts/$_script"
+    _pad=$((38 - ${#_label}))
+    [ "$_pad" -lt 1 ] && _pad=1
+    _spaces="$(printf '%*s' "$_pad" '')"
+    if [ -f "$_dst" ] && canon_template_matches_installed "$_src" "$_dst"; then
+      echo -e "  $_label:$_spaces${GREEN}UP TO DATE${NC}"
+    elif [ -f "$_dst" ]; then
+      echo -e "  $_label:$_spaces${YELLOW}DIVERGED${NC}"
+      add_action "INSTALL_HOOK_SCRIPT:$_script"
+    else
+      echo -e "  $_label:$_spaces${RED}MISSING${NC}"
+      add_action "INSTALL_HOOK_SCRIPT:$_script"
+    fi
+  done
+fi
 
 # .git/hooks/pre-commit -- critic gate. Chain if a pre-existing non-Intent
-# hook is present (detect by absence of our canonical banner string).
-_pre_commit="$PROJECT_DIR/.git/hooks/pre-commit"
-_pre_commit_intent="$PROJECT_DIR/.git/hooks/pre-commit.intent"
-if [ ! -d "$PROJECT_DIR/.git" ]; then
-  echo -e "  .git/hooks/pre-commit:        ${BLUE}skipped (no .git)${NC}"
-elif [ -f "$_pre_commit" ]; then
-  if grep -qF "intent critic gate" "$_pre_commit" 2>/dev/null; then
-    if canon_files_identical "$CANON_PRE_COMMIT_SRC" "$_pre_commit"; then
-      echo -e "  .git/hooks/pre-commit:        ${GREEN}UP TO DATE${NC}"
+# hook is present (detect by absence of our canonical banner string). Hook
+# path resolved via `git rev-parse --git-path hooks` so worktrees and
+# submodules (where .git is a file gitlink) work transparently.
+PRE_COMMIT_HOOKS_DIR="$(canon_hooks_dir "$PROJECT_DIR")"
+if [ -z "$PRE_COMMIT_HOOKS_DIR" ]; then
+  echo -e "  .git/hooks/pre-commit:        ${BLUE}skipped (no git repo)${NC}"
+else
+  PRE_COMMIT_PATH="$PRE_COMMIT_HOOKS_DIR/pre-commit"
+  PRE_COMMIT_INTENT_PATH="$PRE_COMMIT_HOOKS_DIR/pre-commit.intent"
+  if [ -f "$PRE_COMMIT_PATH" ]; then
+    if grep -qF "intent critic gate" "$PRE_COMMIT_PATH" 2>/dev/null; then
+      if canon_files_identical "$CANON_PRE_COMMIT_SRC" "$PRE_COMMIT_PATH"; then
+        echo -e "  .git/hooks/pre-commit:        ${GREEN}UP TO DATE${NC}"
+      else
+        echo -e "  .git/hooks/pre-commit:        ${YELLOW}DIVERGED${NC}"
+        add_action "INSTALL_PRE_COMMIT"
+      fi
     else
-      echo -e "  .git/hooks/pre-commit:        ${YELLOW}DIVERGED${NC}"
-      add_action "INSTALL_PRE_COMMIT"
+      if [ -f "$PRE_COMMIT_INTENT_PATH" ] && canon_files_identical "$CANON_PRE_COMMIT_SRC" "$PRE_COMMIT_INTENT_PATH"; then
+        echo -e "  .git/hooks/pre-commit:        ${YELLOW}CHAINED (existing hook preserved)${NC}"
+      else
+        echo -e "  .git/hooks/pre-commit:        ${YELLOW}NON-INTENT HOOK PRESENT${NC}"
+        add_action "CHAIN_PRE_COMMIT"
+      fi
     fi
   else
-    if [ -f "$_pre_commit_intent" ] && canon_files_identical "$CANON_PRE_COMMIT_SRC" "$_pre_commit_intent"; then
-      echo -e "  .git/hooks/pre-commit:        ${YELLOW}CHAINED (existing hook preserved)${NC}"
-    else
-      echo -e "  .git/hooks/pre-commit:        ${YELLOW}NON-INTENT HOOK PRESENT${NC}"
-      add_action "CHAIN_PRE_COMMIT"
-    fi
+    echo -e "  .git/hooks/pre-commit:        ${RED}MISSING${NC}"
+    add_action "INSTALL_PRE_COMMIT"
   fi
-else
-  echo -e "  .git/hooks/pre-commit:        ${RED}MISSING${NC}"
-  add_action "INSTALL_PRE_COMMIT"
 fi
 
-# .intent_critic.yml -- install only if absent (user-editable).
+# .intent_critic.yml -- install only if absent (user-editable). With --force,
+# overwrite even when present (tunings will be lost).
 if [ -f "$PROJECT_DIR/.intent_critic.yml" ]; then
-  echo -e "  .intent_critic.yml:           ${GREEN}PRESENT${NC} (user-owned)"
+  if [ "$FORCE" = true ]; then
+    echo -e "  .intent_critic.yml:           ${RED}OVERWRITE (--force; user tunings lost)${NC}"
+    add_action "INSTALL_CRITIC_CONFIG"
+  else
+    echo -e "  .intent_critic.yml:           ${GREEN}PRESENT${NC} (user-owned)"
+  fi
 else
   echo -e "  .intent_critic.yml:           ${RED}MISSING${NC}"
   add_action "INSTALL_CRITIC_CONFIG"
 fi
 
 # Root CLAUDE.md -- install if absent; refresh if Intent-generated (preserve
-# user section); leave alone if user-authored (no Intent footer marker).
+# user section); leave alone if user-authored (no Intent footer marker)
+# unless --force is set.
 if [ -f "$PROJECT_DIR/CLAUDE.md" ]; then
   if canon_claude_md_is_generated "$PROJECT_DIR/CLAUDE.md"; then
-    # Compare against a placeholder-substituted template for drift.
-    _tmp_canon_claude="$(mktemp)"
-    cp "$CANON_CLAUDE_MD_SRC" "$_tmp_canon_claude"
-    canon_substitute_placeholders "$_tmp_canon_claude"
-    _preserved_section="$(canon_extract_user_section "$PROJECT_DIR/CLAUDE.md")"
-    # Splice the preserved section into the canon template in a scratch file
-    # and compare with actual CLAUDE.md for drift.
     _tmp_refresh_preview="$(mktemp)"
-    awk -v s="$CANON_USER_MARK_START" -v e="$CANON_USER_MARK_END" -v pres="$_preserved_section" '
-      index($0, s) { print; in_user = 1; printf "%s\n", pres; next }
-      index($0, e) { in_user = 0; print; next }
-      !in_user { print }
-    ' "$_tmp_canon_claude" > "$_tmp_refresh_preview"
+    canon_compute_refresh_preview "$CANON_CLAUDE_MD_SRC" "$PROJECT_DIR/CLAUDE.md" "$_tmp_refresh_preview"
     if canon_files_identical "$PROJECT_DIR/CLAUDE.md" "$_tmp_refresh_preview"; then
       echo -e "  CLAUDE.md (root):             ${GREEN}UP TO DATE${NC}"
     else
       echo -e "  CLAUDE.md (root):             ${YELLOW}REFRESH (user section preserved)${NC}"
       add_action "REFRESH_CLAUDE_MD"
     fi
-    rm -f "$_tmp_canon_claude" "$_tmp_refresh_preview"
+    rm -f "$_tmp_refresh_preview"
+  elif [ "$FORCE" = true ]; then
+    echo -e "  CLAUDE.md (root):             ${RED}OVERWRITE (--force; user-authored content lost)${NC}"
+    add_action "INSTALL_CLAUDE_MD"
   else
     echo -e "  CLAUDE.md (root):             ${BLUE}user-authored (left alone)${NC}"
-    add_warning "CLAUDE.md at root is user-authored (no Intent footer marker); not refreshed. Compare with \`lib/templates/llm/_CLAUDE.md\` if you want to adopt the canon overlay."
+    add_warning "CLAUDE.md at root is user-authored (no Intent footer marker); not refreshed. Compare with \`lib/templates/llm/_CLAUDE.md\` if you want to adopt the canon overlay, or re-run with --force to overwrite."
   fi
 else
   echo -e "  CLAUDE.md (root):             ${RED}MISSING${NC}"
@@ -553,8 +658,14 @@ else
 fi
 
 # Root usage-rules.md -- install only if absent. Users customise freely.
+# With --force, overwrite even when present (user content will be lost).
 if [ -f "$PROJECT_DIR/usage-rules.md" ]; then
-  echo -e "  usage-rules.md (root):        ${GREEN}PRESENT${NC} (user-owned)"
+  if [ "$FORCE" = true ]; then
+    echo -e "  usage-rules.md (root):        ${RED}OVERWRITE (--force; user content lost)${NC}"
+    add_action "INSTALL_USAGE_RULES"
+  else
+    echo -e "  usage-rules.md (root):        ${GREEN}PRESENT${NC} (user-owned)"
+  fi
 else
   echo -e "  usage-rules.md (root):        ${RED}MISSING${NC}"
   add_action "INSTALL_USAGE_RULES"
@@ -635,15 +746,34 @@ if [ ${#ACTIONS[@]} -gt 0 ]; then
         ;;
       CHAIN_PRE_COMMIT)
         echo "  $idx. Chain .git/hooks/pre-commit.intent (existing non-Intent hook preserved)"
+        if [ "$DRY_RUN" = true ]; then
+          echo "       (apply will print a paste-ready snippet for your existing hook)"
+        fi
         ;;
       INSTALL_CRITIC_CONFIG)
         echo "  $idx. Install .intent_critic.yml (severity defaults)"
         ;;
       INSTALL_CLAUDE_MD)
-        echo "  $idx. Install root CLAUDE.md (Claude overlay pointing at AGENTS.md)"
+        if [ -f "$PROJECT_DIR/CLAUDE.md" ] && [ "$FORCE" = true ]; then
+          echo "  $idx. Overwrite root CLAUDE.md with canon (--force; user content lost)"
+        else
+          echo "  $idx. Install root CLAUDE.md (Claude overlay pointing at AGENTS.md)"
+        fi
         ;;
       REFRESH_CLAUDE_MD)
         echo "  $idx. Refresh root CLAUDE.md (preserve user section between markers)"
+        if [ "$DRY_RUN" = true ] && [ -f "$PROJECT_DIR/CLAUDE.md" ]; then
+          _diff_preview="$(mktemp)"
+          canon_compute_refresh_preview "$CANON_CLAUDE_MD_SRC" "$PROJECT_DIR/CLAUDE.md" "$_diff_preview"
+          _diff_lines="$(diff -u "$PROJECT_DIR/CLAUDE.md" "$_diff_preview" 2>/dev/null | wc -l | tr -d '[:space:]')"
+          if [ "${_diff_lines:-0}" -gt 0 ]; then
+            echo "       diff (current vs after refresh, first 60 lines):"
+            diff -u "$PROJECT_DIR/CLAUDE.md" "$_diff_preview" 2>/dev/null \
+              | head -60 \
+              | sed 's/^/         /'
+          fi
+          rm -f "$_diff_preview"
+        fi
         ;;
       INSTALL_USAGE_RULES)
         echo "  $idx. Install root usage-rules.md (terse DO / NEVER contract)"
@@ -810,17 +940,35 @@ for action in "${ACTIONS[@]}"; do
       ;;
 
     INSTALL_PRE_COMMIT)
-      echo "  Installing .git/hooks/pre-commit..."
-      canon_install_script "$CANON_PRE_COMMIT_SRC" "$PROJECT_DIR/.git/hooks/pre-commit"
-      echo -e "    ${GREEN}ok${NC} (+x; severity threshold from .intent_critic.yml)"
+      if [ -z "$PRE_COMMIT_PATH" ]; then
+        echo -e "  ${YELLOW}skipped${NC}: cannot resolve git hooks dir (no .git or git unavailable)"
+      else
+        echo "  Installing $PRE_COMMIT_PATH..."
+        canon_install_script "$CANON_PRE_COMMIT_SRC" "$PRE_COMMIT_PATH"
+        echo -e "    ${GREEN}ok${NC} (+x; severity threshold from .intent_critic.yml)"
+      fi
       ;;
 
     CHAIN_PRE_COMMIT)
-      echo "  Chaining .git/hooks/pre-commit.intent..."
-      canon_install_script "$CANON_PRE_COMMIT_SRC" "$PROJECT_DIR/.git/hooks/pre-commit.intent"
-      echo -e "    ${GREEN}ok${NC} (existing hook preserved)"
-      echo -e "    ${YELLOW}hint:${NC} add this line to your existing .git/hooks/pre-commit to chain:"
-      echo "      \"\$(git rev-parse --show-toplevel)/.git/hooks/pre-commit.intent\" || exit \$?"
+      if [ -z "$PRE_COMMIT_INTENT_PATH" ]; then
+        echo -e "  ${YELLOW}skipped${NC}: cannot resolve git hooks dir (no .git or git unavailable)"
+      else
+        echo "  Chaining $PRE_COMMIT_INTENT_PATH..."
+        canon_install_script "$CANON_PRE_COMMIT_SRC" "$PRE_COMMIT_INTENT_PATH"
+        echo -e "    ${GREEN}ok${NC} (existing hook preserved)"
+        echo ""
+        echo "  Your existing pre-commit hook was NOT modified. To chain the Intent"
+        echo "  critic gate, paste the following block into it (anywhere -- typically"
+        echo "  near the top, before any expensive checks):"
+        echo ""
+        echo "    # Intent critic gate (ST0035 canon)"
+        echo "    _intent_chain=\"\$(git rev-parse --git-path hooks 2>/dev/null)/pre-commit.intent\""
+        echo "    if [ -x \"\$_intent_chain\" ]; then"
+        echo "      \"\$_intent_chain\" \"\$@\" || exit \$?"
+        echo "    fi"
+        echo ""
+        echo "  Re-run 'intent claude upgrade' after editing to confirm the chain is detected."
+      fi
       ;;
 
     INSTALL_CRITIC_CONFIG)
