@@ -1,5 +1,5 @@
 ---
-verblock: "24 Apr 2026:v0.51: matts - WP11 Session 1 shipped (11 of 18 + WP11 WIP)"
+verblock: "25 Apr 2026:v0.52: matts - WP11 Done (12 of 18)"
 intent_version: 2.10.0
 ---
 
@@ -7,7 +7,7 @@ intent_version: 2.10.0
 
 ## Current State
 
-**ST0035 active — WP01–WP10 + WP12 Done (11 of 18); WP11 Session 1 shipped, Sessions 2+3 remaining.** `intent claude upgrade --apply` now installs the full v2.10.0 canon in one shot: `.claude/settings.json` + three hook scripts, `.git/hooks/pre-commit` (with chain-don't-overwrite when a non-Intent hook is present), `.intent_critic.yml`, root CLAUDE.md (install/refresh with user-section preservation via `<!-- user:start/end -->` markers), root usage-rules.md, intent/llm/MODULES.md + DECISION_TREE.md plant-if-absent. Idempotent: second `--apply` produces zero actions. Fixes two pre-existing version-regex bugs uncovered during scratch-project testing. `migrate_v2_9_0_to_v2_10_0` now calls `intent claude upgrade --apply` after the stamp bump so fleet upgrades install canon in one migration. Session 1 commit: `e999f82`.
+**ST0035 active — 12 of 18 Done (WP01–WP12). 6 remain: WP13, WP14, WP15, WP16, WP17, WP18.** `intent claude upgrade --apply` installs the full v2.10.0 canon in one idempotent shot, with `--force` (overwrite user-edited canon files), `--skip-settings` (escape hatch for deeply customised `.claude/settings.json`), worktree- and submodule-aware hook resolution via `git rev-parse --git-path hooks`, ready-to-paste chain snippet for pre-existing non-Intent pre-commit hooks, diff-in-dry-run for divergent CLAUDE.md, and an upfront writability probe. BATS suite covers all 5 spec scenarios (fresh install, idempotence, user-section preservation, hook chaining, dry-run no-op). Tests: 767/767 green. Doctor: clean.
 
 ## ST0035 progress
 
@@ -23,7 +23,7 @@ intent_version: 2.10.0
 | Done        | 08  | Root `AGENTS.md` generator rewrite                                                    | M    |
 | Done        | 09  | Root `CLAUDE.md` overlay template                                                     | S    |
 | Done        | 10  | Delete deprecated artefacts                                                           | XS   |
-| WIP         | 11  | Extend `intent claude upgrade` (Session 1 shipped; Sessions 2+3 remain)               | M    |
+| Done        | 11  | Extend `intent claude upgrade` to apply canon artefacts                               | M    |
 | Done        | 12  | Socrates/Diogenes FAQ cross-refs                                                      | XS   |
 | Not Started | 13  | Update Intent's own CLAUDE.md                                                         | S    |
 | Not Started | 14  | Self-apply canon to Intent (dogfood)                                                  | S    |
@@ -42,6 +42,7 @@ intent_version: 2.10.0
 
 ## Recent
 
+- **2026-04-25**: **WP-11 Done.** Sessions 2 + 3 shipped on top of Session 1's install machinery. Session 2 (`1db2b44`): `--force` flag (overwrite user-edited `.intent_critic.yml` / `usage-rules.md` / user-authored CLAUDE.md, with banner warning + per-probe OVERWRITE marker); `--skip-settings` flag (skip `.claude/settings.json` + 3 hook scripts); paste-ready multi-line `CHAIN_PRE_COMMIT` snippet using `git rev-parse --git-path hooks` so the chain works in worktrees and submodules; diff-in-dry-run for `REFRESH_CLAUDE_MD` (capped at 60 lines); worktree-aware hook resolution via new `canon_hooks_dir` helper; upfront writability probe on `--apply`. Inline bug fixes: `canon_compute_refresh_preview` now stages preserved user content in a temp file (command substitution was stripping trailing blank lines, causing freshly-installed CLAUDE.md to immediately report DIVERGED). Session 3 (`b2a6e5d`): BATS suite at `tests/unit/intent_claude_upgrade.bats` covering all 5 spec scenarios with HOME isolation; MODULES.md row updated for WP-11 scope; `canon_print` helper unifies diagnostic alignment (status column lands at col 43 for every artefact line, regardless of label length). Bonus fix `614980d`: `intent init /abs/path` now works (was crashing sed because the path leaked into PROJECT_NAME). Tests: 767/767 green. Commits: `b2a6e5d` Session 3 + Done · `1db2b44` Session 2 · `614980d` init fix.
 - **2026-04-24**: **WP-11 Session 1 shipped.** 7 canon-install helpers in `intent_claude_upgrade` (`canon_install_file`, `canon_install_script`, `canon_delete_file`, `canon_refresh_with_user_section`, `canon_substitute_placeholders`, `canon_template_matches_installed`, plus supporting primitives). 11 new action codes wired through Phases 1/2/3 (INSTALL_SETTINGS, INSTALL_HOOK_SCRIPT, INSTALL_PRE_COMMIT, CHAIN_PRE_COMMIT, INSTALL_CRITIC_CONFIG, INSTALL_CLAUDE_MD, REFRESH_CLAUDE_MD, INSTALL_USAGE_RULES, PLANT_MODULES, PLANT_DECISION_TREE, DELETE_LEGACY_AGENTS). REGENERATE/CREATE AGENTS.md now calls `intent agents sync` (the WP-08 generator) instead of copying the Elixir template. `migrate_v2_9_0_to_v2_10_0` invokes `intent claude upgrade --apply` after stamp bump. Two idempotence bug fixes: AGENTS.md multi-digit-semver regex; placeholder-aware compare for hook scripts. Scratch-project test: fresh install all-green; second `--apply` zero actions. Full suite 762/762 green. Commit `e999f82`. Sessions 2+3 deferred (edge cases + BATS + MODULES.md + Done).
 - **2026-04-24**: WP-10 complete. Deleted `intent/llm/AGENTS.md` + `lib/templates/llm/_llm_preamble.md`. Flipped residual code paths that still wrote to `intent/llm/AGENTS.md`: `bin/intent_init::_create_basic_agents_md`, `bin/intent_helpers::_generate_basic_agents_md` + `migrate_v2_2_to_v2_3_0`, `bin/intent_doctor` (AGENTS.md check simplified), `intent/plugins/claude/bin/intent_claude_upgrade` (diagnosis + CREATE + REGENERATE paths flipped), `tests/unit/docs_completeness.bats::agents_sync_idempotent` (path to root). `intent/docs/working-with-llms.md` troubleshooting bumped to v2.10.0. Full suite 762/762 green. Commits: `1ae5f61` content · `2e99857` Done.
 - **2026-04-24**: **Retarget ST0035 v2.9.1 → v2.10.0** + **ST0036 opened (Phase 0 stub)**. Mid-ST decision to bundle directory relocation (`.intent/` → `intent/.config/`) into the same release. Semver-breaking directory move forces the minor bump within 2.x. ST0036 lands its implementation WPs between ST0035/WP13 and ST0035/WP14; canary + fleet rollout (WP15/WP16) carry both concerns in one pass. Commits: `b760b39` retarget.
@@ -61,12 +62,12 @@ intent_version: 2.10.0
 
 ## Next Up
 
-1. **WP11 Session 2** — edge cases: emit a diff-in-dry-run when user-authored CLAUDE.md diverges; richer hook-chain instructions; read-only FS / submodule handling.
-2. **WP11 Session 3** — BATS test suite (5 scenarios from spec: fresh project, idempotent re-apply, user-edit preservation, pre-existing hook chain, `--dry-run` no-op); MODULES.md audit for new helpers; commit; mark WP-11 Done.
-3. **WP13** (S) — Rewrite Intent's own `CLAUDE.md` to match the refreshed canon. Depends on WP09 (template) ✓.
-4. **ST0036 Phase 0 elaboration** — after WP13 lands: populate all 9 `WP/NN/info.md` files for directory relocation. Phase 0 review gate before any ST0036 WP starts.
-5. **WP14** (S) — Self-apply canon to Intent (dogfood). Carries both ST0035 canon AND ST0036 directory relocation post-Phase-0.
-6. **WP18** — `intent/usr/*.md` audit can run in parallel with WP15/WP16; must land before WP17.
+1. **WP13** (S) — Rewrite Intent's own `CLAUDE.md` to match the refreshed canon. Depends on WP09 (template) ✓. Smallest unit; unblocks WP14.
+2. **ST0036 Phase 0 elaboration** — populate all 9 `WP/NN/info.md` files for the directory relocation `.intent/` → `intent/.config/`. Phase 0 review gate before any ST0036 WP starts. Can run in parallel with WP13.
+3. **ST0036/WP01–WP08** — migration function, path probes, literal sweep, templates, BATS, gitignore, migration guide, Intent self-apply. Land BEFORE ST0035/WP14.
+4. **WP14** (S) — Self-apply canon to Intent (dogfood). Post-ST0036; carries both ST0035 canon AND ST0036 directory relocation in one pass.
+5. **WP15/WP16/WP17** — Canary (Conflab → Lamplight → Laksa) + fleet rollout (12 Intent + Pplr) + verification sweep.
+6. **WP18** (M) — `intent/usr/*.md` audit (parallel with WP15/WP16; must land before WP17).
 
 See `intent/st/ST0035/tasks.md` for ST0035 dependency graph; `intent/st/NOT-STARTED/ST0036/tasks.md` for ST0036.
 
