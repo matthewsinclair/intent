@@ -59,8 +59,25 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Get project name (default to current directory name)
-PROJECT_NAME="${ARGS[0]:-$(basename "$(pwd)")}"
+# Argument may be either a project name or a target directory path. If it
+# looks like a path (contains /, or is . / ..), cd there (creating the dir
+# if needed) and take the basename as the project name. Otherwise treat the
+# argument as the project name in the current directory.
+if [ -n "${ARGS[0]:-}" ]; then
+  _init_arg="${ARGS[0]}"
+  case "$_init_arg" in
+    */*|.|..)
+      mkdir -p "$_init_arg" || error "Cannot create directory '$_init_arg'"
+      cd "$_init_arg" || error "Cannot enter directory '$_init_arg'"
+      PROJECT_NAME="$(basename "$(pwd)")"
+      ;;
+    *)
+      PROJECT_NAME="$_init_arg"
+      ;;
+  esac
+else
+  PROJECT_NAME="$(basename "$(pwd)")"
+fi
 
 # Check if already initialized
 if [ -f ".intent/config.json" ]; then
