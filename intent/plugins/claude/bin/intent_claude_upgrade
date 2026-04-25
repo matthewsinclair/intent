@@ -377,6 +377,20 @@ PRE_COMMIT_HOOKS_DIR=""
 PRE_COMMIT_PATH=""
 PRE_COMMIT_INTENT_PATH=""
 
+# Print a canon-artefact diagnostic line with consistent alignment. The status
+# column lands at col 43 regardless of label length (longest label needs 41
+# chars, so leaving one space minimum). $1 = label (no leading indent / colon),
+# $2 = pre-coloured status string (e.g. "${GREEN}UP TO DATE${NC}").
+canon_print() {
+  local label="$1"
+  local status_styled="$2"
+  local target=42
+  local len=${#label}
+  local pad=$((target - 3 - len))
+  [ "$pad" -lt 1 ] && pad=1
+  echo -e "  $label:$(printf '%*s' "$pad" '')$status_styled"
+}
+
 # ============================================================
 # PHASE 1: DIAGNOSE
 # ============================================================
@@ -551,18 +565,18 @@ echo "Checking canon artefacts..."
 # Both blocks gated on --skip-settings (single escape hatch for projects with
 # deeply customised settings.json that does not fit the marker pattern).
 if [ "$SKIP_SETTINGS" = true ]; then
-  echo -e "  .claude/settings.json:        ${BLUE}skipped (--skip-settings)${NC}"
-  echo -e "  .claude/scripts/*.sh:         ${BLUE}skipped (--skip-settings)${NC}"
+  canon_print ".claude/settings.json" "${BLUE}skipped (--skip-settings)${NC}"
+  canon_print ".claude/scripts/*.sh"  "${BLUE}skipped (--skip-settings)${NC}"
 else
   if [ -f "$PROJECT_DIR/.claude/settings.json" ]; then
     if canon_template_matches_installed "$CANON_SETTINGS_SRC" "$PROJECT_DIR/.claude/settings.json"; then
-      echo -e "  .claude/settings.json:        ${GREEN}UP TO DATE${NC}"
+      canon_print ".claude/settings.json" "${GREEN}UP TO DATE${NC}"
     else
-      echo -e "  .claude/settings.json:        ${YELLOW}DIVERGED${NC}"
+      canon_print ".claude/settings.json" "${YELLOW}DIVERGED${NC}"
       add_action "INSTALL_SETTINGS"
     fi
   else
-    echo -e "  .claude/settings.json:        ${RED}MISSING${NC}"
+    canon_print ".claude/settings.json" "${RED}MISSING${NC}"
     add_action "INSTALL_SETTINGS"
   fi
 
@@ -570,16 +584,13 @@ else
     _src="$CANON_SCRIPTS_SRC/$_script"
     _dst="$PROJECT_DIR/.claude/scripts/$_script"
     _label=".claude/scripts/$_script"
-    _pad=$((38 - ${#_label}))
-    [ "$_pad" -lt 1 ] && _pad=1
-    _spaces="$(printf '%*s' "$_pad" '')"
     if [ -f "$_dst" ] && canon_template_matches_installed "$_src" "$_dst"; then
-      echo -e "  $_label:$_spaces${GREEN}UP TO DATE${NC}"
+      canon_print "$_label" "${GREEN}UP TO DATE${NC}"
     elif [ -f "$_dst" ]; then
-      echo -e "  $_label:$_spaces${YELLOW}DIVERGED${NC}"
+      canon_print "$_label" "${YELLOW}DIVERGED${NC}"
       add_action "INSTALL_HOOK_SCRIPT:$_script"
     else
-      echo -e "  $_label:$_spaces${RED}MISSING${NC}"
+      canon_print "$_label" "${RED}MISSING${NC}"
       add_action "INSTALL_HOOK_SCRIPT:$_script"
     fi
   done
@@ -591,28 +602,28 @@ fi
 # submodules (where .git is a file gitlink) work transparently.
 PRE_COMMIT_HOOKS_DIR="$(canon_hooks_dir "$PROJECT_DIR")"
 if [ -z "$PRE_COMMIT_HOOKS_DIR" ]; then
-  echo -e "  .git/hooks/pre-commit:        ${BLUE}skipped (no git repo)${NC}"
+  canon_print ".git/hooks/pre-commit" "${BLUE}skipped (no git repo)${NC}"
 else
   PRE_COMMIT_PATH="$PRE_COMMIT_HOOKS_DIR/pre-commit"
   PRE_COMMIT_INTENT_PATH="$PRE_COMMIT_HOOKS_DIR/pre-commit.intent"
   if [ -f "$PRE_COMMIT_PATH" ]; then
     if grep -qF "intent critic gate" "$PRE_COMMIT_PATH" 2>/dev/null; then
       if canon_files_identical "$CANON_PRE_COMMIT_SRC" "$PRE_COMMIT_PATH"; then
-        echo -e "  .git/hooks/pre-commit:        ${GREEN}UP TO DATE${NC}"
+        canon_print ".git/hooks/pre-commit" "${GREEN}UP TO DATE${NC}"
       else
-        echo -e "  .git/hooks/pre-commit:        ${YELLOW}DIVERGED${NC}"
+        canon_print ".git/hooks/pre-commit" "${YELLOW}DIVERGED${NC}"
         add_action "INSTALL_PRE_COMMIT"
       fi
     else
       if [ -f "$PRE_COMMIT_INTENT_PATH" ] && canon_files_identical "$CANON_PRE_COMMIT_SRC" "$PRE_COMMIT_INTENT_PATH"; then
-        echo -e "  .git/hooks/pre-commit:        ${YELLOW}CHAINED (existing hook preserved)${NC}"
+        canon_print ".git/hooks/pre-commit" "${YELLOW}CHAINED (existing hook preserved)${NC}"
       else
-        echo -e "  .git/hooks/pre-commit:        ${YELLOW}NON-INTENT HOOK PRESENT${NC}"
+        canon_print ".git/hooks/pre-commit" "${YELLOW}NON-INTENT HOOK PRESENT${NC}"
         add_action "CHAIN_PRE_COMMIT"
       fi
     fi
   else
-    echo -e "  .git/hooks/pre-commit:        ${RED}MISSING${NC}"
+    canon_print ".git/hooks/pre-commit" "${RED}MISSING${NC}"
     add_action "INSTALL_PRE_COMMIT"
   fi
 fi
@@ -621,13 +632,13 @@ fi
 # overwrite even when present (tunings will be lost).
 if [ -f "$PROJECT_DIR/.intent_critic.yml" ]; then
   if [ "$FORCE" = true ]; then
-    echo -e "  .intent_critic.yml:           ${RED}OVERWRITE (--force; user tunings lost)${NC}"
+    canon_print ".intent_critic.yml" "${RED}OVERWRITE (--force; user tunings lost)${NC}"
     add_action "INSTALL_CRITIC_CONFIG"
   else
-    echo -e "  .intent_critic.yml:           ${GREEN}PRESENT${NC} (user-owned)"
+    canon_print ".intent_critic.yml" "${GREEN}PRESENT${NC} (user-owned)"
   fi
 else
-  echo -e "  .intent_critic.yml:           ${RED}MISSING${NC}"
+  canon_print ".intent_critic.yml" "${RED}MISSING${NC}"
   add_action "INSTALL_CRITIC_CONFIG"
 fi
 
@@ -639,21 +650,21 @@ if [ -f "$PROJECT_DIR/CLAUDE.md" ]; then
     _tmp_refresh_preview="$(mktemp)"
     canon_compute_refresh_preview "$CANON_CLAUDE_MD_SRC" "$PROJECT_DIR/CLAUDE.md" "$_tmp_refresh_preview"
     if canon_files_identical "$PROJECT_DIR/CLAUDE.md" "$_tmp_refresh_preview"; then
-      echo -e "  CLAUDE.md (root):             ${GREEN}UP TO DATE${NC}"
+      canon_print "CLAUDE.md (root)" "${GREEN}UP TO DATE${NC}"
     else
-      echo -e "  CLAUDE.md (root):             ${YELLOW}REFRESH (user section preserved)${NC}"
+      canon_print "CLAUDE.md (root)" "${YELLOW}REFRESH (user section preserved)${NC}"
       add_action "REFRESH_CLAUDE_MD"
     fi
     rm -f "$_tmp_refresh_preview"
   elif [ "$FORCE" = true ]; then
-    echo -e "  CLAUDE.md (root):             ${RED}OVERWRITE (--force; user-authored content lost)${NC}"
+    canon_print "CLAUDE.md (root)" "${RED}OVERWRITE (--force; user-authored content lost)${NC}"
     add_action "INSTALL_CLAUDE_MD"
   else
-    echo -e "  CLAUDE.md (root):             ${BLUE}user-authored (left alone)${NC}"
+    canon_print "CLAUDE.md (root)" "${BLUE}user-authored (left alone)${NC}"
     add_warning "CLAUDE.md at root is user-authored (no Intent footer marker); not refreshed. Compare with \`lib/templates/llm/_CLAUDE.md\` if you want to adopt the canon overlay, or re-run with --force to overwrite."
   fi
 else
-  echo -e "  CLAUDE.md (root):             ${RED}MISSING${NC}"
+  canon_print "CLAUDE.md (root)" "${RED}MISSING${NC}"
   add_action "INSTALL_CLAUDE_MD"
 fi
 
@@ -661,37 +672,37 @@ fi
 # With --force, overwrite even when present (user content will be lost).
 if [ -f "$PROJECT_DIR/usage-rules.md" ]; then
   if [ "$FORCE" = true ]; then
-    echo -e "  usage-rules.md (root):        ${RED}OVERWRITE (--force; user content lost)${NC}"
+    canon_print "usage-rules.md (root)" "${RED}OVERWRITE (--force; user content lost)${NC}"
     add_action "INSTALL_USAGE_RULES"
   else
-    echo -e "  usage-rules.md (root):        ${GREEN}PRESENT${NC} (user-owned)"
+    canon_print "usage-rules.md (root)" "${GREEN}PRESENT${NC} (user-owned)"
   fi
 else
-  echo -e "  usage-rules.md (root):        ${RED}MISSING${NC}"
+  canon_print "usage-rules.md (root)" "${RED}MISSING${NC}"
   add_action "INSTALL_USAGE_RULES"
 fi
 
 # intent/llm/MODULES.md -- plant canonical seed if absent (audit showed 9
 # fleet projects need this).
 if [ -f "$PROJECT_DIR/intent/llm/MODULES.md" ]; then
-  echo -e "  intent/llm/MODULES.md:        ${GREEN}PRESENT${NC}"
+  canon_print "intent/llm/MODULES.md" "${GREEN}PRESENT${NC}"
 else
-  echo -e "  intent/llm/MODULES.md:        ${RED}MISSING${NC}"
+  canon_print "intent/llm/MODULES.md" "${RED}MISSING${NC}"
   add_action "PLANT_MODULES"
 fi
 
 # intent/llm/DECISION_TREE.md -- plant canonical seed if absent.
 if [ -f "$PROJECT_DIR/intent/llm/DECISION_TREE.md" ]; then
-  echo -e "  intent/llm/DECISION_TREE.md:  ${GREEN}PRESENT${NC}"
+  canon_print "intent/llm/DECISION_TREE.md" "${GREEN}PRESENT${NC}"
 else
-  echo -e "  intent/llm/DECISION_TREE.md:  ${RED}MISSING${NC}"
+  canon_print "intent/llm/DECISION_TREE.md" "${RED}MISSING${NC}"
   add_action "PLANT_DECISION_TREE"
 fi
 
 # Legacy intent/llm/AGENTS.md -- delete if present (canon moved to root in
 # v2.10.0; most projects already caught up via WP-10).
 if [ -f "$PROJECT_DIR/intent/llm/AGENTS.md" ] || [ -L "$PROJECT_DIR/intent/llm/AGENTS.md" ]; then
-  echo -e "  intent/llm/AGENTS.md:         ${YELLOW}LEGACY (will delete)${NC}"
+  canon_print "intent/llm/AGENTS.md" "${YELLOW}LEGACY (will delete)${NC}"
   add_action "DELETE_LEGACY_AGENTS"
 fi
 

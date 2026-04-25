@@ -3,7 +3,7 @@ verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-11
 title: "Extend intent claude upgrade to apply canon artefacts"
 scope: Medium
-status: WIP
+status: Done
 ---
 
 # WP-11: Extend intent claude upgrade to apply canon artefacts
