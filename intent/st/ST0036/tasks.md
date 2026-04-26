@@ -1,6 +1,6 @@
 # Tasks - ST0036: Directory relocation `.intent/` → `intent/.config/` (v2.10.0)
 
-## Work packages (provisional — Phase 0 forensic elaboration populates each `WP/NN/info.md`)
+## Work packages (Phase 0 elaborated 2026-04-26; each `WP/NN/info.md` carries forensic detail)
 
 - [ ] **WP01** — Migration function: complete `migrate_v2_9_0_to_v2_10_0` to perform the atomic relocation (.intent/ -> intent/.config/ + sentinel + recovery handling). Size: M. Deps: —.
 - [ ] **WP02** — Path probes: update `bin/intent_config::load_intent_config` (project-root walk), `bin/intent_helpers::require_project_root`, `bin/intent_doctor` checks. Size: S. Deps: WP01.
@@ -28,7 +28,7 @@
 
 ## Phase 0 gate
 
-No WP starts until Phase 0 produces all nine `WP/NN/info.md` files with forensic detail (objectives, deliverables, acceptance criteria, dependencies, risks, verification) and passes the user review checkpoint.
+Phase 0 elaboration complete (2026-04-26): all nine `WP/NN/info.md` files populated with objectives, context, deliverables, approach, acceptance criteria, dependencies, implementation notes, risks, verification steps, and exit checklists. **Awaiting user review.** No WP01 work begins until the review checkpoint passes.
 
 ## Coordination with ST0035
 
@@ -36,6 +36,11 @@ ST0036 WPs 1–8 land between ST0035/WP13 (Intent's own CLAUDE.md update) and ST
 
 ## Task Notes
 
-- All WP sizing is provisional. Forensic elaboration may split or combine WPs.
-- Individual `WP/NN/info.md` files are created via `intent wp new ST0036 "<title>"` during Phase 0.
+- WP sizing finalised in Phase 0 elaboration. T-shirt distribution: 3 × M (WP01, WP03, WP05), 3 × S (WP02, WP04, WP08), 3 × XS (WP06, WP07, WP09).
+- All nine `WP/NN/info.md` files created via `intent wp new ST0036 "<title>"` and populated 2026-04-26.
 - Migration function name `migrate_v2_9_0_to_v2_10_0` is fixed (already retargeted during ST0035); WP01 fills in its body.
+- Cross-WP recurring concerns surfaced during Phase 0 elaboration:
+  - **Sentinel anchor coordination**: WP01 emits a recovery diagnostic pointing at `intent/docs/migration-v2.10.0.md#recovery-from-interrupted-migration`. WP07 must own that exact anchor.
+  - **WP01 idempotence check**: must be on layout state (`intent/.config/` exists?) not on stamp value (`intent_version == "2.10.0"`?). Stamp-based check would early-return on Intent itself, which is already stamped 2.10.0 but not yet relocated. Locked in WP01 acceptance criteria #2.
+  - **AGENTS.md cosmetic drift**: mentioned in WP04 + WP08 — same convention as ST0035 sessions: regen happens during sync; commit policy is per-WP.
+  - **`~/.intent/ext/` preservation**: every WP that does literal-flips needs to guard against false-positive matches on the user-level extension root.

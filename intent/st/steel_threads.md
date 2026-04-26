@@ -13,6 +13,7 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 | ID     | Slug                      | Status | Created    | Completed |
 | ------ | ------------------------- | ------ | ---------- | --------- |
+| ST0036 | directory-relocation-i... | WIP    | 2026-04-24 |
 | ST0035 | canonical-llm-config-f... | WIP    | 2026-04-24 |
 
 <!-- END: STEEL_THREAD_INDEX -->

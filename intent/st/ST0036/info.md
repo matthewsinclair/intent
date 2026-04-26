@@ -1,7 +1,7 @@
 ---
-verblock: "24 Apr 2026:v0.3: matts - Phase 0 stub; ships with ST0035 in v2.10.0"
+verblock: "26 Apr 2026:v0.4: matts - Phase 0 elaborated; awaiting review"
 intent_version: 2.10.0
-status: Not Started
+status: WIP
 slug: directory-relocation-intent-to-intent-config
 created: 20260424
 completed:
@@ -11,7 +11,7 @@ completed:
 
 ## Status
 
-**Phase 0 stub.** High-level scope + design + WP backlog live here, in `design.md`, and in `tasks.md`. Individual `WP/NN/info.md` forensic elaboration is deferred until this ST is actively picked up (projected: after ST0035 WP13 lands). Ships alongside ST0035 in a single **v2.10.0** release.
+**Phase 0 elaborated (2026-04-26); awaiting user review.** High-level scope + design + WP backlog live here, in `design.md`, and in `tasks.md`. All nine `WP/NN/info.md` files populated with forensic detail (objectives, context, deliverables, approach, acceptance criteria, dependencies, implementation notes, risks, verification steps, exit checklists). Ships alongside ST0035 in a single **v2.10.0** release. WP01 begins after Phase 0 review passes.
 
 ## Objective
 
@@ -85,25 +85,23 @@ High-level; full register in `design.md` once Phase 0 elaborates.
 
 ## Phase 0 gate
 
-Before any ST0036 code lands:
+Phase 0 elaboration complete (2026-04-26):
 
-1. Populate each `WP/NN/info.md` with forensic detail (objectives, deliverables, acceptance criteria, dependencies, risks, verification).
-2. Finalize `design.md` (canon decisions + risk register + migration algorithm).
-3. Hand back for review.
-4. Only after review approval does WP01 begin.
+1. ✓ All nine `WP/NN/info.md` files populated with forensic detail.
+2. ✓ `design.md` carries D1-D5 canon decisions + risk register.
+3. ✓ `tasks.md` reflects finalised T-shirt sizing.
+4. **Awaiting review** -- user reads each WP info.md, validates scope/deps/risks, approves before WP01 starts.
 
 Given the bundling with ST0035, this review gate is the same conversation as ST0035's next checkpoint.
 
 ## Context for LLM
 
-This ST relocates `.intent/` to `intent/.config/` as part of v2.10.0 (bundled with ST0035's LLM canon work). The high-level shape and motivation live here + `design.md` + `tasks.md`. Individual WP `info.md` files are not yet populated — Phase 0 elaboration runs when this ST is activated.
+This ST relocates `.intent/` to `intent/.config/` as part of v2.10.0 (bundled with ST0035's LLM canon work). The high-level shape and motivation live here + `design.md` + `tasks.md`. All nine WP `info.md` files are now populated (Phase 0 complete 2026-04-26).
 
-When picking this ST up:
+When picking implementation up post-review:
 
-1. Confirm ST0035 progress — ST0036 WPs interleave **before** ST0035's rollout WPs (WP14 onwards).
-2. Re-read `intent/docs/working-with-llms.md` for current-as-of canon (written during ST0035/WP03).
-3. Re-read this file + `design.md` + `tasks.md`.
-4. Run Phase 0 forensic elaboration producing all `WP/NN/info.md` files.
-5. Commit Phase 0.
-6. Hand back for review.
-7. Start WP01 only after review approval.
+1. Confirm ST0035 progress -- ST0036 WPs interleave **before** ST0035/WP14.
+2. Re-read this file + `design.md` + `tasks.md` + each `WP/NN/info.md` for the WP about to start.
+3. Re-read `intent/docs/working-with-llms.md` for current-as-of canon (written during ST0035/WP03).
+4. Run `intent wp start ST0036/01`; commit per WP exit checklist.
+5. Proceed in dependency order: WP01 -> WP02 -> WP03 -> {WP04, WP05, WP06} -> WP07 (parallel with WP01-WP02) -> WP08 -> WP09 + ST0035/WP14.
