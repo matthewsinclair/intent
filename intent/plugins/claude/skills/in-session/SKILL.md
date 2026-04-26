@@ -58,11 +58,25 @@ Run the following Bash command now (it is idempotent and fast):
 ```bash
 project_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
 project_key="$(printf '%s' "$project_dir" | cksum 2>/dev/null | awk '{print $1}')"
-session_id="$(cat "/tmp/intent-claude-session-current-id-${project_key}" 2>/dev/null || echo unknown)"
-mkdir -p /tmp/intent && touch "/tmp/intent/in-session-${session_id}.sentinel"
+mkdir -p /tmp/intent
+sid="$(cat "/tmp/intent-claude-session-current-id-${project_key}" 2>/dev/null || true)"
+sid_legacy="$(cat /tmp/intent-claude-session-current-id 2>/dev/null || true)"
+[ -n "$sid" ] && touch "/tmp/intent/in-session-${sid}.sentinel"
+[ -n "$sid_legacy" ] && [ "$sid_legacy" != "$sid" ] && touch "/tmp/intent/in-session-${sid_legacy}.sentinel"
+touch /tmp/intent/in-session-unknown.sentinel
+echo "released sentinels: per-project=${sid:-(none)} legacy=${sid_legacy:-(none)} +unknown"
 ```
 
-The session_id is written by the `SessionStart` hook (`session-context.sh`) to a per-project state file `/tmp/intent-claude-session-current-id-${project_key}` where `project_key` is `cksum(project_dir)`. Per-project scoping prevents cross-session contamination when multiple Claude Code sessions run concurrently in different Intent projects (each project owns its own state file). If the file is missing (hook did not run, non-Intent project, etc.) the sentinel falls back to `/tmp/intent/in-session-unknown.sentinel`, which still releases the gate for that session.
+How it resolves the session_id (in priority order):
+
+1. **Per-project state file** `/tmp/intent-claude-session-current-id-${project_key}` -- written by the v2.10.0+ `SessionStart` hook (`session-context.sh`). Per-project scoping prevents cross-session contamination when multiple Claude Code sessions run concurrently in different Intent projects.
+2. **Legacy shared state file** `/tmp/intent-claude-session-current-id` -- written by the pre-v2.10.0 `SessionStart` hook. Used as a best-effort fallback so sessions that started before the per-project hook landed can self-rescue without a Claude Code restart.
+3. **`unknown` fallback** -- always touched. Covers the case where the gate's own `session_id` extraction also fell back to `unknown` (no jq, empty payload, etc.).
+
+If after running `/in-session` the gate is **still** firing on the next prompt -- visible as `Expected sentinel: /tmp/intent/in-session-<UUID>.sentinel` in the hook output -- it means the running Claude Code session predates the per-project hook and the legacy file got stomped by another project's SessionStart. Two recovery paths:
+
+- **Quick:** copy the UUID from the gate's error message and run `touch /tmp/intent/in-session-<UUID>.sentinel`.
+- **Proper:** restart the Claude Code session (so `SessionStart` fires with the new hook and writes the per-project state file).
 
 ### 5. Confirm and proceed
 
