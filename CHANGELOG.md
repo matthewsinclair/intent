@@ -24,7 +24,7 @@ Retargeted from v2.9.1 mid-development to bundle ST0036 (directory relocation, b
 
 ### Breaking
 
-- **Per-project metadata directory relocated**: `.intent/config.json` → `intent/.config/config.json`. Same for `.intent/backup/` → `intent/.config/backup/`. Anything scripting against `.intent/` (CI, editor plugins, ad-hoc `jq`) breaks on upgrade; update to `intent/.config/`. Migration is fail-forward: old location is pruned, no backwards-compat symlink.
+- **Per-project metadata directory relocated**: `.intent/config.json` → `intent/.config/config.json`. Same for `.intent/backup/` → `intent/.config/backup/`. Anything scripting against `.intent/` (CI, editor plugins, ad-hoc `jq`) breaks on upgrade; update to `intent/.config/`. Migration is fail-forward: old location is pruned, no backwards-compat symlink. Full migration guide including recovery from interrupted upgrades: [`intent/docs/migration-v2.10.0.md`](./intent/docs/migration-v2.10.0.md).
 
 ### Removed
 

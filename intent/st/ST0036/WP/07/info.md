@@ -3,7 +3,7 @@ verblock: "26 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-07
 title: "Migration guide: intent/docs/migration-v2.10.0.md"
 scope: Extra Small
-status: Not Started
+status: Done
 ---
 
 # WP-07: Migration guide -- `intent/docs/migration-v2.10.0.md`

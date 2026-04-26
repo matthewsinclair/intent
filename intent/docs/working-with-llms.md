@@ -443,6 +443,10 @@ Symptom: a skill you edited locally now shows a checksum mismatch on `intent cla
 
 This mirrors the upgrade-doesn't-clobber contract. If the edit is intentional, either move it into an extension (`~/.intent/ext/<name>/skills/<slug>/`) so it shadows canon cleanly, or accept that `sync` will revert it on next run. Mid-fleet drift on canon skills creates more problems than it solves.
 
+## v2.10.0 upgrade note
+
+Intent v2.10.0 bundles this LLM canon (ST0035) with the directory relocation `.intent/` → `intent/.config/` (ST0036). The relocation is the breaking change in the version; the canon work is additive. Migration is automatic on `intent upgrade` and atomic. If you script against `.intent/` paths in CI, editor plugins, or ad-hoc `jq` invocations, you need to flip those references. Full guide: `intent/docs/migration-v2.10.0.md` (includes the recovery procedure for interrupted upgrades).
+
 ## See also
 
 - `AGENTS.md` at the project root — navigation, build/test commands, installed skills and subagents.
@@ -450,6 +454,7 @@ This mirrors the upgrade-doesn't-clobber contract. If the edit is intentional, e
 - `intent/docs/rules.md` — rule authoring guide.
 - `intent/docs/critics.md` — Critic subagent contract and report format.
 - `intent/docs/writing-extensions.md` — authoring guide for extensions at `~/.intent/ext/`.
+- `intent/docs/migration-v2.10.0.md` — v2.9.0 → v2.10.0 migration guide.
 - `intent/llm/MODULES.md` — Highlander module registry.
 - `intent/llm/DECISION_TREE.md` — code-placement flowchart.
 - `intent/st/ST0035/design.md` — the decision log that drove this canon.

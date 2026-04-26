@@ -190,6 +190,7 @@ $ intent st show ST0001 | pbcopy
 - **[User Guide](./intent/usr/user_guide.md)** - Step-by-step guide to using Intent
 - **[Reference Guide](./intent/usr/reference_guide.md)** - Complete command reference and detailed documentation
 - **[Installation Guide](./intent/usr/user_guide.md#installation)** - Detailed installation instructions
+- **[v2.9.0 → v2.10.0 Migration Guide](./intent/docs/migration-v2.10.0.md)** - Upgrade path including the `.intent/` → `intent/.config/` directory move and recovery from interrupted migrations
 
 ### Understanding Intent
 
