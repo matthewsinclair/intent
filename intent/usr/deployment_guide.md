@@ -91,7 +91,7 @@ export INTENT_EDITOR="vim"
 
 ### Project Configuration
 
-Create a project-specific configuration using `.intent/config.json`:
+Create a project-specific configuration using `intent/.config/config.json`:
 
 ```json
 {
@@ -114,7 +114,7 @@ Intent works seamlessly with git and other version control systems:
 .intent-tmp/
 
 # Intent configuration (contains local paths)
-.intent/config.json
+intent/.config/config.json
 ```
 
 #### Commit Practices

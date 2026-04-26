@@ -48,7 +48,7 @@ The hook deliberately exits `0` (letting the commit through) when the critic inf
 
 - `git` not on `PATH` (the hook is a bash script that needs git to resolve the worktree root).
 - `intent` CLI not on `PATH`.
-- No `.intent/config.json` at the worktree root (the hook was copied into a non-Intent repo).
+- No `intent/.config/config.json` at the worktree root (the hook was copied into a non-Intent repo).
 
 In every case a one-line stderr advisory explains why the gate was skipped. The gate is a quality check, not an availability check — a missing tool shouldn't prevent work from being committed.
 

@@ -419,7 +419,7 @@ This is by design. Intent does not clobber human-curated content silently. Two p
 
 Symptom: after upgrade, `intent agents sync` still writes `AGENTS.md` in the old internal location.
 
-Cause: the project may still be stamped at an earlier Intent version, or a stale config is being read. Check `.intent/config.json`'s `intent_version` field; run `intent upgrade` if it reads below `2.10.0`. The v2.10.0 migration flips the default output path and deletes the legacy `intent/llm/AGENTS.md`.
+Cause: the project may still be stamped at an earlier Intent version, or a stale config is being read. Check `intent/.config/config.json`'s `intent_version` field; run `intent upgrade` if it reads below `2.10.0`. The v2.10.0 migration flips the default output path and deletes the legacy `intent/llm/AGENTS.md`.
 
 ### New subagent installed mid-session is invisible to `Task()`
 

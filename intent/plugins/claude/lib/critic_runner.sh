@@ -45,13 +45,13 @@ critic_severity_rank() {
   esac
 }
 
-# Resolve the project root (directory containing .intent/config.json) by
+# Resolve the project root (directory containing intent/.config/config.json) by
 # walking up from the caller's cwd. Echoes the path, or empty string if
 # not found. Does not change the working directory.
 critic_resolve_project_root() {
   local dir="${1:-$PWD}"
   while [ "$dir" != "/" ] && [ -n "$dir" ]; do
-    if [ -f "$dir/.intent/config.json" ]; then
+    if [ -f "$dir/intent/.config/config.json" ]; then
       echo "$dir"
       return 0
     fi

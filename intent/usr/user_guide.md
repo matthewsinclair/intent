@@ -121,7 +121,7 @@ my-project/
 │   │   └── tpd/            # Technical Product Design
 │   ├── usr/                # User documentation
 │   └── llm/                # LLM-specific content
-└── .intent/                # Configuration
+└── intent/.config/         # Configuration
     └── config.json         # Intent configuration
 ```
 
@@ -663,7 +663,7 @@ intent learn --category failed "Tried raw Ecto, broke the dependency graph"
 intent learn --list
 ```
 
-Learnings are stored in `.intent/learnings.md` and automatically included by `intent claude prime`.
+Learnings are stored in `intent/.config/learnings.md` and automatically included by `intent claude prime`.
 
 ## Module Guardrails
 

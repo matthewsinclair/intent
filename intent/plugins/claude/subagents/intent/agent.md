@@ -42,7 +42,7 @@ Intent is a project management framework that captures the "why" behind code thr
 ## When Working on Intent Projects
 
 1. **Check Project Structure**:
-   - Look for intent/ directory and .intent/config.json
+   - Look for intent/ directory and intent/.config/config.json
 
 2. **Steel Thread Workflow**:
    - Create steel thread: `intent st new "Feature Name"`

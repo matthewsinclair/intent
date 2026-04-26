@@ -26,7 +26,7 @@ Source files (all optional, skipped if missing):
   intent/llm/MODULES.md         Module registry
   intent/llm/DECISION_TREE.md   Code placement guide
   intent/llm/ARCHETYPES.md      Template reference
-  .intent/learnings.md          Project-specific footguns
+  intent/.config/learnings.md          Project-specific footguns
 
 The output is written to Claude Code's project memory path:
   ~/.claude/projects/-<path-with-dashes>/memory/MEMORY.md
@@ -65,7 +65,7 @@ build_memory() {
   local project_root="$1"
   local from_project="$2"
   local project_name
-  project_name=$(jq -r '.project_name // "Project"' "$project_root/.intent/config.json" 2>/dev/null || echo "Project")
+  project_name=$(jq -r '.project_name // "Project"' "$project_root/intent/.config/config.json" 2>/dev/null || echo "Project")
 
   # Start output
   echo "# $project_name Project Memory"
@@ -131,7 +131,7 @@ build_memory() {
   fi
 
   # Learnings / footguns
-  local learnings_file="$project_root/.intent/learnings.md"
+  local learnings_file="$project_root/intent/.config/learnings.md"
   if [ -f "$learnings_file" ]; then
     echo "## Known Footguns"
     echo ""
@@ -141,10 +141,10 @@ build_memory() {
 
   # Import from another project
   if [ -n "$from_project" ] && [ -d "$from_project" ]; then
-    local from_learnings="$from_project/.intent/learnings.md"
+    local from_learnings="$from_project/intent/.config/learnings.md"
     if [ -f "$from_learnings" ]; then
       local from_name
-      from_name=$(jq -r '.project_name // "Unknown"' "$from_project/.intent/config.json" 2>/dev/null || basename "$from_project")
+      from_name=$(jq -r '.project_name // "Unknown"' "$from_project/intent/.config/config.json" 2>/dev/null || basename "$from_project")
       echo "## Imported Learnings ($from_name)"
       echo ""
       cat "$from_learnings" | condense | head -15
@@ -193,7 +193,7 @@ done
 # Determine project root
 if [ -z "${PROJECT_ROOT:-}" ]; then
   # Plugin commands don't get PROJECT_ROOT from dispatcher; detect it
-  if [ -f "$(pwd)/.intent/config.json" ]; then
+  if [ -f "$(pwd)/intent/.config/config.json" ]; then
     PROJECT_ROOT="$(pwd)"
   else
     error "Not in an Intent project. Run this from within a project directory."

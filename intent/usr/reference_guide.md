@@ -66,7 +66,7 @@ Migrating directory structure...
   legacy/llm → intent/llm
 
 Converting configuration...
-  legacy config (YAML) → .intent/config.json (JSON)
+  legacy config (YAML) → intent/.config/config.json (JSON)
 
 Migrating steel threads...
   Converting ST0001.md → ST0001/info.md
@@ -129,7 +129,7 @@ intent doctor [options]
 | INTENT_HOME      | Required | Environment variable set and directory exists        |
 | Executable       | Required | `intent` found and executable                        |
 | Global config    | Warning  | `~/.config/intent/config.json` exists and valid JSON |
-| Local config     | Info     | Project `.intent/config.json` if in a project        |
+| Local config     | Info     | Project `intent/.config/config.json` if in a project |
 | AGENTS.md        | Warning  | Present for v2.3+ projects                           |
 | PATH             | Warning  | `$INTENT_HOME/bin` in PATH                           |
 | Required tools   | Required | bash, sed, grep, mkdir, jq                           |
@@ -174,7 +174,7 @@ intent init "My Project" --with-st0000    # Init + full ST0000 bootstrap
 **Output:**
 
 - Creates Intent directory structure
-- Creates `.intent/config.json` with project configuration
+- Creates `intent/.config/config.json` with project configuration
 - Initializes `intent/` directories (st/, eng/, usr/, llm/)
 - Creates `CLAUDE.md` with project instructions
 - Creates `intent/wip.md` for work tracking
@@ -608,7 +608,7 @@ intent fileindex -X lib/my_module.ex -i review.md
 
 **Defaults:**
 
-- In an Intent project: `STARTDIR=lib/`, `FILESPEC=*.{ex,exs}`, `INDEX_DIR=.intent/indexes/`
+- In an Intent project: `STARTDIR=lib/`, `FILESPEC=*.{ex,exs}`, `INDEX_DIR=intent/.config/indexes/`
 - Standalone: `STARTDIR=.`, `FILESPEC=*.{ex,exs}`, `INDEX_DIR=.`
 
 #### `intent agents`
@@ -850,7 +850,7 @@ intent st zero help
 | D6  | `intent/llm/DECISION_TREE.md`       | From template                |
 | D8  | MEMORY.md via `intent claude prime` | Delegates to prime           |
 | D9  | Module check hook                   | From template                |
-| D10 | `.intent/learnings.md`              | Empty structure              |
+| D10 | `intent/.config/learnings.md`       | Empty structure              |
 | D11 | `intent/llm/DEPENDENCY_GRAPH.md`    | Elixir only                  |
 
 **Example:**
@@ -962,7 +962,7 @@ intent learn --list
 
 **Notes:**
 
-- Stores in `.intent/learnings.md` with date-prefixed entries
+- Stores in `intent/.config/learnings.md` with date-prefixed entries
 - Automatically included by `intent claude prime`
 
 #### `intent modules`
@@ -1287,7 +1287,7 @@ Intent/
 │   ├── lib/               # Test helper libraries
 │   ├── fixtures/          # Test fixtures
 │   └── run_tests.sh       # Test runner script
-└── .intent/               # Intent configuration
+└── intent/.config/               # Intent configuration
     └── config.json        # Project configuration
 ```
 
@@ -1304,7 +1304,7 @@ Intent/
 
 ### Project Configuration
 
-Location: `.intent/config.json`
+Location: `intent/.config/config.json`
 
 Format: JSON configuration file
 
@@ -1365,6 +1365,6 @@ Example:
 | MODULES.md      | Module registry for the Highlander Rule (one module per concern)                |
 | Audit           | Automated code quality checks using custom Credo rules                          |
 | Health check    | Comprehensive project quality assessment via `intent audit health`              |
-| Learning        | Captured project insight stored in `.intent/learnings.md`                       |
+| Learning        | Captured project insight stored in `intent/.config/learnings.md`                |
 | Prime           | Memory injection via `intent claude prime` for session context                  |
 | ST Zero         | Retrofit installation of ST0000 deliverables for brownfield projects            |

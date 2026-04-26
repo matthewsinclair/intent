@@ -68,7 +68,7 @@ Options:
   -h, --help           Show this help
 
 The upgrade covers:
-  - Version bump (.intent/config.json intent_version to $TARGET_VERSION)
+  - Version bump (intent/.config/config.json intent_version to $TARGET_VERSION)
   - Subagent updates (all installed subagents synced to latest)
   - Skill updates (all installed skills synced to latest)
   - LLM guidance files (AGENTS.md, RULES.md, ARCHITECTURE.md)
@@ -132,9 +132,9 @@ if [ -z "$PROJECT_DIR" ]; then
 fi
 
 # Validate it's an Intent project
-if [ ! -d "$PROJECT_DIR/intent" ] && [ ! -d "$PROJECT_DIR/.intent" ]; then
+if [ ! -d "$PROJECT_DIR/intent" ]; then
   echo "Error: '$PROJECT_DIR' does not appear to be an Intent project"
-  echo "  (no intent/ or .intent/ directory found)"
+  echo "  (no intent/ directory found)"
   exit 1
 fi
 
@@ -338,10 +338,10 @@ canon_claude_md_is_generated() {
   [ -f "$dst" ] && grep -qF "$CANON_INTENT_FOOTER_MARK" "$dst" 2>/dev/null
 }
 
-# Resolve author for placeholder substitution. Preference: .intent/config.json
+# Resolve author for placeholder substitution. Preference: intent/.config/config.json
 # author field -> $INTENT_AUTHOR -> $USER -> "Unknown".
 canon_resolve_author() {
-  local cfg="$PROJECT_DIR/.intent/config.json"
+  local cfg="$PROJECT_DIR/intent/.config/config.json"
   local author=""
   if [ -f "$cfg" ] && command -v jq >/dev/null 2>&1; then
     author="$(jq -r '.author // ""' "$cfg" 2>/dev/null)"
@@ -416,8 +416,8 @@ echo ""
 
 # Check config version
 echo "Checking version..."
-if [ -f "$PROJECT_DIR/.intent/config.json" ]; then
-  current_version=$(grep '"intent_version"' "$PROJECT_DIR/.intent/config.json" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/')
+if [ -f "$PROJECT_DIR/intent/.config/config.json" ]; then
+  current_version=$(grep '"intent_version"' "$PROJECT_DIR/intent/.config/config.json" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/')
   if [ "$current_version" = "$TARGET_VERSION" ]; then
     echo -e "  intent_version:     ${GREEN}$current_version (current)${NC}"
   else
@@ -426,7 +426,7 @@ if [ -f "$PROJECT_DIR/.intent/config.json" ]; then
   fi
 else
   echo -e "  config.json:        ${RED}MISSING${NC}"
-  add_warning "No .intent/config.json found -- cannot update version"
+  add_warning "No intent/.config/config.json found -- cannot update version"
 fi
 
 # Check LLM guidance files
@@ -841,9 +841,9 @@ for action in "${ACTIONS[@]}"; do
     VERSION_BUMP:*)
       new_ver="${action##*:}"
       echo "  Updating intent_version to $new_ver..."
-      if [ -f "$PROJECT_DIR/.intent/config.json" ]; then
-        sed -i '' "s/\"intent_version\": *\"[^\"]*\"/\"intent_version\": \"$new_ver\"/" "$PROJECT_DIR/.intent/config.json"
-        echo -e "    ${GREEN}ok:${NC} .intent/config.json updated"
+      if [ -f "$PROJECT_DIR/intent/.config/config.json" ]; then
+        sed -i '' "s/\"intent_version\": *\"[^\"]*\"/\"intent_version\": \"$new_ver\"/" "$PROJECT_DIR/intent/.config/config.json"
+        echo -e "    ${GREEN}ok:${NC} intent/.config/config.json updated"
       fi
       # Update CLAUDE.md version references if present
       if [ -f "$PROJECT_DIR/CLAUDE.md" ]; then
