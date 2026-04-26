@@ -1,79 +1,74 @@
 # Claude Code Session Restart
 
-## First actions after `/compact`
+## First actions after `/compact` or new session
 
-1. **Invoke `/in-session`.** Loads `/in-essentials`, `/in-standards`, Elixir skills (Intent authors Elixir rules even though it is itself a bash project), and the Persistent reminders block (Highlander / Thin Coordinator / PFIC diligence + NEVER MANUALLY WRAP .MD FILES).
-2. **Verify tree is clean.** Expected top commits (newest first): `b2a6e5d` · `1db2b44` · `614980d` · `989451a` · `e999f82` · `052ba9d` · `2e99857` · `1ae5f61` · `f4c68b9` · `b760b39`. If `git status` shows uncommitted work beyond `.claude/settings.local.json` (user-local, ignore), investigate.
-3. **Read `intent/restart.md` + `intent/wip.md`** for narrative state.
-4. **Read `intent/st/ST0035/WP/13/info.md`** — WP13 is the next active WP (smallest unit; updates Intent's own CLAUDE.md to reference the canon).
-5. **Also read `intent/st/NOT-STARTED/ST0036/info.md` + `design.md` + `tasks.md`** — ST0036 Phase 0 elaboration is the parallel gating thread (populate 9 `WP/NN/info.md` files before any implementation WP).
+1. **Invoke `/in-session`.** Loads `/in-essentials`, `/in-standards`, plus per-language skills. Releases the `UserPromptSubmit` strict gate via the per-project sentinel.
+2. **Verify the working tree.** `git status` should show two interesting items:
+   - Deleted: `.intent/config.json` (the original location)
+   - Untracked: `intent/.config/` (the manual mv from the WP05 diagnostic)
+   - Plus user-local `.claude/settings.local.json` (ignore as always).
+     If those two items are gone, somebody already committed the rename -- check `git log --oneline -5` for a `chore: ST0036/WP-08` commit.
+3. **Read `intent/wip.md` and `intent/restart.md`** for narrative state.
+4. **Read `intent/st/ST0036/impl.md`** -- it carries the WP-by-WP commit table and the open items for tomorrow.
 
-## State (2026-04-25, end of session — 12 of 18 Done; WP-11 closed; ST0036 Phase 0 stub awaiting elaboration)
+## State (2026-04-26, end of session)
 
-**Intent v2.10.0 in progress. ST0035 active; WP-11 closed. ST0036 sibling Phase 0 stub opened (ships bundled), awaiting forensic WP elaboration.**
+**Intent v2.10.0 in progress. ST0035 13 of 18 Done. ST0036 7 of 9 Done; WP08 half-done in the working tree, WP09 pending.**
 
-- 12 of 18 WPs Done: **WP01–WP12**.
-- 6 remain: **WP13, WP14, WP15, WP16, WP17, WP18**.
-- `.intent/config.json`: `intent_version: 2.10.0`.
-- `VERSION`: `2.10.0`.
-- Full test suite: **767/767 green** (5 new BATS in `tests/unit/intent_claude_upgrade.bats`).
-- `intent doctor`: clean.
+- **VERSION**: `2.10.0` (already stamped).
+- **Layout**: working tree currently has Intent's metadata at `intent/.config/` (post-mv); HEAD still has it at `.intent/`. Reconcile by running WP08 properly first thing tomorrow (see below).
+- **Tests**: 774/774 green (verified mid-WP05).
+- **Doctor**: clean.
+- **Recent commits (this session, newest first)**: `b62ea58` WP-05 BATS · `5f8b61e` WP-04 templates · `32df058` WP-06 ignore patterns. Five fixes from previous session also in HEAD: `255436c` `ef2dd0e` `f04db11` `81c2b30` `33a99d0`.
 
-## Resume target — WP13 + ST0036 Phase 0 (parallel)
+## Resume target -- ST0036/WP08 finalisation
 
-These two threads are independent — pick either or both.
+Run order tomorrow:
 
-**WP13** (S — Update Intent's own `CLAUDE.md` to reference the canon):
+1. `cd /Users/matts/Devel/prj/Intent && mv intent/.config .intent` -- revert the working-tree rename so Intent is back to v2.9.x layout.
+2. `intent upgrade` -- invokes `migrate_v2_9_0_to_v2_10_0`:
+   - Phase 1 (relocate): `intent_relocate_dotintent` does the atomic mv with sentinel + recovery handling.
+   - Phase 2 (stamp): no-op (already 2.10.0).
+   - Phase 3 (canon-apply): `intent claude upgrade --apply` runs; expect a few REFRESH actions for cosmetic drift (date stamps, etc.).
+3. `tests/run_tests.sh` -- expect 774 green.
+4. `intent doctor` -- expect clean.
+5. `intent treeindex intent --prune` -- regenerate Intent's own treeindex against the new layout (was deferred from WP06 because Intent's CLI couldn't run on Intent until the relocation).
+6. Commit: `chore: ST0036/WP-08 Intent self-apply v2.10.0 directory move`.
 
-- Spec: `intent/st/ST0035/WP/13/info.md`.
-- Depends on WP09 ✓ (`lib/templates/llm/_CLAUDE.md`) and WP03 ✓ (`intent/docs/working-with-llms.md`).
-- Smallest unit; ships first to unblock WP14 (self-dogfood).
-- Note: Intent's own root `CLAUDE.md` is currently hand-authored (Intent's own developer guide). WP13 needs to either (a) refactor to use canon overlay format with user section, or (b) document the deviation. Read the WP13 info.md before committing to one approach.
+Then **WP09** (XS) -- pure docs:
 
-**ST0036 Phase 0 elaboration**:
+- Add directory-state verification step to `intent/st/ST0035/WP/15/info.md`, `WP/16/info.md`, `WP/17/info.md`.
+- Finalise `intent/st/ST0036/impl.md` (close the "open items" section).
+- Verify CHANGELOG v2.10.0 entry covers both ST0035 + ST0036.
+- Commit: `docs: ST0036/WP-09 coordinate directory move into ST0035 fleet rollout`.
 
-- Stub directory: `intent/st/NOT-STARTED/ST0036/`.
-- Already populated: `info.md` (objective, scope, success criteria, Phase 0 gate), `design.md` (D1–D5 + risk register), `tasks.md` (9 provisional WPs with T-shirt sizing).
-- Forensic `WP/NN/info.md` elaboration deferred — needs to land before any ST0036/WP01 code work.
-- Phase 0 review gate: user reviews + approves all 9 WPs before any implementation lands.
+Then ST0035 resumes at WP14 (Intent self-dogfood for the canon LLM config).
 
-After both: WP14 self-apply canon to Intent (carries both ST0035 canon AND ST0036 directory relocation in one pass). Then canary rollout (WP15: Conflab → Lamplight → Laksa), fleet rollout (WP16: 12 Intent + Pplr), verification sweep (WP17). WP18 (`intent/usr/*.md` audit) runs in parallel with WP15/WP16; must land before WP17.
+## Risks for tomorrow
 
-## WP-11 closed -- summary of what shipped
+- **Treeindex stale entries**: `intent treeindex intent --prune` may surface orphans from the pre-relocation layout. Expected; just prune.
+- **AGENTS.md regen drift**: `intent claude upgrade --apply` calls `intent agents sync`. The regen produces a date-stamp diff. Per session-3 conventions, include the regen in the WP08 commit (it's the right state post-relocation).
+- **Canon-apply `INSTALL_TREEINDEXIGNORE` will not fire** because Intent already has `intent/.treeindex/.treeindexignore` (we updated it in WP06 with the granular pattern). Expected `PRESENT (project-owned)`. Good.
 
-`intent claude upgrade --apply` is the canon installer. From an Intent project:
+## Session conventions (carry forward)
 
-- Phase 1 (DIAGNOSE): probes `.claude/settings.json` + 3 hook scripts, `.git/hooks/pre-commit` (worktree-aware via `git rev-parse --git-path hooks`), `.intent_critic.yml`, root `CLAUDE.md` (Intent-generated vs user-authored), root `usage-rules.md`, `intent/llm/MODULES.md` + `DECISION_TREE.md`, legacy `intent/llm/AGENTS.md`. Status column aligns at col 43 via `canon_print` helper.
-- Phase 2 (PLAN): pretty-printed action queue. Diff-in-dry-run for `REFRESH_CLAUDE_MD` shows what the canon overlay adds vs the user's version.
-- Phase 3 (EXECUTE): canon-install helpers do the work. Idempotent (placeholder-aware drift compare). Ready-to-paste multi-line snippet on `CHAIN_PRE_COMMIT`. Writability probe upfront so read-only FS bails with a clear diagnostic.
-- Flags: `--apply` / `--dry-run` (default) / `--force` (overwrite user-edited canon — banner warning) / `--skip-settings` (escape hatch for deeply customised `.claude/settings.json`).
-- BATS: 5 scenarios at `tests/unit/intent_claude_upgrade.bats` (fresh install, idempotence, user-section preservation, hook chain, dry-run no-op). Tests isolate `HOME` so installed subagents/skills don't bleed.
-- `migrate_v2_9_0_to_v2_10_0` in `bin/intent_helpers` calls `intent claude upgrade --apply` after stamp bump (one-step canon apply for fleet upgrades).
-
-Inline bug fixes folded in: `intent init /abs/path` no longer crashes sed (commit `614980d`); `canon_compute_refresh_preview` now stages preserved user content in a temp file (command substitution was stripping trailing blank lines).
-
-## Session conventions
-
-- T-shirt sizing only (XS/S/M/L/XL/XXL) — no clock-time estimates.
-- Compact/refresh at ~200–250k tokens.
-- ALWAYS use `intent` CLI for ST/WP operations (octal gotcha: use `ST0035` or `35`, not `0035`).
+- T-shirt sizing only (XS/S/M/L/XL/XXL).
+- Compact/refresh at ~200-250k tokens.
+- ALWAYS use `intent` CLI for ST/WP operations -- but until WP08 lands, manual Edit on WP info.md is the documented workaround for `intent wp done` rejecting Intent's own repo.
 - NEVER manually wrap lines in markdown.
 - NO Claude attribution in commits.
-- NEVER report test/skill/subagent counts in release notes, CHANGELOG, wip.md, or session docs.
-- Fail-forward: no backwards-compat shims, no deprecation stubs.
-- Document first, code next, with a hard review gate after Phase 0.
+- NEVER report test/skill/subagent counts in release notes, CHANGELOG, wip.md.
+- Fail-forward: no backwards-compat shims.
+- Document first, code next.
 
-## Lessons worth keeping (cumulative across recent sessions)
+## Lessons from this session
 
-- **Mid-ST version retargets are cheap before release tag.** v2.9.1 → v2.10.0 was ~5 files of string replacement when no tag existed. Check the "is it tagged?" question before committing to a bundling strategy.
-- **Deprecation sweeps leave ghost readers.** Deleting `intent/llm/AGENTS.md` required updating 5 other code paths that still wrote to it. Always grep for the deleted path and scope the WP accordingly.
-- **Idempotence requires placeholder-aware drift compare.** Any canon file whose install path runs sed substitution must use the same substitution before the drift probe (`canon_template_matches_installed` does this generically). Comparing raw template vs substituted install is a correctness bug, not cosmetic.
-- **Command substitution silently strips trailing newlines.** Bash `$()` chops trailing `\n`, so a user section ending with a blank line round-trips one line shorter through a shell variable. For exact byte-for-byte preservation, stage in a temp file and read line-by-line. The bug only manifests as bogus DIVERGED reports — easy to miss without idempotence tests.
-- **Scratch + BATS catch different bugs.** Scratch testing exposed both bugs in WP-11 Session 2 (intent init absolute-path crash + blank-line stripping); BATS would not have, because `make_scratch_project` would `cd` first by convention, hiding the path issue. Conversely, BATS catches behaviour drift that scratch testing only finds if you happen to look. Run both, scratch first to fix mechanics cheaply, BATS second to lock in the contract.
-- **Don't paper over upstream bugs to keep the test green.** The reflex "work around by `cd` first" was wrong — the real fix was ~15 LOC away. Fix-first beats workaround-first when the cost is bounded; otherwise every future test author trips the same trap.
-- **Helper extraction is cheaper than copy-paste even at N=2.** `canon_compute_refresh_preview` was inlined in two places; extracting fixed both at once when the blank-line bug surfaced AND made the new dry-run diff a one-liner. Highlander Rule applies inside files too.
+- **A diagnostic mv catches what audits miss.** The user proposed renaming Intent's own `.intent` -> `intent/.config` _before_ doing per-test BATS flips. Result: +1 passing, 0 newly broken. That single experiment proved WP02's path probes were complete and confirmed that the only remaining work was BATS fixture/assertion flips. Cheap diagnostic, sharp signal.
+- **macOS BSD mktemp footgun**: `mktemp /tmp/foo-XXXXXX.md` creates the LITERAL file `foo-XXXXXX.md` -- the X's are not substituted when followed by a suffix. Drop the suffix or use `mktemp -t prefix` (which on macOS lands in `$TMPDIR`, not `/tmp`).
+- **Highlander cleanup pays for itself**: `bin/intent_treeindex::ensure_treeindexignore` was an inline heredoc duplicating template content. Extracting to `lib/templates/_treeindexignore` is one source for both the auto-init path and the canon installer's INSTALL_TREEINDEXIGNORE action.
+- **WP05 took longer than its M sizing**: the per-test flips were mechanical but the suite needed to be green at commit time, which created an interlock with WP08 (test 374 needed Intent in v2.10.0 layout). Keeping the manual mv uncommitted in working tree resolved the interlock without conflating WP05 + WP08 commits.
 
 ## Open follow-ups (outside ST0035 + ST0036)
 
-- `docs/blog/_drafts/####-shell-critic-inception.md` — blog draft; publication gated on real dogfood runs.
+- `docs/blog/_drafts/####-shell-critic-inception.md` -- blog draft; publication gated on real dogfood runs.
 - WP07 follow-ups from ST0034: align Diogenes fixture-context handling across critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures. Not in ST0035 / ST0036 scope.

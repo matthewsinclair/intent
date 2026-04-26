@@ -1,5 +1,5 @@
 ---
-verblock: "26 Apr 2026:v0.53: matts - WP13 Done; ST0036 Phase 0 elaborated"
+verblock: "26 Apr 2026:v0.54: matts - ST0036 7 of 9 Done (WP04-WP06 + new mig BATS); WP08 in working tree"
 intent_version: 2.10.0
 ---
 
@@ -7,7 +7,7 @@ intent_version: 2.10.0
 
 ## Current State
 
-**ST0035 active — 13 of 18 Done (WP01–WP13). 5 remain: WP14, WP15, WP16, WP17, WP18. ST0036 Phase 0 elaborated and awaiting user review (9 WP info.md files populated; no implementation work begins until review passes).** WP13 rewrote Intent's own root CLAUDE.md as a Claude-specific overlay (236 -> 96 lines) following the WP09 template; canon shell matches byte-for-byte, Intent-specific addenda (6 numbered dev rules, file pointers, commit conventions, migration history, author) live in the user-section between `<!-- user:start --> / <!-- user:end -->` markers. Upgrade-tool dry-run on Intent now reports "CLAUDE.md (root): REFRESH (user section preserved)" with only the dynamic date placeholder differing -- exactly the canon round-trip behaviour. Tests: 767/767 green. Doctor: clean.
+**ST0035 active -- 13 of 18 Done (WP01-WP13). 5 remain: WP14, WP15, WP16, WP17, WP18.** **ST0036 active -- 7 of 9 Done (WP01-WP07).** WP08 (Intent self-apply) half-done in the working tree: a manual `mv .intent intent/.config` was performed during WP05 as a diagnostic (to validate that no test had hard-coded `.intent/` literals depending on Intent's old layout). The diagnostic surfaced 0 such bugs; only the per-test fixture/assertion flips remained, which WP05 covered. The rename is uncommitted; WP08 next session will revert it and re-do via `intent upgrade` so the canon-apply Phase 3 also lands. Tests: **774/774 green**. Doctor: clean (verified mid-WP05).
 
 ## ST0035 progress
 
@@ -40,8 +40,27 @@ intent_version: 2.10.0
 4. **PostToolUse advisory critic**: off by default (too noisy + too costly in tokens). Helper script ships; opt-in via `.intent_critic.yml post_tool_use_advisory: true` + user adds the stanza to `.claude/settings.local.json`.
 5. **Cancelled STs** go to `intent/st/CANCELLED/`; deprecation annotations inline in the cancelled ST's `info.md`.
 
+## ST0036 progress
+
+| Status      | WP  | Title                                               | Size |
+| ----------- | --- | --------------------------------------------------- | ---- |
+| Done        | 01  | Migration function + atomic relocation              | M    |
+| Done        | 02  | Path probes flip                                    | S    |
+| Done        | 03  | Literal sweep `.intent/` -> `intent/.config/`       | M    |
+| Done        | 04  | Template + generator updates                        | S    |
+| Done        | 05  | BATS fixtures + new migration test scenarios        | M    |
+| Done        | 06  | Ignore patterns + `_treeindexignore` template       | XS   |
+| Done        | 07  | v2.10.0 migration guide                             | XS   |
+| Not Started | 08  | Intent self-apply (canon-apply phase still pending) | S    |
+| Not Started | 09  | Coordination notes into ST0035/WP15-17              | XS   |
+
 ## Recent
 
+- **2026-04-26 (this session)**: **ST0036/WP-04, WP-05, WP-06 Done**, plus the WP05 diagnostic that doubled as a half-done WP08. Five session commits:
+  - `32df058` -- WP-06 ignore patterns + new `lib/templates/_treeindexignore` template; canon installer ships it via new `INSTALL_TREEINDEXIGNORE` action; Highlander cleanup of the inline heredoc in `bin/intent_treeindex::ensure_treeindexignore`.
+  - `5f8b61e` -- WP-04 templates + generators audit. Single material flip: `lib/templates/hooks/pre-commit.sh` (4 hits where the hook probed `.intent/config.json`). All other findings were `~/.intent/ext/` (user-level, KEEP).
+  - `b62ea58` -- WP-05 BATS work. 11 BATS files flipped (assertions + fixtures + the test name in `fileindex_commands.bats`); new `tests/unit/migrate_v2_9_0_to_v2_10_0.bats` (6 scenarios -- clean migration, idempotence, sentinel/symlink/conflict refusals, cross-FS placeholder); doctor sentinel scenario in `global_commands.bats`. Real bug fixed: macOS BSD `mktemp /tmp/foo-XXXXXX.md` creates the LITERAL file `foo-XXXXXX.md` (X's not substituted when followed by a suffix); `agents_sync_idempotent` was silently broken on macOS by this until the second run collided with "File exists". Fixed by dropping the `.md` suffix.
+  - The user proposed and approved a diagnostic `mv .intent intent/.config` on Intent's own repo before doing the per-test BATS flips. Result was crisp: **+1 passing, 0 newly broken**. The +1 was test 374 (`intent critic dispatches to bin/intent_critic`) which had been failing because Intent's CLI rejected Intent's own repo as not-a-project. The 26 remaining failures were all per-test BATS fixture/assertion flips, none of which depended on Intent's own state. WP02 path probes proven correct end-to-end. The rename remains uncommitted in the working tree as a half-done WP08; tomorrow we revert + invoke `intent upgrade` to do it properly.
 - **2026-04-26**: **ST0036 Phase 0 elaborated** (commit pending). All nine `WP/NN/info.md` files populated under `intent/st/ST0036/WP/01..09/`; total ~1072 lines of forensic detail. T-shirt sizing finalised: 3 × M (WP01 migration function, WP03 literal sweep, WP05 BATS), 3 × S (WP02 path probes, WP04 templates, WP08 self-apply), 3 × XS (WP06 ignore patterns, WP07 migration guide, WP09 fleet-rollout coord). Recurring concerns surfaced cross-WP and locked into specifications: WP01 idempotence on layout state (not stamp value, since Intent itself is already stamped 2.10.0 but not yet relocated); sentinel anchor coordination between WP01 diagnostic and WP07 migration-guide doc; `~/.intent/ext/` preservation discipline across all literal-flip WPs; AGENTS.md regen handling per session-3 conventions. ST0036 now status WIP via `intent st start 36`. **Phase 0 gate: user review before WP01 starts.**
 - **2026-04-26**: **ST0035/WP-13 Done** (commit `66f6793`). Rewrote Intent's own root `CLAUDE.md` from 236-line hand-authored developer guide to 96-line Claude-specific overlay following the WP09 template (`lib/templates/llm/_CLAUDE.md`). Canon shell matches the template byte-for-byte (after `[[PROJECT_NAME]] / [[INTENT_VERSION]] / [[AUTHOR]] / [[DATE]]` substitution); all Intent-specific content lives between `<!-- user:start --> / <!-- user:end -->` markers (6 numbered dev rules with #1-3 marked as concretisations of the agnostic IN-AG-\* rules, Intent-specific files pointer, internal authoring docs pointer to satisfy `tests/unit/docs_completeness.bats`, commit conventions, compressed migration history, author block). Pulled out: project structure, ST methodology, command tables, rules-library/critic/extension narratives, treeindex section, agent narratives, v2.8.2 -> v2.9.0 migration block -- all routed through `AGENTS.md` / `usage-rules.md` / `working-with-llms.md`. The upgrade tool's dry-run on Intent now reports `CLAUDE.md (root): REFRESH (user section preserved)` with only the dynamic `[[DATE]]` placeholder differing -- exactly the canon round-trip behaviour. WP14 self-apply will refresh the date and preserve every line of the user section.
 - **2026-04-25**: **WP-11 Done.** Sessions 2 + 3 shipped on top of Session 1's install machinery. Session 2 (`1db2b44`): `--force` flag (overwrite user-edited `.intent_critic.yml` / `usage-rules.md` / user-authored CLAUDE.md, with banner warning + per-probe OVERWRITE marker); `--skip-settings` flag (skip `.claude/settings.json` + 3 hook scripts); paste-ready multi-line `CHAIN_PRE_COMMIT` snippet using `git rev-parse --git-path hooks` so the chain works in worktrees and submodules; diff-in-dry-run for `REFRESH_CLAUDE_MD` (capped at 60 lines); worktree-aware hook resolution via new `canon_hooks_dir` helper; upfront writability probe on `--apply`. Inline bug fixes: `canon_compute_refresh_preview` now stages preserved user content in a temp file (command substitution was stripping trailing blank lines, causing freshly-installed CLAUDE.md to immediately report DIVERGED). Session 3 (`b2a6e5d`): BATS suite at `tests/unit/intent_claude_upgrade.bats` covering all 5 spec scenarios with HOME isolation; MODULES.md row updated for WP-11 scope; `canon_print` helper unifies diagnostic alignment (status column lands at col 43 for every artefact line, regardless of label length). Bonus fix `614980d`: `intent init /abs/path` now works (was crashing sed because the path leaked into PROJECT_NAME). Tests: 767/767 green. Commits: `b2a6e5d` Session 3 + Done · `1db2b44` Session 2 · `614980d` init fix.
@@ -64,17 +83,15 @@ intent_version: 2.10.0
 
 ## Next Up
 
-1. **ST0036 Phase 0 review (user)** — read each `intent/st/ST0036/WP/0N/info.md` (1072 lines across 9 files), validate scope/deps/risks, approve before WP01 begins. **Hard gate** per Phase 0 convention.
-2. **ST0036/WP01** (M) — Implement the atomic relocation in `migrate_v2_9_0_to_v2_10_0`. Sentinel + recovery + cross-FS fallback per WP01/info.md.
-3. **ST0036/WP02** (S) — Path probes flip in `bin/intent_config` + Highlander cleanup of direct probes elsewhere.
-4. **ST0036/WP03** (M) — Literal sweep across `intent/plugins/`, `intent/docs/`, `intent/usr/`. CHANGELOG breaking-changes entry.
-5. **ST0036/WP04, WP05, WP06** — Templates + BATS fixtures + ignore patterns (parallelisable post-WP03).
-6. **ST0036/WP07** (XS) — Migration guide doc; can run parallel with WP01-02.
-7. **ST0036/WP08** (S) — Intent self-apply (the moment of truth).
-8. **ST0036/WP09** (XS) — Coordination doc updates into ST0035/WP15-17.
-9. **ST0035/WP14** (S) — Self-apply canon to Intent (dogfood); carries both ST0035 canon AND ST0036 directory relocation in one pass; runs AFTER ST0036/WP08.
-10. **ST0035/WP15-17** — Canary (Conflab -> Lamplight -> Laksa) + fleet rollout (12 Intent + Pplr) + verification sweep.
-11. **ST0035/WP18** (M) — `intent/usr/*.md` audit (parallel with WP15/WP16; must land before WP17).
+1. **ST0036/WP08 finalisation (S)** -- the moment of truth. Working tree currently has the manual `mv` half. Steps:
+   1. Revert the manual rename (`mv intent/.config .intent`) so Intent goes back to the v2.9.x layout in the working tree.
+   2. Run `intent upgrade` to invoke `migrate_v2_9_0_to_v2_10_0` properly: relocate (Phase 1) + stamp re-target (Phase 2, no-op since already 2.10.0) + canon-apply (Phase 3, will REFRESH a few cosmetic-drift files).
+   3. Verify post-state: `tests/run_tests.sh` (expect 774 green), `intent doctor` (expect clean), `git log --follow intent/.config/config.json` (expect rename-preserving history).
+   4. Commit the rename + canon-apply diff together as the WP08 commit.
+2. **ST0036/WP09 (XS)** -- coordination doc updates into `ST0035/WP15-17` info.md and ST0036/impl.md finalisation. Pure docs.
+3. **ST0035/WP14 (S)** -- Self-apply canon to Intent (dogfood). Now runs on a relocated repo (post-WP08). Most of the canon-apply work will have already been done by WP08's Phase 3, so WP14 is a verification sweep + commit cleanup.
+4. **ST0035/WP15-17** -- Canary (Conflab -> Lamplight -> Laksa) + fleet rollout (12 Intent + Pplr) + verification sweep.
+5. **ST0035/WP18 (M)** -- `intent/usr/*.md` audit (parallel with WP15/WP16; must land before WP17).
 
 See `intent/st/ST0035/tasks.md` for ST0035 dependency graph; `intent/st/NOT-STARTED/ST0036/tasks.md` for ST0036.
 

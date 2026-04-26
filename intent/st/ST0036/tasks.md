@@ -2,14 +2,14 @@
 
 ## Work packages (Phase 0 elaborated 2026-04-26; each `WP/NN/info.md` carries forensic detail)
 
-- [ ] **WP01** — Migration function: complete `migrate_v2_9_0_to_v2_10_0` to perform the atomic relocation (.intent/ -> intent/.config/ + sentinel + recovery handling). Size: M. Deps: —.
-- [ ] **WP02** — Path probes: update `bin/intent_config::load_intent_config` (project-root walk), `bin/intent_helpers::require_project_root`, `bin/intent_doctor` checks. Size: S. Deps: WP01.
-- [ ] **WP03** — Literal sweep: replace `.intent/` with `intent/.config/` across `bin/`, `intent/plugins/`, `lib/`, `intent/docs/`, `intent/usr/`. Guard against matches inside `~/.intent/ext/` prose. Size: M. Deps: WP02.
-- [ ] **WP04** — Template + generator updates: `lib/templates/llm/_CLAUDE.md`, root `AGENTS.md` generator, `usage-rules.md` template, any hook templates referring to `.intent/`. Size: S. Deps: WP03.
-- [ ] **WP05** — BATS fixtures + helpers: `tests/lib/test_helper.bash::create_test_project` emits `intent/.config/config.json`; every BATS that asserts `.intent/...` flips. Size: M. Deps: WP03.
-- [ ] **WP06** — `.gitignore` + `.treeindexignore` canonical patterns: ignore `intent/.config/cache/` + `intent/.config/backup/` (or whatever D3 resolves); remove old `.intent/*` entries. Size: XS. Deps: WP03.
-- [ ] **WP07** — Migration guide doc: `intent/docs/migration-v2.10.0.md` explaining the move + user-side script updates. Size: XS. Deps: WP01.
-- [ ] **WP08** — Intent self-apply: run the migration on Intent itself; verify. Deliberately lands **before** ST0035/WP14. Size: S. Deps: WP01–WP07.
+- [x] **WP01** — Migration function: complete `migrate_v2_9_0_to_v2_10_0` to perform the atomic relocation (.intent/ -> intent/.config/ + sentinel + recovery handling). Size: M. Deps: —. **Done 2026-04-26 (`4dcccce`).**
+- [x] **WP02** — Path probes: update `bin/intent_config::load_intent_config` (project-root walk), `bin/intent_helpers::require_project_root`, `bin/intent_doctor` checks. Size: S. Deps: WP01. **Done 2026-04-26 (`5369afd`); narrow `detect_project_version` exception added in fix `33a99d0`.**
+- [x] **WP03** — Literal sweep: replace `.intent/` with `intent/.config/` across `bin/`, `intent/plugins/`, `lib/`, `intent/docs/`, `intent/usr/`. Guard against matches inside `~/.intent/ext/` prose. Size: M. Deps: WP02. **Done 2026-04-26 (`777c5b0`).**
+- [x] **WP04** — Template + generator updates: `lib/templates/llm/_CLAUDE.md`, root `AGENTS.md` generator, `usage-rules.md` template, any hook templates referring to `.intent/`. Size: S. Deps: WP03. **Done 2026-04-26 (`5f8b61e` + earlier `f04db11`); only material flip was `lib/templates/hooks/pre-commit.sh` (4 hits); `_usage-rules.md` Project Structure flip N/A (no such section).**
+- [x] **WP05** — BATS fixtures + helpers: `tests/lib/test_helper.bash::create_test_project` emits `intent/.config/config.json`; every BATS that asserts `.intent/...` flips. Size: M. Deps: WP03. **Done 2026-04-26 (`b62ea58`); 11 BATS files flipped + new `tests/unit/migrate_v2_9_0_to_v2_10_0.bats` (6 scenarios) + doctor sentinel scenario in `global_commands.bats`. Real bug fixed: macOS BSD `mktemp` does not substitute X's followed by `.md` suffix (caused `agents_sync_idempotent` false-fail).**
+- [x] **WP06** — `.gitignore` + `.treeindexignore` canonical patterns: ignore `intent/.config/cache/` + `intent/.config/backup/` (or whatever D3 resolves); remove old `.intent/*` entries. Size: XS. Deps: WP03. **Done 2026-04-26 (`32df058`); new `lib/templates/_treeindexignore` is single source (Highlander cleanup of `bin/intent_treeindex` heredoc); canon installer ships it via new `INSTALL_TREEINDEXIGNORE` action.**
+- [x] **WP07** — Migration guide doc: `intent/docs/migration-v2.10.0.md` explaining the move + user-side script updates. Size: XS. Deps: WP01. **Done 2026-04-26 (`1debc03`).**
+- [ ] **WP08** — Intent self-apply: run the migration on Intent itself; verify. Deliberately lands **before** ST0035/WP14. Size: S. Deps: WP01–WP07. **Half-done in working tree (manual `mv .intent intent/.config` uncommitted; surfaced 0 hard-coded layout-bound bugs); next step is to formalise via `intent upgrade` so the canon-apply Phase 3 also runs, then commit the rename + canon-apply diff together.**
 - [ ] **WP09** — Merge point with ST0035 fleet rollout: no standalone rollout WP; folds into ST0035/WP15 (canary) + WP16 (fleet). Size: XS (coordination note only). Deps: WP08 + ST0035/WP13.
 
 ## Dependencies at a glance
