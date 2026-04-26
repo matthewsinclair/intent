@@ -63,10 +63,10 @@ if [ -n "$PROJECT_ROOT" ]; then
   echo "  Location:        $PROJECT_ROOT"
   
   # Try to load project config
-  if [ -f "$PROJECT_ROOT/.intent/config.json" ]; then
-    project_name=$(jq -r '.project_name // "Unknown"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null || echo "Unknown")
-    author=$(jq -r '.author // "Unknown"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null || echo "Unknown")
-    created=$(jq -r '.created_date // "Unknown"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null || echo "Unknown")
+  if [ -f "$PROJECT_ROOT/intent/.config/config.json" ]; then
+    project_name=$(jq -r '.project_name // "Unknown"' "$PROJECT_ROOT/intent/.config/config.json" 2>/dev/null || echo "Unknown")
+    author=$(jq -r '.author // "Unknown"' "$PROJECT_ROOT/intent/.config/config.json" 2>/dev/null || echo "Unknown")
+    created=$(jq -r '.created_date // "Unknown"' "$PROJECT_ROOT/intent/.config/config.json" 2>/dev/null || echo "Unknown")
     
     echo "  Name:            $project_name"
     echo "  Author:          $author"

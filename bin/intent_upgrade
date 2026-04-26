@@ -35,7 +35,7 @@ This command will:
 3. Migrate directory structure from stp/* to intent/*
 4. Convert YAML configs to JSON format
 5. Update all metadata and file formats
-6. Create .intent/config.json
+6. Create intent/.config/config.json
 7. Initialize agent configuration (v2.1.0+)
 8. Update CLAUDE.md with Intent v$TARGET_VERSION guidelines
 EOF
@@ -362,7 +362,7 @@ case "$VERSION" in
 esac
 
 # Preserve agent manifests
-if [ -d ".intent/agents" ]; then
+if [ -d "intent/.config/agents" ]; then
   echo "Agent manifests found, preserving..."
 fi
 if [ -d "intent/agents/.manifest" ]; then
@@ -388,7 +388,7 @@ if [ "$VERSION" != "2.0.0" ]; then
   echo "- Configuration converted from YAML to JSON"
 fi
 echo "- Metadata updated to Intent v$TARGET_VERSION format"
-echo "- Created/updated .intent/config.json"
+echo "- Created/updated intent/.config/config.json"
 echo "- Initialized agent configuration"
 if [ "$CLAUDE_EXISTED" = "true" ]; then
   echo "- Preserved existing CLAUDE.md"

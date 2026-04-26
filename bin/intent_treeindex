@@ -437,7 +437,8 @@ cover/
 # IDE and tool directories
 .git/
 .elixir_ls/
-.intent/
+intent/.config/cache/
+intent/.config/backup/
 .treeindex/
 
 # Generated assets

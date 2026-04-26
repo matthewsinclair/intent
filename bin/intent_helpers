@@ -53,20 +53,23 @@ export -f calculate_checksum
 # Get terminal width with fallback chain
 get_terminal_width() {
   local width="${COLUMNS:-}"
-  [ -z "$width" ] && width=$(stty size < /dev/tty 2>/dev/null | cut -d' ' -f2)
+  # Subshell isolates the < /dev/tty redirection -- when the calling shell has
+  # no controlling TTY, bash emits "Device not configured" on its own stderr
+  # before stty runs; the outer 2>/dev/null inside the subshell captures it.
+  [ -z "$width" ] && width=$( (stty size < /dev/tty) 2>/dev/null | cut -d' ' -f2)
   [ -z "$width" ] && width=$(tput cols 2>/dev/null)
   [ -z "$width" ] && width=100
   echo "$width"
 }
 export -f get_terminal_width
 
-# Extract a field from .intent/config.json without jq
+# Extract a field from intent/.config/config.json without jq
 get_config_field() {
   local field="$1"
   local default="${2:-}"
-  if [ -f .intent/config.json ]; then
+  if [ -f intent/.config/config.json ]; then
     local val
-    val=$(grep -oE "\"${field}\"[[:space:]]*:[[:space:]]*\"[^\"]+\"" .intent/config.json | cut -d'"' -f4)
+    val=$(grep -oE "\"${field}\"[[:space:]]*:[[:space:]]*\"[^\"]+\"" intent/.config/config.json | cut -d'"' -f4)
     if [ -n "$val" ]; then
       echo "$val"
       return 0
@@ -347,9 +350,9 @@ detect_project_version() {
   local project_root=${1:-.}
   
   # Check for v2.0.0+ (Intent)
-  if [ -f "$project_root/.intent/config.json" ]; then
+  if [ -f "$project_root/intent/.config/config.json" ]; then
     # Try intent_version first, then version field
-    local version=$(jq -r '.intent_version // .version // empty' "$project_root/.intent/config.json" 2>/dev/null)
+    local version=$(jq -r '.intent_version // .version // empty' "$project_root/intent/.config/config.json" 2>/dev/null)
     if [ -n "$version" ]; then
       echo "$version"
       return 0
@@ -1688,9 +1691,9 @@ EOF
 create_claude_md() {
   local project_root=$1
   local force_overwrite=${2:-false}
-  local project_name=$(jq -r '.project_name // "Project"' "$project_root/.intent/config.json" 2>/dev/null || echo "Project")
-  local author=$(jq -r '.author // "Unknown"' "$project_root/.intent/config.json" 2>/dev/null || echo "${USER:-Unknown}")
-  local version=$(jq -r '.intent_version // "2.0.0"' "$project_root/.intent/config.json" 2>/dev/null || echo "2.0.0")
+  local project_name=$(jq -r '.project_name // "Project"' "$project_root/intent/.config/config.json" 2>/dev/null || echo "Project")
+  local author=$(jq -r '.author // "Unknown"' "$project_root/intent/.config/config.json" 2>/dev/null || echo "${USER:-Unknown}")
+  local version=$(jq -r '.intent_version // "2.0.0"' "$project_root/intent/.config/config.json" 2>/dev/null || echo "2.0.0")
   
   # Check if CLAUDE.md already exists
   if [ -f "$project_root/CLAUDE.md" ] && [ "$force_overwrite" != "true" ]; then

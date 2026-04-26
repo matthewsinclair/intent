@@ -47,7 +47,7 @@ usage() {
   echo "  D6   intent/llm/DECISION_TREE.md"
   echo "  D8   MEMORY.md via intent claude prime"
   echo "  D9   Module check hook"
-  echo "  D10  .intent/learnings.md"
+  echo "  D10  intent/.config/learnings.md"
   echo "  D11  intent/llm/DEPENDENCY_GRAPH.md (Elixir only)"
   echo ""
   echo "Examples:"
@@ -221,12 +221,12 @@ check_d9_hook() {
 }
 
 check_d10_learnings() {
-  if [ -f ".intent/learnings.md" ]; then
+  if [ -f "intent/.config/learnings.md" ]; then
     STATUS="PRESENT"
     DETAIL="learnings.md exists"
   else
     STATUS="MISSING"
-    DETAIL=".intent/learnings.md not found"
+    DETAIL="intent/.config/learnings.md not found"
   fi
 }
 
@@ -588,10 +588,10 @@ apply_deliverable() {
 
     D10)
       if [ "$dry_run" = "true" ]; then
-        echo "  would create: .intent/learnings.md"
+        echo "  would create: intent/.config/learnings.md"
       else
-        mkdir -p ".intent"
-        cat > ".intent/learnings.md" << 'EOF'
+        mkdir -p "intent/.config"
+        cat > "intent/.config/learnings.md" << 'EOF'
 # Project Learnings
 
 ## Footguns
@@ -600,7 +600,7 @@ apply_deliverable() {
 
 ## Patterns That Failed
 EOF
-        echo "  created: .intent/learnings.md"
+        echo "  created: intent/.config/learnings.md"
       fi
       ;;
 
@@ -691,8 +691,8 @@ cmd_install() {
   done
 
   # Require project context
-  if [ ! -f ".intent/config.json" ]; then
-    error "Not an Intent project (no .intent/config.json). Run 'intent init' first."
+  if [ ! -f "intent/.config/config.json" ]; then
+    error "Not an Intent project (no intent/.config/config.json). Run 'intent init' first."
   fi
 
   # Phase 1: Audit

@@ -69,7 +69,7 @@ if [ $# -lt 1 ]; then
 fi
 
 # Load project configuration if available
-if [ -f .intent/config.json ]; then
+if [ -f intent/.config/config.json ]; then
   ST_PREFIX=$(get_config_field "st_prefix" "ST")
   AUTHOR=$(get_config_field "author" "$USER")
 elif [ -f intent/.config/config ]; then
@@ -86,7 +86,7 @@ shift
 # Function to check if we're using directory structure (v1.2.1+)
 is_directory_structure() {
   # Intent v2.0.0 always uses directory structure
-  if [ -f .intent/config.json ]; then
+  if [ -f intent/.config/config.json ]; then
     return 0  # true - using directory structure
   fi
   # Check legacy version for backward compatibility

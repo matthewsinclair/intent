@@ -327,7 +327,7 @@ cmd_quick() {
 # ============================================================
 
 # Timestamp file for --diff mode
-HEALTH_TIMESTAMP_FILE=".intent/last-health-check"
+HEALTH_TIMESTAMP_FILE="intent/.config/last-health-check"
 
 # Get changed files since last health check
 get_changed_files() {

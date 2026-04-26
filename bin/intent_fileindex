@@ -62,7 +62,7 @@ usage() {
     echo "  When in Intent project:"
     echo "    STARTDIR: lib/"
     echo "    FILESPEC: *.{ex,exs}"
-    echo "    INDEX_DIR: .intent/indexes/"
+    echo "    INDEX_DIR: intent/.config/indexes/"
     echo "  When standalone:"
     echo "    STARTDIR: . (current directory)"
     echo "    FILESPEC: *.{ex,exs}"
@@ -161,17 +161,17 @@ if [ "$NO_INTENT" = false ]; then
   # Apply intent dir override if specified
   if [ -n "$INTENT_DIR_OVERRIDE" ]; then
     # Check Intent project with override
-    if [ -f "$INTENT_DIR_OVERRIDE/.intent/config.json" ]; then
+    if [ -f "$INTENT_DIR_OVERRIDE/intent/.config/config.json" ]; then
         IN_INTENT_PROJECT=true
         PROJECT_ROOT="$INTENT_DIR_OVERRIDE"
-        INTENT_VERSION=$(jq -r '.intent_version // "2.1.0"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null || echo "2.1.0")
+        INTENT_VERSION=$(jq -r '.intent_version // "2.1.0"' "$PROJECT_ROOT/intent/.config/config.json" 2>/dev/null || echo "2.1.0")
     fi
   else
     # Try to find project root
     if PROJECT_ROOT=$(find_project_root 2>/dev/null); then
       IN_INTENT_PROJECT=true
-      if [ -f "$PROJECT_ROOT/.intent/config.json" ]; then
-        INTENT_VERSION=$(jq -r '.intent_version // "2.1.0"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null || echo "2.1.0")
+      if [ -f "$PROJECT_ROOT/intent/.config/config.json" ]; then
+        INTENT_VERSION=$(jq -r '.intent_version // "2.1.0"' "$PROJECT_ROOT/intent/.config/config.json" 2>/dev/null || echo "2.1.0")
       fi
     fi
   fi
@@ -182,7 +182,7 @@ if [ "$IN_INTENT_PROJECT" = true ] && [ "$NO_INTENT" = false ]; then
   # Intent project defaults - only use if not already set
   : ${STARTDIR:="lib"}
   : ${FILESPEC:="*.{ex,exs}"}
-  : ${INDEX_DIR:=".intent/indexes"}
+  : ${INDEX_DIR:="intent/.config/indexes"}
 else
   # Standalone defaults - only use if not already set
   : ${STARTDIR:="."}

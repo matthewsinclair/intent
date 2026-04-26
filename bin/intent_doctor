@@ -244,7 +244,7 @@ doctor_check() {
       echo -n "  checking: local config "
     fi
     
-    LOCAL_CONFIG="$PROJECT_ROOT/.intent/config.json"
+    LOCAL_CONFIG="$PROJECT_ROOT/intent/.config/config.json"
     if [ -f "$LOCAL_CONFIG" ]; then
       if validate_json "$LOCAL_CONFIG"; then
         show_ok
@@ -270,9 +270,9 @@ doctor_check() {
   fi
   
   # Check 4b: v2.3.0 features (if in a project with v2.3.0+)
-  if [ -n "$PROJECT_ROOT" ] && [ -f "$PROJECT_ROOT/.intent/config.json" ]; then
+  if [ -n "$PROJECT_ROOT" ] && [ -f "$PROJECT_ROOT/intent/.config/config.json" ]; then
     # Check version
-    local project_version=$(jq -r '.intent_version // "0.0.0"' "$PROJECT_ROOT/.intent/config.json" 2>/dev/null)
+    local project_version=$(jq -r '.intent_version // "0.0.0"' "$PROJECT_ROOT/intent/.config/config.json" 2>/dev/null)
     if [[ "$project_version" == "2.3"* ]]; then
       # Check for AGENTS.md
       if [ "$QUIET" != true ]; then
@@ -295,7 +295,7 @@ doctor_check() {
       if [ "$QUIET" != true ]; then
         echo -n "  checking: plugins config "
       fi
-      if jq -e '.plugins' "$PROJECT_ROOT/.intent/config.json" >/dev/null 2>&1; then
+      if jq -e '.plugins' "$PROJECT_ROOT/intent/.config/config.json" >/dev/null 2>&1; then
         show_ok
         verbose "Plugins configured"
       else
@@ -304,14 +304,31 @@ doctor_check() {
         if [ "$FIX_MODE" = true ]; then
           echo "  Adding plugins configuration..."
           local temp_file=$(mktemp)
-          jq '.plugins = {"claude": {"subagents_path": "intent/plugins/claude/subagents"}, "agents": {"config_path": "intent/plugins/agents"}}' "$PROJECT_ROOT/.intent/config.json" > "$temp_file"
-          mv "$temp_file" "$PROJECT_ROOT/.intent/config.json"
+          jq '.plugins = {"claude": {"subagents_path": "intent/plugins/claude/subagents"}, "agents": {"config_path": "intent/plugins/agents"}}' "$PROJECT_ROOT/intent/.config/config.json" > "$temp_file"
+          mv "$temp_file" "$PROJECT_ROOT/intent/.config/config.json"
           show_fixed "Added plugins configuration"
         fi
       fi
     fi
   fi
-  
+
+  # Check 4c: interrupted migration sentinel (ST0036/WP02)
+  if [ -n "$PROJECT_ROOT" ]; then
+    if [ "$QUIET" != true ]; then
+      echo -n "  checking: interrupted migration "
+    fi
+    local sentinel="$PROJECT_ROOT/intent/.config/.migration-in-progress"
+    if [ -f "$sentinel" ]; then
+      show_error "sentinel detected at $sentinel"
+      if [ "$QUIET" != true ]; then
+        echo "  see intent/docs/migration-v2.10.0.md#recovery-from-interrupted-migration"
+      fi
+    else
+      show_ok
+      verbose "no interrupted migration sentinel"
+    fi
+  fi
+
   # Check 5: PATH
   if [ "$QUIET" != true ]; then
     echo -n "  checking: path "

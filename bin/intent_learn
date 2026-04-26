@@ -10,7 +10,7 @@ set -e
 source "$INTENT_HOME/bin/intent_helpers"
 
 # Learnings file location (relative to project root)
-LEARNINGS_FILE=".intent/learnings.md"
+LEARNINGS_FILE="intent/.config/learnings.md"
 
 # Valid categories
 VALID_CATEGORIES="footgun worked failed"
@@ -35,7 +35,7 @@ usage() {
   echo "  --category CAT    Category: footgun (default), worked, failed"
   echo "  --list            Show all learnings"
   echo ""
-  echo "Storage: .intent/learnings.md"
+  echo "Storage: intent/.config/learnings.md"
   echo ""
   echo "Learnings are consumed by 'intent claude prime' for MEMORY.md injection."
   echo ""

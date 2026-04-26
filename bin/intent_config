@@ -42,7 +42,7 @@ find_project_root() {
   
   while [ "$current_dir" != "/" ]; do
     # Check for v2.0.0 structure
-    if [ -f "$current_dir/.intent/config.json" ]; then
+    if [ -f "$current_dir/intent/.config/config.json" ]; then
       echo "$current_dir"
       return 0
     fi
@@ -89,9 +89,9 @@ load_intent_config() {
   fi
   
   # Load local config (overrides global)
-  if [ -n "$PROJECT_ROOT" ] && [ -f "$PROJECT_ROOT/.intent/config.json" ]; then
+  if [ -n "$PROJECT_ROOT" ] && [ -f "$PROJECT_ROOT/intent/.config/config.json" ]; then
     local local_config
-    local_config=$(parse_json "$PROJECT_ROOT/.intent/config.json" "local_")
+    local_config=$(parse_json "$PROJECT_ROOT/intent/.config/config.json" "local_")
     if [ $? -eq 0 ]; then
       eval "$local_config"
       [ -n "$local_intent_dir" ] && INTENT_DIR="$local_intent_dir"
@@ -167,7 +167,7 @@ is_legacy_project() {
   if [ -n "$PROJECT_ROOT" ]; then
     # Check for old structures
     if [ -f "$PROJECT_ROOT/.stp-config" ] || [ -d "$PROJECT_ROOT/stp" ]; then
-      if [ ! -f "$PROJECT_ROOT/.intent/config.json" ]; then
+      if [ ! -f "$PROJECT_ROOT/intent/.config/config.json" ]; then
         return 0
       fi
     fi

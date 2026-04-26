@@ -80,7 +80,7 @@ else
 fi
 
 # Check if already initialized
-if [ -f ".intent/config.json" ]; then
+if [ -f "intent/.config/config.json" ]; then
   error "This directory is already an Intent project"
 fi
 
@@ -92,12 +92,11 @@ echo "Initializing Intent v$INTENT_VERSION project: $PROJECT_NAME"
 
 # Create directory structure
 echo "Creating directory structure..."
-mkdir -p .intent
-mkdir -p intent/{st,docs,llm}
+mkdir -p intent/{.config,st,docs,llm}
 
 # Create local configuration
 echo "Creating configuration..."
-cat > .intent/config.json << EOF
+cat > intent/.config/config.json << EOF
 {
   "intent_version": "$INTENT_VERSION",
   "project_name": "$PROJECT_NAME",
@@ -229,7 +228,8 @@ if [ ! -d .git ]; then
   # Create .gitignore
   cat > .gitignore << EOF
 # Intent configuration
-.intent/cache/
+intent/.config/cache/
+intent/.config/backup/
 
 # OS files
 .DS_Store

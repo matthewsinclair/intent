@@ -3,7 +3,7 @@ verblock: "26 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-02
 title: "Path probes for intent/.config root"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-02: Path probes for `intent/.config/` root
