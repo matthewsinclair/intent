@@ -77,6 +77,14 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
+# Gate legacy-only messages (stp/* -> intent/* migration narrative,
+# v2.0.0-directory-structure preamble, "use intent instead of stp" advice).
+# Pre-v2 sources (0.x or 1.x) are STP; v2.x sources already use intent/.
+LEGACY_STP_SOURCE=false
+case "$VERSION" in
+  0.*|1.*) LEGACY_STP_SOURCE=true ;;
+esac
+
 # Always show version information
 echo ""
 echo "Current version: $VERSION"
@@ -128,8 +136,12 @@ echo ""
 echo "Starting migration to Intent v$TARGET_VERSION..."
 echo ""
 
-# Create v2.0.0 directory structure
-echo "Creating Intent v2.0.0 directory structure..."
+# Ensure v2 directory skeleton exists. Idempotent: mkdir -p is a no-op for
+# directories that already exist, so v2.x sources skip the message but the
+# call is safe to make either way.
+if [ "$LEGACY_STP_SOURCE" = true ]; then
+  echo "Creating Intent v2.0.0 directory structure..."
+fi
 create_v2_directory_structure .
 
 # Migrate based on version
@@ -383,7 +395,7 @@ fi
 echo ""
 echo "ok: upgraded $VERSION -> $TARGET_VERSION"
 echo ""
-if [ "$VERSION" != "2.0.0" ]; then
+if [ "$LEGACY_STP_SOURCE" = true ]; then
   echo "- Directory structure migrated from stp/* to intent/*"
   echo "- Configuration converted from YAML to JSON"
 fi
@@ -404,9 +416,14 @@ fi
 echo ""
 echo "Next steps:"
 echo "1. Review the migrated content in the intent/ directory"
-echo "2. Test commands with 'intent' instead of 'stp'"
-echo "3. Run 'intent doctor' to verify configuration"
-echo "4. Run 'intent agents list' to see available agents"
+if [ "$LEGACY_STP_SOURCE" = true ]; then
+  echo "2. Test commands with 'intent' instead of 'stp'"
+  echo "3. Run 'intent doctor' to verify configuration"
+  echo "4. Run 'intent agents list' to see available agents"
+else
+  echo "2. Run 'intent doctor' to verify configuration"
+  echo "3. Run 'intent agents list' to see available agents"
+fi
 
 # Offer to remove old stp directory only when one is actually present.
 # Pre-v2.0.0 projects had a stp/ tree at the project root; v2.x rebrand
