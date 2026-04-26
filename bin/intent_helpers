@@ -348,8 +348,8 @@ flatten_directory_structure() {
 # Detect current STP/Intent version
 detect_project_version() {
   local project_root=${1:-.}
-  
-  # Check for v2.0.0+ (Intent)
+
+  # Check for v2.10.0+ (Intent post-relocation layout: intent/.config/)
   if [ -f "$project_root/intent/.config/config.json" ]; then
     # Try intent_version first, then version field
     local version=$(jq -r '.intent_version // .version // empty' "$project_root/intent/.config/config.json" 2>/dev/null)
@@ -358,7 +358,21 @@ detect_project_version() {
       return 0
     fi
   fi
-  
+
+  # Check for v2.0.0 - v2.9.x (Intent pre-relocation layout: .intent/).
+  # This branch is the narrow exception to ST0036's fail-forward posture:
+  # detect_project_version must recognise the legacy layout so that
+  # `intent upgrade` can chain through migrate_v2_9_0_to_v2_10_0 and
+  # relocate the directory. find_project_root and load_intent_config
+  # remain v2.10.0-only.
+  if [ -f "$project_root/.intent/config.json" ]; then
+    local version=$(jq -r '.intent_version // .version // empty' "$project_root/.intent/config.json" 2>/dev/null)
+    if [ -n "$version" ]; then
+      echo "$version"
+      return 0
+    fi
+  fi
+
   # Check for v1.2.0+ (version file)
   if [ -f "$project_root/stp/.config/version" ]; then
     local version=$(grep "^stp_version:" "$project_root/stp/.config/version" | sed 's/stp_version:[[:space:]]*//')
