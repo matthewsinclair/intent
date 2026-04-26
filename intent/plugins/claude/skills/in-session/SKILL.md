@@ -56,10 +56,13 @@ Intent projects ship a strict `UserPromptSubmit` hook (`require-in-session.sh`) 
 Run the following Bash command now (it is idempotent and fast):
 
 ```bash
-mkdir -p /tmp/intent && touch "/tmp/intent/in-session-$(cat /tmp/intent-claude-session-current-id 2>/dev/null || echo unknown).sentinel"
+project_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
+project_key="$(printf '%s' "$project_dir" | cksum 2>/dev/null | awk '{print $1}')"
+session_id="$(cat "/tmp/intent-claude-session-current-id-${project_key}" 2>/dev/null || echo unknown)"
+mkdir -p /tmp/intent && touch "/tmp/intent/in-session-${session_id}.sentinel"
 ```
 
-The session_id is written by the `SessionStart` hook (`session-context.sh`) to `/tmp/intent-claude-session-current-id`. If that file is missing (hook did not run, non-Intent project, etc.) the sentinel falls back to `/tmp/intent/in-session-unknown.sentinel`, which still releases the gate.
+The session_id is written by the `SessionStart` hook (`session-context.sh`) to a per-project state file `/tmp/intent-claude-session-current-id-${project_key}` where `project_key` is `cksum(project_dir)`. Per-project scoping prevents cross-session contamination when multiple Claude Code sessions run concurrently in different Intent projects (each project owns its own state file). If the file is missing (hook did not run, non-Intent project, etc.) the sentinel falls back to `/tmp/intent/in-session-unknown.sentinel`, which still releases the gate for that session.
 
 ### 5. Confirm and proceed
 

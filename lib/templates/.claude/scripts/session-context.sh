@@ -5,8 +5,8 @@
 # Purpose:
 #   Emit Intent project context as a system-reminder to Claude Code so every
 #   session knows which project, branch, and active steel thread it is
-#   resuming. Also persists the current Claude session_id to a well-known
-#   path so the cooperating `/in-session` skill can release the
+#   resuming. Also persists the current Claude session_id to a per-project
+#   well-known path so the cooperating `/in-session` skill can release the
 #   UserPromptSubmit strict gate (see require-in-session.sh).
 #
 # Contract:
@@ -15,10 +15,22 @@
 #   - Writes to stdout; Claude Code injects the output as a system-reminder.
 #   - Exit 0 always. Never blocks.
 #   - Target runtime: < 200ms. All git/file calls are best-effort.
+#
+# State file naming (per-project):
+#   /tmp/intent-claude-session-current-id-${project_key}
+#
+#   project_key is the cksum of the absolute project directory, scoping
+#   the state per-project so concurrent Claude sessions in different
+#   projects don't stomp each other's session_id. The earlier single
+#   shared file design caused gate-release misfires when sessions
+#   overlapped; ST0036 fleet-rollout dogfood surfaced it.
 
 set -u
 
-STATE_FILE="/tmp/intent-claude-session-current-id"
+project_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
+project_name="$(basename "$project_dir" 2>/dev/null || echo unknown)"
+project_key="$(printf '%s' "$project_dir" | cksum 2>/dev/null | awk '{print $1}')"
+STATE_FILE="/tmp/intent-claude-session-current-id-${project_key}"
 
 capture_session_id() {
   [ -t 0 ] && return 0
@@ -30,9 +42,6 @@ capture_session_id() {
   [ -z "$sid" ] && return 0
   printf '%s' "$sid" > "$STATE_FILE" 2>/dev/null || true
 }
-
-project_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
-project_name="$(basename "$project_dir" 2>/dev/null || echo unknown)"
 
 capture_session_id
 

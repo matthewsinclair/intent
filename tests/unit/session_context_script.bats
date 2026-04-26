@@ -11,20 +11,33 @@ load "../lib/test_helper.bash"
 
 SCRIPT="${INTENT_PROJECT_ROOT}/lib/templates/.claude/scripts/session-context.sh"
 
+# Compute the per-project state file path for a given project directory.
+# Mirrors the derivation in session-context.sh.
+state_file_for() {
+  local proj="$1"
+  local key
+  key="$(printf '%s' "$proj" | cksum | awk '{print $1}')"
+  printf '/tmp/intent-claude-session-current-id-%s' "$key"
+}
+
 setup() {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-session-XXXXXX)"
   cd "${TEST_TEMP_DIR}" || exit 1
-  STATE_FILE_BEFORE="$(cat /tmp/intent-claude-session-current-id 2>/dev/null || true)"
 }
 
 teardown() {
   if [ -d "${TEST_TEMP_DIR}" ]; then
     cd "${INTENT_PROJECT_ROOT}" || exit 1
+    # Per-project state files use cksum of the abs project_dir; clean up
+    # both the temp dir itself and any subdir the test cd'd into.
+    rm -f "$(state_file_for "$TEST_TEMP_DIR")" 2>/dev/null || true
+    if [ -d "$TEST_TEMP_DIR/proj" ]; then
+      rm -f "$(state_file_for "$TEST_TEMP_DIR/proj")" 2>/dev/null || true
+    fi
+    if [ -d "$TEST_TEMP_DIR/bare" ]; then
+      rm -f "$(state_file_for "$TEST_TEMP_DIR/bare")" 2>/dev/null || true
+    fi
     rm -rf "${TEST_TEMP_DIR}"
-  fi
-  # Restore the state file so the current Intent session isn't disturbed.
-  if [ -n "${STATE_FILE_BEFORE:-}" ]; then
-    printf '%s' "$STATE_FILE_BEFORE" > /tmp/intent-claude-session-current-id 2>/dev/null || true
   fi
 }
 
@@ -84,6 +97,7 @@ EOF
 
   run bash -c "printf '%s' '{\"session_id\":\"abc-123\"}' | CLAUDE_PROJECT_DIR=\"$PWD\" bash \"$SCRIPT\""
   assert_success
-  [ -f /tmp/intent-claude-session-current-id ]
-  [ "$(cat /tmp/intent-claude-session-current-id)" = "abc-123" ]
+  state_file="$(state_file_for "$PWD")"
+  [ -f "$state_file" ]
+  [ "$(cat "$state_file")" = "abc-123" ]
 }
