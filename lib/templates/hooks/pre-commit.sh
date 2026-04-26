@@ -55,15 +55,15 @@ fi
 # copied manually into a non-Intent repo). Without this check,
 # `intent critic` would exit non-zero with a "not in an Intent project"
 # message and the commit would be blocked for the wrong reason.
-if [ ! -f ".intent/config.json" ]; then
+if [ ! -f "intent/.config/config.json" ]; then
   # Walk up just in case the hook is invoked from a subdirectory.
   _probe="$PWD"
   while [ "$_probe" != "/" ] && [ -n "$_probe" ]; do
-    [ -f "$_probe/.intent/config.json" ] && break
+    [ -f "$_probe/intent/.config/config.json" ] && break
     _probe="$(dirname "$_probe")"
   done
-  if [ ! -f "$_probe/.intent/config.json" ]; then
-    echo "intent critic gate: not inside an Intent project (.intent/config.json absent); skipping." >&2
+  if [ ! -f "$_probe/intent/.config/config.json" ]; then
+    echo "intent critic gate: not inside an Intent project (intent/.config/config.json absent); skipping." >&2
     exit 0
   fi
 fi

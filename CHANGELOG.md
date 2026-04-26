@@ -22,6 +22,7 @@ Retargeted from v2.9.1 mid-development to bundle ST0036 (directory relocation, b
 - `bin/intent_upgrade`: chain extended to v2.10.0 (new gate `needs_v2_10_0_upgrade`, new case, new chain tail).
 - Root `VERSION` bumped to `2.10.0`.
 - **Treeindex ignore canonicalised** (ST0036/WP-06): new `lib/templates/_treeindexignore` template is the single source of truth. `bin/intent_treeindex::ensure_treeindexignore` reads from the template instead of an inline heredoc (Highlander cleanup per CLAUDE.md project rule #6). `intent claude upgrade --apply` installs the file when absent (new `INSTALL_TREEINDEXIGNORE` action; existing files left alone). Granularity flipped from blanket `.intent/` to `intent/.config/cache/` + `intent/.config/backup/` so `config.json` stays indexed.
+- **Pre-commit hook template** (ST0036/WP-04): `lib/templates/hooks/pre-commit.sh` now probes `intent/.config/config.json` instead of `.intent/config.json` when deciding whether to skip the critic gate (fail-open in non-Intent repos). Newly-installed gates and any project that re-runs `intent claude upgrade --apply` after v2.10.0 pick up the corrected probe.
 
 ### Breaking
 
