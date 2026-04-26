@@ -3,7 +3,7 @@ verblock: "26 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-01
 title: "Migration function: atomic .intent to intent/.config relocation"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-01: Migration function -- atomic `.intent/` to `intent/.config/` relocation

@@ -1079,50 +1079,148 @@ migrate_v2_8_2_to_v2_9_0() {
   echo "    - To reinstall worker-bee from the seed: intent ext show worker-bee"
 }
 
+# Relocate .intent/ -> intent/.config/ atomically (ST0036/WP01).
+#
+# Behaviour:
+#   - Recovery probe: refuse if a previous interrupted migration left a sentinel.
+#   - Idempotence shortcut: if intent/.config/ exists and .intent/ does not, no-op.
+#   - Conflict refusal: refuse if both .intent/ and intent/.config/ exist.
+#   - Symlink refusal: refuse to relocate a symlinked .intent/.
+#   - Atomic move: mv .intent intent/.config (with cp -a + checksum + rm fallback
+#     for cross-filesystem cases).
+#   - Sentinel: written inside .intent/ before the mv (so it travels with the
+#     directory); removed from intent/.config/ after the move succeeds.
+#
+# Returns:
+#   0 on success or no-op
+#   1 on user-action-required refusals (interrupted/conflict/symlink)
+#   2 on unrecoverable errors (mkdir/touch/cp/checksum failed; sentinel preserved)
+intent_relocate_dotintent() {
+  local project_root=$1
+  local dotintent="$project_root/.intent"
+  local config_dir="$project_root/intent/.config"
+  local sentinel="$config_dir/.migration-in-progress"
+  local recovery_url="intent/docs/migration-v2.10.0.md#recovery-from-interrupted-migration"
+
+  # Recovery probe: prior interrupted migration?
+  if [ -f "$sentinel" ]; then
+    echo "Error: interrupted migration detected at $sentinel" >&2
+    echo "  See $recovery_url for recovery steps." >&2
+    return 1
+  fi
+
+  # Idempotence shortcut: already relocated?
+  if [ -d "$config_dir" ] && [ ! -e "$dotintent" ]; then
+    echo "  layout: intent/.config already in place (no relocation needed)"
+    return 0
+  fi
+
+  # Conflict refusal: both exist?
+  if [ -e "$dotintent" ] && [ -d "$config_dir" ]; then
+    echo "Error: both .intent/ and intent/.config/ exist; manual intervention required" >&2
+    echo "  See $recovery_url for guidance." >&2
+    return 1
+  fi
+
+  # Symlink refusal: .intent is a symlink?
+  if [ -L "$dotintent" ]; then
+    echo "Error: .intent is a symbolic link; refusing to relocate symlinked layouts" >&2
+    echo "  See $recovery_url for guidance." >&2
+    return 1
+  fi
+
+  # Nothing to do? (no .intent/ at all -- fresh project or already migrated by other means)
+  if [ ! -e "$dotintent" ]; then
+    echo "  layout: no .intent/ found (skipping relocation)"
+    return 0
+  fi
+
+  # Parent create (handles fresh-from-v2.0.0 layouts; harmless if intent/ exists)
+  mkdir -p "$project_root/intent" || {
+    echo "Error: cannot create $project_root/intent (read-only filesystem?)" >&2
+    return 2
+  }
+
+  # Sentinel write inside .intent/ -- travels with the mv into intent/.config/
+  touch "$dotintent/.migration-in-progress" || {
+    echo "Error: cannot write sentinel inside .intent/ (read-only filesystem?)" >&2
+    return 2
+  }
+
+  # Atomic move (with cross-filesystem fallback)
+  if mv "$dotintent" "$config_dir" 2>/dev/null; then
+    echo "  relocated: .intent/ -> intent/.config/"
+  else
+    echo "  fallback: copying .intent/ -> intent/.config/ (cross-filesystem move)"
+    if ! cp -a "$dotintent" "$config_dir"; then
+      echo "Error: cp -a fallback failed; .intent/ preserved at $dotintent" >&2
+      echo "  Sentinel at $dotintent/.migration-in-progress; resolve and re-run." >&2
+      return 2
+    fi
+    local src_sum dst_sum
+    src_sum=$(cd "$dotintent" 2>/dev/null && find . -type f -not -name '.migration-in-progress' | sort | xargs shasum 2>/dev/null | shasum | awk '{print $1}')
+    dst_sum=$(cd "$config_dir" 2>/dev/null && find . -type f -not -name '.migration-in-progress' | sort | xargs shasum 2>/dev/null | shasum | awk '{print $1}')
+    if [ "$src_sum" != "$dst_sum" ]; then
+      echo "Error: checksum mismatch after copy; .intent/ preserved for inspection" >&2
+      rm -rf "$config_dir"
+      return 2
+    fi
+    rm -rf "$dotintent"
+    echo "  relocated: .intent/ -> intent/.config/ (via copy fallback)"
+  fi
+
+  # Sentinel removal (now at intent/.config/.migration-in-progress post-mv)
+  rm -f "$sentinel" || {
+    echo "Warning: could not remove sentinel at $sentinel" >&2
+    echo "  Migration is complete; delete sentinel manually." >&2
+  }
+
+  return 0
+}
+
 # Migrate v2.9.0 to v2.10.0 - canonical LLM config + directory relocation (ST0035 + ST0036)
 #
-# Two bundled concerns:
-# 1. ST0035 canon-apply (session hooks, pre-commit critic gate, refreshed root
-#    AGENTS.md + CLAUDE.md + usage-rules.md, deletion of intent/llm/AGENTS.md)
-#    lands in ST0035/WP11 by extending intent_claude_upgrade, invoked separately
-#    via `intent claude upgrade --apply`.
-# 2. ST0036 directory relocation (.intent/ -> intent/.config/) is BREAKING and
-#    lands in the migration function proper (ST0036/WP01+). This function
-#    performs the atomic move as part of the upgrade.
+# Two bundled concerns, executed in order:
+# 1. ST0036 directory relocation (.intent/ -> intent/.config/) -- delegated to
+#    intent_relocate_dotintent above. Atomic mv + sentinel + cross-FS fallback.
+# 2. Version stamp at the post-relocation path (intent/.config/config.json).
+# 3. ST0035 canon-apply (session hooks, pre-commit critic gate, refreshed root
+#    AGENTS.md + CLAUDE.md + usage-rules.md, deletion of intent/llm/AGENTS.md) --
+#    shipped via intent_claude_upgrade and invoked here with --apply.
 #
-# Keeping the version-stamp part fast + safe; canon apply is a deliberate,
-# reviewable step the user runs separately. Directory relocation is intrinsic
-# to the version bump (can't defer; semver-breaking).
-#
-# Idempotent: a second run is a no-op (stamp check at the top).
+# Idempotent: layout-state shortcut in intent_relocate_dotintent + stamp
+# comparison guard mean a re-run on a v2.10.0 project is a no-op for both phases.
+# Importantly, idempotence is keyed on layout state (intent/.config/ exists?), NOT
+# stamp value -- a project may be stamped 2.10.0 but still on the .intent/ layout
+# (e.g. Intent itself, which was retargeted to 2.10.0 mid-ST0035 before ST0036
+# implementation began). Layout-keyed idempotence handles that case correctly.
 migrate_v2_9_0_to_v2_10_0() {
   local project_root=$1
 
   echo "Upgrading to Intent v2.10.0 (canonical LLM config + directory relocation; see ST0035 + ST0036)..."
 
-  # NB: directory-relocation logic (.intent/ -> intent/.config/) is added here
-  # by ST0036/WP01. Keep stamp logic below it so the stamp always reflects the
-  # post-relocation state.
+  # Phase 1: directory relocation (.intent/ -> intent/.config/) per ST0036/WP01.
+  intent_relocate_dotintent "$project_root" || return $?
 
-  if [ -f "$project_root/.intent/config.json" ]; then
+  # Phase 2: version stamp at the post-relocation path.
+  if [ -f "$project_root/intent/.config/config.json" ]; then
     local current
-    current=$(jq -r '.intent_version // ""' "$project_root/.intent/config.json")
+    current=$(jq -r '.intent_version // ""' "$project_root/intent/.config/config.json")
     if [ "$current" = "2.10.0" ]; then
-      echo "  already at v2.10.0 (no-op)"
-      return 0
+      echo "  stamp: already at v2.10.0"
+    else
+      local temp_file
+      temp_file=$(mktemp)
+      jq --arg v "2.10.0" '.intent_version = $v | del(.version)' "$project_root/intent/.config/config.json" > "$temp_file"
+      mv "$temp_file" "$project_root/intent/.config/config.json"
+      echo "  stamped: intent_version = 2.10.0"
     fi
-
-    local temp_file
-    temp_file=$(mktemp)
-    jq --arg v "2.10.0" '.intent_version = $v | del(.version)' "$project_root/.intent/config.json" > "$temp_file"
-    mv "$temp_file" "$project_root/.intent/config.json"
-    echo "  stamped: intent_version = 2.10.0"
   fi
 
-  # Canon apply (ST0035/WP-11): installs .claude/settings.json + hook scripts,
-  # .git/hooks/pre-commit, .intent_critic.yml, root CLAUDE.md, usage-rules.md,
-  # plants intent/llm/MODULES.md + DECISION_TREE.md if missing, deletes any
-  # legacy intent/llm/AGENTS.md. Idempotent.
+  # Phase 3: canon apply (ST0035/WP-11). Installs .claude/settings.json + hook
+  # scripts, .git/hooks/pre-commit, .intent_critic.yml, root CLAUDE.md,
+  # usage-rules.md; plants intent/llm/MODULES.md + DECISION_TREE.md if missing;
+  # deletes any legacy intent/llm/AGENTS.md. Idempotent.
   if command -v intent >/dev/null 2>&1; then
     echo "  Applying v2.10.0 canon (intent claude upgrade --apply)..."
     if ! intent claude upgrade --project-dir "$project_root" --apply >&2; then
