@@ -3,7 +3,7 @@ verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-13
 title: "Update Intent own CLAUDE.md to reference canon"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-13: Update Intent own CLAUDE.md to reference canon

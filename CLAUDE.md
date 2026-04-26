@@ -1,236 +1,96 @@
-# Intent Project Guidelines
+# Intent
 
-This is an Intent v2.9.0 project.
+This project uses Intent v2.10.0. The primary config file for AI coding agents is `AGENTS.md` at the project root -- read that first. `CLAUDE.md` is a Claude Code-specific overlay that adds directives beyond the tool-agnostic contract.
 
-## On every session start and after every `/compact`
+## Required on every session
 
-Invoke `/in-session` before doing anything else. It auto-detects the project language and loads the right coding skills (`/in-essentials`, `/in-standards`, plus Elixir / Ash / LiveView skills when `mix.exs` matches). One command replaces the manual skill-reload list.
+Run `/in-session` immediately after session start and after every `/compact` or context reset. It auto-detects the project language and loads the right skills (`/in-essentials`, `/in-standards`, plus language-specific). Rationale: `intent/docs/working-with-llms.md#skills-and-in-session-auto-load`.
 
-## Rules
+## Persistent memory
 
-1. **The Highlander Rule**: There can be only one. Never duplicate code paths, modules, or logic for the same concern. Before creating anything new, check MODULES.md.
-2. **Thin scripts**: Business logic lives in dedicated modules, not in command dispatch or inline heredocs.
-3. **No silent failures**: Every error path must be handled explicitly via `error()` from intent_helpers.
-4. **Check before you create**: Before creating a new script or function, check `intent/llm/MODULES.md`.
-5. **Register before you code**: When you must create a new module, add it to MODULES.md FIRST, then create the file.
-6. **Single template source**: All generated content comes from `lib/templates/` via sed substitution. No inline heredocs duplicating template content.
+Claude Code persists cross-session memories at `~/.claude/projects/<project-dir>/memory/`. Notes about user preferences, design decisions not derivable from code, and project context live there. See Claude Code's memory docs for management.
 
-## Key Reference Files
+## Session hooks
 
-Read these on every session start and after every context reset:
+`.claude/settings.json` wires Claude Code lifecycle hooks: `SessionStart` (inject project context + `/in-session` reminder), `UserPromptSubmit` (strict gate -- block first prompt until `/in-session` runs), `Stop` (remind `/in-finish` at wrap-up). Hook scripts live under `.claude/scripts/`. Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture`.
 
-- `CLAUDE.md` (this file)
-- `intent/llm/MODULES.md` - Module registry (the Highlander enforcer)
-- `intent/llm/DECISION_TREE.md` - Where does this code belong?
-- `intent/docs/rules.md` - Rule library: schema, authoring, validation
-- `intent/docs/critics.md` - Critic subagent contract and report format
-- `intent/docs/writing-extensions.md` - User extensions at `~/.intent/ext/`
-- `intent/wip.md` - Current work in progress
-- `intent/restart.md` - Session restart context (if exists)
+## File map
 
-## Project Structure
+- `AGENTS.md` -- primary tool-agnostic contract. Read first.
+- `usage-rules.md` -- terse DO / NEVER rules (Elixir convention; honoured by `mix usage_rules.sync`).
+- `intent/docs/working-with-llms.md` -- canon narrative on how AGENTS.md + CLAUDE.md + usage-rules.md + hooks + critics + skills compose.
+- `intent/llm/MODULES.md` -- Highlander registry; check before creating new modules.
+- `intent/llm/DECISION_TREE.md` -- code-placement flow chart.
+- `intent/` -- steel threads (`st/`), project docs (`docs/`), work tracking (`wip.md`, `restart.md`).
+- `.intent/` -- configuration and metadata.
 
-- `intent/` - Project artifacts (steel threads, docs, work tracking)
-  - `st/` - Steel threads organized as directories
-  - `docs/` - Technical documentation
-  - `llm/` - LLM-specific guidelines (MODULES.md, DECISION_TREE.md)
-- `.intent/` - Configuration and metadata
+## Rules of the road
 
-## Steel Threads
+Four cross-language principles govern all Intent projects:
 
-Steel threads are organized as directories under `intent/st/`:
+- **Highlander** (`IN-AG-HIGHLANDER-001`) -- there can be only one; no divergent copies of the same concern.
+- **PFIC** (`IN-AG-PFIC-001`) -- Pure-Functional-Idiomatic-Coordination; pattern match, pipe, tag, compose.
+- **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
+- **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
 
-- Each steel thread has its own directory (eg ST0001/)
-- Minimum required file is `info.md` with metadata
-- Optional files: design.md, impl.md, tasks.md
+Full rule files live at `intent/plugins/claude/rules/agnostic/`. The terse DO / NEVER contract for this project lives in `usage-rules.md`. Language-specific concretisations at `intent/plugins/claude/rules/<lang>/`.
 
-## Commands
+## Critic dispatch
 
-### Core Commands
-
-- `intent st new "Title"` - Create a new steel thread
-- `intent st list` - List all steel threads
-- `intent st show <id>` - Show steel thread details
-- `intent wp new <STID> "Title"` - Create a new work package
-- `intent wp list <STID>` - List work packages for a steel thread
-- `intent wp start <STID/NN>` - Mark work package as WIP
-- `intent wp done <STID/NN>` - Mark work package as Done
-- `intent wp show <STID/NN>` - Show work package details
-- Specifiers accept bare numbers (`5` = `ST0005`, `5/01` = `ST0005/01`)
-- WP directories live under `STXXXX/WP/NN/info.md`; titles support special characters
-- `intent plugin` - Discover plugins and their commands
-- `intent treeindex <dir>` - Generate `.treeindex` directory summaries
-- `intent doctor` - Check configuration
-- `intent help` - Get help
-
-### AGENTS.md Commands (NEW in v2.3.0)
-
-- `intent agents init` - Create AGENTS.md for the project
-- `intent agents sync` - Update AGENTS.md with latest project state
-- `intent agents validate` - Check AGENTS.md compliance
-
-### Claude Commands
-
-- `intent claude subagents <command>` - Manage Claude subagents (init, list, install, sync, uninstall, show, status)
-- `intent claude skills <command>` - Manage Claude skills (list, install, sync, uninstall, show)
-- `intent claude upgrade [--apply]` - Diagnose and upgrade project LLM guidance files
-
-## Rules library
-
-Intent's rule library is the single source of truth for coding standards. Each rule is a small Markdown file with structured frontmatter, a Detection heuristic, and bad/good examples. Skills cite rules by ID; Critic subagents enforce them.
-
-- Library root: `intent/plugins/claude/rules/`
-- Authoring guide: `intent/docs/rules.md`
-- Schema reference: `intent/plugins/claude/rules/_schema/rule-schema.md`
-- CLI: `intent claude rules list | show | validate | index`
-
-## Critic subagents
-
-Critics are thin orchestrators: they read the rule library at invocation time, apply each rule's Detection heuristic to target source files, and emit a stable severity-grouped report. They never autofix or shell out to external linters.
-
-- Family: `critic-elixir`, `critic-rust`, `critic-swift`, `critic-lua`, `critic-shell`
-- Modes: `code` and `test` (`critic-shell` is `code` only)
-- Contract: `intent/docs/critics.md`
-- Per-project config: `.intent_critic.yml` at the project root (disable rules, set severity threshold)
-
-## User extensions
-
-Extensions live at `~/.intent/ext/<name>/` and contribute subagents, skills, or rule packs without modifying canon. Discovery is layered: canon is the default; user extensions override by name with a visible shadow warning.
-
-- Authoring guide: `intent/docs/writing-extensions.md`
-- Manifest schema: `intent/plugins/claude/ext-schema/extension.schema.json`
-- CLI: `intent ext list | show | validate | new`
-- Reference extension: `worker-bee` (relocated from canon in v2.9.0)
-
-## Migration Notes
-
-This project was migrated from STP to Intent v2.0.0 on 2025-07-16, through v2.1.0, v2.2.0, v2.3.0, v2.8.x, and is now at v2.9.0.
-
-- Old structure: `stp/prj/st/`, `stp/eng/`, etc.
-- New structure: `intent/st/`, `intent/docs/`, etc.
-- Configuration moved from YAML to JSON format
-
-### v2.8.2 → v2.9.0 jump
-
-The v2.9.0 migration (`migrate_v2_8_2_to_v2_9_0` in `bin/intent_helpers`) does four things:
-
-1. Stamps `.intent/config.json` with `intent_version: 2.9.0`.
-2. Bootstraps `~/.intent/ext/` with a README on first run.
-3. Seeds `~/.intent/ext/worker-bee/` from `lib/templates/ext-seeds/worker-bee/` (skipped if already present — the migration never overwrites user state).
-4. Prunes installed copies of the deleted `elixir` subagent and the relocated `worker-bee` from `~/.claude/agents/` and `~/.intent/agents/installed-agents.json`.
-
-To verify post-upgrade state:
-
-```bash
-intent doctor                                  # general health check
-cat .intent/config.json | jq .intent_version   # should print "2.9.0"
-intent ext list                                # should show worker-bee
-intent claude subagents list | grep critic-    # should show 5 critic-* entries
-```
-
-Mid-session subagent registration freezes per Claude Code session — start a new session before invoking any newly-installed Critic via `Task()`.
-
-## Intent Agents
-
-This project has access to specialized AI agents through Intent's agent system. These agents are Claude Code sub-agents with domain-specific expertise.
-
-### Available Agents
-
-1. **intent** - Intent methodology specialist
-   - Steel thread management and best practices
-   - Intent command usage and workflows
-   - Project structure guidance
-
-2. **socrates** - CTO Review Mode
-   - Technical decision-making via Socratic dialog
-   - Architecture review and analysis
-   - Strategic technology choices
-   - Risk assessment and mitigation
-
-3. **diogenes** - Elixir Test Architect
-   - Socratic dialog for test specification generation
-   - Two personas: Aristotle (Empiricist) + Diogenes (Skeptic)
-   - Specify mode: produces formal test specs from module analysis
-   - Validate mode: gap analysis of tests vs specifications
-
-4. **critic-elixir** / **critic-rust** / **critic-swift** / **critic-lua** / **critic-shell** - Rule-library critics
-   - Thin orchestrators: read `intent/plugins/claude/rules/`, apply Detection heuristics, report findings by severity
-   - One critic per language; modes are `code` and `test` (`critic-shell` is `code` only)
-   - Output is a stable severity-grouped report; never autofix, never shell out to external linters
-   - Invocation: `Task(subagent_type="critic-<lang>", prompt="review <targets>")` or `prompt="test-check <targets>"`
-   - See `intent/docs/critics.md` for the full contract
-
-**Note:** The standalone `elixir` subagent was removed in v2.9.0. Its rule content lives in `intent/plugins/claude/rules/elixir/` and is enforced by `critic-elixir`. The `worker-bee` subagent was relocated from canon to the reference extension at `~/.intent/ext/worker-bee/` — install via `intent claude subagents install worker-bee` after a v2.9.0 upgrade. See `intent/docs/writing-extensions.md`.
-
-### Using Agents
-
-To delegate tasks to specialized agents, use the Task tool with the appropriate subagent_type:
+Per-language rule enforcement via thin subagents that read the rule library at invocation:
 
 ```
-Task(
-  description="Review Elixir code",
-  prompt="review lib/myapp/accounts.ex lib/myapp/accounts_test.exs",
-  subagent_type="critic-elixir"
-)
+Task(subagent_type="critic-<lang>", prompt="review <paths>")
+Task(subagent_type="critic-<lang>", prompt="test-check <paths>")
 ```
 
-### When to Use Agents
+`/in-review` auto-detects language and dispatches. Headless runner `bin/intent_critic` powers the pre-commit gate. Contract: `intent/docs/critics.md`.
 
-**Use the intent agent for:**
+## Project-specific
 
-- Creating or managing steel threads
-- Understanding Intent project structure
-- Following Intent best practices
+<!-- user:start -->
+<!-- Author: matts, created 2026-04-25. Intent dogfoods its own canon -- this CLAUDE.md is the reference example of the WP09 overlay template applied to a real project. Preserved across regeneration. -->
 
-**Use a critic-<lang> agent for:**
+### Intent dev rules (extend the four agnostic rules above)
 
-- Reviewing source files against Intent's rule library
-- Stage-2 of `/in-review` (the skill auto-detects language and dispatches)
-- Per-language code or test review with stable, severity-grouped output
-- See `intent/docs/critics.md` for the contract
+1. **Highlander Rule** -- check `intent/llm/MODULES.md` before creating any new module, helper, or template.
+2. **Thin scripts** (concretises `IN-AG-THIN-COORD-001`) -- business logic lives in dedicated modules under `bin/` or `intent/plugins/`, never inline in command dispatch or heredocs.
+3. **No silent failures** (concretises `IN-AG-NO-SILENT-001`) -- every error path uses `error()` from `bin/intent_helpers`.
+4. **Check before you create** -- before adding a new script or function, check `intent/llm/MODULES.md`.
+5. **Register before you code** -- when you must create a new module, add the row to MODULES.md FIRST, then create the file.
+6. **Single template source** -- all generated content comes from `lib/templates/` via `sed` substitution. No inline heredocs duplicating template content.
 
-**Use the socrates agent for:**
+### Intent-specific files
 
-- Technical architecture reviews
-- Strategic technology decisions
-- Risk assessment for technical choices
-- Facilitating thoughtful technical discussions
+- `intent/wip.md` -- current work in progress (read on session start).
+- `intent/restart.md` -- session restart context (post-compact resume).
+- `bin/` -- Intent CLI source.
+- `lib/templates/` -- generated-content source of truth.
+- `intent/plugins/` -- plugin canon (`claude/`, `agents/`).
 
-**Use the worker-bee agent for** (install from `~/.intent/ext/worker-bee/` after v2.9.0 upgrade):
+### Internal authoring docs
 
-- Enforcing Worker-Bee Driven Design principles
-- Mapping project structure to WDD layers
-- Validating WDD compliance
-- Scaffolding WDD-compliant code
-- Generating Mix tasks for WDD workflows
+The canon Critic dispatch section above already points at `intent/docs/critics.md`. Two more authoring guides live alongside:
 
-**Use main Claude for:**
+- `intent/docs/rules.md` -- rule-library authoring guide (schema, Detection heuristics, attribution).
+- `intent/docs/writing-extensions.md` -- user-extension authoring guide (subagents, skills, rule packs at `~/.intent/ext/`).
 
-- General programming tasks
-- Cross-cutting concerns
-- Integration between systems
-- Tasks requiring broad context
+### Commit conventions
 
-### Best Practices
+- DO NOT ADD CLAUDE TO GIT COMMITS. EVER. No `Co-Authored-By`, no Claude signatures, no AI attribution.
+- T-shirt sizing only (XS / S / M / L / XL / XXL); never clock-time estimates.
+- NEVER manually wrap lines in markdown files.
 
-1. Delegate specialized tasks to appropriate agents
-2. Provide clear, focused prompts to agents
-3. Agents work best with specific, bounded tasks
-4. Consider using multiple agents for complex workflows
+### Migration history
 
-## Treeindex
+Intent originated as STP, migrated to Intent v2.0.0 on 2025-07-16, then through v2.1.0 -> v2.2.0 -> v2.3.0 -> v2.8.x -> v2.9.0 -> v2.10.0 (current). v2.10.0 ships the canonical LLM config (this overlay pattern, three-file canon AGENTS.md / CLAUDE.md / usage-rules.md, session hooks, pre-commit critic gate) and relocates `.intent/` to `intent/.config/`. See `CHANGELOG.md` for per-version detail.
 
-`.treeindex` files are pre-computed directory summaries that let Claude quickly orient itself in a codebase without reading every file. They contain a concise overview of each directory's contents, purpose, and key files.
+### Author
 
-**Convention:** Before exploring an unfamiliar directory, check `intent/.treeindex/<dir>/.treeindex` for an existing summary. This avoids redundant Glob/Grep/Read operations and saves context.
+matts (hello@matthewsinclair.com)
 
-- **Location:** All `.treeindex` files live in the `intent/.treeindex/` shadow directory (eg `intent/.treeindex/lib/.treeindex`)
-- **Regenerate:** Run `intent treeindex <dir>` to generate or refresh summaries for a directory tree
+<!-- user:end -->
 
-## Author
+---
 
-matts
-
-## Usage Rules
-
-- DO NOT ADD CLAUDE TO GIT COMMITS. EVER.
+_Generated from `lib/templates/llm/_CLAUDE.md` on 2026-04-25 for Intent v2.10.0._
