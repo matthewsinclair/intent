@@ -27,6 +27,19 @@ load "../lib/test_helper.bash"
   assert_output_contains "checking: intent_home"
 }
 
+@test "intent doctor surfaces interrupted-migration sentinel (ST0036)" {
+  project_dir=$(create_test_project "Sentinel Test")
+  cd "$project_dir"
+  touch "$project_dir/intent/.config/.migration-in-progress"
+
+  run run_intent doctor
+  # Doctor's exit status: any error check causes non-zero exit; sentinel
+  # surfaces as a show_error line with the path + recovery doc anchor.
+  assert_output_contains "sentinel detected"
+  assert_output_contains "intent/.config/.migration-in-progress"
+  assert_output_contains "migration-v2.10.0.md#recovery-from-interrupted-migration"
+}
+
 @test "intent info works anywhere" {
   run run_intent info
   assert_success

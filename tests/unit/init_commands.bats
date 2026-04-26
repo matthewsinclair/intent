@@ -10,7 +10,7 @@ load "../lib/test_helper.bash"
   
   run run_intent init
   assert_success
-  assert_directory_exists ".intent"
+  assert_directory_exists "intent/.config"
   
   # Cleanup
   cd - > /dev/null
@@ -26,17 +26,17 @@ load "../lib/test_helper.bash"
   assert_success
   
   # Check if project structure was created
-  assert_directory_exists ".intent"
+  assert_directory_exists "intent/.config"
   assert_directory_exists "intent"
   assert_directory_exists "intent/st"
   assert_directory_exists "intent/docs"
   assert_directory_exists "intent/llm"
-  assert_file_exists ".intent/config.json"
+  assert_file_exists "intent/.config/config.json"
   
   # Check config content
   local version=$(get_intent_version)
-  assert_file_contains ".intent/config.json" '"project_name": "Test Project"'
-  assert_file_contains ".intent/config.json" "\"intent_version\": \"${version}\""
+  assert_file_contains "intent/.config/config.json" '"project_name": "Test Project"'
+  assert_file_contains "intent/.config/config.json" "\"intent_version\": \"${version}\""
 
   # Cleanup
   cd - > /dev/null
@@ -54,10 +54,10 @@ load "../lib/test_helper.bash"
   assert_success
   
   # Check if project was created in specified directory
-  assert_directory_exists "$target_dir/.intent"
+  assert_directory_exists "$target_dir/intent/.config"
   assert_directory_exists "$target_dir/intent"
   assert_directory_exists "$target_dir/intent/st"
-  assert_file_exists "$target_dir/.intent/config.json"
+  assert_file_exists "$target_dir/intent/.config/config.json"
   
   # Cleanup
   rm -rf "$test_dir"
@@ -73,10 +73,10 @@ load "../lib/test_helper.bash"
   
   # Check configuration content
   local version=$(get_intent_version)
-  assert_file_contains ".intent/config.json" '"project_name": "My Test Project"'
-  assert_file_contains ".intent/config.json" "\"intent_version\": \"${version}\""
-  assert_file_contains ".intent/config.json" '"created":'
-  assert_file_contains ".intent/config.json" '"author":'
+  assert_file_contains "intent/.config/config.json" '"project_name": "My Test Project"'
+  assert_file_contains "intent/.config/config.json" "\"intent_version\": \"${version}\""
+  assert_file_contains "intent/.config/config.json" '"created":'
+  assert_file_contains "intent/.config/config.json" '"author":'
   
   # Cleanup
   cd - > /dev/null
@@ -105,8 +105,8 @@ load "../lib/test_helper.bash"
   cd "$test_dir"
   
   # Create existing project
-  mkdir -p .intent
-  echo '{"name": "Existing"}' > .intent/config.json
+  mkdir -p intent/.config
+  echo '{"name": "Existing"}' > intent/.config/config.json
   
   run run_intent init "New Project"
   assert_failure
@@ -127,10 +127,10 @@ load "../lib/test_helper.bash"
   assert_success
   
   # Check directory permissions (should be readable/writable/executable by owner)
-  [ -r ".intent" ] || fail ".intent not readable"
-  [ -w ".intent" ] || fail ".intent not writable"
-  [ -x ".intent" ] || fail ".intent not executable"
-  
+  [ -r "intent/.config" ] || fail "intent/.config not readable"
+  [ -w "intent/.config" ] || fail "intent/.config not writable"
+  [ -x "intent/.config" ] || fail "intent/.config not executable"
+
   [ -r "intent" ] || fail "intent not readable"
   [ -w "intent" ] || fail "intent not writable"
   [ -x "intent" ] || fail "intent not executable"
@@ -154,12 +154,12 @@ load "../lib/test_helper.bash"
   assert_output_contains "Intent project initialized successfully"
 
   # Core project files
-  assert_file_exists ".intent/config.json"
+  assert_file_exists "intent/.config/config.json"
   assert_file_exists "CLAUDE.md"
 
   # ST0000 deliverables
   assert_file_exists "intent/llm/DECISION_TREE.md"
-  assert_file_exists ".intent/learnings.md"
+  assert_file_exists "intent/.config/learnings.md"
 
   # Cleanup
   cd - > /dev/null
@@ -173,7 +173,7 @@ load "../lib/test_helper.bash"
   run run_intent init --with-st0000 "Flag First"
   assert_success
   assert_output_contains "Bootstrapping ST0000 deliverables"
-  assert_file_contains ".intent/config.json" '"project_name": "Flag First"'
+  assert_file_contains "intent/.config/config.json" '"project_name": "Flag First"'
 
   # Cleanup
   cd - > /dev/null
@@ -189,7 +189,7 @@ load "../lib/test_helper.bash"
   # Should not mention ST0000
   [[ "$output" != *"Bootstrapping ST0000"* ]]
   # learnings.md should not be created by plain init
-  [ ! -f ".intent/learnings.md" ]
+  [ ! -f "intent/.config/learnings.md" ]
 
   # Cleanup
   cd - > /dev/null
@@ -225,7 +225,7 @@ load "../lib/test_helper.bash"
   assert_success
   
   # Check if author was picked up from git
-  assert_file_contains ".intent/config.json" '"author": "Test Author"'
+  assert_file_contains "intent/.config/config.json" '"author": "Test Author"'
   
   # Cleanup
   cd - > /dev/null

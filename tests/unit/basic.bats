@@ -15,7 +15,7 @@ load "../lib/test_helper.bash"
 @test "can create test project" {
   project_dir=$(create_test_project "Basic Test")
   assert_directory_exists "$project_dir"
-  assert_file_exists "$project_dir/.intent/config.json"
+  assert_file_exists "$project_dir/intent/.config/config.json"
 }
 
 @test "run_intent function works" {

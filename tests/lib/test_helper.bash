@@ -43,10 +43,10 @@ create_test_project() {
   local project_name="${1:-Test Project}"
   local dir="${2:-$TEST_TEMP_DIR/test-project}"
   
-  mkdir -p "$dir/.intent"
-  cat > "$dir/.intent/config.json" << EOF
+  mkdir -p "$dir/intent/.config"
+  cat > "$dir/intent/.config/config.json" << EOF
 {
-  "intent_version": "2.0.0",
+  "intent_version": "2.10.0",
   "project_name": "$project_name",
   "author": "test_user",
   "created_date": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
@@ -169,9 +169,9 @@ get_intent_version() {
     cat "${INTENT_HOME}/VERSION"
   elif [ -f "${INTENT_PROJECT_ROOT}/VERSION" ]; then
     cat "${INTENT_PROJECT_ROOT}/VERSION"
-  elif [ -f "${INTENT_PROJECT_ROOT}/.intent/config.json" ]; then
+  elif [ -f "${INTENT_PROJECT_ROOT}/intent/.config/config.json" ]; then
     # Fallback to config.json for compatibility
-    jq -r '.version // .intent_version // "2.2.1"' "${INTENT_PROJECT_ROOT}/.intent/config.json"
+    jq -r '.version // .intent_version // "2.2.1"' "${INTENT_PROJECT_ROOT}/intent/.config/config.json"
   else
     echo "2.2.1"
   fi

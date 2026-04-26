@@ -1,9 +1,9 @@
 ---
-verblock: "26 Apr 2026:v0.2: matts - Phase 0 forensic detail"
+verblock: "26 Apr 2026:v0.3: matts - Done"
 wp_id: WP-05
 title: "BATS fixtures and create_test_project flip"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-05: BATS fixtures and `create_test_project` flip

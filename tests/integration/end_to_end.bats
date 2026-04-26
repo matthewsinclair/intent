@@ -22,7 +22,7 @@ load "../lib/test_helper.bash"
   
   # Verify project structure
   assert_directory_exists "intent/st"
-  assert_file_exists ".intent/config.json"
+  assert_file_exists "intent/.config/config.json"
   
   # Check info shows project details
   run run_intent info

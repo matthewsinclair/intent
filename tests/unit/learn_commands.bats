@@ -75,10 +75,10 @@ load "../lib/test_helper.bash"
   assert_output_contains "added: footgun"
 
   # Check file was created
-  [ -f ".intent/learnings.md" ]
+  [ -f "intent/.config/learnings.md" ]
 
   # Check content
-  grep -q "Never use Map.get on structs" ".intent/learnings.md"
+  grep -q "Never use Map.get on structs" "intent/.config/learnings.md"
 }
 
 @test "learn adds learning with worked category" {
@@ -90,7 +90,7 @@ load "../lib/test_helper.bash"
   assert_output_contains "added: worked"
 
   # Check it's under the right section
-  grep -q "Ash bulk actions work great" ".intent/learnings.md"
+  grep -q "Ash bulk actions work great" "intent/.config/learnings.md"
 }
 
 @test "learn adds learning with failed category" {
@@ -101,7 +101,7 @@ load "../lib/test_helper.bash"
   assert_success
   assert_output_contains "added: failed"
 
-  grep -q "Ecto.Multi nesting deadlocks" ".intent/learnings.md"
+  grep -q "Ecto.Multi nesting deadlocks" "intent/.config/learnings.md"
 }
 
 @test "learn rejects invalid category" {
@@ -135,13 +135,13 @@ load "../lib/test_helper.bash"
   project_dir=$(create_test_project "Learn Test")
   cd "$project_dir"
 
-  [ ! -f ".intent/learnings.md" ]
+  [ ! -f "intent/.config/learnings.md" ]
 
   run run_intent learn "First learning"
   assert_success
 
-  [ -f ".intent/learnings.md" ]
-  assert_output_contains "created: .intent/learnings.md"
+  [ -f "intent/.config/learnings.md" ]
+  assert_output_contains "created: intent/.config/learnings.md"
 }
 
 @test "learn appends multiple learnings to same category" {
@@ -154,7 +154,7 @@ load "../lib/test_helper.bash"
   run run_intent learn "Second footgun"
   assert_success
 
-  grep -c "footgun" ".intent/learnings.md" | grep -q "2"
+  grep -c "footgun" "intent/.config/learnings.md" | grep -q "2"
 }
 
 @test "learn adds date prefix to entries" {
@@ -166,7 +166,7 @@ load "../lib/test_helper.bash"
 
   local today
   today=$(date +%Y-%m-%d)
-  grep -q "$today: Dated entry" ".intent/learnings.md"
+  grep -q "$today: Dated entry" "intent/.config/learnings.md"
 }
 
 # ============================================================

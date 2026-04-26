@@ -283,7 +283,7 @@ load "../lib/test_helper.bash"
   run run_intent audit health
   assert_success
 
-  [ -f ".intent/last-health-check" ]
+  [ -f "intent/.config/last-health-check" ]
 }
 
 @test "audit health unknown option shows error" {

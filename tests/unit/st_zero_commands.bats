@@ -132,7 +132,7 @@ EOF
 @test "st zero install --audit-only detects present learnings.md" {
   project_dir=$(create_test_project "Zero Test")
   cd "$project_dir"
-  cat > .intent/learnings.md << 'EOF'
+  cat > intent/.config/learnings.md << 'EOF'
 # Project Learnings
 ## Footguns
 ## Patterns That Worked
@@ -216,7 +216,7 @@ EOF
   run run_intent st zero install --dry-run
   assert_success
   # D10 should not actually be created
-  [ ! -f ".intent/learnings.md" ]
+  [ ! -f "intent/.config/learnings.md" ]
   # CLAUDE.md should not be created
   [ ! -f "CLAUDE.md" ]
 }
@@ -263,9 +263,9 @@ EOF
 
   run run_intent st zero install --deliverable D10
   assert_success
-  assert_output_contains "created: .intent/learnings.md"
-  [ -f ".intent/learnings.md" ]
-  grep -q "Footguns" .intent/learnings.md
+  assert_output_contains "created: intent/.config/learnings.md"
+  [ -f "intent/.config/learnings.md" ]
+  grep -q "Footguns" intent/.config/learnings.md
 }
 
 @test "st zero install creates ARCHETYPES.md for Elixir projects" {
@@ -406,7 +406,7 @@ EOF
   echo "# DT" > intent/llm/DECISION_TREE.md
   mkdir -p .claude
   echo '{"hooks":{"PostToolUse":[{"hooks":[{"command":"MODULES.md"}]}]}}' > .claude/settings.local.json
-  cat > .intent/learnings.md << 'EOF'
+  cat > intent/.config/learnings.md << 'EOF'
 # Project Learnings
 ## Footguns
 ## Patterns That Worked

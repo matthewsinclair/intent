@@ -127,8 +127,8 @@ FIX_GOOD="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/elixir/test/strong-
 
 @test "disabled rule in .intent_critic.yml is suppressed" {
   cd "$TEST_TEMP_DIR"
-  mkdir -p .intent
-  cat > .intent/config.json <<'EOF'
+  mkdir -p intent/.config
+  cat > intent/.config/config.json <<'EOF'
 {"intent_version":"2.9.1","project_name":"Disabled Test","author":"t","created_date":"2026-04-24T00:00:00Z"}
 EOF
   cat > .intent_critic.yml <<'EOF'
@@ -145,8 +145,8 @@ EOF
 
 @test "non-disabled rule still fires when config disables a different rule" {
   cd "$TEST_TEMP_DIR"
-  mkdir -p .intent
-  cat > .intent/config.json <<'EOF'
+  mkdir -p intent/.config
+  cat > intent/.config/config.json <<'EOF'
 {"intent_version":"2.9.1","project_name":"Disabled Test","author":"t","created_date":"2026-04-24T00:00:00Z"}
 EOF
   cat > .intent_critic.yml <<'EOF'
@@ -160,7 +160,7 @@ EOF
 }
 
 @test "intent critic dispatches to bin/intent_critic" {
-  # `intent critic` is a project command and requires a valid .intent/
+  # `intent critic` is a project command and requires a valid intent/.config/
   # project root. Run from INTENT_PROJECT_ROOT itself (the Intent repo).
   cd "${INTENT_PROJECT_ROOT}"
   run "${INTENT_BIN_DIR}/intent" critic --help

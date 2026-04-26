@@ -121,8 +121,12 @@ DELETED_PATHS=(
   # at the end of the test to leave the tree clean.
   local agents_md="${INTENT_PROJECT_ROOT}/AGENTS.md"
   local first second
-  first="$(mktemp /tmp/agents-sync-1-XXXXXX.md)"
-  second="$(mktemp /tmp/agents-sync-2-XXXXXX.md)"
+  # macOS BSD mktemp does not substitute the X's when followed by a suffix:
+  # `mktemp /tmp/foo-XXXXXX.md` creates the LITERAL file foo-XXXXXX.md, so
+  # subsequent runs collide. Use a plain template (no suffix); this test
+  # cares about file content, not the extension.
+  first="$(mktemp /tmp/agents-sync-1-XXXXXX)"
+  second="$(mktemp /tmp/agents-sync-2-XXXXXX)"
 
   cd "${INTENT_PROJECT_ROOT}" || fail "could not cd to project root"
 

@@ -196,7 +196,7 @@ load ../lib/test_helper
   refute_output_contains "src/other.ex"
 }
 
-@test "fileindex: uses .intent/indexes/ for index files in Intent project" {
+@test "fileindex: uses intent/.config/indexes/ for index files in Intent project" {
   local project_dir=$(create_test_project "Test Project")
   cd "$project_dir"
   
@@ -205,8 +205,8 @@ load ../lib/test_helper
   
   run "${INTENT_BIN_DIR}/intent_fileindex" -i myproject.index
   assert_success
-  assert_file_exists ".intent/indexes/myproject.index"
-  assert_file_contains ".intent/indexes/myproject.index" '"context": "intent_project"'
+  assert_file_exists "intent/.config/indexes/myproject.index"
+  assert_file_contains "intent/.config/indexes/myproject.index" '"context": "intent_project"'
 }
 
 @test "fileindex: --no-intent flag disables Intent integration" {

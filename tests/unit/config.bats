@@ -32,7 +32,7 @@ load "../lib/test_helper.bash"
   cd "$project_dir"
   
   # Update config with custom values
-  cat > ".intent/config.json" << EOF
+  cat > "intent/.config/config.json" << EOF
 {
   "intent_version": "2.0.0",
   "project_name": "Custom Project Name",
@@ -64,7 +64,7 @@ EOF
 }
 
 @test "missing config shows appropriate error" {
-  # Create directory without .intent/config.json
+  # Create directory without intent/.config/config.json
   mkdir empty_dir
   cd empty_dir
   
