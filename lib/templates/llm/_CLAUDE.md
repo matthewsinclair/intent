@@ -22,7 +22,7 @@ Claude Code persists cross-session memories at `~/.claude/projects/<project-dir>
 - `intent/llm/MODULES.md` -- Highlander registry; check before creating new modules.
 - `intent/llm/DECISION_TREE.md` -- code-placement flow chart.
 - `intent/` -- steel threads (`st/`), project docs (`docs/`), work tracking (`wip.md`, `restart.md`).
-- `.intent/` -- configuration and metadata.
+- `intent/.config/` -- configuration and metadata.
 
 ## Rules of the road
 
