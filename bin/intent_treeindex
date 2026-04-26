@@ -418,40 +418,19 @@ prune_orphans() {
 }
 
 # Create default .treeindexignore if not present
+# Sourced from lib/templates/_treeindexignore (Highlander -- single template
+# source per CLAUDE.md project rule #6). Canon installer also references
+# this template (intent/plugins/claude/bin/intent_claude_upgrade).
 ensure_treeindexignore() {
   local ignore_file="$TREEINDEX_ROOT/.treeindexignore"
   [ -f "$ignore_file" ] && return
 
-  cat > "$ignore_file" << 'IGNOREEOF'
-# .treeindexignore - patterns to exclude from treeindex generation
-# Lines starting with # are comments
-# Lines ending with / match directory names
-# Other lines match file names (glob patterns)
-
-# Build artifacts
-_build/
-deps/
-node_modules/
-cover/
-
-# IDE and tool directories
-.git/
-.elixir_ls/
-intent/.config/cache/
-intent/.config/backup/
-.treeindex/
-
-# Generated assets
-priv/static/assets/
-
-# System files
-.DS_Store
-
-# Compiled files
-*.beam
-*.ez
-erl_crash.dump
-IGNOREEOF
+  local template="${INTENT_HOME}/lib/templates/_treeindexignore"
+  if [ ! -f "$template" ]; then
+    echo "error: cannot locate _treeindexignore template at $template" >&2
+    return 1
+  fi
+  cp "$template" "$ignore_file"
 }
 
 # Create default README.md if not present

@@ -80,6 +80,7 @@
 | Post-tool advisory hook   | `lib/templates/.claude/scripts/post-tool-advisory.sh`   | Opt-in PostToolUse critic (off default)                                       |
 | Credo check templates     | `lib/templates/credo_checks/elixir/`                    | 6 checks: R2, R6, R7, R11, R15, R16                                           |
 | Credo config script       | `lib/scripts/configure_credo.exs`                       | Configures .credo.exs in target projects                                      |
+| Treeindex ignore template | `lib/templates/_treeindexignore`                        | `.treeindexignore` install default (ST0036/WP06)                              |
 
 ## Help Files
 

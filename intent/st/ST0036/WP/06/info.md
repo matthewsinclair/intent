@@ -1,9 +1,9 @@
 ---
-verblock: "26 Apr 2026:v0.2: matts - Phase 0 forensic detail"
+verblock: "26 Apr 2026:v0.3: matts - Done"
 wp_id: WP-06
 title: "Ignore patterns: gitignore and treeindexignore"
 scope: Extra Small
-status: Not Started
+status: Done
 ---
 
 # WP-06: Ignore patterns -- `.gitignore` and `.treeindexignore`

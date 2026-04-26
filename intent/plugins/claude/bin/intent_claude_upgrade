@@ -33,6 +33,7 @@ CANON_CLAUDE_MD_SRC="$INTENT_ROOT/lib/templates/llm/_CLAUDE.md"
 CANON_USAGE_RULES_SRC="$INTENT_ROOT/lib/templates/llm/_usage-rules.md"
 CANON_MODULES_SRC="$INTENT_ROOT/lib/templates/llm/_MODULES.md"
 CANON_DECISION_TREE_SRC="$INTENT_ROOT/lib/templates/llm/_DECISION_TREE.md"
+CANON_TREEINDEXIGNORE_SRC="$INTENT_ROOT/lib/templates/_treeindexignore"
 
 # Canon user-section preservation markers (keep in sync with _CLAUDE.md).
 CANON_USER_MARK_START="<!-- user:start -->"
@@ -73,7 +74,8 @@ The upgrade covers:
   - Skill updates (all installed skills synced to latest)
   - LLM guidance files (AGENTS.md, RULES.md, ARCHITECTURE.md)
   - Canon artefacts (.claude/settings.json + scripts, .git/hooks/pre-commit,
-    .intent_critic.yml, root CLAUDE.md, root usage-rules.md, intent/llm seeds)
+    .intent_critic.yml, root CLAUDE.md, root usage-rules.md, intent/llm seeds,
+    intent/.treeindex/.treeindexignore)
   - Deprecated file cleanup (llm_preamble.md, old usage-rules.md, intent-* skills)
 
 Examples:
@@ -699,6 +701,16 @@ else
   add_action "PLANT_DECISION_TREE"
 fi
 
+# intent/.treeindex/.treeindexignore -- install canonical default if absent.
+# Canon excludes intent/.config/cache/ + backup/ but keeps config.json indexed
+# (ST0036/WP-06). Existing files left alone (project-customisable).
+if [ -f "$PROJECT_DIR/intent/.treeindex/.treeindexignore" ]; then
+  canon_print "intent/.treeindex/.treeindexignore" "${GREEN}PRESENT${NC} (project-owned)"
+else
+  canon_print "intent/.treeindex/.treeindexignore" "${RED}MISSING${NC}"
+  add_action "INSTALL_TREEINDEXIGNORE"
+fi
+
 # Legacy intent/llm/AGENTS.md -- delete if present (canon moved to root in
 # v2.10.0; most projects already caught up via WP-10).
 if [ -f "$PROJECT_DIR/intent/llm/AGENTS.md" ] || [ -L "$PROJECT_DIR/intent/llm/AGENTS.md" ]; then
@@ -794,6 +806,9 @@ if [ ${#ACTIONS[@]} -gt 0 ]; then
         ;;
       PLANT_DECISION_TREE)
         echo "  $idx. Plant intent/llm/DECISION_TREE.md (code-placement flow chart seed)"
+        ;;
+      INSTALL_TREEINDEXIGNORE)
+        echo "  $idx. Install intent/.treeindex/.treeindexignore (canonical exclusions)"
         ;;
       DELETE_LEGACY_AGENTS)
         echo "  $idx. Delete legacy intent/llm/AGENTS.md (canon moved to root in v2.10.0)"
@@ -1016,6 +1031,12 @@ for action in "${ACTIONS[@]}"; do
       echo "  Planting intent/llm/DECISION_TREE.md..."
       canon_install_file "$CANON_DECISION_TREE_SRC" "$PROJECT_DIR/intent/llm/DECISION_TREE.md"
       echo -e "    ${GREEN}ok${NC} (seed; adapt to your project)"
+      ;;
+
+    INSTALL_TREEINDEXIGNORE)
+      echo "  Installing intent/.treeindex/.treeindexignore..."
+      canon_install_file "$CANON_TREEINDEXIGNORE_SRC" "$PROJECT_DIR/intent/.treeindex/.treeindexignore"
+      echo -e "    ${GREEN}ok${NC}"
       ;;
 
     DELETE_LEGACY_AGENTS)

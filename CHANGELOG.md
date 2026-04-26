@@ -21,6 +21,7 @@ Retargeted from v2.9.1 mid-development to bundle ST0036 (directory relocation, b
 - `bin/intent_helpers`: `migrate_v2_9_0_to_v2_10_0()` replaces the earlier `migrate_v2_9_0_to_v2_9_1()` stub. Bundles version stamp + ST0036 directory relocation. Canon-apply logic still lands in ST0035/WP11 via `intent claude upgrade --apply` (separate step).
 - `bin/intent_upgrade`: chain extended to v2.10.0 (new gate `needs_v2_10_0_upgrade`, new case, new chain tail).
 - Root `VERSION` bumped to `2.10.0`.
+- **Treeindex ignore canonicalised** (ST0036/WP-06): new `lib/templates/_treeindexignore` template is the single source of truth. `bin/intent_treeindex::ensure_treeindexignore` reads from the template instead of an inline heredoc (Highlander cleanup per CLAUDE.md project rule #6). `intent claude upgrade --apply` installs the file when absent (new `INSTALL_TREEINDEXIGNORE` action; existing files left alone). Granularity flipped from blanket `.intent/` to `intent/.config/cache/` + `intent/.config/backup/` so `config.json` stays indexed.
 
 ### Breaking
 
