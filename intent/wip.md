@@ -1,5 +1,5 @@
 ---
-verblock: "27 Apr 2026:v0.58: matts - WP-15 canary batch 9 of 11 in-scope; Conflab + Lamplight deferred"
+verblock: "27 Apr 2026:v0.59: matts - WP-15 canary batch 9 of 11 + .claude/ gitignore normalised across fleet"
 intent_version: 2.10.0
 ---
 
@@ -7,9 +7,7 @@ intent_version: 2.10.0
 
 ## Current State
 
-**ST0035 14 of 19 Done. WP-15 canary batch this session: Molt, Utilz, arca_cli, arca_config, arca_notionex, Prolix, MicroGPTEx (canaries 3-9 of 11 in-scope; Laksa + Anvil were 1-2). 9 of 11 in-scope done; 2 deferred (Conflab + Lamplight, both busy); Pplr out of scope. All 12-point verifications pass; canon recipe is mature.** Tests: **788/788 green**. Doctor: clean.
-
-Three projects (Utilz, arca_notionex, MicroGPTEx) gitignore `.claude/` by existing convention; canon session hooks present on disk but not tracked -- track for the WP-17 dogfood journal.
+**ST0035 14 of 19 Done. WP-15 canary batch this session: Molt, Utilz, arca_cli, arca_config, arca_notionex, Prolix, MicroGPTEx (canaries 3-9 of 11 in-scope; Laksa + Anvil were 1-2). 9 of 11 in-scope done; 2 deferred (Conflab + Lamplight, both busy); Pplr out of scope. All 12-point verifications pass; canon recipe is mature. `.claude/` gitignore normalised across the fleet -- only `settings.local.json` is ignored; canon files (`settings.json`, `scripts/*`, `restart.md`) are tracked.** Tests: **788/788 green**. Doctor: clean.
 
 ## ST0035 progress
 
@@ -38,6 +36,8 @@ Three projects (Utilz, arca_notionex, MicroGPTEx) gitignore `.claude/` by existi
 ## Recent
 
 - **2026-04-27 (this session, batch run)**: WP-15 canary batch -- 7 projects applied, committed, pushed to `local`, reports written. Canaries in order: Molt (`7abd972`), Utilz (`ed31017`), arca_cli (`2e7c14f`), arca_config (`ca85f26`), arca_notionex (`9de67e9`), Prolix (`4508e94`), MicroGPTEx (`b375d1f`). Each: pre-flight reset of stale `.intent/config.json` bump (where present), `intent upgrade` chain `2.9.0 -> 2.10.0` (or `2.8.2 -> 2.10.0` for Utilz), foreign pre-commit chained via marker block, `/AGENTS.md.bak` added to `.gitignore`. All 12-point verifications pass; no canon-installer surprises this batch (the LEGACY single-file path that the previous session added didn't fire on any of these -- they all had foreign pre-commit hooks). Reports at `intent/st/ST0035/WP/15/canary-reports/`.
+
+  Follow-up (same session): `.claude/` gitignore normalisation -- Utilz (`65bbf3e`), arca_notionex (`13f6a71`), MicroGPTEx (`c8889f4`). Was ignoring the entire `.claude/` directory; switched to the Intent canonical pattern (track `.claude/{settings.json,scripts/*,restart.md}`, ignore only `.claude/settings.local.json`). Fresh clones now get the SessionStart / UserPromptSubmit / Stop hooks consistently across the fleet.
 
 - **2026-04-27 (this session, post-compact)**: Anvil canary done; canon-installer LEGACY single-file pre-commit migration added; fresh-install path also now produces chained architecture from the start. Two commits in Intent + one in Anvil:
   - `d5b9203` -- canon-installer: new `MIGRATE_LEGACY_PRE_COMMIT` action (detect canon body at `pre-commit` with no `pre-commit.intent` -> mv canon body, write chain stub). `INSTALL_PRE_COMMIT` updated to install chained architecture from the start. +3 new BATS scenarios; fresh-install test asserts chained layout. 788/788 green (was 785).
