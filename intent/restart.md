@@ -1,53 +1,70 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-04-27, end of session -- ST0036 closed; ST0035 13 of 19 Done)
+## Current state (2026-04-27, end of session -- ST0035 14 of 19; canon hardened; Laksa canary 1 of 16)
 
-**Intent v2.10.0 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) 13 of 19 Done; WP14-WP19 pending. ST0036 (Directory relocation) 9 of 9 Done; closed and moved to COMPLETED.**
+**Intent v2.10.0 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) 14 of 19 Done. WP-15 (canary rollout) WIP -- Laksa first canary committed and pushed; Conflab + Lamplight deferred (busy); Pplr out of scope (doesn't need intent).** Six commits this session in Intent + one in Laksa. Tests **785/785 green**, doctor clean.
 
 ### ST0035 shape
 
-- **Done (13)**: WP01-WP13.
-- **Not Started (6)**: WP14, WP15, WP16, WP17, WP18, WP19.
+- **Done (14)**: WP01-WP14.
+- **WIP (1)**: WP15 (Laksa done; 15 in-scope projects remaining).
+- **Not Started (4)**: WP16, WP17, WP18, WP19.
 
-WP19 was added this session as a Phase 0 spec (`a7c27c3`) for the explicit-language canon command. Replaces the auto-detection approach that was tried-and-rejected during WP08 surfacing. Sized M; lands when fleet rollout context is sufficient.
+WP14 closed via `intent wp done ST0035/14` after the verification sweep + hardening pass. Five canon-installer fixes and two doc populations followed (Intent's RULES.md + ARCHITECTURE.md). Laksa was the first canary; the auto-insert chain block worked end-to-end (the Laksa commit itself triggered the chain → critic → ok).
 
-Critical path remaining: `ST0035/WP14 -> WP15 -> WP16 -> WP17`. WP18 (`intent/usr/*.md` audit) runs in parallel with WP15/WP16; must land before WP17. WP19 (per-language canon) is independent; can land anywhere after WP14.
+Critical path remaining: `WP15 (canaries continued) -> WP16 (fleet) -> WP17 (verification + dogfood journal)`. WP18 (`intent/usr/*.md` audit) parallel; must land before WP17. WP19 (per-language canon) independent.
 
-### ST0036 shape
+### Progress this session (six commits + one in Laksa)
 
-- **Done (9)**: WP01 (`4dcccce`), WP02 (`5369afd` + fix `33a99d0`), WP03 (`777c5b0`), WP04 (`5f8b61e` + earlier `f04db11`), WP05 (`b62ea58`), WP06 (`32df058`), WP07 (`1debc03`), WP08 (`5c782b3`), WP09 (`1497885`).
-- ST0036 closed via `intent st done ST0036` -- moved to `intent/st/COMPLETED/ST0036/`.
+In commit order, all in Intent unless noted:
 
-### Progress this session (5 commits + ST0036 close)
+1. `9a6387b` -- **WP-14 Intent self-dogfood verification**. Dry-run + apply + 12-point verification + reports under `intent/st/ST0035/WP/14/`. Confirmed WP-08 already ran Phase 3 (canon-apply); WP-14 is a verification sweep + idempotence proof (MD5 sanity).
 
-In commit order:
+2. `9315bb6` -- **canon-installer rough edges fixed** (surfaced by WP-14):
+   - `intent_agents:506-509` -- AGENTS.md generator footer emits a blank line after `---` (eliminates the prettier-vs-generator oscillation).
+   - `intent_claude_upgrade:488` -- RULES.md count uses ERE (`grep -Ec '^(###|[0-9]+\.)'`); dropped the `|| echo 0` fallback (was producing `(0\n0 rules/sections)`).
+   - `intent_claude_upgrade:486-505` -- REVIEW warnings for RULES/ARCHITECTURE only fire when content is verbatim the `_default` template (`cmp -s` check).
+   - `intent_claude_upgrade:404-475` -- new helpers `canon_chain_block_present` + `canon_emit_chain_block` + `canon_insert_chain_block`. Marker pair (`intent-chain-block:start/end`) makes re-application idempotent.
+   - `intent_claude_upgrade:642-665` -- chain detection rewritten: CHAINED only when chain block present; new `CHAIN_REQUIRED` state when `pre-commit.intent` is installed but block missing; new `CHAIN_PRE_COMMIT_BLOCK` action.
+   - `intent_claude_upgrade:1078-1098` -- Phase 3 `CHAIN_PRE_COMMIT` and `CHAIN_PRE_COMMIT_BLOCK` actions auto-insert the block (no more manual-paste snippet).
+   - +4 new BATS scenarios (785/785 total).
 
-1. `01159ff` -- **WP-01 dispatcher fix** (surfaced by WP-08). `bin/intent_upgrade` early-exit + `needs_v2_10_0_upgrade` shortcut + new `2.10.0` case arm. Layout-keyed idempotence catches projects stamped 2.10.0 before relocation.
-2. `ebd6620` -- **WP-11 canon-installer fix** (surfaced by WP-08). PROJECT_NAME from `intent/.config/config.json` (was `basename "."` -> `.`); always-`_default` templates (was hard-coded Elixir templates installed for Intent's bash CLI). New `intent/plugins/agents/templates/_default/` with three generic templates.
-3. `a7c27c3` -- **WP-19 Phase 0 spec**. New ST0035 WP for explicit-language canon: `intent lang init <lang>` + `intent init --lang ...`. Multi-language is the rule, auto-detection rejected.
-4. `5c782b3` -- **WP-08 Intent self-apply**. Reverted WP-05 diagnostic mv; `intent upgrade` ran all three phases of `migrate_v2_9_0_to_v2_10_0` cleanly. Git rename detected (`R .intent/config.json -> intent/.config/config.json`). 781/781 BATS green; doctor clean.
-5. `1497885` -- **WP-09 cross-thread coordination**. ST0035 WP15/WP16/WP17 info.md gained 12-point checklist (10 ST0035 + 2 ST0036) + version flips (v2.9.1 -> v2.10.0; .intent/ -> intent/.config/). ST0036/impl.md finalised with closing notes.
+3. `d0d0dc6` -- **populate Intent's RULES.md + ARCHITECTURE.md**. No longer verbatim `_default` stubs. RULES.md cites the four agnostic principles + six Intent dev rules + bash 3.x constraints + markdown/testing/commit discipline. ARCHITECTURE.md describes the 12 core directories + 6 key patterns (thin coordinator, plugin callbacks, single template source, layout-keyed idempotence, three-phase canon-apply, steel thread lifecycle) + hook architecture + critic dispatch + migration history.
 
-Plus ST0036 closed (commit pending).
+4. `f5d9df9` -- **housekeeping**. `.claude/settings.local.json` untracked (per-developer noise; paths and tool allowlists vary). `/AGENTS.md.bak` gitignored (regen safety net). Backup tag `wp08-pre-relocate` deleted.
+
+5. `a729ec64` (in **Laksa**) -- **`chore: apply ST0035 + ST0036 canon (v2.10.0 rollout canary)`**. 2.8.2 -> 2.10.0 chain in one `intent upgrade`. Canon installed; chain block auto-inserted between `set -euo pipefail` and the existing prettier/mix-format body. CLAUDE.md preserved (user-authored). Pushed to `local` (Dropbox); `upstream` deferred per WP-15 protocol.
+
+6. `2e90556` -- **Laksa canary report**. `intent/st/ST0035/WP/15/canary-reports/laksa.md`. 12-point verification all green; three benign observations documented.
 
 ### Lessons worth keeping (this session)
 
-- **WP08's "moment of truth" worked as designed.** The manual-mv diagnostic in the prior session bypassed the dispatcher and canon-installer entirely. WP08's proper run via `intent upgrade` surfaced two real bugs and spawned one needed feature (WP19). The "file gap, fix in place, ship cleaner" rhythm was natural; the user direction "fix this properly here now fully, and then fail forward" turned the surfacing into a productive remediation sweep rather than a halt.
-- **Auto-detection of project language is a dead end.** Real projects are polyglot (Elixir + Swift + Rust + Lua + Bash + HTML/CSS/JS). Picking a single "primary" misrepresents the project shape and just shifts the wrong-shape problem. Replaced with explicit user choice (`intent lang init <lang>`) per WP19 spec.
-- **Layout-keyed idempotence beats stamp-keyed.** Mid-ST stamp retargets can leave a project at a target stamp but on the wrong layout. Any check that asks "are we already at the target?" must inspect both axes. Three coordinated changes were needed in `bin/intent_upgrade` + `bin/intent_helpers` to make this work end-to-end.
-- **PROJECT_DIR resolution matters.** `basename "."` returns `.`, which becomes `# .` as a regenerated CLAUDE.md title. Resolve to absolute path before basename, and prefer the canonical `project_name` from `intent/.config/config.json`.
-- **WP05 diagnostic mv was great.** It proved the path-probe layer was correct without committing anything. Cheap experiment, sharp signal. Worth budgeting for similar "what if I just did the thing" probes in future mechanical sweeps.
-- **Linter cooperates.** Markdown linter auto-aligns tables on save; commits naturally include linter touch-ups. No friction.
+- **Auto-insert beats manual paste.** The previous "print snippet, ask user to paste" flow left a known-deferred state on every project (WP-08 had a "deferred: chain block not active" line). Replacing the snippet print with a markered idempotent insert removed the deferred bucket entirely. Marker pair detection makes re-runs a guaranteed no-op.
+- **REVIEW warnings should be conditional, not unconditional.** Firing the same warning on every project that has any RULES.md was noise. Comparing against `TEMPLATES_SOURCE/_default/RULES.md` via `cmp -s` makes the warning meaningful: it only fires when the user really hasn't customised yet.
+- **Linter-vs-generator oscillation is a real bug.** The `---` footer in AGENTS.md needed a trailing blank line to match prettier's output. Without it, every regen would silently flip the file back-and-forth. The MD5 check from WP-14 surfaced this on the second re-apply.
+- **Pre-flight on canary projects matters.** Laksa had a stale manual config bump; resetting to HEAD let the migration write the canonical version end-to-end. Canary discipline: clean tree -> clean migration.
+- **WP-15 spec drift**: `intent upgrade --dry-run` doesn't exist; Sites subdir was assumed; "12 + Pplr" is now "ecosystem minus Pplr". Worth tidying before more canaries.
 
 ### Open follow-ups (outside ST0035)
 
-- `docs/blog/_drafts/####-shell-critic-inception.md` -- blog draft; publication gated on real dogfood runs.
+- `docs/blog/_drafts/####-shell-critic-inception.md` -- blog draft. Laksa is the first real-world dogfood datapoint.
 - WP07 follow-ups from ST0034: align Diogenes fixture-context handling across critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures.
-- `git tag -d wp08-pre-relocate` -- backup tag at `69069eca`. Discardable next session.
 
-### Resume target -- ST0035/WP14
+### Resume target -- next canary (ST0035/WP-15 continued)
 
-WP08 already executed Phase 3 (canon-apply) on Intent during the relocation. WP14 becomes a verification sweep: re-run `intent claude upgrade` (no `--apply`); confirm all canon artefacts UP TO DATE / PRESENT; intent doctor; full BATS; verify hooks fire; mark Done. See `.claude/restart.md` for the step-by-step.
+User direction: do other fleet projects one at a time before Conflab/Lamplight (which are busy). Pplr is out of scope.
+
+Candidates: **Molt**, **Utilz**, **Arca**, **Prolix**, **MicroGPTEx**, **Sites**. Pick the next one and apply the Laksa recipe:
+
+1. `cd ~/Devel/prj/<project>` and check `git status` -- ensure clean tree (reset stale state if needed).
+2. `( cd ~/Devel/prj/<project> && /Users/matts/Devel/prj/Intent/bin/intent claude upgrade )` for the canon-installer dry-run.
+3. `( cd ~/Devel/prj/<project> && /Users/matts/Devel/prj/Intent/bin/intent upgrade )` to do the migration chain (Phase 1 relocate, Phase 2 stamp, Phase 3 canon-apply).
+4. Run the 12-point verification (script in `intent/st/ST0035/WP/15/canary-reports/laksa.md` for the exact commands).
+5. Add `/AGENTS.md.bak` to the project's `.gitignore` if missing.
+6. `git add -A && git commit` with the canary message.
+7. `git push local main` (NOT upstream).
+8. Write `intent/st/ST0035/WP/15/canary-reports/<project>.md` (use Laksa's report as a template).
+9. Commit the report in Intent.
 
 ### Session conventions (carry forward)
 
@@ -60,3 +77,4 @@ WP08 already executed Phase 3 (canon-apply) on Intent during the relocation. WP1
 - Fail-forward: no backwards-compat shims, no deprecation stubs.
 - Auto-detection of language/etc. rejected; use explicit user choice.
 - Document first, code next, with a hard review gate after Phase 0.
+- Pre-flight: reset stale state on canary projects before applying.
