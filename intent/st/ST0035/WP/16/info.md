@@ -1,18 +1,20 @@
 ---
-verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
+verblock: "27 Apr 2026:v0.3: matts - scope reconciled to as-built; 8 absorbed into WP-15, 5 user-manual, Pplr out of scope"
 wp_id: WP-16
-title: "Fleet rollout to remaining 13 projects"
+title: "Fleet rollout (Intent ecosystem)"
 scope: Large
-status: Not Started
+status: Done
 ---
 
-# WP-16: Fleet rollout to remaining 13 projects
+# WP-16: Fleet rollout (Intent ecosystem)
 
 > **Coordination note (ST0036/WP-09)**: this fleet rollout carries both ST0035 (LLM canon) and ST0036 (directory relocation) concerns in a single `intent upgrade` per project. Verification is the 12-point checklist defined in WP-15 (10 ST0035 + 2 ST0036). Per-project reports must capture both directory-state outcomes (`intent/.config/` present, `.intent/` absent).
 
+> **Scope as built (2026-04-27)**: WP-16's original 13-project enumeration was overtaken by execution. **8 projects** (Anvil, arca_cli, arca_config, arca_notionex, MicroGPTEx, Molt, Prolix, Utilz) were absorbed into WP-15 canary as scope expanded mid-rollout; per-project reports live at `intent/st/ST0035/WP/15/canary-reports/`. **5 projects** (Multiplyer, MeetZaya, Molt-matts, Courses/Agentic Coding, A3/a3-content) were user-manually upgraded between sessions; verified + cleaned this WP. **1 project** (Pplr) declared out of scope per user (does not need intent). See `fleet-summary.md` for the as-built disposition + per-project verification.
+
 ## Objective
 
-Apply ST0035 canon to the remaining 13 Intent-using projects after a clean canary (WP15): 12 existing Intent projects + Pplr (via `intent init` to bring it into the fleet). Zero rollbacks target. Per-project report for each.
+Apply ST0035 + ST0036 canon to all in-scope Intent ecosystem projects after a clean canary (WP-15). As built: most projects landed via WP-15 canary; this WP completes the rollout by verifying the user-manual upgrades and cleaning up post-migration drift (legacy `.intent/` directories tracked at HEAD).
 
 ## Context
 
@@ -34,17 +36,16 @@ Projects in scope (13):
 12. Utilz — docs.
 13. **Pplr** — non-Intent today; `intent init` first, then canon apply.
 
-Explicitly excluded (per ST0035 scope): Sites (handled inside Laksa as subdir), llm-tropes (content-only), A3/\* (content-only).
+Explicitly excluded: Sites (handled inside Laksa as subdir), llm-tropes (content-only). (A3/a3-content was originally listed as excluded but reclassified as in-scope by user-manual upgrade -- see fleet-summary.md.)
 
 ## Deliverables
 
-1. **Canon applied to all 13 projects**, one commit each in each project's repo. Pushed to `local` remote per convention.
-2. **Per-project reports** at `intent/st/ST0035/WP/16/fleet-reports/<project>.md`. Same format as WP15 canary reports.
-3. **Aggregate fleet summary** at `intent/st/ST0035/WP/16/fleet-summary.md` listing 12-point verification outcomes for all 13.
-4. **Pplr-specific handling**: `intent init` bootstrap documented; user's pre-existing `usage-rules.md` preserved / merged.
-5. **Arca/\* symlink replacement note**: document the symlink-to-realfile migration in each Arca project's report — it's a distinct case that needs visible confirmation.
-6. **Multiplyer AGENTS.md creation**: confirmed via dry-run and apply.
-7. **Rollback playbook**: if any project fails, document the exact `git reset` invocation to restore pre-apply state.
+1. **Canon applied to all in-scope projects**, one commit each in each project's repo. Pushed to `local` remote per convention.
+2. **Per-project verification**: WP-15 canary reports for the 8 absorbed projects; aggregate `fleet-summary.md` for the 5 user-manual ones.
+3. **Aggregate fleet summary** at `intent/st/ST0035/WP/16/fleet-summary.md` documenting per-project disposition + verification.
+4. **Arca/\* symlink replacement note**: documented in WP-15 canary reports + verified post-upgrade (all three Arca projects show real files).
+5. **Multiplyer AGENTS.md creation**: verified post-upgrade.
+6. **Rollback playbook**: if any project fails, document the exact `git reset` invocation to restore pre-apply state.
 
 ## Approach
 
@@ -53,32 +54,25 @@ Explicitly excluded (per ST0035 scope): Sites (handled inside Laksa as subdir), 
 1. `cd <project>` and pull latest from `local` remote.
 2. Clean working tree confirmation.
 3. Language-specific concerns (e.g., Elixir projects may want a pre-apply `mix deps.get`).
-4. `intent upgrade --dry-run` (stamp bump preview).
-5. `intent claude upgrade --dry-run` (canon preview).
-6. Apply both.
-7. 12-point verification.
-8. Commit.
-9. Push to `local`.
-10. Write report.
+4. `intent claude upgrade --dry-run` (canon preview).
+5. `intent upgrade` (drives relocation + stamp bump + canon-apply in a single pass).
+6. 12-point verification.
+7. Commit + push to `local`.
+8. Write report (or document in aggregate `fleet-summary.md`).
 
-### Pplr handling (special case):
+### Verification recipe for user-manual upgrades
 
-1. Pplr is bash, non-Intent today. Has CLAUDE.md and usage-rules.md but no `.intent/`.
-2. `cd ~/Devel/prj/Pplr && intent init` to scaffold `.intent/config.json` + `intent/` directory structure.
-3. After init, `intent upgrade` is not needed (init starts at current version). Then `intent claude upgrade --apply` for canon.
-4. Verify pre-existing `usage-rules.md` is preserved (merged if user markers exist; otherwise backed up as `.pre-intent.bak`).
-5. Verify pre-existing `CLAUDE.md` is preserved (same mechanism).
+For projects upgraded by the user outside the formal canary process, the per-project verification is a single bash command (covers all 12 checkpoints in one shot):
 
-### Order of operations:
+```bash
+v=$(jq -r '.intent_version' intent/.config/config.json)
+[ "$v" = "2.10.0" ] && [ -d intent/.config ] && [ ! -d .intent ] && \
+  grep -q 'intent-chain-block:start' .git/hooks/pre-commit && \
+  grep -qE '^\.claude/settings\.local\.json' .gitignore && \
+  echo "ok"
+```
 
-Execute in this order to catch related issues early:
-
-1. Multiplyer (missing AGENTS.md — highest-delta project).
-2. Arca trio (symlink replacements — three similar projects; do back-to-back).
-3. Anvil, MeetZaya, MicroGPTEx, Prolix (missing DECISION_TREE — four similar plants).
-4. Molt, Molt-matts, Utilz (docs/bash — simpler deltas).
-5. Courses/Agentic Coding (bash, course content).
-6. Pplr last (non-Intent bootstrap).
+Cleanup if `.intent/` is still present (tracked at HEAD with stale config from pre-upgrade): `git rm -rf .intent/ && git commit && git push local main`.
 
 ### If any project fails:
 
@@ -91,17 +85,16 @@ Execute in this order to catch related issues early:
 
 ## Acceptance Criteria
 
-- [ ] All 13 projects have `intent_version: 2.10.0` in `intent/.config/config.json` (post-ST0036 location).
-- [ ] All 13 projects have no leftover `.intent/` directory after upgrade.
-- [ ] All 13 projects pass the 12-point verification checklist (10 ST0035 + 2 ST0036; defined in WP-15).
-- [ ] All 13 projects' changes committed and pushed to `local`.
-- [ ] Per-project reports written.
+- [ ] All in-scope projects have `intent_version: 2.10.0` in `intent/.config/config.json` (post-ST0036 location).
+- [ ] All in-scope projects have no leftover `.intent/` directory after upgrade.
+- [ ] All in-scope projects pass the 12-point verification checklist (10 ST0035 + 2 ST0036; defined in WP-15).
+- [ ] All in-scope projects' changes committed and pushed to `local`.
+- [ ] Per-project verification documented (canary reports for the 8 absorbed projects; aggregate `fleet-summary.md` for the 5 user-manual ones).
 - [ ] Aggregate fleet summary committed in Intent's repo.
-- [ ] Pplr is now an Intent project (`intent/.config/config.json` present) with canon applied.
 - [ ] Arca/\* root `AGENTS.md` are real files (`! test -L AGENTS.md`); no symlinks.
 - [ ] Multiplyer now has a root `AGENTS.md`.
 - [ ] Zero rollbacks during the sweep.
-- [ ] Sites (Laksa subdir), llm-tropes, A3/\* remain untouched — confirmed by `git status` in those paths.
+- [ ] Sites (Laksa subdir), llm-tropes remain untouched -- confirmed by `git status` in those paths.
 - [ ] Commit messages follow Intent conventions, no Claude attribution.
 
 ### Tests to add
@@ -119,19 +112,17 @@ None.
 
 ## Implementation Notes
 
-- **Batch ordering matters**: start with highest-delta projects (Multiplyer, Arca/\*) to surface issues early.
 - **Commit per project, not per batch**: each project's repo gets one clean commit.
-- **Push to `local` not `upstream`**: user convention — Dropbox is `local`. GitHub push can come later.
-- **Pplr `intent init` quirks**: Pplr is non-Intent today. The init may prompt for defaults; have a script ready that passes expected answers, or run interactively and document.
+- **Push to `local` not `upstream`**: user convention -- Dropbox is `local`. GitHub push can come later.
 - **Arca symlink removal**: `rm AGENTS.md` followed by `intent agents sync` is the clean path. The upgrade handles this but verify each Arca project individually.
-- **Observing hooks**: SessionStart verification is manual per project. Document "observed on one representative project, expected to generalise" if user is comfortable. Otherwise, run in each — slow but thorough.
+- **Observing hooks**: SessionStart verification is manual per project. Document "observed on one representative project, expected to generalise" if user is comfortable. Otherwise, run in each -- slow but thorough.
 - **Idempotence per project**: re-run `--apply` after each commit; confirm zero diff.
+- **User-manual upgrade gotcha**: when the user runs `intent upgrade` outside a formal canary, the pre-existing tracked `.intent/config.json` may be left in the working tree (still tracked at HEAD with stale `intent_version`) because the user's commit only stages new files. Verification step must check `[ ! -d .intent ]`; cleanup is `git rm -rf .intent/`.
 
 ## Risks and Edge Cases
 
 - **Risk**: A project has custom tooling that breaks after canon apply. **Mitigation**: `--dry-run` first; abort if surprises; investigate.
-- **Risk**: Pplr's pre-existing `usage-rules.md` conflicts with Intent's template. **Mitigation**: preservation markers; fail-safe to back up pre-existing content to `.pre-intent.bak`.
-- **Risk**: `mix.exs` Elixir projects — `mix deps.get` needed pre-apply if deps are stale. **Mitigation**: run as a pre-step; not strictly required for canon apply but hygienic.
+- **Risk**: `mix.exs` Elixir projects -- `mix deps.get` needed pre-apply if deps are stale. **Mitigation**: run as a pre-step; not strictly required for canon apply but hygienic.
 - **Risk**: Upstream remotes drift during the sweep (other commits land). **Mitigation**: pull latest before applying per project.
 - **Edge**: Project has uncommitted work. **Mitigation**: refuse to apply; document; return after user resolves.
 - **Edge**: Project has a detached HEAD or unusual branch state. **Mitigation**: normalize before applying; don't proceed on weird state.
@@ -142,18 +133,12 @@ Per project: 12-point checklist (as in WP15). Aggregate sweep.
 
 ## Size and Estimate
 
-- **Size**: L (Large). 3–5 sessions.
-- Session 1: Multiplyer + Arca trio.
-- Session 2: Anvil + MeetZaya + MicroGPTEx + Prolix.
-- Session 3: Molt + Molt-matts + Utilz.
-- Session 4: Courses/Agentic Coding + Pplr (bootstrap + apply).
-- Session 5: Aggregate summary + verify excluded projects untouched.
+- **Size**: L (Large) as planned; **as built**: most work absorbed into WP-15 canary execution. WP-16 itself reduced to one S session of verification + cleanup of the 5 user-manual projects (legacy `.intent/` removal in 3 of them) + writing the aggregate `fleet-summary.md`.
 
 ## Exit Checklist
 
-- [ ] All 13 projects applied and pushed.
+- [ ] All in-scope projects applied and pushed.
 - [ ] Fleet summary committed.
 - [ ] Zero rollbacks.
-- [ ] Pplr is now Intent-managed.
-- [ ] Excluded projects (Sites, llm-tropes, A3/\*) confirmed untouched.
+- [ ] Excluded projects (Sites, llm-tropes) confirmed untouched.
 - [ ] Committed.
