@@ -1,17 +1,17 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-04-27, end of session -- ST0035 15 of 19; WP-15 closed)
+## Current state (2026-04-27, end of session -- ST0035 16 of 19; WP-15 + WP-16 closed)
 
-**Intent v2.10.0 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) 15 of 19 Done. WP-15 (canary rollout) closed: 11 of 11 in-scope canaries pass.** This session post-compact: Conflab + Lamplight canary reports committed, WP-15 spec tidied to match as-built reality (11 in-scope, not the original 3), aggregate summary at `canary-summary.md` documenting all outcomes + canon-installer refinements + decision to proceed to WP-16. Plus housekeeping in `~/.claude` global repo (folded `/in-start` into `/in-session`, expanded `.gitignore`, checked in months of curated agents + skills + config; pushed to `matthewsinclair/cfg-claude`). Tests **791/791 green**; doctor clean.
+**Intent v2.10.0 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) 16 of 19 Done. WP-15 + WP-16 both closed this session post-compact.** All in-scope fleet projects on canon: 8 absorbed into WP-15 canary, 5 user-manually upgraded + verified this session, Pplr out of scope. Three `.intent/` cleanup commits in the fleet (Multiplyer, MeetZaya, Courses/Agentic Coding) -- legacy directories were tracked at HEAD with stale config; user-manual `intent upgrade` runs created the new layout but didn't auto-clean the legacy. Plus housekeeping in `~/.claude` global repo (folded `/in-start` into `/in-session`, expanded `.gitignore`, checked in months of curated agents + skills + config; pushed to `matthewsinclair/cfg-claude`). Tests **791/791 green**; doctor clean.
 
 ### ST0035 shape
 
-- **Done (15)**: WP01-WP15.
-- **Not Started (4)**: WP16, WP17, WP18, WP19.
+- **Done (16)**: WP01-WP16.
+- **Not Started (3)**: WP17, WP18, WP19.
 
-WP-15 closed via `intent wp done ST0035/15` after writing the aggregate `canary-summary.md`. Spec was tidied to match as-built (11 in-scope projects, not the original Conflab/Lamplight/Laksa trio; non-existent `intent upgrade --dry-run` removed; Sites subdir check dropped). Three canon-installer refinements landed mid-canary and were baked back into Intent: `MIGRATE_LEGACY_PRE_COMMIT`, `CHAIN_PRE_COMMIT` auto-insert, `NORMALIZE_GITIGNORE`.
+WP-15 closed via `intent wp done ST0035/15` (`300334d`) with aggregate `canary-summary.md`. WP-16 closed via `intent wp done ST0035/16` (`216edc5`) with aggregate `fleet-summary.md` documenting the as-built disposition (8 canary + 5 user-manual + 1 Pplr OOS).
 
-Critical path remaining: `WP-16 (fleet reconciliation) -> WP-17 (verification + dogfood journal)`. WP-18 (`intent/usr/*.md` audit) parallel; must land before WP-17. WP-19 (per-language canon) independent.
+Critical path remaining: `WP-17 (verification + dogfood journal) || WP-18 (intent/usr/*.md audit)` in parallel; then `WP-19 (per-language canon)` independent.
 
 ### Progress this session (two commits + one in Anvil)
 
@@ -54,27 +54,19 @@ In commit order:
 - `docs/blog/_drafts/####-shell-critic-inception.md` -- blog draft. Laksa is the first real-world dogfood datapoint.
 - WP07 follow-ups from ST0034: align Diogenes fixture-context handling across critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures.
 
-### Resume target -- WP-16 reconciliation (S/M)
+### Resume target -- WP-17 (verification sweep + dogfood journal) || WP-18 (`intent/usr/*.md` audit)
 
-WP-15 closed. WP-16 ("Fleet rollout to remaining 13 projects") is significantly out of date and needs the same as-built tidy WP-15 just got:
+WP-15 + WP-16 closed. Next: WP-17 + WP-18 can run in parallel (per WP-17 spec, WP-18 must land before WP-17 closes).
 
-- **8 of WP-16's original 13 projects were absorbed into WP-15 canary**: Anvil, arca_cli, arca_config, arca_notionex, MicroGPTEx, Molt, Prolix, Utilz. Reports already at `intent/st/ST0035/WP/15/canary-reports/`.
-- **4-5 projects were user-manually upgraded between sessions**: Multiplyer, MeetZaya, Molt-matts, Courses/Agentic Coding, A3/a3-content. User confirmed all on v2.10.0 with `intent upgrade`. No formal canary reports exist for these.
-- **Pplr is now out of scope** per user (does not need intent).
+**WP-17 (S)**: per-project dogfood journal -- 13 in-scope projects \* 12-point matrix. Capture observations from canary + user-manual rollouts. Worth flagging:
 
-WP-16 task: tidy spec to reflect as-built; write `fleet-summary.md` documenting the 5 user-manual projects (CLI verification: `intent_version` + `intent/.config/` present + chain block markers + .gitignore canonical); `intent wp done ST0035/16`. Caveats to capture in summary: Multiplyer has a known test failure (File.ls!/1 in catalog/sources/filesystem.ex:111 against stale fixture path); MeetZaya does not compile. Both user-out-of-scope flags.
+- `.claude/` was overly-broad-gitignored in three projects pre-NORMALIZE_GITIGNORE (Utilz, arca_notionex, MicroGPTEx). Now uniform fleet-wide.
+- CLAUDE.md user sections preserved across all canaries (correct behaviour); note per-project drift between user content and canon date stamps.
+- **User-manual upgrade gotcha**: leftover `.intent/` directory not auto-cleaned by user commit. Worth deciding in WP-17 whether `intent upgrade` should warn or auto-stage the deletion.
 
-Recipe for the verification step (per project):
+**WP-18 (M)**: review/update or retire `intent/usr/*.md`. Independent of WP-17 mechanically; coordination point is "WP-18 must close before WP-17 closes".
 
-```bash
-cd ~/Devel/prj/<project> && \
-  jq -r '.intent_version' intent/.config/config.json && \
-  [ -d intent/.config ] && [ ! -d .intent ] && echo "layout: ok" && \
-  grep -q 'intent-chain-block:start' .git/hooks/pre-commit && echo "chain: ok" && \
-  grep -q '^.claude/settings.local.json' .gitignore && echo "gitignore: ok"
-```
-
-After WP-16 closes, proceed to WP-17 (verification sweep + dogfood journal) and WP-18 (`intent/usr/*.md` audit) in parallel.
+**WP-19** (independent): per-language canon (`intent lang init` + `intent init --lang`). Phase 0 elaborated; ~2-3 sessions.
 
 ### Session conventions (carry forward)
 
