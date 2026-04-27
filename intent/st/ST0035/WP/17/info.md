@@ -1,18 +1,20 @@
 ---
-verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail"
+verblock: "27 Apr 2026:v0.3: matts - scope-as-built; release engineering moved out (post-WP-19); 14-row scope; status flipped by intent wp done"
 wp_id: WP-17
 title: "Verification sweep and dogfood journal"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-17: Verification sweep and dogfood journal
 
-> **Coordination note (ST0036/WP-09)**: this verification sweep covers both ST0035 (LLM canon) and ST0036 (directory relocation). The per-project checklist is 12 points (10 ST0035 + 2 ST0036; defined in WP-15). The feedback-report and dogfood-journal must capture both concerns. See `intent/st/ST0036/impl.md` for bundled-release rationale.
+> **Coordination note (ST0036/WP-09)**: this verification sweep covers both ST0035 (LLM canon) and ST0036 (directory relocation). The per-project checklist is 12 points (10 ST0035 + 2 ST0036; defined in WP-15). The feedback-report and dogfood-journal capture both concerns. See `intent/st/ST0036/impl.md` for bundled-release rationale.
+
+> **Scope as built (2026-04-27)**: the 2026-04-24 spec assumed WP-17 closes ST0035 in the same WP, bundling release engineering (CHANGELOG finalisation, `git tag v2.10.0`, GitHub release, `intent st done ST0035`) into the deliverables. As built, ST0035 has 19 WPs (WP-19 added 2026-04-27 for per-language canon); release engineering moves out of WP-17 into post-WP-19 work. WP-17 is now scoped to: (1) verification matrix across 14 in-scope projects (Intent + 8 canary + 5 user-manual), (2) dogfood journal capturing rollout surprises and lessons, (3) decision on the user-manual `intent upgrade` cleanup gotcha. See `feedback-report.md` and `dogfood-journal.md`.
 
 ## Objective
 
-After the fleet rollout (WP16), sweep all 17 projects (Intent self + 16 downstream) for compliance with the canon. Produce a ST0035 feedback report and a dogfood journal capturing surprises, rough edges, and lessons. Close the ST, mark CHANGELOG v2.10.0 final, push upstream.
+After the fleet rollout (WP-15 + WP-16), sweep all 14 in-scope projects (Intent self + 8 canary + 5 user-manual) for compliance with the v2.10.0 canon. Produce a feedback-report.md (verification matrix) and a dogfood-journal.md capturing surprises, rough edges, lessons, and the decision on whether `intent upgrade` should warn / auto-stage leftover `.intent/` directories. Release engineering (CHANGELOG finalisation, tag, GitHub release, ST-close) deferred to post-WP-19.
 
 ## Context
 
@@ -23,25 +25,18 @@ The dogfood journal is not optional — it's the load-bearing QA signal. Every r
 ## Deliverables
 
 1. **Fleet-wide verification report** at `intent/st/ST0035/WP/17/feedback-report.md`:
-   - 17 rows (one per project + Intent).
+   - 14 rows (Intent self + 8 canary + 5 user-manual).
    - 12-point verification checklist per project (10 ST0035 + 2 ST0036; defined in WP-15).
-   - Pass / fail per check.
+   - Pass / fail per check; references to the per-project canary report (where applicable) and to the WP-16 fleet-summary.
    - Any outstanding issues with tickets filed.
 2. **Dogfood journal** at `intent/st/ST0035/WP/17/dogfood-journal.md`:
-   - Chronological entries as each WP was executed.
+   - Chronological entries as each WP was executed (synthesised from session-end restart files, the WP-15 canary aggregate, the WP-16 fleet summary, and commit log).
    - What broke (with specifics). What was rough (friction points, unclear docs). What surprised.
-   - Lessons for future STs (e.g., "always dogfood the canon on Intent before canary" — already our pattern, but reinforce).
-   - Suggestions for v2.9.2 / v2.10.0 follow-ups.
-3. **CHANGELOG v2.10.0 final**: assemble the full v2.10.0 entry from all WP contributions (Added, Changed, Removed sections).
-4. **Tag and push**:
-   - `git tag -f v2.10.0 HEAD` in Intent.
-   - Push to `local` (Dropbox) and `upstream` (GitHub).
-   - GitHub release: `gh release edit v2.10.0 --notes-file CHANGELOG-v2.10.0.md` or similar.
-5. **Close ST0035**:
-   - `intent st done ST0035` (marks Completed status, moves to COMPLETED dir).
-   - Update `intent/wip.md` to reflect no active ST.
-   - Update `intent/restart.md` with post-release context.
-6. **Memory update**: auto-memory entries updated to reflect v2.10.0 release (user's `MEMORY.md` Active Work section).
+   - Lessons for future STs (e.g., "WP closure pattern: tidy spec to as-built + write summary + `wp done`" — already our pattern, but reinforce).
+   - Suggestions for v2.10.x / v2.11.0 follow-ups.
+3. **Decision: should `intent upgrade` auto-handle leftover `.intent/` directories?** WP-15/WP-16 surfaced the gotcha three times (Multiplyer, MeetZaya, Courses/Agentic Coding): user-manual `intent upgrade` runs created the new `intent/.config/` layout but left the pre-existing tracked `.intent/config.json` in the working tree. Decision recorded in `dogfood-journal.md`; if "yes", a follow-up ticket is filed for v2.10.x.
+
+**Out of scope for WP-17 (moved to post-WP-19 release engineering)**: CHANGELOG v2.10.0 finalisation, `git tag v2.10.0`, push to `upstream`, GitHub release, `intent st done ST0035`, `intent/wip.md` + `intent/restart.md` post-release update, MEMORY.md Active Work refresh. These all belong post-WP-19 (per-language canon), which closes ST0035.
 
 ## Approach
 
@@ -58,18 +53,22 @@ The dogfood journal is not optional — it's the load-bearing QA signal. Every r
 
 ## Acceptance Criteria
 
-- [ ] Feedback report exists with 17 rows, 10 checks each.
-- [ ] Dogfood journal has ≥ one entry per WP (chronological).
-- [ ] CHANGELOG v2.10.0 has Added / Changed / Removed sections.
+- [ ] Feedback report exists with 14 rows, 12 checks each.
+- [ ] Dogfood journal has chronological entries spanning the WP-08 to WP-18 execution arc.
+- [ ] Decision recorded on whether `intent upgrade` should warn / auto-stage leftover `.intent/`.
 - [ ] Zero outstanding critical issues (tickets filed for anything non-critical).
+- [ ] All previous WP01-WP16 and WP18 exit checklists verified complete.
+- [ ] Commit messages follow Intent conventions, no Claude attribution.
+
+### Post-WP-19 release engineering (separate, not WP-17 acceptance)
+
+- [ ] CHANGELOG v2.10.0 finalised (flip from "in progress" to release date).
 - [ ] `git tag v2.10.0` present in Intent.
 - [ ] Tag pushed to `local` and `upstream`.
 - [ ] GitHub release for v2.10.0 visible.
 - [ ] `intent st done ST0035` executed; ST0035 now in COMPLETED.
-- [ ] `intent/wip.md` updated; `intent/restart.md` updated.
-- [ ] User's `MEMORY.md` Active Work section updated to reflect v2.10.0 shipped.
-- [ ] All previous WP01–WP16 and WP18 exit checklists verified complete.
-- [ ] Commit messages follow Intent conventions, no Claude attribution.
+- [ ] `intent/wip.md` + `intent/restart.md` updated post-release.
+- [ ] User's `MEMORY.md` Active Work section updated.
 
 ### Tests to add
 
@@ -81,8 +80,8 @@ None.
 
 ## Dependencies
 
-- **Blocked by**: WP16 (fleet applied), WP18 (user-doc review closed).
-- **Blocks**: None — WP17 closes ST0035.
+- **Blocked by**: WP-16 (fleet applied), WP-18 (user-doc review closed).
+- **Blocks**: nothing structural. WP-19 (per-language canon) is independent and runs after WP-17 closes. ST0035 closure happens post-WP-19 via release engineering.
 
 ## Implementation Notes
 
