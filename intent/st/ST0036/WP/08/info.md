@@ -3,7 +3,7 @@ verblock: "26 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-08
 title: "Intent self-apply directory relocation"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-08: Intent self-apply -- directory relocation

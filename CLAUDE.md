@@ -93,4 +93,4 @@ matts (hello@matthewsinclair.com)
 
 ---
 
-_Generated from `lib/templates/llm/_CLAUDE.md` on 2026-04-25 for Intent v2.10.0._
+_Generated from `lib/templates/llm/_CLAUDE.md` on 2026-04-27 for Intent v2.10.0._

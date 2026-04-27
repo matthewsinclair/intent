@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/matts/Devel/prj/Intent/lib/templates/.claude/scripts/session-context.sh",
+            "timeout": 3000
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/matts/Devel/prj/Intent/lib/templates/.claude/scripts/require-in-session.sh",
+            "timeout": 2000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Session wrap-up reminder: run /in-finish to update ST docs, intent/wip.md, and prepare a clean commit.'",
+            "timeout": 2000
+          }
+        ]
+      }
+    ]
+  }
+}
