@@ -968,13 +968,31 @@ needs_v2_9_0_upgrade() {
   esac
 }
 
-# needs_v2_10_0_upgrade VERSION
-# Returns 0 if VERSION is older than 2.10.0 (and therefore needs the v2.10.0 migration step).
-# Returns 1 for 2.10.0 and forward.
+# needs_v2_10_0_upgrade VERSION [PROJECT_ROOT]
+# Returns 0 if the v2.10.0 migration is needed for this project.
+#
+# The v2.10.0 migration has TWO concerns: stamp bump and directory relocation
+# (.intent/ -> intent/.config/ per ST0036). A project may be at the target
+# stamp but still on the pre-relocation layout -- e.g. Intent itself, which
+# was retargeted from v2.9.1 to v2.10.0 mid-ST0035 before ST0036 implementation
+# began. The dispatcher must invoke migrate_v2_9_0_to_v2_10_0 in that case so
+# intent_relocate_dotintent gets a chance to run.
+#
+# Layout shortcut (ST0036/WP01 fix surfaced by WP08): if the project still has
+# .intent/ and no intent/.config/, return 0 (needs upgrade) regardless of stamp.
+# Otherwise: standard chronological version comparison.
+#
+# Returns 1 for 2.10.0+ AND already-relocated layout.
 # Note: v2.9.1 through v2.9.9 were never released; the jump is v2.9.0 -> v2.10.0
 # (LLM canon + directory relocation bundled together as one breaking release).
 needs_v2_10_0_upgrade() {
   local version=$1
+  local project_root=${2:-.}
+
+  # Layout shortcut: stamp may be 2.10.0+ but layout still .intent/.
+  if [ -d "$project_root/.intent" ] && [ ! -d "$project_root/intent/.config" ]; then
+    return 0
+  fi
 
   case "$version" in
     "2.10."*|"2.11."*|"2.12."*|"2.13."*|"2.14."*|"2.15."*|"2.16."*|"2.17."*|"2.18."*|"2.19."*|"3."*)

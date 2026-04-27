@@ -91,14 +91,18 @@ echo "Current version: $VERSION"
 echo "Target version:  $TARGET_VERSION"
 echo ""
 
-# Check if already at target version
-if [ "$VERSION" = "$TARGET_VERSION" ]; then
+# Check if already at target version AND target layout.
+# A project may be stamped at the target but still on the .intent/ layout
+# (e.g. Intent itself was retargeted to v2.10.0 mid-ST0035 before ST0036
+# relocated the directory). Without this layout check the dispatcher would
+# short-circuit and migrate_v2_9_0_to_v2_10_0 would never run.
+if [ "$VERSION" = "$TARGET_VERSION" ] && [ ! -d ".intent" ]; then
   echo "ok: already at intent v$TARGET_VERSION"
   exit 0
 fi
 
 # Determine if migration is needed
-if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION" && ! needs_v2_3_1_upgrade "$VERSION" && ! needs_v2_3_2_upgrade "$VERSION" && ! needs_v2_3_3_upgrade "$VERSION" && ! needs_v2_3_4_upgrade "$VERSION" && ! needs_v2_4_0_upgrade "$VERSION" && ! needs_v2_5_0_upgrade "$VERSION" && ! needs_v2_6_0_upgrade "$VERSION" && ! needs_v2_8_1_upgrade "$VERSION" && ! needs_v2_8_2_upgrade "$VERSION" && ! needs_v2_9_0_upgrade "$VERSION" && ! needs_v2_10_0_upgrade "$VERSION"; then
+if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION" && ! needs_v2_3_1_upgrade "$VERSION" && ! needs_v2_3_2_upgrade "$VERSION" && ! needs_v2_3_3_upgrade "$VERSION" && ! needs_v2_3_4_upgrade "$VERSION" && ! needs_v2_4_0_upgrade "$VERSION" && ! needs_v2_5_0_upgrade "$VERSION" && ! needs_v2_6_0_upgrade "$VERSION" && ! needs_v2_8_1_upgrade "$VERSION" && ! needs_v2_8_2_upgrade "$VERSION" && ! needs_v2_9_0_upgrade "$VERSION" && ! needs_v2_10_0_upgrade "$VERSION" .; then
   echo "ok: up to date at v$VERSION"
   echo "  no upgrade path to $TARGET_VERSION"
   exit 0
@@ -340,6 +344,14 @@ case "$VERSION" in
     ;;
   "2.9.0")
     echo "Upgrading from v2.9.0 to v$TARGET_VERSION..."
+    migrate_v2_9_0_to_v2_10_0 .
+    ;;
+  "2.10.0")
+    # Stamp is at target but the layout-aware gate above let us through, so
+    # the directory relocation has not yet happened. Run only the v2.10.0
+    # migration; intent_relocate_dotintent + canon-apply both fire,
+    # stamp-bump is a no-op (already at 2.10.0).
+    echo "Re-applying v2.10.0 migration (stamp current, layout pre-relocation)..."
     migrate_v2_9_0_to_v2_10_0 .
     ;;
   *)

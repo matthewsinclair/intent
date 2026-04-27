@@ -132,7 +132,53 @@ JSON
   [ "$before_sum" = "$after_sum" ] || fail "filesystem mutated despite conflict refusal"
 }
 
-# --- 6. Cross-filesystem fallback (skip on macOS) -------------------------
+# --- 6. needs_v2_10_0_upgrade is layout-aware -----------------------------
+
+@test "needs_v2_10_0_upgrade: stamp 2.10.0 + .intent/ layout returns 0 (needs upgrade)" {
+  local proj="$TEST_TEMP_DIR/proj"
+  mkdir -p "$proj/.intent"
+  echo '{"intent_version":"2.10.0"}' > "$proj/.intent/config.json"
+
+  # Stamp is at target but layout is pre-relocation -- migration must fire.
+  needs_v2_10_0_upgrade "2.10.0" "$proj"
+  [ "$?" -eq 0 ] || fail "expected needs_v2_10_0_upgrade to return 0 when layout is .intent/"
+}
+
+@test "needs_v2_10_0_upgrade: stamp 2.10.0 + intent/.config/ layout returns 1 (no upgrade)" {
+  local proj="$TEST_TEMP_DIR/proj"
+  mkdir -p "$proj/intent/.config"
+  echo '{"intent_version":"2.10.0"}' > "$proj/intent/.config/config.json"
+
+  # Both stamp and layout at target -- no work to do.
+  if needs_v2_10_0_upgrade "2.10.0" "$proj"; then
+    fail "expected needs_v2_10_0_upgrade to return 1 when both stamp and layout at target"
+  fi
+}
+
+@test "needs_v2_10_0_upgrade: stamp 2.9.0 + .intent/ layout returns 0 (chronological)" {
+  local proj="$TEST_TEMP_DIR/proj"
+  mkdir -p "$proj/.intent"
+  echo '{"intent_version":"2.9.0"}' > "$proj/.intent/config.json"
+
+  # Standard pre-2.10.0 case.
+  needs_v2_10_0_upgrade "2.9.0" "$proj"
+  [ "$?" -eq 0 ] || fail "expected needs_v2_10_0_upgrade to return 0 for 2.9.0"
+}
+
+@test "needs_v2_10_0_upgrade: stamp 2.10.0 + no project_root arg defaults to cwd" {
+  local proj="$TEST_TEMP_DIR/proj"
+  mkdir -p "$proj/.intent"
+  echo '{"intent_version":"2.10.0"}' > "$proj/.intent/config.json"
+
+  cd "$proj" || fail "cannot cd into synthetic project"
+  needs_v2_10_0_upgrade "2.10.0"
+  local rc=$?
+  cd / || true  # leave temp dir before teardown rm -rf
+
+  [ "$rc" -eq 0 ] || fail "expected needs_v2_10_0_upgrade to find .intent/ via default cwd"
+}
+
+# --- 7. Cross-filesystem fallback (skip on macOS) -------------------------
 
 @test "cross-filesystem fallback: cp -a path on Linux tmpfs (skipped on macOS)" {
   if [ "$(uname)" = "Darwin" ]; then
