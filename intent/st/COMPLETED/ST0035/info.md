@@ -1,10 +1,10 @@
 ---
 verblock: "24 Apr 2026:v0.2: matts - Populated after Phase 0 planning"
 intent_version: 2.9.0
-status: WIP
+status: Completed
 slug: canonical-llm-config-fleet-rollout
 created: 20260424
-completed:
+completed: 20260427
 ---
 
 # ST0035: Canonical LLM Config + Fleet Rollout
