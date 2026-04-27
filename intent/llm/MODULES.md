@@ -7,32 +7,33 @@
 
 ## Core CLI
 
-| Concern                 | THE Module             | Notes                                                                  |
-| ----------------------- | ---------------------- | ---------------------------------------------------------------------- |
-| Main entry point        | `bin/intent`           | Command dispatch, global commands, INTENT_HOME                         |
-| Shared helpers          | `bin/intent_helpers`   | error(), checksum, terminal width, get_config_field                    |
-| Project init            | `bin/intent_init`      | Creates new Intent projects from templates                             |
-| Steel thread mgmt       | `bin/intent_st`        | new, list, show, start, done, cancel, organize                         |
-| Work package mgmt       | `bin/intent_wp`        | new, list, show, start, done                                           |
-| Treeindex generation    | `bin/intent_treeindex` | Shadow directory index generation with Claude                          |
-| File indexing           | `bin/intent_fileindex` | File listing, checkbox state tracking                                  |
-| Health checks           | `bin/intent_doctor`    | Dependency checks, config validation                                   |
-| Plugin discovery        | `bin/intent_plugin`    | list, show, help for installed plugins                                 |
-| Audit command           | `bin/intent_audit`     | quick, health, help; Elixir credo integration                          |
-| Learn command           | `bin/intent_learn`     | Capture project learnings for future sessions                          |
-| Module registry         | `bin/intent_modules`   | check, find; MODULES.md enforcement                                    |
-| STZero retrofit         | `bin/intent_st_zero`   | Brownfield project retrofit installation                               |
-| Help display            | `bin/intent_help`      | General and command-specific help display                              |
-| Config loading          | `bin/intent_config`    | PROJECT_ROOT detection, load_intent_config                             |
-| Project info            | `bin/intent_info`      | Status display, no-args default                                        |
-| LLM guidance            | `bin/intent_llm`       | Display LLM-specific guidance files                                    |
-| Organise                | `bin/intent_organise`  | Organize steel threads by status                                       |
-| Upgrade                 | `bin/intent_upgrade`   | STP to Intent migration                                                |
-| Minimal bootstrap       | `bin/intent_minimal`   | Minimal no-dependency bootstrap                                        |
-| Main (legacy)           | `bin/intent_main`      | Legacy entry point                                                     |
-| Bootstrap               | `bin/intent_bootstrap` | First-run setup, PATH instructions                                     |
-| Extension mgmt (v2.9.0) | `bin/intent_ext`       | list, show, validate, new (WP02)                                       |
-| Headless critic runner  | `bin/intent_critic`    | Runs rule-library Detection heuristics; text/json output (ST0035/WP05) |
+| Concern                 | THE Module             | Notes                                                                           |
+| ----------------------- | ---------------------- | ------------------------------------------------------------------------------- |
+| Main entry point        | `bin/intent`           | Command dispatch, global commands, INTENT_HOME                                  |
+| Shared helpers          | `bin/intent_helpers`   | error(), checksum, terminal width, get_config_field                             |
+| Project init            | `bin/intent_init`      | Creates new Intent projects from templates                                      |
+| Steel thread mgmt       | `bin/intent_st`        | new, list, show, start, done, cancel, organize                                  |
+| Work package mgmt       | `bin/intent_wp`        | new, list, show, start, done                                                    |
+| Treeindex generation    | `bin/intent_treeindex` | Shadow directory index generation with Claude                                   |
+| File indexing           | `bin/intent_fileindex` | File listing, checkbox state tracking                                           |
+| Health checks           | `bin/intent_doctor`    | Dependency checks, config validation                                            |
+| Plugin discovery        | `bin/intent_plugin`    | list, show, help for installed plugins                                          |
+| Audit command           | `bin/intent_audit`     | quick, health, help; Elixir credo integration                                   |
+| Learn command           | `bin/intent_learn`     | Capture project learnings for future sessions                                   |
+| Module registry         | `bin/intent_modules`   | check, find; MODULES.md enforcement                                             |
+| STZero retrofit         | `bin/intent_st_zero`   | Brownfield project retrofit installation                                        |
+| Help display            | `bin/intent_help`      | General and command-specific help display                                       |
+| Config loading          | `bin/intent_config`    | PROJECT_ROOT detection, load_intent_config                                      |
+| Project info            | `bin/intent_info`      | Status display, no-args default                                                 |
+| LLM guidance            | `bin/intent_llm`       | Display LLM-specific guidance files                                             |
+| Organise                | `bin/intent_organise`  | Organize steel threads by status                                                |
+| Upgrade                 | `bin/intent_upgrade`   | STP to Intent migration                                                         |
+| Minimal bootstrap       | `bin/intent_minimal`   | Minimal no-dependency bootstrap                                                 |
+| Main (legacy)           | `bin/intent_main`      | Legacy entry point                                                              |
+| Bootstrap               | `bin/intent_bootstrap` | First-run setup, PATH instructions                                              |
+| Extension mgmt (v2.9.0) | `bin/intent_ext`       | list, show, validate, new (WP02)                                                |
+| Headless critic runner  | `bin/intent_critic`    | Runs rule-library Detection heuristics; text/json output (ST0035/WP05)          |
+| Per-language canon      | `bin/intent_lang`      | list/show/init; installs RULES-<lang>.md + ARCHITECTURE-<lang>.md (ST0035/WP19) |
 
 ## Plugin: Claude
 
@@ -49,15 +50,23 @@
 
 ## Plugin: Agents
 
-| Concern                | THE Module                                                 | Notes                                                                                                       |
-| ---------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| AGENTS.md lifecycle    | `intent/plugins/agents/bin/intent_agents`                  | init, generate, sync, validate. Writes root `AGENTS.md` as a real file (ST0035/WP08).                       |
-| Agents elixir template | `intent/plugins/agents/templates/elixir/AGENTS.md`         | Enriched starter copied by `init --template elixir`; canon pointers for critics/rules/extensions/FAQ (WP08) |
-| Agents elixir RULES    | `intent/plugins/agents/templates/elixir/RULES.md`          | Human-curated rules starter; installed at `intent/llm/RULES.md`                                             |
-| Agents elixir ARCH     | `intent/plugins/agents/templates/elixir/ARCHITECTURE.md`   | Human-curated architecture starter; installed at `intent/llm/ARCHITECTURE.md`                               |
-| Agents default AGENTS  | `intent/plugins/agents/templates/_default/AGENTS.md`       | Language-agnostic AGENTS.md fallback used when no language-specific template exists                         |
-| Agents default RULES   | `intent/plugins/agents/templates/_default/RULES.md`        | Language-agnostic RULES.md fallback; points at `intent/plugins/claude/rules/<lang>/`                        |
-| Agents default ARCH    | `intent/plugins/agents/templates/_default/ARCHITECTURE.md` | Language-agnostic ARCHITECTURE.md fallback                                                                  |
+| Concern                | THE Module                                                 | Notes                                                                                                                                  |
+| ---------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| AGENTS.md lifecycle    | `intent/plugins/agents/bin/intent_agents`                  | init, generate, sync, validate. Writes root `AGENTS.md` as a real file (ST0035/WP08).                                                  |
+| Agents elixir template | `intent/plugins/agents/templates/elixir/AGENTS.md`         | Enriched starter copied by `init --template elixir`; canon pointers for critics/rules/extensions/FAQ (WP08)                            |
+| Agents elixir RULES    | `intent/plugins/agents/templates/elixir/RULES.md`          | Human-curated Elixir rules starter; installed at `intent/llm/RULES-elixir.md` by `intent lang init elixir` (ST0035/WP19)               |
+| Agents elixir ARCH     | `intent/plugins/agents/templates/elixir/ARCHITECTURE.md`   | Human-curated Elixir architecture starter; installed at `intent/llm/ARCHITECTURE-elixir.md` by `intent lang init elixir` (ST0035/WP19) |
+| Agents rust RULES      | `intent/plugins/agents/templates/rust/RULES.md`            | Rust rules starter; installed at `intent/llm/RULES-rust.md` by `intent lang init rust` (ST0035/WP19)                                   |
+| Agents rust ARCH       | `intent/plugins/agents/templates/rust/ARCHITECTURE.md`     | Rust architecture starter; installed at `intent/llm/ARCHITECTURE-rust.md` (ST0035/WP19)                                                |
+| Agents swift RULES     | `intent/plugins/agents/templates/swift/RULES.md`           | Swift rules starter; installed at `intent/llm/RULES-swift.md` by `intent lang init swift` (ST0035/WP19)                                |
+| Agents swift ARCH      | `intent/plugins/agents/templates/swift/ARCHITECTURE.md`    | Swift architecture starter; installed at `intent/llm/ARCHITECTURE-swift.md` (ST0035/WP19)                                              |
+| Agents lua RULES       | `intent/plugins/agents/templates/lua/RULES.md`             | Lua rules starter; installed at `intent/llm/RULES-lua.md` by `intent lang init lua` (ST0035/WP19)                                      |
+| Agents lua ARCH        | `intent/plugins/agents/templates/lua/ARCHITECTURE.md`      | Lua architecture starter; installed at `intent/llm/ARCHITECTURE-lua.md` (ST0035/WP19)                                                  |
+| Agents shell RULES     | `intent/plugins/agents/templates/shell/RULES.md`           | Shell rules starter; installed at `intent/llm/RULES-shell.md` by `intent lang init shell` (ST0035/WP19)                                |
+| Agents shell ARCH      | `intent/plugins/agents/templates/shell/ARCHITECTURE.md`    | Shell architecture starter; installed at `intent/llm/ARCHITECTURE-shell.md` (ST0035/WP19)                                              |
+| Agents default AGENTS  | `intent/plugins/agents/templates/_default/AGENTS.md`       | Language-agnostic AGENTS.md fallback used when no language-specific template exists                                                    |
+| Agents default RULES   | `intent/plugins/agents/templates/_default/RULES.md`        | Language-agnostic RULES.md fallback; gets `Language Packs` entries appended by `intent lang init` (ST0035/WP19)                        |
+| Agents default ARCH    | `intent/plugins/agents/templates/_default/ARCHITECTURE.md` | Language-agnostic ARCHITECTURE.md fallback                                                                                             |
 
 ## Templates
 
@@ -100,6 +109,7 @@
 | STZero help         | `lib/help/stzero.help.md`    | STZero command help                 |
 | Ext help (v2.9.0)   | `lib/help/ext.help.md`       | `intent ext` dispatcher help (WP02) |
 | Rules help (v2.9.0) | `lib/help/rules.help.md`     | `intent claude rules` help (WP02)   |
+| Lang help           | `lib/help/lang.help.md`      | `intent lang` help (ST0035/WP19)    |
 
 ## Skills: TCA Suite
 
@@ -216,6 +226,7 @@ User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; sh
 | Headless critic (ST0035)        | `tests/unit/intent_critic.bats`             | CLI surface + detection against rule fixtures + exit codes (WP05)            |
 | Pre-commit hook (ST0035)        | `tests/unit/pre_commit_hook.bats`           | Scratch-repo end-to-end: bad/good/no-intent/disabled scenarios (WP06)        |
 | Intent agents (ST0035)          | `tests/unit/intent_agents.bats`             | init/sync/validate, symlink migration, idempotency, dynamic rendering (WP08) |
+| Intent lang (ST0035)            | `tests/unit/intent_lang.bats`               | list/show/init; idempotence; multi-lang; fail-forward (WP19)                 |
 
 ## Docs (v2.9.0 / WP10)
 

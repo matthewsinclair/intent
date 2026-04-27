@@ -15,6 +15,9 @@ Retargeted from v2.9.1 mid-development to bundle ST0036 (directory relocation, b
 
 - In progress — **ST0035** (Canonical LLM Config + Fleet Rollout).
 - In progress — **ST0036** (Directory relocation: `.intent/` → `intent/.config/`). Breaking change: Intent's per-project metadata directory moves from top-level `.intent/` to nested `intent/.config/`, eliminating the "two top-level dirs" smell. Migration handled atomically by `migrate_v2_9_0_to_v2_10_0` on `intent upgrade`.
+- **`intent lang` command** (ST0035/WP-19) for per-language canon installation. Subcommands: `list`, `show`, `init`. `intent lang init <lang> [<lang> ...]` is idempotent and multi-language; copies `intent/plugins/agents/templates/<lang>/{RULES,ARCHITECTURE}.md` into `intent/llm/{RULES,ARCHITECTURE}-<lang>.md` and appends a marker-bracketed entry to the agnostic `intent/llm/RULES.md` Language Packs section. Replaces the rejected auto-language-detection approach (real projects are polyglot; explicit user choice via `--lang` is more honest). Available canon languages: `elixir`, `rust`, `swift`, `lua`, `shell`. New stub templates ship for the four newer languages.
+- **`intent init --lang <list>`** flag invokes `intent lang init` for each named language post-init. Comma- or space-separated list. Equals form (`--lang=elixir`) also accepted.
+- **Agnostic `_default` canon now includes RULES.md + ARCHITECTURE.md** in fresh `intent init`. Previously only `MODULES.md` + `DECISION_TREE.md` were laid down; canon-installer's `_default` templates were only seen via `intent claude upgrade --apply`. Now `intent init` produces a v2.10.0-complete baseline including the Language Packs anchor that `intent lang init` writes into.
 
 ### Changed
 

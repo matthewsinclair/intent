@@ -1,0 +1,308 @@
+#!/bin/bash
+# intent_lang - Per-language canon: install language-specific RULES + ARCHITECTURE
+# Copyright (c) 2026 Matthew Sinclair
+# Licensed under the MIT License (see LICENSE file)
+# Usage: intent lang [list|show|init|help] [options]
+
+set -e
+
+# ---- Bootstrap ----
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
+
+# ---- Template root resolution ----
+# Honours INTENT_LANG_TEMPLATES_DIR (used by tests).
+lang_templates_dir() {
+  echo "${INTENT_LANG_TEMPLATES_DIR:-$INTENT_HOME/intent/plugins/agents/templates}"
+}
+
+# Enumerate available language template directory names (excluding _default).
+# One name per line; sorted.
+lang_enumerate_names() {
+  local root
+  root="$(lang_templates_dir)"
+  [ -d "$root" ] || return 0
+
+  local lang_dir name
+  for lang_dir in "$root"/*/; do
+    [ -d "$lang_dir" ] || continue
+    name="$(basename "$lang_dir")"
+    case "$name" in
+      _*) continue ;;
+    esac
+    echo "$name"
+  done | sort
+}
+
+# Returns 0 if a template directory exists for the given language.
+lang_template_exists() {
+  local lang="$1"
+  local root
+  root="$(lang_templates_dir)"
+  [ -d "$root/$lang" ]
+}
+
+# ---- Subcommand: list ----
+lang_list() {
+  local names
+  names="$(lang_enumerate_names)"
+  if [ -z "$names" ]; then
+    echo "no language templates available at $(lang_templates_dir)"
+    return 0
+  fi
+  echo "Available language packs:"
+  while IFS= read -r name; do
+    [ -z "$name" ] && continue
+    echo "  $name"
+  done <<EOF
+$names
+EOF
+}
+
+# ---- Subcommand: show ----
+lang_show() {
+  local lang="$1"
+  if [ -z "$lang" ]; then
+    error "intent lang show: missing language argument"
+  fi
+
+  if ! lang_template_exists "$lang"; then
+    echo "error: no template for '$lang'" >&2
+    echo "available: $(lang_enumerate_names | tr '\n' ' ')" >&2
+    exit 1
+  fi
+
+  local root
+  root="$(lang_templates_dir)"
+  echo "Language pack: $lang"
+  echo "Template directory: $root/$lang"
+  echo ""
+  echo "Files installed by 'intent lang init $lang':"
+
+  local file
+  for file in "$root/$lang"/*.md; do
+    [ -f "$file" ] || continue
+    local name
+    name="$(basename "$file")"
+    case "$name" in
+      RULES.md)
+        echo "  intent/llm/RULES-$lang.md"
+        ;;
+      ARCHITECTURE.md)
+        echo "  intent/llm/ARCHITECTURE-$lang.md"
+        ;;
+      AGENTS.md)
+        # AGENTS.md template is for `intent agents init --template <lang>`,
+        # not for `intent lang init`. Skip silently.
+        :
+        ;;
+    esac
+  done
+
+  echo ""
+  echo "Plus: appends a 'Language Packs' entry to intent/llm/RULES.md pointing at"
+  echo "      intent/plugins/claude/rules/$lang/."
+}
+
+# ---- Helpers: Language Packs section in agnostic RULES.md ----
+# Marker pair lets re-runs be idempotent and prevents duplicate entries.
+LANG_PACKS_START_MARKER="<!-- intent-lang-packs:start -->"
+LANG_PACKS_END_MARKER="<!-- intent-lang-packs:end -->"
+
+# Returns 0 if the marker pair is already present in intent/llm/RULES.md.
+lang_packs_block_present() {
+  local rules_md="$1"
+  [ -f "$rules_md" ] && grep -qF "$LANG_PACKS_START_MARKER" "$rules_md"
+}
+
+# Insert the marker block (with no entries yet) into RULES.md just before the
+# "Project-Specific Rules" section, or append at end if that section is absent.
+lang_packs_insert_block() {
+  local rules_md="$1"
+  local tmp="${rules_md}.tmp.$$"
+
+  if grep -q '^## Project-Specific Rules' "$rules_md"; then
+    awk -v start="$LANG_PACKS_START_MARKER" -v end="$LANG_PACKS_END_MARKER" '
+      /^## Project-Specific Rules/ && !inserted {
+        print "## Language Packs"
+        print ""
+        print start
+        print end
+        print ""
+        inserted = 1
+      }
+      { print }
+    ' "$rules_md" > "$tmp"
+  else
+    cp "$rules_md" "$tmp"
+    {
+      echo ""
+      echo "## Language Packs"
+      echo ""
+      echo "$LANG_PACKS_START_MARKER"
+      echo "$LANG_PACKS_END_MARKER"
+    } >> "$tmp"
+  fi
+
+  mv "$tmp" "$rules_md"
+}
+
+# Append a single language entry inside the marker block. Idempotent: skip if
+# the language already has an entry.
+lang_packs_add_entry() {
+  local rules_md="$1"
+  local lang="$2"
+  local entry="- **${lang}** -- rule pack at \`intent/plugins/claude/rules/${lang}/\`; concretised RULES at \`intent/llm/RULES-${lang}.md\`."
+
+  if grep -qF "**${lang}** -- rule pack at" "$rules_md"; then
+    return 0
+  fi
+
+  local tmp="${rules_md}.tmp.$$"
+  awk -v marker="$LANG_PACKS_END_MARKER" -v entry="$entry" '
+    {
+      if (index($0, marker) > 0 && !inserted) {
+        print entry
+        inserted = 1
+      }
+      print
+    }
+  ' "$rules_md" > "$tmp"
+
+  mv "$tmp" "$rules_md"
+}
+
+# ---- Subcommand: init ----
+# intent lang init <lang> [<lang2> ...]
+# Idempotent: re-runs produce zero diff. Multi-language: invokes per-language
+# install in order; failure of one language does not abort the others.
+lang_init() {
+  if [ "$#" -eq 0 ]; then
+    error "intent lang init: missing language argument(s)"
+  fi
+
+  # Project root resolution (intent_config has done this already in dispatch
+  # path). Fall back to PWD if not in an Intent project (the install will then
+  # error cleanly when it tries to write).
+  local project_root="${PROJECT_ROOT:-$PWD}"
+  local llm_dir="$project_root/intent/llm"
+
+  if [ ! -d "$llm_dir" ]; then
+    error "intent lang init: no intent/llm/ directory at $project_root (run 'intent init' first)"
+  fi
+
+  local rules_md="$llm_dir/RULES.md"
+  local templates_root
+  templates_root="$(lang_templates_dir)"
+
+  # Ensure the agnostic RULES.md has a Language Packs marker block. If RULES.md
+  # itself is missing, that's a project setup issue: error out.
+  if [ ! -f "$rules_md" ]; then
+    error "intent lang init: $rules_md missing; run 'intent claude upgrade --apply' to install canon"
+  fi
+
+  if ! lang_packs_block_present "$rules_md"; then
+    lang_packs_insert_block "$rules_md"
+  fi
+
+  local lang fail_count ok_count
+  fail_count=0
+  ok_count=0
+
+  for lang in "$@"; do
+    if ! lang_template_exists "$lang"; then
+      echo "error: no template for '$lang' (run 'intent lang list' for available)" >&2
+      fail_count=$((fail_count + 1))
+      continue
+    fi
+
+    local installed_any=0
+
+    # Install RULES-<lang>.md
+    local src_rules="$templates_root/$lang/RULES.md"
+    local dst_rules="$llm_dir/RULES-$lang.md"
+    if [ -f "$src_rules" ]; then
+      if [ -f "$dst_rules" ] && cmp -s "$src_rules" "$dst_rules"; then
+        echo "ok: $lang RULES-$lang.md identical (no change)"
+      else
+        cp "$src_rules" "$dst_rules"
+        echo "installed: intent/llm/RULES-$lang.md"
+        installed_any=1
+      fi
+    fi
+
+    # Install ARCHITECTURE-<lang>.md (optional)
+    local src_arch="$templates_root/$lang/ARCHITECTURE.md"
+    local dst_arch="$llm_dir/ARCHITECTURE-$lang.md"
+    if [ -f "$src_arch" ]; then
+      if [ -f "$dst_arch" ] && cmp -s "$src_arch" "$dst_arch"; then
+        echo "ok: $lang ARCHITECTURE-$lang.md identical (no change)"
+      else
+        cp "$src_arch" "$dst_arch"
+        echo "installed: intent/llm/ARCHITECTURE-$lang.md"
+        installed_any=1
+      fi
+    fi
+
+    # Append Language Packs entry (idempotent)
+    lang_packs_add_entry "$rules_md" "$lang"
+
+    if [ "$installed_any" -eq 1 ]; then
+      ok_count=$((ok_count + 1))
+    else
+      ok_count=$((ok_count + 1))  # No-op success still counts
+    fi
+  done
+
+  echo ""
+  echo "Summary: $ok_count language pack(s) processed; $fail_count error(s)."
+  [ "$fail_count" -eq 0 ]
+}
+
+# ---- Help ----
+show_usage() {
+  cat << 'EOF'
+Usage: intent lang <command> [options]
+
+Per-language canon: install language-specific RULES + ARCHITECTURE templates.
+
+Commands:
+  list                       List languages with available templates
+  show <lang>                Show what 'intent lang init <lang>' installs
+  init <lang> [<lang> ...]   Install per-language canon (idempotent; multi-lang)
+  help                       Show this usage
+
+Env vars:
+  INTENT_LANG_TEMPLATES_DIR  Override default templates dir (used by tests)
+
+Examples:
+  intent lang list
+  intent lang show elixir
+  intent lang init elixir
+  intent lang init rust shell
+EOF
+}
+
+# ---- Main dispatch ----
+SUBCOMMAND="${1:-help}"
+shift || true
+
+case "$SUBCOMMAND" in
+  list)
+    lang_list "$@"
+    ;;
+  show)
+    lang_show "$@"
+    ;;
+  init)
+    lang_init "$@"
+    ;;
+  help|--help|-h)
+    show_usage
+    ;;
+  *)
+    echo "error: unknown lang subcommand '$SUBCOMMAND'" >&2
+    echo "run 'intent lang help' for usage" >&2
+    exit 1
+    ;;
+esac

@@ -3,7 +3,7 @@ verblock: "27 Apr 2026:v0.2: matts - Phase 0 elaboration"
 wp_id: WP-19
 title: "Per-language canon: intent lang command + intent init --lang flag"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-19: Per-language canon -- `intent lang` command + `intent init --lang` flag

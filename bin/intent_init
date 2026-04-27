@@ -29,16 +29,21 @@ usage() {
   echo "  project_name  Name of the project (optional, defaults to directory name)"
   echo ""
   echo "Options:"
-  echo "  --with-st0000  Bootstrap all ST0000 deliverables after init"
+  echo "  --with-st0000     Bootstrap all ST0000 deliverables after init"
+  echo "  --lang <list>     Comma- or space-separated languages to install canon for"
+  echo "                    (e.g. --lang elixir or --lang elixir,rust,shell)"
   echo ""
   echo "Examples:"
   echo "  intent init \"My Project\""
   echo "  intent init \"My Project\" --with-st0000"
+  echo "  intent init \"My Project\" --lang elixir"
+  echo "  intent init \"My Project\" --lang elixir,rust,shell"
   exit 1
 }
 
 # Parse options
 WITH_ST0000=false
+LANGS_ARG=""
 ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -47,6 +52,16 @@ while [[ $# -gt 0 ]]; do
       ;;
     --with-st0000)
       WITH_ST0000=true
+      shift
+      ;;
+    --lang)
+      LANGS_ARG="${2:-}"
+      [ -z "$LANGS_ARG" ] && error "--lang requires an argument"
+      shift 2
+      ;;
+    --lang=*)
+      LANGS_ARG="${1#--lang=}"
+      [ -z "$LANGS_ARG" ] && error "--lang requires an argument"
       shift
       ;;
     -*)
@@ -220,6 +235,17 @@ for tmpl in _MODULES.md _DECISION_TREE.md; do
   fi
 done
 
+# Lay down agnostic _default RULES.md and ARCHITECTURE.md so that
+# `intent lang init <lang>` has the Language Packs anchor it needs.
+# Static templates -- no substitution required.
+_default_templates="$INTENT_HOME/intent/plugins/agents/templates/_default"
+if [ -f "$_default_templates/RULES.md" ] && [ ! -f "intent/llm/RULES.md" ]; then
+  cp "$_default_templates/RULES.md" "intent/llm/RULES.md"
+fi
+if [ -f "$_default_templates/ARCHITECTURE.md" ] && [ ! -f "intent/llm/ARCHITECTURE.md" ]; then
+  cp "$_default_templates/ARCHITECTURE.md" "intent/llm/ARCHITECTURE.md"
+fi
+
 # Initialize git if not already a repository
 if [ ! -d .git ]; then
   echo "Initializing git repository..."
@@ -271,6 +297,17 @@ if [ "$WITH_ST0000" = true ]; then
   echo ""
   echo "Bootstrapping ST0000 deliverables..."
   "$INTENT_HOME/bin/intent_st_zero" install
+fi
+
+# Per-language canon install if --lang was passed
+if [ -n "$LANGS_ARG" ]; then
+  echo ""
+  echo "Installing per-language canon..."
+  # Split on commas or whitespace.
+  IFS=', ' read -r -a _lang_list <<< "$LANGS_ARG"
+  if [ "${#_lang_list[@]}" -gt 0 ]; then
+    "$INTENT_HOME/bin/intent_lang" init "${_lang_list[@]}" || true
+  fi
 fi
 
 echo ""

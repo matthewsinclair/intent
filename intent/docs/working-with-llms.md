@@ -15,6 +15,7 @@ The doc is deliberately opinionated: the canon is already decided, and the decis
 - Critic cadence
 - Skills and /in-session auto-load
 - Extensions at ~/.intent/ext/
+- Per-language canon (intent lang init)
 - Socrates vs Diogenes FAQ
 - For Elixir projects: mix usage_rules.sync interop
 - Troubleshooting
@@ -336,6 +337,37 @@ When an extension ships a subagent, skill, or rule with the same name / rule-id 
 Reference extension: `worker-bee` at `~/.intent/ext/worker-bee/`. It was seeded automatically by the v2.8.2 → v2.9.0 migration. Install via `intent claude subagents install worker-bee` to actually use it.
 
 Full authoring guide: `intent/docs/writing-extensions.md`.
+
+## Per-language canon (intent lang init)
+
+The canon-installer ships language-agnostic `_default` templates for `RULES.md`, `ARCHITECTURE.md`, and `AGENTS.md`. Why? Because Intent rejects auto-language-detection (an early v2.10.0 patch tried it and failed the multi-language reality test -- most real projects are polyglot, and picking any single "primary" misrepresents the project shape).
+
+Per-language setup is opt-in via the `intent lang` command:
+
+```bash
+intent lang list                       # Languages with available templates
+intent lang show <lang>                # What 'intent lang init <lang>' installs
+intent lang init <lang> [<lang> ...]   # Idempotent per-language canon install
+```
+
+Or, at fresh project init time, via the `--lang` flag:
+
+```bash
+intent init "My Project" --lang elixir
+intent init "My Project" --lang elixir,rust,shell
+```
+
+What `intent lang init <lang>` does, per language:
+
+1. Copies `intent/plugins/agents/templates/<lang>/RULES.md` to `intent/llm/RULES-<lang>.md` (skip if checksum identical -- idempotent).
+2. Copies `intent/plugins/agents/templates/<lang>/ARCHITECTURE.md` to `intent/llm/ARCHITECTURE-<lang>.md` if present (skip if checksum identical).
+3. Appends an entry to the `Language Packs` section in the agnostic `intent/llm/RULES.md`, pointing at the language's rule pack at `intent/plugins/claude/rules/<lang>/`. Marker pair (`<!-- intent-lang-packs:start -->` / `<!-- intent-lang-packs:end -->`) makes re-runs idempotent and prevents duplicate entries.
+
+Available canon languages: `elixir`, `rust`, `swift`, `lua`, `shell`. Per-language stub templates ship with WP-19; user-extension languages can be added under `~/.intent/ext/<name>/agents/templates/<lang>/` (covered by the extensions section above).
+
+Re-runs are safe (zero diff). Multi-language is the default case -- `intent lang init elixir rust shell` runs all three. Failure of one language does not abort the others (fail-forward); a summary at the end reports per-language status.
+
+Full reference: `intent help lang`.
 
 ## Socrates vs Diogenes FAQ
 

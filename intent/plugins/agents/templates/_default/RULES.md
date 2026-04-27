@@ -15,9 +15,14 @@ Full rule files: `intent/plugins/claude/rules/agnostic/<slug>/RULE.md`.
 
 ## Language-Specific Rules
 
-Language-specific concretisations live at `intent/plugins/claude/rules/<lang>/`. Detect the project's primary language via `detect_project_language` (probes `mix.exs`, `Cargo.toml`, `Package.swift`, `.luarc.json`, or shell shebangs in `bin/`).
+Language-specific concretisations live at `intent/plugins/claude/rules/<lang>/`. Per-language canon (`intent/llm/RULES-<lang>.md`, `intent/llm/ARCHITECTURE-<lang>.md`) is opt-in: install via `intent lang init <lang>` per language used in this project, or pass `--lang <lang1>,<lang2>` to `intent init`.
 
 Per-language rule packs available in canon: `elixir`, `rust`, `swift`, `lua`, `shell`.
+
+## Language Packs
+
+<!-- intent-lang-packs:start -->
+<!-- intent-lang-packs:end -->
 
 ## NEVER DO
 
