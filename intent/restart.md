@@ -1,17 +1,10 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-04-27, end of session -- ST0035 + ST0036 Completed; v2.10.0 ready to publish)
+## Current state (2026-04-27, end of session -- v2.10.0 SHIPPED)
 
-**Intent v2.10.0 is feature-complete. ST0035 (Canonical LLM Config + Fleet Rollout) 19 of 19 Done. ST0036 (Directory Relocation) 9 of 9 Done. Both moved to `intent/st/COMPLETED/`.** CHANGELOG v2.10.0 entry finalised (release date 2026-04-27). Tests 810/810 green. `intent doctor` clean.
+**Intent v2.10.0 shipped.** Tag `v2.10.0` at `cf37292`; pushed to `local` (Dropbox) + `upstream` (GitHub); GitHub release live at https://github.com/matthewsinclair/intent/releases/tag/v2.10.0. ST0035 (Canonical LLM Config + Fleet Rollout) 19 of 19 Done. ST0036 (Directory Relocation) 9 of 9 Done. Both in `intent/st/COMPLETED/`. CHANGELOG v2.10.0 entry finalised (release date 2026-04-27). Tests 810/810 green. `intent doctor` clean. No active steel thread.
 
-Pending user-visible release acts (deferred until user confirms):
-
-1. `git tag v2.10.0` (local; latest existing tag is `v2.9.0`).
-2. Push tag + main to `local` (Dropbox; safe).
-3. Push tag + main to `upstream` (GitHub; confirm first).
-4. `gh release create v2.10.0 --notes-file <CHANGELOG section>` (confirm first).
-
-After publish lands: update user's MEMORY.md Active Work section + final session wrap commit.
+CI run kicked off at publish time (commit `cf37292`); check `gh run list` if needed.
 
 ### Progress this session (4 commits in Intent + 3 commits in fleet projects + 5 commits in ~/.claude)
 
@@ -43,7 +36,7 @@ Plus ~/.claude global repo housekeeping (5 commits, pushed to matthewsinclair/cf
 
 ### Resume target
 
-After v2.10.0 publish acts complete: no active ST. Next session can pick the next ST off the backlog or start exploratory work for v2.11.
+No active ST. Next session can pick the next ST off the v2.10.x follow-up backlog or start exploratory work for v2.11. The v2.10.x backlog (from WP-17 dogfood journal): `intent doctor` warning for leftover `.intent/` post-migration; `intent claude upgrade --dry-run` UX polish; CLAUDE.md per-project drift refresh decisions.
 
 ### Session conventions (carry forward)
 

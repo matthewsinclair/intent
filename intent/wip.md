@@ -1,5 +1,5 @@
 ---
-verblock: "27 Apr 2026:v0.63: matts - ST0035 + ST0036 complete; v2.10.0 ready to ship"
+verblock: "27 Apr 2026:v0.64: matts - v2.10.0 shipped; ST0035 + ST0036 in COMPLETED; no active ST"
 intent_version: 2.10.0
 ---
 
@@ -7,16 +7,9 @@ intent_version: 2.10.0
 
 ## Current State
 
-**Intent v2.10.0 ready for release engineering.** ST0035 (Canonical LLM Config + Fleet Rollout) and ST0036 (Directory relocation `.intent/` -> `intent/.config/`) both Completed; both moved to `intent/st/COMPLETED/`. CHANGELOG v2.10.0 entry finalised (release date 2026-04-27).
+**Intent v2.10.0 shipped 2026-04-27.** Tag pushed to `local` + `upstream`; GitHub release live at https://github.com/matthewsinclair/intent/releases/tag/v2.10.0. ST0035 (Canonical LLM Config + Fleet Rollout) 19 of 19 Done. ST0036 (Directory relocation `.intent/` -> `intent/.config/`) 9 of 9 Done. Both in `intent/st/COMPLETED/`. No active steel thread.
 
-Pending release acts (deferred to user confirmation since they are externally visible):
-
-1. `git tag v2.10.0` (local, reversible).
-2. Push tag + main to `local` (Dropbox; safe).
-3. Push tag + main to `upstream` (GitHub; broadly visible -- confirm before push).
-4. `gh release create v2.10.0 --notes-file <CHANGELOG section>` (GitHub release; confirm).
-
-Tests **810/810 green**. `intent doctor` clean. Working tree at commit `6c1f41e` (WP-19) plus uncommitted CHANGELOG flip + ST0035 close + this wip update + matching restart files. One final commit ("release engineering local prep") wraps the local work; tag + pushes happen after user confirmation.
+Tests **810/810 green**. `intent doctor` clean. CI run for the release-prep commit (`cf37292`) was in progress at publish time; check `gh run list` if that needs follow-up.
 
 ## ST0035 final shape (Completed)
 
@@ -52,15 +45,7 @@ Tests **810/810 green**. `intent doctor` clean. Working tree at commit `6c1f41e`
 
 ## Next Up
 
-1. **Release engineering** (pending user confirmation):
-   - `git tag v2.10.0` (latest tag is `v2.9.0`).
-   - Push to `local` (Dropbox); safe.
-   - Push to `upstream` (GitHub); confirm first.
-   - `gh release create v2.10.0` with notes from CHANGELOG v2.10.0 section; confirm first.
-
-2. **Post-release housekeeping** (after publish lands):
-   - Update user's MEMORY.md Active Work section (drop ST0035-as-WIP; note v2.10.0 shipped).
-   - Final session-wrap commit (intent/wip.md + intent/restart.md + .claude/restart.md reflecting "v2.10.0 shipped"; no active ST).
+No active steel thread. Pick the next ST off the v2.10.x follow-up backlog (below) or start fresh exploratory work for v2.11.
 
 ## Open follow-ups (post v2.10.0)
 
