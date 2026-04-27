@@ -487,9 +487,9 @@ Now when you paste steel threads to Claude, it already understands:
 
 ### Intent Documentation
 
-- **Reference Guide**: `intent/usr/reference_guide.md`
-- **Command Help**: `stp <command> --help`
-- **Template Library**: `intent/_templ/`
+- **Canon narrative**: `intent/docs/working-with-llms.md`
+- **Command Help**: `intent help` and `intent help <command>`
+- **Project index**: `AGENTS.md` at the project root
 
 ### Example Projects Using Intent
 

@@ -1,16 +1,18 @@
 ---
-verblock: "24 Apr 2026:v0.2: matts - Phase 0 forensic detail (late addition)"
+verblock: "27 Apr 2026:v0.3: matts - retarget v2.9.1 -> v2.10.0; review memo populated; decision: throw all three"
 wp_id: WP-18
 title: "Review and update (or retire) intent/usr/*.md"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-18: Review and update (or retire) intent/usr/\*.md
 
+> **Scope as built (2026-04-27)**: all three files were retired wholesale. The 2026-04-24 spec assumed a per-file keep / update / throw audit was needed; in fact every file was 7 versions stale (frontmatter `intent_version: 2.6.0`) and substantially duplicated by the v2.9.0+ canon (`README.md`, `intent/docs/working-with-llms.md`, `intent help <cmd>`, `AGENTS.md`). Per the project fail-forward principle (no preservation, prune actively), the audit collapsed to a one-line decision: throw all three, redirect the surviving cross-refs to canon docs. See "Review memo" below.
+
 ## Objective
 
-Review the three user-facing docs under `intent/usr/` against the v2.9.1 canon and make a per-file keep / update / throw decision, applying the decision before the v2.9.1 release ships. No user doc should survive into v2.9.1 with a stale surface description (missing skills, missing critics, missing extensions, missing hooks).
+Review the three user-facing docs under `intent/usr/` against the v2.10.0 canon and make a per-file keep / update / throw decision, applying the decision before v2.10.0 ships. No user doc should survive into v2.10.0 with a stale surface description (missing skills, missing critics, missing extensions, missing hooks).
 
 ## Context
 
@@ -124,28 +126,25 @@ These are defaults — the audit in step 1 drives the actual decisions.
 
 ## Implementation Notes
 
-### Review memo
+### Review memo (final)
 
-_To be populated during audit (step 1). Tentative format:_
+All three files share the same disposition: **throw**. Frontmatter on all three reads `intent_version: 2.6.0` (2026-03-05), seven minor versions behind the v2.10.0 canon. Per-file rationale:
 
-```
-### user_guide.md (877 lines, 2026-04-12)
-- Canon-current: §X, §Y paragraphs
-- Canon-stale: §Z (references elixir subagent), §W (missing /in-* skills)
-- Duplicated: §A overlaps README.md quick-start
-- Unique + current: §B (onboarding narrative not in README)
-Decision: UPDATE. Gaps: <list>.
+**user_guide.md** (877 lines, frontmatter 2026-03-05). Tag distribution: ~70% canon-stale (predates `/in-*` skills, `critic-*` subagents, rule library, extension system, `.claude/settings.json` hooks, `.git/hooks/pre-commit`, three-file root canon, `intent/.config/` directory layout); ~25% duplicated by `README.md` quick-start + `intent/docs/working-with-llms.md` narrative + `intent help <cmd>` + `usage-rules.md` DO/NEVER list; ~5% unique-but-still-stale (the "I just got Intent, what now?" onboarding narrative — replaced by README's quick-start which is now adequate). Decision: **THROW**. Replace the README link with a pointer to `intent/docs/working-with-llms.md` (canon narrative) + `intent help` (commands).
 
-### reference_guide.md (1370 lines, 2026-04-12)
-...
+**reference_guide.md** (1370 lines, frontmatter 2026-03-05). Tag distribution: ~80% canon-stale (every command's flags/output drifted; the `intent upgrade` example shows a backup-dir flag that no longer exists; the directory tree shows the `intent/eng/` subtree which is largely empty in v2.10.0 projects); ~15% duplicated by `intent help <cmd>` (the canonical command reference); ~5% unique (architectural concepts, but those are now in `intent/docs/working-with-llms.md` D1-D10 and `intent/llm/MODULES.md`). Decision: **THROW**. Replace the README link with a pointer to `intent help` + `AGENTS.md`.
 
-### deployment_guide.md (619 lines, 2026-03-06)
-...
-```
+**deployment_guide.md** (619 lines, frontmatter 2026-03-05). Tag distribution: ~60% canon-stale (the `~/intent` clone path predates the v2.10.0 install convention, the per-project alias example is outdated, the plugin/subagent deployment section predates the canon-installer); ~30% duplicated (installation is in README's quick-start; upgrade is in `intent/docs/migration-v2.10.0.md`); ~10% unique (some integration prose for CI environments — but the CI story is genuinely thin and would need a fresh write, not an update). Decision: **THROW**. The README quick-start + `intent/docs/migration-v2.10.0.md` cover the actual canonical install path.
 
-### Why not just delete all three
+### Cross-reference cleanup applied
 
-The `README.md` + `AGENTS.md` + `usage-rules.md` + `intent/docs/working-with-llms.md` set covers a lot — but not everything. Specifically, the onboarding narrative (_"I just got Intent, what now?"_) and the deployment guide (_"how do I install Intent on a new machine?"_) don't have natural homes in the canon files. Throwing all three wholesale would create gaps. The per-file audit determines the right answer.
+- `README.md`: Documentation section (lines 188-192) and Getting Help section (line 447) — replaced four `intent/usr/*` links with pointers to `intent/docs/working-with-llms.md`, `intent help`, and `intent/docs/migration-v2.10.0.md`.
+- `docs/blog/0005-getting-started-with-intent.md`: line 490 ("Reference Guide" pointer) — replaced with `intent help`.
+- `intent/docs/migration-v2.10.0.md`: line 40 ("intent/usr/" in the unchanged-subdirs list) — removed from the list; the directory itself is gone.
+- `CHANGELOG.md` v2.10.0 entry — added a Removed bullet noting the retirement and the redirect targets.
+- `intent/llm/MODULES.md`: no entries pointed at `intent/usr/*` (hand-authored docs were never registered as modules); no edit needed.
+- Backup files at `.backup/backup-*/intent/usr/*` are not in source control (`.backup/` is gitignored); no action.
+- Historical references in `CHANGELOG.md` (pre-v2.10.0 entries) and `DEPRECATIONS.md` left intact — they document the former state, which is correct.
 
 ## Risks and Edge Cases
 

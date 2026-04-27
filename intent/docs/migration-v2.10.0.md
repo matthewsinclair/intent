@@ -37,7 +37,7 @@ What did **not** move:
 - `~/.intent/ext/` — the user-level extension root. Unchanged. Always at the user level; no per-project dependency.
 - `.intent_critic.yml` — file at the project root, not under `.intent/`. Path unchanged.
 - `intent/.treeindex/` — already lives under `intent/`. Path unchanged.
-- All other `intent/` subdirectories (`intent/st/`, `intent/docs/`, `intent/llm/`, `intent/usr/`, `intent/eng/`). Unchanged.
+- All other `intent/` subdirectories (`intent/st/`, `intent/docs/`, `intent/llm/`, `intent/eng/`). Unchanged.
 
 The new layout removes the "two top-level dirs" smell (`.intent/` + `intent/`) by nesting configuration under the existing `intent/` umbrella. There is now exactly one Intent-owned directory at the project root.
 

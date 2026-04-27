@@ -30,6 +30,7 @@ Retargeted from v2.9.1 mid-development to bundle ST0036 (directory relocation, b
 
 ### Removed
 
+- **`intent/usr/*.md`** retired (ST0035/WP-18). The three hand-authored user docs (`user_guide.md`, `reference_guide.md`, `deployment_guide.md`) were stamped at `intent_version: 2.6.0` (2026-03-05), seven minor versions behind the v2.10.0 canon, and substantially duplicated by `README.md`, `intent/docs/working-with-llms.md`, `intent help <cmd>`, and `AGENTS.md`. Per fail-forward (no preservation, prune actively): all three deleted; the `intent/usr/` directory is gone. Cross-references updated: `README.md` Documentation and Getting Help sections now point at `intent/docs/working-with-llms.md` (canon narrative) + `intent help` (commands) + `intent/docs/migration-v2.10.0.md` (upgrade path); `docs/blog/0005-getting-started-with-intent.md` Intent Documentation section refreshed; `intent/docs/migration-v2.10.0.md` "unchanged subdirectories" list trimmed.
 - **ST0010** (Anthropic MCP Integration, v2.0.0-era) cancelled — superseded by v2.9.0 skills / subagents / extensions. Moved to `intent/st/CANCELLED/` with deprecation annotation.
 - **ST0015** (Enhanced Steel Thread Templates, v2.0.0-era) cancelled — superseded by v2.9.0 tooling. Moved to `intent/st/CANCELLED/` with deprecation annotation.
 

@@ -187,9 +187,8 @@ $ intent st show ST0001 | pbcopy
 
 ### Getting Started
 
-- **[User Guide](./intent/usr/user_guide.md)** - Step-by-step guide to using Intent
-- **[Reference Guide](./intent/usr/reference_guide.md)** - Complete command reference and detailed documentation
-- **[Installation Guide](./intent/usr/user_guide.md#installation)** - Detailed installation instructions
+- **[Working with LLMs in Intent](./intent/docs/working-with-llms.md)** - The canonical narrative on Intent's LLM-facing surface (three-file architecture, hooks, skills, critics, extensions). Start here.
+- **`intent help`** - Command reference. Run from any Intent project for the full command list, or `intent help <cmd>` for per-command detail.
 - **[v2.9.0 → v2.10.0 Migration Guide](./intent/docs/migration-v2.10.0.md)** - Upgrade path including the `.intent/` → `intent/.config/` directory move and recovery from interrupted migrations
 
 ### Understanding Intent
@@ -444,7 +443,7 @@ Intent transforms software development from a purely technical exercise into a p
 ## 🚦 Getting Help
 
 - **Quick Start**: Run `intent help` for command overview
-- **User Guide**: See [comprehensive guide](./intent/usr/user_guide.md)
+- **Canon narrative**: [Working with LLMs in Intent](./intent/docs/working-with-llms.md) explains the system end-to-end
 - **Examples**: Check the [blog series](./docs/blog/) for real-world usage
 - **Issues**: Report bugs on [GitHub Issues](https://github.com/matthewsinclair/intent/issues)
 
