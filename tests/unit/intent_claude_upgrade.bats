@@ -282,6 +282,64 @@ PCH
   [ "$first_pci" = "$second_pci" ] || fail "pre-commit.intent re-modified on idempotent re-apply ($first_pci -> $second_pci)"
 }
 
+@test "NORMALIZE_GITIGNORE replaces broad .claude with .claude/settings.local.json" {
+  init_scratch gi_broad
+
+  printf '%s\n' '/_build/' '.claude' '/cover/' > "$PROJ_DIR/.gitignore"
+  git -C "$PROJ_DIR" add .gitignore && git -C "$PROJ_DIR" commit -m base >/dev/null 2>&1
+
+  run run_intent claude upgrade --apply
+  assert_success
+
+  # Broad .claude line replaced with the canonical form.
+  if grep -qE '^\.claude/?$' "$PROJ_DIR/.gitignore"; then
+    fail "broad .claude/ line still present after normalize"
+  fi
+  assert_file_contains "$PROJ_DIR/.gitignore" ".claude/settings.local.json"
+  # /AGENTS.md.bak appended too.
+  assert_file_contains "$PROJ_DIR/.gitignore" "/AGENTS.md.bak"
+  # Surrounding lines preserved.
+  assert_file_contains "$PROJ_DIR/.gitignore" "/_build/"
+  assert_file_contains "$PROJ_DIR/.gitignore" "/cover/"
+}
+
+@test "NORMALIZE_GITIGNORE appends missing .claude/settings.local.json + AGENTS.md.bak" {
+  init_scratch gi_missing
+
+  printf '%s\n' '/_build/' '/deps/' > "$PROJ_DIR/.gitignore"
+  git -C "$PROJ_DIR" add .gitignore && git -C "$PROJ_DIR" commit -m base >/dev/null 2>&1
+
+  run run_intent claude upgrade --apply
+  assert_success
+
+  assert_file_contains "$PROJ_DIR/.gitignore" ".claude/settings.local.json"
+  assert_file_contains "$PROJ_DIR/.gitignore" "/AGENTS.md.bak"
+  # Original lines preserved.
+  assert_file_contains "$PROJ_DIR/.gitignore" "/_build/"
+  assert_file_contains "$PROJ_DIR/.gitignore" "/deps/"
+}
+
+@test "NORMALIZE_GITIGNORE is idempotent (canonical .gitignore not re-touched)" {
+  init_scratch gi_idem
+
+  printf '%s\n' '/_build/' '.claude/settings.local.json' '/AGENTS.md.bak' > "$PROJ_DIR/.gitignore"
+  git -C "$PROJ_DIR" add .gitignore && git -C "$PROJ_DIR" commit -m base >/dev/null 2>&1
+
+  before_sha="$(shasum "$PROJ_DIR/.gitignore" | awk '{print $1}')"
+  run run_intent claude upgrade --apply
+  assert_success
+  after_sha="$(shasum "$PROJ_DIR/.gitignore" | awk '{print $1}')"
+
+  [ "$before_sha" = "$after_sha" ] || fail "canonical .gitignore re-modified ($before_sha -> $after_sha)"
+
+  # Dry-run reports OK, not NORMALIZE.
+  run run_intent claude upgrade
+  assert_success
+  if echo "$output" | grep -q "NORMALIZE"; then
+    fail "NORMALIZE action enqueued for an already-canonical .gitignore"
+  fi
+}
+
 @test "REVIEW warning fires only when RULES/ARCH match _default verbatim" {
   init_scratch review_default
 

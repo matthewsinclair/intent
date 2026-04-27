@@ -473,6 +473,57 @@ canon_insert_chain_block() {
   chmod +x "$target"
 }
 
+# Returns 0 if .gitignore at $1 has any of the canon-managed entries missing
+# or in a non-canonical form (broad .claude pattern, missing settings.local
+# ignore, missing AGENTS.md.bak ignore). Returns 1 if the file is fully
+# canonical (or absent -- nothing to normalize).
+canon_gitignore_needs_normalize() {
+  local gi="$1"
+  [ -f "$gi" ] || return 1
+  # Broad .claude pattern (whole directory ignore).
+  grep -qE '^[[:space:]]*\.claude/?[[:space:]]*$' "$gi" 2>/dev/null && return 0
+  # Missing canonical .claude/settings.local.json ignore.
+  grep -qE '^[[:space:]]*\.claude/settings\.local\.json[[:space:]]*$' "$gi" 2>/dev/null || return 0
+  # Missing /AGENTS.md.bak ignore.
+  grep -qE '^[[:space:]]*/?AGENTS\.md\.bak[[:space:]]*$' "$gi" 2>/dev/null || return 0
+  return 1
+}
+
+# Normalize .gitignore at $1: replace broad .claude/ pattern with the
+# canonical .claude/settings.local.json line; append .claude/settings.local.json
+# if missing; append /AGENTS.md.bak if missing. Idempotent.
+canon_normalize_gitignore() {
+  local gi="$1"
+  [ -f "$gi" ] || return 0
+
+  # Replace broad .claude (or .claude/) standalone line with the canonical form.
+  if grep -qE '^[[:space:]]*\.claude/?[[:space:]]*$' "$gi" 2>/dev/null; then
+    local tmp
+    tmp="$(mktemp)"
+    awk '/^[[:space:]]*\.claude\/?[[:space:]]*$/ { print ".claude/settings.local.json"; next } { print }' "$gi" > "$tmp"
+    cat "$tmp" > "$gi"
+    rm -f "$tmp"
+  fi
+
+  # Append canonical .claude/settings.local.json if not present.
+  if ! grep -qE '^[[:space:]]*\.claude/settings\.local\.json[[:space:]]*$' "$gi" 2>/dev/null; then
+    {
+      echo ""
+      echo "# Per-developer Claude Code settings (paths and tool allowlists vary)."
+      echo ".claude/settings.local.json"
+    } >> "$gi"
+  fi
+
+  # Append /AGENTS.md.bak if not present.
+  if ! grep -qE '^[[:space:]]*/?AGENTS\.md\.bak[[:space:]]*$' "$gi" 2>/dev/null; then
+    {
+      echo ""
+      echo "# AGENTS.md regeneration safety net (intent agents sync writes this; transient)."
+      echo "/AGENTS.md.bak"
+    } >> "$gi"
+  fi
+}
+
 CANON_AUTHOR="$(canon_resolve_author)"
 CANON_DATE="$(date '+%Y-%m-%d')"
 
@@ -832,6 +883,21 @@ if [ -f "$PROJECT_DIR/intent/llm/AGENTS.md" ] || [ -L "$PROJECT_DIR/intent/llm/A
   add_action "DELETE_LEGACY_AGENTS"
 fi
 
+# .gitignore -- ensure canon-managed entries are present and in canonical form.
+# Replaces overly-broad .claude (whole directory) with .claude/settings.local.json
+# so the canon session hooks (settings.json, scripts/*) are tracked. Also adds
+# /AGENTS.md.bak (regen safety net). Skipped if .gitignore is absent.
+if [ -f "$PROJECT_DIR/.gitignore" ]; then
+  if canon_gitignore_needs_normalize "$PROJECT_DIR/.gitignore"; then
+    canon_print ".gitignore" "${YELLOW}NORMALIZE${NC} (.claude/ + /AGENTS.md.bak entries)"
+    add_action "NORMALIZE_GITIGNORE"
+  else
+    canon_print ".gitignore" "${GREEN}OK${NC} (canon entries present and canonical)"
+  fi
+else
+  canon_print ".gitignore" "${BLUE}absent (skipped)${NC}"
+fi
+
 # ============================================================
 # PHASE 2: PLAN
 # ============================================================
@@ -1144,6 +1210,12 @@ PRECOMMIT
       echo "  Installing .intent_critic.yml..."
       canon_install_file "$CANON_CRITIC_YML_SRC" "$PROJECT_DIR/.intent_critic.yml"
       echo -e "    ${GREEN}ok${NC} (severity_min=warning; edit to tune)"
+      ;;
+
+    NORMALIZE_GITIGNORE)
+      echo "  Normalizing .gitignore (.claude/ + /AGENTS.md.bak entries)..."
+      canon_normalize_gitignore "$PROJECT_DIR/.gitignore"
+      echo -e "    ${GREEN}ok${NC} (canon files now tracked; settings.local.json + AGENTS.md.bak ignored)"
       ;;
 
     INSTALL_CLAUDE_MD)
