@@ -1,10 +1,10 @@
 ---
 verblock: "26 Apr 2026:v0.4: matts - Phase 0 elaborated; awaiting review"
 intent_version: 2.10.0
-status: WIP
+status: Completed
 slug: directory-relocation-intent-to-intent-config
 created: 20260424
-completed:
+completed: 20260427
 ---
 
 # ST0036: Directory relocation: `.intent/` → `intent/.config/`

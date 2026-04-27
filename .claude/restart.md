@@ -3,72 +3,69 @@
 ## First actions after `/compact` or new session
 
 1. **Invoke `/in-session`.** Loads `/in-essentials`, `/in-standards`, plus per-language skills. Releases the `UserPromptSubmit` strict gate via the per-project sentinel.
-2. **Verify the working tree.** `git status` should show two interesting items:
-   - Deleted: `.intent/config.json` (the original location)
-   - Untracked: `intent/.config/` (the manual mv from the WP05 diagnostic)
-   - Plus user-local `.claude/settings.local.json` (ignore as always).
-     If those two items are gone, somebody already committed the rename -- check `git log --oneline -5` for a `chore: ST0036/WP-08` commit.
+2. **Verify the working tree.** `git status` should show only user-local `.claude/settings.local.json`. ST0036 is closed; Intent is at `intent/.config/` layout post-WP08.
 3. **Read `intent/wip.md` and `intent/restart.md`** for narrative state.
-4. **Read `intent/st/ST0036/impl.md`** -- it carries the WP-by-WP commit table and the open items for tomorrow.
+4. **Read `intent/st/ST0035/WP/14/info.md`** -- next WP to execute (Intent self-dogfood for canon LLM config).
 
-## State (2026-04-26, end of session)
+## State (2026-04-27, end of session)
 
-**Intent v2.10.0 in progress. ST0035 13 of 18 Done. ST0036 7 of 9 Done; WP08 half-done in the working tree, WP09 pending.**
+**Intent v2.10.0 in progress. ST0035 13 of 19 Done (WP14-WP18 + new WP19 remaining). ST0036 9 of 9 Done (closed; moved to COMPLETED).**
 
-- **VERSION**: `2.10.0` (already stamped).
-- **Layout**: working tree currently has Intent's metadata at `intent/.config/` (post-mv); HEAD still has it at `.intent/`. Reconcile by running WP08 properly first thing tomorrow (see below).
-- **Tests**: 774/774 green (verified mid-WP05).
+- **VERSION**: `2.10.0`.
+- **Layout**: `intent/.config/` (post-WP08 relocation; rename history preserved via `git log --follow`).
+- **Tests**: 781/781 green (774 baseline + 4 needs_v2_10_0_upgrade scenarios + 3 canon-installer scenarios).
 - **Doctor**: clean.
-- **Recent commits (this session, newest first)**: `b62ea58` WP-05 BATS · `5f8b61e` WP-04 templates · `32df058` WP-06 ignore patterns. Five fixes from previous session also in HEAD: `255436c` `ef2dd0e` `f04db11` `81c2b30` `33a99d0`.
+- **Backup tag**: `wp08-pre-relocate` at `69069eca`. Discardable; delete with `git tag -d wp08-pre-relocate` after a stable session.
 
-## Resume target -- ST0036/WP08 finalisation
+## What landed this session (newest first)
 
-Run order tomorrow:
+- `1497885` -- WP-09 cross-thread coordination (12-point checklist; v2.9.1 -> v2.10.0 flips; impl.md finalised).
+- `5c782b3` -- WP-08 Intent self-apply v2.10.0 directory move.
+- `a7c27c3` -- WP-19 Phase 0 spec (per-language canon command + `intent init --lang` flag).
+- `ebd6620` -- WP-11 canon-installer fix (PROJECT_NAME from config.json + always-`_default` templates).
+- `01159ff` -- WP-01 dispatcher fix (layout-aware early-exit + `needs_v2_10_0_upgrade` shortcut + `2.10.0` case).
 
-1. `cd /Users/matts/Devel/prj/Intent && mv intent/.config .intent` -- revert the working-tree rename so Intent is back to v2.9.x layout.
-2. `intent upgrade` -- invokes `migrate_v2_9_0_to_v2_10_0`:
-   - Phase 1 (relocate): `intent_relocate_dotintent` does the atomic mv with sentinel + recovery handling.
-   - Phase 2 (stamp): no-op (already 2.10.0).
-   - Phase 3 (canon-apply): `intent claude upgrade --apply` runs; expect a few REFRESH actions for cosmetic drift (date stamps, etc.).
-3. `tests/run_tests.sh` -- expect 774 green.
-4. `intent doctor` -- expect clean.
-5. `intent treeindex intent --prune` -- regenerate Intent's own treeindex against the new layout (was deferred from WP06 because Intent's CLI couldn't run on Intent until the relocation).
-6. Commit: `chore: ST0036/WP-08 Intent self-apply v2.10.0 directory move`.
+## Resume target -- ST0035/WP14 (Intent self-dogfood)
 
-Then **WP09** (XS) -- pure docs:
+WP08 already executed Phase 3 (canon-apply) on Intent during the relocation. WP14 becomes a verification sweep:
 
-- Add directory-state verification step to `intent/st/ST0035/WP/15/info.md`, `WP/16/info.md`, `WP/17/info.md`.
-- Finalise `intent/st/ST0036/impl.md` (close the "open items" section).
-- Verify CHANGELOG v2.10.0 entry covers both ST0035 + ST0036.
-- Commit: `docs: ST0036/WP-09 coordinate directory move into ST0035 fleet rollout`.
+1. Re-run `intent claude upgrade` (no `--apply`); should report all canon artefacts UP TO DATE / PRESENT.
+2. Run `intent doctor` -- expect clean.
+3. Run `tests/run_tests.sh` -- expect 781/781 green.
+4. Verify session hooks fire: SessionStart prints context; UserPromptSubmit gate fires (then released by `/in-session`); Stop reminds `/in-finish`.
+5. Verify `.git/hooks/pre-commit.intent` is callable (chain not yet wired into `pre-commit` itself; per WP-11 chain block snippet).
+6. Document outcomes in `intent/st/ST0035/WP/14/info.md`; mark Done.
+7. Commit: `chore: ST0035/WP-14 Intent self-dogfood verification`.
 
-Then ST0035 resumes at WP14 (Intent self-dogfood for the canon LLM config).
+After WP14: ST0035 resumes at WP15 (Conflab/Lamplight/Laksa canary; carries both ST0035 + ST0036 concerns per WP-09 coordination).
 
-## Risks for tomorrow
+## Risks for next session
 
-- **Treeindex stale entries**: `intent treeindex intent --prune` may surface orphans from the pre-relocation layout. Expected; just prune.
-- **AGENTS.md regen drift**: `intent claude upgrade --apply` calls `intent agents sync`. The regen produces a date-stamp diff. Per session-3 conventions, include the regen in the WP08 commit (it's the right state post-relocation).
-- **Canon-apply `INSTALL_TREEINDEXIGNORE` will not fire** because Intent already has `intent/.treeindex/.treeindexignore` (we updated it in WP06 with the granular pattern). Expected `PRESENT (project-owned)`. Good.
+- **Backup tag cleanup**: `git tag -d wp08-pre-relocate` once next session confirms stability.
+- **Pre-commit chain not active**: canon-installer left `.git/hooks/pre-commit.intent` but did NOT modify the existing `pre-commit` to call it. To activate: paste the `Intent critic gate` chain block from canon-installer output into `.git/hooks/pre-commit`.
+- **WP19 implementation**: per-language canon command is now spec'd (Phase 0 elaborated) but NOT implemented. Sized M (2-3 sessions). Lands when ST0035 fleet rollout (WP15-17) is far enough along to inform the per-language template stubs.
 
 ## Session conventions (carry forward)
 
 - T-shirt sizing only (XS/S/M/L/XL/XXL).
 - Compact/refresh at ~200-250k tokens.
-- ALWAYS use `intent` CLI for ST/WP operations -- but until WP08 lands, manual Edit on WP info.md is the documented workaround for `intent wp done` rejecting Intent's own repo.
+- ALWAYS use `intent` CLI for ST/WP operations.
 - NEVER manually wrap lines in markdown.
 - NO Claude attribution in commits.
 - NEVER report test/skill/subagent counts in release notes, CHANGELOG, wip.md.
-- Fail-forward: no backwards-compat shims.
+- Fail-forward: no backwards-compat shims; auto-detection rejected (use explicit user choice instead).
 - Document first, code next.
 
 ## Lessons from this session
 
-- **A diagnostic mv catches what audits miss.** The user proposed renaming Intent's own `.intent` -> `intent/.config` _before_ doing per-test BATS flips. Result: +1 passing, 0 newly broken. That single experiment proved WP02's path probes were complete and confirmed that the only remaining work was BATS fixture/assertion flips. Cheap diagnostic, sharp signal.
-- **macOS BSD mktemp footgun**: `mktemp /tmp/foo-XXXXXX.md` creates the LITERAL file `foo-XXXXXX.md` -- the X's are not substituted when followed by a suffix. Drop the suffix or use `mktemp -t prefix` (which on macOS lands in `$TMPDIR`, not `/tmp`).
-- **Highlander cleanup pays for itself**: `bin/intent_treeindex::ensure_treeindexignore` was an inline heredoc duplicating template content. Extracting to `lib/templates/_treeindexignore` is one source for both the auto-init path and the canon installer's INSTALL_TREEINDEXIGNORE action.
-- **WP05 took longer than its M sizing**: the per-test flips were mechanical but the suite needed to be green at commit time, which created an interlock with WP08 (test 374 needed Intent in v2.10.0 layout). Keeping the manual mv uncommitted in working tree resolved the interlock without conflating WP05 + WP08 commits.
+- **WP08's "moment of truth" worked.** The manual-mv WP05 diagnostic was a useful smoke-test, but it bypassed the dispatcher and the canon-installer entirely. WP08's proper run surfaced two real bugs (dispatcher half-fix, canon-installer wrong-shape) plus spawned a needed feature (WP19). The fix-forward rhythm (file the gap, fix in place, ship cleaner) was natural.
+- **Auto-detection of project language is a dead end.** Real projects are polyglot (Elixir + Swift + Rust + Lua + Bash + HTML/CSS/JS). Picking a single "primary" misrepresents the project shape. Replaced with explicit user choice via `intent lang init <lang>` + `intent init --lang ...` (WP19 spec).
+- **Layout-keyed idempotence beats stamp-keyed.** ST0035 retargeted v2.9.1 -> v2.10.0 mid-development, which left Intent stamped 2.10.0 but at the .intent/ layout -- a state that any stamp-only check would miss. The dispatcher fix (now layout-aware in three coordinated places) prevents the same trap for any project that gets stamped before being relocated.
+- **PROJECT_DIR resolution matters.** `basename "."` returns `.`, which became `# .` as a regenerated CLAUDE.md title. Resolve to absolute path before basename, and prefer `project_name` from `intent/.config/config.json` (canonical, user-set).
+- **Linter cooperates.** Markdown linter auto-aligns table columns on save; commits include both content edits and linter touch-ups. No friction.
 
-## Open follow-ups (outside ST0035 + ST0036)
+## Open follow-ups (outside ST0035)
 
 - `docs/blog/_drafts/####-shell-critic-inception.md` -- blog draft; publication gated on real dogfood runs.
-- WP07 follow-ups from ST0034: align Diogenes fixture-context handling across critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures. Not in ST0035 / ST0036 scope.
+- WP07 follow-ups from ST0034: align Diogenes fixture-context handling across critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures. Not in ST0035 scope.
+- `git tag -d wp08-pre-relocate` once stable.
