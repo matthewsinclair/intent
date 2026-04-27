@@ -90,12 +90,13 @@ teardown() {
   run "${INTENT_BIN_DIR}/intent" lang init shell
   assert_success
   local checksum_before
-  checksum_before="$(find "$PROJECT_DIR/intent/llm" -type f -exec md5 -q {} \; | sort | md5 -q)"
+  # Use shasum for portability (md5 differs between BSD and GNU coreutils).
+  checksum_before="$(find "$PROJECT_DIR/intent/llm" -type f -exec shasum {} \; | sort | shasum)"
 
   run "${INTENT_BIN_DIR}/intent" lang init shell
   assert_success
   local checksum_after
-  checksum_after="$(find "$PROJECT_DIR/intent/llm" -type f -exec md5 -q {} \; | sort | md5 -q)"
+  checksum_after="$(find "$PROJECT_DIR/intent/llm" -type f -exec shasum {} \; | sort | shasum)"
 
   [ "$checksum_before" = "$checksum_after" ]
 }

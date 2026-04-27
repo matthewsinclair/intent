@@ -108,7 +108,8 @@ tree_snapshot() {
     { print }
   ' "$PROJ_DIR/CLAUDE.md" > "$PROJ_DIR/CLAUDE.md.new"
   mv "$PROJ_DIR/CLAUDE.md.new" "$PROJ_DIR/CLAUDE.md"
-  sed -i '' 's/## Project-specific$/## Project-specific (DRIFTED)/' "$PROJ_DIR/CLAUDE.md"
+  # Use perl -i for portability (sed -i syntax differs between BSD and GNU).
+  perl -i -pe 's/^## Project-specific$/## Project-specific (DRIFTED)/' "$PROJ_DIR/CLAUDE.md"
 
   run run_intent claude upgrade --apply
   assert_success

@@ -48,6 +48,15 @@ jobs:
         # critic gate is exercisable in CI.
         echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
 
+    - name: Configure git identity
+      run: |
+        # WP-15's intent_claude_upgrade.bats NORMALIZE_GITIGNORE scenarios
+        # call `git commit` in scratch repos to establish a baseline. Stock
+        # CI runners have no global git user.email/user.name; without
+        # these, git commit fails with exit 128.
+        git config --global user.email "ci@intent.local"
+        git config --global user.name "Intent CI"
+
     - name: Install bats libraries manually
       run: |
         mkdir -p tests/lib
@@ -147,6 +156,13 @@ jobs:
         # See ubuntu job for rationale -- pre_commit_hook.bats needs
         # `intent` resolvable for the critic gate to fire.
         echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
+
+    - name: Configure git identity
+      run: |
+        # See ubuntu job for rationale -- intent_claude_upgrade.bats
+        # NORMALIZE_GITIGNORE scenarios call git commit; needs identity.
+        git config --global user.email "ci@intent.local"
+        git config --global user.name "Intent CI"
 
     - name: Run tests
       env:
