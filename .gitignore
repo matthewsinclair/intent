@@ -22,6 +22,12 @@ erl_crash.dump
 # Intent upgrade backups (per-project rollback artefacts; never commit).
 /.backup/
 
+# Per-developer Claude Code permissions (paths and tool allowlist vary by user).
+.claude/settings.local.json
+
+# AGENTS.md regeneration safety net (intent agents sync writes this; transient).
+/AGENTS.md.bak
+
 # Ignore package tarball (built via "mix hex.build").
 multiplyer-*.tar
 
