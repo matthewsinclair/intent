@@ -20,7 +20,10 @@ source "$INTENT_BIN/intent_helpers"
 # Configuration
 SKILLS_SOURCE="$INTENT_ROOT/intent/plugins/claude/skills"
 SUBAGENTS_SOURCE="$INTENT_ROOT/intent/plugins/claude/subagents"
-TEMPLATES_SOURCE="$INTENT_ROOT/intent/plugins/agents/templates/elixir"
+# TEMPLATES_SOURCE is set per-project below once the project's primary
+# language is detected. Falls back to _default/ for languages without a
+# specific template directory.
+TEMPLATES_SOURCE=""
 
 # Canon template paths (ST0035 / v2.10.0). Each artefact ships through the
 # --apply path; probes in Phase 1 enqueue installs when the target is absent
@@ -140,7 +143,35 @@ if [ ! -d "$PROJECT_DIR/intent" ]; then
   exit 1
 fi
 
-PROJECT_NAME="$(basename "$PROJECT_DIR")"
+# Resolve PROJECT_DIR to an absolute path so basename and template probes
+# don't trip on relative paths (`basename "."` returns "." which would
+# render as `# .` in the regenerated CLAUDE.md title).
+PROJECT_DIR="$(cd "$PROJECT_DIR" 2>/dev/null && pwd)" || {
+  echo "Error: Cannot resolve project directory '$PROJECT_DIR' to an absolute path"
+  exit 1
+}
+
+# Prefer the canonical project_name from intent/.config/config.json (user-set
+# at `intent init` time and stable across directory renames). Fall back to
+# basename of the absolute path when config.json is unavailable.
+PROJECT_NAME=""
+if [ -f "$PROJECT_DIR/intent/.config/config.json" ] && command -v jq >/dev/null 2>&1; then
+  PROJECT_NAME=$(jq -r '.project_name // empty' "$PROJECT_DIR/intent/.config/config.json" 2>/dev/null)
+fi
+[ -z "$PROJECT_NAME" ] && PROJECT_NAME="$(basename "$PROJECT_DIR")"
+
+# RULES.md / ARCHITECTURE.md / AGENTS.md are installed from the language-
+# agnostic _default/ templates. Most real-world projects are polyglot
+# (Elixir + Rust + Lua + bash + HTML/CSS/JS content), so picking any single
+# "primary language" template would be wrong-shaped for the majority. The
+# _default templates point at the rule library at intent/plugins/claude/rules/
+# generically; project-specific content goes in the user-section of CLAUDE.md
+# or in language pointers added to RULES.md by the project author.
+#
+# The language-specific templates (templates/elixir/, etc.) remain as opt-in
+# starters that `intent init --template <lang>` can use; canon-installer
+# never auto-picks them.
+TEMPLATES_SOURCE="$INTENT_ROOT/intent/plugins/agents/templates/_default"
 
 # Writability probe -- bail with a clear error before doing any work if the
 # filesystem is read-only. Dry-run never writes, so this only matters on apply.
@@ -449,7 +480,7 @@ if [ -f "$PROJECT_DIR/AGENTS.md" ]; then
   fi
 else
   echo -e "  AGENTS.md:          ${RED}MISSING${NC}"
-  add_action "CREATE AGENTS.md from Elixir template"
+  add_action "CREATE AGENTS.md from _default template"
 fi
 
 # RULES.md
@@ -459,7 +490,7 @@ if [ -f "$PROJECT_DIR/intent/llm/RULES.md" ]; then
   add_warning "REVIEW intent/llm/RULES.md against template for missing rules"
 else
   echo -e "  RULES.md:           ${RED}MISSING${NC}"
-  add_action "CREATE intent/llm/RULES.md from Elixir template"
+  add_action "CREATE intent/llm/RULES.md from _default template"
 fi
 
 # ARCHITECTURE.md
@@ -468,7 +499,7 @@ if [ -f "$PROJECT_DIR/intent/llm/ARCHITECTURE.md" ]; then
   add_warning "REVIEW intent/llm/ARCHITECTURE.md for completeness"
 else
   echo -e "  ARCHITECTURE.md:    ${RED}MISSING${NC}"
-  add_action "CREATE intent/llm/ARCHITECTURE.md from Elixir template"
+  add_action "CREATE intent/llm/ARCHITECTURE.md from _default template"
 fi
 
 # Deprecated files

@@ -49,12 +49,15 @@
 
 ## Plugin: Agents
 
-| Concern                | THE Module                                               | Notes                                                                                                       |
-| ---------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| AGENTS.md lifecycle    | `intent/plugins/agents/bin/intent_agents`                | init, generate, sync, validate. Writes root `AGENTS.md` as a real file (ST0035/WP08).                       |
-| Agents elixir template | `intent/plugins/agents/templates/elixir/AGENTS.md`       | Enriched starter copied by `init --template elixir`; canon pointers for critics/rules/extensions/FAQ (WP08) |
-| Agents elixir RULES    | `intent/plugins/agents/templates/elixir/RULES.md`        | Human-curated rules starter; installed at `intent/llm/RULES.md`                                             |
-| Agents elixir ARCH     | `intent/plugins/agents/templates/elixir/ARCHITECTURE.md` | Human-curated architecture starter; installed at `intent/llm/ARCHITECTURE.md`                               |
+| Concern                | THE Module                                                 | Notes                                                                                                       |
+| ---------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| AGENTS.md lifecycle    | `intent/plugins/agents/bin/intent_agents`                  | init, generate, sync, validate. Writes root `AGENTS.md` as a real file (ST0035/WP08).                       |
+| Agents elixir template | `intent/plugins/agents/templates/elixir/AGENTS.md`         | Enriched starter copied by `init --template elixir`; canon pointers for critics/rules/extensions/FAQ (WP08) |
+| Agents elixir RULES    | `intent/plugins/agents/templates/elixir/RULES.md`          | Human-curated rules starter; installed at `intent/llm/RULES.md`                                             |
+| Agents elixir ARCH     | `intent/plugins/agents/templates/elixir/ARCHITECTURE.md`   | Human-curated architecture starter; installed at `intent/llm/ARCHITECTURE.md`                               |
+| Agents default AGENTS  | `intent/plugins/agents/templates/_default/AGENTS.md`       | Language-agnostic AGENTS.md fallback used when no language-specific template exists                         |
+| Agents default RULES   | `intent/plugins/agents/templates/_default/RULES.md`        | Language-agnostic RULES.md fallback; points at `intent/plugins/claude/rules/<lang>/`                        |
+| Agents default ARCH    | `intent/plugins/agents/templates/_default/ARCHITECTURE.md` | Language-agnostic ARCHITECTURE.md fallback                                                                  |
 
 ## Templates
 

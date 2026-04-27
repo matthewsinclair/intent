@@ -19,6 +19,9 @@ erl_crash.dump
 # Temporary files, for example, from tests.
 /tmp/
 
+# Intent upgrade backups (per-project rollback artefacts; never commit).
+/.backup/
+
 # Ignore package tarball (built via "mix hex.build").
 multiplyer-*.tar
 

@@ -140,6 +140,59 @@ tree_snapshot() {
   assert_output_contains "git rev-parse --git-path hooks"
 }
 
+@test "PROJECT_NAME resolves from config.json (not basename of relative path)" {
+  init_scratch myproj
+
+  # Force the relative-path codepath: cd into the project, invoke with --project-dir "."
+  cd "$PROJ_DIR" || fail "cannot cd"
+  run run_intent claude upgrade --apply --project-dir .
+  assert_success
+
+  # CLAUDE.md title must be the canonical project name from config.json,
+  # not "." (which is what basename "." returns).
+  local first_line
+  first_line=$(head -1 "$PROJ_DIR/CLAUDE.md")
+  if [ "$first_line" = "# ." ]; then
+    fail "CLAUDE.md title is '# .' (PROJECT_NAME basename bug returned)"
+  fi
+  [ "$first_line" = "# myproj" ] || fail "expected '# myproj', got '$first_line'"
+}
+
+@test "canon-installer always installs _default RULES/ARCHITECTURE (not language-specific)" {
+  init_scratch any
+
+  run run_intent claude upgrade --apply
+  assert_success
+
+  # _default template markers present.
+  assert_file_contains "$PROJ_DIR/intent/llm/RULES.md" "intent/plugins/claude/rules/<lang>/"
+  assert_file_contains "$PROJ_DIR/intent/llm/ARCHITECTURE.md" "System architecture and design decisions"
+
+  # Elixir-template markers absent (would indicate accidental fallback to elixir/).
+  if grep -qF "Core Elixir Rules" "$PROJ_DIR/intent/llm/RULES.md"; then
+    fail "intent/llm/RULES.md got Elixir template (canon-installer must use _default)"
+  fi
+  if grep -qF "Phoenix/Ash web application" "$PROJ_DIR/intent/llm/ARCHITECTURE.md"; then
+    fail "intent/llm/ARCHITECTURE.md got Elixir template (canon-installer must use _default)"
+  fi
+}
+
+@test "canon-installer ignores language markers (multi-language reality)" {
+  init_scratch polyglot
+  # Stage markers for multiple languages -- canon-installer must still use
+  # _default and not pick any single one as "primary".
+  touch "$PROJ_DIR/mix.exs" "$PROJ_DIR/Cargo.toml" "$PROJ_DIR/Package.swift"
+
+  run run_intent claude upgrade --apply
+  assert_success
+
+  # Still _default -- no Elixir/Rust/Swift template selection.
+  if grep -qF "Core Elixir Rules" "$PROJ_DIR/intent/llm/RULES.md"; then
+    fail "polyglot project picked Elixir template (canon-installer must always use _default)"
+  fi
+  assert_file_contains "$PROJ_DIR/intent/llm/RULES.md" "intent/plugins/claude/rules/<lang>/"
+}
+
 @test "--dry-run does not modify the filesystem" {
   init_scratch dry
 
