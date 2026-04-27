@@ -38,7 +38,16 @@ jobs:
       run: |
         chmod +x bin/*
         chmod +x tests/*.sh 2>/dev/null || true
-    
+
+    - name: Add Intent bin to PATH
+      run: |
+        # ST0035/WP-06's pre_commit_hook.bats invokes `intent critic` via
+        # the project's pre-commit hook. The hook fail-opens when `intent`
+        # is not on PATH, which makes the bad-fixture test pass-through
+        # instead of blocking. Put the project's bin/ on PATH so the
+        # critic gate is exercisable in CI.
+        echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
+
     - name: Install bats libraries manually
       run: |
         mkdir -p tests/lib
@@ -57,7 +66,7 @@ jobs:
         clone_with_retry https://github.com/bats-core/bats-support.git tests/lib/bats-support
         clone_with_retry https://github.com/bats-core/bats-assert.git tests/lib/bats-assert
         clone_with_retry https://github.com/bats-core/bats-file.git tests/lib/bats-file
-    
+
     - name: Run unit tests
       env:
         BATS_LIB_PATH: ${{ github.workspace }}/tests/lib
@@ -132,7 +141,13 @@ jobs:
       run: |
         chmod +x bin/*
         chmod +x tests/*.sh 2>/dev/null || true
-    
+
+    - name: Add Intent bin to PATH
+      run: |
+        # See ubuntu job for rationale -- pre_commit_hook.bats needs
+        # `intent` resolvable for the critic gate to fire.
+        echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
+
     - name: Run tests
       env:
         BATS_LIB_PATH: ${{ github.workspace }}/tests/lib
