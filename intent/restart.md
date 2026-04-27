@@ -1,8 +1,8 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-04-27, end of session -- ST0035 14 of 19; Anvil canary 2 of 16)
+## Current state (2026-04-27, end of session -- ST0035 14 of 19; WP-15 canary 9 of 11 in-scope)
 
-**Intent v2.10.0 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) 14 of 19 Done. WP-15 (canary rollout) WIP -- Anvil committed and pushed (canary 2 of 16); surfaced + fixed a fleet-wide canon-installer gap (LEGACY single-file pre-commit migration); Anvil flyby fixes also landed (lazy_html `:only` + Anvil.Projects.create -> create_project for Ash 3.24 compat). Conflab + Lamplight deferred (busy); Pplr out of scope.** Two commits this session in Intent + one in Anvil. Tests **788/788 green**, doctor clean.
+**Intent v2.10.0 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) 14 of 19 Done. WP-15 (canary rollout) WIP at 9 of 11 in-scope.** This session ran a batch: Molt, Utilz, arca_cli, arca_config, arca_notionex, Prolix, MicroGPTEx -- all clean once stale `.intent/config.json` bumps were reset. Foreign pre-commit chained via marker block on every project. Reports under `intent/st/ST0035/WP/15/canary-reports/`. **Conflab + Lamplight still deferred (busy); Pplr out of scope.** Tests **788/788 green**, doctor clean.
 
 ### ST0035 shape
 
@@ -56,11 +56,11 @@ In commit order:
 - `docs/blog/_drafts/####-shell-critic-inception.md` -- blog draft. Laksa is the first real-world dogfood datapoint.
 - WP07 follow-ups from ST0034: align Diogenes fixture-context handling across critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures.
 
-### Resume target -- next canary (ST0035/WP-15 continued)
+### Resume target -- Conflab + Lamplight (last two canaries)
 
-User direction: do other fleet projects one at a time before Conflab/Lamplight (which are busy). Pplr is out of scope. Anvil and Laksa now done (2 of 16).
+9 of 11 in-scope projects done this session. The remaining two (Conflab, Lamplight) are deferred until they're free. The recipe is mature; both should follow the Molt/Prolix pattern (foreign pre-commit chained via marker block, no surprises). After both land, run `intent wp done ST0035/15` and proceed to WP-16/17/18.
 
-Candidates: **Molt**, **Utilz**, **Arca**, **Prolix**, **MicroGPTEx**, **Sites**. Pick the next one and apply the Laksa/Anvil recipe (the canon-installer now auto-migrates legacy single-file pre-commit projects):
+Recipe (proven across 9 canaries):
 
 1. `cd ~/Devel/prj/<project>` and check `git status` -- ensure clean tree (reset stale state if needed).
 2. `( cd ~/Devel/prj/<project> && /Users/matts/Devel/prj/Intent/bin/intent claude upgrade )` for the canon-installer dry-run.

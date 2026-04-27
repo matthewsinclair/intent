@@ -8,38 +8,41 @@
 4. **Read `intent/st/ST0035/WP/15/info.md`** -- WP-15 spec (note: `intent upgrade --dry-run` doesn't exist; Sites subdir doesn't exist; Pplr out of scope -- spec tidy-up is a sub-task before more canaries).
 5. **Read `intent/st/ST0035/WP/15/canary-reports/laksa.md` and `anvil.md`** -- both reports double as templates for the next canary (12-point verification commands; legacy migration note for older projects).
 
-## State (2026-04-27, end of session post-compact)
+## State (2026-04-27, end of session -- WP-15 canary 9 of 11 in-scope)
 
-**Intent v2.10.0. ST0035 14 of 19 Done. Anvil canary done (2 of 16 in-scope projects). Surfaced + fixed a fleet-wide canon-installer gap (LEGACY single-file pre-commit migration). Conflab + Lamplight deferred (busy); Pplr out of scope. Tests 788/788; doctor clean.**
+**Intent v2.10.0. ST0035 14 of 19 Done. WP-15 canary at 9 of 11 in-scope. Conflab + Lamplight deferred (busy); Pplr out of scope. Tests 788/788; doctor clean.**
+
+This session: batch-applied canon to Molt, Utilz, arca_cli, arca_config, arca_notionex, Prolix, MicroGPTEx. All pushed to `local`. Reports under `intent/st/ST0035/WP/15/canary-reports/`.
 
 - **VERSION**: `2.10.0`.
 - **Layout**: `intent/.config/`.
-- **Tests**: 788/788 green (was 785; +3 new MIGRATE_LEGACY_PRE_COMMIT scenarios).
+- **Tests**: 788/788 green.
 - **Doctor**: clean.
-- **Pre-commit canonical layout**: canon body at `pre-commit.intent`; chain stub at `pre-commit`. Fresh installs and legacy projects both produce the chained architecture.
+- **Pre-commit canonical layout**: canon body at `pre-commit.intent`; chain stub at `pre-commit`. Fresh installs, legacy single-file projects, and projects with foreign pre-commit hooks all converge on the chained architecture.
 
 ## What landed this session (newest first)
 
+- WP-15 batch: `docs:` commit covering 5 canary reports (arca_cli, arca_config, arca_notionex, Prolix, MicroGPTEx).
+- 7 project-side commits: Molt (`7abd972`), Utilz (`ed31017`), arca_cli (`2e7c14f`), arca_config (`ca85f26`), arca_notionex (`9de67e9`), Prolix (`4508e94`), MicroGPTEx (`b375d1f`). All pushed to `local`.
+- `3e113ff` -- WP-15 Utilz canary report.
+- `0a1d21e` -- WP-15 Molt canary report.
+- `17fc5ca` -- session wrap (post-compact, before this batch).
 - `0724f88` -- WP-15 Anvil canary report.
-- `d5b9203` -- canon-installer: LEGACY single-file pre-commit migration + INSTALL_PRE_COMMIT now installs chained architecture from the start. +3 BATS scenarios; fresh-install test asserts chained layout.
-- `39c63bd` (in **Anvil**) -- `Intent upgrade to 2.10.0` (user-authored single commit; canon application + flybys: lazy_html `:only` removal; Anvil.Projects.create -> create_project for Ash 3.24 compat).
+- `d5b9203` -- canon-installer: LEGACY single-file pre-commit migration + INSTALL_PRE_COMMIT now installs chained architecture from the start. +3 BATS scenarios.
+- `39c63bd` (in **Anvil**) -- `Intent upgrade to 2.10.0` (user-authored; canon + flybys).
 
-## Resume target -- next canary (ST0035/WP-15 continued)
+## Resume target -- Conflab + Lamplight (last two canaries)
 
-User direction: do other fleet projects one at a time before Conflab/Lamplight (busy). Pplr out of scope.
+9 of 11 in-scope done. Conflab + Lamplight deferred (busy). Recipe is mature -- just apply the same flow:
 
-Candidates: **Molt**, **Utilz**, **Arca**, **Prolix**, **MicroGPTEx**, **Sites**. Recipe (Laksa-tested):
+1. Clean tree (reset stale `.intent/config.json` bump if present).
+2. `( cd ~/Devel/prj/<project> && /Users/matts/Devel/prj/Intent/bin/intent upgrade )` -- one-pass chain + canon-apply.
+3. 12-point verification.
+4. Add `/AGENTS.md.bak` to project `.gitignore` if missing.
+5. Commit + push to `local` (NOT upstream).
+6. Write `intent/st/ST0035/WP/15/canary-reports/<project>.md` and commit in Intent.
 
-1. Clean tree on the canary project (reset any stale `.intent/config.json` bumps).
-2. `( cd ~/Devel/prj/<project> && /Users/matts/Devel/prj/Intent/bin/intent claude upgrade )` -- canon dry-run.
-3. `( cd ~/Devel/prj/<project> && /Users/matts/Devel/prj/Intent/bin/intent upgrade )` -- chain migration + canon-apply.
-4. 12-point verification (commands in Laksa's canary report).
-5. Add `/AGENTS.md.bak` to project `.gitignore` if missing.
-6. Commit + push to `local` (NOT upstream).
-7. Write `intent/st/ST0035/WP/15/canary-reports/<project>.md`.
-8. Commit the report in Intent.
-
-After 2-3 more canaries, consider switching to batch mode for the rest of the ecosystem.
+After both land, run `intent wp done ST0035/15` and proceed to WP-16/17/18.
 
 ## Risks for next session
 

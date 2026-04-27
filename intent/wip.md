@@ -1,5 +1,5 @@
 ---
-verblock: "27 Apr 2026:v0.57: matts - canon LEGACY pre-commit migration; Anvil canary 2 of 16"
+verblock: "27 Apr 2026:v0.58: matts - WP-15 canary batch 9 of 11 in-scope; Conflab + Lamplight deferred"
 intent_version: 2.10.0
 ---
 
@@ -7,7 +7,9 @@ intent_version: 2.10.0
 
 ## Current State
 
-**ST0035 14 of 19 Done. WP-15 canary 2 of 16 (Anvil) done; surfaced + fixed a fleet-wide canon-installer gap (LEGACY single-file pre-commit migration). Anvil flyby fixes also landed (lazy_html `:only` conflict; Anvil.Projects.create -> create_project for Ash 3.24 compat). 14 in-scope projects remain; Conflab + Lamplight deferred (busy); Pplr out of scope.** Tests: **788/788 green** (was 785; +3 new MIGRATE_LEGACY_PRE_COMMIT scenarios). Doctor: clean. Pre-commit canonical layout: canon body at `pre-commit.intent`; chain stub at `pre-commit`. Fresh installs and legacy projects now both produce the chained architecture.
+**ST0035 14 of 19 Done. WP-15 canary batch this session: Molt, Utilz, arca_cli, arca_config, arca_notionex, Prolix, MicroGPTEx (canaries 3-9 of 11 in-scope; Laksa + Anvil were 1-2). 9 of 11 in-scope done; 2 deferred (Conflab + Lamplight, both busy); Pplr out of scope. All 12-point verifications pass; canon recipe is mature.** Tests: **788/788 green**. Doctor: clean.
+
+Three projects (Utilz, arca_notionex, MicroGPTEx) gitignore `.claude/` by existing convention; canon session hooks present on disk but not tracked -- track for the WP-17 dogfood journal.
 
 ## ST0035 progress
 
@@ -27,13 +29,15 @@ intent_version: 2.10.0
 | Done        | 12  | Socrates/Diogenes FAQ cross-refs                                                      | XS   |
 | Done        | 13  | Update Intent's own CLAUDE.md                                                         | S    |
 | Done        | 14  | Self-apply canon to Intent (dogfood; verification sweep post-WP08)                    | S    |
-| WIP         | 15  | Canary rollout (Laksa done; Conflab + Lamplight deferred -- busy)                     | M    |
+| WIP         | 15  | Canary rollout (9 of 11 in-scope; Conflab + Lamplight deferred)                       | M    |
 | Not Started | 16  | Fleet rollout (Intent ecosystem; Pplr out of scope) -- 12-point checklist per WP-09   | L    |
 | Not Started | 17  | Verification sweep + dogfood journal (12-point per project)                           | S    |
 | Not Started | 18  | Review and update (or retire) `intent/usr/*.md`                                       | M    |
 | Not Started | 19  | Per-language canon: `intent lang init` + `intent init --lang` (added 2026-04-27)      | M    |
 
 ## Recent
+
+- **2026-04-27 (this session, batch run)**: WP-15 canary batch -- 7 projects applied, committed, pushed to `local`, reports written. Canaries in order: Molt (`7abd972`), Utilz (`ed31017`), arca_cli (`2e7c14f`), arca_config (`ca85f26`), arca_notionex (`9de67e9`), Prolix (`4508e94`), MicroGPTEx (`b375d1f`). Each: pre-flight reset of stale `.intent/config.json` bump (where present), `intent upgrade` chain `2.9.0 -> 2.10.0` (or `2.8.2 -> 2.10.0` for Utilz), foreign pre-commit chained via marker block, `/AGENTS.md.bak` added to `.gitignore`. All 12-point verifications pass; no canon-installer surprises this batch (the LEGACY single-file path that the previous session added didn't fire on any of these -- they all had foreign pre-commit hooks). Reports at `intent/st/ST0035/WP/15/canary-reports/`.
 
 - **2026-04-27 (this session, post-compact)**: Anvil canary done; canon-installer LEGACY single-file pre-commit migration added; fresh-install path also now produces chained architecture from the start. Two commits in Intent + one in Anvil:
   - `d5b9203` -- canon-installer: new `MIGRATE_LEGACY_PRE_COMMIT` action (detect canon body at `pre-commit` with no `pre-commit.intent` -> mv canon body, write chain stub). `INSTALL_PRE_COMMIT` updated to install chained architecture from the start. +3 new BATS scenarios; fresh-install test asserts chained layout. 788/788 green (was 785).
@@ -63,10 +67,11 @@ intent_version: 2.10.0
 
 ## Next Up
 
-1. **ST0035/WP-15 (next canary)** -- per user direction, "do other projects one at a time before Conflab/Lamplight". Candidates: **Molt**, **Utilz**, **Arca**, **Prolix**, **MicroGPTEx**, **Sites** (Pplr explicitly out of scope; doesn't need intent). Pick the next one and apply the same recipe (`intent upgrade`, 12-point verify, commit + push to `local`, write `intent/st/ST0035/WP/15/canary-reports/<project>.md`). Watch for `LEGACY (single-file)` pre-commit migration on older projects -- automatic now.
-2. **WP-15 spec tidy-up** (S) -- before more canaries: fix `intent upgrade --dry-run` reference (doesn't exist), drop the "Sites subdir" check (Laksa doesn't have one), drop Pplr (out of scope), and clarify that the canary is now 16 projects, not 3.
-3. **ST0035/WP-16/WP-17/WP-18** -- queued per existing plan.
-4. **ST0035/WP-19** -- Phase 0 elaborated; implementation independent; M (2-3 sessions).
+1. **Conflab + Lamplight** (deferred, busy). When free: pick up the same recipe. Both expected to behave like the rest of the fleet (foreign pre-commit chained via marker block).
+2. **WP-15 spec tidy-up** (S) -- fix `intent upgrade --dry-run` reference (doesn't exist), drop the "Sites subdir" check, drop Pplr (out of scope), reflect the actual in-scope count (11 projects: Laksa, Anvil, Molt, Utilz, arca_cli/config/notionex, Prolix, MicroGPTEx, Conflab, Lamplight).
+3. **`intent wp done ST0035/15`** once Conflab + Lamplight land (or once user calls the canary closed at 9 of 11).
+4. **ST0035/WP-16/WP-17/WP-18** -- queued per existing plan. WP-17's dogfood journal should capture the `.claude/`-gitignored projects (Utilz, arca_notionex, MicroGPTEx) and decide whether to override the gitignore policy for those.
+5. **ST0035/WP-19** -- Phase 0 elaborated; implementation independent; M (2-3 sessions).
 
 ## Deferred observations
 
