@@ -1,5 +1,5 @@
 ---
-verblock: "27 Apr 2026:v0.56: matts - WP-14 done; canon-installer fixes; Laksa canary 1 of 17"
+verblock: "27 Apr 2026:v0.56: matts - WP-14 done; canon-installer fixes; Laksa canary 1 of 16"
 intent_version: 2.10.0
 ---
 
@@ -53,7 +53,7 @@ intent_version: 2.10.0
 1. **Auto-insert beats manual paste**: canon-installer's `CHAIN_PRE_COMMIT` now auto-inserts the markered chain block rather than printing a snippet for the user to paste. Marker pair (`intent-chain-block:start/end`) makes re-application a guaranteed no-op. Insert location: after shebang + leading `set -*` lines, before the body.
 2. **REVIEW warnings only on verbatim \_default**: per the canon-installer, RULES.md / ARCHITECTURE.md "REVIEW" reminders now fire only when the project file is byte-identical to the `_default` template. Customised content suppresses the warning (so legitimate downstream projects aren't nagged).
 3. **Per-developer settings.local.json should not be tracked**: paths and tool allowlists vary by user. Gitignored + removed from index. `/AGENTS.md.bak` similarly gitignored (regen safety net).
-4. **Laksa is "canary 1 of 17"**, not strictly "canary 1 of 3"\*\*: per user, Conflab and Lamplight are busy. Strategy: do other fleet projects one at a time; come back to Conflab/Lamplight when free; switch to batch mode once enough confidence accumulates.
+4. **Laksa is "canary 1 of 16", not strictly "canary 1 of 3"**. Per user, Conflab and Lamplight are busy and Pplr is out of scope. Strategy: do other fleet projects one at a time; come back to Conflab/Lamplight when free; switch to batch mode once enough confidence accumulates.
 
 ## Next Up
 
