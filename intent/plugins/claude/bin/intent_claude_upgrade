@@ -719,7 +719,8 @@ else
   if [ -f "$PRE_COMMIT_PATH" ]; then
     if grep -qF "intent critic gate" "$PRE_COMMIT_PATH" 2>/dev/null; then
       if canon_files_identical "$CANON_PRE_COMMIT_SRC" "$PRE_COMMIT_PATH"; then
-        canon_print ".git/hooks/pre-commit" "${GREEN}UP TO DATE${NC}"
+        canon_print ".git/hooks/pre-commit" "${YELLOW}LEGACY (single-file; migrating to chained)${NC}"
+        add_action "MIGRATE_LEGACY_PRE_COMMIT"
       else
         canon_print ".git/hooks/pre-commit" "${YELLOW}DIVERGED${NC}"
         add_action "INSTALL_PRE_COMMIT"
@@ -1079,12 +1080,19 @@ for action in "${ACTIONS[@]}"; do
       ;;
 
     INSTALL_PRE_COMMIT)
-      if [ -z "$PRE_COMMIT_PATH" ]; then
+      if [ -z "$PRE_COMMIT_PATH" ] || [ -z "$PRE_COMMIT_INTENT_PATH" ]; then
         echo -e "  ${YELLOW}skipped${NC}: cannot resolve git hooks dir (no .git or git unavailable)"
       else
-        echo "  Installing $PRE_COMMIT_PATH..."
-        canon_install_script "$CANON_PRE_COMMIT_SRC" "$PRE_COMMIT_PATH"
-        echo -e "    ${GREEN}ok${NC} (+x; severity threshold from .intent_critic.yml)"
+        echo "  Installing $PRE_COMMIT_INTENT_PATH (canon body)..."
+        canon_install_script "$CANON_PRE_COMMIT_SRC" "$PRE_COMMIT_INTENT_PATH"
+        echo "  Installing $PRE_COMMIT_PATH (chain stub)..."
+        cat > "$PRE_COMMIT_PATH" <<'PRECOMMIT'
+#!/usr/bin/env bash
+set -u
+PRECOMMIT
+        chmod +x "$PRE_COMMIT_PATH"
+        canon_insert_chain_block "$PRE_COMMIT_PATH"
+        echo -e "    ${GREEN}ok${NC} (chained architecture; severity threshold from .intent_critic.yml)"
       fi
       ;;
 
@@ -1108,6 +1116,27 @@ for action in "${ACTIONS[@]}"; do
         echo "  Inserting intent-chain-block into $PRE_COMMIT_PATH..."
         canon_insert_chain_block "$PRE_COMMIT_PATH"
         echo -e "    ${GREEN}ok${NC} (idempotent; pre-commit now invokes pre-commit.intent)"
+      fi
+      ;;
+
+    MIGRATE_LEGACY_PRE_COMMIT)
+      if [ -z "$PRE_COMMIT_INTENT_PATH" ] || [ -z "$PRE_COMMIT_PATH" ]; then
+        echo -e "  ${YELLOW}skipped${NC}: cannot resolve git hooks dir (no .git or git unavailable)"
+      else
+        if [ ! -f "$PRE_COMMIT_INTENT_PATH" ]; then
+          echo "  Migrating legacy single-file pre-commit (canon body -> pre-commit.intent)..."
+          mv "$PRE_COMMIT_PATH" "$PRE_COMMIT_INTENT_PATH"
+        else
+          echo "  pre-commit.intent already present; replacing pre-commit with chain stub..."
+          rm -f "$PRE_COMMIT_PATH"
+        fi
+        cat > "$PRE_COMMIT_PATH" <<'PRECOMMIT'
+#!/usr/bin/env bash
+set -u
+PRECOMMIT
+        chmod +x "$PRE_COMMIT_PATH"
+        canon_insert_chain_block "$PRE_COMMIT_PATH"
+        echo -e "    ${GREEN}ok${NC} (canon body at pre-commit.intent; pre-commit chain stub generated)"
       fi
       ;;
 

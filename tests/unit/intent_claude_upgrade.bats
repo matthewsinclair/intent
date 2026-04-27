@@ -67,8 +67,12 @@ tree_snapshot() {
   [ -x "$PROJ_DIR/.claude/scripts/session-context.sh" ] || fail "session-context.sh not executable"
   [ -x "$PROJ_DIR/.git/hooks/pre-commit" ] || fail "pre-commit hook not executable"
 
-  # The pre-commit carries our marker so the next probe identifies it.
-  assert_file_contains "$PROJ_DIR/.git/hooks/pre-commit" "intent critic gate"
+  # Chained architecture: canon body lives at pre-commit.intent; pre-commit
+  # is a chain stub that delegates via the marker block.
+  assert_file_exists "$PROJ_DIR/.git/hooks/pre-commit.intent"
+  [ -x "$PROJ_DIR/.git/hooks/pre-commit.intent" ] || fail "pre-commit.intent not executable"
+  assert_file_contains "$PROJ_DIR/.git/hooks/pre-commit.intent" "intent critic gate"
+  assert_file_contains "$PROJ_DIR/.git/hooks/pre-commit" "intent-chain-block:start"
   # CLAUDE.md carries the Intent footer marker (so refresh path activates).
   assert_file_contains "$PROJ_DIR/CLAUDE.md" "Generated from"
 }
@@ -218,6 +222,64 @@ PCH
   if echo "$output" | grep -q "Insert intent-chain-block"; then
     fail "plan still contains chain-block action when CHAINED"
   fi
+}
+
+@test "legacy single-file pre-commit (canon body verbatim) is migrated to chained" {
+  init_scratch legacy_migrate
+
+  # Simulate legacy install pattern (pre-chaining era): canon body sits at
+  # pre-commit, no pre-commit.intent. Wipe what init_scratch produced and
+  # plant the canon body directly at pre-commit.
+  rm -f "$PROJ_DIR/.git/hooks/pre-commit" "$PROJ_DIR/.git/hooks/pre-commit.intent"
+  cp "$INTENT_PROJECT_ROOT/lib/templates/hooks/pre-commit.sh" "$PROJ_DIR/.git/hooks/pre-commit"
+  chmod +x "$PROJ_DIR/.git/hooks/pre-commit"
+
+  run run_intent claude upgrade --apply
+  assert_success
+
+  # Canon body relocated to pre-commit.intent.
+  assert_file_exists "$PROJ_DIR/.git/hooks/pre-commit.intent"
+  [ -x "$PROJ_DIR/.git/hooks/pre-commit.intent" ] || fail "pre-commit.intent not executable"
+  assert_file_contains "$PROJ_DIR/.git/hooks/pre-commit.intent" "intent critic gate"
+
+  # pre-commit reduced to a chain stub.
+  assert_file_contains "$PROJ_DIR/.git/hooks/pre-commit" "intent-chain-block:start"
+  assert_file_contains "$PROJ_DIR/.git/hooks/pre-commit" "pre-commit.intent"
+  if grep -qF "intent critic gate" "$PROJ_DIR/.git/hooks/pre-commit"; then
+    fail "pre-commit still contains canon body after migration"
+  fi
+}
+
+@test "dry-run reports LEGACY when canon body sits at pre-commit (no pre-commit.intent)" {
+  init_scratch legacy_detect
+
+  rm -f "$PROJ_DIR/.git/hooks/pre-commit" "$PROJ_DIR/.git/hooks/pre-commit.intent"
+  cp "$INTENT_PROJECT_ROOT/lib/templates/hooks/pre-commit.sh" "$PROJ_DIR/.git/hooks/pre-commit"
+  chmod +x "$PROJ_DIR/.git/hooks/pre-commit"
+
+  run run_intent claude upgrade
+  assert_success
+  assert_output_contains "LEGACY"
+  assert_output_contains "single-file"
+}
+
+@test "legacy migration is idempotent (re-apply after migration is a no-op)" {
+  init_scratch legacy_idem
+
+  rm -f "$PROJ_DIR/.git/hooks/pre-commit" "$PROJ_DIR/.git/hooks/pre-commit.intent"
+  cp "$INTENT_PROJECT_ROOT/lib/templates/hooks/pre-commit.sh" "$PROJ_DIR/.git/hooks/pre-commit"
+  chmod +x "$PROJ_DIR/.git/hooks/pre-commit"
+
+  run_intent claude upgrade --apply >/dev/null 2>&1
+  first_pc="$(shasum "$PROJ_DIR/.git/hooks/pre-commit" | awk '{print $1}')"
+  first_pci="$(shasum "$PROJ_DIR/.git/hooks/pre-commit.intent" | awk '{print $1}')"
+
+  run_intent claude upgrade --apply >/dev/null 2>&1
+  second_pc="$(shasum "$PROJ_DIR/.git/hooks/pre-commit" | awk '{print $1}')"
+  second_pci="$(shasum "$PROJ_DIR/.git/hooks/pre-commit.intent" | awk '{print $1}')"
+
+  [ "$first_pc" = "$second_pc" ] || fail "pre-commit re-modified on idempotent re-apply ($first_pc -> $second_pc)"
+  [ "$first_pci" = "$second_pci" ] || fail "pre-commit.intent re-modified on idempotent re-apply ($first_pci -> $second_pci)"
 }
 
 @test "REVIEW warning fires only when RULES/ARCH match _default verbatim" {
