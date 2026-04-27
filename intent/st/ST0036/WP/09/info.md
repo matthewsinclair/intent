@@ -3,7 +3,7 @@ verblock: "26 Apr 2026:v0.2: matts - Phase 0 forensic detail"
 wp_id: WP-09
 title: "Merge with ST0035 fleet rollout (coord)"
 scope: Extra Small
-status: Not Started
+status: Done
 ---
 
 # WP-09: Merge with ST0035 fleet rollout (coordination bucket)

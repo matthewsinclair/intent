@@ -8,6 +8,8 @@ status: Not Started
 
 # WP-17: Verification sweep and dogfood journal
 
+> **Coordination note (ST0036/WP-09)**: this verification sweep covers both ST0035 (LLM canon) and ST0036 (directory relocation). The per-project checklist is 12 points (10 ST0035 + 2 ST0036; defined in WP-15). The feedback-report and dogfood-journal must capture both concerns. See `intent/st/ST0036/impl.md` for bundled-release rationale.
+
 ## Objective
 
 After the fleet rollout (WP16), sweep all 17 projects (Intent self + 16 downstream) for compliance with the canon. Produce a ST0035 feedback report and a dogfood journal capturing surprises, rough edges, and lessons. Close the ST, mark CHANGELOG v2.10.0 final, push upstream.
@@ -22,7 +24,7 @@ The dogfood journal is not optional — it's the load-bearing QA signal. Every r
 
 1. **Fleet-wide verification report** at `intent/st/ST0035/WP/17/feedback-report.md`:
    - 17 rows (one per project + Intent).
-   - 10-point verification checklist per project (same as WP15 / WP16).
+   - 12-point verification checklist per project (10 ST0035 + 2 ST0036; defined in WP-15).
    - Pass / fail per check.
    - Any outstanding issues with tickets filed.
 2. **Dogfood journal** at `intent/st/ST0035/WP/17/dogfood-journal.md`:
@@ -43,7 +45,7 @@ The dogfood journal is not optional — it's the load-bearing QA signal. Every r
 
 ## Approach
 
-1. Walk through each of 17 projects (Intent + 16 downstream) and run the 10-point verification, capturing results.
+1. Walk through each of 17 projects (Intent + 16 downstream) and run the 12-point verification, capturing results.
 2. Assemble the feedback report (table form).
 3. Review WP-by-WP commit logs + per-WP reports (from WP14/WP15/WP16) to assemble dogfood journal entries.
 4. Draft CHANGELOG v2.10.0:
@@ -84,7 +86,7 @@ None.
 
 ## Implementation Notes
 
-- **Feedback report as a matrix**: 17 × 10 = 170 cells. Most will be green. Format as a compact markdown table; abbreviate check names in headers.
+- **Feedback report as a matrix**: 17 × 12 = 204 cells. Most will be green. Format as a compact markdown table; abbreviate check names in headers.
 - **Dogfood journal voice**: first-person or passive voice, whichever feels natural. Focus on _surprises_, not confirmations. "The XY generator needed an extra path-escape step" matters; "canon applied successfully" is not journal-worthy.
 - **CHANGELOG format**: follow Intent's existing CHANGELOG.md style. Check previous v2.9.0 entry as template.
 - **Tag push confirmation**: per user's past convention (from memory), tag workflow is `git tag -f vX.Y.Z HEAD` then force-push to both remotes. Confirm with user before force-pushing if any ambiguity.

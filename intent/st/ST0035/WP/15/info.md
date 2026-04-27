@@ -8,6 +8,8 @@ status: Not Started
 
 # WP-15: Canary rollout to Conflab, Lamplight, Laksa
 
+> **Coordination note (ST0036/WP-09)**: this canary now carries both ST0035 (LLM canon) and ST0036 (directory relocation) concerns. `intent upgrade` invokes `migrate_v2_9_0_to_v2_10_0` which performs the relocation + canon-apply in a single pass. Verification has 12 points (10 ST0035 + 2 ST0036). See `intent/st/ST0036/impl.md` for the bundled-release rationale.
+
 ## Objective
 
 Apply ST0035 canon to three canary projects — Conflab, Lamplight, Laksa — before sweeping the rest of the fleet. These three are all full-spectrum Elixir projects with existing `intent/llm/` content and (in Conflab's case) pre-installed `.claude/skills/`. They exercise every canon artefact; if they come through clean, the fleet sweep (WP16) is low-risk.
@@ -31,7 +33,7 @@ If any canary project reveals an issue, fix it in the canon (earlier WPs), re-ap
 2. **Per-project verification report** in `intent/st/ST0035/WP/15/canary-reports/<project>.md` with:
    - Dry-run output.
    - Apply output.
-   - 10-point checklist results.
+   - 12-point checklist results.
    - Any issues encountered.
    - Outcome: pass / fix-required / blocked.
 3. **Aggregate canary report** at `intent/st/ST0035/WP/15/canary-summary.md` with findings across all three.
@@ -50,8 +52,8 @@ If any canary project reveals an issue, fix it in the canon (earlier WPs), re-ap
 6. `intent upgrade --apply` — execute stamp bump.
 7. `intent claude upgrade --apply` — execute canon apply.
 8. Review `git diff` / `git status`.
-9. Run 10-point verification:
-   - config.json at 2.9.1.
+9. Run 12-point verification:
+   - config.json at 2.10.0 (in `intent/.config/config.json`, post-ST0036 location).
    - Root AGENTS.md real file, not symlink.
    - intent/llm/AGENTS.md absent.
    - Root usage-rules.md present.
@@ -61,10 +63,12 @@ If any canary project reveals an issue, fix it in the canon (earlier WPs), re-ap
    - SessionStart reminder observed in a Claude Code session.
    - Pre-commit blocks on staged violation.
    - `intent critic <lang>` produces report.
+   - **ST0036 (11)**: `[ -d intent/.config ]` -- new layout present.
+   - **ST0036 (12)**: `[ ! -d .intent ]` -- legacy directory absent (no leftover).
 10. For Conflab specifically: verify pre-existing `.claude/skills/` installs survive the upgrade.
 11. For Lamplight specifically: verify `mix usage_rules.sync` (if run) still produces correct output and doesn't conflict with Intent's refreshed root `usage-rules.md`.
 12. For Laksa specifically: verify Sites subdir is untouched.
-13. Commit: `chore: apply ST0035 canon (v2.9.1 rollout canary)`.
+13. Commit: `chore: apply ST0035 + ST0036 canon (v2.10.0 rollout canary)`.
 14. Push to `local` remote (Dropbox) as per project convention.
 15. Document in canary report.
 16. Return to Intent repo and update summary.
@@ -76,8 +80,9 @@ If any canary project reveals an issue, fix it in the canon (earlier WPs), re-ap
 
 ## Acceptance Criteria
 
-- [ ] All three projects have `intent_version: 2.9.1` in `.intent/config.json`.
-- [ ] All three projects pass the 10-point verification checklist.
+- [ ] All three projects have `intent_version: 2.10.0` in `intent/.config/config.json` (post-ST0036 location).
+- [ ] All three projects have no leftover `.intent/` directory after upgrade.
+- [ ] All three projects pass the 12-point verification checklist (10 from ST0035 + 2 from ST0036).
 - [ ] All three projects have their changes committed and pushed.
 - [ ] Per-project reports written to `intent/st/ST0035/WP/15/canary-reports/<project>.md`.
 - [ ] Aggregate summary at `intent/st/ST0035/WP/15/canary-summary.md`.

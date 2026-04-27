@@ -8,6 +8,8 @@ status: Not Started
 
 # WP-16: Fleet rollout to remaining 13 projects
 
+> **Coordination note (ST0036/WP-09)**: this fleet rollout carries both ST0035 (LLM canon) and ST0036 (directory relocation) concerns in a single `intent upgrade` per project. Verification is the 12-point checklist defined in WP-15 (10 ST0035 + 2 ST0036). Per-project reports must capture both directory-state outcomes (`intent/.config/` present, `.intent/` absent).
+
 ## Objective
 
 Apply ST0035 canon to the remaining 13 Intent-using projects after a clean canary (WP15): 12 existing Intent projects + Pplr (via `intent init` to bring it into the fleet). Zero rollbacks target. Per-project report for each.
@@ -38,7 +40,7 @@ Explicitly excluded (per ST0035 scope): Sites (handled inside Laksa as subdir), 
 
 1. **Canon applied to all 13 projects**, one commit each in each project's repo. Pushed to `local` remote per convention.
 2. **Per-project reports** at `intent/st/ST0035/WP/16/fleet-reports/<project>.md`. Same format as WP15 canary reports.
-3. **Aggregate fleet summary** at `intent/st/ST0035/WP/16/fleet-summary.md` listing 10-point verification outcomes for all 13.
+3. **Aggregate fleet summary** at `intent/st/ST0035/WP/16/fleet-summary.md` listing 12-point verification outcomes for all 13.
 4. **Pplr-specific handling**: `intent init` bootstrap documented; user's pre-existing `usage-rules.md` preserved / merged.
 5. **Arca/\* symlink replacement note**: document the symlink-to-realfile migration in each Arca project's report — it's a distinct case that needs visible confirmation.
 6. **Multiplyer AGENTS.md creation**: confirmed via dry-run and apply.
@@ -54,7 +56,7 @@ Explicitly excluded (per ST0035 scope): Sites (handled inside Laksa as subdir), 
 4. `intent upgrade --dry-run` (stamp bump preview).
 5. `intent claude upgrade --dry-run` (canon preview).
 6. Apply both.
-7. 10-point verification.
+7. 12-point verification.
 8. Commit.
 9. Push to `local`.
 10. Write report.
@@ -89,12 +91,13 @@ Execute in this order to catch related issues early:
 
 ## Acceptance Criteria
 
-- [ ] All 13 projects have `intent_version: 2.9.1` in `.intent/config.json`.
-- [ ] All 13 projects pass the 10-point verification checklist.
+- [ ] All 13 projects have `intent_version: 2.10.0` in `intent/.config/config.json` (post-ST0036 location).
+- [ ] All 13 projects have no leftover `.intent/` directory after upgrade.
+- [ ] All 13 projects pass the 12-point verification checklist (10 ST0035 + 2 ST0036; defined in WP-15).
 - [ ] All 13 projects' changes committed and pushed to `local`.
 - [ ] Per-project reports written.
 - [ ] Aggregate fleet summary committed in Intent's repo.
-- [ ] Pplr is now an Intent project (.intent/config.json present) with canon applied.
+- [ ] Pplr is now an Intent project (`intent/.config/config.json` present) with canon applied.
 - [ ] Arca/\* root `AGENTS.md` are real files (`! test -L AGENTS.md`); no symlinks.
 - [ ] Multiplyer now has a root `AGENTS.md`.
 - [ ] Zero rollbacks during the sweep.
@@ -135,7 +138,7 @@ None.
 
 ## Verification Steps
 
-Per project: 10-point checklist (as in WP15). Aggregate sweep.
+Per project: 12-point checklist (as in WP15). Aggregate sweep.
 
 ## Size and Estimate
 
