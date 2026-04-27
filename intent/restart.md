@@ -1,18 +1,17 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-04-27, end of session -- ST0035 14 of 19; WP-15 canary 9 of 11 in-scope)
+## Current state (2026-04-27, end of session -- ST0035 15 of 19; WP-15 closed)
 
-**Intent v2.10.0 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) 14 of 19 Done. WP-15 (canary rollout) WIP at 9 of 11 in-scope.** This session ran a batch: Molt, Utilz, arca_cli, arca_config, arca_notionex, Prolix, MicroGPTEx -- all clean once stale `.intent/config.json` bumps were reset. Foreign pre-commit chained via marker block on every project. Reports under `intent/st/ST0035/WP/15/canary-reports/`. **Conflab + Lamplight still deferred (busy); Pplr out of scope.** Tests **788/788 green**, doctor clean.
+**Intent v2.10.0 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) 15 of 19 Done. WP-15 (canary rollout) closed: 11 of 11 in-scope canaries pass.** This session post-compact: Conflab + Lamplight canary reports committed, WP-15 spec tidied to match as-built reality (11 in-scope, not the original 3), aggregate summary at `canary-summary.md` documenting all outcomes + canon-installer refinements + decision to proceed to WP-16. Plus housekeeping in `~/.claude` global repo (folded `/in-start` into `/in-session`, expanded `.gitignore`, checked in months of curated agents + skills + config; pushed to `matthewsinclair/cfg-claude`). Tests **791/791 green**; doctor clean.
 
 ### ST0035 shape
 
-- **Done (14)**: WP01-WP14.
-- **WIP (1)**: WP15 (Laksa done; 15 in-scope projects remaining).
+- **Done (15)**: WP01-WP15.
 - **Not Started (4)**: WP16, WP17, WP18, WP19.
 
-WP14 closed via `intent wp done ST0035/14` after the verification sweep + hardening pass. Five canon-installer fixes and two doc populations followed (Intent's RULES.md + ARCHITECTURE.md). Laksa was the first canary; the auto-insert chain block worked end-to-end (the Laksa commit itself triggered the chain → critic → ok).
+WP-15 closed via `intent wp done ST0035/15` after writing the aggregate `canary-summary.md`. Spec was tidied to match as-built (11 in-scope projects, not the original Conflab/Lamplight/Laksa trio; non-existent `intent upgrade --dry-run` removed; Sites subdir check dropped). Three canon-installer refinements landed mid-canary and were baked back into Intent: `MIGRATE_LEGACY_PRE_COMMIT`, `CHAIN_PRE_COMMIT` auto-insert, `NORMALIZE_GITIGNORE`.
 
-Critical path remaining: `WP15 (canaries continued) -> WP16 (fleet) -> WP17 (verification + dogfood journal)`. WP18 (`intent/usr/*.md` audit) parallel; must land before WP17. WP19 (per-language canon) independent.
+Critical path remaining: `WP-16 (fleet reconciliation) -> WP-17 (verification + dogfood journal)`. WP-18 (`intent/usr/*.md` audit) parallel; must land before WP-17. WP-19 (per-language canon) independent.
 
 ### Progress this session (two commits + one in Anvil)
 
@@ -45,32 +44,37 @@ In commit order:
 
 ### Lessons worth keeping (this session)
 
-- **Auto-insert beats manual paste.** The previous "print snippet, ask user to paste" flow left a known-deferred state on every project (WP-08 had a "deferred: chain block not active" line). Replacing the snippet print with a markered idempotent insert removed the deferred bucket entirely. Marker pair detection makes re-runs a guaranteed no-op.
-- **REVIEW warnings should be conditional, not unconditional.** Firing the same warning on every project that has any RULES.md was noise. Comparing against `TEMPLATES_SOURCE/_default/RULES.md` via `cmp -s` makes the warning meaningful: it only fires when the user really hasn't customised yet.
-- **Linter-vs-generator oscillation is a real bug.** The `---` footer in AGENTS.md needed a trailing blank line to match prettier's output. Without it, every regen would silently flip the file back-and-forth. The MD5 check from WP-14 surfaced this on the second re-apply.
-- **Pre-flight on canary projects matters.** Laksa had a stale manual config bump; resetting to HEAD let the migration write the canonical version end-to-end. Canary discipline: clean tree -> clean migration.
-- **WP-15 spec drift**: `intent upgrade --dry-run` doesn't exist; Sites subdir was assumed; "12 + Pplr" is now "ecosystem minus Pplr". Worth tidying before more canaries.
+- **`/in-start` and `/in-session` should be one command.** Different lifecycle moments but almost every post-compact session needed both. SessionStart hook only nudged `/in-session`, so `/in-start` got forgotten. Folded the orientation steps into `/in-session` step 1; standalone `/in-start` retained for the rare orientation-only case. Pattern: when two commands "almost always go together", fold them and keep the rare-case one separate.
+- **WP-15 spec tidy is a closure pattern.** When a WP's plan diverges from execution (scope expanded, references go stale), the cleanest closure is: tidy spec to reflect as-built, write aggregate summary, mark done. Don't try to re-litigate the original plan -- preserve as a "scope as built" note and move on.
+- **Canon-installer issues caught early via canary discipline.** Three new actions (`MIGRATE_LEGACY_PRE_COMMIT`, `CHAIN_PRE_COMMIT` auto-insert, `NORMALIZE_GITIGNORE`) were all surfaced by canary projects, baked into Intent, then re-applied across remaining canaries. Cheap because each canary is small and isolated; expensive if surfaced after fleet rollout.
+- **Personal repos accumulate noise without `.gitignore` discipline.** `~/.claude` had 1.6GB of session transcripts as untracked because no gitignore covered `projects/`. Always `.gitignore` runtime dirs early; check periodically that the repo's working-tree noise reflects actual user-intent additions, not Claude Code runtime droppings.
 
 ### Open follow-ups (outside ST0035)
 
 - `docs/blog/_drafts/####-shell-critic-inception.md` -- blog draft. Laksa is the first real-world dogfood datapoint.
 - WP07 follow-ups from ST0034: align Diogenes fixture-context handling across critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures.
 
-### Resume target -- Conflab + Lamplight (last two canaries)
+### Resume target -- WP-16 reconciliation (S/M)
 
-9 of 11 in-scope projects done this session. The remaining two (Conflab, Lamplight) are deferred until they're free. The recipe is mature; both should follow the Molt/Prolix pattern (foreign pre-commit chained via marker block, no surprises). After both land, run `intent wp done ST0035/15` and proceed to WP-16/17/18.
+WP-15 closed. WP-16 ("Fleet rollout to remaining 13 projects") is significantly out of date and needs the same as-built tidy WP-15 just got:
 
-Recipe (proven across 9 canaries):
+- **8 of WP-16's original 13 projects were absorbed into WP-15 canary**: Anvil, arca_cli, arca_config, arca_notionex, MicroGPTEx, Molt, Prolix, Utilz. Reports already at `intent/st/ST0035/WP/15/canary-reports/`.
+- **4-5 projects were user-manually upgraded between sessions**: Multiplyer, MeetZaya, Molt-matts, Courses/Agentic Coding, A3/a3-content. User confirmed all on v2.10.0 with `intent upgrade`. No formal canary reports exist for these.
+- **Pplr is now out of scope** per user (does not need intent).
 
-1. `cd ~/Devel/prj/<project>` and check `git status` -- ensure clean tree (reset stale state if needed).
-2. `( cd ~/Devel/prj/<project> && /Users/matts/Devel/prj/Intent/bin/intent claude upgrade )` for the canon-installer dry-run.
-3. `( cd ~/Devel/prj/<project> && /Users/matts/Devel/prj/Intent/bin/intent upgrade )` to do the migration chain (Phase 1 relocate, Phase 2 stamp, Phase 3 canon-apply).
-4. Run the 12-point verification (script in `intent/st/ST0035/WP/15/canary-reports/laksa.md` for the exact commands).
-5. Add `/AGENTS.md.bak` to the project's `.gitignore` if missing.
-6. `git add -A && git commit` with the canary message.
-7. `git push local main` (NOT upstream).
-8. Write `intent/st/ST0035/WP/15/canary-reports/<project>.md` (use Laksa's report as a template).
-9. Commit the report in Intent.
+WP-16 task: tidy spec to reflect as-built; write `fleet-summary.md` documenting the 5 user-manual projects (CLI verification: `intent_version` + `intent/.config/` present + chain block markers + .gitignore canonical); `intent wp done ST0035/16`. Caveats to capture in summary: Multiplyer has a known test failure (File.ls!/1 in catalog/sources/filesystem.ex:111 against stale fixture path); MeetZaya does not compile. Both user-out-of-scope flags.
+
+Recipe for the verification step (per project):
+
+```bash
+cd ~/Devel/prj/<project> && \
+  jq -r '.intent_version' intent/.config/config.json && \
+  [ -d intent/.config ] && [ ! -d .intent ] && echo "layout: ok" && \
+  grep -q 'intent-chain-block:start' .git/hooks/pre-commit && echo "chain: ok" && \
+  grep -q '^.claude/settings.local.json' .gitignore && echo "gitignore: ok"
+```
+
+After WP-16 closes, proceed to WP-17 (verification sweep + dogfood journal) and WP-18 (`intent/usr/*.md` audit) in parallel.
 
 ### Session conventions (carry forward)
 

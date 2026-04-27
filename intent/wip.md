@@ -1,5 +1,5 @@
 ---
-verblock: "27 Apr 2026:v0.60: matts - canon-installer NORMALIZE_GITIGNORE; fleet .gitignore uniform"
+verblock: "27 Apr 2026:v0.61: matts - WP-15 closed; 11 of 11 in-scope canaries pass; aggregate summary written"
 intent_version: 2.10.0
 ---
 
@@ -7,7 +7,7 @@ intent_version: 2.10.0
 
 ## Current State
 
-**ST0035 14 of 19 Done. WP-15 canary batch this session: Molt, Utilz, arca_cli, arca_config, arca_notionex, Prolix, MicroGPTEx (canaries 3-9 of 11 in-scope; Laksa + Anvil were 1-2). 9 of 11 in-scope done; 2 deferred (Conflab + Lamplight, both busy); Pplr out of scope. All 12-point verifications pass; canon recipe is mature. Canon-installer now manages `.gitignore` normalisation (`NORMALIZE_GITIGNORE` action): replaces overly-broad `.claude` ignore with `.claude/settings.local.json`, appends `/AGENTS.md.bak` if missing. Applied across all 9 in-scope canaries -- fleet now uniform.** Tests: **791/791 green** (was 788; +3 NORMALIZE scenarios). Doctor: clean.
+**ST0035 15 of 19 Done. WP-15 closed: all 11 in-scope canaries pass; aggregate summary at `intent/st/ST0035/WP/15/canary-summary.md`.** This session: Conflab + Lamplight canaries committed, WP-15 spec tidied to match as-built reality, fleet summary written, `intent wp done ST0035/15` clean. Canon recipe is mature; canon-installer handles all four common pre-flight patterns automatically (fresh install, stale stamp reset, LEGACY single-file pre-commit, gitignore normalisation). **Next: WP-16 reconciliation** -- 8 of WP-16's original 13 projects were absorbed into WP-15 canary; 4-5 (Multiplyer, MeetZaya, Molt-matts, Courses/Agentic Coding, A3/a3-content) were user-manually upgraded between sessions; Pplr now out of scope per user. WP-16 spec needs the same as-built tidy + fleet summary as WP-15 got. Tests: **791/791 green**. Doctor: clean.
 
 ## ST0035 progress
 
@@ -27,13 +27,17 @@ intent_version: 2.10.0
 | Done        | 12  | Socrates/Diogenes FAQ cross-refs                                                      | XS   |
 | Done        | 13  | Update Intent's own CLAUDE.md                                                         | S    |
 | Done        | 14  | Self-apply canon to Intent (dogfood; verification sweep post-WP08)                    | S    |
-| WIP         | 15  | Canary rollout (9 of 11 in-scope; Conflab + Lamplight deferred)                       | M    |
+| Done        | 15  | Canary rollout across in-scope fleet projects (11 of 11 pass)                         | M    |
 | Not Started | 16  | Fleet rollout (Intent ecosystem; Pplr out of scope) -- 12-point checklist per WP-09   | L    |
 | Not Started | 17  | Verification sweep + dogfood journal (12-point per project)                           | S    |
 | Not Started | 18  | Review and update (or retire) `intent/usr/*.md`                                       | M    |
 | Not Started | 19  | Per-language canon: `intent lang init` + `intent init --lang` (added 2026-04-27)      | M    |
 
 ## Recent
+
+- **2026-04-27 (this session, post-compact)**: WP-15 closed. Conflab + Lamplight canary reports committed (`e5134ee`); WP-15 spec tidied to match as-built reality + canary aggregate summary written + `intent wp done ST0035/15` clean (`300334d`). Aggregate summary at `intent/st/ST0035/WP/15/canary-summary.md` documents 11/11 pass, scope-expansion narrative, three canon-installer refinements driven by canary findings, and the proceed-to-WP-16 decision.
+
+  Plus housekeeping in the user's global `~/.claude` repo (5 commits): folded `/in-start` orientation into `/in-session` (so a single command does orient + skills + gate); expanded `.gitignore` to cover `projects/` (1.6GB of session transcripts), runtime caches, IDE state, backups; checked in months of curated agents (`critic-{elixir,lua,rust,shell,swift}`, `diogenes`) + the full `in-*` skill suite (22 skills) + `CLAUDE.md` / `settings.json` / `restart.md` / `plugins/blocklist.json` updates. Pushed to `matthewsinclair/cfg-claude` on GitHub.
 
 - **2026-04-27 (this session, batch run)**: WP-15 canary batch -- 7 projects applied, committed, pushed to `local`, reports written. Canaries in order: Molt (`7abd972`), Utilz (`ed31017`), arca_cli (`2e7c14f`), arca_config (`ca85f26`), arca_notionex (`9de67e9`), Prolix (`4508e94`), MicroGPTEx (`b375d1f`). Each: pre-flight reset of stale `.intent/config.json` bump (where present), `intent upgrade` chain `2.9.0 -> 2.10.0` (or `2.8.2 -> 2.10.0` for Utilz), foreign pre-commit chained via marker block, `/AGENTS.md.bak` added to `.gitignore`. All 12-point verifications pass; no canon-installer surprises this batch (the LEGACY single-file path that the previous session added didn't fire on any of these -- they all had foreign pre-commit hooks). Reports at `intent/st/ST0035/WP/15/canary-reports/`.
 
@@ -69,11 +73,10 @@ intent_version: 2.10.0
 
 ## Next Up
 
-1. **Conflab + Lamplight** (deferred, busy). When free: pick up the same recipe. Both expected to behave like the rest of the fleet (foreign pre-commit chained via marker block).
-2. **WP-15 spec tidy-up** (S) -- fix `intent upgrade --dry-run` reference (doesn't exist), drop the "Sites subdir" check, drop Pplr (out of scope), reflect the actual in-scope count (11 projects: Laksa, Anvil, Molt, Utilz, arca_cli/config/notionex, Prolix, MicroGPTEx, Conflab, Lamplight).
-3. **`intent wp done ST0035/15`** once Conflab + Lamplight land (or once user calls the canary closed at 9 of 11).
-4. **ST0035/WP-16/WP-17/WP-18** -- queued per existing plan. WP-17's dogfood journal should capture the `.claude/`-gitignored projects (Utilz, arca_notionex, MicroGPTEx) and decide whether to override the gitignore policy for those.
-5. **ST0035/WP-19** -- Phase 0 elaborated; implementation independent; M (2-3 sessions).
+1. **WP-16 reconciliation** (S/M) -- WP-16 originally listed 13 projects; 8 absorbed into WP-15 canary, 4-5 (Multiplyer, MeetZaya, Molt-matts, Courses/Agentic Coding, A3/a3-content) user-manually upgraded between sessions, Pplr now out of scope. Apply the WP-15 closure pattern: tidy spec to match as-built reality, write `fleet-summary.md` documenting outcomes for the user-manual projects (CLI verification of `intent_version` + `intent/.config/` + chain block + .gitignore on each), `intent wp done ST0035/16`. Note: Multiplyer has 1 known test failure (File.ls!/1 in catalog/sources/filesystem.ex:111 against stale fixture); MeetZaya does not compile -- both flagged as user out-of-scope.
+2. **ST0035/WP-17 (verification sweep + dogfood journal)** (S) -- per-project journal entries; 12-point matrix becomes 12 = 12 projects \* 12 checks. Capture `.claude/`-gitignored history (Utilz, arca_notionex, MicroGPTEx pre-NORMALIZE_GITIGNORE) + CLAUDE.md drift per project + decide whether to refresh user-section or leave.
+3. **ST0035/WP-18 (audit `intent/usr/*.md`)** (M) -- review/update or retire. Parallel with WP-17; must land before WP-17 closes (per WP-17 spec).
+4. **ST0035/WP-19 (per-language canon: `intent lang init` + `intent init --lang`)** (M) -- Phase 0 elaborated; implementation independent; ~2-3 sessions.
 
 ## Deferred observations
 
