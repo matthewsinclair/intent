@@ -18,6 +18,12 @@ setup() {
   export HOME="$TEST_TEMP_DIR/home"
   mkdir -p "$HOME"
   cd "$TEST_TEMP_DIR" || exit 1
+  # NORMALIZE_GITIGNORE scenarios call `git commit` in scratch repos.
+  # The HOME override above isolates from the host's gitconfig, so git
+  # has no user.email / user.name and commits fail with exit 128. Set
+  # them in the temp HOME so git commits succeed.
+  git config --global user.email "test@intent.local"
+  git config --global user.name "Intent Test"
 }
 
 teardown() {
