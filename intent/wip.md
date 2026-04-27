@@ -1,5 +1,5 @@
 ---
-verblock: "27 Apr 2026:v0.56: matts - WP-14 done; canon-installer fixes; Laksa canary 1 of 16"
+verblock: "27 Apr 2026:v0.57: matts - canon LEGACY pre-commit migration; Anvil canary 2 of 16"
 intent_version: 2.10.0
 ---
 
@@ -7,7 +7,7 @@ intent_version: 2.10.0
 
 ## Current State
 
-**ST0035 14 of 19 Done. WP-14 (Intent self-dogfood verification) closed; canon-installer rough edges surfaced by WP-14 fixed (auto-insert chain block; markered idempotence; REVIEW warnings only on verbatim \_default; AGENTS.md footer asymmetry; rule-count rendering glitch). Intent's RULES.md + ARCHITECTURE.md populated (no longer \_default stubs). WP-15 canary in progress -- Laksa first canary done (1 of 16 in-scope projects); Conflab + Lamplight deferred (busy); Pplr out of scope (doesn't need intent).** Tests: **785/785 green** (was 781; +4 new chain-block + REVIEW scenarios). Doctor: clean. Pre-commit chain block now wired in Intent itself (auto-inserted, not manual paste). Backup tag `wp08-pre-relocate` deleted; `.claude/settings.local.json` untracked.
+**ST0035 14 of 19 Done. WP-15 canary 2 of 16 (Anvil) done; surfaced + fixed a fleet-wide canon-installer gap (LEGACY single-file pre-commit migration). Anvil flyby fixes also landed (lazy_html `:only` conflict; Anvil.Projects.create -> create_project for Ash 3.24 compat). 14 in-scope projects remain; Conflab + Lamplight deferred (busy); Pplr out of scope.** Tests: **788/788 green** (was 785; +3 new MIGRATE_LEGACY_PRE_COMMIT scenarios). Doctor: clean. Pre-commit canonical layout: canon body at `pre-commit.intent`; chain stub at `pre-commit`. Fresh installs and legacy projects now both produce the chained architecture.
 
 ## ST0035 progress
 
@@ -35,7 +35,12 @@ intent_version: 2.10.0
 
 ## Recent
 
-- **2026-04-27 (this session)**: WP-14 closed; canon-installer hardened; Intent's `intent/llm/RULES.md` + `ARCHITECTURE.md` populated; Laksa canary done. Six commits in order:
+- **2026-04-27 (this session, post-compact)**: Anvil canary done; canon-installer LEGACY single-file pre-commit migration added; fresh-install path also now produces chained architecture from the start. Two commits in Intent + one in Anvil:
+  - `d5b9203` -- canon-installer: new `MIGRATE_LEGACY_PRE_COMMIT` action (detect canon body at `pre-commit` with no `pre-commit.intent` -> mv canon body, write chain stub). `INSTALL_PRE_COMMIT` updated to install chained architecture from the start. +3 new BATS scenarios; fresh-install test asserts chained layout. 788/788 green (was 785).
+  - `0724f88` -- Anvil canary report at `intent/st/ST0035/WP/15/canary-reports/anvil.md`.
+  - `39c63bd` (in **Anvil**) -- `Intent upgrade to 2.10.0` (user-authored single commit covering canon application + flybys: lazy_html `:only` removal; `Anvil.Projects.create -> create_project` in 4 policy tests for Ash 3.24 compat). mix test 192/192. Pushed to `local`.
+
+- **2026-04-27 (earlier session)**: WP-14 closed; canon-installer hardened; Intent's `intent/llm/RULES.md` + `ARCHITECTURE.md` populated; Laksa canary done. Six commits in order:
   - `9a6387b` -- WP-14 Intent self-dogfood verification (dry-run + apply + 12-point + reports under `intent/st/ST0035/WP/14/`).
   - `9315bb6` -- canon-installer rough edges surfaced by WP-14: AGENTS.md generator footer (no more linter oscillation), RULES.md count rendering, REVIEW warnings only on verbatim \_default, real chain-block detection (markers + helper), auto-insert chain block in Phase 3 (idempotent). +4 new BATS scenarios (785/785).
   - `d0d0dc6` -- populate Intent's RULES.md + ARCHITECTURE.md (no longer verbatim \_default; canon-installer's REVIEW warning is now silent for Intent).
@@ -54,10 +59,11 @@ intent_version: 2.10.0
 2. **REVIEW warnings only on verbatim \_default**: per the canon-installer, RULES.md / ARCHITECTURE.md "REVIEW" reminders now fire only when the project file is byte-identical to the `_default` template. Customised content suppresses the warning (so legitimate downstream projects aren't nagged).
 3. **Per-developer settings.local.json should not be tracked**: paths and tool allowlists vary by user. Gitignored + removed from index. `/AGENTS.md.bak` similarly gitignored (regen safety net).
 4. **Laksa is "canary 1 of 16", not strictly "canary 1 of 3"**. Per user, Conflab and Lamplight are busy and Pplr is out of scope. Strategy: do other fleet projects one at a time; come back to Conflab/Lamplight when free; switch to batch mode once enough confidence accumulates.
+5. **Canon body lives at `pre-commit.intent`, not `pre-commit`**: the chained architecture is the canonical layout for the entire fleet. Fresh installs produce it directly; legacy single-file installs (canon body at `pre-commit`, no `pre-commit.intent`) are auto-migrated by `MIGRATE_LEGACY_PRE_COMMIT`. Watch for `LEGACY (single-file)` reports on the remaining canaries -- the installer now handles them automatically.
 
 ## Next Up
 
-1. **ST0035/WP-15 (next canary)** -- per user direction, "do other projects one at a time before Conflab/Lamplight". Candidates: **Molt**, **Utilz**, **Arca**, **Prolix**, **MicroGPTEx**, **Sites** (Pplr explicitly out of scope; doesn't need intent). Pick the next one and apply the same recipe (`intent upgrade`, 12-point verify, commit + push to `local`, write `intent/st/ST0035/WP/15/canary-reports/<project>.md`).
+1. **ST0035/WP-15 (next canary)** -- per user direction, "do other projects one at a time before Conflab/Lamplight". Candidates: **Molt**, **Utilz**, **Arca**, **Prolix**, **MicroGPTEx**, **Sites** (Pplr explicitly out of scope; doesn't need intent). Pick the next one and apply the same recipe (`intent upgrade`, 12-point verify, commit + push to `local`, write `intent/st/ST0035/WP/15/canary-reports/<project>.md`). Watch for `LEGACY (single-file)` pre-commit migration on older projects -- automatic now.
 2. **WP-15 spec tidy-up** (S) -- before more canaries: fix `intent upgrade --dry-run` reference (doesn't exist), drop the "Sites subdir" check (Laksa doesn't have one), drop Pplr (out of scope), and clarify that the canary is now 16 projects, not 3.
 3. **ST0035/WP-16/WP-17/WP-18** -- queued per existing plan.
 4. **ST0035/WP-19** -- Phase 0 elaborated; implementation independent; M (2-3 sessions).

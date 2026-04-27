@@ -3,29 +3,26 @@
 ## First actions after `/compact` or new session
 
 1. **Invoke `/in-session`.** Loads `/in-essentials`, `/in-standards`, plus per-language skills. Releases the `UserPromptSubmit` strict gate via the per-project sentinel.
-2. **Verify the working tree.** `git status` should be clean. ST0035 14 of 19 Done; WP-15 (canary rollout) WIP.
+2. **Verify the working tree.** `git status` should be clean. ST0035 14 of 19 Done; WP-15 (canary rollout) WIP at 2 of 16.
 3. **Read `intent/wip.md` and `intent/restart.md`** for narrative state.
 4. **Read `intent/st/ST0035/WP/15/info.md`** -- WP-15 spec (note: `intent upgrade --dry-run` doesn't exist; Sites subdir doesn't exist; Pplr out of scope -- spec tidy-up is a sub-task before more canaries).
-5. **Read `intent/st/ST0035/WP/15/canary-reports/laksa.md`** -- the Laksa canary report doubles as a template for the next canary (12-point verification commands at the bottom of the table).
+5. **Read `intent/st/ST0035/WP/15/canary-reports/laksa.md` and `anvil.md`** -- both reports double as templates for the next canary (12-point verification commands; legacy migration note for older projects).
 
-## State (2026-04-27, end of session)
+## State (2026-04-27, end of session post-compact)
 
-**Intent v2.10.0. ST0035 14 of 19 Done. Laksa canary done (1 of 16 in-scope projects). Conflab + Lamplight deferred (busy); Pplr out of scope. Tests 785/785; doctor clean. Pre-commit chain block now wired in Intent itself (auto-inserted, not manual paste).**
+**Intent v2.10.0. ST0035 14 of 19 Done. Anvil canary done (2 of 16 in-scope projects). Surfaced + fixed a fleet-wide canon-installer gap (LEGACY single-file pre-commit migration). Conflab + Lamplight deferred (busy); Pplr out of scope. Tests 788/788; doctor clean.**
 
 - **VERSION**: `2.10.0`.
 - **Layout**: `intent/.config/`.
-- **Tests**: 785/785 green (was 781; +4 new chain-block + REVIEW scenarios).
+- **Tests**: 788/788 green (was 785; +3 new MIGRATE_LEGACY_PRE_COMMIT scenarios).
 - **Doctor**: clean.
-- **Backup tag**: deleted (`wp08-pre-relocate` removed; v2.10.0 stable).
+- **Pre-commit canonical layout**: canon body at `pre-commit.intent`; chain stub at `pre-commit`. Fresh installs and legacy projects both produce the chained architecture.
 
 ## What landed this session (newest first)
 
-- `2e90556` -- WP-15 Laksa canary report.
-- `a729ec64` (in **Laksa**) -- `chore: apply ST0035 + ST0036 canon (v2.10.0 rollout canary)`.
-- `f5d9df9` -- housekeeping: untrack `.claude/settings.local.json`; gitignore `/AGENTS.md.bak`.
-- `d0d0dc6` -- populate Intent's RULES.md + ARCHITECTURE.md (no longer verbatim \_default).
-- `9315bb6` -- canon-installer rough edges (auto-insert chain block; markered idempotence; REVIEW only on verbatim \_default; AGENTS.md footer; rule-count rendering).
-- `9a6387b` -- WP-14 Intent self-dogfood verification.
+- `0724f88` -- WP-15 Anvil canary report.
+- `d5b9203` -- canon-installer: LEGACY single-file pre-commit migration + INSTALL_PRE_COMMIT now installs chained architecture from the start. +3 BATS scenarios; fresh-install test asserts chained layout.
+- `39c63bd` (in **Anvil**) -- `Intent upgrade to 2.10.0` (user-authored single commit; canon application + flybys: lazy_html `:only` removal; Anvil.Projects.create -> create_project for Ash 3.24 compat).
 
 ## Resume target -- next canary (ST0035/WP-15 continued)
 
@@ -64,11 +61,9 @@ After 2-3 more canaries, consider switching to batch mode for the rest of the ec
 
 ## Lessons from this session
 
-- **Auto-insert beats manual paste.** The "print snippet, ask user to paste" flow left a known-deferred state on every project. Replacing with a markered idempotent insert removed the deferred bucket entirely. Marker-pair detection makes re-runs a guaranteed no-op.
-- **REVIEW warnings should be conditional.** Firing the same warning unconditionally was noise. `cmp -s` against the `_default` template makes it meaningful: warning only fires when the user really hasn't customised yet.
-- **Linter-vs-generator oscillation is a real bug.** AGENTS.md `---` footer needed a trailing blank line to match prettier. Without it, every regen flipped the file. MD5 sanity surfaced it on second re-apply.
-- **Pre-flight on canary projects matters.** Laksa had a stale manual config bump; resetting to HEAD let the migration write the canonical version end-to-end. Canary discipline: clean tree -> clean migration.
-- **Dogfood the canon yourself first.** The chain-block auto-insert was tested in Intent before being shipped to Laksa. Intent's own commit triggered the chain block, which validated the path before any downstream project was touched.
+- **Each canary surfaces fleet-wide canon-installer bugs.** Anvil exposed the legacy single-file pre-commit (canon body at `pre-commit`, no `pre-commit.intent`); the installer reported `UP TO DATE` and took no action -- silent skip on every project that ran `intent claude upgrade` before chaining landed. Fix: detection branch + `MIGRATE_LEGACY_PRE_COMMIT` action + `INSTALL_PRE_COMMIT` updated to install chained architecture from the start (so fresh installs and migrations converge on the same end state). Each canary is also a proof-of-correctness for the installer itself.
+- **Fresh installs and re-applies must converge on the same architecture.** If fresh installs produce state X and re-applies migrate to state Y, you have a non-idempotent installer that lies. Always check: does running the installer on a fresh project produce the same output as running it twice on a migrated one? If not, fix the installer, not the migration.
+- **Old projects are dependency-bombs.** Anvil hadn't been compiled in months; `mix deps.get` hit two unrelated breakages (`lazy_html :only` conflict; `Anvil.Projects.create -> create_project` Ash code-interface drift). Plan canary sessions with the assumption that old projects will need flyby fixes -- budget time accordingly.
 
 ## Open follow-ups (outside ST0035)
 

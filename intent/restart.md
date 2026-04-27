@@ -1,8 +1,8 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-04-27, end of session -- ST0035 14 of 19; canon hardened; Laksa canary 1 of 16)
+## Current state (2026-04-27, end of session -- ST0035 14 of 19; Anvil canary 2 of 16)
 
-**Intent v2.10.0 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) 14 of 19 Done. WP-15 (canary rollout) WIP -- Laksa first canary committed and pushed; Conflab + Lamplight deferred (busy); Pplr out of scope (doesn't need intent).** Six commits this session in Intent + one in Laksa. Tests **785/785 green**, doctor clean.
+**Intent v2.10.0 in progress. ST0035 (Canonical LLM Config + Fleet Rollout) 14 of 19 Done. WP-15 (canary rollout) WIP -- Anvil committed and pushed (canary 2 of 16); surfaced + fixed a fleet-wide canon-installer gap (LEGACY single-file pre-commit migration); Anvil flyby fixes also landed (lazy_html `:only` + Anvil.Projects.create -> create_project for Ash 3.24 compat). Conflab + Lamplight deferred (busy); Pplr out of scope.** Two commits this session in Intent + one in Anvil. Tests **788/788 green**, doctor clean.
 
 ### ST0035 shape
 
@@ -14,9 +14,15 @@ WP14 closed via `intent wp done ST0035/14` after the verification sweep + harden
 
 Critical path remaining: `WP15 (canaries continued) -> WP16 (fleet) -> WP17 (verification + dogfood journal)`. WP18 (`intent/usr/*.md` audit) parallel; must land before WP17. WP19 (per-language canon) independent.
 
-### Progress this session (six commits + one in Laksa)
+### Progress this session (two commits + one in Anvil)
 
-In commit order, all in Intent unless noted:
+In commit order:
+
+1. `d5b9203` -- **canon-installer: LEGACY single-file pre-commit migration**. Detects when `pre-commit` is the canon body verbatim and `pre-commit.intent` is absent (legacy install pattern from before chaining); auto-migrates by mv canon body -> `pre-commit.intent` + write fresh chain stub at `pre-commit`. `INSTALL_PRE_COMMIT` also updated so fresh installs produce the chained architecture from the start (was producing legacy state). +3 new BATS scenarios; fresh-install test asserts chained layout. 788/788 green (was 785).
+2. `0724f88` -- **Anvil canary report** at `intent/st/ST0035/WP/15/canary-reports/anvil.md`.
+3. `39c63bd` (in **Anvil**) -- **`Intent upgrade to 2.10.0`** (user-authored single commit covering canon application + flybys: lazy_html `:only` removal so `lucide_icons` resolves; `Anvil.Projects.create -> create_project` in 4 policy tests for Ash 3.24 compat). mix test 192/192. Pushed to `local`.
+
+### Earlier this day (six commits + one in Laksa)
 
 1. `9a6387b` -- **WP-14 Intent self-dogfood verification**. Dry-run + apply + 12-point verification + reports under `intent/st/ST0035/WP/14/`. Confirmed WP-08 already ran Phase 3 (canon-apply); WP-14 is a verification sweep + idempotence proof (MD5 sanity).
 
@@ -52,9 +58,9 @@ In commit order, all in Intent unless noted:
 
 ### Resume target -- next canary (ST0035/WP-15 continued)
 
-User direction: do other fleet projects one at a time before Conflab/Lamplight (which are busy). Pplr is out of scope.
+User direction: do other fleet projects one at a time before Conflab/Lamplight (which are busy). Pplr is out of scope. Anvil and Laksa now done (2 of 16).
 
-Candidates: **Molt**, **Utilz**, **Arca**, **Prolix**, **MicroGPTEx**, **Sites**. Pick the next one and apply the Laksa recipe:
+Candidates: **Molt**, **Utilz**, **Arca**, **Prolix**, **MicroGPTEx**, **Sites**. Pick the next one and apply the Laksa/Anvil recipe (the canon-installer now auto-migrates legacy single-file pre-commit projects):
 
 1. `cd ~/Devel/prj/<project>` and check `git status` -- ensure clean tree (reset stale state if needed).
 2. `( cd ~/Devel/prj/<project> && /Users/matts/Devel/prj/Intent/bin/intent claude upgrade )` for the canon-installer dry-run.
