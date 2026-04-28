@@ -76,3 +76,23 @@ CLAUDE_MD="${INTENT_PROJECT_ROOT}/CLAUDE.md"
   assert_file_contains "$CLAUDE_MD" "/in-session"
   assert_file_contains "$CLAUDE_MD" "compact"
 }
+
+# ====================================================================
+# Gate-release block uses the helper script, not inline awk
+# ====================================================================
+
+@test "in-session SKILL.md invokes release-gate.sh, not inline awk" {
+  # The inline awk form had `awk '{print $1}'` silently mangled to
+  # `awk '{print }'` by Claude Code's skill renderer. The fix moved the
+  # logic to a script file. If anyone re-inlines the awk pipeline, this
+  # test catches it.
+  assert_file_contains "$SKILL" "release-gate.sh"
+  run grep -E "awk '\{print \\\$1\}'" "$SKILL"
+  [ "$status" -ne 0 ]
+}
+
+@test "in-session ships release-gate.sh in scripts/" {
+  local script="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-session/scripts/release-gate.sh"
+  [ -f "$script" ]
+  [ -x "$script" ]
+}

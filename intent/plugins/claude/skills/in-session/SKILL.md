@@ -53,19 +53,13 @@ When `mix.exs` is present, read it and invoke by dependency:
 
 Intent projects ship a strict `UserPromptSubmit` hook (`require-in-session.sh`) that blocks the first prompt until `/in-session` has been run. Releasing the gate is cooperative: this skill writes a per-session sentinel that the hook looks for.
 
-Run the following Bash command now (it is idempotent and fast):
+Run the helper script (idempotent, fast, ~30 lines):
 
 ```bash
-project_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
-project_key="$(printf '%s' "$project_dir" | cksum 2>/dev/null | awk '{print $1}')"
-mkdir -p /tmp/intent
-sid="$(cat "/tmp/intent-claude-session-current-id-${project_key}" 2>/dev/null || true)"
-sid_legacy="$(cat /tmp/intent-claude-session-current-id 2>/dev/null || true)"
-[ -n "$sid" ] && touch "/tmp/intent/in-session-${sid}.sentinel"
-[ -n "$sid_legacy" ] && [ "$sid_legacy" != "$sid" ] && touch "/tmp/intent/in-session-${sid_legacy}.sentinel"
-touch /tmp/intent/in-session-unknown.sentinel
-echo "released sentinels: per-project=${sid:-(none)} legacy=${sid_legacy:-(none)} +unknown"
+bash "$HOME/.claude/skills/in-session/scripts/release-gate.sh"
 ```
+
+The script holds the per-project + legacy + unknown-fallback waterfall. It is extracted from this prose so positional-field expansions in any pipeline survive skill-renderer token-stripping. The earlier inline form leaked positional-arg syntax through the renderer, which silently emptied it, producing a malformed project_key and a no-op gate release. The canonical source is `intent/plugins/claude/skills/in-session/scripts/release-gate.sh`.
 
 How it resolves the session_id (in priority order):
 

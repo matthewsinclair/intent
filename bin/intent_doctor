@@ -329,6 +329,28 @@ doctor_check() {
     fi
   fi
 
+  # Check 4d: leftover .intent/ post-migration (v2.10.x follow-up)
+  # The v2.9 -> v2.10 migration relocates .intent/ to intent/.config/. If both
+  # paths exist after migration, the old top-level directory was not staged
+  # for removal. Warn (not error) and tell the user to clean up manually --
+  # auto-staging is intentionally NOT done (decision in WP-17 dogfood journal:
+  # leave the git operation explicit so users see what's being removed).
+  if [ -n "$PROJECT_ROOT" ]; then
+    if [ "$QUIET" != true ]; then
+      echo -n "  checking: leftover .intent "
+    fi
+    if [ -d "$PROJECT_ROOT/.intent" ] && [ -d "$PROJECT_ROOT/intent/.config" ]; then
+      show_warning "stale .intent/ directory still present after migration"
+      if [ "$QUIET" != true ]; then
+        echo "  remove with: cd $PROJECT_ROOT && git rm -rf .intent/ && git commit -m 'chore: drop leftover .intent/ post-v2.10 migration'"
+        echo "  (or: rm -rf .intent/ if it was never tracked)"
+      fi
+    else
+      show_ok
+      verbose "no leftover .intent/ directory"
+    fi
+  fi
+
   # Check 5: PATH
   if [ "$QUIET" != true ]; then
     echo -n "  checking: path "
