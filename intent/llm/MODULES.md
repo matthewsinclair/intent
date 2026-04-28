@@ -227,6 +227,7 @@ User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; sh
 | Pre-commit hook (ST0035)        | `tests/unit/pre_commit_hook.bats`           | Scratch-repo end-to-end: bad/good/no-intent/disabled scenarios (WP06)        |
 | Intent agents (ST0035)          | `tests/unit/intent_agents.bats`             | init/sync/validate, symlink migration, idempotency, dynamic rendering (WP08) |
 | Intent lang (ST0035)            | `tests/unit/intent_lang.bats`               | list/show/init; idempotence; multi-lang; fail-forward (WP19)                 |
+| Skill-renderer trap (v2.10.x)   | `tests/unit/skill_renderer_trap.bats`       | Regression guard: no SKILL.md inlines `$N`/`$@`/`$#`/`$*`/`${N}` tokens      |
 
 ## Docs (v2.9.0 / WP10)
 
