@@ -1,42 +1,46 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-04-27, end of session -- v2.10.0 SHIPPED)
+## Current state (2026-04-28, end of session -- v2.10.1 SHIPPED)
 
-**Intent v2.10.0 shipped.** Tag `v2.10.0` at `cf37292`; pushed to `local` (Dropbox) + `upstream` (GitHub); GitHub release live at https://github.com/matthewsinclair/intent/releases/tag/v2.10.0. ST0035 (Canonical LLM Config + Fleet Rollout) 19 of 19 Done. ST0036 (Directory Relocation) 9 of 9 Done. Both in `intent/st/COMPLETED/`. CHANGELOG v2.10.0 entry finalised (release date 2026-04-27). Tests 810/810 green. `intent doctor` clean. No active steel thread.
+**Intent v2.10.1 shipped 2026-04-28.** Tag `v2.10.1` at `c453cbb`; pushed to `local` (Dropbox) + `upstream` (GitHub); GitHub release live at https://github.com/matthewsinclair/intent/releases/tag/v2.10.1. No active steel thread.
 
-CI run kicked off at publish time (commit `cf37292`); check `gh run list` if needed.
+Tests **836/836 green**. `intent doctor` clean.
 
-### Progress this session (4 commits in Intent + 3 commits in fleet projects + 5 commits in ~/.claude)
+This release was the first end-to-end exercise of `scripts/release`, the new release orchestrator that landed in this same line. The script ran pre-flight (clean tree + doctor + tests + gh auth) -> sidecar sync (VERSION + CHANGELOG date + AGENTS.md) -> commit -> idempotent tag -> push to local then upstream -> `gh release create`. One trace, one confirmation point at the push step. Conflab-pattern, Intent-shape (single repo, two remotes, no native binary, no Homebrew yet).
 
-In commit order (this session, both compact halves):
+### Progress this session (5 commits in Intent + 4 commits in ~/.claude touched only the global skill, not Intent canon)
 
-1. `300334d` -- ST0035/WP-15 spec tidy + canary aggregate summary + status flip.
-2. `216edc5` -- ST0035/WP-16 spec tidy + fleet summary + cleanup leftover .intent/ in 3 fleet projects (Multiplyer, MeetZaya, Courses/Agentic Coding) + status flip.
-3. `54c6ea9` -- session wrap (between WP-16 closure and second compact).
-4. `329e9f3` -- ST0035/WP-18 retire intent/usr/\*.md (3 files canon-stale at v2.6.0; substantially duplicated by README + working-with-llms + intent help; cross-refs updated).
-5. `92e1ab7` -- ST0035/WP-17 spec tidy + 14-row verification matrix (feedback-report.md) + dogfood journal + decision on user-manual upgrade gotcha (warn at doctor, do NOT auto-stage; filed as v2.10.x follow-up).
-6. `6c1f41e` -- ST0035/WP-19 per-language canon: new `intent lang` command (list/show/init) + `intent init --lang` flag + per-language stub templates for rust/swift/lua/shell + intent_init lays down agnostic \_default RULES.md/ARCHITECTURE.md (so fresh init has Language Packs anchor). +19 BATS scenarios; tests 791 -> 810.
+In commit order:
 
-Plus ~/.claude global repo housekeeping (5 commits, pushed to matthewsinclair/cfg-claude on GitHub) -- see `.claude/restart.md` for detail.
+1. `f44717e` -- fix: `/in-session` gate releaser + `intent doctor` leftover-`.intent/` warning. The gate-firing bug had been hitting the user across Conflab, Lamplight, and Intent for ~16 hours; root cause was Claude Code's skill renderer silently stripping `$1` from the inline `awk '{print $1}'` in SKILL.md, producing a malformed `project_key` (cksum + space + byte-count) and a no-op gate release. Extracted the waterfall to `intent/plugins/claude/skills/in-session/scripts/release-gate.sh`; SKILL.md now invokes it by path. Mirror-applied to `~/.claude/skills/in-session/` so all running Claude Code sessions self-heal on next `/in-session` invocation. Bundled with C1 (`intent doctor` check 4d for leftover top-level `.intent/`) since both are diagnostic infrastructure.
+
+2. `0f7bcef` -- feat: add `scripts/release` for one-shot release cuts. ~330 lines bash. 12 BATS scenarios in `tests/unit/release_script.bats` covering dry-run paths (--patch / --minor / --major / explicit version), arg-parse error paths, semver ordering, CHANGELOG section presence + date validation, working-tree-clean check, and help output. New "Release Engineering" section in MODULES.md.
+
+3. `cf3dfa8` -- chore: v2.10.x polish bundle. C2 (dry-run UX -- distinguish canonical / legacy `.intent/` / absent for `config.json` pre-flight). C3 (Diogenes test-spec handoff aligned across all four critic agents to suppress for `tests/fixtures/critics/` targets). C4 (IN-RS-CODE-005 explicit carve-out for teaching examples in `intent/plugins/claude/rules/**` and `tests/fixtures/critics/rust/**`).
+
+4. `09700df` -- chore: promote v2.10.1 changes from Unreleased to in-progress section.
+
+5. `c453cbb` -- release: v2.10.1 (the cut commit produced by `scripts/release --patch`).
 
 ### Lessons worth keeping (this session)
 
-- **Closure pattern (tidy spec to as-built + write summary + `wp done`) applies cleanly across WPs.** Used for WP-15, WP-16, WP-17, WP-18 in this session. Reinforce in template guidance somewhere; the pattern is recurring across STs.
-- **WP-17 spec drift was caught by closure pattern.** Spec said "10-point matrix" but ST0036 added 2 more checks; spec said "17 projects" but as-built was 14; spec bundled CHANGELOG/tag/release/ST-close into deliverables but those moved out post-WP-19. **Lesson**: when a verification matrix grows, sweep all WPs that reference it.
-- **Canon-installer hardening was load-bearing for fleet rollout.** Three new actions (`MIGRATE_LEGACY_PRE_COMMIT`, `CHAIN_PRE_COMMIT` auto-insert, `NORMALIZE_GITIGNORE`) all surfaced by canary projects, baked into Intent, then re-applied across remaining canaries. Cheap because each canary is small + isolated; expensive if surfaced after fleet rollout.
-- **Auto-language-detection rejected; explicit user choice via --lang prevails.** WP-19 implements the per-language canon as opt-in (`intent lang init <lang>` or `intent init --lang <list>`). Real projects are polyglot; picking any single "primary" misrepresents project shape. Marker-based Language Packs section in agnostic RULES.md is the single anchor; per-language RULES-<lang>.md and ARCHITECTURE-<lang>.md sit alongside.
-- **`intent init` should produce a v2.10.0-complete baseline.** Pre-WP-19, `intent init` only laid down MODULES.md + DECISION_TREE.md; canon RULES.md only appeared via `intent claude upgrade --apply` later. Now `intent init` lays down agnostic \_default RULES.md + ARCHITECTURE.md so the Language Packs anchor exists from day 1.
+- **Skill-renderer strips `$N` positional-field tokens.** Inline `awk '{print $1}'` in SKILL.md gets injected into Claude's prompt with the `$1` silently emptied. Move any awk pipeline that uses positional fields into a real script file under `scripts/` and have the SKILL invoke it by path. The rendering bug is upstream-of-Intent (Claude Code platform), so the workaround is what we control. Future skill authors: keep SKILL.md procedural; bash logic with `$N` belongs in scripts.
 
-### Open follow-ups (outside ST0035/ST0036)
+- **Per-project state-file design (`/tmp/intent-claude-session-current-id-${cksum}`) is sound.** The bug looked like cross-project state collision but was really a malformed-key lookup miss. Three concurrent project sessions (Conflab, Lamplight, Intent) coexisted in `/tmp/` without overwriting each other; that part of v2.10.0's design held up.
 
-- `intent doctor` warning for leftover `.intent/` post-migration -- decision recorded in WP-17 dogfood journal; v2.10.x follow-up.
-- `intent claude upgrade --dry-run` UX polish (reword "expected during dry-run" cases).
-- `docs/blog/_drafts/####-shell-critic-inception.md` -- blog draft. Laksa is the first real-world dogfood datapoint.
-- WP07 follow-ups from ST0034: align Diogenes fixture-context handling across critic agent.md files; tighten IN-RS-CODE-005 carve-out for teaching fixtures.
+- **Test scaffolding caught a real script bug during authoring.** The `release_script.bats` scratch-repo fixture initially copied the release script AFTER `git init && git commit`, which left it as an untracked file -- the working-tree-clean pre-flight check then fired. Fix: install the release script as part of the scratch repo's initial commit. Same shape as the real install. The BATS test would have masked this if I'd just set `--skip-tests`; using realistic fixtures forced the design fix.
+
+- **Single confirmation point at the push step is the right place for the human pause.** All earlier release steps are local + reversible (`git reset --soft HEAD^` + `git tag -d <tag>` undoes them in seconds). The push to upstream is the no-going-back beat. One y/N at that boundary, not five sprinkled across the flow.
+
+### Open follow-ups (outside v2.10.1)
+
+- Blog draft `docs/blog/_drafts/####-shell-critic-inception.md` -- now has the v2.10.1 cut as a second dogfood datapoint (the release script ate its own dogfood: a single-command shipment of the same release line that introduced it).
+- Homebrew tap for Intent -- when ready to broaden distribution. Conflab's release script has the formula-update pattern as reference.
+- `scripts/release` v2: post-real-use refinements. `--rollback`, prettier progress output, log-to-file mirror, etc.
 
 ### Resume target
 
-No active ST. Next session can pick the next ST off the v2.10.x follow-up backlog or start exploratory work for v2.11. The v2.10.x backlog (from WP-17 dogfood journal): `intent doctor` warning for leftover `.intent/` post-migration; `intent claude upgrade --dry-run` UX polish; CLAUDE.md per-project drift refresh decisions.
+No active ST. Next session can pick the blog draft off the backlog, start exploratory v2.11 work, or open a fresh ST.
 
 ### Session conventions (carry forward)
 
@@ -47,6 +51,6 @@ No active ST. Next session can pick the next ST off the v2.10.x follow-up backlo
 - NO Claude attribution in commits.
 - NEVER report test/skill/subagent counts in release notes, CHANGELOG, wip.md, restart.md.
 - Fail-forward: no backwards-compat shims, no deprecation stubs.
-- Auto-detection of language/etc. rejected; use explicit user choice.
 - Document first, code next, with a hard review gate after Phase 0.
 - Pre-flight: reset stale state on canary projects before applying.
+- **NEW**: SKILL.md inline bash with `$N` positional fields gets mangled by the skill renderer. Use a script file invoked by path.
