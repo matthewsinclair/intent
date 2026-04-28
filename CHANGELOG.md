@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.10.1] - in progress
+
+v2.10.x polish line. Two new pieces of maintainer infrastructure (a release script and a `intent doctor` migration-leftover warning), the gate-firing fix that surfaced post-v2.10.0 dogfood, and three pre-existing v2.10.0 dogfood-journal follow-ups that needed closing.
+
 ### Added
 
 - **`scripts/release`** -- maintainer release orchestrator. Single-invocation cut: pre-flight (clean tree, doctor, tests, gh auth), version bump (`--patch / --minor / --major / vX.Y.Z`), CHANGELOG date finalisation, sidecar sync (VERSION + AGENTS.md), commit, idempotent tag, push to both remotes (local + upstream), GitHub release publication. Modelled on Conflab's release pattern, pared back to Intent's surface (single repo, two remotes, no native binary, no Homebrew tap). `--dry-run` previews every step with no side effects.
@@ -14,7 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **`/in-session` UserPromptSubmit gate-firing loop**. The SKILL.md inlined a `cksum | awk '{print $1}'` pipeline whose positional-field expansion was silently emptied by Claude Code's skill renderer, producing a malformed project_key that prevented the per-session sentinel from being written. The waterfall is now in `intent/plugins/claude/skills/in-session/scripts/release-gate.sh`, invoked by the SKILL by path; the renderer never sees the pipeline.
+- **`/in-session` UserPromptSubmit gate-firing loop**. The SKILL.md inlined an awk pipeline whose positional-field expansion was silently emptied by Claude Code's skill renderer, producing a malformed project_key that prevented the per-session sentinel from being written. The waterfall is now in `intent/plugins/claude/skills/in-session/scripts/release-gate.sh`, invoked by the SKILL by path; the renderer never sees the pipeline.
+- **`intent claude upgrade --dry-run` UX** -- distinguish three states for the `config.json` pre-flight (canonical, legacy `.intent/`, absent) so a pre-relocation project no longer reports its expected-missing config as a hard problem. The legacy-location case now points the user at `intent upgrade` for the relocation step.
+- **`IN-RS-CODE-005` (lifetime-elision-first) carve-out** -- explicit "Does Not Apply" entry for teaching examples in `intent/plugins/claude/rules/**` and `tests/fixtures/critics/rust/**`. Closes the false-positive that fired on a clean fixture during ST0034 WP07 verification.
+
+### Changed
+
+- **Diogenes test-spec handoff** -- the four critic agent.md files (`critic-{elixir,rust,swift,lua}`) now uniformly suppress the Diogenes RECOMMENDATION for targets under `tests/fixtures/critics/`. Critic self-test fixtures are not real test code; the handoff was firing inconsistently across critics post-WP07.
 
 ## [2.10.0] - 2026-04-27
 
