@@ -108,22 +108,29 @@ fi
 #   2 = invocation error (fail-open for that language)
 
 AGGREGATE=0
-for lang in "${LANGS[@]}"; do
-  # Capture output so we can surface findings only when present.
-  out="$(intent critic "$lang" --staged --severity-min "$SEVERITY" --format text 2>&1)"
-  rc=$?
-  case "$rc" in
-    0) ;;
-    1)
-      printf '%s\n' "$out" >&2
-      AGGREGATE=1
-      ;;
-    *)
-      echo "intent critic ($lang) invocation error (exit $rc); fail-open." >&2
-      [ -n "$out" ] && printf '%s\n' "$out" >&2
-      ;;
-  esac
-done
+# Length-guard the loop. Under `set -u` (set above), expanding "${LANGS[@]}"
+# on an empty array errors as "unbound variable" on some bash versions
+# (notably the CI macOS runner). v2.11.0 introduced the empty-array path
+# (config languages: [] = no critic runs); the explicit length check makes
+# the iteration safe across bash versions.
+if [ "${#LANGS[@]}" -gt 0 ]; then
+  for lang in "${LANGS[@]}"; do
+    # Capture output so we can surface findings only when present.
+    out="$(intent critic "$lang" --staged --severity-min "$SEVERITY" --format text 2>&1)"
+    rc=$?
+    case "$rc" in
+      0) ;;
+      1)
+        printf '%s\n' "$out" >&2
+        AGGREGATE=1
+        ;;
+      *)
+        echo "intent critic ($lang) invocation error (exit $rc); fail-open." >&2
+        [ -n "$out" ] && printf '%s\n' "$out" >&2
+        ;;
+    esac
+  done
+fi
 
 if [ "$AGGREGATE" -eq 1 ]; then
   echo "" >&2

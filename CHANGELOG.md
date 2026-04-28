@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.1] - 2026-04-28
+
+CI hotfix following v2.11.0.
+
+### Fixed
+
+- **Pre-commit hook errors on `set -u` + empty `LANGS` array** under some bash versions (CI macOS runner). v2.11.0 introduced the empty-array path (a project with `languages: []` declares zero critics), but the existing `for lang in "${LANGS[@]}"; do` loop expansion erred as "unbound variable" before the loop body ran. Length-guarded the loop with an explicit `if [ "${#LANGS[@]}" -gt 0 ]; then` check. Local installs need to re-run `intent claude upgrade --apply` to pick up the corrected hook template; new installs from v2.11.1 onward get the fix automatically.
+
 ## [2.11.0] - 2026-04-28
 
 ST0037 ships: languages-in-use becomes an explicit per-project configuration field, replacing four sites of filesystem-marker probing. The probe-based detection was a regression against design intent (filesystem presence is unreliable evidence; a vendored example or a one-off script can flip the wrong switch). Schema change is automatic via migration; existing fleet projects need no user action beyond `intent upgrade`.
