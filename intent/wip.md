@@ -1,49 +1,53 @@
 ---
-verblock: "28 Apr 2026:v0.65: matts - v2.10.1 shipped; scripts/release lives; gate-firing fix in"
-intent_version: 2.10.1
+verblock: "28 Apr 2026:v0.67: matts - ST0037 implementation complete; v2.11.0 ready to ship"
+intent_version: 2.11.0
 ---
 
 # Work In Progress
 
 ## Current State
 
-**Intent v2.10.1 shipped 2026-04-28.** Tag pushed to `local` + `upstream`; GitHub release live at https://github.com/matthewsinclair/intent/releases/tag/v2.10.1. No active steel thread.
+**ST0037 implementation complete; v2.11.0 ready to ship.** Tests 863/863 local. `intent doctor` clean. `intent upgrade` self-applied: this project's `intent/.config/config.json` is now stamped at v2.11.0 with `languages: ["shell"]` (back-filled from pre-commit hook presence).
 
-The cut was the first end-to-end exercise of the new `scripts/release` orchestrator, which landed in this same line. Single invocation did pre-flight, sidecar sync, commit, tag, multi-remote push, and `gh release create` -- one watch-able trace, one confirmation point at the push step. Replaces the manual six-step ceremony from the v2.10.0 cut.
+## ST0037 (shipping in v2.11.0)
 
-Tests **836/836 green**. `intent doctor` clean.
+Languages-in-use is now an explicit per-project configuration field, replacing four sites of filesystem-marker probing. The probe-based detection was a regression against design intent.
 
-## v2.10.1 ship list (Completed)
+### What landed
 
-| Theme        | Item                                                                               | Commit            |
-| ------------ | ---------------------------------------------------------------------------------- | ----------------- |
-| Fix (urgent) | `/in-session` gate-firing loop -- extract awk from SKILL.md to release-gate.sh     | f44717e           |
-| Add          | `intent doctor` check 4d -- warn on leftover top-level `.intent/` post-migration   | f44717e           |
-| Add          | `scripts/release` -- one-shot release orchestrator (Conflab-pattern, Intent-shape) | 0f7bcef           |
-| Polish       | `intent claude upgrade --dry-run` UX (canonical / legacy / absent triage)          | cf3dfa8           |
-| Polish       | Diogenes test-spec handoff alignment across all four critic agents                 | cf3dfa8           |
-| Polish       | IN-RS-CODE-005 carve-out for teaching fixtures                                     | cf3dfa8           |
-| Release      | CHANGELOG promotion + sidecar sync + tag + push + GitHub release                   | 09700df + c453cbb |
-
-## Recent
-
-- **2026-04-28**: v2.10.1 cut and shipped via the new `scripts/release` script. Gate-firing fix surfaced from this morning's user report (SKILL.md `awk '{print $1}'` had the `$1` silently stripped by Claude Code's skill renderer; producing a malformed `project_key` and no-op gate release). Fixed by extracting the waterfall to `intent/plugins/claude/skills/in-session/scripts/release-gate.sh` so the renderer never sees the pipeline. Bundled the four pre-existing v2.10.x dogfood follow-ups (doctor warning, dry-run UX polish, Diogenes alignment, IN-RS-CODE-005 carve-out) into the same release line. +26 BATS scenarios across release_gate_script.bats, doctor_leftover_intent.bats, and release_script.bats.
-
-- **2026-04-27**: v2.10.0 shipped. ST0035 + ST0036 closed (see `intent/restart.md` for that arc).
+- **Schema**: `languages: []` field in `intent/.config/config.json`. Array of canonical language names. Order is the explicit declaration; first entry is the primary where a primary is needed.
+- **Migration** `migrate_v2_10_x_to_v2_11_0` in `bin/intent_helpers`. Idempotent. Back-fills from `intent/llm/RULES-<lang>.md` presence (alphabetical), falls back to `["shell"]` if a pre-commit hook is installed and back-fill is otherwise empty.
+- **Helpers**: `get_project_languages`, `add_project_language`, `remove_project_language` in `bin/intent_helpers`. Atomic config writes via tempfile + `mv`.
+- **CLI**: `intent lang init <lang>` now writes the field. New `intent lang remove <lang>` reverses init: deletes RULES-<lang>.md + ARCHITECTURE-<lang>.md, removes the marker-block entry, removes the language from config.
+- **Probes replaced**: `in-session/SKILL.md`, `in-review/SKILL.md`, `in-tca-audit/SKILL.md`, `lib/templates/hooks/pre-commit.sh`. All four now read `(.languages // []) | .[]` from config.
+- **Phantom skill refs stripped**: `/in-rust-essentials`, `/in-swift-essentials`, `/in-lua-essentials`, `/in-shell-essentials` (promised in WP06/WP12, never authored). Replaced with prose pointing at the rule library + critic-`<lang>` subagent path that already covers those four languages.
+- **Latent bug fixed**: `create_v2_directory_structure()` was creating an empty `.intent/` unconditionally on every `intent upgrade`, which then conflicted with `intent_relocate_dotintent`'s safety check on already-relocated projects. Skips the creation when `intent/.config/` is in place.
+- **Tests**: new `tests/unit/migrate_v2_10_x_to_v2_11_0.bats` (10 scenarios). Reworked `in_session_skill.bats` (probe assertions out, config-read + phantom-ref guards in), `critic_dispatch.bats` (full rewrite: config-driven sandboxes), `pre_commit_hook.bats` (config-driven setup + new empty-langs and lang-mismatch tests), `intent_lang.bats` (new `init` field-write + `remove` coverage), `init_commands.bats` (assert `languages: []` in fresh config).
+- **Docs**: `intent/docs/working-with-llms.md` rewritten for the config-driven flow. `MODULES.md` updated for the new helpers and `intent lang remove` verb. Blog draft `####-claude-context-with-intent.md` paragraph rewritten.
+- **VERSION** bumped to 2.11.0. **CHANGELOG** entry written.
 
 ## Next Up
 
-No active steel thread. Open follow-ups for v2.11 or later:
+Ship v2.11.0. The `scripts/release` orchestrator (added in v2.10.1) handles tag + multi-remote push + GitHub release. Workflow:
 
-- **`docs/blog/_drafts/####-shell-critic-inception.md`** -- blog draft. Now has a real second dogfood datapoint (the v2.10.1 cut itself, a single-command release).
-- **Homebrew tap for Intent** -- when ready to broaden distribution. Conflab's release script has the formula-update pattern as a reference.
-- **`scripts/release` v2** -- post-real-use refinements. Candidates: `--rollback`, auto-bump (rejected for v2.10.1; reconsider after a few cuts), prettier progress output, log-to-file mirror.
+1. Stage and commit (single coherent commit; pre-commit gate will fire on shell + skill changes).
+2. `scripts/release --dry-run --minor` to verify the bump path.
+3. `scripts/release --minor` to cut.
+
+Other v2.11.x backlog (deferred, not blocking):
+
+- Audit `intent claude upgrade` Phase-2 CLAUDE.md substitution: a regex in there mangles "v2.0.0" in the migration-history paragraph because it's substituting greedily on any `v2.X.Y` not just the version banner. Hand-corrected this session; needs a proper fix before next release.
+- Homebrew tap.
+- `scripts/release` v2 polish (`--rollback`, log-to-file mirror, prettier output).
+
+## Recent
+
+- **2026-04-28 (post-compact)**: ST0037 implemented end-to-end. Schema migration, helpers, CLI verbs, probe replacements, BATS rework, docs and blog updates, CHANGELOG entry, VERSION bump. Pre-existing `.intent/` mkdir bug found and fixed during dogfood. 863/863 tests green; doctor clean; project self-upgraded successfully.
+- **2026-04-28 evening**: language-detection regression diagnosed; ST0037 plan agreed (Option B, explicit config field).
+- **2026-04-28 afternoon**: two blog drafts in `docs/blog/_drafts/`. Detrope-clean except for the language-detection paragraph that ST0037 now unblocks.
+- **2026-04-28 mid-session**: skill-renderer trap regression guard test (`tests/unit/skill_renderer_trap.bats`); idempotence-test fix for AGENTS.md version probe.
+- **2026-04-28 morning**: v2.10.1 shipped.
 
 ## Parked
 
 _(None.)_
-
-## Open Follow-ups (post v2.10.1)
-
-- Blog draft retains its slot (was deferred from v2.10.0). The "shell-critic inception" angle now has the v2.10.1 cut as second datapoint -- the script ate its own dogfood.
-- The skill-renderer bug is upstream-of-Intent (Claude Code platform behaviour). Worth a forensic note in MEMORY for future skill authors: don't inline `awk '{print $N}'` in SKILL.md; positional-field expansions get stripped during prompt injection. Move logic to a `scripts/<name>.sh` file and invoke by path.

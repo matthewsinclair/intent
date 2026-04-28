@@ -147,6 +147,28 @@ lang_packs_insert_block() {
   mv "$tmp" "$rules_md"
 }
 
+# Remove a single language entry from inside the marker block. Idempotent:
+# returns 0 if the language is not present.
+lang_packs_remove_entry() {
+  local rules_md="$1"
+  local lang="$2"
+
+  if ! grep -qF "**${lang}** -- rule pack at" "$rules_md"; then
+    return 0
+  fi
+
+  local tmp="${rules_md}.tmp.$$"
+  awk -v needle="**${lang}** -- rule pack at" '
+    {
+      if (index($0, needle) == 0) {
+        print
+      }
+    }
+  ' "$rules_md" > "$tmp"
+
+  mv "$tmp" "$rules_md"
+}
+
 # Append a single language entry inside the marker block. Idempotent: skip if
 # the language already has an entry.
 lang_packs_add_entry() {
@@ -247,6 +269,12 @@ lang_init() {
     # Append Language Packs entry (idempotent)
     lang_packs_add_entry "$rules_md" "$lang"
 
+    # Add to config.json `languages` array (idempotent). Skips silently if jq
+    # is unavailable; the marker block + RULES-<lang>.md still landed.
+    if [ -f "$project_root/intent/.config/config.json" ]; then
+      add_project_language "$lang" "$project_root/intent/.config/config.json" || true
+    fi
+
     if [ "$installed_any" -eq 1 ]; then
       ok_count=$((ok_count + 1))
     else
@@ -259,6 +287,73 @@ lang_init() {
   [ "$fail_count" -eq 0 ]
 }
 
+# ---- Subcommand: remove ----
+# intent lang remove <lang> [<lang2> ...]
+# Reverses lang_init: removes the marker-block entry from agnostic RULES.md,
+# deletes intent/llm/RULES-<lang>.md and intent/llm/ARCHITECTURE-<lang>.md,
+# and removes the language from intent/.config/config.json `languages` array.
+# Idempotent: a language that was never installed prints `noop:` and returns 0.
+lang_remove() {
+  if [ "$#" -eq 0 ]; then
+    error "intent lang remove: missing language argument(s)"
+  fi
+
+  local project_root="${PROJECT_ROOT:-$PWD}"
+  local llm_dir="$project_root/intent/llm"
+  local config="$project_root/intent/.config/config.json"
+
+  if [ ! -d "$llm_dir" ]; then
+    error "intent lang remove: no intent/llm/ directory at $project_root"
+  fi
+
+  local rules_md="$llm_dir/RULES.md"
+  local lang ok_count
+  ok_count=0
+
+  for lang in "$@"; do
+    local touched=0
+
+    local dst_rules="$llm_dir/RULES-$lang.md"
+    local dst_arch="$llm_dir/ARCHITECTURE-$lang.md"
+
+    if [ -f "$dst_rules" ]; then
+      rm -f "$dst_rules"
+      echo "removed: intent/llm/RULES-$lang.md"
+      touched=1
+    fi
+    if [ -f "$dst_arch" ]; then
+      rm -f "$dst_arch"
+      echo "removed: intent/llm/ARCHITECTURE-$lang.md"
+      touched=1
+    fi
+
+    if [ -f "$rules_md" ] && grep -qF "**${lang}** -- rule pack at" "$rules_md"; then
+      lang_packs_remove_entry "$rules_md" "$lang"
+      echo "removed: Language Packs entry for '$lang' in intent/llm/RULES.md"
+      touched=1
+    fi
+
+    if [ -f "$config" ]; then
+      if command -v jq >/dev/null 2>&1; then
+        if jq -e --arg lang "$lang" '(.languages // []) | index($lang)' "$config" >/dev/null 2>&1; then
+          remove_project_language "$lang" "$config" || true
+          echo "removed: '$lang' from intent/.config/config.json languages"
+          touched=1
+        fi
+      fi
+    fi
+
+    if [ "$touched" -eq 0 ]; then
+      echo "noop: '$lang' not present"
+    fi
+
+    ok_count=$((ok_count + 1))
+  done
+
+  echo ""
+  echo "Summary: $ok_count language(s) processed."
+}
+
 # ---- Help ----
 show_usage() {
   cat << 'EOF'
@@ -267,19 +362,21 @@ Usage: intent lang <command> [options]
 Per-language canon: install language-specific RULES + ARCHITECTURE templates.
 
 Commands:
-  list                       List languages with available templates
-  show <lang>                Show what 'intent lang init <lang>' installs
-  init <lang> [<lang> ...]   Install per-language canon (idempotent; multi-lang)
-  help                       Show this usage
+  list                         List languages with available templates
+  show <lang>                  Show what 'intent lang init <lang>' installs
+  init <lang> [<lang> ...]     Install per-language canon (idempotent; multi-lang)
+  remove <lang> [<lang> ...]   Remove per-language canon (idempotent; multi-lang)
+  help                         Show this usage
 
 Env vars:
-  INTENT_LANG_TEMPLATES_DIR  Override default templates dir (used by tests)
+  INTENT_LANG_TEMPLATES_DIR    Override default templates dir (used by tests)
 
 Examples:
   intent lang list
   intent lang show elixir
   intent lang init elixir
   intent lang init rust shell
+  intent lang remove rust
 EOF
 }
 
@@ -296,6 +393,9 @@ case "$SUBCOMMAND" in
     ;;
   init)
     lang_init "$@"
+    ;;
+  remove|rm)
+    lang_remove "$@"
     ;;
   help|--help|-h)
     show_usage

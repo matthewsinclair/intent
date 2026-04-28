@@ -32,29 +32,45 @@ CLAUDE_MD="${INTENT_PROJECT_ROOT}/CLAUDE.md"
 }
 
 # ====================================================================
-# Language detection probes match in-review stage-2
+# Languages-in-use is read from config (ST0037), NOT detected via
+# filesystem probes. The probe table at lines 39-43 was a regression
+# against design intent; v2.11.0 replaced it with a config read.
 # ====================================================================
 
-@test "in-session declares mix.exs probe for Elixir" {
-  assert_file_contains "$SKILL" "mix.exs"
+@test "in-session reads languages from intent/.config/config.json" {
+  assert_file_contains "$SKILL" "intent/.config/config.json"
+  assert_file_contains "$SKILL" "languages"
+}
+
+@test "in-session does not probe filesystem markers for language detection" {
+  # These markers indicate filesystem-based detection. The new flow reads
+  # the languages array from config; markers should not appear as detection
+  # signals (mentions in the language reference table are fine).
+  run grep -E "(mix\.exs|Cargo\.toml|Package\.swift|\.luarc\.json) (exists|→|->)" "$SKILL"
+  [ "$status" -ne 0 ]
+}
+
+@test "in-session names Elixir as the only language with essentials skills" {
+  # The language reference table names Elixir as the only language with a
+  # per-language essentials skill set; rust/swift/lua/shell are listed but
+  # described as covered by their rule packs + critic-<lang> only.
   assert_file_contains "$SKILL" "/in-elixir-essentials"
   assert_file_contains "$SKILL" "/in-elixir-testing"
 }
 
-@test "in-session declares Cargo.toml probe for Rust" {
-  assert_file_contains "$SKILL" "Cargo.toml"
+@test "in-session does not reference phantom rust/swift/lua/shell essentials skills" {
+  # /in-rust-essentials, /in-swift-essentials, /in-lua-essentials, and
+  # /in-shell-essentials were promised in the v2.10.x SKILL.md ("ships in
+  # WPNN") but never authored. ST0037 stripped the dead refs.
+  run grep -E "/in-(rust|swift|lua|shell)-essentials" "$SKILL"
+  [ "$status" -ne 0 ]
 }
 
-@test "in-session declares Package.swift probe for Swift" {
-  assert_file_contains "$SKILL" "Package.swift"
-}
-
-@test "in-session declares Lua probe" {
-  assert_file_contains "$SKILL" ".luarc.json"
-}
-
-@test "in-session declares shell probe" {
-  assert_file_contains "$SKILL" "shebang"
+@test "in-session points at rule packs for non-Elixir languages" {
+  assert_file_contains "$SKILL" "intent/plugins/claude/rules/rust"
+  assert_file_contains "$SKILL" "intent/plugins/claude/rules/swift"
+  assert_file_contains "$SKILL" "intent/plugins/claude/rules/lua"
+  assert_file_contains "$SKILL" "intent/plugins/claude/rules/shell"
 }
 
 # ====================================================================

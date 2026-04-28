@@ -2,53 +2,56 @@
 
 ## First actions after `/compact` or new session
 
-1. **Invoke `/in-session`.** Now folded with orientation: reads restart files + project rules + `intent st list` first, then loads `/in-essentials`, `/in-standards`, plus per-language skills, then releases the `UserPromptSubmit` strict gate via the per-project sentinel. The gate-release block is now in `~/.claude/skills/in-session/scripts/release-gate.sh` (extracted from SKILL.md to dodge a Claude Code skill-renderer bug -- see "Lessons" below).
-2. **Verify the working tree.** `git status` should be clean if release engineering completed; otherwise check `intent/wip.md` for the in-flight commit.
-3. **Read `intent/wip.md` and `intent/restart.md`** for narrative state.
-4. **Read CHANGELOG.md v2.10.1 entry** for the shipped surface.
+1. **Invoke `/in-session`.** Reads restart files + CLAUDE.md + MODULES.md, surveys steel threads, loads `/in-essentials` and `/in-standards`, releases the UserPromptSubmit gate.
+2. **Verify the working tree.** `git status` should be clean. `git log --oneline -5` should show `a64a09b` (regression guard) and `46672e4` (idempotence fix) as the latest commits.
+3. **Read `intent/wip.md` and `intent/restart.md`.** Pay attention to the "Pending: ST0037" section in `wip.md` — that is the operative work for this next session.
 
-## State (2026-04-28, end of session -- v2.10.1 SHIPPED)
+## State (2026-04-28, end of session — ST0037 queued for v2.11.0)
 
-**Intent v2.10.1 shipped 2026-04-28.** Tag `v2.10.1` at `c453cbb`; pushed to `local` (Dropbox) + `upstream` (GitHub); GitHub release live at https://github.com/matthewsinclair/intent/releases/tag/v2.10.1.
+v2.10.1 shipped earlier today (tag `v2.10.1` at `c453cbb`, both remotes, GitHub release live). CI run `25050807366` green on the latest pushed commit (`a64a09b`). Tests 839/839 local. `intent doctor` clean.
 
-This was the first end-to-end exercise of `scripts/release`, which landed in the same line. One invocation, one confirmation point at the push step.
+This session ran past ship into v2.10.1 follow-up, blog drafting + detrope, and the discovery of a regression in language detection.
 
-- **VERSION**: `2.10.1` shipped.
-- **Tests**: 836/836 green.
-- **Doctor**: clean.
-- **Tag**: `v2.10.1` at `c453cbb`; pushed to both remotes.
-- **GitHub release**: live at the URL above.
+## Resume target — ST0037
+
+The user's design intent: **languages-in-use is a per-project CONFIG decision, not filesystem detection**. Filesystem-probe-based detection is alive in four canon sites; none of them reads explicit config. The imperative-config mechanism (`intent lang init`) exists but no consumer reads its output. Decision agreed: **Option B** — explicit `languages: []` field in `intent/.config/config.json`, with a back-fill migration. User direction: "fix this PROPERLY, no half-measures."
+
+After `/in-session`:
+
+1. `intent st new "Language config: replace filesystem probes with explicit config"`.
+2. Read `intent/wip.md` "ST0037 scope (13 items)" for the full plan.
+3. Document first (the new ST's `info.md` and `design.md`), code next.
+4. Execute the 13 items.
+5. Bump VERSION to 2.11.0 and add CHANGELOG section.
+6. Update both blog drafts in `docs/blog/_drafts/`.
+
+T-shirt: **M**.
 
 ## What landed this session (newest first)
 
-- `c453cbb` -- release: v2.10.1 (cut commit produced by `scripts/release --patch`).
-- `09700df` -- chore: promote v2.10.1 changes from Unreleased to in-progress section.
-- `cf3dfa8` -- chore: v2.10.x polish bundle (dry-run UX + Diogenes alignment + IN-RS-CODE-005 carve-out).
-- `0f7bcef` -- feat: add `scripts/release` for one-shot release cuts. +12 BATS scenarios.
-- `f44717e` -- fix: `/in-session` gate releaser (root cause: skill renderer strips `$1` from `awk '{print $1}'` in SKILL.md inline blocks) + `intent doctor` leftover-`.intent/` warning. +14 BATS scenarios.
+- `a64a09b` — test: regression guard for skill-renderer positional-token trap (`tests/unit/skill_renderer_trap.bats`).
+- `46672e4` — fix: anchor `AGENTS.md` version probe to `_Generated` footer.
+- `01c60a9` — chore: session wrap (from earlier session).
 
-Plus 1 mirror change in `~/.claude/skills/in-session/`: the same release-gate.sh + SKILL.md edit applied to the user-installed skill so running Claude Code sessions self-heal on next `/in-session`.
+Plus two blog drafts in `docs/blog/_drafts/`:
 
-## Resume target -- next ST or v2.11 backlog
-
-v2.10.1 shipped. No active ST. Backlog candidates:
-
-- **Blog draft**: `docs/blog/_drafts/####-shell-critic-inception.md`. Now has the v2.10.1 cut as second dogfood datapoint.
-- **Homebrew tap**: Conflab's release script has the formula-update pattern.
-- **`scripts/release` v2**: `--rollback`, prettier progress output, log-to-file mirror.
+- `####-critic-shell-on-intent.md` — light freshening of the inception draft, detrope-clean.
+- `####-claude-context-with-intent.md` — substantial v2.10.x rewrite of the supercharge-Claude post, detrope-clean except for the language-detection paragraph that ST0037 unblocks.
 
 ## Lessons from this session (top three)
 
-- **Claude Code skill renderer strips `$N` positional-field tokens.** Inline `awk '{print $1}'` in SKILL.md gets injected with the `$1` silently emptied, leading to a malformed downstream value. Move any pipeline using `$N` into a real script file under `scripts/` and have the SKILL invoke it by path. The rendering bug is upstream-of-Intent; the workaround is the only thing under our control.
+- **Detrope discipline scales when applied per-pass.** Three passes per blog draft, with audit after each, eliminates most AI tells. Watch for: bold-first bullets, "X, not Y" / "X rather than Y" / "X instead of Y" forms, three-parallel-verb tricolons, symmetric framing pairs, slogan closers, magic adverbs, action cliches.
 
-- **Per-project state-file scoping (`cksum`-keyed) is sound.** The gate-firing bug looked like cross-project state collision but was really a single-key lookup miss. Three concurrent project sessions coexisted in `/tmp/` without overwriting each other.
+- **Prose-level discomfort can surface system-level regressions.** The user flagged a tropey language-detection paragraph; investigation surfaced a regression in the underlying mechanism. Sometimes the bug is one layer down from where it's first noticed.
 
-- **Single confirmation point at the push step is the right human pause.** Local + reversible steps run silently; the externally-visible push gets one y/N. Sprinkling confirmations across the flow would have been noise.
+- **Idempotence is a property of probes.** The AGENTS.md version probe was greedy; once content moved around, the probe started reading the wrong value every run. Anchor probes to specific markers, never generic patterns.
 
-## Risks for next session
+## Risks for post-compact
 
-- CI status of `c453cbb` was in_progress at publish time. Check `gh run list` to confirm green.
-- The skill-renderer bug applies to ALL skills with inline `$N` — there may be other skills in the `in-*` family that need the same script-extraction treatment. Audit when convenient.
+- v2.11.0 schema migration adds a `languages: []` field. Migration must back-fill from existing `intent/llm/RULES-<lang>.md` presence; existing fleet projects shouldn't need user action.
+- BATS test rework on probe sites: `in_session_skill.bats`, `pre_commit_hook.bats`, `intent_lang.bats`. Probe assertions out, config-read assertions in.
+- Polyglot order: array order = explicit; first entry = primary where primary matters. Document the convention up front in the design doc.
+- Pre-commit hook reads JSON config — use `get_config_field` from `intent_helpers`, don't re-implement.
 
 ## Session conventions (carry forward)
 
@@ -58,7 +61,8 @@ v2.10.1 shipped. No active ST. Backlog candidates:
 - NEVER manually wrap lines in markdown.
 - NO Claude attribution in commits.
 - NEVER report test/skill/subagent counts in release notes, CHANGELOG, wip.md.
-- Fail-forward: no backwards-compat shims; auto-detection rejected.
+- Fail-forward: no backwards-compat shims, no deprecation stubs.
 - Document first, code next.
 - Pre-flight every canary: clean tree before applying.
 - SKILL.md inline bash with `$N` positional fields gets mangled. Use a script file invoked by path.
+- **NEW**: Languages-in-use is a CONFIG decision (`languages: []` field). NOT filesystem detection. Probe sites are regressions.

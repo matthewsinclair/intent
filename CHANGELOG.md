@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.0] - 2026-04-28
+
+ST0037 ships: languages-in-use becomes an explicit per-project configuration field, replacing four sites of filesystem-marker probing. The probe-based detection was a regression against design intent (filesystem presence is unreliable evidence; a vendored example or a one-off script can flip the wrong switch). Schema change is automatic via migration; existing fleet projects need no user action beyond `intent upgrade`.
+
+### Added
+
+- **`languages: []`** field in `intent/.config/config.json`. Array of canonical language names (`elixir`, `rust`, `swift`, `lua`, `shell`). Array order is the explicit declaration; the first entry is the primary where a primary is needed. Empty array is a valid state.
+- **`intent lang remove <lang> [<lang> ...]`** -- new verb. Reverses `intent lang init`: removes the entry from the agnostic `RULES.md` Language Packs marker block, deletes `intent/llm/RULES-<lang>.md` and `intent/llm/ARCHITECTURE-<lang>.md`, removes the language from `intent/.config/config.json`. Idempotent: a never-installed language emits `noop:` and returns 0.
+- **`get_project_languages()`** helper in `bin/intent_helpers`. Reads the field via `jq`, returns one language per line, returns 0 lines when the array is empty or the field is absent. Used by the pre-commit critic gate.
+- **`add_project_language()`** / **`remove_project_language()`** helpers in `bin/intent_helpers`. Atomic config-field mutation via tempfile + `mv`.
+- **`migrate_v2_10_x_to_v2_11_0`** in `bin/intent_helpers`. Adds the `languages` field with back-fill from existing `intent/llm/RULES-<lang>.md` presence (alphabetical for determinism). When the back-fill set is empty AND a pre-commit hook is installed, falls back to `["shell"]` to preserve current "shell-always" gate behaviour. Idempotent: if the field is already present, only stamps the version.
+- **BATS coverage** for the migration (`tests/unit/migrate_v2_10_x_to_v2_11_0.bats`), the new `intent lang init` config writes and the new `intent lang remove` verb (`tests/unit/intent_lang.bats`), the config-driven critic dispatch (`tests/unit/critic_dispatch.bats`), the config-driven pre-commit gate (`tests/unit/pre_commit_hook.bats`), and the regression guards on `/in-session` SKILL.md (no filesystem probes, no phantom skill refs).
+
+### Changed
+
+- **`/in-session` SKILL.md** -- detection table replaced with config-driven flow. The skill reads `(.languages // []) | .[]` from `intent/.config/config.json` and invokes any matching essentials skill. Currently only `/in-elixir-essentials` (and `/in-elixir-testing`) are real per-language essentials skills; rust/swift/lua/shell coding rules ship via the rule library at `intent/plugins/claude/rules/<lang>/` plus the `critic-<lang>` subagent applied on demand.
+- **`/in-review` SKILL.md** -- stage-2 dispatch table replaced with config-driven flow. Reads the `languages` array, dispatches one critic per language listed.
+- **`/in-tca-audit` SKILL.md** -- critic-selection table replaced with the same config-driven dispatch.
+- **`lib/templates/hooks/pre-commit.sh`** -- the `LANGS+=(elixir)` etc. probe block is gone. The hook reads `languages` from config; an empty array means no language critics run, mirroring the explicit-config contract.
+- **`bin/intent_init`** -- fresh projects get `"languages": []` in their initial config. The existing `--lang <lang>` flag still seeds the array via `intent lang init`.
+- **`intent/docs/working-with-llms.md`** -- "Skills and /in-session auto-load" section rewritten to describe the config-driven flow; the four phantom skill references (`/in-rust-essentials`, `/in-swift-essentials`, `/in-lua-essentials`, `/in-shell-essentials`) are gone.
+
+### Removed
+
+- **Filesystem-probe-based language detection** at four canon sites (`in-session/SKILL.md`, `in-review/SKILL.md`, `in-tca-audit/SKILL.md`, `lib/templates/hooks/pre-commit.sh`). File presence is no longer treated as evidence of language-in-use.
+- **Phantom skill references** to `/in-rust-essentials`, `/in-swift-essentials`, `/in-lua-essentials`, `/in-shell-essentials`. Those skills were promised in WP06/WP12 ("ships in WPNN") in the v2.10.x SKILL.md but never authored. The rule-pack + critic-subagent path is the working mechanism for those four languages and the prose now reflects that.
+
+### Fixed
+
+- **`create_v2_directory_structure()` in `bin/intent_helpers`** -- previously created an empty top-level `.intent/` unconditionally during `intent upgrade`, even on projects already on the v2.10 layout (`intent/.config/` present). The next phase (`migrate_v2_9_0_to_v2_10_0`) then refused to proceed because both `.intent/` and `intent/.config/` existed. Skips the `.intent/` creation when `intent/.config/` is in place. Pre-existing latent bug, surfaced when chaining the v2.9.0 → v2.10.0 → v2.11.0 migration sequence.
+
+### Migration notes
+
+- `intent upgrade` from any v2.10.x project runs `migrate_v2_10_x_to_v2_11_0` automatically. The migration is atomic, idempotent, and cannot lose user data.
+- Polyglot projects: declare languages in primacy order with `intent lang init <primary> <secondary> ...`. The first entry is the primary; later entries follow. To change primacy, `intent lang remove <lang>` and re-init in the desired order.
+
 ## [2.10.1] - 2026-04-28
 
 v2.10.x polish line. Two new pieces of maintainer infrastructure (a release script and a `intent doctor` migration-leftover warning), the gate-firing fix that surfaced post-v2.10.0 dogfood, and three pre-existing v2.10.0 dogfood-journal follow-ups that needed closing.

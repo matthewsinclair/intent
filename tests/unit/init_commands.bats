@@ -77,6 +77,8 @@ load "../lib/test_helper.bash"
   assert_file_contains "intent/.config/config.json" "\"intent_version\": \"${version}\""
   assert_file_contains "intent/.config/config.json" '"created":'
   assert_file_contains "intent/.config/config.json" '"author":'
+  # ST0037: fresh init writes empty languages array (explicit-config contract)
+  assert_file_contains "intent/.config/config.json" '"languages": []'
   
   # Cleanup
   cd - > /dev/null

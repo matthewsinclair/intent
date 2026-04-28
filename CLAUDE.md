@@ -1,6 +1,6 @@
 # Intent
 
-This project uses Intent v2.10.0. The primary config file for AI coding agents is `AGENTS.md` at the project root -- read that first. `CLAUDE.md` is a Claude Code-specific overlay that adds directives beyond the tool-agnostic contract.
+This project uses Intent v2.11.0. The primary config file for AI coding agents is `AGENTS.md` at the project root -- read that first. `CLAUDE.md` is a Claude Code-specific overlay that adds directives beyond the tool-agnostic contract.
 
 ## Required on every session
 
@@ -83,7 +83,7 @@ The canon Critic dispatch section above already points at `intent/docs/critics.m
 
 ### Migration history
 
-Intent originated as STP, migrated to Intent v2.0.0 on 2025-07-16, then through v2.1.0 -> v2.2.0 -> v2.3.0 -> v2.8.x -> v2.9.0 -> v2.10.0 (current). v2.10.0 ships the canonical LLM config (this overlay pattern, three-file canon AGENTS.md / CLAUDE.md / usage-rules.md, session hooks, pre-commit critic gate) and relocates `.intent/` to `intent/.config/`. See `CHANGELOG.md` for per-version detail.
+Intent originated as STP, migrated to Intent v2.0.0 on 2025-07-16, then through v2.1.0 -> v2.2.0 -> v2.3.0 -> v2.8.x -> v2.9.0 -> v2.10.0 -> v2.11.0 (current). v2.10.0 ships the canonical LLM config (this overlay pattern, three-file canon AGENTS.md / CLAUDE.md / usage-rules.md, session hooks, pre-commit critic gate) and relocates `.intent/` to `intent/.config/`. v2.11.0 (ST0037) replaces filesystem-marker language detection with an explicit `languages` config field. See `CHANGELOG.md` for per-version detail.
 
 ### Author
 
@@ -93,4 +93,4 @@ matts (hello@matthewsinclair.com)
 
 ---
 
-_Generated from `lib/templates/llm/_CLAUDE.md` on 2026-04-27 for Intent v2.10.0._
+_Generated from `lib/templates/llm/_CLAUDE.md` on 2026-04-28 for Intent v2.11.0._

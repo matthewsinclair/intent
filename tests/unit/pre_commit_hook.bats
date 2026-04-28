@@ -16,10 +16,13 @@ setup() {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-hook-test-XXXXXX)"
   cd "${TEST_TEMP_DIR}" || exit 1
 
-  # Minimal Intent project skeleton
+  # Minimal Intent project skeleton.
+  # `languages` field (v2.11.0+, ST0037) is the explicit declaration that
+  # tells the hook which critics to invoke. Tests that target a different
+  # language set should override this in their own setup.
   mkdir -p intent/.config
   cat > intent/.config/config.json <<'EOF'
-{"intent_version":"2.10.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z"}
+{"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["elixir"]}
 EOF
   touch mix.exs
 
@@ -104,6 +107,33 @@ EOF
   git add intent/.config mix.exs test_good.exs .intent_critic.yml
   # good fixture + critical threshold → clean
   run git commit -m "clean under critical"
+  assert_success
+}
+
+@test "empty languages array → hook runs no critics → commit proceeds" {
+  # ST0037: a project with `languages: []` declares no language critics.
+  # The hook walks the (empty) array and the AGGREGATE stays 0. A bad
+  # fixture that would otherwise trigger critic-elixir is staged but the
+  # commit proceeds because the elixir critic is not invoked.
+  cat > intent/.config/config.json <<'EOF'
+{"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":[]}
+EOF
+  cp "$FIX_BAD" test_bad.exs
+  git add intent/.config mix.exs test_bad.exs
+  run git commit -m "empty langs"
+  assert_success
+}
+
+@test "languages without elixir → bad elixir fixture not flagged" {
+  # ST0037: a shell-only declaration must not invoke critic-elixir even if
+  # an Elixir test file is staged. Demonstrates the explicit-config
+  # contract: file presence is not detection.
+  cat > intent/.config/config.json <<'EOF'
+{"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["shell"]}
+EOF
+  cp "$FIX_BAD" test_bad.exs
+  git add intent/.config mix.exs test_bad.exs
+  run git commit -m "shell only"
   assert_success
 }
 

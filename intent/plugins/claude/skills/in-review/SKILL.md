@@ -33,17 +33,17 @@ Checklist:
 
 Is the code consistent with the Intent rule library? This stage dispatches to the right `critic-<lang>` subagent based on the project's ecosystem.
 
-#### Language detection
+#### Language dispatch
 
-Detect the project's primary language by filesystem probe, in this order:
+Read the project's declared languages from `intent/.config/config.json`:
 
-1. **Elixir** — `mix.exs` exists at project root → critic-elixir.
-2. **Rust** — `Cargo.toml` exists at project root → critic-rust (WP07).
-3. **Swift** — `Package.swift` exists at project root → critic-swift (WP07).
-4. **Lua** — `.luarc.json` exists OR the project is `.lua`-dominated → critic-lua (WP07).
-5. **Shell** — `bin/` or `scripts/` contains bash/zsh scripts with shebangs → critic-shell (WP12).
+```bash
+jq -r '(.languages // []) | .[]' intent/.config/config.json
+```
 
-A mixed project dispatches to the critic whose language matches the files being reviewed.
+For each language listed, dispatch to its critic subagent. Supported languages map directly: `elixir` → `critic-elixir`, `rust` → `critic-rust`, `swift` → `critic-swift`, `lua` → `critic-lua`, `shell` → `critic-shell`.
+
+A mixed project (multiple entries in `languages`) dispatches to each critic whose language matches the files being reviewed. If `languages` is empty, no language-specific critic runs; only the agnostic checklist below applies.
 
 #### Generic rule checklist (applies to every language)
 
@@ -74,7 +74,7 @@ Task(subagent_type="critic-lua",    prompt="test-check spec/**/*_spec.lua")
 Task(subagent_type="critic-shell",  prompt="review bin/* scripts/*")
 ```
 
-**Polyglot projects**: when more than one language indicator is present (e.g., `mix.exs` and `Cargo.toml` at the same root), ask the user which language's files to review rather than dispatching every critic. Alternatively, invoke each critic with a narrowed target glob for its own subtree.
+**Polyglot projects**: when `languages` has more than one entry, the user has explicitly declared a polyglot. Invoke each critic with a target glob narrowed to its own subtree. Array order is the explicit declaration; the first entry is the primary where a primary is needed.
 
 **Project-local config**: critics honour `.intent_critic.yml` at the project root for `disabled:` and `severity_min:` overrides. See `intent/docs/critics.md` and `intent/plugins/claude/rules/_schema/sample-intent-critic.yml`.
 

@@ -91,18 +91,26 @@ echo "Current version: $VERSION"
 echo "Target version:  $TARGET_VERSION"
 echo ""
 
-# Check if already at target version AND target layout.
+# Check if already at target version AND target layout AND target schema.
 # A project may be stamped at the target but still on the .intent/ layout
 # (e.g. Intent itself was retargeted to v2.10.0 mid-ST0035 before ST0036
-# relocated the directory). Without this layout check the dispatcher would
-# short-circuit and migrate_v2_9_0_to_v2_10_0 would never run.
-if [ "$VERSION" = "$TARGET_VERSION" ] && [ ! -d ".intent" ]; then
+# relocated the directory). It may also be stamped at the target but lack
+# the languages config field (ST0037). Without these checks the dispatcher
+# would short-circuit and the relevant migration would never run.
+_has_languages_field=true
+if [ -f "intent/.config/config.json" ] && command -v jq >/dev/null 2>&1; then
+  if ! jq -e 'has("languages")' "intent/.config/config.json" >/dev/null 2>&1; then
+    _has_languages_field=false
+  fi
+fi
+if [ "$VERSION" = "$TARGET_VERSION" ] && [ ! -d ".intent" ] && [ "$_has_languages_field" = true ]; then
   echo "ok: already at intent v$TARGET_VERSION"
   exit 0
 fi
+unset _has_languages_field
 
 # Determine if migration is needed
-if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION" && ! needs_v2_3_1_upgrade "$VERSION" && ! needs_v2_3_2_upgrade "$VERSION" && ! needs_v2_3_3_upgrade "$VERSION" && ! needs_v2_3_4_upgrade "$VERSION" && ! needs_v2_4_0_upgrade "$VERSION" && ! needs_v2_5_0_upgrade "$VERSION" && ! needs_v2_6_0_upgrade "$VERSION" && ! needs_v2_8_1_upgrade "$VERSION" && ! needs_v2_8_2_upgrade "$VERSION" && ! needs_v2_9_0_upgrade "$VERSION" && ! needs_v2_10_0_upgrade "$VERSION" .; then
+if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION" && ! needs_v2_3_1_upgrade "$VERSION" && ! needs_v2_3_2_upgrade "$VERSION" && ! needs_v2_3_3_upgrade "$VERSION" && ! needs_v2_3_4_upgrade "$VERSION" && ! needs_v2_4_0_upgrade "$VERSION" && ! needs_v2_5_0_upgrade "$VERSION" && ! needs_v2_6_0_upgrade "$VERSION" && ! needs_v2_8_1_upgrade "$VERSION" && ! needs_v2_8_2_upgrade "$VERSION" && ! needs_v2_9_0_upgrade "$VERSION" && ! needs_v2_10_0_upgrade "$VERSION" . && ! needs_v2_11_0_upgrade "$VERSION" .; then
   echo "ok: up to date at v$VERSION"
   echo "  no upgrade path to $TARGET_VERSION"
   exit 0
@@ -180,6 +188,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.1.0")
     echo "Upgrading from v2.1.0 to v$TARGET_VERSION..."
@@ -198,6 +207,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.2.0")
     echo "Upgrading from v2.2.0 to v$TARGET_VERSION..."
@@ -215,6 +225,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.2.1")
     echo "Upgrading from v2.2.1 to v$TARGET_VERSION..."
@@ -231,6 +242,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.3.0")
     echo "Upgrading from v2.3.0 to v$TARGET_VERSION..."
@@ -246,6 +258,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.3.1")
     echo "Upgrading from v2.3.1 to v$TARGET_VERSION..."
@@ -260,6 +273,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.3.2")
     echo "Upgrading from v2.3.2 to v$TARGET_VERSION..."
@@ -273,6 +287,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.3.3")
     echo "Upgrading from v2.3.3 to v$TARGET_VERSION..."
@@ -285,6 +300,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.3.4")
     echo "Upgrading from v2.3.4 to v$TARGET_VERSION..."
@@ -296,6 +312,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.4.0")
     echo "Upgrading from v2.4.0 to v$TARGET_VERSION..."
@@ -306,6 +323,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.5.0")
     echo "Upgrading from v2.5.0 to v$TARGET_VERSION..."
@@ -315,6 +333,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.6.0"|"2.7.0")
     echo "Upgrading from v$VERSION to v$TARGET_VERSION..."
@@ -323,6 +342,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.8.0")
     echo "Upgrading from v2.8.0 to v$TARGET_VERSION..."
@@ -330,29 +350,33 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.8.1")
     echo "Upgrading from v2.8.1 to v$TARGET_VERSION..."
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.8.2")
     echo "Upgrading from v2.8.2 to v$TARGET_VERSION..."
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   "2.9.0")
     echo "Upgrading from v2.9.0 to v$TARGET_VERSION..."
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
-  "2.10.0")
-    # Stamp is at target but the layout-aware gate above let us through, so
-    # the directory relocation has not yet happened. Run only the v2.10.0
-    # migration; intent_relocate_dotintent + canon-apply both fire,
-    # stamp-bump is a no-op (already at 2.10.0).
-    echo "Re-applying v2.10.0 migration (stamp current, layout pre-relocation)..."
+  "2.10.0"|"2.10.1")
+    # v2.10.x stamp; layout may or may not be relocated. migrate_v2_9_0_to_v2_10_0
+    # is idempotent (relocation no-op + stamp no-op). Then run the v2.11.0
+    # migration to add the languages field.
+    echo "Upgrading from v$VERSION to v$TARGET_VERSION..."
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
   *)
     error "Unknown version: $VERSION"
@@ -382,6 +406,7 @@ case "$VERSION" in
     migrate_v2_8_1_to_v2_8_2 .
     migrate_v2_8_2_to_v2_9_0 .
     migrate_v2_9_0_to_v2_10_0 .
+    migrate_v2_10_x_to_v2_11_0 .
     ;;
 esac
 

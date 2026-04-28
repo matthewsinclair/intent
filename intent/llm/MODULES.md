@@ -7,33 +7,33 @@
 
 ## Core CLI
 
-| Concern                 | THE Module             | Notes                                                                           |
-| ----------------------- | ---------------------- | ------------------------------------------------------------------------------- |
-| Main entry point        | `bin/intent`           | Command dispatch, global commands, INTENT_HOME                                  |
-| Shared helpers          | `bin/intent_helpers`   | error(), checksum, terminal width, get_config_field                             |
-| Project init            | `bin/intent_init`      | Creates new Intent projects from templates                                      |
-| Steel thread mgmt       | `bin/intent_st`        | new, list, show, start, done, cancel, organize                                  |
-| Work package mgmt       | `bin/intent_wp`        | new, list, show, start, done                                                    |
-| Treeindex generation    | `bin/intent_treeindex` | Shadow directory index generation with Claude                                   |
-| File indexing           | `bin/intent_fileindex` | File listing, checkbox state tracking                                           |
-| Health checks           | `bin/intent_doctor`    | Dependency checks, config validation                                            |
-| Plugin discovery        | `bin/intent_plugin`    | list, show, help for installed plugins                                          |
-| Audit command           | `bin/intent_audit`     | quick, health, help; Elixir credo integration                                   |
-| Learn command           | `bin/intent_learn`     | Capture project learnings for future sessions                                   |
-| Module registry         | `bin/intent_modules`   | check, find; MODULES.md enforcement                                             |
-| STZero retrofit         | `bin/intent_st_zero`   | Brownfield project retrofit installation                                        |
-| Help display            | `bin/intent_help`      | General and command-specific help display                                       |
-| Config loading          | `bin/intent_config`    | PROJECT_ROOT detection, load_intent_config                                      |
-| Project info            | `bin/intent_info`      | Status display, no-args default                                                 |
-| LLM guidance            | `bin/intent_llm`       | Display LLM-specific guidance files                                             |
-| Organise                | `bin/intent_organise`  | Organize steel threads by status                                                |
-| Upgrade                 | `bin/intent_upgrade`   | STP to Intent migration                                                         |
-| Minimal bootstrap       | `bin/intent_minimal`   | Minimal no-dependency bootstrap                                                 |
-| Main (legacy)           | `bin/intent_main`      | Legacy entry point                                                              |
-| Bootstrap               | `bin/intent_bootstrap` | First-run setup, PATH instructions                                              |
-| Extension mgmt (v2.9.0) | `bin/intent_ext`       | list, show, validate, new (WP02)                                                |
-| Headless critic runner  | `bin/intent_critic`    | Runs rule-library Detection heuristics; text/json output (ST0035/WP05)          |
-| Per-language canon      | `bin/intent_lang`      | list/show/init; installs RULES-<lang>.md + ARCHITECTURE-<lang>.md (ST0035/WP19) |
+| Concern                 | THE Module             | Notes                                                                                                                                      |
+| ----------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Main entry point        | `bin/intent`           | Command dispatch, global commands, INTENT_HOME                                                                                             |
+| Shared helpers          | `bin/intent_helpers`   | error(), checksum, terminal width, get_config_field, get/add/remove_project_language (ST0037)                                              |
+| Project init            | `bin/intent_init`      | Creates new Intent projects from templates                                                                                                 |
+| Steel thread mgmt       | `bin/intent_st`        | new, list, show, start, done, cancel, organize                                                                                             |
+| Work package mgmt       | `bin/intent_wp`        | new, list, show, start, done                                                                                                               |
+| Treeindex generation    | `bin/intent_treeindex` | Shadow directory index generation with Claude                                                                                              |
+| File indexing           | `bin/intent_fileindex` | File listing, checkbox state tracking                                                                                                      |
+| Health checks           | `bin/intent_doctor`    | Dependency checks, config validation                                                                                                       |
+| Plugin discovery        | `bin/intent_plugin`    | list, show, help for installed plugins                                                                                                     |
+| Audit command           | `bin/intent_audit`     | quick, health, help; Elixir credo integration                                                                                              |
+| Learn command           | `bin/intent_learn`     | Capture project learnings for future sessions                                                                                              |
+| Module registry         | `bin/intent_modules`   | check, find; MODULES.md enforcement                                                                                                        |
+| STZero retrofit         | `bin/intent_st_zero`   | Brownfield project retrofit installation                                                                                                   |
+| Help display            | `bin/intent_help`      | General and command-specific help display                                                                                                  |
+| Config loading          | `bin/intent_config`    | PROJECT_ROOT detection, load_intent_config                                                                                                 |
+| Project info            | `bin/intent_info`      | Status display, no-args default                                                                                                            |
+| LLM guidance            | `bin/intent_llm`       | Display LLM-specific guidance files                                                                                                        |
+| Organise                | `bin/intent_organise`  | Organize steel threads by status                                                                                                           |
+| Upgrade                 | `bin/intent_upgrade`   | STP to Intent migration                                                                                                                    |
+| Minimal bootstrap       | `bin/intent_minimal`   | Minimal no-dependency bootstrap                                                                                                            |
+| Main (legacy)           | `bin/intent_main`      | Legacy entry point                                                                                                                         |
+| Bootstrap               | `bin/intent_bootstrap` | First-run setup, PATH instructions                                                                                                         |
+| Extension mgmt (v2.9.0) | `bin/intent_ext`       | list, show, validate, new (WP02)                                                                                                           |
+| Headless critic runner  | `bin/intent_critic`    | Runs rule-library Detection heuristics; text/json output (ST0035/WP05)                                                                     |
+| Per-language canon      | `bin/intent_lang`      | list/show/init/remove; installs/removes RULES-<lang>.md + ARCHITECTURE-<lang>.md, syncs config.json languages array (ST0035/WP19 + ST0037) |
 
 ## Plugin: Claude
 

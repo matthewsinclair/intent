@@ -30,17 +30,25 @@ Invoke these skills via the Skill tool, unconditionally:
 - `/in-essentials` -- Intent workflow rules (use the CLI, never edit generated files)
 - `/in-standards` -- agnostic coding discipline (Highlander, PFIC, Thin Coordinator, No Silent Errors)
 
-### 2. Detect the project's primary language
+### 2. Read the project's declared languages
 
-Probe the project root in this order. First hit wins for primary language; multiple can apply for polyglot repos.
+Languages-in-use is a configuration decision, not a filesystem detection. Read the `languages` array from `intent/.config/config.json`:
 
-| Probe                                      | Language | Skills to invoke                                                                |
-| ------------------------------------------ | -------- | ------------------------------------------------------------------------------- |
-| `mix.exs` exists                           | Elixir   | `/in-elixir-essentials`, `/in-elixir-testing`; plus Ash and LiveView per step 3 |
-| `Cargo.toml` exists                        | Rust     | `/in-rust-essentials` (ships in WP06)                                           |
-| `Package.swift` exists                     | Swift    | `/in-swift-essentials` (ships in WP06)                                          |
-| `.luarc.json` or `.lua`-dominated tree     | Lua      | `/in-lua-essentials` (ships in WP06)                                            |
-| `bin/` or `scripts/` has bash/zsh shebangs | Shell    | `/in-shell-essentials` (ships in WP12)                                          |
+```bash
+jq -r '(.languages // []) | .[]' intent/.config/config.json
+```
+
+For each language listed, invoke the matching essentials skill if one exists. Currently only Elixir has a per-language essentials skill set; the other languages get their coding rules via the rule library at `intent/plugins/claude/rules/<lang>/` plus the `critic-<lang>` subagent applied on demand.
+
+| Language | Skills to invoke (if listed in config)                                             |
+| -------- | ---------------------------------------------------------------------------------- |
+| `elixir` | `/in-elixir-essentials`, `/in-elixir-testing`; plus Ash and LiveView per step 3    |
+| `rust`   | (no essentials skill; rules at `intent/plugins/claude/rules/rust/`, critic-rust)   |
+| `swift`  | (no essentials skill; rules at `intent/plugins/claude/rules/swift/`, critic-swift) |
+| `lua`    | (no essentials skill; rules at `intent/plugins/claude/rules/lua/`, critic-lua)     |
+| `shell`  | (no essentials skill; rules at `intent/plugins/claude/rules/shell/`, critic-shell) |
+
+If the array is empty or missing, no language-specific essentials skills load. The user can declare languages with `intent lang init <lang>` (or remove with `intent lang remove <lang>`).
 
 ### 3. Elixir dep-based fan-out
 

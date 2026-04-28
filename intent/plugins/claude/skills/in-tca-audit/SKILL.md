@@ -56,15 +56,15 @@ Task(subagent_type="critic-<lang>", prompt="test-check <test_file1> <test_file2>
 
 `<lang>` is the WP's language per `info.md`. Polyglot WPs run one dispatch per language. The critic auto-loads the right rule packs (agnostic + language code/test + framework subdirs) and honours the project's `.intent_critic.yml`.
 
-**Critic selection**:
+**Critic selection**: read the project's declared languages from `intent/.config/config.json` (`jq -r '(.languages // []) | .[]' intent/.config/config.json`) and dispatch one critic per language listed:
 
-| Project signal    | Critic to dispatch |
-| ----------------- | ------------------ |
-| `mix.exs`         | `critic-elixir`    |
-| `Cargo.toml`      | `critic-rust`      |
-| `Package.swift`   | `critic-swift`     |
-| `.luarc.json`     | `critic-lua`       |
-| Bash/zsh shebangs | `critic-shell`     |
+| Language entry | Critic to dispatch |
+| -------------- | ------------------ |
+| `elixir`       | `critic-elixir`    |
+| `rust`         | `critic-rust`      |
+| `swift`        | `critic-swift`     |
+| `lua`          | `critic-lua`       |
+| `shell`        | `critic-shell`     |
 
 This matches the `/in-review` stage-2 dispatcher.
 

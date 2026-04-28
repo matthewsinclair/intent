@@ -79,6 +79,52 @@ get_config_field() {
 }
 export -f get_config_field
 
+# Get all languages declared in the project config, one per line.
+# Returns 0 lines (and 0 exit) when languages is empty, absent, or config
+# unreadable. Reads via jq if available; falls back silently otherwise.
+# (Pre-commit hook and SKILL.md prose rely on this being the single source.)
+get_project_languages() {
+  local config="${1:-intent/.config/config.json}"
+  [ -f "$config" ] || return 0
+  command -v jq >/dev/null 2>&1 || return 0
+  jq -r '(.languages // []) | .[]' "$config" 2>/dev/null || true
+}
+export -f get_project_languages
+
+# Append a language to the project's languages array if not already present.
+# Idempotent. Writes config atomically via temp file + mv.
+add_project_language() {
+  local lang="$1"
+  local config="${2:-intent/.config/config.json}"
+  [ -f "$config" ] || return 1
+  require_jq >/dev/null 2>&1 || return 1
+  local tmp
+  tmp=$(mktemp)
+  jq --arg lang "$lang" '
+    if (.languages // []) | index($lang) then
+      .
+    else
+      .languages = ((.languages // []) + [$lang])
+    end
+  ' "$config" > "$tmp"
+  mv "$tmp" "$config"
+}
+export -f add_project_language
+
+# Remove a language from the project's languages array if present.
+# Idempotent. Writes config atomically via temp file + mv.
+remove_project_language() {
+  local lang="$1"
+  local config="${2:-intent/.config/config.json}"
+  [ -f "$config" ] || return 1
+  require_jq >/dev/null 2>&1 || return 1
+  local tmp
+  tmp=$(mktemp)
+  jq --arg lang "$lang" '.languages = ((.languages // []) - [$lang])' "$config" > "$tmp"
+  mv "$tmp" "$config"
+}
+export -f remove_project_language
+
 # Require jq to be installed (returns 1 with instructions if not)
 require_jq() {
   if command -v jq >/dev/null 2>&1; then
@@ -295,9 +341,16 @@ convert_yaml_config_to_json() {
 # Create standard v2.0.0+ directory structure
 create_v2_directory_structure() {
   local project_root=$1
-  
-  # Create directories
-  mkdir -p "$project_root/.intent"
+
+  # Create directories.
+  # Skip `.intent/` creation if the project is already on the post-v2.10
+  # layout (`intent/.config/` present); creating an empty `.intent/` next to
+  # an existing `intent/.config/` causes intent_relocate_dotintent to refuse
+  # the migration as a conflict (ST0037 surfaced this when chaining the
+  # v2.9.0 → v2.10.0 → v2.11.0 sequence on a project already at v2.10 layout).
+  if [ ! -d "$project_root/intent/.config" ]; then
+    mkdir -p "$project_root/.intent"
+  fi
   mkdir -p "$project_root/intent/st/COMPLETED"
   mkdir -p "$project_root/intent/st/NOT-STARTED"
   mkdir -p "$project_root/intent/st/CANCELLED"
@@ -968,6 +1021,31 @@ needs_v2_9_0_upgrade() {
   esac
 }
 
+# needs_v2_11_0_upgrade VERSION [PROJECT_ROOT]
+# Returns 0 if the v2.11.0 migration is needed (ST0037: languages field on config).
+# Field shortcut: if config exists and has the languages field, return 1
+# regardless of stamp. Otherwise: stamp-based check.
+needs_v2_11_0_upgrade() {
+  local version=$1
+  local project_root=${2:-.}
+  local config="$project_root/intent/.config/config.json"
+
+  if [ -f "$config" ] && command -v jq >/dev/null 2>&1; then
+    if ! jq -e 'has("languages")' "$config" >/dev/null 2>&1; then
+      return 0
+    fi
+  fi
+
+  case "$version" in
+    "2.11."*|"2.12."*|"2.13."*|"2.14."*|"2.15."*|"2.16."*|"2.17."*|"2.18."*|"2.19."*|"3."*)
+      return 1
+      ;;
+    *)
+      return 0
+      ;;
+  esac
+}
+
 # needs_v2_10_0_upgrade VERSION [PROJECT_ROOT]
 # Returns 0 if the v2.10.0 migration is needed for this project.
 #
@@ -1267,6 +1345,85 @@ migrate_v2_9_0_to_v2_10_0() {
   fi
 
   echo "  Migration to v2.10.0 complete."
+}
+
+# Migrate v2.10.x -> v2.11.0: add `languages: []` field to config with
+# back-fill from existing intent/llm/RULES-<lang>.md presence (ST0037).
+# Idempotent: if `languages` already present, skips back-fill and only stamps.
+migrate_v2_10_x_to_v2_11_0() {
+  local project_root=$1
+  local config="$project_root/intent/.config/config.json"
+
+  echo "Upgrading to Intent v2.11.0 (explicit languages config; ST0037)..."
+
+  if [ ! -f "$config" ]; then
+    echo "  warning: $config not found; skipping languages migration." >&2
+    return 0
+  fi
+
+  if ! command -v jq >/dev/null 2>&1; then
+    echo "  warning: jq not available; skipping languages migration." >&2
+    return 0
+  fi
+
+  if jq -e 'has("languages")' "$config" >/dev/null 2>&1; then
+    echo "  field: languages already present (no back-fill)"
+  else
+    local llm_dir="$project_root/intent/llm"
+    local langs=()
+    if [ -d "$llm_dir" ]; then
+      local f lang
+      for f in "$llm_dir"/RULES-*.md; do
+        [ -f "$f" ] || continue
+        lang="${f##*/RULES-}"
+        lang="${lang%.md}"
+        langs+=("$lang")
+      done
+    fi
+
+    if [ "${#langs[@]}" -gt 1 ]; then
+      local sorted_langs=()
+      while IFS= read -r lang; do
+        [ -n "$lang" ] && sorted_langs+=("$lang")
+      done < <(printf '%s\n' "${langs[@]}" | sort -u)
+      langs=("${sorted_langs[@]}")
+    fi
+
+    if [ "${#langs[@]}" -eq 0 ] && [ -f "$project_root/.git/hooks/pre-commit" ]; then
+      langs=("shell")
+    fi
+
+    local langs_json
+    if [ "${#langs[@]}" -eq 0 ]; then
+      langs_json='[]'
+    else
+      langs_json=$(printf '%s\n' "${langs[@]}" | jq -R . | jq -s .)
+    fi
+
+    local tmp
+    tmp=$(mktemp)
+    jq --argjson langs "$langs_json" '.languages = $langs' "$config" > "$tmp"
+    mv "$tmp" "$config"
+    if [ "${#langs[@]}" -eq 0 ]; then
+      echo "  back-filled: languages = []"
+    else
+      echo "  back-filled: languages = [$(printf '"%s",' "${langs[@]}" | sed 's/,$//')]"
+    fi
+  fi
+
+  local current
+  current=$(jq -r '.intent_version // ""' "$config")
+  if [ "$current" = "2.11.0" ]; then
+    echo "  stamp: already at v2.11.0"
+  else
+    local tmp2
+    tmp2=$(mktemp)
+    jq --arg v "2.11.0" '.intent_version = $v' "$config" > "$tmp2"
+    mv "$tmp2" "$config"
+    echo "  stamped: intent_version = 2.11.0"
+  fi
+
+  echo "  Migration to v2.11.0 complete."
 }
 
 # Migrate v2.2.0 to v2.2.1

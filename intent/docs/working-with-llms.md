@@ -295,22 +295,19 @@ Skills install to `~/.claude/skills/<name>/SKILL.md` and auto-load into every Cl
 The session-bootstrap flow handled by the `/in-session` skill:
 
 1. Unconditionally invoke `/in-essentials` and `/in-standards` (universal workflow rules).
-2. Detect the project's primary language by probing the project root:
-   - `mix.exs` → Elixir → `/in-elixir-essentials`, `/in-elixir-testing`.
-   - `Cargo.toml` → Rust → `/in-rust-essentials`.
-   - `Package.swift` → Swift → `/in-swift-essentials`.
-   - `.luarc.json` or `.lua`-dominant tree → Lua → `/in-lua-essentials`.
-   - `bin/` or `scripts/` with bash/zsh shebangs → Shell → `/in-shell-essentials`.
-3. Elixir-specific dep fan-out:
+2. Read the `languages` array from `intent/.config/config.json` (`jq -r '(.languages // []) | .[]' ...`). For each language listed, invoke its essentials skill if one exists. As of v2.11.0 only Elixir ships per-language essentials skills (`/in-elixir-essentials` + `/in-elixir-testing`); Rust, Swift, Lua, and shell carry their coding rules through the rule library at `intent/plugins/claude/rules/<lang>/` and the `critic-<lang>` subagent applied on demand.
+3. Elixir-specific dep fan-out (only when `elixir` is in `languages` and `mix.exs` is present):
    - `:ash` or `:ash_postgres` in `mix.exs` → `/in-ash-ecto-essentials`.
    - `:phoenix_live_view` in `mix.exs` → `/in-phoenix-liveview`.
 4. Report the loaded skill set in one line so the user can spot an unexpected match.
 
-Why auto-load: after `/compact`, conversation context is regenerated but skill invocations are not replayed. Without `/in-session`, the user has to paste the skill list manually every reset. The `/in-session` skill is a thin coordinator that parses the project and calls the right skills in one command.
+Languages are declared with `intent lang init <lang>` and removed with `intent lang remove <lang>` (v2.11.0+). The set is explicit per-project configuration, not filesystem detection — file presence is unreliable evidence of intent. See ST0037 for the rationale.
+
+Why auto-load: after `/compact`, conversation context is regenerated but skill invocations are not replayed. Without `/in-session`, the user has to paste the skill list manually every reset. The `/in-session` skill is a thin coordinator that reads the project's declared languages and calls the right skills in one command.
 
 To extend:
 
-- **New language pack** — add a probe row to `in-session/SKILL.md`, plus the corresponding language skill under `intent/plugins/claude/skills/`. For critic coverage in the new language, add a dispatch entry in `intent/docs/critics.md` and ship rules under `intent/plugins/claude/rules/<lang>/`.
+- **New language pack** — author rules under `intent/plugins/claude/rules/<lang>/`, ship a `critic-<lang>` subagent, register the language in `intent/plugins/agents/templates/<lang>/` so `intent lang init <lang>` finds it. Add a dispatch entry in `intent/docs/critics.md`. A per-language essentials skill at `intent/plugins/claude/skills/in-<lang>-essentials/` is optional; the rule pack + critic path is the working mechanism without it.
 - **New framework fan-out** — add a dep-based branch in `/in-session` step 3 (Elixir-specific today, extensible to other ecosystems).
 
 ## Extensions at ~/.intent/ext/

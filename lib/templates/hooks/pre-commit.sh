@@ -68,17 +68,19 @@ if [ ! -f "intent/.config/config.json" ]; then
   fi
 fi
 
-# ---- Detect languages to critique ----
+# ---- Read declared languages from project config ----
+#
+# v2.11.0+: languages-in-use is an explicit `languages` array in
+# intent/.config/config.json (see ST0037). The hook reads the field and
+# dispatches one critic per language. Empty array means no language critics
+# run (only the agnostic checklist applies upstream of this hook).
 
 LANGS=()
-[ -f "mix.exs" ]                  && LANGS+=(elixir)
-[ -f "Cargo.toml" ]               && LANGS+=(rust)
-[ -f "Package.swift" ]            && LANGS+=(swift)
-[ -f ".luarc.json" ]              && LANGS+=(lua)
-
-# Always include shell so staged bash/zsh scripts are checked regardless
-# of the project's primary language.
-LANGS+=(shell)
+if command -v jq >/dev/null 2>&1 && [ -f "intent/.config/config.json" ]; then
+  while IFS= read -r lang; do
+    [ -n "$lang" ] && LANGS+=("$lang")
+  done < <(jq -r '(.languages // []) | .[]' intent/.config/config.json 2>/dev/null)
+fi
 
 # ---- Load severity threshold from .intent_critic.yml ----
 

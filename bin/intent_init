@@ -117,7 +117,8 @@ cat > intent/.config/config.json << EOF
   "project_name": "$PROJECT_NAME",
   "author": "$AUTHOR",
   "created": "$DATE",
-  "st_prefix": "ST"
+  "st_prefix": "ST",
+  "languages": []
 }
 EOF
 
