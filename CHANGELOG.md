@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.2] - 2026-04-28
+
+Second hotfix following v2.11.0/v2.11.1.
+
+### Fixed
+
+- **`intent upgrade` failed with `Error: Unknown version: 2.11.0`** when applied to a project already at v2.11.x. The dispatcher in `bin/intent_upgrade` had cases for every released source version up to v2.10.1 but none for v2.11.0; an in-flight project at v2.11.0 attempting to upgrade to v2.11.1 fell into the `*) error "Unknown version: $VERSION"` arm. Added a `"2.11.*"` case that runs the idempotent v2.11.x migration (no-op on field-already-present and stamp-already-current); a glob match rather than a literal so future patches in the v2.11 line don't need a fresh case each time.
+
 ## [2.11.1] - 2026-04-28
 
 CI hotfix following v2.11.0.

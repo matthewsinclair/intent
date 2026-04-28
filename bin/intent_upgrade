@@ -378,6 +378,15 @@ case "$VERSION" in
     migrate_v2_9_0_to_v2_10_0 .
     migrate_v2_10_x_to_v2_11_0 .
     ;;
+  "2.11."*)
+    # v2.11.x stamp (any patch). The schema migration is idempotent so this
+    # case handles 2.11.0 -> 2.11.1 (and any future patch release within the
+    # 2.11 line) by re-running the migration (no-op on field-already-present
+    # and stamp-already-current); the patch's actual code changes ship via
+    # the working tree, not via a migration step.
+    echo "Upgrading from v$VERSION to v$TARGET_VERSION..."
+    migrate_v2_10_x_to_v2_11_0 .
+    ;;
   *)
     error "Unknown version: $VERSION"
     ;;
