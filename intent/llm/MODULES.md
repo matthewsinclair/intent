@@ -248,3 +248,12 @@ Test inputs checked into the repo. Generators do not create these at runtime.
 | Rule fixtures      | `tests/fixtures/rules/`          | valid + 5 error-path variants (WP02)                       |
 | Critic fixtures    | `tests/fixtures/critics/<lang>/` | known-violating + known-clean + manifest.txt (WP07)        |
 | Upgrade fixtures   | `tests/fixtures/upgrade/`        | Simulated stale-version project trees (WP09)               |
+
+## Release Engineering (v2.10.x)
+
+Maintainer tooling for cutting Intent releases. Not part of the user-facing CLI surface.
+
+| Concern             | THE Module                                                        | Notes                                                                                                                |
+| ------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Release script      | `scripts/release`                                                 | Pre-flight + version bump + sidecar sync + tag + multi-remote push + GitHub release. Modelled on Conflab's pattern.  |
+| Gate-release helper | `intent/plugins/claude/skills/in-session/scripts/release-gate.sh` | Touches per-session sentinel for require-in-session.sh; extracted from SKILL.md to survive renderer token-stripping. |

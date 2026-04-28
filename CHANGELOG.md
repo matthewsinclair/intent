@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`scripts/release`** -- maintainer release orchestrator. Single-invocation cut: pre-flight (clean tree, doctor, tests, gh auth), version bump (`--patch / --minor / --major / vX.Y.Z`), CHANGELOG date finalisation, sidecar sync (VERSION + AGENTS.md), commit, idempotent tag, push to both remotes (local + upstream), GitHub release publication. Modelled on Conflab's release pattern, pared back to Intent's surface (single repo, two remotes, no native binary, no Homebrew tap). `--dry-run` previews every step with no side effects.
+- **`intent doctor` check 4d** -- warning (not error) when a stale top-level `.intent/` directory remains after a v2.9 -> v2.10 migration. Auto-staging is intentionally NOT done: the user runs `git rm -rf .intent/` themselves so the cleanup is visible in the commit.
+
+### Fixed
+
+- **`/in-session` UserPromptSubmit gate-firing loop**. The SKILL.md inlined a `cksum | awk '{print $1}'` pipeline whose positional-field expansion was silently emptied by Claude Code's skill renderer, producing a malformed project_key that prevented the per-session sentinel from being written. The waterfall is now in `intent/plugins/claude/skills/in-session/scripts/release-gate.sh`, invoked by the SKILL by path; the renderer never sees the pipeline.
+
 ## [2.10.0] - 2026-04-27
 
 Retargeted from v2.9.1 mid-development to bundle ST0036 (directory relocation, breaking change) into the same release. Version bump reflects the semver-breaking directory move; LLM canon work (originally scoped as v2.9.1) ships alongside.

@@ -1,0 +1,445 @@
+#!/usr/bin/env bash
+#
+# scripts/release -- Intent release orchestrator
+#
+# Cuts an Intent release in one invocation: pre-flight checks, version bump,
+# CHANGELOG date finalisation, sidecar sync (VERSION + AGENTS.md), commit,
+# tag, push to both remotes, and GitHub release publication.
+#
+# Modelled on ../Conflab/scripts/release. Pared back to Intent's surface:
+# single repo, two remotes (local Dropbox + upstream GitHub), no native
+# binary build, no Homebrew tap.
+#
+# Usage:
+#   scripts/release --patch | --minor | --major | vX.Y.Z [flags]
+#
+# Flags:
+#   --dry-run            Compute and print every step; exit without side effects.
+#   --no-confirm         Skip interactive confirmation before pushes / releases.
+#   --skip-tests         Skip the pre-flight test/doctor gates (re-run mode).
+#   --allow-stale-date   Accept a CHANGELOG date that is not today.
+#   --help               Print this help and exit.
+#
+# Examples:
+#   scripts/release --dry-run --patch
+#   scripts/release --minor
+#   scripts/release v2.10.1
+#
+# Exit codes:
+#   0  success (or dry-run completed)
+#   1  pre-flight or validation failure
+#   2  user aborted at confirmation prompt
+
+set -u
+
+# --------------------------------------------------------------------
+# Locate project root + source helpers
+# --------------------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+HELPERS="$PROJECT_ROOT/bin/intent_helpers"
+
+if [ -f "$HELPERS" ]; then
+  # shellcheck disable=SC1090
+  source "$HELPERS"
+else
+  echo "error: cannot locate $HELPERS" >&2
+  exit 1
+fi
+
+# --------------------------------------------------------------------
+# Logging helpers (consistent with Intent CLI tone: lowercase prefixes)
+# --------------------------------------------------------------------
+log_info() { printf 'info: %s\n' "$*"; }
+log_step() { printf '\n==> %s\n' "$*"; }
+log_dry()  { printf 'dry-run: %s\n' "$*"; }
+log_warn() { printf 'warning: %s\n' "$*" >&2; }
+
+abort() {
+  printf 'error: %s\n' "$*" >&2
+  exit 1
+}
+
+confirm() {
+  local prompt="$1"
+  if [ "${NO_CONFIRM:-false}" = "true" ]; then
+    log_info "$prompt -- (auto-confirmed via --no-confirm)"
+    return 0
+  fi
+  printf '%s [y/N] ' "$prompt"
+  local reply
+  IFS= read -r reply
+  case "$reply" in
+    [yY]|[yY][eE][sS]) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# --------------------------------------------------------------------
+# Argument parsing
+# --------------------------------------------------------------------
+TARGET=""
+BUMP=""
+DRY_RUN=false
+NO_CONFIRM=false
+SKIP_TESTS=false
+ALLOW_STALE_DATE=false
+
+usage() {
+  sed -n '3,30p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'
+  exit "${1:-0}"
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --patch|--minor|--major)
+      [ -n "$BUMP" ] && abort "duplicate bump flag: $1"
+      [ -n "$TARGET" ] && abort "cannot mix bump flag with explicit version"
+      BUMP="${1#--}"
+      ;;
+    v[0-9]*.[0-9]*.[0-9]*)
+      [ -n "$TARGET" ] && abort "duplicate target: $1"
+      [ -n "$BUMP" ] && abort "cannot mix bump flag with explicit version"
+      TARGET="${1#v}"
+      ;;
+    --dry-run)         DRY_RUN=true ;;
+    --no-confirm)      NO_CONFIRM=true ;;
+    --skip-tests)      SKIP_TESTS=true ;;
+    --allow-stale-date) ALLOW_STALE_DATE=true ;;
+    --help|-h)         usage 0 ;;
+    *) abort "unknown argument: $1 (use --help for usage)" ;;
+  esac
+  shift
+done
+
+[ -z "$BUMP" ] && [ -z "$TARGET" ] && {
+  printf 'error: must specify --patch, --minor, --major, or vX.Y.Z\n\n' >&2
+  usage 1
+}
+
+# --------------------------------------------------------------------
+# Helpers: semver compare, CHANGELOG slicing
+# --------------------------------------------------------------------
+
+semver_parts() {
+  # Echo "MAJOR MINOR PATCH" or fail if input is not semver.
+  local v="$1"
+  if ! [[ "$v" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+    abort "not a valid semver: $v"
+  fi
+  printf '%s %s %s\n' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}"
+}
+
+semver_bump() {
+  # semver_bump CURRENT BUMP_KIND -> echoes target version
+  local current="$1" kind="$2"
+  read -r maj min pat <<<"$(semver_parts "$current")"
+  case "$kind" in
+    major) maj=$((maj+1)); min=0; pat=0 ;;
+    minor) min=$((min+1)); pat=0 ;;
+    patch) pat=$((pat+1)) ;;
+    *) abort "internal: unknown bump kind: $kind" ;;
+  esac
+  printf '%d.%d.%d\n' "$maj" "$min" "$pat"
+}
+
+semver_gt() {
+  # Return 0 if A > B, 1 otherwise.
+  local a="$1" b="$2"
+  read -r am an ap <<<"$(semver_parts "$a")"
+  read -r bm bn bp <<<"$(semver_parts "$b")"
+  if [ "$am" -ne "$bm" ]; then [ "$am" -gt "$bm" ]; return $?; fi
+  if [ "$an" -ne "$bn" ]; then [ "$an" -gt "$bn" ]; return $?; fi
+  [ "$ap" -gt "$bp" ]
+}
+
+extract_changelog_section() {
+  # extract_changelog_section VERSION -> writes the section to stdout.
+  # Section runs from "## [VERSION]" up to (but not including) the next "## [".
+  local version="$1"
+  awk -v ver="$version" '
+    BEGIN { in_section = 0 }
+    /^## \[/ {
+      if (in_section) { exit }
+      if ($0 ~ "^## \\["ver"\\]") { in_section = 1; print; next }
+    }
+    in_section { print }
+  ' "$PROJECT_ROOT/CHANGELOG.md"
+}
+
+# --------------------------------------------------------------------
+# Pre-flight gates
+# --------------------------------------------------------------------
+
+preflight() {
+  log_step "pre-flight"
+
+  # Working tree clean.
+  if [ -n "$(cd "$PROJECT_ROOT" && git status --porcelain)" ]; then
+    abort "working tree is not clean -- commit or stash first"
+  fi
+  log_info "working tree clean"
+
+  # On main branch.
+  local branch
+  branch="$(cd "$PROJECT_ROOT" && git rev-parse --abbrev-ref HEAD)"
+  if [ "$branch" != "main" ]; then
+    abort "must be on main branch (currently: $branch)"
+  fi
+  log_info "on main branch"
+
+  # Both remotes resolve.
+  if ! (cd "$PROJECT_ROOT" && git remote get-url local >/dev/null 2>&1); then
+    abort "git remote 'local' is not configured"
+  fi
+  if ! (cd "$PROJECT_ROOT" && git remote get-url upstream >/dev/null 2>&1); then
+    abort "git remote 'upstream' is not configured"
+  fi
+  log_info "both remotes (local, upstream) configured"
+
+  if [ "$SKIP_TESTS" = "true" ]; then
+    log_warn "--skip-tests: skipping doctor + test suite"
+    return 0
+  fi
+
+  # intent doctor.
+  log_info "running intent doctor"
+  if ! (cd "$PROJECT_ROOT" && "$PROJECT_ROOT/bin/intent" doctor >/dev/null 2>&1); then
+    abort "intent doctor reported issues -- fix before releasing"
+  fi
+  log_info "intent doctor clean"
+
+  # Test suite.
+  log_info "running test suite (this may take a minute)"
+  if ! (cd "$PROJECT_ROOT" && tests/run_tests.sh >/dev/null 2>&1); then
+    abort "test suite failed -- fix before releasing"
+  fi
+  log_info "test suite green"
+
+  # gh auth (we'll need it later).
+  if ! command -v gh >/dev/null 2>&1; then
+    abort "gh CLI not found in PATH"
+  fi
+  if ! gh auth status >/dev/null 2>&1; then
+    abort "gh CLI is not authenticated (run: gh auth login)"
+  fi
+  log_info "gh CLI authenticated"
+}
+
+# --------------------------------------------------------------------
+# Main flow
+# --------------------------------------------------------------------
+
+CURRENT="$(cat "$PROJECT_ROOT/VERSION" 2>/dev/null || echo "0.0.0")"
+log_info "current version: $CURRENT"
+
+if [ -n "$BUMP" ]; then
+  TARGET="$(semver_bump "$CURRENT" "$BUMP")"
+fi
+
+# Validate target shape and ordering.
+semver_parts "$TARGET" >/dev/null
+if ! semver_gt "$TARGET" "$CURRENT"; then
+  abort "target $TARGET is not greater than current $CURRENT"
+fi
+log_info "target version: $TARGET"
+
+# CHANGELOG must have a section for the target.
+CHANGELOG_SECTION="$(extract_changelog_section "$TARGET")"
+if [ -z "$CHANGELOG_SECTION" ]; then
+  abort "no '## [$TARGET]' section in CHANGELOG.md -- write release notes first"
+fi
+log_info "CHANGELOG section present for $TARGET"
+
+# Validate CHANGELOG date.
+TODAY="$(date +%Y-%m-%d)"
+HEADER_LINE="$(printf '%s\n' "$CHANGELOG_SECTION" | head -1)"
+case "$HEADER_LINE" in
+  "## [$TARGET] - in progress"*)
+    NEEDS_DATE_REWRITE=true
+    log_info "CHANGELOG header still 'in progress' -- will rewrite to $TODAY"
+    ;;
+  "## [$TARGET] - $TODAY"*)
+    NEEDS_DATE_REWRITE=false
+    log_info "CHANGELOG date is today ($TODAY)"
+    ;;
+  "## [$TARGET] - "*)
+    if [ "$ALLOW_STALE_DATE" = "true" ]; then
+      NEEDS_DATE_REWRITE=false
+      log_warn "CHANGELOG date is not today, but --allow-stale-date is set"
+    else
+      abort "CHANGELOG header is '$HEADER_LINE' but today is $TODAY (re-run with --allow-stale-date to accept)"
+    fi
+    ;;
+  *)
+    abort "unrecognised CHANGELOG header for $TARGET: '$HEADER_LINE'"
+    ;;
+esac
+
+# --------------------------------------------------------------------
+# Pre-flight (after we know the target so error messages can reference it)
+# --------------------------------------------------------------------
+preflight
+
+# --------------------------------------------------------------------
+# Sidecar sync
+# --------------------------------------------------------------------
+log_step "sidecar sync"
+
+NEEDS_COMMIT=false
+
+# /VERSION
+if [ "$CURRENT" != "$TARGET" ]; then
+  if [ "$DRY_RUN" = "true" ]; then
+    log_dry "would write '$TARGET' to $PROJECT_ROOT/VERSION"
+  else
+    printf '%s\n' "$TARGET" > "$PROJECT_ROOT/VERSION"
+    log_info "wrote $TARGET to VERSION"
+  fi
+  NEEDS_COMMIT=true
+else
+  log_info "VERSION already at $TARGET"
+fi
+
+# CHANGELOG date finalisation
+if [ "$NEEDS_DATE_REWRITE" = "true" ]; then
+  if [ "$DRY_RUN" = "true" ]; then
+    log_dry "would rewrite '## [$TARGET] - in progress' to '## [$TARGET] - $TODAY' in CHANGELOG.md"
+  else
+    # Keep any trailing parenthesised note that follows " - in progress"
+    # (e.g. " - in progress (ST0035 + ST0036)" -> " - $TODAY (ST0035 + ST0036)").
+    sed -i.bak -E "s|^(## \[$TARGET\]) - in progress(.*)$|\1 - $TODAY\2|" "$PROJECT_ROOT/CHANGELOG.md"
+    rm -f "$PROJECT_ROOT/CHANGELOG.md.bak"
+    log_info "CHANGELOG date finalised to $TODAY"
+  fi
+  NEEDS_COMMIT=true
+fi
+
+# AGENTS.md regeneration
+if [ "$DRY_RUN" = "true" ]; then
+  log_dry "would run 'intent agents sync' to refresh AGENTS.md footer"
+else
+  (cd "$PROJECT_ROOT" && "$PROJECT_ROOT/bin/intent" agents sync >/dev/null)
+  log_info "AGENTS.md synced"
+fi
+
+# Detect any unstaged change after sidecar work
+if [ "$DRY_RUN" != "true" ]; then
+  if [ -n "$(cd "$PROJECT_ROOT" && git status --porcelain)" ]; then
+    NEEDS_COMMIT=true
+  fi
+fi
+
+# --------------------------------------------------------------------
+# Commit (if any sidecar changed)
+# --------------------------------------------------------------------
+if [ "$NEEDS_COMMIT" = "true" ]; then
+  log_step "commit"
+  if [ "$DRY_RUN" = "true" ]; then
+    log_dry "would stage VERSION + CHANGELOG.md + AGENTS.md and commit as 'release: v$TARGET'"
+  else
+    (cd "$PROJECT_ROOT" && git add VERSION CHANGELOG.md AGENTS.md 2>/dev/null || true)
+    # Only commit if there's something staged
+    if [ -n "$(cd "$PROJECT_ROOT" && git diff --cached --name-only)" ]; then
+      (cd "$PROJECT_ROOT" && git commit -m "release: v$TARGET" -m "(C) hello@matthewsinclair.com")
+      log_info "committed release: v$TARGET"
+    else
+      log_info "nothing to commit (sidecars already at target)"
+    fi
+  fi
+else
+  log_info "no sidecar changes to commit"
+fi
+
+# --------------------------------------------------------------------
+# Tag
+# --------------------------------------------------------------------
+log_step "tag"
+TAG="v$TARGET"
+TAG_EXISTS=false
+
+if (cd "$PROJECT_ROOT" && git rev-parse "$TAG" >/dev/null 2>&1); then
+  TAG_EXISTS=true
+  TAG_SHA="$(cd "$PROJECT_ROOT" && git rev-parse "$TAG")"
+  HEAD_SHA="$(cd "$PROJECT_ROOT" && git rev-parse HEAD)"
+  if [ "$TAG_SHA" = "$HEAD_SHA" ]; then
+    log_info "tag $TAG already at HEAD ($HEAD_SHA) -- reusing"
+  else
+    abort "tag $TAG exists at $TAG_SHA but HEAD is $HEAD_SHA -- refusing to force-move"
+  fi
+fi
+
+if [ "$TAG_EXISTS" = "false" ]; then
+  if [ "$DRY_RUN" = "true" ]; then
+    log_dry "would create tag $TAG at HEAD"
+  else
+    (cd "$PROJECT_ROOT" && git tag "$TAG")
+    log_info "created tag $TAG"
+  fi
+fi
+
+# --------------------------------------------------------------------
+# Push
+# --------------------------------------------------------------------
+log_step "push"
+
+PUSH_PROMPT="push $TAG to local (Dropbox) and upstream (GitHub)?"
+if [ "$DRY_RUN" = "true" ]; then
+  log_dry "would push main + $TAG to 'local' (Dropbox)"
+  log_dry "would push main + $TAG to 'upstream' (GitHub)"
+else
+  if ! confirm "$PUSH_PROMPT"; then
+    log_warn "user aborted before push -- tag $TAG exists locally; re-run when ready"
+    exit 2
+  fi
+  (cd "$PROJECT_ROOT" && git push local main "$TAG")
+  log_info "pushed to local"
+  (cd "$PROJECT_ROOT" && git push upstream main "$TAG")
+  log_info "pushed to upstream"
+fi
+
+# --------------------------------------------------------------------
+# GitHub release
+# --------------------------------------------------------------------
+log_step "github release"
+
+NOTES_FILE="$(mktemp -t intent-release-notes.XXXXXX)"
+# Re-extract after sidecar rewrite so the notes match what's on disk now.
+extract_changelog_section "$TARGET" > "$NOTES_FILE"
+
+GH_TITLE="Intent v$TARGET"
+
+RELEASE_EXISTS=false
+if gh release view "$TAG" >/dev/null 2>&1; then
+  RELEASE_EXISTS=true
+fi
+
+if [ "$DRY_RUN" = "true" ]; then
+  log_dry "would publish GitHub release $TAG with title '$GH_TITLE'"
+  log_dry "release notes preview:"
+  sed 's/^/  | /' "$NOTES_FILE" | head -30
+  rm -f "$NOTES_FILE"
+else
+  if [ "$RELEASE_EXISTS" = "true" ]; then
+    log_info "release $TAG already exists -- updating notes"
+    gh release edit "$TAG" --title "$GH_TITLE" --notes-file "$NOTES_FILE"
+  else
+    gh release create "$TAG" --title "$GH_TITLE" --notes-file "$NOTES_FILE"
+  fi
+  log_info "release published"
+  rm -f "$NOTES_FILE"
+fi
+
+# --------------------------------------------------------------------
+# Summary
+# --------------------------------------------------------------------
+log_step "summary"
+if [ "$DRY_RUN" = "true" ]; then
+  log_info "dry-run complete -- no side effects"
+  log_info "to execute: re-run without --dry-run"
+else
+  log_info "Intent $TAG cut and published"
+  log_info "  local:    pushed main + $TAG to ~/Dropbox/Repositories/Devel/Intent"
+  log_info "  upstream: $(gh release view "$TAG" --json url -q .url 2>/dev/null || echo "(check gh release view $TAG)")"
+fi
+exit 0
