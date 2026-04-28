@@ -96,6 +96,7 @@ Same signatures, same behaviour, no lifetime clutter. When readers encounter `<'
 - Signatures with two input references and a reference output where the output lifetime matches a specific input. The compiler cannot elide this; you must write `fn min<'a>(a: &'a T, b: &'a T) -> &'a T`.
 - Structs carrying references in fields: these _must_ be parameterised (`struct Parser<'input>`).
 - Cases where the relationship between lifetimes is part of the public contract and worth naming for clarity, even if the compiler would elide.
+- Teaching examples in `intent/plugins/claude/rules/**` (rule fixtures) and `tests/fixtures/critics/rust/**` (critic test inputs). These files often carry deliberate explicit lifetimes as a contrast against an adjacent `bad.rs` or to exercise Detection on a clean target; do not flag them.
 
 ## Further Reading
 

@@ -152,5 +152,6 @@ Same constraint: recommend, never invoke. Reserve for genuinely cross-cutting ca
 ## Red flags (author violating rules for you)
 
 - If the target file is a rule `good.rs` / `bad.rs` example inside `intent/plugins/claude/rules/`: skip Detection entirely and note in the summary. Example files intentionally demonstrate antipatterns or non-idiomatic forms for teaching.
+- If the target file is under `tests/fixtures/critics/`: it is a critic-self-test input, not real test code. Apply Detection (the test exists to exercise it), but **suppress the Diogenes test-spec handoff** -- a fixture file does not warrant spec generation.
 - If the target file is under `lib/templates/` or a similar seed directory: apply rules normally - generated code should still pass - but note in the summary that findings in templates propagate to generated output.
 - If the target file is empty or contains only a lone `fn main() {}`: skip with a note; a one-line program has no behaviour to critique.

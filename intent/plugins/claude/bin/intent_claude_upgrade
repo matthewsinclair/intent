@@ -580,9 +580,15 @@ if [ -f "$PROJECT_DIR/intent/.config/config.json" ]; then
     echo -e "  intent_version:     ${YELLOW}$current_version -> $TARGET_VERSION${NC}"
     add_action "VERSION_BUMP:$current_version:$TARGET_VERSION"
   fi
+elif [ -f "$PROJECT_DIR/.intent/config.json" ]; then
+  # Pre-v2.10 project: config still at the legacy top-level .intent/. Not a
+  # broken install -- the user just hasn't run `intent upgrade` to relocate.
+  legacy_version=$(grep '"intent_version"' "$PROJECT_DIR/.intent/config.json" 2>/dev/null | sed 's/.*: *"\([^"]*\)".*/\1/')
+  echo -e "  config.json:        ${YELLOW}AT LEGACY LOCATION${NC} (.intent/config.json, version: ${legacy_version:-unknown})"
+  add_warning "Pre-v2.10 layout detected -- run 'intent upgrade' first to relocate .intent/ -> intent/.config/, then re-run this command"
 else
   echo -e "  config.json:        ${RED}MISSING${NC}"
-  add_warning "No intent/.config/config.json found -- cannot update version"
+  add_warning "No config.json at intent/.config/ or legacy .intent/ -- not an Intent project, or install is broken"
 fi
 
 # Check LLM guidance files
