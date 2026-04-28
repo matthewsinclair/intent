@@ -58,11 +58,7 @@ Signals:
 - `:error` (bare atom) or `false` returned as a failure signal.
 - A mix of `raise` and `nil` in the same function's failure modes.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
-
-```bash
-grep -rnE 'def [a-z_]+\([^)]*\) do$' lib/ | xargs grep -l 'nil$\|false$' 2>/dev/null
-```
+No greppable proxy is authoritative for this rule — the structural signal is "does this function have a failure mode, and is that mode distinguishable from its success mode in the return shape?" That requires reading the function body and the call sites; a per-file regex over `def name(args) do` would false-positive on every public function (including `Application.start/2`, `Mix.Task.run/1`, `GenServer.init/1`, and other behaviour-mandated callbacks whose return shape is fixed by the behaviour spec). Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
 
 The reliable structural signal is "does this function have a failure mode, and is that mode distinguishable from its success mode in the return shape?"
 

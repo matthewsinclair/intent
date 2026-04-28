@@ -155,6 +155,51 @@ critic_rule_disabled() {
 #   <severity>\t<rule_id>\t<file>\t<line>\t<excerpt>
 # Summary is not included here; report-formatters fetch it separately via
 # rule_fm_scalar to avoid re-parsing on every finding.
+# Convert a glob (lib/**/*.ex, test/**/*_test.exs) to a regex anchored to
+# allow umbrella prefixes. The result is wrapped in (^|/)<regex>$ so that
+# the glob matches both top-level (`lib/foo.ex`) and umbrella-nested paths
+# (`apps/control/lib/foo.ex`). Single * matches a single path component;
+# ** matches any depth (including zero).
+critic_glob_to_regex() {
+  local glob="$1"
+  printf '%s' "$glob" | awk '
+    {
+      gsub(/\./, "\\.", $0)
+      gsub(/\*\*\//, "DOUBLESTARSLASH", $0)
+      gsub(/\*\*/, "DOUBLESTAR", $0)
+      gsub(/\*/, "[^/]*", $0)
+      gsub(/DOUBLESTARSLASH/, "(.*/)?", $0)
+      gsub(/DOUBLESTAR/, ".*", $0)
+      print
+    }
+  '
+}
+
+# Return 0 if the file matches the rule's `applies_to` globs (or if no
+# `applies_to` is declared, in which case the rule is universal). Return 1
+# if `applies_to` is declared but no glob matches.
+critic_rule_applies_to_file() {
+  local rule_path="$1"
+  local file="$2"
+
+  local globs
+  globs="$(rule_fm_list "$rule_path" applies_to 2>/dev/null)"
+  if [ -z "$globs" ]; then
+    return 0
+  fi
+
+  local glob regex
+  while IFS= read -r glob; do
+    [ -z "$glob" ] && continue
+    regex="$(critic_glob_to_regex "$glob")"
+    if [[ "$file" =~ (^|/)${regex}$ ]]; then
+      return 0
+    fi
+  done <<< "$globs"
+
+  return 1
+}
+
 critic_apply_rule() {
   local rule_path="$1"
   local file="$2"
@@ -167,6 +212,15 @@ critic_apply_rule() {
   [ "$rule_status" != "active" ] && return 0
   [ -z "$rule_id" ] && return 0
   [ -z "$severity" ] && severity=warning
+
+  # Honour applies_to: if the rule declares one or more globs, the file
+  # must match at least one for the rule to fire. Rules without applies_to
+  # are universal (current behaviour preserved). Globs use suffix anchoring
+  # so umbrella layouts (apps/<app>/lib/..., apps/<app>/test/...) match
+  # rules declared as `lib/**/*.ex` / `test/**/*_test.exs` (ST0038).
+  if ! critic_rule_applies_to_file "$rule_path" "$file"; then
+    return 0
+  fi
 
   local block pattern
   block="$(critic_extract_greppable_block "$rule_path")"

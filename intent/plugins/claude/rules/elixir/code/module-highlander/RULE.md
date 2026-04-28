@@ -57,12 +57,7 @@ Signals:
 - A comment in module B saying "copied from module A — keep in sync" (keeping in sync by comment is the definition of this antipattern).
 - A helper module proliferation: `Accounts.Helpers`, `Webhooks.Helpers`, `Billing.Helpers`, each with overlapping utilities.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
-
-```bash
-# Find functions with the same name across lib/
-grep -rnE 'def [a-z_]+\(' lib/ | awk -F: '{print $3}' | sort | uniq -c | sort -rn | head
-```
+No greppable proxy is authoritative for this rule — the concern is fundamentally cross-file ("the same function name implementing the same logical concern in two modules"), which a single-file regex cannot express. A naive `def name(...)` pattern would false-positive on every public function definition, including behaviour-mandated callbacks (`Application.start/2`, `GenServer.init/1`, `Phoenix.LiveView.mount/3`) where the duplication is contractually required, not a Highlander violation. Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, which can read multiple files and reason about whether two same-named functions encode the same business rule.
 
 The reliable structural signal is "if this concern's rule changes, how many places do I have to edit?" The answer must be one.
 

@@ -37,6 +37,11 @@ ST0037 ships: languages-in-use becomes an explicit per-project configuration fie
 ### Fixed
 
 - **`create_v2_directory_structure()` in `bin/intent_helpers`** -- previously created an empty top-level `.intent/` unconditionally during `intent upgrade`, even on projects already on the v2.10 layout (`intent/.config/` present). The next phase (`migrate_v2_9_0_to_v2_10_0`) then refused to proceed because both `.intent/` and `intent/.config/` existed. Skips the `.intent/` creation when `intent/.config/` is in place. Pre-existing latent bug, surfaced when chaining the v2.9.0 → v2.10.0 → v2.11.0 migration sequence.
+- **critic-elixir false positives on canonical OTP/Mix idioms (ST0038)**. Three rules misfired in the headless pre-commit gate against correct code (Lamplight ST0163/WP-01 commit attempt):
+  - **`IN-EX-TEST-002` (no-process-sleep)** fired on `Process.sleep(:infinity)` in a `Mix.Task.run/1` body in `lib/`. The rule's frontmatter declared `applies_to: ["test/**/*_test.exs"]` but the runner ignored the field. Fixed by adding `applies_to` honoring in `critic_apply_rule` (`intent/plugins/claude/lib/critic_runner.sh`); globs are matched with suffix anchoring so umbrella layouts (`apps/<app>/lib/...`, `apps/<app>/test/...`) resolve correctly.
+  - **`IN-EX-CODE-002` (tagged-tuple-returns)** fired on every public `def name(args) do` because the greppable proxy was too coarse to express "fallible function returns bare nil/false" as a per-file regex. Greppable proxy stripped; the rule remains active for the LLM-driven `critic-elixir` subagent via `/in-review`, where the body and call sites can be read.
+  - **`IN-EX-CODE-006` (module-highlander)** fired on every public `def name(...)` for the same reason -- and the rule's actual concern (cross-module duplication) is fundamentally not a per-file scan. Greppable proxy stripped; subagent-applied via `/in-review`.
+  - New BATS coverage in `tests/unit/critic_runner_applies_to.bats` (15 tests) verifies glob-to-regex translation, umbrella-layout matching, the absence of greppable proxies on the two stripped rules, and the presence of the proxy on `IN-EX-TEST-002`. `tests/unit/pre_commit_hook.bats` updated to stage fixtures under `test/<name>_test.exs` so they match `IN-EX-TEST-001`'s `applies_to`.
 
 ### Migration notes
 

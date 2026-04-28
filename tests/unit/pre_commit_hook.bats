@@ -51,8 +51,8 @@ teardown() {
 }
 
 @test "staged bad fixture blocks the commit (exit 1)" {
-  cp "$FIX_BAD" test_bad.exs
-  git add intent/.config mix.exs test_bad.exs
+  mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
+  git add intent/.config mix.exs test/bad_test.exs
   run git commit -m "bad"
   [ "$status" -ne 0 ]
   assert_output_contains "commit blocked by findings"
@@ -64,15 +64,15 @@ teardown() {
 severity_min: critical
 disabled: []
 EOF
-  cp "$FIX_GOOD" test_good.exs
-  git add intent/.config mix.exs test_good.exs .intent_critic.yml
+  mkdir -p test && cp "$FIX_GOOD" test/good_test.exs
+  git add intent/.config mix.exs test/good_test.exs .intent_critic.yml
   run git commit -m "good"
   assert_success
 }
 
 @test "--no-verify bypasses the hook" {
-  cp "$FIX_BAD" test_bad.exs
-  git add intent/.config mix.exs test_bad.exs
+  mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
+  git add intent/.config mix.exs test/bad_test.exs
   run git commit --no-verify -m "bypass"
   assert_success
 }
@@ -80,8 +80,8 @@ EOF
 @test "intent CLI missing → fail-open (exit 0, advisory on stderr)" {
   # Strip PATH to just /usr/bin:/bin so `intent` is not resolvable.
   # Use git -c so user config still works.
-  cp "$FIX_BAD" test_bad.exs
-  git add intent/.config mix.exs test_bad.exs
+  mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
+  git add intent/.config mix.exs test/bad_test.exs
   PATH="/usr/bin:/bin" run git commit -m "no-intent"
   assert_success
   assert_output_contains "'intent' CLI not on PATH"
@@ -90,8 +90,8 @@ EOF
 @test "non-Intent repo → fail-open (exit 0, advisory on stderr)" {
   # Remove intent/.config/ so hook's fail-open check fires.
   rm -rf intent/.config
-  cp "$FIX_BAD" test_bad.exs
-  git add mix.exs test_bad.exs
+  mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
+  git add mix.exs test/bad_test.exs
   run git commit -m "non-intent"
   assert_success
   assert_output_contains "not inside an Intent project"
@@ -103,8 +103,8 @@ EOF
 severity_min: critical
 disabled: []
 EOF
-  cp "$FIX_GOOD" test_good.exs
-  git add intent/.config mix.exs test_good.exs .intent_critic.yml
+  mkdir -p test && cp "$FIX_GOOD" test/good_test.exs
+  git add intent/.config mix.exs test/good_test.exs .intent_critic.yml
   # good fixture + critical threshold → clean
   run git commit -m "clean under critical"
   assert_success
@@ -118,8 +118,8 @@ EOF
   cat > intent/.config/config.json <<'EOF'
 {"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":[]}
 EOF
-  cp "$FIX_BAD" test_bad.exs
-  git add intent/.config mix.exs test_bad.exs
+  mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
+  git add intent/.config mix.exs test/bad_test.exs
   run git commit -m "empty langs"
   assert_success
 }
@@ -131,8 +131,8 @@ EOF
   cat > intent/.config/config.json <<'EOF'
 {"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["shell"]}
 EOF
-  cp "$FIX_BAD" test_bad.exs
-  git add intent/.config mix.exs test_bad.exs
+  mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
+  git add intent/.config mix.exs test/bad_test.exs
   run git commit -m "shell only"
   assert_success
 }
@@ -147,8 +147,8 @@ disabled:
 EOF
   # With the three firing rules all disabled, even the bad fixture should
   # produce no findings at or above warning → commit proceeds.
-  cp "$FIX_BAD" test_bad.exs
-  git add intent/.config mix.exs test_bad.exs .intent_critic.yml
+  mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
+  git add intent/.config mix.exs test/bad_test.exs .intent_critic.yml
   run git commit -m "all-disabled"
   assert_success
 }

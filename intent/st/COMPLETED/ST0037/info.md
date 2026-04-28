@@ -1,10 +1,10 @@
 ---
 verblock: "28 Apr 2026:v0.2: matts - Scope and design pointer"
 intent_version: 2.10.1
-status: WIP
+status: Completed
 slug: language-config-replace-filesystem-probes-with
 created: 20260428
-completed:
+completed: 20260428
 ---
 
 # ST0037: Language config: replace filesystem probes with explicit config
