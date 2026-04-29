@@ -141,6 +141,8 @@ Exit codes:
 
 **Mechanical subset only**: only rules that publish a Greppable proxy block in their Detection section are runnable by the headless runner. Rules whose Detection is purely prose (e.g. "any function body longer than 50 lines") are skipped silently — the LLM subagent (`Task(subagent_type="critic-<lang>")`) remains the canonical path for those.
 
+**Strict-proxy contract** (ST0039, v2.11.3+): the runner accepts only proxy lines of the form `grep [-r|-n|-E|-rn|-rE|-nE|-rnE|--include=GLOB ...] '<pattern>' [<path>...]` — single grep invocation, no pipes, no `xargs`, no `-L` / `-v` / `-B` / `-A` flags, no awk/sed. Multi-line proxy blocks are accepted as a union of simple lines. Proxy lines the runner cannot honour faithfully are refused with a once-per-rule stderr diagnostic of the form `note: skipping <rule_id> (proxy not headless-runnable)` — never silently degraded. Rules whose detection cannot be expressed as a simple grep (inverse semantics, filter pipelines, awk state machines, cross-file or callsite-scope reasoning) ship with no Greppable proxy block at all and apply only via `/in-review`.
+
 The runner layers canon (`intent/plugins/claude/rules/`) and user extensions (`~/.intent/ext/*/rules/`) using the same discovery order as the subagents. Agnostic rules are intentionally skipped (they are concretised by language rules and would double-report). Per-project opt-out of specific rule IDs flows through `.intent_critic.yml disabled:` — see the schema section above.
 
 ## Integration with `/in-review`

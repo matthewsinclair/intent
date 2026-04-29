@@ -54,14 +54,7 @@ Signals:
 - Functions matching the behaviour's known callback names (`init/1`, `handle_call/3`, `mount/3`, `render/1`, `handle_event/3`, `action/2`, `change/3`, `atomic/3`).
 - No `@impl true` directly above the `def`.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
-
-```bash
-grep -rnB1 '^[[:space:]]*def \(mount\|render\|handle_event\|handle_info\|handle_params\|init\|handle_call\|handle_cast\)(' lib/ \
-  | grep -v '@impl'
-```
-
-The reliable structural signal is "does this `def` implement a callback of any behaviour this module uses?"
+**No greppable proxy is authoritative for this rule.** The signal — "a `def` of a known callback name without an `@impl true` immediately above" — requires `-B1` context plus a negative filter (`grep -v '@impl'`) that the headless mechanical runner cannot honour. The reliable structural signal is "does this `def` implement a callback of any behaviour this module uses?" Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
 
 ## Bad
 

@@ -59,14 +59,7 @@ Signals:
 - Data transformation (group-by, pivot, percentile) in the LiveView's helpers.
 - `Repo.*` or `Ash.*` calls outside a domain wrapper (see `IN-EX-ASH-001`).
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
-
-```bash
-# handle_event/3 blocks longer than 15 lines
-awk '/def handle_event/{start=NR} /^[[:space:]]+end$/ && start && NR-start > 15 {print FILENAME":"start; start=0}' lib/**/live/**/*.ex 2>/dev/null
-```
-
-The reliable structural signal is "would an Oban worker or a controller need this same logic?" If yes, it belongs in the domain.
+**No greppable proxy is authoritative for this rule.** The signal — "a `handle_event/3` longer than ~15 lines, or `Repo.*` / `Ash.*` calls outside a domain wrapper" — requires line-counting state machines (awk) the headless mechanical runner deliberately rejects. The reliable structural signal is "would an Oban worker or a controller need this same logic?" Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
 
 ## Bad
 

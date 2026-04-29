@@ -64,11 +64,10 @@ Signals:
 Greppable proxy (not authoritative; Critic confirms by reading body):
 
 ```bash
-grep -rnE 'case.*do$' lib/ | wc -l      # count case blocks per file
-grep -rnE '^[[:space:]]+error -> error$' lib/  # the forwarder antipattern
+grep -rnE '^[[:space:]]+error -> error$' lib/
 ```
 
-The reliable structural signal is "does this function compose two or more fallible operations whose success feeds the next?"
+`error -> error` is the forwarder anti-pattern that survives mechanical detection: if you wrote it, you almost certainly decomposed a `with` chain into nested `case` and are now hand-forwarding the failure tag. The other signal — counting nested `case` blocks — cannot be expressed as a single-file regex without false-positives on every legitimate single-step `case`. The reliable structural signal is "does this function compose two or more fallible operations whose success feeds the next?" — apply that via the LLM-driven `critic-elixir` subagent during `/in-review`.
 
 ## Bad
 

@@ -75,20 +75,63 @@ critic_extract_greppable_block() {
   ' "$path"
 }
 
-# Extract the first single-quoted (or double-quoted) regex argument from
-# a grep command. Returns empty string if none found.
-critic_pattern_from_grep_command() {
-  local cmd="$1"
-  # Try single-quote first
-  local pat
-  pat="$(printf '%s' "$cmd" | sed -n "s/[^']*'\\([^']*\\)'.*/\\1/p" | head -1)"
-  if [ -n "$pat" ]; then
-    printf '%s' "$pat"
+# True (return 0) iff the input line is a single, simple `grep` invocation
+# the headless runner can faithfully execute. The accepted shape is:
+#
+#   grep [-r|-n|-E|-rn|-rE|-nE|-rnE|--include=GLOB ...] '<pattern>' [<path>...]
+#
+# - Exactly one `grep` invocation, no pipes or chained commands.
+# - Allowed flag clusters are drawn from {r, n, E} only; -L, -v, -B, -A,
+#   -l, -c, -o, -w, -x and bare -B5 / -A2 forms are rejected.
+# - Pattern is single-quoted; metacharacters such as | inside the pattern
+#   are fine (they are part of the regex, not the surrounding shell).
+# - Path args after the pattern must not contain shell metacharacters
+#   (|, ;, &, <, >, $, `, '), preventing pipelines disguised as args.
+# - Empty lines and `#` comments return 1 (not a grep candidate; caller
+#   skips silently — distinct from "rejected").
+critic_proxy_is_simple() {
+  local line="$1"
+  local trimmed
+  trimmed="${line#"${line%%[![:space:]]*}"}"
+  trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+  [ -z "$trimmed" ] && return 1
+  case "$trimmed" in "#"*) return 1 ;; esac
+  local flag='(-[rnE]+|--include=[^[:space:]]+)'
+  local arg='[^[:space:]'\''|;&<>$`]+'
+  local re="^grep([[:space:]]+$flag)*[[:space:]]+'[^']*'([[:space:]]+$arg)*[[:space:]]*$"
+  if [[ "$trimmed" =~ $re ]]; then
     return 0
   fi
-  # Fall back to double-quote
-  pat="$(printf '%s' "$cmd" | sed -n 's/[^"]*"\([^"]*\)".*/\1/p' | head -1)"
-  printf '%s' "$pat"
+  return 1
+}
+
+# Walk the Greppable proxy block of a rule and emit one acceptable regex
+# per line on stdout. For each line that is a grep invocation but not
+# headless-runnable, emit one stderr diagnostic per rule (deduped):
+#   note: skipping <rule_id> (proxy not headless-runnable)
+# Empty / comment lines are silently skipped.
+critic_patterns_from_grep_block() {
+  local rule_path="$1"
+  local rule_id="$2"
+  local block
+  block="$(critic_extract_greppable_block "$rule_path")"
+  [ -z "$block" ] && return 0
+  local line trimmed pattern refused_emitted=0
+  while IFS= read -r line; do
+    trimmed="${line#"${line%%[![:space:]]*}"}"
+    [ -z "$trimmed" ] && continue
+    case "$trimmed" in "#"*) continue ;; esac
+    if critic_proxy_is_simple "$line"; then
+      pattern="$(printf '%s' "$line" | sed -n "s/[^']*'\\([^']*\\)'.*/\\1/p" | head -1)"
+      [ -n "$pattern" ] && printf '%s\n' "$pattern"
+    else
+      if [ "$refused_emitted" -eq 0 ]; then
+        printf 'note: skipping %s (proxy not headless-runnable)\n' "$rule_id" >&2
+        refused_emitted=1
+      fi
+    fi
+  done <<< "$block"
+  return 0
 }
 
 # Load rule paths applicable to the given language. Agnostic rules are
@@ -222,20 +265,30 @@ critic_apply_rule() {
     return 0
   fi
 
-  local block pattern
-  block="$(critic_extract_greppable_block "$rule_path")"
-  [ -z "$block" ] && return 0
-  pattern="$(critic_pattern_from_grep_command "$block")"
-  [ -z "$pattern" ] && return 0
+  # Multi-pattern union: walk the proxy block, accept simple grep lines,
+  # refuse complex ones with a stderr diagnostic. Each accepted pattern is
+  # run independently; results are unioned and deduped on (line, content)
+  # so two patterns hitting the same line do not double-report.
+  local patterns
+  patterns="$(critic_patterns_from_grep_block "$rule_path" "$rule_id")"
+  [ -z "$patterns" ] && return 0
+
+  local pattern hits results=""
+  while IFS= read -r pattern; do
+    [ -z "$pattern" ] && continue
+    hits="$(grep -nE "$pattern" "$file" 2>/dev/null || true)"
+    [ -n "$hits" ] && results+="$hits"$'\n'
+  done <<< "$patterns"
+  [ -z "$results" ] && return 0
 
   local line_no content
-  while IFS= read -r grep_line; do
+  printf '%s' "$results" | grep -v '^$' | sort -u | while IFS= read -r grep_line; do
     [ -z "$grep_line" ] && continue
     line_no="${grep_line%%:*}"
     content="${grep_line#*:}"
     content="$(printf '%s' "$content" | sed 's/\t/    /g' | cut -c1-200)"
     printf '%s\t%s\t%s\t%s\t%s\n' "$severity" "$rule_id" "$file" "$line_no" "$content"
-  done < <(grep -nE "$pattern" "$file" 2>/dev/null)
+  done
 }
 
 # Scan a list of files with a language's rule set. Emits tab-delimited

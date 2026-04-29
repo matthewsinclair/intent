@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.3] - 2026-04-29
+
+ST0039 ships: pre-commit critic gate stops emitting findings derived from `Greppable proxy` regexes the headless runner cannot honour. Defect fix to behaviour shipped as broken in v2.11.0; no new feature surface, no schema change.
+
+### Fixed
+
+- **Pre-commit gate false positives on `IN-EX-CODE-004` (with-for-railway)**. Field report from a Conflab session post-upgrade-to-v2.11.0: the gate flagged every `case ... do` line in two LiveView files (22 false positives in a 3-file diff), forcing back-to-back `--no-verify` commits. Root cause: `bin/intent_critic`'s parser extracted only the first quoted regex from a multi-line proxy block and ran it as `grep -nE`, silently dropping the `| wc -l` qualifier that made the line a counter heuristic rather than a detector. The rule's _actual_ detection — "two or more nested fallible calls without `with`" — is body-confirmation territory and not expressible as a single-file regex.
+
+- **Pre-commit gate false positive on `IN-EX-TEST-003` (async-by-default)**. Same Conflab session: the gate flagged the _compliant_ `use ExUnit.Case, async: true` line. Root cause: the documented proxy uses `grep -rnL ... | xargs grep -l ...` (find files lacking `, async: true`); the runner extracted the first quoted argument and ran it forward as `grep -nE`, matching the compliant form.
+
+- **Runner silently degraded complex grep proxies** (pipes, `xargs`, `grep -L`, `grep -v`, awk, multi-line continuations). `critic_pattern_from_grep_command` consumed the first single-quoted argument from any proxy bash block and emitted findings as if the runner had executed the full pipeline. Replaced with a strict-proxy contract.
+
+### Changed
+
+- **`bin/intent_critic` runner contract** is now strict. `critic_runner.sh` accepts only proxy lines of the form `grep [-r|-n|-E|-rn|-rE|-nE|-rnE|--include=GLOB ...] '<pattern>' [<path>...]`: single grep invocation, no pipes, no `xargs`, no `-L` / `-v` / `-B` / `-A` / `-l` / `-c` / `-o` / `-w` / `-x`. Multi-line proxy blocks are accepted as a union of simple lines (findings deduped on `(line, content)`). Lines the runner cannot honour are refused with a once-per-rule stderr diagnostic `note: skipping <rule_id> (proxy not headless-runnable)`. Loud > silent.
+
+- **`intent/docs/critics.md`** "Mechanical subset only" paragraph rewritten to document the strict-proxy contract and the stderr diagnostic.
+
+### Removed
+
+- **Greppable proxy blocks** stripped from 8 Elixir rules whose detection cannot be expressed as a simple single-file regex. The rules themselves are unchanged in prose and still apply via `/in-review` (LLM `critic-elixir` subagent does the body confirmation):
+  - `IN-EX-TEST-003` (async-by-default) — inverse semantics.
+  - `IN-EX-CODE-003` (impl-true-on-callbacks) — line continuation + negative filter.
+  - `IN-EX-LV-001` (two-phase-mount) — `-B5` context + negative filter.
+  - `IN-EX-LV-003` (thin-liveviews) — awk state machine for line counting.
+  - `IN-EX-PHX-001` (thin-controllers) — awk state machine for line counting.
+  - `IN-EX-ASH-001` (code-interfaces-only) — callsite scope cannot be inferred per-file.
+  - `IN-EX-ASH-002` (actor-on-query) — proxy was inverted (fired on compliant code).
+  - `IN-EX-TEST-004` (start-supervised) — required `grep -v start_supervised` filter.
+
+- **`IN-EX-CODE-004` (with-for-railway)** counter line — the `case.*do$ | wc -l` heuristic is gone; the rule now ships only the legitimate `error -> error` forwarder detector. Single-step `case` blocks are no longer mechanically flagged.
+
+- **`critic_pattern_from_grep_command`** function in `critic_runner.sh`. Replaced by `critic_proxy_is_simple` predicate + `critic_patterns_from_grep_block` walker. No back-compat shim (fail-forward).
+
 ## [2.11.2] - 2026-04-28
 
 Second hotfix following v2.11.0/v2.11.1.

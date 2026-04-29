@@ -3,55 +3,45 @@
 ## First actions after `/compact` or new session
 
 1. **Invoke `/in-session`.** Reads restart files + CLAUDE.md + MODULES.md, surveys steel threads, loads `/in-essentials` and `/in-standards`, releases the UserPromptSubmit gate.
-2. **Verify the working tree.** `git status` should be clean. `git log --oneline -5` should show `a64a09b` (regression guard) and `46672e4` (idempotence fix) as the latest commits.
-3. **Read `intent/wip.md` and `intent/restart.md`.** Pay attention to the "Pending: ST0037" section in `wip.md` — that is the operative work for this next session.
+2. **Verify the working tree.** `git status` should be clean if v2.11.3 has been cut. `git log --oneline -5` should show the v2.11.3 release commit at the top once shipped (or the ST0039 implementation commit if the cut hasn't happened yet).
+3. **Read `intent/wip.md` and `intent/restart.md`.** The wip "Current State" line is the operative status; the restart "Resume target" section says what to do next.
 
-## State (2026-04-28, end of session — ST0037 queued for v2.11.0)
+## State (2026-04-29, end of session — ST0039 implementation done; v2.11.3 ready or just cut)
 
-v2.10.1 shipped earlier today (tag `v2.10.1` at `c453cbb`, both remotes, GitHub release live). CI run `25050807366` green on the latest pushed commit (`a64a09b`). Tests 839/839 local. `intent doctor` clean.
+ST0039 implementation complete. The pre-commit critic gate now refuses Greppable proxies the headless runner cannot honour faithfully (pipes, `xargs`, `grep -L`, `-v` filters, `-B/-A` context, awk state machines) with a once-per-rule stderr diagnostic instead of silently degrading. Eight Elixir rules whose detection cannot be expressed as a single-file regex have had their proxy blocks stripped; the rules apply via `/in-review` only. IN-EX-CODE-004 had its counter line surgically removed, keeping the legitimate `error -> error` forwarder detector. BATS suite green. `intent doctor` clean.
 
-This session ran past ship into v2.10.1 follow-up, blog drafting + detrope, and the discovery of a regression in language detection.
+Defect fix to behaviour shipped as broken in v2.11.0; ships as v2.11.3 (patch).
 
-## Resume target — ST0037
+## Resume target — verify v2.11.3 ship state
 
-The user's design intent: **languages-in-use is a per-project CONFIG decision, not filesystem detection**. Filesystem-probe-based detection is alive in four canon sites; none of them reads explicit config. The imperative-config mechanism (`intent lang init`) exists but no consumer reads its output. Decision agreed: **Option B** — explicit `languages: []` field in `intent/.config/config.json`, with a back-fill migration. User direction: "fix this PROPERLY, no half-measures."
+If v2.11.3 has not yet shipped:
 
-After `/in-session`:
+1. `git status` — confirm working tree carries the staged ST0039 diff.
+2. `scripts/release --dry-run --patch` — verify the bump path 2.11.2 → 2.11.3.
+3. `scripts/release --patch` — cut the release.
 
-1. `intent st new "Language config: replace filesystem probes with explicit config"`.
-2. Read `intent/wip.md` "ST0037 scope (13 items)" for the full plan.
-3. Document first (the new ST's `info.md` and `design.md`), code next.
-4. Execute the 13 items.
-5. Bump VERSION to 2.11.0 and add CHANGELOG section.
-6. Update both blog drafts in `docs/blog/_drafts/`.
+If v2.11.3 has shipped:
 
-T-shirt: **M**.
+1. Smoke-test the fix in a downstream Elixir project (Conflab is the canonical witness) by re-running one of the originally-failing commits without `--no-verify`. Expected: gate clears.
+2. Queue a `/in-review` sweep across actively-edited Elixir fleet members (Anvil, Lamplight, MeetZaya, MicroGPTEx) — proxies that the gate over-fired on are now stripped, but the rules themselves still apply via the LLM critic-elixir subagent. Code that _should have been_ flagged but wasn't (because the gate was over-firing on unrelated lines) may surface during these sweeps.
 
 ## What landed this session (newest first)
 
-- `a64a09b` — test: regression guard for skill-renderer positional-token trap (`tests/unit/skill_renderer_trap.bats`).
-- `46672e4` — fix: anchor `AGENTS.md` version probe to `_Generated` footer.
-- `01c60a9` — chore: session wrap (from earlier session).
-
-Plus two blog drafts in `docs/blog/_drafts/`:
-
-- `####-critic-shell-on-intent.md` — light freshening of the inception draft, detrope-clean.
-- `####-claude-context-with-intent.md` — substantial v2.10.x rewrite of the supercharge-Claude post, detrope-clean except for the language-detection paragraph that ST0037 unblocks.
+- **ST0039 / v2.11.3** — strict-proxy contract in `intent/plugins/claude/lib/critic_runner.sh`. New `critic_proxy_is_simple` predicate + `critic_patterns_from_grep_block` walker; `critic_pattern_from_grep_command` deleted (no back-compat shim). Greppable proxy stripped from 8 RULE.md files (IN-EX-TEST-003, IN-EX-CODE-003, IN-EX-LV-001, IN-EX-LV-003, IN-EX-PHX-001, IN-EX-ASH-001, IN-EX-ASH-002, IN-EX-TEST-004) and surgically edited in IN-EX-CODE-004. New `tests/unit/critic_runner_proxies.bats` plus extensions to `intent_critic.bats` and `pre_commit_hook.bats`.
+- **Field bug ingest** — `~/Downloads/intent-v2.11.2-critic-gate-false-positives.md` (Conflab session report; 23 false-positive WARNINGs in a 3-file diff; three commits required `--no-verify`).
 
 ## Lessons from this session (top three)
 
-- **Detrope discipline scales when applied per-pass.** Three passes per blog draft, with audit after each, eliminates most AI tells. Watch for: bold-first bullets, "X, not Y" / "X rather than Y" / "X instead of Y" forms, three-parallel-verb tricolons, symmetric framing pairs, slogan closers, magic adverbs, action cliches.
+- **The runner refuses what it cannot reproduce.** ST0039's contract: the headless mechanical critic accepts only proxies of the form `grep [-rnE|--include=...] '<pattern>' [<path>...]`. Anything else (pipes, `xargs`, `grep -L`, `grep -v` filters, `-B/-A` context, awk) is refused with a stderr diagnostic. Loud > silent.
 
-- **Prose-level discomfort can surface system-level regressions.** The user flagged a tropey language-detection paragraph; investigation surfaced a regression in the underlying mechanism. Sometimes the bug is one layer down from where it's first noticed.
+- **Prose-level discomfort can surface system-level regressions.** The bug report came from a developer who noticed the gate was over-firing; tracing it back surfaced two distinct runner bugs (silent first-quoted-arg extraction, no honouring of `-L` / `xargs grep -l` / pipeline filters) plus eight rules whose proxies were never expressible in single-file headless form.
 
-- **Idempotence is a property of probes.** The AGENTS.md version probe was greedy; once content moved around, the probe started reading the wrong value every run. Anchor probes to specific markers, never generic patterns.
+- **The patch / minor decision is semantic, not size.** A multi-file runner refactor with rule-library cleanup ships as a patch when the work is correcting shipped-as-broken behaviour. Engineering scope doesn't gate the version bump.
 
-## Risks for post-compact
+## Risks for post-cut
 
-- v2.11.0 schema migration adds a `languages: []` field. Migration must back-fill from existing `intent/llm/RULES-<lang>.md` presence; existing fleet projects shouldn't need user action.
-- BATS test rework on probe sites: `in_session_skill.bats`, `pre_commit_hook.bats`, `intent_lang.bats`. Probe assertions out, config-read assertions in.
-- Polyglot order: array order = explicit; first entry = primary where primary matters. Document the convention up front in the design doc.
-- Pre-commit hook reads JSON config — use `get_config_field` from `intent_helpers`, don't re-implement.
+- Conflab and other Elixir fleet members may carry committed code that _was_ hit by the over-broad proxies and is now silently un-flagged at the headless gate level. Those rules still apply via `/in-review`, but the gate no longer pre-emptively catches them. A "first-run-after-upgrade" `/in-review` sweep on Anvil / Lamplight / MeetZaya / MicroGPTEx / Conflab is worth queuing.
+- The strict-proxy predicate accepts only a narrow grammar. Future rule authors writing a proxy must follow the grammar or accept that their rule is LLM-only via `/in-review`. The stderr diagnostic is the feedback loop.
 
 ## Session conventions (carry forward)
 
@@ -60,9 +50,9 @@ Plus two blog drafts in `docs/blog/_drafts/`:
 - ALWAYS use `intent` CLI for ST/WP operations.
 - NEVER manually wrap lines in markdown.
 - NO Claude attribution in commits.
-- NEVER report test/skill/subagent counts in release notes, CHANGELOG, wip.md.
-- Fail-forward: no backwards-compat shims, no deprecation stubs.
-- Document first, code next.
+- NEVER report test/skill/subagent counts in release notes, CHANGELOG, wip.md, restart.md (vanity metrics).
+- Fail-forward: no backwards-compat shims; no deprecation stubs; migrations actively prune.
+- Document first, code next, with a hard review gate after design.
 - Pre-flight every canary: clean tree before applying.
-- SKILL.md inline bash with `$N` positional fields gets mangled. Use a script file invoked by path.
-- **NEW**: Languages-in-use is a CONFIG decision (`languages: []` field). NOT filesystem detection. Probe sites are regressions.
+- SKILL.md inline bash with `$N` positional fields gets mangled by the skill renderer. Use a script file invoked by path.
+- Patch / minor / major decision is semantic, not size. Shipped-as-broken fixes are patches regardless of engineering scope.

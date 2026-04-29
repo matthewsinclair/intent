@@ -60,13 +60,7 @@ Signals:
 - A `require Ash.Query` at the top of a web module (a direct signal the module is building queries itself).
 - `MyApp.Resource |> Ash.Query.for_read(...)` pipelines inside `mount/3` or `handle_event/3`.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
-
-```bash
-grep -rnE 'Ash\.(get|read|create|update|destroy|load)!?' lib/*_web/ lib/*/live/ lib/*/controllers/
-```
-
-The reliable structural signal is "is this module outside the domain, and is it calling Ash.\*?"
+**No greppable proxy is authoritative for this rule.** A per-file regex over `Ash\.(get|read|...)` would false-positive on every legitimate domain-internal call (resources, changes, calculations) — the rule only applies _outside_ the domain, which the headless runner cannot determine from a single file. The reliable structural signal is "is this module outside the domain, and is it calling Ash.\*?" Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
 
 ## Bad
 

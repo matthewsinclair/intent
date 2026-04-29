@@ -58,13 +58,7 @@ Signals:
 - `{:ok, pid} = MyServer.start_link(...)` in a test — should be `pid = start_supervised!(MyServer, ...)`.
 - Missing `on_exit` cleanup for processes started with `start_link` (second-best fallback for code that cannot use `start_supervised!/2`).
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
-
-```bash
-grep -rnE '(GenServer|Agent|Task)\.start_link' test/ | grep -v start_supervised
-```
-
-The reliable structural signal is "is this process going to outlive the test that started it?" If yes, supervise it.
+**No greppable proxy is authoritative for this rule.** Without the `grep -v start_supervised` filter the headless mechanical runner refuses, every legitimate `start_supervised!` test (the _compliant_ form) would be flagged. The reliable structural signal is "is this process going to outlive the test that started it? If yes, supervise it." Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
 
 ## Bad
 

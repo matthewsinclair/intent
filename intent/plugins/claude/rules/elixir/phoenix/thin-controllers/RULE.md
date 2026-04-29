@@ -60,14 +60,7 @@ Signals:
 - Computed values (totals, filters, derived state) being built in the controller before rendering.
 - A controller's `create/2` action that wraps `Accounts.register_user/1` with validation, geocoding, email-dispatch, and analytics — that is five concerns, not one.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
-
-```bash
-# Actions longer than 20 lines are suspect
-awk '/def (index|show|create|update|delete|new|edit)/{start=NR; name=$0} /^[[:space:]]+end$/ && start && NR-start > 20 {print FILENAME":"start" "name; start=0}' lib/*_web/controllers/**/*.ex 2>/dev/null
-```
-
-The reliable structural signal is "would a non-HTTP caller (Oban, CLI, GraphQL) need this logic too?" If yes, it belongs in the domain.
+**No greppable proxy is authoritative for this rule.** The signal — "a controller action longer than ~20 lines" — requires line-counting state machines (awk) the headless mechanical runner deliberately rejects. The reliable structural signal is "would a non-HTTP caller (Oban, CLI, GraphQL) need this logic too?" Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
 
 ## Bad
 

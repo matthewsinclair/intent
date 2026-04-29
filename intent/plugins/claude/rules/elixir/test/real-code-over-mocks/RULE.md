@@ -62,8 +62,8 @@ Signals:
 Greppable proxy (not authoritative; Critic confirms by reading body):
 
 ```bash
-grep -rnE '(expect|stub)\(Mock[A-Z]' test/ --include='*_test.exs'
-grep -rnE 'with_mock\(' test/ --include='*_test.exs'
+grep -rnE '(expect|stub)\(Mock[A-Z]' test/
+grep -rnE 'with_mock\(' test/
 ```
 
 The reliable structural signal is "is the mocked boundary genuinely external — network, disk, time, randomness, hardware — or is it just another module in this app?"

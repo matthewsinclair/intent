@@ -57,13 +57,7 @@ Signals:
 - `Task.async/1`, `Task.start/1`, or `spawn/1` in `mount/3` without the guard.
 - A slow external HTTP call in `mount/3` that should be wrapped in `assign_async/3` instead.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
-
-```bash
-grep -rnB5 'Phoenix\.PubSub\.subscribe' lib/**/live/ | grep -v 'connected?'
-```
-
-The reliable structural signal is "if this work runs on the disconnected render, is the effect wasted or duplicated?" If yes, guard it.
+**No greppable proxy is authoritative for this rule.** The signal — "a side-effecting call inside `mount/3` not preceded by `connected?(socket)`" — requires `-B5` context plus a negative filter that the headless mechanical runner cannot honour. The reliable structural signal is "if this work runs on the disconnected render, is the effect wasted or duplicated?" Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
 
 ## Bad
 

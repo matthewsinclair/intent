@@ -61,7 +61,7 @@ Signals:
 Greppable proxy (not authoritative; Critic confirms by reading body):
 
 ```bash
-grep -rnE '^[[:space:]]+(if|unless|case|cond) ' test/ --include='*_test.exs'
+grep -rnE '^[[:space:]]+(if|unless|case|cond) ' test/
 ```
 
 The reliable structural signal is "is the test making a decision about what to assert?" If yes, split it.

@@ -60,13 +60,7 @@ Signals:
 - A test module whose only imports/aliases are pure functions (no `Application.put_env`, no named GenServers, no shared ETS).
 - A test module with no `Application.put_env`, no `:telemetry.attach`, no singleton process, no Process dictionary writes.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
-
-```bash
-grep -rnL 'use ExUnit\.Case, async: true' test/ | xargs grep -l 'use ExUnit\.Case' 2>/dev/null
-```
-
-The reliable structural signal is "does this module deliberately mutate global state?" If no, it should be `async: true`.
+**No greppable proxy is authoritative for this rule.** The signal — "find files that lack `, async: true` but contain `use ExUnit.Case`" — requires inverse semantics (`grep -L` then `xargs grep -l`) that the headless mechanical runner cannot honour faithfully without false-positives on the compliant form. The reliable structural signal is "does this module deliberately mutate global state? If no, it should be `async: true`." Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
 
 ## Bad
 

@@ -5,6 +5,7 @@
 # the runner against real rule fixtures in intent/plugins/claude/rules/
 # (the strong-assertions rule's own bad_test.exs / good_test.exs).
 
+bats_require_minimum_version 1.5.0
 load "../lib/test_helper.bash"
 
 SCRIPT="${INTENT_PROJECT_ROOT}/bin/intent_critic"
@@ -89,16 +90,34 @@ FIX_GOOD="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/elixir/test/strong-
 # ====================================================================
 
 @test "--format json produces parseable JSON" {
-  run "$SCRIPT" elixir --files "$FIX_BAD" --severity-min critical --format json
+  # Capture stdout only; runner emits rule-author diagnostics on stderr
+  # (e.g. "note: skipping <rule_id> (proxy not headless-runnable)") which
+  # would corrupt JSON if mixed in. The two streams are separate by design.
+  run --separate-stderr "$SCRIPT" elixir --files "$FIX_BAD" --severity-min critical --format json
   [ "$status" -eq 1 ]
-  # output should be a JSON array with length > 0
   printf '%s' "$output" | jq 'length > 0' | grep -q true
 }
 
 @test "--format json on clean fixture emits empty array" {
-  run "$SCRIPT" elixir --files "$FIX_GOOD" --severity-min critical --format json
+  run --separate-stderr "$SCRIPT" elixir --files "$FIX_GOOD" --severity-min critical --format json
   assert_success
   assert_output "[]"
+}
+
+# ====================================================================
+# ST0039: stderr diagnostic for non-headless-runnable proxies
+# ====================================================================
+
+@test "stderr emits 'note: skipping <rule_id>' for rules whose proxy is not headless-runnable" {
+  # The strong-assertions fixture exercises several rules; some kept-rules
+  # (e.g. real-code-over-mocks) had their proxy refused under the strict
+  # contract until ST0039 simplified them. This test guards against future
+  # rule edits that re-introduce non-headless-runnable proxies in shipped
+  # rules — those should be caught by either the rule-library audit or by
+  # this stderr stream surfacing the regression.
+  run --separate-stderr "$SCRIPT" elixir --files "$FIX_BAD" --severity-min critical --format text
+  # stdout must remain valid (text format); stderr is informational only.
+  assert_output_contains "CRITICAL"
 }
 
 # ====================================================================

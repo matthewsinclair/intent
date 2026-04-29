@@ -64,7 +64,7 @@ Greppable proxy (not authoritative; Critic confirms by reading body):
 
 ```bash
 grep -rn 'def user_fixture' test/
-grep -rnE '"(alice|bob|admin)@[^"]*\.(com|test)"' test/ --include='*_test.exs'
+grep -rnE '"(alice|bob|admin)@[^"]*\.(com|test)"' test/
 ```
 
 The reliable structural signal is "if I changed `user_fixture` today, how many files would I have to edit?" The answer must be one.

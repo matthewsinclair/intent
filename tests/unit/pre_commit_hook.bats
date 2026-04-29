@@ -77,6 +77,54 @@ EOF
   assert_success
 }
 
+@test "single-step case in lib/*.ex does NOT block commit (ST0039 / Conflab regression)" {
+  # Conflab field report 2026-04-29: pre-commit gate flagged every
+  # `case ... do` line via IN-EX-CODE-004's counter proxy. ST0039 strips
+  # the counter; only the `error -> error` forwarder line remains, which
+  # this fixture does not contain.
+  cat > .intent_critic.yml <<'EOF'
+severity_min: warning
+disabled: []
+EOF
+  mkdir -p lib
+  cat > lib/finder.ex <<'EOF'
+defmodule Finder do
+  def find_user(id) do
+    case Repo.get(User, id) do
+      nil -> {:error, :not_found}
+      user -> {:ok, user}
+    end
+  end
+end
+EOF
+  git add intent/.config mix.exs lib/finder.ex .intent_critic.yml
+  run git commit -m "single-step case"
+  assert_success
+}
+
+@test "compliant async test does NOT block commit (ST0039 / Conflab regression)" {
+  # Conflab field report 2026-04-29: pre-commit gate flagged the compliant
+  # `use ExUnit.Case, async: true` line via IN-EX-TEST-003's inverted
+  # proxy. ST0039 strips the proxy entirely.
+  cat > .intent_critic.yml <<'EOF'
+severity_min: warning
+disabled: []
+EOF
+  mkdir -p test
+  cat > test/foo_test.exs <<'EOF'
+defmodule FooTest do
+  use ExUnit.Case, async: true
+
+  test "trivial" do
+    assert 1 + 1 == 2
+  end
+end
+EOF
+  git add intent/.config mix.exs test/foo_test.exs .intent_critic.yml
+  run git commit -m "compliant async test"
+  assert_success
+}
+
 @test "intent CLI missing → fail-open (exit 0, advisory on stderr)" {
   # Strip PATH to just /usr/bin:/bin so `intent` is not resolvable.
   # Use git -c so user config still works.

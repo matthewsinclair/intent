@@ -55,13 +55,7 @@ Signals:
 - `Ash.Query.for_read(Resource, :name, %{}) |> Ash.read!(actor: user)` — actor should be inside `for_read`.
 - Manual pipelines in web modules building queries and applying actor at the end (this usually co-occurs with IN-EX-ASH-001 too).
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
-
-```bash
-grep -rnE 'Ash\.(read|create|update|destroy)!?\([^)]*actor:' lib/
-```
-
-The reliable structural signal is "was the actor present when the query/changeset was built?"
+**No greppable proxy is authoritative for this rule.** The naive proxy `Ash\.(read|...)\([^)]*actor:` fires on the terminal call site — but the violation depends on whether the **query** (built earlier) had `actor:` already. Detecting that requires reading both the query construction and the call site. The reliable structural signal is "was the actor present when the query/changeset was built?" Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
 
 ## Bad
 
