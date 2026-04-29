@@ -11,9 +11,8 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 
-| ID     | Slug                      | Status | Created    | Completed |
-| ------ | ------------------------- | ------ | ---------- | --------- |
-| ST0039 | critic-gate-strict-pro... | WIP    | 2026-04-29 |
+| ID  | Slug | Status | Created | Completed |
+| --- | ---- | ------ | ------- | --------- |
 
 <!-- END: STEEL_THREAD_INDEX -->
 

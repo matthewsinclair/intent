@@ -1,10 +1,10 @@
 ---
 verblock: "29 Apr 2026:v0.1: matts - Initial scope and design pointer"
 intent_version: 2.11.2
-status: WIP
+status: Completed
 slug: critic-gate-strict-proxies-and-rule-library-cleanup
 created: 20260429
-completed:
+completed: 20260429
 ---
 
 # ST0039: Critic gate: strict proxies and rule-library cleanup
