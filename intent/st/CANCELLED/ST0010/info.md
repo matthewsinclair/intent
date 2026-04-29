@@ -6,7 +6,7 @@ created: 20250603
 completed: 20260424
 ---
 
-> **Deprecated 2026-04-24.** Superseded by Intent v2.9.0 — the skill / subagent / extension system (`~/.intent/ext/`, `intent ext`, critic-* family, `/in-*` skills) provides the parameterised LLM-interaction surface this ST was scoping. Cancelled under ST0035 (canonical LLM config). The original objective and context below are preserved for historical reference only.
+> **Deprecated 2026-04-24.** Superseded by Intent v2.9.0 — the skill / subagent / extension system (`~/.intent/ext/`, `intent ext`, critic-_ family, `/in-_` skills) provides the parameterised LLM-interaction surface this ST was scoping. Cancelled under ST0035 (canonical LLM config). The original objective and context below are preserved for historical reference only.
 
 # ST0010: Anthropic MCP Integration
 

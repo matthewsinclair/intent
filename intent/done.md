@@ -3,6 +3,8 @@ verblock: "04 Apr 2026:v0.1: matts - Initial version"
 intent_version: 2.8.0
 ---
 
+NOTE: This file is for DOING and TODO work ONLY. All DONE work goes into ./history/YYYYMM-done.md on month-by-month basis.
+
 # Done
 
 ## ST0030: Cherry-Pick Superpowers Patterns (completed 2026-04-04)

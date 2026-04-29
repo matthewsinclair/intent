@@ -33,7 +33,7 @@ For each non-simple line, the runner emits one stderr line:
 note: skipping IN-EX-XXX-NNN (proxy not headless-runnable)
 ```
 
-Tagged with the rule_id. The line is suppressed when `--format json` is set on the _findings_ output (stderr stays separate from stdout). If every line in a rule's proxy is refused, the rule produces no findings.
+Tagged with the rule*id. The line is suppressed when `--format json` is set on the \_findings* output (stderr stays separate from stdout). If every line in a rule's proxy is refused, the rule produces no findings.
 
 ### Helper signatures (additions to `critic_runner.sh`)
 
