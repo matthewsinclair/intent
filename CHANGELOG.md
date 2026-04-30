@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.4] - 2026-04-30
+
+Docs-only patch following v2.11.3's field verification.
+
+### Documentation
+
+- **Critic runner code locality** — `intent/docs/critics.md` "Headless runner" section gains a note clarifying that the runner (`bin/intent_critic` + `critic_runner.sh`) and the canon rule library load from `$INTENT_HOME` (the Intent install on `$PATH`), not from each project's plugin tree. A fix to the runner or a canon rule applies to every Intent project the moment Intent itself updates. Per-project canon refresh (`intent claude upgrade`) keeps `intent/llm/RULES*.md` and `.claude/skills/` copies in sync with the Intent version, but is not a prerequisite for gate behaviour to change. The behaviour itself is unchanged from v2.11.3 — only the docs are clarified.
+
+### Verification
+
+- v2.11.3's strict-proxy fix smoke-tested in Conflab (the canonical field witness) on 2026-04-30. Previously-misfiring patterns clear: `IN-EX-CODE-004` no longer flags single-step `case ... do`; `IN-EX-TEST-003` no longer flags compliant `use ExUnit.Case, async: true`. Gate still produces signal on real violations (e.g. `IN-EX-TEST-001` weak assertions, `IN-EX-TEST-005` control flow in tests, `IN-EX-TEST-007`). No stderr `note: skipping` diagnostics — expected, since the stripped rules no longer carry proxy blocks for the runner to refuse.
+
 ## [2.11.3] - 2026-04-29
 
 ST0039 ships: pre-commit critic gate stops emitting findings derived from `Greppable proxy` regexes the headless runner cannot honour. Defect fix to behaviour shipped as broken in v2.11.0; no new feature surface, no schema change.

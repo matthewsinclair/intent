@@ -145,6 +145,8 @@ Exit codes:
 
 The runner layers canon (`intent/plugins/claude/rules/`) and user extensions (`~/.intent/ext/*/rules/`) using the same discovery order as the subagents. Agnostic rules are intentionally skipped (they are concretised by language rules and would double-report). Per-project opt-out of specific rule IDs flows through `.intent_critic.yml disabled:` — see the schema section above.
 
+**Code locality** (clarified v2.11.4): the headless runner (`bin/intent_critic` + `intent/plugins/claude/lib/critic_runner.sh`) and the canon rule library load from `$INTENT_HOME` — the Intent install resolved relative to whichever `intent` binary is on `$PATH` — _not_ from each project's plugin tree. A fix to the runner, or a strip / edit of a canon rule, applies to every Intent project the moment Intent itself updates; no per-project `intent claude upgrade` is required for the gate's behaviour to change. Per-project canon refresh remains useful for keeping the project-resident docs (`intent/llm/RULES*.md`, `intent/llm/ARCHITECTURE-<lang>.md`) and `.claude/skills/` copies in sync with the Intent version, and for bringing `pre-commit.intent` and other hook-side scripts up to date — but it is not on the critical path for runner-or-rule fixes.
+
 ## Integration with `/in-review`
 
 The two-stage review skill (`intent/plugins/claude/skills/in-review/SKILL.md`) dispatches to the right Critic at Stage 2. Stage-2 detection probes the project root in this order:
