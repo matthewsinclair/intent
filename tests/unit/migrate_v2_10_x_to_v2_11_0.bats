@@ -29,7 +29,11 @@ teardown() {
   run migrate_v2_10_x_to_v2_11_0 "$proj"
   assert_success
   assert_output_contains "back-filled: languages = []"
-  assert_output_contains "stamped: intent_version = 2.11.0"
+  # Stamp is the live target (read from VERSION). v2.11.5 changed the
+  # migration to drop the hard-coded "2.11.0" literal.
+  local target
+  target=$(cat "${INTENT_PROJECT_ROOT}/VERSION")
+  assert_output_contains "stamped: intent_version = $target"
 
   local langs
   langs=$(jq -r '.languages | length' "$proj/intent/.config/config.json")
@@ -37,7 +41,7 @@ teardown() {
 
   local v
   v=$(jq -r '.intent_version' "$proj/intent/.config/config.json")
-  [ "$v" = "2.11.0" ] || fail "expected stamp 2.11.0, got '$v'"
+  [ "$v" = "$target" ] || fail "expected stamp $target, got '$v'"
 }
 
 # --- 2. Empty back-fill but pre-commit hook present -> ["shell"] ----------
@@ -85,7 +89,9 @@ teardown() {
   run migrate_v2_10_x_to_v2_11_0 "$proj"
   assert_success
   assert_output_contains "field: languages already present (no back-fill)"
-  assert_output_contains "stamped: intent_version = 2.11.0"
+  local target
+  target=$(cat "${INTENT_PROJECT_ROOT}/VERSION")
+  assert_output_contains "stamped: intent_version = $target"
 
   local langs
   langs=$(jq -r '.languages | join(",")' "$proj/intent/.config/config.json")
@@ -94,7 +100,7 @@ teardown() {
 
 # --- 5. Idempotence: full no-op on second call ----------------------------
 
-@test "second invocation is a complete no-op (already stamped at 2.11.0)" {
+@test "second invocation is a complete no-op (already stamped at live target)" {
   local proj="$TEST_TEMP_DIR/proj"
   mkdir -p "$proj/intent/.config"
   echo '{"intent_version":"2.10.1","project_name":"idem","author":"t"}' > "$proj/intent/.config/config.json"
@@ -105,7 +111,9 @@ teardown() {
 
   run migrate_v2_10_x_to_v2_11_0 "$proj"
   assert_success
-  assert_output_contains "stamp: already at v2.11.0"
+  local target
+  target=$(cat "${INTENT_PROJECT_ROOT}/VERSION")
+  assert_output_contains "stamp: already at v$target"
 
   local after_sum
   after_sum=$(shasum "$proj/intent/.config/config.json" | awk '{print $1}')

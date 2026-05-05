@@ -119,14 +119,20 @@ DELETED_PATHS=(
   # Run sync twice in the real Intent project root; second run must produce
   # byte-identical output. Backups created by the sync command are removed
   # at the end of the test to leave the tree clean.
+  #
+  # The test snapshots and restores the working-tree AGENTS.md so the run
+  # has no observable side effect on the repo. Without this, a developer
+  # running the suite locally ends up with `git status` showing AGENTS.md
+  # modified (just a timestamp move), which then blocks `scripts/release`'s
+  # clean-tree pre-flight. v2.11.5 surfaced this when chasing a "phantom"
+  # dirty-tree state.
   local agents_md="${INTENT_PROJECT_ROOT}/AGENTS.md"
-  local first second
-  # macOS BSD mktemp does not substitute the X's when followed by a suffix:
-  # `mktemp /tmp/foo-XXXXXX.md` creates the LITERAL file foo-XXXXXX.md, so
-  # subsequent runs collide. Use a plain template (no suffix); this test
-  # cares about file content, not the extension.
+  local snapshot first second
+  snapshot="$(mktemp /tmp/agents-sync-snap-XXXXXX)"
   first="$(mktemp /tmp/agents-sync-1-XXXXXX)"
   second="$(mktemp /tmp/agents-sync-2-XXXXXX)"
+
+  cp "$agents_md" "$snapshot"
 
   cd "${INTENT_PROJECT_ROOT}" || fail "could not cd to project root"
 
@@ -141,7 +147,8 @@ DELETED_PATHS=(
   diff "$first" "$second" >/dev/null \
     || fail "agents sync is not idempotent: outputs differ between runs"
 
-  # Clean up sync-created backup if present.
+  # Restore the working-tree AGENTS.md and clean up sync's .bak sidecar.
+  cp "$snapshot" "$agents_md"
   rm -f "${agents_md}.bak"
-  rm -f "$first" "$second"
+  rm -f "$snapshot" "$first" "$second"
 }
