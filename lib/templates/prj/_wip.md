@@ -41,4 +41,4 @@ This document captures the current state of development on the project. When beg
 3. Keep track of upcoming work items
 4. Add any relevant notes that might be helpful for yourself or the LLM
 
-When starting a new steel thread, describe it here first, then ask the LLM to create the appropriate steel thread document using the STP commands.
+When starting a new steel thread, describe it here first, then ask the LLM to create the appropriate steel thread document using `intent st new`.
