@@ -1,62 +1,59 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-04-30, end of session -- v2.11.4 docs patch cut)
+## Current state (2026-05-05, end of session -- v2.11.5 cut + fleet upgraded + STP cleanup)
 
-v2.11.3's strict-proxy fix verified in the field via a Conflab smoke test. Previously-misfiring patterns clear: `IN-EX-CODE-004` no longer flags single-step `case ... do`; `IN-EX-TEST-003` no longer flags compliant `use ExUnit.Case, async: true`. The gate still produces signal on real violations (e.g. `IN-EX-TEST-001` weak assertions, `IN-EX-TEST-005` control flow in tests, `IN-EX-TEST-007` literal-on-the-right asserts) — proving the gate is not silently passing everything. No stderr `note: skipping` diagnostics — expected, since the rules whose proxies were stripped no longer carry proxy blocks for the runner to refuse.
+v2.11.5 shipped today. Behavioural patch fixing three latent bugs surfaced by a Conflab session 2026-05-05. All three were shipped-as-broken; the first two silently produced output that looked plausible while dropping load-bearing content; the third silently regressed a project's recorded version stamp.
 
-The smoke also surfaced an architectural clarity gap. The headless runner (`bin/intent_critic` + `intent/plugins/claude/lib/critic_runner.sh`) and the canon rule library load from `$INTENT_HOME` — the Intent install resolved relative to whichever `intent` is on `$PATH` — not from each project's plugin tree. A fix to the runner, or a strip / edit of a canon rule, applies to every Intent project the moment Intent itself updates. v2.11.4 documents this in `intent/docs/critics.md`.
+### Fixes in v2.11.5
 
-v2.11.4 is a docs-only patch: behaviour is unchanged from v2.11.3.
+1. **Gate bypass for non-interactive `claude -p`.** Symptom: `intent treeindex` reported "empty response from Claude" for every directory in any v2.10.0+ Intent project. Root cause: the spawned `claude -p` inherits the project's `UserPromptSubmit` hooks; the strict gate (`require-in-session.sh`) fires, sees no `/in-session` sentinel for the ephemeral session_id, exits 2; the non-bare `claude -p` swallows the hook's stderr and exits 0 with empty stdout. Fix: `INTENT_SKIP_IN_SESSION_GATE=1` env-var bypass at the top of the gate script; `bin/intent_treeindex` sets it on every `claude -p` invocation. Documentation in `intent/docs/working-with-llms.md` D7 + FAQ; `intent help treeindex` ENVIRONMENT block.
 
-## What this session did (chronological)
+2. **`intent agents generate` PROJECT_ROOT self-load.** Symptom: `intent agents generate` (called standalone) emitted a stripped AGENTS.md (empty project name, no language scaffolding, no installed-skill enumeration, no conditional resource links). Root cause: the `generate` dispatch path did not call `load_intent_config`, so `PROJECT_ROOT` was unset and every per-project detection silently failed. `sync` was unaffected because it pre-loads. Fix: `intent_agents_generate_content` self-loads project context. Highlander applied -- one source of truth instead of duplicating the load preamble across each dispatcher branch. Latent since the dispatcher was first added 2025-08-20.
 
-### 1. `/in-session` bootstrap
+3. **`migrate_v2_10_x_to_v2_11_0` stamps live target.** The migration helper hard-coded the resulting stamp to `"2.11.0"` regardless of which patch was current. A v2.10.x project walked up via the migration path would land with `intent_version = "2.11.0"`. Field impact muted by `needs_v2_11_0_upgrade`'s short-circuit (skips the migration when `languages` field already present), but the bug existed and would have stamped fresh upgrades incorrectly. Fix: stamp `get_intent_version`.
 
-Project on `main`, working tree clean, ST0039 already moved to COMPLETED, v2.11.3 already cut. `/in-essentials` + `/in-standards` loaded; UserPromptSubmit gate released for the session.
+### Test isolation cleanup
 
-### 2. Plan mode + Tranche A scope
+`tests/unit/docs_completeness.bats:agents_sync_idempotent` ran `intent agents sync` against the real Intent project root and never restored AGENTS.md. Each test-suite run left the working tree dirty (just a date stamp), which then blocked `scripts/release`'s clean-tree pre-flight on every subsequent invocation. Fix: snapshot + restore. Pre-existing isolation bug, surfaced when chasing a phantom dirty-tree state during the v2.11.5 release.
 
-User pasted the prior session's restart prompt and asked for a plan for any remaining work, then "wait for instructions." Plan written to `/Users/matts/.claude/plans/jiggly-inventing-penguin.md`: three tranches (A: Conflab smoke; B: fleet upgrade; C: `/in-review` Elixir fleet sweep). User selected Tranche A.
+### Fleet upgrade post-release
 
-### 3. Tranche A -- Conflab smoke test
+Nine projects upgraded directly: Anvil, Laksa, MeetZaya, MicroGPTEx, Molt, Molt-matts, Multiplyer, Prolix, Utilz. One `chore: upgrade to Intent v2.11.5` commit per project carrying: `intent_version` bump to 2.11.5, gate-bypass pickup in `.claude/scripts/require-in-session.sh`, AGENTS.md regenerated against the v2.11.5 generator, top-of-file CLAUDE.md version line aligned. Conflab and Lamplight handled by user. Intent self-stamp committed (`648e2b0`).
 
-Initial assumption (per the plan) was that each fleet member needed a per-project canon refresh to v2.11.3 before the gate fix would apply. The smoke surfaced the actual architecture: `bin/intent_critic` resolves `INTENT_ROOT` from its own location and sources `$INTENT_ROOT/intent/plugins/claude/lib/critic_runner.sh`; the runner reads canon rules from `$INTENT_HOME/intent/plugins/claude/rules/`. The `intent` symlink on `$PATH` points at the Intent install, so v2.11.3's fix is already live in every project.
+### STP cleanup pass
 
-Smoke run: `intent critic elixir --files <80 lib + test files> --severity-min recommendation`. Exit 0 on the targeted trigger files (`lib/conflab/runtime_config.ex`, `test/conflab/endpoints_test.exs`); exit 1 on the broad sweep with 1 critical + 6 warnings, all genuine pre-existing findings on rules whose proxies survived the strip (`TEST-001` / `005` / `007`). None of the eight stripped rules or the surgically-edited `IN-EX-CODE-004` produced findings on Conflab's `case` or `async:` patterns. Stderr empty.
+The user flagged that current Intent emissions should not mention STP. Two layers:
 
-Conflab tree untouched -- no upgrade, no checkout, no commit, no `--no-verify` replay. The smoke proves the fix on the live working tree.
+- **Project layer.** Anvil, Laksa, MeetZaya, Multiplyer all carried "(formerly STP)" parentheticals on the top line of CLAUDE.md and a "## Migration Notes" section that mentioned STP migration. Stripped both, one `docs: drop STP migration history from CLAUDE.md` commit per project.
+- **Canon layer.** Fixed `lib/templates/prj/_wip.md` (the live `intent_init` seed for `intent/wip.md`) to drop "STP commands" in favour of `intent st new`. Deleted three orphan STP-era templates from canon (`lib/templates/usr/_reference_guide.md`, `_deployment_guide.md`, `lib/templates/prj/st/_steel_threads.md`) -- 547 lines removed, no live consumers in `bin/` or `intent/plugins/`. `grep -rln STP lib/templates/` now returns nothing.
 
-### 4. v2.11.4 docs patch
-
-User asked to check in and commit, then mint a patch release. v2.11.4 cut:
-
-- `intent/docs/critics.md` "Code locality" note added under "Headless runner": runner + canon rules load from `$INTENT_HOME`, not per-project; per-project canon refresh stays useful for keeping `intent/llm/RULES*.md` and `.claude/skills/` copies in sync but is not on the critical path for runner / rule fixes.
-- `CHANGELOG.md` `[2.11.4]` section: docs + verification entries.
-- `intent/wip.md`, `intent/restart.md`, `.claude/restart.md` refreshed.
-- `scripts/release --patch` cut the release.
+The remaining STP references in the repo are all in functional code (`bin/intent_upgrade`'s STP-source migration path, `bin/intent_helpers`'s `detect_stp_version` function) where they are load-bearing for the STP -> Intent migration capability, and in historical ST docs under `intent/st/COMPLETED/` which are read-only records.
 
 ## Resume target -- next session
 
 No active steel thread. Optional follow-on, in order of return:
 
-1. **Per-project canon refresh** for fleet members on stale Intent versions. Hygiene -- the runner + rules are already current via `$INTENT_HOME`. `intent claude upgrade` per project. Targets: Anvil (2.10.0), Lamplight (2.11.0), MeetZaya (2.10.0), MicroGPTEx (2.10.0), Conflab (2.11.0).
-2. **`/in-review` Elixir fleet sweep** -- Tranche C of the post-v2.11.3 plan. Catalogue findings per project; surface to user before any remediation.
-3. **Conflab pre-existing test findings** surfaced during the smoke (`TEST-001` / `005` / `007`, 7 hits) -- worth folding into Conflab's own backlog.
-4. **Deferred v2.11.x backlog** -- `intent claude upgrade` Phase-2 CLAUDE.md substitution audit; Homebrew tap; `scripts/release` v2 polish; `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft.
+1. **`intent claude upgrade` Phase-2 CLAUDE.md substitution audit.** Its regex sweep rewrites the historical migration date in any CLAUDE.md it touches (`migrated from STP to Intent vX.Y.Z on YYYY-MM-DD` becomes `migrated to vCURRENT`). Worked around in this session by reverting CLAUDE.md after `intent upgrade` and editing the top-of-file version line manually. Permanent fix: scope the substitution to current-state lines only.
+2. **`lib/templates/usr/_user_guide.md`.** Orphan template (no live consumer). Not STP-tainted so survived the deletion sweep, but it is still cruft.
+3. **`/in-review` Elixir fleet sweep** -- still parked from the post-v2.11.3 plan.
+4. **Conflab pre-existing test findings** (`IN-EX-TEST-001` / `005` / `007`) -- still parked; Conflab's own backlog.
+5. **Deferred v2.11.x backlog**: Homebrew tap; `scripts/release` v2 polish; `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft (v2.11.5 is the fifth dogfood datapoint).
 
 ## Lessons from this session
 
-- **Verify your architecture before you plan a fleet upgrade.** Tranche B was scoped on the assumption that each project carried its own runner copy. The actual architecture -- runner + canon loaded from `$INTENT_HOME`, not per-project -- collapses Tranche B into pure hygiene work. Five minutes of `grep INTENT_ROOT bin/intent_critic` would have caught this before the plan went out. Lesson: when the plan touches per-project canon, trace the resolution path of whichever script the gate actually runs, end to end, before sizing the work.
+- **The non-bare `claude -p` swallows hook stderr and emits empty stdout on exit 2.** Worth filing an Anthropic issue: a hook that blocks the prompt should produce a loud failure, not silent success. Until then, every Intent automation that spawns `claude -p` needs to set `INTENT_SKIP_IN_SESSION_GATE=1`. Today there is exactly one such caller (treeindex). A periodic grep audit (or a CI check) is worth adding.
 
-- **A clean smoke is a smoke that finds something real.** The Conflab broad sweep returned 7 findings -- not v2.11.3 regressions, but pre-existing genuine violations. That's the right shape for "the gate works": misfiring patterns clear, and real signal still surfaces. A smoke test that returns "exit 0, 0 findings everywhere" wouldn't have been meaningfully different from a smoke test that did nothing.
+- **`bats`'s test isolation discipline is local, not enforced.** A single test that runs a command against the real project root without snapshot/restore is enough to leave the working tree dirty for everyone downstream. The `docs_completeness.bats:agents_sync_idempotent` case had been doing this for a while; it only became visible when `scripts/release`'s pre-flight starting failing intermittently. When a release pre-flight finds a phantom dirty AGENTS.md, suspect a leaky test before suspecting the release script.
 
-- **Docs patches are legitimate.** The runner-locality clarification doesn't change behaviour, but it changes the mental model anyone reads the docs with. v2.11.4 ships docs-only because the docs were genuinely behind the architecture. The patch / minor / major decision is semantic; "fixed shipped-as-broken docs" qualifies as a patch.
+- **Latent bugs hide behind short-circuits.** The `migrate_v2_10_x_to_v2_11_0` hard-coded stamp had been wrong since v2.11.0 cut, but `needs_v2_11_0_upgrade` (which short-circuits when `languages` field is already present) prevented the migration from firing on most projects. Latent for four releases. The lesson: when adding a guard predicate that skips a code path, the skipped code path still gets executed sometimes. Make the predicate-bypassed path correct on its own.
+
+- **"Stuff we're emitting now" is a useful test for cruft.** The user's STP-cleanup directive forced a survey of every place STP could leak into project files. The result was clean: three orphan templates gone, one live template fixed, four fleet projects de-STP-ified. The same lens applied to other legacy concepts (eg `worker-bee`, retired skill names) would likely find similar cruft worth pruning.
 
 ## Risks for post-cut
 
-- The fleet's per-project canon copies (`intent/llm/RULES*.md`, `.claude/skills/`, `pre-commit.intent`) are still on whatever Intent version the project last ran `intent claude upgrade` against. The runtime gate uses the central `$INTENT_HOME` copies, so this doesn't affect gate behaviour, but it does mean any developer reading their project's `intent/llm/RULES-elixir.md` may see proxy blocks that have since been stripped from canon. A per-project refresh sweep closes the gap.
-
-- Conflab's surfaced `TEST-001` / `005` / `007` findings are genuine and have been present in the codebase. They were hidden by gate _noise_, not gate silence -- the over-broad proxies fired so loudly that real findings were lost in the false positives. Now that the noise is gone, the signal needs triage.
+- The `intent claude upgrade` Phase-2 CLAUDE.md substitution remains broken -- this session worked around it manually per project, but a future fleet upgrade or an unaware developer running `intent claude upgrade --apply` will hit the same false-history rewrite. Worth a real fix before the next minor.
+- `lib/templates/usr/_user_guide.md` is still in the tree. If it ever gets wired up as a live emission again (eg by a future template loader change), it'll re-introduce orphan-template territory. Worth a deletion sweep of `lib/templates/usr/` entirely.
+- The fleet upgrade did not run `intent claude upgrade --apply` against every project for a full canon refresh; it only bumped the schema and applied the gate fix where the upgrade command surfaced it. Per-project canon copies (`intent/llm/RULES*.md`, `.claude/skills/`) may still drift from the v2.11.5 canon. Per the architecture note from v2.11.4 (runner + canon load from `$INTENT_HOME`, not per-project), this does not affect runtime correctness, but a developer reading their project's RULES files may see stale content.
 
 ## Session conventions (carry forward)
 
@@ -70,4 +67,6 @@ No active steel thread. Optional follow-on, in order of return:
 - Document first, code next, with a hard review gate after design.
 - Pre-flight every canary: clean tree before applying.
 - SKILL.md inline bash with `$N` positional fields gets mangled by the skill renderer. Use a script file invoked by path.
-- Patch / minor / major decision is semantic, not size. Shipped-as-broken fixes (including shipped-as-broken docs) are patches regardless of engineering scope.
+- Patch / minor / major decision is semantic, not size. Shipped-as-broken fixes (including shipped-as-broken docs and shipped-as-broken silent failures) are patches regardless of engineering scope.
+- When a bats suite runs commands against the real project root, snapshot + restore the affected files in the test, otherwise the test pollutes the working tree for every downstream operation.
+- For non-interactive Intent automation that spawns `claude -p`, always set `INTENT_SKIP_IN_SESSION_GATE=1` on the invocation, otherwise the strict gate silently kills the call.
