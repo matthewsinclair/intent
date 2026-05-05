@@ -9,13 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.11.5] - 2026-05-05
 
-Behavioural patch fixing two latent silent-failure bugs surfaced by a Conflab session 2026-05-05. Both were shipped-as-broken; both produced output that looked plausible while dropping load-bearing content.
+Behavioural patch fixing three latent bugs surfaced by a Conflab session 2026-05-05. All three were shipped-as-broken; the first two silently produced output that looked plausible while dropping load-bearing content; the third silently regressed a project's recorded version stamp.
 
 ### Fixed
 
 - **`intent treeindex` reported "empty response from Claude" for every directory** when run inside any v2.10.0+ Intent project. Root cause: the spawned `claude -p` session inherits the project's `UserPromptSubmit` hooks; the strict gate (`require-in-session.sh`) fires on the first prompt, sees no `/in-session` sentinel for the ephemeral session_id, and exits 2; the non-bare `claude -p` swallows the hook's stderr and exits 0 with empty stdout. Treeindex saw empty stdout and reported per-directory failures. The treeindex tool was fine; the gate was the silent killer.
 
 - **`intent agents generate` produced a stripped AGENTS.md** (empty project name, no language scaffolding, no installed-skill enumeration, no conditional resource links) when invoked directly via the dispatcher. Root cause: the `generate` dispatch path did not call `load_intent_config`, leaving `PROJECT_ROOT` empty so every per-project detection (`mix.exs`, `Cargo.toml`, `.claude/skills/`, `CLAUDE.md`, `usage-rules.md`) silently failed. `intent agents sync` was unaffected because it pre-loads config. Latent since the dispatcher was first added 2025-08-20; surfaced today when `generate` was invoked standalone for a diff repro.
+
+- **`migrate_v2_10_x_to_v2_11_0` hard-coded the target stamp to `"2.11.0"`** instead of the live Intent target. A project walked up from v2.10.x through the migration path would land with `intent_version = "2.11.0"` regardless of which v2.11.x patch was current. Field impact was muted because `needs_v2_11_0_upgrade` short-circuits projects already carrying the `languages` field, but the bug existed and would have stamped v2.11.5 projects as "2.11.0". Fix stamps `get_intent_version`.
 
 ### Changed
 
@@ -34,6 +36,7 @@ Behavioural patch fixing two latent silent-failure bugs surfaced by a Conflab se
 
 - `tests/unit/require_in_session_gate.bats` covers the bypass branch and the existing slash-command / sentinel pass-throughs as regression smokes.
 - `tests/unit/intent_agents.bats` gains a regression case asserting `intent agents generate` populates project name, language detection, and installed-skill enumeration when invoked with `PROJECT_ROOT` unset.
+- `tests/unit/intent_upgrade_dispatcher.bats` gains a regression case asserting that a v2.10.x project upgraded via the migration path lands with the live target stamp (read from `VERSION`), not a hard-coded literal.
 
 ## [2.11.4] - 2026-04-30
 

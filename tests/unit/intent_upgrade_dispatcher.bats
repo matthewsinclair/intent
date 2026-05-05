@@ -15,6 +15,49 @@ UPGRADE="${INTENT_PROJECT_ROOT}/bin/intent_upgrade"
   assert_success
 }
 
+@test "v2.10.x project lands at current target stamp, not hard-coded 2.11.0" {
+  # Regression guard for v2.11.5: migrate_v2_10_x_to_v2_11_0 used to hard-code
+  # the stamp to "2.11.0", silently downgrading the recorded intent_version on
+  # any project walked up from v2.10.x via the migration path. Fix stamps
+  # `get_intent_version` (the live target). This test asserts the project's
+  # config carries the live target after upgrade.
+  TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-upgrade-210-XXXXXX)"
+  cd "${TEST_TEMP_DIR}" || exit 1
+
+  mkdir -p intent/.config intent/llm intent/st
+  # No `languages` field -- forces needs_v2_11_0_upgrade to return 0 so the
+  # migration fires (rather than the dispatcher short-circuiting).
+  cat > intent/.config/config.json <<'EOF'
+{"intent_version":"2.10.0","project_name":"Upgrade210Test","author":"t","created":"2026-04-27","st_prefix":"ST"}
+EOF
+  echo "# wip" > intent/wip.md
+  cat > intent/llm/RULES.md <<'EOF'
+# Rules
+
+## Project-Specific Rules
+
+stuff
+EOF
+
+  git init -q .
+  git config user.email t@t.com
+  git config user.name Tester
+  git add -A
+  git commit -qm "init"
+
+  run "${INTENT_BIN_DIR}/intent" upgrade --no-backup
+  assert_success
+
+  local target
+  target=$(cat "${INTENT_PROJECT_ROOT}/VERSION")
+  local stamped
+  stamped=$(jq -r '.intent_version' intent/.config/config.json)
+  [ "$stamped" = "$target" ] || fail "expected stamp '$target', got '$stamped'"
+
+  cd "${INTENT_PROJECT_ROOT}" || exit 1
+  rm -rf "${TEST_TEMP_DIR}"
+}
+
 @test "v2.11.x project upgrades to current target without 'Unknown version'" {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-upgrade-211-XXXXXX)"
   cd "${TEST_TEMP_DIR}" || exit 1

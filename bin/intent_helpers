@@ -1411,19 +1411,28 @@ migrate_v2_10_x_to_v2_11_0() {
     fi
   fi
 
+  # Stamp the live Intent target version, not a hard-coded "2.11.0" literal.
+  # The migration is shared across the v2.11.x patch line; using the live
+  # target lets v2.11.5 (or any future patch) land the correct stamp on
+  # projects walked up from v2.10.x. Pre-v2.11.5 the literal was "2.11.0",
+  # which would silently downgrade a v2.11.4 stamp through the migration
+  # path. Field-impact was muted because needs_v2_11_0_upgrade short-circuits
+  # for projects that already have the languages field, but the bug existed.
+  local target
+  target=$(get_intent_version 2>/dev/null || echo "2.11.0")
   local current
   current=$(jq -r '.intent_version // ""' "$config")
-  if [ "$current" = "2.11.0" ]; then
-    echo "  stamp: already at v2.11.0"
+  if [ "$current" = "$target" ]; then
+    echo "  stamp: already at v$target"
   else
     local tmp2
     tmp2=$(mktemp)
-    jq --arg v "2.11.0" '.intent_version = $v' "$config" > "$tmp2"
+    jq --arg v "$target" '.intent_version = $v' "$config" > "$tmp2"
     mv "$tmp2" "$config"
-    echo "  stamped: intent_version = 2.11.0"
+    echo "  stamped: intent_version = $target"
   fi
 
-  echo "  Migration to v2.11.0 complete."
+  echo "  Migration to v$target complete."
 }
 
 # Migrate v2.2.0 to v2.2.1
