@@ -90,6 +90,14 @@ usage() {
   echo "  intent treeindex lib/ --check          # report stale indexes"
   echo "  intent treeindex lib/my_app/ --force   # regenerate everything"
   echo "  intent treeindex intent/ --prune       # remove orphaned treeindex files"
+  echo ""
+  echo "ENVIRONMENT:"
+  echo "  INTENT_SKIP_IN_SESSION_GATE  Set automatically by treeindex on the"
+  echo "                               spawned 'claude -p' so the project's"
+  echo "                               UserPromptSubmit gate (require-in-session.sh)"
+  echo "                               does not block the ephemeral session."
+  echo "                               New 'claude -p' wrappers should follow the"
+  echo "                               same convention to avoid silent-fail."
   exit 1
 }
 
@@ -294,10 +302,17 @@ Generate a .treeindex for ${dirname}/"
 }
 
 # Call claude -p to generate treeindex content
+#
+# `INTENT_SKIP_IN_SESSION_GATE=1` is set so the spawned ephemeral `claude -p`
+# session bypasses the project's UserPromptSubmit strict gate. Treeindex
+# automation has no chat surface for `/in-session` to run in; without this
+# bypass the gate blocks every prompt and `claude -p` exits 0 with empty
+# stdout (silent-fail), which surfaces as "empty response from Claude" in
+# every per-directory line of the treeindex run.
 invoke_claude() {
   local prompt="$1"
 
-  echo "$prompt" | claude -p \
+  echo "$prompt" | INTENT_SKIP_IN_SESSION_GATE=1 claude -p \
     --model "$MODEL" \
     --no-session-persistence \
     --max-budget-usd "$MAX_BUDGET" \

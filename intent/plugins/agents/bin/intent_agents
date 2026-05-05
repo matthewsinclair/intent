@@ -217,7 +217,22 @@ intent_agents_init() {
 }
 
 # Generate AGENTS.md content to stdout.
+#
+# Loads project context if the caller didn't already (eg `intent agents
+# generate` reaches this directly via the dispatcher; `init` and `sync`
+# both pre-load before calling). Without this guard PROJECT_ROOT is
+# empty and every per-project detection (`mix.exs`, `.claude/skills/`,
+# `CLAUDE.md`, `usage-rules.md`) silently fails -- the output looks
+# valid but drops the project name, language scaffolding, installed
+# skills, and conditional resource links. Defect introduced when the
+# dispatcher was first added (2025-08-20); patched in v2.11.5.
 intent_agents_generate_content() {
+  if [ -z "${PROJECT_ROOT:-}" ] && [ -f "$INTENT_BIN/intent_config" ]; then
+    source "$INTENT_BIN/intent_config"
+    load_intent_config
+  fi
+  require_project_root || return 1
+
   local project_name=$(basename "$PROJECT_ROOT")
   local has_package_json=false
   local has_mix_exs=false

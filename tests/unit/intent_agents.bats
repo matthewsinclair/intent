@@ -144,6 +144,45 @@ EOF
   assert_output_contains "intent agents sync"
 }
 
+@test "generate dispatcher self-loads project context (regression: bare PROJECT_ROOT)" {
+  # Regression guard for v2.11.5: the `generate` dispatcher path used to skip
+  # `load_intent_config`, leaving PROJECT_ROOT empty so every per-project
+  # detection (project name, mix.exs, .claude/skills, CLAUDE.md, usage-rules.md)
+  # silently produced fallback output. The fix moves config loading into
+  # `intent_agents_generate_content` itself; this test pins the expectation.
+  local project
+  project="$(create_test_project "AgentsGenerateLoad")"
+  cd "$project"
+
+  # Drop language-marker fixtures so the per-project detection can be
+  # asserted against deterministic file presence.
+  : > "$project/mix.exs"
+  : > "$project/CLAUDE.md"
+  : > "$project/usage-rules.md"
+  mkdir -p "$project/.claude/skills/probe-skill"
+  cat > "$project/.claude/skills/probe-skill/SKILL.md" <<'EOF'
+---
+description: "probe skill for generate-dispatcher coverage"
+---
+# Probe
+EOF
+
+  # Invoke generate via the bare-env path the dispatcher exposed.
+  # `run_intent` is a bash function and is not visible to `env`; invoke the
+  # binary directly so PROJECT_ROOT can be unset before the child starts.
+  run env -u PROJECT_ROOT "${INTENT_BIN_DIR}/intent" agents generate
+  assert_success
+  # Project name comes from `basename "$PROJECT_ROOT"`, ie the project
+  # directory name (`test-project` per `create_test_project` defaults).
+  assert_output_contains "test-project -- an Intent project"
+  assert_output_contains "Elixir / Erlang / OTP"
+  assert_output_contains "mix test"
+  assert_output_contains "mix compile"
+  assert_output_contains "**probe-skill**"
+  assert_output_contains "CLAUDE.md"
+  assert_output_contains "usage-rules.md"
+}
+
 @test "enriched content includes canon section pointers (critic, rules, extensions, hooks, FAQ)" {
   local project
   project="$(create_test_project "AgentsCanon")"

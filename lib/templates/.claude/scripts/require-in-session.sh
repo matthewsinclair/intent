@@ -23,6 +23,14 @@
 
 set -u
 
+# Bypass for non-interactive automation that spawns `claude -p` against an
+# Intent project (eg `intent treeindex`). Such sessions have no chat surface
+# for `/in-session` to run in, so the gate would block them indefinitely.
+# Wrappers set this env var before invoking `claude -p`.
+if [ -n "${INTENT_SKIP_IN_SESSION_GATE:-}" ]; then
+  exit 0
+fi
+
 SENTINEL_DIR="/tmp/intent"
 
 payload=""

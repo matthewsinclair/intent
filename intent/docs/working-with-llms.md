@@ -152,6 +152,8 @@ See the dedicated FAQ section below for the forensic history and the clearest sh
 
 Why strict on `UserPromptSubmit`: soft reminders had low observed compliance in multi-turn sessions. A hard gate catches the case where the user forgets to load the session. The choice is explicit in ST0035's resolved decisions — the user will reassess intrusiveness post-rollout; if the gate is too noisy in practice, the template carries both strict and soft variants, and flipping is a one-line config change.
 
+**Bypass for non-interactive automation.** Wrappers that spawn `claude -p` against an Intent project (eg `intent treeindex`) inherit the project's hooks. Such sessions have no chat surface for `/in-session` to run in, so the strict gate would block them indefinitely — and the non-bare `claude -p` swallows the hook's stderr, surfacing as exit 0 with empty stdout. Setting `INTENT_SKIP_IN_SESSION_GATE=1` on the invocation short-circuits the gate (exit 0 before any other check). The bypass is opt-in: it must be set explicitly by the wrapper. Interactive sessions and untagged automation continue through the normal sentinel-based gate. Treeindex sets the var automatically; new wrappers should follow the same convention. Defect fix in v2.11.5.
+
 Why soft on `SessionStart` and `Stop`: these fire automatically, not in response to a user action. Blocking at these points would be surprising. A reminder injection has proven sufficient.
 
 Why no `PostToolUse` hook by default: it would fire on every `Write|Edit` during multi-step work — too noisy, too expensive in tokens. A helper script ships for opt-in via `.intent_critic.yml post_tool_use_advisory: true`, but the default `.claude/settings.json` stanza omits the hook entirely.
@@ -422,6 +424,7 @@ Fixes:
 
 - Verify `/in-session` installation: `intent claude skills show in-session`.
 - Verify the sentinel directory is writable and that `$SESSION_ID` resolves correctly inside the hook.
+- For non-interactive automation that spawns `claude -p` against the project (eg `intent treeindex` or any custom wrapper): set `INTENT_SKIP_IN_SESSION_GATE=1` on the invocation. The gate short-circuits to exit 0 before any other check. Such sessions have no chat surface for `/in-session` to run in, so the bypass is the right tool.
 - If the strict gate is more friction than it's worth, flip it to soft-reminder mode by editing `.claude/settings.json`'s `UserPromptSubmit` command path from `user_prompt_submit_strict.sh` to `user_prompt_submit_soft.sh`.
 
 ### Pre-commit hook blocks on a rule you don't care about

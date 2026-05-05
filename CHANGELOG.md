@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.5] - 2026-05-05
+
+Behavioural patch fixing two latent silent-failure bugs surfaced by a Conflab session 2026-05-05. Both were shipped-as-broken; both produced output that looked plausible while dropping load-bearing content.
+
+### Fixed
+
+- **`intent treeindex` reported "empty response from Claude" for every directory** when run inside any v2.10.0+ Intent project. Root cause: the spawned `claude -p` session inherits the project's `UserPromptSubmit` hooks; the strict gate (`require-in-session.sh`) fires on the first prompt, sees no `/in-session` sentinel for the ephemeral session_id, and exits 2; the non-bare `claude -p` swallows the hook's stderr and exits 0 with empty stdout. Treeindex saw empty stdout and reported per-directory failures. The treeindex tool was fine; the gate was the silent killer.
+
+- **`intent agents generate` produced a stripped AGENTS.md** (empty project name, no language scaffolding, no installed-skill enumeration, no conditional resource links) when invoked directly via the dispatcher. Root cause: the `generate` dispatch path did not call `load_intent_config`, leaving `PROJECT_ROOT` empty so every per-project detection (`mix.exs`, `Cargo.toml`, `.claude/skills/`, `CLAUDE.md`, `usage-rules.md`) silently failed. `intent agents sync` was unaffected because it pre-loads config. Latent since the dispatcher was first added 2025-08-20; surfaced today when `generate` was invoked standalone for a diff repro.
+
+### Changed
+
+- **`require-in-session.sh` accepts `INTENT_SKIP_IN_SESSION_GATE=1` as an explicit bypass.** Non-interactive automation has no chat surface for `/in-session` to run in, so the gate has no UX affordance for those sessions. The env var is the opt-out wrappers set; the gate short-circuits to exit 0 before any other check. Interactive sessions and untagged automation continue through the normal sentinel-based gate.
+
+- **`bin/intent_treeindex` sets `INTENT_SKIP_IN_SESSION_GATE=1` on its `claude -p` invocation.** Treeindex is automation by definition; the bypass is unconditional.
+
+- **`intent_agents_generate_content` self-loads project context.** The fix moves the `load_intent_config` + `require_project_root` guard from the dispatcher branches into the function itself, so any caller (dispatcher, `init`, `sync`, future automation) gets a consistent project context without duplicating the load preamble. Highlander applied: one source of truth for "this function needs `PROJECT_ROOT`."
+
+### Documentation
+
+- `intent/docs/working-with-llms.md` D7 documents the `INTENT_SKIP_IN_SESSION_GATE` bypass and adds it to the FAQ fix list.
+- `intent help treeindex` lists the env var under a new `ENVIRONMENT` section so future `claude -p` wrapper authors can replicate the convention.
+
+### Tests
+
+- `tests/unit/require_in_session_gate.bats` covers the bypass branch and the existing slash-command / sentinel pass-throughs as regression smokes.
+- `tests/unit/intent_agents.bats` gains a regression case asserting `intent agents generate` populates project name, language detection, and installed-skill enumeration when invoked with `PROJECT_ROOT` unset.
+
 ## [2.11.4] - 2026-04-30
 
 Docs-only patch following v2.11.3's field verification.
