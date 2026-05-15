@@ -1,21 +1,22 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-05-15, end of session -- v2.11.6 ready to cut)
+## Current state (2026-05-15, end of session -- v2.11.6 cut)
 
-**v2.11.6 prepared, awaiting `scripts/release --patch` cut.** A parallel Lamplight session (ST0163 WP-04, Murder mechanic hook authoring) dropped a new Lua coding rule into Intent canon at `intent/plugins/claude/rules/lua/code/dispatch-table-over-if-chain/RULE.md`. The user (matts) asked for it shipped in the next Intent release after seeing the dispatch-table refactor applied to `worlds/v4/murder/experiences/murder_on_the_weekend/{phase,night_kill,facts}.lua` ("way more readable than loads of imperative if/then blocks").
+**v2.11.6 shipped 2026-05-15.** Both remotes pushed (`local` Dropbox + `upstream` GitHub); release at <https://github.com/matthewsinclair/intent/releases/tag/v2.11.6>. A parallel Lamplight session (ST0163 WP-04, Murder mechanic hook authoring) dropped a new Lua coding rule into Intent canon at `intent/plugins/claude/rules/lua/code/dispatch-table-over-if-chain/RULE.md`. The user (matts) asked for it shipped in the next Intent release after seeing the dispatch-table refactor applied to `worlds/v4/murder/experiences/murder_on_the_weekend/{phase,night_kill,facts}.lua` ("way more readable than loads of imperative if/then blocks").
 
 ### The rule
 
 **IN-LU-CODE-006 — Dispatch table over if-chain for value dispatch.** Lua has no pattern matching and no multi-head function definitions; the idiomatic substitute is a table-of-functions keyed by the discriminating value (eg `perturbation.tag`, a token `kind`, a `verb`) with a single lookup + invoke at the call site. The rule forbids `if/elseif` chains dispatching on a value to different downstream function calls; guard clauses on derived booleans (alive checks, nil checks, invariant violations) stay as `if`. Concretises IN-AG-PFIC-001. Sister rule IN-EX-CODE-001 (Elixir multi-head dispatch).
 
-### Integration steps completed
+### Integration shipped
 
-- Rule file already in place at `intent/plugins/claude/rules/lua/code/dispatch-table-over-if-chain/RULE.md` (frontmatter validated, body matches canonical Lua-rule structure, cross-refs verified).
+- Rule file in canon at `intent/plugins/claude/rules/lua/code/dispatch-table-over-if-chain/RULE.md` (frontmatter validated, body matches canonical Lua-rule structure, cross-refs verified).
 - Registered in `tests/unit/rule_pack_lua.bats` `lua_rules()` heredoc.
 - `tests/fixtures/critics/lua/code/would-catch/sample.lua` extended with a `perturbation.tag` dispatch chain; `manifest.txt` lists IN-LU-CODE-006.
-- `intent/plugins/claude/rules/index.json` regenerated via `intent claude rules index` (49 rules).
-- `bats tests/unit/rule_pack_lua.bats` green (9/9).
-- `CHANGELOG.md` carries the `## [2.11.6] - in progress` section.
+- `intent/plugins/claude/rules/index.json` regenerated via `intent claude rules index`.
+- `bats tests/unit/rule_pack_lua.bats` green; full suite green at release pre-flight.
+- `CHANGELOG.md` carries `## [2.11.6] - 2026-05-15`.
+- Two commits on `main`: `a5f3d54` integration, `2780611` release.
 
 Decision: shipped as **patch** (v2.11.6) at user direction — overriding the project's stated patch-vs-minor framing for this case. Standalone changelog entry, no steel thread vehicle.
 
@@ -54,9 +55,9 @@ The remaining STP references in the repo are all in functional code (`bin/intent
 
 ## Resume target -- next session
 
-If v2.11.6 has not yet been cut: run `scripts/release --patch --dry-run` to confirm, then `scripts/release --patch`. Fleet pickup is automatic — rules load from `$INTENT_HOME`, no per-project upgrade needed.
+No active steel thread. v2.11.6 is on both remotes and the GH release is live; fleet pickup is automatic (rules load from `$INTENT_HOME`). Optional smoke: run `critic-lua` from a fleet project against a Lua file containing a tag dispatch chain (eg one of the Lamplight Murder mechanics files pre-refactor) to confirm IN-LU-CODE-006 fires field-side.
 
-Once cut: no active steel thread. Optional follow-on, in order of return:
+Optional follow-on, in order of return:
 
 1. **`intent claude upgrade` Phase-2 CLAUDE.md substitution audit.** Its regex sweep rewrites the historical migration date in any CLAUDE.md it touches (`migrated from STP to Intent vX.Y.Z on YYYY-MM-DD` becomes `migrated to vCURRENT`). Worked around in this session by reverting CLAUDE.md after `intent upgrade` and editing the top-of-file version line manually. Permanent fix: scope the substitution to current-state lines only.
 2. **`lib/templates/usr/_user_guide.md`.** Orphan template (no live consumer). Not STP-tainted so survived the deletion sweep, but it is still cruft.

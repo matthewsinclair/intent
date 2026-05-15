@@ -1,15 +1,19 @@
 ---
-verblock: "15 May 2026:v0.71: matts - v2.11.6 in progress (IN-LU-CODE-006)"
-intent_version: 2.11.5
+verblock: "15 May 2026:v0.71: matts - v2.11.6 cut (IN-LU-CODE-006)"
+intent_version: 2.11.6
 ---
 
 # Work In Progress
 
 ## Current State
 
-**v2.11.6 in progress.** Additive patch shipping one new Lua coding rule — **IN-LU-CODE-006 — Dispatch table over if-chain for value dispatch** — surfaced during Lamplight ST0163 WP-04 (Murder mechanic hook authoring) on 2026-05-15. The rule formalises the table-of-functions idiom Lua uses in place of pattern-matched function heads / multi-head dispatch. Concretises IN-AG-PFIC-001; sister rule IN-EX-CODE-001 (Elixir multi-head dispatch). Enforcement via the `critic-lua` subagent (prose Detection, no Greppable proxy — matches existing Lua-pack convention).
+**v2.11.6 shipped 2026-05-15.** Additive patch shipping one new Lua coding rule — **IN-LU-CODE-006 — Dispatch table over if-chain for value dispatch** — surfaced during Lamplight ST0163 WP-04 (Murder mechanic hook authoring). The rule formalises the table-of-functions idiom Lua uses in place of pattern-matched function heads / multi-head dispatch. Concretises IN-AG-PFIC-001; sister rule IN-EX-CODE-001 (Elixir multi-head dispatch). Enforcement via the `critic-lua` subagent (prose Detection, no Greppable proxy — matches existing Lua-pack convention).
 
-Integration completed: rule registered in `tests/unit/rule_pack_lua.bats` lua_rules() heredoc; `tests/fixtures/critics/lua/code/would-catch/sample.lua` extended with a `perturbation.tag` dispatch chain and `manifest.txt` lists IN-LU-CODE-006; `intent/plugins/claude/rules/index.json` regenerated (49 rules); `bats tests/unit/rule_pack_lua.bats` green (9/9). CHANGELOG carries the v2.11.6 section. Ready to cut via `scripts/release --patch`.
+Integration: rule file in canon at `intent/plugins/claude/rules/lua/code/dispatch-table-over-if-chain/RULE.md`; registered in `tests/unit/rule_pack_lua.bats` `lua_rules()` heredoc; `tests/fixtures/critics/lua/code/would-catch/sample.lua` extended with a `perturbation.tag` dispatch chain and `manifest.txt` lists IN-LU-CODE-006; `intent/plugins/claude/rules/index.json` regenerated. Pushed to both remotes (`local` + `upstream`); GitHub release at <https://github.com/matthewsinclair/intent/releases/tag/v2.11.6>.
+
+Decision worth noting: shipped as **patch** at user direction, overriding the project's stated "rule additions are minor" precedent (v2.9.0 added the Lua pack as minor). Re-confirm patch-vs-minor at the time of the next rule addition; do not assume from this case.
+
+Fleet pickup is automatic — `critic-lua` and the headless runner load rules from `$INTENT_HOME`, not from per-project plugin trees. No per-project upgrade step needed for fleet projects to enforce IN-LU-CODE-006.
 
 **v2.11.5 shipped 2026-05-05.** Behavioural patch fixing three latent bugs surfaced by a Conflab session:
 
@@ -35,6 +39,7 @@ No active steel thread. Optional follow-on, in order of return:
 
 ## Recent
 
+- **2026-05-15**: v2.11.6 cut. Single new Lua coding rule (IN-LU-CODE-006 dispatch-table-over-if-chain) surfaced during Lamplight ST0163 WP-04. Integration: test-pack registration, would-catch fixture extension, index regen, CHANGELOG/wip/restart updates. Shipped as patch at user direction.
 - **2026-05-05**: v2.11.5 cut. Gate bypass for non-interactive `claude -p` automation; `intent agents generate` self-load fix; migration stamp uses live target. Fleet upgrade across 10 projects (8 directly + Intent self-stamp + the user's own Conflab/Lamplight). Canon STP cleanup: 3 orphan templates deleted, 1 live template fixed, 4 fleet projects' CLAUDE.md de-STP-ified.
 - **2026-04-30**: v2.11.4 cut. Docs patch capturing v2.11.3 field verification + critic-runner code-locality clarification.
 - **2026-04-29**: ST0039 / v2.11.3 cut. Strict-proxy contract in `critic_runner.sh`.
