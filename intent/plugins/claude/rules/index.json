@@ -1,6 +1,6 @@
 {
-  "intent_version": "2.8.2",
-  "rule_count": 48,
+  "intent_version": "2.11.5",
+  "rule_count": 49,
   "rules": [
     {
       "aliases": [],
@@ -1220,6 +1220,51 @@
     {
       "aliases": [],
       "applies_to": [
+        "**/*.lua"
+      ],
+      "applies_when": [
+        "A function dispatches on a single discriminating value via if/elseif",
+        "Each branch returns or invokes a different downstream function",
+        "There are two or more branches at the same nesting level"
+      ],
+      "category": "code",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Guard clauses (early returns) on derived booleans or invariant checks",
+        "Branches that compute different values inline rather than dispatching to functions",
+        "Single-branch conditionals (`if`/`then`/no `else`)",
+        "Branches with substantial per-branch preamble that differs across cases"
+      ],
+      "id": "IN-LU-CODE-006",
+      "language": "lua",
+      "principles": [
+        "pfic"
+      ],
+      "references": [
+        "IN-AG-PFIC-001",
+        "IN-EX-CODE-001"
+      ],
+      "related_rules": [
+        "IN-EX-CODE-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/lua/code/dispatch-table-over-if-chain/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "lua",
+        "dispatch",
+        "control-flow"
+      ],
+      "title": "Dispatch table over if-chain for value dispatch",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
         "spec/**/*.lua",
         "test/**/*.lua",
         "tests/**/*.lua"
@@ -1577,7 +1622,7 @@
       "applies_when": [
         "Passing a variable as an argument to any command",
         "Using a variable in a string context ([ ], [[ ]], test)",
-        "Expanding an array: always `\\\"${arr[@]}\\\"`, never `${arr[@]}`"
+        "Expanding an array: always `\"${arr[@]}\"`, never `${arr[@]}`"
       ],
       "category": "code",
       "concretised_by": [],

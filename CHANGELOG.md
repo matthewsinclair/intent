@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.6] - in progress
+
+Additive patch shipping one new Lua coding rule surfaced during Lamplight ST0163 WP-04 (Murder mechanic hook authoring). The rule formalises an idiom matts called canon-worthy after seeing it applied to `worlds/v4/murder/experiences/murder_on_the_weekend/{phase,night_kill,facts}.lua`: "way more readable than loads of imperative if/then blocks."
+
+### Added
+
+- **IN-LU-CODE-006 — Dispatch table over if-chain for value dispatch**. Lua has no pattern matching and no multi-head function definitions; the idiomatic substitute is a table-of-functions keyed by the discriminating value, with a single lookup + invoke at the call site. The rule forbids `if/elseif` chains dispatching on a value to different downstream function calls and prescribes the `HANDLERS` table idiom instead. Guard clauses on derived booleans (alive checks, nil checks, invariant violations) stay as `if`. Concretises IN-AG-PFIC-001; sister rule IN-EX-CODE-001 (Elixir multi-head dispatch). Enforcement is via the `critic-lua` subagent (prose Detection); no Greppable proxy block, in line with the existing Lua-pack convention.
+
+### Tests
+
+- `tests/unit/rule_pack_lua.bats` registers the new rule in its canonical-id enumeration; the existing presence + count + validator + list invariants now cover IN-LU-CODE-006.
+- `tests/fixtures/critics/lua/code/would-catch/sample.lua` gains a `perturbation.tag` dispatch chain so the would-catch fixture exercises the new rule; `manifest.txt` lists IN-LU-CODE-006.
+
 ## [2.11.5] - 2026-05-05
 
 Behavioural patch fixing three latent bugs surfaced by a Conflab session 2026-05-05. All three were shipped-as-broken; the first two silently produced output that looked plausible while dropping load-bearing content; the third silently regressed a project's recorded version stamp.

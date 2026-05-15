@@ -12,6 +12,7 @@ code/tables-as-structs|IN-LU-CODE-002
 code/metatables-sparingly|IN-LU-CODE-003
 code/pcall-for-errors|IN-LU-CODE-004
 code/module-return-pattern|IN-LU-CODE-005
+code/dispatch-table-over-if-chain|IN-LU-CODE-006
 test/busted-describe-it-structure|IN-LU-TEST-001
 EOF
 }

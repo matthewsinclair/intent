@@ -1,11 +1,15 @@
 ---
-verblock: "05 May 2026:v0.70: matts - v2.11.5 cut + fleet upgrade + STP cleanup"
+verblock: "15 May 2026:v0.71: matts - v2.11.6 in progress (IN-LU-CODE-006)"
 intent_version: 2.11.5
 ---
 
 # Work In Progress
 
 ## Current State
+
+**v2.11.6 in progress.** Additive patch shipping one new Lua coding rule — **IN-LU-CODE-006 — Dispatch table over if-chain for value dispatch** — surfaced during Lamplight ST0163 WP-04 (Murder mechanic hook authoring) on 2026-05-15. The rule formalises the table-of-functions idiom Lua uses in place of pattern-matched function heads / multi-head dispatch. Concretises IN-AG-PFIC-001; sister rule IN-EX-CODE-001 (Elixir multi-head dispatch). Enforcement via the `critic-lua` subagent (prose Detection, no Greppable proxy — matches existing Lua-pack convention).
+
+Integration completed: rule registered in `tests/unit/rule_pack_lua.bats` lua_rules() heredoc; `tests/fixtures/critics/lua/code/would-catch/sample.lua` extended with a `perturbation.tag` dispatch chain and `manifest.txt` lists IN-LU-CODE-006; `intent/plugins/claude/rules/index.json` regenerated (49 rules); `bats tests/unit/rule_pack_lua.bats` green (9/9). CHANGELOG carries the v2.11.6 section. Ready to cut via `scripts/release --patch`.
 
 **v2.11.5 shipped 2026-05-05.** Behavioural patch fixing three latent bugs surfaced by a Conflab session:
 
