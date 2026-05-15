@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.11.6] - in progress
+## [2.11.6] - 2026-05-15
 
 Additive patch shipping one new Lua coding rule surfaced during Lamplight ST0163 WP-04 (Murder mechanic hook authoring). The rule formalises an idiom matts called canon-worthy after seeing it applied to `worlds/v4/murder/experiences/murder_on_the_weekend/{phase,night_kill,facts}.lua`: "way more readable than loads of imperative if/then blocks."
 
