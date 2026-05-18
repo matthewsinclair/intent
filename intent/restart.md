@@ -1,85 +1,65 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-05-15, end of session -- v2.11.6 cut)
+## Current state (2026-05-18, end of session -- v2.11.7 cut)
 
-**v2.11.6 shipped 2026-05-15.** Both remotes pushed (`local` Dropbox + `upstream` GitHub); release at <https://github.com/matthewsinclair/intent/releases/tag/v2.11.6>. A parallel Lamplight session (ST0163 WP-04, Murder mechanic hook authoring) dropped a new Lua coding rule into Intent canon at `intent/plugins/claude/rules/lua/code/dispatch-table-over-if-chain/RULE.md`. The user (matts) asked for it shipped in the next Intent release after seeing the dispatch-table refactor applied to `worlds/v4/murder/experiences/murder_on_the_weekend/{phase,night_kill,facts}.lua` ("way more readable than loads of imperative if/then blocks").
+**v2.11.7 shipped 2026-05-18.** Both remotes pushed (`local` Dropbox + `upstream` GitHub); release at <https://github.com/matthewsinclair/intent/releases/tag/v2.11.7>. ST0040 (whiteboard protocol for multi-Claude sessions in the one repo) is marked **Completed**.
 
-### The rule
+### The skill
 
-**IN-LU-CODE-006 — Dispatch table over if-chain for value dispatch.** Lua has no pattern matching and no multi-head function definitions; the idiomatic substitute is a table-of-functions keyed by the discriminating value (eg `perturbation.tag`, a token `kind`, a `verb`) with a single lookup + invoke at the call site. The rule forbids `if/elseif` chains dispatching on a value to different downstream function calls; guard clauses on derived booleans (alive checks, nil checks, invariant violations) stay as `if`. Concretises IN-AG-PFIC-001. Sister rule IN-EX-CODE-001 (Elixir multi-head dispatch).
+**`/in-whiteboard`** — multi-session coordination protocol. Each Claude Code session running concurrently against the same Intent project belongs to a durable **stream** (eg `control`, `ia-ux`) that owns one file under `intent/whiteboard/`. Stream files carry frontmatter (`stream_id`, `current_session_id`, `session_started_at`, `heartbeat_at`, `status`, `focus`, `claimed_steel_threads`, `recent_memory_writes`) and an advisory markdown body. Cross-stream point-to-point handoffs go in shared append-only `asks.md`. Shared-platform-layer edits (eg `apps/lamplight/**` in Lamplight) coordinate via a per-project shared file (`lamplight.md`, `core.md`, etc).
+
+Subcommand surface: `pickup` / `claim` / `unclaim` / `touch` / `ask` / `decide` / `lamplight` / `release` / `status`. Claims are by steel-thread ID only — glob-path claims rejected by design because they drift from actual edits. Heartbeat older than 7 days marks a claim reclaimable; reclaim requires explicit user acknowledgement.
 
 ### Integration shipped
 
-- Rule file in canon at `intent/plugins/claude/rules/lua/code/dispatch-table-over-if-chain/RULE.md` (frontmatter validated, body matches canonical Lua-rule structure, cross-refs verified).
-- Registered in `tests/unit/rule_pack_lua.bats` `lua_rules()` heredoc.
-- `tests/fixtures/critics/lua/code/would-catch/sample.lua` extended with a `perturbation.tag` dispatch chain; `manifest.txt` lists IN-LU-CODE-006.
-- `intent/plugins/claude/rules/index.json` regenerated via `intent claude rules index`.
-- `bats tests/unit/rule_pack_lua.bats` green; full suite green at release pre-flight.
-- `CHANGELOG.md` carries `## [2.11.6] - 2026-05-15`.
-- Two commits on `main`: `a5f3d54` integration, `2780611` release.
+- New skill canonical source at `intent/plugins/claude/skills/in-whiteboard/SKILL.md`.
+- `/in-session` chains to `/in-whiteboard pickup` as new step 5 (after gate release).
+- `/in-finish` chains to `/in-whiteboard release` as new step 1 (before any wip/restart/done updates).
+- Both chains opt-in by presence: if `intent/whiteboard/` does not exist in the project root, the chained step skips silently.
+- `bin/intent_upgrade` auto-installs `in-whiteboard` and re-syncs the canon skill mirror after the migration dispatcher completes. Idempotent + failure-tolerant; no `--force` so user customisations are never silently lost.
+- New "Multi-session coordination" section in `intent/docs/working-with-llms.md` after "Skills and /in-session auto-load". Covers tense/reader/cadence vs `wip.md`, file layout, stream identity discovery, ST-only claims, shared platform layer pattern, chain integration, heartbeat semantics, Lamplight live reference.
+- `asks.md` header conventions extended with optional `Re: <prior-ask-anchor>` (reply threading) and `FYI only -- no response needed.` (info-dump marker). Borrowed from the cross-project LLMsend protocol (<https://github.com/pmarreck/llmsend>); the tmux/kitty live-ping mechanism from LLMsend was considered and deliberately not adopted for the intra-project case.
+- `tests/unit/skills_commands.bats` enumerates `in-whiteboard` in the canonical-roster invariant.
+- `tests/unit/intent_upgrade_dispatcher.bats` gains a regression case asserting a v2.10.x → current-target upgrade lands `in-whiteboard` at `~/.claude/skills/in-whiteboard/SKILL.md` (fake-`$HOME` sandbox).
+- `CHANGELOG.md` carries `## [2.11.7] - 2026-05-18`.
+- Three commits on `main`: `ce38a10` skill landing (out-of-cycle to unblock Lamplight), `b85dc10` integration, `f09bb65` release.
 
-Decision: shipped as **patch** (v2.11.6) at user direction — overriding the project's stated patch-vs-minor framing for this case. Standalone changelog entry, no steel thread vehicle.
+Decision: shipped as **patch** (v2.11.7) at user direction. New-skill default is minor; the protocol is opt-in by directory presence with zero behaviour change for non-adopting projects, which makes the patch framing defensible. Document the decision so future skill additions know it's not a new pattern.
 
-### Why patch (not minor)
+### Caveat for already-running sessions
 
-User call. Project memory says rule additions are typically minors (precedent: v2.9.0 added the full Lua pack as a minor), but the user chose patch for this single-rule addition. Future rule additions should be re-confirmed at the time of shipment rather than assumed from this precedent.
-
-## Resume target -- next session
-
-v2.11.5 shipped today. Behavioural patch fixing three latent bugs surfaced by a Conflab session 2026-05-05. All three were shipped-as-broken; the first two silently produced output that looked plausible while dropping load-bearing content; the third silently regressed a project's recorded version stamp.
-
-### Fixes in v2.11.5
-
-1. **Gate bypass for non-interactive `claude -p`.** Symptom: `intent treeindex` reported "empty response from Claude" for every directory in any v2.10.0+ Intent project. Root cause: the spawned `claude -p` inherits the project's `UserPromptSubmit` hooks; the strict gate (`require-in-session.sh`) fires, sees no `/in-session` sentinel for the ephemeral session_id, exits 2; the non-bare `claude -p` swallows the hook's stderr and exits 0 with empty stdout. Fix: `INTENT_SKIP_IN_SESSION_GATE=1` env-var bypass at the top of the gate script; `bin/intent_treeindex` sets it on every `claude -p` invocation. Documentation in `intent/docs/working-with-llms.md` D7 + FAQ; `intent help treeindex` ENVIRONMENT block.
-
-2. **`intent agents generate` PROJECT_ROOT self-load.** Symptom: `intent agents generate` (called standalone) emitted a stripped AGENTS.md (empty project name, no language scaffolding, no installed-skill enumeration, no conditional resource links). Root cause: the `generate` dispatch path did not call `load_intent_config`, so `PROJECT_ROOT` was unset and every per-project detection silently failed. `sync` was unaffected because it pre-loads. Fix: `intent_agents_generate_content` self-loads project context. Highlander applied -- one source of truth instead of duplicating the load preamble across each dispatcher branch. Latent since the dispatcher was first added 2025-08-20.
-
-3. **`migrate_v2_10_x_to_v2_11_0` stamps live target.** The migration helper hard-coded the resulting stamp to `"2.11.0"` regardless of which patch was current. A v2.10.x project walked up via the migration path would land with `intent_version = "2.11.0"`. Field impact muted by `needs_v2_11_0_upgrade`'s short-circuit (skips the migration when `languages` field already present), but the bug existed and would have stamped fresh upgrades incorrectly. Fix: stamp `get_intent_version`.
-
-### Test isolation cleanup
-
-`tests/unit/docs_completeness.bats:agents_sync_idempotent` ran `intent agents sync` against the real Intent project root and never restored AGENTS.md. Each test-suite run left the working tree dirty (just a date stamp), which then blocked `scripts/release`'s clean-tree pre-flight on every subsequent invocation. Fix: snapshot + restore. Pre-existing isolation bug, surfaced when chasing a phantom dirty-tree state during the v2.11.5 release.
-
-### Fleet upgrade post-release
-
-Nine projects upgraded directly: Anvil, Laksa, MeetZaya, MicroGPTEx, Molt, Molt-matts, Multiplyer, Prolix, Utilz. One `chore: upgrade to Intent v2.11.5` commit per project carrying: `intent_version` bump to 2.11.5, gate-bypass pickup in `.claude/scripts/require-in-session.sh`, AGENTS.md regenerated against the v2.11.5 generator, top-of-file CLAUDE.md version line aligned. Conflab and Lamplight handled by user. Intent self-stamp committed (`648e2b0`).
-
-### STP cleanup pass
-
-The user flagged that current Intent emissions should not mention STP. Two layers:
-
-- **Project layer.** Anvil, Laksa, MeetZaya, Multiplyer all carried "(formerly STP)" parentheticals on the top line of CLAUDE.md and a "## Migration Notes" section that mentioned STP migration. Stripped both, one `docs: drop STP migration history from CLAUDE.md` commit per project.
-- **Canon layer.** Fixed `lib/templates/prj/_wip.md` (the live `intent_init` seed for `intent/wip.md`) to drop "STP commands" in favour of `intent st new`. Deleted three orphan STP-era templates from canon (`lib/templates/usr/_reference_guide.md`, `_deployment_guide.md`, `lib/templates/prj/st/_steel_threads.md`) -- 547 lines removed, no live consumers in `bin/` or `intent/plugins/`. `grep -rln STP lib/templates/` now returns nothing.
-
-The remaining STP references in the repo are all in functional code (`bin/intent_upgrade`'s STP-source migration path, `bin/intent_helpers`'s `detect_stp_version` function) where they are load-bearing for the STP -> Intent migration capability, and in historical ST docs under `intent/st/COMPLETED/` which are read-only records.
+A Claude Code session already running at upgrade time has the old `in-session` / `in-finish` prose loaded in context — the new chain only auto-fires from the next `/in-session` (after `/compact` or session restart). Manual `/in-whiteboard pickup` works in the current session. New sessions started after upgrade get the chain.
 
 ## Resume target -- next session
 
-No active steel thread. v2.11.6 is on both remotes and the GH release is live; fleet pickup is automatic (rules load from `$INTENT_HOME`). Optional smoke: run `critic-lua` from a fleet project against a Lua file containing a tag dispatch chain (eg one of the Lamplight Murder mechanics files pre-refactor) to confirm IN-LU-CODE-006 fires field-side.
+No active steel thread. Three optional smokes worth running once before settling:
+
+1. **Field-side `/in-whiteboard` exercise.** Lamplight has a populated `intent/whiteboard/` with `control.md` and `ia-ux.md` streams. The next `/in-session` in Lamplight should auto-fire `pickup`, surface other-stream state, and refresh heartbeats. If the chain doesn't fire, the running session predates the canon sync — `/compact` and retry.
+2. **Fleet pickup smoke.** Pick one downstream project (eg Conflab) and run `intent upgrade`. Confirm the "Ensuring in-whiteboard skill is installed..." line appears and the install completes. Confirm `intent claude skills sync` line also fires. Verify `~/.claude/skills/in-whiteboard/SKILL.md` lands.
+3. **Negative smoke**: a project without `intent/whiteboard/` directory should see zero behaviour change from `/in-session` and `/in-finish`. Confirm the chain step skips silently.
 
 Optional follow-on, in order of return:
 
-1. **`intent claude upgrade` Phase-2 CLAUDE.md substitution audit.** Its regex sweep rewrites the historical migration date in any CLAUDE.md it touches (`migrated from STP to Intent vX.Y.Z on YYYY-MM-DD` becomes `migrated to vCURRENT`). Worked around in this session by reverting CLAUDE.md after `intent upgrade` and editing the top-of-file version line manually. Permanent fix: scope the substitution to current-state lines only.
-2. **`lib/templates/usr/_user_guide.md`.** Orphan template (no live consumer). Not STP-tainted so survived the deletion sweep, but it is still cruft.
-3. **`/in-review` Elixir fleet sweep** -- still parked from the post-v2.11.3 plan.
-4. **Conflab pre-existing test findings** (`IN-EX-TEST-001` / `005` / `007`) -- still parked; Conflab's own backlog.
-5. **Deferred v2.11.x backlog**: Homebrew tap; `scripts/release` v2 polish; `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft (v2.11.5 is the fifth dogfood datapoint).
+1. **`intent claude upgrade` Phase-2 CLAUDE.md substitution audit.** Regex sweep rewrites historical migration dates. Worked around manually in the v2.11.5 session; needs a real fix before the next minor.
+2. **`lib/templates/usr/_user_guide.md`.** Orphan template, not STP-tainted but still cruft. Delete or repurpose.
+3. **`/in-review` Elixir fleet sweep** — still parked.
+4. **Conflab pre-existing test findings** (`IN-EX-TEST-001` / `005` / `007`) — still parked; Conflab backlog.
+5. **Deferred v2.11.x backlog**: Homebrew tap; `scripts/release` v2 polish; `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft (v2.11.7 is the seventh dogfood datapoint).
+6. **ST0040 deferred items** (intentional out-of-scope per ST0040 design.md): `intent st new` ST-ID allocation race; `intent whiteboard init` CLI; `PreToolUse` hook for claim-scope; `intent/.config/whiteboard.json` per-project config. Each revisited only if the v0 advisory model shows brittleness in field use.
 
-## Lessons from this session
+## Lessons from this session (top three)
 
-- **The non-bare `claude -p` swallows hook stderr and emits empty stdout on exit 2.** Worth filing an Anthropic issue: a hook that blocks the prompt should produce a loud failure, not silent success. Until then, every Intent automation that spawns `claude -p` needs to set `INTENT_SKIP_IN_SESSION_GATE=1`. Today there is exactly one such caller (treeindex). A periodic grep audit (or a CI check) is worth adding.
+- **A skill arriving from a parallel session is a multi-surface integration job.** Dropping `SKILL.md` into canon is the headline change, but the work to make it land in the formal release is broader: upgrade-path auto-install (so fleet projects pick it up without a manual step), companion skill chain edits propagated via `intent claude skills sync` (so already-installed `in-session` / `in-finish` mirrors get the new prose), test enumeration update, regression test for the upgrade flow, docs section anchor, CHANGELOG entry, ST status flip. Each touchpoint is small; missing any one is a silent gap.
 
-- **`bats`'s test isolation discipline is local, not enforced.** A single test that runs a command against the real project root without snapshot/restore is enough to leave the working tree dirty for everyone downstream. The `docs_completeness.bats:agents_sync_idempotent` case had been doing this for a while; it only became visible when `scripts/release`'s pre-flight starting failing intermittently. When a release pre-flight finds a phantom dirty AGENTS.md, suspect a leaky test before suspecting the release script.
+- **Opt-in-by-presence is the right default for protocol additions.** ST0040's `if [ -d intent/whiteboard ]` guard in the chained skill prose means projects that don't want multi-session coordination see zero behaviour change. This made it possible to ship as a patch rather than a minor — the surface area is additive and self-gated. Worth replicating for future protocol additions where adoption is per-project.
 
-- **Latent bugs hide behind short-circuits.** The `migrate_v2_10_x_to_v2_11_0` hard-coded stamp had been wrong since v2.11.0 cut, but `needs_v2_11_0_upgrade` (which short-circuits when `languages` field is already present) prevented the migration from firing on most projects. Latent for four releases. The lesson: when adding a guard predicate that skips a code path, the skipped code path still gets executed sometimes. Make the predicate-bypassed path correct on its own.
-
-- **"Stuff we're emitting now" is a useful test for cruft.** The user's STP-cleanup directive forced a survey of every place STP could leak into project files. The result was clean: three orphan templates gone, one live template fixed, four fleet projects de-STP-ified. The same lens applied to other legacy concepts (eg `worker-bee`, retired skill names) would likely find similar cruft worth pruning.
+- **Cross-project skills can cross-pollinate cheaply.** The LLMsend protocol (cross-project messaging via tmux send-keys + kitty CSI u) and in-whiteboard (intra-project file-based coordination) solve different problems on different axes, but the small conventions (`Re:` reply threading, `FYI only` marker) transfer cleanly. Worth surfacing as docs cross-references when adjacent protocols exist; not worth borrowing wholesale when the dependency footprint differs (tmux/kitty vs file-only).
 
 ## Risks for post-cut
 
-- The `intent claude upgrade` Phase-2 CLAUDE.md substitution remains broken -- this session worked around it manually per project, but a future fleet upgrade or an unaware developer running `intent claude upgrade --apply` will hit the same false-history rewrite. Worth a real fix before the next minor.
-- `lib/templates/usr/_user_guide.md` is still in the tree. If it ever gets wired up as a live emission again (eg by a future template loader change), it'll re-introduce orphan-template territory. Worth a deletion sweep of `lib/templates/usr/` entirely.
-- The fleet upgrade did not run `intent claude upgrade --apply` against every project for a full canon refresh; it only bumped the schema and applied the gate fix where the upgrade command surfaced it. Per-project canon copies (`intent/llm/RULES*.md`, `.claude/skills/`) may still drift from the v2.11.5 canon. Per the architecture note from v2.11.4 (runner + canon load from `$INTENT_HOME`, not per-project), this does not affect runtime correctness, but a developer reading their project's RULES files may see stale content.
+- A Claude Code session already running at upgrade time has the old in-session/in-finish prose in context — the chain auto-fire only kicks in on `/compact` or restart. Manual `/in-whiteboard pickup` works as a workaround in the current session, but a user who upgrades mid-session and doesn't know about the workaround will wonder why coordination "isn't firing". Documented in CHANGELOG as a caveat.
+- The auto-install in `intent upgrade` runs `intent claude skills install` and `intent claude skills sync` without `--force`. If a user has hand-modified their `~/.claude/skills/in-whiteboard/SKILL.md` or `~/.claude/skills/in-session/SKILL.md`, the sync will prompt to overwrite. Default `N` preserves their customisations but means they won't get the v2.11.7 chain prose until they explicitly opt in. Acceptable trade-off: never silently overwrite > always pick up latest canon.
+- The `intent upgrade` short-circuit at "already at target version" skips the auto-install block entirely. Users at v2.11.7 stamp who somehow didn't get the skill installed (eg first-upgrade failed mid-flight) need to run `intent claude skills install in-whiteboard` directly. Documented in ST0040 impl.md.
 
 ## Session conventions (carry forward)
 
@@ -93,6 +73,9 @@ Optional follow-on, in order of return:
 - Document first, code next, with a hard review gate after design.
 - Pre-flight every canary: clean tree before applying.
 - SKILL.md inline bash with `$N` positional fields gets mangled by the skill renderer. Use a script file invoked by path.
-- Patch / minor / major decision is semantic, not size. Shipped-as-broken fixes (including shipped-as-broken docs and shipped-as-broken silent failures) are patches regardless of engineering scope.
-- When a bats suite runs commands against the real project root, snapshot + restore the affected files in the test, otherwise the test pollutes the working tree for every downstream operation.
-- For non-interactive Intent automation that spawns `claude -p`, always set `INTENT_SKIP_IN_SESSION_GATE=1` on the invocation, otherwise the strict gate silently kills the call.
+- Patch / minor / major decision is semantic, not size. Shipped-as-broken fixes (including silent failures) are patches regardless of engineering scope. Additive features default to minor — opt-in-by-presence additions can be argued as patch when the behaviour change is zero for non-adopting projects.
+- When a bats suite runs commands against the real project root, snapshot + restore affected files inside the test.
+- For non-interactive Intent automation that spawns `claude -p`, always set `INTENT_SKIP_IN_SESSION_GATE=1` on the invocation.
+- Never invoke `scripts/release` with `--no-confirm` from inside a tool-driven session — let its interactive confirmation be the human-in-the-loop checkpoint.
+- A new skill arriving in canon needs: (1) `intent claude skills list` enumeration test entry, (2) auto-install hook in `bin/intent_upgrade` (if it should fleet-propagate), (3) regression test for the upgrade path, (4) docs section anchor in `working-with-llms.md`, (5) CHANGELOG section, (6) `chains_to` edits in any companion skills + `intent claude skills sync` propagation, (7) wip/restart bump.
+- Cross-project sibling skills (eg LLMsend ↔ in-whiteboard) can cross-pollinate small conventions cheaply; wholesale dependency adoption only when the dependency footprint matches (file-only ↔ file-only is fine; file-only ↔ tmux/kitty is not).
