@@ -8,6 +8,7 @@ chains_to:
     "in-elixir-testing",
     "in-ash-ecto-essentials",
     "in-phoenix-liveview",
+    "in-whiteboard",
   ]
 ---
 
@@ -80,7 +81,13 @@ If after running `/in-session` the gate is **still** firing on the next prompt -
 - **Quick:** copy the UUID from the gate's error message and run `touch /tmp/intent/in-session-<UUID>.sentinel`.
 - **Proper:** restart the Claude Code session (so `SessionStart` fires with the new hook and writes the per-project state file).
 
-### 5. Confirm and proceed
+### 5. Pickup the whiteboard
+
+If `intent/whiteboard/` exists in the project root, invoke `/in-whiteboard pickup`. This reads stream files, surfaces other-stream state + any inbound asks, and touches this session's heartbeat. If the directory doesn't exist, skip silently -- the whiteboard is opt-in per project.
+
+The whiteboard is the live cross-session coordination channel; `wip.md` is the post-session snapshot. See `/in-whiteboard` for protocol details.
+
+### 6. Confirm and proceed
 
 Report the skill set loaded in one line so the user can spot an unexpected match. Do not wait for further instructions; proceed with whatever the user was already asking for.
 

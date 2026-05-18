@@ -1,6 +1,6 @@
 ---
 description: "Session finish: update ST docs, wip.md, restart.md, commit cleanly"
-chains_to: ["in-verify"]
+chains_to: ["in-whiteboard", "in-verify"]
 ---
 
 # Session Finish
@@ -9,7 +9,11 @@ End-of-session wrap-up. Ensure all state is captured so the next session can pic
 
 ## Procedure
 
-### 1. Update steel thread docs
+### 1. Release the whiteboard
+
+If `intent/whiteboard/` exists in the project root, invoke `/in-whiteboard release`. This sets your stream's `status: paused` and refreshes its heartbeat before any doc updates are committed. Before releasing, consider whether any entries in your stream file's `## Recent decisions affecting other streams` should be migrated into `wip.md` / `done.md` for permanent record -- the whiteboard is the live channel, `wip.md` / `done.md` are the snapshots. If the directory doesn't exist, skip silently.
+
+### 2. Update steel thread docs
 
 For each ST/WP worked on this session:
 
@@ -18,7 +22,7 @@ For each ST/WP worked on this session:
 - Update `impl.md` with implementation notes (if applicable)
 - Move completed tasks from `tasks.md` to `done.md` if that file exists
 
-### 2. Update work-in-progress
+### 3. Update work-in-progress
 
 Update `intent/wip.md` with:
 
@@ -26,7 +30,7 @@ Update `intent/wip.md` with:
 - Current state of in-progress work
 - What's next
 
-### 3. Update restart context
+### 4. Update restart context
 
 Update `intent/restart.md` with:
 
@@ -39,13 +43,13 @@ Rewrite `.claude/restart.md` with:
 - WIP/TODO focus for Claude Code startup
 - Concise pointers to current work
 
-### 4. File quality checks
+### 5. File quality checks
 
 - No non-printing characters in any files (proper emojis and ASCII only)
 - All markdown tables are column-aligned
 - No Claude signature in commit messages
 
-### 5. ONLY update .md doc files
+### 6. ONLY update .md doc files
 
 Do NOT write new code during session finish. This step is documentation only. Commit the documentation updates.
 
@@ -53,6 +57,7 @@ Do NOT write new code during session finish. This step is documentation only. Co
 
 Before finishing, consider:
 
+- `/in-whiteboard release` -- pause this session's whiteboard stream (fires automatically as step 1 if `intent/whiteboard/` exists)
 - `/in-verify` -- verify any completion claims made this session
 
 ## Red Flags
