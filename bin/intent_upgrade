@@ -419,6 +419,18 @@ case "$VERSION" in
     ;;
 esac
 
+# v2.11.7+: install in-whiteboard for users who don't have it yet, and sync
+# everything else to propagate the in-session / in-finish chain edits into
+# any already-installed mirror. Both calls are failure-tolerant: a missing
+# ~/.claude/ mirror or a user 'N' at an overwrite-prompt should not break
+# the upgrade. No --force so user customisations are never silently lost.
+if [ -d "$INTENT_HOME/intent/plugins/claude/skills/in-whiteboard" ]; then
+  echo "Ensuring in-whiteboard skill is installed..."
+  "$INTENT_BIN/intent" claude skills install in-whiteboard || true
+  echo "Syncing canon skill updates..."
+  "$INTENT_BIN/intent" claude skills sync || true
+fi
+
 # Preserve agent manifests
 if [ -d "intent/.config/agents" ]; then
   echo "Agent manifests found, preserving..."
@@ -470,6 +482,11 @@ else
   echo "2. Run 'intent doctor' to verify configuration"
   echo "3. Run 'intent agents list' to see available agents"
 fi
+
+echo ""
+echo "For multi-session coordination across concurrent Claude Code sessions,"
+echo "create intent/whiteboard/ and see intent/docs/working-with-llms.md"
+echo "(section: Multi-session coordination)."
 
 # Offer to remove old stp directory only when one is actually present.
 # Pre-v2.0.0 projects had a stp/ tree at the project root; v2.x rebrand

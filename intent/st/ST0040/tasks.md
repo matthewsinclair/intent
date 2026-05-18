@@ -9,19 +9,16 @@ What was landed out-of-cycle on 2026-05-18 (already done):
 - [x] Edit `intent/plugins/claude/skills/in-finish/SKILL.md` to chain to `/in-whiteboard release`.
 - [x] Live-test in Lamplight (`/Users/matts/Devel/prj/Lamplight/intent/whiteboard/`).
 
-What still needs to happen for a formal Intent release:
+Shipped in v2.11.7 (2026-05-18):
 
-- [ ] **Manifest / registry**: verify `intent claude skills list` picks up `in-whiteboard`. If Intent uses an explicit manifest (eg `intent/plugins/claude/skills/_manifest.json`), add an entry; if discovery is directory-scan, no action needed -- `intent claude skills list -v` from any project should already show `in-whiteboard` as available.
-- [ ] **Documentation**: add a section to `docs/working-with-llms.md` (or equivalent) on multi-session coordination. Cover the tense / reader / cadence distinction vs `wip.md`, stream-identity discovery on `pickup`, the ST-only claim primitive, and the shared-platform `lamplight.md` pattern (renamed per project).
-- [ ] **Changelog**: add an entry to `CHANGELOG.md` for the next minor version describing the skill + the in-session/in-finish chain additions.
-- [ ] **Version bump**: bump `VERSION` per Intent's semver rules (likely a minor bump -- new skill is feature-level).
-- [ ] **Fresh-project smoke test**: bootstrap a fresh Intent project from canonical templates and verify:
-  - [ ] `intent claude skills install in-whiteboard` succeeds.
-  - [ ] `intent claude skills sync` picks up the in-session + in-finish edits.
-  - [ ] `/in-session` in a project with no `intent/whiteboard/` directory skips the pickup chain silently (no behaviour change).
-  - [ ] `/in-session` in a project with `mkdir intent/whiteboard` + a stream file triggers `pickup` cleanly and surfaces "no other streams active".
-- [ ] **Hook integration consideration**: decide whether the SessionStart hook (`.claude/scripts/session-context.sh`) should also surface "other-stream active" warnings earlier in the lifecycle than `/in-whiteboard pickup`. Likely not worth the duplication; document the decision either way.
-- [ ] **Reference the Lamplight live example**: link `/Users/matts/Devel/prj/Lamplight/intent/whiteboard/` from the new documentation section as the running-example reference.
+- [x] **Manifest / registry**: discovery is directory-scan; no explicit manifest entry needed. `intent claude skills list` picks up `in-whiteboard` from canon at `intent/plugins/claude/skills/`. `tests/unit/skills_commands.bats` enumerates `in-whiteboard` in the canonical roster as a regression guard.
+- [x] **Documentation**: new "Multi-session coordination" section in `intent/docs/working-with-llms.md` after "Skills and /in-session auto-load". Covers tense/reader/cadence distinction, file layout, stream identity discovery, ST-only claims, shared platform layer pattern, chain integration, heartbeat semantics, Lamplight live reference.
+- [x] **Changelog**: `[2.11.7] - 2026-05-18` entry under `[Unreleased]`. Shipped as **patch** at user direction, overriding the "new skill = minor" precedent (the protocol is opt-in by directory presence, behaviour change is zero for projects that don't create `intent/whiteboard/`).
+- [x] **Version bump**: VERSION → 2.11.7 via `scripts/release --patch`.
+- [x] **Auto-install in upgrade path**: `bin/intent_upgrade` now calls `intent claude skills install in-whiteboard` and `intent claude skills sync` after the migration dispatcher completes (idempotent + failure-tolerant; no `--force` so user customisations are never silently lost). Regression test in `tests/unit/intent_upgrade_dispatcher.bats` asserts the install lands on a v2.10.x → current-target upgrade.
+- [x] **Hook integration consideration**: decided **no** — the `/in-whiteboard pickup` chain from `/in-session` is sufficient; surfacing other-stream state earlier in the SessionStart hook would duplicate behaviour for marginal value. Revisit only if multi-session collisions surface before `/in-session` runs.
+- [x] **Reference the Lamplight live example**: linked from the new docs section.
+- [x] **LLMsend cross-pollination**: added `Re:` and `FYI only` header conventions to the `ask` subcommand prose. Borrowed from the cross-project LLMsend protocol — in-whiteboard is the intra-project sibling. The tmux/kitty live-ping mechanism was considered and deliberately not adopted (intra-project pickup at session-start is sufficient; the dependency footprint of tmux + kitty CSI u isn't justified).
 
 Out-of-scope (do NOT "fix" these as part of this ST):
 

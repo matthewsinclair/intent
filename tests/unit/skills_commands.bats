@@ -69,6 +69,7 @@ teardown() {
   assert_output_contains "in-elixir-essentials"
   assert_output_contains "in-ash-ecto-essentials"
   assert_output_contains "in-phoenix-liveview"
+  assert_output_contains "in-whiteboard"
 }
 
 @test "claude skills list shows installation status" {

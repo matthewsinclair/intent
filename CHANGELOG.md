@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.7] - 2026-05-18
+
+Additive patch shipping the multi-session coordination protocol designed in a parallel Lamplight session and live-tested in `/Users/matts/Devel/prj/Lamplight/intent/whiteboard/`. Two concurrent Claude Code sessions on the same Intent project now have a real live-channel between them instead of "wait for the other session's `wip.md` to update at next session-end". ST0040 captures the design, alternatives considered, and the deliberate deferrals; this release rolls it into formal canon.
+
+The protocol is opt-in by presence: a project gains coordination only after it creates `intent/whiteboard/`. Projects without the directory see zero behaviour change — the chained `/in-whiteboard` step from `/in-session` and `/in-finish` skips silently.
+
+### Added
+
+- **`/in-whiteboard` skill** at `intent/plugins/claude/skills/in-whiteboard/`. Subcommand surface: `pickup` / `claim` / `unclaim` / `touch` / `ask` / `decide` / `lamplight` / `release` / `status`. Each session belongs to a durable **stream** (eg `control`, `ia-ux`) that owns one file under `intent/whiteboard/`; shared `asks.md` carries cross-stream handoffs; a per-project shared `<platform>.md` file (eg `lamplight.md`, `core.md`) carries shared-platform-layer edit notices. Claims are by steel-thread ID only — no glob paths. Heartbeat-older-than-7-days marks a claim reclaimable; reclaim requires explicit user acknowledgement.
+
+- **Chain integration**: `/in-session` step 5 auto-fires `/in-whiteboard pickup` (after gate release); `/in-finish` step 1 auto-fires `/in-whiteboard release` (before any `wip.md` / `restart.md` / `done.md` updates). Both opt-in by directory presence.
+
+- **`asks.md` header conventions** layered on top of the required `to:` / `from:` line: optional `Re: <prior-ask-anchor>` for reply threads, optional `FYI only -- no response needed.` to mark info-dump asks the recipient stream should not queue a reply to. Borrowed from the cross-project LLMsend protocol (in-whiteboard is the intra-project sibling).
+
+### Changed
+
+- **`intent upgrade` auto-installs `in-whiteboard` and re-syncs the canon skill mirror.** Two calls inserted after the migration dispatcher completes: `intent claude skills install in-whiteboard` (idempotent for users without the skill) and `intent claude skills sync` (propagates the `in-session` / `in-finish` chain edits into any already-installed mirror). Both calls failure-tolerant — a missing `~/.claude/` mirror or a user "N" at an overwrite prompt should not break the upgrade. No `--force` is used, so user customisations are never silently lost.
+
+- **Upgrade "Next steps:" output** gains a one-line pointer to the new "Multi-session coordination" section of `intent/docs/working-with-llms.md` so users know how to opt in.
+
+### Caveat
+
+A Claude Code session already running at upgrade time has the old `in-session` / `in-finish` prose loaded in context — the new chain only auto-fires from the **next** `/in-session` (after `/compact` or session restart). Manual `/in-whiteboard pickup` still works in the current session. New sessions started after upgrade get the chain.
+
+### Tests
+
+- `tests/unit/skills_commands.bats` enumerates `in-whiteboard` in the canonical roster covered by the `claude skills list shows available skills` invariant.
+- `tests/unit/intent_upgrade_dispatcher.bats` gains a regression case asserting that a v2.10.x → current-target upgrade lands `in-whiteboard` at `~/.claude/skills/in-whiteboard/SKILL.md`. The test fakes `$HOME` so the install writes into a sandbox.
+
+### Documentation
+
+- `intent/docs/working-with-llms.md` gains a "Multi-session coordination" section after "Skills and /in-session auto-load". Covers the live-channel-vs-snapshot tense/reader/cadence distinction, the file layout, stream identity discovery, ST-only claims, shared platform layer pattern, chain integration, heartbeat semantics, and a pointer to the Lamplight live reference and ST0040 design rationale.
+
 ## [2.11.6] - 2026-05-15
 
 Additive patch shipping one new Lua coding rule surfaced during Lamplight ST0163 WP-04 (Murder mechanic hook authoring). The rule formalises an idiom matts called canon-worthy after seeing it applied to `worlds/v4/murder/experiences/murder_on_the_weekend/{phase,night_kill,facts}.lua`: "way more readable than loads of imperative if/then blocks."

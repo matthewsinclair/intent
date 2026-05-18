@@ -103,11 +103,21 @@ The slug is durable across sessions; once a stream identity is established, subs
 
    ```
    ## (YYYY-MM-DD HH:MM) to: <to-stream> from: <your-stream>
+   Re: <prior-ask-anchor>            # optional, if replying to a prior ask
+
+   FYI only -- no response needed.   # optional, when no reply is expected
 
    <text>
    ```
 
 2. Update your stream file's `heartbeat_at`.
+
+Header conventions (optional, layered on top of the required `to:` / `from:` line):
+
+- **`Re: <prior-ask-anchor>`** -- when an ask replies to a previous one. The anchor is the prior entry's `(YYYY-MM-DD HH:MM)` timestamp. Keeps threads legible in append-only `asks.md`.
+- **`FYI only -- no response needed.`** -- mark explicitly when the recipient stream should not queue a reply. Without it, the recipient assumes a reply is wanted.
+
+(These conventions are borrowed from the cross-project LLMsend protocol; in-whiteboard is the intra-project sibling.)
 
 ### decide <text>
 

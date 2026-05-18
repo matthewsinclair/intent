@@ -89,3 +89,51 @@ EOF
   cd "${INTENT_PROJECT_ROOT}" || exit 1
   rm -rf "${TEST_TEMP_DIR}"
 }
+
+@test "v2.11.7+ upgrade installs in-whiteboard skill" {
+  # Regression guard for v2.11.7: intent_upgrade auto-installs the
+  # in-whiteboard skill after the case dispatcher completes, so multi-session
+  # coordination is available without a manual `intent claude skills install`
+  # step. The project is stamped at 2.10.0 with no languages field so the
+  # migration chain actually runs (rather than short-circuiting at the
+  # "already at target" check, which would skip the auto-install entirely).
+  TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-upgrade-2117-XXXXXX)"
+  cd "${TEST_TEMP_DIR}" || exit 1
+
+  # Fake HOME so the install writes into a sandbox, never the real ~/.claude.
+  local REAL_HOME="$HOME"
+  export HOME="${TEST_TEMP_DIR}/fakehome"
+  mkdir -p "$HOME/.claude/skills"
+
+  mkdir -p intent/.config intent/llm intent/st
+  # No `languages` field -- forces needs_v2_11_0_upgrade to return 0 so the
+  # migration fires (rather than the dispatcher short-circuiting).
+  cat > intent/.config/config.json <<'EOF'
+{"intent_version":"2.10.0","project_name":"Upgrade2117Test","author":"t","created":"2026-04-27","st_prefix":"ST"}
+EOF
+  echo "# wip" > intent/wip.md
+  cat > intent/llm/RULES.md <<'EOF'
+# Rules
+
+## Project-Specific Rules
+
+stuff
+EOF
+
+  git init -q .
+  git config user.email t@t.com
+  git config user.name Tester
+  git add -A
+  git commit -qm "init"
+
+  run "${INTENT_BIN_DIR}/intent" upgrade --no-backup
+  assert_success
+  assert_output_contains "Ensuring in-whiteboard skill is installed"
+
+  [ -f "$HOME/.claude/skills/in-whiteboard/SKILL.md" ] \
+    || fail "expected $HOME/.claude/skills/in-whiteboard/SKILL.md after upgrade"
+
+  export HOME="$REAL_HOME"
+  cd "${INTENT_PROJECT_ROOT}" || exit 1
+  rm -rf "${TEST_TEMP_DIR}"
+}

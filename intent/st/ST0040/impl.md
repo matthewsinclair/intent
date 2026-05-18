@@ -1,5 +1,9 @@
 # Implementation - ST0040: Whiteboard protocol for multi-Claude sessions in the one repo
 
+## Shipped in v2.11.7 (2026-05-18)
+
+Skill, chain integrations, auto-install in the upgrade dispatcher, regression tests, and the `working-with-llms.md` "Multi-session coordination" section all land in v2.11.7. The release is a patch (overriding the "new skill = minor" precedent) on the grounds that the protocol is opt-in by directory presence — projects without `intent/whiteboard/` see zero behaviour change. Two small additions came from a late-stage review of the cross-project LLMsend protocol (<https://github.com/pmarreck/llmsend/blob/yolo/skills/LLMsend/SKILL.md>): optional `Re:` cross-reference and `FYI only` headers on `asks.md` entries. The tmux/kitty live-ping mechanism from LLMsend was considered and deliberately not adopted for the intra-project case.
+
 ## Implementation
 
 The `in-whiteboard` skill was landed out-of-cycle into Intent's canonical plugin pack on 2026-05-18 to unblock the Lamplight project (which had two concurrent Claude Code sessions hitting coordination friction). This `impl.md` records what's already in tree; remaining work to roll into a formal Intent release lives in `tasks.md`.

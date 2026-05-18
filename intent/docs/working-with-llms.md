@@ -14,6 +14,7 @@ The doc is deliberately opinionated: the canon is already decided, and the decis
 - Session hook architecture
 - Critic cadence
 - Skills and /in-session auto-load
+- Multi-session coordination
 - Extensions at ~/.intent/ext/
 - Per-language canon (intent lang init)
 - Socrates vs Diogenes FAQ
@@ -311,6 +312,55 @@ To extend:
 
 - **New language pack** — author rules under `intent/plugins/claude/rules/<lang>/`, ship a `critic-<lang>` subagent, register the language in `intent/plugins/agents/templates/<lang>/` so `intent lang init <lang>` finds it. Add a dispatch entry in `intent/docs/critics.md`. A per-language essentials skill at `intent/plugins/claude/skills/in-<lang>-essentials/` is optional; the rule pack + critic path is the working mechanism without it.
 - **New framework fan-out** — add a dep-based branch in `/in-session` step 3 (Elixir-specific today, extensible to other ecosystems).
+
+## Multi-session coordination
+
+Concurrent Claude Code sessions on the same Intent project coordinate via `intent/whiteboard/` and the `/in-whiteboard` skill (v2.11.7+, opt-in by directory presence). The whiteboard is the **live** cross-session channel; `intent/wip.md` remains the **post-session snapshot**. Different tense, different reader, different update cadence:
+
+| Surface             | Tense | Reader             | Update cadence            |
+| ------------------- | ----- | ------------------ | ------------------------- |
+| `done.md` + history | past  | humans + future-me | post-session              |
+| `wip.md`            | now   | humans             | session-end snapshot      |
+| whiteboard          | live  | the other agent    | during work, per-decision |
+
+Mixing live coordination into `wip.md` is rejected by design — different surfaces, different writers, different readers.
+
+### Directory layout
+
+```
+intent/whiteboard/
+  README.md         # slim protocol reference
+  <stream>.md       # one per stream (eg control.md, ia-ux.md)
+  asks.md           # shared; append-only; cross-stream handoffs
+  <platform>.md     # shared; append-only; shared-platform-layer edit channel
+  scratch.md        # ephemera; no protocol
+```
+
+Each stream owns one file. The `<platform>.md` filename is project-specific — `lamplight.md` in the Lamplight project (where the shared platform layer is `apps/lamplight/**`), or `core.md` / `shared.md` / whatever maps to the project's own shared-platform convention.
+
+### Stream identity
+
+A stream is a durable identity (eg `control`, `ia-ux`) that owns one file and persists across sessions. Identity is resolved on `pickup` in three steps, in order: (1) explicit arg (`/in-whiteboard pickup ia-ux`), (2) cues — working directory, branch, recent commits, the wip.md "In flight" labels, user framing, (3) ask the user. Once the stream file exists, subsequent sessions of that stream inherit identity from the file.
+
+### Claims are by steel-thread ID only
+
+`/in-whiteboard claim STxxxx` adds an ST to the current stream's `claimed_steel_threads` frontmatter and stops on overlap with another active stream. Glob-path claims (`apps/control/**`) are rejected as a design choice — claims drift from actual edits the moment you type a path you don't end up editing. ST IDs are the user's mental model; paths are inferred via `intent/st/<ID>/info.md` cross-references.
+
+### Shared platform layer
+
+Multi-app codebases usually have a shared platform layer that no ST claim cleanly covers (`apps/lamplight/**` in Lamplight; project-specific elsewhere). The convention is a dedicated shared file (`lamplight.md`, `core.md`, etc) on append-only "I'm about to edit X for reason Y" basis — `/in-whiteboard lamplight "<text>"`. Reading the file on `pickup` surfaces recent platform-edit notices; appending before editing is cheap insurance against simultaneous touches.
+
+### Chain integration
+
+`/in-whiteboard pickup` auto-fires from `/in-session` as step 5 (after gate release); `/in-whiteboard release` auto-fires from `/in-finish` as step 1 (before any wip.md/restart.md/done.md updates). Both chains are **opt-in by presence**: if `intent/whiteboard/` does not exist in the project root, the chained step skips silently. Projects without the whiteboard see zero behaviour change.
+
+### Heartbeat semantics
+
+`/compact` does not end a session. The next `/in-session` (auto-firing in the new context) calls `pickup` which touches `heartbeat_at`. A stream stays `status: active` across `/compact`. A heartbeat older than 7 days marks a claim reclaimable; reclaim requires explicit user acknowledgement — the protocol never silently overwrites another stream's state.
+
+### Reference
+
+The live reference implementation runs in the Lamplight project at `/Users/matts/Devel/prj/Lamplight/intent/whiteboard/`. Design rationale, alternatives considered, and deliberate-deferrals (no hook-based enforcement, no `decisions.md` event log, no `intent/.config/whiteboard.json`) live in `intent/st/ST0040/`.
 
 ## Extensions at ~/.intent/ext/
 
