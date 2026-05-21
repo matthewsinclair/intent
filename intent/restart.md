@@ -26,6 +26,8 @@ Both sides now resolve identity from the single env var `$CLAUDE_CODE_SESSION_ID
 
 Decision: shipped as **patch** (v2.11.8) — shipped-as-broken defect, patch regardless of engineering scope.
 
+Commits: `96cade3` fix, `341c195` release, `bf0ad77` self-upgrade stamp. All pushed to both remotes. Intent self-upgraded 2.11.7 -> 2.11.8 (`intent upgrade` re-stamped `config.json`). Field acceptance test (2+ concurrent sessions in one project, eg Lamplight) still to be run by the user.
+
 ### Propagation gap surfaced (added to backlog)
 
 `intent claude skills sync` checksums `SKILL.md` only, so a script-only edit under a skill's `scripts/` dir does **not** trigger a re-copy — must force with `intent claude skills install <name> --force`. This release also touched `in-session`'s SKILL.md, so the fleet picks up the fixed `release-gate.sh` automatically on `intent upgrade`. Real gap for future script-only skill hotfixes; logged in wip.md backlog.

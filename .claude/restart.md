@@ -3,7 +3,7 @@
 ## First actions after `/compact` or new session
 
 1. **Invoke `/in-session`.** Reads restart files + CLAUDE.md + MODULES.md, surveys steel threads, loads `/in-essentials` and `/in-standards`, releases the UserPromptSubmit gate. As of v2.11.7, also chains to `/in-whiteboard pickup` if `intent/whiteboard/` exists.
-2. **Verify the working tree.** `git status` should be clean. `git log --oneline -5` should show `release: v2.11.8` at the top.
+2. **Verify the working tree.** `git status` should be clean. `git log --oneline -5` should show `bf0ad77 chore: stamp intent_version 2.11.8 (self-upgrade)` then `341c195 release: v2.11.8` at the top.
 3. **Read `intent/wip.md` and `intent/restart.md`.** The wip "Current State" line is the operative status; the restart "Resume target" section says what to do next.
 
 ## State (2026-05-21, end of session -- v2.11.8 cut)
