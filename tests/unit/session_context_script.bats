@@ -3,16 +3,19 @@
 #
 # Exercises the SessionStart hook script in three scenarios: git repo
 # with intent/wip.md present, git repo without wip.md, and a non-git
-# directory (graceful degradation). Also verifies that a session_id on
-# stdin is persisted to /tmp/intent-claude-session-current-id for the
-# cooperating /in-session gate release.
+# directory (graceful degradation).
+#
+# v2.11.8: the hook no longer persists session_id anywhere. Identity now
+# comes from $CLAUDE_CODE_SESSION_ID on both gate sides; the shared
+# per-project state file that concurrent sessions stomped was removed. A
+# negative test asserts no such file is written.
 
 load "../lib/test_helper.bash"
 
 SCRIPT="${INTENT_PROJECT_ROOT}/lib/templates/.claude/scripts/session-context.sh"
 
-# Compute the per-project state file path for a given project directory.
-# Mirrors the derivation in session-context.sh.
+# Compute the (now-retired) per-project state file path for a given project
+# directory. Used only by the negative test that asserts it is NOT written.
 state_file_for() {
   local proj="$1"
   local key
@@ -28,15 +31,6 @@ setup() {
 teardown() {
   if [ -d "${TEST_TEMP_DIR}" ]; then
     cd "${INTENT_PROJECT_ROOT}" || exit 1
-    # Per-project state files use cksum of the abs project_dir; clean up
-    # both the temp dir itself and any subdir the test cd'd into.
-    rm -f "$(state_file_for "$TEST_TEMP_DIR")" 2>/dev/null || true
-    if [ -d "$TEST_TEMP_DIR/proj" ]; then
-      rm -f "$(state_file_for "$TEST_TEMP_DIR/proj")" 2>/dev/null || true
-    fi
-    if [ -d "$TEST_TEMP_DIR/bare" ]; then
-      rm -f "$(state_file_for "$TEST_TEMP_DIR/bare")" 2>/dev/null || true
-    fi
     rm -rf "${TEST_TEMP_DIR}"
   fi
 }
@@ -88,16 +82,15 @@ EOF
   refute_output_contains "Git: "
 }
 
-@test "persists session_id from stdin JSON for /in-session gate release" {
-  if ! command -v jq >/dev/null 2>&1; then
-    skip "jq not available"
-  fi
+@test "does not persist session_id to a shared state file" {
   mkdir -p "$TEST_TEMP_DIR/proj"
   cd "$TEST_TEMP_DIR/proj"
+  state_file="$(state_file_for "$PWD")"
+  rm -f "$state_file"
 
   run bash -c "printf '%s' '{\"session_id\":\"abc-123\"}' | CLAUDE_PROJECT_DIR=\"$PWD\" bash \"$SCRIPT\""
   assert_success
-  state_file="$(state_file_for "$PWD")"
-  [ -f "$state_file" ]
-  [ "$(cat "$state_file")" = "abc-123" ]
+  # The shared file was the concurrent-session corruption source; it must
+  # never be written. Identity comes from \$CLAUDE_CODE_SESSION_ID instead.
+  [ ! -f "$state_file" ]
 }

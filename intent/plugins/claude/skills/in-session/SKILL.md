@@ -68,18 +68,13 @@ Run the helper script (idempotent, fast, ~30 lines):
 bash "$HOME/.claude/skills/in-session/scripts/release-gate.sh"
 ```
 
-The script holds the per-project + legacy + unknown-fallback waterfall. It is extracted from this prose so positional-field expansions in any pipeline survive skill-renderer token-stripping. The earlier inline form leaked positional-arg syntax through the renderer, which silently emptied it, producing a malformed project_key and a no-op gate release. The canonical source is `intent/plugins/claude/skills/in-session/scripts/release-gate.sh`.
+It is extracted from this prose so any pipeline survives skill-renderer token-stripping. The earlier inline form leaked positional-field syntax through the renderer, which silently emptied it, producing a no-op gate release. The canonical source is `intent/plugins/claude/skills/in-session/scripts/release-gate.sh`.
 
-How it resolves the session_id (in priority order):
+How it resolves the session_id: a single authoritative source, `$CLAUDE_CODE_SESSION_ID`, the env var Claude Code exports into every Bash tool invocation. The gate (`require-in-session.sh`) resolves the same env var, so the release path and the check path agree by construction -- no shared state file in between. When the env var is absent (an older Claude Code build), both sides fall back to the same `unknown` sentinel, which the script always touches, so they still agree and the gate self-heals.
 
-1. **Per-project state file** `/tmp/intent-claude-session-current-id-${project_key}` -- written by the v2.10.0+ `SessionStart` hook (`session-context.sh`). Per-project scoping prevents cross-session contamination when multiple Claude Code sessions run concurrently in different Intent projects.
-2. **Legacy shared state file** `/tmp/intent-claude-session-current-id` -- written by the pre-v2.10.0 `SessionStart` hook. Used as a best-effort fallback so sessions that started before the per-project hook landed can self-rescue without a Claude Code restart.
-3. **`unknown` fallback** -- always touched. Covers the case where the gate's own `session_id` extraction also fell back to `unknown` (no jq, empty payload, etc.).
+This replaced an earlier design where the releaser read a shared per-project state file written by `SessionStart`. Concurrent Claude Code sessions in one project all wrote that one file, the releaser touched the wrong session's sentinel, and the gate deadlocked. The shared file is gone.
 
-If after running `/in-session` the gate is **still** firing on the next prompt -- visible as `Expected sentinel: /tmp/intent/in-session-<UUID>.sentinel` in the hook output -- it means the running Claude Code session predates the per-project hook and the legacy file got stomped by another project's SessionStart. Two recovery paths:
-
-- **Quick:** copy the UUID from the gate's error message and run `touch /tmp/intent/in-session-<UUID>.sentinel`.
-- **Proper:** restart the Claude Code session (so `SessionStart` fires with the new hook and writes the per-project state file).
+If after running `/in-session` the gate is **still** firing on the next prompt -- visible as `Expected sentinel: /tmp/intent/in-session-<UUID>.sentinel` in the hook output -- copy the UUID from the gate's error message and run `touch /tmp/intent/in-session-<UUID>.sentinel`.
 
 ### 5. Pickup the whiteboard
 

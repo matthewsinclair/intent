@@ -61,8 +61,8 @@ teardown_gate() {
   setup_gate
   # ${VAR:-} treats empty as unset for [ -n ... ]; the bypass must be
   # value-bearing, not presence-bearing.
-  run --separate-stderr env INTENT_SKIP_IN_SESSION_GATE= \
-    bash "$SCRIPT" <<< '{"session_id":"'"$GATE_SESSION_ID"'","prompt":"hello"}'
+  run --separate-stderr env INTENT_SKIP_IN_SESSION_GATE= CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"hello"}'
   [ "$status" -eq 2 ]
   [[ "$stderr" == *"/in-session must run"* ]]
   teardown_gate
@@ -70,10 +70,22 @@ teardown_gate() {
 
 @test "unset INTENT_SKIP_IN_SESSION_GATE still gates" {
   setup_gate
-  # Smoke for the set -u + ${VAR:-} interaction. No env var at all.
-  run --separate-stderr bash "$SCRIPT" <<< '{"session_id":"'"$GATE_SESSION_ID"'","prompt":"hello"}'
+  # Smoke for the set -u + ${VAR:-} interaction. No bypass var at all.
+  run --separate-stderr env CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"hello"}'
   [ "$status" -eq 2 ]
   [[ "$stderr" == *"/in-session must run"* ]]
+  teardown_gate
+}
+
+@test "gate resolves session_id from CLAUDE_CODE_SESSION_ID, not the payload" {
+  setup_gate
+  # Identity is the env var, not payload.session_id. The Expected-sentinel
+  # message must name the env id even when the payload carries a different one.
+  run --separate-stderr env CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"session_id":"payload-decoy","prompt":"hello"}'
+  [ "$status" -eq 2 ]
+  [[ "$stderr" == *"in-session-${GATE_SESSION_ID}.sentinel"* ]]
   teardown_gate
 }
 
@@ -84,7 +96,8 @@ teardown_gate() {
 @test "slash-command prompt passes through without bypass" {
   setup_gate
   # No sentinel, no bypass, but prompt is a slash command -- must exit 0.
-  run --separate-stderr bash "$SCRIPT" <<< '{"session_id":"'"$GATE_SESSION_ID"'","prompt":"/help"}'
+  run --separate-stderr env CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"/help"}'
   [ "$status" -eq 0 ]
   [ -z "$stderr" ]
   teardown_gate
@@ -93,7 +106,8 @@ teardown_gate() {
 @test "sentinel pass-through still works without bypass" {
   setup_gate
   touch "$GATE_SENTINEL"
-  run --separate-stderr bash "$SCRIPT" <<< '{"session_id":"'"$GATE_SESSION_ID"'","prompt":"hello"}'
+  run --separate-stderr env CLAUDE_CODE_SESSION_ID="$GATE_SESSION_ID" \
+    bash "$SCRIPT" <<< '{"prompt":"hello"}'
   [ "$status" -eq 0 ]
   [ -z "$stderr" ]
   teardown_gate

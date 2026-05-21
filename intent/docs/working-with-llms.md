@@ -468,12 +468,14 @@ If the script runs but nothing is injected, remember the contract: stdout on exi
 
 Symptom: every user turn shows the "`/in-session` must run" reminder even after `/in-session` has been invoked.
 
-Check: the sentinel file. The gate uses `/tmp/intent-session-<SESSION_ID>.sentinel` to track that `/in-session` has run. If `/in-session`'s script is not writing the sentinel, the gate keeps firing.
+Check: the sentinel file. The gate uses `/tmp/intent/in-session-<SESSION_ID>.sentinel` to track that `/in-session` has run. Both the gate (`require-in-session.sh`) and the releaser (`release-gate.sh`) resolve `<SESSION_ID>` from the same `$CLAUDE_CODE_SESSION_ID` env var Claude Code exports, so they always agree on which sentinel to write and check. If `/in-session`'s script is not writing the sentinel, the gate keeps firing.
+
+Concurrent sessions in one project are supported. Each Claude Code session has its own `$CLAUDE_CODE_SESSION_ID`, so the gate and release are per-session with no shared mutable state between them. (Before v2.11.8 the releaser read a shared per-project state file that concurrent sessions stomped, deadlocking the gate; that file was removed.)
 
 Fixes:
 
 - Verify `/in-session` installation: `intent claude skills show in-session`.
-- Verify the sentinel directory is writable and that `$SESSION_ID` resolves correctly inside the hook.
+- Verify the sentinel directory is writable and that `$CLAUDE_CODE_SESSION_ID` resolves correctly inside the hook.
 - For non-interactive automation that spawns `claude -p` against the project (eg `intent treeindex` or any custom wrapper): set `INTENT_SKIP_IN_SESSION_GATE=1` on the invocation. The gate short-circuits to exit 0 before any other check. Such sessions have no chat surface for `/in-session` to run in, so the bypass is the right tool.
 - If the strict gate is more friction than it's worth, flip it to soft-reminder mode by editing `.claude/settings.json`'s `UserPromptSubmit` command path from `user_prompt_submit_strict.sh` to `user_prompt_submit_soft.sh`.
 

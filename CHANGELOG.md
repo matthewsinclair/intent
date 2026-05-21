@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.8] - 2026-05-21
+
+Patch fixing a multi-session deadlock in the `/in-session` UserPromptSubmit gate. With two or more Claude Code sessions open against the **same** Intent project, the gate blocked every prompt and `/in-session` never released it — the user was forced to manually `touch` the expected sentinel on every turn. Lamplight, which runs concurrent streams in one project, hit this constantly.
+
+The cause was an asymmetric source of truth for "my session id". The gate (`require-in-session.sh`) read the real `session_id` from its hook payload and checked `/tmp/intent/in-session-<session_id>.sentinel`. The releaser (`release-gate.sh`, run by `/in-session`) had no payload, so it read the id from a shared per-project state file written by `SessionStart`. Concurrent sessions all wrote that one file, it held some other session's id, the releaser touched the wrong sentinel, and the gate deadlocked.
+
+### Fixed
+
+- **Single source of session identity.** Both the gate and the releaser now resolve identity from `$CLAUDE_CODE_SESSION_ID`, the env var Claude Code exports into every hook and Bash tool invocation. The two sides agree by construction, with no shared mutable file between them. When the env var is absent (an older Claude Code build) both sides degrade to the same `unknown` sentinel, which the releaser always touches, so they still agree and the gate self-heals. Concurrent sessions in one project are now fully supported.
+
+### Removed
+
+- **Shared per-project session-id state file.** `session-context.sh` (the `SessionStart` hook) no longer persists the session id to `/tmp/intent-claude-session-current-id-<key>`; that file was the concurrent-session corruption source and is no longer load-bearing. `release-gate.sh` drops its state-file and legacy-file reads. Stale copies left in `/tmp` are inert (never read) and need no cleanup.
+
 ## [2.11.7] - 2026-05-18
 
 Additive patch shipping the multi-session coordination protocol designed in a parallel Lamplight session and live-tested in `/Users/matts/Devel/prj/Lamplight/intent/whiteboard/`. Two concurrent Claude Code sessions on the same Intent project now have a real live-channel between them instead of "wait for the other session's `wip.md` to update at next session-end". ST0040 captures the design, alternatives considered, and the deliberate deferrals; this release rolls it into formal canon.

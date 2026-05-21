@@ -5,45 +5,30 @@
 # Purpose:
 #   Emit Intent project context as a system-reminder to Claude Code so every
 #   session knows which project, branch, and active steel thread it is
-#   resuming. Also persists the current Claude session_id to a per-project
-#   well-known path so the cooperating `/in-session` skill can release the
-#   UserPromptSubmit strict gate (see require-in-session.sh).
+#   resuming.
 #
 # Contract:
 #   - Invoked by `.claude/settings.json` SessionStart hook.
-#   - Receives Claude Code SessionStart event JSON on stdin (includes session_id).
+#   - Receives Claude Code SessionStart event JSON on stdin (unused).
 #   - Writes to stdout; Claude Code injects the output as a system-reminder.
 #   - Exit 0 always. Never blocks.
 #   - Target runtime: < 200ms. All git/file calls are best-effort.
 #
-# State file naming (per-project):
-#   /tmp/intent-claude-session-current-id-${project_key}
-#
-#   project_key is the cksum of the absolute project directory, scoping
-#   the state per-project so concurrent Claude sessions in different
-#   projects don't stomp each other's session_id. The earlier single
-#   shared file design caused gate-release misfires when sessions
-#   overlapped; ST0036 fleet-rollout dogfood surfaced it.
+# Session identity:
+#   This hook no longer persists the session_id anywhere. The cooperating
+#   `/in-session` gate release (release-gate.sh) and the gate itself
+#   (require-in-session.sh) both resolve identity from $CLAUDE_CODE_SESSION_ID,
+#   the env var Claude Code exports. The earlier per-project state file was a
+#   shared mutable bridge that concurrent sessions in one project stomped,
+#   deadlocking the gate. It is gone.
 
+# set -u only: all git/file calls below are best-effort and the hook must
+# exit 0 regardless (see header). -e and -o pipefail are omitted so a missing
+# git or unreadable wip.md cannot abort the context emission.
 set -u
 
 project_dir="${CLAUDE_PROJECT_DIR:-$PWD}"
 project_name="$(basename "$project_dir" 2>/dev/null || echo unknown)"
-project_key="$(printf '%s' "$project_dir" | cksum 2>/dev/null | awk '{print $1}')"
-STATE_FILE="/tmp/intent-claude-session-current-id-${project_key}"
-
-capture_session_id() {
-  [ -t 0 ] && return 0
-  command -v jq >/dev/null 2>&1 || return 0
-  local payload sid
-  payload="$(cat)" || return 0
-  [ -z "$payload" ] && return 0
-  sid="$(printf '%s' "$payload" | jq -r '.session_id // empty' 2>/dev/null || true)"
-  [ -z "$sid" ] && return 0
-  printf '%s' "$sid" > "$STATE_FILE" 2>/dev/null || true
-}
-
-capture_session_id
 
 git_branch=""
 git_sha=""

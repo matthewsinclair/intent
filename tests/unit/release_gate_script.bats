@@ -1,8 +1,13 @@
 #!/usr/bin/env bats
 # Tests for the release-gate.sh helper that the /in-session skill invokes.
-# Extracted from SKILL.md inline so the awk pipeline survives Claude Code's
-# skill-renderer token-stripping. Tests cover the per-project + legacy +
-# unknown sentinel waterfall and the malformed-cksum-output guard.
+# Extracted from SKILL.md inline so any pipeline survives Claude Code's
+# skill-renderer token-stripping.
+#
+# v2.11.8: identity resolves from a single source, $CLAUDE_CODE_SESSION_ID,
+# matching require-in-session.sh. The earlier shared per-project state file
+# (the concurrent-session corruption source) was removed. These tests must
+# control CLAUDE_CODE_SESSION_ID explicitly -- the ambient value is exported
+# into the bats process and would otherwise leak into every run.
 
 load "../lib/test_helper.bash"
 
@@ -18,94 +23,78 @@ SCRIPT="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-session/scripts/r
 }
 
 @test "release-gate.sh uses pure-shell substitution (no awk \$1)" {
-  # Defensive: if awk reappears in this script we re-introduce the
-  # renderer-strip vulnerability. Anything that pipes to awk would still be
-  # safe in a script file, but we want one obvious form.
+  # Defensive: awk in this script re-introduces the renderer-strip
+  # vulnerability that silently emptied the inline form.
   run grep -q '| awk' "$SCRIPT"
   [ "$status" -ne 0 ]
 }
 
 # --------------------------------------------------------------------
-# Sentinel-touching behaviour against an isolated tmp tree
+# Sentinel-touching behaviour
 # --------------------------------------------------------------------
 
-# All tests below set CLAUDE_PROJECT_DIR to TEST_TEMP_DIR (a unique mktemp
-# per test) and override SENTINEL_DIR by running inside a custom HOME-like
-# layout. We cannot override SENTINEL_DIR via env (the script hard-codes it)
-# without editing the script, so we sandbox by clearing the per-project
-# state file before each test and restoring after.
+@test "release-gate.sh touches the sentinel for CLAUDE_CODE_SESSION_ID" {
+  sid="test-uuid-$$-aaa"
+  rm -f "/tmp/intent/in-session-${sid}.sentinel"
 
-setup_isolated() {
-  ISO_PROJECT="$TEST_TEMP_DIR/iso-project"
-  mkdir -p "$ISO_PROJECT"
-  ISO_KEY="$(printf '%s' "$ISO_PROJECT" | cksum | awk '{print $1}')"
-  ISO_STATE="/tmp/intent-claude-session-current-id-${ISO_KEY}"
-}
-
-@test "release-gate.sh resolves per-project session_id and touches the sentinel" {
-  setup_isolated
-  echo "test-uuid-aaa" > "$ISO_STATE"
-  rm -f "/tmp/intent/in-session-test-uuid-aaa.sentinel"
-
-  CLAUDE_PROJECT_DIR="$ISO_PROJECT" run bash "$SCRIPT"
+  CLAUDE_CODE_SESSION_ID="$sid" run bash "$SCRIPT"
 
   [ "$status" -eq 0 ]
-  [[ "$output" == *"per-project=test-uuid-aaa"* ]]
-  [ -f "/tmp/intent/in-session-test-uuid-aaa.sentinel" ]
+  [[ "$output" == *"session=${sid}"* ]]
+  [ -f "/tmp/intent/in-session-${sid}.sentinel" ]
 
-  rm -f "$ISO_STATE" "/tmp/intent/in-session-test-uuid-aaa.sentinel"
+  rm -f "/tmp/intent/in-session-${sid}.sentinel"
 }
 
 @test "release-gate.sh always touches unknown.sentinel" {
-  setup_isolated
-
-  CLAUDE_PROJECT_DIR="$ISO_PROJECT" run bash "$SCRIPT"
+  sid="test-uuid-$$-bbb"
+  CLAUDE_CODE_SESSION_ID="$sid" run bash "$SCRIPT"
 
   [ "$status" -eq 0 ]
   [ -f "/tmp/intent/in-session-unknown.sentinel" ]
+
+  rm -f "/tmp/intent/in-session-${sid}.sentinel"
 }
 
-@test "release-gate.sh handles missing per-project state file gracefully" {
-  setup_isolated
-  rm -f "$ISO_STATE"
-
-  CLAUDE_PROJECT_DIR="$ISO_PROJECT" run bash "$SCRIPT"
+@test "release-gate.sh degrades to unknown-only when env var is empty" {
+  CLAUDE_CODE_SESSION_ID="" run bash "$SCRIPT"
 
   [ "$status" -eq 0 ]
-  [[ "$output" == *"per-project=(none)"* ]]
+  [[ "$output" == *"session=(none)"* ]]
+  [ -f "/tmp/intent/in-session-unknown.sentinel" ]
 }
 
-@test "release-gate.sh project_key is just the cksum number, not cksum+length" {
-  setup_isolated
-  echo "test-uuid-bbb" > "$ISO_STATE"
-  rm -f "/tmp/intent/in-session-test-uuid-bbb.sentinel"
-
-  CLAUDE_PROJECT_DIR="$ISO_PROJECT" run bash "$SCRIPT"
+@test "release-gate.sh degrades to unknown-only when env var is unset" {
+  run env -u CLAUDE_CODE_SESSION_ID bash "$SCRIPT"
 
   [ "$status" -eq 0 ]
-  # Regression guard: the old broken inline form produced a malformed key
-  # like "1234567890 99" with a space and the byte count. If that returns,
-  # this test fails because the per-project lookup would have missed.
-  [ -f "/tmp/intent/in-session-test-uuid-bbb.sentinel" ]
-
-  rm -f "$ISO_STATE" "/tmp/intent/in-session-test-uuid-bbb.sentinel"
+  [[ "$output" == *"session=(none)"* ]]
+  [ -f "/tmp/intent/in-session-unknown.sentinel" ]
 }
 
-@test "release-gate.sh also touches legacy sentinel when set differently" {
-  setup_isolated
-  echo "test-uuid-ccc" > "$ISO_STATE"
-  echo "test-uuid-legacy-ddd" > "/tmp/intent-claude-session-current-id"
-  rm -f "/tmp/intent/in-session-test-uuid-ccc.sentinel" \
-        "/tmp/intent/in-session-test-uuid-legacy-ddd.sentinel"
+# --------------------------------------------------------------------
+# Concurrent-session regression (the original deadlock)
+# --------------------------------------------------------------------
 
-  CLAUDE_PROJECT_DIR="$ISO_PROJECT" run bash "$SCRIPT"
+@test "release-gate.sh ignores any leftover shared state file" {
+  # The pre-v2.11.8 deadlock: a shared per-project state file held another
+  # session's id, so the releaser touched the wrong sentinel. Prove that file
+  # is no longer load-bearing -- a poisoned copy must not divert the release.
+  sid="test-uuid-$$-ccc"
+  poison="test-uuid-$$-poison"
+  poison_key="$(printf '%s' "/some/project" | cksum | awk '{print $1}')"
+  echo "$poison" > "/tmp/intent-claude-session-current-id-${poison_key}"
+  echo "$poison" > "/tmp/intent-claude-session-current-id"
+  rm -f "/tmp/intent/in-session-${sid}.sentinel" \
+        "/tmp/intent/in-session-${poison}.sentinel"
+
+  CLAUDE_CODE_SESSION_ID="$sid" run bash "$SCRIPT"
 
   [ "$status" -eq 0 ]
-  [ -f "/tmp/intent/in-session-test-uuid-ccc.sentinel" ]
-  [ -f "/tmp/intent/in-session-test-uuid-legacy-ddd.sentinel" ]
+  [ -f "/tmp/intent/in-session-${sid}.sentinel" ]
+  [ ! -f "/tmp/intent/in-session-${poison}.sentinel" ]
 
-  rm -f "$ISO_STATE" \
-        "/tmp/intent-claude-session-current-id" \
-        "/tmp/intent/in-session-test-uuid-ccc.sentinel" \
-        "/tmp/intent/in-session-test-uuid-legacy-ddd.sentinel"
+  rm -f "/tmp/intent/in-session-${sid}.sentinel" \
+        "/tmp/intent-claude-session-current-id-${poison_key}" \
+        "/tmp/intent-claude-session-current-id"
 }

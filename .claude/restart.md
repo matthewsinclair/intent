@@ -3,43 +3,46 @@
 ## First actions after `/compact` or new session
 
 1. **Invoke `/in-session`.** Reads restart files + CLAUDE.md + MODULES.md, surveys steel threads, loads `/in-essentials` and `/in-standards`, releases the UserPromptSubmit gate. As of v2.11.7, also chains to `/in-whiteboard pickup` if `intent/whiteboard/` exists.
-2. **Verify the working tree.** `git status` should be clean. `git log --oneline -5` should show `f09bb65 release: v2.11.7` at the top.
+2. **Verify the working tree.** `git status` should be clean. `git log --oneline -5` should show `release: v2.11.8` at the top.
 3. **Read `intent/wip.md` and `intent/restart.md`.** The wip "Current State" line is the operative status; the restart "Resume target" section says what to do next.
 
-## State (2026-05-18, end of session -- v2.11.7 cut)
+## State (2026-05-21, end of session -- v2.11.8 cut)
 
-v2.11.7 shipped today. Multi-session coordination protocol (ST0040): new `/in-whiteboard` skill at `intent/plugins/claude/skills/in-whiteboard/` with subcommands `pickup` / `claim` / `unclaim` / `touch` / `ask` / `decide` / `lamplight` / `release` / `status`. Each Claude Code session running concurrently against the same Intent project belongs to a durable **stream** that owns one file under `intent/whiteboard/`; cross-stream handoffs go in shared append-only `asks.md`; shared-platform-layer edits coordinate via a per-project shared file (`lamplight.md`, `core.md`, etc). Claims are by steel-thread ID only — glob-path claims rejected. Heartbeat older than 7 days marks a claim reclaimable.
+v2.11.8 shipped today. Patch fixing a multi-session deadlock in the `/in-session` UserPromptSubmit gate, surfaced by a Lamplight bug report. With two or more Claude Code sessions open against the same Intent project, the gate blocked every prompt and `/in-session` never released it.
 
-Integration: `/in-session` chains to `pickup` as step 5; `/in-finish` chains to `release` as step 1. Both chains opt-in by directory presence — projects without `intent/whiteboard/` see zero behaviour change. `bin/intent_upgrade` auto-installs `in-whiteboard` and re-syncs the canon skill mirror after the migration dispatcher completes. Regression test at `tests/unit/intent_upgrade_dispatcher.bats` (test #4). New "Multi-session coordination" section in `intent/docs/working-with-llms.md`. `asks.md` header conventions extended with optional `Re:` and `FYI only` markers — borrowed from the cross-project LLMsend protocol (in-whiteboard is the intra-project sibling).
+Root cause: asymmetric source of truth for session identity. The gate (`require-in-session.sh`) read `session_id` from its hook payload; the releaser (`release-gate.sh`) had no payload and read the id from a shared per-project state file written by `session-context.sh` on `SessionStart`, which concurrent sessions stomped. The releaser touched the wrong sentinel and the gate's real-id sentinel never appeared.
 
-Three commits on `main`: `ce38a10` skill landing, `b85dc10` integration, `f09bb65` release. Pushed to both remotes; release at <https://github.com/matthewsinclair/intent/releases/tag/v2.11.7>. ST0040 marked Completed.
+Fix: both sides now resolve identity from the single env var `$CLAUDE_CODE_SESSION_ID` that Claude Code exports into every hook and Bash tool invocation. They agree by construction; when the env var is absent both degrade to the same `unknown` sentinel (always touched by the releaser), so they still agree and the gate self-heals. The shared state file was removed entirely — `session-context.sh` no longer persists the id, `release-gate.sh` dropped its state-file and legacy reads. Verified empirically that `$CLAUDE_CODE_SESSION_ID` equals the gate's payload id. All 927 tests pass; critic-shell clean.
 
-Decision worth carrying forward: shipped as **patch** at user direction. New-skill default is minor; the protocol is opt-in by directory presence with zero behaviour change for non-adopting projects, which makes the patch framing defensible. Re-confirm at the time of the next skill addition; do not assume from this case.
+Files: `intent/plugins/claude/skills/in-session/scripts/release-gate.sh`, `lib/templates/.claude/scripts/require-in-session.sh`, `lib/templates/.claude/scripts/session-context.sh`, SKILL.md step 4, `working-with-llms.md` troubleshooting block; tests `release_gate_script.bats` / `require_in_session_gate.bats` / `session_context_script.bats`. Pushed to both remotes; release at <https://github.com/matthewsinclair/intent/releases/tag/v2.11.8>.
+
+Decision: shipped as **patch** — shipped-as-broken defect, patch regardless of engineering scope.
+
+Propagation gap surfaced: `intent claude skills sync` checksums `SKILL.md` only, so a script-only edit under `scripts/` does not propagate without `install --force`. This release also touched SKILL.md, so the fleet picks up the fixed `release-gate.sh` automatically on `intent upgrade`. Logged in wip.md backlog.
 
 ## Resume target -- next session
 
-No active steel thread. Three optional smokes before settling:
+No active steel thread. One field smoke worth running:
 
-1. **Field-side `/in-whiteboard` exercise.** Lamplight has a populated `intent/whiteboard/` with `control.md` and `ia-ux.md` streams. Next `/in-session` in Lamplight should auto-fire `pickup`. If the chain doesn't fire, the running session predates the canon sync — `/compact` and retry.
-2. **Fleet pickup smoke.** Pick one downstream project (eg Conflab) and run `intent upgrade`. Confirm the "Ensuring in-whiteboard skill is installed..." line appears and `~/.claude/skills/in-whiteboard/SKILL.md` lands.
-3. **Negative smoke**: a project without `intent/whiteboard/` should see zero behaviour change from `/in-session` / `/in-finish` (chain step skips silently).
+1. **Concurrent-session acceptance test (Lamplight).** After `intent upgrade` on Lamplight, open 2+ Claude Code sessions, run `/in-session` in each, then a non-slash prompt in both — neither should be gated. Direct acceptance test for the v2.11.8 bug. (Already-running sessions need `/compact` or restart to pick up the new hook scripts.)
 
 Optional follow-on, in order of return:
 
-1. **`intent claude upgrade` Phase-2 CLAUDE.md substitution audit.** Regex sweep rewrites historical migration dates. Worked around manually in v2.11.5; needs a real fix before the next minor.
-2. **`lib/templates/usr/_user_guide.md`.** Orphan template, not STP-tainted but still cruft. Delete or repurpose.
-3. **`/in-review` Elixir fleet sweep** — still parked.
-4. **Conflab pre-existing test findings** (`IN-EX-TEST-001` / `005` / `007`) — still parked; Conflab backlog.
-5. **Deferred v2.11.x backlog**: Homebrew tap; `scripts/release` v2 polish; `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft (v2.11.7 is the seventh dogfood datapoint).
-6. **ST0040 deferred items** (intentional out-of-scope per ST0040 design.md): `intent st new` ST-ID allocation race; `intent whiteboard init` CLI; `PreToolUse` hook for claim-scope; `intent/.config/whiteboard.json` per-project config. Each revisited only if the v0 advisory model shows brittleness in field use.
+1. **Skill-sync script-change blind spot** (new this session). Key the sync checksum on the whole skill dir (or hash `scripts/`), not just `SKILL.md`. Cheap fix; prevents silent script drift on future hotfixes.
+2. **`intent claude upgrade` Phase-2 CLAUDE.md substitution audit.** Regex sweep rewrites historical migration dates. Worked around manually in v2.11.5; needs a real fix before the next minor.
+3. **`lib/templates/usr/_user_guide.md`.** Orphan template, not STP-tainted but still cruft. Delete or repurpose.
+4. **`/in-review` Elixir fleet sweep** — still parked.
+5. **Conflab pre-existing test findings** (`IN-EX-TEST-001` / `005` / `007`) — still parked; Conflab backlog.
+6. **Deferred v2.11.x backlog**: Homebrew tap; `scripts/release` v2 polish; `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft.
+7. **ST0040 deferred items** (intentional out-of-scope per ST0040 design.md): `intent st new` ST-ID allocation race; `intent whiteboard init` CLI; `PreToolUse` hook for claim-scope; `intent/.config/whiteboard.json` per-project config. Each revisited only if the v0 advisory model shows brittleness in field use.
 
 ## Lessons from this session (top three)
 
-- **A skill arriving from a parallel session is a multi-surface integration job.** Dropping `SKILL.md` into canon is the headline change, but the work to make it land in the formal release is broader: upgrade-path auto-install, companion-skill chain edits propagated via `intent claude skills sync`, test enumeration update, regression test for the upgrade flow, docs section anchor, CHANGELOG entry, ST status flip. Each touchpoint is small; missing any one is a silent gap.
+- **Asymmetric sources of truth deadlock; one source self-heals.** The gate read identity from the payload, the releaser from a shared file — two paths that disagreed under concurrency. The fix was collapsing both onto one source (`$CLAUDE_CODE_SESSION_ID`) that degrades symmetrically, not patching the releaser's file. When two cooperating processes must agree on a key, give them the same source.
 
-- **Opt-in-by-presence is the right default for protocol additions.** ST0040's `if [ -d intent/whiteboard ]` guard in the chained skill prose means projects that don't want multi-session coordination see zero behaviour change. This made it possible to ship as a patch rather than a minor — the surface area is additive and self-gated. Worth replicating for future protocol additions where adoption is per-project.
+- **Verify the environment empirically before designing the fix.** The fix hinged on whether Bash tool invocations see `$CLAUDE_CODE_SESSION_ID`. One `env | grep` confirmed it; a second check proved it equalled the gate's payload id. That turned three candidate fix directions into one obvious choice.
 
-- **Cross-project skills can cross-pollinate cheaply.** LLMsend (cross-project messaging via tmux send-keys + kitty CSI u) and in-whiteboard (intra-project file-based coordination) solve different problems on different axes, but the small conventions (`Re:` reply threading, `FYI only` marker) transfer cleanly. Worth surfacing as docs cross-references when adjacent protocols exist; not worth borrowing wholesale when the dependency footprint differs (tmux/kitty vs file-only).
+- **Skill propagation has a script-only blind spot.** `intent claude skills sync` keys on `SKILL.md` checksum, so editing only a `scripts/` file silently fails to propagate. We got lucky (SKILL.md also changed); a pure script hotfix would have shipped to canon and never reached `~/.claude` or the fleet without `--force`.
 
 ## Session conventions (carry forward)
 
