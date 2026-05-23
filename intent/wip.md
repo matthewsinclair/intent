@@ -1,11 +1,17 @@
 ---
-verblock: "21 May 2026:v0.73: matts - v2.11.8 cut (concurrent-session gate deadlock fix)"
-intent_version: 2.11.8
+verblock: "23 May 2026:v0.74: matts - v2.11.9 cut (in-whiteboard archive subcommand)"
+intent_version: 2.11.9
 ---
 
 # Work In Progress
 
 ## Current State
+
+**v2.11.9 shipped 2026-05-23.** Additive patch extending the `/in-whiteboard` skill with an `archive` subcommand. It rolls DONE/superseded whiteboard content older than 2 days out of the live stream files (reloaded on every `pickup`, and otherwise growing without bound) into weekly, Monday-anchored `history/<YYYYMMDD>.<file>` buckets keyed by the ISO week of the archived content. Judgment-guided, not a blind date filter: frontmatter, the current RESUME/STATUS block, standing reference, and any still-open item stay regardless of age; resolved asks, superseded blocks, and absorbed decisions move. Concurrency-safe: archive only your own stream file, or sweep all streams when peers are paused, always via explicit pathspec. Field-tested by hand in Lamplight first (1128 → 465 lines) before the procedure was encoded into canon. Opt-in by directory presence like the rest of the protocol.
+
+Upgrade-path check during this session: a 2.11.x project running `intent upgrade` does NOT short-circuit (an earlier worry) — `needs_v2_migration`'s catch-all forces every modern project through the idempotent migration dispatcher, which reaches `propagate_canon_skills` (in-whiteboard install + skills sync). Because this release changes `in-whiteboard`'s `SKILL.md`, the checksum-on-SKILL.md sync propagates `archive` to the fleet automatically on `intent upgrade`. No upgrade-mechanism change was needed.
+
+Shipped: feature commit `728a27e`, release commit `31d5529` (release: v2.11.9). Pushed to both remotes; release at <https://github.com/matthewsinclair/intent/releases/tag/v2.11.9>. Intent self-upgraded 2.11.8 -> 2.11.9 (`~/.claude` mirror now carries `archive`).
 
 **v2.11.8 shipped 2026-05-21.** Patch fixing a multi-session deadlock in the `/in-session` UserPromptSubmit gate. With two or more Claude Code sessions open against the same Intent project, the gate blocked every prompt and `/in-session` never released it — the user had to manually `touch` the expected sentinel on every turn. The cause was an asymmetric source of truth for session identity: the gate (`require-in-session.sh`) read the real `session_id` from its hook payload; the releaser (`release-gate.sh`) had no payload and read the id from a shared per-project state file written by `SessionStart` (`session-context.sh`), which concurrent sessions stomped. The releaser touched the wrong sentinel and the gate's real-id sentinel never appeared.
 
@@ -38,6 +44,7 @@ No active steel thread. Optional follow-on, in order of return:
 
 ## Recent
 
+- **2026-05-23**: v2.11.9 cut. `/in-whiteboard archive` subcommand — weekly Monday-anchored `history/<YYYYMMDD>.<file>` buckets keep live whiteboard files lean. Judgment-guided, concurrency-safe. Field-tested in Lamplight first. Confirmed the 2.11.x `intent upgrade` path already propagates SKILL.md changes (no short-circuit); no upgrade-mechanism change needed.
 - **2026-05-21**: v2.11.8 cut. Concurrent-session `/in-session` gate deadlock fix. Both gate and releaser now resolve session identity from the single env var `$CLAUDE_CODE_SESSION_ID`; the shared per-project state file (the corruption source) removed. Surfaced + fixed from a Lamplight bug report. Shipped as patch (shipped-as-broken defect).
 - **2026-05-18**: v2.11.7 cut. Multi-session coordination protocol (ST0040): new `/in-whiteboard` skill, chain integration into `/in-session` and `/in-finish`, auto-install in `intent upgrade`, new docs section, `Re:` / `FYI only` conventions cross-pollinated from the LLMsend protocol. ST0040 marked Completed.
 - **2026-05-15**: v2.11.6 cut. Single new Lua coding rule (IN-LU-CODE-006 dispatch-table-over-if-chain) surfaced during Lamplight ST0163 WP-04. Shipped as patch at user direction.
