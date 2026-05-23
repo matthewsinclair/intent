@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.11.9] - in progress
+## [2.11.9] - 2026-05-23
 
 Additive patch extending the `/in-whiteboard` skill with an `archive` subcommand. Field-tested by hand in Lamplight first (whose per-stream files had grown into append-only logs spanning ~a week and were costing real tokens on every `pickup`), then encoded into canon so the procedure is repeatable across all Intent projects. Opt-in by directory presence like the rest of the whiteboard protocol — projects without `intent/whiteboard/` see zero behaviour change.
 
