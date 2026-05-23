@@ -334,9 +334,12 @@ intent/whiteboard/
   asks.md           # shared; append-only; cross-stream handoffs
   <platform>.md     # shared; append-only; shared-platform-layer edit channel
   scratch.md        # ephemera; no protocol
+  history/          # weekly archive buckets: <YYYYMMDD>.<file> (Monday-anchored)
 ```
 
 Each stream owns one file. The `<platform>.md` filename is project-specific — `lamplight.md` in the Lamplight project (where the shared platform layer is `apps/lamplight/**`), or `core.md` / `shared.md` / whatever maps to the project's own shared-platform convention.
+
+The live stream files are reloaded on every `pickup`, so they are kept lean. `/in-whiteboard archive` rolls DONE/superseded content older than 2 days out of the live files into `history/<YYYYMMDD>.<file>` buckets keyed by the Monday of the archived content's ISO week. It is judgment-guided (an old-but-open ask stays; a recent-but-superseded block can go), append-only, and never reloaded on `pickup` — git history remains the ultimate trace.
 
 ### Stream identity
 

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.9] - in progress
+
+Additive patch extending the `/in-whiteboard` skill with an `archive` subcommand. Field-tested by hand in Lamplight first (whose per-stream files had grown into append-only logs spanning ~a week and were costing real tokens on every `pickup`), then encoded into canon so the procedure is repeatable across all Intent projects. Opt-in by directory presence like the rest of the whiteboard protocol — projects without `intent/whiteboard/` see zero behaviour change.
+
+### Added
+
+- **`/in-whiteboard archive [as-of <YYYY-MM-DD>]`.** Rolls DONE/superseded content older than 2 days out of the live whiteboard files (`<stream>.md` + `asks.md` + the shared `<platform>.md`; never `README.md` or live ledgers) into weekly, Monday-anchored `history/<YYYYMMDD>.<file>` buckets keyed by the ISO week of the archived **content**, not the run date — so one run can append to several weekly buckets. It is judgment-guided, not a blind date filter: frontmatter, the current RESUME/STATUS block, standing reference, and any still-open item stay regardless of age; resolved asks, superseded status blocks, and absorbed decisions move. A one-line `> **[archived]** ...` pointer is left where content was removed. Concurrency-safe by construction: archive only your own stream file, or sweep all streams when peers are paused, and always commit via an explicit pathspec. History buckets are append-only and never reloaded on `pickup`; git history remains the ultimate trace.
+
 ## [2.11.8] - 2026-05-21
 
 Patch fixing a multi-session deadlock in the `/in-session` UserPromptSubmit gate. With two or more Claude Code sessions open against the **same** Intent project, the gate blocked every prompt and `/in-session` never released it — the user was forced to manually `touch` the expected sentinel on every turn. Lamplight, which runs concurrent streams in one project, hit this constantly.

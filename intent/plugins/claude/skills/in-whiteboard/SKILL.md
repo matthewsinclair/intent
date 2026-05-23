@@ -18,6 +18,7 @@ Coordinator for multiple Claude Code sessions running concurrently against one I
 - `lamplight <text>` -- before touching `apps/lamplight/**` (shared platform layer).
 - `release` -- chained from `/in-finish`; sets `status: paused`.
 - `status` -- read-only summary of all streams.
+- `archive [as-of <YYYY-MM-DD>]` -- roll DONE/superseded content older than 2 days into weekly history buckets (`history/<Monday>.<file>`) so the live files stay small.
 
 If invoked with no subcommand, default to `status`.
 
@@ -29,6 +30,7 @@ intent/whiteboard/
   <stream>.md       # one per stream (eg control.md, ia-ux.md)
   asks.md           # shared; point-to-point cross-stream handoffs
   lamplight.md      # shared; apps/lamplight/** edit channel
+  history/          # weekly archive buckets: <YYYYMMDD>.<file> (Monday-anchored)
 ```
 
 ## Stream file shape
@@ -152,6 +154,23 @@ Header conventions (optional, layered on top of the required `to:` / `from:` lin
 1. Read every `intent/whiteboard/*.md` (stream files only; not README).
 2. Print one line per stream: `<stream>: <status>, focus=<focus>, claims=[STxxxx, ...], heartbeat=<relative time>`. No writes.
 
+### archive [as-of <YYYY-MM-DD>]
+
+Roll DONE / superseded content out of the live whiteboard files into weekly history buckets, so the live files stay small (they are reloaded every `pickup`, and they grow without bound otherwise). This is judgment-guided, NOT a blind date filter -- like a critic, you read each entry and decide what is genuinely done.
+
+1. Ensure `intent/whiteboard/history/` exists.
+2. Set the cutoff = today minus 2 days (or the `as-of` date if given). Content DONE on or before the cutoff is archive-eligible; content after it stays live.
+3. For each live file -- the stream files + `asks.md` + `lamplight.md` (NOT `README.md`, NOT live ledgers like `cookies.md`):
+   - **KEEP regardless of date:** frontmatter; the current RESUME POINT / STATUS block; standing reference (operating mode, `## Watch-outs`, conventions); any still-OPEN item (an unanswered ask, a live TODO).
+   - **ARCHIVE (dated on/before the cutoff AND done):** resolved or absorbed ask threads, superseded RESUME / STATUS blocks, closed-ST reference, absorbed decisions, old edit notices.
+   - For each archived entry, compute the Monday of the ISO week its date falls in (`YYYYMMDD`) and append it **verbatim** to `intent/whiteboard/history/<YYYYMMDD>.<file>` (create it with a one-line header if new). The bucket is keyed by the archived CONTENT's week, not the day you run `archive`, so one run can write several weekly buckets.
+   - Remove the archived entries from the live file and leave a one-line pointer where they were:
+     `> **[archived]** Older entries (DONE on/before <cutoff>) are in history/<YYYYMMDD>.<file>. See intent/whiteboard/history/ for prior weeks.`
+4. `prettier --write` the touched files if the project formats markdown.
+5. Report per-file line reduction + the buckets written.
+
+**Concurrency (critical -- these are shared files):** do NOT archive a peer's stream file or the shared `asks.md` / `lamplight.md` while that peer is ACTIVE (fresh heartbeat, different `current_session_id`) -- you will collide on the shared working tree / git index. Either the user pauses the other streams for a clean atomic sweep, or archive ONLY your own stream file. Always commit via an explicit pathspec (`git commit --only <paths>`), never a bare commit.
+
 ## Protocol invariants
 
 1. The whiteboard is the _live_ coordination channel. `wip.md` is the post-session snapshot. Different tense, different reader.
@@ -160,6 +179,7 @@ Header conventions (optional, layered on top of the required `to:` / `from:` lin
 4. ST-ID collisions are an `intent st new` race (max+1 with no lock), not solvable here. Surface the collision when noticed; let the user arbitrate.
 5. Heartbeat older than 7 days marks a claim reclaimable -- reclaim requires explicit user acknowledgement.
 6. `/compact` does NOT end the session; status stays `active` across `/compact`. The next `/in-session` (auto-firing in the new context) calls `pickup` which touches the heartbeat.
+7. History buckets (`history/<YYYYMMDD>.<file>`) are Monday-anchored by the ISO week of the archived CONTENT's date, append-only, and never reloaded on `pickup`. `archive` moves verbatim DONE content there to keep live files lean (frontmatter + current + standing sections + a pointer); git history remains the ultimate trace.
 
 ## Why this exists
 
@@ -167,10 +187,12 @@ Concurrent sessions need a live coordination surface. `wip.md` works for post-se
 
 ## Red Flags
 
-| Rationalisation                                                  | Reality                                                                              |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| "Only one session active right now -- coordination is overhead"  | The whiteboard is also a journal for future-you. Write it.                           |
-| "I'll edit `apps/lamplight` without noting it in `lamplight.md`" | The other stream may be editing the same files. One-line ask is cheap insurance.     |
-| "/compact ends the session, so I'll set `status: paused`"        | No. `/compact` is transparent. Status stays active; `/in-session` re-fires `pickup`. |
-| "I'll glob-claim `apps/control/**` to be safe"                   | Claims are by ST only. Globs drift; STs are the user's mental model.                 |
-| "The other stream's claim is stale; I'll just steal it"          | Reclaim requires explicit user acknowledgement. Don't silently overwrite.            |
+| Rationalisation                                                  | Reality                                                                                                         |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| "Only one session active right now -- coordination is overhead"  | The whiteboard is also a journal for future-you. Write it.                                                      |
+| "I'll edit `apps/lamplight` without noting it in `lamplight.md`" | The other stream may be editing the same files. One-line ask is cheap insurance.                                |
+| "/compact ends the session, so I'll set `status: paused`"        | No. `/compact` is transparent. Status stays active; `/in-session` re-fires `pickup`.                            |
+| "I'll glob-claim `apps/control/**` to be safe"                   | Claims are by ST only. Globs drift; STs are the user's mental model.                                            |
+| "The other stream's claim is stale; I'll just steal it"          | Reclaim requires explicit user acknowledgement. Don't silently overwrite.                                       |
+| "I'll `archive` the other stream's file too while I'm here"      | Only if that stream is paused (or the user said so). Archiving a live peer's file collides on the shared index. |
+| "`archive` is just a date filter, I'll script it"                | It's judgment-guided: an old-but-OPEN ask stays; a recent-but-superseded block can go. Read each entry.         |
