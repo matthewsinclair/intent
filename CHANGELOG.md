@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.11.10] - in progress
+## [2.11.10] - 2026-05-28
 
 Additive patch extending the `/in-whiteboard` skill with a stream-role vocabulary and an optional handle. Both are field-proven in Lamplight and generalised here so every Intent project inherits them. Opt-in like the rest of the protocol -- a project that declares no Verifier and uses no handles sees zero behaviour change.
 
