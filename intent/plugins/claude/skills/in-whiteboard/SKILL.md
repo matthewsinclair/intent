@@ -40,6 +40,7 @@ YAML frontmatter (machine-readable) + markdown body (human-readable):
 ```yaml
 ---
 stream_id: <slug>
+handle: <short> # optional shorthand for terse asks-routing, eg CC, VC, IC
 current_session_id: <UUID or "none">
 session_started_at: <ISO 8601>
 heartbeat_at: <ISO 8601>
@@ -60,7 +61,7 @@ recent_memory_writes: [<memory_slug>, ...]
 - <pickup hint>
 ```
 
-Body sections are advisory; only the frontmatter is required for protocol compliance.
+Body sections are advisory; only the frontmatter is required for protocol compliance. `handle:` is optional and additive -- `stream_id` stays the routing key, so adding handles never breaks `pickup` or `asks`.
 
 ## Stream-identity discovery
 
@@ -171,6 +172,33 @@ Roll DONE / superseded content out of the live whiteboard files into weekly hist
 
 **Concurrency (critical -- these are shared files):** do NOT archive a peer's stream file or the shared `asks.md` / `lamplight.md` while that peer is ACTIVE (fresh heartbeat, different `current_session_id`) -- you will collide on the shared working tree / git index. Either the user pauses the other streams for a clean atomic sweep, or archive ONLY your own stream file. Always commit via an explicit pathspec (`git commit --only <paths>`), never a bare commit.
 
+## Stream roles
+
+Streams are **per-project configuration**. A project declares its own streams and handles in its hand-authored `intent/whiteboard/README.md` -- any number of streams, any handles that make sense for that project. There is no roster baked into this skill. `stream_id` remains the routing key; `handle:` is shorthand only.
+
+**Recommended baseline operating model.** For a project that adopts the whiteboard, the normal shape is two streams: one **Control** stream doing the heavy lifting, and one **Verifier** stream providing the independent check. Additional streams are project-specific -- Lamplight, for instance, runs Control / Verifier / Interface with handles `CC` / `VC` / `IC`, but that is _Lamplight's config_, shown here only as illustration. The baseline is a recommendation, not a requirement: a project may run peer-only or with any roster it likes.
+
+### Verifier (optional)
+
+A Verifier stream is the independent check that the other streams' landed or claimed work is **correct, complete, consistent, and faithful to what the user asked**. If the project keeps a documentation stream, documentation becomes the _byproduct_ of verification -- you cannot faithfully document a system that does not do what it claims. The Verifier has **advisory authority only**: it posts findings, the user adjudicates, the owning stream fixes. A Verifier never mutates another stream's code and never blocks its progress.
+
+**Sources -- the triangle.** The Verifier checks three things against each other rather than trusting any one:
+
+- **Ask** -- what the user actually asked: the target stream's Claude Code session transcript at `~/.claude/projects/<project-dir>/<current_session_id>.jsonl` (`current_session_id` is in that stream's whiteboard frontmatter; re-resolve it each audit, since it rotates on the peer's `/compact` or restart). Read it _targeted_ -- tail, grep, or a sub-agent sweep -- never whole; transcripts are large.
+- **Plan** -- the stream's plan file at `~/.claude/plans/<name>.md` (streams usually cite the name in `focus:`).
+- **Reality** -- the whiteboard + `intent/st/**` + the code + the tests.
+
+**Method.**
+
+- **Fire on claim.** Audit when a stream claims _done / closed / frozen / green_, at WP/ST close, or on the user's request -- not continuously, and not on in-flight edits (a half-written tree yields noise). A "done" claim is the trigger; a frozen-but-wrong artifact gets unfrozen and fixed, never worked around.
+- **Read the as-built, never the narrative.** Evidence is `file:line` from a real read. No invented line numbers; no "certainly" without having read the code.
+- **Classify every finding** -- expected-vs-real (queued-but-unbuilt vs falls-between-the-cracks), severity, and evidence. The expected-vs-real split is what keeps findings high-signal.
+- **Self-refute high-severity findings first.** Try to _kill_ your own finding (did I miss where this already lives? is it a partial, not a contradiction?) before posting. A finding that survives your own attack is worth raising.
+- **Advisory output.** Findings go to `asks.md` (plus an optional ledger in the Verifier's own stream file). A high-severity _compounding_ risk -- a false "done" the next unit of work would build on -- escalates to the user directly rather than waiting in the queue. Never mutate another stream's code.
+- **Audit your own coverage.** State what you checked AND what you did not. No silent caps; the auditor stays auditable.
+
+The Verifier is a _role a stream adopts_, not a subcommand. A project enables it by designating one stream as Verifier in that project's `whiteboard/README.md`. A `verify <stream>` subcommand that runs a pass on demand is possible future work, not part of this version.
+
 ## Protocol invariants
 
 1. The whiteboard is the _live_ coordination channel. `wip.md` is the post-session snapshot. Different tense, different reader.
@@ -196,3 +224,4 @@ Concurrent sessions need a live coordination surface. `wip.md` works for post-se
 | "The other stream's claim is stale; I'll just steal it"          | Reclaim requires explicit user acknowledgement. Don't silently overwrite.                                       |
 | "I'll `archive` the other stream's file too while I'm here"      | Only if that stream is paused (or the user said so). Archiving a live peer's file collides on the shared index. |
 | "`archive` is just a date filter, I'll script it"                | It's judgment-guided: an old-but-OPEN ask stays; a recent-but-superseded block can go. Read each entry.         |
+| "The stream said it's done, so it's done."                       | A "done" claim is the _trigger_ to verify, not the verdict. Read the as-built against the ask.                  |

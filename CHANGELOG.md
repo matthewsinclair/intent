@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.10] - in progress
+
+Additive patch extending the `/in-whiteboard` skill with a stream-role vocabulary and an optional handle. Both are field-proven in Lamplight and generalised here so every Intent project inherits them. Opt-in like the rest of the protocol -- a project that declares no Verifier and uses no handles sees zero behaviour change.
+
+### Added
+
+- **Verifier stream role.** A new `## Stream roles` section documents an optional, advisory-only Verifier stream: the independent check that another stream's claimed/landed work is correct, complete, consistent, and faithful to what the user asked. It triangulates the _ask_ (the peer's Claude Code session transcript), the _plan_ (`~/.claude/plans/*.md`), and _reality_ (the whiteboard + `intent/st/**` + the code + the tests); fires on a "done" claim rather than continuously; reads the as-built with `file:line` evidence; classifies findings expected-vs-real; self-refutes high-severity findings before posting; and outputs to `asks.md` with direct escalation for a compounding false-"done". The Verifier never mutates another stream's code and never blocks its progress -- the user adjudicates, the owning stream fixes. It is a role a stream adopts, designated in the project's `whiteboard/README.md`, not a subcommand.
+- **Recommended baseline operating model.** Streams and handles are per-project configuration declared in the project's own `whiteboard/README.md` -- any number of streams, any handles. The skill now recommends a baseline shape of one Control stream (heavy lifting) plus one Verifier stream (the independent check), with additional streams project-specific. The baseline is a recommendation, not a requirement; peer-only and other rosters remain valid.
+- **Optional `handle:` stream-frontmatter field.** Short shorthand for terse asks-routing (eg `CC`, `VC`, `IC`). Additive: `stream_id` remains the routing key, so adding handles never breaks `pickup` or `asks`.
+
 ## [2.11.9] - 2026-05-23
 
 Additive patch extending the `/in-whiteboard` skill with an `archive` subcommand. Field-tested by hand in Lamplight first (whose per-stream files had grown into append-only logs spanning ~a week and were costing real tokens on every `pickup`), then encoded into canon so the procedure is repeatable across all Intent projects. Opt-in by directory presence like the rest of the whiteboard protocol — projects without `intent/whiteboard/` see zero behaviour change.
