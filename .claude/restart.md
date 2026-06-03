@@ -3,12 +3,12 @@
 ## First actions after `/compact` or new session
 
 1. **Invoke `/in-session`.** Reads restart files + CLAUDE.md + MODULES.md, surveys steel threads, loads `/in-essentials` and `/in-standards`, releases the UserPromptSubmit gate. As of v2.11.7, also chains to `/in-whiteboard pickup` if `intent/whiteboard/` exists.
-2. **Verify the working tree.** If `scripts/release --patch` has been run, `git log --oneline -5` should show the `v2.11.11` self-upgrade stamp then `release: v2.11.11` then the rules-path-fix feature commit at the top, and `git status` is clean. If the release has NOT been run yet, the working tree is dirty with the staged v2.11.11 change (generator + templates + 5 critic agent.md + `bin/intent_upgrade` + 4 test files + CHANGELOG/wip/restart) — finish by running the release interactively.
+2. **Verify the working tree.** v2.11.11 is shipped: tag `v2.11.11` at `7531306`, `main` pushed to both remotes at `a7fca3f "Intent upgrade"`, with a trailing `docs: finalise wip/restart for v2.11.11` commit on top. `git status` clean. Nothing to release.
 3. **Read `intent/wip.md` and `intent/restart.md`.** The wip "Current State" line is the operative status; `intent/restart.md` carries the full narrative; this file's "Resume target" says what to do next.
 
-## State (2026-06-03, end of session -- v2.11.11 cut)
+## State (2026-06-03, end of session -- v2.11.11 shipped)
 
-v2.11.11 fixes rules-path drift in the LLM guidance Intent generates for consuming projects. Found in Baize ST0001 WP-04 (handoff `../Baize/intent/handoff-intent-rules-path.md`, deleted this session per its own acceptance criterion). Affects every project that uses Intent with LLMs. Patch, no steel thread. Release staged for the user to run interactively.
+v2.11.11 fixes rules-path drift in the LLM guidance Intent generates for consuming projects. Found in Baize ST0001 WP-04 (handoff `../Baize/intent/handoff-intent-rules-path.md`, deleted this session per its own acceptance criterion). Affects every project that uses Intent with LLMs. Patch, no steel thread. **Shipped:** tag `v2.11.11` (`7531306`) pushed to both remotes; self-upgrade `a7fca3f`. The release was cut concurrently with the fix, so its commits carry non-standard messages ("Commit for release" / "Intent upgrade") — the tagged release was verified to contain the full change set. See `intent/restart.md` for the mechanics note.
 
 **The bug:** generated `AGENTS.md` (via `intent agents sync`), `CLAUDE.md` (from `lib/templates/llm/_CLAUDE.md`), and the five `critic-<lang>` subagents told agents the rule library lives at a local `intent/plugins/claude/rules/` path. That directory exists only inside the Intent tool; in a consuming project the rules are reachable solely via the CLI (`intent claude rules list` / `show`). A field `critic-elixir` run missed the local dir and fell back with a confusing "rule library not installed" diagnostic.
 
@@ -24,7 +24,7 @@ v2.11.11 fixes rules-path drift in the LLM guidance Intent generates for consumi
 
 ## Resume target -- next session
 
-First, run `scripts/release --patch` interactively to commit/tag/push/release v2.11.11 + self-upgrade. The Baize handoff deletion is an uncommitted change in the Baize repo — commit it there separately. Then, optional follow-on:
+v2.11.11 is shipped (tag pushed both remotes); nothing to release. Housekeeping: the Baize handoff deletion is an uncommitted change in the Baize repo — commit it there separately. Then, optional follow-on:
 
 1. **Skill-level rules-path drift** (sibling of this fix, deferred). `/in-session` + `/in-standards` SKILL.md tables still point at `intent/plugins/claude/rules/<lang>/`. Swap to the CLI; update `tests/unit/in_session_skill.bats:70-73`.
 2. **`/in-whiteboard verify <stream>` subcommand** (deferred from v2.11.10). Revisit if the advisory Verifier role wants automation.

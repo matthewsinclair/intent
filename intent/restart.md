@@ -1,8 +1,8 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-06-03, end of session -- v2.11.11 cut)
+## Current state (2026-06-03, end of session -- v2.11.11 shipped)
 
-**v2.11.11 cut 2026-06-03.** Patch fixing rules-path drift in the LLM guidance Intent generates for consuming projects. Found in Baize ST0001 WP-04 and reported as a handoff (`../Baize/intent/handoff-intent-rules-path.md`, deleted this session per its own acceptance criterion). Affects every project that uses Intent with LLMs. Staged for `scripts/release --patch`, handed to the user to run interactively.
+**v2.11.11 shipped 2026-06-03.** Patch fixing rules-path drift in the LLM guidance Intent generates for consuming projects. Found in Baize ST0001 WP-04 and reported as a handoff (`../Baize/intent/handoff-intent-rules-path.md`, deleted this session per its own acceptance criterion). Affects every project that uses Intent with LLMs. Shipped: tag `v2.11.11` (commit `7531306`) pushed to both remotes, self-upgrade stamp `a7fca3f`.
 
 ### The bug
 
@@ -24,11 +24,13 @@ Generated `AGENTS.md` (via `intent agents sync`) and `CLAUDE.md` (from `lib/temp
 
 New regression tests (suite green, run via `tests/run_tests.sh`): `tests/unit/claude_md_template.bats` (template routes through the CLI, no local path), `tests/unit/intent_agents.bats` (generated `AGENTS.md` Rule Library likewise), `tests/unit/intent_upgrade_dispatcher.bats` (upgrade wires + narrates the subagent sync). One existing assertion flipped from "contains the path" to "contains the CLI" in `claude_md_template.bats`; two `_default`-template markers in `intent_claude_upgrade.bats` re-keyed to the new CLI string. Live-verified end-to-end: a real `critic-elixir` run against a Baize file enumerated the agnostic + Elixir rule packs via the CLI with no fallback warning; `intent claude rules list --lang elixir` works from Baize's root; the synced `~/.claude/agents/critic-elixir.md` carries the CLI instructions with zero local-path references.
 
-No steel thread (shipped-as-broken guidance fix, patch). No data migration. Commits not yet made — the working tree holds the staged change for the user's `scripts/release --patch`.
+No steel thread (shipped-as-broken guidance fix, patch). No data migration.
+
+Release-mechanics note: the release was cut concurrently while this fix was being finished, so the commit messages are non-standard for this repo. The fix landed as `7baca20 "Commit for release"` (not a conventional `fix:` commit), then `9cee9a4` (steel_threads.md), then `7531306 "release: v2.11.11"` (VERSION + AGENTS bump, tagged), then `a7fca3f "Intent upgrade"` (self-upgrade). Verified the tagged release contains the complete change set (all five critic CLI swaps, generator, templates, `intent_upgrade` subagent-sync, regression tests). Nothing to re-run. A trailing `docs: finalise wip/restart for v2.11.11` commit (this doc update) sits on top.
 
 ## Resume target -- next session
 
-First, finish the release: run `scripts/release --patch` interactively (it will commit, tag `v2.11.11`, push both remotes, cut the GitHub release, and self-upgrade Intent 2.11.10 -> 2.11.11). The Baize handoff deletion is an uncommitted change in the Baize repo — commit it there separately. Then, optional follow-on in order of return:
+v2.11.11 is shipped (tag pushed both remotes); nothing to release. One housekeeping item: the Baize handoff deletion is an uncommitted change in the Baize repo — commit it there separately. Then, optional follow-on in order of return:
 
 1. **Skill-level rules-path drift** (sibling of this fix, deferred). `/in-session` + `/in-standards` SKILL.md tables still point at `intent/plugins/claude/rules/<lang>/`. Swap to the CLI; update `tests/unit/in_session_skill.bats:70-73`.
 2. **`/in-whiteboard verify <stream>` subcommand** (deferred from v2.11.10). Heavier than the Verifier role section warrants today; revisit if the advisory role proves it wants automation.
