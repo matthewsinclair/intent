@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.11] - 2026-06-03
+
+Patch fixing rules-path drift in the LLM guidance Intent generates for consuming projects. The generated `AGENTS.md` (via `intent agents sync`) and `CLAUDE.md` (from `lib/templates/llm/_CLAUDE.md`), plus the `critic-<lang>` subagents, told agents the coding-rule library lives at a local `intent/plugins/claude/rules/` path. That directory exists only inside the Intent tool itself; in a consuming project the rules are reachable solely through the CLI (`intent claude rules list` / `show`). A field `critic-elixir` run looked for the local directory, failed to find it, and fell back with a confusing "rule library not installed at the expected path" diagnostic, reviewing at reduced fidelity.
+
+### Fixed
+
+- **Generated guidance points at the CLI, not a local directory.** The `intent agents sync` generator, the `_CLAUDE.md` / `_usage-rules.md` templates, and the `_default` / per-language `AGENTS.md` + `RULES.md` agent templates now describe rule access as served by the installed Intent tool via `intent claude rules list` / `show <id>`, with no reference to a local rules directory that does not exist in consumers.
+- **`critic-<lang>` subagents resolve rules through the CLI.** All five critics (`elixir`, `rust`, `swift`, `lua`, `shell`) now enumerate via `intent claude rules list` and read each rule with `intent claude rules show <id>`, partitioning code-vs-test mode by the `category` column. The CLI already merges canon and `~/.intent/ext/` rules with provenance and id-shadowing, so the per-critic extension-merge step was removed (one enumeration path, per Highlander). The `elixir-test-critic` upstream probe, which sits outside the CLI's reach, is retained.
+
+### Changed
+
+- **`intent upgrade` re-syncs installed subagents.** The upgrade path now runs `intent claude subagents sync` alongside the existing skills sync (failure-tolerant, no `--force`), so the corrected critics reach every machine's `~/.claude/agents/` mirror on the next upgrade rather than requiring a manual sync.
+
 ## [2.11.10] - 2026-05-28
 
 Additive patch extending the `/in-whiteboard` skill with a stream-role vocabulary and an optional handle. Both are field-proven in Lamplight and generalised here so every Intent project inherits them. Opt-in like the rest of the protocol -- a project that declares no Verifier and uses no handles sees zero behaviour change.

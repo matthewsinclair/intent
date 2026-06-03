@@ -79,7 +79,7 @@ Headless runner `bin/intent_critic` powers the pre-commit gate. Contract: `inten
 
 ## Rule Library
 
-All coding rules live in `intent/plugins/claude/rules/`. Elixir rules at `intent/plugins/claude/rules/elixir/`.
+The coding-rule library is served by the installed Intent tool, not vendored into this project -- Elixir rules included. Access via the CLI:
 
 ```bash
 intent claude rules list     # enumerate

@@ -9,7 +9,7 @@ Mandatory shell (bash + zsh) coding rules for this project. Concretises the four
 - **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- top-level scripts parse to call to render; business logic in sourced functions. Concretised by `IN-SH-CODE-003`.
 - **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- always `set -euo pipefail` (or document why not). Check exit codes; never `cmd || true` to suppress failures unless the failure is genuinely benign. Concretised by `IN-SH-CODE-004`.
 
-Full shell rule pack: `intent/plugins/claude/rules/shell/<category>/<slug>/RULE.md`.
+Read the full shell rule pack via the installed Intent tool: `intent claude rules list --lang shell` to enumerate, `intent claude rules show <id>` to read one.
 
 ## NEVER DO
 

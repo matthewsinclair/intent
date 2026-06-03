@@ -3,44 +3,46 @@
 ## First actions after `/compact` or new session
 
 1. **Invoke `/in-session`.** Reads restart files + CLAUDE.md + MODULES.md, surveys steel threads, loads `/in-essentials` and `/in-standards`, releases the UserPromptSubmit gate. As of v2.11.7, also chains to `/in-whiteboard pickup` if `intent/whiteboard/` exists.
-2. **Verify the working tree.** `git status` should be clean. `git log --oneline -5` should show `f0b5ad4 chore: stamp intent_version 2.11.10 (self-upgrade)` then `33339e4 release: v2.11.10` then `2a9b531 feat(in-whiteboard): add Verifier stream role` at the top.
-3. **Read `intent/wip.md` and `intent/restart.md`.** The wip "Current State" line is the operative status; the restart "Resume target" section says what to do next.
+2. **Verify the working tree.** If `scripts/release --patch` has been run, `git log --oneline -5` should show the `v2.11.11` self-upgrade stamp then `release: v2.11.11` then the rules-path-fix feature commit at the top, and `git status` is clean. If the release has NOT been run yet, the working tree is dirty with the staged v2.11.11 change (generator + templates + 5 critic agent.md + `bin/intent_upgrade` + 4 test files + CHANGELOG/wip/restart) — finish by running the release interactively.
+3. **Read `intent/wip.md` and `intent/restart.md`.** The wip "Current State" line is the operative status; `intent/restart.md` carries the full narrative; this file's "Resume target" says what to do next.
 
-## State (2026-05-28, end of session -- v2.11.10 cut)
+## State (2026-06-03, end of session -- v2.11.11 cut)
 
-v2.11.10 shipped today. Additive patch extending the `/in-whiteboard` skill with a stream-role vocabulary, generalised from a self-contained Lamplight cross-project handoff (`whiteboard2.md`, since deleted per its own acceptance criterion).
+v2.11.11 fixes rules-path drift in the LLM guidance Intent generates for consuming projects. Found in Baize ST0001 WP-04 (handoff `../Baize/intent/handoff-intent-rules-path.md`, deleted this session per its own acceptance criterion). Affects every project that uses Intent with LLMs. Patch, no steel thread. Release staged for the user to run interactively.
 
-What landed in `intent/plugins/claude/skills/in-whiteboard/SKILL.md`:
+**The bug:** generated `AGENTS.md` (via `intent agents sync`), `CLAUDE.md` (from `lib/templates/llm/_CLAUDE.md`), and the five `critic-<lang>` subagents told agents the rule library lives at a local `intent/plugins/claude/rules/` path. That directory exists only inside the Intent tool; in a consuming project the rules are reachable solely via the CLI (`intent claude rules list` / `show`). A field `critic-elixir` run missed the local dir and fell back with a confusing "rule library not installed" diagnostic.
 
-- **`## Stream roles` section** (inserted before `## Protocol invariants`) documenting an optional, advisory-only **Verifier** stream: the independent check that another stream's claimed/landed work is correct, complete, consistent, and faithful to the user's ask. It triangulates the _ask_ (the peer's Claude Code session transcript at `~/.claude/projects/<dir>/<session_id>.jsonl`, read targeted not whole), the _plan_ (`~/.claude/plans/*.md`), and _reality_ (whiteboard + `intent/st/**` + code + tests). Fires on a "done" claim, not continuously; reads the as-built with `file:line` evidence; classifies findings expected-vs-real; self-refutes high-severity findings before posting; outputs to `asks.md` with direct escalation for a compounding false-"done"; never mutates another stream's code.
-- **Per-project stream config + recommended baseline.** Streams and handles are declared in the project's own `whiteboard/README.md` — any number, any handles. The skill recommends a **Control + Verifier** baseline (one heavy-lifting stream, one independent check), extra streams project-specific. Lamplight's Control/Verifier/Interface (`CC`/`VC`/`IC`) appears only as illustration, never a canonical roster. Baseline is a recommendation, not a requirement.
-- **Optional `handle:` frontmatter field** for terse asks-routing; `stream_id` stays the routing key, so handles never break `pickup` or `asks`.
-- One Red Flags row: a "done" claim is the _trigger_ to verify, not the verdict.
+**Three surfaces fixed:**
 
-Skill-only, opt-in (a project that declares no Verifier and uses no handles sees zero behaviour change). Shipped as **patch** on those grounds, no steel thread (per the v2.11.9 archive precedent). The change touches `SKILL.md`, so the checksum-on-SKILL.md sync propagates the new section to the fleet automatically on `intent upgrade`. A `verify <stream>` subcommand was considered and deliberately deferred. All 927 tests pass.
+- **Generated guidance → CLI.** `intent/plugins/agents/bin/intent_agents` generator, `lib/templates/llm/{_CLAUDE,_usage-rules}.md`, and agent templates (`templates/_default/{AGENTS,RULES}.md`, `templates/elixir/AGENTS.md`, `templates/{shell,rust,lua,swift}/RULES.md`) now describe rule access via the CLI, no local path. Root `AGENTS.md` regenerated; root `CLAUDE.md:36` hand-matched (avoided `intent claude upgrade --apply` because of its known Phase-2 date-rewrite hazard).
+- **Critics → CLI.** All five `critic-{elixir,rust,swift,lua,shell}/agent.md` enumerate via `intent claude rules list --lang <lang>` and read each rule with `show <id>`, partitioning code-vs-test mode by the `category` column. Per-critic extension-merge section removed (the CLI already merges canon+ext with provenance; Highlander); `elixir-test-critic` upstream probe kept.
+- **Propagation.** `bin/intent_upgrade` now runs `intent claude subagents sync` beside the skills sync, so the corrected critics reach each machine's `~/.claude/agents/` on next `intent upgrade`.
 
-Commits: `2a9b531` feature, `33339e4` release, `f0b5ad4` self-upgrade stamp. Pushed to both remotes; release at <https://github.com/matthewsinclair/intent/releases/tag/v2.11.10>. Intent self-upgraded 2.11.9 -> 2.11.10.
+**Not touched:** `bin/intent_critic` + `rules_lib.sh` (resolve `INTENT_HOME` centrally, already correct); Intent's repo-local contributor docs + root `usage-rules.md` (path is real there, not propagated). **Same-drift follow-up:** `/in-session` + `/in-standards` SKILL.md tables still cite the local path — left out of scope, logged in `wip.md`.
+
+**Verified:** new regression tests across `claude_md_template.bats`, `intent_agents.bats`, `intent_upgrade_dispatcher.bats` (one existing assertion flipped, two `_default` markers re-keyed in `intent_claude_upgrade.bats`); full suite green via `tests/run_tests.sh`. Live: a real `critic-elixir` run against a Baize file enumerated the agnostic + Elixir packs via the CLI with no fallback; the synced `~/.claude/agents/critic-elixir.md` has zero local-path refs.
 
 ## Resume target -- next session
 
-No active steel thread. Optional follow-on, in order of return:
+First, run `scripts/release --patch` interactively to commit/tag/push/release v2.11.11 + self-upgrade. The Baize handoff deletion is an uncommitted change in the Baize repo — commit it there separately. Then, optional follow-on:
 
-1. **`/in-whiteboard verify <stream>` subcommand** (deferred this session). A subcommand running a verification pass on demand; heavier than the role section warrants today. Revisit if the advisory role proves it wants automation.
-2. **Skill-sync script-change blind spot.** `intent claude skills sync` checksums `SKILL.md` only, so a script-only edit under `scripts/` does not propagate without `install --force`. Key the checksum on the whole skill dir (or hash `scripts/`). (Did not bite this release — the change was SKILL.md-only.)
-3. **`intent claude upgrade` Phase-2 CLAUDE.md substitution audit.** Regex sweep rewrites historical migration dates. Worked around manually in v2.11.5; needs a real fix before the next minor.
-4. **`lib/templates/usr/_user_guide.md`.** Orphan template, not STP-tainted but still cruft. Delete or repurpose.
-5. **`/in-review` Elixir fleet sweep** — still parked. Anvil, Lamplight, MeetZaya, MicroGPTEx, Conflab.
-6. **Conflab pre-existing test findings** (`IN-EX-TEST-001` / `005` / `007`) — still parked; Conflab backlog.
-7. **Deferred v2.11.x backlog**: Homebrew tap; `scripts/release` v2 polish; `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft.
-8. **ST0040 deferred items** (intentional out-of-scope per ST0040 design.md): `intent st new` ST-ID allocation race; `intent whiteboard init` CLI; `PreToolUse` hook for claim-scope; `intent/.config/whiteboard.json` per-project config (would let streams/handles be structured config rather than README prose). Each revisited only if the v0 advisory model shows brittleness in field use.
+1. **Skill-level rules-path drift** (sibling of this fix, deferred). `/in-session` + `/in-standards` SKILL.md tables still point at `intent/plugins/claude/rules/<lang>/`. Swap to the CLI; update `tests/unit/in_session_skill.bats:70-73`.
+2. **`/in-whiteboard verify <stream>` subcommand** (deferred from v2.11.10). Revisit if the advisory Verifier role wants automation.
+3. **Skill-sync script-change blind spot.** `intent claude skills sync` checksums `SKILL.md` only; a script-only edit under `scripts/` needs `install --force`. (The subagent-sync wiring added this release is a separate mechanism.)
+4. **`intent claude upgrade` Phase-2 CLAUDE.md substitution audit.** Regex sweep rewrites historical migration dates; worked around again this session. Needs a real fix before the next minor.
+5. **`lib/templates/usr/_user_guide.md`.** Orphan template; delete or repurpose.
+6. **`/in-review` Elixir fleet sweep** — parked. Anvil, Lamplight, MeetZaya, MicroGPTEx, Conflab.
+7. **Conflab pre-existing test findings** (`IN-EX-TEST-001` / `005` / `007`) — parked; Conflab backlog.
+8. **Deferred v2.11.x backlog**: Homebrew tap; `scripts/release` v2 polish; `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft.
+9. **ST0040 deferred items** (per ST0040 design.md): `intent st new` ST-ID race; `intent whiteboard init` CLI; `PreToolUse` claim-scope hook; `intent/.config/whiteboard.json` per-project config. Revisit only if the v0 advisory model proves brittle.
 
 ## Lessons from this session (top three)
 
-- **Generalise a cross-project handoff; don't transplant the donor's specifics.** The Lamplight handoff named its own roster (Control/Verifier/Interface, `CC`/`VC`/`IC`). The upstream job was to lift the _shape_ (an advisory Verifier role, a handle convention) while leaving the donor's particulars as illustration only. The user's steer sharpened this: stream names + handles are per-project config, with a recommended baseline rather than a fixed set.
+- **Fix the generating source, not the artefact.** The drift lived in the agents-sync generator, the LLM templates, and the critic agent.md files — editing root `AGENTS.md`/`CLAUDE.md` alone would have been overwritten on the next sync. The grep-gate after regenerating proved the source fix flowed through.
 
-- **A pasted restart prompt can be stale relative to the repo.** The `.claude/restart.md` handed in for review was two releases behind HEAD (still on v2.11.8; the repo had shipped v2.11.9 and was about to ship v2.11.10). Its git-log verification anchor would have failed. Restart files only refresh if a session actually wraps them up — v2.11.9 updated `wip.md` but not the restart files, and they drifted. Refresh both restart files on every release, not just `wip.md`.
+- **An LLM-guidance bug needs an LLM-level fix.** The critics were the actual failure, not just the docs. Routing their rule discovery through the `intent claude rules` CLI fixed the bug and let three enumeration paths collapse into one (the CLI already merges canon+ext, and its `category` column already encoded the code-vs-test split — no CLI change needed).
 
-- **Honour the human-in-the-loop checkpoint even when you could automate past it.** `scripts/release`'s push confirmation reads stdin, so a tool-driven Bash call would abort (or could be fed `y`). Feeding it is the same bypass as `--no-confirm`. The release was handed to the user to run interactively; the assistant only staged everything up to the push.
+- **Verify in the consuming project, not just the tool.** The bug only manifests where the project is not Intent. A real `critic-elixir` run against a Baize file is what demonstrated the fallback was gone; a green Intent suite alone could not, because Intent's own repo has the path.
 
 ## Session conventions (carry forward)
 

@@ -137,3 +137,48 @@ EOF
   cd "${INTENT_PROJECT_ROOT}" || exit 1
   rm -rf "${TEST_TEMP_DIR}"
 }
+
+@test "v2.11.11+ upgrade wires canon subagent sync" {
+  # Regression guard for v2.11.11: the critic-<lang> rule-resolution fix is
+  # only effective if the corrected agent.md files re-sync to already-installed
+  # ~/.claude/agents/ mirrors. The upgrade path must call `claude subagents
+  # sync` (failure-tolerant, no --force) alongside the skills sync.
+  run grep -F 'intent" claude subagents sync' "$UPGRADE"
+  assert_success
+}
+
+@test "v2.11.11+ upgrade narrates subagent sync at runtime" {
+  TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-upgrade-21111-XXXXXX)"
+  cd "${TEST_TEMP_DIR}" || exit 1
+
+  local REAL_HOME="$HOME"
+  export HOME="${TEST_TEMP_DIR}/fakehome"
+  mkdir -p "$HOME/.claude/skills" "$HOME/.claude/agents"
+
+  mkdir -p intent/.config intent/llm intent/st
+  cat > intent/.config/config.json <<'EOF'
+{"intent_version":"2.10.0","project_name":"Upgrade21111Test","author":"t","created":"2026-04-27","st_prefix":"ST"}
+EOF
+  echo "# wip" > intent/wip.md
+  cat > intent/llm/RULES.md <<'EOF'
+# Rules
+
+## Project-Specific Rules
+
+stuff
+EOF
+
+  git init -q .
+  git config user.email t@t.com
+  git config user.name Tester
+  git add -A
+  git commit -qm "init"
+
+  run "${INTENT_BIN_DIR}/intent" upgrade --no-backup
+  assert_success
+  assert_output_contains "Syncing canon subagent updates"
+
+  export HOME="$REAL_HOME"
+  cd "${INTENT_PROJECT_ROOT}" || exit 1
+  rm -rf "${TEST_TEMP_DIR}"
+}

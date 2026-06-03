@@ -20,7 +20,7 @@ Example: `Task(subagent_type="critic-shell", prompt="review bin/intent bin/inten
 
 ### Process
 
-1. Enumerate rules. Read `intent/plugins/claude/rules/agnostic/*/RULE.md` and `intent/plugins/claude/rules/shell/*/*/RULE.md`. Note each rule's `id`, `severity`, `applies_to` glob, and the content of its `## Detection` section.
+1. Enumerate rules via the CLI (see Rule discovery details): `intent claude rules list --lang shell` and `--lang agnostic`, then `intent claude rules show <id>`. Note each rule's `id`, `severity`, `applies_to` glob, and the content of its `## Detection` section.
 2. Detect dialect. For each target file:
    - Read the shebang. `#!/bin/bash` or `#!/usr/bin/env bash` → bash dialect. `#!/bin/zsh` or `#!/usr/bin/env zsh` → zsh dialect. No shebang → treat as bash.
    - Use the dialect to decide which rules apply. Rules tagged `bash-specific` apply only to bash dialect; rules tagged `zsh-specific` apply only to zsh. Shared rules (most of them) apply to both.
@@ -87,15 +87,22 @@ If there are no violations at all: emit the heading, then `Summary: 0 critical, 
 
 ## Rule discovery details
 
-Intent's rule library lives at `intent/plugins/claude/rules/`. On every invocation, re-read the rule files rather than caching across runs — the rule library evolves, and stale cached detections produce wrong reports.
+The rule library is served by the installed Intent tool, not by a local directory. Enumerate and read rules through the CLI on every invocation — never cache across runs, since the library evolves and stale detections produce wrong reports:
 
-Relevant rule globs for shell:
+```bash
+intent claude rules list --lang shell       # ids, severity, category, provenance
+intent claude rules list --lang agnostic    # the cross-language pack
+intent claude rules show <id>               # full RULE.md body, incl. ## Detection
+```
 
-- `intent/plugins/claude/rules/agnostic/*/RULE.md` — Highlander, PFIC, No Silent Errors, Thin Coordinator (the last rarely triggers on shell; skip if Detection does not apply).
-- `intent/plugins/claude/rules/shell/code/*/RULE.md` — every rule with `IN-SH-CODE-*` id.
-- (Future) `intent/plugins/claude/rules/shell/test/*/RULE.md` — shell-test rules if they ship in a later version.
+`rules list` already merges canon rules with any user-extension rules under `~/.intent/ext/`, resolves id-shadowing, and reports provenance (`canon` or `ext:<name>`) in its own column — so there is no separate extension-merge step.
 
-When a user-extension at `~/.intent/ext/*/rules/shell/**/RULE.md` exists, include those rules too. Extension rules override canon rules of the same ID (shadow warning printed at the start of the report when this happens).
+Select rules from the `category` column:
+
+- Every `agnostic` rule — Highlander, PFIC, No Silent Errors, Thin Coordinator (the last rarely triggers on shell; skip if Detection does not apply).
+- `shell` rules with category `code` — every `IN-SH-CODE-*` rule. (`code` is the only shell mode in this version; shell-test rules would appear as category `test` if they ship later.)
+
+For each selected id, run `intent claude rules show <id>` and apply its `## Detection` section. If a `show` call fails or a rule lacks a `## Detection` section, log a one-line warning at the top of the report and continue; one broken rule must not kill the whole report.
 
 ## Operational conventions
 

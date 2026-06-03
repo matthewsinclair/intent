@@ -37,7 +37,7 @@ Socrates and Diogenes are disjoint; see `intent/docs/working-with-llms.md` at th
 
 ### Rule library
 
-Coding rules live in `intent/plugins/claude/rules/` at the Intent install and are enforced by the `critic-<lang>` family. Per-project overrides via `.intent_critic.yml` at this project's root.
+Coding rules are served by the installed Intent tool (access them via the commands below, not a local directory) and are enforced by the `critic-<lang>` family. Per-project overrides via `.intent_critic.yml` at this project's root.
 
 Key commands:
 

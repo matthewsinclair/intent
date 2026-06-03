@@ -93,27 +93,26 @@ If there are no violations at all: emit the heading, then `Summary: 0 critical, 
 
 ## Rule discovery details
 
-Intent's rule library lives at `intent/plugins/claude/rules/`. On every invocation, re-read the rule files rather than caching across runs - the rule library evolves, and stale cached detections produce wrong reports.
+The rule library is served by the installed Intent tool, not by a local directory. Enumerate and read rules through the CLI on every invocation - never cache across runs, since the library evolves and stale detections produce wrong reports:
 
-Relevant rule globs for Lua, by mode:
+```bash
+intent claude rules list --lang lua         # ids, severity, category, provenance
+intent claude rules list --lang agnostic    # the cross-language pack
+intent claude rules show <id>               # full RULE.md body, incl. ## Detection
+```
 
-### `code` mode
+`rules list` already merges canon rules with any user-extension rules under `~/.intent/ext/`, resolves id-shadowing, and reports provenance (`canon` or `ext:<name>`) in its own column - so there is no separate extension-merge step.
 
-- `intent/plugins/claude/rules/agnostic/*/RULE.md` - Highlander, PFIC, No Silent Errors, Thin Coordinator.
-- `intent/plugins/claude/rules/lua/code/*/RULE.md` - core Lua rules (`IN-LU-CODE-*`).
+Select rules for the active mode from the `category` column:
 
-### `test` mode
+- **`code` mode**: every `agnostic` rule, plus `lua` rules with category `code` (`IN-LU-CODE-*`).
+- **`test` mode**: every `agnostic` rule, plus `lua` rules with category `test` (`IN-LU-TEST-*`).
 
-- `intent/plugins/claude/rules/agnostic/*/RULE.md` - first pass.
-- `intent/plugins/claude/rules/lua/test/*/RULE.md` - busted-oriented rules (`IN-LU-TEST-*`).
+For each selected id, run `intent claude rules show <id>` and apply its `## Detection` section.
 
-### Extension rules
+### Unreadable rules
 
-When user extensions exist at `~/.intent/ext/*/rules/lua/**/RULE.md`, include them too. Extension rules override canon rules of the same `id` (print a shadow warning at the top of the report when this happens).
-
-### Malformed rule files
-
-If a RULE.md is missing required frontmatter fields or its Detection section is absent, log a one-line warning at the top of the report (`(warning: <path> malformed; skipped)`) and continue. Do not hard-fail; one broken rule must not kill the whole report.
+If `intent claude rules show <id>` fails, or a rule lacks a `## Detection` section, log a one-line warning at the top of the report (`(warning: <id> unreadable; skipped)`) and continue. Do not hard-fail; one broken rule must not kill the whole report.
 
 ## Test-spec handoff (test mode only)
 
@@ -151,7 +150,7 @@ Same constraint: recommend, never invoke. Reserve for genuinely cross-cutting ca
 
 ## Red flags (author violating rules for you)
 
-- If the target file is a rule `good.lua` / `bad.lua` example inside `intent/plugins/claude/rules/`: skip Detection entirely and note in the summary. Example files intentionally demonstrate antipatterns or non-idiomatic forms for teaching.
+- If the target file is a rule `good.lua` / `bad.lua` example inside the Intent rule library (eg when reviewing Intent's own source): skip Detection entirely and note in the summary. Example files intentionally demonstrate antipatterns or non-idiomatic forms for teaching.
 - If the target file is under `tests/fixtures/critics/`: it is a critic-self-test input, not real test code. Apply Detection (the test exists to exercise it), but **suppress the Diogenes test-spec handoff** -- a fixture file does not warrant spec generation.
 - If the target file is under `lib/templates/` or a similar seed directory: apply rules normally - generated code should still pass - but note in the summary that findings in templates propagate to generated output.
 - If the target file is empty or contains only a lone `return {}`: skip with a note; a one-line module has no behaviour to critique.

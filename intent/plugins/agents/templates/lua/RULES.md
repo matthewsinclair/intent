@@ -9,7 +9,7 @@ Mandatory Lua coding rules for this project. Concretises the four agnostic princ
 - **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- handlers / callbacks parse to call to render; business logic in dedicated modules. Concretised by `IN-LU-CODE-003`.
 - **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- never discard error returns from `pcall`, library calls, or multi-return functions. Always check, log, or propagate. Concretised by `IN-LU-CODE-004`.
 
-Full Lua rule pack: `intent/plugins/claude/rules/lua/<category>/<slug>/RULE.md`.
+Read the full Lua rule pack via the installed Intent tool: `intent claude rules list --lang lua` to enumerate, `intent claude rules show <id>` to read one.
 
 ## NEVER DO
 

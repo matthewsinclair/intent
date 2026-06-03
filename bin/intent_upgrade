@@ -431,6 +431,15 @@ if [ -d "$INTENT_HOME/intent/plugins/claude/skills/in-whiteboard" ]; then
   "$INTENT_BIN/intent" claude skills sync || true
 fi
 
+# v2.11.11+: re-sync installed subagents so canon edits (eg the critic-<lang>
+# rule-resolution fix) reach already-installed mirrors. Sync only touches
+# agents the user already installed and uses no --force, so user
+# customisations are never silently lost; a missing ~/.claude/ mirror is
+# tolerated. Critics resolve rules via the `intent claude rules` CLI, so the
+# fixed copies must land on every machine that has them installed.
+echo "Syncing canon subagent updates..."
+"$INTENT_BIN/intent" claude subagents sync || true
+
 # Preserve agent manifests
 if [ -d "intent/.config/agents" ]; then
   echo "Agent manifests found, preserving..."

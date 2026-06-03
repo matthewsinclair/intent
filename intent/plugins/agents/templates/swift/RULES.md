@@ -9,7 +9,7 @@ Mandatory Swift coding rules for this project. Concretises the four agnostic pri
 - **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- view models / view controllers parse to call to render; business logic in dedicated services. Concretised by `IN-SW-CODE-003`.
 - **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- never swallow `try?` or `try!` for fallible work outside tests. Surface errors via `do/catch`, `Result`, or thrown propagation. Concretised by `IN-SW-CODE-004`.
 
-Full Swift rule pack: `intent/plugins/claude/rules/swift/<category>/<slug>/RULE.md`.
+Read the full Swift rule pack via the installed Intent tool: `intent claude rules list --lang swift` to enumerate, `intent claude rules show <id>` to read one.
 
 ## NEVER DO
 

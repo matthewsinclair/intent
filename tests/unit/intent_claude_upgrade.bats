@@ -392,7 +392,7 @@ PCH
   assert_success
 
   # _default template markers present.
-  assert_file_contains "$PROJ_DIR/intent/llm/RULES.md" "intent/plugins/claude/rules/<lang>/"
+  assert_file_contains "$PROJ_DIR/intent/llm/RULES.md" "intent claude rules list --lang <lang>"
   assert_file_contains "$PROJ_DIR/intent/llm/ARCHITECTURE.md" "System architecture and design decisions"
 
   # Elixir-template markers absent (would indicate accidental fallback to elixir/).
@@ -417,7 +417,7 @@ PCH
   if grep -qF "Core Elixir Rules" "$PROJ_DIR/intent/llm/RULES.md"; then
     fail "polyglot project picked Elixir template (canon-installer must always use _default)"
   fi
-  assert_file_contains "$PROJ_DIR/intent/llm/RULES.md" "intent/plugins/claude/rules/<lang>/"
+  assert_file_contains "$PROJ_DIR/intent/llm/RULES.md" "intent claude rules list --lang <lang>"
 }
 
 @test "--dry-run does not modify the filesystem" {

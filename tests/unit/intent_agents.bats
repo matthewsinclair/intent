@@ -183,6 +183,20 @@ EOF
   assert_output_contains "usage-rules.md"
 }
 
+@test "generated Rule Library section routes through the CLI, not a local rules path" {
+  # Regression guard for v2.11.11: a consuming project's AGENTS.md must not tell
+  # agents the rule library lives at a local `intent/plugins/claude/rules/`
+  # path (it does not exist there). Access is CLI-only.
+  local project
+  project="$(create_test_project "AgentsRulesCLI")"
+  cd "$project"
+  run_intent agents init >/dev/null
+  assert_file_contains "$project/AGENTS.md" "intent claude rules list"
+  assert_file_contains "$project/AGENTS.md" "intent claude rules show"
+  run grep -F 'intent/plugins/claude/rules' "$project/AGENTS.md"
+  [ "$status" -ne 0 ] || fail "generated AGENTS.md still points at a local rules directory"
+}
+
 @test "enriched content includes canon section pointers (critic, rules, extensions, hooks, FAQ)" {
   local project
   project="$(create_test_project "AgentsCanon")"

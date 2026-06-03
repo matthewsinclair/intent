@@ -11,11 +11,11 @@ The four agnostic principles enforced across every Intent project:
 - **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
 - **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
 
-Full rule files: `intent/plugins/claude/rules/agnostic/<slug>/RULE.md`.
+Read the full rule files with `intent claude rules show <id>` -- served by the installed Intent tool (`intent claude rules list` enumerates).
 
 ## Language-Specific Rules
 
-Language-specific concretisations live at `intent/plugins/claude/rules/<lang>/`. Per-language canon (`intent/llm/RULES-<lang>.md`, `intent/llm/ARCHITECTURE-<lang>.md`) is opt-in: install via `intent lang init <lang>` per language used in this project, or pass `--lang <lang1>,<lang2>` to `intent init`.
+Language-specific concretisations are served the same way (`intent claude rules list --lang <lang>`). Per-language canon (`intent/llm/RULES-<lang>.md`, `intent/llm/ARCHITECTURE-<lang>.md`) is opt-in: install via `intent lang init <lang>` per language used in this project, or pass `--lang <lang1>,<lang2>` to `intent init`.
 
 Per-language rule packs available in canon: `elixir`, `rust`, `swift`, `lua`, `shell`.
 

@@ -51,7 +51,9 @@ TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
   assert_file_contains "$TEMPLATE" "IN-AG-PFIC-001"
   assert_file_contains "$TEMPLATE" "IN-AG-THIN-COORD-001"
   assert_file_contains "$TEMPLATE" "IN-AG-NO-SILENT-001"
-  assert_file_contains "$TEMPLATE" "intent/plugins/claude/rules/agnostic"
+  # Rule bodies are served by the installed Intent tool via the CLI, not a
+  # local rules directory (v2.11.11). See the dedicated CLI-routing test below.
+  assert_file_contains "$TEMPLATE" "intent claude rules show"
 }
 
 @test "template includes critic dispatch section" {
@@ -70,6 +72,17 @@ TEMPLATE="${INTENT_PROJECT_ROOT}/lib/templates/llm/_CLAUDE.md"
   assert_file_contains "$TEMPLATE" "[[INTENT_VERSION]]"
   assert_file_contains "$TEMPLATE" "[[AUTHOR]]"
   assert_file_contains "$TEMPLATE" "[[DATE]]"
+}
+
+@test "template routes rule access through the CLI, not a local rules directory" {
+  # Regression guard for v2.11.11: the rules library is served by the installed
+  # Intent tool, not vendored into a consuming project. The template must point
+  # agents at `intent claude rules show/list`, never at a local
+  # `intent/plugins/claude/rules/` path that does not exist in consumers.
+  assert_file_contains "$TEMPLATE" "intent claude rules show"
+  assert_file_contains "$TEMPLATE" "intent claude rules list"
+  run grep -F 'intent/plugins/claude/rules' "$TEMPLATE"
+  [ "$status" -ne 0 ] || fail "template still points at a local rules directory"
 }
 
 @test "intent init on a scratch project substitutes all placeholders" {

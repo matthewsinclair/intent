@@ -33,4 +33,4 @@ Four cross-language principles govern all Intent projects:
 - **Thin Coordinator** -- coordinators parse to call to render; business logic lives elsewhere.
 - **No Silent Errors** -- every failure surfaces; rescue-and-swallow is forbidden.
 
-Full rule files: `intent/plugins/claude/rules/agnostic/`. Language-specific concretisations at `intent/plugins/claude/rules/<lang>/`.
+Rule files are served by the installed Intent tool: `intent claude rules list` to enumerate, `intent claude rules show <id>` to read one. The agnostic pack and per-language concretisations are all reachable this way -- they are not vendored into this project.

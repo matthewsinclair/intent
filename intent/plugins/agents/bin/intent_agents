@@ -447,7 +447,7 @@ A headless runner at `bin/intent_critic` (Greppable-proxy rules only; no LLM req
 
 ## Rule Library
 
-All coding rules live in `intent/plugins/claude/rules/`. Each rule is a markdown file with YAML frontmatter, a Detection heuristic, and bad/good examples. Skills cite rule IDs; critics enforce them.
+The coding-rule library is served by the installed Intent tool, not vendored into this project. Access rules through the CLI below -- each rule carries YAML frontmatter, a Detection heuristic, and bad/good examples. Skills cite rule IDs; critics enforce them.
 
 ```bash
 intent claude rules list        # enumerate

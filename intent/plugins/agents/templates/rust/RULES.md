@@ -9,7 +9,7 @@ Mandatory Rust coding rules for this project. Concretises the four agnostic prin
 - **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- handlers parse to call to render; business logic in dedicated modules. Concretised by `IN-RS-CODE-003`.
 - **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- never swallow `Result` with `let _ =`, `.ok()`, or `.unwrap_or_default()` for fallible work. Surface errors via `?`, `match`, or explicit logging + propagation. Concretised by `IN-RS-CODE-004`.
 
-Full Rust rule pack: `intent/plugins/claude/rules/rust/<category>/<slug>/RULE.md`.
+Read the full Rust rule pack via the installed Intent tool: `intent claude rules list --lang rust` to enumerate, `intent claude rules show <id>` to read one.
 
 ## NEVER DO
 

@@ -93,32 +93,38 @@ If there are no violations at all: emit the heading, then `Summary: 0 critical, 
 
 ## Rule discovery details
 
-Intent's rule library lives at `intent/plugins/claude/rules/`. On every invocation, re-read the rule files rather than caching across runs — the rule library evolves, and stale cached detections produce wrong reports.
+The rule library is served by the installed Intent tool, not by a local directory. Enumerate and read rules through the CLI on every invocation — never cache across runs, since the library evolves and stale detections produce wrong reports:
 
-Relevant rule globs for Elixir, by mode:
+```bash
+intent claude rules list --lang elixir      # ids, severity, category, provenance
+intent claude rules list --lang agnostic    # the cross-language pack
+intent claude rules show <id>               # full RULE.md body, incl. ## Detection
+```
+
+`rules list` already merges canon rules with any user-extension rules under `~/.intent/ext/`, resolves id-shadowing, and reports provenance (`canon` or `ext:<name>`) in its own column — so there is no separate extension-merge step.
+
+Select rules for the active mode from the `category` column:
 
 ### `code` mode
 
-- `intent/plugins/claude/rules/agnostic/*/RULE.md` — Highlander, PFIC, No Silent Errors, Thin Coordinator.
-- `intent/plugins/claude/rules/elixir/code/*/RULE.md` — core Elixir rules (`IN-EX-CODE-*`).
-- `intent/plugins/claude/rules/elixir/ash/*/RULE.md` — Ash-specific rules (`IN-EX-ASH-*`). Each rule's own `applies_to` glob filters to actual Ash domain / resource files.
-- `intent/plugins/claude/rules/elixir/phoenix/*/RULE.md` — Phoenix-specific rules (`IN-EX-PHX-*`). Each rule's `applies_to` gates on controller / plug paths.
-- `intent/plugins/claude/rules/elixir/lv/*/RULE.md` — LiveView-specific rules (`IN-EX-LV-*`). Each rule's `applies_to` gates on `*_live.ex` or LiveView modules.
+Every `agnostic` rule, plus `elixir` rules whose category is one of:
 
-Why the multi-subdir code glob: `ash/`, `phoenix/`, `lv/` are framework specialisations of code-mode discipline. Per-rule `applies_to` globs gate them so non-Phoenix projects are not flagged by Phoenix rules.
+- `code` — core Elixir rules (`IN-EX-CODE-*`).
+- `ash` — Ash-specific rules (`IN-EX-ASH-*`). Each rule's own `applies_to` glob filters to actual Ash domain / resource files.
+- `phoenix` — Phoenix-specific rules (`IN-EX-PHX-*`). Each rule's `applies_to` gates on controller / plug paths.
+- `lv` — LiveView-specific rules (`IN-EX-LV-*`). Each rule's `applies_to` gates on `*_live.ex` or LiveView modules.
+
+Why the multi-category code set: `ash`, `phoenix`, `lv` are framework specialisations of code-mode discipline. Per-rule `applies_to` globs gate them so non-Phoenix projects are not flagged by Phoenix rules.
 
 ### `test` mode
 
-- `intent/plugins/claude/rules/agnostic/*/RULE.md` — first pass.
-- `intent/plugins/claude/rules/elixir/test/*/RULE.md` — ExUnit-oriented rules (`IN-EX-TEST-*`).
+Every `agnostic` rule, plus `elixir` rules with category `test` — ExUnit-oriented rules (`IN-EX-TEST-*`).
 
-### Extension rules
+For each selected id, run `intent claude rules show <id>` and apply its `## Detection` section.
 
-When user extensions exist at `~/.intent/ext/*/rules/elixir/**/RULE.md`, include them too. Extension rules override canon rules of the same `id` (print a shadow warning at the top of the report when this happens).
+### Unreadable rules
 
-### Malformed rule files
-
-If a RULE.md is missing required frontmatter fields or its Detection section is absent, log a one-line warning at the top of the report (`(warning: <path> malformed; skipped)`) and continue. Do not hard-fail; one broken rule must not kill the whole report.
+If `intent claude rules show <id>` fails, or a rule lacks a `## Detection` section, log a one-line warning at the top of the report (`(warning: <id> unreadable; skipped)`) and continue. Do not hard-fail; one broken rule must not kill the whole report.
 
 ## Elixir-test-critic interop (optional)
 
@@ -162,7 +168,7 @@ Same constraint: recommend, never invoke. Reserve for genuinely cross-cutting ca
 
 ## Red flags (author violating rules for you)
 
-- If the target file is a rule `good.exs` / `bad.exs` / `good_test.exs` / `bad_test.exs` example inside `intent/plugins/claude/rules/`: skip Detection entirely and note in the summary. Example files intentionally demonstrate antipatterns or non-idiomatic forms for teaching.
+- If the target file is a rule `good.exs` / `bad.exs` / `good_test.exs` / `bad_test.exs` example inside the Intent rule library (eg when reviewing Intent's own source): skip Detection entirely and note in the summary. Example files intentionally demonstrate antipatterns or non-idiomatic forms for teaching.
 - If the target file is under `tests/fixtures/critics/`: it is a critic-self-test input, not real test code. Apply Detection (the test exists to exercise it), but **suppress the Diogenes test-spec handoff** -- a fixture file does not warrant spec generation.
 - If the target file is under `lib/templates/` or a similar seed directory: apply rules normally — generated code should still pass — but note in the summary that findings in templates propagate to generated output.
 - If the target file is empty or contains only `defmodule X do\nend`: skip with a note; a one-line module has no behaviour to critique.
