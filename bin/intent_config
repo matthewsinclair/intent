@@ -19,21 +19,20 @@ INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
 # Default values
 DEFAULT_INTENT_DIR="intent"
 
-# Parse JSON file using jq
-parse_json() {
+# Read a single string field from a JSON config file.
+# Values are assigned by the caller verbatim -- never evaled -- so shell
+# metacharacters in config values are inert (ST0042 T1).
+read_config_field() {
   local file=$1
-  local prefix=$2
-  
-  # Check if file exists
+  local field=$2
+
   if [ ! -f "$file" ]; then
     return 1
   fi
-  
+
   require_jq || exit 1
-  
-  # Extract all key-value pairs as shell variable assignments
-  jq -r 'to_entries | .[] | "\(.key)=\"\(.value)\""' "$file" 2>/dev/null | \
-    sed -e "s/^/${prefix}/"
+
+  jq -r --arg key "$field" '.[$key] // empty' "$file" 2>/dev/null
 }
 
 # Find project root by looking for intent/stp markers
@@ -77,28 +76,21 @@ load_intent_config() {
   PROJECT_ROOT=$(find_project_root || true)
   
   # Load global config (XDG standard location)
-  if [ -f "$HOME/.config/intent/config.json" ]; then
-    local global_config
-    global_config=$(parse_json "$HOME/.config/intent/config.json" "global_")
-    if [ $? -eq 0 ]; then
-      eval "$global_config"
-      [ -n "$global_intent_dir" ] && INTENT_DIR="$global_intent_dir"
-      [ -n "$global_author" ] && AUTHOR="$global_author"
-      [ -n "$global_editor" ] && EDITOR="$global_editor"
-    fi
+  local config_file value
+  config_file="$HOME/.config/intent/config.json"
+  if [ -f "$config_file" ]; then
+    value=$(read_config_field "$config_file" "intent_dir") && [ -n "$value" ] && INTENT_DIR="$value"
+    value=$(read_config_field "$config_file" "author") && [ -n "$value" ] && AUTHOR="$value"
+    value=$(read_config_field "$config_file" "editor") && [ -n "$value" ] && EDITOR="$value"
   fi
-  
+
   # Load local config (overrides global)
-  if [ -n "$PROJECT_ROOT" ] && [ -f "$PROJECT_ROOT/intent/.config/config.json" ]; then
-    local local_config
-    local_config=$(parse_json "$PROJECT_ROOT/intent/.config/config.json" "local_")
-    if [ $? -eq 0 ]; then
-      eval "$local_config"
-      [ -n "$local_intent_dir" ] && INTENT_DIR="$local_intent_dir"
-      [ -n "$local_author" ] && AUTHOR="$local_author"
-      [ -n "$local_editor" ] && EDITOR="$local_editor"
-      [ -n "$local_intent_version" ] && INTENT_VERSION="$local_intent_version"
-    fi
+  config_file="$PROJECT_ROOT/intent/.config/config.json"
+  if [ -n "$PROJECT_ROOT" ] && [ -f "$config_file" ]; then
+    value=$(read_config_field "$config_file" "intent_dir") && [ -n "$value" ] && INTENT_DIR="$value"
+    value=$(read_config_field "$config_file" "author") && [ -n "$value" ] && AUTHOR="$value"
+    value=$(read_config_field "$config_file" "editor") && [ -n "$value" ] && EDITOR="$value"
+    value=$(read_config_field "$config_file" "intent_version") && [ -n "$value" ] && INTENT_VERSION="$value"
   fi
   
   # Environment variables override all
@@ -178,7 +170,7 @@ is_legacy_project() {
 # warning() is sourced from bin/intent_helpers (Highlander).
 
 # Export functions for use by other scripts
-export -f parse_json
+export -f read_config_field
 export -f find_project_root
 export -f load_intent_config
 export -f validate_json

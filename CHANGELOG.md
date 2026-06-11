@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Config values are loaded verbatim, never evaled.** `load_intent_config` built `key="value"` shell assignments from raw JSON values with jq and `eval`ed them, so a config value containing `$(...)`, backticks, or `$VAR` in `intent/.config/config.json` (or `~/.config/intent/config.json`) executed arbitrary shell on the next project-scoped `intent` command. Config fields are now read individually with `jq -r` and assigned directly (ST0042 T1); a regression test proves shell metacharacters in config values are inert.
+
 - **Test suite no longer writes to the real `~/.claude`.** Two `intent_upgrade_dispatcher.bats` tests ran `intent upgrade` without HOME isolation, so the upgrade tail-call (skills + subagents sync) overwrote the developer's real `~/.claude` mirrors on every suite run. The fake-HOME pattern, previously copy-pasted across six test files with drift, is promoted to a single `setup_fake_home` / `teardown_fake_home` pair in `tests/lib/test_helper.bash` (ST0042 F-TEST-1/F-TEST-9); all seven files now use it. Verified: a full suite run leaves the real `~/.claude` untouched.
 - **`intent st new` stamps the current Intent version.** New steel threads were created with a hardcoded `intent_version: 2.4.0` in their frontmatter (and `2.0.0` on the no-template fallback path) -- the values frozen into the template and heredoc when they were last hand-edited. Both creation paths now substitute the live version from `get_intent_version` (single source: `$INTENT_HOME/VERSION`), per Highlander. Regression test proves the stamp matches `VERSION` and that no unsubstituted placeholder survives.
 

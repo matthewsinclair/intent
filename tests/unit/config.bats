@@ -72,3 +72,31 @@ EOF
   assert_failure
   assert_output_contains "not in an Intent project directory"
 }
+
+@test "config values with shell metacharacters are never evaled" {
+  # ST0042 T1 regression guard: load_intent_config used to eval jq-built
+  # key="value" assignments, so a config value containing $(...) executed
+  # arbitrary shell on any project-scoped command. Values must load verbatim.
+  project_dir=$(create_test_project "Eval Inert Project")
+  cd "$project_dir"
+  mkdir -p intent/st
+
+  local marker="$TEST_TEMP_DIR/eval_pwned"
+  cat > "intent/.config/config.json" << EOF
+{
+  "intent_version": "2.11.11",
+  "project_name": "Eval Inert Project",
+  "author": "\$(touch $marker)",
+  "created_date": "2025-01-15T10:00:00Z"
+}
+EOF
+
+  run run_intent st list
+  assert_success
+  [ ! -f "$marker" ] || fail "config value was evaled: marker file created"
+
+  run run_intent info
+  assert_success
+  [ ! -f "$marker" ] || fail "config value was evaled by info: marker file created"
+  assert_output_contains 'Author:          $(touch'
+}
