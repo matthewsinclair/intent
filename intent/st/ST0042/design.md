@@ -167,9 +167,13 @@ Gate decisions taken (2026-06-11):
 - WP8 `intent upgrade` rethink -> spun out to **ST0043** (design-level, dwarfs the rest). Its full design lives in ST0043; T8/T11/T12 evidence here is the input.
 - WP9 `st cancel` -> **add the command.** `intent st cancel <ID>` does what it says: moves the thread to CANCELLED (status + relocation), consistent with the existing Cancelled-status discipline. The docs already promise it; the WP makes the docs true rather than the reverse.
 
-Open decision still pending:
+Gate decisions taken (2026-06-11, execution session):
 
-- `intent audit`'s fate (T6) -- retire the Credo overlap, or keep it and document a division of labour with the rule-library critics. See the briefing in-session; not yet decided.
+- `intent audit` (T6) -- **retire.** Two parallel Elixir rule engines is the Highlander violation the audit was hunting; the rule-library critics are the canonical engine. Removal executes in WP-06.
+- WP6 scope -- excludes upgrade-subsystem dead scaffolding (F-UPG-9); ST0043 owns all upgrade deletions so that code is touched once.
+- Release cadence -- patch after the ST0042 WPs complete (ships `f359917` + fixes); ST0043 then targets a minor (v2.12.0).
+
+WP directory mapping: slate WP1-7 = `WP/01`-`07`; slate WP8 = ST0043 (no dir); slate WP9 = `WP/08`; slate WP10 = `WP/09`. Execution order: WP-09 part A (test isolation) first, then 01, 05 (live bug first), 03, 04, 05 remainder, 02, 07, 08, 06, 09 part B.
 
 ## Alternatives Considered
 
