@@ -15,7 +15,7 @@ if [ -f "$INTENT_HOME/bin/intent_helpers" ]; then
 fi
 
 # Get version
-INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+INTENT_VERSION="$(get_intent_version)"
 
 # Check if INTENT_HOME is set
 if [ -z "$INTENT_HOME" ]; then

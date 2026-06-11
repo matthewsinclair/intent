@@ -24,14 +24,18 @@ info() {
 }
 export -f info
 
-# Get Intent version from VERSION file
+# Get Intent version from VERSION file.
+# This is THE fallback site (Highlander, ST0042/WP-05): the function never
+# fails, so callers use plain $(get_intent_version) -- no per-site
+# `|| echo "X.Y.Z"` decorations. A missing VERSION file means a broken
+# install; surface it rather than silently picking a stale literal.
 get_intent_version() {
   local version_file="${INTENT_HOME:-$(dirname "${BASH_SOURCE[0]}")/..}/VERSION"
 
   if [ -f "$version_file" ]; then
     cat "$version_file"
   else
-    # Fallback version if VERSION file doesn't exist
+    warning "VERSION file not found at $version_file; install may be broken"
     echo "2.2.1"
   fi
 }
@@ -63,21 +67,127 @@ get_terminal_width() {
 }
 export -f get_terminal_width
 
-# Extract a field from intent/.config/config.json without jq
+# Read a single string field from a JSON config file.
+# Values are assigned by the caller verbatim -- never evaled -- so shell
+# metacharacters in config values are inert (ST0042 T1). This is THE config
+# field reader (Highlander, ST0042/WP-05); get_config_field below wraps it
+# for the common project-local-config-with-default case.
+read_config_field() {
+  local file=$1
+  local field=$2
+
+  if [ ! -f "$file" ]; then
+    return 1
+  fi
+
+  require_jq || exit 1
+
+  jq -r --arg key "$field" '.[$key] // empty' "$file" 2>/dev/null
+}
+export -f read_config_field
+
+# Extract a field from the project-local intent/.config/config.json with a
+# default. Thin wrapper over read_config_field.
 get_config_field() {
   local field="$1"
   local default="${2:-}"
-  if [ -f intent/.config/config.json ]; then
-    local val
-    val=$(grep -oE "\"${field}\"[[:space:]]*:[[:space:]]*\"[^\"]+\"" intent/.config/config.json | cut -d'"' -f4)
-    if [ -n "$val" ]; then
-      echo "$val"
-      return 0
-    fi
+  local val
+  val="$(read_config_field intent/.config/config.json "$field" 2>/dev/null)"
+  if [ -n "$val" ]; then
+    echo "$val"
+  else
+    echo "$default"
   fi
-  echo "$default"
 }
 export -f get_config_field
+
+# Find project root by looking for intent/stp markers. THE project-root
+# resolver (Highlander, ST0042/WP-05) -- walks up from the caller's cwd.
+find_project_root() {
+  local current_dir=$(pwd)
+
+  while [ "$current_dir" != "/" ]; do
+    # Check for v2.0.0 structure
+    if [ -f "$current_dir/intent/.config/config.json" ]; then
+      echo "$current_dir"
+      return 0
+    fi
+
+    # Check for legacy structures
+    if [ -d "$current_dir/stp/.config" ] || [ -f "$current_dir/.stp-config" ]; then
+      echo "$current_dir"
+      return 0
+    fi
+
+    # Check for directory-based or file-based steel threads
+    if [ -d "$current_dir/stp/prj/st" ]; then
+      echo "$current_dir"
+      return 0
+    fi
+
+    current_dir=$(dirname "$current_dir")
+  done
+
+  # No project root found
+  return 1
+}
+export -f find_project_root
+
+# Locate a steel-thread directory across the status subdirectories.
+# THE ST-dir resolver (Highlander, ST0042/WP-05). Echoes the directory,
+# returns 1 if the thread is not found anywhere.
+resolve_st_dir() {
+  local st_id="$1"
+  local base_dir="${2:-intent/st}"
+  local location
+
+  for location in \
+    "$base_dir/$st_id" \
+    "$base_dir/COMPLETED/$st_id" \
+    "$base_dir/NOT-STARTED/$st_id" \
+    "$base_dir/CANCELLED/$st_id"; do
+    if [ -d "$location" ]; then
+      echo "$location"
+      return 0
+    fi
+  done
+
+  return 1
+}
+export -f resolve_st_dir
+
+# ---- Extension root resolution ----
+# THE ext-root resolver pair (Highlander, ST0042/WP-05). Honours
+# INTENT_EXT_DIR (used by tests) and INTENT_EXT_DISABLE=1 (escape hatch:
+# resolves to empty, so every consumer skips ext discovery).
+ext_root_dir() {
+  if [ "${INTENT_EXT_DISABLE:-}" = "1" ]; then
+    echo ""
+    return 0
+  fi
+  echo "${INTENT_EXT_DIR:-$HOME/.intent/ext}"
+}
+export -f ext_root_dir
+
+# Enumerate extension directory names under the ext root (dotfiles and _*
+# excluded). Output one name per line.
+ext_enumerate_names() {
+  local root
+  root="$(ext_root_dir)"
+  [ -z "$root" ] && return 0
+  [ -d "$root" ] || return 0
+
+  local ext_dir name
+  for ext_dir in "$root"/*/; do
+    [ -d "$ext_dir" ] || continue
+    name="$(basename "$ext_dir")"
+    case "$name" in
+      .*|_*) continue ;;
+    esac
+    echo "$name"
+  done
+}
+export -f ext_enumerate_names
 
 # Get all languages declared in the project config, one per line.
 # Returns 0 lines (and 0 exit) when languages is empty, absent, or config
@@ -604,7 +714,7 @@ migrate_v0_to_v2() {
   # Create config
   local project_name=$(basename "$project_root")
   local author="${USER:-Unknown}"
-  local target_version="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+  local target_version="$(get_intent_version)"
   
   cat > "$project_root/.intent/config.json" << EOF
 {
@@ -1419,7 +1529,7 @@ migrate_v2_10_x_to_v2_11_0() {
   # path. Field-impact was muted because needs_v2_11_0_upgrade short-circuits
   # for projects that already have the languages field, but the bug existed.
   local target
-  target=$(get_intent_version 2>/dev/null || echo "2.11.0")
+  target=$(get_intent_version)
   local current
   current=$(jq -r '.intent_version // ""' "$config")
   if [ "$current" = "$target" ]; then
@@ -1439,7 +1549,7 @@ migrate_v2_10_x_to_v2_11_0() {
 migrate_v2_2_to_v2_2_1() {
   local project_root=$1
   
-  local target_version="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+  local target_version="$(get_intent_version)"
   echo "Upgrading v2.2.0 to v$target_version..."
   
   # Update .intent/config.json to target version
@@ -1495,7 +1605,7 @@ EOF
 migrate_v2_2_to_v2_3_0() {
   local project_root=$1
   
-  local target_version="$(get_intent_version 2>/dev/null || echo "2.3.0")"
+  local target_version="$(get_intent_version)"
   echo "Upgrading to Intent v$target_version with plugin architecture..."
   
   # 1. Create plugin directory structure
@@ -1561,7 +1671,7 @@ migrate_v2_2_to_v2_3_0() {
 migrate_v2_3_0_to_v2_3_1() {
   local project_root=$1
   
-  local target_version="$(get_intent_version 2>/dev/null || echo "2.3.2")"
+  local target_version="$(get_intent_version)"
   echo "Upgrading to Intent v$target_version with worker-bee agent..."
   
   # Update .intent/config.json to target version
@@ -1613,7 +1723,7 @@ update_config_version() {
 migrate_v2_3_1_to_v2_3_2() {
   local project_root=$1
   
-  local target_version="$(get_intent_version 2>/dev/null || echo "2.3.2")"
+  local target_version="$(get_intent_version)"
   echo "Upgrading to Intent v$target_version with enhanced Elixir subagent..."
   
   # Update config version
@@ -1644,7 +1754,7 @@ migrate_v2_3_1_to_v2_3_2() {
 migrate_v2_3_2_to_v2_3_3() {
   local project_root=$1
 
-  local target_version="$(get_intent_version 2>/dev/null || echo "2.3.3")"
+  local target_version="$(get_intent_version)"
   echo "Upgrading to Intent v$target_version with Elixir style guide..."
 
   # Update config version
@@ -1676,7 +1786,7 @@ migrate_v2_3_2_to_v2_3_3() {
 migrate_v2_3_3_to_v2_3_4() {
   local project_root=$1
 
-  local target_version="$(get_intent_version 2>/dev/null || echo "2.3.4")"
+  local target_version="$(get_intent_version)"
   echo "Upgrading to Intent v$target_version with treeindex and bug fixes..."
 
   # Update config version
@@ -1710,7 +1820,7 @@ migrate_v2_3_3_to_v2_3_4() {
 migrate_v2_3_4_to_v2_4_0() {
   local project_root=$1
 
-  local target_version="$(get_intent_version 2>/dev/null || echo "2.4.0")"
+  local target_version="$(get_intent_version)"
   echo "Upgrading to Intent v2.4.0 with skills system..."
 
   # Update config version
@@ -1753,7 +1863,7 @@ EOF
 migrate_v2_4_0_to_v2_5_0() {
   local project_root=$1
 
-  local target_version="$(get_intent_version 2>/dev/null || echo "2.5.0")"
+  local target_version="$(get_intent_version)"
   echo "Upgrading to Intent v2.5.0 (Backlog.md removal)..."
 
   # 1. Remove backlog config keys from project config
@@ -1872,7 +1982,7 @@ create_default_v2_config() {
   local project_root=$1
   local project_name=$(basename "$project_root")
   local author="${USER:-Unknown}"
-  local target_version="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+  local target_version="$(get_intent_version)"
   
   cat > "$project_root/.intent/config.json" << EOF
 {

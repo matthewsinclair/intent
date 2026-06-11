@@ -195,7 +195,7 @@ fi
 
 # ---- Locate project config ----
 
-PROJECT_ROOT="$(critic_resolve_project_root "$PWD" 2>/dev/null || true)"
+PROJECT_ROOT="$(find_project_root 2>/dev/null || true)"
 CRITIC_CONFIG=""
 if [ -n "$PROJECT_ROOT" ] && [ -f "$PROJECT_ROOT/.intent_critic.yml" ]; then
   CRITIC_CONFIG="$PROJECT_ROOT/.intent_critic.yml"

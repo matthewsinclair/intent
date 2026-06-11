@@ -58,27 +58,7 @@ parse_wp_specifier() {
   fi
 }
 
-# Find ST directory regardless of status subdirectory
-resolve_st_dir() {
-  local st_id="$1"
-  local base_dir="intent/st"
-
-  local locations=(
-    "$base_dir/$st_id"
-    "$base_dir/NOT-STARTED/$st_id"
-    "$base_dir/COMPLETED/$st_id"
-    "$base_dir/CANCELLED/$st_id"
-  )
-
-  for location in "${locations[@]}"; do
-    if [ -d "$location" ]; then
-      echo "$location"
-      return 0
-    fi
-  done
-
-  return 1
-}
+# resolve_st_dir is sourced from bin/intent_helpers (Highlander, ST0042/WP-05).
 
 # Get the next WP number for a steel thread
 get_next_wp_number() {

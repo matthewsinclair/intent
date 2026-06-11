@@ -164,14 +164,16 @@ if [ "$NO_INTENT" = false ]; then
     if [ -f "$INTENT_DIR_OVERRIDE/intent/.config/config.json" ]; then
         IN_INTENT_PROJECT=true
         PROJECT_ROOT="$INTENT_DIR_OVERRIDE"
-        INTENT_VERSION=$(jq -r '.intent_version // "2.1.0"' "$PROJECT_ROOT/intent/.config/config.json" 2>/dev/null || echo "2.1.0")
+        INTENT_VERSION=$(read_config_field "$PROJECT_ROOT/intent/.config/config.json" "intent_version")
+        [ -n "$INTENT_VERSION" ] || INTENT_VERSION="2.1.0"
     fi
   else
     # Try to find project root
     if PROJECT_ROOT=$(find_project_root 2>/dev/null); then
       IN_INTENT_PROJECT=true
       if [ -f "$PROJECT_ROOT/intent/.config/config.json" ]; then
-        INTENT_VERSION=$(jq -r '.intent_version // "2.1.0"' "$PROJECT_ROOT/intent/.config/config.json" 2>/dev/null || echo "2.1.0")
+        INTENT_VERSION=$(read_config_field "$PROJECT_ROOT/intent/.config/config.json" "intent_version")
+        [ -n "$INTENT_VERSION" ] || INTENT_VERSION="2.1.0"
       fi
     fi
   fi

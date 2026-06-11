@@ -172,35 +172,11 @@ get_st_path() {
   if is_directory_structure; then
     # If status is not provided, try to find the steel thread directory
     if [ -z "$status" ]; then
-      # Check all possible locations
-      local possible_locations=(
-        "$base_dir/$st_id"
-        "$base_dir/COMPLETED/$st_id"
-        "$base_dir/NOT-STARTED/$st_id"
-        "$base_dir/CANCELLED/$st_id"
-      )
-      
-      for location in "${possible_locations[@]}"; do
-        if [ -d "$location" ]; then
-          # Read status from info.md
-          if [ -f "$location/info.md" ]; then
-            yaml_status=$(grep -m 1 "^status:" "$location/info.md" | sed "s/^status: *//")
-            body_status=$(grep -m 1 "^\- \*\*Status\*\*:" "$location/info.md" | sed "s/^\- \*\*Status\*\*: //" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-            
-            # Prioritize YAML frontmatter status
-            if [ -n "$yaml_status" ]; then
-              status="$yaml_status"
-            elif [ -n "$body_status" ]; then
-              status="$body_status"
-            else
-              status="Not Started"
-            fi
-          fi
-          # Return the actual found path
-          echo "$location/$file_name"
-          return
-        fi
-      done
+      local found_location
+      if found_location="$(resolve_st_dir "$st_id" "$base_dir")"; then
+        echo "$found_location/$file_name"
+        return
+      fi
     fi
     
     # Return the appropriate directory based on status
@@ -1500,16 +1476,9 @@ status: '$status "$info_file"
     # Find steel threads to repair
     if [ -n "$SPECIFIC_ST" ]; then
       # Repair specific steel thread
-      found=0
-      for location in "$BASE_DIR" "$BASE_DIR/COMPLETED" "$BASE_DIR/NOT-STARTED" "$BASE_DIR/CANCELLED"; do
-        if [ -d "$location/$SPECIFIC_ST" ]; then
-          repair_steel_thread "$location/$SPECIFIC_ST"
-          found=1
-          break
-        fi
-      done
-      
-      if [ $found -eq 0 ]; then
+      if st_dir="$(resolve_st_dir "$SPECIFIC_ST" "$BASE_DIR")"; then
+        repair_steel_thread "$st_dir"
+      else
         error "Steel thread not found: $SPECIFIC_ST"
       fi
     else

@@ -24,8 +24,14 @@ if [ -z "${INTENT_HOME:-}" ]; then
   unset _rules_lib_self
 fi
 
+# Source the shared helpers if not already loaded (provides ext_root_dir,
+# find_project_root, etc. -- Highlander, ST0042/WP-05).
+if ! declare -f ext_root_dir >/dev/null 2>&1; then
+  source "$INTENT_HOME/bin/intent_helpers"
+fi
+
 : "${CANON_RULES_ROOT:=$INTENT_HOME/intent/plugins/claude/rules}"
-: "${EXT_BASE:=${INTENT_EXT_DIR:-$HOME/.intent/ext}}"
+: "${EXT_BASE:=$(ext_root_dir)}"
 : "${LANG_SUBDIRS:=agnostic elixir rust swift lua shell}"
 
 # Emit every canon RULE.md path on stdout (excludes _schema/, _attribution/,
@@ -72,6 +78,15 @@ enumerate_all_rule_files() {
 # Tag a rule-file path with its provenance: "canon" or "ext:<name>".
 rule_file_provenance() {
   local path="$1"
+  # Empty EXT_BASE (ext discovery disabled) would collapse the ext case
+  # pattern to /* and swallow every absolute path -- short-circuit it.
+  if [ -z "$EXT_BASE" ]; then
+    case "$path" in
+      "$CANON_RULES_ROOT"/*) echo "canon" ;;
+      *) echo "unknown" ;;
+    esac
+    return 0
+  fi
   case "$path" in
     "$CANON_RULES_ROOT"/*) echo "canon"; return 0 ;;
     "$EXT_BASE"/*)

@@ -11,7 +11,7 @@ INTENT_HOME="$(cd "$INTENT_BIN/.." && pwd)"
 source "$INTENT_BIN/intent_helpers"
 
 # Get target version
-TARGET_VERSION="$(get_intent_version 2>/dev/null || echo "2.6.0")"
+TARGET_VERSION="$(get_intent_version)"
 
 # Function to display usage information
 usage() {

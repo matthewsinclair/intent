@@ -10,34 +10,8 @@ set -e
 : "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 source "$INTENT_HOME/bin/intent_helpers"
 
-# ---- Ext root resolution ----
-# Honours INTENT_EXT_DIR (used by tests) and INTENT_EXT_DISABLE=1
-ext_root_dir() {
-  if [ "${INTENT_EXT_DISABLE:-}" = "1" ]; then
-    echo ""
-    return 0
-  fi
-  echo "${INTENT_EXT_DIR:-$HOME/.intent/ext}"
-}
-
-# Enumerate extension directory names under the ext root (dotfiles and _*
-# excluded). Output one name per line.
-ext_enumerate_names() {
-  local root
-  root="$(ext_root_dir)"
-  [ -z "$root" ] && return 0
-  [ -d "$root" ] || return 0
-
-  local ext_dir name
-  for ext_dir in "$root"/*/; do
-    [ -d "$ext_dir" ] || continue
-    name="$(basename "$ext_dir")"
-    case "$name" in
-      .*|_*) continue ;;
-    esac
-    echo "$name"
-  done
-}
+# ext_root_dir / ext_enumerate_names are sourced from bin/intent_helpers
+# (Highlander, ST0042/WP-05).
 
 # Classify an extension by inspecting its manifest.
 # Outputs one of: valid | malformed | missing-manifest
@@ -355,7 +329,7 @@ ext_validate_one() {
   compat_min=$(jq -r '.intent_compat.min // empty' "$manifest" 2>/dev/null || echo "")
   if [ -n "$compat_min" ]; then
     local current_ver
-    current_ver=$(get_intent_version 2>/dev/null || echo "2.9.0")
+    current_ver=$(get_intent_version)
     local lowest
     lowest=$(printf '%s\n%s\n' "$compat_min" "$current_ver" | sort -V | head -1)
     if [ "$lowest" != "$compat_min" ]; then
@@ -487,7 +461,7 @@ ext_new_manifest() {
   local name="$1"
   local type="$2"   # subagent | skill | rule-pack
   local intent_ver
-  intent_ver=$(get_intent_version 2>/dev/null || echo "2.8.0")
+  intent_ver=$(get_intent_version)
 
   local contributes
   case "$type" in

@@ -448,7 +448,7 @@ rules_index() {
 
   local out_path="$CANON_INDEX_PATH"
   local intent_ver
-  intent_ver=$(get_intent_version 2>/dev/null || echo "2.8.2")
+  intent_ver=$(get_intent_version)
   local upstream_pin
   upstream_pin="$(read_upstream_pin)"
   [ -z "$upstream_pin" ] && upstream_pin="unpinned"

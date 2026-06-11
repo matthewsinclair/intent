@@ -14,56 +14,13 @@ if [ -f "$INTENT_HOME/bin/intent_helpers" ]; then
 fi
 
 # Get version from centralized source
-INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+INTENT_VERSION="$(get_intent_version)"
 
 # Default values
 DEFAULT_INTENT_DIR="intent"
 
-# Read a single string field from a JSON config file.
-# Values are assigned by the caller verbatim -- never evaled -- so shell
-# metacharacters in config values are inert (ST0042 T1).
-read_config_field() {
-  local file=$1
-  local field=$2
-
-  if [ ! -f "$file" ]; then
-    return 1
-  fi
-
-  require_jq || exit 1
-
-  jq -r --arg key "$field" '.[$key] // empty' "$file" 2>/dev/null
-}
-
-# Find project root by looking for intent/stp markers
-find_project_root() {
-  local current_dir=$(pwd)
-  
-  while [ "$current_dir" != "/" ]; do
-    # Check for v2.0.0 structure
-    if [ -f "$current_dir/intent/.config/config.json" ]; then
-      echo "$current_dir"
-      return 0
-    fi
-    
-    # Check for legacy structures
-    if [ -d "$current_dir/stp/.config" ] || [ -f "$current_dir/.stp-config" ]; then
-      echo "$current_dir"
-      return 0
-    fi
-    
-    # Check for directory-based or file-based steel threads
-    if [ -d "$current_dir/stp/prj/st" ]; then
-      echo "$current_dir"
-      return 0
-    fi
-    
-    current_dir=$(dirname "$current_dir")
-  done
-  
-  # No project root found
-  return 1
-}
+# read_config_field and find_project_root are sourced from
+# bin/intent_helpers (Highlander, ST0042/WP-05).
 
 # Load Intent configuration with hierarchy
 load_intent_config() {
@@ -170,8 +127,7 @@ is_legacy_project() {
 # warning() is sourced from bin/intent_helpers (Highlander).
 
 # Export functions for use by other scripts
-export -f read_config_field
-export -f find_project_root
+# (read_config_field / find_project_root are exported by intent_helpers)
 export -f load_intent_config
 export -f validate_json
 export -f show_config

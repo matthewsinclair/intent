@@ -139,10 +139,10 @@ verbose() {
 # Main doctor function
 doctor_check() {
   # Get version from helpers if available
-  local version="2.2.1"
+  local version="unknown"
   if [ -n "$INTENT_HOME" ] && [ -f "$INTENT_HOME/bin/intent_helpers" ]; then
     source "$INTENT_HOME/bin/intent_helpers"
-    version="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+    version="$(get_intent_version)"
   fi
   
   if [ "$QUIET" != true ]; then

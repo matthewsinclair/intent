@@ -40,7 +40,7 @@ echo "  INTENT_HOME:     ${INTENT_HOME:-<not set>}"
 # Source helpers for version if available
 if [ -n "$INTENT_HOME" ] && [ -f "$INTENT_HOME/bin/intent_helpers" ]; then
   source "$INTENT_HOME/bin/intent_helpers"
-  VERSION_DISPLAY="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+  VERSION_DISPLAY="$(get_intent_version)"
 else
   VERSION_DISPLAY="${INTENT_VERSION:-2.2.1}"
 fi

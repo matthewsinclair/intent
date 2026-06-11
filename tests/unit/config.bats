@@ -100,3 +100,25 @@ EOF
   [ ! -f "$marker" ] || fail "config value was evaled by info: marker file created"
   assert_output_contains 'Author:          $(touch'
 }
+
+@test "version-fallback literal exists at exactly one site (Highlander, ST0042 WP-05)" {
+  # get_intent_version never fails, so per-call-site `|| echo "X.Y.Z"`
+  # decorations are dead drift: a broken install used to report a different
+  # stale version depending on which script was asked. The fallback lives
+  # in get_intent_version alone.
+  run grep -rn 'get_intent_version 2>/dev/null || echo' \
+    "${INTENT_HOME}/bin" "${INTENT_HOME}/intent/plugins" "${INTENT_HOME}/lib"
+  [ "$status" -ne 0 ] || fail "per-site version fallback reintroduced: $output"
+}
+
+@test "ext-root expansion is not inlined outside intent_helpers (Highlander, ST0042 WP-05)" {
+  # ext_root_dir/ext_enumerate_names in bin/intent_helpers are THE ext-root
+  # resolvers; inline `${INTENT_EXT_DIR:-$HOME/.intent/ext}` expansions drift
+  # on INTENT_EXT_DISABLE handling.
+  run grep -rn 'INTENT_EXT_DIR:-' \
+    "${INTENT_HOME}/bin" "${INTENT_HOME}/intent/plugins" "${INTENT_HOME}/lib" \
+    --include='*.sh' --include='intent_*'
+  local hits
+  hits=$(printf '%s\n' "$output" | grep -v 'bin/intent_helpers:' || true)
+  [ -z "$hits" ] || fail "inline ext-root expansion outside intent_helpers: $hits"
+}

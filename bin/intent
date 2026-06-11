@@ -24,7 +24,7 @@ if [ -f "$INTENT_HOME/bin/intent_helpers" ]; then
 fi
 
 # Get version from centralized source
-INTENT_VERSION="$(get_intent_version 2>/dev/null || echo "2.2.1")"
+INTENT_VERSION="$(get_intent_version)"
 
 # Export INTENT_HOME
 export INTENT_HOME

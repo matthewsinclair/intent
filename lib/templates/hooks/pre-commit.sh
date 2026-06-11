@@ -55,17 +55,12 @@ fi
 # copied manually into a non-Intent repo). Without this check,
 # `intent critic` would exit non-zero with a "not in an Intent project"
 # message and the commit would be blocked for the wrong reason.
+# We already cd'd to the git toplevel above, and every later read
+# (languages, .intent_critic.yml) is relative to it, so the gate's
+# definition of "Intent project" is config.json at the git toplevel.
 if [ ! -f "intent/.config/config.json" ]; then
-  # Walk up just in case the hook is invoked from a subdirectory.
-  _probe="$PWD"
-  while [ "$_probe" != "/" ] && [ -n "$_probe" ]; do
-    [ -f "$_probe/intent/.config/config.json" ] && break
-    _probe="$(dirname "$_probe")"
-  done
-  if [ ! -f "$_probe/intent/.config/config.json" ]; then
-    echo "intent critic gate: not inside an Intent project (intent/.config/config.json absent); skipping." >&2
-    exit 0
-  fi
+  echo "intent critic gate: not inside an Intent project (intent/.config/config.json absent); skipping." >&2
+  exit 0
 fi
 
 # ---- Read declared languages from project config ----

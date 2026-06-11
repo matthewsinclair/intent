@@ -77,7 +77,15 @@ plugin_root_tag() {
     echo "canon"
     return 0
   fi
-  local ext_base="${INTENT_EXT_DIR:-$HOME/.intent/ext}"
+  # ext_root_dir comes from bin/intent_helpers (Highlander, ST0042/WP-05).
+  # Empty (ext discovery disabled) would collapse the case pattern to /*
+  # and swallow every absolute path -- short-circuit it.
+  local ext_base
+  ext_base="$(ext_root_dir)"
+  if [ -z "$ext_base" ]; then
+    echo "unknown"
+    return 0
+  fi
   case "$root" in
     "$ext_base"/*)
       local trimmed="${root#$ext_base/}"
