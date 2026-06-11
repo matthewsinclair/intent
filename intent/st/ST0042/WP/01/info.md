@@ -3,7 +3,7 @@ verblock: "11 Jun 2026:v0.1: matts - Initial version"
 wp_id: WP-01
 title: "Eliminate config eval"
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-01: Eliminate config eval
