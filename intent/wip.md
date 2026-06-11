@@ -1,11 +1,37 @@
 ---
-verblock: "03 Jun 2026:v0.76: matts - v2.11.11 shipped (rules-path drift fix: generated guidance + critics use the CLI)"
+verblock: "11 Jun 2026:v0.77: matts - st-new version fix landed; ST0042 Fable review complete; ST0043 (upgrade rethink) opened"
 intent_version: 2.11.11
 ---
 
 # Work In Progress
 
 ## Current State
+
+**Session 2026-06-11 -- in progress, NOT released. Working tree dirty, nothing committed beyond the st-new fix.**
+
+Three things happened this session:
+
+1. **`intent st new` version-stamp fix -- committed (`f359917`), not released.** `intent st new` stamped new steel threads with a hardcoded `intent_version: 2.4.0` (template path) / `2.0.0` (no-template fallback) -- the values frozen into the template and heredoc when last hand-edited. A Highlander violation: the unified version source is `get_intent_version` (`$INTENT_HOME/VERSION`). Both creation paths now substitute the live version; template uses an `[Intent Version]` placeholder. Regression test red-phase-proven against the pre-fix code, suite green, live `intent st new` stamps `2.11.11`. ST0041/ST0042 frontmatter repaired 2.4.0 -> 2.11.11. CHANGELOG `[Unreleased]` entry added. Commit `f359917` on `main`, **not pushed, not released** -- rides the next release.
+
+2. **ST0042 -- Fable 5 review of Intent: COMPLETE (the review; WPs not executed).** Ran as the first deliberate MFIC exercise (see ST0041). Eight reviewer dimensions (architecture, templates, tests, docs-canon, plugins, shell-critic, upgrade/migration, + an upgrade-rethink design dimension) over a declared coverage map, plus inline mechanical sweeps. Load-bearing findings I-verified against the code; the worst one demonstrated by PoC. Findings + a 10-WP proposed slate are written into `intent/st/ST0042/design.md`; the MFIC leak write-up is in `impl.md`. **Audit purpose is architectural integrity / Highlander / design quality -- NOT security** (recorded in design.md framing; the one security finding, T1 config-eval, is incidental and reframed as a robustness defect, not a workstream).
+
+3. **ST0043 -- Rethink `intent upgrade`: OPENED, design populated.** WP8 of the review (the `intent upgrade` redesign) was spun out to its own steel thread because it is design-level and dwarfs the rest (~1800 lines, two installers, L+). `info.md` carries the full Architecture-B design (convergent end-state + structural-step ledger), the confirmed defects, and the delete/keep migration path. Not started.
+
+### Gate decisions taken (2026-06-11)
+
+- WP8 upgrade rethink -> spun out to **ST0043**.
+- WP9 `st cancel` -> **add the command**: `intent st cancel <ID>` moves the thread to CANCELLED (status + relocation), making the docs (which already promise it) true.
+- Still pending: **`intent audit`'s fate** (T6) -- retire the Credo overlap with the rule-library critics, or keep it with a documented division of labour. The user paused here to run the audit/execution in a new session.
+
+### Proposed WP slate (in ST0042/design.md -- NOT yet created as `intent wp new`)
+
+WP1 eliminate config eval (S, incidental security) | WP2 finish rules/docs-path drift + mechanical guard (M) | WP3 kill "reports success while doing nothing" (S) | WP4 fix AGENTS.md generation paths+sections (S) | WP5 Highlander consolidation -- contains a live `wip`->`WIP` vs `wip`->`In Progress` bug (M) | WP6 prune dead/legacy code (S) | WP7 reconcile MODULES.md registry (XS) | WP8 -> ST0043 | WP9 canon docs reconciliation incl. `st cancel` (M) | WP10 test-suite hardening incl. real-`~/.claude` pollution fix (M).
+
+### Resume target -- next session
+
+User will run the audit/WP execution in a **new session**, framed as **architectural integrity / Highlander / design quality, not security**. Review `intent/st/ST0042/design.md` (findings + WP slate) and `ST0043/info.md` (upgrade rethink). Then: create the WPs the user approves via `intent wp new`, decide `intent audit`'s fate, and begin execution highest-value-first. Nothing from this session is pushed; the `f359917` st-new fix rides the next release.
+
+---
 
 **v2.11.11 shipped 2026-06-03.** Tag `v2.11.11` (commit `7531306`) pushed to both remotes; self-upgrade stamp `a7fca3f`. The release was cut concurrently while this fix was being finished, so the commit messages are non-standard for this repo: the fix itself landed as `7baca20 "Commit for release"` (not a conventional `fix:`/`feat:` commit), `9cee9a4 "Commit for release"` (steel_threads.md), `7531306 "release: v2.11.11"` (VERSION + AGENTS bump, tagged), `a7fca3f "Intent upgrade"` (self-upgrade). The tagged release contains the complete change set (verified: all five critic CLI swaps, generator, templates, `intent_upgrade` subagent-sync, regression tests). Patch fixing rules-path drift in the LLM guidance Intent generates for consuming projects. Generated `AGENTS.md` (via `intent agents sync`) and `CLAUDE.md` (from `lib/templates/llm/_CLAUDE.md`), plus the five `critic-<lang>` subagents, told agents the coding-rule library lives at a local `intent/plugins/claude/rules/` path. That directory exists only inside the Intent tool; in a consuming project the rules are reachable solely through the CLI (`intent claude rules list` / `show`). Found in Baize ST0001 WP-04: a `critic-elixir` run looked for the local dir, missed, and fell back with a confusing "rule library not installed at the expected path" diagnostic, reviewing at reduced fidelity. Affects every project that uses Intent with LLMs.
 

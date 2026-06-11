@@ -35,15 +35,24 @@ Please use that as input context for this steel thread. Ask whatever questions a
 
 ## Objective
 
-[Clear statement of what this steel thread aims to accomplish]
+Determine what of MFIC (Mechanically-Falsifiable Independent Control) Intent should adopt, empirically rather than speculatively: run ST0042 (the Fable 5 review of Intent) as the first deliberate MFIC exercise, observe which axes hold and which leak, and harvest what works back into Intent as doctrine, mechanism, or both.
 
 ## Context
 
-[Background information and context for this steel thread, including why it's needed and how it fits into the larger project]
+Rubber-duck outcome (2026-06-11):
+
+- **Exploration is empirical.** Rather than write MFIC doctrine in the abstract, ST0042 is structured as an MFIC instance: reviewer causally independent of the producing sessions, mechanical sweep over the codebase, findings as falsifiable claims with file:line evidence and refutation conditions, and the human review gate as the control point. The write-up of what leaked feeds this thread.
+- **The I-axis bar is accepted as bounded.** By the nature of agentic coding, full independence is unattainable in practice; fresh-context same-model checking via the VC/CC/IC triumvirate and the whiteboard protocol is about as good as it gets. Failure modes remain correlated (same model biases); oracle-free checks (metamorphic, round-trip, mutation) are preferred wherever the oracle ladder allows, because they dodge the authored-oracle collusion problem entirely.
+- **The C axis stays human-adjudicated for now.** Intent's advisory-v0 philosophy (ST0040) holds: controls surface and the user actuates. Whether any control should gain blocking authority is a question this exploration may answer, not a premise.
+- **Intent's current stack has every axis somewhere and all four nowhere.** Pre-commit critic gate: real C, weak M (regex proxies; ST0039 was an F-axis repair). `/in-verify`: evidence-is-constitutive, but producer-audits-self (not I). Whiteboard Verifier role (v2.11.10): first genuine I, deliberately not C. Bats suite: authored by the producing sessions (fails the litmus).
+
+The originating Slack framing is preserved in the LLM Preamble above.
 
 ## Related Steel Threads
 
-- [List any related steel threads here]
+- ST0042 -- Fable 5 review of Intent; runs as MFIC exercise #1, its leak write-up is this thread's primary input
+- ST0039 -- critic-runner strict-proxy contract; precedent F-axis fix (checks that cannot bite are refused)
+- ST0040 -- whiteboard protocol; carrier of the Verifier role and the advisory-v0 C-axis stance
 
 ## Context for LLM
 

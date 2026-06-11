@@ -2,10 +2,14 @@
 
 ## Tasks
 
-- [ ] Task 1
-- [ ] Task 2
-- [ ] Task 3
-- ...
+- [x] Write review methodology (design.md) and coverage map
+- [ ] Mechanical sweeps: placeholder drift, hardcoded versions, shellcheck, size outliers
+- [ ] Dimension reviews 1-8 per coverage map
+- [ ] Dedup + I-verify load-bearing findings
+- [ ] Findings into design.md; MFIC leak notes into impl.md
+- [ ] Draft proposed WPs with t-shirt sizes (intent wp new)
+- [ ] Review gate: user adjudication
+- [ ] Execute approved WPs (separate sessions as sized)
 
 ## Task Notes
 

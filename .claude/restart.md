@@ -3,8 +3,28 @@
 ## First actions after `/compact` or new session
 
 1. **Invoke `/in-session`.** Reads restart files + CLAUDE.md + MODULES.md, surveys steel threads, loads `/in-essentials` and `/in-standards`, releases the UserPromptSubmit gate. As of v2.11.7, also chains to `/in-whiteboard pickup` if `intent/whiteboard/` exists.
-2. **Verify the working tree.** v2.11.11 is shipped: tag `v2.11.11` at `7531306`, `main` pushed to both remotes at `a7fca3f "Intent upgrade"`, with a trailing `docs: finalise wip/restart for v2.11.11` commit on top. `git status` clean. Nothing to release.
-3. **Read `intent/wip.md` and `intent/restart.md`.** The wip "Current State" line is the operative status; `intent/restart.md` carries the full narrative; this file's "Resume target" says what to do next.
+2. **Verify the working tree.** v2.11.11 is shipped. As of the 2026-06-11 session the tree is **dirty and mid-flight**: one new commit `f359917` (`fix: stamp st new frontmatter with current intent version`) on `main`, NOT pushed, riding the next release; plus uncommitted ST0042/ST0043 doc work + wip/restart updates. Nothing else to release.
+3. **Read `intent/wip.md` and `intent/restart.md`.** The wip "Current State" block (2026-06-11 entry) is operative; this file's "Resume target" says what to do next.
+
+## State (2026-06-11, end of session -- ST0042 review complete, ST0043 opened, audit deferred to a new session)
+
+This session shipped a small fix and produced a full architectural review; **no release was cut.**
+
+1. **`intent st new` version-stamp fix -- committed `f359917`, not pushed.** Stamped new STs with hardcoded `2.4.0`/`2.0.0` instead of the live `get_intent_version`. Both creation paths fixed (template `[Intent Version]` placeholder + fallback heredoc `__VERSION__`); regression test in `tests/unit/st_commands.bats` (red-phase-proven); ST0041/ST0042 frontmatter repaired; CHANGELOG `[Unreleased]` entry. Rides the next release.
+
+2. **ST0042 -- Fable 5 review of Intent: review COMPLETE, WPs NOT executed.** Run as the first MFIC exercise (ST0041). Eight reviewer dimensions + mechanical sweeps; load-bearing findings I-verified, worst (config-eval) PoC-confirmed. Findings + 10-WP proposed slate in `intent/st/ST0042/design.md`; MFIC leak write-up in `impl.md`. **Audit purpose: architectural integrity / Highlander / design quality, NOT security** -- the one security finding (T1 config-eval RCE) is incidental, recorded and reframed as a robustness defect, not a workstream. Do not over-index on it.
+
+3. **ST0043 -- Rethink `intent upgrade`: OPENED.** Spun out from review WP8 (design-level, ~1800 lines, two installers, L+). `info.md` has the full Architecture-B design (convergent end-state + structural-step ledger), confirmed defects, and delete/keep migration path. Not started.
+
+### Gate decisions (2026-06-11)
+
+- WP8 -> ST0043. WP9 `st cancel` -> **add the command** (`intent st cancel <ID>` moves thread to CANCELLED). Pending: `intent audit`'s fate (retire Credo overlap vs document division of labour with critics).
+
+### Resume target -- next session
+
+The user will run the **audit/WP execution in a new session**, framed as architectural integrity / Highlander / design quality (not security). Read `ST0042/design.md` (findings + WP slate) and `ST0043/info.md`. Then: create approved WPs via `intent wp new`, settle `intent audit`, execute highest-value-first. Nothing this session is pushed; `f359917` rides the next release.
+
+---
 
 ## State (2026-06-03, end of session -- v2.11.11 shipped)
 

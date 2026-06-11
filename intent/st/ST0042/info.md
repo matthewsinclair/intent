@@ -15,15 +15,16 @@ I want to spend a cycle and get Fable to do a comprehensive architectural review
 
 ## Objective
 
-[Clear statement of what this steel thread aims to accomplish]
+A comprehensive architectural and design/implementation audit of Intent by Fable 5. Output: confirmed findings in design.md (falsifiable claims with file:line evidence) and proposed changes articulated as sized work packages in this steel thread. WPs execute only after user adjudication at the review gate.
 
 ## Context
 
-[Background information and context for this steel thread, including why it's needed and how it fits into the larger project]
+The review doubles as the first deliberate MFIC exercise (see ST0041): mechanical sweep coverage, falsifiable findings, reviewer independence from producing sessions, human review gate as the control. Methodology, coverage map, and finding format live in design.md. Observations about which MFIC axes held or leaked are recorded in impl.md and harvested into ST0041.
 
 ## Related Steel Threads
 
-- [List any related steel threads here]
+- ST0041 -- MFIC exploration; this review is its empirical test bed
+- ST0034/ST0035 -- produced most of the surface under review (rules, critics, canon, hooks)
 
 ## Context for LLM
 

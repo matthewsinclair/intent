@@ -1,5 +1,35 @@
 # Claude Code Session Restart -- narrative state
 
+## Current state (2026-06-11, end of session -- ST0042 review complete, ST0043 opened, audit deferred)
+
+This session shipped a small fix and produced a comprehensive architectural review of Intent. **No release was cut; the tree is dirty and mid-flight.**
+
+### What landed
+
+1. **`intent st new` version-stamp fix -- commit `f359917`, not pushed.** New steel threads were stamped with a hardcoded `intent_version: 2.4.0` (template path) / `2.0.0` (no-template fallback heredoc), frozen when those were last hand-edited. A Highlander violation: the unified source is `get_intent_version` -> `$INTENT_HOME/VERSION` (`2.11.11`). Fixed both paths -- the template now carries an `[Intent Version]` placeholder substituted in the directory-structure sed block (`bin/intent_st`), and the fallback heredoc uses a `__VERSION__` placeholder substituted from `get_intent_version`. Regression test added to `tests/unit/st_commands.bats`, red-phase-verified against the pre-fix code (it failed with exactly the `2.4.0` symptom). Suite green; live `intent st new` stamps `2.11.11`. ST0041/ST0042 frontmatter repaired 2.4.0 -> 2.11.11. CHANGELOG `[Unreleased]` entry added. Commit `f359917` on `main`, not pushed -- rides the next release.
+
+2. **ST0042 -- Fable 5 review of Intent: review COMPLETE (WPs not executed).** Deliberately structured as the first MFIC exercise (see ST0041): mechanical-sweep coverage, falsifiable findings with file:line evidence + refutation conditions, reviewers causally independent of the producing sessions, human review gate as the control. Eight reviewer dimensions ran in parallel -- architecture, templates/generation, test suite, docs-canon, plugin surface, shell-critic, upgrade/migration, plus an upgrade-rethink design dimension added at the user's request. Inline mechanical sweeps (placeholder drift, hardcoded versions, shellcheck, bash-3.2 compat, size outliers) ran first. Load-bearing findings were independently re-verified against the code before graduating to proposed WPs; the worst (config-eval) was demonstrated by a benign, reverted PoC. Full findings (themes T1-T12) and a 10-WP proposed slate are in `intent/st/ST0042/design.md`; the MFIC leak write-up is in `intent/st/ST0042/impl.md`.
+
+   **Audit purpose -- IMPORTANT for the next session:** architectural integrity, Highlander violations, and poor design/implementation. **NOT security.** The one security finding (T1, the `load_intent_config` eval -> arbitrary code execution from a checked-in `config.json`) is recorded because it surfaced and is real, but it is reframed as an incidental robustness defect, not a security workstream. Do not over-index on it; the lens is design quality.
+
+3. **ST0043 -- Rethink `intent upgrade`: OPENED, design populated, not started.** Review WP8 spun out to its own thread (design-level; ~1800 lines across `bin/intent_upgrade`, the migrate/needs layer in `bin/intent_helpers`, and `intent_claude_upgrade`; L+). `info.md` carries the full Architecture-B design: converge on a declared end-state ("make it so", probing on-disk state) with an ordered structural-step ledger reserved for genuine one-way transforms (day-one ledger: `stp_to_intent`, `prune_backlog`, `relocate_config`, `languages_field`); `intent_upgrade` = orchestrator + sole stamper, `intent_claude_upgrade` = sole canon engine; numeric semver replaces glob enumeration; downgrade hard-errors before mutation; verified backup; stamp once, last. Confirmed defects it must kill: F-UPG-3 (mid-chain stamps the live target, so an interrupted chain silently half-migrates and claims success), F-UPG-1/2 (hard-fail on future versions after mutation begins), the BSD-only `sed -i ''` (Linux breakage), and the unanchored CLAUDE.md version-sed (historical-date corruption). Delete/keep migration path is enumerated in `info.md`.
+
+### Gate decisions (2026-06-11)
+
+- WP8 `intent upgrade` rethink -> spun out to **ST0043**.
+- WP9 `st cancel` -> **add the command.** `intent st cancel <ID>` does what it says: moves the thread to CANCELLED (status + relocation). The docs (`usage-rules.md`) already promise it and forbid the manual alternative; the WP makes the docs true.
+- **Pending:** `intent audit`'s fate (T6). Its Credo checks R2/R6/R11 overlap rule-library concerns (thin-coordinator, module-highlander, `IN-EX-CODE-003` @impl) but via a different mechanism (compiled Credo AST vs LLM/grep critic heuristics). Decide: retire the overlap, or keep `intent audit` as the precise Elixir-toolchain path and document a division of labour with the critics. Deferred to the new session.
+
+### Resume target -- next session
+
+The user will run the **audit / WP execution in a new session**, framed as architectural integrity / Highlander / design quality (not security). Steps: (1) read `intent/st/ST0042/design.md` (findings + WP slate) and `intent/st/ST0043/info.md` (upgrade rethink); (2) create the approved WPs via `intent wp new`; (3) settle `intent audit`'s fate; (4) execute highest-value-first (the live `wip`->`WIP` vs `wip`->`In Progress` status-normalisation bug in WP5 and the real-`~/.claude` test pollution in WP10 are cheap and concrete). Nothing this session is pushed; `f359917` rides the next release.
+
+### Uncommitted working-tree state at handoff
+
+`f359917` committed (st-new fix). Uncommitted: `intent/st/ST0041/info.md` (MFIC objective/context), `intent/st/ST0042/{info,design,impl,tasks}.md` (review output), `intent/st/ST0043/info.md` (upgrade rethink), `intent/wip.md`, `intent/restart.md`, `.claude/restart.md`. The user asked to document state and wait -- holding before any commit of the doc changes.
+
+---
+
 ## Current state (2026-06-03, end of session -- v2.11.11 shipped)
 
 **v2.11.11 shipped 2026-06-03.** Patch fixing rules-path drift in the LLM guidance Intent generates for consuming projects. Found in Baize ST0001 WP-04 and reported as a handoff (`../Baize/intent/handoff-intent-rules-path.md`, deleted this session per its own acceptance criterion). Affects every project that uses Intent with LLMs. Shipped: tag `v2.11.11` (commit `7531306`) pushed to both remotes, self-upgrade stamp `a7fca3f`.
