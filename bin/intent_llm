@@ -50,8 +50,9 @@ shift
 # Handle subcommands
 case "$SUBCOMMAND" in
   usage_rules)
-    # Default behavior is to display the file
-    USAGE_RULES_FILE="$INTENT_HOME/intent/llm/usage-rules.md"
+    # Default behavior is to display the file. Root-level canon since
+    # v2.10.0 (the old intent/llm/ location is retired).
+    USAGE_RULES_FILE="$INTENT_HOME/usage-rules.md"
     
     # Check if usage-rules.md exists
     if [ ! -f "$USAGE_RULES_FILE" ]; then

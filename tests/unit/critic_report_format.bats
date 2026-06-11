@@ -1,139 +1,173 @@
 #!/usr/bin/env bats
-# Tests for the Critic report format (WP07).
+# Tests for the headless critic runner's report format (ST0042 T10).
 #
-# The report format is specified in intent/docs/critics.md and emitted by
-# each critic-<lang> subagent. These tests assert the format is parse-stable:
-# a known-shape report can be mechanically mined for rule IDs, severities,
-# counts, and the Rules-applied footer. If a critic drifts from the format,
-# this test fails before downstream tools that rely on the format do.
-#
-# The tests work against a synthetic fixture report assembled inline, not a
-# live critic run. Format specification is the contract; this file guards it.
+# Earlier versions of this file asserted on a heredoc fixture defined inside
+# the test itself -- green regardless of product behaviour. These tests run
+# the REAL `intent critic` pipeline (rule load -> proxy extraction -> scan ->
+# emit) against a synthetic rules directory via --rules, and assert on the
+# actual text and JSON reports the runner emits.
 
 load "../lib/test_helper.bash"
 
-make_report() {
-  cat <<'EOF'
-## Critic Report: critic-elixir code lib/accounts.ex
+# Build a rules tree with one warning-severity and one critical-severity
+# shell rule, each with a deterministic Greppable proxy.
+make_rules_dir() {
+  local root="$1"
+  local dir
 
-CRITICAL
-- IN-AG-HIGHLANDER-001 (highlander) lib/accounts.ex:16
-  Two modules define `valid_email?/1` with different regexes.
-  Extract one canonical EmailAddress module.
+  dir="$root/shell/code/warn-marker"
+  mkdir -p "$dir"
+  cat > "$dir/RULE.md" << 'EOF'
+---
+id: IN-SH-TEST-901
+title: "Warn marker"
+language: shell
+category: code
+severity: warning
+---
 
-- IN-EX-CODE-005 (no-silent-failures) lib/accounts.ex:21
-  `case ... _ -> nil end` swallows every error.
-  Return tagged tuples and match `{:error, reason}` explicitly.
+# Warn marker
 
-WARNING
-- IN-EX-CODE-001 (pattern-match-over-conditionals) lib/accounts.ex:5
-  Nested `if` on struct fields.
-  Replace with multi-clause function heads.
+Synthetic warning rule for report-format tests.
 
-RECOMMENDATION
-- (test-spec-missing) test/accounts_test.exs:1
-  No adjacent spec file.
-  Run `Task(subagent_type="diogenes", prompt="specify test/accounts_test.exs")`.
+## Problem
 
-Summary: 2 critical, 1 warning, 1 recommendation, 0 style.
-Rules applied: 4 agnostic, 6 language-specific.
+N/A
+
+## Detection
+
+Greppable proxy (not authoritative):
+
+```bash
+grep -nE 'WARN_MARKER'
+```
+
+## Bad
+
+N/A
+
+## Good
+
+N/A
+
+## When This Applies
+
+Always.
+
+## When This Does Not Apply
+
+Never.
+
+## Further Reading
+
+N/A
 EOF
+
+  dir="$root/shell/code/crit-marker"
+  mkdir -p "$dir"
+  sed -e 's/IN-SH-TEST-901/IN-SH-TEST-902/' \
+      -e 's/severity: warning/severity: critical/' \
+      -e 's/WARN_MARKER/CRIT_MARKER/' \
+      -e 's/Warn marker/Crit marker/' \
+      "$root/shell/code/warn-marker/RULE.md" > "$dir/RULE.md"
 }
 
-# ====================================================================
-# Heading
-# ====================================================================
+setup() {
+  TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-XXXXXX)"
+  RULES_DIR="$TEST_TEMP_DIR/rules"
+  make_rules_dir "$RULES_DIR"
 
-@test "report format: heading matches critic-report pattern" {
-  make_report | head -1 | grep -qE '^## Critic Report: critic-[a-z]+ (code|test|test-check) '
-}
-
-# ====================================================================
-# Severity sections
-# ====================================================================
-
-@test "report format: severity labels are the four canonical uppercase words" {
-  local sections
-  sections=$(make_report | grep -E '^(CRITICAL|WARNING|RECOMMENDATION|STYLE)$' | sort -u)
-  [ "$sections" = "$(printf 'CRITICAL\nRECOMMENDATION\nWARNING')" ]
-}
-
-@test "report format: sections appear in decreasing-severity order" {
-  local order
-  order=$(make_report | grep -nE '^(CRITICAL|WARNING|RECOMMENDATION|STYLE)$' | awk -F: '{print $2}')
-  local expected
-  expected="$(printf 'CRITICAL\nWARNING\nRECOMMENDATION')"
-  [ "$order" = "$expected" ]
-}
-
-# ====================================================================
-# Finding format: `- <id> (<slug>) <file>:<line>`
-# ====================================================================
-
-@test "report format: every rule-id finding has the (slug) suffix" {
-  local ids_with_slug ids_total
-  ids_with_slug=$(make_report | grep -cE '^- IN-[A-Z]{2,3}-[A-Z]+-[0-9]+ \([a-z0-9-]+\) ')
-  ids_total=$(make_report | grep -cE '^- IN-[A-Z]{2,3}-[A-Z]+-[0-9]+')
-  [ "$ids_with_slug" -eq "$ids_total" ]
-  [ "$ids_total" -gt 0 ]
-}
-
-@test "report format: every id-bearing finding carries a file:line suffix" {
-  make_report | grep -E '^- IN-' | grep -qvE ':[0-9]+$' && {
-    echo "at least one finding line lacks a trailing :LINE"
-    make_report | grep -E '^- IN-'
-    return 1
-  } || true
-  local all matched
-  all=$(make_report | grep -cE '^- IN-')
-  matched=$(make_report | grep -cE '^- IN-[A-Z]{2,3}-[A-Z]+-[0-9]+ \([a-z0-9-]+\) .+:[0-9]+$')
-  [ "$all" -eq "$matched" ]
-}
-
-@test "report format: non-rule findings use parenthesised slug and file:line" {
-  # e.g. recommendation handoffs that do not cite a canonical rule id.
-  make_report | grep -E '^- \([a-z0-9-]+\) .+:[0-9]+$' | head -1 | grep -qE '^- \([a-z0-9-]+\)'
-}
-
-# ====================================================================
-# Summary and Rules-applied lines
-# ====================================================================
-
-@test "report format: Summary line counts all four severities in order" {
-  make_report | grep -qE '^Summary: [0-9]+ critical, [0-9]+ warning, [0-9]+ recommendation, [0-9]+ style\.$'
-}
-
-@test "report format: Rules-applied line splits agnostic / language-specific" {
-  make_report | grep -qE '^Rules applied: [0-9]+ agnostic, [0-9]+ language-specific\.$'
-}
-
-@test "report format: Summary precedes Rules applied" {
-  local summary_line rules_line
-  summary_line=$(make_report | grep -nE '^Summary:' | head -1 | awk -F: '{print $1}')
-  rules_line=$(make_report | grep -nE '^Rules applied:' | head -1 | awk -F: '{print $1}')
-  [ -n "$summary_line" ] && [ -n "$rules_line" ] && [ "$rules_line" -gt "$summary_line" ]
-}
-
-# ====================================================================
-# Zero-finding path
-# ====================================================================
-
-make_clean_report() {
-  cat <<'EOF'
-## Critic Report: critic-rust code src/parser.rs
-
-Summary: 0 critical, 0 warning, 0 recommendation, 0 style.
-Rules applied: 4 agnostic, 5 language-specific.
+  TARGET="$TEST_TEMP_DIR/target.sh"
+  cat > "$TARGET" << 'EOF'
+#!/bin/bash
+echo one   # WARN_MARKER
+echo two   # CRIT_MARKER
 EOF
+
+  CLEAN_TARGET="$TEST_TEMP_DIR/clean.sh"
+  cat > "$CLEAN_TARGET" << 'EOF'
+#!/bin/bash
+echo clean
+EOF
+
+  export INTENT_EXT_DISABLE=1
 }
 
-@test "report format: zero-finding report still has Summary and Rules-applied lines" {
-  make_clean_report | grep -qE '^Summary: 0 critical, 0 warning, 0 recommendation, 0 style\.$'
-  make_clean_report | grep -qE '^Rules applied: [0-9]+ agnostic, [0-9]+ language-specific\.$'
+teardown() {
+  unset INTENT_EXT_DISABLE
+  rm -rf "$TEST_TEMP_DIR"
 }
 
-@test "report format: zero-finding report has no severity section headers" {
-  local headers
-  headers=$(make_clean_report | grep -cE '^(CRITICAL|WARNING|RECOMMENDATION|STYLE)$' || true)
-  [ "$headers" -eq 0 ]
+run_critic() {
+  run "${INTENT_BIN_DIR}/intent" critic shell --rules "$RULES_DIR" "$@"
+}
+
+# ====================================================================
+# Text format
+# ====================================================================
+
+@test "text report: finding line is [SEVERITY] <id> at <file>:<line> with excerpt" {
+  run_critic --files "$TARGET" --severity-min warning --format text
+  [ "$status" -eq 1 ]
+  assert_output_contains "[WARNING] IN-SH-TEST-901 at $TARGET:2"
+  assert_output_contains "[CRITICAL] IN-SH-TEST-902 at $TARGET:3"
+  assert_output_contains "> echo one   # WARN_MARKER"
+}
+
+@test "text report: severity sections are headed and ordered critical-first" {
+  run_critic --files "$TARGET" --severity-min warning --format text
+  local crit_line warn_line
+  crit_line=$(printf '%s\n' "$output" | grep -n '== CRITICAL (1) ==' | head -1 | cut -d: -f1)
+  warn_line=$(printf '%s\n' "$output" | grep -n '== WARNING (1) ==' | head -1 | cut -d: -f1)
+  [ -n "$crit_line" ] || fail "no CRITICAL section header: $output"
+  [ -n "$warn_line" ] || fail "no WARNING section header: $output"
+  [ "$crit_line" -lt "$warn_line" ] || fail "CRITICAL section does not precede WARNING"
+}
+
+@test "text report: clean run prints ok line and exits 0" {
+  run_critic --files "$CLEAN_TARGET" --severity-min warning --format text
+  [ "$status" -eq 0 ]
+  assert_output_contains "ok: no shell findings at severity >= warning across 1 file(s)"
+}
+
+@test "text report: --severity-min critical filters the warning finding" {
+  run_critic --files "$TARGET" --severity-min critical --format text
+  [ "$status" -eq 1 ]
+  assert_output_contains "IN-SH-TEST-902"
+  refute_output_contains "IN-SH-TEST-901"
+}
+
+# ====================================================================
+# JSON format
+# ====================================================================
+
+@test "json report: emits valid JSON with severity/rule_id/file/line/excerpt" {
+  run_critic --files "$TARGET" --severity-min warning --format json
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | jq -e . > /dev/null \
+    || fail "output is not valid JSON: $output"
+  [ "$(printf '%s\n' "$output" | jq -r 'length')" = "2" ]
+  [ "$(printf '%s\n' "$output" | jq -r '.[] | select(.rule_id == "IN-SH-TEST-901") | .severity')" = "warning" ]
+  [ "$(printf '%s\n' "$output" | jq -r '.[] | select(.rule_id == "IN-SH-TEST-901") | .line')" = "2" ]
+  [ "$(printf '%s\n' "$output" | jq -r '.[] | select(.rule_id == "IN-SH-TEST-902") | .file')" = "$TARGET" ]
+}
+
+@test "json report: clean run emits an empty array and exits 0" {
+  run_critic --files "$CLEAN_TARGET" --severity-min warning --format json
+  [ "$status" -eq 0 ]
+  [ "$(printf '%s\n' "$output" | jq -r 'length')" = "0" ]
+}
+
+# ====================================================================
+# Exit-code contract
+# ====================================================================
+
+@test "exit codes: 1 on findings at threshold, 0 below threshold" {
+  run_critic --files "$TARGET" --severity-min warning --format text
+  [ "$status" -eq 1 ]
+  # Only the warning finding present, threshold critical -> exit 0.
+  local warn_only="$TEST_TEMP_DIR/warn-only.sh"
+  printf '#!/bin/bash\necho x # WARN_MARKER\n' > "$warn_only"
+  run_critic --files "$warn_only" --severity-min critical --format text
+  [ "$status" -eq 0 ]
 }

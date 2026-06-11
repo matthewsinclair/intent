@@ -178,28 +178,11 @@ JSON
   [ "$rc" -eq 0 ] || fail "expected needs_v2_10_0_upgrade to find .intent/ via default cwd"
 }
 
-# --- 7. Cross-filesystem fallback (skip on macOS) -------------------------
-
-@test "cross-filesystem fallback: cp -a path on Linux tmpfs (skipped on macOS)" {
-  if [ "$(uname)" = "Darwin" ]; then
-    skip "cross-FS test requires Linux tmpfs; macOS lacks an equivalent fixture"
-  fi
-  if [ ! -w /dev/shm ]; then
-    skip "/dev/shm not writable; cannot stage cross-FS source"
-  fi
-
-  local cross_src="/dev/shm/intent-test-cross-$$"
-  local proj="$TEST_TEMP_DIR/proj"
-  mkdir -p "$cross_src" "$proj"
-  echo '{"intent_version":"2.9.0"}' > "$cross_src/config.json"
-  ln -s "$cross_src" "$proj/.intent" 2>/dev/null \
-    || { rm -rf "$cross_src"; skip "ln -s failed; environment cannot stage cross-FS link"; }
-
-  # Note: relocate_dotintent refuses symlinks, so this is a placeholder for
-  # the real cross-FS scenario which requires root-level tmpfs mount inside
-  # $TEST_TEMP_DIR. In CI we'd bind-mount a tmpfs at $TEST_TEMP_DIR; locally
-  # we settle for the symlink refusal path having been exercised in test 4.
-  rm -f "$proj/.intent"
-  rm -rf "$cross_src"
-  skip "real cross-FS path requires CI-level bind mount; symlink refusal in test 4 covers the related code path"
-}
+# --- 7. Cross-filesystem fallback --------------------------------------
+#
+# Deleted (ST0042 T10/F-TEST-11): the test skipped unconditionally on every
+# platform (Darwin skip, /dev/shm skip, then a final unconditional skip even
+# on Linux) -- permanent green with zero coverage. The related code path
+# (relocate_dotintent's symlink refusal) is exercised by test 4 above; the
+# true cross-FS scenario needs a CI-level bind mount, which belongs in CI
+# config, not a permanently-skipped local test.

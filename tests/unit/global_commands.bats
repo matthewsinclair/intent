@@ -68,9 +68,8 @@ load "../lib/test_helper.bash"
   assert_output_contains "bootstrap"
 }
 
-@test "intent init works in empty directory" {
+@test "intent init --help shows usage outside any project (global command)" {
   local version=$(get_intent_version)
-  # Don't actually run init, just check help
   run run_intent init --help
   # Note: init --help exits with status 1
   assert_failure

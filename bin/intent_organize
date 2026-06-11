@@ -1,6 +1,6 @@
 #!/bin/bash
-# intent_organise - Organize steel threads by status
-# Usage: intent organise [--dry-run]
+# intent_organize - Organize steel threads by status
+# Usage: intent organize [--dry-run]
 
 # Exit on error
 set -e
@@ -16,7 +16,7 @@ load_intent_config
 # Function to display usage information
 usage() {
   cat << EOF
-Usage: intent organise [--dry-run]
+Usage: intent organize [--dry-run]
 
 Organize steel threads into status directories based on their metadata
 
@@ -31,8 +31,8 @@ This command will:
 4. Keep active/in-progress threads at the root level
 
 Example:
-  intent organise          # Organize all steel threads
-  intent organise --dry-run # Preview what would be moved
+  intent organize          # Organize all steel threads
+  intent organize --dry-run # Preview what would be moved
 EOF
   exit 0
 }
