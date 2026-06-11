@@ -3,10 +3,16 @@
 ## First actions after `/compact` or new session
 
 1. **Invoke `/in-session`.** Reads restart files + CLAUDE.md + MODULES.md, surveys steel threads, loads `/in-essentials` and `/in-standards`, releases the UserPromptSubmit gate. As of v2.11.7, also chains to `/in-whiteboard pickup` if `intent/whiteboard/` exists.
-2. **Verify the working tree.** v2.11.11 is shipped. As of the 2026-06-11 session the tree is **dirty and mid-flight**: one new commit `f359917` (`fix: stamp st new frontmatter with current intent version`) on `main`, NOT pushed, riding the next release; plus uncommitted ST0042/ST0043 doc work + wip/restart updates. Nothing else to release.
-3. **Read `intent/wip.md` and `intent/restart.md`.** The wip "Current State" block (2026-06-11 entry) is operative; this file's "Resume target" says what to do next.
+2. **Verify the working tree.** v2.11.11 is shipped; nothing is pushed since. `main` carries the ST0042 execution commits (latest visible via `git log --oneline -12`); the tree should be clean apart from any in-flight WP work.
+3. **Read `intent/restart.md` (2026-06-11 execution-session block).** It carries the landed-WP ledger, the locked gate decisions, and the remaining execution order. `intent/wip.md` has the same state in summary.
 
-## State (2026-06-11, end of session -- ST0042 review complete, ST0043 opened, audit deferred to a new session)
+## State (2026-06-11, EXECUTION session in flight -- compact mid-arc)
+
+ST0042 WP execution is underway. **Done + committed (not pushed):** WP-09 part A (real-`~/.claude` test pollution fix, shared `setup_fake_home` helper), WP-01 (config eval eliminated), WP-05 part A (`canonical_status` single synonym table; repair/organize live bug), WP-03 (four silent-success paths), WP-04 (AGENTS.md generation reads `$HOME/.claude`; `_default` AGENTS.md template deleted). **Remaining, in order:** WP-05 part B (Highlander consolidation: version-fallback literal ~14x, config parsing x3, find_project_root x3, ST-dir resolver x3, ext-dir walk x5 -- skip upgrade-only inlines, ST0043 owns), WP-02 (rules-path drift in nine skills + `[[LANG]]` + mechanical guard test; update `tests/unit/in_session_skill.bats:70-73`), WP-07 (MODULES.md registry), WP-08 (canon docs + add `intent st cancel`), WP-06 (prune: intent_main, intent_minimal, stp, orphan templates, RETIRE `intent audit`; exclude upgrade scaffolding), WP-09 part B (vacuous critic tests, coverage for surviving modules). Then `scripts/release --patch` (interactive confirm), mark ST0042 Completed, propose ST0041 closure. ST0043 (upgrade rethink, targets v2.12.0 minor) starts only after the patch ships.
+
+Locked decisions: `intent audit` RETIRED (WP-06); WP-06 excludes upgrade-subsystem code; WP dir mapping slate-9=`WP/08`, slate-10=`WP/09`. Per-WP discipline: wp start -> fix -> regression test (red-phase where practical) -> full suite green -> CHANGELOG `[Unreleased]` -> commit -> wp done.
+
+## State (2026-06-11, review session -- ST0042 review complete, ST0043 opened)
 
 This session shipped a small fix and produced a full architectural review; **no release was cut.**
 

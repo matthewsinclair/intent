@@ -1,6 +1,35 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-06-11, end of session -- ST0042 review complete, ST0043 opened, audit deferred)
+## Current state (2026-06-11, execution session -- ST0042 WP execution in flight, mid-arc compact point)
+
+ST0042 execution is underway in this session. All gate decisions are taken; nothing is pushed; everything rides the next release (a patch, after the remaining WPs land).
+
+### Decisions locked in this session
+
+- `intent audit` (T6): **retire** (Highlander; critics are the canonical engine). Executes in WP-06.
+- WP-06 scope: **excludes** upgrade-subsystem dead scaffolding (F-UPG-9) -- ST0043 owns all upgrade deletions.
+- Release cadence: patch after ST0042 WPs complete; ST0043 then targets a minor (v2.12.0).
+- WP directory mapping: slate WP1-7 = `WP/01`-`07`; slate WP8 = ST0043; slate WP9 = `WP/08`; slate WP10 = `WP/09`.
+
+### Landed so far (all committed on main, NOT pushed)
+
+1. `1fc4180` docs: session-wrap docs from the review session.
+2. `d0e2b1d` docs: WP-01..09 scaffolded + populated; gate decisions recorded in design.md.
+3. `554fc0e` **WP-09 part A** (F-TEST-1/9): `setup_fake_home`/`teardown_fake_home` promoted into `tests/lib/test_helper.bash`; all seven fake-HOME files converted; full suite verified to leave real `~/.claude` untouched. WP-09 stays WIP (part B = vacuous tests + coverage gaps, lands LAST).
+4. `d959a9b` + `3c6db54` **WP-01 DONE**: config eval eliminated; `read_config_field` (jq field-wise) replaces `parse_json`+`eval`; regression test (red-phase-proven) in `tests/unit/config.bats`.
+5. `2736431` **WP-05 part A** (live bug): single `canonical_status` synonym table in `bin/intent_st`; `normalise_status` re-expressed on it; repair/organize inline `wip`->"In Progress" tables deleted; regression test pins `repair` writing `status: WIP`. WP-05 stays WIP (part B = version-fallback literal ~14x, config parsing x3, find_project_root x3, ST-dir resolver x3, ext-dir walk x5; SKIP update_config_version inlines -- ST0043 owns).
+6. `a3807b7` + `2e4abea` **WP-03 DONE**: four silent-success paths fixed (st new legacy template -> error; agents init template fallback to generated AGENTS.md; intent_init -> `intent claude subagents install intent`; upgrade backup verified with `error()` abort). Regression tests in st_commands/intent_agents/init_commands/intent_upgrade_dispatcher bats.
+7. `899c7cf` + `bafa78a` **WP-04 DONE**: renderers read project `.claude/` + `$HOME/.claude/` deduped; divergent `templates/_default/AGENTS.md` DELETED (init `--template _default` falls back to generated content, passes validate); `intent_agents.bats` HOME-sandboxed; root AGENTS.md regenerated (now lists real installed skills).
+
+### Remaining execution order
+
+WP-05 part B -> WP-02 (rules-path drift + mechanical guard) -> WP-07 (MODULES.md) -> WP-08 (canon docs + `intent st cancel`) -> WP-06 (prune dead code incl. `intent audit` retire) -> WP-09 part B (vacuous tests + coverage for survivors) -> patch release via `scripts/release --patch` (interactive confirm; NEVER --no-confirm) -> mark ST0042 Completed, propose ST0041 closure -> then ST0043 in its own arc.
+
+Incident note (resolved): two WP-04 test fixtures briefly leaked into the real `~/.claude` (`skills/home-skill`, `agents/home-agent.md`) when a setup edit raced the test run; both removed, file now sandboxed, write-watch confirmed clean.
+
+---
+
+## Previous state (2026-06-11, review session -- ST0042 review complete, ST0043 opened, audit deferred)
 
 This session shipped a small fix and produced a comprehensive architectural review of Intent. **No release was cut; the tree is dirty and mid-flight.**
 

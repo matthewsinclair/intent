@@ -7,7 +7,13 @@ intent_version: 2.11.11
 
 ## Current State
 
-**Session 2026-06-11 -- in progress, NOT released. Working tree dirty, nothing committed beyond the st-new fix.**
+**Execution session 2026-06-11 -- ST0042 WP execution in flight, mid-arc compact point. Nothing pushed.**
+
+Landed (committed on main): WP-09 part A (test suite no longer writes the real `~/.claude`; shared `setup_fake_home` in `tests/lib/test_helper.bash`), WP-01 (config eval eliminated; `read_config_field` jq reads), WP-05 part A (`canonical_status` single synonym table; repair/organize `wip`->"In Progress" live bug fixed), WP-03 (four silent-success paths), WP-04 (AGENTS.md renderers read `$HOME/.claude`; divergent `_default` AGENTS.md template deleted; root AGENTS.md regenerated). Gate decisions locked: `intent audit` retired (executes in WP-06); WP-06 excludes upgrade-subsystem code (ST0043 owns); patch after ST0042 WPs, then ST0043 targets v2.12.0. Remaining order: WP-05b, WP-02, WP-07, WP-08 (canon docs + `st cancel`), WP-06, WP-09b, then `scripts/release --patch`. Detail: `intent/restart.md` execution-session block.
+
+---
+
+**Review session 2026-06-11 (superseded by the execution block above).**
 
 Three things happened this session:
 
