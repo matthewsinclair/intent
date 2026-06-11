@@ -202,6 +202,20 @@ cmd_check() {
     case "$path" in
       */) continue ;;
     esac
+    # Function-qualified rows (`file::function`) register a specific function
+    # within a file, not a path. Resolve the file part, then confirm the
+    # function is defined there.
+    case "$path" in
+      *::*)
+        local fn_file="${path%%::*}"
+        local fn_name="${path##*::}"
+        if [ ! -f "$fn_file" ] || ! grep -qE "^${fn_name}\(\)" "$fn_file"; then
+          stale_files="$stale_files$path"$'\n'
+          issues=$((issues + 1))
+        fi
+        continue
+        ;;
+    esac
     if [ ! -e "$path" ]; then
       stale_files="$stale_files$path"$'\n'
       issues=$((issues + 1))

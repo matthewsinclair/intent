@@ -3,7 +3,7 @@ verblock: "11 Jun 2026:v0.1: matts - Initial version"
 wp_id: WP-07
 title: "Reconcile MODULES.md registry"
 scope: XS
-status: Not Started
+status: WIP
 ---
 
 # WP-07: Reconcile MODULES.md registry

@@ -64,35 +64,33 @@
 | Agents lua ARCH        | `intent/plugins/agents/templates/lua/ARCHITECTURE.md`      | Lua architecture starter; installed at `intent/llm/ARCHITECTURE-lua.md` (ST0035/WP19)                                                  |
 | Agents shell RULES     | `intent/plugins/agents/templates/shell/RULES.md`           | Shell rules starter; installed at `intent/llm/RULES-shell.md` by `intent lang init shell` (ST0035/WP19)                                |
 | Agents shell ARCH      | `intent/plugins/agents/templates/shell/ARCHITECTURE.md`    | Shell architecture starter; installed at `intent/llm/ARCHITECTURE-shell.md` (ST0035/WP19)                                              |
-| Agents default AGENTS  | `intent/plugins/agents/templates/_default/AGENTS.md`       | Language-agnostic AGENTS.md fallback used when no language-specific template exists                                                    |
 | Agents default RULES   | `intent/plugins/agents/templates/_default/RULES.md`        | Language-agnostic RULES.md fallback; gets `Language Packs` entries appended by `intent lang init` (ST0035/WP19)                        |
 | Agents default ARCH    | `intent/plugins/agents/templates/_default/ARCHITECTURE.md` | Language-agnostic ARCHITECTURE.md fallback                                                                                             |
 
 ## Templates
 
-| Concern                   | THE Module                                              | Notes                                                                         |
-| ------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| CLAUDE.md template        | `lib/templates/llm/_CLAUDE.md`                          | Single source -- used by init + upgrade                                       |
-| Module registry           | `lib/templates/llm/_MODULES.md`                         | Highlander registry template                                                  |
-| Decision tree             | `lib/templates/llm/_DECISION_TREE.md`                   | Code placement guide template                                                 |
-| Archetypes reference      | `lib/templates/llm/_ARCHETYPES.md`                      | Archetype listing template                                                    |
-| Usage rules template      | `lib/templates/llm/_usage-rules.md`                     | Downstream project DO / NEVER scaffold                                        |
-| Elixir archetypes         | `lib/templates/archetypes/elixir/`                      | 9 .ex.eex code templates                                                      |
-| ST info template          | `lib/templates/prj/st/ST####/info.md`                   | Steel thread frontmatter                                                      |
-| WP info template          | `lib/templates/prj/st/WP/info.md`                       | Work package frontmatter                                                      |
-| WIP template              | `lib/templates/prj/_wip.md`                             | Work-in-progress file                                                         |
-| Dependency graph template | `lib/templates/llm/_DEPENDENCY_GRAPH.md`                | Dependency rules template                                                     |
-| D11 Credo check           | `lib/templates/credo_checks/elixir/dependency_graph.ex` | Cross-app dependency enforcement                                              |
-| Hook template             | `lib/templates/hooks/module_check_hook.json`            | Advisory write hook for Claude Code                                           |
-| Pre-commit critic gate    | `lib/templates/hooks/pre-commit.sh`                     | `.git/hooks/pre-commit` template; runs `intent critic --staged` (ST0035/WP06) |
-| Critic config template    | `lib/templates/_intent_critic.yml`                      | `.intent_critic.yml` install default (ST0035/WP07)                            |
-| Claude settings template  | `lib/templates/.claude/settings.json`                   | Canonical hook stanzas (ST0035)                                               |
-| Session context hook      | `lib/templates/.claude/scripts/session-context.sh`      | SessionStart: project/git/WIP context                                         |
-| In-session gate hook      | `lib/templates/.claude/scripts/require-in-session.sh`   | UserPromptSubmit strict gate (ST0035)                                         |
-| Post-tool advisory hook   | `lib/templates/.claude/scripts/post-tool-advisory.sh`   | Opt-in PostToolUse critic (off default)                                       |
-| Credo check templates     | `lib/templates/credo_checks/elixir/`                    | 6 checks: R2, R6, R7, R11, R15, R16                                           |
-| Credo config script       | `lib/scripts/configure_credo.exs`                       | Configures .credo.exs in target projects                                      |
-| Treeindex ignore template | `lib/templates/_treeindexignore`                        | `.treeindexignore` install default (ST0036/WP06)                              |
+| Concern                   | THE Module                                            | Notes                                                                                                                        |
+| ------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| CLAUDE.md template        | `lib/templates/llm/_CLAUDE.md`                        | Single source -- used by init + upgrade                                                                                      |
+| Module registry           | `lib/templates/llm/_MODULES.md`                       | Highlander registry template                                                                                                 |
+| Decision tree             | `lib/templates/llm/_DECISION_TREE.md`                 | Code placement guide template                                                                                                |
+| Archetypes reference      | `lib/templates/llm/_ARCHETYPES.md`                    | Archetype listing template                                                                                                   |
+| Usage rules template      | `lib/templates/llm/_usage-rules.md`                   | Downstream project DO / NEVER scaffold                                                                                       |
+| Elixir archetypes         | `lib/templates/archetypes/elixir/`                    | 9 .ex.eex code templates                                                                                                     |
+| ST info template          | `lib/templates/prj/st/ST####/info.md`                 | Steel thread frontmatter                                                                                                     |
+| WP info template          | `lib/templates/prj/st/WP/info.md`                     | Work package frontmatter                                                                                                     |
+| WIP template              | `lib/templates/prj/_wip.md`                           | Work-in-progress file                                                                                                        |
+| Dependency graph template | `lib/templates/llm/_DEPENDENCY_GRAPH.md`              | Dependency rules template                                                                                                    |
+| Hook template             | `lib/templates/hooks/module_check_hook.json`          | Advisory write hook for Claude Code                                                                                          |
+| Pre-commit critic gate    | `lib/templates/hooks/pre-commit.sh`                   | `.git/hooks/pre-commit` template; runs `intent critic --staged` (ST0035/WP06)                                                |
+| Critic config template    | `lib/templates/_intent_critic.yml`                    | `.intent_critic.yml` install default (ST0035/WP07)                                                                           |
+| Claude settings template  | `lib/templates/.claude/settings.json`                 | Canonical hook stanzas (ST0035)                                                                                              |
+| Session context hook      | `lib/templates/.claude/scripts/session-context.sh`    | SessionStart: project/git/WIP context                                                                                        |
+| In-session gate hook      | `lib/templates/.claude/scripts/require-in-session.sh` | UserPromptSubmit strict gate (ST0035)                                                                                        |
+| Post-tool advisory hook   | `lib/templates/.claude/scripts/post-tool-advisory.sh` | Opt-in PostToolUse critic (off default)                                                                                      |
+| Credo check templates     | `lib/templates/credo_checks/elixir/`                  | bracket_access_on_struct, debug_artifacts, highlander_suspect, map_get_on_struct, missing_impl_annotation, thick_coordinator |
+| Credo config script       | `lib/scripts/configure_credo.exs`                     | Configures .credo.exs in target projects                                                                                     |
+| Treeindex ignore template | `lib/templates/_treeindexignore`                      | `.treeindexignore` install default (ST0036/WP06)                                                                             |
 
 ## Help Files
 
@@ -176,21 +174,31 @@ Thin orchestrators: read rules, apply Detection to target files, report findings
 | Shell critic (WP12) | `intent/plugins/claude/subagents/critic-shell/`                | bash + zsh detection via shebang; code mode only |
 | Per-project config  | `intent/plugins/claude/rules/_schema/sample-intent-critic.yml` | Template for `.intent_critic.yml`                |
 
+## Subagents: Advisory Family
+
+Non-critic subagents installed to `~/.claude/agents/` by `intent claude subagents install`. Dialog/methodology agents, not rule enforcers.
+
+| Concern               | THE Module                                  | Notes                                                             |
+| --------------------- | ------------------------------------------- | ----------------------------------------------------------------- |
+| Intent methodology    | `intent/plugins/claude/subagents/intent/`   | Steel-thread / work-package guidance for managing Intent projects |
+| CTO Review Mode       | `intent/plugins/claude/subagents/socrates/` | Socratic CTO/Tech-Lead dialog for technical decision-making       |
+| Elixir Test Architect | `intent/plugins/claude/subagents/diogenes/` | Socratic dialog producing + validating Elixir test specifications |
+
 ## Extension System (v2.9.0 / WP02 + WP08)
 
 User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; shadow warnings emitted on collisions.
 
-| Concern                  | THE Module                                               | Notes                                                                   |
-| ------------------------ | -------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Ext dispatcher           | `bin/intent_ext`                                         | list, show, validate, new                                               |
-| Manifest schema          | `intent/plugins/claude/ext-schema/extension.schema.json` | JSON Schema for `extension.json`                                        |
-| Multi-root discovery     | `intent/plugins/claude/lib/claude_plugin_helpers.sh`     | `plugin_get_source_roots` + `plugin_resolve_source_file` callbacks      |
-| Ext-seed template source | `lib/templates/ext-seeds/`                               | Seed directory root — copied by migrations                              |
-| Worker-bee ext seed      | `lib/templates/ext-seeds/worker-bee/`                    | Reference extension; source for `migrate_v2_8_2_to_v2_9_0` seeding      |
-| User-ext root (runtime)  | `~/.intent/ext/` (outside repo)                          | Created by migration; README stub included                              |
-| Migration function       | `bin/intent_helpers::migrate_v2_8_2_to_v2_9_0`           | Creates ext root, seeds worker-bee, prunes elixir + worker-bee installs |
-| Upgrade predicate        | `bin/intent_helpers::needs_v2_9_0_upgrade`               | Returns true when project's `.intent/config.json` is < 2.9.0            |
-| Ext README emitter       | `bin/intent_helpers::generate_ext_readme`                | Writes ~/.intent/ext/README.md on first bootstrap                       |
+| Concern                  | THE Module                                               | Notes                                                                       |
+| ------------------------ | -------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Ext dispatcher           | `bin/intent_ext`                                         | list, show, validate, new                                                   |
+| Manifest schema          | `intent/plugins/claude/ext-schema/extension.schema.json` | JSON Schema for `extension.json`                                            |
+| Multi-root discovery     | `intent/plugins/claude/lib/claude_plugin_helpers.sh`     | `plugin_get_source_roots` + `plugin_resolve_source_file` callbacks          |
+| Ext-seed template source | `lib/templates/ext-seeds/`                               | Seed directory root — copied by migrations                                  |
+| Worker-bee ext seed      | `lib/templates/ext-seeds/worker-bee/`                    | Reference extension; source for `migrate_v2_8_2_to_v2_9_0` seeding          |
+| User-ext root (runtime)  | `~/.intent/ext/` (outside repo)                          | Created by migration; README stub included                                  |
+| Migration function       | `bin/intent_helpers::migrate_v2_8_2_to_v2_9_0`           | Creates ext root, seeds worker-bee, prunes elixir + worker-bee installs     |
+| Upgrade predicate        | `bin/intent_helpers::needs_v2_9_0_upgrade`               | Takes a version string arg; returns true unless it matches 2.9.x/2.10.x/3.x |
+| Ext README emitter       | `bin/intent_helpers::generate_ext_readme`                | Writes ~/.intent/ext/README.md on first bootstrap                           |
 
 ## Tests
 

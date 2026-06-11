@@ -146,6 +146,38 @@ EOF
   assert_output_contains "bin/intent_ghost"
 }
 
+@test "modules check resolves file::function rows by the function, not as a path" {
+  # ST0042 T7: MODULES.md registers specific functions as `file::name`.
+  # The stale-check must verify the function is defined in the file, not
+  # test the whole `file::name` string as a path (which always fails).
+  project_dir=$(create_test_project "Modules Test")
+  cd "$project_dir"
+
+  mkdir -p bin
+  cat > bin/intent_thing << 'SH'
+#!/bin/bash
+real_helper() {
+  echo hi
+}
+SH
+
+  cat > intent/llm/MODULES.md << 'EOF'
+# Module Registry
+
+## Core
+
+| Concern | THE Module                  | Notes        |
+| ------- | --------------------------- | ------------ |
+| Real    | `bin/intent_thing::real_helper`  | defined      |
+| Ghost   | `bin/intent_thing::gone_helper`  | not defined  |
+EOF
+
+  run run_intent modules check
+  assert_failure
+  assert_output_contains "bin/intent_thing::gone_helper"
+  refute_output_contains "bin/intent_thing::real_helper"
+}
+
 # ============================================================
 # Check: Exit Codes
 # ============================================================
