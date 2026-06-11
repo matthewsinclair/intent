@@ -50,7 +50,7 @@ mix dialyzer              # Type checking (if configured)
 - See `intent/llm/RULES.md` for project-specific coding rules (human-curated).
 - See `intent/llm/ARCHITECTURE.md` for system structure and domain boundaries (human-curated).
 - See `usage-rules.md` for the DO / NEVER contract honoured by `mix usage_rules.sync` and friends.
-- See `intent/docs/working-with-llms.md` for the canon tech note on the LLM-facing layout.
+- See `intent/docs/working-with-llms.md` at the Intent install for the canon tech note on the LLM-facing layout.
 
 ### Commit Conventions
 
@@ -75,7 +75,7 @@ Task(subagent_type="critic-elixir", prompt="review <paths>")
 Task(subagent_type="critic-elixir", prompt="test-check <paths>")
 ```
 
-Headless runner `bin/intent_critic` powers the pre-commit gate. Contract: `intent/docs/critics.md`.
+The installed Intent tool's headless runner (`intent critic <lang>`) powers the pre-commit gate. Contract: `intent/docs/critics.md` at the Intent install.
 
 ## Rule Library
 
@@ -94,11 +94,11 @@ User extensions at `~/.intent/ext/<name>/`:
 intent ext list
 ```
 
-Authoring guide: `intent/docs/writing-extensions.md`.
+Authoring guide: `intent/docs/writing-extensions.md` at the Intent install.
 
 ## Session Hooks
 
-`.claude/settings.json` wires Claude Code lifecycle hooks (SessionStart, UserPromptSubmit, Stop). Architecture: `intent/docs/working-with-llms.md#session-hook-architecture`.
+`.claude/settings.json` wires Claude Code lifecycle hooks (SessionStart, UserPromptSubmit, Stop). Architecture: `intent/docs/working-with-llms.md#session-hook-architecture` at the Intent install.
 
 ## Socrates vs Diogenes FAQ
 
@@ -107,7 +107,7 @@ Two distinct subagents:
 - **Socrates** -- CTO Review Mode (architecture and strategy).
 - **Diogenes** -- Elixir Test Architect (test specification and validation).
 
-Forensic detail: `intent/docs/working-with-llms.md#socrates-vs-diogenes-faq`.
+Forensic detail: `intent/docs/working-with-llms.md#socrates-vs-diogenes-faq` at the Intent install.
 
 ## Security Considerations
 
@@ -117,9 +117,14 @@ Forensic detail: `intent/docs/working-with-llms.md#socrates-vs-diogenes-faq`.
 
 ## Additional Resources
 
+At the Intent install (not this project):
+
 - `intent/docs/working-with-llms.md` -- canon tech note.
 - `intent/docs/critics.md` -- critic contract.
 - `intent/docs/rules.md` -- rule library authoring guide.
+
+In this project:
+
 - `intent/llm/MODULES.md` -- module registry (Highlander enforcement).
 - `CLAUDE.md` -- Claude-specific overlay (if present).
 - `usage-rules.md` -- DO / NEVER contract (if present).

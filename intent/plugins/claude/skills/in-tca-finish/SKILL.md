@@ -75,7 +75,7 @@ This generates a pre-populated template with audit data (WP breakdown, per-WP co
 
 Open `intent/st/STXXXX/feedback-report.md` and replace every `[Fill in: ...]` placeholder with real analysis:
 
-- **Rule-by-rule analysis**: which IN-\* rules had most value, which were noisy, rule-by-rule FP rates. Where a rule had a high FP rate, propose either a `.intent_critic.yml` `disabled:` entry for the project or a Detection refinement for the rule itself (the latter goes back to `intent/plugins/claude/rules/<lang>/<cat>/<slug>/RULE.md` and gets validated by `intent claude rules validate`).
+- **Rule-by-rule analysis**: which IN-\* rules had most value, which were noisy, rule-by-rule FP rates. Where a rule had a high FP rate, propose either a `.intent_critic.yml` `disabled:` entry for the project or a Detection refinement for the rule itself (the latter is an edit to the rule's `RULE.md` in the Intent source repo, validated by `intent claude rules validate`).
 - **WP sizing assessment**: which WPs were appropriately sized, which were too large or too small.
 - **Critic effectiveness**: per-WP critic findings counts and FPs noted (use the metadata lines in each WP's socrates.md). Where the critic missed something a human reviewer caught, the gap is a candidate Detection improvement on the relevant RULE.md.
 - **Process improvements**: concrete recommendations for the TCA doc, the rule library, or the skill suite based on what went wrong this audit.

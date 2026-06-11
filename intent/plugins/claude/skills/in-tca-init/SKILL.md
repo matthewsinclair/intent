@@ -25,7 +25,7 @@ Ask the user:
 
 ### 2. Select the rule packs
 
-A TCA enforces Intent's rule library. There is no per-audit invented rule numbering — every cited rule has a stable `IN-*` ID and lives at `intent/plugins/claude/rules/<lang>/<category>/<slug>/RULE.md`. See `intent/docs/rules.md` for the schema.
+A TCA enforces Intent's rule library. There is no per-audit invented rule numbering — every cited rule has a stable `IN-*` ID, served by the installed Intent tool via `intent claude rules show <id>` (`intent claude rules list` to enumerate). The schema lives in `intent/docs/rules.md` at the Intent install.
 
 Default rule packs by ecosystem:
 

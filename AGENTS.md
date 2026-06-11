@@ -43,7 +43,7 @@ intent st list      # list steel threads
 - Shell scripts: 2-space indentation, POSIX-compliant where practical.
 - Markdown: no manual line wrapping; verblock frontmatter on persistent docs.
 - See `usage-rules.md` for the terse "DO / NEVER" contract.
-- See `intent/docs/working-with-llms.md` for the canon tech note on the LLM-facing layout and how hooks + critics + skills compose.
+- See `intent/docs/working-with-llms.md` at the Intent install for the canon tech note on the LLM-facing layout and how hooks + critics + skills compose.
 
 ## Steel Thread + Work Package Process
 
@@ -108,7 +108,7 @@ Per-language rule enforcement via thin subagents that read the rule library at i
 Task(subagent_type="critic-<lang>", prompt="review <targets>")
 ```
 
-A headless runner at `bin/intent_critic` (Greppable-proxy rules only; no LLM required) powers the pre-commit gate. Contract: `intent/docs/critics.md`. Exit codes: `0` clean, `1` findings, `2` error.
+The installed Intent tool's headless runner (`intent critic <lang>`, Greppable-proxy rules only; no LLM required) powers the pre-commit gate. Contract: `intent/docs/critics.md` at the Intent install. Exit codes: `0` clean, `1` findings, `2` error.
 
 ## Rule Library
 
@@ -130,11 +130,11 @@ intent ext show <name>
 intent ext new <name>
 ```
 
-Authoring guide: `intent/docs/writing-extensions.md`.
+Authoring guide: `intent/docs/writing-extensions.md` at the Intent install.
 
 ## Session Hooks
 
-`.claude/settings.json` wires three Claude Code lifecycle hooks: **SessionStart** (inject context + `/in-session` reminder), **UserPromptSubmit** (strict gate -- block first prompt until `/in-session` runs), **Stop** (remind `/in-finish` at wrap-up). Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture`.
+`.claude/settings.json` wires three Claude Code lifecycle hooks: **SessionStart** (inject context + `/in-session` reminder), **UserPromptSubmit** (strict gate -- block first prompt until `/in-session` runs), **Stop** (remind `/in-finish` at wrap-up). Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture` at the Intent install.
 
 ## Socrates vs Diogenes FAQ
 
@@ -143,7 +143,7 @@ Two distinct subagents for two distinct concerns:
 - **Socrates** -- CTO Review Mode. Architectural and strategic technical decision-making via Socratic dialog.
 - **Diogenes** -- Elixir Test Architect. Test-specification generation and gap analysis.
 
-They have never been the same agent. FAQ + forensic detail: `intent/docs/working-with-llms.md#socrates-vs-diogenes-faq`.
+They have never been the same agent. FAQ + forensic detail: `intent/docs/working-with-llms.md#socrates-vs-diogenes-faq` at the Intent install.
 
 ## Testing Instructions
 
@@ -151,7 +151,7 @@ They have never been the same agent. FAQ + forensic detail: `intent/docs/working
 2. Make changes.
 3. Run the suite again; confirm no regressions.
 4. Add new tests for new functionality.
-5. Before commit, the pre-commit critic gate checks staged files for `CRITICAL` + `WARNING` findings. See `intent/docs/pre-commit-hook.md`.
+5. Before commit, the pre-commit critic gate checks staged files for `CRITICAL` + `WARNING` findings. See `intent/docs/pre-commit-hook.md` at the Intent install.
 
 ## Commit Guidelines
 
@@ -167,12 +167,17 @@ They have never been the same agent. FAQ + forensic detail: `intent/docs/working
 
 ## Additional Resources
 
+At the Intent install (not this project):
+
 - `intent/docs/working-with-llms.md` -- canon tech note (narrative).
 - `intent/docs/critics.md` -- critic contract.
 - `intent/docs/rules.md` -- rule library authoring guide.
 - `intent/docs/writing-extensions.md` -- extension author guide.
 - `intent/docs/pre-commit-hook.md` -- pre-commit critic gate install + configure.
 - `intent/docs/migration-v2.10.0.md` -- v2.9.0 -> v2.10.0 migration guide (directory move + recovery).
+
+In this project:
+
 - `intent/llm/MODULES.md` -- module registry (Highlander enforcement).
 - `CLAUDE.md` -- Claude-specific overlay.
 - `usage-rules.md` -- DO / NEVER contract for this project.

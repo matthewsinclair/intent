@@ -20,7 +20,7 @@ Load the Intent Elixir test-rule pack into context. Invoke before writing ExUnit
 
 ### 1. Load the test rules
 
-Read each `RULE.md` on demand when the situation matches. The full text lives in `intent/plugins/claude/rules/elixir/test/<slug>/RULE.md`.
+Read each rule on demand when the situation matches. The full text is served by the installed Intent tool via `intent claude rules show <id>`.
 
 | Rule ID          | Slug                           | What it enforces                                                      |
 | ---------------- | ------------------------------ | --------------------------------------------------------------------- |
@@ -32,7 +32,7 @@ Read each `RULE.md` on demand when the situation matches. The full text lives in
 | `IN-EX-TEST-006` | `real-code-over-mocks`         | Mock only at external boundaries; never your own modules.             |
 | `IN-EX-TEST-007` | `test-highlander-shared-setup` | No duplicated setup; fixtures with async-safe identity.               |
 
-Three rules (002, 003, 004) are upstream-derived from `elixir-test-critic`. See `intent/plugins/claude/rules/_attribution/elixir-test-critic.md` for full MIT attribution.
+Three rules (002, 003, 004) are upstream-derived from `elixir-test-critic`. Full MIT attribution ships with the rule library at the Intent install (`rules/_attribution/elixir-test-critic.md`).
 
 ### 2. Additional operational conventions
 

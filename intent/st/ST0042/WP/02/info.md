@@ -3,7 +3,7 @@ verblock: "11 Jun 2026:v0.1: matts - Initial version"
 wp_id: WP-02
 title: "Finish rules-path drift + mechanical guard"
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-02: Finish rules-path drift + mechanical guard

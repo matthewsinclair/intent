@@ -76,7 +76,7 @@ Task(subagent_type="critic-shell",  prompt="review bin/* scripts/*")
 
 **Polyglot projects**: when `languages` has more than one entry, the user has explicitly declared a polyglot. Invoke each critic with a target glob narrowed to its own subtree. Array order is the explicit declaration; the first entry is the primary where a primary is needed.
 
-**Project-local config**: critics honour `.intent_critic.yml` at the project root for `disabled:` and `severity_min:` overrides. See `intent/docs/critics.md` and `intent/plugins/claude/rules/_schema/sample-intent-critic.yml`.
+**Project-local config**: critics honour `.intent_critic.yml` at the project root for `disabled:` and `severity_min:` overrides. The full contract (`intent/docs/critics.md`) and a worked sample config (`rules/_schema/sample-intent-critic.yml`) live in the Intent install, not the project.
 
 ### Stage 3: After both stages
 

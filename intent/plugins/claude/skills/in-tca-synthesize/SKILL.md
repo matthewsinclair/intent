@@ -43,7 +43,7 @@ Count findings per IN-\* rule ID across all WPs:
 ...
 ```
 
-The IN-\* IDs come straight from the critic reports — no translation needed. Sort by count descending. This reveals **systemic issues** (rules violated everywhere) vs **localized issues** (one bad module). Cross-reference each ID at `intent/plugins/claude/rules/<lang>/<cat>/<slug>/RULE.md` for the Detection heuristic and the canonical fix pattern.
+The IN-\* IDs come straight from the critic reports — no translation needed. Sort by count descending. This reveals **systemic issues** (rules violated everywhere) vs **localized issues** (one bad module). Cross-reference each ID with `intent claude rules show <id>` for the Detection heuristic and the canonical fix pattern.
 
 ### 4. Cross-cutting deduplication
 

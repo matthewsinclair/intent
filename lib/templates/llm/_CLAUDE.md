@@ -4,7 +4,7 @@ This project uses Intent v[[INTENT_VERSION]]. The primary config file for AI cod
 
 ## Required on every session
 
-Run `/in-session` immediately after session start and after every `/compact` or context reset. It auto-detects the project language and loads the right skills (`/in-essentials`, `/in-standards`, plus language-specific). Rationale: `intent/docs/working-with-llms.md#skills-and-in-session-auto-load`.
+Run `/in-session` immediately after session start and after every `/compact` or context reset. It reads the project's declared languages and loads the right skills (`/in-essentials`, `/in-standards`, plus language-specific). Rationale: `intent/docs/working-with-llms.md#skills-and-in-session-auto-load` at the Intent install.
 
 ## Persistent memory
 
@@ -12,17 +12,18 @@ Claude Code persists cross-session memories at `~/.claude/projects/<project-dir>
 
 ## Session hooks
 
-`.claude/settings.json` wires Claude Code lifecycle hooks: `SessionStart` (inject project context + `/in-session` reminder), `UserPromptSubmit` (strict gate -- block first prompt until `/in-session` runs), `Stop` (remind `/in-finish` at wrap-up). Hook scripts live under `.claude/scripts/`. Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture`.
+`.claude/settings.json` wires Claude Code lifecycle hooks: `SessionStart` (inject project context + `/in-session` reminder), `UserPromptSubmit` (strict gate -- block first prompt until `/in-session` runs), `Stop` (remind `/in-finish` at wrap-up). Hook scripts live under `.claude/scripts/`. Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture` at the Intent install.
 
 ## File map
 
 - `AGENTS.md` -- primary tool-agnostic contract. Read first.
 - `usage-rules.md` -- terse DO / NEVER rules (Elixir convention; honoured by `mix usage_rules.sync`).
-- `intent/docs/working-with-llms.md` -- canon narrative on how AGENTS.md + CLAUDE.md + usage-rules.md + hooks + critics + skills compose.
 - `intent/llm/MODULES.md` -- Highlander registry; check before creating new modules.
 - `intent/llm/DECISION_TREE.md` -- code-placement flow chart.
 - `intent/` -- steel threads (`st/`), project docs (`docs/`), work tracking (`wip.md`, `restart.md`).
 - `intent/.config/` -- configuration and metadata.
+
+Canon narrative on how AGENTS.md + CLAUDE.md + usage-rules.md + hooks + critics + skills compose: `intent/docs/working-with-llms.md` at the Intent install.
 
 ## Rules of the road
 
@@ -44,7 +45,7 @@ Task(subagent_type="critic-<lang>", prompt="review <paths>")
 Task(subagent_type="critic-<lang>", prompt="test-check <paths>")
 ```
 
-`/in-review` auto-detects language and dispatches. Headless runner `bin/intent_critic` powers the pre-commit gate. Contract: `intent/docs/critics.md`.
+`/in-review` reads the declared languages and dispatches. The installed Intent tool's headless runner (`intent critic <lang>`) powers the pre-commit gate. Contract: `intent/docs/critics.md` at the Intent install.
 
 ## Project-specific
 

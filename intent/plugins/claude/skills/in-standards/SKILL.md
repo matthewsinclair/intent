@@ -16,7 +16,7 @@ Load coding discipline into context. Invoke at the start of coding or after any 
 
 ### 2. Load the agnostic rule pack
 
-These are the cross-language principles. Every language pack (Elixir, Rust, Swift, Lua, Shell) concretises them. Read each `RULE.md` on demand when the situation matches; the full text lives in `intent/plugins/claude/rules/agnostic/<slug>/RULE.md`.
+These are the cross-language principles. Every language pack (Elixir, Rust, Swift, Lua, Shell) concretises them. Read each rule on demand when the situation matches; the full text is served by the installed Intent tool via `intent claude rules show <id>` (`intent claude rules list --lang agnostic` to enumerate).
 
 | Rule ID                | Slug               | What it enforces                                                           |
 | ---------------------- | ------------------ | -------------------------------------------------------------------------- |

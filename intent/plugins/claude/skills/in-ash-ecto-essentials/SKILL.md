@@ -10,7 +10,7 @@ Load the Intent Ash rule pack into context. All database access in Ash-framework
 
 ### 1. Load the Ash rules
 
-Read each `RULE.md` on demand. The full text lives in `intent/plugins/claude/rules/elixir/ash/<slug>/RULE.md`.
+Read each rule on demand. The full text is served by the installed Intent tool via `intent claude rules show <id>`.
 
 | Rule ID         | Slug                   | What it enforces                                                        |
 | --------------- | ---------------------- | ----------------------------------------------------------------------- |

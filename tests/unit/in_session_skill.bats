@@ -66,11 +66,15 @@ CLAUDE_MD="${INTENT_PROJECT_ROOT}/CLAUDE.md"
   [ "$status" -ne 0 ]
 }
 
-@test "in-session points at rule packs for non-Elixir languages" {
-  assert_file_contains "$SKILL" "intent/plugins/claude/rules/rust"
-  assert_file_contains "$SKILL" "intent/plugins/claude/rules/swift"
-  assert_file_contains "$SKILL" "intent/plugins/claude/rules/lua"
-  assert_file_contains "$SKILL" "intent/plugins/claude/rules/shell"
+@test "in-session points at rule packs for non-Elixir languages via the CLI" {
+  # ST0042 T2: skills propagate to consumer projects where the local
+  # rules directory does not exist -- access is CLI-only.
+  assert_file_contains "$SKILL" "intent claude rules list --lang rust"
+  assert_file_contains "$SKILL" "intent claude rules list --lang swift"
+  assert_file_contains "$SKILL" "intent claude rules list --lang lua"
+  assert_file_contains "$SKILL" "intent claude rules list --lang shell"
+  run grep -F 'intent/plugins/claude/rules' "$SKILL"
+  [ "$status" -ne 0 ]
 }
 
 # ====================================================================

@@ -17,7 +17,7 @@ Load the Intent Elixir rule pack into context. Invoke at the start of any Elixir
 
 ### 1. Load the production-code rules
 
-Read each `RULE.md` on demand when the situation matches. The full text of each rule lives in `intent/plugins/claude/rules/elixir/code/<slug>/RULE.md`.
+Read each rule on demand when the situation matches. The full text of each rule is served by the installed Intent tool via `intent claude rules show <id>`.
 
 | Rule ID          | Slug                              | What it enforces                                           |
 | ---------------- | --------------------------------- | ---------------------------------------------------------- |

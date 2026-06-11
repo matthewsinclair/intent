@@ -22,7 +22,7 @@ Project-specific DO / NEVER rules. Terse and imperative. Examples:
 - `/in-session` — session bootstrap. Run after `/compact`, context reset, or session start. Auto-loads language-appropriate skills.
 - `/in-essentials`, `/in-standards` — universal workflow rules.
 - `/in-review`, `/in-verify`, `/in-debug`, `/in-finish` — review / verify / debug / wrap-up flows.
-- Language-specific — `/in-[[LANG]]-essentials` (and others) loaded on demand by `/in-session`.
+- Language-specific — per-language essentials skills (eg `/in-elixir-essentials`) loaded on demand by `/in-session` from the project's declared `languages`.
 
 Full list: `intent claude skills list`.
 
@@ -63,7 +63,7 @@ Hooks are applied to this project by `intent claude upgrade --apply`. Never edit
 
 ## Critics and pre-commit
 
-`.git/hooks/pre-commit` runs `bin/intent_critic [[LANG]]` on staged files. Severity threshold and disabled rules configured via `.intent_critic.yml` at project root:
+`.git/hooks/pre-commit` runs `intent critic <lang>` on staged files for each language declared in `intent/.config/config.json`. Severity threshold and disabled rules configured via `.intent_critic.yml` at project root:
 
 ```yaml
 severity_min: warning # critical | warning | recommendation | style
