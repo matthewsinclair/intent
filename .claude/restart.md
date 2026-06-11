@@ -3,16 +3,14 @@
 ## First actions after `/compact` or new session
 
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the UserPromptSubmit gate, chains `/in-whiteboard pickup` if `intent/whiteboard/` exists.
-2. **Verify the working tree.** Expect either: (a) clean tree, v2.11.12 tagged and pushed (release done), or (b) clean tree, nothing pushed, release still pending user's `bash scripts/release --patch`.
-3. **Read `intent/restart.md`.** It carries the full arc ledger and the next-arc pointer.
+2. **Verify the working tree.** Expect: clean tree, `v2.11.12` tagged and pushed to both remotes, post-release wrap committed.
+3. **Read `intent/restart.md`.** It carries the narrative state and the next-arc pointer.
 
-## State (2026-06-11, arc complete -- release pending)
+## State (2026-06-11, v2.11.12 shipped)
 
-ST0042 (Fable 5 review + all nine WPs) and ST0041 (MFIC exploration + harvest) are **Completed** and relocated to `intent/st/COMPLETED/`. Full suite green (user-verified). Nothing pushed. The user runs `bash scripts/release --patch` (v2.11.11 -> v2.11.12; interactive confirm; NEVER `--no-confirm`). After the release: refresh both restart files + wip.md Current State + memory Active Work.
+ST0042 (Fable 5 review + all nine WPs) and ST0041 (MFIC exploration + harvest) shipped in v2.11.12 (tag `574b015`, GitHub release published). Both STs Completed in `intent/st/COMPLETED/`. Done-work bookkeeping: terse ledger `intent/done.md`, verbose narratives `intent/history/v2.11.*.md`. Fleet picks up v2.11.12 on next `intent upgrade`.
 
-Done-work bookkeeping moved this session: terse ledger in `intent/done.md`, verbose release narratives in `intent/history/v2.11.*.md`, wip.md slimmed to current state + pruned backlog.
-
-## Next arc (after release): ST0043 -- Rethink `intent upgrade`
+## Next arc: ST0043 -- Rethink `intent upgrade`
 
 WIP, not started, targets **v2.12.0 minor**, own session. Design in `intent/st/ST0043/info.md` (Architecture B: convergent end-state + structural-step ledger). Owns all upgrade-subsystem deletions deliberately excluded from ST0042's WP-05/WP-06, plus the `intent claude upgrade` Phase-2 CLAUDE.md substitution audit.
 

@@ -1,20 +1,21 @@
 ---
-verblock: "11 Jun 2026:v0.2: matts - ST0042/ST0041 arc archived; ledger conventions clarified"
-intent_version: 2.11.11
+verblock: "11 Jun 2026:v0.3: matts - v2.11.12 shipped; arc entry closed out"
+intent_version: 2.11.12
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
 
-## 2026-06-11 — ST0042 + ST0041 arc (rides the next patch release)
+## 2026-06-11 — ST0042 + ST0041 arc (shipped in v2.11.12)
 
-- **ST0042 Completed** — Fable 5 review of Intent, all nine WPs executed in one arc: test-suite HOME isolation (09a), config-eval elimination (01), canonical_status (05a), silent-success kills (03), AGENTS.md generation fix (04), Highlander consolidation (05b), rules-path drift + mechanical guard (02), MODULES.md reconciliation + `file::function` checker fix (07), canon docs reconciliation + new `intent st cancel` (08), prune incl. `intent audit` retirement (06), vacuous-test rewrites + module coverage (09b). Incidental finds fixed in passing: `intent organize` dead dispatch (script renamed from `intent_organise`), `intent llm usage_rules` dead path, `intent help` footer phantoms. Detail: `intent/st/COMPLETED/ST0042/` + CHANGELOG `[Unreleased]`.
+- **ST0042 Completed** — Fable 5 review of Intent, all nine WPs executed in one arc: test-suite HOME isolation (09a), config-eval elimination (01), canonical_status (05a), silent-success kills (03), AGENTS.md generation fix (04), Highlander consolidation (05b), rules-path drift + mechanical guard (02), MODULES.md reconciliation + `file::function` checker fix (07), canon docs reconciliation + new `intent st cancel` (08), prune incl. `intent audit` retirement (06), vacuous-test rewrites + module coverage (09b). Incidental finds fixed in passing: `intent organize` dead dispatch (script renamed from `intent_organise`), `intent llm usage_rules` dead path, `intent help` footer phantoms. Detail: `intent/st/COMPLETED/ST0042/` + CHANGELOG `[2.11.12]`.
 - **ST0041 Completed** — MFIC (Mechanically-Falsifiable Independent Control) exploration; ST0042 ran as exercise #1. Harvest in `intent/st/COMPLETED/ST0041/impl.md` — adopted: red-phase against HEAD, mechanical-guard-per-defect-class, untested-module-as-unfalsified-claim, gate-integrity maintenance, vacuous-test detection; deferred: CI gate promotion, cross-session test authorship, blocking authority.
 - **`intent st new` version-stamp fix** (`f359917`) — new threads stamp the live Intent version, not hardcoded 2.4.0/2.0.0 literals.
 
 ## Releases
 
+- **2026-06-11 — v2.11.12**: ST0042 Fable 5 review arc (nine WPs: config-eval RCE, Highlander consolidation, rules-path drift guard, silent-success kills, canon docs, prune, vacuous-test rewrites) + ST0041 MFIC harvest; `intent st cancel` added; `intent audit` retired. ([history](history/v2.11.12.md))
 - **2026-06-03 — v2.11.11**: rules-path drift fix in generated guidance + critic subagents; `intent upgrade` re-syncs subagents. ([history](history/v2.11.11.md))
 - **2026-05-28 — v2.11.10**: `/in-whiteboard` Verifier stream role + `handle:` field. ([history](history/v2.11.10.md))
 - **2026-05-23 — v2.11.9**: `/in-whiteboard archive` subcommand. ([history](history/v2.11.9.md))
