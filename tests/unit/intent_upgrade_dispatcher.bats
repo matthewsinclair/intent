@@ -23,6 +23,8 @@ UPGRADE="${INTENT_PROJECT_ROOT}/bin/intent_upgrade"
   # config carries the live target after upgrade.
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-upgrade-210-XXXXXX)"
   cd "${TEST_TEMP_DIR}" || exit 1
+  # Sandbox HOME: the upgrade tail-call syncs skills/agents into ~/.claude.
+  setup_fake_home
 
   mkdir -p intent/.config intent/llm intent/st
   # No `languages` field -- forces needs_v2_11_0_upgrade to return 0 so the
@@ -54,6 +56,7 @@ EOF
   stamped=$(jq -r '.intent_version' intent/.config/config.json)
   [ "$stamped" = "$target" ] || fail "expected stamp '$target', got '$stamped'"
 
+  teardown_fake_home
   cd "${INTENT_PROJECT_ROOT}" || exit 1
   rm -rf "${TEST_TEMP_DIR}"
 }
@@ -61,6 +64,8 @@ EOF
 @test "v2.11.x project upgrades to current target without 'Unknown version'" {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-upgrade-211-XXXXXX)"
   cd "${TEST_TEMP_DIR}" || exit 1
+  # Sandbox HOME: the upgrade tail-call syncs skills/agents into ~/.claude.
+  setup_fake_home
 
   mkdir -p intent/.config intent/llm intent/st
   cat > intent/.config/config.json <<'EOF'
@@ -86,6 +91,7 @@ EOF
   run "${INTENT_BIN_DIR}/intent" upgrade --no-backup
   refute_output_contains "Unknown version: 2.11.0"
 
+  teardown_fake_home
   cd "${INTENT_PROJECT_ROOT}" || exit 1
   rm -rf "${TEST_TEMP_DIR}"
 }
@@ -101,9 +107,7 @@ EOF
   cd "${TEST_TEMP_DIR}" || exit 1
 
   # Fake HOME so the install writes into a sandbox, never the real ~/.claude.
-  local REAL_HOME="$HOME"
-  export HOME="${TEST_TEMP_DIR}/fakehome"
-  mkdir -p "$HOME/.claude/skills"
+  setup_fake_home
 
   mkdir -p intent/.config intent/llm intent/st
   # No `languages` field -- forces needs_v2_11_0_upgrade to return 0 so the
@@ -133,7 +137,7 @@ EOF
   [ -f "$HOME/.claude/skills/in-whiteboard/SKILL.md" ] \
     || fail "expected $HOME/.claude/skills/in-whiteboard/SKILL.md after upgrade"
 
-  export HOME="$REAL_HOME"
+  teardown_fake_home
   cd "${INTENT_PROJECT_ROOT}" || exit 1
   rm -rf "${TEST_TEMP_DIR}"
 }
@@ -151,9 +155,7 @@ EOF
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-upgrade-21111-XXXXXX)"
   cd "${TEST_TEMP_DIR}" || exit 1
 
-  local REAL_HOME="$HOME"
-  export HOME="${TEST_TEMP_DIR}/fakehome"
-  mkdir -p "$HOME/.claude/skills" "$HOME/.claude/agents"
+  setup_fake_home
 
   mkdir -p intent/.config intent/llm intent/st
   cat > intent/.config/config.json <<'EOF'
@@ -178,7 +180,7 @@ EOF
   assert_success
   assert_output_contains "Syncing canon subagent updates"
 
-  export HOME="$REAL_HOME"
+  teardown_fake_home
   cd "${INTENT_PROJECT_ROOT}" || exit 1
   rm -rf "${TEST_TEMP_DIR}"
 }

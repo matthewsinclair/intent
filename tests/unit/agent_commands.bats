@@ -52,18 +52,13 @@ setup() {
   cd "${TEST_TEMP_DIR}" || exit 1
 
   # Use a fake HOME so tests never touch real ~/.claude
-  REAL_HOME="$HOME"
   REAL_INTENT_HOME="$INTENT_HOME"
-  export HOME="$TEST_TEMP_DIR/fakehome"
-  mkdir -p "$HOME"
-
-  # Create a mock .claude directory for testing
-  mkdir -p "$HOME/.claude/agents"
+  setup_fake_home
 }
 
 teardown() {
   # Restore real HOME and INTENT_HOME
-  export HOME="$REAL_HOME"
+  teardown_fake_home
   export INTENT_HOME="$REAL_INTENT_HOME"
 
   # Clean up test directory

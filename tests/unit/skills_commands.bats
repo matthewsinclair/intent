@@ -10,17 +10,12 @@ setup() {
   cd "${TEST_TEMP_DIR}" || exit 1
 
   # Use a fake HOME so tests never touch real ~/.claude
-  REAL_HOME="$HOME"
-  export HOME="$TEST_TEMP_DIR/fakehome"
-  mkdir -p "$HOME"
-
-  # Create a mock .claude directory for testing
-  mkdir -p "$HOME/.claude/skills"
+  setup_fake_home
 }
 
 teardown() {
   # Restore real HOME
-  export HOME="$REAL_HOME"
+  teardown_fake_home
 
   # Clean up test directory
   if [ -d "${TEST_TEMP_DIR}" ]; then

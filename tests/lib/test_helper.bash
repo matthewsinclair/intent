@@ -38,6 +38,24 @@ teardown() {
   fi
 }
 
+# Redirect HOME into a per-test sandbox so no test can write to the real
+# ~/.claude or ~/.config (ST0042 F-TEST-1/F-TEST-9). Call after TEST_TEMP_DIR
+# exists -- from an overridden setup(), or inline in a test that manages its
+# own temp dir. Pair with teardown_fake_home in teardown() (or before the
+# test's own cleanup).
+setup_fake_home() {
+  REAL_HOME="$HOME"
+  export HOME="${TEST_TEMP_DIR}/fakehome"
+  mkdir -p "$HOME/.claude/skills" "$HOME/.claude/agents" "$HOME/.config"
+}
+
+teardown_fake_home() {
+  if [ -n "${REAL_HOME:-}" ]; then
+    export HOME="$REAL_HOME"
+    unset REAL_HOME
+  fi
+}
+
 # Helper function to create a test Intent project
 create_test_project() {
   local project_name="${1:-Test Project}"

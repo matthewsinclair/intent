@@ -9,14 +9,12 @@ setup() {
   cd "${TEST_TEMP_DIR}" || exit 1
 
   # Use a fake HOME so tests never touch real ~/.config/intent
-  REAL_HOME="$HOME"
-  export HOME="${TEST_TEMP_DIR}/home"
-  mkdir -p "$HOME/.config"
+  setup_fake_home
 }
 
 # Clean up after each test
 teardown() {
-  export HOME="$REAL_HOME"
+  teardown_fake_home
 
   if [ -d "${TEST_TEMP_DIR}" ]; then
     cd "${INTENT_PROJECT_ROOT}" || exit 1

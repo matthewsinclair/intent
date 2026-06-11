@@ -15,8 +15,7 @@ load "../lib/test_helper.bash"
 # would enqueue UPDATE_SUBAGENT / UPDATE_SKILL actions and bias snapshots).
 setup() {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-XXXXXX)"
-  export HOME="$TEST_TEMP_DIR/home"
-  mkdir -p "$HOME"
+  setup_fake_home
   cd "$TEST_TEMP_DIR" || exit 1
   # NORMALIZE_GITIGNORE scenarios call `git commit` in scratch repos.
   # The HOME override above isolates from the host's gitconfig, so git
@@ -27,6 +26,7 @@ setup() {
 }
 
 teardown() {
+  teardown_fake_home
   if [ -d "$TEST_TEMP_DIR" ]; then
     cd "$INTENT_PROJECT_ROOT" || exit 1
     rm -rf "$TEST_TEMP_DIR"
