@@ -1,11 +1,30 @@
 ---
-verblock: "04 Apr 2026:v0.1: matts - Initial version"
-intent_version: 2.8.0
+verblock: "11 Jun 2026:v0.2: matts - ST0042/ST0041 arc archived; ledger conventions clarified"
+intent_version: 2.11.11
 ---
 
-NOTE: This file is for DOING and TODO work ONLY. All DONE work goes into ./history/YYYYMM-done.md on month-by-month basis.
+NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-06-11 — ST0042 + ST0041 arc (rides the next patch release)
+
+- **ST0042 Completed** — Fable 5 review of Intent, all nine WPs executed in one arc: test-suite HOME isolation (09a), config-eval elimination (01), canonical_status (05a), silent-success kills (03), AGENTS.md generation fix (04), Highlander consolidation (05b), rules-path drift + mechanical guard (02), MODULES.md reconciliation + `file::function` checker fix (07), canon docs reconciliation + new `intent st cancel` (08), prune incl. `intent audit` retirement (06), vacuous-test rewrites + module coverage (09b). Incidental finds fixed in passing: `intent organize` dead dispatch (script renamed from `intent_organise`), `intent llm usage_rules` dead path, `intent help` footer phantoms. Detail: `intent/st/COMPLETED/ST0042/` + CHANGELOG `[Unreleased]`.
+- **ST0041 Completed** — MFIC (Mechanically-Falsifiable Independent Control) exploration; ST0042 ran as exercise #1. Harvest in `intent/st/COMPLETED/ST0041/impl.md` — adopted: red-phase against HEAD, mechanical-guard-per-defect-class, untested-module-as-unfalsified-claim, gate-integrity maintenance, vacuous-test detection; deferred: CI gate promotion, cross-session test authorship, blocking authority.
+- **`intent st new` version-stamp fix** (`f359917`) — new threads stamp the live Intent version, not hardcoded 2.4.0/2.0.0 literals.
+
+## Releases
+
+- **2026-06-03 — v2.11.11**: rules-path drift fix in generated guidance + critic subagents; `intent upgrade` re-syncs subagents. ([history](history/v2.11.11.md))
+- **2026-05-28 — v2.11.10**: `/in-whiteboard` Verifier stream role + `handle:` field. ([history](history/v2.11.10.md))
+- **2026-05-23 — v2.11.9**: `/in-whiteboard archive` subcommand. ([history](history/v2.11.9.md))
+- **2026-05-21 — v2.11.8**: concurrent-session gate deadlock fix (`$CLAUDE_CODE_SESSION_ID` single source). ([history](history/v2.11.8.md))
+- **2026-05-18 — v2.11.7**: ST0040 whiteboard protocol rolled into canon. ([history](history/v2.11.7.md))
+- **2026-05-15 — v2.11.6**: IN-LU-CODE-006 dispatch-table Lua rule. ([history](history/v2.11.6.md))
+- **2026-05-05 — v2.11.5**: gate bypass for `claude -p` automation; `agents generate` self-load; migration stamp fix; 10-project fleet upgrade.
+- **2026-04-30 — v2.11.4**: docs patch (v2.11.3 field verification + critic code-locality).
+- **2026-04-29 — v2.11.3**: ST0039 strict-proxy critic runner.
+- **2026-04-28 — v2.11.0/.1/.2**: ST0037 `languages` config field + two same-day hotfixes.
 
 ## ST0030: Cherry-Pick Superpowers Patterns (completed 2026-04-04)
 

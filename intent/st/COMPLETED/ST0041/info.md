@@ -1,10 +1,10 @@
 ---
 verblock: "11 Jun 2026:v0.1: matts - Initial version"
 intent_version: 2.11.11
-status: WIP
+status: Completed
 slug: explore-mfic-mechanically-falsifiable-independent
 created: 20260611
-completed:
+completed: 20260611
 ---
 
 # ST0041: Explore 'MFIC — Mechanically-Falsifiable Independent Control'

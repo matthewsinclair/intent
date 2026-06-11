@@ -31,3 +31,14 @@ Nothing executed from the review. Findings became a proposed WP slate; the user 
 - Eight reviewer agents (seven planned + upgrade-rethink), each constrained to a falsifiable-finding output format, run against a declared coverage map with explicit scope exclusions.
 - Mechanical sweeps (placeholder drift, hardcoded versions, shellcheck, bash-3.2 compat, size outliers) run inline ahead of the agents.
 - Load-bearing findings re-verified against the code before graduating to proposed WPs; the eval-RCE additionally demonstrated by PoC.
+
+## Execution-phase notes (as-built, 2026-06-11)
+
+All nine WPs executed in one arc (order: 09a, 01, 05a, 03, 04, 05b, 02, 07, 08, 06, 09b), one fix commit + one done commit per WP, full suite green at every step. Additional MFIC observations from execution, feeding ST0041 alongside the review-phase write-up above:
+
+- **F bit twice during execution.** WP-01's first regression test passed pre-fix (`intent info` does not traverse the eval path); the red-phase demand exposed the vacuous green and the test was rewritten around `intent st list`, which fired the PoC marker. WP-02/WP-08 guard tests were red-proven against HEAD (the pre-fix tree as t0 oracle) before the fix commits.
+- **Making checks falsifiable found bugs on contact.** The three vacuous critic test files (T10) were rewritten to drive the real runner/hook; the new coverage for untested modules immediately exposed two dead commands (`intent organize` never dispatched; `intent llm usage_rules` read a path retired in v2.10.0). An untested module is an unfalsified claim.
+- **C-axis erosion observed and repaired.** `intent modules check` carried three permanent false stales (`file::function` rows tested as literal paths), so its red output had stopped meaning anything -- a control that always fails is no control. WP-07 made the checker honour the row syntax; the registry gate reports clean and is trustworthy again.
+- **I remains bounded as accepted.** The executor of the WPs also authored the new guard tests (fails the strict litmus); partial independence was recovered where the oracle is not the author's account -- grep pins against forbidden patterns, red-phase against HEAD -- rather than authored expected values.
+
+Scope notes: slate WP8 (upgrade rethink) spun off as ST0043 (targets v2.12.0); `update_config_version` inlines and dead upgrade scaffolding excluded from WP-05/WP-06 per gate decision (ST0043 owns). `intent audit` retired per gate decision; credo templates survive via `intent st zero`. Incidental finds fixed in passing: `intent organize` dispatch, `intent llm usage_rules` path, `intent help` footer phantoms, tests/README version stamp.

@@ -1,10 +1,10 @@
 ---
 verblock: "11 Jun 2026:v0.1: matts - Initial version"
 intent_version: 2.11.11
-status: WIP
+status: Completed
 slug: fable-5-review-of-intent-codebase
 created: 20260611
-completed:
+completed: 20260611
 ---
 
 # ST0042: Fable 5 Review of Intent codebase
