@@ -69,53 +69,60 @@ _extract_frontmatter_description() {
   ' "$file" 2>/dev/null
 }
 
-# Render "Installed Skills" section body. Reads .claude/skills/*/SKILL.md.
+# Render "Installed Skills" section body. The installers write user-globally
+# to $HOME/.claude/skills (`intent claude skills install`); a project may also
+# carry repo-local .claude/skills. Read both, project first, deduped by name
+# (ST0042 F-PLG-3: this used to read only $PROJECT_ROOT/.claude, which the
+# installers never write, so the section always said "No skills installed").
 _render_installed_skills() {
-  local skills_dir="$PROJECT_ROOT/.claude/skills"
-  if [ ! -d "$skills_dir" ]; then
-    echo "_No skills installed. Run \`intent claude skills list\` to see available skills._"
-    return
-  fi
   local found=false
-  local skill name desc
-  for skill in "$skills_dir"/*/; do
-    [ -d "$skill" ] || continue
-    name=$(basename "$skill")
-    desc=""
-    if [ -f "$skill/SKILL.md" ]; then
-      desc=$(_extract_frontmatter_description "$skill/SKILL.md")
-    fi
-    if [ -n "$desc" ]; then
-      echo "- **$name** -- $desc"
-    else
-      echo "- **$name**"
-    fi
-    found=true
+  local seen=" "
+  local dir skill name desc
+  for dir in "$PROJECT_ROOT/.claude/skills" "$HOME/.claude/skills"; do
+    [ -d "$dir" ] || continue
+    for skill in "$dir"/*/; do
+      [ -d "$skill" ] || continue
+      name=$(basename "$skill")
+      case "$seen" in *" $name "*) continue ;; esac
+      seen="$seen$name "
+      desc=""
+      if [ -f "$skill/SKILL.md" ]; then
+        desc=$(_extract_frontmatter_description "$skill/SKILL.md")
+      fi
+      if [ -n "$desc" ]; then
+        echo "- **$name** -- $desc"
+      else
+        echo "- **$name**"
+      fi
+      found=true
+    done
   done
   if [ "$found" = false ]; then
     echo "_No skills installed. Run \`intent claude skills list\` to see available skills._"
   fi
 }
 
-# Render "Installed Subagents" section body. Reads .claude/agents/*.md.
+# Render "Installed Subagents" section body. Same dual-location read as
+# _render_installed_skills: project .claude/agents plus $HOME/.claude/agents.
 _render_installed_subagents() {
-  local agents_dir="$PROJECT_ROOT/.claude/agents"
-  if [ ! -d "$agents_dir" ]; then
-    echo "_No subagents installed. Run \`intent claude subagents list\` to see available subagents._"
-    return
-  fi
   local found=false
-  local agent name desc
-  for agent in "$agents_dir"/*.md; do
-    [ -f "$agent" ] || continue
-    name=$(basename "$agent" .md)
-    desc=$(_extract_frontmatter_description "$agent")
-    if [ -n "$desc" ]; then
-      echo "- **$name** -- $desc"
-    else
-      echo "- **$name**"
-    fi
-    found=true
+  local seen=" "
+  local dir agent name desc
+  for dir in "$PROJECT_ROOT/.claude/agents" "$HOME/.claude/agents"; do
+    [ -d "$dir" ] || continue
+    for agent in "$dir"/*.md; do
+      [ -f "$agent" ] || continue
+      name=$(basename "$agent" .md)
+      case "$seen" in *" $name "*) continue ;; esac
+      seen="$seen$name "
+      desc=$(_extract_frontmatter_description "$agent")
+      if [ -n "$desc" ]; then
+        echo "- **$name** -- $desc"
+      else
+        echo "- **$name**"
+      fi
+      found=true
+    done
   done
   if [ "$found" = false ]; then
     echo "_No subagents installed. Run \`intent claude subagents list\` to see available subagents._"

@@ -10,6 +10,23 @@
 
 load "../lib/test_helper.bash"
 
+# The skills/subagents section renderers read $HOME/.claude as well as the
+# project .claude/ -- sandbox HOME so the host's installed skills never
+# bleed into assertions (and tests never write to the real ~/.claude).
+setup() {
+  TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-XXXXXX)"
+  cd "${TEST_TEMP_DIR}" || exit 1
+  setup_fake_home
+}
+
+teardown() {
+  teardown_fake_home
+  if [ -d "${TEST_TEMP_DIR}" ]; then
+    cd "${INTENT_PROJECT_ROOT}" || exit 1
+    rm -rf "${TEST_TEMP_DIR}"
+  fi
+}
+
 @test "intent_agents script is executable" {
   [ -x "${INTENT_HOME}/intent/plugins/agents/bin/intent_agents" ]
 }
@@ -224,4 +241,52 @@ EOF
   assert_file_exists "$project/AGENTS.md"
   assert_file_exists "$project/intent/llm/RULES.md"
   assert_file_exists "$project/intent/llm/ARCHITECTURE.md"
+}
+
+@test "sync renders skills and subagents installed in HOME/.claude" {
+  # ST0042 F-PLG-3 regression guard: installers write to $HOME/.claude but the
+  # generator read only $PROJECT_ROOT/.claude, so AGENTS.md said "No skills
+  # installed" on a fully provisioned machine.
+  local project
+  project="$(create_test_project "AgentsHomeRead")"
+  cd "$project"
+
+  mkdir -p "$HOME/.claude/skills/home-skill"
+  cat > "$HOME/.claude/skills/home-skill/SKILL.md" <<'EOF'
+---
+description: "Skill installed in user HOME"
+---
+# Home Skill
+EOF
+  cat > "$HOME/.claude/agents/home-agent.md" <<'EOF'
+---
+name: home-agent
+description: Agent installed in user HOME
+---
+Body.
+EOF
+
+  run_intent agents init >/dev/null
+  assert_file_contains "$project/AGENTS.md" "**home-skill**"
+  assert_file_contains "$project/AGENTS.md" "Skill installed in user HOME"
+  assert_file_contains "$project/AGENTS.md" "**home-agent**"
+  assert_file_contains "$project/AGENTS.md" "Agent installed in user HOME"
+}
+
+@test "init --template _default produces an AGENTS.md that passes validate" {
+  # ST0042 F-TPL-10 regression guard: the static _default AGENTS.md template
+  # lacked three of the four validator-required sections and diverged from the
+  # generator (a Highlander split). The template file is gone; _default now
+  # falls back to generated content, which carries all required sections.
+  local project
+  project="$(create_test_project "AgentsDefaultValidate")"
+  cd "$project"
+
+  run run_intent agents init --template _default
+  assert_success
+  assert_file_exists "$project/AGENTS.md"
+
+  run run_intent agents validate
+  assert_success
+  refute_output_contains "missing recommended section"
 }
