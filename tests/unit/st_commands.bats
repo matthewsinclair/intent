@@ -51,6 +51,22 @@ load "../lib/test_helper.bash"
   assert_directory_exists "intent/st/NOT-STARTED/ST0003"
 }
 
+@test "st new stamps frontmatter with the current intent version" {
+  project_dir=$(create_test_project "ST Version Stamp Test")
+  cd "$project_dir"
+
+  export EDITOR=echo
+
+  run run_intent st new "Version Stamp Thread"
+  assert_success
+
+  current_version=$(cat "$INTENT_HOME/VERSION")
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/info.md" "intent_version: $current_version"
+
+  # No unsubstituted placeholder may survive
+  ! grep -q "\[Intent Version\]" "intent/st/NOT-STARTED/ST0001/info.md"
+}
+
 
 
 @test "st list shows only in-progress threads by default" {

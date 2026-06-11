@@ -10,8 +10,12 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 ## Index
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
-ID         | Slug                                                       | Status           | Created    | Completed 
------------|------------------------------------------------------------|------------------|------------|-----------
+
+| ID     | Slug                      | Status | Created    | Completed |
+| ------ | ------------------------- | ------ | ---------- | --------- |
+| ST0042 | fable-5-review-of-inte... | WIP    | 2026-06-11 |
+| ST0041 | explore-mfic-mechanica... | WIP    | 2026-06-11 |
+
 <!-- END: STEEL_THREAD_INDEX -->
 
 ## Steel Thread Status Definitions

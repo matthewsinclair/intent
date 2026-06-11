@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`intent st new` stamps the current Intent version.** New steel threads were created with a hardcoded `intent_version: 2.4.0` in their frontmatter (and `2.0.0` on the no-template fallback path) -- the values frozen into the template and heredoc when they were last hand-edited. Both creation paths now substitute the live version from `get_intent_version` (single source: `$INTENT_HOME/VERSION`), per Highlander. Regression test proves the stamp matches `VERSION` and that no unsubstituted placeholder survives.
+
 ## [2.11.11] - 2026-06-03
 
 Patch fixing rules-path drift in the LLM guidance Intent generates for consuming projects. The generated `AGENTS.md` (via `intent agents sync`) and `CLAUDE.md` (from `lib/templates/llm/_CLAUDE.md`), plus the `critic-<lang>` subagents, told agents the coding-rule library lives at a local `intent/plugins/claude/rules/` path. That directory exists only inside the Intent tool itself; in a consuming project the rules are reachable solely through the CLI (`intent claude rules list` / `show`). A field `critic-elixir` run looked for the local directory, failed to find it, and fell back with a confusing "rule library not installed at the expected path" diagnostic, reviewing at reduced fidelity.

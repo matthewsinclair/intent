@@ -1,13 +1,17 @@
 ---
-verblock: "[Date]:v0.1: [Author] - Initial version"
-intent_version: [Intent Version]
-status: Not Started
-slug: [Slug]
-created: YYYYMMDD
+verblock: "11 Jun 2026:v0.1: matts - Initial version"
+intent_version: 2.11.11
+status: WIP
+slug: fable-5-review-of-intent-codebase
+created: 20260611
 completed:
 ---
 
-# ST####: [Title]
+# ST0042: Fable 5 Review of Intent codebase
+
+## LLM Preamble
+
+I want to spend a cycle and get Fable to do a comprehensive architectural review and design/implementation audit of Intent. The review should propose any necessary changes to the system and articulate them as work packages here in this steel thread. Once reviewed, we will execute the WPs.
 
 ## Objective
 

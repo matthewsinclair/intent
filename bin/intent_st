@@ -392,7 +392,8 @@ case "$ST_COMMAND" in
         # Format date in both formats
         DATE_COMPACT=$(date '+%Y%m%d')
         DATE_VERBOSE=$(date '+%d %b %Y')
-        
+        INTENT_VERSION=$(get_intent_version)
+
         ESCAPED_AUTHOR=$(escape_sed_replacement "$AUTHOR")
         ESCAPED_DATE_VERBOSE=$(escape_sed_replacement "$DATE_VERBOSE")
 
@@ -405,6 +406,7 @@ case "$ST_COMMAND" in
             sed -e "s/ST####/$ST_ID/g" \
                 -e "s/\[Title\]/$ESCAPED_TITLE/g" \
                 -e "s/\[Slug\]/$ESCAPED_SLUG/g" \
+                -e "s/\[Intent Version\]/$INTENT_VERSION/g" \
                 -e "s/\[Not Started|In Progress|Completed|On Hold|Cancelled\]/$ST_STATUS/g" \
                 -e "s/YYYY-MM-DD/$DATE/g" \
                 -e "s/YYYYMMDD/$DATE_COMPACT/g" \
@@ -419,7 +421,7 @@ case "$ST_COMMAND" in
         cat > "$ST_DIR/info.md" << 'TEMPLATE'
 ---
 verblock: "__VERBLOCK__"
-intent_version: 2.0.0
+intent_version: __VERSION__
 status: __STATUS__
 slug: __SLUG__
 created: __CREATED__
@@ -448,6 +450,7 @@ TEMPLATE
         ESCAPED_VERBLOCK=$(escape_sed_replacement "$(date '+%d %b %Y'):v0.1: $AUTHOR - Initial version")
         sed -i.bak \
           -e "s/__VERBLOCK__/$ESCAPED_VERBLOCK/g" \
+          -e "s/__VERSION__/$(get_intent_version)/g" \
           -e "s/__STATUS__/$ST_STATUS/g" \
           -e "s/__SLUG__/$ESCAPED_SLUG/g" \
           -e "s/__CREATED__/$(date '+%Y%m%d')/g" \
