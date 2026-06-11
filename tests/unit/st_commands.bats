@@ -1018,3 +1018,42 @@ EOF
 
   assert_file_contains "intent/st/ST0001/info.md" "slug: quick-fix"
 }
+@test "st repair normalises wip body status to canonical WIP, not In Progress" {
+  # ST0042 T5 regression guard: repair's inline status table mapped
+  # wip -> "In Progress" while the stored canon (written by st new/start,
+  # matched by get_st_path) is "WIP". One synonym table now: canonical_status.
+  project_dir=$(create_test_project "ST Repair Canon Test")
+  cd "$project_dir"
+
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << 'EOF'
+---
+verblock: "06 Mar 2025:v0.1: Test User - Initial version"
+intent_version: 2.11.11
+status: Not Started
+created: 20250306
+completed:
+---
+# ST0001: Test Thread
+
+- **Status**: wip
+- **Created**: 2025-03-06
+EOF
+
+  # repair chains into organize, which requires the index file
+  cat > intent/st/steel_threads.md << 'EOF'
+# Steel Threads
+
+## Active Threads
+
+## Completed Threads
+EOF
+
+  run run_intent st repair ST0001 --write
+  assert_success
+  assert_output_contains "Updated frontmatter status to: WIP"
+  assert_file_contains "intent/st/ST0001/info.md" "status: WIP"
+
+  run grep "status: In Progress" intent/st/ST0001/info.md
+  assert_failure
+}

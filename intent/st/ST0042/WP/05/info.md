@@ -3,7 +3,7 @@ verblock: "11 Jun 2026:v0.1: matts - Initial version"
 wp_id: WP-05
 title: "Highlander consolidation pass"
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-05: Highlander consolidation pass

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`intent st repair` / `organize` normalise status to the stored canon.** Both commands carried inline status tables that mapped `wip` to `In Progress`, while the canon written by `st new`/`st start` and matched by the path resolver is `WIP` -- so a repair could rewrite a thread's frontmatter to a value the rest of the tool does not recognise. One synonym table (`canonical_status`) now feeds repair, organize, and the list-filter normaliser (ST0042 T5); regression test pins `repair` writing `status: WIP`.
+
 - **Config values are loaded verbatim, never evaled.** `load_intent_config` built `key="value"` shell assignments from raw JSON values with jq and `eval`ed them, so a config value containing `$(...)`, backticks, or `$VAR` in `intent/.config/config.json` (or `~/.config/intent/config.json`) executed arbitrary shell on the next project-scoped `intent` command. Config fields are now read individually with `jq -r` and assigned directly (ST0042 T1); a regression test proves shell metacharacters in config values are inert.
 
 - **Test suite no longer writes to the real `~/.claude`.** Two `intent_upgrade_dispatcher.bats` tests ran `intent upgrade` without HOME isolation, so the upgrade tail-call (skills + subagents sync) overwrote the developer's real `~/.claude` mirrors on every suite run. The fake-HOME pattern, previously copy-pasted across six test files with drift, is promoted to a single `setup_fake_home` / `teardown_fake_home` pair in `tests/lib/test_helper.bash` (ST0042 F-TEST-1/F-TEST-9); all seven files now use it. Verified: a full suite run leaves the real `~/.claude` untouched.

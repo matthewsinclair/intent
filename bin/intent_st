@@ -103,40 +103,56 @@ is_directory_structure() {
   fi
 }
 
-# Function to normalise status values
-normalise_status() {
+# Map any status spelling to the canonical stored form (the value written
+# to frontmatter and matched by get_st_path). Single synonym table -- the
+# repair/organize commands and normalise_status all derive from this
+# (ST0042 T5: inline copies used to map wip -> "In Progress", diverging
+# from the stored canon "WIP").
+canonical_status() {
   local status="$1"
-  local normalised=""
-  
-  # Convert to lowercase for comparison
-  local status_lower=$(echo "$status" | tr '[:upper:]' '[:lower:]')
-  
+  local status_lower
+  status_lower=$(echo "$status" | tr '[:upper:]' '[:lower:]')
+
   case "$status_lower" in
     "wip"|"in progress"|"inprogress"|"in-progress")
-      normalised="WIP"
+      echo "WIP"
       ;;
     "not started"|"notstarted"|"not-started"|"tbc"|"to be commenced")
-      normalised="TBC"
+      echo "Not Started"
       ;;
     "completed"|"complete"|"done")
-      normalised="COMPLETED"
+      echo "Completed"
       ;;
     "cancelled"|"canceled")
-      normalised="CANCELLED"
+      echo "Cancelled"
       ;;
     "on hold"|"onhold"|"on-hold"|"hold")
-      normalised="HOLD"
+      echo "On Hold"
       ;;
     "all")
-      normalised="all"
+      echo "all"
       ;;
     *)
       # Return original if no match
-      normalised="$status"
+      echo "$status"
       ;;
   esac
-  
-  echo "$normalised"
+}
+
+# Function to normalise status values into filter-comparison tokens.
+# Derives from canonical_status so there is exactly one synonym table.
+normalise_status() {
+  local canonical
+  canonical=$(canonical_status "$1")
+
+  case "$canonical" in
+    "WIP") echo "WIP" ;;
+    "Not Started") echo "TBC" ;;
+    "Completed") echo "COMPLETED" ;;
+    "Cancelled") echo "CANCELLED" ;;
+    "On Hold") echo "HOLD" ;;
+    *) echo "$canonical" ;;
+  esac
 }
 
 # Function to determine the appropriate path for a steel thread based on its status
@@ -1405,25 +1421,9 @@ TEMPLATE
         echo "    Body: $body_status"
         changes_made=1
         
-        # Normalize the body status
-        local normalized_status="$body_status"
-        case "$(echo "$body_status" | tr '[:upper:]' '[:lower:]')" in
-          "wip"|"in progress")
-            normalized_status="In Progress"
-            ;;
-          "completed"|"complete"|"done")
-            normalized_status="Completed"
-            ;;
-          "not started"|"not-started")
-            normalized_status="Not Started"
-            ;;
-          "cancelled"|"canceled")
-            normalized_status="Cancelled"
-            ;;
-          "on hold")
-            normalized_status="On Hold"
-            ;;
-        esac
+        # Normalize the body status to the canonical stored form
+        local normalized_status
+        normalized_status=$(canonical_status "$body_status")
         
         if [ $WRITE_MODE -eq 1 ]; then
           # Update frontmatter to match body status (body is user-visible, so prioritize it)
@@ -1584,24 +1584,8 @@ status: '$status "$info_file"
             STATUS="Not Started"
           fi
           
-          # Normalize status values to match expected format
-          case "$(echo "$STATUS" | tr '[:upper:]' '[:lower:]')" in
-            "wip"|"in progress")
-              STATUS="In Progress"
-              ;;
-            "completed"|"complete"|"done")
-              STATUS="Completed"
-              ;;
-            "not started"|"not-started")
-              STATUS="Not Started"
-              ;;
-            "cancelled"|"canceled")
-              STATUS="Cancelled"
-              ;;
-            "on hold")
-              STATUS="On Hold"
-              ;;
-          esac
+          # Normalize status values to the canonical stored form
+          STATUS=$(canonical_status "$STATUS")
           
           # Get current location
           CURRENT_PARENT=$(dirname "$dir")
