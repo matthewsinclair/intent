@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.11.12] - 2026-06-11
+
+Patch shipping the full ST0042 arc: a Fable 5 architectural review of the Intent codebase (run as the first deliberate MFIC exercise, ST0041) followed by execution of all nine work packages it produced. Theme: architectural integrity -- Highlander consolidation, no-silent-errors enforcement, canon-vs-reality reconciliation, dead-surface pruning, and a test suite that can actually refute the product. Includes one small addition (`intent st cancel`) and a set of removals (dead dispatchers, the retired `intent audit`).
 
 ### Fixed
 
