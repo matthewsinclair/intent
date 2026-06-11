@@ -296,15 +296,11 @@ intent claude upgrade --apply        # Apply upgrade changes
 intent claude upgrade --project-dir DIR  # Target external project
 ```
 
-### Code Quality (Elixir)
+### Code Quality
 
 ```bash
-intent audit quick                   # Run custom Credo checks
-intent audit quick --rule R2         # Run a specific rule
-intent audit quick --fix             # Auto-fix where possible
-intent audit health                  # Project health assessment
-intent audit health --report         # Save report to intent/audit/
-intent audit health --diff           # Check changed files only
+intent critic <lang> --files <path>  # Headless rule-library critic
+intent critic <lang> --staged        # Pre-commit gate form
 ```
 
 ### Learnings

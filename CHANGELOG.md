@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **Dead and legacy surfaces pruned** (ST0042 T6, fail-forward). `bin/intent_main` (dead second dispatcher, diverged from the real one, zero callers), `bin/intent_minimal` (alpha-versioned Phase-1 stub), and the `bin/stp` symlink (the retired STP name, a year post-rebrand) are deleted. `intent audit` is retired: its custom-Credo checks ran in parallel with the rule-library critics as a second Elixir enforcement engine (Highlander violation); `intent critic <lang>` is the canonical engine. The credo-check templates themselves survive -- `intent st zero` (brownfield retrofit) still installs them. Orphan template sets `lib/templates/eng/tpd/` and `lib/templates/usr/_user_guide.md` (no generator reads either) are deleted, and `intent help`'s footer no longer points at `docs/user_guide.md` / `docs/reference_guide.md`, which never shipped. MODULES.md, help text, README, and tests updated; `intent modules check` reports a clean registry.
+
 ### Added
 
 - **`intent st cancel <ID>`.** The docs have mandated it as the compliant cancellation path since the status discipline landed, but the command never existed -- cancelling a thread meant manually editing `status:` frontmatter, which the same docs forbid. The new dispatch case mirrors `done`: stamps `status: Cancelled` (frontmatter + body), relocates the thread directory to `intent/st/CANCELLED/`, and updates the index (ST0042 T9 / F-DOCS-2).

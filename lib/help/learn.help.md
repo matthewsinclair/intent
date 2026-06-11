@@ -83,5 +83,4 @@ intent learn --list
 
 ## See Also
 
-- `intent help audit` -- Automated code quality checks
 - `intent claude prime` -- Pre-load Claude Code project memory

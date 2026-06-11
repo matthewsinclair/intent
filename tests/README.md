@@ -10,7 +10,6 @@ This directory contains the test suite for Intent v2.6.0. The tests are written 
 tests/
 ├── unit/                          # Unit tests for individual commands
 │   ├── agent_commands.bats        # AGENTS.md management tests
-│   ├── audit_commands.bats       # Audit command tests
 │   ├── basic.bats                 # Basic infrastructure tests
 │   ├── learn_commands.bats       # Learn command tests
 │   ├── modules_commands.bats    # Modules command tests
@@ -117,7 +116,6 @@ load "../lib/test_helper.bash"
 Unit tests focus on individual commands and features:
 
 - **agent_commands.bats** - Tests for AGENTS.md management (`intent agents init/generate/sync/validate`)
-- **audit_commands.bats** - Tests for the audit command (`intent audit quick`, `intent audit health`)
 - **basic.bats** - Tests for basic infrastructure and environment setup
 - **learn_commands.bats** - Tests for the learn command (`intent learn`)
 - **modules_commands.bats** - Tests for the modules command (`intent modules check`, `intent modules find`)

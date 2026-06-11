@@ -982,7 +982,7 @@ The violations found in both audits were preventable. See **Intent ST0026 (Steel
 4. **Automated enforcement** -> custom Credo checks for mechanical rules
 5. **Decision tree** -> "where does this go?" flowchart
 6. **Memory injection** -> `intent claude prime` for session knowledge
-7. **Periodic health checks** -> `intent audit health` for drift detection
+7. **Periodic health checks** -> `intent critic <lang>` (headless rule-library runner) for drift detection
 
 # Appendix F: Lessons Learned from Umbrella Project Remediation
 

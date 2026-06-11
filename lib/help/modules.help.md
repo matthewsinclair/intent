@@ -75,6 +75,5 @@ Copy the hook definition into your project's `.claude/settings.json` to get warn
 
 ## See Also
 
-- `intent help audit` -- Automated code quality checks
 - `intent help learn` -- Capture project learnings
 - `intent help` -- General help

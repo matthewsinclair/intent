@@ -60,7 +60,6 @@ Core:
   st               Manage steel threads
   wp               Manage work packages within steel threads
   agents           Manage AGENTS.md for projects
-  audit            Run automated code quality checks (Elixir)
   learn            Capture project learnings for future sessions
   modules          Module registry guardrails and enforcement
   claude           Claude Code integration (subagents, skills, upgrade)
@@ -89,7 +88,7 @@ for script in "$INTENT_HOME"/bin/intent_*; do
     
     # Skip certain internal scripts and those manually listed above
     case "$cmd_name" in
-      config|helpers|main|agents|info|init|st|st_zero|wp|audit|learn|modules|doctor|upgrade|help|bootstrap|llm|organize|plugin|ext) continue ;;
+      config|helpers|agents|info|init|st|st_zero|wp|learn|modules|doctor|upgrade|help|bootstrap|llm|organize|plugin|ext) continue ;;
     esac
     
     # Construct help file path
@@ -130,6 +129,6 @@ Quick Start:
   4. Upgrade from STP: intent upgrade
 
 For complete documentation, see:
-  $INTENT_HOME/docs/user_guide.md
-  $INTENT_HOME/docs/reference_guide.md
+  $INTENT_HOME/README.md
+  $INTENT_HOME/intent/docs/
 EOF

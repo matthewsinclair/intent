@@ -82,4 +82,3 @@ intent st zero install --deliverable D3
 
 - `intent help` -- General help
 - `intent modules check` -- Check MODULES.md registry
-- `intent audit health` -- Health check

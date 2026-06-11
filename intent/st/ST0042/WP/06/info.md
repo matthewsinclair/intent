@@ -3,7 +3,7 @@ verblock: "11 Jun 2026:v0.1: matts - Initial version"
 wp_id: WP-06
 title: "Prune dead and legacy code"
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-06: Prune dead and legacy code

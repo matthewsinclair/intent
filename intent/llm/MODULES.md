@@ -18,7 +18,6 @@
 | File indexing           | `bin/intent_fileindex` | File listing, checkbox state tracking                                                                                                                                                                                                         |
 | Health checks           | `bin/intent_doctor`    | Dependency checks, config validation                                                                                                                                                                                                          |
 | Plugin discovery        | `bin/intent_plugin`    | list, show, help for installed plugins                                                                                                                                                                                                        |
-| Audit command           | `bin/intent_audit`     | quick, health, help; Elixir credo integration                                                                                                                                                                                                 |
 | Learn command           | `bin/intent_learn`     | Capture project learnings for future sessions                                                                                                                                                                                                 |
 | Module registry         | `bin/intent_modules`   | check, find; MODULES.md enforcement                                                                                                                                                                                                           |
 | STZero retrofit         | `bin/intent_st_zero`   | Brownfield project retrofit installation                                                                                                                                                                                                      |
@@ -28,8 +27,6 @@
 | LLM guidance            | `bin/intent_llm`       | Display LLM-specific guidance files                                                                                                                                                                                                           |
 | Organise                | `bin/intent_organise`  | Organize steel threads by status                                                                                                                                                                                                              |
 | Upgrade                 | `bin/intent_upgrade`   | STP to Intent migration                                                                                                                                                                                                                       |
-| Minimal bootstrap       | `bin/intent_minimal`   | Minimal no-dependency bootstrap                                                                                                                                                                                                               |
-| Main (legacy)           | `bin/intent_main`      | Legacy entry point                                                                                                                                                                                                                            |
 | Bootstrap               | `bin/intent_bootstrap` | First-run setup, PATH instructions                                                                                                                                                                                                            |
 | Extension mgmt (v2.9.0) | `bin/intent_ext`       | list, show, validate, new (WP02)                                                                                                                                                                                                              |
 | Headless critic runner  | `bin/intent_critic`    | Runs rule-library Detection heuristics; text/json output (ST0035/WP05)                                                                                                                                                                        |
@@ -101,7 +98,6 @@
 | Plugin help         | `lib/help/plugin.help.md`    | Plugin discovery help               |
 | WP help             | `lib/help/wp.help.md`        | Work package help                   |
 | Fileindex           | `lib/help/fileindex.help.md` | Fileindex help                      |
-| Audit help          | `lib/help/audit.help.md`     | Audit command help                  |
 | Learn help          | `lib/help/learn.help.md`     | Learn command help                  |
 | Modules help        | `lib/help/modules.help.md`   | Modules command help                |
 | STZero help         | `lib/help/stzero.help.md`    | STZero command help                 |
@@ -206,7 +202,6 @@ User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; sh
 | ------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------- |
 | Test helper/fixtures            | `tests/lib/test_helper.bash`                | Shared setup, assertions                                                     |
 | Test runner                     | `tests/run_tests.sh`                        | Discovers and runs all BATS                                                  |
-| Audit tests                     | `tests/unit/audit_commands.bats`            | BATS tests for audit command                                                 |
 | Learn tests                     | `tests/unit/learn_commands.bats`            | BATS tests for learn command                                                 |
 | Modules tests                   | `tests/unit/modules_commands.bats`          | BATS tests for modules command                                               |
 | STZero tests                    | `tests/unit/st_zero_commands.bats`          | BATS tests for st zero command                                               |
