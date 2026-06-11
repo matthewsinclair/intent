@@ -18,11 +18,10 @@ my-project/
 │   ├── settings.json          # Session hooks (SessionStart, UserPromptSubmit, Stop)
 │   ├── agents/                # Installed Claude subagents
 │   └── skills/                # Installed Claude skills
-├── .git/hooks/pre-commit      # Critic gate (runs bin/intent_critic on staged files)
-├── .intent/
-│   └── config.json
+├── .git/hooks/pre-commit      # Critic gate (runs intent critic on staged files)
 ├── .intent_critic.yml         # Critic config (severity threshold, disabled rules)
 ├── intent/
+│   ├── .config/               # Per-project config + metadata (config.json, version)
 │   ├── st/                    # Steel threads
 │   │   ├── ST0001/
 │   │   │   ├── info.md        # Required (title, status, dates, description)
@@ -165,6 +164,7 @@ All skills install to `~/.claude/skills/<name>/SKILL.md` and auto-load into ever
 | `/in-debug`               | Systematic debugging flow                                            |
 | `/in-finish`              | Session wrap-up — updates wip.md, restart.md, prompts for commit     |
 | `/in-handoff`             | Hand session context off for a future session                        |
+| `/in-whiteboard`          | Cross-session coordination channel (opt-in by `intent/whiteboard/`)  |
 | `/in-detrope`             | Trope detection and remediation                                      |
 | `/in-autopsy`             | Post-session autopsy for recurring corrections                       |
 | `/in-cost-analysis`       | Analyse session costs                                                |
@@ -336,7 +336,7 @@ intent claude upgrade --apply                   # Install hooks, pre-commit, cri
 - Never run `intent treeindex` on the project root — target subdirectories.
 - Never create steel thread or work package directories manually — use `intent st new` and `intent wp new`.
 - Never manually edit `status:` fields in info.md frontmatter — use `intent st start | done | cancel` and `intent wp start | done`.
-- Never modify `.intent/config.json` manually — use `intent` commands.
+- Never modify `intent/.config/config.json` manually — use `intent` commands.
 - Never delete `.treeindex` files without running `--prune` first.
 - Never edit `.claude/settings.json` hook stanzas directly — update `lib/templates/.claude/settings.json` and re-run `intent claude upgrade --apply`.
 - Never bypass `.git/hooks/pre-commit` with `--no-verify` on shared branches without an explicit justification in the commit message.

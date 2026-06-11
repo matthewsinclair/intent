@@ -3,7 +3,7 @@ verblock: "11 Jun 2026:v0.1: matts - Initial version"
 wp_id: WP-08
 title: "Canon docs reconciliation + st cancel"
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-08: Canon docs reconciliation + st cancel

@@ -4,7 +4,7 @@ This document is Intent's canonical explanation of its LLM-facing configuration 
 
 If `usage-rules.md` is the DO / NEVER contract and `AGENTS.md` is the auto-generated project index, this doc is the living reference that explains the system — how the pieces fit together, what decisions shaped them, and how to configure or extend them.
 
-The doc is deliberately opinionated: the canon is already decided, and the decisions are recorded below as `D1`–`D10` for cross-reference against `intent/st/ST0035/design.md`.
+The doc is deliberately opinionated: the canon is already decided, and the decisions are recorded below as `D1`–`D10` for cross-reference against `intent/st/COMPLETED/ST0035/design.md`.
 
 ## Table of contents
 
@@ -97,7 +97,7 @@ If you're unsure where a piece of information belongs, follow the decision flow:
 - The decision flow for where new code should go? → `DECISION_TREE.md`.
 - Narrative, rationale, or FAQ content? → `intent/docs/<topic>.md` (here or a topic-specific doc).
 
-The ten decisions recorded in `intent/st/ST0035/design.md` define Intent's current LLM canon. D1 through D10 below restate them in living-doc form — what the state is now, with enough context to understand it.
+The ten decisions recorded in `intent/st/COMPLETED/ST0035/design.md` define Intent's current LLM canon. D1 through D10 below restate them in living-doc form — what the state is now, with enough context to understand it.
 
 ## D1. AGENTS.md is the primary LLM config file
 
@@ -147,7 +147,7 @@ See the dedicated FAQ section below for the forensic history and the clearest sh
 
 `.claude/settings.json` ships three hooks for every Intent project:
 
-- `SessionStart` (matchers: `startup`, `resume`, `clear`, `compact`) — injects a brief project context reminder so Claude recognises that an Intent project is active.
+- `SessionStart` (matcher `startup|resume|clear|compact`) — injects a brief project context reminder so Claude recognises that an Intent project is active.
 - `UserPromptSubmit` (strict gate) — blocks the first user prompt until `/in-session` has run in the conversation. This enforces loading coding-standards skills before any code discussion starts.
 - `Stop` (after every assistant turn when no prompt is queued) — injects a `/in-finish` reminder at session end.
 
@@ -161,7 +161,7 @@ Why no `PostToolUse` hook by default: it would fire on every `Write|Edit` during
 
 ## D8. Critics run via git pre-commit hook
 
-The primary critic cadence is a `.git/hooks/pre-commit` that runs `bin/intent_critic <lang> <staged-files>` and blocks the commit when findings meet or exceed the configured severity threshold. Per-project override via `.intent_critic.yml`.
+The primary critic cadence is a `.git/hooks/pre-commit` that runs `intent critic <lang> --staged` (one invocation per declared language) and blocks the commit when findings meet or exceed the configured severity threshold. Per-project override via `.intent_critic.yml`.
 
 Why pre-commit: local, deterministic, offline, zero-latency feedback. Every developer sees violations on their own machine before pushing.
 
@@ -201,33 +201,36 @@ Ship shape (strict-gate default):
   "hooks": {
     "SessionStart": [
       {
-        "matchers": ["startup", "resume", "clear", "compact"],
+        "matcher": "startup|resume|clear|compact",
         "hooks": [
           {
             "type": "command",
-            "command": "$INTENT_HOME/lib/hooks/session_start.sh"
+            "command": "[[INTENT_HOME]]/lib/templates/.claude/scripts/session-context.sh",
+            "timeout": 3000
           }
         ]
       }
     ],
     "UserPromptSubmit": [
       {
-        "matchers": ["*"],
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "$INTENT_HOME/lib/hooks/user_prompt_submit_strict.sh"
+            "command": "[[INTENT_HOME]]/lib/templates/.claude/scripts/require-in-session.sh",
+            "timeout": 2000
           }
         ]
       }
     ],
     "Stop": [
       {
-        "matchers": ["*"],
+        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "$INTENT_HOME/lib/hooks/stop_reminder.sh"
+            "command": "echo 'Session wrap-up reminder: run /in-finish to update ST docs, intent/wip.md, and prepare a clean commit.'",
+            "timeout": 2000
           }
         ]
       }
@@ -235,6 +238,8 @@ Ship shape (strict-gate default):
   }
 }
 ```
+
+`[[INTENT_HOME]]` is substituted with the absolute Intent install path when `intent claude upgrade --apply` writes the project's `.claude/settings.json`. The `matcher` field is a single string (a pipe-delimited alternation for `SessionStart`, empty to match all events for `UserPromptSubmit` / `Stop`) — not an array.
 
 How it works:
 
@@ -245,19 +250,19 @@ How it works:
 The strict `UserPromptSubmit` hook uses a sentinel file to track whether `/in-session` has run in the current conversation. First-prompt flow:
 
 1. User types a message. `UserPromptSubmit` hook fires.
-2. Script checks for `/tmp/intent-session-<SESSION_ID>.sentinel`. Absent → inject a blocking system-reminder: _"`/in-session` must run before any coding work. The gate releases once the session bootstrap completes."_
+2. Script checks for `/tmp/intent/in-session-<session_id>.sentinel`. Absent → inject a blocking system-reminder: _"`/in-session` must run before any coding work. The gate releases once the session bootstrap completes."_
 3. User (or Claude, reading the reminder) invokes `/in-session`. The skill's script creates the sentinel.
 4. Next prompt: sentinel present → hook exits silently. User's prompt reaches Claude normally.
 
 Why this design: Claude Code's hook API does not let a hook directly invoke a slash command. Injected system-reminders are the only reliable influence mechanism. Sentinel-file tracking lets the hook fire every turn cheaply (one stat call) while only blocking until the session is bootstrapped.
 
-If the strict gate proves too intrusive, flip to soft-reminder mode by replacing the `UserPromptSubmit` command with `$INTENT_HOME/lib/hooks/user_prompt_submit_soft.sh`. The template ships both modes; the switch is one line of JSON.
+If the strict gate proves too intrusive, soften it by editing `require-in-session.sh` to exit 0 (advisory stdout) instead of exit 2 (blocking) when the sentinel is absent, or remove the `UserPromptSubmit` stanza from the template and re-apply. There is no separate soft-mode script.
 
 ## Critic cadence
 
 Critics enforce the rule library at two distinct points:
 
-1. **Pre-commit (mechanical, headless, bash).** `.git/hooks/pre-commit` runs `bin/intent_critic <lang> <staged-files>`. Severity threshold from `.intent_critic.yml`. Blocks the commit when any finding meets or exceeds the threshold.
+1. **Pre-commit (mechanical, headless, bash).** `.git/hooks/pre-commit` runs `intent critic <lang> --staged` for each declared language. Severity threshold from `.intent_critic.yml`. Blocks the commit when any finding meets or exceeds the threshold.
 2. **On-demand (LLM-based, richer).** `Task(subagent_type="critic-<lang>", prompt="review <targets>")` invokes the corresponding LLM subagent. Same rules, deeper judgement, slower.
 
 The split exists because these are different use cases:
@@ -363,7 +368,7 @@ Multi-app codebases usually have a shared platform layer that no ST claim cleanl
 
 ### Reference
 
-The live reference implementation runs in the Lamplight project at `/Users/matts/Devel/prj/Lamplight/intent/whiteboard/`. Design rationale, alternatives considered, and deliberate-deferrals (no hook-based enforcement, no `decisions.md` event log, no `intent/.config/whiteboard.json`) live in `intent/st/ST0040/`.
+The live reference implementation runs in the Lamplight project at `/Users/matts/Devel/prj/Lamplight/intent/whiteboard/`. Design rationale, alternatives considered, and deliberate-deferrals (no hook-based enforcement, no `decisions.md` event log, no `intent/.config/whiteboard.json`) live in `intent/st/COMPLETED/ST0040/`.
 
 ## Extensions at ~/.intent/ext/
 
@@ -462,8 +467,8 @@ Checks:
 
 - Is `.claude/settings.json` present at the project root?
 - Does it parse as valid JSON? (`jq . .claude/settings.json` must succeed.)
-- Are the `matchers` correct for the event type? `SessionStart` accepts `startup`, `resume`, `clear`, `compact`.
-- Is the hook script executable? `test -x "$INTENT_HOME/lib/hooks/session_start.sh"`.
+- Is the `matcher` string correct for the event type? `SessionStart` uses `startup|resume|clear|compact`.
+- Is the hook script executable? `test -x "$INTENT_HOME/lib/templates/.claude/scripts/session-context.sh"`.
 
 If the script runs but nothing is injected, remember the contract: stdout on exit 0 is the injection payload. Confirm the script writes to stdout (not stderr) and exits 0.
 
@@ -480,7 +485,7 @@ Fixes:
 - Verify `/in-session` installation: `intent claude skills show in-session`.
 - Verify the sentinel directory is writable and that `$CLAUDE_CODE_SESSION_ID` resolves correctly inside the hook.
 - For non-interactive automation that spawns `claude -p` against the project (eg `intent treeindex` or any custom wrapper): set `INTENT_SKIP_IN_SESSION_GATE=1` on the invocation. The gate short-circuits to exit 0 before any other check. Such sessions have no chat surface for `/in-session` to run in, so the bypass is the right tool.
-- If the strict gate is more friction than it's worth, flip it to soft-reminder mode by editing `.claude/settings.json`'s `UserPromptSubmit` command path from `user_prompt_submit_strict.sh` to `user_prompt_submit_soft.sh`.
+- If the strict gate is more friction than it's worth, soften `require-in-session.sh` to exit 0 (advisory) instead of exit 2 (blocking) when the sentinel is absent, or drop the `UserPromptSubmit` stanza from `lib/templates/.claude/settings.json` and re-apply. There is no separate soft-mode script.
 
 ### Pre-commit hook blocks on a rule you don't care about
 
@@ -526,7 +531,7 @@ Second: bash-parser parity is a known risk area. `bin/intent_critic` is intended
 
 ### `intent claude skills sync` reports mismatched checksums on a skill you edited
 
-Symptom: a skill you edited locally now shows a checksum mismatch on `intent claude skills status`, and `sync` wants to overwrite your edits.
+Symptom: a skill you edited locally now shows a checksum mismatch when `intent claude skills sync` runs, and `sync` wants to overwrite your edits.
 
 This mirrors the upgrade-doesn't-clobber contract. If the edit is intentional, either move it into an extension (`~/.intent/ext/<name>/skills/<slug>/`) so it shadows canon cleanly, or accept that `sync` will revert it on next run. Mid-fleet drift on canon skills creates more problems than it solves.
 
@@ -544,8 +549,8 @@ Intent v2.10.0 bundles this LLM canon (ST0035) with the directory relocation `.i
 - `intent/docs/migration-v2.10.0.md` — v2.9.0 → v2.10.0 migration guide.
 - `intent/llm/MODULES.md` — Highlander module registry.
 - `intent/llm/DECISION_TREE.md` — code-placement flowchart.
-- `intent/st/ST0035/design.md` — the decision log that drove this canon.
+- `intent/st/COMPLETED/ST0035/design.md` — the decision log that drove this canon.
 
 ---
 
-_Document stamp: Intent v2.9.1 canon, authored for ST0035/WP-03, 2026-04-24. Expected to be kept current across v2.9.x; significant canon changes should update both this doc and `intent/st/<ST>/design.md`._
+_Document stamp: authored for ST0035/WP-03, 2026-04-24; reconciled against as-built canon for v2.11.11 (ST0042/WP-08). Significant canon changes should update both this doc and `intent/st/<ST>/design.md`._

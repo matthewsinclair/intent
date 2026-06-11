@@ -149,17 +149,17 @@ The runner layers canon (`intent/plugins/claude/rules/`) and user extensions (`~
 
 ## Integration with `/in-review`
 
-The two-stage review skill (`intent/plugins/claude/skills/in-review/SKILL.md`) dispatches to the right Critic at Stage 2. Stage-2 detection probes the project root in this order:
+The two-stage review skill (`intent/plugins/claude/skills/in-review/SKILL.md`) dispatches to the right Critic at Stage 2. Dispatch reads the project's declared `languages` array from `intent/.config/config.json` (ST0037 replaced filesystem-marker probing — file presence is unreliable evidence of intent). Each declared language maps directly to its Critic:
 
-| Probe                                       | Dispatches to   |
-| ------------------------------------------- | --------------- |
-| `mix.exs`                                   | `critic-elixir` |
-| `Cargo.toml`                                | `critic-rust`   |
-| `Package.swift`                             | `critic-swift`  |
-| `.luarc.json` or `.lua`-dominant tree       | `critic-lua`    |
-| `bin/` or `scripts/` with bash/zsh shebangs | `critic-shell`  |
+| `languages` entry | Dispatches to   |
+| ----------------- | --------------- |
+| `elixir`          | `critic-elixir` |
+| `rust`            | `critic-rust`   |
+| `swift`           | `critic-swift`  |
+| `lua`             | `critic-lua`    |
+| `shell`           | `critic-shell`  |
 
-For each match, `/in-review` issues one `review` call for the code targets and one `test-check` call for the test targets, then reports the union. Polyglot projects (e.g., `mix.exs` and `Cargo.toml` at the same root) prompt the user for which language to review rather than dispatching every Critic blindly.
+For each declared language, `/in-review` issues one `review` call for the code targets and one `test-check` call for the test targets, then reports the union. Polyglot projects (more than one entry in `languages`) dispatch to each matching Critic with a target glob narrowed to its own subtree; array order is the explicit declaration, and the first entry is the primary where one is needed. An empty `languages` array runs no language Critic — only the agnostic checklist applies.
 
 ## Test-spec handoff (Diogenes)
 

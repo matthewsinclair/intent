@@ -124,7 +124,7 @@ The full field reference, including every optional field and its consumer, lives
 
 ### Required sections
 
-Every RULE.md has all nine sections, in this order:
+Every RULE.md has all seven H2 sections, in this order:
 
 ```markdown
 # <Title matching frontmatter>
@@ -169,7 +169,7 @@ When you author a new language-specific rule, check first whether an agnostic ru
 2. **Assign an ID.** Use the next free `IN-<LANG>-<CAT>-<NNN>` for that bucket. Never reuse a removed rule's suffix.
 3. **Copy the exemplar.** `intent/plugins/claude/rules/elixir/test/strong-assertions/` is the canonical full-form example (frontmatter + sections + runnable examples). For agnostic rules, copy any directory under `rules/agnostic/`.
 4. **Fill the frontmatter** per the schema above.
-5. **Write the nine Markdown sections.** Be substantive in `## When This Does Not Apply` — this is what prevents Critic noise.
+5. **Write the seven H2 sections.** Be substantive in `## When This Does Not Apply` — this is what prevents Critic noise.
 6. **Author examples.** Elixir rules get runnable `good_test.exs` / `bad_test.exs` (or `good.exs` / `bad.exs` for code rules). Rust / Swift / Lua / Shell rules embed examples inline as fenced code blocks.
 7. **Validate.** `intent claude rules validate <id>` checks frontmatter, sections, references, and the runnable-example contract.
 8. **Wire it up.** If a skill should reference the new rule, add the ID to the skill's `rules:` frontmatter list. If a Critic loads it automatically (every Critic auto-loads its language pack), no further wiring is needed.
@@ -205,7 +205,7 @@ What it checks:
 - All required scalar fields present (`id`, `title`, `language`, `category`, `severity`, `summary`)
 - `id` matches `^IN-(AG|EX|RS|SW|LU|SH)-[A-Z][A-Z0-9-]*-[0-9]{3}$`
 - `severity` is one of the four allowed values
-- All nine required H2 sections present
+- All seven required H2 sections present
 - H1 heading present and matches `title`
 - If `upstream_id:` set, `_attribution/elixir-test-critic.md` exists
 - Every `references:` ID resolves to another known rule

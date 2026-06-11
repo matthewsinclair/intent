@@ -152,3 +152,53 @@ DELETED_PATHS=(
   rm -f "${agents_md}.bak"
   rm -f "$snapshot" "$first" "$second"
 }
+
+# ====================================================================
+# Group 4: canon docs describe only as-built artefacts (ST0042 T9)
+# ====================================================================
+#
+# The v2.11.x doc-drift audit found canon docs describing commands,
+# paths, and hook shapes that never existed or had moved. These guards
+# pin the specific phantoms so the class cannot regress.
+
+CANON_DOCS=(
+  "intent/docs/working-with-llms.md"
+  "intent/docs/critics.md"
+  "intent/docs/rules.md"
+  "intent/docs/writing-extensions.md"
+  "usage-rules.md"
+  "README.md"
+)
+
+@test "no canon doc references the phantom 'skills status' subcommand" {
+  run grep -rn 'skills status' "${INTENT_PROJECT_ROOT}/intent/docs" "${INTENT_PROJECT_ROOT}/usage-rules.md"
+  [ "$status" -ne 0 ] || fail "phantom 'intent claude skills status' reference: $output"
+}
+
+@test "no canon doc uses the never-existed 'matchers' (plural) hook key" {
+  # Real settings.json uses singular string 'matcher'; 'matchers' (array)
+  # was documented but never shipped.
+  run grep -rn '"matchers"\|matchers:' "${INTENT_PROJECT_ROOT}/intent/docs"
+  [ "$status" -ne 0 ] || fail "phantom 'matchers' hook key: $output"
+}
+
+@test "no canon doc references the pre-v2.10 .intent/ config path" {
+  # Config relocated to intent/.config/ in v2.10.0 (ST0036). Allow only
+  # the user-ext root ~/.intent/ext and the nested intent/.config form.
+  local hits=""
+  local doc
+  for doc in "${CANON_DOCS[@]}"; do
+    hits="$hits$(grep -nE '(^|[^/~a-z])\.intent/config' "${INTENT_PROJECT_ROOT}/${doc}" 2>/dev/null || true)"
+  done
+  [ -z "$hits" ] || fail "pre-v2.10 .intent/config path in canon docs: $hits"
+}
+
+@test "no canon doc references phantom soft/strict hook script variants" {
+  run grep -rnE 'user_prompt_submit_(soft|strict)\.sh|session_start\.sh|stop_reminder\.sh' \
+    "${INTENT_PROJECT_ROOT}/intent/docs"
+  [ "$status" -ne 0 ] || fail "phantom hook-script name: $output"
+}
+
+@test "usage-rules.md lists the in-whiteboard skill" {
+  assert_file_contains "${INTENT_PROJECT_ROOT}/usage-rules.md" "/in-whiteboard"
+}

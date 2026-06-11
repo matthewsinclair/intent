@@ -50,7 +50,7 @@ Recommended fields:
 - `author`, `license`, `homepage`.
 - `intent_compat: { min, max }` — version bounds for the Intent versions this extension supports. `max` accepts `2.x` / `3.x` style ranges.
 - `contributes: { subagents: [...], skills: [...], rules: [...] }` — array of `{ name, path }` objects declaring each contributed item.
-- `checksums` — optional per-file SHA for tamper detection (currently informational; v2.10 will enforce).
+- `checksums` — optional per-file SHA for tamper detection (currently informational; enforcement is future work, not yet scheduled).
 
 Unknown top-level keys are rejected by the schema. If you need new metadata, open an issue against canon — the schema is intentionally strict.
 
@@ -248,7 +248,7 @@ unset INTENT_EXT_DISABLE
 
 In v2.9.0, extensions are local-only. There is no registry, no `intent ext install <url>`, no push/pull workflow. Distribution is entirely user-managed: copy `~/.intent/ext/<name>/` between machines, or commit a directory to a personal Git repo and clone it under `~/.intent/ext/`.
 
-A registry, signing, and remote-install workflow is planned for v2.10. The schema's `checksums` field and `homepage` field exist in anticipation — they are recommended-now, enforced-later.
+A registry, signing, and remote-install workflow remains future work (not yet scheduled). The schema's `checksums` and `homepage` fields exist in anticipation — recommended now, enforced later.
 
 ## Migration from canon
 

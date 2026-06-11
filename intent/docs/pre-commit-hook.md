@@ -1,6 +1,6 @@
 # Pre-commit critic hook
 
-Intent's canonical pre-commit hook runs `intent critic <lang> --staged --severity-min <sev>` for each language it detects in the project. Findings at or above the configured severity threshold block the commit. The hook is the primary cadence for rule enforcement (design decision D8 in `intent/st/ST0035/design.md`): local, deterministic, offline, zero-latency feedback.
+Intent's canonical pre-commit hook runs `intent critic <lang> --staged --severity-min <sev>` for each language it detects in the project. Findings at or above the configured severity threshold block the commit. The hook is the primary cadence for rule enforcement (design decision D8 in `intent/st/COMPLETED/ST0035/design.md`): local, deterministic, offline, zero-latency feedback.
 
 ## Installation
 

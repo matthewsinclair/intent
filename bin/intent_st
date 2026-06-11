@@ -19,6 +19,7 @@ usage() {
   echo "  new [-s|--start] <title>          Create a new steel thread"
   echo "  start <id>                        Mark a steel thread as in progress"
   echo "  done <id>                         Mark a steel thread as complete"
+  echo "  cancel <id>                       Mark a steel thread as cancelled"
   echo "  list [--status <status>] [--width N] List steel threads (default: in progress only)"
   echo "  sync [--write] [--width N]        Synchronize steel_threads.md with individual ST files"
   echo "  organize [--write]                Organize ST files in directories by status"
@@ -593,10 +594,73 @@ TEMPLATE
     
     # Update index
     update_steel_threads_index "$ST_ID" "$TITLE" "Completed" "$(grep '^\- \*\*Created\*\*:' "$ST_FILE" 2>/dev/null | sed 's/^\- \*\*Created\*\*: //' || echo "$DATE")" "$DATE"
-    
+
     echo "Marked steel thread as complete: $ST_ID: $TITLE"
     ;;
-    
+
+  "cancel")
+    # Check for required arguments
+    if [ $# -lt 1 ]; then
+      error "Steel thread ID is required"
+      usage
+    fi
+
+    # Process the steel thread ID
+    ST_ID=$(normalise_st_id "$1")
+
+    DATE=$(date '+%Y-%m-%d')
+
+    if is_directory_structure; then
+      ST_FILE=$(get_st_path "$ST_ID" "" "info.md")
+
+      if [ ! -f "$ST_FILE" ]; then
+        error "Steel thread not found: $ST_ID"
+      fi
+
+      TITLE=$(grep "^# $ST_ID:" "$ST_FILE" | sed "s/^# $ST_ID: //")
+
+      sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: Cancelled/" "$ST_FILE"
+      sed -i.bak "s/^status: .*$/status: Cancelled/" "$ST_FILE"
+      rm -f "$ST_FILE.bak"
+
+      CURRENT_DIR=$(dirname "$ST_FILE")
+      NEW_ST_FILE=$(get_st_path "$ST_ID" "Cancelled" "info.md")
+      NEW_DIR=$(dirname "$NEW_ST_FILE")
+
+      if [ "$CURRENT_DIR" != "$NEW_DIR" ]; then
+        mkdir -p "$(dirname "$NEW_DIR")"
+        mv "$CURRENT_DIR" "$NEW_DIR"
+        echo "  moved: $NEW_DIR"
+      fi
+    else
+      # Legacy: Handle single file
+      ST_FILE=$(get_st_path "$ST_ID")
+
+      if [ ! -f "$ST_FILE" ]; then
+        error "Steel thread not found: $ST_ID"
+      fi
+
+      TITLE=$(grep "^# $ST_ID:" "$ST_FILE" | sed "s/^# $ST_ID: //")
+
+      sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: Cancelled/" "$ST_FILE"
+      sed -i.bak "s/^status: .*$/status: Cancelled/" "$ST_FILE"
+      rm -f "$ST_FILE.bak"
+
+      NEW_ST_FILE=$(get_st_path "$ST_ID" "Cancelled")
+
+      if [ "$ST_FILE" != "$NEW_ST_FILE" ]; then
+        mkdir -p "$(dirname "$NEW_ST_FILE")"
+        mv "$ST_FILE" "$NEW_ST_FILE"
+        echo "  moved: $NEW_ST_FILE"
+      fi
+    fi
+
+    # Update index
+    update_steel_threads_index "$ST_ID" "$TITLE" "Cancelled" "$(grep '^\- \*\*Created\*\*:' "$ST_FILE" 2>/dev/null | sed 's/^\- \*\*Created\*\*: //' || echo "$DATE")" ""
+
+    echo "Marked steel thread as cancelled: $ST_ID: $TITLE"
+    ;;
+
   "start")
     # Check for required arguments
     if [ $# -lt 1 ]; then

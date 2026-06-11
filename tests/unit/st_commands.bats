@@ -690,6 +690,53 @@ EOF
   assert_file_contains "intent/st/ST0001/info.md" "**Status**: WIP"
 }
 
+@test "st cancel marks a thread cancelled and relocates to CANCELLED/" {
+  # ST0042 F-DOCS-2: usage-rules.md mandates `intent st cancel` as the
+  # compliant cancellation path; the command must exist and do the move.
+  project_dir=$(create_test_project "ST Cancel Test")
+  cd "$project_dir"
+
+  mkdir -p intent/st/ST0001
+  cat > intent/st/ST0001/info.md << EOF
+---
+intent_version: 2.0.0
+status: WIP
+created: 20250117
+---
+# ST0001: Doomed Thread
+
+- **Status**: WIP
+- **Created**: 2025-01-17
+EOF
+
+  run run_intent st cancel ST0001
+  assert_success
+  assert_output_contains "Marked steel thread as cancelled: ST0001: Doomed Thread"
+
+  assert_directory_exists "intent/st/CANCELLED/ST0001"
+  [ ! -d "intent/st/ST0001" ] || fail "ST0001 still in main directory after cancel"
+  assert_file_contains "intent/st/CANCELLED/ST0001/info.md" "status: Cancelled"
+  assert_file_contains "intent/st/CANCELLED/ST0001/info.md" "**Status**: Cancelled"
+}
+
+@test "st cancel errors on non-existent steel thread" {
+  project_dir=$(create_test_project "ST Cancel Missing Test")
+  cd "$project_dir"
+
+  run run_intent st cancel ST9999
+  assert_failure
+  assert_output_contains "Steel thread not found: ST9999"
+}
+
+@test "st cancel requires a steel thread ID" {
+  project_dir=$(create_test_project "ST Cancel No ID Test")
+  cd "$project_dir"
+
+  run run_intent st cancel
+  assert_failure
+  assert_output_contains "Steel thread ID is required"
+}
+
 @test "st list with comma-separated statuses" {
   project_dir=$(create_test_project "ST List Comma Test")
   cd "$project_dir"

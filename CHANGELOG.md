@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`intent st cancel <ID>`.** The docs have mandated it as the compliant cancellation path since the status discipline landed, but the command never existed -- cancelling a thread meant manually editing `status:` frontmatter, which the same docs forbid. The new dispatch case mirrors `done`: stamps `status: Cancelled` (frontmatter + body), relocates the thread directory to `intent/st/CANCELLED/`, and updates the index (ST0042 T9 / F-DOCS-2).
+
 ### Fixed
+
+- **Canon docs describe the as-built system again** (ST0042 T9). `working-with-llms.md`'s session-hook section showed a settings shape (`matchers` arrays, `$INTENT_HOME/lib/hooks/*.sh` scripts, a soft/strict script pair) that never shipped -- it now shows the real template (`matcher` string, `lib/templates/.claude/scripts/`, echo-based Stop hook) and an executable softening path instead of the phantom `user_prompt_submit_soft.sh`. `critics.md`'s `/in-review` dispatch table described filesystem-marker probing removed by ST0037; it now documents the `languages`-array dispatch the skill actually performs. The phantom `intent claude skills status` reference, the pre-v2.10 `.intent/config.json` path in `usage-rules.md`, stale `intent/st/ST0035|ST0040/` paths (now under `COMPLETED/`), `rules.md`'s "nine required sections" (the validator requires seven), README's v2.6.0 claim and nonexistent `intent/usr/` entry, `writing-extensions.md`'s "v2.10 will enforce" promises, and CLAUDE.md's v2.11.0 stamp are all corrected; `/in-whiteboard` joins the `usage-rules.md` skills table. Guard tests in `docs_completeness.bats` pin the phantom command, hook-key, hook-script, and legacy-path classes.
 
 - **`intent modules check` honours `file::function` registry rows and the registry matches the filesystem again** (ST0042 T7, Highlander gate). Three live advisory subagents (`intent`, `socrates`, `diogenes`) were absent from MODULES.md; they now have rows. The `needs_v2_9_0_upgrade` row described config-file-reading behaviour the function (which takes a version-string argument) never had, and cited the pre-v2.10 `.intent/` path -- corrected. A dangling row pointed at a credo check (`dependency_graph.ex`) that does not exist, and the credo-check row listed stale `R2/R6/...` identifiers instead of the actual filenames -- both fixed; the `_default/AGENTS.md` row left over after that template's deletion is removed. Finally, `intent modules check` itself tested each `file::function` row as a literal path, so every function-qualified entry reported as permanently stale and eroded trust in the gate; the check now splits on `::` and verifies the function is defined in the file.
 

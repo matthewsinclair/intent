@@ -101,7 +101,7 @@ $ intent st show ST0015
 
 ## 🤖 Claude Code Integration
 
-Intent v2.6.0 integrates with [Claude Code](https://claude.ai/code) through sub-agents, skills, and automated enforcement to supercharge AI collaboration:
+Intent integrates with [Claude Code](https://claude.ai/code) through sub-agents, skills, and automated enforcement to supercharge AI collaboration:
 
 ```bash
 # Initialize subagent configuration (one-time setup)
@@ -349,25 +349,29 @@ intent plugin show claude            # Show details for a plugin
 
 ```
 .
+├── AGENTS.md         # Tool-agnostic LLM config (auto-generated; project root)
+├── CLAUDE.md         # Claude Code-specific overlay
+├── usage-rules.md    # Prescriptive DO / NEVER contract
 ├── bin/              # Intent command-line tools
 ├── docs/             # Documentation and blog posts
 ├── intent/           # Project artifacts (when using Intent)
+│   ├── .config/      # Per-project config + metadata (config.json, version)
 │   ├── .treeindex/   # Shadow directory for LLM-oriented summaries
 │   ├── st/           # Steel threads
 │   ├── eng/          # Engineering documentation
 │   │   └── tpd/      # Technical Product Design
-│   ├── usr/          # User documentation
-│   ├── llm/          # LLM-specific content (AGENTS.md, MODULES.md, etc.)
+│   ├── docs/         # Internal canon (working-with-llms.md, critics.md, rules.md)
+│   ├── llm/          # LLM enforcement (MODULES.md, RULES.md, ARCHITECTURE.md, DECISION_TREE.md)
 │   ├── plugins/      # Plugin architecture
 │   │   ├── agents/   # AGENTS.md plugin (inc. templates)
 │   │   └── claude/   # Claude Code integration
 │   │       ├── subagents/  # Subagent definitions
-│   │       └── skills/     # Skill definitions (11 skills)
+│   │       └── skills/     # Skill definitions
 │   └── wip.md        # Current work
 ├── lib/              # Templates and libraries
 │   ├── templates/    # LLM, archetype, Credo, hook templates
 │   └── help/         # Help files for all commands
-└── tests/            # Test suites (22 files, 462 tests)
+└── tests/            # Test suites
 ```
 
 ## 🤝 Contributing
