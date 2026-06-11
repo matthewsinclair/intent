@@ -233,3 +233,13 @@ load "../lib/test_helper.bash"
   cd - > /dev/null
   rm -rf "$test_dir"
 }
+@test "interactive agent install routes through the claude subagents dispatcher" {
+  # ST0042 F-TPL-11 regression guard: intent_init invoked
+  # "$SCRIPT_DIR/intent_agents", a path that does not exist (the script lives
+  # under intent/plugins/agents/bin/), so the install branch could never
+  # succeed. It must route through the real dispatcher.
+  run grep -F 'SCRIPT_DIR/intent_agents' "${INTENT_BIN_DIR}/intent_init"
+  assert_failure
+  run grep -F 'claude subagents install intent' "${INTENT_BIN_DIR}/intent_init"
+  assert_success
+}

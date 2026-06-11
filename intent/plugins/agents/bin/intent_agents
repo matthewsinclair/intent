@@ -173,9 +173,15 @@ intent_agents_init() {
 
     # AGENTS.md lands at project root. Sibling templates (RULES.md,
     # ARCHITECTURE.md) remain under intent/llm/ as human-curated files.
+    # Language templates without their own AGENTS.md fall back to the
+    # generated content -- the success message below must never lie
+    # (ST0042 F-TPL-9).
     if [ -f "$template_dir/AGENTS.md" ]; then
       cp "$template_dir/AGENTS.md" "$PROJECT_ROOT/AGENTS.md"
       echo "  Created AGENTS.md from $template template"
+    else
+      intent_agents_generate_content > "$PROJECT_ROOT/AGENTS.md"
+      echo "  Created AGENTS.md (generated; $template template has no AGENTS.md)"
     fi
 
     mkdir -p "$PROJECT_ROOT/intent/llm"

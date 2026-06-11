@@ -503,20 +503,24 @@ TEMPLATE
       # Legacy: Create single file
       ST_FILE=$(get_st_path "$ST_ID" "$ST_STATUS")
       mkdir -p "$(dirname "$ST_FILE")"
-      
-      if [ -f "${INTENT_HOME}/lib/templates/prj/st/_ST####.md" ]; then
-        DATE_COMPACT=$(date '+%Y%m%d')
-        ESCAPED_AUTHOR=$(escape_sed_replacement "$AUTHOR")
 
-        sed -e "s/ST####/$ST_ID/g" \
-            -e "s/\[Title\]/$ESCAPED_TITLE/g" \
-            -e "s/\[Slug\]/$ESCAPED_SLUG/g" \
-            -e "s/\[Not Started|In Progress|Completed|On Hold|Cancelled\]/$ST_STATUS/g" \
-            -e "s/YYYY-MM-DD/$DATE/g" \
-            -e "s/YYYYMMDD/$DATE_COMPACT/g" \
-            -e "s/\[Author Name\]/$ESCAPED_AUTHOR/g" \
-            "${INTENT_HOME}/lib/templates/prj/st/_ST####.md" > "$ST_FILE"
+      # No silent success: the legacy single-file template must exist, or
+      # nothing is created and `created:` would be a lie (ST0042 F-TPL-4).
+      if [ ! -f "${INTENT_HOME}/lib/templates/prj/st/_ST####.md" ]; then
+        error "Legacy steel thread template not found: ${INTENT_HOME}/lib/templates/prj/st/_ST####.md"
       fi
+
+      DATE_COMPACT=$(date '+%Y%m%d')
+      ESCAPED_AUTHOR=$(escape_sed_replacement "$AUTHOR")
+
+      sed -e "s/ST####/$ST_ID/g" \
+          -e "s/\[Title\]/$ESCAPED_TITLE/g" \
+          -e "s/\[Slug\]/$ESCAPED_SLUG/g" \
+          -e "s/\[Not Started|In Progress|Completed|On Hold|Cancelled\]/$ST_STATUS/g" \
+          -e "s/YYYY-MM-DD/$DATE/g" \
+          -e "s/YYYYMMDD/$DATE_COMPACT/g" \
+          -e "s/\[Author Name\]/$ESCAPED_AUTHOR/g" \
+          "${INTENT_HOME}/lib/templates/prj/st/_ST####.md" > "$ST_FILE"
 
       echo "created: $ST_ID -- $TITLE"
       echo "    file: $ST_FILE"

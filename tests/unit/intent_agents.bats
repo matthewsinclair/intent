@@ -210,3 +210,18 @@ EOF
   assert_file_contains "$project/AGENTS.md" "working-with-llms.md#socrates-vs-diogenes-faq"
   assert_file_contains "$project/AGENTS.md" "working-with-llms.md#session-hook-architecture"
 }
+
+@test "init --template rust creates root AGENTS.md despite template having none" {
+  # ST0042 F-TPL-9 regression guard: rust/lua/shell/swift template dirs carry
+  # no AGENTS.md, yet init printed "Created AGENTS.md at project root." while
+  # creating nothing. Templates without AGENTS.md now fall back to generated
+  # content so the message is true.
+  local project
+  project="$(create_test_project "AgentsRustInit")"
+  cd "$project"
+  run run_intent agents init --template rust
+  assert_success
+  assert_file_exists "$project/AGENTS.md"
+  assert_file_exists "$project/intent/llm/RULES.md"
+  assert_file_exists "$project/intent/llm/ARCHITECTURE.md"
+}

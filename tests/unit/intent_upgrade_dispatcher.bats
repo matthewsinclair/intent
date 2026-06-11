@@ -184,3 +184,41 @@ EOF
   cd "${INTENT_PROJECT_ROOT}" || exit 1
   rm -rf "${TEST_TEMP_DIR}"
 }
+
+@test "upgrade aborts before migration when backup cannot be created" {
+  # ST0042 T3 regression guard: backup used `cp -r ... 2>/dev/null || true`
+  # then printed "Backup created successfully" unconditionally, immediately
+  # before destructive migration. A failed backup must abort with nothing
+  # migrated.
+  TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-upgrade-bk-XXXXXX)"
+  cd "${TEST_TEMP_DIR}" || exit 1
+  setup_fake_home
+
+  mkdir -p intent/.config intent/llm intent/st
+  cat > intent/.config/config.json <<'EOF'
+{"intent_version":"2.10.0","project_name":"BackupFailTest","author":"t","created":"2026-04-27","st_prefix":"ST"}
+EOF
+  echo "# wip" > intent/wip.md
+
+  git init -q .
+  git config user.email t@t.com
+  git config user.name Tester
+  git add -A
+  git commit -qm "init"
+
+  # Make .backup unusable as a directory so the backup copy fails.
+  touch .backup
+
+  run "${INTENT_BIN_DIR}/intent" upgrade
+  assert_failure
+  refute_output_contains "Backup created successfully"
+
+  # Nothing migrated: stamp untouched.
+  local stamped
+  stamped=$(jq -r '.intent_version' intent/.config/config.json)
+  [ "$stamped" = "2.10.0" ] || fail "expected untouched stamp 2.10.0, got '$stamped'"
+
+  teardown_fake_home
+  cd "${INTENT_PROJECT_ROOT}" || exit 1
+  rm -rf "${TEST_TEMP_DIR}"
+}

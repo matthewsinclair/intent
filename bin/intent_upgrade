@@ -134,13 +134,16 @@ if [ "$NO_BACKUP" != true ]; then
   echo "Creating backup in $BACKUP_DIR..."
   mkdir -p "$BACKUP_DIR"
   
-  # Backup relevant directories
+  # Backup relevant directories. A failed copy aborts before any migration
+  # mutates the project -- never report a backup that does not exist
+  # (ST0042 T3).
   for dir in stp .stp-config .intent intent CLAUDE.md; do
     if [ -e "$dir" ]; then
-      cp -r "$dir" "$BACKUP_DIR/" 2>/dev/null || true
+      cp -r "$dir" "$BACKUP_DIR/" \
+        || error "Backup of $dir to $BACKUP_DIR failed; aborting upgrade (nothing has been migrated)"
     fi
   done
-  
+
   echo "Backup created successfully"
 fi
 

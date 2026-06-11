@@ -3,7 +3,7 @@ verblock: "11 Jun 2026:v0.1: matts - Initial version"
 wp_id: WP-03
 title: "Kill reports-success-while-doing-nothing"
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-03: Kill reports-success-while-doing-nothing

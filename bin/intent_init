@@ -280,12 +280,12 @@ if [ -t 0 ] && [ -t 1 ]; then  # Check if both stdin and stdout are TTY
     
     if [[ "$response" =~ ^[Yy]?$ ]]; then
       echo "Installing Intent agent..."
-      if "$SCRIPT_DIR/intent_agents" install intent --force >/dev/null 2>&1; then
+      if "$SCRIPT_DIR/intent" claude subagents install intent --force >/dev/null 2>&1; then
         echo "Intent agent installed successfully!"
         echo "Claude will now understand Intent's steel thread methodology."
       else
         echo "Note: Could not install agent automatically."
-        echo "You can install it later with: intent agents install intent"
+        echo "You can install it later with: intent claude subagents install intent"
       fi
     else
       echo "You can install agents later with: intent agents list"

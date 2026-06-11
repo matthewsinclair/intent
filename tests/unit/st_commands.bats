@@ -1057,3 +1057,17 @@ EOF
   run grep "status: In Progress" intent/st/ST0001/info.md
   assert_failure
 }
+
+@test "st new on legacy file-structure project errors instead of claiming creation" {
+  # ST0042 F-TPL-4 regression guard: the legacy single-file path referenced
+  # lib/templates/prj/st/_ST####.md, which does not exist; the guarded copy
+  # created nothing yet printed `created:`. The path must error honestly.
+  cd "$TEST_TEMP_DIR"
+  mkdir -p stp/.config stp/prj/st
+  echo "stp_version: 1.0.0" > stp/.config/version
+
+  run run_intent st new "Legacy Test"
+  assert_failure
+  assert_output_contains "Legacy steel thread template not found"
+  refute_output_contains "created:"
+}
