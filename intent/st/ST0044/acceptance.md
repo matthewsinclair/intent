@@ -60,7 +60,7 @@ title: "Add in acceptance.md and supporting process -- acceptance contract"
 
 ### WP-08 -- MODULES.md registration
 
-- AC-08.1 (non-test) The parser + gate module is registered in `intent/llm/MODULES.md` before its code exists -- evidence: MODULES.md row precedes module code -- satisfied: no
+- AC-08.1 (non-test) The parser + gate module is registered in `intent/llm/MODULES.md` before its code exists -- evidence: intent/llm/MODULES.md bin/intent_acceptance row, registered before code (fa90bb2) -- satisfied: yes
 
 ## Acceptance Tests
 
