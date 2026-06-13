@@ -24,12 +24,16 @@ title: "[Title] -- acceptance contract"
 
 ### WP-01 -- [WP title] (status: ...)
 
-- AC-01.1 [a test-backed criterion -- what must be verifiably true]
-- AC-01.2 (non-test) [a doc / eyeball / gate criterion] -- evidence: [named evidence] -- satisfied: no
+[Add real AC lines at column 0 -- the parser and close-gate read only column-0 `- AC-` lines, so the indented examples below are inert guidance. Copy one to column 0 and fill it in:]
+
+    - AC-01.1 [a test-backed criterion -- what must be verifiably true]
+    - AC-01.2 (non-test) [a doc / eyeball / gate criterion] -- evidence: [named evidence] -- satisfied: no
 
 ## Acceptance Tests
 
 ### WP-01
 
-- AT-01.1 [test path::name] -- covers AC-01.1 -- status: to-write (red-first)
-- Coverage: [every AC has an AT, or list the uncovered ACs; non-test ACs carry evidence on the AC line]
+[Add real AT lines at column 0 -- the parser reads only column-0 `- AT-` lines, so the indented examples below are inert guidance. Copy one to column 0 and fill it in:]
+
+    - AT-01.1 [test path::name] -- covers AC-01.1 -- status: to-write (red-first)
+    - Coverage: [every AC has an AT, or list the uncovered ACs; non-test ACs carry evidence on the AC line]

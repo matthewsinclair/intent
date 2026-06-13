@@ -195,6 +195,11 @@ TEMPLATE
       error "Work package not found: $ST_ID/$WP_NUM"
     fi
 
+    # Acceptance close-gate (ST0044): refuse to close while the in-scope WP
+    # contract is BLOCKED. Opt-in -- silent pass when no acceptance.md / no ACs.
+    "$INTENT_HOME/bin/intent_acceptance" ac gate "$ST_ID/$WP_NUM" \
+      || error "cannot close $ST_ID/$WP_NUM: acceptance contract is BLOCKED (run 'intent ac status $ST_ID/$WP_NUM')"
+
     # Update status to Done
     sed -i.bak "s/^status: .*$/status: Done/" "$WP_FILE"
     rm -f "$WP_FILE.bak"

@@ -87,10 +87,11 @@ title: "Add in acceptance.md and supporting process -- acceptance contract"
 
 ### WP-04
 
-- AT-04.1 `tests/unit/acceptance_close_gate.bats::wp done blocked while an AC is uncovered` -- covers AC-04.1 -- status: to-write (red-first)
-- AT-04.2 `tests/unit/acceptance_close_gate.bats::st done blocked without recorded sign-off` -- covers AC-04.1 -- status: to-write (red-first)
-- AT-04.3 `tests/unit/acceptance_close_gate.bats::done allowed when all green and signed` -- covers AC-04.1 -- status: to-write (red-first)
-- Coverage: AC-04.1 covered.
+- AT-04.1 `tests/unit/acceptance_close_gate.bats::wp done is blocked while a WP AC is uncovered` -- covers AC-04.1 -- status: green
+- AT-04.2 `tests/unit/acceptance_close_gate.bats::st done is blocked when the ST-level sign-off AC is unsatisfied` -- covers AC-04.1 -- status: green
+- AT-04.3 `tests/unit/acceptance_close_gate.bats::st done is allowed once every AC including sign-off is satisfied` -- covers AC-04.1 -- status: green
+- AT-04.4 `tests/unit/acceptance_close_gate.bats::st done is not gated for a freshly stamped ST with no real ACs` -- covers AC-04.1 -- status: green
+- Coverage: AC-04.1 covered by AT-04.1/04.2 (must-block) + AT-04.3/04.4 (must-allow guards: done still closes when every AC is satisfied / when there are no live ACs). Lap: ATs written + red witnessed by matts (04.1/04.2 reported "expected fail, succeeded") -> green build 2026-06-14 (gate verb in `intent_acceptance`; `st done` / `wp done` consult `ac gate`; template re-indents the example AC/AT lines so freshly stamped STs carry no live col-0 ACs); 4/4 green, AT states set via the `intent at` CLI.
 
 ### WP-05
 

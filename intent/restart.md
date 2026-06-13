@@ -1,23 +1,24 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-06-11, v2.11.12 SHIPPED)
+## Current state (2026-06-14)
 
-Tag `v2.11.12` (commit `574b015`) pushed to both remotes (`local` Dropbox + `upstream` GitHub); GitHub release published. The release carries the whole ST0042 + ST0041 arc: all nine ST0042 WPs (Fable 5 architectural review of Intent), the ST0041 MFIC harvest, and the done-work archive split. Both STs are **Completed** in `intent/st/COMPLETED/`. Post-release wrap (this file, `.claude/restart.md`, `wip.md`, memory, config self-stamp to 2.11.12) committed after the tag.
+v2.11.12 is the shipped baseline. Commit `fa90bb2` (main) landed ST0044 WP-01/02/03/08 (acceptance.md doc + `intent ac` / `intent at` instrumentation) plus the `normalise_st_id` Highlander fix (octal-safe + ST-prefixed-short). **In flight, uncommitted:** ST0044 WP-04 (the close-gate) is GREEN -- `intent ac gate` + `st done` / `wp done` wiring + template re-indent; `tests/unit/acceptance_close_gate.bats` 4/4 + regressions; ready to commit. WP-05 is next. ST0043 (rethink `intent upgrade`) follows ST0044.
 
-Nothing is in flight. The tree should be clean and the next work is a fresh arc.
+## ST0044 -- acceptance.md + AC/AT process (active)
 
-## Next arc: ST0043 -- Rethink `intent upgrade`
+WP-01/02/03/08 committed (fa90bb2). WP-04 close-gate GREEN (uncommitted): `intent ac gate <stid>[/NN]` in `bin/intent_acceptance`, consulted by `st done` (scope = whole thread) and `wp done` (scope = the NN group) before they mutate; opt-in / legacy-safe (no acceptance.md or no live ACs -> done unchanged); no `--force`. The template re-indents its example AC/AT lines so freshly stamped STs are not self-gated. `tests/unit/acceptance_close_gate.bats` 4/4; regressions green; WP-04 ATs flipped green via `intent at`. The gate dogfoods on the thread itself: `ac gate ST0044` = 9/15 BLOCKED (correct -- WP-05/06/07 + sign-off open). Next: WP-05. Live AC/AT tracker: `intent/st/ST0044/acceptance.md`.
 
-WIP, not started, targets **v2.12.0 minor**, own session. `intent st show ST0043` / `intent/st/ST0043/info.md` carries the full Architecture-B design (convergent end-state + structural-step ledger), confirmed defects, and the delete/keep migration path. It owns: the two-installer collapse (~1800 lines), `update_config_version` inlines, dead migration scaffolding (`needs_migration`, `show_migration_summary`, `count_migration_files`, `update_version_in_frontmatter`, `create_project_backup`), and the `intent claude upgrade` Phase-2 CLAUDE.md substitution audit.
+## ST0043 -- Rethink `intent upgrade` (next)
 
-## Where the detail lives
+WIP. Architecture-B in `intent/st/ST0043/info.md`; ACs drafted in `intent/st/ST0043/acceptance.md`. Targets v2.12.0.
 
-- `intent/wip.md` -- current-state summary + Next Up backlog.
-- `intent/done.md` -- terse DONE ledger; verbose release narratives at `intent/history/v2.11.*.md` (v2.11.12 narrative includes the full WP-by-WP arc summary).
-- `intent/st/COMPLETED/ST0042/` -- review findings (design.md), MFIC leak write-up + execution notes (impl.md).
-- `intent/st/COMPLETED/ST0041/` -- MFIC harvest: adopted practice vs deferred candidates (impl.md).
-- `CHANGELOG.md [2.11.12]` -- the shipped release notes.
+## Where detail lives
 
-## Session conventions (carry forward)
+- `.claude/restart.md` -- WP-04 green-build spec + ratified gate mechanism.
+- `intent/st/ST0044/` -- info / design / tasks / acceptance (live tracker).
+- `intent/wip.md` -- current-state summary + backlog.
+- `intent/done.md` + `intent/history/v2.11.*.md` -- shipped-work ledger / narratives.
 
-T-shirt sizing only; compact at ~200-250k; ALWAYS use the intent CLI for ST/WP operations; NEVER manually wrap markdown; NO Claude attribution in commits; no vanity metrics; fail-forward (no stubs/shims); the user runs the full test suite externally (pause and ask -- single-file bats runs are fine); refresh BOTH restart files on every release.
+## Conventions (carry forward)
+
+T-shirt sizing; intent CLI for ST/WP; never manually wrap markdown; no Claude attribution (end commit bodies `(C) hello@matthewsinclair.com`); no vanity metrics; fail-forward; commit to main only when asked; user runs the full test suite externally (single-file bats fine); matts is the acceptance verifier this session.

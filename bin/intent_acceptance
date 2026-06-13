@@ -23,6 +23,7 @@ usage() {
   echo "  list <stid>[/NN]                           List ACs + covering AT + satisfied state"
   echo "  status <stid>                              Report N/M satisfied + verdict (PASS/BLOCKED)"
   echo "  satisfy <stid> <acid> --evidence \"<ref>\"    Satisfy a non-test AC by named evidence"
+  echo "  gate <stid>[/NN]                           Close-gate: exit non-zero + BLOCKED if unsatisfied"
   echo ""
   echo "at commands:"
   echo "  list <stid>[/NN]                           List ATs (id, path::name, status)"
@@ -165,6 +166,40 @@ EOF
   echo "ac: $sat/$total satisfied -- $verdict"
 }
 
+# Close-gate (ST0044 WP-04). The single authority `st done` / `wp done` consult
+# before closing: exit 1 + a BLOCKED report when an in-scope AC is unsatisfied,
+# exit 0 otherwise. Opt-in / legacy-safe -- a missing thread dir, a missing
+# acceptance.md, or zero in-scope ACs all leave the gate open (exit 0), so a
+# thread that never authored a contract closes exactly as it did before.
+cmd_ac_gate() {
+  [ -n "$1" ] || usage
+  local scope="$1"
+  split_target "$scope"
+  local id dir acc
+  id="$(normalise_st_id "$STID")"
+  dir="$(resolve_st_dir "$id")" || exit 0
+  acc="$dir/acceptance.md"
+  [ -f "$acc" ] || exit 0
+  local line lid total=0 sat=0 unsat=""
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    lid="$(line_id "$line")"
+    in_wp_filter "$lid" || continue
+    total=$((total + 1))
+    if ac_is_satisfied "$line" "$acc"; then
+      sat=$((sat + 1))
+    else
+      unsat="$unsat $lid"
+    fi
+  done <<EOF
+$(ac_lines "$acc")
+EOF
+  [ "$total" -eq 0 ] && exit 0
+  [ "$sat" -eq "$total" ] && exit 0
+  echo "gate: $scope BLOCKED -- $sat/$total satisfied; unsatisfied:${unsat}"
+  exit 1
+}
+
 cmd_ac_satisfy() {
   local stid="$1" acid="$2"
   shift 2 2>/dev/null || usage
@@ -236,7 +271,8 @@ case "$NOUN" in
       list)    cmd_ac_list "$@" ;;
       status)  cmd_ac_status "$@" ;;
       satisfy) cmd_ac_satisfy "$@" ;;
-      *)       error "unknown ac command: $VERB (try: list, status, satisfy)" ;;
+      gate)    cmd_ac_gate "$@" ;;
+      *)       error "unknown ac command: $VERB (try: list, status, satisfy, gate)" ;;
     esac
     ;;
   at)
