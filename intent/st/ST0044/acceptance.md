@@ -16,7 +16,7 @@ title: "Add in acceptance.md and supporting process -- acceptance contract"
 >
 > Non-test ACs carry their state inline -- `-- evidence: <ref> -- satisfied: yes|no` on the AC line; test-backed ACs are satisfied by a green covering AT (computed, never written). Multi-AC coverage on an AT is comma-separated.
 >
-> STATUS: RATIFIED (matts, verifier, 2026-06-13) -- boundary = the 8-WP set below. Candidate ACs raised and held out of boundary: `intent st list/show` gate-verdict surfacing, close-gate override policy, `ac`/`at` help-text (revisit if needed). Owner directed default-on stamping: adding the template to the doc-set dir is the whole mechanism, so AC-01.2 (default-off) and AC-02.2 (prove-before-flip gate) are removed as void. Per the five-step the verifier witnesses each RED before production code. Bootstrap: AT states are tracked by hand in this file until WP-03 builds `intent at`. WP-01 GREEN (2026-06-13).
+> STATUS: RATIFIED (matts, verifier, 2026-06-13) -- boundary = the 8-WP set below. Candidate ACs raised and held out of boundary: `intent st list/show` gate-verdict surfacing, close-gate override policy, `ac`/`at` help-text (revisit if needed). Owner directed default-on stamping: adding the template to the doc-set dir is the whole mechanism, so AC-01.2 (default-off) and AC-02.2 (prove-before-flip gate) are removed as void. Per the five-step the verifier witnesses each RED before production code. Bootstrap: AT states are tracked by hand in this file until WP-03 builds `intent at`. WP-01 GREEN (2026-06-13). AC-05.2 added to the WP-05 boundary, ratified by matts 2026-06-14 (`st show` learns the `acceptance` type; `st edit` reworked to emit the file's absolute path -- global, pure, replacing the editor launch).
 
 ## Acceptance Criteria
 
@@ -45,9 +45,10 @@ title: "Add in acceptance.md and supporting process -- acceptance contract"
 
 - AC-04.1 `intent st done` / `intent wp done` refuse to close while any AC is unsatisfied (no green AT and no non-test evidence) or sign-off is unrecorded; the verdict is computed, never read from a hand-ticked box.
 
-### WP-05 -- Template references (Highlander)
+### WP-05 -- Template references + show/edit (Highlander)
 
 - AC-05.1 The `info.md` and `WP/info.md` templates reference `acceptance.md` and contain no restated ACs.
+- AC-05.2 `intent st show <id> acceptance` displays `acceptance.md` and `intent st show <id> all` includes it in the doc-set; `intent st edit <id> <type>` (incl. `acceptance`) prints the file's absolute path instead of launching an editor.
 
 ### WP-06 -- Skill / process integration
 
@@ -95,8 +96,9 @@ title: "Add in acceptance.md and supporting process -- acceptance contract"
 
 ### WP-05
 
-- AT-05.1 `tests/unit/st_new_acceptance.bats::info templates reference acceptance.md and restate no ACs` -- covers AC-05.1 -- status: to-write (red-first)
-- Coverage: AC-05.1 covered.
+- AT-05.1 `tests/unit/st_new_acceptance.bats::info templates reference acceptance.md and restate no ACs` -- covers AC-05.1 -- status: green
+- AT-05.2 `tests/unit/st_new_acceptance.bats::st show and edit know the acceptance file type` -- covers AC-05.2 -- status: green
+- Coverage: AC-05.1 by AT-05.1; AC-05.2 by AT-05.2. Lap: ATs written + red witnessed by matts 2026-06-14 (2/2 fail) -> green build (ST + WP `info.md` templates point at `acceptance.md` and restate no ACs; `st show` / `st edit` / `st show all` learn the `acceptance` type; `st edit` reworked to pure emit-path, global, dropping the editor launch); 2/2 green, AT states set via the `intent at` CLI.
 
 ### WP-06
 

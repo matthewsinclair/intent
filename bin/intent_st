@@ -24,15 +24,16 @@ usage() {
   echo "  sync [--write] [--width N]        Synchronize steel_threads.md with individual ST files"
   echo "  organize [--write]                Organize ST files in directories by status"
   echo "  show <id> [file]                  Show details of a specific steel thread"
-  echo "  edit <id> [file]                  Open a steel thread in your default editor"
+  echo "  edit <id> [file]                  Print the absolute path to a steel thread file"
   echo "  repair [id] [--write]             Repair malformed steel thread metadata"
   echo ""
   echo "File options for show/edit commands:"
-  echo "  info    - Main information file (default)"
-  echo "  design  - Design decisions and approach"
-  echo "  impl    - Implementation details"
-  echo "  tasks   - Task tracking"
-  echo "  all     - Show all files combined (show only)"
+  echo "  info        - Main information file (default)"
+  echo "  design      - Design decisions and approach"
+  echo "  impl        - Implementation details"
+  echo "  tasks       - Task tracking"
+  echo "  acceptance  - Acceptance criteria and tests"
+  echo "  all         - Show all files combined (show only)"
   echo ""
   echo ""
   echo "Status options for list command:"
@@ -1202,7 +1203,7 @@ TEMPLATE
         fi
         
         # Display each file with a header
-        for file in info.md design.md impl.md tasks.md; do
+        for file in info.md design.md impl.md tasks.md acceptance.md; do
           if [ -f "$ST_DIR/$file" ]; then
             echo "-- $file"
             cat "$ST_DIR/$file"
@@ -1212,7 +1213,7 @@ TEMPLATE
       else
         # Show specific file
         case "$FILE_TYPE" in
-          info|design|impl|tasks)
+          info|design|impl|tasks|acceptance)
             ST_FILE=$(get_st_path "$ST_ID" "" "$FILE_TYPE.md")
             ;;
           *)
@@ -1252,7 +1253,7 @@ TEMPLATE
     if is_directory_structure; then
       # Edit specific file
       case "$FILE_TYPE" in
-        info|design|impl|tasks)
+        info|design|impl|tasks|acceptance)
           ST_FILE=$(get_st_path "$ST_ID" "" "$FILE_TYPE.md")
           ;;
         *)
@@ -1260,15 +1261,10 @@ TEMPLATE
           ;;
       esac
       
-      if [ ! -f "$ST_FILE" ]; then
-        # Create the file if it doesn't exist
-        ST_DIR=$(dirname "$ST_FILE")
-        if [ -d "$ST_DIR" ]; then
-          touch "$ST_FILE"
-          echo "created: $FILE_TYPE.md"
-        else
-          error "Steel thread not found: $ST_ID"
-        fi
+      # Pure emit-path: the thread directory must exist, but the file itself
+      # need not -- your editor creates it on save. No touch, no editor.
+      if [ ! -d "$(dirname "$ST_FILE")" ]; then
+        error "Steel thread not found: $ST_ID"
       fi
     else
       # Legacy: Edit single file
@@ -1282,27 +1278,9 @@ TEMPLATE
     # Get absolute path to the file
     ABSOLUTE_PATH=$(cd "$(dirname "$ST_FILE")" && pwd)/$(basename "$ST_FILE")
     
-    # Use the appropriate open command based on the OS
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-      # macOS
-      open "$ABSOLUTE_PATH"
-    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-      # Linux
-      if command -v xdg-open > /dev/null; then
-        xdg-open "$ABSOLUTE_PATH"
-      else
-        # Fallback to default editor
-        ${EDITOR:-vi} "$ABSOLUTE_PATH"
-      fi
-    elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
-      # Windows
-      start "$ABSOLUTE_PATH"
-    else
-      # Fallback to default editor
-      ${EDITOR:-vi} "$ABSOLUTE_PATH"
-    fi
-    
-    echo "Opening steel thread: $ST_ID ($FILE_TYPE.md)"
+    # Pure emit-path: print the file's absolute path (composable, editor-
+    # agnostic). Compose with your editor: $EDITOR "$(intent st edit ST.. acceptance)"
+    echo "$ABSOLUTE_PATH"
     ;;
     
   "sync")

@@ -3,33 +3,28 @@
 ## First actions after `/compact` or new session
 
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the UserPromptSubmit gate. (Languages: shell only; no whiteboard in this project.)
-2. **Verify the tree.** v2.11.12 is the shipped baseline. Commit `fa90bb2` (on `main`) landed ST0044 WP-01/02/03/08 + the `normalise_st_id` fix. On top sits **uncommitted** WP-04 (the close-gate, GREEN -- ready to commit) + the three resume docs. Dirty tree is expected.
+2. **Verify the tree.** v2.11.12 is the shipped baseline. ST0044 commits on `main`: `fa90bb2` (WP-01/02/03/08 + `normalise_st_id` fix), `95a3507` (WP-04 close-gate), `fc4f75a` (AC-08.1 satisfied). On top sits **uncommitted** WP-05 + the three resume docs. Dirty tree is expected.
 3. **Read `intent/st/ST0044/acceptance.md`** -- the live AC/AT tracker -- plus `design.md` / `tasks.md`.
 
-## Committed (fa90bb2, main)
+## Committed (main)
 
-ST0044 WP-01/02/03/08 + the normaliser fix:
+- `fa90bb2` -- WP-01/02/03/08 + the normaliser fix. `acceptance.md` is a default doc-set file (template stamped via the `*.md` glob). `intent ac` / `intent at` in `bin/intent_acceptance`: `ac list/status/satisfy/gate`, `at list/red/green/na`, `done`/`notdone` aliases; `green` only from `red`; model-A grammar (non-test ACs carry inline `-- evidence: <ref> -- satisfied: yes|no`; test-backed ACs computed from a green covering AT). Dispatch in `bin/intent` (ac/at noun re-inject). `normalise_st_id` (helpers:286) made octal-safe (`10#`) + ST-prefixed-short branch.
+- `95a3507` -- WP-04 close-gate. `intent ac gate <stid>[/NN]` is the single authority; `st done` (whole thread) and `wp done` (NN group) consult it before mutating and refuse on a BLOCKED contract. Opt-in / legacy-safe (no thread dir / no acceptance.md / no in-scope ACs -> exit 0). Template re-indents its example AC/AT lines so freshly stamped STs are not self-gated.
+- `fc4f75a` -- AC-08.1 satisfied (WP-08 MODULES.md registration evidence) via `intent ac satisfy`.
 
-- `acceptance.md` is a default steel-thread doc (template stamped via the doc-set `*.md` glob). `intent ac` / `intent at` instrumentation in `bin/intent_acceptance`: `ac list/status/satisfy`, `at list/red/green/na`, `done`/`notdone` aliases; `green` only from `red`; model-A grammar (non-test ACs carry inline `-- evidence: <ref> -- satisfied: yes|no`; test-backed ACs computed from a green covering AT). Dispatch in `bin/intent` (ac/at with `set -- "$COMMAND" "$@"` noun re-inject).
-- Highlander fix: `intent at` now routes the st-id through `normalise_st_id` (helpers:286), which was made octal-safe (`10#` -- `0044` was silently resolving to ST0036 under /bin/bash) and given an ST-prefixed-short branch (`ST44` -> `ST0044`). `tests/unit/helpers.bats` guards it under /bin/bash.
-- Tests committed: `intent_acceptance_cli.bats` (7), `helpers.bats` (4); regressions green (st_commands 53, wp_commands 29).
+## WP-05 -- template references + show/edit -- GREEN (uncommitted)
 
-## WP-04 close-gate -- GREEN (uncommitted)
+1. **Templates** -- the ST `info.md` (`lib/templates/prj/st/ST####/info.md`, new `## Acceptance` section) and the WP `info.md` (`lib/templates/prj/st/WP/info.md`, the `## Acceptance Criteria` / `- [ ]` block replaced) now point at `acceptance.md` and restate no ACs (Highlander -- one AC home).
+2. **show/edit** (`bin/intent_st`) -- `acceptance` added to the `show` specific-file case, the `show all` loop, and the `edit` case. `st edit <id> <type>` reworked to **pure emit-path**: validate the type, print the file's absolute path (composable, editor-agnostic), no touch, no `open`/`$EDITOR`. This is global (all file types), per matts -- the old macOS `open` launch is why `st edit` had no tests.
 
-`intent st done` / `intent wp done` now refuse to close while the in-scope acceptance contract is BLOCKED. Built and verified this session:
+`tests/unit/st_new_acceptance.bats` 2/2 (AT-05.1 templates, AT-05.2 show/edit); regressions green (st_commands 53, wp_commands 29, acceptance_close_gate 4, intent_acceptance_cli 7, helpers 4). WP-05 ATs flipped green via `intent at` (dogfood); tasks.md WP-05 `[x]`. Dogfood on the thread itself: `ac status ST0044` = 12/16 BLOCKED (open: AC-00.1 sign-off, AC-06.1, AC-07.1, AC-07.2 -- correct). Ready to commit (ask matts first).
 
-1. **`intent ac gate <stid>[/NN]`** in `bin/intent_acceptance` -- the single authority. Exit 0 when there is no thread dir, no acceptance.md, or zero in-scope ACs (opt-in / legacy-safe), or when every in-scope AC is satisfied; else print `gate: <scope> BLOCKED -- N/M satisfied; unsatisfied: AC-...` and exit 1. Reuses `split_target` / `in_wp_filter` / `ac_is_satisfied`.
-2. **Wiring**: `st done` (`bin/intent_st`, after the info.md existence check) calls `ac gate "$ST_ID"`; `wp done` (`bin/intent_wp`, after the WP_FILE check) calls `ac gate "$ST_ID/$WP_NUM"`. On non-zero they `error` (refuse). `INTENT_HOME` is exported by `bin/intent`, so the sibling call resolves.
-3. **Template fix**: `lib/templates/prj/st/ST####/acceptance.md` re-indents its example AC/AT lines (4-space) under bracketed guidance, so freshly stamped STs carry no live col-0 `- AC-`/`- AT-` lines and stay un-gated.
+Contract note: AC-05.2 was ratified mid-build (matts) and then refined from "opens/creates" to **pure emit-path**; STATUS note + AC-05.2 wording in `acceptance.md` record it.
 
-`tests/unit/acceptance_close_gate.bats` 4/4; regressions green (st_commands 53, wp_commands 29, intent_acceptance_cli 7, helpers 4). WP-04 ATs flipped green via the `intent at` CLI (dogfood); tasks.md WP-04 `[x]`. The gate dogfoods on the thread itself: `ac gate ST0044` = 9/15 BLOCKED (AC-00.1, AC-05.1, AC-06.1, AC-07.1, AC-07.2, AC-08.1 open -- correct, ST0044 is not done). Ready to commit (ask matts first).
+## Next: WP-06
 
-Note: AC-08.1 (WP-08 MODULES.md reg, non-test) is committed-done but still reads `satisfied: no` -- a real dogfood gap. Satisfy it truthfully via `intent ac satisfy ST0044 AC-08.1 --evidence "<ref>"` when convenient (left to matts as the non-test owner).
-
-## Next: WP-05
-
-Template references + show/edit. `info.md` and `WP/info.md` templates reference `acceptance.md` and restate no ACs (Highlander); extend `st show` / `st edit` to know the `acceptance` file type (they currently hardcode `info|design|impl|tasks`). Then WP-06 (map the five-step onto the skill set + docs), WP-07 (dogfood, ongoing), then ST0044 self-close (satisfy AC-00.1 with matts sign-off -> the gate lets `intent st done ST0044` through). Then **ST0043** (rethink `intent upgrade`, v2.12.0; ACs drafted in `intent/st/ST0043/acceptance.md`).
+Skill / process integration. Map the five-step (verifier ratifies ACs -> builder writes red-first ATs -> verifier witnesses RED -> builder builds to green) onto the skill set + docs, and describe the open-gate and close-gate where a builder meets them. AC-06.1 is non-test (evidence = doc + skill refs); candidate skills/docs: `/in-plan`, `/in-verify`, `/in-review`, `/in-finish`, `intent/docs/working-with-llms.md`. Then WP-07 (dogfood, ongoing) and ST0044 self-close (satisfy AC-00.1 with matts sign-off -> the gate lets `intent st done ST0044` through). Then **ST0043** (rethink `intent upgrade`, v2.12.0; ACs drafted in `intent/st/ST0043/acceptance.md`).
 
 ## Conventions
 
-T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics (no test counts in release notes / CHANGELOG / wip). Fail-forward. Commit to `main` (repo convention) only when matts asks. User runs the full suite externally -- single-file bats runs are fine. matts is the acceptance verifier this session. An AT's cited `path::name` must match the real `@test` name -- reconcile on drift. The `intent at` status-set wipes any trailing note (status token must stay first), so record the red-witness lap on the WP Coverage line, not the AT line.
+T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics (no test counts in release notes / CHANGELOG / wip). Fail-forward. Commit to `main` (repo convention) only when matts asks. User runs the full suite externally -- single-file bats runs are fine. matts is the acceptance verifier this session (ratifies ACs, witnesses RED). An AT's cited `path::name` must match the real `@test` name -- reconcile on drift. The `intent at` status-set wipes any trailing note (status token must stay first), so record the red-witness lap on the WP Coverage line, not the AT line.

@@ -17,6 +17,10 @@ completed:
 
 [Background information and context for this steel thread, including why it's needed and how it fits into the larger project]
 
+## Acceptance
+
+Acceptance Criteria and Acceptance Tests for this steel thread live in `acceptance.md` (the single source of truth). Do not restate ACs here -- see that file for the ratified completeness boundary and live status.
+
 ## Related Steel Threads
 
 - [List any related steel threads here]

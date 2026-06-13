@@ -16,10 +16,9 @@ status: Not Started
 
 - [List of concrete deliverables]
 
-## Acceptance Criteria
+## Acceptance
 
-- [ ] Criterion 1
-- [ ] Criterion 2
+Acceptance Criteria for this work package live in the steel thread's `acceptance.md`, under the `WP-NN` heading (single source of truth). Do not restate ACs here.
 
 ## Dependencies
 
