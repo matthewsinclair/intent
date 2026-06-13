@@ -285,8 +285,13 @@ export -f require_project_root
 # Normalise a steel thread ID (bare number or partial -> ST####)
 normalise_st_id() {
   local id="$1"
+  # 10# forces base-10 so a leading-zero id (eg 0044) is not read as octal by
+  # printf %d under /bin/bash 3.2 (0044 -> 36 -> ST0036, the wrong thread).
   if [[ "$id" =~ ^[0-9]+$ ]]; then
-    printf "ST%04d" "$id"
+    printf "ST%04d" "$((10#$id))"
+  elif [[ "$id" =~ ^ST[0-9]+$ ]]; then
+    # ST-prefixed short id (eg ST44) canonicalises to the padded form.
+    printf "ST%04d" "$((10#${id#ST}))"
   elif [[ ! "$id" =~ ^ST ]]; then
     echo "ST$id"
   else

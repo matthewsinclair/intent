@@ -1118,3 +1118,37 @@ EOF
   assert_output_contains "Legacy steel thread template not found"
   refute_output_contains "created:"
 }
+
+# ====================================================================
+# ST0044 WP-01: acceptance.md is part of the default doc-set
+# The template lives in lib/templates/prj/st/ST####/; the existing *.md
+# stamping glob (bin/intent_st) includes it in every new ST. Default on.
+# ====================================================================
+
+@test "st new stamps acceptance.md into the doc-set" {
+  # ST0044 AT-01.1 -- covers AC-01.1 (acceptance.md is stamped for every new ST).
+  project_dir=$(create_test_project "ST0044 Acceptance Stamp Test")
+  cd "$project_dir"
+  export EDITOR=echo
+
+  run run_intent st new "Acceptance Doc Thread"
+  assert_success
+  assert_file_exists "intent/st/NOT-STARTED/ST0001/info.md"
+  assert_file_exists "intent/st/NOT-STARTED/ST0001/acceptance.md"
+}
+
+@test "st new stamps acceptance.md content from the template file" {
+  # ST0044 AT-01.2 -- covers AC-01.2 (template-sourced; placeholders substituted).
+  project_dir=$(create_test_project "ST0044 Acceptance Template Test")
+  cd "$project_dir"
+  export EDITOR=echo
+
+  run run_intent st new "Template Sourced Thread"
+  assert_success
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/acceptance.md" "Acceptance Criteria"
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/acceptance.md" "Acceptance Tests"
+  # Placeholders substituted: the ST id is stamped and no raw ST#### survives.
+  assert_file_contains "intent/st/NOT-STARTED/ST0001/acceptance.md" "ST0001"
+  run grep -q "ST####" "intent/st/NOT-STARTED/ST0001/acceptance.md"
+  assert_failure
+}

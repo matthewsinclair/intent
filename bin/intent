@@ -120,6 +120,18 @@ case "$COMMAND" in
     COMMAND="wp"
     COMMAND_SCRIPT="intent_wp"
     ;;
+  ac)
+    COMMAND="ac"
+    COMMAND_SCRIPT="intent_acceptance"
+    # Re-inject the noun so the shared module sees `ac` as $1.
+    set -- "$COMMAND" "$@"
+    ;;
+  at)
+    COMMAND="at"
+    COMMAND_SCRIPT="intent_acceptance"
+    # Re-inject the noun so the shared module sees `at` as $1.
+    set -- "$COMMAND" "$@"
+    ;;
   learn)
     COMMAND="learn"
     COMMAND_SCRIPT="intent_learn"

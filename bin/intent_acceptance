@@ -1,0 +1,254 @@
+#!/bin/bash
+# intent_acceptance - AC/AT instrumentation over acceptance.md (ST0044 WP-03).
+#
+# Serves the `ac` and `at` nouns (re-injected as $1 by bin/intent dispatch).
+# acceptance.md is the single source of truth: this module reads and writes
+# ONLY that file, editing status in place (linter-stable -- one line changes).
+#
+# Grammar (model A):
+#   - AC-<gg>.<n> [(non-test)] <prose>[ -- evidence: <ref> -- satisfied: yes|no]
+#   - AT-<gg>.<n> `<path>::<name>` -- covers <ac>[, <ac>...] -- status: <state>[ (note)]
+# <state>: to-write | red | green | n/a. `green` is reachable only from `red`.
+# A non-test AC is satisfied by its inline `satisfied: yes`; a test-backed AC
+# is satisfied (computed) iff a covering AT is green. No `set -e`: the parser
+# helpers return 0/1 as booleans; every real failure routes through error().
+
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
+
+usage() {
+  echo "Usage: intent ac <command> <stid> [args]   |   intent at <command> <stid> <atid>"
+  echo ""
+  echo "ac commands:"
+  echo "  list <stid>[/NN]                           List ACs + covering AT + satisfied state"
+  echo "  status <stid>                              Report N/M satisfied + verdict (PASS/BLOCKED)"
+  echo "  satisfy <stid> <acid> --evidence \"<ref>\"    Satisfy a non-test AC by named evidence"
+  echo ""
+  echo "at commands:"
+  echo "  list <stid>[/NN]                           List ATs (id, path::name, status)"
+  echo "  red|green|na <stid> <atid>                 Set AT status (green reachable only from red)"
+  echo "  done|notdone <stid> <atid>                 Aliases for green | red"
+  exit 1
+}
+
+# ---- field extraction (one AC/AT line in, one token out) ----------------
+
+line_id()       { echo "$1" | sed -E 's/^- ([A-Z]+-[0-9]+\.[0-9]+).*/\1/'; }
+id_group()      { echo "$1" | sed -E 's/^[A-Z]+-([0-9]+)\..*/\1/'; }
+at_pathname()   { echo "$1" | sed -E 's/^[^`]*`([^`]*)`.*/\1/'; }
+at_status()     { echo "$1" | sed -E 's/.* -- status: ([a-z/-]+).*/\1/'; }
+at_covers()     { echo "$1" | sed -E 's/.* -- covers (.*) -- status:.*/\1/' | tr ',' ' '; }
+ac_flag()       { echo "$1" | sed -E 's/.* -- satisfied: ([a-z]+).*/\1/'; }
+ac_is_nontest() { case "$1" in *"(non-test)"*) return 0 ;; *) return 1 ;; esac; }
+
+# ---- whole-file selectors ------------------------------------------------
+
+ac_lines() { grep -E '^- AC-[0-9]+\.[0-9]+ ' "$1" 2>/dev/null || true; }
+at_lines() { grep -E '^- AT-[0-9]+\.[0-9]+ ' "$1" 2>/dev/null || true; }
+
+# Single AC/AT line for an exact id (dots escaped), or empty.
+find_line() {
+  local esc
+  esc="$(echo "$1" | sed 's/\./\\./g')"
+  grep -E "^- ${esc} " "$2" 2>/dev/null | head -n1
+}
+
+# ---- resolution + targets ------------------------------------------------
+
+acc_path() {
+  local id dir
+  id="$(normalise_st_id "$1")"
+  dir="$(resolve_st_dir "$id")" || error "no such steel thread: $id"
+  local acc="$dir/acceptance.md"
+  [ -f "$acc" ] || error "no acceptance.md for $id (looked in $dir)"
+  echo "$acc"
+}
+
+# "ST0044/03" -> STID + WPFILTER globals.
+split_target() {
+  case "$1" in
+    */*) STID="${1%%/*}"; WPFILTER="${1#*/}" ;;
+    *)   STID="$1"; WPFILTER="" ;;
+  esac
+}
+
+in_wp_filter() {
+  [ -z "$WPFILTER" ] && return 0
+  [ "$((10#$(id_group "$1")))" -eq "$((10#$WPFILTER))" ]
+}
+
+# ---- coverage + satisfaction --------------------------------------------
+
+# Space-prefixed list of AT ids that cover the given AC id.
+ac_covering_ats() {
+  local id="$1" acc="$2" line out=""
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    case " $(at_covers "$line") " in
+      *" $id "*) out="$out $(line_id "$line")" ;;
+    esac
+  done <<EOF
+$(at_lines "$acc")
+EOF
+  echo "$out"
+}
+
+# True if the AC (line) is satisfied: non-test -> inline flag; else a green AT.
+ac_is_satisfied() {
+  local line="$1" acc="$2" id atline
+  if ac_is_nontest "$line"; then
+    [ "$(ac_flag "$line")" = "yes" ]
+    return
+  fi
+  id="$(line_id "$line")"
+  while IFS= read -r atline; do
+    [ -z "$atline" ] && continue
+    case " $(at_covers "$atline") " in
+      *" $id "*)
+        [ "$(at_status "$atline")" = "green" ] && return 0
+        ;;
+    esac
+  done <<EOF
+$(at_lines "$acc")
+EOF
+  return 1
+}
+
+# ---- in-place edit (linter-stable: rewrites only the matched line) -------
+
+replace_line() {
+  local f="$1" expr="$2" tmp
+  tmp="$(mktemp "${TMPDIR:-/tmp}/intent_acc.XXXXXX")" || error "cannot create temp file"
+  if sed -E "$expr" "$f" > "$tmp"; then
+    cat "$tmp" > "$f"
+    rm -f "$tmp"
+  else
+    rm -f "$tmp"
+    error "in-place edit failed for $f"
+  fi
+}
+
+# ---- commands ------------------------------------------------------------
+
+cmd_ac_list() {
+  [ -n "$1" ] || usage
+  split_target "$1"
+  local acc line id ats sat
+  acc="$(acc_path "$STID")" || exit 1
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    id="$(line_id "$line")"
+    in_wp_filter "$id" || continue
+    ats="$(ac_covering_ats "$id" "$acc")"
+    [ -z "$ats" ] && ats=" -"
+    if ac_is_satisfied "$line" "$acc"; then sat="yes"; else sat="no"; fi
+    printf 'ac: %s  covered-by:%s  satisfied: %s\n' "$id" "$ats" "$sat"
+  done <<EOF
+$(ac_lines "$acc")
+EOF
+}
+
+cmd_ac_status() {
+  [ -n "$1" ] || usage
+  split_target "$1"
+  local acc line total=0 sat=0 verdict="BLOCKED"
+  acc="$(acc_path "$STID")" || exit 1
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    in_wp_filter "$(line_id "$line")" || continue
+    total=$((total + 1))
+    if ac_is_satisfied "$line" "$acc"; then sat=$((sat + 1)); fi
+  done <<EOF
+$(ac_lines "$acc")
+EOF
+  [ "$total" -gt 0 ] && [ "$sat" -eq "$total" ] && verdict="PASS"
+  echo "ac: $sat/$total satisfied -- $verdict"
+}
+
+cmd_ac_satisfy() {
+  local stid="$1" acid="$2"
+  shift 2 2>/dev/null || usage
+  local ref=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --evidence)   ref="$2"; shift 2 ;;
+      --evidence=*) ref="${1#--evidence=}"; shift ;;
+      *)            shift ;;
+    esac
+  done
+  [ -n "$stid" ] && [ -n "$acid" ] || usage
+  local acc line
+  acc="$(acc_path "$stid")" || exit 1
+  line="$(find_line "$acid" "$acc")"
+  [ -n "$line" ] || error "no such AC: $acid in $acc"
+  ac_is_nontest "$line" || error "$acid is test-backed; satisfaction is computed from a green covering AT, cannot be hand-satisfied"
+  [ -n "$ref" ] || error "ac satisfy requires --evidence \"<ref>\""
+  local esc ref_esc
+  esc="$(echo "$acid" | sed 's/\./\\./g')"
+  ref_esc="$(printf '%s' "$ref" | sed -e 's/[&|\\]/\\&/g')"
+  replace_line "$acc" "s|^(- ${esc} .*) -- evidence:.*|\1 -- evidence: ${ref_esc} -- satisfied: yes|"
+  echo "ok: $acid satisfied by evidence"
+}
+
+cmd_at_list() {
+  [ -n "$1" ] || usage
+  split_target "$1"
+  local acc line id
+  acc="$(acc_path "$STID")" || exit 1
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    id="$(line_id "$line")"
+    in_wp_filter "$id" || continue
+    printf 'at: %s  %s  %s\n' "$id" "$(at_pathname "$line")" "$(at_status "$line")"
+  done <<EOF
+$(at_lines "$acc")
+EOF
+}
+
+cmd_at_set() {
+  local target="$1" stid="$2" atid="$3"
+  [ "$target" = "na" ] && target="n/a"
+  [ -n "$stid" ] && [ -n "$atid" ] || usage
+  local acc line cur esc
+  acc="$(acc_path "$stid")" || exit 1
+  line="$(find_line "$atid" "$acc")"
+  [ -n "$line" ] || error "no such AT: $atid in $acc"
+  cur="$(at_status "$line")"
+  if [ "$target" = "green" ] && [ "$cur" != "red" ]; then
+    error "at green: $atid is '$cur'; green is reachable only from red (run 'intent at red $stid $atid' first)"
+  fi
+  esc="$(echo "$atid" | sed 's/\./\\./g')"
+  replace_line "$acc" "s|^(- ${esc} .*) -- status:.*|\1 -- status: ${target}|"
+  echo "ok: $atid -> $target"
+}
+
+# ---- dispatch ------------------------------------------------------------
+
+NOUN="$1"
+shift 2>/dev/null || usage
+[ $# -ge 1 ] || usage
+VERB="$1"
+shift
+
+case "$NOUN" in
+  ac)
+    case "$VERB" in
+      list)    cmd_ac_list "$@" ;;
+      status)  cmd_ac_status "$@" ;;
+      satisfy) cmd_ac_satisfy "$@" ;;
+      *)       error "unknown ac command: $VERB (try: list, status, satisfy)" ;;
+    esac
+    ;;
+  at)
+    case "$VERB" in
+      list)         cmd_at_list "$@" ;;
+      red|green|na) cmd_at_set "$VERB" "$@" ;;
+      done)         cmd_at_set green "$@" ;;
+      notdone)      cmd_at_set red "$@" ;;
+      *)            error "unknown at command: $VERB (try: list, red, green, na, done, notdone)" ;;
+    esac
+    ;;
+  *)
+    usage
+    ;;
+esac
