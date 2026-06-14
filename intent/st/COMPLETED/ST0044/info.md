@@ -1,10 +1,10 @@
 ---
 verblock: "13 Jun 2026:v0.1: matts - Initial version"
 intent_version: 2.11.12
-status: WIP
+status: Completed
 slug: add-in-acceptance-md-and-supporting-process
 created: 20260613
-completed:
+completed: 20260614
 ---
 
 # ST0044: Add in acceptance.md and supporting process

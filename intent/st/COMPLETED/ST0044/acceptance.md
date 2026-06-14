@@ -22,7 +22,7 @@ title: "Add in acceptance.md and supporting process -- acceptance contract"
 
 ### ST-level
 
-- AC-00.1 (non-test) ST0044 is done when: `acceptance.md` is stamped into every new ST by default; the `intent ac` / `intent at` instrumentation and the close-gate are green; and ST0044's own build has been carried through the five-step with an independent verifier (matts) -- evidence: every AT below green + matts sign-off -- satisfied: no
+- AC-00.1 (non-test) ST0044 is done when: `acceptance.md` is stamped into every new ST by default; the `intent ac` / `intent at` instrumentation and the close-gate are green; and ST0044's own build has been carried through the five-step with an independent verifier (matts) -- evidence: acceptance.md stamped by default; intent ac/at + close-gate green; ST0044's own build carried through the five-step with matts as verifier; every AT green + matts ST-level sign-off 2026-06-14 -- satisfied: yes
 
 ### WP-01 -- acceptance.md in the default doc-set
 
@@ -57,7 +57,7 @@ title: "Add in acceptance.md and supporting process -- acceptance contract"
 ### WP-07 -- Dogfood
 
 - AC-07.1 ST0043 and ST0044 each carry an `acceptance.md`.
-- AC-07.2 (non-test) ST0044's own build is run through the five-step with an independent verifier (matts) for at least one WP -- evidence: this file's AT states + matts sign-off -- satisfied: no
+- AC-07.2 (non-test) ST0044's own build is run through the five-step with an independent verifier (matts) for at least one WP -- evidence: ST0044 built through the five-step with matts as verifier: ACs ratified open-gate (STATUS block) before code; matts witnessed RED on the WP-01/03/04/05 laps before each green build (Coverage lines); close-gate verdict computed by intent ac gate, not hand-ticked -- satisfied: yes
 
 ### WP-08 -- MODULES.md registration
 
@@ -106,8 +106,8 @@ title: "Add in acceptance.md and supporting process -- acceptance contract"
 
 ### WP-07
 
-- AT-07.1 `tests/unit/st_new_acceptance.bats::open STs ST0043 and ST0044 each have an acceptance.md` -- covers AC-07.1 -- status: to-write (red-first)
-- Coverage: AC-07.1 by AT-07.1; AC-07.2 is non-test (evidence on the AC line).
+- AT-07.1 `tests/unit/st_new_acceptance.bats::open STs ST0043 and ST0044 each have an acceptance.md` -- covers AC-07.1 -- status: green
+- Coverage: AC-07.1 by AT-07.1, a green-by-construction guard -- both open STs already carried `acceptance.md`, so there was no honest red phase; like AT-04.4 it asserts a standing invariant (globbed across `st/<ID>/` and `st/*/<ID>/` so it survives `st done` relocating a thread to `COMPLETED/`). The `red -> green` flip via `intent at` was the mechanical step the transition guard demands, not a witnessed RED. AC-07.2 is non-test (evidence on the AC line).
 
 ### WP-08
 

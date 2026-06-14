@@ -1,11 +1,15 @@
 ---
-verblock: "11 Jun 2026:v0.3: matts - v2.11.12 shipped; arc entry closed out"
+verblock: "14 Jun 2026:v0.4: matts - ST0044 completed (pending release); ledger entry added"
 intent_version: 2.11.12
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-06-14 — ST0044 (acceptance.md + AC/AT process) — Completed, pending v2.11.13
+
+- **ST0044 Completed** — `acceptance.md` is now a default (fifth) steel-thread doc plus an Acceptance-Criteria / Acceptance-Test process that makes "done" externally verified. AC = ratified coverage boundary; AT = red-to-green proof (green only from red); test-backed ACs satisfied by computation, non-test ACs by inline evidence + verifier sign-off. `intent ac` / `intent at` instrument the contract (`list` / `status` / `satisfy` / `gate`; `red` / `green` / `na`, `done` / `notdone` aliases); the close-gate `intent ac gate` — consulted by `st done` / `wp done` — refuses to close while any AC is unsatisfied, opt-in / legacy-safe. Templates stamp `acceptance.md` by default; `info.md` / `WP info.md` reference it and restate no ACs (Highlander); `st show` / `st edit` learn the type (`st edit` reworked to pure emit-path). Five-step documented in `working-with-llms.md` D11 with pointers in `/in-plan` / `/in-verify` / `/in-finish`. Dogfooded on itself with matts as verifier — closed through its own gate at 16/16. Detail: `intent/st/COMPLETED/ST0044/`; narrative: `intent/history/v2.11.13.md`. Ships standalone as the v2.11.13 patch (opt-in-by-presence grounds); Releases line added at ship.
 
 ## 2026-06-11 — ST0042 + ST0041 arc (shipped in v2.11.12)
 
