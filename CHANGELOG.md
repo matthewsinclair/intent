@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.13] - in progress
+
+Patch shipping ST0044: `acceptance.md` becomes the fifth default steel-thread document, and with it an Acceptance-Criteria / Acceptance-Test process that makes "done" an externally-verified event rather than a self-asserted checkbox. It ships as a patch on opt-in-by-presence grounds -- the close-gate and the `acceptance.md` contract are inert for any thread that does not adopt them, so behaviour is unchanged for non-adopting projects (the basis on which ST0040's whiteboard also shipped as a patch). The one non-additive change is `intent st edit`, which now prints a path rather than launching an editor. The thread was dogfooded on itself: ST0044's own build ran through the five-step with an independent verifier, and the thread closed through the very gate it introduced.
+
+### Added
+
+- **`acceptance.md` as a default steel-thread document.** `intent st new` stamps it alongside info / design / impl / tasks, via the existing `lib/templates/prj/st/ST####/*.md` glob -- no seam, default on. The template carries the acceptance contract: the AC section (ST-level + per-WP) and the AT section, with example lines indented under guidance so a freshly stamped thread carries no live column-0 entries and cannot self-gate-block. `info.md` and `WP/info.md` reference it and restate no ACs (one home, Highlander); `intent st show` learns the `acceptance` type (named and in `all`).
+
+- **`intent ac` and `intent at` -- the acceptance contract CLI.** An **AC** (Acceptance Criterion) is a ratified completeness boundary; an **AT** (Acceptance Test) is a small red-to-green test that proves a slice of it. `ac list` / `ac status` / `ac satisfy` / `ac gate`; `at list` / `at red` / `at green` / `at na`, with `done` / `notdone` aliasing green / red. The AT state machine is `to-write -> red -> green` (+ `n/a`), and green is reachable only from red -- a test cannot claim proof without first having failed. A test-backed AC is satisfied by computation (iff a covering AT is green), never by hand; a non-test AC carries inline evidence and is signed off by the verifier. The grammar is column-0 and bash-3.2-greppable; all reads and writes target `acceptance.md` alone.
+
+- **The acceptance close-gate.** `intent ac gate <stid>[/NN]` is the single authority on whether a thread or work package may close. `intent st done` and `intent wp done` consult it and refuse on BLOCKED, with the verdict computed from the coverage map rather than read from a hand-ticked box. It is opt-in and legacy-safe: a thread with no directory, no `acceptance.md`, or zero in-scope ACs exits 0, so existing threads close exactly as before.
+
+- **The five-step process, documented.** `intent/docs/working-with-llms.md` D11 is the canon home: the AC / AT axes, the five-step (verifier ratifies ACs -> builder writes red-first ATs -> verifier witnesses RED -> builder builds to green -> repeat), the open-gate and close-gate, and the lifecycle mapping. Light pointers reference it from `/in-plan` (open-gate), `/in-verify` (red-first + witness RED), and `/in-finish` (close-gate), each referencing D11 and none restating it.
+
+### Changed
+
+- **`intent st edit <id> [type]` prints a path instead of launching an editor.** It now validates the file type and echoes the file's absolute path for every doc type (info / design / impl / tasks / acceptance), replacing the macOS `open` / `$EDITOR` launch. This is the one non-additive change in the release: scripting `intent st edit` to open a file must now pipe the path to an editor explicitly.
+
 ## [2.11.12] - 2026-06-11
 
 Patch shipping the full ST0042 arc: a Fable 5 architectural review of the Intent codebase (run as the first deliberate MFIC exercise, ST0041) followed by execution of all nine work packages it produced. Theme: architectural integrity -- Highlander consolidation, no-silent-errors enforcement, canon-vs-reality reconciliation, dead-surface pruning, and a test suite that can actually refute the product. Includes one small addition (`intent st cancel`) and a set of removals (dead dispatchers, the retired `intent audit`).
