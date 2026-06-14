@@ -331,7 +331,7 @@ convert_yaml_frontmatter() {
   local line_num=0
   
   while IFS= read -r line; do
-    ((line_num++))
+    line_num=$((line_num + 1))
     if [ $line_num -eq 1 ] && [ "$line" = "---" ]; then
       in_frontmatter=true
     elif [ "$in_frontmatter" = true ] && [ "$line" = "---" ]; then
@@ -633,8 +633,8 @@ count_migration_files() {
   fi
   
   # Add config files
-  [ -f "$project_root/.stp-config" ] && ((count++))
-  [ -f "$project_root/stp/.config/version" ] && ((count++))
+  [ -f "$project_root/.stp-config" ] && count=$((count + 1))
+  [ -f "$project_root/stp/.config/version" ] && count=$((count + 1))
   
   echo $count
 }

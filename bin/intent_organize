@@ -138,11 +138,11 @@ for st_dir in "$INTENT_DIR/st"/ST*/; do
           echo "  moving: $st_name to $status/"
           mv "$st_dir" "$INTENT_DIR/st/$status/"
         fi
-        ((moved_count++))
+        moved_count=$((moved_count + 1))
         ;;
       ACTIVE|UNKNOWN)
         echo "  keeping: $st_name at root (status: $status)"
-        ((kept_count++))
+        kept_count=$((kept_count + 1))
         ;;
     esac
   fi
@@ -176,7 +176,7 @@ for status_dir in "${status_dirs[@]}"; do
               mv "$st_dir" "$INTENT_DIR/st/$actual_status/"
             fi
           fi
-          ((moved_count++))
+          moved_count=$((moved_count + 1))
         fi
       fi
     done
