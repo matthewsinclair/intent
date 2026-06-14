@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.14] - in progress
+
+Patch fixing `intent organize` on Linux. The command tallied moves with `((counter++))` under `set -e`; in bash, `((x++))` returns exit status 1 when `x` is 0 (post-increment yields the old value), and bash 5.x's `set -e` acts on that, aborting the script after the first thread. macOS bash 3.2 is lenient in that loop/case context, so the break stayed invisible behind macOS-green CI from v2.11.12 (when `intent organize` was resurrected) through v2.11.13 -- Ubuntu CI had been red the whole time. The defect class is converted to `x=$((x + 1))` (an assignment always returns 0) and pinned shut by a guard test.
+
+### Fixed
+
+- **`intent organize` no longer exits 1 on Linux** (or any modern-bash host). It had been moving only the first thread and then dying. The three `((moved_count++))` / `((kept_count++))` increments in `bin/intent_organize`, plus three latent same-class sites in `bin/intent_helpers` (the frontmatter parser's `((line_num++))`, which starts at 0 every call, and two `[ -f ] && ((count++))` legacy-config tallies), now use `x=$((x + 1))`. A new guard test (`tests/unit/set_e_increment_guard.bats`) greps `bin/` and `scripts/` for naked `((x++))` / `((x--))` and fails on any hit -- closing the class that macOS-only CI green had masked for four releases.
+
 ## [2.11.13] - 2026-06-14
 
 Patch shipping ST0044: `acceptance.md` becomes the fifth default steel-thread document, and with it an Acceptance-Criteria / Acceptance-Test process that makes "done" an externally-verified event rather than a self-asserted checkbox. It ships as a patch on opt-in-by-presence grounds -- the close-gate and the `acceptance.md` contract are inert for any thread that does not adopt them, so behaviour is unchanged for non-adopting projects (the basis on which ST0040's whiteboard also shipped as a patch). The one non-additive change is `intent st edit`, which now prints a path rather than launching an editor. The thread was dogfooded on itself: ST0044's own build ran through the five-step with an independent verifier, and the thread closed through the very gate it introduced.
