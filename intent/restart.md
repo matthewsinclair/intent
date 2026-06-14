@@ -2,7 +2,7 @@
 
 ## Current state (2026-06-14)
 
-v2.11.12 is the shipped baseline. **ST0044 is COMPLETE** (2026-06-14) -- `acceptance.md` as a default steel-thread doc + the AC/AT process that makes "done" externally verified; dogfooded on itself with matts as verifier and closed through its own close-gate (16/16). Relocated to `intent/st/COMPLETED/ST0044/`; pending release as a standalone patch (**v2.11.13**), on opt-in-by-presence grounds. Terse ledger `intent/done.md`; narrative `intent/history/v2.11.13.md`. **Active next: ST0043** (rethink `intent upgrade`, its own v2.12.0 minor) -- its own session.
+v2.11.13 is the shipped baseline. **ST0044 is COMPLETE + SHIPPED** (2026-06-14) -- `acceptance.md` as a default steel-thread doc + the AC/AT process that makes "done" externally verified; dogfooded on itself with matts as verifier and closed through its own close-gate (16/16). Relocated to `intent/st/COMPLETED/ST0044/` and shipped as a standalone patch (tag `5cc676a`, both remotes + GitHub release) on opt-in-by-presence grounds. Terse ledger `intent/done.md`; narrative `intent/history/v2.11.13.md`. **Active next: ST0043** (rethink `intent upgrade`, its own v2.12.0 minor) -- its own session.
 
 ## ST0044 -- acceptance.md + AC/AT process (COMPLETE)
 

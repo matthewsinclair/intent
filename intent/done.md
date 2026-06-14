@@ -1,15 +1,15 @@
 ---
-verblock: "14 Jun 2026:v0.4: matts - ST0044 completed (pending release); ledger entry added"
-intent_version: 2.11.12
+verblock: "14 Jun 2026:v0.5: matts - ST0044 shipped in v2.11.13; releases line added"
+intent_version: 2.11.13
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
 
-## 2026-06-14 — ST0044 (acceptance.md + AC/AT process) — Completed, pending v2.11.13
+## 2026-06-14 — ST0044 (acceptance.md + AC/AT process) — shipped in v2.11.13
 
-- **ST0044 Completed** — `acceptance.md` is now a default (fifth) steel-thread doc plus an Acceptance-Criteria / Acceptance-Test process that makes "done" externally verified. AC = ratified coverage boundary; AT = red-to-green proof (green only from red); test-backed ACs satisfied by computation, non-test ACs by inline evidence + verifier sign-off. `intent ac` / `intent at` instrument the contract (`list` / `status` / `satisfy` / `gate`; `red` / `green` / `na`, `done` / `notdone` aliases); the close-gate `intent ac gate` — consulted by `st done` / `wp done` — refuses to close while any AC is unsatisfied, opt-in / legacy-safe. Templates stamp `acceptance.md` by default; `info.md` / `WP info.md` reference it and restate no ACs (Highlander); `st show` / `st edit` learn the type (`st edit` reworked to pure emit-path). Five-step documented in `working-with-llms.md` D11 with pointers in `/in-plan` / `/in-verify` / `/in-finish`. Dogfooded on itself with matts as verifier — closed through its own gate at 16/16. Detail: `intent/st/COMPLETED/ST0044/`; narrative: `intent/history/v2.11.13.md`. Ships standalone as the v2.11.13 patch (opt-in-by-presence grounds); Releases line added at ship.
+- **ST0044 Completed** — `acceptance.md` is now a default (fifth) steel-thread doc plus an Acceptance-Criteria / Acceptance-Test process that makes "done" externally verified. AC = ratified coverage boundary; AT = red-to-green proof (green only from red); test-backed ACs satisfied by computation, non-test ACs by inline evidence + verifier sign-off. `intent ac` / `intent at` instrument the contract (`list` / `status` / `satisfy` / `gate`; `red` / `green` / `na`, `done` / `notdone` aliases); the close-gate `intent ac gate` — consulted by `st done` / `wp done` — refuses to close while any AC is unsatisfied, opt-in / legacy-safe. Templates stamp `acceptance.md` by default; `info.md` / `WP info.md` reference it and restate no ACs (Highlander); `st show` / `st edit` learn the type (`st edit` reworked to pure emit-path). Five-step documented in `working-with-llms.md` D11 with pointers in `/in-plan` / `/in-verify` / `/in-finish`. Dogfooded on itself with matts as verifier — closed through its own gate at 16/16. Detail: `intent/st/COMPLETED/ST0044/`; narrative: `intent/history/v2.11.13.md`. Shipped standalone as the v2.11.13 patch (opt-in-by-presence grounds) on 2026-06-14.
 
 ## 2026-06-11 — ST0042 + ST0041 arc (shipped in v2.11.12)
 
@@ -19,6 +19,7 @@ NOTE: This file is the terse DONE ledger, newest first. Older entries roll into 
 
 ## Releases
 
+- **2026-06-14 — v2.11.13**: ST0044 — `acceptance.md` as a default steel-thread doc + the AC/AT acceptance process (`intent ac` / `intent at`, the opt-in close-gate, the five-step) that makes "done" externally verified; `intent st edit` -> emit-path. ([history](history/v2.11.13.md))
 - **2026-06-11 — v2.11.12**: ST0042 Fable 5 review arc (nine WPs: config-eval RCE, Highlander consolidation, rules-path drift guard, silent-success kills, canon docs, prune, vacuous-test rewrites) + ST0041 MFIC harvest; `intent st cancel` added; `intent audit` retired. ([history](history/v2.11.12.md))
 - **2026-06-03 — v2.11.11**: rules-path drift fix in generated guidance + critic subagents; `intent upgrade` re-syncs subagents. ([history](history/v2.11.11.md))
 - **2026-05-28 — v2.11.10**: `/in-whiteboard` Verifier stream role + `handle:` field. ([history](history/v2.11.10.md))
