@@ -1,11 +1,15 @@
 ---
-verblock: "14 Jun 2026:v0.5: matts - ST0044 shipped in v2.11.13; releases line added"
-intent_version: 2.11.13
+verblock: "14 Jun 2026:v0.6: matts - v2.11.14 organize Linux fix shipped; releases line added"
+intent_version: 2.11.14
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-06-14 — v2.11.14 (intent organize Linux fix)
+
+- **`intent organize` fixed on Linux** — `((counter++))` under `set -e` returns exit 1 at zero, and bash 5.x aborts the script (bash 3.2 / macOS is lenient), so `intent organize` exited 1 after the first move on every modern-bash Linux. Hidden behind macOS-green CI from v2.11.12 (organize resurrected) through v2.11.13. The whole `((x++))` class converted to `x=$((x + 1))` (six sites: `bin/intent_organize` ×3, `bin/intent_helpers` ×3) and pinned by `tests/unit/set_e_increment_guard.bats`. Narrative: `intent/history/v2.11.14.md`.
 
 ## 2026-06-14 — ST0044 (acceptance.md + AC/AT process) — shipped in v2.11.13
 
@@ -19,6 +23,7 @@ NOTE: This file is the terse DONE ledger, newest first. Older entries roll into 
 
 ## Releases
 
+- **2026-06-14 — v2.11.14**: `intent organize` fixed on Linux (`((x++))` under `set -e` aborts on bash 5.x); the whole class converted to `x=$((x + 1))` + a guard test. ([history](history/v2.11.14.md))
 - **2026-06-14 — v2.11.13**: ST0044 — `acceptance.md` as a default steel-thread doc + the AC/AT acceptance process (`intent ac` / `intent at`, the opt-in close-gate, the five-step) that makes "done" externally verified; `intent st edit` -> emit-path. ([history](history/v2.11.13.md))
 - **2026-06-11 — v2.11.12**: ST0042 Fable 5 review arc (nine WPs: config-eval RCE, Highlander consolidation, rules-path drift guard, silent-success kills, canon docs, prune, vacuous-test rewrites) + ST0041 MFIC harvest; `intent st cancel` added; `intent audit` retired. ([history](history/v2.11.12.md))
 - **2026-06-03 — v2.11.11**: rules-path drift fix in generated guidance + critic subagents; `intent upgrade` re-syncs subagents. ([history](history/v2.11.11.md))

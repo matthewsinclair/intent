@@ -3,7 +3,7 @@
 ## First actions after `/compact` or new session
 
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the UserPromptSubmit gate. (Languages: shell only; no whiteboard in this project.)
-2. **Verify the tree.** v2.11.13 is the shipped baseline -- **ST0044 shipped** (closed through its own acceptance gate, relocated to `intent/st/COMPLETED/ST0044/`, tag `5cc676a`). The next thread is **ST0043**.
+2. **Verify the tree.** v2.11.14 is the shipped baseline (a Linux `intent organize` fix, tag `60dd82a`) -- **ST0044 shipped** in v2.11.13 (closed through its own acceptance gate, relocated to `intent/st/COMPLETED/ST0044/`, tag `5cc676a`). The next thread is **ST0043**.
 3. **Read `intent/st/ST0043/info.md` + `intent/st/ST0043/acceptance.md`** -- Architecture-B design + the drafted (pending-ratification) ACs for the upgrade rethink.
 
 ## Active: ST0043 -- Rethink `intent upgrade` (targets v2.12.0 minor)
