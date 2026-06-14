@@ -52,7 +52,7 @@ title: "Add in acceptance.md and supporting process -- acceptance contract"
 
 ### WP-06 -- Skill / process integration
 
-- AC-06.1 (non-test) The five-step is documented and mapped onto the skill set; the open-gate and close-gate are described where a builder will meet them -- evidence: doc + skill refs (pending WP-06) -- satisfied: no
+- AC-06.1 (non-test) The five-step is documented and mapped onto the skill set; the open-gate and close-gate are described where a builder will meet them -- evidence: working-with-llms.md D11 + in-plan/in-verify/in-finish pointers -- satisfied: yes
 
 ### WP-07 -- Dogfood
 

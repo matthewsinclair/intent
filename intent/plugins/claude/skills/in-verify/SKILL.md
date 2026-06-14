@@ -46,6 +46,15 @@ A task is done when:
 - Output confirms the change works
 - No new warnings or errors introduced
 
+### 6. Acceptance criteria, when the thread has one
+
+If the steel thread carries an `acceptance.md`, "done" is bound to it:
+
+- Write Acceptance Tests **red-first** and witness them RED before building to green -- a green that never went red proves nothing. `intent at red` / `green` enforce the transition (green is reachable only from red).
+- A test-backed AC is satisfied by a green covering AT; a non-test AC by `intent ac satisfy`. The close-gate computes the verdict -- `intent ac status <id>` (or `intent ac gate`) -- never a hand-ticked box.
+
+See the AC/AT five-step in `working-with-llms.md` (D11).
+
 ## Red Flags
 
 | Rationalization                       | Reality                                               |

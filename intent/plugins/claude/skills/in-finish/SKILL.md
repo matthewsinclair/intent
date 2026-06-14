@@ -21,6 +21,7 @@ For each ST/WP worked on this session:
 - Update `design.md` with as-built status (if design changed)
 - Update `impl.md` with implementation notes (if applicable)
 - Move completed tasks from `tasks.md` to `done.md` if that file exists
+- Closing a thread or WP? `intent st done` / `intent wp done` refuse while its `acceptance.md` contract is BLOCKED (the close-gate). Cover or satisfy the remaining ACs first; the ST-level sign-off AC is the verifier's. See `working-with-llms.md` (D11).
 
 ### 3. Update work-in-progress
 

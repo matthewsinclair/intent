@@ -1,5 +1,5 @@
 ---
-verblock: "14 Jun 2026:v0.83: matts - ST0044 WP-05 GREEN (2/2); uncommitted on top of 95a3507 + fc4f75a, ready to commit"
+verblock: "14 Jun 2026:v0.84: matts - ST0044 WP-06 done (AC-06.1 signed off); uncommitted on top of 0b1b3b5, ready to commit"
 intent_version: 2.11.12
 ---
 
@@ -7,7 +7,7 @@ intent_version: 2.11.12
 
 ## Current State
 
-**2026-06-14 -- ST0044 WP-05 GREEN (uncommitted on top of commits `95a3507` + `fc4f75a`).** ST0044 (acceptance.md as a default steel-thread doc + the AC/AT process that makes "done" externally verified) is the active build, dogfooded on itself with matts as verifier. Committed: `fa90bb2` (WP-01/02/03/08 -- acceptance.md doc-set + the `intent ac` / `intent at` CLI + MODULES reg + the `normalise_st_id` octal/ST-prefix fix); `95a3507` (WP-04 close-gate -- `intent ac gate` consulted by `st done` / `wp done`, opt-in / legacy-safe); `fc4f75a` (AC-08.1 satisfied). **WP-05** (template references + show/edit) is GREEN: the ST and WP `info.md` templates point at `acceptance.md` and restate no ACs (Highlander); `st show` / `st edit` / `st show all` learn the `acceptance` type; and `st edit` is reworked to pure emit-path -- it prints the file's absolute path (global, no editor launch) per matts, which is why it had never been testable. `tests/unit/st_new_acceptance.bats` 2/2; regressions green (st_commands 53, wp_commands 29). WP-05 ATs flipped green via the `intent at` CLI (dogfood); `ac status ST0044` = 12/16 BLOCKED (AC-00.1 sign-off + WP-06/07 still open -- correct, the thread honestly says it is not done). Uncommitted, ready to commit. Resume detail: `.claude/restart.md`. Live AC/AT tracker: `intent/st/ST0044/acceptance.md`.
+**2026-06-14 -- ST0044 WP-06 done (uncommitted on top of commit `0b1b3b5`).** ST0044 (acceptance.md as a default steel-thread doc + the AC/AT process that makes "done" externally verified) is the active build, dogfooded on itself with matts as verifier. Committed: `fa90bb2` (WP-01/02/03/08 + `normalise_st_id` fix); `95a3507` (WP-04 close-gate); `fc4f75a` (AC-08.1); `0b1b3b5` (WP-05 templates + show/edit, `st edit` -> pure emit-path). **WP-06** (skill / process integration) is done: the five-step + open/close gates are documented in `intent/docs/working-with-llms.md` D11 (the canon home), with light pointers threaded into `/in-plan` (open-gate), `/in-verify` (red-first + witness RED) and `/in-finish` (close-gate) -- each referencing D11, none restating it (Highlander). Thread-through chosen over a new `/in-acceptance` skill. AC-06.1 (non-test) satisfied with matts sign-off; installed skills synced (`intent claude skills sync`). `ac status ST0044` = 13/16 BLOCKED -- only AC-00.1 (ST-level sign-off) and WP-07 (AC-07.1 test + AC-07.2 dogfood) remain. Uncommitted, ready to commit. Resume detail: `.claude/restart.md`. Live AC/AT tracker: `intent/st/ST0044/acceptance.md`.
 
 **2026-06-11 — v2.11.12 SHIPPED.** Tag `v2.11.12` (commit `574b015`) on both remotes; GitHub release. Full ST0042 (Fable 5 review) + ST0041 (MFIC harvest). Narrative: `intent/history/v2.11.12.md`; ledger: `intent/done.md`.
 
@@ -15,7 +15,7 @@ Fleet picks up v2.11.12 on each member's next `intent upgrade`. Out of scope: Pp
 
 ## Next Up
 
-**Active: ST0044 WP-06** -- skill / process integration: map the five-step (verifier ratifies ACs -> builder writes red-first ATs -> verifier witnesses RED -> builder builds to green) onto the skill set + docs, and describe the open-gate and close-gate where a builder meets them. AC-06.1 is non-test (evidence = doc + skill refs). Then WP-07 (dogfood, ongoing) and ST0044 self-close (satisfy AC-00.1 with matts sign-off -> the gate lets `st done ST0044` through). WP-04 + WP-05 are GREEN. The standing backlog:
+**Active: ST0044 WP-07 + self-close** -- WP-07 dogfood: write AT-07.1 red-first -> green (both open STs ST0043 + ST0044 carry an `acceptance.md`); AC-07.2 (non-test) records ST0044's own five-step run (this whole arc). Then ST0044 self-close: satisfy AC-00.1 with matts's ST-level sign-off, which finally lets `intent st done ST0044` through the close-gate -- the gate it built closes it. WP-04/05/06 are done. The standing backlog:
 
 1. **ST0043 — Rethink `intent upgrade`** (WIP, after ST0044; targets **v2.12.0 minor**). Architecture-B design + ACs in `intent/st/ST0043/{info,acceptance}.md`.
 2. **Flush done work into the ledger** -- move completed-arc detail out of `wip.md` / `restart.md` / `.claude/restart.md` into `intent/done.md` (terse ledger) + `intent/history/*.md` (verbose narrative) so the WIP docs stay lean. Do it as the ST0044 arc closes -- wip.md / restart.md currently still carry full ST0042 + ST0044 build detail.
@@ -27,7 +27,8 @@ Fleet picks up v2.11.12 on each member's next `intent upgrade`. Out of scope: Pp
 
 ## Recent
 
-- **2026-06-14**: ST0044 WP-05 GREEN (uncommitted) -- ST/WP `info.md` templates reference `acceptance.md` (no restated ACs); `st show` / `st edit` learn the `acceptance` type; `st edit` reworked to pure emit-path (global, no editor). 2/2 + regressions.
+- **2026-06-14**: ST0044 WP-06 done (uncommitted) -- five-step + open/close gates documented in `working-with-llms.md` D11; thread-through pointers in `in-plan` / `in-verify` / `in-finish`; AC-06.1 satisfied (matts); installed skills synced.
+- **2026-06-14**: `0b1b3b5` (main) -- ST0044 WP-05 (templates reference `acceptance.md`; `st show` / `st edit` learn the `acceptance` type; `st edit` -> pure emit-path).
 - **2026-06-14**: `fc4f75a` (main) -- ST0044 AC-08.1 satisfied (WP-08 MODULES.md evidence).
 - **2026-06-14**: `95a3507` (main) -- ST0044 WP-04 acceptance close-gate (`intent ac gate` + `st done` / `wp done` wiring + template re-indent).
 - **2026-06-14**: `fa90bb2` (main) -- ST0044 WP-01/02/03/08 (acceptance.md + `intent ac`/`at`) + `normalise_st_id` octal/ST-prefix fix.

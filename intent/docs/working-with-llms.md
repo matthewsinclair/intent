@@ -10,7 +10,7 @@ The doc is deliberately opinionated: the canon is already decided, and the decis
 
 - Overview
 - The three-file architecture
-- D1–D10 — the canon decisions
+- D1–D11 — the canon decisions
 - Session hook architecture
 - Critic cadence
 - Skills and /in-session auto-load
@@ -189,6 +189,34 @@ ST0035 (and any non-trivial steel thread) uses a "document first, code next" dis
 Why: this locks scope and acceptance criteria before any implementation decision can drift. It gives the reviewer a single review surface (`info.md` + `design.md` + per-WP `info.md` files) rather than a stream of commits that keep moving the target.
 
 This is a _process_ decision, not a _content_ decision — it applies to how Intent develops Intent, and is recommended (not enforced) for downstream projects.
+
+## D11. Acceptance: AC/AT and the five-step
+
+ST0044 makes "done" an externally verified event, not a self-reported claim. Every steel thread carries a fifth default doc, `acceptance.md`, beside `info.md` / `design.md` / `impl.md` / `tasks.md`. It is the single home for the thread's Acceptance Criteria (AC) and Acceptance Tests (AT); `info.md` and each per-WP `info.md` reference it and never restate ACs.
+
+Two axes:
+
+- **AC -- the coverage axis.** The ratified completeness boundary: what must be true for the thread (or a WP) to be done. A test-backed AC is satisfied (computed) when a covering AT is green. A non-test AC (doc / eyeball / gate) carries its state inline on the AC line -- `-- evidence: <ref> -- satisfied: yes|no` -- and is satisfied by hand via `intent ac satisfy`.
+- **AT -- the proof axis.** A small red-to-green test that proves an AC. ATs cite a real `path::name` in the suite and move `to-write -> red -> green` (plus `n/a`). `green` is reachable only from `red`; the CLI refuses a `to-write -> green` jump, which is what enforces red-first.
+
+The **five-step** runs per WP, with one independent verifier and one builder:
+
+1. The verifier writes or ratifies the ACs -- the boundary.
+2. The builder writes the ATs red-first, citing real test names.
+3. The verifier witnesses the ATs RED -- proof the tests test something.
+4. The builder builds to green.
+5. Repeat for the next AC or WP.
+
+Two gates bracket it:
+
+- **Open-gate** -- ACs are ratified before code. This extends D10: Phase 0 locks scope and acceptance first.
+- **Close-gate** -- `intent st done` / `intent wp done` refuse to close while any in-scope AC is unsatisfied. The verdict is computed (`intent ac gate`), never read from a hand-ticked box. It is opt-in and legacy-safe: a thread with no `acceptance.md`, or no live ACs, closes exactly as before.
+
+The CLI in `bin/intent_acceptance` is the single authority: `intent ac list|status|satisfy|gate` and `intent at list|red|green|na` (with `done` / `notdone` aliases). All of it reads and writes `acceptance.md` only.
+
+A builder meets this inside the normal lifecycle skills, which point here rather than restate it: `/in-plan` at the open-gate (ratify ACs before code), `/in-verify` at red-first and the RED witness, and `/in-finish` at the close-gate.
+
+Why: a self-reported "done" drifts. Binding done to a ratified AC set, proven by red-first ATs and enforced by a computed close-gate, makes completion auditable -- and an independent verifier, not the builder, owns the boundary. Like D10 this is a _process_ decision: recommended for downstream projects, dogfooded by ST0044 on itself.
 
 ## Session hook architecture
 

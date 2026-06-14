@@ -16,6 +16,7 @@ ALWAYS create or update steel thread and work package docs BEFORE coding:
 - If no ST exists for this work, create one: `intent st new "Title"`
 - If no WP exists, create one: `intent wp new <STID> "Title"`
 - Write the plan in the ST's `design.md` or WP's `info.md`
+- If the thread has an `acceptance.md`, ratify its Acceptance Criteria first -- the open-gate. The verifier owns the boundary; settle it before writing code. See the AC/AT five-step in `working-with-llms.md` (D11).
 
 ### 2. Show detailed workplan
 
