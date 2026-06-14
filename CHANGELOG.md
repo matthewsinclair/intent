@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.11.13] - in progress
+## [2.11.13] - 2026-06-14
 
 Patch shipping ST0044: `acceptance.md` becomes the fifth default steel-thread document, and with it an Acceptance-Criteria / Acceptance-Test process that makes "done" an externally-verified event rather than a self-asserted checkbox. It ships as a patch on opt-in-by-presence grounds -- the close-gate and the `acceptance.md` contract are inert for any thread that does not adopt them, so behaviour is unchanged for non-adopting projects (the basis on which ST0040's whiteboard also shipped as a patch). The one non-additive change is `intent st edit`, which now prints a path rather than launching an editor. The thread was dogfooded on itself: ST0044's own build ran through the five-step with an independent verifier, and the thread closed through the very gate it introduced.
 
