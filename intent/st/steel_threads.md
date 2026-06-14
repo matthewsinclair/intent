@@ -10,11 +10,9 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 ## Index
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
-
-| ID     | Slug                   | Status | Created    | Completed |
-| ------ | ---------------------- | ------ | ---------- | --------- |
-| ST0043 | rethink-intent-upgrade | WIP    | 2026-06-11 |
-
+ID         | Slug                                                       | Status           | Created    | Completed 
+-----------|------------------------------------------------------------|------------------|------------|-----------
+ST0043     | rethink-intent-upgrade                                     | WIP              | 2026-06-11 |           
 <!-- END: STEEL_THREAD_INDEX -->
 
 ## Steel Thread Status Definitions
