@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.11.14] - in progress
+## [2.11.14] - 2026-06-14
 
 Patch fixing `intent organize` on Linux. The command tallied moves with `((counter++))` under `set -e`; in bash, `((x++))` returns exit status 1 when `x` is 0 (post-increment yields the old value), and bash 5.x's `set -e` acts on that, aborting the script after the first thread. macOS bash 3.2 is lenient in that loop/case context, so the break stayed invisible behind macOS-green CI from v2.11.12 (when `intent organize` was resurrected) through v2.11.13 -- Ubuntu CI had been red the whole time. The defect class is converted to `x=$((x + 1))` (an assignment always returns 0) and pinned shut by a guard test.
 
