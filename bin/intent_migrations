@@ -1,0 +1,209 @@
+#!/bin/bash
+# intent_migrations - upgrade-only ledger steps + relocated migration code.
+#
+# Sourced ONLY by bin/intent_upgrade (ST0043). It is deliberately NOT sourced by
+# bin/intent_helpers, so the ~25 commands that source helpers do not carry any
+# migration code -- only `detect_project_version` (the version reader) stays
+# shared in helpers.
+#
+# Ledger model (Architecture B): each structural step is a trio dispatched by
+# naming convention from the orchestrator's flat LEDGER list:
+#   step_<id>_needs   - state probe; 0 = run this step, 1 = skip (already done)
+#   step_<id>_run     - perform the transform (NEVER writes the version stamp)
+#   step_<id>_verify  - postcondition; 0 = ok, non-zero = failed
+# No step writes intent_version. The orchestrator stamps the target once, last,
+# after every applicable step's postcondition verifies. So an interrupted run,
+# re-run, performs exactly the remaining work (applicability is decided by the
+# on-disk state probe, never the top-level stamp), and no step ever writes a
+# version newer than its own step.
+
+# ===========================================================================
+# step: relocate_config  --  .intent/ -> intent/.config/  (ST0036)
+# ===========================================================================
+
+step_relocate_config_needs() {
+  local root=${1:-.}
+  [ -d "$root/.intent" ] && [ ! -d "$root/intent/.config" ]
+}
+
+step_relocate_config_run() {
+  local root=${1:-.}
+  intent_relocate_dotintent "$root"
+}
+
+step_relocate_config_verify() {
+  local root=${1:-.}
+  [ -f "$root/intent/.config/config.json" ] && [ ! -d "$root/.intent" ]
+}
+
+# ===========================================================================
+# step: languages_field  --  add languages[] to config, back-filled  (ST0037)
+# ===========================================================================
+
+step_languages_field_needs() {
+  local root=${1:-.}
+  local config="$root/intent/.config/config.json"
+  [ -f "$config" ] || return 1
+  command -v jq >/dev/null 2>&1 || return 1
+  ! jq -e 'has("languages")' "$config" >/dev/null 2>&1
+}
+
+# Back-fill languages from existing intent/llm/RULES-<lang>.md presence (or
+# ["shell"] when a pre-commit hook is the only signal). Writes ONLY the
+# languages field -- the orchestrator owns the version stamp.
+step_languages_field_run() {
+  local root=${1:-.}
+  local config="$root/intent/.config/config.json"
+  [ -f "$config" ] || { echo "  warning: $config not found; skipping languages back-fill." >&2; return 0; }
+  command -v jq >/dev/null 2>&1 || { echo "  warning: jq not available; skipping languages back-fill." >&2; return 0; }
+
+  local llm_dir="$root/intent/llm"
+  local langs=()
+  if [ -d "$llm_dir" ]; then
+    local f lang
+    for f in "$llm_dir"/RULES-*.md; do
+      [ -f "$f" ] || continue
+      lang="${f##*/RULES-}"
+      lang="${lang%.md}"
+      langs+=("$lang")
+    done
+  fi
+
+  if [ "${#langs[@]}" -gt 1 ]; then
+    local sorted_langs=()
+    while IFS= read -r lang; do
+      [ -n "$lang" ] && sorted_langs+=("$lang")
+    done < <(printf '%s\n' "${langs[@]}" | sort -u)
+    langs=("${sorted_langs[@]}")
+  fi
+
+  if [ "${#langs[@]}" -eq 0 ] && [ -f "$root/.git/hooks/pre-commit" ]; then
+    langs=("shell")
+  fi
+
+  local langs_json
+  if [ "${#langs[@]}" -eq 0 ]; then
+    langs_json='[]'
+  else
+    langs_json=$(printf '%s\n' "${langs[@]}" | jq -R . | jq -s .)
+  fi
+
+  local tmp
+  tmp=$(mktemp)
+  jq --argjson langs "$langs_json" '.languages = $langs' "$config" > "$tmp"
+  mv "$tmp" "$config"
+  if [ "${#langs[@]}" -eq 0 ]; then
+    echo "  back-filled: languages = []"
+  else
+    echo "  back-filled: languages = [$(printf '"%s",' "${langs[@]}" | sed 's/,$//')]"
+  fi
+}
+
+step_languages_field_verify() {
+  local root=${1:-.}
+  local config="$root/intent/.config/config.json"
+  jq -e 'has("languages")' "$config" >/dev/null 2>&1
+}
+
+# ===========================================================================
+# relocated verbatim from bin/intent_helpers (ST0036/WP01)
+# ===========================================================================
+
+# Relocate .intent/ -> intent/.config/ atomically.
+#
+# Behaviour:
+#   - Recovery probe: refuse if a previous interrupted migration left a sentinel.
+#   - Idempotence shortcut: if intent/.config/ exists and .intent/ does not, no-op.
+#   - Conflict refusal: refuse if both .intent/ and intent/.config/ exist.
+#   - Symlink refusal: refuse to relocate a symlinked .intent/.
+#   - Atomic move: mv .intent intent/.config (with cp -a + checksum + rm fallback
+#     for cross-filesystem cases).
+#   - Sentinel: written inside .intent/ before the mv (so it travels with the
+#     directory); removed from intent/.config/ after the move succeeds.
+#
+# Returns:
+#   0 on success or no-op
+#   1 on user-action-required refusals (interrupted/conflict/symlink)
+#   2 on unrecoverable errors (mkdir/touch/cp/checksum failed; sentinel preserved)
+intent_relocate_dotintent() {
+  local project_root=$1
+  local dotintent="$project_root/.intent"
+  local config_dir="$project_root/intent/.config"
+  local sentinel="$config_dir/.migration-in-progress"
+  local recovery_url="intent/docs/migration-v2.10.0.md#recovery-from-interrupted-migration"
+
+  # Recovery probe: prior interrupted migration?
+  if [ -f "$sentinel" ]; then
+    echo "Error: interrupted migration detected at $sentinel" >&2
+    echo "  See $recovery_url for recovery steps." >&2
+    return 1
+  fi
+
+  # Idempotence shortcut: already relocated?
+  if [ -d "$config_dir" ] && [ ! -e "$dotintent" ]; then
+    echo "  layout: intent/.config already in place (no relocation needed)"
+    return 0
+  fi
+
+  # Conflict refusal: both exist?
+  if [ -e "$dotintent" ] && [ -d "$config_dir" ]; then
+    echo "Error: both .intent/ and intent/.config/ exist; manual intervention required" >&2
+    echo "  See $recovery_url for guidance." >&2
+    return 1
+  fi
+
+  # Symlink refusal: .intent is a symlink?
+  if [ -L "$dotintent" ]; then
+    echo "Error: .intent is a symbolic link; refusing to relocate symlinked layouts" >&2
+    echo "  See $recovery_url for guidance." >&2
+    return 1
+  fi
+
+  # Nothing to do? (no .intent/ at all -- fresh project or already migrated by other means)
+  if [ ! -e "$dotintent" ]; then
+    echo "  layout: no .intent/ found (skipping relocation)"
+    return 0
+  fi
+
+  # Parent create (handles fresh-from-v2.0.0 layouts; harmless if intent/ exists)
+  mkdir -p "$project_root/intent" || {
+    echo "Error: cannot create $project_root/intent (read-only filesystem?)" >&2
+    return 2
+  }
+
+  # Sentinel write inside .intent/ -- travels with the mv into intent/.config/
+  touch "$dotintent/.migration-in-progress" || {
+    echo "Error: cannot write sentinel inside .intent/ (read-only filesystem?)" >&2
+    return 2
+  }
+
+  # Atomic move (with cross-filesystem fallback)
+  if mv "$dotintent" "$config_dir" 2>/dev/null; then
+    echo "  relocated: .intent/ -> intent/.config/"
+  else
+    echo "  fallback: copying .intent/ -> intent/.config/ (cross-filesystem move)"
+    if ! cp -a "$dotintent" "$config_dir"; then
+      echo "Error: cp -a fallback failed; .intent/ preserved at $dotintent" >&2
+      echo "  Sentinel at $dotintent/.migration-in-progress; resolve and re-run." >&2
+      return 2
+    fi
+    local src_sum dst_sum
+    src_sum=$(cd "$dotintent" 2>/dev/null && find . -type f -not -name '.migration-in-progress' | sort | xargs shasum 2>/dev/null | shasum | awk '{print $1}')
+    dst_sum=$(cd "$config_dir" 2>/dev/null && find . -type f -not -name '.migration-in-progress' | sort | xargs shasum 2>/dev/null | shasum | awk '{print $1}')
+    if [ "$src_sum" != "$dst_sum" ]; then
+      echo "Error: checksum mismatch after copy; .intent/ preserved for inspection" >&2
+      rm -rf "$config_dir"
+      return 2
+    fi
+    rm -rf "$dotintent"
+    echo "  relocated: .intent/ -> intent/.config/ (via copy fallback)"
+  fi
+
+  # Sentinel removal (now at intent/.config/.migration-in-progress post-mv)
+  rm -f "$sentinel" || {
+    echo "Warning: could not remove sentinel at $sentinel" >&2
+    echo "  Migration is complete; delete sentinel manually." >&2
+  }
+
+  return 0
+}

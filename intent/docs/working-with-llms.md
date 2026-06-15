@@ -348,43 +348,46 @@ To extend:
 
 ## Multi-session coordination
 
-Concurrent Claude Code sessions on the same Intent project coordinate via `intent/whiteboard/` and the `/in-whiteboard` skill (v2.11.7+, opt-in by directory presence). The whiteboard is the **live** cross-session channel; `intent/wip.md` remains the **post-session snapshot**. Different tense, different reader, different update cadence:
+Concurrent Claude Code sessions — and the human — on the same Intent project coordinate via `intent/whiteboard/` and the `/in-whiteboard` skill (Protocol 3.0, v2.12.0+; opt-in by directory presence). The whiteboard is the **live** cross-session channel; `intent/wip.md` remains the **post-session snapshot**. Different tense, different reader, different update cadence:
 
 | Surface             | Tense | Reader             | Update cadence            |
 | ------------------- | ----- | ------------------ | ------------------------- |
 | `done.md` + history | past  | humans + future-me | post-session              |
 | `wip.md`            | now   | humans             | session-end snapshot      |
-| whiteboard          | live  | the other agent    | during work, per-decision |
+| whiteboard          | live  | peer nodes + human | during work, per-decision |
 
 Mixing live coordination into `wip.md` is rejected by design — different surfaces, different writers, different readers.
+
+### Protocol 3.0: per-node directories, single-writer files
+
+Protocol 3.0 (ST0045) supersedes the retired 2.0 flat-file model (one shared cross-handoff file, one file per stream, a shared platform file) with one directory per **node** and a strict single-writer rule on every file. A node is a participant — a Claude session or the human. The 2.0 model gave each shared file N writers: edit contention, cross-stream cleanse coordination, and unbounded context growth. 3.0 removes all three by giving every file exactly one writer.
 
 ### Directory layout
 
 ```
 intent/whiteboard/
-  README.md         # slim protocol reference
-  <stream>.md       # one per stream (eg control.md, ia-ux.md)
-  asks.md           # shared; append-only; cross-stream handoffs
-  <platform>.md     # shared; append-only; shared-platform-layer edit channel
-  scratch.md        # ephemera; no protocol
-  history/          # weekly archive buckets: <YYYYMMDD>.<file> (Monday-anchored)
+  README.md                 # protocol reference + the project's node roster
+  <node>/
+    wip.md                  # the node's live board (single-writer: the node)
+    inbox.<sender>.md       # messages FROM <sender> (single-writer: the sender)
+    .history/
+      .gitkeep              # tracks the otherwise-empty archive dir
+      YYYYMMDD/             # the node's archived DONE work + handled inbox entries
 ```
 
-Each stream owns one file. The `<platform>.md` filename is project-specific — `lamplight.md` in the Lamplight project (where the shared platform layer is `apps/lamplight/**`), or `core.md` / `shared.md` / whatever maps to the project's own shared-platform convention.
+Each node writes only its own `wip.md`; each inbox is appended only by its named sender and read/cleansed only by the owning node. There is no shared file. A node's live files are read on every `pickup`, so they are kept lean — `/in-whiteboard archive` rolls that node's own DONE board content + handled inbox entries into its `.history/<YYYYMMDD>/`, single-owner and collision-free.
 
-The live stream files are reloaded on every `pickup`, so they are kept lean. `/in-whiteboard archive` rolls DONE/superseded content older than 2 days out of the live files into `history/<YYYYMMDD>.<file>` buckets keyed by the Monday of the archived content's ISO week. It is judgment-guided (an old-but-open ask stays; a recent-but-superseded block can go), append-only, and never reloaded on `pickup` — git history remains the ultimate trace.
+### Node identity
 
-### Stream identity
-
-A stream is a durable identity (eg `control`, `ia-ux`) that owns one file and persists across sessions. Identity is resolved on `pickup` in three steps, in order: (1) explicit arg (`/in-whiteboard pickup ia-ux`), (2) cues — working directory, branch, recent commits, the wip.md "In flight" labels, user framing, (3) ask the user. Once the stream file exists, subsequent sessions of that stream inherit identity from the file.
+A node is a durable identity (eg `control`, `ia-ux`, `hv`) named by a short moniker that is its directory name, routing key, and handle. The roster — monikers, display names, roles — is per-project, hand-authored in `intent/whiteboard/README.md`; the skill bakes in no roster and discovers nodes by listing `intent/whiteboard/*/`. Identity is resolved on `pickup`: (1) explicit arg (`/in-whiteboard pickup ia-ux`), (2) cues — working directory, branch, recent commits, which node's `wip.md` carries this session's `session_id`, user framing, (3) ask the user. Subsequent sessions of a node inherit identity from its existing directory. The human is a first-class node, conventionally `hv` (the hypervisor): human-driven, `session_id` optional or `none`, and may carry a `## Standing directives` section peers honour.
 
 ### Claims are by steel-thread ID only
 
-`/in-whiteboard claim STxxxx` adds an ST to the current stream's `claimed_steel_threads` frontmatter and stops on overlap with another active stream. Glob-path claims (`apps/control/**`) are rejected as a design choice — claims drift from actual edits the moment you type a path you don't end up editing. ST IDs are the user's mental model; paths are inferred via `intent/st/<ID>/info.md` cross-references.
+`/in-whiteboard claim STxxxx` adds an ST to the node's `claims` frontmatter and stops on overlap with another active node. Glob-path claims (`apps/control/**`) are rejected as a design choice — claims drift from actual edits the moment you type a path you don't end up editing. ST IDs are the user's mental model; paths are inferred via `intent/st/<ID>/info.md` cross-references.
 
 ### Shared platform layer
 
-Multi-app codebases usually have a shared platform layer that no ST claim cleanly covers (`apps/lamplight/**` in Lamplight; project-specific elsewhere). The convention is a dedicated shared file (`lamplight.md`, `core.md`, etc) on append-only "I'm about to edit X for reason Y" basis — `/in-whiteboard lamplight "<text>"`. Reading the file on `pickup` surfaces recent platform-edit notices; appending before editing is cheap insurance against simultaneous touches.
+Multi-app codebases usually have a shared platform layer that no ST claim cleanly covers (`apps/lamplight/**` in Lamplight; project-specific elsewhere). 3.0 coordinates it with `/in-whiteboard announce "<text>"` — a one-line "I'm about to edit X for reason Y" broadcast appended to every peer's inbox before the edit — rather than a dedicated shared file. Broadcast-to-inboxes keeps the single-writer rule; reading inboxes on `pickup` surfaces recent platform-edit notices, so appending before editing is cheap insurance against simultaneous touches.
 
 ### Chain integration
 
@@ -392,11 +395,11 @@ Multi-app codebases usually have a shared platform layer that no ST claim cleanl
 
 ### Heartbeat semantics
 
-`/compact` does not end a session. The next `/in-session` (auto-firing in the new context) calls `pickup` which touches `heartbeat_at`. A stream stays `status: active` across `/compact`. A heartbeat older than 7 days marks a claim reclaimable; reclaim requires explicit user acknowledgement — the protocol never silently overwrites another stream's state.
+`/compact` does not end a session. The next `/in-session` (auto-firing in the new context) calls `pickup` which touches `heartbeat_at`. A node stays `status: active` across `/compact`. A heartbeat older than 7 days marks a claim reclaimable; reclaim requires explicit hypervisor acknowledgement — the protocol never silently overwrites another node's state. The `hv` node is exempt: the human is always authoritative, so a stale `hv` heartbeat reclaims nothing.
 
 ### Reference
 
-The live reference implementation runs in the Lamplight project at `/Users/matts/Devel/prj/Lamplight/intent/whiteboard/`. Design rationale, alternatives considered, and deliberate-deferrals (no hook-based enforcement, no `decisions.md` event log, no `intent/.config/whiteboard.json`) live in `intent/st/COMPLETED/ST0040/`.
+The live reference implementation runs in the Lamplight project at `/Users/matts/Devel/prj/Lamplight/intent/whiteboard/`. The original 2.0 design rationale and deliberate-deferrals (no hook-based enforcement, no `decisions.md` event log, no `intent/.config/whiteboard.json`) live in `intent/st/COMPLETED/ST0040/`; the 3.0 per-node rewrite is `intent/st/COMPLETED/ST0045/`.
 
 ## Extensions at ~/.intent/ext/
 

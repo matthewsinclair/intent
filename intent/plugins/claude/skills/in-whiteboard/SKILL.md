@@ -15,6 +15,14 @@ A node is a participant. The 2-letter moniker is the directory name, the routing
 
 A project that wants the human in the loop gives them a node, conventionally `hv` (the **hypervisor**): the human who adjudicates scope, sequences work, owns releases, and is where escalations land. The human is addressed as `hv` in all protocol language, never by name. The hypervisor node is human-driven -- it is read like any other node, but the human maintains it (or has it maintained on their behalf) rather than running `pickup` on a heartbeat.
 
+### The hv (hypervisor) node
+
+`hv` is structurally a node like any other -- a `<hv>/wip.md` peers read at pickup, inboxes peers append to -- with three differences that follow from being human-driven:
+
+- **No session loop.** `hv` is not driven by `/in-session` / `pickup`, so its `session_id` is optional and conventionally `none`. Peers therefore never match it on the "different `session_id`" active-peer test; they read it for its directives and route escalations to `hv/inbox.<you>.md`.
+- **Heartbeat is advisory.** A stale `hv` heartbeat does not mark anything reclaimable -- the human is always authoritative -- so the 7-day reclaim rule does not apply to `hv`.
+- **Standing directives.** Beyond the canonical `wip.md` body, `hv` may carry a `## Standing directives` section: durable instructions every node honours (sequencing, scope rulings, release policy). Peers read it at pickup the way they read `## Decisions`.
+
 ## When to invoke
 
 - `pickup` -- chained from `/in-session`; read own board + own inboxes + peer state, touch heartbeat.
@@ -37,9 +45,13 @@ intent/whiteboard/
   README.md                 # protocol reference + the project's node roster
   <node>/
     wip.md                  # the node's live board: frontmatter + DOING + TODO + watch-outs + decisions
-    inbox.<sender>.md       # one per OTHER node: messages FROM that sender
-    .history/YYYYMMDD/        # the node's archived DONE work + handled inbox entries
+    inbox.<sender>.md       # one per OTHER node: messages FROM that sender (single-writer)
+    .history/
+      .gitkeep              # tracks the otherwise-empty archive dir (git ignores empty dirs)
+      YYYYMMDD/             # the node's archived DONE work + handled inbox entries
 ```
+
+Scaffolding a node: create `<node>/`, an empty `<node>/.history/.gitkeep` (git does not track an empty directory, and the archive dir starts empty), and the node's `wip.md`. Inboxes are not pre-created -- the first sender creates `<node>/inbox.<sender>.md` on its first `ask` (see below).
 
 Single-writer rule:
 
@@ -68,6 +80,32 @@ claims: [STxxxx, ...]
 
 Only the frontmatter is required for protocol compliance; the body sections are the working content.
 
+## inbox.<sender>.md shape
+
+One inbox per ordered (sender -> recipient) pair: `<recipient>/inbox.<sender>.md` holds the messages `<sender>` has sent `<recipient>`. The sender is the sole writer (append-only); the recipient is the sole reader and owns its lifecycle (read, action, `clear` into history).
+
+Inboxes are created on demand, never pre-seeded: the first `ask` (or `announce`) creates an absent `<recipient>/inbox.<you>.md` before appending its first entry. A freshly created inbox is its header line plus the empty sentinel:
+
+```
+# inbox: <sender> -> <recipient>
+
+_(empty)_
+```
+
+The `# inbox: <sender> -> <recipient>` header restates the single-writer routing the path already encodes, so the file is self-describing when read alone. `_(empty)_` is the "no live entries" sentinel: `clear` and `archive` leave the header + `_(empty)_` behind when they remove the last handled entry, so an inbox is never an ambiguous zero-byte file.
+
+### Message-entry format
+
+Each entry appended by `ask` / `announce`:
+
+```
+## (YYYY-MM-DD HH:MM)   [Re: <prior-anchor>]   [FYI only -- no response needed.]
+
+<text>
+```
+
+Required fields: the `## (YYYY-MM-DD HH:MM)` timestamp heading (minute granularity -- it doubles as the anchor a reply threads against) and the `<text>` body. Recommended / optional: `Re: <prior-anchor>` (present only when threading a reply to a prior entry's timestamp) and `FYI only -- no response needed.` (present only when no reply is expected; absent means the sender expects a reply). A reply is a new entry in the opposite-direction inbox (`<original-sender>/inbox.<you>.md`), carrying `Re:` the entry it answers.
+
 ## Node-identity discovery
 
 On `pickup`, determine which node this session is:
@@ -90,7 +128,7 @@ The moniker is durable; subsequent sessions of that node inherit it via the exis
 
 ### ask <node> <text>
 
-1. Append to `intent/whiteboard/<node>/inbox.<you>.md` (the path encodes sender -> recipient, so the 2.0 `to:`/`from:` line is implicit):
+1. If `intent/whiteboard/<node>/inbox.<you>.md` does not exist, create it with its `# inbox: <you> -> <node>` header + `_(empty)_` sentinel (see inbox shape). Append a message entry (see Message-entry format) -- the path encodes sender -> recipient, so the 2.0 `to:`/`from:` line is implicit:
 
    ```
    ## (YYYY-MM-DD HH:MM)   [Re: <prior-anchor>]   [FYI only -- no response needed.]
@@ -98,9 +136,11 @@ The moniker is durable; subsequent sessions of that node inherit it via the exis
    <text>
    ```
 
+   If the inbox already carries only `_(empty)_`, replace that sentinel with the first entry.
+
 2. Touch your heartbeat.
 
-`Re: <anchor>` threads a reply to a prior entry's timestamp. `FYI only` marks no-reply-expected; without it the recipient assumes a reply is wanted. A reply goes to `<sender>/inbox.<you>.md` (the inbox flips direction).
+A reply goes to `<sender>/inbox.<you>.md` (the inbox flips direction).
 
 ### announce <text>
 

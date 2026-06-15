@@ -1,524 +1,191 @@
 #!/bin/bash
-# intent_upgrade - Upgrade any STP version to Intent
-# Usage: intent upgrade [--backup-dir DIR]
+# intent_upgrade - convergent upgrade orchestrator (ST0043, Architecture B).
+#
+# Flow: detect state -> semver sanity -> verified backup -> walk an ordered
+# ledger of state-probed structural steps -> single delegation to
+# `intent claude upgrade --apply` (the sole canon engine) -> stamp the target
+# ONCE, last (the sole stamper).
+#
+# Applicability of every step is decided by its on-disk state probe, never the
+# top-level stamp; the stamp is written once at the end. So an interrupted run,
+# re-run, performs exactly the remaining work, and no step ever writes a version
+# newer than its own step. This replaces the v2.x version-case-ladder dispatcher
+# (fail-forward: below-v2.9.0 sources are no longer migrated -- see ST0043).
 
-# Exit on error
 set -e
 
-# Source helpers
 INTENT_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INTENT_HOME="$(cd "$INTENT_BIN/.." && pwd)"
 source "$INTENT_BIN/intent_helpers"
+source "$INTENT_BIN/intent_migrations"
 
-# Get target version
 TARGET_VERSION="$(get_intent_version)"
 
-# Function to display usage information
+# Ordered ledger of structural steps. Each <id> has step_<id>_needs / _run /
+# _verify in bin/intent_migrations. Bash 3.2-friendly: a flat id list dispatched
+# by naming convention (no declare -A).
+LEDGER="relocate_config languages_field"
+
+# Lowest source version this orchestrator migrates. Below it, fail-forward:
+# refuse loudly rather than half-migrate (the below-floor ladder was pruned).
+FLOOR_VERSION="2.9.0"
+
 usage() {
   cat << EOF
-Usage: intent upgrade [--backup-dir DIR]
+Usage: intent upgrade [--backup-dir DIR] [--no-backup]
 
-Upgrade any STP version project to Intent v$TARGET_VERSION
+Upgrade an Intent project (v$FLOOR_VERSION+) to Intent v$TARGET_VERSION.
 
 Options:
   --backup-dir DIR    Custom backup directory name (default: .backup/backup-TIMESTAMP)
   --no-backup         Skip backup creation (dangerous!)
   -h, --help          Show this help message
 
-Examples:
-  intent upgrade
-  intent upgrade --backup-dir my-backup
-
-This command will:
-1. Detect the current STP/Intent version
-2. Create a backup of the current state
-3. Migrate directory structure from stp/* to intent/*
-4. Convert YAML configs to JSON format
-5. Update all metadata and file formats
-6. Create intent/.config/config.json
-7. Initialize agent configuration (v2.1.0+)
-8. Update CLAUDE.md with Intent v$TARGET_VERSION guidelines
+The upgrade is convergent: it probes on-disk state, runs only the structural
+steps that are still needed, applies canon via 'intent claude upgrade --apply',
+and stamps the target version once at the end. Safe to re-run after an
+interruption -- it resumes exactly the remaining work.
 EOF
   exit 0
 }
 
-# Parse options
+# --- arg parse ------------------------------------------------------------
 BACKUP_DIR=""
 NO_BACKUP=false
-
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --backup-dir)
-      BACKUP_DIR="$2"
-      shift 2
-      ;;
-    --no-backup)
-      NO_BACKUP=true
-      shift
-      ;;
-    -h|--help)
-      usage
-      ;;
-    *)
-      error "Unknown option: $1"
-      ;;
+    --backup-dir) BACKUP_DIR="$2"; shift 2 ;;
+    --no-backup)  NO_BACKUP=true; shift ;;
+    -h|--help)    usage ;;
+    *)            error "Unknown option: $1" ;;
   esac
 done
 
-# Detect current version
-echo "Detecting current project version..."
-VERSION=$(detect_stp_version . || echo "")
+# --- numeric semver compare (major.minor.patch; non-digit suffix ignored) -
+_vnum() { local n="${1//[!0-9]/}"; echo "$((10#${n:-0}))"; }
+version_gt() {
+  local a1 a2 a3 b1 b2 b3
+  IFS=. read -r a1 a2 a3 <<< "$1"
+  IFS=. read -r b1 b2 b3 <<< "$2"
+  a1=$(_vnum "$a1"); a2=$(_vnum "$a2"); a3=$(_vnum "$a3")
+  b1=$(_vnum "$b1"); b2=$(_vnum "$b2"); b3=$(_vnum "$b3")
+  if [ "$a1" -ne "$b1" ]; then [ "$a1" -gt "$b1" ]; return; fi
+  if [ "$a2" -ne "$b2" ]; then [ "$a2" -gt "$b2" ]; return; fi
+  [ "$a3" -gt "$b3" ]
+}
 
-if [ -z "$VERSION" ]; then
-  echo "Could not detect project version."
-  echo ""
-  echo "This may not be an STP/Intent project, or it may be using an unrecognized structure."
-  echo "To create a new Intent project, use: intent init"
-  exit 1
-fi
+_any_step_needs() {
+  local step
+  for step in $LEDGER; do
+    if "step_${step}_needs" .; then return 0; fi
+  done
+  return 1
+}
 
-# Gate legacy-only messages (stp/* -> intent/* migration narrative,
-# v2.0.0-directory-structure preamble, "use intent instead of stp" advice).
-# Pre-v2 sources (0.x or 1.x) are STP; v2.x sources already use intent/.
-LEGACY_STP_SOURCE=false
+# --- 1. detect state + semver sanity (BEFORE any mutation) ----------------
+VERSION="$(detect_project_version . || echo "")"
+[ -n "$VERSION" ] || error "could not detect a project version (not an Intent project, or an unrecognised layout). For a new project: intent init"
 case "$VERSION" in
-  0.*|1.*) LEGACY_STP_SOURCE=true ;;
+  [0-9]*.[0-9]*) : ;;
+  *) error "unrecognised project version '$VERSION'; cannot upgrade safely" ;;
 esac
 
-# Always show version information
-echo ""
+# Refuse a downgrade before touching anything.
+if version_gt "$VERSION" "$TARGET_VERSION"; then
+  error "refusing downgrade: project is at v$VERSION, target is v$TARGET_VERSION"
+fi
+
+# Fail-forward floor: below-v2.9.0 layouts are no longer migrated.
+if version_gt "$FLOOR_VERSION" "$VERSION"; then
+  error "unsupported source version v$VERSION: the upgrade floor is v$FLOOR_VERSION (older STP/Intent layouts are no longer migrated; see intent/history). Re-create the project with 'intent init' or migrate manually."
+fi
+
 echo "Current version: $VERSION"
 echo "Target version:  $TARGET_VERSION"
-echo ""
 
-# Check if already at target version AND target layout AND target schema.
-# A project may be stamped at the target but still on the .intent/ layout
-# (e.g. Intent itself was retargeted to v2.10.0 mid-ST0035 before ST0036
-# relocated the directory). It may also be stamped at the target but lack
-# the languages config field (ST0037). Without these checks the dispatcher
-# would short-circuit and the relevant migration would never run.
-_has_languages_field=true
-if [ -f "intent/.config/config.json" ] && command -v jq >/dev/null 2>&1; then
-  if ! jq -e 'has("languages")' "intent/.config/config.json" >/dev/null 2>&1; then
-    _has_languages_field=false
-  fi
-fi
-if [ "$VERSION" = "$TARGET_VERSION" ] && [ ! -d ".intent" ] && [ "$_has_languages_field" = true ]; then
+# Already fully converged? (at target stamp AND no structural step pending)
+if [ "$VERSION" = "$TARGET_VERSION" ] && ! _any_step_needs; then
   echo "ok: already at intent v$TARGET_VERSION"
-  exit 0
-fi
-unset _has_languages_field
-
-# Determine if migration is needed
-if ! needs_v2_migration "$VERSION" && ! needs_v2_1_upgrade "$VERSION" && ! needs_v2_2_upgrade "$VERSION" && ! needs_v2_2_1_upgrade "$VERSION" && ! needs_v2_3_0_upgrade "$VERSION" && ! needs_v2_3_1_upgrade "$VERSION" && ! needs_v2_3_2_upgrade "$VERSION" && ! needs_v2_3_3_upgrade "$VERSION" && ! needs_v2_3_4_upgrade "$VERSION" && ! needs_v2_4_0_upgrade "$VERSION" && ! needs_v2_5_0_upgrade "$VERSION" && ! needs_v2_6_0_upgrade "$VERSION" && ! needs_v2_8_1_upgrade "$VERSION" && ! needs_v2_8_2_upgrade "$VERSION" && ! needs_v2_9_0_upgrade "$VERSION" && ! needs_v2_10_0_upgrade "$VERSION" . && ! needs_v2_11_0_upgrade "$VERSION" .; then
-  echo "ok: up to date at v$VERSION"
-  echo "  no upgrade path to $TARGET_VERSION"
   exit 0
 fi
 
 echo "upgrading: $VERSION -> $TARGET_VERSION"
 
-# Create backup unless disabled
+# --- 2. verified backup (first point any mutation could occur) ------------
 if [ "$NO_BACKUP" != true ]; then
-  # Set backup directory name
   if [ -z "$BACKUP_DIR" ]; then
     BACKUP_NAME="backup-$(date +%Y%m%d-%H%M%S)"
   else
-    # If user provided a backup dir, extract just the name
     BACKUP_NAME=$(basename "$BACKUP_DIR")
   fi
-  
-  # Always put backups under .backup directory
   BACKUP_DIR=".backup/$BACKUP_NAME"
-  
   echo "Creating backup in $BACKUP_DIR..."
-  mkdir -p "$BACKUP_DIR"
-  
-  # Backup relevant directories. A failed copy aborts before any migration
-  # mutates the project -- never report a backup that does not exist
-  # (ST0042 T3).
-  for dir in stp .stp-config .intent intent CLAUDE.md; do
-    if [ -e "$dir" ]; then
-      cp -r "$dir" "$BACKUP_DIR/" \
-        || error "Backup of $dir to $BACKUP_DIR failed; aborting upgrade (nothing has been migrated)"
+  mkdir -p "$BACKUP_DIR" || error "cannot create backup dir $BACKUP_DIR; aborting upgrade (nothing has been migrated)"
+  # A failed copy aborts before any migration mutates the project -- never report
+  # a backup that does not exist (ST0042 T3).
+  for item in .intent intent CLAUDE.md; do
+    if [ -e "$item" ]; then
+      cp -r "$item" "$BACKUP_DIR/" \
+        || error "Backup of $item to $BACKUP_DIR failed; aborting upgrade (nothing has been migrated)"
     fi
   done
-
   echo "Backup created successfully"
 fi
 
 echo ""
-echo "Starting migration to Intent v$TARGET_VERSION..."
+echo "Walking the upgrade ledger..."
+
+# --- 3. walk the ordered ledger of state-probed steps ---------------------
+for step in $LEDGER; do
+  if "step_${step}_needs" .; then
+    echo "step: $step"
+    "step_${step}_run" . || error "upgrade step '$step' failed; nothing stamped (re-run to resume the remaining work)"
+    "step_${step}_verify" . || error "upgrade step '$step' postcondition not met; nothing stamped (re-run to resume)"
+  else
+    echo "step: $step (already satisfied)"
+  fi
+done
+
+# --- 4. single delegation: canon convergence (the sole canon engine) ------
 echo ""
+echo "Applying canon (intent claude upgrade --apply)..."
+"$INTENT_BIN/intent" claude upgrade --project-dir . --apply >&2 \
+  || error "canon apply failed; nothing stamped (re-run to resume)"
 
-# Ensure v2 directory skeleton exists. Idempotent: mkdir -p is a no-op for
-# directories that already exist, so v2.x sources skip the message but the
-# call is safe to make either way.
-if [ "$LEGACY_STP_SOURCE" = true ]; then
-  echo "Creating Intent v2.0.0 directory structure..."
-fi
-create_v2_directory_structure .
-
-# Migrate based on version
-case "$VERSION" in
-  "0.0.0")
-    echo "Migrating from v0.0.0..."
-    migrate_v0_to_v2 .
-    ;;
-  "1.0.0"|"1.2.0")
-    echo "Migrating from v$VERSION..."
-    migrate_v1_2_0_to_v2 .
-    ;;
-  "1.2.1")
-    echo "Migrating from v1.2.1..."
-    migrate_v1_2_1_to_v2 .
-    ;;
-  "2.0.0")
-    echo "Upgrading from v2.0.0 to v$TARGET_VERSION..."
-    migrate_v2_0_to_v2_1 .
-    migrate_v2_1_to_v2_2 .
-    migrate_v2_2_to_v2_2_1 .
-    migrate_v2_2_to_v2_3_0 .
-    migrate_v2_3_0_to_v2_3_1 .
-    migrate_v2_3_1_to_v2_3_2 .
-    migrate_v2_3_2_to_v2_3_3 .
-    migrate_v2_3_3_to_v2_3_4 .
-    migrate_v2_3_4_to_v2_4_0 .
-    migrate_v2_4_0_to_v2_5_0 .
-    migrate_v2_5_0_to_v2_6_0 .
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.1.0")
-    echo "Upgrading from v2.1.0 to v$TARGET_VERSION..."
-    migrate_v2_1_to_v2_2 .
-    migrate_v2_2_to_v2_2_1 .
-    migrate_v2_2_to_v2_3_0 .
-    migrate_v2_3_0_to_v2_3_1 .
-    migrate_v2_3_1_to_v2_3_2 .
-    migrate_v2_3_2_to_v2_3_3 .
-    migrate_v2_3_3_to_v2_3_4 .
-    migrate_v2_3_4_to_v2_4_0 .
-    migrate_v2_4_0_to_v2_5_0 .
-    migrate_v2_5_0_to_v2_6_0 .
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.2.0")
-    echo "Upgrading from v2.2.0 to v$TARGET_VERSION..."
-    migrate_v2_2_to_v2_2_1 .
-    migrate_v2_2_to_v2_3_0 .
-    migrate_v2_3_0_to_v2_3_1 .
-    migrate_v2_3_1_to_v2_3_2 .
-    migrate_v2_3_2_to_v2_3_3 .
-    migrate_v2_3_3_to_v2_3_4 .
-    migrate_v2_3_4_to_v2_4_0 .
-    migrate_v2_4_0_to_v2_5_0 .
-    migrate_v2_5_0_to_v2_6_0 .
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.2.1")
-    echo "Upgrading from v2.2.1 to v$TARGET_VERSION..."
-    migrate_v2_2_to_v2_3_0 .
-    migrate_v2_3_0_to_v2_3_1 .
-    migrate_v2_3_1_to_v2_3_2 .
-    migrate_v2_3_2_to_v2_3_3 .
-    migrate_v2_3_3_to_v2_3_4 .
-    migrate_v2_3_4_to_v2_4_0 .
-    migrate_v2_4_0_to_v2_5_0 .
-    migrate_v2_5_0_to_v2_6_0 .
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.3.0")
-    echo "Upgrading from v2.3.0 to v$TARGET_VERSION..."
-    migrate_v2_3_0_to_v2_3_1 .
-    migrate_v2_3_1_to_v2_3_2 .
-    migrate_v2_3_2_to_v2_3_3 .
-    migrate_v2_3_3_to_v2_3_4 .
-    migrate_v2_3_4_to_v2_4_0 .
-    migrate_v2_4_0_to_v2_5_0 .
-    migrate_v2_5_0_to_v2_6_0 .
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.3.1")
-    echo "Upgrading from v2.3.1 to v$TARGET_VERSION..."
-    migrate_v2_3_1_to_v2_3_2 .
-    migrate_v2_3_2_to_v2_3_3 .
-    migrate_v2_3_3_to_v2_3_4 .
-    migrate_v2_3_4_to_v2_4_0 .
-    migrate_v2_4_0_to_v2_5_0 .
-    migrate_v2_5_0_to_v2_6_0 .
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.3.2")
-    echo "Upgrading from v2.3.2 to v$TARGET_VERSION..."
-    migrate_v2_3_2_to_v2_3_3 .
-    migrate_v2_3_3_to_v2_3_4 .
-    migrate_v2_3_4_to_v2_4_0 .
-    migrate_v2_4_0_to_v2_5_0 .
-    migrate_v2_5_0_to_v2_6_0 .
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.3.3")
-    echo "Upgrading from v2.3.3 to v$TARGET_VERSION..."
-    migrate_v2_3_3_to_v2_3_4 .
-    migrate_v2_3_4_to_v2_4_0 .
-    migrate_v2_4_0_to_v2_5_0 .
-    migrate_v2_5_0_to_v2_6_0 .
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.3.4")
-    echo "Upgrading from v2.3.4 to v$TARGET_VERSION..."
-    migrate_v2_3_4_to_v2_4_0 .
-    migrate_v2_4_0_to_v2_5_0 .
-    migrate_v2_5_0_to_v2_6_0 .
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.4.0")
-    echo "Upgrading from v2.4.0 to v$TARGET_VERSION..."
-    migrate_v2_4_0_to_v2_5_0 .
-    migrate_v2_5_0_to_v2_6_0 .
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.5.0")
-    echo "Upgrading from v2.5.0 to v$TARGET_VERSION..."
-    migrate_v2_5_0_to_v2_6_0 .
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.6.0"|"2.7.0")
-    echo "Upgrading from v$VERSION to v$TARGET_VERSION..."
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.8.0")
-    echo "Upgrading from v2.8.0 to v$TARGET_VERSION..."
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.8.1")
-    echo "Upgrading from v2.8.1 to v$TARGET_VERSION..."
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.8.2")
-    echo "Upgrading from v2.8.2 to v$TARGET_VERSION..."
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.9.0")
-    echo "Upgrading from v2.9.0 to v$TARGET_VERSION..."
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.10.0"|"2.10.1")
-    # v2.10.x stamp; layout may or may not be relocated. migrate_v2_9_0_to_v2_10_0
-    # is idempotent (relocation no-op + stamp no-op). Then run the v2.11.0
-    # migration to add the languages field.
-    echo "Upgrading from v$VERSION to v$TARGET_VERSION..."
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  "2.11."*)
-    # v2.11.x stamp (any patch). The schema migration is idempotent so this
-    # case handles 2.11.0 -> 2.11.1 (and any future patch release within the
-    # 2.11 line) by re-running the migration (no-op on field-already-present
-    # and stamp-already-current); the patch's actual code changes ship via
-    # the working tree, not via a migration step.
-    echo "Upgrading from v$VERSION to v$TARGET_VERSION..."
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-  *)
-    error "Unknown version: $VERSION"
-    ;;
-esac
-
-# Ensure proper upgrade path for pre-v2 migrations
-# Pre-v2 versions (0.0.0, 1.x) migrate to v2.0.0 structure first, then need
-# the full v2.x chain applied. v2.x versions are already fully chained in the
-# case statement above.
-case "$VERSION" in
-  "0.0.0"|"1.0.0"|"1.2.0"|"1.2.1")
-    echo "Applying v2.x upgrade chain..."
-    migrate_v2_0_to_v2_1 .
-    migrate_v2_1_to_v2_2 .
-    migrate_v2_2_to_v2_2_1 .
-    migrate_v2_2_to_v2_3_0 .
-    migrate_v2_3_0_to_v2_3_1 .
-    migrate_v2_3_1_to_v2_3_2 .
-    migrate_v2_3_2_to_v2_3_3 .
-    migrate_v2_3_3_to_v2_3_4 .
-    migrate_v2_3_4_to_v2_4_0 .
-    migrate_v2_4_0_to_v2_5_0 .
-    migrate_v2_5_0_to_v2_6_0 .
-    migrate_v2_6_0_to_v2_8_0 .
-    migrate_v2_8_0_to_v2_8_1 .
-    migrate_v2_8_1_to_v2_8_2 .
-    migrate_v2_8_2_to_v2_9_0 .
-    migrate_v2_9_0_to_v2_10_0 .
-    migrate_v2_10_x_to_v2_11_0 .
-    ;;
-esac
-
-# v2.11.7+: install in-whiteboard for users who don't have it yet, and sync
-# everything else to propagate the in-session / in-finish chain edits into
-# any already-installed mirror. Both calls are failure-tolerant: a missing
-# ~/.claude/ mirror or a user 'N' at an overwrite-prompt should not break
-# the upgrade. No --force so user customisations are never silently lost.
+# Propagate skill + subagent updates to any already-installed ~/.claude mirror.
+# Failure-tolerant (a missing mirror or a user 'N' at a prompt must not break the
+# upgrade) and no --force, so user customisations are never silently lost.
 if [ -d "$INTENT_HOME/intent/plugins/claude/skills/in-whiteboard" ]; then
   echo "Ensuring in-whiteboard skill is installed..."
   "$INTENT_BIN/intent" claude skills install in-whiteboard || true
   echo "Syncing canon skill updates..."
   "$INTENT_BIN/intent" claude skills sync || true
 fi
-
-# v2.11.11+: re-sync installed subagents so canon edits (eg the critic-<lang>
-# rule-resolution fix) reach already-installed mirrors. Sync only touches
-# agents the user already installed and uses no --force, so user
-# customisations are never silently lost; a missing ~/.claude/ mirror is
-# tolerated. Critics resolve rules via the `intent claude rules` CLI, so the
-# fixed copies must land on every machine that has them installed.
 echo "Syncing canon subagent updates..."
 "$INTENT_BIN/intent" claude subagents sync || true
 
-# Preserve agent manifests
-if [ -d "intent/.config/agents" ]; then
-  echo "Agent manifests found, preserving..."
-fi
-if [ -d "intent/agents/.manifest" ]; then
-  echo "Project agent manifests found, preserving..."
-fi
-
-# Create or update CLAUDE.md
-CLAUDE_EXISTED=false
-if [ -f "CLAUDE.md" ]; then
-  echo "Preserving existing CLAUDE.md..."
-  CLAUDE_EXISTED=true
+# --- 5. stamp the target ONCE, last (the sole stamper) --------------------
+CONFIG="intent/.config/config.json"
+if [ -f "$CONFIG" ] && command -v jq >/dev/null 2>&1; then
+  current="$(jq -r '.intent_version // ""' "$CONFIG")"
+  if [ "$current" = "$TARGET_VERSION" ]; then
+    echo "stamp: already at v$TARGET_VERSION"
+  else
+    tmp="$(mktemp)"
+    jq --arg v "$TARGET_VERSION" '.intent_version = $v | del(.version)' "$CONFIG" > "$tmp"
+    mv "$tmp" "$CONFIG"
+    echo "stamped: intent_version = $TARGET_VERSION"
+  fi
 else
-  echo "Creating CLAUDE.md..."
-  create_claude_md .
+  error "cannot stamp the target: $CONFIG is missing after the ledger (upgrade incomplete)"
 fi
 
-# Final message
 echo ""
 echo "ok: upgraded $VERSION -> $TARGET_VERSION"
-echo ""
-if [ "$LEGACY_STP_SOURCE" = true ]; then
-  echo "- Directory structure migrated from stp/* to intent/*"
-  echo "- Configuration converted from YAML to JSON"
-fi
-echo "- Metadata updated to Intent v$TARGET_VERSION format"
-echo "- Created/updated intent/.config/config.json"
-echo "- Initialized agent configuration"
-if [ "$CLAUDE_EXISTED" = "true" ]; then
-  echo "- Preserved existing CLAUDE.md"
-else
-  echo "- Created CLAUDE.md with Intent guidelines"
-fi
-
 if [ "$NO_BACKUP" != true ]; then
-  echo ""
   echo "Backup location: $BACKUP_DIR"
 fi
-
 echo ""
 echo "Next steps:"
-echo "1. Review the migrated content in the intent/ directory"
-if [ "$LEGACY_STP_SOURCE" = true ]; then
-  echo "2. Test commands with 'intent' instead of 'stp'"
-  echo "3. Run 'intent doctor' to verify configuration"
-  echo "4. Run 'intent agents list' to see available agents"
-else
-  echo "2. Run 'intent doctor' to verify configuration"
-  echo "3. Run 'intent agents list' to see available agents"
-fi
-
-echo ""
-echo "For multi-session coordination across concurrent Claude Code sessions,"
-echo "create intent/whiteboard/ and see intent/docs/working-with-llms.md"
-echo "(section: Multi-session coordination)."
-
-# Offer to remove old stp directory only when one is actually present.
-# Pre-v2.0.0 projects had a stp/ tree at the project root; v2.x rebrand
-# moved everything to intent/. Anything past v2.0.0 has no stp/, so this
-# block stays silent for them.
-if [ -d stp ]; then
-  echo "5. Delete the old stp/ directory when ready"
-  echo ""
-  echo "The old stp/ directory is still present. You can:"
-  echo "- Keep it for reference"
-  echo "- Remove it manually with: rm -rf stp/"
-  echo "- Let this script remove it (type 'yes' to confirm)"
-  echo ""
-  read -p "Remove old stp/ directory now? (yes/no): " response
-
-  if [ "$response" = "yes" ]; then
-    echo "Removing stp/ directory..."
-    rm -rf stp/
-    echo "Old directory removed."
-  else
-    echo "Keeping old stp/ directory for reference."
-  fi
-fi
+echo "1. Run 'intent doctor' to verify configuration"
+echo "2. Review the canon files refreshed by 'intent claude upgrade'"

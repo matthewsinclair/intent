@@ -47,6 +47,27 @@ ac_is_nontest() { case "$1" in *"(non-test)"*) return 0 ;; *) return 1 ;; esac; 
 ac_lines() { grep -E '^- AC-[0-9]+\.[0-9]+ ' "$1" 2>/dev/null || true; }
 at_lines() { grep -E '^- AT-[0-9]+\.[0-9]+ ' "$1" 2>/dev/null || true; }
 
+# AC/AT-shaped lines (start "- AC-"/"- AT-") that FAIL the strict numeric grammar.
+# Without this guard they are silently dropped and the gate goes vacuous -- the
+# exact failure that let a half-authored contract read as PASS. No Silent Errors.
+malformed_acat() {
+  grep -nE '^- A[CT]-' "$1" 2>/dev/null | grep -vE ':- A[CT]-[0-9]+\.[0-9]+ ' || true
+}
+
+# Warn (stderr) for each malformed AC/AT line; return 1 if any were found.
+warn_malformed() {
+  local acc="$1" bad line
+  bad="$(malformed_acat "$acc")"
+  [ -z "$bad" ] && return 0
+  warning "malformed AC/AT line(s) in $acc -- id must be AC-<n>.<n> / AT-<n>.<n> (digits) then a space; these are NOT counted:"
+  while IFS= read -r line; do
+    [ -n "$line" ] && warning "  $line"
+  done <<EOF
+$bad
+EOF
+  return 1
+}
+
 # Single AC/AT line for an exact id (dots escaped), or empty.
 find_line() {
   local esc
@@ -136,6 +157,7 @@ cmd_ac_list() {
   split_target "$1"
   local acc line id ats sat
   acc="$(acc_path "$STID")" || exit 1
+  warn_malformed "$acc"
   while IFS= read -r line; do
     [ -z "$line" ] && continue
     id="$(line_id "$line")"
@@ -154,6 +176,7 @@ cmd_ac_status() {
   split_target "$1"
   local acc line total=0 sat=0 verdict="BLOCKED"
   acc="$(acc_path "$STID")" || exit 1
+  warn_malformed "$acc"
   while IFS= read -r line; do
     [ -z "$line" ] && continue
     in_wp_filter "$(line_id "$line")" || continue
@@ -168,9 +191,11 @@ EOF
 
 # Close-gate (ST0044 WP-04). The single authority `st done` / `wp done` consult
 # before closing: exit 1 + a BLOCKED report when an in-scope AC is unsatisfied,
-# exit 0 otherwise. Opt-in / legacy-safe -- a missing thread dir, a missing
-# acceptance.md, or zero in-scope ACs all leave the gate open (exit 0), so a
-# thread that never authored a contract closes exactly as it did before.
+# OR a PRESENT acceptance.md has malformed AC/AT lines (F1); exit 0 otherwise.
+# Opt-in by presence -- a missing thread dir, a missing acceptance.md, or zero
+# in-scope ACs all leave the gate open (exit 0). A thread opts IN by HAVING an
+# acceptance.md; one that never authored a contract closes exactly as before.
+# (Old STs are never forced into a contract -- matts, 2026-06-16.)
 cmd_ac_gate() {
   [ -n "$1" ] || usage
   local scope="$1"
@@ -180,6 +205,10 @@ cmd_ac_gate() {
   dir="$(resolve_st_dir "$id")" || exit 0
   acc="$dir/acceptance.md"
   [ -f "$acc" ] || exit 0
+  if ! warn_malformed "$acc"; then
+    echo "gate: $scope BLOCKED -- malformed AC/AT line(s) in acceptance.md (see warnings); fix the contract"
+    exit 1
+  fi
   local line lid total=0 sat=0 unsat=""
   while IFS= read -r line; do
     [ -z "$line" ] && continue
@@ -230,6 +259,7 @@ cmd_at_list() {
   split_target "$1"
   local acc line id
   acc="$(acc_path "$STID")" || exit 1
+  warn_malformed "$acc"
   while IFS= read -r line; do
     [ -z "$line" ] && continue
     id="$(line_id "$line")"

@@ -438,3 +438,14 @@ PCH
   assert_file_not_exists "$PROJ_DIR/.intent_critic.yml"
   assert_file_not_exists "$PROJ_DIR/usage-rules.md"
 }
+
+# ST0043 AT-01.8 (red-first): T11/T12 portability. The canon engine must not use
+# BSD-only `sed -i ''` (it breaks GNU/Linux upgrades). The unanchored CLAUDE.md
+# version-sed dies with the VERSION_BUMP path (AT-01.6), so "anchored" reduces to
+# "no version-sed at all". RED until the in-place edit is made portable.
+@test "sed edits are portable and the version handling is anchored" {
+  local canon="${INTENT_PROJECT_ROOT}/intent/plugins/claude/bin/intent_claude_upgrade"
+  if grep -nE "sed -i ''" "$canon"; then
+    fail "BSD-only 'sed -i \\'\\'' is non-portable; use a portable in-place edit"
+  fi
+}

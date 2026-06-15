@@ -1,11 +1,13 @@
 ---
-verblock: "14 Jun 2026:v0.87: matts - v2.11.14 organize Linux fix shipped on top of ST0044's v2.11.13; ST0043 next"
+verblock: "15 Jun 2026:v0.90: matts - v2.12.0 staged: ST0043 + ST0045 Completed, awaiting scripts/release --minor"
 intent_version: 2.11.14
 ---
 
 # Work In Progress
 
 ## Current State
+
+**2026-06-15 -- v2.12.0 STAGED (ST0043 + ST0045 both Completed; awaiting `scripts/release --minor`, matts runs it manually).** Both STs closed through their own gates (ST0043 8/8, ST0045 9/9) and relocated to `intent/st/COMPLETED/`. Full suite green (matts). Release docs written (`CHANGELOG.md` `[2.12.0]`, `intent/history/v2.12.0.md`, `intent/done.md` ledger + Releases bullet); 3.0 skills synced to `~/.claude` (in-session/in-finish/in-whiteboard). Everything committed -> clean tree for the release pre-flight. **ST0043**: convergent `intent upgrade` orchestrator (`bin/intent_upgrade` ~150 lines) + new `bin/intent_migrations` ledger + `bin/intent_helpers` pruned 2026->369 lines (all sub-v2.9.0 migration code) + single version stamper + canon-engine VERSION_BUMP/sed-portability fixes (Linux-safe). **ST0045**: Whiteboard Protocol 3.0 (per-node dirs + single-writer inboxes + `hv`) -- skill completeness + reference-vs-skill drift closed + guard test. **Close-gate**: F1 (malformed AC/AT lines block, not silently dropped); F6 left opt-in-by-presence (missing acceptance.md stays open). **REMAINING (matts):** run `bash scripts/release --minor` -- it bumps VERSION 2.11.14->2.12.0, runs `intent agents sync`, commits `release: v2.12.0` (VERSION+CHANGELOG+AGENTS), tags, pushes both remotes, cuts the GH release; then the manual post-tag wrap bumps `config.json` `intent_version`. Resume detail: `.claude/restart.md`.
 
 **2026-06-14 -- v2.11.14 SHIPPED (intent organize Linux fix).** `intent organize` exited 1 after the first move on bash 5.x (Linux): `((counter++))` returns 1 at zero and `set -e` aborts; macOS bash 3.2 was lenient, hiding it behind green CI from v2.11.12. The whole `((x++))` class is now `x=$((x + 1))` (six sites: `bin/intent_organize` x3, `bin/intent_helpers` x3) and pinned by `tests/unit/set_e_increment_guard.bats`. Tag `60dd82a`, both remotes + GitHub release. Narrative: `intent/history/v2.11.14.md`.
 
@@ -17,7 +19,7 @@ Fleet picks up v2.11.14 on each member's next `intent upgrade`. Out of scope: Pp
 
 ## Next Up
 
-**Active: ST0043 -- Rethink `intent upgrade`** (targets **v2.12.0 minor**, own session). Architecture-B design + ACs in `intent/st/ST0043/{info,acceptance}.md` -- ratify the ACs open-gate with matts before any code. ST0043 owns the upgrade-subsystem deletions excluded from ST0042 + the `intent claude upgrade` Phase-2 CLAUDE.md substitution audit. **ST0044 shipped as v2.11.13** (2026-06-14); ST0043 stays its own v2.12.0 minor. Standing backlog:
+**Imminent: cut v2.12.0.** Everything is staged and committed; the one remaining action is `bash scripts/release --minor` (matts, manual). Post-release wrap: bump `config.json` `intent_version` to 2.12.0 + the usual "Upgraded Intent to 2.12.0" commit. Then fleet members pick up v2.12.0 on next `intent upgrade`. Standing backlog (post-release):
 
 1. **`/in-review` Elixir fleet sweep** — parked. Anvil, Lamplight, MeetZaya, MicroGPTEx, Conflab.
 2. **Conflab pre-existing test findings** (`IN-EX-TEST-001` / `005` / `007`) — parked.

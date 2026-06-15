@@ -1,11 +1,17 @@
 ---
-verblock: "14 Jun 2026:v0.6: matts - v2.11.14 organize Linux fix shipped; releases line added"
+verblock: "15 Jun 2026:v0.7: matts - v2.12.0 arc (ST0043 + ST0045) closed; release docs staged"
 intent_version: 2.11.14
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-06-15 — v2.12.0 arc (ST0043 convergent upgrade + ST0045 Whiteboard 3.0)
+
+- **ST0043 Completed** — `intent upgrade` rewritten from a 524-line version-case ladder into a ~150-line convergent orchestrator: detect -> semver sanity (refuse downgrade, error on unparseable, v2.9.0 fleet floor, no "Unknown version") -> verified backup -> state-probed `LEDGER` walk (`step_<id>_needs/_run/_verify`) -> single `intent claude upgrade --apply` -> stamp once, last. All migration code below the v2.9.0 floor pruned (fail-forward): `bin/intent_helpers` 2026 -> 369 lines; the two surviving structural steps (relocate_config, languages_field) + `intent_relocate_dotintent` moved to the new upgrade-only `bin/intent_migrations`. Single version stamper (orchestrator jq, once); canon engine `VERSION_BUMP` + BSD `sed -i ''` removed (Linux-safe). 8/8 ACs through its own gate; detail `intent/st/COMPLETED/ST0043/`.
+- **ST0045 Completed** — Whiteboard Protocol 3.0 formalised: per-node `<node>/` dirs, single-writer `wip.md` + per-sender `inbox.<sender>.md`, the `hv` hypervisor node, no baked-in roster. Skill completeness added (inbox-file init + `# inbox:` header + `_(empty)_` sentinel, `.history/.gitkeep`, the `hv` variant, message-entry required-vs-recommended) and reference-vs-skill drift closed in `in-session` / `in-finish` SKILL.md + the `working-with-llms.md` whiteboard section; mechanical guard `tests/unit/whiteboard_protocol_3_guard.bats`. 9/9 ACs; detail `intent/st/COMPLETED/ST0045/`.
+- **Close-gate hardening (No Silent Errors)** — F1: malformed / non-numeric AC/AT lines now block the gate loudly instead of being silently dropped (vacuous-green fix). F6: a missing `acceptance.md` deliberately left opt-in-by-presence (gate stays open; matts ruling 2026-06-16) -- only a present contract is enforced. `bin/intent_acceptance` + guards in `acceptance_close_gate.bats`. Narrative: `intent/history/v2.12.0.md`.
 
 ## 2026-06-14 — v2.11.14 (intent organize Linux fix)
 
@@ -23,6 +29,7 @@ NOTE: This file is the terse DONE ledger, newest first. Older entries roll into 
 
 ## Releases
 
+- **2026-06-15 — v2.12.0**: ST0043 convergent `intent upgrade` orchestrator (sub-v2.9.0 migration pruned, single stamper, Linux-safe canon engine) + ST0045 Whiteboard Protocol 3.0 (per-node dirs + single-writer inboxes + `hv`); close-gate F1 malformed-line block. ([history](history/v2.12.0.md))
 - **2026-06-14 — v2.11.14**: `intent organize` fixed on Linux (`((x++))` under `set -e` aborts on bash 5.x); the whole class converted to `x=$((x + 1))` + a guard test. ([history](history/v2.11.14.md))
 - **2026-06-14 — v2.11.13**: ST0044 — `acceptance.md` as a default steel-thread doc + the AC/AT acceptance process (`intent ac` / `intent at`, the opt-in close-gate, the five-step) that makes "done" externally verified; `intent st edit` -> emit-path. ([history](history/v2.11.13.md))
 - **2026-06-11 — v2.11.12**: ST0042 Fable 5 review arc (nine WPs: config-eval RCE, Highlander consolidation, rules-path drift guard, silent-success kills, canon docs, prune, vacuous-test rewrites) + ST0041 MFIC harvest; `intent st cancel` added; `intent audit` retired. ([history](history/v2.11.12.md))

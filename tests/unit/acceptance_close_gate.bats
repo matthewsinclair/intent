@@ -108,3 +108,44 @@ EOF
   run run_intent st done ST0001
   assert_success
 }
+
+# v2.12.0 parser hardening (No Silent Errors): an AC/AT line that looks like an
+# AC/AT but fails the strict numeric grammar must NOT be silently dropped.
+# Pre-fix the malformed AC-U.1 vanished, leaving only the satisfied AC-00.1, so
+# the gate PASSED (exit 0) -- this assert_failure would trip. Post-fix the gate
+# detects the malformed line and blocks loudly.
+@test "gate blocks loudly on a malformed AC id instead of silently dropping it" {
+  project_dir=$(create_test_project "Close-gate Malformed Test"); cd "$project_dir"; export EDITOR=echo
+  run run_intent st new "Gate Thread"; assert_success
+  cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
+---
+st_id: ST0001
+---
+# ST0001 -- Acceptance
+
+## Acceptance Criteria
+
+### ST-level
+
+- AC-00.1 (non-test) the only well-formed AC -- evidence: done -- satisfied: yes
+
+### Skill
+
+- AC-U.1 (non-test) a malformed letter-group id the parser must not silently drop -- evidence: x -- satisfied: yes
+EOF
+  run run_intent ac gate ST0001
+  assert_failure
+  assert_output_contains "malformed"
+}
+
+# Opt-in by presence (clarified 2026-06-16): a thread with NO acceptance.md has
+# not opted into the AC regime, so the gate stays OPEN (exit 0) and it closes as
+# it always did. Only a PRESENT acceptance.md is enforced (unsatisfied ACs or
+# malformed lines block). Old STs are never forced to author a contract.
+@test "gate stays open for a thread with no acceptance.md (opt-out by absence)" {
+  project_dir=$(create_test_project "Close-gate No-Contract Test"); cd "$project_dir"; export EDITOR=echo
+  run run_intent st new "Contractless Thread"; assert_success
+  rm -f intent/st/NOT-STARTED/ST0001/acceptance.md
+  run run_intent ac gate ST0001
+  assert_success
+}

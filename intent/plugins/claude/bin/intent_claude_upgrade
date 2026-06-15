@@ -227,14 +227,17 @@ add_warning() {
 # in scope.
 canon_substitute_placeholders() {
   local file="$1"
-  # Use | as sed delimiter for INTENT_HOME to tolerate / in paths.
-  sed -i '' \
+  local tmp
+  tmp="$(mktemp)"
+  # Portable in-place edit; avoids the BSD-only in-place flag that breaks
+  # GNU/Linux. | delimiter for INTENT_HOME tolerates / in paths.
+  sed \
     -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
     -e "s/\[\[AUTHOR\]\]/$CANON_AUTHOR/g" \
     -e "s/\[\[DATE\]\]/$CANON_DATE/g" \
     -e "s/\[\[INTENT_VERSION\]\]/$TARGET_VERSION/g" \
     -e "s|\[\[INTENT_HOME\]\]|$INTENT_ROOT|g" \
-    "$file"
+    "$file" > "$tmp" && mv "$tmp" "$file"
 }
 
 # Copy $src -> $dst. Parent dir created if absent. Placeholder-substituted.
@@ -577,8 +580,9 @@ if [ -f "$PROJECT_DIR/intent/.config/config.json" ]; then
   if [ "$current_version" = "$TARGET_VERSION" ]; then
     echo -e "  intent_version:     ${GREEN}$current_version (current)${NC}"
   else
-    echo -e "  intent_version:     ${YELLOW}$current_version -> $TARGET_VERSION${NC}"
-    add_action "VERSION_BUMP:$current_version:$TARGET_VERSION"
+    # Version display only -- intent_upgrade is the sole stamper (ST0043); the
+    # canon engine no longer bumps the version.
+    echo -e "  intent_version:     ${YELLOW}$current_version (run 'intent upgrade' to bump)${NC}"
   fi
 elif [ -f "$PROJECT_DIR/.intent/config.json" ]; then
   # Pre-v2.10 project: config still at the legacy top-level .intent/. Not a
@@ -928,12 +932,6 @@ if [ ${#ACTIONS[@]} -gt 0 ]; then
   for action in "${ACTIONS[@]}"; do
     # Pretty-print action codes
     case "$action" in
-      VERSION_BUMP:*)
-        old_ver="${action#VERSION_BUMP:}"
-        old_ver="${old_ver%%:*}"
-        new_ver="${action##*:}"
-        echo "  $idx. Update intent_version: $old_ver -> $new_ver"
-        ;;
       RENAME_SKILL:*)
         old_name="${action#RENAME_SKILL:}"
         old_name="${old_name%%:*}"
@@ -1044,20 +1042,6 @@ echo ""
 # Execute each action
 for action in "${ACTIONS[@]}"; do
   case "$action" in
-    VERSION_BUMP:*)
-      new_ver="${action##*:}"
-      echo "  Updating intent_version to $new_ver..."
-      if [ -f "$PROJECT_DIR/intent/.config/config.json" ]; then
-        sed -i '' "s/\"intent_version\": *\"[^\"]*\"/\"intent_version\": \"$new_ver\"/" "$PROJECT_DIR/intent/.config/config.json"
-        echo -e "    ${GREEN}ok:${NC} intent/.config/config.json updated"
-      fi
-      # Update CLAUDE.md version references if present
-      if [ -f "$PROJECT_DIR/CLAUDE.md" ]; then
-        sed -i '' "s/Intent v[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/Intent v$new_ver/g" "$PROJECT_DIR/CLAUDE.md"
-        echo -e "    ${GREEN}ok:${NC} CLAUDE.md version references updated"
-      fi
-      ;;
-
     "DELETE intent/llm/llm_preamble.md")
       echo "  Deleting intent/llm/llm_preamble.md..."
       rm -f "$PROJECT_DIR/intent/llm/llm_preamble.md"

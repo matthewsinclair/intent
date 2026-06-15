@@ -78,7 +78,7 @@ If after running `/in-session` the gate is **still** firing on the next prompt -
 
 ### 5. Pickup the whiteboard
 
-If `intent/whiteboard/` exists in the project root, invoke `/in-whiteboard pickup`. This reads stream files, surfaces other-stream state + any inbound asks, and touches this session's heartbeat. If the directory doesn't exist, skip silently -- the whiteboard is opt-in per project.
+If `intent/whiteboard/` exists in the project root, invoke `/in-whiteboard pickup`. This reads your node's board + inboxes, surfaces peer-node state + any inbound asks, and touches this session's heartbeat. If the directory doesn't exist, skip silently -- the whiteboard is opt-in per project.
 
 The whiteboard is the live cross-session coordination channel; `wip.md` is the post-session snapshot. See `/in-whiteboard` for protocol details.
 

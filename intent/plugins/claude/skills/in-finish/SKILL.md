@@ -11,7 +11,7 @@ End-of-session wrap-up. Ensure all state is captured so the next session can pic
 
 ### 1. Release the whiteboard
 
-If `intent/whiteboard/` exists in the project root, invoke `/in-whiteboard release`. This sets your stream's `status: paused` and refreshes its heartbeat before any doc updates are committed. Before releasing, consider whether any entries in your stream file's `## Recent decisions affecting other streams` should be migrated into `wip.md` / `done.md` for permanent record -- the whiteboard is the live channel, `wip.md` / `done.md` are the snapshots. If the directory doesn't exist, skip silently.
+If `intent/whiteboard/` exists in the project root, invoke `/in-whiteboard release`. This sets your node's board `status: paused` and refreshes its heartbeat before any doc updates are committed. Before releasing, consider whether any entries in your node's `## Decisions` should be migrated into `wip.md` / `done.md` for permanent record -- the whiteboard is the live channel, `wip.md` / `done.md` are the snapshots. If the directory doesn't exist, skip silently.
 
 ### 2. Update steel thread docs
 
@@ -58,7 +58,7 @@ Do NOT write new code during session finish. This step is documentation only. Co
 
 Before finishing, consider:
 
-- `/in-whiteboard release` -- pause this session's whiteboard stream (fires automatically as step 1 if `intent/whiteboard/` exists)
+- `/in-whiteboard release` -- pause this session's whiteboard node (fires automatically as step 1 if `intent/whiteboard/` exists)
 - `/in-verify` -- verify any completion claims made this session
 
 ## Red Flags

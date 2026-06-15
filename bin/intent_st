@@ -546,7 +546,8 @@ TEMPLATE
       fi
 
       # Acceptance close-gate (ST0044): refuse to close while the in-scope
-      # contract is BLOCKED. Opt-in -- silent pass when no acceptance.md / no ACs.
+      # contract is BLOCKED. Opt-in by presence -- a missing acceptance.md or no
+      # real ACs leaves the gate open; only a present contract is enforced.
       "$INTENT_HOME/bin/intent_acceptance" ac gate "$ST_ID" \
         || error "cannot close $ST_ID: acceptance contract is BLOCKED (run 'intent ac status $ST_ID')"
 

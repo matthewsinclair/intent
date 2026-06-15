@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.0] - 2026-06-15
+
+Minor release landing two steel threads. **ST0043** rewrites `intent upgrade` from a 524-line version-case ladder into a ~150-line convergent orchestrator and removes every migration path below the v2.9.0 fleet floor (fail-forward). **ST0045** formalises the Whiteboard Protocol 3.0 rewrite (per-node directories + single-writer inboxes + the `hv` hypervisor node) with an AC/AT contract and closes the reference-vs-skill drift. It is a minor, not a patch, because ST0043 changes upgrade behaviour for every project. Two close-gate hardening fixes ride along.
+
+### Changed
+
+- **`intent upgrade` is now a convergent orchestrator (ST0043).** `bin/intent_upgrade` rewritten to: detect state -> semver sanity before any mutation (error on missing/unparseable version; refuse a downgrade; refuse below the v2.9.0 floor; a future/unknown version no longer hard-fails with "Unknown version") -> verified backup -> walk a state-probed ledger (`LEDGER="relocate_config languages_field"`, dispatched by the `step_<id>_needs/_run/_verify` naming convention) -> one delegation to `intent claude upgrade --apply` -> stamp the target once, last. Applicability is decided by each step probing on-disk state, so an interrupted upgrade re-run does exactly the remaining work.
+- **Single version stamper.** `intent_upgrade` is the sole writer of `intent_version` (jq, once, last). `intent/plugins/claude/bin/intent_claude_upgrade` is the sole canon engine; its `VERSION_BUMP` action and both version `sed` stamps are removed, and `canon_substitute_placeholders` is rewritten off BSD `sed -i ''` to a portable `sed > tmp && mv` so canon substitution works on Linux.
+- **Whiteboard Protocol 3.0 is the documented model (ST0045).** The `in-whiteboard` skill, the `in-session` / `in-finish` chaining steps, and the "Multi-session coordination" section of `intent/docs/working-with-llms.md` now describe per-node directories with single-writer `wip.md` + per-sender `inbox.<sender>.md`, the `hv` hypervisor node, and `announce`-based shared-platform coordination, replacing the retired 2.0 flat-file model (shared `asks.md`, per-stream files, a shared platform file).
+
+### Added
+
+- **`bin/intent_migrations` (ST0043)** -- a new upgrade-only file (sourced only by `intent_upgrade`) holding the two ledger-step trios plus `intent_relocate_dotintent` (moved verbatim from helpers). No step writes the version.
+- **Whiteboard 3.0 skill completeness (ST0045)** -- the `in-whiteboard` skill now specifies inbox-file init (`# inbox: <sender> -> <recipient>` header + single-writer note + `_(empty)_` sentinel + creation on first `ask`), `.history/.gitkeep` scaffolding, the `hv` node variant (human-driven, `session_id` optional/`none`, advisory heartbeat, `## Standing directives`), and the message-entry format (required vs recommended fields).
+- **Mechanical guards** -- `tests/unit/intent_upgrade_orchestrator.bats` + `intent_migrations_{relocate,languages}.bats` (ST0043); `tests/unit/whiteboard_protocol_3_guard.bats` (ST0045, pins out any live 2.0 reference); AT-01.8 in `intent_claude_upgrade.bats` (canon-engine portability + no `VERSION_BUMP`).
+
+### Removed
+
+- **All migration code below the v2.9.0 fleet floor (ST0043, fail-forward).** `bin/intent_helpers` shrank 2026 -> 369 lines: every `migrate_v*_to_*` (v0 through v2.8.2->v2.9.0), every `needs_v2_*` predicate, the pre-v2 YAML/JSON/structure converters, and the migration ceremony helpers (`show_migration_summary`, `count_migration_files`, `create_project_backup`, `needs_migration`, ...). `detect_project_version` (+ `detect_stp_version`) stays shared. The only upgrade-time `~/.intent/ext/` bootstrap went with `migrate_v2_8_2_to_v2_9_0` (verified safe: `intent ext` creates the dir on demand; the fleet is already v2.9.0+). Deleted tests: `ext_migration.bats`, `migrate_v2_9_0_to_v2_10_0.bats`, `migrate_v2_10_x_to_v2_11_0.bats`, and the `create_project_backup` test.
+
+### Fixed
+
+- **The acceptance close-gate no longer drops malformed contract lines (F1).** An AC/AT line that failed the strict numeric grammar (eg a letter-group id like `AC-U.1`) was silently dropped, which could make a gate vacuously pass. `bin/intent_acceptance` now detects malformed lines on every read path and blocks the gate loudly. (F6, a proposal to block `st done` when `acceptance.md` is absent, was deliberately declined: a thread with no contract has not opted into the AC regime, so the gate stays open -- opt-in by presence, unchanged for legacy threads.)
+
 ## [2.11.14] - 2026-06-14
 
 Patch fixing `intent organize` on Linux. The command tallied moves with `((counter++))` under `set -e`; in bash, `((x++))` returns exit status 1 when `x` is 0 (post-increment yields the old value), and bash 5.x's `set -e` acts on that, aborting the script after the first thread. macOS bash 3.2 is lenient in that loop/case context, so the break stayed invisible behind macOS-green CI from v2.11.12 (when `intent organize` was resurrected) through v2.11.13 -- Ubuntu CI had been red the whole time. The defect class is converted to `x=$((x + 1))` (an assignment always returns 0) and pinned shut by a guard test.

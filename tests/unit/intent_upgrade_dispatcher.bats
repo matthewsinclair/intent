@@ -1,19 +1,13 @@
 #!/usr/bin/env bats
-# Regression guard: bin/intent_upgrade's version-case dispatcher must accept
-# v2.11.x source versions. v2.11.0 -> v2.11.1 broke because the dispatcher
-# had no case for "2.11.0" and fell into `*) error "Unknown version"`. The
-# fix uses a "2.11.*" glob; this test pins that contract.
+# Behavioural guard for the convergent intent_upgrade orchestrator (ST0043). The
+# version-case ladder is gone; these assert the orchestrator lands a project at
+# the live target stamp, installs/syncs canon, and aborts safely on a failed
+# backup. The orchestrator's full contract lives in
+# tests/unit/intent_upgrade_orchestrator.bats.
 
 load "../lib/test_helper.bash"
 
 UPGRADE="${INTENT_PROJECT_ROOT}/bin/intent_upgrade"
-
-@test "dispatcher case statement covers v2.11.x via glob" {
-  # The pattern must be the glob form `"2.11."*)` so future patches don't
-  # require a fresh case each release.
-  run grep -E '^[[:space:]]+"2\.11\."\*\)' "$UPGRADE"
-  assert_success
-}
 
 @test "v2.10.x project lands at current target stamp, not hard-coded 2.11.0" {
   # Regression guard for v2.11.5: migrate_v2_10_x_to_v2_11_0 used to hard-code

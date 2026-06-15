@@ -1,18 +1,18 @@
 #!/usr/bin/env bats
-# Tests for migrate_v2_9_0_to_v2_10_0 in bin/intent_helpers (ST0036/WP01).
-#
-# Each scenario constructs a synthetic project layout under TEST_TEMP_DIR,
-# sources the migration helpers, invokes intent_relocate_dotintent directly
-# (bypassing the canon-apply phase that needs the full intent CLI), and
-# asserts on the resulting layout.
+# Tests for the relocate_config ledger step in bin/intent_migrations (ST0036,
+# moved out of bin/intent_helpers by ST0043). intent_relocate_dotintent performs
+# the atomic .intent/ -> intent/.config/ move; step_relocate_config_needs is the
+# state probe the orchestrator uses. The version stamp is the orchestrator's job
+# (see tests/unit/intent_upgrade_orchestrator.bats), never this step's.
 
 load "../lib/test_helper.bash"
 
 setup() {
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-test-relocate-XXXXXX)"
-  # Source helpers AFTER mktemp -- intent_helpers exports functions only.
   # shellcheck source=/dev/null
   source "${INTENT_PROJECT_ROOT}/bin/intent_helpers"
+  # shellcheck source=/dev/null
+  source "${INTENT_PROJECT_ROOT}/bin/intent_migrations"
 }
 
 teardown() {
@@ -39,8 +39,8 @@ JSON
   [ -f "$proj/intent/.config/config.json" ] || fail "config.json missing in new location"
   [ ! -f "$proj/intent/.config/.migration-in-progress" ] || fail "sentinel left behind"
 
-  # intent_relocate_dotintent does NOT bump the stamp (that's a separate phase
-  # in migrate_v2_9_0_to_v2_10_0); the stamp should still read 2.9.0 here.
+  # The relocate step does NOT bump the stamp (the orchestrator owns the stamp);
+  # the version should still read 2.9.0 here.
   local v
   v=$(jq -r '.intent_version' "$proj/intent/.config/config.json")
   [ "$v" = "2.9.0" ] || fail "expected stamp 2.9.0 (relocate-only), got '$v'"
@@ -55,7 +55,6 @@ JSON
 
   intent_relocate_dotintent "$proj" >/dev/null 2>&1 || fail "first relocate failed"
 
-  # Tree-snapshot before second call.
   local before_sum
   before_sum=$(cd "$proj" && find . -type f | sort | xargs shasum 2>/dev/null | shasum | awk '{print $1}')
 
@@ -132,57 +131,24 @@ JSON
   [ "$before_sum" = "$after_sum" ] || fail "filesystem mutated despite conflict refusal"
 }
 
-# --- 6. needs_v2_10_0_upgrade is layout-aware -----------------------------
+# --- 6. step_relocate_config_needs is layout-aware ------------------------
 
-@test "needs_v2_10_0_upgrade: stamp 2.10.0 + .intent/ layout returns 0 (needs upgrade)" {
+@test "step_relocate_config_needs: .intent/ present and no intent/.config/ -> needs (0)" {
   local proj="$TEST_TEMP_DIR/proj"
   mkdir -p "$proj/.intent"
   echo '{"intent_version":"2.10.0"}' > "$proj/.intent/config.json"
 
-  # Stamp is at target but layout is pre-relocation -- migration must fire.
-  needs_v2_10_0_upgrade "2.10.0" "$proj"
-  [ "$?" -eq 0 ] || fail "expected needs_v2_10_0_upgrade to return 0 when layout is .intent/"
+  # Stamp may be at target, but the pre-relocation layout means relocate must run.
+  step_relocate_config_needs "$proj"
+  [ "$?" -eq 0 ] || fail "expected relocate needed when layout is .intent/"
 }
 
-@test "needs_v2_10_0_upgrade: stamp 2.10.0 + intent/.config/ layout returns 1 (no upgrade)" {
+@test "step_relocate_config_needs: already on intent/.config/ -> not needed (1)" {
   local proj="$TEST_TEMP_DIR/proj"
   mkdir -p "$proj/intent/.config"
   echo '{"intent_version":"2.10.0"}' > "$proj/intent/.config/config.json"
 
-  # Both stamp and layout at target -- no work to do.
-  if needs_v2_10_0_upgrade "2.10.0" "$proj"; then
-    fail "expected needs_v2_10_0_upgrade to return 1 when both stamp and layout at target"
+  if step_relocate_config_needs "$proj"; then
+    fail "expected relocate not needed when already on intent/.config/"
   fi
 }
-
-@test "needs_v2_10_0_upgrade: stamp 2.9.0 + .intent/ layout returns 0 (chronological)" {
-  local proj="$TEST_TEMP_DIR/proj"
-  mkdir -p "$proj/.intent"
-  echo '{"intent_version":"2.9.0"}' > "$proj/.intent/config.json"
-
-  # Standard pre-2.10.0 case.
-  needs_v2_10_0_upgrade "2.9.0" "$proj"
-  [ "$?" -eq 0 ] || fail "expected needs_v2_10_0_upgrade to return 0 for 2.9.0"
-}
-
-@test "needs_v2_10_0_upgrade: stamp 2.10.0 + no project_root arg defaults to cwd" {
-  local proj="$TEST_TEMP_DIR/proj"
-  mkdir -p "$proj/.intent"
-  echo '{"intent_version":"2.10.0"}' > "$proj/.intent/config.json"
-
-  cd "$proj" || fail "cannot cd into synthetic project"
-  needs_v2_10_0_upgrade "2.10.0"
-  local rc=$?
-  cd / || true  # leave temp dir before teardown rm -rf
-
-  [ "$rc" -eq 0 ] || fail "expected needs_v2_10_0_upgrade to find .intent/ via default cwd"
-}
-
-# --- 7. Cross-filesystem fallback --------------------------------------
-#
-# Deleted (ST0042 T10/F-TEST-11): the test skipped unconditionally on every
-# platform (Darwin skip, /dev/shm skip, then a final unconditional skip even
-# on Linux) -- permanent green with zero coverage. The related code path
-# (relocate_dotintent's symlink refusal) is exercised by test 4 above; the
-# true cross-FS scenario needs a CI-level bind mount, which belongs in CI
-# config, not a permanently-skipped local test.

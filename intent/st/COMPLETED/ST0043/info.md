@@ -1,10 +1,10 @@
 ---
 verblock: "11 Jun 2026:v0.1: matts - Initial version"
 intent_version: 2.11.11
-status: WIP
+status: Completed
 slug: rethink-intent-upgrade
 created: 20260611
-completed:
+completed: 20260615
 ---
 
 # ST0043: Rethink 'intent upgrade'

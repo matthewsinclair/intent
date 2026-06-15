@@ -33,23 +33,4 @@ load "../lib/test_helper.bash"
   assert_output_contains "not in an Intent project"
 }
 
-@test "backup uses new .backup_ prefix not .stp_backup_" {
-  project_dir=$(create_test_project "Backup Test")
-  cd "$project_dir"
-  
-  # Source helpers
-  source "${INTENT_BIN_DIR}/intent_helpers"
-  
-  # Create backup
-  create_project_backup "$project_dir"
-  
-  # Check new prefix is used
-  backup_dirs=(.backup_*)
-  [ -d "${backup_dirs[0]}" ] || fail "No .backup_* directory found"
-  
-  # Old prefix should not exist
-  if ls .stp_backup_* 2>/dev/null; then
-    fail "Found old .stp_backup_* directory"
-  fi
-}
 
