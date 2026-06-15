@@ -38,7 +38,7 @@ intent/whiteboard/
   <node>/
     wip.md                  # the node's live board: frontmatter + DOING + TODO + watch-outs + decisions
     inbox.<sender>.md       # one per OTHER node: messages FROM that sender
-    history/YYYYMMDD/        # the node's archived DONE work + handled inbox entries
+    .history/YYYYMMDD/        # the node's archived DONE work + handled inbox entries
 ```
 
 Single-writer rule:
@@ -60,7 +60,7 @@ focus: "<one-line current goal>"
 claims: [STxxxx, ...]
 ---
 # <Name> (<node>)
-## DOING        -- in-flight work (archived into history/ when done)
+## DOING        -- in-flight work (archived into .history/ when done)
 ## TODO         -- queued / next
 ## Watch-outs   -- durable cautions peers should know (standing; not archived)
 ## Decisions    -- cross-node decisions, broadcast by being read at pickup
@@ -122,15 +122,15 @@ Use for 1-to-all signals -- eg "touching `apps/lamplight/**` for ST-X" (a shared
 
 ### clear <sender>
 
-1. In your `<you>/inbox.<sender>.md`, move the handled entries verbatim into `<you>/history/<YYYYMMDD>/inbox.<sender>.md`, and remove them from the live inbox (leaving the header + `_(empty)_` if none remain).
+1. In your `<you>/inbox.<sender>.md`, move the handled entries verbatim into `<you>/.history/<YYYYMMDD>/inbox.<sender>.md`, and remove them from the live inbox (leaving the header + `_(empty)_` if none remain).
 2. You own your inbox -- no peer files touched. Touch heartbeat.
 
 ### archive
 
 Roll your OWN node's DONE content out of the live files into your own history, daily-or-more, so the live files stay lean (they are read on every pickup).
 
-1. Ensure `<you>/history/<YYYYMMDD>/` exists (today, or the content's own date).
-2. From `<you>/wip.md`: move DONE `## DOING` items + superseded blocks into `<you>/history/<YYYYMMDD>/wip.md`. KEEP frontmatter, live DOING/TODO, `## Watch-outs`, and still-relevant `## Decisions`.
+1. Ensure `<you>/.history/<YYYYMMDD>/` exists (today, or the content's own date).
+2. From `<you>/wip.md`: move DONE `## DOING` items + superseded blocks into `<you>/.history/<YYYYMMDD>/wip.md`. KEEP frontmatter, live DOING/TODO, `## Watch-outs`, and still-relevant `## Decisions`.
 3. From each `<you>/inbox.<sender>.md`: move handled entries into history (same as `clear`).
 4. `prettier --write` the touched files if the project formats markdown.
 5. **Single-owner: you only ever touch your own `<you>/` directory, so there is no peer-collision hazard** -- this is the key simplification over 2.0's shared-file archive. Commit via explicit pathspec (`git commit --only <you>/...`), never `-A`.
@@ -179,7 +179,7 @@ A validation node is the independent check that the other nodes' landed or claim
 4. **Broadcast via `announce` -> peers' inboxes.** No shared file; a shared platform layer (eg `apps/lamplight/**`) is coordinated by announcing before you touch it.
 5. **Heartbeat older than 7 days marks a claim reclaimable** -- reclaim requires explicit hypervisor acknowledgement.
 6. **`/compact` does NOT end a session** -- status stays `active`; the next `pickup` touches the heartbeat.
-7. **Archive your own dir only**, daily-or-more; `history/YYYYMMDD/` is append-only and never reloaded on pickup.
+7. **Archive your own dir only**, daily-or-more; `.history/YYYYMMDD/` is append-only and never reloaded on pickup.
 8. **The human is `hv`** in all protocol language, never by name.
 
 ## Why this exists

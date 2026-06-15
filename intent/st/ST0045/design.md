@@ -24,7 +24,7 @@ intent/whiteboard/
   <node>/
     wip.md                  # the node's live board (frontmatter + DOING + TODO + watch-outs + decisions)
     inbox.<sender>.md       # one per OTHER node: messages FROM that sender
-    history/YYYYMMDD/        # the node's archived DONE work + handled inbox entries
+    .history/YYYYMMDD/        # the node's archived DONE work + handled inbox entries
 ```
 
 - `<node>/wip.md` -- written only by the node.
@@ -54,7 +54,7 @@ Rewritten for the node model. Subcommand delta vs 2.0:
 - `decide` -- appends to own `wip.md` `## Decisions` (was: own stream file's "Recent decisions" section).
 - `pickup` -- reads own `wip.md` + own four inboxes + peers' `wip.md` frontmatter (was: read every `*.md` + filter `asks.md` on `to:`).
 - `claim` / `unclaim` -- now in `wip.md` `claims` (renamed from `claimed_steel_threads`).
-- Removed: the `lamplight` subcommand; the `to:` / `from:` ask header (the path encodes it); the weekly Monday-anchored history buckets (now per-node `history/YYYYMMDD/`).
+- Removed: the `lamplight` subcommand; the `to:` / `from:` ask header (the path encodes it); the weekly Monday-anchored history buckets (now per-node `.history/YYYYMMDD/`).
 - Identity: the 2-letter moniker is dir + routing key + handle (collapses 2.0's separate `stream_id` + `handle`).
 
 ## 6. Migration playbook (the Lamplight reference implementation)
