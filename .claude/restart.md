@@ -5,20 +5,21 @@
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the gate. (Languages: shell only; no whiteboard in THIS project.)
 2. **Read this file + `intent/wip.md`.**
 
-## State: v2.12.0 STAGED + COMMITTED -- awaiting `scripts/release --minor`
+## State: v2.12.0 SHIPPED + field-validated -- no active arc
 
-ST0043 + ST0045 are BOTH Completed (closed through their own gates: ST0043 8/8, ST0045 9/9) and relocated to `intent/st/COMPLETED/`. Full suite green (matts). All work is committed; the tree is clean for the release pre-flight.
+ST0043 + ST0045 both Completed (closed through their own gates: ST0043 8/8, ST0045 9/9), relocated to `intent/st/COMPLETED/`. Tag `v2.12.0` (commit `4e5ac15`) on both remotes + GitHub release; post-tag wrap `5f8dace` (config.json `intent_version` -> 2.12.0 + history header finalised) pushed. Full suite green (matts). First fleet upgrade (Lamplight 2.11.13 -> 2.12.0) ran clean through the new orchestrator -- `intent doctor` green on 2.12.0.
 
-**The ONE remaining action is matts's:** `bash scripts/release --minor`. The script (read 2026-06-15) requires a clean tree (pre-flight aborts otherwise), then bumps `VERSION` 2.11.14 -> 2.12.0, runs `intent agents sync`, commits `release: v2.12.0` (VERSION + CHANGELOG.md + AGENTS.md), tags, pushes `local` + `upstream`, cuts the GH release. NEVER pass `--no-confirm`. After the tag, the manual post-release wrap bumps `config.json` `intent_version` to 2.12.0 (a release tag carries the prior config version by design).
+There is **no active steel thread**. Next work comes from the backlog in `wip.md`.
 
-If a NEW session starts after the release is cut: verify the tag exists (`git tag | grep v2.12.0`), confirm `config.json` `intent_version` == 2.12.0, then this arc is fully done -- move to the standing backlog in `wip.md`.
+## What shipped (context only -- closed)
 
-## What shipped (for context only -- already built + closed)
+- **ST0043** -- `intent upgrade` convergent orchestrator (~150 lines): detect -> semver sanity (downgrade refusal, v2.9.0 floor, no "Unknown version") -> verified backup -> state-probed `LEDGER` walk -> single `intent claude upgrade --apply` -> stamp once, last. New upgrade-only `bin/intent_migrations`; `bin/intent_helpers` pruned 2026 -> 369 lines (all sub-v2.9.0 migration code, fail-forward); canon engine lost `VERSION_BUMP` + BSD `sed -i ''` (Linux-safe). Detail: `intent/st/COMPLETED/ST0043/`.
+- **ST0045** -- Whiteboard Protocol 3.0: per-node dirs + single-writer `wip.md`/`inbox.<sender>.md` + `hv` node. Skill completeness + reference-vs-skill drift closed (`in-session`/`in-finish` + `working-with-llms.md`); guard `tests/unit/whiteboard_protocol_3_guard.bats`. Detail: `intent/st/COMPLETED/ST0045/`.
+- **Close-gate (in `bin/intent_acceptance`)** -- F1: malformed/non-numeric AC/AT lines block loudly (was silent drop). F6: missing `acceptance.md` deliberately left opt-in-by-presence (gate stays open; matts ruling) -- do NOT re-add "missing must block".
 
-- **ST0043** -- `intent upgrade` convergent orchestrator. `bin/intent_upgrade` (~150 lines): detect -> semver sanity (downgrade refusal, v2.9.0 floor, no "Unknown version") -> verified backup -> state-probed `LEDGER` walk -> single `intent claude upgrade --apply` -> stamp once, last. New upgrade-only `bin/intent_migrations` (relocate_config + languages_field steps + `intent_relocate_dotintent`). `bin/intent_helpers` pruned 2026 -> 369 lines (all sub-v2.9.0 migration code; fail-forward). Canon engine (`intent/plugins/claude/bin/intent_claude_upgrade`) lost `VERSION_BUMP` + BSD `sed -i ''` (Linux-safe); orchestrator is sole stamper. Detail: `intent/st/COMPLETED/ST0043/`.
-- **ST0045** -- Whiteboard Protocol 3.0. `in-whiteboard/SKILL.md` gained inbox-file init (`# inbox:` header + single-writer + `_(empty)_` sentinel + creation on first `ask`), `.history/.gitkeep`, the `hv` node variant, message-entry required-vs-recommended. Drift closed in `in-session`/`in-finish` SKILL.md + the `working-with-llms.md` whiteboard section. Guard: `tests/unit/whiteboard_protocol_3_guard.bats`. 3.0 skills synced to `~/.claude`. Detail: `intent/st/COMPLETED/ST0045/`.
-- **Close-gate (release-scoped, in `bin/intent_acceptance`)** -- F1: malformed/non-numeric AC/AT lines block loudly (was silent drop). F6: missing `acceptance.md` deliberately left opt-in-by-presence (gate stays open; matts ruling). Guards in `acceptance_close_gate.bats`.
-- Release docs: `CHANGELOG.md` `[2.12.0]`, `intent/history/v2.12.0.md`, `intent/done.md` ledger + Releases bullet.
+## v2.12+ backlog (from wip.md)
+
+`/in-review` Elixir fleet sweep (Anvil, Lamplight, MeetZaya, MicroGPTEx, Conflab); Conflab test findings (TEST-001/005/007); Homebrew tap; `scripts/release` v2 polish (config.json bump still a manual post-tag wrap); cosmetic: `intent_claude_upgrade` Phase-1 prints "(run 'intent upgrade' to bump)" even mid-upgrade; `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft; skill-sync script-change blind spot; ST0040 + ST0041 deferred items (field evidence only).
 
 ## Conventions
 

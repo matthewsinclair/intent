@@ -1,24 +1,28 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-06-14)
+## Current state (2026-06-15)
 
-v2.11.14 is the shipped baseline (a Linux `intent organize` fix -- `((x++))` under `set -e` -- atop ST0044's v2.11.13). **ST0044 is COMPLETE + SHIPPED** (2026-06-14) -- `acceptance.md` as a default steel-thread doc + the AC/AT process that makes "done" externally verified; dogfooded on itself with matts as verifier and closed through its own close-gate (16/16). Relocated to `intent/st/COMPLETED/ST0044/` and shipped as a standalone patch (tag `5cc676a`, both remotes + GitHub release) on opt-in-by-presence grounds. Terse ledger `intent/done.md`; narrative `intent/history/v2.11.13.md`. **Active next: ST0043** (rethink `intent upgrade`, its own v2.12.0 minor) -- its own session.
+**v2.12.0 is SHIPPED + field-validated.** Tag `v2.12.0` (commit `4e5ac15`) on both remotes + GitHub release; post-tag wrap `5f8dace` (config.json `intent_version` -> 2.12.0 + history header finalised) pushed. The release bundles two completed steel threads, both run through the ST0044 five-step with matts as verifier and closed through their own gates. First fleet upgrade (Lamplight, 2.11.13 -> 2.12.0) ran clean: state-probed ledger correctly no-op'd both already-satisfied steps, single stamp last, `intent doctor` green on 2.12.0. No active arc -- next work is from the backlog in `wip.md`.
 
-## ST0044 -- acceptance.md + AC/AT process (COMPLETE)
+## ST0043 -- Rethink `intent upgrade` (COMPLETE, v2.12.0)
 
-Done 2026-06-14, dogfooded on itself with matts as verifier, closed through the close-gate it built (16/16 ACs). `acceptance.md` is a default steel-thread doc; AC = ratified coverage boundary, AT = red-to-green proof (green only from red); `intent ac` / `intent at` instrument the contract; the close-gate (`intent ac gate`, consulted by `st done` / `wp done`) is opt-in / legacy-safe. Five-step in `working-with-llms.md` D11 with pointers in `/in-plan` / `/in-verify` / `/in-finish`. Full detail: `intent/st/COMPLETED/ST0044/`; narrative: `intent/history/v2.11.13.md`.
+`intent upgrade` rewritten from a 524-line version-case ladder into a ~150-line convergent orchestrator: detect -> semver sanity (downgrade refusal, v2.9.0 fleet floor, no "Unknown version") -> verified backup -> state-probed `LEDGER` walk (`step_<id>_needs/_run/_verify`) -> single `intent claude upgrade --apply` -> stamp once, last. All sub-v2.9.0 migration code pruned fail-forward (`bin/intent_helpers` 2026 -> 369 lines); the two surviving steps + `intent_relocate_dotintent` live in the new upgrade-only `bin/intent_migrations`. Canon engine lost `VERSION_BUMP` + BSD `sed -i ''` (Linux-safe); orchestrator is sole stamper. 8/8 ACs. Detail: `intent/st/COMPLETED/ST0043/`.
 
-## ST0043 -- Rethink `intent upgrade` (active next)
+## ST0045 -- Whiteboard Protocol 3.0 (COMPLETE, v2.12.0)
 
-WIP. Architecture-B in `intent/st/ST0043/info.md`; ACs drafted in `intent/st/ST0043/acceptance.md`. Targets v2.12.0.
+Per-node `<node>/` dirs + single-writer `wip.md` / `inbox.<sender>.md` + the `hv` hypervisor node, superseding the 2.0 flat-file model (ST0040). Skill body was rewritten pre-contract; ST0045 added the AC/AT contract, the four skill-completeness corners (inbox init + `_(empty)_` sentinel, `.history/.gitkeep`, hv variant, message-entry fields), and closed reference-vs-skill drift (`in-session` / `in-finish` + `working-with-llms.md`); guard `tests/unit/whiteboard_protocol_3_guard.bats`. 9/9 ACs. Detail: `intent/st/COMPLETED/ST0045/`.
+
+## Close-gate hardening (v2.12.0, in `bin/intent_acceptance`)
+
+F1: malformed / non-numeric AC/AT lines now block the gate loudly (was a silent drop -> vacuous green). F6: a missing `acceptance.md` is deliberately left opt-in-by-presence (gate stays OPEN; matts ruling) -- do NOT re-add "missing must block". Guards in `acceptance_close_gate.bats`.
 
 ## Where detail lives
 
-- `.claude/restart.md` -- next-session focus (ST0043 kickoff).
-- `intent/st/COMPLETED/ST0044/` -- ST0044 docs (closed); `intent/st/ST0043/` -- ST0043 design + ACs.
+- `.claude/restart.md` -- next-session focus.
+- `intent/st/COMPLETED/ST0043/` + `intent/st/COMPLETED/ST0045/` -- closed thread docs.
 - `intent/wip.md` -- current-state summary + backlog.
-- `intent/done.md` + `intent/history/v2.11.*.md` -- shipped-work ledger / narratives.
+- `intent/done.md` + `intent/history/v2.12.0.md` -- shipped-work ledger / narrative.
 
 ## Conventions (carry forward)
 
-T-shirt sizing; intent CLI for ST/WP; never manually wrap markdown; no Claude attribution (end commit bodies `(C) hello@matthewsinclair.com`); no vanity metrics; fail-forward; commit to main only when asked; user runs the full test suite externally (single-file bats fine); matts is the acceptance verifier this session.
+T-shirt sizing; intent CLI for ST/WP; never manually wrap markdown; no Claude attribution (end commit bodies `(C) hello@matthewsinclair.com`); no vanity metrics; fail-forward; commit to main only when asked; matts runs the full test suite externally (single-file bats fine); matts is the acceptance verifier; never `scripts/release --no-confirm`.
