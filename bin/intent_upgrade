@@ -125,7 +125,11 @@ if [ "$NO_BACKUP" != true ]; then
   # a backup that does not exist (ST0042 T3).
   for item in .intent intent CLAUDE.md; do
     if [ -e "$item" ]; then
-      cp -r "$item" "$BACKUP_DIR/" \
+      # -R (not -r): copy symlinks AS symlinks. BSD/macOS `cp -r` FOLLOWS them, so a
+      # stale/broken symlink in the source (eg a pre-v2.10.0 cross-repo link into a
+      # since-moved file) makes the backup -- and thus the whole upgrade -- abort.
+      # -R preserves the link untouched and is the POSIX-portable form.
+      cp -R "$item" "$BACKUP_DIR/" \
         || error "Backup of $item to $BACKUP_DIR failed; aborting upgrade (nothing has been migrated)"
     fi
   done

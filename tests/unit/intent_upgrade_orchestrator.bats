@@ -120,6 +120,24 @@ EOF
   teardown_fake_home; cd "${INTENT_PROJECT_ROOT}" || exit 1; rm -rf "$TEST_TEMP_DIR"
 }
 
+@test "verified backup tolerates a broken symlink in the source (cp -R, not -r)" {
+  # Regression: a stale/broken symlink in the backed-up tree (eg a pre-v2.10.0
+  # cross-repo link to a since-moved file -- surfaced on MeetZaya) must not abort
+  # the upgrade. BSD/macOS `cp -r` FOLLOWS the link and fails on the dead target;
+  # `cp -R` preserves it. Red on macOS against `cp -r`; green with `cp -R`.
+  TEST_TEMP_DIR="$(mktemp -d /tmp/intent-orch-symlink-XXXXXX)"; cd "$TEST_TEMP_DIR" || exit 1
+  setup_fake_home
+  _scaffold "intent/.config/config.json" "2.12.0" ',"languages":["shell"]'
+  ln -s /no/such/target/usage-rules.md intent/llm/broken.md   # dangling symlink
+  run "${INTENT_BIN_DIR}/intent" upgrade
+  assert_success
+  [ -d .backup ] || fail "backup should have been created"
+  find .backup -name broken.md -type l | grep -q . || fail "broken symlink must be preserved in the backup, not followed"
+  local target; target=$(cat "${INTENT_PROJECT_ROOT}/VERSION")
+  [ "$(jq -r '.intent_version' intent/.config/config.json)" = "$target" ] || fail "stamp != target"
+  teardown_fake_home; cd "${INTENT_PROJECT_ROOT}" || exit 1; rm -rf "$TEST_TEMP_DIR"
+}
+
 @test "only intent_upgrade writes the stamp and the canon engine carries no version-bump" {
   if grep -q 'VERSION_BUMP' "$CANON"; then
     fail "canon engine must not carry VERSION_BUMP (orchestrator is sole stamper)"
