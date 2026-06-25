@@ -15,9 +15,11 @@ Lift the proven Baize prototype into first-class Intent: the `intent claude` com
 ## Deliverables
 
 - Confirm the `intent claude` dispatch location (not a `bin/intent_claude` file) and relocate the capability into it -> `intent claude start|ws ...`.
+- Port the prototype, do not fork: `bin/claude_with_intent` logic + `test/cwi/cwi_test.sh` travel to Intent's home (where `critic-shell` governs).
 - Wire the one format SSOT: the `/in-whiteboard` skill's hand-scaffold prose points at `ws new` (no divergent scaffolder). (Highlander)
 - Back-fill Laksa + Lamplight + Intent (each runs `intent claude start <ws>` against its own whiteboard) -- per-project smoke.
 - Fold any Baize-specific assumptions (paths, restart-file name) into Intent config so the command is project-agnostic.
+- **Retire the Baize prototype in one cutover** once `intent claude` is proven + back-filled: a single Baize commit -- `git rm bin/claude_with_intent test/cwi/` + switch muscle-memory to `intent claude start <ws>`. The whiteboard data (`intent/whiteboard/`) STAYS; only the launcher leaves. No coexistence window (Highlander + no-backwards-compat-shims).
 
 ## Acceptance
 
