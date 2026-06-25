@@ -1,13 +1,13 @@
 ---
-verblock: "15 Jun 2026:v0.91: matts - v2.12.0 SHIPPED (ST0043 + ST0045); Lamplight canary clean"
-intent_version: 2.12.0
+verblock: "25 Jun 2026:v0.92: matts - v2.13.0 SHIPPED (ST0047 claude_with_intent MAAC launcher)"
+intent_version: 2.13.0
 ---
 
 # Work In Progress
 
 ## Current State
 
-**2026-06-25 -- ST0047 COMPLETE, v2.13.0 ready to ship.** `intent claude start` + `intent claude ws new|list|archive|hygiene` -- the MAAC whiteboard launcher + workstream lifecycle (`intent/plugins/claude/bin/intent_claude_cwi`), promoted from the Baize prototype to first-class Intent and served centrally to every project (`find_project_root`, no per-project install). The `/in-whiteboard` skill now points at `ws new` for scaffolding (Highlander SSOT; lazy-inbox drift reconciled to the eager pre-seed). Intent dogfoods MAAC: `intent/whiteboard/` stood up with `hv` + `cc` + `vc` (no `ic`). ATs ported to `tests/unit/claude_with_intent.bats` (green); critic-shell No-Silent fixes folded in (guarded the `ws archive` `mv` + `ws new` writes); ST0047 gate GREEN (18/18). Baize prototype retired (`cc2438f`). Remaining, all hv-driven: full suite -> `intent st done ST0047` + commit -> `scripts/release --minor` -> the fleet `intent upgrade` sweep. Provenance: Lamplight pioneered by convention (the operational reference), Baize first productised (the MVP), Intent now first-class.
+**2026-06-25 -- v2.13.0 SHIPPED (ST0047).** Tag `v2.13.0` (commit `c6b8f70`) on both remotes + GitHub release; Intent self-upgraded clean (2.12.0 -> 2.13.0, `intent doctor` green) -- the Phase 8 canary. `intent claude start` + `intent claude ws new|list|archive|hygiene` -- the MAAC whiteboard launcher + workstream lifecycle (`intent/plugins/claude/bin/intent_claude_cwi`), promoted from the Baize prototype to first-class Intent and served centrally to every project (`find_project_root`, no per-project install). The `/in-whiteboard` skill now points at `ws new` for scaffolding (Highlander SSOT; lazy-inbox drift reconciled to the eager pre-seed). Intent dogfoods MAAC: `intent/whiteboard/` stood up with `hv` + `cc` + `vc` (no `ic`). ATs ported to `tests/unit/claude_with_intent.bats` (green); critic-shell No-Silent fixes folded in (guarded the `ws archive` `mv` + `ws new` writes); ST0047 gate GREEN (18/18). Baize prototype retired (`cc2438f`). Remaining: the fleet `intent upgrade` sweep across the other `~/Devel/prj` members. Provenance: Lamplight pioneered by convention (the operational reference), Baize first productised (the MVP), Intent now first-class.
 
 **2026-06-15 -- v2.12.0 SHIPPED (ST0043 + ST0045).** Tag `v2.12.0` (commit `4e5ac15`) on both remotes + GitHub release; post-tag wrap `5f8dace` (config.json `intent_version` -> 2.12.0 + history header finalised) pushed. Both STs closed through their own gates (ST0043 8/8, ST0045 9/9) and relocated to `intent/st/COMPLETED/`; full suite green (matts). **First fleet upgrade clean**: Lamplight 2.11.13 -> 2.12.0 ran through the new orchestrator -- state-probed ledger correctly no-op'd both already-satisfied steps (relocate_config, languages_field), single stamp last, `intent doctor` green on 2.12.0, 3.0 whiteboard skill installed. **ST0043**: convergent `intent upgrade` orchestrator (`bin/intent_upgrade` ~150 lines) + new `bin/intent_migrations` ledger + `bin/intent_helpers` pruned 2026->369 lines (all sub-v2.9.0 migration code) + single version stamper + canon-engine VERSION_BUMP/sed-portability fixes (Linux-safe). **ST0045**: Whiteboard Protocol 3.0 (per-node dirs + single-writer inboxes + `hv`) -- skill completeness + reference-vs-skill drift closed + guard test. **Close-gate**: F1 (malformed AC/AT lines block, not silently dropped); F6 left opt-in-by-presence (missing acceptance.md stays open). Narrative: `intent/history/v2.12.0.md`.
 
@@ -21,7 +21,7 @@ Fleet picks up v2.11.14 on each member's next `intent upgrade`. Out of scope: Pp
 
 ## Next Up
 
-**ST0047 is complete; v2.13.0 is ready to ship (pending the full suite + the release).** Then the fleet `intent upgrade` sweep brings every `~/Devel/prj` Intent project to v2.13.0 (propagating the version stamp + the reconciled `in-whiteboard` skill) -- the first real fleet exercise of the ST0043 orchestrator beyond the Lamplight canary. Standing backlog:
+**v2.13.0 is SHIPPED.** Intent self-upgraded clean (the Phase 8 canary). Next: the fleet `intent upgrade` sweep brings every other `~/Devel/prj` Intent project to v2.13.0 (propagating the version stamp + the reconciled `in-whiteboard` skill) -- the first real fleet exercise of the ST0043 orchestrator beyond Lamplight. Standing backlog:
 
 1. **`/in-review` Elixir fleet sweep** — parked. Anvil, Lamplight, MeetZaya, MicroGPTEx, Conflab.
 2. **Conflab pre-existing test findings** (`IN-EX-TEST-001` / `005` / `007`) — parked.
@@ -31,7 +31,7 @@ Fleet picks up v2.11.14 on each member's next `intent upgrade`. Out of scope: Pp
 
 ## Recent
 
-- **2026-06-25**: ST0047 complete -- `intent claude start|ws` (MAAC whiteboard launcher + workstream lifecycle) promoted from the Baize prototype to first-class Intent; `/in-whiteboard` SSOT converged; Intent whiteboard stood up (hv+cc+vc); Baize prototype retired (`cc2438f`). v2.13.0 ready to ship. Detail: `intent/st/ST0047/`.
+- **2026-06-25**: v2.13.0 shipped (tag `c6b8f70`, both remotes + GitHub release) -- ST0047 `intent claude start|ws` (MAAC whiteboard launcher + workstream lifecycle) promoted from the Baize prototype to first-class Intent; `/in-whiteboard` SSOT converged; Intent whiteboard stood up (hv+cc+vc); Baize prototype retired (`cc2438f`). See `intent/history/v2.13.0.md`.
 - **2026-06-15**: v2.12.0 shipped -- ST0043 convergent `intent upgrade` orchestrator (sub-v2.9.0 migration pruned, single stamper, Linux-safe canon engine) + ST0045 Whiteboard Protocol 3.0; close-gate F1 malformed-line block. Tag `4e5ac15`; Lamplight canary clean. See `intent/history/v2.12.0.md`.
 - **2026-06-14**: v2.11.14 shipped -- `intent organize` Linux fix (`((x++))` under `set -e` aborts on bash 5.x); whole class -> `x=$((x + 1))` (six sites) + guard test; tag `60dd82a`. See `intent/history/v2.11.14.md`.
 - **2026-06-14**: v2.11.13 shipped (ST0044) -- `acceptance.md` as a default doc + the AC/AT process; dogfooded on itself, closed through its own gate (16/16); tag `5cc676a` on both remotes + GitHub release. See `intent/history/v2.11.13.md`.

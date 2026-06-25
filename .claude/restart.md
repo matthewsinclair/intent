@@ -5,17 +5,13 @@
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the gate. (Languages: shell only.) **Intent now HAS a whiteboard** (`intent/whiteboard/`, hv+cc+vc) -- so `/in-session` step 5 chains `/in-whiteboard pickup`. This is a solo session unless you were launched as a node via `intent claude start <ws>`.
 2. **Read this file + `intent/wip.md`.**
 
-## State: ST0047 COMPLETE -- v2.13.0 ready to ship (NOT yet shipped)
+## State: v2.13.0 SHIPPED (ST0047) -- fleet sweep remaining
 
-`intent claude start` + `intent claude ws new|list|archive|hygiene` -- the MAAC whiteboard launcher + workstream lifecycle -- is built, tested, and gate-GREEN (18/18), promoted from the Baize prototype to first-class Intent. The ST is complete but **NOT yet closed or shipped**: the close + release are hv-driven.
+`intent claude start` + `intent claude ws new|list|archive|hygiene` -- the MAAC whiteboard launcher + workstream lifecycle -- shipped first-class in v2.13.0. Tag `v2.13.0` (commit `c6b8f70`) on both remotes + GitHub release; ST0047 closed through its own gate (18/18) and relocated to `intent/st/COMPLETED/`. Intent self-upgraded clean (2.12.0 -> 2.13.0; ledger no-op'd the satisfied steps, `intent doctor` green) -- the Phase 8 canary. Post-ship wrap committed (config.json 2.13.0 + canon refresh + wip/done/history).
 
-### Remaining (hv-driven, in order)
+### Remaining: Phase 8 fleet sweep
 
-1. **Full suite** (matts, external) -- on green:
-2. `intent st done ST0047` (gate green; relocates to `intent/st/COMPLETED/`).
-3. **Commit** the v2.13.0 work to Intent main (the cwi command + `bin/intent` dispatch + `/in-whiteboard` skill + help + bats + the new `intent/whiteboard/` + ST docs + CHANGELOG + `intent/history/v2.13.0.md`).
-4. `scripts/release --minor` -> v2.13.0 tag + push + gh release; then the post-tag wrap (config.json `intent_version` -> 2.13.0 + history header finalised). NEVER `--no-confirm`.
-5. **Fleet `intent upgrade` sweep** (Phase 8): each `~/Devel/prj` Intent project -> `intent upgrade` -> `intent doctor` green -> commit. Confirm the project list with matts first. Excludes Pplr, Sites-in-Laksa, llm-tropes.
+Each other `~/Devel/prj` Intent project -> `intent upgrade` -> `intent doctor` green -> commit. Confirm the project list with matts first. Excludes Pplr, Sites-in-Laksa, llm-tropes. (Intent itself is already done -- the canary.)
 
 ## What ST0047 shipped
 

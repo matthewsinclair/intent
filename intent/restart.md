@@ -2,7 +2,7 @@
 
 ## Current state (2026-06-25)
 
-**ST0047 is COMPLETE; v2.13.0 is ready to ship (not yet shipped).** `intent claude start` + `intent claude ws` -- the MAAC whiteboard launcher + workstream lifecycle -- is promoted from the Baize prototype to first-class Intent, gate GREEN (18/18). The close + release are hv-driven: full suite (matts) -> `intent st done ST0047` + commit -> `scripts/release --minor` -> the fleet `intent upgrade` sweep (the first real fleet exercise of the ST0043 orchestrator beyond the Lamplight canary). Detail: `intent/st/ST0047/` + `.claude/restart.md`.
+**v2.13.0 is SHIPPED (ST0047).** Tag `v2.13.0` (commit `c6b8f70`) on both remotes + GitHub release; Intent self-upgraded clean (2.12.0 -> 2.13.0, `intent doctor` green) -- the Phase 8 canary. `intent claude start` + `intent claude ws` -- the MAAC whiteboard launcher + workstream lifecycle -- is first-class in Intent, closed through its own gate (18/18). Remaining: the fleet `intent upgrade` sweep across the other `~/Devel/prj` members. Detail: `intent/st/COMPLETED/ST0047/` + `.claude/restart.md`.
 
 **v2.12.0 (prior) is SHIPPED + field-validated.** Tag `v2.12.0` (commit `4e5ac15`) on both remotes + GitHub release; post-tag wrap `5f8dace` (config.json `intent_version` -> 2.12.0 + history header finalised) pushed. ST0043 + ST0045, both through the ST0044 five-step with matts as verifier and closed through their own gates. First fleet upgrade (Lamplight, 2.11.13 -> 2.12.0) ran clean: state-probed ledger no-op'd both already-satisfied steps, single stamp last, `intent doctor` green.
 

@@ -1,11 +1,15 @@
 ---
-verblock: "15 Jun 2026:v0.7: matts - v2.12.0 arc (ST0043 + ST0045) closed; release docs staged"
-intent_version: 2.11.14
+verblock: "25 Jun 2026:v0.8: matts - v2.13.0 (ST0047 claude_with_intent) shipped"
+intent_version: 2.13.0
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-06-25 — v2.13.0 (ST0047 claude_with_intent MAAC launcher + workstream lifecycle)
+
+- **ST0047 Completed** — `intent claude start <ws>` (launch a Claude Code session bound to a whiteboard workstream) + `intent claude ws new|list|archive|hygiene` (the deterministic workstream lifecycle). Promoted from the Baize prototype to first-class Intent as `intent/plugins/claude/bin/intent_claude_cwi`, dispatched from the `bin/intent` claude branch and resolving the current project via `find_project_root` — served centrally from `$INTENT_HOME`, so available in every project with no per-project install. The `/in-whiteboard` skill's "Scaffolding a node" prose now points at `ws new`, and the lazy-inbox drift is reconciled to the eager bidirectional pre-seed (Highlander SSOT). No-Silent hardening (critic-shell) guarded the `ws archive` `mv` + the `ws new` writes. ATs ported from the Baize `cwi_test.sh` to `tests/unit/claude_with_intent.bats` + WP-04 dispatch / skill-SSOT guards. Intent dogfoods MAAC: `intent/whiteboard/` stood up with `hv` + `cc` + `vc` (no `ic` — CLI plus data, not UX). 18/18 ACs through its own gate; Baize prototype retired (`cc2438f`, that repo). Provenance: Lamplight pioneered the whiteboard by convention (the operational reference), Baize was the first productised use (the MVP), Intent is now first-class. Detail: `intent/st/COMPLETED/ST0047/`; narrative: `intent/history/v2.13.0.md`.
 
 ## 2026-06-15 — v2.12.0 arc (ST0043 convergent upgrade + ST0045 Whiteboard 3.0)
 
