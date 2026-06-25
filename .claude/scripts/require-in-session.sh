@@ -21,7 +21,18 @@
 #     prompt is not a slash command.
 #   - Stderr is surfaced to the user by Claude Code.
 
+# set -u only: -e and -o pipefail are deliberately omitted so a jq/cat hiccup
+# cannot turn this gate hook into a hard abort. The script decides pass/block
+# explicitly via exit codes; an unexpected abort would block every prompt.
 set -u
+
+# Bypass for non-interactive automation that spawns `claude -p` against an
+# Intent project (eg `intent treeindex`). Such sessions have no chat surface
+# for `/in-session` to run in, so the gate would block them indefinitely.
+# Wrappers set this env var before invoking `claude -p`.
+if [ -n "${INTENT_SKIP_IN_SESSION_GATE:-}" ]; then
+  exit 0
+fi
 
 SENTINEL_DIR="/tmp/intent"
 
@@ -30,11 +41,15 @@ if ! [ -t 0 ]; then
   payload="$(cat)"
 fi
 
-session_id="unknown"
+# Session identity comes from the env var Claude Code exports into the hook,
+# NOT the payload. release-gate.sh (run by /in-session) resolves the same
+# $CLAUDE_CODE_SESSION_ID, so the check path and the release path agree by
+# construction. When absent, both sides fall back to the same `unknown`
+# sentinel. The payload is parsed only for the prompt (slash-command
+# passthrough below).
+session_id="${CLAUDE_CODE_SESSION_ID:-unknown}"
 prompt=""
 if [ -n "$payload" ] && command -v jq >/dev/null 2>&1; then
-  sid="$(printf '%s' "$payload" | jq -r '.session_id // empty' 2>/dev/null || true)"
-  [ -n "$sid" ] && session_id="$sid"
   prompt="$(printf '%s' "$payload" | jq -r '.prompt // empty' 2>/dev/null || true)"
 fi
 
