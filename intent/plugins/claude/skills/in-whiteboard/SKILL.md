@@ -51,7 +51,7 @@ intent/whiteboard/
       YYYYMMDD/             # the node's archived DONE work + handled inbox entries
 ```
 
-Scaffolding a node: create `<node>/`, an empty `<node>/.history/.gitkeep` (git does not track an empty directory, and the archive dir starts empty), and the node's `wip.md`. Inboxes are not pre-created -- the first sender creates `<node>/inbox.<sender>.md` on its first `ask` (see below).
+Scaffolding a node is the deterministic job of `intent claude ws new <node>` (the provisioner -- ST0047), not a hand ritual: it creates `<node>/`, `<node>/.history/.gitkeep` (git does not track an empty directory), the node's `wip.md`, and an `_(empty)_` inbox in **both** directions with every existing peer (`<node>/inbox.<peer>.md` + `<peer>/inbox.<node>.md`). The `intent claude ws` family (`new` / `list` / `archive` / `hygiene`) plus `intent claude start <node>` (launch a session bound to a node) own this mechanical lifecycle; this skill owns the judgement ops below. Both honour the one on-disk format described here.
 
 Single-writer rule:
 
@@ -84,7 +84,7 @@ Only the frontmatter is required for protocol compliance; the body sections are 
 
 One inbox per ordered (sender -> recipient) pair: `<recipient>/inbox.<sender>.md` holds the messages `<sender>` has sent `<recipient>`. The sender is the sole writer (append-only); the recipient is the sole reader and owns its lifecycle (read, action, `clear` into history).
 
-Inboxes are created on demand, never pre-seeded: the first `ask` (or `announce`) creates an absent `<recipient>/inbox.<you>.md` before appending its first entry. A freshly created inbox is its header line plus the empty sentinel:
+Inboxes are pre-seeded in both directions when a node is scaffolded (`ws new` writes the header + `_(empty)_` sentinel for every existing peer pair). `ask` / `announce` also create an absent `<recipient>/inbox.<you>.md` on demand before appending -- so a hand-added node, or a board predating the provisioner, self-heals. Either way, a fresh inbox is its header line plus the empty sentinel:
 
 ```
 # inbox: <sender> -> <recipient>
@@ -128,7 +128,7 @@ The moniker is durable; subsequent sessions of that node inherit it via the exis
 
 ### ask <node> <text>
 
-1. If `intent/whiteboard/<node>/inbox.<you>.md` does not exist, create it with its `# inbox: <you> -> <node>` header + `_(empty)_` sentinel (see inbox shape). Append a message entry (see Message-entry format) -- the path encodes sender -> recipient, so the 2.0 `to:`/`from:` line is implicit:
+1. Your `inbox.<you>.md` in `<node>/` usually already exists (`ws new` pre-seeds it); if it is absent (a hand-added node), create it with its `# inbox: <you> -> <node>` header + `_(empty)_` sentinel (see inbox shape). Append a message entry (see Message-entry format) -- the path encodes sender -> recipient, so the 2.0 `to:`/`from:` line is implicit:
 
    ```
    ## (YYYY-MM-DD HH:MM)   [Re: <prior-anchor>]   [FYI only -- no response needed.]

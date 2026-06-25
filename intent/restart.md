@@ -1,8 +1,10 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-06-15)
+## Current state (2026-06-25)
 
-**v2.12.0 is SHIPPED + field-validated.** Tag `v2.12.0` (commit `4e5ac15`) on both remotes + GitHub release; post-tag wrap `5f8dace` (config.json `intent_version` -> 2.12.0 + history header finalised) pushed. The release bundles two completed steel threads, both run through the ST0044 five-step with matts as verifier and closed through their own gates. First fleet upgrade (Lamplight, 2.11.13 -> 2.12.0) ran clean: state-probed ledger correctly no-op'd both already-satisfied steps, single stamp last, `intent doctor` green on 2.12.0. No active arc -- next work is from the backlog in `wip.md`.
+**ST0047 is COMPLETE; v2.13.0 is ready to ship (not yet shipped).** `intent claude start` + `intent claude ws` -- the MAAC whiteboard launcher + workstream lifecycle -- is promoted from the Baize prototype to first-class Intent, gate GREEN (18/18). The close + release are hv-driven: full suite (matts) -> `intent st done ST0047` + commit -> `scripts/release --minor` -> the fleet `intent upgrade` sweep (the first real fleet exercise of the ST0043 orchestrator beyond the Lamplight canary). Detail: `intent/st/ST0047/` + `.claude/restart.md`.
+
+**v2.12.0 (prior) is SHIPPED + field-validated.** Tag `v2.12.0` (commit `4e5ac15`) on both remotes + GitHub release; post-tag wrap `5f8dace` (config.json `intent_version` -> 2.12.0 + history header finalised) pushed. ST0043 + ST0045, both through the ST0044 five-step with matts as verifier and closed through their own gates. First fleet upgrade (Lamplight, 2.11.13 -> 2.12.0) ran clean: state-probed ledger no-op'd both already-satisfied steps, single stamp last, `intent doctor` green.
 
 ## ST0043 -- Rethink `intent upgrade` (COMPLETE, v2.12.0)
 

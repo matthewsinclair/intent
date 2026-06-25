@@ -42,6 +42,7 @@
 | Rule library CLI (v2.9.0) | `intent/plugins/claude/bin/intent_claude_rules`      | list, show, validate, index (WP02)                                                                                                 |
 | Project upgrade           | `intent/plugins/claude/bin/intent_claude_upgrade`    | LLM guidance + canon artefact installer; `canon_*` helpers, `--apply`/`--dry-run`/`--force`/`--skip-settings` (ST0035/WP11)        |
 | Memory injection          | `intent/plugins/claude/bin/intent_claude_prime`      | prime MEMORY.md with project knowledge                                                                                             |
+| MAAC launcher + lifecycle | `intent/plugins/claude/bin/intent_claude_cwi`        | `start` (session launch) + `ws new/list/archive/hygiene`; whiteboard provisioner; `CWI_WB`/`CWI_DRY_RUN` seams (ST0047)            |
 | Plugin shared library     | `intent/plugins/claude/lib/claude_plugin_helpers.sh` | install/sync/uninstall/manifest logic; `plugin_get_source_roots` + `plugin_resolve_source_file` (WP02)                             |
 | Rule-library primitives   | `intent/plugins/claude/lib/rules_lib.sh`             | Sourced by `intent_claude_rules` + `critic_runner.sh`; frontmatter parsing, enumeration (ST0035/WP05)                              |
 | Critic runner library     | `intent/plugins/claude/lib/critic_runner.sh`         | Detection extraction, rule application, text/json report formatters; honours `applies_to` via glob-to-regex (ST0035/WP05 + ST0038) |

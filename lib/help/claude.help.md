@@ -1,4 +1,4 @@
-@short: Claude Code integration (subagents, skills, upgrade, prime)
+@short: Claude Code integration (subagents, skills, rules, upgrade, prime, workstreams)
 
 # intent claude
 
@@ -12,7 +12,7 @@ intent claude <subcommand> [options]
 
 ## Description
 
-The `intent claude` namespace provides commands for managing Claude Code subagents, skills, and project upgrades. These commands integrate Intent's methodology with Claude Code's extensibility features.
+The `intent claude` namespace provides commands for managing Claude Code subagents, skills, and project upgrades. These commands integrate Intent's methodology with Claude Code's extensibility features. It also drives Multi-Agent Agentic Coding (MAAC): launching and managing whiteboard workstreams (`start` / `ws`).
 
 ## Subcommands
 
@@ -80,6 +80,29 @@ intent claude prime --from <project>
 
 Without `--refresh`, prompts before overwriting existing MEMORY.md. Output stays under 200 lines (Claude Code's truncation limit).
 
+### start
+
+Launch a Claude Code session bound to a whiteboard workstream (a Protocol 3.0 node) for Multi-Agent Agentic Coding (MAAC). Composes the workstream identity plus the project restart context, seeds `/in-session`, and lands an interactive session in `--effort max --permission-mode auto`. If the workstream does not exist, prompts to provision it first.
+
+```
+intent claude start <ws>
+```
+
+`CWI_DRY_RUN=1` prints the assembled `claude` argv instead of launching (preview / test seam).
+
+### ws
+
+Manage whiteboard workstreams -- the deterministic lifecycle that complements the Claude-driven `/in-whiteboard` skill. `hv` is Workstream Zero (the human node); working nodes are made to order.
+
+```
+intent claude ws new <wsid>      scaffold a new workstream (Protocol 3.0 node)
+intent claude ws list            list workstreams + status
+intent claude ws archive <wsid>  retire a workstream, keep .history/
+intent claude ws hygiene [<ws>]  mechanical whiteboard lint + tidy
+```
+
+A workstream id is a short slug (`[a-z0-9-]`, 1..16 chars). `ws new` scaffolds the node directory, its `wip.md`, `.history/`, and `_(empty)_` inboxes with every existing peer. See `/in-whiteboard` for the protocol's judgement ops (pickup / ask / announce / claim / archive).
+
 ## Examples
 
 ```bash
@@ -106,6 +129,13 @@ intent claude prime --dry-run
 
 # Write project memory
 intent claude prime --refresh
+
+# Stand up a workstream and launch a session for it
+intent claude ws new cc
+intent claude start cc
+
+# Preview the launch without spawning a session
+CWI_DRY_RUN=1 intent claude start cc
 ```
 
 ## See Also

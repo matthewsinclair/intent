@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0] - 2026-06-25
+
+Minor release adding **`intent claude start` and `intent claude ws`** -- the MAAC (multi-agent agentic coding) whiteboard launcher and workstream lifecycle (ST0047). One command provisions whiteboard workstreams (the Protocol 3.0 nodes), launches a Claude Code session bound to one with the verified effort / permission / context, and manages the node lifecycle. The capability was pioneered by convention in Lamplight (the operational reference), productised as the MVP in Baize, and is now first-class in Intent, served centrally to every project from `$INTENT_HOME`. It is a minor, not a patch, because it adds a new command surface across the fleet.
+
+### Added
+
+- **`intent claude start <ws>` (ST0047).** Launches an interactive Claude Code session bound to a whiteboard workstream: composes the node identity + the project `.claude/restart.md` + a standing "show a daily plan, then wait" instruction, seeds `/in-session` (admitted by the in-session gate's slash-exemption, which chains `/in-whiteboard pickup`), and execs `claude --effort max --permission-mode auto --append-system-prompt ...`. Provisions the workstream first if absent (prompted). `CWI_DRY_RUN` prints the assembled argv instead of launching.
+- **`intent claude ws new|list|archive|hygiene` (ST0047).** The deterministic workstream lifecycle that complements the Claude-driven `/in-whiteboard` skill: `ws new` scaffolds a Protocol 3.0 node (`wip.md` frontmatter, `.history/.gitkeep`, bidirectional `_(empty)_` inboxes with every existing peer; `hv` is Workstream Zero, working nodes are made to order); `ws list` reads the roster from frontmatter (read-only); `ws archive` retires a node into `.archived/` keeping its `.history/`; `ws hygiene` runs a mechanical structural lint (warns on oversized boards + stale heartbeats; never archives DOING content -- the semantic archive stays the Claude-driven `/in-whiteboard archive`). `CWI_WB` overrides the whiteboard root.
+- **`intent/plugins/claude/bin/intent_claude_cwi`** -- the command's home in the `intent claude` plugin family. It resolves the current project via `find_project_root` (not the tool home), so it is served centrally and available in every project with no per-project install. Behavioural ATs in `tests/unit/claude_with_intent.bats` drive it through the real dispatch via the `CWI_WB` / `CWI_DRY_RUN` seams.
+- **A live `intent/whiteboard/` for Intent itself** -- `hv` + `cc` + `vc` (no interface node: Intent is CLI plus data, not UX) plus a roster README, so Intent now dogfoods MAAC on its own development.
+
+### Changed
+
+- **The `/in-whiteboard` skill defers to the script for scaffolding (Highlander SSOT).** Its "Scaffolding a node" prose now points at `intent claude ws new`, and the skill's lazy-inbox wording ("never pre-seeded") was reconciled to the script's eager bidirectional pre-seed (ratified by the WP-01 acceptance + the Baize golden board); `ask` / `announce` keep on-demand inbox creation as a self-healing fallback for hand-added nodes. The Baize `bin/claude_with_intent` prototype is retired in favour of the central command (Highlander -- no divergent second copy).
+
 ## [2.12.0] - 2026-06-15
 
 Minor release landing two steel threads. **ST0043** rewrites `intent upgrade` from a 524-line version-case ladder into a ~150-line convergent orchestrator and removes every migration path below the v2.9.0 fleet floor (fail-forward). **ST0045** formalises the Whiteboard Protocol 3.0 rewrite (per-node directories + single-writer inboxes + the `hv` hypervisor node) with an AC/AT contract and closes the reference-vs-skill drift. It is a minor, not a patch, because ST0043 changes upgrade behaviour for every project. Two close-gate hardening fixes ride along.

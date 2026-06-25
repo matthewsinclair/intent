@@ -1,10 +1,10 @@
 ---
 verblock: "25 Jun 2026:v0.2: matts - Elaborate objective, context, design, acceptance + 4 WPs"
 intent_version: 2.12.0
-status: WIP
+status: Completed
 slug: add-claude-with-intent-script-to-intent-to
 created: 20260625
-completed:
+completed: 20260625
 ---
 
 # ST0047: Add claude_with_intent script to Intent to support muilt-agent agentic coding (MAAC)

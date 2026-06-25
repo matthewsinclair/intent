@@ -3,7 +3,7 @@ verblock: "25 Jun 2026:v0.2: matts - Scope the promotion WP"
 wp_id: WP-04
 title: "Promote to Intent (intent claude) + back-fill siblings"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-04: Promote to Intent (intent claude) + back-fill siblings

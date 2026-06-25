@@ -11,8 +11,9 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 
-| ID  | Slug | Status | Created | Completed |
-| --- | ---- | ------ | ------- | --------- |
+| ID     | Slug                      | Status | Created    | Completed |
+| ------ | ------------------------- | ------ | ---------- | --------- |
+| ST0046 | add-modules-properly-t... | WIP    | 2026-06-15 |
 
 <!-- END: STEEL_THREAD_INDEX -->
 

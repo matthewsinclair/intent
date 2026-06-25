@@ -1,0 +1,283 @@
+#!/bin/bash
+#
+# intent_claude_cwi -- launch + manage MAAC whiteboard workstreams.
+# Copyright (c) 2026 Matthew Sinclair
+# Licensed under the MIT License (see LICENSE file)
+# Usage: intent claude start <ws> | intent claude ws <new|list|archive|hygiene> [args]
+#
+# Multi-Agent Agentic Coding (MAAC) over the Intent Claude Whiteboard. A
+# "workstream" is a whiteboard node (Protocol 3.0): a directory under
+# intent/whiteboard/<id>/ with a single-writer wip.md + per-peer inboxes.
+#
+#   intent claude start <ws>        launch a Claude session for a workstream
+#   intent claude ws new <wsid>     scaffold a new workstream (== protocol node)
+#   intent claude ws list           list workstreams + status
+#   intent claude ws archive <wsid> retire a workstream, keep .history/
+#   intent claude ws hygiene [<ws>] mechanical whiteboard lint + tidy
+#
+# Promoted from the Baize prototype (ST0047). Operates on the whiteboard of the
+# CURRENT project (find_project_root), so the one command serves every project.
+#
+# Test/automation seams (env):
+#   CWI_DRY_RUN=1|full   `start` prints the assembled `claude` argv instead of
+#                        exec-ing it (full also dumps the composed context).
+#   CWI_WB=<dir>         override the whiteboard root (provision/list against a
+#                        scratch dir; never touch the real board).
+
+# ---- Bootstrap ----
+PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+INTENT_ROOT="$(cd "$PLUGIN_BIN/../../../.." && pwd)"
+: "${INTENT_HOME:=$INTENT_ROOT}"
+source "$INTENT_ROOT/bin/intent_helpers"
+
+# -u is enabled AFTER sourcing helpers (they predate -u). -e and -o pipefail are
+# deliberately omitted (the require-in-session.sh precedent): a script of
+# `[ test ] && action` conditionals would abort under -e on the first false
+# test. Every error path surfaces explicitly via error() (No-Silent).
+set -u
+
+# Deterministic, byte-based globbing: keep [a-z0-9-] ASCII rather than locale
+# collation, so an uppercase id cannot slip past valid_wsid (caught in test).
+export LC_ALL=C
+
+# The whiteboard belongs to the CURRENT project, not the Intent tool home.
+ROOT="$(find_project_root)" || error "not in an Intent project (no intent/.config/config.json at or above $(pwd))"
+WB="${CWI_WB:-$ROOT/intent/whiteboard}"
+RESTART="$ROOT/.claude/restart.md"
+
+# Run from the project root so `start` execs claude in the project.
+cd "$ROOT" || error "cannot enter project root: $ROOT"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  intent claude start <ws>        launch a Claude session for a workstream
+  intent claude ws new <wsid>     scaffold a new workstream
+  intent claude ws list           list workstreams + status
+  intent claude ws archive <wsid> retire a workstream, keep .history/
+  intent claude ws hygiene [<ws>] mechanical whiteboard lint + tidy
+EOF
+}
+
+# Read one frontmatter field from a wip.md (first --- block only).
+fm_get() { # $1 file  $2 key
+  [ -f "$1" ] || return 0
+  awk -v k="$2" '
+    /^---[[:space:]]*$/ { fm++; next }
+    fm==1 {
+      key=$0; sub(/:.*/, "", key)
+      if (key==k) { v=$0; sub(/^[^:]*:[[:space:]]*/, "", v); print v; exit }
+    }
+  ' "$1"
+}
+
+# A workstream id is a short-ish slug: lowercase, [a-z0-9-], 1..16 chars.
+valid_wsid() { # $1 id
+  id="$1"
+  [ -n "$id" ] || return 1
+  [ "${#id}" -le 16 ] || return 1
+  case "$id" in
+    *[!a-z0-9-]*) return 1 ;;
+  esac
+  return 0
+}
+
+# Conventional name/role for the well-known monikers (the protocol's common
+# shape); arbitrary ids default to name=id, role=worker. hv is Workstream Zero.
+conv_name() { case "$1" in hv) echo Hypervisor ;; cc) echo "Control Claude" ;; ic) echo "Interface Claude" ;; vc) echo "Validation Claude" ;; ac) echo "Author Claude" ;; *) echo "$1" ;; esac; }
+conv_role() { case "$1" in hv) echo hypervisor ;; cc) echo control ;; ic) echo interface ;; vc) echo validation ;; ac) echo author ;; *) echo worker ;; esac; }
+
+now_utc() { date -u +%Y-%m-%dT%H:%MZ; }
+
+# --- ws new ------------------------------------------------------------------
+cmd_ws_new() {
+  id="${1:-}"
+  [ -n "$id" ] || error "ws new <wsid>: missing workstream id"
+  valid_wsid "$id" || error "invalid wsid '$id' (lowercase [a-z0-9-], 1..16 chars)"
+  node="$WB/$id"
+  [ -e "$node" ] && error "workstream '$id' already exists -- refusing (no mutation)"
+
+  name="${2:-$(conv_name "$id")}"
+  role="${3:-$(conv_role "$id")}"
+  status=paused
+  [ "$id" = hv ] && status=active
+
+  mkdir -p "$node/.history" || error "ws new: cannot create node dir $node"
+  printf '# keeps .history/ tracked -- git ignores empty directories\n' > "$node/.history/.gitkeep" || error "ws new: cannot write $node/.history/.gitkeep"
+
+  cat > "$node/wip.md" <<EOF || error "ws new: cannot write $node/wip.md"
+---
+node: $id
+name: $name
+role: $role
+session_id: none
+heartbeat_at: $(now_utc)
+status: $status
+focus: "(new workstream -- not yet started)"
+claims: []
+---
+
+# $name ($id)
+
+## DOING
+
+- (not started)
+
+## TODO
+
+- (set on first pickup)
+
+## Watch-outs
+
+- (none yet)
+
+## Decisions
+
+- (none yet)
+EOF
+
+  # Bidirectional inboxes with every existing peer (header + empty sentinel).
+  for pd in "$WB"/*/; do
+    [ -d "$pd" ] || continue
+    peer="$(basename "$pd")"
+    [ "$peer" = "$id" ] && continue
+    [ "$peer" = ".archived" ] && continue
+    printf '# inbox: %s -> %s\n\n_(empty)_\n' "$peer" "$id" > "$node/inbox.$peer.md" || error "ws new: cannot write $node/inbox.$peer.md"
+    printf '# inbox: %s -> %s\n\n_(empty)_\n' "$id" "$peer" > "$pd/inbox.$id.md" || error "ws new: cannot write $pd/inbox.$id.md"
+  done
+
+  echo "created workstream: $id ($name / $role) at intent/whiteboard/$id"
+}
+
+# --- ws list -----------------------------------------------------------------
+cmd_ws_list() {
+  [ -d "$WB" ] || error "no whiteboard at $WB"
+  found=0
+  for d in "$WB"/*/; do
+    [ -d "$d" ] || continue
+    ws="$(basename "$d")"
+    [ "$ws" = ".archived" ] && continue
+    [ -f "$d/wip.md" ] || continue
+    found=1
+    st="$(fm_get "$d/wip.md" status)"
+    hb="$(fm_get "$d/wip.md" heartbeat_at)"
+    cl="$(fm_get "$d/wip.md" claims)"
+    fc="$(fm_get "$d/wip.md" focus | sed 's/^"//; s/"$//')"
+    printf '%-6s [%-7s] claims=%-18s hb=%s\n' "$ws" "$st" "$cl" "$hb"
+    printf '       focus: %s\n' "$fc"
+  done
+  [ "$found" -eq 1 ] || echo "(no workstreams under $WB)"
+}
+
+# --- ws archive --------------------------------------------------------------
+cmd_ws_archive() {
+  id="${1:-}"
+  [ -n "$id" ] || error "ws archive <wsid>: missing workstream id"
+  [ "$id" = hv ] && error "refusing to archive hv (Workstream Zero)"
+  [ -d "$WB/$id" ] || error "workstream '$id' does not exist"
+  mkdir -p "$WB/.archived" || error "ws archive: cannot create $WB/.archived"
+  [ -e "$WB/.archived/$id" ] && error "an archived '$id' already exists"
+  mv "$WB/$id" "$WB/.archived/$id" || error "ws archive: could not move $id into .archived"
+  # Drop the now-inert inbox.<id>.md from remaining peers (only after the move).
+  for pd in "$WB"/*/; do
+    [ -d "$pd" ] || continue
+    [ "$(basename "$pd")" = ".archived" ] && continue
+    rm -f "$pd/inbox.$id.md"
+  done
+  echo "archived workstream: $id -> intent/whiteboard/.archived/$id (history intact)"
+}
+
+# --- ws hygiene --------------------------------------------------------------
+cmd_ws_hygiene() {
+  target="${1:-}"
+  [ -d "$WB" ] || error "no whiteboard at $WB"
+  rc=0
+  for d in "$WB"/*/; do
+    [ -d "$d" ] || continue
+    ws="$(basename "$d")"
+    [ "$ws" = ".archived" ] && continue
+    [ -n "$target" ] && [ "$target" != "$ws" ] && continue
+    if [ ! -f "$d/wip.md" ]; then echo "MISSING   $ws/wip.md"; rc=1; continue; fi
+    [ -n "$(fm_get "$d/wip.md" node)" ]   || { echo "BAD-FM    $ws/wip.md: no node:"; rc=1; }
+    [ -n "$(fm_get "$d/wip.md" status)" ] || { echo "BAD-FM    $ws/wip.md: no status:"; rc=1; }
+    [ -f "$d/.history/.gitkeep" ]         || { echo "MISSING   $ws/.history/.gitkeep"; rc=1; }
+    for ib in "$d"inbox.*.md; do
+      [ -e "$ib" ] || continue
+      head -n1 "$ib" | grep -q '^# inbox: ' || { echo "BAD-INBOX $ws/$(basename "$ib"): no header"; rc=1; }
+    done
+    bytes="$(wc -c < "$d/wip.md" | tr -d ' ')"
+    [ "$bytes" -gt 16000 ] && echo "WARN      $ws/wip.md is large (${bytes}b) -- archive DONE content"
+  done
+  [ "$rc" -eq 0 ] && echo "hygiene: ok"
+  exit "$rc"
+}
+
+# --- compose context + start -------------------------------------------------
+compose_ctx() { # $1 ws
+  ws="$1"
+  name="$(fm_get "$WB/$ws/wip.md" name)"
+  [ -n "$name" ] || name="$ws"
+  proj="$(basename "$ROOT")"
+  cat <<EOF
+YOU ARE: $ws ($name) -- a workstream node on the $proj whiteboard (intent/whiteboard/$ws/).
+
+On wake, do ALL of the following now, in this one turn, without waiting for further input:
+  1. Run /in-session (loads coding skills, releases the prompt gate, chains /in-whiteboard pickup).
+     If pickup did not identify you, run: /in-whiteboard pickup $ws
+  2. Read your inbox(es) under intent/whiteboard/$ws/ and act on any opening assignment.
+  3. Claim your steel threads if your assignment names any.
+  4. ULTRATHINK, then show me a detailed plan for today's work for this workstream ($ws).
+  5. Then STOP and wait for my instructions.
+
+Project restart context follows.
+--------------------------------------------------------------------------------
+EOF
+  [ -f "$RESTART" ] && cat "$RESTART"
+}
+
+cmd_start() {
+  ws="${1:-}"
+  [ -n "$ws" ] || error "start <ws>: missing workstream id"
+  if [ ! -d "$WB/$ws" ]; then
+    printf 'workstream "%s" does not exist. create it now? [y/N] ' "$ws" >&2
+    read -r ans || ans=n
+    case "$ans" in
+      y|Y|yes) cmd_ws_new "$ws" ;;
+      *) echo "aborted -- no workstream created." >&2; exit 1 ;;
+    esac
+  fi
+  ctx="$(compose_ctx "$ws")"
+
+  if [ -n "${CWI_DRY_RUN:-}" ]; then
+    echo "DRY RUN -- would exec an interactive claude:"
+    echo "  claude --effort max --permission-mode auto --append-system-prompt <ctx> /in-session"
+    echo "  ctx: $(printf '%s' "$ctx" | wc -l | tr -d ' ') lines, $(printf '%s' "$ctx" | wc -c | tr -d ' ') bytes"
+    if [ "${CWI_DRY_RUN}" = full ]; then
+      echo "----- ctx -----"
+      printf '%s\n' "$ctx"
+      echo "----- /ctx -----"
+    fi
+    exit 0
+  fi
+
+  exec claude --effort max --permission-mode auto --append-system-prompt "$ctx" "/in-session"
+}
+
+# --- dispatch ----------------------------------------------------------------
+cmd="${1:-}"
+[ "$#" -gt 0 ] && shift
+case "$cmd" in
+  start) cmd_start "$@" ;;
+  ws)
+    sub="${1:-}"
+    [ "$#" -gt 0 ] && shift
+    case "$sub" in
+      new)     cmd_ws_new "$@" ;;
+      list)    cmd_ws_list "$@" ;;
+      archive) cmd_ws_archive "$@" ;;
+      hygiene) cmd_ws_hygiene "$@" ;;
+      *)       usage; exit 1 ;;
+    esac ;;
+  ""|-h|--help|help) usage ;;
+  *) usage; exit 1 ;;
+esac

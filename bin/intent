@@ -103,8 +103,13 @@ case "$COMMAND" in
       PLUGIN_SUBCOMMAND="rules"
       shift  # Remove 'rules' from arguments
       COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_rules"
+    elif [ $# -ge 1 ] && { [ "$1" = "start" ] || [ "$1" = "ws" ]; }; then
+      PLUGIN_COMMAND="claude"
+      PLUGIN_SUBCOMMAND="$1"
+      # Do NOT shift: intent_claude_cwi's own dispatch consumes `start`/`ws`.
+      COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_cwi"
     else
-      error "Unknown claude subcommand. Try: intent claude subagents, intent claude skills, intent claude upgrade, intent claude prime, intent claude rules"
+      error "Unknown claude subcommand. Try: intent claude subagents, intent claude skills, intent claude upgrade, intent claude prime, intent claude rules, intent claude start, intent claude ws"
     fi
     ;;
   agents)
