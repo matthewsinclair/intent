@@ -5,22 +5,17 @@
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the gate. (Languages: shell only.) **Intent now HAS a whiteboard** (`intent/whiteboard/`, hv+cc+vc) -- so `/in-session` step 5 chains `/in-whiteboard pickup`. This is a solo session unless you were launched as a node via `intent claude start <ws>`.
 2. **Read this file + `intent/wip.md`.**
 
-## State: v2.13.0 SHIPPED (ST0047) -- fleet sweep remaining
+## State: v2.13.1 SHIPPED (ST0048 + ST0049)
 
-`intent claude start` + `intent claude ws new|list|archive|hygiene` -- the MAAC whiteboard launcher + workstream lifecycle -- shipped first-class in v2.13.0. Tag `v2.13.0` (commit `c6b8f70`) on both remotes + GitHub release; ST0047 closed through its own gate (18/18) and relocated to `intent/st/COMPLETED/`. Intent self-upgraded clean (2.12.0 -> 2.13.0; ledger no-op'd the satisfied steps, `intent doctor` green) -- the Phase 8 canary. Post-ship wrap committed (config.json 2.13.0 + canon refresh + wip/done/history).
+v2.13.1 shipped (release tag `v2.13.1`, commit `d01a1b2`, both remotes + GitHub release); Intent self-upgraded 2.13.0 -> 2.13.1 clean. **ST0048** -- the acceptance close-gate is now fail-by-default: a missing `acceptance.md`, or a present one with zero in-scope ACs, BLOCKS `st done` / `wp done`; the sole escape is `acceptance: exempt` in the frontmatter (announced, never inferred); WP scope is WP-lenient (a WP with no own ACs rolls up to the ST boundary). This REVERSES the v2.12.0 F6 ruling (missing-stays-open) -- a shipped-as-broken patch, matts-ratified. **ST0049** -- comprehensive retroactive 2.13.0 MAAC release note + the 2.13.1 note; `docs/releases` resumes after the 2.9.0 lapse (NO backfill of 2.10-2.12). Both closed through their own gates (ST0048 11/11; ST0049 EXEMPT) -> `intent/st/COMPLETED/`.
 
-### Remaining: Phase 8 fleet sweep
+### Open: push the wrap commit
 
-Each other `~/Devel/prj` Intent project -> `intent upgrade` -> `intent doctor` green -> commit. Confirm the project list with matts first. Excludes Pplr, Sites-in-Laksa, llm-tropes. (Intent itself is already done -- the canary.)
+Fix `baeae83` + release `d01a1b2` are pushed; the post-ship wrap `c0eeefe` (config.json/CLAUDE.md bump + ST closures + board) is LOCAL -- main is one commit ahead of both remotes, and the /in-finish doc commit sits on top. Push when matts says.
 
-## What ST0047 shipped
+### Fleet
 
-- **`intent_claude_cwi`** (`intent/plugins/claude/bin/`) -- dispatched from the `bin/intent` claude branch (`start|ws`, no shift); resolves the CURRENT project via `find_project_root`, served centrally from `$INTENT_HOME` (no per-project install). `set -u` only (No-Silent via `error()`); critic-shell-hardened (guarded the `ws archive` `mv` + `ws new` writes). Help in `lib/help/claude.help.md`.
-- **`/in-whiteboard` skill** -- "Scaffolding a node" repointed at `intent claude ws new`; lazy-inbox drift reconciled to the eager bidirectional pre-seed (Highlander SSOT).
-- **Intent whiteboard** -- `intent/whiteboard/` stood up with hv+cc+vc (no ic) + roster README; Intent dogfoods MAAC.
-- **Tests** -- `tests/unit/claude_with_intent.bats` (ATs ported from the retired Baize `cwi_test.sh` + WP-04 dispatch/SSOT guards).
-- **Baize** -- prototype retired (`cc2438f`, in that repo).
-- Provenance: Lamplight pioneered by convention (the operational reference), Baize first productised (the MVP), Intent now first-class.
+v2.13.0 fleet sweep is DONE (12 `~/Devel/prj` projects, 2026-06-25). Members pick up v2.13.1 on their next `intent upgrade` -- and will hit the close-gate change: any in-flight unit with no authored ACs stops closing until it authors them or marks `acceptance: exempt`. Excludes Pplr, Sites-in-Laksa, llm-tropes.
 
 ## v2.13+ backlog (from wip.md)
 

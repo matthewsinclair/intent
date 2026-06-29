@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: fccf3901-d524-4361-818c-d7007b5b7185
-heartbeat_at: 2026-06-29T14:19Z
-status: active
-focus: "v2.13.1 SHIPPED; ST0048 + ST0049 COMPLETED"
+heartbeat_at: 2026-06-29T14:26Z
+status: paused
+focus: "v2.13.1 SHIPPED; ST0048 + ST0049 COMPLETED (session released via /in-finish)"
 claims: []
 ---
 
