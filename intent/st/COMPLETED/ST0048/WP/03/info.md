@@ -3,7 +3,7 @@ verblock: "29 Jun 2026:v0.1: matts - Initial version"
 wp_id: WP-03
 title: "Migration + 2.13.1 release wrap"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-03: Migration + 2.13.1 release wrap

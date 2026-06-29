@@ -3,24 +3,24 @@ node: cc
 name: Control Claude
 role: control
 session_id: fccf3901-d524-4361-818c-d7007b5b7185
-heartbeat_at: 2026-06-29T13:05Z
+heartbeat_at: 2026-06-29T14:19Z
 status: active
-focus: "ST0048 fix + ST0049 note committed to main; awaiting external full-suite pass, then hv 2.13.1 release"
-claims: [ST0048, ST0049]
+focus: "v2.13.1 SHIPPED; ST0048 + ST0049 COMPLETED"
+claims: []
 ---
 
 # Control Claude (cc)
 
 ## DOING
 
-- ST0048 (fix): WP-01/02 GREEN + closed through the new gate; WP-03 content (docs/releases/2.13.1 + CHANGELOG). hv signed off AC-00.1 -> 10/11; only AC-03.2 (version stamp) remains, which the release performs. `acceptance_close_gate.bats` 10/10.
-- ST0049 (2.13.0 MAAC note): `docs/releases/2.13.0/RELEASE_NOTES.md` authored; thread `acceptance: exempt`, dogfood GREEN.
-- Committed to main (this commit). hv running the full suite externally; release gated on 100% green.
+- v2.13.1 SHIPPED: tag `v2.13.1` (release commit `d01a1b2`) on both remotes + GitHub release; `intent upgrade` bumped this repo 2.13.0 -> 2.13.1 (config.json + CLAUDE.md). ST0048 fix landed in `baeae83`.
+- ST0048 + ST0049 COMPLETED. FINAL DOGFOOD: `st done ST0048` closed through its OWN hardened gate (11/11 PASS); `st done ST0049` closed via `gate EXEMPT` -- the exemption proven end-to-end on a real thread.
+- Pre-release catch: the gate broke 3 contractless-close tests in wp_commands.bats; adapted via a `write_exempt_acceptance` exempt fixture. Suite green in the release pre-flight.
+- Post-ship wrap committed locally (bump + ST closures + board). NOT pushed -- hv pushes.
 
 ## TODO
 
-- Blocked on external full-suite result (hv running). On green: hv `scripts/release --patch` cuts 2.13.1, then the post-tag config.json/VERSION bump to 2.13.1.
-- After the release: cc satisfies AC-03.2 (version now stamped) -> closes ST0048 (`st done` = final dogfood) + ST0049 (exempt). NOT pushed yet (commit only).
+- v2.13.1 stream complete. Optional: push the wrap commit; `/in-finish` for wip.md/restart.md + board release.
 - Release as PATCH 2.13.1 with a migration-led release note (behaviour change for all consumers).
 - AFTER the fix (own ST, likely ST0049): author `docs/releases/2.13.0/RELEASE_NOTES.md` (comprehensive: how MAAC works) + `docs/releases/2.13.1/RELEASE_NOTES.md` (the fix). Do NOT backfill 2.10.0/2.11.x/2.12.0 (hv ruling). Source: `intent/history/v2.13.0.md` + `v2.12.0.md` + `/in-whiteboard` skill + whiteboard README.
 

@@ -1,10 +1,10 @@
 ---
 verblock: "29 Jun 2026:v0.2: matts - Objective + context (acceptance-exempt: authorial)"
 intent_version: 2.13.0
-status: WIP
+status: Completed
 slug: comprehensive-2-13-0-release-note-how-maac-works
 created: 20260629
-completed:
+completed: 20260629
 ---
 
 # ST0049: Comprehensive 2.13.0 release note: how MAAC works

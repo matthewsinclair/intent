@@ -13,8 +13,6 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 | ID     | Slug                      | Status | Created    | Completed |
 | ------ | ------------------------- | ------ | ---------- | --------- |
-| ST0049 | comprehensive-2-13-0-r... | WIP    | 2026-06-29 |
-| ST0048 | acceptance-close-gate-... | WIP    | 2026-06-29 |
 | ST0046 | add-modules-properly-t... | WIP    | 2026-06-15 |
 
 <!-- END: STEEL_THREAD_INDEX -->

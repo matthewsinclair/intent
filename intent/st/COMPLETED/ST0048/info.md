@@ -1,10 +1,10 @@
 ---
 verblock: "29 Jun 2026:v0.2: matts - Objective + context"
 intent_version: 2.13.0
-status: WIP
+status: Completed
 slug: acceptance-close-gate-fails-empty-or-missing
 created: 20260629
-completed:
+completed: 20260629
 ---
 
 # ST0048: Acceptance close-gate fails empty or missing contract

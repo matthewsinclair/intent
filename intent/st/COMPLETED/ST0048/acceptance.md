@@ -40,7 +40,7 @@ title: "Acceptance close-gate fails empty or missing contract -- acceptance cont
 ### WP-03 -- Migration + 2.13.1 release wrap (status: Not Started)
 
 - AC-03.1 (non-test) `docs/releases/2.13.1/RELEASE_NOTES.md` exists and LEADS with the behaviour change + the migration recipe (author ACs, or add `acceptance: exempt`). -- evidence: docs/releases/2.13.1/RELEASE_NOTES.md authored -- migration-led (leads with the behaviour change + the author-ACs / 'acceptance: exempt' recipe) -- satisfied: yes
-- AC-03.2 (non-test) Version stamped 2.13.1 (config.json + templates) + a CHANGELOG entry. -- evidence: grep -- satisfied: no
+- AC-03.2 (non-test) Version stamped 2.13.1 (config.json + templates) + a CHANGELOG entry. -- evidence: v2.13.1 tagged (d01a1b2) + pushed to both remotes + GitHub release; VERSION=2.13.1; config.json intent_version=2.13.1 (intent upgrade stamp) -- satisfied: yes
 - AC-03.3 (non-test) Dogfood: ST0048's own contract passes the NEW gate at close (`intent ac gate ST0048` exit 0 with real, satisfied ACs) -- the feature gates its own steel thread. -- evidence: dogfood: WP-01 + WP-02 both closed THROUGH the hardened gate (done: ST0048/WP-01, ST0048/WP-02) -- the feature gated its own thread's units -- satisfied: yes
 
 ## Acceptance Tests
