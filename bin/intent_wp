@@ -195,8 +195,10 @@ TEMPLATE
       error "Work package not found: $ST_ID/$WP_NUM"
     fi
 
-    # Acceptance close-gate (ST0044): refuse to close while the in-scope WP
-    # contract is BLOCKED. Opt-in -- silent pass when no acceptance.md / no ACs.
+    # Acceptance close-gate (ST0044; ST0048 fail-by-default): refuse to close
+    # while the in-scope WP contract is BLOCKED. WP scope is WP-lenient -- a WP
+    # with no own ACs rolls up to the ST boundary, but a fully-empty or missing,
+    # non-exempt contract fails (escape: `acceptance: exempt` in the frontmatter).
     "$INTENT_HOME/bin/intent_acceptance" ac gate "$ST_ID/$WP_NUM" \
       || error "cannot close $ST_ID/$WP_NUM: acceptance contract is BLOCKED (run 'intent ac status $ST_ID/$WP_NUM')"
 

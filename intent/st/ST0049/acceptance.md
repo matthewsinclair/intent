@@ -1,12 +1,13 @@
 ---
-verblock: "[Date]:v0.1: [Author] - Initial version"
-st_id: ST####
-title: "[Title] -- acceptance contract"
+verblock: "29 Jun 2026:v0.1: matts - Initial version"
+st_id: ST0049
+title: "Comprehensive 2.13.0 release note: how MAAC works -- acceptance contract"
+acceptance: exempt
 ---
 
-# ST#### [Title] -- Acceptance
+# ST0049 Comprehensive 2.13.0 release note: how MAAC works -- Acceptance
 
-> Canonical acceptance contract for ST####. Acceptance Criteria (AC) are the ratified completeness boundary; Acceptance Tests (AT) are the small red-to-green tests that prove them. Real test code lives in the suite (paths cited below); this file is the contract plus the AC-to-AT coverage map plus live status. info.md / WP info.md reference this file and never restate ACs (one home).
+> Canonical acceptance contract for ST0049. Acceptance Criteria (AC) are the ratified completeness boundary; Acceptance Tests (AT) are the small red-to-green tests that prove them. Real test code lives in the suite (paths cited below); this file is the contract plus the AC-to-AT coverage map plus live status. info.md / WP info.md reference this file and never restate ACs (one home).
 >
 > Done = every AC is covered by a GREEN AT, or (for a non-test AC) its named evidence is satisfied, AND the AC set is the ratified full boundary. Done is read from this map, never from a hand-ticked box.
 >

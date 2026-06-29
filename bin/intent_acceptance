@@ -47,6 +47,12 @@ ac_is_nontest() { case "$1" in *"(non-test)"*) return 0 ;; *) return 1 ;; esac; 
 ac_lines() { grep -E '^- AC-[0-9]+\.[0-9]+ ' "$1" 2>/dev/null || true; }
 at_lines() { grep -E '^- AT-[0-9]+\.[0-9]+ ' "$1" 2>/dev/null || true; }
 
+# Value of the frontmatter `acceptance:` key (empty if absent). Mirrors the
+# house pattern for reading a steel-thread frontmatter scalar (cf the `status:`
+# read in bin/intent_st). `exempt` is the explicit, visible opt-out the
+# close-gate honours -- the only way an empty/missing contract passes.
+acceptance_field() { grep -m1 -E '^acceptance:' "$1" 2>/dev/null | sed -E 's/^acceptance:[[:space:]]*//'; }
+
 # AC/AT-shaped lines (start "- AC-"/"- AT-") that FAIL the strict numeric grammar.
 # Without this guard they are silently dropped and the gate goes vacuous -- the
 # exact failure that let a half-authored contract read as PASS. No Silent Errors.
@@ -189,13 +195,18 @@ EOF
   echo "ac: $sat/$total satisfied -- $verdict"
 }
 
-# Close-gate (ST0044 WP-04). The single authority `st done` / `wp done` consult
-# before closing: exit 1 + a BLOCKED report when an in-scope AC is unsatisfied,
-# OR a PRESENT acceptance.md has malformed AC/AT lines (F1); exit 0 otherwise.
-# Opt-in by presence -- a missing thread dir, a missing acceptance.md, or zero
-# in-scope ACs all leave the gate open (exit 0). A thread opts IN by HAVING an
-# acceptance.md; one that never authored a contract closes exactly as before.
-# (Old STs are never forced into a contract -- matts, 2026-06-16.)
+# Close-gate (ST0044 WP-04; hardened ST0048). The single authority `st done` /
+# `wp done` consult before closing. It REFUSES (exit 1 + a BLOCKED report) when
+# the in-scope contract is not verifiably done:
+#   - no `acceptance.md` at all (no contract);
+#   - a present `acceptance.md` with zero acceptance criteria (empty contract);
+#   - malformed AC/AT lines (F1);
+#   - an in-scope AC unsatisfied.
+# The sole escape is an explicit, visible `acceptance: exempt` in the frontmatter
+# (the gate prints an EXEMPT line -- No Silent Errors; an exemption is announced,
+# never inferred from emptiness). Default = enforced. A missing thread dir is not
+# a unit, so it stays open. WP scope (`<st>/NN`) is WP-lenient: a WP with no own
+# ACs rolls up to the ST boundary as long as the thread carries a contract.
 cmd_ac_gate() {
   [ -n "$1" ] || usage
   local scope="$1"
@@ -204,14 +215,26 @@ cmd_ac_gate() {
   id="$(normalise_st_id "$STID")"
   dir="$(resolve_st_dir "$id")" || exit 0
   acc="$dir/acceptance.md"
-  [ -f "$acc" ] || exit 0
+  if [ ! -f "$acc" ]; then
+    echo "gate: $scope BLOCKED -- no acceptance.md (no contract). Author ACs in acceptance.md, or add 'acceptance: exempt' to its frontmatter."
+    exit 1
+  fi
+  local exval
+  exval="$(acceptance_field "$acc")"
+  case "$exval" in
+    exempt*)
+      echo "gate: $scope EXEMPT -- acceptance.md declares 'acceptance: $exval'"
+      exit 0
+      ;;
+  esac
   if ! warn_malformed "$acc"; then
     echo "gate: $scope BLOCKED -- malformed AC/AT line(s) in acceptance.md (see warnings); fix the contract"
     exit 1
   fi
-  local line lid total=0 sat=0 unsat=""
+  local line lid total=0 sat=0 unsat="" thread_total=0
   while IFS= read -r line; do
     [ -z "$line" ] && continue
+    thread_total=$((thread_total + 1))
     lid="$(line_id "$line")"
     in_wp_filter "$lid" || continue
     total=$((total + 1))
@@ -223,6 +246,10 @@ cmd_ac_gate() {
   done <<EOF
 $(ac_lines "$acc")
 EOF
+  if [ "$thread_total" -eq 0 ]; then
+    echo "gate: $scope BLOCKED -- acceptance.md has zero acceptance criteria (empty contract). Define ACs, or mark 'acceptance: exempt' in the frontmatter."
+    exit 1
+  fi
   [ "$total" -eq 0 ] && exit 0
   [ "$sat" -eq "$total" ] && exit 0
   echo "gate: $scope BLOCKED -- $sat/$total satisfied; unsatisfied:${unsat}"

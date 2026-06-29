@@ -82,6 +82,20 @@ EOF
   echo "$dir"
 }
 
+# Write an acceptance.md that the close-gate treats as exempt, into an ST dir.
+# ST0048's gate refuses an empty or missing contract; a fixture that exercises
+# ST/WP mechanics (not the acceptance contract itself) declares the sanctioned
+# escape so the close path is reached.
+write_exempt_acceptance() {
+  local st_dir="$1"
+  cat > "$st_dir/acceptance.md" << 'ACCEPTANCE_EOF'
+---
+acceptance: exempt
+---
+# Acceptance (exempt -- fixture exercises ST/WP mechanics, not the gate)
+ACCEPTANCE_EOF
+}
+
 # Helper function to run intent command
 run_intent() {
   "${INTENT_BIN_DIR}/intent" "$@"

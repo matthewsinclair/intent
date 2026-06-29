@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.1] - 2026-06-29
+
+Patch release hardening the acceptance close-gate (ST0048). The gate behind `intent st done` / `intent wp done` previously treated a unit with **zero acceptance criteria** -- or no `acceptance.md` at all -- as vacuously done, so work closed with nothing to verify it against. That is now a hard failure: an empty or missing contract is refused, with an explicit `acceptance: exempt` marker as the sole escape. No-Silent-Errors applied to the acceptance layer.
+
+**Behaviour change (read before upgrading):** any in-flight ST/WP that never authored acceptance criteria, or that has no `acceptance.md`, will stop closing until it authors criteria or is marked `acceptance: exempt`. Migration: `docs/releases/2.13.1/RELEASE_NOTES.md`.
+
+### Fixed
+
+- **The close-gate no longer passes an empty or missing contract (ST0048).** `intent ac gate` -- the authority behind `st done` / `wp done` -- now exits non-zero with a BLOCKED report when a present `acceptance.md` has zero in-scope ACs, or when `acceptance.md` is absent. This closes the vacuous-green hole where "every in-scope AC satisfied" was trivially true of zero ACs. Unsatisfied-AC and malformed-line blocking are unchanged.
+
+### Added
+
+- **`acceptance: exempt` frontmatter marker (ST0048).** The sole, explicit, visible escape from the hardened gate: a deliberately AC-free unit (eg a pure content / authorial task) declares `acceptance: exempt` in its `acceptance.md` frontmatter and the gate passes, announcing the exemption (never inferred from emptiness). The default -- no marker -- is enforced. WP scope is WP-lenient: a WP with no own ACs rolls up to the ST boundary as long as the thread carries a contract.
+
+### Changed
+
+- **Canon and consumer comments describe fail-by-default.** `intent/docs/working-with-llms.md` D11, the `bin/intent_st` / `bin/intent_wp` close-gate comments, and the stamped `acceptance.md` template now state that the gate fails an empty or missing contract; the retired "opt-in / legacy-safe / closes exactly as before" framing is removed and pinned out by a grep guard in `tests/unit/acceptance_close_gate.bats`.
+
 ## [2.13.0] - 2026-06-25
 
 Minor release adding **`intent claude start` and `intent claude ws`** -- the MAAC (multi-agent agentic coding) whiteboard launcher and workstream lifecycle (ST0047). One command provisions whiteboard workstreams (the Protocol 3.0 nodes), launches a Claude Code session bound to one with the verified effort / permission / context, and manages the node lifecycle. The capability was pioneered by convention in Lamplight (the operational reference), productised as the MVP in Baize, and is now first-class in Intent, served centrally to every project from `$INTENT_HOME`. It is a minor, not a patch, because it adds a new command surface across the fleet.

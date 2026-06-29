@@ -268,6 +268,8 @@ status: WIP
 # WP-01: Test WP
 EOF
 
+  write_exempt_acceptance intent/st/ST0001
+
   run run_intent wp done ST0001/01
   assert_success
   assert_output_contains "done:"
@@ -311,6 +313,8 @@ status: WIP
 # WP-01: Test WP
 EOF
 
+  write_exempt_acceptance intent/st/ST0011
+
   run run_intent wp done 11/01
   assert_success
   assert_output_contains "done:"
@@ -345,6 +349,8 @@ status: WIP
 ---
 # WP-02: Second WP
 EOF
+
+  write_exempt_acceptance intent/st/ST0001
 
   run run_intent wp done ST0001/02
   assert_success

@@ -210,7 +210,7 @@ The **five-step** runs per WP, with one independent verifier and one builder:
 Two gates bracket it:
 
 - **Open-gate** -- ACs are ratified before code. This extends D10: Phase 0 locks scope and acceptance first.
-- **Close-gate** -- `intent st done` / `intent wp done` refuse to close while any in-scope AC is unsatisfied. The verdict is computed (`intent ac gate`), never read from a hand-ticked box. It is opt-in and legacy-safe: a thread with no `acceptance.md`, or no live ACs, closes exactly as before.
+- **Close-gate** -- `intent st done` / `intent wp done` refuse to close while any in-scope AC is unsatisfied. The verdict is computed (`intent ac gate`), never read from a hand-ticked box. It is **fail-by-default** (ST0048): a thread with no `acceptance.md`, or an empty contract (zero ACs), is refused -- an absent contract is a failure that must surface, not a quiet pass. The sole escape is an explicit, visible `acceptance: exempt` in the frontmatter (the gate announces the exemption; it is never inferred from emptiness). WP scope is WP-lenient: a WP with no own ACs rolls up to the ST boundary as long as the thread carries a contract.
 
 The CLI in `bin/intent_acceptance` is the single authority: `intent ac list|status|satisfy|gate` and `intent at list|red|green|na` (with `done` / `notdone` aliases). All of it reads and writes `acceptance.md` only.
 

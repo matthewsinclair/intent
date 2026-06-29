@@ -545,9 +545,9 @@ TEMPLATE
         error "Steel thread not found: $ST_ID"
       fi
 
-      # Acceptance close-gate (ST0044): refuse to close while the in-scope
-      # contract is BLOCKED. Opt-in by presence -- a missing acceptance.md or no
-      # real ACs leaves the gate open; only a present contract is enforced.
+      # Acceptance close-gate (ST0044; ST0048 fail-by-default): refuse to close
+      # while the in-scope contract is BLOCKED. An empty or missing acceptance.md
+      # now fails; the sole escape is `acceptance: exempt` in the frontmatter.
       "$INTENT_HOME/bin/intent_acceptance" ac gate "$ST_ID" \
         || error "cannot close $ST_ID: acceptance contract is BLOCKED (run 'intent ac status $ST_ID')"
 

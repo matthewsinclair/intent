@@ -11,9 +11,11 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 
-| ID     | Slug                                   | Status | Created    | Completed |
-| ------ | -------------------------------------- | ------ | ---------- | --------- |
-| ST0046 | add-modules-properly-to-the-intent-cli | WIP    | 2026-06-15 |
+| ID     | Slug                      | Status | Created    | Completed |
+| ------ | ------------------------- | ------ | ---------- | --------- |
+| ST0049 | comprehensive-2-13-0-r... | WIP    | 2026-06-29 |
+| ST0048 | acceptance-close-gate-... | WIP    | 2026-06-29 |
+| ST0046 | add-modules-properly-t... | WIP    | 2026-06-15 |
 
 <!-- END: STEEL_THREAD_INDEX -->
 
@@ -26,6 +28,7 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 - **Completed**: All tasks have been completed and the steel thread is finished (stp/prj/st/COMPLETED)
 - **On Hold**: Work has been temporarily paused (stp/prj/st)
 - **Cancelled**: The steel thread has been cancelled and will not be completed (stp/prj/st/CANCELLED)
+
 <!-- END: STATUS_DEFINITIONS -->
 
 ## Context for LLM
@@ -40,6 +43,7 @@ This document provides an overview of all steel threads in the STP project. It h
 2. Update the status of steel threads as they progress
 3. Add completion dates when steel threads are finished
 4. Use this document to quickly locate specific steel thread documents
+
 <!-- END: USAGE_INSTRUCTIONS -->
 
 The detailed information for each steel thread is contained in its individual document (eg ST0001.md).
