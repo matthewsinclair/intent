@@ -89,13 +89,13 @@ None -- WP-distributed.
 
 ### WP-03
 
-- AT-03.1 tests/unit/intent_todo.bats::todo_registered_in_help_and_usage -- covers AC-03.1 -- status: to-write (red-first)
-- AT-03.2 tests/unit/intent_todo.bats::dispatches_via_default_fallthrough -- covers AC-03.2 -- status: to-write (red-first)
-- Coverage: AC-03.1 + AC-03.2 covered.
+- AT-03.1 tests/unit/intent_todo.bats::todo_registered_in_help_and_usage -- covers AC-03.1 -- status: green
+- AT-03.2 tests/unit/intent_todo.bats::dispatches_via_default_fallthrough -- covers AC-03.2 -- status: green
+- Coverage: AC-03.1 + AC-03.2 covered (guards -- the CLI integration is the existing auto-discovery + fall-through architecture).
 
 ### WP-04
 
-- AT-04.1 tests/unit/intent_todo.bats (the file as a whole -- the harness proving the ACs above) -- covers AC-04.1 -- status: to-write (red-first)
+- AT-04.1 tests/unit/intent_todo.bats (the file as a whole -- the harness proving the ACs above) -- covers AC-04.1 -- status: green
 - Coverage: AC-04.1 is the green-suite rollup of the ATs above.
 
 ### WP-05

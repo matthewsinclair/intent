@@ -228,3 +228,25 @@ setup_todo_project() {
   run grep -c "ST0003: shipped today" intent/todo.md
   assert_output "0"
 }
+
+# ---- WP-03: CLI integration (guards -- satisfied by the auto-discovery help
+# listing + the intent_<command> fall-through dispatch) ----
+
+@test "todo is registered in the intent help listing" {
+  local d
+  d=$(create_test_project "Todo Help")
+  cd "$d"
+  run run_intent help
+  assert_success
+  assert_output_contains "todo"
+}
+
+@test "intent todo dispatches via bin/intent's default fall-through" {
+  setup_todo_project
+  # run_intent invokes the real bin/intent dispatcher; there is no dedicated
+  # `todo)` case, so a working `todo update` proves the intent_<command> route.
+  run run_intent todo update
+  assert_success
+  assert_file_exists "intent/todo.md"
+  assert_file_contains intent/todo.md "## DOING"
+}
