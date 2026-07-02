@@ -309,6 +309,30 @@ normalise_st_id() {
 }
 export -f normalise_st_id
 
+# Parse a WP specifier (STID/NN or bare STID) into globals ST_ID and WP_NUM.
+# THE specifier parser (Highlander) -- reused by intent_wp and intent_todo
+# (moved here from intent_wp for ST0050). $2 = require_wp (default true):
+# error when the /NN part is absent.
+# shellcheck disable=SC2034  # ST_ID / WP_NUM are outputs consumed by callers
+parse_wp_specifier() {
+  local spec="$1"
+  local require_wp="${2:-true}"
+
+  if [[ "$spec" == */* ]]; then
+    local st_part="${spec%/*}"
+    local wp_part="${spec##*/}"
+    ST_ID=$(normalise_st_id "$st_part")
+    WP_NUM=$(printf "%02d" "$((10#$wp_part))")
+  else
+    ST_ID=$(normalise_st_id "$spec")
+    WP_NUM=""
+    if [ "$require_wp" = "true" ]; then
+      error "Work package number is required (e.g., $ST_ID/01)"
+    fi
+  fi
+}
+export -f parse_wp_specifier
+
 # Escape special characters for sed replacement strings
 escape_sed_replacement() {
   local s="$1"

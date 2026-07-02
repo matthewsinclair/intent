@@ -36,29 +36,8 @@ usage() {
   exit 1
 }
 
-# Parse a WP specifier (STID/NN) into ST_ID and WP_NUM
-# Sets global variables: ST_ID, WP_NUM
-parse_wp_specifier() {
-  local spec="$1"
-  local require_wp="${2:-true}"
-
-  if [[ "$spec" == */* ]]; then
-    # Has a slash: STID/NN
-    local st_part="${spec%/*}"
-    local wp_part="${spec##*/}"
-    ST_ID=$(normalise_st_id "$st_part")
-    WP_NUM=$(printf "%02d" "$((10#$wp_part))")
-  else
-    # No slash: just STID
-    ST_ID=$(normalise_st_id "$spec")
-    WP_NUM=""
-    if [ "$require_wp" = "true" ]; then
-      error "Work package number is required (e.g., $ST_ID/01)"
-    fi
-  fi
-}
-
-# resolve_st_dir is sourced from bin/intent_helpers (Highlander, ST0042/WP-05).
+# parse_wp_specifier + resolve_st_dir are sourced from bin/intent_helpers
+# (Highlander, ST0042/WP-05; parse_wp_specifier moved there for ST0050 reuse).
 
 # Get the next WP number for a steel thread
 get_next_wp_number() {

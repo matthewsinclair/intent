@@ -27,7 +27,13 @@ usage() {
   echo "Commands:"
   echo "  (none), list          Show intent/todo.md (generates it if absent)"
   echo "  update                Regenerate intent/todo.md from current status"
+  echo "  done <STID[/NN]>      Mark a thread/WP done (via intent st/wp done), then regenerate"
+  echo "  notdone <STID[/NN]>   Reopen a thread/WP to WIP, then regenerate"
+  echo "  toggle <STID[/NN]>    Flip done/not-done, then regenerate"
   echo "  help                  Show this help"
+  echo ""
+  echo "Options:"
+  echo "  --json                Emit the DOING/TODO/DONE view as JSON (stdout)"
   echo ""
   echo "Checkbox legend:  [ ] not started   [-] in progress   [x] done"
   echo ""
@@ -130,21 +136,110 @@ generate() {
 
   tmp=$(mktemp)
   {
-    printf '# Intent Todo -- %s\n\n' "$(basename "$(pwd)")"
-    printf '%s\n\n' '_Generated from `intent/st/**` (real status) by `intent todo update` -- do not hand-edit; run `intent todo update`._'
-    printf '_Legend: `[ ]` not started · `[-]` in progress · `[x]` done._\n\n'
-
     printf '## DOING\n\n'
     if [ -n "$doing" ]; then printf '%s\n' "$doing"; else printf '_(none)_\n'; fi
 
     printf '\n## TODO\n\n'
     if [ -n "$todo" ]; then printf '%s\n' "$todo"; else printf '_(none)_\n'; fi
 
-    printf '\n## DONE -- completed today (swept daily)\n\n'
-    if [ -n "$done_today" ]; then printf '%s\n' "$done_today"; else printf '_(none today)_\n'; fi
+    printf '\n## DONE\n\n'
+    if [ -n "$done_today" ]; then printf '%s\n' "$done_today"; else printf '_(none)_\n'; fi
   } >"$tmp"
 
   mv "$tmp" "$TODO_FILE"
+}
+
+# ---- JSON projection (--json export) ----
+# The JSON and markdown views share the same field extraction (field / st_title)
+# and the same bucket->directory mapping; only the rendering differs (Highlander).
+
+# One steel thread as a JSON object: id, title, status, work_packages[].
+emit_st_json() {
+  local st_dir="$1" st_id status title wps="[]"
+  st_id=$(basename "$st_dir")
+  status=$(field "$st_dir/info.md" status)
+  title=$(st_title "$st_dir")
+
+  if [ -d "$st_dir/WP" ]; then
+    local wp wn ws wt
+    for wp in "$st_dir/WP"/[0-9][0-9]; do
+      [ -d "$wp" ] && [ -f "$wp/info.md" ] || continue
+      wn=$(basename "$wp")
+      ws=$(field "$wp/info.md" status)
+      wt=$(field "$wp/info.md" title)
+      wps=$(printf '%s' "$wps" | jq --arg id "$wn" --arg title "$wt" --arg status "$ws" \
+        '. + [{id: $id, title: $title, status: $status}]')
+    done
+  fi
+
+  jq -n --arg id "$st_id" --arg title "$title" --arg status "$status" --argjson wps "$wps" \
+    '{id: $id, title: $title, status: $status, work_packages: $wps}'
+}
+
+# A JSON array of the steel threads directly under a status directory ($1).
+emit_bucket_json() {
+  local root="$1" st out="[]"
+  for st in "$root"/ST[0-9]*; do
+    [ -d "$st" ] && [ -f "$st/info.md" ] || continue
+    out=$(printf '%s' "$out" | jq --argjson obj "$(emit_st_json "$st")" '. + [$obj]')
+  done
+  printf '%s' "$out"
+}
+
+# A JSON array of the threads completed today (the DONE bucket).
+emit_done_today_json() {
+  local today st comp out="[]"
+  today=$(date '+%Y%m%d')
+  for st in "$ST_BASE/COMPLETED"/ST[0-9]*; do
+    [ -d "$st" ] && [ -f "$st/info.md" ] || continue
+    comp=$(field "$st/info.md" completed)
+    comp="${comp//[^0-9]/}"
+    [ "$comp" = "$today" ] || continue
+    out=$(printf '%s' "$out" | jq --argjson obj "$(emit_st_json "$st")" '. + [$obj]')
+  done
+  printf '%s' "$out"
+}
+
+# The whole view as keyed-by-bucket JSON: { doing:[...], todo:[...], done:[...] }.
+generate_json() {
+  require_jq || exit 1
+  local doing todo done_today
+  doing=$(emit_bucket_json "$ST_BASE")
+  todo=$(emit_bucket_json "$ST_BASE/NOT-STARTED")
+  done_today=$(emit_done_today_json)
+  jq -n --argjson doing "$doing" --argjson todo "$todo" --argjson donev "$done_today" \
+    '{doing: $doing, todo: $todo, done: $donev}'
+}
+
+# ---- Mutation verbs (done / notdone / toggle) ----
+# These change REAL status by delegating to intent st / intent wp, then
+# regenerate the view -- never hand-editing a checkbox (the projection invariant).
+
+# Resolve a spec (STID or STID/NN) to its info.md path (shared parser).
+spec_info_file() {
+  parse_wp_specifier "$1" "false"   # sets ST_ID, WP_NUM (Highlander helper)
+  local st_dir
+  st_dir=$(resolve_st_dir "$ST_ID") || error "steel thread not found: $ST_ID"
+  if [ -n "$WP_NUM" ]; then
+    echo "$st_dir/WP/$WP_NUM/info.md"
+  else
+    echo "$st_dir/info.md"
+  fi
+}
+
+# Route a mutation to intent st / intent wp (a WP when the spec has /NN), then
+# regenerate. intent st/wp done enforce the acceptance close-gate, so `done`
+# inherits it (D2): a BLOCKED contract aborts here under set -e with the gate's
+# message, and the status is left unchanged.
+todo_mutate() {
+  local verb="$1" spec="$2"
+  [ -n "$spec" ] || error "usage: intent todo <done|notdone|toggle> <STID[/NN]>"
+  if [[ "$spec" == */* ]]; then
+    "$INTENT_HOME/bin/intent" wp "$verb" "$spec"
+  else
+    "$INTENT_HOME/bin/intent" st "$verb" "$spec"
+  fi
+  generate
 }
 
 # ---- Command dispatch ----
@@ -153,12 +248,25 @@ if [ ! -d "$ST_BASE" ]; then
   error "no $ST_BASE directory here -- run from an Intent project (intent todo)."
 fi
 
+# --json is a stdout export mode for the default / list view (update writes md).
+JSON_MODE=0
+ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+  --json) JSON_MODE=1 ;;
+  *) ARGS+=("$arg") ;;
+  esac
+done
+set -- ${ARGS[@]+"${ARGS[@]}"}
+
 COMMAND="${1:-list}"
 [ $# -gt 0 ] && shift
 
 case "$COMMAND" in
 list)
-  if [ -f "$TODO_FILE" ]; then
+  if [ "$JSON_MODE" -eq 1 ]; then
+    generate_json
+  elif [ -f "$TODO_FILE" ]; then
     cat "$TODO_FILE"
   else
     info "no $TODO_FILE yet -- generating..."
@@ -170,8 +278,19 @@ update)
   generate
   info "updated: $TODO_FILE"
   ;;
-done | notdone | toggle)
-  error "the '$COMMAND' mutation verb is not wired yet (pending semantics sign-off)."
+done)
+  todo_mutate "done" "$1"
+  ;;
+notdone)
+  todo_mutate "start" "$1"
+  ;;
+toggle)
+  spec="$1"
+  [ -n "$spec" ] || error "usage: intent todo toggle <STID[/NN]>"
+  case "$(field "$(spec_info_file "$spec")" status)" in
+  Done | Completed) todo_mutate "start" "$spec" ;;
+  *) todo_mutate "done" "$spec" ;;
+  esac
   ;;
 help | --help | -h)
   usage

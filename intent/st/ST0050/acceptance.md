@@ -22,20 +22,74 @@ title: "intent todo: a flat DOING/TODO/DONE view of steel threads and work packa
 
 ### ST-level
 
-[The "whole steel thread is done" bar, or "none -- WP-distributed".]
+None -- WP-distributed.
 
-### WP-01 -- [WP title] (status: ...)
+### WP-01 -- Read path + output (minimal markdown + --json) (status: WIP)
 
-[Add real AC lines at column 0 -- the parser and close-gate read only column-0 `- AC-` lines, so the indented examples below are inert guidance. Copy one to column 0 and fill it in:]
+- AC-01.1 `intent todo update` regenerates `intent/todo.md` as a nested GFM checklist bucketed DOING/TODO/DONE, projected from each unit's real `status:` (threads as `- [ ] STID: title`, work packages as indented `  - [ ] NN: title`).
+- AC-01.2 checkbox glyphs map status: `WIP`->`[-]`, `Not Started`->`[ ]`, `Completed`/`Done`->`[x]`, `Cancelled`->`[~]`.
+- AC-01.3 buckets are correct: DOING = `WIP` threads (+ WPs); TODO = `Not Started`; DONE = threads whose `completed:` is today (self-sweep -- yesterday's completions drop off on the next update).
+- AC-01.4 on-hold threads (`on-hold: TRUE` + `status: WIP`) render in DOING with an `(on-hold)` tag.
+- AC-01.5 `todo.md` contains ONLY the three `## DOING` / `## TODO` / `## DONE` headings and their data (the `_(none)_` sentinel when a bucket is empty) -- NO title line, NO `_Generated…_` provenance line, NO `_Legend…_` line (hv minimal-output).
+- AC-01.6 output is prettier-stable: the generator's output equals the post-prettier file byte-for-byte (no reflow churn on commit).
+- AC-01.7 `intent todo` / `intent todo list` prints `todo.md` (generating it first if absent); `intent todo help` prints usage.
+- AC-01.8 `intent todo --json` emits valid JSON: an object keyed by bucket (doing/todo/done), each a list of threads carrying `id` / `title` / `status`, each thread carrying its work packages (`id` / `title` / `status`). The JSON and markdown emitters share one enumeration of `intent/st/**` (Highlander -- no second traversal).
 
-    - AC-01.1 [a test-backed criterion -- what must be verifiably true]
-    - AC-01.2 (non-test) [a doc / eyeball / gate criterion] -- evidence: [named evidence] -- satisfied: no
+### WP-02 -- Mutation verbs (status: Not Started)
+
+- AC-02.1 `intent todo done <ST[/NN]>` changes real status by wrapping `intent st done` / `intent wp done`, then regenerates `todo.md` -- it never hand-edits a checkbox or `status:`.
+- AC-02.2 `intent todo done` INHERITS the ST0048 acceptance close-gate (D2): a unit with a BLOCKED contract is refused, the gate's message is surfaced verbatim, and status is left unchanged (no bypass).
+- AC-02.3 `intent todo notdone <ST[/NN]>` reopens a completed unit to `WIP` (D1), then regenerates.
+- AC-02.4 `intent todo toggle <ST[/NN]>` flips done/not-done from the unit's current status, then regenerates.
+- AC-02.5 (non-test) the ST/WP specifier (`ST0011` / `11` / `ST0011/01` / `11/01`) is parsed via the shared `intent wp` specifier logic, not a reimplementation (Highlander). -- evidence: parse_wp_specifier extracted to bin/intent_helpers (Highlander); reused by intent_wp + intent_todo spec_info_file; 1/1 == ST1/1 == ST0001/01 proven -- satisfied: yes
+
+### WP-03 -- CLI integration (status: Not Started)
+
+- AC-03.1 `todo` is registered in `intent_help` and the top-level usage listing.
+- AC-03.2 `intent todo <args>` dispatches end-to-end via `bin/intent`'s default `intent_<command>` fall-through (no dispatcher edit; the command runs from `PROJECT_ROOT`).
+
+### WP-04 -- Tests (status: Not Started)
+
+- AC-04.1 a reusable fixture-project harness under `tests/` proves, green: projection correctness (WIP/Not-Started/Completed STs + WPs -> asserted `todo.md`), minimal-output shape, prettier-stability, the DONE self-sweep, mutation round-trips, gate-inheritance, and `--json` structure.
+
+### WP-05 -- Docs + release (status: Not Started)
+
+- AC-05.1 (non-test) `bin/intent_todo` is registered in `intent/llm/MODULES.md`; README and `usage-rules.md` document `intent todo` (commands, projection model, mutation semantics, `--json`). -- evidence: MODULES.md row + doc entries -- satisfied: no
+- AC-05.2 (non-test) CHANGELOG carries a 2.14.0 `intent todo` entry; `impl.md` records the as-built; `tasks.md` reflects completion. -- evidence: CHANGELOG + impl.md + tasks.md -- satisfied: no
 
 ## Acceptance Tests
 
 ### WP-01
 
-[Add real AT lines at column 0 -- the parser reads only column-0 `- AT-` lines, so the indented examples below are inert guidance. Copy one to column 0 and fill it in:]
+- AT-01.1 tests/unit/intent_todo.bats::update_projects_buckets_from_status -- covers AC-01.1, AC-01.3 -- status: green
+- AT-01.2 tests/unit/intent_todo.bats::checkbox_glyphs_map_each_status -- covers AC-01.2 -- status: green
+- AT-01.3 tests/unit/intent_todo.bats::done_bucket_self_sweeps_to_today -- covers AC-01.3 -- status: green
+- AT-01.4 tests/unit/intent_todo.bats::on_hold_thread_tagged_in_doing -- covers AC-01.4 -- status: green
+- AT-01.5 tests/unit/intent_todo.bats::todo_md_has_only_headings_and_data -- covers AC-01.5 -- status: green
+- AT-01.6 tests/unit/intent_todo.bats::output_is_prettier_stable -- covers AC-01.6 -- status: green
+- AT-01.7 tests/unit/intent_todo.bats::list_prints_and_help_shows_usage -- covers AC-01.7 -- status: green
+- AT-01.8 tests/unit/intent_todo.bats::json_emits_valid_structured_buckets -- covers AC-01.8 -- status: green
+- Coverage: all WP-01 ACs covered.
 
-    - AT-01.1 [test path::name] -- covers AC-01.1 -- status: to-write (red-first)
-    - Coverage: [every AC has an AT, or list the uncovered ACs; non-test ACs carry evidence on the AC line]
+### WP-02
+
+- AT-02.1 tests/unit/intent_todo.bats::done_wraps_st_wp_and_regenerates -- covers AC-02.1 -- status: green
+- AT-02.2 tests/unit/intent_todo.bats::done_inherits_close_gate_on_blocked -- covers AC-02.2 -- status: green
+- AT-02.3 tests/unit/intent_todo.bats::notdone_reopens_to_wip -- covers AC-02.3 -- status: green
+- AT-02.4 tests/unit/intent_todo.bats::toggle_flips_from_current_status -- covers AC-02.4 -- status: green
+- Coverage: AC-02.1..02.4 covered; AC-02.5 is non-test (Highlander review).
+
+### WP-03
+
+- AT-03.1 tests/unit/intent_todo.bats::todo_registered_in_help_and_usage -- covers AC-03.1 -- status: to-write (red-first)
+- AT-03.2 tests/unit/intent_todo.bats::dispatches_via_default_fallthrough -- covers AC-03.2 -- status: to-write (red-first)
+- Coverage: AC-03.1 + AC-03.2 covered.
+
+### WP-04
+
+- AT-04.1 tests/unit/intent_todo.bats (the file as a whole -- the harness proving the ACs above) -- covers AC-04.1 -- status: to-write (red-first)
+- Coverage: AC-04.1 is the green-suite rollup of the ATs above.
+
+### WP-05
+
+- Coverage: AC-05.1 + AC-05.2 are non-test (MODULES.md + docs + CHANGELOG evidence).

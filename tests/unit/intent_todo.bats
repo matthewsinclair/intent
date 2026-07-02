@@ -1,0 +1,180 @@
+#!/usr/bin/env bats
+# ST0050: intent todo -- a projection of intent/st/** into a flat DOING/TODO/DONE
+# view (markdown + --json). This file is the WP-01 read-path harness and the
+# WP-04 AC-04.1 rollup.
+
+load "../lib/test_helper.bash"
+
+# grep -F with `--` so a line starting with "-" (a GFM list item) is not read
+# as a grep option -- the house assert_file_contains lacks the `--`.
+assert_line() {
+  grep -qF -- "$2" "$1" || { echo "missing in $1: $2"; cat "$1"; return 1; }
+}
+
+# Build a steel-thread fixture directly, for precise control over
+# status / completed / on-hold without driving the full CLI + close-gate.
+mk_st() {  # mk_st <base> <ID> <status> <title> [completed] [onhold]
+  local base="$1" id="$2" status="$3" title="$4" completed="${5:-}" onhold="${6:-}"
+  mkdir -p "$base/$id"
+  {
+    echo "---"
+    echo "status: $status"
+    echo "completed: $completed"   # always present (empty if none) so intent st done can stamp it
+    [ -n "$onhold" ] && echo "on-hold: $onhold"
+    echo "---"
+    echo ""
+    echo "# $id: $title"
+  } > "$base/$id/info.md"
+}
+
+mk_wp() {  # mk_wp <st_dir> <NN> <status> <title>
+  local st_dir="$1" nn="$2" status="$3" title="$4"
+  mkdir -p "$st_dir/WP/$nn"
+  {
+    echo "---"
+    echo "status: $status"
+    echo "title: $title"
+    echo "---"
+  } > "$st_dir/WP/$nn/info.md"
+}
+
+setup_todo_project() {
+  local d
+  d=$(create_test_project "Todo Test")
+  cd "$d"
+  mk_st "intent/st" "ST0001" "WIP" "active thread"
+  mk_wp "intent/st/ST0001" "01" "Done" "first wp"
+  mk_wp "intent/st/ST0001" "02" "WIP" "second wp"
+  mk_st "intent/st/NOT-STARTED" "ST0002" "Not Started" "queued thread"
+  mk_st "intent/st/COMPLETED" "ST0003" "Completed" "shipped today" "$(date +%Y%m%d)"
+  mk_st "intent/st/COMPLETED" "ST0004" "Completed" "shipped long ago" "20200101"
+  mk_st "intent/st" "ST0005" "WIP" "held thread" "" "TRUE"
+}
+
+@test "update projects threads and WPs into DOING/TODO/DONE buckets" {
+  setup_todo_project
+  run run_intent todo update
+  assert_success
+  assert_line intent/todo.md "- [-] ST0001: active thread"
+  assert_line intent/todo.md "  - [x] 01: first wp"
+  assert_line intent/todo.md "  - [-] 02: second wp"
+  assert_line intent/todo.md "- [ ] ST0002: queued thread"
+  assert_line intent/todo.md "- [x] ST0003: shipped today"
+}
+
+@test "checkbox glyphs map each status" {
+  setup_todo_project
+  run_intent todo update
+  assert_file_contains intent/todo.md "[-] ST0001"
+  assert_file_contains intent/todo.md "[ ] ST0002"
+  assert_file_contains intent/todo.md "[x] ST0003"
+}
+
+@test "DONE bucket self-sweeps to today (older completions drop off)" {
+  setup_todo_project
+  run_intent todo update
+  assert_file_contains intent/todo.md "ST0003: shipped today"
+  run grep -c "ST0004: shipped long ago" intent/todo.md
+  assert_output "0"
+}
+
+@test "on-hold thread is tagged in DOING" {
+  setup_todo_project
+  run_intent todo update
+  assert_line intent/todo.md "- [-] ST0005: held thread (on-hold)"
+}
+
+@test "todo.md has ONLY bucket headings and data (no title/legend/provenance)" {
+  setup_todo_project
+  run_intent todo update
+  assert_file_contains intent/todo.md "## DOING"
+  assert_file_contains intent/todo.md "## TODO"
+  assert_file_contains intent/todo.md "## DONE"
+  run grep -c "# Intent Todo" intent/todo.md
+  assert_output "0"
+  run grep -c "_Generated" intent/todo.md
+  assert_output "0"
+  run grep -c "Legend" intent/todo.md
+  assert_output "0"
+}
+
+@test "output is prettier-stable" {
+  command -v prettier >/dev/null 2>&1 || skip "prettier not installed"
+  setup_todo_project
+  run_intent todo update
+  cp intent/todo.md before.md
+  prettier --write intent/todo.md >/dev/null 2>&1
+  run diff before.md intent/todo.md
+  assert_success
+}
+
+@test "list prints the file and help shows usage" {
+  setup_todo_project
+  run run_intent todo list
+  assert_success
+  assert_output_contains "## DOING"
+  run run_intent todo help
+  assert_output_contains "Usage: intent todo"
+}
+
+@test "--json emits a valid keyed-by-bucket structure" {
+  setup_todo_project
+  run run_intent todo --json
+  assert_success
+  echo "$output" | jq -e '.doing and .todo and .done' >/dev/null
+  echo "$output" | jq -e '.doing[] | select(.id=="ST0001") | .work_packages | length == 2' >/dev/null
+  echo "$output" | jq -e '.todo[] | select(.id=="ST0002")' >/dev/null
+  echo "$output" | jq -e '.done[] | select(.id=="ST0003")' >/dev/null
+}
+
+# ---- WP-02: mutation verbs (done / notdone / toggle) ----
+
+@test "done marks a thread done (via intent st done) and regenerates" {
+  local d
+  d=$(create_test_project "Todo Done")
+  cd "$d"
+  mk_st "intent/st" "ST0001" "WIP" "closing thread"
+  write_exempt_acceptance "intent/st/ST0001"
+  run run_intent todo done ST0001
+  assert_success
+  assert_file_exists "intent/st/COMPLETED/ST0001/info.md"
+  assert_line intent/todo.md "- [x] ST0001: closing thread"
+}
+
+@test "done inherits the acceptance close-gate: a BLOCKED contract is refused" {
+  local d
+  d=$(create_test_project "Todo Gate")
+  cd "$d"
+  mk_st "intent/st" "ST0001" "WIP" "blocked thread"
+  printf '%s\n' '---' 'st_id: ST0001' '---' '# Acceptance (no ACs -> BLOCKED)' > intent/st/ST0001/acceptance.md
+  run run_intent todo done ST0001
+  assert_failure
+  assert_output_contains "BLOCKED"
+  assert_file_not_exists "intent/st/COMPLETED/ST0001/info.md"
+}
+
+@test "notdone reopens a completed thread to WIP" {
+  local d
+  d=$(create_test_project "Todo Reopen")
+  cd "$d"
+  mk_st "intent/st/COMPLETED" "ST0001" "Completed" "shipped thread" "$(date +%Y%m%d)"
+  run run_intent todo notdone ST0001
+  assert_success
+  run grep -m1 "^status:" intent/st/ST0001/info.md
+  assert_output_contains "WIP"
+}
+
+@test "toggle flips done/not-done from the current status" {
+  local d
+  d=$(create_test_project "Todo Toggle")
+  cd "$d"
+  mk_st "intent/st" "ST0001" "WIP" "toggle thread"
+  write_exempt_acceptance "intent/st/ST0001"
+  run run_intent todo toggle ST0001
+  assert_success
+  assert_file_exists "intent/st/COMPLETED/ST0001/info.md"
+  run run_intent todo toggle ST0001
+  assert_success
+  run grep -m1 "^status:" intent/st/ST0001/info.md
+  assert_output_contains "WIP"
+}
