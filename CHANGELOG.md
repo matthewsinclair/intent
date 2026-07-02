@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.0] - 2026-07-02
+
+Minor release adding **`intent todo`** — a flat DOING / TODO / DONE view of every steel thread and work package, projected from real `status:` so it cannot drift (ST0050) — plus a generated-file width fix (ST0051). It is a minor, not a patch, because it adds a new command surface.
+
+### Added
+
+- **`intent todo` — a projected DOING / TODO / DONE board (ST0050).** `intent/todo.md` is a nested GFM checklist bucketed by real status: DOING (`WIP` threads + their work packages), TODO (`Not Started`), DONE (recent completions). Every checkbox is derived from the unit's `status:` and its status-directory placement — there is no separately-stored state, so the file cannot drift from `intent/st/**`. `intent todo` / `todo list` prints it (generating on first use); `todo update` regenerates it. Mutation verbs change _real_ status by wrapping `intent st` / `intent wp` and regenerating — `todo done` / `notdone` / `toggle` — so `todo done` inherits the ST0048 acceptance close-gate (a BLOCKED contract is refused, never bypassed). `intent todo --json` emits the board as keyed-by-bucket JSON (each thread carrying its work packages) for export to other systems.
+- **DONE flush / prune + ISO completion timestamps (ST0050).** The DONE bucket is watermarked — `## DONE:<T>`, where `<T>` is the last-flush instant — and lists completions at or after it. `intent todo done --flush` advances `<T>` (clearing the view without touching the record in `COMPLETED/`); `intent todo done --prune` emits the pruned items to stdout (for archiving, eg `>> intent/done.md`) and then flushes. `intent st done` now stamps `completed:` as an ISO 8601 UTC timestamp for exact flush ordering; a legacy `%Y%m%d` stamp is still tolerated everywhere `completed:` is read.
+- **`dft_width` config field (ST0051).** A new `intent/.config/config.json` field (default `120`) sets the width for generated files; `intent init` seeds it.
+
+### Fixed
+
+- **Generated `steel_threads.md` no longer truncates at 80 columns (ST0051).** `intent st sync --write` hard-coded an 80-column width, clipping the slug column of the generated index. Generated files now size to `dft_width` (config, default 120); interactive stdout stays at the terminal width; an explicit `--width N` overrides both.
+
 ## [2.13.1] - 2026-06-29
 
 Patch release hardening the acceptance close-gate (ST0048). The gate behind `intent st done` / `intent wp done` previously treated a unit with **zero acceptance criteria** -- or no `acceptance.md` at all -- as vacuously done, so work closed with nothing to verify it against. That is now a hard failure: an empty or missing contract is refused, with an explicit `acceptance: exempt` marker as the sole escape. No-Silent-Errors applied to the acceptance layer.

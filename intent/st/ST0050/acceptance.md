@@ -54,8 +54,8 @@ None -- WP-distributed.
 
 ### WP-05 -- Docs + release (status: Not Started)
 
-- AC-05.1 (non-test) `bin/intent_todo` is registered in `intent/llm/MODULES.md`; README and `usage-rules.md` document `intent todo` (commands, projection model, mutation semantics, `--json`). -- evidence: MODULES.md row + doc entries -- satisfied: no
-- AC-05.2 (non-test) CHANGELOG carries a 2.14.0 `intent todo` entry; `impl.md` records the as-built; `tasks.md` reflects completion. -- evidence: CHANGELOG + impl.md + tasks.md -- satisfied: no
+- AC-05.1 (non-test) `bin/intent_todo` is registered in `intent/llm/MODULES.md`; README and `usage-rules.md` document `intent todo` (commands, projection model, mutation semantics, `--json`). -- evidence: MODULES.md `Todo view` row; usage-rules.md `### Todo view`; README `See what's in flight` -- satisfied: yes
+- AC-05.2 (non-test) CHANGELOG carries a 2.14.0 `intent todo` entry; `impl.md` records the as-built; `tasks.md` reflects completion. -- evidence: CHANGELOG `## [2.14.0]` (ST0050 + ST0051); impl.md as-built; tasks.md WP checklist -- satisfied: yes
 
 ### WP-06 -- DONE lifecycle (flush / prune) + ISO completion timestamp (status: WIP)
 

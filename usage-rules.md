@@ -62,6 +62,21 @@ intent wp done ST0001/01
 
 Specifiers accept bare numbers (`5` = `ST0005`; `5/01` = `ST0005/01`). Leading zeros parse as octal in bash — use `ST0035` or `35`, never `0035`.
 
+### Todo view
+
+```bash
+intent todo                 # print the DOING/TODO/DONE view (intent/todo.md)
+intent todo update          # regenerate intent/todo.md from real ST/WP status
+intent todo --json          # emit the view as keyed-by-bucket JSON (stdout)
+intent todo done ST0001     # mark done via intent st/wp done (inherits the close-gate)
+intent todo notdone ST0001  # reopen to WIP
+intent todo toggle ST0001   # flip done/not-done
+intent todo done --flush    # clear the DONE view (advance the ## DONE:<T> watermark)
+intent todo done --prune    # emit the DONE items (for archiving), then flush
+```
+
+`intent/todo.md` is a PROJECTION of real `status:` — never hand-edit a checkbox; mutate through these verbs (they wrap `intent st` / `intent wp`, so the ST0048 close-gate applies to `todo done`). The DONE bucket lists completions at or after the `## DONE:<T>` flush watermark; stdout emits at terminal width, the file at `dft_width`.
+
 ### AGENTS.md
 
 ```bash

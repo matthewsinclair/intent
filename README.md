@@ -183,6 +183,27 @@ $ intent st show ST0001 | pbcopy
 # The AI immediately understands your constraints!
 ```
 
+### 📋 See what's in flight
+
+```bash
+# A flat DOING / TODO / DONE view of every steel thread, projected from real
+# status -- it can't drift, because the checkboxes are derived, not stored.
+$ intent todo
+## DOING
+- [-] ST0007: rate-limited cache
+  - [x] 01: token bucket
+  - [-] 02: eviction policy
+## TODO
+- [ ] ST0009: SSO for enterprise
+## DONE:2026-07-02T00:00:00Z
+- [x] ST0006: audit logging
+
+# Close work through the view (wraps `intent st/wp done`, so the acceptance
+# close-gate still applies); export the whole board for other tools with --json.
+$ intent todo done ST0007/02
+$ intent todo --json | jq '.doing'
+```
+
 ## 📚 Documentation
 
 ### Getting Started
