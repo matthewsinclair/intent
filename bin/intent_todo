@@ -17,6 +17,8 @@ source "$INTENT_HOME/bin/intent_helpers"
 
 ST_BASE="intent/st"
 TODO_FILE="intent/todo.md"
+# The DONE bucket heading carries the last-flush watermark: `## DONE:<T>`.
+DONE_HEADING_PREFIX="## DONE:"
 
 usage() {
   echo "Usage: intent todo [command] [arguments]"
@@ -28,6 +30,8 @@ usage() {
   echo "  (none), list          Show intent/todo.md (generates it if absent)"
   echo "  update                Regenerate intent/todo.md from current status"
   echo "  done <STID[/NN]>      Mark a thread/WP done (via intent st/wp done), then regenerate"
+  echo "  done --flush          Advance the DONE watermark to now (clear the DONE view)"
+  echo "  done --prune          Emit the DONE items (for archiving), then flush"
   echo "  notdone <STID[/NN]>   Reopen a thread/WP to WIP, then regenerate"
   echo "  toggle <STID[/NN]>    Flip done/not-done, then regenerate"
   echo "  help                  Show this help"
@@ -40,7 +44,7 @@ usage() {
   echo "Buckets:"
   echo "  DOING   steel threads with status WIP (+ their work packages)"
   echo "  TODO    steel threads not yet started"
-  echo "  DONE    steel threads completed today (swept to history daily)"
+  echo "  DONE    steel threads completed at/after the '## DONE:<T>' flush watermark"
   exit 1
 }
 
@@ -112,27 +116,57 @@ emit_bucket() {
   done
 }
 
-# Emit completed threads whose `completed:` date is today (the live DONE view;
-# older completions live permanently in COMPLETED/ and the monthly done-log).
-emit_done_today() {
-  local today st comp
-  today=$(date '+%Y%m%d')
+# Normalise a `completed:` value to a comparable ISO 8601 UTC instant. Tolerates
+# a legacy %Y%m%d (-> that day's 00:00:00Z), a bare dashed date (-> 00:00:00Z),
+# and a full ISO timestamp (as-is). Empty / unparseable -> empty (never a member).
+normalize_completed() {
+  local v="${1//[[:space:]]/}"
+  case "$v" in
+  [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]) printf '%s-%s-%sT00:00:00Z' "${v:0:4}" "${v:4:2}" "${v:6:2}" ;;
+  [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T*) printf '%s' "$v" ;;
+  [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]) printf '%sT00:00:00Z' "$v" ;;
+  *) printf '' ;;
+  esac
+}
+
+# Read the DONE watermark <T> from the existing todo.md `## DONE:<T>` heading.
+# Absent (no file / never generated) defaults to the start of today (UTC), which
+# reproduces the "completed today" view as the zero-flush baseline.
+read_done_watermark() {
+  local wm=""
+  if [ -f "$TODO_FILE" ]; then
+    wm=$(grep -m 1 "^$DONE_HEADING_PREFIX" "$TODO_FILE" 2>/dev/null | sed "s/^$DONE_HEADING_PREFIX//; s/[[:space:]]//g")
+  fi
+  if [ -n "$wm" ]; then printf '%s' "$wm"; else date -u '+%Y-%m-%dT00:00:00Z'; fi
+}
+
+# Emit completed threads whose `completed:` is at or after the watermark ($1, ISO
+# 8601). Completions before it have been flushed out of the live view; they live
+# permanently in COMPLETED/ and the monthly done-log. Legacy %Y%m%d and ISO
+# `completed:` are both tolerated (normalize_completed).
+emit_done_since() {
+  local since="$1" st comp norm
   for st in "$ST_BASE/COMPLETED"/ST[0-9]*; do
     [ -d "$st" ] && [ -f "$st/info.md" ] || continue
     comp=$(field "$st/info.md" completed)
-    comp="${comp//[^0-9]/}"
-    [ "$comp" = "$today" ] || continue
+    norm=$(normalize_completed "$comp")
+    [ -n "$norm" ] || continue
+    # lexical ISO compare == chronological; skip anything before the watermark
+    if [[ "$norm" < "$since" ]]; then continue; fi
     emit_st_block "$st"
   done
 }
 
-# Regenerate intent/todo.md atomically (temp file + mv).
+# Regenerate intent/todo.md atomically (temp file + mv). The DONE bucket is
+# watermarked `## DONE:<T>`, where <T> is arg $1, else the existing watermark,
+# else start-of-today UTC; DONE lists completions at or after it.
 # shellcheck disable=SC2016  # backticks in the printf strings are literal markdown, not command substitution
 generate() {
-  local tmp doing todo done_today
+  local tmp doing todo done_since watermark
+  watermark="${1:-$(read_done_watermark)}"
   doing=$(emit_bucket "$ST_BASE" || true)
   todo=$(emit_bucket "$ST_BASE/NOT-STARTED" || true)
-  done_today=$(emit_done_today || true)
+  done_since=$(emit_done_since "$watermark" || true)
 
   tmp=$(mktemp)
   {
@@ -142,8 +176,8 @@ generate() {
     printf '\n## TODO\n\n'
     if [ -n "$todo" ]; then printf '%s\n' "$todo"; else printf '_(none)_\n'; fi
 
-    printf '\n## DONE\n\n'
-    if [ -n "$done_today" ]; then printf '%s\n' "$done_today"; else printf '_(none)_\n'; fi
+    printf '\n%s%s\n\n' "$DONE_HEADING_PREFIX" "$watermark"
+    if [ -n "$done_since" ]; then printf '%s\n' "$done_since"; else printf '_(none)_\n'; fi
   } >"$tmp"
 
   mv "$tmp" "$TODO_FILE"
@@ -186,15 +220,16 @@ emit_bucket_json() {
   printf '%s' "$out"
 }
 
-# A JSON array of the threads completed today (the DONE bucket).
-emit_done_today_json() {
-  local today st comp out="[]"
-  today=$(date '+%Y%m%d')
+# A JSON array of the threads in the DONE bucket (completed at or after the
+# watermark $1) -- same membership predicate as emit_done_since (Highlander).
+emit_done_since_json() {
+  local since="$1" st comp norm out="[]"
   for st in "$ST_BASE/COMPLETED"/ST[0-9]*; do
     [ -d "$st" ] && [ -f "$st/info.md" ] || continue
     comp=$(field "$st/info.md" completed)
-    comp="${comp//[^0-9]/}"
-    [ "$comp" = "$today" ] || continue
+    norm=$(normalize_completed "$comp")
+    [ -n "$norm" ] || continue
+    if [[ "$norm" < "$since" ]]; then continue; fi
     out=$(printf '%s' "$out" | jq --argjson obj "$(emit_st_json "$st")" '. + [$obj]')
   done
   printf '%s' "$out"
@@ -203,12 +238,13 @@ emit_done_today_json() {
 # The whole view as keyed-by-bucket JSON: { doing:[...], todo:[...], done:[...] }.
 generate_json() {
   require_jq || exit 1
-  local doing todo done_today
+  local watermark doing todo done_since
+  watermark=$(read_done_watermark)
   doing=$(emit_bucket_json "$ST_BASE")
   todo=$(emit_bucket_json "$ST_BASE/NOT-STARTED")
-  done_today=$(emit_done_today_json)
-  jq -n --argjson doing "$doing" --argjson todo "$todo" --argjson donev "$done_today" \
-    '{doing: $doing, todo: $todo, done: $donev}'
+  done_since=$(emit_done_since_json "$watermark")
+  jq -n --argjson doing "$doing" --argjson todo "$todo" --argjson donev "$done_since" --arg wm "$watermark" \
+    '{doing: $doing, todo: $todo, done: $donev, done_watermark: $wm}'
 }
 
 # ---- Mutation verbs (done / notdone / toggle) ----
@@ -240,6 +276,31 @@ todo_mutate() {
     "$INTENT_HOME/bin/intent" st "$verb" "$spec"
   fi
   generate
+}
+
+# Advance the DONE watermark to now (the shared flush mechanism). This changes
+# only the view (the `## DONE:<T>` watermark in todo.md), never a thread's real
+# status -- the completion record stays in COMPLETED/ + the monthly done-log.
+flush_watermark() {
+  generate "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+}
+
+# `done --flush`: clear the DONE view.
+todo_flush() {
+  flush_watermark
+  info "flushed DONE -- watermark advanced to now"
+}
+
+# `done --prune`: emit the items about to be flushed to STDOUT (pipe-clean, eg
+# `intent todo done --prune >> intent/done.md`), then flush. The advisory note
+# goes to STDERR so it never contaminates the archived stream.
+todo_prune() {
+  local wm items
+  wm=$(read_done_watermark)
+  items=$(emit_done_since "$wm" || true)
+  if [ -n "$items" ]; then printf '%s\n' "$items"; fi
+  flush_watermark
+  echo "pruned DONE -- watermark advanced to now" >&2
 }
 
 # ---- Command dispatch ----
@@ -279,7 +340,12 @@ update)
   info "updated: $TODO_FILE"
   ;;
 done)
-  todo_mutate "done" "$1"
+  case "${1:-}" in
+  --flush) todo_flush ;;
+  --prune) todo_prune ;;
+  "") error "usage: intent todo done <STID[/NN]> | --flush | --prune" ;;
+  *) todo_mutate "done" "$1" ;;
+  esac
   ;;
 notdone)
   todo_mutate "start" "$1"

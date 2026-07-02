@@ -178,3 +178,53 @@ setup_todo_project() {
   run grep -m1 "^status:" intent/st/ST0001/info.md
   assert_output_contains "WIP"
 }
+
+# ---- WP-06: DONE lifecycle (flush / prune) + ISO completion timestamp ----
+
+@test "st done stamps completed: as an ISO 8601 UTC timestamp" {
+  local d
+  d=$(create_test_project "Todo ISO")
+  cd "$d"
+  mk_st "intent/st" "ST0001" "WIP" "closing thread"
+  write_exempt_acceptance "intent/st/ST0001"
+  run run_intent st done ST0001
+  assert_success
+  run grep -m1 "^completed:" intent/st/COMPLETED/ST0001/info.md
+  assert_success
+  [[ "$output" =~ ^completed:\ [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]] \
+    || { echo "not ISO 8601: $output"; false; }
+}
+
+@test "DONE bucket is watermarked and lists completions at/after it" {
+  setup_todo_project
+  run_intent todo update
+  run grep -qE '^## DONE:[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z' intent/todo.md
+  assert_success
+  # ST0003 completed today (legacy %Y%m%d) is tolerated and >= the default
+  # today-00:00 watermark; ST0004 (2020) is before it and drops off.
+  assert_file_contains intent/todo.md "ST0003: shipped today"
+  run grep -c "ST0004: shipped long ago" intent/todo.md
+  assert_output "0"
+}
+
+@test "done --flush advances the watermark and empties DONE; real status untouched" {
+  setup_todo_project
+  run_intent todo update
+  assert_file_contains intent/todo.md "ST0003: shipped today"
+  run run_intent todo done --flush
+  assert_success
+  run grep -c "ST0003: shipped today" intent/todo.md
+  assert_output "0"
+  # flush clears the view, not the data -- ST0003 stays Completed on disk
+  assert_file_exists "intent/st/COMPLETED/ST0003/info.md"
+}
+
+@test "done --prune emits the pruned items then flushes" {
+  setup_todo_project
+  run_intent todo update
+  run run_intent todo done --prune
+  assert_success
+  assert_output_contains "ST0003: shipped today"
+  run grep -c "ST0003: shipped today" intent/todo.md
+  assert_output "0"
+}

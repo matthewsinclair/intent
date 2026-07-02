@@ -558,7 +558,7 @@ TEMPLATE
       sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: Completed/" "$ST_FILE"
       sed -i.bak "s/^\- \*\*Completed\*\*:.*$/- **Completed**: $DATE/" "$ST_FILE"
       sed -i.bak "s/^status: .*$/status: Completed/" "$ST_FILE"
-      sed -i.bak "s/^completed:.*$/completed: $(date '+%Y%m%d')/" "$ST_FILE"
+      sed -i.bak "s/^completed:.*$/completed: $(date -u '+%Y-%m-%dT%H:%M:%SZ')/" "$ST_FILE"
       rm -f "$ST_FILE.bak"
       
       # Get current directory
@@ -587,7 +587,7 @@ TEMPLATE
       sed -i.bak "s/^\- \*\*Status\*\*: .*$/- **Status**: Completed/" "$ST_FILE"
       sed -i.bak "s/^\- \*\*Completed\*\*:.*$/- **Completed**: $DATE/" "$ST_FILE"
       sed -i.bak "s/^status: .*$/status: Completed/" "$ST_FILE"
-      sed -i.bak "s/^completed:.*$/completed: $(date '+%Y%m%d')/" "$ST_FILE"
+      sed -i.bak "s/^completed:.*$/completed: $(date -u '+%Y-%m-%dT%H:%M:%SZ')/" "$ST_FILE"
       rm -f "$ST_FILE.bak"
       
       NEW_ST_FILE=$(get_st_path "$ST_ID" "Completed")
@@ -978,7 +978,7 @@ TEMPLATE
               if [[ "$YAML_COMPLETED" =~ ^[0-9]{8}$ ]]; then
                 COMPLETED="${YAML_COMPLETED:0:4}-${YAML_COMPLETED:4:2}-${YAML_COMPLETED:6:2}"
               else
-                COMPLETED="$YAML_COMPLETED"
+                COMPLETED="${YAML_COMPLETED:0:10}"
               fi
             fi
           fi
@@ -1049,7 +1049,7 @@ TEMPLATE
               if [[ "$YAML_COMPLETED" =~ ^[0-9]{8}$ ]]; then
                 COMPLETED="${YAML_COMPLETED:0:4}-${YAML_COMPLETED:4:2}-${YAML_COMPLETED:6:2}"
               else
-                COMPLETED="$YAML_COMPLETED"
+                COMPLETED="${YAML_COMPLETED:0:10}"
               fi
             fi
           fi

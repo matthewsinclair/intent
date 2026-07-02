@@ -28,9 +28,9 @@ None -- WP-distributed.
 
 - AC-01.1 `intent todo update` regenerates `intent/todo.md` as a nested GFM checklist bucketed DOING/TODO/DONE, projected from each unit's real `status:` (threads as `- [ ] STID: title`, work packages as indented `  - [ ] NN: title`).
 - AC-01.2 checkbox glyphs map status: `WIP`->`[-]`, `Not Started`->`[ ]`, `Completed`/`Done`->`[x]`, `Cancelled`->`[~]`.
-- AC-01.3 buckets are correct: DOING = `WIP` threads (+ WPs); TODO = `Not Started`; DONE = threads whose `completed:` is today (self-sweep -- yesterday's completions drop off on the next update).
+- AC-01.3 buckets are correct: DOING = `WIP` threads (+ WPs); TODO = `Not Started`; DONE = threads whose `completed:` is at or after the `## DONE:<T>` watermark (WP-06; the first-generation default `<T>` = start of today, so the zero-flush view is "completed today").
 - AC-01.4 on-hold threads (`on-hold: TRUE` + `status: WIP`) render in DOING with an `(on-hold)` tag.
-- AC-01.5 `todo.md` contains ONLY the three `## DOING` / `## TODO` / `## DONE` headings and their data (the `_(none)_` sentinel when a bucket is empty) -- NO title line, NO `_Generated…_` provenance line, NO `_Legend…_` line (hv minimal-output).
+- AC-01.5 `todo.md` contains ONLY the three `## DOING` / `## TODO` / `## DONE:<T>` headings and their data (the `_(none)_` sentinel when a bucket is empty) -- NO title line, NO `_Generated…_` provenance line, NO `_Legend…_` line (hv minimal-output).
 - AC-01.6 output is prettier-stable: the generator's output equals the post-prettier file byte-for-byte (no reflow churn on commit).
 - AC-01.7 `intent todo` / `intent todo list` prints `todo.md` (generating it first if absent); `intent todo help` prints usage.
 - AC-01.8 `intent todo --json` emits valid JSON: an object keyed by bucket (doing/todo/done), each a list of threads carrying `id` / `title` / `status`, each thread carrying its work packages (`id` / `title` / `status`). The JSON and markdown emitters share one enumeration of `intent/st/**` (Highlander -- no second traversal).
@@ -56,6 +56,14 @@ None -- WP-distributed.
 
 - AC-05.1 (non-test) `bin/intent_todo` is registered in `intent/llm/MODULES.md`; README and `usage-rules.md` document `intent todo` (commands, projection model, mutation semantics, `--json`). -- evidence: MODULES.md row + doc entries -- satisfied: no
 - AC-05.2 (non-test) CHANGELOG carries a 2.14.0 `intent todo` entry; `impl.md` records the as-built; `tasks.md` reflects completion. -- evidence: CHANGELOG + impl.md + tasks.md -- satisfied: no
+
+### WP-06 -- DONE lifecycle (flush / prune) + ISO completion timestamp (status: WIP)
+
+- AC-06.1 `intent st done` stamps the frontmatter `completed:` as an ISO 8601 UTC timestamp (`YYYY-MM-DDThh:mm:ssZ`), not a bare `%Y%m%d` date. (The human `- **Completed**:` body bullet stays a `%Y-%m-%d` date; `steel_threads.md` renders the date part -- an ISO `completed:` on the fallback render path is truncated to its date.)
+- AC-06.2 the DONE bucket is watermarked: the heading is `## DONE:<T>`, where `<T>` is the last-flush instant (ISO 8601 UTC). DONE lists threads whose `completed:` is at or after `<T>`; `update` preserves `<T>` (first generation defaults `<T>` to the start of today, UTC -- reproducing the "completed today" view as the zero-flush baseline).
+- AC-06.3 DONE membership tolerates both timestamp forms: a legacy `completed: YYYYMMDD` and an ISO `completed:` are each compared correctly against `<T>` (legacy read as that day's 00:00:00Z).
+- AC-06.4 `intent todo done --flush` advances `<T>` to now and empties the DONE view; a thread's real status is untouched (flush clears the view, not the record in `COMPLETED/`).
+- AC-06.5 `intent todo done --prune` emits the pruned DONE items to stdout (for the caller to archive, eg `>> intent/done.md`; the advisory note goes to stderr), and then flushes.
 
 ## Acceptance Tests
 
@@ -93,3 +101,11 @@ None -- WP-distributed.
 ### WP-05
 
 - Coverage: AC-05.1 + AC-05.2 are non-test (MODULES.md + docs + CHANGELOG evidence).
+
+### WP-06
+
+- AT-06.1 tests/unit/intent_todo.bats::st_done_stamps_iso_completed -- covers AC-06.1 -- status: green
+- AT-06.2 tests/unit/intent_todo.bats::done_bucket_watermarked_and_membership -- covers AC-06.2, AC-06.3 -- status: green
+- AT-06.3 tests/unit/intent_todo.bats::flush_advances_watermark_empties_done -- covers AC-06.4 -- status: green
+- AT-06.4 tests/unit/intent_todo.bats::prune_emits_then_flushes -- covers AC-06.5 -- status: green
+- Coverage: all WP-06 ACs covered.

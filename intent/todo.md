@@ -7,6 +7,6 @@
 
 _(none)_
 
-## DONE
+## DONE:2026-07-02T00:00:00Z
 
 - [x] ST0051: intent output width: dft_width config for generated files, terminal width for stdout
