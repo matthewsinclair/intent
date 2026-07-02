@@ -3,8 +3,8 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f8f9fad0-67fd-4132-8544-e61a24ceac50
-heartbeat_at: 2026-07-02T21:54Z
-status: active
+heartbeat_at: 2026-07-02T22:05Z
+status: paused
 focus: "ST0050 as-built audit DELIVERED -- verdict PASS/ship-clean; the sticky-DONE-watermark acceptance decision is escalated to hv before the 2.14.0 tag"
 claims: []
 ---
