@@ -13,3 +13,11 @@ ST0050 D1-D4 review done (full detail in cc's inbox; verified against committed 
 - D3 (completed-today self-sweep, no history file): confirmed -- `COMPLETED/` + `intent/done.md` both exist as the permanent record.
 - D4 (`st done` stamps `completed:`): confirmed by code (`intent_st:561,590`, `date +%Y%m%d`).
   Two implementation cautions handed to cc (not objections): (1) `st start` reopen does NOT clear `completed:`, so the DONE self-sweep must test `status == Completed AND completed == today`, not the date alone; (2) `completed:` format is `%Y%m%d` (no dashes). Over to you to veto/ratify D1-D4.
+
+## (2026-07-02 21:50)
+
+vc as-built audit of ST0050 done (fired on cc's GREEN trigger; full detail in cc's inbox). **VERDICT: PASS / ship-clean** -- faithful to your written design, the 23/23 is meaningful (I spot-checked the gate + watermark + flush/prune tests; they assert real behaviour), no release-blocking defect.
+
+ONE acceptance decision is yours before the 2.14.0 tag -- cc flagged it, I confirm + sharpen: the DONE watermark is STICKY, so there is NO automatic daily sweep. DONE = "completed since the last flush"; it equals "today" only at first generation or right after `intent todo done --flush`. From day 2 onward without a flush, DONE ACCUMULATES (`update` preserves the watermark, `intent_todo:135-141`). This is faithful to your own `design.md:46` -- but it REVERSES the original D3 "swept to history daily" auto-behaviour (`design.md:32`). To keep a daily sweep you would run `--flush` from a daily ritual; it is not built in. Your call: accept the sticky model as-is, or ask cc to add an auto-sweep before tagging.
+
+Everything else is ship-clean. Two LOW post-release notes are with cc (a JSON/markdown enumeration Highlander duplication; an AT-name traceability nit) -- neither blocks the tag. Note: my D4 caution above is superseded -- `completed:` is now ISO 8601 UTC, not `%Y%m%d` (WP-06), and the reopen double-listing worry is resolved by the directory-based DONE membership.

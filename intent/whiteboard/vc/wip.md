@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: f8f9fad0-67fd-4132-8544-e61a24ceac50
-heartbeat_at: 2026-07-02T20:44Z
+heartbeat_at: 2026-07-02T21:54Z
 status: active
-focus: "ST0050 D1-D4 review delivered + hv-RATIFIED; relayed the ratification to cc; holding the as-built audit for cc's close trigger"
+focus: "ST0050 as-built audit DELIVERED -- verdict PASS/ship-clean; the sticky-DONE-watermark acceptance decision is escalated to hv before the 2.14.0 tag"
 claims: []
 ---
 
@@ -13,22 +13,20 @@ claims: []
 
 ## DOING
 
-- Announced vc-is-live to cc + hv (3-node board now proper, not single-workstream).
-- DELIVERED: advisory review of cc's ST0050 D1-D4 rulings, verified against committed code (`bin/intent_st` + `bin/intent_wp` + `bin/intent_helpers`), full detail in `cc/inbox.vc.md`, adjudication summary in `hv/inbox.vc.md`. Verdicts: D1 faithful + mechanism already exists (`st start` reopens a Completed thread via `resolve_st_dir` COMPLETED/ search); D2 confirmed (gate wired into `st done` `intent_st:551` AND `wp done` `intent_wp:202`, inherited automatically by a thin wrapper); D3 confirmed (`COMPLETED/` + `intent/done.md` are the permanent record); D4 confirmed (`intent_st:561,590` stamp `completed:` via `date +%Y%m%d`). All four RATIFY-ready.
+- (idle) ST0050 validation complete. Awaiting hv's next instruction.
 
 ## TODO
 
-- HOLD the full ST0050 as-built audit until cc signals close / green / freeze (protocol: fire on trigger, not on in-flight edits).
-- At ST0050 close: check WP-01's DONE-sweep predicate is `status == Completed AND completed == today` (not date-only); check `intent/todo.md` output is prettier-stable; check the acceptance contract is authored (currently a bare template) or the unit will not close through the ST0048 gate.
-- Baseline the bats-suite surface for ST0050 WP-04 (where projection tests land + current shape). Full-suite run stays hv's (convention: single-file bats only for vc).
+- Watch for the 2.14.0 tag: hv's sticky-watermark sign-off is the only open gate (see Decisions). If hv revises the model, re-audit the change.
+- Offer stands: independent read on ST0051 (width, closed 9/9) if hv wants it.
 
 ## Watch-outs
 
-- DONE-sweep correctness (handed to cc): `intent st start` reopens a Completed thread to WIP but does NOT clear `completed:` (`intent_st:711-714` touch only status). A same-day reopened thread still carries `completed: <today>`, so the DONE self-sweep must test status too, not the date alone. `completed:` format is `%Y%m%d` (no dashes).
-- ST0050 `acceptance.md` is still the bare template (zero column-0 `- AC-` lines) -> post-ST0048 the close-gate BLOCKS `st done ST0050` until the contract is authored. Consistent with cc's plan; flagged so it is not lost at close.
-- `intent/st/steel_threads.md` index reformatted in the uncommitted working tree (aligned piped table -> unpiped rows); ST0051 present on disk (`NOT-STARTED/`) but absent from the index. Possible index-regen artifact -- verify at ST0050 close, do not audit in-flight.
+- 2.14.0 tag hinges on ONE hv decision: the DONE watermark is sticky (no automatic daily sweep) -- faithful to `design.md:46` but reverses the original "swept daily" (`design.md:32`). hv accepts as-is or asks cc for an auto-sweep. Full audit in `cc/inbox.vc.md`; escalation in `hv/inbox.vc.md`.
+- Two LOW post-release notes with cc: JSON/markdown enumeration Highlander duplication (`intent_todo` `emit_bucket` vs `emit_bucket_json`); `acceptance.md` AT ids not matching the bats `@test` names.
 
 ## Decisions
 
-- (2026-07-02) vc stood up. Validation fires on cc's close / green / freeze trigger or an hv request, never on in-flight edits. Advisory only: findings go to the owner's inbox; a compounding risk escalates to hv. vc claims no STs -- it validates, it does not own the work.
-- (2026-07-02) hv RATIFIED cc's ST0050 D1-D4 rulings (in session). vc relayed to `cc/inbox.vc.md`; the two implementation cautions (DONE-sweep predicate; `completed:` format) stand as build notes for WP-01/WP-02, not blockers.
+- (2026-07-02) vc fires on cc's close/green/freeze trigger or an hv request, never on in-flight edits. Advisory only; findings to the owner's inbox, compounding risk to hv; vc claims no STs.
+- (2026-07-02) hv RATIFIED cc's ST0050 D1-D4 rulings (in session).
+- (2026-07-02) ST0050 as-built audit: VERDICT PASS/ship-clean. 23/23 verified meaningful (gate + watermark + flush/prune tests assert real behaviour); ISO `completed:` stamp + tolerant membership + directory-based DONE membership all correct; the earlier D1 double-listing worry is resolved by the as-built. One acceptance decision escalated to hv.
