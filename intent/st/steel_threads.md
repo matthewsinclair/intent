@@ -11,9 +11,10 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 <!-- BEGIN: STEEL_THREAD_INDEX -->
 
-| ID     | Slug                      | Status | Created    | Completed |
-| ------ | ------------------------- | ------ | ---------- | --------- |
-| ST0046 | add-modules-properly-t... | WIP    | 2026-06-15 |
+| ID     | Slug                                             | Status | Created    | Completed |
+| ------ | ------------------------------------------------ | ------ | ---------- | --------- |
+| ST0050 | intent-todo-a-flat-doing-todo-done-view-of-steel | WIP    | 2026-07-02 |
+| ST0046 | add-modules-properly-to-the-intent-cli           | WIP    | 2026-06-15 |
 
 <!-- END: STEEL_THREAD_INDEX -->
 

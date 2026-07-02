@@ -834,15 +834,14 @@ TEMPLATE
       error "Steel threads directory not found"
     fi
     
-    # Determine table width
+    # Determine table width. Explicit --width wins; otherwise this is a direct
+    # `list` to stdout (the `sync` case re-invokes `list` WITH --width), so take
+    # the live terminal width. File-output width comes from the `sync` case's
+    # get_default_width, passed in here as --width (ST0051).
     if [ "$WIDTH" -gt 0 ]; then
       TABLE_WIDTH=$WIDTH
     else
-      if [ "$ST_COMMAND" = "sync" ] && [ $WRITE_MODE -eq 1 ]; then
-        TABLE_WIDTH=80
-      else
-        TABLE_WIDTH=$(get_terminal_width)
-      fi
+      TABLE_WIDTH=$(get_terminal_width)
     fi
     
     # Calculate column widths (same as original)
@@ -1287,7 +1286,7 @@ TEMPLATE
   "sync")
     # Parse options
     WRITE_MODE=0
-    WIDTH=80
+    WIDTH=$(get_default_width)
     
     while [ $# -gt 0 ]; do
       case "$1" in

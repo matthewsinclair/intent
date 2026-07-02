@@ -4,6 +4,7 @@
   "author": "matts",
   "created": "2025-07-16",
   "st_prefix": "ST",
+  "dft_width": 120,
   "intent_dir": "intent",
   "plugins": {
     "claude": {

@@ -118,6 +118,7 @@ cat > intent/.config/config.json << EOF
   "author": "$AUTHOR",
   "created": "$DATE",
   "st_prefix": "ST",
+  "dft_width": 120,
   "languages": []
 }
 EOF

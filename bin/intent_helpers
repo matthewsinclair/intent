@@ -101,6 +101,15 @@ get_config_field() {
 }
 export -f get_config_field
 
+# Default width for GENERATED FILES: the project config's `dft_width`, or 120.
+# A file is read anywhere, so it takes a stable, generous default rather than
+# the width of whatever terminal happened to run the command. STDOUT takes
+# get_terminal_width instead -- destination-based width (ST0051).
+get_default_width() {
+  get_config_field dft_width 120
+}
+export -f get_default_width
+
 # Find project root by looking for intent/stp markers. THE project-root
 # resolver (Highlander, ST0042/WP-05) -- walks up from the caller's cwd.
 find_project_root() {

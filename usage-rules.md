@@ -147,6 +147,10 @@ intent plugin                                   # Discover plugins and their com
 intent help [<command>]
 ```
 
+### Generated file width
+
+Generated FILES (eg `steel_threads.md`) take their width from `dft_width` in `intent/.config/config.json` (default 120), never from the terminal -- a file is read anywhere. Terminal output (`intent st list` and the other list/show displays) takes the live terminal width; `--width N` overrides both. When adding a command that writes a width-sensitive file, size it with `get_default_width` (`bin/intent_helpers`), never `get_terminal_width`.
+
 ## Skills
 
 All skills install to `~/.claude/skills/<name>/SKILL.md` and auto-load into every Claude Code session.
