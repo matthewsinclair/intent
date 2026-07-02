@@ -1,6 +1,6 @@
 # Intent
 
-This project uses Intent v2.13.1. The primary config file for AI coding agents is `AGENTS.md` at the project root -- read that first. `CLAUDE.md` is a Claude Code-specific overlay that adds directives beyond the tool-agnostic contract.
+This project uses Intent v2.14.0. The primary config file for AI coding agents is `AGENTS.md` at the project root -- read that first. `CLAUDE.md` is a Claude Code-specific overlay that adds directives beyond the tool-agnostic contract.
 
 ## Required on every session
 
@@ -94,4 +94,4 @@ matts (hello@matthewsinclair.com)
 
 ---
 
-_Generated from `lib/templates/llm/_CLAUDE.md` on 2026-06-29 for Intent v2.13.1._
+_Generated from `lib/templates/llm/_CLAUDE.md` on 2026-07-02 for Intent v2.14.0._
