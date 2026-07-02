@@ -1,10 +1,10 @@
 ---
 verblock: "02 Jul 2026:v0.1: matts - Initial version"
 intent_version: 2.13.1
-status: WIP
+status: Completed
 slug: intent-todo-a-flat-doing-todo-done-view-of-steel
 created: 20260702
-completed:
+completed: 2026-07-02T21:36:06Z
 ---
 
 # ST0050: intent todo: a flat DOING/TODO/DONE view of steel threads and work packages
