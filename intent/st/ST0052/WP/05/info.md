@@ -3,7 +3,7 @@ verblock: "03 Jul 2026:v0.1: matts - Initial version"
 wp_id: WP-05
 title: "Skill and dispatch wiring"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-05: Skill and dispatch wiring

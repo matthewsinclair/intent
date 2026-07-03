@@ -50,7 +50,13 @@ title: "Author project-type pack -- acceptance contract"
 - AC-04.2 `intent lang list` enumerates `author`.
 - AC-04.3 (non-test) The author canon templates at `templates/author/{RULES.md,ARCHITECTURE.md}` carry the two-tier framing and the book/course IA (parts/chapters/modules/objectives), citing `IN-AU-*` ids. -- evidence: templates/author/RULES.md (two-tier framing + NEVER-DO citing IN-AU-*) + ARCHITECTURE.md (book/course IA: work layout, unit structure, objectives, pipeline, review) -- satisfied: yes
 
-### WP-05..WP-06
+### WP-05 -- Skill and dispatch wiring (status: Done)
+
+- AC-05.1 The `/in-author-essentials` skill exists (`SKILL.md`, valid frontmatter) and carries the authoring pipeline (outline -> draft -> mechanical detrope -> revise -> structural check), references the nine `IN-AU-*` rule ids, and is renderer-safe (no em dashes, no `$N` positional tokens).
+- AC-05.2 `/in-review` dispatches `author -> critic-author` (a `subagent_type="critic-author"` Task example) and documents the D7 exclusion (author-only runs no code critic; a mixed project runs both on their subtrees).
+- AC-05.3 `/in-session` lists an `author` fan-out row invoking `/in-author-essentials` and includes `in-author-essentials` in `chains_to`.
+
+### WP-06
 
 [ACs defined when each WP starts (five-step, red-first). Placeholder -- not yet ratified.]
 
@@ -76,6 +82,13 @@ title: "Author project-type pack -- acceptance contract"
 - AT-04.1 tests/unit/intent_lang.bats -- covers AC-04.1, AC-04.2 -- status: green
 - Coverage: AC-04.1 and AC-04.2 by AT-04.1 (author cases); AC-04.3 is non-test (evidence on the AC line).
 
-### WP-05..WP-06
+### WP-05
+
+- AT-05.1 tests/unit/in_author_essentials_skill.bats -- covers AC-05.1 -- status: green
+- AT-05.2 tests/unit/critic_dispatch.bats -- covers AC-05.2 -- status: green
+- AT-05.3 tests/unit/in_session_skill.bats -- covers AC-05.3 -- status: green
+- Coverage: AC-05.1 by AT-05.1; AC-05.2 by AT-05.2; AC-05.3 by AT-05.3.
+
+### WP-06
 
 [ATs defined with their WP's ACs.]

@@ -51,6 +51,22 @@ HOOK="${INTENT_PROJECT_ROOT}/lib/templates/hooks/pre-commit.sh"
 }
 
 # ====================================================================
+# author pack dispatch (ST0052 WP05) -- the first non-code critic
+# ====================================================================
+
+@test "in-review skill dispatches the author pack to critic-author" {
+  assert_file_contains "$SKILL_FILE" "critic-author"
+  assert_file_contains "$SKILL_FILE" "subagent_type=\"critic-author\""
+}
+
+@test "in-review skill documents the D7 author/code-critic exclusion" {
+  # author-only projects run no code critic; mixed projects run both on their
+  # own subtrees. The note names D7 and the author-only case.
+  assert_file_contains "$SKILL_FILE" "author-only"
+  assert_file_contains "$SKILL_FILE" "D7"
+}
+
+# ====================================================================
 # Pre-commit hook dispatch (real product behaviour)
 # ====================================================================
 

@@ -50,12 +50,21 @@ CLAUDE_MD="${INTENT_PROJECT_ROOT}/CLAUDE.md"
   [ "$status" -ne 0 ]
 }
 
-@test "in-session names Elixir as the only language with essentials skills" {
-  # The language reference table names Elixir as the only language with a
-  # per-language essentials skill set; rust/swift/lua/shell are listed but
-  # described as covered by their rule packs + critic-<lang> only.
+@test "in-session names Elixir and author as the languages with essentials skills" {
+  # Elixir and author are the languages with a per-language essentials skill;
+  # rust/swift/lua/shell are listed but covered by their rule packs +
+  # critic-<lang> only.
   assert_file_contains "$SKILL" "/in-elixir-essentials"
   assert_file_contains "$SKILL" "/in-elixir-testing"
+  assert_file_contains "$SKILL" "/in-author-essentials"
+}
+
+@test "in-session wires the author fan-out (table row + chains_to)" {
+  # WP05: author is a first-class fan-out language with its own essentials skill.
+  run grep -E '^\|.*author.*in-author-essentials' "$SKILL"
+  assert_success
+  run grep -F '"in-author-essentials"' "$SKILL"
+  assert_success
 }
 
 @test "in-session does not reference phantom rust/swift/lua/shell essentials skills" {
