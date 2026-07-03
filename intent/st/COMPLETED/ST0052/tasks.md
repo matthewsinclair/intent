@@ -7,7 +7,7 @@
 - [x] **WP03 -- `critic-author` subagent.** `agent.md` (own `style`/`craft` categories + modes -- D6; Read/Grep/Bash) + `metadata.json`; register in `.manifest/global-agents.json`. Two-tier (D3): mechanical by default incl. the mechanical trope pass; emit a `/in-detrope` handoff recommendation for the full LLM diagnosis under direct instruction (D5, diogenes-handoff pattern). Size: M.
 - [x] **WP04 -- `intent lang init author` canon.** `templates/author/RULES.md` (+ `ARCHITECTURE.md` -- book/course IA: parts/chapters/modules/objectives). Verify `intent lang init author` installs `RULES-author.md`, appends the Language Packs entry, and adds `author` to config `languages`. Size: S.
 - [x] **WP05 -- Skill + dispatch wiring.** `/in-author-essentials` skill (authoring pipeline: outline -> draft -> detrope -> revise -> structural check; detrope-every-step). Wire `author -> critic-author` into the `/in-review` dispatch list + a Task example, and add the `author` row to the `/in-session` fan-out (D7 -- the code-critic exclusion is already free; this is just registration). Size: M.
-- [ ] **WP06 -- Dogfood + docs + close.** Run the pack on a real authoring artifact (agentic course / a blog draft); README + usage-rules + CHANGELOG + release notes; write + satisfy `acceptance.md`; close through the gate. Size: M.
+- [x] **WP06 -- Dogfood + docs + close.** Run the pack on a real authoring artifact (agentic course / a blog draft); README + usage-rules + CHANGELOG + release notes; write + satisfy `acceptance.md`; close through the gate. Size: M.
 
 Optional follow-up (own WP or fast-follow ST): headless `intent critic author` pre-commit gate once D4 path-based file-selection is designed (the deferred `bin/intent_critic` edit).
 

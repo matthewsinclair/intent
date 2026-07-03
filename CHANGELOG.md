@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.15.0] - 2026-07-03
+
+Minor release adding the **`author` project-type pack** (ST0052) -- the first non-code discipline on Intent's `languages` axis. A project declaring `languages: [author]` gets an authoring rule pack, a prose critic, canon templates, and an essentials skill, all activated the same way a code language is. It is a minor, not a patch, because it adds a new project-type surface; it is strictly opt-in, with zero behaviour change for projects that do not declare `author`.
+
+### Added
+
+- **The `author` rule pack (ST0052).** Nine `IN-AU-*` rules in two tiers: `style` (mechanical, greppable -- banned filler and `eg`-not-`e.g.`, no vanity metrics, front-matter + learning objectives, heading hygiene, and a mechanical trope pass) and `craft` (judgment / critic-as-reader -- voice and register consistency, cross-chapter continuity, full `/in-detrope` diagnosis, citation and attribution). Enumerate with `intent claude rules list --lang author`. The pack introduces the `AU` language code across the rule-id validator and enumeration.
+- **`critic-author` subagent (ST0052).** The first non-code rule-library critic (prose + courseware). Read-only; two modes -- `review` (the mechanical `style` tier, default) and `craft-check` (the judgment `craft` tier, on instruction). It wires detrope in two forms without forking the trope catalogue: the mechanical trope pass runs by default off `in-detrope`'s `detection: automated` regexes, and the full `/in-detrope` diagnosis is emitted as a handoff recommendation, never invoked by the critic.
+- **`intent lang init author` (ST0052).** Installs `intent/llm/RULES-author.md` + `ARCHITECTURE-author.md` (book / course information architecture -- parts, chapters or modules, learning objectives, the authoring pipeline), appends the Language Packs entry, and adds `author` to config `languages` -- exactly like a code language. `intent lang list` now enumerates `author`.
+- **`/in-author-essentials` skill (ST0052).** The authoring pipeline -- outline, draft, mechanical detrope, revise, structural check -- loaded by `/in-session` when `author` is declared. `/in-review` dispatches `author -> critic-author`; in an author-only project no code critic runs, and a mixed project (eg `[elixir, author]`) runs each critic on its own subtree.
+
+### Notes
+
+- The headless pre-commit prose gate is deliberately deferred: `.md` extension alone cannot route a file to the author pack, and Intent's own `--` house style trips the trope catalogue's dash-overuse regex, so a headless gate needs a confirmation / suppression layer first. `critic-author` is on-demand (`Task`) only in this release.
+
 ## [2.14.0] - 2026-07-02
 
 Minor release adding **`intent todo`** — a flat DOING / TODO / DONE view of every steel thread and work package, projected from real `status:` so it cannot drift (ST0050) — plus a generated-file width fix (ST0051). It is a minor, not a patch, because it adds a new command surface.

@@ -22,7 +22,7 @@ title: "Author project-type pack -- acceptance contract"
 
 ### ST-level
 
-- AC-00.1 (non-test) The author pack works end to end: a project declaring `languages: [author]` loads `/in-author-essentials` on `/in-session` and `/in-review` dispatches only `critic-author` (not the code critics); `critic-author` runs the mechanical tier by default and recommends `/in-detrope` for full diagnosis under direct instruction. -- evidence: WP-06 dogfood transcript + hv sign-off -- satisfied: no
+- AC-00.1 (non-test) The author pack works end to end: a project declaring `languages: [author]` loads `/in-author-essentials` on `/in-session` and `/in-review` dispatches only `critic-author` (not the code critics); `critic-author` runs the mechanical tier by default and recommends `/in-detrope` for full diagnosis under direct instruction. -- evidence: impl.md dogfood (mechanical tier; D3/D4 evidence) + WP05 wiring tests (in_session_skill/critic_dispatch) + hv sign-off 'ship as minor v2.15.0' (2026-07-03); live Task(critic-author) available post-restart -- satisfied: yes
 
 ### WP-01 -- AU language-code schema bump (status: Done)
 
@@ -56,9 +56,11 @@ title: "Author project-type pack -- acceptance contract"
 - AC-05.2 `/in-review` dispatches `author -> critic-author` (a `subagent_type="critic-author"` Task example) and documents the D7 exclusion (author-only runs no code critic; a mixed project runs both on their subtrees).
 - AC-05.3 `/in-session` lists an `author` fan-out row invoking `/in-author-essentials` and includes `in-author-essentials` in `chains_to`.
 
-### WP-06
+### WP-06 -- Dogfood, docs, and close (status: Done)
 
-[ACs defined when each WP starts (five-step, red-first). Placeholder -- not yet ratified.]
+- AC-06.1 (non-test) The pack is dogfooded: the mechanical `style` tier ran against real prose, the transcript is captured in-repo (`impl.md`), and there are no unresolved defects. -- evidence: impl.md WP06 dogfood: mechanical style tier run by hand against the pack's own prose; all hits house-style false positives; no unresolved defects -- satisfied: yes
+- AC-06.2 (non-test) Docs shipped: a CHANGELOG v2.15.0 entry, `intent/history/v2.15.0.md`, `docs/releases/2.15.0/RELEASE_NOTES.md`, and `usage-rules.md` author-pack entries (Skills, Subagents, Rule Library, Critics). -- evidence: CHANGELOG [2.15.0] + intent/history/v2.15.0.md + docs/releases/2.15.0/RELEASE_NOTES.md + usage-rules author entries -- satisfied: yes
+- AC-06.3 (non-test) Release framing ratified: minor v2.15.0 (new non-code project-type surface; opt-in). -- evidence: hv directive 2026-07-03: ship as minor v2.15.0 -- satisfied: yes
 
 ## Acceptance Tests
 
@@ -91,4 +93,4 @@ title: "Author project-type pack -- acceptance contract"
 
 ### WP-06
 
-[ATs defined with their WP's ACs.]
+- No ATs -- WP-06's ACs are all non-test (dogfood transcript, docs, release framing); each satisfied by named evidence.

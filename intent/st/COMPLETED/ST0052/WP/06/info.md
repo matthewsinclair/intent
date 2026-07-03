@@ -3,7 +3,7 @@ verblock: "03 Jul 2026:v0.1: matts - Initial version"
 wp_id: WP-06
 title: "Dogfood, docs, and close"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-06: Dogfood, docs, and close

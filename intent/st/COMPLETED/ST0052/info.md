@@ -1,10 +1,10 @@
 ---
 verblock: "03 Jul 2026:v0.1: matts - Initial version"
 intent_version: 2.14.0
-status: WIP
+status: Completed
 slug: author-project-type-pack
 created: 20260703
-completed:
+completed: 2026-07-03T20:47:23Z
 ---
 
 # ST0052: Author project-type pack
