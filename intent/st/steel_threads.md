@@ -13,6 +13,7 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 | ID     | Slug                                   | Status | Created    | Completed |
 | ------ | -------------------------------------- | ------ | ---------- | --------- |
+| ST0052 | author-project-type-pack               | WIP    | 2026-07-03 |
 | ST0046 | add-modules-properly-to-the-intent-cli | WIP    | 2026-06-15 |
 
 <!-- END: STEEL_THREAD_INDEX -->

@@ -3,7 +3,7 @@ verblock: "03 Jul 2026:v0.1: matts - Initial version"
 wp_id: WP-01
 title: "AU language-code schema bump"
 scope: Small
-status: Not Started
+status: WIP
 ---
 
 # WP-01: AU language-code schema bump
