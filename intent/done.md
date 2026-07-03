@@ -1,11 +1,16 @@
 ---
-verblock: "25 Jun 2026:v0.8: matts - v2.13.0 (ST0047 claude_with_intent) shipped"
-intent_version: 2.13.0
+verblock: "03 Jul 2026:v0.10: matts - v2.15.0 (ST0052 author project-type pack) shipped"
+intent_version: 2.15.0
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-07-03 — v2.15.0 (ST0052 author project-type pack)
+
+- **ST0052 Completed** — the `author` pack, the first non-code discipline on Intent's `languages` axis. Reuses the language-pack machinery (D1: reuse the axis, not a parallel `domain:` field), so a courseware repo can be `languages: [elixir, author]` and load both. WP01: the `AU` language code across the rule-id validator + the canon enumerator `LANG_SUBDIRS` (a discovery correction — the enumerator gates `list`/`index` and lives in `rules_lib.sh`, not where `id-scheme.md` had pointed). WP02: nine `IN-AU-*` rules in two tiers — `style` (mechanical, greppable) + `craft` (judgment, critic-as-reader); the mechanical trope pass references the single `in-detrope` catalogue, not a forked indicator set (D5). WP03: `critic-author`, read-only, `review`/`craft-check` modes; two-form detrope — mechanical by default, the full `/in-detrope` an on-instruction handoff it recommends but never runs. WP04: `intent lang init author` installs `RULES-author.md` + `ARCHITECTURE-author.md` and writes config `languages` (D2 allowlist-free). WP05: `/in-author-essentials` + `author -> critic-author` dispatch in `/in-review` (D7 exclusion) + `/in-session`. WP06: self-dogfood (manual mechanical tier) + docs — every trope hit a house-style false positive, direct evidence for D3 (mechanical needs judgment-confirm) and D4 (a headless gate swamps on Intent's own `--` style, so it stays deferred). Six WPs, 21/21 through its own gate. Detail: `intent/st/COMPLETED/ST0052/`; narrative: `intent/history/v2.15.0.md`.
+- Tag `v2.15.0` (`33e5d57`), self-upgrade wrap `425fa59`, both remotes + GitHub release. Ships as minor (new project-type surface; opt-in, no migration). The `content` (web-content) pack is deferred — it copies the author-pack shape.
 
 ## 2026-07-02 — v2.14.0 (ST0050 intent todo + ST0051 output width)
 

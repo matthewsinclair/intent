@@ -5,23 +5,22 @@
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the gate. (Languages: shell only.) Intent has a whiteboard (`intent/whiteboard/`, hv+cc+vc) -- so `/in-session` step 5 chains `/in-whiteboard pickup`. This is a solo session unless you were launched as a node via `intent claude start <ws>`.
 2. **Read this file + `intent/wip.md`.**
 
-## State: v2.14.0 SHIPPED (ST0050 intent todo + ST0051 width)
+## State: v2.15.0 SHIPPED (ST0052 author project-type pack)
 
-v2.14.0 shipped (tag `v2.14.0`, release commit `c7842f1`, both remotes + GitHub release); Intent self-upgraded 2.13.1 -> 2.14.0 clean (post-tag wrap `a6f6662`; `intent doctor` green). A minor -- new command surface. **ST0050** -- `intent todo`, a flat DOING/TODO/DONE projection of `intent/st/**` into `intent/todo.md` that cannot drift (checkboxes derived from real `status:`): minimal markdown + keyed-by-bucket `--json`; `done`/`notdone`/`toggle` verbs wrapping `intent st/wp` (inheriting the ST0048 close-gate); `done --flush`/`--prune` + the `## DONE:<T>` sticky watermark; `completed:` upgraded to an ISO 8601 timestamp (legacy `%Y%m%d` tolerated everywhere it is read). Six WPs, closed 23/23; dogfooded (first ISO `completed:` stamp). **ST0051** -- `intent st sync --write` hardcoded generated-file width 80 -> config `dft_width` (default 120) + a Highlander `get_default_width`; stdout keeps terminal width; `--width` overrides. Both in `intent/st/COMPLETED/`. vc independently audited ST0050: PASS -- ship-clean. matts accepted the sticky-watermark model.
+v2.15.0 shipped (tag `v2.15.0`, release commit `33e5d57`, both remotes + GitHub release); Intent self-upgraded 2.14.0 -> 2.15.0 (post-tag wrap `425fa59`; `intent doctor` green). A minor -- new project-type surface; opt-in, no migration. **ST0052 -- the `author` pack**, the first non-code discipline on the `languages` axis: the `AU` language code; nine `IN-AU-*` rules in two tiers (`style` mechanical / `craft` judgment); the `critic-author` subagent (two-form detrope -- the mechanical trope pass runs by default off the single `in-detrope` catalogue, the full `/in-detrope` is an on-instruction handoff it never runs); `intent lang init author` canon; and `/in-author-essentials` + `author -> critic-author` dispatch in `/in-review` + `/in-session`. Six WPs, closed 21/21 through its own gate. The headless prose gate is deferred (D4): critic-author is on-demand only. Detail: `intent/st/COMPLETED/ST0052/`; narrative `intent/history/v2.15.0.md`; notes `docs/releases/2.15.0/`.
 
-### v2.14.1 follow-ups (from the vc audit -- all non-blocking)
+## Open follow-ups (non-blocking)
 
-1. **AC-01.8 enumeration Highlander** -- `intent todo`'s markdown + JSON emitters each re-walk `intent/st/**` and duplicate the `norm < since` predicate; AC-01.8 over-claims "no second traversal". Unify the enumeration or reword the AC (a weakening -> matts' nod). Field-extraction Highlander is already fine.
-2. **AT-name traceability** -- `acceptance.md` AT `::names` don't match the real bats `@test` names; align them.
-3. **`intent upgrade` false-no-op + `scripts/release` `confirm()`** -- in-session `./bin/intent upgrade` reported "already at 2.14.0" while config.json was 2.13.1 (a normal `intent upgrade` read 2.13.1 + stamped); confirm `detect_project_version` can't skip the config stamp for a fleet member. And the push `confirm()` reads raw stdin + strict `[yY]`, so a stray End-key escape aborted the first push -- read `/dev/tty` and tolerate stray input.
+- **v2.14.1 (from the vc audit):** AC-01.8 enumeration Highlander (`intent todo` emitters double-walk `intent/st/**`); AT-name traceability (`acceptance.md` `::names` vs real `@test`); `intent upgrade` false-no-op (`detect_project_version` skips the config stamp for a fleet member -- recurred on the v2.15.0 wrap, bumped manually) + `scripts/release` `confirm()` should read `/dev/tty`.
+- **v2.15.x:** the `content` (web-content) pack -- copies the author-pack shape (heading-hygiene, front-matter, the shared mechanical surface); the deferred headless `intent critic author` gate (needs D4 path-based file-selection + a house-style suppression layer -- the dogfood showed Intent's own `--` style trips the dash-overuse trope).
 
-### Fleet
+## Backlog (from wip.md)
 
-Members pick up v2.14.0 on their next `intent upgrade` -- the new `intent todo` + the ISO `completed:` stamp (backward-tolerant, no migration). Excludes Pplr, Sites-in-Laksa, llm-tropes.
+`/in-review` Elixir fleet sweep (Anvil, Lamplight, MeetZaya, MicroGPTEx, Conflab); Conflab test findings (TEST-001/005/007); Homebrew tap; `scripts/release` v2 polish (config.json bump still a manual post-tag wrap); `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft; skill-sync script-change blind spot; ST0040 + ST0041 deferred items.
 
-## v2.14+ backlog (from wip.md)
+## Fleet
 
-`/in-review` Elixir fleet sweep (Anvil, Lamplight, MeetZaya, MicroGPTEx, Conflab); Conflab test findings (TEST-001/005/007); Homebrew tap; `scripts/release` v2 polish (config.json bump still a manual post-tag wrap; plus the confirm() hardening above); `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft; skill-sync script-change blind spot; ST0040 + ST0041 deferred items.
+Members pick up v2.15.0 on their next `intent upgrade` -- the `author` pack is available but inert until a project runs `intent lang init author` (opt-in; zero behaviour change otherwise). Excludes Pplr, Sites-in-Laksa, llm-tropes.
 
 ## Conventions
 
