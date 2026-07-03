@@ -2,10 +2,10 @@
 node: cc
 name: Control Claude
 role: control
-session_id: b9414b4d-2a1e-42bc-98e9-9fc6b795f865
-heartbeat_at: 2026-07-02T22:06Z
-status: paused
-focus: "v2.14.0 SHIPPED (ST0050 + ST0051); self-upgraded 2.14.0, doctor green, vc PASS; session wrapped via /in-finish -- node paused"
+session_id: ff217fb1-894b-458c-b98d-f1967721af37
+heartbeat_at: 2026-07-03T15:24Z
+status: active
+focus: "hv assignment: design new project-type packs (content + author). First ideas + 3 naming approaches delivered; recommended reuse-languages axis + author-first. Awaiting hv steer (axis + first-pack) before scoping an ST."
 claims: [ST0050, ST0051]
 ---
 
@@ -13,11 +13,13 @@ claims: [ST0050, ST0051]
 
 ## DOING
 
-_(idle -- session wrapped via /in-finish)_ **v2.14.0 SHIPPED** (ST0050 `intent todo` + ST0051 width): tag `v2.14.0` + GitHub release on both remotes; self-upgraded to 2.14.0 (`intent doctor` green); post-tag wrap `a6f6662`. vc audit PASS; matts accepted the WP-06 sticky-watermark. Homerun detail archived in `.history/20260702/`.
+**Active (design): new project-type packs -- `content` + `author`.** hv asked for ideas on a `content` pack (editing web content) and an `author` pack (books/courseware/long-form). Delivered this session: the pack anatomy (template + rule library + `critic-<name>` + `/in-<name>-essentials`; `intent lang` is already open/template-driven, NO allowlist to change); 3 naming approaches (A reuse `languages` / B generalise the word to "packs" / C new orthogonal `domain` axis); concrete starter rule tables for both packs; and the `⚙/👁` two-tier critic split (mechanical proxies -> headless pre-commit gate per ST0039; judgment rules -> on-demand `critic-<name>` + `/in-detrope`). Recommended: **A** (composes -- a repo can be `languages: [elixir, author]`) + build **`author`** first (rules mostly already written; course/blog to dogfood). **Awaiting hv steer** (axis + first-pack) before scoping a steel thread -- naming is hv's call, not guessed.
 
 ## TODO
 
-Nothing active. The v2.14.1 follow-ups (from vc's audit) live in `intent/wip.md`: AC-01.8 enumeration Highlander, AT-name traceability, `intent upgrade` false-no-op + `scripts/release` `confirm()` hardening.
+- Once hv steers: scope the steel thread (first pack end-to-end -- template + `⚙`-tier rule pack + critic + skill, dogfooded on one artifact), then generalise.
+- Design-time check: confirm `intent doctor` + the headless `intent critic` gate don't carry a separate hardcoded language list (only `intent lang` was verified open).
+- Parked: v2.14.1 follow-ups (from vc's audit, in `intent/wip.md`): AC-01.8 enumeration Highlander, AT-name traceability, `intent upgrade` false-no-op + `scripts/release` `confirm()` hardening.
 
 ## Watch-outs
 
