@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ff217fb1-894b-458c-b98d-f1967721af37
-heartbeat_at: 2026-07-03T19:19Z
+heartbeat_at: 2026-07-03T20:52Z
 status: active
-focus: "ST0052: WP01-WP05 DONE -- BUILD COMPLETE; only WP06 (dogfood + docs + close) remains. WP04 lang canon (7d48a1b) + WP05 skill/dispatch wiring (447e5cc) closed through the gate. Full author pack assembled: AU code, 9 rules, critic-author, lang canon, /in-author-essentials + /in-review + /in-session wiring. ST BLOCKED on AC-00.1 (WP-06 dogfood + hv sign-off), as designed. Next: WP06 -- needs hv (dogfood target + release framing). hv docs-lean chore parked for wrap."
+focus: "ST0052 CLOSED (2026-07-03; 21/21 ACs incl AC-00.1 hv sign-off; relocated to COMPLETED/) -- author pack DONE via WP06 (9328b79). v2.15.0 docs written (CHANGELOG + history/v2.15.0.md + docs/releases/2.15.0 + usage-rules); self-dogfood validated D3/D4. NEXT (hv gate): run `scripts/release --minor` (full suite pre-flight + push confirm) to ship v2.15.0; then cc runs the post-tag wrap (config->2.15.0, wip/restart/done lean, board release). 18 commits ahead, unpushed."
 claims: [ST0052]
 ---
 
@@ -18,14 +18,14 @@ claims: [ST0052]
 ## TODO
 
 - hv CHORE (deferred -- "at the end"): `intent/wip.md` is massively out of date -- lean out ALL the intent docs (`wip.md`, `restart.md`, `.claude/restart.md`, `done.md`) before the next wrap.
-- Build order: WP01-WP05 DONE (build complete) -> **WP06 next** (dogfood + docs + close; needs hv: dogfood target + release framing).
+- Build order: WP01-WP06 DONE -> ST0052 CLOSED. **NEXT: hv runs `scripts/release --minor` (ships v2.15.0)** -> cc post-tag wrap (config bump + docs-lean + board release).
 - `content` pack deferred -- WP02/03/04 author the shareable pattern (heading-hygiene, front-matter) it will copy.
 - Deferred follow-up: headless `intent critic author` gate once D4 path-based file-selection is designed.
 - Parked: v2.14.1 follow-ups (from vc's audit, in `intent/wip.md`): AC-01.8 enumeration Highlander, AT-name traceability, `intent upgrade` false-no-op + `scripts/release` `confirm()` hardening.
 
 ## Watch-outs
 
-- HOLDING THE PUSH: 16 local commits on `main` (through `63d9730`), unpushed to both remotes -- WP01-WP05 build + boards. matts pushes.
+- RELEASE PENDING (hv gate): 18 local commits on `main` (through `9328b79`), unpushed. `scripts/release --minor` runs the full suite as pre-flight + one push confirm (never `--no-confirm`); it tags at config 2.14.0, then the post-tag wrap bumps config -> 2.15.0. matts runs the release.
 - D4 evidence (WP06 self-dogfood, `scratchpad/st0052-wp06-self-dogfood.md`): Intent's mandated `--` house style trips the trope catalogue's dash-overuse regex, so a headless prose gate (deferred D4) would be swamped by house-style false positives without a confirmation/suppression layer -- reinforces the D3 two-tier (mechanical candidate -> judgment confirm) design. The self-dogfood found no real defects in the authored prose.
 
 ## Decisions (ratified)
