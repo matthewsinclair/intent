@@ -60,7 +60,7 @@ An author project must not run the code critics by default; a project that is bo
 | Critic         | `intent/plugins/claude/subagents/critic-author/{agent.md,metadata.json}` | prose/pedagogy reader (Read/Grep/Bash; no Write); two-tier (D3); two-form detrope (D5) |
 | Skill          | `intent/plugins/claude/skills/in-author-essentials/SKILL.md`             | the authoring pipeline; loaded by `/in-session` when `author` is declared              |
 
-`rules/author/index.json` entries are generated, not hand-authored (regenerate after adding rules). Registration: `subagents/.manifest/global-agents.json`.
+Index entries are generated, not hand-authored: `intent claude rules index` regenerates the single global `rules/index.json` (not a per-language file) after adding rules. Registration: `subagents/.manifest/global-agents.json`.
 
 ### Proposed starter rule set
 
