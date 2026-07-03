@@ -44,7 +44,13 @@ title: "Author project-type pack -- acceptance contract"
 - AC-03.3 (non-test) The two-form detrope (D5) is wired: the mechanical trope pass (`IN-AU-STYLE-005`) runs by default; the full `/in-detrope` diagnosis (`IN-AU-CRAFT-003`) is emitted as a handoff recommendation, never invoked by the critic. -- evidence: agent.md Two-form detrope: STYLE-005 mechanical pass by default; CRAFT-003 /in-detrope emitted as handoff, never invoked; guarded -- satisfied: yes
 - AC-03.4 (non-test) Scope is on-demand only -- `bin/intent_critic` (the headless gate) is untouched (deferred D4); the widening is the subagent + its manifest row. -- evidence: git diff: subagents/critic-author + .manifest + acceptance.md + tests only; bin/intent_critic untouched (D4) -- satisfied: yes
 
-### WP-04..WP-06
+### WP-04 -- intent lang init author canon (status: Done)
+
+- AC-04.1 `intent lang init author` in a fresh project installs `intent/llm/RULES-author.md` and `intent/llm/ARCHITECTURE-author.md`, appends the `author` Language Packs entry to the agnostic `RULES.md`, and adds `author` to `config.json` `languages`.
+- AC-04.2 `intent lang list` enumerates `author`.
+- AC-04.3 (non-test) The author canon templates at `templates/author/{RULES.md,ARCHITECTURE.md}` carry the two-tier framing and the book/course IA (parts/chapters/modules/objectives), citing `IN-AU-*` ids. -- evidence: templates/author/RULES.md (two-tier framing + NEVER-DO citing IN-AU-*) + ARCHITECTURE.md (book/course IA: work layout, unit structure, objectives, pipeline, review) -- satisfied: yes
+
+### WP-05..WP-06
 
 [ACs defined when each WP starts (five-step, red-first). Placeholder -- not yet ratified.]
 
@@ -65,6 +71,11 @@ title: "Author project-type pack -- acceptance contract"
 - AT-03.1 tests/unit/critic_author.bats -- covers AC-03.1 -- status: green
 - Coverage: AC-03.1 by AT-03.1; AC-03.2, AC-03.3, AC-03.4 are non-test (evidence on the AC line).
 
-### WP-04..WP-06
+### WP-04
+
+- AT-04.1 tests/unit/intent_lang.bats -- covers AC-04.1, AC-04.2 -- status: green
+- Coverage: AC-04.1 and AC-04.2 by AT-04.1 (author cases); AC-04.3 is non-test (evidence on the AC line).
+
+### WP-05..WP-06
 
 [ATs defined with their WP's ACs.]

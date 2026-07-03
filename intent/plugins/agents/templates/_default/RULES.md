@@ -17,7 +17,7 @@ Read the full rule files with `intent claude rules show <id>` -- served by the i
 
 Language-specific concretisations are served the same way (`intent claude rules list --lang <lang>`). Per-language canon (`intent/llm/RULES-<lang>.md`, `intent/llm/ARCHITECTURE-<lang>.md`) is opt-in: install via `intent lang init <lang>` per language used in this project, or pass `--lang <lang1>,<lang2>` to `intent init`.
 
-Per-language rule packs available in canon: `elixir`, `rust`, `swift`, `lua`, `shell`.
+Per-language rule packs available in canon: `elixir`, `rust`, `swift`, `lua`, `shell`, `author`.
 
 ## Language Packs
 

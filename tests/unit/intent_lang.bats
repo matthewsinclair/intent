@@ -36,7 +36,7 @@ teardown() {
   assert_output_contains "Usage: intent lang"
 }
 
-@test "intent lang list enumerates all five canon languages" {
+@test "intent lang list enumerates the canon language packs including author" {
   run "${INTENT_BIN_DIR}/intent" lang list
   assert_success
   assert_output_contains "elixir"
@@ -44,6 +44,7 @@ teardown() {
   assert_output_contains "swift"
   assert_output_contains "lua"
   assert_output_contains "shell"
+  assert_output_contains "author"
   refute_output_contains "_default"
 }
 
@@ -77,6 +78,30 @@ teardown() {
   assert_file_exists "$PROJECT_DIR/intent/llm/ARCHITECTURE-elixir.md"
   assert_output_contains "installed: intent/llm/RULES-elixir.md"
   assert_output_contains "installed: intent/llm/ARCHITECTURE-elixir.md"
+}
+
+# ====================================================================
+# author pack (ST0052 WP04) -- the first non-code language pack
+# ====================================================================
+
+@test "intent lang init author installs RULES-author.md + ARCHITECTURE-author.md" {
+  cd "$PROJECT_DIR"
+  run "${INTENT_BIN_DIR}/intent" lang init author
+  assert_success
+  assert_file_exists "$PROJECT_DIR/intent/llm/RULES-author.md"
+  assert_file_exists "$PROJECT_DIR/intent/llm/ARCHITECTURE-author.md"
+  assert_output_contains "installed: intent/llm/RULES-author.md"
+  assert_output_contains "installed: intent/llm/ARCHITECTURE-author.md"
+}
+
+@test "intent lang init author appends the Language Packs entry and writes config languages" {
+  cd "$PROJECT_DIR"
+  run "${INTENT_BIN_DIR}/intent" lang init author
+  assert_success
+  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**author** -- rule pack at"
+  run jq -r '.languages | .[]' "$PROJECT_DIR/intent/.config/config.json"
+  assert_success
+  assert_output_contains "author"
 }
 
 @test "intent lang init appends Language Packs entry to agnostic RULES.md" {

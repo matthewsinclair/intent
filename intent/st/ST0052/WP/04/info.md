@@ -3,7 +3,7 @@ verblock: "03 Jul 2026:v0.1: matts - Initial version"
 wp_id: WP-04
 title: "intent lang init author canon"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-04: intent lang init author canon
