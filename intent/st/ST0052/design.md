@@ -38,7 +38,7 @@ Author rules split by how they are detected:
 
 critic-author integrates detrope in two forms:
 
-- **Mechanical (default)** -- a greppable trope pass runs on every review. This surface does NOT exist in Intent yet: `in-detrope` ships `SKILL.md` + `data/trope-catalog.md` (the LLM skill + the 44-trope catalogue) only; the greppable indicators live in Utilz (`indicators.txt`), not here. So v1 builds a mechanical trope-indicator surface in Intent, sourced Highlander from the shared `llm-tropes` upstream (the same upstream `trope-catalog.md` is vendored from). Form TBD in WP02/WP03: either ⚙ author-pack rule Detection heuristics, or a vendored `data/trope-indicators` file critic-author greps. No trope catalogue is re-authored -- only the mechanical detection layer is added.
+- **Mechanical (default)** -- a greppable trope pass runs on every review. RESOLVED (WP02 grounding): the surface already exists in `in-detrope/data/trope-catalog.md` -- each `detection: automated` trope carries a machine-readable `**Regex**:` line plus an `## Indicators` word-list. So there is NO new indicator file (that would duplicate the catalogue -- a Highlander violation); the author `mechanical-trope-pass` rule's Detection points at the catalogue's automated-trope regexes, and critic-author applies them (`grep -iE`, dropping the PCRE `(?i)` flag). The catalogue stays the single home for trope knowledge; the author pack references it.
 - **Full LLM (on direct instruction only)** -- the existing `/in-detrope` skill (contextual, stylometric diagnosis). Per the critic contract, critic-author does NOT invoke the skill itself; by default it emits a handoff recommendation (the diogenes-handoff pattern -- "run `/in-detrope` for full trope diagnosis"), and the human / top-level agent runs it under direct instruction. detrope stays the single home for trope knowledge; the author pack references it, never forks it.
 
 ### D6 -- Author critic categories/modes diverge from code critics
@@ -94,4 +94,4 @@ An author project must not run the code critics by default; a project that is bo
 2. **v1 headless-gate scope approved** (D4) -- on-demand `Task(critic-author)` + detrope only; defer the pre-commit prose gate.
 3. **Two-form detrope** (D5) and **`languages`-scoped dispatch** (D7) are hv refinements folded into the design.
 
-Remaining sub-decision (resolve in WP02/WP03, not blocking): the exact form of the mechanical trope surface (⚙ rule Detection vs a vendored `data/trope-indicators`).
+Resolved (WP02 grounding): the mechanical trope surface is the existing `trope-catalog.md` automated-trope `**Regex**` lines -- no new file; the author `mechanical-trope-pass` rule references the catalogue (Highlander).

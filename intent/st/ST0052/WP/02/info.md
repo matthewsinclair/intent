@@ -3,7 +3,7 @@ verblock: "03 Jul 2026:v0.1: matts - Initial version"
 wp_id: WP-02
 title: "Author rule library seed"
 scope: Medium
-status: Not Started
+status: WIP
 ---
 
 # WP-02: Author rule library seed

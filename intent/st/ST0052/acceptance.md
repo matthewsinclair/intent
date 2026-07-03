@@ -30,7 +30,14 @@ title: "Author project-type pack -- acceptance contract"
 - AC-01.2 (non-test) All four ID/validation sites carry `author`/`AU` consistently. -- evidence: grep of `rule-schema.md` enum + `id-scheme.md` codes/regex + `index-generator.md` regex + `intent_claude_rules` regex -- satisfied: yes
 - AC-01.3 (non-test) The widening is scoped to the ID/validation layer -- `bin/intent_critic` and the config/template layer are untouched by WP-01 (D4). -- evidence: `git diff` for WP-01 -- satisfied: yes
 
-### WP-02..WP-06
+### WP-02 -- Author rule library seed (status: WIP)
+
+- AC-02.1 Every author rule (style + craft) is schema-valid: `intent claude rules validate` passes it (frontmatter + all nine sections + a well-formed `IN-AU-*` id).
+- AC-02.2 (non-test) The `style` tier carries greppable Detection (mechanical); the `craft` tier is judgment / critic-as-reader; each rule's severity + category are correct. -- evidence: rule review -- satisfied: no
+- AC-02.3 (non-test) The mechanical trope pass references `in-detrope/data/trope-catalog.md` (the single trope home), not a duplicated indicator set. -- evidence: `mechanical-trope-pass` Detection cites the catalogue -- satisfied: no
+- AC-02.4 (non-test) `rules/author/index.json` is regenerated and lists the author rules. -- evidence: index includes the `IN-AU-*` rules -- satisfied: no
+
+### WP-03..WP-06
 
 [ACs defined when each WP starts (five-step, red-first). Placeholder -- not yet ratified.]
 
@@ -41,6 +48,11 @@ title: "Author project-type pack -- acceptance contract"
 - AT-01.1 tests/unit/au_language_code_guard.bats -- covers AC-01.1 -- status: green
 - Coverage: AC-01.1 by AT-01.1; AC-01.2 and AC-01.3 are non-test (evidence on the AC line).
 
-### WP-02..WP-06
+### WP-02
+
+- AT-02.1 tests/unit/rule_pack_author.bats -- covers AC-02.1 -- status: to-write (red-first)
+- Coverage: AC-02.1 by AT-02.1; AC-02.2, AC-02.3, AC-02.4 are non-test (evidence on the AC line).
+
+### WP-03..WP-06
 
 [ATs defined with their WP's ACs.]
