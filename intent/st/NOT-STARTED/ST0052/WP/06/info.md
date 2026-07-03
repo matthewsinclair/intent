@@ -2,7 +2,7 @@
 verblock: "03 Jul 2026:v0.1: matts - Initial version"
 wp_id: WP-06
 title: "Dogfood, docs, and close"
-scope: Small
+scope: Medium
 status: Not Started
 ---
 
@@ -10,11 +10,13 @@ status: Not Started
 
 ## Objective
 
-[Clear statement of what this work package aims to accomplish]
+Prove the assembled pack on a real authoring artifact, document it, and close ST0052 through its acceptance gate.
 
 ## Deliverables
 
-- [List of concrete deliverables]
+- Dogfood: run `critic-author` (+ `/in-author-essentials`) on a real authoring artifact (the agentic course / a blog draft); capture and act on findings.
+- Docs: README + `usage-rules.md` + CHANGELOG entry + `docs/releases/<version>/` release note.
+- Acceptance: populate + satisfy the remaining `acceptance.md` ACs (per-WP + the ST-level sign-off, hv as verifier); close through the gate; relocate ST0052 to `intent/st/COMPLETED/`.
 
 ## Acceptance
 
@@ -22,4 +24,4 @@ Acceptance Criteria for this work package live in the steel thread's `acceptance
 
 ## Dependencies
 
-- [List any dependencies on other WPs or external factors]
+- WP01-WP05 (dogfood needs the full pack assembled).

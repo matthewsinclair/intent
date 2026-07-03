@@ -22,20 +22,25 @@ title: "Author project-type pack -- acceptance contract"
 
 ### ST-level
 
-[The "whole steel thread is done" bar, or "none -- WP-distributed".]
+- AC-00.1 (non-test) The author pack works end to end: a project declaring `languages: [author]` loads `/in-author-essentials` on `/in-session` and `/in-review` dispatches only `critic-author` (not the code critics); `critic-author` runs the mechanical tier by default and recommends `/in-detrope` for full diagnosis under direct instruction. -- evidence: WP-06 dogfood transcript + hv sign-off -- satisfied: no
 
-### WP-01 -- [WP title] (status: ...)
+### WP-01 -- AU language-code schema bump (status: Not Started)
 
-[Add real AC lines at column 0 -- the parser and close-gate read only column-0 `- AC-` lines, so the indented examples below are inert guidance. Copy one to column 0 and fill it in:]
+- AC-01.1 A well-formed author rule id (eg `IN-AU-STYLE-001`) passes the rule-id validator, and a malformed id (bad code, missing zero-padding) still fails.
+- AC-01.2 (non-test) All four ID/validation sites carry `author`/`AU` consistently. -- evidence: grep of `rule-schema.md` enum + `id-scheme.md` codes/regex + `index-generator.md` regex + `intent_claude_rules` regex -- satisfied: no
+- AC-01.3 (non-test) The widening is scoped to the ID/validation layer -- `bin/intent_critic` and the config/template layer are untouched by WP-01 (D4). -- evidence: `git diff` for WP-01 -- satisfied: no
 
-    - AC-01.1 [a test-backed criterion -- what must be verifiably true]
-    - AC-01.2 (non-test) [a doc / eyeball / gate criterion] -- evidence: [named evidence] -- satisfied: no
+### WP-02..WP-06
+
+[ACs defined when each WP starts (five-step, red-first). Placeholder -- not yet ratified.]
 
 ## Acceptance Tests
 
 ### WP-01
 
-[Add real AT lines at column 0 -- the parser reads only column-0 `- AT-` lines, so the indented examples below are inert guidance. Copy one to column 0 and fill it in:]
+- AT-01.1 tests/unit/au_language_code_guard.bats -- covers AC-01.1 -- status: to-write (red-first)
+- Coverage: AC-01.1 by AT-01.1; AC-01.2 and AC-01.3 are non-test (evidence on the AC line).
 
-    - AT-01.1 [test path::name] -- covers AC-01.1 -- status: to-write (red-first)
-    - Coverage: [every AC has an AT, or list the uncovered ACs; non-test ACs carry evidence on the AC line]
+### WP-02..WP-06
+
+[ATs defined with their WP's ACs.]
