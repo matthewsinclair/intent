@@ -1,0 +1,41 @@
+#!/usr/bin/env bats
+# WP01 guard (ST0052): the AU (author) language code is admitted by the rule-id
+# validator. A well-formed IN-AU-* id validates; a malformed one still fails.
+# Guards the enum/regex widening across rule-schema.md, id-scheme.md,
+# index-generator.md, and intent_claude_rules against silent regression.
+
+load "../lib/test_helper.bash"
+
+VALID_FIXTURE="${INTENT_PROJECT_ROOT}/tests/fixtures/rules/valid/RULE.md"
+
+# Build a temp RULE.md from the valid fixture with a given id + language.
+_au_rule() {
+  local id="$1" lang="$2" dest="$3"
+  sed -e "s/^id: .*/id: ${id}/" -e "s/^language: .*/language: ${lang}/" \
+    "$VALID_FIXTURE" > "$dest"
+}
+
+@test "rules validate accepts a well-formed IN-AU author id" {
+  local rule="$TEST_TEMP_DIR/au-valid.md"
+  _au_rule "IN-AU-STYLE-001" "author" "$rule"
+  run run_intent claude rules validate "$rule"
+  assert_success
+  assert_output_contains "1 ok"
+  refute_output_contains "does not match"
+}
+
+@test "rules validate rejects a malformed IN-AU id (bad zero-padding)" {
+  local rule="$TEST_TEMP_DIR/au-badpad.md"
+  _au_rule "IN-AU-STYLE-1" "author" "$rule"
+  run run_intent claude rules validate "$rule"
+  assert_failure
+  assert_output_contains "does not match"
+}
+
+@test "rules validate rejects a lowercase au language code" {
+  local rule="$TEST_TEMP_DIR/au-lower.md"
+  _au_rule "IN-au-STYLE-001" "author" "$rule"
+  run run_intent claude rules validate "$rule"
+  assert_failure
+  assert_output_contains "does not match"
+}

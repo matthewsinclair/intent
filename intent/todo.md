@@ -1,6 +1,13 @@
 ## DOING
 
 - [-] ST0046: Add modules (properly) to the intent cli
+- [-] ST0052: Author project-type pack
+  - [-] 01: AU language-code schema bump
+  - [ ] 02: Author rule library seed
+  - [ ] 03: critic-author subagent
+  - [ ] 04: intent lang init author canon
+  - [ ] 05: Skill and dispatch wiring
+  - [ ] 06: Dogfood, docs, and close
 
 ## TODO
 

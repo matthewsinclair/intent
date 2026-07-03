@@ -8,12 +8,12 @@ Every rule in Intent's rule library has a stable, cite-able identifier.
 
 Three fixed segments separated by hyphens:
 
-| Segment  | Values                                                                                                                   |
-| -------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `IN-`    | Prefix. Fixed. Distinguishes Intent rules from `ETC-*` (elixir-test-critic) when both are loaded.                        |
-| `<LANG>` | Language code. One of: `AG` (agnostic), `EX` (elixir), `RS` (rust), `SW` (swift), `LU` (lua), `SH` (shell — bash + zsh). |
-| `<CAT>`  | Category code. Short abbreviation in uppercase (`CODE`, `TEST`, `ASH`, `PHX`, `LV`, `ARCH`, `MOCK`).                     |
-| `<NNN>`  | Zero-padded 3-digit sequence, starting at `001`. Scope: unique within a `<LANG>-<CAT>` prefix.                           |
+| Segment  | Values                                                                                                                                  |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `IN-`    | Prefix. Fixed. Distinguishes Intent rules from `ETC-*` (elixir-test-critic) when both are loaded.                                       |
+| `<LANG>` | Language code. One of: `AG` (agnostic), `EX` (elixir), `RS` (rust), `SW` (swift), `LU` (lua), `SH` (shell — bash + zsh), `AU` (author). |
+| `<CAT>`  | Category code. Short abbreviation in uppercase (`CODE`, `TEST`, `ASH`, `PHX`, `LV`, `ARCH`, `MOCK`).                                    |
+| `<NNN>`  | Zero-padded 3-digit sequence, starting at `001`. Scope: unique within a `<LANG>-<CAT>` prefix.                                          |
 
 ## Examples
 
@@ -40,6 +40,7 @@ Fixed, two-letter, uppercase. Extending this list requires a schema bump.
 - `SW` — Swift
 - `LU` — Lua
 - `SH` — Shell (bash + zsh both fall under this code; per-rule frontmatter tags distinguish bash-specific, zsh-specific, or both)
+- `AU` — Author (books, courseware, long-form prose; the first non-code discipline pack)
 
 Why two letters: short enough to read inline in Critic reports; distinct enough to grep.
 
@@ -152,7 +153,7 @@ See `attribution-policy.md` for the attribution discipline.
 
 The `intent claude rules validate` tool (spec in WP02) checks:
 
-- ID matches regex `^IN-(AG|EX|RS|SW|LU|SH)-[A-Z][A-Z0-9-]*-[0-9]{3}$`.
+- ID matches regex `^IN-(AG|EX|RS|SW|LU|SH|AU)-[A-Z][A-Z0-9-]*-[0-9]{3}$`.
 - ID directory path matches ID structure: `rules/<lang>/<category>/<slug>/` where `<lang>` and `<category>` are the lowercase forms of the ID segments.
 - IDs are unique across the entire library (no two rules share a full ID, even across language packs).
 - `aliases:` do not collide with other rules' current slugs.
@@ -177,7 +178,7 @@ Adding a new language requires:
 - Documentation update here.
 - Rule directory `rules/<lang>/` created.
 - At least one seed rule in the new pack — subsequent rules copy from it.
-- `LANG_SUBDIRS` updated in `intent/plugins/claude/bin/intent_claude_rules`.
-- Validator regex updated in the same file.
+- `language` enum in `rules/_schema/rule-schema.md` extended; the codes table + regex here and the duplicate regex in `index-generator.md` updated.
+- Validator regex updated in `intent/plugins/claude/bin/intent_claude_rules` (there is no `LANG_SUBDIRS` -- rule discovery is a directory walk).
 
 Adding a new category code within an existing language: lighter process. Add the category code to the `rule-schema.md` category table and start numbering from `001`.

@@ -31,16 +31,16 @@ YAML frontmatter at the top of every `RULE.md`, between `---` delimiters. All to
 
 ### Required fields
 
-| Field          | Type         | Purpose                                                                                           |
-| -------------- | ------------ | ------------------------------------------------------------------------------------------------- |
-| `id`           | string       | Rule identifier. Format: `IN-<LANG>-<CAT>-<NNN>`. See `id-scheme.md`.                             |
-| `title`        | string       | Human-readable one-line name. Matches the H1 heading in the body.                                 |
-| `language`     | enum         | One of `agnostic`, `elixir`, `rust`, `swift`, `lua`, `shell`. Drives rule-pack location.          |
-| `category`     | string       | Kebab-case category slug (`code`, `test`, `ash`, `phoenix`, `lv`, `architecture`, etc.).          |
-| `severity`     | enum         | One of `critical`, `warning`, `recommendation`, `style`.                                          |
-| `summary`      | string       | One or two sentences. YAML multiline with `>` encouraged. Shown in `intent claude rules list`.    |
-| `principles`   | list[string] | One or more principle short-names. Intent's agnostic principles plus upstream's for Elixir rules. |
-| `applies_when` | list[string] | Natural-language circumstances under which the rule applies. For humans and Claude.               |
+| Field          | Type         | Purpose                                                                                            |
+| -------------- | ------------ | -------------------------------------------------------------------------------------------------- |
+| `id`           | string       | Rule identifier. Format: `IN-<LANG>-<CAT>-<NNN>`. See `id-scheme.md`.                              |
+| `title`        | string       | Human-readable one-line name. Matches the H1 heading in the body.                                  |
+| `language`     | enum         | One of `agnostic`, `elixir`, `rust`, `swift`, `lua`, `shell`, `author`. Drives rule-pack location. |
+| `category`     | string       | Kebab-case category slug (`code`, `test`, `ash`, `phoenix`, `lv`, `architecture`, etc.).           |
+| `severity`     | enum         | One of `critical`, `warning`, `recommendation`, `style`.                                           |
+| `summary`      | string       | One or two sentences. YAML multiline with `>` encouraged. Shown in `intent claude rules list`.     |
+| `principles`   | list[string] | One or more principle short-names. Intent's agnostic principles plus upstream's for Elixir rules.  |
+| `applies_when` | list[string] | Natural-language circumstances under which the rule applies. For humans and Claude.                |
 
 ### Optional fields
 

@@ -24,11 +24,11 @@ title: "Author project-type pack -- acceptance contract"
 
 - AC-00.1 (non-test) The author pack works end to end: a project declaring `languages: [author]` loads `/in-author-essentials` on `/in-session` and `/in-review` dispatches only `critic-author` (not the code critics); `critic-author` runs the mechanical tier by default and recommends `/in-detrope` for full diagnosis under direct instruction. -- evidence: WP-06 dogfood transcript + hv sign-off -- satisfied: no
 
-### WP-01 -- AU language-code schema bump (status: Not Started)
+### WP-01 -- AU language-code schema bump (status: WIP)
 
 - AC-01.1 A well-formed author rule id (eg `IN-AU-STYLE-001`) passes the rule-id validator, and a malformed id (bad code, missing zero-padding) still fails.
-- AC-01.2 (non-test) All four ID/validation sites carry `author`/`AU` consistently. -- evidence: grep of `rule-schema.md` enum + `id-scheme.md` codes/regex + `index-generator.md` regex + `intent_claude_rules` regex -- satisfied: no
-- AC-01.3 (non-test) The widening is scoped to the ID/validation layer -- `bin/intent_critic` and the config/template layer are untouched by WP-01 (D4). -- evidence: `git diff` for WP-01 -- satisfied: no
+- AC-01.2 (non-test) All four ID/validation sites carry `author`/`AU` consistently. -- evidence: grep of `rule-schema.md` enum + `id-scheme.md` codes/regex + `index-generator.md` regex + `intent_claude_rules` regex -- satisfied: yes
+- AC-01.3 (non-test) The widening is scoped to the ID/validation layer -- `bin/intent_critic` and the config/template layer are untouched by WP-01 (D4). -- evidence: `git diff` for WP-01 -- satisfied: yes
 
 ### WP-02..WP-06
 
@@ -38,7 +38,7 @@ title: "Author project-type pack -- acceptance contract"
 
 ### WP-01
 
-- AT-01.1 tests/unit/au_language_code_guard.bats -- covers AC-01.1 -- status: to-write (red-first)
+- AT-01.1 tests/unit/au_language_code_guard.bats -- covers AC-01.1 -- status: green
 - Coverage: AC-01.1 by AT-01.1; AC-01.2 and AC-01.3 are non-test (evidence on the AC line).
 
 ### WP-02..WP-06
