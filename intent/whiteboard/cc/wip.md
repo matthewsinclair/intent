@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: ff217fb1-894b-458c-b98d-f1967721af37
-heartbeat_at: 2026-07-03T21:14Z
-status: active
+heartbeat_at: 2026-07-03T21:24Z
+status: paused
 focus: "v2.15.0 SHIPPED (ST0052 author project-type pack). Tag `v2.15.0` (33e5d57) both remotes + GitHub release; full suite green, doctor green. Post-tag wrap DONE: config + CLAUDE -> 2.15.0 (425fa59), tracking docs leaned (01f0875). PENDING: push the 2 wrap commits (425fa59, 01f0875) -- hv gate. Session at wrap; ST0052 complete end-to-end."
-claims: [ST0052]
+claims: []
 ---
 
 # Control Claude (cc)
