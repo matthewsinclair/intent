@@ -3,7 +3,7 @@ verblock: "03 Jul 2026:v0.1: matts - Initial version"
 wp_id: WP-03
 title: "critic-author subagent"
 scope: Medium
-status: Not Started
+status: Done
 ---
 
 # WP-03: critic-author subagent

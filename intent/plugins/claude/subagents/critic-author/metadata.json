@@ -1,0 +1,8 @@
+{
+  "name": "critic-author",
+  "version": "1.0.0",
+  "description": "Author (prose + courseware) rule-library critic. Reads rules/author/ (style, craft) and the agnostic pack, applies each rule's Detection to target prose files, and reports violations grouped by severity. Two-tier: mechanical style by default, judgment craft on instruction.",
+  "author": "Intent Contributors",
+  "tools": ["Read", "Grep", "Glob", "Bash"],
+  "tags": ["author", "prose", "courseware", "detrope", "critic", "rule-enforcement"]
+}

@@ -37,7 +37,14 @@ title: "Author project-type pack -- acceptance contract"
 - AC-02.3 (non-test) The mechanical trope pass references `in-detrope/data/trope-catalog.md` (the single trope home), not a duplicated indicator set. -- evidence: mechanical-trope-pass Detection cites in-detrope/data/trope-catalog.md; no vendored indicators (guarded) -- satisfied: yes
 - AC-02.4 (non-test) `rules/author/index.json` is regenerated and lists the author rules. -- evidence: rules/index.json regenerated; lists all 9 IN-AU-* rules -- satisfied: yes
 
-### WP-03..WP-06
+### WP-03 -- critic-author subagent (status: Done)
+
+- AC-03.1 The `critic-author` subagent exists (`agent.md` + `metadata.json`), declares tools `Read, Grep, Glob, Bash` and neither `Write` nor `Edit`, and is registered in `.manifest/global-agents.json`.
+- AC-03.2 (non-test) `agent.md` honours the two-tier contract (D3): a mechanical `style` pass by default (`review`) and a judgment `craft` pass on instruction (`craft-check`); it reports only and never writes, edits, or runs external fixers. -- evidence: agent.md: review (style/mechanical, default) + craft-check (craft/judgment, on instruction); read-only, no autofix; guarded by critic_author.bats -- satisfied: yes
+- AC-03.3 (non-test) The two-form detrope (D5) is wired: the mechanical trope pass (`IN-AU-STYLE-005`) runs by default; the full `/in-detrope` diagnosis (`IN-AU-CRAFT-003`) is emitted as a handoff recommendation, never invoked by the critic. -- evidence: agent.md Two-form detrope: STYLE-005 mechanical pass by default; CRAFT-003 /in-detrope emitted as handoff, never invoked; guarded -- satisfied: yes
+- AC-03.4 (non-test) Scope is on-demand only -- `bin/intent_critic` (the headless gate) is untouched (deferred D4); the widening is the subagent + its manifest row. -- evidence: git diff: subagents/critic-author + .manifest + acceptance.md + tests only; bin/intent_critic untouched (D4) -- satisfied: yes
+
+### WP-04..WP-06
 
 [ACs defined when each WP starts (five-step, red-first). Placeholder -- not yet ratified.]
 
@@ -53,6 +60,11 @@ title: "Author project-type pack -- acceptance contract"
 - AT-02.1 tests/unit/rule_pack_author.bats -- covers AC-02.1 -- status: green
 - Coverage: AC-02.1 by AT-02.1; AC-02.2, AC-02.3, AC-02.4 are non-test (evidence on the AC line).
 
-### WP-03..WP-06
+### WP-03
+
+- AT-03.1 tests/unit/critic_author.bats -- covers AC-03.1 -- status: green
+- Coverage: AC-03.1 by AT-03.1; AC-03.2, AC-03.3, AC-03.4 are non-test (evidence on the AC line).
+
+### WP-04..WP-06
 
 [ATs defined with their WP's ACs.]

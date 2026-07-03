@@ -56,6 +56,13 @@
       "description": "Lua rule-library critic - reads rules/lua/ (code, test) and agnostic rules, reports violations in .lua files",
       "path": "intent/plugins/claude/subagents/critic-lua",
       "checksum": ""
+    },
+    {
+      "name": "critic-author",
+      "version": "1.0.0",
+      "description": "Author (prose + courseware) rule-library critic - reads rules/author/ (style, craft) and agnostic rules, reports violations in prose/.md files; two-tier (mechanical style default, judgment craft on instruction)",
+      "path": "intent/plugins/claude/subagents/critic-author",
+      "checksum": ""
     }
   ]
 }
