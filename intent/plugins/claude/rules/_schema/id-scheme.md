@@ -179,6 +179,6 @@ Adding a new language requires:
 - Rule directory `rules/<lang>/` created.
 - At least one seed rule in the new pack — subsequent rules copy from it.
 - `language` enum in `rules/_schema/rule-schema.md` extended; the codes table + regex here and the duplicate regex in `index-generator.md` updated.
-- Validator regex updated in `intent/plugins/claude/bin/intent_claude_rules` (there is no `LANG_SUBDIRS` -- rule discovery is a directory walk).
+- Validator regex updated in `intent/plugins/claude/bin/intent_claude_rules`, AND the language added to `LANG_SUBDIRS` in `intent/plugins/claude/lib/rules_lib.sh` -- the canon-enumeration allowlist. Without the latter the pack validates by path but is invisible to `list` / `index` / anything that enumerates canon.
 
 Adding a new category code within an existing language: lighter process. Add the category code to the `rule-schema.md` category table and start numbering from `001`.

@@ -39,3 +39,11 @@ _au_rule() {
   assert_failure
   assert_output_contains "does not match"
 }
+
+# Discovery site: validating by path is not enough -- the canon enumerator only
+# walks languages in LANG_SUBDIRS, so `author` must be registered there or the
+# pack is invisible to `list` / `index`. (rules_lib.sh, not intent_claude_rules.)
+@test "author is registered in the canon-enumeration LANG_SUBDIRS default" {
+  run grep -E 'LANG_SUBDIRS:=.*\bauthor\b' "${INTENT_PROJECT_ROOT}/intent/plugins/claude/lib/rules_lib.sh"
+  assert_success
+}

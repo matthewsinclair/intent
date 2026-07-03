@@ -32,7 +32,7 @@ fi
 
 : "${CANON_RULES_ROOT:=$INTENT_HOME/intent/plugins/claude/rules}"
 : "${EXT_BASE:=$(ext_root_dir)}"
-: "${LANG_SUBDIRS:=agnostic elixir rust swift lua shell}"
+: "${LANG_SUBDIRS:=agnostic elixir rust swift lua shell author}"
 
 # Emit every canon RULE.md path on stdout (excludes _schema/, _attribution/,
 # and any other top-level _* directories under rules/).
