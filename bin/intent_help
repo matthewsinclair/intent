@@ -97,15 +97,23 @@ for script in "$INTENT_HOME"/bin/intent_*; do
     
     # Get short description from help file if it exists
     if [ -f "$help_file" ]; then
-      # Extract text between @short: and the next section (@)
-      short_desc=$(awk '/^@short:/{flag=1; next} /^@/{if(flag){flag=0}} flag' "$help_file" | \
-                   awk '{$1=$1}1' | \
-                   tr '\n' ' ' | \
-                   sed 's/^ *//; s/ *$//')
+      # Extract the @short: description. Supports both the inline form
+      # (`@short: text`) and the multi-line form (`@short:` alone, then text
+      # lines until the next `@section`). Most help files use the inline form;
+      # only fileindex uses multi-line -- handle both, or lang dumps its whole doc.
+      short_desc=$(awk '
+        /^@short:/ {
+          rest = $0; sub(/^@short:[ \t]*/, "", rest)
+          if (rest != "") { print rest; exit }
+          flag = 1; next
+        }
+        /^@/ { if (flag) exit }
+        flag && NF { print }
+      ' "$help_file" | tr '\n' ' ' | sed 's/^ *//; s/ *$//')
       printf "  %-16s %s\n" "$cmd_name" "$short_desc"
     else
       # Try to get description from script header
-      desc=$(head -n 10 "$script" | grep -E "^# intent_$cmd_name -" | sed "s/^# intent_$cmd_name - //")
+      desc=$(head -n 10 "$script" | grep -E "^# intent_$cmd_name -" | sed -E "s/^# intent_$cmd_name -+ //")
       if [ -n "$desc" ]; then
         printf "  %-16s %s\n" "$cmd_name" "$desc"
       else

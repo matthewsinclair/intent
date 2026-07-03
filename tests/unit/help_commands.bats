@@ -89,3 +89,22 @@ load "../lib/test_helper.bash"
   assert_output_contains "init"
   assert_output_contains "validate"
 }
+
+# Regression: the Other: listing must show one-line descriptions. lang.help.md
+# uses an inline `@short: text`; the old awk skipped that line and dumped the
+# whole doc (## Synopsis et al) when there was no second @section to stop at.
+@test "help Other: shows lang as a one-liner, not its whole help doc" {
+  run run_intent help
+  assert_success
+  assert_output_contains "Per-language canon"
+  refute_output_contains "## Synopsis"
+}
+
+# Regression: intent_critic's header is `# intent_critic -- ...` (double dash);
+# the fallback strip must handle one-or-more dashes, not just a single `- `.
+@test "help Other: strips the comment prefix from a double-dash header (critic)" {
+  run run_intent help
+  assert_success
+  assert_output_contains "Headless critic runner"
+  refute_output_contains "# intent_critic"
+}
