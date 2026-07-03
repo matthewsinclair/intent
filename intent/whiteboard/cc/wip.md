@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ff217fb1-894b-458c-b98d-f1967721af37
-heartbeat_at: 2026-07-03T19:11Z
+heartbeat_at: 2026-07-03T19:19Z
 status: active
 focus: "ST0052: WP01-WP05 DONE -- BUILD COMPLETE; only WP06 (dogfood + docs + close) remains. WP04 lang canon (7d48a1b) + WP05 skill/dispatch wiring (447e5cc) closed through the gate. Full author pack assembled: AU code, 9 rules, critic-author, lang canon, /in-author-essentials + /in-review + /in-session wiring. ST BLOCKED on AC-00.1 (WP-06 dogfood + hv sign-off), as designed. Next: WP06 -- needs hv (dogfood target + release framing). hv docs-lean chore parked for wrap."
 claims: [ST0052]
@@ -25,7 +25,8 @@ claims: [ST0052]
 
 ## Watch-outs
 
-- Everything pushed -- main (`3f4452a`+) and the `v2.14.0` tag on both remotes; nothing outstanding.
+- HOLDING THE PUSH: 16 local commits on `main` (through `63d9730`), unpushed to both remotes -- WP01-WP05 build + boards. matts pushes.
+- D4 evidence (WP06 self-dogfood, `scratchpad/st0052-wp06-self-dogfood.md`): Intent's mandated `--` house style trips the trope catalogue's dash-overuse regex, so a headless prose gate (deferred D4) would be swamped by house-style false positives without a confirmation/suppression layer -- reinforces the D3 two-tier (mechanical candidate -> judgment confirm) design. The self-dogfood found no real defects in the authored prose.
 
 ## Decisions (ratified)
 
