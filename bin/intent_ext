@@ -87,9 +87,6 @@ ext_list() {
     return 0
   fi
 
-  local term_width
-  term_width=$(get_terminal_width 2>/dev/null || echo 100)
-
   echo "Extensions in $root:"
   echo ""
 
