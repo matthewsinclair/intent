@@ -516,6 +516,42 @@ EOF
   assert_output_contains "Heading Only Title"
 }
 
+@test "wp list title column sizes to terminal width (not a hardcoded 30)" {
+  project_dir=$(create_test_project "WP List Width Test")
+  cd "$project_dir"
+
+  mkdir -p intent/st/ST0001/WP/01
+  cat > intent/st/ST0001/info.md << 'EOF'
+---
+status: WIP
+---
+# ST0001: Test Thread
+EOF
+  # Title is 44 chars -- longer than the old hardcoded 30-column Title cap.
+  cat > intent/st/ST0001/WP/01/info.md << 'EOF'
+---
+wp_id: WP-01
+title: "A deliberately long work package title here"
+scope: Small
+status: Done
+---
+# WP-01: A deliberately long work package title here
+EOF
+
+  # Wide terminal: the Title column flexes wide enough for the full 44-char
+  # title. The pre-fix code truncated every title at 30 columns regardless of
+  # terminal width, so the full string proves the width is not a constant.
+  COLUMNS=200 run run_intent wp list ST0001
+  assert_success
+  assert_output_contains "A deliberately long work package title here"
+
+  # Narrow terminal: the same title truncates, proving the column is
+  # width-driven in both directions.
+  COLUMNS=60 run run_intent wp list ST0001
+  assert_success
+  assert_output_contains "..."
+}
+
 # ====================================================================
 # wp show
 # ====================================================================

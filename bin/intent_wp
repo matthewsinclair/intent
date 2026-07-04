@@ -252,9 +252,30 @@ TEMPLATE
       exit 0
     fi
 
+    # Column widths derive from the live terminal width (Highlander:
+    # get_terminal_width in bin/intent_helpers), not a hardcoded title cap.
+    # WP/Scope/Status are naturally bounded; Title flexes to fill the rest.
+    # This is a stdout table, so it takes the terminal width -- generated
+    # files use get_default_width instead (ST0051 destination-based width).
+    WP_WIDTH=6
+    SCOPE_WIDTH=8
+    STATUS_WIDTH=12
+    SEPARATORS_WIDTH=9   # three " | " column gaps
+    MIN_TITLE_WIDTH=20
+
+    TABLE_WIDTH=$(get_terminal_width)
+    TITLE_WIDTH=$((TABLE_WIDTH - WP_WIDTH - SCOPE_WIDTH - STATUS_WIDTH - SEPARATORS_WIDTH))
+    if [ "$TITLE_WIDTH" -lt "$MIN_TITLE_WIDTH" ]; then
+      TITLE_WIDTH=$MIN_TITLE_WIDTH
+    fi
+
     # Table header
-    printf "%-6s | %-30s | %-8s | %-12s\n" "WP" "Title" "Scope" "Status"
-    printf "%-6s-|-%-30s-|-%-8s-|-%-12s\n" "------" "------------------------------" "--------" "------------"
+    printf "%-${WP_WIDTH}s | %-${TITLE_WIDTH}s | %-${SCOPE_WIDTH}s | %-${STATUS_WIDTH}s\n" "WP" "Title" "Scope" "Status"
+    printf "%-${WP_WIDTH}s-|-%-${TITLE_WIDTH}s-|-%-${SCOPE_WIDTH}s-|-%-${STATUS_WIDTH}s\n" \
+      "$(printf '%0.s-' $(seq 1 "$WP_WIDTH"))" \
+      "$(printf '%0.s-' $(seq 1 "$TITLE_WIDTH"))" \
+      "$(printf '%0.s-' $(seq 1 "$SCOPE_WIDTH"))" \
+      "$(printf '%0.s-' $(seq 1 "$STATUS_WIDTH"))"
 
     # List each WP
     for wp_entry in "$WP_BASE"/[0-9][0-9]; do
@@ -269,12 +290,12 @@ TEMPLATE
           wp_title=$(grep -m 1 "^# WP-" "$wp_entry/info.md" | sed 's/^# WP-[0-9]*: *//')
         fi
 
-        # Truncate title if needed
-        if [ ${#wp_title} -gt 30 ]; then
-          wp_title="${wp_title:0:27}..."
+        # Truncate title to the computed column width
+        if [ ${#wp_title} -gt "$TITLE_WIDTH" ]; then
+          wp_title="${wp_title:0:$((TITLE_WIDTH - 3))}..."
         fi
 
-        printf "%-6s | %-30s | %-8s | %-12s\n" "$wp_num" "$wp_title" "$wp_scope" "$wp_status"
+        printf "%-${WP_WIDTH}s | %-${TITLE_WIDTH}s | %-${SCOPE_WIDTH}s | %-${STATUS_WIDTH}s\n" "$wp_num" "$wp_title" "$wp_scope" "$wp_status"
       fi
     done
     ;;

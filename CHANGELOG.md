@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.15.1] - in progress
+
+### Fixed
+
+- **`intent wp list` now sizes its columns to the terminal width.** The work-package table hard-coded a 30-column `Title` cap, truncating every title on every terminal regardless of width (eg `Interpretation schema: verb...`). It now derives column widths from the live terminal width via `get_terminal_width` -- the same Highlander width source `intent st list` already uses -- so `Title` flexes to fill the available space; narrow terminals still clamp to a minimum. Stdout only; generated files are unaffected (they size to `dft_width`).
+
 ## [2.15.0] - 2026-07-03
 
 Minor release adding the **`author` project-type pack** (ST0052) -- the first non-code discipline on Intent's `languages` axis. A project declaring `languages: [author]` gets an authoring rule pack, a prose critic, canon templates, and an essentials skill, all activated the same way a code language is. It is a minor, not a patch, because it adds a new project-type surface; it is strictly opt-in, with zero behaviour change for projects that do not declare `author`.
