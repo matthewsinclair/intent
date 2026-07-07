@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: bf1f140b-ef3b-410c-bf6c-da5a3ff299de
-heartbeat_at: 2026-07-07T22:40Z
+heartbeat_at: 2026-07-08T00:10Z
 status: active
-focus: "2.15.1 SHIPPED. Building ST0053 (content/prose pack) -> 2.16.0. WP01 DONE + gate-closed (`8e26340`, local/unpushed): IN-PR-* prose base extracted from author, author refactored onto it, PR code threaded 5 sites, index 58, 23 suites 0 fail. Renames critic-author->critic-prose ratified (D3). Now: WP02 content (CO) rule tiers. WP06 needs hv (dogfood target + release framing)."
+focus: "ST0053 (content/prose pack) -> 2.16.0: WP01-05 DONE + gate-closed; WP06 dogfood + release docs DONE, WP06 stays WIP pending hv. IN-PR-* prose base (4 rules) + IN-CO-* content pack (6 rules); critic-author->critic-prose (parameterised by declared language); intent lang init content; /in-content-essentials + content->critic-prose dispatch. index 64; all affected suites 0 fail; self-dogfood clean. CHANGELOG [2.16.0]-in progress + history + release notes drafted. AWAITING hv: AC-06.1 (real-target dogfood + sign-off) + AC-00.1 (ST accept), then cut 2.16.0. Commits 8e26340,6cf2b36,85e7c71,28c675e,2e97ad4,45aeb1d (unpushed until I push now)."
 claims: []
 ---
 
