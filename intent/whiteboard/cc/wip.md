@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: bf1f140b-ef3b-410c-bf6c-da5a3ff299de
-heartbeat_at: 2026-07-07T22:11Z
+heartbeat_at: 2026-07-07T22:20Z
 status: active
-focus: "2.15.1 patch line READY to cut. Awaiting hv to run `scripts/release --patch` (matts runs externally; cc can't -- pre-flight runs the full bats suite). After the tag: post-tag wrap (bump config.json intent_version -> 2.15.1). THEN cc builds ST0053 (web-content pack) -> 2.16.0 (D5=(a): patch first, pack second)."
+focus: "2.15.1 SHIPPED (tag `2cdb5b5` both remotes + GitHub release; post-tag wrap `0e7039d` config -> 2.15.1; doctor green). NEXT: cc builds ST0053 (web-content / prose pack) -> 2.16.0 (D5=(a): patch first done, pack second). Awaiting hv go-ahead on the WP plan."
 claims: []
 ---
 
@@ -13,14 +13,13 @@ claims: []
 
 ## DOING
 
-**2026-07-07 -- 2.15.1 prepped + folded; awaiting hv to cut.** Everything for 2.15.1 is committed + pushed both remotes; CHANGELOG carries `[2.15.1] - in progress`. Contents: table-renderer Highlander (`b88cb8c` -- one `render_table` in bin/intent_helpers drives `st list` + `st sync` + `wp list`; fills the terminal width or explicit `--width`, content-fit as the FLOOR, never truncates; st list==sync byte-identical); `intent todo` enumeration Highlander (`4973a30`); `scripts/release confirm()` hardening (`06b386a`); dead `get_terminal_width` removal (`4eafb82`); CI apt hardening (`9016c3c`). 3/4 vc v2.14.1 follow-ups closed (AT-name traceability DEFERRED -- see TODO). Localfold done this session (shipped detail -> `.history/20260707/`).
+**2026-07-07 -- 2.15.1 SHIPPED.** Tag `2cdb5b5` both remotes + GitHub release (matts ran `scripts/release --patch --skip-tests`; full suite green pre-cut). Post-tag wrap `0e7039d` bumped config.json intent_version -> 2.15.1 (release script doesn't stamp it -- known wart); doctor green. Contents: table-renderer Highlander (`b88cb8c`); `intent todo` enumeration Highlander (`4973a30`); `scripts/release confirm()` hardening (`06b386a`); dead `get_terminal_width` removal (`4eafb82`); CI apt hardening (`9016c3c`). Localfold done (shipped detail -> `.history/20260707/`).
 
-**ST0053 -- web-content / prose pack (STOOD UP, D1-D5 hv-RATIFIED).** Not yet built (waits on 2.15.1 tag). D1=`CO` code (content: book, course, etc). D2=shared `IN-PR-*` prose base pack that both author + content disciplines use (reuse, not copy). D3=one `critic-prose` serving both, parameterised by declared language. D4=in scope this release. D5=(a) cut 2.15.1 first, then build the pack as 2.16.0. Scope docs (info+design) written; NO WPs until the 2.15.1 tag lands.
+**ST0053 -- web-content / prose pack (NEXT: build -> 2.16.0). D1-D5 hv-RATIFIED.** D1=`CO` code (content: book, course, etc). D2=shared `IN-PR-*` prose base pack that both author + content disciplines build on (reuse, not copy). D3=one `critic-prose` serving both, parameterised by declared language. D4=headless gate in scope. D5=(a) 2.15.1 first (DONE), pack as 2.16.0. Scope docs (info+design) written; WPs to be created on hv go-ahead.
 
 ## TODO
 
-- **hv ACTION: cut 2.15.1** -- `bash scripts/release --dry-run --patch` (preview), then `bash scripts/release --patch`. After the tag, cc does the post-tag wrap (config.json intent_version -> 2.15.1; the release script does NOT bump it -- known wart).
-- **THEN cc: build ST0053 -> 2.16.0.** Order: WP1 `IN-PR-*` base extraction + refactor author onto it; WP2 `CO` content tiers; WP3 `critic-prose` (parameterised); WP4 lang canon (`intent lang init content`); WP5 skill + dispatch; WP6 dogfood + close.
+- **cc: build ST0053 -> 2.16.0** (awaiting hv go-ahead on the WP plan). Draft order: WP1 `IN-PR-*` base extraction + refactor author onto it; WP2 `CO` content tiers; WP3 `critic-prose` (parameterised); WP4 lang canon (`intent lang init content`); WP5 skill + dispatch; WP6 dogfood + close.
 - DEFERRED (needs hv ruling): AT-name traceability -- tag `@test` with its `AT-id` / bake into `intent at` so `acceptance.md` `::names` are machine-checkable against real test names.
 
 ## Watch-outs
