@@ -572,7 +572,7 @@
       "concretised_by": [],
       "conflicts_with": [],
       "does_not_apply_when": [
-        "Purely decorative images correctly marked alt=\\\"\\\" (empty is the right answer, not a violation)",
+        "Purely decorative images correctly marked alt=\"\" (empty is the right answer, not a violation)",
         "Icon fonts / CSS background images that carry no content meaning"
       ],
       "id": "IN-CO-STYLE-002",
@@ -1810,7 +1810,7 @@
       ],
       "title": "No banned filler; keep to house style",
       "upstream_id": null,
-      "version": 1
+      "version": 2
     },
     {
       "aliases": [

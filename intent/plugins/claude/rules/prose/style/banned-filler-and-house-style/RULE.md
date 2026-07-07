@@ -7,7 +7,7 @@ title: No banned filler; keep to house style
 summary: >
   Prose in a project with a prose discipline (author or content) holds to
   the house style: no banned filler
-  (`overall`, `absolutely`), `eg` never `e.g.`, and no sycophantic openers
+  (`absolutely`), `eg` never `e.g.`, and no sycophantic openers
   ("You're right"). These are mechanical tells -- cheap in any prose, and in
   LLM-assisted drafts a marker that the text was machine-smoothed.
 principles:
@@ -32,7 +32,7 @@ related_rules:
 aliases:
   - IN-AU-STYLE-001
 status: active
-version: 1
+version: 2
 ---
 
 # No banned filler; keep to house style
@@ -41,13 +41,13 @@ Prose holds to the house style: banned filler is cut, `eg` is never `e.g.`, and 
 
 ## Problem
 
-Filler words like `overall` and `absolutely` add nothing -- delete them and the sentence is stronger. They accumulate in LLM-assisted drafts because the model reaches for them as connective tissue. The dotted `e.g.` is needless punctuation where `eg` reads cleaner. And the reflexive "You're right" (or worse, "You're absolutely right") opener is a sycophantic tell: it front-loads agreement instead of leading with the substance. Individually small; together they mark prose as unedited machine output and cost the reader's trust.
+A filler word like `absolutely` adds nothing -- delete it and the sentence is stronger. It accumulates in LLM-assisted drafts because the model reaches for it as connective tissue. (`overall` is deliberately NOT banned: an autopsy of Intent's own corpus found its hits were legitimate analytical usage -- "overall progress", "the overall objective" -- not the filler sense.) The dotted `e.g.` is needless punctuation where `eg` reads cleaner. And the reflexive "You're right" (or worse, "You're absolutely right") opener is a sycophantic tell: it front-loads agreement instead of leading with the substance. Individually small; together they mark prose as unedited machine output and cost the reader's trust.
 
 ## Detection
 
 Case-insensitive greps over prose (skip fenced code blocks and verbatim quotes):
 
-- `\boverall\b` and `\babsolutely\b` -- banned filler.
+- `\babsolutely\b` -- banned filler.
 - `\be\.g\.` -- the dotted form; the house style is `eg`.
 - A sentence or paragraph opening with `You'?re (absolutely )?right` -- the sycophantic opener.
 
@@ -56,7 +56,7 @@ Each hit is a candidate, not a certainty -- confirm the context is prose, not a 
 ## Bad
 
 ```markdown
-Overall, the results were absolutely conclusive (e.g. the second trial).
+The results were absolutely conclusive (e.g. the second trial).
 
 You're absolutely right that the earlier framing was off.
 ```
@@ -76,7 +76,7 @@ The earlier framing was off -- here is the correction.
 
 ## When This Does Not Apply
 
-- Verbatim quotations: a cited source may contain `overall`, `absolutely`, or `e.g.` and must not be altered.
+- Verbatim quotations: a cited source may contain `absolutely` or `e.g.` and must not be altered.
 - Meta-text about the words: a style guide that lists the banned words to explain the rule.
 
 ## Further Reading
