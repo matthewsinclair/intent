@@ -1,5 +1,5 @@
 ---
-verblock: "03 Jul 2026:v0.96: matts - v2.15.0 SHIPPED (ST0052 author project-type pack)"
+verblock: "07 Jul 2026:v0.97: cc - 2.15.1 patch pending (wp-list width + vc follow-ups); ST0053 stood up"
 intent_version: 2.15.0
 ---
 
@@ -7,48 +7,44 @@ intent_version: 2.15.0
 
 ## Current State
 
-**2026-07-03 -- v2.15.0 SHIPPED (ST0052).** Tag `v2.15.0` (release commit `33e5d57`) on both remotes + GitHub release; Intent self-upgraded 2.14.0 -> 2.15.0 (post-tag wrap `425fa59`, `intent doctor` green). A minor -- new project-type surface; opt-in, no migration. **ST0052 -- the `author` project-type pack**, the first non-code discipline on Intent's `languages` axis. Reuses the language-pack machinery (D1: reuse the axis, not a parallel `domain:` field), so a courseware repo can be `languages: [elixir, author]` and load both packs. Six WPs, closed 21/21 through its own gate:
+**v2.15.0 SHIPPED (2026-07-03).** Tag `v2.15.0` (`33e5d57`) both remotes + GitHub release; Intent self-upgraded 2.14.0 -> 2.15.0. **ST0052 -- the `author` project-type pack**, the first non-code discipline on Intent's `languages` axis (reuses the axis, not a parallel field, so a repo can be `languages: [elixir, author]`). Six WPs, 21/21 through its own gate; headless prose gate deferred (D4). Detail: `intent/st/COMPLETED/ST0052/`; narrative `intent/history/v2.15.0.md`.
 
-- **WP01** -- the `AU` language code across the rule-id validator, schema, and the canon enumerator `LANG_SUBDIRS` (+ a discovery correction: the enumerator gates `list`/`index` and lives in `rules_lib.sh`, not where `id-scheme.md` had pointed).
-- **WP02** -- nine `IN-AU-*` rules in two tiers: `style` (mechanical, greppable) + `craft` (judgment, critic-as-reader). The mechanical trope pass references the single `in-detrope` catalogue, not a forked indicator set (Highlander; D5).
-- **WP03** -- `critic-author`, the first non-code critic: read-only, `review` (mechanical) / `craft-check` (judgment) modes; two-form detrope (mechanical by default; the full `/in-detrope` an on-instruction handoff it recommends but never runs).
-- **WP04** -- `intent lang init author` installs `RULES-author.md` + `ARCHITECTURE-author.md` and writes config `languages` (no `intent_lang` change; D2 allowlist-free).
-- **WP05** -- `/in-author-essentials` skill + `author -> critic-author` dispatch in `/in-review` (D7 author-only/mixed exclusion) + `/in-session`.
-- **WP06** -- self-dogfood (manual mechanical tier, since critic-author isn't live in the building session) + docs. Every trope-pass hit was a house-style false positive -- direct evidence for D3 (mechanical produces candidates; judgment confirms) and D4 (Intent's own `--` style trips the dash-overuse trope, so a headless gate would be swamped). No real defects.
+**v2.15.1 PENDING -- ready to cut.** A patch bundling the `intent wp list` terminal-width fix (user-facing) plus internal quality work. All committed + pushed to both remotes; `CHANGELOG` `## [2.15.1] - in progress` written (the wp fix is the listed entry; the internal fixes ride along unlisted). **hv cuts it:** `scripts/release v2.15.1` (runs the full suite + the confirm gate in the terminal). Contents:
 
-The headless prose gate is deferred (D4): `critic-author` is on-demand (`Task`) only. Detail: `intent/st/COMPLETED/ST0052/`; narrative `intent/history/v2.15.0.md`; notes `docs/releases/2.15.0/`.
+- `intent wp list` sizes columns to the terminal width (was a hardcoded 30-col Title cap) -- `d2abfc7`, guard test added.
+- `intent todo` enumeration single-sourced (AC-01.8 Highlander) -- `4973a30`, output byte-identical.
+- `scripts/release confirm()` hardened (`/dev/tty` + stray-input tolerance) -- `06b386a`.
+- Dead `get_terminal_width` calls removed in `ext`/`plugin list` -- `4eafb82`.
 
-**2026-07-02 -- v2.14.0 SHIPPED (ST0050 `intent todo` + ST0051 width fix).** A projected DOING/TODO/DONE view of `intent/st/**` that cannot drift + a generated-file width fix (`dft_width`, default 120). Detail: `intent/st/COMPLETED/ST0050/` + `ST0051/`; narrative `intent/history/v2.14.0.md`.
-
-Earlier releases (v2.13.x and back): `intent/done.md` ledger + `intent/history/`.
-
-Fleet picks up v2.15.0 on each member's next `intent upgrade` -- the `author` pack is available but inert until a project runs `intent lang init author` (opt-in; zero behaviour change otherwise). Out of scope: Pplr, Sites (inside Laksa), llm-tropes (content-only).
+Fleet picks up v2.15.0 on each member's next `intent upgrade` (the `author` pack is inert until a project runs `intent lang init author`). Out of scope: Pplr, Sites (inside Laksa), llm-tropes.
 
 ## Next Up
 
-**v2.14.1 follow-ups (from the vc audit -- non-blocking):**
+**Cut v2.15.1** (above) -- the only gated step; needs hv's terminal.
 
-1. **AC-01.8 enumeration Highlander** -- `intent todo`'s markdown + JSON emitters each re-walk `intent/st/**` and duplicate the `norm < since` predicate; AC-01.8 over-claims "no second traversal". Unify the enumeration (one pass feeds both) or reword the AC (a weakening -> matts' nod).
-2. **AT-name traceability** -- `acceptance.md` AT `::names` don't match the real bats `@test` names; align them.
-3. **`intent upgrade` false-no-op + `scripts/release` `confirm()`** -- `detect_project_version` silently skips the config stamp for a fleet member reading its own tool version (recurred on the v2.15.0 post-tag wrap `425fa59` -- bumped manually); confirm it can't. And the push `confirm()` reads raw stdin + strict `[yY]`, so a stray escape aborts the push -- read `/dev/tty` and tolerate stray input.
+**v2.14.1 follow-ups (from the vc audit) -- 3 of 4 closed in the 2.15.1 line:**
 
-**v2.15.x:**
+1. AC-01.8 enumeration Highlander -- **DONE** (`4973a30`). One `list_bucket_dirs` / `list_done_dirs` enumeration + one `done_is_member` predicate feed both the markdown and JSON emitters, which now differ only in per-thread rendering.
+2. `scripts/release confirm()` -- **DONE** (`06b386a`). Reads + prompts via `/dev/tty`; strips CR/whitespace before matching; aborts cleanly when there is no tty and no `--no-confirm`.
+3. `intent upgrade` false-no-op -- **CONFIRMED NOT A BUG.** `detect_project_version` reads only the project `config.json`; `get_intent_version` reads the tool `VERSION` file -- distinct sources, so a fleet member cannot read its own tool version. The v2.15.0 manual bump was release _sequencing_ (`scripts/release` stamps config after the tag), tracked under "scripts/release v2 polish" below.
+4. AT-name traceability -- **DEFERRED (needs a convention).** Making `acceptance.md` ATs grep-able to bats `@test` names is a framework-wide decision (eg tag each `@test` with its `AT-id`, or bake it into `intent at`), not a one-off patch on one completed thread. hv to ratify the convention, then apply uniformly.
 
-1. **The `content` (web-content) pack** -- copies the author-pack shape (heading-hygiene, front-matter, the shared mechanical surface); ST0052 built the pattern for it.
-2. **Headless `intent critic author` gate** -- deferred (D4): needs path-based file-selection (`.md` overlaps docs + the content pack) + a house-style suppression layer (the dogfood showed Intent's `--` style trips the trope catalogue's dash-overuse regex).
+**v2.16.0 -- ST0053 content (web-content) pack -- STOOD UP (scope framing only).** Central decision: reuse the shared prose surface, do NOT copy `IN-AU-*` into `IN-WC-*`. Awaiting hv ratification of D1 (language code `WC`/`CO`), D2 (prose base-pack shape -- the load-bearing one), D3 (critic reuse). No WPs until ratified. Detail: `intent/st/NOT-STARTED/ST0053/`.
+
+**Deferred:** headless `intent critic author` gate (D4 -- needs path-based file-selection + a house-style suppression layer).
 
 **Standing backlog:**
 
 1. `/in-review` Elixir fleet sweep -- Anvil, Lamplight, MeetZaya, MicroGPTEx, Conflab.
 2. Conflab pre-existing test findings (`IN-EX-TEST-001` / `005` / `007`).
-3. Homebrew tap; `scripts/release` v2 polish (config.json bump is still a manual post-tag wrap); CI per-platform-leg surfacing (macOS-green has masked Linux `set -e` breaks); `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft; skill-sync script-change blind spot.
+3. Homebrew tap; `scripts/release` v2 polish (config.json bump is still a manual post-tag wrap -- auto-stamp it as part of the release); CI per-platform-leg surfacing; `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft; skill-sync script-change blind spot.
 4. ST0040 + ST0041 deferred items (revisit on field evidence).
 
 ## Recent
 
-- **2026-07-03**: v2.15.0 shipped (tag `33e5d57`) -- ST0052 author project-type pack. See `intent/history/v2.15.0.md`.
-- **2026-07-02**: v2.14.0 shipped (tag `c7842f1`) -- ST0050 `intent todo` + ST0051 width. See `intent/history/v2.14.0.md`.
-- **2026-06-29**: v2.13.1 shipped (tag `d01a1b2`) -- ST0048 close-gate fail-by-default + ST0049 release notes. See `intent/done.md`.
+- **2026-07-07**: 2.15.1 patch line prepped -- `intent wp list` width fix + `intent todo` enumeration Highlander + `confirm()` hardening + dead-code cleanup; 3/4 vc follow-ups closed. ST0053 content pack stood up (awaiting scope ratification).
+- **2026-07-03**: v2.15.0 shipped (`33e5d57`) -- ST0052 author project-type pack. See `intent/history/v2.15.0.md`.
+- **2026-07-02**: v2.14.0 shipped -- ST0050 `intent todo` + ST0051 width. See `intent/history/v2.14.0.md`.
 - Earlier releases: `intent/done.md` ledger + `intent/history/`.
 
 ## Parked
