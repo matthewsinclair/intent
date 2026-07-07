@@ -1,5 +1,7 @@
 ---
 title: "Getting Started with Intent"
+description: "A practical guide to adopting Intent: installation, the daily workflow, and worked examples from building this blog series."
+canonical: "https://github.com/matthewsinclair/intent/blob/main/docs/blog/0005-getting-started-with-intent.md"
 date: "2025-07-08"
 author: "Matthew Sinclair"
 draft: false

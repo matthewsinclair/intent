@@ -1,5 +1,7 @@
 ---
 title: "Next Steps and Future Work"
+description: "The roadmap for Intent: where the methodology is heading, integration opportunities, and the vision for intention-aware development."
+canonical: "https://github.com/matthewsinclair/intent/blob/main/docs/blog/0006-next-steps-and-future-work.md"
 date: "2025-07-08"
 author: "Matthew Sinclair"
 draft: false
@@ -332,7 +334,7 @@ Enable direct GitHub issue creation from steel threads
 
 ## Context
 
-Users want seamless integration with GitHub workflow
+Users want Intent to fit their existing GitHub workflow without friction
 
 ## Approach
 

@@ -1,5 +1,7 @@
 ---
 title: "Intent Capture in Software Development"
+description: "Practical techniques for capturing and preserving developer intention throughout the software development process."
+canonical: "https://github.com/matthewsinclair/intent/blob/main/docs/blog/0003-intent-capture-in-software-development.md"
 date: "2025-07-08"
 author: "Matthew Sinclair"
 draft: false

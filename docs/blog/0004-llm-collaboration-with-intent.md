@@ -1,5 +1,7 @@
 ---
 title: "LLM Collaboration with Intent"
+description: "How Intent's structure makes AI assistance more effective, turning LLMs from code generators into genuine development partners."
+canonical: "https://github.com/matthewsinclair/intent/blob/main/docs/blog/0004-llm-collaboration-with-intent.md"
 date: "2025-07-08"
 author: "Matthew Sinclair"
 draft: false

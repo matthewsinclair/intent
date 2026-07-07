@@ -1,5 +1,7 @@
 ---
 title: "The Motivation for Intent: Why Intention Matters"
+description: "Why maintaining developer intention is the core challenge of modern LLM-assisted software development, and what is lost when it slips away."
+canonical: "https://github.com/matthewsinclair/intent/blob/main/docs/blog/0000-motivation-for-intent.md"
 date: "2025-07-08"
 author: "Matthew Sinclair"
 draft: false

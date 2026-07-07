@@ -1,5 +1,7 @@
 ---
 title: "The Steel Thread Methodology"
+description: "The steel thread methodology: self-contained units of work that capture clear intention and deliver value end to end."
+canonical: "https://github.com/matthewsinclair/intent/blob/main/docs/blog/0002-the-steel-thread-methodology.md"
 date: "2025-07-08"
 author: "Matthew Sinclair"
 draft: false

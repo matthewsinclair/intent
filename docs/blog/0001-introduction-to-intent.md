@@ -1,5 +1,7 @@
 ---
 title: "Introduction to Intent"
+description: "An introduction to Intent: a practical approach to intention-aware development, its core components, and the principles behind it."
+canonical: "https://github.com/matthewsinclair/intent/blob/main/docs/blog/0001-introduction-to-intent.md"
 date: "2025-07-08"
 author: "Matthew Sinclair"
 draft: false
