@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.0] - in progress
+
+Minor release adding the **`content` (web-content) project-type pack** (ST0053) and the **`IN-PR-*` shared prose base** it is built on. `content` is the second prose discipline after `author`; both now stand on one shared mechanical prose surface rather than duplicating it. It is a minor, not a patch, because it adds a new project-type surface (and a shared base pack); it is strictly opt-in, with zero behaviour change for projects that do not declare `content`.
+
+### Added
+
+- **The `IN-PR-*` prose base (ST0053).** The mechanical prose-hygiene rules that every prose discipline shares -- banned filler and `eg`-not-`e.g.`, no vanity metrics, heading hygiene, and the mechanical trope pass -- now live once in a `prose` base pack (`intent claude rules list --lang prose`), not copied per discipline. Introduces the `PR` language code.
+- **The `content` rule pack (ST0053).** Six web-distinct `IN-CO-*` rules in two tiers: `style` (mechanical) -- page meta present (title / description / canonical), image alt-text, descriptive link text; and `craft` (judgment) -- scannability and web voice, one clear primary call to action, reading level matched to the audience. Enumerate with `intent claude rules list --lang content`. Introduces the `CO` language code.
+- **`intent lang init content` (ST0053).** Installs `intent/llm/RULES-content.md` + `ARCHITECTURE-content.md` (web-content information architecture -- pages / posts layout, page front-matter, the content review pipeline), appends the Language Packs entry, and adds `content` to config `languages`. `intent lang list` now enumerates `content`.
+- **`/in-content-essentials` skill (ST0053).** The content pipeline -- draft, mechanical detrope, revise for craft, structural check, CTA / reading-level pass -- loaded by `/in-session` when `content` is declared. `/in-review` dispatches `content -> critic-prose`.
+
+### Changed
+
+- **`critic-author` is renamed to `critic-prose` (ST0053).** One prose critic now serves every prose discipline, parameterised by the declared language: it loads the `IN-PR-*` base plus whichever of `author` / `content` the project declares. The two-form detrope is preserved, re-anchored to the base's `IN-PR-STYLE-004` mechanical pass. Projects on 2.15.0 that dispatched `critic-author` should use `critic-prose`.
+- **The `author` pack refactored onto the prose base (ST0053).** The four shared mechanical rules moved from `IN-AU-STYLE-*` into `IN-PR-STYLE-*` (with migration aliases); the `author` pack now owns only its discipline-specific rules -- front-matter / objectives plus the four craft rules. No behaviour change for an author project: the same rules apply, sourced from the base plus the discipline pack.
+
 ## [2.15.1] - 2026-07-07
 
 ### Fixed

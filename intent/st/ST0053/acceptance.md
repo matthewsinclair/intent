@@ -51,10 +51,10 @@ title: "Content (web-content) project-type pack -- acceptance contract"
 - AC-05.1 The `/in-content-essentials` skill exists, is renderer-safe (no em dash, no `$N`), carries the content pipeline, and references the prose base + content rule ids.
 - AC-05.2 `content -> critic-prose` is wired into `/in-review` (dispatch map + the generalised "Prose projects" note + Task example) and `/in-session` (fan-out table row + `chains_to`); a prose-only project (`[author]` or `[content]`) runs no code critic, a mixed project runs each critic on its own subtree, and a project declaring both applies both discipline packs.
 
-### WP-06 -- dogfood + docs + close (status: not started)
+### WP-06 -- dogfood + docs + close (status: WIP -- pending hv)
 
-- AC-06.1 (non-test) A real content target is dogfooded end-to-end (the pack applied via `intent lang init content` + a `critic-prose` pass) and hv signs off. -- evidence: [dogfood note + hv sign-off] -- satisfied: no
-- AC-06.2 (non-test) The 2.16.0 release docs are updated: CHANGELOG, `intent/history/v2.16.0.md`, `docs/releases/2.16.0/`. -- evidence: [release docs] -- satisfied: no
+- AC-06.1 (non-test) A real content target is dogfooded end-to-end (the pack applied via `intent lang init content` + a `critic-prose` pass) and hv signs off. -- evidence: self-dogfood done by-hand (mechanical style tier over the pack's own prose, `scratchpad/st0053-wp06-self-dogfood.md`) -- no real defects, only the expected rule-file / fenced-example false positives; a real-target dogfood (a live content page) + hv sign-off still pending -- satisfied: no
+- AC-06.2 (non-test) The 2.16.0 release docs are updated: CHANGELOG, `intent/history/v2.16.0.md`, `docs/releases/2.16.0/`. -- evidence: CHANGELOG `[2.16.0] - in progress` (Added prose base + content pack + lang init + skill; Changed critic rename + author refactor); `intent/history/v2.16.0.md`; `docs/releases/2.16.0/RELEASE_NOTES.md` -- satisfied: yes
 
 ## Acceptance Tests
 
