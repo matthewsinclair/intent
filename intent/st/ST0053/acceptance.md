@@ -53,7 +53,7 @@ title: "Content (web-content) project-type pack -- acceptance contract"
 
 ### WP-06 -- dogfood + docs + close (status: WIP -- pending hv)
 
-- AC-06.1 (non-test) A real content target is dogfooded end-to-end (the pack applied via `intent lang init content` + a `critic-prose` pass) and hv signs off. -- evidence: self-dogfood done by-hand (mechanical style tier over the pack's own prose, `scratchpad/st0053-wp06-self-dogfood.md`) -- no real defects, only the expected rule-file / fenced-example false positives; a real-target dogfood (a live content page) + hv sign-off still pending -- satisfied: no
+- AC-06.1 (non-test) A real content target is dogfooded end-to-end (the pack applied via `intent lang init content` + a `critic-prose` pass) and hv signs off. -- evidence: real-target dogfood run over `docs/blog/*.md` (7 posts; mechanical style tier by hand, critic-prose registry not live this session) -- `scratchpad/st0053-wp06-self-dogfood.md`. Found: IN-CO-STYLE-001 x7 (no description/canonical meta), IN-PR-STYLE-004 x1 ("seamless integration"); false positives (fenced-code H1s, "overall" adjective, external-link anchors) rejected by the confirm step. hv sign-off still pending -- satisfied: no
 - AC-06.2 (non-test) The 2.16.0 release docs are updated: CHANGELOG, `intent/history/v2.16.0.md`, `docs/releases/2.16.0/`. -- evidence: CHANGELOG `[2.16.0] - in progress` (Added prose base + content pack + lang init + skill; Changed critic rename + author refactor); `intent/history/v2.16.0.md`; `docs/releases/2.16.0/RELEASE_NOTES.md` -- satisfied: yes
 
 ## Acceptance Tests
