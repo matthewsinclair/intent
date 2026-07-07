@@ -103,8 +103,13 @@ export -f get_config_field
 
 # Default width for GENERATED FILES: the project config's `dft_width`, or 120.
 # A file is read anywhere, so it takes a stable, generous default rather than
-# the width of whatever terminal happened to run the command. STDOUT takes
-# get_terminal_width instead -- destination-based width (ST0051).
+# the width of whatever terminal happened to run the command.
+#
+# NOTE (2026-07-07): the `st`/`wp` list tables no longer consume this -- they are
+# content-fit via render_table (below), which superseded ST0051's dft_width path.
+# get_default_width therefore has no in-tree caller today, but `dft_width` is a
+# public, `intent init`-seeded config knob for other generated content. DELIBERATELY
+# RETAINED (matts) -- do NOT remove as "dead code".
 get_default_width() {
   get_config_field dft_width 120
 }
