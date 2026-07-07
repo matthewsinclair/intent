@@ -3,7 +3,7 @@ verblock: "07 Jul 2026:v0.1: matts - Initial version"
 wp_id: WP-04
 title: "content lang canon"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-04: content lang canon

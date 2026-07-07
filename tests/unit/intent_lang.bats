@@ -45,6 +45,7 @@ teardown() {
   assert_output_contains "lua"
   assert_output_contains "shell"
   assert_output_contains "author"
+  assert_output_contains "content"
   refute_output_contains "_default"
 }
 
@@ -102,6 +103,30 @@ teardown() {
   run jq -r '.languages | .[]' "$PROJECT_DIR/intent/.config/config.json"
   assert_success
   assert_output_contains "author"
+}
+
+# ====================================================================
+# content pack (ST0053 WP04) -- the web-content language pack
+# ====================================================================
+
+@test "intent lang init content installs RULES-content.md + ARCHITECTURE-content.md" {
+  cd "$PROJECT_DIR"
+  run "${INTENT_BIN_DIR}/intent" lang init content
+  assert_success
+  assert_file_exists "$PROJECT_DIR/intent/llm/RULES-content.md"
+  assert_file_exists "$PROJECT_DIR/intent/llm/ARCHITECTURE-content.md"
+  assert_output_contains "installed: intent/llm/RULES-content.md"
+  assert_output_contains "installed: intent/llm/ARCHITECTURE-content.md"
+}
+
+@test "intent lang init content appends the Language Packs entry and writes config languages" {
+  cd "$PROJECT_DIR"
+  run "${INTENT_BIN_DIR}/intent" lang init content
+  assert_success
+  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**content** -- rule pack at"
+  run jq -r '.languages | .[]' "$PROJECT_DIR/intent/.config/config.json"
+  assert_success
+  assert_output_contains "content"
 }
 
 @test "intent lang init appends Language Packs entry to agnostic RULES.md" {

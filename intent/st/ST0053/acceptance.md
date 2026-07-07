@@ -42,9 +42,9 @@ title: "Content (web-content) project-type pack -- acceptance contract"
 - AC-03.1 `critic-author` is renamed to `critic-prose`: the subagent directory, `agent.md`, metadata, and the agent manifest all use `critic-prose`; no `critic-author` remains (dir gone, no manifest entry).
 - AC-03.2 `critic-prose` loads the `IN-PR-*` base plus the declared discipline's rules, parameterised by language (author or content, resolved from config `languages`); its `agent.md` cites the `IN-PR-STYLE-004` mechanical pass and preserves the two-form detrope (mechanical default + `IN-AU-CRAFT-003` `/in-detrope` handoff, never invoked).
 
-### WP-04 -- content lang canon (status: not started)
+### WP-04 -- content lang canon (status: DONE)
 
-- AC-04.1 `intent lang init content` installs `intent/llm/RULES-content.md` + `ARCHITECTURE-content.md`, appends the Language Packs entry, and writes `content` to config `languages`; `intent lang list` enumerates `content`.
+- AC-04.1 `intent lang init content` installs `intent/llm/RULES-content.md` + `ARCHITECTURE-content.md`, appends the Language Packs entry, and writes `content` to config `languages`; `intent lang list` enumerates `content`. (Allowlist-free: `templates/content/{RULES,ARCHITECTURE}.md` is all that was needed -- `lang init`/`lang list` are dir-driven.)
 
 ### WP-05 -- in-content-essentials skill + dispatch (status: not started)
 
@@ -79,8 +79,8 @@ title: "Content (web-content) project-type pack -- acceptance contract"
 
 ### WP-04
 
-- AT-04.1 tests/unit/intent_lang.bats (content cases) -- covers AC-04.1 -- status: to-write (red-first)
-- Coverage: AC-04.1 test-backed.
+- AT-04.1 tests/unit/intent_lang.bats (content cases: list enumerates content; init installs both files, appends the pack entry, writes config languages) -- covers AC-04.1 -- status: green
+- Coverage: AC-04.1 test-backed (green).
 
 ### WP-05
 
