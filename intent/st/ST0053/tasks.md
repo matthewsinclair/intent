@@ -3,7 +3,7 @@
 ## Tasks
 
 - [x] WP01 -- IN-PR-* prose base + author refactor
-- [ ] WP02 -- content (CO) rule tiers
+- [x] WP02 -- content (CO) rule tiers
 - [ ] WP03 -- critic-prose (rename critic-author)
 - [ ] WP04 -- content lang canon
 - [ ] WP05 -- in-content-essentials skill + dispatch

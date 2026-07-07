@@ -1,6 +1,6 @@
 {
   "intent_version": "2.15.1",
-  "rule_count": 58,
+  "rule_count": 64,
   "rules": [
     {
       "aliases": [],
@@ -387,6 +387,257 @@
         "front-matter"
       ],
       "title": "Chapters and modules carry front-matter and objectives",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.md",
+        "**/*.mdx",
+        "**/*.html"
+      ],
+      "applies_when": [
+        "Any web content page meant to be read on screen (landing pages, posts, docs)",
+        "Prose ported from a print or long-form source into a web page"
+      ],
+      "category": "craft",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Long-form narrative deliberately written to be read start-to-finish (an essay, a story)",
+        "Reference material whose structure is dictated by an external spec"
+      ],
+      "id": "IN-CO-CRAFT-001",
+      "language": "content",
+      "principles": [
+        "reader-first",
+        "web-native"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-PR-STYLE-003"
+      ],
+      "severity": "recommendation",
+      "source_path": "intent/plugins/claude/rules/content/craft/scannability/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "content",
+        "web",
+        "voice",
+        "scannability"
+      ],
+      "title": "Web copy is scannable and front-loaded",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.md",
+        "**/*.mdx",
+        "**/*.html"
+      ],
+      "applies_when": [
+        "A web page with a conversion goal (sign up, buy, contact, subscribe, download)",
+        "Landing pages, product pages, and campaign pages"
+      ],
+      "category": "craft",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Purely informational pages with no next step (a reference article, an about page)",
+        "Index / hub pages whose job is navigation, where many equal links are correct"
+      ],
+      "id": "IN-CO-CRAFT-002",
+      "language": "content",
+      "principles": [
+        "reader-first",
+        "purpose-driven"
+      ],
+      "references": [],
+      "related_rules": [],
+      "severity": "recommendation",
+      "source_path": "intent/plugins/claude/rules/content/craft/primary-cta/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "content",
+        "web",
+        "cta",
+        "conversion"
+      ],
+      "title": "Each page has one clear primary call to action",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.md",
+        "**/*.mdx",
+        "**/*.html"
+      ],
+      "applies_when": [
+        "Any web content page with a defined audience",
+        "Copy aimed at a general or consumer audience, where accessibility of language matters most"
+      ],
+      "category": "craft",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Deliberately technical content for a specialist audience that shares the vocabulary",
+        "Legal or regulatory text whose precise wording is fixed by requirement"
+      ],
+      "id": "IN-CO-CRAFT-003",
+      "language": "content",
+      "principles": [
+        "reader-first",
+        "clarity"
+      ],
+      "references": [],
+      "related_rules": [],
+      "severity": "recommendation",
+      "source_path": "intent/plugins/claude/rules/content/craft/reading-level/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "content",
+        "web",
+        "readability",
+        "clarity"
+      ],
+      "title": "Reading level matches the audience",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.md",
+        "**/*.mdx",
+        "**/*.html"
+      ],
+      "applies_when": [
+        "Any web content page (landing page, article, post) maintained as a file",
+        "Pages that will be indexed or shared on social platforms"
+      ],
+      "category": "style",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Fragments or partials included into a parent page that owns the meta",
+        "Pages explicitly excluded from indexing (a documented noindex utility page)"
+      ],
+      "id": "IN-CO-STYLE-001",
+      "language": "content",
+      "principles": [
+        "structural-integrity",
+        "discoverability"
+      ],
+      "references": [],
+      "related_rules": [],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/content/style/page-meta-present/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "content",
+        "web",
+        "meta",
+        "seo",
+        "mechanical"
+      ],
+      "title": "Every page carries title, description, and canonical meta",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.md",
+        "**/*.mdx",
+        "**/*.html"
+      ],
+      "applies_when": [
+        "Any web content page containing images",
+        "Markdown image syntax, MDX <Image>, or HTML <img>"
+      ],
+      "category": "style",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Purely decorative images correctly marked alt=\\\"\\\" (empty is the right answer, not a violation)",
+        "Icon fonts / CSS background images that carry no content meaning"
+      ],
+      "id": "IN-CO-STYLE-002",
+      "language": "content",
+      "principles": [
+        "accessibility",
+        "discoverability"
+      ],
+      "references": [],
+      "related_rules": [],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/content/style/image-alt-text/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "content",
+        "web",
+        "accessibility",
+        "a11y",
+        "mechanical"
+      ],
+      "title": "Every content image has meaningful alt text",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [],
+      "applies_to": [
+        "**/*.md",
+        "**/*.mdx",
+        "**/*.html"
+      ],
+      "applies_when": [
+        "Any web content page with links",
+        "Markdown, MDX, or HTML anchors"
+      ],
+      "category": "style",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "A URL shown deliberately as text (a citation, a command to copy, documentation of the address itself)",
+        "In-product UI microcopy where a button label is constrained by design, not content"
+      ],
+      "id": "IN-CO-STYLE-003",
+      "language": "content",
+      "principles": [
+        "accessibility",
+        "discoverability"
+      ],
+      "references": [],
+      "related_rules": [],
+      "severity": "recommendation",
+      "source_path": "intent/plugins/claude/rules/content/style/descriptive-link-text/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "content",
+        "web",
+        "accessibility",
+        "links",
+        "mechanical"
+      ],
+      "title": "Link text describes its destination",
       "upstream_id": null,
       "version": 1
     },

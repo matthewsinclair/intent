@@ -8,12 +8,12 @@ Every rule in Intent's rule library has a stable, cite-able identifier.
 
 Three fixed segments separated by hyphens:
 
-| Segment  | Values                                                                                                                                                |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `IN-`    | Prefix. Fixed. Distinguishes Intent rules from `ETC-*` (elixir-test-critic) when both are loaded.                                                     |
-| `<LANG>` | Language code. One of: `AG` (agnostic), `EX` (elixir), `RS` (rust), `SW` (swift), `LU` (lua), `SH` (shell — bash + zsh), `PR` (prose), `AU` (author). |
-| `<CAT>`  | Category code. Short abbreviation in uppercase (`CODE`, `TEST`, `ASH`, `PHX`, `LV`, `ARCH`, `MOCK`).                                                  |
-| `<NNN>`  | Zero-padded 3-digit sequence, starting at `001`. Scope: unique within a `<LANG>-<CAT>` prefix.                                                        |
+| Segment  | Values                                                                                                                                                                |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `IN-`    | Prefix. Fixed. Distinguishes Intent rules from `ETC-*` (elixir-test-critic) when both are loaded.                                                                     |
+| `<LANG>` | Language code. One of: `AG` (agnostic), `EX` (elixir), `RS` (rust), `SW` (swift), `LU` (lua), `SH` (shell — bash + zsh), `PR` (prose), `AU` (author), `CO` (content). |
+| `<CAT>`  | Category code. Short abbreviation in uppercase (`CODE`, `TEST`, `ASH`, `PHX`, `LV`, `ARCH`, `MOCK`).                                                                  |
+| `<NNN>`  | Zero-padded 3-digit sequence, starting at `001`. Scope: unique within a `<LANG>-<CAT>` prefix.                                                                        |
 
 ## Examples
 
@@ -42,6 +42,7 @@ Fixed, two-letter, uppercase. Extending this list requires a schema bump.
 - `SH` — Shell (bash + zsh both fall under this code; per-rule frontmatter tags distinguish bash-specific, zsh-specific, or both)
 - `PR` — Prose (the shared prose-hygiene base: banned filler, vanity metrics, heading hygiene, the mechanical trope pass; depended on by every prose discipline, not generic to code)
 - `AU` — Author (books, courseware, long-form prose; builds on the `PR` prose base)
+- `CO` — Content (web content: pages, posts, marketing copy; builds on the `PR` prose base, adds web-specific rules -- meta, alt-text, links, scannability, CTA)
 
 Why two letters: short enough to read inline in Critic reports; distinct enough to grep.
 

@@ -31,11 +31,11 @@ title: "Content (web-content) project-type pack -- acceptance contract"
 - AC-01.3 The author pack retains only its discipline-specific rules -- one style rule (front-matter/objectives) plus the four craft rules (5 total) -- each still schema-valid and enumerated under `--lang author`; no moved rule remains under `rules/author/`.
 - AC-01.4 (non-test) The prose base carries no upward dependency on an author-specific rule (no base->discipline `related_rules`), and every downstream reference (author craft cross-links, the `/in-author-essentials` skill, the author canon templates) re-points to the `IN-PR-*` ids. -- evidence: heading-hygiene + mechanical-trope-pass `related_rules` emptied; author full-trope-diagnosis links `IN-PR-STYLE-004`; skill + `templates/author/{RULES,ARCHITECTURE}.md` cite `IN-PR-*`; full-library `rules validate` 58/58 green -- satisfied: yes
 
-### WP-02 -- content (CO) rule tiers (status: not started)
+### WP-02 -- content (CO) rule tiers (status: DONE)
 
 - AC-02.1 The `CO` (content) language code is admitted by the validator and `content` is registered in `LANG_SUBDIRS`.
-- AC-02.2 The content pack's `style` tier draws on the `IN-PR-*` base (no duplicated mechanical rule), and its `craft` tier owns the content-distinct rules (web voice / scannability, link + CTA hygiene, page meta -- title/description/canonical, image alt-text presence, reading-level target); each is schema-valid and enumerated under `--lang content`.
-- AC-02.3 (non-test) No `IN-CO-*` rule duplicates an `IN-PR-*` mechanical rule (Highlander). -- evidence: [content pack style tier references the base, no copied banned-filler/trope/heading rule] -- satisfied: no
+- AC-02.2 The content pack owns six web-distinct rules -- `style` (mechanical): page meta present (title/description/canonical), image alt-text, descriptive link text; `craft` (judgment): scannability, primary CTA, reading-level target -- each schema-valid and enumerated under `--lang content`. The generic prose hygiene (filler, vanity metrics, headings, trope pass) is the shared `IN-PR-*` base, not re-authored here.
+- AC-02.3 (non-test) No `IN-CO-*` rule duplicates an `IN-PR-*` mechanical rule (Highlander). -- evidence: rule_pack_content.bats asserts no content dir reuses a prose-base slug and no content rule declares an `IN-PR-*` id; the content style tier is web-specific (meta/alt/links), disjoint from the base -- satisfied: yes
 
 ### WP-03 -- critic-prose (rename critic-author) (status: not started)
 
@@ -68,9 +68,9 @@ title: "Content (web-content) project-type pack -- acceptance contract"
 
 ### WP-02
 
-- AT-02.1 tests/unit/co_language_code_guard.bats -- covers AC-02.1 -- status: to-write (red-first)
-- AT-02.2 tests/unit/rule_pack_content.bats -- covers AC-02.2 -- status: to-write (red-first)
-- Coverage: AC-02.1, AC-02.2 test-backed; AC-02.3 non-test (evidence).
+- AT-02.1 tests/unit/co_language_code_guard.bats -- covers AC-02.1 -- status: green
+- AT-02.2 tests/unit/rule_pack_content.bats -- covers AC-02.2, AC-02.3 -- status: green
+- Coverage: AC-02.1, AC-02.2 test-backed (green); AC-02.3 non-test (evidence satisfied), backstopped by the Highlander tests in AT-02.2.
 
 ### WP-03
 
