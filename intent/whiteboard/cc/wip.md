@@ -3,15 +3,19 @@ node: cc
 name: Control Claude
 role: control
 session_id: bf1f140b-ef3b-410c-bf6c-da5a3ff299de
-heartbeat_at: 2026-07-04T09:20Z
+heartbeat_at: 2026-07-07T15:41Z
 status: active
-focus: "Post-ship fix (2026-07-04, d2abfc7): `intent wp list` hardcoded a 30-col Title cap -> now derives columns from get_terminal_width like `st list` (Highlander). Committed + guard test + CHANGELOG [2.15.1 in progress]; matts: no release. NOT pushed (hv gate). Global `intent` symlinks this repo so the fix is live now. Follow-up audit chore `4eafb82`: removed 2 dead `get_terminal_width` calls (ext/plugin list). Prior: v2.15.0 SHIPPED (ST0052); 2 wrap commits (425fa59, 01f0875) still unpushed -- hv gate."
+focus: "2.15.1 patch line READY to cut (all pushed both remotes): wp-list width `d2abfc7`, intent_todo enumeration Highlander `4973a30`, confirm() hardening `06b386a`, dead-code `4eafb82`. 3/4 vc follow-ups closed (upgrade false-no-op CONFIRMED not-a-bug; AT-traceability deferred -- needs a framework convention). ST0053 content pack STOOD UP (awaiting hv D1-D3 ratification). Tracking docs leaned. AWAITING hv: (1) cut 2.15.1 via `scripts/release v2.15.1`; (2) ratify ST0053 scope (D1 lang code / D2 prose base pack / D3 critic reuse)."
 claims: []
 ---
 
 # Control Claude (cc)
 
 ## DOING
+
+**2026-07-07 -- 2.15.1 patch line prepped + ST0053 stood up + docs leaned.** hv asked for four things; worked in dependency order. (1) Pushed the earlier cleanup. (2) vc v2.14.1 follow-ups: `intent todo` enumeration Highlander (`4973a30` -- one `list_bucket_dirs`/`list_done_dirs` + `done_is_member` feed both md+json; output byte-identical old-vs-new; 18/18); `scripts/release confirm()` hardening (`06b386a` -- `/dev/tty` + CR/whitespace tolerance); CONFIRMED the `intent upgrade` false-no-op is NOT a bug (`detect_project_version` reads project config, `get_intent_version` reads the tool VERSION -- distinct sources; the manual bump was release sequencing). AT-name traceability DEFERRED (needs a framework convention -- tag `@test` with its `AT-id` / bake into `intent at`; hv to ratify). (3) 2.15.1 READY -- all fixes committed + pushed both remotes, CHANGELOG `[2.15.1] - in progress`; hv cuts via `scripts/release v2.15.1` (cc can't: the pre-flight runs the whole bats suite). (4) ST0053 content pack STOOD UP (info+design scope framing; the reuse-not-copy Highlander decision + D1-D3 open for hv; no WPs until ratified). Tracking docs leaned (`d1bc7f6`). **AWAITING hv: cut 2.15.1 + ratify ST0053 D1-D3.**
+
+--- shipped detail below (archivable) ---
 
 **Post-ship fix (2026-07-04, `d2abfc7`): `intent wp list` column width (matts-flagged Highlander).** The WP table hardcoded `%-30s` on Title, truncating every title regardless of terminal width (matts hit it as `intent wp list 270` in the control/NLP project -- global `intent` symlinks this repo, so the same `bin/intent_wp` served it). Fixed to derive columns from `get_terminal_width` (bin/intent_helpers) and flex Title to fill the terminal, mirroring `intent st list` (ST0051 destination-based width: stdout=terminal, files=`dft_width`). Guard test `wp_commands.bats` "sizes to terminal width (not a hardcoded 30)" (wide shows full 44-char title, narrow truncates) -- 30/30 green. CHANGELOG under `[2.15.1] - in progress`. matts: no release; committed, NOT pushed (hv gate). No ST/WP (a bug, per matts). **Follow-up audit (matts: "any other examples?"):** swept every stdout table renderer -- no other truncating-middle-column bug (all other free-text columns are last-column/free; `st list` is the only other middle-text table and it flexes correctly). Found + removed two DEAD `get_terminal_width` calls -- `ext list` + `plugin list` computed width and never used it (no data loss; free last column). `chore` `4eafb82`; ext_commands + plugin_commands suites green. No CHANGELOG (zero behaviour change). NOT pushed.
 
