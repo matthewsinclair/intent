@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: bf1f140b-ef3b-410c-bf6c-da5a3ff299de
-heartbeat_at: 2026-07-08T00:10Z
+heartbeat_at: 2026-07-08T00:40Z
 status: active
-focus: "ST0053 (content/prose pack) -> 2.16.0: WP01-05 DONE + gate-closed; WP06 dogfood + release docs DONE, WP06 stays WIP pending hv. IN-PR-* prose base (4 rules) + IN-CO-* content pack (6 rules); critic-author->critic-prose (parameterised by declared language); intent lang init content; /in-content-essentials + content->critic-prose dispatch. index 64; all affected suites 0 fail; self-dogfood clean. CHANGELOG [2.16.0]-in progress + history + release notes drafted. AWAITING hv: AC-06.1 (real-target dogfood + sign-off) + AC-00.1 (ST accept), then cut 2.16.0. Commits 8e26340,6cf2b36,85e7c71,28c675e,2e97ad4,45aeb1d (unpushed until I push now)."
+focus: "ST0053 CLOSED (15/15 gate PASS, -> COMPLETED). Content/prose pack COMPLETE: IN-PR-* base (4) + IN-CO-* content (6); critic-author->critic-prose (parameterised); intent lang init content; /in-content-essentials + dispatch. docs/blog dogfood run -> findings applied (description+canonical on 7 posts, seamless reworded); overall dropped from IN-PR-STYLE-001 (v2) per hv. Also fixed a latent intent_todo fixture UTC bug (`ca13323`). index 64; all suites green. 2.16.0 READY TO CUT: hv runs `scripts/release --minor`; then cc does the post-tag config wrap (intent_version -> 2.16.0). CHANGELOG [2.16.0]-in progress + history + release notes done."
 claims: []
 ---
 
