@@ -66,9 +66,20 @@ confirm() {
     log_info "$prompt -- (auto-confirmed via --no-confirm)"
     return 0
   fi
-  printf '%s [y/N] ' "$prompt"
-  local reply
-  IFS= read -r reply
+  # Read the confirmation from the controlling terminal, not stdin, so the
+  # prompt still works when stdin/stdout are piped or redirected (eg a tee'd
+  # release run, or a wrapper feeding the script on stdin). No terminal and no
+  # --no-confirm -> abort; never proceed on an unread/EOF reply.
+  if [ ! -r /dev/tty ]; then
+    log_warn "$prompt -- no terminal to read confirmation; re-run with --no-confirm to proceed non-interactively"
+    return 1
+  fi
+  printf '%s [y/N] ' "$prompt" > /dev/tty
+  local reply=""
+  IFS= read -r reply < /dev/tty
+  # Tolerate stray input: a trailing CR (CRLF terminals) or surrounding
+  # whitespace must not turn a clear "y" into a false abort of the push.
+  reply="${reply//[$'\t\r\n ']/}"
   case "$reply" in
     [yY]|[yY][eE][sS]) return 0 ;;
     *) return 1 ;;
