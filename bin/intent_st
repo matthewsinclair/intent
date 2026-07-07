@@ -834,98 +834,13 @@ TEMPLATE
       error "Steel threads directory not found"
     fi
     
-    # Determine table width. Explicit --width wins; otherwise this is a direct
-    # `list` to stdout (the `sync` case re-invokes `list` WITH --width), so take
-    # the live terminal width. File-output width comes from the `sync` case's
-    # get_default_width, passed in here as --width (ST0051).
-    if [ "$WIDTH" -gt 0 ]; then
-      TABLE_WIDTH=$WIDTH
-    else
-      TABLE_WIDTH=$(get_terminal_width)
-    fi
-    
-    # Calculate column widths (same as original)
-    MIN_ID_WIDTH=10
-    MIN_STATUS_WIDTH=12
-    MIN_DATE_WIDTH=10
-    MIN_TITLE_WIDTH=20
-    
-    FIXED_MIN_WIDTH=$((MIN_ID_WIDTH + MIN_STATUS_WIDTH + MIN_DATE_WIDTH + MIN_DATE_WIDTH))
-    SEPARATORS_WIDTH=13
-    AVAILABLE_WIDTH=$((TABLE_WIDTH - SEPARATORS_WIDTH))
-    
-    if [ $AVAILABLE_WIDTH -lt $((FIXED_MIN_WIDTH + MIN_TITLE_WIDTH)) ]; then
-      ID_WIDTH=$MIN_ID_WIDTH
-      STATUS_WIDTH=$MIN_STATUS_WIDTH
-      DATE_WIDTH=$MIN_DATE_WIDTH
-      TITLE_WIDTH=$MIN_TITLE_WIDTH
-    else
-      if [ $AVAILABLE_WIDTH -le 100 ]; then
-        ID_WIDTH=$MIN_ID_WIDTH
-        STATUS_WIDTH=$MIN_STATUS_WIDTH
-        DATE_WIDTH=$MIN_DATE_WIDTH
-        
-        MAX_TITLE_PCT=50
-        MAX_TITLE_WIDTH=$((AVAILABLE_WIDTH * MAX_TITLE_PCT / 100))
-        TITLE_WIDTH=$((AVAILABLE_WIDTH - MIN_ID_WIDTH - MIN_STATUS_WIDTH - MIN_DATE_WIDTH - MIN_DATE_WIDTH))
-        
-        [ $TITLE_WIDTH -gt $MAX_TITLE_WIDTH ] && TITLE_WIDTH=$MAX_TITLE_WIDTH
-        
-        REMAINING=$((AVAILABLE_WIDTH - ID_WIDTH - STATUS_WIDTH - DATE_WIDTH - DATE_WIDTH - TITLE_WIDTH))
-        if [ $REMAINING -gt 0 ]; then
-          STATUS_WIDTH=$((STATUS_WIDTH + (REMAINING * 4 / 10)))
-          DATE_WIDTH=$((DATE_WIDTH + (REMAINING * 3 / 10)))
-          ID_WIDTH=$((ID_WIDTH + (REMAINING * 3 / 10)))
-        fi
-      else
-        ID_WIDTH=$((AVAILABLE_WIDTH * 10 / 100))
-        STATUS_WIDTH=$((AVAILABLE_WIDTH * 15 / 100))
-        DATE_WIDTH=$((AVAILABLE_WIDTH * 10 / 100))
-        TITLE_WIDTH=$((AVAILABLE_WIDTH * 55 / 100))
+    # Rows are collected below into st_data, then rendered through the shared
+    # content-fit renderer (render_table, bin/intent_helpers) -- the same one
+    # `intent wp list` uses, so the two tables cannot drift apart. Column widths
+    # are a function of the DATA, not the terminal, which is what makes
+    # `st list` and `st sync` byte-identical. `--width` is accepted for
+    # back-compat but no longer sizes the table.
 
-        [ $ID_WIDTH -lt $MIN_ID_WIDTH ] && ID_WIDTH=$MIN_ID_WIDTH
-        [ $STATUS_WIDTH -lt $MIN_STATUS_WIDTH ] && STATUS_WIDTH=$MIN_STATUS_WIDTH
-        [ $DATE_WIDTH -lt $MIN_DATE_WIDTH ] && DATE_WIDTH=$MIN_DATE_WIDTH
-        [ $TITLE_WIDTH -lt $MIN_TITLE_WIDTH ] && TITLE_WIDTH=$MIN_TITLE_WIDTH
-        
-        TOTAL=$((ID_WIDTH + STATUS_WIDTH + DATE_WIDTH + DATE_WIDTH + TITLE_WIDTH))
-        if [ $TOTAL -gt $AVAILABLE_WIDTH ]; then
-          TITLE_WIDTH=$((TITLE_WIDTH - (TOTAL - AVAILABLE_WIDTH)))
-        fi
-      fi
-    fi
-    
-    # Function to truncate string with ellipsis if too long
-    truncate_string() {
-      local string="$1"
-      local width=$2
-      
-      if [ -z "$string" ]; then
-        echo ""
-        return
-      fi
-      
-      if [ ${#string} -gt $width ]; then
-        if [ $width -le 5 ]; then
-          echo "${string:0:$width}"
-        else
-          echo "${string:0:$((width-3))}..."
-        fi
-      else
-        echo "$string"
-      fi
-    }
-    
-    # Display header
-    printf "%-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s\n" \
-      "ID" "Slug" "Status" "Created" "Completed"
-    printf "%-${ID_WIDTH}s-|-%-${TITLE_WIDTH}s-|-%-${STATUS_WIDTH}s-|-%-${DATE_WIDTH}s-|-%-${DATE_WIDTH}s\n" \
-      "$(printf '%0.s-' $(seq 1 $ID_WIDTH))" \
-      "$(printf '%0.s-' $(seq 1 $TITLE_WIDTH))" \
-      "$(printf '%0.s-' $(seq 1 $STATUS_WIDTH))" \
-      "$(printf '%0.s-' $(seq 1 $DATE_WIDTH))" \
-      "$(printf '%0.s-' $(seq 1 $DATE_WIDTH))"
-    
     # Collect data from steel threads
     declare -a st_data
     
@@ -1077,7 +992,9 @@ TEMPLATE
       done < <(find "$ST_DIR" -type f -name "ST[0-9][0-9][0-9][0-9].md" -print0)
     fi
 
-    # Sort and display based on status filter
+    # Build the ordered row list per the status filter, then render it through
+    # the shared content-fit table (the header always prints).
+    declare -a ordered_rows=()
     if [ "${STATUS_FILTER[0]}" = "all" ]; then
       # Group by status with predefined order
       declare -a status_order=("WIP" "In Progress" "TBC" "Not Started" "HOLD" "On Hold" "COMPLETED" "Completed" "CANCELLED" "Cancelled")
@@ -1099,21 +1016,7 @@ TEMPLATE
           unset IFS
           
           for line in "${sorted_group[@]}"; do
-            ID=$(echo "$line" | cut -d'|' -f1)
-            TITLE=$(echo "$line" | cut -d'|' -f2)
-            ST_STATUS=$(echo "$line" | cut -d'|' -f3)
-            CREATED=$(echo "$line" | cut -d'|' -f4)
-            COMPLETED=$(echo "$line" | cut -d'|' -f5)
-            
-            # Truncate values if needed
-            ID_TRUNC=$(truncate_string "$ID" $ID_WIDTH)
-            TITLE_TRUNC=$(truncate_string "$TITLE" $TITLE_WIDTH)
-            STATUS_TRUNC=$(truncate_string "$ST_STATUS" $STATUS_WIDTH)
-            CREATED_TRUNC=$(truncate_string "$CREATED" $DATE_WIDTH)
-            COMPLETED_TRUNC=$(truncate_string "$COMPLETED" $DATE_WIDTH)
-            
-            printf "%-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s\n" \
-              "$ID_TRUNC" "$TITLE_TRUNC" "$STATUS_TRUNC" "$CREATED_TRUNC" "$COMPLETED_TRUNC"
+            ordered_rows+=("$line")
           done
         fi
       done
@@ -1138,21 +1041,7 @@ TEMPLATE
           unset IFS
           
           for line in "${sorted_group[@]}"; do
-            ID=$(echo "$line" | cut -d'|' -f1)
-            TITLE=$(echo "$line" | cut -d'|' -f2)
-            ST_STATUS=$(echo "$line" | cut -d'|' -f3)
-            CREATED=$(echo "$line" | cut -d'|' -f4)
-            COMPLETED=$(echo "$line" | cut -d'|' -f5)
-            
-            # Truncate values if needed
-            ID_TRUNC=$(truncate_string "$ID" $ID_WIDTH)
-            TITLE_TRUNC=$(truncate_string "$TITLE" $TITLE_WIDTH)
-            STATUS_TRUNC=$(truncate_string "$ST_STATUS" $STATUS_WIDTH)
-            CREATED_TRUNC=$(truncate_string "$CREATED" $DATE_WIDTH)
-            COMPLETED_TRUNC=$(truncate_string "$COMPLETED" $DATE_WIDTH)
-            
-            printf "%-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s\n" \
-              "$ID_TRUNC" "$TITLE_TRUNC" "$STATUS_TRUNC" "$CREATED_TRUNC" "$COMPLETED_TRUNC"
+            ordered_rows+=("$line")
           done
         fi
       done
@@ -1163,22 +1052,17 @@ TEMPLATE
       
       # Process and display rows
       for line in "${sorted_data[@]}"; do
-        ID=$(echo "$line" | cut -d'|' -f1)
-        TITLE=$(echo "$line" | cut -d'|' -f2)
-        ST_STATUS=$(echo "$line" | cut -d'|' -f3)
-        CREATED=$(echo "$line" | cut -d'|' -f4)
-        COMPLETED=$(echo "$line" | cut -d'|' -f5)
-        
-        # Truncate values if needed
-        ID_TRUNC=$(truncate_string "$ID" $ID_WIDTH)
-        TITLE_TRUNC=$(truncate_string "$TITLE" $TITLE_WIDTH)
-        STATUS_TRUNC=$(truncate_string "$ST_STATUS" $STATUS_WIDTH)
-        CREATED_TRUNC=$(truncate_string "$CREATED" $DATE_WIDTH)
-        COMPLETED_TRUNC=$(truncate_string "$COMPLETED" $DATE_WIDTH)
-        
-        printf "%-${ID_WIDTH}s | %-${TITLE_WIDTH}s | %-${STATUS_WIDTH}s | %-${DATE_WIDTH}s | %-${DATE_WIDTH}s\n" \
-          "$ID_TRUNC" "$TITLE_TRUNC" "$STATUS_TRUNC" "$CREATED_TRUNC" "$COMPLETED_TRUNC"
+        ordered_rows+=("$line")
       done
+    fi
+
+    # Render the collected rows through the shared content-fit table renderer
+    # (Highlander -- the same renderer `intent wp list` uses). The header always
+    # prints, even when there are no rows.
+    if [ ${#ordered_rows[@]} -gt 0 ]; then
+      printf '%s\n' "${ordered_rows[@]}" | render_table "ID|Slug|Status|Created|Completed"
+    else
+      render_table "ID|Slug|Status|Created|Completed" </dev/null
     fi
     ;;
     
@@ -1286,12 +1170,11 @@ TEMPLATE
   "sync")
     # Parse options
     WRITE_MODE=0
-    WIDTH=$(get_default_width)
-    
+
     while [ $# -gt 0 ]; do
       case "$1" in
         --write) WRITE_MODE=1; shift ;;
-        --width) shift; WIDTH="$1"; shift ;;
+        --width) shift; shift ;;   # inert: the table is content-fit, so sync just composes `list`
         *) error "Unknown option: $1" ;;
       esac
     done
@@ -1312,7 +1195,7 @@ TEMPLATE
       # Get list output silently
       # Use the actual script path for recursive calls
       SCRIPT_PATH="${BASH_SOURCE[0]}"
-      "$SCRIPT_PATH" list --width $WIDTH > "$LIST_OUTPUT" 2>/dev/null
+      "$SCRIPT_PATH" list > "$LIST_OUTPUT" 2>/dev/null
       
       # Extract everything before the markers
       sed -n '1,/<!-- BEGIN: STEEL_THREAD_INDEX -->/p' "$INDEX_FILE" > "$TMP_FILE"
@@ -1331,7 +1214,7 @@ TEMPLATE
     else
       # For display, just run the list command
       SCRIPT_PATH="${BASH_SOURCE[0]}"
-      "$SCRIPT_PATH" list --width "$WIDTH"
+      "$SCRIPT_PATH" list
     fi
     ;;
     

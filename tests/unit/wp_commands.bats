@@ -516,7 +516,7 @@ EOF
   assert_output_contains "Heading Only Title"
 }
 
-@test "wp list title column sizes to terminal width (not a hardcoded 30)" {
+@test "wp list is content-fit and width-independent (shared render_table)" {
   project_dir=$(create_test_project "WP List Width Test")
   cd "$project_dir"
 
@@ -538,18 +538,20 @@ status: Done
 # WP-01: A deliberately long work package title here
 EOF
 
-  # Wide terminal: the Title column flexes wide enough for the full 44-char
-  # title. The pre-fix code truncated every title at 30 columns regardless of
-  # terminal width, so the full string proves the width is not a constant.
+  # Content-fit: the Title column sizes to the data, so the full 44-char title
+  # always shows in full and is never truncated (the pre-fix code capped it at
+  # 30). The shared render_table sizes columns to the data, not the terminal.
   COLUMNS=200 run run_intent wp list ST0001
   assert_success
   assert_output_contains "A deliberately long work package title here"
+  wide_output="$output"
 
-  # Narrow terminal: the same title truncates, proving the column is
-  # width-driven in both directions.
+  # Width-independent: a narrow terminal produces byte-identical output (the
+  # renderer ignores terminal width entirely), so nothing truncates.
   COLUMNS=60 run run_intent wp list ST0001
   assert_success
-  assert_output_contains "..."
+  assert_output_contains "A deliberately long work package title here"
+  [ "$output" = "$wide_output" ]
 }
 
 # ====================================================================

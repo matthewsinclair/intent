@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **`intent wp list` now sizes its columns to the terminal width.** The work-package table hard-coded a 30-column `Title` cap, truncating every title on every terminal regardless of width (eg `Interpretation schema: verb...`). It now derives column widths from the live terminal width via `get_terminal_width` -- the same Highlander width source `intent st list` already uses -- so `Title` flexes to fill the available space; narrow terminals still clamp to a minimum. Stdout only; generated files are unaffected (they size to `dft_width`).
+- **`intent st list`, `intent st sync`, and `intent wp list` now share one content-fit table renderer.** Each sized its table by a rule of its own: `wp list` hard-capped `Title` at 30 columns (truncating every title, eg `Interpretation schema: verb...`); `st list` sized columns as a _percentage of the terminal width_ (stretching one short row across the whole screen -- `Slug` padded to ~83 columns for 38 characters); and `st sync` re-invoked `list` with a different width, so `st list` and `st sync` rendered differently for identical data. They now render through a single `render_table` (`bin/intent_helpers`) that sizes each column to its widest cell. The layout is a function of the data, not the terminal, so it stays compact, never truncates, and is byte-identical across `st list` / `st sync` and across terminal widths. `--width` is accepted but inert.
 
 ## [2.15.0] - 2026-07-03
 

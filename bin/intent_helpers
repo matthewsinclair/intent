@@ -110,6 +110,79 @@ get_default_width() {
 }
 export -f get_default_width
 
+# Render a content-fit table to stdout. $1 is the pipe-delimited header row
+# (eg "ID|Slug|Status"); data rows are read from stdin, one per line, pipe-
+# delimited with the same column count. Each column sizes to its widest cell
+# (the header label or any data cell), so the table is a function of the DATA,
+# not the terminal -- deterministic regardless of destination. THE list-table
+# renderer (Highlander): `intent st list` and `intent wp list` both render
+# through this, so their column layout cannot drift apart.
+render_table() {
+  local header_line="$1"
+  local -a headers=() rows=() widths=() cells=()
+  local line i clen ncols dashes fmt seprow
+
+  # `IFS='|' read` scopes IFS to the read command only -- no global save/restore,
+  # so the caller's IFS (which may be unset) can't leak in and break the
+  # word-splitting-free logic below.
+  IFS='|' read -r -a headers <<< "$header_line"
+  ncols=${#headers[@]}
+
+  # Slurp the data rows from stdin.
+  while IFS= read -r line; do
+    rows+=("$line")
+  done
+
+  # Content-fit widths: seed from the header labels, expand to the widest cell.
+  i=0
+  while [ "$i" -lt "$ncols" ]; do
+    widths[i]=${#headers[i]}
+    i=$((i + 1))
+  done
+  if [ ${#rows[@]} -gt 0 ]; then
+    for line in "${rows[@]}"; do
+      IFS='|' read -r -a cells <<< "$line"
+      i=0
+      while [ "$i" -lt "$ncols" ]; do
+        clen=${#cells[i]}
+        if [ "$clen" -gt "${widths[i]}" ]; then widths[i]=$clen; fi
+        i=$((i + 1))
+      done
+    done
+  fi
+
+  # Build the row format ("%-w1s | %-w2s | ...") and the separator ("---|---").
+  # Dashes come from `printf -v` + substitution, not `seq` word-splitting, so
+  # they are independent of the caller's IFS.
+  fmt=""
+  seprow=""
+  i=0
+  while [ "$i" -lt "$ncols" ]; do
+    printf -v dashes '%*s' "${widths[i]}" ''
+    dashes="${dashes// /-}"
+    if [ "$i" -eq 0 ]; then
+      fmt="%-${widths[i]}s"
+      seprow="$dashes"
+    else
+      fmt="$fmt | %-${widths[i]}s"
+      seprow="$seprow-|-$dashes"
+    fi
+    i=$((i + 1))
+  done
+  fmt="$fmt\n"
+
+  # Header, separator, then the data rows -- all through the one format.
+  printf "$fmt" "${headers[@]}"
+  printf '%s\n' "$seprow"
+  if [ ${#rows[@]} -gt 0 ]; then
+    for line in "${rows[@]}"; do
+      IFS='|' read -r -a cells <<< "$line"
+      printf "$fmt" "${cells[@]}"
+    done
+  fi
+}
+export -f render_table
+
 # Find project root by looking for intent/stp markers. THE project-root
 # resolver (Highlander, ST0042/WP-05) -- walks up from the caller's cwd.
 find_project_root() {
