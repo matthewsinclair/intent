@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: bf1f140b-ef3b-410c-bf6c-da5a3ff299de
-heartbeat_at: 2026-07-08T00:40Z
+heartbeat_at: 2026-07-08T00:50Z
 status: active
-focus: "ST0053 CLOSED (15/15 gate PASS, -> COMPLETED). Content/prose pack COMPLETE: IN-PR-* base (4) + IN-CO-* content (6); critic-author->critic-prose (parameterised); intent lang init content; /in-content-essentials + dispatch. docs/blog dogfood run -> findings applied (description+canonical on 7 posts, seamless reworded); overall dropped from IN-PR-STYLE-001 (v2) per hv. Also fixed a latent intent_todo fixture UTC bug (`ca13323`). index 64; all suites green. 2.16.0 READY TO CUT: hv runs `scripts/release --minor`; then cc does the post-tag config wrap (intent_version -> 2.16.0). CHANGELOG [2.16.0]-in progress + history + release notes done."
+focus: "v2.16.0 SHIPPED (tag `6a6c7d8` both remotes + GitHub release; post-tag wrap `dc6deca` config -> 2.16.0; doctor green, tree clean). ST0053 content/prose pack: IN-PR-* base (4) + IN-CO-* content (6); critic-prose (parameterised); intent lang init content; /in-content-essentials + dispatch. docs/blog dogfooded -> description+canonical on 7 posts, seamless reworded, overall dropped from IN-PR-STYLE-001 (v2). NOTE: project-wide restart docs (intent/restart.md, .claude/restart.md, wip.md) are 2 releases stale (still say v2.15.0) -- globalfold/vc job or hv to ask. Minor open follow-up: README lists post 0007 whose file is missing (dead link)."
 claims: []
 ---
 
