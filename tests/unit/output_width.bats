@@ -1,8 +1,10 @@
 #!/usr/bin/env bats
-# ST0051: generated FILES take their width from config `dft_width` (default
-# 120); STDOUT takes the live terminal width; an explicit `--width N` overrides
-# both. The bug this pins: `intent st sync --write` hardcoded 80 in bin/intent_st,
-# so the steel_threads.md slug column truncated (`add-modules-properly-t...`).
+# Content-fit table widths (supersedes ST0051's destination-based width).
+# `st list`, `st sync`, and `wp list` size each column to its widest cell via
+# the shared render_table (bin/intent_helpers), so the table width is a
+# function of the DATA -- independent of the terminal, of config `dft_width`,
+# and of `--width` (now inert). No slug is ever truncated. `get_default_width` /
+# `dft_width` remain defined for any other generated content.
 
 load "../lib/test_helper.bash"
 
@@ -11,11 +13,14 @@ default_width_in() {
   /bin/bash -c "cd '$1' && source '$INTENT_HOME/bin/intent_helpers' && get_default_width"
 }
 
-# Longest content line inside the steel_threads.md index block. The dash
-# separator row is full-width with no trailing-space ambiguity, so max line
-# length == table width.
+# Longest content line inside the steel_threads.md index block.
 index_width() {
   awk '/BEGIN: STEEL_THREAD_INDEX/{f=1;next} /END: STEEL_THREAD_INDEX/{f=0} f{if(length>m)m=length} END{print m+0}' "$1"
+}
+
+# Longest line of a captured stdout blob.
+stdout_width() {
+  printf '%s\n' "$1" | awk '{if(length>m)m=length} END{print m+0}'
 }
 
 @test "get_default_width reads dft_width from config" {
@@ -34,40 +39,62 @@ index_width() {
   assert_output "120"
 }
 
-@test "st sync --write sizes the file from dft_width (120), not the terminal" {
+@test "st sync --write index is content-fit (independent of terminal width)" {
   local d
   d=$(create_test_project "Width File")
   cd "$d"
   run_intent st new "a deliberately long steel thread title whose slug would truncate at eighty columns"
-  export COLUMNS=40
-  run run_intent st sync --write
+
+  COLUMNS=40 run run_intent st sync --write
   assert_success
-  local w
-  w=$(index_width intent/st/steel_threads.md)
-  [ "$w" -ge 115 ] || fail "index width $w; expected ~120 (bug hardcoded 80; terminal was 40)"
+  local narrow
+  narrow=$(index_width intent/st/steel_threads.md)
+
+  COLUMNS=200 run run_intent st sync --write
+  assert_success
+  local wide
+  wide=$(index_width intent/st/steel_threads.md)
+
+  # Content-fit: the file sizes to the data, so its width is identical at 40 and
+  # 200 columns (the old bug padded to a fixed width and truncated the slug).
+  [ "$narrow" -eq "$wide" ] || fail "index width varies with terminal: $narrow (40) vs $wide (200)"
 }
 
-@test "st list renders to stdout at the terminal width" {
+@test "st list stdout is content-fit and never truncates the slug" {
   local d
   d=$(create_test_project "Width Stdout")
   cd "$d"
   run_intent st new "another sufficiently long steel thread title for measuring stdout width"
-  export COLUMNS=200
-  run run_intent st list --status all
+
+  COLUMNS=40 run run_intent st list --status all
   assert_success
-  local w
-  w=$(printf '%s\n' "$output" | awk '{if(length>m)m=length} END{print m+0}')
-  [ "$w" -ge 150 ] || fail "stdout width $w; expected ~200 (terminal), not the 120 file default"
+  local narrow
+  narrow=$(stdout_width "$output")
+  # The full slug is present -- content-fit never truncates.
+  printf '%s\n' "$output" | grep -q 'another-sufficiently-long' || fail "slug truncated at 40 cols"
+
+  COLUMNS=200 run run_intent st list --status all
+  assert_success
+  local wide
+  wide=$(stdout_width "$output")
+
+  # Width is a function of the data, so it does not change with the terminal.
+  [ "$narrow" -eq "$wide" ] || fail "stdout width varies with terminal: $narrow (40) vs $wide (200)"
 }
 
-@test "explicit --width overrides both the file and stdout paths" {
+@test "explicit --width is inert (content-fit ignores it)" {
   local d
   d=$(create_test_project "Width Override")
   cd "$d"
   run_intent st new "yet another long steel thread title to exercise the width override path"
-  run run_intent st sync --write --width 150
+
+  run run_intent st list --status all
   assert_success
-  local w
-  w=$(index_width intent/st/steel_threads.md)
-  [ "$w" -ge 140 ] || fail "index width $w; expected ~150 (explicit override)"
+  local plain="$output"
+
+  run run_intent st list --status all --width 150
+  assert_success
+
+  # --width no longer sizes the table; the output is identical with and without.
+  [ "$output" = "$plain" ] || fail "--width changed the output; content-fit should ignore it"
 }
