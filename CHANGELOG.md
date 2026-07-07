@@ -20,6 +20,7 @@ Minor release adding the **`content` (web-content) project-type pack** (ST0053) 
 
 - **`critic-author` is renamed to `critic-prose` (ST0053).** One prose critic now serves every prose discipline, parameterised by the declared language: it loads the `IN-PR-*` base plus whichever of `author` / `content` the project declares. The two-form detrope is preserved, re-anchored to the base's `IN-PR-STYLE-004` mechanical pass. Projects on 2.15.0 that dispatched `critic-author` should use `critic-prose`.
 - **The `author` pack refactored onto the prose base (ST0053).** The four shared mechanical rules moved from `IN-AU-STYLE-*` into `IN-PR-STYLE-*` (with migration aliases); the `author` pack now owns only its discipline-specific rules -- front-matter / objectives plus the four craft rules. No behaviour change for an author project: the same rules apply, sourced from the base plus the discipline pack.
+- **`IN-PR-STYLE-001` no longer bans `overall` (ST0053).** The `docs/blog` dogfood confirmed that `overall` hits are the legitimate adjective sense ("overall progress"), matching a 2026-04 autopsy of Intent's own corpus. The banned filler is now `absolutely` only; `overall` is explicitly documented as not-a-tell. Rule content version 1 -> 2.
 
 ## [2.15.1] - 2026-07-07
 

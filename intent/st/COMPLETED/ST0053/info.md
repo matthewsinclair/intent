@@ -1,10 +1,10 @@
 ---
 verblock: "07 Jul 2026:v0.1: matts - Initial version"
 intent_version: 2.15.0
-status: WIP
+status: Completed
 slug: content-web-content-project-type-pack
 created: 20260707
-completed:
+completed: 2026-07-07T23:34:26Z
 ---
 
 # ST0053: Content (web-content) project-type pack

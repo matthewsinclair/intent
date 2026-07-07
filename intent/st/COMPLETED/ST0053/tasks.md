@@ -7,7 +7,7 @@
 - [x] WP03 -- critic-prose (rename critic-author)
 - [x] WP04 -- content lang canon
 - [x] WP05 -- in-content-essentials skill + dispatch
-- [ ] WP06 -- dogfood + docs + close
+- [x] WP06 -- dogfood + docs + close
 
 ## Task Notes
 
