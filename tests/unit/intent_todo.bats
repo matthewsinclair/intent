@@ -46,7 +46,10 @@ setup_todo_project() {
   mk_wp "intent/st/ST0001" "01" "Done" "first wp"
   mk_wp "intent/st/ST0001" "02" "WIP" "second wp"
   mk_st "intent/st/NOT-STARTED" "ST0002" "Not Started" "queued thread"
-  mk_st "intent/st/COMPLETED" "ST0003" "Completed" "shipped today" "$(date +%Y%m%d)"
+  # UTC to match the watermark: read_done_watermark + flush both use `date -u`.
+  # A local `date +%Y%m%d` stamps tomorrow-in-UTC during the window where local
+  # (eg UTC+1) has ticked over the day but UTC has not, so flush cannot clear it.
+  mk_st "intent/st/COMPLETED" "ST0003" "Completed" "shipped today" "$(date -u +%Y%m%d)"
   mk_st "intent/st/COMPLETED" "ST0004" "Completed" "shipped long ago" "20200101"
   mk_st "intent/st" "ST0005" "WIP" "held thread" "" "TRUE"
 }
