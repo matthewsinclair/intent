@@ -1,11 +1,21 @@
 ---
-verblock: "03 Jul 2026:v0.10: matts - v2.15.0 (ST0052 author project-type pack) shipped"
-intent_version: 2.15.0
+verblock: "08 Jul 2026:v0.12: cc - v2.16.0 (ST0053 content pack + IN-PR-* prose base) shipped"
+intent_version: 2.16.0
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-07-08 — v2.16.0 (ST0053 content pack + IN-PR-* prose base)
+
+- **ST0053 Completed** — the `content` (web-content) pack and the `IN-PR-*` shared prose base it stands on. Half refactor, half greenfield. WP01: the mechanical prose-hygiene rules (banned filler, vanity metrics, heading hygiene, mechanical trope pass) lifted out of `author` into a new `IN-PR-*` `prose` base (Highlander — one copy, not a per-discipline fork), with migration aliases; `author` refactored down to its discipline rules (front-matter/objectives + four craft); `PR` code threaded the five lang-code sites. WP02: six `IN-CO-*` web rules — `style` (mechanical) page-meta/alt-text/link-text, `craft` (judgment) scannability/CTA/reading-level; `CO` code threaded; content re-owns none of the base (tested). WP03: `critic-author` → `critic-prose`, parameterised by declared language — loads the base plus whichever of author/content the project declares (from config `languages`); two-form detrope re-anchored to `IN-PR-STYLE-004`. WP04: `intent lang init content` canon (allowlist-free — `templates/content/` sufficed). WP05: `/in-content-essentials` skill + `content → critic-prose` dispatch in `/in-review` + `/in-session` (the D7 exclusion generalised author-only → prose-only). WP06: dogfood over `docs/blog/*.md` — found every post missing description/canonical (fixed; canonical = the GitHub repo location) + one trope tell ("seamless integration", reworded); the run confirmed `overall` is the legitimate adjective sense, so it was dropped from `IN-PR-STYLE-001` (v1→v2). Six WPs, 15/15 through the gate. Detail: `intent/st/COMPLETED/ST0053/`; narrative `intent/history/v2.16.0.md`.
+- Tag `v2.16.0` (`6a6c7d8`), post-tag config wrap `dc6deca`, both remotes + GitHub release. Ships as minor (new project-type surface + shared base pack; opt-in, no migration).
+- Also fixed a latent `intent_todo` test-fixture bug (`ca13323`): the fixture stamped `completed:` in local time while the flush watermark is UTC, failing the DONE-empties-after-flush assertions in the ~1h window where local has crossed midnight but UTC has not.
+
+## 2026-07-07 — v2.15.1 (shared table renderer + quality)
+
+- **Patch.** One shared `render_table` (`bin/intent_helpers`) drives `intent st list` + `st sync` + `wp list`: it fills the terminal width (or an explicit `--width`) with content-fit as the floor, so `st list` and `st sync` are byte-identical and nothing truncates (was: `wp list` hard-capped Title at 30 cols; `st sync` used a fixed `dft_width` while `st list` used the terminal). Plus `intent todo` enumeration single-sourced (AC-01.8 Highlander), `scripts/release confirm()` hardened (`/dev/tty` + stray-input tolerance), dead `get_terminal_width` calls removed, CI apt hardening. Tag `v2.15.1` (`2cdb5b5`), wrap `0e7039d`, both remotes + GitHub release.
 
 ## 2026-07-03 — v2.15.0 (ST0052 author project-type pack)
 

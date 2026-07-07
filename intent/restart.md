@@ -1,27 +1,28 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-07-07)
+## Current state (2026-07-08)
 
-**v2.15.1 PENDING -- ready to cut.** A patch bundling the `intent wp list` terminal-width fix (user-facing) + internal quality work (`intent todo` enumeration Highlander, `scripts/release confirm()` hardening, dead-code cleanup). All committed + pushed both remotes; `CHANGELOG [2.15.1] - in progress` written. hv cuts it: `scripts/release v2.15.1` (full suite + confirm in the terminal). Commit list in `intent/wip.md`.
+**v2.16.0 SHIPPED (ST0053 -- the `content` pack + the `IN-PR-*` prose base).** Tag `v2.16.0` (`6a6c7d8`) both remotes + GitHub release; post-tag config wrap `dc6deca` (intent_version -> 2.16.0, doctor green). A minor -- new project-type surface + a shared base pack; opt-in, zero behaviour change until a project runs `intent lang init content`.
 
-**v2.15.0 is SHIPPED (ST0052 -- the author project-type pack).** Tag `v2.15.0` (release commit `33e5d57`) on both remotes + GitHub release; Intent self-upgraded 2.14.0 -> 2.15.0 (post-tag wrap `425fa59`, `intent doctor` green). A minor -- new project-type surface; opt-in, no migration. **ST0052**: the first non-code discipline on Intent's `languages` axis. A project declaring `languages: [author]` gets an authoring rule pack (nine `IN-AU-*` rules, `style` mechanical + `craft` judgment), `critic-author` (two-form detrope: mechanical by default off the single `in-detrope` catalogue, full `/in-detrope` as an on-instruction handoff), `intent lang init author` canon, and `/in-author-essentials` + `author -> critic-author` dispatch in `/in-review` + `/in-session` -- activated exactly the way a code language is (D1: reuse the axis). Six WPs, 21/21 through its own gate; the self-dogfood (manual mechanical tier) validated D3 (mechanical produces candidates, judgment confirms) + D4 (headless prose gate deferred -- Intent's own `--` style trips the dash-overuse trope). Detail: `intent/st/COMPLETED/ST0052/`; narrative `intent/history/v2.15.0.md`; notes `docs/releases/2.15.0/`.
+ST0053 is half refactor, half greenfield. The four mechanical prose-hygiene rules (banned filler, vanity metrics, heading hygiene, mechanical trope pass) were lifted out of `author` into a shared `IN-PR-*` prose base -- one copy, not a per-discipline fork -- and `author` refactored onto it (its four rules moved with migration aliases; `author` now owns only front-matter/objectives + its four craft rules). The `content` pack adds six `IN-CO-*` web rules in two tiers: `style` (mechanical) page-meta / alt-text / link-text; `craft` (judgment) scannability / primary-CTA / reading-level. `critic-author` was renamed to `critic-prose` and parameterised: it loads the base plus whichever of `author` / `content` the project declares (resolved from config `languages`). `intent lang init content` installs the canon; `/in-content-essentials` + `content -> critic-prose` dispatch wire it into `/in-session` and `/in-review`. Six WPs, 15/15 through the gate. Dogfooded on `docs/blog/*.md`: found every post missing description/canonical meta (fixed -- added, canonical = the GitHub repo location) + one trope tell ("seamless integration", reworded); the run also confirmed `overall` is the legitimate adjective sense, so it was dropped from `IN-PR-STYLE-001` (v2) per hv. Detail: `intent/st/COMPLETED/ST0053/`; narrative `intent/history/v2.16.0.md`; notes `docs/releases/2.16.0/`.
 
-**v2.14.0 (prior) SHIPPED (ST0050 + ST0051).** `intent todo` -- a flat DOING/TODO/DONE projection of `intent/st/**` that cannot drift; and a generated-file width fix (`dft_width`, default 120). Detail: `intent/st/COMPLETED/ST0050/` + `ST0051/`.
+**v2.15.1 (prior) SHIPPED.** Patch: one shared `render_table` drives `st list` + `st sync` + `wp list` (fills the terminal width, content-fit floor, `st list` == `st sync`); `intent todo` enumeration Highlander; `scripts/release confirm()` hardening; CI apt hardening. Tag `2cdb5b5`, wrap `0e7039d`.
 
-**v2.13.1 (prior) SHIPPED (ST0048 + ST0049).** Acceptance close-gate fail-by-default (`acceptance: exempt` the sole escape); retroactive release notes. Detail: `intent/st/COMPLETED/ST0048/` + `ST0049/`.
+**v2.15.0 (prior) SHIPPED (ST0052).** The `author` project-type pack. Detail: `intent/history/v2.15.0.md`.
 
 ## Open follow-ups (non-blocking)
 
-- **v2.14.1 (vc audit) -- 3 of 4 closed in the 2.15.1 line:** AC-01.8 enumeration Highlander DONE (`4973a30`); `scripts/release confirm()` DONE (`06b386a` -- `/dev/tty` + stray-input tolerance); `intent upgrade` false-no-op CONFIRMED NOT A BUG (`detect_project_version` reads project config, `get_intent_version` reads the tool `VERSION` -- distinct sources; the manual bump was release sequencing). AT-name traceability DEFERRED -- needs a framework-wide convention (tag `@test` with its `AT-id`, or bake into `intent at`), hv to ratify.
-- **v2.16.0:** ST0053 content (web-content) pack STOOD UP (scope framing only) -- reuse the shared prose surface, do NOT copy `IN-AU-*`; awaiting hv ratification of D1 (lang code) / D2 (prose base pack, load-bearing) / D3 (critic reuse). No WPs until ratified. Detail: `intent/st/NOT-STARTED/ST0053/`.
-- **Deferred:** the headless `intent critic author` gate (D4: path-based selection + a house-style suppression layer).
+- **AT-name traceability (v2.14.1 vc-audit deferral):** make `acceptance.md` ATs grep-able to bats `@test` names -- a framework-wide convention (tag each `@test` with its `AT-id`, or bake into `intent at`); hv to ratify, then apply uniformly.
+- **`scripts/release` v2 polish:** auto-stamp the config.json version bump (still a manual post-tag wrap).
+- **Deferred:** the headless `intent critic prose` gate (D4 -- path-based selection + a house-style suppression layer; the ST0053 dogfood re-confirmed the need).
+- Dead link: `docs/blog/README.md` lists a post `0007` whose file is missing.
 
 ## Where detail lives
 
 - `.claude/restart.md` -- next-session focus.
-- `intent/st/COMPLETED/ST0052/` -- closed thread docs (this release).
+- `intent/st/COMPLETED/ST0053/` -- closed thread docs (this release).
 - `intent/wip.md` -- current-state summary + backlog.
-- `intent/done.md` + `intent/history/v2.15.0.md` -- shipped-work ledger / narrative.
+- `intent/done.md` + `intent/history/v2.16.0.md` -- shipped-work ledger / narrative.
 
 ## Conventions (carry forward)
 
