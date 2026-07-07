@@ -30,9 +30,16 @@ jobs:
 
     - name: Install dependencies
       run: |
-        # Install jq
-        sudo apt-get update
-        sudo apt-get install -y jq
+        # Install jq. `apt-get update` can exit non-zero when an unrelated
+        # third-party repo on the GH runner image serves a bad signature (eg the
+        # Azure/MS apt repos periodically return "Clearsigned file isn't valid,
+        # got 'NOSPLIT'"); under `bash -e` that aborts the job before jq is ever
+        # installed. Tolerate it -- the Ubuntu main/universe repos, where jq
+        # lives, still refresh -- then verify jq is actually present (fail loud
+        # if not, rather than trusting the exit code).
+        sudo apt-get update || true
+        sudo apt-get install -y jq || true
+        jq --version
     
     - name: Make scripts executable
       run: |
