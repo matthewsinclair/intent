@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: bf1f140b-ef3b-410c-bf6c-da5a3ff299de
-heartbeat_at: 2026-07-07T22:20Z
+heartbeat_at: 2026-07-07T22:40Z
 status: active
-focus: "2.15.1 SHIPPED (tag `2cdb5b5` both remotes + GitHub release; post-tag wrap `0e7039d` config -> 2.15.1; doctor green). NEXT: cc builds ST0053 (web-content / prose pack) -> 2.16.0 (D5=(a): patch first done, pack second). Awaiting hv go-ahead on the WP plan."
+focus: "2.15.1 SHIPPED. Building ST0053 (content/prose pack) -> 2.16.0. WP01 DONE + gate-closed (`8e26340`, local/unpushed): IN-PR-* prose base extracted from author, author refactored onto it, PR code threaded 5 sites, index 58, 23 suites 0 fail. Renames critic-author->critic-prose ratified (D3). Now: WP02 content (CO) rule tiers. WP06 needs hv (dogfood target + release framing)."
 claims: []
 ---
 
