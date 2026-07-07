@@ -835,11 +835,10 @@ TEMPLATE
     fi
     
     # Rows are collected below into st_data, then rendered through the shared
-    # content-fit renderer (render_table, bin/intent_helpers) -- the same one
-    # `intent wp list` uses, so the two tables cannot drift apart. Column widths
-    # are a function of the DATA, not the terminal, which is what makes
-    # `st list` and `st sync` byte-identical. `--width` is accepted for
-    # back-compat but no longer sizes the table.
+    # render_table (bin/intent_helpers) -- the same one `intent wp list` uses,
+    # so the two tables cannot drift apart. The table fills the terminal width
+    # (or --width); `st sync` composes `list` and resolves the same width, so
+    # `st list` and `st sync` produce identical output.
 
     # Collect data from steel threads
     declare -a st_data
@@ -1056,13 +1055,15 @@ TEMPLATE
       done
     fi
 
-    # Render the collected rows through the shared content-fit table renderer
-    # (Highlander -- the same renderer `intent wp list` uses). The header always
-    # prints, even when there are no rows.
+    # Render through the shared table renderer (Highlander -- the same renderer
+    # `intent wp list` uses), filling the terminal width (or an explicit
+    # --width). `st sync` composes `list`, so it resolves the same width here and
+    # produces identical output.
+    if [ "$WIDTH" -gt 0 ]; then table_width=$WIDTH; else table_width=$(get_terminal_width); fi
     if [ ${#ordered_rows[@]} -gt 0 ]; then
-      printf '%s\n' "${ordered_rows[@]}" | render_table "ID|Slug|Status|Created|Completed"
+      printf '%s\n' "${ordered_rows[@]}" | render_table "ID|Slug|Status|Created|Completed" "$table_width"
     else
-      render_table "ID|Slug|Status|Created|Completed" </dev/null
+      render_table "ID|Slug|Status|Created|Completed" "$table_width" </dev/null
     fi
     ;;
     
@@ -1170,15 +1171,21 @@ TEMPLATE
   "sync")
     # Parse options
     WRITE_MODE=0
+    WIDTH=""
 
     while [ $# -gt 0 ]; do
       case "$1" in
         --write) WRITE_MODE=1; shift ;;
-        --width) shift; shift ;;   # inert: the table is content-fit, so sync just composes `list`
+        --width) shift; WIDTH="$1"; shift ;;
         *) error "Unknown option: $1" ;;
       esac
     done
-    
+
+    # sync composes `list`; forward an explicit --width so both honour it, and
+    # without it both fall through to the terminal width (identical output).
+    LIST_ARGS=""
+    if [ -n "$WIDTH" ]; then LIST_ARGS="--width $WIDTH"; fi
+
     # Paths
     ST_DIR="intent/st"
     INDEX_FILE="$ST_DIR/steel_threads.md"
@@ -1195,7 +1202,7 @@ TEMPLATE
       # Get list output silently
       # Use the actual script path for recursive calls
       SCRIPT_PATH="${BASH_SOURCE[0]}"
-      "$SCRIPT_PATH" list > "$LIST_OUTPUT" 2>/dev/null
+      "$SCRIPT_PATH" list $LIST_ARGS > "$LIST_OUTPUT" 2>/dev/null
       
       # Extract everything before the markers
       sed -n '1,/<!-- BEGIN: STEEL_THREAD_INDEX -->/p' "$INDEX_FILE" > "$TMP_FILE"
@@ -1214,7 +1221,7 @@ TEMPLATE
     else
       # For display, just run the list command
       SCRIPT_PATH="${BASH_SOURCE[0]}"
-      "$SCRIPT_PATH" list
+      "$SCRIPT_PATH" list $LIST_ARGS
     fi
     ;;
     

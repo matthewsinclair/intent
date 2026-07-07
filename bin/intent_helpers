@@ -115,15 +115,17 @@ get_default_width() {
 }
 export -f get_default_width
 
-# Render a content-fit table to stdout. $1 is the pipe-delimited header row
-# (eg "ID|Slug|Status"); data rows are read from stdin, one per line, pipe-
-# delimited with the same column count. Each column sizes to its widest cell
-# (the header label or any data cell), so the table is a function of the DATA,
-# not the terminal -- deterministic regardless of destination. THE list-table
-# renderer (Highlander): `intent st list` and `intent wp list` both render
-# through this, so their column layout cannot drift apart.
+# Render a table to stdout, filling a target width. $1 is the pipe-delimited
+# header row (eg "ID|Slug|Status"); data rows are read from stdin, one per line,
+# pipe-delimited with the same column count. $2 is the width to fill (the
+# terminal width): columns start content-fit (each sized to its widest cell) and
+# then grow to fill $2, so nothing is truncated and the table uses the full
+# width. $2 = 0 or absent renders content-fit only. THE list-table renderer
+# (Highlander): `intent st list` and `intent wp list` both render through this,
+# so their column layout cannot drift apart.
 render_table() {
   local header_line="$1"
+  local target_width="${2:-0}"   # fill this width (the terminal); 0 = content-fit only
   local -a headers=() rows=() widths=() cells=()
   local line i clen ncols dashes fmt seprow
 
@@ -154,6 +156,36 @@ render_table() {
         i=$((i + 1))
       done
     done
+  fi
+
+  # Expand columns to fill target_width (the terminal width) when the content-fit
+  # table is narrower -- so the table uses the full terminal like a normal CLI
+  # table, and `st list` / `st sync` / `wp list` all fill it identically. The
+  # slack is shared out in proportion to each column's content width (the text
+  # column, being widest, absorbs most); the remainder lands on the last column.
+  # Content-fit is the floor, so nothing is ever truncated.
+  if [ "$target_width" -gt 0 ] && [ "$ncols" -gt 0 ]; then
+    local sep_total content_total table_total slack distributed add
+    sep_total=$(( (ncols - 1) * 3 ))
+    content_total=0
+    i=0
+    while [ "$i" -lt "$ncols" ]; do content_total=$(( content_total + widths[i] )); i=$((i + 1)); done
+    table_total=$(( content_total + sep_total ))
+    if [ "$table_total" -lt "$target_width" ] && [ "$content_total" -gt 0 ]; then
+      slack=$(( target_width - table_total ))
+      distributed=0
+      i=0
+      while [ "$i" -lt "$ncols" ]; do
+        if [ "$i" -eq "$(( ncols - 1 ))" ]; then
+          add=$(( slack - distributed ))
+        else
+          add=$(( slack * widths[i] / content_total ))
+        fi
+        widths[i]=$(( widths[i] + add ))
+        distributed=$(( distributed + add ))
+        i=$((i + 1))
+      done
+    fi
   fi
 
   # Build the row format ("%-w1s | %-w2s | ...") and the separator ("---|---").

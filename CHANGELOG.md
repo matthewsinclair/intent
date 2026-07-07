@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **`intent st list`, `intent st sync`, and `intent wp list` now share one content-fit table renderer.** Each sized its table by a rule of its own: `wp list` hard-capped `Title` at 30 columns (truncating every title, eg `Interpretation schema: verb...`); `st list` sized columns as a _percentage of the terminal width_ (stretching one short row across the whole screen -- `Slug` padded to ~83 columns for 38 characters); and `st sync` re-invoked `list` with a different width, so `st list` and `st sync` rendered differently for identical data. They now render through a single `render_table` (`bin/intent_helpers`) that sizes each column to its widest cell. The layout is a function of the data, not the terminal, so it stays compact, never truncates, and is byte-identical across `st list` / `st sync` and across terminal widths. `--width` is accepted but inert.
+- **`intent st list`, `intent st sync`, and `intent wp list` now share one table renderer.** Each sized its table by a rule of its own: `wp list` hard-capped `Title` at 30 columns (truncating every title, eg `Interpretation schema: verb...`), and `st sync` re-invoked `list` at a fixed `dft_width` while `st list` used the terminal, so the two rendered differently for identical data. They now render through a single `render_table` (`bin/intent_helpers`) that fills the terminal width (or an explicit `--width`), with content-fit as the floor so nothing is ever truncated. `st sync` composes `st list`, so their output is byte-identical.
 
 ## [2.15.0] - 2026-07-03
 

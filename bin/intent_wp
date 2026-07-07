@@ -252,10 +252,10 @@ TEMPLATE
       exit 0
     fi
 
-    # Collect the WP rows, then render through the shared content-fit table
-    # (render_table, bin/intent_helpers) -- the same renderer `intent st list`
-    # uses, so their column layout cannot drift apart, and columns size to the
-    # data rather than being stretched across the terminal.
+    # Collect the WP rows, then render through the shared render_table
+    # (bin/intent_helpers) -- the same renderer `intent st list` uses, so their
+    # column layout cannot drift apart and both fill the terminal width the same
+    # way.
     declare -a wp_rows=()
     for wp_entry in "$WP_BASE"/[0-9][0-9]; do
       if [ -d "$wp_entry" ] && [ -f "$wp_entry/info.md" ]; then
@@ -273,10 +273,11 @@ TEMPLATE
       fi
     done
 
+    table_width=$(get_terminal_width)
     if [ ${#wp_rows[@]} -gt 0 ]; then
-      printf '%s\n' "${wp_rows[@]}" | render_table "WP|Title|Scope|Status"
+      printf '%s\n' "${wp_rows[@]}" | render_table "WP|Title|Scope|Status" "$table_width"
     else
-      render_table "WP|Title|Scope|Status" </dev/null
+      render_table "WP|Title|Scope|Status" "$table_width" </dev/null
     fi
     ;;
 

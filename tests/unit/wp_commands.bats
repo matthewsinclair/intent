@@ -516,7 +516,7 @@ EOF
   assert_output_contains "Heading Only Title"
 }
 
-@test "wp list is content-fit and width-independent (shared render_table)" {
+@test "wp list fills the terminal width and never truncates the title" {
   project_dir=$(create_test_project "WP List Width Test")
   cd "$project_dir"
 
@@ -538,20 +538,24 @@ status: Done
 # WP-01: A deliberately long work package title here
 EOF
 
-  # Content-fit: the Title column sizes to the data, so the full 44-char title
-  # always shows in full and is never truncated (the pre-fix code capped it at
-  # 30). The shared render_table sizes columns to the data, not the terminal.
-  COLUMNS=200 run run_intent wp list ST0001
+  # Wide terminal: the table fills it, and the full 44-char title shows (the
+  # pre-fix code hard-capped it at 30; content-fit is the floor, so no cut).
+  export COLUMNS=200
+  run run_intent wp list ST0001
   assert_success
   assert_output_contains "A deliberately long work package title here"
-  wide_output="$output"
+  local wide
+  wide=$(printf '%s\n' "$output" | awk '{if(length>m)m=length} END{print m+0}')
+  [ "$wide" -ge 150 ] || fail "wp list width $wide at COLUMNS=200; expected to fill the terminal"
 
-  # Width-independent: a narrow terminal produces byte-identical output (the
-  # renderer ignores terminal width entirely), so nothing truncates.
-  COLUMNS=60 run run_intent wp list ST0001
+  # Narrower terminal: the table tracks it (still no truncation of the title).
+  export COLUMNS=90
+  run run_intent wp list ST0001
   assert_success
   assert_output_contains "A deliberately long work package title here"
-  [ "$output" = "$wide_output" ]
+  local narrow
+  narrow=$(printf '%s\n' "$output" | awk '{if(length>m)m=length} END{print m+0}')
+  [ "$wide" -gt "$narrow" ] || fail "width did not track terminal: 200->$wide 90->$narrow"
 }
 
 # ====================================================================
