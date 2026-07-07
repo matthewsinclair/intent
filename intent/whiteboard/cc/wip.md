@@ -3,8 +3,8 @@ node: cc
 name: Control Claude
 role: control
 session_id: bf1f140b-ef3b-410c-bf6c-da5a3ff299de
-heartbeat_at: 2026-07-08T00:50Z
-status: active
+heartbeat_at: 2026-07-08T01:00Z
+status: paused
 focus: "v2.16.0 SHIPPED (tag `6a6c7d8` both remotes + GitHub release; post-tag wrap `dc6deca` config -> 2.16.0; doctor green, tree clean). ST0053 content/prose pack: IN-PR-* base (4) + IN-CO-* content (6); critic-prose (parameterised); intent lang init content; /in-content-essentials + dispatch. docs/blog dogfooded -> description+canonical on 7 posts, seamless reworded, overall dropped from IN-PR-STYLE-001 (v2). NOTE: project-wide restart docs (intent/restart.md, .claude/restart.md, wip.md) are 2 releases stale (still say v2.15.0) -- globalfold/vc job or hv to ask. Minor open follow-up: README lists post 0007 whose file is missing (dead link)."
 claims: []
 ---
