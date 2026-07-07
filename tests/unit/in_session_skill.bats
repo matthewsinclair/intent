@@ -67,6 +67,15 @@ CLAUDE_MD="${INTENT_PROJECT_ROOT}/CLAUDE.md"
   assert_success
 }
 
+@test "in-session wires the content fan-out (table row + chains_to)" {
+  # ST0053 WP05: content is a first-class fan-out language with its own skill.
+  assert_file_contains "$SKILL" "/in-content-essentials"
+  run grep -E '^\|.*content.*in-content-essentials' "$SKILL"
+  assert_success
+  run grep -F '"in-content-essentials"' "$SKILL"
+  assert_success
+}
+
 @test "in-session does not reference phantom rust/swift/lua/shell essentials skills" {
   # /in-rust-essentials, /in-swift-essentials, /in-lua-essentials, and
   # /in-shell-essentials were promised in the v2.10.x SKILL.md ("ships in

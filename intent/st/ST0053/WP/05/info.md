@@ -3,7 +3,7 @@ verblock: "07 Jul 2026:v0.1: matts - Initial version"
 wp_id: WP-05
 title: "in-content-essentials skill + dispatch"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-05: in-content-essentials skill + dispatch

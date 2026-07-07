@@ -41,7 +41,7 @@ Read the project's declared languages from `intent/.config/config.json`:
 jq -r '(.languages // []) | .[]' intent/.config/config.json
 ```
 
-For each language listed, dispatch to its critic subagent. Code languages map directly: `elixir` → `critic-elixir`, `rust` → `critic-rust`, `swift` → `critic-swift`, `lua` → `critic-lua`, `shell` → `critic-shell`. The `author` pack (prose + courseware) maps to `critic-prose`, which reviews prose (`.md`/`.mdx`), not code -- see Author projects below.
+For each language listed, dispatch to its critic subagent. Code languages map directly: `elixir` → `critic-elixir`, `rust` → `critic-rust`, `swift` → `critic-swift`, `lua` → `critic-lua`, `shell` → `critic-shell`. The prose disciplines both map to the one `critic-prose`: `author` (books + courseware) and `content` (web pages + posts) each dispatch to `critic-prose`, which reviews prose (`.md`/`.mdx`/`.html`), not code, and resolves which discipline pack to apply from the declared `languages` -- see Prose projects below.
 
 A mixed project (multiple entries in `languages`) dispatches to each critic whose language matches the files being reviewed. If `languages` is empty, no language-specific critic runs; only the agnostic checklist below applies.
 
@@ -74,9 +74,10 @@ Task(subagent_type="critic-lua",    prompt="test-check spec/**/*_spec.lua")
 Task(subagent_type="critic-shell",  prompt="review bin/* scripts/*")
 
 Task(subagent_type="critic-prose", prompt="review docs/**/*.md")
+Task(subagent_type="critic-prose", prompt="review content/**/*.md")
 ```
 
-**Author projects (`author` in `languages`)**: `critic-prose` reviews prose, not code. Under `/in-review` run its mechanical `review` tier (house style, structure, the mechanical trope pass) on the prose targets (`.md`/`.mdx`). Its judgment tier -- `craft-check` (voice, continuity, citation) and the full `/in-detrope` diagnosis -- is on instruction, not part of the automatic pass. Per the per-language loop above, an author-only project (`languages: [author]`) runs no code critic; a mixed project (eg `[elixir, author]`) runs `critic-elixir` on the code subtree and `critic-prose` on the prose subtree (D7).
+**Prose projects (`author` and/or `content` in `languages`)**: `critic-prose` reviews prose, not code, and resolves its discipline pack from the declared `languages`. Under `/in-review` run its mechanical `review` tier (house style, structure, the mechanical trope pass, plus the discipline's mechanics -- author front-matter/objectives, or content page-meta/alt-text/links) on the prose targets (`.md`/`.mdx`/`.html`). Its judgment tier -- `craft-check` (author: voice, continuity, citation; content: scannability, CTA, reading level) and the full `/in-detrope` diagnosis -- is on instruction, not part of the automatic pass. Per the per-language loop above, a prose-only project (`languages: [author]` or `[content]`) runs no code critic; a mixed project (eg `[elixir, content]`) runs `critic-elixir` on the code subtree and `critic-prose` on the prose subtree (D7). A project declaring both `author` and `content` applies both discipline packs.
 
 **Polyglot projects**: when `languages` has more than one entry, the user has explicitly declared a polyglot. Invoke each critic with a target glob narrowed to its own subtree. Array order is the explicit declaration; the first entry is the primary where a primary is needed.
 

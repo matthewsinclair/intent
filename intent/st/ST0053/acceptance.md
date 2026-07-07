@@ -46,10 +46,10 @@ title: "Content (web-content) project-type pack -- acceptance contract"
 
 - AC-04.1 `intent lang init content` installs `intent/llm/RULES-content.md` + `ARCHITECTURE-content.md`, appends the Language Packs entry, and writes `content` to config `languages`; `intent lang list` enumerates `content`. (Allowlist-free: `templates/content/{RULES,ARCHITECTURE}.md` is all that was needed -- `lang init`/`lang list` are dir-driven.)
 
-### WP-05 -- in-content-essentials skill + dispatch (status: not started)
+### WP-05 -- in-content-essentials skill + dispatch (status: DONE)
 
-- AC-05.1 The `/in-content-essentials` skill exists, is renderer-safe, and references the content pack's rules by id.
-- AC-05.2 `content -> critic-prose` is wired into `/in-review` and `/in-session`; an author-only or content-only project runs no code critic, and a mixed project runs each critic on its own subtree.
+- AC-05.1 The `/in-content-essentials` skill exists, is renderer-safe (no em dash, no `$N`), carries the content pipeline, and references the prose base + content rule ids.
+- AC-05.2 `content -> critic-prose` is wired into `/in-review` (dispatch map + the generalised "Prose projects" note + Task example) and `/in-session` (fan-out table row + `chains_to`); a prose-only project (`[author]` or `[content]`) runs no code critic, a mixed project runs each critic on its own subtree, and a project declaring both applies both discipline packs.
 
 ### WP-06 -- dogfood + docs + close (status: not started)
 
@@ -84,9 +84,9 @@ title: "Content (web-content) project-type pack -- acceptance contract"
 
 ### WP-05
 
-- AT-05.1 tests/unit/in_content_essentials_skill.bats -- covers AC-05.1 -- status: to-write (red-first)
-- AT-05.2 tests/unit/critic_dispatch.bats + tests/unit/in_session_skill.bats (content cases) -- covers AC-05.2 -- status: to-write (red-first)
-- Coverage: AC-05.1, AC-05.2 test-backed.
+- AT-05.1 tests/unit/in_content_essentials_skill.bats -- covers AC-05.1 -- status: green
+- AT-05.2 tests/unit/critic_dispatch.bats + tests/unit/in_session_skill.bats (content cases) -- covers AC-05.2 -- status: green
+- Coverage: AC-05.1, AC-05.2 test-backed (green).
 
 ### WP-06
 

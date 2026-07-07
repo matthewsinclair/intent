@@ -6,7 +6,7 @@
 - [x] WP02 -- content (CO) rule tiers
 - [x] WP03 -- critic-prose (rename critic-author)
 - [x] WP04 -- content lang canon
-- [ ] WP05 -- in-content-essentials skill + dispatch
+- [x] WP05 -- in-content-essentials skill + dispatch
 - [ ] WP06 -- dogfood + docs + close
 
 ## Task Notes

@@ -9,6 +9,7 @@ chains_to:
     "in-ash-ecto-essentials",
     "in-phoenix-liveview",
     "in-author-essentials",
+    "in-content-essentials",
     "in-whiteboard",
   ]
 ---
@@ -42,14 +43,15 @@ jq -r '(.languages // []) | .[]' intent/.config/config.json
 
 For each language listed, invoke the matching essentials skill if one exists. Elixir and `author` have a per-language essentials skill; the other languages get their coding rules via the rule library served by the installed Intent tool (`intent claude rules list --lang <lang>`, `intent claude rules show <id>`) plus the `critic-<lang>` subagent applied on demand.
 
-| Language | Skills to invoke (if listed in config)                                           |
-| -------- | -------------------------------------------------------------------------------- |
-| `elixir` | `/in-elixir-essentials`, `/in-elixir-testing`; plus Ash and LiveView per step 3  |
-| `rust`   | (no essentials skill; `intent claude rules list --lang rust`, critic-rust)       |
-| `swift`  | (no essentials skill; `intent claude rules list --lang swift`, critic-swift)     |
-| `lua`    | (no essentials skill; `intent claude rules list --lang lua`, critic-lua)         |
-| `shell`  | (no essentials skill; `intent claude rules list --lang shell`, critic-shell)     |
-| `author` | `/in-author-essentials`; prose + courseware, `critic-prose` on demand (not code) |
+| Language  | Skills to invoke (if listed in config)                                           |
+| --------- | -------------------------------------------------------------------------------- |
+| `elixir`  | `/in-elixir-essentials`, `/in-elixir-testing`; plus Ash and LiveView per step 3  |
+| `rust`    | (no essentials skill; `intent claude rules list --lang rust`, critic-rust)       |
+| `swift`   | (no essentials skill; `intent claude rules list --lang swift`, critic-swift)     |
+| `lua`     | (no essentials skill; `intent claude rules list --lang lua`, critic-lua)         |
+| `shell`   | (no essentials skill; `intent claude rules list --lang shell`, critic-shell)     |
+| `author`  | `/in-author-essentials`; prose + courseware, `critic-prose` on demand (not code) |
+| `content` | `/in-content-essentials`; web content, `critic-prose` on demand (not code)       |
 
 If the array is empty or missing, no language-specific essentials skills load. The user can declare languages with `intent lang init <lang>` (or remove with `intent lang remove <lang>`).
 
