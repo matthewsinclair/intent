@@ -106,14 +106,28 @@ emit_st_block() {
   done
 }
 
-# Emit every steel-thread block under a status directory ($1), in ST-number
-# order (the glob expands zero-padded, so lexical == numeric).
-emit_bucket() {
+# ---- Enumeration (Highlander) ----
+# The markdown and JSON views share ONE directory walk per bucket and ONE DONE
+# membership predicate; only the per-thread rendering differs (emit_st_block vs
+# emit_st_json). The list_* helpers below are that single enumeration source.
+
+# List the valid steel-thread dirs directly under a status directory ($1), in
+# ST-number order (the glob expands zero-padded, so lexical == numeric). One
+# path per line -- ST dir names carry no newlines, so `while read` is safe.
+list_bucket_dirs() {
   local root="$1" st
   for st in "$root"/ST[0-9]*; do
     [ -d "$st" ] && [ -f "$st/info.md" ] || continue
-    emit_st_block "$st"
+    printf '%s\n' "$st"
   done
+}
+
+# Emit every steel-thread block under a status directory ($1).
+emit_bucket() {
+  local st
+  while IFS= read -r st; do
+    emit_st_block "$st"
+  done < <(list_bucket_dirs "$1")
 }
 
 # Normalise a `completed:` value to a comparable ISO 8601 UTC instant. Tolerates
@@ -140,21 +154,38 @@ read_done_watermark() {
   if [ -n "$wm" ]; then printf '%s' "$wm"; else date -u '+%Y-%m-%dT00:00:00Z'; fi
 }
 
-# Emit completed threads whose `completed:` is at or after the watermark ($1, ISO
-# 8601). Completions before it have been flushed out of the live view; they live
-# permanently in COMPLETED/ and the monthly done-log. Legacy %Y%m%d and ISO
-# `completed:` are both tolerated (normalize_completed).
-emit_done_since() {
-  local since="$1" st comp norm
+# True (exit 0) if a completed thread ($1) belongs in the DONE bucket at or
+# after the watermark ($2, ISO 8601). Legacy %Y%m%d and ISO `completed:` are
+# both tolerated (normalize_completed); an absent/unparseable stamp is never a
+# member. THE single membership predicate -- markdown and JSON share it.
+done_is_member() {
+  local st_dir="$1" since="$2" norm
+  norm=$(normalize_completed "$(field "$st_dir/info.md" completed)")
+  [ -n "$norm" ] || return 1
+  # lexical ISO compare == chronological; before the watermark == flushed out
+  if [[ "$norm" < "$since" ]]; then return 1; fi
+  return 0
+}
+
+# List the DONE-bucket member dirs (completed at or after the watermark $1), one
+# path per line -- the single DONE enumeration feeding both renderers.
+list_done_dirs() {
+  local since="$1" st
   for st in "$ST_BASE/COMPLETED"/ST[0-9]*; do
     [ -d "$st" ] && [ -f "$st/info.md" ] || continue
-    comp=$(field "$st/info.md" completed)
-    norm=$(normalize_completed "$comp")
-    [ -n "$norm" ] || continue
-    # lexical ISO compare == chronological; skip anything before the watermark
-    if [[ "$norm" < "$since" ]]; then continue; fi
-    emit_st_block "$st"
+    done_is_member "$st" "$since" || continue
+    printf '%s\n' "$st"
   done
+}
+
+# Emit completed threads at or after the watermark ($1). Completions before it
+# have been flushed out of the live view; they live permanently in COMPLETED/
+# and the monthly done-log.
+emit_done_since() {
+  local st
+  while IFS= read -r st; do
+    emit_st_block "$st"
+  done < <(list_done_dirs "$1")
 }
 
 # Regenerate intent/todo.md atomically (temp file + mv). The DONE bucket is
@@ -212,26 +243,20 @@ emit_st_json() {
 
 # A JSON array of the steel threads directly under a status directory ($1).
 emit_bucket_json() {
-  local root="$1" st out="[]"
-  for st in "$root"/ST[0-9]*; do
-    [ -d "$st" ] && [ -f "$st/info.md" ] || continue
+  local st out="[]"
+  while IFS= read -r st; do
     out=$(printf '%s' "$out" | jq --argjson obj "$(emit_st_json "$st")" '. + [$obj]')
-  done
+  done < <(list_bucket_dirs "$1")
   printf '%s' "$out"
 }
 
 # A JSON array of the threads in the DONE bucket (completed at or after the
-# watermark $1) -- same membership predicate as emit_done_since (Highlander).
+# watermark $1) -- same enumeration + predicate as emit_done_since (Highlander).
 emit_done_since_json() {
-  local since="$1" st comp norm out="[]"
-  for st in "$ST_BASE/COMPLETED"/ST[0-9]*; do
-    [ -d "$st" ] && [ -f "$st/info.md" ] || continue
-    comp=$(field "$st/info.md" completed)
-    norm=$(normalize_completed "$comp")
-    [ -n "$norm" ] || continue
-    if [[ "$norm" < "$since" ]]; then continue; fi
+  local since="$1" st out="[]"
+  while IFS= read -r st; do
     out=$(printf '%s' "$out" | jq --argjson obj "$(emit_st_json "$st")" '. + [$obj]')
-  done
+  done < <(list_done_dirs "$since")
   printf '%s' "$out"
 }
 
