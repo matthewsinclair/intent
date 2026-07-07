@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.16.0] - in progress
+## [2.16.0] - 2026-07-08
 
 Minor release adding the **`content` (web-content) project-type pack** (ST0053) and the **`IN-PR-*` shared prose base** it is built on. `content` is the second prose discipline after `author`; both now stand on one shared mechanical prose surface rather than duplicating it. It is a minor, not a patch, because it adds a new project-type surface (and a shared base pack); it is strictly opt-in, with zero behaviour change for projects that do not declare `content`.
 
