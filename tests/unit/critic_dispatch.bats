@@ -54,9 +54,9 @@ HOOK="${INTENT_PROJECT_ROOT}/lib/templates/hooks/pre-commit.sh"
 # author pack dispatch (ST0052 WP05) -- the first non-code critic
 # ====================================================================
 
-@test "in-review skill dispatches the author pack to critic-author" {
-  assert_file_contains "$SKILL_FILE" "critic-author"
-  assert_file_contains "$SKILL_FILE" "subagent_type=\"critic-author\""
+@test "in-review skill dispatches the author pack to critic-prose" {
+  assert_file_contains "$SKILL_FILE" "critic-prose"
+  assert_file_contains "$SKILL_FILE" "subagent_type=\"critic-prose\""
 }
 
 @test "in-review skill documents the D7 author/code-critic exclusion" {

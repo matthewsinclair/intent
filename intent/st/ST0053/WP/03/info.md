@@ -3,7 +3,7 @@ verblock: "07 Jul 2026:v0.1: matts - Initial version"
 wp_id: WP-03
 title: "critic-prose (rename critic-author)"
 scope: Small
-status: Not Started
+status: Done
 ---
 
 # WP-03: critic-prose (rename critic-author)

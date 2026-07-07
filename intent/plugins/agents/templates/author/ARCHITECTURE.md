@@ -27,6 +27,6 @@ outline -> draft -> mechanical trope pass -> revise -> full `/in-detrope` (on in
 
 ## Review
 
-- `Task(subagent_type="critic-author", prompt="review <unit>.md")` -- the mechanical style tier, on every draft.
-- `Task(subagent_type="critic-author", prompt="craft-check <work>/")` -- the judgment craft tier, on instruction.
+- `Task(subagent_type="critic-prose", prompt="review <unit>.md")` -- the mechanical style tier, on every draft.
+- `Task(subagent_type="critic-prose", prompt="craft-check <work>/")` -- the judgment craft tier, on instruction.
 - `/in-detrope <unit>.md` -- the full contextual and stylometric trope diagnosis, under direct instruction.

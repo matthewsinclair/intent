@@ -58,10 +58,10 @@
       "checksum": ""
     },
     {
-      "name": "critic-author",
+      "name": "critic-prose",
       "version": "1.0.0",
-      "description": "Author (prose + courseware) rule-library critic - reads rules/author/ (style, craft) and agnostic rules, reports violations in prose/.md files; two-tier (mechanical style default, judgment craft on instruction)",
-      "path": "intent/plugins/claude/subagents/critic-author",
+      "description": "Prose rule-library critic for every prose discipline (author + content) - reads the shared rules/prose/ base plus the declared discipline pack (rules/author/ and/or rules/content/) and agnostic rules; two-tier (mechanical style default, judgment craft on instruction)",
+      "path": "intent/plugins/claude/subagents/critic-prose",
       "checksum": ""
     }
   ]

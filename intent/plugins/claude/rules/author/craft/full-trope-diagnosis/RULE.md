@@ -45,7 +45,7 @@ The mechanical trope pass (IN-PR-STYLE-004) catches the `detection: automated` t
 
 ## Detection
 
-This is the judgement-tier companion to IN-PR-STYLE-004, and it is handled by handoff, not by the default review. Following the critic contract, `critic-author` does NOT run this pass by default and does NOT invoke the skill itself. When the mechanical pass is clean but the prose warrants a deeper look, the critic emits a recommendation -- "run `/in-detrope` for full trope diagnosis" -- and the human or top-level agent runs the `/in-detrope` skill under direct instruction. The skill performs the contextual and stylometric diagnosis: trope density, the non-automated tropes, cadence and voice fingerprints -- the work no grep can do.
+This is the judgement-tier companion to IN-PR-STYLE-004, and it is handled by handoff, not by the default review. Following the critic contract, `critic-prose` does NOT run this pass by default and does NOT invoke the skill itself. When the mechanical pass is clean but the prose warrants a deeper look, the critic emits a recommendation -- "run `/in-detrope` for full trope diagnosis" -- and the human or top-level agent runs the `/in-detrope` skill under direct instruction. The skill performs the contextual and stylometric diagnosis: trope density, the non-automated tropes, cadence and voice fingerprints -- the work no grep can do.
 
 The signal that triggers the recommendation is qualitative: a clean mechanical pass on prose that still reads as generated. The diagnosis itself is the skill's job, not the critic's.
 

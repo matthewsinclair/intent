@@ -4,7 +4,7 @@
 
 - [x] WP01 -- IN-PR-* prose base + author refactor
 - [x] WP02 -- content (CO) rule tiers
-- [ ] WP03 -- critic-prose (rename critic-author)
+- [x] WP03 -- critic-prose (rename critic-author)
 - [ ] WP04 -- content lang canon
 - [ ] WP05 -- in-content-essentials skill + dispatch
 - [ ] WP06 -- dogfood + docs + close

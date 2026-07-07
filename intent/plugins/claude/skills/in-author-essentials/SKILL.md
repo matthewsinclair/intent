@@ -1,11 +1,11 @@
 ---
-description: "Authoring essentials: the outline -> draft -> detrope -> revise -> structural-check pipeline for prose and courseware, backed by the author rule pack and critic-author"
+description: "Authoring essentials: the outline -> draft -> detrope -> revise -> structural-check pipeline for prose and courseware, backed by the author rule pack and critic-prose"
 chains_to: ["in-detrope"]
 ---
 
 # Authoring Essentials
 
-Load the authoring discipline for a project that writes prose or courseware -- books, courses, long-form articles. Chained from `/in-session` when `author` is a declared language. The rules live in the `author` rule pack (`intent claude rules list --lang author`); this skill is the pipeline that applies them, and `critic-author` is the reviewer.
+Load the authoring discipline for a project that writes prose or courseware -- books, courses, long-form articles. Chained from `/in-session` when `author` is a declared language. The rules live in the `author` rule pack (`intent claude rules list --lang author`); this skill is the pipeline that applies them, and `critic-prose` is the reviewer.
 
 ## When to invoke
 
@@ -15,10 +15,10 @@ Load the authoring discipline for a project that writes prose or courseware -- b
 
 ## The two tiers
 
-The `author` pack splits by how a rule is checked -- mirrored by `critic-author`'s two modes:
+The `author` pack splits by how a rule is checked -- mirrored by `critic-prose`'s two modes:
 
-- **style (mechanical, default)** -- greppable checks, cheap, run on every draft (`critic-author review`).
-- **craft (judgment, on instruction)** -- a read: voice, continuity, citation, and the full `/in-detrope` diagnosis (`critic-author craft-check`, or `/in-detrope`).
+- **style (mechanical, default)** -- greppable checks, cheap, run on every draft (`critic-prose review`).
+- **craft (judgment, on instruction)** -- a read: voice, continuity, citation, and the full `/in-detrope` diagnosis (`critic-prose craft-check`, or `/in-detrope`).
 
 ## The authoring pipeline
 
@@ -26,16 +26,16 @@ Detrope at every step -- do not save it for the end:
 
 1. **Outline** -- the spine first: parts, then chapters (book) or modules (course), in order. Each unit gets front-matter (`title` + an ordering key); courseware modules get learning objectives.
 2. **Draft** -- write the unit in one voice and register throughout.
-3. **Mechanical detrope** -- `Task(subagent_type="critic-author", prompt="review <unit>.md")`: the mechanical trope pass + house-style checks. Fix the greppable tells before a human read.
-4. **Revise** -- read for craft: voice, continuity against earlier units, citations. On instruction, `Task(subagent_type="critic-author", prompt="craft-check <work>/")` and the full `/in-detrope <unit>.md`.
+3. **Mechanical detrope** -- `Task(subagent_type="critic-prose", prompt="review <unit>.md")`: the mechanical trope pass + house-style checks. Fix the greppable tells before a human read.
+4. **Revise** -- read for craft: voice, continuity against earlier units, citations. On instruction, `Task(subagent_type="critic-prose", prompt="craft-check <work>/")` and the full `/in-detrope <unit>.md`.
 5. **Structural check** -- one H1, no skipped heading levels; front-matter and objectives present; a clean heading tree.
 
 ## Detrope: two forms, one home
 
 detrope has one home -- `intent/plugins/claude/skills/in-detrope/data/trope-catalog.md` -- and two forms:
 
-- **Mechanical (default)** -- `IN-PR-STYLE-004` greps the catalogue's `detection: automated` regexes. critic-author runs it on every `review`.
-- **Full LLM (on instruction)** -- `/in-detrope` does the contextual and stylometric diagnosis (`IN-AU-CRAFT-003`). Run it under direct instruction before publication; critic-author only recommends it, never runs it.
+- **Mechanical (default)** -- `IN-PR-STYLE-004` greps the catalogue's `detection: automated` regexes. critic-prose runs it on every `review`.
+- **Full LLM (on instruction)** -- `/in-detrope` does the contextual and stylometric diagnosis (`IN-AU-CRAFT-003`). Run it under direct instruction before publication; critic-prose only recommends it, never runs it.
 
 Never fork the trope catalogue; both forms read the one home.
 

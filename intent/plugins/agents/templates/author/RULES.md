@@ -1,13 +1,13 @@
 # RULES-author.md
 
-Mandatory authoring rules for this project's prose and courseware. Enforced by the `author` rule pack and the `critic-author` subagent.
+Mandatory authoring rules for this project's prose and courseware. Enforced by the `author` rule pack and the `critic-prose` subagent.
 
 ## The Two Tiers
 
 Author rules split by how they are checked:
 
-- **style (mechanical, default)** -- greppable house-style and trope checks: banned filler and `eg`-not-`e.g.`, no vanity metrics, front-matter and learning-objectives present, heading hygiene, and the mechanical trope pass. Runs on every `critic-author review`.
-- **craft (judgment, on instruction)** -- critic-as-reader: voice and register consistency, cross-chapter continuity, citation and attribution discipline, and the full `/in-detrope` diagnosis. Runs via `critic-author craft-check` (or `/in-detrope`) when asked.
+- **style (mechanical, default)** -- greppable house-style and trope checks: banned filler and `eg`-not-`e.g.`, no vanity metrics, front-matter and learning-objectives present, heading hygiene, and the mechanical trope pass. Runs on every `critic-prose review`.
+- **craft (judgment, on instruction)** -- critic-as-reader: voice and register consistency, cross-chapter continuity, citation and attribution discipline, and the full `/in-detrope` diagnosis. Runs via `critic-prose craft-check` (or `/in-detrope`) when asked.
 
 Read the full author rule pack via the installed Intent tool: `intent claude rules list --lang author` to enumerate, `intent claude rules show <id>` to read one.
 

@@ -37,10 +37,10 @@ title: "Content (web-content) project-type pack -- acceptance contract"
 - AC-02.2 The content pack owns six web-distinct rules -- `style` (mechanical): page meta present (title/description/canonical), image alt-text, descriptive link text; `craft` (judgment): scannability, primary CTA, reading-level target -- each schema-valid and enumerated under `--lang content`. The generic prose hygiene (filler, vanity metrics, headings, trope pass) is the shared `IN-PR-*` base, not re-authored here.
 - AC-02.3 (non-test) No `IN-CO-*` rule duplicates an `IN-PR-*` mechanical rule (Highlander). -- evidence: rule_pack_content.bats asserts no content dir reuses a prose-base slug and no content rule declares an `IN-PR-*` id; the content style tier is web-specific (meta/alt/links), disjoint from the base -- satisfied: yes
 
-### WP-03 -- critic-prose (rename critic-author) (status: not started)
+### WP-03 -- critic-prose (rename critic-author) (status: DONE)
 
-- AC-03.1 `critic-author` is renamed to `critic-prose`: the subagent directory, `agent.md`, metadata, and the agent manifest all use `critic-prose`; no `critic-author` remains.
-- AC-03.2 `critic-prose` loads the `IN-PR-*` base plus the declared discipline's rules, parameterised by language (author or content); its `agent.md` rule-id references cite the `IN-PR-*` ids and the two-form detrope is preserved.
+- AC-03.1 `critic-author` is renamed to `critic-prose`: the subagent directory, `agent.md`, metadata, and the agent manifest all use `critic-prose`; no `critic-author` remains (dir gone, no manifest entry).
+- AC-03.2 `critic-prose` loads the `IN-PR-*` base plus the declared discipline's rules, parameterised by language (author or content, resolved from config `languages`); its `agent.md` cites the `IN-PR-STYLE-004` mechanical pass and preserves the two-form detrope (mechanical default + `IN-AU-CRAFT-003` `/in-detrope` handoff, never invoked).
 
 ### WP-04 -- content lang canon (status: not started)
 
@@ -74,8 +74,8 @@ title: "Content (web-content) project-type pack -- acceptance contract"
 
 ### WP-03
 
-- AT-03.1 tests/unit/critic_prose.bats -- covers AC-03.1, AC-03.2 -- status: to-write (red-first)
-- Coverage: AC-03.1, AC-03.2 test-backed.
+- AT-03.1 tests/unit/critic_prose.bats -- covers AC-03.1, AC-03.2 -- status: green
+- Coverage: AC-03.1, AC-03.2 test-backed (green).
 
 ### WP-04
 

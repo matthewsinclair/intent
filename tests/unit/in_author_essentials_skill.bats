@@ -38,7 +38,7 @@ SKILL="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-author-essentials/
 @test "in-author-essentials wires the two-form detrope (mechanical default + /in-detrope handoff)" {
   assert_file_contains "$SKILL" "trope-catalog.md"
   assert_file_contains "$SKILL" "/in-detrope"
-  assert_file_contains "$SKILL" 'subagent_type="critic-author"'
+  assert_file_contains "$SKILL" 'subagent_type="critic-prose"'
 }
 
 # Renderer-safety: no em dashes (list-display truncation bug) and no $N

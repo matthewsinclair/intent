@@ -214,7 +214,7 @@ All subagents install to `~/.claude/agents/<name>.md` and run in separate contex
 | `critic-swift`  | Swift rule-library critic (code + test modes)                                |
 | `critic-lua`    | Lua rule-library critic (code + test modes)                                  |
 | `critic-shell`  | Shell (bash + zsh) rule-library critic (code mode only)                      |
-| `critic-author` | Author / prose rule-library critic (style + craft modes; on-demand only)     |
+| `critic-prose`  | Author / prose rule-library critic (style + craft modes; on-demand only)     |
 
 Socrates and Diogenes are disjoint agents — different domains, different personas. Socrates is architectural; Diogenes is test-specification. See `intent/docs/working-with-llms.md` for the FAQ.
 
@@ -227,7 +227,7 @@ Single source of truth for coding rules. Critic subagents read the library at in
 - Library root: `intent/plugins/claude/rules/<lang>/<category>/<slug>/RULE.md`.
 - Categories: `code`, `test`, plus Elixir-specific `ash`, `phoenix`, `lv`, plus the `author` pack's `style` (mechanical) and `craft` (judgment).
 - Agnostic rules apply everywhere: `intent/plugins/claude/rules/agnostic/` (Highlander, PFIC, Thin Coordinator, No Silent Errors).
-- The `author` pack (`--lang author`) is the first non-code language: prose + courseware rules, enforced by `critic-author` on demand.
+- The `author` pack (`--lang author`) is the first non-code language: prose + courseware rules, enforced by `critic-prose` on demand.
 - Schema: `intent/plugins/claude/rules/_schema/rule-schema.md`.
 - Authoring guide: `intent/docs/rules.md`.
 - Critic contract: `intent/docs/critics.md`.
@@ -251,7 +251,7 @@ Per-project config at project root: `.intent_critic.yml`:
 
 Full contract in `intent/docs/critics.md`.
 
-`critic-author` (the prose + courseware pack) is **on-demand only** -- no pre-commit gate. Its modes are `review` (the mechanical `style` tier) and `craft-check` (the judgment `craft` tier); the full `/in-detrope` diagnosis is a handoff it recommends but never runs. See the v2.15.0 release notes for why the headless prose gate is deferred.
+`critic-prose` (the prose + courseware pack) is **on-demand only** -- no pre-commit gate. Its modes are `review` (the mechanical `style` tier) and `craft-check` (the judgment `craft` tier); the full `/in-detrope` diagnosis is a handoff it recommends but never runs. See the v2.15.0 release notes for why the headless prose gate is deferred.
 
 ## Session Hooks
 
