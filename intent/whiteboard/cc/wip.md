@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: bf1f140b-ef3b-410c-bf6c-da5a3ff299de
-heartbeat_at: 2026-07-07T20:01Z
+heartbeat_at: 2026-07-07T22:00Z
 status: active
-focus: "2.15.1 patch line READY to cut (all pushed both remotes). Latest (`aa15a66`): ONE shared content-fit `render_table` (bin/intent_helpers) now drives `st list` + `st sync` + `wp list` -- Highlander per hv's ruling; st list==sync byte-identical, width-invariant, columns fit data (supersedes the earlier wp terminal-flex `d2abfc7` + st inline content-fit). Also in 2.15.1: intent_todo enumeration Highlander `4973a30`, confirm() hardening `06b386a`, dead-code `4eafb82`. 3/4 vc follow-ups closed (upgrade false-no-op CONFIRMED not-a-bug; AT-traceability deferred). ST0053 content pack STOOD UP (awaiting hv D1-D3). AWAITING hv: (1) cut 2.15.1 via `scripts/release v2.15.1`; (2) ratify ST0053 scope."
+focus: "2.15.1 patch line READY to cut (all pushed both remotes). Table renderer FINAL (`b88cb8c`): ONE shared `render_table` (bin/intent_helpers) drives `st list` + `st sync` + `wp list`; it FILLS THE TERMINAL WIDTH (or explicit `--width`) with content-fit as the FLOOR (never truncates). st list==sync (sync composes list, forwards --width). NB: an intermediate content-fit version (aa15a66) was WRONG -- hv wanted terminal-width kept, not content-fit; b88cb8c is the correct terminal-fill. Also in 2.15.1: intent_todo Highlander `4973a30`, confirm() `06b386a`, dead-code `4eafb82`, CI apt hardening `9016c3c`. 3/4 vc follow-ups closed. ST0053 content pack STOOD UP + D1-D5 hv-ratified (CO code, shared IN-PR-* base, one critic-prose, D5=cut 2.15.1 first). AWAITING hv: cut 2.15.1 (`scripts/release v2.15.1`); then cc builds ST0053 -> 2.16.0. NOTE: hv asked for localfold+compact -- clean checkpoint now (all green, tree clean)."
 claims: []
 ---
 
