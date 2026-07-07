@@ -25,9 +25,11 @@ SKILL="${INTENT_PROJECT_ROOT}/intent/plugins/claude/skills/in-author-essentials/
   assert_file_contains "$SKILL" "Structural check"
 }
 
-@test "in-author-essentials references every author rule by ID" {
+@test "in-author-essentials references the prose base + author rules by ID" {
   local id
-  for id in IN-AU-STYLE-001 IN-AU-STYLE-002 IN-AU-STYLE-003 IN-AU-STYLE-004 IN-AU-STYLE-005 \
+  # Prose base (shared, ST0053 WP01) + the author-specific style rule + craft tier.
+  for id in IN-PR-STYLE-001 IN-PR-STYLE-002 IN-PR-STYLE-003 IN-PR-STYLE-004 \
+            IN-AU-STYLE-003 \
             IN-AU-CRAFT-001 IN-AU-CRAFT-002 IN-AU-CRAFT-003 IN-AU-CRAFT-004; do
     assert_file_contains "$SKILL" "$id"
   done

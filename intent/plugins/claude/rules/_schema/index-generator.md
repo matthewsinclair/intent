@@ -125,7 +125,7 @@ Output of stage 3: a per-rule JSON fragment with all frontmatter keys present (d
 
 For each JSON fragment:
 
-- Verify `id` matches `^IN-(AG|EX|RS|SW|LU|SH|AU)-[A-Z][A-Z0-9-]*-[0-9]{3}$` (per `id-scheme.md`).
+- Verify `id` matches `^IN-(AG|EX|RS|SW|LU|SH|PR|AU)-[A-Z][A-Z0-9-]*-[0-9]{3}$` (per `id-scheme.md`).
 - Verify required fields exist and match type.
 - Fill defaults: `aliases: []`, `status: "active"`, `version: 1`, optional arrays as `[]`, optional scalars as `null`.
 - Add `source_path` (repo-relative).

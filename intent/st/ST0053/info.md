@@ -1,7 +1,7 @@
 ---
 verblock: "07 Jul 2026:v0.1: matts - Initial version"
 intent_version: 2.15.0
-status: Not Started
+status: WIP
 slug: content-web-content-project-type-pack
 created: 20260707
 completed:

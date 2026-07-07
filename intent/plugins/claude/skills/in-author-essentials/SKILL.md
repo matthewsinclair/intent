@@ -34,24 +34,27 @@ Detrope at every step -- do not save it for the end:
 
 detrope has one home -- `intent/plugins/claude/skills/in-detrope/data/trope-catalog.md` -- and two forms:
 
-- **Mechanical (default)** -- `IN-AU-STYLE-005` greps the catalogue's `detection: automated` regexes. critic-author runs it on every `review`.
+- **Mechanical (default)** -- `IN-PR-STYLE-004` greps the catalogue's `detection: automated` regexes. critic-author runs it on every `review`.
 - **Full LLM (on instruction)** -- `/in-detrope` does the contextual and stylometric diagnosis (`IN-AU-CRAFT-003`). Run it under direct instruction before publication; critic-author only recommends it, never runs it.
 
 Never fork the trope catalogue; both forms read the one home.
 
 ## Rules
 
-The author pack, by tier -- read one with `intent claude rules show <id>`:
+The author discipline is the shared `IN-PR-*` prose base plus its own `IN-AU-*` rules -- read one with `intent claude rules show <id>` (`intent claude rules list --lang prose` / `--lang author`):
 
-Style (mechanical):
+Prose base -- style (mechanical), shared with every prose discipline:
 
-- `IN-AU-STYLE-001` -- banned filler and house style (`eg` not `e.g.`)
-- `IN-AU-STYLE-002` -- no vanity metrics
+- `IN-PR-STYLE-001` -- banned filler and house style (`eg` not `e.g.`)
+- `IN-PR-STYLE-002` -- no vanity metrics
+- `IN-PR-STYLE-003` -- one H1, no skipped heading levels
+- `IN-PR-STYLE-004` -- mechanical trope pass
+
+Author-specific -- style (mechanical):
+
 - `IN-AU-STYLE-003` -- front-matter and learning objectives present
-- `IN-AU-STYLE-004` -- one H1, no skipped heading levels
-- `IN-AU-STYLE-005` -- mechanical trope pass
 
-Craft (judgment):
+Author-specific -- craft (judgment):
 
 - `IN-AU-CRAFT-001` -- voice and register consistency
 - `IN-AU-CRAFT-002` -- cross-chapter continuity

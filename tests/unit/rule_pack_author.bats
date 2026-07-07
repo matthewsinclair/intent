@@ -1,9 +1,13 @@
 #!/usr/bin/env bats
-# Tests for the author rule pack (ST0052 WP02). AT-02.1 -- covers AC-02.1
-# (every author rule is schema-valid). Also backstops the non-test ACs:
-# AC-02.2 (style = mechanical tier, craft = judgment tier) via the category
-# split, and AC-02.3 (the mechanical trope pass references the single
-# trope-catalogue home, not a vendored indicator set).
+# Tests for the author rule pack (ST0052 WP02, refactored ST0053 WP01).
+# AT-02.1 -- covers AC-02.1 (every author rule is schema-valid). Also backstops
+# AC-02.2 (craft = judgment tier) via the category split.
+#
+# ST0053 WP01 lifted the shared mechanical style rules (banned filler, vanity
+# metrics, heading hygiene, mechanical trope pass) out of `author` into the
+# `IN-PR-*` prose base -- see rule_pack_prose.bats. The author pack now owns
+# only its discipline-specific rules: one style rule (front-matter and
+# objectives, book/course IA) plus the four craft rules.
 
 load "../lib/test_helper.bash"
 
@@ -11,11 +15,7 @@ AUTHOR_ROOT="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/author"
 
 author_rules() {
   cat <<'EOF'
-style/banned-filler-and-house-style|IN-AU-STYLE-001
-style/no-vanity-metrics|IN-AU-STYLE-002
 style/front-matter-and-objectives|IN-AU-STYLE-003
-style/heading-hygiene|IN-AU-STYLE-004
-style/mechanical-trope-pass|IN-AU-STYLE-005
 craft/voice-and-register-consistency|IN-AU-CRAFT-001
 craft/continuity|IN-AU-CRAFT-002
 craft/full-trope-diagnosis|IN-AU-CRAFT-003
@@ -85,7 +85,7 @@ EOF
 }
 
 # ====================================================================
-# Two-tier split (AC-02.2): style = mechanical, craft = judgment
+# Tier split (AC-02.2): craft = judgment
 # ====================================================================
 
 @test "author pack: category matches the tier directory" {
@@ -143,29 +143,12 @@ EOF
 }
 
 # ====================================================================
-# D5: mechanical trope pass references the single catalogue (AC-02.3),
-# not a vendored indicator set
+# Two-form detrope cross-pack link (ST0053 WP01): the author craft rule
+# full-trope-diagnosis is the on-instruction companion to the prose base's
+# mechanical trope pass (IN-PR-STYLE-004).
 # ====================================================================
 
-@test "author pack: mechanical trope pass cites the in-detrope catalogue" {
+@test "author pack: full-trope-diagnosis links to the prose mechanical trope pass" {
   assert_file_contains \
-    "$AUTHOR_ROOT/style/mechanical-trope-pass/RULE.md" \
-    'in-detrope/data/trope-catalog.md'
-}
-
-@test "author pack: no vendored trope-indicator file (Highlander)" {
-  local stray
-  stray=$(find "$AUTHOR_ROOT" -iname '*trope-indicator*' -o -iname '*indicators*')
-  [ -z "$stray" ] || {
-    echo "author pack: unexpected vendored indicator file(s):" >&2
-    echo "$stray" >&2
-    return 1
-  }
-}
-
-@test "author pack: full-trope-diagnosis and mechanical-trope-pass cross-link" {
-  assert_file_contains \
-    "$AUTHOR_ROOT/style/mechanical-trope-pass/RULE.md" 'IN-AU-CRAFT-003'
-  assert_file_contains \
-    "$AUTHOR_ROOT/craft/full-trope-diagnosis/RULE.md" 'IN-AU-STYLE-005'
+    "$AUTHOR_ROOT/craft/full-trope-diagnosis/RULE.md" 'IN-PR-STYLE-004'
 }

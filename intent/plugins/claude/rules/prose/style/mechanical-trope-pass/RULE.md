@@ -1,6 +1,6 @@
 ---
-id: IN-AU-STYLE-005
-language: author
+id: IN-PR-STYLE-004
+language: prose
 category: style
 severity: warning
 title: No unremediated mechanical AI tropes
@@ -13,7 +13,7 @@ principles:
   - no-tells
   - reader-trust
 applies_when:
-  - "Any prose in an author project, especially LLM-assisted drafts"
+  - "Any prose in a prose project (author or content), especially LLM-assisted drafts"
   - "Before a human review pass -- the mechanical tells are cheap to catch first"
 applies_to:
   - "**/*.md"
@@ -22,14 +22,14 @@ does_not_apply_when:
   - "Text explicitly about AI (a chapter on language models contains the AI-identity vocabulary legitimately)"
   - "Quoted material reproduced verbatim"
 tags:
-  - author
+  - prose
   - detrope
   - tropes
   - mechanical
 references: []
-related_rules:
-  - IN-AU-CRAFT-003
-aliases: []
+related_rules: []
+aliases:
+  - IN-AU-STYLE-005
 status: active
 version: 1
 ---
@@ -46,7 +46,7 @@ LLM-assisted prose carries mechanical tells: direct AI-identity references ("as 
 
 Highlander: the trope knowledge lives in one place -- `intent/plugins/claude/skills/in-detrope/data/trope-catalog.md`. This rule does not restate it. For each trope whose frontmatter says `detection: automated`, the catalogue supplies a `**Regex**:` line; apply those patterns to the target prose with `grep -iE` (drop the PCRE `(?i)` prefix -- `-i` covers it). A hit is a candidate; confirm the document is not itself about AI and the text is not a verbatim quote.
 
-This is the mechanical, default form of detrope. The full contextual / stylometric diagnosis (the non-automated tropes, density judgement, voice) is IN-AU-CRAFT-003 -- an on-instruction `/in-detrope` pass, not part of the default review.
+This is the mechanical, default form of detrope. The full contextual / stylometric diagnosis (the non-automated tropes, density judgement, voice) is the active discipline's full-trope-diagnosis craft rule (eg `IN-AU-CRAFT-003` in the author pack) -- an on-instruction `/in-detrope` pass, not part of the default review.
 
 ## Bad
 
@@ -62,7 +62,7 @@ The topic rewards a closer look. She stepped into the dark forest, listening.
 
 ## When This Applies
 
-- Every prose file in an author project, particularly LLM-assisted drafts.
+- Every prose file in a prose project (author or content), particularly LLM-assisted drafts.
 - As the first, cheap pass before a human review.
 
 ## When This Does Not Apply
@@ -73,4 +73,4 @@ The topic rewards a closer look. She stepped into the dark forest, listening.
 ## Further Reading
 
 - `intent/plugins/claude/skills/in-detrope/data/trope-catalog.md` -- the single home for trope knowledge; the automated tropes carry the regexes this rule applies.
-- IN-AU-CRAFT-003 -- the full `/in-detrope` diagnosis, the on-instruction companion to this mechanical pass.
+- The active discipline's full-trope-diagnosis craft rule (eg `IN-AU-CRAFT-003` in the author pack) -- the full `/in-detrope` diagnosis, the on-instruction companion to this mechanical pass.

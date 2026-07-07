@@ -27,7 +27,7 @@ tags:
   - front-matter
 references: []
 related_rules:
-  - IN-AU-STYLE-004
+  - IN-PR-STYLE-003
 aliases: []
 status: active
 version: 1
@@ -83,4 +83,4 @@ Recursion is when a function calls itself...
 
 ## Further Reading
 
-- IN-AU-STYLE-004 -- heading hygiene, the sibling structural rule.
+- IN-PR-STYLE-003 -- heading hygiene, the sibling structural rule.

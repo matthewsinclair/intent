@@ -1,6 +1,6 @@
 ---
-id: IN-AU-STYLE-002
-language: author
+id: IN-PR-STYLE-002
+language: prose
 category: style
 severity: warning
 title: No vanity metrics; size in T-shirts, not clocks
@@ -21,14 +21,14 @@ does_not_apply_when:
   - "Content where a count IS the subject (a data chapter reporting real figures, a statistics lesson)"
   - "Bibliographic or index counts that serve navigation, not self-congratulation"
 tags:
-  - author
   - prose
   - vanity-metrics
   - mechanical
 references: []
 related_rules:
-  - IN-AU-STYLE-001
-aliases: []
+  - IN-PR-STYLE-001
+aliases:
+  - IN-AU-STYLE-002
 status: active
 version: 1
 ---
@@ -75,4 +75,4 @@ This week: chapters 3-6 drafted (size: L). Chapter 4 needs a second pass.
 ## Further Reading
 
 - The project's `CLAUDE.md` -- T-shirt sizing and the no-vanity-metrics rule.
-- IN-AU-STYLE-001 -- the sibling house-style rule.
+- IN-PR-STYLE-001 -- the sibling house-style rule.

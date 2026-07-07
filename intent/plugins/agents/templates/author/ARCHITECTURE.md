@@ -14,7 +14,7 @@ One directory per book or course:
 
 - Each chapter or module opens with YAML front-matter carrying at least `title` and an ordering key (`order`, or the numeric filename prefix). (`IN-AU-STYLE-003`)
 - Courseware modules add a `## Learning objectives` section near the top -- the module's contract with the learner. (`IN-AU-STYLE-003`)
-- One H1 per file (the unit title); headings descend one level at a time, no skips. (`IN-AU-STYLE-004`)
+- One H1 per file (the unit title); headings descend one level at a time, no skips. (`IN-PR-STYLE-003`)
 
 ## Voice and Continuity
 

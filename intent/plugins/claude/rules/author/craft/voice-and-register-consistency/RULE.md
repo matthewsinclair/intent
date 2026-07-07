@@ -91,4 +91,4 @@ You'll design the persistence layer next. It's a foundational decision, so it is
 ## Further Reading
 
 - IN-AU-CRAFT-002 -- cross-chapter continuity, the sibling whole-corpus judgement rule.
-- IN-AU-STYLE-001 -- banned filler and house style, the mechanical counterpart that catches the individual words register drift tends to introduce.
+- IN-PR-STYLE-001 -- banned filler and house style, the mechanical counterpart that catches the individual words register drift tends to introduce.

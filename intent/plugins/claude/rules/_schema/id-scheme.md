@@ -8,12 +8,12 @@ Every rule in Intent's rule library has a stable, cite-able identifier.
 
 Three fixed segments separated by hyphens:
 
-| Segment  | Values                                                                                                                                  |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `IN-`    | Prefix. Fixed. Distinguishes Intent rules from `ETC-*` (elixir-test-critic) when both are loaded.                                       |
-| `<LANG>` | Language code. One of: `AG` (agnostic), `EX` (elixir), `RS` (rust), `SW` (swift), `LU` (lua), `SH` (shell — bash + zsh), `AU` (author). |
-| `<CAT>`  | Category code. Short abbreviation in uppercase (`CODE`, `TEST`, `ASH`, `PHX`, `LV`, `ARCH`, `MOCK`).                                    |
-| `<NNN>`  | Zero-padded 3-digit sequence, starting at `001`. Scope: unique within a `<LANG>-<CAT>` prefix.                                          |
+| Segment  | Values                                                                                                                                                |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `IN-`    | Prefix. Fixed. Distinguishes Intent rules from `ETC-*` (elixir-test-critic) when both are loaded.                                                     |
+| `<LANG>` | Language code. One of: `AG` (agnostic), `EX` (elixir), `RS` (rust), `SW` (swift), `LU` (lua), `SH` (shell — bash + zsh), `PR` (prose), `AU` (author). |
+| `<CAT>`  | Category code. Short abbreviation in uppercase (`CODE`, `TEST`, `ASH`, `PHX`, `LV`, `ARCH`, `MOCK`).                                                  |
+| `<NNN>`  | Zero-padded 3-digit sequence, starting at `001`. Scope: unique within a `<LANG>-<CAT>` prefix.                                                        |
 
 ## Examples
 
@@ -40,7 +40,8 @@ Fixed, two-letter, uppercase. Extending this list requires a schema bump.
 - `SW` — Swift
 - `LU` — Lua
 - `SH` — Shell (bash + zsh both fall under this code; per-rule frontmatter tags distinguish bash-specific, zsh-specific, or both)
-- `AU` — Author (books, courseware, long-form prose; the first non-code discipline pack)
+- `PR` — Prose (the shared prose-hygiene base: banned filler, vanity metrics, heading hygiene, the mechanical trope pass; depended on by every prose discipline, not generic to code)
+- `AU` — Author (books, courseware, long-form prose; builds on the `PR` prose base)
 
 Why two letters: short enough to read inline in Critic reports; distinct enough to grep.
 

@@ -1,6 +1,6 @@
 ---
-id: IN-AU-STYLE-004
-language: author
+id: IN-PR-STYLE-003
+language: prose
 category: style
 severity: recommendation
 title: One H1, no skipped heading levels
@@ -19,15 +19,15 @@ does_not_apply_when:
   - "Fragments included into a parent document, where the parent owns the H1"
   - "Formats where the H1 is supplied by front-matter/template rather than the body"
 tags:
-  - author
+  - prose
   - structure
   - headings
   - accessibility
   - mechanical
 references: []
-related_rules:
-  - IN-AU-STYLE-003
-aliases: []
+related_rules: []
+aliases:
+  - IN-AU-STYLE-004
 status: active
 version: 1
 ---
@@ -77,5 +77,5 @@ Two H1s in one document mean two competing titles: a generated table of contents
 
 ## Further Reading
 
-- IN-AU-STYLE-003 -- front-matter and objectives, the sibling structural rule.
-- Authored to be shared with a future `content` (web-content) pack.
+- Each prose discipline's front-matter rule (eg `IN-AU-STYLE-003` in the author pack) -- headings and front-matter together define a document's structure.
+- A shared `IN-PR-*` prose-base rule: it applies to author and content alike.

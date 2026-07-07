@@ -13,9 +13,9 @@ Read the full author rule pack via the installed Intent tool: `intent claude rul
 
 ## NEVER DO
 
-- NEVER ship LLM-assisted prose without the mechanical trope pass (`IN-AU-STYLE-005`); run the full `/in-detrope` before publication (`IN-AU-CRAFT-003`).
-- NEVER write `e.g.` or `i.e.` -- house style is `eg` / `ie`; avoid the banned filler in `IN-AU-STYLE-001`.
-- NEVER pad prose with vanity metrics or unearned numbers (`IN-AU-STYLE-002`).
+- NEVER ship LLM-assisted prose without the mechanical trope pass (`IN-PR-STYLE-004`); run the full `/in-detrope` before publication (`IN-AU-CRAFT-003`).
+- NEVER write `e.g.` or `i.e.` -- house style is `eg` / `ie`; avoid the banned filler in `IN-PR-STYLE-001`.
+- NEVER pad prose with vanity metrics or unearned numbers (`IN-PR-STYLE-002`).
 - NEVER fabricate, misattribute, or leave unsourced a quotation, statistic, or named study (`IN-AU-CRAFT-004`).
 - NEVER let voice or register drift into marketing copy across chapters (`IN-AU-CRAFT-001`).
 - NEVER silently redefine a term an earlier chapter established (`IN-AU-CRAFT-002`).

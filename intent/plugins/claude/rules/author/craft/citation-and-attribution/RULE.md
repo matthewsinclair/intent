@@ -80,4 +80,4 @@ In a 2019 survey of roughly 90,000 developers, a majority reported preferring th
 ## Further Reading
 
 - IN-AU-CRAFT-003 -- the full trope diagnosis; fabricated citations often travel with other LLM tells.
-- IN-AU-STYLE-002 -- no vanity metrics, a related discipline about not dressing prose in unearned numbers.
+- IN-PR-STYLE-002 -- no vanity metrics, a related discipline about not dressing prose in unearned numbers.

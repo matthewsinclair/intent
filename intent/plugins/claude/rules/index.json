@@ -1,5 +1,5 @@
 {
-  "intent_version": "2.14.0",
+  "intent_version": "2.15.1",
   "rule_count": 58,
   "rules": [
     {
@@ -276,7 +276,7 @@
       "concretised_by": [],
       "conflicts_with": [],
       "does_not_apply_when": [
-        "Before the mechanical pass (IN-AU-STYLE-005) has been run -- do that first, it is cheaper",
+        "Before the mechanical pass (IN-PR-STYLE-004) has been run -- do that first, it is cheaper",
         "Content that is legitimately about AI, where the trope vocabulary is on-topic"
       ],
       "id": "IN-AU-CRAFT-003",
@@ -287,7 +287,7 @@
       ],
       "references": [],
       "related_rules": [
-        "IN-AU-STYLE-005"
+        "IN-PR-STYLE-004"
       ],
       "severity": "recommendation",
       "source_path": "intent/plugins/claude/rules/author/craft/full-trope-diagnosis/RULE.md",
@@ -356,89 +356,6 @@
         "**/*.mdx"
       ],
       "applies_when": [
-        "Any prose file in an author project (chapters, courseware modules, blog drafts, essays)",
-        "LLM-assisted drafts, where machine-smoothing introduces filler and reflexive agreement"
-      ],
-      "category": "style",
-      "concretised_by": [],
-      "conflicts_with": [],
-      "does_not_apply_when": [
-        "Source material quoted verbatim -- a citation may legitimately contain the banned words",
-        "Text about the words themselves (a style guide that lists what to avoid)"
-      ],
-      "id": "IN-AU-STYLE-001",
-      "language": "author",
-      "principles": [
-        "house-style",
-        "no-tells"
-      ],
-      "references": [],
-      "related_rules": [
-        "IN-AU-STYLE-005"
-      ],
-      "severity": "warning",
-      "source_path": "intent/plugins/claude/rules/author/style/banned-filler-and-house-style/RULE.md",
-      "sources": [],
-      "status": "active",
-      "summary": ">",
-      "tags": [
-        "author",
-        "prose",
-        "house-style",
-        "mechanical"
-      ],
-      "title": "No banned filler; keep to house style",
-      "upstream_id": null,
-      "version": 1
-    },
-    {
-      "aliases": [],
-      "applies_to": [
-        "**/*.md"
-      ],
-      "applies_when": [
-        "Project meta-prose: module/chapter intros, progress notes, release notes, changelogs",
-        "Any place the author is tempted to quantify effort or output as a mark of merit"
-      ],
-      "category": "style",
-      "concretised_by": [],
-      "conflicts_with": [],
-      "does_not_apply_when": [
-        "Content where a count IS the subject (a data chapter reporting real figures, a statistics lesson)",
-        "Bibliographic or index counts that serve navigation, not self-congratulation"
-      ],
-      "id": "IN-AU-STYLE-002",
-      "language": "author",
-      "principles": [
-        "honest-prose",
-        "no-tells"
-      ],
-      "references": [],
-      "related_rules": [
-        "IN-AU-STYLE-001"
-      ],
-      "severity": "warning",
-      "source_path": "intent/plugins/claude/rules/author/style/no-vanity-metrics/RULE.md",
-      "sources": [],
-      "status": "active",
-      "summary": ">",
-      "tags": [
-        "author",
-        "prose",
-        "vanity-metrics",
-        "mechanical"
-      ],
-      "title": "No vanity metrics; size in T-shirts, not clocks",
-      "upstream_id": null,
-      "version": 1
-    },
-    {
-      "aliases": [],
-      "applies_to": [
-        "**/*.md",
-        "**/*.mdx"
-      ],
-      "applies_when": [
         "A manuscript chapter or courseware module maintained as an individual file",
         "Courseware, where each module should state what the learner will be able to do"
       ],
@@ -456,7 +373,7 @@
       ],
       "references": [],
       "related_rules": [
-        "IN-AU-STYLE-004"
+        "IN-PR-STYLE-003"
       ],
       "severity": "recommendation",
       "source_path": "intent/plugins/claude/rules/author/style/front-matter-and-objectives/RULE.md",
@@ -470,89 +387,6 @@
         "front-matter"
       ],
       "title": "Chapters and modules carry front-matter and objectives",
-      "upstream_id": null,
-      "version": 1
-    },
-    {
-      "aliases": [],
-      "applies_to": [
-        "**/*.md",
-        "**/*.mdx"
-      ],
-      "applies_when": [
-        "Any prose document with headings (chapters, modules, articles, long-form)"
-      ],
-      "category": "style",
-      "concretised_by": [],
-      "conflicts_with": [],
-      "does_not_apply_when": [
-        "Fragments included into a parent document, where the parent owns the H1",
-        "Formats where the H1 is supplied by front-matter/template rather than the body"
-      ],
-      "id": "IN-AU-STYLE-004",
-      "language": "author",
-      "principles": [
-        "structural-integrity"
-      ],
-      "references": [],
-      "related_rules": [
-        "IN-AU-STYLE-003"
-      ],
-      "severity": "recommendation",
-      "source_path": "intent/plugins/claude/rules/author/style/heading-hygiene/RULE.md",
-      "sources": [],
-      "status": "active",
-      "summary": ">",
-      "tags": [
-        "author",
-        "structure",
-        "headings",
-        "accessibility",
-        "mechanical"
-      ],
-      "title": "One H1, no skipped heading levels",
-      "upstream_id": null,
-      "version": 1
-    },
-    {
-      "aliases": [],
-      "applies_to": [
-        "**/*.md",
-        "**/*.mdx"
-      ],
-      "applies_when": [
-        "Any prose in an author project, especially LLM-assisted drafts",
-        "Before a human review pass -- the mechanical tells are cheap to catch first"
-      ],
-      "category": "style",
-      "concretised_by": [],
-      "conflicts_with": [],
-      "does_not_apply_when": [
-        "Text explicitly about AI (a chapter on language models contains the AI-identity vocabulary legitimately)",
-        "Quoted material reproduced verbatim"
-      ],
-      "id": "IN-AU-STYLE-005",
-      "language": "author",
-      "principles": [
-        "no-tells",
-        "reader-trust"
-      ],
-      "references": [],
-      "related_rules": [
-        "IN-AU-CRAFT-003"
-      ],
-      "severity": "warning",
-      "source_path": "intent/plugins/claude/rules/author/style/mechanical-trope-pass/RULE.md",
-      "sources": [],
-      "status": "active",
-      "summary": ">",
-      "tags": [
-        "author",
-        "detrope",
-        "tropes",
-        "mechanical"
-      ],
-      "title": "No unremediated mechanical AI tropes",
       "upstream_id": null,
       "version": 1
     },
@@ -1681,6 +1515,174 @@
         "busted"
       ],
       "title": "busted describe/it structure",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [
+        "IN-AU-STYLE-001"
+      ],
+      "applies_to": [
+        "**/*.md",
+        "**/*.mdx"
+      ],
+      "applies_when": [
+        "Any prose file in a prose project -- author (chapters, courseware modules) or content (pages, blog drafts, essays)",
+        "LLM-assisted drafts, where machine-smoothing introduces filler and reflexive agreement"
+      ],
+      "category": "style",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Source material quoted verbatim -- a citation may legitimately contain the banned words",
+        "Text about the words themselves (a style guide that lists what to avoid)"
+      ],
+      "id": "IN-PR-STYLE-001",
+      "language": "prose",
+      "principles": [
+        "house-style",
+        "no-tells"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-PR-STYLE-004"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/prose/style/banned-filler-and-house-style/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "prose",
+        "house-style",
+        "mechanical"
+      ],
+      "title": "No banned filler; keep to house style",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [
+        "IN-AU-STYLE-002"
+      ],
+      "applies_to": [
+        "**/*.md"
+      ],
+      "applies_when": [
+        "Project meta-prose: module/chapter intros, progress notes, release notes, changelogs",
+        "Any place the author is tempted to quantify effort or output as a mark of merit"
+      ],
+      "category": "style",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Content where a count IS the subject (a data chapter reporting real figures, a statistics lesson)",
+        "Bibliographic or index counts that serve navigation, not self-congratulation"
+      ],
+      "id": "IN-PR-STYLE-002",
+      "language": "prose",
+      "principles": [
+        "honest-prose",
+        "no-tells"
+      ],
+      "references": [],
+      "related_rules": [
+        "IN-PR-STYLE-001"
+      ],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/prose/style/no-vanity-metrics/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "prose",
+        "vanity-metrics",
+        "mechanical"
+      ],
+      "title": "No vanity metrics; size in T-shirts, not clocks",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [
+        "IN-AU-STYLE-004"
+      ],
+      "applies_to": [
+        "**/*.md",
+        "**/*.mdx"
+      ],
+      "applies_when": [
+        "Any prose document with headings (chapters, modules, articles, long-form)"
+      ],
+      "category": "style",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Fragments included into a parent document, where the parent owns the H1",
+        "Formats where the H1 is supplied by front-matter/template rather than the body"
+      ],
+      "id": "IN-PR-STYLE-003",
+      "language": "prose",
+      "principles": [
+        "structural-integrity"
+      ],
+      "references": [],
+      "related_rules": [],
+      "severity": "recommendation",
+      "source_path": "intent/plugins/claude/rules/prose/style/heading-hygiene/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "prose",
+        "structure",
+        "headings",
+        "accessibility",
+        "mechanical"
+      ],
+      "title": "One H1, no skipped heading levels",
+      "upstream_id": null,
+      "version": 1
+    },
+    {
+      "aliases": [
+        "IN-AU-STYLE-005"
+      ],
+      "applies_to": [
+        "**/*.md",
+        "**/*.mdx"
+      ],
+      "applies_when": [
+        "Any prose in a prose project (author or content), especially LLM-assisted drafts",
+        "Before a human review pass -- the mechanical tells are cheap to catch first"
+      ],
+      "category": "style",
+      "concretised_by": [],
+      "conflicts_with": [],
+      "does_not_apply_when": [
+        "Text explicitly about AI (a chapter on language models contains the AI-identity vocabulary legitimately)",
+        "Quoted material reproduced verbatim"
+      ],
+      "id": "IN-PR-STYLE-004",
+      "language": "prose",
+      "principles": [
+        "no-tells",
+        "reader-trust"
+      ],
+      "references": [],
+      "related_rules": [],
+      "severity": "warning",
+      "source_path": "intent/plugins/claude/rules/prose/style/mechanical-trope-pass/RULE.md",
+      "sources": [],
+      "status": "active",
+      "summary": ">",
+      "tags": [
+        "prose",
+        "detrope",
+        "tropes",
+        "mechanical"
+      ],
+      "title": "No unremediated mechanical AI tropes",
       "upstream_id": null,
       "version": 1
     },

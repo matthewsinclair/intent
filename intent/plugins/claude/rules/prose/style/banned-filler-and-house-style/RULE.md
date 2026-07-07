@@ -1,11 +1,12 @@
 ---
-id: IN-AU-STYLE-001
-language: author
+id: IN-PR-STYLE-001
+language: prose
 category: style
 severity: warning
 title: No banned filler; keep to house style
 summary: >
-  Prose in an author project holds to the house style: no banned filler
+  Prose in a project with a prose discipline (author or content) holds to
+  the house style: no banned filler
   (`overall`, `absolutely`), `eg` never `e.g.`, and no sycophantic openers
   ("You're right"). These are mechanical tells -- cheap in any prose, and in
   LLM-assisted drafts a marker that the text was machine-smoothed.
@@ -13,7 +14,7 @@ principles:
   - house-style
   - no-tells
 applies_when:
-  - "Any prose file in an author project (chapters, courseware modules, blog drafts, essays)"
+  - "Any prose file in a prose project -- author (chapters, courseware modules) or content (pages, blog drafts, essays)"
   - "LLM-assisted drafts, where machine-smoothing introduces filler and reflexive agreement"
 applies_to:
   - "**/*.md"
@@ -22,14 +23,14 @@ does_not_apply_when:
   - "Source material quoted verbatim -- a citation may legitimately contain the banned words"
   - "Text about the words themselves (a style guide that lists what to avoid)"
 tags:
-  - author
   - prose
   - house-style
   - mechanical
 references: []
 related_rules:
-  - IN-AU-STYLE-005
-aliases: []
+  - IN-PR-STYLE-004
+aliases:
+  - IN-AU-STYLE-001
 status: active
 version: 1
 ---
@@ -81,4 +82,4 @@ The earlier framing was off -- here is the correction.
 ## Further Reading
 
 - The project's `CLAUDE.md` house-style section -- the authoritative banned-words list for the project.
-- IN-AU-STYLE-005 -- the mechanical trope pass, the sibling mechanical-tell rule.
+- IN-PR-STYLE-004 -- the mechanical trope pass, the sibling mechanical-tell rule.
