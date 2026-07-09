@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.1] - 2026-07-09
+
+Patch release aligning Intent's `usage_rules` / `usage-rules.md` guidance with the library's v1.x model (ST0054), plus a set of workstream-hygiene fixes bundled with it. Everything here is documentation, skills, or self-contained CLI hygiene -- no change to the generator or the rule library.
+
+### Fixed
+
+- **`usage_rules` interop guidance brought up to the library's v1.x model (ST0054).** `working-with-llms.md`, `/in-standards` (plus the Elixir and Ash peer skills), and the `_usage-rules.md` template described the pre-v1.0, argument-driven `usage_rules`. They now describe the config-driven model (the `:usage_rules` mix.exs key; `mix usage_rules.sync` takes no task arguments; the inline / link / skills delivery modes), name the two distinct `usage-rules.md` artifacts (Intent's hand-authored project contract vs the library's per-dependency files), reference the topical `deps/*/usage-rules/*.md` sub-rule folders, and state Intent's `.claude/skills` coexistence policy (Intent projects stay Intent-native; leave the library's skill generation off). The `_usage-rules.md` template no longer carries a hard-coded Intent version that drifts between upgrades.
+- **`intent st new` and `st sync --write` now write canonical, deterministic markdown into `steel_threads.md`.** The persisted index was rendered through the terminal table renderer (pipeless, width-filled), so its content depended on the ambient terminal width and relied on a markdown linter to normalise it on save. `st sync --write` now emits content-fit GitHub-flavoured markdown (`| --- |`) that is identical regardless of terminal width; the on-screen `st list` / `wp list` display is unchanged.
+
+### Added
+
+- **`localfold` / `globalfold` vocabulary is now Intent canon.** `/in-finish` defines the two fold scopes -- localfold (per-workstream tidy before a compact) and globalfold (project-wide tidy before end of day, when all workstreams close out) -- and `/in-whiteboard` cross-references them to the per-node archive / release operations. Saying "localfold" or "globalfold" in an Intent project now has a defined meaning.
+- **`intent todo` surfaced in the session skills.** `/in-essentials`, `/in-start`, and `/in-next` now point at `intent todo` (the flat DOING / TODO / DONE projection of steel-thread status) so it is reached for during orientation and next-step selection.
+- **`intent todo` mutual guard with `utilz todo`.** `intent todo` stamps a `generator: intent todo` marker into the generated `intent/todo.md` frontmatter and refuses to overwrite a `todo.md` owned by another tool -- eg `utilz todo`, a fork sharing the file format, which stamps `generator: utilz todo`. Legacy `todo.md` files with no frontmatter are regenerated and gain the marker.
+
 ## [2.16.0] - 2026-07-08
 
 Minor release adding the **`content` (web-content) project-type pack** (ST0053) and the **`IN-PR-*` shared prose base** it is built on. `content` is the second prose discipline after `author`; both now stand on one shared mechanical prose surface rather than duplicating it. It is a minor, not a patch, because it adds a new project-type surface (and a shared base pack); it is strictly opt-in, with zero behaviour change for projects that do not declare `content`.
