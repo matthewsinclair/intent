@@ -87,9 +87,10 @@ setup_todo_project() {
   assert_line intent/todo.md "- [-] ST0005: held thread (on-hold)"
 }
 
-@test "todo.md has ONLY bucket headings and data (no title/legend/provenance)" {
+@test "todo.md is a generator marker + bucket headings + data (no human title/legend/provenance)" {
   setup_todo_project
   run_intent todo update
+  assert_file_contains intent/todo.md "generator: intent todo"
   assert_file_contains intent/todo.md "## DOING"
   assert_file_contains intent/todo.md "## TODO"
   assert_file_contains intent/todo.md "## DONE"
@@ -99,6 +100,36 @@ setup_todo_project() {
   assert_output "0"
   run grep -c "Legend" intent/todo.md
   assert_output "0"
+}
+
+# Mutual-guard with utilz `todo` (a fork sharing this file format): each tool
+# stamps `generator: <tool> todo` and refuses to overwrite a file owned by the other.
+@test "update refuses to overwrite a foreign (utilz todo) file" {
+  setup_todo_project
+  printf '%s\n' '---' 'generator: utilz todo' 'history: _hist/YYYYMMDD.md' '---' '' '## DOING' '' '01:[-] a utilz item' > intent/todo.md
+  run run_intent todo update
+  assert_failure
+  assert_output_contains "refusing to overwrite"
+  assert_file_contains intent/todo.md "generator: utilz todo"
+  assert_file_contains intent/todo.md "01:[-] a utilz item"
+}
+
+@test "update refuses a utilz file that predates the marker (title/history frontmatter)" {
+  setup_todo_project
+  printf '%s\n' '---' 'title: "# TODO"' 'history: _hist/YYYYMMDD.md' '---' '' '## DOING' '' '01:[-] a utilz item' > intent/todo.md
+  run run_intent todo update
+  assert_failure
+  assert_output_contains "foreign frontmatter"
+  assert_file_contains intent/todo.md "01:[-] a utilz item"
+}
+
+@test "update regenerates a legacy intent file (no frontmatter) and stamps the marker" {
+  setup_todo_project
+  printf '%s\n' '## DOING' '' '_(none)_' '' '## TODO' '' '_(none)_' '' '## DONE:2020-01-01T00:00:00Z' '' '_(none)_' > intent/todo.md
+  run run_intent todo update
+  assert_success
+  assert_file_contains intent/todo.md "generator: intent todo"
+  assert_file_contains intent/todo.md "ST0001: active thread"
 }
 
 @test "output is prettier-stable" {
