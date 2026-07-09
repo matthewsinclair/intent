@@ -120,14 +120,22 @@ export -f get_default_width
 # pipe-delimited with the same column count. $2 is the width to fill (the
 # terminal width): columns start content-fit (each sized to its widest cell) and
 # then grow to fill $2, so nothing is truncated and the table uses the full
-# width. $2 = 0 or absent renders content-fit only. THE list-table renderer
-# (Highlander): `intent st list` and `intent wp list` both render through this,
-# so their column layout cannot drift apart.
+# width. $2 = 0 or absent renders content-fit only. $3 is the output mode:
+# "terminal" (default) = pipeless, width-filled, for on-screen display; markdown
+# = leading/trailing pipes + a `| --- |` separator, always content-fit, for a
+# persisted file that must render as canonical GitHub-flavoured markdown and stay
+# stable regardless of the terminal width. THE list-table renderer (Highlander):
+# `intent st list` and `intent wp list` both render through this, so their column
+# layout cannot drift apart.
 render_table() {
   local header_line="$1"
   local target_width="${2:-0}"   # fill this width (the terminal); 0 = content-fit only
+  local mode="${3:-terminal}"    # terminal (pipeless, fill) | markdown (piped, content-fit)
   local -a headers=() rows=() widths=() cells=()
   local line i clen ncols dashes fmt seprow
+  # A persisted markdown file must not depend on the ambient terminal width, so
+  # markdown mode is always content-fit -- ignore any fill target.
+  [ "$mode" = "markdown" ] && target_width=0
 
   # `IFS='|' read` scopes IFS to the read command only -- no global save/restore,
   # so the caller's IFS (which may be unset) can't leak in and break the
@@ -188,7 +196,9 @@ render_table() {
     fi
   fi
 
-  # Build the row format ("%-w1s | %-w2s | ...") and the separator ("---|---").
+  # Build the row format and the separator. Terminal mode is pipeless
+  # ("%-w1s | %-w2s", "---|---"); markdown mode wraps every row in leading and
+  # trailing pipes ("| %-w1s | %-w2s |", "| --- | --- |") for canonical GFM.
   # Dashes come from `printf -v` + substitution, not `seq` word-splitting, so
   # they are independent of the caller's IFS.
   fmt=""
@@ -197,15 +207,29 @@ render_table() {
   while [ "$i" -lt "$ncols" ]; do
     printf -v dashes '%*s' "${widths[i]}" ''
     dashes="${dashes// /-}"
-    if [ "$i" -eq 0 ]; then
-      fmt="%-${widths[i]}s"
-      seprow="$dashes"
+    if [ "$mode" = "markdown" ]; then
+      if [ "$i" -eq 0 ]; then
+        fmt="| %-${widths[i]}s"
+        seprow="| $dashes"
+      else
+        fmt="$fmt | %-${widths[i]}s"
+        seprow="$seprow | $dashes"
+      fi
     else
-      fmt="$fmt | %-${widths[i]}s"
-      seprow="$seprow-|-$dashes"
+      if [ "$i" -eq 0 ]; then
+        fmt="%-${widths[i]}s"
+        seprow="$dashes"
+      else
+        fmt="$fmt | %-${widths[i]}s"
+        seprow="$seprow-|-$dashes"
+      fi
     fi
     i=$((i + 1))
   done
+  if [ "$mode" = "markdown" ]; then
+    fmt="$fmt |"
+    seprow="$seprow |"
+  fi
   fmt="$fmt\n"
 
   # Header, separator, then the data rows -- all through the one format.

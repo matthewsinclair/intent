@@ -1,8 +1,11 @@
 #!/usr/bin/env bats
-# Terminal-fit table widths: `st list`, `st sync`, and `wp list` render through
-# the shared render_table (bin/intent_helpers), which fills the terminal width
-# (or an explicit `--width`), with content-fit as the floor so nothing is ever
-# truncated. `st sync` composes `st list`, so their output is identical.
+# Terminal-fit table widths: `st list`, `st sync` (display), and `wp list` render
+# through the shared render_table (bin/intent_helpers), which fills the terminal
+# width (or an explicit `--width`), with content-fit as the floor so nothing is
+# ever truncated. `st sync` (display) composes `st list`, so their on-screen output
+# is identical. `st sync --write` is different: the PERSISTED steel_threads.md index
+# is canonical, content-fit markdown -- a file must render on GitHub and stay stable
+# regardless of the terminal, so it does NOT track terminal width.
 # `get_default_width` / `dft_width` remain defined for other generated content.
 
 load "../lib/test_helper.bash"
@@ -12,9 +15,9 @@ default_width_in() {
   /bin/bash -c "cd '$1' && source '$INTENT_HOME/bin/intent_helpers' && get_default_width"
 }
 
-# Longest content line inside the steel_threads.md index block.
-index_width() {
-  awk '/BEGIN: STEEL_THREAD_INDEX/{f=1;next} /END: STEEL_THREAD_INDEX/{f=0} f{if(length>m)m=length} END{print m+0}' "$1"
+# The steel_threads.md index block (between the markers), as a blob.
+index_block() {
+  sed -n '/BEGIN: STEEL_THREAD_INDEX/,/END: STEEL_THREAD_INDEX/p' "$1"
 }
 
 # Longest line of a captured stdout blob.
@@ -74,22 +77,33 @@ stdout_width() {
   [ "$output" = "$list_out" ] || fail "st list and st sync differ"
 }
 
-@test "st sync --write index fills the terminal width" {
+@test "st sync --write index is canonical markdown, independent of terminal width" {
   local d
   d=$(create_test_project "Width File")
   cd "$d"
   run_intent st new "a deliberately long steel thread title whose slug would truncate at eighty columns"
+
+  # The persisted index is a FILE: canonical GitHub-flavoured markdown, content-fit,
+  # and identical regardless of the ambient terminal -- unlike the on-screen table.
   export COLUMNS=200
   run run_intent st sync --write
   assert_success
   local wide
-  wide=$(index_width intent/st/steel_threads.md)
+  wide=$(index_block intent/st/steel_threads.md)
+
   export COLUMNS=60
   run run_intent st sync --write
   assert_success
   local narrow
-  narrow=$(index_width intent/st/steel_threads.md)
-  [ "$wide" -gt "$narrow" ] || fail "index width did not track terminal: 200->$wide 60->$narrow"
+  narrow=$(index_block intent/st/steel_threads.md)
+
+  [ "$wide" = "$narrow" ] || fail "index not deterministic across terminal widths (200 vs 60)"
+
+  # Canonical GFM: a piped header row and a `| --- |` delimiter row.
+  printf '%s\n' "$narrow" | grep -qE '^\| ID +\| Slug +\| Status +\| Created +\| Completed +\|$' \
+    || fail "index header is not canonical piped markdown"
+  printf '%s\n' "$narrow" | grep -qE '^\| -+ \| -+ \| -+ \| -+ \| -+ \|$' \
+    || fail "index separator is not a canonical | --- | delimiter row"
 }
 
 @test "explicit --width overrides the terminal width (list and sync alike)" {

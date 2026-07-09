@@ -790,6 +790,7 @@ TEMPLATE
     # Parse options
     STATUS=""
     WIDTH=0  # Default to terminal width
+    MARKDOWN=0  # Terminal display by default; --markdown emits canonical GFM (st sync --write)
     while [ $# -gt 0 ]; do
       case "$1" in
         --status)
@@ -800,6 +801,10 @@ TEMPLATE
         --width)
           shift
           WIDTH="$1"
+          shift
+          ;;
+        --markdown)
+          MARKDOWN=1
           shift
           ;;
         *)
@@ -1060,10 +1065,11 @@ TEMPLATE
     # --width). `st sync` composes `list`, so it resolves the same width here and
     # produces identical output.
     if [ "$WIDTH" -gt 0 ]; then table_width=$WIDTH; else table_width=$(get_terminal_width); fi
+    if [ "$MARKDOWN" -eq 1 ]; then render_mode=markdown; else render_mode=terminal; fi
     if [ ${#ordered_rows[@]} -gt 0 ]; then
-      printf '%s\n' "${ordered_rows[@]}" | render_table "ID|Slug|Status|Created|Completed" "$table_width"
+      printf '%s\n' "${ordered_rows[@]}" | render_table "ID|Slug|Status|Created|Completed" "$table_width" "$render_mode"
     else
-      render_table "ID|Slug|Status|Created|Completed" "$table_width" </dev/null
+      render_table "ID|Slug|Status|Created|Completed" "$table_width" "$render_mode" </dev/null
     fi
     ;;
     
@@ -1199,18 +1205,22 @@ TEMPLATE
       TMP_FILE=$(mktemp)
       LIST_OUTPUT=$(mktemp)
       
-      # Get list output silently
-      # Use the actual script path for recursive calls
+      # Get list output silently. The PERSISTED index is canonical GitHub-flavoured
+      # markdown (--markdown = piped, content-fit) so it renders on GitHub and is
+      # stable regardless of the terminal width -- unlike the on-screen `st list`
+      # table, which fills the terminal. See render_table (bin/intent_helpers).
       SCRIPT_PATH="${BASH_SOURCE[0]}"
-      "$SCRIPT_PATH" list $LIST_ARGS > "$LIST_OUTPUT" 2>/dev/null
-      
-      # Extract everything before the markers
+      "$SCRIPT_PATH" list $LIST_ARGS --markdown > "$LIST_OUTPUT" 2>/dev/null
+
+      # Extract everything before the markers (up to and including BEGIN)
       sed -n '1,/<!-- BEGIN: STEEL_THREAD_INDEX -->/p' "$INDEX_FILE" > "$TMP_FILE"
-      
-      # Add the list output
+
+      # Add the markdown table, blank-line padded so GFM parses it as a table
+      printf '\n' >> "$TMP_FILE"
       cat "$LIST_OUTPUT" >> "$TMP_FILE"
-      
-      # Add everything after the markers
+      printf '\n' >> "$TMP_FILE"
+
+      # Add everything after the markers (from END onward)
       sed -n '/<!-- END: STEEL_THREAD_INDEX -->/,$p' "$INDEX_FILE" >> "$TMP_FILE"
       
       # Update file and clean up
