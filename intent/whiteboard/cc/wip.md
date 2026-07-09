@@ -3,8 +3,8 @@ node: cc
 name: Control Claude
 role: control
 session_id: 4c632d01-b80b-44a9-8178-bb8e30e36ef2
-heartbeat_at: 2026-07-09T09:17Z
-status: active
+heartbeat_at: 2026-07-09T11:13Z
+status: paused
 focus: "v2.16.1 SHIPPED (2026-07-09): tag d2ddb96 both remotes + GitHub release (hv ran scripts/release --patch --skip-tests; full suite 100% green pre-cut); post-tag wrap 18bf8cc bumped config.json + CLAUDE.md -> 2.16.1; doctor green, tree clean. Contents: ST0054 (usage-rules v1.x alignment) + 4 companion chores -- C1 st-index markdown-persist fix, C2 localfold/globalfold canon, C3 intent todo in session skills, C4 intent<->utilz todo generator-marker guard. Two critic-shell passes CLEAN. OPEN follow-up (hv, separate repo): utilz-side `generator: utilz todo` marker + symmetric guard (handoff note delivered)."
 claims: [ST0054]
 ---
