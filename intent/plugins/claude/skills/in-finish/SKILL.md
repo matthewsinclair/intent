@@ -1,11 +1,20 @@
 ---
-description: "Session finish: update ST docs, wip.md, restart.md, commit cleanly"
+description: "Session finish (fold): update ST docs, wip.md, restart.md, commit cleanly. localfold = per-workstream before a compact; globalfold = project-wide before EOD"
 chains_to: ["in-whiteboard", "in-verify"]
 ---
 
 # Session Finish
 
 End-of-session wrap-up. Ensure all state is captured so the next session can pick up cleanly.
+
+## Fold scopes: localfold and globalfold
+
+"Fold" is shorthand for this wrap-up (compact, tidy, snapshot). Two scopes, coined in the Lamplight project:
+
+- **localfold** -- per-workstream tidy before a **compact** or context reset. Fold only THIS workstream's own Intent docs and whiteboard node: its ST/WP docs, its in-progress state, and (in a whiteboard project) its own-node `archive` + `release`. Scope is just you; you do not touch project-wide docs or other nodes.
+- **globalfold** -- project-wide tidy before **end of day**, when all workstreams close out. Fold the shared project tracking docs (`intent/wip.md`, `intent/restart.md`, `.claude/restart.md`, `done.md`) into a coherent snapshot. In a multi-node setup this is typically the coordinating / validation workstream's job, not every node's.
+
+When the human says "localfold", run the wrap below scoped to your own workstream; when they say "globalfold", run the project-wide version across the shared docs. A solo project has one workstream, so local and global coincide.
 
 ## Procedure
 

@@ -183,6 +183,10 @@ Roll your OWN node's DONE content out of the live files into your own history, d
 
 1. Set your `wip.md` `status: paused`; update `heartbeat_at`. Leave `claims` + body intact.
 
+### Fold vocabulary (localfold / globalfold)
+
+The human may say "localfold" or "globalfold" (terms from Lamplight; defined in `/in-finish`). In whiteboard terms: **localfold** = tidy your OWN node before a compact -- migrate settled `## Decisions` into `wip.md`, `archive` your own DONE content, then `release`. **globalfold** = the project-wide snapshot (`intent/wip.md` / `restart.md` / `done.md`), typically the coordinating / validation node's job, not a per-node op. Either way you only ever fold your own `<you>/` directory.
+
 ### status
 
 1. Read every `<node>/wip.md` frontmatter.
