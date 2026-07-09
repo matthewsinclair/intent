@@ -25,8 +25,8 @@ Read these files (skip any that don't exist):
 
 ### 3. Review open steel threads
 
-Run `intent st list` to see in-progress work.
-Run `intent st list --status not-started` to see queued work.
+Run `intent todo` for the flat DOING / TODO / DONE view across all threads and work packages (projected from their real status) -- the fastest read on where things stand.
+Run `intent st list` to see in-progress work; `intent st list --status not-started` to see queued work.
 
 ### 4. Provide orientation overview
 

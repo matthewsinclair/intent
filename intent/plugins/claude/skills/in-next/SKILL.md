@@ -11,6 +11,7 @@ Mid-session checkpoint to pick the next unit of work. Prevents drift and keeps w
 
 ### 1. Review current state
 
+- Run `intent todo` for the flat DOING / TODO / DONE view (projected from real ST/WP status)
 - Check the current steel thread and work package status
 - Read `intent/wip.md` for context
 - Review any open tasks or TODOs in the current WP

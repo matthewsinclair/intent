@@ -116,6 +116,16 @@ intent wp start ST0005/01
 intent wp done ST0005/01
 ```
 
+### 9. Use `intent todo` for the flat work view
+
+`intent todo` projects a flat DOING / TODO / DONE view across all steel threads and work packages from their real status (into `intent/todo.md`). Reach for it to see where things stand and to drive next steps. It is GENERATED from ST/WP status -- do not hand-maintain a separate list that would drift from the threads.
+
+```bash
+intent todo              # show the flat DOING / TODO / DONE view
+intent todo update       # regenerate from current ST/WP status
+intent todo --json       # machine-readable view
+```
+
 ## Red Flags
 
 | Rationalization                           | Reality                                                |
