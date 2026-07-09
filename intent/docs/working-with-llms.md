@@ -18,7 +18,7 @@ The doc is deliberately opinionated: the canon is already decided, and the decis
 - Extensions at ~/.intent/ext/
 - Per-language canon (intent lang init)
 - Socrates vs Diogenes FAQ
-- For Elixir projects: mix usage_rules.sync interop
+- For Elixir projects: usage_rules interop
 - Troubleshooting
 - See also
 
@@ -121,7 +121,7 @@ Rule of thumb: if a directive applies to any LLM tool, it goes in `AGENTS.md`. I
 
 Root `usage-rules.md` is kept and refreshed. An Intent-authored template lands at `lib/templates/llm/_usage-rules.md` and is planted in downstream projects by `intent claude upgrade --apply`.
 
-Why: the Elixir ecosystem has a mature per-package `usage-rules.md` convention. Each package ships a `usage-rules.md` at the dep root; `mix usage_rules.sync` discovers them and gathers them into the project-level `AGENTS.md`. Intent runs Elixir fleet projects (Lamplight, Laksa, Anvil, the Arca trio, Conflab, MeetZaya, MicroGPTEx, Multiplyer, Prolix) that already benefit from this pattern. Removing `usage-rules.md` would break alignment with Elixir's most mature LLM-guidance convention for no gain. No equivalent convention exists yet for Python, Node, Ruby, Rust — but Intent's approach is forward-compatible.
+Why: the Elixir ecosystem has a mature per-package `usage-rules.md` convention. Each package ships a `usage-rules.md` at the dep root; `mix usage_rules.sync` can aggregate them into a target file when configured (see the interop section below). Intent runs Elixir fleet projects (Lamplight, Laksa, Anvil, the Arca trio, Conflab, MeetZaya, MicroGPTEx, Multiplyer, Prolix) that already benefit from this pattern. Removing `usage-rules.md` would break alignment with Elixir's most mature LLM-guidance convention for no gain. No equivalent convention exists yet for Python, Node, Ruby, Rust — but Intent's approach is forward-compatible.
 
 Split with `AGENTS.md`: `usage-rules.md` = terse DO / NEVER contract. `AGENTS.md` = broad navigation and state. They co-exist cleanly.
 
@@ -473,20 +473,47 @@ Both use Socratic-dialog methodology. Both have Greek-philosopher names. That's 
 
 They're not variants of the same agent. Renaming one (e.g., `socrates-test`) would falsely imply they share a domain, and they don't. Consolidating into "Socrates with modes" would force unrelated personas — Socrates + Plato vs Aristotle + Diogenes — into one agent and muddy both. The clean separation stays; documentation is the fix.
 
-## For Elixir projects: mix usage_rules.sync interop
+## For Elixir projects: usage_rules interop
 
-Elixir projects using Intent inherit a useful interop with the Ash Framework's `usage_rules` Hex package (`mix usage_rules.sync`).
+Elixir projects using Intent share a filename with the Ash ecosystem's `usage_rules` Hex package (`mix usage_rules.sync`), and the two `usage-rules.md` artifacts are easy to conflate. They are different things:
 
-How `mix usage_rules.sync` works: it scans the project's dependencies for `deps/<dep>/usage-rules.md` files and gathers them into a project-level `AGENTS.md`. The project's own root `usage-rules.md` is included in the gathered set.
+- **Intent's `usage-rules.md`** (this project's, at the repo root) -- a hand-authored DO / NEVER contract for the project, templated by `lib/templates/llm/_usage-rules.md`, linked from the generated `AGENTS.md`. Intent never generates or rewrites it; you own its content.
+- **The library's `usage-rules.md`** -- per-dependency rule files (`deps/<pkg>/usage-rules.md`, plus topical `deps/<pkg>/usage-rules/<topic>.md` folders) that ship inside your deps. The `usage_rules` tool aggregates these into a target file or repackages them as agent skills.
 
-How Intent plays with it: Intent's templated root `usage-rules.md` is hand-authored Markdown, not generated. `mix usage_rules.sync` reads it as-is. No Intent-specific tooling is required — if you're already running `mix usage_rules.sync` for your deps, adding Intent's `usage-rules.md` to the mix works without configuration.
+### How usage_rules v1.x works
 
-Two practical consequences:
+As of v1.x the tool is config-driven, not argument-driven. All setup lives in your `mix.exs` `project/0` under a `:usage_rules` keyword list, and `mix usage_rules.sync` takes no task arguments (only Igniter globals such as `--yes`, `--dry-run`, `--check`). The config is the source of truth: content is regenerated between markers on each run, and packages dropped from the config are pruned.
 
-1. **AGENTS.md generation source of truth.** Intent's `intent agents sync` and Ash's `mix usage_rules.sync` can coexist, but pick one as the source of truth for the final `AGENTS.md` and disable the other's generation step. Intent's is generally preferred for Intent-using projects; deps' `usage-rules.md` content can be surfaced via Intent's own discovery if needed.
-2. **Deps' rules are additive, not competitive.** Your project's root `usage-rules.md` describes project rules. `deps/ash/usage-rules.md`, `deps/phoenix_live_view/usage-rules.md`, and so on describe package rules. They aren't in conflict — they describe different domains. Both are useful.
+```elixir
+def project do
+  [
+    # ...
+    usage_rules: [
+      file: "AGENTS.md",               # aggregate deps' rules into this file
+      usage_rules: [:ash, ~r/^ash_/],  # which deps to include (inline by default)
+      skills: [location: ".claude/skills", build: [...]]  # optional skill generation
+    ]
+  ]
+end
+```
 
-For non-Elixir projects, `usage-rules.md` is still useful as a prescriptive DO / NEVER file, but the `mix usage_rules.sync` interop does not apply.
+A dependency's rules can be delivered three ways:
+
+- **inline** (default) -- the dep's `usage-rules.md` is written straight into `file:`.
+- **link** -- `{:dep, link: :at}` writes `@deps/dep/usage-rules.md`; `{:dep, link: :markdown}` writes a markdown link. The content stays in `deps/`.
+- **skills** -- `skills:` generates `SKILL.md` files (default `.claude/skills/`) carrying `managed-by: usage-rules` frontmatter. `deps:` builds a `use-<pkg>` skill per dependency; `build:` composes one skill (eg `ash-framework`, `phoenix-framework`) from several deps; `package_skills:` copies skills a package ships.
+
+The v0.x argument form (`mix usage_rules.sync AGENTS.md --all --link-to-folder deps`) and the `link_to_folder` / `link_style` / `inline` options are gone. There is no zero-config mode: Intent's root `usage-rules.md` is not auto-included unless you name it in the config.
+
+### Coexistence policy: Intent projects stay Intent-native
+
+The `usage_rules` skills mode writes into `.claude/skills/` -- the same directory, and the same domains, as Intent's own curated skills (`in-ash-ecto-essentials`, `in-phoenix-liveview`, `in-elixir-essentials`). Two tools writing dependency-rule skills into one directory is a live collision.
+
+Intent's policy is that an Intent project stays Intent-native: Intent's curated skills plus `/in-standards`' on-demand `deps/*/usage-rules{,/**}.md` reads are the source of truth for dependency rules. In an Intent project, leave the `usage_rules` `skills:` generation off, so the two tools are not writing the same `.claude/skills` domains. A project that specifically wants library-generated skills must scope them to non-overlapping names and owns that reconciliation.
+
+Aggregation into a file coexists fine and is additive: your project's root `usage-rules.md` describes project rules, the deps' files describe package rules, and they cover different domains. For `AGENTS.md` itself keep one generator as the source of truth -- Intent's `intent agents sync` for Intent projects -- and do not also point the `usage_rules` `file:` at `AGENTS.md`.
+
+For non-Elixir projects, `usage-rules.md` is still useful as a prescriptive DO / NEVER file, but the `usage_rules` interop does not apply.
 
 ## Troubleshooting
 

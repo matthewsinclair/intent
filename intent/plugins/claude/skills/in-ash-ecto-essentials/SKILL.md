@@ -29,7 +29,7 @@ Not yet first-class rules — treat as mandatory Ash discipline:
 
 ### 3. Check Ash Usage Rules
 
-When the task deepens, read `deps/ash/usage-rules.md` for the upstream authoritative contract. Intent's rules are a subset — framework Usage Rules are the ground truth for anything this skill doesn't cover.
+When the task deepens, read `deps/ash/usage-rules.md` -- plus any topical sub-rules Ash ships in `deps/ash/usage-rules/*.md` -- for the upstream authoritative contract. Intent's rules are a subset; framework Usage Rules are the ground truth for anything this skill doesn't cover.
 
 ## Red Flags
 

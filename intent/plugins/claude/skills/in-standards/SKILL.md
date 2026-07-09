@@ -33,6 +33,7 @@ Each rule has `concretised_by:` language-specific rules. For Elixir: `IN-EX-CODE
 - `deps/ash_postgres/usage-rules.md`
 - `deps/phoenix_live_view/usage-rules.md`
 - Any other `deps/*/usage-rules.md` or `deps/*/AGENTS.md` relevant to the task
+- Topical sub-rules: the `deps/*/usage-rules/*.md` folders that v1.x deps ship alongside the single file (eg `deps/usage_rules/usage-rules/{elixir,otp}.md`). Read these too, not just the top-level `usage-rules.md`.
 
 ### 4. Load the language skill when coding begins
 
