@@ -5,14 +5,17 @@
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the gate. (Languages: shell only.) Intent has a whiteboard (`intent/whiteboard/`, hv+cc+vc) -- so `/in-session` step 5 chains `/in-whiteboard pickup`. This is a solo session unless you were launched as a node via `intent claude start <ws>`.
 2. **Read this file + `intent/wip.md`.**
 
-## State: v2.16.0 SHIPPED (ST0053 content pack + IN-PR-* prose base)
+## State: v2.16.1 SHIPPED (ST0054 usage-rules v1.x alignment + 4 companion chores)
 
-**v2.16.0 SHIPPED** (tag `v2.16.0` `6a6c7d8`, both remotes + GitHub release; post-tag config wrap `dc6deca` -> intent_version 2.16.0, doctor green). A minor -- new project-type surface + a shared base pack; opt-in, zero behaviour change until a project runs `intent lang init content`. **ST0053 -- the `content` (web-content) pack + the `IN-PR-*` prose base.** The four shared mechanical rules (banned filler, vanity metrics, heading hygiene, mechanical trope pass) lifted out of `author` into a `prose` base (Highlander); `author` refactored onto it. `content` adds six `IN-CO-*` web rules (page meta, alt-text, links / scannability, CTA, reading-level) in `style`/`craft` tiers. `critic-author` renamed to `critic-prose`, parameterised by declared language (loads the base + author and/or content per config `languages`). `intent lang init content` canon; `/in-content-essentials` + `content -> critic-prose` dispatch. Six WPs, 15/15 through the gate; dogfooded on `docs/blog/*.md` (description/canonical added to 7 posts, "seamless" reworded); `overall` dropped from `IN-PR-STYLE-001` (v2). Detail: `intent/st/COMPLETED/ST0053/`; narrative `intent/history/v2.16.0.md`.
+**v2.16.1 SHIPPED** (tag `v2.16.1` `d2ddb96`, both remotes + GitHub release; post-tag wrap `18bf8cc` -> config.json + CLAUDE.md 2.16.1, doctor green, tree clean). A patch -- documentation / skills alignment + self-contained CLI hygiene; no generator or rule-library change. **ST0054 -- usage-rules.md aligned to `usage_rules` v1.x** (surfaced by a Laksa deps-hygiene sweep, usage_rules 0.1.26 -> 1.2.6). Intent's docs, `/in-standards`, and the `_usage-rules.md` template described the pre-v1.0 argument-driven tool; now the config-driven `:usage_rules` mix.exs model, the two distinct `usage-rules.md` artifacts (Intent's project contract vs the library's per-dep files), topical `deps/*/usage-rules/*.md` folders, and the `.claude/skills` coexistence policy (Intent stays Intent-native; library skill-gen off). 3 WPs, 6/6 ACs through the gate. Companion chores (hv-scoped, no new STs): **C1** `st sync --write` writes deterministic canonical GFM into `steel_threads.md` (`render_table` content-fit markdown mode on the file-persist path only; display unchanged); **C2** `localfold`/`globalfold` now Intent canon (`/in-finish` + `/in-whiteboard`); **C3** `intent todo` surfaced in `/in-essentials` / `/in-start` / `/in-next`; **C4** `intent todo` <-> `utilz todo` mutual generator-marker guard. Two critic-shell passes clean. Detail: `intent/st/COMPLETED/ST0054/`; CHANGELOG `[2.16.1]`.
 
-**v2.15.1 (prior) SHIPPED.** Shared `render_table` (terminal-fit, `st list` == `st sync`) + `intent todo` Highlander + `confirm()` hardening + CI apt. Tag `2cdb5b5`, wrap `0e7039d`.
+**v2.16.0 (prior) SHIPPED.** ST0053 -- the `content` (web-content) pack + the `IN-PR-*` prose base; `critic-author` -> `critic-prose`. Narrative `intent/history/v2.16.0.md`.
+
+**v2.15.1 (prior) SHIPPED.** Shared `render_table` (`st list` == `st sync`) + `intent todo` Highlander + `confirm()` hardening. Tag `2cdb5b5`.
 
 ## Open follow-ups (non-blocking)
 
+- **Utilz-side todo guard (v2.16.1 C4 follow-up, separate repo):** add `generator: utilz todo` frontmatter + the symmetric refuse-to-clobber guard to `utilz todo` (handoff note delivered to hv).
 - **AT-name traceability (v2.14.1 vc deferral):** make `acceptance.md` ATs grep-able to bats `@test` names -- a framework-wide convention; hv to ratify.
 - **`scripts/release` v2 polish:** auto-stamp the config.json version bump (still a manual post-tag wrap).
 - **Deferred:** the headless `intent critic prose` gate (D4 -- path-based selection + house-style suppression; the ST0053 dogfood re-confirmed the need).
@@ -24,7 +27,7 @@
 
 ## Fleet
 
-Members pick up v2.16.0 on their next `intent upgrade` -- the `content` pack + `IN-PR-*` base are inert until a project runs `intent lang init content`; `critic-author` is renamed to `critic-prose`. Excludes Pplr, Sites-in-Laksa, llm-tropes.
+Members pick up v2.16.1 on their next `intent upgrade` -- the ST0054 doc/skill updates, the `intent todo` generator-marker guard, and the localfold/globalfold canon (all additive/inert). Excludes Pplr, Sites-in-Laksa, llm-tropes.
 
 ## Conventions
 
