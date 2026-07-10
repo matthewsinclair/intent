@@ -5,7 +5,7 @@ role: control
 session_id: 7ba41ae6-fc6b-4845-9c8e-af601bbf64ac
 heartbeat_at: 2026-07-10T16:15Z
 status: active
-focus: "ST0055 (intent issues command) BUILT + critic-clean. Dir-per-issue tracker (5 verbs + new alias, --severity, --json) + companion pipe-sanitize fix. 22 new bats green, no regressions, critic-shell clean (2 passes), doctor green. Acceptance 20/22, BLOCKED only on AC-04.1 (matts full suite) + AC-05.1 (post-ship fleet normalise). Awaiting hv: full suite + verify + release decision. v2.16.1 shipped 2026-07-09."
+focus: "v2.17.0 SHIPPED (2026-07-10): `intent issues` command (ST0055) + pipe-sanitize fix + scripts/release->bin/release move. Tag b7e94e2 + wrap 20c1b5f, both remotes + GitHub release, doctor green, tree clean. REMAINING: WP-05 fleet normalise -- Utilz+Conflab done (uncommitted in their own repos, hv to commit there), Lamplight DEFERRED (needs hv decision). ST0055 stays WIP until Lamplight (AC-05.1)."
 claims: [ST0055]
 ---
 
@@ -13,7 +13,11 @@ claims: [ST0055]
 
 ## DOING
 
-**2026-07-10 -- ST0055: `intent issues` SHIPPED-READY as v2.17.0 (minor). Release staged, awaiting hv `bin/release --minor`.** Command built + critic-clean (2 passes, 0 crit/0 warn) + gate 22/22-satisfiable (hv confirmed full suite passes). AS-BUILT: `bin/intent_issues` (thin coordinator, 5 verbs + `new` alias, `--severity`, `--json`), dir-per-issue (Lamplight model), `lib/templates/issues/_ISSUE.md` (Intent-owned), MODULES + `intent help`. Helpers: `slugify` promoted (Highlander) + `sanitize_title`. Companion chore: pipe-`|`-in-title fix. Tests 22 new green, no regression, doctor green. RELEASE PREP: `docs/releases/2.17.0/RELEASE_NOTES.md` + CHANGELOG `[2.17.0]` written. Dogfood: Intent issue 0001 (the pipe bug) filed + closed. WP-05 fleet: Utilz + Conflab normalised (uncommitted in their own repos, hv commits); Lamplight DEFERRED post-ship (messy: multi-.md per issue + PENDING/RESOLVED/DONE statuses -- needs hv decision + likely a primary-file robustness tweak to `issue_file`).
+**2026-07-10 -- v2.17.0 SHIPPED. `intent issues` (ST0055) live.** Tag `b7e94e2` (release) + `20c1b5f` (post-tag wrap: config.json + CLAUDE.md -> 2.17.0), both remotes + GitHub release, doctor green, tree clean. hv ran `bin/release --minor` (full suite green in pre-flight). Contents: `bin/intent_issues` (dir-per-issue tracker, 5 verbs + `new` alias, `--severity`, `--json`) + companion pipe-`|`-in-title fix (`sanitize_title` at st/wp/issues input, `slugify` promoted to helpers) + `scripts/release` -> `bin/release` fleet-align. 22 new bats + no regressions; critic-shell clean (2 passes). Dogfood: Intent issue 0001 (the pipe bug) filed + closed via the new command. `docs/releases/2.17.0/RELEASE_NOTES.md` + CHANGELOG `[2.17.0]`.
+
+**Open (post-ship):**
+
+- **WP-05 fleet normalise:** Utilz + Conflab already normalised to canon (dir-per-issue, `_templ` dropped) but the changes sit UNCOMMITTED in their own repos -- hv commits there. Lamplight DEFERRED -- messy (multi-`.md` per issue collides with `issue_file`'s first-match; statuses PENDING/RESOLVED/DONE) -- needs hv decision + likely an `issue_file` primary-file robustness tweak. ST0055 stays WIP until this closes (AC-05.1).
 
 ## TODO
 
