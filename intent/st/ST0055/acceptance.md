@@ -55,9 +55,10 @@ None -- WP-distributed. The steel thread is done when WP-01..04 ACs are all sati
 
 (The close-gate is the verification mechanism, not a criterion -- there is no self-referential "gate PASS" AC.)
 
-### WP-05 -- Fleet normalisation (status: planned; POST-SHIP chore, cross-repo)
+### WP-05 -- Fleet normalisation (status: done; shipped in v2.17.1)
 
-- AC-05.1 (non-test) Every fleet project with an `intent/issues/` tree (Lamplight, Conflab, Utilz, Intent) is normalised to the ratified canon: directory-per-issue `{OPEN,CLOSED}/NNNN/NNNN-slug.md`, `RESOLVED` -> CLOSED, vendored `_templ/` removed (Intent now owns the template). -- evidence: per-repo `intent issues list` clean + tree diff -- satisfied: no
+- AC-05.1 (non-test) Every fleet project with an `intent/issues/` tree (Lamplight, Conflab, Utilz, Intent) is normalised to the ratified canon: directory-per-issue `{OPEN,CLOSED}/NNNN/NNNN-slug.md`, `RESOLVED` -> CLOSED, vendored `_templ/` removed (Intent now owns the template). -- evidence: Utilz (0171297), Lamplight (7058fd3a8), Conflab (49428b4f), Intent (issue 0001) all dir-per-issue, statuses CLOSED, _templ dropped; verified via intent issues list --kind all -- satisfied: yes
+- AC-05.2 `issue_file` picks the frontmatter-bearing primary among a multi-`.md` issue directory (legacy satellites like `NNNN-resolved.md` / `-session.md` carry no frontmatter), so `show` / `list` never surface an empty satellite. Required to adopt Lamplight's rich issues.
 
 ## Acceptance Tests
 
@@ -96,4 +97,5 @@ Test file: `tests/unit/intent_issues.bats` (to be created red-first).
 
 ### WP-05
 
+- AT-05.2 tests/unit/intent_issues.bats::"show: picks the frontmatter-bearing primary among multi-file issue dirs" -- covers AC-05.2 -- status: green
 - Coverage: AC-05.1 is non-test (cross-repo, post-ship; evidence = per-repo `intent issues list` + tree diff).

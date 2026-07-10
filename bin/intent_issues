@@ -87,12 +87,21 @@ find_issue_dir() {
   return 1
 }
 
-# Echo the single .md file inside an issue directory (the NNNN-slug.md).
+# Echo the primary .md file for an issue directory. A new issue has exactly one
+# NNNN-slug.md; an adopted legacy issue (eg Lamplight) may carry satellites
+# (NNNN-resolved.md, NNNN-session.md) that have no frontmatter -- so prefer the
+# NNNN-*.md that carries a `status:` frontmatter line, and fall back to the
+# first NNNN-*.md. An absent/unreadable dir yields empty (callers guard with
+# `[ -n "$file" ]`). Glob loops (no `$(find ...)`) so nothing is word-split.
 issue_file() {
-  local dir="$1"
-  # 2>/dev/null: an absent/unreadable dir is a normal empty result -- callers
-  # guard the output with `[ -n "$file" ]`.
-  find "$dir" -maxdepth 1 -name "$(basename "$dir")-*.md" 2>/dev/null | head -1
+  local dir="$1" id f
+  id=$(basename "$dir")
+  for f in "$dir/$id-"*.md; do
+    if [ -f "$f" ] && grep -q '^status:' "$f" 2>/dev/null; then echo "$f"; return; fi
+  done
+  for f in "$dir/$id-"*.md; do
+    [ -f "$f" ] && { echo "$f"; return; }
+  done
 }
 
 # Read a frontmatter field from an issue file.

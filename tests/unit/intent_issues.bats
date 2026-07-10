@@ -148,6 +148,17 @@ teardown() {
   assert_output_contains "0001"
 }
 
+@test "show: picks the frontmatter-bearing primary among multi-file issue dirs" {
+  run run_intent issues add "Primary issue"
+  # A frontmatter-less satellite that sorts BEFORE the primary alphabetically.
+  cat > "intent/issues/OPEN/0001/0001-aaa-resolved.md" <<'EOF'
+# 0001: resolution note (no frontmatter)
+EOF
+  run run_intent issues show 1 --json
+  assert_success
+  echo "$output" | jq -e '.title == "Primary issue"'
+}
+
 @test "show --json: emits valid JSON with expected fields" {
   run run_intent issues add --severity low "Jsonme"
   run run_intent issues show 1 --json

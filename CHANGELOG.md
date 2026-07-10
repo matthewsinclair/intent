@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.17.1] - 2026-07-10
+
+Patch release hardening `intent issues` for adopting legacy issue trees, and completing the fleet normalisation begun in 2.17.0 (ST0055 / WP-05).
+
+### Fixed
+
+- **`intent issues` now picks the right primary file in a multi-`.md` issue directory.** An issue directory adopted from an ad-hoc tree may hold satellites alongside its primary (`NNNN-resolved.md`, `NNNN-session.md`) that carry no frontmatter. `issue_file` used to take the first `NNNN-*.md` alphabetically, so `show` / `list` could read an empty satellite (eg Lamplight's `0003-resolved.md` sorted before `0003-runtime-interaction-gaps.md`). It now prefers the `NNNN-*.md` carrying a `status:` frontmatter line, falling back to first-match for single-file issues. Regression test added.
+
+### Changed
+
+- **Fleet issue trees normalised to the directory-per-issue canon (ST0055 / WP-05).** Utilz, Conflab, and Lamplight had ad-hoc `intent/issues/` trees; all are now directory-per-issue with `status: CLOSED` on closed issues and the vendored `_templ/` removed (Intent owns the template). Cross-repo, maintainer-side; no change to Intent's own behaviour.
+
 ## [2.17.0] - 2026-07-10
 
 Minor release adding **`intent issues`** (ST0055) -- a first-class, lightweight issue tracker built into the CLI, formalising the ad-hoc `intent/issues/` convention into a supported command. It is a minor, not a patch, because it adds a new command surface; it is additive, with zero behaviour change for projects that never run it, and the issues tree is created lazily on first use.
