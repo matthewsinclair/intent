@@ -1,0 +1,309 @@
+#!/bin/bash
+# intent_issues - lightweight, first-class issue tracker for Intent projects
+# Copyright (c) 2026 Matthew Sinclair
+# Licensed under the MIT License (see LICENSE file)
+#
+# Directory-per-issue under intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md
+# (the Lamplight model). The bucket directory is the authoritative status; the
+# frontmatter `status:` field mirrors it. Template is Intent-owned
+# (lib/templates/issues/_ISSUE.md) -- never vendored per project. See ST0055.
+
+set -e
+
+source "$INTENT_HOME/bin/intent_helpers"
+
+ISSUES_DIR="intent/issues"
+TEMPLATE="$INTENT_HOME/lib/templates/issues/_ISSUE.md"
+VALID_SEVERITIES="critical high medium low"
+
+usage() {
+  cat <<'EOF'
+Usage: intent issues <command> [options]
+
+Commands:
+  list [--kind open|closed|all]   List issues (default: open)
+  add [--severity SEV] TITLE      Add a new issue, print its ID:TITLE (alias: new)
+  show ID [--json]                Show one issue (optionally as JSON)
+  close ID                        Mark an issue done: OPEN -> CLOSED
+  open ID                         Reopen an issue: CLOSED -> OPEN
+  help                            Show this help
+
+Severities: critical | high | medium | low (default: medium)
+Issues live under intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md
+EOF
+}
+
+# --- shared helpers ------------------------------------------------------------
+
+# Lazily create the issues tree. Called by verbs that write; readers tolerate
+# an absent tree and simply report nothing.
+ensure_scaffold() {
+  local bucket
+  for bucket in OPEN CLOSED; do
+    if [ ! -d "$ISSUES_DIR/$bucket" ]; then
+      mkdir -p "$ISSUES_DIR/$bucket"
+      touch "$ISSUES_DIR/$bucket/.gitkeep"
+    fi
+  done
+}
+
+# Next zero-padded 4-digit id = max(existing across OPEN + CLOSED) + 1.
+# Modelled on get_next_steel_thread_id (bin/intent_st) -- different tree, no
+# prefix, two bucket dirs -- so it is a distinct traversal, not a duplicate.
+# Glob loop (not `$(find ...)`) so paths are never word-split / glob-expanded;
+# the `[ -d ]` guard skips the literal pattern when a bucket is empty.
+issues_next_id() {
+  local max_id=0 dir id_str id
+  for dir in "$ISSUES_DIR"/OPEN/[0-9][0-9][0-9][0-9] "$ISSUES_DIR"/CLOSED/[0-9][0-9][0-9][0-9]; do
+    [ -d "$dir" ] || continue
+    id_str=$(basename "$dir")
+    if [[ "$id_str" =~ ^[0-9]+$ ]]; then
+      id=$((10#$id_str))
+      [ "$id" -gt "$max_id" ] && max_id=$id
+    fi
+  done
+  printf "%04d" $((max_id + 1))
+}
+
+# Normalise a raw id (1, 42, 0007) to the zero-padded canonical form. Sibling of
+# normalise_st_id (bin/intent_helpers) -- same zero-pad idiom, but issue ids
+# carry no ST prefix, so it is a distinct function, not a duplicate.
+normalize_id() {
+  local raw="$1"
+  [[ "$raw" =~ ^[0-9]+$ ]] || return 1
+  printf "%04d" "$((10#$raw))"
+}
+
+# Echo the issue directory for an id (searches OPEN then CLOSED). Non-zero if
+# the id is not found in either bucket.
+find_issue_dir() {
+  local id="$1" bucket
+  for bucket in OPEN CLOSED; do
+    if [ -d "$ISSUES_DIR/$bucket/$id" ]; then
+      echo "$ISSUES_DIR/$bucket/$id"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Echo the single .md file inside an issue directory (the NNNN-slug.md).
+issue_file() {
+  local dir="$1"
+  # 2>/dev/null: an absent/unreadable dir is a normal empty result -- callers
+  # guard the output with `[ -n "$file" ]`.
+  find "$dir" -maxdepth 1 -name "$(basename "$dir")-*.md" 2>/dev/null | head -1
+}
+
+# Read a frontmatter field from an issue file.
+issue_field() {
+  local file="$1" field="$2"
+  # 2>/dev/null: a missing field or unreadable file is expected to yield empty.
+  grep -m 1 "^$field:" "$file" 2>/dev/null | sed "s/^$field: *//; s/^\"//; s/\"$//"
+}
+
+# The status a reader should surface: the bucket directory is authoritative, so
+# a legacy RESOLVED frontmatter never leaks a third state.
+bucket_status() {
+  local dir="$1"
+  case "$dir" in
+    */OPEN/*) echo "OPEN" ;;
+    */CLOSED/*) echo "CLOSED" ;;
+    *) echo "OPEN" ;;
+  esac
+}
+
+# Rewrite the frontmatter status: field portably (no BSD `sed -i ''`; Linux-safe).
+# Best-effort cosmetic mirror -- the bucket directory is the authoritative
+# status. Clean up the temp file if the rewrite fails rather than littering it.
+set_status_field() {
+  local file="$1" status="$2" tmp
+  tmp=$(mktemp)
+  if sed "s/^status:.*/status: $status/" "$file" > "$tmp"; then
+    mv "$tmp" "$file"
+  else
+    rm -f "$tmp"
+  fi
+}
+
+# --- verbs ---------------------------------------------------------------------
+
+cmd_add() {
+  local severity="medium" title=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --severity)
+        [ -n "$2" ] || error "--severity requires a value (${VALID_SEVERITIES// /, })"
+        severity="$2"; shift 2 ;;
+      --severity=*)
+        severity="${1#--severity=}"; shift ;;
+      -*)
+        error "Unknown option: $1" ;;
+      *)
+        title="$1"; shift ;;
+    esac
+  done
+
+  [ -n "$title" ] || error "Issue title is required"
+  case " $VALID_SEVERITIES " in
+    *" $severity "*) : ;;
+    *) error "Invalid severity '$severity' (expected: ${VALID_SEVERITIES// /, })" ;;
+  esac
+
+  [ -f "$TEMPLATE" ] || error "Issue template not found: $TEMPLATE"
+
+  ensure_scaffold
+  title=$(sanitize_title "$title")
+  local id slug reporter date dir file
+  id=$(issues_next_id)
+  slug=$(slugify "$title")
+  reporter="${INTENT_AUTHOR:-${AUTHOR:-$(git config user.name 2>/dev/null || echo "$USER")}}"
+  date=$(date '+%Y-%m-%d')
+
+  dir="$ISSUES_DIR/OPEN/$id"
+  mkdir -p "$dir"
+  file="$dir/$id-$slug.md"
+
+  local esc_title esc_reporter
+  esc_title=$(escape_sed_replacement "$title")
+  esc_reporter=$(escape_sed_replacement "$reporter")
+  sed -e "s/NNNN/$id/g" \
+      -e "s/\[Title\]/$esc_title/g" \
+      -e "s/YYYY-MM-DD/$date/g" \
+      -e "s/\[Reporter\]/$esc_reporter/g" \
+      -e "s/\[Status\]/OPEN/g" \
+      -e "s/\[Severity\]/$severity/g" \
+      "$TEMPLATE" > "$file"
+
+  echo "created: $file"
+  echo "$id:$title"
+}
+
+cmd_list() {
+  local kind="open"
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --kind)
+        [ -n "$2" ] || error "--kind requires a value (open|closed|all)"
+        kind="$2"; shift 2 ;;
+      --kind=*)
+        kind="${1#--kind=}"; shift ;;
+      -*) error "Unknown option: $1" ;;
+      *) error "Unexpected argument: $1" ;;
+    esac
+  done
+
+  local buckets
+  case "$kind" in
+    open) buckets="OPEN" ;;
+    closed) buckets="CLOSED" ;;
+    all) buckets="OPEN CLOSED" ;;
+    *) error "Invalid --kind '$kind' (expected: open|closed|all)" ;;
+  esac
+
+  local rows="" bucket dir file id status severity title count=0
+  # `buckets` is only ever OPEN / CLOSED / "OPEN CLOSED" (set from the case
+  # above) -- a deliberate split of a known-simple list.
+  for bucket in $buckets; do
+    [ -d "$ISSUES_DIR/$bucket" ] || continue
+    # Glob loop (lexically sorted by ID for free) -- no unquoted `$(find ...)`.
+    for dir in "$ISSUES_DIR/$bucket"/[0-9][0-9][0-9][0-9]; do
+      [ -d "$dir" ] || continue
+      file=$(issue_file "$dir")
+      [ -n "$file" ] || continue
+      id=$(basename "$dir")
+      status=$(bucket_status "$dir")
+      severity=$(issue_field "$file" severity)
+      title=$(issue_field "$file" title)
+      rows+="$id|$status|${severity:-?}|$title"$'\n'
+      count=$((count + 1))
+    done
+  done
+
+  if [ "$count" -eq 0 ]; then
+    echo "no $kind issues"
+    return 0
+  fi
+
+  local width
+  width=$(get_terminal_width 2>/dev/null || echo 100)
+  printf '%s' "$rows" | render_table "ID|Status|Sev|Title" "$width" terminal
+}
+
+cmd_show() {
+  local as_json=false id_raw=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --json) as_json=true; shift ;;
+      -*) error "Unknown option: $1" ;;
+      *) id_raw="$1"; shift ;;
+    esac
+  done
+
+  [ -n "$id_raw" ] || error "Issue ID is required"
+  local id dir file
+  id=$(normalize_id "$id_raw") || error "Invalid issue ID: $id_raw"
+  dir=$(find_issue_dir "$id") || error "Issue not found: $id"
+  file=$(issue_file "$dir")
+  [ -n "$file" ] || error "Issue $id has no content file under $dir"
+
+  if [ "$as_json" = true ]; then
+    jq -n \
+      --arg id "$id" \
+      --arg title "$(issue_field "$file" title)" \
+      --arg status "$(bucket_status "$dir")" \
+      --arg severity "$(issue_field "$file" severity)" \
+      --arg date "$(issue_field "$file" date)" \
+      --arg reporter "$(issue_field "$file" reporter)" \
+      --arg file "$file" \
+      '{id: $id, title: $title, status: $status, severity: $severity, date: $date, reporter: $reporter, file: $file}'
+  else
+    cat "$file"
+  fi
+}
+
+# Move an issue between buckets and mirror the frontmatter status.
+move_issue() {
+  local id_raw="$1" from="$2" to="$3" status="$4"
+  local id src file
+  id=$(normalize_id "$id_raw") || error "Invalid issue ID: $id_raw"
+  src="$ISSUES_DIR/$from/$id"
+  if [ ! -d "$src" ]; then
+    if [ -d "$ISSUES_DIR/$to/$id" ]; then
+      echo "ok: issue $id already $status"
+      return 0
+    fi
+    error "Issue not found in $from: $id"
+  fi
+  ensure_scaffold
+  mv "$src" "$ISSUES_DIR/$to/$id"
+  file=$(issue_file "$ISSUES_DIR/$to/$id")
+  [ -n "$file" ] && set_status_field "$file" "$status"
+  echo "ok: issue $id -> $status"
+}
+
+cmd_close() {
+  [ -n "$1" ] || error "Issue ID is required"
+  move_issue "$1" OPEN CLOSED CLOSED
+}
+
+cmd_open() {
+  [ -n "$1" ] || error "Issue ID is required"
+  move_issue "$1" CLOSED OPEN OPEN
+}
+
+# --- dispatch ------------------------------------------------------------------
+
+COMMAND="${1:-list}"
+[ $# -gt 0 ] && shift
+
+case "$COMMAND" in
+  list) cmd_list "$@" ;;
+  add|new) cmd_add "$@" ;;
+  show) cmd_show "$@" ;;
+  close) cmd_close "$@" ;;
+  open) cmd_open "$@" ;;
+  help|-h|--help) usage ;;
+  --kind|--kind=*) cmd_list "$COMMAND" "$@" ;;
+  *) error "Unknown issues command '$COMMAND'. Run 'intent issues help' for usage." ;;
+esac

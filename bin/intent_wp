@@ -88,7 +88,7 @@ case "$WP_COMMAND" in
 
     parse_wp_specifier "$1" "false"
     shift
-    TITLE="$1"
+    TITLE=$(sanitize_title "$1")
 
     # Find the ST directory
     ST_DIR=$(resolve_st_dir "$ST_ID") || error "Steel thread not found: $ST_ID"

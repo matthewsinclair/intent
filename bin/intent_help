@@ -60,6 +60,7 @@ Core:
   st               Manage steel threads
   wp               Manage work packages within steel threads
   todo             A flat DOING/TODO/DONE view of steel threads
+  issues           Lightweight issue tracker (open/closed)
   agents           Manage AGENTS.md for projects
   learn            Capture project learnings for future sessions
   modules          Module registry guardrails and enforcement
@@ -89,7 +90,7 @@ for script in "$INTENT_HOME"/bin/intent_*; do
     
     # Skip certain internal scripts and those manually listed above
     case "$cmd_name" in
-      config|helpers|agents|info|init|st|st_zero|wp|todo|learn|modules|doctor|upgrade|help|bootstrap|llm|organize|plugin|ext) continue ;;
+      config|helpers|agents|info|init|st|st_zero|wp|todo|issues|learn|modules|doctor|upgrade|help|bootstrap|llm|organize|plugin|ext) continue ;;
     esac
     
     # Construct help file path

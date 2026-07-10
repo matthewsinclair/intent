@@ -477,6 +477,50 @@ escape_sed_replacement() {
 }
 export -f escape_sed_replacement
 
+# Generate a URL-safe slug from a title (max 50 chars). Single source used by
+# `intent st`, `intent wp`, and `intent issues` (promoted here from intent_st
+# for Highlander -- there can be only one slugifier).
+slugify() {
+  local title="$1"
+  local slug
+
+  # Lowercase
+  slug=$(echo "$title" | tr '[:upper:]' '[:lower:]')
+
+  # Replace any run of non-alphanumeric chars with a single hyphen
+  slug=$(echo "$slug" | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g')
+
+  # Strip leading and trailing hyphens
+  slug=$(echo "$slug" | sed 's/^-//;s/-$//')
+
+  # Truncate to 50 chars on word boundary
+  if [ ${#slug} -gt 50 ]; then
+    local truncated="${slug:0:50}"
+    if [[ "$truncated" == *-* ]]; then
+      slug="${truncated%-*}"
+    else
+      slug="$truncated"
+    fi
+    slug="${slug%-}"
+  fi
+
+  echo "$slug"
+}
+export -f slugify
+
+# Sanitize a free-text title for safe storage + table rendering. The shared
+# render_table splits rows on `|`, so a raw pipe in a title corrupts every
+# markdown table the title lands in (steel_threads.md, `wp list`, todo.md).
+# Call this at the input boundary of every command that ACCEPTS A NEW title
+# (st new, wp new, issues add) so a pipe can never enter a stored title;
+# read-only views (eg todo) inherit already-sanitized titles. `/` is the
+# accepted substitution.
+sanitize_title() {
+  local title="$1"
+  echo "${title//|//}"
+}
+export -f sanitize_title
+
 # Detect current STP/Intent version
 detect_project_version() {
   local project_root=${1:-.}

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.17.0] - 2026-07-10
+
+Minor release adding **`intent issues`** (ST0055) -- a first-class, lightweight issue tracker built into the CLI, formalising the ad-hoc `intent/issues/` convention into a supported command. It is a minor, not a patch, because it adds a new command surface; it is additive, with zero behaviour change for projects that never run it, and the issues tree is created lazily on first use.
+
+### Added
+
+- **`intent issues` -- lightweight issue tracker (ST0055).** Five verbs: `list [--kind open|closed|all]`, `add [--severity SEV] TITLE` (prints `ID:TITLE`; alias `new`), `show ID [--json]`, `close ID` (OPEN -> CLOSED), `open ID` (CLOSED -> OPEN). Issues are the sub-steel-thread unit -- a bug or follow-up too small for a steel thread. On disk they are directory-per-issue under `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md` (so an issue can carry attachments / sources / sub-work), the bucket directory is the authoritative status with the frontmatter `status:` mirroring it, and a legacy `RESOLVED` status is normalised to CLOSED on read. IDs are the next zero-padded 4-digit integer across both buckets. The issue template is Intent-owned (`lib/templates/issues/_ISSUE.md`), stamped on `add` -- not vendored per project. The tree scaffolds lazily on the first `add`. Registered in `MODULES.md` and `intent help`.
+
+### Fixed
+
+- **A `|` in a title no longer corrupts markdown tables.** The shared table renderer splits rows on `|`, so a pipe inside a steel-thread / work-package / issue title shifted every column of `steel_threads.md`, `intent wp list`, and `intent todo`. `sanitize_title` (new, in `bin/intent_helpers`) now replaces `|` with `/` at the input boundary of `intent st new`, `intent wp new`, and `intent issues add`, so a pipe can never enter a stored title. `slugify` was promoted from `bin/intent_st` into `bin/intent_helpers` at the same time so `st` / `wp` / `issues` share one slugifier.
+
 ## [2.16.1] - 2026-07-09
 
 Patch release aligning Intent's `usage_rules` / `usage-rules.md` guidance with the library's v1.x model (ST0054), plus a set of workstream-hygiene fixes bundled with it. Everything here is documentation, skills, or self-contained CLI hygiene -- no change to the generator or the rule library.

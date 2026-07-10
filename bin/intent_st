@@ -262,33 +262,8 @@ get_next_steel_thread_id() {
 
 # escape_sed_replacement() and normalise_st_id() are in intent_helpers
 
-# Function to generate a URL-safe slug from a title (max 50 chars)
-slugify() {
-  local title="$1"
-  local slug
-
-  # Lowercase
-  slug=$(echo "$title" | tr '[:upper:]' '[:lower:]')
-
-  # Replace any run of non-alphanumeric chars with a single hyphen
-  slug=$(echo "$slug" | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g')
-
-  # Strip leading and trailing hyphens
-  slug=$(echo "$slug" | sed 's/^-//;s/-$//')
-
-  # Truncate to 50 chars on word boundary
-  if [ ${#slug} -gt 50 ]; then
-    local truncated="${slug:0:50}"
-    if [[ "$truncated" == *-* ]]; then
-      slug="${truncated%-*}"
-    else
-      slug="$truncated"
-    fi
-    slug="${slug%-}"
-  fi
-
-  echo "$slug"
-}
+# slugify() is sourced from bin/intent_helpers (Highlander -- one slugifier
+# shared by st / wp / issues).
 
 # Function to update steel threads index
 update_steel_threads_index() {
@@ -358,7 +333,7 @@ case "$ST_COMMAND" in
       usage
     fi
 
-    TITLE="${ARGS[0]}"
+    TITLE=$(sanitize_title "${ARGS[0]}")
     SLUG=$(slugify "$TITLE")
     ESCAPED_TITLE=$(escape_sed_replacement "$TITLE")
     ESCAPED_SLUG=$(escape_sed_replacement "$SLUG")
