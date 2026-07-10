@@ -15,9 +15,7 @@ claims: [ST0055]
 
 **2026-07-10 -- v2.17.0 SHIPPED. `intent issues` (ST0055) live.** Tag `b7e94e2` (release) + `20c1b5f` (post-tag wrap: config.json + CLAUDE.md -> 2.17.0), both remotes + GitHub release, doctor green, tree clean. hv ran `bin/release --minor` (full suite green in pre-flight). Contents: `bin/intent_issues` (dir-per-issue tracker, 5 verbs + `new` alias, `--severity`, `--json`) + companion pipe-`|`-in-title fix (`sanitize_title` at st/wp/issues input, `slugify` promoted to helpers) + `scripts/release` -> `bin/release` fleet-align. 22 new bats + no regressions; critic-shell clean (2 passes). Dogfood: Intent issue 0001 (the pipe bug) filed + closed via the new command. `docs/releases/2.17.0/RELEASE_NOTES.md` + CHANGELOG `[2.17.0]`.
 
-**Open (post-ship):**
-
-- **WP-05 fleet normalise:** Utilz + Conflab already normalised to canon (dir-per-issue, `_templ` dropped) but the changes sit UNCOMMITTED in their own repos -- hv commits there. Lamplight DEFERRED -- messy (multi-`.md` per issue collides with `issue_file`'s first-match; statuses PENDING/RESOLVED/DONE) -- needs hv decision + likely an `issue_file` primary-file robustness tweak. ST0055 stays WIP until this closes (AC-05.1).
+**2026-07-10 -- v2.17.1 STAGED (patch). ST0055 CLOSED (gate 23/23 PASS).** Fixed `issue_file` to prefer the frontmatter-bearing primary in multi-`.md` issue dirs (Lamplight's `0003-resolved.md` sorted before its primary) + regression test. WP-05 fleet normalise COMPLETE: Utilz (`0171297`), Lamplight (`7058fd3a8`) committed local in their repos (hv pushes); Conflab already done (`49428b4f`); Intent = issue 0001. hv ruled 0001/0002 CLOSED. Intent commits `f3dad0d` (fix) + `500de32` (ST0055 -> COMPLETED). CHANGELOG `[2.17.1]`. AWAITING hv `bin/release --patch`, then post-tag wrap.
 
 ## TODO
 
