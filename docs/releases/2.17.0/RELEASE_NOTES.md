@@ -1,6 +1,6 @@
 # Intent v2.17.0 Release Notes
 
-**Release Date**: in progress
+**Release Date**: 2026-07-10
 
 ## Overview
 
