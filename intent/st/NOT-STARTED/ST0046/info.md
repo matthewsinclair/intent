@@ -1,7 +1,7 @@
 ---
 verblock: "15 Jun 2026:v0.1: matts - Initial version"
 intent_version: 2.12.0
-status: WIP
+status: Not Started
 slug: add-modules-properly-to-the-intent-cli
 created: 20260615
 completed:
