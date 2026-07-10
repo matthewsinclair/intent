@@ -16,7 +16,7 @@ Four companion chores rode the release (hv-scoped, no new STs): **C1** -- `st sy
 
 - **Utilz-side todo guard (v2.16.1 C4 follow-up, separate repo):** add `generator: utilz todo` frontmatter + the symmetric refuse-to-clobber guard to `utilz todo`, closing the mutual-guard loop (handoff note delivered to hv).
 - **AT-name traceability (v2.14.1 vc-audit deferral):** make `acceptance.md` ATs grep-able to bats `@test` names -- a framework-wide convention (tag each `@test` with its `AT-id`, or bake into `intent at`); hv to ratify, then apply uniformly.
-- **`scripts/release` v2 polish:** auto-stamp the config.json version bump (still a manual post-tag wrap).
+- **`bin/release` v2 polish:** auto-stamp the config.json version bump (still a manual post-tag wrap).
 - **Deferred:** the headless `intent critic prose` gate (D4 -- path-based selection + a house-style suppression layer; the ST0053 dogfood re-confirmed the need).
 - Dead link: `docs/blog/README.md` lists a post `0007` whose file is missing.
 
@@ -29,4 +29,4 @@ Four companion chores rode the release (hv-scoped, no new STs): **C1** -- `st sy
 
 ## Conventions (carry forward)
 
-T-shirt sizing; intent CLI for ST/WP; never manually wrap markdown; no Claude attribution (end commit bodies `(C) hello@matthewsinclair.com`); no vanity metrics; fail-forward; commit to main only when asked; matts runs the full test suite externally (single-file bats fine); matts is the acceptance verifier; never `scripts/release --no-confirm`.
+T-shirt sizing; intent CLI for ST/WP; never manually wrap markdown; no Claude attribution (end commit bodies `(C) hello@matthewsinclair.com`); no vanity metrics; fail-forward; commit to main only when asked; matts runs the full test suite externally (single-file bats fine); matts is the acceptance verifier; never `bin/release --no-confirm`.

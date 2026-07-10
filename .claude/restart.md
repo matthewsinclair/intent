@@ -17,7 +17,7 @@
 
 - **Utilz-side todo guard (v2.16.1 C4 follow-up, separate repo):** add `generator: utilz todo` frontmatter + the symmetric refuse-to-clobber guard to `utilz todo` (handoff note delivered to hv).
 - **AT-name traceability (v2.14.1 vc deferral):** make `acceptance.md` ATs grep-able to bats `@test` names -- a framework-wide convention; hv to ratify.
-- **`scripts/release` v2 polish:** auto-stamp the config.json version bump (still a manual post-tag wrap).
+- **`bin/release` v2 polish:** auto-stamp the config.json version bump (still a manual post-tag wrap).
 - **Deferred:** the headless `intent critic prose` gate (D4 -- path-based selection + house-style suppression; the ST0053 dogfood re-confirmed the need).
 - Dead link: `docs/blog/README.md` lists a post `0007` whose file is missing.
 
@@ -31,4 +31,4 @@ Members pick up v2.16.1 on their next `intent upgrade` -- the ST0054 doc/skill u
 
 ## Conventions
 
-T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. Commit to `main` only when matts asks. matts runs the full suite externally. matts is the acceptance verifier. NEVER `scripts/release --no-confirm`.
+T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. Commit to `main` only when matts asks. matts runs the full suite externally. matts is the acceptance verifier. NEVER `bin/release --no-confirm`.

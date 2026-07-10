@@ -123,7 +123,7 @@ DELETED_PATHS=(
   # The test snapshots and restores the working-tree AGENTS.md so the run
   # has no observable side effect on the repo. Without this, a developer
   # running the suite locally ends up with `git status` showing AGENTS.md
-  # modified (just a timestamp move), which then blocks `scripts/release`'s
+  # modified (just a timestamp move), which then blocks `bin/release`'s
   # clean-tree pre-flight. v2.11.5 surfaced this when chasing a "phantom"
   # dirty-tree state.
   local agents_md="${INTENT_PROJECT_ROOT}/AGENTS.md"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bats
-# Guard: no naked ((x++)) / ((x--)) increment statements in bin/ or scripts/.
+# Guard: no naked ((x++)) / ((x--)) increment statements in bin/.
 #
 # ((counter++)) evaluates to the pre-increment value and returns exit status 1
 # when that value is 0. Every bin/ entrypoint runs under `set -e`, and sourced
@@ -11,7 +11,7 @@
 load "../lib/test_helper.bash"
 
 @test "no naked ((x++)) / ((x--)) increments under set -e (bash 5.x errexit footgun)" {
-  run grep -rnE '\(\([a-zA-Z_][a-zA-Z0-9_]*(\+\+|--)\)\)' "${INTENT_PROJECT_ROOT}/bin" "${INTENT_PROJECT_ROOT}/scripts"
+  run grep -rnE '\(\([a-zA-Z_][a-zA-Z0-9_]*(\+\+|--)\)\)' "${INTENT_PROJECT_ROOT}/bin"
   if [ "$status" -eq 0 ]; then
     echo "Naked arithmetic increments found -- use x=\$((x + 1)):"
     echo "$output"

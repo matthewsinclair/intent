@@ -23,7 +23,7 @@ No release in flight. Standing backlog:
 2. **AT-name traceability (v2.14.1 vc-audit deferral).** Make `acceptance.md` ATs grep-able to bats `@test` names -- a framework-wide convention (tag each `@test` with its `AT-id`, or bake into `intent at`), hv to ratify then apply uniformly.
 3. `/in-review` Elixir fleet sweep -- Anvil, Lamplight, MeetZaya, MicroGPTEx, Conflab.
 4. Conflab pre-existing test findings (`IN-EX-TEST-001` / `005` / `007`).
-5. `scripts/release` v2 polish -- auto-stamp the config.json version bump as part of the release (it is still a manual post-tag wrap); Homebrew tap; `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft; skill-sync script-change blind spot.
+5. `bin/release` v2 polish -- auto-stamp the config.json version bump as part of the release (it is still a manual post-tag wrap); Homebrew tap; `$N`-in-SKILL.md trap audit; shell-critic-inception blog draft; skill-sync script-change blind spot.
 6. Deferred: the headless `intent critic prose` gate (D4 -- path-based file-selection + a house-style suppression layer; the ST0053 dogfood re-confirmed the need).
 7. `docs/blog/README.md` lists post `0007` whose file is missing (dead link).
 8. ST0040 + ST0041 deferred items (revisit on field evidence).

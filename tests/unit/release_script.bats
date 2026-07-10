@@ -1,12 +1,12 @@
 #!/usr/bin/env bats
-# Tests for scripts/release. Exercises the dry-run path against a scratch
+# Tests for bin/release. Exercises the dry-run path against a scratch
 # repo with file:// remotes and a `gh` shim so no real network or GitHub
 # state is touched. Real release cuts (no --dry-run) are not exercised here
 # -- those are validated in-flight by the operator.
 
 load "../lib/test_helper.bash"
 
-RELEASE="${INTENT_PROJECT_ROOT}/scripts/release"
+RELEASE="${INTENT_PROJECT_ROOT}/bin/release"
 
 # --------------------------------------------------------------------
 # Scratch repo helper
@@ -84,10 +84,9 @@ EOF
   chmod +x tests/run_tests.sh
 
   # Install the release script under test as part of the repo so the working
-  # tree is clean by the time `scripts/release --dry-run` runs its checks.
-  mkdir -p scripts
-  cp "$RELEASE" scripts/release
-  chmod +x scripts/release
+  # tree is clean by the time `bin/release --dry-run` runs its checks.
+  cp "$RELEASE" bin/release
+  chmod +x bin/release
 
   git add -A
   git commit -q -m "init"
@@ -140,7 +139,7 @@ EOF
   # release script into the scratch repo to make it think the scratch IS its
   # project root.
   cd "$repo" || return 1
-  run bash scripts/release --dry-run --patch
+  run bash bin/release --dry-run --patch
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"target version: 2.10.1"* ]]
@@ -164,7 +163,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash scripts/release --dry-run v2.11.0
+  run bash bin/release --dry-run v2.11.0
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"target version: 2.11.0"* ]]
@@ -177,7 +176,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash scripts/release --dry-run --major
+  run bash bin/release --dry-run --major
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"target version: 3.0.0"* ]]
@@ -207,7 +206,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash scripts/release --dry-run v2.10.0
+  run bash bin/release --dry-run v2.10.0
 
   [ "$status" -eq 1 ]
   [[ "$output" == *"not greater than current"* ]]
@@ -219,7 +218,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash scripts/release --dry-run v9.9.9
+  run bash bin/release --dry-run v9.9.9
 
   [ "$status" -eq 1 ]
   [[ "$output" == *"no '## [9.9.9]' section in CHANGELOG.md"* ]]
@@ -232,7 +231,7 @@ EOF
 
   cd "$repo" || return 1
   echo "dirty" >> README.dirty
-  run bash scripts/release --dry-run --patch
+  run bash bin/release --dry-run --patch
 
   [ "$status" -eq 1 ]
   [[ "$output" == *"working tree is not clean"* ]]
@@ -248,7 +247,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash scripts/release --dry-run --patch
+  run bash bin/release --dry-run --patch
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"CHANGELOG date is today"* ]]
@@ -260,7 +259,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash scripts/release --dry-run --patch
+  run bash bin/release --dry-run --patch
 
   [ "$status" -eq 1 ]
   [[ "$output" == *"--allow-stale-date"* ]]
@@ -272,7 +271,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash scripts/release --dry-run --allow-stale-date --patch
+  run bash bin/release --dry-run --allow-stale-date --patch
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"CHANGELOG date is not today, but --allow-stale-date is set"* ]]

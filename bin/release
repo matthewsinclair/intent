@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/release -- Intent release orchestrator
+# bin/release -- Intent release orchestrator
 #
 # Cuts an Intent release in one invocation: pre-flight checks, version bump,
 # CHANGELOG date finalisation, sidecar sync (VERSION + AGENTS.md), commit,
@@ -11,7 +11,7 @@
 # binary build, no Homebrew tap.
 #
 # Usage:
-#   scripts/release --patch | --minor | --major | vX.Y.Z [flags]
+#   bin/release --patch | --minor | --major | vX.Y.Z [flags]
 #
 # Flags:
 #   --dry-run            Compute and print every step; exit without side effects.
@@ -21,9 +21,9 @@
 #   --help               Print this help and exit.
 #
 # Examples:
-#   scripts/release --dry-run --patch
-#   scripts/release --minor
-#   scripts/release v2.10.1
+#   bin/release --dry-run --patch
+#   bin/release --minor
+#   bin/release v2.10.1
 #
 # Exit codes:
 #   0  success (or dry-run completed)

@@ -264,5 +264,5 @@ Maintainer tooling for cutting Intent releases. Not part of the user-facing CLI 
 
 | Concern             | THE Module                                                        | Notes                                                                                                                |
 | ------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Release script      | `scripts/release`                                                 | Pre-flight + version bump + sidecar sync + tag + multi-remote push + GitHub release. Modelled on Conflab's pattern.  |
+| Release script      | `bin/release`                                                     | Pre-flight + version bump + sidecar sync + tag + multi-remote push + GitHub release. Modelled on Conflab's pattern.  |
 | Gate-release helper | `intent/plugins/claude/skills/in-session/scripts/release-gate.sh` | Touches per-session sentinel for require-in-session.sh; extracted from SKILL.md to survive renderer token-stripping. |

@@ -17,6 +17,10 @@ Minor release adding **`intent issues`** (ST0055) -- a first-class, lightweight 
 
 - **A `|` in a title no longer corrupts markdown tables.** The shared table renderer splits rows on `|`, so a pipe inside a steel-thread / work-package / issue title shifted every column of `steel_threads.md`, `intent wp list`, and `intent todo`. `sanitize_title` (new, in `bin/intent_helpers`) now replaces `|` with `/` at the input boundary of `intent st new`, `intent wp new`, and `intent issues add`, so a pipe can never enter a stored title. `slugify` was promoted from `bin/intent_st` into `bin/intent_helpers` at the same time so `st` / `wp` / `issues` share one slugifier.
 
+### Changed
+
+- **The release orchestrator moved from `scripts/release` to `bin/release`**, folding the single-file `scripts/` directory into `bin/` to match the fleet's layout. Maintainer-only; cut a release with `bin/release --minor` (etc.). The `set_e_increment_guard` test now scans `bin/` alone (which now covers `release`).
+
 ## [2.16.1] - 2026-07-09
 
 Patch release aligning Intent's `usage_rules` / `usage-rules.md` guidance with the library's v1.x model (ST0054), plus a set of workstream-hygiene fixes bundled with it. Everything here is documentation, skills, or self-contained CLI hygiene -- no change to the generator or the rule library.
