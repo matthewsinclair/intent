@@ -21,9 +21,7 @@ claims: [ST0055]
 
 ## TODO
 
-- **ST0055 WP-04 gate:** apply critic-shell findings, flip acceptance.md ATs to green, `intent ac gate ST0055`, hand to hv (acceptance verifier) for the full suite + release.
-- **ST0055 WP-05 (POST-SHIP, cross-repo):** normalise intent/issues in Lamplight, Conflab, Utilz, Intent to the dir-per-issue canon (RESOLVED->CLOSED, drop vendored _templ).
-- First dogfood issue to FILE via the new command once shipped: the `|`-in-title table-corruption bug (now fixed by the companion chore -- file it as a CLOSED issue for the record).
+- **ST0055 WP-05 (cross-repo, the only thing left to close ST0055):** Lamplight normalisation -- needs hv decision (multi-`.md`-per-issue primary-file convention + PENDING/RESOLVED/DONE status pass) + likely an `issue_file` robustness tweak. Utilz + Conflab already done (uncommitted in their repos, hv to commit).
 - Carry-over (hv, separate repo): utilz-side `generator: utilz todo` marker + symmetric guard (v2.16.1 C4 follow-up; handoff note delivered).
 - DEFERRED (needs hv ruling): AT-name traceability -- machine-check `acceptance.md` AT ids against real bats `@test` names.
 
