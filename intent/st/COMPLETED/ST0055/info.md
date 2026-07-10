@@ -1,10 +1,10 @@
 ---
 verblock: "10 Jul 2026:v0.1: matts - Initial version"
 intent_version: 2.16.1
-status: WIP
+status: Completed
 slug: add-in-intent-issues-command
 created: 20260710
-completed:
+completed: 2026-07-10T17:02:28Z
 ---
 
 # ST0055: Add `intent issues` command
