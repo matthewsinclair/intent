@@ -13,7 +13,7 @@ claims: [ST0055]
 
 ## DOING
 
-**2026-07-10 -- ST0055: `intent issues` SHIPPED-READY as v2.17.0 (minor). Release staged, awaiting hv `scripts/release --minor`.** Command built + critic-clean (2 passes, 0 crit/0 warn) + gate 22/22-satisfiable (hv confirmed full suite passes). AS-BUILT: `bin/intent_issues` (thin coordinator, 5 verbs + `new` alias, `--severity`, `--json`), dir-per-issue (Lamplight model), `lib/templates/issues/_ISSUE.md` (Intent-owned), MODULES + `intent help`. Helpers: `slugify` promoted (Highlander) + `sanitize_title`. Companion chore: pipe-`|`-in-title fix. Tests 22 new green, no regression, doctor green. RELEASE PREP: `docs/releases/2.17.0/RELEASE_NOTES.md` + CHANGELOG `[2.17.0]` written. Dogfood: Intent issue 0001 (the pipe bug) filed + closed. WP-05 fleet: Utilz + Conflab normalised (uncommitted in their own repos, hv commits); Lamplight DEFERRED post-ship (messy: multi-.md per issue + PENDING/RESOLVED/DONE statuses -- needs hv decision + likely a primary-file robustness tweak to `issue_file`).
+**2026-07-10 -- ST0055: `intent issues` SHIPPED-READY as v2.17.0 (minor). Release staged, awaiting hv `bin/release --minor`.** Command built + critic-clean (2 passes, 0 crit/0 warn) + gate 22/22-satisfiable (hv confirmed full suite passes). AS-BUILT: `bin/intent_issues` (thin coordinator, 5 verbs + `new` alias, `--severity`, `--json`), dir-per-issue (Lamplight model), `lib/templates/issues/_ISSUE.md` (Intent-owned), MODULES + `intent help`. Helpers: `slugify` promoted (Highlander) + `sanitize_title`. Companion chore: pipe-`|`-in-title fix. Tests 22 new green, no regression, doctor green. RELEASE PREP: `docs/releases/2.17.0/RELEASE_NOTES.md` + CHANGELOG `[2.17.0]` written. Dogfood: Intent issue 0001 (the pipe bug) filed + closed. WP-05 fleet: Utilz + Conflab normalised (uncommitted in their own repos, hv commits); Lamplight DEFERRED post-ship (messy: multi-.md per issue + PENDING/RESOLVED/DONE statuses -- needs hv decision + likely a primary-file robustness tweak to `issue_file`).
 
 ## TODO
 
@@ -26,7 +26,7 @@ claims: [ST0055]
 ## Watch-outs
 
 - New-command wiring: `bin/intent_<name>` auto-dispatches via the `*)` default case in `bin/intent` (project command, needs project context) -- no dispatch edit unless it is global or needs noun re-injection. Register in MODULES.md FIRST (Highlander), single template source under `lib/templates/`.
-- `scripts/release` does tag/push/gh-release + CHANGELOG date + VERSION/AGENTS sidecar, but NOT the config.json `intent_version` bump -- manual post-tag wrap. Don't skip it.
+- `bin/release` does tag/push/gh-release + CHANGELOG date + VERSION/AGENTS sidecar, but NOT the config.json `intent_version` bump -- manual post-tag wrap. Don't skip it.
 - ST0046 ("add modules properly to the intent cli") was moved to `intent/st/NOT-STARTED/` by hv in commit af9b02e (pre-flight). Possibly related to ST0055 scope -- confirm with hv.
 
 ## Decisions
