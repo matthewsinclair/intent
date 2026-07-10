@@ -1,11 +1,20 @@
 ---
-verblock: "09 Jul 2026:v0.13: cc - v2.16.1 (ST0054 usage-rules v1.x alignment + 4 companion chores) shipped"
-intent_version: 2.16.1
+verblock: "10 Jul 2026:v0.14: cc - v2.17.0 + v2.17.1 (ST0055 intent issues command) shipped"
+intent_version: 2.17.1
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-07-10 — v2.17.0 + v2.17.1 (ST0055: `intent issues` command)
+
+- **ST0055 Completed** — `intent issues`, a first-class lightweight issue tracker built into the CLI, formalising the ad-hoc `intent/issues/` convention. Five verbs: `list [--kind open|closed|all]`, `add [--severity SEV] TITLE` (prints `ID:TITLE`; alias `new`), `show ID [--json]`, `close ID`, `open ID`. Directory-per-issue under `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md` (the Lamplight model — an issue can carry attachments / sources / a sub-WP tree); the bucket directory is the authoritative status with frontmatter `status:` mirroring it, and a legacy `RESOLVED` normalises to CLOSED on read. IDs are max+1 across both buckets; the template is Intent-owned (`lib/templates/issues/_ISSUE.md`), stamped on `add`; the tree scaffolds lazily on first use. `bin/intent_issues` is a thin coordinator, auto-dispatched by `bin/intent`. 5 WPs (foundation / create+list / inspect+lifecycle / gate / fleet-normalise), 23/23 through the gate; two critic-shell passes clean. Detail: `intent/st/COMPLETED/ST0055/`.
+- **Companion fix (2.17.0):** a `|` in a steel-thread / work-package / issue title corrupted every markdown table it landed in (`render_table` splits rows on `|`). `sanitize_title` (new, in `bin/intent_helpers`) replaces `|` with `/` at the input boundary of `st new` / `wp new` / `issues add`; `slugify` promoted from `bin/intent_st` into `bin/intent_helpers` so st/wp/issues share one slugifier (Highlander). Filed + closed as Intent's own issue 0001 (first dogfood of the command).
+- **`scripts/release` → `bin/release` (2.17.0):** the single-file `scripts/` directory folded into `bin/` to match the fleet layout; cut a release with `bin/release --patch|--minor` now. Maintainer-only; `set_e_increment_guard` + `release_script.bats` follow the move.
+- **2.17.1 (patch):** `issue_file` now prefers the frontmatter-bearing primary in a multi-`.md` issue directory — legacy satellites (`NNNN-resolved.md`, `NNNN-session.md`) carry no frontmatter, so `show` / `list` no longer read an empty one (Lamplight's `0003-resolved.md` had sorted before its primary). Plus fleet issue trees normalised to canon: Utilz (`0171297`), Lamplight (`7058fd3a8`), Conflab (`49428b4f`) all directory-per-issue, `status: CLOSED`, vendored `_templ/` dropped.
+- Tags: `v2.17.0` (`b7e94e2`, wrap `20c1b5f`), `v2.17.1` (`e7360b8`, wrap `309d8d8`), both remotes + GitHub releases. 2.17.0 minor (new command surface), 2.17.1 patch. NOTE: 2.17.1's `bin/release --patch` was interrupted by a VSCode terminal crash after the local commit + tag; the push + GitHub release + post-tag wrap were completed by hand (idempotent — no duplication). `docs/releases/2.17.0/RELEASE_NOTES.md`; CHANGELOG `[2.17.0]` + `[2.17.1]`.
+- Also filed (OPEN, tracked): **issue 0002** — `intent todo` renders `[?]` for a non-canonical status string because it does not route the frontmatter status through `canonical_status` the way `intent st` does (surfaced diagnosing ST0046, whose status had been hand-set to the directory-name form `NOT-STARTED`).
 
 ## 2026-07-09 — v2.16.1 (ST0054 usage-rules v1.x alignment + 4 companion chores)
 
@@ -34,65 +43,6 @@ NOTE: This file is the terse DONE ledger, newest first. Older entries roll into 
 - **ST0051 Completed** — `intent st sync --write` hardcoded generated-file width to 80, truncating the `steel_threads.md` slug column. Fixed: generated files size to a new config `dft_width` (default 120) via a Highlander `get_default_width`; interactive stdout keeps the terminal width; `--width N` overrides both; a dead list-branch pruned. `tests/unit/output_width.bats` 5/5. Detail: `intent/st/COMPLETED/ST0051/`.
 - Tag `v2.14.0` (`c7842f1`), self-upgrade wrap `a6f6662`, both remotes + GitHub release. matts accepted the WP-06 sticky-watermark model. vc's two LOW findings (AC-01.8 enumeration Highlander; AT-name traceability) parked for 2.14.1.
 
-## 2026-06-29 — v2.13.1 (ST0048 close-gate fail-by-default + ST0049 release notes)
+## Older
 
-- **ST0048 Completed** — the acceptance close-gate is now fail-by-default: a present `acceptance.md` with zero in-scope ACs, or no `acceptance.md` at all, BLOCKS `st done`/`wp done` (was a vacuous pass — "every AC satisfied" trivially true of zero ACs). Sole escape is `acceptance: exempt` in the frontmatter (announced, never inferred); WP scope is WP-lenient. Reverses the v2.12.0 F6 opt-in ruling (matts-ratified shipped-as-broken patch). `acceptance_close_gate.bats` 10/10 + a canon grep guard. Detail: `intent/st/COMPLETED/ST0048/`.
-- **ST0049 Completed (EXEMPT)** — comprehensive retroactive `docs/releases/2.13.0` MAAC release note + the migration-led `docs/releases/2.13.1` note; `docs/releases` resumes after the 2.9.0 lapse (no 2.10-2.12 backfill, matts ruling). First consumer of the `acceptance: exempt` marker. Detail: `intent/st/COMPLETED/ST0049/`.
-- Tag `v2.13.1` (`d01a1b2`), both remotes + GitHub release; the `cp -R` backup fix `e36d3b3` rode along.
-
-## 2026-06-25 — v2.13.0 (ST0047 claude_with_intent MAAC launcher + workstream lifecycle)
-
-- **ST0047 Completed** — `intent claude start <ws>` (launch a Claude Code session bound to a whiteboard workstream) + `intent claude ws new|list|archive|hygiene` (the deterministic workstream lifecycle). Promoted from the Baize prototype to first-class Intent as `intent/plugins/claude/bin/intent_claude_cwi`, dispatched from the `bin/intent` claude branch and resolving the current project via `find_project_root` — served centrally from `$INTENT_HOME`, so available in every project with no per-project install. The `/in-whiteboard` skill's "Scaffolding a node" prose now points at `ws new`, and the lazy-inbox drift is reconciled to the eager bidirectional pre-seed (Highlander SSOT). No-Silent hardening (critic-shell) guarded the `ws archive` `mv` + the `ws new` writes. ATs ported from the Baize `cwi_test.sh` to `tests/unit/claude_with_intent.bats` + WP-04 dispatch / skill-SSOT guards. Intent dogfoods MAAC: `intent/whiteboard/` stood up with `hv` + `cc` + `vc` (no `ic` — CLI plus data, not UX). 18/18 ACs through its own gate; Baize prototype retired (`cc2438f`, that repo). Provenance: Lamplight pioneered the whiteboard by convention (the operational reference), Baize was the first productised use (the MVP), Intent is now first-class. Detail: `intent/st/COMPLETED/ST0047/`; narrative: `intent/history/v2.13.0.md`.
-
-## 2026-06-15 — v2.12.0 arc (ST0043 convergent upgrade + ST0045 Whiteboard 3.0)
-
-- **ST0043 Completed** — `intent upgrade` rewritten from a 524-line version-case ladder into a ~150-line convergent orchestrator: detect -> semver sanity (refuse downgrade, error on unparseable, v2.9.0 fleet floor, no "Unknown version") -> verified backup -> state-probed `LEDGER` walk (`step_<id>_needs/_run/_verify`) -> single `intent claude upgrade --apply` -> stamp once, last. All migration code below the v2.9.0 floor pruned (fail-forward): `bin/intent_helpers` 2026 -> 369 lines; the two surviving structural steps (relocate_config, languages_field) + `intent_relocate_dotintent` moved to the new upgrade-only `bin/intent_migrations`. Single version stamper (orchestrator jq, once); canon engine `VERSION_BUMP` + BSD `sed -i ''` removed (Linux-safe). 8/8 ACs through its own gate; detail `intent/st/COMPLETED/ST0043/`.
-- **ST0045 Completed** — Whiteboard Protocol 3.0 formalised: per-node `<node>/` dirs, single-writer `wip.md` + per-sender `inbox.<sender>.md`, the `hv` hypervisor node, no baked-in roster. Skill completeness added (inbox-file init + `# inbox:` header + `_(empty)_` sentinel, `.history/.gitkeep`, the `hv` variant, message-entry required-vs-recommended) and reference-vs-skill drift closed in `in-session` / `in-finish` SKILL.md + the `working-with-llms.md` whiteboard section; mechanical guard `tests/unit/whiteboard_protocol_3_guard.bats`. 9/9 ACs; detail `intent/st/COMPLETED/ST0045/`.
-- **Close-gate hardening (No Silent Errors)** — F1: malformed / non-numeric AC/AT lines now block the gate loudly instead of being silently dropped (vacuous-green fix). F6: a missing `acceptance.md` deliberately left opt-in-by-presence (gate stays open; matts ruling 2026-06-16) -- only a present contract is enforced. `bin/intent_acceptance` + guards in `acceptance_close_gate.bats`. Narrative: `intent/history/v2.12.0.md`.
-
-## 2026-06-14 — v2.11.14 (intent organize Linux fix)
-
-- **`intent organize` fixed on Linux** — `((counter++))` under `set -e` returns exit 1 at zero, and bash 5.x aborts the script (bash 3.2 / macOS is lenient), so `intent organize` exited 1 after the first move on every modern-bash Linux. Hidden behind macOS-green CI from v2.11.12 (organize resurrected) through v2.11.13. The whole `((x++))` class converted to `x=$((x + 1))` (six sites: `bin/intent_organize` ×3, `bin/intent_helpers` ×3) and pinned by `tests/unit/set_e_increment_guard.bats`. Narrative: `intent/history/v2.11.14.md`.
-
-## 2026-06-14 — ST0044 (acceptance.md + AC/AT process) — shipped in v2.11.13
-
-- **ST0044 Completed** — `acceptance.md` is now a default (fifth) steel-thread doc plus an Acceptance-Criteria / Acceptance-Test process that makes "done" externally verified. AC = ratified coverage boundary; AT = red-to-green proof (green only from red); test-backed ACs satisfied by computation, non-test ACs by inline evidence + verifier sign-off. `intent ac` / `intent at` instrument the contract (`list` / `status` / `satisfy` / `gate`; `red` / `green` / `na`, `done` / `notdone` aliases); the close-gate `intent ac gate` — consulted by `st done` / `wp done` — refuses to close while any AC is unsatisfied, opt-in / legacy-safe. Templates stamp `acceptance.md` by default; `info.md` / `WP info.md` reference it and restate no ACs (Highlander); `st show` / `st edit` learn the type (`st edit` reworked to pure emit-path). Five-step documented in `working-with-llms.md` D11 with pointers in `/in-plan` / `/in-verify` / `/in-finish`. Dogfooded on itself with matts as verifier — closed through its own gate at 16/16. Detail: `intent/st/COMPLETED/ST0044/`; narrative: `intent/history/v2.11.13.md`. Shipped standalone as the v2.11.13 patch (opt-in-by-presence grounds) on 2026-06-14.
-
-## 2026-06-11 — ST0042 + ST0041 arc (shipped in v2.11.12)
-
-- **ST0042 Completed** — Fable 5 review of Intent, all nine WPs executed in one arc: test-suite HOME isolation (09a), config-eval elimination (01), canonical_status (05a), silent-success kills (03), AGENTS.md generation fix (04), Highlander consolidation (05b), rules-path drift + mechanical guard (02), MODULES.md reconciliation + `file::function` checker fix (07), canon docs reconciliation + new `intent st cancel` (08), prune incl. `intent audit` retirement (06), vacuous-test rewrites + module coverage (09b). Incidental finds fixed in passing: `intent organize` dead dispatch (script renamed from `intent_organise`), `intent llm usage_rules` dead path, `intent help` footer phantoms. Detail: `intent/st/COMPLETED/ST0042/` + CHANGELOG `[2.11.12]`.
-- **ST0041 Completed** — MFIC (Mechanically-Falsifiable Independent Control) exploration; ST0042 ran as exercise #1. Harvest in `intent/st/COMPLETED/ST0041/impl.md` — adopted: red-phase against HEAD, mechanical-guard-per-defect-class, untested-module-as-unfalsified-claim, gate-integrity maintenance, vacuous-test detection; deferred: CI gate promotion, cross-session test authorship, blocking authority.
-- **`intent st new` version-stamp fix** (`f359917`) — new threads stamp the live Intent version, not hardcoded 2.4.0/2.0.0 literals.
-
-## Releases
-
-- **2026-06-15 — v2.12.0**: ST0043 convergent `intent upgrade` orchestrator (sub-v2.9.0 migration pruned, single stamper, Linux-safe canon engine) + ST0045 Whiteboard Protocol 3.0 (per-node dirs + single-writer inboxes + `hv`); close-gate F1 malformed-line block. ([history](history/v2.12.0.md))
-- **2026-06-14 — v2.11.14**: `intent organize` fixed on Linux (`((x++))` under `set -e` aborts on bash 5.x); the whole class converted to `x=$((x + 1))` + a guard test. ([history](history/v2.11.14.md))
-- **2026-06-14 — v2.11.13**: ST0044 — `acceptance.md` as a default steel-thread doc + the AC/AT acceptance process (`intent ac` / `intent at`, the opt-in close-gate, the five-step) that makes "done" externally verified; `intent st edit` -> emit-path. ([history](history/v2.11.13.md))
-- **2026-06-11 — v2.11.12**: ST0042 Fable 5 review arc (nine WPs: config-eval RCE, Highlander consolidation, rules-path drift guard, silent-success kills, canon docs, prune, vacuous-test rewrites) + ST0041 MFIC harvest; `intent st cancel` added; `intent audit` retired. ([history](history/v2.11.12.md))
-- **2026-06-03 — v2.11.11**: rules-path drift fix in generated guidance + critic subagents; `intent upgrade` re-syncs subagents. ([history](history/v2.11.11.md))
-- **2026-05-28 — v2.11.10**: `/in-whiteboard` Verifier stream role + `handle:` field. ([history](history/v2.11.10.md))
-- **2026-05-23 — v2.11.9**: `/in-whiteboard archive` subcommand. ([history](history/v2.11.9.md))
-- **2026-05-21 — v2.11.8**: concurrent-session gate deadlock fix (`$CLAUDE_CODE_SESSION_ID` single source). ([history](history/v2.11.8.md))
-- **2026-05-18 — v2.11.7**: ST0040 whiteboard protocol rolled into canon. ([history](history/v2.11.7.md))
-- **2026-05-15 — v2.11.6**: IN-LU-CODE-006 dispatch-table Lua rule. ([history](history/v2.11.6.md))
-- **2026-05-05 — v2.11.5**: gate bypass for `claude -p` automation; `agents generate` self-load; migration stamp fix; 10-project fleet upgrade.
-- **2026-04-30 — v2.11.4**: docs patch (v2.11.3 field verification + critic code-locality).
-- **2026-04-29 — v2.11.3**: ST0039 strict-proxy critic runner.
-- **2026-04-28 — v2.11.0/.1/.2**: ST0037 `languages` config field + two same-day hotfixes.
-
-## ST0030: Cherry-Pick Superpowers Patterns (completed 2026-04-04)
-
-3 new skills (in-verify, in-debug, in-review), Red Flags tables added to in-essentials/in-standards/in-plan/in-finish, chains_to frontmatter, plan quality standards. 6 WPs, all done. 22 skills, 5 subagents, 462 tests.
-
-## Autopsy 20260404
-
-14 sessions analyzed, 4 corrections, 0 enforcement failures. "overall" removed from banned words. Detrope sessions flagged as false positive generators. MEMORY.md consolidated from 213 to 55 lines.
-
-## ST0031 Elaboration (2026-04-04)
-
-Full elaboration of agentic coding course ST. 7 WPs defined: ACI format, pilot extraction (Intent + Lamplight + MeetZaya), landscape research, taxonomy, scale extraction, content production, packaging. Design decisions documented. All WP info.md files created.
-
-## ST0031/WP-01: ACI Format & Extraction Protocol (completed 2026-04-04)
-
-10 files created under `docs/course/` with process/content directory split. ACI template with 5 mandatory sections and structured frontmatter. 5 hand-crafted sample ACIs covering 5 of 6 extraction lenses (Highlander Rule, CLAUDE.md as Living Architecture, Correction Erosion After Compaction, When Coding Succeeds But Project Fails, Steel Threads Beat Feature Branches). 6-lens extraction protocol with concrete commands per lens. Autopsy script assessed for Lens 3 reuse (use as-is). Detrope quality gate established (mechanical + full LLM-based). "How This Course Was Built" meta-chapter started. 3 blog post references collected. Full detrope: 0 flags, AI signal "low".
+- 2026-06 rolled to `intent/history/202606-done.md`; 2026-03 to `202603-done.md`. Verbose per-release narratives: `intent/history/<version>.md`.
