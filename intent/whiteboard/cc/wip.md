@@ -3,8 +3,8 @@ node: cc
 name: Control Claude
 role: control
 session_id: cf2d4e1b-70cd-433b-aa56-6de4e94b997d
-heartbeat_at: 2026-07-13T20:30Z
-status: active
+heartbeat_at: 2026-07-13T21:32Z
+status: paused
 focus: "v2.17.2 SHIPPED (2026-07-13): issues 0002 + 0003 fixed + closed + released. Tag 22c409e, wrap e525f04, both remotes + GitHub release. Globalfold done. Awaiting matts's next."
 claims: []
 ---
@@ -13,14 +13,11 @@ claims: []
 
 ## DOING
 
-- **v2.17.2 SHIPPED -- issues 0002 + 0003 fixed + closed + released.** No ST per hv. Fix commit `9d14ad3`, release `22c409e` (tag `v2.17.2`), wrap `e525f04`; both remotes + GitHub release; globalfold done (done.md / wip.md / restart.md / .claude/restart.md). Affected bats suites green; shell critic clean on the changed files.
-  - 0002 (todo `[?]`): `canonical_status` relocated `intent_st` -> `intent_helpers` (the shared lib both source); `intent_todo` `status_box` now routes through it. Guard: intent_todo.bats.
-  - 0003 (critic rejects author/content): one language registry in `critic_runner.sh`; `intent critic` no-ops prose at exit 0 + `--languages`; the gate is UNCHANGED (defers to exit code). Prose-only-on-content verified via `applies_to` (matts follow-up). Guards: intent_critic / pre_commit_hook / critic_runner_applies_to.bats.
+_(day closed 2026-07-13 -- v2.17.2 shipped: issues 0002 + 0003 fixed + closed + released. Session detail archived to `.history/20260713/`.)_
 
 ## TODO
 
 - **Push fleet issue-normalisation commits (hv, separate repos):** Utilz (`0171297`) + Lamplight (`7058fd3a8`) local-only; Conflab pushed.
-- _(v2.17.2 shipped -- release + wrap + globalfold all done. No release in flight.)_
 - Carry-over (hv, separate repo): utilz-side `generator: utilz todo` marker + symmetric guard.
 - DEFERRED (needs hv ruling): AT-name traceability -- `acceptance.md` AT ids grep-able to bats `@test` names.
 
@@ -31,5 +28,5 @@ claims: []
 
 ## Decisions
 
-- (2026-07-13) Issue 0003 gate design: the pre-commit gate defers to `intent critic`'s exit code (prose -> exit-0 no-op), rather than querying `intent critic --languages` to skip prose itself. The query approach was built and reverted -- it made the gate depend on the query returning a clean list (a broken/old CLI could then silently skip a REAL code critic) and broke the stub-based `critic_dispatch.bats` model. One registry lives in `critic_runner.sh`; the gate stays language-agnostic.
-- (2026-07-10) v2.17.1 SHIPPED: ST0055 `intent issues` closed (gate 23/23); fleet normalised. Older decisions archived to `.history/20260710/`.
+- (2026-07-13) v2.17.2 SHIPPED: issues 0002 + 0003 fixed + closed; 0003 gate design = defer to `intent critic` exit code (prose no-op), not a `--languages` skip. Detail: `done.md` + `.history/20260713/`.
+- (2026-07-10) v2.17.1 SHIPPED: ST0055 `intent issues` closed; fleet normalised. Detail: `.history/20260710/`.
