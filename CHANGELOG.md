@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.17.2] - in progress
+## [2.17.2] - 2026-07-13
 
 Patch release fixing two issues dogfooded in Intent's own tooling: `intent todo` mis-rendering a non-canonical status, and the pre-commit critic gate erroring on declared prose languages.
 
