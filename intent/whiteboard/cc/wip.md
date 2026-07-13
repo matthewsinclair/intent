@@ -5,7 +5,7 @@ role: control
 session_id: cf2d4e1b-70cd-433b-aa56-6de4e94b997d
 heartbeat_at: 2026-07-13T20:30Z
 status: active
-focus: "Fixing issues 0002 (intent todo [?] on non-canonical status -> route through canonical_status) + 0003 (intent critic rejects declared author/content -> gate skips non-code langs + one shared registry). No ST per hv; tracked under each issue."
+focus: "Issues 0002 + 0003 FIXED + CLOSED + committed (9d14ad3); staged for v2.17.2 patch (CHANGELOG [2.17.2]; bin/release --dry-run clean). Awaiting matts bin/release --patch, then config.json post-tag wrap + globalfold."
 claims: []
 ---
 
@@ -13,14 +13,14 @@ claims: []
 
 ## DOING
 
-- **Issues 0002 + 0003 -- fixed in the working tree, pending matts verify + commit (issues left OPEN, uncommitted).** No ST per hv. 246 pass / 0 fail across 14 affected bats suites; mechanical shell critic clean on all 6 changed shell files. Resolutions written into each issue file.
+- **Issues 0002 + 0003 -- FIXED + CLOSED + committed (`9d14ad3`); staged for release as v2.17.2.** No ST per hv. 246 pass / 0 fail across 14 affected bats suites; shell critic clean on all 6 changed files; `bin/release --dry-run --patch` clean. Awaiting matts's `bin/release --patch` (manual), then the config.json post-tag wrap + globalfold.
   - 0002 (todo `[?]`): `canonical_status` relocated `intent_st` -> `intent_helpers` (the shared lib both source); `intent_todo` `status_box` now routes through it. Guard: intent_todo.bats.
-  - 0003 (critic rejects author/content): one language registry in `critic_runner.sh` (`critic_code_languages`/`critic_prose_languages`); `intent critic` no-ops prose at exit 0 + `intent critic --languages`; the gate is UNCHANGED (defers to exit code). Prose-only-on-content verified via `applies_to` (matts follow-up). Guards: intent_critic / pre_commit_hook / critic_runner_applies_to.bats.
+  - 0003 (critic rejects author/content): one language registry in `critic_runner.sh`; `intent critic` no-ops prose at exit 0 + `--languages`; the gate is UNCHANGED (defers to exit code). Prose-only-on-content verified via `applies_to` (matts follow-up). Guards: intent_critic / pre_commit_hook / critic_runner_applies_to.bats.
 
 ## TODO
 
 - **Push fleet issue-normalisation commits (hv, separate repos):** Utilz (`0171297`) + Lamplight (`7058fd3a8`) local-only; Conflab pushed.
-- **Intent issue 0002 (OPEN):** `intent todo` `[?]` on a non-canonical status -- route todo's status read through `canonical_status`. `intent/issues/OPEN/0002/`.
+- **v2.17.2 release IN FLIGHT (matts, manual):** `bin/release --patch` (bumps VERSION + CHANGELOG date + AGENTS, tags, pushes both remotes, gh release), then the config.json `intent_version` post-tag wrap, then globalfold (done.md / wip.md / restart.md to 2.17.2 with tag SHAs).
 - Carry-over (hv, separate repo): utilz-side `generator: utilz todo` marker + symmetric guard.
 - DEFERRED (needs hv ruling): AT-name traceability -- `acceptance.md` AT ids grep-able to bats `@test` names.
 
