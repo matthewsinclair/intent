@@ -1,11 +1,18 @@
 ---
-verblock: "10 Jul 2026:v0.14: cc - v2.17.0 + v2.17.1 (ST0055 intent issues command) shipped"
-intent_version: 2.17.1
+verblock: "13 Jul 2026:v0.15: cc - v2.17.2 shipped (issues 0002 + 0003 fixes)"
+intent_version: 2.17.2
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-07-13 — v2.17.2 (issues 0002 + 0003 fixes)
+
+- **Two dogfooded CLI bugs fixed + closed as a patch — no ST (hv ruled fix-under-issue).**
+  - **Issue 0002 (`intent todo` `[?]`)** — the flat view rendered `[?]` for a non-canonical status string (eg the directory-name form `NOT-STARTED`) because `status_box` keyed on the raw frontmatter value, while `intent st` routes status through `canonical_status`; the two disagreed about the same thread. Fix: `canonical_status` (the single synonym table) relocated `bin/intent_st` -> `bin/intent_helpers` -- the shared library both `intent st` and `intent todo` source (not each other), so the only home both reach (Highlander); `intent todo`'s `status_box` now canonicalises before mapping to a glyph. Guard: `intent_todo.bats`.
+  - **Issue 0003 (critic gate on declared prose langs)** — a project declaring `author` / `content` made the pre-commit gate call `intent critic author`, which accepted only the five code languages and rejected prose with exit 2; the gate caught the non-zero exit and printed an `invocation error ... fail-open` pair on every commit, reporting a pass for a check it never ran. Fix: one language registry in `critic_runner.sh` (`critic_code_languages` / `critic_prose_languages`); `intent critic` treats prose as a clean exit-0 no-op (critique is on-demand via the `critic-prose` subagent, over `.md`/`.mdx`/`.html` only -- never code) and exposes `intent critic --languages`; the gate is unchanged, deferring to the exit code. A gate-side `--languages` skip was built and reverted -- it made the gate depend on that query returning a clean list, so a broken CLI could silently skip a real code critic. Guards: `intent_critic.bats`, `pre_commit_hook.bats`, `critic_runner_applies_to.bats` (prose fires on content, never on code -- symmetric to the Elixir critic firing on `.ex`, not `.lua`).
+- All affected bats suites green (todo / critic / gate); shell critic clean on the six changed files. Tag `v2.17.2` (`22c409e`), post-tag wrap `e525f04` (config.json + CLAUDE.md -> 2.17.2), both remotes + GitHub release. CHANGELOG `[2.17.2]` is the release note (patch precedent -- no separate `docs/releases` / history narrative).
 
 ## 2026-07-10 — v2.17.0 + v2.17.1 (ST0055: `intent issues` command)
 

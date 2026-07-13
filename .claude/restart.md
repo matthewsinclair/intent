@@ -5,14 +5,13 @@
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the gate. (Languages: shell only.) Whiteboard present (`intent/whiteboard/`, hv+cc+vc) -- `/in-session` chains `/in-whiteboard pickup`. Solo unless launched as a node via `intent claude start <ws>`.
 2. **Read this file + `intent/wip.md`.**
 
-## State: v2.17.1 SHIPPED
+## State: v2.17.2 SHIPPED
 
-**v2.17.1 SHIPPED (2026-07-10).** `intent issues` -- a lightweight, directory-per-issue tracker (ST0055). v2.17.0 (minor): the command + a pipe-in-title fix + `scripts/release` -> `bin/release`. v2.17.1 (patch): `issue_file` multi-file-primary robustness + fleet normalisation (Utilz/Conflab/Lamplight). Tags `v2.17.0` (`b7e94e2`) + `v2.17.1` (`e7360b8`), both remotes + GitHub releases. Detail: `intent/done.md`, `intent/st/COMPLETED/ST0055/`. Prior: v2.16.1 (ST0054), v2.16.0 (ST0053).
+**v2.17.2 SHIPPED (2026-07-13).** Patch fixing two dogfooded CLI bugs, closed as issues (no ST -- hv ruled fix-under-issue). **0002**: `intent todo` rendered `[?]` for a non-canonical status -- `canonical_status` relocated `bin/intent_st` -> `bin/intent_helpers` (both `intent st` + `intent todo` source it); `status_box` canonicalises first. **0003**: the pre-commit critic gate errored + fail-opened on declared `author`/`content` -- one language registry in `critic_runner.sh`; `intent critic` no-ops prose at exit 0 + `--languages`; the gate defers to the exit code (a gate-side skip was built + reverted). Tag `v2.17.2` (`22c409e`), wrap `e525f04`, both remotes + GitHub release. Detail: `intent/done.md`, CHANGELOG `[2.17.2]`, `intent/issues/CLOSED/{0002,0003}/`. Prior: v2.17.1 + v2.17.0 (ST0055), v2.16.1 (ST0054), v2.16.0 (ST0053).
 
 ## Open follow-ups (non-blocking)
 
 - Push Utilz (`0171297`) + Lamplight (`7058fd3a8`) issue-normalisation commits in their own repos (Conflab pushed).
-- Intent issue 0002 (OPEN): `intent todo` `[?]` on non-canonical status -- route through `canonical_status`.
 - Utilz-side todo guard (separate repo): `generator: utilz todo` + symmetric guard.
 - AT-name traceability (vc deferral); `bin/release` v2 polish (auto config.json bump); headless `intent critic prose` gate (D4); `docs/blog/README.md` dead link 0007.
 
@@ -22,7 +21,7 @@
 
 ## Fleet
 
-Members pick up v2.17.1 on next `intent upgrade` (intent issues command + pipe fix, additive). Excludes Pplr, Sites-in-Laksa, llm-tropes.
+Members pick up v2.17.2 on next `intent upgrade` (issues 0002 + 0003 fixes: intent todo canonical-status + critic prose-language handling, additive). Excludes Pplr, Sites-in-Laksa, llm-tropes.
 
 ## Conventions
 

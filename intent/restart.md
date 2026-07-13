@@ -1,25 +1,24 @@
 # Claude Code Session Restart -- narrative state
 
-## Current state (2026-07-10)
+## Current state (2026-07-13)
 
-**v2.17.1 SHIPPED.** `intent issues` -- a lightweight, directory-per-issue tracker (ST0055) -- across two same-day releases:
+**v2.17.2 SHIPPED.** Patch fixing two dogfooded CLI bugs, closed as issues (no ST -- hv ruled fix-under-issue):
 
-- **v2.17.0** (minor): the command (5 verbs -- `list`/`add`/`show`/`close`/`open`, `--severity`, `--json`, `new` alias) + a companion fix (a `|` in any title corrupted markdown tables; `sanitize_title` strips it at st/wp/issues input, `slugify` promoted to `intent_helpers`) + `scripts/release` -> `bin/release`. Tag `b7e94e2`, wrap `20c1b5f`.
-- **v2.17.1** (patch): `issue_file` prefers the frontmatter-bearing primary in multi-`.md` issue dirs (legacy adoption) + fleet issue-tree normalisation (Utilz/Conflab/Lamplight to dir-per-issue canon). Tag `e7360b8`, wrap `309d8d8`.
+- **Issue 0002** -- `intent todo` rendered `[?]` for a non-canonical status string (eg the directory-name form `NOT-STARTED`); `status_box` keyed on the raw frontmatter value while `intent st` routes through `canonical_status`. Fix: `canonical_status` (the one synonym table) relocated `bin/intent_st` -> `bin/intent_helpers` (both `intent st` and `intent todo` source it, not each other); `status_box` canonicalises before mapping.
+- **Issue 0003** -- the pre-commit critic gate errored (exit 2) + fail-opened on every commit in a project declaring `author`/`content`, because `intent critic` rejected prose. Fix: one language registry in `critic_runner.sh`; `intent critic` no-ops prose at exit 0 (critique is on-demand via `critic-prose`, `.md`/`.mdx`/`.html` only) + `intent critic --languages`; the gate is unchanged (defers to the exit code). A gate-side `--languages` skip was built + reverted (a broken CLI could silently skip a real code critic).
 
-Both remotes + GitHub releases. ST0055 = 5 WPs, 23/23 through the gate; two critic-shell passes clean. Dogfood: Intent issues 0001 (pipe bug, closed) + 0002 (todo `[?]` gap, open). Note: 2.17.1's `bin/release` was interrupted by a terminal crash after the local commit+tag; push/GitHub-release/wrap completed by hand (idempotent). Prior: v2.16.1 (ST0054), v2.16.0 (ST0053).
+Tag `v2.17.2` (`22c409e`), wrap `e525f04`, both remotes + GitHub release. CHANGELOG `[2.17.2]` is the release note (patch precedent). Prior: v2.17.1 + v2.17.0 (ST0055 `intent issues`), v2.16.1 (ST0054), v2.16.0 (ST0053).
 
 ## Open follow-ups (non-blocking)
 
 - Push Utilz (`0171297`) + Lamplight (`7058fd3a8`) issue-normalisation commits in their own repos (Conflab pushed).
-- Intent issue 0002 (OPEN): `intent todo` `[?]` on a non-canonical status -- route todo's status read through `canonical_status` (the synonym table `intent st` already uses).
 - Utilz-side todo guard (separate repo): `generator: utilz todo` + symmetric guard.
 - AT-name traceability (vc deferral); `bin/release` v2 polish (auto config.json bump); headless `intent critic prose` gate (D4); `docs/blog/README.md` dead link 0007.
 
 ## Where detail lives
 
 - `.claude/restart.md` -- next-session focus. `intent/wip.md` -- current state + backlog.
-- `intent/done.md` -- shipped ledger (July; older months in `intent/history/YYYYMM-done.md`). `intent/st/COMPLETED/ST0055/` -- closed thread. `docs/releases/2.17.0/` + CHANGELOG `[2.17.0]`/`[2.17.1]`.
+- `intent/done.md` -- shipped ledger (July; older months in `intent/history/YYYYMM-done.md`). `intent/st/COMPLETED/ST0055/` -- closed thread. `docs/releases/2.17.0/` + CHANGELOG `[2.17.0]`/`[2.17.1]`/`[2.17.2]`; issues 0002+0003 in `intent/issues/CLOSED/`.
 
 ## Conventions (carry forward)
 

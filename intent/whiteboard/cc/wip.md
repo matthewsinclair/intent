@@ -5,7 +5,7 @@ role: control
 session_id: cf2d4e1b-70cd-433b-aa56-6de4e94b997d
 heartbeat_at: 2026-07-13T20:30Z
 status: active
-focus: "Issues 0002 + 0003 FIXED + CLOSED + committed (9d14ad3); staged for v2.17.2 patch (CHANGELOG [2.17.2]; bin/release --dry-run clean). Awaiting matts bin/release --patch, then config.json post-tag wrap + globalfold."
+focus: "v2.17.2 SHIPPED (2026-07-13): issues 0002 + 0003 fixed + closed + released. Tag 22c409e, wrap e525f04, both remotes + GitHub release. Globalfold done. Awaiting matts's next."
 claims: []
 ---
 
@@ -13,14 +13,14 @@ claims: []
 
 ## DOING
 
-- **Issues 0002 + 0003 -- FIXED + CLOSED + committed (`9d14ad3`); staged for release as v2.17.2.** No ST per hv. 246 pass / 0 fail across 14 affected bats suites; shell critic clean on all 6 changed files; `bin/release --dry-run --patch` clean. Awaiting matts's `bin/release --patch` (manual), then the config.json post-tag wrap + globalfold.
+- **v2.17.2 SHIPPED -- issues 0002 + 0003 fixed + closed + released.** No ST per hv. Fix commit `9d14ad3`, release `22c409e` (tag `v2.17.2`), wrap `e525f04`; both remotes + GitHub release; globalfold done (done.md / wip.md / restart.md / .claude/restart.md). Affected bats suites green; shell critic clean on the changed files.
   - 0002 (todo `[?]`): `canonical_status` relocated `intent_st` -> `intent_helpers` (the shared lib both source); `intent_todo` `status_box` now routes through it. Guard: intent_todo.bats.
   - 0003 (critic rejects author/content): one language registry in `critic_runner.sh`; `intent critic` no-ops prose at exit 0 + `--languages`; the gate is UNCHANGED (defers to exit code). Prose-only-on-content verified via `applies_to` (matts follow-up). Guards: intent_critic / pre_commit_hook / critic_runner_applies_to.bats.
 
 ## TODO
 
 - **Push fleet issue-normalisation commits (hv, separate repos):** Utilz (`0171297`) + Lamplight (`7058fd3a8`) local-only; Conflab pushed.
-- **v2.17.2 release IN FLIGHT (matts, manual):** `bin/release --patch` (bumps VERSION + CHANGELOG date + AGENTS, tags, pushes both remotes, gh release), then the config.json `intent_version` post-tag wrap, then globalfold (done.md / wip.md / restart.md to 2.17.2 with tag SHAs).
+- _(v2.17.2 shipped -- release + wrap + globalfold all done. No release in flight.)_
 - Carry-over (hv, separate repo): utilz-side `generator: utilz todo` marker + symmetric guard.
 - DEFERRED (needs hv ruling): AT-name traceability -- `acceptance.md` AT ids grep-able to bats `@test` names.
 
