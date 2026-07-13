@@ -107,6 +107,32 @@ EOF
   critic_rule_applies_to_file "$TEST_TEMP_DIR/RULE.md" "lib/foo.ex"
 }
 
+# --- prose rules target content, not code (issue 0003) ---------------------
+# author/content only ever fire on .md/.mdx/.html, never on .ex/.sh/.lua --
+# the same applies_to gate the code critics use, symmetric to "elixir fires on
+# .ex not .lua".
+
+@test "prose rule (banned-filler) DOES apply to docs/post.md" {
+  local rule="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/prose/style/banned-filler-and-house-style/RULE.md"
+  critic_rule_applies_to_file "$rule" "docs/post.md"
+}
+
+@test "prose rule (banned-filler) does NOT apply to lib/foo.ex (code)" {
+  local rule="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/prose/style/banned-filler-and-house-style/RULE.md"
+  ! critic_rule_applies_to_file "$rule" "lib/foo.ex"
+}
+
+@test "prose rule (banned-filler) does NOT apply to bin/intent (shell)" {
+  local rule="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/prose/style/banned-filler-and-house-style/RULE.md"
+  ! critic_rule_applies_to_file "$rule" "bin/intent"
+}
+
+@test "content rule (reading-level) applies to .html, not .lua" {
+  local rule="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/content/craft/reading-level/RULE.md"
+  critic_rule_applies_to_file "$rule" "site/index.html"
+  ! critic_rule_applies_to_file "$rule" "src/app.lua"
+}
+
 # --- ST0038 regression: tagged-tuple-returns has no greppable proxy --------
 
 @test "IN-EX-CODE-002 has no greppable proxy (cannot be expressed as per-file regex)" {

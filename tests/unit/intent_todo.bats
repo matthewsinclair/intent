@@ -73,6 +73,20 @@ setup_todo_project() {
   assert_file_contains intent/todo.md "[x] ST0003"
 }
 
+@test "non-canonical status string renders its real glyph, not [?] (issue 0002)" {
+  # A thread whose info.md carries the directory-name form "NOT-STARTED" (a
+  # synonym intent st accepts via canonical_status) must render as TODO "[ ]",
+  # not the unknown-status "[?]". Before the fix status_box keyed on the raw
+  # frontmatter value and fell through to "?"; now it canonicalises first, so
+  # intent todo and intent st agree about the same thread's status.
+  setup_todo_project
+  mk_st "intent/st/NOT-STARTED" "ST0006" "NOT-STARTED" "noncanonical status"
+  run_intent todo update
+  assert_line intent/todo.md "- [ ] ST0006: noncanonical status"
+  run grep -cF -- "[?] ST0006" intent/todo.md
+  assert_output "0"
+}
+
 @test "DONE bucket self-sweeps to today (older completions drop off)" {
   setup_todo_project
   run_intent todo update

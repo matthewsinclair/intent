@@ -33,6 +33,32 @@ if ! declare -f rule_frontmatter >/dev/null 2>&1; then
   source "$INTENT_HOME/intent/plugins/claude/lib/rules_lib.sh"
 fi
 
+# ---- Language registry (Highlander: one source for the whole toolchain) ----
+# The languages with a mechanical, headless CODE critic. `intent critic`
+# validates its positional argument against this set, and the pre-commit gate
+# consults it (via `intent critic --languages`) to decide which declared
+# languages to run -- so the accepted set lives in exactly one place and the
+# CLI and the gate cannot drift (issue 0003).
+critic_code_languages() {
+  printf '%s\n' elixir rust swift lua shell
+}
+
+# Prose / on-demand disciplines: valid declared languages whose critique is the
+# critic-prose SUBAGENT (LLM judgement over .md / .mdx / .html files), never the
+# headless runner. `intent critic <prose-lang>` is a clean no-op and the gate
+# skips them, so declaring author / content never errors the commit gate (0003).
+critic_prose_languages() {
+  printf '%s\n' author content
+}
+
+# Membership predicates over the two registries above -- exact whole-line match.
+critic_is_code_language() {
+  critic_code_languages | grep -qxF "$1"
+}
+critic_is_prose_language() {
+  critic_prose_languages | grep -qxF "$1"
+}
+
 # Severity priority (low → high): style, recommendation, warning, critical.
 # Used for --severity-min filtering and report ordering.
 critic_severity_rank() {

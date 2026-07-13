@@ -46,6 +46,9 @@ Richer review is available via `Task(subagent_type="critic-<lang>")`.
 
 Positional:
   <lang>                 elixir | rust | swift | lua | shell
+                         author | content are accepted as a clean no-op: prose
+                         critique is on-demand via the critic-prose subagent,
+                         not this headless runner.
 
 Options:
   --files <path> ...     Explicit file list. Default: scan nothing unless --staged.
@@ -54,6 +57,9 @@ Options:
                          Levels: critical, warning, recommendation, style.
   --format text|json     Output format. Default: text.
   --rules <dir>          Alternative rules root (overrides canon discovery).
+  --languages            List the languages with a headless code critic (one
+                         per line) and exit. Consumed by the pre-commit gate to
+                         skip prose / on-demand languages so the two cannot drift.
   -h, --help             Show this help.
 
 Exit codes:
@@ -94,12 +100,33 @@ case "$1" in
     print_help
     exit 0
     ;;
-  agnostic|elixir|rust|swift|lua|shell)
+  --languages)
+    # Emit the languages that have a headless CODE critic, one per line. The
+    # pre-commit gate consults this so the accepted set lives in one place and
+    # the gate cannot drift from this CLI's own validation (issue 0003).
+    critic_code_languages
+    exit 0
+    ;;
+  agnostic)
     LANG="$1"
     shift
     ;;
   *)
-    error_out "first argument must be a language: elixir | rust | swift | lua | shell"
+    if critic_is_code_language "$1"; then
+      LANG="$1"
+      shift
+    elif critic_is_prose_language "$1"; then
+      # author / content have no mechanical critic -- their rules are LLM
+      # judgement applied by the critic-prose subagent (Task) over prose files.
+      # A headless run is a clean no-op, not an argument error, so the
+      # pre-commit gate never trips on a declared prose language (issue 0003).
+      printf 'ok: %s is a prose discipline; critique is on-demand via the critic-prose subagent (Task), not the headless runner -- nothing to do.\n' "$1"
+      exit 0
+    else
+      code_list="$(critic_code_languages | tr '\n' ' ')"; code_list="${code_list% }"
+      prose_list="$(critic_prose_languages | tr '\n' ' ')"; prose_list="${prose_list% }"
+      error_out "first argument must be a language ($code_list) or a prose discipline ($prose_list)"
+    fi
     ;;
 esac
 

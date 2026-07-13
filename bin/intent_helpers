@@ -378,6 +378,45 @@ remove_project_language() {
 }
 export -f remove_project_language
 
+# Map any steel-thread status spelling to the canonical stored form (the value
+# written to frontmatter and matched by get_st_path). Single synonym table --
+# intent st (repair / organize / normalise_status) and intent todo's status_box
+# both derive from this one table, so a synonym one command accepts is never
+# unknown to the other (ST0042 T5; issue 0002). Relocated here from bin/intent_st
+# because intent_st and intent_todo source this shared library, not each other,
+# so this is the only home both can reach (Highlander).
+canonical_status() {
+  local status="$1"
+  local status_lower
+  status_lower=$(echo "$status" | tr '[:upper:]' '[:lower:]')
+
+  case "$status_lower" in
+    "wip"|"in progress"|"inprogress"|"in-progress")
+      echo "WIP"
+      ;;
+    "not started"|"notstarted"|"not-started"|"tbc"|"to be commenced")
+      echo "Not Started"
+      ;;
+    "completed"|"complete"|"done")
+      echo "Completed"
+      ;;
+    "cancelled"|"canceled")
+      echo "Cancelled"
+      ;;
+    "on hold"|"onhold"|"on-hold"|"hold")
+      echo "On Hold"
+      ;;
+    "all")
+      echo "all"
+      ;;
+    *)
+      # Return original if no match
+      echo "$status"
+      ;;
+  esac
+}
+export -f canonical_status
+
 # Require jq to be installed (returns 1 with instructions if not)
 require_jq() {
   if command -v jq >/dev/null 2>&1; then

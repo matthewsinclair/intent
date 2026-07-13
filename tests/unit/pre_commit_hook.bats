@@ -185,6 +185,37 @@ EOF
   assert_success
 }
 
+@test "declared prose language (author/content) does not error the gate or fail-open (issue 0003)" {
+  # A project that declares author/content must commit cleanly: the gate skips
+  # languages with no headless code critic instead of invoking them and printing
+  # a per-language "invocation error ... fail-open" line on every commit.
+  cat > intent/.config/config.json <<'EOF'
+{"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["author","content"]}
+EOF
+  echo "# a doc" > README.md
+  git add intent/.config mix.exs README.md
+  run git commit -m "prose langs"
+  assert_success
+  refute_output_contains "invocation error"
+  refute_output_contains "fail-open"
+  refute_output_contains "must be a language"
+}
+
+@test "mixed code+prose: elixir critic still fires, prose skipped cleanly (issue 0003)" {
+  # elixir must still block on a bad fixture while author is skipped without the
+  # drift noise -- the gate runs code critics and skips prose disciplines.
+  cat > intent/.config/config.json <<'EOF'
+{"intent_version":"2.11.0","project_name":"HookTest","author":"t","created_date":"2026-04-24T00:00:00Z","languages":["elixir","author"]}
+EOF
+  mkdir -p test && cp "$FIX_BAD" test/bad_test.exs
+  git add intent/.config mix.exs test/bad_test.exs
+  run git commit -m "elixir + author"
+  [ "$status" -ne 0 ]
+  assert_output_contains "commit blocked by findings"
+  refute_output_contains "invocation error"
+  refute_output_contains "fail-open"
+}
+
 @test "honours disabled rule id" {
   cat > .intent_critic.yml <<'EOF'
 severity_min: warning

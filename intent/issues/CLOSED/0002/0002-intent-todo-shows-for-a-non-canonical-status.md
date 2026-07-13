@@ -3,7 +3,7 @@ id: "0002"
 title: intent todo shows [?] for a non-canonical status string
 date: 2026-07-10
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: low
 ---
 
@@ -44,4 +44,4 @@ Route `intent todo`'s status read through `canonical_status` (the single synonym
 
 ## Resolutions
 
-{{TBC}}
+FIXED (2026-07-13, working tree -- pending matts verify + commit; issue left OPEN). Relocated `canonical_status` (the single status synonym table) from `bin/intent_st` to `bin/intent_helpers` -- the shared library both `intent st` and `intent todo` source (they source `intent_helpers`, not each other, so it is the only home both can reach; Highlander). `intent_todo`'s `status_box` now routes the raw frontmatter value through `canonical_status` before mapping to a glyph, so a synonym `intent st` accepts (eg the directory-name form `NOT-STARTED`, or a work package's `Done`) resolves to the same `[ ]` / `[x]` glyph instead of falling through to `[?]`. `intent_st`'s local copy is deleted (it now uses the sourced function; `normalise_status` still derives from it). Guard: `tests/unit/intent_todo.bats` -- "non-canonical status string renders its real glyph, not [?] (issue 0002)". Regression stays green: `st_commands.bats` (st repair -> canonical WIP) + `organize_commands.bats`. MODULES.md registers the relocated function under `bin/intent_helpers`.

@@ -110,6 +110,11 @@ AGGREGATE=0
 # the iteration safe across bash versions.
 if [ "${#LANGS[@]}" -gt 0 ]; then
   for lang in "${LANGS[@]}"; do
+    # Every declared language is dispatched; `intent critic` owns the code-vs-
+    # prose classification (its single registry). A prose / on-demand discipline
+    # (author, content) returns a clean exit 0 no-op, so it neither blocks nor
+    # prints a spurious "fail-open" line -- the gate needs no language knowledge
+    # of its own, and cannot drift from the CLI (issue 0003).
     # Capture output so we can surface findings only when present.
     out="$(intent critic "$lang" --staged --severity-min "$SEVERITY" --format text 2>&1)"
     rc=$?

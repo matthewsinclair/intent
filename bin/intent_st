@@ -105,41 +105,9 @@ is_directory_structure() {
   fi
 }
 
-# Map any status spelling to the canonical stored form (the value written
-# to frontmatter and matched by get_st_path). Single synonym table -- the
-# repair/organize commands and normalise_status all derive from this
-# (ST0042 T5: inline copies used to map wip -> "In Progress", diverging
-# from the stored canon "WIP").
-canonical_status() {
-  local status="$1"
-  local status_lower
-  status_lower=$(echo "$status" | tr '[:upper:]' '[:lower:]')
-
-  case "$status_lower" in
-    "wip"|"in progress"|"inprogress"|"in-progress")
-      echo "WIP"
-      ;;
-    "not started"|"notstarted"|"not-started"|"tbc"|"to be commenced")
-      echo "Not Started"
-      ;;
-    "completed"|"complete"|"done")
-      echo "Completed"
-      ;;
-    "cancelled"|"canceled")
-      echo "Cancelled"
-      ;;
-    "on hold"|"onhold"|"on-hold"|"hold")
-      echo "On Hold"
-      ;;
-    "all")
-      echo "all"
-      ;;
-    *)
-      # Return original if no match
-      echo "$status"
-      ;;
-  esac
-}
+# canonical_status() and its synonym table now live in bin/intent_helpers
+# (sourced above), so intent st and intent todo share exactly one table
+# (Highlander; issue 0002). normalise_status below still derives from it.
 
 # Function to normalise status values into filter-comparison tokens.
 # Derives from canonical_status so there is exactly one synonym table.

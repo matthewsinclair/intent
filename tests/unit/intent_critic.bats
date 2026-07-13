@@ -59,6 +59,35 @@ FIX_GOOD="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/elixir/test/strong-
 }
 
 # ====================================================================
+# CLI: language registry surface (issue 0003)
+# ====================================================================
+
+@test "--languages lists the code-critic languages, one per line, exit 0" {
+  run "$SCRIPT" --languages
+  assert_success
+  assert_output_contains "elixir"
+  assert_output_contains "rust"
+  assert_output_contains "swift"
+  assert_output_contains "lua"
+  assert_output_contains "shell"
+  # Prose disciplines have no headless critic, so they are NOT listed.
+  refute_output_contains "author"
+  refute_output_contains "content"
+}
+
+@test "prose discipline 'author' is a clean no-op (exit 0), not an arg error" {
+  run "$SCRIPT" author
+  assert_success
+  assert_output_contains "prose discipline"
+}
+
+@test "prose discipline 'content' is a clean no-op (exit 0), not an arg error" {
+  run "$SCRIPT" content
+  assert_success
+  assert_output_contains "prose discipline"
+}
+
+# ====================================================================
 # Detection: bad fixture produces findings, good fixture clean
 # ====================================================================
 

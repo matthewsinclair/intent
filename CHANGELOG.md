@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.17.2] - in progress
+
+Patch release fixing two issues dogfooded in Intent's own tooling: `intent todo` mis-rendering a non-canonical status, and the pre-commit critic gate erroring on declared prose languages.
+
+### Fixed
+
+- **`intent todo` no longer renders `[?]` for a non-canonical status string (issue 0002).** The flat view's glyph mapping keyed on the raw frontmatter `status:` value, so a synonym `intent st` tolerates via `canonical_status` -- eg the directory-name form `NOT-STARTED` in place of `Not Started` -- fell through to the unknown-status `[?]` instead of bucketing as TODO with `[ ]`, and `intent todo` and `intent st` disagreed about the same thread. `canonical_status` (the single status synonym table) moved from `bin/intent_st` into the shared `bin/intent_helpers` -- the library both `intent st` and `intent todo` source, so it is the only home both can reach -- and `intent todo`'s `status_box` now canonicalises the value before mapping it to a glyph. Regression test added.
+- **The pre-commit critic gate no longer errors or fail-opens on declared prose languages (issue 0003).** A project that declares `author` / `content` in its `languages` array made the gate invoke `intent critic author`, which accepted only the five code languages (`elixir | rust | swift | lua | shell`) and rejected prose with exit 2; the gate caught the non-zero exit and printed an `invocation error ... fail-open` pair on every commit, while reporting a pass for a check it never ran. `intent critic` now derives its accepted set from a single language registry in `critic_runner.sh`, treats `author` / `content` as a clean exit-0 no-op (prose critique is on-demand via the `critic-prose` subagent, which fires only on `.md` / `.mdx` / `.html`, never on code), and exposes `intent critic --languages`. The gate is unchanged -- it defers to the exit code, so a declared prose language is now silent. Regression tests added.
+
 ## [2.17.1] - 2026-07-10
 
 Patch release hardening `intent issues` for adopting legacy issue trees, and completing the fleet normalisation begun in 2.17.0 (ST0055 / WP-05).

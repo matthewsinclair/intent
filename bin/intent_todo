@@ -53,14 +53,20 @@ usage() {
   exit 1
 }
 
-# Map an Intent status value to a checkbox glyph. Steel threads use
-# WIP / Not Started / Completed / Cancelled; work packages use WIP / Not
-# Started / Done -- both vocabularies are handled here (Highlander).
+# Map an Intent status value to a checkbox glyph. Routes the raw frontmatter
+# value through canonical_status first (the one synonym table in intent_helpers,
+# sourced above), so a non-canonical spelling -- eg the directory-name form
+# "NOT-STARTED", or a work package's "Done" -- resolves to the same glyph
+# intent st would use, instead of falling through to "?" (issue 0002). Steel
+# threads canonicalise to WIP / Not Started / Completed / Cancelled; work
+# packages' "Done" folds to Completed.
 status_box() {
-  case "$1" in
+  local canonical
+  canonical=$(canonical_status "$1")
+  case "$canonical" in
   WIP) printf -- '-' ;;
   "Not Started") printf ' ' ;;
-  Done | Completed) printf 'x' ;;
+  Completed) printf 'x' ;;
   Cancelled) printf '~' ;;
   *) printf '?' ;;
   esac
