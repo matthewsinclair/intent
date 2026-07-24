@@ -299,6 +299,22 @@ resolve_st_dir() {
 }
 export -f resolve_st_dir
 
+# Locate a work-package directory inside an already-resolved thread directory.
+# THE WP-dir resolver (Highlander, issue 0004) -- the WP analogue of
+# resolve_st_dir, composing with it: resolve_wp_dir "$(resolve_st_dir ST0055)" 03
+# Echoes the directory, returns 1 when that WP does not exist. Callers pass the
+# thread dir (not the id) so a resolved thread is never resolved twice.
+# $2 must already be zero-padded -- parse_wp_specifier is what pads it.
+resolve_wp_dir() {
+  local st_dir="$1"
+  local wp_num="$2"
+  local location="$st_dir/WP/$wp_num"
+
+  [ -d "$location" ] || return 1
+  echo "$location"
+}
+export -f resolve_wp_dir
+
 # ---- Extension root resolution ----
 # THE ext-root resolver pair (Highlander, ST0042/WP-05). Honours
 # INTENT_EXT_DIR (used by tests) and INTENT_EXT_DISABLE=1 (escape hatch:
@@ -495,6 +511,12 @@ parse_wp_specifier() {
     local st_part="${spec%/*}"
     local wp_part="${spec##*/}"
     ST_ID=$(normalise_st_id "$st_part")
+    # Validate BEFORE the 10# arithmetic below: a non-numeric part makes bash
+    # abort with a raw "value too great for base" on stderr, which is an
+    # unhandled failure wearing the mask of one (No Silent Errors -- issue 0004).
+    case "$wp_part" in
+      ''|*[!0-9]*) error "invalid work package number: '$wp_part' (expected digits, eg $ST_ID/01)" ;;
+    esac
     WP_NUM=$(printf "%02d" "$((10#$wp_part))")
   else
     ST_ID=$(normalise_st_id "$spec")

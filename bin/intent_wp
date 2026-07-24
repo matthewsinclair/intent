@@ -165,9 +165,10 @@ TEMPLATE
 
     parse_wp_specifier "$1" "true"
 
-    # Find the ST directory
+    # Find the ST + WP directories (resolve_wp_dir is THE WP-dir resolver in
+    # intent_helpers -- issue 0004; the gate resolves through the same one).
     ST_DIR=$(resolve_st_dir "$ST_ID") || error "Steel thread not found: $ST_ID"
-    WP_DIR="$ST_DIR/WP/$WP_NUM"
+    WP_DIR=$(resolve_wp_dir "$ST_DIR" "$WP_NUM") || error "Work package not found: $ST_ID/$WP_NUM"
     WP_FILE="$WP_DIR/info.md"
 
     if [ ! -f "$WP_FILE" ]; then
@@ -216,9 +217,10 @@ TEMPLATE
 
     parse_wp_specifier "$1" "true"
 
-    # Find the ST directory
+    # Find the ST + WP directories (resolve_wp_dir is THE WP-dir resolver in
+    # intent_helpers -- issue 0004; the gate resolves through the same one).
     ST_DIR=$(resolve_st_dir "$ST_ID") || error "Steel thread not found: $ST_ID"
-    WP_DIR="$ST_DIR/WP/$WP_NUM"
+    WP_DIR=$(resolve_wp_dir "$ST_DIR" "$WP_NUM") || error "Work package not found: $ST_ID/$WP_NUM"
     WP_FILE="$WP_DIR/info.md"
 
     if [ ! -f "$WP_FILE" ]; then
@@ -288,9 +290,10 @@ TEMPLATE
 
     parse_wp_specifier "$1" "true"
 
-    # Find the ST directory
+    # Find the ST + WP directories (resolve_wp_dir is THE WP-dir resolver in
+    # intent_helpers -- issue 0004; the gate resolves through the same one).
     ST_DIR=$(resolve_st_dir "$ST_ID") || error "Steel thread not found: $ST_ID"
-    WP_DIR="$ST_DIR/WP/$WP_NUM"
+    WP_DIR=$(resolve_wp_dir "$ST_DIR" "$WP_NUM") || error "Work package not found: $ST_ID/$WP_NUM"
     WP_FILE="$WP_DIR/info.md"
 
     if [ ! -f "$WP_FILE" ]; then

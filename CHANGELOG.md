@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.17.3] - 2026-07-24
+
+Patch release closing the last vacuous-pass hole in the acceptance close-gate: a scope naming no real steel thread or work package is now refused instead of reporting a silent pass.
+
+### Fixed
+
+- **`intent ac gate` no longer exits 0 for a target it could not resolve (issue 0004).** An unresolvable target degraded to an empty acceptance-criterion set, and each command in the family then reported its own flavour of vacuous success over that emptiness: the gate found nothing unsatisfied and exited 0 in silence, `ac status` printed `0/0 satisfied`, `ac list` printed no rows. "This target does not exist" and "this target has nothing unsatisfied" were the same internal state, and only the second was ever reported -- so `intent ac gate ST9999`, `intent ac gate ST0055/99` and a genuinely satisfied `intent ac gate ST0055` were indistinguishable to the CI steps and pre-commit hooks the gate exists to serve. Target resolution is now a distinct, failable step that runs before evaluation, in one resolver (`resolve_target`) that the whole `ac` / `at` family shares: it validates the `/NN` work-package segment, which nothing validated anywhere before, and reports a bad target as `BLOCKED` + exit 1 from the machine-facing gate and `Error:` + exit 1 from the human-facing readers. `resolve_wp_dir` is new in `bin/intent_helpers` as the WP analogue of `resolve_st_dir`, and the three `bin/intent_wp` sites that resolve an existing WP now share it.
+- **The close-gate announces every verdict, pass included.** Silence used to be the gate's success signal, which is what kept the defect above invisible through three releases of daily dogfooding. `PASS` lines now join the existing `EXEMPT` and `BLOCKED` lines. The ST0044 WP-lenient rollup (a work package with no acceptance criteria of its own rolls up to the thread contract) is preserved, but is now granted only to a work package that exists and is announced when taken, rather than inferred from a zero count.
+- **A non-numeric work-package number is a clean error, not raw bash arithmetic.** `parse_wp_specifier` fed the `/NN` segment to a bare `10#` expansion, so `intent wp show|start|done <st>/abc` -- and the `ac` / `at` family through the same helper -- aborted with `10#abc: value too great for base` on stderr instead of an Intent error. Guarded once in the shared helper. Zero-padding tolerance is unchanged: `ST0055/3` and `ST0055/03` both resolve.
+
 ## [2.17.2] - 2026-07-13
 
 Patch release fixing two issues dogfooded in Intent's own tooling: `intent todo` mis-rendering a non-canonical status, and the pre-commit critic gate erroring on declared prose languages.

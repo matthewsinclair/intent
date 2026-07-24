@@ -83,26 +83,54 @@ find_line() {
 
 # ---- resolution + targets ------------------------------------------------
 
-acc_path() {
-  local id dir
-  id="$(normalise_st_id "$1")"
-  dir="$(resolve_st_dir "$id")" || error "no such steel thread: $id"
-  local acc="$dir/acceptance.md"
-  [ -f "$acc" ] || error "no acceptance.md for $id (looked in $dir)"
+# THE target resolver for the whole ac/at family (Highlander, issue 0004).
+# "<stid>[/NN]" in; ST_ID, WP_NUM (padded) and TARGET_DIR out.
+#
+# Resolution is a distinct, FAILABLE step that must run BEFORE evaluation.
+# Without it an unresolvable target degrades to an empty AC set, and each
+# command then reports its own flavour of vacuous success over that emptiness:
+# the gate found nothing unsatisfied and exited 0, `status` printed 0/0, `list`
+# printed no rows. "This target does not exist" and "this target has nothing
+# unsatisfied" were the same internal state, and only the second was ever
+# reported. Resolving per-subcommand is how the gate came to lack even the
+# steel-thread check its own sibling `status` had, so it resolves here once.
+#
+# The `/NN` segment is validated too -- nothing validated it anywhere before.
+# On failure the reason lands in TARGET_REASON (a global, not stdout: callers
+# capturing stdout in a subshell would lose every assignment above) and the
+# caller picks the presentation -- error() for the human-facing readers, a
+# BLOCKED line for the machine-facing gate.
+resolve_target() {
+  TARGET_REASON=""
+  TARGET_DIR=""
+  parse_wp_specifier "$1" "false"
+  if ! TARGET_DIR="$(resolve_st_dir "$ST_ID")"; then
+    TARGET_REASON="no such steel thread: $ST_ID"
+    return 1
+  fi
+  if [ -n "$WP_NUM" ] && ! resolve_wp_dir "$TARGET_DIR" "$WP_NUM" >/dev/null; then
+    TARGET_REASON="no such work package: $ST_ID/$WP_NUM"
+    return 1
+  fi
+  return 0
+}
+
+# The contract file of an already-resolved target. resolve_target runs first.
+acc_file() {
+  local acc="$TARGET_DIR/acceptance.md"
+  [ -f "$acc" ] || error "no acceptance.md for $ST_ID (looked in $TARGET_DIR)"
   echo "$acc"
 }
 
-# "ST0044/03" -> STID + WPFILTER globals.
-split_target() {
-  case "$1" in
-    */*) STID="${1%%/*}"; WPFILTER="${1#*/}" ;;
-    *)   STID="$1"; WPFILTER="" ;;
-  esac
+# Resolve for the reader commands (list / status / satisfy / at): a bad target
+# is a hard error, never an empty result set that reads as "nothing to report".
+resolve_or_die() {
+  resolve_target "$1" || error "$TARGET_REASON"
 }
 
 in_wp_filter() {
-  [ -z "$WPFILTER" ] && return 0
-  [ "$((10#$(id_group "$1")))" -eq "$((10#$WPFILTER))" ]
+  [ -z "$WP_NUM" ] && return 0
+  [ "$((10#$(id_group "$1")))" -eq "$((10#$WP_NUM))" ]
 }
 
 # ---- coverage + satisfaction --------------------------------------------
@@ -160,9 +188,9 @@ replace_line() {
 
 cmd_ac_list() {
   [ -n "$1" ] || usage
-  split_target "$1"
+  resolve_or_die "$1"
   local acc line id ats sat
-  acc="$(acc_path "$STID")" || exit 1
+  acc="$(acc_file)"
   warn_malformed "$acc"
   while IFS= read -r line; do
     [ -z "$line" ] && continue
@@ -179,9 +207,9 @@ EOF
 
 cmd_ac_status() {
   [ -n "$1" ] || usage
-  split_target "$1"
+  resolve_or_die "$1"
   local acc line total=0 sat=0 verdict="BLOCKED"
-  acc="$(acc_path "$STID")" || exit 1
+  acc="$(acc_file)"
   warn_malformed "$acc"
   while IFS= read -r line; do
     [ -z "$line" ] && continue
@@ -202,18 +230,34 @@ EOF
 #   - a present `acceptance.md` with zero acceptance criteria (empty contract);
 #   - malformed AC/AT lines (F1);
 #   - an in-scope AC unsatisfied.
+#   - a scope that does not resolve to a real ST or WP (issue 0004).
 # The sole escape is an explicit, visible `acceptance: exempt` in the frontmatter
 # (the gate prints an EXEMPT line -- No Silent Errors; an exemption is announced,
-# never inferred from emptiness). Default = enforced. A missing thread dir is not
-# a unit, so it stays open. WP scope (`<st>/NN`) is WP-lenient: a WP with no own
-# ACs rolls up to the ST boundary as long as the thread carries a contract.
+# never inferred from emptiness). Default = enforced.
+#
+# EVERY exit path reports what it evaluated -- PASS/EXEMPT/BLOCKED (issue 0004).
+# Silence used to be the gate's success signal, which is what hid the vacuous
+# passes: an unresolvable scope evaluated nothing and exited 0 indistinguishably
+# from a contract verified in full. A gate that cannot say what it checked
+# cannot be trusted when it says nothing is wrong.
+#
+# WP scope (`<st>/NN`) stays WP-lenient -- a WP with no own ACs rolls up to the
+# ST boundary as long as the thread carries a contract -- but the rollup is now
+# granted only to a WP that EXISTS, and is announced when taken. A typo'd
+# `<st>/99` matches no ACs for the same arithmetic reason a real AC-free WP
+# does; only a directory probe tells the two apart.
 cmd_ac_gate() {
   [ -n "$1" ] || usage
   local scope="$1"
-  split_target "$scope"
+  # Same resolver as every reader command; only the presentation differs -- the
+  # gate speaks BLOCKED (it is read by machines via $?), the readers use error().
   local id dir acc
-  id="$(normalise_st_id "$STID")"
-  dir="$(resolve_st_dir "$id")" || exit 0
+  if ! resolve_target "$scope"; then
+    echo "gate: $scope BLOCKED -- $TARGET_REASON (nothing to evaluate)"
+    exit 1
+  fi
+  id="$ST_ID"
+  dir="$TARGET_DIR"
   acc="$dir/acceptance.md"
   if [ ! -f "$acc" ]; then
     echo "gate: $scope BLOCKED -- no acceptance.md (no contract). Author ACs in acceptance.md, or add 'acceptance: exempt' to its frontmatter."
@@ -250,8 +294,16 @@ EOF
     echo "gate: $scope BLOCKED -- acceptance.md has zero acceptance criteria (empty contract). Define ACs, or mark 'acceptance: exempt' in the frontmatter."
     exit 1
   fi
-  [ "$total" -eq 0 ] && exit 0
-  [ "$sat" -eq "$total" ] && exit 0
+  if [ "$total" -eq 0 ]; then
+    # The WP exists (probed above) but carries no ACs of its own: the ST0044
+    # WP-lenient rollup. Announced, not inferred -- same contract as EXEMPT.
+    echo "gate: $scope PASS -- no ACs in scope; rolls up to the $id contract ($thread_total AC(s))"
+    exit 0
+  fi
+  if [ "$sat" -eq "$total" ]; then
+    echo "gate: $scope PASS -- $sat/$total satisfied"
+    exit 0
+  fi
   echo "gate: $scope BLOCKED -- $sat/$total satisfied; unsatisfied:${unsat}"
   exit 1
 }
@@ -269,7 +321,8 @@ cmd_ac_satisfy() {
   done
   [ -n "$stid" ] && [ -n "$acid" ] || usage
   local acc line
-  acc="$(acc_path "$stid")" || exit 1
+  resolve_or_die "$stid"
+  acc="$(acc_file)"
   line="$(find_line "$acid" "$acc")"
   [ -n "$line" ] || error "no such AC: $acid in $acc"
   ac_is_nontest "$line" || error "$acid is test-backed; satisfaction is computed from a green covering AT, cannot be hand-satisfied"
@@ -283,9 +336,9 @@ cmd_ac_satisfy() {
 
 cmd_at_list() {
   [ -n "$1" ] || usage
-  split_target "$1"
+  resolve_or_die "$1"
   local acc line id
-  acc="$(acc_path "$STID")" || exit 1
+  acc="$(acc_file)"
   warn_malformed "$acc"
   while IFS= read -r line; do
     [ -z "$line" ] && continue
@@ -302,7 +355,8 @@ cmd_at_set() {
   [ "$target" = "na" ] && target="n/a"
   [ -n "$stid" ] && [ -n "$atid" ] || usage
   local acc line cur esc
-  acc="$(acc_path "$stid")" || exit 1
+  resolve_or_die "$stid"
+  acc="$(acc_file)"
   line="$(find_line "$atid" "$acc")"
   [ -n "$line" ] || error "no such AT: $atid in $acc"
   cur="$(at_status "$line")"

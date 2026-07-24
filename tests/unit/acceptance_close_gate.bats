@@ -12,6 +12,10 @@
 # freshly-stamped-ST and no-acceptance.md "stays open" cases (retired AT-04.4 +
 # its sibling) are inverted below; ST0048 @test names are cited by AT-01.x in
 # intent/st/ST0048/acceptance.md.
+#
+# Issue 0004 closes the last vacuous-pass hole ST0048 left: a scope that does not
+# resolve to a real ST/WP evaluated nothing and exited 0 in silence. Every exit
+# path now reports what it evaluated (PASS / EXEMPT / BLOCKED).
 
 load "../lib/test_helper.bash"
 
@@ -261,6 +265,127 @@ EOF
   run run_intent ac gate ST0001
   assert_failure
   assert_output_contains "malformed"
+}
+
+# ---- issue 0004: the gate must never exit 0 having evaluated nothing --------
+#
+# Pre-fix, an unresolvable scope hit a bare `exit 0` and reported a pass in
+# silence -- indistinguishable, from the outside, from a contract verified in
+# full. Each assert_failure below trips on the pre-fix binary.
+
+@test "gate blocks an unresolvable steel thread instead of passing vacuously" {
+  project_dir=$(create_test_project "Gate Unresolvable ST"); cd "$project_dir"; export EDITOR=echo
+  run run_intent ac gate ST9999
+  assert_failure
+  assert_output_contains "BLOCKED"
+  assert_output_contains "no such steel thread"
+}
+
+@test "gate blocks an unresolvable work package instead of passing vacuously" {
+  project_dir=$(create_test_project "Gate Unresolvable WP"); cd "$project_dir"; export EDITOR=echo
+  run run_intent st new "Gate Thread"; assert_success
+  run run_intent wp new ST0001 "wp one"; assert_success
+  cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
+---
+st_id: ST0001
+---
+# ST0001 -- Acceptance
+
+## Acceptance Criteria
+
+### ST-level
+
+- AC-00.1 (non-test) thread-level boundary -- evidence: signed -- satisfied: yes
+EOF
+  # WP-99 does not exist: it matches no ACs for the same arithmetic reason a
+  # genuinely AC-free WP does, so only the directory probe separates them.
+  run run_intent ac gate ST0001/99
+  assert_failure
+  assert_output_contains "no such work package"
+}
+
+@test "gate still grants the WP-lenient rollup to a WP that exists, and announces it" {
+  project_dir=$(create_test_project "Gate Rollup Announced"); cd "$project_dir"; export EDITOR=echo
+  run run_intent st new "Gate Thread"; assert_success
+  run run_intent wp new ST0001 "wp one"; assert_success
+  cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
+---
+st_id: ST0001
+---
+# ST0001 -- Acceptance
+
+## Acceptance Criteria
+
+### ST-level
+
+- AC-00.1 (non-test) thread-level boundary -- evidence: signed -- satisfied: yes
+EOF
+  # Guards against over-tightening: WP-01 is real and AC-free, so it must still
+  # roll up to the thread contract -- but say so rather than pass in silence.
+  run run_intent ac gate ST0001/01
+  assert_success
+  assert_output_contains "rolls up"
+}
+
+@test "gate announces the pass so a verified contract cannot read as an empty one" {
+  project_dir=$(create_test_project "Gate Announces Pass"); cd "$project_dir"; export EDITOR=echo
+  run run_intent st new "Gate Thread"; assert_success
+  cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
+---
+st_id: ST0001
+---
+# ST0001 -- Acceptance
+
+## Acceptance Criteria
+
+### ST-level
+
+- AC-00.1 (non-test) thread-level boundary -- evidence: signed -- satisfied: yes
+EOF
+  run run_intent ac gate ST0001
+  assert_success
+  assert_output_contains "PASS"
+  assert_output_contains "1/1 satisfied"
+}
+
+@test "every ac/at reader refuses an unresolvable target instead of reporting an empty set" {
+  project_dir=$(create_test_project "Family Resolution"); cd "$project_dir"; export EDITOR=echo
+  run run_intent st new "Gate Thread"; assert_success
+  run run_intent wp new ST0001 "wp one"; assert_success
+  cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
+---
+st_id: ST0001
+---
+# ST0001 -- Acceptance
+
+## Acceptance Criteria
+
+### ST-level
+
+- AC-00.1 (non-test) thread-level boundary -- evidence: signed -- satisfied: yes
+EOF
+  # Resolution is one shared step, so a bad target fails identically everywhere:
+  # pre-fix `status` printed "0/0 satisfied" and `list` printed nothing, both
+  # exiting 0 -- an empty result set masquerading as "nothing to report".
+  for reader in "ac status" "ac list" "at list"; do
+    run run_intent ${reader} ST9999
+    assert_failure
+    assert_output_contains "no such steel thread"
+
+    run run_intent ${reader} ST0001/99
+    assert_failure
+    assert_output_contains "no such work package"
+  done
+}
+
+@test "a non-numeric work package number is a clean error, not raw bash arithmetic" {
+  project_dir=$(create_test_project "Gate Non Numeric WP"); cd "$project_dir"; export EDITOR=echo
+  run run_intent st new "Gate Thread"; assert_success
+  run run_intent ac gate ST0001/abc
+  assert_failure
+  assert_output_contains "invalid work package number"
+  # The pre-fix failure mode: bash aborting inside the 10# expansion.
+  [[ "$output" != *"value too great for base"* ]]
 }
 
 # ST0048 / AT-02.1: the close-gate is fail-by-default, so the retired "opt-in /
