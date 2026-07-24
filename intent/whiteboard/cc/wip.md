@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 4ec8fcd8-3834-43f3-af24-8cabe1eb0958
-heartbeat_at: 2026-07-24T08:57Z
-status: active
-focus: "Issue 0004 (high) FIXED + CLOSED + COMMITTED (e135349). v2.17.3 staged in CHANGELOG; matts runs the release manually. Awaiting next."
+heartbeat_at: 2026-07-24T10:42Z
+status: paused
+focus: "v2.17.3 SHIPPED (2026-07-24): issue 0004 fixed + closed + released. Tag 2828f89, wrap 5793d7d, both remotes + GitHub release. Full suite green. Globalfold done, day closed."
 claims: []
 ---
 
@@ -13,12 +13,11 @@ claims: []
 
 ## DOING
 
-- **Issue 0004 (high, opened 2026-07-24 by hv) -- `intent ac gate` vacuous pass. FIXED + CLOSED + COMMITTED (`e135349`); v2.17.3 staged, matts releases manually.** Target resolution is now a distinct failable step ahead of evaluation, in ONE resolver (`resolve_target`) the whole `ac`/`at` family shares -- it validates the `/NN` segment nothing validated before, and reports a bad target as BLOCKED+exit 1 from the gate, `Error:`+exit 1 from the readers. New `resolve_wp_dir` in `intent_helpers` (WP analogue of `resolve_st_dir`); the 3 resolving `intent_wp` sites share it; `acc_path` retired. Every gate verdict now announced (PASS joins EXEMPT/BLOCKED) -- silence-on-success is what hid this through 3 releases. Also fixed: `parse_wp_specifier` fed `/NN` to a bare `10#` expansion, so `wp show|start|done <st>/abc` aborted with raw bash noise. hv's fix items 1-3 done; **item 4 NOT actioned -- premise does not reproduce** (`ac status` exits 0 on BOTH BLOCKED shapes here, and `intent_acceptance_cli.bats:111` asserts it; status is the reporter, gate is the gate). Flagged in the issue for an hv ruling. 16/16 gate tests green, 6 new + all verified RED pre-fix; 8 adjacent suites clean; critic-shell clean.
-
-_(day closed 2026-07-13 -- v2.17.2 shipped: issues 0002 + 0003 fixed + closed + released. Session detail archived to `.history/20260713/`.)_
+_(day closed 2026-07-24 -- v2.17.3 shipped: issue 0004 fixed + closed + released; globalfold done. Session detail in `intent/done.md` + `intent/issues/CLOSED/0004/`.)_
 
 ## TODO
 
+- **hv ruling owed -- issue 0004 item 4 (`ac status` exit code).** hv asked for uniform non-zero on a BLOCKED `ac status`; premise does not reproduce (exits 0 on both BLOCKED shapes; `intent_acceptance_cli.bats:111` asserts it). `status` = reporter (stdout), `gate` = gate (`$?`). Own issue if hv wants it changed.
 - **Push fleet issue-normalisation commits (hv, separate repos):** Utilz (`0171297`) + Lamplight (`7058fd3a8`) local-only; Conflab pushed.
 - Carry-over (hv, separate repo): utilz-side `generator: utilz todo` marker + symmetric guard.
 - DEFERRED (needs hv ruling): AT-name traceability -- `acceptance.md` AT ids grep-able to bats `@test` names.
