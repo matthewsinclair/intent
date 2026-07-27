@@ -71,6 +71,21 @@ Any of these would close it; the first is the smallest:
 2. **Qualify the root** -- state that the path is relative to the Intent installation, so a reader knows not to look locally.
 3. **Emit the resolved absolute path** at init time, the way `intent claude rules show` reports `# Source:`. Accurate, but it bakes one machine's layout into a committed file, so it is the weakest of the three.
 
+## Minor, same function -- worth folding into the same fix
+
+`lang_packs_add_entry` inserts a blank line around each appended entry, so the managed block accrues inconsistent spacing as languages are added. Observed in Lamplight after a seventh `intent lang init`:
+
+```
+- **author** -- ...
+- **content** -- ...
+                          <- blank
+- **shell** -- ...
+                          <- blank
+<!-- intent-lang-packs:end -->
+```
+
+Purely cosmetic, and only noted because anyone fixing the path above will already be inside that function.
+
 ## Related
 
 - Observed while auditing the `intent/llm/` documentation lane in Lamplight, where five hand-maintained `RULES-<lang>.md` files carried the same dangling path and were corrected locally. Only the `RULES.md` block could not be, because it is tool-managed.
