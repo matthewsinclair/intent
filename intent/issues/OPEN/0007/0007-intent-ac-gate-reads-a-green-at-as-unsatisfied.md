@@ -17,7 +17,7 @@ acceptance, no-silent-errors, cli, sed
 
 `intent ac gate` / `intent ac list` report an AC as unsatisfied when its covering AT is green but the AT's ` -- status:` field carries markdown emphasis -- `status: **green`, `status: **green.**`, `status: **green;`. The AT line is otherwise well-formed, the test behind it is green, and nothing warns. The status value is extracted by a `sed` substitution whose character class cannot match `*`, so the substitution never fires and `sed` returns the input line unchanged; the caller then compares that whole line to the literal `green` and concludes not-green.
 
-This is the read-side twin of 0007's sibling issue 0006: the same `sed`-non-match-is-invisible shape, in the same file, but in the gate's extraction path rather than in `ac satisfy`'s write path. It is filed high for the same reason 0006 is -- the tool that records verified state reports a false negative about it -- with one aggravating difference. 0006 fails to write a row. This one misreports a row that was written correctly, so the record is right and the gate disagrees with it, which is the harder failure to diagnose.
+This is the read-side twin of issue 0006: the same `sed`-non-match-is-invisible shape, in the same file, but in the gate's extraction path rather than in `ac satisfy`'s write path. It is filed high for the same reason 0006 is -- the tool that records verified state reports a false negative about it -- with one aggravating difference. 0006 fails to write a row. This one misreports a row that was written correctly, so the record is right and the gate disagrees with it, which is the harder failure to diagnose.
 
 ## Reproduction
 
