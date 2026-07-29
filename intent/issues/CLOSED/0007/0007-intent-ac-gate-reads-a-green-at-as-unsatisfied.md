@@ -3,7 +3,7 @@ id: "0007"
 title: intent ac gate reads a green AT as unsatisfied when its status field carries markdown emphasis
 date: 2026-07-29
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: high
 ---
 
@@ -81,4 +81,16 @@ Note for whoever fixes it: the affected contracts in a consumer estate need corr
 
 ## Resolutions
 
-{{TBC}}
+FIXED + CLOSED (2026-07-29), shipped in v2.17.4, together with its write-side twin 0006. Fixes 1 and 2 are implemented as specified. Fix 3 (tolerating emphasis on read) is deliberately NOT implemented -- reasoning below.
+
+**1. Extraction is partial and fails loudly.** `extract_field()` is new in `bin/intent_acceptance` and is THE extraction seam for the whole `ac`/`at` family: it matches the line against the pattern first, then substitutes with that *same* pattern, printing nothing and returning 1 on a non-match. All six extractors (`line_id`, `id_group`, `at_pathname`, `at_status`, `at_covers`, `ac_flag`) are now one line each over it. Because the test and the substitution read one `$pattern`, they cannot drift apart. A caller comparing against `green` now sees an empty string -- which compares false against every real token -- instead of a full AT line masquerading as one.
+
+**2. An unparseable status is reported.** `bad_status_lines()` flags any AT whose status is absent or outside the declared vocabulary, and `warn_bad_fields()` names each offender on stderr from every reader, quoting `to-write | red | green | n/a` and stating that markdown emphasis around the value is not parsed. `cmd_at_set` diagnoses it directly too: `at green` on such a row now says the status is unreadable rather than falling through to the red-first message, which would have reported the row's state as `''` and sent the author to `at red` when the row needs its status field repaired.
+
+The diagnostic does not block. That is deliberate and is the one place this departs from the F1 precedent: a malformed *id* is silently DROPPED, so it makes the gate vacuous and must block (fail-open is the danger). An unparseable *status* leaves its AC unsatisfied, so the gate already fails closed -- it was blocking correctly and silently for the wrong reason. Adding a second block would change nothing except which projects can run the tool at all; adding the voice is the whole fix.
+
+**3. NOT implemented -- emphasis is not tolerated on read.** The vocabulary is documented in every contract's own preamble, so emphasis in a controlled field is author error rather than a legitimate dialect. Tolerating it would also not stop at stripping `*`: the live reproduction is `status: **green; mutation-proved rather than red-first**`, so leniency would have to discard trailing prose after a `;` as well, and there is no principled stopping point. The issue's own caution -- leniency without a diagnostic just moves the silence -- is the deciding argument, and with fix 2 in place the downstream correction is mechanical and one-time. Reopen as its own issue if the fleet evidence later favours tolerance.
+
+**Consumer-estate note stands.** Fixing the parser does not flip the affected rows: `ST0276`'s eleven bolded rows and the out-of-vocabulary values on `ST0298` (`GREEN`), `ST0270` (`BOTH`) and `ST0198` (`BUILT`) must be rewritten to the vocabulary in the Lamplight repo. They are now named by the tool on every `ac list` / `ac gate`, so the sweep is a matter of reading the warnings. That is hv's, in a separate repo.
+
+**Guards.** Covered by the five tests added to `tests/unit/intent_acceptance_cli.bats` under 0006 -- specifically the bolded-status and out-of-vocabulary-status cases, each asserting both that the AC still reads unsatisfied and that the reason is now stated. Full unit suite (1105 tests) and both integration files green.

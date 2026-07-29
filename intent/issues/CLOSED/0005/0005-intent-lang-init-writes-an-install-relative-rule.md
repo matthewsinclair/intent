@@ -3,7 +3,7 @@ id: "0005"
 title: intent lang init writes an install-relative rule-pack path into the consumer project's RULES.md, where it dangles
 date: 2026-07-27
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -92,4 +92,16 @@ Purely cosmetic, and only noted because anyone fixing the path above will alread
 
 ## Resolutions
 
-{{TBC}}
+FIXED + CLOSED (2026-07-29), shipped in v2.17.4, together with 0008 (its generator-into-consumer twin). Proposed fix 1 is implemented. The minor spacing item does NOT reproduce from the tool -- evidence below.
+
+**1. The entry names the command, not a path.** `lang_packs_entry()` is new in `bin/intent_lang` and is the single source of the entry text; it now reads ``- **<lang>** -- rules via `intent claude rules list --lang <lang>` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-<lang>.md`.`` This is resolution the reader can actually run, it is accurate in any repository, and it matches what the generated `CLAUDE.md` already tells projects. The console output at `bin/intent_lang:104` and `lib/help/lang.help.md` were updated to say the same thing. `lib/help/rules.help.md:15` was qualified rather than rewritten -- its paths genuinely refer to the Intent installation (it is the rule-*authoring* guide), so it now says so explicitly and gives `$INTENT_HOME/...`.
+
+**Widened beyond the report: the fix had to heal existing projects.** As specified, changing the string alone would have fixed nothing anywhere it matters. `lang_packs_add_entry` returned early whenever any entry for the language existed, so every project that had already run `intent lang init` -- which is every affected project, by definition -- would have kept the dangling path for good: a tool-managed block that a tool re-run would not correct and a hand-edit would not survive. It is now an upsert: insert when absent, REWRITE when present but not canonical, no-op when already right. A single `intent lang init <lang>` heals a stale entry, which is the fail-forward shape -- the generator owns the block, so the generator repairs it.
+
+**Highlander.** The needle identifying an entry existed in three places, each hard-coding the old wording (`lang_packs_add_entry`, `lang_packs_remove_entry`, and the `lang remove` call site at `bin/intent_lang:378`). It is now `lang_packs_entry_needle()`, matching `- **<lang>** -- ` in ANY revision of the wording -- which is exactly what lets the upsert and the removal recognise a pre-fix entry. The third copy was found by testing rather than by reading: `lang remove` silently stopped removing entries until it was updated too.
+
+**A trap worth recording.** Both the entry and the needle begin with `- `, so `grep -F "$needle"` parses them as an option bundle and fails. Every such grep now passes `--`. The pre-fix needle began with `*`, which is why this only surfaced on the way out.
+
+**Minor spacing item -- does not reproduce.** Three sequential `intent lang init` runs, plus repeated re-runs and a remove/re-add cycle, produce a block with no blank lines between entries and none before the end marker. Neither `lang_packs_add_entry` nor `lang_packs_insert_block` emits one. The Lamplight observation is most likely a markdown formatter running on save (the entries sit in a list inside a managed block, which is the kind of thing prettier reflows) rather than tool output. Nothing was changed for it -- inventing a fix for a defect that cannot be reproduced would be worse than leaving it. Raise it again with a reproduction if it recurs after this release.
+
+**Guards.** Two tests added to `tests/unit/intent_lang.bats`: the entry names the command and no longer names a directory the project does not have (asserting the directory's absence too, so the test cannot pass vacuously); and a re-run heals a seeded old-form entry in place without duplicating it. Four existing assertions on the old wording were updated. Full unit suite (1105 tests) and both integration files green.

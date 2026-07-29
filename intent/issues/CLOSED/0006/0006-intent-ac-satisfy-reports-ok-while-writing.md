@@ -3,7 +3,7 @@ id: "0006"
 title: intent ac satisfy reports ok while writing nothing when the AC row has no satisfied field
 date: 2026-07-28
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: high
 ---
 
@@ -85,4 +85,14 @@ For the adjacent marker issue: report a marker that is `(non-test` but not `(non
 
 ## Resolutions
 
-{{TBC}}
+FIXED + CLOSED (2026-07-29), shipped in v2.17.4, together with its read-side twin 0007. Both parts of the proposed fix are implemented as specified, plus the adjacent marker diagnostic and one further silent-write path found while fixing.
+
+**1. The write is verified, not assumed.** `assert_written()` is new in `bin/intent_acceptance`: it re-reads the row after a mutation and confirms the named field now reports the intended value, erroring with the id, the file and what the row still reads otherwise. Both mutating commands go through it -- `cmd_ac_satisfy` (`ac_flag` must read `yes`) and `cmd_at_set` (`at_status` must read the target). It verifies the RESULT rather than the mechanism, which is what makes it survive any future drift in the substitution pattern, and it also catches a substitution that fired but wrote the wrong value -- something a zero-substitution check inside `replace_line` could not. It reuses the same extractors the readers use, so there is no second pattern here to fall out of step with the first.
+
+**2. `ac satisfy` is now total over both row shapes.** Rather than substituting into a ` -- evidence:` segment the row need not carry, it strips whatever evidence/satisfied tail the row has and appends a fresh canonical one, in a single ordered `sed` expression. A bare row and a tailed row now both land the same result, so an author never has to hand-craft ` -- evidence: pending -- satisfied: no` to make the tool work. The tailed-row output is byte-identical to before.
+
+**Adjacent marker issue -- both consequences fixed.** `bad_marker_lines()` detects an AC whose marker is `(non-test` but not `(non-test)`, and `warn_bad_fields()` names it on stderr from every reader (`ac list`, `ac status`, `at list`, `ac gate`), quoting the required exact form. `cmd_ac_satisfy` no longer answers such a row with "is test-backed" -- a conclusion the parser reached -- but with "has an unclosed non-test marker ... it must read exactly `(non-test)`", the cause the author can act on. The diagnostic deliberately does NOT block: unlike a malformed id, which vanishes from the count and lets the gate go vacuous, an unclosed marker leaves its AC uncredited, so the gate already fails closed. What it needed was a voice, not a new refusal.
+
+**A third silent write, found by the guard.** Testing `assert_written` against a read-only contract showed `replace_line`'s copy-back (`cat "$tmp" > "$f"`) was unchecked: an unwritable file emitted a raw shell "Permission denied" and carried on to print `ok:` -- the same silent-success shape as this issue, one line further down. It now errors. `assert_written` catches it either way; both are fixed because the first line of defence should be the write itself.
+
+**Guards.** Five tests added to `tests/unit/intent_acceptance_cli.bats` covering both issues: a bare row is actually written and the reader agrees; an unwritable contract fails instead of reporting `ok:`; a bolded status is named; an out-of-vocabulary status is named; an unclosed marker is named by both the reader and `ac satisfy`. Full unit suite (1105 tests) and both integration files green; `intent_lang`'s four assertions on the old Language Packs wording were updated under 0005.
