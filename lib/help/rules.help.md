@@ -12,7 +12,7 @@ intent claude rules <command> [args]
 
 ## Description
 
-Intent rules live at `intent/plugins/claude/rules/<lang>/<category>/<slug>/RULE.md` (canon) and `~/.intent/ext/<name>/rules/<lang>/<category>/<slug>/RULE.md` (user extensions). Each rule is a small Markdown file with YAML frontmatter that encodes one principle or antipattern, with runnable good/bad examples where the language permits.
+Intent rules live in the Intent **installation**, not in your project: `$INTENT_HOME/intent/plugins/claude/rules/<lang>/<category>/<slug>/RULE.md` (canon) and `~/.intent/ext/<name>/rules/<lang>/<category>/<slug>/RULE.md` (user extensions). Each rule is a small Markdown file with YAML frontmatter that encodes one principle or antipattern, with runnable good/bad examples where the language permits.
 
 The `intent claude rules` command surface exposes the rule library to Bash consumers. Canonical operations:
 

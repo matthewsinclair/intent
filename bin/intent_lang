@@ -100,14 +100,36 @@ lang_show() {
   done
 
   echo ""
-  echo "Plus: appends a 'Language Packs' entry to intent/llm/RULES.md pointing at"
-  echo "      intent/plugins/claude/rules/$lang/."
+  echo "Plus: adds a 'Language Packs' entry to intent/llm/RULES.md pointing at"
+  echo "      intent claude rules list --lang $lang (rules are served by the"
+  echo "      installed Intent tool, not vendored into the project)."
 }
 
 # ---- Helpers: Language Packs section in agnostic RULES.md ----
 # Marker pair lets re-runs be idempotent and prevents duplicate entries.
 LANG_PACKS_START_MARKER="<!-- intent-lang-packs:start -->"
 LANG_PACKS_END_MARKER="<!-- intent-lang-packs:end -->"
+
+# THE canonical Language Packs entry for a language, plus the needle that finds
+# an existing one whatever wording it currently carries. Both derive from the
+# language alone, so add / remove / upsert cannot disagree about what an entry is.
+#
+# The entry points at the COMMAND, not at a filesystem path. It used to read
+# "rule pack at `intent/plugins/claude/rules/<lang>/`" -- a path that is real
+# inside the Intent installation and was written verbatim into a CONSUMER
+# project's intent/llm/RULES.md, where it resolves to nothing. `intent lang init`
+# installs two files per language and never vendors that tree, so the pointer
+# dangled by construction in every project -- and it sat inside a tool-managed
+# block, so no project could correct it locally either (issue 0005). Naming the
+# command instead is both accurate anywhere and maintenance-free, and it matches
+# what the generated CLAUDE.md already tells projects.
+lang_packs_entry() {
+  printf -- '- **%s** -- rules via `intent claude rules list --lang %s` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-%s.md`.' "$1" "$1" "$1"
+}
+
+# Matches an entry for <lang> in ANY revision of the wording. That is what lets
+# the upsert heal a project still carrying the old dangling-path text.
+lang_packs_entry_needle() { printf -- '- **%s** -- ' "$1"; }
 
 # Returns 0 if the marker pair is already present in intent/llm/RULES.md.
 lang_packs_block_present() {
@@ -153,12 +175,15 @@ lang_packs_remove_entry() {
   local rules_md="$1"
   local lang="$2"
 
-  if ! grep -qF "**${lang}** -- rule pack at" "$rules_md"; then
+  local needle
+  needle="$(lang_packs_entry_needle "$lang")"
+
+  if ! grep -qF -- "$needle" "$rules_md"; then
     return 0
   fi
 
   local tmp="${rules_md}.tmp.$$"
-  awk -v needle="**${lang}** -- rule pack at" '
+  awk -v needle="$needle" '
     {
       if (index($0, needle) == 0) {
         print
@@ -169,27 +194,50 @@ lang_packs_remove_entry() {
   mv "$tmp" "$rules_md"
 }
 
-# Append a single language entry inside the marker block. Idempotent: skip if
-# the language already has an entry.
+# Upsert a single language entry inside the marker block: insert it when absent,
+# REWRITE it when present but not the canonical text, no-op when already right.
+#
+# It used to return early whenever any entry for the language existed, which
+# meant every project that had already run `intent lang init` kept the old
+# dangling-path wording for good: a tool-managed block that a tool re-run would
+# not correct, and that a hand-edit would not survive. Upserting makes a single
+# `intent lang init <lang>` heal it, which is the fail-forward shape -- the
+# generator owns the block, so the generator repairs it (issue 0005).
 lang_packs_add_entry() {
   local rules_md="$1"
   local lang="$2"
-  local entry="- **${lang}** -- rule pack at \`intent/plugins/claude/rules/${lang}/\`; concretised RULES at \`intent/llm/RULES-${lang}.md\`."
+  local entry needle
+  entry="$(lang_packs_entry "$lang")"
+  needle="$(lang_packs_entry_needle "$lang")"
 
-  if grep -qF "**${lang}** -- rule pack at" "$rules_md"; then
+  # `--` is load-bearing: both patterns start with "- ", which grep would
+  # otherwise parse as an option bundle and reject.
+  if grep -qxF -- "$entry" "$rules_md"; then
     return 0
   fi
 
   local tmp="${rules_md}.tmp.$$"
-  awk -v marker="$LANG_PACKS_END_MARKER" -v entry="$entry" '
-    {
-      if (index($0, marker) > 0 && !inserted) {
-        print entry
-        inserted = 1
+  if grep -qF -- "$needle" "$rules_md"; then
+    awk -v needle="$needle" -v entry="$entry" '
+      {
+        if (index($0, needle) == 1) {
+          print entry
+        } else {
+          print
+        }
       }
-      print
-    }
-  ' "$rules_md" > "$tmp"
+    ' "$rules_md" > "$tmp"
+  else
+    awk -v marker="$LANG_PACKS_END_MARKER" -v entry="$entry" '
+      {
+        if (index($0, marker) > 0 && !inserted) {
+          print entry
+          inserted = 1
+        }
+        print
+      }
+    ' "$rules_md" > "$tmp"
+  fi
 
   mv "$tmp" "$rules_md"
 }
@@ -327,7 +375,7 @@ lang_remove() {
       touched=1
     fi
 
-    if [ -f "$rules_md" ] && grep -qF "**${lang}** -- rule pack at" "$rules_md"; then
+    if [ -f "$rules_md" ] && grep -qF -- "$(lang_packs_entry_needle "$lang")" "$rules_md"; then
       lang_packs_remove_entry "$rules_md" "$lang"
       echo "removed: Language Packs entry for '$lang' in intent/llm/RULES.md"
       touched=1

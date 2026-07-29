@@ -14,7 +14,7 @@ intent lang <command> [options]
 
 Intent's canon-installer ships language-agnostic `_default` templates by design (one project might be Elixir, another Rust, another a polyglot mix; auto-detection is rejected per ST0035 design decision). The `intent lang` command provides explicit, user-driven per-language setup.
 
-`intent lang init <lang>` installs the language-specific `RULES-<lang>.md` (and optionally `ARCHITECTURE-<lang>.md`) into `intent/llm/`, then appends an entry to the agnostic `intent/llm/RULES.md` Language Packs section pointing at the language's rule pack at `intent/plugins/claude/rules/<lang>/`.
+`intent lang init <lang>` installs the language-specific `RULES-<lang>.md` (and optionally `ARCHITECTURE-<lang>.md`) into `intent/llm/`, then adds an entry to the agnostic `intent/llm/RULES.md` Language Packs section pointing at `intent claude rules list --lang <lang>`. Rules themselves are served by the installed Intent tool and are never vendored into the project, so the entry names the command rather than a path. Re-running `intent lang init <lang>` rewrites an existing entry that has fallen out of date.
 
 Re-runs are safe (idempotent). Multi-language is the default case (`intent lang init elixir rust shell`).
 

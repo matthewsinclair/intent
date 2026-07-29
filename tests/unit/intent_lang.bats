@@ -99,7 +99,7 @@ teardown() {
   cd "$PROJECT_DIR"
   run "${INTENT_BIN_DIR}/intent" lang init author
   assert_success
-  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**author** -- rule pack at"
+  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**author** -- rules via"
   run jq -r '.languages | .[]' "$PROJECT_DIR/intent/.config/config.json"
   assert_success
   assert_output_contains "author"
@@ -123,7 +123,7 @@ teardown() {
   cd "$PROJECT_DIR"
   run "${INTENT_BIN_DIR}/intent" lang init content
   assert_success
-  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**content** -- rule pack at"
+  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**content** -- rules via"
   run jq -r '.languages | .[]' "$PROJECT_DIR/intent/.config/config.json"
   assert_success
   assert_output_contains "content"
@@ -133,7 +133,7 @@ teardown() {
   cd "$PROJECT_DIR"
   run "${INTENT_BIN_DIR}/intent" lang init rust
   assert_success
-  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**rust** -- rule pack at"
+  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**rust** -- rules via"
 }
 
 @test "intent lang init is idempotent (zero diff on re-run)" {
@@ -243,10 +243,10 @@ teardown() {
 @test "intent lang remove drops the marker entry from agnostic RULES.md" {
   cd "$PROJECT_DIR"
   "${INTENT_BIN_DIR}/intent" lang init rust >/dev/null
-  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**rust** -- rule pack at"
+  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**rust** -- rules via"
   run "${INTENT_BIN_DIR}/intent" lang remove rust
   assert_success
-  run grep -F "**rust** -- rule pack at" "$PROJECT_DIR/intent/llm/RULES.md"
+  run grep -F "**rust** -- rules via" "$PROJECT_DIR/intent/llm/RULES.md"
   [ "$status" -ne 0 ]
 }
 
@@ -268,4 +268,48 @@ teardown() {
   local checksum_after
   checksum_after="$(find "$PROJECT_DIR/intent/llm" -type f -exec shasum {} \; | sort | shasum)"
   [ "$checksum_before" = "$checksum_after" ]
+}
+
+# ---- issue 0005: the dangling rule-pack path ------------------------------
+# The entry named `intent/plugins/claude/rules/<lang>/` -- a path that is real
+# inside the Intent installation and was written verbatim into a CONSUMER
+# project's RULES.md, where nothing resolves. `intent lang init` never vendors
+# that tree, so it dangled by construction in every project.
+
+@test "the Language Packs entry names the command, not a path that is not there" {
+  cd "$PROJECT_DIR"
+  run "${INTENT_BIN_DIR}/intent" lang init rust
+  assert_success
+
+  # Points at resolution the reader can actually run...
+  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "intent claude rules list --lang rust"
+
+  # ...and no longer at a directory the project does not have.
+  run grep -F "rule pack at" "$PROJECT_DIR/intent/llm/RULES.md"
+  assert_failure
+  [ ! -d "$PROJECT_DIR/intent/plugins/claude/rules" ]
+}
+
+@test "re-running lang init heals an entry left behind by an older Intent" {
+  cd "$PROJECT_DIR"
+  run "${INTENT_BIN_DIR}/intent" lang init rust
+  assert_success
+
+  # Simulate a project that ran an older Intent: the block is tool-managed, so
+  # a hand-edit is the one thing a consumer could NOT do to fix this.
+  perl -i -pe 's{^- \*\*rust\*\* -- .*$}{- **rust** -- rule pack at `intent/plugins/claude/rules/rust/`; concretised RULES at `intent/llm/RULES-rust.md`.}' "$PROJECT_DIR/intent/llm/RULES.md"
+  run grep -F "rule pack at" "$PROJECT_DIR/intent/llm/RULES.md"
+  assert_success
+
+  # A re-run rewrites it in place -- it used to skip whenever any entry existed,
+  # so every already-initialised project kept the dangling path for good.
+  run "${INTENT_BIN_DIR}/intent" lang init rust
+  assert_success
+  run grep -F "rule pack at" "$PROJECT_DIR/intent/llm/RULES.md"
+  assert_failure
+  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "intent claude rules list --lang rust"
+
+  # Healed, not duplicated.
+  run bash -c "grep -c '^- \*\*rust\*\*' '$PROJECT_DIR/intent/llm/RULES.md'"
+  assert_output "1"
 }
