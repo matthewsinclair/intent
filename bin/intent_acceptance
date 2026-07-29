@@ -34,13 +34,43 @@ usage() {
 
 # ---- field extraction (one AC/AT line in, one token out) ----------------
 
-line_id()       { echo "$1" | sed -E 's/^- ([A-Z]+-[0-9]+\.[0-9]+).*/\1/'; }
-id_group()      { echo "$1" | sed -E 's/^[A-Z]+-([0-9]+)\..*/\1/'; }
-at_pathname()   { echo "$1" | sed -E 's/^[^`]*`([^`]*)`.*/\1/'; }
-at_status()     { echo "$1" | sed -E 's/.* -- status: ([a-z/-]+).*/\1/'; }
-at_covers()     { echo "$1" | sed -E 's/.* -- covers (.*) -- status:.*/\1/' | tr ',' ' '; }
-ac_flag()       { echo "$1" | sed -E 's/.* -- satisfied: ([a-z]+).*/\1/'; }
+# THE extraction seam for the whole ac/at family (Highlander, issue 0007).
+# Prints capture group 1 of <pattern> on a match; prints NOTHING and returns 1
+# when the line does not match.
+#
+# Every extractor below used to be a bare `sed -E 's/.../\1/'`, and sed prints
+# the input UNCHANGED when an s/// does not fire. That made each one total by
+# accident: a failed parse returned the whole AC/AT line, which is a plausible
+# enough looking value that no caller could tell it from a real one. `status:
+# **green` -- a green test whose status field carries markdown emphasis -- fell
+# outside at_status's character class, so at_status returned the entire line and
+# ac_is_satisfied compared THAT to "green", read false, and gated a green AT as
+# unsatisfied with nothing said. Eleven rows on one live thread understated it
+# by half. Neither layer could distinguish "not green" from "did not parse",
+# because the failure value looked like a value.
+#
+# The line is matched BEFORE it is substituted, and both uses read the same
+# `$pattern`, so the test and the extraction cannot drift apart. Callers get an
+# empty string on failure -- which compares false against every real token --
+# and the diagnostic comes from warn_bad_fields, so a parse failure is now both
+# harmless and audible instead of silent and wrong.
+extract_field() {
+  local line="$1" pattern="$2"
+  printf '%s\n' "$line" | grep -qE "$pattern" || return 1
+  printf '%s\n' "$line" | sed -E "s/$pattern/\1/"
+}
+
+line_id()       { extract_field "$1" '^- ([A-Z]+-[0-9]+\.[0-9]+).*'; }
+id_group()      { extract_field "$1" '^[A-Z]+-([0-9]+)\..*'; }
+at_pathname()   { extract_field "$1" '^[^`]*`([^`]*)`.*'; }
+at_status()     { extract_field "$1" '.* -- status: ([a-z/-]+).*'; }
+at_covers()     { extract_field "$1" '.* -- covers (.*) -- status:.*' | tr ',' ' '; }
+ac_flag()       { extract_field "$1" '.* -- satisfied: ([a-z]+).*'; }
 ac_is_nontest() { case "$1" in *"(non-test)"*) return 0 ;; *) return 1 ;; esac; }
+
+# The declared AT status vocabulary. Named once: the gate compares against it,
+# the diagnostic quotes it, and acceptance.md's own preamble states it.
+AT_STATUS_VOCAB="to-write | red | green | n/a"
 
 # ---- whole-file selectors ------------------------------------------------
 
@@ -60,9 +90,78 @@ malformed_acat() {
   grep -nE '^- A[CT]-' "$1" 2>/dev/null | grep -vE ':- A[CT]-[0-9]+\.[0-9]+ ' || true
 }
 
+# AT lines whose ` -- status:` value is absent or outside AT_STATUS_VOCAB.
+# Emits "<atid> <value>" per offender.
+bad_status_lines() {
+  local line st
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    st="$(at_status "$line")"
+    case "$st" in
+      to-write|red|green|n/a) continue ;;
+    esac
+    printf '%s %s\n' "$(line_id "$line")" "${st:-<unparseable>}"
+  done <<EOF
+$(at_lines "$1")
+EOF
+}
+
+# AC lines carrying an unclosed `(non-test` marker. ac_is_nontest matches the
+# exact literal `(non-test)`, so `(non-test, see note)` is classified test-backed:
+# the gate then hunts a covering AT, finds none, and reports the AC unsatisfied
+# while ignoring the `satisfied: yes` the row already carries. The row passes
+# every other check, so nothing said why (issue 0006).
+bad_marker_lines() {
+  local line
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    case "$line" in
+      *"(non-test)"*) continue ;;
+      *"(non-test"*)  printf '%s\n' "$(line_id "$line")" ;;
+    esac
+  done <<EOF
+$(ac_lines "$1")
+EOF
+}
+
+# Warn (stderr) for fields the parser cannot read. ALWAYS returns 0: unlike a
+# malformed id -- which vanishes from the count and lets the gate go vacuous --
+# these UNDER-report. An unreadable status leaves its AC unsatisfied and an
+# unclosed marker leaves its AC uncredited, so the gate already fails closed and
+# needs no new block. What it needed was a voice: both defects were invisible to
+# every existing guard (warn_malformed checks only the id grammar, `st repair`
+# reports the thread clean, and the rows read fine to a human), so the only
+# symptom was a gate that would not move and would not say why (issues 0006 + 0007).
+warn_bad_fields() {
+  local acc="$1" bad line
+  bad="$(bad_status_lines "$acc")"
+  if [ -n "$bad" ]; then
+    warning "unreadable AT status in $acc -- vocabulary is $AT_STATUS_VOCAB (markdown emphasis around the value is NOT parsed); these ATs cannot satisfy their ACs:"
+    while IFS= read -r line; do
+      [ -n "$line" ] && warning "  $line"
+    done <<EOF
+$bad
+EOF
+  fi
+  bad="$(bad_marker_lines "$acc")"
+  if [ -n "$bad" ]; then
+    warning "unclosed non-test marker in $acc -- the marker must read exactly '(non-test)'; these ACs are being treated as test-backed and need a covering green AT:"
+    while IFS= read -r line; do
+      [ -n "$line" ] && warning "  $line"
+    done <<EOF
+$bad
+EOF
+  fi
+  return 0
+}
+
 # Warn (stderr) for each malformed AC/AT line; return 1 if any were found.
+# The return value is the gate's F1 block and covers the ID GRAMMAR only --
+# warn_bad_fields is folded in here so every reader reports both classes from
+# one call, but it never contributes to the blocking verdict.
 warn_malformed() {
   local acc="$1" bad line
+  warn_bad_fields "$acc"
   bad="$(malformed_acat "$acc")"
   [ -z "$bad" ] && return 0
   warning "malformed AC/AT line(s) in $acc -- id must be AC-<n>.<n> / AT-<n>.<n> (digits) then a space; these are NOT counted:"
@@ -176,12 +275,39 @@ replace_line() {
   local f="$1" expr="$2" tmp
   tmp="$(mktemp "${TMPDIR:-/tmp}/intent_acc.XXXXXX")" || error "cannot create temp file"
   if sed -E "$expr" "$f" > "$tmp"; then
-    cat "$tmp" > "$f"
+    # The copy-back is checked too. Unchecked, an unwritable contract emitted a
+    # raw shell "Permission denied" and carried on to print `ok:` -- the same
+    # silent-success shape as issue 0006, one line further down.
+    if ! cat "$tmp" > "$f"; then
+      rm -f "$tmp"
+      error "cannot write $f (check permissions) -- the file was NOT updated"
+    fi
     rm -f "$tmp"
   else
     rm -f "$tmp"
     error "in-place edit failed for $f"
   fi
+}
+
+# Assert a mutation actually landed: re-read the row and confirm <extractor>
+# now reports <want>. Errors naming the row, the file and what it still reads.
+#
+# This verifies the RESULT, not the mechanism, which is the whole point. `ac
+# satisfy` printed its `ok:` unconditionally after a sed anchored on a
+# ` -- evidence:` segment the row need not have -- and sed exits 0 having
+# substituted nothing, so replace_line's exit-code check could not tell a no-op
+# write from a real one. The tool that records verified state was reporting
+# success having written nothing (issue 0006). Checking the post-state survives
+# any future drift in the substitution pattern, and also catches a substitution
+# that fired but wrote the wrong value, which a zero-substitution check inside
+# replace_line could not. It reuses the same extractor the readers use, so
+# there is no second pattern here to fall out of step with the first.
+assert_written() {
+  local acc="$1" id="$2" extractor="$3" want="$4" label="$5" line got
+  line="$(find_line "$id" "$acc")"
+  [ -n "$line" ] || error "write verification failed: $id is no longer in $acc"
+  got="$("$extractor" "$line")"
+  [ "$got" = "$want" ] || error "write verification failed: $id in $acc still reads ${label}: ${got:-<absent>} (wanted ${want}) -- the file was NOT updated"
 }
 
 # ---- commands ------------------------------------------------------------
@@ -325,12 +451,28 @@ cmd_ac_satisfy() {
   acc="$(acc_file)"
   line="$(find_line "$acid" "$acc")"
   [ -n "$line" ] || error "no such AC: $acid in $acc"
-  ac_is_nontest "$line" || error "$acid is test-backed; satisfaction is computed from a green covering AT, cannot be hand-satisfied"
+  if ! ac_is_nontest "$line"; then
+    # Name the cause, not the conclusion. An unclosed `(non-test` marker reaches
+    # here classified test-backed, and being told the AC "is test-backed" sends
+    # the author looking for a missing AT when the actual mistake is the marker
+    # text three words into their own row (issue 0006).
+    case "$line" in
+      *"(non-test"*) error "$acid has an unclosed non-test marker -- it must read exactly '(non-test)', so this row is being treated as test-backed. Fix the marker in $acc, then re-run." ;;
+      *)             error "$acid is test-backed; satisfaction is computed from a green covering AT, cannot be hand-satisfied" ;;
+    esac
+  fi
   [ -n "$ref" ] || error "ac satisfy requires --evidence \"<ref>\""
   local esc ref_esc
   esc="$(echo "$acid" | sed 's/\./\\./g')"
   ref_esc="$(printf '%s' "$ref" | sed -e 's/[&|\\]/\\&/g')"
-  replace_line "$acc" "s|^(- ${esc} .*) -- evidence:.*|\1 -- evidence: ${ref_esc} -- satisfied: yes|"
+  # Strip whatever evidence/satisfied tail the row has (either field, either
+  # order of absence), then append a fresh canonical one. Substituting INTO a
+  # tail the row need not carry is what made this a silent no-op on a bare row;
+  # rewriting the tail is total over every shape a non-test AC actually occurs
+  # in, so an author never has to hand-craft ` -- evidence: pending` first to
+  # make the tool work (issue 0006).
+  replace_line "$acc" "s|^(- ${esc} .*) -- evidence:.*|\1|; s|^(- ${esc} .*) -- satisfied:.*|\1|; s|^(- ${esc} .*[^ ])[[:space:]]*\$|\1 -- evidence: ${ref_esc} -- satisfied: yes|"
+  assert_written "$acc" "$acid" ac_flag yes satisfied
   echo "ok: $acid satisfied by evidence"
 }
 
@@ -360,11 +502,16 @@ cmd_at_set() {
   line="$(find_line "$atid" "$acc")"
   [ -n "$line" ] || error "no such AT: $atid in $acc"
   cur="$(at_status "$line")"
+  # An unreadable status is its own diagnosis, not a transition failure. Falling
+  # through to the red->green message would report the row's state as '' and
+  # send the author to `at red` when the row needs its status field repaired.
+  [ -n "$cur" ] || error "$atid has an unreadable status in $acc -- vocabulary is $AT_STATUS_VOCAB (markdown emphasis around the value is NOT parsed). Fix the row, then re-run."
   if [ "$target" = "green" ] && [ "$cur" != "red" ]; then
     error "at green: $atid is '$cur'; green is reachable only from red (run 'intent at red $stid $atid' first)"
   fi
   esc="$(echo "$atid" | sed 's/\./\\./g')"
   replace_line "$acc" "s|^(- ${esc} .*) -- status:.*|\1 -- status: ${target}|"
+  assert_written "$acc" "$atid" at_status "$target" status
   echo "ok: $atid -> $target"
 }
 

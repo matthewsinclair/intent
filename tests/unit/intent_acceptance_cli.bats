@@ -168,3 +168,101 @@ setup_fixture_st() {
   run bash -c "test \$(wc -l < '$ACC.before') -eq \$(wc -l < '$ACC')"
   assert_success
 }
+
+# ---- issue 0006 + 0007: the sed-non-match-is-invisible pair ----------------
+# Both defects had the same shape in the same file. On the WRITE side, `ac
+# satisfy` substituted into a ` -- evidence:` segment the row need not carry,
+# and sed exits 0 having substituted nothing -- so the tool that records
+# verified state printed `ok:` having written nothing. On the READ side, the
+# field extractors were bare `sed -E 's/.../\1/'`, and sed prints the input
+# unchanged on a non-match -- so a status the pattern could not parse came back
+# as the whole AT line, compared false against "green", and gated a green test
+# as unsatisfied in silence. These encode both directions.
+
+@test "ac satisfy writes a bare row instead of reporting a success it did not perform" {
+  setup_fixture_st
+
+  # A non-test AC with NO evidence tail -- the shape that reproduced issue 0006.
+  printf -- '- AC-00.9 (non-test) criterion whose text ends without an evidence tail\n' >> "$ACC"
+
+  run run_intent ac satisfy ST0001 AC-00.9 --evidence "a real ref"
+  assert_success
+
+  # The claim in the message must be true on disk, which is what failed before.
+  run grep -E '^- AC-00\.9 .* -- evidence: a real ref -- satisfied: yes$' "$ACC"
+  assert_success
+
+  # And the reader must agree with the record it just wrote.
+  run run_intent ac list ST0001
+  assert_success
+  echo "$output" | grep -E 'AC-00\.9.*satisfied: yes'
+}
+
+@test "ac satisfy verifies the write landed rather than trusting sed's exit code" {
+  setup_fixture_st
+
+  printf -- '- AC-00.8 (non-test) criterion on a contract that cannot be written\n' >> "$ACC"
+  chmod 444 "$ACC"
+  run run_intent ac satisfy ST0001 AC-00.8 --evidence "ref"
+  chmod 644 "$ACC"
+
+  # No silent success: an unwritable contract is an error, not an `ok:`.
+  assert_failure
+  assert_output_contains "NOT updated"
+  run grep -F "satisfied: yes" "$ACC"
+  assert_failure
+}
+
+@test "an AT status carrying markdown emphasis is named, not silently read as not-green" {
+  setup_fixture_st
+
+  # A green test whose status field is bolded -- well-formed to every other
+  # guard, and the exact shape that understated a live thread by half.
+  printf -- '- AC-02.1 test-backed criterion\n' >> "$ACC"
+  printf -- '- AT-02.1 `tests/unit/x.bats::one` -- covers AC-02.1 -- status: **green; mutation-proved**\n' >> "$ACC"
+
+  run run_intent ac list ST0001
+  assert_success
+  # The AC still reads unsatisfied (the parse genuinely failed) -- but it now
+  # says so out loud, quoting the vocabulary, instead of leaving the author to
+  # infer it from a gate that will not move.
+  assert_output_contains "unreadable AT status"
+  assert_output_contains "AT-02.1"
+  assert_output_contains "to-write | red | green | n/a"
+
+  # And the transition command diagnoses the row rather than the transition.
+  run run_intent at green ST0001 AT-02.1
+  assert_failure
+  assert_output_contains "unreadable status"
+}
+
+@test "an out-of-vocabulary AT status is reported rather than ignored" {
+  setup_fixture_st
+
+  printf -- '- AT-03.1 `tests/unit/y.bats::two` -- covers AC-03.1 -- status: BUILT\n' >> "$ACC"
+
+  run run_intent at list ST0001
+  assert_success
+  assert_output_contains "unreadable AT status"
+  assert_output_contains "AT-03.1"
+}
+
+@test "an unclosed non-test marker names the marker, not a missing test" {
+  setup_fixture_st
+
+  # `(non-test,` fails the exact-literal match, so the row is classified
+  # test-backed: the gate hunts a covering AT, finds none, and reports the AC
+  # unsatisfied while ignoring the satisfied: yes it already carries.
+  printf -- '- AC-04.1 (non-test, see note) already flagged -- evidence: x -- satisfied: yes\n' >> "$ACC"
+
+  run run_intent ac list ST0001
+  assert_success
+  assert_output_contains "unclosed non-test marker"
+  assert_output_contains "AC-04.1"
+
+  # The refusal must name the cause the author can act on -- the marker text --
+  # not the conclusion the parser reached.
+  run run_intent ac satisfy ST0001 AC-04.1 --evidence "y"
+  assert_failure
+  assert_output_contains "unclosed non-test marker"
+}
