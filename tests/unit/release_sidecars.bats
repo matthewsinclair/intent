@@ -112,3 +112,22 @@ RELEASE="${INTENT_HOME}/bin/release"
   run grep -F "jq --arg v \"\$TARGET_VERSION\" '.intent_version" "${INTENT_HOME}/bin/intent_upgrade"
   assert_failure
 }
+
+@test "bin/release pins INTENT_HOME to the checkout being released" {
+  # bin/intent only derives INTENT_HOME when unset, so an exported INTENT_HOME
+  # from the maintainer's shell silently wins and every sub-command reads THAT
+  # tree's VERSION -- stamping the wrong version into AGENTS.md and CLAUDE.md
+  # while VERSION and config.json carry the right one. Found by cutting a test
+  # release from a clone with INTENT_HOME left pointing elsewhere.
+  run grep -E '^export INTENT_HOME="\$PROJECT_ROOT"' "$RELEASE"
+  assert_success
+}
+
+@test "the CLAUDE.md refresh skips the .claude/ stack" {
+  # Without --skip-settings the canon engine also rewrites .claude/settings.json
+  # and the hook scripts, which substitute [[INTENT_HOME]] and so differ between
+  # checkouts. They are unrelated to the release and outside the sidecar list, so
+  # they trip the dirty-tree check and abort the cut.
+  run grep -E 'claude upgrade --apply --skip-settings' "$RELEASE"
+  assert_success
+}

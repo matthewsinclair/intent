@@ -49,6 +49,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 HELPERS="$PROJECT_ROOT/bin/intent_helpers"
 
+# Pin INTENT_HOME to the checkout being released. bin/intent only derives it when
+# it is unset, so an INTENT_HOME exported in the maintainer's shell -- pointing at
+# whichever Intent they normally work in -- silently wins, and every sub-command
+# reads THAT tree's VERSION. Releasing any checkout other than the habitual one
+# would then stamp the wrong version into AGENTS.md and CLAUDE.md while VERSION
+# and config.json carried the right one. Caught by cutting a test release from a
+# clone; the release must describe the tree it is cutting, not the ambient one.
+export INTENT_HOME="$PROJECT_ROOT"
+
 if [ -f "$HELPERS" ]; then
   # shellcheck disable=SC1090
   source "$HELPERS"
@@ -371,10 +380,17 @@ fi
 # lib/templates/llm/_CLAUDE.md, preserves the user section and diffs, so the
 # version + date restamp falls out of it. bin/release renders no template itself:
 # the substitution logic already has three homes and does not need a fourth.
+#
+# --skip-settings keeps the blast radius to the documents. Without it the engine
+# also rewrites .claude/settings.json and the three hook scripts, which
+# substitute [[INTENT_HOME]] and so differ between checkouts -- unrelated to the
+# release, outside the sidecar list, and enough to trip the dirty-tree check
+# below and abort the cut. A release refreshes the version stamp; it is not the
+# place to re-provision the .claude/ stack.
 if [ "$DRY_RUN" = "true" ]; then
-  log_dry "would run 'intent claude upgrade --apply' to refresh CLAUDE.md"
+  log_dry "would run 'intent claude upgrade --apply --skip-settings' to refresh CLAUDE.md"
 else
-  (cd "$PROJECT_ROOT" && "$PROJECT_ROOT/bin/intent" claude upgrade --apply >/dev/null)
+  (cd "$PROJECT_ROOT" && "$PROJECT_ROOT/bin/intent" claude upgrade --apply --skip-settings >/dev/null)
   log_info "CLAUDE.md refreshed"
 fi
 
