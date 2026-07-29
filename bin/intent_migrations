@@ -207,3 +207,41 @@ intent_relocate_dotintent() {
 
   return 0
 }
+
+# --- lang_packs: converge the Language Packs block ------------------------
+#
+# The Language Packs entries in intent/llm/RULES.md are tool-managed, and until
+# v2.17.4 they were written with a rule-pack path that only resolves inside the
+# Intent installation (issue 0005). The entry text was corrected there, but the
+# correction only reached a project that happened to re-run `intent lang init`,
+# so `intent upgrade` -- the convergent orchestrator whose whole premise is that
+# it drives a project to the target state regardless of how it got there -- left
+# a stale tool-managed block sitting in every consumer.
+#
+# The step delegates to `intent lang sync`, NOT to `intent lang init`. `init`
+# also copies RULES-<lang>.md and ARCHITECTURE-<lang>.md over whatever is on
+# disk, and projects hand-edit those files; running it unattended during an
+# upgrade would destroy that work. `sync` touches the managed block only.
+#
+# needs/verify both ask `lang sync --check` rather than re-deriving the entry
+# text here. Two copies of "what a canonical entry looks like" is precisely the
+# duplication that made issue 0005 survive its own fix.
+step_lang_packs_needs() {
+  local root=${1:-.}
+  [ -f "$root/intent/llm/RULES.md" ] || return 1
+  [ -f "$root/intent/.config/config.json" ] || return 1
+  ! (cd "$root" && "$INTENT_BIN/intent" lang sync --check >/dev/null 2>&1)
+}
+
+step_lang_packs_run() {
+  local root=${1:-.}
+  (cd "$root" && "$INTENT_BIN/intent" lang sync) || {
+    echo "  warning: 'intent lang sync' failed; Language Packs entries left as-is." >&2
+    return 0
+  }
+}
+
+step_lang_packs_verify() {
+  local root=${1:-.}
+  (cd "$root" && "$INTENT_BIN/intent" lang sync --check >/dev/null 2>&1)
+}

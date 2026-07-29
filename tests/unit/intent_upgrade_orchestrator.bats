@@ -167,3 +167,32 @@ EOF
   [ -f "$MIGRATIONS" ] || fail "expected bin/intent_migrations"
   grep -qE 'step_[a-z_]+_run|intent_relocate_dotintent' "$MIGRATIONS" || fail "ledger/migration code must live in bin/intent_migrations"
 }
+
+@test "the ledger converges the Language Packs block via lang sync, never lang init" {
+  # `intent upgrade` is the CONVERGENT orchestrator, so a stale tool-managed
+  # block is exactly what it should drive to target. Before the lang_packs step
+  # the issue-0005 correction only reached a project that happened to re-run
+  # `intent lang init` by hand, leaving every consumer stale.
+  grep -q 'lang_packs' "$UPGRADE" || fail "lang_packs is not in the LEDGER"
+  grep -q '^step_lang_packs_needs' "$MIGRATIONS" || fail "step_lang_packs_needs missing"
+  grep -q '^step_lang_packs_run' "$MIGRATIONS" || fail "step_lang_packs_run missing"
+  grep -q '^step_lang_packs_verify' "$MIGRATIONS" || fail "step_lang_packs_verify missing"
+
+  # It must delegate to `lang sync`. `lang init` copies RULES-<lang>.md over
+  # whatever is on disk, and projects hand-edit those files -- running it
+  # unattended during an upgrade would destroy that work.
+  grep -q 'lang sync' "$MIGRATIONS" || fail "the step must delegate to 'intent lang sync'"
+  if grep -qE '"\$INTENT_BIN/intent" lang init' "$MIGRATIONS"; then
+    fail "a ledger step calls 'lang init', which overwrites hand-edited RULES-<lang>.md"
+  fi
+}
+
+@test "the final stamp survives set -e when the config is already at target" {
+  # The orchestrator runs under `set -e`, and the stamper returns 1 for
+  # already-at-target. A bare call plus `case $?` would abort the run before it
+  # reported anything: all the work done, then a silent non-zero exit.
+  if grep -qE '^stamp_project_version "\$TARGET_VERSION"' "$UPGRADE"; then
+    fail "stamper is called bare under set -e; a return of 1 aborts the orchestrator"
+  fi
+  grep -q 'if stamp_project_version' "$UPGRADE" || fail "the stamp must be called in a condition so set -e cannot abort it"
+}

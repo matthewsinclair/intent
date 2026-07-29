@@ -313,3 +313,55 @@ teardown() {
   run bash -c "grep -c '^- \*\*rust\*\*' '$PROJECT_DIR/intent/llm/RULES.md'"
   assert_output "1"
 }
+
+# ---- intent lang sync: converge the managed block only --------------------
+# The upgrade ledger calls this, not `lang init`, because `init` also copies
+# RULES-<lang>.md over whatever is on disk and projects hand-edit those files.
+
+@test "lang sync heals a stale Language Packs entry without touching RULES-<lang>.md" {
+  cd "$PROJECT_DIR"
+  run "${INTENT_BIN_DIR}/intent" lang init shell
+  assert_success
+
+  # A project carrying the pre-2.17.4 wording, plus a local edit in the
+  # language rules file that must survive.
+  perl -i -pe 's{^- \*\*shell\*\* -- .*$}{- **shell** -- rule pack at `intent/plugins/claude/rules/shell/`; concretised RULES at `intent/llm/RULES-shell.md`.}' "$PROJECT_DIR/intent/llm/RULES.md"
+  echo "<!-- USER EDIT -->" >> "$PROJECT_DIR/intent/llm/RULES-shell.md"
+
+  run "${INTENT_BIN_DIR}/intent" lang sync
+  assert_success
+  assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "intent claude rules list --lang shell"
+  run grep -F "rule pack at" "$PROJECT_DIR/intent/llm/RULES.md"
+  assert_failure
+
+  # The hand edit is untouched -- this is why the ledger cannot call lang init.
+  assert_file_contains "$PROJECT_DIR/intent/llm/RULES-shell.md" "<!-- USER EDIT -->"
+}
+
+@test "lang sync --check reports staleness without writing" {
+  cd "$PROJECT_DIR"
+  run "${INTENT_BIN_DIR}/intent" lang init shell
+  assert_success
+
+  # Current -> check passes.
+  run "${INTENT_BIN_DIR}/intent" lang sync --check
+  assert_success
+
+  perl -i -pe 's{^- \*\*shell\*\* -- .*$}{- **shell** -- rule pack at `intent/plugins/claude/rules/shell/`; concretised RULES at `intent/llm/RULES-shell.md`.}' "$PROJECT_DIR/intent/llm/RULES.md"
+  cp "$PROJECT_DIR/intent/llm/RULES.md" "$PROJECT_DIR/rules.before"
+
+  # Stale -> check fails, and writes nothing.
+  run "${INTENT_BIN_DIR}/intent" lang sync --check
+  assert_failure
+  run diff "$PROJECT_DIR/rules.before" "$PROJECT_DIR/intent/llm/RULES.md"
+  assert_success
+}
+
+@test "lang sync is a no-op when no languages are declared" {
+  cd "$PROJECT_DIR"
+  run "${INTENT_BIN_DIR}/intent" lang sync
+  assert_success
+  assert_output_contains "no declared languages"
+  run "${INTENT_BIN_DIR}/intent" lang sync --check
+  assert_success
+}

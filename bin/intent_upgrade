@@ -24,7 +24,7 @@ TARGET_VERSION="$(get_intent_version)"
 # Ordered ledger of structural steps. Each <id> has step_<id>_needs / _run /
 # _verify in bin/intent_migrations. Bash 3.2-friendly: a flat id list dispatched
 # by naming convention (no declare -A).
-LEDGER="relocate_config languages_field"
+LEDGER="relocate_config languages_field lang_packs"
 
 # Lowest source version this orchestrator migrates. Below it, fail-forward:
 # refuse loudly rather than half-migrate (the below-floor ladder was pruned).
@@ -170,12 +170,20 @@ echo "Syncing canon subagent updates..."
 
 # --- 5. stamp the target ONCE, last (the sole stamper) --------------------
 CONFIG="intent/.config/config.json"
-stamp_project_version "$TARGET_VERSION" "$CONFIG"
-case $? in
-  0) echo "stamped: intent_version = $TARGET_VERSION" ;;
-  1) echo "stamp: already at v$TARGET_VERSION" ;;
-  *) error "cannot stamp the target: $CONFIG is missing after the ledger (upgrade incomplete)" ;;
-esac
+# `if` rather than a bare call + `case $?`: this module runs under `set -e`, so a
+# stamper returning 1 (already at target) would abort the orchestrator before it
+# could report anything -- an upgrade that did all its work and then exited
+# non-zero in silence.
+if stamp_project_version "$TARGET_VERSION" "$CONFIG"; then
+  echo "stamped: intent_version = $TARGET_VERSION"
+else
+  STAMP_RC=$?
+  if [ "$STAMP_RC" -eq 1 ]; then
+    echo "stamp: already at v$TARGET_VERSION"
+  else
+    error "cannot stamp the target: $CONFIG is missing after the ledger (upgrade incomplete)"
+  fi
+fi
 
 echo ""
 echo "ok: upgraded $VERSION -> $TARGET_VERSION"

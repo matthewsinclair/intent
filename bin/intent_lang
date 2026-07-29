@@ -341,6 +341,88 @@ lang_init() {
 # deletes intent/llm/RULES-<lang>.md and intent/llm/ARCHITECTURE-<lang>.md,
 # and removes the language from intent/.config/config.json `languages` array.
 # Idempotent: a language that was never installed prints `noop:` and returns 0.
+# Converge the Language Packs block to canon for every DECLARED language.
+#
+# Deliberately narrow: it touches intent/llm/RULES.md and nothing else. `lang
+# init` also `cp`s RULES-<lang>.md and ARCHITECTURE-<lang>.md over whatever is
+# there, and projects hand-edit those files -- so `init` is exactly the wrong
+# thing for an unattended upgrade to run. This is the part that is safe to
+# converge unattended, which is why the upgrade ledger calls it and not `init`.
+#
+# `--check` reports without writing: exit 0 when every declared language already
+# carries its canonical entry, 1 when any is missing or stale. That is what lets
+# the ledger's needs/verify probes ask this module whether work is outstanding
+# instead of re-deriving the entry text and drifting from it.
+lang_sync() {
+  # NOTE: this module runs under `set -e`, so every branch below is an explicit
+  # if/else. A bare `cond && action` whose condition is false returns 1 as a
+  # standalone statement and takes the whole script down with it.
+  local check_only=false
+  if [ "${1:-}" = "--check" ]; then
+    check_only=true
+  fi
+
+  local project_root="${PROJECT_ROOT:-$PWD}"
+  local rules_md="$project_root/intent/llm/RULES.md"
+  local config="$project_root/intent/.config/config.json"
+
+  if [ ! -f "$rules_md" ]; then
+    if [ "$check_only" = true ]; then
+      return 0
+    fi
+    error "intent lang sync: $rules_md missing; run 'intent claude upgrade --apply' to install canon"
+  fi
+
+  local langs
+  langs="$(get_project_languages "$config")"
+  if [ -z "$langs" ]; then
+    if [ "$check_only" = true ]; then
+      return 0
+    fi
+    echo "ok: no declared languages; nothing to sync"
+    return 0
+  fi
+
+  # A project can predate the marker block entirely.
+  if ! lang_packs_block_present "$rules_md"; then
+    if [ "$check_only" = true ]; then
+      return 1
+    fi
+    lang_packs_insert_block "$rules_md"
+  fi
+
+  local lang entry stale=0 changed=0
+  while IFS= read -r lang; do
+    if [ -z "$lang" ]; then
+      continue
+    fi
+    entry="$(lang_packs_entry "$lang")"
+    if grep -qxF -- "$entry" "$rules_md"; then
+      continue
+    fi
+    stale=1
+    if [ "$check_only" = true ]; then
+      continue
+    fi
+    lang_packs_add_entry "$rules_md" "$lang"
+    echo "synced: Language Packs entry for '$lang'"
+    changed=$((changed + 1))
+  done <<EOF
+$langs
+EOF
+
+  if [ "$check_only" = true ]; then
+    if [ "$stale" -eq 0 ]; then
+      return 0
+    fi
+    return 1
+  fi
+  if [ "$changed" -eq 0 ]; then
+    echo "ok: Language Packs entries already current"
+  fi
+  return 0
+}
+
 lang_remove() {
   if [ "$#" -eq 0 ]; then
     error "intent lang remove: missing language argument(s)"
@@ -414,6 +496,11 @@ Commands:
   show <lang>                  Show what 'intent lang init <lang>' installs
   init <lang> [<lang> ...]     Install per-language canon (idempotent; multi-lang)
   remove <lang> [<lang> ...]   Remove per-language canon (idempotent; multi-lang)
+  sync [--check]               Converge the Language Packs block in RULES.md for
+                               every declared language. Touches ONLY that block --
+                               never the RULES-<lang>.md files, which init
+                               overwrites. --check reports without writing
+                               (exit 1 if any entry is missing or stale).
   help                         Show this usage
 
 Env vars:
@@ -425,6 +512,8 @@ Examples:
   intent lang init elixir
   intent lang init rust shell
   intent lang remove rust
+  intent lang sync
+  intent lang sync --check
 EOF
 }
 
@@ -444,6 +533,9 @@ case "$SUBCOMMAND" in
     ;;
   remove|rm)
     lang_remove "$@"
+    ;;
+  sync)
+    lang_sync "$@"
     ;;
   help|--help|-h)
     show_usage
