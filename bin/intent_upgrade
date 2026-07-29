@@ -170,19 +170,12 @@ echo "Syncing canon subagent updates..."
 
 # --- 5. stamp the target ONCE, last (the sole stamper) --------------------
 CONFIG="intent/.config/config.json"
-if [ -f "$CONFIG" ] && command -v jq >/dev/null 2>&1; then
-  current="$(jq -r '.intent_version // ""' "$CONFIG")"
-  if [ "$current" = "$TARGET_VERSION" ]; then
-    echo "stamp: already at v$TARGET_VERSION"
-  else
-    tmp="$(mktemp)"
-    jq --arg v "$TARGET_VERSION" '.intent_version = $v | del(.version)' "$CONFIG" > "$tmp"
-    mv "$tmp" "$CONFIG"
-    echo "stamped: intent_version = $TARGET_VERSION"
-  fi
-else
-  error "cannot stamp the target: $CONFIG is missing after the ledger (upgrade incomplete)"
-fi
+stamp_project_version "$TARGET_VERSION" "$CONFIG"
+case $? in
+  0) echo "stamped: intent_version = $TARGET_VERSION" ;;
+  1) echo "stamp: already at v$TARGET_VERSION" ;;
+  *) error "cannot stamp the target: $CONFIG is missing after the ledger (upgrade incomplete)" ;;
+esac
 
 echo ""
 echo "ok: upgraded $VERSION -> $TARGET_VERSION"

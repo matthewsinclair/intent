@@ -76,3 +76,56 @@ haslang() {
   run haslang shell "${BATS_TEST_TMPDIR}/does-not-exist.json"
   assert_output "no"
 }
+
+# ---- stamp_project_version: THE intent_version stamper --------------------
+# Shared by `intent upgrade` (stamps once at the end of an upgrade) and
+# bin/release (stamps during a cut). The three-way exit code is the contract:
+# a caller must be able to tell "no write was needed" from "the write did not
+# happen", which a bare success/failure cannot express.
+
+stampv() {
+  /bin/bash -c "source '$INTENT_HOME/bin/intent_helpers'; stamp_project_version '$1' '$2'; echo \$?"
+}
+
+@test "stamp_project_version writes the version and reports 0" {
+  local cfg="${BATS_TEST_TMPDIR}/config.json"
+  echo '{"intent_version":"1.0.0","other":"keep"}' > "$cfg"
+  run stampv 2.0.0 "$cfg"
+  assert_output "0"
+  run jq -r '.intent_version' "$cfg"
+  assert_output "2.0.0"
+  # Unrelated fields survive.
+  run jq -r '.other' "$cfg"
+  assert_output "keep"
+}
+
+@test "stamp_project_version reports 1 and writes nothing when already at target" {
+  local cfg="${BATS_TEST_TMPDIR}/config.json"
+  echo '{"intent_version":"2.0.0"}' > "$cfg"
+  cp "$cfg" "${cfg}.before"
+  run stampv 2.0.0 "$cfg"
+  assert_output "1"
+  run diff "${cfg}.before" "$cfg"
+  assert_success
+}
+
+@test "stamp_project_version reports 2 when it cannot stamp" {
+  run stampv 2.0.0 "${BATS_TEST_TMPDIR}/does-not-exist.json"
+  assert_output "2"
+  # An empty version is refused rather than written as an empty string.
+  local cfg="${BATS_TEST_TMPDIR}/config.json"
+  echo '{"intent_version":"1.0.0"}' > "$cfg"
+  run stampv "" "$cfg"
+  assert_output "2"
+  run jq -r '.intent_version' "$cfg"
+  assert_output "1.0.0"
+}
+
+@test "stamp_project_version drops the legacy version key while stamping" {
+  local cfg="${BATS_TEST_TMPDIR}/config.json"
+  echo '{"version":"1.0.0","intent_version":"1.0.0"}' > "$cfg"
+  run stampv 2.0.0 "$cfg"
+  assert_output "0"
+  run jq -r 'has("version")' "$cfg"
+  assert_output "false"
+}

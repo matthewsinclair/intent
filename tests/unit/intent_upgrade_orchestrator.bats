@@ -62,9 +62,18 @@ EOF
 
 @test "no ledger step writes the version; only the orchestrator stamps, last" {
   [ -f "$MIGRATIONS" ] || fail "expected bin/intent_migrations (upgrade-only ledger scope)"
-  grep -q '\.intent_version' "$UPGRADE" || fail "orchestrator must write the stamp"
+  # The jq that writes the field now lives in intent_helpers::stamp_project_version,
+  # shared with bin/release. The invariant is unchanged -- within the upgrade path
+  # the orchestrator is the only thing that stamps -- so the guard follows the
+  # stamp to its new home rather than looking for the raw field write here.
+  grep -q 'stamp_project_version' "$UPGRADE" || fail "orchestrator must invoke the stamper"
   if grep -qE '\.intent_version[[:space:]]*=' "$MIGRATIONS"; then
     fail "a ledger step writes intent_version; only the orchestrator may stamp"
+  fi
+  # A ledger step could now stamp by CALLING the shared helper rather than by
+  # hand-rolling the jq. Close that route too.
+  if grep -q 'stamp_project_version' "$MIGRATIONS"; then
+    fail "a ledger step invokes the stamper; only the orchestrator may stamp"
   fi
 }
 
@@ -142,7 +151,12 @@ EOF
   if grep -q 'VERSION_BUMP' "$CANON"; then
     fail "canon engine must not carry VERSION_BUMP (orchestrator is sole stamper)"
   fi
-  grep -q '\.intent_version' "$UPGRADE" || fail "orchestrator must write the stamp"
+  grep -q 'stamp_project_version' "$UPGRADE" || fail "orchestrator must invoke the stamper"
+  # And it must route through the shared helper rather than re-growing its own
+  # copy of the write -- the duplication that let bin/release ship without one.
+  if grep -qE "jq .*\.intent_version[[:space:]]*=" "$UPGRADE"; then
+    fail "orchestrator hand-rolls the stamp; it must route through stamp_project_version"
+  fi
 }
 
 @test "migration code is not sourced into non-upgrade commands" {

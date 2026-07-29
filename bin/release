@@ -3,12 +3,22 @@
 # bin/release -- Intent release orchestrator
 #
 # Cuts an Intent release in one invocation: pre-flight checks, version bump,
-# CHANGELOG date finalisation, sidecar sync (VERSION + AGENTS.md), commit,
-# tag, push to both remotes, and GitHub release publication.
+# CHANGELOG date finalisation, sidecar sync (VERSION, config.json intent_version,
+# AGENTS.md, CLAUDE.md), commit, tag, push to both remotes, and GitHub release
+# publication. Every sidecar is stamped BEFORE the commit, so the tag describes a
+# self-consistent tree -- there is no post-tag wrap to remember.
 #
 # Modelled on ../Conflab/scripts/release. Pared back to Intent's surface:
 # single repo, two remotes (local Dropbox + upstream GitHub), no native
 # binary build, no Homebrew tap.
+#
+# WRITING THE CHANGELOG SECTION
+#
+# Author the heading as `## [X.Y.Z] - in progress`, NOT with a hand-typed date.
+# This script stamps the real date at cut time. A hand-dated heading is correct
+# only on the day it was typed: it goes stale at midnight and aborts the
+# pre-flight date gate, which is exactly what happened to v2.17.4. `in progress`
+# makes the date correct by construction.
 #
 # Usage:
 #   bin/release --patch | --minor | --major | vX.Y.Z [flags]
@@ -297,6 +307,13 @@ preflight
 # --------------------------------------------------------------------
 log_step "sidecar sync"
 
+# The sidecars this script owns end to end: it writes them, stages them, and
+# refuses to tag if anything else is left dirty. ONE list, read by the detect
+# step and the commit step alike, so the two cannot disagree about what a
+# release commit contains.
+CONFIG_REL="intent/.config/config.json"
+SIDECAR_FILES="VERSION CHANGELOG.md AGENTS.md CLAUDE.md $CONFIG_REL"
+
 NEEDS_COMMIT=false
 
 # /VERSION
@@ -326,6 +343,21 @@ if [ "$NEEDS_DATE_REWRITE" = "true" ]; then
   NEEDS_COMMIT=true
 fi
 
+# intent/.config/config.json -- Intent's own dogfooding stamp.
+# Must happen HERE, before the commit, so the tag contains it. It used to be a
+# manual wrap commit landing after the tag, which meant every published tag had
+# VERSION and intent_version disagreeing.
+if [ "$DRY_RUN" = "true" ]; then
+  log_dry "would stamp intent_version = $TARGET in $CONFIG_REL"
+else
+  (cd "$PROJECT_ROOT" && stamp_project_version "$TARGET" "$CONFIG_REL")
+  case $? in
+    0) log_info "stamped intent_version = $TARGET in $CONFIG_REL"; NEEDS_COMMIT=true ;;
+    1) log_info "$CONFIG_REL already at $TARGET" ;;
+    *) abort "cannot stamp intent_version in $CONFIG_REL" ;;
+  esac
+fi
+
 # AGENTS.md regeneration
 if [ "$DRY_RUN" = "true" ]; then
   log_dry "would run 'intent agents sync' to refresh AGENTS.md footer"
@@ -334,9 +366,25 @@ else
   log_info "AGENTS.md synced"
 fi
 
-# Detect any unstaged change after sidecar work
+# CLAUDE.md regeneration -- delegated to the canon engine that owns it, exactly
+# as AGENTS.md is delegated to `intent agents sync`. The engine renders
+# lib/templates/llm/_CLAUDE.md, preserves the user section and diffs, so the
+# version + date restamp falls out of it. bin/release renders no template itself:
+# the substitution logic already has three homes and does not need a fourth.
+if [ "$DRY_RUN" = "true" ]; then
+  log_dry "would run 'intent claude upgrade --apply' to refresh CLAUDE.md"
+else
+  (cd "$PROJECT_ROOT" && "$PROJECT_ROOT/bin/intent" claude upgrade --apply >/dev/null)
+  log_info "CLAUDE.md refreshed"
+fi
+
+# Detect any change to a sidecar this script owns. Scoped to SIDECAR_FILES --
+# the SAME list the commit stages. A bare `git status --porcelain` here used to
+# set NEEDS_COMMIT from any dirty file at all, including ones the commit would
+# never stage, so the script could announce a commit it had not made.
 if [ "$DRY_RUN" != "true" ]; then
-  if [ -n "$(cd "$PROJECT_ROOT" && git status --porcelain)" ]; then
+  # shellcheck disable=SC2086
+  if [ -n "$(cd "$PROJECT_ROOT" && git status --porcelain -- $SIDECAR_FILES)" ]; then
     NEEDS_COMMIT=true
   fi
 fi
@@ -347,9 +395,10 @@ fi
 if [ "$NEEDS_COMMIT" = "true" ]; then
   log_step "commit"
   if [ "$DRY_RUN" = "true" ]; then
-    log_dry "would stage VERSION + CHANGELOG.md + AGENTS.md and commit as 'release: v$TARGET'"
+    log_dry "would stage $SIDECAR_FILES and commit as 'release: v$TARGET'"
   else
-    (cd "$PROJECT_ROOT" && git add VERSION CHANGELOG.md AGENTS.md 2>/dev/null || true)
+    # shellcheck disable=SC2086
+    (cd "$PROJECT_ROOT" && git add -- $SIDECAR_FILES 2>/dev/null || true)
     # Only commit if there's something staged
     if [ -n "$(cd "$PROJECT_ROOT" && git diff --cached --name-only)" ]; then
       (cd "$PROJECT_ROOT" && git commit -m "release: v$TARGET" -m "(C) hello@matthewsinclair.com")
@@ -360,6 +409,19 @@ if [ "$NEEDS_COMMIT" = "true" ]; then
   fi
 else
   log_info "no sidecar changes to commit"
+fi
+
+# Nothing outside the sidecar list may be left dirty. `intent claude upgrade
+# --apply` can touch more than CLAUDE.md if the repo has drifted from canon, and
+# a release must never tag a tree that still has uncommitted work in it -- the
+# tag would not describe what was published. Fail loudly instead.
+if [ "$DRY_RUN" != "true" ]; then
+  LEFTOVER="$(cd "$PROJECT_ROOT" && git status --porcelain)"
+  if [ -n "$LEFTOVER" ]; then
+    log_warn "working tree is not clean after the sidecar sync:"
+    printf '%s\n' "$LEFTOVER" | sed 's/^/  /' >&2
+    abort "refusing to tag a dirty tree -- commit or revert the above, then re-run with --skip-tests"
+  fi
 fi
 
 # --------------------------------------------------------------------
