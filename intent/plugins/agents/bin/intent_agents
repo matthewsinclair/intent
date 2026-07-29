@@ -252,6 +252,7 @@ intent_agents_generate_content() {
   local has_cargo_toml=false
   local has_makefile=false
   local has_bats=false
+  local has_shell=false
   local test_command=""
   local build_command=""
 
@@ -283,6 +284,13 @@ intent_agents_generate_content() {
   if [ -d "$PROJECT_ROOT/tests" ] && find "$PROJECT_ROOT/tests" -name "*.bats" -type f -print -quit 2>/dev/null | grep -q .; then
     has_bats=true
     [ -z "$test_command" ] && test_command="bats -r tests/"
+  fi
+
+  # Shell is the one prerequisite answered from the DECLARED languages rather
+  # than a filesystem marker: there is no `shell.toml` to probe for, and the
+  # `languages` array is the authoritative statement of languages-in-use.
+  if has_project_language shell "$PROJECT_ROOT/intent/.config/config.json"; then
+    has_shell=true
   fi
 
   cat << 'EOF'
@@ -320,7 +328,28 @@ EOF
   if [ "$has_bats" = true ]; then
     echo "- Bats testing framework"
   fi
-  echo "- Bash 4.0+, POSIX-compliant shell"
+  # Gated like its four siblings, and with no version floor. This line used to
+  # be the only ungated echo in the block, so every project was told it needs
+  # bash 4.0+ whether or not it contains a line of shell. The floor was wrong as
+  # well as unconditional: macOS has shipped 3.2.57 as /bin/bash since 2007, so
+  # on the platform these projects are developed on the stated prerequisite is
+  # not met by the system shell -- and AGENTS.md is, by this generator's own
+  # preamble, the contract every agentic CLI reads and trusts without
+  # cross-checking. A generator cannot know a project's target version, so it
+  # names the project's own docs instead of inventing a constant (issue 0008).
+  if [ "$has_shell" = true ]; then
+    echo "- Bash or Zsh (see the project's own docs for the target version)"
+  fi
+  # Every line above is now conditional, so the section can come out empty --
+  # which the unconditional bash line used to mask. Say so rather than leave a
+  # bare heading: an empty Prerequisites block reads as "none needed" when it
+  # actually means "nothing declared or detected", and the two want different
+  # responses from the reader.
+  if [ "$has_mix_exs" = false ] && [ "$has_cargo_toml" = false ] && \
+     [ "$has_package_json" = false ] && [ "$has_bats" = false ] && \
+     [ "$has_shell" = false ]; then
+    echo "- None detected. Declare the project's languages with \`intent lang init <lang>\`."
+  fi
 
   cat << 'EOF'
 

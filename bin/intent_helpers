@@ -360,6 +360,23 @@ get_project_languages() {
 }
 export -f get_project_languages
 
+# True if <lang> is declared in the project's languages array.
+#
+# THE declared-language predicate. Languages-in-use is a configuration decision,
+# not a filesystem detection -- the `languages` array is what `intent lang init`
+# writes and what /in-session reads -- so anything asking "is this a <lang>
+# project?" asks here rather than probing for a marker file (issue 0008).
+# Absent config, absent array or absent jq all answer false, which is the safe
+# direction: a generator that cannot prove a language is in use says nothing
+# about it rather than asserting a default that will be wrong somewhere.
+has_project_language() {
+  local lang="$1"
+  local config="${2:-intent/.config/config.json}"
+  [ -n "$lang" ] || return 1
+  get_project_languages "$config" | grep -qxF -- "$lang"
+}
+export -f has_project_language
+
 # Append a language to the project's languages array if not already present.
 # Idempotent. Writes config atomically via temp file + mv.
 add_project_language() {

@@ -290,3 +290,49 @@ EOF
   assert_success
   refute_output_contains "missing recommended section"
 }
+
+# ---- issue 0008: the Prerequisites bash line ------------------------------
+# `- Bash 4.0+, POSIX-compliant shell` was the only ungated echo in a block
+# whose four other entries are all detection-gated, so every project was told
+# it needs bash 4.0+ whether or not it contains a line of shell -- and the floor
+# was wrong anyway, since macOS ships 3.2.57 as /bin/bash. AGENTS.md is the
+# contract every agentic CLI reads and trusts, so a false prerequisite there is
+# a false instruction to write code the target platform cannot run.
+
+@test "the shell prerequisite is gated on the declared languages, not asserted for every project" {
+  local project
+  project="$(create_test_project "AgentsShellGate")"
+  cd "$project"
+  run_intent agents init >/dev/null
+
+  # No language declared -> no shell prerequisite at all.
+  run_intent agents sync >/dev/null
+  run grep -F "Bash or Zsh" AGENTS.md
+  assert_failure
+
+  # Declared shell -> the prerequisite appears. The declaration is written
+  # straight into the config because what is under test is `agents sync`
+  # reading the languages array, not how the array came to be populated.
+  local cfg="intent/.config/config.json"
+  jq '.languages = ["shell"]' "$cfg" > "$cfg.tmp" && mv "$cfg.tmp" "$cfg"
+  run_intent agents sync >/dev/null
+  run grep -F "Bash or Zsh" AGENTS.md
+  assert_success
+
+  # ...but never with an invented version floor.
+  run grep -F "Bash 4.0" AGENTS.md
+  assert_failure
+}
+
+@test "an empty Prerequisites block says so rather than leaving a bare heading" {
+  local project
+  project="$(create_test_project "AgentsEmptyPrereqs")"
+  cd "$project"
+  run_intent agents init >/dev/null
+  run_intent agents sync >/dev/null
+
+  # Every prerequisite line is now conditional, so the section can come out
+  # empty -- which the unconditional bash line used to mask.
+  run grep -F "None detected" AGENTS.md
+  assert_success
+}

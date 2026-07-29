@@ -31,3 +31,48 @@ norm() { /bin/bash -c "source '$INTENT_HOME/bin/intent_helpers'; normalise_st_id
   run norm ST0044
   assert_output "ST0044"
 }
+
+# ---- issue 0008: the declared-language predicate --------------------------
+# Languages-in-use is a configuration decision, not a filesystem detection, so
+# anything asking "is this a <lang> project?" reads the declared array rather
+# than probing for a marker file. The absent cases must answer false: a
+# generator that cannot prove a language is in use should say nothing about it
+# rather than assert a default that will be wrong somewhere.
+
+haslang() {
+  /bin/bash -c "source '$INTENT_HOME/bin/intent_helpers'; has_project_language '$1' '$2' && echo yes || echo no"
+}
+
+@test "has_project_language is true only for a declared language" {
+  local cfg="${BATS_TEST_TMPDIR}/config.json"
+  echo '{"languages":["shell","elixir"]}' > "$cfg"
+  run haslang shell "$cfg"
+  assert_output "yes"
+  run haslang elixir "$cfg"
+  assert_output "yes"
+  run haslang rust "$cfg"
+  assert_output "no"
+}
+
+@test "has_project_language matches whole entries, never substrings" {
+  local cfg="${BATS_TEST_TMPDIR}/config.json"
+  echo '{"languages":["shell"]}' > "$cfg"
+  run haslang she "$cfg"
+  assert_output "no"
+  run haslang shellscript "$cfg"
+  assert_output "no"
+}
+
+@test "has_project_language is false for an empty, absent or unreadable config" {
+  local cfg="${BATS_TEST_TMPDIR}/config.json"
+  echo '{"languages":[]}' > "$cfg"
+  run haslang shell "$cfg"
+  assert_output "no"
+
+  echo '{}' > "$cfg"
+  run haslang shell "$cfg"
+  assert_output "no"
+
+  run haslang shell "${BATS_TEST_TMPDIR}/does-not-exist.json"
+  assert_output "no"
+}
