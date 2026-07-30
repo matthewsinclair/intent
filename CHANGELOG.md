@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.18.0] - in progress
+
+Minor release completing the reach of the v2.17.4 fixes. `intent upgrade` now converges the tool-managed Language Packs block, so a consumer picks up a generator correction by upgrading rather than by knowing which command to re-run by hand. It is a minor, not a patch, because it adds a new subcommand and because `intent upgrade` now writes a file it previously left alone on every consumer.
+
+### Added
+
+- **`intent lang sync [--check]`.** Converges the Language Packs block in `intent/llm/RULES.md` to canon for every language declared in `intent/.config/config.json`. `--check` reports without writing, exiting non-zero when any entry is missing or stale. Deliberately narrow: it touches that managed block and nothing else. `intent lang init` copies `RULES-<lang>.md` and `ARCHITECTURE-<lang>.md` over whatever is on disk, and projects hand-edit those files, so `init` is the wrong thing to run unattended; `sync` is the part that is safe to converge without asking.
+
+### Fixed
+
+- **`intent upgrade` now converges the Language Packs block (completes issue 0005).** v2.17.4 corrected the entry text -- it named a rule-pack path that only resolves inside the Intent installation -- and made the writer an upsert, but nothing in the upgrade path called it, so the correction reached only a project that happened to re-run `intent lang init` by hand. Every consumer would have kept the dangling pointer indefinitely while its upgrade reported success. `intent upgrade` is the convergent orchestrator, and a stale tool-managed block is exactly what it exists to drive to target, so a new `lang_packs` ledger step delegates to `intent lang sync`. Consumers upgrading from v2.17.x will see the entries rewritten in place, once. Hand edits to `RULES-<lang>.md` are untouched.
+- **`intent upgrade` no longer exits non-zero in silence when the version stamp is already at target.** The orchestrator runs under `set -e` and called the version stamper as a bare command before reading `$?`, so the already-at-target return aborted the run after every step had completed -- an upgrade that did all its work, reported none of it, and failed. Introduced in v2.17.4 alongside the shared stamper; caught before it reached a release.
+- **`bin/release` stamps every sidecar before the tag (maintainer tooling).** `intent/.config/config.json` and `CLAUDE.md` were corrected by a manual wrap commit landing _after_ the tag, so every published tag was internally inconsistent -- checking out `v2.17.3` gave `VERSION=2.17.3` beside `intent_version=2.17.2`. All five sidecars are now stamped in the release commit, from one list the detect step and the stage step both read, and the script refuses to tag if anything outside that list is left dirty. It also pins `INTENT_HOME` to the checkout being released: `bin/intent` only derives it when unset, so an `INTENT_HOME` exported in a maintainer's shell silently won and every sub-command read the wrong tree's `VERSION`.
+
+### Internal
+
+- `stamp_project_version` (THE `intent_version` stamper) and `has_project_language` (THE declared-language predicate) added to `bin/intent_helpers`; `intent upgrade` and `bin/release` share the former, and the AGENTS.md generator uses the latter. Both registered in `intent/llm/MODULES.md`.
+
 ## [2.17.4] - 2026-07-30
 
 Patch release fixing four issues in two pairs. The acceptance parser could report a write it never performed and a green test as unsatisfied -- both because a `sed` non-match is invisible. The generators could assert into a consumer project two things that are true only where the tool lives.
