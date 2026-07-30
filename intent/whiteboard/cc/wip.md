@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd8ff218-ab8e-4b00-8d30-0c8635f1d01d
-heartbeat_at: 2026-07-30T00:55Z
+heartbeat_at: 2026-07-30T01:30Z
 status: active
-focus: "v2.17.4 SHIPPED. Issues 0005-0008 closed; 0009 open. Then two tooling fixes: bin/release stamps every sidecar before the tag (no manual wrap ever again), and intent upgrade converges the Language Packs block (consumer sweep becomes one command, from v2.17.5). Suite 1132/1132; all pushed."
+focus: "v2.18.0 SHIPPED (tag 6cd4400, both remotes + GitHub release) -- FIRST self-consistent tag Intent has cut; v2.17.2/3/4 all carried the previous version in config.json + CLAUDE.md. No post-tag wrap. Consumer sweep is now one command (intent upgrade)."
 claims: []
 ---
 
@@ -13,6 +13,7 @@ claims: []
 
 ## DOING
 
+- **v2.18.0 SHIPPED (2026-07-30).** Tag `6cd4400`, both remotes + GitHub release, cut end to end by the fixed `bin/release`. VERIFIED first self-consistent tag in the project's history: VERSION = config.json = both CLAUDE.md lines = AGENTS.md footer = 2.18.0, tree clean, no wrap. v2.17.2/3/4 each carried the PREVIOUS version in config.json and CLAUDE.md at their tag. Ships the lang_packs ledger step, so from here `intent upgrade` alone is the consumer sweep.
 - **v2.17.4 SHIPPED (2026-07-30).** hv cut it; tag `af13633` on both remotes + GitHub release. Wrap `9650a5e` done by hand -- the last time that will be necessary.
 - **`bin/release` fixed so the wrap is no longer a manual step (`2af02d7` + `fc89d3e`).** Every published tag was internally inconsistent: `VERSION` said the new version while `config.json` and `CLAUDE.md` said the old one, because the wrap commit landed AFTER the tag. Now all five sidecars are stamped before the commit, from one `SIDECAR_FILES` list that the detect step and the stage step both read (they disagreed before, so the script could announce a commit it had not made), and it refuses to tag if anything outside that list is left dirty. `config.json` goes through the new shared `stamp_project_version`; `CLAUDE.md` is delegated to the canon engine that owns it, so `bin/release` renders no template itself. Usage block now documents authoring the heading as `## [X.Y.Z] - in progress` -- a hand-typed date is right only on the day it is typed, and v2.17.4's went stale at midnight and aborted the pre-flight.
 - **Two further defects found by actually cutting a test release in a clone**, neither visible to a dry run: an `INTENT_HOME` exported in the maintainer's shell silently beat the checkout being released, so a cut from any other checkout would stamp the wrong version into the generated files; and the canon engine also rewrote the `.claude/` stack, tripping the new dirty-tree guard. Pinned and scoped respectively.
@@ -25,8 +26,7 @@ claims: []
 
 ## TODO
 
-- **v2.17.5 will be the first cut the fixed `bin/release` performs end to end** -- the only real proof it works in anger. All post-tag work is on `main` and pushed; nothing local-only.
-- **Consumer sweep (hv, separate repos) -- TIMING MATTERS.** The one-command sweep (`intent upgrade`) landed in `51207dc`, which is AFTER the v2.17.4 tag, so it is not in any release yet. Two options: sweep Utilz / Lamplight / Baize today with the two-command form (`intent upgrade` then `jq -r '(.languages // [])|.[]' intent/.config/config.json | xargs -n1 intent lang init`), or wait for v2.17.5 and sweep with `intent upgrade` alone. hv's call. Lamplight + Baize lose the shell prerequisite entirely unless they declare `shell` -- correct, neither is a shell project.
+- **Consumer sweep (hv, separate repos): now just `intent upgrade` per project**, shipped in v2.18.0. Heals the `Bash 4.0+` prerequisite (0008) and the dangling Language Packs entries (0005) in one pass; hand edits to `RULES-<lang>.md` survive. Utilz / Lamplight / Baize all still carry the bad line. Lamplight + Baize lose the shell prerequisite entirely unless they declare `shell` -- correct, neither is a shell project.
 - **Lamplight contract sweep (hv, separate repo):** ST0276 (11 bolded `**green` rows), ST0298 `GREEN`, ST0270 `BOTH`, ST0198 `BUILT`. The parser fix does not flip these -- emphasis is deliberately not tolerated -- but the tool now names every offending row on `ac list` / `ac gate`, so the sweep is mechanical.
 
 - **hv ruling owed -- issue 0004 item 4 (`ac status` exit code).** hv asked for uniform non-zero on a BLOCKED `ac status`; premise does not reproduce (exits 0 on both BLOCKED shapes; `intent_acceptance_cli.bats:111` asserts it). `status` = reporter (stdout), `gate` = gate (`$?`). Own issue if hv wants it changed.
