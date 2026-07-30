@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.18.0] - in progress
+## [2.18.0] - 2026-07-30
 
 Minor release completing the reach of the v2.17.4 fixes. `intent upgrade` now converges the tool-managed Language Packs block, so a consumer picks up a generator correction by upgrading rather than by knowing which command to re-run by hand. It is a minor, not a patch, because it adds a new subcommand and because `intent upgrade` now writes a file it previously left alone on every consumer.
 
