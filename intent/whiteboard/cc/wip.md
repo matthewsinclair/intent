@@ -3,8 +3,8 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd8ff218-ab8e-4b00-8d30-0c8635f1d01d
-heartbeat_at: 2026-07-30T01:30Z
-status: active
+heartbeat_at: 2026-07-30T01:45Z
+status: paused
 focus: "v2.18.0 SHIPPED (tag 6cd4400, both remotes + GitHub release) -- FIRST self-consistent tag Intent has cut; v2.17.2/3/4 all carried the previous version in config.json + CLAUDE.md. No post-tag wrap. Consumer sweep is now one command (intent upgrade)."
 claims: []
 ---
@@ -13,16 +13,7 @@ claims: []
 
 ## DOING
 
-- **v2.18.0 SHIPPED (2026-07-30).** Tag `6cd4400`, both remotes + GitHub release, cut end to end by the fixed `bin/release`. VERIFIED first self-consistent tag in the project's history: VERSION = config.json = both CLAUDE.md lines = AGENTS.md footer = 2.18.0, tree clean, no wrap. v2.17.2/3/4 each carried the PREVIOUS version in config.json and CLAUDE.md at their tag. Ships the lang_packs ledger step, so from here `intent upgrade` alone is the consumer sweep.
-- **v2.17.4 SHIPPED (2026-07-30).** hv cut it; tag `af13633` on both remotes + GitHub release. Wrap `9650a5e` done by hand -- the last time that will be necessary.
-- **`bin/release` fixed so the wrap is no longer a manual step (`2af02d7` + `fc89d3e`).** Every published tag was internally inconsistent: `VERSION` said the new version while `config.json` and `CLAUDE.md` said the old one, because the wrap commit landed AFTER the tag. Now all five sidecars are stamped before the commit, from one `SIDECAR_FILES` list that the detect step and the stage step both read (they disagreed before, so the script could announce a commit it had not made), and it refuses to tag if anything outside that list is left dirty. `config.json` goes through the new shared `stamp_project_version`; `CLAUDE.md` is delegated to the canon engine that owns it, so `bin/release` renders no template itself. Usage block now documents authoring the heading as `## [X.Y.Z] - in progress` -- a hand-typed date is right only on the day it is typed, and v2.17.4's went stale at midnight and aborted the pre-flight.
-- **Two further defects found by actually cutting a test release in a clone**, neither visible to a dry run: an `INTENT_HOME` exported in the maintainer's shell silently beat the checkout being released, so a cut from any other checkout would stamp the wrong version into the generated files; and the canon engine also rewrote the `.claude/` stack, tripping the new dirty-tree guard. Pinned and scoped respectively.
-- **`intent upgrade` now converges the Language Packs block (`51207dc`), so the consumer sweep is one command.** New ledger step `lang_packs` -> new `intent lang sync [--check]`. It delegates to `sync`, NOT `lang init`: `init` also `cp`s `RULES-<lang>.md` and `ARCHITECTURE-<lang>.md` over whatever is on disk, and projects hand-edit those -- issue 0005 was reported by someone who had corrected five of them locally, so an unattended upgrade running `init` would have destroyed exactly the work that surfaced the bug. Verified a marker in `RULES-shell.md` survives. `needs`/`verify` both ask `sync --check` rather than re-deriving the canonical entry text -- two copies of that answer is what let 0005 survive its own fix. Also fixed a `set -e` regression I introduced with the shared stamper: the orchestrator called it bare with `case $?`, so the already-at-target return of 1 aborted the run after all its work, silently and non-zero.
-
-- **Four issues fixed + closed (2026-07-29), shipped in v2.17.4.**
-  - **0006 + 0007 (high, `bin/intent_acceptance`)** -- one root shape, both directions. New `extract_field` seam: match before substitute, empty + non-zero on non-match, so a failed parse stops returning the whole line as a plausible value. New `assert_written`: every mutation re-read and verified, so a writer can no longer report success having written nothing. `ac satisfy` made total over bare + tailed rows. New `warn_bad_fields` names out-of-vocabulary AT statuses and unclosed `(non-test` markers -- diagnostic only, no new block (they already fail closed; they failed closed silently). Also fixed `replace_line`'s unchecked copy-back, found by the new guard.
-  - **0005 + 0008 (medium, generator-into-consumer)** -- Language Packs entry names `intent claude rules list --lang <lang>` instead of a path that only exists in the Intent install; entry-writer became an upsert so already-initialised projects heal on a re-run (they could not have, as specified); needle unified from three hard-coded copies into one. `agents sync` bash prerequisite gated on declared `languages` with no version floor; `has_project_language` new in `intent_helpers`.
-  - **0009 filed** -- the structural point hv flagged inside 0008 (filesystem probes vs the declared `languages` array), deliberately NOT folded in: migrating all four probes changes every consumer's `AGENTS.md` and wants its own decision.
+_(day closed 2026-07-30 -- v2.17.4 then v2.18.0 shipped; issues 0005-0008 fixed + closed, 0009 filed; `bin/release` and `intent upgrade` both fixed so no release needs a manual wrap and the consumer sweep is one command. Session detail in `intent/done.md` + `intent/issues/CLOSED/000{5,6,7,8}/`.)_
 
 ## TODO
 

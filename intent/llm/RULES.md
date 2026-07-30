@@ -57,3 +57,11 @@ These extend the canon for Intent itself (a Bash CLI). Each one concretises one 
 - Critic dispatch contract: `intent/docs/critics.md`
 - Rule-library authoring: `intent/docs/rules.md`
 - Extension authoring: `intent/docs/writing-extensions.md`
+
+## Language Packs
+
+<!-- intent-lang-packs:start -->
+
+- **shell** -- rules via `intent claude rules list --lang shell` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-shell.md`.
+
+<!-- intent-lang-packs:end -->
