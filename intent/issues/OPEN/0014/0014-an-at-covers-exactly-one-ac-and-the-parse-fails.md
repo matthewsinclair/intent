@@ -1,26 +1,33 @@
 ---
 id: "0014"
-title: An AT covers exactly one AC and the parse fails silently: two ids, or a possessive, leaves the AC reading as uncovered
+title: "AT coverage is comma-separated only: 'and' as a separator, or an id with an adjacent character, drops the link silently"
 date: 2026-08-04
 reporter: matts
 status: OPEN
 severity: medium
 ---
 
-# 0014: An AT covers exactly one AC and the parse fails silently: two ids, or a possessive, leaves the AC reading as uncovered
+# 0014: AT coverage is comma-separated only: "and" as a separator, or an id with an adjacent character, drops the link silently
 
 ## Tags
 
 acceptance, parsing, silent-failure
 
+> **This issue was filed on 2026-08-04 with the wrong root cause and corrected the same day.** The original text claimed "an AT covers exactly one AC". **That is false** -- multi-AC coverage works and is documented: ST0087's contract preamble states "Multi-AC coverage on an AT is comma-separated", and `AT-04.1 ... -- covers AC-04.1, AC-04.2` links both. The correction was caught by a reviewing node before the wrong rule was applied as a sweep across four steel threads, which would have split acceptance criteria to work around a limit that does not exist. Recorded rather than quietly edited, because a wrong issue is worse than no issue: it is read as a finding.
+
 ## Summary
 
-The coverage link between an acceptance test and an acceptance criterion is derived by scanning the AT's line in `acceptance.md` for a `covers AC-NN.N` token. Two natural ways of writing that line produce **no coverage at all**, with no warning:
+AT-to-AC coverage is derived by scanning the AT's line in `acceptance.md` for `covers AC-NN.N` ids. **Multiple ids are supported and must be comma-separated.** Anything else in that position is dropped without complaint:
 
-1. Naming two ACs -- `covers AC-09.2 and AC-04.3` -- links only the first.
-2. Any possessive or adjacent word fused to the id -- `covers AC-09.1's city half` -- links neither.
+1. **`and` as a separator** -- `covers AC-09.2 and AC-04.3` links only the first.
+2. **Any character fused to the id** -- `covers AC-09.1's city half` links neither, because the possessive breaks the match.
 
-In both cases `intent ac list` reports the affected AC as `covered-by: -`, which renders **identically to never having written the AT at all**. The AT itself is listed, green, and looks fine.
+In both cases `intent ac list` reports the affected AC as `covered-by: -`, which renders **identically to never having written the AT at all**. The AT itself lists as green and looks fine.
+
+The same silence covers at least two neighbouring format rules, reported together because they share the failure mode:
+
+3. **The non-test marker must read exactly `(non-test)`.** `(non-test, boundary)` silently makes the AC test-backed, and it then cannot be satisfied by evidence at all.
+4. **The evidence delimiter is the FIRST `--` on the line**, so an AC whose prose uses a dash before `-- evidence:` parses its own sentence as the evidence.
 
 ## Reproduction
 
@@ -31,7 +38,7 @@ Observed on Laksa ST0086, 2026-08-04. Written in `acceptance.md`:
 - AT-09.2 `.../snorkeltoast_test.exs` -- covers AC-09.2 and AC-04.3: ... -- status: green
 ```
 
-Both ATs were real, both green, both registered:
+Both ATs real, both green, both registered:
 
 ```
 $ intent at list ST0086
@@ -43,48 +50,54 @@ But:
 
 ```
 $ intent ac list ST0086 | grep -E "AC-04.3|AC-09"
-ac: AC-04.3  covered-by: -        satisfied: no     # named second in AT-09.2
-ac: AC-09.1  covered-by: -        satisfied: no     # possessive broke the match
-ac: AC-09.2  covered-by: AT-09.2  satisfied: yes    # named first, bare id
+ac: AC-04.3  covered-by: -        satisfied: no     # "and" separator: dropped
+ac: AC-09.1  covered-by: -        satisfied: no     # possessive: dropped
+ac: AC-09.2  covered-by: AT-09.2  satisfied: yes    # first id, bare: matched
 ```
 
-Rewriting to one bare id per AT, and splitting AT-09.2 into AT-09.2 and AT-09.3, fixed all three immediately.
+The working form, on ST0087, for contrast:
+
+```
+- AT-04.1 `.../site_files_test.exs::success: files reads the bytes` -- covers AC-04.1, AC-04.2 -- status: green
+
+$ intent ac list ST0087 | grep -E "AC-04.1|AC-04.2"
+ac: AC-04.1  covered-by: AT-04.1 AT-04.2 AT-04.3  satisfied: yes
+ac: AC-04.2  covered-by: AT-04.1 AT-04.2 ...      satisfied: yes
+```
 
 ## Root Cause
 
-Two assumptions in the scan, neither stated anywhere the author of an `acceptance.md` line would see:
+The scan matches ids by adjacency rather than at a token boundary, and treats the comma as the only separator. Both are defensible parsing choices in isolation; the defect is that **a failed match is indistinguishable from an absent AT.** Nothing errors, nothing warns, and the failure surfaces later as a coverage number quietly too low.
 
-- **One AC per AT.** Reasonable as a modelling choice -- arguably the right one -- but it is not documented and not enforced, so the natural reading of "this test covers these two criteria" produces a half-linked contract.
-- **The id is matched as a bare token.** `AC-09.1's` does not match. Presumably neither would `AC-09.1,` or `(AC-09.1)`.
-
-The unifying defect is that **a failed match is indistinguishable from an absent AT**. Nothing errors, nothing warns, and the failure only surfaces later, at the close gate, as a coverage number that is quietly too low.
+`intent ac list` was reported to warn on these; measured on ST0086, it emits nothing matching `warn` at all. If a warning path exists it is not reaching this case.
 
 ## Impact
 
-- **Silent under-coverage.** A thread can carry ATs that were written, run and greened, while its contract reports the ACs as uncovered. The work is done and the record says it is not.
-- **It surfaces late and looks like something else.** The first symptom is `intent wp done` refusing to close a package -- which reads as "the work is not finished" rather than "the line is phrased wrongly".
-- **Likely widespread and invisible.** Nobody would grep for it, because nothing indicates anything is wrong. Any project with multi-AC AT lines has been silently under-reporting coverage for as long as they have existed.
-- **It punishes the more careful author.** Writing a descriptive AT line -- naming what it covers in prose -- is what breaks the match. A terse line works.
+- **Silent under-coverage.** A thread carries ATs that were written, run and greened, while the contract reports the ACs uncovered. The work is done and the record says it is not.
+- **It surfaces late and looks like something else.** The first symptom is `intent wp done` refusing to close a package, which reads as "the work is not finished" rather than "the line is phrased wrongly".
+- **It punishes the more careful author.** A descriptive AT line -- naming in prose what it covers -- is what breaks the match. A terse line works.
+- **It produces confident wrong generalisations.** This issue is the evidence: hitting the two broken forms and not the working one, the natural inference was a one-AC-per-AT limit, which is wrong and was about to be applied as a project-wide sweep. **A silent parse failure does not just lose data; it teaches the reader a false rule.**
 
 ## Proposed Fix
 
-Two changes, and the first matters more than the second:
+Ordered by value, and the first is worth more than the rest combined:
 
-1. **Fail loudly.** If an AT line contains no parseable `covers AC-NN.N`, that is an error at parse time, not a shrug. Likewise, if it contains **more than one** AC id and the model permits only one, say so and name both:
+1. **Warn on every AT line whose `covers` clause does not fully parse.** Name the ids that matched and the text that did not:
 
    ```
-   warn: AT-09.2 names 2 acceptance criteria (AC-09.2, AC-04.3); an AT covers exactly one.
-         Split it, or the second will read as uncovered.
+   warn: AT-09.2 -- coverage clause partially parsed.
+         matched: AC-09.2   unmatched text: "and AC-04.3"
+         Multi-AC coverage is comma-separated: covers AC-09.2, AC-04.3
    ```
 
-2. **Match the id at a token boundary rather than by adjacency**, so `AC-09.1's`, `AC-09.1,` and `(AC-09.1)` all resolve. The strictness buys nothing; it only rejects prose.
-
-Worth also documenting "one AT covers one AC" wherever the `acceptance.md` format is described, since the constraint is invisible until violated.
+2. **Match ids at a token boundary**, so `AC-09.1's`, `AC-09.1,` and `(AC-09.1)` resolve. Optionally accept `and` / `&` as separators; the warning matters more than the leniency.
+3. **Apply the same "parsed nothing, said nothing" audit** to the `(non-test)` marker and the `--` evidence delimiter above. Three format rules with one shared failure mode is a parser-wide policy question, not three fixes.
+4. **Document the comma rule where an author will meet it.** It is stated in one project's contract preamble and nowhere in the tool's own help.
 
 ## Related
 
-- 0013 -- `intent ac` has no descope verb. Same family: acceptance-contract state that the tool models more simply than the practice needs, and which fails quietly rather than loudly.
-- Found on Laksa ST0086 while closing WP-04, WP-09 and WP-10.
+- 0013 -- `intent ac` has no descope verb. Same family: acceptance-contract state the tool models more simply than the practice needs, failing quietly rather than loudly.
+- Found on Laksa ST0086 while closing WP-04, WP-09 and WP-10; the false root cause was caught by that project's validation node.
 
 ## Resolutions
 
