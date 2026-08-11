@@ -62,6 +62,35 @@ tool:    at: AT-02.1    green
 
 The file exists, the test exists, the row is correct, and the tool reports no reference at all.
 
+### A live instance, twenty minutes after this issue was filed
+
+Not constructed, and worth more than the table above because it shows the format still actively drifting. A work package merged into Lamplight's ST0347 introduced a **fifth** reference form -- square brackets, bare filename, quoted name:
+
+```
+- AT-02.1 [play_live_test.exs, "ST0347 AT-02.1"] the place button opens the sheet (bottom-sheet classes at base, `md:absolute`/`md:bottom-full` popover ...) -- covers AC-02.2, AC-02.5 -- status: green
+```
+
+`at_pathname` takes the first backtick span, which here is a Tailwind utility class buried in the prose:
+
+```
+$ intent at list ST0347
+at: AT-02.1  md:absolute  green
+at: AT-02.2  min-h-11     green
+```
+
+**Two green ATs on a live thread now report CSS class names as their test file paths**, and the gate counts both as coverage. Nothing warned. The author did nothing unreasonable -- they wrote a readable row, and the format has no rule to have broken.
+
+### The same instance argues for linking by id rather than by name
+
+The row above cites its test as `"ST0347 AT-02.1"`. **No test in that file is named that.** The deck actually carries:
+
+```elixir
+describe "the place sheet opens and never clips a card (ST0347 AT-02.1)" do
+  test "AT-02.1: the place button opens the sheet -- bottom sheet at base, popover above the button at md+ -- and a second press closes it", ...
+```
+
+So the cited **name** is a paraphrase and a name-match fails -- exactly the failure that defeated every string-matching instrument in the Impact table. But the **id** is present, twice. **The proposed L3 check passes on this row; a name check fails on it.** That asymmetry is the whole argument for the change below, and it turned up on its own within the hour.
+
 **The diagnostic that should catch this does not cover it.** `warn_bad_fields` (`:135`) checks exactly two classes -- `bad_status_lines` and `bad_marker_lines`. There is no `bad_pathname_lines`. The comment at `:55` states that a parse failure is "harmless and audible instead of silent and wrong"; that is true of status and of the non-test marker, and **not true of the reference**, which is the field with no diagnostic at all.
 
 ## Root Cause
