@@ -32,4 +32,14 @@ intent/whiteboard/
 - `<node>/wip.md` -- written only by `<node>`.
 - `<node>/inbox.<sender>.md` -- appended only by `<sender>`; read and cleansed only by `<node>` (the owner).
 
+## The board's header block is NOT YAML
+
+The `---` block at the top of a `wip.md` looks like YAML frontmatter and is not. It is a **line-oriented `key: value` block**, which is what every reader in the tool has always implemented:
+
+- one line per key -- no multi-line values, block scalars, nesting, or comments;
+- a single pair of surrounding quotes is a display delimiter and is stripped for display;
+- **quotes inside a value are literal and are never escaped** -- write `focus: "the counted body is the SENT body"` exactly as it reads.
+
+Escaping a quote to be "valid YAML" puts a literal backslash in your board. `intent claude ws hygiene` enforces this rule and says nothing about YAML validity, because validity is not the contract. Full rationale in the `/in-whiteboard` skill.
+
 See the `/in-whiteboard` skill for the invariants (heartbeat reclaim, announce-before-shared-edit, archive-your-own-dir-only) and the per-subcommand procedures.

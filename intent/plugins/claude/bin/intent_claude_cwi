@@ -59,16 +59,56 @@ Usage:
 EOF
 }
 
-# Read one frontmatter field from a wip.md (first --- block only).
+# THE header-block reader (issue 0012). One key from a wip.md's leading block.
+#
+# The block is a line-oriented `key: value` record and NOT YAML, which is a
+# ruling rather than an accident -- see "The header block is NOT YAML" in the
+# in-whiteboard skill. It is hand-written by LLM nodes in prose-heavy fields,
+# which is close to the worst case for a quoting-sensitive format: quoting a
+# phrase inside `focus:` is the natural thing to write and is invalid YAML. On
+# the reporting board two of five nodes were unparseable at a point in time, and
+# every instance repaired itself at the next fold before anyone noticed.
+#
+# The surrounding quotes are a DISPLAY DELIMITER and are stripped here, once,
+# for every caller. Quotes inside a value are literal and are never escaped, so
+# there is deliberately no unescaping step: a board that wrote \" to be correct
+# under YAML would render the backslash, which is the disincentive that made the
+# invalid form the pretty one. Stripping in the reader rather than at one call
+# site is what keeps `ws list` and `ws hygiene` reading the same value.
 fm_get() { # $1 file  $2 key
   [ -f "$1" ] || return 0
   awk -v k="$2" '
     /^---[[:space:]]*$/ { fm++; next }
     fm==1 {
       key=$0; sub(/:.*/, "", key)
-      if (key==k) { v=$0; sub(/^[^:]*:[[:space:]]*/, "", v); print v; exit }
+      if (key==k) {
+        v=$0; sub(/^[^:]*:[[:space:]]*/, "", v)
+        if (v ~ /^".*"$/) { v = substr(v, 2, length(v) - 2) }
+        print v; exit
+      }
     }
   ' "$1"
+}
+
+# Every line of a wip.md's header block that is NOT a single-line `key: value`.
+# Empty when the board conforms. This is the whole mechanical contract: the
+# format has no multi-line values, no continuations, no nesting and no comments,
+# so any other line shape means a reader is about to lose data silently.
+fm_bad_lines() { # $1 file
+  [ -f "$1" ] || return 0
+  awk '
+    /^---[[:space:]]*$/ { fm++; if (fm==2) exit; next }
+    fm==1 {
+      if ($0 ~ /^[[:space:]]*$/) next
+      if ($0 !~ /^[A-Za-z_][A-Za-z0-9_-]*:([[:space:]]|$)/) print FNR ": " $0
+    }
+  ' "$1"
+}
+
+# Does the file open with a header block at all?
+fm_present() { # $1 file
+  [ -f "$1" ] || return 1
+  head -n1 "$1" | grep -q '^---[[:space:]]*$'
 }
 
 # A workstream id is a short-ish slug: lowercase, [a-z0-9-], 1..16 chars.
@@ -162,7 +202,7 @@ cmd_ws_list() {
     st="$(fm_get "$d/wip.md" status)"
     hb="$(fm_get "$d/wip.md" heartbeat_at)"
     cl="$(fm_get "$d/wip.md" claims)"
-    fc="$(fm_get "$d/wip.md" focus | sed 's/^"//; s/"$//')"
+    fc="$(fm_get "$d/wip.md" focus)"
     printf '%-6s [%-7s] claims=%-18s hb=%s\n' "$ws" "$st" "$cl" "$hb"
     printf '       focus: %s\n' "$fc"
   done
@@ -198,8 +238,29 @@ cmd_ws_hygiene() {
     [ "$ws" = ".archived" ] && continue
     [ -n "$target" ] && [ "$target" != "$ws" ] && continue
     if [ ! -f "$d/wip.md" ]; then echo "MISSING   $ws/wip.md"; rc=1; continue; fi
+    # Conformance to the declared line-oriented rule (issue 0012). Hygiene is
+    # the whiteboard's lint gate and it checked structure -- files present, keys
+    # present, headers present -- while saying nothing about whether the header
+    # block itself was readable. The one channel the protocol specifies as
+    # machine-read was the one nothing machine-checked.
+    if ! fm_present "$d/wip.md"; then
+      echo "BAD-FM    $ws/wip.md: no leading --- header block"; rc=1
+    else
+      bad="$(fm_bad_lines "$d/wip.md")"
+      if [ -n "$bad" ]; then
+        echo "BAD-FM    $ws/wip.md: header block is line-oriented 'key: value' (one line per key, no continuations); offending line(s):"
+        printf '%s\n' "$bad" | while IFS= read -r l; do [ -n "$l" ] && echo "            $l"; done
+        rc=1
+      fi
+    fi
     [ -n "$(fm_get "$d/wip.md" node)" ]   || { echo "BAD-FM    $ws/wip.md: no node:"; rc=1; }
     [ -n "$(fm_get "$d/wip.md" status)" ] || { echo "BAD-FM    $ws/wip.md: no status:"; rc=1; }
+    # Recommended keys WARN rather than block: a board missing one is degraded
+    # (a peer cannot run the active-peer test without heartbeat_at) but it is
+    # not malformed, and hygiene must not newly fail boards that predate this.
+    for k in name role session_id heartbeat_at focus claims; do
+      [ -n "$(fm_get "$d/wip.md" "$k")" ] || echo "WARN      $ws/wip.md: no $k: (recommended by the protocol)"
+    done
     [ -f "$d/.history/.gitkeep" ]         || { echo "MISSING   $ws/.history/.gitkeep"; rc=1; }
     for ib in "$d"inbox.*.md; do
       [ -e "$ib" ] || continue

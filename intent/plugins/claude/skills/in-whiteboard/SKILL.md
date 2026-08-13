@@ -44,7 +44,7 @@ If invoked with no subcommand, default to `status`.
 intent/whiteboard/
   README.md                 # protocol reference + the project's node roster
   <node>/
-    wip.md                  # the node's live board: frontmatter + DOING + TODO + watch-outs + decisions
+    wip.md                  # the node's live board: header block + DOING + TODO + watch-outs + decisions
     inbox.<sender>.md       # one per OTHER node: messages FROM that sender (single-writer)
     .history/
       .gitkeep              # tracks the otherwise-empty archive dir (git ignores empty dirs)
@@ -60,11 +60,11 @@ Single-writer rule:
 
 ## wip.md shape
 
-```yaml
+```
 ---
 node: <moniker>
 name: <display name>
-role: <role> # eg hypervisor | control | interface | validation | author
+role: <role>
 session_id: <UUID|none>
 heartbeat_at: <ISO 8601>
 status: active | paused
@@ -78,7 +78,21 @@ claims: [STxxxx, ...]
 ## Decisions    -- cross-node decisions, broadcast by being read at pickup
 ```
 
-Only the frontmatter is required for protocol compliance; the body sections are the working content.
+Only the header block is required for protocol compliance; the body sections are the working content.
+
+### The header block is NOT YAML
+
+It looks like YAML frontmatter and it is not. It is a **line-oriented `key: value` block**, and every reader in the tool -- `fm_get`, `ws list`, `ws hygiene` -- reads it that way. The rules are the whole specification:
+
+- **One line per key.** The value is everything after the first `: ` to the end of that line. There are no multi-line values, no block scalars, no nesting, no comments, and no continuation lines.
+- **Quotes are a display delimiter, not syntax.** A single pair of surrounding quotes is stripped for display; quotes INSIDE a value are literal and are **never escaped**. Write `focus: "the counted body is the SENT body"` exactly as it reads. Writing `\"` puts a backslash in your board.
+- **`claims:` is a comma-separated list in square brackets**, read as text.
+
+This is a deliberate ruling, not an accident, and it was made because the alternative loses. The block is hand-written by LLM nodes in prose-heavy fields, which is close to the worst case for a quoting-sensitive format: a `focus:` line quoting a phrase is the natural thing to write, and under YAML it is invalid. Measured on a five-node board, two of five were unparseable at a point in time, and a sweep of one node's last 25 revisions found four invalid in two separate episodes -- **all of which repaired themselves** at the next fold, before anyone noticed. A defect whose lifetime is shorter than the interval between observations leaves no corpse, so the real rate is higher than any point-in-time count.
+
+Under YAML the correct board also renders worse: `ws list` strips the delimiters without unescaping, so a node that complied would display `\"` mid-prose. The format the tooling actually implements, the format the nodes actually write, and the format that reads correctly are the same one; the word "YAML" was the only thing out of step, so the word is what changed.
+
+`intent claude ws hygiene` enforces exactly this rule: every line in the block is a single-line `key: value`, and the required keys are readable. It does NOT check YAML validity, because validity is not the contract.
 
 ## inbox.<sender>.md shape
 
@@ -122,8 +136,8 @@ The moniker is durable; subsequent sessions of that node inherit it via the exis
 
 1. List `intent/whiteboard/*/` to enumerate nodes. Determine your node (see discovery).
 2. Read your `<you>/wip.md` (resume state) and all four `<you>/inbox.*.md` (incoming). Surface any non-empty inbox entries to the user.
-3. Read each peer's `<peer>/wip.md` frontmatter. For each peer with `status: active` AND `heartbeat_at` within 7 days AND a different `session_id`: surface "node X active (heartbeat <relative>, focus: <focus>)". Active but older than 7 days: "node X appears stale".
-4. Update your `<you>/wip.md` frontmatter: `session_id` (this session, or `unknown`), `heartbeat_at` (now), `status: active`. Keep `claims` + body intact.
+3. Read each peer's `<peer>/wip.md` header block (line-oriented `key: value`, NOT YAML -- see wip.md shape). For each peer with `status: active` AND `heartbeat_at` within 7 days AND a different `session_id`: surface "node X active (heartbeat <relative>, focus: <focus>)". Active but older than 7 days: "node X appears stale".
+4. Update your `<you>/wip.md` header block: `session_id` (this session, or `unknown`), `heartbeat_at` (now), `status: active`. Keep `claims` + body intact. One line per key; do not escape quotes inside a value.
 5. Report a one-line summary of peer state + your inbound messages.
 
 ### ask <node> <text>
@@ -189,7 +203,7 @@ The human may say "localfold" or "globalfold" (terms from Lamplight; defined in 
 
 ### status
 
-1. Read every `<node>/wip.md` frontmatter.
+1. Read every `<node>/wip.md` header block.
 2. Print one line per node: `<node>: <status>, focus=<focus>, claims=[...], heartbeat=<relative>`. No writes.
 
 ## Node roles
@@ -219,7 +233,7 @@ A validation node is the independent check that the other nodes' landed or claim
 
 1. **One writer per file.** `wip.md` = the node; `inbox.<sender>.md` = the sender. The recipient owns its inbox lifecycle (reads, actions, clears into its own history).
 2. **Live channel, not snapshot.** `intent/wip.md` is the post-session snapshot; `<node>/wip.md` is the live board.
-3. **Claims by ST ID** (in `wip.md` frontmatter), never glob paths.
+3. **Claims by ST ID** (in the `wip.md` header block), never glob paths.
 4. **Broadcast via `announce` -> peers' inboxes.** No shared file; a shared platform layer (eg `apps/lamplight/**`) is coordinated by announcing before you touch it.
 5. **Heartbeat older than 7 days marks a claim reclaimable** -- reclaim requires explicit hypervisor acknowledgement.
 6. **`/compact` does NOT end a session** -- status stays `active`; the next `pickup` touches the heartbeat.
