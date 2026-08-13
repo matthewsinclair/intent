@@ -69,8 +69,10 @@ usage() {
 # (the path separator the reference is required to contain) and `n/a` in its
 # status vocabulary, either of which closes an s/.../.../ early and turns the
 # seam into a sed syntax error. No pattern in this file contains `@`, and
-# acceptance_grammar_guard.bats asserts that, so the delimiter cannot be
-# reintroduced as a bug by the next pattern someone adds.
+# tests/unit/at_grammar_lint.bats asserts that, so the delimiter cannot be
+# reintroduced as a bug by the next pattern someone adds. That guard also
+# asserts this comment names it, so the pointer is checkable from both ends
+# rather than being a filename that quietly stops existing.
 extract_field() {
   local line="$1" pattern="$2" group="${3:-1}"
   printf '%s\n' "$line" | grep -qE "$pattern" || return 1

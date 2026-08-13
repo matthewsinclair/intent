@@ -295,4 +295,11 @@ at_row() { printf -- '%s\n' "$1" >> "$ACC"; }
   assert_output "1"
   run bash -c "grep -E '^AT_G_|^AT_GRAMMAR_' '$INTENT_HOME/bin/intent_acceptance' | grep -c '@'"
   assert_output "0"
+
+  # And the comment that sends a reader here names a file that exists -- this
+  # one. It cited acceptance_grammar_guard.bats, which never existed (vc F3).
+  # The same trick 0017 applies to AT rows: link by a token checkable from both
+  # ends, so the pointer cannot rot in silence.
+  run grep -c "$(basename "$BATS_TEST_FILENAME")" "$INTENT_HOME/bin/intent_acceptance"
+  assert_output "1"
 }

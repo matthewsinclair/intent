@@ -198,7 +198,9 @@ else
       if [[ "$name" =~ ^ST[0-9]+ ]]; then
         echo "- $name (active)"
       else
-        count=$(find "$dir" -name "ST*" -type d | wc -l)
+        # THE enumerator (issue 0011): an unbounded find rooted at the bucket
+        # counted nested copies and any ST-named directory at any depth.
+        count=$(list_st_dirs_in "$dir" | wc -l | tr -d ' ')
         echo "- $name/ ($count steel threads)"
       fi
     fi

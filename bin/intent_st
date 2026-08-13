@@ -1496,12 +1496,27 @@ status: '$status "$info_file"
               # announced neither which thread collided nor that it had stopped.
               # `mv` refuses to merge non-empty directories, so nothing is lost;
               # what was missing was a voice and a finished sweep.
-              if mv "$dir" "$CORRECT_PARENT/" 2>/dev/null; then
+              #
+              # The cause is PROBED, never assumed: blaming every mv failure on a
+              # collision would state an unverified cause with total confidence
+              # (issue 0004's shape), and a permissions or cross-device failure
+              # would be reported as two threads claiming one id -- sending the
+              # reader to delete a directory over a problem that has nothing to
+              # do with duplicates. mv's own message is surfaced when it is not a
+              # collision, because that is the one case where the tool has
+              # nothing better to say than what the system said.
+              if MV_ERR="$(mv "$dir" "$CORRECT_PARENT/" 2>&1)"; then
                 echo "  Moved $ID to $CORRECT_PARENT"
               else
-                echo "  error: cannot move $ID -- $CORRECT_PARENT/$ID already exists" >&2
-                echo "         left in place: $dir" >&2
-                echo "         two directories claim $ID; the id namespace guarantees one thread per id, so one of them is not a thread." >&2
+                if [ -e "$CORRECT_PARENT/$ID" ]; then
+                  echo "  error: cannot move $ID -- $CORRECT_PARENT/$ID already exists" >&2
+                  echo "         left in place: $dir" >&2
+                  echo "         two directories claim $ID; the id namespace guarantees one thread per id, so one of them is not a thread." >&2
+                else
+                  echo "  error: cannot move $ID to $CORRECT_PARENT -- the target does not exist, so this is not a collision:" >&2
+                  echo "         ${MV_ERR:-(mv failed without a message)}" >&2
+                  echo "         left in place: $dir" >&2
+                fi
                 ORGANIZE_FAILED=$((ORGANIZE_FAILED + 1))
               fi
             else

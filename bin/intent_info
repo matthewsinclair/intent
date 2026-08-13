@@ -22,12 +22,13 @@ count_files() {
 
 # Function to count directories
 count_dirs() {
-  local dir="$1"
-  if [ -d "$dir" ]; then
-    find "$dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' '
-  else
-    echo "0"
-  fi
+  # Steel-thread counts come from THE enumerator (issue 0011). This counted any
+  # directory one level down, so a staging area or anything else parked in a
+  # bucket was reported as a steel thread -- and `intent info` could disagree
+  # with `intent st list` about how many threads a project has, with nothing to
+  # notice. Two mechanisms answering one question is the defect; the count is
+  # now the same walk the listing uses.
+  list_st_dirs_in "$1" | wc -l | tr -d ' '
 }
 
 # Display title
@@ -81,7 +82,7 @@ if [ -n "$PROJECT_ROOT" ]; then
     completed=$(count_dirs "$PROJECT_ROOT/intent/st/COMPLETED")
     not_started=$(count_dirs "$PROJECT_ROOT/intent/st/NOT-STARTED")
     cancelled=$(count_dirs "$PROJECT_ROOT/intent/st/CANCELLED")
-    in_progress=$(find "$PROJECT_ROOT/intent/st" -mindepth 1 -maxdepth 1 -type d -name "ST*" 2>/dev/null | wc -l | tr -d ' ')
+    in_progress=$(count_dirs "$PROJECT_ROOT/intent/st")
     
     total=$((completed + not_started + cancelled + in_progress))
     

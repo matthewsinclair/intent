@@ -178,11 +178,13 @@ done_is_member() {
 # path per line -- the single DONE enumeration feeding both renderers.
 list_done_dirs() {
   local since="$1" st
-  for st in "$ST_BASE/COMPLETED"/ST[0-9]*; do
-    [ -d "$st" ] && [ -f "$st/info.md" ] || continue
+  # Enumeration comes from list_st_dirs_in (issue 0011); only the watermark
+  # filter is this function's own. The dir + info.md rule was hand-rolled here
+  # too, which is how it came to be written five times in the first place.
+  while IFS= read -r st; do
     done_is_member "$st" "$since" || continue
     printf '%s\n' "$st"
-  done
+  done < <(list_st_dirs_in "$ST_BASE/COMPLETED")
 }
 
 # Emit completed threads at or after the watermark ($1). Completions before it

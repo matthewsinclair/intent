@@ -97,6 +97,73 @@ set_status() {
   [ -f intent/st/COMPLETED/ST0001/info.md ]
 }
 
+@test "intent info counts threads, not directories that happen to sit in a bucket" {
+  project_dir=$(create_test_project "ST Info Counts")
+  cd "$project_dir"
+  export EDITOR=echo
+  run run_intent st new "Alpha"
+  assert_success
+
+  # Two shapes the old counters both got wrong: any directory one level into a
+  # bucket was a "completed thread", and any ST-prefixed name in the base dir
+  # was an "in progress" one. Neither is a steel thread.
+  mkdir -p intent/st/COMPLETED/scratch-notes
+  mkdir -p intent/st/STAGING
+
+  run run_intent info
+  assert_success
+  echo "$output" | grep -E 'Total: +1'
+  echo "$output" | grep -E 'In Progress: +0'
+  echo "$output" | grep -E 'Completed: +0'
+  echo "$output" | grep -E 'Not Started: +1'
+}
+
+@test "no command re-rolls the thread enumeration outside the helper" {
+  # The mechanical half of issue 0011. vc's F4 named one survivor
+  # (intent_todo's done walk); grepping for the rule rather than reading for it
+  # found two more that both the fix and the audit had missed -- `intent info`
+  # counted any directory one level down as a steel thread, and `intent
+  # organize`'s summary used the same unbounded find the issue was about. So
+  # `intent info` and `intent st list` could report different totals for one
+  # project, with nothing to notice. A rule with one home needs a check that
+  # says so, or it grows a sixth copy the next time someone needs a count.
+  run bash -c "grep -rlF '/ST[0-9]' '$INTENT_HOME/bin' | grep -v '/intent_helpers\$' | wc -l | tr -d ' '"
+  assert_output "0"
+
+  # The find form, DIRECTORIES only: the two legacy `-type f` finds over
+  # ST####.md are deliberately left alone -- they read pre-v2 single-file
+  # threads, which are not directories and not what the enumerator enumerates.
+  run bash -c "grep -rn -- '-name \"ST' '$INTENT_HOME/bin' | grep -c -- '-type d'"
+  assert_output "0"
+}
+
+@test "an mv failure that is not a collision is diagnosed as what it is" {
+  # vc F5. The collision arm swallowed mv's stderr and blamed EVERY failure on a
+  # duplicate id -- an unverified cause stated with total confidence (0004's
+  # shape), which would send the reader hunting a second directory that does not
+  # exist. The cause is probed, and when it is not a collision mv gets to speak.
+  project_dir=$(create_test_project "ST Organize Permissions")
+  cd "$project_dir"
+  export EDITOR=echo
+  run run_intent st new "Alpha"
+  assert_success
+  set_status intent/st/NOT-STARTED/ST0001/info.md Completed
+  mv intent/st/NOT-STARTED/ST0001 intent/st/ST0001
+  chmod 500 intent/st/COMPLETED
+
+  run run_intent st organize --write
+  chmod 700 intent/st/COMPLETED
+  assert_failure
+  assert_output_contains "cannot move ST0001"
+  assert_output_contains "not a collision"
+  # mv's own words, since the tool has nothing better to say than the system did.
+  assert_output_contains "Permission denied"
+  # And it does NOT accuse a directory that is not there.
+  refute_output_contains "already exists"
+  [ ! -e intent/st/COMPLETED/ST0001 ]
+  [ -f intent/st/ST0001/info.md ]
+}
+
 @test "organize still exits zero and moves cleanly when there is no collision" {
   project_dir=$(create_test_project "ST Organize Clean")
   cd "$project_dir"
