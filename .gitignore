@@ -55,3 +55,6 @@ npm-debug.log
 
 # ElixirLS no no no
 .elixir_ls/
+
+# Treeindex cache (derived, machine-local; regenerate with 'intent treeindex <dir>').
+intent/.treeindex/

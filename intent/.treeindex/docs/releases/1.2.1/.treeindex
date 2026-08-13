@@ -1,9 +1,0 @@
-<!-- treeindex v1 fingerprint:47c67b46 generated:2026-02-20T11:22:28Z -->
-
-# 1.2.1/
-
-Release documentation for STP v1.2.1, introducing directory-based steel thread organization. Converts steel threads from single markdown files to organized ST####/ directories with separate files for info, design, implementation, tasks, and results. Covers breaking changes, new features, migration path, and upgrade instructions.
-
-## Files
-
-- `RELEASE_NOTES.md` -- Complete release notes with breaking changes, new features, improvements, bug fixes, and upgrade instructions for v1.2.1

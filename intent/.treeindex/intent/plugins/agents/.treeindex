@@ -1,9 +1,0 @@
-<!-- treeindex v1 fingerprint:474f91e2 generated:2026-04-23T16:19:01Z -->
-
-I need access to the `intent/plugins/agents/` directory structure to generate the `.treeindex` file. The tools I need (Read/Glob) aren't currently enabled in this context.
-
-Could you either:
-1. Run `intent treeindex agents` to generate it automatically, or
-2. Enable file access tools for me so I can read the directory contents and generate the `.treeindex`
-
-Once I can see the files and subdirectories in `intent/plugins/agents/`, I'll generate the `.treeindex` following the format rules.

@@ -329,7 +329,11 @@ PCH
 @test "NORMALIZE_GITIGNORE is idempotent (canonical .gitignore not re-touched)" {
   init_scratch gi_idem
 
-  printf '%s\n' '/_build/' '.claude/settings.local.json' '/AGENTS.md.bak' > "$PROJ_DIR/.gitignore"
+  # "Canonical" means every canon-managed entry present, so this fixture grows
+  # by one each time the seam adopts another (issue 0018 added the treeindex
+  # rule). The assertion below is the real contract and is unchanged: a fully
+  # canonical file must come out byte-identical.
+  printf '%s\n' '/_build/' '.claude/settings.local.json' '/AGENTS.md.bak' 'intent/.treeindex/' > "$PROJ_DIR/.gitignore"
   git -C "$PROJ_DIR" add .gitignore && git -C "$PROJ_DIR" commit -m base >/dev/null 2>&1
 
   before_sha="$(shasum "$PROJ_DIR/.gitignore" | awk '{print $1}')"

@@ -1,9 +1,0 @@
-<!-- treeindex v1 fingerprint:cea8ed2d generated:2026-04-23T16:18:23Z -->
-
-I don't have access to file system tools in this environment. To generate an accurate `.treeindex` for the `COMPLETED/` directory, I need to examine its actual contents.
-
-Could you provide either:
-1. The output of `ls -la intent/st/COMPLETED/` 
-2. Or confirm the list of completed steel thread directories it contains
-
-Alternatively, I can generate a `.treeindex` template based on the completed threads referenced in the project memory (ST0001-ST0025, excluding ST0010, ST0015, ST0024, and ST0026+), but I should verify against the actual directory structure first to ensure accuracy.

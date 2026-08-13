@@ -1,9 +1,0 @@
-<!-- treeindex v1 fingerprint:494d0112 generated:2026-02-20T11:21:43Z -->
-
-# 2.3.2/
-
-Release directory for Intent v2.3.2, which introduces comprehensive antipattern detection for the Elixir subagent. Contains release notes documenting 24 Elixir antipatterns across four categories (code, design, process, meta-programming) with remediation guidance.
-
-## Files
-
-- `RELEASE_NOTES.md` -- Release notes for v2.3.2 with feature overview, antipattern categories, and installation instructions

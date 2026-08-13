@@ -1,9 +1,0 @@
-<!-- treeindex v1 fingerprint:61db0c4a generated:2026-02-20T11:21:33Z -->
-
-# 2.3.3/
-
-Release documentation and notes for Intent v2.3.3. This directory contains the official release notes describing new features, enhancements, upgrade instructions, and compatibility information for this version.
-
-## Files
-
-- `RELEASE_NOTES.md` -- Official release notes documenting v2.3.3 features, enhancements, and upgrade guidance

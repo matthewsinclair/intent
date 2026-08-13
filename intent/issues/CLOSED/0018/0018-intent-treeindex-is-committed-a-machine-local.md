@@ -3,7 +3,7 @@ id: "0018"
 title: intent/.treeindex/** is committed: a machine-local derived cache is tracked as project state, and nothing ignores it
 date: 2026-08-13
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -58,4 +58,16 @@ The treeindex feature shipped with an _indexing_ exclusion mechanism (`.treeinde
 
 ## Resolutions
 
-{{TBC}}
+FIXED + CLOSED (2026-08-14), shipped in v2.19.0. Folded into the release on hv's direction rather than held for its own: it is the same hygiene class as issue 0016, which is already in this release, and shipping the fix that removes one machine-specific path from `settings.json` while leaving 87 files carrying the same path tracked in the same public repository is a strange place to stop. Implemented as proposed, in all three parts.
+
+**1. This repo.** `git rm -r --cached intent/.treeindex/` (87 files) and `intent/.treeindex/` added to the root `.gitignore`. The cache remains on disk and keeps working -- untracking a derived cache does not delete it, and `intent treeindex <dir>` regenerates any of it on demand.
+
+**2. Reach.** `intent/.treeindex/` is now a canon-managed `.gitignore` entry, upserted through the same normalisation seam in `intent claude upgrade --apply` that already maintains `.claude/settings.local.json` and `/AGENTS.md.bak`. Consumers converge on their next `intent upgrade` rather than by knowing a command exists -- the v2.18.0 lesson, reused for the third time in this release.
+
+**The upgrade reports an already-tracked cache and refuses to untrack it.** This is the interesting half. **Ignoring a path does not untrack what is already tracked**, so the rule on its own would have been a fix that silently did nothing for every existing consumer -- precisely the failure mode this release exists to remove. So the tool says so and prints the exact command. It does not run it: `git rm` stages deletions across a tree whose state the tool cannot see, during an upgrade the human invoked for entirely different reasons. Reporting is honest; acting would be presumptuous.
+
+**3. Guard.** `no_absolute_home_paths.bats` gains three checks -- the cache is untracked and ignored here, the seam carries the rule to a consumer (idempotently, preserving their existing content), and an already-tracked consumer cache is reported but left alone. That last one is a contract test as much as a behaviour test, and it is mutation-proven: making the notice actually run `git rm` fails it.
+
+**The 0016 carve-out is gone.** That guard's scope note excluded the treeindex area because it was the known source of tracked absolute paths. With the cache untracked, the exclusion is unnecessary and has been removed. Tracked files carrying a home path fell from 42 to 24, and all 24 are historical prose in completed steel threads and the CHANGELOG -- deliberately not rewritten, because that is the record of what was true at the time.
+
+**Precedent followed:** the same shape as the `.backup/` ruling -- untrack the tracked copies, ignore everywhere, no history rewrite. The 87 files remain in git history; what changes is that nothing new is published.

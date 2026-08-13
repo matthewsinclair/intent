@@ -486,8 +486,8 @@ canon_insert_chain_block() {
 
 # Returns 0 if .gitignore at $1 has any of the canon-managed entries missing
 # or in a non-canonical form (broad .claude pattern, missing settings.local
-# ignore, missing AGENTS.md.bak ignore). Returns 1 if the file is fully
-# canonical (or absent -- nothing to normalize).
+# ignore, missing AGENTS.md.bak ignore, missing treeindex ignore). Returns 1 if
+# the file is fully canonical (or absent -- nothing to normalize).
 canon_gitignore_needs_normalize() {
   local gi="$1"
   [ -f "$gi" ] || return 1
@@ -497,7 +497,27 @@ canon_gitignore_needs_normalize() {
   grep -qE '^[[:space:]]*\.claude/settings\.local\.json[[:space:]]*$' "$gi" 2>/dev/null || return 0
   # Missing /AGENTS.md.bak ignore.
   grep -qE '^[[:space:]]*/?AGENTS\.md\.bak[[:space:]]*$' "$gi" 2>/dev/null || return 0
+  # Missing intent/.treeindex/ ignore (issue 0018).
+  grep -qE '^[[:space:]]*/?intent/\.treeindex/?[[:space:]]*$' "$gi" 2>/dev/null || return 0
   return 1
+}
+
+# Print the one-line command that untracks an already-committed treeindex cache,
+# for the human to run. Deliberately does NOT run it: `git rm` in someone else's
+# repository, from an upgrade they invoked for other reasons, is not a decision
+# this tool gets to make on their behalf -- it stages deletions across a tree
+# whose state the tool cannot see. Ignoring a path does not untrack what is
+# already tracked, so without this notice a consumer would add the ignore rule
+# and keep committing the cache, which is a fix that silently does nothing.
+canon_report_tracked_treeindex() {
+  local dir="$1" n
+  command -v git >/dev/null 2>&1 || return 0
+  git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+  n="$(git -C "$dir" ls-files -- 'intent/.treeindex' 2>/dev/null | wc -l | tr -d ' ')"
+  [ "${n:-0}" -gt 0 ] || return 0
+  echo -e "    ${YELLOW}note${NC}: $n tracked file(s) under intent/.treeindex/ (a machine-local cache)."
+  echo    "          The ignore rule does not untrack them. To untrack, run:"
+  echo    "            git rm -r --cached intent/.treeindex/"
 }
 
 # Normalize .gitignore at $1: replace broad .claude/ pattern with the
@@ -531,6 +551,20 @@ canon_normalize_gitignore() {
       echo ""
       echo "# AGENTS.md regeneration safety net (intent agents sync writes this; transient)."
       echo "/AGENTS.md.bak"
+    } >> "$gi"
+  fi
+
+  # Append intent/.treeindex/ if not present (issue 0018). The treeindex is a
+  # derived, machine-local cache: every file carries a fingerprint stamp, the
+  # tool regenerates it on demand, and the summaries embed absolute paths from
+  # the machine that generated them. Tracking it publishes one developer's
+  # filesystem, goes stale with no signal, and makes every regeneration a
+  # content-free diff.
+  if ! grep -qE '^[[:space:]]*/?intent/\.treeindex/?[[:space:]]*$' "$gi" 2>/dev/null; then
+    {
+      echo ""
+      echo "# Treeindex cache (derived, machine-local; regenerate with 'intent treeindex <dir>')."
+      echo "intent/.treeindex/"
     } >> "$gi"
   fi
 }
@@ -912,7 +946,7 @@ fi
 # /AGENTS.md.bak (regen safety net). Skipped if .gitignore is absent.
 if [ -f "$PROJECT_DIR/.gitignore" ]; then
   if canon_gitignore_needs_normalize "$PROJECT_DIR/.gitignore"; then
-    canon_print ".gitignore" "${YELLOW}NORMALIZE${NC} (.claude/ + /AGENTS.md.bak entries)"
+    canon_print ".gitignore" "${YELLOW}NORMALIZE${NC} (.claude/ + /AGENTS.md.bak + treeindex entries)"
     add_action "NORMALIZE_GITIGNORE"
   else
     canon_print ".gitignore" "${GREEN}OK${NC} (canon entries present and canonical)"
@@ -1216,9 +1250,10 @@ PRECOMMIT
       ;;
 
     NORMALIZE_GITIGNORE)
-      echo "  Normalizing .gitignore (.claude/ + /AGENTS.md.bak entries)..."
+      echo "  Normalizing .gitignore (.claude/ + /AGENTS.md.bak + treeindex entries)..."
       canon_normalize_gitignore "$PROJECT_DIR/.gitignore"
-      echo -e "    ${GREEN}ok${NC} (canon files now tracked; settings.local.json + AGENTS.md.bak ignored)"
+      echo -e "    ${GREEN}ok${NC} (canon files now tracked; settings.local.json, AGENTS.md.bak and the treeindex cache ignored)"
+      canon_report_tracked_treeindex "$PROJECT_DIR"
       ;;
 
     INSTALL_CLAUDE_MD)
