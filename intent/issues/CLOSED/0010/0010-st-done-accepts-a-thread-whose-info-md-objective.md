@@ -3,7 +3,7 @@ id: "0010"
 title: st done accepts a thread whose info.md Objective is still the template placeholder
 date: 2026-07-31
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: low
 ---
 
@@ -62,4 +62,18 @@ If the check refuses, it needs the same escape the acceptance gate has for delib
 
 ## Resolutions
 
-{{TBC}}
+FIXED + CLOSED (2026-08-14), shipped in v2.19.0. Confirmed as a gap: `st done`'s only gate was the `ac gate` call, and the placeholder ships from the template itself, so a thread could be marked complete without anyone ever having written down what it was for -- and nothing said a word. The document whose whole job is to carry the intent instead carried a prompt to supply one.
+
+**It warns and deliberately does not block.** The acceptance contract is the gate; an unstated objective is a reason to write a sentence, not grounds to refuse a close that is otherwise finished. Blocking here would also mean an escape hatch, and an escape hatch on a nag is worse than the nag. `warn_unedited_objective` always returns 0, and a guard asserts the close still succeeds when it fires.
+
+**The scope discriminator is the design, not a detail.** The check reads the `## Objective` section of `info.md`, and nothing else. A sweep for any bracketed placeholder across the doc set fires on most threads in a real estate, and a warning that fires on nearly everything is switched off within a day -- at which point the check is worse than absent, because someone has decided it is noise. One line, at the one moment it is actionable: the close, which is the last time anybody looks at that document. The WP-level equivalent warns the same way.
+
+**The drift guard is the load-bearing half.** The placeholder strings live once, in `bin/intent_helpers`, next to their only reader, and a test asserts each still appears verbatim in **every generator that writes it** -- both templates *and* both no-template fallback heredocs in `intent_st` / `intent_wp`. Without that, a template reword would silently switch the warning off, which is the exact failure mode this release exists to remove: the check would still run, still pass, and mean nothing.
+
+### Recorded while doing it
+
+**My first "the check is scoped to Objective" test guarded nothing.** It asserted that an unedited `## Context` placeholder does not fire the warning -- which passes whether or not the section scoping exists, because the Context placeholder is a *different string*. The test that actually bites is a thread that quotes the Objective placeholder verbatim in its own prose, which is not hypothetical for a thread about the templates. Mutation testing confirmed it is the only test that catches a whole-file grep.
+
+**Adjacent, not fixed:** the two no-template fallback heredocs duplicate template content, which violates the project's single-template-source rule, and the WP one has already drifted (it still writes `## Acceptance Criteria` with checkboxes, a form the template retired). The drift guard now covers them so this warning cannot silently stop firing, but the duplication itself is left for hv.
+
+**Voice inconsistency, flagged not folded:** the shared `warning()` helper emits `Warning:` while nine hand-rolled sites and the documented CLI convention use lowercase `warning:`. This warning inherits the capital. Changing a shared emitter's voice as a side effect of an XS fix is the kind of smuggled change this release argues against.

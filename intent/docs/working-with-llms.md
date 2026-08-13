@@ -4,7 +4,7 @@ This document is Intent's canonical explanation of its LLM-facing configuration 
 
 If `usage-rules.md` is the DO / NEVER contract and `AGENTS.md` is the auto-generated project index, this doc is the living reference that explains the system — how the pieces fit together, what decisions shaped them, and how to configure or extend them.
 
-The doc is deliberately opinionated: the canon is already decided, and the decisions are recorded below as `D1`–`D10` for cross-reference against `intent/st/COMPLETED/ST0035/design.md`.
+The doc is deliberately opinionated: the canon is already decided, and the decisions are recorded below as `D1`–`D11` for cross-reference against `intent/st/COMPLETED/ST0035/design.md`.
 
 ## Table of contents
 
@@ -97,7 +97,7 @@ If you're unsure where a piece of information belongs, follow the decision flow:
 - The decision flow for where new code should go? → `DECISION_TREE.md`.
 - Narrative, rationale, or FAQ content? → `intent/docs/<topic>.md` (here or a topic-specific doc).
 
-The ten decisions recorded in `intent/st/COMPLETED/ST0035/design.md` define Intent's current LLM canon. D1 through D10 below restate them in living-doc form — what the state is now, with enough context to understand it.
+The decisions recorded in `intent/st/COMPLETED/ST0035/design.md` define Intent's current LLM canon. D1 through D11 below restate them in living-doc form — what the state is now, with enough context to understand it.
 
 ## D1. AGENTS.md is the primary LLM config file
 

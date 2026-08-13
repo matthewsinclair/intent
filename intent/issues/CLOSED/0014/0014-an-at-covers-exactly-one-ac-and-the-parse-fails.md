@@ -3,7 +3,7 @@ id: "0014"
 title: "AT coverage is comma-separated only: 'and' as a separator, or an id with an adjacent character, drops the link silently"
 date: 2026-08-04
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -101,4 +101,16 @@ Ordered by value, and the first is worth more than the rest combined:
 
 ## Resolutions
 
-{{TBC}}
+FIXED + CLOSED (2026-08-14) via **issue 0017**, shipped in v2.19.0. This is the second correction to this issue's filed record, and it is recorded with the same honesty as the first.
+
+### Correction to the filed record (vc, verified against HEAD `2b04078`)
+
+> **0014: the bare `and` separator WORKS at HEAD.** Repro: `covers AC-01.1 and AC-01.2` links BOTH ids -- `at_covers` (`intent_acceptance:67`) space-tokenises after comma translation, so separator words are irrelevant. What drops links is punctuation FUSED to an id: `AC-01.3:` and `AC-01.4's` both dropped silently in the same run. The Laksa row behind the filing fused a colon to `AC-04.3` -- that was the drop, not the `and`. Also stale: claim 3 (unclosed `(non-test` is silent) -- v2.17.4's `bad_marker_lines` warns on it now; claim 4 (evidence delimiter) -- nothing at HEAD reads evidence back, so there is no observable defect.
+
+So the title overstates the cause and two of the four claims no longer hold. **The defect underneath is real and is worse than a separator problem**: an id with punctuation fused to it matched nothing, the link vanished, and the row rendered identically to one that had never been written. The contract then reported work uncovered that was in fact done, tested and green -- and it surfaced late, as `wp done` refusing to close, which reads as "the work is not finished" rather than "the line is phrased wrongly".
+
+### What fixed it
+
+The AT row grammar (0017). Coverage ids are now `AC-nn.n` comma-separated with **nothing fused to them**, so a trailing `:` or a possessive is an L1 grammar failure rather than a silent drop, and `at lint --fix` migrates `and` separators to commas mechanically. The diagnostic quotes the ids that *did* resolve beside the text that did not, because a silent parse failure does not merely lose data -- it teaches the reader a false rule about what the format accepts.
+
+**Multi-AC coverage was never the problem.** The title's premise ("an AT covers exactly one AC") is wrong at HEAD and was wrong when filed; `at_covers` has always tokenised a list. Filed from a real symptom, diagnosed from reading rather than running, and corrected twice by running it. That is the lesson worth keeping from this issue.

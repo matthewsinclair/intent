@@ -3,7 +3,7 @@ id: "0015"
 title: ac gate counts a GREEN AT whose cited test file does not exist: the citation is never resolved
 date: 2026-08-05
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -73,4 +73,12 @@ Worth pairing with `intent at green`, which is the moment a citation goes load-b
 
 ## Resolutions
 
-{{TBC}}
+FIXED + CLOSED (2026-08-14) via **issue 0017**, shipped in v2.19.0. Confirmed exactly as filed: the citation was parsed and used in precisely one place -- printing it. Nothing resolved it against the tree, so a test that was renamed, moved or deleted left its AT `green` forever and the gate went on counting it as coverage.
+
+**Why it survived.** It is a false-*green*, so it made the gate strictly more permissive as citations rotted. Every incentive pointed away from noticing: the thread looked closer to done than it was, and nothing failed.
+
+**What fixed it.** Lint check **L2** (a `green` or `red` AT must cite a file that exists) blocks it at the gate, and `intent at green|red` refuse a dangling citation at the moment the citation goes load-bearing rather than at the next gate -- catching a rename at the point of the lie is the difference between a stale row and a green AT counted as coverage for months. `to-write` is exempt, because a missing file is the correct state for a test not yet written.
+
+**L3 closes the half L2 cannot see.** A file can exist and still not contain the test the row claims: L3 requires the cited file to carry the literal AT id. That is what makes the link checkable from both ends, and it is why 0017 moved the row from citing a test *name* to citing a *file* plus an id embedded in the test.
+
+**Found in this repo's own estate on the first sweep**, which is the honest way to report a fix for a defect of this shape: ST0052 AT-03.1 was `green` citing `tests/unit/critic_author.bats`, a deck renamed to `critic_prose.bats` during ST0053 with the citation left behind. It had been counted as coverage ever since, in the repository of the tool that computes coverage.

@@ -3,7 +3,7 @@ id: "0012"
 title: ws hygiene passes a board whose frontmatter is not valid YAML, and ws list mis-renders one that is
 date: 2026-08-02
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -93,4 +93,17 @@ Not proposed, deliberately: a fix that silently rewrites a node's `wip.md`. Sing
 
 ## Resolutions
 
-{{TBC}}
+FIXED + CLOSED (2026-08-14), shipped in v2.19.0. Both halves reproduced: an invalid-YAML board passed `ws hygiene` with exit 0, and the *escaped* (valid-YAML) board rendered a literal `\"` mid-prose in `ws list`.
+
+### The ruling: the board's header block is NOT YAML (hv-directed, vc-ratified)
+
+The block was **documented** as YAML frontmatter and **consumed** as line-oriented text by every reader in the tool. That is the defect -- not the invalid boards, which were a symptom. Where the two disagreed, the tooling rewarded the file that was wrong: `ws list` stripped the surrounding quotes without unescaping, so a board with unescaped quotes inside a `focus:` scalar displayed correctly while a board *corrected* to valid YAML displayed the escape. And hygiene never checked that the block parsed at all -- the one channel the protocol specifies as machine-read was the one nothing machine-checked.
+
+The fork could have gone either way, and it went to **line-oriented `key: value`**: one line per key, a single pair of surrounding quotes as a display delimiter, quotes inside a value literal and never escaped. The reason is the writer, not the format: the block is hand-authored by LLM nodes in prose-heavy fields, which is close to the worst case for a quoting-sensitive format. On the reporting board two of five nodes were unparseable at a point in time, and a sweep of one node's last 25 revisions found four invalid across two separate episodes -- **every one of which repaired itself at the next fold before anyone noticed**. A format that is silently violated and silently repaired is not being enforced by anything; declaring the simpler contract makes the implemented behaviour correct rather than accidental.
+
+### What shipped
+
+- The rule is stated in the `/in-whiteboard` skill, the whiteboard `README.md`, and `intent/docs/working-with-llms.md` -- which had described the block as "frontmatter" and never described its format at all.
+- `ws hygiene` rejects any line in the block that is not a single-line `key: value` (the shape that genuinely breaks a line-oriented reader), reporting the offending line number. It **warns** rather than fails on a missing recommended key, so boards predating the rule still pass. It says nothing about YAML validity, because validity is not the contract.
+- The display-delimiter strip moved into `fm_get`, so `ws list` and `ws hygiene` read one value through one reader. `ws list` no longer hand-strips quotes.
+- Canonical skill source is `intent/plugins/claude/skills/in-whiteboard/`, and `SKILL.md` itself was changed so `intent claude skills sync` propagates it (the sync checksums `SKILL.md` only -- a script-only edit would not have shipped).

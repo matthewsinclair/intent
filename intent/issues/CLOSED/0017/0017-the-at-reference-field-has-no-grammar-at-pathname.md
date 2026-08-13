@@ -3,7 +3,7 @@ id: "0017"
 title: The AT reference field has no grammar: at_pathname takes the first backtick span, so a row can cite a selector, a bare filename or nothing at all, and no diagnostic fires
 date: 2026-08-11
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: high
 ---
 
@@ -201,4 +201,25 @@ Completed threads should be migrated for grammar but **not** be gated on L3: ret
 
 ## Resolutions
 
-{{TBC}}
+FIXED + CLOSED (2026-08-14), shipped in v2.19.0, as the centrepiece of a nine-issue release. It also closes 0014 and 0015, which are symptoms of the same missing grammar. Implemented as proposed, with **three holes in the proposed grammar found by running the arms against real rows rather than reading them**.
+
+**Hole 1 -- `path::name` (found by vc's review).** The tool's own doc comment and the shipped `acceptance.md` template both taught `[test path::name]`. The proposed path group `` ([^`]*/[^`]+) `` ACCEPTS that form at L1 (it contains a slash) and then L2 fails it as a dangling file, so the commonest legacy shape would have been diagnosed as the wrong defect. `:` is excluded from the path group, `::` forms are a clean L1 reject with a targeted message, and `--fix` strips the suffix.
+
+**Hole 2 -- the parenthetical status note.** The shipped template itself taught `status: to-write (red-first)`, which the proposed one-armed grammar rejects. The form entered the estate because Intent put it there, so the template was corrected in the same commit and a trailing note now requires the spaced `--` delimiter.
+
+**Hole 3 -- non-test rows, which is structural.** `n/a` is documented in every contract preamble as the doc / eyeball status, while the proposed grammar demanded a backticked path on every row. Those rows therefore had **no legal form to migrate to** -- three of them in this repo alone. Hence two arms, and the enforced biconditional: `n/a` if and only if `(non-test)`. This also produced **L5**, which the one-armed grammar could never have expressed: a `(non-test)` AT can never be green, so it can never satisfy a test-backed AC, and being the sole cover for one is a silent hole the grammar would otherwise have blessed.
+
+**What shipped.** Two anchored arms; every field reader is one line over the matching arm, so a non-conforming row yields NO field rather than a plausible wrong one (which is what made the failures silent -- a half-parsed row still looks like a parsed row). `intent at lint <ID>` reports five checks: **L1** grammar, **L2** a `green`/`red` row's cited file exists (`to-write` exempt -- a missing file is the correct state for a test not yet written), **L3** the cited file contains the literal AT id, **L4** every covered id is a real AC, **L5** the non-test sole-cover trap. `--fix` migrates the mechanical half and guesses at nothing. The lint folds into `ac gate`, and `at green|red` refuse a dangling citation at the moment it goes load-bearing.
+
+**The `--fix` migrator shipped broken and was caught only by running it on a real estate.** It compared the repaired path against the *raw* reference rather than the canonical backticked form, so the single commonest migration -- a correct repo-relative path merely lacking backticks -- was skipped silently. Residual findings across this repo dropped 27 to 13 once fixed. A dry run could not have shown it.
+
+**Own-estate sweep:** 116 AT rows, 103 migrated mechanically, 13 by hand, with the diff touching only AT rows.
+
+**Later correction (vc audit F1).** Each arm has its own status vocabulary and nothing enforced that, so `intent at na` on a test-arm row wrote a status the row's grammar does not admit: the write LANDED, pushed the row out of the grammar, and the strict reader then read nothing back -- so `assert_written` reported "the file was NOT updated" about a file it had just corrupted, and left the invalid row behind. Refused before any write now, using the arm the grammar already computes. The write verifier's message was corrected in the same pass: its own design comment says it verifies the RESULT and not the mechanism, so it may not conclude the file was untouched.
+
+### Accepted consequences, recorded rather than left to be rediscovered
+
+- **L2 applies to COMPLETED threads** (vc O1). A test renamed after a thread closed makes that thread's readers warn and its gate report BLOCKED. Nothing invokes the gate on a completed thread mechanically, so this surfaces only if someone asks. Accepted: the alternative is a contract that stops telling the truth the moment it is closed.
+- **The `at_grammar` upgrade step re-runs on a judgement-residue-only estate** (vc O2). Its probe reads "needed" while any residue remains, so every `intent upgrade` re-runs a no-op `--fix` and re-prints the residue note until a human clears it. The nagging is deliberate: residue is rows a machine must not guess at, and a step that went quiet would let them sit forever.
+- **The gate blocks unswept estates from the day this ships.** That is the fix working. Every row it names was already contributing no coverage, silently.
+- **AT-name traceability (the ST0043 deferral) is superseded.** The id is the traceable token, not the `@test` name, so the deferred work no longer has a subject.

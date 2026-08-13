@@ -3,7 +3,7 @@ id: "0013"
 title: intent ac has no descope verb, so an AC moved to another thread holds its own thread BLOCKED forever
 date: 2026-08-04
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -88,4 +88,18 @@ Worth deciding at the same time whether `struck` deserves a verb of its own, for
 
 ## Resolutions
 
-{{TBC}}
+FIXED + CLOSED (2026-08-14), shipped in v2.19.0. Confirmed as filed: the verbs were `list` / `status` / `satisfy` / `gate` only, satisfaction was binary, and the gate counted every AC. The measured instance had been sitting BLOCKED for days with no outstanding work.
+
+**An AC has four states, not two.** Beyond satisfied and unsatisfied: **descoped** (`intent ac descope <ID> <AC> --to <ID>`) and **withdrawn** (`intent ac withdraw <ID> <AC> --reason "..."`), each with an undo (`rescope`, `reinstate`). The two representations previously available were both wrong -- `satisfy` is a lie because the work was not done, and leaving it unsatisfied is honest but permanent, holding a genuinely finished thread open forever.
+
+**Each verb carries the audit payload that justifies it existing.** `descope` requires `--to` and validates it against a real thread (a descope to a thread that does not exist is a strike with extra steps) and refuses a descope to self; `withdraw` requires `--reason` (a withdrawal with no reason is a deleted line with extra steps, and deleting the line is exactly the practice it replaces). Who ruled, when, and which thread now owns it all land on the AC line -- greppable, diffable, and reportable by `ac list`.
+
+**Off-scope states are detected by MARKER and checked BEFORE satisfaction.** Both were required by the issue and both are load-bearing. `ac_flag`'s `([a-z]+)` cannot read `n/a`, so reusing `satisfied:` for the state would have mis-parsed it; and a descoped *test-backed* AC whose covering AT went with it would otherwise find no cover and report unsatisfied -- reintroducing the false BLOCKED this issue is about, through the fix for it. Counts are reported separately (`29/29 satisfied, 1 descoped -- PASS`), never folded away, so a thread that descoped half its contract looks like one.
+
+### Judgement calls, recorded
+
+**hv added a withdrawal verb by direct instruction**, overtaking vc's deferral of `struck` (deferred for want of field evidence -- the request *is* the evidence). Recorded as considered-and-superseded rather than silently dropped.
+
+**A contract emptied entirely by off-scope moves is REFUSED, not passed.** This is not in the issue. Passing on an empty set would make the new verbs a trivial gate bypass, so the refusal points at the existing `acceptance: exempt` declaration instead. ST0048's rule is that an exemption is announced and never inferred from emptiness, and a contract emptied one withdrawal at a time is still emptiness. Reversible in one line if hv prefers the other reading.
+
+**Later correction (vc audit F2).** `ac satisfy` did not refuse an off-scope AC: on a descoped one it printed `ok:`, exited 0, and wrote a row contradicting itself, while `ac list` and the gate went on correctly reporting it descoped. Reported success with no effect -- issue 0006's shape, reachable through the very verbs added here, and precisely the dishonest bookkeeping descope exists to replace. The refusal already existed inside `ac_offscope_prepare`; it now has one home (`ac_refuse_if_offscope`) and three callers, and names the undo.

@@ -3,7 +3,7 @@ id: "0009"
 title: intent agents sync answers 'what languages?' by filesystem probe while the rest of Intent reads the declared languages array
 date: 2026-07-29
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: low
 ---
 
@@ -64,4 +64,23 @@ Sizing note: this changes the Prerequisites block of every consumer's `AGENTS.md
 
 ## Resolutions
 
-{{TBC}}
+FIXED + CLOSED (2026-08-14), shipped in v2.19.0. Confirmed structural, exactly as filed and as deferred out of issue 0008: `intent_agents` answered "what languages?" by filesystem probe while everything else in Intent reads the `languages` array that ST0037 made authoritative *precisely because* filesystem presence is unreliable evidence. Two mechanisms answered one question and could disagree with nothing to notice -- a stray `mix.exs` told every reader the project needs an Elixir toolchain; a polyglot repo whose markers sit in subdirectories declared `elixir` and was told it needs nothing.
+
+**Why it mattered more than it looks.** AGENTS.md is, by its own preamble, the contract every agentic CLI reads and trusts without cross-checking. The wrong answer was not merely present, it was stated authoritatively to the tools least equipped to doubt it.
+
+**What shipped.** Prerequisites read `has_project_language` (the seam 0008 already created). Build and test commands **keep their probes** -- the issue's own split, and correct: `mix test` genuinely depends on a `mix.exs` being at that path. `lua` and `swift` gain prerequisite lines they never had. The empty-section message changed from "None detected" to "None declared", which is what it now means. **No back-fill migration**: declaration is authoritative, and losing an undeclared project's prerequisite lines is the 0008 precedent already ruled correct.
+
+### Two exceptions, stated rather than left as apparent oversights
+
+- **Node stays on its probe.** Intent's declared-language vocabulary has no name for it, so gating the line on a declaration a project *cannot make* would delete it forever -- a silent loss dressed up as consistency. Completing this means adding a `javascript` language pack, which is its own decision and is left with hv.
+- **Bats stays on its probe**, for a better reason: it is a test *runner*, not a language. `.bats` files are the right evidence, and declaring `shell` should not assert that a project needs bats installed.
+
+### Reach on upgrade -- the part that took the work
+
+A generator correction that a consumer must know a command to receive does not reach the fleet (the v2.18.0 lesson, one file over). `intent upgrade` synced subagents and skills and left **the one file the CLIs actually read** untouched. It now converges AGENTS.md, with `intent agents sync --check` reporting staleness without writing -- ignoring the generated-by date, which would otherwise report drift daily and make the step fire on every run forever.
+
+**The convergence runs AFTER the canon apply, and the ordering is load-bearing.** It was first written as an `agents_sync` ledger step, per the work order's own suggestion. Exercised end to end, the step reported "already satisfied" and the upgrade still finished with a stale AGENTS.md: the ledger runs *before* the canon apply, and the canon apply creates files (`usage-rules.md`) that AGENTS.md's own file map lists. Generated content derived from post-canon state has to be generated after canon. A dry run could not have shown this; only running the real path in a sacrificial copy did.
+
+**A related trap, recorded:** `intent upgrade` short-circuits when the project is already at the target version and no ledger step reports work. So "the fix reaches consumers" is true because v2.19.0 is a version boundary for everyone, **not** because upgrade re-provisions canon unconditionally. Any future canon-only correction needs a ledger step with a real state probe, or it will not reach a converged project.
+
+**Two existing tests encoded the old contract and were adapted, not deleted.** `intent_agents.bats` asserted the Elixir prerequisite from a bare `mix.exs` -- exactly the behaviour this issue calls wrong -- so its fixture now declares `elixir`; another asserted the "None detected" wording.
