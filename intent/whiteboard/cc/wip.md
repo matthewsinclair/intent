@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 347f2808-51b6-4c3c-90a5-3b43d41f5ecf
-heartbeat_at: 2026-08-13T23:10Z
+heartbeat_at: 2026-08-13T23:37Z
 status: active
-focus: "v2.19.0: all 7 units landed plus vc's five audit findings. Only close-out (task 8) remains. Nothing pushed; no tag."
+focus: "v2.19.0 COMPLETE and handed to hv for the suite + cut. Ten issues closed (0009-0018), close-out done. Nothing pushed; no tag; VERSION deliberately still 2.18.0 for bin/release to stamp."
 claims: []
 ---
 
@@ -13,12 +13,16 @@ claims: []
 
 ## DOING
 
-- **Close-out (task 8), the only thing left.** Fill each issue's Resolutions (judgement calls + the two vc corrections verbatim + vc's O1-O4 observations), `intent issues close` each, one pass over `intent/docs/working-with-llms.md` for the whole release (see below), CHANGELOG heading is already `## [2.19.0] - in progress`, hand to hv for the full suite + release cut. NEVER `bin/release --no-confirm`.
-- **The canon narrative is owed one pass.** `intent/docs/working-with-llms.md:213` describes the close-gate and knows nothing about the AT grammar, `at lint`, the four AC states, or the objective warning. No unit touched it, deliberately -- it is one coherent doc update for the release, not seven scattered edits. vc flagged it as unchecked.
+- **Nothing. Waiting on hv** for the external full-suite run and the release cut. `bin/release` stamps all five sidecars before the tag; the CHANGELOG heading is `## [2.19.0] - in progress` for it to date. NEVER `--no-confirm`.
 
 ## TODO
 
-- **Expect vc findings on U6-U7** -- their U1-U5 audit landed and is fixed (see DONE). U6 was in-flight when they ran; U7 is new.
+- **Expect vc findings on U6-U7, the docs pass, and 0018** -- their U1-U5 audit landed and is fixed. Everything since is unaudited.
+- **If hv wants it: the `warning()` voice.** The shared helper emits capital `Warning:` while nine hand-rolled sites and the documented convention use lowercase. Flagged in 0010's Resolutions, not folded in.
+- **If hv wants it: the two no-template fallback heredocs** in `intent_st`/`intent_wp` duplicate template content (rule-6), and the WP one has already drifted -- it still writes `## Acceptance Criteria` with checkboxes, a form the template retired. The 0010 drift guard covers them so the warning cannot silently stop firing; the duplication itself is untouched.
+- **If hv wants it: the per-project `.claude/scripts/*.sh` copies** are inert since U5. Documented as a trap in working-with-llms troubleshooting; pruning them deletes files from consumer trees, so it is hv's call.
+- **A `javascript` language pack** would complete 0009 (the Node probe exception).
+- **Issue 0004 item 4** (`ac status` exit code) -- premise does not reproduce; `status` = reporter, `gate` = gate. Own issue if hv wants it changed.
 - **Consumer sweep (hv, separate repos):** `intent upgrade` per project. After v2.19.0 the same pass ALSO sweeps AT grammar, converges AGENTS.md, and rewrites settings.json to the portable hook form. Utilz / Lamplight / Baize.
 - **Lamplight contract sweep (hv, separate repo):** ST0276 (11 bolded `**green`), ST0298 `GREEN`, ST0270 `BOTH`, ST0198 `BUILT`, plus its 314 AT rows through `at lint --fix`.
 - **Push fleet issue-normalisation commits (hv, separate repos):** Utilz (`0171297`) + Lamplight (`7058fd3a8`) local-only.
@@ -26,6 +30,10 @@ claims: []
 - AT-name traceability deferral: SUPERSEDED by 0017 L3 (the id is the traceable token, not the `@test` name). Retire the entry at close-out.
 
 ## DONE (this session, pre-archive)
+
+- **Docs pass for the whole release** (`87815be`). working-with-llms D11 was teaching the retired `path::name` form outright; D1 gained the declared-languages rule; the whiteboard section called the header block "frontmatter" and never described its format. usage-rules.md had no `ac`/`at` section at all. DEPRECATIONS.md records the retired reference forms (its verblock is hand-maintained -- `bin/release` does not own that file).
+- **Issues 0009-0017 closed with Resolutions** (`a96fc29`). Both vc corrections verbatim; judgement calls named as judgement; the four mistakes recorded (the guard that could not fail, `--fix` skipping the commonest migration, the vacuous scope test, reading-not-grepping for a Highlander rule).
+- **0018 folded in on hv's direction** (`409ace5`). 87 files untracked + ignored here; the rule reaches consumers through the canon `.gitignore` seam; a tracked consumer cache is REPORTED with the exact `git rm` and never untracked for them. Verified on a poisoned consumer fixture, not by dry run.
 
 - **U7 -- 0010** (`827ab43`). `warn_unedited_objective` + two placeholder constants in helpers; `st done`/`wp done` warn and never block; drift guard asserts each constant still matches BOTH templates and BOTH no-template fallback heredocs. 12 tests, 9 mutations, 9 kills.
 - **vc F1 + F2** (`9a74b4d`). Arm-aware refusal in `cmd_at_set` before any write; `ac_refuse_if_offscope` given one home and three callers; the write verifier stopped claiming the mechanism it does not check. 5 mutations, 5 kills.
