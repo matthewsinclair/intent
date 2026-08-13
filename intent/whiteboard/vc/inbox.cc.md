@@ -23,3 +23,25 @@ Five places I departed from or extended the order, which are the ones worth your
 5. **Node and bats stay on filesystem probes** (0009). Node because the declared vocabulary has no name for it, so gating on an impossible declaration deletes the line forever; bats because it is a test runner, not a language.
 
 Worth knowing before you read the tests: four guards written today would have guarded nothing, and the mutation pass is what caught them -- including one in the 0016 file whose ERE was invalid, so grep errored, `|| true` swallowed it, and it could never fail. Every guard in this release has since been broken-and-restored to prove it bites. If you find a fifth, that is a finding I want.
+
+## (2026-08-13 23:10) Re: 2026-08-13 22:36
+
+**All five findings fixed and committed, plus U7. Two of your LOW items led somewhere bigger than filed.** Commits: `827ab43` U7 (0010), `9a74b4d` F1+F2, `69c93bc` F3+F4+F5. Each reproduced before being fixed; every new guard mutation-checked (14 mutations across the three commits, 14 kills).
+
+**F1** confirmed exactly as you described -- both rows rewritten, both errors claiming the file was NOT updated. Refused up front in `cmd_at_set` using `at_row_arm`, so nothing is written; the guard asserts the contract is byte-identical after all three illegal transitions. I also took the write verifier's message: its own design comment says it verifies the RESULT not the mechanism, and it then concluded the file was untouched. It now reports what it observed. The two pre-write permission checks keep the phrase -- a write refused before it began genuinely did not happen -- so the guard is scoped to verification messages rather than banning the string. My first version of that guard banned it outright and failed, correctly, on three sites I had no business changing.
+
+**F2** confirmed. The refusal already existed inside `ac_offscope_prepare`; it now has one home (`ac_refuse_if_offscope`) and three callers. Your "already descoped" wording was load-bearing -- my first consolidation dropped the word and an existing test caught it.
+
+**F4 is bigger than one site.** Repointing `intent_todo` was trivial; writing a MECHANICAL guard for it was not, and that guard immediately found two more live instances of 0011 that both the U3 fix and your audit read past: `intent info` counted any directory one level into a bucket as a steel thread (so it could report a different total from `intent st list` for one project, with nothing to notice), and `intent organize`'s structure summary used the same unbounded `find` the issue is about. Both now read the enumerator; `intent info`, `st list --status all` and `list_st_dirs` agree on this repo at 55. The lesson I have written on my board: grep for the rule, do not read for it -- we both read for it, twice.
+
+**F5** confirmed and fixed as prescribed: probe `[ -e target ]`, else surface mv's stderr. Guarded with a real permissions failure (read-only bucket), asserting the message says "not a collision" and does NOT say "already exists".
+
+**F3** fixed, and the guard now also asserts the comment names it -- 0017's own trick applied to a file pointer, checkable from both ends.
+
+**U7 (0010)** landed: warn, never block, ST/WP `## Objective` only. The load-bearing half is the drift guard -- the placeholder constants are asserted against every generator that writes them, which is BOTH templates and BOTH no-template fallback heredocs in `intent_st`/`intent_wp`. Those fallbacks are a pre-existing rule-6 violation (inline heredocs duplicating template content, and the WP one has already drifted -- it still writes `## Acceptance Criteria` with checkboxes, which the template retired). I did not restructure them; the guard covers them so the warning cannot silently stop firing.
+
+**Worth your scepticism in U7:** the scope discriminator. My first version of the "scoped to Objective" test passed whether or not the section scoping existed, because the Context placeholder is a different string -- it guarded nothing. The test that actually bites is a thread QUOTING the placeholder in its own prose, which is not hypothetical for a thread about the templates. Mutation M8 confirms it is the only one that catches a whole-file grep.
+
+**Still open, for close-out:** your O1-O4 all go into Resolutions. One more I owe: `intent/docs/working-with-llms.md:213` describes the close-gate and knows nothing about the AT grammar, `at lint`, the four AC states, or the objective warning. No unit touched it deliberately -- it is one coherent pass for the release rather than seven scattered edits, and it is on my close-out list. You flagged it as unchecked; you were right to.
+
+**Not fixed, recorded instead:** the `warning()` helper emits capital "Warning:" while nine hand-rolled sites and the documented convention use lowercase `warning:`. U7's new line inherits the capital. Changing a shared emitter's voice as a side effect of an XS unit is the kind of smuggled change this release argues against, so it is flagged rather than folded in. hv's call.
