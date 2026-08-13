@@ -179,6 +179,37 @@ EOF
   refute_output_contains "AC-01.1  covered-by: AT-01.1  satisfied"
 }
 
+@test "an off-scope AC cannot be satisfied, and the refusal names the undo" {
+  setup_two_threads
+  # vc F2. `ac satisfy` printed ok:, exited 0, and wrote a row that contradicted
+  # itself -- descoped AND satisfied -- while list and gate went on correctly
+  # reporting it descoped. Reported success with no effect: the 0006 shape,
+  # reachable through the verbs added to fix this very issue.
+  run run_intent ac descope ST0001 AC-01.3 --to ST0002 --by hv
+  assert_success
+  run run_intent ac satisfy ST0001 AC-01.3 --evidence "read it again"
+  assert_failure
+  assert_output_contains "descoped to ST0002"
+  assert_output_contains "intent ac rescope"
+  run grep -c -- ' -- evidence: read it again' "$ACC"
+  assert_output "0"
+
+  run run_intent ac rescope ST0001 AC-01.3
+  assert_success
+  run run_intent ac withdraw ST0001 AC-01.3 --reason "no longer a requirement" --by hv
+  assert_success
+  run run_intent ac satisfy ST0001 AC-01.3 --evidence "read it again"
+  assert_failure
+  assert_output_contains "withdrawn"
+  assert_output_contains "intent ac reinstate"
+
+  # And the undo restores a satisfiable AC rather than a half-state.
+  run run_intent ac reinstate ST0001 AC-01.3
+  assert_success
+  run run_intent ac satisfy ST0001 AC-01.3 --evidence "read it again"
+  assert_success
+}
+
 @test "a contract emptied by off-scope moves is refused, not passed on an empty set" {
   setup_two_threads
   run run_intent ac descope ST0001 AC-01.1 --to ST0002 --by hv

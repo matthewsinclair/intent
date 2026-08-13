@@ -228,6 +228,52 @@ at_row() { printf -- '%s\n' "$1" >> "$ACC"; }
   assert_success
 }
 
+@test "a status from the wrong arm is refused before the write, not after it" {
+  setup_contract
+  # vc F1. Each arm has its own status vocabulary, and nothing enforced that: the
+  # substitution landed, pushed the row out of the grammar, the strict reader
+  # then read nothing back -- and the tool reported "the file was NOT updated"
+  # about a file it had just corrupted. The refusal has to come BEFORE the write,
+  # so the assertion that matters is that the contract is byte-identical after.
+  at_row '- AT-01.1 `tests/unit/deck.bats` -- covers AC-01.1 -- status: red'
+  at_row '- AT-02.1 (non-test) read the design doc -- covers AC-02.1 -- status: n/a'
+  cp "$ACC" "$BATS_TEST_TMPDIR/before.md"
+
+  run run_intent at na ST0001 AT-01.1
+  assert_failure
+  assert_output_contains "n/a is the non-test status"
+
+  run run_intent at red ST0001 AT-02.1
+  assert_failure
+  assert_output_contains "n/a by definition"
+
+  run run_intent at green ST0001 AT-02.1
+  assert_failure
+  assert_output_contains "n/a by definition"
+
+  # Nothing was written, and nothing claimed otherwise.
+  run diff "$BATS_TEST_TMPDIR/before.md" "$ACC"
+  assert_success
+  run run_intent at lint ST0001
+  assert_success
+}
+
+@test "the write verifier reports what it observed, not what it did not check" {
+  setup_contract
+  # It verifies the RESULT, by design -- so it may not conclude anything about
+  # the mechanism. Claiming "the file was NOT updated" was how a corrupted row
+  # got denied into existence.
+  #
+  # Scoped to write-verification messages deliberately: the pre-write permission
+  # checks make the same claim and are entitled to, because a write that was
+  # refused before it began genuinely did not happen. Banning the phrase outright
+  # would delete two true statements to remove one false one.
+  run bash -c "grep 'write verification failed' '$INTENT_BIN_DIR/intent_acceptance' | grep -c 'the file was NOT updated'"
+  assert_output "0"
+  run bash -c "grep -c 'the recorded state is not what was asked for' '$INTENT_BIN_DIR/intent_acceptance'"
+  assert_output "2"
+}
+
 @test "a row failing the grammar yields NO field rather than a plausible wrong one" {
   setup_contract
   # The whole shape of 0017: partial recovery is what made the failures silent,

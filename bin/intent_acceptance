@@ -110,6 +110,27 @@ ac_is_withdrawn()     { case "$1" in *" -- withdrawn: "*) return 0 ;; *) return 
 ac_descoped_to()      { extract_field "$1" '.* -- descoped-to: ([^ ]+).*'; }
 ac_withdrawn_reason() { extract_field "$1" '.* -- withdrawn: (.*) -- by: .*'; }
 
+# THE off-scope refusal, for every verb that would change an AC's state.
+#
+# The off-scope verbs need it so a second state cannot stack on the first, and
+# `ac satisfy` needs it for a worse reason: on a descoped AC it printed `ok:`,
+# exited 0, and wrote ` -- descoped-to: ST0002 ... -- satisfied: yes` -- a row
+# that contradicts itself -- while `ac list` and the gate went on (correctly)
+# reporting it descoped. Reported success, no effect: the issue-0006 shape that
+# the write verifier exists to end, reachable through the verbs added to fix
+# issue 0013. Satisfying a requirement nobody is doing any more is exactly the
+# dishonest bookkeeping descope was introduced to replace, so it is refused and
+# the refusal names the undo.
+ac_refuse_if_offscope() {
+  local line="$1" acid="$2" verb="$3"
+  if ac_is_descoped "$line"; then
+    error "$acid is already descoped to $(ac_descoped_to "$line") -- 'intent ac rescope' first if you mean to $verb it"
+  fi
+  if ac_is_withdrawn "$line"; then
+    error "$acid is already withdrawn -- 'intent ac reinstate' first if you mean to $verb it"
+  fi
+}
+
 # ---- THE AT ROW GRAMMAR (issue 0017) -------------------------------------
 #
 # One anchored pattern per arm, and every AT field is a capture group of it.
@@ -713,7 +734,12 @@ assert_written() {
   line="$(find_line "$id" "$acc")"
   [ -n "$line" ] || error "write verification failed: $id is no longer in $acc"
   got="$("$extractor" "$line")"
-  [ "$got" = "$want" ] || error "write verification failed: $id in $acc still reads ${label}: ${got:-<absent>} (wanted ${want}) -- the file was NOT updated"
+  # Report what was OBSERVED, never what was inferred about the mechanism. The
+  # message used to end "the file was NOT updated", which this check cannot know
+  # and which was flatly false in the arm-mismatch case above: the write landed
+  # and broke the row, so the reader saw nothing and the tool denied writing the
+  # damage it had just done. A verifier of results states results.
+  [ "$got" = "$want" ] || error "write verification failed: $id in $acc reads ${label}: ${got:-<absent>}, not ${want} -- the recorded state is not what was asked for; inspect the row in $acc before retrying"
 }
 
 # ---- commands ------------------------------------------------------------
@@ -902,6 +928,10 @@ cmd_ac_satisfy() {
   acc="$(acc_file)"
   line="$(find_line "$acid" "$acc")"
   [ -n "$line" ] || error "no such AC: $acid in $acc"
+  # Before the test-backed question: an AC that has left this thread's scope is
+  # not satisfiable by anyone, and its off-scope state is the more fundamental
+  # fact about it than how it would have been proven (F2).
+  ac_refuse_if_offscope "$line" "$acid" satisfy
   if ! ac_is_nontest "$line"; then
     # Name the cause, not the conclusion. An unclosed `(non-test` marker reaches
     # here classified test-backed, and being told the AC "is test-backed" sends
@@ -978,12 +1008,7 @@ ac_offscope_prepare() {
   ACC="$(acc_file)"
   AC_LINE="$(find_line "$acid" "$ACC")"
   [ -n "$AC_LINE" ] || error "no such AC: $acid in $ACC"
-  if ac_is_descoped "$AC_LINE"; then
-    error "$acid is already descoped to $(ac_descoped_to "$AC_LINE") -- 'intent ac rescope' first if you mean to change it"
-  fi
-  if ac_is_withdrawn "$AC_LINE"; then
-    error "$acid is withdrawn -- 'intent ac reinstate' first if you mean to $verb it"
-  fi
+  ac_refuse_if_offscope "$AC_LINE" "$acid" "$verb"
   ESC="$(echo "$acid" | sed 's/\./\\./g')"
 }
 
@@ -1087,7 +1112,7 @@ cmd_ac_unscope() {
   # act, not something inherited across a scope change.
   line="$(find_line "$acid" "$acc")"
   if ac_is_descoped "$line" || ac_is_withdrawn "$line"; then
-    error "write verification failed: $acid in $acc is still off-scope -- the file was NOT updated"
+    error "write verification failed: $acid in $acc still reads as off-scope -- the recorded state is not what was asked for; inspect the row in $acc before retrying"
   fi
   echo "ok: $acid back in scope (unsatisfied)"
 }
@@ -1135,6 +1160,24 @@ cmd_at_set() {
       error "$atid has an unreadable status in $acc -- vocabulary is $AT_STATUS_VOCAB (markdown emphasis around the value is NOT parsed). Fix the row, then re-run."
     fi
     error "$atid does not match the AT row grammar in $acc -- $(at_row_defect "$line"). Run 'intent at lint $stid' (--fix migrates what is mechanical), then re-run."
+  fi
+  # The target status must belong to the row's OWN arm, and this is checked
+  # BEFORE any write. Without it, `at na` on a test row (and `at red` on a
+  # (non-test) row) substituted a status that row's arm does not admit: the write
+  # LANDED, pushed the row out of the grammar, and the strict reader then read
+  # nothing back -- so assert_written reported "the file was NOT updated" about a
+  # file it had just updated, leaving behind the invalid row it denied writing.
+  # A false statement about disk state is the one thing that verifier exists to
+  # prevent, so the mismatch is refused up front rather than diagnosed after the
+  # damage. The row's arm is already computed by the grammar; nothing new is
+  # parsed here.
+  local arm
+  arm="$(at_row_arm "$line")"
+  if [ "$target" = "n/a" ] && [ "$arm" != "nontest" ]; then
+    error "at na: $atid is a test-backed AT, and n/a is the non-test status -- its states are to-write, red and green. If this row records a doc or eyeball check rather than a test, mark it '(non-test)' in $acc first."
+  fi
+  if [ "$target" != "n/a" ] && [ "$arm" = "nontest" ]; then
+    error "at $target: $atid is a (non-test) AT and is n/a by definition -- it records a doc or eyeball check and can never be green, so it never satisfies anything. Satisfy its AC directly: intent ac satisfy $stid <AC-id> --evidence \"...\""
   fi
   if [ "$target" = "green" ] && [ "$cur" != "red" ]; then
     error "at green: $atid is '$cur'; green is reachable only from red (run 'intent at red $stid $atid' first)"
