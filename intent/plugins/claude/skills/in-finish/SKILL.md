@@ -31,6 +31,9 @@ For each ST/WP worked on this session:
 - Update `impl.md` with implementation notes (if applicable)
 - Move completed tasks from `tasks.md` to `done.md` if that file exists
 - Closing a thread or WP? `intent st done` / `intent wp done` refuse while its `acceptance.md` contract is BLOCKED (the close-gate). Cover or satisfy the remaining ACs first; the ST-level sign-off AC is the verifier's. See `working-with-llms.md` (D11).
+- **An AC you are not going to do has two honest exits, and neither is satisfying it.** If it moved to another thread, `intent ac descope <id> <AC> --to <ID>`; if it was dropped, `intent ac withdraw <id> <AC> --reason "..."`. Both are non-blocking and both stay on the record. Reach for them instead of the two alternatives that lose the truth: marking work done that was not, or deleting the line. `intent ac rescope` / `reinstate` undo them.
+- **BLOCKED on an AT contract finding, not an unsatisfied AC?** The gate lints the AT rows too -- a row that fails the grammar, or a `green` AT citing a file that does not exist, is coverage that cannot be resolved. `intent at lint <id>` names each one; `--fix` migrates what is mechanical.
+- `st done` / `wp done` also **warn** (never block) if `## Objective` is still the template placeholder. If it fires, the unit is closing without anyone having said what it was for -- write the sentence.
 
 ### 3. Update work-in-progress
 

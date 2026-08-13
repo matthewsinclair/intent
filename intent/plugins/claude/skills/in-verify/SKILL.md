@@ -52,6 +52,7 @@ If the steel thread carries an `acceptance.md`, "done" is bound to it:
 
 - Write Acceptance Tests **red-first** and witness them RED before building to green -- a green that never went red proves nothing. `intent at red` / `green` enforce the transition (green is reachable only from red).
 - A test-backed AC is satisfied by a green covering AT; a non-test AC by `intent ac satisfy`. The close-gate computes the verdict -- `intent ac status <id>` (or `intent ac gate`) -- never a hand-ticked box.
+- **The AT row has an enforced grammar.** Cite the test **file**, backticked and repo-relative (`` `tests/unit/foo.bats` ``) -- not a test name, not `path::name`. Then put the AT's own id inside the test it names, because that is the link the tool can check from both ends. A `(non-test)` row carries prose and `status: n/a`, records a doc or eyeball check, and never satisfies anything. Run `intent at lint <id>` before you claim coverage; `--fix` migrates the mechanical part of a legacy contract.
 
 See the AC/AT five-step in `working-with-llms.md` (D11).
 

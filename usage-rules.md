@@ -77,6 +77,24 @@ intent todo done --prune    # emit the DONE items (for archiving), then flush
 
 `intent/todo.md` is a PROJECTION of real `status:` — never hand-edit a checkbox; mutate through these verbs (they wrap `intent st` / `intent wp`, so the ST0048 close-gate applies to `todo done`). The DONE bucket lists completions at or after the `## DONE:<T>` flush watermark; stdout emits at terminal width, the file at `dft_width`.
 
+### Acceptance (AC/AT)
+
+```bash
+intent ac list ST0001                                # ACs with covering AT + computed satisfied state
+intent ac status ST0001[/NN]                         # counts + gate verdict (a reporter)
+intent ac gate ST0001[/NN]                           # THE close-gate authority (the exit code is the verdict)
+intent ac satisfy ST0001 AC-01.2 --evidence "..."    # non-test ACs only; test-backed ones are computed
+intent ac descope ST0001 AC-01.3 --to ST0007         # it moved to another thread
+intent ac withdraw ST0001 AC-01.4 --reason "..."     # it was dropped outright
+intent ac rescope ST0001 AC-01.3                     # undo a descope
+intent ac reinstate ST0001 AC-01.4                   # undo a withdrawal
+intent at list ST0001                                # AT rows: id, cited file, covers, status
+intent at lint ST0001 [--fix]                        # grammar + citation checks; --fix migrates the mechanical half
+intent at red|green|na ST0001 AT-01.1                # transitions (done / notdone alias green / red)
+```
+
+`acceptance.md` is the single home for a thread's ACs and ATs; `info.md` and each per-WP `info.md` reference it and never restate them. An AT row must match the grammar — cite the test **file**, backticked and repo-relative, containing a `/` and no `:`, then put the AT's own id inside the test it names. `n/a` is the `(non-test)` arm's status only, and a non-test AT never satisfies anything. `green` is reachable only from `red`. An AC you are not going to do is descoped or withdrawn, never satisfied. The close-gate is fail-by-default: an empty or missing contract is refused, and a visible `acceptance: exempt` in the frontmatter is the only escape.
+
 ### AGENTS.md
 
 ```bash
@@ -360,6 +378,9 @@ intent claude upgrade --apply                   # Install hooks, pre-commit, cri
 - Never run `intent treeindex` on the project root — target subdirectories.
 - Never create steel thread or work package directories manually — use `intent st new` and `intent wp new`.
 - Never manually edit `status:` fields in info.md frontmatter — use `intent st start | done | cancel` and `intent wp start | done`.
+- Never satisfy an AC whose work was not done, and never delete an AC line to unblock a close — use `intent ac descope` or `intent ac withdraw`, which keep the ruling on the record.
+- Never cite a test NAME in an AT row, and never use the retired `path::name` form — cite the file and put the AT id inside the test.
+- Never escape a quote in a whiteboard board's header block — it is line-oriented `key: value`, not YAML, so the backslash ends up in your board.
 - Never modify `intent/.config/config.json` manually — use `intent` commands.
 - Never delete `.treeindex` files without running `--prune` first.
 - Never edit `.claude/settings.json` hook stanzas directly — update `lib/templates/.claude/settings.json` and re-run `intent claude upgrade --apply`.

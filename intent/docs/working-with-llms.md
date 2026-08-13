@@ -107,7 +107,9 @@ Why: AGENTS.md became the de facto standard in 2025–2026. Adopted by Anthropic
 
 Why a real file, not a symlink: symlinks work for tools that follow them, but some CI pipelines, web-rendered docs, and `find | cat` patterns treat them opaquely. A real file removes a class of bug and matches community norm.
 
-Regenerate with `intent agents sync`; never edit manually. Manual edits are overwritten on the next sync.
+Regenerate with `intent agents sync`; never edit manually. Manual edits are overwritten on the next sync. `intent agents sync --check` reports staleness without writing (ignoring the generated-by date, which would otherwise read as drift every day), and `intent upgrade` converges the file automatically — after the canon apply, because canon creates files that AGENTS.md's own map lists.
+
+**Its Prerequisites block answers "what is this project built in" from the declared `languages` array, not from filesystem probes** (issue 0009). ST0037 made declaration authoritative precisely because filesystem presence is unreliable evidence: a stray `mix.exs` told every reader the project needs an Elixir toolchain, and a polyglot repo whose markers sit in subdirectories declared `elixir` and was told it needs nothing. Since AGENTS.md is, by its own preamble, the contract every agentic CLI reads and trusts without cross-checking, the wrong answer was being stated authoritatively. **Build and test commands keep their probes** — `mix test` genuinely depends on a `mix.exs` being at that path — as do Node (Intent's declared vocabulary has no name for it, so gating on a declaration a project cannot make would delete the line forever) and bats (a test runner, not a language: `.bats` files are the evidence, and declaring `shell` should not claim a project needs it). An undeclared project gets no prerequisite lines and the existing hint to declare with `intent lang init <lang>`.
 
 ## D2. CLAUDE.md is a Claude-specific overlay
 
@@ -197,12 +199,25 @@ ST0044 makes "done" an externally verified event, not a self-reported claim. Eve
 Two axes:
 
 - **AC -- the coverage axis.** The ratified completeness boundary: what must be true for the thread (or a WP) to be done. A test-backed AC is satisfied (computed) when a covering AT is green. A non-test AC (doc / eyeball / gate) carries its state inline on the AC line -- `-- evidence: <ref> -- satisfied: yes|no` -- and is satisfied by hand via `intent ac satisfy`.
-- **AT -- the proof axis.** A small red-to-green test that proves an AC. ATs cite a real `path::name` in the suite and move `to-write -> red -> green` (plus `n/a`). `green` is reachable only from `red`; the CLI refuses a `to-write -> green` jump, which is what enforces red-first.
+- **AT -- the proof axis.** A small red-to-green test that proves an AC. Status moves `to-write -> red -> green`; `green` is reachable only from `red`, and the CLI refuses a `to-write -> green` jump, which is what enforces red-first.
+
+**An AC has four states, not two** (issue 0013). Beyond satisfied and unsatisfied, a requirement can leave this thread's scope while remaining real: **descoped** (it moved to a named thread -- `intent ac descope <ID> <AC> --to <ID>`) or **withdrawn** (it was dropped outright, with its reason on the record -- `intent ac withdraw <ID> <AC> --reason "..."`). Both are non-blocking, and both are reported separately rather than folded into the satisfied count (`29/29 satisfied, 1 descoped -- PASS`), so a thread that descoped half its contract looks like one. They exist to replace the two dishonest alternatives an author otherwise has: satisfying an AC whose work was not done, or deleting the line and losing the audit trail. `intent ac rescope` / `intent ac reinstate` undo them; `intent ac satisfy` refuses an AC in either state and names the undo.
+
+**The AT row has an enforced grammar** (issue 0017), checked by `intent at lint` and by the close-gate. Two shapes parse, and nothing else does:
+
+```
+- AT-<gg>.<n> `<repo-relative-path>` -- covers <AC-id>[, <AC-id>...] -- status: to-write|red|green[ -- <free note>]
+- AT-<gg>.<n> (non-test) <prose> -- covers <AC-id>[, <AC-id>...] -- status: n/a[ -- <free note>]
+```
+
+The reference is the test **file** -- backticked, repo-relative, containing at least one `/` and no `:`. Not a test name, not a bare filename, and not a `path::name` selector (that form is retired; `intent at lint --fix` strips it). Coverage ids are comma-separated with nothing fused to them -- a trailing `:` or a possessive silently unlinked the id before the grammar existed. `n/a` belongs to the non-test arm ONLY: a `(non-test)` AT records a doc or eyeball check and can never be green, so it never satisfies anything -- the satisfaction lives on the AC's own line. Each arm accepts only its own statuses, so `intent at na` refuses a test-backed row and `intent at red|green` refuses a non-test one.
+
+**The row links by id, not by name.** A cited test name is unverifiable -- paraphrase defeats every string match -- while an id is checkable from both ends: the row names the file, the file names the row, and `rg AT-03.2` finds both. So you name the test by putting the AT's own id inside it (`@test "AT-03.2 / AC-03.2: ..."`).
 
 The **five-step** runs per WP, with one independent verifier and one builder:
 
 1. The verifier writes or ratifies the ACs -- the boundary.
-2. The builder writes the ATs red-first, citing real test names.
+2. The builder writes the ATs red-first, citing the test file and putting each AT's id inside the test that proves it.
 3. The verifier witnesses the ATs RED -- proof the tests test something.
 4. The builder builds to green.
 5. Repeat for the next AC or WP.
@@ -212,7 +227,11 @@ Two gates bracket it:
 - **Open-gate** -- ACs are ratified before code. This extends D10: Phase 0 locks scope and acceptance first.
 - **Close-gate** -- `intent st done` / `intent wp done` refuse to close while any in-scope AC is unsatisfied. The verdict is computed (`intent ac gate`), never read from a hand-ticked box. It is **fail-by-default** (ST0048): a thread with no `acceptance.md`, or an empty contract (zero ACs), is refused -- an absent contract is a failure that must surface, not a quiet pass. The sole escape is an explicit, visible `acceptance: exempt` in the frontmatter (the gate announces the exemption; it is never inferred from emptiness). WP scope is WP-lenient: a WP with no own ACs rolls up to the ST boundary as long as the thread carries a contract -- but the rollup is granted only to a WP that exists, and the gate announces it (issue 0004). Every verdict is reported, pass included: a scope that resolves to no real ST or WP is refused rather than passing in silence, because a gate that cannot say what it evaluated cannot be trusted when it says nothing is wrong.
 
-The CLI in `bin/intent_acceptance` is the single authority: `intent ac list|status|satisfy|gate` and `intent at list|red|green|na` (with `done` / `notdone` aliases). All of it reads and writes `acceptance.md` only.
+  The gate also runs the AT-row linter, so coverage that cannot be resolved does not count as coverage: a row that fails the grammar, a `green` AT citing a file that does not exist, a cited file that never names the AT id, a covered id that is not a real AC, or a non-test AT left as the sole cover for a test-backed AC. Each finding is named with the row it came from. `intent at lint <ID>` reports the same findings on demand, and `--fix` migrates the mechanical half of a legacy contract. An estate written against the old free-form convention gates BLOCKED until it is swept -- that is the fix working, because every row it names was already contributing no coverage, silently.
+
+- **Close-time warning, not a gate** -- `intent st done` / `intent wp done` also warn, without blocking, when `## Objective` still holds the words the template shipped (issue 0010): the unit is being marked complete without anyone having written down what it was for, and the close is the last moment anybody looks. It warns rather than blocks because the contract is the gate; an unstated objective is a reason to write one, not grounds to refuse a close that is otherwise finished.
+
+The CLI in `bin/intent_acceptance` is the single authority: `intent ac list|status|satisfy|gate|descope|rescope|withdraw|reinstate` and `intent at list|lint|red|green|na` (with `done` / `notdone` aliases). All of it reads and writes `acceptance.md` only.
 
 A builder meets this inside the normal lifecycle skills, which point here rather than restate it: `/in-plan` at the open-gate (ratify ACs before code), `/in-verify` at red-first and the RED witness, and `/in-finish` at the close-gate.
 
@@ -377,13 +396,25 @@ intent/whiteboard/
 
 Each node writes only its own `wip.md`; each inbox is appended only by its named sender and read/cleansed only by the owning node. There is no shared file. A node's live files are read on every `pickup`, so they are kept lean — `/in-whiteboard archive` rolls that node's own DONE board content + handled inbox entries into its `.history/<YYYYMMDD>/`, single-owner and collision-free.
 
+### The board header block is NOT YAML
+
+The `--- ... ---` block at the top of a `wip.md` is **line-oriented `key: value` text**, not YAML frontmatter, and calling it frontmatter was the defect (issue 0012). It was documented as YAML and consumed as line-oriented text by every reader in the tool, and where the two disagreed the tooling rewarded the file that was wrong: `ws list` stripped the surrounding quotes without unescaping, so a board with unescaped quotes inside a `focus:` scalar — invalid YAML — displayed correctly, while a board corrected to _valid_ YAML displayed `\"` mid-prose. Both passed hygiene, which never checked that the block parsed at all.
+
+The rule, now stated once and enforced under itself:
+
+- One key per line, `key: value`. No nesting, no multi-line scalars, no continuation lines.
+- Surrounding quotes are a **display delimiter**, stripped by the reader. One pair, at the outside.
+- Quotes inside a value are **literal and never escaped**. Write `focus: "the reader's \"quoted\" phrase"` as `focus: "the reader's "quoted" phrase"`.
+
+The fork went this way because the block is hand-written by LLM nodes in prose-heavy fields, which is close to the worst case for a quoting-sensitive format. `intent claude ws hygiene` rejects any line in the block that is not a single-line `key: value`, and warns (rather than fails) on a missing recommended key so boards predating the rule still pass. It says nothing about YAML validity, because validity is not the contract.
+
 ### Node identity
 
 A node is a durable identity (eg `control`, `ia-ux`, `hv`) named by a short moniker that is its directory name, routing key, and handle. The roster — monikers, display names, roles — is per-project, hand-authored in `intent/whiteboard/README.md`; the skill bakes in no roster and discovers nodes by listing `intent/whiteboard/*/`. Identity is resolved on `pickup`: (1) explicit arg (`/in-whiteboard pickup ia-ux`), (2) cues — working directory, branch, recent commits, which node's `wip.md` carries this session's `session_id`, user framing, (3) ask the user. Subsequent sessions of a node inherit identity from its existing directory. The human is a first-class node, conventionally `hv` (the hypervisor): human-driven, `session_id` optional or `none`, and may carry a `## Standing directives` section peers honour.
 
 ### Claims are by steel-thread ID only
 
-`/in-whiteboard claim STxxxx` adds an ST to the node's `claims` frontmatter and stops on overlap with another active node. Glob-path claims (`apps/control/**`) are rejected as a design choice — claims drift from actual edits the moment you type a path you don't end up editing. ST IDs are the user's mental model; paths are inferred via `intent/st/<ID>/info.md` cross-references.
+`/in-whiteboard claim STxxxx` adds an ST to the node's `claims` line in the header block and stops on overlap with another active node. Glob-path claims (`apps/control/**`) are rejected as a design choice — claims drift from actual edits the moment you type a path you don't end up editing. ST IDs are the user's mental model; paths are inferred via `intent/st/<ID>/info.md` cross-references.
 
 ### Shared platform layer
 
@@ -399,7 +430,7 @@ Multi-app codebases usually have a shared platform layer that no ST claim cleanl
 
 ### Reference
 
-The live reference implementation runs in the Lamplight project at `/Users/matts/Devel/prj/Lamplight/intent/whiteboard/`. The original 2.0 design rationale and deliberate-deferrals (no hook-based enforcement, no `decisions.md` event log, no `intent/.config/whiteboard.json`) live in `intent/st/COMPLETED/ST0040/`; the 3.0 per-node rewrite is `intent/st/COMPLETED/ST0045/`.
+The live reference implementation runs in the Lamplight project, at its own `intent/whiteboard/`. The original 2.0 design rationale and deliberate-deferrals (no hook-based enforcement, no `decisions.md` event log, no `intent/.config/whiteboard.json`) live in `intent/st/COMPLETED/ST0040/`; the 3.0 per-node rewrite is `intent/st/COMPLETED/ST0045/`.
 
 ## Extensions at ~/.intent/ext/
 
@@ -526,9 +557,12 @@ Checks:
 - Is `.claude/settings.json` present at the project root?
 - Does it parse as valid JSON? (`jq . .claude/settings.json` must succeed.)
 - Is the `matcher` string correct for the event type? `SessionStart` uses `startup|resume|clear|compact`.
-- Is the hook script executable? `test -x "$INTENT_HOME/lib/templates/.claude/scripts/session-context.sh"`.
+- Does the command resolve? Run `intent claude hook session-context` by hand from the project root: it should emit the payload and exit 0. Since v2.19.0 that is the literal command in `settings.json`, so `intent` must be on PATH in the hook's environment.
+- Is the shipped script executable? `test -x "$INTENT_HOME/lib/templates/.claude/scripts/session-context.sh"` — the runner execs it.
 
 If the script runs but nothing is injected, remember the contract: stdout on exit 0 is the injection payload. Confirm the script writes to stdout (not stderr) and exits 0.
+
+**Do not edit a project's own `.claude/scripts/*.sh` and expect it to take effect.** Since v2.19.0 `settings.json` names the installed tool, not a per-project copy, so those copies are inert in projects scaffolded before the change. Edit behaviour at the source (`lib/templates/.claude/scripts/`) or override the `command` in `settings.json`.
 
 ### Strict UserPromptSubmit gate blocks every prompt, not just the first
 

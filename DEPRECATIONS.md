@@ -1,11 +1,36 @@
 ---
-verblock: "24 Feb 2026:v0.4: Matthew Sinclair - Updated for Intent v2.5.0"
-intent_version: 2.5.0
+verblock: "14 Aug 2026:v0.5: Matthew Sinclair - Updated for Intent v2.19.0"
+intent_version: 2.19.0
 ---
 
 # Intent Deprecations
 
 This document tracks features, files, and functionality that have been deprecated in Intent (formerly STP).
+
+## August 2026 (v2.19.0): free-form acceptance-test references
+
+### What was deprecated
+
+The AT row's reference field had no grammar. In practice that admitted a test name, a bare filename, a `path::name` selector (taught by the tool's own doc comment and by the shipped `acceptance.md` template), a bare parenthetical status note, and — because the field was defined as _whatever sits inside the first pair of backticks_ — an empty string. All of them are now rejected. A row must match one of two anchored shapes:
+
+```
+- AT-<gg>.<n> `<repo-relative-path>` -- covers <AC-id>[, <AC-id>...] -- status: to-write|red|green[ -- <free note>]
+- AT-<gg>.<n> (non-test) <prose> -- covers <AC-id>[, <AC-id>...] -- status: n/a[ -- <free note>]
+```
+
+### Why it was deprecated
+
+A field with no grammar cannot fail to parse; it can only be partially recovered, silently, one piece at a time. On the estate that surfaced this, that produced five mutually incompatible reference forms across 314 rows and two live `green` acceptance tests citing CSS utility classes as their test files, with no diagnostic anywhere. Coverage that cannot be resolved was still being counted as coverage.
+
+### Migration path
+
+`intent at lint <ID> --fix` migrates the mechanical half (backticking a bare path, stripping a `::name` suffix, converting `and` separators to commas, delimiting a trailing note). Rows needing a human judgement are reported by name and never guessed at. `intent upgrade` runs the same sweep, so a consumer is migrated by upgrading rather than by knowing the command exists.
+
+### Impact
+
+- A contract written against the old convention gates **BLOCKED** until it is swept. This is deliberate: every row the linter names was already contributing no coverage.
+- `intent at green|red` refuse a citation that does not resolve, at the moment it goes load-bearing rather than at the next gate.
+- The `path::name` form is gone from `lib/templates/prj/st/ST####/acceptance.md` and from the tool's own doc comment. Historical steel-thread documents still contain it, as the record of what was true at the time.
 
 ## February 24, 2026: Backlog.md integration removed
 
