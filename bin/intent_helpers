@@ -416,6 +416,48 @@ list_st_dirs() {
 }
 export -f list_st_dirs
 
+# ---- Unedited-template detection (issue 0010) ----
+
+# The verbatim '## Objective' placeholders that `intent st new` and `intent wp
+# new` write. They live HERE, next to their only reader, so the string the
+# warning looks for and the string the generators write are one decision.
+# tests/unit/objective_placeholder.bats asserts each constant still appears in
+# every generator that emits it (both templates AND both no-template fallback
+# heredocs), so a reword that forgets this file fails loudly instead of silently
+# switching the warning off -- the exact drift this release exists to remove.
+ST_OBJECTIVE_PLACEHOLDER='[Clear statement of what this steel thread aims to accomplish]'
+WP_OBJECTIVE_PLACEHOLDER='[Clear statement of what this work package aims to accomplish]'
+export ST_OBJECTIVE_PLACEHOLDER WP_OBJECTIVE_PLACEHOLDER
+
+# warn_unedited_objective <info.md> <placeholder> <label>
+#
+# WARN -- never block -- when a doc is closed with its '## Objective' section
+# still holding the template placeholder verbatim: the thread or work package is
+# being marked complete without anyone ever having written down what it was for.
+#
+# Scope is deliberately narrow and the narrowness IS the feature: the '##
+# Objective' section of info.md, and nothing else. A sweep for any '[...]'
+# placeholder across the doc set fires on most threads in a real estate, and a
+# warning that fires on almost everything is disabled within a day. One line, at
+# the one moment it is actionable.
+#
+# Always returns 0. This is voice at the close, not a gate -- `st done`/`wp done`
+# are already gated by the acceptance contract, and an unstated objective is a
+# prompt to write one, not grounds to refuse a close. Quoting "$placeholder"
+# inside the case pattern keeps its brackets literal rather than a glob class.
+warn_unedited_objective() {
+  local file="$1" placeholder="$2" label="$3" body
+  [ -f "$file" ] || return 0
+  body=$(awk '/^## Objective[[:space:]]*$/ { inside = 1; next } /^## / { inside = 0 } inside' "$file")
+  case "$body" in
+    *"$placeholder"*)
+      warning "$label: '## Objective' is still the template placeholder -- say what it was for: $file"
+      ;;
+  esac
+  return 0
+}
+export -f warn_unedited_objective
+
 # Stamp `intent_version` in the project config.
 #
 # Exit: 0 = stamped, 1 = already at the target (nothing written), 2 = cannot

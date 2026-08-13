@@ -512,10 +512,12 @@ TEMPLATE
       NEW_DIR=$(dirname "$NEW_ST_FILE")
       
       # Move the entire directory if it's different
+      FINAL_ST_FILE="$ST_FILE"
       if [ "$CURRENT_DIR" != "$NEW_DIR" ]; then
         mkdir -p "$(dirname "$NEW_DIR")"
         mv "$CURRENT_DIR" "$NEW_DIR"
         echo "  moved: $NEW_DIR"
+        FINAL_ST_FILE="$NEW_ST_FILE"
       fi
     else
       # Legacy: Handle single file
@@ -534,18 +536,25 @@ TEMPLATE
       rm -f "$ST_FILE.bak"
       
       NEW_ST_FILE=$(get_st_path "$ST_ID" "Completed")
-      
+
+      FINAL_ST_FILE="$ST_FILE"
       if [ "$ST_FILE" != "$NEW_ST_FILE" ]; then
         mkdir -p "$(dirname "$NEW_ST_FILE")"
         mv "$ST_FILE" "$NEW_ST_FILE"
         echo "  moved: $NEW_ST_FILE"
+        FINAL_ST_FILE="$NEW_ST_FILE"
       fi
     fi
-    
+
     # Update index
     update_steel_threads_index "$ST_ID" "$TITLE" "Completed" "$(grep '^\- \*\*Created\*\*:' "$ST_FILE" 2>/dev/null | sed 's/^\- \*\*Created\*\*: //' || echo "$DATE")" "$DATE"
 
     echo "Marked steel thread as complete: $ST_ID: $TITLE"
+
+    # Issue 0010: the thread just closed; if nobody ever said what it was for,
+    # say so once, here, where it is actionable. Deliberately AFTER the close --
+    # this is voice, not a gate, and it names the file's final resting place.
+    warn_unedited_objective "$FINAL_ST_FILE" "$ST_OBJECTIVE_PLACEHOLDER" "$ST_ID"
     ;;
 
   "cancel")

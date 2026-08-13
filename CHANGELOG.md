@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   The state is detected by marker and never by the `satisfied:` field, and it is checked BEFORE satisfaction: a descoped test-backed AC whose covering AT went with it would otherwise find no cover and report unsatisfied, which is the false BLOCKED the whole issue is about. A contract emptied entirely by off-scope moves is refused rather than passed on an empty set, and the refusal names the existing `acceptance: exempt` escape -- ST0048's rule is that an exemption is announced, never inferred from emptiness, and a contract emptied one descope at a time is still emptiness.
 
+- **`intent st done` and `intent wp done` say something when the objective was never written (issue 0010).** A steel thread could be closed with `## Objective` still holding the words the template shipped -- marked complete without anyone having stated what it was for -- and nothing said a word. The document whose job is to carry the intent instead carried a prompt to supply one, and the close is the last moment anyone looks at it. It warns and deliberately does not block: the acceptance contract is the gate, and an unstated objective is a reason to write one, not grounds to refuse a close that is otherwise finished.
+
+  The scope is one section of one file, and the narrowness is the feature -- a sweep for any bracketed placeholder across the doc set fires on most threads in a real estate, and a warning that fires on nearly everything is switched off within a day. The placeholder strings live once, in `bin/intent_helpers`, and a guard asserts each still matches every generator that writes it -- both templates and both no-template fallback heredocs -- so a reword that forgets the constant fails loudly instead of silently switching the warning off.
+
 ### Fixed
 
 - **`intent ac gate` no longer counts a green AT whose cited test file does not exist (issue 0015).** The citation was parsed and used in exactly one place: printing it. Nothing resolved it, so a test that was renamed, moved or deleted left its AT green forever and the gate kept counting it as coverage -- reporting a thread closer to done than it was, on the strength of a test that cannot be run. It is a false-green, so it survived by making the gate _more_ permissive as citations rotted. Now L2 blocks it, and `intent at red|green` refuse a dangling citation at the moment it goes load-bearing rather than at the next gate. Found in this repo's own estate on the first sweep: ST0052 AT-03.1 was `green` citing `tests/unit/critic_author.bats`, a deck renamed to `critic_prose.bats` in ST0053 with the citation left behind.
@@ -48,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Internal
 
 - `list_st_dirs` (THE steel-thread enumerator) added to `bin/intent_helpers` and registered in `intent/llm/MODULES.md`.
+- `warn_unedited_objective` and the two `*_OBJECTIVE_PLACEHOLDER` constants likewise: the string the warning looks for and the string the generators write are one decision, in one place.
 - The `extract_field` seam takes an explicit capture-group argument and uses `@` as its `s///` delimiter: the AT grammar carries a literal `/` and `n/a`, either of which closes an `s/.../.../` early. A guard asserts no grammar pattern contains an `@`.
 
 ## [2.18.0] - 2026-07-30

@@ -192,6 +192,9 @@ TEMPLATE
     echo "done: $ST_ID/WP-$WP_NUM"
     [ -n "$WP_TITLE" ] && echo "  title: $WP_TITLE"
 
+    # Issue 0010: same voice as `st done`, one level down. Never blocks.
+    warn_unedited_objective "$WP_FILE" "$WP_OBJECTIVE_PLACEHOLDER" "$ST_ID/WP-$WP_NUM"
+
     # Check if all WPs are complete
     ALL_DONE=true
     for wp_check in "$ST_DIR/WP"/[0-9][0-9]; do
