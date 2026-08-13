@@ -103,6 +103,11 @@ case "$COMMAND" in
       PLUGIN_SUBCOMMAND="rules"
       shift  # Remove 'rules' from arguments
       COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_rules"
+    elif [ $# -ge 1 ] && [ "$1" = "hook" ]; then
+      PLUGIN_COMMAND="claude"
+      PLUGIN_SUBCOMMAND="hook"
+      shift  # Remove 'hook'; the runner takes the hook name as $1
+      COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_hook"
     elif [ $# -ge 1 ] && { [ "$1" = "start" ] || [ "$1" = "ws" ]; }; then
       PLUGIN_COMMAND="claude"
       PLUGIN_SUBCOMMAND="$1"

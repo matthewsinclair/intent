@@ -382,11 +382,14 @@ fi
 # the substitution logic already has three homes and does not need a fourth.
 #
 # --skip-settings keeps the blast radius to the documents. Without it the engine
-# also rewrites .claude/settings.json and the three hook scripts, which
-# substitute [[INTENT_HOME]] and so differ between checkouts -- unrelated to the
-# release, outside the sidecar list, and enough to trip the dirty-tree check
+# also rewrites .claude/settings.json and the three hook scripts -- unrelated to
+# the release, outside the sidecar list, and enough to trip the dirty-tree check
 # below and abort the cut. A release refreshes the version stamp; it is not the
 # place to re-provision the .claude/ stack.
+#
+# Those files no longer differ between checkouts (issue 0016 removed the last
+# install-time path substitution), so this is now about scope rather than
+# inevitability: skipping them keeps the release diff to what a release means.
 if [ "$DRY_RUN" = "true" ]; then
   log_dry "would run 'intent claude upgrade --apply --skip-settings' to refresh CLAUDE.md"
 else

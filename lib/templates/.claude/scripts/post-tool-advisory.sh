@@ -21,7 +21,7 @@
 #          "matcher": "Write|Edit|MultiEdit",
 #          "hooks": [
 #            { "type": "command",
-#              "command": "[[INTENT_HOME]]/lib/templates/.claude/scripts/post-tool-advisory.sh" }
+#              "command": "intent claude hook post-tool-advisory" }
 #          ]
 #        }
 #      ]

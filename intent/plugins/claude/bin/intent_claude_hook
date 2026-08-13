@@ -1,0 +1,64 @@
+#!/bin/bash
+# intent_claude_hook - run a shipped Claude Code lifecycle hook by name.
+#
+# Serves `intent claude hook <name>`. This exists so that a project's
+# .claude/settings.json can name its hooks without naming a PATH (issue 0016).
+#
+# The template used to invoke each hook through `[[INTENT_HOME]]/lib/templates/
+# .claude/scripts/<name>.sh`, substituted with the installing machine's absolute
+# Intent home at install time. Hook resolution is a RUNTIME question and it was
+# being answered at write time, so every scaffolded project carried an absolute
+# path into one user's home directory in a tracked file: the hooks broke for any
+# other contributor or machine, and a public repository published the path. The
+# fix is to resolve it when the hook runs -- `intent` is on PATH, and it knows
+# where it lives -- which leaves settings.json byte-identical on every machine
+# and removes the only reason that file needed substituting at all.
+#
+# Thin coordinator (IN-AG-THIN-COORD-001): resolve the name, exec the script.
+# No logic lives here; the hooks keep their own contracts.
+#
+# `exec` rather than a call, deliberately. Both hooks read the Claude Code event
+# JSON on stdin, and the UserPromptSubmit gate signals "block this prompt" with
+# exit 2 specifically -- so stdin has to flow through untouched and the exit code
+# has to be the script's own, not this wrapper's. Replacing the process gives
+# both for free and makes it impossible for a future edit here to swallow either.
+
+: "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)}"
+source "$INTENT_HOME/bin/intent_helpers"
+
+HOOKS_DIR="$INTENT_HOME/lib/templates/.claude/scripts"
+
+usage() {
+  echo "Usage: intent claude hook <name>"
+  echo ""
+  echo "Runs a shipped Claude Code lifecycle hook. Invoked by .claude/settings.json,"
+  echo "not normally by hand. Event JSON is read from stdin; the hook's own exit code"
+  echo "is returned untouched."
+  echo ""
+  echo "hooks:"
+  echo "  session-context       SessionStart: emit project context as a system-reminder"
+  echo "  require-in-session    UserPromptSubmit: block the first prompt until /in-session"
+  echo "  post-tool-advisory    PostToolUse: advisory notes (wire by hand; off by default)"
+  exit 1
+}
+
+NAME="${1:-}"
+[ -n "$NAME" ] || usage
+
+case "$NAME" in
+  session-context|require-in-session|post-tool-advisory)
+    script="$HOOKS_DIR/$NAME.sh"
+    # A missing script is named rather than left to the shell. Claude Code
+    # surfaces a hook's stderr, so this is the difference between "Intent's
+    # install is broken" and an opaque 127 the user cannot act on.
+    [ -f "$script" ] || error "hook script not found: $script (Intent install may be incomplete)"
+    shift
+    exec bash "$script" "$@"
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    error "unknown hook: $NAME (try: session-context, require-in-session, post-tool-advisory)"
+    ;;
+esac

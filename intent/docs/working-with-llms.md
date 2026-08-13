@@ -233,7 +233,7 @@ Ship shape (strict-gate default):
         "hooks": [
           {
             "type": "command",
-            "command": "[[INTENT_HOME]]/lib/templates/.claude/scripts/session-context.sh",
+            "command": "intent claude hook session-context",
             "timeout": 3000
           }
         ]
@@ -245,7 +245,7 @@ Ship shape (strict-gate default):
         "hooks": [
           {
             "type": "command",
-            "command": "[[INTENT_HOME]]/lib/templates/.claude/scripts/require-in-session.sh",
+            "command": "intent claude hook require-in-session",
             "timeout": 2000
           }
         ]
@@ -267,7 +267,7 @@ Ship shape (strict-gate default):
 }
 ```
 
-`[[INTENT_HOME]]` is substituted with the absolute Intent install path when `intent claude upgrade --apply` writes the project's `.claude/settings.json`. The `matcher` field is a single string (a pipe-delimited alternation for `SessionStart`, empty to match all events for `UserPromptSubmit` / `Stop`) — not an array.
+This file is **byte-identical on every machine** — nothing in it is substituted at install time (issue 0016). The hooks are named through `intent claude hook <name>`, a thin runner in the installed tool that execs the shipped script, passing stdin and the exit code through untouched. Hook resolution is a runtime question; answering it at write time is what previously baked the installing machine's absolute Intent home into every project's tracked `settings.json`, breaking the hooks for every other contributor and publishing one user's home directory path in any public repository. The `matcher` field is a single string (a pipe-delimited alternation for `SessionStart`, empty to match all events for `UserPromptSubmit` / `Stop`) — not an array.
 
 How it works:
 

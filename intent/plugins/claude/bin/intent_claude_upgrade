@@ -230,13 +230,21 @@ canon_substitute_placeholders() {
   local tmp
   tmp="$(mktemp)"
   # Portable in-place edit; avoids the BSD-only in-place flag that breaks
-  # GNU/Linux. | delimiter for INTENT_HOME tolerates / in paths.
+  # GNU/Linux.
+  #
+  # There is deliberately no [[INTENT_HOME]] arm (issue 0016). It baked the
+  # installing machine's absolute Intent home into every scaffolded project's
+  # tracked .claude/settings.json, so the hooks worked on exactly one machine
+  # and a public repository published one user's home directory path. Hook
+  # resolution is a runtime question and was being answered at write time; the
+  # hooks are now invoked as `intent claude hook <name>`, which resolves when
+  # they run. Nothing here should ever substitute an absolute path again --
+  # settings.json must be byte-identical on every machine.
   sed \
     -e "s/\[\[PROJECT_NAME\]\]/$PROJECT_NAME/g" \
     -e "s/\[\[AUTHOR\]\]/$CANON_AUTHOR/g" \
     -e "s/\[\[DATE\]\]/$CANON_DATE/g" \
     -e "s/\[\[INTENT_VERSION\]\]/$TARGET_VERSION/g" \
-    -e "s|\[\[INTENT_HOME\]\]|$INTENT_ROOT|g" \
     "$file" > "$tmp" && mv "$tmp" "$file"
 }
 
