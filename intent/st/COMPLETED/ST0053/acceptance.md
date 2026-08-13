@@ -60,32 +60,32 @@ title: "Content (web-content) project-type pack -- acceptance contract"
 
 ### WP-01
 
-- AT-01.1 tests/unit/pr_language_code_guard.bats -- covers AC-01.1 -- status: green
-- AT-01.2 tests/unit/rule_pack_prose.bats -- covers AC-01.2 -- status: green
-- AT-01.3 tests/unit/rule_pack_author.bats -- covers AC-01.3 -- status: green
-- AT-01.4 tests/unit/in_author_essentials_skill.bats "references the prose base + author rules by ID" -- covers AC-01.4 -- status: green
+- AT-01.1 `tests/unit/pr_language_code_guard.bats` -- covers AC-01.1 -- status: green
+- AT-01.2 `tests/unit/rule_pack_prose.bats` -- covers AC-01.2 -- status: green
+- AT-01.3 `tests/unit/rule_pack_author.bats` -- covers AC-01.3 -- status: green
+- AT-01.4 `tests/unit/in_author_essentials_skill.bats` -- covers AC-01.4 -- status: green
 - Coverage: AC-01.1..01.3 test-backed (green); AC-01.4 is non-test (evidence satisfied) and additionally backstopped by AT-01.4.
 
 ### WP-02
 
-- AT-02.1 tests/unit/co_language_code_guard.bats -- covers AC-02.1 -- status: green
-- AT-02.2 tests/unit/rule_pack_content.bats -- covers AC-02.2, AC-02.3 -- status: green
+- AT-02.1 `tests/unit/co_language_code_guard.bats` -- covers AC-02.1 -- status: green
+- AT-02.2 `tests/unit/rule_pack_content.bats` -- covers AC-02.2, AC-02.3 -- status: green
 - Coverage: AC-02.1, AC-02.2 test-backed (green); AC-02.3 non-test (evidence satisfied), backstopped by the Highlander tests in AT-02.2.
 
 ### WP-03
 
-- AT-03.1 tests/unit/critic_prose.bats -- covers AC-03.1, AC-03.2 -- status: green
+- AT-03.1 `tests/unit/critic_prose.bats` -- covers AC-03.1, AC-03.2 -- status: green
 - Coverage: AC-03.1, AC-03.2 test-backed (green).
 
 ### WP-04
 
-- AT-04.1 tests/unit/intent_lang.bats (content cases: list enumerates content; init installs both files, appends the pack entry, writes config languages) -- covers AC-04.1 -- status: green
+- AT-04.1 `tests/unit/intent_lang.bats` -- covers AC-04.1 -- status: green -- content cases: list enumerates content; init installs both files, appends the pack entry, writes config languages
 - Coverage: AC-04.1 test-backed (green).
 
 ### WP-05
 
-- AT-05.1 tests/unit/in_content_essentials_skill.bats -- covers AC-05.1 -- status: green
-- AT-05.2 tests/unit/critic_dispatch.bats + tests/unit/in_session_skill.bats (content cases) -- covers AC-05.2 -- status: green
+- AT-05.1 `tests/unit/in_content_essentials_skill.bats` -- covers AC-05.1 -- status: green
+- AT-05.2 `tests/unit/critic_dispatch.bats` -- covers AC-05.2 -- status: green -- content cases; also exercised by tests/unit/in_session_skill.bats
 - Coverage: AC-05.1, AC-05.2 test-backed (green).
 
 ### WP-06

@@ -69,33 +69,33 @@ None -- WP-distributed.
 
 ### WP-01
 
-- AT-01.1 tests/unit/intent_todo.bats::update_projects_buckets_from_status -- covers AC-01.1, AC-01.3 -- status: green
-- AT-01.2 tests/unit/intent_todo.bats::checkbox_glyphs_map_each_status -- covers AC-01.2 -- status: green
-- AT-01.3 tests/unit/intent_todo.bats::done_bucket_self_sweeps_to_today -- covers AC-01.3 -- status: green
-- AT-01.4 tests/unit/intent_todo.bats::on_hold_thread_tagged_in_doing -- covers AC-01.4 -- status: green
-- AT-01.5 tests/unit/intent_todo.bats::todo_md_has_only_headings_and_data -- covers AC-01.5 -- status: green
-- AT-01.6 tests/unit/intent_todo.bats::output_is_prettier_stable -- covers AC-01.6 -- status: green
-- AT-01.7 tests/unit/intent_todo.bats::list_prints_and_help_shows_usage -- covers AC-01.7 -- status: green
-- AT-01.8 tests/unit/intent_todo.bats::json_emits_valid_structured_buckets -- covers AC-01.8 -- status: green
+- AT-01.1 `tests/unit/intent_todo.bats` -- covers AC-01.1, AC-01.3 -- status: green
+- AT-01.2 `tests/unit/intent_todo.bats` -- covers AC-01.2 -- status: green
+- AT-01.3 `tests/unit/intent_todo.bats` -- covers AC-01.3 -- status: green
+- AT-01.4 `tests/unit/intent_todo.bats` -- covers AC-01.4 -- status: green
+- AT-01.5 `tests/unit/intent_todo.bats` -- covers AC-01.5 -- status: green
+- AT-01.6 `tests/unit/intent_todo.bats` -- covers AC-01.6 -- status: green
+- AT-01.7 `tests/unit/intent_todo.bats` -- covers AC-01.7 -- status: green
+- AT-01.8 `tests/unit/intent_todo.bats` -- covers AC-01.8 -- status: green
 - Coverage: all WP-01 ACs covered.
 
 ### WP-02
 
-- AT-02.1 tests/unit/intent_todo.bats::done_wraps_st_wp_and_regenerates -- covers AC-02.1 -- status: green
-- AT-02.2 tests/unit/intent_todo.bats::done_inherits_close_gate_on_blocked -- covers AC-02.2 -- status: green
-- AT-02.3 tests/unit/intent_todo.bats::notdone_reopens_to_wip -- covers AC-02.3 -- status: green
-- AT-02.4 tests/unit/intent_todo.bats::toggle_flips_from_current_status -- covers AC-02.4 -- status: green
+- AT-02.1 `tests/unit/intent_todo.bats` -- covers AC-02.1 -- status: green
+- AT-02.2 `tests/unit/intent_todo.bats` -- covers AC-02.2 -- status: green
+- AT-02.3 `tests/unit/intent_todo.bats` -- covers AC-02.3 -- status: green
+- AT-02.4 `tests/unit/intent_todo.bats` -- covers AC-02.4 -- status: green
 - Coverage: AC-02.1..02.4 covered; AC-02.5 is non-test (Highlander review).
 
 ### WP-03
 
-- AT-03.1 tests/unit/intent_todo.bats::todo_registered_in_help_and_usage -- covers AC-03.1 -- status: green
-- AT-03.2 tests/unit/intent_todo.bats::dispatches_via_default_fallthrough -- covers AC-03.2 -- status: green
+- AT-03.1 `tests/unit/intent_todo.bats` -- covers AC-03.1 -- status: green
+- AT-03.2 `tests/unit/intent_todo.bats` -- covers AC-03.2 -- status: green
 - Coverage: AC-03.1 + AC-03.2 covered (guards -- the CLI integration is the existing auto-discovery + fall-through architecture).
 
 ### WP-04
 
-- AT-04.1 tests/unit/intent_todo.bats (the file as a whole -- the harness proving the ACs above) -- covers AC-04.1 -- status: green
+- AT-04.1 `tests/unit/intent_todo.bats` -- covers AC-04.1 -- status: green -- the file as a whole: the harness proving the ACs above
 - Coverage: AC-04.1 is the green-suite rollup of the ATs above.
 
 ### WP-05
@@ -104,8 +104,8 @@ None -- WP-distributed.
 
 ### WP-06
 
-- AT-06.1 tests/unit/intent_todo.bats::st_done_stamps_iso_completed -- covers AC-06.1 -- status: green
-- AT-06.2 tests/unit/intent_todo.bats::done_bucket_watermarked_and_membership -- covers AC-06.2, AC-06.3 -- status: green
-- AT-06.3 tests/unit/intent_todo.bats::flush_advances_watermark_empties_done -- covers AC-06.4 -- status: green
-- AT-06.4 tests/unit/intent_todo.bats::prune_emits_then_flushes -- covers AC-06.5 -- status: green
+- AT-06.1 `tests/unit/intent_todo.bats` -- covers AC-06.1 -- status: green
+- AT-06.2 `tests/unit/intent_todo.bats` -- covers AC-06.2, AC-06.3 -- status: green
+- AT-06.3 `tests/unit/intent_todo.bats` -- covers AC-06.4 -- status: green
+- AT-06.4 `tests/unit/intent_todo.bats` -- covers AC-06.5 -- status: green
 - Coverage: all WP-06 ACs covered.

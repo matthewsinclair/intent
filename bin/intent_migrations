@@ -245,3 +245,70 @@ step_lang_packs_verify() {
   local root=${1:-.}
   (cd "$root" && "$INTENT_BIN/intent" lang sync --check >/dev/null 2>&1)
 }
+
+# --- at_grammar: migrate AT rows to the anchored grammar ------------------
+#
+# The AT row gained an enforced grammar in v2.19.0 (issue 0017), and the
+# close-gate honours it from the day it ships. An estate written against the old
+# free-form convention would therefore start BLOCKING at its next close with no
+# route forward except hand-editing every row -- 314 of them on the reporting
+# project, 116 in this repo -- so the mechanical half of that migration runs at
+# upgrade rather than being left as an exercise. Reach-on-upgrade is the v2.18.0
+# lesson: a correction that a consumer has to know the right command to receive
+# does not reach the fleet.
+#
+# `run` NEVER fails the upgrade on residue. --fix deliberately migrates only
+# what is unambiguous, and the rows it leaves need a human (a test path that was
+# never written down, prose fused to a coverage id, an id back-reference to add
+# to a test file). Aborting the upgrade over those would hold the whole project
+# hostage to a contract's editorial state; the step reports them by name and
+# moves on.
+#
+# `verify` therefore asserts what the step actually promises -- that the
+# MECHANICAL migration has been applied -- by re-running the sweep and requiring
+# it to rewrite nothing. --fix is idempotent (a conforming row is never
+# touched), so the second pass is a no-op rewrite of identical bytes.
+step_at_grammar_needs() {
+  local root=${1:-.} st
+  [ -d "$root/intent/st" ] || return 1
+  while IFS= read -r st; do
+    [ -f "$st/acceptance.md" ] || continue
+    (cd "$root" && "$INTENT_BIN/intent" at lint "$(basename "$st")" >/dev/null 2>&1) || return 0
+  done <<EOF
+$(list_st_dirs "$root/intent/st")
+EOF
+  return 1
+}
+
+step_at_grammar_run() {
+  local root=${1:-.} st id residue=""
+  while IFS= read -r st; do
+    [ -f "$st/acceptance.md" ] || continue
+    id="$(basename "$st")"
+    (cd "$root" && "$INTENT_BIN/intent" at lint "$id" --fix >/dev/null 2>&1)
+    (cd "$root" && "$INTENT_BIN/intent" at lint "$id" >/dev/null 2>&1) || residue="$residue $id"
+  done <<EOF
+$(list_st_dirs "$root/intent/st")
+EOF
+  if [ -n "$residue" ]; then
+    echo "  note: AT rows migrated to the v2.19.0 grammar; these threads still carry rows needing a human:" >&2
+    echo "       ${residue# }" >&2
+    echo "       run 'intent at lint <ID>' on each -- every finding names the edit it wants." >&2
+  fi
+  return 0
+}
+
+step_at_grammar_verify() {
+  local root=${1:-.} st out
+  while IFS= read -r st; do
+    [ -f "$st/acceptance.md" ] || continue
+    out="$(cd "$root" && "$INTENT_BIN/intent" at lint "$(basename "$st")" --fix 2>/dev/null | grep '^fix:')"
+    case "$out" in
+      "fix: 0 AT row(s) rewritten"*) ;;
+      *) return 1 ;;
+    esac
+  done <<EOF
+$(list_st_dirs "$root/intent/st")
+EOF
+  return 0
+}

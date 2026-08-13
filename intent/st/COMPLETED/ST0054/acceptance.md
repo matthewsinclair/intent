@@ -43,15 +43,15 @@ none -- WP-distributed. This is a documentation-and-template ST; every AC is non
 
 ### WP-01
 
-- AT-01.1 (doc) read the rewritten interop section against the v1.x model in design.md -- covers AC-01.1, AC-01.2, AC-01.3 -- status: n/a (doc / eyeball)
+- AT-01.1 (non-test) read the rewritten interop section against the v1.x model in design.md -- covers AC-01.1, AC-01.2, AC-01.3 -- status: n/a -- doc / eyeball
 - Coverage: all WP-01 ACs are non-test (doc); evidence on each AC line.
 
 ### WP-02
 
-- AT-02.1 (doc) read `/in-standards` Step 3 -- covers AC-02.1 -- status: n/a (doc / eyeball)
+- AT-02.1 (non-test) read `/in-standards` Step 3 -- covers AC-02.1 -- status: n/a -- doc / eyeball
 - Coverage: AC-02.1 non-test (doc).
 
 ### WP-03
 
-- AT-03.1 (doc) read the `_usage-rules.md` template -- covers AC-03.1, AC-03.2 -- status: n/a (doc / eyeball)
+- AT-03.1 (non-test) read the `_usage-rules.md` template -- covers AC-03.1, AC-03.2 -- status: n/a -- doc / eyeball
 - Coverage: all WP-03 ACs non-test (doc).

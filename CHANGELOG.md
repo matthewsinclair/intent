@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.19.0] - in progress
+
+### Added
+
+- **The AT row has a grammar, and `intent at lint` enforces it (issue 0017, with 0014 + 0015).** An acceptance test row asserts _this named test, in this named file, proves these named criteria, and here is its state_ -- and until now three of those four were recovered from free-form markdown by independent single-shot regexes. The reference was the weakest: it was defined as _whatever sits inside the first pair of backticks_, so it was not required to be a path, to contain a directory, to exist, or to be present at all. No row could ever be malformed, only partially recovered, silently, one field at a time. On the reporting estate that produced five mutually incompatible reference forms across 314 rows and two live green ATs citing Tailwind utility classes as their test files, with no diagnostic anywhere.
+
+  The row is now one anchored pattern with two arms -- a test arm requiring a backticked repo-relative path, and a non-test arm (`(non-test)` + prose + `status: n/a`) for the doc / eyeball / gate rows the status vocabulary has always declared. Every field reader is one line over that pattern, so a non-conforming row yields NO field rather than a plausible wrong one. `intent at lint <ID>` reports five checks: **L1** the row matches the grammar, **L2** a `green`/`red` row's cited file exists (`to-write` exempt -- a missing file is the correct state for a test not yet written), **L3** the cited file contains the literal AT id, **L4** every covered id is a real AC row, **L5** a non-test AT is not the sole cover for a test-backed AC (it can never satisfy one, because `n/a` is never green). `intent at lint <ID> --fix` migrates the mechanical half.
+
+  **The one substantive change is that the row links by id rather than by test name.** A cited name is unverifiable -- paraphrase defeats every string match, and it is why the reference grew three competing shapes -- while an id is checkable from both ends: the row names the file, the file names the row, and `rg AT-03.2` finds both. Name the test by putting the AT id inside it.
+
+### Fixed
+
+- **`intent ac gate` no longer counts a green AT whose cited test file does not exist (issue 0015).** The citation was parsed and used in exactly one place: printing it. Nothing resolved it, so a test that was renamed, moved or deleted left its AT green forever and the gate kept counting it as coverage -- reporting a thread closer to done than it was, on the strength of a test that cannot be run. It is a false-green, so it survived by making the gate _more_ permissive as citations rotted. Now L2 blocks it, and `intent at red|green` refuse a dangling citation at the moment it goes load-bearing rather than at the next gate. Found in this repo's own estate on the first sweep: ST0052 AT-03.1 was `green` citing `tests/unit/critic_author.bats`, a deck renamed to `critic_prose.bats` in ST0053 with the citation left behind.
+- **AT coverage ids no longer drop silently (issue 0014).** Punctuation fused to an id (`AC-09.1's`, `AC-04.3:`) matched nothing and the link vanished, rendering identically to never having written the AT -- so the contract reported work uncovered that was done, tested and green. It surfaced late, as `wp done` refusing to close, which reads as "the work is not finished" rather than "the line is phrased wrongly". Both are now grammar failures, and the diagnostic quotes the ids that _did_ resolve beside the text that did not -- because a silent parse failure does not merely lose data, it teaches the reader a false rule.
+
+### Changed
+
+- **The close-gate honours the AT grammar from the day it ships.** An estate written against the old free-form convention will gate BLOCKED until it is swept, and that is the fix working: every row named was already contributing no coverage, silently. A new `at_grammar` ledger step runs the mechanical migration during `intent upgrade`, so a consumer is swept by upgrading rather than by knowing the command; rows needing a human are reported by name and never guessed at. This repo's own 116 rows were migrated the same way -- 103 mechanically, 13 by hand.
+- **`lib/templates/prj/st/ST####/acceptance.md` states the grammar and no longer teaches retired forms.** The template taught `[test path::name]` and a bare parenthetical note after the status; both are now rejected, which is precisely how they entered the estate. Two holes found by running the proposed grammar against real rows rather than reading it.
+
+### Internal
+
+- `list_st_dirs` (THE steel-thread enumerator) added to `bin/intent_helpers` and registered in `intent/llm/MODULES.md`.
+- The `extract_field` seam takes an explicit capture-group argument and uses `@` as its `s///` delimiter: the AT grammar carries a literal `/` and `n/a`, either of which closes an `s/.../.../` early. A guard asserts no grammar pattern contains an `@`.
+
 ## [2.18.0] - 2026-07-30
 
 Minor release completing the reach of the v2.17.4 fixes. `intent upgrade` now converges the tool-managed Language Packs block, so a consumer picks up a generator correction by upgrading rather than by knowing which command to re-run by hand. It is a minor, not a patch, because it adds a new subcommand and because `intent upgrade` now writes a file it previously left alone on every consumer.

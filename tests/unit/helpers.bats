@@ -129,3 +129,40 @@ stampv() {
   run jq -r 'has("version")' "$cfg"
   assert_output "false"
 }
+
+# ---- list_st_dirs: THE steel-thread enumerator (issue 0011) ---------------
+
+@test "list_st_dirs enumerates the canonical locations and nothing else" {
+  local base="${BATS_TEST_TMPDIR}/st"
+  mkdir -p "$base/ST0001" "$base/COMPLETED/ST0002" "$base/NOT-STARTED/ST0003" "$base/CANCELLED/ST0004"
+  for d in "$base/ST0001" "$base/COMPLETED/ST0002" "$base/NOT-STARTED/ST0003" "$base/CANCELLED/ST0004"; do
+    touch "$d/info.md"
+  done
+
+  run bash -c "source '${INTENT_HOME}/bin/intent_helpers'; list_st_dirs '$base' | wc -l | tr -d ' '"
+  assert_output "4"
+}
+
+@test "list_st_dirs ignores a staging area under intent/st however it is named" {
+  local base="${BATS_TEST_TMPDIR}/st"
+  mkdir -p "$base/ST0001" "$base/_inbox/ST0001" "$base/triage/deep/ST0002"
+  touch "$base/ST0001/info.md" "$base/_inbox/ST0001/info.md" "$base/triage/deep/ST0002/info.md"
+
+  # The unbounded `find` this replaces returned all three, so a staging area
+  # holding COPIES silently became duplicate live threads -- in a namespace
+  # whose one guarantee is that an id names one thread.
+  run bash -c "source '${INTENT_HOME}/bin/intent_helpers'; list_st_dirs '$base'"
+  assert_success
+  assert_output_contains "/ST0001"
+  refute_output_contains "_inbox"
+  refute_output_contains "triage"
+}
+
+@test "list_st_dirs requires info.md, so a bare directory is not a thread" {
+  local base="${BATS_TEST_TMPDIR}/st"
+  mkdir -p "$base/ST0001" "$base/ST0002"
+  touch "$base/ST0001/info.md"
+
+  run bash -c "source '${INTENT_HOME}/bin/intent_helpers'; list_st_dirs '$base' | wc -l | tr -d ' '"
+  assert_output "1"
+}

@@ -24,7 +24,7 @@ TARGET_VERSION="$(get_intent_version)"
 # Ordered ledger of structural steps. Each <id> has step_<id>_needs / _run /
 # _verify in bin/intent_migrations. Bash 3.2-friendly: a flat id list dispatched
 # by naming convention (no declare -A).
-LEDGER="relocate_config languages_field lang_packs"
+LEDGER="relocate_config languages_field lang_packs at_grammar"
 
 # Lowest source version this orchestrator migrates. Below it, fail-forward:
 # refuse loudly rather than half-migrate (the below-floor ladder was pruned).

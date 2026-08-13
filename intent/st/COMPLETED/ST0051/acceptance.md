@@ -46,15 +46,15 @@ None -- WP-distributed.
 
 ### WP-01
 
-- AT-01.1 tests/unit/output_width.bats::dft_width_read_from_config -- covers AC-01.1 -- status: green
-- AT-01.2 tests/unit/output_width.bats::dft_width_defaults_to_120 -- covers AC-01.2 -- status: green
+- AT-01.1 `tests/unit/output_width.bats` -- covers AC-01.1 -- status: green
+- AT-01.2 `tests/unit/output_width.bats` -- covers AC-01.2 -- status: green
 - Coverage: AC-01.1 + AC-01.2 covered; AC-01.3 is non-test (Highlander review + guard).
 
 ### WP-02
 
-- AT-02.1 tests/unit/output_width.bats::sync_write_uses_default_width_not_terminal -- covers AC-02.1 -- status: green
-- AT-02.2 tests/unit/output_width.bats::list_uses_terminal_width -- covers AC-02.2 -- status: green
-- AT-02.3 tests/unit/output_width.bats::explicit_width_overrides_both -- covers AC-02.3 -- status: green
+- AT-02.1 `tests/unit/output_width.bats` -- covers AC-02.1 -- status: green
+- AT-02.2 `tests/unit/output_width.bats` -- covers AC-02.2 -- status: green
+- AT-02.3 `tests/unit/output_width.bats` -- covers AC-02.3 -- status: green
 - Coverage: AC-02.1 + AC-02.2 + AC-02.3 covered; AC-02.4 is non-test (eyeball on the committed file).
 
 ### WP-03

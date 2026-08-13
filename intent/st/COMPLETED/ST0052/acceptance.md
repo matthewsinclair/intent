@@ -66,29 +66,29 @@ title: "Author project-type pack -- acceptance contract"
 
 ### WP-01
 
-- AT-01.1 tests/unit/au_language_code_guard.bats -- covers AC-01.1 -- status: green
+- AT-01.1 `tests/unit/au_language_code_guard.bats` -- covers AC-01.1 -- status: green
 - Coverage: AC-01.1 by AT-01.1; AC-01.2 and AC-01.3 are non-test (evidence on the AC line).
 
 ### WP-02
 
-- AT-02.1 tests/unit/rule_pack_author.bats -- covers AC-02.1 -- status: green
+- AT-02.1 `tests/unit/rule_pack_author.bats` -- covers AC-02.1 -- status: green
 - Coverage: AC-02.1 by AT-02.1; AC-02.2, AC-02.3, AC-02.4 are non-test (evidence on the AC line).
 
 ### WP-03
 
-- AT-03.1 tests/unit/critic_author.bats -- covers AC-03.1 -- status: green
+- AT-03.1 `tests/unit/critic_prose.bats` -- covers AC-03.1 -- status: green -- deck renamed critic_author -> critic_prose in ST0053 WP03
 - Coverage: AC-03.1 by AT-03.1; AC-03.2, AC-03.3, AC-03.4 are non-test (evidence on the AC line).
 
 ### WP-04
 
-- AT-04.1 tests/unit/intent_lang.bats -- covers AC-04.1, AC-04.2 -- status: green
+- AT-04.1 `tests/unit/intent_lang.bats` -- covers AC-04.1, AC-04.2 -- status: green
 - Coverage: AC-04.1 and AC-04.2 by AT-04.1 (author cases); AC-04.3 is non-test (evidence on the AC line).
 
 ### WP-05
 
-- AT-05.1 tests/unit/in_author_essentials_skill.bats -- covers AC-05.1 -- status: green
-- AT-05.2 tests/unit/critic_dispatch.bats -- covers AC-05.2 -- status: green
-- AT-05.3 tests/unit/in_session_skill.bats -- covers AC-05.3 -- status: green
+- AT-05.1 `tests/unit/in_author_essentials_skill.bats` -- covers AC-05.1 -- status: green
+- AT-05.2 `tests/unit/critic_dispatch.bats` -- covers AC-05.2 -- status: green
+- AT-05.3 `tests/unit/in_session_skill.bats` -- covers AC-05.3 -- status: green
 - Coverage: AC-05.1 by AT-05.1; AC-05.2 by AT-05.2; AC-05.3 by AT-05.3.
 
 ### WP-06

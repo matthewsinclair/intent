@@ -7,8 +7,11 @@
 #
 # Grammar (model A):
 #   - AC-<gg>.<n> [(non-test)] <prose>[ -- evidence: <ref> -- satisfied: yes|no]
-#   - AT-<gg>.<n> `<path>::<name>` -- covers <ac>[, <ac>...] -- status: <state>[ (note)]
-# <state>: to-write | red | green | n/a. `green` is reachable only from `red`.
+#   - AT-<gg>.<n> `<repo-relative-path>` -- covers <ac>[, <ac>...] -- status: <state>[ -- <note>]
+#   - AT-<gg>.<n> (non-test) <prose> -- covers <ac>[, <ac>...] -- status: n/a[ -- <note>]
+# <state>: to-write | red | green (test rows) | n/a (non-test rows only).
+# The AT row is ANCHORED (issue 0017) -- see THE AT ROW GRAMMAR below. `green`
+# is reachable only from `red`.
 # A non-test AC is satisfied by its inline `satisfied: yes`; a test-backed AC
 # is satisfied (computed) iff a covering AT is green. No `set -e`: the parser
 # helpers return 0/1 as booleans; every real failure routes through error().
@@ -26,7 +29,8 @@ usage() {
   echo "  gate <stid>[/NN]                           Close-gate: exit non-zero + BLOCKED if unsatisfied"
   echo ""
   echo "at commands:"
-  echo "  list <stid>[/NN]                           List ATs (id, path::name, status)"
+  echo "  list <stid>[/NN]                           List ATs (id, reference, status)"
+  echo "  lint <stid>[/NN] [--fix]                   Check AT rows against the grammar (--fix migrates what is mechanical)"
   echo "  red|green|na <stid> <atid>                 Set AT status (green reachable only from red)"
   echo "  done|notdone <stid> <atid>                 Aliases for green | red"
   exit 1
@@ -54,23 +58,118 @@ usage() {
 # empty string on failure -- which compares false against every real token --
 # and the diagnostic comes from warn_bad_fields, so a parse failure is now both
 # harmless and audible instead of silent and wrong.
+#
+# The s/// delimiter is `@`, not `/`: the AT grammar below carries a literal `/`
+# (the path separator the reference is required to contain) and `n/a` in its
+# status vocabulary, either of which closes an s/.../.../ early and turns the
+# seam into a sed syntax error. No pattern in this file contains `@`, and
+# acceptance_grammar_guard.bats asserts that, so the delimiter cannot be
+# reintroduced as a bug by the next pattern someone adds.
 extract_field() {
-  local line="$1" pattern="$2"
+  local line="$1" pattern="$2" group="${3:-1}"
   printf '%s\n' "$line" | grep -qE "$pattern" || return 1
-  printf '%s\n' "$line" | sed -E "s/$pattern/\1/"
+  printf '%s\n' "$line" | sed -E "s@$pattern@\\$group@"
 }
 
 line_id()       { extract_field "$1" '^- ([A-Z]+-[0-9]+\.[0-9]+).*'; }
 id_group()      { extract_field "$1" '^[A-Z]+-([0-9]+)\..*'; }
-at_pathname()   { extract_field "$1" '^[^`]*`([^`]*)`.*'; }
-at_status()     { extract_field "$1" '.* -- status: ([a-z/-]+).*'; }
-at_covers()     { extract_field "$1" '.* -- covers (.*) -- status:.*' | tr ',' ' '; }
 ac_flag()       { extract_field "$1" '.* -- satisfied: ([a-z]+).*'; }
 ac_is_nontest() { case "$1" in *"(non-test)"*) return 0 ;; *) return 1 ;; esac; }
+
+# ---- THE AT ROW GRAMMAR (issue 0017) -------------------------------------
+#
+# One anchored pattern per arm, and every AT field is a capture group of it.
+# Before this, the row had no grammar at all: each field was recovered by its
+# own single-shot regex over free prose, so no row could ever be MALFORMED --
+# only partially recovered, silently, one field at a time. `at_pathname` was
+# "whatever sits inside the first pair of backticks", which returned CSS class
+# names, DOM attributes and empty strings as test paths, all of them green, with
+# no diagnostic anywhere (there was no bad_pathname_lines beside the status and
+# marker checks). Measured on the reporting estate: 314 rows, 5 mutually
+# incompatible reference forms, and 2 live green ATs citing Tailwind utility
+# classes as their test file.
+#
+# TWO arms, because the status vocabulary already declares two kinds of row and
+# a one-armed grammar cannot express the second:
+#
+#   test arm      - AT-n.n `<repo-relative-path>` -- covers <ACs> -- status: to-write|red|green[ -- note]
+#   non-test arm  - AT-n.n (non-test) <prose> -- covers <ACs> -- status: n/a[ -- note]
+#
+# `n/a` is documented in every contract preamble as "non-test: doc / eyeball /
+# gate" -- a row that by definition has no test file. A single arm requiring a
+# path on every row would have made every doc-check row a permanent grammar
+# failure with no legal form to migrate to (3 such rows in this repo alone), so
+# the biconditional is enforced instead: n/a IFF non-test arm. The `(non-test)`
+# marker is the same token the AC row already uses for the same meaning.
+#
+# The path group requires at least one `/` and excludes `:`. The `/` makes a
+# bare filename a GRAMMAR error rather than something a later existence check
+# has to guess at; excluding `:` makes the retired `path::name` form a clean
+# reject with a targeted message, instead of a path that passes the grammar and
+# then fails L2 as a dangling file. Both were holes found by running the arms
+# against real rows: the tool's own doc comment and shipped template taught
+# `path::name`, and the template also taught a bare parenthetical note after the
+# status, which is why the note is now delimited by ` -- ` and nothing else.
+#
+# Group numbers ALIGN across both arms (1 id, 2 reference, 3 covers, 5 status,
+# 6 note) so one accessor serves both. Every reader below is one line over that
+# accessor: a row that fails the grammar yields NOTHING from every field, which
+# is what makes the failure total and visible instead of partial and silent.
+BT='`'
+AT_G_ID='AT-[0-9]+\.[0-9]+'
+AT_G_PATH='[^`:]*/[^`:]+'
+AT_G_COVERS='AC-[0-9]+\.[0-9]+(, AC-[0-9]+\.[0-9]+)*'
+AT_G_NOTE='( -- .*)?'
+AT_GRAMMAR_TEST="^- ($AT_G_ID) ${BT}($AT_G_PATH)${BT} -- covers ($AT_G_COVERS) -- status: (to-write|red|green)$AT_G_NOTE\$"
+AT_GRAMMAR_NONTEST="^- ($AT_G_ID) \(non-test\) (.*) -- covers ($AT_G_COVERS) -- status: (n/a)$AT_G_NOTE\$"
+
+# Which arm a row conforms to: "test", "nontest", or non-zero for neither.
+at_row_arm() {
+  if printf '%s\n' "$1" | grep -qE "$AT_GRAMMAR_TEST"; then
+    echo "test"
+  elif printf '%s\n' "$1" | grep -qE "$AT_GRAMMAR_NONTEST"; then
+    echo "nontest"
+  else
+    return 1
+  fi
+}
+
+# Capture group <2> of whichever arm the row matches. Returns 1 (and prints
+# nothing) for a row that matches neither -- the grammar is the gate.
+at_field() {
+  local line="$1" group="$2"
+  if printf '%s\n' "$line" | grep -qE "$AT_GRAMMAR_TEST"; then
+    extract_field "$line" "$AT_GRAMMAR_TEST" "$group"
+  elif printf '%s\n' "$line" | grep -qE "$AT_GRAMMAR_NONTEST"; then
+    extract_field "$line" "$AT_GRAMMAR_NONTEST" "$group"
+  else
+    return 1
+  fi
+}
+
+at_pathname()       { at_field "$1" 2; }
+at_status()         { at_field "$1" 5; }
+at_covers()         { at_field "$1" 3 | tr ',' ' '; }
+at_is_nontest_row() { [ "$(at_row_arm "$1" 2>/dev/null)" = "nontest" ]; }
+
+# DIAGNOSTIC-ONLY loose readers. These deliberately parse what the grammar
+# rejects, so the linter can say WHICH field is wrong and what it currently
+# reads. They are never used to decide anything -- only to describe a row that
+# has already failed. (Same strict-reader/loose-describer split the AC side
+# already uses: ac_is_nontest matches the exact literal, bad_marker_lines finds
+# the near-misses.) Keeping them apart is what stops a lenient describer from
+# quietly becoming the parser again.
+at_status_loose()  { extract_field "$1" '.* -- status: ([^ ]+).*'; }
+at_covers_loose()  { extract_field "$1" '.* -- covers (.*) -- status:.*'; }
+at_ref_loose()     { extract_field "$1" '^- AT-[0-9]+\.[0-9]+ (.*) -- covers .*'; }
 
 # The declared AT status vocabulary. Named once: the gate compares against it,
 # the diagnostic quotes it, and acceptance.md's own preamble states it.
 AT_STATUS_VOCAB="to-write | red | green | n/a"
+
+at_status_in_vocab() {
+  case "$1" in to-write|red|green|n/a) return 0 ;; *) return 1 ;; esac
+}
 
 # ---- whole-file selectors ------------------------------------------------
 
@@ -88,22 +187,6 @@ acceptance_field() { grep -m1 -E '^acceptance:' "$1" 2>/dev/null | sed -E 's/^ac
 # exact failure that let a half-authored contract read as PASS. No Silent Errors.
 malformed_acat() {
   grep -nE '^- A[CT]-' "$1" 2>/dev/null | grep -vE ':- A[CT]-[0-9]+\.[0-9]+ ' || true
-}
-
-# AT lines whose ` -- status:` value is absent or outside AT_STATUS_VOCAB.
-# Emits "<atid> <value>" per offender.
-bad_status_lines() {
-  local line st
-  while IFS= read -r line; do
-    [ -z "$line" ] && continue
-    st="$(at_status "$line")"
-    case "$st" in
-      to-write|red|green|n/a) continue ;;
-    esac
-    printf '%s %s\n' "$(line_id "$line")" "${st:-<unparseable>}"
-  done <<EOF
-$(at_lines "$1")
-EOF
 }
 
 # AC lines carrying an unclosed `(non-test` marker. ac_is_nontest matches the
@@ -124,25 +207,22 @@ $(ac_lines "$1")
 EOF
 }
 
-# Warn (stderr) for fields the parser cannot read. ALWAYS returns 0: unlike a
+# Warn (stderr) for AC fields the parser cannot read. ALWAYS returns 0: unlike a
 # malformed id -- which vanishes from the count and lets the gate go vacuous --
-# these UNDER-report. An unreadable status leaves its AC unsatisfied and an
-# unclosed marker leaves its AC uncredited, so the gate already fails closed and
-# needs no new block. What it needed was a voice: both defects were invisible to
-# every existing guard (warn_malformed checks only the id grammar, `st repair`
-# reports the thread clean, and the rows read fine to a human), so the only
-# symptom was a gate that would not move and would not say why (issues 0006 + 0007).
+# these UNDER-report. An unclosed marker leaves its AC uncredited, so the gate
+# already fails closed and needs no new block. What it needed was a voice: the
+# defect was invisible to every existing guard (warn_malformed checks only the
+# id grammar, `st repair` reports the thread clean, and the row reads fine to a
+# human), so the only symptom was a gate that would not move and would not say
+# why (issue 0006).
+#
+# The AT-status arm that used to live here has moved into the linter (issue
+# 0017), where it is one classification among several rather than a check
+# standing on its own. A bad status is now also a grammar failure, and reporting
+# it twice from two places was the noise that made the linter's own voice hard
+# to read: one defect, one line, one owner.
 warn_bad_fields() {
   local acc="$1" bad line
-  bad="$(bad_status_lines "$acc")"
-  if [ -n "$bad" ]; then
-    warning "unreadable AT status in $acc -- vocabulary is $AT_STATUS_VOCAB (markdown emphasis around the value is NOT parsed); these ATs cannot satisfy their ACs:"
-    while IFS= read -r line; do
-      [ -n "$line" ] && warning "  $line"
-    done <<EOF
-$bad
-EOF
-  fi
   bad="$(bad_marker_lines "$acc")"
   if [ -n "$bad" ]; then
     warning "unclosed non-test marker in $acc -- the marker must read exactly '(non-test)'; these ACs are being treated as test-backed and need a covering green AT:"
@@ -269,6 +349,283 @@ EOF
   return 1
 }
 
+# ---- the linter (issue 0017: L1-L5) --------------------------------------
+
+# WHY a row failed the grammar, in the author's own terms. A bare "does not
+# match" is useless on a format that drifted five ways in one estate: the whole
+# point of the grammar is that the row is now rejectable, and the whole point of
+# this function is that the rejection names the edit. Ordered most-specific
+# first, so the row is diagnosed by its actual defect rather than by whichever
+# check happens to run first.
+at_row_defect() {
+  local line="$1" ref st covers seen inner
+  st="$(at_status_loose "$line")"
+  covers="$(at_covers_loose "$line")"
+  ref="$(at_ref_loose "$line")"
+
+  case "$line" in
+    *" -- covers "*) ;;
+    *) echo "no ' -- covers <AC-id>' clause -- the row links to no criterion at all"; return 0 ;;
+  esac
+  case "$line" in
+    *" -- status: "*) ;;
+    *) echo "no ' -- status:' field -- vocabulary is $AT_STATUS_VOCAB"; return 0 ;;
+  esac
+
+  if ! at_status_in_vocab "$st"; then
+    echo "unreadable AT status: '${st:-<absent>}' -- vocabulary is $AT_STATUS_VOCAB (markdown emphasis around the value is NOT parsed)"
+    return 0
+  fi
+
+  # The 0014 case. Name what DID resolve next to what did not: the failure that
+  # taught a reader the wrong rule ("an AT covers exactly one AC") did so by
+  # showing a coverage number with no account of the text it ignored.
+  if ! printf '%s\n' "$covers" | grep -qE "^$AT_G_COVERS\$"; then
+    seen="$(printf '%s\n' "$covers" | grep -oE 'AC-[0-9]+\.[0-9]+' | tr '\n' ' ' | sed 's@ *$@@')"
+    echo "coverage clause does not parse: '$covers' -- ids seen: ${seen:-none}. Multi-AC coverage is comma-separated and nothing may be fused to an id: 'covers AC-01.1, AC-01.2' (no 'and', no trailing ':' or possessive)"
+    return 0
+  fi
+
+  if [ "$st" = "n/a" ]; then
+    case "$line" in
+      *"(non-test)"*) ;;
+      *) echo "status n/a is the NON-TEST status (doc / eyeball / gate) -- mark the row '(non-test)' immediately after the id, or give it a real test status ($AT_STATUS_VOCAB)"; return 0 ;;
+    esac
+  else
+    case "$line" in
+      *"(non-test)"*) echo "a (non-test) row must carry 'status: n/a', not '$st'"; return 0 ;;
+    esac
+  fi
+
+  # A note that is not delimited by ' -- '. Checked before the reference,
+  # because the tool's OWN template taught this form (`status: to-write
+  # (red-first)`) and a row carrying it is otherwise perfectly well written --
+  # blaming its reference would send the author to the wrong end of the line.
+  if printf '%s\n' "$line" | grep -qE " -- status: (to-write|red|green|n/a) [^-]"; then
+    echo "the trailing note must be delimited by ' -- ' -- write 'status: $st -- <note>', not 'status: $st (<note>)'"
+    return 0
+  fi
+
+  [ -n "$ref" ] || { echo "no reference between the id and ' -- covers'"; return 0; }
+
+  # The retired path::name form, backticked or not. Checked ahead of the
+  # backtick rule because it is the single most common real-world shape (86 of
+  # the 116 rows in this repo), and "add backticks" is the wrong instruction
+  # for it: the name has to come out, not get quoted.
+  case "$ref" in
+    *::*)
+      inner="${ref#\`}"
+      inner="${inner%%::*}"
+      echo "the 'path::name' form is retired -- cite the FILE only (\`$inner\`) and name the id '$(line_id "$line")' inside the test itself, which is checkable from both ends"
+      return 0
+      ;;
+  esac
+
+  if ! printf '%s\n' "$ref" | grep -qE "^${BT}[^${BT}]*${BT}\$"; then
+    echo "the reference must be ONE backticked repo-relative path and nothing else -- a test NAME does not belong here (name the id inside the test instead) -- currently: $ref"
+    return 0
+  fi
+  inner="${ref#\`}"
+  inner="${inner%\`}"
+  case "$inner" in
+    *:*) echo "the reference is not a repo-relative path (it contains ':'): '$inner' -- this field is the test FILE, not a selector, a class name or a label"; return 0 ;;
+  esac
+  case "$inner" in
+    */*) ;;
+    *) echo "bare filename '$inner' -- cite a repo-relative path (a bare name cannot be resolved, and every reader has to guess which file is meant)"; return 0 ;;
+  esac
+  echo "does not match the AT row grammar"
+}
+
+# L2/L3/L4 for a row that already passed L1. One finding per line, "<check>
+# <id> <text>", empty when the row is clean.
+at_row_findings() {
+  local line="$1" acc="$2" root="$3" completed="$4" id st ref c acline out=""
+  id="$(line_id "$line")"
+  st="$(at_status "$line")"
+  ref="$(at_pathname "$line")"
+  if ! at_is_nontest_row "$line"; then
+    case "$st" in
+      green|red)
+        # L2 -- the citation is the contract's only link to the tree, and until
+        # now nothing resolved it: a renamed test left its AT green forever and
+        # the gate counted it as coverage (issue 0015). `to-write` is exempt
+        # because a missing file is the CORRECT state for a test not yet
+        # written -- a naive existence check reds five correct rows.
+        if [ ! -f "$root/$ref" ]; then
+          out="${out}L2 $id the cited test file does not exist: $ref
+"
+        elif [ "$completed" != "yes" ] && ! grep -qF "$id" "$root/$ref"; then
+          # L3 -- the back-reference. A cited test NAME is unverifiable (every
+          # string match drowns in paraphrase); the id is checkable from both
+          # ends, and a deck that cannot carry a claim does not carry its id
+          # either. Completed threads are exempt: retrofitting id labels into
+          # closed threads' tests is archaeology.
+          out="${out}L3 $id the cited file does not carry the literal id '$id': $ref
+"
+        fi
+        ;;
+    esac
+  fi
+  for c in $(at_covers "$line"); do
+    acline="$(find_line "$c" "$acc")"
+    if [ -z "$acline" ]; then
+      out="${out}L4 $id covers $c, which is not an AC row in this contract
+"
+      continue
+    fi
+    # L5 -- the trap the non-test arm would otherwise bless. Satisfaction for a
+    # doc / eyeball criterion is carried by the AC's own `(non-test)` marker and
+    # evidence; the non-test AT row RECORDS the check, it does not perform it.
+    # A non-test AT is n/a by definition and n/a is never green, so a
+    # test-backed AC covered only by one can never be satisfied -- an
+    # unclosable contract whose only symptom is a gate that will not move.
+    if at_is_nontest_row "$line" && ! ac_is_nontest "$acline"; then
+      out="${out}L5 $id is a (non-test) AT covering $c, which is test-backed -- a non-test AT is never green, so it can never satisfy it. Mark $c '(non-test)' and satisfy it by evidence ('intent ac satisfy'), or cover it with a real test.
+"
+    fi
+  done
+  printf '%s' "$out"
+}
+
+# Lint every AT row in <acc>. <stream> is `out` (the `at lint` command) or `err`
+# (readers and the gate, where findings are warnings beside the output).
+# Sets AT_LINT_ROWS / AT_LINT_FAILS as globals -- a command substitution here
+# would run in a subshell and lose every count, the same trap resolve_target
+# documents. Returns 1 if anything failed.
+at_lint_report() {
+  local acc="$1" completed="$2" stream="$3" line id defect findings f root
+  root="$(find_project_root 2>/dev/null)" || root="$(pwd)"
+  [ -n "$root" ] || root="$(pwd)"
+  AT_LINT_ROWS=0
+  AT_LINT_FAILS=0
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    AT_LINT_ROWS=$((AT_LINT_ROWS + 1))
+    id="$(line_id "$line")"
+    if ! at_row_arm "$line" >/dev/null 2>&1; then
+      defect="$(at_row_defect "$line")"
+      at_lint_emit "$stream" "L1 $id -- $defect"
+      AT_LINT_FAILS=$((AT_LINT_FAILS + 1))
+      continue
+    fi
+    findings="$(at_row_findings "$line" "$acc" "$root" "$completed")"
+    [ -z "$findings" ] && continue
+    while IFS= read -r f; do
+      [ -z "$f" ] && continue
+      at_lint_emit "$stream" "$f"
+      AT_LINT_FAILS=$((AT_LINT_FAILS + 1))
+    done <<EOF
+$findings
+EOF
+  done <<EOF
+$(at_lines "$acc")
+EOF
+  [ "$AT_LINT_FAILS" -eq 0 ]
+}
+
+at_lint_emit() {
+  case "$1" in
+    out) echo "lint: $2" ;;
+    *)   warning "lint: $2" ;;
+  esac
+}
+
+# Is the resolved target a completed thread? L3 is waived for those.
+target_is_completed() {
+  case "$TARGET_DIR" in *"/COMPLETED/"*) return 0 ;; *) return 1 ;; esac
+}
+
+# The one basename match under the repo, or non-zero when it is absent or
+# ambiguous. Bare filenames were 8 of 179 rows on the reporting estate and every
+# one of them resolved to exactly one real file -- which is what makes this
+# mechanical rather than a guess. When it is NOT unique the row is reported for
+# a hand fix, never resolved by picking one.
+at_expand_basename() {
+  local root="$1" base="$2" hits n
+  hits="$(cd "$root" 2>/dev/null && find . -type f -name "$base" \
+    -not -path '*/.git/*' -not -path '*/.backup/*' -not -path '*/node_modules/*' \
+    -not -path '*/_build/*' -not -path '*/deps/*' 2>/dev/null | sed 's@^\./@@')"
+  n="$(printf '%s\n' "$hits" | grep -c . || true)"
+  [ "$n" -eq 1 ] || return 1
+  printf '%s\n' "$hits"
+}
+
+# The mechanical half of the migration. Rewrites ONLY column-0 AT rows that fail
+# the grammar, and only the transformations that are unambiguous; everything
+# requiring judgement (an id back-reference to add, a prose fragment fused to a
+# coverage id, a test path that was never written down) is left alone and
+# reported by the linter afterwards. A migrator that guessed would launder
+# exactly the drift the grammar exists to stop.
+at_fix_line() {
+  local line="$1" root="$2" new="$line" ref inner base expanded
+  # A (doc) marker is the same intent as (non-test), spelled by hand before the
+  # AT row had a non-test arm to spell it in.
+  new="$(printf '%s\n' "$new" | sed -E "s@^(- $AT_G_ID) \(doc\) @\1 (non-test) @")"
+  # Emphasis around an otherwise valid status token.
+  new="$(printf '%s\n' "$new" | sed -E 's@( -- status: )[*_]+(to-write|red|green|n/a)[*_]+@\1\2@')"
+  # The template's own parenthetical note becomes the delimited note.
+  new="$(printf '%s\n' "$new" | sed -E 's@( -- status: (to-write|red|green|n/a)) \((.*)\)$@\1 -- \3@')"
+  # Separator words between two coverage ids.
+  new="$(printf '%s\n' "$new" | sed -E 's@(AC-[0-9]+\.[0-9]+) (and|&) (AC-[0-9]+\.[0-9]+)@\1, \3@g')"
+  # The reference: strip the retired name suffixes, then backtick a real path.
+  ref="$(at_ref_loose "$new")"
+  if [ -n "$ref" ]; then
+    inner="$ref"
+    case "$inner" in
+      "${BT}"*"${BT}") inner="${inner#\`}"; inner="${inner%\`}" ;;
+    esac
+    inner="$(printf '%s\n' "$inner" | sed -E 's@ \(".*"\)$@@; s@ ".*"$@@; s@::.*$@@')"
+    case "$inner" in
+      */*) ;;
+      *)
+        if expanded="$(at_expand_basename "$root" "$inner")"; then
+          inner="$expanded"
+        fi
+        ;;
+    esac
+    # Only rewrite when the result is a plausible path: never invent one out of
+    # prose, and never touch a non-test row's free text. The comparison is
+    # against the CANONICAL form, not the raw reference: comparing to the raw
+    # text skipped the single most common migration in the estate -- a correct
+    # repo-relative path that simply is not backticked, where nothing is
+    # stripped and so nothing looked like it had changed.
+    if printf '%s\n' "$inner" | grep -qE "^$AT_G_PATH\$" && [ "${BT}${inner}${BT}" != "$ref" ]; then
+      new="$(printf '%s\n' "$new" | sed -E "s@^(- $AT_G_ID) .* -- covers @\1 ${BT}${inner}${BT} -- covers @")"
+    fi
+  fi
+  printf '%s\n' "$new"
+}
+
+# Apply at_fix_line across a contract. Linter-stable: line count is preserved
+# and only failing AT rows are touched.
+at_lint_fix() {
+  local acc="$1" root tmp line fixed changed=0
+  root="$(find_project_root 2>/dev/null)" || root="$(pwd)"
+  [ -n "$root" ] || root="$(pwd)"
+  tmp="$(mktemp "${TMPDIR:-/tmp}/intent_atfix.XXXXXX")" || error "cannot create temp file"
+  while IFS= read -r line; do
+    case "$line" in
+      "- AT-"*)
+        if at_row_arm "$line" >/dev/null 2>&1; then
+          printf '%s\n' "$line" >> "$tmp"
+        else
+          fixed="$(at_fix_line "$line" "$root")"
+          printf '%s\n' "$fixed" >> "$tmp"
+          [ "$fixed" != "$line" ] && changed=$((changed + 1))
+        fi
+        ;;
+      *) printf '%s\n' "$line" >> "$tmp" ;;
+    esac
+  done < "$acc"
+  if ! cat "$tmp" > "$acc"; then
+    rm -f "$tmp"
+    error "cannot write $acc (check permissions) -- the file was NOT updated"
+  fi
+  rm -f "$tmp"
+  echo "fix: $changed AT row(s) rewritten in $acc"
+}
+
 # ---- in-place edit (linter-stable: rewrites only the matched line) -------
 
 replace_line() {
@@ -315,9 +672,11 @@ assert_written() {
 cmd_ac_list() {
   [ -n "$1" ] || usage
   resolve_or_die "$1"
-  local acc line id ats sat
+  local acc line id ats sat completed=no
   acc="$(acc_file)"
   warn_malformed "$acc"
+  target_is_completed && completed=yes
+  at_lint_report "$acc" "$completed" err || true
   while IFS= read -r line; do
     [ -z "$line" ] && continue
     id="$(line_id "$line")"
@@ -334,9 +693,11 @@ EOF
 cmd_ac_status() {
   [ -n "$1" ] || usage
   resolve_or_die "$1"
-  local acc line total=0 sat=0 verdict="BLOCKED"
+  local acc line total=0 sat=0 verdict="BLOCKED" completed=no
   acc="$(acc_file)"
   warn_malformed "$acc"
+  target_is_completed && completed=yes
+  at_lint_report "$acc" "$completed" err || true
   while IFS= read -r line; do
     [ -z "$line" ] && continue
     in_wp_filter "$(line_id "$line")" || continue
@@ -399,6 +760,16 @@ cmd_ac_gate() {
   esac
   if ! warn_malformed "$acc"; then
     echo "gate: $scope BLOCKED -- malformed AC/AT line(s) in acceptance.md (see warnings); fix the contract"
+    exit 1
+  fi
+  # The AT grammar is gated here from the day it ships (issue 0017). An estate
+  # that has not been swept will BLOCK until it is, and that is the fix working:
+  # every row it names was already providing no coverage, silently. `at lint
+  # --fix` does the mechanical half.
+  local completed=no
+  target_is_completed && completed=yes
+  if ! at_lint_report "$acc" "$completed" err; then
+    echo "gate: $scope BLOCKED -- $AT_LINT_FAILS AT contract finding(s) over $AT_LINT_ROWS row(s) (see lint warnings); run 'intent at lint $id --fix', then fix what it reports"
     exit 1
   fi
   local line lid total=0 sat=0 unsat="" thread_total=0
@@ -479,9 +850,11 @@ cmd_ac_satisfy() {
 cmd_at_list() {
   [ -n "$1" ] || usage
   resolve_or_die "$1"
-  local acc line id
+  local acc line id completed=no
   acc="$(acc_file)"
   warn_malformed "$acc"
+  target_is_completed && completed=yes
+  at_lint_report "$acc" "$completed" err || true
   while IFS= read -r line; do
     [ -z "$line" ] && continue
     id="$(line_id "$line")"
@@ -490,6 +863,29 @@ cmd_at_list() {
   done <<EOF
 $(at_lines "$acc")
 EOF
+}
+
+cmd_at_lint() {
+  local stid="" fix=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --fix) fix=1; shift ;;
+      -*)    error "unknown option for at lint: $1 (try: --fix)" ;;
+      *)     [ -z "$stid" ] && stid="$1"; shift ;;
+    esac
+  done
+  [ -n "$stid" ] || usage
+  resolve_or_die "$stid"
+  local acc completed=no
+  acc="$(acc_file)"
+  target_is_completed && completed=yes
+  [ "$fix" -eq 1 ] && at_lint_fix "$acc"
+  if at_lint_report "$acc" "$completed" out; then
+    echo "lint: $ST_ID ok -- $AT_LINT_ROWS AT row(s) conform"
+    exit 0
+  fi
+  echo "lint: $ST_ID FAILED -- $AT_LINT_FAILS finding(s) over $AT_LINT_ROWS AT row(s)"
+  exit 1
 }
 
 cmd_at_set() {
@@ -505,9 +901,29 @@ cmd_at_set() {
   # An unreadable status is its own diagnosis, not a transition failure. Falling
   # through to the red->green message would report the row's state as '' and
   # send the author to `at red` when the row needs its status field repaired.
-  [ -n "$cur" ] || error "$atid has an unreadable status in $acc -- vocabulary is $AT_STATUS_VOCAB (markdown emphasis around the value is NOT parsed). Fix the row, then re-run."
+  # Every field now reads empty on a row that fails the grammar, so the status
+  # class is separated from the rest before the row is blamed on its status.
+  if [ -z "$cur" ]; then
+    if ! at_status_in_vocab "$(at_status_loose "$line")"; then
+      error "$atid has an unreadable status in $acc -- vocabulary is $AT_STATUS_VOCAB (markdown emphasis around the value is NOT parsed). Fix the row, then re-run."
+    fi
+    error "$atid does not match the AT row grammar in $acc -- $(at_row_defect "$line"). Run 'intent at lint $stid' (--fix migrates what is mechanical), then re-run."
+  fi
   if [ "$target" = "green" ] && [ "$cur" != "red" ]; then
     error "at green: $atid is '$cur'; green is reachable only from red (run 'intent at red $stid $atid' first)"
+  fi
+  # The citation goes load-bearing at exactly this moment, so it is resolved
+  # here rather than at the next gate: catching a rename at the point of the
+  # lie is the difference between a stale row and a green AT that has been
+  # counted as coverage for months (issue 0015).
+  if [ "$target" = "green" ] || [ "$target" = "red" ]; then
+    if ! at_is_nontest_row "$line"; then
+      local ref root
+      ref="$(at_pathname "$line")"
+      root="$(find_project_root 2>/dev/null)" || root="$(pwd)"
+      [ -n "$root" ] || root="$(pwd)"
+      [ -f "$root/$ref" ] || error "at $target: $atid cites a test file that does not exist: $ref -- a $target AT must resolve against the tree. Fix the citation (or 'intent at lint $stid --fix' if it just needs migrating), then re-run."
+    fi
   fi
   esc="$(echo "$atid" | sed 's/\./\\./g')"
   replace_line "$acc" "s|^(- ${esc} .*) -- status:.*|\1 -- status: ${target}|"
@@ -536,10 +952,11 @@ case "$NOUN" in
   at)
     case "$VERB" in
       list)         cmd_at_list "$@" ;;
+      lint)         cmd_at_lint "$@" ;;
       red|green|na) cmd_at_set "$VERB" "$@" ;;
       done)         cmd_at_set green "$@" ;;
       notdone)      cmd_at_set red "$@" ;;
-      *)            error "unknown at command: $VERB (try: list, red, green, na, done, notdone)" ;;
+      *)            error "unknown at command: $VERB (try: list, lint, red, green, na, done, notdone)" ;;
     esac
     ;;
   *)

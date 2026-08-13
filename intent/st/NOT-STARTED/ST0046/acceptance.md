@@ -42,17 +42,17 @@ none -- WP-distributed.
 
 ### WP-01
 
-- AT-01.1 [test: modules check -- unregistered fixture flagged] -- covers AC-01.1 -- status: to-write (red-first)
-- AT-01.2 [test: modules check -- umbrella apps/*/lib enumerated] -- covers AC-01.2 -- status: to-write (red-first)
-- AT-01.3 [test: modules check -- exclusion set honoured] -- covers AC-01.3 -- status: to-write (red-first)
-- AT-01.4 [test: modules check -- stale row still flagged] -- covers AC-01.4 -- status: to-write (red-first)
+- AT-01.1 `tests/unit/modules_commands.bats` -- covers AC-01.1 -- status: to-write -- red-first; modules check -- unregistered fixture flagged
+- AT-01.2 `tests/unit/modules_commands.bats` -- covers AC-01.2 -- status: to-write -- red-first; modules check -- umbrella apps/*/lib enumerated
+- AT-01.3 `tests/unit/modules_commands.bats` -- covers AC-01.3 -- status: to-write -- red-first; modules check -- exclusion set honoured
+- AT-01.4 `tests/unit/modules_commands.bats` -- covers AC-01.4 -- status: to-write -- red-first; modules check -- stale row still flagged
 - Coverage: AC-01.1..4 AT-backed; AC-01.5 is non-test (evidence on the AC line).
 
 ### WP-02
 
-- AT-02.1 [test: modules sync -- registers unregistered, check then green] -- covers AC-02.1 -- status: to-write (red-first)
-- AT-02.2 [test: modules sync -- idempotent zero-diff on re-run] -- covers AC-02.2 -- status: to-write (red-first)
-- AT-02.3 [test: modules sync -- preserves provenance + sub-sections] -- covers AC-02.3 -- status: to-write (red-first)
-- AT-02.4 [test: modules sync -- new row module->path + provenance] -- covers AC-02.4 -- status: to-write (red-first)
-- AT-02.5 [test: modules sync -- deterministic ordering] -- covers AC-02.5 -- status: to-write (red-first)
+- AT-02.1 `tests/unit/modules_commands.bats` -- covers AC-02.1 -- status: to-write -- red-first; modules sync -- registers unregistered, check then green
+- AT-02.2 `tests/unit/modules_commands.bats` -- covers AC-02.2 -- status: to-write -- red-first; modules sync -- idempotent zero-diff on re-run
+- AT-02.3 `tests/unit/modules_commands.bats` -- covers AC-02.3 -- status: to-write -- red-first; modules sync -- preserves provenance + sub-sections
+- AT-02.4 `tests/unit/modules_commands.bats` -- covers AC-02.4 -- status: to-write -- red-first; modules sync -- new row module->path + provenance
+- AT-02.5 `tests/unit/modules_commands.bats` -- covers AC-02.5 -- status: to-write -- red-first; modules sync -- deterministic ordering
 - Coverage: every WP-02 AC has an AT.

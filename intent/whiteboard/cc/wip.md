@@ -2,10 +2,10 @@
 node: cc
 name: Control Claude
 role: control
-session_id: dd8ff218-ab8e-4b00-8d30-0c8635f1d01d
-heartbeat_at: 2026-07-30T01:45Z
-status: paused
-focus: "v2.18.0 SHIPPED (tag 6cd4400, both remotes + GitHub release) -- FIRST self-consistent tag Intent has cut; v2.17.2/3/4 all carried the previous version in config.json + CLAUDE.md. No post-tag wrap. Consumer sweep is now one command (intent upgrade)."
+session_id: 347f2808-51b6-4c3c-90a5-3b43d41f5ecf
+heartbeat_at: 2026-08-13T21:07Z
+status: active
+focus: "Executing vc's triage work order on issues 0009-0017 (7 units -> v2.19.0). Plan posted to hv; 4 ratified calls in veto window. Unit 1 (0017 AT grammar) first once hv says go."
 claims: []
 ---
 
@@ -13,17 +13,17 @@ claims: []
 
 ## DOING
 
-_(day closed 2026-07-30 -- v2.17.4 then v2.18.0 shipped; issues 0005-0008 fixed + closed, 0009 filed; `bin/release` and `intent upgrade` both fixed so no release needs a manual wrap and the consumer sweep is one command. Session detail in `intent/done.md` + `intent/issues/CLOSED/000{5,6,7,8}/`.)_
+- **vc work order 0009-0017 -> v2.19.0** (inbox entry 2026-08-13 20:59; fix under the issues, no ST). hv ratified all four calls + granted per-unit commit authority, and ADDED an AC-withdrawal verb to U2. Sequence: ~~U1 0017+0014+0015 AT grammar~~ **DONE** -> U2 0013 descope + withdraw (M) -> U3 0011 enumerator (M) -> U4 0012 not-YAML (S) -> U5 0016 portable hooks (S/M) -> U6 0009 prereqs-from-langs (S) -> U7 0010 objective warn (XS).
+- **U1 landed.** Two-arm anchored AT grammar + `intent at lint` L1-L5 + `--fix` + gate fold + `at green|red` citation refusal + `at_grammar` ledger step. Three holes in the issue's proposed grammar were found by RUNNING it against real rows, not reading it: the retired `path::name` (vc's delta a), the parenthetical status note the shipped template itself taught, and -- structurally -- non-test `n/a` rows, which the one-armed grammar gave no legal form to migrate to despite the status vocabulary declaring them. Our own 116 rows swept (103 mechanical, 13 by hand) and one REAL issue-0015 instance found in our own estate: ST0052 AT-03.1 green on `critic_author.bats`, renamed to `critic_prose.bats` in ST0053, citation left behind.
 
 ## TODO
 
-- **Consumer sweep (hv, separate repos): now just `intent upgrade` per project**, shipped in v2.18.0. Heals the `Bash 4.0+` prerequisite (0008) and the dangling Language Packs entries (0005) in one pass; hand edits to `RULES-<lang>.md` survive. Utilz / Lamplight / Baize all still carry the bad line. Lamplight + Baize lose the shell prerequisite entirely unless they declare `shell` -- correct, neither is a shell project.
-- **Lamplight contract sweep (hv, separate repo):** ST0276 (11 bolded `**green` rows), ST0298 `GREEN`, ST0270 `BOTH`, ST0198 `BUILT`. The parser fix does not flip these -- emphasis is deliberately not tolerated -- but the tool now names every offending row on `ac list` / `ac gate`, so the sweep is mechanical.
-
-- **hv ruling owed -- issue 0004 item 4 (`ac status` exit code).** hv asked for uniform non-zero on a BLOCKED `ac status`; premise does not reproduce (exits 0 on both BLOCKED shapes; `intent_acceptance_cli.bats:111` asserts it). `status` = reporter (stdout), `gate` = gate (`$?`). Own issue if hv wants it changed.
+- **Consumer sweep (hv, separate repos): now just `intent upgrade` per project**, shipped in v2.18.0. Utilz / Lamplight / Baize still on old canon. NOTE: after v2.19.0's Unit 1, the same upgrade also sweeps AT grammar -- fold into one pass.
+- **Lamplight contract sweep (hv, separate repo):** ST0276 (11 bolded `**green` rows), ST0298 `GREEN`, ST0270 `BOTH`, ST0198 `BUILT`; now also the 314-row AT-grammar sweep once v2.19.0 lands (`at lint --fix` does the mechanical part).
+- **hv ruling owed -- issue 0004 item 4 (`ac status` exit code).** Premise does not reproduce; `status` = reporter (stdout), `gate` = gate (`$?`). Own issue if hv wants it changed.
 - **Push fleet issue-normalisation commits (hv, separate repos):** Utilz (`0171297`) + Lamplight (`7058fd3a8`) local-only; Conflab pushed.
 - Carry-over (hv, separate repo): utilz-side `generator: utilz todo` marker + symmetric guard.
-- DEFERRED (needs hv ruling): AT-name traceability -- `acceptance.md` AT ids grep-able to bats `@test` names.
+- AT-name traceability deferral: SUPERSEDED by 0017's link-by-id (L3 makes the id the traceable token, not the `@test` name) -- confirm at U1 close and retire the entry.
 
 ## Watch-outs
 

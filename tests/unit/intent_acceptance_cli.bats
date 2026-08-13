@@ -37,8 +37,8 @@ title: "Fixture -- acceptance contract"
 
 ### WP-01
 
-- AT-01.1 `tests/unit/foo.bats::first` -- covers AC-01.1 -- status: to-write (red-first)
-- AT-01.2 `tests/unit/foo.bats::second` -- covers AC-01.2 -- status: red
+- AT-01.1 `tests/unit/foo.bats` -- covers AC-01.1 -- status: to-write -- red-first
+- AT-01.2 `tests/unit/foo.bats` -- covers AC-01.2 -- status: red
 EOF
 }
 
@@ -51,6 +51,11 @@ setup_fixture_st() {
   assert_success
   ACC="intent/st/NOT-STARTED/ST0001/acceptance.md"
   seed_acceptance "$ACC"
+  # The AT grammar's L2/L3 resolve the citation against the tree, and `at
+  # red|green` refuse a dangling one (issues 0015 + 0017), so the fixture's
+  # cited deck has to be real and has to carry the ids that cite it.
+  mkdir -p tests/unit
+  printf 'AT-01.1 AT-01.2 AT-02.1 AT-03.1\n' > tests/unit/foo.bats
 }
 
 @test "list accepts a bare numeric st id (normalised), like intent wp" {
@@ -68,7 +73,7 @@ setup_fixture_st() {
   run run_intent at list ST0001
   assert_success
   assert_output_contains "AT-01.1"
-  assert_output_contains "tests/unit/foo.bats::first"
+  assert_output_contains "tests/unit/foo.bats"
   assert_output_contains "to-write"
 
   run run_intent ac list ST0001
@@ -219,7 +224,7 @@ setup_fixture_st() {
   # A green test whose status field is bolded -- well-formed to every other
   # guard, and the exact shape that understated a live thread by half.
   printf -- '- AC-02.1 test-backed criterion\n' >> "$ACC"
-  printf -- '- AT-02.1 `tests/unit/x.bats::one` -- covers AC-02.1 -- status: **green; mutation-proved**\n' >> "$ACC"
+  printf -- '- AT-02.1 `tests/unit/foo.bats` -- covers AC-02.1 -- status: **green; mutation-proved**\n' >> "$ACC"
 
   run run_intent ac list ST0001
   assert_success
@@ -239,7 +244,7 @@ setup_fixture_st() {
 @test "an out-of-vocabulary AT status is reported rather than ignored" {
   setup_fixture_st
 
-  printf -- '- AT-03.1 `tests/unit/y.bats::two` -- covers AC-03.1 -- status: BUILT\n' >> "$ACC"
+  printf -- '- AT-03.1 `tests/unit/foo.bats` -- covers AC-03.1 -- status: BUILT\n' >> "$ACC"
 
   run run_intent at list ST0001
   assert_success

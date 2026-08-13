@@ -23,6 +23,7 @@ load "../lib/test_helper.bash"
   project_dir=$(create_test_project "Close-gate WP Test"); cd "$project_dir"; export EDITOR=echo
   run run_intent st new "Gate Thread"; assert_success
   run run_intent wp new ST0001 "Build it"; assert_success
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001
@@ -39,7 +40,7 @@ st_id: ST0001
 
 ### WP-01
 
-- AT-01.1 `tests/unit/x.bats::it works` -- covers AC-01.1 -- status: red
+- AT-01.1 `tests/unit/x.bats` -- covers AC-01.1 -- status: red
 EOF
   run run_intent wp done ST0001/01
   assert_failure
@@ -49,6 +50,7 @@ EOF
 @test "st done is blocked when the ST-level sign-off AC is unsatisfied" {
   project_dir=$(create_test_project "Close-gate ST Test"); cd "$project_dir"; export EDITOR=echo
   run run_intent st new "Gate Thread"; assert_success
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001
@@ -69,7 +71,7 @@ st_id: ST0001
 
 ### WP-01
 
-- AT-01.1 `tests/unit/x.bats::it works` -- covers AC-01.1 -- status: green
+- AT-01.1 `tests/unit/x.bats` -- covers AC-01.1 -- status: green
 EOF
   # Every test-backed AC is green, but the sign-off AC is unsatisfied -> blocked.
   run run_intent st done ST0001
@@ -80,6 +82,7 @@ EOF
 @test "st done is allowed once every AC including sign-off is satisfied" {
   project_dir=$(create_test_project "Close-gate Allow Test"); cd "$project_dir"; export EDITOR=echo
   run run_intent st new "Gate Thread"; assert_success
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001
@@ -100,7 +103,7 @@ st_id: ST0001
 
 ### WP-01
 
-- AT-01.1 `tests/unit/x.bats::it works` -- covers AC-01.1 -- status: green
+- AT-01.1 `tests/unit/x.bats` -- covers AC-01.1 -- status: green
 EOF
   run run_intent ac satisfy ST0001 AC-00.1 --evidence "signed off by tester"
   assert_success
@@ -136,6 +139,7 @@ EOF
 @test "gate passes and reports EXEMPT for acceptance: exempt with zero ACs" {
   project_dir=$(create_test_project "Gate Exempt"); cd "$project_dir"; export EDITOR=echo
   run run_intent st new "Exempt Thread"; assert_success
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001
@@ -157,6 +161,7 @@ EOF
   run run_intent st new "Guarded Thread"; assert_success
 
   # (a) a fully-satisfied non-test AC -> gate passes (happy path unchanged).
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001
@@ -173,6 +178,7 @@ EOF
   assert_success
 
   # (b) flip it unsatisfied -> gate still blocks.
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001
@@ -190,6 +196,7 @@ EOF
   assert_output_contains "BLOCKED"
 
   # (c) a malformed AC id -> gate still blocks loudly (F1).
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001
@@ -222,6 +229,7 @@ EOF
   assert_output_contains "BLOCKED"
 
   # (b) thread contracted at ST level, WP has no own ACs -> wp done rolls up.
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001
@@ -246,6 +254,7 @@ EOF
 @test "gate blocks loudly on a malformed AC id instead of silently dropping it" {
   project_dir=$(create_test_project "Close-gate Malformed Test"); cd "$project_dir"; export EDITOR=echo
   run run_intent st new "Gate Thread"; assert_success
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001
@@ -285,6 +294,7 @@ EOF
   project_dir=$(create_test_project "Gate Unresolvable WP"); cd "$project_dir"; export EDITOR=echo
   run run_intent st new "Gate Thread"; assert_success
   run run_intent wp new ST0001 "wp one"; assert_success
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001
@@ -308,6 +318,7 @@ EOF
   project_dir=$(create_test_project "Gate Rollup Announced"); cd "$project_dir"; export EDITOR=echo
   run run_intent st new "Gate Thread"; assert_success
   run run_intent wp new ST0001 "wp one"; assert_success
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001
@@ -330,6 +341,7 @@ EOF
 @test "gate announces the pass so a verified contract cannot read as an empty one" {
   project_dir=$(create_test_project "Gate Announces Pass"); cd "$project_dir"; export EDITOR=echo
   run run_intent st new "Gate Thread"; assert_success
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001
@@ -352,6 +364,7 @@ EOF
   project_dir=$(create_test_project "Family Resolution"); cd "$project_dir"; export EDITOR=echo
   run run_intent st new "Gate Thread"; assert_success
   run run_intent wp new ST0001 "wp one"; assert_success
+  mkdir -p tests/unit && printf 'AT-01.1 lives here\n' > tests/unit/x.bats
   cat > intent/st/NOT-STARTED/ST0001/acceptance.md <<'EOF'
 ---
 st_id: ST0001

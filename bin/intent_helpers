@@ -377,6 +377,34 @@ has_project_language() {
 }
 export -f has_project_language
 
+# THE steel-thread enumerator (issue 0011). A steel thread lives at
+# `<base>/STnnnn` or `<base>/<STATUS-BUCKET>/STnnnn`, and NOWHERE else -- one
+# level under each canonical location, each requiring an `info.md`.
+#
+# The rule was previously expressed twice and the looser copy served the
+# commands that matter most: `intent st` walked `find <base> -type d -name
+# 'ST[0-9][0-9][0-9][0-9]'`, unbounded by depth, so ANY directory named STnnnn
+# at any depth below intent/st became a live thread. A staging area placed
+# beside the threads it shadows -- which characteristically holds COPIES --
+# therefore produced duplicate ids in a namespace whose one guarantee is that an
+# id names one thread, and `st sync --write` persisted them into the committed
+# index. An explicit bucket allowlist is deliberate: it makes the canonical
+# layout the rule rather than blacklisting one naming convention, and it fails
+# closed for any future non-thread directory placed under intent/st, however
+# named.
+list_st_dirs() {
+  local base="$1" root st
+  [ -n "$base" ] || return 1
+  for root in "$base" "$base/COMPLETED" "$base/NOT-STARTED" "$base/CANCELLED"; do
+    [ -d "$root" ] || continue
+    for st in "$root"/ST[0-9]*; do
+      [ -d "$st" ] && [ -f "$st/info.md" ] || continue
+      printf '%s\n' "$st"
+    done
+  done
+}
+export -f list_st_dirs
+
 # Stamp `intent_version` in the project config.
 #
 # Exit: 0 = stamped, 1 = already at the target (nothing written), 2 = cannot
