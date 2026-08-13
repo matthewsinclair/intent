@@ -228,6 +228,40 @@ at_row() { printf -- '%s\n' "$1" >> "$ACC"; }
   assert_success
 }
 
+@test "a reference that cannot be a filename is never searched for, and never resolved by glob" {
+  setup_contract
+  # Reported from a 65GB estate where `at lint --fix` read as a hang: the
+  # basename search walks the WHOLE repository, and it was running once per row
+  # for the placeholder `[to-write]` -- a string that cannot be a filename.
+  #
+  # The correctness half is worse than the cost. `find -name` takes a GLOB, so
+  # `[to-write]` is a character class matching any single-character filename.
+  # This fixture plants exactly that: a file named `t`. Before the guard, the
+  # search returned it as the unique hit and the row was rewritten to cite a
+  # file with nothing to do with it -- a migrator laundering the drift the
+  # grammar exists to stop. It must sit in a SUBDIRECTORY: the path group
+  # requires a `/`, so a root-level match is rejected for an unrelated reason
+  # and the fixture would prove nothing (this test passed for exactly that wrong
+  # reason until mutation testing showed the guard could be deleted with no
+  # failure).
+  printf 'unrelated\n' > tests/unit/t
+  at_row '- AT-01.1 [to-write] -- covers AC-01.1 -- status: to-write (red-first)'
+
+  run run_intent at lint ST0001 --fix
+  # The mechanical half still lands: the parenthetical note gets delimited.
+  run grep -c -- '-- status: to-write -- red-first' "$ACC"
+  assert_output "1"
+  # The reference is untouched -- not resolved to the single-character file.
+  run grep -c -- '\[to-write\]' "$ACC"
+  assert_output "1"
+  run grep -c 'tests/unit/t`' "$ACC"
+  assert_output "0"
+  # And it is still reported for a human, because it is genuinely owner work.
+  run run_intent at lint ST0001
+  assert_failure
+  assert_output_contains "AT-01.1"
+}
+
 @test "a status from the wrong arm is refused before the write, not after it" {
   setup_contract
   # vc F1. Each arm has its own status vocabulary, and nothing enforced that: the

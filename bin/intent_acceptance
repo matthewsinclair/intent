@@ -608,18 +608,62 @@ target_is_completed() {
   case "$TARGET_DIR" in *"/COMPLETED/"*) return 0 ;; *) return 1 ;; esac
 }
 
+# Is this string plausibly a FILENAME -- the only thing a basename search could
+# ever resolve? A bare name with an extension, no path separator, no whitespace,
+# and no glob metacharacter.
+#
+# This guard is the difference between a migration aid and a liability, for two
+# separate reasons found on a 65GB consumer estate:
+#
+#   Cost -- the search below walks the whole repository. Running it for a
+#   reference that CANNOT be a filename buys nothing and costs a full-tree scan
+#   PER ROW: on that estate, twelve rows citing the placeholder `[to-write]` had
+#   the tool scanning 65GB twelve times, which reads as a hang.
+#
+#   Correctness -- `find -name` takes a GLOB. `[to-write]` is a character class,
+#   so it matches any single-character filename, and a unique hit would have
+#   rewritten the row to cite a file that has nothing to do with it. A migrator
+#   that guessed would launder exactly the drift the grammar exists to stop.
+at_ref_is_filename_shaped() {
+  case "$1" in
+    *[!A-Za-z0-9._+-]*) return 1 ;;  # path separator, space, or glob metachar
+    *.*)                return 0 ;;  # must carry an extension
+    *)                  return 1 ;;
+  esac
+}
+
 # The one basename match under the repo, or non-zero when it is absent or
 # ambiguous. Bare filenames were 8 of 179 rows on the reporting estate and every
 # one of them resolved to exactly one real file -- which is what makes this
 # mechanical rather than a guess. When it is NOT unique the row is reported for
 # a hand fix, never resolved by picking one.
+#
+# The excluded trees are PRUNED, not filtered: `-not -path` still descends into
+# node_modules / _build / deps and throws the results away afterwards, so the
+# exclusion list looked like it bounded the walk while bounding nothing.
+# Results are memoised for the run, because a contract that cites one renamed
+# file from a dozen rows would otherwise repeat the identical search a dozen
+# times.
+AT_EXPAND_CACHE=""
 at_expand_basename() {
-  local root="$1" base="$2" hits n
-  hits="$(cd "$root" 2>/dev/null && find . -type f -name "$base" \
-    -not -path '*/.git/*' -not -path '*/.backup/*' -not -path '*/node_modules/*' \
-    -not -path '*/_build/*' -not -path '*/deps/*' 2>/dev/null | sed 's@^\./@@')"
+  local root="$1" base="$2" hits n cached
+  at_ref_is_filename_shaped "$base" || return 1
+
+  cached="$(printf '%s\n' "$AT_EXPAND_CACHE" | grep -F "	$base	" | head -1)"
+  if [ -n "$cached" ]; then
+    cached="${cached##*"$base"$'\t'}"
+    [ -n "$cached" ] || return 1
+    printf '%s\n' "$cached"
+    return 0
+  fi
+
+  hits="$(cd "$root" 2>/dev/null && find . \
+    \( -name .git -o -name .backup -o -name node_modules -o -name _build -o -name deps \) -prune \
+    -o -type f -name "$base" -print 2>/dev/null | sed 's@^\./@@')"
   n="$(printf '%s\n' "$hits" | grep -c . || true)"
-  [ "$n" -eq 1 ] || return 1
+  [ "$n" -eq 1 ] || hits=""
+  AT_EXPAND_CACHE="$(printf '%s\n\t%s\t%s' "$AT_EXPAND_CACHE" "$base" "$hits")"
+  [ -n "$hits" ] || return 1
   printf '%s\n' "$hits"
 }
 
