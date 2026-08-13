@@ -166,3 +166,15 @@ stampv() {
   run bash -c "source '${INTENT_HOME}/bin/intent_helpers'; list_st_dirs '$base' | wc -l | tr -d ' '"
   assert_output "1"
 }
+
+@test "warning() speaks the documented lowercase voice, on stderr" {
+  # The CLI's prefix family is lowercase (ok:, error:, created:, warning:). The
+  # shared emitter said "Warning:" while the hand-rolled sites and the documented
+  # convention said "warning:" -- one voice, stated once (hv ruling, 2026-08-14).
+  # The stream is asserted too: a warning on stdout would interleave with
+  # captured command output, which is how a voice becomes data.
+  run bash -c "source '${INTENT_HOME}/bin/intent_helpers'; warning 'sample text' 2>/dev/null"
+  assert_output ""
+  run bash -c "source '${INTENT_HOME}/bin/intent_helpers'; warning 'sample text' 2>&1"
+  assert_output "warning: sample text"
+}

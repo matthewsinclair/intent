@@ -12,7 +12,7 @@ export -f error
 
 # Display a warning to stderr (non-fatal).
 warning() {
-  echo "Warning: $1" >&2
+  echo "warning: $1" >&2
 }
 export -f warning
 

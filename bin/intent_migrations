@@ -201,8 +201,8 @@ intent_relocate_dotintent() {
 
   # Sentinel removal (now at intent/.config/.migration-in-progress post-mv)
   rm -f "$sentinel" || {
-    echo "Warning: could not remove sentinel at $sentinel" >&2
-    echo "  Migration is complete; delete sentinel manually." >&2
+    warning "could not remove sentinel at $sentinel"
+    warning "  Migration is complete; delete sentinel manually."
   }
 
   return 0

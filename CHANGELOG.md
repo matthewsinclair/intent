@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **The close-gate honours the AT grammar from the day it ships.** An estate written against the old free-form convention will gate BLOCKED until it is swept, and that is the fix working: every row named was already contributing no coverage, silently. A new `at_grammar` ledger step runs the mechanical migration during `intent upgrade`, so a consumer is swept by upgrading rather than by knowing the command; rows needing a human are reported by name and never guessed at. This repo's own 116 rows were migrated the same way -- 103 mechanically, 13 by hand.
 - **`lib/templates/prj/st/ST####/acceptance.md` states the grammar and no longer teaches retired forms.** The template taught `[test path::name]` and a bare parenthetical note after the status; both are now rejected, which is precisely how they entered the estate. Two holes found by running the proposed grammar against real rows rather than reading it.
+- **`warning()` speaks the documented lowercase voice.** The CLI's prefix family is lowercase (`ok:`, `error:`, `created:`) and the hand-rolled warning sites already matched it; the shared emitter alone said `Warning:`. One voice, stated once, guarded with its stream (stderr) asserted.
 
 ### Internal
 
