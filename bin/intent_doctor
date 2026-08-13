@@ -554,6 +554,32 @@ doctor_check() {
     fi
   fi
   
+  # Check 9b: duplicate steel-thread ids (issue 0011)
+  #
+  # The id namespace's one guarantee is that an id names one thread. Bounding
+  # the enumerator to the canonical locations stopped a staging area from
+  # manufacturing duplicates, but it cannot stop the same id existing in two
+  # CANONICAL buckets at once -- which is exactly what an interrupted or
+  # collided `st organize` leaves behind. That state is a defect in the tree,
+  # and until now it was rendered as an extra table row and nothing else.
+  if [ -d "intent/st" ]; then
+    if [ "$QUIET" != true ]; then
+      echo -n "  checking: steel thread ids "
+    fi
+    DUP_IDS=$(list_st_dirs "intent/st" | while IFS= read -r d; do basename "$d"; done | sort | uniq -d)
+    if [ -z "$DUP_IDS" ]; then
+      show_ok
+    else
+      show_error "duplicate steel thread id(s): $(printf '%s' "$DUP_IDS" | tr '\n' ' ')"
+      for dup in $DUP_IDS; do
+        list_st_dirs "intent/st" | grep "/${dup}\$" | while IFS= read -r d; do
+          echo "    $d"
+        done
+      done
+      echo "    one id names one thread; move or remove all but one of each."
+    fi
+  fi
+
   # Check 10: Agent system
   if [ "$QUIET" != true ]; then
     echo -n "  checking: agent system "

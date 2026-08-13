@@ -792,8 +792,8 @@ TEMPLATE
     declare -a st_data
     
     if is_directory_structure; then
-      # Loop through all ST directories
-      while IFS= read -r -d '' dir; do
+      # Loop through all ST directories (THE enumerator -- issue 0011).
+      while IFS= read -r dir; do
         if [ -f "$dir/info.md" ]; then
           # Extract ID from directory name
           ID=$(basename "$dir")
@@ -865,7 +865,7 @@ TEMPLATE
           
           st_data+=("$ID|$TITLE|$ST_STATUS|$CREATED|$COMPLETED")
         fi
-      done < <(find "$ST_DIR" -type d -name "ST[0-9][0-9][0-9][0-9]" -print0)
+      done < <(list_st_dirs "$ST_DIR")
     else
       # Legacy: Loop through all ST####.md files
       while IFS= read -r -d '' file; do
@@ -1377,7 +1377,7 @@ status: '$status "$info_file"
       echo ""
       
       # Find all steel thread directories
-      ALL_ST_DIRS=$(find "$BASE_DIR" -type d -name "ST[0-9][0-9][0-9][0-9]" | sort)
+      ALL_ST_DIRS=$(list_st_dirs "$BASE_DIR" | sort)
       
       for dir in $ALL_ST_DIRS; do
         repair_steel_thread "$dir"
@@ -1416,13 +1416,14 @@ status: '$status "$info_file"
     done
     
     BASE_DIR="intent/st"
-    
+    ORGANIZE_FAILED=0
+
     # Create required directories if they don't exist
     mkdir -p "$BASE_DIR/COMPLETED" "$BASE_DIR/NOT-STARTED" "$BASE_DIR/CANCELLED"
     
     if is_directory_structure; then
-      # Find all steel thread directories in any location
-      ALL_ST_DIRS=$(find "$BASE_DIR" -type d -name "ST[0-9][0-9][0-9][0-9]" | sort)
+      # Find all steel thread directories in any CANONICAL location (issue 0011)
+      ALL_ST_DIRS=$(list_st_dirs "$BASE_DIR" | sort)
       
       # Process each steel thread directory
       for dir in $ALL_ST_DIRS; do
@@ -1478,8 +1479,22 @@ status: '$status "$info_file"
             
             if [ $WRITE_MODE -eq 1 ]; then
               mkdir -p "$CORRECT_PARENT"
-              mv "$dir" "$CORRECT_PARENT/"
-              echo "  Moved $ID to $CORRECT_PARENT"
+              # The move is CHECKED before it is claimed, and a failure does not
+              # abort the sweep (issue 0011). This module runs under `set -e`, so
+              # an unguarded `mv` took the whole command down on the first
+              # collision: the shell printed mv's raw stderr, exit 1, and every
+              # thread after that one was left unprocessed -- a partial run that
+              # announced neither which thread collided nor that it had stopped.
+              # `mv` refuses to merge non-empty directories, so nothing is lost;
+              # what was missing was a voice and a finished sweep.
+              if mv "$dir" "$CORRECT_PARENT/" 2>/dev/null; then
+                echo "  Moved $ID to $CORRECT_PARENT"
+              else
+                echo "  error: cannot move $ID -- $CORRECT_PARENT/$ID already exists" >&2
+                echo "         left in place: $dir" >&2
+                echo "         two directories claim $ID; the id namespace guarantees one thread per id, so one of them is not a thread." >&2
+                ORGANIZE_FAILED=$((ORGANIZE_FAILED + 1))
+              fi
             else
               echo "  Would move $ID to $CORRECT_PARENT"
             fi
@@ -1536,6 +1551,13 @@ status: '$status "$info_file"
       SCRIPT_PATH="${BASH_SOURCE[0]}"
       "$SCRIPT_PATH" sync --write
       echo "updated: steel threads index"
+    fi
+
+    # The sweep finishes, THEN reports. A collision is a real defect in the tree
+    # and must not exit 0, but it must also not hide the threads that organized
+    # cleanly after it.
+    if [ "$ORGANIZE_FAILED" -gt 0 ]; then
+      error "$ORGANIZE_FAILED steel thread(s) could not be moved (see above); the rest of the sweep completed"
     fi
     ;;
     

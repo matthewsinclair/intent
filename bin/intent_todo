@@ -122,16 +122,12 @@ emit_st_block() {
 # membership predicate; only the per-thread rendering differs (emit_st_block vs
 # emit_st_json). The list_* helpers below are that single enumeration source.
 
-# List the valid steel-thread dirs directly under a status directory ($1), in
-# ST-number order (the glob expands zero-padded, so lexical == numeric). One
-# path per line -- ST dir names carry no newlines, so `while read` is safe.
-list_bucket_dirs() {
-  local root="$1" st
-  for st in "$root"/ST[0-9]*; do
-    [ -d "$st" ] && [ -f "$st/info.md" ] || continue
-    printf '%s\n' "$st"
-  done
-}
+# The steel-thread dirs directly under a status directory ($1). This view held
+# the correct enumeration rule while `intent st` used an unbounded find for the
+# same question, so the two surfaces disagreed about what a steel thread IS and
+# only one of them was right (issue 0011). The rule now lives once, in
+# intent_helpers; this is the name the todo view calls it by.
+list_bucket_dirs() { list_st_dirs_in "$1"; }
 
 # Emit every steel-thread block under a status directory ($1).
 emit_bucket() {

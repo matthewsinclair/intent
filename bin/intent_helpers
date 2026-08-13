@@ -392,15 +392,26 @@ export -f has_project_language
 # layout the rule rather than blacklisting one naming convention, and it fails
 # closed for any future non-thread directory placed under intent/st, however
 # named.
+# The one-level primitive: thread directories directly inside ONE location, in
+# ST-number order (the glob expands zero-padded, so lexical == numeric). Callers
+# that need the buckets separated (the todo view builds one section per bucket)
+# use this; callers that want every thread use list_st_dirs below. Both express
+# the same rule, once.
+list_st_dirs_in() {
+  local root="$1" st
+  [ -n "$root" ] && [ -d "$root" ] || return 0
+  for st in "$root"/ST[0-9]*; do
+    [ -d "$st" ] && [ -f "$st/info.md" ] || continue
+    printf '%s\n' "$st"
+  done
+}
+export -f list_st_dirs_in
+
 list_st_dirs() {
-  local base="$1" root st
+  local base="$1" root
   [ -n "$base" ] || return 1
   for root in "$base" "$base/COMPLETED" "$base/NOT-STARTED" "$base/CANCELLED"; do
-    [ -d "$root" ] || continue
-    for st in "$root"/ST[0-9]*; do
-      [ -d "$st" ] && [ -f "$st/info.md" ] || continue
-      printf '%s\n' "$st"
-    done
+    list_st_dirs_in "$root"
   done
 }
 export -f list_st_dirs
