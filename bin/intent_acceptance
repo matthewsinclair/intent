@@ -27,6 +27,12 @@ usage() {
   echo "  status <stid>                              Report N/M satisfied + verdict (PASS/BLOCKED)"
   echo "  satisfy <stid> <acid> --evidence \"<ref>\"    Satisfy a non-test AC by named evidence"
   echo "  gate <stid>[/NN]                           Close-gate: exit non-zero + BLOCKED if unsatisfied"
+  echo "  descope <stid> <acid> --to <stid> [--by <who>] [--reason \"<text>\"]"
+  echo "                                             Record that an AC moved to another thread (non-blocking)"
+  echo "  rescope <stid> <acid>                      Undo a descope: back in scope, unsatisfied"
+  echo "  withdraw <stid> <acid> --reason \"<text>\" [--by <who>]"
+  echo "                                             Withdraw an AC outright, with its reason on the record (non-blocking)"
+  echo "  reinstate <stid> <acid>                    Undo a withdrawal: back in scope, unsatisfied"
   echo ""
   echo "at commands:"
   echo "  list <stid>[/NN]                           List ATs (id, reference, status)"
@@ -73,8 +79,36 @@ extract_field() {
 
 line_id()       { extract_field "$1" '^- ([A-Z]+-[0-9]+\.[0-9]+).*'; }
 id_group()      { extract_field "$1" '^[A-Z]+-([0-9]+)\..*'; }
-ac_flag()       { extract_field "$1" '.* -- satisfied: ([a-z]+).*'; }
+# `[a-z/]` not `[a-z]`: the off-scope states write `satisfied: n/a`, and the
+# narrower class read that as "n" -- a value, not a parse failure, and so
+# invisible in exactly the way issue 0007 was. Nothing routes a decision through
+# this field for those rows (the markers below are the authority), but a reader
+# that quietly mis-reads a value it can see is the trap, not the decision.
+ac_flag()       { extract_field "$1" '.* -- satisfied: ([a-z/]+).*'; }
 ac_is_nontest() { case "$1" in *"(non-test)"*) return 0 ;; *) return 1 ;; esac; }
+
+# ---- off-scope AC states (issue 0013) ------------------------------------
+#
+# An AC's state was modelled as a boolean when practice has at least four. A
+# requirement that moved to another thread, or was withdrawn outright, is still
+# a real decision about the contract -- and the only two representations
+# available were both wrong. `satisfy` is a lie: the work was not done. Leaving
+# it unsatisfied is honest and permanent: the AC counts against the thread
+# forever, the gate reports BLOCKED, and `wp done` refuses to close a thread
+# that is genuinely finished. Once a project has such ACs, BLOCKED stops meaning
+# "there is work to do" and a reader learns to override it -- which is the
+# moment a real blocker gets waved through. A check that is routinely ignored is
+# worse than no check.
+#
+# Detection is by MARKER, never by the `satisfied:` field, and the markers are
+# matched as exact literals the way `(non-test)` is: a substring test cannot
+# half-parse. Both states carry their audit trail on the line -- who ruled, when,
+# and (for a descope) which thread now owns it -- because that trail is the whole
+# reason to record a move rather than delete the line.
+ac_is_descoped()      { case "$1" in *" -- descoped-to: "*) return 0 ;; *) return 1 ;; esac; }
+ac_is_withdrawn()     { case "$1" in *" -- withdrawn: "*) return 0 ;; *) return 1 ;; esac; }
+ac_descoped_to()      { extract_field "$1" '.* -- descoped-to: ([^ ]+).*'; }
+ac_withdrawn_reason() { extract_field "$1" '.* -- withdrawn: (.*) -- by: .*'; }
 
 # ---- THE AT ROW GRAMMAR (issue 0017) -------------------------------------
 #
@@ -326,6 +360,21 @@ ac_covering_ats() {
 $(at_lines "$acc")
 EOF
   echo "$out"
+}
+
+# THE AC state classifier: descoped | withdrawn | satisfied | unsatisfied.
+#
+# Every counter and every reader goes through here, so "what state is this AC
+# in" has one answer in one place. The off-scope markers are checked BEFORE
+# ac_is_satisfied, which is load-bearing rather than stylistic: a descoped
+# test-backed AC would otherwise fall into the covering-AT hunt, find nothing
+# (its AT went with it to the receiving thread) and report unsatisfied -- the
+# exact false BLOCKED this issue exists to remove.
+ac_state() {
+  local line="$1" acc="$2"
+  ac_is_descoped  "$line" && { echo "descoped";  return 0; }
+  ac_is_withdrawn "$line" && { echo "withdrawn"; return 0; }
+  if ac_is_satisfied "$line" "$acc"; then echo "satisfied"; else echo "unsatisfied"; fi
 }
 
 # True if the AC (line) is satisfied: non-test -> inline flag; else a green AT.
@@ -683,8 +732,13 @@ cmd_ac_list() {
     in_wp_filter "$id" || continue
     ats="$(ac_covering_ats "$id" "$acc")"
     [ -z "$ats" ] && ats=" -"
-    if ac_is_satisfied "$line" "$acc"; then sat="yes"; else sat="no"; fi
-    printf 'ac: %s  covered-by:%s  satisfied: %s\n' "$id" "$ats" "$sat"
+    case "$(ac_state "$line" "$acc")" in
+      descoped)  sat="descoped-to: $(ac_descoped_to "$line")" ;;
+      withdrawn) sat="withdrawn: $(ac_withdrawn_reason "$line")" ;;
+      satisfied) sat="satisfied: yes" ;;
+      *)         sat="satisfied: no" ;;
+    esac
+    printf 'ac: %s  covered-by:%s  %s\n' "$id" "$ats" "$sat"
   done <<EOF
 $(ac_lines "$acc")
 EOF
@@ -693,7 +747,7 @@ EOF
 cmd_ac_status() {
   [ -n "$1" ] || usage
   resolve_or_die "$1"
-  local acc line total=0 sat=0 verdict="BLOCKED" completed=no
+  local acc line total=0 sat=0 desc=0 wdrawn=0 active verdict="BLOCKED" completed=no
   acc="$(acc_file)"
   warn_malformed "$acc"
   target_is_completed && completed=yes
@@ -702,12 +756,27 @@ cmd_ac_status() {
     [ -z "$line" ] && continue
     in_wp_filter "$(line_id "$line")" || continue
     total=$((total + 1))
-    if ac_is_satisfied "$line" "$acc"; then sat=$((sat + 1)); fi
+    case "$(ac_state "$line" "$acc")" in
+      descoped)  desc=$((desc + 1)) ;;
+      withdrawn) wdrawn=$((wdrawn + 1)) ;;
+      satisfied) sat=$((sat + 1)) ;;
+    esac
   done <<EOF
 $(ac_lines "$acc")
 EOF
-  [ "$total" -gt 0 ] && [ "$sat" -eq "$total" ] && verdict="PASS"
-  echo "ac: $sat/$total satisfied -- $verdict"
+  active=$((total - desc - wdrawn))
+  [ "$active" -gt 0 ] && [ "$sat" -eq "$active" ] && verdict="PASS"
+  echo "ac: $sat/$active satisfied$(ac_offscope_suffix "$desc" "$wdrawn") -- $verdict"
+}
+
+# ", K descoped, W withdrawn" -- empty when there are none, so the ordinary case
+# stays terse. Never folded into the satisfied count and never dropped: a thread
+# that descoped half its contract has to look like one.
+ac_offscope_suffix() {
+  local desc="$1" wdrawn="$2" out=""
+  [ "$desc" -gt 0 ]   && out="$out, $desc descoped"
+  [ "$wdrawn" -gt 0 ] && out="$out, $wdrawn withdrawn"
+  printf '%s' "$out"
 }
 
 # Close-gate (ST0044 WP-04; hardened ST0048). The single authority `st done` /
@@ -772,21 +841,23 @@ cmd_ac_gate() {
     echo "gate: $scope BLOCKED -- $AT_LINT_FAILS AT contract finding(s) over $AT_LINT_ROWS row(s) (see lint warnings); run 'intent at lint $id --fix', then fix what it reports"
     exit 1
   fi
-  local line lid total=0 sat=0 unsat="" thread_total=0
+  local line lid total=0 sat=0 desc=0 wdrawn=0 active unsat="" thread_total=0
   while IFS= read -r line; do
     [ -z "$line" ] && continue
     thread_total=$((thread_total + 1))
     lid="$(line_id "$line")"
     in_wp_filter "$lid" || continue
     total=$((total + 1))
-    if ac_is_satisfied "$line" "$acc"; then
-      sat=$((sat + 1))
-    else
-      unsat="$unsat $lid"
-    fi
+    case "$(ac_state "$line" "$acc")" in
+      descoped)  desc=$((desc + 1)) ;;
+      withdrawn) wdrawn=$((wdrawn + 1)) ;;
+      satisfied) sat=$((sat + 1)) ;;
+      *)         unsat="$unsat $lid" ;;
+    esac
   done <<EOF
 $(ac_lines "$acc")
 EOF
+  active=$((total - desc - wdrawn))
   if [ "$thread_total" -eq 0 ]; then
     echo "gate: $scope BLOCKED -- acceptance.md has zero acceptance criteria (empty contract). Define ACs, or mark 'acceptance: exempt' in the frontmatter."
     exit 1
@@ -797,11 +868,20 @@ EOF
     echo "gate: $scope PASS -- no ACs in scope; rolls up to the $id contract ($thread_total AC(s))"
     exit 0
   fi
-  if [ "$sat" -eq "$total" ]; then
-    echo "gate: $scope PASS -- $sat/$total satisfied"
+  if [ "$active" -eq 0 ]; then
+    # Every in-scope AC moved or was withdrawn, so there is nothing left to
+    # verify. Routed to the EXISTING declared escape rather than passing on an
+    # empty set: ST0048's rule is that an exemption is announced, never inferred
+    # from emptiness, and a contract emptied one descope at a time is still
+    # emptiness. Two ways to say "no contract to check" would be one too many.
+    echo "gate: $scope BLOCKED -- all $total in-scope AC(s) are descoped or withdrawn; nothing is left to verify. If this unit is deliberately contract-free, declare 'acceptance: exempt' in the frontmatter."
+    exit 1
+  fi
+  if [ "$sat" -eq "$active" ]; then
+    echo "gate: $scope PASS -- $sat/$active satisfied$(ac_offscope_suffix "$desc" "$wdrawn")"
     exit 0
   fi
-  echo "gate: $scope BLOCKED -- $sat/$total satisfied; unsatisfied:${unsat}"
+  echo "gate: $scope BLOCKED -- $sat/$active satisfied$(ac_offscope_suffix "$desc" "$wdrawn"); unsatisfied:${unsat}"
   exit 1
 }
 
@@ -863,6 +943,153 @@ cmd_at_list() {
   done <<EOF
 $(at_lines "$acc")
 EOF
+}
+
+# ---- off-scope verbs (issue 0013) ----------------------------------------
+
+# Strip whatever state tail an AC row carries, back to bare prose. Each arm
+# removes to end-of-line, so applying all four converges on the earliest marker
+# present regardless of the order they were written in.
+ac_strip_tail_expr() {
+  local esc="$1"
+  printf '%s' "s|^(- ${esc} .*) -- evidence:.*|\1|; s|^(- ${esc} .*) -- satisfied:.*|\1|; s|^(- ${esc} .*) -- descoped-to:.*|\1|; s|^(- ${esc} .*) -- withdrawn:.*|\1|"
+}
+
+# A field value that would break the line's own field structure is refused
+# rather than escaped into something unreadable. The delimiter is the record
+# format; a value containing it is not a value.
+ac_check_field_text() {
+  local what="$1" text="$2"
+  case "$text" in
+    *" -- "*) error "$what may not contain ' -- ' (it is the field delimiter): $text" ;;
+  esac
+  case "$text" in
+    *[!\ ]*) : ;;
+    *) error "$what may not be empty" ;;
+  esac
+}
+
+# Shared by descope and withdraw: resolve, find the row, refuse a row already in
+# an off-scope state, rewrite the tail, and VERIFY the write landed. Sets
+# ACC/AC_LINE/ESC for the caller.
+ac_offscope_prepare() {
+  local stid="$1" acid="$2" verb="$3"
+  resolve_or_die "$stid"
+  ACC="$(acc_file)"
+  AC_LINE="$(find_line "$acid" "$ACC")"
+  [ -n "$AC_LINE" ] || error "no such AC: $acid in $ACC"
+  if ac_is_descoped "$AC_LINE"; then
+    error "$acid is already descoped to $(ac_descoped_to "$AC_LINE") -- 'intent ac rescope' first if you mean to change it"
+  fi
+  if ac_is_withdrawn "$AC_LINE"; then
+    error "$acid is withdrawn -- 'intent ac reinstate' first if you mean to $verb it"
+  fi
+  ESC="$(echo "$acid" | sed 's/\./\\./g')"
+}
+
+cmd_ac_descope() {
+  local stid="$1" acid="$2"
+  shift 2 2>/dev/null || usage
+  local to="" by="" reason=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --to)       to="$2"; shift 2 ;;
+      --to=*)     to="${1#--to=}"; shift ;;
+      --by)       by="$2"; shift 2 ;;
+      --by=*)     by="${1#--by=}"; shift ;;
+      --reason)   reason="$2"; shift 2 ;;
+      --reason=*) reason="${1#--reason=}"; shift ;;
+      *)          shift ;;
+    esac
+  done
+  [ -n "$stid" ] && [ -n "$acid" ] || usage
+  [ -n "$to" ] || error "ac descope requires --to <STnnnn>: the value of recording a move over a strike is that the requirement stays owned"
+  ac_offscope_prepare "$stid" "$acid" "descope"
+  local to_norm
+  to_norm="$(normalise_st_id "$to")"
+  # A descope to a thread that does not exist is a strike with extra steps, so
+  # the destination is resolved before anything is written.
+  [ "$to_norm" != "$ST_ID" ] || error "cannot descope $acid to its own thread ($ST_ID) -- name the thread that now owns it"
+  resolve_st_dir "$to_norm" >/dev/null 2>&1 || error "no such steel thread: $to (nothing would own $acid)"
+  [ -n "$by" ] || by="$(whoami 2>/dev/null || echo unknown)"
+  ac_check_field_text "--by" "$by"
+  local tail_txt=" -- descoped-to: ${to_norm} -- by: ${by} -- on: $(date +%Y-%m-%d)"
+  if [ -n "$reason" ]; then
+    ac_check_field_text "--reason" "$reason"
+    tail_txt="${tail_txt} -- reason: ${reason}"
+  fi
+  tail_txt="${tail_txt} -- satisfied: n/a"
+  local tail_esc
+  tail_esc="$(printf '%s' "$tail_txt" | sed -e 's/[&|\\]/\\&/g')"
+  replace_line "$ACC" "$(ac_strip_tail_expr "$ESC"); s|^(- ${ESC} .*[^ ])[[:space:]]*\$|\1${tail_esc}|"
+  assert_written "$ACC" "$acid" ac_descoped_to "$to_norm" descoped-to
+  echo "ok: $acid descoped to $to_norm"
+}
+
+cmd_ac_withdraw() {
+  local stid="$1" acid="$2"
+  shift 2 2>/dev/null || usage
+  local by="" reason=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --by)       by="$2"; shift 2 ;;
+      --by=*)     by="${1#--by=}"; shift ;;
+      --reason)   reason="$2"; shift 2 ;;
+      --reason=*) reason="${1#--reason=}"; shift ;;
+      *)          shift ;;
+    esac
+  done
+  [ -n "$stid" ] && [ -n "$acid" ] || usage
+  # Every state-changing verb carries its own audit payload -- satisfy needs
+  # --evidence, descope needs --to, withdraw needs --reason. A withdrawal with
+  # no stated reason is a deleted line with extra steps, and deleting the line
+  # is precisely the practice this verb exists to replace.
+  [ -n "$reason" ] || error "ac withdraw requires --reason \"<text>\": a withdrawal with no recorded reason loses the only thing that distinguishes it from deleting the line"
+  ac_check_field_text "--reason" "$reason"
+  ac_offscope_prepare "$stid" "$acid" "withdraw"
+  [ -n "$by" ] || by="$(whoami 2>/dev/null || echo unknown)"
+  ac_check_field_text "--by" "$by"
+  local tail_txt=" -- withdrawn: ${reason} -- by: ${by} -- on: $(date +%Y-%m-%d) -- satisfied: n/a"
+  local tail_esc
+  tail_esc="$(printf '%s' "$tail_txt" | sed -e 's/[&|\\]/\\&/g')"
+  replace_line "$ACC" "$(ac_strip_tail_expr "$ESC"); s|^(- ${ESC} .*[^ ])[[:space:]]*\$|\1${tail_esc}|"
+  assert_written "$ACC" "$acid" ac_withdrawn_reason "$reason" withdrawn
+  echo "ok: $acid withdrawn"
+}
+
+# rescope / reinstate: the undo for each state, back to plain unsatisfied.
+# They refuse each other's state rather than quietly doing the same thing --
+# undoing a withdrawal and undoing a descope are different rulings, and a verb
+# that accepts both teaches that they are interchangeable.
+cmd_ac_unscope() {
+  local verb="$1" stid="$2" acid="$3"
+  [ -n "$stid" ] && [ -n "$acid" ] || usage
+  resolve_or_die "$stid"
+  local acc line esc
+  acc="$(acc_file)"
+  line="$(find_line "$acid" "$acc")"
+  [ -n "$line" ] || error "no such AC: $acid in $acc"
+  if [ "$verb" = "rescope" ]; then
+    ac_is_descoped "$line" || {
+      ac_is_withdrawn "$line" && error "$acid is withdrawn, not descoped -- use 'intent ac reinstate'"
+      error "$acid is not descoped; nothing to rescope"
+    }
+  else
+    ac_is_withdrawn "$line" || {
+      ac_is_descoped "$line" && error "$acid is descoped to $(ac_descoped_to "$line"), not withdrawn -- use 'intent ac rescope'"
+      error "$acid is not withdrawn; nothing to reinstate"
+    }
+  fi
+  esc="$(echo "$acid" | sed 's/\./\\./g')"
+  replace_line "$acc" "$(ac_strip_tail_expr "$esc")"
+  # The row is back in scope and unsatisfied: a non-test AC loses the evidence
+  # it had before the move, which is correct -- re-satisfying is a fresh, stated
+  # act, not something inherited across a scope change.
+  line="$(find_line "$acid" "$acc")"
+  if ac_is_descoped "$line" || ac_is_withdrawn "$line"; then
+    error "write verification failed: $acid in $acc is still off-scope -- the file was NOT updated"
+  fi
+  echo "ok: $acid back in scope (unsatisfied)"
 }
 
 cmd_at_lint() {
@@ -942,11 +1169,15 @@ shift
 case "$NOUN" in
   ac)
     case "$VERB" in
-      list)    cmd_ac_list "$@" ;;
-      status)  cmd_ac_status "$@" ;;
-      satisfy) cmd_ac_satisfy "$@" ;;
-      gate)    cmd_ac_gate "$@" ;;
-      *)       error "unknown ac command: $VERB (try: list, status, satisfy, gate)" ;;
+      list)      cmd_ac_list "$@" ;;
+      status)    cmd_ac_status "$@" ;;
+      satisfy)   cmd_ac_satisfy "$@" ;;
+      gate)      cmd_ac_gate "$@" ;;
+      descope)   cmd_ac_descope "$@" ;;
+      withdraw)  cmd_ac_withdraw "$@" ;;
+      rescope)   cmd_ac_unscope rescope "$@" ;;
+      reinstate) cmd_ac_unscope reinstate "$@" ;;
+      *)         error "unknown ac command: $VERB (try: list, status, satisfy, gate, descope, rescope, withdraw, reinstate)" ;;
     esac
     ;;
   at)
