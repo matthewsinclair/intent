@@ -168,6 +168,31 @@ fi
 echo "Syncing canon subagent updates..."
 "$INTENT_BIN/intent" claude subagents sync || true
 
+# Converge the generated AGENTS.md -- AFTER the canon apply, deliberately.
+#
+# AGENTS.md is, by its own preamble, the contract every agentic CLI reads, and
+# nothing in the upgrade path regenerated it: `claude subagents sync` and
+# `claude skills sync` ran, and the one file the CLIs actually read was left
+# stale. Its Prerequisites block now answers "what is this project built in"
+# from the declared `languages` array rather than filesystem probes (issue
+# 0009), so every consumer's copy is out of date until it is rewritten.
+#
+# ORDER IS LOAD-BEARING, and this was first written as a ledger step and moved
+# here after exercising it: the ledger runs BEFORE the canon apply, and the
+# canon apply creates files (usage-rules.md) that AGENTS.md's own file map
+# lists. Regenerating first left AGENTS.md stale exactly when canon had changed
+# something -- the step reported "already satisfied" and the upgrade finished
+# with a stale contract. Generated content derived from post-canon state has to
+# be generated after canon.
+#
+# --check first so a converged project stays silent, and failure-tolerant for
+# the same reason as its two neighbours above: a generator hiccup must not fail
+# an upgrade that has already done its structural work.
+if ! "$INTENT_BIN/intent" agents sync --check >/dev/null 2>&1; then
+  echo "Syncing AGENTS.md with current project state..."
+  "$INTENT_BIN/intent" agents sync >/dev/null || echo "  warning: 'intent agents sync' failed; AGENTS.md left as-is." >&2
+fi
+
 # --- 5. stamp the target ONCE, last (the sole stamper) --------------------
 CONFIG="intent/.config/config.json"
 # `if` rather than a bare call + `case $?`: this module runs under `set -e`, so a
