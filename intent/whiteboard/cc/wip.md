@@ -14,6 +14,7 @@ claims: []
 ## DOING
 
 - **devbin adopted (`bin/int`), and `bin/release` is now `bin/int build release`.** `bin/intent` is untouched and cannot be touched: devbin's `link_alias` refuses to replace a real file. `bin/in` was the estate-consistent alias and is impossible -- `in` is a bash reserved word, a syntax error as a command in bash while working in zsh. The three commands hv asked for all work: `test all`, `build cli`, `build release`.
+- **Suite green: `bin/int test all` -> 1240 passing, 0 failing, exit 0, at `3563ff4`** (rust + shell legs). Named against the commit, not "HEAD" -- the same run before the 0025 fix had 72 failures by test 830.
 - **The rename half is already committed, in vc's `072d277`** -- they used `git add` + bare `git commit`, which takes the whole index including what I had staged. History reads oddly; the rest of devbin is in my own commit. Nothing of mine was lost.
 
 - **WP-02 SDL face DONE (`732affa`).** The third committed face, exported from the same master -- model types carry SimpleObject/Enum derives beside their schemars ones, so a new field reaches the SDL with nobody remembering. One unavoidable projection (`AcScopeView`: GraphQL cannot express a tagged enum with per-variant fields), guarded from both ends and mutation-proven four ways. AT-02.2 green; AT-02.3/4/5 flipped from a stale `to-write` to green. **Next: WP-03 (ingest, views, sync engine).**
