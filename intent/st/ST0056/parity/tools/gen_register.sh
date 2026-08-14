@@ -15,6 +15,12 @@
 set -uo pipefail
 SP="${SP:?}"; WT="${WT:?}"
 BURN="$SP/burn.tsv"
+
+# Resolve the script's own directory to an ABSOLUTE path BEFORE the cd below.
+# `dirname "${BASH_SOURCE[0]}"` is relative to the invocation, so reading it
+# after `cd "$WT"` resolves against the worktree and the source fails.
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 cd "$WT" || { echo "gen_register: WT is not a directory: $WT" >&2; exit 2; }
 
 # DECIDED, not inferred. Every rule below is a grep, and a grep cannot tell code
@@ -67,6 +73,28 @@ REV="$(cd "$WT" && git rev-parse --short HEAD 2>/dev/null)"
 [ -n "$REV" ] || { echo "gen_register: cannot resolve a revision from WT=$WT; refusing to write an unstamped register" >&2; exit 2; }
 DATE="$(date -u +%Y-%m-%d)"
 OUT="${OUT:-$SP/register.md}"
+
+# CORPUS COVERAGE -- refuse a TSV that does not cover the on-disk estate.
+#
+# Measured 2026-08-14, and it had already happened: the committed
+# `burn-baseline.tsv` carried 94 data rows against a 97-row register. Three
+# files landed AFTER the baseline was taken, so the artefact this register
+# names as its provenance could no longer reproduce it. Nothing noticed,
+# because a register built from a short TSV is not malformed -- it is simply,
+# silently, three files smaller than the estate it claims.
+#
+# That is fatal to AC-05.3 in particular. The AC says every file in the estate
+# is classified; a register built from a partial TSV answers that question
+# affirmatively about a corpus it chose for itself, which is the vacuous-green
+# shape. The check lives in lib_corpus.sh because coverage_map.sh had the same
+# bug independently -- see that file's header.
+#
+# The source is fatal in its own right. Without the `||`, a missing library
+# under `set -uo pipefail` (no `-e`) merely prints and carries on to the next
+# line -- so the guard silently would not run, which is the precise failure
+# class this whole file exists to refuse.
+. "$HERE/lib_corpus.sh" || { echo "gen_register: cannot source $HERE/lib_corpus.sh -- refusing to generate without the corpus-coverage guard" >&2; exit 2; }
+corpus_require "$BURN" "gen_register" "$WT" || exit 2
 
 {
   cat <<PREAMBLE
@@ -130,12 +158,41 @@ PREAMBLE
       UNSTABLE)
         printf '| `%s` | %s | -- | UNCLASSIFIED | unstable baseline | %s test(s) already fail with the default binding, so the burn delta carries no information. Fix or explain before classifying. |\n' "$f" "$total" "$dfail"
         ;;
+      TIMEOUT)
+        printf '| `%s` | %s | -- | UNCLASSIFIED | measurement timed out | The run exceeded BURN_TIMEOUT and was killed, so neither binding produced a usable failure count. This is not a slow test and not a passing one: no measurement exists. Re-run this file alone before classifying. |\n' "$f" "$total"
+        ;;
+      *)
+        # NO SILENT ERRORS. burn.sh grew a TIMEOUT status on 2026-08-14 and this
+        # case did not grow the matching arm, so for a few hours a timed-out
+        # file would have fallen straight through and been emitted NOWHERE --
+        # and a row missing from the register is indistinguishable from a file
+        # that does not exist. The corpus-coverage check above would not have
+        # caught it either: coverage compares the TSV to disk, and a dropped row
+        # is lost AFTER that comparison passes.
+        #
+        # So this arm is the general fix rather than a second special case. Any
+        # status this generator does not recognise becomes a loud UNCLASSIFIED
+        # row naming the unknown value, because the failure mode to design
+        # against is the register that quietly got smaller.
+        printf '| `%s` | %s | -- | UNCLASSIFIED | unrecognised burn status `%s` | burn.sh emitted a status this generator has no arm for. Emitted rather than dropped: a row silently absent from the register reads as a file that does not exist. Teach the generator this status, or fix the sweep that produced it. |\n' "$f" "$total" "$status"
+        ;;
     esac
   done
 
   # Summary is computed from the rows just emitted, not tallied by hand.
-  TOT=$(awk -F'\t' 'NR>1{T+=$2} END{print T}' "$BURN")
-  CLI=$(awk -F'\t' 'NR>1{B+=$4} END{print B}' "$BURN")
+  #
+  # UNMEASURED FILES ARE EXCLUDED FROM THE DENOMINATOR, not silently folded in.
+  # An UNSTABLE or TIMEOUT row carries `--` in the burn column, which awk reads
+  # as 0 in numeric context -- so summing blind would count every unmeasured
+  # test as "does not reach the CLI" and quietly depress the percentage with
+  # data that does not exist. The measured corpus and the whole corpus are
+  # different numbers and the summary now says which is which.
+  TOT=$(awk -F'\t' 'NR>1{T+=$2} END{print T+0}' "$BURN")
+  TOT_M=$(awk -F'\t' 'NR>1 && $5!="UNSTABLE" && $5!="TIMEOUT"{T+=$2} END{print T+0}' "$BURN")
+  CLI=$(awk -F'\t' 'NR>1 && $5!="UNSTABLE" && $5!="TIMEOUT"{B+=$4} END{print B+0}' "$BURN")
+  DFAIL=$(awk -F'\t' 'NR>1 && $3!="--"{D+=$3} END{print D+0}' "$BURN")
+  NTIMEOUT=$(awk -F'\t' 'NR>1 && $5=="TIMEOUT"{c++} END{print c+0}' "$BURN")
+  NUNSTABLE=$(awk -F'\t' 'NR>1 && $5=="UNSTABLE"{c++} END{print c+0}' "$BURN")
   printf '\n## Summary\n\n'
   printf '| class | files | what WP-05 does with them |\n'
   printf '| ----- | ----- | ------------------------- |\n'
@@ -152,10 +209,47 @@ PREAMBLE
     esac
     printf '| **%s** | %s | %s |\n' "$k" "$n" "$w"
   done
-  printf '\n**%s of %s tests (%.0f%%) actually reach the CLI.** The remaining %s do not, and cannot serve as v3 conformance evidence whatever their assertions say. That number is the honest size of the conformance estate, and it is the figure WP-05 should plan against rather than the 1235 headline.\n' \
-    "$CLI" "$TOT" "$(echo "$CLI $TOT" | awk '{print 100*$1/$2}')" "$((TOT - CLI))"
-  printf '\nBaseline: all %s tests pass with the default `INTENT_BIN`, so the retarget is behaviour-neutral. That run was taken in a sacrificial worktree and is evidence, not certification -- the authoritative full-suite run is matts.\n' "$TOT"
+  printf '\n**%s of %s MEASURED tests (%s) actually reach the CLI.** The remaining %s do not, and cannot serve as v3 conformance evidence whatever their assertions say. That number is the honest size of the conformance estate, and it is the figure WP-05 should plan against rather than the 1235 headline.\n' \
+    "$CLI" "$TOT_M" "$(echo "$CLI $TOT_M" | awk '{if ($2>0) printf "%.0f%%", 100*$1/$2; else print "n/a -- nothing measured"}')" "$((TOT_M - CLI))"
+
+  # The denominator is stated only when it is not the whole estate. Printing
+  # "0 tests unmeasured" on every clean run trains the reader to skip the line,
+  # which is how the one run that matters gets skipped too.
+  if [ "$TOT" -ne "$TOT_M" ]; then
+    printf '\n**%s of the %s tests in the estate were NOT MEASURED and are excluded from that ratio** -- %s file(s) timed out, %s had a non-green baseline. They are UNCLASSIFIED rows, not zero-burn rows: no measurement exists for them, which is a different claim from "does not reach the CLI" and must not be averaged in as if it were.\n' \
+      "$((TOT - TOT_M))" "$TOT" "$NTIMEOUT" "$NUNSTABLE"
+  fi
+
+  # The old wording here asserted "all N tests pass with the default INTENT_BIN"
+  # unconditionally, from a template rather than from the data -- so a run with
+  # a red baseline or a timed-out file would have published a clean bill of
+  # health it had just measured to be false. The claim is now conditional on
+  # the numbers that back it.
+  if [ "$DFAIL" -eq 0 ] && [ "$NTIMEOUT" -eq 0 ]; then
+    printf '\nBaseline: all %s tests pass with the default `INTENT_BIN`, so the retarget is behaviour-neutral. That run was taken in a sacrificial worktree and is evidence, not certification -- the authoritative full-suite run is matts.\n' "$TOT"
+  else
+    printf '\n**Baseline NOT clean, and the retarget cannot be called behaviour-neutral on this run.** %s test(s) fail under the default `INTENT_BIN` and %s file(s) timed out. Every burn delta from an affected file is uninformative and its row is UNCLASSIFIED. Repair the measurement and re-run before reading anything else in this table as evidence.\n' "$DFAIL" "$NTIMEOUT"
+  fi
 } > "$OUT"
+
+# PROVENANCE IS EMITTED, NEVER HAND-COPIED.
+#
+# The register's header names `tools/burn-baseline.tsv` as the measurement
+# behind it. That file went stale precisely because it was a MANUAL copy of an
+# ephemeral `$SP/burn.tsv`, taken at some moment nobody recorded: the register
+# was regenerated three times, the baseline was copied once, and the two drifted
+# apart in silence while the header went on claiming they matched.
+#
+# Emitting both from one run closes that at the source. There is exactly one
+# writer for the baseline and it is the same code path that writes the register,
+# so the pair cannot come from different sweeps -- the copy step that could get
+# it wrong no longer exists.
+BASELINE_OUT="${BASELINE_OUT:-$(dirname "$OUT")/burn-baseline.tsv}"
+cp "$BURN" "$BASELINE_OUT" || {
+  echo "gen_register: wrote the register but could NOT write its baseline to $BASELINE_OUT" >&2
+  echo "  The register on disk is unusable as evidence until its provenance lands beside it -- that pairing is the whole point. Do not commit it alone." >&2
+  exit 2
+}
 
 # Count only data rows: the preamble also contains tables, so anchor on the
 # leading `tests/ path cell rather than on line position.
