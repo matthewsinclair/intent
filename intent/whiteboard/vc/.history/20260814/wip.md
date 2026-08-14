@@ -67,3 +67,36 @@
 - WP-02 CLOSED on cc's claim: AC-02.6 renumbered to AC-04.5 / AT-04.5 with provenance, `at lint` clean (60 rows), gate ST0056/02 PASS 5/5, `wp done` recorded. cc's applied-is-not-reached mutation lesson absorbed into parity.md's working rules.
 - hv inbox sweep on hv's instruction: all six hv-direction inboxes (`hv/inbox.{cc,ic,vc}`, `{cc,ic,vc}/inbox.hv`) verified empty -- nothing to clear.
 - ic's clock guard (`ddac6ba` + the Re:-anchor fix `98ce764`): whiteboard stamps now need the trailing `Z` at the pre-commit gate; vc's 14:34/15:03 unmarked entries predate it and stand as-is in peers' archives.
+
+---
+
+## PM-4 -- the three-node AFK window (17:05Z -> 22:18Z)
+
+hv went AFK, handed all three nodes the pen, and asked how far we get on the Rust CLI and services layer unattended. Both builders were idle at pickup. Dispatched cc to WP-03 whole and ic to the dispatch-table SSOT in parallel; vc stewarded and did not build.
+
+### Delivered
+
+- **WP-03 CLOSED 6/6** at cc's `476f1e1` -- 15 targets / 60 passed, verified by re-running. **D24 mechanically protected**: mutated `sync.rs:161` to a stat gate in a sacrificial worktree, exactly one test red, prediction written first.
+- **WP-04 CLOSED 5/5** at `ce2bb3b`, after a **bounce**. v2's gate enforces five rules and v3 had two; `cmd_ac_gate` calls `at_lint_report` and blocks on it, so L1-L5 are GATE rules. `at lint` is a validator the gate calls, not a read surface -- filing it under the wrong noun is how L4/L5 nearly shipped missing. Then independently enumerated all EIGHT verdict paths in `cmd_ac_gate` (cc had studied one) and confirmed every constructible one is covered; `intent_wp:156` and `intent_st:470` call the gate and check nothing themselves.
+- **WP-05 at 3/4**, blocked on AC-05.3 (register 97 rows vs 98 files, missing `whiteboard_clock_guard.bats`). AC-05.4 satisfied by vc review: 713 lines, zero DB/fs/path reaches.
+- **WP-13 created and specced whole** -- project search in four tiers (T0 retire treeindex + in-handoff, T1 FTS, T2 tree-sitter, T3 semantic, T4 LSP parked). tree-sitter rather than an Elixir-specific parser because the `languages` array is already the grammar manifest; **T2 is the chunker T3 needs**, so the staging is a dependency rather than a convenience.
+- **Contract 62 -> 77 ACs**, every one an addition. Five came from cross-checking all twelve deliverable lists against all sixty-two ACs.
+- **D22-D27 landed**; hv's standing authorisation converted them from PROVISIONAL to ADOPTED, with what "adopted" means defined once in design.md so it is not confused with review.
+- ic delivered 27 families / 92 entries and folded; seven measurement rules landed in parity.md.
+
+### Decisions now living in committed artefacts (archived from the live board)
+
+Each is in the ST canon; a second copy here is the divergent-copy drift Highlander exists to stop.
+
+- Deliverable lists are not gated -> acceptance.md, WP-02 finding.
+- Derive the law, do not audit the instances -> D23.
+- When contract and narrative disagree, the contract governs -> D24.
+- A divergent copy proves itself the moment the original moves -> data-model.md schema-face section.
+- Unratified is an answer given by default -> README roster + design.md adoption note.
+- Message text is not in the parity contract -> D27.
+- The dispatch table must leave the ST tree -> D26.
+- Calibrate before believing a zero; clean-by-luck vs clean-by-construction; a file named after a command that does not test it; file-level classification is structurally blind; success is reported by the mechanism -> parity.md `## Measurement rules`.
+
+### The window's own lesson
+
+Three wrong premises crossed between nodes and three were caught in one hop -- ic's clap overclaim, my zsh probe, my `at set` verb name. The one I did NOT re-run, cc's absent-file report, became a wrong ruling until hv caught it. Against a failure mode that is plausible and silent by construction, that ratio is the measurement worth keeping; artefact sizes are not.
