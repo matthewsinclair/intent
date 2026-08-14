@@ -63,6 +63,32 @@ if [ ! -f "intent/.config/config.json" ]; then
   exit 0
 fi
 
+# ---- Whiteboard clock guard (opt-in by directory presence) ----
+#
+# Runs BEFORE the critic: it is exact, cheap, needs no language, and a bad
+# timestamp is cheaper to fix before the slower checks have run.
+#
+# Opt-in by presence, exactly like the whiteboard itself -- a project without a
+# board is not one this guard has an opinion about, and nothing changes for it.
+#
+# Resolution is a RUNTIME question, answered the way issue 0016 answered it for
+# the Claude Code hooks: ask the CLI where it lives rather than substituting an
+# absolute path at install time. `intent` is already required on PATH above, and
+# it knows its own home; `sed` rather than `awk $2` so a home directory
+# containing spaces still resolves.
+if [ -d "intent/whiteboard" ]; then
+  INTENT_HOME_RESOLVED="$(intent info 2>/dev/null | sed -n 's/^ *INTENT_HOME: *//p' | head -1)"
+  CLOCK_GUARD="${INTENT_HOME_RESOLVED}/lib/templates/hooks/whiteboard-clock-guard.sh"
+  if [ -n "$INTENT_HOME_RESOLVED" ] && [ -f "$CLOCK_GUARD" ]; then
+    bash "$CLOCK_GUARD" || exit 1
+  else
+    # Named, not silent: a board present with no guard behind it is exactly the
+    # invisible non-enforcement this whole mechanism exists to end.
+    echo "intent gate: intent/whiteboard/ present but the clock guard was not found;" >&2
+    echo "  timestamps are UNCHECKED this commit. (looked in: ${CLOCK_GUARD})" >&2
+  fi
+fi
+
 # ---- Read declared languages from project config ----
 #
 # v2.11.0+: languages-in-use is an explicit `languages` array in

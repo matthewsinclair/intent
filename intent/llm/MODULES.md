@@ -86,6 +86,7 @@
 | Dependency graph template | `lib/templates/llm/_DEPENDENCY_GRAPH.md`              | Dependency rules template                                                           |
 | Hook template             | `lib/templates/hooks/module_check_hook.json`          | Advisory write hook for Claude Code                                                 |
 | Pre-commit critic gate    | `lib/templates/hooks/pre-commit.sh`                   | `.git/hooks/pre-commit` template; runs `intent critic --staged` (ST0035/WP06)       |
+| Whiteboard clock guard    | `lib/templates/hooks/whiteboard-clock-guard.sh`       | Pre-commit block on fabricated whiteboard timestamps; 3 checks (issue 0026)         |
 | Critic config template    | `lib/templates/_intent_critic.yml`                    | `.intent_critic.yml` install default (ST0035/WP07)                                  |
 | Claude settings template  | `lib/templates/.claude/settings.json`                 | Canonical hook stanzas (ST0035)                                                     |
 | Session context hook      | `lib/templates/.claude/scripts/session-context.sh`    | SessionStart: project/git/WIP context                                               |

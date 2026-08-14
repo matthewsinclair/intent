@@ -142,6 +142,25 @@ Corollaries:
 - **Trailing `Z` is mandatory.** An unmarked heading means the writer used the wrong command; assume local and treat its ordering as unreliable.
 - **Never rewrite a peer's stamp** -- it is their file. Flag it to them.
 - **Never repair your own fabricated stamp by inventing a better one.** You cannot recover a time you never read. Annotate it as unverifiable and move on; a corrected-looking fake is worse than an admitted one.
+- **`git log` prints LOCAL time.** It is the usual source of the +1h error: reading a time off it and appending a `Z` produces a stamp that is wrong by exactly the local offset and looks perfect.
+
+### This is enforced, not merely written down
+
+`lib/templates/hooks/whiteboard-clock-guard.sh` runs from the pre-commit gate and **refuses the commit** -- the bad stamp never lands. It is opt-in by the presence of `intent/whiteboard/`, so nothing changes for a project without a board. Built and measured in Lamplight, brought upstream because Intent ships this protocol and every consumer inherits the hole otherwise.
+
+Three checks, because each closes a hole the others cannot see:
+
+| check | what it catches                      | how                                                                 |
+| ----- | ------------------------------------ | ------------------------------------------------------------------- |
+| **A** | a stamp in the future                | a stamp cannot postdate the commit adding it; 120s jitter tolerance |
+| **B** | a missing trailing `Z`               | syntactic, exact, no clock, no tolerance                            |
+| **C** | an append-only inbox going backwards | compares two board stamps to each other; needs no clock at all      |
+
+Why all three. **A alone does not catch the local-clock error**: an unmarked `## (2026-08-14 14:19)` is read as UTC, so it only trips A _while still in the future_ -- once a commit lags past the local offset the same bad stamp sails through, and lag is normal (measured: 93% of stamps commit within the hour, tail to nine hours). **A and B both compare a stamp to a clock**, so a fabricated stamp landing in the _past_ passes both in silence -- which is the failure this rule names first. C is the two-sided test: a real `date -u` read can never break it, because time does not run backwards.
+
+Two things the guard deliberately does not do. It **never auto-corrects** -- a guard that silently fixes the stamp hides the class from the node that needs to learn its clock was wrong; it prints the right value so the fix is a copy-paste. And **check C never blocks on pre-existing breakage**, only on stamps the current commit adds, because a guard that must be bypassed to work is a guard nobody keeps.
+
+**It does not close the class, and you should not read a green as proof that it has.** A fabricated stamp that carries a `Z`, lands in the past, and still increases monotonically passes all three checks. Smaller target, not an empty one -- which is the whole reason the rule above is stated as a rule and not as "the hook will catch it".
 
 ## Node-identity discovery
 
