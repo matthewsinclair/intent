@@ -12,7 +12,8 @@
     "Every claim carries an `evidence_class`, because 'verified' is not one thing. `measured` = a probe was run against v2 at the stamped revision. `documented-default` = a framework's published default, correct today and CHANGEABLE by a major bump or a single builder setting. `read` = taken from source without executing it. The distinction was forced by vc catching this file claiming clap's exit code was measured -- it cannot have been, since no clap dependency exists in the workspace yet. A documented default that goes unpinned is a finding with a silent expiry date.",
     "`disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep · retire · deviate · pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.",
     "Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them.",
-    "There is a FIFTH parity class, `undefined` (vc ruling, 2026-08-14, on `intent config` as its first member). `corrected` needs a v2 antecedent to correct; silence is not an antecedent. Where v2 exhibited NO behaviour at all, v3 is DESIGNING rather than porting or correcting, and that is a different decision needing a different reviewer. Folding it into `corrected` would hide a design decision inside a bug-fix class."
+    "There is a FIFTH parity class, `undefined` (vc ruling, 2026-08-14, on `intent config` as its first member). `corrected` needs a v2 antecedent to correct; silence is not an antecedent. Where v2 exhibited NO behaviour at all, v3 is DESIGNING rather than porting or correcting, and that is a different decision needing a different reviewer. Folding it into `corrected` would hide a design decision inside a bug-fix class.",
+    "Each family carries `bats_coverage`: how many test FILES exercise it through the dispatcher (`files_real`), how many name it but never reach the CLI (`files_vacuous`), and how many individual tests actually burn. Produced by `parity/tools/coverage_map.sh`, which joins these families against `burn-baseline.tsv`. The join is the point -- a naive grep reports `treeindex` as well covered when all 53 of its tests exec `bin/intent_treeindex` directly and the dispatcher never sees them. **A family with no burning coverage is a parity hole: v3 can change it freely and the conformance suite stays green.**"
   ],
   "invariants": [
     {
@@ -689,7 +690,13 @@
           "disposition": "pending",
           "cross_ref": "The top-level `st_zero` family covers bin/intent_st_zero; this entry is the alias face only."
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 22,
+        "files_vacuous": 0,
+        "burning_tests": 267,
+        "verdict": "covered"
+      }
     },
     {
       "name": "wp",
@@ -990,7 +997,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 8,
+        "files_vacuous": 0,
+        "burning_tests": 79,
+        "verdict": "covered"
+      }
     },
     {
       "name": "ac",
@@ -1466,7 +1479,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 4,
+        "files_vacuous": 0,
+        "burning_tests": 57,
+        "verdict": "covered"
+      }
     },
     {
       "name": "at",
@@ -1766,7 +1785,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 2,
+        "files_vacuous": 0,
+        "burning_tests": 30,
+        "verdict": "covered"
+      }
     },
     {
       "name": "issues",
@@ -2051,7 +2076,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 1,
+        "files_vacuous": 0,
+        "burning_tests": 20,
+        "verdict": "covered"
+      }
     },
     {
       "name": "todo",
@@ -2294,7 +2325,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 1,
+        "files_vacuous": 0,
+        "burning_tests": 22,
+        "verdict": "covered"
+      }
     },
     {
       "name": "info",
@@ -2358,7 +2395,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 3,
+        "files_vacuous": 0,
+        "burning_tests": 23,
+        "verdict": "covered"
+      }
     },
     {
       "name": "config",
@@ -2421,7 +2464,13 @@
           },
           "disposition": "pending"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 0,
+        "files_vacuous": 0,
+        "burning_tests": 0,
+        "verdict": "HOLE -- nothing in the estate invokes it"
+      }
     },
     {
       "name": "init",
@@ -2512,7 +2561,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 7,
+        "files_vacuous": 0,
+        "burning_tests": 55,
+        "verdict": "covered"
+      }
     },
     {
       "name": "bootstrap",
@@ -2594,7 +2649,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 2,
+        "files_vacuous": 0,
+        "burning_tests": 16,
+        "verdict": "covered"
+      }
     },
     {
       "name": "doctor",
@@ -2684,7 +2745,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 1,
+        "files_vacuous": 0,
+        "burning_tests": 11,
+        "verdict": "covered"
+      }
     },
     {
       "name": "upgrade",
@@ -2762,7 +2829,13 @@
           },
           "disposition": "retire"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 1,
+        "files_vacuous": 0,
+        "burning_tests": 4,
+        "verdict": "covered"
+      }
     },
     {
       "name": "organize",
@@ -2833,7 +2906,13 @@
           "disposition": "retire",
           "cross_ref": "`st organize` is the other face; see the `st` family."
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 1,
+        "files_vacuous": 0,
+        "burning_tests": 3,
+        "verdict": "covered"
+      }
     },
     {
       "name": "agents",
@@ -3056,7 +3135,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 4,
+        "files_vacuous": 1,
+        "burning_tests": 86,
+        "verdict": "covered"
+      }
     },
     {
       "name": "claude",
@@ -3511,7 +3596,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 30,
+        "files_vacuous": 2,
+        "burning_tests": 296,
+        "verdict": "covered"
+      }
     },
     {
       "name": "critic",
@@ -3661,7 +3752,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 2,
+        "files_vacuous": 0,
+        "burning_tests": 19,
+        "verdict": "covered"
+      }
     },
     {
       "name": "lang",
@@ -3900,7 +3997,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 3,
+        "files_vacuous": 0,
+        "burning_tests": 57,
+        "verdict": "covered"
+      }
     },
     {
       "name": "llm",
@@ -3999,7 +4102,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 1,
+        "files_vacuous": 0,
+        "burning_tests": 5,
+        "verdict": "covered"
+      }
     },
     {
       "name": "learn",
@@ -4074,7 +4183,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 1,
+        "files_vacuous": 0,
+        "burning_tests": 18,
+        "verdict": "covered"
+      }
     },
     {
       "name": "modules",
@@ -4212,7 +4327,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 1,
+        "files_vacuous": 0,
+        "burning_tests": 20,
+        "verdict": "covered"
+      }
     },
     {
       "name": "plugin",
@@ -4328,7 +4449,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 3,
+        "files_vacuous": 0,
+        "burning_tests": 35,
+        "verdict": "covered"
+      }
     },
     {
       "name": "ext",
@@ -4556,7 +4683,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 3,
+        "files_vacuous": 0,
+        "burning_tests": 41,
+        "verdict": "covered"
+      }
     },
     {
       "name": "treeindex",
@@ -4678,7 +4811,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 1,
+        "files_vacuous": 1,
+        "burning_tests": 6,
+        "verdict": "covered"
+      }
     },
     {
       "name": "fileindex",
@@ -4842,7 +4981,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 1,
+        "files_vacuous": 0,
+        "burning_tests": 2,
+        "verdict": "THIN -- 2 burning test(s)"
+      }
     },
     {
       "name": "help",
@@ -4911,7 +5056,13 @@
           },
           "disposition": "retire"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 7,
+        "files_vacuous": 0,
+        "burning_tests": 89,
+        "verdict": "covered"
+      }
     },
     {
       "name": "st_zero",
@@ -5004,7 +5155,13 @@
           },
           "disposition": "pending"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 1,
+        "files_vacuous": 0,
+        "burning_tests": 32,
+        "verdict": "covered"
+      }
     },
     {
       "name": "version",
@@ -5054,7 +5211,13 @@
           },
           "disposition": "keep"
         }
-      ]
+      ],
+      "bats_coverage": {
+        "files_real": 2,
+        "files_vacuous": 0,
+        "burning_tests": 65,
+        "verdict": "covered"
+      }
     }
   ],
   "families_outstanding": [],
@@ -5160,5 +5323,28 @@
       "`ac gate` and `at lint` scope-honouring is recorded from a read of the CURRENT bin/intent_acceptance, post-e685e90, not from the older matrix."
     ],
     "known_limit": "The matrix's bare / --help / unknown-flag columns for commands untouched by those four commits are carried forward unre-run. Stated rather than papered over: a full re-probe is one `gen_inventory.sh` run and is the right move before WP-05 leans on this file, not before vc reviews its shape."
-  }
+  },
+  "coverage_findings": [
+    {
+      "family": "config",
+      "verdict": "HOLE",
+      "finding": "NOTHING in the BATS estate invokes `intent config`. Zero files, zero tests.",
+      "why_it_matters": "This family already has no v2 behaviour to be faithful to (0B on both streams, exit 0) and now also has nothing that would notice a change. Both halves of the safety net are absent at the same site: v3 can do anything here and the suite stays green. It is the strongest possible argument for the `undefined` class being separate from `corrected` -- there is neither an antecedent nor a guard.",
+      "trap": "`tests/unit/config.bats` EXISTS and burns 5 of 7, which makes the hole invisible in any file listing. It tests config LOADING -- through `intent info`, `intent doctor` and `intent st list` -- and never invokes `intent config` once. A file named after a command that does not test that command is worse than no file, because it answers the question 'is this covered?' wrongly and confidently.",
+      "action": "WP-06 must land a conformance test for `intent config` BEFORE changing its behaviour, or the `undefined` ruling is unverifiable by construction."
+    },
+    {
+      "family": "fileindex",
+      "verdict": "THIN",
+      "finding": "2 burning tests. `tests/unit/fileindex_commands.bats` holds 47 tests and 45 of them bypass the dispatcher entirely.",
+      "why_it_matters": "The dispatcher path for `fileindex` is almost untested, so most of what the register counts as fileindex coverage does not constrain the v3 binary at all.",
+      "action": "Either accept it as a named thin spot in the register, or add dispatcher-level tests at WP-06. Naming it is the minimum; silence would let 47 tests read as coverage."
+    },
+    {
+      "family": "*",
+      "verdict": "METHOD",
+      "finding": "The zero for `config` was calibrated before being believed: the same needle returns 3 files for `doctor` (a known-covered control), and a direct grep for `intent config` / `run_intent config` returns nothing.",
+      "why_it_matters": "A measuring instrument that reports zero is indistinguishable from a broken one until it is shown to report non-zero somewhere it should. This is the calibration rule that came out of the zsh probe artefact earlier in the same session, applied to the very next instrument built."
+    }
+  ]
 }

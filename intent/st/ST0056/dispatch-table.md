@@ -12,6 +12,7 @@
 - `disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep · retire · deviate · pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.
 - Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them.
 - There is a FIFTH parity class, `undefined` (vc ruling, 2026-08-14, on `intent config` as its first member). `corrected` needs a v2 antecedent to correct; silence is not an antecedent. Where v2 exhibited NO behaviour at all, v3 is DESIGNING rather than porting or correcting, and that is a different decision needing a different reviewer. Folding it into `corrected` would hide a design decision inside a bug-fix class.
+- Each family carries `bats_coverage`: how many test FILES exercise it through the dispatcher (`files_real`), how many name it but never reach the CLI (`files_vacuous`), and how many individual tests actually burn. Produced by `parity/tools/coverage_map.sh`, which joins these families against `burn-baseline.tsv`. The join is the point -- a naive grep reports `treeindex` as well covered when all 53 of its tests exec `bin/intent_treeindex` directly and the dispatcher never sees them. **A family with no burning coverage is a parity hole: v3 can change it freely and the conformance suite stays green.**
 
 ## Provenance
 
@@ -115,6 +116,7 @@ Manage steel threads for the project
 - **v2 source:** `bin/intent_st`
 - **v2 help file:** none
 - **Owning work package:** WP-04
+- **BATS coverage:** 267 burning test(s) across 22 file(s) -- **covered**
 
 - `intent help st` falls through to the 'no help available' path (bin/intent_help:37) -- there is no `lib/help/st.help.md`. The usage() block at bin/intent_st:13-88 is the only authored help, and it is unreachable from `intent help`.
 - The one-line help strings below are lifted verbatim from that usage() block where it has one, so v3's generated help stays recognisable to existing users. Where v2 has no line (`zero`), the help is newly authored and marked as such.
@@ -368,6 +370,7 @@ Manage work packages within steel threads
 - **v2 source:** `bin/intent_wp`
 - **v2 help file:** none
 - **Owning work package:** WP-04
+- **BATS coverage:** 79 burning test(s) across 8 file(s) -- **covered**
 
 - Specifier syntax is shared across every verb and parsed by `parse_wp_specifier` (bin/intent_helpers, ST0050): `STID` accepts `ST0011` or the bare number `11`; `STID/NN` accepts `ST0011/01` or `11/01`. Unlike `st repair`, the bare-number form here actually works -- the resolver is a function, not a `case` glob (contrast the dead arm at bin/intent_st:1231).
 - No help file; `intent help wp` falls through to the no-help path. The usage() block is the only authored help and is unreachable from `intent help`.
@@ -498,6 +501,7 @@ Acceptance criteria: the ratified completeness boundary of a unit
 - **v2 source:** `bin/intent_acceptance`
 - **v2 help file:** none
 - **Owning work package:** WP-04
+- **BATS coverage:** 57 burning test(s) across 4 file(s) -- **covered**
 
 - `ac` and `at` are two nouns over ONE binary (`bin/intent_acceptance`), dispatched on `$1` as the noun and `$2` as the verb. They share a usage block, so `intent ac --help` and `intent at --help` are the same text -- and both FAIL, because `--help` is parsed as the verb (INV-07).
 - An AC has four states, not two (issue 0013): in-scope, satisfied, descoped-to-a-named-thread, withdrawn-with-reason. Descoped and withdrawn are non-blocking and reported separately rather than folded into the satisfied count. This is already reified in the v3 model as `AcScope` (crates/intentsvcs/src/model.rs), so the CLI surface here maps onto it directly.
@@ -684,6 +688,7 @@ Acceptance tests: the small red-to-green tests that prove ACs
 - **v2 source:** `bin/intent_acceptance`
 - **v2 help file:** none
 - **Owning work package:** WP-04
+- **BATS coverage:** 30 burning test(s) across 2 file(s) -- **covered**
 
 - **parity.md's command-level table was wrong about this family and the deep pass corrected it.** The table said `lint [--fix], set, list`. Measured: `list, lint, red, green, na, done, notdone`. There is NO `set` verb -- `cmd_at_set` is an internal function -- and `done`/`notdone` are aliases for `green`/`red`. Evidence: `intent at set` answers `error: unknown at command: set`.
 - The AT row has an enforced grammar (issue 0017) with exactly two shapes and nothing else parsing. The reference is the test FILE -- backticked, repo-relative, at least one `/`, no `:`. A test is named by putting the AT id INSIDE the test, which is checkable from both ends and survives rewording; a cited test NAME is not.
@@ -810,6 +815,7 @@ Track issues without the ceremony of a steel thread
 - **v2 source:** `bin/intent_issues`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 20 burning test(s) across 1 file(s) -- **covered**
 
 - **The OPEN/CLOSED directory layout is a ratified deviation.** v2 stores issues at `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md`, so the directory encodes status. In v3 status is data (`issues/<n>.json`) and index views replace directory browsing (parity.md, D01). Tests asserting the directory shape retire with the layout.
 - `new` is an undocumented alias for `add`, and there is an undocumented `help` verb -- both measured, neither in parity.md's original table.
@@ -931,6 +937,7 @@ A flat DOING / TODO / DONE view of steel threads and work packages
 - **v2 source:** `bin/intent_todo`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 22 burning test(s) across 1 file(s) -- **covered**
 
 - `intent/todo.md` is GENERATED from ST/WP status and is never hand-maintained. In v3 it is a generated view proper (WP-03), so the `update` verb becomes explicit regeneration rather than the thing that keeps it from going stale.
 - The DONE bucket is watermarked: `done --flush` advances a `## DONE:<T>` marker so completed threads fall out of the view without being deleted. That watermark is authored state with no home in the reified model yet -- flagged, since it is neither thread data nor a pure view.
@@ -1037,6 +1044,7 @@ Show the Intent process overview and project status
 - **v2 source:** `bin/intent_info`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 23 burning test(s) across 3 file(s) -- **covered**
 
 - Single-action command: no dispatch `case`, no flags parsed at all.
 
@@ -1070,6 +1078,7 @@ Display the resolved project configuration
 - **v2 source:** `bin/intent_config`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 0 burning test(s) across 0 file(s) -- **HOLE -- nothing in the estate invokes it**
 
 - **This command produces NO OUTPUT AT ALL in a project** -- 0 bytes on both streams, exit 0, measured. `bin/intent_config` is primarily a LIBRARY: `bin/intent:211` sources it for `load_intent_config`, and the executable path is close to vestigial.
 - It is the clearest case in the surface of a command whose v3 shape is a decision rather than a port: `intent config` printing nothing is not a behaviour worth reproducing.
@@ -1103,6 +1112,7 @@ Initialize a new Intent project in the current directory
 - **v2 source:** `bin/intent_init`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 55 burning test(s) across 7 file(s) -- **covered**
 
 - Templates are read from `lib/templates/` at `INTENT_HOME`. In v3 they are embedded in the binary (WP-07, rust-embed), which removes the whole class of broken-install failure this command currently has to report.
 
@@ -1143,6 +1153,7 @@ First-time setup: create global Intent configuration
 - **v2 source:** `bin/intent_bootstrap`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 16 burning test(s) across 2 file(s) -- **covered**
 
 - Runs OUTSIDE a project by design (measured: exit 0, 982B). It is one of the global commands.
 - Its own usage block says `Usage: intent_bootstrap [OPTIONS]` and `Initial setup for Intent v2.0.0` -- it names the underlying script rather than the `intent bootstrap` the user typed, and the version is nine minors stale. Both retire when help is generated from this table.
@@ -1179,6 +1190,7 @@ Diagnose and fix common Intent configuration issues
 - **v2 source:** `bin/intent_doctor`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 11 burning test(s) across 1 file(s) -- **covered**
 
 - Runs outside a project (measured: exit 0, 397B), so it is a global command.
 - v3 gains two checks that have no v2 antecedent because they are consequences of the new truth model: the SKEW check (a hand-edited generated view, AC-03.4) and the UNPARSED state (AC-03.5). Both are additions, not deviations.
@@ -1216,6 +1228,7 @@ Upgrade an Intent project to the current version
 - **v2 source:** `bin/intent_upgrade`
 - **v2 help file:** none
 - **Owning work package:** WP-10
+- **BATS coverage:** 4 burning test(s) across 1 file(s) -- **covered**
 
 - **REPLACED, not ported.** D09's two-hop policy: v2's own upgrade ledger is never reimplemented in Rust. A project below the v2.19.0 floor runs v2's `intent upgrade` first, then the v3 migrator takes it from there. The two `intent_migrations_*` BATS files retire by design for the same reason.
 - `bin/intent_migrations` is mode 644 and is NOT a command -- it exists only to be sourced by the orchestrator, and `bin/intent_help`'s auto-list requires `-x`, so it is correctly absent from help. There is no `intent migrations` in the surface.
@@ -1250,6 +1263,7 @@ Organize steel threads into status directories based on their metadata
 - **v2 source:** `bin/intent_organize`
 - **v2 help file:** none
 - **Owning work package:** --
+- **BATS coverage:** 3 burning test(s) across 1 file(s) -- **covered**
 
 - **A live Highlander violation, registered in the very file that exists to prevent it.** MODULES.md gives `bin/intent_organize` this job AND gives `bin/intent_st` an `organize` verb. Measured against one thread in a fresh project the two share no output: the top-level form prints `ok: moved 0, kept 0` plus per-directory counts (117B), the `st` form prints `Already organized: ST0001 in intent/st/NOT-STARTED` (73B).
 - **`intent organise` is NOT a top-level alias** -- it answers `error: Unknown command 'organise'`. The alias exists only one level down, at `intent st organise` (normalised at bin/intent_st:289-292). Both measured.
@@ -1286,6 +1300,7 @@ Manage AGENTS.md -- the primary tool-agnostic LLM config at project root
 - **v2 source:** `intent/plugins/agents/ (plugin command)`
 - **v2 help file:** none
 - **Owning work package:** WP-07
+- **BATS coverage:** 86 burning test(s) across 4 file(s), plus 1 file(s) that name it but never reach the CLI -- **covered**
 
 - **parity.md's table said this family was just `sync`. Measured: five verbs** -- init, generate, sync, validate, template.
 - A PLUGIN command, so it execs before the project check (bin/intent:188-191) and runs outside a project (measured: exit 0, 984B) despite not being in GLOBAL_COMMANDS. That is INV-03's second exception.
@@ -1391,6 +1406,7 @@ Claude Code integration: subagents, skills, rules, hooks, workstreams
 - **v2 source:** `bin/intent (claude arms) + intent/plugins/claude/`
 - **v2 help file:** lib/help/rules.help.md (documents `claude rules`, misfiled as a top-level command)
 - **Owning work package:** WP-07
+- **BATS coverage:** 296 burning test(s) across 30 file(s), plus 2 file(s) that name it but never reach the CLI -- **covered**
 
 - The largest family in the surface and the only one needing an explicit arm in `bin/intent` -- every other `bin/intent_<name>` auto-dispatches via the `*)` default case.
 - **`intent claude` bare, `--help`, an unknown flag and outside-a-project all produce the SAME 189B error** (`error: Unknown claude subcommand. Try: ...`). Four distinct conditions, one message: a user who typed `--help` is told they used an unknown subcommand. It also means the family never reaches the project gate (INV-03's first exception).
@@ -1570,6 +1586,7 @@ Run Intent rule-library critics against source files without invoking an LLM
 - **v2 source:** `bin/intent_critic`
 - **v2 help file:** none
 - **Owning work package:** WP-07
+- **BATS coverage:** 19 burning test(s) across 2 file(s) -- **covered**
 
 - **The only command in the shipped surface that legitimately uses exit code 2** (bin/intent_critic:89,95) -- findings-present, distinct from failure. INV-04's named exception, and INV-02 must not flatten it.
 - Strict-proxy contract since ST0039: the headless runner enforces ONLY rules publishing a simple `Greppable proxy`, and REFUSES non-simple proxies with a once-per-rule stderr note rather than approximating them. A critic that silently approximates a rule reports findings the rule does not actually make.
@@ -1621,6 +1638,7 @@ Per-language canon: install language-specific RULES + ARCHITECTURE templates
 - **v2 source:** `bin/intent_lang`
 - **v2 help file:** none
 - **Owning work package:** WP-07
+- **BATS coverage:** 57 burning test(s) across 3 file(s) -- **covered**
 
 - **parity.md's table said `init, remove, list`. Measured: six verbs** -- list, show, init, remove, sync, plus `rm` as an alias of `remove`. Evidence: `intent lang sync` answers `ok: no declared languages; nothing to sync`.
 - The `languages` array in config.json is authoritative (ST0037); filesystem-marker detection was retired because filesystem presence is unreliable evidence.
@@ -1730,6 +1748,7 @@ LLM-related commands for working with AI assistants
 - **v2 source:** `bin/intent_llm`
 - **v2 help file:** none
 - **Owning work package:** WP-06 + WP-09
+- **BATS coverage:** 5 burning test(s) across 1 file(s) -- **covered**
 
 - **The `intent llm` agent guide is regenerated from the dispatch table at WP-09** (design.md:85, the Lamplight DD-6 pattern), so this family is both a parity subject and a CONSUMER of this file.
 
@@ -1778,6 +1797,7 @@ Capture project-specific learnings for future LLM sessions
 - **v2 source:** `bin/intent_learn`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 18 burning test(s) across 1 file(s) -- **covered**
 
 - Storage is `intent/.config/learnings.md`, consumed by `intent claude prime` for MEMORY.md injection.
 - Unusually for this surface, the primary action takes a POSITIONAL description and the verbs are expressed as flags (`--list`) rather than subcommands.
@@ -1814,6 +1834,7 @@ Module registry guardrails and enforcement
 - **v2 source:** `bin/intent_modules`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 20 burning test(s) across 1 file(s) -- **covered**
 
 - One of the few v2 commands with DOCUMENTED exit codes in its own help: 0 clean, 1 issues found. Most of the surface documents none.
 - `check` honours `file::function` rows since v2.11.12, so a helper registered against a function name is not reported as missing.
@@ -1879,6 +1900,7 @@ Discover installed Intent plugins and their commands
 - **v2 source:** `bin/intent_plugin`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 35 burning test(s) across 3 file(s) -- **covered**
 
 - Runs outside a project (measured: exit 0, 1076B).
 
@@ -1936,6 +1958,7 @@ Manage Intent user extensions at ~/.intent/ext/<name>/
 - **v2 source:** `bin/intent_ext`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 41 burning test(s) across 3 file(s) -- **covered**
 
 - Extensions live OUTSIDE the project, under `~/.intent/ext/`, so this family runs outside a project (measured: exit 0).
 - Its help block still marks two verbs with development-session tags -- `validate [Session 3]` and `new [Session 4]` -- which are internal scheduling notes leaking into user-facing help.
@@ -2036,6 +2059,7 @@ Generate LLM-oriented directory summaries
 - **v2 source:** `bin/intent_treeindex`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 6 burning test(s) across 1 file(s), plus 1 file(s) that name it but never reach the CLI -- **covered**
 
 - **53 of the 53 tests in `tests/unit/treeindex_commands.bats` exec `bin/intent_treeindex` DIRECTLY, bypassing the dispatcher entirely -- burn ratio zero.** The file reads as CLI-shaped and is not; that discovery is the reason the register classifies by burn measurement rather than by reading assertions.
 - D21: the treeindex cache location is unchanged until WP-06 ports the command. If it moves under `intent/.cache/`, that is its own register entry.
@@ -2080,6 +2104,7 @@ Maintain checkbox file indexes
 - **v2 source:** `bin/intent_fileindex`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 2 burning test(s) across 1 file(s) -- **THIN -- 2 burning test(s)**
 
 - The widest short-flag surface in the CLI (-C -U -X -f -h -i -r -v), and the only family where short flags carry meaning beyond an alias for a long form.
 - 45 of 47 tests in `tests/unit/fileindex_commands.bats` bypass the dispatcher (burn 2/47), the same shape as treeindex.
@@ -2129,6 +2154,7 @@ Show usage for Intent or one of its commands
 - **v2 source:** `bin/intent_help`
 - **v2 help file:** none
 - **Owning work package:** WP-05
+- **BATS coverage:** 89 burning test(s) across 7 file(s) -- **covered**
 
 - **This family is RETIRED AND REPLACED in v3, not ported: help is generated from this dispatch table (AC-05.1).** That retires the entire `lib/help/` mechanism along with its drift.
 - The drift is the argument. `lib/help/` holds 11 help files for 27 `bin/intent_*` scripts, so 17 commands have none. Its `@usage:` / `@options:` / `@arguments:` / `@examples:` grammar is used exactly ONCE each. `stzero.help.md` is named against `bin/intent_st_zero`, and `rules.help.md` documents a `claude` SUBcommand as though it were top-level. At v2.19.0 it still describes `upgrade` as an STP migration.
@@ -2164,6 +2190,7 @@ Retrofit ST0000 deliverables into brownfield projects
 - **v2 source:** `bin/intent_st_zero`
 - **v2 help file:** `lib/help/stzero.help.md`
 - **Owning work package:** WP-06
+- **BATS coverage:** 32 burning test(s) across 1 file(s) -- **covered**
 
 - NAME DRIFT in the help file: `lib/help/stzero.help.md` against `bin/intent_st_zero`. One of the reasons `lib/help/` cannot serve as the v2 spec to port from -- see the `help` family.
 - Reachable by two spellings: `intent st_zero` (top level, auto-dispatched) and `intent st zero` (bin/intent_st:1610 execs this binary). Its own usage block says `intent st zero install`, so it documents only the second.
@@ -2203,6 +2230,7 @@ Print the Intent version
 - **v2 source:** `bin/intent (global command)`
 - **v2 help file:** none
 - **Owning work package:** WP-06
+- **BATS coverage:** 65 burning test(s) across 2 file(s) -- **covered**
 
 - A global command: runs outside a project.
 - `get_intent_version` in bin/intent_helpers is THE single fallback site for version resolution (consolidated in v2.11.12); v3 bakes GIT_HASH into the version string (design.md:74).
@@ -2224,6 +2252,58 @@ Print the Intent version
 - **Defects observed in v2:**
   - INV-08 at `intent version --zzz` succeeds silently at exit 0
 - **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced -- clap rejects unrecognised arguments by default -- behaviour: Unknown arguments refused, exit 1 per INV-02. The version string itself gains a baked GIT_HASH.
+
+## Parity holes -- what the BATS estate does NOT cover
+
+A command family with no burning coverage is a parity hole: v3 can change it freely and the conformance suite stays green. Produced by `parity/tools/coverage_map.sh`, which joins these families against `burn-baseline.tsv` -- the join matters, because a naive grep reports `treeindex` as well covered when all 53 of its tests exec `bin/intent_treeindex` directly and the dispatcher never sees them.
+
+| family      | files (real) | files (vacuous) | burning tests | verdict                                  |
+| ----------- | ------------ | --------------- | ------------- | ---------------------------------------- |
+| `st`        | 22           | 0               | 267           | covered                                  |
+| `wp`        | 8            | 0               | 79            | covered                                  |
+| `ac`        | 4            | 0               | 57            | covered                                  |
+| `at`        | 2            | 0               | 30            | covered                                  |
+| `issues`    | 1            | 0               | 20            | covered                                  |
+| `todo`      | 1            | 0               | 22            | covered                                  |
+| `info`      | 3            | 0               | 23            | covered                                  |
+| `config`    | 0            | 0               | 0             | HOLE -- nothing in the estate invokes it |
+| `init`      | 7            | 0               | 55            | covered                                  |
+| `bootstrap` | 2            | 0               | 16            | covered                                  |
+| `doctor`    | 1            | 0               | 11            | covered                                  |
+| `upgrade`   | 1            | 0               | 4             | covered                                  |
+| `organize`  | 1            | 0               | 3             | covered                                  |
+| `agents`    | 4            | 1               | 86            | covered                                  |
+| `claude`    | 30           | 2               | 296           | covered                                  |
+| `critic`    | 2            | 0               | 19            | covered                                  |
+| `lang`      | 3            | 0               | 57            | covered                                  |
+| `llm`       | 1            | 0               | 5             | covered                                  |
+| `learn`     | 1            | 0               | 18            | covered                                  |
+| `modules`   | 1            | 0               | 20            | covered                                  |
+| `plugin`    | 3            | 0               | 35            | covered                                  |
+| `ext`       | 3            | 0               | 41            | covered                                  |
+| `treeindex` | 1            | 1               | 6             | covered                                  |
+| `fileindex` | 1            | 0               | 2             | THIN -- 2 burning test(s)                |
+| `help`      | 7            | 0               | 89            | covered                                  |
+| `st_zero`   | 1            | 0               | 32            | covered                                  |
+| `version`   | 2            | 0               | 65            | covered                                  |
+
+### `config` -- HOLE
+
+- **Finding:** NOTHING in the BATS estate invokes `intent config`. Zero files, zero tests.
+- **Why it matters:** This family already has no v2 behaviour to be faithful to (0B on both streams, exit 0) and now also has nothing that would notice a change. Both halves of the safety net are absent at the same site: v3 can do anything here and the suite stays green. It is the strongest possible argument for the `undefined` class being separate from `corrected` -- there is neither an antecedent nor a guard.
+- **The trap:** `tests/unit/config.bats` EXISTS and burns 5 of 7, which makes the hole invisible in any file listing. It tests config LOADING -- through `intent info`, `intent doctor` and `intent st list` -- and never invokes `intent config` once. A file named after a command that does not test that command is worse than no file, because it answers the question 'is this covered?' wrongly and confidently.
+- **Action:** WP-06 must land a conformance test for `intent config` BEFORE changing its behaviour, or the `undefined` ruling is unverifiable by construction.
+
+### `fileindex` -- THIN
+
+- **Finding:** 2 burning tests. `tests/unit/fileindex_commands.bats` holds 47 tests and 45 of them bypass the dispatcher entirely.
+- **Why it matters:** The dispatcher path for `fileindex` is almost untested, so most of what the register counts as fileindex coverage does not constrain the v3 binary at all.
+- **Action:** Either accept it as a named thin spot in the register, or add dispatcher-level tests at WP-06. Naming it is the minimum; silence would let 47 tests read as coverage.
+
+### `*` -- METHOD
+
+- **Finding:** The zero for `config` was calibrated before being believed: the same needle returns 3 files for `doctor` (a known-covered control), and a direct grep for `intent config` / `run_intent config` returns nothing.
+- **Why it matters:** A measuring instrument that reports zero is indistinguishable from a broken one until it is shown to report non-zero somewhere it should. This is the calibration rule that came out of the zsh probe artefact earlier in the same session, applied to the very next instrument built.
 
 ## Families outstanding
 

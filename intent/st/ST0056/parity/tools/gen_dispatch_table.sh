@@ -187,6 +187,9 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
     elif (.v2_help_file | test("`")) then .v2_help_file
     else "`" + .v2_help_file + "`" end')"
   emit "- **Owning work package:** $WP"
+  if printf '%s' "$F" | jq -e '.bats_coverage' >/dev/null 2>&1; then
+    emit "- **BATS coverage:** $(printf '%s' "$F" | jq -r '.bats_coverage | "\(.burning_tests) burning test(s) across \(.files_real) file(s)" + (if .files_vacuous > 0 then ", plus \(.files_vacuous) file(s) that name it but never reach the CLI" else "" end) + " -- **\(.verdict)**"')"
+  fi
   emit ""
   printf '%s' "$F" | jq -r '.family_notes[]? | "- " + .' >> "$OUT_TMP"
   # A false predicate is not an error. Under `set -e` a bare `cond && action`
@@ -246,6 +249,28 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
 done
 
 # --- Outstanding + new surface ----------------------------------------------
+# --- Coverage findings ------------------------------------------------------
+if jq -e '.coverage_findings' "$IN" >/dev/null 2>&1; then
+  emit "## Parity holes -- what the BATS estate does NOT cover"
+  emit ""
+  emit "A command family with no burning coverage is a parity hole: v3 can change it freely and the conformance suite stays green. Produced by \`parity/tools/coverage_map.sh\`, which joins these families against \`burn-baseline.tsv\` -- the join matters, because a naive grep reports \`treeindex\` as well covered when all 53 of its tests exec \`bin/intent_treeindex\` directly and the dispatcher never sees them."
+  emit ""
+  emit "| family | files (real) | files (vacuous) | burning tests | verdict |"
+  emit "| ------ | ------------ | --------------- | ------------- | ------- |"
+  jq -r "$JQ_LIB"'
+    .families[] | select(.bats_coverage) |
+    "| `\(.name)` | \(.bats_coverage.files_real) | \(.bats_coverage.files_vacuous) | \(.bats_coverage.burning_tests) | \(.bats_coverage.verdict | cell) |"
+  ' "$IN" >> "$OUT_TMP"
+  emit ""
+  jq -r '.coverage_findings[] |
+    "### `\(.family)` -- \(.verdict)\n",
+    "- **Finding:** \(.finding)",
+    "- **Why it matters:** \(.why_it_matters)",
+    (if .trap then "- **The trap:** \(.trap)" else empty end),
+    (if .action then "- **Action:** \(.action)" else empty end),
+    ""' "$IN" >> "$OUT_TMP"
+fi
+
 emit "## Families outstanding"
 emit ""
 # An empty list must SAY it is empty. Rendering the prose and then nothing
