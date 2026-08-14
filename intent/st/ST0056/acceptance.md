@@ -208,11 +208,11 @@ WP-03 dispositions (vc, 2026-08-14, ADOPTED under hv standing authorisation):
 
 ### WP-04
 
-- AT-04.1 `crates/intentsvcs/tests/facade_st_wp.rs` -- covers AC-04.1 -- status: to-write -- includes a mid-write failure injection
-- AT-04.2 `crates/intentsvcs/tests/facade_acceptance.rs` -- covers AC-04.2 -- status: to-write
-- AT-04.3 `crates/intentsvcs/tests/close_gate_parity.rs` -- covers AC-04.3 -- status: to-write
-- AT-04.4 `crates/intentsvcs/tests/error_remedies.rs` -- covers AC-04.4 -- status: to-write
-- AT-04.5 `crates/intentsvcs/tests/event_log_envelopes.rs` -- covers AC-04.5 -- status: to-write -- renumbered from AT-02.6 at WP-02 close (bounce ruling 2026-08-14)
+- AT-04.1 `crates/intentsvcs/tests/facade_st_wp.rs` -- covers AC-04.1 -- status: green
+- AT-04.2 `crates/intentsvcs/tests/facade_acceptance.rs` -- covers AC-04.2 -- status: green
+- AT-04.3 `crates/intentsvcs/tests/close_gate_parity.rs` -- covers AC-04.3 -- status: green
+- AT-04.4 `crates/intentsvcs/tests/error_remedies.rs` -- covers AC-04.4 -- status: green
+- AT-04.5 `crates/intentsvcs/tests/event_log_envelopes.rs` -- covers AC-04.5 -- status: green
 - Coverage: complete
 
 ### WP-05

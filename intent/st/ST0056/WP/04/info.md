@@ -3,7 +3,7 @@ verblock: "14 Aug 2026:v0.2: vc - Populated from the ratified design session"
 wp_id: WP-04
 title: "intentsvcs facade: core command families"
 scope: XL
-status: Not Started
+status: Done
 ---
 
 # WP-04: intentsvcs facade: core command families
