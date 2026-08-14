@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 1f98ea43-d71a-47a3-aba8-9597183b2e67
-heartbeat_at: 2026-08-14T02:40Z
-status: paused
-focus: "HOLDING: suite green, globalfold done (2c928c8), v2.19.0 awaits the cut first thing next session; vc fires on the cut + the estate sweeps"
+session_id: 15e0a23e-58f3-4575-882d-e23418452447
+heartbeat_at: 2026-08-14T08:45Z
+status: active
+focus: "0020 fixed + closed pre-cut on hv's instruction; tree ready for bin/release --minor, whose own pre-flight is the certifying suite run"
 claims: []
 ---
 
@@ -13,20 +13,26 @@ claims: []
 
 ## DOING
 
-- (holding -- suite green at HEAD per hv, globalfold committed (`2c928c8`), F6 restore landed (`ee44f63`). The release cut is the next project action, hv's hand, first thing next session. Day detail: `.history/20260814/` + `intent/done.md`.)
+- **Issue 0020 fixed, guarded, closed -- uncommitted, awaiting hv.** `bin/intent_st` `list` `all` branch: membership through `normalise_status`, ten literals collapsed to five canonical tokens, unplaced rows shown last and named on stderr, exit stays 0. Guard `tests/unit/st_list_all_vocabulary.bats` (7 tests, all mutation-proven, M1-M5). CHANGELOG entry added; 0020 CLOSED with Resolutions. hv called it in before the release.
 
 ## TODO
 
-- Fire on the suite verdict: commits `8aba5ab` (warning voice) + `ba52339` (0019 index fix) postdate any suite run started before them -- they touch `intent_st`, `intent_helpers`, `intent_migrations` + two test files. If hv's run predates them, the delta needs a re-run or targeted files.
-- Fire on the cut: `bin/release` stamps all five sidecars (still 2.18.0 at HEAD by design); CHANGELOG heading `## [2.19.0] - in progress` for the script to date. hv cuts; NEVER `--no-confirm`.
-- Post-cut estate sweeps: Lamplight first (`intent upgrade` now converges AT grammar via `at lint --fix` -- 314 rows, expect BLOCKED-until-swept with residue named never guessed -- plus AGENTS.md, settings hooks, gitignore entries, and a printed-never-run `git rm` for any tracked treeindex). Utilz / Baize follow.
+- **Fire on the cut.** `bin/release --minor`, interactive, NEVER `--no-confirm`. Verify after: five sidecars at 2.19.0, CHANGELOG dated, tag on both remotes, GitHub release body == the CHANGELOG section, tree clean.
+- **Post-cut narrative:** `intent/history/v2.19.0.md` + done.md flips to shipped + tag. hv confirmed: v2.19.0.md only, no backfill of the lapsed 2.17/2.18 (same ruling as the 2.10-2.12 lapse).
+- **Post-cut estate sweeps**, Lamplight first (`intent upgrade` converges AT grammar via `at lint --fix` -- 314 rows, expect BLOCKED-until-swept, residue named never guessed -- plus AGENTS.md, settings hooks, gitignore, printed-never-run treeindex `git rm`). vc's part is MEASUREMENT: count what the old rows carried against what the new ones do, before trusting the sweep. Utilz / Baize follow.
+- **Post-tag tidy:** `bin/intent_st:731-741` computes a `CREATED` in the in-progress arm that nothing reads -- residue of the arguments 0019 pruned. Dead, not wrong. Recorded in 0020's Resolutions.
 
 ## Watch-outs
 
-- Trusted on cc's record, not independently re-run: the poisoned-consumer upgrade fixtures and the adapted gitignore-idempotence fixture. hv's external suite is the final word.
+- **`bin/release` runs `intent doctor` + the FULL suite as pre-flight, and that block is NOT behind the dry-run guard** (`bin/release:229-247`). So `--dry-run` costs a full suite run, and must never be fired while another suite is running. The upside is that the cut is self-certifying: it re-runs everything and aborts red.
+- **cc went active at 08:24Z in a second session** (new `session_id` on their board). `bin/intent_st` is cc's lane and I have edited it -- told them in their inbox. Commit by explicit pathspec, never `-A`, or cc's board sweeps into my commit.
+- **This shell is zsh, and MULTIOS makes `cmd 2>&1 >/dev/null` tee stdout to the terminal instead of discarding it.** It made `st list` look like it wrote its table to stderr. Measure stream separation by redirecting to a file and counting bytes, never by that idiom. The bats tests run under `bash -c`, where it behaves.
+- Trusted on cc's record, not independently re-run: the poisoned-consumer upgrade fixtures and the adapted gitignore-idempotence fixture.
 - `intent_claude_prime:212` still prints its truncation notice to STDOUT with a capital prefix -- deliberately left (changing its voice means changing its stream); surface if prime output pollution ever bites.
 
 ## Decisions
 
-- (2026-08-13) vc triage rulings for the 0009-0018 corpus: all executed and recorded in the issues' Resolutions; archived detail in `.history/20260814/wip.md`.
+- (2026-08-14) **A mutation battery can lie, and it lies in the direction of looking thorough.** My first 0020 battery reported that deleting the unplaced pass also broke synonym placement -- impossible, since normalisation is untouched by it. Cause: M1's substitution silently failed to match, so the `&&` chain skipped the restore and M2 ran on a half-mangled file. The result was incoherent on its face, which is the only reason I looked. A mutation must hard-fail when the source is unchanged after substitution, and each one must be applied to a restored file. Same family as cc's usage-text false survival: the probe lied, not the code.
+- (2026-08-14) **Reproduce against the unfixed code before believing the fix.** 0020's repro was run in a throwaway worktree at `fae90dc` first -- 1 row of 3, exit 0 -- so the fixed run measured a real delta rather than a plausible one. Worktree, never in place: `~/.local/bin/intent` symlinks into this repo, so an in-place mutation is live for every project on the machine.
+- (2026-08-14) **My own residual claims get the same refutation discipline as cc's.** "Residual 1" was mine, survived on two boards for a day, and was wrong -- the mechanism it described had already been removed by the fix it was filed against. Refuted by running, and retired.
 - (2026-07-02) vc fires on cc's close/green/freeze trigger or an hv request, never on in-flight edits. Advisory only; findings to the owner's inbox, compounding risk to hv; vc claims no STs.

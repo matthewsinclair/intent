@@ -962,16 +962,24 @@ TEMPLATE
     # the shared content-fit table (the header always prints).
     declare -a ordered_rows=()
     if [ "${STATUS_FILTER[0]}" = "all" ]; then
-      # Group by status with predefined order
-      declare -a status_order=("WIP" "In Progress" "TBC" "Not Started" "HOLD" "On Hold" "COMPLETED" "Completed" "CANCELLED" "Cancelled")
+      # The order below is PRESENTATION. Membership is decided by
+      # normalise_status (THE synonym table, via canonical_status) -- the same
+      # comparison the multi-status branch below uses -- so a status the table
+      # knows under another name lands in its group instead of vanishing. This
+      # was an exact match against ten literals, which made a presentation
+      # ordering double as a membership test: any status outside those ten was
+      # dropped, with no diagnostic and no exit-code change, from a view that
+      # calls itself `all`. Since issue 0019 `sync --write` composes this view
+      # into steel_threads.md, so a row discarded here is discarded from
+      # committed project state (issue 0020).
+      declare -a status_order=("WIP" "TBC" "HOLD" "COMPLETED" "CANCELLED")
       
       for group_status in "${status_order[@]}"; do
         # Filter data for this status
         declare -a status_group=()
         for line in "${st_data[@]}"; do
           line_status=$(echo "$line" | cut -d'|' -f3)
-          # For "all" grouping, we need exact match since status_order has both forms
-          if [ "$line_status" = "$group_status" ]; then
+          if [ "$(normalise_status "$line_status")" = "$group_status" ]; then
             status_group+=("$line")
           fi
         done
@@ -986,6 +994,38 @@ TEMPLATE
           done
         fi
       done
+      # `all` must mean all: a row the vocabulary cannot place is still shown,
+      # after the ordered groups, and the anomaly is named on stderr (issue
+      # 0007's precedent -- report the row AND the anomaly; neither substitutes
+      # for the other). Widening the vocabulary to admit whatever a project has
+      # written is a decision for that project, not for the tool; the tool's job
+      # is to stop discarding rows it does not recognise.
+      declare -a unplaced_group=()
+      for line in "${st_data[@]}"; do
+        line_status=$(echo "$line" | cut -d'|' -f3)
+        normalised_line=$(normalise_status "$line_status")
+        placed=0
+        for group_status in "${status_order[@]}"; do
+          if [ "$normalised_line" = "$group_status" ]; then
+            placed=1
+            break
+          fi
+        done
+        if [ "$placed" -eq 0 ]; then
+          unplaced_group+=("$line")
+        fi
+      done
+
+      if [ ${#unplaced_group[@]} -gt 0 ]; then
+        IFS=$'\n' sorted_group=($(sort -r <<<"${unplaced_group[*]}"))
+        unset IFS
+
+        warning "status outside the vocabulary (WIP, Not Started, On Hold, Completed, Cancelled) -- shown last, ungrouped:"
+        for line in "${sorted_group[@]}"; do
+          ordered_rows+=("$line")
+          warning "  $(echo "$line" | cut -d'|' -f1): $(echo "$line" | cut -d'|' -f3)"
+        done
+      fi
     elif [ ${#STATUS_FILTER[@]} -gt 1 ]; then
       # Multiple statuses specified - display in order requested
       for filter_status in "${STATUS_FILTER[@]}"; do

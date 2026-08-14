@@ -3,7 +3,7 @@ id: "0020"
 title: st list --status all silently omits any thread whose status is not one of ten hardcoded literals, and sync --write now composes that view into the canonical index
 date: 2026-08-14
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: medium
 ---
 
@@ -90,4 +90,35 @@ Deliberately NOT proposed: widening the vocabulary to include `SUPERSEDED`. Whet
 
 ## Resolutions
 
-{{TBC}}
+**Fixed in v2.19.0 (before the cut, on hv's instruction), `bin/intent_st` `list` command, `all` branch. Filed by matts, executed by vc.**
+
+All four proposed items taken as filed, and the "deliberately NOT proposed" exclusion honoured -- the vocabulary is unchanged and `SUPERSEDED` remains unrecognised, it is merely no longer discarded.
+
+1. **Membership goes through `normalise_status`.** That is the derived filter-comparison seam over `canonical_status` (`bin/intent_helpers:535`), and it is the same comparison the multi-status branch sitting immediately below this one already used -- the two branches of one algorithm had disagreed about how to compare a status. `status_order` collapses from ten literals to the five canonical tokens `WIP TBC HOLD COMPLETED CANCELLED`, which is the identical presentation ordering with the synonym pairs folded, so no listing reorders.
+2. **The unplaced rows are emitted after the ordered groups**, reverse-sorted by id. There are no group headings in this view -- `render_table` renders a flat row list and the groups only ever controlled order -- so "Other" is a position, not a heading.
+3. **The anomaly is named on stderr** through `warning()` (the lowercase voice, `8aba5ab`), quoting the vocabulary and then each offending id and its status. Exit stays 0: `sync --write` composes this view, so escalating would break index regeneration on precisely the estates that have the problem.
+4. **Guard: `tests/unit/st_list_all_vocabulary.bats`**, seven tests over a four-thread fixture spanning the four cases (vocabulary status, second vocabulary status to pin ordering, synonym, unrecognised).
+
+### Verification
+
+**The defect was reproduced before it was fixed, and the repro was proved to measure the right thing.** A scratch project with three threads -- `Not Started`, `COMPLETE`, `SUPERSEDED` -- run against pre-fix code in a throwaway `git worktree` at `fae90dc`: **1 row emitted of 3 on disk, exit 0**, both off-vocabulary threads gone. The same project against the fix: 3 of 3, the synonym placed in its canonical group, the unrecognised row shown last and named on stderr. `sync --write` then wrote 3 index rows for 3 threads on disk, which is the half that reaches committed state.
+
+**Mutation battery, run in a sacrificial worktree so `bin/` was never mutated in place** (`~/.local/bin/intent` symlinks into this repo, so an in-place mutation is live for every other project on the machine). Each mutation applied by exact string replacement, verified applied, syntax-checked, and restored between runs:
+
+| Mutation                                    | Kills                | Reading                                          |
+| ------------------------------------------- | -------------------- | ------------------------------------------------ |
+| M1 exact-match membership restored (the bug) | 1, 3, 6, 7           | synonym drops; unrecognised still caught by the pass |
+| M2 unplaced pass deleted                     | 1, 4, 5, 6, 7        | unrecognised drops; synonym still placed         |
+| M3 warnings silenced                         | 5 only               | the stderr test is not vacuous                   |
+| M4 presentation order permuted               | 7 only               | the ordering test genuinely pins order           |
+| M5 `warning` escalated to `error`            | all 7                | the exit-0 test is not vacuous either            |
+
+M1 and M2 killing complementary sets is the load-bearing result: it shows the two halves of the fix are independently necessary, and that no test is passing for the other half's reason.
+
+**A first attempt at this battery produced a false reading** and is recorded because the correction is the point. M1's `perl` substitution failed to match (shell-metacharacter escaping), the `&&` chain therefore skipped the restore step, and M2 ran on top of a half-mangled file -- reporting that deleting the unplaced pass also broke synonym placement, which it does not. The result was incoherent on its face (M2 cannot affect normalisation), which is what prompted looking instead of believing. Every mutation now hard-fails if the source is unchanged after substitution.
+
+**Collateral:** the eleven test files touching `st list` / `st sync` / `steel_threads.md` plus `helpers.bats` and `set_e_increment_guard.bats` all green; both integration decks green. This repo's own estate still lists 55 rows for 55 threads on disk and emits no warning, confirming the issue's own assessment that the home estate is unaffected.
+
+### Related work not done here
+
+`bin/intent_st:731-741` computes a `CREATED` value in the in-progress arm that no code path reads (the readers at 843/885/914/956 all recompute it locally inside `sync`). It is the residue of the arguments issue 0019 pruned from `update_steel_threads_index`, and it is dead rather than wrong. Left for a tidy after the tag.
