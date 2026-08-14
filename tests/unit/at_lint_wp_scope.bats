@@ -71,7 +71,10 @@ EOF
   # thread-scoped path, which is the one every existing caller uses.
   run run_intent at lint ST0001
   assert_output_contains "2 AT row(s)"
-  echo "$output" | grep -qv "ST0001/" || false
+  # A bare negated match, NOT `grep -qv`: grep -qv succeeds when ANY line lacks
+  # the needle, so it would discriminate only while this output stays one line
+  # and go vacuous the moment lint grew a second. (vc, 2026-08-14.)
+  [[ "$output" != *"ST0001/"* ]]
 }
 
 @test "at lint <ID>/NN --fix does not rewrite a row outside the scope" {
