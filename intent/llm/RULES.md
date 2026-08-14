@@ -62,6 +62,10 @@ These extend the canon for Intent itself (a Bash CLI). Each one concretises one 
 
 <!-- intent-lang-packs:start -->
 
-- **shell** -- rules via `intent claude rules list --lang shell` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-shell.md`.
 
+- **elixir** -- rules via `intent claude rules list --lang elixir` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-elixir.md`.
+- **author** -- rules via `intent claude rules list --lang author` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-author.md`.
+- **content** -- rules via `intent claude rules list --lang content` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-content.md`.
+- **rust** -- rules via `intent claude rules list --lang rust` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-rust.md`.
+- **shell** -- rules via `intent claude rules list --lang shell` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-shell.md`.
 <!-- intent-lang-packs:end -->

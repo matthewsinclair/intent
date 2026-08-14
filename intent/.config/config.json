@@ -15,6 +15,10 @@
     }
   },
   "languages": [
+    "elixir",
+    "author",
+    "content",
+    "rust",
     "shell"
   ]
 }

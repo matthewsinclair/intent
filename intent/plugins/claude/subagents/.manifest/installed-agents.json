@@ -1,0 +1,68 @@
+{
+  "version": "1.0.0",
+  "installed": [
+    {
+      "name": "diogenes",
+      "source_path": "/Users/matts/Devel/prj/Intent/intent/plugins/claude/subagents/diogenes",
+      "installed_at": "2026-08-14T14:13:59Z",
+      "checksum": "c692502f777d764bab8c42bd25dcdb1b1a815b2fc9131438a6d0f711a422dc3e",
+      "source": "global"
+    },
+    {
+      "name": "critic-shell",
+      "source_path": "/Users/matts/Devel/prj/Intent/intent/plugins/claude/subagents/critic-shell",
+      "installed_at": "2026-08-14T14:13:59Z",
+      "checksum": "eddc0eb098adcb6fb5aa06f4bf5fa58ad084cd3f56065837f811c95a1d6a1da1",
+      "source": "global"
+    },
+    {
+      "name": "critic-elixir",
+      "source_path": "/Users/matts/Devel/prj/Intent/intent/plugins/claude/subagents/critic-elixir",
+      "installed_at": "2026-08-14T14:13:59Z",
+      "checksum": "4d957068f63f2ff51a4e5bd707a49ab23d777d53985caa824d86df48632daa62",
+      "source": "global"
+    },
+    {
+      "name": "critic-rust",
+      "source_path": "/Users/matts/Devel/prj/Intent/intent/plugins/claude/subagents/critic-rust",
+      "installed_at": "2026-08-14T14:13:59Z",
+      "checksum": "f09010dc9ce759ff67520847e39bd853398322af46a5963c4c578f9b908e1569",
+      "source": "global"
+    },
+    {
+      "name": "critic-swift",
+      "source_path": "/Users/matts/Devel/prj/Intent/intent/plugins/claude/subagents/critic-swift",
+      "installed_at": "2026-08-14T14:13:59Z",
+      "checksum": "8f65d20661e88b64cfd63880ae3495490ee2bb08b95826b44aaf3eb8ca2dfee0",
+      "source": "global"
+    },
+    {
+      "name": "critic-lua",
+      "source_path": "/Users/matts/Devel/prj/Intent/intent/plugins/claude/subagents/critic-lua",
+      "installed_at": "2026-08-14T14:13:59Z",
+      "checksum": "d5a04e633212b4feb9618c1a84e9ec2daec377f90ed008f0c7906b41b1d037bf",
+      "source": "global"
+    },
+    {
+      "name": "critic-prose",
+      "source_path": "/Users/matts/Devel/prj/Intent/intent/plugins/claude/subagents/critic-prose",
+      "installed_at": "2026-08-14T14:14:00Z",
+      "checksum": "2844ae0703c6f447ff117a02042c78e3cd88e5de3ee5e7caced9c5e304c88a1d",
+      "source": "global"
+    },
+    {
+      "name": "socrates",
+      "source_path": "/Users/matts/Devel/prj/Intent/intent/plugins/claude/subagents/socrates",
+      "installed_at": "2026-08-14T14:14:05Z",
+      "checksum": "0253fd44c92e85118038232dbb16251546ad6c6c975bfd25e7b1bbf43b633756",
+      "source": "global"
+    },
+    {
+      "name": "intent",
+      "source_path": "/tmp/intent-test-k8htnt/source-sandbox/intent/plugins/claude/subagents/intent",
+      "installed_at": "2026-08-14T14:14:06Z",
+      "checksum": "d4437100760ba70e3d1c7f8988d8cb0b962b23c0165e159533d2cfc187fd3c96",
+      "source": "global"
+    }
+  ]
+}
