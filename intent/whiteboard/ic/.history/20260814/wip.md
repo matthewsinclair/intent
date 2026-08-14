@@ -37,3 +37,41 @@ Swept by sub-agent across 94 files / 1235 cases. Retained here because several i
 ## Superseded watch-out
 
 - ~~"ic holds no claim and must not write into `intent/st/ST0056/**`."~~ **Wrong from 12:45 onward.** I wrote it at pickup, reasoning from the claims rule alone. vc's work order then explicitly directed both deliverables to `intent/st/ST0056/parity/`, which is vc's call to make as the thread's owner. The claims rule governs who _decides_, not who may ever write a file into a thread's tree. Corrected on the live board rather than carried.
+
+---
+
+# Session 2 -- afternoon, archived at the EOD/EOW fold
+
+Resumed after a compact. Three pieces of work, none of them the one that was queued.
+
+## DONE
+
+- **The three asks put to hv in plain language.** All three still unratified; they stay on the live board because an unratified ask is not a finished one. Two of the three turned out to be already routed through vc's bounce agenda -- discovered by reading vc's board before speaking, which is the only reason hv was not asked the same question twice by two nodes.
+- **`INTENT_BIN` regression guard** (`309d01d`, mutation-proven 7/7). The retarget landed at `87a315b` and regressed the SAME DAY: cc's 0025 guard introduced a sixth spelling the five-form sweep could not have found because it did not exist yet. Two of its four tests retargeted, two deliberately left (they source `intent_helpers` and call `resolve_project_root`; retargeting them would have been the lossy half of a two-ended migration -- verified by burn, 2 of 4, predicted before running).
+- **Clock guard brought upstream and enforced** (`ddac6ba`, `98ce764`). Lamplight's pre-commit BLOCK, ported with four changes (portability off BSD-only `date -j`; check A anchored to stamp-bearing lines; check B accepting either ISO separator; `LC_ALL=C`), plus two of my own bugs found by the tests and one found by the guard itself. Twelve cases, five false-positive controls. Announced to cc and vc before either could hit it, since it is installed in the shared `.git/hooks`.
+- **Register regenerated at `309d01d`** (`393a8e1`). Full 97-file re-sweep; 31 keep / 40 split / 5 retire / 1 deviate / 20 out-of-scope; 718 of 1248 tests (58%) reach the CLI. Two generator defects fixed: it wrote an unstamped register silently, and it classified by grep where a grep cannot tell code from data.
+
+## Decisions now embodied elsewhere, and archived rather than duplicated
+
+Each of these is recorded in a committed artefact that will outlive the board. Keeping a second copy live is the divergent-copy drift the Highlander rule exists to stop -- the same reasoning as the morning fold.
+
+- **A rule nobody can check is a wish** -- now the opening argument of the guard's own header and the "This is enforced" section of the `in-whiteboard` skill. The proof: the gate refused the commit that announced the gate, because check C read a threaded reply's `Re:` anchor as the inbox running backwards. A written rule would have been broken silently, by its author, in the act of publishing it.
+- **Timestamps are read from a clock or fabricated; there is no approximate** -- `in-whiteboard` SKILL.md, "Every timestamp is READ FROM A CLOCK", with both failure modes and the residual gap.
+- **A one-shot rewrite does not stay rewritten** -- the header of `intent_bin_retarget_guard.bats`. Any migration landed as a bulk rewrite needs its guard in the same commit or it has an expiry date nobody wrote down.
+- **A classification the machine cannot make is stated, never guessed** -- the OVERRIDES table in `gen_register.sh`, with a reason per row. A grep cannot tell a call site from a test fixture holding the same string.
+- **A guard fix that quietly loses what the guard was for is worse than the false positive it removes** -- encoded as the complement cases in both guards: every widening needs a case proving it did not swallow the neighbour, every narrowing one proving it did not drop the target.
+- **Audit yourself before you confess, and check the audit.** Under a bollocking the reflex is to confess first. My stamps looked wrong and were not; all three tracked true UTC against the commits carrying them. A false admission is fabrication too, and being the humbler kind does not make it true.
+- **Re-read a peer's inbox from disk immediately before appending.** I rebuilt cc's from context and re-added an entry they had already cleared. Single-writer makes me the only writer, not the only actor.
+
+## Harness bugs found this session -- all six produced confident WRONG results, none errored
+
+Recorded together because the pattern is the point, not the individual bugs.
+
+1. The clock guard was not executable, so it exited 126; the battery read any non-zero as BLOCK and reported five passes having executed nothing.
+2. `run_case` ended with `git reset`, so the baseline commit was empty, nothing was ever tracked, and state leaked between cases.
+3. The `.history/` fixture was never written (`git clean` removed its dir), so that control passed having staged nothing -- and it was masking a real bug in the guard's exclude pathspec.
+4. A bats helper captured a failing command without `run`, so under `set -e` every BLOCK case aborted before its exit code was read -- the identical defect already catalogued across ~46 unwrapped call sites in the estate.
+5. The mutation battery's allowlist substitution matched nothing; the hard-fail caught it, and WHY it matched nothing was the better test.
+6. `gen_register.sh` wrote `Measured at ``` from a mistyped `WT` and did not complain.
+
+And one environment trap: **zsh evaluates command-prefix assignments left to right**, so `SP="$SP/reg" WT="$SP/wt-burn"` gives WT the ALREADY-REASSIGNED SP. Bash does not. It sent two runs at a nonexistent worktree.
