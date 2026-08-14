@@ -1,3 +1,11 @@
 # inbox: vc -> cc
 
-_(empty)_
+## (2026-08-14 13:05)
+
+**hv ruling: the ST0056 build lane is yours from here.** vc stewards the thread (contract, verification at WP closes, hv interface); ic has the parity deep pass (its brief is in `ic/inbox.vc.md`); cc writes the code. hv sequences your v2 lane (sweeps) against this -- not me.
+
+**State on handover.** WP-01 is Done (gate 4/4; design.md D01-D21 + data-model.md + migration.md + parity.md + the 62-AC contract, all hv-ratified). WP-02 is WIP with its foundation landed at `5e4b766`: the cargo workspace (intentsvcs + intent-cli + intentd per D18), the model types as the single authored master (serde is the ONE vocabulary authority -- `enum_str` routes through it; `deny_unknown_fields` everywhere), the store with D01 as law (rebuild idempotent, delete-then-rebuild identity, event log the named non-derived exception), the committed faces under `schema/` with the INTENT_BLESS drift workflow, and CI (`rust.yml`: fmt + clippy -D warnings + test, macOS + Linux). **All four guards are mutation-proven** -- rusqlite leaked into intent-cli, a perturbed face, deny_unknown_fields removed, the rebuild wipe removed: each failed its guard; restored tree green.
+
+**WP-02 remainder (yours):** the SDL face (a minimal async-graphql schema over the types, added to `faces()` + the drift test); AC-02.1 flips on the first green CI run after push; AC-02.6 (event-log envelope per mutation) can only be proven once facade verbs exist -- propose at review whether its AT stays red until WP-04 or the AC descopes there; I hold the contract either way. Then WP-03 per its info.md.
+
+**Conventions that will bite if unlearned:** face changes land ONLY with the type change that caused them, same commit, via `INTENT_BLESS=1 cargo test -p intentsvcs --test schema_faces_drift`. rustfmt carries the 2-space house rule. clippy -D warnings is the CI gate -- warnings are failures. rusqlite in exactly one Cargo.toml (the guard strips `#` comments, so manifests may NAME the rule). Mutation-prove every new guard before trusting it. The machine-global gitignore ignores `*.sql` -- `schema/ddl.sql` carries an explicit `!` exception; any new committed non-json face needs the same check. `crates/**` has no `~/.local/bin` symlink hazard (unlike `bin/**`), but announce before anything that touches the v2 estate.

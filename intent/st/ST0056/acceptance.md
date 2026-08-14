@@ -47,7 +47,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 ### WP-01 -- Design canon (status: WIP)
 
 - AC-01.1 (non-test) design.md carries the ratified architecture, truth model, decision log D01-D17, alternatives, and stack shortlist -- evidence: hv check-in 2026-08-14: 'ST0056/WP01: Ratified' -- satisfied: yes
-- AC-01.2 (non-test) The full-ladder acceptance contract (WP-02..12 AC/AT groups) is authored and ratified -- evidence: this file at WP-01 close -- satisfied: no
+- AC-01.2 (non-test) The full-ladder acceptance contract (WP-02..12 AC/AT groups) is authored and ratified -- evidence: hv ratification 2026-08-14: full-ladder contract approved at check-in -- satisfied: yes
 - AC-01.3 (non-test) The parity contract exists: v2 command-surface inventory + the keep/retire/deviate register format -- evidence: intent/st/ST0056/parity.md -- satisfied: yes
 - AC-01.4 (non-test) The design open questions are closed (one binary vs two, launchd label, 3.0.0 subscription extent, `.cache` layout) -- evidence: design.md D18-D21 -- satisfied: yes
 

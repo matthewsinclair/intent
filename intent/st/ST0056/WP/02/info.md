@@ -3,7 +3,7 @@ verblock: "14 Aug 2026:v0.2: vc - Populated from the ratified design session"
 wp_id: WP-02
 title: "Workspace and reified model: intentsvcs types, schema faces, store"
 scope: L
-status: Not Started
+status: WIP
 ---
 
 # WP-02: Workspace and reified model: intentsvcs types, schema faces, store

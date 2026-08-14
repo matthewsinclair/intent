@@ -3,7 +3,7 @@ verblock: "14 Aug 2026:v0.2: vc - Populated from the ratified design session"
 wp_id: WP-01
 title: "Design canon: architecture, data model, migration and parity specs"
 scope: L
-status: WIP
+status: Done
 ---
 
 # WP-01: Design canon: architecture, data model, migration and parity specs
