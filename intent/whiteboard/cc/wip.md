@@ -2,10 +2,10 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 82a8fe51-f060-4925-8bc4-841cd8a8351e
-heartbeat_at: 2026-08-14 15:11Z
-status: paused
-focus: "EOD/EOW. WP-02 close claimed to vc, gate blocked on AC-02.6 pending their renumber. Next is ST0056 WP-03 (ingest, views, sync engine)."
+session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
+heartbeat_at: 2026-08-14 17:35Z
+status: active
+focus: "WP-03 claimed to vc at 476f1e1 -- 60 tests green, fmt+clippy clean, 12/12 mutation-proven. Awaiting their verification; WP-04 (facade) is next."
 claims: []
 ---
 
@@ -13,14 +13,15 @@ claims: []
 
 ## DOING
 
-- **Nothing in flight.** Folded hard 2026-08-14 15:11Z for EOD/EOW; the day is in `.history/20260814/`.
+- **WP-03 CLAIMED to vc at `476f1e1`, awaiting verification.** Strict ingest, deterministic views, sync engine. 60 tests / 15 targets green, fmt + clippy `-D warnings` clean, mutation battery 12 predicted / 0 missed (two of the twelve are controls that had to stay GREEN -- a battery where everything reds proves the mutations broke something, not that the tests discriminate). New modules: `project` `finding` `ingest` `prose` `sync` `views`, all inside intentsvcs so rusqlite stays a Highlander.
 
-## TODO -- next session, in this order
+## TODO -- next, in this order
 
-1. **ST0056 WP-03 -- ingest, views and the sync engine.** cc builds, vc stewards the contract, ic has parity. **Read `migration.md` as landed, not as remembered**: hv ruled closed-thread lossless-by-carrying as policy and live threads stay BLOCKED-until-clean, neither class ever getting a lossy path -- that shapes the sync engine's write path directly. The v3 migrator's real input is ~1158 rows in shapes `--fix` must refuse (baseline in `.history/20260814/`), so WP-10's fixture cannot be "post-sweep trees"; there will not be any.
-2. **Check WP-02 actually closed.** I claimed it at `94dd922`; the gate was `BLOCKED -- 5/6, unsatisfied: AC-02.6` and the renumber into WP-04's group is vc's. Do not touch the contract; if it is still blocked, ask rather than edit.
-3. **`installed-agents.json` is untracked AND unignored.** `intent/plugins/claude/subagents/.manifest/` tracks `global-agents.json` but not its sibling, and `.gitignore` names neither, so anyone running `intent claude subagents install` inside a project gets a permanent `??` holding absolute machine paths. Pre-existing, NOT caused by the 0025 fix. Wants an issue; check the consumer estate first, since a rule that only fixes this repo is the wrong shape.
-4. **Push the two local-only fleet commits**: Utilz `0171297`, Lamplight `7058fd3a8`. **Re-verify both are still unpushed at the moment of acting** -- the last board assumption on this was a day stale and wrong, and today a peer pushed inside a nine-minute window.
+1. **WP-04 (intentsvcs facade, core families)** on vc's word. st/wp lifecycle, ac/at with computed satisfaction, the close gate, typed errors with remedies, and AC-04.5's event-log envelope on every mutation path.
+2. **Contract rows I deliberately did not write.** The six WP-03 AT rows are still `to-write` and AC-03.6/AT-03.6 are vc's to land -- they were mid-edit in `acceptance.md`. Do not hand-edit a contract file and do not run `intent at set` into a file a peer has open; ask first.
+3. **The todo watermark needs a durable home.** `DONE:<T>` is DATA (`bin/intent_todo:20-21` "last-flush watermark", read back at `:159`, advanced only by `done --flush`/`--prune`), currently carried as `RenderContext::todo_watermark`. It must be materialised in project config, never defaulted at render time -- v2's "else start-of-today UTC" fallback cannot survive the no-clock law. vc's call on the field.
+4. **`installed-agents.json` is untracked AND unignored.** `intent/plugins/claude/subagents/.manifest/` tracks `global-agents.json` but not its sibling, and `.gitignore` names neither, so anyone running `intent claude subagents install` inside a project gets a permanent `??` holding absolute machine paths. Pre-existing, NOT caused by the 0025 fix. Wants an issue; check the consumer estate first, since a rule that only fixes this repo is the wrong shape.
+5. **Push the two local-only fleet commits**: Utilz `0171297`, Lamplight `7058fd3a8`. **Re-verify both are still unpushed at the moment of acting** -- the last board assumption on this was a day stale and wrong, and a peer once pushed inside a nine-minute window.
 
 ## PARKED -- v2 maintenance is default-defer (hv, 2026-08-14 bounce)
 
@@ -42,6 +43,10 @@ Show-stoppers only; **0025-class suite-blockers are the whole exception**, and t
 
 ## Decisions
 
+- (2026-08-14) **When the contract and the architecture narrative disagree, the contract governs -- and the disagreement is a finding, not a typo.** design.md:65 said "SHA-256 rehash on change", gating the hash on stat; AC-03.3 names a same-size same-mtime rewrite, which stat cannot see by construction. The two were not almost-the-same, they were incompatible, and the AC was right. The general rule: **a narrative is written before the work and a contract is written to be checkable, so when they part company the checkable one wins.** The mutation that rebuilds the narrative's design is now permanent (M5), so the weaker version cannot come back quietly.
+- (2026-08-14) **Determinism has two independent enemies and a guard for one does not cover the other.** INSIDE: the renderer reaching a clock -- killed structurally, `views.rs` cannot name `SystemTime`/`env`/`hostname`/`HashMap`, asserted by scanning its own source. OUTSIDE: a second writer downstream -- the pre-commit `prettier --write` reformatting what the renderer just wrote, so a self-idempotent renderer still oscillates forever and the skew check reports files nobody touched. **Both end as "regenerate-and-diff is non-empty", and a check that cries wolf is a check nobody reads** -- which is the same failure as no check at all, arriving later. Test through the real formatter: it found two defects on first run (a triple newline before the banner, a trailing space on an empty `completed:`) that no amount of reading would have surfaced.
+- (2026-08-14) **A mutation battery needs controls that stay GREEN.** Twelve mutations, ten predicted red and two predicted green: the hash-gate must not red the ordinary rescan, and a blinded skew check must not red the case that asserts emptiness. Without those two, a battery only proves the mutations broke something -- not that each test discriminates the specific thing it names. Pairs with the harness hard-failing when a substitution matches nothing.
+- (2026-08-14) **A peer confirming your finding at the same wrong path is not corroboration.** I reported `steel_threads.md` absent, having checked `intent/steel_threads.md`; vc "confirmed" by re-running my path rather than testing my premise. It exists at `intent/st/steel_threads.md` and is tracked. Two nodes, one check. **Corroboration means an independent route to the same fact, not a second execution of the first route** -- and the honest tell is that the confirming step reused the input instead of the question.
 - (2026-08-14) **Mutation discipline, in three clauses, all earned the hard way this week.** (1) **A test that passes is not a test that works** -- eight guards this release would have guarded nothing, every one caught by mutation and none by review. Break it, watch the RIGHT test fail, restore. (2) **An unexpected green is investigated exactly as hard as an unexpected red**, so the expectation is written down BEFORE the run; the red that did not arrive was the only signal that `grep -q ... && false || true` could never fail. (3) **Applied is not reached** -- a mutation proven live in the file can still sit on a branch the test never walks, and then both arms pass and a correct finding looks wrong. The canary must come from the same fixture and branch the test drives. Corollary from vc: the harness is itself a probe and can lie, so a mutation must hard-fail when the source is unchanged after substitution.
 - (2026-08-14) **A record must name what it covers -- the commit, the subject, the revision -- never "HEAD" and never a bare number.** "Full suite GREEN at HEAD" was false by three commits across four documents; "314 AT rows" was wrong by 5x on two boards. Both were true when measured and neither carried what it was measured against, so neither could be spotted as stale, and both were about to be acted on. **A stale green is cheap while it is redundant and expensive at the single moment it is not** -- `--skip-tests` is the documented recovery from a half-done cut, so the written record becomes the sole evidence of a run exactly when something has already gone wrong.
 - (2026-08-14) **A queued program is evidence with an expiry date; verify the premise at the moment you act, not when you queued it.** Fired twice in one day. The board's top item was a Lamplight sweep whose every premise had expired invisibly -- already at target, their nodes mid-surgery, their hv having ruled the work dead. Then "30 commits unpushed", true when measured, was a no-op nine minutes later because a peer pushed. **With peers live, the gap between recommending and acting is itself the hazard**, and for anything touching another project the check includes who is live in it.
