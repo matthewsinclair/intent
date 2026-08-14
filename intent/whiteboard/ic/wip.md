@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 91f55ae4-3302-4f70-b68e-6b64e0115e6f
-heartbeat_at: 2026-08-14T17:55Z
+heartbeat_at: 2026-08-14T18:00Z
 status: active
-focus: "Folded at e933c73 with everything committed. Dispatch table complete (27 families, 92 entries); config parity hole found and ruled into AC-00.1/AC-06.1; five measurement rules landed in parity.md. Sweep queued, blocked on cc holding the estate, and it now carries a drift-check requirement."
+focus: "Folded, everything committed. Dispatch table complete (27 families, 92 entries) and charter ADOPTED under hv standing authorisation. Seven measurement rules in parity.md. Sweep queued behind cc holding the estate, carrying its drift-check requirement."
 claims: []
 ---
 
@@ -41,7 +41,7 @@ Four corrections to parity.md's command-level table, all measured: `at` has no `
 
 ## Open asks for hv
 
-1. ~~**What is ic's charter?**~~ **RULED by vc 17:16Z, provisional pending hv.** ic owns the dispatch-table SSOT and everything rendered from it: command surface, help text, voice, exit codes, MCP tool list, `intent llm` guide -- AC-05.1, AC-09.1, AC-09.4, and the register half of AC-05.3 / AC-06.3. hv can reverse it; the work survives either way because it is a spec artefact rather than a commitment in code. **Left on the board until hv confirms**, because provisional-vc is not ratified.
+1. ~~**What is ic's charter?**~~ **CLOSED -- ADOPTED.** ic owns the dispatch-table SSOT and everything rendered from it: command surface, help text, voice, exit codes, MCP tool list, `intent llm` guide -- AC-05.1, AC-09.1, AC-09.4, and the register half of AC-05.3 / AC-06.3. vc ruled it at 17:16Z as provisional; hv's standing authorisation ("go with your recs, unless they're existential") moved it and nine other provisional rulings to ADOPTED, with the meaning defined once in design.md: vc made the call, hv authorised proceeding without reading each, reversible in one line. **No longer a question hanging over this node.** Kept struck-through rather than deleted, because how a lane got decided is worth more than the fact that it is.
 2. ~~**The whiteboard roster row.**~~ **Fixed by vc**, who correctly noted README.md is not a single-writer file -- that rule covers `<node>/wip.md` and inboxes only. Roster is four; the "deliberately no interface node" sentence is struck.
 3. **The usage-convention ruling -- ONE question that clears 15 of the 17 pending rows.** Still open, routed through vc, **do not answer it from two nodes.** vc will not make a scope call on hv's behalf and is right not to; they are carrying it to hv alongside their own provisional list. Evidence: 45 stderr-only / 12 stdout-only / 2 both; `--help` failing on 10 of 27; three commands taking unknown flags at exit 0. Recorded as INV-05 (usage never printed on a usage error -- the `error ...; usage` pairs are all dead code), INV-06 (stream misroutes) and INV-07 (`--help` failing), with targets blank and marked `pending-hv`: a blank marked pending is honest, a guess is not. INV-08 is already `corrected` because clap forces it.
 4. **`intent critic` overloads exit 2 FOUR ways** -- findings-present (the meaningful one, INV-04), bare invocation, unknown flag, and bad positional; the unknown-flag path leaks grep's own error as the command's voice. **The only pending item with a live consumer**: the pre-commit gate reads this exit code, so "findings" and "you typed it wrong" are indistinguishable to it today. Worth hv seeing ahead of the usage-convention bundle -- everything else pending is a decision about what v3 should do, this is a defect in what v2 does now. (My first pass said three conditions; vc measured four. The undercount is named on the row rather than quietly replaced.)
