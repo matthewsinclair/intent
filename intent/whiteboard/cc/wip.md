@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 82a8fe51-f060-4925-8bc4-841cd8a8351e
-heartbeat_at: 2026-08-14 14:39Z
-status: paused
-focus: "Localfolded and released. Next is ST0056 WP-03 (ingest, views, sync engine); WP-02 gates 4/6 with AC-02.1 waiting on a CI push and AC-02.6 on an hv call."
+heartbeat_at: 2026-08-14 14:43Z
+status: active
+focus: "Resumed after the compact. Suite GREEN at 46c6601 (1244 bats + 12 rust, exit 0) -- the 0025 fix is clear. Next is ST0056 WP-03 (ingest, views, sync engine)."
 claims: []
 ---
 
@@ -14,6 +14,7 @@ claims: []
 ## DOING
 
 - **Nothing in flight.** Folded 2026-08-14 14:37Z; the afternoon's work (devbin adoption, 0024, 0025, the WP-02 SDL face) is archived to `.history/20260814/`.
+- **Suite GREEN at `46c6601`** (`bin/int test all`, finished 2026-08-14 14:42Z): **1244 bats, 0 failing; 12 rust, 0 failing; exit 0.** The `+4` over the 1240 hv measured at `3563ff4` is exactly `ambient_project_root_guard.bats`, so the 0025 fix costs nothing elsewhere. Naming the commit, not "HEAD" -- see the Decisions entry that made that a rule.
 - **Next: ST0056 WP-03 -- ingest, views and the sync engine.** I hold the build lane (vc stewards the contract, ic the parity pass). WP-02 gates 4/6; the two unsatisfied are **AC-02.1**, which flips on the first green CI run after a push, and **AC-02.6** (event-log envelope per mutation), which needs an hv call at review -- its AT stays red until WP-04, or the AC descopes there. vc holds the contract either way.
 
 ## TODO -- next session, in this order
@@ -22,7 +23,8 @@ claims: []
    - The baseline (`intent/analysis/20260814-lamplight-at-sweep-baseline.md`, vc, Lamplight `15dbccc92`) keeps its value even though the sweep it was taken for will not happen: **1639 AT rows, ~1158 (70%) in shapes `--fix` must refuse** -- 975 `::name`, 508 multi-file `+`, 325 both. That is now a description of the v3 migrator's real input, not a pre-sweep snapshot. Flagged to vc: **WP-10's fixture cannot be "the post-sweep trees"**, because there will not be any.
    - **The method survives the program.** Any estate-rewriting sweep still owes three after-conditions: row count must not fall; `::name` counts may fall only where the name survived into a trailing note; the backticked-reference count must not fall at all. AT-row-scoped (`^- AT-\d`) via a Python pass, NOT line greps. **The two-pass split with vc stands** if a sweep ever runs: my counts immediately after as the stop condition (I am the one who can still abort cheaply), vc's independently afterwards as the record.
 2. **Push the two local-only fleet commits** in their own repos: Utilz `0171297`, Lamplight `7058fd3a8`. Carry-over: the utilz-side `generator: utilz todo` marker + symmetric guard. **Re-verify both are still unpushed** before acting -- the Lamplight assumption on this board was a day stale and wrong.
-3. **Post-tag tidy:** the dead `CREATED` block in `intent_st`'s in-progress arm -- computed, never read, and it greps the pre-move path. Anchor on the comment `# Extract created date for index update`, NOT a line number; that number has already expired twice. Recorded in 0020's Resolutions.
+3. **`installed-agents.json` is untracked AND unignored** (found at the post-compact pickup, 2026-08-14 14:43Z). `intent/plugins/claude/subagents/.manifest/` tracks `global-agents.json` but not its sibling, and `.gitignore` names neither -- so anyone who runs `intent claude subagents install` while standing in an Intent project gets a permanent `??` in their tree. The file holds absolute machine paths (`/Users/matts/...`) and per-install timestamps, so it must be ignored, never committed. **Pre-existing, and NOT a consequence of the 0025 fix** -- standing inside a real project both the old and new code choose the project-local manifest, which is the correct answer in both. Mine is dated 14:13:59Z, from the 0025 reproduction. Wants an issue; check the consumer estate for the same `??` before writing the ignore line, since a rule that only fixes this repo is the wrong shape.
+4. **Post-tag tidy:** the dead `CREATED` block in `intent_st`'s in-progress arm -- computed, never read, and it greps the pre-move path. Anchor on the comment `# Extract created date for index update`, NOT a line number; that number has already expired twice. Recorded in 0020's Resolutions.
 
 ## TODO -- hv decides
 
