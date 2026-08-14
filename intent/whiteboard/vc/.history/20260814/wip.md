@@ -58,3 +58,12 @@
 - WP-02 foundation built by vc pre-ruling (workspace, model, store, faces, 4 mutation-proven guards, CI) at 5e4b766; global-gitignore *.sql trap caught by reading the commit file list.
 - hv ruling: cc + ic write the code, vc stewards. Handover briefs sent; cc landed the SDL face (732affa, gates 4/6) and is bringing devbin into bin/ (entry point bin/int; bin/intent untouched); ic landed the full parity deep pass (26 cmd files, 94-row register, INTENT_BIN retarget, 711/1235 reach the CLI) and localfolded.
 - cc killed the sweep program with evidence (Lamplight at 2.19.0, their hv ruled AT remediation dead) -- steward docs updated: corrected class proposed in parity.md, WP-10 corpus reworded in tasks.md, migration policy question opened in migration.md, the model.rs one-authority law reworded.
+
+## PM-3 (EOD wrap)
+
+- The bounce: hv ruled all five agenda items (corrected RATIFIED; carry policy RATIFIED -- lossless-by-carrying CLOSED / BLOCKED-until-clean LIVE; organize planned vestigial by construction; push when it makes sense; v2 maintenance default-defer, show-stoppers only). Recorded in parity.md + migration.md (`736033d`); builders notified.
+- First pushes of the v3 estate to both remotes. First rust CI run GREEN in 1m47s (31812129560: macOS+Linux, fmt --check + clippy -D warnings + tests) and Intent Tests green on the same `736033d`. AC-02.1 satisfied by that named evidence.
+- 0024 close review: sound, close stands. Fix verified on the as-built (denominator narrows with the findings, out-of-scope rows copied verbatim, scope in the label); guard 5/5 at HEAD in a clean worktree. Two findings: cc's board cited the unpushed pre-amend twin `1f5e354` (landed commit `e685e90`); test 2's `grep -qv` latent vacuousness. Both actioned by cc; `8b7d382` verified.
+- WP-02 CLOSED on cc's claim: AC-02.6 renumbered to AC-04.5 / AT-04.5 with provenance, `at lint` clean (60 rows), gate ST0056/02 PASS 5/5, `wp done` recorded. cc's applied-is-not-reached mutation lesson absorbed into parity.md's working rules.
+- hv inbox sweep on hv's instruction: all six hv-direction inboxes (`hv/inbox.{cc,ic,vc}`, `{cc,ic,vc}/inbox.hv`) verified empty -- nothing to clear.
+- ic's clock guard (`ddac6ba` + the Re:-anchor fix `98ce764`): whiteboard stamps now need the trailing `Z` at the pre-commit gate; vc's 14:34/15:03 unmarked entries predate it and stand as-is in peers' archives.

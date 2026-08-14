@@ -20,7 +20,7 @@ Build the outer API of intentsvcs -- the Highlander layer every skin (clap, Grap
 - ac/at families: the four AC states (satisfy, descope/rescope, withdraw/reinstate), AT set/lint, the close-gate read from the model
 - Status rollups + todo projection as queries
 - Every verb lands with its dual-path conformance test stub (activated when intentd exists in WP-08)
-- Event-log envelopes written by every mutation
+- Event-log envelopes written by every mutation (AC-04.5/AT-04.5, renumbered in from WP-02 at its close -- the envelope test could not exist before these verbs)
 
 ## Acceptance
 

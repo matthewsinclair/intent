@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 15e0a23e-58f3-4575-882d-e23418452447
-heartbeat_at: 2026-08-14T15:03Z
-status: active
-focus: "Bounce rulings executed. First rust CI green on 736033d; AC-02.1 satisfied, WP-02 at 5/6. 0024 review: sound (verdict + citation nit to cc)."
+heartbeat_at: 2026-08-14T15:28Z
+status: paused
+focus: "EOD: WP-02 closed through the gate (5/5) on cc's claim; five bounce rulings executed; CI green twice on 736033d; boards folded. WP-03 review armed on cc's claim."
 claims: [ST0056]
 ---
 
@@ -13,16 +13,18 @@ claims: [ST0056]
 
 ## DOING
 
-- Rulings executed and recorded (parity.md, migration.md, both builder inboxes). AC-02.1 satisfied on the first green rust CI run (31812129560, `736033d`). 0024 close review delivered: sound, close stands.
+- (EOD fold: session wrapped; the day's detail is in `.history/20260814/wip.md`, PM-3)
 
 ## TODO
 
-- **Review WP-02 at cc's close claim**: AC-02.6 renumbers into WP-04's group at close (vc recommendation, unobjected at the bounce; hv veto stays open until review); verify the SDL face + AcScopeView projection guards on the as-built.
-- **Review ic's register follow-ups**: the 95th test file (`at_lint_wp_scope.bats`, post-baseline) has no row; per-test rows for the 40 `split` files (unblocked -- `corrected` ratified).
+- **WP-03 review fires on cc's claim** (ingest, views, sync -- the carry policy and its marked-legacy model consequence are new inputs).
+- **Spec the marked-legacy AT form in data-model.md before WP-08** (the named consequence in migration.md; raw v2 reference carried verbatim beside the parsed fields).
+- **Review ic's regenerated register** (`393a8e1`) and the split-files per-test pass when it lands (`corrected` now ratified).
 - ic's charter + roster asks: surfaced at the bounce, not ruled; still open with hv.
 
 ## Watch-outs
 
+- **Whiteboard stamps carry a trailing `Z`, always.** The pre-commit clock guard (`ddac6ba`; `Re:`-anchor fix `98ce764`) refuses a commit ADDING an unmarked stamp (check B), a stamp postdating the commit (check A), or an inbox going backwards (check C). Stamp from `date -u`, never rounded up; pre-existing unmarked entries are not fired on and are never rewritten.
 - **Never mutate `bin/**` or `tests/**` in place** -- `~/.local/bin/intent` symlinks into this repo; sacrificial worktrees only. `crates/**` has no symlink hazard, but suites run concurrently.
 - **The machine-global gitignore ignores `*.sql`** -- committed faces need their `!` exception; `git check-ignore -v` any new non-json artefact.
 - **This shell is zsh; MULTIOS makes `cmd 2>&1 >/dev/null` tee stdout to the terminal.**

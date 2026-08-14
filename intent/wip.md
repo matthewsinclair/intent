@@ -1,5 +1,5 @@
 ---
-verblock: "14 Aug 2026:v1.08: vc - ST0056 (Intent v3.0.0) begun: architecture ratified, 12-WP ladder cut, WP-01 WIP"
+verblock: "14 Aug 2026:v1.09: vc - WP-01 + WP-02 Done; bounce rulings landed; first pushes, CI green; WP-03 next"
 intent_version: 2.19.0
 ---
 
@@ -7,22 +7,24 @@ intent_version: 2.19.0
 
 ## Current State
 
-**ST0056 -- Intent v3.0.0 -- is underway (2026-08-14, same day v2.19.0 shipped).** The architecture was ratified with hv in a rubber-duck session and is recorded in `intent/st/ST0056/design.md` (decision log D01-D17): a reified schema-as-truth data model (committed JSON canon + rebuildable per-project SQLite + markdown as generated views and authored prose), the `intentsvcs` layering contract (sole owner of DB and file canon; CLI dual-mode in-process/GraphQL; one intentd per machine), strict ingest with refuse-lossy discipline, MCP as the primary agent write surface, migration floored at v2.19.0 (two-hop), Homebrew as a core deliverable, and intentd IN the 3.0.0 gate. Prior art trawled: Lamplight `native/cli` and Conflab `native/daemon` (the conflabd stack maps nearly 1:1 onto intentd). The 12-WP ladder is cut (`intent wp list ST0056`); WP-01 (design canon) is WIP; the acceptance contract carries the ST-level v3.0.0 gate (AC-00.1..8) with WP-02..12 groups landing at WP-01 close. vc drives ST0056 on direct hv assignment.
+**ST0056 -- Intent v3.0.0 -- is the live work; WP-01 and WP-02 are DONE (gates 4/4 and 5/5) and WP-03 (ingest, views, sync) is next, in cc's hands.** The architecture is ratified and recorded in `intent/st/ST0056/design.md` (D01-D21) with the WP-01 specs beside it (`data-model.md`, `migration.md`, `parity.md`) and a 62-AC contract, lint-clean. Roles per hv: **cc and ic write the code; vc stewards** (contract, verification at WP closes, hv interface). The v3 estate is **pushed to both remotes with CI green twice on `736033d`** -- the first rust workflow run (31812129560: macOS+Linux, fmt --check + clippy -D warnings + tests, 1m47s) and the BATS Intent Tests. WP-02 closed on cc's claim after AC-02.6 renumbered to AC-04.5 (the envelope test cannot exist before WP-04's facade verbs). devbin is adopted (`bin/int`; `bin/release` is now `bin/int build release`; `bin/intent` untouched by design; suite 1240 green at `3563ff4`, which surfaced and fixed issue 0025).
 
-**v2.19.0 SHIPPED earlier today -- tag `071c612`, both remotes + GitHub release.** Fifteen issues (0009-0023); narrative `intent/history/v2.19.0.md`; per-issue record `intent/issues/CLOSED/0009..0023`.
+**The bounce rulings (hv, 2026-08-14 pm) are all landed**: the `corrected` parity class is RATIFIED (parity.md); the migration carry policy is RULED (migration.md: closed threads lossless-by-carrying, live threads BLOCKED-until-clean, neither ever lossy -- forced by Lamplight's ~1158 permanent legacy rows; the sweep program is dead and WP-10's corpus is the fleet AS IT IS); `organize` (both faces) is planned VESTIGIAL by construction (a strictly structured model cannot hold data in the wrong spot or format -- both implementations retire at the surface cut, dissolving their Highlander); pushes happen when they make sense; v2 maintenance is DEFAULT-DEFER, show-stoppers only. 0024 (scoped `at lint`/`ac gate` dropped the WP scope) closed at `e685e90`, vc-reviewed sound, guard hardened at `8b7d382`.
+
+**ic delivered the parity substrate and a new enforcement gate**: 26 `parity/cmd-*.md` files, the `INTENT_BIN` harness retarget (711/1235 tests reach the CLI), the register regenerated at `393a8e1`, and the **whiteboard clock guard** (`ddac6ba` + `98ce764`): pre-commit now refuses board stamps without a trailing `Z`, stamps postdating their commit, or an inbox going backwards.
 
 ## Next Up
 
-1. **hv pre-kickoff check-in on ST0056** -- review design.md + the ladder; then WP-01 completes (data-model spec, migration spec, parity contract, full-ladder acceptance contract, four open questions closed as D18+).
-2. **Consumer sweeps -- one `intent upgrade` per project (cc's lane).** Lamplight first (baseline: 1639 AT rows at `15dbccc92`, ~70% expected residue -- that is the fix working), then Utilz, Baize (baseline-first is part of each sweep). cc runs the post-sweep counts as its stop condition; vc re-runs them independently as the record. **Now doubly load-bearing: the sweeps are v3 migration prep** -- WP-10's fleet corpus is the post-sweep trees at named revisions.
-3. **Parity raw material (IC-friendly, design-neutral, start any time):** the v2 command-surface inventory (every command/flag/output/exit code from `bin/` + help + tests) and the BATS harness retarget (`INTENT_BIN` override + per-test keep/retire/deviate classification). Both feed WP-01's parity contract and WP-05.
-4. **`credo_checks/` cleanup in the Elixir fleet** -- issues filed: Baize 0001, Lamplight 0003, Conflab 0008; Laksa + Prolix clean. Each project fixes its own (hv running these).
-5. **Push the fleet issue-normalisation commits**: Utilz `0171297`, Lamplight `7058fd3a8`.
-6. **hv-ruling queue (v2, fix-under-issue):** plugin bins writing errors to stdout (0023's named-and-left half) + `intent_claude_prime:212`; the dead `CREATED` block in `intent_st`'s in-progress arm (anchor: the `# Extract created date for index update` comment); 0004 item 4 close ruling; a `javascript` pack for 0009's Node exception; pruning consumers' inert `.claude/scripts/` copies. The whiteboard pickup-time-inbox limitation is now designed-for in ST0056's 3.2 agent-bus ST rather than a standalone ruling.
+1. **WP-03 (cc)**: strict ingest, deterministic views, the sync engine -- migration.md read as landed (the carry policy shapes the sync write path).
+2. **Spec the marked-legacy AT form in data-model.md before WP-08** (the carry policy's named model consequence; vc).
+3. **ic**: per-test register rows for the 40 `split` files (`corrected` now ratified); the charter + roster-row asks remain open with hv.
+4. **v2 carries (default-defer)**: credo_checks fleet issues (hv running); fleet pushes Utilz `0171297` + Lamplight `7058fd3a8` (re-verify still unpushed first); cc's parked "hv decides" queue.
+5. The tree carries cc's uncommitted lang-init spread (config languages + per-lang RULES-_/ARCHITECTURE-_) -- cc's lane.
 
 ## Recent
 
-- **2026-08-14 (pm)**: ST0056 begun -- v3.0.0 architecture ratified with hv, Conflab + Lamplight trawled, 12 WPs cut, WP-01 WIP.
+- **2026-08-14 (late pm)**: bounce rulings landed; first v3 pushes, CI green twice on `736033d`; AC-02.1 satisfied; WP-02 CLOSED (5/5) with the AC-02.6 renumber; 0024 reviewed sound; clock guard live.
+- **2026-08-14 (pm)**: ST0056 begun -- v3.0.0 architecture ratified with hv, Conflab + Lamplight trawled, 12 WPs cut; WP-01 closed 4/4; roles ruling (cc/ic build, vc stewards); devbin adopted; sweep program ruled dead by Lamplight evidence.
 - **2026-08-14 (am)**: v2.19.0 SHIPPED (tag `071c612`). Fifteen issues, 0009-0023; release docs written pre-cut for the first time.
 - **2026-07-30**: v2.18.0 + v2.17.4 shipped. Earlier: `intent/history/202607-done.md`.
 

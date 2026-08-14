@@ -58,7 +58,6 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 - AC-02.3 Deleting the DB and rebuilding from committed canon yields identical queryable content (the D01 disposability invariant)
 - AC-02.4 Serialise/deserialise laws hold under proptest, and an unknown field in canonical JSON is refused by name, never dropped
 - AC-02.5 `rusqlite` appears in exactly one Cargo.toml and CI asserts the dependency graph
-- AC-02.6 Every mutation path writes an event-log envelope carrying principal + project_id (the D15 seams exist end to end)
 
 ### WP-03 -- Ingest, views and sync (status: Not Started)
 
@@ -74,6 +73,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 - AC-04.2 ac/at operations implement the four AC states with computed satisfaction for test-backed ACs (never stored) and inline evidence for non-test
 - AC-04.3 The close-gate reads the model and reproduces v2 gate verdicts across the corpus contracts
 - AC-04.4 Every facade error is typed and renders a remedy with its full cause chain (no same-text-for-different-causes collapses)
+- AC-04.5 Every mutation path writes an event-log envelope carrying principal + project_id (the D15 seams exist end to end; renumbered from AC-02.6 at WP-02 close per the 2026-08-14 bounce ruling)
 
 ### WP-05 -- CLI in-process + conformance harness (status: Not Started)
 
@@ -161,8 +161,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 - AT-02.3 `crates/intentsvcs/tests/store_rebuild.rs` -- covers AC-02.3 -- status: green
 - AT-02.4 `crates/intentsvcs/tests/model_laws.rs` -- covers AC-02.4 -- status: green
 - AT-02.5 `crates/intentsvcs/tests/dep_graph_guard.rs` -- covers AC-02.5 -- status: green
-- AT-02.6 `crates/intentsvcs/tests/event_log_envelopes.rs` -- covers AC-02.6 -- status: to-write
-- Coverage: complete; AC-02.1 is non-test with evidence on its line
+- Coverage: complete; AC-02.1 is non-test with evidence on its line; the envelope requirement lives at AC-04.5 (renumbered at close)
 
 ### WP-03
 
@@ -179,6 +178,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 - AT-04.2 `crates/intentsvcs/tests/facade_acceptance.rs` -- covers AC-04.2 -- status: to-write
 - AT-04.3 `crates/intentsvcs/tests/close_gate_parity.rs` -- covers AC-04.3 -- status: to-write
 - AT-04.4 `crates/intentsvcs/tests/error_remedies.rs` -- covers AC-04.4 -- status: to-write
+- AT-04.5 `crates/intentsvcs/tests/event_log_envelopes.rs` -- covers AC-04.5 -- status: to-write -- renumbered from AT-02.6 at WP-02 close (bounce ruling 2026-08-14)
 - Coverage: complete
 
 ### WP-05
