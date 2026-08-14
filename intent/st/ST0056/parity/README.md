@@ -50,6 +50,8 @@ vc's table flagged the `at` set and the aliases as unverified. All are now verif
 
 **8. Seventeen of 26 commands have no help file at all.** `ac`, `at`, `bootstrap`, `config`, `critic`, `doctor`, `help`, `info`, `init`, `issues`, `llm`, `organize`, `st`, `st_zero`, `todo`, `treeindex`, `upgrade`. Naming drift too: `stzero.help.md` against `bin/intent_st_zero`, and `rules.help.md` documents a `claude` subcommand rather than a top-level one. WP-05 generates help from the dispatch table, which retires this whole class -- but it means **`lib/help/` cannot be used as the v2 spec to port from**.
 
+**9. The per-command files are named `cmd-<command>.md`, not `<command>.md`.** Two command names collide with filenames the toolchain treats as special, and macOS matches case-insensitively: a generated `claude.md` is loaded as this directory's `CLAUDE.md` and injected into every subsequent session as instructions (observed, not theorised -- it happened here), and `agents.md` shadows the `AGENTS.md` convention the same way. The prefix makes the collision unconstructible instead of special-casing two known names. **Worth carrying into v3**: any generated-view filename derived from user or command data can land on a reserved name, and the v3 view renderer will generate far more files than this.
+
 ## Contract gaps for vc
 
 Per the work order, these fit no ratified deviation class and are flagged rather than judged here:

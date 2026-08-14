@@ -58,7 +58,13 @@ emit_probe_table() {
 # gen <command> <script-path> [help-basename]
 gen() {
   local cmd="$1" script="$2" helpname="${3:-$1}"
-  local f="$OUTDIR/$cmd.md"
+  # `cmd-` prefix, not a bare `<command>.md`. Two of these command names collide
+  # with filenames the toolchain treats as special, and macOS matches filenames
+  # case-insensitively: a generated `claude.md` is picked up as this directory's
+  # CLAUDE.md and injected into every future session as instructions, and
+  # `agents.md` shadows the AGENTS.md convention the same way. The prefix makes
+  # the collision unconstructible rather than special-casing the two known names.
+  local f="$OUTDIR/cmd-$cmd.md"
   local helpfile="$WT/lib/help/$helpname.help.md"
   local verbs flags
 
