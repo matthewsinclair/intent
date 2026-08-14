@@ -1,5 +1,5 @@
 ---
-verblock: "14 Aug 2026:v0.1: matts - Initial version"
+verblock: "14 Aug 2026:v0.2: vc - Objective + context ratified with hv; LLM Preamble folded into design.md and removed"
 intent_version: 2.19.0
 status: WIP
 slug: add-a-rust-based-cli-with-a-local-sqlite-db-with
@@ -9,44 +9,17 @@ completed:
 
 # ST0056: Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent
 
-## LLM Preamble
-
-Intent has got to the point where it is large enough to be just about too large to continue as a bunch of shell scripts that update markdown files. It is well and truly time to create a proper data model, use a local SQLite db, and make a local native CLI (in Rust).
-
-These changes warrant a new major version of Intent: v3.0.0.
-
-What I want to do with this steel thread is first of all rubber duck the ideas with you and thoroughly plan out the model, the tools and processes, and a workplan (using Intent, of course) to build it all out, release it -- an importantly, build an automated migration process to migrate Intent v2 projects over to Intent v3.
-
-A couple of constraints to kick things off:
-
-- it must always remain possible to have .md versions of all artefacts
-- there will always be on-disk the .mds
-- there will (probably?) be an intentd rust daemon that does the heavy lifting witht the cli talking to it
-- we should always apply the thin coordinator model (ie cli is a thin coordinator over the GraphQL API to intentd and so on)
-- the cli will be native (macOS, later Linux)
-- we'll use Rust as the native language/runtime
-- everything needs to be not just Elixir friendly, but Elixir-oriented (as most Intent projects are Elixir)
-- everything needs to be AI agent aware, so the full CLI surface is exposed both as a tool and as an MCP
-- we have a very good example to go from for the rust cli in Lamplight (see ../Lamplight) with strict= typing of GraphQL commands etc
-
-And some stretch goals (in no particular order):
-
-- I want to double down on the multi-agent coding model pioneered with Intent 2 (ie VC, CC, IC, etc)
-- I want to explore how the agents can better talk to each other without needing human coordination of the comms, but by still maintaining human oversight
-- We can look at making some kind of dashboard that is either a web page (easy/simple) or maybe a macos menubar app (see ../Conflab) or maybe just a TUI that can be run inside the shell (preference)
-- We need to make a web page (in Laksa) for Intent's "home on the web"
-- We need to 'brew it' so that it can be installed via homebrew
-- ... and there will be other stretch goals too
-
-So, the job of work here now is to do a technical deep dive on the possibilities and the build out the docs for review. And then when that's done, we crack on and build it!
-
 ## Objective
 
-[Clear statement of what this steel thread aims to accomplish]
+Ship **Intent v3.0.0**: replace the v2 shell implementation with a native Rust system -- `intentsvcs` (the library owning all functionality, the SQLite store, and the file canon), `intent` (a thin-coordinator CLI running in-process or via GraphQL), and `intentd` (one daemon per machine serving N projects) -- built around a reified, schema-validated data model. Markdown is always realised on disk (generated views for structure, the authoring surface for prose); the full surface is exposed as both CLI and MCP; an automated migrator brings v2.19.0+ projects across with refuse-lossy discipline; distribution is `brew install intent`. One major release, patched by 3.0.x.
 
 ## Context
 
-[Background information and context for this steel thread, including why it's needed and how it fits into the larger project]
+v2 is 12,492 lines of bash across 27 files where every reader reimplements parsing -- the "answers confidently from partial evidence" bug class that v2.19.0 spent five of its fifteen issues on, and that v2 tried to patch by bolting schema onto markdown three separate times (0012, 0017, the close-gate). v3 reifies the model instead: one schema authored once in the type layer, generating its JSON Schema / SQL DDL / GraphQL SDL faces; committed JSON as durable truth; a rebuildable per-project SQLite DB as runtime truth; markdown demoted to generated views plus authored prose.
+
+Constraints ratified with hv (2026-08-14): .md realisations always on disk; thin coordinator at every seam (the CLI speaks only the intentsvcs facade or GraphQL); Rust native, macOS first then Linux; Elixir-oriented (SDL + JSON Schema artefacts, Phoenix-channels-shaped cloud seam); AI-agent aware (CLI + MCP parity); intentd in the 3.0.0 gate. Prior art: Lamplight `native/cli` (dispatch-spine SSOT, typed transport errors, MCP bridge) and Conflab `native/daemon` (the conflabd stack: async-graphql + axum, rmcp streamable HTTP, launchd lifecycle owned by the CLI, debounced watching, policy-stamp self-healing). Full architecture, decision log (D01-D17), and alternatives: `design.md`. Work breakdown: `tasks.md` + the 12-WP ladder.
+
+Stretch goals are parked as their own 3.x steel threads: TUI dashboard, the agent bus (with the whiteboard restructure and hv oversight gates), Laksa web page, macOS menubar app, `intent_ex` hex client.
 
 ## Acceptance
 
@@ -54,7 +27,9 @@ Acceptance Criteria and Acceptance Tests for this steel thread live in `acceptan
 
 ## Related Steel Threads
 
-- [List any related steel threads here]
+- ST0043: Rethink `intent upgrade` -- the v2 convergent orchestrator; v3's migrator supersedes it, and its ledger is the first hop of the two-hop migration policy
+- ST0044: acceptance.md + the AC/AT process -- the contract model v3 reifies as first-class entities
+- ST0045: Whiteboard Protocol 3.0 -- deferred to the 3.2 agent-bus ST; md-authored through 3.0.0/3.1
 
 ## Context for LLM
 

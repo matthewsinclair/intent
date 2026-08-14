@@ -31,23 +31,42 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 
 ## Acceptance Criteria
 
-### ST-level
+> WP-02..12 AC/AT groups are a WP-01 deliverable (AC-01.2) and land with its completion. The ST-level group below is the 3.0.0 release gate.
 
-[The "whole steel thread is done" bar, or "none -- WP-distributed".]
+### ST-level -- the v3.0.0 gate
 
-### WP-01 -- [WP title] (status: ...)
+- AC-00.1 The v3 binary passes the narrowed BATS conformance contract (stdout, exit codes, behaviour), with every file-layout divergence recorded in the ratified keep/retire/deviate register
+- AC-00.2 The fleet corpus (Intent's own tree as canary, then Lamplight/Utilz/Baize at named post-sweep revisions) ingests losslessly, or every unconverted artefact appears in the residue report by name
+- AC-00.3 intentd ships in the release: project registry, unix-socket GraphQL, mgmt plane, debounced watching, CLI-owned launchd lifecycle
+- AC-00.4 MCP ships: stdio server with the tiered typed tools + `intent_graphql` escape hatch, bridging to intentd when it is up
+- AC-00.5 (non-test) `brew install` on a clean macOS machine yields a working `intent` + daemon lifecycle -- evidence: install transcript in the release record -- satisfied: no
+- AC-00.6 (non-test) The shell implementation (`bin/`) is pruned at the cut, fail-forward -- evidence: the v3.0.0 release diff -- satisfied: no
+- AC-00.7 `rusqlite` appears in exactly one Cargo.toml (intentsvcs) and the dual-path conformance suite (in-process vs intentd, identical results) is green across the verb surface
+- AC-00.8 A v2.19.0 project migrates in one visible commit with refuse-lossy residue named, `project_id` stamped, hooks and settings.json unchanged, and documented git-revert rollback
 
-[Add real AC lines at column 0 -- the parser and close-gate read only column-0 `- AC-` lines, so the indented examples below are inert guidance. Copy one to column 0 and fill it in:]
+### WP-01 -- Design canon (status: WIP)
 
-    - AC-01.1 [a test-backed criterion -- what must be verifiably true]
-    - AC-01.2 (non-test) [a doc / eyeball / gate criterion] -- evidence: [named evidence] -- satisfied: no
+- AC-01.1 (non-test) design.md carries the ratified architecture, truth model, decision log D01-D17, alternatives, and stack shortlist -- evidence: hv review at the pre-kickoff check-in -- satisfied: no
+- AC-01.2 (non-test) The full-ladder acceptance contract (WP-02..12 AC/AT groups) is authored and ratified -- evidence: this file at WP-01 close -- satisfied: no
+- AC-01.3 (non-test) The parity contract exists: v2 command-surface inventory + the keep/retire/deviate register format -- evidence: named WP-01 doc -- satisfied: no
+- AC-01.4 (non-test) The design open questions are closed (one binary vs two, launchd label, 3.0.0 subscription extent, `.cache` layout) -- evidence: decision-log additions in design.md -- satisfied: no
 
 ## Acceptance Tests
 
+### ST-level
+
+- AT-00.1 `tests/conformance/run_v2_suite.bash` -- covers AC-00.1 -- status: to-write -- the v2 BATS estate run against the v3 binary via an INTENT_BIN override
+- AT-00.2 `crates/intentsvcs/tests/fleet_corpus_ingest.rs` -- covers AC-00.2 -- status: to-write -- red-first against the canary tree
+- AT-00.3 `crates/intentd/tests/daemon_lifecycle.rs` -- covers AC-00.3 -- status: to-write
+- AT-00.4 `crates/intent-cli/tests/mcp_surface.rs` -- covers AC-00.4 -- status: to-write
+- AT-00.5 `crates/intentsvcs/tests/dep_graph_guard.rs` -- covers AC-00.7 -- status: to-write -- asserts the rusqlite Highlander + drives the dual-path suite
+- AT-00.6 `crates/intentsvcs/tests/migrate_v2_project.rs` -- covers AC-00.8 -- status: to-write
+- Coverage: AC-00.5 and AC-00.6 are non-test (evidence on the AC lines); intended paths above are refined as the workspace lands in WP-02
+
 ### WP-01
 
-[Add real AT lines at column 0 -- the parser reads only column-0 `- AT-` lines, so the indented examples below are inert guidance. Copy one to column 0 and fill it in:]
-
-    - AT-01.1 `[path/to/the_test_file]` -- covers AC-01.1 -- status: to-write -- red-first
-    - AT-01.2 (non-test) [what was read / eyeballed] -- covers AC-01.2 -- status: n/a -- doc / eyeball
-    - Coverage: [every AC has an AT, or list the uncovered ACs; non-test ACs carry evidence on the AC line]
+- AT-01.1 (non-test) hv reads design.md at the pre-kickoff check-in and ratifies or amends -- covers AC-01.1 -- status: n/a
+- AT-01.2 (non-test) this contract carries ratified WP-02..12 groups at WP-01 close -- covers AC-01.2 -- status: n/a
+- AT-01.3 (non-test) parity inventory + register reviewed against `bin/` -- covers AC-01.3 -- status: n/a
+- AT-01.4 (non-test) design.md decision log gains the four closures -- covers AC-01.4 -- status: n/a
+- Coverage: every WP-01 AC has a recording AT; satisfaction lives on the AC lines

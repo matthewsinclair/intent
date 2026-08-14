@@ -1,5 +1,5 @@
 ---
-verblock: "14 Aug 2026:v1.07: vc - v2.19.0 SHIPPED (tag 071c612); consumer sweeps next"
+verblock: "14 Aug 2026:v1.08: vc - ST0056 (Intent v3.0.0) begun: architecture ratified, 12-WP ladder cut, WP-01 WIP"
 intent_version: 2.19.0
 ---
 
@@ -7,27 +7,25 @@ intent_version: 2.19.0
 
 ## Current State
 
-**v2.19.0 SHIPPED, 2026-08-14 — tag `071c612` on both remotes plus a GitHub release.** Fifteen issues closed end to end (0009-0023): the AT row grammar + `at lint`/`--fix` (0017, subsuming 0014 + 0015), four AC states with descope/withdraw verb pairs (0013 + hv's addition), one steel-thread enumerator + a voiced `organize` (0011), the whiteboard header block ruled not-YAML and enforced (0012), portable hooks with no baked home path (0016), AGENTS.md prerequisites from the declared languages (0009), the objective-placeholder warning at close (0010), the treeindex cache untracked (0018), the canonical thread index actually indexing all 55 threads (0019), `st list --status all` actually meaning all (0020), Intent's second, dead Elixir enforcement mechanism pruned with the consumer residue reported in three states (0021, from a Laksa report), both no-template fallback heredocs deleted rather than corrected (0022), and `error()` plus its 25 imitators moved to the documented lowercase voice (0023).
+**ST0056 -- Intent v3.0.0 -- is underway (2026-08-14, same day v2.19.0 shipped).** The architecture was ratified with hv in a rubber-duck session and is recorded in `intent/st/ST0056/design.md` (decision log D01-D17): a reified schema-as-truth data model (committed JSON canon + rebuildable per-project SQLite + markdown as generated views and authored prose), the `intentsvcs` layering contract (sole owner of DB and file canon; CLI dual-mode in-process/GraphQL; one intentd per machine), strict ingest with refuse-lossy discipline, MCP as the primary agent write surface, migration floored at v2.19.0 (two-hop), Homebrew as a core deliverable, and intentd IN the 3.0.0 gate. Prior art trawled: Lamplight `native/cli` and Conflab `native/daemon` (the conflabd stack maps nearly 1:1 onto intentd). The 12-WP ladder is cut (`intent wp list ST0056`); WP-01 (design canon) is WIP; the acceptance contract carries the ST-level v3.0.0 gate (AC-00.1..8) with WP-02..12 groups landing at WP-01 close. vc drives ST0056 on direct hv assignment.
 
-**0020, 0021, 0022 and 0023 were all called in by hv before the cut rather than deferred after it** — the batching principle, applied four times, and the reason the release grew from eleven issues to fifteen between the build and the tag.
-
-The cut ran clean: pre-flight green (`intent doctor` + the full suite at HEAD, which is what certified the three commits postdating hv's manual run), five sidecars stamped, CHANGELOG dated, pushed to `local` + `upstream`, release published with the CHANGELOG `[2.19.0]` section as its body. vc verified it afterwards — sidecars at 2.19.0, tag identical across local/upstream/HEAD, tree clean, release body matching the CHANGELOG section but for one trailing newline.
-
-**New practice, adopted this release: the release docs are written BEFORE the cut so the tag carries them** — `intent/history/v2.19.0.md` (internal narrative) and `docs/releases/2.19.0/RELEASE_NOTES.md` (public). Both practices had lapsed (history after v2.16.0, releases after 2.17.0) and are resumed here, deliberately not backfilled. Terse ledger: `intent/done.md`; per-issue record with full verification: `intent/issues/CLOSED/0009..0023`.
+**v2.19.0 SHIPPED earlier today -- tag `071c612`, both remotes + GitHub release.** Fifteen issues (0009-0023); narrative `intent/history/v2.19.0.md`; per-issue record `intent/issues/CLOSED/0009..0023`.
 
 ## Next Up
 
-1. **Consumer sweeps — one `intent upgrade` per project** (Lamplight first, then Utilz, Baize). The one pass sweeps AT grammar (`at lint --fix`; residue named, never guessed — expect BLOCKED-until-swept, which is the fix working), converges AGENTS.md + portable-hook settings.json + the gitignore entries, and PRINTS (never runs) the `git rm` for a tracked treeindex cache. Lamplight: 314 AT rows plus its four known bad-status contracts (ST0276 `**green` x11, ST0298 `GREEN`, ST0270 `BOTH`, ST0198 `BUILT`). **Claimed by cc.** vc's part is MEASUREMENT — baseline what the old rows carry, then measure the delta, before the sweep is trusted (the 87-destroyed-name-links lesson).
-2. **`credo_checks/` cleanup in the Elixir fleet (issue 0021's consumer half).** Issues filed in the affected projects on 2026-08-14: **Baize 0001** (7 checks, all registered and running, on Credo 1.7.19 with the crash-candidate present — and `struct_vars.ex` is Baize's own, so no blanket delete), **Lamplight 0003** (6 checks, all registered and running, same crash pairing, nothing project-authored), **Conflab 0008** (loaded via `requires:` but 0 registered, so never run once, while `elixirc_paths` compiles them every build — a genuine two-ended removal). Laksa and Prolix measured clean; nothing filed. Each project fixes its own; `intent doctor` reports the residue in three distinct states.
-3. **Push the fleet issue-normalisation commits** in their own repos: Utilz (`0171297`), Lamplight (`7058fd3a8`); Conflab already pushed. Utilz-side todo guard carry-over.
-4. **hv-ruling queue** (each becomes its own issue if wanted): 0004 item 4 (`ac status` exit code — premise does not reproduce); a `javascript` pack to complete 0009's Node exception; pruning consumers' now-inert `.claude/scripts/` copies; the plugin bins writing errors to **stdout** rather than stderr (named in 0023's Resolutions and deliberately left — it changes what callers capture, not merely what they read), alongside `intent_claude_prime:212`, which is the same decision in miniature.
-5. **Whiteboard: inboxes are a pickup-time channel only.** A node that asks a question mid-session cannot see an answer appended to its inbox until it re-reads, and there is no "you have mail" signal — this cost two round-trips on 2026-08-14 with the answer already sitting in the inbox. A protocol change, not a bug fix; wants an hv ruling on shape before anyone builds it.
+1. **hv pre-kickoff check-in on ST0056** -- review design.md + the ladder; then WP-01 completes (data-model spec, migration spec, parity contract, full-ladder acceptance contract, four open questions closed as D18+).
+2. **Consumer sweeps -- one `intent upgrade` per project (cc's lane).** Lamplight first (baseline: 1639 AT rows at `15dbccc92`, ~70% expected residue -- that is the fix working), then Utilz, Baize (baseline-first is part of each sweep). cc runs the post-sweep counts as its stop condition; vc re-runs them independently as the record. **Now doubly load-bearing: the sweeps are v3 migration prep** -- WP-10's fleet corpus is the post-sweep trees at named revisions.
+3. **Parity raw material (IC-friendly, design-neutral, start any time):** the v2 command-surface inventory (every command/flag/output/exit code from `bin/` + help + tests) and the BATS harness retarget (`INTENT_BIN` override + per-test keep/retire/deviate classification). Both feed WP-01's parity contract and WP-05.
+4. **`credo_checks/` cleanup in the Elixir fleet** -- issues filed: Baize 0001, Lamplight 0003, Conflab 0008; Laksa + Prolix clean. Each project fixes its own (hv running these).
+5. **Push the fleet issue-normalisation commits**: Utilz `0171297`, Lamplight `7058fd3a8`.
+6. **hv-ruling queue (v2, fix-under-issue):** plugin bins writing errors to stdout (0023's named-and-left half) + `intent_claude_prime:212`; the dead `CREATED` block in `intent_st`'s in-progress arm (anchor: the `# Extract created date for index update` comment); 0004 item 4 close ruling; a `javascript` pack for 0009's Node exception; pruning consumers' inert `.claude/scripts/` copies. The whiteboard pickup-time-inbox limitation is now designed-for in ST0056's 3.2 agent-bus ST rather than a standalone ruling.
 
 ## Recent
 
-- **2026-08-14**: v2.19.0 SHIPPED (tag `071c612`). Fifteen issues, 0009-0023; four batched in pre-cut on hv's instruction. Release docs written pre-cut for the first time.
+- **2026-08-14 (pm)**: ST0056 begun -- v3.0.0 architecture ratified with hv, Conflab + Lamplight trawled, 12 WPs cut, WP-01 WIP.
+- **2026-08-14 (am)**: v2.19.0 SHIPPED (tag `071c612`). Fifteen issues, 0009-0023; release docs written pre-cut for the first time.
 - **2026-07-30**: v2.18.0 + v2.17.4 shipped. Earlier: `intent/history/202607-done.md`.
 
 ## Parked
 
-_(None.)_
+- 3.x steel threads (post-v3.0.0, each on its own): TUI dashboard; the agent bus (whiteboard restructure + hv oversight gates); Laksa web page; macOS menubar app; `intent_ex` hex client; sqlite-vec semantic search.

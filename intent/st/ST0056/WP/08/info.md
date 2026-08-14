@@ -1,0 +1,32 @@
+---
+verblock: "14 Aug 2026:v0.2: vc - Populated from the ratified design session"
+wp_id: WP-08
+title: "intentd daemon"
+scope: XL
+status: Not Started
+---
+
+# WP-08: intentd daemon
+
+## Objective
+
+Ship the machine-level daemon: one intentd serving N registered projects over unix-socket GraphQL, with the CLI owning its lifecycle via launchd, and the dual-path conformance suite activated across the verb surface.
+
+## Deliverables
+
+- Project registry: canonicalised roots registered on first contact, per-project DBs, per-connection project binding; stale roots surfaced by doctor
+- Unix-socket GraphQL as a mechanically thin skin over the facade; the mgmt plane (status/shutdown/reload/registry) split from the domain API (conflabd `mgmt/` pattern)
+- CLI routing rule enforced: socket present -> route to daemon; absent -> in-process (never two sync engines)
+- Lifecycle owned by the CLI (conflabd pattern): LaunchAgent plist, logs under `~/.local/share/intent/`, PATH-then-sibling binary resolution, PID file with observable cleanup, GIT_HASH in the version string
+- Debounced gitignore-aware watching (`notify-debouncer-full` + `ignore`) driving ingest
+- Policy-stamp self-healing for generated local artefacts
+- Minimal subscriptions (project/file changed) -- the 3.x TUI/bus seam
+- Dual-path conformance suite green across all verbs
+
+## Acceptance
+
+Acceptance Criteria for this work package live in the steel thread's `acceptance.md`, under the `WP-08` heading (single source of truth). Do not restate ACs here.
+
+## Dependencies
+
+- WP-05 (needs the CLI + dispatch spine; runs alongside WP-06/07).
