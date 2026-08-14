@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1f98ea43-d71a-47a3-aba8-9597183b2e67
-heartbeat_at: 2026-08-14T00:10Z
+heartbeat_at: 2026-08-14T02:40Z
 status: paused
-focus: "folded 2026-08-14 pre-compact; v2.19.0 audited CLEAN + hv fix-its landed (8aba5ab, ba52339); next fire = suite verdict, the cut, then the estate sweeps"
+focus: "HOLDING: suite green, globalfold done (2c928c8), v2.19.0 awaits the cut first thing next session; vc fires on the cut + the estate sweeps"
 claims: []
 ---
 
@@ -13,7 +13,7 @@ claims: []
 
 ## DOING
 
-- (paused -- localfolded 2026-08-14 ahead of a compact, awaiting hv's full-suite verdict and the v2.19.0 cut. The day's delivered work is in `.history/20260814/`; the ten-issue corpus 0009-0018 plus 0019 is CLOSED end to end.)
+- (holding -- suite green at HEAD per hv, globalfold committed (`2c928c8`), F6 restore landed (`ee44f63`). The release cut is the next project action, hv's hand, first thing next session. Day detail: `.history/20260814/` + `intent/done.md`.)
 
 ## TODO
 
