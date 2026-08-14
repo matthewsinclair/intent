@@ -35,3 +35,17 @@
 - cc caught four documents claiming the suite was green "at HEAD" when three code commits postdated the run. Repaired by naming the commit the run covered and letting pre-flight speak for HEAD.
 - cc caught `e1e2300` half-sweeping `wip.md` -- count moved, enumeration did not.
 - My own first Lamplight status measurement reported "30+ distinct statuses" from an unscoped grep. The scoped pass says 9. Caught because the number was implausible.
+
+---
+
+# PM session archive (2026-08-14) -- ST0056 opened
+
+## DONE (pm)
+
+- **ST0056 (Intent v3.0.0) planning arc, hv-assigned to vc**: rubber-duck session ratified the architecture (schema-as-truth after hv's pushback on md-as-truth; intentsvcs layering; one intentd per machine, IN the 3.0.0 gate; JSON canon; strict ingest; MCP tiered surface; migration floor v2.19.0; Homebrew core; cloud seams project_id/principal/event-log/server-block). Lamplight `native/cli` + Conflab `native/daemon` trawled as prior art -- conflabd's stack maps nearly 1:1 onto intentd (async-graphql+axum, rmcp streamable HTTP, CLI-owned launchd lifecycle, mgmt plane, debounced watching, policy stamps, TN3171 cert lesson).
+- **Docs landed**: design.md (architecture + D01-D17 + alternatives + stack), info.md rewritten (LLM Preamble removed per hv), tasks.md (ladder + deps), impl.md (prior-art record), acceptance.md (ST-level gate AC-00.1..8 + WP-01 group, lint-clean 10 rows), 12 WP info files populated with sizes. wip.md + restart.md moved to the ST0056 era.
+- **Board ops**: split protocol with cc agreed (cc counts post-sweep as stop condition, vc re-counts as record); cc corrected on the clock-skew watch-out (my BST-as-Z heartbeat bug, not skew); ST0056 claim + assignment notice sent and cleared by cc.
+
+## Decisions folded out (recorded in restart.md / memory / issue records)
+
+- Mutation batteries hard-fail on unchanged source; reproduce in a sacrificial worktree; line numbers expire -- anchor on symbols; alarming one-line-grep numbers are findings to check; own claims get the refutation discipline.
