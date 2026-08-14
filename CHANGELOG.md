@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.19.1] - in progress
+
+### Fixed
+
+- **`intent at lint` and `intent ac gate` accepted a work-package scope and silently dropped it (issue 0024).** `at lint <ID>/NN` documents the scope in its own usage line; both commands then linted, counted and reported every AT row in the thread under a question naming one work package. The reporting half made a finished work package read as blocked by rows it does not own -- on the reporting estate, four different work packages of one thread returned the byte-identical verdict, the whole thread's numbers each time, and a work package with four satisfied criteria and four green tests could not be closed. The mutating half was worse: `--fix` under a scope rewrote rows the scope excluded, so narrowing a fix to one work package _in order to be careful_ rewrote the whole thread. An instrument that accepts a narrowing argument and answers the wider question reads exactly like a correct answer, which is how this survived a 1639-row estate unnoticed. Both AT loops now apply the same `in_wp_filter` the gate's criteria loop always did -- before the row count, so the denominator narrows with the findings -- and out-of-scope rows are copied verbatim rather than skipped, since the fixer rewrites the whole file. The lint lines and the gate's remedy now print the scope that was resolved rather than the bare thread id, so the subject of a count can never be wider than the count.
+
 ## [2.19.0] - 2026-08-14
 
 ### Added

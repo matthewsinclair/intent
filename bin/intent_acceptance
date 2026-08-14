@@ -394,6 +394,20 @@ in_wp_filter() {
   [ "$((10#$(id_group "$1")))" -eq "$((10#$WP_NUM))" ]
 }
 
+# The resolved target as a printable label: `<ST>` or `<ST>/NN`.
+#
+# Issue 0024: the lint lines printed `$ST_ID` while counting whatever the loop
+# had counted, so `at lint ST0056/02` answered "ST0056 ok -- 60 AT row(s)". The
+# subject of a count must never be wider than the count, or a narrowed question
+# gets a widened answer that reads exactly like a correct one.
+target_label() {
+  if [ -n "$WP_NUM" ]; then
+    echo "$ST_ID/$WP_NUM"
+  else
+    echo "$ST_ID"
+  fi
+}
+
 # ---- coverage + satisfaction --------------------------------------------
 
 # Space-prefixed list of AT ids that cover the given AC id.
@@ -611,8 +625,14 @@ at_lint_report() {
   AT_LINT_FAILS=0
   while IFS= read -r line; do
     [ -z "$line" ] && continue
-    AT_LINT_ROWS=$((AT_LINT_ROWS + 1))
     id="$(line_id "$line")"
+    # Issue 0024: the same scope filter the gate's AC loop has always applied.
+    # Before the row count, not after -- a narrowed scope must narrow the
+    # denominator too, or the findings and the total disagree about what was
+    # examined. `in_wp_filter` no-ops on an empty WP_NUM, so the thread-scoped
+    # path is unchanged.
+    in_wp_filter "$id" || continue
+    AT_LINT_ROWS=$((AT_LINT_ROWS + 1))
     if ! at_row_arm "$line" >/dev/null 2>&1; then
       defect="$(at_row_defect "$line")"
       at_lint_emit "$stream" "L1 $id -- $defect"
@@ -793,7 +813,13 @@ at_lint_fix() {
   while IFS= read -r line; do
     case "$line" in
       "- AT-"*)
-        if at_row_arm "$line" >/dev/null 2>&1; then
+        # Issue 0024: a scoped `--fix` rewrote rows the scope excluded -- the
+        # ask was WP-02 and the row it migrated belonged to WP-01. Out-of-scope
+        # rows are copied VERBATIM, never skipped: this loop writes the whole
+        # file, so dropping the line would delete it.
+        if ! in_wp_filter "$(line_id "$line")"; then
+          printf '%s\n' "$line" >> "$tmp"
+        elif at_row_arm "$line" >/dev/null 2>&1; then
           printf '%s\n' "$line" >> "$tmp"
         else
           fixed="$(at_fix_line "$line" "$root")"
@@ -980,7 +1006,7 @@ cmd_ac_gate() {
   local completed=no
   target_is_completed && completed=yes
   if ! at_lint_report "$acc" "$completed" err; then
-    echo "gate: $scope BLOCKED -- $AT_LINT_FAILS AT contract finding(s) over $AT_LINT_ROWS row(s) (see lint warnings); run 'intent at lint $id --fix', then fix what it reports"
+    echo "gate: $scope BLOCKED -- $AT_LINT_FAILS AT contract finding(s) over $AT_LINT_ROWS row(s) (see lint warnings); run 'intent at lint $(target_label) --fix', then fix what it reports"
     exit 1
   fi
   local line lid total=0 sat=0 desc=0 wdrawn=0 active unsat="" thread_total=0
@@ -1249,10 +1275,10 @@ cmd_at_lint() {
   target_is_completed && completed=yes
   [ "$fix" -eq 1 ] && at_lint_fix "$acc"
   if at_lint_report "$acc" "$completed" out; then
-    echo "lint: $ST_ID ok -- $AT_LINT_ROWS AT row(s) conform"
+    echo "lint: $(target_label) ok -- $AT_LINT_ROWS AT row(s) conform"
     exit 0
   fi
-  echo "lint: $ST_ID FAILED -- $AT_LINT_FAILS finding(s) over $AT_LINT_ROWS AT row(s)"
+  echo "lint: $(target_label) FAILED -- $AT_LINT_FAILS finding(s) over $AT_LINT_ROWS AT row(s)"
   exit 1
 }
 
