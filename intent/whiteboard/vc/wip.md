@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 15e0a23e-58f3-4575-882d-e23418452447
-heartbeat_at: 2026-08-14T14:28Z
+heartbeat_at: 2026-08-14T15:03Z
 status: active
-focus: "Reconvened on the bounce. Five rulings framed for hv; WP-02 close review armed on cc's claim; devbin landed (bin/int; suite 1240 green at 3563ff4)."
+focus: "Bounce rulings executed. First rust CI green on 736033d; AC-02.1 satisfied, WP-02 at 5/6. 0024 review: sound (verdict + citation nit to cc)."
 claims: [ST0056]
 ---
 
@@ -13,14 +13,13 @@ claims: [ST0056]
 
 ## DOING
 
-- Holding the bounce: five rulings framed for hv (TODO below), ic's charter + roster asks alongside. WP-02 close review fires on cc's claim; AC-02.1 wants the first push.
+- Rulings executed and recorded (parity.md, migration.md, both builder inboxes). AC-02.1 satisfied on the first green rust CI run (31812129560, `736033d`). 0024 close review delivered: sound, close stands.
 
 ## TODO
 
-- **Flip AT-02.1 on CI green** -- first push is out; run being watched. A red goes to cc.
 - **Review WP-02 at cc's close claim**: AC-02.6 renumbers into WP-04's group at close (vc recommendation, unobjected at the bounce; hv veto stays open until review); verify the SDL face + AcScopeView projection guards on the as-built.
 - **Review ic's register follow-ups**: the 95th test file (`at_lint_wp_scope.bats`, post-baseline) has no row; per-test rows for the 40 `split` files (unblocked -- `corrected` ratified).
-- **0024 close review** -- TRIGGERED (cc closed at `1f5e354`); firing this session.
+- Watch the in-flight Intent Tests run on `736033d` (31812129679); a red goes to cc.
 - ic's charter + roster asks: surfaced at the bounce, not ruled; still open with hv.
 
 ## Watch-outs

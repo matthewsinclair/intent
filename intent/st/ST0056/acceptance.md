@@ -53,7 +53,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 
 ### WP-02 -- Workspace and reified model (status: Not Started)
 
-- AC-02.1 (non-test) The cargo workspace builds with fmt + clippy gates on macOS and Linux CI -- evidence: first green CI run -- satisfied: no
+- AC-02.1 (non-test) The cargo workspace builds with fmt + clippy gates on macOS and Linux CI -- evidence: rust CI run 31812129560 green on 736033d -- macOS+Linux matrix, fmt --check + clippy -D warnings + tests (first run) -- satisfied: yes
 - AC-02.2 The three schema faces (JSON Schema, DDL, SDL) are generated, committed, and CI fails on drift between types and committed faces
 - AC-02.3 Deleting the DB and rebuilding from committed canon yields identical queryable content (the D01 disposability invariant)
 - AC-02.4 Serialise/deserialise laws hold under proptest, and an unknown field in canonical JSON is refused by name, never dropped
