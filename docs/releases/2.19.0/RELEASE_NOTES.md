@@ -12,7 +12,7 @@ Fifteen issues closed: 0009 through 0023.
 
 **Elixir projects: one thing to check after upgrading.** If your project has a root-level `credo_checks/` directory, Intent put it there and has now stopped shipping it. Run `intent doctor` — it will tell you whether those checks were ever actually running, and what to remove. Details under [Removed](#removed-credo_checks) below.
 
-## The headline: the AT row has a grammar
+## The headline: the AT row has a grammar (issue 0017, with 0014 and 0015)
 
 An AT row asserts _this named test, in this named file, proves these named criteria, and here is its state_. Three of those four were previously recovered from free-form markdown by independent single-shot regexes, and the reference was the weakest link: it was defined as **whatever sat inside the first pair of backticks**. It was not required to be a path, to contain a directory, to exist, or to be present at all.
 
@@ -56,7 +56,7 @@ Both are reported by name, with every cited file listed and a note on where the 
 
 ## Also in this release
 
-### Acceptance criteria have four states, not two
+### Acceptance criteria have four states, not two (issue 0013)
 
 `intent ac descope --to <thread>` / `rescope`, and `intent ac withdraw --reason <why>` / `reinstate`.
 
@@ -83,7 +83,7 @@ Both new states are non-blocking and **reported separately rather than folded in
 
 <a id="removed-credo_checks"></a>
 
-## Removed: `credo_checks/` (Elixir)
+## Removed: `credo_checks/` (Elixir) -- issue 0021
 
 `intent st zero install` used to copy six custom Credo checks into a root-level `credo_checks/` directory in any Elixir project it retrofitted, then try to register them in `.credo.exs`. **The copy was unconditional; the registration was not** — it was skipped silently when `elixir` was not on PATH, and reduced to a printed warning when it failed. The command reported success either way.
 

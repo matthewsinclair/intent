@@ -18,7 +18,7 @@ intent_version: 2.18.0
 
 ## Recent
 
-- **2026-08-13/14**: v2.19.0 built — issues 0009-0019 fixed + closed; `--fix` hardened three times on consumer evidence; home-estate name links restored (`ee44f63`); suite green.
+- **2026-08-13/14**: v2.19.0 built — issues 0009-0023 fixed + closed; `--fix` hardened three times on consumer evidence; home-estate name links restored (`ee44f63`); 0020-0023 batched in pre-cut on hv's instruction; suite green.
 - **2026-07-30**: v2.18.0 + v2.17.4 shipped. Earlier: `intent/history/202607-done.md`.
 
 ## Parked
