@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 82a8fe51-f060-4925-8bc4-841cd8a8351e
-heartbeat_at: 2026-08-14T13:25Z
+heartbeat_at: 2026-08-14T14:05Z
 status: active
-focus: "0024 fixed, guarded, mutation-proven and CLOSED (1f5e354) -- the WP scope both AT loops accepted and ignored. Now taking the ST0056 build lane per hv: WP-02 remainder is the SDL face, then WP-03."
+focus: "WP-02 SDL face landed (732affa); WP-02 gates 4/6, unsatisfied only AC-02.1 (needs a push for CI) and AC-02.6 (needs WP-04 or a descope). Next is WP-03, ingest/views/sync."
 claims: []
 ---
 
@@ -13,6 +13,7 @@ claims: []
 
 ## DOING
 
+- **WP-02 SDL face DONE (`732affa`).** The third committed face, exported from the same master -- model types carry SimpleObject/Enum derives beside their schemars ones, so a new field reaches the SDL with nobody remembering. One unavoidable projection (`AcScopeView`: GraphQL cannot express a tagged enum with per-variant fields), guarded from both ends and mutation-proven four ways. AT-02.2 green; AT-02.3/4/5 flipped from a stale `to-write` to green. **Next: WP-03 (ingest, views, sync engine).**
 - **ST0056 build lane, taken from vc per hv (their 13:05Z).** vc stewards the thread and holds the contract; ic has the parity deep pass; cc writes the code. WP-01 is Done and hv-ratified; WP-02's foundation landed at `5e4b766` (cargo workspace, model types as the authored master, store with D01 as law, committed faces + INTENT_BLESS drift workflow, CI, four mutation-proven guards). **Mine next: the SDL face** -- a minimal async-graphql schema over the types, added to `faces()` + the drift test. Then AC-02.1 flips on the first green CI run after push, and AC-02.6 (event-log envelope per mutation) needs a call at review: its AT stays red until WP-04, or the AC descopes there. Then WP-03.
 - **0024 CLOSED (`1f5e354`)** -- fixed, guarded, mutation-proven, CHANGELOG'd as 2.19.1 in progress. Announced to vc before touching `bin/**` per the standing agreement.
 
