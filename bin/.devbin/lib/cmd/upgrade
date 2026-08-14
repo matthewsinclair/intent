@@ -1,0 +1,208 @@
+#!/usr/bin/env bash
+#
+# The built-in `upgrade` -- re-sync the vendored runtime (design D5).
+#
+# The manifest is what makes this safe to type. Every vendored file was
+# checksummed at install; a file whose checksum has moved since has been edited
+# in place, and upgrade REPORTS it and leaves it alone rather than silently
+# replacing someone's debugging line, or their fix.
+#
+# The refusal is the feature. An upgrade that always wins is a tool people stop
+# running, and a project that stops upgrading is the four hand-maintained
+# launchers this framework exists to fold.
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/install
+. "$DEVBIN_LIB/install"
+
+usage() {
+  cat <<EOF
+usage: $DEVBIN_NAME upgrade [--from <dir>] [--force]
+
+  --from <dir>   the devbin to upgrade from (default: the source recorded at install)
+  --force        overwrite vendored files that were edited in place
+
+Replaces bin/devbin and bin/.devbin/lib/. Never touches config.yaml, cmd/ or
+help/ -- those are yours.
+EOF
+}
+
+# _state_of <states> <rel> -- the manifest verdict for one path, or `new`.
+#
+# `new` rather than an error: a file the source ships and the manifest has never
+# heard of is what a devbin that GREW a file looks like from the target's side.
+_state_of() {
+  local line
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    if [ "${line#*	}" = "$2" ]; then
+      printf '%s\n' "${line%%	*}"
+      return 0
+    fi
+  done <<EOF
+$1
+EOF
+  printf 'new\n'
+  return 0
+}
+
+main() {
+  local from="" force="" dstroot srcroot version states paths rel src state
+  local added=0 updated=0 unchanged=0 skipped=0 removed=0 sum_src sum_dst
+  # Every path this run REFUSED to replace. Passed to manifest_write so each
+  # keeps its install-time checksum: re-checksumming a file we declined to
+  # overwrite would record the edit as canonical and the next `doctor` would
+  # pronounce it intact. Refusing to touch a file and then blessing it is worse
+  # than either overwriting it or leaving it flagged.
+  local preserved=""
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -h | --help)
+        usage
+        return 0
+        ;;
+      --from)
+        from="${2:-}"
+        shift 2 || die "--from needs a directory"
+        ;;
+      --force)
+        force=yes
+        shift
+        ;;
+      -*) die "unknown option '$1' (try: $DEVBIN_NAME upgrade --help)" ;;
+      *) die "unexpected argument '$1'" ;;
+    esac
+  done
+
+  dstroot="${PROJECT_ROOT:?}"
+
+  is_devbin_installed "$dstroot" || {
+    # Two un-installed shapes, and only one of them wants an install. The D12
+    # checkout runs its own lib/ in place, so there is nothing vendored to
+    # bring forward -- and advising `install --into` here pointed at the exact
+    # command install refuses (a vendored copy would shadow lib/): a
+    # remediation string leading to a dead end (hv probe, 2026-08-09).
+    if is_devbin_source "$dstroot"; then
+      warn "this is the devbin source checkout -- it runs lib/ in place (D12), so there is nothing vendored to upgrade"
+      warn "  the checkout moves with git; a project installed from it picks that up with ITS bin/devbin upgrade"
+    else
+      warn "devbin is not installed here -- there is no vendored runtime at $dstroot/bin/.devbin/lib"
+      warn "  to install it:  <path-to-devbin>/bin/devbin install --into $dstroot"
+    fi
+    return 1
+  }
+
+  if [ -n "$from" ]; then
+    srcroot="$(cd "$from" 2>/dev/null && pwd)" || die "no such directory: $from"
+  else
+    srcroot="$(manifest_source "$dstroot" 2>/dev/null || true)"
+    [ -n "$srcroot" ] ||
+      die "no source recorded in $DEVBIN_MANIFEST_REL -- name one with --from <dir>"
+  fi
+
+  # Validated BEFORE anything is written (AC-09.9). Half a runtime is a project
+  # that will not start at all, which is strictly worse than the stale runtime
+  # this was going to replace -- so the only safe place to fail is here.
+  is_devbin_source "$srcroot" || {
+    warn "not a devbin source: $srcroot"
+    warn "  (looked for bin/devbin and a lib/ beside it)"
+    warn "  name a different one with:  $DEVBIN_NAME upgrade --from <dir>"
+    return 1
+  }
+
+  version="$(devbin_version_of "$srcroot")"
+  states="$(manifest_check "$dstroot")"
+  paths="$(vendored_paths "$srcroot")"
+
+  printf 'Upgrading from %s (devbin %s)\n\n' "$srcroot" "$version"
+
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    src="$(vendor_source_path "$srcroot" "$rel")" || continue
+    state="$(_state_of "$states" "$rel")"
+
+    if [ "$state" = modified ] && [ -z "$force" ]; then
+      printf '  skipped    %s (edited in place -- upgrade with --force to replace it)\n' "$rel"
+      preserved="$preserved$rel
+"
+      skipped=$((skipped + 1))
+      continue
+    fi
+
+    if [ ! -f "$dstroot/$rel" ]; then
+      copy_vendored "$src" "$dstroot/$rel" || die "failed to write $dstroot/$rel"
+      printf '  added      %s\n' "$rel"
+      added=$((added + 1))
+      continue
+    fi
+
+    sum_src="$(sha256_of "$src")"
+    sum_dst="$(sha256_of "$dstroot/$rel")"
+    if [ "$sum_src" = "$sum_dst" ]; then
+      unchanged=$((unchanged + 1))
+      continue
+    fi
+    copy_vendored "$src" "$dstroot/$rel" || die "failed to write $dstroot/$rel"
+    printf '  updated    %s\n' "$rel"
+    updated=$((updated + 1))
+  done <<EOF
+$paths
+EOF
+
+  # A file the manifest records and the source no longer ships. Devbin dropped
+  # it, so the vendored copy is dead code in this project -- but only remove one
+  # that still matches its recorded checksum. An edited orphan is somebody's
+  # work and gets the same refusal an edited live file gets.
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    state="${rel%%	*}"
+    rel="${rel#*	}"
+    list_contains "$paths" "$rel" && continue
+    case "$state" in
+      missing) continue ;;
+      modified)
+        if [ -z "$force" ]; then
+          # Said in full because this is the LAST time devbin mentions the file.
+          # It leaves the manifest here -- manifest_write only records what the
+          # source still ships -- so the next upgrade has no entry for it and
+          # nothing to report. A bare "skipped" would imply it gets revisited,
+          # which is the same misdescription as calling an edited file intact.
+          printf '  released   %s\n' "$rel"
+          printf '             devbin no longer ships this and your copy differs, so it is\n'
+          printf '             left with the project and no longer tracked. Delete it if it\n'
+          printf '             is dead, or move it out of bin/.devbin/lib/ if it is yours.\n'
+          skipped=$((skipped + 1))
+          continue
+        fi
+        ;;
+    esac
+    rm -f "$dstroot/$rel"
+    printf '  removed    %s (no longer shipped)\n' "$rel"
+    removed=$((removed + 1))
+  done <<EOF
+$states
+EOF
+
+  manifest_write "$dstroot" "$srcroot" "$version" "$preserved" ||
+    die "failed to write the manifest"
+
+  # An empty report is indistinguishable from a run that did nothing because it
+  # broke. Every path above prints only when it changed something, so the
+  # all-unchanged case has to say so explicitly.
+  printf '\n%d added, %d updated, %d unchanged, %d removed, %d skipped\n' \
+    "$added" "$updated" "$unchanged" "$removed" "$skipped"
+  if [ "$((added + updated + removed))" -eq 0 ] && [ "$skipped" -eq 0 ]; then
+    printf 'Already up to date.\n'
+  fi
+  if [ "$skipped" -gt 0 ]; then
+    printf '\n%d file(s) left alone because they differ from what was installed.\n' "$skipped"
+    printf 'Re-run with --force to replace them, or diff them against %s first.\n' "$srcroot"
+  fi
+  return 0
+}
+
+main "$@"

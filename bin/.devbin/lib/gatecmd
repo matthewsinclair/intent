@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+#
+# lib/gatecmd -- the shared body of every built-in gate command.
+#
+# Sourced by lib/cmd/check and lib/cmd/test, which are otherwise four-line
+# shims. `check` and `test` do the same thing -- take an option, find its
+# command line, run it through the sealed-gate runner -- and writing that twice
+# is exactly the duplication this project exists to remove.
+#
+# The option's command line comes from lib/builtins unless config overrides it,
+# which is the D18 tier-2 shape: the framework knows `check compile` exists and
+# what it usually runs, and a project that runs it differently says so in one
+# line rather than by writing a script.
+#
+# A tier-1 option -- one with real shared logic rather than a command line --
+# is marked `@builtin` in the catalogue and resolved to a function named
+# `builtin_<command>_<option>`, which the calling lib/cmd/<command> defines.
+#
+[ -n "${_DEVBIN_GATECMD_LOADED:-}" ] && return 0
+_DEVBIN_GATECMD_LOADED=1
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/builtins
+. "$DEVBIN_LIB/builtins"
+# shellcheck source=lib/runlog
+. "$DEVBIN_LIB/runlog"
+
+# run_builtin_gate <command> [option] [args...]
+#
+# The whole body of a built-in gate command. Resolution order for what to run,
+# which mirrors D2 one level down:
+#
+#   1. a `builtin_<command>_<option>` function, when the catalogue says @builtin
+#   2. the catalogue's default command line
+#
+# Config's own `run:` never reaches here: the dispatcher routes a config-declared
+# option through run_option before a handler is consulted at all, so by the time
+# this runs the option is one devbin ships.
+# usage_options_for <command> -- the usage line's option list, |-joined.
+#
+# The ACTIVE set the dispatcher exported (issue 0007): the catalogue is the
+# menu, not what resolves in THIS project -- Baize's line advertised three
+# arms that refuse, Lamplight's advertised four disabled ones and omitted the
+# only one that runs. The derivation (D11 language axis + config enabled: +
+# declared options) lives dispatcher-side as command_options; re-deriving it
+# here would be a second copy, so this reads the export and falls back to the
+# raw catalogue only when a handler drives gatecmd outside the dispatcher.
+usage_options_for() {
+  local cmd="$1" active=""
+  case "$cmd" in
+    check) active="${DEVBIN_ACTIVE_CHECK:-}" ;;
+    db) active="${DEVBIN_ACTIVE_DB:-}" ;;
+    docs) active="${DEVBIN_ACTIVE_DOCS:-}" ;;
+    fmt) active="${DEVBIN_ACTIVE_FMT:-}" ;;
+    test) active="${DEVBIN_ACTIVE_TEST:-}" ;;
+  esac
+  if [ -n "${active// /}" ]; then
+    printf '%s' "$active" | tr ' ' '\n' | sed '/^$/d' | tr '\n' '|' | sed 's/|$//'
+  else
+    builtin_options_for "$cmd" | tr '\n' '|' | sed 's/|$//'
+  fi
+}
+
+run_builtin_gate() {
+  local cmd="$1" opt="${2:-}" run suffix grammar fn
+  shift || true
+  shift || true
+
+  case "$opt" in
+    -h | --help)
+      printf 'usage: %s %s <%s|all>\n' "${DEVBIN_NAME:-devbin}" "$cmd" \
+        "$(usage_options_for "$cmd")"
+      return 0
+      ;;
+    "")
+      # Split from -h/--help deliberately. Asking for usage SUCCEEDED; being
+      # unable to run because no gate was named did NOT, and a gate command that
+      # exits 0 having run nothing is a false green -- `devbin test && deploy`
+      # deploys. See the longer note in run_command (lib/resolve).
+      printf 'usage: %s %s <%s|all>\n' "${DEVBIN_NAME:-devbin}" "$cmd" \
+        "$(usage_options_for "$cmd")"
+      return 1
+      ;;
+  esac
+
+  run="$(builtin_option_run "$cmd" "$opt")" ||
+    die "unknown $cmd option: $opt (try: ${DEVBIN_NAME:-devbin} $cmd all)"
+  suffix="$(builtin_option_suffix "$cmd" "$opt")"
+  grammar="$(builtin_option_grammar "$cmd" "$opt")"
+
+  cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
+
+  # Wrapper flags out of the tool's argv, purge pair to run_gate (one parser
+  # for both gate paths -- see gate_split_args in lib/runlog).
+  gate_split_args "$@"
+
+  if [ "$run" = "@builtin" ]; then
+    fn="builtin_${cmd}_${opt}"
+    # A catalogue entry marked @builtin with no function behind it is a devbin
+    # packaging error, not a user error -- say which, rather than reporting an
+    # unknown option and sending the reader to look at their config.
+    command -v "$fn" >/dev/null 2>&1 ||
+      die "devbin packaging error: $cmd $opt is marked @builtin but $fn is not defined"
+    run_gate --label "$cmd $opt" --suffix "$suffix" --grammar "$grammar" \
+      --out-dir "$(gate_out_dir "$cmd")" \
+      ${DEVBIN_GATE_FLAGS[@]+"${DEVBIN_GATE_FLAGS[@]}"} \
+      -- "$fn" ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
+    return $?
+  fi
+
+  # Unquoted expansion, deliberately not eval -- the same rule run_option
+  # applies to a config `run:`, for the same reason. The catalogue is devbin's
+  # own data rather than a user's, but the two paths behaving differently would
+  # be worse than either behaviour on its own.
+  # shellcheck disable=SC2086
+  run_gate --label "$cmd $opt" --suffix "$suffix" --grammar "$grammar" \
+    --out-dir "$(gate_out_dir "$cmd")" \
+    ${DEVBIN_GATE_FLAGS[@]+"${DEVBIN_GATE_FLAGS[@]}"} \
+    -- $run ${DEVBIN_GATE_ARGS[@]+"${DEVBIN_GATE_ARGS[@]}"}
+}

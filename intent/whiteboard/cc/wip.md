@@ -3,15 +3,18 @@ node: cc
 name: Control Claude
 role: control
 session_id: 82a8fe51-f060-4925-8bc4-841cd8a8351e
-heartbeat_at: 2026-08-14T14:05Z
+heartbeat_at: 2026-08-14T16:05Z
 status: active
-focus: "WP-02 SDL face landed (732affa); WP-02 gates 4/6, unsatisfied only AC-02.1 (needs a push for CI) and AC-02.6 (needs WP-04 or a descope). Next is WP-03, ingest/views/sync."
+focus: "devbin adopted as bin/int (bin/intent untouched by design); bin/release is now `bin/int build release`. Adoption surfaced issue 0025 -- an ambient PROJECT_ROOT suppresses project resolution -- which is why test all was red on landing and is green now."
 claims: []
 ---
 
 # Control Claude (cc)
 
 ## DOING
+
+- **devbin adopted (`bin/int`), and `bin/release` is now `bin/int build release`.** `bin/intent` is untouched and cannot be touched: devbin's `link_alias` refuses to replace a real file. `bin/in` was the estate-consistent alias and is impossible -- `in` is a bash reserved word, a syntax error as a command in bash while working in zsh. The three commands hv asked for all work: `test all`, `build cli`, `build release`.
+- **The rename half is already committed, in vc's `072d277`** -- they used `git add` + bare `git commit`, which takes the whole index including what I had staged. History reads oddly; the rest of devbin is in my own commit. Nothing of mine was lost.
 
 - **WP-02 SDL face DONE (`732affa`).** The third committed face, exported from the same master -- model types carry SimpleObject/Enum derives beside their schemars ones, so a new field reaches the SDL with nobody remembering. One unavoidable projection (`AcScopeView`: GraphQL cannot express a tagged enum with per-variant fields), guarded from both ends and mutation-proven four ways. AT-02.2 green; AT-02.3/4/5 flipped from a stale `to-write` to green. **Next: WP-03 (ingest, views, sync engine).**
 - **ST0056 build lane, taken from vc per hv (their 13:05Z).** vc stewards the thread and holds the contract; ic has the parity deep pass; cc writes the code. WP-01 is Done and hv-ratified; WP-02's foundation landed at `5e4b766` (cargo workspace, model types as the authored master, store with D01 as law, committed faces + INTENT_BLESS drift workflow, CI, four mutation-proven guards). **Mine next: the SDL face** -- a minimal async-graphql schema over the types, added to `faces()` + the drift test. Then AC-02.1 flips on the first green CI run after push, and AC-02.6 (event-log envelope per mutation) needs a call at review: its AT stays red until WP-04, or the AC descopes there. Then WP-03.
@@ -42,9 +45,9 @@ claims: []
 - **The gate blocks unswept estates from the day v2.19.0 ships.** Every named row was already contributing no coverage, silently. The CHANGELOG says so explicitly -- do not soften it when a consumer complains.
 - **`intent upgrade` short-circuits when the project is already at the target version** (`intent_upgrade:107`). The fix reaches consumers because v2.19.0 IS a version boundary, NOT because upgrade re-provisions canon unconditionally. Any future canon-only correction needs a ledger step with a real state probe.
 - **AGENTS.md convergence must stay AFTER the canon apply** in `bin/intent_upgrade`, never as a ledger step. Canon creates `usage-rules.md`, which AGENTS.md's own file map lists. Verified by running it, not by reading.
-- **`bin/release` stamps all five sidecars BEFORE the tag.** Author the CHANGELOG heading as `## [X.Y.Z] - in progress` and let the script date it. `DEPRECATIONS.md` is NOT a sidecar -- its verblock is hand-maintained.
-- **A dirty tree does not abort the cut early -- it aborts it half-done.** The leftover-dirt check is at `bin/release:437-447`, AFTER the sidecars are stamped and committed, so anything dirty outside the five yields a `release: vX.Y.Z` commit with no tag. Every node pickup writes a heartbeat, so the board itself is the likeliest offender: commit your own dir before handing over. Recovery is a `--skip-tests` re-run, not a revert -- **and that recovery is exactly where a stale "suite green" record turns dangerous**, because the re-run skips the one gate that would have re-established the claim.
-- **A `--dry-run` is not cheap.** The pre-flight doctor + full suite are not behind the dry-run guard, so previewing the cut costs a full suite run. The GitHub release body is the CHANGELOG `[X.Y.Z]` section extracted verbatim (`bin/release:500`) -- not `history/` and not `docs/releases/` -- so the CHANGELOG is the one that has to read well in public.
+- **`intent build release` stamps all five sidecars BEFORE the tag.** Author the CHANGELOG heading as `## [X.Y.Z] - in progress` and let the script date it. `DEPRECATIONS.md` is NOT a sidecar -- its verblock is hand-maintained.
+- **A dirty tree does not abort the cut early -- it aborts it half-done.** The leftover-dirt check is AFTER the sidecars are stamped and committed (anchor on the `Detect any change to a sidecar this script owns` comment, not a line number -- the file moved to `bin/.devbin/cmd/build.d/release` and every number in it shifted), so anything dirty outside the five yields a `release: vX.Y.Z` commit with no tag. Every node pickup writes a heartbeat, so the board itself is the likeliest offender: commit your own dir before handing over. Recovery is a `--skip-tests` re-run, not a revert -- **and that recovery is exactly where a stale "suite green" record turns dangerous**, because the re-run skips the one gate that would have re-established the claim.
+- **A `--dry-run` is not cheap.** The pre-flight doctor + full suite are not behind the dry-run guard, so previewing the cut costs a full suite run. The GitHub release body is the CHANGELOG `[X.Y.Z]` section extracted verbatim -- not `history/` and not `docs/releases/` -- so the CHANGELOG is the one that has to read well in public.
 - **Do not use `git stash` in this repo** -- it carries two pre-existing 2025 stashes and a pop once dumped 522 lines of long-pruned migration code into the tree. Use `git show HEAD:<file>` or a throwaway `git worktree`.
 - **The markdown linter normalises whitespace and will win.** It collapses leading/trailing spaces inside an inline code span, so `` ` + ` `` silently becomes `` `+` `` and can invert a sentence; it also collapses the multi-space separators the `/in-whiteboard` message format documents (`## (ts)   Re:` becomes `## (ts) Re:`). Rephrase around it; do not fight it. Commit the linted form or every commit reopens the same diff.
 - New command wiring: `bin/intent_<name>` auto-dispatches via the `*)` default case; a `claude` subcommand needs an explicit arm in `bin/intent`. Register in MODULES.md FIRST.

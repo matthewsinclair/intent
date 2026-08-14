@@ -1,0 +1,367 @@
+#!/usr/bin/env bash
+#
+# lib/helpers -- shared output and guard primitives.
+#
+# Sourced, not executed: defines functions and sets no shell options (the
+# dispatcher owns those).
+#
+# THIS FILE HAS NO DEPENDENCIES, and that is a load-bearing rule rather than a
+# happy accident. Command handlers are separate processes that source this file
+# ALONE (see bin/.devbin/cmd/check). The moment a primitive here needs config,
+# every handler in every project has to load the config reader to print a
+# warning. So the rule is: needs config, belongs in lib/resolve; needs nothing,
+# belongs here. `is_command` and `parse_common_opts` live in lib/resolve for
+# exactly this reason, despite reading as helpers.
+#
+# WP-05 folds the universal functions out of the four source projects. The
+# run-log subsystem -- open_run_log, write_errors_file, note_promotion, the
+# purge family, print_run_verdict -- is deliberately NOT here: it is one
+# cohesive subsystem and WP-06 ports it whole into lib/runlog. Splitting it
+# across two files to satisfy a function count would be the worse trade.
+#
+# The project name in the die/warn prefix comes from config rather than being
+# baked in, which is the whole point of the fold: four projects printing
+# `conflab:` / `laksa:` / `baize:` / `lamplight:` from four copies of the same
+# two lines becomes one line reading a value.
+#
+[ -n "${_DEVBIN_HELPERS_LOADED:-}" ] && return 0
+_DEVBIN_HELPERS_LOADED=1
+
+# The prefix on diagnostics. Set by the dispatcher once config is loaded;
+# defaults to `devbin` so a failure BEFORE config load still says something
+# sensible rather than printing a bare colon.
+DEVBIN_NAME="${DEVBIN_NAME:-devbin}"
+
+die() {
+  printf '%s: %s\n' "$DEVBIN_NAME" "$*" >&2
+  exit 1
+}
+
+warn() {
+  printf '%s: %s\n' "$DEVBIN_NAME" "$*" >&2
+}
+
+step() { printf '\n==> %s\n' "$*"; }
+ok() { printf '    done.\n'; }
+
+# report_not_yet <what> <gate> -- print the STUB refusal and return 3.
+#
+# The non-exiting half of not_yet, for callers running inside a loop over
+# several options: `all` must not stop at the first breach, so a function it
+# calls in the same process cannot exit. One message, two exit behaviours.
+report_not_yet() {
+  printf '%s: %s is not built yet.\n' "$DEVBIN_NAME" "$1" >&2
+  printf '       gated on: %s\n' "$2" >&2
+  return 3
+}
+
+# not_yet <what> <gate> -- the STUB refusal, ported from the corpus.
+#
+# A surface that is not built yet exits NON-ZERO with the reason and what
+# unblocks it, never a quiet no-op. An unbuilt gate that exits 0 is
+# indistinguishable from a passing one, which is the exact failure the sealed
+# gates exist to prevent.
+not_yet() {
+  report_not_yet "$1" "$2" || true
+  exit 3
+}
+
+require_tool() {
+  command -v "$1" >/dev/null 2>&1 || die "$1 not found. ${2:-}"
+}
+
+# init_colors [auto|off] -- set green/red/dim/reset. All empty when off, when
+# NO_COLOR is set, or when stdout is not a TTY.
+#
+# SC2034 (appears unused) is expected here and suppressed: these are globals for
+# the whole runtime, and shellcheck only sees this file. Exporting them to
+# satisfy the linter would push four colour variables into the environment of
+# every command devbin runs, which is a worse trade than one directive.
+# shellcheck disable=SC2034
+init_colors() {
+  green="" red="" dim="" reset=""
+  if [ "${1:-auto}" = auto ] && [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+    green=$'\033[32m' red=$'\033[31m' dim=$'\033[2m' reset=$'\033[0m'
+  fi
+}
+
+# strip_ansi -- filter: remove CSI escape sequences from stdin.
+#
+# Byte-identical in all four projects. Reads stdin, writes stdout, so it
+# composes in a pipeline: `... | strip_ansi > "$errors"`.
+#
+# The escape byte is passed in as an awk variable rather than written into the
+# pattern, because a literal ESC in source survives neither editors nor patches
+# reliably.
+strip_ansi() {
+  awk -v esc="$(printf '\033')" '{ gsub(esc "\\[[0-9;?]*[A-Za-z]", ""); print }'
+}
+
+# upper_snake <string> -- the environment-variable spelling of a name.
+#
+# `lamplight` -> LAMPLIGHT, `my-proj` -> MY_PROJ. Devbin derives variable names
+# from the project name in several places -- <NAME>_ROOT, <NAME>_REPL_HISTORY,
+# DEVBIN_OPT_<NAME>, the run-log suffix -- and each did the same `tr` inline.
+# Four copies of one transformation is four chances to disagree about whether a
+# hyphen becomes an underscore.
+upper_snake() {
+  printf '%s' "$1" | tr '[:lower:]-' '[:upper:]_'
+}
+
+# sed_inplace <expression> <file> -- edit a file in place, portably.
+#
+# `sed -i` is not portable: BSD sed (macOS) requires an argument to -i and GNU
+# sed (Linux CI) refuses one. The corpus wrote `sed -i ''`, which is correct on
+# a Mac and fails on Ubuntu. Writing through a temporary and renaming sidesteps
+# the divergence and is atomic besides, which matters when the file being
+# rewritten is the project's version.
+sed_inplace() {
+  local expr="$1" file="$2" tmp
+  tmp="$(mktemp "${file}.XXXXXX")" || return 1
+  if sed "$expr" "$file" >"$tmp"; then
+    mv "$tmp" "$file"
+    return 0
+  fi
+  rm -f "$tmp"
+  return 1
+}
+
+# bump_semver <current> <major|minor|patch> -- print the next version.
+#
+# Byte-identical in all four projects. Bumping a part zeroes everything to its
+# right, which is semver's rule rather than a preference.
+bump_semver() {
+  local current="$1" part="$2" major minor patch
+  assert_semver "$current"
+  IFS='.' read -r major minor patch <<EOF
+$current
+EOF
+  case "$part" in
+    major) printf '%d.0.0\n' "$((major + 1))" ;;
+    minor) printf '%d.%d.0\n' "$major" "$((minor + 1))" ;;
+    patch) printf '%d.%d.%d\n' "$major" "$minor" "$((patch + 1))" ;;
+    *) die "invalid bump part '$part' (use major, minor or patch)" ;;
+  esac
+}
+
+# abs_path <path> -- absolutise against the project root, leaving absolutes be.
+#
+# Present in two of four (Baize, Conflab) and PROMOTED by the WP-05 fold: it is
+# four lines, has no dependencies, and the two projects that lacked it were
+# simply the ones that had not needed it yet. A verdict line printing a relative
+# path is not clickable in a terminal, which is the whole reason it exists.
+abs_path() {
+  case "$1" in
+    /*) printf '%s' "$1" ;;
+    *) printf '%s/%s' "${PROJECT_ROOT:-.}" "$1" ;;
+  esac
+}
+
+# read_version [file] [role] -- the project version, or `unknown`.
+#
+# THE DRIFT: three projects read a VERSION file; Laksa reads the version out of
+# mix.exs. Neither is wrong -- an Elixir project's version genuinely lives in
+# mix.exs, and duplicating it into a VERSION file would be two sources of truth.
+#
+# So the ruling is not "pick one" but "the file is config, the extraction is
+# library". `project.version_from` names the file; the case below knows how to
+# read each kind. That keeps the YAML declarative (D1: a name, not a recipe)
+# while the knowledge of how a mix.exs states its version lives in code, where
+# it can be tested.
+#
+# The roles mirror write_version_into's, and they scope the issue-0002 guard:
+# with no arguments this reads the file `version_from` names, whose whole
+# content IS the version by declaration -- second-guessing it turned a
+# hand-authored `v1.2.3` into `unknown` (delta review, finding 9). An explicit
+# <file> is a SIDECAR read unless <role> says `version-file`, and there the
+# bare-version fallback is devbin GUESSING about a file kind it has no recipe
+# for, which is exactly where the guard belongs.
+#
+# No newline, matching the corpus: callers interpolate it into their own format.
+read_version() {
+  local file="${1:-${DEVBIN_VERSION_FILE:-VERSION}}" role path v=""
+  if [ $# -ge 1 ]; then role="${2:-sidecar}"; else role=version-file; fi
+  case "$file" in
+    /*) path="$file" ;;
+    *) path="${PROJECT_ROOT:-.}/$file" ;;
+  esac
+  if [ -f "$path" ]; then
+    case "${path##*/}" in
+      mix.exs) v="$(awk -F'"' '/^ *version: *"/ { print $2; exit }' "$path" 2>/dev/null)" || v="" ;;
+      Cargo.toml) v="$(awk -F'"' '/^version *= *"/ { print $2; exit }' "$path" 2>/dev/null)" || v="" ;;
+      package.json) v="$(awk -F'"' '/"version" *:/ { print $4; exit }' "$path" 2>/dev/null)" || v="" ;;
+      # Added by WP-17 so this stays the ONE reader. `version check` needs to
+      # read a plist sidecar, and giving it its own extractor would put two
+      # patterns on one file kind -- which is how a reader and a writer come to
+      # disagree about which line they mean.
+      *.plist)
+        if [ -x /usr/libexec/PlistBuddy ]; then
+          v="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$path" 2>/dev/null)" || v=""
+        fi
+        ;;
+      # The bare-version default reads the WHOLE file, so a file devbin has no
+      # recipe for yields its entire contents as the "version" -- a Cargo.lock
+      # read back as `#Thisfileis@generatedbyCargo.version=3[[package]]...`,
+      # which `version check` then reported as drift against every real version
+      # forever (issue 0002). `unknown` is the honest answer and the one every
+      # caller here already handles. SIDECAR reads only -- see the role note in
+      # the header for why the version file itself reads raw.
+      *)
+        v="$(tr -d '[:space:]' <"$path" 2>/dev/null)" || v=""
+        if [ "$role" = sidecar ]; then
+          is_bare_version "$v" || v=""
+        fi
+        ;;
+    esac
+  fi
+  [ -n "$v" ] || v=unknown
+  printf '%s' "$v"
+}
+
+# sha256_files <file>... -- `<sum>  <path>` per file, in ONE process.
+#
+# The tool is spelled differently on the two platforms this ships to and neither
+# name is universal: macOS has `shasum` and no `sha256sum`, a minimal Linux
+# image usually has `sha256sum` and no perl to back `shasum`. Both accept many
+# paths and both print `<sum>  <path>`, which is also the manifest's own line
+# format -- so the batch form needs no reshaping at all.
+#
+# MANY files rather than one, because the caller is always checksumming a whole
+# manifest. Per-file it was 26 forks per install and half the wall clock of the
+# test suite, which runs an install per fixture.
+sha256_files() {
+  [ $# -gt 0 ] || return 0
+  if command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$@"
+  elif command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$@"
+  else
+    die "no sha256 tool found (looked for shasum and sha256sum)"
+  fi
+}
+
+# sha256_of <file> -- one file's SHA256, bare hex, or return 1.
+#
+# Built on sha256_files so the knowledge of which tool exists lives in exactly
+# one place (IN-AG-HIGHLANDER-001).
+sha256_of() {
+  [ -f "$1" ] || return 1
+  sha256_files "$1" | awk '{print $1}'
+}
+
+# assert_identifier <value> <what> -- refuse a value that cannot be a shell
+# variable name, or that would clobber one the shell needs.
+#
+# Devbin turns three CONFIG VALUES into variable names: `project.root_var`,
+# `options.<name>.export`, and `<NAME>_ROOT` derived from `project.name`. The
+# config KEY charset is validated by the parser; these values were not, and the
+# failure was raw and unlocated -- a space in any of them produced bash's own
+# `export: not a valid identifier`, with no `config:` prefix and no file, which
+# is well below the bar D7 sets for every other malformed-config message.
+#
+# The reserved list is short and only holds names whose loss breaks the run
+# itself. `root_var: PATH` was the worst case found: the export succeeds, the
+# handler exec then fails with `env: bash: No such file or directory` and exit
+# 127, and nothing in that message points anywhere near the config that caused
+# it. Refusing beats diagnosing.
+assert_identifier() {
+  local value="${1:-}" what="${2:-value}"
+  case "$value" in
+    '') die "$what is empty -- it has to be a shell variable name" ;;
+    [!A-Za-z_]*) die "$what must start with a letter or underscore, got '$value'" ;;
+    *[!A-Za-z0-9_]*) die "$what may contain only letters, digits and underscore, got '$value'" ;;
+  esac
+  case "$value" in
+    PATH | IFS | HOME | PWD | OLDPWD | SHELL | BASH_ENV | ENV | LD_PRELOAD | LD_LIBRARY_PATH)
+      die "$what must not be '$value' -- overwriting it breaks the commands devbin runs"
+      ;;
+    # devbin's OWN environment, enumerated rather than matched as `DEVBIN_*`.
+    # The wildcard was the first thing tried and it broke Devbin itself inside a
+    # minute: this project is called `devbin`, so its derived root variable is
+    # `DEVBIN_ROOT` -- a legitimate name devbin does not use, refused by a
+    # pattern aimed at names it does. Devbin uses devbin (D12), so the guard's
+    # own overreach failed here before it could reach a live project.
+    DEVBIN_NAME | DEVBIN_LIB | DEVBIN_DIR | DEVBIN_COMMAND | DEVBIN_ARGS | \
+      DEVBIN_SEAL_LEDGER | DEVBIN_VERSION_FILE | DEVBIN_VERSION_SIDECARS | \
+      DEVBIN_TREEINDEX_DIRS | DEVBIN_OPT_* | PROJECT_ROOT | BIN_DIR)
+      die "$what must not be '$value' -- that name belongs to devbin's own environment"
+      ;;
+  esac
+  return 0
+}
+
+# assert_semver <version> -- refuse anything that is not X.Y.Z.
+#
+# The corpus put each project's own current version in the error message, which
+# is why four copies existed at all. The example is generic here; the value the
+# caller passed is what the reader actually needs to see.
+assert_semver() {
+  [[ "${1:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+    die "version must be semver (eg 1.2.3), got '${1:-}'"
+}
+
+# is_handler <path> -- true when <path> is a runnable handler: a REGULAR file
+# carrying the execute bit.
+#
+# `-x` ALONE IS TRUE FOR A DIRECTORY, and the corpus keeps directories exactly
+# where handlers live. Lamplight's `lamplight_macos.d/pkg` is a directory of
+# packaging resources sitting beside the real sub-handlers, so `macos pkg`
+# descended into it and exec'd it: a raw bash "Is a directory" naming an
+# internal library path, exit 126, and the handler never reached (issue 0005).
+#
+# One predicate for every site that asks "can I run this", so a second place
+# cannot keep the old answer. Lives here because the question has no
+# dependencies, which is what D15 requires of this file.
+is_handler() {
+  [ -f "$1" ] && [ -x "$1" ]
+}
+
+# is_bare_version <string> -- true when <string> is a lone version and nothing
+# else: it starts with a digit and carries only characters a version carries.
+#
+# DELIBERATELY LOOSER THAN assert_semver, and not a substitute for it. This
+# guards the bare-version DEFAULT -- the branch that reads or writes a whole
+# file as though the file were nothing but a version. Its question is "is this
+# a version string at all", not "is this project's numbering well-formed", so
+# `0.6.0-rc1`, `1.4` and `20260808` all pass. assert_semver still polices what a
+# caller may SET.
+#
+# Both the reader and the writer ask this one predicate, which is the point: a
+# reader and a writer that disagree about which files they mean is the exact
+# mechanism `lib/cmd/version`'s own comment was written to prevent, and issue
+# 0002 was the two of them agreeing on the wrong answer.
+is_bare_version() {
+  case "${1:-}" in
+    [0-9]*) ;;
+    *) return 1 ;;
+  esac
+  case "$1" in
+    *[!0-9A-Za-z.+-]*) return 1 ;;
+  esac
+  return 0
+}
+
+# rlwrap_exec <completions> <history> [--] <cmd> [args...] -- exec under rlwrap.
+#
+# Byte-identical in all four projects. Missing rlwrap degrades to a plain exec
+# with a warning rather than failing: losing history is an inconvenience,
+# refusing to start a REPL is an outage.
+#
+# `opts` is a plain indexed array, which bash 3.2 has (design D9 rules out only
+# the ASSOCIATIVE arrays of bash 4). It is never empty at expansion, so it needs
+# none of the `${a[@]+...}` guarding parse_common_opts does.
+rlwrap_exec() {
+  local completions="$1" history="$2"
+  shift 2
+  [ "${1:-}" = "--" ] && shift
+  if command -v rlwrap >/dev/null 2>&1; then
+    local opts
+    opts=(-r -c -H "$history" -s 2000)
+    if [ -n "$completions" ] && [ -f "$completions" ]; then
+      opts=(-f "$completions" "${opts[@]}")
+    fi
+    exec rlwrap "${opts[@]}" "$@"
+  fi
+  warn "rlwrap not found -- no history or tab completion (try: brew install rlwrap)"
+  exec "$@"
+}

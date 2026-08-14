@@ -27,4 +27,4 @@ Grep for a Highlander rule, never read for it (the guard found what two reading 
 
 ## Conventions
 
-T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. Commit to `main` only when matts asks. matts runs the full suite externally. matts is the acceptance verifier. NEVER `bin/release --no-confirm`. Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `bin/release` date them at cut time.
+T-shirt sizing only. ALWAYS use the intent CLI for ST/WP. NEVER manually wrap markdown. NO Claude attribution in commits; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. Commit to `main` only when matts asks. matts runs the full suite externally. matts is the acceptance verifier. NEVER `--no-confirm` on the release. Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `intent build release` date them at cut time.

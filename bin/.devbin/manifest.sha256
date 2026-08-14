@@ -1,0 +1,32 @@
+# devbin manifest -- written by: devbin install. Read by: devbin upgrade, devbin doctor.
+# Every line below is a file devbin owns. An edit to one is DETECTED, not overwritten.
+# Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
+# devbin_version: 0.1.0
+# source: /Users/matts/Devel/prj/Devbin
+8016f11221cffa2ac34dfcf5d20f76ade1295bc82d9100e0ed194862109574d7  bin/devbin
+0d51509b85d5b3600182c180a371db9e45a23b6d19be6981cd46278fbcaf2541  bin/.devbin/lib/builtins
+efa506408633801eaeaf71ef54ceca15da8c4f9b67decb625910b24a68b153ab  bin/.devbin/lib/cmd/check
+5c3aa3fbdf34d087c88dfd4b1e1df869bae2e008788a4b7497f8ac85f2cfee34  bin/.devbin/lib/cmd/cli
+170a977dbcfe479fd81ae1b51b0bdff53cbfb8543d14e5040de2ca70e3597cae  bin/.devbin/lib/cmd/db
+bd1a0e00d534a30f698a3ebf6ceabb6b8efbdbb6ef257e49ef86865c37a8021a  bin/.devbin/lib/cmd/devbin
+4b4cc65694dacf82ffe42ae3fc6d836ca6f128fe5b7a3f01a0694b6a9fb56462  bin/.devbin/lib/cmd/docs
+ceb817b2a7859241f221cc62d470dcaa82752bae7e1252db6d917bf7277d4009  bin/.devbin/lib/cmd/doctor
+2019dbf19eff4b76d397b54d8a9a1f1c3599b3942ae1b7ceb23b0ca4bd07312e  bin/.devbin/lib/cmd/fmt
+7665088d7a3ba6a3e8363b2eceda900b2fd3afa58960ee619859fec76300b3a0  bin/.devbin/lib/cmd/install
+08261cb62750647e1de3f99fe249db02e020401ac267bd889d5ca95d741b904f  bin/.devbin/lib/cmd/new
+b81f9f2bd800d2f96ab2fae8d0c73d5b031ec002944f2b94f330555d431fff11  bin/.devbin/lib/cmd/repl
+04d813aeffb61e529be578c591310722d2956e9b230e77ab946ad8509534f125  bin/.devbin/lib/cmd/server
+0f9a4209be96a2f7d7242a6c653718df523517ec6c40aa3f56240d7cf07c148f  bin/.devbin/lib/cmd/test
+5dd092f78465555a3f132f25b5c9fd0326520be4a2c370d8f56c8c9f82ac0cbb  bin/.devbin/lib/cmd/upgrade
+28dc4fb6ae82e87174db4f11c2c406a1746e08abadd165794adca7bed356aa19  bin/.devbin/lib/cmd/version
+035680f0df48094096e1d7898a2f9d27953bf9cbb7454a1f6144a3d7ae641bcf  bin/.devbin/lib/config
+cdb0b1784dfd15fd4d839a29a09df223454df4b6c2e6ce4dd5e1bf61db83cfa9  bin/.devbin/lib/config.reference.yaml
+5934c9d25cdc1ea9176bd0dbed0d6c1dd63a50abaefb7ae18f391469447a9f1e  bin/.devbin/lib/gatecmd
+c6119fb4b93e3af854d03f2ce8360961e252a033af1d911f390abdf1d2124431  bin/.devbin/lib/help
+12beba2ff8404be680b39bfc11ba881bc4019748b025aad9d05002c4b71bb3fa  bin/.devbin/lib/helpers
+24d93b87952e831a838c3944597f6954eb8920d368717f11b7373f9e56d13caf  bin/.devbin/lib/install
+bf75bb3e8d708db6698f87a03d0fa6d34c31484e1d33b2b3601f6e2ba0c19568  bin/.devbin/lib/resolve
+7935a00c1c6294cefa6457a3710b5bb670cea5587c63b205a477806024c52f83  bin/.devbin/lib/runlog
+e1199c6d99f67c4c8cbde405c538d8cd41b2a445b3f564a4db4bd8bf5aa736c1  bin/.devbin/lib/tmpl/handler
+9f0ab5e7876d3cf5f1c568ce5aff8ae7126b32f4d09db5cfc471be601553051b  bin/.devbin/lib/tmpl/help.md
+387d79f4b0e5038bee29ce33320a93207c65a08e2411aaf10406c65807522537  bin/.devbin/lib/tmpl/test.bats

@@ -1,0 +1,56 @@
+# intent -- devbin configuration.
+#
+# Written by: devbin install. Every key, annotated, is vendored beside this
+# file at bin/.devbin/lib/config.reference.yaml.
+
+project:
+  name: intent
+
+  # THERE IS DELIBERATELY NO `bin/intent` SYMLINK, and `devbin doctor` reports
+  # its absence as a note. Do not "fix" it.
+  #
+  # `bin/intent` is the v2 shell CLI -- a real file, and the product itself:
+  # `~/.local/bin/intent` symlinks into it and every project on the estate runs
+  # whatever is there. devbin's `link_alias` refuses to replace a real file, so
+  # the install left it alone by design (install-alongside, per devbin D10).
+  # `name: intent` above is this project's identity, not an instruction to
+  # create that symlink.
+  #
+  # `int` rather than the estate's usual 2-letter alias: `in` is a bash
+  # reserved word, so `in` as a command is a syntax error in bash while working
+  # fine in zsh -- it would look correct when typed and break in CI.
+  #
+  # When the v2 shell CLI is retired (ST0056; the Rust binary ships via
+  # Homebrew, not from bin/), `bin/intent` frees up and `link_alias` will create
+  # it on the next install with nothing real sitting there. `int` can retire
+  # then.
+  alias: int
+
+  # shell: the bats suite and the shell critic are both real gates here.
+  # rust: the ST0056 native binary -- the reason devbin is in this project.
+  languages:
+    - shell
+    - rust
+
+# The devbin this project expects. Enforced by: devbin doctor
+devbin_version: "^0.1.0"
+
+commands:
+  test:
+    options:
+      shell:
+        # NOT the catalogue's `bats tests`. That is non-recursive and this
+        # project's 95 suites live in tests/unit/ and tests/integration/, so it
+        # found nothing and `test all` went red on an empty suite. The project
+        # runner is also the only thing that exports INTENT_HOME and
+        # BATS_LIB_PATH, which every suite needs -- raw bats would find the
+        # files and then fail them.
+        summary: the BATS suite via the project runner (exports INTENT_HOME + BATS_LIB_PATH)
+        run: tests/run_tests.sh
+
+  build:
+    group: Build
+    # Both arms are handlers under cmd/build.d/, not `run:` lines: `release` is
+    # interactive (it confirms before pushing) and must EXEC so Ctrl-C and the
+    # prompt reach the terminal, and `cli` sits beside it rather than being
+    # declared in a second style.

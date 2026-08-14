@@ -1,0 +1,218 @@
+#!/usr/bin/env bash
+#
+# The built-in `new` -- scaffold a project command from the templates.
+#
+# What it produces is a command that RESOLVES on the next invocation, with no
+# config edit: an executable handler carrying its `# devbin:` header, a help
+# stub, and a test stub. That is AC-07.4's promise -- a handler dropped into
+# cmd/ is first-class in help -- turned into one command instead of a paragraph
+# of instructions someone follows by hand and gets subtly wrong.
+#
+# It writes NO metadata sidecar. The original deliverable asked for a
+# `cmd/<name>.yaml` alongside the handler, which predates D23: the handler's own
+# header is where a project's command declares its facts, and a sidecar would be
+# a third source for a field that is supposed to have one.
+#
+# TWO RULES FOR EDITING lib/tmpl/. Both are enforced, so neither is advice.
+#
+# 1. `lib/tmpl/handler` lives under lib/ with a bash shebang, so `check syntax`
+#    and `check lint` scan it like any other script -- deliberately, because a
+#    template that does not parse scaffolds a handler that does not parse. A
+#    placeholder may therefore only sit where a bare word or a string may, never
+#    inside a ${...}, where its closing brace ends the expansion early.
+#
+# 2. No template may mention a placeholder it does not intend to be substituted,
+#    including in prose. There is a test asserting that no scaffolded file
+#    contains a `{{` -- which is what this paragraph is doing here, in the
+#    renderer, rather than in the template where it started and was copied into
+#    every command anybody scaffolded.
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+
+usage() {
+  cat <<EOF
+usage: $DEVBIN_NAME new <command> [--summary <text>] [--group <name>]
+
+  --summary <text>  the one-line description help shows (default: a placeholder)
+  --group <name>    the help heading it sits under (default: none)
+
+Writes:
+  bin/.devbin/cmd/<command>       the handler, executable, with its header
+  bin/.devbin/help/<command>.md   authored help, printed by 'help <command>'
+  <tests>/<command>.bats          a test stub, if this project has a bats suite
+EOF
+}
+
+# _subst <text> <placeholder> <value> -- result in $SUBST.
+#
+# THE REASON THIS IS NOT `${text//pat/val}`. Bash 5.2 made `&` in the
+# REPLACEMENT of a pattern substitution mean "the text that matched", as sed
+# does; bash 3.2, which design D9 targets, treats it literally. So the obvious
+# one-liner quietly does different things on the two bashes devbin ships to:
+# `new greet --summary "a/b & report"` scaffolded `a/b {{SUMMARY}} report` on
+# this Mac and would have been correct on an older one. Escaping the `&` fixes
+# 5.2 and breaks 3.2, which is the wrong trade in both directions.
+#
+# sed and awk are no better -- `&` is the matched text in both, and a `/` in a
+# summary ends a sed expression. Splitting on the literal placeholder is the one
+# form with no metacharacter anywhere: `${text%%"$pat"*}` quotes the pattern, so
+# it is inert on every bash from 3.2 up.
+#
+# A global rather than a return value because the alternative is a command
+# substitution per placeholder per line -- some hundreds of forks to render
+# three small files.
+_subst() {
+  local text="$1" pat="$2" val="$3" out=""
+  while [ "${text#*"$pat"}" != "$text" ]; do
+    out="$out${text%%"$pat"*}$val"
+    text="${text#*"$pat"}"
+  done
+  SUBST="$out$text"
+}
+
+# render <template> -- substitute the placeholders, on stdout.
+render() {
+  local tmpl="$1" line
+  while IFS= read -r line; do
+    _subst "$line" '{{NAME}}' "$NEW_NAME"
+    _subst "$SUBST" '{{SUMMARY}}' "$NEW_SUMMARY"
+    _subst "$SUBST" '{{GROUP}}' "$NEW_GROUP"
+    _subst "$SUBST" '{{DEVBIN}}' "$DEVBIN_NAME"
+    printf '%s\n' "$SUBST"
+  done <"$tmpl"
+  return 0
+}
+
+# valid_name <name> -- the naming rule, and which half of it was broken.
+#
+# Lower case, starting with a letter. Not because devbin could not cope with
+# more, but because the name is simultaneously a filename, a shell word and a
+# help heading entry, and the intersection of what is safe in all three is
+# roughly this.
+#
+# `all` is refused here even though the dispatcher intercepts it first -- it is
+# synthesised for every multi-option command (D8), so `devbin new all` is
+# answered by run_all before this function is reached. The case stays because
+# this is a predicate about NAMES, and a name validator that is complete only
+# for the paths that happen to reach it is the wrong shape to leave lying around.
+valid_name() {
+  local name="$1"
+  case "$name" in
+    "") die "which command? (usage: $DEVBIN_NAME new <command>)" ;;
+    all) die "'all' is reserved -- devbin synthesises it for every command with options (D8)" ;;
+    -*) die "a command name cannot start with '-' (got '$name')" ;;
+    *[!a-z0-9_-]*) die "a command name may use lower-case letters, digits, '-' and '_' only (got '$name')" ;;
+    [!a-z]*) die "a command name must start with a lower-case letter (got '$name')" ;;
+  esac
+  return 0
+}
+
+# test_dir -- where this project keeps its bats suite, or empty.
+#
+# DISCOVERED rather than assumed. Devbin's own suite is tests/unit; a project
+# being migrated may use tests/, spec/, or none at all. Inventing a convention
+# and scaffolding into it would leave a file nobody runs, which is worse than
+# saying plainly that no suite was found.
+#
+# $DEVBIN_LIB is EXCLUDED, and that exclusion is the whole subtlety here. The
+# runtime ships `tmpl/test.bats`, so the first hit was the template itself and
+# the stub was written into the vendored library -- a file inside devbin's own
+# tree, which upgrade does not manage and nothing ever runs. One path covers
+# both shapes, because DEVBIN_LIB is `bin/.devbin/lib` when installed and the
+# checkout's own `lib/` when not.
+test_dir() {
+  local f
+  f="$(find "$PROJECT_ROOT" -name '*.bats' \
+    -not -path "$DEVBIN_LIB/*" -not -path '*/.git/*' 2>/dev/null |
+    LC_ALL=C sort | head -n1)"
+  [ -n "$f" ] || return 1
+  printf '%s\n' "$(dirname "$f")"
+  return 0
+}
+
+main() {
+  local tmpl handler help_file tests_dir test_file
+  NEW_NAME=""
+  NEW_SUMMARY=""
+  NEW_GROUP=""
+
+  case "${1:-}" in
+    -h | --help)
+      usage
+      return 0
+      ;;
+  esac
+
+  # Bare prints usage and exits 1, not 0. Asking for usage succeeded; being
+  # unable to scaffold because nothing was named did not (AC-04.13).
+  if [ $# -eq 0 ]; then
+    usage
+    return 1
+  fi
+
+  NEW_NAME="$1"
+  shift
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --summary)
+        NEW_SUMMARY="${2:-}"
+        shift 2 || die "--summary needs a value"
+        ;;
+      --group)
+        NEW_GROUP="${2:-}"
+        shift 2 || die "--group needs a value"
+        ;;
+      -*) die "unknown option '$1' (try: $DEVBIN_NAME new --help)" ;;
+      *) die "unexpected argument '$1'" ;;
+    esac
+  done
+
+  valid_name "$NEW_NAME"
+  [ -n "$NEW_SUMMARY" ] || NEW_SUMMARY="TODO: what $NEW_NAME does, in one line"
+
+  tmpl="$DEVBIN_LIB/tmpl"
+  [ -d "$tmpl" ] || die "no templates at $tmpl -- is the runtime complete? (try: $DEVBIN_NAME doctor)"
+
+  handler="$DEVBIN_DIR/cmd/$NEW_NAME"
+  help_file="$DEVBIN_DIR/help/$NEW_NAME.md"
+
+  # Refused, never merged and never overwritten. A handler is someone's code and
+  # this command has no way to tell a stale scaffold from a working one.
+  [ -e "$handler" ] && die "bin/.devbin/cmd/$NEW_NAME already exists -- delete it first, or pick another name"
+
+  mkdir -p "$DEVBIN_DIR/cmd" "$DEVBIN_DIR/help"
+
+  render "$tmpl/handler" >"$handler"
+  chmod +x "$handler"
+  printf '  wrote  bin/.devbin/cmd/%s\n' "$NEW_NAME"
+
+  if [ -e "$help_file" ]; then
+    printf '  kept   bin/.devbin/help/%s.md (already authored)\n' "$NEW_NAME"
+  else
+    render "$tmpl/help.md" >"$help_file"
+    printf '  wrote  bin/.devbin/help/%s.md\n' "$NEW_NAME"
+  fi
+
+  if tests_dir="$(test_dir)"; then
+    test_file="$tests_dir/$NEW_NAME.bats"
+    if [ -e "$test_file" ]; then
+      printf '  kept   %s (already written)\n' "${test_file#"$PROJECT_ROOT"/}"
+    else
+      render "$tmpl/test.bats" >"$test_file"
+      printf '  wrote  %s\n' "${test_file#"$PROJECT_ROOT"/}"
+    fi
+  else
+    printf '  (no bats suite found -- skipped the test stub)\n'
+  fi
+
+  printf '\n%s %s resolves now. Try:\n' "$DEVBIN_NAME" "$NEW_NAME"
+  printf '  bin/%s help %s\n' "$DEVBIN_NAME" "$NEW_NAME"
+  printf '  bin/%s %s\n' "$DEVBIN_NAME" "$NEW_NAME"
+  return 0
+}
+
+main "$@"

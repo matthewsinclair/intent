@@ -1,0 +1,312 @@
+#!/usr/bin/env bash
+#
+# lib/builtins -- the catalogue of built-in commands and options devbin ships.
+#
+# Sourced, not executed. DATA plus its readers, nothing else: no side effects,
+# no config, no execution. `lib/resolve` asks it what exists and what language a
+# thing belongs to; `lib/cmd/<name>` asks it what to run. Both read ONE table.
+#
+# This replaces `_DEVBIN_BUILTIN_LANGS` and `_DEVBIN_BUILTIN_COMMANDS`, which
+# lived in lib/resolve as placeholders so D11 activation could be tested before
+# any built-in existed. They are MOVED here, not copied: two tables describing
+# the same built-ins would drift the moment one gained an entry, which is the
+# Highlander breach the WP-04 task notes flagged in advance.
+#
+# What belongs in the table is settled by design D18's tier analysis:
+#
+#   tier 1  real shared logic -- a script under lib/cmd/, marked @builtin below
+#   tier 2  the framework knows the option and its usual command line; a project
+#           that runs it differently overrides `run:` in one line of config
+#   tier 3  a parameterised one-liner (iex, server, cli, repl)
+#   tier 4  present as a NAME with no command line -- `build`'s four projects
+#           have four disjoint target lists, so shipping an option set for it
+#           would impose one project's shape on the other three. It gets a row
+#           for its summary and a `-` for what to run.
+#
+[ -n "${_DEVBIN_BUILTINS_LOADED:-}" ] && return 0
+_DEVBIN_BUILTINS_LOADED=1
+
+# THE catalogue, in declared order, which is the order `all` runs options in and
+# -- for the COMMAND rows -- the order help falls back to when config names no
+# group ordering of its own. The command rows are therefore grouped here, not
+# alphabetised: first-seen order is a real output, so it may as well be a good
+# one, and keeping the ordering in the table means help needs no second list of
+# group names to sort by.
+#
+# Two kinds of row, one table, one reader. The key tells them apart:
+#
+#   <command>.<option>  <language>  <grammar>  <log-suffix>  <group>  <command line...>
+#   <command>           <language>  <grammar>  <log-suffix>  <group>  <command line...>
+#
+# A dotless key is a COMMAND row: what `devbin <command>` runs when it takes no
+# option, which is what a surface (`iex`, `server`) is. It lives here rather
+# than in a second table because the fields are identical and the only
+# difference is a dot -- and a second table describing the same built-ins is
+# exactly the drift AC-08.1 exists to prevent. `builtin_options_for` filters on
+# `<cmd>.`, so a command row is correctly never reported as an option.
+#
+# language   the D11 activation key: the row is offered exactly when the
+#            project declares this language. `any` is always offered, `opt-in`
+#            only when the project asks (D22).
+# grammar    the WP-06 extraction grammar for the sealed .errors companion.
+# suffix     names the .out/.errors pair and the LATEST_* pointers.
+# group      the help heading this command sits under (WP-07). Option rows carry
+#            `-`: an option is rendered beneath its command and never needs one.
+# command    what to run, or `@builtin` when it is tier 1 and lib/cmd/
+#            implements it directly.
+#
+# `-` in any of grammar, suffix, group or command means "devbin ships no default
+# for this". Grammar and suffix are both real or both `-`: a row is a sealed gate
+# or it is not, never half of one. A `-` command line is D18 tier 4 in the table
+# -- the command name resolves and the project supplies what it runs.
+#
+# Two fields carry spaces -- the command line and the summary -- so they are
+# separated from each other by ` | `, with the command first. Everything before
+# the pipe past field five is what to run; everything after it is prose.
+_DEVBIN_BUILTIN_CATALOGUE="
+server           elixir  -           -          Surfaces  @builtin | Development server
+iex              elixir  -           -          Surfaces  iex -S mix | Interactive Elixir shell with the project loaded
+cli              elixir  -           -          Surfaces  @builtin | Run this project's own command-line interface
+repl             elixir  -           -          Surfaces  @builtin | Interactive REPL, with readline history
+build            any     -           -          Build     - | Build this project's targets, which it declares itself
+fmt              any     -           -          Build     - | Format sources in place
+test             any     -           -          Test      - | Run this project's test gates
+check            any     -           -          Check     - | Read-only gates; each exits non-zero on a breach
+precommit        opt-in  -           -          Check     - | The pre-commit gate
+db               elixir  -           -          Data      - | Database lifecycle
+docs             any     -           -          Docs      @builtin | Generate and publish documentation
+content          opt-in  -           -          Docs      - | Content pipeline tasks
+version          any     -           -          Ship      @builtin | Show, set and bump the project version
+publish          opt-in  -           -          Ship      - | Publish a release artifact
+macos            opt-in  -           -          Ship      - | macOS bundle and platform tasks
+which            opt-in  -           -          Install   - | Report which binary or build a name resolves to
+install          any     -           -          Devbin    @builtin | Vendor this devbin into a project
+upgrade          any     -           -          Devbin    @builtin | Re-sync the vendored runtime from where it came from
+doctor           any     -           -          Devbin    @builtin | Check this install and report what is wrong with it
+new              any     -           -          Devbin    @builtin | Scaffold a new project command, ready to run
+devbin           any     -           -          Devbin    @builtin | About devbin itself: the framework's help, not this project's
+check.compile    elixir  mix         COMPILE    -         mix compile --warnings-as-errors --force | Compile with warnings as errors
+check.format     any     generic     FORMAT     -         @builtin | Formatting is up to date, in every declared language
+check.deps       elixir  generic     DEPS       -         mix deps.unlock --check-unused | No unused dependencies
+check.clippy     rust    cargo       CLIPPY     -         cargo clippy --all-targets -- -D warnings | Clippy lints as errors
+check.toolchain  any     generic     TOOLCHAIN  -         @builtin | The .tool-versions pin matches what is running and what the deploy image builds
+check.critic     any     generic     CRITIC     -         @builtin | Rules of the road, per declared language
+test.mix         elixir  mix         MIX        -         mix test | ExUnit
+test.credo       elixir  credo       CREDO      -         mix credo --strict | Static analysis
+test.rust        rust    cargo       RUST       -         cargo test | Cargo suites
+test.swift       swift   xcodebuild  SWIFT      -         xcodebuild test | Swift suites
+test.lua         lua     lua         LUA        -         busted | Lua suites
+test.shell       shell   shell       SHELL      -         bats tests | BATS suites
+db.setup         elixir  generic     DBSETUP    -         mix ecto.setup | Create, migrate and seed
+db.migrate       elixir  generic     DBMIGRATE  -         mix ecto.migrate | Run pending migrations
+db.reset         elixir  generic     DBRESET    -         mix ecto.reset | Drop, create, migrate, seed
+db.seed          elixir  generic     DBSEED     -         mix run priv/repo/seeds.exs | Run the seed script
+docs.agents      any     generic     DOCSAGENT  -         @builtin | Regenerate AGENTS.md from project state
+docs.treeindex   any     generic     DOCSTREE   -         @builtin | Rebuild the per-subdirectory tree index
+fmt.elixir       elixir  generic     FMTEX      -         mix format | Format Elixir sources
+fmt.rust         rust    generic     FMTRS      -         cargo fmt | Format Rust sources
+fmt.swift        swift   generic     FMTSWIFT   -         @builtin | Format Swift sources in place
+fmt.md           any     generic     FMTMD      -         @builtin | Format Markdown -- root only unless given paths
+"
+
+# The built-in COMMAND names, DERIVED from the catalogue's dotless rows rather
+# than written out again. A command here exists even with no config entry, which
+# is what "most of the functionality is common and automatically available"
+# means in practice.
+#
+# It was a hand-written string until WP-07, which is to say the same sixteen
+# names existed twice in this file -- the exact Highlander breach the header
+# above warns about, sitting six lines under the warning. Adding a built-in now
+# means adding ONE row; forgetting the second edit is no longer possible.
+#
+# Computed once at source time into a plain string, so `is_builtin_command`
+# stays a fork-free `case` match. Deriving it on every call instead would put a
+# table scan on the hot path of a launcher that runs on every invocation.
+_DEVBIN_BUILTIN_COMMANDS=""
+while read -r _bi_name _bi_rest; do
+  case "$_bi_name" in '' | *.*) continue ;; esac
+  _DEVBIN_BUILTIN_COMMANDS="$_DEVBIN_BUILTIN_COMMANDS$_bi_name "
+done <<EOF
+$_DEVBIN_BUILTIN_CATALOGUE
+EOF
+unset _bi_name _bi_rest
+
+# `check.parity` was in the placeholder table and is deliberately NOT here. It
+# exists in two of four projects and both implementations are bespoke contract
+# checks with nothing in common but the name -- D18 tier 4, in miniature. A
+# project that wants it declares it, which is one line and cannot be wrong.
+
+# _builtin_row <command> [option] -- print the catalogue row, or return 1.
+#
+# With no option (or an empty one) this looks up the dotless COMMAND row, which
+# is how a surface carries its command line. One reader for both row kinds --
+# see the table header for why they share a table.
+_builtin_row() {
+  local want="$1${2:+.$2}" name rest
+  while read -r name rest; do
+    [ -n "$name" ] || continue
+    if [ "$name" = "$want" ]; then
+      printf '%s\n' "$rest"
+      return 0
+    fi
+  done <<EOF
+$_DEVBIN_BUILTIN_CATALOGUE
+EOF
+  return 1
+}
+
+# builtin_option_lang / _grammar / _suffix <command> <option>
+#
+# Separate accessors rather than one returning the whole row, so a caller cannot
+# quietly depend on the field ORDER of a table it does not own.
+builtin_option_lang() {
+  local row
+  row="$(_builtin_row "$1" "$2")" || return 1
+  printf '%s\n' "$(printf '%s' "$row" | awk '{print $1}')"
+}
+
+builtin_option_grammar() {
+  local row
+  row="$(_builtin_row "$1" "$2")" || return 1
+  printf '%s\n' "$(printf '%s' "$row" | awk '{print $2}')"
+}
+
+builtin_option_suffix() {
+  local row
+  row="$(_builtin_row "$1" "$2")" || return 1
+  printf '%s\n' "$(printf '%s' "$row" | awk '{print $3}')"
+}
+
+# builtin_option_group <command> [option] -- the help heading this row sits
+# under, or empty when it declares none.
+#
+# `-` is normalised to empty here rather than at the call site: every other
+# reader of this table treats `-` as "devbin ships no default", and help would
+# otherwise have to know the table's sentinel to render a heading.
+builtin_option_group() {
+  local row g
+  row="$(_builtin_row "$1" "${2:-}")" || return 1
+  g="$(printf '%s' "$row" | awk '{print $4}')"
+  [ "$g" = "-" ] && g=""
+  printf '%s\n' "$g"
+}
+
+# builtin_option_run <command> <option> -- the default command line, or the
+# literal `@builtin` when lib/cmd/ implements the option itself.
+builtin_option_run() {
+  local row
+  row="$(_builtin_row "$1" "$2")" || return 1
+  printf '%s\n' "$(printf '%s' "$row" |
+    awk -F' \\| ' '{ r = $1; sub(/^ *[^ ]+ +[^ ]+ +[^ ]+ +[^ ]+ +/, "", r); sub(/ +$/, "", r); print r }')"
+}
+
+# builtin_fmt_check_run <arm> -- the NON-MUTATING form of a `fmt` arm: what
+# `check format` runs to VERIFY what `fmt <arm>` would APPLY. Fails for an arm
+# that has no check form.
+#
+# THIS IS D21's RELATIONSHIP, and it lives here so there is one of it. `fmt`
+# formats four languages; `check format` used to verify one, and the test that
+# was supposed to police the pair bound it to `fmt elixir` alone -- true of the
+# arm it checked, silent about the rest, and reassuring enough to read that
+# nobody looked further (issue 0003).
+#
+# DERIVED from the fmt row rather than restated, so editing `fmt rust` in the
+# CATALOGUE cannot leave the gate checking the old command line. That guarantee
+# is catalogue-wide and no wider: a CONFIG `run:` override replaces what
+# `fmt <lang>` runs without touching the catalogue, so the gate refuses to
+# derive for an overridden arm rather than verify a command line the formatter
+# no longer runs -- see DEVBIN_FMT_ARMS (bin/devbin) and builtin_check_format
+# (delta review, finding 5). The check FLAG is per-tool and not a uniform
+# suffix -- `--check-formatted`, `--check`, `--lint` -- which is why this is a
+# case rather than a string concatenation over the whole set.
+#
+# `md` deliberately has NO check form. `fmt md` mutates root Markdown, but a
+# GATE over it would assert a verdict this project does not hold: prettier
+# re-pads tables and this repository hand-aligns them, so `prettier --check`
+# fails on devbin's own README.md and usage-rules.md. A gate that goes red on
+# files the project keeps that way on purpose is wrong by construction.
+builtin_fmt_check_run() {
+  local applied
+  case "$1" in
+    elixir)
+      applied="$(builtin_option_run fmt elixir)" || return 1
+      printf '%s --check-formatted\n' "$applied"
+      ;;
+    rust)
+      applied="$(builtin_option_run fmt rust)" || return 1
+      printf '%s --check\n' "$applied"
+      ;;
+    swift)
+      # fmt.swift is @builtin -- a find feeding xargs, not a command line -- so
+      # there is nothing to derive from and its check form is @builtin too.
+      printf '@builtin\n'
+      ;;
+    *) return 1 ;;
+  esac
+  return 0
+}
+
+# builtin_option_summary <command> <option> -- the one-line description.
+#
+# In the catalogue rather than in the help renderer: it describes the built-in,
+# so it is the built-in's data. WP-07 reads it; it does not own it.
+builtin_option_summary() {
+  local row
+  row="$(_builtin_row "$1" "$2")" || return 1
+  printf '%s\n' "$(printf '%s' "$row" | awk -F' \\| ' '{ sub(/^ +/, "", $2); print $2 }')"
+}
+
+# builtin_options_for <command> -- the option names devbin ships for a command,
+# in catalogue order. Empty for a command that ships none (`build`, D18 tier 4).
+builtin_options_for() {
+  local cmd="$1" name rest
+  while read -r name rest; do
+    [ -n "$name" ] || continue
+    case "$name" in
+      "$cmd".*) printf '%s\n' "${name#"$cmd".}" ;;
+    esac
+  done <<EOF
+$_DEVBIN_BUILTIN_CATALOGUE
+EOF
+  return 0
+}
+
+# is_builtin_command <name>
+is_builtin_command() {
+  case " $_DEVBIN_BUILTIN_COMMANDS " in
+    *" $1 "*) return 0 ;;
+  esac
+  return 1
+}
+
+# builtin_commands -- every built-in command name, one per line.
+builtin_commands() {
+  local c
+  for c in $_DEVBIN_BUILTIN_COMMANDS; do
+    printf '%s\n' "$c"
+  done
+  return 0
+}
+
+# builtin_command_run / _lang / _summary <command> -- the dotless COMMAND row.
+#
+# Thin wrappers over the option accessors with an empty option, rather than a
+# second reader for the same table. `builtin_option_run server ""` already
+# works; the only thing wrong with it is that it reads as a mistake at the call
+# site. Naming it is the whole contribution.
+builtin_command_run() { builtin_option_run "$1" ""; }
+builtin_command_lang() { builtin_option_lang "$1" ""; }
+builtin_command_summary() { builtin_option_summary "$1" ""; }
+builtin_command_group() { builtin_option_group "$1" ""; }
+
+# builtin_has_default_run <command> [option] -- true when the catalogue ships a
+# command line, false when the row carries `-` (D18 tier 4) or does not exist.
+#
+# `-` and "absent" are deliberately the same answer to a caller deciding what to
+# run: neither gives it a command line. They differ only to help, which still
+# wants the summary from a `-` row.
+builtin_has_default_run() {
+  local run
+  run="$(builtin_option_run "$1" "${2:-}")" || return 1
+  [ -n "$run" ] && [ "$run" != "-" ]
+}

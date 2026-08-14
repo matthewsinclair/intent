@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+#
+# `rlwrap_exec <completions> <history> -- mix <task> repl "$@"`, which is
+# Lamplight's, generalised by the task name.
+#
+# rlwrap is what makes this worth shipping rather than declaring: a bare REPL
+# has no line editing, no persistent history and no completion, and wiring that
+# up correctly is fifteen lines nobody wants four copies of. rlwrap_exec came
+# out of the WP-05 fold byte-identical from all four projects, and degrades to a
+# plain exec with a warning when rlwrap is absent -- losing history is an
+# inconvenience, refusing to start a REPL is an outage.
+#
+# CONFLAB HAS NO `repl`, and that is not evidence against shipping one. Its
+# help says why: `bin/repl` called `mix prolix.cli repl`, a task Conflab has
+# neither as a dependency nor as a local mix task -- dead copy-paste from
+# another project. What was removed there was a BROKEN command, not this one. A
+# project that genuinely does not want it says `enabled: false` in one line.
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+
+cd "${PROJECT_ROOT:?}" || die "cannot enter $PROJECT_ROOT"
+
+name="${DEVBIN_NAME:?}"
+
+# History file, overridable per project as <NAME>_REPL_HISTORY -- Lamplight's
+# convention, and the same <NAME>_* derivation the dispatcher uses for
+# <NAME>_ROOT. Indirect expansion rather than eval: the variable NAME is derived
+# from config, so eval would let a config file that can name a variable also run
+# code, which is the line D1 holds.
+history_var="$(upper_snake "$name")_REPL_HISTORY"
+history="${!history_var:-}"
+[ -n "$history" ] || history="$HOME/.${name}_repl_history"
+
+# rlwrap_exec skips -f until the word list exists, so naming a file that has not
+# been generated yet is harmless rather than fatal.
+completions="$PROJECT_ROOT/bin/completions/repl.txt"
+
+# DEVBIN_CLI_TASK, not "$name.cli": arca_cli's task is `arca.cli`, and this
+# handler is the reason that had to become config rather than a `run:` override
+# -- overriding the command line to change one word would take the rlwrap
+# wiring above with it (ST0002 WP-03).
+rlwrap_exec "$completions" "$history" -- mix "${DEVBIN_CLI_TASK:?}" repl "$@"

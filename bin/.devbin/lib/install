@@ -1,0 +1,438 @@
+#!/usr/bin/env bash
+#
+# lib/install -- vendoring, the checksum manifest, and what devbin owns.
+#
+# Sourced, not executed. Depends on lib/helpers ALONE, which is deliberate: the
+# three commands built on it (`install`, `upgrade`, `doctor`) each operate on a
+# project that is not necessarily the one whose config is loaded, so a function
+# here must never reach for `cfg_get`. Everything it needs about a tree is
+# passed in or read off that tree.
+#
+# THE SEAM, which is the whole of design D5 in one sentence: everything under
+# `bin/.devbin/lib/` plus `bin/devbin` is DEVBIN's and is replaced wholesale;
+# everything else under `bin/.devbin/` -- `config.yaml`, `cmd/`, `help/` -- is
+# the PROJECT's and is never written by any function in this file. One rule,
+# stated once, and `vendored_paths` is the only thing that enumerates the first
+# half. An upgrade that overwrote an authored help topic would be a data loss
+# bug in a tool whose entire job is to be safe to re-run.
+#
+[ -n "${_DEVBIN_INSTALL_LOADED:-}" ] && return 0
+_DEVBIN_INSTALL_LOADED=1
+
+# The manifest, relative to a project root. Devbin's file, but NOT under lib/:
+# it has to survive the wholesale replacement of the directory it describes.
+DEVBIN_MANIFEST_REL="bin/.devbin/manifest.sha256"
+
+# devbin_lib_dir <root> -- where <root> keeps a devbin runtime, or return 1.
+#
+# The same two-place test the dispatcher makes on itself: the vendored copy
+# first, the checkout's own lib/ as the fallback that lets Devbin run itself
+# (D12). The dispatcher has its own inline copy because it runs BEFORE any
+# library is sourced -- it is the code that finds this file -- which is a real
+# bootstrap exception rather than a licence to have two of these. Everything
+# else asks here.
+devbin_lib_dir() {
+  local root="$1"
+  if [ -d "$root/bin/.devbin/lib" ]; then
+    printf '%s\n' "$root/bin/.devbin/lib"
+    return 0
+  fi
+  if [ -d "$root/lib" ]; then
+    printf '%s\n' "$root/lib"
+    return 0
+  fi
+  return 1
+}
+
+# is_devbin_source <root> -- true when <root> can be vendored FROM.
+#
+# The dispatcher and lib/helpers, because those are the two files whose absence
+# makes every other check meaningless. Checked before upgrade writes anything
+# (AC-09.9): a half-replaced runtime leaves a project that cannot run at all,
+# which is strictly worse than the stale one it was replacing.
+is_devbin_source() {
+  local root="$1" lib
+  [ -f "$root/bin/devbin" ] || return 1
+  lib="$(devbin_lib_dir "$root")" || return 1
+  [ -f "$lib/helpers" ] || return 1
+  return 0
+}
+
+# is_devbin_installed <root> -- true when <root> carries a VENDORED runtime.
+#
+# Deliberately not `devbin_lib_dir` succeeding: a devbin CHECKOUT answers that
+# too, via the D12 fallback, and calling the source tree "installed" would have
+# `upgrade` try to re-vendor Devbin into itself.
+is_devbin_installed() {
+  [ -d "$1/bin/.devbin/lib" ]
+}
+
+# vendored_paths <srcroot> -- every file devbin owns, as paths RELATIVE to a
+# project root, sorted. This is the file list, and the only one.
+#
+# `bin/devbin` plus one line per file under the source's lib/. Sorted so the
+# manifest is stable across machines -- `find` returns directory order, which
+# differs between filesystems, and an unstable manifest makes every upgrade
+# report look like a change.
+vendored_paths() {
+  local srcroot="$1" lib f
+  lib="$(devbin_lib_dir "$srcroot")" || return 1
+  printf 'bin/devbin\n'
+  find "$lib" -type f 2>/dev/null | LC_ALL=C sort | while IFS= read -r f; do
+    printf 'bin/.devbin/lib/%s\n' "${f#"$lib"/}"
+  done
+  return 0
+}
+
+# vendor_source_path <srcroot> <relpath> -- where <relpath> lives in the SOURCE.
+#
+# The inverse of the mapping vendored_paths applies. It is not the identity: a
+# source checkout keeps its runtime at `lib/`, an installed project at
+# `bin/.devbin/lib/`, and both are legal sources.
+vendor_source_path() {
+  local srcroot="$1" rel="$2" lib
+  case "$rel" in
+    bin/devbin)
+      printf '%s\n' "$srcroot/bin/devbin"
+      return 0
+      ;;
+    bin/.devbin/lib/*)
+      lib="$(devbin_lib_dir "$srcroot")" || return 1
+      printf '%s\n' "$lib/${rel#bin/.devbin/lib/}"
+      return 0
+      ;;
+  esac
+  return 1
+}
+
+# copy_vendored <src> <dst> -- copy one file, creating its directory, and carry
+# the executable bit across.
+#
+# The bit is copied per file rather than by re-deriving which paths ought to be
+# executable. `cp` gives a new file the source's mode on both platforms, but
+# relying on that leaves a silent failure -- a `lib/cmd/test` that arrives
+# non-executable resolves and then does not run -- resting on a detail of cp.
+# Three forks per file became one. `$(dirname)` is an external command and
+# `mkdir -p` runs whether or not the directory is there, so a 26-file vendor
+# spent 78 processes to make three directories and set two exec bits -- and the
+# test suite installs a fixture per test. `${dst%/*}` and `[ -d ]` are builtins;
+# the chmods now fire only when the mode is actually wrong, which on both
+# platforms means almost never, since cp gives a new file the source's mode.
+# REPLACING an existing file goes through a temporary and a rename, so a reader
+# sees the old file or the new one and never a half-written one. `sed_inplace`
+# in lib/helpers does this already and for the same reason; upgrade rewriting
+# the dispatcher and every library under a project someone may be running is the
+# case that matters most.
+#
+# Only the replace path pays for it. A file that does not exist yet cannot be
+# read mid-write, so a fresh install keeps the single-fork copy the vendoring
+# loop was tuned for -- and a fresh install is what the test suite does per
+# fixture.
+copy_vendored() {
+  local src="$1" dst="$2" dir="${2%/*}" tmp
+  [ -d "$dir" ] || mkdir -p "$dir" || return 1
+
+  if [ ! -e "$dst" ]; then
+    cp "$src" "$dst" || return 1
+    if [ -x "$src" ]; then
+      [ -x "$dst" ] || chmod +x "$dst"
+    elif [ -x "$dst" ]; then
+      chmod -x "$dst"
+    fi
+    return 0
+  fi
+
+  # `$$` is the shell's PID and a subshell inherits it (lib/runlog says why that
+  # makes it useless for uniqueness ACROSS processes). Here it only has to be
+  # unique within one install, beside a destination no other path writes.
+  tmp="$dst.devbin-new.$$"
+  cp "$src" "$tmp" || {
+    rm -f "$tmp"
+    return 1
+  }
+  if [ -x "$src" ]; then
+    [ -x "$tmp" ] || chmod +x "$tmp"
+  elif [ -x "$tmp" ]; then
+    chmod -x "$tmp"
+  fi
+  mv -f "$tmp" "$dst" || {
+    rm -f "$tmp"
+    return 1
+  }
+  return 0
+}
+
+# --- the manifest ------------------------------------------------------------
+#
+# `<sha256>  <path>` lines in the conventional shasum spelling, under a `#`
+# header carrying the two facts the file itself cannot supply: which devbin
+# wrote it, and where that devbin was. Both are read back -- the version by
+# doctor, the source by upgrade, which is what lets `devbin upgrade` be typed
+# with no arguments from inside the installed project.
+
+manifest_path() { printf '%s\n' "$1/$DEVBIN_MANIFEST_REL"; }
+
+# manifest_field <root> <field> -- read one `# <field>: <value>` header line.
+manifest_field() {
+  local path
+  path="$(manifest_path "$1")"
+  [ -f "$path" ] || return 1
+  awk -v f="$2" '
+    $0 !~ /^#/ { exit }
+    {
+      line = $0
+      sub(/^#[[:space:]]*/, "", line)
+      if (line ~ ("^" f ":")) {
+        sub("^" f ":[[:space:]]*", "", line)
+        sub(/[[:space:]]+$/, "", line)
+        print line
+        exit
+      }
+    }
+  ' "$path"
+}
+
+manifest_version() { manifest_field "$1" devbin_version; }
+manifest_source() { manifest_field "$1" source; }
+
+# manifest_entries <root> -- the `<sha><TAB><relpath>` body, comments stripped.
+#
+# Retabbed from the file's two-space separator so callers split on a character
+# that cannot appear in a path. TAB is an IFS whitespace character and would
+# eat an empty leading field, but neither field here is ever empty, so the
+# `${line%%<TAB>*}` dance is not needed -- see lib/help for the case where it is.
+manifest_entries() {
+  local path
+  path="$(manifest_path "$1")"
+  [ -f "$path" ] || return 1
+  _two_space_to_tab <"$path"
+  return 0
+}
+
+# _two_space_to_tab -- filter: `<sum>  <path>` lines to `<sum><TAB><path>`,
+# comments dropped.
+#
+# One implementation, because both the manifest FILE and the raw output of
+# sha256_files carry the same shape and both get read the same way. A path
+# containing spaces is rejoined rather than truncated at the first one.
+_two_space_to_tab() {
+  awk '/^#/ { next } NF >= 2 { p = $2; for (i = 3; i <= NF; i++) p = p " " $i; printf "%s\t%s\n", $1, p }'
+}
+
+# manifest_write <dstroot> <srcroot> <version> [preserve] -- checksum every
+# vendored file present in the target and write the manifest.
+#
+# Checksums the TARGET, not the source, so the manifest always describes what
+# devbin actually put there. Checksumming the source would record what should
+# have been copied, and a copy that silently failed would verify clean forever.
+#
+# `preserve` is a newline-separated list of paths whose EXISTING recorded
+# checksum is carried forward instead of being recomputed. Upgrade passes the
+# files it refused to overwrite, and without it the tool launders the very edits
+# it just declined to touch: refuse to replace a modified file, then re-checksum
+# it, and the modification is now the recorded truth. `doctor` said "26 files
+# intact" one line after `upgrade` said "edited in place", which is a false
+# green produced by two correct-looking steps in sequence.
+manifest_write() {
+  local dstroot="$1" srcroot="$2" version="$3" preserve="${4:-}" path rel sum old old_sum line
+  path="$(manifest_path "$dstroot")"
+  # Read the old entries BEFORE the redirect below truncates the file.
+  old="$(manifest_entries "$dstroot" 2>/dev/null || true)"
+  mkdir -p "$(dirname "$path")" || return 1
+  {
+    printf '# devbin manifest -- written by: devbin install. Read by: devbin upgrade, devbin doctor.\n'
+    printf '# Every line below is a file devbin owns. An edit to one is DETECTED, not overwritten.\n'
+    printf '# Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.\n'
+    printf '# devbin_version: %s\n' "$version"
+    printf '# source: %s\n' "$srcroot"
+    # Retabbed through the same filter manifest_check uses, so this file has ONE
+    # parser for its own line format rather than a second one written inline --
+    # and a path containing a space survives both.
+    while IFS= read -r line; do
+      [ -n "$line" ] || continue
+      sum="${line%%	*}"
+      rel="${line#*	}"
+      # A preserved path keeps its RECORDED checksum, not the one just computed
+      # off disk -- see the note above about laundering.
+      if list_contains "$preserve" "$rel"; then
+        old_sum="$(_manifest_sum_in "$old" "$rel")"
+        [ -n "$old_sum" ] && sum="$old_sum"
+      fi
+      printf '%s  %s\n' "$sum" "$rel"
+    done <<EOF
+$(_sha256_of_set "$dstroot" "$(vendored_paths "$srcroot")" | _two_space_to_tab)
+EOF
+  } >"$path"
+  return 0
+}
+
+# _sha256_of_set <root> <rels> -- `<sum>  <rel>` for each path that EXISTS under
+# <root>, in one process, with the paths still relative.
+#
+# Run from inside <root> so the tool prints the relative path back verbatim and
+# nothing has to be stripped off the front -- which is also what keeps a
+# manifest identical on two machines with different checkout locations.
+_sha256_of_set() {
+  local root="$1" rels="$2" rel
+  local -a args
+  args=()
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    [ -f "$root/$rel" ] || continue
+    args[${#args[@]}]="$rel"
+  done <<EOF
+$rels
+EOF
+  # Guarded expansion: bash 3.2 aborts on an empty array under `set -u` (D9).
+  [ "${#args[@]}" -gt 0 ] || return 0
+  (cd "$root" && sha256_files "${args[@]+"${args[@]}"}")
+  return 0
+}
+
+# list_contains <newline-list> <item> -- membership in a newline-separated list.
+#
+# Public rather than file-private because upgrade needs the same test for a
+# different list, and two spellings of "is this path in that set" is how the two
+# ends of the same decision come to disagree.
+list_contains() {
+  local line
+  while IFS= read -r line; do
+    [ "$line" = "$2" ] && return 0
+  done <<EOF
+$1
+EOF
+  return 1
+}
+
+# _manifest_sum_in <entries> <rel> -- the recorded checksum, or empty.
+_manifest_sum_in() {
+  local line
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    if [ "${line#*	}" = "$2" ]; then
+      printf '%s\n' "${line%%	*}"
+      return 0
+    fi
+  done <<EOF
+$1
+EOF
+  return 0
+}
+
+# manifest_check <root> -- one `<state><TAB><relpath>` line per manifest entry.
+#
+#   ok        on disk and matching the recorded checksum
+#   modified  on disk and DIFFERENT -- edited in place since install
+#   missing   recorded and gone
+#
+# The three states upgrade and doctor both need, computed once here rather than
+# twice with two spellings of "different". Returns 0 whatever it finds: it is a
+# reporter, and its callers decide what a `modified` means to them.
+manifest_check() {
+  local root="$1" entries sums line sum rel now
+  entries="$(manifest_entries "$root" 2>/dev/null || true)"
+  # One checksum pass over everything present, then a pure-bash comparison. The
+  # per-file form cost a fork each and made the manifest half the wall clock of
+  # a test suite that installs a fixture per test.
+  sums="$(_sha256_of_set "$root" "$(printf '%s\n' "$entries" | cut -f2)" | _two_space_to_tab)"
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    sum="${line%%	*}"
+    rel="${line#*	}"
+    if [ ! -f "$root/$rel" ]; then
+      printf 'missing\t%s\n' "$rel"
+      continue
+    fi
+    now="$(_manifest_sum_in "$sums" "$rel")"
+    if [ "$now" = "$sum" ]; then
+      printf 'ok\t%s\n' "$rel"
+    else
+      printf 'modified\t%s\n' "$rel"
+    fi
+  done <<EOF
+$entries
+EOF
+  return 0
+}
+
+# devbin_version_of <root> -- which devbin a tree carries.
+#
+# Two cases, told apart by whether the runtime is vendored. INSTALLED: the
+# manifest header, stamped by the devbin that did the installing -- the tree's
+# own VERSION is that PROJECT's version and says nothing about the framework. A
+# source CHECKOUT: its VERSION, which is devbin's, because devbin is the
+# project there.
+#
+# The alternative -- a `lib/VERSION` stamped into the vendored copy -- would put
+# devbin's version in two files in the source repo, which is the drift D23 was
+# written about. This costs one branch and no new file.
+devbin_version_of() {
+  local root="$1" v=""
+  if is_devbin_installed "$root"; then
+    v="$(manifest_version "$root" 2>/dev/null)" || v=""
+  fi
+  [ -n "$v" ] || v="$(read_version "$root/VERSION" version-file)"
+  printf '%s\n' "$v"
+}
+
+# devbin_runtime_version -- which devbin is RUNNING right now.
+#
+# One call, not a second implementation: `is_devbin_installed $PROJECT_ROOT` and
+# the dispatcher's `DEVBIN_LIB = $DEVBIN_DIR/lib` are the same question, because
+# the dispatcher picks the vendored lib exactly when it exists.
+devbin_runtime_version() { devbin_version_of "${PROJECT_ROOT:-.}"; }
+
+# version_satisfies <version> <constraint> -- does <version> meet the config's
+# `devbin_version:` declaration?
+#
+# Three forms, which is all the config subset needs:
+#
+#   ^X.Y.Z   same major, and at least X.Y.Z          (the usual)
+#   >=X.Y.Z  at least X.Y.Z, any major
+#   X.Y.Z    exactly
+#
+# A caret on 0.x is treated the way semver's own text does NOT -- ^0.1.0 admits
+# 0.2.0 here. Pre-1.0 devbin has no stability promise to encode either way, and
+# the alternative pins every project to a patch series and makes `upgrade` a lie.
+version_satisfies() {
+  local v="$1" c="${2:-}" vmaj vmin vpat cmaj cmin cpat op="^" n
+  # No constraint declared is satisfied by anything. Written the other way round
+  # first, which made every declared constraint return 0 before it was read --
+  # a check that passes without checking, three days after AC-04.13 said so.
+  [ -z "$c" ] && return 0
+  case "$c" in
+    "^"*) op="^" c="${c#^}" ;;
+    ">="*) op=">=" c="${c#>=}" ;;
+    *) op="=" ;;
+  esac
+  IFS='.' read -r vmaj vmin vpat <<EOF
+$v
+EOF
+  IFS='.' read -r cmaj cmin cpat <<EOF
+$c
+EOF
+  # Each part checked SEPARATELY, not as one concatenation: `0.1` splits to an
+  # empty patch, and an empty field vanishes into the joined string while still
+  # blowing up `[ "" -ge 0 ]` further down. An unparseable version -- `unknown`,
+  # what read_version returns when it finds nothing -- fails here, which is the
+  # answer doctor wants.
+  for n in "$vmaj" "$vmin" "$vpat" "$cmaj" "$cmin" "$cpat"; do
+    case "$n" in '' | *[!0-9]*) return 1 ;; esac
+  done
+  case "$op" in
+    "=") [ "$v" = "$c" ] && return 0 ;;
+    "^")
+      [ "$vmaj" -eq "$cmaj" ] || return 1
+      [ "$vmin" -gt "$cmin" ] && return 0
+      [ "$vmin" -eq "$cmin" ] && [ "$vpat" -ge "$cpat" ] && return 0
+      ;;
+    ">=")
+      [ "$vmaj" -gt "$cmaj" ] && return 0
+      [ "$vmaj" -lt "$cmaj" ] && return 1
+      [ "$vmin" -gt "$cmin" ] && return 0
+      [ "$vmin" -lt "$cmin" ] && return 1
+      [ "$vpat" -ge "$cpat" ] && return 0
+      ;;
+  esac
+  return 1
+}

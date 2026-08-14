@@ -1,0 +1,376 @@
+# devbin config.yaml -- annotated reference
+#
+# Lives at bin/.devbin/config.yaml in a project. Every key below is shown with
+# its default. Only `project.name` is required.
+#
+# GRAMMAR. This is a restricted subset of YAML, enforced, with errors that name
+# the file and line (design D7):
+#
+#   yes   two-space indent, nested maps, `key: value`, scalar sequences
+#         (`- item`), `#` comments, quoted scalars, blank lines, `---`
+#   no    tabs, odd or jumped indent, duplicate keys, anchors/aliases (& *),
+#         block scalars (| >), flow collections ({ [), sequences of maps
+#
+# A file outside the subset is REFUSED rather than half-read. That is deliberate:
+# every project's config stays readable in the same shape.
+
+# --- project identity ------------------------------------------------------
+
+project:
+  # Required. The display name in help, and the prefix on die/warn output.
+  name: conflab
+
+  # Optional. Short symlink alias installed beside bin/devbin (bin/cf).
+  alias: cf
+
+  # Optional. The mix task the `cli` and `repl` built-ins call.
+  # Default: <name>.cli -- `mix conflab.cli`, which is what the whole first
+  # fleet uses.
+  #
+  # Set it where the task is not named after the project. Arca's are the
+  # reference cases: arca_cli declares `Mix.Tasks.Arca.Cli` (`mix arca.cli`)
+  # and arca_config declares `mix arca.config`, so the default would name a
+  # task neither project has.
+  #
+  # `cli` alone could be handled with `commands.cli.run:`, and this key exists
+  # because `repl` cannot: its built-in carries the rlwrap history and
+  # completions wiring, and overriding the command line to change one word
+  # throws that away. A difference of one NAME should not cost a project the
+  # handler.
+  cli_task: conflab.cli
+
+  # Optional. Environment variable carrying the project root, exported for
+  # handlers. Default: <NAME>_ROOT, upper-cased.
+  root_var: CONFLAB_ROOT
+
+  # Optional. Where the project version is read from. Default: VERSION.
+  #
+  # Names the FILE, never how to parse it: devbin knows how to read a version
+  # out of VERSION, mix.exs, Cargo.toml, package.json and a plist. Anything else
+  # is read as a bare version file -- one whose whole contents are the version --
+  # and a file that turns out to hold more than that reads as `unknown` rather
+  # than yielding its own text as a version number. That split is design D1 --
+  # the config states a fact about the project, the library holds the recipe.
+  #
+  # The corpus needed this: three projects kept a VERSION file, but Laksa's
+  # version genuinely lives in mix.exs, and copying it into a VERSION file to
+  # suit the launcher would create a second source of truth for it.
+  version_from: VERSION
+
+  # Optional. Files that MIRROR the version. `version set|bump|sync` writes each
+  # of them, and `version check` reports any that have drifted.
+  #
+  # This names FILES ONLY -- never how to rewrite them. devbin knows the recipe
+  # for a Cargo.toml, a mix.exs, a package.json and an Info.plist. Same D1 split
+  # as `version_from`, and it is what keeps regular expressions out of a
+  # project's config.
+  #
+  # A sidecar of any other kind is treated as a BARE VERSION FILE, and devbin
+  # checks that it really is one before writing -- because the only way to write
+  # a version into a file you have no recipe for is to overwrite all of it. A
+  # file holding anything more is refused by name and nothing is written. A
+  # Cargo.lock is the case this catches: declare it here and it is refused, so
+  # sync it from the project's own command instead.
+  #
+  # ORDER OF WRITES: every sidecar first, `version_from` LAST. A partial failure
+  # therefore leaves the version un-advanced, so re-running `bump patch` after
+  # fixing the problem recomputes the same target instead of bumping twice on
+  # top of a half-synced tree.
+  version_sidecars:
+    - native/cli/Cargo.toml
+    - native/macos/App/Info.plist
+
+  # What this project IS. Drives which built-ins are active by default: every
+  # built-in option devbin ships declares the language it belongs to, and is
+  # active exactly when that language is declared here (design D11).
+  #
+  # This is why `devbin test mix` does not exist in a shell project and
+  # `devbin test shell` does not exist in an Elixir one -- neither has to be
+  # switched off by hand, and a built-in added to devbin later cannot appear
+  # uninvited in a project whose language it does not match.
+  #
+  # NOT the same fact as Intent's own intent/.config/config.json `languages`,
+  # and the two are not meant to match. This key is GATE SCOPE -- what devbin
+  # should offer to run here. Intent's list is PROJECT COMPOSITION -- what the
+  # source is written in. Prolix is the reference case: it is an Elixir project
+  # with a real Swift app at native/ios, so Intent declares both while this key
+  # may declare elixir alone, because arming a gate is a decision and having a
+  # language is not. Mirroring either list into the other is the defect, not the
+  # divergence (ST0002 WP-04).
+  #
+  # One built-in reads INTENT's list rather than this one, deliberately:
+  # `check critic` (lib/cmd/check), because a critic reviews SOURCE and the
+  # rules belong to the language the source is written in. That is also the only
+  # place devbin needs jq, and it requires it by name at the point of use.
+  #
+  # (This comment previously claimed devbin never reads Intent's config at all,
+  # while `check critic` had been reading it with jq for as long as it existed;
+  # and before that it claimed `devbin doctor` reported the divergence, until
+  # WP-09 came to build doctor and found nothing had ever implemented it. Twice
+  # now this block has described a devbin that does not exist -- a documented
+  # check that does not run, and a documented abstinence that is not observed,
+  # are the same prose-shaped false green.)
+  languages:
+    - elixir
+    - rust
+    - swift
+
+# Optional. The devbin this project expects, ENFORCED by `devbin doctor` against
+# the version stamped into bin/.devbin/manifest.sha256 at install. Three forms:
+#
+#   ^X.Y.Z    same major, at least X.Y.Z   (the usual)
+#   >=X.Y.Z   at least X.Y.Z, any major
+#   X.Y.Z     exactly
+#
+# Omit it and any runtime satisfies the project. Note that `^` on a 0.x version
+# admits 0.2.0 for a declared ^0.1.0, which is NOT what semver's own text says:
+# pre-1.0 devbin makes no stability promise either way, and the strict reading
+# pins every project to a patch series and makes `devbin upgrade` a lie.
+devbin_version: "^1.0.0"
+
+# --- help ------------------------------------------------------------------
+#
+# `devbin help` is GENERATED from what actually resolves (design D4), so there
+# is no command list to maintain here and none anywhere else. What this section
+# supplies is the wording around it.
+#
+# `devbin help <cmd>` is AUTHORED, and does not come from this file at all: it
+# is markdown at bin/.devbin/help/<cmd>.md, with sub-topics at
+# bin/.devbin/help/<cmd>.d/<sub>.md resolving by the same rule the handlers use
+# (D3). Absent a file, help generates an answer from the summary, the options
+# and where the command resolved from -- never an empty page.
+
+help:
+  # Optional. Completes the first line: `<project name> -- <tagline>`.
+  tagline: "unified dev launcher for the Conflab project"
+
+  # Optional. Shown above the generated global listing. The reference case is
+  # the corpus's launcher-vs-product disambiguation note.
+  preamble: "NOT the product. `conflab` (native/cli) is what users install; this drives development of it."
+
+  # Optional. Display order of groups in the global listing. Groups not named
+  # here are appended in first-seen order; a group named here with nothing in it
+  # prints no heading, so listing a group you have not populated is harmless.
+  #
+  # An entry may carry a parenthetical ANNOTATION, which is printed as part of
+  # the heading while commands still match on the name before the first ` (`.
+  # That is how the corpus's "Test (SEALED gates -- the verdict is a FILE, not a
+  # scroll-past)" survives the fold: it is authored prose doing real work, and a
+  # sequence of maps -- the obvious way to carry a name and a note separately --
+  # is outside the config subset (D7).
+  groups:
+    - Surfaces
+    - Build
+    - Test (SEALED gates -- the verdict is a FILE, not a scroll-past)
+    - Check
+    - Ship
+
+# --- docs ------------------------------------------------------------------
+
+docs:
+  # Which subdirectories `docs treeindex` walks. No default: the answer is
+  # per-project and guessing it wrongly is slow rather than harmless.
+  #
+  # The project ROOT is refused, here and on the command line. It is a
+  # per-subdirectory index; pointed at the root it walks everything, which is
+  # slow enough to look like a hang.
+  treeindex_dirs:
+    - lib
+    - bin
+    - native
+
+# --- shared options --------------------------------------------------------
+#
+# Parsed before the handler runs, in both spellings (`--env test` and
+# `--env=test`), and exported so the handler -- a separate process -- sees them.
+# An option NOT declared here passes straight through to the handler, which is
+# what lets `devbin test mix --trace` reach mix.
+#
+# This section replaces the corpus's hand-written `_set_env`, `_set_bin` and
+# `_set_fidelity`: three copies of one function differing only in the answers.
+# A project adds `--fidelity` by declaring it here, not by writing bash.
+
+options:
+  # A valued option. A value outside `values:` is refused, naming what was
+  # expected. Omit `values:` to accept anything.
+  env:
+    values:
+      - dev
+      - test
+      - prod
+    export: MIX_ENV
+    # Optional. The description in help's "Shared options" block, which renders
+    # as `--env <dev|test|prod>   set MIX_ENV for this invocation`.
+    summary: set MIX_ENV for this invocation
+  bin:
+    values:
+      - auto
+      - brew
+      - local
+      - repo
+    export: CONFLAB_BIN_FLAVOUR
+    summary: which conflab/conflabd binary, for one invocation
+
+  # A flag takes no value and exports a fixed one -- `true` unless `value:`
+  # says otherwise. The reference cases are the corpus's `--iex` (exports
+  # true) and Baize's `--json` (exports a style name, not a boolean).
+  iex:
+    flag: true
+    export: CONFLAB_IEX
+    # Optional, and ONLY meaningful for a framework-owned option (today that is
+    # `--iex` alone). Devbin owns `--iex` and knows its own consumer is the
+    # built-in `server`; it cannot know that a PROJECT handler reads
+    # DEVBIN_OPT_IEX too. Lamplight's `wrighter` does -- plain runs a launcher
+    # expression, `--iex` drops it for a bare shell -- so Lamplight names it:
+    #
+    #   options:
+    #     iex:
+    #       commands:
+    #         - wrighter
+    #
+    # Without the entry, `lamplight wrighter --iex` is REFUSED, because issue
+    # 0009 made a framework option that no offered command reads an error rather
+    # than a silent no-op. Adding a command here extends the set; it never
+    # replaces devbin's own.
+    #
+    # This key describes WHO READS the option, not what SHAPE it has. Declaring
+    # only `commands:` leaves `--iex` a flag; the four shape keys (flag, export,
+    # value, values) are what hand shape to config.
+    commands:
+      - wrighter
+  json:
+    flag: true
+    value: json
+    export: ARCA_STYLE
+
+# --- commands --------------------------------------------------------------
+#
+# Enables and parameterises built-ins, and registers project-specific handlers.
+#
+# A script dropped into bin/.devbin/cmd/<name> is picked up with NO entry here
+# (design D2). An entry is needed only to override a built-in, to configure one,
+# or to map a differently-named file to a command.
+
+commands:
+  # A built-in, enabled and parameterised.
+  #
+  # A command-level `run:` is the same rig as an option-level one, one level up
+  # (design D19, extended by WP-14). It runs at the project root, and it EXECS:
+  # the launched program replaces devbin rather than running beneath it, so the
+  # terminal talks to your server or REPL directly and Ctrl-C reaches it.
+  #
+  # `log:` and `grammar:` work here too, and mean exactly what they mean on an
+  # option -- with `log:` the command becomes a sealed gate and does not exec,
+  # because a gate has to return for its verdict to be written. Omit `log:` for
+  # anything long-running or interactive.
+  server:
+    enabled: true
+    # `summary`, `group` and `args` are what help renders. Each has ONE source,
+    # read in this order (design D23):
+    #
+    #   1. here, in config -- a project's own wording always wins
+    #   2. the HANDLER's own header, `# devbin: summary = ...`, so a script
+    #      dropped into cmd/ appears in help with no config edit at all
+    #   3. the built-in catalogue, for a command devbin ships
+    #
+    # Steps 2 and 3 never both answer: a command devbin ships is declared by its
+    # catalogue row, one a project ships is declared by its handler file. So
+    # there is no precedence question between those two to get wrong.
+    summary: Phoenix dev server
+    group: Surfaces
+    # Optional. The usage hint in help's left column: `server [--iex]`. It is
+    # prose, not a parser -- devbin never interprets it.
+    args: "[--iex]"
+    run: mix phx.server
+
+  # A multi-option command. `all` is NOT declared: the framework synthesises it
+  # from the option list below and runs every option in declared order (design
+  # D8). Adding an option here puts it in `all` with no further edit.
+  test:
+    group: Test
+    summary: Run the project gates
+    options:
+      mix:
+        summary: ExUnit
+        run: mix test
+        grammar: mix        # named extractor: mix|credo|cargo|xcodebuild|lua|shell|generic
+        #
+        # The grammar reads failures out of the log AND decides whether an empty
+        # run is refused. A tool that exits 0 having executed nothing -- a
+        # filter matching no test -- looks exactly like a healthy run, so for
+        # the grammars devbin can count, a run reporting ZERO executed is
+        # promoted to failed and the reason is sealed.
+        #
+        # It never promotes a run whose tool emitted no trailer (that is not a
+        # test run: `check compile` uses this grammar for its failure reader),
+        # and never under `generic` or `lua`, which have no counter. A gate
+        # whose suite may legitimately be empty declares `grammar: generic`.
+        # `log:` is what makes an option a sealed GATE (design D19). With it,
+        # the option runs through the same runner a built-in uses and writes
+        # tmp/<command>/<stamp>.<suffix>.{out,errors}; the .errors companion is
+        # empty exactly when that completed run was green. `log: true` names the
+        # pair after the option instead of restating it in upper case.
+        #
+        # WITHOUT `log:` the option runs bare. That is the right choice for a
+        # launcher rather than a gate -- `server` and `iex` are long-running and
+        # never exit, so teeing them would buffer the output you are watching
+        # and seal nothing.
+        log: MIX            # suffix for the sealed .out/.errors pair
+      credo:
+        summary: Static analysis
+        run: mix credo --strict
+        grammar: credo
+        log: CREDO
+      swift:
+        summary: Swift suites (local only)
+        run: xcodebuild test
+        grammar: xcodebuild
+        log: SWIFT
+        # Excluded from `test all`, and REPORTED AS SKIPPED rather than dropped
+        # silently. The reference case: this gate has no CI counterpart.
+        in_all: false
+      # Drop a built-in option the declared languages pulled in but this project
+      # does not want. `enabled: false` at option level is the fine-grained lever
+      # -- the whole `test` command stays, only this gate goes.
+      lua:
+        enabled: false
+
+  check:
+    group: Check
+    summary: Read-only gates; each exits non-zero on a breach
+    options:
+      compile:
+        run: mix compile --warnings-as-errors --force
+        grammar: mix
+        log: COMPILE
+      format:
+        run: mix format --check-formatted
+        grammar: generic
+        log: FORMAT
+
+  # A project-specific command whose FILE NAME differs from its command name:
+  # bin/.devbin/cmd/myls provides `devbin ls`. Without this entry the file would
+  # register as `myls`.
+  ls:
+    handler: myls
+    summary: List things (contrived example)
+    group: Surfaces
+
+  # A built-in switched off for this project. `enabled: false` wins over
+  # everything, including a project handler of the same name.
+  precommit:
+    enabled: false
+
+  # An OPT-IN built-in, switched on. `which`, `macos`, `precommit`, `publish`
+  # and `content` are shipped as names and are absent until a project asks for
+  # them (design D22) -- they are language-agnostic, so D11's language scoping
+  # cannot hide them, and most projects should never see them.
+  #
+  # devbin ships no command line for any of the five: each is one or two of the
+  # four source projects and encodes that project's shape. Enabling one means
+  # supplying what it runs, here or as a handler in cmd/.
+  publish:
+    enabled: true
+    summary: Push a release to the registry
+    group: Ship
+    run: mix hex.publish

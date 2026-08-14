@@ -4,6 +4,20 @@
 
 set -e
 
+# Scrub ambient project state BEFORE this script computes its own.
+#
+# PROJECT_ROOT is a generic name and Intent treats it as an answer, not a hint:
+# `plugin_get_manifest_path` writes the project-local manifest when it is set
+# and the $HOME one when it is not. A parent that exports it -- a Makefile,
+# direnv, CI, or devbin, which exports it on every invocation -- silently flips
+# suites onto the wrong branch. That is a real defect in its own right (filed
+# separately); it is simply not the suite's business to inherit it. A test
+# decides its own environment or it measures the machine it happens to run on.
+#
+# The assignment below is deliberately NOT exported, so child `intent`
+# processes resolve the project themselves, which is what the suites test.
+unset PROJECT_ROOT INTENT_ROOT BIN_DIR
+
 # Locate the project root and source canonical helpers (error/warning/info).
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

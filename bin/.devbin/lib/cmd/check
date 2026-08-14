@@ -1,0 +1,349 @@
+#!/usr/bin/env bash
+#
+# The built-in `check` command. Most options are catalogue entries with a
+# command line (compile, format, deps, clippy) and need nothing here. Two are
+# D18 tier 1 -- real shared logic rather than a command line -- and are marked
+# `@builtin` in the catalogue, which resolves to the `builtin_check_*` functions
+# below.
+#
+set -euo pipefail
+
+# shellcheck source=lib/gatecmd
+. "${DEVBIN_LIB:?run me through bin/devbin}/gatecmd"
+
+# builtin_check_critic -- run the Intent critic for every declared language that
+# actually has a headless critic.
+#
+# Ported from the corpus, which carried this in all four projects. Two things it
+# refuses to do quietly:
+#
+#   - A language declared in intent/.config/config.json with no headless critic
+#     is DROPPED from the run rather than failing it, but the whole set being
+#     empty is fatal: a critic gate that examines nothing and exits 0 is a false
+#     green, which is the failure the sealed gates exist to prevent.
+#   - With no arguments it defaults to --staged, and SAYS SO when nothing is
+#     staged. Silently examining zero files would pass for the same reason.
+builtin_check_critic() {
+  require_tool intent "Install Intent: see intent/docs at the Intent install"
+  require_tool jq "brew install jq"
+
+  local declared headless langs="" lang rc=0
+  declared="$(jq -r '(.languages // []) | .[]' "$PROJECT_ROOT/intent/.config/config.json" 2>/dev/null || true)"
+  [ -n "$declared" ] ||
+    die "no languages declared in intent/.config/config.json (intent lang init <lang>)"
+  headless="$(intent critic --languages 2>/dev/null || true)"
+
+  for lang in $declared; do
+    case "
+$headless
+" in *"
+$lang
+"*) langs="$langs $lang" ;; esac
+  done
+  [ -n "$langs" ] ||
+    die "none of the declared languages ($(printf '%s' "$declared" | tr '\n' ' ')) has a headless critic"
+
+  if [ $# -eq 0 ]; then
+    set -- --staged
+    if [ -z "$(git -C "$PROJECT_ROOT" diff --cached --name-only 2>/dev/null)" ]; then
+      warn "nothing staged -- the critic will examine NO files (stage changes, or pass --files <path>...)"
+    fi
+  fi
+
+  for lang in $langs; do
+    printf '    %s\n' "$lang"
+    intent critic "$lang" "$@" || rc=1
+  done
+  return "$rc"
+}
+
+# builtin_check_format -- verify formatting in every language the project
+# declares, one arm per declared language (issue 0003).
+#
+# It used to be a catalogue command line, `mix format --check-formatted`, scoped
+# to elixir. `fmt` has four arms; this had one. So in a mixed project -- Conflab
+# is elixir + rust + swift -- declaring Elixir activated a gate NAMED `format`,
+# summarised "Formatting is up to date", that never looked at Rust or Swift.
+# Same exit code, same empty seal, two thirds of the project unexamined.
+#
+# Shaped after `builtin_check_critic` above, which had already answered the same
+# question for rule-checking: `any` in the catalogue, one pass per declared
+# language, nothing offered that the project did not ask for.
+#
+# THE MISSING-TOOL RULE IS INVERTED FROM `fmt`, deliberately, and this is the
+# one place the asymmetry is implemented rather than described. `fmt` skips a
+# missing formatter loudly and exits 0, because it asserts no verdict. A gate
+# does assert one, so a missing tool is a FAILURE -- exiting 0 having examined
+# nothing is the false green this whole file exists to refuse.
+# _fmt_arm_state <lang> -- how the dispatcher said to treat this language's
+# fmt arm: `builtin`, `overridden` or `disabled` (DEVBIN_FMT_ARMS, bin/devbin).
+# A language with no entry has no fmt arm at all; it defaults to `builtin`,
+# which builtin_fmt_check_run then declines -- same outcome, and no invented
+# claim about config.
+_fmt_arm_state() {
+  local lang="$1" pair
+  for pair in ${DEVBIN_FMT_ARMS:-}; do
+    case "$pair" in
+      "$lang"=*)
+        printf '%s' "${pair#*=}"
+        return 0
+        ;;
+    esac
+  done
+  printf 'builtin'
+  return 0
+}
+
+builtin_check_format() {
+  local lang cmd rc=0 ran=0
+
+  # This gate verifies whole trees, one arm per declared language. It used to
+  # take arguments and silently DROP them: as a catalogue command line the
+  # arguments reached the tool (`check format lib/foo.ex` scoped the elixir
+  # check), so the same invocation now appearing to work while checking
+  # everything -- or nothing the caller meant -- is a scoped check that never
+  # happened (delta review, finding 7).
+  [ $# -eq 0 ] ||
+    die "check format takes no arguments (got: $*)
+       It verifies EVERY declared language's whole tree. Scope a single
+       language with its own tool instead, eg 'mix format --check-formatted <path>'."
+
+  # UNSET is not the same fact as EMPTY, and the difference decides whether this
+  # gate may pass. The dispatcher is the only thing that exports
+  # DEVBIN_LANGUAGES and DEVBIN_FMT_ARMS, always, possibly empty. So:
+  #
+  #   unset  -- this was reached some other way and the gate never learned what
+  #             to check. "No formattable language declared" would be a verdict
+  #             about the PROJECT standing in for a fact about the INVOCATION,
+  #             which is a gate passing because it does not know any better.
+  #   empty  -- the project genuinely declares no formattable language. A
+  #             determinate fact, reported below, and it passes.
+  #
+  # Found by re-reviewing this fix rather than by writing it: the first version
+  # collapsed both into "nothing to check" and passed for a project declaring
+  # elixir. `builtin_check_critic` above already dies in this situation, so the
+  # two adjacent gates were answering one failure in opposite directions.
+  if [ -z "${DEVBIN_LANGUAGES+set}" ] || [ -z "${DEVBIN_FMT_ARMS+set}" ]; then
+    die "DEVBIN_LANGUAGES / DEVBIN_FMT_ARMS not set -- run this through bin/devbin
+       Reporting 'nothing to check' here would be a verdict about the project,
+       and this is a fact about the invocation."
+  fi
+
+  for lang in ${DEVBIN_LANGUAGES:-}; do
+    case "$(_fmt_arm_state "$lang")" in
+      disabled)
+        # The project's own `enabled: false`. A determinate config fact, so it
+        # passes -- reported rather than silently absent, same rule as the
+        # zero-file report below.
+        printf '    %s -- fmt arm disabled in config, not checked\n' "$lang"
+        continue
+        ;;
+      overridden)
+        # Config replaced what `fmt <lang>` runs, and this gate derives its
+        # check from the CATALOGUE -- so the pair D21 promises would hold in
+        # name only: the gate green-lighting a command line the formatter no
+        # longer runs (delta review, finding 5). No guessing a check flag onto
+        # a command devbin does not know; the project states the check side too.
+        die "cannot verify $lang formatting -- config overrides what 'fmt $lang' runs
+       The catalogue-derived check would verify a DIFFERENT command line from
+       the one 'fmt $lang' actually runs. Declare the check side as well:
+       commands.check.options.format.run."
+        ;;
+    esac
+    cmd="$(builtin_fmt_check_run "$lang" 2>/dev/null)" || continue
+    ran=1
+    step "format -- $lang"
+    if [ "$cmd" = "@builtin" ]; then
+      _check_format_swift || rc=1
+      continue
+    fi
+    # Unquoted on purpose: a catalogue command line, expanded the way every
+    # other one is, and never eval'd (D1).
+    # shellcheck disable=SC2086
+    $cmd || rc=1
+  done
+
+  # No formattable language declared. Devbin itself is this case -- it declares
+  # `shell`, which has no formatter to point at -- and it is a determinate fact
+  # about the project rather than a run that went wrong, so it is reported and
+  # passes. That is NOT in tension with the missing-tool rule above: there the
+  # gate could not check something it was asked to; here it was asked to check
+  # nothing.
+  if [ "$ran" = 0 ]; then
+    printf '    no formattable language declared -- nothing to check\n'
+  fi
+  return "$rc"
+}
+
+# _check_format_swift -- the non-mutating twin of builtin_fmt_swift, over the
+# same file set with the `lint` subcommand instead of `format --in-place`. A
+# missing swift-format is a gate failure, where `fmt swift` skips.
+#
+# SUBCOMMAND, not a flag. This read `swift-format --lint` from the day it was
+# written until ST0002 WP-08, and that is not an option swift-format has ever
+# had -- the tool dispatches on a subcommand (`lint`, or `format` as the
+# default), so the flag was being parsed as an unknown option OF `format`. It
+# survived two reviews of this function because devbin's own repository has no
+# .swift files: the determinate-zero path below returns green before reaching
+# the command line, so the gate had never once executed it. A legitimate empty
+# run is still a run that proves nothing about the non-empty one.
+#
+# `--strict` is the other half, and it is the half that matters. `swift-format
+# lint` exits 0 WITH findings -- they are warnings unless promoted -- so
+# correcting the subcommand alone produced a gate that examined 78 files,
+# printed 633 findings, and sealed GREEN. That is a worse defect than the one
+# it replaced, because a hard error announces itself and a false green does
+# not, and it is exactly what the seal is for: the terminal was full of
+# findings and tmp/check/<stamp>.FORMAT.errors was empty. Read the seal.
+#
+# IT REPORTS HOW MANY FILES IT EXAMINED, and that is not decoration. The first
+# version ran the linter through a pipeline that runs nothing at all when the
+# find matches nothing (macOS xargs does not run the utility on empty input),
+# so it printed its step header and exited 0 having looked at no file -- the
+# cardinal false green, in a gate written the same afternoon. Zero files still
+# PASSES, because it is a determinate fact rather than a run that went wrong;
+# what it may not do is be silent, which is the same rule `doctor` follows
+# when it reports how many checks ran.
+#
+# NUL-delimited end to end, like builtin_fmt_swift: an intermediate
+# newline-joined string (`tr '\n' '\0'` over $(find)) split a path containing
+# a newline into two bogus arguments and counted it twice, so the twins
+# disagreed about the file set the whole D21 section is about (delta review,
+# finding 8).
+_check_format_swift() {
+  local f n
+  command -v swift-format >/dev/null 2>&1 ||
+    die "swift-format not found, so Swift formatting cannot be verified (brew install swift-format)
+       'fmt swift' skips a missing formatter because it claims no verdict; a gate cannot."
+
+  local -a files=()
+  while IFS= read -r -d '' f; do
+    files+=("$f")
+  done < <(find . -name '*.swift' \
+    -not -path '*/build/*' \
+    -not -path '*/.build/*' \
+    -not -path '*/Carthage/*' -print0)
+
+  n="${#files[@]}"
+  printf '    %s file(s)\n' "$n"
+  [ "$n" -gt 0 ] || return 0
+
+  swift-format lint --strict "${files[@]}"
+}
+
+# builtin_check_toolchain -- the pinned toolchain must match what is running.
+#
+# Ported from Conflab and Laksa, which had substantially the same function. CI
+# resolves its compiler from .tool-versions; local work uses whatever the shell
+# resolves. When those diverge, a local warnings-as-errors pass stops being
+# evidence about CI, so this makes the skew loud rather than silent.
+builtin_check_toolchain() {
+  local tv="$PROJECT_ROOT/.tool-versions" rc=0
+  # Same rule as check format above: arguments used to vanish without a word,
+  # which reads as a scoped check that never happened.
+  [ $# -eq 0 ] ||
+    die "check toolchain takes no arguments (got: $*)
+       It compares .tool-versions against the running toolchain, whole-project."
+  [ -f "$tv" ] || die "no .tool-versions at $tv"
+
+  local pin_ex pin_erl pin_erl_full live_ex live_erl erl_root otp_file coarse=0
+  local dockerfile img_ex img_erl
+  # Anchored on `^elixir ` / `^erlang `: an unanchored match hits a comment line
+  # too, and these files have them. The elixir pin may carry an -otp-NN suffix;
+  # compare the bare version, which is the substring CI extracts.
+  pin_ex="$(awk '/^elixir / { split($2, a, "-"); print a[1]; exit }' "$tv")"
+  pin_erl="$(awk '/^erlang / { print $2; exit }' "$tv")"
+  # The FULL erlang pin, kept aside: the coarse fallback below truncates
+  # pin_erl to its major for the ACTIVE comparison, and the Dockerfile
+  # comparison must not inherit that weakening -- the image tag is exact, so
+  # 29.0.4 vs 29.0.5 is a different image and must be caught (Laksa's copy
+  # carried this; D13 takes the strongest).
+  pin_erl_full="$pin_erl"
+
+  if [ -z "$pin_ex" ] && [ -z "$pin_erl" ]; then
+    warn "no elixir or erlang pin in $tv -- nothing to compare"
+    return 0
+  fi
+
+  if [ -n "$pin_ex" ]; then
+    require_tool elixir "Install via asdf/mise per .tool-versions"
+    live_ex="$(elixir --version 2>/dev/null | awk '/^Elixir / { print $2; exit }')"
+    if [ "$pin_ex" != "$live_ex" ]; then
+      warn "elixir: .tool-versions pins $pin_ex, the active toolchain is ${live_ex:-unknown}"
+      rc=1
+    else
+      printf '    elixir   %s\n' "$live_ex"
+    fi
+  fi
+
+  if [ -n "$pin_erl" ]; then
+    # Erlang's FULL version lives in $ROOT/releases/*/OTP_VERSION.
+    # `erlang:system_info(otp_release)` gives only the major, which cannot tell
+    # 28.1 from 28.3 -- ie it would miss exactly the drift this exists to catch.
+    # Fall back to the major only if the file is unreadable, and SAY the
+    # comparison was coarse rather than silently weakening the gate.
+    erl_root="$(erl -noshell -eval 'io:format("~s", [code:root_dir()]), halt().' 2>/dev/null || true)"
+    otp_file="$(find "$erl_root/releases" -name OTP_VERSION -maxdepth 2 2>/dev/null | head -1)"
+    if [ -n "$otp_file" ] && [ -r "$otp_file" ]; then
+      live_erl="$(tr -d '[:space:]' <"$otp_file")"
+    else
+      live_erl="$(erl -noshell -eval 'io:format("~s", [erlang:system_info(otp_release)]), halt().' 2>/dev/null || true)"
+      pin_erl="${pin_erl%%.*}"
+      coarse=1
+    fi
+    if [ "$pin_erl" != "$live_erl" ]; then
+      warn "erlang: .tool-versions pins $pin_erl, the active toolchain is ${live_erl:-unknown}"
+      rc=1
+    else
+      printf '    erlang   %s\n' "$live_erl"
+    fi
+    if [ "$coarse" = 1 ]; then
+      warn "erlang comparison was COARSE (major only) -- OTP_VERSION was unreadable, so 28.1 vs 28.3 would not have been caught"
+    fi
+  fi
+
+  # The pins' SECOND consumer, and the one that SHIPS (promoted from the
+  # Laksa/Lamplight config scripts at WP-11 close -- AC-11.11). A deploy image
+  # restates the pins as literal ARG defaults, because FROM needs the value
+  # before any RUN could read a file -- so a bump to .tool-versions moves CI
+  # while leaving production on the old compiler, with every other gate green.
+  # Lamplight's image lagged that way twice before its script grew this arm.
+  #
+  # Three determinate shapes (the two-shapes doctrine):
+  #   Dockerfile present      -> compare its ARGs against the pins, exactly
+  #   fly.toml, no Dockerfile -> FAIL: this project deploys an image, so a
+  #                              comparison that cannot run is not a pass
+  #                              (the Laksa/Lamplight authored strictness,
+  #                              derived from the repo instead of config)
+  #   neither                 -> informative: no deploy image exists
+  dockerfile="$PROJECT_ROOT/Dockerfile"
+  if [ -f "$dockerfile" ]; then
+    img_ex="$(awk -F= '/^ARG ELIXIR_VERSION=/ { print $2; exit }' "$dockerfile")"
+    img_erl="$(awk -F= '/^ARG OTP_VERSION=/ { print $2; exit }' "$dockerfile")"
+    # An unreadable ARG is reported, never skipped: a silent empty match here
+    # would turn the arm into one that passes for every possible Dockerfile.
+    if [ -z "$img_ex" ] || [ -z "$img_erl" ]; then
+      warn "could not read ARG ELIXIR_VERSION / ARG OTP_VERSION from $dockerfile -- the deploy image is UNCHECKED against the pin"
+      rc=1
+    else
+      printf '    image    elixir %s / otp %s\n' "$img_ex" "$img_erl"
+      if [ -n "$pin_ex" ] && [ "$pin_ex" != "$img_ex" ]; then
+        warn "image: .tool-versions pins elixir $pin_ex, the Dockerfile builds $img_ex -- CI and the deploy image would compile on different compilers"
+        rc=1
+      fi
+      if [ -n "$pin_erl_full" ] && [ "$pin_erl_full" != "$img_erl" ]; then
+        warn "image: .tool-versions pins erlang $pin_erl_full, the Dockerfile builds $img_erl"
+        rc=1
+      fi
+    fi
+  elif [ -f "$PROJECT_ROOT/fly.toml" ]; then
+    warn "fly.toml with no Dockerfile -- this project deploys an image, and a pin-vs-image comparison that cannot run is not a pass"
+    rc=1
+  else
+    printf '    image    (no Dockerfile -- no deploy image to compare)\n'
+  fi
+
+  return "$rc"
+}
+
+run_builtin_gate check "$@"

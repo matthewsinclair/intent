@@ -134,7 +134,16 @@ intent_agents_init() {
   echo "Initializing AGENTS.md for Intent project..."
 
   # Load config if needed and require project context
-  if [ -z "${PROJECT_ROOT:-}" ] && [ -f "$INTENT_BIN/intent_config" ]; then
+  # Resolve the project UNCONDITIONALLY. This used to be guarded by
+  # `[ -z "${PROJECT_ROOT:-}" ]`, which meant an inherited PROJECT_ROOT
+  # SUPPRESSED resolution and every path below then targeted whatever tree
+  # that ambient value named. PROJECT_ROOT is a generic name -- any parent
+  # process can export it, and devbin exports it on every invocation -- so the
+  # guard turned "am I in a project?" into "did anyone set a variable?", and
+  # answered confidently about the wrong tree. load_intent_config assigns from
+  # find_project_root and is idempotent, so resolving every time costs nothing
+  # and cannot be fooled from outside.
+  if [ -f "$INTENT_BIN/intent_config" ]; then
     source "$INTENT_BIN/intent_config"
     load_intent_config
   fi
@@ -240,7 +249,16 @@ intent_agents_init() {
 # skills, and conditional resource links. Defect introduced when the
 # dispatcher was first added (2025-08-20); patched in v2.11.5.
 intent_agents_generate_content() {
-  if [ -z "${PROJECT_ROOT:-}" ] && [ -f "$INTENT_BIN/intent_config" ]; then
+  # Resolve the project UNCONDITIONALLY. This used to be guarded by
+  # `[ -z "${PROJECT_ROOT:-}" ]`, which meant an inherited PROJECT_ROOT
+  # SUPPRESSED resolution and every path below then targeted whatever tree
+  # that ambient value named. PROJECT_ROOT is a generic name -- any parent
+  # process can export it, and devbin exports it on every invocation -- so the
+  # guard turned "am I in a project?" into "did anyone set a variable?", and
+  # answered confidently about the wrong tree. load_intent_config assigns from
+  # find_project_root and is idempotent, so resolving every time costs nothing
+  # and cannot be fooled from outside.
+  if [ -f "$INTENT_BIN/intent_config" ]; then
     source "$INTENT_BIN/intent_config"
     load_intent_config
   fi
@@ -613,7 +631,16 @@ EOF
 # rewrite AGENTS.md on every run forever -- a step that always fires is
 # indistinguishable from one that is broken.
 intent_agents_check() {
-  if [ -z "${PROJECT_ROOT:-}" ] && [ -f "$INTENT_BIN/intent_config" ]; then
+  # Resolve the project UNCONDITIONALLY. This used to be guarded by
+  # `[ -z "${PROJECT_ROOT:-}" ]`, which meant an inherited PROJECT_ROOT
+  # SUPPRESSED resolution and every path below then targeted whatever tree
+  # that ambient value named. PROJECT_ROOT is a generic name -- any parent
+  # process can export it, and devbin exports it on every invocation -- so the
+  # guard turned "am I in a project?" into "did anyone set a variable?", and
+  # answered confidently about the wrong tree. load_intent_config assigns from
+  # find_project_root and is idempotent, so resolving every time costs nothing
+  # and cannot be fooled from outside.
+  if [ -f "$INTENT_BIN/intent_config" ]; then
     source "$INTENT_BIN/intent_config"
     load_intent_config
   fi
@@ -643,7 +670,16 @@ intent_agents_sync() {
 
   echo "Syncing AGENTS.md with latest project state..."
 
-  if [ -z "${PROJECT_ROOT:-}" ] && [ -f "$INTENT_BIN/intent_config" ]; then
+  # Resolve the project UNCONDITIONALLY. This used to be guarded by
+  # `[ -z "${PROJECT_ROOT:-}" ]`, which meant an inherited PROJECT_ROOT
+  # SUPPRESSED resolution and every path below then targeted whatever tree
+  # that ambient value named. PROJECT_ROOT is a generic name -- any parent
+  # process can export it, and devbin exports it on every invocation -- so the
+  # guard turned "am I in a project?" into "did anyone set a variable?", and
+  # answered confidently about the wrong tree. load_intent_config assigns from
+  # find_project_root and is idempotent, so resolving every time costs nothing
+  # and cannot be fooled from outside.
+  if [ -f "$INTENT_BIN/intent_config" ]; then
     source "$INTENT_BIN/intent_config"
     load_intent_config
   fi
@@ -669,7 +705,16 @@ intent_agents_sync() {
 intent_agents_validate() {
   echo "Validating AGENTS.md..."
 
-  if [ -z "${PROJECT_ROOT:-}" ] && [ -f "$INTENT_BIN/intent_config" ]; then
+  # Resolve the project UNCONDITIONALLY. This used to be guarded by
+  # `[ -z "${PROJECT_ROOT:-}" ]`, which meant an inherited PROJECT_ROOT
+  # SUPPRESSED resolution and every path below then targeted whatever tree
+  # that ambient value named. PROJECT_ROOT is a generic name -- any parent
+  # process can export it, and devbin exports it on every invocation -- so the
+  # guard turned "am I in a project?" into "did anyone set a variable?", and
+  # answered confidently about the wrong tree. load_intent_config assigns from
+  # find_project_root and is idempotent, so resolving every time costs nothing
+  # and cannot be fooled from outside.
+  if [ -f "$INTENT_BIN/intent_config" ]; then
     source "$INTENT_BIN/intent_config"
     load_intent_config
   fi

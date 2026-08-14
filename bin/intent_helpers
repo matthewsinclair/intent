@@ -466,7 +466,7 @@ export -f warn_unedited_objective
 # not happen", which a bare success/failure cannot express.
 #
 # THE stamper. `intent upgrade` stamps the target once at the end of an upgrade;
-# `bin/release` stamps it during a release cut. That second caller did not exist
+# `intent build release` stamps it during a release cut. That caller did not exist
 # until now, which is why every release tag carried the PREVIOUS version in
 # config.json until a manual wrap commit landed after the tag -- so checking out
 # a tag gave you a tree whose VERSION and intent_version disagreed. One stamper,

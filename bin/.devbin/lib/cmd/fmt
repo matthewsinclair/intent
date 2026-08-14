@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+#
+# The built-in `fmt`. `elixir` and `rust` are catalogue command lines and need
+# nothing here; `swift` and `md` are D18 tier 1 and are implemented below.
+#
+# `fmt` MUTATES. Its read-only counterpart is `check format`, and the two are
+# deliberately not the same command: see design D21 for why `fmt --check`,
+# which two of the four corpus projects grew, does not ship.
+#
+set -euo pipefail
+
+# shellcheck source=lib/gatecmd
+. "${DEVBIN_LIB:?run me through bin/devbin}/gatecmd"
+
+# _fmt_skip_without <tool> <install-hint> -- true when the formatter is present.
+#
+# A MISSING FORMATTER SKIPS, loudly, and does not fail the run. That is the
+# opposite of what a gate does, and the difference is the point: a gate that
+# examines nothing and exits 0 is a false green, because it claims a verdict it
+# did not reach. `fmt` claims no verdict -- it either formatted what it could or
+# said which formatter it could not find. The gate that WILL go red on
+# unformatted Swift is `check format`, and that one must never skip.
+#
+# Loud, though. Silence here would be indistinguishable from having formatted
+# the files, which is exactly the failure IN-AG-NO-SILENT-001 forbids.
+_fmt_skip_without() {
+  command -v "$1" >/dev/null 2>&1 && return 0
+  warn "$1 not found -- skipping (${2})"
+  return 1
+}
+
+# builtin_fmt_swift -- swift-format over the project's Swift sources.
+#
+# `format --in-place`, with the subcommand SPELLED OUT even though `format` is
+# swift-format's default. This half worked either way, which is exactly why its
+# twin's breakage went unseen for so long: the two lines no longer looked like
+# a pair, so nothing invited the comparison that would have caught `--lint`.
+builtin_fmt_swift() {
+  _fmt_skip_without swift-format "brew install swift-format" || return 0
+  # Build directories hold generated and vendored sources; formatting those
+  # churns files nobody edits and can fight the build system.
+  find . -name '*.swift' \
+    -not -path '*/build/*' \
+    -not -path '*/.build/*' \
+    -not -path '*/Carthage/*' \
+    -print0 | xargs -0 swift-format format --in-place
+}
+
+# builtin_fmt_md -- prettier over Markdown.
+#
+# ROOT ONLY unless given explicit paths, and that restraint is the whole reason
+# this is shipped code rather than a catalogue command line. prettier strips the
+# column alignment out of Markdown tables. Devbin's own standards require tables
+# to stay aligned, so a `fmt md` that swept the tree would silently undo a
+# formatting rule the project holds -- and it would do it across intent/ and
+# docs/, which are the directories most likely to be full of tables.
+#
+# Conflab learned this and encoded it. Naming paths explicitly is the way to
+# format a file under those directories deliberately.
+builtin_fmt_md() {
+  _fmt_skip_without npx "install Node.js" || return 0
+  if [ $# -eq 0 ]; then
+    warn "root Markdown only -- intent/ and docs/ are NOT swept: prettier strips table column alignment"
+    warn "pass explicit paths to format a file there deliberately"
+    set -- ./*.md
+  fi
+  npx --yes prettier --prose-wrap never --write "$@"
+}
+
+run_builtin_gate fmt "$@"

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#
+# The built-in `test` command. Every option is a catalogue entry -- mix, credo,
+# rust, swift, lua, shell -- so this file has nothing of its own to do beyond
+# handing the option to the shared gate body.
+#
+# `test all` never reaches here: the dispatcher synthesises it from the ACTIVE
+# option list (D8) and calls each option in turn, so a project's declared
+# languages decide what `all` runs.
+#
+set -euo pipefail
+
+# shellcheck source=lib/gatecmd
+. "${DEVBIN_LIB:?run me through bin/devbin}/gatecmd"
+
+run_builtin_gate test "$@"

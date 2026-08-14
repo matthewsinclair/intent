@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+#
+# The built-in `db`. D18 found this the widest-varying command in the corpus:
+# the option NAMES agree three ways out of four and the commands behind them do
+# not (`mix ash.setup` / `mix setup` / `mix ecto.setup`). So devbin ships a
+# small declarative core and expects the rest to land as project handlers.
+#
+# What is NOT shipped, and why, because absence is a decision:
+#
+#   codegen  Laksa and Baize both run `mix ash.codegen <name>` and both refuse a
+#            bare invocation -- Laksa's comment says why: bare ash.codegen is
+#            interactive and would hang. But it is an ASH task, not an Elixir
+#            one, so cataloguing it would offer it to every Elixir project
+#            including those with no Ash. Projects declare it; the guard is
+#            recorded in WP-11 so it is ported rather than rediscovered.
+#   proxy    Laksa's and Lamplight's are the SAME algorithm -- fly proxy onto a
+#            PGBouncer IPv6 resolved through `fly ssh console` -- differing only
+#            in app, org and host. Shared enough to be worth lifting, but it
+#            encodes a hosting provider, and devbin having an opinion about
+#            fly.io is the kind of thing that makes a framework unusable
+#            somewhere else. It belongs in a project-local library.
+#
+set -euo pipefail
+
+# shellcheck source=lib/gatecmd
+. "${DEVBIN_LIB:?run me through bin/devbin}/gatecmd"
+
+# THE LOCAL DEV LIFECYCLE, AND IT REFUSES PROD.
+#
+# `db reset` drops the database. Of the four projects only Laksa guarded this,
+# and its wording is the right one: these commands ARE the local dev database
+# lifecycle, so being pointed at production is a mistake rather than an advanced
+# use. Shipping `db reset` to four projects without the guard would be shipping
+# a footgun three of them do not currently have.
+#
+# A project that genuinely needs a production database operation writes a
+# handler, which shadows this file totally (D2) -- deliberately a bigger and
+# more visible step than passing a flag.
+if [ "${MIX_ENV:-dev}" = prod ]; then
+  die "db refuses MIX_ENV=prod -- these commands are the LOCAL dev database lifecycle
+       'db reset' drops the database. If a production operation is really wanted,
+       it belongs in a project handler at bin/.devbin/cmd/db, not behind a flag."
+fi
+
+run_builtin_gate db "$@"

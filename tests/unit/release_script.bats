@@ -1,12 +1,14 @@
 #!/usr/bin/env bats
-# Tests for bin/release. Exercises the dry-run path against a scratch
+# Tests for the release orchestrator, now the devbin handler
+# bin/.devbin/cmd/build.d/release (`intent build release`). Exercises the
+# dry-run path against a scratch
 # repo with file:// remotes and a `gh` shim so no real network or GitHub
 # state is touched. Real release cuts (no --dry-run) are not exercised here
 # -- those are validated in-flight by the operator.
 
 load "../lib/test_helper.bash"
 
-RELEASE="${INTENT_PROJECT_ROOT}/bin/release"
+RELEASE="${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/build.d/release"
 
 # --------------------------------------------------------------------
 # Scratch repo helper
@@ -83,10 +85,12 @@ exit 0
 EOF
   chmod +x tests/run_tests.sh
 
-  # Install the release script under test as part of the repo so the working
-  # tree is clean by the time `bin/release --dry-run` runs its checks.
-  cp "$RELEASE" bin/release
-  chmod +x bin/release
+  # Install the handler under test as part of the repo, at the SAME relative
+  # path it occupies for real, so the working tree is clean by the time the
+  # dry run does its checks.
+  mkdir -p bin/.devbin/cmd/build.d
+  cp "$RELEASE" bin/.devbin/cmd/build.d/release
+  chmod +x bin/.devbin/cmd/build.d/release
 
   git add -A
   git commit -q -m "init"
@@ -128,6 +132,34 @@ EOF
 # Dry-run produces no side effects
 # --------------------------------------------------------------------
 
+# run_release -- invoke the handler the way the dispatcher does.
+#
+# It refuses to run bare (`: "${DEVBIN_LIB:?...}"`), which is the point: it is
+# no longer a standalone script. PROJECT_ROOT is what it uses to find the tree
+# it is releasing, and the dispatcher resolves that symlink-safe; here the
+# scratch repo IS the tree.
+run_release() {
+  run env DEVBIN_LIB="$PWD/bin/.devbin/lib" PROJECT_ROOT="$PWD" \
+    bash bin/.devbin/cmd/build.d/release "$@"
+}
+
+# run_release_src -- the handler at its real path, not the scratch copy.
+#
+# Same dispatcher contract as run_release: the file refuses to run without
+# DEVBIN_LIB and PROJECT_ROOT, including for --help, because the guard is at the
+# top and you only ever reach a handler through the dispatcher.
+run_release_src() {
+  # PROJECT_ROOT is the REAL repo, not $PWD. These three cases test argument
+  # parsing and --help, which need no scratch repo -- but the handler sources
+  # $PROJECT_ROOT/bin/intent_helpers before it parses anything, so a root
+  # without that file dies first and the case never reaches its assertion.
+  # As bin/release the root was derived from the file's own location and this
+  # could not arise; the dispatcher supplies it now, so the harness must too.
+  run env DEVBIN_LIB="${INTENT_PROJECT_ROOT}/bin/.devbin/lib" \
+    PROJECT_ROOT="${INTENT_PROJECT_ROOT}" \
+    bash "$RELEASE" "$@"
+}
+
 @test "release --dry-run --patch prints plan and does not commit/tag/push" {
   local repo="$TEST_TEMP_DIR/repo"
   create_scratch_release_repo "$repo" "2.10.0" "2.10.1"
@@ -139,7 +171,7 @@ EOF
   # release script into the scratch repo to make it think the scratch IS its
   # project root.
   cd "$repo" || return 1
-  run bash bin/release --dry-run --patch
+  run_release --dry-run --patch
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"target version: 2.10.1"* ]]
@@ -163,7 +195,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash bin/release --dry-run v2.11.0
+  run_release --dry-run v2.11.0
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"target version: 2.11.0"* ]]
@@ -176,7 +208,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash bin/release --dry-run --major
+  run_release --dry-run --major
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"target version: 3.0.0"* ]]
@@ -188,14 +220,14 @@ EOF
 
 @test "release fails when no version arg provided" {
   cd "$TEST_TEMP_DIR" || return 1
-  run bash "$RELEASE"
+  run_release_src
   [ "$status" -eq 1 ]
   [[ "$output" == *"must specify --patch, --minor, --major, or vX.Y.Z"* ]]
 }
 
 @test "release fails when bump flag mixed with explicit version" {
   cd "$TEST_TEMP_DIR" || return 1
-  run bash "$RELEASE" --patch v3.0.0
+  run_release_src --patch v3.0.0
   [ "$status" -eq 1 ]
   [[ "$output" == *"cannot mix bump flag"* ]]
 }
@@ -206,7 +238,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash bin/release --dry-run v2.10.0
+  run_release --dry-run v2.10.0
 
   [ "$status" -eq 1 ]
   [[ "$output" == *"not greater than current"* ]]
@@ -218,7 +250,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash bin/release --dry-run v9.9.9
+  run_release --dry-run v9.9.9
 
   [ "$status" -eq 1 ]
   [[ "$output" == *"no '## [9.9.9]' section in CHANGELOG.md"* ]]
@@ -231,7 +263,7 @@ EOF
 
   cd "$repo" || return 1
   echo "dirty" >> README.dirty
-  run bash bin/release --dry-run --patch
+  run_release --dry-run --patch
 
   [ "$status" -eq 1 ]
   [[ "$output" == *"working tree is not clean"* ]]
@@ -247,7 +279,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash bin/release --dry-run --patch
+  run_release --dry-run --patch
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"CHANGELOG date is today"* ]]
@@ -259,7 +291,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash bin/release --dry-run --patch
+  run_release --dry-run --patch
 
   [ "$status" -eq 1 ]
   [[ "$output" == *"--allow-stale-date"* ]]
@@ -271,7 +303,7 @@ EOF
   shim_gh
 
   cd "$repo" || return 1
-  run bash bin/release --dry-run --allow-stale-date --patch
+  run_release --dry-run --allow-stale-date --patch
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"CHANGELOG date is not today, but --allow-stale-date is set"* ]]
@@ -282,7 +314,7 @@ EOF
 # --------------------------------------------------------------------
 
 @test "release --help shows usage" {
-  run bash "$RELEASE" --help
+  run_release_src --help
   [ "$status" -eq 0 ]
   [[ "$output" == *"Intent release orchestrator"* ]]
   [[ "$output" == *"--dry-run"* ]]

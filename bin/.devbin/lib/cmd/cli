@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#
+# `exec mix <task> "$@"` -- identical across the corpus but for the task name
+# (Baize runs `mix baize.cli`, Lamplight `mix lamplight.cli`).
+#
+# That single difference is why this is a handler rather than a catalogue row.
+# A row would have to carry a template, and the catalogue is DATA: giving it
+# substitution turns a table into a small language, which is the direction D1
+# exists to refuse. The task arrives as DEVBIN_CLI_TASK, resolved by the
+# dispatcher from config, so this file asks config nothing.
+#
+# It was `${DEVBIN_NAME}.cli` until ST0002 WP-03. That derivation held for the
+# whole first fleet and is still the default; the Arca pair is where it stopped
+# being true (`arca.cli`, `arca.config`).
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+
+cd "${PROJECT_ROOT:?}" || die "cannot enter $PROJECT_ROOT"
+
+exec mix "${DEVBIN_CLI_TASK:?}" "$@"

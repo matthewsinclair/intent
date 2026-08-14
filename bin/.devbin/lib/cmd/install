@@ -1,0 +1,235 @@
+#!/usr/bin/env bash
+#
+# The built-in `install` -- vendor this runtime into a project (design D5).
+#
+# The source is whatever devbin is RUNNING, not a hard-coded checkout: a devbin
+# installed in project A can seed project B by the same path a fresh clone
+# does. That falls out of lib/install taking a root and asking it where its
+# runtime is, rather than knowing where devbin lives.
+#
+# What it writes is exactly the vendored set plus the scaffolding a project
+# needs to be a project. What it must never write is anything a person authored
+# -- see THE SEAM at the top of lib/install.
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/config
+. "$DEVBIN_LIB/config"
+# shellcheck source=lib/install
+. "$DEVBIN_LIB/install"
+
+usage() {
+  cat <<EOF
+usage: $DEVBIN_NAME install [--into <dir>] [--name <n>] [--alias <a>] [--lang <l>] [--force]
+
+  --into <dir>   the project to install into (default: the current directory)
+  --name <n>     the project name (default: the target directory's name)
+  --alias <a>    a short alias symlink, eg 'cf' for conflab
+  --lang <l>     a language the project declares; repeatable, or comma-separated
+  --force        re-vendor over an existing install
+
+Writes bin/devbin and bin/.devbin/lib/, scaffolds bin/.devbin/{cmd,help}, and
+writes a starter config.yaml IF THERE IS NONE. Your config, handlers and
+authored help are never overwritten, with or without --force.
+EOF
+}
+
+# starter_config <name> <alias> <langs> <version> -- the config a fresh install
+# gets, on stdout.
+#
+# `languages:` is OMITTED rather than left empty when none was given. An empty
+# mapping is out of the config subset (D7) and `project.languages` with no index
+# is not a schema path, so the tidier-looking empty key would make the very
+# first `devbin doctor` fail validation on a file devbin wrote itself.
+starter_config() {
+  local name="$1" alias="$2" langs="$3" version="$4" l
+  printf '# %s -- devbin configuration.\n' "$name"
+  printf '#\n'
+  printf '# Written by: devbin install. Every key, annotated, is vendored beside this\n'
+  printf '# file at bin/.devbin/lib/config.reference.yaml.\n'
+  printf '\n'
+  printf 'project:\n'
+  printf '  name: %s\n' "$name"
+  [ -n "$alias" ] && printf '  alias: %s\n' "$alias"
+  if [ -n "$langs" ]; then
+    printf '  languages:\n'
+    for l in $langs; do printf '    - %s\n' "$l"; done
+  else
+    printf '  # languages:            # elixir, rust, swift, lua, shell -- this is what\n'
+    printf '  #   - elixir            # activates the built-in gates (design D11)\n'
+  fi
+  printf '\n'
+  printf '# The devbin this project expects. Enforced by: devbin doctor\n'
+  printf 'devbin_version: "^%s"\n' "$version"
+  return 0
+}
+
+# link_alias <root> <name> -- bin/<name> -> devbin, or refuse.
+#
+# A real file already at that name is REFUSED, never replaced. On a migration
+# the thing sitting there is the hand-written launcher devbin is replacing, and
+# clobbering it would destroy the only copy of the thing being ported from --
+# which is why D10 sequences the migration as install-alongside, prove, delete.
+link_alias() {
+  local root="$1" name="$2" path="$1/bin/$2"
+  [ -n "$name" ] || return 0
+  [ "$name" = devbin ] && return 0
+  if [ -L "$path" ]; then
+    if [ "$(readlink "$path")" = devbin ]; then
+      printf '  unchanged  bin/%s -> devbin\n' "$name"
+      return 0
+    fi
+    warn "bin/$name is a symlink to something else -- leaving it alone"
+    return 0
+  fi
+  if [ -e "$path" ]; then
+    warn "bin/$name already exists and is not a symlink -- leaving it alone"
+    warn "  (rename it, then re-run, if you want devbin to answer to that name)"
+    return 0
+  fi
+  ln -s devbin "$path" || return 1
+  printf '  linked     bin/%s -> devbin\n' "$name"
+  return 0
+}
+
+main() {
+  local into="" name="" alias="" langs="" force="" srcroot dstroot version
+  local rel src count=0 config
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -h | --help)
+        usage
+        return 0
+        ;;
+      --into)
+        into="${2:-}"
+        shift 2 || die "--into needs a directory"
+        ;;
+      --name)
+        name="${2:-}"
+        case "$name" in
+          *[A-Z]*) die "project name must be lower case: --name $name would install bin/$name
+       A bin/ entry with a capital in it is not a conforming Unix command name." ;;
+        esac
+        shift 2 || die "--name needs a value"
+        ;;
+      --alias)
+        alias="${2:-}"
+        case "$alias" in
+          *[A-Z]*) die "alias must be lower case: --alias $alias would install bin/$alias
+       A bin/ entry with a capital in it is not a conforming Unix command name." ;;
+        esac
+        shift 2 || die "--alias needs a value"
+        ;;
+      --lang)
+        langs="$langs $(printf '%s' "${2:-}" | tr ',' ' ')"
+        shift 2 || die "--lang needs a value"
+        ;;
+      --force)
+        force=yes
+        shift
+        ;;
+      -*) die "unknown option '$1' (try: $DEVBIN_NAME install --help)" ;;
+      *) die "unexpected argument '$1' (the target goes after --into)" ;;
+    esac
+  done
+
+  srcroot="${PROJECT_ROOT:?}"
+  dstroot="$(cd "${into:-.}" 2>/dev/null && pwd)" ||
+    die "no such directory: ${into:-.}"
+
+  is_devbin_source "$srcroot" ||
+    die "this devbin cannot be a source: no dispatcher or runtime at $srcroot"
+
+  # Refusing to install into the source is not fussiness. Devbin runs itself out
+  # of its own lib/ (D12); vendoring into bin/.devbin/lib/ would put a frozen
+  # copy AHEAD of the working tree in the dispatcher's own search order, so every
+  # edit to lib/ would stop taking effect and the test suite would go on passing
+  # against the copy.
+  [ "$dstroot" = "$srcroot" ] &&
+    die "cannot install devbin into its own source tree ($srcroot)"
+
+  if is_devbin_installed "$dstroot" && [ -z "$force" ]; then
+    warn "devbin is already installed at $dstroot/bin/.devbin/lib"
+    warn "  to re-vendor the runtime:   $DEVBIN_NAME install --into $dstroot --force"
+    warn "  to update it in place:      cd $dstroot && bin/devbin upgrade"
+    return 1
+  fi
+
+  # A project that already has a config has already declared who it is, and that
+  # beats both the flags' default and the directory name. Re-installing must not
+  # rename a project or drop the alias its people type -- the symlinks below are
+  # created from these two values, so guessing here means `install --force` over
+  # an existing project silently stops creating `bin/<alias>`.
+  #
+  # The dispatcher loaded the SOURCE's config in its own process; this is a
+  # separate one, so loading the TARGET's here collides with nothing.
+  config="$dstroot/bin/.devbin/config.yaml"
+  if [ -f "$config" ] && cfg_load "$config" >/dev/null 2>&1; then
+    [ -n "$name" ] || name="$(cfg_get project.name)"
+    [ -n "$alias" ] || alias="$(cfg_get project.alias)"
+  fi
+
+  # LOWER-CASED, because this name becomes the launcher SYMLINK (bin/<name>)
+  # and a bin/ entry with a capital in it is not a conforming Unix command name.
+  # Project DIRECTORIES routinely are capitalised -- Conflab, Laksa, Baize,
+  # Lamplight, MicroGPTEx, Prolix, Riffle -- so taking the basename verbatim is
+  # wrong more often than it is right.
+  #
+  # It took nine installs to find that out, because the derivation had never
+  # once run on a capitalised directory: all six capitalised projects happened
+  # to pass an explicit `--name`, and the two that took the default (arca_config,
+  # arca_cli) already had lowercase directories, so the default was accidentally
+  # correct. Riffle was the first install to take the default on a capitalised
+  # directory and it produced `bin/Riffle`.
+  #
+  # An EXPLICIT `--name` is validated at parse time instead of being lowered
+  # here: a derivation devbin performs is devbin's to get right silently, but a
+  # value a person typed is an instruction, and quietly changing it would hide
+  # the fact that the name they asked for is not one they can have.
+  [ -n "$name" ] || name="$(printf '%s' "${dstroot##*/}" | tr '[:upper:]' '[:lower:]')"
+  version="$(devbin_runtime_version)"
+  langs="${langs# }"
+
+  printf 'Installing devbin %s into %s\n\n' "$version" "$dstroot"
+
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    src="$(vendor_source_path "$srcroot" "$rel")" ||
+      die "cannot locate '$rel' in the source at $srcroot"
+    copy_vendored "$src" "$dstroot/$rel" || die "failed to write $dstroot/$rel"
+    count=$((count + 1))
+  done <<EOF
+$(vendored_paths "$srcroot")
+EOF
+  printf '  vendored   %d files (bin/devbin, bin/.devbin/lib/)\n' "$count"
+
+  # The project's half of the tree. Created, never populated: an empty cmd/ is
+  # the invitation, and anything already in it is left exactly as it is.
+  mkdir -p "$dstroot/bin/.devbin/cmd" "$dstroot/bin/.devbin/help"
+
+  if [ -f "$config" ]; then
+    printf '  kept       bin/.devbin/config.yaml (yours -- not touched)\n'
+  else
+    starter_config "$name" "$alias" "$langs" "$version" >"$config"
+    printf '  wrote      bin/.devbin/config.yaml (starter)\n'
+  fi
+
+  link_alias "$dstroot" "$name"
+  link_alias "$dstroot" "$alias"
+
+  manifest_write "$dstroot" "$srcroot" "$version" ||
+    die "failed to write the manifest"
+  printf '  wrote      %s\n' "$DEVBIN_MANIFEST_REL"
+
+  printf '\nNext:\n'
+  printf '  cd %s\n' "$dstroot"
+  printf '  bin/devbin doctor      check the install\n'
+  printf '  bin/devbin help        the command surface you have\n'
+  return 0
+}
+
+main "$@"

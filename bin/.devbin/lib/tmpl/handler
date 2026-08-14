@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = {{SUMMARY}}
+# devbin: group = {{GROUP}}
+#
+# {{NAME}} -- a devbin command handler, scaffolded by `{{DEVBIN}} new {{NAME}}`.
+#
+# The two `# devbin:` lines above are read by help (design D23). They are the
+# ONE place this command's summary and group are declared -- config can override
+# them, nothing else duplicates them. Delete a line to drop that field.
+#
+# This runs as a SEPARATE PROCESS. What reaches it is the environment below plus
+# whatever devbin did not recognise on the command line; it never reads config.
+#
+#   DEVBIN_NAME      the project name, for messages
+#   PROJECT_ROOT     the project root, whichever directory you were called from
+#   DEVBIN_LIB       the devbin runtime, for sourcing helpers
+#   DEVBIN_COMMAND   the name this was invoked as
+#
+# Sub-commands: drop an executable at cmd/{{NAME}}.d/<word> and devbin routes
+# `{{DEVBIN}} {{NAME}} <word>` to it, at any depth. A word with no handler behind
+# it stops the descent and arrives here as an argument instead.
+#
+set -euo pipefail
+
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+# shellcheck source=/dev/null
+. "$DEVBIN_LIB/helpers"
+
+usage() {
+  cat <<EOF
+usage: $DEVBIN_NAME {{NAME}} [args]
+
+{{SUMMARY}}
+EOF
+}
+
+main() {
+  case "${1:-}" in
+    -h | --help)
+      usage
+      return 0
+      ;;
+  esac
+
+  # Your command goes here. `die` prints to stderr and exits 1; `warn` prints
+  # and returns. Nothing rescues and swallows (IN-AG-NO-SILENT-001).
+  printf '%s {{NAME}}: not implemented yet\n' "$DEVBIN_NAME"
+  printf '  edit: %s\n' "${BASH_SOURCE[0]}"
+
+  # Exit 3 means "resolves but is not built yet", which is what this is until
+  # you replace the two lines above. Returning 0 from an unbuilt command is the
+  # false green devbin's whole gate design exists to prevent.
+  return 3
+}
+
+main "$@"

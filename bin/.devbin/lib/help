@@ -1,0 +1,657 @@
+#!/usr/bin/env bash
+#
+# lib/help -- the help subsystem: a generated global listing, authored detail at
+# the leaf, and `--why` for everything that is NOT here.
+#
+# Sourced, not executed. Sits above lib/resolve in the layering: it asks what
+# resolves and renders the answer, and nothing below it may call back up here.
+#
+# This is design D4 built. It replaces ~92 KB of hand-maintained heredoc across
+# four launchers -- `conflab_help`, `lamplight_help`, `baize_help`, `laksa_help`
+# -- each of which kept a command list its own dispatcher had to be kept in step
+# with by hand. There is nothing to keep in step now: the listing is whatever
+# `known_commands` resolves, so a command cannot be dispatchable-but-unlisted or
+# listed-but-gone. AC-07.10 asserts both directions.
+#
+# The split D4 names, and the reason for it:
+#
+#   generated at the TOP    -- what exists, what group it is in, one line each.
+#                              A fact about the registry, so deriving it is
+#                              free and hand-writing it is a drift source.
+#   authored at the LEAF    -- `help <cmd>` long-form from help/<cmd>.md. Prose
+#                              worth writing is worth writing once, by a human,
+#                              and no generator was ever going to produce the
+#                              corpus's "prod HERE MEANS THE INSTALLED BINARIES"
+#                              warning.
+#
+[ -n "${_DEVBIN_HELP_LOADED:-}" ] && return 0
+_DEVBIN_HELP_LOADED=1
+
+if [ -z "${_DEVBIN_RESOLVE_LOADED:-}" ]; then
+  # shellcheck source=lib/resolve
+  . "${DEVBIN_LIB:?lib/help needs DEVBIN_LIB set}/resolve"
+fi
+
+# Column at which the description starts in the generated listing. One constant
+# rather than a repeated literal in six printf formats: the corpus's help drifted
+# out of alignment exactly because the width lived in each heredoc.
+_HELP_COL=24
+
+# --- metadata: one source per fact (design D23) ------------------------------
+#
+# Three fields describe a command in the listing -- summary, group and args --
+# and each is read from ONE place, in this order:
+#
+#   1. config       commands.<cmd>.<field>       a project's own wording wins
+#   2. the HANDLER's own `# devbin: <field> = ` header
+#   3. the CATALOGUE row, for a command devbin ships
+#
+# Steps 2 and 3 never both answer, and that is the point of D23 rather than an
+# accident: a command devbin ships is declared by its catalogue row, a command a
+# project ships is declared by its handler file, and the two sets are disjoint.
+# So there is no precedence question between them to get wrong later.
+#
+# It was not always so. Every lib/cmd handler carried a `# devbin: summary =`
+# header AND had a catalogue row carrying the same sentence, with nothing
+# reading the header -- and by the time WP-07 came to read one they had already
+# drifted: lib/cmd/test said "Run the project's test gates" where the catalogue
+# said "Run THIS project's test gates". Two copies, one session, one word apart.
+# The headers are gone from lib/cmd; the rows own it.
+
+# handler_meta <path> <field> -- read `# devbin: <field> = <value>` from a
+# handler's leading comment block. Empty when absent.
+#
+# Only the LEADING block is scanned, and scanning stops at the first line that
+# is neither a comment nor blank. A handler that mentions `# devbin: summary`
+# in prose three hundred lines down is discussing the convention, not declaring
+# one, and the difference is exactly where the line sits.
+handler_meta() {
+  local path="$1" field="$2"
+  [ -r "$path" ] || return 1
+  awk -v field="$field" '
+    NR == 1 && /^#!/ { next }
+    /^[[:space:]]*$/ { next }
+    /^[[:space:]]*#/ {
+      line = $0
+      sub(/^[[:space:]]*#[[:space:]]*/, "", line)
+      if (line ~ ("^devbin:[[:space:]]*" field "[[:space:]]*=")) {
+        sub("^devbin:[[:space:]]*" field "[[:space:]]*=[[:space:]]*", "", line)
+        sub(/[[:space:]]+$/, "", line)
+        print line
+        exit
+      }
+      next
+    }
+    { exit }
+  ' "$path"
+}
+
+# cmd_meta <command> <field> -- summary | group | args for a command.
+cmd_meta() {
+  local cmd="$1" field="$2" v handler
+  v="$(cfg_get "commands.$cmd.$field")"
+  if [ -z "$v" ] && handler="$(resolve_handler "$cmd" 2>/dev/null)"; then
+    v="$(handler_meta "$handler" "$field" 2>/dev/null || true)"
+  fi
+  if [ -z "$v" ]; then
+    case "$field" in
+      summary) v="$(builtin_command_summary "$cmd" 2>/dev/null || true)" ;;
+      group) v="$(builtin_command_group "$cmd" 2>/dev/null || true)" ;;
+    esac
+  fi
+  printf '%s\n' "$v"
+  return 0
+}
+
+# opt_meta <command> <option> <field> -- the same three-step read, one level
+# down. A sub-handler describes itself by the same header its parent uses (D3:
+# one rule at every depth).
+opt_meta() {
+  local cmd="$1" opt="$2" field="$3" v handler
+  v="$(cfg_get "commands.$cmd.options.$opt.$field")"
+  if [ -z "$v" ] && handler="$(resolve_handler "$cmd" 2>/dev/null)"; then
+    if is_handler "$handler.d/$opt"; then
+      v="$(handler_meta "$handler.d/$opt" "$field" 2>/dev/null || true)"
+    fi
+  fi
+  if [ -z "$v" ] && [ "$field" = summary ]; then
+    v="$(builtin_option_summary "$cmd" "$opt" 2>/dev/null || true)"
+  fi
+  printf '%s\n' "$v"
+  return 0
+}
+
+# --- groups ------------------------------------------------------------------
+
+# _group_label <entry> -- the heading printed for a declared group entry.
+# _group_name <entry>  -- the name commands match against.
+#
+# They differ so an annotation survives. The corpus heads its test section
+# "Test (SEALED gates -- the verdict is a FILE, not a scroll-past)", which is
+# authored prose doing real work, and `nothing authored is discarded` (AC-07.11)
+# has to mean it too. A sequence of maps would be the obvious way to carry a
+# name and a note separately and is OUTSIDE the config subset by D7, so the
+# annotation rides in the entry itself: everything before the first ` (` is the
+# name, the whole entry is the heading.
+_group_name() {
+  printf '%s\n' "${1%% (*}"
+}
+
+# _declared_groups -- help.groups in declared order, one entry per line.
+_declared_groups() {
+  local i
+  for i in $(cfg_list help.groups); do
+    cfg_get "help.groups.$i"
+  done
+  return 0
+}
+
+# _group_label <name> -- the declared entry whose name is <name>, or <name>
+# itself when config never named it.
+_group_label() {
+  local want="$1" entry
+  while IFS= read -r entry; do
+    [ -n "$entry" ] || continue
+    [ "$(_group_name "$entry")" = "$want" ] && {
+      printf '%s\n' "$entry"
+      return 0
+    }
+  done <<EOF
+$(_declared_groups)
+EOF
+  printf '%s\n' "$want"
+  return 0
+}
+
+# command_group <command> -- the group heading a command sits under, or empty.
+command_group() {
+  cmd_meta "$1" group
+}
+
+# _group_table <commands> -- one `<group><TAB><command>` line per command.
+#
+# Built ONCE and passed to both the ordering pass and the render pass, because
+# `command_group` is not cheap: cmd_meta falls through to handler_meta, which
+# forks an awk per handler. Asking it again inside a groups x commands double
+# loop turned a listing into ~130 forks. This is the same shape as the config
+# cache -- read the expensive thing once, then it is string handling.
+#
+# Ungrouped commands get an EMPTY first field, which sorts them into the
+# catch-all without needing a sentinel name a real group might collide with.
+_group_table() {
+  local cmd
+  while IFS= read -r cmd; do
+    [ -n "$cmd" ] || continue
+    printf '%s\t%s\n' "$(command_group "$cmd")" "$cmd"
+  done <<EOF
+$1
+EOF
+  return 0
+}
+
+# _group_order <table> -- every NON-EMPTY group to print, in display order.
+#
+# Declared groups first, in the order config lists them, but ONLY those that
+# actually have a command here: a project that names five groups and activates
+# two must not get three empty headings. Then any group a command declared that
+# config did not name, in first-seen order -- which is the catalogue's order for
+# built-ins, and that is why the catalogue's command rows are grouped rather
+# than alphabetised.
+#
+# The ungrouped set is deliberately NOT emitted here as a trailing empty line.
+# It was, and command substitution strips trailing newlines, so the catch-all
+# vanished exactly when it was the only thing left to print. print_help handles
+# it explicitly instead -- a sentinel that a `$(...)` can eat is not a sentinel.
+_group_order() {
+  local table="$1" entry name line g seen=" "
+  while IFS= read -r entry; do
+    [ -n "$entry" ] || continue
+    name="$(_group_name "$entry")"
+    case "$seen" in *" $name "*) continue ;; esac
+    case "$(printf '%s' "$table")" in
+      "$name	"* | *"
+$name	"*)
+        seen="$seen$name "
+        printf '%s\n' "$name"
+        ;;
+    esac
+  done <<EOF
+$(_declared_groups)
+EOF
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    g="${line%%	*}"
+    [ -n "$g" ] || continue
+    case "$seen" in *" $g "*) continue ;; esac
+    seen="$seen$g "
+    printf '%s\n' "$g"
+  done <<EOF
+$table
+EOF
+  return 0
+}
+
+# _group_members <table> <group> -- the commands in one group, in listing order.
+#
+# Split with parameter expansion rather than `IFS=<tab> read -r g cmd`, and the
+# difference is not cosmetic: TAB is an IFS *whitespace* character, so bash
+# strips a leading one and shifts every field left. An ungrouped command's row
+# is "<TAB>name", which read as group="name" with no command -- so the command
+# printed its own name as a group heading and then appeared under nothing.
+# A non-whitespace separator would not have this behaviour, which is exactly why
+# it is easy to write and hard to see.
+_group_members() {
+  local line g cmd
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    g="${line%%	*}"
+    cmd="${line#*	}"
+    [ -n "$cmd" ] || continue
+    [ "$g" = "$2" ] && printf '%s\n' "$cmd"
+  done <<EOF
+$1
+EOF
+  return 0
+}
+
+# --- provenance (--why) ------------------------------------------------------
+
+# command_origin <command> -- where this command resolved from, in the words of
+# D2's order. The whole value of `--why`: three of these four answers are
+# invisible from the listing alone, and the resolution order has been got wrong
+# three times in this codebase precisely because nothing displayed it.
+command_origin() {
+  local cmd="$1" mapped
+  if is_handler "$DEVBIN_DIR/cmd/$cmd"; then
+    printf 'project handler %s\n' "${DEVBIN_DIR#"$PROJECT_ROOT"/}/cmd/$cmd"
+    return 0
+  fi
+  mapped="$(cfg_get "commands.$cmd.handler")"
+  if [ -n "$mapped" ]; then
+    printf 'project handler %s (mapped)\n' "$mapped"
+    return 0
+  fi
+  if cfg_has "commands.$cmd.run"; then
+    printf 'config commands.%s.run\n' "$cmd"
+    return 0
+  fi
+  if is_handler "${DEVBIN_LIB:-}/cmd/$cmd"; then
+    printf 'devbin lib/cmd/%s\n' "$cmd"
+    return 0
+  fi
+  if builtin_has_default_run "$cmd" 2>/dev/null; then
+    printf 'devbin catalogue\n'
+    return 0
+  fi
+  if [ -n "$(command_options "$cmd")" ]; then
+    printf 'its options\n'
+    return 0
+  fi
+  # D18 tier 4, and worth its own sentence rather than being lumped in with a
+  # broken declaration below. `build` reaching here is the design working: four
+  # projects have four disjoint target lists, so devbin ships the NAME and the
+  # project says what it runs. Reporting that as "unrunnable" reads as a defect.
+  if is_builtin_command "$cmd"; then
+    printf 'devbin ships the name only -- declare commands.%s.run or add %s/cmd/%s\n' \
+      "$cmd" "${DEVBIN_DIR#"$PROJECT_ROOT"/}" "$cmd"
+    return 0
+  fi
+  printf 'nothing -- declared but unrunnable\n'
+  return 0
+}
+
+# option_origin <command> <option> -- the same question one level down.
+option_origin() {
+  local cmd="$1" opt="$2" handler
+  if has_project_handler "$cmd"; then
+    handler="$(resolve_handler "$cmd" 2>/dev/null)" || handler=""
+    if [ -n "$handler" ] && is_handler "$handler.d/$opt"; then
+      printf 'project sub-handler %s\n' "${handler#"$PROJECT_ROOT"/}.d/$opt"
+    else
+      printf 'project handler %s\n' "${handler#"$PROJECT_ROOT"/}"
+    fi
+    return 0
+  fi
+  if cfg_has "commands.$cmd.options.$opt.run"; then
+    printf 'config commands.%s.options.%s.run\n' "$cmd" "$opt"
+    return 0
+  fi
+  if builtin_option_run "$cmd" "$opt" >/dev/null 2>&1; then
+    printf 'devbin catalogue\n'
+    return 0
+  fi
+  printf 'nothing -- declared but unrunnable\n'
+  return 0
+}
+
+# --- rendering ---------------------------------------------------------------
+
+# _print_row <indent> <left> <right> -- one two-column line.
+#
+# A left column wider than the gutter wraps onto its own line rather than
+# pushing the description out of alignment. The corpus solved this by keeping
+# names short enough not to hit it, which is a rule nobody can enforce.
+_print_row() {
+  local indent="$1" left="$2" right="$3" width
+  width=$((_HELP_COL - ${#indent}))
+  if [ -z "$right" ]; then
+    printf '%s%s\n' "$indent" "$left"
+  elif [ "${#left}" -ge "$width" ]; then
+    printf '%s%s\n' "$indent" "$left"
+    printf '%s%*s%s\n' "$indent" "$width" "" "$right"
+  else
+    printf '%s%-*s%s\n' "$indent" "$width" "$left" "$right"
+  fi
+}
+
+# _print_command <command> <why> -- one command and its active options.
+_print_command() {
+  local cmd="$1" why="$2" left opt args count=0
+  args="$(cmd_meta "$cmd" args)"
+  left="$cmd${args:+ $args}"
+  _print_row '  ' "$left" "$(cmd_meta "$cmd" summary)"
+  [ -n "$why" ] && _print_row '  ' '' "from: $(command_origin "$cmd")"
+  while IFS= read -r opt; do
+    [ -n "$opt" ] || continue
+    count=$((count + 1))
+    args="$(opt_meta "$cmd" "$opt" args)"
+    _print_row '    ' "$opt${args:+ $args}" "$(opt_meta "$cmd" "$opt" summary)"
+    [ -n "$why" ] && _print_row '    ' '' "from: $(option_origin "$cmd" "$opt")"
+  done <<EOF
+$(command_options "$cmd")
+EOF
+  # `all` is listed because the FRAMEWORK provides it, not because config
+  # declares it (D8). Listed whenever the command has options, including when it
+  # has exactly one: `all` works either way, and a working command that help
+  # does not mention is worse than one redundant line.
+  [ "$count" -ge 1 ] && _print_row '    ' 'all' 'every option above, one pass'
+  return 0
+}
+
+# _print_shared_options -- the block the corpus carried as `--env` / `--bin`.
+#
+# Framework-owned options (D20) are listed alongside the project's own, because
+# they are parsed on every invocation whether or not config mentions them. An
+# option that works and is documented nowhere is the same discoverability
+# failure as a command that works and is not listed.
+_print_shared_options() {
+  local name shown="" left values i v summary
+  for name in $(cfg_list options); do
+    [ -n "$name" ] || continue
+    values=""
+    for i in $(cfg_list "options.$name.values"); do
+      v="$(cfg_get "options.$name.values.$i")"
+      values="${values:+$values|}$v"
+    done
+    if _shared_option_is_flag "$name"; then
+      left="--$name"
+    else
+      left="--$name <${values:-value}>"
+    fi
+    [ -z "$shown" ] && printf '\nShared options (after the command):\n'
+    shown=yes
+    _print_row '  ' "$left" "$(cfg_get "options.$name.summary")"
+  done
+  for name in $(framework_options); do
+    _shared_option_in_config "$name" && continue
+    [ -z "$shown" ] && printf '\nShared options (after the command):\n'
+    shown=yes
+    summary="$(framework_option_summary "$name")"
+    _print_row '  ' "--$name" "$summary"
+  done
+  return 0
+}
+
+# _print_unavailable -- everything devbin ships that is NOT offered here, and
+# why. The second half of `--why`, and the half that fixes a real failure: a
+# project where `test mix` is inactive shows nothing at all, so D11's language
+# scoping and D22's opt-in axis read as devbin being broken rather than as
+# configuration doing its job.
+_print_unavailable() {
+  local cmd opt reason shown=""
+  while IFS= read -r cmd; do
+    [ -n "$cmd" ] || continue
+    if reason="$(command_unavailable_reason "$cmd")"; then
+      [ -z "$shown" ] && printf '\nNot offered here:\n'
+      shown=yes
+      _print_row '  ' "$cmd" "$reason"
+      continue
+    fi
+    command_active "$cmd" || continue
+    while IFS= read -r opt; do
+      [ -n "$opt" ] || continue
+      if reason="$(option_unavailable_reason "$cmd" "$opt")"; then
+        [ -z "$shown" ] && printf '\nNot offered here:\n'
+        shown=yes
+        _print_row '  ' "$cmd $opt" "$reason"
+      fi
+    done <<EOF
+$(builtin_options_for "$cmd")
+EOF
+  done <<EOF
+$(builtin_commands)
+EOF
+  [ -z "$shown" ] && printf '\nEverything devbin ships is offered here.\n'
+  return 0
+}
+
+# print_help [--why] -- the generated global listing.
+print_help() {
+  local why="" cmds table group cmd preamble alias tagline shown
+  [ "${1:-}" = --why ] && why=yes
+
+  tagline="$(cfg_get help.tagline 'dev launcher')"
+  printf '%s -- %s\n' "$DEVBIN_NAME" "$tagline"
+
+  preamble="$(cfg_get help.preamble)"
+  [ -n "$preamble" ] && printf '\n%s\n' "$preamble"
+
+  printf '\nUsage:\n'
+  _print_row '  ' "bin/$DEVBIN_NAME <command> [options] [args]" ''
+  alias="$(cfg_get project.alias)"
+  [ -n "$alias" ] && _print_row '  ' "bin/$alias <command> ..." '(short alias)'
+
+  cmds="$(known_commands)"
+  if [ -z "$cmds" ]; then
+    printf '\nNo commands are active in this project.\n'
+    printf 'Declare one in %s, or drop a handler into %s/cmd/.\n' \
+      "${DEVBIN_DIR:-bin/.devbin}/config.yaml" "${DEVBIN_DIR:-bin/.devbin}"
+    return 0
+  fi
+
+  table="$(_group_table "$cmds")"
+  while IFS= read -r group; do
+    [ -n "$group" ] || continue
+    printf '\n%s:\n' "$(_group_label "$group")"
+    while IFS= read -r cmd; do
+      [ -n "$cmd" ] || continue
+      _print_command "$cmd" "$why"
+    done <<EOF
+$(_group_members "$table" "$group")
+EOF
+  done <<EOF
+$(_group_order "$table")
+EOF
+
+  # The catch-all, printed explicitly and last. A command with no group anywhere
+  # -- no config, no handler header, no catalogue row -- is a project handler
+  # somebody just dropped in, and dropping it from the listing for want of a
+  # heading is the one thing help must never do (AC-07.2).
+  shown="$(_group_members "$table" '')"
+  if [ -n "$shown" ]; then
+    printf '\nOther:\n'
+    while IFS= read -r cmd; do
+      [ -n "$cmd" ] || continue
+      _print_command "$cmd" "$why"
+    done <<EOF
+$shown
+EOF
+  fi
+
+  printf '\nGlobal:\n'
+  _print_row '  ' 'help [command]' 'This help, or detail for one command'
+  _print_row '  ' 'help --why' 'The listing, plus what is not here and why'
+  _print_row '  ' '-v, --version' 'Print the project version'
+
+  _print_shared_options
+
+  [ -n "$why" ] && _print_unavailable
+
+  # No backticks around the command: shellcheck reads a backtick inside a
+  # single-quoted printf format as an attempt at command substitution (SC2016),
+  # and the quoting they add is decoration in terminal output anyway.
+  printf '\nRun: bin/%s help <command>   for detail on one command.\n' "$DEVBIN_NAME"
+  # Explicit: the line above is unconditional, but the `[ -n "$why" ]` before it
+  # is not, and a function returns its LAST statement's status. This codebase's
+  # house defect, four sightings before this one.
+  return 0
+}
+
+# --- authored detail ---------------------------------------------------------
+
+# help_file <command> [sub...] -- the authored markdown for a topic, or nothing.
+#
+# Descends `help/<cmd>.d/<sub>.md` by the SAME rule exec_handler descends
+# `cmd/<cmd>.d/<sub>` (D3), so `help test mix` finds authored prose for a
+# sub-topic exactly where `test mix` finds its handler. A word with no file
+# behind it stops the descent, and the nearest enclosing topic answers.
+help_file() {
+  local base="${DEVBIN_DIR:-}/help/$1"
+  shift
+  while [ $# -gt 0 ] && [ -f "$base.d/$1.md" ]; do
+    base="$base.d/$1"
+    shift
+  done
+  [ -f "$base.md" ] || return 1
+  printf '%s\n' "$base.md"
+  return 0
+}
+
+# print_topic <command> [sub...] -- authored long-form, or a generated answer.
+print_topic() {
+  local cmd="$1" file reason opt count=0 args
+  if ! is_command "$cmd"; then
+    # Inactive is not unknown, and saying so is D11's whole point one more time.
+    # `devbin help iex` in a shell project should explain itself, not imply the
+    # reader misremembered the name.
+    if reason="$(command_unavailable_reason "$cmd")"; then
+      warn "'$DEVBIN_NAME $cmd' is not available here: $reason"
+    else
+      warn "unknown command: $cmd (try: bin/$DEVBIN_NAME help)"
+    fi
+    return 2
+  fi
+
+  if file="$(help_file "$@")"; then
+    cat "$file"
+    return 0
+  fi
+
+  # No authored file. Answer anyway, from what resolution already knows -- an
+  # empty page here would be the framework declining to say what it plainly
+  # knows (AC-07.6).
+  args="$(cmd_meta "$cmd" args)"
+  printf '%s %s%s\n' "$DEVBIN_NAME" "$cmd" "${args:+ $args}"
+  printf '\n%s\n' "$(cmd_meta "$cmd" summary)"
+  printf '\nResolves from: %s\n' "$(command_origin "$cmd")"
+  while IFS= read -r opt; do
+    [ -n "$opt" ] || continue
+    [ "$count" -eq 0 ] && printf '\nOptions:\n'
+    count=$((count + 1))
+    args="$(opt_meta "$cmd" "$opt" args)"
+    _print_row '  ' "$opt${args:+ $args}" "$(opt_meta "$cmd" "$opt" summary)"
+  done <<EOF
+$(command_options "$cmd")
+EOF
+  [ "$count" -ge 1 ] && _print_row '  ' 'all' 'every option above, one pass'
+  printf '\nNo authored detail yet. Write it at %s/help/%s.md\n' \
+    "${DEVBIN_DIR#"$PROJECT_ROOT"/}" "$cmd"
+  return 0
+}
+
+# help_main [args...] -- the entry point the dispatcher calls.
+#
+# Help parses its OWN flags, and is answered before parse_common_opts on
+# purpose: asking for help must not be able to FAIL on a bad shared-option
+# value, because help is the thing a person reaches for when they got the value
+# wrong. `devbin help --env nope` prints help; it does not report that `nope` is
+# not a valid environment.
+#
+# So a declared shared option is DISCARDED here rather than applied -- with its
+# value, when it takes one -- while an undeclared flag is refused. Both halves
+# matter: silently accepting `--wyh` would print the listing and leave the
+# reader believing they had asked for something.
+#
+# The loop shape resembles parse_common_opts and the knowledge does not: what
+# counts as a shared option is still answered by _shared_option_declared, in one
+# place. This one throws them away, that one applies them.
+help_main() {
+  local why="" name
+  local -a topic=()
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --why)
+        why=yes
+        shift
+        ;;
+      why)
+        # `--why` is always the flag. Bare `why` is the flag too, UNLESS the
+        # project ships a command called `why` -- then its topic wins, because a
+        # command help cannot describe is worse than a flag with one spelling.
+        if is_command why; then
+          topic+=("$1")
+        else
+          why=yes
+        fi
+        shift
+        ;;
+      -h | --help)
+        # Help answering its own -h with "unknown help option" is the one answer
+        # it must never give: this is what somebody types when they are already
+        # lost.
+        shift
+        ;;
+      --*=*)
+        name="${1%%=*}"
+        name="${name#--}"
+        _shared_option_declared "$name" || {
+          warn "unknown help option: $1 (try: bin/$DEVBIN_NAME help)"
+          return 2
+        }
+        shift
+        ;;
+      --* | -?*)
+        name="${1#--}"
+        _shared_option_declared "$name" || {
+          warn "unknown help option: $1 (try: bin/$DEVBIN_NAME help)"
+          return 2
+        }
+        if _shared_option_is_flag "$name"; then
+          shift
+        else
+          # Consume its value too, when there is one. A trailing `--env` with
+          # nothing after it is not an error here: help is not applying it.
+          [ $# -ge 2 ] && shift
+          shift
+        fi
+        ;;
+      *)
+        topic+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  # Guarded expansion: an empty array under `set -u` aborts on bash 3.2, the
+  # /bin/bash on every Mac (design D9).
+  set -- "${topic[@]+"${topic[@]}"}"
+  if [ $# -eq 0 ]; then
+    if [ -n "$why" ]; then
+      print_help --why
+    else
+      print_help
+    fi
+    return 0
+  fi
+  print_topic "$@"
+}

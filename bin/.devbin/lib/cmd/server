@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#
+# The built-in `server`. It exists as a handler rather than a catalogue command
+# line for one reason: `--iex` selects between TWO command lines, and a table
+# row holds one.
+#
+# What is shared across the corpus is exactly this conditional. Everything
+# around it is not: Laksa prints a banner of URLs, Conflab sources config/.env,
+# and Lamplight selects an umbrella app with a directory and a surfaces banner
+# each. None of that belongs to a framework, and a project that wants it either
+# declares its own `run:` -- which wins over this file, see run_command -- or
+# ships a project handler, which shadows it entirely.
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+
+# At the project root, as every corpus runner did, and as run_command does for a
+# declared `run:`. The dispatcher exec's this file without cd'ing.
+cd "${PROJECT_ROOT:?}" || die "cannot enter $PROJECT_ROOT"
+
+# DEVBIN_OPT_IEX is devbin's canonical name for a framework-owned option (D20).
+# It is set whatever the project called its own export, which is what lets this
+# shipped handler read the flag without asking config anything.
+#
+# Two command lines, NOT one with a prefix. For `server` the iex form happens to
+# be the plain form with `iex -S` in front; for Lamplight's `wrighter` it is not
+# -- plain runs a launcher expression and `--iex` drops it for a bare shell. A
+# framework option selects which command line runs; it does not transform one.
+if [ "${DEVBIN_OPT_IEX:-false}" = true ]; then
+  exec iex -S mix phx.server "$@"
+fi
+exec mix phx.server "$@"

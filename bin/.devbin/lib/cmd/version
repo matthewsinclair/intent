@@ -1,0 +1,309 @@
+#!/usr/bin/env bash
+#
+# The built-in `version`. D18 tiers it 1 -- all four corpus projects have the
+# same three sub-commands over the same semver logic -- and it is the family
+# with the most real code and the most risk in it.
+#
+# THE SUB-COMMANDS ARE NOT CATALOGUE OPTIONS, deliberately. An option set gets a
+# synthesised `all` (D8), and `version all` -- show, then set, then bump, then
+# sync -- is nonsense at best. These are sub-commands of a tier-1 handler.
+#
+#   (bare)     print "<name> <version>"
+#   show       print the bare number, for scripting
+#   set <v>    write <v> to the version file and every sidecar
+#   bump <p>   advance major|minor|patch and write
+#   sync       re-apply the CURRENT version everywhere, healing drift
+#   check      report drift, write nothing, exit non-zero if any
+#
+# TWO INVARIANTS, both learned the hard way in the corpus and both load-bearing.
+#
+# 1. DERIVED FILES FIRST, THE VERSION FILE LAST. Baize states the rule: a
+#    partial failure then leaves the version file un-advanced, so re-running
+#    `bump patch` recomputes the SAME target and retries cleanly. Write the
+#    version file first and a failure halfway leaves it advanced, so the rerun
+#    bumps again -- a double-bump on top of a half-synced tree. Conflab writes
+#    it first and has `sync`/`check` to heal the drift that causes, which is
+#    treating the symptom. Raised against Conflab rather than fixed from here.
+#
+# 2. THE SYNC IS UNCONDITIONAL. Conflab's comment records the shipped defect:
+#    an earlier "only if the current version differs" gate skipped sidecar
+#    healing whenever the version file already held the target, so a tree with
+#    the version bumped in one commit and a plist lagging shipped a wrong
+#    CFBundleShortVersionString at v0.3.2. Always write; let git decide what
+#    actually changed.
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+
+cd "${PROJECT_ROOT:?}" || die "cannot enter $PROJECT_ROOT"
+
+version_file="${DEVBIN_VERSION_FILE:-VERSION}"
+
+usage() {
+  printf 'usage: %s version [show|set <version>|bump <major|minor|patch>|sync|check]\n' \
+    "${DEVBIN_NAME:-devbin}"
+}
+
+# sidecars -- the declared mirror files, one per line, absent ones included so
+# they can be reported rather than silently skipped.
+sidecars() {
+  printf '%s' "${DEVBIN_VERSION_SIDECARS:-}"
+}
+
+# READING IS read_version's JOB, not this file's.
+#
+# The first draft of this command had its own per-kind extractors, and they
+# disagreed with read_version's within an hour: read_version anchors mix.exs's
+# `version:` at the start of a line and the copy here did not. A reader and a
+# writer that disagree about which line they mean is the precise mechanism by
+# which `check` reports a file clean that `set` would rewrite differently.
+#
+# So the write recipes below MIRROR read_version's patterns deliberately, and
+# `check` reads through read_version rather than around it.
+
+# THERE IS DELIBERATELY NO Cargo.lock RECIPE, and Conflab declares two of them.
+#
+# A lockfile carries a `version` for every package in the graph, so a recipe has
+# to know WHICH entries are this project's own -- and it cannot derive that from
+# the file. Conflab's own `sync_cargo_lock` hardcodes `conflab` and `conflabd`;
+# devbin has no equivalent to hardcode.
+#
+# The two derivations that look available both fail. Bumping every entry whose
+# version matches the project's would corrupt any third-party dependency that
+# happens to share the number. Taking the package names from the project's
+# declared `Cargo.toml` sidecars does work -- but it would have to work for the
+# READER too, and `read_version` lives in `lib/helpers`, which has no
+# dependencies by rule (D15) and so cannot consult config. A recipe present in
+# the writer and absent from the reader is precisely the asymmetry the comment
+# above ("READING IS read_version's JOB") exists to prevent.
+#
+# So the guard below refuses a Cargo.lock by name and says what to do instead.
+# Whether a migrated project syncs its locks from its own command is that
+# project's call, not the framework's (issue 0002).
+
+# assert_bare_version_sidecar <file> -- refuse a sidecar the bare-version
+# default would destroy rather than rewrite.
+#
+# The default writes the version over the WHOLE file. For the version file that
+# is the entire job. For a sidecar it is a guess about a file the PROJECT chose,
+# and the guess is unchecked: devbin dispatches on basename and then writes
+# content it never looked at.
+#
+# Conflab declares two `Cargo.lock` sidecars. Before this guard each was
+# replaced by five bytes and the run exited 0; `check` then reported the tree
+# clean, and the cure `check` advertised -- `version sync` -- was the command
+# that did it (issue 0002).
+#
+# It asks the FILE, not its name. A guard keyed on "a basename I recognise"
+# would refuse `plain.txt`, which is a documented, tested and perfectly good
+# sidecar: a second file holding nothing but the version.
+
+# holds_nothing <file> -- true when the file is empty or whitespace-only.
+#
+# ONE emptiness rule, shared by the write guard below and report_drift. The
+# guard treats an empty sidecar as legal -- freshly created, nothing to destroy
+# -- so the drift reporter must classify the same file as DRIFTED, healable by
+# the `sync` that will legally fill it, and never as unreadable: unreadable's
+# advice is to un-declare the sidecar, which deletes config that works (delta
+# review, finding 4).
+holds_nothing() {
+  [ -z "$(tr -d '[:space:]' <"$1" 2>/dev/null)" ]
+}
+
+assert_bare_version_sidecar() {
+  local file="$1" content
+  # Empty: there is nothing to destroy, and a freshly-created sidecar is legal.
+  holds_nothing "$file" && return 0
+  content="$(tr -d '[:space:]' <"$file" 2>/dev/null)" || content=""
+  is_bare_version "$content" && return 0
+  die "cannot write the version into $file -- devbin has no recipe for this kind of file
+       It holds more than a version, so writing the bare version over it would
+       destroy its contents. Nothing has been written and the version file is
+       un-advanced, so fixing this and re-running is clean.
+       Recipes exist for: a bare-version file, mix.exs, Cargo.toml, package.json, *.plist.
+       Either drop it from project.version_sidecars, or have the project's own
+       command sync it."
+}
+
+# write_version_into <file> <version> [role] [phase] -- apply the recipe for
+# this file's kind. `role` is `sidecar` (the default) or `version-file`; it
+# selects nothing except whether the bare-version default is a known fact or a
+# guess. `phase` is `write` (the default) or `preflight`: preflight raises
+# every refusal this file could raise -- existence, the bare-sidecar guard, the
+# PlistBuddy requirement -- and stops short of mutating anything.
+#
+# Preflight exists because the guards used to fire mid-loop, INSIDE the write
+# pass: with sidecars [Cargo.toml, Cargo.lock] the .toml was already rewritten
+# when the .lock was refused, while the refusal said "Nothing has been written"
+# -- the command that reported writing nothing had introduced exactly the drift
+# it polices, and `version check` then flagged it (delta review, finding 3).
+# Refusing every file before touching any is what makes the message true.
+write_version_into() {
+  local file="$1" version="$2" role="${3:-sidecar}" phase="${4:-write}"
+  [ -f "$file" ] ||
+    die "version sidecar does not exist: $file
+       Declared in project.version_sidecars. Fix the path or remove the entry --
+       a sidecar that is silently skipped is how a tree drifts."
+  case "$(basename "$file")" in
+    Cargo.toml)
+      if [ "$phase" = preflight ]; then return 0; fi
+      # Anchored exactly as read_version's `/^version *= *"/` is.
+      sed_inplace "s/^version *= *\"[^\"]*\"/version = \"$version\"/" "$file"
+      ;;
+    mix.exs)
+      if [ "$phase" = preflight ]; then return 0; fi
+      # Anchored exactly as read_version's `/^ *version: *"/` is -- leading
+      # whitespace preserved, because it is indented inside `def project`.
+      sed_inplace "s/^\\( *\\)version: *\"[^\"]*\"/\\1version: \"$version\"/" "$file"
+      ;;
+    package.json)
+      if [ "$phase" = preflight ]; then return 0; fi
+      sed_inplace "s/\"version\"\([[:space:]]*\):\([[:space:]]*\)\"[^\"]*\"/\"version\"\1:\2\"$version\"/" "$file"
+      ;;
+    *.plist)
+      # PlistBuddy is macOS-only. DIE rather than skip: a skipped plist is
+      # precisely the silent drift invariant 2 exists to prevent, and because
+      # every file is preflighted before any is written, dying here leaves a
+      # re-runnable tree.
+      [ -x /usr/libexec/PlistBuddy ] ||
+        die "cannot write $file -- PlistBuddy is macOS-only, and skipping it would leave the tree drifted
+       Run 'version set' or 'version bump' on macOS. Nothing has been advanced."
+      if [ "$phase" = preflight ]; then return 0; fi
+      /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" "$file"
+      ;;
+    *)
+      # The bare-version default. Correct by construction for the version file
+      # -- that is what `version_from` names -- and a guess for a sidecar, so
+      # the sidecar path checks the file first.
+      [ "$role" = version-file ] || assert_bare_version_sidecar "$file"
+      if [ "$phase" = preflight ]; then return 0; fi
+      printf '%s\n' "$version" >"$file"
+      ;;
+  esac
+}
+
+# apply_version <version> -- write it everywhere, derived files FIRST.
+#
+# TWO passes. The first is preflight: every file raises any refusal it is
+# going to raise while the tree is still exactly as it was, so a refusal never
+# strands a half-written set. Only when every file has passed does the write
+# pass run. See write_version_into for the defect this closed.
+apply_version() {
+  local version="$1" file
+  assert_semver "$version"
+  while IFS= read -r file; do
+    [ -n "$file" ] || continue
+    write_version_into "$file" "$version" sidecar preflight
+  done <<EOF
+$(sidecars)
+EOF
+  write_version_into "$version_file" "$version" version-file preflight
+  while IFS= read -r file; do
+    [ -n "$file" ] || continue
+    write_version_into "$file" "$version"
+  done <<EOF
+$(sidecars)
+EOF
+  # LAST, and only once every sidecar has succeeded. See invariant 1. The role
+  # is what tells write_version_into that the bare-version default is a fact
+  # here rather than a guess: this file is the one `version_from` names.
+  write_version_into "$version_file" "$version" version-file
+  return 0
+}
+
+# report_drift -- print every sidecar disagreeing with the version file.
+# Returns non-zero when any does.
+# Set by report_drift alongside its exit status: 1 when at least one sidecar
+# could not be READ, as distinct from read and found to disagree. A shell
+# function has one exit code and this is the second fact the caller needs --
+# "drifted" is a claim about a comparison that happened, and saying it about a
+# file devbin never parsed is the gate asserting something it did not verify.
+DEVBIN_VERSION_UNREADABLE=0
+
+report_drift() {
+  local want file have reason drift=0
+  DEVBIN_VERSION_UNREADABLE=0
+  want="$(read_version)"
+  while IFS= read -r file; do
+    [ -n "$file" ] || continue
+    if [ ! -f "$file" ]; then
+      warn "missing: $file"
+      drift=1
+      continue
+    fi
+    have="$(read_version "$file")"
+    if [ "$have" = unknown ] && holds_nothing "$file"; then
+      # Empty is LEGAL to write (see holds_nothing): this is drift that `sync`
+      # heals, not an unreadable file the user must un-declare.
+      printf '  %-40s empty (expected %s)\n' "$file" "$want"
+      drift=1
+    elif [ "$have" = unknown ]; then
+      reason="devbin has no recipe for this kind of file"
+      case "$file" in
+        # There IS a recipe for a plist; what is missing is the tool. Saying
+        # "no recipe" here sends the user to delete a declaration that works
+        # everywhere the tree is actually released from.
+        *.plist) [ -x /usr/libexec/PlistBuddy ] || reason="PlistBuddy is macOS-only, and this is not macOS" ;;
+      esac
+      printf '  %-40s unreadable -- %s\n' "$file" "$reason"
+      DEVBIN_VERSION_UNREADABLE=1
+      drift=1
+    elif [ "$have" != "$want" ]; then
+      printf '  %-40s %s (expected %s)\n' "$file" "$have" "$want"
+      drift=1
+    fi
+  done <<EOF
+$(sidecars)
+EOF
+  return "$drift"
+}
+
+case "${1:-}" in
+  "")
+    printf '%s %s\n' "${DEVBIN_NAME:-devbin}" "$(read_version)"
+    ;;
+  show)
+    # read_version emits no terminator (every extractor path strips it), and a
+    # bare number with no newline glues itself to the next prompt and breaks
+    # line-oriented readers. The corpus's own show printed the newline; found
+    # by the Laksa migration's first probe.
+    # shellcheck disable=SC2119  # the bare call IS the point: version-file role
+    printf '%s\n' "$(read_version)"
+    ;;
+  set)
+    [ $# -ge 2 ] || die "version set needs a version (eg: version set 1.2.3)"
+    apply_version "$2"
+    printf '%s\n' "$(read_version)"
+    ;;
+  bump)
+    [ $# -ge 2 ] || die "version bump needs a part (major, minor or patch)"
+    apply_version "$(bump_semver "$(read_version)" "$2")"
+    printf '%s\n' "$(read_version)"
+    ;;
+  sync)
+    # Unconditional, by design. See invariant 2.
+    apply_version "$(read_version)"
+    printf '%s\n' "$(read_version)"
+    ;;
+  check)
+    if report_drift; then
+      printf 'version: %s, every sidecar agrees\n' "$(read_version)"
+    elif [ "$DEVBIN_VERSION_UNREADABLE" = 1 ]; then
+      # Naming `sync` here would send the reader at a command that refuses this
+      # file too. The fix is in the config, not in a heal.
+      die "a declared sidecar cannot be read (above) -- 'version sync' will refuse it as well.
+       Drop it from project.version_sidecars, or have the project's own command sync it."
+    else
+      die "version sidecars have drifted (heal with: ${DEVBIN_NAME:-devbin} version sync)"
+    fi
+    ;;
+  -h | --help)
+    usage
+    ;;
+  *)
+    usage
+    die "unknown version sub-command: $1"
+    ;;
+esac

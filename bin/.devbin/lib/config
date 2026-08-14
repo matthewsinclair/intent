@@ -1,0 +1,388 @@
+#!/usr/bin/env bash
+#
+# lib/config -- the devbin configuration reader.
+#
+# Sourced, not executed: defines functions and sets no shell options (the
+# dispatcher owns those).
+#
+# ONE reader, no yq (design D7). The parse is a single awk pass that flattens
+# the document into `path<TAB>value` lines; every subsequent lookup is pure bash
+# over that cached text. A whole dispatch therefore costs one fork, not one per
+# key -- which matters for a launcher that sits in front of every command a
+# developer runs all day.
+#
+# The accepted grammar is a RESTRICTED SUBSET of YAML, and input outside it is
+# rejected with the file and line rather than silently misread. That refusal is
+# the design, not a limitation: it keeps every project's config readable in the
+# same shape, and a config language nobody can surprise you in is worth more
+# than one that accepts anchors.
+#
+#   Supported            two-space indent, nested maps, `key: value`,
+#                        scalar sequences (`- item`), `#` comments,
+#                        single/double quoted scalars, blank lines, `---`
+#   Rejected             tabs, odd or jumped indent, duplicate keys,
+#                        anchors/aliases (& *), block scalars (| >),
+#                        flow collections ({ [), sequences of maps
+#
+# Public API:
+#   cfg_load <file>          parse + validate; caches into _DEVBIN_CFG
+#   cfg_get <path> [default] scalar at a dotted path, or default (or "")
+#   cfg_has <path>           true when the path has a value
+#   cfg_list <path>          immediate child keys under path, document order
+#   cfg_validate             schema check of the loaded config
+#   cfg_dump                 the flattened form (debugging, doctor)
+#
+[ -n "${_DEVBIN_CONFIG_LOADED:-}" ] && return 0
+_DEVBIN_CONFIG_LOADED=1
+
+# The flattened document. Set by cfg_load, read by every accessor.
+_DEVBIN_CFG=""
+_DEVBIN_CFG_FILE=""
+
+# --- the flattener ---------------------------------------------------------
+#
+# Emits `path<TAB>value` for every scalar leaf. Map opens emit nothing: cfg_list
+# derives child keys from leaf paths, so an interior node needs no record of its
+# own. Sequence items are emitted with a numeric segment (`groups.0`), which
+# makes them addressable by cfg_get and countable by cfg_list under one rule.
+#
+# Errors go to stderr prefixed `config:` and exit 1, so a malformed config stops
+# the dispatcher rather than producing a config that is quietly half-read
+# (IN-AG-NO-SILENT-001).
+# Held in a variable rather than produced by a function: a `cat <<EOF` helper
+# would fork once per load, and the whole point of the single-pass design is
+# that a dispatch costs one fork total.
+IFS='' read -r -d '' _DEVBIN_CFG_AWK <<'AWK' || true
+function err(msg) {
+  printf("config: %s:%d: %s\n", FILENAME, NR, msg) > "/dev/stderr"
+  bad = 1
+  exit 1
+}
+# Strip an unquoted trailing comment. Quote state is tracked character by
+# character because a `#` inside a quoted scalar is data, not a comment.
+function strip_comment(s,   i, c, q, out) {
+  q = ""
+  for (i = 1; i <= length(s); i++) {
+    c = substr(s, i, 1)
+    if (q != "") {
+      if (c == q) q = ""
+    } else if (c == "\"" || c == "'") {
+      q = c
+    } else if (c == "#") {
+      if (i == 1 || substr(s, i - 1, 1) == " ") return substr(s, 1, i - 1)
+    }
+    out = out c
+  }
+  return out
+}
+function rtrim(s) { sub(/[ \t]+$/, "", s); return s }
+function ltrim(s) { sub(/^[ \t]+/, "", s); return s }
+function trim(s)  { return rtrim(ltrim(s)) }
+function unquote(s) {
+  if (s ~ /^".*"$/) return substr(s, 2, length(s) - 2)
+  if (s ~ /^'.*'$/) return substr(s, 2, length(s) - 2)
+  return s
+}
+function joinpath(upto,   i, p) {
+  p = ""
+  for (i = 0; i <= upto; i++) p = (p == "" ? key[i] : p "." key[i])
+  return p
+}
+BEGIN { maxlevel = -1 }
+{
+  line = $0
+  if (line ~ /\t/) err("tabs are not permitted; use two spaces per level")
+  line = strip_comment(line)
+  line = rtrim(line)
+  if (line ~ /^[ ]*$/) next
+  if (line == "---") next
+
+  # Indent must be an exact multiple of two, and may only ever step IN by one
+  # level at a time. A jump means the author lost track of the nesting, and
+  # guessing which level they meant is how a config gets silently misread.
+  match(line, /^ */)
+  indent = RLENGTH
+  if (indent % 2 != 0) err("indent must be a multiple of 2 spaces, got " indent)
+  level = indent / 2
+  if (level > maxlevel + 1) err("indent jumps from level " maxlevel " to " level)
+
+  body = substr(line, indent + 1)
+
+  if (body ~ /^&/ || body ~ /^\*/) err("anchors and aliases are not supported")
+
+  if (substr(body, 1, 2) == "- ") {
+    val = trim(substr(body, 3))
+    if (val ~ /:[ ]/ || val ~ /:$/) err("sequences of maps are not supported")
+    if (val ~ /^[|>]/) err("block scalars are not supported")
+    path = joinpath(level - 1)
+    if (path == "") err("a sequence must be under a key")
+    # A key that already carried a SCALAR cannot also take sequence items.
+    # `languages: flat` followed by `- elixir` used to flatten to both
+    # `languages` and `languages.0`, and only the schema check downstream
+    # caught it -- as `unknown key`, which describes neither the mistake nor
+    # where it is. Duplicates belong to the parser, which knows the line.
+    if (path in seen) err("duplicate key `" path "`: it already has a value")
+    idx = seq[path] + 0
+    seq[path] = idx + 1
+    full = path "." idx
+    printf("%s\t%s\n", full, unquote(val))
+    maxlevel = level
+    next
+  }
+
+  ci = index(body, ":")
+  if (ci == 0) err("expected `key: value` or `- item`, got: " body)
+  k = trim(substr(body, 1, ci - 1))
+  v = trim(substr(body, ci + 1))
+  if (k == "") err("empty key")
+  if (k ~ /[^A-Za-z0-9_-]/) err("key `" k "` may contain only letters, digits, _ and -")
+
+  key[level] = k
+  # Dedent invalidates every deeper segment; clearing them stops a stale deeper
+  # key from being spliced into a later path.
+  for (i = level + 1; i <= maxlevel; i++) delete key[i]
+  maxlevel = level
+
+  full = joinpath(level)
+  if (v == "") {
+    # BOTH tables are consulted, in both branches. They were disjoint, so the
+    # same key could open a map here and carry a scalar below without either
+    # check firing -- the flattener emitted both and the schema rejected the
+    # survivor with a generic `unknown key`. One key, one shape, said here
+    # where the line number is.
+    if (full in opened || full in seen) err("duplicate key `" full "`")
+    opened[full] = 1
+    next
+  }
+  if (v ~ /^[|>]/) err("block scalars are not supported")
+  if (v ~ /^[\[{]/) err("flow collections are not supported; use block form")
+  # Checked on the VALUE, not just on the line start: `run: &base mix test`
+  # carries the anchor after the key, which is where anchors actually appear.
+  if (v ~ /^&/ || v ~ /^\*/) err("anchors and aliases are not supported")
+  if (full in seen || full in opened) err("duplicate key `" full "`")
+  seen[full] = 1
+  printf("%s\t%s\n", full, unquote(v))
+}
+END { if (bad) exit 1 }
+AWK
+
+# cfg_load <file> -- parse and cache. Dies if the file is missing or malformed.
+cfg_load() {
+  local file="$1" flat
+  if [ ! -f "$file" ]; then
+    printf 'config: no such config file: %s\n' "$file" >&2
+    return 1
+  fi
+  flat="$(awk "$_DEVBIN_CFG_AWK" "$file")" || return 1
+  _DEVBIN_CFG="$flat"
+  _DEVBIN_CFG_FILE="$file"
+  return 0
+}
+
+# cfg_load_string -- parse from stdin. Used by the tests and by `doctor --check`
+# so a config can be validated without being installed anywhere.
+#
+# FEED IT BY REDIRECTION, NEVER BY PIPE:
+#
+#   cfg_load_string <<'YAML'   # correct -- runs in this shell
+#   cfg_load_string <file      # correct
+#   printf '...' | cfg_load_string   # WRONG -- silently loses the cache
+#
+# The right-hand side of a pipe runs in a subshell, so the `_DEVBIN_CFG` it sets
+# dies with that subshell and every later cfg_get returns empty. Nothing errors;
+# the config simply reads as absent. Same reason cfg_load must not be wrapped in
+# a command substitution or BATS's `run`.
+cfg_load_string() {
+  local flat
+  flat="$(awk "$_DEVBIN_CFG_AWK" -)" || return 1
+  _DEVBIN_CFG="$flat"
+  _DEVBIN_CFG_FILE="<stdin>"
+  return 0
+}
+
+# --- accessors -------------------------------------------------------------
+#
+# Pure bash, no forks. `read` with IFS=tab splits each cached line into path and
+# value; the herestring form keeps the loop in THIS shell, so callers can rely
+# on the accessors having no side effects to lose.
+
+# cfg_get <path> [default]
+cfg_get() {
+  local want="$1" default="${2:-}" k v
+  while IFS=$'\t' read -r k v; do
+    if [ "$k" = "$want" ]; then
+      printf '%s\n' "$v"
+      return 0
+    fi
+  done <<EOF
+$_DEVBIN_CFG
+EOF
+  printf '%s\n' "$default"
+  return 0
+}
+
+# cfg_has <path> -- true when the path carries a value.
+cfg_has() {
+  local want="$1" k v
+  while IFS=$'\t' read -r k v; do
+    [ "$k" = "$want" ] && return 0
+  done <<EOF
+$_DEVBIN_CFG
+EOF
+  return 1
+}
+
+# cfg_list <path> -- immediate child keys under <path>, in document order,
+# de-duplicated. `cfg_list commands` gives the command names; `cfg_list ""`
+# gives the top-level keys. This is what makes the framework's synthesised `all`
+# (D8) possible: the option list is read, never hand-maintained.
+cfg_list() {
+  local prefix="$1" k v rest child seen_list=""
+  while IFS=$'\t' read -r k v; do
+    if [ -z "$prefix" ]; then
+      rest="$k"
+    else
+      case "$k" in
+        "$prefix".*) rest="${k#"$prefix".}" ;;
+        *) continue ;;
+      esac
+    fi
+    child="${rest%%.*}"
+    [ -n "$child" ] || continue
+    case " $seen_list " in
+      *" $child "*) continue ;;
+    esac
+    seen_list="$seen_list $child"
+    printf '%s\n' "$child"
+  done <<EOF
+$_DEVBIN_CFG
+EOF
+}
+
+# cfg_dump -- the flattened form, for doctor and for debugging a config that is
+# not behaving. Seeing the parse is usually enough to explain it.
+cfg_dump() {
+  printf '%s\n' "$_DEVBIN_CFG"
+}
+
+# --- schema ----------------------------------------------------------------
+#
+# Validation splits the path into SEGMENTS and checks its structure. The obvious
+# alternative -- one glob per legal path, `commands.*.summary` and friends --
+# looks tidier and is wrong: a `*` in a case pattern spans dots, so
+# `commands.*.summary` also matches `commands.test.options.mix.summary`. Every
+# deeper pattern is then dead code, and paths of arbitrary depth
+# (`commands.a.options.b.c.d.summary`) validate clean. Shellcheck flags the dead
+# patterns (SC2221/SC2222), which is how this was caught.
+#
+# Unknown keys are an ERROR, not a warning. A misspelled `sumary:` that is
+# quietly ignored presents as "my help text does not appear" much later, in a
+# place that gives no hint about the typo.
+
+_cfg_is_index() {
+  case "$1" in
+    '' | *[!0-9]*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
+
+# _cfg_path_known <path> -- true when the dotted path is a legal schema path.
+_cfg_path_known() {
+  local path="$1" n
+  local -a p
+  IFS='.' read -ra p <<<"$path"
+  n="${#p[@]}"
+  case "${p[0]}" in
+    devbin_version)
+      # Explicit return, like every other branch: a bare `[ "$n" -eq 1 ]` here
+      # would fall through to the `return 1` after the esac and reject the key
+      # even when the test passed.
+      [ "$n" -eq 1 ] && return 0
+      return 1
+      ;;
+    project)
+      if [ "$n" -eq 2 ]; then
+        # cli_task: the mix task the `cli` and `repl` built-ins call. Defaults
+        # to `<name>.cli`, which is what the whole first fleet uses; the Arca
+        # pair needs it because their tasks are `arca.cli` and `arca.config`.
+        case "${p[1]}" in name | alias | cli_task | root_var | version_from) return 0 ;; esac
+        return 1
+      fi
+      # project.languages.<N> -- drives which built-ins are active by default
+      # (design D11). Same axis as Intent's own config.json languages array.
+      [ "$n" -eq 3 ] && [ "${p[1]}" = languages ] && _cfg_is_index "${p[2]}" && return 0
+      # project.version_sidecars.<N> -- files that mirror the version (WP-17).
+      [ "$n" -eq 3 ] && [ "${p[1]}" = version_sidecars ] && _cfg_is_index "${p[2]}" && return 0
+      return 1
+      ;;
+    docs)
+      # docs.treeindex_dirs.<N> -- which subdirectories `docs treeindex` walks.
+      [ "$n" -eq 3 ] && [ "${p[1]}" = treeindex_dirs ] && _cfg_is_index "${p[2]}" && return 0
+      return 1
+      ;;
+    help)
+      if [ "$n" -eq 2 ]; then
+        case "${p[1]}" in preamble | tagline) return 0 ;; esac
+        return 1
+      fi
+      [ "$n" -eq 3 ] && [ "${p[1]}" = groups ] && _cfg_is_index "${p[2]}" && return 0
+      return 1
+      ;;
+    options)
+      if [ "$n" -eq 3 ]; then
+        # `summary` is the shared-options block in help (WP-07). Without it the
+        # corpus's `--env <dev|test|prod>  set MIX_ENV` line had nowhere to come
+        # from, and a flag parsed on every invocation was documented nowhere.
+        case "${p[2]}" in export | flag | value | summary) return 0 ;; esac
+        return 1
+      fi
+      [ "$n" -eq 4 ] && [ "${p[2]}" = values ] && _cfg_is_index "${p[3]}" && return 0
+      # options.<name>.commands.<N> -- the commands that READ a framework-owned
+      # option, extending devbin's own set (issue 0009). Lamplight's `wrighter`
+      # reads DEVBIN_OPT_IEX and devbin cannot know that by looking. Note this
+      # is a sibling of `values`, not of the shape keys above: it says who
+      # consumes the option, never what shape it has.
+      [ "$n" -eq 4 ] && [ "${p[2]}" = commands ] && _cfg_is_index "${p[3]}" && return 0
+      return 1
+      ;;
+    commands)
+      if [ "$n" -eq 3 ]; then
+        # `log` and `grammar` at COMMAND level, not just option level: a
+        # command-level `run:` seals on exactly the terms an option-level one
+        # does (D19, extended by WP-14). They were readable by run_command and
+        # unknown to the schema, so the one thing that would have caught the
+        # mismatch -- validation -- rejected correct config instead.
+        #
+        # `args` is help's usage hint -- the `[--iex]` in `server [--iex]`. It
+        # carries what the corpus put in column one beside the command name,
+        # which is information no generator can derive.
+        case "${p[2]}" in enabled | summary | group | args | run | handler | log | grammar) return 0 ;; esac
+        return 1
+      fi
+      if [ "$n" -eq 5 ] && [ "${p[2]}" = options ]; then
+        case "${p[4]}" in run | grammar | log | in_all | summary | args | enabled) return 0 ;; esac
+        return 1
+      fi
+      return 1
+      ;;
+  esac
+  return 1
+}
+
+cfg_validate() {
+  local k v rc=0
+  if ! cfg_has project.name; then
+    printf 'config: %s: required key missing: project.name\n' "$_DEVBIN_CFG_FILE" >&2
+    rc=1
+  fi
+  while IFS=$'\t' read -r k v; do
+    [ -n "$k" ] || continue
+    if ! _cfg_path_known "$k"; then
+      printf 'config: %s: unknown key: %s\n' "$_DEVBIN_CFG_FILE" "$k" >&2
+      rc=1
+    fi
+  done <<EOF
+$_DEVBIN_CFG
+EOF
+  return "$rc"
+}

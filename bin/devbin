@@ -1,0 +1,297 @@
+#!/usr/bin/env bash
+#
+# devbin -- the unified dev launcher.
+#
+# Thin dispatcher: resolve the project root, load the config, route <command> to
+# its handler (IN-AG-THIN-COORD-001). Everything it decides lives in lib/resolve;
+# everything it reads lives in lib/config. No business logic here.
+#
+# This is the fold of four byte-identical launchers -- Conflab, Lamplight, Baize
+# and Laksa each carried the same 53 lines differing only in the project name.
+# That name now comes from bin/.devbin/config.yaml, which is the whole point.
+#
+# See `bin/devbin help` for the command surface.
+#
+set -euo pipefail
+
+# Resolve this script's real location (symlink-safe) into BIN_DIR and the
+# project root, so the launcher works from any CWD and through a symlink on
+# PATH. Both `bin/<prj> -> devbin` and `bin/<alias> -> devbin` land here.
+_self="${BASH_SOURCE[0]}"
+while [ -L "$_self" ]; do
+  _dir="$(cd -P "$(dirname "$_self")" >/dev/null 2>&1 && pwd)"
+  _self="$(readlink "$_self")"
+  case "$_self" in
+    /*) ;;
+    *) _self="$_dir/$_self" ;;
+  esac
+done
+BIN_DIR="$(cd -P "$(dirname "$_self")" >/dev/null 2>&1 && pwd)"
+PROJECT_ROOT="$(cd "$BIN_DIR/.." >/dev/null 2>&1 && pwd)"
+DEVBIN_DIR="$BIN_DIR/.devbin"
+unset _self _dir
+
+# The runtime is normally vendored into the project at bin/.devbin/lib. The
+# fallback to the checkout's own lib/ is what lets Devbin run ITSELF from its
+# repo without installing into itself (design D12) -- the dogfooding case.
+if [ -d "$DEVBIN_DIR/lib" ]; then
+  DEVBIN_LIB="$DEVBIN_DIR/lib"
+elif [ -d "$PROJECT_ROOT/lib" ]; then
+  DEVBIN_LIB="$PROJECT_ROOT/lib"
+else
+  printf 'devbin: cannot find the devbin runtime (looked in %s and %s)\n' \
+    "$DEVBIN_DIR/lib" "$PROJECT_ROOT/lib" >&2
+  exit 1
+fi
+export BIN_DIR PROJECT_ROOT DEVBIN_DIR DEVBIN_LIB
+
+# shellcheck source=lib/helpers
+. "$DEVBIN_LIB/helpers"
+# shellcheck source=lib/config
+. "$DEVBIN_LIB/config"
+# shellcheck source=lib/builtins
+. "$DEVBIN_LIB/builtins"
+# shellcheck source=lib/runlog
+. "$DEVBIN_LIB/runlog"
+# shellcheck source=lib/resolve
+. "$DEVBIN_LIB/resolve"
+# shellcheck source=lib/help
+. "$DEVBIN_LIB/help"
+
+[ -f "$DEVBIN_DIR/config.yaml" ] || die "no config at $DEVBIN_DIR/config.yaml (try: devbin install)"
+cfg_load "$DEVBIN_DIR/config.yaml" || exit 1
+
+# Identity comes from config, never from $0. That is what lets bin/conflab and
+# bin/cf both be symlinks to this file while `conflab -v` still says conflab.
+DEVBIN_NAME="$(cfg_get project.name devbin)"
+# The mix task the `cli` and `repl` built-ins call, defaulting to the
+# derivation that held for the whole first fleet. The Arca pair is why it is
+# configurable at all: arca_config's task is `arca.config` and arca_cli's is
+# `arca.cli`, so `<name>.cli` names a task neither project has.
+#
+# EXPORTED rather than looked up, because lib/helpers reads no config by rule
+# (D15) and a handler is a separate process -- the same reason DEVBIN_NAME
+# crosses this way. One derivation, here, read by both built-ins.
+#
+# `cli` alone could have used a `run:` override, which is what arca_config did.
+# `repl` could not: its built-in carries the rlwrap wiring, and overriding the
+# whole command line to change one word throws away history and completion. A
+# difference of one NAME should not cost a project the handler.
+DEVBIN_CLI_TASK="$(cfg_get project.cli_task "$DEVBIN_NAME.cli")"
+export DEVBIN_CLI_TASK
+PROJECT_ROOT_VAR="$(cfg_get project.root_var)"
+if [ -z "$PROJECT_ROOT_VAR" ]; then
+  PROJECT_ROOT_VAR="$(upper_snake "$DEVBIN_NAME")_ROOT"
+  # Validated AFTER derivation, not before: it is the derived name that gets
+  # exported, and `project.name` is legal in shapes `upper_snake` maps to an
+  # illegal one -- `my proj` becomes `MY PROJ_ROOT`. Checking the input would
+  # pass exactly the case that breaks.
+  assert_identifier "$PROJECT_ROOT_VAR" \
+    "project.name gives the root variable '$PROJECT_ROOT_VAR', which"
+else
+  assert_identifier "$PROJECT_ROOT_VAR" "project.root_var in $DEVBIN_DIR/config.yaml"
+fi
+export DEVBIN_NAME
+# Exported under the project's own name so handlers ported from the corpus keep
+# reading the variable they already expect (CONFLAB_ROOT, LAKSA_ROOT, ...).
+# The assignment form of export, not eval: the config supplies the NAME here, so
+# eval would let a config file that can name a variable also run code.
+export "$PROJECT_ROOT_VAR=$PROJECT_ROOT"
+
+# Where read_version looks. Exported because handlers get it from lib/helpers,
+# which cannot read config (see the layering note in that file).
+DEVBIN_VERSION_FILE="$(cfg_get project.version_from VERSION)"
+export DEVBIN_VERSION_FILE
+
+# The files that MIRROR the version, newline-separated. Exported for the same
+# reason as the line above: lib/cmd/version is a separate process and cannot
+# read config. Config names the files; lib/cmd/version holds the recipe for
+# rewriting each kind, which is the D1 split `read_version` already follows.
+DEVBIN_VERSION_SIDECARS="$(
+  cfg_list project.version_sidecars | while IFS= read -r i; do
+    [ -n "$i" ] && cfg_get "project.version_sidecars.$i"
+  done
+)"
+export DEVBIN_VERSION_SIDECARS
+
+# What the project IS, for handlers that must act per declared language. Same
+# reason as the two blocks above: lib/cmd/check is a separate process sourcing
+# gatecmd, which brings helpers, builtins and runlog and deliberately NOT
+# config or resolve -- so `project_speaks` is not reachable from a gate handler.
+#
+# `check format` needs it: the formatter has one arm per language and the gate
+# has to verify each arm the project actually declares (issue 0003). Derived by
+# project_languages (lib/resolve), the same derivation project_speaks reads --
+# one source, per Highlander (delta review, finding 11).
+DEVBIN_LANGUAGES="$(project_languages)"
+export DEVBIN_LANGUAGES
+
+# How `check format` may treat each declared language's fmt arm, computed here
+# because the gate handler cannot read config (same reason as every export
+# above) and the catalogue is only HALF the answer: config can switch an arm
+# off (`enabled: false`) or replace what it runs (`run:`), and a gate deriving
+# its check from the catalogue alone then verifies a command line the
+# formatter no longer runs -- same name, same green, different fact (delta
+# review, findings 5 and 10). Languages with no fmt arm anywhere get no entry.
+#
+#   <lang>=builtin      the catalogue governs; the gate derives the check form
+#   <lang>=overridden   config replaces `fmt <lang>`; the gate cannot derive
+#   <lang>=disabled     the project switched the arm off; the gate skips it
+DEVBIN_FMT_ARMS="$(
+  for _dl in $DEVBIN_LANGUAGES; do
+    builtin_has_default_run fmt "$_dl" || option_declared fmt "$_dl" || continue
+    if ! option_active fmt "$_dl"; then
+      printf '%s=disabled ' "$_dl"
+    elif [ -n "$(cfg_get "commands.fmt.options.$_dl.run")" ]; then
+      printf '%s=overridden ' "$_dl"
+    else
+      printf '%s=builtin ' "$_dl"
+    fi
+  done
+)"
+export DEVBIN_FMT_ARMS
+
+# The ACTIVE option set per builtin gate command, for the gate's own usage
+# line (issue 0007, option 1). The catalogue is the MENU; what resolves here
+# is decided by activation (the D11 language axis, config enabled:, declared
+# options), and command_options IS that derivation -- the same list `all`
+# fans over and the global help renders. It needs config + resolve, which a
+# gate handler deliberately cannot source, so the dispatcher exports the
+# result: one derivation, one export per gate command.
+DEVBIN_ACTIVE_CHECK="$(command_options check | tr '\n' ' ')"
+DEVBIN_ACTIVE_DB="$(command_options db | tr '\n' ' ')"
+DEVBIN_ACTIVE_DOCS="$(command_options docs | tr '\n' ' ')"
+DEVBIN_ACTIVE_FMT="$(command_options fmt | tr '\n' ' ')"
+DEVBIN_ACTIVE_TEST="$(command_options test | tr '\n' ' ')"
+export DEVBIN_ACTIVE_CHECK DEVBIN_ACTIVE_DB DEVBIN_ACTIVE_DOCS DEVBIN_ACTIVE_FMT DEVBIN_ACTIVE_TEST
+
+# Which subdirectories `docs treeindex` walks. Config, because the answer is
+# per-project (lib, bin, native, ...) and there is no sensible default.
+DEVBIN_TREEINDEX_DIRS="$(
+  cfg_list docs.treeindex_dirs | while IFS= read -r i; do
+    [ -n "$i" ] && cfg_get "docs.treeindex_dirs.$i"
+  done
+)"
+export DEVBIN_TREEINDEX_DIRS
+
+[ $# -eq 0 ] && {
+  help_main
+  exit 0
+}
+
+command="$1"
+shift
+
+# Help is answered HERE, before parse_common_opts, and that is deliberate rather
+# than an ordering accident: asking for help must not be able to fail on a bad
+# shared-option value, because help is what a person reaches for when they got
+# the value wrong. `devbin help --env nope` prints help.
+#
+# Its own flags and topics are help's to parse (lib/help), not the dispatcher's.
+case "$command" in
+  -h | --help | help)
+    help_main "$@"
+    exit $?
+    ;;
+  -v | --version)
+    # The bare call IS the point: no argument selects the version-file role.
+    # shellcheck disable=SC2119
+    printf '%s %s\n' "$DEVBIN_NAME" "$(read_version)"
+    exit 0
+    ;;
+esac
+
+# Shared options are parsed ONCE, here, and exported. In the corpus every
+# command script called parse_common_opts itself -- eleven call sites per
+# project, forty-odd across the four. Handlers are separate processes, so the
+# exports reach them anyway and none of them needs to parse again; what a
+# handler receives on its command line is only what devbin did not recognise.
+parse_common_opts "$command" "$@"
+# Guarded expansion: an empty array under `set -u` aborts on bash 3.2, the
+# /bin/bash on every Mac (design D9). See parse_common_opts in lib/resolve.
+set -- "${DEVBIN_ARGS[@]+"${DEVBIN_ARGS[@]}"}"
+
+command_active "$command" || {
+  # Distinguish "never heard of it" from "switched off here". A command that is
+  # silently absent is indistinguishable from one that is broken, and the second
+  # message saves the reader a trip through the config (D11).
+  if reason="$(command_unavailable_reason "$command")"; then
+    warn "'$DEVBIN_NAME $command' is not available here: $reason"
+  elif cfg_has "commands.$command.enabled" || [ -n "$(cfg_list "commands.$command")" ]; then
+    warn "command '$command' is not active in this project (see: bin/$DEVBIN_NAME help)"
+  else
+    warn "unknown command: $command (try: bin/$DEVBIN_NAME help)"
+  fi
+  exit 2
+}
+
+# `all` is synthesised (D8) over the options devbin can see -- config-declared
+# ones compose with a project handler (each dispatches INTO it), so a handler
+# command with declared options keeps the sweep, and `all` stays reserved
+# there: a sub-handler named all cannot thin it out (AC-04.13). But a total
+# shadow that declares NO options owns its whole argument list (D2, AC-04.4),
+# `all` included -- `which all` and `docs all` are real corpus invocations
+# whose meaning lives in the handler (WP-10). Only that shape falls through.
+if [ "${1:-}" = all ]; then
+  if ! has_project_handler "$command" || [ -n "$(command_options "$command")" ]; then
+    shift
+    run_all "$command" "$@"
+    exit $?
+  fi
+fi
+
+# A declared option routes through run_option so the declarative and handler
+# shapes stay one path. Anything else goes straight to the handler.
+if [ $# -gt 0 ] && option_declared "$command" "$1"; then
+  opt="$1"
+  shift
+  if ! option_active "$command" "$opt"; then
+    # The same explanation an UNdeclared inactive option gets, below. Splitting
+    # these produced two different answers to one question: a declared-then-
+    # disabled option said "is not active in this project" and exited 1, while
+    # an identical built-in said "it is disabled in <file>" and exited 2. D11
+    # asks for deactivation to be visible, and visible has to mean the same
+    # thing wherever the option came from.
+    if reason="$(option_unavailable_reason "$command" "$opt")"; then
+      warn "'$DEVBIN_NAME $command $opt' is not available here: $reason"
+    else
+      warn "option '$command $opt' is not active in this project"
+    fi
+    exit 2
+  fi
+  run_option "$command" "$opt" "$@"
+  exit $?
+fi
+
+# Before handing an unrecognised option to the handler, check whether devbin
+# itself deactivated it. Falling through would report a shipped built-in as an
+# unknown option, which reads as a typo rather than as configuration (D11).
+if [ $# -gt 0 ]; then
+  if reason="$(option_unavailable_reason "$command" "$1")"; then
+    warn "'$DEVBIN_NAME $command $1' is not available here: $reason"
+    exit 2
+  fi
+fi
+
+# A PROJECT handler shadows totally (D2, AC-04.4), so it is the only thing
+# resolved here. Everything else -- config's own `run:`, devbin's own lib/cmd
+# handler, the catalogue default -- is run_command's, in that order.
+#
+# The split matters. Resolving lib/cmd/<command> here as well put devbin's OWN
+# handler ahead of the project's `run:`, which is backwards and is exactly the
+# bug that bit run_option: a built-in swallowed something config plainly
+# declared. One order, expressed once, at both levels.
+if has_project_handler "$command"; then
+  handler="$(resolve_handler "$command")" || die "no runnable handler for '$command'"
+  # The handler is a separate process and `$0` is its own path, which for a
+  # config-mapped handler is not the command name -- bin/.devbin/cmd/myls serving
+  # `ls` would otherwise have no way to know it was called as `ls`. Telling it
+  # explicitly costs one export and keeps identity coming from the dispatcher
+  # rather than from a filename, which is the same rule D2 applies to the
+  # project name.
+  export DEVBIN_COMMAND="$command"
+  exec_handler "$handler" "$@"
+fi
+
+run_command "$command" "$@"
+exit $?

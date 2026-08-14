@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 #
-# bin/release -- Intent release orchestrator
+# devbin: summary = Cut, tag and publish an Intent release
+#
+# intent build release -- Intent release orchestrator
 #
 # Cuts an Intent release in one invocation: pre-flight checks, version bump,
 # CHANGELOG date finalisation, sidecar sync (VERSION, config.json intent_version,
@@ -21,7 +23,7 @@
 # makes the date correct by construction.
 #
 # Usage:
-#   bin/release --patch | --minor | --major | vX.Y.Z [flags]
+#   intent build release --patch | --minor | --major | vX.Y.Z [flags]
 #
 # Flags:
 #   --dry-run            Compute and print every step; exit without side effects.
@@ -31,9 +33,9 @@
 #   --help               Print this help and exit.
 #
 # Examples:
-#   bin/release --dry-run --patch
-#   bin/release --minor
-#   bin/release v2.10.1
+#   intent build release --dry-run --patch
+#   intent build release --minor
+#   intent build release v2.10.1
 #
 # Exit codes:
 #   0  success (or dry-run completed)
@@ -45,8 +47,14 @@ set -u
 # --------------------------------------------------------------------
 # Locate project root + source helpers
 # --------------------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# PROJECT_ROOT comes from the devbin dispatcher, which resolves it
+# symlink-safe from the launcher's real location. It is NOT derived from this
+# file's own path any more: as bin/release that was `$SCRIPT_DIR/..`, and this
+# handler now sits four levels down at bin/.devbin/cmd/build.d/, where the same
+# expression would resolve to bin/.devbin/cmd. Taking it from the dispatcher is
+# both correct here and immune to the handler moving again.
+: "${DEVBIN_LIB:?run me through the devbin dispatcher -- 'intent build release'}"
+: "${PROJECT_ROOT:?the devbin dispatcher did not export PROJECT_ROOT}"
 HELPERS="$PROJECT_ROOT/bin/intent_helpers"
 
 # Pin INTENT_HOME to the checkout being released. bin/intent only derives it when
@@ -116,7 +124,11 @@ SKIP_TESTS=false
 ALLOW_STALE_DATE=false
 
 usage() {
-  sed -n '3,30p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'
+  # Window anchored on the header above: line 5 ('intent build release --')
+  # through the flag list. It moved by two when the devbin summary line landed,
+  # and it will move again if the header does -- the previous number was stale
+  # the moment the file was converted.
+  sed -n '5,34p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
   exit "${1:-0}"
 }
 
@@ -378,7 +390,7 @@ fi
 # CLAUDE.md regeneration -- delegated to the canon engine that owns it, exactly
 # as AGENTS.md is delegated to `intent agents sync`. The engine renders
 # lib/templates/llm/_CLAUDE.md, preserves the user section and diffs, so the
-# version + date restamp falls out of it. bin/release renders no template itself:
+# version + date restamp falls out of it. this handler renders no template itself:
 # the substitution logic already has three homes and does not need a fourth.
 #
 # --skip-settings keeps the blast radius to the documents. Without it the engine

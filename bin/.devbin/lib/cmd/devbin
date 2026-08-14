@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+#
+# The built-in `devbin` -- help about the FRAMEWORK, not about this project.
+#
+# `<name> help` answers "what can this project do". This answers "what is the
+# thing under bin/ and how do I work on it": the seam, the templates `new`
+# scaffolds from, the annotated reference config, and where upgrades come
+# from. install/upgrade/doctor/new are its siblings in the Devbin group; this
+# row is the one that explains them (hv, 2026-08-09).
+#
+# Printing IS the job, so the bare form exits 0 -- same contract as doctor and
+# help, not the bare-gate rule (nothing here can false-green a pipeline).
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/install
+. "$DEVBIN_LIB/install"
+
+cd "${PROJECT_ROOT:?}" || die "cannot enter $PROJECT_ROOT"
+
+usage() {
+  printf 'usage: %s devbin [templates]\n' "${DEVBIN_NAME:-devbin}"
+}
+
+# The vendored runtime's own version: stamped into the manifest at install. In
+# the dogfood checkout there is no manifest (D12 runs lib/ in place) and the
+# project's VERSION file IS devbin's.
+runtime_version() {
+  local mf="${DEVBIN_DIR:-}/manifest.sha256" v=""
+  if [ -n "${DEVBIN_DIR:-}" ] && [ -f "$mf" ]; then
+    v="$(awk -F': ' '/^# devbin_version:/ { print $2; exit }' "$mf")"
+  fi
+  # The bare call selects the version-file role on purpose.
+  # shellcheck disable=SC2119
+  [ -n "$v" ] || v="$(read_version)"
+  printf '%s' "$v"
+}
+
+show_templates() {
+  # The backticks are prose -- markdown quoting -- and %s expands via its argument.
+  # shellcheck disable=SC2016
+  printf 'Templates -- what `%s new <cmd>` scaffolds from, vendored at bin/.devbin/lib/tmpl/:\n\n' \
+    "${DEVBIN_NAME:-devbin}"
+  printf '  handler      the command script: header block, usage, and an exit-3 placeholder\n'
+  printf '               (resolving-but-unbuilt must never read as success)\n'
+  printf '  help.md      the authored help topic, keyed on the command name\n'
+  printf '  test.bats    a first test asserting the command resolves\n'
+  printf '\nScaffolded copies are YOURS -- cmd/<name>, help/<name>.md, tests/<name>.bats --\n'
+  # Prose backticks again, as above.
+  # shellcheck disable=SC2016
+  printf 'and `%s upgrade` never touches them.\n' "${DEVBIN_NAME:-devbin}"
+}
+
+show_overview() {
+  local src
+  printf 'devbin %s -- the framework under bin/\n\n' "$(runtime_version)"
+  printf 'This launcher is devbin, vendored at bin/.devbin/ and driven by\n'
+  printf "bin/.devbin/config.yaml. Identity comes from config: this install\n"
+  printf "answers as '%s'.\n\n" "${DEVBIN_NAME:-devbin}"
+  printf 'The seam:\n'
+  printf "  bin/devbin, bin/.devbin/lib/   devbin's -- replaced wholesale by upgrade\n"
+  printf '  config.yaml, cmd/, help/       yours -- never written after install\n\n'
+  printf 'The framework surface here: %s install | upgrade | doctor | new\n' "${DEVBIN_NAME:-devbin}"
+  printf 'Reference config, every key annotated: bin/.devbin/lib/config.reference.yaml\n'
+  printf 'Scaffold templates: %s devbin templates\n' "${DEVBIN_NAME:-devbin}"
+  src="$(manifest_source "$PROJECT_ROOT" 2>/dev/null || true)"
+  if [ -n "$src" ]; then
+    printf '\nUpgrades come from: %s\n' "$src"
+    printf 'Its docs/ holds the long-form guides: authoring-commands, configuration, migration.\n'
+  else
+    printf '\nThis IS the devbin checkout (design D12) -- the long-form guides are in docs/.\n'
+  fi
+}
+
+case "${1:-}" in
+  "" | help) show_overview ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  templates) show_templates ;;
+  *)
+    usage >&2
+    exit 1
+    ;;
+esac

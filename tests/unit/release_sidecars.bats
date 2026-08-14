@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
-# Guards for bin/release's sidecar contract.
+# Guards for intent build release's sidecar contract.
 #
-# bin/release is maintainer-only tooling and cannot be exercised end to end in a
+# intent build release is maintainer-only tooling and cannot be exercised end to end in a
 # unit test -- it tags, pushes to two remotes and publishes a GitHub release. So
 # these are mechanical guards over the script's structure, which is exactly where
 # the two defects they cover lived:
@@ -19,9 +19,9 @@
 
 load "../lib/test_helper.bash"
 
-RELEASE="${INTENT_HOME}/bin/release"
+RELEASE="${INTENT_HOME}/bin/.devbin/cmd/build.d/release"
 
-@test "bin/release is syntactically valid" {
+@test "intent build release is syntactically valid" {
   run bash -n "$RELEASE"
   assert_success
 }
@@ -64,8 +64,8 @@ RELEASE="${INTENT_HOME}/bin/release"
   commit_line="$(grep -n 'git commit -m "release: v\$TARGET"' "$RELEASE" | head -1 | cut -d: -f1)"
   tag_line="$(grep -n 'log_step "tag"' "$RELEASE" | head -1 | cut -d: -f1)"
 
-  [ -n "$stamp_line" ] || fail "bin/release never stamps intent_version"
-  [ -n "$claude_line" ] || fail "bin/release never refreshes CLAUDE.md"
+  [ -n "$stamp_line" ] || fail "intent build release never stamps intent_version"
+  [ -n "$claude_line" ] || fail "intent build release never refreshes CLAUDE.md"
 
   # Ordering is the whole fix: a stamp after the tag is the manual wrap this
   # replaced, and it is what made every published tag self-inconsistent.
@@ -74,7 +74,7 @@ RELEASE="${INTENT_HOME}/bin/release"
   [ "$commit_line" -lt "$tag_line" ] || fail "the release commit lands after the tag"
 }
 
-@test "bin/release delegates CLAUDE.md rather than rendering the template itself" {
+@test "intent build release delegates CLAUDE.md rather than rendering the template itself" {
   # The placeholder substitution already has three homes (intent_init,
   # intent_st_zero, intent_claude_upgrade). A fourth here would be a Highlander
   # violation, and the canon engine is CLAUDE.md's owner.
@@ -90,12 +90,12 @@ RELEASE="${INTENT_HOME}/bin/release"
   assert_success
 }
 
-@test "bin/release refuses to tag a tree left dirty by the sidecar sync" {
+@test "intent build release refuses to tag a tree left dirty by the sidecar sync" {
   run grep -F 'refusing to tag a dirty tree' "$RELEASE"
   assert_success
 }
 
-@test "bin/release documents the in-progress CHANGELOG convention" {
+@test "intent build release documents the in-progress CHANGELOG convention" {
   # A hand-typed date is correct only on the day it is typed; it goes stale at
   # midnight and aborts the pre-flight date gate. This bit v2.17.4.
   run grep -F 'in progress' "$RELEASE"
@@ -105,7 +105,7 @@ RELEASE="${INTENT_HOME}/bin/release"
 }
 
 @test "intent_upgrade routes its stamp through the shared helper" {
-  # The stamper existed only in intent_upgrade; bin/release growing a second
+  # The stamper existed only in intent_upgrade; intent build release growing a second
   # copy is what the shared helper prevents.
   run grep -F 'stamp_project_version' "${INTENT_HOME}/bin/intent_upgrade"
   assert_success
@@ -113,7 +113,7 @@ RELEASE="${INTENT_HOME}/bin/release"
   assert_failure
 }
 
-@test "bin/release pins INTENT_HOME to the checkout being released" {
+@test "intent build release pins INTENT_HOME to the checkout being released" {
   # bin/intent only derives INTENT_HOME when unset, so an exported INTENT_HOME
   # from the maintainer's shell silently wins and every sub-command reads THAT
   # tree's VERSION -- stamping the wrong version into AGENTS.md and CLAUDE.md

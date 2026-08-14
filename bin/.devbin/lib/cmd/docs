@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+#
+# The built-in `docs`. Two options ship, and only two.
+#
+# `agents` and `treeindex` are identical across the projects that have them --
+# same command, same guard rails, same warning. `completions` (two of four),
+# `index` (one) and `publish` (one) are not: they encode where a project keeps
+# its generated output and what it publishes to. Those are project handlers.
+#
+# Both shipped options drive Intent, which is the methodology these projects
+# share rather than an assumption devbin is making about anyone.
+#
+set -euo pipefail
+
+# shellcheck source=lib/gatecmd
+. "${DEVBIN_LIB:?run me through bin/devbin}/gatecmd"
+
+# builtin_docs_agents -- regenerate AGENTS.md from project state.
+builtin_docs_agents() {
+  require_tool intent "Install Intent: see intent/docs at the Intent install"
+  # The warning is not decoration. AGENTS.md looks like an ordinary Markdown
+  # file, and a hand edit to it is destroyed here without comment. Every project
+  # that had this command printed this line.
+  warn "AGENTS.md is generated -- a hand edit is lost here"
+  intent agents sync
+}
+
+# builtin_docs_treeindex -- rebuild the per-subdirectory index.
+#
+# NEVER THE PROJECT ROOT, and that refusal is the reason this is shipped code.
+# `intent treeindex .` walks everything, which is slow enough to look like a
+# hang and produces an index nobody wants. Both projects that had this command
+# guarded against it independently, which is the definition of a shared rule.
+builtin_docs_treeindex() {
+  require_tool intent "Install Intent: see intent/docs at the Intent install"
+  local dirs="${*:-${DEVBIN_TREEINDEX_DIRS:-}}" d rc=0
+
+  [ -n "$dirs" ] ||
+    die "no directories to index -- declare docs.treeindex_dirs in config, or name them (eg: docs treeindex lib bin)"
+
+  for d in $dirs; do
+    case "$d" in
+      . | ./ | "$PROJECT_ROOT" | "$PROJECT_ROOT"/)
+        die "refusing to treeindex the project root -- it is a PER-SUBDIRECTORY index (try: docs treeindex lib)"
+        ;;
+      /*)
+        die "treeindex takes paths relative to the project root, not '$d'"
+        ;;
+    esac
+    if [ ! -d "$d" ]; then
+      # Named but absent is worth saying rather than silently doing nothing --
+      # a typo in the config list would otherwise look like success.
+      warn "no such directory: $d -- skipping"
+      rc=1
+      continue
+    fi
+    printf '    %s\n' "$d"
+    intent treeindex "$d"
+  done
+  return "$rc"
+}
+
+run_builtin_gate docs "$@"
