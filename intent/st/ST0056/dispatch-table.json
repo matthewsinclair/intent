@@ -1,0 +1,549 @@
+{
+  "schema": "intent/dispatch-table@3.0-draft",
+  "measured_at": "f7434f1",
+  "measured_on": "2026-08-14",
+  "measured_by": "ic",
+  "status": "WIP -- `st` family complete as the shape canary; 26 families outstanding",
+  "about": [
+    "THE command-surface source of truth for Intent v3 (AC-05.1). The clap surface, the help text, the MCP tool list and the `intent llm` agent guide all render FROM this file; nothing renders from `bin/**` and nothing describes the surface a second time.",
+    "This is the AUTHORED artefact. `dispatch-table.md` beside it is a GENERATED view -- run `parity/tools/gen_dispatch_table.sh`, never hand-edit the view.",
+    "`observed` records what v2 measurably does, at the revision stamped above. `target` records what v3 will do. They are separate fields because they genuinely differ, and a table that conflated them would launder a v2 defect into a v3 requirement -- which is the failure mode an output-equality parity suite cannot catch (parity.md, 'Parity properties beyond output equality').",
+    "`target.state: pending-hv` is an honest blank, not an omission. hv ratified the `corrected` class at the 2026-08-14 bounce; WHICH v2 behaviours join it is a scope call still open. A guess recorded here would be indistinguishable from a ruling by the time WP-05 read it."
+  ],
+  "invariants": [
+    {
+      "id": "INV-01",
+      "title": "Voice: lowercase `ok:` / `error:` prefixes, no banners",
+      "rule": "Every failure writes `error: <message>` to STDERR. Every success line that announces an outcome writes `ok: <message>` to STDOUT. No banners, no unicode decoration.",
+      "v2": "bin/intent_helpers:7-11 (`error()` -- the single authority; 25 sites were moved to the lowercase voice in v2.19.0)",
+      "target": {
+        "state": "as-observed",
+        "ratification": "D17 -- binary voice and exit codes carry over from v2"
+      }
+    },
+    {
+      "id": "INV-02",
+      "title": "Usage errors exit 1, NOT clap's default 2",
+      "rule": "A missing required argument, an unknown option, or an unknown subcommand exits 1.",
+      "v2": "bin/intent_helpers:7-11 -- `error()` is `echo >&2; exit 1`, and it is the only failure exit in the shipped surface bar `intent critic`",
+      "target": {
+        "state": "as-observed",
+        "ratification": "D17"
+      },
+      "implementation_note": "clap exits 2 for both `ErrorKind::MissingRequiredArgument` and `ErrorKind::UnknownArgument` by default. D17 rules the v2 code carries over, so WP-05 MUST override clap's exit code rather than inherit it. This is surface-wide -- it affects nearly every command -- and it is recorded here precisely so it is a build-time constraint rather than something discovered in test triage. Exception: `intent critic` genuinely uses 2 (see INV-04)."
+    },
+    {
+      "id": "INV-03",
+      "title": "The project-context gate",
+      "rule": "Commands that need a project refuse outside one with exactly `error: not in an Intent project directory`, exit 1.",
+      "v2": "bin/intent:206; measured uniform across 14 commands",
+      "target": {
+        "state": "as-observed"
+      },
+      "exceptions": [
+        "`claude` never reaches the gate -- plugin commands exec before the project check (bin/intent:188-191)",
+        "`agents` runs outside a project for the same plugin-bypass reason, despite not being in GLOBAL_COMMANDS",
+        "`upgrade` supplies its own message"
+      ]
+    },
+    {
+      "id": "INV-04",
+      "title": "Exit codes observed in the shipped surface are 0, 1 and 2 only",
+      "rule": "0 success; 1 every failure; 2 only from `intent critic` (findings-present) and from `intent claude hook`, which propagates the hook's own code by design.",
+      "v2": "bin/intent_critic:89,95; measured across 108 probes",
+      "target": {
+        "state": "as-observed"
+      }
+    },
+    {
+      "id": "INV-05",
+      "title": "`error ...; usage` -- the second call is unreachable, everywhere",
+      "rule": "v2 sources read as though a missing-argument error prints the usage block. It never does.",
+      "v2": "`error()` ends in `exit 1`, so every `error \"...\"; usage` pair has a dead `usage`. Seven sites in bin/intent_st alone (311, 450, 540, 603, 1048, 1105, 1620).",
+      "evidence": "`intent st` bare measured at exit 1, stdout 0B, stderr 40B -- no usage block reached stdout.",
+      "target": {
+        "state": "pending-hv",
+        "question": "v3 renders help from this table, so printing usage on a usage error is nearly free. Do we (a) reproduce v2 -- terse `error:` line only, or (b) `corrected` -- error line plus the command's usage? (b) is what the dead code shows v2 INTENDED. Either way the exit code stays 1 per INV-02."
+      }
+    },
+    {
+      "id": "INV-06",
+      "title": "About a fifth of v2 failure paths write to the wrong stream",
+      "rule": "Across 108 probes, failing invocations split 45 stderr-only, 12 stdout-only, 2 both.",
+      "v2": "measured; larger than the three known `Error:`-on-stdout sites in the plugin bins already queued for hv",
+      "target": {
+        "state": "pending-hv",
+        "question": "Ratify the whole census into `corrected` (errors are stderr, always), or enumerate site by site? An error on stdout interleaves with captured command output, which is how a voice becomes data."
+      }
+    },
+    {
+      "id": "INV-07",
+      "title": "`--help` reports failure on 10 of 27 commands",
+      "rule": "Two shapes: usage to STDOUT with exit 1 (`init`, `st`, `wp`, `todo`, `treeindex`, `fileindex`), and an error to STDERR (`ac`, `at`, `help`, `claude`). `intent at --help` is parsed as an unknown verb; `intent help --help` fails outright.",
+      "v2": "measured",
+      "target": {
+        "state": "pending-hv",
+        "question": "Asking for help and being told you failed is a defect. Candidate `corrected`: `--help` always succeeds, exit 0, to stdout. Note this is NOT free of consequence -- scripts testing `intent st --help; echo $?` change answer."
+      }
+    },
+    {
+      "id": "INV-08",
+      "title": "Three commands accept an unknown flag silently at exit 0",
+      "rule": "`intent info --zzz`, `intent config --zzz` (zero output) and `intent version --zzz` all succeed.",
+      "v2": "measured",
+      "target": {
+        "state": "corrected",
+        "ratification": "hv, 2026-08-14 bounce -- the `corrected` class; this member is forced rather than chosen",
+        "behaviour": "Unknown arguments are refused, exit 1 per INV-02.",
+        "note": "This one cannot be reproduced by accident: clap rejects unrecognised arguments by default, so v3 diverges here on day one whether or not anyone decides to. Recorded as ratified because the ALTERNATIVE (faithfully reproducing silent acceptance) would take deliberate work to build."
+      }
+    }
+  ],
+  "families": [
+    {
+      "name": "st",
+      "help": "Manage steel threads for the project",
+      "v2_source": "bin/intent_st",
+      "v2_help_file": null,
+      "owner_wp": "WP-04",
+      "family_notes": [
+        "`intent help st` falls through to the 'no help available' path (bin/intent_help:37) -- there is no `lib/help/st.help.md`. The usage() block at bin/intent_st:13-88 is the only authored help, and it is unreachable from `intent help`.",
+        "The one-line help strings below are lifted verbatim from that usage() block where it has one, so v3's generated help stays recognisable to existing users. Where v2 has no line (`zero`), the help is newly authored and marked as such."
+      ],
+      "entries": [
+        {
+          "path": "st",
+          "kind": "family",
+          "help": "Manage steel threads for the project",
+          "args": [
+            {
+              "name": "command",
+              "type": "subcommand",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": ["help", "--help", "-h"],
+              "type": "bool",
+              "help": "Print the usage block",
+              "note": "`help` is a bare word arm, not a flag; grouped here because the three spellings share one arm (bin/intent_st:1614)"
+            }
+          ],
+          "v2": "bin/intent_st:1614-1616, 1618-1621",
+          "observed": {
+            "exit": [
+              { "code": 1, "when": "bare -- `error: Steel thread command is required`" },
+              { "code": 1, "when": "--help / -h / help -- usage block printed, exit 1" },
+              { "code": 1, "when": "unknown verb -- `error: Unknown command: <verb>`" }
+            ],
+            "stdout": "usage block (2330B) on the --help path only",
+            "stderr": "`error: ...` on the bare and unknown-verb paths (40B / 41B)",
+            "defects": [
+              "INV-05: bare invocation reaches `error` then a dead `usage`",
+              "INV-07: --help exits 1"
+            ]
+          },
+          "target": {
+            "state": "pending-hv",
+            "question": "INV-07 -- see the invariant; the bare-invocation shape follows INV-05"
+          },
+          "disposition": "keep"
+        },
+        {
+          "path": "st new",
+          "help": "Create a new steel thread",
+          "args": [
+            {
+              "name": "title",
+              "type": "string",
+              "arity": "1",
+              "note": "v2 collects ALL non-flag args into ARGS and uses only ARGS[0] (bin/intent_st:305, 314) -- surplus positionals are silently discarded. v3 should refuse them (INV-02); flagged, not assumed."
+            }
+          ],
+          "flags": [
+            {
+              "spellings": ["-s", "--start"],
+              "type": "bool",
+              "help": "Mark the new thread in progress immediately"
+            }
+          ],
+          "v2": "bin/intent_st:296-445",
+          "observed": {
+            "exit": [
+              { "code": 0, "when": "created" },
+              { "code": 1, "when": "no title -- `error: Steel thread title is required`" },
+              { "code": 1, "when": "unknown option -- `error: Unknown option: <opt>`" },
+              { "code": 1, "when": "templates missing -- names INTENT_HOME and states that nothing was created (bin/intent_st:375)" }
+            ],
+            "stdout": "the created id and path",
+            "stderr": "`error: ...`",
+            "side_effects": [
+              "Writes `intent/st/<ID>/` from `lib/templates/prj/st/ST####`",
+              "Triggers the index resync (`intent st sync --write`, bin/intent_st:287)"
+            ],
+            "defects": ["surplus positional args discarded silently"]
+          },
+          "target": { "state": "as-observed" },
+          "disposition": "keep"
+        },
+        {
+          "path": "st start",
+          "help": "Mark a steel thread as in progress",
+          "args": [{ "name": "id", "type": "st-id", "arity": "1" }],
+          "flags": [],
+          "v2": "bin/intent_st:599-716",
+          "observed": {
+            "exit": [
+              { "code": 0, "when": "started" },
+              { "code": 0, "when": "ALREADY in progress -- prints `skipped: <ID> already in progress` and exits 0 (bin/intent_st:634-637, 678-681)" },
+              { "code": 1, "when": "no id / thread not found" }
+            ],
+            "stdout": "`skipped: ...` on the idempotent path",
+            "stderr": "`error: ...`",
+            "notes": "`skipped:` is a THIRD voice prefix alongside `ok:` and `error:`; INV-01 does not currently name it. Carried into v3 or folded into `ok:` is a decision, flagged."
+          },
+          "target": {
+            "state": "pending-hv",
+            "question": "Does `skipped:` survive as a first-class prefix, or become `ok: <ID> already in progress`? Scripts matching on it exist in the BATS estate."
+          },
+          "disposition": "keep"
+        },
+        {
+          "path": "st done",
+          "help": "Mark a steel thread as complete",
+          "args": [{ "name": "id", "type": "st-id", "arity": "1" }],
+          "flags": [],
+          "v2": "bin/intent_st:446-535",
+          "observed": {
+            "exit": [
+              { "code": 0, "when": "closed" },
+              { "code": 1, "when": "no id / thread not found" },
+              { "code": 1, "when": "acceptance contract BLOCKED -- `error: cannot close <ID>: acceptance contract is BLOCKED (run 'intent ac status <ID>')` (bin/intent_st:470-471)" }
+            ],
+            "stdout": "closure confirmation",
+            "stderr": "`error: ...`",
+            "side_effects": [
+              "Consults the close-gate by shelling to `bin/intent_acceptance ac gate <ID>` (ST0044/ST0048 fail-by-default)",
+              "Relocates the thread directory and resyncs the index"
+            ]
+          },
+          "target": {
+            "state": "as-observed",
+            "note": "The gate becomes an in-process facade call in WP-04 (AC-04.3), not a subprocess. Behaviour and message are parity-bound; the mechanism is not."
+          },
+          "disposition": "keep"
+        },
+        {
+          "path": "st cancel",
+          "help": "Mark a steel thread as cancelled",
+          "args": [{ "name": "id", "type": "st-id", "arity": "1" }],
+          "flags": [],
+          "v2": "bin/intent_st:536-598",
+          "observed": {
+            "exit": [
+              { "code": 0, "when": "cancelled" },
+              { "code": 1, "when": "no id / thread not found" }
+            ],
+            "stdout": "cancellation confirmation",
+            "stderr": "`error: ...`",
+            "notes": "No close-gate consultation -- cancel is not a close. Deliberate (feedback: use the existing Cancelled status, never invent a new one)."
+          },
+          "target": { "state": "as-observed" },
+          "disposition": "keep"
+        },
+        {
+          "path": "st list",
+          "help": "List steel threads (default: in progress only)",
+          "args": [],
+          "flags": [
+            {
+              "spellings": ["--status"],
+              "type": "string",
+              "value": "<status>",
+              "help": "`all`, or a comma-separated list rendered in the order given",
+              "accepts": "wip|in progress -> WIP; tbc|not started -> TBC; completed|done -> COMPLETED; cancelled|canceled -> CANCELLED; hold|on hold -> HOLD (case-insensitive, normalised to caps)"
+            },
+            {
+              "spellings": ["--width"],
+              "type": "integer",
+              "value": "<n>",
+              "help": "Render at a fixed column width; 0 or absent means terminal width"
+            },
+            {
+              "spellings": ["--markdown"],
+              "type": "bool",
+              "help": "Emit canonical GFM instead of terminal rendering",
+              "note": "UNDOCUMENTED in v2's usage() block; consumed by `st sync --write`. Real surface, so it is in the table."
+            }
+          ],
+          "v2": "bin/intent_st:717-1043",
+          "observed": {
+            "exit": [
+              { "code": 0, "when": "listed (including an empty list)" },
+              { "code": 1, "when": "unknown option -- `error: Unknown option: <opt>`" },
+              { "code": 1, "when": "`error: Steel threads directory not found`" }
+            ],
+            "stdout": "the table",
+            "stderr": "`error: ...`",
+            "defects": [
+              "`--status` and `--width` consume the next positional blindly (shift; VALUE=\"$1\"). A trailing `--status` with no value silently yields an empty filter rather than a usage error. Same for `--width`."
+            ]
+          },
+          "target": {
+            "state": "as-observed",
+            "note": "clap makes the missing-value case an error for free -- that is a `corrected` consequence rather than a choice, same shape as INV-08. Byte-exact column padding is parity-bound: `tests/unit/output_width.bats:44-140` pins it."
+          },
+          "disposition": "keep"
+        },
+        {
+          "path": "st show",
+          "help": "Show details of a specific steel thread",
+          "args": [
+            { "name": "id", "type": "st-id", "arity": "1" },
+            {
+              "name": "file",
+              "type": "enum",
+              "arity": "0..1",
+              "default": "info",
+              "values": ["info", "design", "impl", "tasks", "acceptance", "all"]
+            }
+          ],
+          "flags": [],
+          "v2": "bin/intent_st:1044-1100",
+          "observed": {
+            "exit": [
+              { "code": 0, "when": "printed" },
+              { "code": 1, "when": "no id / thread not found" },
+              { "code": 1, "when": "`error: Unknown file type: <t>`" },
+              { "code": 1, "when": "`error: File not found: <t>.md for steel thread <ID>`" }
+            ],
+            "stdout": "file contents; `all` concatenates with `-- <file>` separators",
+            "stderr": "`error: ...`"
+          },
+          "target": {
+            "state": "as-observed",
+            "note": "`info.md` and `acceptance.md` become GENERATED VIEWS in v3 (D01/D04). `show` reads the view, so its output is unchanged in kind -- but the view's bytes are v3's to define, and every BATS test asserting v2's exact info.md bytes retires under the ratified file-layout class."
+          },
+          "disposition": "keep"
+        },
+        {
+          "path": "st edit",
+          "help": "Print the absolute path to a steel thread file",
+          "args": [
+            { "name": "id", "type": "st-id", "arity": "1" },
+            {
+              "name": "file",
+              "type": "enum",
+              "arity": "0..1",
+              "default": "info",
+              "values": ["info", "design", "impl", "tasks", "acceptance"],
+              "note": "NO `all` -- unlike `show`. Asymmetry is deliberate and correct: there is no single path for `all`."
+            }
+          ],
+          "flags": [],
+          "v2": "bin/intent_st:1101-1144",
+          "observed": {
+            "exit": [
+              { "code": 0, "when": "path printed" },
+              { "code": 1, "when": "no id / thread dir not found / unknown file type" }
+            ],
+            "stdout": "the absolute path, one line, nothing else",
+            "stderr": "`error: ...`",
+            "notes": "Pure emit-path: it never launches an editor and never creates the file. The name is a historical misnomer the docs already work around (`$EDITOR \"$(intent st edit ST0001 acceptance)\"`). The thread DIRECTORY must exist; the file need not."
+          },
+          "target": {
+            "state": "as-observed",
+            "note": "Under authored-once, `edit` on a GENERATED view (info/acceptance) hands the user a path to a file their edits will lose at the next regeneration. v3 emitting the path unchanged is defensible only if the skew check (AC-03.4) catches the edit. Flagged for the WP-05 surface cut, not decided here."
+          },
+          "disposition": "keep"
+        },
+        {
+          "path": "st sync",
+          "help": "Synchronize steel_threads.md with individual ST files",
+          "args": [],
+          "flags": [
+            {
+              "spellings": ["--write"],
+              "type": "bool",
+              "help": "Write the index; without it the command is a dry run"
+            },
+            {
+              "spellings": ["--width"],
+              "type": "integer",
+              "value": "<n>",
+              "help": "Render at a fixed column width"
+            }
+          ],
+          "v2": "bin/intent_st:1145-1211",
+          "observed": {
+            "exit": [
+              { "code": 0, "when": "synced or dry-run reported" },
+              { "code": 1, "when": "unknown option / `error: Steel threads directory not found` / `error: Steel threads index file not found`" }
+            ],
+            "stdout": "the diff or the confirmation",
+            "stderr": "`error: ...`",
+            "notes": "Called internally by every mutating verb via `\"${BASH_SOURCE[0]}\" sync --write > /dev/null` (bin/intent_st:287). stdout is suppressed there but stderr FLOWS deliberately -- `2>&1 >/dev/null` once hid every sync failure (issue 0019)."
+          },
+          "target": {
+            "state": "as-observed",
+            "note": "In v3 `steel_threads.md` is a generated view and the resync is part of the transactional write path (AC-04.1), not a subprocess. The COMMAND survives for explicit regeneration; the implicit call has no v3 analogue because it cannot fall out of date."
+          },
+          "disposition": "keep"
+        },
+        {
+          "path": "st repair",
+          "help": "Repair malformed steel thread metadata",
+          "args": [
+            {
+              "name": "id",
+              "type": "st-id",
+              "arity": "0..1",
+              "note": "Parsed inside the FLAG loop, not positionally -- accepted spellings are `ST0001` and `0001` ONLY"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": ["--write"],
+              "type": "bool",
+              "help": "Apply the repairs; without it the command is a dry run"
+            }
+          ],
+          "v2": "bin/intent_st:1212-1433",
+          "observed": {
+            "exit": [
+              { "code": 0, "when": "repaired or dry-run reported" },
+              { "code": 1, "when": "`error: Unknown option or invalid steel thread ID: <arg>`" },
+              { "code": 1, "when": "`error: Steel thread not found: <ID>`" }
+            ],
+            "stdout": "per-thread findings",
+            "stderr": "`error: ...`",
+            "defects": [
+              "DEAD ARM at bin/intent_st:1231: `[0-9]+)` is a `case` GLOB, where `+` is a literal character -- it matches a single digit followed by a `+`, never a run of digits. So `intent st repair 5` and `intent st repair 12345` both fall through to the error arm. Verified by executing the case statement in isolation, not by reading it. The intended bare-number form is unreachable; only the 4-digit `0001` arm works."
+            ]
+          },
+          "target": {
+            "state": "pending-hv",
+            "question": "Does v3's id parser accept a bare number of any length (what :1231 evidently INTENDED), or only the two spellings that measurably work? Reproducing the dead arm faithfully is not an option -- it is unconstructible in clap. Same class as INV-08: a defect whose fix is forced."
+          },
+          "disposition": "keep"
+        },
+        {
+          "path": "st organize",
+          "help": "Organize ST files in directories by status",
+          "aliases": ["st organise"],
+          "args": [],
+          "flags": [
+            {
+              "spellings": ["--write"],
+              "type": "bool",
+              "help": "Move the files; without it the command is a dry run"
+            }
+          ],
+          "v2": "bin/intent_st:1434-1609; the `organise` -> `organize` normalisation is at bin/intent_st:289-292",
+          "observed": {
+            "exit": [
+              { "code": 0, "when": "swept" },
+              { "code": 1, "when": "`error: <n> steel thread(s) could not be moved (see above); the rest of the sweep completed`" }
+            ],
+            "stdout": "`Already organized: <ID> in intent/st/<STATUS>` per thread (73B for one thread in a fresh project)",
+            "stderr": "`error: ...`; a move collision also prints mv's raw stderr",
+            "notes": "`organise` is an alias ONLY here, one level down. `intent organise` at top level is `error: Unknown command 'organise'` -- measured both."
+          },
+          "target": {
+            "state": "retire",
+            "ratification": "hv, 2026-08-14 -- organize (both faces) is planned vestigial by construction; a strictly structured model cannot hold data in the wrong spot, so the disorder it repairs cannot arise. Confirmed finally at the surface cut (WP-05/06).",
+            "note": "Retiring this face also dissolves the pre-existing Highlander violation: `bin/intent_organize` and `bin/intent_st organize` are two implementations of one concern, both registered in MODULES.md, and they print different things against the same input (117B vs 73B, no shared output)."
+          },
+          "disposition": "retire"
+        },
+        {
+          "path": "st zero",
+          "help": "STZero retrofit -- install the zeroth steel thread (newly authored; v2 has no usage line for this verb)",
+          "args": [
+            { "name": "subcommand", "type": "subcommand", "arity": "0..1", "values": ["install"] }
+          ],
+          "flags": [],
+          "v2": "bin/intent_st:1610-1612 -- `exec \"$INTENT_HOME/bin/intent_st_zero\" \"$@\"`; the real surface is bin/intent_st_zero",
+          "observed": {
+            "exit": [{ "code": 0, "when": "bare -- prints `Usage: intent st zero install` and exits 0" }],
+            "stdout": "the usage line",
+            "stderr": "--",
+            "defects": [
+              "UNDOCUMENTED: absent from bin/intent_st's usage() block entirely. It was missing from parity.md's command-level table until the deep pass measured it.",
+              "Exits 0 on a bare invocation that printed only usage -- the opposite of INV-07's defect, and inconsistent with every other family in this file."
+            ]
+          },
+          "target": {
+            "state": "pending-hv",
+            "question": "parity.md already flags `st_zero` as a candidate for a ratified retire if the fleet does not use it. That ruling decides this row too -- both faces (`intent st zero` and `intent st_zero`) or neither."
+          },
+          "disposition": "pending",
+          "cross_ref": "The top-level `st_zero` family covers bin/intent_st_zero; this entry is the alias face only."
+        }
+      ]
+    }
+  ],
+  "families_outstanding": [
+    "wp", "ac", "at", "issues", "todo", "info", "init", "bootstrap", "config",
+    "doctor", "upgrade", "agents", "claude", "critic", "lang", "llm", "learn",
+    "modules", "organize", "plugin", "ext", "treeindex", "fileindex", "help",
+    "st_zero", "version"
+  ],
+  "new_surface": [
+    {
+      "path": "search",
+      "help": "Full-text search across all authored prose",
+      "v2": "new-surface",
+      "basis": "design.md:68 -- FTS5 across all bodies, from CLI and MCP. There is no bin/intent_search.",
+      "owner_wp": "WP-06",
+      "acceptance": "AC-06.4 (added by vc, 2026-08-14, on the finding that all 62 ACs had zero coverage of search)",
+      "target": { "state": "new-surface" }
+    },
+    {
+      "path": "schema",
+      "help": "Print the generated schema faces (JSON Schema, DDL, GraphQL SDL)",
+      "v2": "new-surface",
+      "basis": "design.md:43",
+      "owner_wp": "WP-06",
+      "target": { "state": "new-surface" }
+    },
+    {
+      "path": "export",
+      "help": "Project the canon into another format",
+      "flags": [{ "spellings": ["--format"], "type": "string", "value": "<fmt>" }],
+      "v2": "new-surface",
+      "basis": "design.md:57 -- YAML/md/anything else are export projections",
+      "owner_wp": "WP-06",
+      "target": { "state": "new-surface" }
+    },
+    {
+      "path": "ingest",
+      "help": "Rebuild the canon from markdown (the recovery path, and the v2 migrator)",
+      "flags": [{ "spellings": ["--from-md"], "type": "bool" }],
+      "v2": "new-surface",
+      "basis": "design.md:66; WP-03 deliverable, shared with the WP-10 migrator",
+      "owner_wp": "WP-03",
+      "target": { "state": "new-surface" }
+    },
+    {
+      "path": "daemon",
+      "help": "Manage the machine-level intentd",
+      "args": [
+        { "name": "subcommand", "type": "subcommand", "arity": "1", "values": ["start", "stop", "status", "run"] }
+      ],
+      "v2": "new-surface",
+      "basis": "design.md:73-74, D07/D08/D19",
+      "owner_wp": "WP-08",
+      "target": { "state": "new-surface" }
+    },
+    {
+      "path": "mcp",
+      "help": "Serve the MCP surface over stdio",
+      "v2": "new-surface",
+      "basis": "design.md:84, D11",
+      "owner_wp": "WP-09",
+      "target": { "state": "new-surface" }
+    }
+  ]
+}
