@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 91f55ae4-3302-4f70-b68e-6b64e0115e6f
-heartbeat_at: 2026-08-14T17:47Z
+heartbeat_at: 2026-08-14T17:55Z
 status: active
-focus: "Dispatch table complete and reviewed (ca69e6a). Found a parity HOLE: intent config has no v2 behaviour AND no test covering it. 17 rows pending-hv, 15 of them one ruling. Register re-sweep waits for cc to clear the estate."
+focus: "Folded at e933c73 with everything committed. Dispatch table complete (27 families, 92 entries); config parity hole found and ruled into AC-00.1/AC-06.1; five measurement rules landed in parity.md. Sweep queued, blocked on cc holding the estate, and it now carries a drift-check requirement."
 claims: []
 ---
 
@@ -23,10 +23,16 @@ Four corrections to parity.md's command-level table, all measured: `at` has no `
 
 ## TODO
 
-1. **Register vocabulary alignment to `keep/retire/deviate/pending`** (vc ruling 2 -- the register moves to meet the table). Deliberately folded into the next re-sweep rather than done now: changing the vocabulary means regenerating, regenerating means a full burn measurement, and one estate-wide `bats` run beats two. It also unblocks promoting AC-05.3 from an eyeballed non-test AC to a mechanical one -- no row carries `pending` at close.
-2. **Re-probe the runtime matrix** (`gen_inventory.sh`). The 108-probe matrix is stamped `69d42a7` and four commits have touched `bin/` since. The most exposed column (the outside-a-project gate, post-0025) was re-run and holds; the rest are carried forward and NAMED as carried forward in the table's `provenance` block. Right before WP-05 leans on the file.
-3. **Per-test rows for the 40 `split` files** -- DROPPED by dispatch, not finished. 487 tests, 239 burning. `ambient_project_root_guard.bats` is the worked example (2/4, both halves adjudicated).
-4. **Guard the other invariant, or admit it is unguarded.** The `INTENT_BIN` guard covers the dispatcher path only. The ~146 `bin/intent_<sub>` direct calls are classified, not guarded; if WP-05 rules any must route through the binary, that decision needs its own guard in the same commit.
+**THE SWEEP -- one pass, three jobs, and it now has a hard requirement it did not have this morning.** Blocked on cc clearing the estate: the BATS suite is not parallel-safe (global `/tmp/intent/` sentinels), so this cannot run alongside another node's test run. Do all three in the same pass; each needs the same estate-wide measurement and running it twice is the only real cost.
+
+1. **Re-run `burn.sh` + `gen_register.sh`**, and align the register's vocabulary to `keep/retire/deviate/pending` (vc ruling 2 -- the register moves to meet the table, `pending` explicit and never implied by omission). Unblocks promoting AC-05.3 from an eyeballed non-test AC to a mechanical one: no row carries `pending` at close.
+2. **Re-run `gen_inventory.sh`** -- the 108-probe matrix is stamped `69d42a7` and four commits have touched `bin/` since. The most exposed column (the outside-a-project gate, post-0025) was re-run and holds; the rest are carried forward and NAMED as such in the table's `provenance` block.
+3. **NEW, and required rather than optional -- the EXP-02 drift check.** Regenerating the inventory rewrites the 26 `cmd-*.md` files, which carry the same verb and flag sets as the dispatch table. **The pass must diff them and REPORT disagreement, never resolve it by picking a winner**: the inventory is measurement, the table is judgement, so a divergence means either the surface moved or a judgement in the table was wrong, and those want different responses. Without this the sweep updates one description and silently strands the other -- worse than today, because today they agree.
+4. **Re-run `coverage_map.sh`** in the same pass; it reads the committed baseline, so it goes stale exactly as the baseline does.
+   **AFTER THE SWEEP, in this order:**
+
+5. **Per-test rows for the 40 `split` files** -- DROPPED by dispatch, not finished. 487 tests, 239 burning. Needs the sweep's fresh baseline first, so it genuinely sequences after rather than merely being listed after. `ambient_project_root_guard.bats` is the worked example (2/4, both halves adjudicated).
+6. **Guard the other invariant, or admit it is unguarded.** The `INTENT_BIN` guard covers the dispatcher path only. The ~146 `bin/intent_<sub>` direct calls are classified, not guarded; if WP-05 rules any must route through the binary, that decision needs its own guard in the same commit.
 
 ## Open asks for hv
 
