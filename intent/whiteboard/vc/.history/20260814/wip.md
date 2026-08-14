@@ -18,3 +18,20 @@
 ## Decisions (settled, executed)
 
 - (2026-08-13) Triage rulings delivered with the work order: 0017 single-release strict gate + `--fix`; 0012 fork = NOT-YAML; 0009 prerequisites from declared languages, no probe back-fill; 0010 warn-not-block. 0014 + 0015 close via 0017; 0013 `struck` deferral overtaken same-day by hv's direct withdraw-verb instruction. All executed and recorded in the respective Resolutions.
+
+# ---- second archive, 2026-08-14 (localfold before compact; the v2.19.0 SHIP day) ----
+
+## DOING (delivered)
+
+- **v2.19.0 SHIPPED and VERIFIED.** Tag `071c612` on both remotes + GitHub release. Cut verified: five sidecars at 2.19.0, CHANGELOG dated, tag identical across local/upstream/HEAD, tree clean, release body byte-identical to the CHANGELOG `[2.19.0]` section but for one trailing newline. Globalfold done (`aea67dd`).
+- **Fifteen issues, 0009-0023.** vc fixed and closed four of them pre-cut on hv's batching instruction: 0020 (`st list --status all` membership), 0021 (the dead `credo_checks/` mechanism, from a Laksa report), 0022 (both no-template fallback heredocs), 0023 (`error()` voice, 26 sites). Each mutation-proven; each with Resolutions recording the judgement calls and the mistakes.
+- **Release docs written PRE-cut for the first time** (`intent/history/v2.19.0.md` + `docs/releases/2.19.0/RELEASE_NOTES.md`), so the tag carries them. Both practices had lapsed -- history after v2.16.0, releases after 2.17.0 -- resumed, deliberately not backfilled.
+- **Lamplight sweep baseline taken** (`intent/analysis/20260814-lamplight-at-sweep-baseline.md`): 1639 AT rows, not the 314 our notes claimed; 70% carry a shape `--fix` refuses. Sweep itself left to cc, who claimed it.
+- **`credo_checks/` consumer half**: issues filed in Baize (0001), Lamplight (0003), Conflab (0008), each written to that project's measured state. Laksa + Prolix clean, nothing filed.
+
+## Corrections absorbed this day (all mine, all caught by someone else or by an implausible number)
+
+- cc caught my `bin/intent_st:731-741` line reference, stale within a day of being written. Re-anchored on the comment string; the correction and its reason recorded rather than the number quietly swapped.
+- cc caught four documents claiming the suite was green "at HEAD" when three code commits postdated the run. Repaired by naming the commit the run covered and letting pre-flight speak for HEAD.
+- cc caught `e1e2300` half-sweeping `wip.md` -- count moved, enumeration did not.
+- My own first Lamplight status measurement reported "30+ distinct statuses" from an unscoped grep. The scoped pass says 9. Caught because the number was implausible.
