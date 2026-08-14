@@ -178,11 +178,16 @@ at_row() { printf -- '%s\n' "$1" >> "$ACC"; }
   before=$(wc -l < "$ACC")
 
   run run_intent at lint ST0001 --fix
-  # The mechanical half lands: name suffix stripped, bare filename expanded to
-  # the one real match, emphasis dropped, (doc) marker and note canonicalised.
-  run grep -cF -- '- AT-01.1 `tests/unit/deck.bats` -- covers AC-01.1 -- status: green' "$ACC"
-  assert_output "1"
+  # The mechanical half lands: bare filename expanded to the one real match,
+  # emphasis dropped, (doc) marker and note canonicalised.
   run grep -cF -- '- AT-01.2 `tests/unit/deck.bats` -- covers AC-01.2 -- status: green' "$ACC"
+  assert_output "1"
+
+  # The ::"name" row is NOT stripped. This assertion used to say the opposite,
+  # and the opposite was wrong: the migration is two-ended (cite the file, put
+  # the AT id inside the test), so removing the name before the id lands does
+  # not half-migrate the row, it breaks the only link it had.
+  run grep -cF -- '- AT-01.1 tests/unit/deck.bats::"a name" -- covers AC-01.1 -- status: green' "$ACC"
   assert_output "1"
   run grep -cF -- '- AT-02.1 (non-test) read it -- covers AC-02.1 -- status: n/a -- doc / eyeball' "$ACC"
   assert_output "1"
@@ -226,6 +231,47 @@ at_row() { printf -- '%s\n' "$1" >> "$ACC"; }
   assert_success
   run run_intent at green ST0001 AT-01.2
   assert_success
+}
+
+@test "--fix refuses every row it cannot migrate without losing something" {
+  setup_contract
+  # Measured on a consumer estate: --fix turned 32 findings into 31 and took
+  # four second cited files and ~17 test names with it. Each shape below is a
+  # row where the fixer CANNOT do the whole job, so it must do none of it.
+  at_row '- AT-01.1 tests/unit/deck.bats::"a name" -- covers AC-01.1 -- status: green'
+  at_row '- AT-01.2 tests/unit/deck.bats::"one" + tests/unit/other.bats::"two" -- covers AC-01.2 -- status: green'
+  at_row '- AT-02.1 tests/unit/deck.bats "a spaced name" -- covers AC-02.1 -- status: green'
+  cp "$ACC" "$BATS_TEST_TMPDIR/before.md"
+
+  run run_intent at lint ST0001 --fix
+  # Byte-identical: not one of the three was touched.
+  run diff "$BATS_TEST_TMPDIR/before.md" "$ACC"
+  assert_success
+
+  # And every one is still reported, so nothing goes quiet either.
+  run run_intent at lint ST0001
+  assert_failure
+  assert_output_contains "AT-01.1"
+  assert_output_contains "AT-01.2"
+  assert_output_contains "AT-02.1"
+}
+
+@test "the suggestion for a multi-file row names every file, not just the first" {
+  setup_contract
+  # The sharper half of the report: the LINT LINE was lossy before the fixer
+  # was. It took everything before the first '::' and suggested that one file,
+  # so a human hand-following the advice dropped the second file exactly as
+  # --fix did. Fixing the suggestion is worth more than fixing the fixer.
+  at_row '- AT-01.1 tests/unit/deck.bats::"one" + tests/unit/other.bats::"two" -- covers AC-01.1 -- status: green'
+
+  run run_intent at lint ST0001
+  assert_failure
+  assert_output_contains "cites 2 files"
+  assert_output_contains "tests/unit/deck.bats"
+  assert_output_contains "tests/unit/other.bats"
+  # It tells the author where the others go, and never to drop them.
+  assert_output_contains "trailing note"
+  assert_output_contains "will NOT touch this row"
 }
 
 @test "a reference that cannot be a filename is never searched for, and never resolved by glob" {

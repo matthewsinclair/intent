@@ -220,6 +220,31 @@ at_status_loose()  { extract_field "$1" '.* -- status: ([^ ]+).*'; }
 at_covers_loose()  { extract_field "$1" '.* -- covers (.*) -- status:.*'; }
 at_ref_loose()     { extract_field "$1" '^- AT-[0-9]+\.[0-9]+ (.*) -- covers .*'; }
 
+# Every file path a reference span actually cites, one per line.
+#
+# A legacy span may carry MORE THAN ONE citation, ` + ` separated, each with its
+# own retired ::"name" suffix -- and at least one observed row omits the path
+# from a citation entirely, naming only the test. The diagnostic that reported
+# such a row used to take everything before the FIRST `::`, so it named one file
+# and silently discarded the rest: a suggestion that loses data, which anyone
+# hand-following it loses too. That was worse than the fixer applying it,
+# because it also misinformed every human reader.
+#
+# Split on ` + ` specifically (not any `+`): the test names themselves contain
+# `+`, and splitting on those manufactures citations that were never written.
+at_ref_files() {
+  local ref="$1" part
+  ref="${ref#\`}"; ref="${ref%\`}"
+  printf '%s\n' "$ref" \
+    | awk '{ n = split($0, a, / \+ /); for (i = 1; i <= n; i++) print a[i] }' \
+    | while IFS= read -r part; do
+        part="${part%%::*}"
+        part="$(printf '%s\n' "$part" | sed -E 's@^[[:space:]]+@@; s@[[:space:]]+$@@')"
+        [ -n "$part" ] || continue
+        case "$part" in */*) printf '%s\n' "$part" ;; esac
+      done
+}
+
 # The declared AT status vocabulary. Named once: the gate compares against it,
 # the diagnostic quotes it, and acceptance.md's own preamble states it.
 AT_STATUS_VOCAB="to-write | red | green | n/a"
@@ -430,7 +455,7 @@ EOF
 # first, so the row is diagnosed by its actual defect rather than by whichever
 # check happens to run first.
 at_row_defect() {
-  local line="$1" ref st covers seen inner
+  local line="$1" ref st covers seen inner files nfiles
   st="$(at_status_loose "$line")"
   covers="$(at_covers_loose "$line")"
   ref="$(at_ref_loose "$line")"
@@ -485,10 +510,23 @@ at_row_defect() {
   # the 116 rows in this repo), and "add backticks" is the wrong instruction
   # for it: the name has to come out, not get quoted.
   case "$ref" in
-    *::*)
-      inner="${ref#\`}"
-      inner="${inner%%::*}"
-      echo "the 'path::name' form is retired -- cite the FILE only (\`$inner\`) and name the id '$(line_id "$line")' inside the test itself, which is checkable from both ends"
+    *::*|*" + "*)
+      files="$(at_ref_files "$ref")"
+      nfiles="$(printf '%s\n' "$files" | grep -c . || true)"
+      if [ "${nfiles:-0}" -gt 1 ]; then
+        # NAME THEM ALL. The row genuinely cites several files and the grammar
+        # admits one, so this needs a decision -- but the decision is the
+        # author's, and they cannot make it from a message that mentions only
+        # the first. Nothing here tells them to delete anything.
+        echo "this row cites $nfiles files and the grammar admits ONE: $(printf '%s\n' "$files" | tr '\n' ' ' | sed 's@ *$@@'). Cite the file that proves the criterion, keep the others in the trailing note (' -- also: ...'), and name the id '$(line_id "$line")' inside each test. 'intent at lint --fix' will NOT touch this row -- it cannot choose for you"
+        return 0
+      fi
+      inner="$(printf '%s\n' "$files" | head -1)"
+      if [ -z "$inner" ]; then
+        echo "the 'path::name' form is retired and this row names a test without a file: '$ref' -- cite the test FILE and name the id '$(line_id "$line")' inside the test itself"
+        return 0
+      fi
+      echo "the 'path::name' form is retired -- cite the FILE only (\`$inner\`) and name the id '$(line_id "$line")' inside the test itself, which is checkable from both ends. Both ends are needed: 'intent at lint --fix' will NOT strip the name for you, because until the id is in the test the name is the only thing linking this row to it"
       return 0
       ;;
   esac
@@ -684,14 +722,46 @@ at_fix_line() {
   new="$(printf '%s\n' "$new" | sed -E 's@( -- status: (to-write|red|green|n/a)) \((.*)\)$@\1 -- \3@')"
   # Separator words between two coverage ids.
   new="$(printf '%s\n' "$new" | sed -E 's@(AC-[0-9]+\.[0-9]+) (and|&) (AC-[0-9]+\.[0-9]+)@\1, \3@g')"
-  # The reference: strip the retired name suffixes, then backtick a real path.
+  # The reference. Rewriting it REPLACES everything between the id and
+  # ' -- covers ', so it is attempted only where that span holds nothing but a
+  # path. Two shapes are refused outright, and refusing them is the fix:
+  #
+  #   `path::"name"` -- the migration is TWO-ENDED (cite the file, put the AT id
+  #   inside the test). Stripping the name here does not half-migrate the row,
+  #   it BREAKS the link: until the id lands in the test, the name is the only
+  #   thing identifying which test covers the criterion. It also converts an
+  #   honest L1 ("retired form") into a misleading L3 ("the file does not carry
+  #   the id") on a row that now reads complete and points at nothing.
+  #
+  #   `pathA + pathB` -- the row cites several files and the grammar admits one.
+  #   Which one survives is the author's decision, and a fixer that picks the
+  #   first silently deletes the others.
+  #
+  # Measured on a consumer estate: 32 findings became 31, at the cost of four
+  # rows losing a second real cited file and ~17 losing the only name that said
+  # which test covered the AC. A migrator that cannot do both ends must leave
+  # the row alone and let the linter report it, not leave behind a contract that
+  # reads complete and proves nothing.
   ref="$(at_ref_loose "$new")"
-  if [ -n "$ref" ]; then
-    inner="$ref"
-    case "$inner" in
-      "${BT}"*"${BT}") inner="${inner#\`}"; inner="${inner%\`}" ;;
-    esac
-    inner="$(printf '%s\n' "$inner" | sed -E 's@ \(".*"\)$@@; s@ ".*"$@@; s@::.*$@@')"
+  inner="$ref"
+  case "$inner" in
+    "${BT}"*"${BT}") inner="${inner#\`}"; inner="${inner%\`}" ;;
+  esac
+  # ONE rule, applied to the span as WRITTEN: a lone path token and nothing
+  # else. Whitespace covers ` + ` citations, a trailing "test name", a
+  # parenthesised name and any prose; `::` and `"` cover the rest. This is
+  # checked BEFORE anything is stripped -- an earlier version stripped the
+  # quoted name first and then tested for whitespace, so the test never saw the
+  # thing it existed to catch, and five rows still lost their test name.
+  #
+  # The whitespace test is the one that fires on every shape observed in the
+  # field; `::` and `"` are stated belt-and-braces so the rule reads as the rule
+  # rather than as an accident of what the path pattern happens to reject. Do
+  # not delete the whitespace test on the strength of the other two.
+  case "$inner" in
+    *[[:space:]]*|*::*|*'"'*) inner="" ;;
+  esac
+  if [ -n "$inner" ]; then
     case "$inner" in
       */*) ;;
       *)
