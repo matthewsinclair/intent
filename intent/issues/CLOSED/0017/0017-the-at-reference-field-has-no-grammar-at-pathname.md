@@ -228,7 +228,7 @@ Now: the search only runs for a string shaped like a filename (extension, no sep
 
 Both ends fixed:
 
-- **The diagnostic names every file the row cites** (`at_ref_files`, splitting on `+` specifically, because the test names themselves contain `+`), states that the grammar admits one, tells the author where the others belong (the trailing note), and says outright that `--fix` will not touch the row. It never tells anyone to drop anything.
+- **The diagnostic names every file the row cites** (`at_ref_files`, splitting on a space-delimited `+` separator specifically, because the test names themselves contain a bare `+`), states that the grammar admits one, tells the author where the others belong (the trailing note), and says outright that `--fix` will not touch the row. It never tells anyone to drop anything.
 - **`--fix` refuses any row whose reference span is not a lone path token.** The stripping of `::"name"` and `("name")` suffixes is gone entirely. The migration is two-ended -- cite the file, put the AT id inside the test -- and a fixer that can only do one end must do neither, or it leaves behind a contract that reads complete and proves nothing.
 
 Verified by simulation against the reporting estate, read-only, before any of it shipped: 1642 AT rows, 268 still migrate mechanically, **zero lose a cited file or a test name**. On ST0264 specifically: zero rows rewritten, all 32 left for a human, all 26 names and all 6 multi-file citations intact.
