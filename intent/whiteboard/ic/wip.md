@@ -3,41 +3,43 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 91f55ae4-3302-4f70-b68e-6b64e0115e6f
-heartbeat_at: 2026-08-14T18:00Z
-status: active
-focus: "Folded, everything committed. Dispatch table complete (27 families, 92 entries) and charter ADOPTED under hv standing authorisation. Seven measurement rules in parity.md. Sweep queued behind cc holding the estate, carrying its drift-check requirement."
+heartbeat_at: 2026-08-14T22:24Z
+status: paused
+focus: "Localfold for compact. Dispatch table complete (27 families, 93 entries). The re-sweep STALLED at 93/98 on a hang; burn.sh now has a per-file timeout so a fresh run completes. Finishing that register is the only thing blocking WP-05 on AC-05.3."
 claims: []
 ---
 
 # Interface Claude (ic)
 
-## DOING
+## DOING -- PICK THIS UP FIRST
 
-- Nothing in flight. Dispatch table complete, reviewed by vc, and all their rulings applied. The sweep is queued and blocked on the estate, not on a decision.
+**Finish the register re-sweep. It is the ONLY thing blocking WP-05.** `intent ac gate ST0056/05` reads `BLOCKED -- 3/4; unsatisfied: AC-05.3` ("every v2 test file is classified; no unclassified rows"). The register had 97 rows against 98 `.bats` files; the missing one is `tests/unit/whiteboard_clock_guard.bats`, which already has an OVERRIDES entry in `gen_register.sh` and simply had no burn row because the file postdates the last sweep.
 
-## DONE this window
+**THE SWEEP DID NOT FINISH, AND WHY MATTERS -- do not just re-run it blind.** It reached row 93 of 98 and then **sat on `tests/unit/test_diogenes.bats` for three and a half hours** producing nothing. No error, no output. A stalled sweep and a slow one look identical from outside, and the partial TSV reads exactly like a run still in progress -- which is why it was caught by checking process elapsed time, not by watching the row count.
 
-**The dispatch-table SSOT is complete** -- `intent/st/ST0056/dispatch-table.json` (canon) + `dispatch-table.md` (generated view), `fadc526` -> `dd37eb7`. 27 families, 92 entries, 6 new-surface. Coverage checked mechanically against `bin/` rather than asserted; every discrepancy explained (`acceptance` = two nouns one binary; `helpers`/`migrations` are libraries; `agents`/`claude`/`version` are a plugin, a dispatcher arm, a global).
+The file is NOT the defect: it passes 19/19 in seconds standalone, under the default binding AND under `INTENT_BIN=/usr/bin/false`. The hang is environmental to the harness context (backgrounded, no controlling tty).
 
-Four corrections to parity.md's command-level table, all measured: `at` has no `set` verb (7 verbs, `done`/`notdone` alias `green`/`red`); `lang` has 6 verbs not 3; `agents` has 5 not 1; `issues` has undocumented `new` and `help`.
+**Already fixed at `195bec2`: `burn.sh` now takes a per-file timeout** (300s default, `BURN_TIMEOUT` to override). A timed-out file reports `TIMEOUT` and carries NO classification -- an unfinished measurement is not a measurement -- and the sweep CONTINUES, so one bad file costs one row instead of the whole run. Mutation-tested both ways. **So a fresh run will now complete.**
 
-**`intent config` is a parity HOLE, and it is the finding of the window.** It produces zero bytes on both streams at exit 0 AND nothing in the estate invokes it -- both halves of the safety net absent at one site, so v3 can do anything there and the suite stays green. The trap: `tests/unit/config.bats` exists and burns 5 of 7, testing config LOADING via `info` / `doctor` / `st list`, so the hole is invisible in a file listing. **RULED** by vc into a condition on AC-00.1 ("no command family has zero burning coverage") plus the work at AC-06.1 (a conformance test lands BEFORE the behaviour is designed, or the `undefined` ruling on it is unverifiable by construction). It also opened the fifth parity class, `undefined`: `corrected` needs an antecedent to correct, and silence is not one.
+**WARNING -- the generator is AHEAD of its output.** `gen_register.sh` carries the `split` -> `pending` vocabulary change (committed at `195bec2`), but `register.md` was NOT regenerated, so the committed register still says `split` and is still 97 rows. Both are fixed by one regeneration; until then the two disagree and the register is stale in two ways rather than one. This is deliberate and recorded rather than left to be discovered.
 
-**Two exposures named against my own work** -- EXP-01 (the view is formatter-stable by luck, not construction; resolved by AC-07.6) and EXP-02 (the surface is now described twice, by the generated `cmd-*.md` inventory and by the authored table, with nothing checking they still agree). **Five measurement rules landed in `parity.md`**, where they outlive the sessions that earned them.
+### Resume, in order
 
-## TODO
+1. **Re-run the burn** in a detached worktree, `WT` and `INTENT_HOME` both passed EXPLICITLY (`bin/intent:12` only self-resolves `INTENT_HOME` when unset, so an inherited value silently measures the developer's live tree). ~40 minutes, not parallel-safe (global `/tmp/intent/` sentinels) -- confirm no peer is running tests. A partial run from before the fold is preserved at `<scratch>/burn-partial-93.tsv` for comparison, not for use.
+2. **`gen_register.sh`** from that TSV -- never hand-edit rows. This lands the vocabulary change and the missing row together.
+3. **`coverage_map.sh` and `drift_check.sh`** against the fresh baseline; both read committed artefacts and go stale exactly as the baseline does. `drift_check.sh` passed clean at the fold (three explained differences, zero unexplained).
+4. **Verify AC-05.3 mechanically**: 98 rows, zero `UNCLASSIFIED`, zero `TIMEOUT`, and per vc's ruling **zero `pending` at close**. If the fresh sweep produces `pending` rows that is honest and blocks the AC -- a named `pending` beats a silent gap, and do not resolve it by reclassifying.
 
-**THE SWEEP -- one pass, three jobs, and it now has a hard requirement it did not have this morning.** Blocked on cc clearing the estate: the BATS suite is not parallel-safe (global `/tmp/intent/` sentinels), so this cannot run alongside another node's test run. Do all three in the same pass; each needs the same estate-wide measurement and running it twice is the only real cost.
+## DONE this session
 
-1. **Re-run `burn.sh` + `gen_register.sh`**, and align the register's vocabulary to `keep/retire/deviate/pending` (vc ruling 2 -- the register moves to meet the table, `pending` explicit and never implied by omission). Unblocks promoting AC-05.3 from an eyeballed non-test AC to a mechanical one: no row carries `pending` at close.
-2. **Re-run `gen_inventory.sh`** -- the 108-probe matrix is stamped `69d42a7` and four commits have touched `bin/` since. The most exposed column (the outside-a-project gate, post-0025) was re-run and holds; the rest are carried forward and NAMED as such in the table's `provenance` block.
-3. **NEW, and required rather than optional -- the EXP-02 drift check.** Regenerating the inventory rewrites the 26 `cmd-*.md` files, which carry the same verb and flag sets as the dispatch table. **The pass must diff them and REPORT disagreement, never resolve it by picking a winner**: the inventory is measurement, the table is judgement, so a divergence means either the surface moved or a judgement in the table was wrong, and those want different responses. Without this the sweep updates one description and silently strands the other -- worse than today, because today they agree.
-4. **Re-run `coverage_map.sh`** in the same pass; it reads the committed baseline, so it goes stale exactly as the baseline does.
+**The dispatch-table SSOT is complete** -- now at `surface/dispatch-table.json` + `surface/dispatch-table.md` (moved by cc under D26; `intent st done` relocates a thread's directory, so a table the binary `include_str!`s would have broken the build at the release). 27 families, 93 entries, 6 new-surface. Detail archived to `.history/20260814/`.
 
-### After the sweep, in this order
+**`intent config` is a parity HOLE** -- no v2 behaviour AND no test invoking it. Ruled into AC-00.1 + AC-06.1; opened the fifth parity class `undefined`. **Two exposures** named against my own work (EXP-01, EXP-02). **Seven measurement rules** in `parity.md`. **Two new tools**, both registered: `coverage_map.sh` (parity-hole finder) and `drift_check.sh` (the EXP-02 mechanism, which found `todo list` missing from my own table on its first run).
 
-5. **Per-test rows for the 40 `split` files** -- DROPPED by dispatch, not finished. 487 tests, 239 burning. Needs the sweep's fresh baseline first, so it genuinely sequences after rather than merely being listed after. `ambient_project_root_guard.bats` is the worked example (2/4, both halves adjudicated).
-6. **Guard the other invariant, or admit it is unguarded.** The `INTENT_BIN` guard covers the dispatcher path only. The ~146 `bin/intent_<sub>` direct calls are classified, not guarded; if WP-05 rules any must route through the binary, that decision needs its own guard in the same commit.
+## TODO -- after the register
+
+1. **Per-test rows for the 40 `pending` files** (was `split`). 487 tests, 239 burning. Needs the fresh baseline first, so it genuinely sequences after rather than merely being listed after. `ambient_project_root_guard.bats` is the worked example (2/4, both halves adjudicated).
+2. **Guard the other invariant, or admit it is unguarded.** The `INTENT_BIN` guard covers the dispatcher path only. The ~146 `bin/intent_<sub>` direct calls are classified, not guarded; if WP-05 rules any must route through the binary, that decision needs its own guard in the same commit.
 
 ## Open asks for hv
 

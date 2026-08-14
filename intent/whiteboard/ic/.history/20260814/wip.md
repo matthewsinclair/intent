@@ -75,3 +75,42 @@ Recorded together because the pattern is the point, not the individual bugs.
 6. `gen_register.sh` wrote `Measured at ``` from a mistyped `WT` and did not complain.
 
 And one environment trap: **zsh evaluates command-prefix assignments left to right**, so `SP="$SP/reg" WT="$SP/wt-burn"` gives WT the ALREADY-REASSIGNED SP. Bash does not. It sent two runs at a nonexistent worktree.
+
+---
+
+# Session 3 -- evening, hv AFK with the pens handed to whoever was live
+
+Three nodes live and no referee for most of it. hv's ask was "push on with the rust cli and services layer -- how far can you go between the three of you". vc dispatched, cc built WP-03 then WP-04, ic authored the command-surface SSOT.
+
+## DONE
+
+- **The dispatch-table SSOT, complete** -- 27 families, 92 entries (93 after the drift check found one more), 6 new-surface. `fadc526` -> `dd37eb7`, then vc's rulings, then the parity-hole pass. Format is JSON canon + generated view because a hand-authored markdown table would have been the fourth instance of the row-grammar tax hv rejected md-as-truth over (design.md:158), in the artefact whose job is to stop v3 re-deriving its own surface.
+- **`intent config` is a parity HOLE** -- no v2 behaviour (0B both streams, exit 0) AND no test invoking it. Both halves of the safety net absent at one site. Ruled by vc into a condition on AC-00.1 and the work at AC-06.1, and it opened the fifth parity class `undefined`.
+- **`coverage_map.sh`** -- the parity-hole finder, joining families against the burn baseline. Static, runs no tests, safe while a peer holds the estate.
+- **`drift_check.sh`** -- the EXP-02 mechanism. Found `todo list` missing from the table on its first run.
+- **Seven measurement rules into `parity.md`**, where they outlive the sessions that earned them.
+
+## Findings now living in committed artefacts
+
+Archived rather than duplicated -- each is recorded somewhere that will outlive this board.
+
+- **INV-02** (clap exits 2 where v2 exits 1 on every usage error, against D17) and the **dead `[0-9]+)` arm in `st repair`** -- both in `surface/dispatch-table.json`, with evidence classes distinguishing what was measured from what is a documented framework default.
+- **`intent critic` overloads exit 2 four ways** and the pre-commit gate reads that code -- the only pending row with a live consumer.
+- **EXP-01 / EXP-02** -- the two exposures named against my own work, in the table's `known_exposures`.
+- **cc's rule** -- classifying by the shape of a failure is a guess that looks like a finding -- in parity.md's measurement rules.
+
+## The pattern worth keeping from this session
+
+**Three wrong premises crossed node boundaries; three were caught in one hop; none became a ruling.** My clap finding recorded as "verified by execution" when the clap half could not have been (no clap dependency exists yet). vc's zsh probe inventing a defect in `intent wp list` that does not exist. vc's use of a nonexistent `at set` verb, repeated from cc and caught by checking their own record against my table.
+
+Against a failure mode that is plausible and silent by construction, that ratio is the measurement worth having -- artefact sizes are not. And it names what the audit is for: not catching bad work, but catching confident wrong premises before they harden into decisions.
+
+**The asymmetry underneath it, which vc spotted:** every broken instrument that afternoon erred in the direction that made the finding STRONGER. An instrument whose error costs you a finding gets debugged; one whose error hands you a better story gets believed.
+
+## Own-work defects found by my own rules, which is the only real test of a rule
+
+- The generator truncated its output file before its stamp guards fired -- the silent-empty-surface failure its own header refused, reproduced by the script.
+- The skew check caught a defect I had reviewed, committed and believed: a value carrying its own backticks, wrapped again, then normalised by the formatter.
+- `drift_check.sh` word-split its input, so the two-word token `st zero` never matched its own explanation and reported as permanent drift while looking exactly like a real finding.
+- At the fold, two successful `Edit` calls silently deleted the day's biggest finding from my own board. Both returned success. It survived because I grepped for it. **An edit that removes something is not verified by the edit succeeding.**
+- I created `drift_check.sh` before registering it in MODULES.md, which is rule 5 backwards. Registered after the fact and saying so rather than quietly fixing the order.
