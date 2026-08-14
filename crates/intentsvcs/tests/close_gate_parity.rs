@@ -314,6 +314,161 @@ fn a_cited_file_that_does_not_carry_the_at_id_blocks() {
   );
 }
 
+/// L2/L3 apply only to a row that CLAIMS to have been run.
+///
+/// `to-write` is exempt because a missing file is the correct state for a test
+/// not yet written. v2 restricts the arm to `green|red` for exactly this
+/// reason, and a naive existence check would red every red-first row in a
+/// contract that is being written properly.
+#[test]
+fn a_to_write_row_is_exempt_from_the_file_checks() {
+  let fx = Fixture::new();
+  // Deliberately no file on disk.
+  let t = thread(
+    vec![ac("AC-01.1", AcKind::Test, AcScope::InScope, None)],
+    vec![at("AT-01.1", "AC-01.1", AtStatus::ToWrite)],
+  );
+  let verdict = gate(&t, Scope::Thread, &RepoFiles(fx.root()));
+  assert!(
+    verdict.line("ST0001").contains("0/1 satisfied"),
+    "a to-write row blocks on SATISFACTION, not on its absent file: {}",
+    verdict.line("ST0001")
+  );
+  assert!(
+    !verdict.line("ST0001").contains("does not exist"),
+    "red-first is the correct workflow and must not be punished: {}",
+    verdict.line("ST0001")
+  );
+}
+
+/// L3 is exempt on a completed thread: retrofitting id labels into a closed
+/// thread's tests is archaeology, and v2 says so in as many words.
+#[test]
+fn a_completed_thread_is_exempt_from_the_id_check() {
+  let fx = Fixture::new();
+  fx.write_file("crates/x/tests/y.rs", "// a test with no id label\n");
+
+  let mut t = thread(
+    vec![ac("AC-01.1", AcKind::Test, AcScope::InScope, None)],
+    vec![at("AT-01.1", "AC-01.1", AtStatus::Green)],
+  );
+  assert!(
+    !gate(&t, Scope::Thread, &RepoFiles(fx.root())).is_pass(),
+    "precondition: while open, the missing id label blocks"
+  );
+
+  t.status = ThreadStatus::Completed;
+  assert!(
+    gate(&t, Scope::Thread, &RepoFiles(fx.root())).is_pass(),
+    "a closed thread is not made to retrofit id labels into its tests"
+  );
+}
+
+/// L4: the REVERSE direction. Satisfaction is computed forwards -- for each AC,
+/// find covering ATs -- so a `covers` id matching nothing is silently skipped
+/// by that walk, and the AT reads as coverage it is not.
+#[test]
+fn a_covers_id_that_names_no_criterion_blocks() {
+  let t = thread(
+    vec![ac("AC-01.1", AcKind::Test, AcScope::InScope, None)],
+    vec![at("AT-01.1", "AC-09.9", AtStatus::Green)],
+  );
+  let line = gate(&t, Scope::Thread, &AllResolve).line("ST0001");
+  assert!(line.contains("BLOCKED"), "{line}");
+  assert!(
+    line.contains("covers AC-09.9, which is not a criterion in this contract"),
+    "the finding names the dangling id: {line}"
+  );
+}
+
+/// L5: the trap the non-test arm would otherwise bless.
+///
+/// A non-test AT is `n-a` by definition and `n-a` is never green, so a
+/// test-backed AC covered only by one can NEVER be satisfied. v2's own comment
+/// names the failure: "an unclosable contract whose only symptom is a gate that
+/// will not move". Reproducing the symptom without the diagnosis would leave
+/// the operator staring at a permanently unsatisfied AC with nothing to act on.
+#[test]
+fn a_non_test_at_covering_a_test_backed_ac_blocks_with_the_reason() {
+  let mut t = thread(
+    vec![ac("AC-01.1", AcKind::Test, AcScope::InScope, None)],
+    vec![at("AT-01.1", "AC-01.1", AtStatus::Na)],
+  );
+  t.tests[0].kind = AtKind::NonTest;
+  t.tests[0].file = None;
+  t.tests[0].prose = Some("eyeballed".to_string());
+
+  let line = gate(&t, Scope::Thread, &AllResolve).line("ST0001");
+  assert!(line.contains("BLOCKED"), "{line}");
+  assert!(
+    line.contains("can never satisfy it"),
+    "the gate diagnoses the unclosable contract rather than merely refusing to move: {line}"
+  );
+  assert!(
+    !line.contains("0/1 satisfied"),
+    "and it does NOT report this as ordinary unsatisfaction -- that is the collapse: {line}"
+  );
+
+  // A non-test AT covering a NON-test AC is legitimate and must pass.
+  t.criteria[0].kind = AcKind::NonTest;
+  t.criteria[0].satisfied = Some(true);
+  t.criteria[0].evidence = Some("read it".to_string());
+  assert!(
+    gate(&t, Scope::Thread, &AllResolve).is_pass(),
+    "the check discriminates the trap from the legitimate pairing"
+  );
+}
+
+/// The anti-collapse assertion across all four rules.
+///
+/// Four different problems with four different fixes. If any two read alike,
+/// the operator has to guess which they hit -- the same defect AC-04.4 forbids
+/// in the error type, and the same one the mutation battery found when L2 and
+/// L3 turned out to be mutually covering.
+#[test]
+fn the_four_contract_rules_have_four_distinguishable_diagnoses() {
+  let fx = Fixture::new();
+  fx.write_file(
+    "crates/x/tests/wrong.rs",
+    "// a test about something else\n",
+  );
+
+  let l2 = thread(
+    vec![ac("AC-01.1", AcKind::Test, AcScope::InScope, None)],
+    vec![at("AT-01.1", "AC-01.1", AtStatus::Green)],
+  );
+
+  let mut l3 = l2.clone();
+  l3.tests[0].file = Some("crates/x/tests/wrong.rs".to_string());
+
+  let l4 = thread(
+    vec![ac("AC-01.1", AcKind::Test, AcScope::InScope, None)],
+    vec![at("AT-01.1", "AC-09.9", AtStatus::ToWrite)],
+  );
+
+  let mut l5 = thread(
+    vec![ac("AC-01.1", AcKind::Test, AcScope::InScope, None)],
+    vec![at("AT-01.1", "AC-01.1", AtStatus::Na)],
+  );
+  l5.tests[0].kind = AtKind::NonTest;
+  l5.tests[0].file = None;
+
+  let lines: Vec<String> = [&l2, &l3, &l4, &l5]
+    .iter()
+    .map(|t| gate(t, Scope::Thread, &RepoFiles(fx.root())).line("ST0001"))
+    .collect();
+
+  for (i, a) in lines.iter().enumerate() {
+    assert!(a.contains("BLOCKED"), "case {i} must block: {a}");
+    for (j, b) in lines.iter().enumerate().skip(i + 1) {
+      assert_ne!(
+        a, b,
+        "cases {i} and {j} are indistinguishable:\n  {a}\n  {b}"
+      );
+    }
+  }
+}
+
 /// The live differential: v2's OWN binary, over an equivalent v2 estate.
 ///
 /// The fixture tests above assert what I believe v2 prints. This asserts what
@@ -468,6 +623,85 @@ fn v2_and_v3_agree_that_a_missing_cited_file_blocks() {
     "the finding says the file is MISSING, not that it fails some other rule: {}",
     verdict.line("ST0001")
   );
+}
+
+/// L4 and L5 against v2's own binary.
+///
+/// The fixture tests above assert what I believe v2 enforces -- and this whole
+/// bounce happened because a set of mutually agreeing fixtures missed two rules
+/// entirely. So each new rule gets the same treatment that found them.
+#[test]
+fn v2_and_v3_agree_on_l4_and_l5() {
+  let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+    .ancestors()
+    .nth(2)
+    .expect("workspace root");
+  let v2 = repo.join("bin/intent");
+  if !v2.is_file() {
+    eprintln!("SKIPPED the live differential: bin/intent is absent (post-cutover tree?)");
+    return;
+  }
+
+  // L4: an AT covering an id no criterion carries.
+  let l4 = Fixture::new();
+  l4.write_file("crates/x/tests/y.rs", "// AT-01.1: the cited test\n");
+  l4.write_file(
+    "intent/st/ST0001/info.md",
+    "---\nstatus: WIP\ncreated: 20260814\n---\n\n# ST0001: gate parity\n",
+  );
+  l4.write_file(
+    "intent/st/ST0001/acceptance.md",
+    "---\nst_id: ST0001\n---\n\n# ST0001 Acceptance\n\n## Acceptance Criteria\n\n- AC-01.1 a criterion\n\n## Acceptance Tests\n\n- AT-01.1 `crates/x/tests/y.rs` -- covers AC-09.9 -- status: green\n",
+  );
+  let out = std::process::Command::new(&v2)
+    .args(["ac", "gate", "ST0001"])
+    .current_dir(l4.root())
+    .output()
+    .expect("run v2");
+  assert!(
+    String::from_utf8_lossy(&out.stdout).contains("BLOCKED"),
+    "precondition: v2 blocks a dangling covers id"
+  );
+
+  let t4 = thread(
+    vec![ac("AC-01.1", AcKind::Test, AcScope::InScope, None)],
+    vec![at("AT-01.1", "AC-09.9", AtStatus::Green)],
+  );
+  let v4 = gate(&t4, Scope::Thread, &RepoFiles(l4.root()));
+  assert!(!v4.is_pass(), "v3 must block too: {}", v4.line("ST0001"));
+  assert_eq!(out.status.code(), Some(v4.exit_code()));
+
+  // L5: a non-test AT covering a test-backed AC.
+  let l5 = Fixture::new();
+  l5.write_file(
+    "intent/st/ST0001/info.md",
+    "---\nstatus: WIP\ncreated: 20260814\n---\n\n# ST0001: gate parity\n",
+  );
+  l5.write_file(
+    "intent/st/ST0001/acceptance.md",
+    "---\nst_id: ST0001\n---\n\n# ST0001 Acceptance\n\n## Acceptance Criteria\n\n- AC-01.1 a criterion\n\n## Acceptance Tests\n\n- AT-01.1 (non-test) eyeballed it -- covers AC-01.1 -- status: n/a\n",
+  );
+  let out = std::process::Command::new(&v2)
+    .args(["ac", "gate", "ST0001"])
+    .current_dir(l5.root())
+    .output()
+    .expect("run v2");
+  assert!(
+    String::from_utf8_lossy(&out.stdout).contains("BLOCKED"),
+    "precondition: v2 blocks the unclosable pairing.\nstdout: {}",
+    String::from_utf8_lossy(&out.stdout)
+  );
+
+  let mut t5 = thread(
+    vec![ac("AC-01.1", AcKind::Test, AcScope::InScope, None)],
+    vec![at("AT-01.1", "AC-01.1", AtStatus::Na)],
+  );
+  t5.tests[0].kind = AtKind::NonTest;
+  t5.tests[0].file = None;
+  t5.tests[0].prose = Some("eyeballed it".to_string());
+  let v5 = gate(&t5, Scope::Thread, &RepoFiles(l5.root()));
+  assert!(!v5.is_pass(), "v3 must block too: {}", v5.line("ST0001"));
+  assert_eq!(out.status.code(), Some(v5.exit_code()));
 }
 
 /// The facade cannot close a unit the gate blocks, and the sample fixture's

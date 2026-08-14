@@ -12,7 +12,7 @@
 //! answer even by accident. Non-test ACs carry their state inline because their
 //! evidence is a human judgement with no green to read.
 
-use crate::model::{AcKind, AcScope, AtStatus, Criterion, Thread};
+use crate::model::{AcKind, AcScope, AtKind, AtStatus, Criterion, Thread, ThreadStatus};
 
 /// What the gate is being asked about.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -201,33 +201,20 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
 
   let wanted = scope.group();
 
-  // v2's L2, checked before the AC loop exactly as v2 checks it: a contract
-  // whose tests point at files that are not there is not verifiable, however
-  // green its rows claim to be.
+  // The AT contract rules, checked before the AC loop exactly as v2 checks
+  // them. v2's gate calls `at_lint_report` and blocks on ANY finding
+  // (`bin/intent_acceptance:1008`), so L1-L5 are gate rules rather than merely
+  // lint rules -- `at lint` is a VALIDATOR the gate calls, not a read surface,
+  // and filing it under the wrong noun is how L4 and L5 nearly shipped missing.
   //
-  // DEVIATION (register row): the verdict and exit code match v2, the remedy
-  // text does not. v2 sends the operator to `at lint --fix`, which in v3 has
-  // nothing to fix -- the row grammar it repaired is unconstructible now, and
-  // a broken path is a broken path. Pointing at a command that cannot help
-  // would be reproducing v2's words rather than its meaning.
-  let findings: Vec<String> = thread
-    .tests
-    .iter()
-    .filter(|t| match &wanted {
-      None => true,
-      Some(group) => &group_of(&t.id) == group,
-    })
-    .filter_map(|t| {
-      let path = t.file.as_deref()?;
-      if !refs.resolves(path) {
-        Some(format!("{} cites a file that does not exist: {path}", t.id))
-      } else if !refs.carries_id(path, &t.id) {
-        Some(format!("{path} does not carry the literal id {}", t.id))
-      } else {
-        None
-      }
-    })
-    .collect();
+  // L1 (row grammar) is gone by construction: a row is model fields, so there
+  // is no grammar left to violate. The other four survive.
+  //
+  // DEVIATION (register row, ruled `corrected`): verdict and exit code match
+  // v2, the remedy text does not. v2 sends the operator to `at lint --fix`,
+  // which in v3 has nothing to fix -- pointing at a command that cannot help
+  // is a v2 defect, not a v3 design consequence.
+  let findings = contract_findings(thread, wanted.as_deref(), refs);
   if !findings.is_empty() {
     return Verdict::Blocked {
       detail: format!(
@@ -297,6 +284,67 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
       ),
     }
   }
+}
+
+/// v2's L2-L5, each with its own diagnosis.
+///
+/// **Every finding names WHICH rule fired, and no two read alike.** That is not
+/// presentation: "the file is missing", "the file is the wrong one", "this
+/// covers an AC that does not exist" and "this can never satisfy what it
+/// covers" have four different fixes. Reporting them identically is the same
+/// same-text-for-different-causes collapse AC-04.4 forbids one layer up -- and
+/// the mutation battery proved the point, because L2 and L3 were mutually
+/// covering until the test started asserting which one fired.
+fn contract_findings(thread: &Thread, wanted: Option<&str>, refs: &dyn References) -> Vec<String> {
+  // L3 is exempt on a closed thread: retrofitting id labels into a completed
+  // thread's tests is archaeology, and v2 says so at `at_row_findings`.
+  let completed = thread.status == ThreadStatus::Completed;
+  let mut out = Vec::new();
+
+  for t in thread.tests.iter().filter(|t| match wanted {
+    None => true,
+    Some(group) => group_of(&t.id) == group,
+  }) {
+    // L2/L3 apply to a REAL test row that claims to have been run. `to-write`
+    // is exempt because a missing file is the CORRECT state for a test not yet
+    // written -- a naive existence check reds five correct rows, which is why
+    // v2 restricts the arm to green|red.
+    if t.kind == AtKind::Test
+      && matches!(t.status, AtStatus::Green | AtStatus::Red)
+      && let Some(path) = t.file.as_deref()
+    {
+      if !refs.resolves(path) {
+        out.push(format!("{} cites a file that does not exist: {path}", t.id));
+      } else if !completed && !refs.carries_id(path, &t.id) {
+        out.push(format!("{path} does not carry the literal id {}", t.id));
+      }
+    }
+
+    for covered in &t.covers {
+      match thread.criteria.iter().find(|c| &c.id == covered) {
+        // L4: the reverse direction. Satisfaction is computed forwards -- for
+        // each AC, find covering ATs -- so a `covers` id that matches nothing
+        // is silently ignored by that walk and the AT looks like coverage it
+        // is not.
+        None => out.push(format!(
+          "{} covers {covered}, which is not a criterion in this contract",
+          t.id
+        )),
+        // L5: the trap the non-test arm would otherwise bless. A non-test AT
+        // is `n-a` by definition and `n-a` is never green, so a test-backed AC
+        // covered only by one can NEVER be satisfied -- an unclosable contract
+        // whose only symptom is a gate that will not move. Reproducing the
+        // symptom without the diagnosis would leave the operator staring at a
+        // permanently unsatisfied AC with nothing to act on.
+        Some(c) if t.kind == AtKind::NonTest && c.kind != AcKind::NonTest => out.push(format!(
+          "{} is a non-test AT covering {covered}, which is test-backed -- a non-test AT is never green, so it can never satisfy it. Mark {covered} non-test and satisfy it by evidence, or cover it with a real test",
+          t.id
+        )),
+        Some(_) => {}
+      }
+    }
+  }
+  out
 }
 
 /// Descoped and withdrawn counts are reported SEPARATELY, never folded into
