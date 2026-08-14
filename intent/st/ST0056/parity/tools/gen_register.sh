@@ -15,7 +15,30 @@
 set -uo pipefail
 SP="${SP:?}"; WT="${WT:?}"
 BURN="$SP/burn.tsv"
-cd "$WT"
+cd "$WT" || { echo "gen_register: WT is not a directory: $WT" >&2; exit 2; }
+
+# DECIDED, not inferred. Every rule below is a grep, and a grep cannot tell code
+# from data: a file that carries a call-site pattern as a test FIXTURE matches
+# the rule for making that call. `intent_bin_retarget_guard.bats` is the live
+# case -- it greps the estate for `bin/intent_<sub>` spellings and holds them as
+# literal strings, so the sub-script rule fires on a file that invokes nothing.
+#
+# Rather than loosen the rule until it stops noticing (which would blind it to
+# the real sites), such files are named here with the reason. Same discipline as
+# the guard's own allowlist: a classification the machine cannot make is stated
+# by a human, never guessed, because a wrong `retire` is coverage that vanishes
+# at the cut with nobody watching.
+#
+# Format: <basename>|<class>|<basis>|<note>
+OVERRIDES="
+intent_bin_retarget_guard.bats|out-of-scope|harness invariant, decided|Guards the \$INTENT_BIN invariant across the estate by reading test SOURCE; it invokes no CLI at all. It holds \`bin/intent_<sub>\` spellings as literal needles, which the sub-script rule cannot tell from a call site. Carries into v3 unchanged in purpose -- whatever the binary is, the estate must reach it through one name.
+whiteboard_clock_guard.bats|out-of-scope|hook behaviour, decided|Exercises a pre-commit hook in a throwaway git repo, not the Intent CLI. Unaffected by the binary swap.
+organize_commands.bats|retire|hv ruling 2026-08-14|Retires with the command. hv ruled \`organize\` vestigial by construction -- a strictly structured model cannot hold data in the wrong spot or format -- so both implementations are planned retires (parity.md, 2026-08-14; via vc). Classified by ruling, not by burn.
+"
+
+lookup_override() {
+  printf '%s\n' "$OVERRIDES" | grep -F "$(basename "$1")|" | head -1 | cut -d'|' -f2-
+}
 
 classify_none() {
   local f="$1"
@@ -37,7 +60,11 @@ classify_none() {
   fi
 }
 
-REV="$(cd "$WT" && git rev-parse --short HEAD)"
+REV="$(cd "$WT" && git rev-parse --short HEAD 2>/dev/null)"
+# A register that cannot name its revision is a rumour with a decimal point --
+# the exact defect this artefact was built to avoid. It emitted `Measured at ``
+# once, silently, from a mistyped WT. Refuse rather than publish that.
+[ -n "$REV" ] || { echo "gen_register: cannot resolve a revision from WT=$WT; refusing to write an unstamped register" >&2; exit 2; }
 DATE="$(date -u +%Y-%m-%d)"
 OUT="${OUT:-$SP/register.md}"
 
@@ -72,6 +99,14 @@ PREAMBLE
   printf '| test file | tests | burn | class | basis | notes |\n'
   printf '| --------- | ----- | ---- | ----- | ----- | ----- |\n'
   tail -n +2 "$BURN" | while IFS=$'\t' read -r f total dfail burn status; do
+    # A decided classification wins over any inferred one, whatever the burn
+    # says. These are the files a grep cannot judge -- see OVERRIDES.
+    ov="$(lookup_override "$f")"
+    if [ -n "$ov" ]; then
+      IFS='|' read -r cls basis note <<< "$ov"
+      printf '| `%s` | %s | %s/%s | %s | %s | %s |\n' "$f" "$total" "$burn" "$total" "$cls" "$basis" "$note"
+      continue
+    fi
     case "$status" in
       FULL)
         printf '| `%s` | %s | %s/%s | keep | full burn | Every test changes result when the binary is redirected: the file exercises the CLI and nothing else. |\n' "$f" "$total" "$burn" "$total"
