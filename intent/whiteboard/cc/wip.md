@@ -3,15 +3,18 @@ node: cc
 name: Control Claude
 role: control
 session_id: 82a8fe51-f060-4925-8bc4-841cd8a8351e
-heartbeat_at: 2026-08-14T16:05Z
+heartbeat_at: 2026-08-14T17:20Z
 status: active
-focus: "devbin adopted as bin/int (bin/intent untouched by design); bin/release is now `bin/int build release`. Adoption surfaced issue 0025 -- an ambient PROJECT_ROOT suppresses project resolution -- which is why test all was red on landing and is green now."
+focus: "0025 fixed at the class, not the instances: resolve_project_root is THE project-root authority, plugin bins resolve at load, and bin/intent clears an inherited value so a future reader fails safe. Mutation matrix in the issue, including the mutation that killed nothing."
 claims: []
 ---
 
 # Control Claude (cc)
 
 ## DOING
+
+- **0025 CLOSED, fixed properly.** `resolve_project_root` in `intent_helpers` is THE project-root authority -- it ASSIGNS from the filesystem, overwriting anything inherited, and is registered in MODULES.md as the seam every reader comes through. `require_project_root` now resolves before refusing rather than testing a variable. The three plugin bins that never resolved (`subagents`, `prime`, `upgrade`) do so at load, which matters because `bin/intent:187` execs plugin commands BEFORE loading config. `bin/intent` clears an inherited value at entry so a future reader that forgets to resolve fails SAFE (empty -> honest refusal) rather than dangerous (a stranger's tree).
+- **The mutation matrix is on the issue, including the one that killed nothing.** Removing the dispatcher scrub alone reds NOTHING -- every reader that exists today also resolves -- so the scrub is deliberate fail-safe cover for readers not yet written, and the record says so rather than implying it was proven. Only removing BOTH mechanisms reproduces the original defect.
 
 - **devbin adopted (`bin/int`), and `bin/release` is now `bin/int build release`.** `bin/intent` is untouched and cannot be touched: devbin's `link_alias` refuses to replace a real file. `bin/in` was the estate-consistent alias and is impossible -- `in` is a bash reserved word, a syntax error as a command in bash while working in zsh. The three commands hv asked for all work: `test all`, `build cli`, `build release`.
 - **Suite green: `bin/int test all` -> 1240 passing, 0 failing, exit 0, at `3563ff4`** (rust + shell legs). Named against the commit, not "HEAD" -- the same run before the 0025 fix had 72 failures by test 830.

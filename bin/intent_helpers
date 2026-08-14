@@ -600,12 +600,40 @@ require_claude() {
 }
 export -f require_claude
 
-# Require a project root to be set (caller must load config first)
+# THE project-root authority (issue 0025).
+#
+# ASSIGNS PROJECT_ROOT from the filesystem, overwriting anything inherited.
+# Every reader of that variable must come through here first.
+#
+# The variable is a generic name -- a Makefile, direnv, CI or devbin (which
+# exports it on every invocation) can all set it -- so code that reads it raw
+# is asking "did someone set a variable?" when it means "am I in a project?".
+# Those answer the same way often enough to look correct and differ exactly
+# when it matters: `intent claude subagents install` wrote its manifest into
+# whatever tree the ambient value named, from any directory, silently.
+#
+# Idempotent and cheap: find_project_root walks up from the cwd, so calling
+# this repeatedly down a command chain re-derives the same answer. `|| true`
+# because "no project here" is a valid answer that the caller decides about --
+# resolving is not the same as requiring.
+resolve_project_root() {
+  PROJECT_ROOT="$(find_project_root 2>/dev/null || true)"
+  export PROJECT_ROOT
+}
+export -f resolve_project_root
+
+# Resolve, THEN refuse. Named for what it guarantees, which is why it no longer
+# merely tests the variable: a guard that passes on ambient state is not a
+# guard, and this one used to return success for any non-empty value whatever
+# it pointed at.
 require_project_root() {
+  resolve_project_root
   if [ -n "${PROJECT_ROOT:-}" ]; then
     return 0
   fi
-  echo "error: Not in an Intent project directory" >&2
+  # Lowercase per the 0023 voice ruling; the capitalised form this carried was
+  # one of the sites that ruling did not reach.
+  echo "error: not in an Intent project directory" >&2
   echo "Run 'intent init' to create a new project first" >&2
   return 1
 }

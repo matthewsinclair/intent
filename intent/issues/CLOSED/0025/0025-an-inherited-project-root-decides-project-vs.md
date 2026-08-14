@@ -3,7 +3,7 @@ id: "0025"
 title: an inherited PROJECT_ROOT decides project-vs-global without any resolution, so intent writes into whatever tree a parent process names
 date: 2026-08-14
 reporter: matts
-status: OPEN
+status: CLOSED
 severity: high
 ---
 
@@ -75,11 +75,28 @@ Guard: inject `PROJECT_ROOT=/some/other/tree` and assert the manifest still land
 
 ## Resolutions
 
-**Landed with this change:**
+**Fixed properly, at the class rather than the instances.**
 
-- `intent/plugins/agents/bin/intent_agents` — the five `[ -z "${PROJECT_ROOT:-}" ] &&` guards removed; config resolution is now unconditional.
-- `tests/run_tests.sh` — `unset PROJECT_ROOT INTENT_ROOT BIN_DIR` before the script computes its own, and its own assignment is deliberately not exported, so child `intent` processes resolve the project themselves. A suite that inherits ambient project state measures the machine it happens to run on. This is why `bin/int test all` was red on adoption and is green now.
+The defect is that `PROJECT_ROOT` was read as an answer. The fix makes resolution the only authority and gives it a name:
 
-**Deliberately NOT fixed here**, because they are the wider surface and want their own pass rather than being rushed alongside a tooling change: shapes 1 and 3 above — `intent_claude_subagents`'s three reads, and `require_project_root`'s definition. Both are recorded with their file and line. The suite no longer inherits the variable, so nothing masks them; they simply are not yet fixed.
+- **`resolve_project_root` (`bin/intent_helpers`) is THE project-root authority.** It ASSIGNS `PROJECT_ROOT` from the filesystem, overwriting anything inherited. Registered in MODULES.md as the seam every reader must come through.
+- **`require_project_root` resolves, then refuses.** It used to return success for any non-empty value, which made it a guard that asked "did someone set a variable?" while its name promised "am I in a project?". Its message also moves to the lowercase 0023 voice, a site that ruling did not reach.
+- **The three plugin bins that never resolved now do**, at load: `intent_claude_subagents`, `intent_claude_prime`, `intent_claude_upgrade`. This matters because `bin/intent` execs plugin commands BEFORE it loads config ("let the plugin handle it", `bin/intent:187`), so anything they saw came from outside Intent entirely.
+- **`intent_agents`** had the inverse shape -- five guards where an inherited value SUPPRESSED the config load -- fixed in the preceding commit.
+- **`bin/intent` clears an inherited `PROJECT_ROOT` at entry.** One line, and it makes the default fail SAFE rather than fail dangerous: a future reader that forgets to resolve now sees empty, which routes to the `$HOME` branch or an honest refusal, instead of silently naming a stranger's tree.
 
-{{TBC}}
+**Guard**: `tests/unit/ambient_project_root_guard.bats`, 4 tests. The decoy is a REAL, valid Intent project -- a decoy that could never have been selected would certify nothing, because it is exactly the tree that receives the write when the ambient value is honoured.
+
+**Mutation matrix, including the mutation that killed nothing** -- reported because a mutation failing to produce an expected red is itself a finding:
+
+| Mutation                                          | Red        | Reading |
+| ------------------------------------------------- | ---------- | ------- |
+| M1: dispatcher `unset` removed                    | **none**   | the per-reader `resolve_project_root` covers every path the guard exercises |
+| M2: `resolve_project_root` trusts inherited value | 3, 4       | the unit assertions; 1 and 2 survive because the scrub left nothing to trust |
+| M3: BOTH removed                                  | 1, 3, 4    | the original defect reproduces -- the manifest lands in the decoy |
+
+Restored: 4/4 green.
+
+**What M1 actually tells us, stated rather than glossed:** the dispatcher scrub is redundant against every reader that exists today, because each of them also resolves. It is kept deliberately as the fail-safe default for readers nobody has written yet, and this table is the record that no current test can fail on it. Test 2 survives even M3, held by a third mechanism that predates this change -- `load_intent_config` (`bin/intent_config:33`) assigns unconditionally, which is why the regular project-command path was never exposed and only the early-exec plugin path was.
+
+**Not deferred this time.** The earlier note said shapes 1 and 3 were left for their own pass; this is that pass.

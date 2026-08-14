@@ -7,6 +7,20 @@
 # Exit on error
 set -e
 
+# Issue 0025: an inherited PROJECT_ROOT is not evidence of anything.
+#
+# It is a generic name, and a Makefile, direnv, CI or devbin (which exports it
+# on every invocation) can all set it. Intent treats it as an answer -- some
+# readers branch project-vs-global on nothing but its presence -- so an ambient
+# value silently redirects work into a tree the user is not standing in.
+#
+# Clearing it here means anything downstream that sees it is seeing a value
+# Intent resolved (resolve_project_root / load_intent_config), never one it was
+# handed. That closes the class for the whole CLI at one line, including for
+# readers nobody has written yet. INTENT_HOME is the supported way to point at
+# a different tool tree, and it is untouched.
+unset PROJECT_ROOT
+
 # Determine INTENT_HOME early for version loading
 # Resolve symlinks so INTENT_HOME works when invoked via symlink (e.g. ~/bin/intent)
 if [ -z "$INTENT_HOME" ]; then

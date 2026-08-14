@@ -17,6 +17,12 @@ INTENT_ROOT="$(cd "$PLUGIN_BIN/../../../.." && pwd)"
 INTENT_BIN="$INTENT_ROOT/bin"
 source "$INTENT_BIN/intent_helpers"
 
+# Issue 0025: resolve the project HERE rather than inheriting it. bin/intent
+# execs plugin commands BEFORE it loads config ("let the plugin handle it"), so
+# any PROJECT_ROOT visible at this point came from outside Intent entirely --
+# and every read below would then name whatever tree that value pointed at.
+resolve_project_root
+
 # Configuration
 SKILLS_SOURCE="$INTENT_ROOT/intent/plugins/claude/skills"
 SUBAGENTS_SOURCE="$INTENT_ROOT/intent/plugins/claude/subagents"
