@@ -10,7 +10,14 @@
   - **Issues directories** -- `OPEN/`/`CLOSED/` stop encoding status (status is data); index views replace directory browsing.
   - **Generated-view banners** -- views carry a generated footer; tests asserting their absence retire.
   - **Manual-edit workflows** -- tests that hand-edit structured md and expect the tool to honour it convert to mutation-based equivalents or retire (authored-once, D02).
+  - **Corrected** (proposed by ic 2026-08-14; PENDING hv ratification at the bounce) -- a v2 behaviour that is simply wrong and is fixed rather than faithfully reproduced. Known members from ic's census: unknown flags accepted silently with exit 0 (`info`/`config`/`version` -- clap exits 2, so v3 diverges on day one whether or not anyone decides to); `--help` reporting failure on 10 of 27 commands; the stderr/stdout misroute census (45 stderr-only / 12 stdout-only / 2 both on failing invocations -- larger than the three sites in cc's hv queue). Distinct from **deviate**: deviate is a design consequence of v3; corrected is a bug fix. Both carry a ratification reference per register row.
 - **Explicitly out of parity scope**: `bin/release` and the test harness itself (repo dev tooling, not shipped surface).
+
+## Parity properties (beyond output equality)
+
+Output-equality across implementations cannot catch v3 faithfully reproducing a v2 bug -- the two would agree and the suite would go green. Properties asserted directly, per scoped verb:
+
+- **Scope-honouring (issue 0024):** an instrument that accepts a narrowing argument answers the narrowed question, and its output names the resolved scope. Found in v2: `at lint <ID>/NN` and `ac gate <ID>/NN` silently dropped the WP scope, and a scoped `--fix` rewrote rows OUTSIDE the scope; an equality-only suite would have carried that into v3 as certified behaviour.
 
 ## The keep/retire/deviate register
 

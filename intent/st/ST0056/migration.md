@@ -50,10 +50,16 @@ Every class carries the exact file:line; totals print per class; the report neve
 The acceptance fixture for AC-00.2 / AC-10.5. A corpus manifest names `{project, git revision, path}` per member; the harness checks out each at its named revision (read-only), runs Phase A + a dry Phase B into a sandbox, and asserts three generalisations of the Lamplight baseline conditions:
 
 1. **Artefact conservation**: every v2 artefact is accounted for -- converted, or named in the residue by class. Counts reconcile exactly; nothing disappears.
-2. **Semantic completeness**: every AC, AT, status, date, WP, coverage link and reference in the v2 estate lands in the model or is named. (The Lamplight fixture: 1639 AT rows at `15dbccc92`, plus cc's post-sweep revision once the sweeps land -- the fixture is the POST-sweep tree; the pre-sweep baseline stays as the sweep's own measure.)
+2. **Semantic completeness**: every AC, AT, status, date, WP, coverage link and reference in the v2 estate lands in the model or is named. (The Lamplight fixture: 1639 AT rows at `15dbccc92` -- and that estate is now known to be its PERMANENT shape, not a pre-sweep one; see the open policy question below.)
 3. **Prose conservation**: authored bodies land byte-identical in their v3 homes.
 
-Corpus order: **Intent's own tree first (canary), then Lamplight, Utilz, Baize** at named post-sweep revisions. The canary run includes exercising rollback for real (AC-10.6): migrate, revert, assert tree-identical.
+Corpus order: **Intent's own tree first (canary), then Lamplight, Utilz, Baize** at named current revisions. The canary run includes exercising rollback for real (AC-10.6): migrate, revert, assert tree-identical.
+
+## Open policy question (forced by the fleet, 2026-08-14 -- hv to rule)
+
+The sweep program is dead: Lamplight's hv ruled AT remediation on Done work off outright, so their ~1158 legacy-grammar rows (70% of the estate) will never be brought to the v2.19 grammar. Under Phase A's BLOCKED-until-clean, Lamplight can therefore never migrate to v3 -- the policy as written meets an estate for which "fix under v2 tooling, then re-run" is refused by its owner, permanently.
+
+The likely resolution, for hv rather than decided here: a distinct conversion class for CLOSED (Completed/Cancelled) threads that is **lossless-by-carrying** -- the legacy reference, `::name` citation and multi-file list carried whole into the model (marked legacy, nothing guessed, nothing dropped, nothing reformatted) -- while LIVE threads keep BLOCKED-until-clean. The 0017 refusal was about a fixer that would have destroyed one end of a two-ended migration; carrying the whole row into a richer model destroys nothing, which is exactly the distinction between migrating data and improving it. Neither class ever gets a lossy path.
 
 ## What the migrator does not do
 

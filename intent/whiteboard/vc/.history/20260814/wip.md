@@ -49,3 +49,12 @@
 ## Decisions folded out (recorded in restart.md / memory / issue records)
 
 - Mutation batteries hard-fail on unchanged source; reproduce in a sacrificial worktree; line numbers expire -- anchor on symbols; alarming one-line-grep numbers are findings to check; own claims get the refutation discipline.
+
+---
+
+# PM-2 session archive (2026-08-14) -- WP-01 closed, WP-02 handed over
+
+- WP-01 closed through the gate (4/4) on hv ratification; specs authored (data-model / migration / parity + 62-AC contract, lint-clean); D18-D21 closed the open questions.
+- WP-02 foundation built by vc pre-ruling (workspace, model, store, faces, 4 mutation-proven guards, CI) at 5e4b766; global-gitignore *.sql trap caught by reading the commit file list.
+- hv ruling: cc + ic write the code, vc stewards. Handover briefs sent; cc landed the SDL face (732affa, gates 4/6) and is bringing devbin into bin/ (entry point bin/int; bin/intent untouched); ic landed the full parity deep pass (26 cmd files, 94-row register, INTENT_BIN retarget, 711/1235 reach the CLI) and localfolded.
+- cc killed the sweep program with evidence (Lamplight at 2.19.0, their hv ruled AT remediation dead) -- steward docs updated: corrected class proposed in parity.md, WP-10 corpus reworded in tasks.md, migration policy question opened in migration.md, the model.rs one-authority law reworded.

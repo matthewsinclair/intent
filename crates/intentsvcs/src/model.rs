@@ -7,9 +7,14 @@
 //! field in canonical JSON is refused by name at deserialize time, never
 //! silently dropped. schemars mirrors that as `additionalProperties: false`.
 //!
-//! Vocabulary has ONE authority: serde's rename rules. Nothing else maps an
-//! enum to its wire string -- [`enum_str`] routes through serde so a second
-//! hand-maintained name table cannot drift into existence.
+//! The CANONICAL (JSON) wire form has one authority: serde's rename rules --
+//! [`enum_str`] routes through serde so a hand-maintained name table cannot
+//! drift into existence. Other transports derive their own casing from the
+//! same variant set (GraphQL's SDL says `NA` where serde says `n-a`): two
+//! wire conventions over ONE vocabulary, with the correspondence pinned by
+//! the faces drift guard rather than by this module. The law is about where
+//! names are AUTHORED (here, once), not about every transport spelling them
+//! identically.
 
 use async_graphql::{Enum, SimpleObject};
 use schemars::JsonSchema;

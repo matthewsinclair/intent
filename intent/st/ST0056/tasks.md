@@ -28,5 +28,5 @@ The work breakdown is the 12-WP ladder (`intent wp list ST0056` is the live stat
 
 ## Dependencies
 
-- **v2.19.0 consumer sweeps (cc's lane) precede the fleet corpus snapshot**: the sweeps change the estates to the v2.19 grammar floor, and the migration fixture must be the post-sweep trees at named revisions.
+- **The WP-10 corpus is the fleet AS IT IS, at named revisions -- not "post-sweep trees".** The sweep program is dead: Lamplight is already at 2.19.0 and their hv ruled AT remediation on Done work dead outright (their `aaf4d3b2b`, widened `7f5c0bd9a`), so ~1158 legacy-grammar rows are the permanent state of that estate, not a transitional one. The migrator meets them for real -- refuse-and-name becomes MORE load-bearing -- and migration.md carries the open policy question this forces (BLOCKED-until-clean vs an estate that will never clean).
 - v2 stays on the standing fix-under-issue ruling during the build; scope of v2 maintenance is hv's call (proposed: critical fixes only).
