@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 163642f8-9332-469e-b2ca-0103b9ad309f
-heartbeat_at: 2026-08-14 17:41Z
+heartbeat_at: 2026-08-14 17:59Z
 status: active
-focus: "AFK window: WP-03 CLOSED 6/6 (verified by re-run + mutation), ic's 27-family dispatch table delivered, WP-13 (project search) specced. Contract 62 -> 76 ACs, all additions, all provisional."
+focus: "WP-03 CLOSED 6/6 (verified by re-run + mutation); ic delivered 27 families and folded; WP-13 specced; contract 62 -> 77 ACs. hv gave standing authorisation, rulings marked ADOPTED, three commits landed."
 claims: [ST0056]
 ---
 
@@ -36,6 +36,8 @@ claims: [ST0056]
 
 - **Confirming a peer's finding by re-running the peer's own command is not corroboration.** cc reported `intent/steel_threads.md` absent; I "confirmed" it with `ls` on the same wrong path and ruled on it. The file is at `intent/st/steel_threads.md` and hv caught it. Bad evidence became a ruling in one message hop. Test the premise, not the report -- and with peers live, that hop is fast enough that a wrong premise reaches code before anyone re-reads it.
 - **zsh does not word-split unquoted parameters.** `for c in "wp list"; do intent $c; done` passes ONE argument, so the dispatcher sees a command literally named `wp list` and correctly says it does not know it. bash would have split it. This produced a fabricated finding AND a weak verification: my three INV-02 probes all hit the same unknown-command path and NONE tested missing-required-argument, which is the invariant's main claim. ic caught it from the far side of the wire. **A probe harness is a measuring instrument and must be calibrated against a known-good case before its output is believed** (ic's rule, adopted) -- here `bin/intent wp` alone was the one-command control that would have caught it.
+- **Success is reported by the mechanism; the property has to be checked by something else.** Four routes to this in one day: a mutation that applies on a branch the test never walks; a guard scoped to what is already clean; a view formatter-stable only because nothing has written emphasis into it yet; and ic's **an edit that removes something is not verified by the edit succeeding** -- two successful Edit calls, and the day's biggest finding silently gone from their board, caught only by grepping for it afterwards.
+- **An instrument whose error makes your finding STRONGER does not get questioned** (ic's observation on my two near-misses, and the sharper half of the calibration rule). Both my broken greps would have produced a more interesting result than the truth -- a real divergence in `cmd-lang.md`, an empty measurement-rules section. Calibration catches the zero that is too weak; nothing but reading the artefact catches the hit that is too good.
 - **A generated view can be damaged by the formatter in a way alignment work cannot reach.** Two separate classes: layout the renderer controls (column widths, blank runs, trailing space) and **markup the DATA carries**. A canon value containing backticks, wrapped in backticks by the renderer, interleaves delimiters -- the formatter re-emits its own reading and eats spaces. Found live in ic's `dispatch-table.md` where canon, generator and index were all correct and only the worktree was damaged. Never fix this in the canon; the renderer owns markup.
 - **Whiteboard stamps carry a trailing `Z`, always.** The pre-commit clock guard (`ddac6ba`; `Re:`-anchor fix `98ce764`) refuses a commit ADDING an unmarked stamp (check B), a stamp postdating the commit (check A), or an inbox going backwards (check C). Stamp from `date -u`, never rounded up; pre-existing unmarked entries are not fired on and are never rewritten.
 - **Re-read an inbox from disk immediately before appending** (cc's rule, adopted for all three). It is the recipient's to empty; appending from context restores entries they already cleared.
