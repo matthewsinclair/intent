@@ -72,7 +72,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 
 - AC-04.1 st/wp lifecycle verbs (new, start, done, cancel, list, show) run through the facade with canon + views + DB written transactionally -- a failure mid-write leaves no torn state
 - AC-04.2 ac/at operations implement the four AC states with computed satisfaction for test-backed ACs (never stored) and inline evidence for non-test
-- AC-04.3 The close-gate reads the model and reproduces v2 gate verdicts across the corpus contracts
+- AC-04.3 The close-gate reads the model and reproduces v2 gate verdicts -- including every one of v2's own gate rules that remains constructible in v3, each with its own distinguishable diagnosis, proven against contracts built to trip them rather than against a corpus that happens to be clean
 - AC-04.4 Every facade error is typed and renders a remedy with its full cause chain (no same-text-for-different-causes collapses)
 - AC-04.5 Every mutation path writes an event-log envelope carrying principal + project_id (the D15 seams exist end to end; renumbered from AC-02.6 at WP-02 close per the 2026-08-14 bounce ruling)
 
