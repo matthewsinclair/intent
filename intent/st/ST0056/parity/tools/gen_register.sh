@@ -73,6 +73,9 @@ REV="$(cd "$WT" && git rev-parse --short HEAD 2>/dev/null)"
 [ -n "$REV" ] || { echo "gen_register: cannot resolve a revision from WT=$WT; refusing to write an unstamped register" >&2; exit 2; }
 DATE="$(date -u +%Y-%m-%d)"
 OUT="${OUT:-$SP/register.md}"
+OUT_TMP="$(mktemp "${TMPDIR:-/tmp}/gen_register.XXXXXX")"
+
+. "$HERE/lib_mdfmt.sh" || { echo "gen_register: cannot source $HERE/lib_mdfmt.sh -- refusing to emit a view that will not survive the formatter" >&2; exit 2; }
 
 # CORPUS COVERAGE -- refuse a TSV that does not cover the on-disk estate.
 #
@@ -125,7 +128,7 @@ This pass renames \`split\` to \`pending\`. Nothing is lost -- the reason a row 
 
 **Two values sit outside that four, deliberately, and ic flagged the divergence rather than collapsing it.** \`out-of-scope\` and \`UNCLASSIFIED\` are not dispositions on the same axis as the other four:
 
-- \`out-of-scope\` answers *is this in the parity contract at all* -- a decided answer, not a deferred one. Folding it into \`keep\` would claim a repo-content test is part of the conformance suite; folding it into \`retire\` would schedule a perfectly good test for deletion. Neither is true, and the orthogonal axis is real.
+- \`out-of-scope\` answers _is this in the parity contract at all_ -- a decided answer, not a deferred one. Folding it into \`keep\` would claim a repo-content test is part of the conformance suite; folding it into \`retire\` would schedule a perfectly good test for deletion. Neither is true, and the orthogonal axis is real.
 - \`UNCLASSIFIED\` is a MEASUREMENT FAILURE, not a deferred decision: the baseline was not green, so the burn delta means nothing. It must be zero at close for the same reason \`pending\` must, but the remedy is different -- \`pending\` needs a judgement, \`UNCLASSIFIED\` needs a working measurement.
 
 **Scope note:** \`pending\` is a first-pass verdict, not a final one. Those files carry both portable and non-portable tests and need per-test rows; this pass deliberately stops at the file level rather than guessing which half is which.
@@ -197,7 +200,14 @@ PREAMBLE
   printf '| class | files | what WP-05 does with them |\n'
   printf '| ----- | ----- | ------------------------- |\n'
   for k in keep pending deviate retire out-of-scope UNCLASSIFIED; do
-    n=$(awk -F'|' -v K="$k" '/^\| `tests\// {gsub(/^ +| +$/,"",$5); if ($5==K) c++} END{print c+0}' "$OUT" 2>/dev/null)
+    # Counts come from the rows THIS RUN has just emitted, so it reads
+    # $OUT_TMP -- the file currently being written -- not $OUT, which still
+    # holds the PREVIOUS register until the mv at the end. Reading $OUT here
+    # tallied the last run's classes into this run's summary, and the error was
+    # invisible whenever the classes happened not to change between runs, which
+    # is most of the time. The shell writes each printf straight through with no
+    # userspace buffering, so the rows above are on disk by the time awk runs.
+    n=$(awk -F'|' -v K="$k" '/^\| `tests\// {gsub(/^ +| +$/,"",$5); if ($5==K) c++} END{print c+0}' "$OUT_TMP" 2>/dev/null)
     [ "${n:-0}" = "0" ] && continue
     case "$k" in
       keep)         w='Run unmodified against the v3 binary. These are the conformance suite.' ;;
@@ -230,7 +240,21 @@ PREAMBLE
   else
     printf '\n**Baseline NOT clean, and the retarget cannot be called behaviour-neutral on this run.** %s test(s) fail under the default `INTENT_BIN` and %s file(s) timed out. Every burn delta from an affected file is uninformative and its row is UNCLASSIFIED. Repair the measurement and re-run before reading anything else in this table as evidence.\n' "$DFAIL" "$NTIMEOUT"
   fi
-} > "$OUT"
+} > "$OUT_TMP"
+
+# ALIGN THROUGH THE FORMATTER, then move into place.
+#
+# Two properties, both learned by committing and watching rather than by
+# reasoning. First, the view must come out at the repo formatter's own column
+# widths, or every regeneration diffs against the committed file for ever and
+# any regenerate-and-compare check cries wolf on its first run. Second, the
+# render goes to a temp and only `mv`s on success, so an abort leaves the
+# committed view untouched instead of truncated -- gen_dispatch_table.sh
+# published an EMPTY view exactly once by writing straight to its output and
+# then refusing partway through.
+md_align "$OUT_TMP" "$OUT_TMP.aligned" || { echo "gen_register: table alignment failed -- committed register left untouched" >&2; rm -f "$OUT_TMP"; exit 2; }
+mv "$OUT_TMP.aligned" "$OUT" || { echo "gen_register: cannot move the rendered register into $OUT" >&2; exit 2; }
+rm -f "$OUT_TMP"
 
 # PROVENANCE IS EMITTED, NEVER HAND-COPIED.
 #

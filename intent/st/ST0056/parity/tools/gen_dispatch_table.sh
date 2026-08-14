@@ -362,45 +362,12 @@ jq -r '.new_surface[]? | select(.acceptance) | "- `" + .path + "` -- acceptance:
 # cell, separator rows filled with dashes to the same width. A future reader
 # deleting this block is only half the hazard; the other half is one keeping it
 # while quietly meaning something different by "aligned".
-ALIGNER='
-  function flush(  i, j, w, out, cell, n) {
-    if (rows == 0) return
-    for (i = 1; i <= rows; i++)
-      for (j = 1; j <= cols[i]; j++)
-        if (length(cellv[i, j]) > w_[j]) w_[j] = length(cellv[i, j])
-    for (i = 1; i <= rows; i++) {
-      out = "|"
-      for (j = 1; j <= cols[i]; j++) {
-        if (sep[i]) { cell = ""; while (length(cell) < w_[j]) cell = cell "-" }
-        else { cell = cellv[i, j]; while (length(cell) < w_[j]) cell = cell " " }
-        out = out " " cell " |"
-      }
-      print out
-    }
-    rows = 0; n = 0
-    for (j in w_) delete w_[j]
-  }
-  /^[ \t]*\|.*\|[ \t]*$/ {
-    line = $0
-    sub(/^[ \t]+/, "", line); sub(/[ \t]+$/, "", line)
-    sub(/^\|/, "", line); sub(/\|$/, "", line)
-    rows++
-    n = split(line, parts, "\\|")
-    cols[rows] = n
-    issep = 1
-    for (j = 1; j <= n; j++) {
-      c = parts[j]
-      gsub(/^[ \t]+|[ \t]+$/, "", c)
-      cellv[rows, j] = c
-      if (c !~ /^:?-+:?$/) issep = 0
-    }
-    sep[rows] = issep
-    next
-  }
-  { flush(); print }
-  END { flush() }
-'
-awk "$ALIGNER" "$OUT_TMP" > "$OUT_TMP.aligned" || die "table alignment failed"
+# The aligner moved to lib_mdfmt.sh when gen_register.sh was found to have
+# exactly the same formatter skew -- 232 differing lines between its committed
+# view and a fresh regeneration of identical data. Two generators, one concern,
+# so the awk lives once and both source it.
+. "$HERE/lib_mdfmt.sh" || die "cannot source $HERE/lib_mdfmt.sh -- refusing to emit a view that will not survive the formatter"
+md_align "$OUT_TMP" "$OUT_TMP.aligned" || die "table alignment failed"
 mv "$OUT_TMP.aligned" "$OUT_TMP" || die "table alignment failed to land"
 
 # Only now, with the whole view rendered and aligned, does the committed file
