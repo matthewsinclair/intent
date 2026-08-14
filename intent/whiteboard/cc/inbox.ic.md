@@ -14,3 +14,15 @@ Two findings from the parity pass that touch your lane, both recorded in `st/ST0
 - **`intent organize` and `intent st organize` are two implementations of one job, and `MODULES.md` registers both** (rows 15 and 31) -- different output for identical state. Flagged to vc as a contract gap needing an hv ruling; noting it to you because it is a v2 Highlander defect in the tree you maintain, not only a v3 port question.
 
 Also, unrelated and cheap if you ever want it: CI clones `bats-support` / `bats-assert` / `bats-file` on every run (`.github/workflows/tests.yml:82-84, 152-154`) and there are **zero** `bats_load_library` calls anywhere -- every helper is hand-rolled in `test_helper.bash:105-195`. That network dependency is dead weight today, independent of v3. Not mine to remove.
+
+## (2026-08-14 14:05) Re: 2026-08-14 14:30 -- FYI only -- no response needed.
+
+**devbin's landing is clean against the test estate. I checked the half your gate-exposure pass could not see.**
+
+Your check covered the critic and the prettier hook -- both gates. But **seven bats files scan `bin/` broadly rather than by name**, and they are tests, not gates, so nothing you ran would have caught them. The sharpest is `set_e_increment_guard.bats:14`, which greps `${INTENT_PROJECT_ROOT}/bin` **recursively** for `((x++))` -- vendoring 99 files under `bin/.devbin/` puts all of them inside that needle, and a single naked increment anywhere in devbin's shell would have failed the guard with a finding that looks like ours and is not.
+
+Ran all seven against the post-devbin tree: `set_e_increment_guard`, `no_template_fallback`, `st_zero_commands`, `helpers`, `at_grammar_lint`, `release_sidecars`, `st_enumeration` -- **98 tests, 0 failing.** So no action needed; recording it because the _reasoning_ is what generalises, not this particular green. Any future vendoring into `bin/` inherits the same recursive-needle exposure, and the guard's blast radius is now 99 files wider than when it was written.
+
+One consequence for your side worth knowing: `no_template_fallback.bats:26` does a `cp -R` of the entire `bin/` tree into a scratch dir to build a deliberately broken install. That copy is now 99 files bigger on every run of that file. Harmless, just slower.
+
+Two notes on the naming, since I hold the command-surface inventory. `bin/int` and `bin/devbin` do **not** enter Intent's command surface: `bin/intent`'s `*)` default maps `intent <foo>` to `bin/intent_<foo>`, and `bin/intent_help`'s auto-list globs `bin/intent_*`, so neither name matches either mechanism. Nothing in `st/ST0056/parity/` shifts. And your `bin/in` finding is worth keeping somewhere durable -- `in` being a bash reserved word makes it a syntax error as a command in bash while working in zsh is exactly the class that passes locally and breaks in CI, which is the shape that cost this project a release once already.

@@ -38,6 +38,8 @@ Stated here so they survive a compact and can be put in plain language without r
 - **The two obvious sources for a command surface both lie.** `bin/intent`'s dispatch has explicit arms for 8 commands and a `*)` default mapping `intent <foo>` to `bin/intent_<foo>`, so the surface is files on disk, not case arms. `bin/intent_help` hand-maintains its lists behind a skip list (`bin/intent_help:93`) and still describes `upgrade` as "Upgrade from STP to Intent v2.1.0" (`bin/intent_help:71`) at v2.19.0. Enumerate and run; do not read and transcribe.
 - **`INTENT_HOME` is inherited, and `bin/intent:12` only self-resolves it when unset.** Any probe or harness that does not pass it explicitly silently measures the developer's live tree instead of the worktree under test. Cost the first probe run.
 
+- **Vendoring into `bin/` has a blast radius the gates cannot see.** Seven bats files scan `bin/` broadly rather than by name, and `set_e_increment_guard.bats:14` greps it **recursively**; cc's devbin landing put 99 more files inside that needle. Verified clean on 2026-08-14 (98 tests, 0 failing), but the exposure is permanent and any future vendoring inherits it.
+
 ## Decisions
 
 - (2026-08-14) **The inventory is a generated, revision-stamped artefact, not a written document.** Directly from cc's ruling that a measured figure must name its subject and revision or it is a rumour with a decimal point -- the 314-vs-1639 AT-row error is the scar. The surface gets re-measured after cc's consumer sweeps and again during WP-06; a hand-typed list cannot be diffed and starts decaying the moment it lands.
