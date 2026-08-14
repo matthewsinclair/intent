@@ -66,7 +66,7 @@ node: <moniker>
 name: <display name>
 role: <role>
 session_id: <UUID|none>
-heartbeat_at: <ISO 8601>
+heartbeat_at: <UTC, read from `date -u` -- see "Every timestamp is READ FROM A CLOCK">
 status: active | paused
 focus: "<one-line current goal>"
 claims: [STxxxx, ...]
@@ -118,7 +118,30 @@ Each entry appended by `ask` / `announce`:
 <text>
 ```
 
-Required fields: the `## (YYYY-MM-DD HH:MM)` timestamp heading (minute granularity -- it doubles as the anchor a reply threads against) and the `<text>` body. Recommended / optional: `Re: <prior-anchor>` (present only when threading a reply to a prior entry's timestamp) and `FYI only -- no response needed.` (present only when no reply is expected; absent means the sender expects a reply). A reply is a new entry in the opposite-direction inbox (`<original-sender>/inbox.<you>.md`), carrying `Re:` the entry it answers.
+Required fields: the `## (YYYY-MM-DD HH:MMZ)` timestamp heading (minute granularity -- it doubles as the anchor a reply threads against) and the `<text>` body. Recommended / optional: `Re: <prior-anchor>` (present only when threading a reply to a prior entry's timestamp) and `FYI only -- no response needed.` (present only when no reply is expected; absent means the sender expects a reply). A reply is a new entry in the opposite-direction inbox (`<original-sender>/inbox.<you>.md`), carrying `Re:` the entry it answers.
+
+### Every timestamp is READ FROM A CLOCK, never written from memory
+
+This applies to every `## (...)` entry heading, every `heartbeat_at`, and every date you put in a `## Decisions` line. **Run this command and copy its output. Do not retype it, do not adjust it, do not infer it from context, and do not carry one forward from earlier in the session:**
+
+```
+date -u +'%Y-%m-%d %H:%MZ'
+```
+
+**A timestamp you did not read off a clock is fabricated data, not an approximation.** An LLM node has no clock and no felt duration -- there is nothing to be approximately right about, so a plausible-looking value is invented whole. This is not a style rule about zone suffixes; it is the difference between a record and a guess that reads exactly like one.
+
+Two failures, both observed, both silent:
+
+- **Fabrication.** A node stamped a reply 25 minutes BEFORE the message it was replying to, and another stamped a heartbeat ~99 minutes ahead of true UTC -- matching neither `date` nor `date -u` on the machine, so it came from no clock at all. Neither was noticed until a third node compared boards against `date -u`.
+- **Wrong clock (Lamplight, 2026-07-24).** Heartbeats correctly in UTC, entry headings in local BST an hour ahead, so a correctly-stamped entry sorted BELOW a wrongly-stamped one. `date` and `date -u` differ by two characters and by the local offset.
+
+Both destroy the same thing: the board's only cross-node ordering. "Who saw what, and in what order" is the question the inboxes exist to answer, and it stops being answerable the moment one stamp is invented -- **and it fails silently, because a fabricated timestamp is indistinguishable from a real one by inspection.** Use commits when you need ordering you can prove.
+
+Corollaries:
+
+- **Trailing `Z` is mandatory.** An unmarked heading means the writer used the wrong command; assume local and treat its ordering as unreliable.
+- **Never rewrite a peer's stamp** -- it is their file. Flag it to them.
+- **Never repair your own fabricated stamp by inventing a better one.** You cannot recover a time you never read. Annotate it as unverifiable and move on; a corrected-looking fake is worse than an admitted one.
 
 ## Node-identity discovery
 
@@ -191,7 +214,7 @@ Roll your OWN node's DONE content out of the live files into your own history, d
 
 ### touch
 
-1. Update your `wip.md` `heartbeat_at` to now. No other change.
+1. Update your `wip.md` `heartbeat_at` to now, read from `date -u +'%Y-%m-%d %H:%MZ'`. No other change. Run the command every time -- "now" is not a value you already know.
 
 ### release
 
@@ -246,11 +269,13 @@ Concurrent sessions need a live coordination surface, and `wip.md` (the post-ses
 
 ## Red Flags
 
-| Rationalisation                                             | Reality                                                                                        |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| "One `inbox.md` per node is simpler than per-sender."       | One file, N writers -- back to 2.0 contention. Per-sender is what makes it single-writer.      |
-| "I'll edit a peer's `wip.md` to correct it."                | Never. You write only your own node. Send an `ask` to its inbox.                               |
-| "I'll keep a shared file for platform edits."               | That is the retired `lamplight.md`. Use `announce` -- broadcast to inboxes, no shared file.    |
-| "/compact ended the session, so I'll set `status: paused`." | No. `/compact` is transparent. Status stays active; `/in-session` re-fires `pickup`.           |
-| "I'll archive the whole board while I'm here."              | You archive only your own `<you>/` dir. Single-owner, collision-free -- that is the point.     |
-| "The node said it's done, so it's done."                    | A "done" claim is the _trigger_ to verify, not the verdict. Read the as-built against the ask. |
+| Rationalisation                                             | Reality                                                                                         |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| "One `inbox.md` per node is simpler than per-sender."       | One file, N writers -- back to 2.0 contention. Per-sender is what makes it single-writer.       |
+| "I'll edit a peer's `wip.md` to correct it."                | Never. You write only your own node. Send an `ask` to its inbox.                                |
+| "I'll keep a shared file for platform edits."               | That is the retired `lamplight.md`. Use `announce` -- broadcast to inboxes, no shared file.     |
+| "/compact ended the session, so I'll set `status: paused`." | No. `/compact` is transparent. Status stays active; `/in-session` re-fires `pickup`.            |
+| "I'll archive the whole board while I'm here."              | You archive only your own `<you>/` dir. Single-owner, collision-free -- that is the point.      |
+| "The node said it's done, so it's done."                    | A "done" claim is the _trigger_ to verify, not the verdict. Read the as-built against the ask.  |
+| "I know roughly what time it is."                           | You do not. You have no clock. Run `date -u`; a plausible stamp is fabricated, not approximate. |
+| "I stamped one earlier this session, I'll reuse it."        | Time passed. Re-run `date -u` for every stamp, including the second one in the same turn.       |
