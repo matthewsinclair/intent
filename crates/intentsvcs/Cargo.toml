@@ -10,6 +10,7 @@ description = "Intent v3 services: the reified model, schema faces, SQLite store
 serde.workspace = true
 serde_json.workspace = true
 schemars.workspace = true
+async-graphql.workspace = true
 rusqlite.workspace = true
 ulid.workspace = true
 time.workspace = true

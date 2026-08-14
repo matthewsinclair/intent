@@ -14,5 +14,6 @@
 
 pub mod event;
 pub mod faces;
+pub mod graphql;
 pub mod model;
 pub mod store;

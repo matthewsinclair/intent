@@ -12,6 +12,11 @@ license = "MIT"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 schemars = "1"
+# The GraphQL SDL face (AC-02.2). The SDL is EXPORTED from the model types the
+# same way the JSON Schema face is -- one authored master, three generated
+# faces -- so async-graphql sits with the model in intentsvcs. The server that
+# serves this schema is intentd's (D06); only the export lives here.
+async-graphql = "7"
 # The Highlander dependency: rusqlite is consumed by intentsvcs and NOWHERE
 # else (design.md D06). dep_graph_guard.rs asserts this; adding it to another
 # crate is a build-time architecture violation, not a style nit.

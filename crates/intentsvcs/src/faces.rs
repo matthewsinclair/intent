@@ -3,8 +3,8 @@
 //! The model types in this crate are the single authored master; this module
 //! renders the committed artefacts under `schema/` at the repo root. The
 //! JSON Schema face is generated here via schemars; the DDL face is the
-//! store's [`crate::store::DDL`] rendered verbatim; the GraphQL SDL face
-//! lands with the async-graphql schema (WP-04).
+//! store's [`crate::store::DDL`] rendered verbatim; the GraphQL SDL face is
+//! exported from [`crate::graphql`].
 //!
 //! `tests/schema_faces_drift.rs` regenerates these and fails on any diff
 //! against the committed files. Regenerate with `INTENT_BLESS=1 cargo test
@@ -23,6 +23,7 @@ pub fn faces() -> Vec<(&'static str, String)> {
     ("issue.schema.json", schema_json::<Issue>()),
     ("event.schema.json", schema_json::<Envelope>()),
     ("ddl.sql", crate::store::DDL.to_string()),
+    ("schema.graphql", crate::graphql::sdl()),
   ]
 }
 

@@ -11,6 +11,7 @@
 //! enum to its wire string -- [`enum_str`] routes through serde so a second
 //! hand-maintained name table cannot drift into existence.
 
+use async_graphql::{Enum, SimpleObject};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -42,7 +43,7 @@ pub fn to_canonical_json<T: Serialize>(value: &T) -> serde_json::Result<String> 
 // ---------------------------------------------------------------------------
 
 /// A steel thread: `st/<ID>/thread.json`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 pub struct Thread {
   /// Always [`THREAD_SCHEMA`]; lets validators pick the schema.
@@ -68,7 +69,7 @@ pub struct Thread {
   pub tests: Vec<AcceptanceTest>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 #[serde(rename_all = "kebab-case")]
 pub enum ThreadStatus {
   NotStarted,
@@ -79,7 +80,7 @@ pub enum ThreadStatus {
   Cancelled,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 #[serde(rename_all = "kebab-case")]
 pub enum AcceptanceMode {
   Exempt,
@@ -89,7 +90,7 @@ pub enum AcceptanceMode {
 // Work package
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 pub struct WorkPackage {
   /// Rendered `WP-01`; unique within the thread.
@@ -100,7 +101,7 @@ pub struct WorkPackage {
 }
 
 /// T-shirt sizes -- the only sizing vocabulary in Intent.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 pub enum TShirt {
   XS,
   S,
@@ -110,7 +111,7 @@ pub enum TShirt {
   XXL,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 #[serde(rename_all = "kebab-case")]
 pub enum WpStatus {
   NotStarted,
@@ -122,13 +123,19 @@ pub enum WpStatus {
 // Acceptance (the 0013 four-state AC model + the 0017 AT grammar, reified)
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
+#[graphql(complex)]
 pub struct Criterion {
   /// `AC-<gg>.<n>`; group `00` is ST-level, otherwise the WP seq.
   pub id: String,
   pub text: String,
   pub kind: AcKind,
+  // A plain comment, NOT a doc comment: schemars lifts `///` into the JSON
+  // Schema face as a `description`, and why the SDL needs a projection is a
+  // GraphQL concern that has no business in the JSON face. The reasoning lives
+  // in `graphql::AcScopeView`, which is the thing it describes.
+  #[graphql(skip)]
   pub scope: AcScope,
   /// Non-test only: the named evidence reference.
   #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -139,7 +146,7 @@ pub struct Criterion {
   pub satisfied: Option<bool>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 #[serde(rename_all = "kebab-case")]
 pub enum AcKind {
   Test,
@@ -167,7 +174,7 @@ pub enum AcScope {
   },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 pub struct AcceptanceTest {
   /// `AT-<gg>.<n>`.
@@ -187,14 +194,14 @@ pub struct AcceptanceTest {
   pub note: Option<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 #[serde(rename_all = "kebab-case")]
 pub enum AtKind {
   Test,
   NonTest,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 #[serde(rename_all = "kebab-case")]
 pub enum AtStatus {
   ToWrite,
@@ -211,7 +218,7 @@ pub enum AtStatus {
 // ---------------------------------------------------------------------------
 
 /// An issue: `issues/<n>.json` (structure) + `issues/<n>.md` (authored body).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 pub struct Issue {
   /// Always [`ISSUE_SCHEMA`].
@@ -228,7 +235,7 @@ pub struct Issue {
   pub closed: Option<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 #[serde(rename_all = "kebab-case")]
 pub enum IssueStatus {
   Open,

@@ -1,0 +1,221 @@
+enum AcKind {
+  TEST
+  NON_TEST
+}
+
+"""
+The discriminant of [`AcScope`], as GraphQL's flat enum.
+"""
+enum AcScopeState {
+  IN_SCOPE
+  DESCOPED
+  WITHDRAWN
+}
+
+"""
+[`AcScope`] flattened to `state` + the union of its variants' fields, which
+is precisely serde's internally-tagged form. A field is `None` exactly when
+the serde form omits it, so the two representations carry the same data.
+"""
+type AcScopeView {
+  state: AcScopeState!
+  """
+  Descoped only: the thread the requirement moved to.
+  """
+  to: String
+  """
+  Descoped or withdrawn: who ruled.
+  """
+  by: String
+  """
+  Descoped or withdrawn: why.
+  """
+  reason: String
+}
+
+enum AcceptanceMode {
+  EXEMPT
+}
+
+type AcceptanceTest {
+  """
+  `AT-<gg>.<n>`.
+  """
+  id: String!
+  kind: AtKind!
+  """
+  Test kind: the repo-relative test file (the 0017 reference rules --
+  at least one `/`, no `:`).
+  """
+  file: String
+  """
+  Non-test kind: what was read / eyeballed.
+  """
+  prose: String
+  """
+  Covered AC ids; at least one.
+  """
+  covers: [String!]!
+  status: AtStatus!
+  note: String
+}
+
+enum AtKind {
+  TEST
+  NON_TEST
+}
+
+enum AtStatus {
+  TO_WRITE
+  RED
+  GREEN
+  """
+  Non-test rows only -- the doc / eyeball / gate status. `n-a` is not
+  green; satisfaction lives on the AC's own line.
+  """
+  NA
+}
+
+type Criterion {
+  """
+  `AC-<gg>.<n>`; group `00` is ST-level, otherwise the WP seq.
+  """
+  id: String!
+  text: String!
+  kind: AcKind!
+  """
+  Non-test only: the named evidence reference.
+  """
+  evidence: String
+  """
+  Non-test only. Test-backed satisfaction is COMPUTED from covering green
+  ATs and never stored -- storing it would be double truth (data-model.md).
+  """
+  satisfied: Boolean
+  """
+  The four-state AC scope (issue 0013), flattened -- see [`AcScopeView`].
+  """
+  scope: AcScopeView!
+}
+
+"""
+An issue: `issues/<n>.json` (structure) + `issues/<n>.md` (authored body).
+"""
+type Issue {
+  """
+  Always [`ISSUE_SCHEMA`].
+  """
+  schema: String!
+  """
+  Rendered zero-padded, eg `0021`.
+  """
+  number: Int!
+  slug: String!
+  title: String!
+  status: IssueStatus!
+  severity: String
+  created: String!
+  closed: String
+}
+
+enum IssueStatus {
+  OPEN
+  CLOSED
+}
+
+type Query {
+  """
+  One steel thread by its natural id, eg `ST0056`.
+  """
+  thread(id: String!): Thread
+  """
+  Every steel thread in the project.
+  """
+  threads: [Thread!]!
+  """
+  One issue by its number.
+  """
+  issue(number: Int!): Issue
+  """
+  Every issue in the project.
+  """
+  issues: [Issue!]!
+}
+
+"""
+A steel thread: `st/<ID>/thread.json`.
+"""
+type Thread {
+  """
+  Always [`THREAD_SCHEMA`]; lets validators pick the schema.
+  """
+  schema: String!
+  """
+  Natural id, eg `ST0056`. Global identity is `(project_id, id)` (D15).
+  """
+  id: String!
+  title: String!
+  slug: String
+  status: ThreadStatus!
+  """
+  ISO 8601 date, `YYYY-MM-DD`.
+  """
+  created: String!
+  completed: String
+  """
+  `exempt` (ST0048) or absent = acceptance enforced.
+  """
+  acceptance: AcceptanceMode
+  wps: [WorkPackage!]!
+  criteria: [Criterion!]!
+  tests: [AcceptanceTest!]!
+}
+
+enum ThreadStatus {
+  NOT_STARTED
+  WIP
+  TBC
+  HOLD
+  COMPLETED
+  CANCELLED
+}
+
+"""
+T-shirt sizes -- the only sizing vocabulary in Intent.
+"""
+enum Tshirt {
+  XS
+  S
+  M
+  L
+  XL
+  XXL
+}
+
+type WorkPackage {
+  """
+  Rendered `WP-01`; unique within the thread.
+  """
+  seq: Int!
+  title: String!
+  scope: Tshirt!
+  status: WpStatus!
+}
+
+enum WpStatus {
+  NOT_STARTED
+  WIP
+  DONE
+}
+
+"""
+Directs the executor to include this field or fragment only when the `if` argument is true.
+"""
+directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Directs the executor to skip this field or fragment when the `if` argument is true.
+"""
+directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+schema {
+  query: Query
+}
