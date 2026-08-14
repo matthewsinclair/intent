@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 15e0a23e-58f3-4575-882d-e23418452447
-heartbeat_at: 2026-08-14T12:05Z
-status: paused
-focus: "v2.19.0 shipped + verified + folded; released after localfold. Next trigger: measuring cc's consumer sweep against the Lamplight baseline"
+heartbeat_at: 2026-08-14T11:12Z
+status: active
+focus: "Booted after compact, holding for hv. One reply owed to cc (who runs the post-sweep counts); ST0056 is on the tree, unclaimed by me."
 claims: []
 ---
 

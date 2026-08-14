@@ -13,6 +13,7 @@ This document serves as an index of all steel threads in the Steel Thread Proces
 
 | ID     | Slug                                                      | Status      | Created    | Completed  |
 | ------ | --------------------------------------------------------- | ----------- | ---------- | ---------- |
+| ST0056 | add-a-rust-based-cli-with-a-local-sqlite-db-with          | WIP         | 2026-08-14 |            |
 | ST0046 | add-modules-properly-to-the-intent-cli                    | Not Started | 2026-06-15 |            |
 | ST0055 | add-in-intent-issues-command                              | Completed   | 2026-07-10 | 2026-07-10 |
 | ST0054 | update-intent-for-latest-usage-rules-md-format            | Completed   | 2026-07-09 | 2026-07-09 |
