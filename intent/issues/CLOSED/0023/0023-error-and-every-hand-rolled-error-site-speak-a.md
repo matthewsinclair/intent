@@ -1,0 +1,95 @@
+---
+id: "0023"
+title: error() and every hand-rolled error site speak a capitalised voice the CLI convention retired, and the shared emitter is the one that sets the example
+date: 2026-08-14
+reporter: matts
+status: CLOSED
+severity: low
+---
+
+# 0023: error() and every hand-rolled error site speak a capitalised voice the CLI convention retired, and the shared emitter is the one that sets the example
+
+## Tags
+
+voice, highlander, cli-output, prune
+
+## Summary
+
+Intent's documented CLI voice is the lowercase Rust-style prefix family -- `ok:`, `created:`, `done:`, and `warning:` since `8aba5ab`. `error()` alone still said `Error:`, and so did all 25 hand-rolled error sites across the shell CLI.
+
+Found while fixing issue 0022, one function above the code being changed, and deliberately deferred out of that batch as too wide for a pre-cut change. hv then ruled it in on the batching principle.
+
+## Reproduction
+
+```
+$ grep -n -A3 '^error()' bin/intent_helpers
+7:error() {
+8-  echo "Error: $1" >&2
+9-  exit 1
+10-}
+
+$ grep -rn '"Error: ' bin/ intent/plugins/*/bin/ | wc -l
+26
+```
+
+Against the documented convention, which the same file's `warning()` had already been corrected to one issue earlier.
+
+## Root Cause
+
+The same shape as `8aba5ab`, one severity up in visibility: **the one function whose entire job is to give failures a single voice was the function speaking the wrong one.** Every hand-rolled site was copying the example the shared emitter set -- including the "## Bad" block in Intent's own `module-highlander` shell rule, which shows a locally-redefined `error()` saying `Error:`.
+
+`8aba5ab` corrected `warning()` and swept its hand-rolled sites, but scoped itself to warnings. `error()` was left, so the family remained half-converted -- and a half-converted convention is the state most likely to be re-broken, because both forms have precedent in the tree.
+
+## Impact
+
+Cosmetic in isolation, and that is why it is `low`. It matters because a convention that the codebase violates in its most-copied helper is not a convention, and because the two forms coexisting means every new error site is a coin flip. The blast radius is the reason it was nearly deferred: twelve test assertions depend on the exact string.
+
+## Proposed Fix
+
+1. `error()` in `bin/intent_helpers` emits `error: `, on stderr, still exiting 1.
+2. Sweep the hand-rolled sites across the shell CLI: `bin/intent_helpers`, `bin/intent_migrations`, and the plugin bins (`intent_claude_skills`, `intent_claude_subagents`, `intent_claude_upgrade`, `intent_agents`).
+3. Update the twelve test assertions that pin the capital form.
+4. Guard, beside the `warning()` one: assert the prefix, the stream, **and** the exit; plus a mechanical guard that no shell command reintroduces `"Error: `.
+
+Explicitly out of scope, and each for a stated reason rather than by omission:
+
+- **The stdout-vs-stderr question.** Every `Error:` echo in the three plugin bins goes to **stdout**, not stderr -- an error message on stdout interleaves with captured command output, which is how a voice becomes data. Real, and a different decision: it changes what callers capture, not just what they read. Same reasoning `8aba5ab` used to leave `intent_claude_prime:212` alone.
+- `intent/plugins/claude/skills/in-autopsy/scripts/autopsy.exs` -- a different runtime.
+- `lib/templates/archetypes/elixir/cli_command.ex.eex` -- generated content for a USER's application, not Intent's own voice.
+- `intent/plugins/claude/rules/**` -- Rust `Error::` enum names, and one shell-rule "## Bad" block whose point is the duplication, not the string.
+
+## Related
+
+- `8aba5ab` (issue 0010's Resolutions) -- the same fix for `warning()`, whose guard shape this follows.
+- 0022 -- found during it, deferred out of it, then batched back in by hv.
+- `intent_claude_prime:212` -- still on the hv queue: a truncation notice on stdout with a capital prefix, where the voice and the stream are the same decision.
+
+## Resolutions
+
+**Fixed in v2.19.0 (before the cut, on hv's batching instruction). Found by vc during 0022; hv ruled it in.**
+
+**26 sites across six files**, all in Intent's own shell CLI: `bin/intent_helpers` (4, including the shared emitter), `bin/intent_migrations` (7), `intent_claude_subagents` (6), `intent_claude_upgrade` (5), `intent_claude_skills` (3), `intent_agents` (1). Zero capitalised prefixes remain in `bin/` or the plugin bins.
+
+**The twelve test assertions were swept BEFORE the change, not discovered by the failures** -- the `8aba5ab` discipline. Five in `skills_commands.bats`, seven in `agent_commands.bats`, all mechanical.
+
+**Guard `tests/unit/helpers.bats`**, two tests beside the `warning()` one:
+
+- `error()` emits nothing on stdout, `error: sample text` on stderr, and **exits 1 rather than returning** -- the exit is part of the contract, since a non-fatal error is what `warning()` is for.
+- a mechanical grep asserting no `"Error: ` in `bin/`, `intent/plugins/claude/bin/`, or `intent/plugins/agents/bin/`. Scoped, with the exclusions stated in the test body so a future reader knows they were decided rather than missed.
+
+**Mutation battery, sacrificial worktree, restored between each:**
+
+| Mutation                                  | Kills   | Reading                                   |
+| ----------------------------------------- | ------- | ----------------------------------------- |
+| Q1 the capital restored in `error()`      | 16, 17  | both the emitter test and the sweep guard |
+| Q2 `error()` writes to stdout             | 16 only | the stream is pinned, not incidental      |
+| Q3 `error()` returns instead of exiting   | 16 only | the fatal contract is pinned              |
+| Q4 a capital reintroduced in a plugin bin | 17 only | the sweep guard reaches beyond `helpers`  |
+
+Q4 is the one that matters for keeping it fixed: it proves the guard covers the plugin bins, which is where 15 of the 26 sites were and where nothing else was watching.
+
+**Collateral:** `helpers` (17), `skills_commands` (39), `agent_commands` (50), `st_commands` (54), `wp_commands` (30), `config`, `global_commands`, `subdir_invocation`, `intent_claude_upgrade` (19) -- all green.
+
+### Still open after this
+
+The stdout/stderr split in the plugin bins is untouched and remains the more substantive half. It now has a name and a place to be picked up, alongside `intent_claude_prime:212`, which is the same decision in miniature.

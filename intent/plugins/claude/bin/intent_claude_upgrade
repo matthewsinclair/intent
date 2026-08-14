@@ -46,7 +46,7 @@ CANON_INTENT_FOOTER_MARK="Generated from \`lib/templates/llm/_CLAUDE.md\`"
 # Read target version from VERSION file (single source of truth)
 TARGET_VERSION="$(cat "$INTENT_ROOT/VERSION" 2>/dev/null | tr -d '[:space:]')"
 if [ -z "$TARGET_VERSION" ]; then
-  echo "Error: Cannot read VERSION file at $INTENT_ROOT/VERSION"
+  echo "error: Cannot read VERSION file at $INTENT_ROOT/VERSION"
   exit 1
 fi
 
@@ -120,7 +120,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "Error: Unknown option '$1'"
+      echo "error: Unknown option '$1'"
       intent_claude_upgrade_help
       exit 1
       ;;
@@ -138,7 +138,7 @@ fi
 
 # Validate it's an Intent project
 if [ ! -d "$PROJECT_DIR/intent" ]; then
-  echo "Error: '$PROJECT_DIR' does not appear to be an Intent project"
+  echo "error: '$PROJECT_DIR' does not appear to be an Intent project"
   echo "  (no intent/ directory found)"
   exit 1
 fi
@@ -147,7 +147,7 @@ fi
 # don't trip on relative paths (`basename "."` returns "." which would
 # render as `# .` in the regenerated CLAUDE.md title).
 PROJECT_DIR="$(cd "$PROJECT_DIR" 2>/dev/null && pwd)" || {
-  echo "Error: Cannot resolve project directory '$PROJECT_DIR' to an absolute path"
+  echo "error: Cannot resolve project directory '$PROJECT_DIR' to an absolute path"
   exit 1
 }
 
@@ -178,7 +178,7 @@ TEMPLATES_SOURCE="$INTENT_ROOT/intent/plugins/agents/templates/_default"
 if [ "$DRY_RUN" = false ]; then
   _writable_probe="$(mktemp "$PROJECT_DIR/.intent_writable_probe.XXXXXX" 2>/dev/null)"
   if [ -z "$_writable_probe" ] || [ ! -f "$_writable_probe" ]; then
-    echo "Error: '$PROJECT_DIR' is not writable (read-only filesystem?)"
+    echo "error: '$PROJECT_DIR' is not writable (read-only filesystem?)"
     echo "  Re-run from a writable copy of the project, or fix permissions."
     exit 1
   fi

@@ -140,7 +140,7 @@ intent_claude_subagents_init() {
   if [ "$init_type" = "project" ]; then
     # Project-level initialization
     if [ -z "${PROJECT_ROOT:-}" ]; then
-      echo "Error: Not in an Intent project directory"
+      echo "error: Not in an Intent project directory"
       echo "Use 'intent claude subagents init' without --project for global initialization"
       return 1
     fi
@@ -230,7 +230,7 @@ get_agent_info() {
     if command -v jq >/dev/null 2>&1; then
       jq -r ".agents[] | select(.name == \"$agent_name\")" "$manifest" 2>/dev/null
     else
-      echo "Error: jq is required for agent operations but not installed" >&2
+      echo "error: jq is required for agent operations but not installed" >&2
       return 1
     fi
   fi
@@ -573,7 +573,7 @@ intent_claude_subagents_show() {
   require_jq || return 1
 
   if [ "$#" -eq 0 ]; then
-    echo "Error: Agent name required"
+    echo "error: Agent name required"
     echo "Usage: intent claude subagents show <agent-name>"
     return 1
   fi
@@ -613,7 +613,7 @@ intent_claude_subagents_show() {
   fi
 
   if [ -z "$agent_info" ]; then
-    echo "Error: Agent '$agent_name' not found"
+    echo "error: Agent '$agent_name' not found"
     return 1
   fi
 
@@ -689,7 +689,7 @@ intent_claude_subagents_show() {
     fi
   else
     echo ""
-    echo "Error: Agent file not found at $agent_file"
+    echo "error: Agent file not found at $agent_file"
   fi
 }
 
@@ -728,7 +728,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
       intent_claude_subagents_help
       ;;
     *)
-      echo "Error: Unknown command 'intent claude subagents $1'"
+      echo "error: Unknown command 'intent claude subagents $1'"
       echo "Run 'intent claude subagents help' for usage"
       exit 1
       ;;

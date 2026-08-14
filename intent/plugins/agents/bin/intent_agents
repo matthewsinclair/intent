@@ -170,7 +170,7 @@ intent_agents_init() {
   if [ -n "$template" ]; then
     local template_dir="$TEMPLATES_DIR/$template"
     if [ ! -d "$template_dir" ]; then
-      echo "Error: Template '$template' not found"
+      echo "error: Template '$template' not found"
       echo "Available templates:"
       for tdir in "$TEMPLATES_DIR"/*/; do
         [ -d "$tdir" ] && echo "  - $(basename "$tdir")"

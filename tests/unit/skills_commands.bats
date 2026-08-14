@@ -49,7 +49,7 @@ teardown() {
 @test "claude skills handles invalid subcommand" {
   run run_intent claude skills invalid
   assert_failure
-  assert_output_contains "Error: Unknown command 'intent claude skills invalid'"
+  assert_output_contains "error: Unknown command 'intent claude skills invalid'"
   assert_output_contains "Run 'intent claude skills help' for usage"
 }
 
@@ -205,7 +205,7 @@ teardown() {
 
   run run_intent claude skills install in-elixir-essentials
   assert_failure
-  assert_output_contains "Error: Claude Code not detected"
+  assert_output_contains "error: Claude Code not detected"
 }
 
 @test "claude skills install creates skills subdirectory" {
@@ -287,7 +287,7 @@ teardown() {
 
   run run_intent claude skills sync
   assert_failure
-  assert_output_contains "Error: Claude Code not detected"
+  assert_output_contains "error: Claude Code not detected"
 }
 
 @test "claude skills sync works with multiple skills" {
@@ -466,7 +466,7 @@ EOF
 @test "claude skills show requires a skill name" {
   run run_intent claude skills show
   assert_failure
-  assert_output_contains "Error: Skill name required"
+  assert_output_contains "error: Skill name required"
   assert_output_contains "Usage: intent claude skills show"
 }
 
@@ -504,7 +504,7 @@ EOF
 @test "claude skills show handles non-existent skill" {
   run run_intent claude skills show nonexistent
   assert_failure
-  assert_output_contains "Error: Skill 'nonexistent' not found"
+  assert_output_contains "error: Skill 'nonexistent' not found"
 }
 
 @test "claude skills show works for all available skills" {

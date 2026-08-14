@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 15e0a23e-58f3-4575-882d-e23418452447
-heartbeat_at: 2026-08-14T10:25Z
+heartbeat_at: 2026-08-14T10:45Z
 status: active
-focus: "0020 + 0021 + 0022 fixed and closed pre-cut (hv batching everything before the tag), release docs written; tree ready for bin/release --minor once cc commits its board"
+focus: "0020 + 0021 + 0022 + 0023 fixed and closed pre-cut (hv batching everything before the tag), release docs written; tree ready for bin/release --minor once cc commits its board"
 claims: []
 ---
 
@@ -13,7 +13,8 @@ claims: []
 
 ## DOING
 
-- **Holding for the cut.** 0020, 0021 and 0022 all fixed, guarded, closed and committed pre-cut on hv's batching instruction; release docs written (`intent/history/v2.19.0.md` + `docs/releases/2.19.0/RELEASE_NOTES.md`, both practices had lapsed and are resumed not backfilled). **Release is fourteen issues, 0009-0022.** **Blocker for hv: `intent/whiteboard/cc/wip.md` is dirty and `bin/release` refuses to tag a tree dirty outside its five sidecars.** Not mine to commit; cc has been sent a full resync in its inbox.
+- **Holding for the cut.** 0020, 0021 and 0022 all fixed, guarded, closed and committed pre-cut on hv's batching instruction; release docs written (`intent/history/v2.19.0.md` + `docs/releases/2.19.0/RELEASE_NOTES.md`, both practices had lapsed and are resumed not backfilled). **Release is fifteen issues, 0009-0023.** **Blocker for hv: `intent/whiteboard/cc/wip.md` is dirty and `bin/release` refuses to tag a tree dirty outside its five sidecars.** Not mine to commit; cc has been sent a full resync in its inbox.
+- **0023 (voice):** `error()` and 25 hand-rolled sites swept to the lowercase prefix, completing cc's `8aba5ab`. Left named: the plugin bins write errors to STDOUT -- changes what callers capture, so it is a separate decision, parked next to `intent_claude_prime:212`.
 - **0022 (no-template heredocs):** both fallbacks deleted rather than corrected, `st new`/`wp new` now fail loudly on a missing template, and the two 0010 drift guards are inverted to pin the absence rather than police a second copy.
 - **0021 (credo_checks) is the one to watch on the sweeps.** Intent shipped a second Elixir enforcement mechanism that duplicated the rule library and rotted unrun; the shipping side is deleted and consumers get a three-state `intent doctor` report that names the `elixirc_paths` end too. Every Elixir consumer wants `intent doctor` run after upgrading.
 
@@ -22,7 +23,7 @@ claims: []
 - **Fire on the cut.** `bin/release --minor`, interactive, NEVER `--no-confirm`. Verify after: five sidecars at 2.19.0, CHANGELOG dated, tag on both remotes, GitHub release body == the CHANGELOG section, tree clean.
 - **Post-cut narrative:** `intent/history/v2.19.0.md` + done.md flips to shipped + tag. hv confirmed: v2.19.0.md only, no backfill of the lapsed 2.17/2.18 (same ruling as the 2.10-2.12 lapse).
 - **Post-cut estate sweeps**, Lamplight first (`intent upgrade` converges AT grammar via `at lint --fix` -- 314 rows, expect BLOCKED-until-swept, residue named never guessed -- plus AGENTS.md, settings hooks, gitignore, printed-never-run treeindex `git rm`). vc's part is MEASUREMENT: count what the old rows carried against what the new ones do, before trusting the sweep. Utilz / Baize follow.
-- **Post-tag tidy:** `bin/intent_st:731-741` computes a `CREATED` in the in-progress arm that nothing reads -- residue of the arguments 0019 pruned. Dead, not wrong. Recorded in 0020's Resolutions.
+- **Post-tag tidy:** the `# Extract created date for index update` block in `intent_st`'s in-progress arm computes a `CREATED` nothing reads -- residue of the arguments 0019 pruned. Dead, not wrong. Recorded in 0020's Resolutions. (Anchored on the comment: my `731-741` and cc's `730-743` were both stale within a day of being written -- cc caught it.)
 
 ## Watch-outs
 

@@ -309,7 +309,7 @@ intent_claude_skills_list() {
 # Show detailed skill information
 intent_claude_skills_show() {
   if [ "$#" -eq 0 ]; then
-    echo "Error: Skill name required"
+    echo "error: Skill name required"
     echo "Usage: intent claude skills show <skill-name>"
     return 1
   fi
@@ -326,7 +326,7 @@ intent_claude_skills_show() {
   [ -n "$source_file" ] && source_dir="$(dirname "$source_file")"
 
   if [ -z "$source_file" ] || [ ! -f "$source_file" ]; then
-    echo "Error: Skill '$skill_name' not found"
+    echo "error: Skill '$skill_name' not found"
     return 1
   fi
 
@@ -407,7 +407,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
       intent_claude_skills_help
       ;;
     *)
-      echo "Error: Unknown command 'intent claude skills $1'"
+      echo "error: Unknown command 'intent claude skills $1'"
       echo "Run 'intent claude skills help' for usage"
       exit 1
       ;;

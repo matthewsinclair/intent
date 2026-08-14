@@ -252,7 +252,7 @@ teardown() {
   
   run run_intent claude subagents install intent
   assert_failure
-  assert_output_contains "Error: Claude Code not detected"
+  assert_output_contains "error: Claude Code not detected"
 }
 
 @test "agents creates .claude/agents directory if missing" {
@@ -269,7 +269,7 @@ teardown() {
 @test "agents command handles invalid subcommand" {
   run run_intent claude subagents invalid
   assert_failure
-  assert_output_contains "Error: Unknown command 'intent claude subagents invalid'"
+  assert_output_contains "error: Unknown command 'intent claude subagents invalid'"
   assert_output_contains "Run 'intent claude subagents help' for usage"
 }
 
@@ -376,7 +376,7 @@ teardown() {
   
   run run_intent claude subagents sync
   assert_failure
-  assert_output_contains "Error: Claude Code not detected"
+  assert_output_contains "error: Claude Code not detected"
 }
 
 @test "claude subagents sync works with multiple agents" {
@@ -530,7 +530,7 @@ teardown() {
   
   run run_intent claude subagents uninstall intent
   assert_failure
-  assert_output_contains "Error: Claude Code not detected"
+  assert_output_contains "error: Claude Code not detected"
 }
 
 @test "claude subagents uninstall handles empty manifest" {
@@ -546,7 +546,7 @@ teardown() {
 @test "claude subagents show requires an agent name" {
   run run_intent claude subagents show
   assert_failure
-  assert_output_contains "Error: Agent name required"
+  assert_output_contains "error: Agent name required"
   assert_output_contains "Usage: intent claude subagents show"
 }
 
@@ -611,7 +611,7 @@ teardown() {
 @test "claude subagents show handles non-existent agent" {
   run run_intent claude subagents show nonexistent
   assert_failure
-  assert_output_contains "Error: Agent 'nonexistent' not found"
+  assert_output_contains "error: Agent 'nonexistent' not found"
 }
 
 @test "claude subagents show works for both agents" {
@@ -709,7 +709,7 @@ teardown() {
   
   run run_intent claude subagents status
   assert_failure
-  assert_output_contains "Error: Claude Code not detected"
+  assert_output_contains "error: Claude Code not detected"
 }
 
 @test "claude subagents status supports verbose flag" {

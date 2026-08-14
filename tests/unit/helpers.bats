@@ -178,3 +178,30 @@ stampv() {
   run bash -c "source '${INTENT_HOME}/bin/intent_helpers'; warning 'sample text' 2>&1"
   assert_output "warning: sample text"
 }
+
+@test "error() speaks the documented lowercase voice, on stderr, and exits 1" {
+  # Same ruling as warning() one issue later (0023). error() was the last
+  # capitalised emitter, and the worst place for it: it is the one function
+  # whose whole job is to give failures a single voice, so it set the example
+  # every hand-rolled site was copying.
+  run bash -c "source '${INTENT_HOME}/bin/intent_helpers'; error 'sample text' 2>/dev/null"
+  assert_output ""
+  run bash -c "source '${INTENT_HOME}/bin/intent_helpers'; error 'sample text' 2>&1"
+  assert_output "error: sample text"
+  # The exit is part of the contract -- error() is fatal by design, and a
+  # non-fatal error is what warning() is for.
+  run bash -c "source '${INTENT_HOME}/bin/intent_helpers'; error 'sample text' 2>/dev/null; echo reached"
+  [ "$status" -eq 1 ]
+  [[ "$output" != *"reached"* ]] || fail "error() returned instead of exiting"
+}
+
+@test "no shell command emits a capitalised Error: prefix" {
+  # Mechanical, because a single voice is only single if nothing reintroduces
+  # the other one -- grep for the rule rather than reading for it (0011). Scoped
+  # to the shell CLI: the autopsy .exs is a different runtime, the Elixir
+  # archetype template is generated content for a USER's app, and the rule
+  # library's hits are Rust enum names and a deliberate "## Bad" example.
+  run grep -rn '"Error: ' "${INTENT_PROJECT_ROOT}/bin" "${INTENT_PROJECT_ROOT}/intent/plugins/claude/bin" "${INTENT_PROJECT_ROOT}/intent/plugins/agents/bin"
+  [ "$status" -ne 0 ] || fail "capitalised Error: prefix reintroduced:
+$output"
+}

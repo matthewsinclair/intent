@@ -105,13 +105,13 @@ All four proposed items taken as filed, and the "deliberately NOT proposed" excl
 
 **Mutation battery, run in a sacrificial worktree so `bin/` was never mutated in place** (`~/.local/bin/intent` symlinks into this repo, so an in-place mutation is live for every other project on the machine). Each mutation applied by exact string replacement, verified applied, syntax-checked, and restored between runs:
 
-| Mutation                                    | Kills                | Reading                                          |
-| ------------------------------------------- | -------------------- | ------------------------------------------------ |
-| M1 exact-match membership restored (the bug) | 1, 3, 6, 7           | synonym drops; unrecognised still caught by the pass |
-| M2 unplaced pass deleted                     | 1, 4, 5, 6, 7        | unrecognised drops; synonym still placed         |
-| M3 warnings silenced                         | 5 only               | the stderr test is not vacuous                   |
-| M4 presentation order permuted               | 7 only               | the ordering test genuinely pins order           |
-| M5 `warning` escalated to `error`            | all 7                | the exit-0 test is not vacuous either            |
+| Mutation                                     | Kills         | Reading                                              |
+| -------------------------------------------- | ------------- | ---------------------------------------------------- |
+| M1 exact-match membership restored (the bug) | 1, 3, 6, 7    | synonym drops; unrecognised still caught by the pass |
+| M2 unplaced pass deleted                     | 1, 4, 5, 6, 7 | unrecognised drops; synonym still placed             |
+| M3 warnings silenced                         | 5 only        | the stderr test is not vacuous                       |
+| M4 presentation order permuted               | 7 only        | the ordering test genuinely pins order               |
+| M5 `warning` escalated to `error`            | all 7         | the exit-0 test is not vacuous either                |
 
 M1 and M2 killing complementary sets is the load-bearing result: it shows the two halves of the fix are independently necessary, and that no test is passing for the other half's reason.
 
@@ -121,4 +121,6 @@ M1 and M2 killing complementary sets is the load-bearing result: it shows the tw
 
 ### Related work not done here
 
-`bin/intent_st:731-741` computes a `CREATED` value in the in-progress arm that no code path reads (the readers at 843/885/914/956 all recompute it locally inside `sync`). It is the residue of the arguments issue 0019 pruned from `update_steel_threads_index`, and it is dead rather than wrong. Left for a tidy after the tag.
+The `# Extract created date for index update` block in the in-progress arm computes a `CREATED` value no code path reads -- `sync`'s own loops recompute it locally. It is the residue of the arguments issue 0019 pruned from `update_steel_threads_index`, and it is dead rather than wrong. Left for a tidy after the tag.
+
+**Anchored on the comment, not a line number, at cc's correction.** This record first said `bin/intent_st:731-741`; cc's board said `730-743`; both were read before `2769c40` and `08ef2f5` shifted the file, and the block is at `696-709` at HEAD. A line number in a durable record is a fact with an expiry date, and this pair expired inside a day.

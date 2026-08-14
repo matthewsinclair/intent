@@ -134,7 +134,7 @@ intent_relocate_dotintent() {
 
   # Recovery probe: prior interrupted migration?
   if [ -f "$sentinel" ]; then
-    echo "Error: interrupted migration detected at $sentinel" >&2
+    echo "error: interrupted migration detected at $sentinel" >&2
     echo "  See $recovery_url for recovery steps." >&2
     return 1
   fi
@@ -147,14 +147,14 @@ intent_relocate_dotintent() {
 
   # Conflict refusal: both exist?
   if [ -e "$dotintent" ] && [ -d "$config_dir" ]; then
-    echo "Error: both .intent/ and intent/.config/ exist; manual intervention required" >&2
+    echo "error: both .intent/ and intent/.config/ exist; manual intervention required" >&2
     echo "  See $recovery_url for guidance." >&2
     return 1
   fi
 
   # Symlink refusal: .intent is a symlink?
   if [ -L "$dotintent" ]; then
-    echo "Error: .intent is a symbolic link; refusing to relocate symlinked layouts" >&2
+    echo "error: .intent is a symbolic link; refusing to relocate symlinked layouts" >&2
     echo "  See $recovery_url for guidance." >&2
     return 1
   fi
@@ -167,13 +167,13 @@ intent_relocate_dotintent() {
 
   # Parent create (handles fresh-from-v2.0.0 layouts; harmless if intent/ exists)
   mkdir -p "$project_root/intent" || {
-    echo "Error: cannot create $project_root/intent (read-only filesystem?)" >&2
+    echo "error: cannot create $project_root/intent (read-only filesystem?)" >&2
     return 2
   }
 
   # Sentinel write inside .intent/ -- travels with the mv into intent/.config/
   touch "$dotintent/.migration-in-progress" || {
-    echo "Error: cannot write sentinel inside .intent/ (read-only filesystem?)" >&2
+    echo "error: cannot write sentinel inside .intent/ (read-only filesystem?)" >&2
     return 2
   }
 
@@ -183,7 +183,7 @@ intent_relocate_dotintent() {
   else
     echo "  fallback: copying .intent/ -> intent/.config/ (cross-filesystem move)"
     if ! cp -a "$dotintent" "$config_dir"; then
-      echo "Error: cp -a fallback failed; .intent/ preserved at $dotintent" >&2
+      echo "error: cp -a fallback failed; .intent/ preserved at $dotintent" >&2
       echo "  Sentinel at $dotintent/.migration-in-progress; resolve and re-run." >&2
       return 2
     fi
@@ -191,7 +191,7 @@ intent_relocate_dotintent() {
     src_sum=$(cd "$dotintent" 2>/dev/null && find . -type f -not -name '.migration-in-progress' | sort | xargs shasum 2>/dev/null | shasum | awk '{print $1}')
     dst_sum=$(cd "$config_dir" 2>/dev/null && find . -type f -not -name '.migration-in-progress' | sort | xargs shasum 2>/dev/null | shasum | awk '{print $1}')
     if [ "$src_sum" != "$dst_sum" ]; then
-      echo "Error: checksum mismatch after copy; .intent/ preserved for inspection" >&2
+      echo "error: checksum mismatch after copy; .intent/ preserved for inspection" >&2
       rm -rf "$config_dir"
       return 2
     fi

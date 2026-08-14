@@ -5,7 +5,7 @@
 
 # Display an error message and exit
 error() {
-  echo "Error: $1" >&2
+  echo "error: $1" >&2
   exit 1
 }
 export -f error
@@ -569,7 +569,7 @@ require_jq() {
   if command -v jq >/dev/null 2>&1; then
     return 0
   fi
-  echo "Error: jq is required but not installed." >&2
+  echo "error: jq is required but not installed." >&2
   echo "" >&2
   echo "Intent requires jq for JSON configuration parsing." >&2
   echo "" >&2
@@ -594,7 +594,7 @@ require_claude() {
   if [ -d "$HOME/.claude" ]; then
     return 0
   fi
-  echo "Error: Claude Code not detected. Please install Claude Code first." >&2
+  echo "error: Claude Code not detected. Please install Claude Code first." >&2
   echo "Visit: https://claude.ai/download" >&2
   return 1
 }
@@ -605,7 +605,7 @@ require_project_root() {
   if [ -n "${PROJECT_ROOT:-}" ]; then
     return 0
   fi
-  echo "Error: Not in an Intent project directory" >&2
+  echo "error: Not in an Intent project directory" >&2
   echo "Run 'intent init' to create a new project first" >&2
   return 1
 }
