@@ -2,10 +2,10 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 76c0e702-e5b4-4cdc-9bd4-f12ea5965985
-heartbeat_at: 2026-08-14T10:54Z
+session_id: 82a8fe51-f060-4925-8bc4-841cd8a8351e
+heartbeat_at: 2026-08-14T11:27Z
 status: active
-focus: "Bootstrapped after compact and holding for hv. Next for cc is the Lamplight sweep -- vc's baseline says 1639 AT rows, not the 314 our notes carried, so expect ~70% named as residue."
+focus: "Holding while hv and vc spec ST0056. My lane is unchanged: the Lamplight sweep first (1639 AT rows, ~70% named as residue), then Utilz and Baize, then the two fleet pushes."
 claims: []
 ---
 
@@ -13,13 +13,14 @@ claims: []
 
 ## DOING
 
-- Nothing. Holding for hv. Day archived to `.history/20260814/`; vc's 11:55 baseline entry absorbed into the queue below.
+- Nothing. **Holding while hv and vc spec ST0056** (Intent v3.0.0 -- Rust CLI + SQLite + bidirectional md sync + MCP). hv assigned that thread to vc, overriding vc's claims-no-STs default; I briefly claimed it on a stale read and stood the claim down the same session. My lane is unchanged.
 
 ## TODO -- next session, in this order
 
 1. **Consumer sweep, one `intent upgrade` per project. Lamplight FIRST.** That single pass now sweeps AT grammar, converges AGENTS.md, rewrites settings.json to the portable hook form, ignores the treeindex cache, and PRINTS (never runs) the `git rm` for a tracked one. Then Utilz, then Baize.
    - **Read `intent/analysis/20260814-lamplight-at-sweep-baseline.md` BEFORE running it** (vc, measured at Lamplight `15dbccc92`). The estate is **1639 AT rows across 97 contracts, not the 314 our notes carried** -- stale by 5x, and it reconciles with the CHANGELOG's 1642. **~1158 rows (70%) are shapes `--fix` must refuse**: 975 `::name` citations, 508 multi-file `+` citations, 325 carrying both. Expect a very large residue report. **That is the fix working, not a regression**, and the residue is named rather than guessed -- but it is not a number to meet for the first time mid-sweep.
    - **The baseline's real job is the after-check, and it is mine to run**, not just to read: rows must still total 1639 (a sweep must not delete rows); `::name` counts may fall only where the name survived into a trailing note; the backticked-reference count must not fall at all. Counts are AT-row-scoped (`^- AT-\d`) via a Python pass, NOT line greps -- reproduce them the same way or the numbers are not comparable. Anything failing those is recoverable from `15dbccc92`, but only if someone looks.
+   - **The two-pass split is agreed with vc (2026-08-14).** I run the counts immediately post-sweep as the **stop condition** -- I am the one who can still abort cheaply at that moment. vc runs them independently afterwards as the **record**, into an analysis note beside the baseline so the before/after pair lives in one place. Two passes, two purposes; neither substitutes for the other. Same protocol for Utilz and Baize, and **if I take those baselines with the same AT-row-scoped method, vc's after-pass can reuse them directly** -- which is the cheap half of making take-a-baseline-first part of the sweep rather than a preliminary to skip.
 2. **Push the two local-only fleet commits** in their own repos: Utilz `0171297`, Lamplight `7058fd3a8`. Carry-over: the utilz-side `generator: utilz todo` marker + symmetric guard.
 3. **Post-tag tidy:** the dead `CREATED` block in `intent_st`'s in-progress arm -- computed, never read, and it greps the pre-move path. Anchor on the comment `# Extract created date for index update`, NOT a line number; that number has already expired twice. Recorded in 0020's Resolutions.
 
@@ -46,7 +47,7 @@ claims: []
 - **Do not use `git stash` in this repo** -- it carries two pre-existing 2025 stashes and a pop once dumped 522 lines of long-pruned migration code into the tree. Use `git show HEAD:<file>` or a throwaway `git worktree`.
 - **The markdown linter normalises whitespace and will win.** It collapses leading/trailing spaces inside an inline code span, so `` ` + ` `` silently becomes `` `+` `` and can invert a sentence; it also collapses the multi-space separators the `/in-whiteboard` message format documents (`## (ts)   Re:` becomes `## (ts) Re:`). Rephrase around it; do not fight it. Commit the linted form or every commit reopens the same diff.
 - New command wiring: `bin/intent_<name>` auto-dispatches via the `*)` default case; a `claude` subcommand needs an explicit arm in `bin/intent`. Register in MODULES.md FIRST.
-- Node clocks are skewed across sessions (cc read 10:49Z while vc stamped 11:08). Immaterial against a 7-day reclaim rule, but board timestamps are not a reliable cross-node ordering -- use commits for that.
+- **Board timestamps are not a cross-node ordering -- use commits for that.** The conclusion stands; the cause I first recorded for it does not. I called it clock skew between sessions (cc read 10:49Z while vc stamped 11:08); vc has since identified the real mechanism as its own bug -- local BST stamped with a `Z` suffix, so a `12:05Z` heartbeat was really ~11:05 UTC. Mine came from `date -u` and were true. **A watch-out with a wrong cause invites a wrong fix**, which is why this is corrected rather than left standing on a conclusion that happened to survive. Stamp true UTC from `date -u`, both nodes.
 
 ## Decisions
 
