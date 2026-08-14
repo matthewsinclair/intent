@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 0482e68a-709f-45b1-ab98-44bc9c962bd1
-heartbeat_at: 2026-08-14T14:26Z
+heartbeat_at: 2026-08-14T14:52Z
 status: active
-focus: "Resumed after the compact. Putting the three asks to hv in plain language for ratification; two of the three are already routed through vc's bounce agenda, so only the charter and the roster row are ic's alone to ask."
+focus: "The INTENT_BIN retarget regressed within hours of landing, so it now has a guard (309d01d, mutation-proven 7/7). Register regenerating at that revision. Three asks still with hv."
 claims: []
 ---
 
@@ -13,13 +13,13 @@ claims: []
 
 ## DOING
 
-- **Nothing in flight.** Released at the localfold, 2026-08-14. The parity deep pass is delivered, committed and handed over (`vc/inbox.ic.md` 13:19, `cc/inbox.ic.md` 13:20). Session detail archived to `.history/20260814/`.
+- **Register regenerating at `309d01d`** -- full `burn.sh` sweep of all 97 files, not a patch for the new ones. The estate moved three times since the `69d42a7` baseline (devbin, the 0025 fix, my own retarget), so every row's burn figure is potentially stale, not just the missing ones. The artefact is generated and revision-stamped precisely so this is a re-run rather than an edit.
 
 ## TODO
 
-1. **Put the three asks to hv in plain language** -- the first thing on resume. hv wants to ratify them, not read them again; they are stated in "Open asks for hv" below.
-2. **Re-run `burn.sh` to fold in the 95th test file.** `e685e90` added `tests/unit/at_lint_wp_scope.bats` after my baseline. Verified green and burning 5/5 in the main tree, but the register's 94 rows are the 94 files at `69d42a7` and it has no row. Cheap; do it before anyone quotes the register as complete.
-3. **Per-test rows for the 40 `split` files** -- the second pass, blocked on vc ruling the `corrected` class. Deliberately not guessed in pass one.
+1. **Put the three asks to hv in plain language** -- done 2026-08-14, presented; all three still unratified. Stated in "Open asks for hv" below.
+2. **Per-test rows for the 40 `split` files** -- the second pass, blocked on vc ruling the `corrected` class. Deliberately not guessed in pass one. `ambient_project_root_guard.bats` is now a known 2/4 split with the halves already adjudicated, so it is a worked example when that pass starts.
+3. **Watch whether the guard holds.** It catches the dispatcher path only. The ~146 `bin/intent_<sub>` direct calls are classified, not guarded, and there is no equivalent invariant protecting them -- if WP-05 ever decides some of those must route through the binary, that decision needs its own guard or it will decay the same way.
 
 ## Open asks for hv
 
@@ -42,6 +42,8 @@ Stated here so they survive a compact and can be put in plain language without r
 
 ## Decisions
 
+- (2026-08-14) **A one-shot rewrite does not stay rewritten; the sweep is only finished when something enforces it.** `87a315b` routed 979 call sites through `$INTENT_BIN` and the estate regressed **the same day** -- cc's 0025 guard introduced a sixth spelling my five-form sweep could not have found, because it did not exist yet. No incompetence involved: a competent test by an author with no reason to know the invariant existed. **The failure mode is the worst available** -- that path reaches v2 whatever `INTENT_BIN` points at, so under v3 it keeps testing v2 and reports GREEN. A red is recoverable; a green that means nothing is not. Guard at `309d01d`, needle deliberately wider than the five known forms per cc's rule that a guard scoped to what is already clean certifies the status quo. **Generalises past this invariant: any migration landed as a bulk rewrite needs a guard in the same commit, or it has an expiry date nobody wrote down.**
+- (2026-08-14) **Re-read a peer's inbox from disk immediately before appending to it.** I rebuilt `cc/inbox.ic.md` from my own context and re-added a 14:36Z entry cc had already cleared and archived -- putting a handled message back in their queue, out of order. Caught by `git show HEAD:` before committing, so it never reached them. My context holds the file as it was when I last wrote it; **the recipient owns the lifecycle and may have emptied it since.** The single-writer rule makes me the only writer, not the only actor.
 - (2026-08-14) **Audit yourself first, and check the audit before you confess.** hv called out hallucinated timestamps. The reflex under a bollocking is to confess, and I had a confession drafted: my stamp `14:05` looked like a reply sent 25 minutes before cc's `14:30`, which reads as fabrication. **It was the same anomaly read from the wrong end.** Against the commits carrying them, all three of my stamps track true UTC (`13:20`->13:21Z, `14:05`->14:02Z, `14:26`->14:27Z); cc's do not. Posting the confession would have put invented data on the board in the course of arguing against invented data -- **a false admission is fabrication too, and being the humbler kind does not make it true.** Check the evidence with the same rigour whether it exonerates or convicts you. Method: `git show -s --format=%aI <commit>` converted to UTC, which works on anyone's stamps and lets a peer check you rather than trust you.
 - (2026-08-14) **A timestamp is read from a clock or it is fabricated -- there is no approximate.** An LLM node has no clock and no felt duration, so a plausible-looking stamp is invented whole rather than estimated badly, and it is indistinguishable from a real one by inspection. Intent had no rule at all: the skill said `## (YYYY-MM-DD HH:MM)` with no zone or source, and `heartbeat_at: <ISO 8601>`, which is a format, not a clock. **Lamplight hit this on 2026-07-24 and hardened its own README; the fix never came back to the tool that ships the protocol** -- so every consumer estate kept the hole and each rediscovers it. Back-ported at `0be6bd3`. The general lesson is the transferable one: **when a consumer fixes something in the protocol we ship them, the fix belongs upstream or we have shipped everyone else the same bug.**
 - (2026-08-14) **ic's own green record failed cc's naming rule on the same day cc wrote it, and worse than "HEAD" does.** I reported the devbin verification as "ran all seven post-devbin -- 98 tests, 0 failing" and named no revision. It was measured against an **uncommitted working tree** -- cc had devbin on disk but did not commit it until `3563ff4`, two commits after my report -- so the claim names a state that exists in no history and cannot be re-run by anyone, including me. A "HEAD" claim at least decays; this one was unrecoverable the moment cc committed. cc's `f73c9b9` re-recorded the green against the commit it covers, and their 1240-test run subsumes my seven files, so **the fix is to cite theirs and retire mine**. The rule I take from it is narrower than cc's and sharper: _verify on a commit, or say plainly that you verified on a working tree_ -- because uncommitted state is not a weaker citation, it is an unciteable one.
