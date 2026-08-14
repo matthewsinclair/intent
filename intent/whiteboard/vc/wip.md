@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 15e0a23e-58f3-4575-882d-e23418452447
-heartbeat_at: 2026-08-14T10:45Z
+heartbeat_at: 2026-08-14T11:40Z
 status: active
-focus: "0020 + 0021 + 0022 + 0023 fixed and closed pre-cut (hv batching everything before the tag), release docs written; tree ready for bin/release --minor once cc commits its board"
+focus: "v2.19.0 SHIPPED (tag 071c612) and the cut verified; globalfold done. Next: measuring the consumer sweeps, which cc has claimed"
 claims: []
 ---
 
@@ -13,17 +13,15 @@ claims: []
 
 ## DOING
 
-- **Holding for the cut.** 0020, 0021 and 0022 all fixed, guarded, closed and committed pre-cut on hv's batching instruction; release docs written (`intent/history/v2.19.0.md` + `docs/releases/2.19.0/RELEASE_NOTES.md`, both practices had lapsed and are resumed not backfilled). **Release is fifteen issues, 0009-0023.** **Blocker for hv: `intent/whiteboard/cc/wip.md` is dirty and `bin/release` refuses to tag a tree dirty outside its five sidecars.** Not mine to commit; cc has been sent a full resync in its inbox.
-- **0023 (voice):** `error()` and 25 hand-rolled sites swept to the lowercase prefix, completing cc's `8aba5ab`. Left named: the plugin bins write errors to STDOUT -- changes what callers capture, so it is a separate decision, parked next to `intent_claude_prime:212`.
-- **0022 (no-template heredocs):** both fallbacks deleted rather than corrected, `st new`/`wp new` now fail loudly on a missing template, and the two 0010 drift guards are inverted to pin the absence rather than police a second copy.
-- **0021 (credo_checks) is the one to watch on the sweeps.** Intent shipped a second Elixir enforcement mechanism that duplicated the rule library and rotted unrun; the shipping side is deleted and consumers get a three-state `intent doctor` report that names the `elixirc_paths` end too. Every Elixir consumer wants `intent doctor` run after upgrading.
+- **v2.19.0 SHIPPED and VERIFIED.** Tag `071c612` on both remotes + GitHub release. Cut verified: five sidecars at 2.19.0, CHANGELOG dated 2026-08-14, tag identical across local/upstream/HEAD, tree clean, release body byte-identical to the CHANGELOG `[2.19.0]` section but for one trailing newline. Globalfold done -- `done.md` flipped to shipped, `wip.md` / `restart.md` / `.claude/restart.md` all on post-ship state.
+- **Fifteen issues, 0009-0023.** Four (0020-0023) were called in by hv before the cut rather than deferred after it. That batching is the day's process decision and it is what grew the release from eleven issues to fifteen between the build and the tag.
 
 ## TODO
 
-- **Fire on the cut.** `bin/release --minor`, interactive, NEVER `--no-confirm`. Verify after: five sidecars at 2.19.0, CHANGELOG dated, tag on both remotes, GitHub release body == the CHANGELOG section, tree clean.
-- **Post-cut narrative:** `intent/history/v2.19.0.md` + done.md flips to shipped + tag. hv confirmed: v2.19.0.md only, no backfill of the lapsed 2.17/2.18 (same ruling as the 2.10-2.12 lapse).
-- **Post-cut estate sweeps**, Lamplight first (`intent upgrade` converges AT grammar via `at lint --fix` -- 314 rows, expect BLOCKED-until-swept, residue named never guessed -- plus AGENTS.md, settings hooks, gitignore, printed-never-run treeindex `git rm`). vc's part is MEASUREMENT: count what the old rows carried against what the new ones do, before trusting the sweep. Utilz / Baize follow.
-- **Post-tag tidy:** the `# Extract created date for index update` block in `intent_st`'s in-progress arm computes a `CREATED` nothing reads -- residue of the arguments 0019 pruned. Dead, not wrong. Recorded in 0020's Resolutions. (Anchored on the comment: my `731-741` and cc's `730-743` were both stale within a day of being written -- cc caught it.)
+- **Consumer sweeps -- cc has CLAIMED these** (their board and their last inbox entry both say Lamplight first). vc does NOT run them; vc measures. My part: baseline what the old AT rows carry, run the delta after cc's sweep, and refuse to call it good until the counts reconcile. The 87-destroyed-name-links loss happened because a sweep was trusted without being measured against git.
+- **`credo_checks/` fleet cleanup** -- issues filed 2026-08-14 in the three affected projects (Baize 0001, Lamplight 0003, Conflab 0008); Laksa + Prolix measured clean, nothing filed. Each project fixes its own; `intent doctor` reports the residue in three states. vc's part is done unless a project asks for verification.
+- **Post-tag tidy:** the `# Extract created date for index update` block in `intent_st`'s in-progress arm computes a `CREATED` nothing reads. Dead, not wrong. Recorded in 0020's Resolutions, anchored on the comment because cc caught both of us citing line numbers that expired within a day.
+- **Carry to hv:** the plugin bins write errors to STDOUT (named in 0023's Resolutions, deliberately left -- it changes what callers capture, not just what they read), alongside `intent_claude_prime:212`, which is the same decision in miniature.
 
 ## Watch-outs
 
