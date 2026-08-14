@@ -14,7 +14,7 @@
 2. **Spec the marked-legacy AT form in data-model.md before WP-08** (the carry policy's named model consequence -- raw v2 reference carried verbatim beside the parsed fields).
 3. **ic next session**: per-test rows for the 40 split files (`corrected` is RATIFIED); the charter + roster-row asks are still open with hv.
 4. **Ruled and standing**: organize (both faces) planned vestigial by construction -- register rows retire, the two-implementation Highlander dissolves; v2 maintenance is DEFAULT-DEFER, show-stoppers only (cc's "hv decides" queue parks).
-5. Unchanged v2 carries: credo_checks fleet issues (hv running), the fleet pushes (Utilz `0171297`, Lamplight `7058fd3a8` -- re-verify both are still unpushed before acting). The tree carries cc's uncommitted lang-init spread (config languages + per-lang RULES-_/ARCHITECTURE-_ + AGENTS.md/RULES.md/installed-agents.json) -- cc's lane, left in place.
+5. Unchanged v2 carries: credo_checks fleet issues (hv running), the fleet pushes (Utilz `0171297`, Lamplight `7058fd3a8` -- re-verify both are still unpushed before acting). The tree carries cc's uncommitted lang-init spread (config languages + per-lang `RULES-*`/`ARCHITECTURE-*` + AGENTS.md/RULES.md/installed-agents.json) -- cc's lane, left in place.
 
 ## Release checklist (carry forward -- v2 cuts, and the spirit carries to v3)
 

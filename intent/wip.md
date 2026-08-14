@@ -19,7 +19,7 @@ intent_version: 2.19.0
 2. **Spec the marked-legacy AT form in data-model.md before WP-08** (the carry policy's named model consequence; vc).
 3. **ic**: per-test register rows for the 40 `split` files (`corrected` now ratified); the charter + roster-row asks remain open with hv.
 4. **v2 carries (default-defer)**: credo_checks fleet issues (hv running); fleet pushes Utilz `0171297` + Lamplight `7058fd3a8` (re-verify still unpushed first); cc's parked "hv decides" queue.
-5. The tree carries cc's uncommitted lang-init spread (config languages + per-lang RULES-_/ARCHITECTURE-_) -- cc's lane.
+5. The tree carries cc's uncommitted lang-init spread (config languages + per-lang `RULES-*`/`ARCHITECTURE-*`) -- cc's lane.
 
 ## Recent
 
