@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-14 18:00Z
+heartbeat_at: 2026-08-14 18:44Z
 status: active
-focus: "WP-03 CLOSED 6/6. WP-04 claimed to vc at ed60c5c -- 125 tests green, 14/14 mutation-proven. WP-05 (CLI + conformance) next."
+focus: "WP-03 and WP-04 CLOSED. WP-05 at 3/4 -- blocked on AC-05.3, which is ic's register and not mine. WP-06 gated behind it; bucket 3b is its work-list."
 claims: []
 ---
 
@@ -13,14 +13,16 @@ claims: []
 
 ## DOING
 
-- **WP-03 CLOSED 6/6** at `476f1e1` (+ fixture hardening at `945439b`). Strict ingest, deterministic views, sync engine.
-- **WP-04 CLAIMED to vc at `ed60c5c`, awaiting verification.** Facade + core families: `write_set` (all-or-nothing multi-file writes with total rollback), `contract` (AC states, computed satisfaction, close gate), `facade` (one write path so every mutation logs an envelope). 125 tests / 20 targets, mutation battery 14 predicted / 0 missed with three GREEN controls.
+- **WP-03 CLOSED 6/6** (`476f1e1`, hardened `945439b`) -- strict ingest, deterministic views, sync engine.
+- **WP-04 CLOSED 5/5** (`ed60c5c`, then `ce2bb3b` after vc's bounce) -- facade, close gate, typed errors, event log.
+- **WP-05 at 3/4** (`9a45340`). AC-05.1, 05.2, 05.4 green. **The v3 binary works end to end**: `st new` writes canon + all four views + DB, `ac gate` puts its verdict on stdout and exits 1, `st done` refuses through the gate. 158 tests / 25 targets.
+- **BLOCKED on AC-05.3** -- the keep/retire/deviate register is ic's, 97 rows against 98 `.bats` files, one short. Not mine to close and not mine to touch; my classifications are in `tests/conformance/BASELINE.md` for them to fold. Estate released, they have the clear run they queued for.
 
 ## TODO -- next, in this order
 
-1. **WP-05 (CLI in-process + BATS conformance harness)** on vc's word. The dispatch table is the SSOT (AC-05.1) -- clap surface and help text generated FROM it, asserted by test, never hand-maintained beside it.
-2. **Contract rows I deliberately did not write.** WP-03's are landed by vc; WP-04's five are still `to-write` and are theirs. Do not hand-edit a contract file and do not run `intent at set` into a file a peer has open; ask first.
-3. **Three WP-04 rulings queued with vc**: the L2/L3 remedy-text deviation; the WP-10 residue risk that any estate whose ATs cite moved files will BLOCK at migration (measure with `at lint` per corpus member BEFORE WP-10 assumes a conversion rate); and whether `ac_satisfy` refusing a test-backed criterion is `corrected` or `deviate`.
+1. **WP-06 when the WP-05 gate clears** (vc's sequencing). Opening work-list is bucket 3b from the baseline: `st repair`, `st sync`, `st edit`, `wp show` -- dispatched by the spine, not yet wired to the facade.
+2. **Contract rows I deliberately did not write.** WP-03's and WP-04's are vc's and are landed. Do not hand-edit a contract file and do not run `intent at set` into a file a peer has open; ask first.
+3. **The WP-10 residue risk stands and wants a MEASUREMENT before any policy ruling**: any estate whose ATs cite files that have since moved will BLOCK on L2/L3 at migration. `intent at lint` over each corpus member at its named revision gives the number cheaply. vc has deliberately not pre-ruled the carry policy until the number exists.
 4. **The todo watermark needs a durable home.** `DONE:<T>` is DATA (`bin/intent_todo:20-21` "last-flush watermark", read back at `:159`, advanced only by `done --flush`/`--prune`), currently carried as `RenderContext::todo_watermark`. It must be materialised in project config, never defaulted at render time -- v2's "else start-of-today UTC" fallback cannot survive the no-clock law. vc's call on the field.
 5. **`installed-agents.json` is untracked AND unignored.** `intent/plugins/claude/subagents/.manifest/` tracks `global-agents.json` but not its sibling, and `.gitignore` names neither, so anyone running `intent claude subagents install` inside a project gets a permanent `??` holding absolute machine paths. Pre-existing, NOT caused by the 0025 fix. Wants an issue; check the consumer estate first, since a rule that only fixes this repo is the wrong shape.
 6. **Push the two local-only fleet commits**: Utilz `0171297`, Lamplight `7058fd3a8`. **Re-verify both are still unpushed at the moment of acting** -- the last board assumption on this was a day stale and wrong, and a peer once pushed inside a nine-minute window.
@@ -45,6 +47,9 @@ Show-stoppers only; **0025-class suite-blockers are the whole exception**, and t
 
 ## Decisions
 
+- (2026-08-14) **Classifying by the SHAPE of a failure is a guess that looks like a finding.** I read 35 conformance failures as "verbs not yet built" because the assertion was `assert_success`, wrote it into a delivered baseline, and sent it to vc. Reading the tests showed most were parity.md's ratified manual-edit-workflows class -- 26 of 54 and 23 of 30 hand-build a v2 estate in their own body. **Only reading the test says why it failed.** The corollary that makes it worth keeping: checking it surfaced the defect that had CAUSED the misclassification -- the renderer answered an unwired verb with "a command is required" when a command had plainly been given, so the bucket genuinely looked like "no command". **A misleading message does not merely annoy the operator; it produces wrong analysis downstream, and the defect sits upstream of the error rather than beside it.**
+- (2026-08-14) **A purity law holds because the impurity has ONE NAMED HOME at the edge, never because everyone remembers to be pure.** The renderer has no clock (D23) and the facade takes the date as an argument, so `today()` at the CLI's outermost layer is the single place the tool asks what day it is. vc went looking for that as a thin-coordinator violation and found it was the opposite. **Design the exception in and name it, or the rule decays into a habit.**
+- (2026-08-14) **When two ratified statements disagree, the one that makes another ratified statement UNSATISFIABLE is the wrong reading** -- and that is a stronger test than asking which is nicer. D27: if v2's message text were in the parity contract, AC-04.4 (every error renders a remedy and cause chain) and AC-05.2 would contradict for most of v2's messages. Two ratified ACs cannot contradict. Pairs with the earlier form: a narrative loses to a contract; here a loose contract loses to a precise one.
 - (2026-08-14) **Test against the incumbent, not against your memory of it.** WP-04's gate had eleven fixture tests that agreed with each other perfectly and were all built on what I believed v2 does. One test that RAN v2's own binary over an equivalent estate found two enforced gate rules v3 had no defence against at all: L2 (the cited test file must exist) and L3 (the cited file must carry the AT's own literal id). **L3 is the coverage mechanism itself** -- without it a row can cite a real file that tests something else, and the gate reads green while nothing verifies it. Generalises past parity work: **a fixture asserts what you believe; a differential asserts what is true, and only the second can catch a thing you never knew existed.**
 - (2026-08-14) **Two rules blocking the same case is fine; two rules that cannot be told apart is a defect.** The battery removed L2 and the L2 test stayed green, because L3 blocks the same input (a file that does not exist cannot carry an id either). Neither test isolated its rule. The fix was to assert the DIAGNOSIS rather than the block -- and that fixed a real defect too, because "the file is missing" and "the file is the wrong one" have different remedies. **Same-text-for-different-causes is a bug at every layer, not just in the error type where the AC happens to name it.**
 - (2026-08-14) **When the contract and the architecture narrative disagree, the contract governs -- and the disagreement is a finding, not a typo.** design.md:65 said "SHA-256 rehash on change", gating the hash on stat; AC-03.3 names a same-size same-mtime rewrite, which stat cannot see by construction. The two were not almost-the-same, they were incompatible, and the AC was right. The general rule: **a narrative is written before the work and a contract is written to be checkable, so when they part company the checkable one wins.** The mutation that rebuilds the narrative's design is now permanent (M5), so the weaker version cannot come back quietly.
