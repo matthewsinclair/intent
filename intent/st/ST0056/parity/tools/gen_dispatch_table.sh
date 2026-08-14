@@ -332,6 +332,30 @@ jq -r '.new_surface[]? | select(.acceptance) | "- `" + .path + "` -- acceptance:
 #    (info.md, acceptance.md, steel_threads.md, todo.md) lands in repositories
 #    with formatters, and "deterministic and idempotent" (AC-03.2) has to mean
 #    idempotent THROUGH the formatter, not just through the renderer.
+#
+# DO NOT DELETE THIS WHEN AC-07.6 LANDS. Two justifications, only one expires.
+# AC-07.6 excludes generated views from the formatter repo-wide, which retires
+# reason (2) above -- there is no longer a formatter to agree with. Reason (1)
+# does not expire: `in-standards` requires every markdown table to be
+# column-aligned, and that governs what this renderer EMITS regardless of who
+# else writes the file. The formatter was correcting a real defect here, not
+# imposing a preference. (vc ruling, 2026-08-14, recorded in acceptance.md
+# under the AC-07.6 disposition.)
+#
+# AND THE HALF THAT IS EASIER TO MISS: once the formatter stops writing these
+# files, "aligned" needs a definition THIS CODE OWNS. Today the word means, in
+# practice, "whatever prettier does" -- an external authority we happen to
+# agree with. That meaning evaporates with the exclusion, and if nobody
+# notices, "aligned" becomes undefined and the next renderer picks its own
+# reading. That is the divergent-copy problem arriving through a VACATED
+# definition rather than a duplicated one, which is harder to see because
+# nothing was copied.
+#
+# So from AC-07.6 onward the rule below IS the definition, not a check against
+# one: one space of padding inside each cell, columns padded to the widest
+# cell, separator rows filled with dashes to the same width. A future reader
+# deleting this block is only half the hazard; the other half is one keeping it
+# while quietly meaning something different by "aligned".
 ALIGNER='
   function flush(  i, j, w, out, cell, n) {
     if (rows == 0) return
