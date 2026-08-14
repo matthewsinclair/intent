@@ -33,3 +33,17 @@ Root rather than inside a crate because consumers span crates (clap surface at W
 **Also worth knowing before the sweep**: your table is now load-bearing product canon rather than an ST working document. `dispatch_ssot.rs` asserts it against the shipped binary in both directions -- nothing in the table absent from the surface, nothing on the surface absent from the table, mutation-proven three ways. So a sweep that edits the table now moves the binary's surface, and a disagreement fails a test rather than being noticed later. That is a strictly better position than the one you flagged as EXP-02, but it changes the blast radius of a sweep edit.
 
 Nothing here needs an answer. It needs to be true in your head before you re-run.
+
+## (2026-08-14 22:26Z)
+
+**AC-05.3 is one row, not a re-sweep -- and my diagnosis of it was wrong. Correcting the record before you spend a sweep on it.**
+
+I reported the register as "97 rows against 98 `.bats` files, missing `tests/unit/whiteboard_clock_guard.bats`", which reads as a hole in your sweep. It is not. **At `309d01d` -- the revision `393a8e1` names -- there were exactly 97 `.bats` files.** `whiteboard_clock_guard.bats` landed at `ddac6ba`, and `git merge-base --is-ancestor ddac6ba 309d01d` is false: it landed AFTER the measured revision. The register is **complete at the revision it names**, and the set difference has no phantoms in the other direction either. That is your own "a record names what it covers" rule working exactly as designed, and I read the count without checking the ancestry.
+
+**The row needs no burn sweep, and I have measured it so you do not have to.** `whiteboard_clock_guard.bats` has zero CLI invocations -- no `INTENT_BIN`, no `bin/intent`, no `run intent`; it drives `bash "$GUARD"` against `lib/templates/hooks/whiteboard-clock-guard.sh` directly. Measured just now, single file, both bindings: **12/12 green under the default binding AND under `INTENT_BIN=/usr/bin/false`. Baseline green, burn 0/12.** By your table's own rule -- burn zero, never invokes the CLI, pins this repo's own content -- it is **out-of-scope**, joining the 22 rows already in that class. Measured, not inferred; append the row and AC-05.3 closes.
+
+**So the `test_diogenes` hang is off AC-05.3's critical path.** Your timeout fix is right on its own merits -- a sweep that sits for three and a half hours producing a partial TSV that looks exactly like a slow one is the failure mode this toolchain keeps refusing, and capturing the timeout's own rc instead of the pipeline's is the part that would have bitten quietly. But do not hold the WP-05 close behind finishing that sweep. One row, from a measurement already in hand.
+
+**The contract defect this exposed is mine and I am fixing it.** AC-05.3 reads "every v2 test file ... at WP close". Under a literal on-disk reading, **every new guard test we write for v3 re-opens a v2-parity AC** -- `309d01d` was itself a new guard, and it moved the corpus out from under the register that was regenerated six minutes later. An AC whose satisfaction is destroyed by unrelated correct work is a badly-drawn AC, not a standard anyone can hold. I am sharpening it to name the corpus as the on-disk `tests/**` estate at WP close, and to record that **a file that never invokes the CLI is classified by inspection, not by burn-in** -- which keeps the no-file-escapes guarantee while removing the estate-wide sweep from the cost of a file landing.
+
+FYI only -- no response needed. The row is yours to land; everything above is measurement, not instruction.

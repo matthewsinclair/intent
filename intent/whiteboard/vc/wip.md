@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 163642f8-9332-469e-b2ca-0103b9ad309f
-heartbeat_at: 2026-08-14 22:19Z
+heartbeat_at: 2026-08-14 22:28Z
 status: active
-focus: "localfold before a compact, continuing after. WP-01..04 Done; WP-05 at 3/4 blocked on AC-05.3 (ic's register, one row). Contract 77 ACs. D22-D27 adopted."
+focus: "Post-compact. AC-05.3 diagnosed wrong by me and corrected: the register is complete at the revision it names; the one row is measured (out-of-scope, burn 0/12) and handed to ic. AC-05.3 sharpened to name its corpus."
 claims: [ST0056]
 ---
 
@@ -13,12 +13,13 @@ claims: [ST0056]
 
 ## DOING
 
-- **Localfold before a compact, not a release.** `/compact` does not end a session (protocol invariant 6), so status stays `active`; hv has said we continue after the fold. The day's detail is in `.history/20260814/wip.md`, PM-4.
+- **AC-05.3 unblocked and handed to ic, with my own diagnosis corrected.** The register is **complete at the revision it names**: 97 `.bats` existed at `309d01d`, and `whiteboard_clock_guard.bats` landed at `ddac6ba`, which is not an ancestor. No hole in the sweep -- I read a count without checking ancestry. The row is measured rather than left for a sweep: zero CLI invocations, 12/12 green under both bindings, burn 0/12 -> **out-of-scope**, joining 22 rows already in that class. ic appends one row; the `test_diogenes` 3.5h hang is off this critical path.
 
 ## TODO
 
-- **AC-05.3 is the live blocker on WP-05** -- the register carries 97 rows against 98 `.bats` files, missing `tests/unit/whiteboard_clock_guard.bats`. No row is UNCLASSIFIED. ic's lane, ic's queued sweep, estate now clear. If ic stays folded, carry it to hv as a named blocker rather than have them start a sweep they cannot finish.
-- **Verify cc at the WP-06 claim.** Opening work-list is bucket 3b from `tests/conformance/BASELINE.md`: `st repair`, `st sync`, `st edit`, `wp show`.
+- **Flip AC-05.3 once ic lands the row** (`intent ac satisfy`), then verify WP-05 5/5 through the gate.
+- **Verify cc at the WP-06 claim.** Opening work-list is bucket 3b from `tests/conformance/BASELINE.md`: `st repair`, `st sync`, `st edit`, `wp show`. hv has told cc to build without waiting on me, which is right; verification runs behind.
+- **Check ic's `split` -> `pending` register-class rename at their claim** -- uncommitted in `gen_register.sh` now. A classification vocabulary change touches AC-05.3's "no unclassified rows"; `pending` must not become a synonym for UNCLASSIFIED wearing a friendlier name.
 - **The one question for hv, asked once**: the 17 `pending-hv` dispatch-table rows, of which 15 collapse to the single usage-convention ruling. **`intent critic`'s four-way exit-2 overload goes ahead of the bundle** -- it is the only one with a live consumer, since the pre-commit gate reads that code.
 - **hv's own scope calls, deliberately NOT folded into the standing authorisation**: whether `fileindex` follows `treeindex` into retirement (WP-13 leaves it in WP-06 on purpose); whether `todo --flush` / `--prune` semantics survive at all, which decides whether the watermark field exists; WP-06's name now that AC-06.4 puts a non-parity command in it.
 - **WP-10 precondition, from cc**: measure L2/L3 failures per fleet member at its named revision before anyone rules on whether a broken reference in a CLOSED thread carries or blocks. The number comes before the policy question; hv's carry ruling addressed legacy GRAMMAR, and a well-formed row citing a moved file is a different animal.
