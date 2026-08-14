@@ -14,6 +14,12 @@
 
 pub mod event;
 pub mod faces;
+pub mod finding;
 pub mod graphql;
+pub mod ingest;
 pub mod model;
+pub mod project;
+pub mod prose;
 pub mod store;
+pub mod sync;
+pub mod views;

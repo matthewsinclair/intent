@@ -21,6 +21,11 @@
         "null"
       ]
     },
+    "context": {
+      "description": "Why this thread exists. Markdown, carried verbatim, never reflowed.",
+      "type": "string",
+      "default": ""
+    },
     "created": {
       "description": "ISO 8601 date, `YYYY-MM-DD`.",
       "type": "string"
@@ -34,6 +39,17 @@
     "id": {
       "description": "Natural id, eg `ST0056`. Global identity is `(project_id, id)` (D15).",
       "type": "string"
+    },
+    "objective": {
+      "description": "What this thread ships. Modelled rather than authored prose (vc ruling,\n2026-08-14): `objective` already carries tool opinion -- the 0010\nempty-objective warning -- which is the signature of a modelled field.\nMay be empty; the 0010 warning is COMPUTED from emptiness, never stored.",
+      "type": "string",
+      "default": ""
+    },
+    "related": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Related"
+      }
     },
     "schema": {
       "description": "Always [`THREAD_SCHEMA`]; lets validators pick the schema.",
@@ -181,6 +197,17 @@
         "kind": {
           "$ref": "#/$defs/AtKind"
         },
+        "legacy": {
+          "description": "Present on rows carried from a v2 estate under the closed-thread carry\npolicy (migration.md, hv-ruled 2026-08-14). When present, [`file`] may be\nabsent: the legacy reference could be a `::name` citation or a multi-file\nlist, neither of which the 0017 grammar can express, and neither of which\nis guessed at. See [`Legacy`].\n\n[`file`]: AcceptanceTest::file",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Legacy"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "note": {
           "type": [
             "string",
@@ -267,6 +294,40 @@
         "text",
         "kind",
         "scope"
+      ]
+    },
+    "Legacy": {
+      "description": "A v2 AT reference carried whole into the model -- marked legacy, nothing\nguessed, nothing dropped, nothing reformatted.\n\nThe distinction this type encodes (migration.md): carrying a row into a\nricher model destroys nothing, where the 0017 `--fix` destroyed one end of\na two-ended migration. [`raw`] is never parsed and never rewritten; it is\nevidence, not data.\n\n[`raw`]: Legacy::raw",
+      "type": "object",
+      "properties": {
+        "raw": {
+          "description": "The verbatim v2 reference, exactly as it appeared on the row.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "raw"
+      ]
+    },
+    "Related": {
+      "description": "A cross-reference to another steel thread, with the note explaining WHY it\nis related. v2 carried these as free bullets under `## Related Steel\nThreads`; the id and the reason are separable facts, so they separate.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "The related thread's natural id, eg `ST0043`.",
+          "type": "string"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id"
       ]
     },
     "TShirt": {

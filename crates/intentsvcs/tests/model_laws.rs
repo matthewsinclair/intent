@@ -4,9 +4,20 @@
 
 use intentsvcs::model::{
   AcKind, AcScope, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Criterion, Issue, IssueStatus,
-  THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
+  Legacy, Related, THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
+  to_canonical_json,
 };
 use proptest::prelude::*;
+
+/// Prose as it really is: multi-line markdown inside a JSON string field.
+///
+/// vc named this as the accepted risk when `objective` and `context` became
+/// modelled fields rather than an authored file, so the law exercises it
+/// directly. A strategy of `[A-Za-z ]` would have round-tripped happily while
+/// proving nothing about the case anyone was actually worried about.
+fn prose_text() -> impl Strategy<Value = String> {
+  "[A-Za-z0-9 \n\"'`#*_-]{0,120}"
+}
 
 fn thread_status() -> impl Strategy<Value = ThreadStatus> {
   prop_oneof![
@@ -73,13 +84,19 @@ prop_compose! {
 }
 
 prop_compose! {
-  fn acceptance_test()(g in 0u32..99, n in 1u32..9, kind in prop_oneof![Just(AtKind::Test), Just(AtKind::NonTest)], file in proptest::option::of("[a-z]{2,8}/[a-z_]{2,12}\\.rs"), prose in proptest::option::of("[a-z ]{3,30}"), covers in prop::collection::vec("AC-[0-9]{2}\\.[0-9]", 1..3), status in at_status(), note in proptest::option::of("[a-z ]{1,20}")) -> AcceptanceTest {
-    AcceptanceTest { id: format!("AT-{g:02}.{n}"), kind, file, prose, covers, status, note }
+  fn acceptance_test()(g in 0u32..99, n in 1u32..9, kind in prop_oneof![Just(AtKind::Test), Just(AtKind::NonTest)], file in proptest::option::of("[a-z]{2,8}/[a-z_]{2,12}\\.rs"), prose in proptest::option::of("[a-z ]{3,30}"), covers in prop::collection::vec("AC-[0-9]{2}\\.[0-9]", 1..3), status in at_status(), note in proptest::option::of("[a-z ]{1,20}"), legacy in proptest::option::of("[A-Za-z0-9_:. /`-]{3,60}")) -> AcceptanceTest {
+    AcceptanceTest { id: format!("AT-{g:02}.{n}"), kind, file, prose, covers, status, note, legacy: legacy.map(|raw| Legacy { raw }) }
   }
 }
 
 prop_compose! {
-  fn thread()(n in 0u32..9999, title in "[A-Za-z ]{1,60}", slug in proptest::option::of("[a-z-]{3,20}"), status in thread_status(), completed in proptest::option::of(Just("2026-08-14".to_string())), exempt in any::<bool>(), wps in prop::collection::vec(work_package(), 0..3), criteria in prop::collection::vec(criterion(), 0..3), tests in prop::collection::vec(acceptance_test(), 0..3)) -> Thread {
+  fn related()(n in 0u32..9999, note in proptest::option::of("[A-Za-z ]{1,40}")) -> Related {
+    Related { id: format!("ST{n:04}"), note }
+  }
+}
+
+prop_compose! {
+  fn thread()(n in 0u32..9999, title in "[A-Za-z ]{1,60}", slug in proptest::option::of("[a-z-]{3,20}"), status in thread_status(), completed in proptest::option::of(Just("2026-08-14".to_string())), exempt in any::<bool>(), objective in prose_text(), context in prose_text(), related in prop::collection::vec(related(), 0..3), wps in prop::collection::vec(work_package(), 0..3), criteria in prop::collection::vec(criterion(), 0..3), tests in prop::collection::vec(acceptance_test(), 0..3)) -> Thread {
     Thread {
       schema: THREAD_SCHEMA.to_string(),
       id: format!("ST{n:04}"),
@@ -89,6 +106,9 @@ prop_compose! {
       created: "2026-08-14".to_string(),
       completed,
       acceptance: exempt.then_some(AcceptanceMode::Exempt),
+      objective,
+      context,
+      related,
       wps,
       criteria,
       tests,
@@ -173,6 +193,12 @@ fn sample_thread() -> Thread {
     created: "2026-08-14".to_string(),
     completed: None,
     acceptance: None,
+    objective: "Ship the reified model.\n\nWith a blank line, because prose has them.".to_string(),
+    context: "v2 bolted schema onto markdown three times.".to_string(),
+    related: vec![Related {
+      id: "ST0044".to_string(),
+      note: Some("the contract model v3 reifies".to_string()),
+    }],
     wps: vec![WorkPackage {
       seq: 2,
       title: "Workspace and reified model".to_string(),
@@ -195,6 +221,7 @@ fn sample_thread() -> Thread {
       covers: vec!["AC-02.4".to_string()],
       status: AtStatus::Red,
       note: None,
+      legacy: None,
     }],
   }
 }

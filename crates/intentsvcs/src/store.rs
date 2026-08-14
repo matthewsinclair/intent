@@ -12,6 +12,8 @@ use serde_json::json;
 
 use crate::event::Envelope;
 use crate::model::{Issue, Thread, enum_str};
+use crate::prose::DocSection;
+use crate::sync::FileEntry;
 
 /// The DDL face. Applied verbatim on open; committed under `schema/ddl.sql`
 /// by the faces machinery and drift-checked against this constant.
@@ -26,7 +28,16 @@ CREATE TABLE IF NOT EXISTS threads (
   status TEXT NOT NULL,
   created TEXT NOT NULL,
   completed TEXT,
-  acceptance TEXT
+  acceptance TEXT,
+  objective TEXT NOT NULL,
+  context TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS related (
+  thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+  seq INTEGER NOT NULL,
+  id TEXT NOT NULL,
+  note TEXT,
+  PRIMARY KEY (thread_id, seq)
 );
 CREATE TABLE IF NOT EXISTS wps (
   thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
@@ -55,6 +66,7 @@ CREATE TABLE IF NOT EXISTS tests (
   covers TEXT NOT NULL,
   status TEXT NOT NULL,
   note TEXT,
+  legacy TEXT,
   PRIMARY KEY (thread_id, id)
 );
 CREATE TABLE IF NOT EXISTS issues (
@@ -65,6 +77,32 @@ CREATE TABLE IF NOT EXISTS issues (
   severity TEXT,
   created TEXT NOT NULL,
   closed TEXT
+);
+-- The sync engine's git-style index (data-model.md). DB-only and derived from
+-- the working tree, not from canon, so `rebuild` does not touch it.
+-- `findings` is a JSON array; `state` is clean | changed | unparsed.
+CREATE TABLE IF NOT EXISTS file_index (
+  path TEXT PRIMARY KEY,
+  size INTEGER NOT NULL,
+  mtime TEXT NOT NULL,
+  sha256 TEXT NOT NULL,
+  state TEXT NOT NULL,
+  findings TEXT NOT NULL
+);
+-- Prose ingest (data-model.md): bodies stored VERBATIM, never modelled, and
+-- FTS5-indexed to power `intent search`. One table, not an external-content
+-- pair: the store is rebuilt wholesale from canon, so a shadow content table
+-- plus triggers would add a drift hazard to buy nothing. UNINDEXED columns
+-- carry the addressing; `heading` and `body` are the searchable surface.
+CREATE VIRTUAL TABLE IF NOT EXISTS doc_sections USING fts5 (
+  owner_type UNINDEXED,
+  owner_id UNINDEXED,
+  file UNINDEXED,
+  seq UNINDEXED,
+  heading,
+  level UNINDEXED,
+  body,
+  tokenize = 'porter unicode61'
 );
 CREATE TABLE IF NOT EXISTS event_log (
   id TEXT PRIMARY KEY,
@@ -114,11 +152,11 @@ impl Store {
   /// transaction. The event log is untouched (not derived, D15).
   pub fn rebuild(&mut self, threads: &[Thread], issues: &[Issue]) -> Result<(), StoreError> {
     let tx = self.conn.transaction()?;
-    tx.execute_batch("DELETE FROM tests; DELETE FROM criteria; DELETE FROM wps; DELETE FROM threads; DELETE FROM issues;")?;
+    tx.execute_batch("DELETE FROM tests; DELETE FROM criteria; DELETE FROM related; DELETE FROM wps; DELETE FROM threads; DELETE FROM issues;")?;
 
     for t in threads {
       tx.execute(
-        "INSERT INTO threads (id, title, slug, status, created, completed, acceptance) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        "INSERT INTO threads (id, title, slug, status, created, completed, acceptance, objective, context) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
         params![
           t.id,
           t.title,
@@ -127,8 +165,16 @@ impl Store {
           t.created,
           t.completed,
           t.acceptance.as_ref().map(enum_str),
+          t.objective,
+          t.context,
         ],
       )?;
+      for (seq, r) in t.related.iter().enumerate() {
+        tx.execute(
+          "INSERT INTO related (thread_id, seq, id, note) VALUES (?1, ?2, ?3, ?4)",
+          params![t.id, seq as i64, r.id, r.note],
+        )?;
+      }
       for wp in &t.wps {
         tx.execute(
           "INSERT INTO wps (thread_id, seq, title, scope, status) VALUES (?1, ?2, ?3, ?4, ?5)",
@@ -157,7 +203,7 @@ impl Store {
       }
       for at in &t.tests {
         tx.execute(
-          "INSERT INTO tests (thread_id, id, kind, file, prose, covers, status, note) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+          "INSERT INTO tests (thread_id, id, kind, file, prose, covers, status, note, legacy) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
           params![
             t.id,
             at.id,
@@ -167,6 +213,7 @@ impl Store {
             serde_json::to_string(&at.covers)?,
             enum_str(&at.status),
             at.note,
+            at.legacy.as_ref().map(|l| l.raw.clone()),
           ],
         )?;
       }
@@ -204,10 +251,135 @@ impl Store {
   /// which is not derived.
   pub fn snapshot(&self) -> Result<serde_json::Value, StoreError> {
     let mut out = serde_json::Map::new();
-    for table in ["threads", "wps", "criteria", "tests", "issues"] {
+    for table in ["threads", "related", "wps", "criteria", "tests", "issues"] {
       out.insert(table.to_string(), self.dump_table(table)?);
     }
     Ok(serde_json::Value::Object(out))
+  }
+
+  // -------------------------------------------------------------------------
+  // The file index (sync) and doc sections (prose ingest)
+  //
+  // Both are DB-only and derived from the WORKING TREE rather than from canon,
+  // so `rebuild` leaves them alone and `snapshot` excludes them: they answer
+  // "what is on disk right now", which is a different question from "what does
+  // the committed canon say", and conflating the two is how a stale index gets
+  // mistaken for truth.
+  // -------------------------------------------------------------------------
+
+  /// Replace the whole file index in one transaction.
+  pub fn replace_file_index(&mut self, entries: &[FileEntry]) -> Result<(), StoreError> {
+    let tx = self.conn.transaction()?;
+    tx.execute("DELETE FROM file_index", [])?;
+    for e in entries {
+      tx.execute(
+        "INSERT INTO file_index (path, size, mtime, sha256, state, findings) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        params![
+          e.path,
+          e.size as i64,
+          e.mtime,
+          e.sha256,
+          enum_str(&e.state),
+          serde_json::to_string(&e.findings)?,
+        ],
+      )?;
+    }
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Every indexed file, ordered by path.
+  pub fn file_index(&self) -> Result<Vec<FileEntry>, StoreError> {
+    let mut stmt = self
+      .conn
+      .prepare("SELECT path, size, mtime, sha256, state, findings FROM file_index ORDER BY path")?;
+    let rows = stmt.query_map([], |row| {
+      Ok((
+        row.get::<_, String>(0)?,
+        row.get::<_, i64>(1)?,
+        row.get::<_, String>(2)?,
+        row.get::<_, String>(3)?,
+        row.get::<_, String>(4)?,
+        row.get::<_, String>(5)?,
+      ))
+    })?;
+    let mut out = Vec::new();
+    for row in rows {
+      let (path, size, mtime, sha256, state, findings) = row?;
+      out.push(FileEntry {
+        path,
+        size: size as u64,
+        mtime,
+        sha256,
+        state: serde_json::from_value(serde_json::Value::String(state))?,
+        findings: serde_json::from_str(&findings)?,
+      });
+    }
+    Ok(out)
+  }
+
+  /// Replace the whole prose index in one transaction.
+  pub fn replace_doc_sections(&mut self, sections: &[DocSection]) -> Result<(), StoreError> {
+    let tx = self.conn.transaction()?;
+    tx.execute("DELETE FROM doc_sections", [])?;
+    for s in sections {
+      tx.execute(
+        "INSERT INTO doc_sections (owner_type, owner_id, file, seq, heading, level, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![
+          s.owner_type,
+          s.owner_id,
+          s.file,
+          s.seq as i64,
+          s.heading,
+          s.level as i64,
+          s.body,
+        ],
+      )?;
+    }
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Every section of one file, in document order.
+  pub fn doc_sections_for(&self, file: &str) -> Result<Vec<DocSection>, StoreError> {
+    self.doc_sections_query(
+      "SELECT owner_type, owner_id, file, seq, heading, level, body FROM doc_sections WHERE file = ?1 ORDER BY seq",
+      params![file],
+    )
+  }
+
+  /// Full-text search across headings and bodies -- what `intent search` runs
+  /// (design.md). Results are ordered by FTS relevance, then by address so the
+  /// ordering is total rather than merely mostly-determined.
+  pub fn search(&self, query: &str) -> Result<Vec<DocSection>, StoreError> {
+    self.doc_sections_query(
+      "SELECT owner_type, owner_id, file, seq, heading, level, body FROM doc_sections WHERE doc_sections MATCH ?1 ORDER BY rank, file, seq",
+      params![query],
+    )
+  }
+
+  fn doc_sections_query(
+    &self,
+    sql: &str,
+    args: impl rusqlite::Params,
+  ) -> Result<Vec<DocSection>, StoreError> {
+    let mut stmt = self.conn.prepare(sql)?;
+    let rows = stmt.query_map(args, |row| {
+      Ok(DocSection {
+        owner_type: row.get(0)?,
+        owner_id: row.get(1)?,
+        file: row.get(2)?,
+        seq: row.get::<_, i64>(3)? as u32,
+        heading: row.get(4)?,
+        level: row.get::<_, i64>(5)? as u8,
+        body: row.get(6)?,
+      })
+    })?;
+    let mut out = Vec::new();
+    for row in rows {
+      out.push(row?);
+    }
+    Ok(out)
   }
 
   fn dump_table(&self, table: &str) -> Result<serde_json::Value, StoreError> {

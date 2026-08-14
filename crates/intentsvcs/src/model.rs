@@ -66,6 +66,17 @@ pub struct Thread {
   /// `exempt` (ST0048) or absent = acceptance enforced.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub acceptance: Option<AcceptanceMode>,
+  /// What this thread ships. Modelled rather than authored prose (vc ruling,
+  /// 2026-08-14): `objective` already carries tool opinion -- the 0010
+  /// empty-objective warning -- which is the signature of a modelled field.
+  /// May be empty; the 0010 warning is COMPUTED from emptiness, never stored.
+  #[serde(default)]
+  pub objective: String,
+  /// Why this thread exists. Markdown, carried verbatim, never reflowed.
+  #[serde(default)]
+  pub context: String,
+  #[serde(default, skip_serializing_if = "Vec::is_empty")]
+  pub related: Vec<Related>,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
   pub wps: Vec<WorkPackage>,
   #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -89,6 +100,18 @@ pub enum ThreadStatus {
 #[serde(rename_all = "kebab-case")]
 pub enum AcceptanceMode {
   Exempt,
+}
+
+/// A cross-reference to another steel thread, with the note explaining WHY it
+/// is related. v2 carried these as free bullets under `## Related Steel
+/// Threads`; the id and the reason are separable facts, so they separate.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
+#[serde(deny_unknown_fields)]
+pub struct Related {
+  /// The related thread's natural id, eg `ST0043`.
+  pub id: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub note: Option<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -197,6 +220,31 @@ pub struct AcceptanceTest {
   pub status: AtStatus,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub note: Option<String>,
+  /// Present on rows carried from a v2 estate under the closed-thread carry
+  /// policy (migration.md, hv-ruled 2026-08-14). When present, [`file`] may be
+  /// absent: the legacy reference could be a `::name` citation or a multi-file
+  /// list, neither of which the 0017 grammar can express, and neither of which
+  /// is guessed at. See [`Legacy`].
+  ///
+  /// [`file`]: AcceptanceTest::file
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub legacy: Option<Legacy>,
+}
+
+/// A v2 AT reference carried whole into the model -- marked legacy, nothing
+/// guessed, nothing dropped, nothing reformatted.
+///
+/// The distinction this type encodes (migration.md): carrying a row into a
+/// richer model destroys nothing, where the 0017 `--fix` destroyed one end of
+/// a two-ended migration. [`raw`] is never parsed and never rewritten; it is
+/// evidence, not data.
+///
+/// [`raw`]: Legacy::raw
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
+#[serde(deny_unknown_fields)]
+pub struct Legacy {
+  /// The verbatim v2 reference, exactly as it appeared on the row.
+  pub raw: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]

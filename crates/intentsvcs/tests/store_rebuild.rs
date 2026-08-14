@@ -5,7 +5,7 @@
 use intentsvcs::event::{Envelope, LOCAL_PRINCIPAL, Subject};
 use intentsvcs::model::{
   AcKind, AcScope, AcceptanceTest, AtKind, AtStatus, Criterion, ISSUE_SCHEMA, Issue, IssueStatus,
-  THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
+  Related, THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
 };
 use intentsvcs::store::Store;
 
@@ -19,6 +19,12 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
     created: "2026-08-14".to_string(),
     completed: None,
     acceptance: None,
+    objective: "Ship Intent v3.0.0.".to_string(),
+    context: "v2 is 12,492 lines of bash.\n\nEvery reader reimplements parsing.".to_string(),
+    related: vec![Related {
+      id: "ST0043".to_string(),
+      note: Some("the v2 convergent orchestrator".to_string()),
+    }],
     wps: vec![
       WorkPackage {
         seq: 1,
@@ -63,6 +69,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
       covers: vec!["AC-02.3".to_string()],
       status: AtStatus::Red,
       note: Some("red-first".to_string()),
+      legacy: None,
     }],
   };
   let issue = Issue {
