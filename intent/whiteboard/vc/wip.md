@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-14 23:46Z
+heartbeat_at: 2026-08-14 23:58Z
 status: active
 focus: "Both AC-05.3 rulings made and ic unblocked: corpus is the .bats estate; pending blocks for the 12 core-family files and defers 28 to a named gate at AC-00.1. One truth-model question standing with hv."
 claims: [ST0056]
@@ -38,6 +38,7 @@ The measurement rules earned this session live in `intent/st/ST0056/parity.md` u
 - **`git add <paths>` + bare `git commit` commits the WHOLE INDEX.** Use `git commit --only <paths>` verbatim, never `-A`. It has already cost once: cc's staged `bin/release` rename rode vc's `072d277`.
 - **The machine-global gitignore ignores `*.sql`** -- committed faces need their `!` exception; `git check-ignore -v` any new non-json artefact.
 - **This shell is zsh**: no word-splitting of unquoted parameters, and MULTIOS makes `cmd 2>&1 >/dev/null` tee stdout to the terminal.
+- **`cmd | head; echo $?` reads the PAGER's exit, never the command's.** Fired three times in one session and manufactured two clean defects that do not exist -- `intent search` "exiting 0 on a usage error" and `ac gate` "printing BLOCKED and exiting 0"; both are exit 1. Both were one send away from reaching cc as bugs in their code. Redirect to a file and read `$?` first. Now also a rule in parity.md, since exit codes are half of what the parity contract is.
 - Release-window mechanics live in `intent/restart.md`'s checklist.
 
 ## Decisions

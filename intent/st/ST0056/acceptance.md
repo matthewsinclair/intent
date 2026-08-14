@@ -67,6 +67,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 - AC-03.4 The skew check catches a hand-edited generated view and names the file (never silently outvotes it)
 - AC-03.5 A conflict-markered artefact enters the named unparsed state; commands needing it refuse with the finding; v2's silent grep-through is unconstructible
 - AC-03.6 Prose bodies ingest verbatim into FTS-indexed doc_sections; a body round-trips byte-identical out of the store and is retrievable by full-text query
+- AC-03.7 A gitignored path is outside the ingest corpus: it produces no residue, blocks no read, and a project containing one ingests exactly as if it were absent (D29) -- while an untracked-but-not-ignored artefact is still ingested, and a project with no git degrades to everything-in-scope. Each residue path is reported once. Reopened WP-03 after close: found at WP-06 measuring `intent search`, whose 24 residue lines were 100% `.DS_Store` and 100% gitignored, which makes every macOS checkout unreadable and every macOS migration BLOCKED at AC-10.2
 
 ### WP-04 -- intentsvcs facade, core families (status: Not Started)
 
@@ -199,6 +200,7 @@ Found by cross-checking all twelve deliverable lists against all sixty-two ACs, 
 - AT-03.4 `crates/intentsvcs/tests/view_skew_check.rs` -- covers AC-03.4 -- status: green
 - AT-03.5 `crates/intentsvcs/tests/unparsed_state.rs` -- covers AC-03.5 -- status: green
 - AT-03.6 `crates/intentsvcs/tests/prose_ingest_fts.rs` -- covers AC-03.6 -- status: green
+- AT-03.7 `crates/intentsvcs/tests/ignored_paths_corpus.rs` -- covers AC-03.7 -- status: to-write
 - Coverage: complete
 
 WP-03 dispositions (vc, 2026-08-14, ADOPTED under hv standing authorisation):
