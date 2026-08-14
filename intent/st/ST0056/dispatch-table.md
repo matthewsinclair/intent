@@ -13,6 +13,7 @@
 - Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them.
 - There is a FIFTH parity class, `undefined` (vc ruling, 2026-08-14, on `intent config` as its first member). `corrected` needs a v2 antecedent to correct; silence is not an antecedent. Where v2 exhibited NO behaviour at all, v3 is DESIGNING rather than porting or correcting, and that is a different decision needing a different reviewer. Folding it into `corrected` would hide a design decision inside a bug-fix class.
 - Each family carries `bats_coverage`: how many test FILES exercise it through the dispatcher (`files_real`), how many name it but never reach the CLI (`files_vacuous`), and how many individual tests actually burn. Produced by `parity/tools/coverage_map.sh`, which joins these families against `burn-baseline.tsv`. The join is the point -- a naive grep reports `treeindex` as well covered when all 53 of its tests exec `bin/intent_treeindex` directly and the dispatcher never sees them. **A family with no burning coverage is a parity hole: v3 can change it freely and the conformance suite stays green.**
+- `known_exposures` records defects this artefact does NOT currently have but is not protected against. A file that is clean by luck and a file that is clean by construction look identical in a diff, and only one of them stays clean.
 
 ## Provenance
 
@@ -2108,6 +2109,7 @@ Maintain checkbox file indexes
 
 - The widest short-flag surface in the CLI (-C -U -X -f -h -i -r -v), and the only family where short flags carry meaning beyond an alias for a long form.
 - 45 of 47 tests in `tests/unit/fileindex_commands.bats` bypass the dispatcher (burn 2/47), the same shape as treeindex.
+- **The thinness number is evidence in a live decision, not just a register row.** 2 burning tests against 47 in the file: hv has not yet ruled whether `fileindex` follows `treeindex` into retirement under WP-13, and 45 of 47 tests bypassing the dispatcher means the conformance suite would barely notice either way. (vc, 2026-08-14.)
 
 | command     | args                  | flags                                                                                                                                               | help                           | disposition |
 | ----------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ----------- |
@@ -2252,6 +2254,14 @@ Print the Intent version
 - **Defects observed in v2:**
   - INV-08 at `intent version --zzz` succeeds silently at exit 0
 - **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced -- clap rejects unrecognised arguments by default -- behaviour: Unknown arguments refused, exit 1 per INV-02. The version string itself gains a baked GIT_HASH.
+
+## Known exposures -- defects this file does not have, and is not protected against
+
+### EXP-01 -- The generated view is formatter-stable today by accident, not by design
+
+- **Detail:** cc found a third formatter class: prettier normalises the AUTHOR's own emphasis (`*major*` -> `_major_`). No renderer discipline can reach it, because a renderer is forbidden to rewrite authored prose -- and the prose here comes from the canon. This view currently contains ZERO single-asterisk emphasis spans, measured, so it does not trip the class. That is luck: one canon note written with `*emphasis*` breaks the skew check on this file tomorrow, and the break would look like drift on a file nobody touched.
+- **Resolution:** AC-07.6 (vc, 2026-08-14): generated views are EXCLUDED from the formatter repo-wide, converged at `init` and migration so consumer repos inherit it -- a local `.prettierignore` would fix this tree and leave the shipped skew check crying wolf in Lamplight, Utilz and Baize forever. Deliberately not landing today: the pre-commit hook rewrites every staged `.md` and `git add`s it, and three nodes hold uncommitted work.
+- **Consequence for the generator:** The table aligner has TWO justifications and only one of them expires. (1) The skew justification -- matching the formatter's column widths so regeneration reproduces the committed bytes -- becomes unnecessary the moment AC-07.6 lands. (2) The house-rule justification -- `in-standards`: all markdown tables must be column-aligned -- does not expire, and the formatter was correcting a real defect rather than imposing a preference. So the aligner STAYS after AC-07.6; what goes away is the need for it to match the formatter's choices exactly. Written down because a future reader finding align logic in a renderer whose output the formatter no longer touches would reasonably assume it was vestigial and delete it.
 
 ## Parity holes -- what the BATS estate does NOT cover
 

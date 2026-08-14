@@ -249,6 +249,20 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
 done
 
 # --- Outstanding + new surface ----------------------------------------------
+# --- Known exposures --------------------------------------------------------
+# Rendered, not merely stored. A file that is clean by luck and a file that is
+# clean by construction look identical in a diff, and only one stays clean.
+if jq -e '.known_exposures' "$IN" >/dev/null 2>&1; then
+  emit "## Known exposures -- defects this file does not have, and is not protected against"
+  emit ""
+  jq -r '.known_exposures[] |
+    "### \(.id) -- \(.title)\n",
+    "- **Detail:** \(.detail)",
+    "- **Resolution:** \(.resolution)",
+    (if .consequence_for_this_generator then "- **Consequence for the generator:** \(.consequence_for_this_generator)" else empty end),
+    ""' "$IN" >> "$OUT_TMP"
+fi
+
 # --- Coverage findings ------------------------------------------------------
 if jq -e '.coverage_findings' "$IN" >/dev/null 2>&1; then
   emit "## Parity holes -- what the BATS estate does NOT cover"
