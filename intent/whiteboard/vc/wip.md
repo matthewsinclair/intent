@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 15e0a23e-58f3-4575-882d-e23418452447
-heartbeat_at: 2026-08-14T09:30Z
+heartbeat_at: 2026-08-14T10:25Z
 status: active
-focus: "0020 + 0021 fixed and closed pre-cut on hv's instruction, release docs written; tree ready for bin/release --minor once cc's board is committed"
+focus: "0020 + 0021 + 0022 fixed and closed pre-cut (hv batching everything before the tag), release docs written; tree ready for bin/release --minor once cc commits its board"
 claims: []
 ---
 
@@ -13,7 +13,8 @@ claims: []
 
 ## DOING
 
-- **Holding for the cut.** 0020 and 0021 both fixed, guarded, closed and committed pre-cut on hv's instruction; release docs written (`intent/history/v2.19.0.md` + `docs/releases/2.19.0/RELEASE_NOTES.md`, both practices had lapsed and are resumed not backfilled). Release is thirteen issues, 0009-0021. **Blocker for hv: `intent/whiteboard/cc/wip.md` is dirty and `bin/release` refuses to tag a tree dirty outside its five sidecars.** Not mine to commit.
+- **Holding for the cut.** 0020, 0021 and 0022 all fixed, guarded, closed and committed pre-cut on hv's batching instruction; release docs written (`intent/history/v2.19.0.md` + `docs/releases/2.19.0/RELEASE_NOTES.md`, both practices had lapsed and are resumed not backfilled). **Release is fourteen issues, 0009-0022.** **Blocker for hv: `intent/whiteboard/cc/wip.md` is dirty and `bin/release` refuses to tag a tree dirty outside its five sidecars.** Not mine to commit; cc has been sent a full resync in its inbox.
+- **0022 (no-template heredocs):** both fallbacks deleted rather than corrected, `st new`/`wp new` now fail loudly on a missing template, and the two 0010 drift guards are inverted to pin the absence rather than police a second copy.
 - **0021 (credo_checks) is the one to watch on the sweeps.** Intent shipped a second Elixir enforcement mechanism that duplicated the rule library and rotted unrun; the shipping side is deleted and consumers get a three-state `intent doctor` report that names the `elixirc_paths` end too. Every Elixir consumer wants `intent doctor` run after upgrading.
 
 ## TODO

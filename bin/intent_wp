@@ -116,41 +116,15 @@ case "$WP_COMMAND" in
           -e "s/\[Author\]/$ESCAPED_AUTHOR/g" \
           "$TEMPLATE_FILE" > "$WP_DIR/info.md"
     else
-      # Fallback: create minimal info.md
-      cat > "$WP_DIR/info.md" << 'TEMPLATE'
----
-verblock: "__VERBLOCK__"
-wp_id: WP-__WPNUM__
-title: "__TITLE__"
-scope: Small
-status: Not Started
----
-# WP-__WPNUM__: __TITLE__
-
-## Objective
-
-[Clear statement of what this work package aims to accomplish]
-
-## Deliverables
-
-- [List of concrete deliverables]
-
-## Acceptance Criteria
-
-- [ ] Criterion 1
-- [ ] Criterion 2
-
-## Dependencies
-
-- [List any dependencies on other WPs or external factors]
-TEMPLATE
-      ESCAPED_VERBLOCK=$(escape_sed_replacement "$DATE_VERBOSE:v0.1: $AUTHOR - Initial version")
-      sed -i.bak \
-        -e "s/__VERBLOCK__/$ESCAPED_VERBLOCK/g" \
-        -e "s/__WPNUM__/$WP_NUM/g" \
-        -e "s/__TITLE__/$ESCAPED_TITLE/g" \
-        "$WP_DIR/info.md"
-      rm -f "$WP_DIR/info.md.bak"
+      # Rule 6 (single template source). The heredoc that used to stand here is
+      # the clearest evidence for the rule: it wrote a '## Acceptance Criteria'
+      # section with checkboxes, a form the template retired when ST0044 made
+      # acceptance.md the single home -- so the shadow copy was actively
+      # instructing users to do the thing the real template forbids, and nothing
+      # noticed because nothing keeps a second copy honest. A missing template
+      # is a broken install (issue 0022, No Silent Errors).
+      rmdir "$WP_DIR" 2>/dev/null || true
+      error "work-package template not found at $TEMPLATE_FILE -- this is a broken Intent install. Check INTENT_HOME (currently: ${INTENT_HOME:-unset}) or reinstall; nothing was created."
     fi
 
     echo "created: $ST_ID/WP-$WP_NUM"

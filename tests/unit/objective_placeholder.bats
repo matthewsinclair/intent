@@ -140,16 +140,23 @@ EOF
   assert_output "1"
 }
 
-@test "the ST constant still matches intent_st's no-template fallback heredoc" {
-  # The fallback is a second generator of the same document. If it drifts, threads
-  # born from it are invisible to the warning.
+# These two used to assert that the constants still matched the no-template
+# fallback heredocs, on the grounds that "the fallback is a second generator of
+# the same document; if it drifts, threads born from it are invisible to the
+# warning." That was the right worry and the wrong remedy: both fallbacks HAD
+# drifted, and guarding a second generator only keeps two copies in step for as
+# long as someone keeps running the guard. Issue 0022 deleted them, so the
+# assertion inverts -- there is exactly one generator per document, and these
+# pin that there is no longer a second one to drift.
+
+@test "intent_st carries no second generator of the steel-thread Objective" {
   load_placeholders
   run grep -cF -- "$ST_OBJECTIVE_PLACEHOLDER" "$INTENT_BIN_DIR/intent_st"
-  assert_output "1"
+  assert_output "0"
 }
 
-@test "the WP constant still matches intent_wp's no-template fallback heredoc" {
+@test "intent_wp carries no second generator of the work-package Objective" {
   load_placeholders
   run grep -cF -- "$WP_OBJECTIVE_PLACEHOLDER" "$INTENT_BIN_DIR/intent_wp"
-  assert_output "1"
+  assert_output "0"
 }

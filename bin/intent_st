@@ -364,49 +364,15 @@ case "$ST_COMMAND" in
           fi
         done
       else
-        # Create minimal info.md if no templates (quoted heredoc prevents expansion)
-        cat > "$ST_DIR/info.md" << 'TEMPLATE'
----
-verblock: "__VERBLOCK__"
-intent_version: __VERSION__
-status: __STATUS__
-slug: __SLUG__
-created: __CREATED__
-completed:
----
-# __STID__: __TITLE__
-
-- **Status**: __STATUS__
-- **Created**: __DATE__
-- **Completed**:
-- **Author**: __AUTHOR__
-
-## Objective
-
-[Clear statement of what this steel thread aims to accomplish]
-
-## Context
-
-[Background information and context for this steel thread]
-
-## Related Steel Threads
-
-- [List any related steel threads here]
-TEMPLATE
-        ESCAPED_AUTHOR=$(escape_sed_replacement "$AUTHOR")
-        ESCAPED_VERBLOCK=$(escape_sed_replacement "$(date '+%d %b %Y'):v0.1: $AUTHOR - Initial version")
-        sed -i.bak \
-          -e "s/__VERBLOCK__/$ESCAPED_VERBLOCK/g" \
-          -e "s/__VERSION__/$(get_intent_version)/g" \
-          -e "s/__STATUS__/$ST_STATUS/g" \
-          -e "s/__SLUG__/$ESCAPED_SLUG/g" \
-          -e "s/__CREATED__/$(date '+%Y%m%d')/g" \
-          -e "s/__STID__/$ST_ID/g" \
-          -e "s/__TITLE__/$ESCAPED_TITLE/g" \
-          -e "s/__DATE__/$DATE/g" \
-          -e "s/__AUTHOR__/$ESCAPED_AUTHOR/g" \
-          "$ST_DIR/info.md"
-        rm -f "$ST_DIR/info.md.bak"
+        # Rule 6 (single template source): there is no second copy of generated
+        # content here. A missing template directory is a broken install, not a
+        # condition to work around -- and the heredoc that used to stand here
+        # proved why. It shipped only info.md, so a thread born from it silently
+        # lacked acceptance.md (the 5th default doc, ST0044) and every gate that
+        # reads it; and it drifted, because nothing keeps a shadow copy honest.
+        # Fail loudly and name the path (issue 0022, No Silent Errors).
+        rmdir "$ST_DIR" 2>/dev/null || true
+        error "steel-thread templates not found at $TEMPLATE_DIR -- this is a broken Intent install. Check INTENT_HOME (currently: ${INTENT_HOME:-unset}) or reinstall; nothing was created."
       fi
       
       echo "created: $ST_DIR"

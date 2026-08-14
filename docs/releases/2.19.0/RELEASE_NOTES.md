@@ -4,11 +4,11 @@
 
 ## Overview
 
-Intent v2.19.0 gives the **acceptance-test (AT) row a real grammar** and makes `intent at lint` enforce it, alongside eleven other fixes that turn out to share one shape: a reader that recovered part of what it was given, discarded the rest, and said nothing about it.
+Intent v2.19.0 gives the **acceptance-test (AT) row a real grammar** and makes `intent at lint` enforce it, alongside thirteen other fixes that turn out to share one shape: a reader that recovered part of what it was given, discarded the rest, and said nothing about it.
 
 This is a minor, not a patch. It is behaviour-changing for any project that keeps acceptance contracts: **the close-gate honours the new grammar from the day it ships**, so an estate written against the old free-form convention will gate `BLOCKED` until it is swept. That is the fix working -- every row it names was already contributing no coverage, silently, and the gate was reporting threads closer to done than they were. `intent upgrade` runs the mechanical migration for you.
 
-Thirteen issues closed: 0009 through 0021.
+Fourteen issues closed: 0009 through 0022.
 
 **Elixir projects: one thing to check after upgrading.** If your project has a root-level `credo_checks/` directory, Intent put it there and has now stopped shipping it. Run `intent doctor` — it will tell you whether those checks were ever actually running, and what to remove. Details under [Removed](#removed-credo_checks) below.
 
@@ -78,6 +78,7 @@ Both new states are non-blocking and **reported separately rather than folded in
 | **0009** | `AGENTS.md` prerequisites come from the declared `languages`, not filesystem probes                                                   |
 | **0010** | `st done` / `wp done` warn when the Objective still holds the template placeholder (warn, never block)                                |
 | **0012** | the whiteboard header block is ruled line-oriented `key: value`, not YAML, and `ws hygiene` enforces what it actually implements      |
+| **0022** | `st new` / `wp new` no longer substitute a hand-written copy when a template is missing -- a broken install now says so               |
 
 <a id="removed-credo_checks"></a>
 
