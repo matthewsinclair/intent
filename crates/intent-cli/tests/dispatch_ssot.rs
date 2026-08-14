@@ -73,7 +73,16 @@ fn every_shipped_family_in_the_table_reaches_the_surface() {
 #[test]
 fn nothing_reaches_the_surface_that_is_not_in_the_table() {
   let table = dispatch::table();
-  let known: Vec<&str> = table.families.iter().map(|f| f.name.as_str()).collect();
+  // Both halves of the table describe the surface: `families` is the ported v2
+  // surface, `new_surface` the commands v3 adds. A check that knew only the
+  // first would read every ADDITION as an undocumented invention -- which is
+  // exactly what it did when `search` and `schema` were first wired.
+  let known: Vec<&str> = table
+    .families
+    .iter()
+    .map(|f| f.name.as_str())
+    .chain(table.new_surface.iter().map(|e| e.path.as_str()))
+    .collect();
 
   let invented: Vec<String> = surface_families()
     .into_iter()
@@ -82,6 +91,65 @@ fn nothing_reaches_the_surface_that_is_not_in_the_table() {
   assert!(
     invented.is_empty(),
     "the binary offers commands the table does not describe: {invented:?} -- a surface entry with no table row is a second, undocumented declaration"
+  );
+}
+
+/// The other direction for the added commands. Without this, `new_surface`
+/// could be widened to silence the check above while the command itself never
+/// shipped -- the table would describe a surface nobody could reach.
+#[test]
+fn every_added_command_in_the_table_reaches_the_surface() {
+  let table = dispatch::table();
+  let surface = surface_families();
+
+  let missing: Vec<String> = table
+    .new_surface
+    .iter()
+    .filter(|e| e.is_shipped())
+    .map(|e| e.path.clone())
+    .filter(|p| !surface.contains(p))
+    .collect();
+  assert!(
+    missing.is_empty(),
+    "the table declares these added commands and the binary does not offer them: {missing:?}"
+  );
+  assert!(
+    surface.contains(&"search".to_string()) && surface.contains(&"schema".to_string()),
+    "AC-06.4 and AC-06.5 name these two by hand, so they are asserted by name as well as by the sweep"
+  );
+}
+
+/// An unbuilt verb names the work package that OWES it, read from the table.
+///
+/// The message used to say WP-06 for everything. `daemon` is WP-08's and `mcp`
+/// is WP-09's, so that was wrong for two of the six added commands -- and
+/// wrong in the confident voice of a fact, which is the kind of wrong that
+/// gets believed.
+#[test]
+fn an_unbuilt_command_names_the_work_package_that_owes_it() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let run = |args: &[&str]| {
+    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+      .args(args)
+      .current_dir(dir.path())
+      .output()
+      .expect("run the v3 binary");
+    String::from_utf8_lossy(&out.stderr).to_string()
+  };
+
+  let mcp = run(&["mcp"]);
+  assert!(
+    mcp.contains("WP-09"),
+    "`intent mcp` is WP-09's to build: {mcp}"
+  );
+  let ingest = run(&["ingest"]);
+  assert!(
+    ingest.contains("WP-03"),
+    "`intent ingest` is WP-03's: {ingest}"
+  );
+  assert_ne!(
+    mcp, ingest,
+    "two different owners must not render the same sentence"
   );
 }
 

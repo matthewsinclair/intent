@@ -46,6 +46,20 @@ pub struct Table {
   #[serde(default)]
   pub measured_at: String,
   pub families: Vec<Family>,
+  /// Commands v3 ADDS, with no v2 antecedent to port or deviate from.
+  ///
+  /// A separate array rather than more `families` rows, because the two are
+  /// different kinds of claim: a `families` entry asserts something measurable
+  /// about v2 at `measured_at`, and one of these asserts a design intention.
+  /// Merging them would make the table's own provenance unreadable -- there
+  /// would be no way to ask "what did v2 offer?" without first filtering out
+  /// rows that describe no v2 at all.
+  ///
+  /// They reach the surface through the same [`shipped_entries`] as everything
+  /// else, because from the operator's side there is no difference: `intent
+  /// search` is a command or it is not.
+  #[serde(default)]
+  pub new_surface: Vec<Entry>,
   #[serde(default)]
   pub invariants: Vec<Invariant>,
 }
@@ -66,7 +80,7 @@ pub struct Entry {
   pub args: Vec<Arg>,
   #[serde(default)]
   pub flags: Vec<Flag>,
-  /// The v2 antecedent, as `file:line`.
+  /// The v2 antecedent, as `file:line`, or `new-surface` where there is none.
   #[serde(default)]
   pub v2: String,
   #[serde(default)]
@@ -74,6 +88,15 @@ pub struct Entry {
   /// `keep` · `retire` · `pending`.
   #[serde(default)]
   pub disposition: String,
+  /// The work package that owes this command, eg `WP-06`. Carried on
+  /// `new_surface` rows; empty on ported ones, whose owner is WP-06 by default.
+  ///
+  /// This is what lets an unbuilt verb name the work package that owes it
+  /// instead of a hardcoded number. The first version of that message said
+  /// WP-06 for everything, which would have been a lie for `daemon` and `mcp`
+  /// the moment anyone read it.
+  #[serde(default)]
+  pub owner_wp: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -83,6 +106,15 @@ pub struct Arg {
   pub kind: String,
   #[serde(default)]
   pub arity: String,
+  /// For a `subcommand`-kind arg: the verbs that fill the slot.
+  ///
+  /// This is how the table expresses the surface's THIRD level -- `intent
+  /// claude skills install` is `claude skills` with `install` in its verb slot,
+  /// not a `claude skills install` row of its own. A spine that ignored these
+  /// dropped 20-odd real commands and, where a free-form positional sat beside
+  /// the slot, silently accepted invented ones.
+  #[serde(default)]
+  pub values: Vec<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -129,6 +161,16 @@ impl Entry {
   pub fn is_shipped(&self) -> bool {
     self.disposition != "retire" && self.target.state != "retire"
   }
+
+  /// The work package that owes this command. Ported entries default to WP-06,
+  /// the CLI parity long tail; `new_surface` rows carry their own.
+  pub fn owner(&self) -> &str {
+    if self.owner_wp.is_empty() {
+      "WP-06"
+    } else {
+      &self.owner_wp
+    }
+  }
 }
 
 /// Parse the compiled-in table. Panics on a malformed table because the table
@@ -139,14 +181,29 @@ pub fn table() -> Table {
   )
 }
 
-/// Every shipped entry, in table order.
+/// Every shipped entry, ported and added alike, in table order.
 pub fn shipped_entries(table: &Table) -> Vec<&Entry> {
   table
     .families
     .iter()
     .flat_map(|f| f.entries.iter())
+    .chain(table.new_surface.iter())
     .filter(|e| e.is_shipped())
     .collect()
+}
+
+/// Find one entry by its full path, eg `st new` or `search`.
+pub fn entry<'a>(table: &'a Table, path: &str) -> Option<&'a Entry> {
+  shipped_entries(table).into_iter().find(|e| e.path == path)
+}
+
+/// The work package that owes `path`, for a verb that parses but does not run.
+///
+/// Falls back to WP-06 for a path the table does not carry at all -- which
+/// cannot normally happen, since the spine is built FROM the table, and is a
+/// build defect rather than anything the operator can act on.
+pub fn owner_of(table: &Table, path: &str) -> String {
+  entry(table, path).map_or("WP-06", Entry::owner).to_string()
 }
 
 #[cfg(test)]
@@ -174,6 +231,7 @@ mod tests {
       v2: String::new(),
       target: Target::default(),
       disposition: "keep".to_string(),
+      owner_wp: String::new(),
     };
     assert_eq!(st.family(), "st");
     assert_eq!(st.verb(), Some("new"));

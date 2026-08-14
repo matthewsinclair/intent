@@ -70,6 +70,14 @@ pub enum FacadeError {
   ScopeUnchanged { ac: String, state: String },
   #[error("{ac} is in scope, so there is nothing to reinstate")]
   NotOffScope { ac: String },
+  #[error("the search query `{query}` was refused")]
+  BadQuery {
+    query: String,
+    #[source]
+    cause: StoreError,
+  },
+  #[error("no schema face named `{face}`")]
+  NoSuchFace { face: String },
   #[error("could not write the project files")]
   Write(#[from] WriteError),
   #[error("could not update the runtime store")]
@@ -110,6 +118,12 @@ impl FacadeError {
       }
       Self::NotOffScope { .. } => {
         "reinstate applies only to a descoped or withdrawn criterion".to_string()
+      }
+      Self::BadQuery { .. } => {
+        "search takes an FTS5 expression -- quote a phrase, and escape or drop bare punctuation like `:` and `*`".to_string()
+      }
+      Self::NoSuchFace { .. } => {
+        "run `intent schema` with no argument to print every face, which also names them".to_string()
       }
       Self::Write { .. } => {
         "check permissions and free space on the project directory, then retry -- nothing was changed".to_string()
@@ -216,6 +230,27 @@ impl Facade {
 
   pub fn wp_list(&self, st: &str) -> Result<&[WorkPackage], FacadeError> {
     Ok(&self.st_show(st)?.wps)
+  }
+
+  /// Full-text search across every authored section -- thread prose, issue
+  /// bodies, work-package text (AC-06.4).
+  ///
+  /// The query goes to FTS5 as written, so `foo OR bar` and `"a phrase"` work.
+  /// A malformed expression comes back as [`FacadeError::BadQuery`] carrying
+  /// SQLite's own complaint in its cause chain: the remedy names the likely
+  /// fix, and the chain still says exactly what happened, so a genuinely
+  /// unhealthy store is not disguised as a typo.
+  pub fn search(&self, query: &str) -> Result<Vec<crate::prose::DocSection>, FacadeError> {
+    self.store.search(query).map_err(|cause| {
+      if matches!(cause, StoreError::Sqlite(_)) {
+        FacadeError::BadQuery {
+          query: query.to_string(),
+          cause,
+        }
+      } else {
+        FacadeError::Store(cause)
+      }
+    })
   }
 
   /// Run the close gate. A read: it changes nothing and refuses nothing.

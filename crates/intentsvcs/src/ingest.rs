@@ -91,6 +91,7 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
           continue;
         }
         collect_prose(project, &mut canon.sections, "thread", &id)?;
+        collect_wp_text(project, &mut canon.sections, &thread);
         canon.threads.push(thread);
       }
       Err(mut found) => findings.append(&mut found),
@@ -273,6 +274,33 @@ impl Validated for Issue {
   fn validator() -> &'static jsonschema::Validator {
     static V: OnceLock<jsonschema::Validator> = OnceLock::new();
     V.get_or_init(compile::<Issue>)
+  }
+}
+
+/// Put each work package's text into the prose index (AC-06.4).
+///
+/// AC-06.4 names three searchable sources -- ST prose, issue bodies and WP
+/// text -- and the first two are authored markdown that [`collect_prose`]
+/// picks up. WP text is not: v3 reifies work packages INTO `thread.json`, so
+/// after the port there is no `WP/<NN>/info.md` for anything to read, and a
+/// search for a work package's title found nothing at all.
+///
+/// This is not double truth. `work_packages` and `doc_sections` are both
+/// projections rebuilt from `thread.json` on every load, so this is one truth
+/// carrying two indexes, which is what an index is. The authored/generated
+/// line D02 protects is untouched: nothing here is written back to a file.
+fn collect_wp_text(project: &Project, out: &mut Vec<DocSection>, thread: &Thread) {
+  let file = project.relative(&project.thread_json(&thread.id));
+  for wp in &thread.wps {
+    out.push(DocSection {
+      owner_type: "work-package".to_string(),
+      owner_id: format!("{}/{:02}", thread.id, wp.seq),
+      file: file.clone(),
+      seq: wp.seq,
+      heading: Some(wp.title.clone()),
+      level: 0,
+      body: String::new(),
+    });
   }
 }
 

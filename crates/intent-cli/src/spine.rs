@@ -57,6 +57,20 @@ pub fn build(table: &Table) -> Command {
     }
     root = root.subcommand(cmd);
   }
+
+  // Commands v3 adds. They are top-level families with no sibling verbs, so
+  // they take the same path a verbless family takes -- from the operator's
+  // side `intent search` is a command or it is not, and where the table
+  // recorded it makes no difference to that.
+  for entry in &table.new_surface {
+    if !entry.is_shipped() {
+      continue;
+    }
+    root = root.subcommand(with_args(
+      Command::new(entry.path.clone()).about(entry.help.clone()),
+      entry,
+    ));
+  }
   root
 }
 
@@ -70,14 +84,48 @@ fn leaf(entry: &Entry) -> Command {
 }
 
 fn with_args(mut cmd: Command, entry: &Entry) -> Command {
+  // A `subcommand` pseudo-arg carrying VALUES is the surface's third level:
+  // `intent claude skills install` is `claude skills` with `install` in its
+  // verb slot. Build those values as real subcommands, and hang the entry's
+  // remaining positionals off each of them -- `install` takes the skill name,
+  // the parent does not.
+  //
+  // Skipping them (as this did) cost more than the missing verbs. Where a
+  // free-form positional sat beside the slot -- `claude skills` declares
+  // `name` at arity `0..n` -- it silently swallowed whatever was typed, so
+  // `intent claude skills bogus-verb` was ACCEPTED. A surface that accepts an
+  // invented verb is a No Silent Errors failure, not a gap.
+  if let Some(slot) = entry
+    .args
+    .iter()
+    .find(|a| a.kind == "subcommand" && !a.values.is_empty())
+  {
+    for value in &slot.values {
+      let mut leaf = Command::new(value.clone());
+      leaf = positionals(leaf, entry);
+      leaf = flags(leaf, entry);
+      cmd = cmd.subcommand(leaf);
+    }
+    // `arity: "1"` means the slot must be filled; `0..1` means the bare
+    // command is legal and does something of its own.
+    return flags(cmd.subcommand_required(slot.arity == "1"), entry);
+  }
+
+  cmd = positionals(cmd, entry);
+  flags(cmd, entry)
+}
+
+fn positionals(mut cmd: Command, entry: &Entry) -> Command {
   for arg in &entry.args {
-    // A `subcommand` pseudo-arg in the table describes the family's verb slot,
-    // which clap models as a subcommand rather than a positional.
+    // A valueless `subcommand` pseudo-arg describes a family's verb slot,
+    // which is filled by sibling entries rather than by a positional.
     if arg.kind == "subcommand" {
       continue;
     }
     let required = arg.arity == "1";
-    let multiple = arg.arity.contains('+') || arg.arity.contains('*');
+    // `0..n` is the table's open-ended spelling and carries neither `+` nor
+    // `*`, so a check for those two alone read it as a single value.
+    let multiple = arg.arity.contains('+') || arg.arity.contains('*') || arg.arity.ends_with('n');
     let mut a = Arg::new(arg.name.clone())
       .required(required)
       .value_name(arg.name.to_uppercase());
@@ -88,7 +136,10 @@ fn with_args(mut cmd: Command, entry: &Entry) -> Command {
     };
     cmd = cmd.arg(a);
   }
+  cmd
+}
 
+fn flags(mut cmd: Command, entry: &Entry) -> Command {
   for flag in &entry.flags {
     // `help` spellings are clap's own; re-declaring them collides.
     if flag

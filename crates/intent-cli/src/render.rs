@@ -26,9 +26,9 @@ pub fn run(matches: &ArgMatches) -> Result<(), String> {
     Some(("wp", m)) => wp(m),
     Some(("ac", m)) => ac(m),
     Some(("at", m)) => at(m),
-    Some((family, _)) => Err(format!(
-      "error: `{family}` is in the dispatch table but not yet wired to the facade (ST0056 WP-06)\n  remedy: run `intent --help` for the families that are"
-    )),
+    Some(("search", m)) => search(m),
+    Some(("schema", m)) => schema(m),
+    Some((family, _)) => unwired(family, ""),
     None => {
       println!(
         "intent {} -- run `intent --help`",
@@ -77,9 +77,19 @@ fn today() -> String {
 /// same-text-for-different-causes collapse AC-04.4 forbids. The operator needs
 /// to know the difference between "you typed nothing" and "we have not built
 /// that yet", because only one of them is their problem.
+/// It names the work package that OWES the verb, read from the table, rather
+/// than a hardcoded WP-06. `intent daemon` is WP-08's and `intent mcp` is
+/// WP-09's; a message telling the operator WP-06 owed them would be wrong the
+/// first time anyone read it, and wrong in the confident voice of a fact.
 fn unwired(family: &str, verb: &str) -> Result<(), String> {
+  let path = if verb.is_empty() {
+    family.to_string()
+  } else {
+    format!("{family} {verb}")
+  };
+  let owner = crate::dispatch::owner_of(&crate::dispatch::table(), &path);
   Err(format!(
-    "error: `{family} {verb}` is in the dispatch table but not yet wired to the facade (ST0056 WP-06)\n  remedy: run `intent {family} --help` for the verbs that are"
+    "error: `{path}` is in the dispatch table but not yet wired to the facade (ST0056 {owner})\n  remedy: run `intent {family} --help` for the verbs that are"
   ))
 }
 
@@ -215,6 +225,50 @@ fn at(m: &ArgMatches) -> Result<(), String> {
     }
     Some((verb, _)) => unwired("at", verb),
     None => Err("error: an acceptance test command is required".to_string()),
+  }
+}
+
+/// AC-06.4: full-text search across ST prose, issue bodies and WP text.
+///
+/// A miss is exit 0 with no output, not an error. "Nothing matched" is a
+/// successful search, and v2's own read verbs answer an empty set the same way
+/// -- making it a failure would mean every `grep`-shaped use in a script had to
+/// special-case the common answer.
+fn search(m: &ArgMatches) -> Result<(), String> {
+  let query = arg(m, "query")?;
+  let f = open()?;
+  for hit in f.search(&query).map_err(fail)? {
+    let heading = hit.heading.as_deref().unwrap_or("(preamble)");
+    println!("{}:{}  {}  {}", hit.file, hit.seq, hit.owner_id, heading);
+  }
+  Ok(())
+}
+
+/// AC-06.5: print the generated schema faces.
+///
+/// It does NOT call `open()`. The faces are rendered from types compiled into
+/// this binary, so they are the same everywhere and asking for a project would
+/// make the command fail in the one place it is most useful -- outside a
+/// project, when you are deciding what a project should contain.
+fn schema(m: &ArgMatches) -> Result<(), String> {
+  match m.try_get_one::<String>("face") {
+    Ok(Some(name)) => match intentsvcs::faces::face(name) {
+      Some(content) => {
+        print!("{content}");
+        Ok(())
+      }
+      None => Err(format!(
+        "error: no schema face named `{name}`\n  remedy: one of: {}",
+        intentsvcs::faces::face_names().join(", ")
+      )),
+    },
+    Ok(None) => {
+      print!("{}", intentsvcs::faces::all_faces_banner());
+      Ok(())
+    }
+    Err(e) => Err(format!(
+      "error: the CLI asked for an argument `face` that the dispatch table does not declare\n  caused by: {e}\n  remedy: this is a build defect -- the renderer and surface/dispatch-table.json disagree"
+    )),
   }
 }
 

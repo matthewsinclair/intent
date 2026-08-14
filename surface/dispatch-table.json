@@ -5266,6 +5266,14 @@
     {
       "path": "search",
       "help": "Full-text search across all authored prose",
+      "args": [
+        {
+          "name": "query",
+          "type": "string",
+          "arity": "1",
+          "note": "Added by cc at build time (2026-08-14): the row declared no args, so the spine built a command that refused `intent search foo` with `unexpected argument`. A command specified to take a query needs somewhere to put it."
+        }
+      ],
       "v2": "new-surface",
       "basis": "design.md:68 -- FTS5 across all bodies, from CLI and MCP. There is no bin/intent_search.",
       "owner_wp": "WP-06",
@@ -5277,6 +5285,15 @@
     {
       "path": "schema",
       "help": "Print the generated schema faces (JSON Schema, DDL, GraphQL SDL)",
+      "args": [
+        {
+          "name": "face",
+          "type": "string",
+          "arity": "0..1",
+          "values_note": "One of the committed filenames under schema/, eg ddl.sql. Omitted, every face is printed with a `== <name> ==` banner between them so the output stays machine-splittable. Added by cc at build time (2026-08-14) alongside the search query arg.",
+          "note": "AC-06.5 requires what this prints to be byte-identical to the committed files, which is only checkable per-face; a single blob would have to be re-split by the test to compare."
+        }
+      ],
       "v2": "new-surface",
       "basis": "design.md:43",
       "owner_wp": "WP-06",

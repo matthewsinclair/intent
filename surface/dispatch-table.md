@@ -2346,8 +2346,8 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 
 | command  | args         | flags          | help                                                                     | owning WP | basis                                                                                    |
 | -------- | ------------ | -------------- | ------------------------------------------------------------------------ | --------- | ---------------------------------------------------------------------------------------- |
-| `search` | --           | --             | Full-text search across all authored prose                               | WP-06     | design.md:68 -- FTS5 across all bodies, from CLI and MCP. There is no bin/intent_search. |
-| `schema` | --           | --             | Print the generated schema faces (JSON Schema, DDL, GraphQL SDL)         | WP-06     | design.md:43                                                                             |
+| `search` | <query>      | --             | Full-text search across all authored prose                               | WP-06     | design.md:68 -- FTS5 across all bodies, from CLI and MCP. There is no bin/intent_search. |
+| `schema` | [face]       | --             | Print the generated schema faces (JSON Schema, DDL, GraphQL SDL)         | WP-06     | design.md:43                                                                             |
 | `export` | --           | --format <fmt> | Project the canon into another format                                    | WP-06     | design.md:57 -- YAML/md/anything else are export projections                             |
 | `ingest` | --           | --from-md      | Rebuild the canon from markdown (the recovery path, and the v2 migrator) | WP-03     | design.md:66; WP-03 deliverable, shared with the WP-10 migrator                          |
 | `daemon` | <subcommand> | --             | Manage the machine-level intentd                                         | WP-08     | design.md:73-74, D07/D08/D19                                                             |

@@ -27,6 +27,41 @@ pub fn faces() -> Vec<(&'static str, String)> {
   ]
 }
 
+/// One face by name, for `intent schema <face>`. `None` if no face has that
+/// name -- the caller reports it; this module does not know the error type.
+pub fn face(name: &str) -> Option<String> {
+  faces()
+    .into_iter()
+    .find(|(path, _)| *path == name)
+    .map(|(_, content)| content)
+}
+
+/// The names of the committed faces, in print order.
+pub fn face_names() -> Vec<&'static str> {
+  faces().into_iter().map(|(path, _)| path).collect()
+}
+
+/// Every face, banner-separated, for a bare `intent schema` (AC-06.5).
+///
+/// **It GENERATES rather than reading `schema/`.** That is the whole property:
+/// AC-06.5 asks that what the command prints be byte-identical to the
+/// committed files, and a command that printed the files would satisfy that
+/// vacuously -- it would be `cat` with extra steps, and would keep passing
+/// after the model and the committed face had drifted apart. Printing from the
+/// types makes the command a second, independent witness to the same drift
+/// `schema_faces_drift.rs` guards.
+pub fn all_faces_banner() -> String {
+  let mut out = String::new();
+  for (path, content) in faces() {
+    out.push_str(&format!("== {path} ==\n"));
+    out.push_str(&content);
+    if !content.ends_with('\n') {
+      out.push('\n');
+    }
+  }
+  out
+}
+
 /// Render one type's JSON Schema in canonical form (2-space pretty, trailing
 /// newline).
 fn schema_json<T: schemars::JsonSchema>() -> String {
