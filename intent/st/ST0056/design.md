@@ -44,15 +44,15 @@ The model is authored once, in the intentsvcs Rust type layer, and generates thr
 
 ### File layout (per artefact)
 
-| Artefact                   | Canonical structure (committed)                                       | Authored prose                                  | Generated views                                                                     |
-| -------------------------- | --------------------------------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Steel thread + WPs + AC/AT | `st/<ID>/thread.json` (metadata, status, WP records, full contract)   | `design.md`, `impl.md`, objective/context prose | `info.md` (cover: status, dates, rollup), `acceptance.md` (contract + coverage)     |
-| Issues                     | `issues/<n>.json` (number, slug, status, priority)                    | `issues/<n>.md` (body + resolution)             | index views; OPEN/CLOSED-as-directories likely retires (status is data)             |
-| Project                    | `intent/.config/config.json` (as today)                               | --                                              | --                                                                                  |
-| Indexes                    | --                                                                    | --                                              | `steel_threads.md`, `todo.md`, `AGENTS.md` (the proven generated-committed pattern) |
-| Tracking                   | --                                                                    | `wip.md`, `restart.md`                          | --                                                                                  |
-| Whiteboard                 | deferred to the 3.2 agent-bus ST; md-authored through 3.0.0/3.1       | boards, inboxes                                 | --                                                                                  |
-| Runtime DB                 | `intent/.cache/intent.db` -- gitignored, rebuilt from committed canon | --                                              | --                                                                                  |
+| Artefact                   | Canonical structure (committed)                                                           | Authored prose                      | Generated views                                                            |
+| -------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------- |
+| Steel thread + WPs + AC/AT | `st/<ID>/thread.json` (metadata, status, WP records, contract, objective/context/related) | `design.md`, `impl.md`, `tasks.md`  | `info.md` (100% generated cover), `acceptance.md` (contract + coverage)    |
+| Issues                     | `issues/<n>.json` (number, slug, status, priority)                                        | `issues/<n>.md` (body + resolution) | index views; OPEN/CLOSED-as-directories likely retires (status is data)    |
+| Project                    | `intent/.config/config.json` (as today)                                                   | --                                  | --                                                                         |
+| Indexes                    | --                                                                                        | --                                  | `intent/st/steel_threads.md` (v2 path kept), `intent/todo.md`, `AGENTS.md` |
+| Tracking                   | --                                                                                        | `wip.md`, `restart.md`              | --                                                                         |
+| Whiteboard                 | deferred to the 3.2 agent-bus ST; md-authored through 3.0.0/3.1                           | boards, inboxes                     | --                                                                         |
+| Runtime DB                 | `intent/.cache/intent.db` -- gitignored, rebuilt from committed canon                     | --                                  | --                                                                         |
 
 Format: JSON (not YAML) for canonical structured files -- the 0012 quoting-hazard scar, plus the `config.json` in-house precedent. Tool-written pretty-JSON: stable key order, 2-space indent, trailing newline. YAML/md/anything else are `intent export --format` projections (trivial via serde).
 
@@ -62,7 +62,7 @@ Generated views are committed, with a `doctor`/CI skew check (regenerate, requir
 
 - **Down-sync (truth -> views)** is the standard write path: mutation -> validate against schema -> write structured file + regenerate affected views + update DB, atomically. Deterministic and idempotent: same data -> same bytes.
 - **Up-sync (files -> DB)** is ingest, and it is **strict**: standard JSON parse + schema validation; invalid input is refused with the finding named. No tolerance ladder for current-version data -- lenience was only ever a coping strategy for having no schema. Prose ingests verbatim (FTS-indexed).
-- **Change detection**: git-index-style stat scan (mtime/size, SHA-256 rehash on change -- the conflabd `db_sync.rs` pattern) on every CLI invocation in daemonless mode; debounced fswatch in daemon mode. Scope: `intent/**` + named root files only.
+- **Change detection**: SHA-256 hash of every in-scope file on every CLI invocation in daemonless mode; debounced fswatch in daemon mode. Scope: `intent/**` + named root files only. Stat (mtime/size) is retained as reporting metadata, **never as the hash trigger** -- rehash-on-stat-change cannot by construction catch the same-size same-mtime rewrite AC-03.3 requires, and stat is exactly the partial evidence v3 exists to stop answering from. Corrected by vc 2026-08-14 (surfaced by ic) after the original line specified the conflabd `db_sync.rs` rehash-on-change optimisation, which the contract rules out; if hashing scope ever costs enough to matter, taking that optimisation is a register-recorded deviation, never an accident.
 - **`intent ingest --from-md`** exists as an explicit recovery path (and IS the v2 migrator); it is not the daily flow.
 - A file that stops parsing (eg merge-conflict markers) enters a named unparsed state surfaced by `doctor`; commands needing it refuse with the finding named. v2 greps through conflict markers silently; v3 refuses.
 - FTS5 across all bodies powers `intent search` from CLI and MCP.
@@ -83,6 +83,47 @@ Generated views are committed, with a `doctor`/CI skew check (regenerate, requir
 - Under authored-once, **the mutation surface is how agents write structure** -- view-editing is demoted from workflow to recoverable mistake.
 - rmcp (official SDK): stdio (`intent mcp`, per-session, in-process) now; bridge-to-daemon mode with per-request target resolution (the Lamplight `mcp.rs` pattern -- daemon restarts never strand a session); streamable HTTP from intentd for the 3.x multi-agent era (proven in conflabd for exactly this Claude Code use case).
 - Tool definitions, CLI help, and the `intent llm` agent guide all render from the one dispatch-table SSOT (the Lamplight DD-6 pattern).
+
+### Project search (WP-13): four tiers, two of them in 3.0.0
+
+Intent becomes the search and index surface for the whole project, replacing `treeindex` (762 lines that shell out to `claude -p` for a prose summary per directory, cached and stale by construction) and the `in-handoff` skill. Both answered "what is roughly here" in advance and approximately; the need is "where is X" on demand and exactly. That is a different artefact, not a better summariser.
+
+| Tier | Question                                               | Needs              | Ships       |
+| ---- | ------------------------------------------------------ | ------------------ | ----------- |
+| T1   | lexical -- find this string                            | FTS5               | 3.0.0       |
+| T2   | structural -- find this definition, its call sites     | tree-sitter        | 3.0.0       |
+| T3   | semantic -- where do we handle project-root resolution | an embedding model | 3.0.x / 3.1 |
+| T4   | type-aware -- every caller passing this type           | a language server  | parked      |
+
+**T2 is why tree-sitter and not an Elixir-specific parser.** Elixir AST work is trivial in Elixir and the hard path from Rust -- no mature Rust Elixir parser, and shelling out to `elixir` reintroduces exactly the external-runtime dependency that condemns treeindex. tree-sitter is Rust-native with a maintained Elixir grammar, and the same dependency yields Rust, Swift, Lua and Bash. The `languages` array in `config.json` (ST0037) is already the per-project grammar manifest; the Elixir-specific ask generalises to all five declared languages for the same effort.
+
+**T2 is also the chunker for T3, which makes the ordering a dependency rather than a convenience.** Naive line-window chunking is why most code retrieval is poor; tree-sitter yields function- and module-level units with names and spans, which are the right embedding units. Building structural search first is what makes semantic search worth having.
+
+#### T3: the model decision, and why it is not an architecture decision
+
+The only genuinely new thing T3 needs is an embedding model, and that is the first time Intent would require either a large binary or a network call. Three shapes were considered:
+
+- **Remote API** (Voyage, OpenAI): small binary, but a network dependency, an API key, per-token cost, and the posture change that matters -- embedding a private codebase means sending it to a third party. Rejected as a default.
+- **Bring-your-own only** (Intent defines the interface, ships nothing): keeps Intent self-contained, but a capability requiring configuration is a capability nobody turns on, which is precisely how treeindex died. Rejected as the only shape.
+- **Zero-config local, fetched on first use**: adopted. The model lands in `~/.local/share/intent/models/` on the first semantic query, announced rather than silent, and is governed by the **policy-stamp self-healing already in the design (AC-08.7)** -- a versioned local artefact that regenerates when missing or stale. The binary stays small, the default needs no configuration, no network call happens at install time, and the embedding interface still admits a swapped-in model or a remote endpoint for anyone who wants one.
+
+Storage is a `sqlite-vec` vec0 table beside FTS5 in the same DB. **D01 is what makes deferring T3 free**: the DB is rebuildable and there are no migrations ever, so adding vector tables later costs `rm intent.db` and a rebuild.
+
+#### T4: parked, with the trigger written down
+
+A language server adds type resolution, cross-module definition and typed call hierarchy -- real capability, at the cost of a stateful process per project per language, version-coupled to the toolchain. Elixir's official LSP is the obvious candidate and the natural trigger to revisit. Parked because **LSP's leverage is refactoring, not search**: tree-sitter already answers the search questions, and a different product wants its own thread rather than a lien on this release.
+
+#### Why the seams (S1-S5, WP-13 info.md) are sufficient to admit T3 and T4 later
+
+This is AC-13.9's substance, and the reason it is safe to specify two tiers now and build them later:
+
+- **S1 (gitignore-aware whole-repo scope)** -- T3 and T4 index the same corpus T1/T2 do. No scope change is ever needed.
+- **S2 (two corpora, two staleness policies)** -- orthogonal to tier; a new tier inherits it.
+- **S3 (one result shape, `{path, span, kind, tier, score, snippet}`)** -- a new tier adds a VALUE to `tier`, never a field. The CLI contract and the MCP tool schema are untouched by T3 and T4 arriving.
+- **S4 (scores never blended across tiers)** -- a new tier ranks within its own group, so no ranking rewrite and no silently-changed relevance for existing queries.
+- **S5 (degradation is named, never silent)** -- an unavailable tier (no model fetched, no language server) is a named absence through the same mechanism as a stale index. T3 and T4 are therefore _always_ optional at runtime without a special case.
+
+**Whole-repo indexing is also the first genuinely forcing argument for intentd.** Everything else works daemonless; keeping a source-tree index warm incrementally does not. This is where the daemon stops being present and starts being load-bearing.
 
 ### Cloud seams (intentc-shaped, v4-facing)
 
@@ -153,6 +194,13 @@ WP-01 closures (2026-08-14, post-ratification):
 - D20 **3.0.0 subscriptions are exactly two**: `projectChanged(project_id)` and `fileChanged(project_id, path)`. Nothing more ships until a consumer (TUI/bus) exists to need it.
 - D21 **`intent/.cache/` is gitignored whole-dir**; the DB lives at `intent/.cache/intent.db` (+ WAL/SHM siblings at runtime). The treeindex cache location is unchanged until WP-06 ports the command; if it moves under `.cache/`, that is its own register entry.
 
+WP-03 openings (vc, 2026-08-14) -- **PROVISIONAL pending hv**, listed apart so the ratified log above stays honest about what hv actually ruled. All four were forced by starting WP-03: three were surfaced by the builders inside the first hour, which is the argument for the contract leading the build rather than trailing it.
+
+- D22 **`info.md` is 100% generated; `objective`, `context` and `related` are modelled fields on `steel_thread`.** Resolves the D02 mixed-file violation v2's info.md is. No sixth default steel-thread doc -- rejected on reversal cost. Rationale in data-model.md. (Surfaced by cc.)
+- D23 **No generated view contains a render-time value, and the renderer has no clock.** Derived from AC-03.4, not chosen: regenerate-and-diff cannot come back empty if a view stamps its own render time, so the skew check would be trained-to-be-ignored. Three v2 instances at `f7434f1`, one of them inside the generated-banner pattern the data model ratifies. (Surfaced by cc.)
+- D24 **Change detection hashes always; stat is reporting metadata, never the hash trigger.** The contract (AC-03.3) governs where it and the architecture narrative disagree -- that is what a contract is for. Corrects the original conflabd rehash-on-change line. (Surfaced by ic.)
+- D25 **`intent/st/steel_threads.md` keeps its v2 path and becomes 100% generated**; the `<!-- BEGIN/END: STEEL_THREAD_INDEX -->` region markers and the `stp_version` frontmatter do not survive the port. A region marker in a v3 view is a defect, not a compatibility feature. The incumbent is the worked example of why D02 exists: its authored half rotted (a March 2025 verblock, `stp_version: 1.2.0`) while its generated table stayed current.
+
 ## Alternatives considered
 
 - **md-as-truth with strict ingest** (vc's first proposal): rejected by hv -- markdown cannot carry its own schema; the bespoke row-grammar tax recurs forever (0012/0017/close-gate were three instances); byte-faithful round-tripping was the hardest engineering in the draft and exists only to prop this up.
@@ -168,3 +216,17 @@ None. The four WP-01 questions closed as D18-D21 above. Companion WP-01 specs: `
 ## Parked for 3.x (each its own ST)
 
 TUI dashboard (ratatui, subscriptions) · agent bus incl. whiteboard restructure + hv oversight gates (the conflabd `mcp/policy.rs` gating pattern) · Laksa web page · macOS menubar app (Conflab `native/macos` is the reference; TN3171 cert lesson recorded) · `intent_ex` hex client · sqlite-vec semantic search.
+
+### The agent bus is smaller than it looked (observed live, 2026-08-14)
+
+Three nodes ran this session with a **live cross-session channel** -- a Claude Code harness capability (`ListAgents` / `SendMessage`, unix sockets under `/tmp/cc-socks/`), not anything Intent provides. It changed the working tempo materially: idle-to-dispatched in minutes, and two findings crossed nodes mid-build that the board would have delivered a session late. It also carried a wrong premise from one node into another's ruling in a single hop, which the board's latency had previously been masking as an accidental review delay.
+
+What that demonstrates for the parked bus ST is that **most of it may already be specified**. An inbox append is a file write; D20 already ships `fileChanged(project_id, path)` over intentd's socket in 3.0.0. A node subscribed to `intent/whiteboard/<node>/inbox.*.md` gets live delivery with no new protocol, no new transport, and D14 intact -- the boards stay md-authored and unmodelled, because a file does not need modelling to fire a change event. The 3.2 question shrinks from "build a bus" to "point the existing subscription at the board, and decide the oversight gates".
+
+Three constraints the live session surfaced, recorded now while the evidence is fresh:
+
+1. **Ledger and traffic are different jobs.** The socket is ephemeral -- nothing on it survives a `/compact`, and it is in no repository. The board is the durable, auditable, single-writer record. Today the mirroring from one to the other was manual and disciplined, which is not a property that survives contact with a bad day.
+2. **Therefore the board is authored and delivery is derived, never the reverse.** One authored home (the inbox file), with live push as a transport detail -- `wb ask` writes the entry and notifies a live peer. The inverse (send live, remember to mirror) is the authored-twice defect this whole release exists to stop.
+3. **A cross-node claim carries its evidence, and the receiver RE-RUNS it rather than reading it.** Measured both ways in one session: re-running ic's three findings confirmed them and caught an overclaim; not re-running cc's absence claim -- re-checking its own wrong path instead of testing its premise -- turned a bad premise into a ruling in one hop. Speed multiplies corrections and errors equally.
+
+Intent cannot route through the harness's channel and must not depend on it (consumers may not have it); it can use it when present. The transport Intent owns is intentd's.

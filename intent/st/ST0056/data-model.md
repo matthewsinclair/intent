@@ -1,6 +1,8 @@
 # Data model - ST0056: the reified Intent model (WP-01 spec)
 
-Status: WP-01 draft, ratified structure per design.md D01-D05. The schemars-generated JSON Schema (WP-02) supersedes the draft schema below the moment it exists; this document then describes, never defines.
+Status: ratified structure per design.md D01-D05. WP-02 landed the schemars faces, so **this document describes, it does not define** -- the authored master is the Rust type layer and the committed faces under `schema/` are generated from it. The WP-01 draft schema that stood at the foot of this file is pruned; see "The schema face" below.
+
+Amendments after WP-01 (vc, 2026-08-14, PROVISIONAL pending hv): `objective`/`context`/`related` modelled on `steel_thread`; the marked-legacy `legacy` form on `acceptance_test`; the no-clock law on generated views. Each carries its rationale inline below.
 
 ## Entities
 
@@ -15,6 +17,20 @@ Identity convention (D15): natural keys stay human-legible; `(project_id, natura
 | name, author   | string | as v2                                             |
 | languages      | array  | as v2 (ST0037)                                    |
 | server         | object | RESERVED, absent in v3 (D15); intentc-era binding |
+| todo           | object | `{done_watermark: rfc3339}` -- see below          |
+
+#### The todo watermark: a generated view that was its own database
+
+Found by cc at WP-03 when the no-clock law (D23) forced the question of whether `todo.md`'s `## DONE:<timestamp>` heading was render time or data. It is data, and the mechanism is worse than a stray timestamp:
+
+- `bin/intent_todo:20` calls it "the last-flush watermark", advanced only by `done --flush` / `--prune`.
+- `read_done_watermark()` at `:157` **greps it back out of the generated `todo.md`**, and falls back to `date -u '+%Y-%m-%dT00:00:00Z'` when the file or heading is absent.
+
+So the view is the only durable home of a fact the tool reads back as truth. Three consequences, all fatal to v3's model: the view cannot be regenerated from truth (deleting `todo.md` silently resets the watermark to start-of-today); a generated artefact is authoritative, which is the exact inverse of D02; and the render path reads a clock, which D23 forbids.
+
+Ruling (vc, 2026-08-14; PROVISIONAL pending hv): the watermark is **durable project state**, homed in `config.json` under a `todo` block, **always materialised and never defaulted at render time**. The render path receives it as an input and never reads it back. The v2 start-of-today fallback does not survive -- a default computed from a clock is the defect wearing a different hat.
+
+Open for hv, and it decides whether this field exists at all: whether `todo --flush` / `--prune` semantics carry into v3. If they retire, the watermark retires with them and DONE filtering becomes a query parameter over the `completed` dates already in the model. The field is provisional precisely because it is downstream of that behaviour question.
 
 ### steel_thread (`st/<ID>/thread.json`)
 
@@ -24,6 +40,9 @@ Identity convention (D15): natural keys stay human-legible; `(project_id, natura
 | id         | string | `ST0056`                                                 |
 | title      | string |                                                          |
 | slug       | string |                                                          |
+| objective  | string | authored prose; may be empty (see below)                 |
+| context    | string | authored prose, markdown, carried verbatim               |
+| related    | array  | `{id, note?}` -- the Related Steel Threads block         |
 | status     | enum   | `not-started · wip · tbc · hold · completed · cancelled` |
 | created    | date   |                                                          |
 | completed  | date?  |                                                          |
@@ -33,6 +52,20 @@ Identity convention (D15): natural keys stay human-legible; `(project_id, natura
 | tests      | array  | acceptance_test records                                  |
 
 No verblock: git is the history of structured files. Authored prose files keep the v2 verblock convention unchanged; generated views carry a generated-banner footer instead (the AGENTS.md pattern).
+
+#### Why objective / context / related are modelled (the info.md mixed-file resolution)
+
+D02 forbids mixed files, and v2's `info.md` is flatly one: frontmatter and status (structure), Objective and Context (authored prose), Related Steel Threads (structured links), and a "Context for LLM" template block. design.md's layout table makes `info.md` a generated cover while listing "objective/context prose" as authored -- naming no file for it. Surfaced by cc at WP-03 start, when the view renderer became the thing that would have had to discover the answer.
+
+Ruling (vc, 2026-08-14; PROVISIONAL pending hv): the three fields are **modelled on `steel_thread`**, and `info.md` becomes 100% generated. There is no sixth default steel-thread doc.
+
+- `objective` is already a field the tool has an opinion about -- the 0010 empty-objective warning -- which is the signature of a modelled field rather than free prose. The warning stays **computed from emptiness, never stored**, on the same double-truth grounds as `satisfied`.
+- `context` and `related` follow it into the model because splitting one cover across a modelled half and an authored half rebuilds the mixed file one level down.
+- The alternative -- a new authored `context.md` -- was rejected on reversal cost, not on taste. A field-add reverses by moving two fields; a sixth default doc changes the template set, `intent st new`, the migrator and every consumer's mental model.
+
+Named cost, accepted deliberately: multi-paragraph markdown lives inside a JSON string field. It is tool-written and authored via mutation, which is what D02 asks for, and prose bodies are still stored verbatim and never reflowed.
+
+Deferring this to WP-10 was the rejected option. The migrator would have discovered the missing prose home, and a migrator that meets an unspecified half of its own target is the `at lint --fix` scar repeating: a tool that cannot finish a job must not start it.
 
 ### work_package (inside thread.json)
 
@@ -65,6 +98,26 @@ No verblock: git is the history of structured files. Authored prose files keep t
 | covers | array   | AC ids                                                   |
 | status | enum    | `to-write · red · green · n-a` (`n-a` non-test only)     |
 | note   | string? | the free trailing note                                   |
+| legacy | object? | the marked-legacy carry form (see below)                 |
+
+#### The marked-legacy AT form (the closed-thread carry policy's model consequence)
+
+Required by the hv carry ruling in `migration.md`: CLOSED threads convert lossless-by-carrying, so a legacy-grammar AT row must land in the model whole, with nothing guessed, dropped or reformatted.
+
+```
+legacy: { raw: string }   -- absent on every row authored under the v2.19 grammar
+```
+
+`raw` is the **verbatim v2 row text**, byte-for-byte as it appeared, carried and never parsed. When `legacy` is present, `file` may be absent -- a `::name` citation or a multi-file list has no single repo-relative path, and inventing one is precisely the destruction the 0017 refusal was about.
+
+The distinction that makes this safe: carrying a whole row into a richer model destroys nothing, where a fixer that rewrites one end of a two-ended reference destroys the link. Migrating data and improving it are different operations, and only the first one is the migrator's job.
+
+Consequences that must hold together:
+
+- Ingest accepts `legacy` (it is in the schema from the start, so `thread.schema.json` is blessed once, not twice).
+- `legacy` is **carried, never interpreted**. No command reads `raw` to answer a question; anything that did would be the v2 "answers confidently from partial evidence" class rebuilt inside v3.
+- A row carrying `legacy` is reported as carried-legacy in coverage views, never silently counted as an ordinary green.
+- LIVE threads never produce one: they stay BLOCKED-until-clean, so a `legacy` row appearing in a live thread is itself a defect.
 
 ### issue (`issues/<n>.json` + authored body `issues/<n>.md`)
 
@@ -91,86 +144,41 @@ Envelope: `{id: ulid, ts: rfc3339, principal, project_id, op, subject: {type, id
 
 `{owner_type, owner_id, file, seq, heading, level, body}` -- FTS5-indexed; powers `intent search`. Prose bodies are stored verbatim, never modelled.
 
+## Generated views: the renderer has no clock
+
+Every generated view carries a generated-banner footer instead of a verblock (the AGENTS.md pattern). One constraint governs the banner and every other byte a renderer emits:
+
+**No generated view contains a render-time value, and the view renderer has no clock.** Its inputs are the model and the tool version -- no clock, no locale, no `$USER`, no `$HOSTNAME`, no absolute paths, no environment. The banner names the tool version and the source template; it never names when it ran. Git already records when a view was regenerated, and it does it correctly.
+
+This is derived from the contract, not a preference. AC-03.2 requires a view to render the same bytes twice; AC-03.4 requires regenerate-and-diff to come back empty. A view that stamps its own render time fails the first and makes the second diff every file on every run -- so the skew check becomes either useless or trained-to-be-ignored, which is the same outcome arriving later.
+
+Three live v2 instances, found at `f7434f1` when cc raised the first one:
+
+| Instance                       | Value                                              |
+| ------------------------------ | -------------------------------------------------- |
+| `intent/todo.md`               | `## DONE:2026-07-10T17:18:19Z`                     |
+| `AGENTS.md`                    | `_Generated by Intent v2.19.0 on 2026-08-14_`      |
+| `lib/templates/llm/_CLAUDE.md` | `on [[DATE]] for Intent v[[INTENT_VERSION]]` (:59) |
+
+The third is why this is a law rather than a fix: the banner pattern this document ratifies for every v3 view is itself one of the instances, so repairing the reported file would have left the defect in every view not yet written. Fix the class by removing the capability.
+
+Open at time of writing: whether todo.md's `DONE:<ts>` is a render stamp or real data (it is stale against current content, which is not how a render stamp behaves). If it is data -- the last DONE transition -- it is modelled and rendered from the model. If it is render time, it dies. Not split.
+
 ## Canonical JSON form
 
 UTF-8, LF, 2-space indent, trailing newline, object keys in schema-declared order (serde struct order, not alphabetical), arrays in natural order. Tool-written always; hand-edits are legal but validated strictly on ingest (D05).
 
-## Draft JSON Schema: thread.json
+## The schema face: `schema/thread.schema.json`
 
-Draft for ratification shape only -- superseded by the schemars face in WP-02.
+The WP-01 draft schema that stood here is **pruned**. WP-02 landed the schemars face, so the supersession this document declared at the top has already happened, and a second copy of the schema in prose is the divergent-copy drift Highlander exists to stop -- proved in the act: the draft went stale the moment `objective`, `context`, `related` and `legacy` were added above, and a reader building from it would have built the wrong type.
 
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://intent.dev/schema/thread-3.0.json",
-  "type": "object",
-  "required": ["schema", "id", "title", "status", "created"],
-  "additionalProperties": false,
-  "properties": {
-    "schema": { "const": "intent/thread@3.0" },
-    "id": { "type": "string", "pattern": "^ST[0-9]{4}$" },
-    "title": { "type": "string", "minLength": 1 },
-    "slug": { "type": "string" },
-    "status": {
-      "enum": ["not-started", "wip", "tbc", "hold", "completed", "cancelled"]
-    },
-    "created": { "type": "string", "format": "date" },
-    "completed": { "type": ["string", "null"], "format": "date" },
-    "acceptance": { "enum": ["exempt"] },
-    "wps": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["seq", "title", "scope", "status"],
-        "additionalProperties": false,
-        "properties": {
-          "seq": { "type": "integer", "minimum": 1 },
-          "title": { "type": "string" },
-          "scope": { "enum": ["XS", "S", "M", "L", "XL", "XXL"] },
-          "status": { "enum": ["not-started", "wip", "done"] }
-        }
-      }
-    },
-    "criteria": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "text", "kind", "scope"],
-        "additionalProperties": false,
-        "properties": {
-          "id": { "type": "string", "pattern": "^AC-[0-9]{2}\\.[0-9]+$" },
-          "text": { "type": "string" },
-          "kind": { "enum": ["test", "non-test"] },
-          "scope": { "type": "object" },
-          "evidence": { "type": "string" },
-          "satisfied": { "type": "boolean" }
-        }
-      }
-    },
-    "tests": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["id", "kind", "covers", "status"],
-        "additionalProperties": false,
-        "properties": {
-          "id": { "type": "string", "pattern": "^AT-[0-9]{2}\\.[0-9]+$" },
-          "kind": { "enum": ["test", "non-test"] },
-          "file": { "type": "string", "pattern": "^[^:]*/[^:]*$" },
-          "prose": { "type": "string" },
-          "covers": {
-            "type": "array",
-            "items": { "type": "string" },
-            "minItems": 1
-          },
-          "status": { "enum": ["to-write", "red", "green", "n-a"] },
-          "note": { "type": "string" }
-        }
-      }
-    }
-  }
-}
+The authored master is the Rust type layer (`crates/intentsvcs/src/model.rs`). The committed faces are generated from it into `schema/` at the repo root -- `thread.schema.json`, `issue.schema.json`, `event.schema.json`, `ddl.sql`, `schema.graphql` -- by `crates/intentsvcs/src/faces.rs`, and `crates/intentsvcs/tests/schema_faces_drift.rs` fails CI on any diff. Re-bless deliberately and in the same commit as the type change:
+
 ```
+INTENT_BLESS=1 cargo test -p intentsvcs --test schema_faces_drift
+```
+
+Read the face for the schema; read this document for why the model has the shape it has.
 
 Validation posture (D05): `additionalProperties: false` everywhere -- an unknown field is refused by name, never dropped (the serde_ignored discipline at the schema layer). Schema evolution is a schema-version bump, visible in the `schema` field, with the DB rebuilt (D01).
 
