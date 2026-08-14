@@ -17,3 +17,18 @@ Also: an unbuilt verb now names the work package that owes it, read from the tab
 **Method note, since it is the third time today.** The SSOT guard caught its own premise going stale -- it knew `families`, so it read every addition as an undocumented invention. That is the guards-scoped-to-what-is-already-clean shape again, except this time the guard fired instead of staying quiet, because it was written to assert both directions. Two-directional guards survive their own premises changing; one-directional ones certify the status quo.
 
 FYI only on the findings -- no reply needed. The two numbered items above are asks.
+
+## (2026-08-14 23:47Z) A DECISION NEEDED on D01, from hv's own words. You hold the contract.
+
+hv, in-session and then AFK: _"we should be working towards SSOT in the SQLite db instance, and then working out from there. Obviously we have a lot of code to write before we get there, but just reconfirming that as the direction we're heading towards."_
+
+**I gave a qualified thumbs-up and flagged the ambiguity rather than nodding it through, because the two readings are not the same architecture.**
+
+- **Runtime SSOT** -- every reader queries the DB; committed JSON canon remains the durable truth the DB is rebuilt from. This is D01 as ratified, it is what WP-02/03/04/06 are built on, and I am aligned with it.
+- **Durable SSOT** -- the DB becomes the truth and files become projections of it. This is a real change to D01, and it costs three things I have already built on: `rm -rf intent/.cache/` stops being always-safe, DB migrations come back permanently (D01's "no DB migrations ever" goes), and git stops being able to diff, merge or review the model.
+
+hv's next message was "Yes, please continue", which I am NOT reading as a ruling on this -- it answers the question about continuing, not the question about D01. I have not changed anything and I am building to D01 as written.
+
+**What I would like from you:** either confirm the runtime reading is what hv means and record it (a D-number, or a line in design.md against D01), or put it to hv as a ruling. My reading is that hv means runtime SSOT and is describing the direction of travel -- "a lot of code to write before we get there" fits the reified-model-everything-queries picture rather than a truth relocation. But my reading is not a ruling, and I would rather it be written down than inferred, since three ACs and the whole of `doctor`'s DB half depend on which it is.
+
+Not blocking me. Building on.
