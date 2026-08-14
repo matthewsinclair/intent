@@ -12,12 +12,6 @@ source "$INTENT_HOME/bin/intent_helpers"
 # Template directory
 TEMPLATE_DIR="$INTENT_HOME/lib/templates"
 
-# Credo check templates
-CHECKS_TEMPLATE_DIR="$TEMPLATE_DIR/credo_checks/elixir"
-
-# Credo configuration script
-CONFIGURE_CREDO_SCRIPT="$INTENT_HOME/lib/scripts/configure_credo.exs"
-
 # Hook template
 HOOK_TEMPLATE="$TEMPLATE_DIR/hooks/module_check_hook.json"
 
@@ -43,7 +37,6 @@ usage() {
   echo "  D2   CLAUDE.md (never overwritten)"
   echo "  D3   intent/llm/MODULES.md (auto-generated from codebase)"
   echo "  D4   intent/llm/ARCHETYPES.md (Elixir only)"
-  echo "  D5a  credo_checks/*.ex (Elixir only)"
   echo "  D6   intent/llm/DECISION_TREE.md"
   echo "  D8   MEMORY.md via intent claude prime"
   echo "  D9   Module check hook"
@@ -141,39 +134,6 @@ check_d4_archetypes() {
   else
     STATUS="MISSING"
     DETAIL="intent/llm/ARCHETYPES.md not found"
-  fi
-}
-
-check_d5a_credo() {
-  if ! is_elixir_project; then
-    STATUS="PRESENT"
-    DETAIL="skipped (not an Elixir project)"
-    return
-  fi
-
-  if [ -d "credo_checks" ]; then
-    local check_count
-    check_count=$(find credo_checks -name '*.ex' -type f 2>/dev/null | wc -l | tr -d ' ')
-    if [ "$check_count" -ge 6 ]; then
-      STATUS="PRESENT"
-      DETAIL="$check_count Credo check templates installed"
-      # Verify .credo.exs is configured to load them
-      if [ -f ".credo.exs" ] && grep -q 'credo_checks' ".credo.exs"; then
-        DETAIL="$DETAIL, .credo.exs configured"
-      else
-        STATUS="PARTIAL"
-        DETAIL="$DETAIL, .credo.exs not configured"
-      fi
-    elif [ "$check_count" -gt 0 ]; then
-      STATUS="PARTIAL"
-      DETAIL="$check_count of 6 Credo check templates installed"
-    else
-      STATUS="MISSING"
-      DETAIL="credo_checks/ exists but has no .ex files"
-    fi
-  else
-    STATUS="MISSING"
-    DETAIL="credo_checks/ not found"
   fi
 }
 
@@ -362,14 +322,18 @@ HEADER
 # ============================================================
 
 # Deliverable IDs and their check functions
-DELIVERABLE_IDS="D2 D3 D4 D5a D6 D8 D9 D10 D11"
+# D5a (credo_checks/*.ex) was removed in v2.19.0, issue 0021. It installed a
+# second Elixir enforcement mechanism whose concerns the rule library and the
+# critic pre-commit gate already cover, and whose wiring step failed silently --
+# so the common outcome was a directory of checks no runner ever loaded. See
+# `intent doctor`, which reports the residue in projects that already have it.
+DELIVERABLE_IDS="D2 D3 D4 D6 D8 D9 D10 D11"
 
 get_deliverable_label() {
   case "$1" in
     D2)  echo "CLAUDE.md" ;;
     D3)  echo "MODULES.md" ;;
     D4)  echo "ARCHETYPES.md" ;;
-    D5a) echo "Credo checks" ;;
     D6)  echo "DECISION_TREE.md" ;;
     D8)  echo "MEMORY.md" ;;
     D9)  echo "Module check hook" ;;
@@ -384,7 +348,6 @@ run_check() {
     D2)  check_d2_claude_md ;;
     D3)  check_d3_modules_md ;;
     D4)  check_d4_archetypes ;;
-    D5a) check_d5a_credo ;;
     D6)  check_d6_decision_tree ;;
     D8)  check_d8_memory ;;
     D9)  check_d9_hook ;;
@@ -401,7 +364,7 @@ audit_deliverables() {
   if [ -n "$filter_id" ]; then
     # Validate deliverable ID
     case "$filter_id" in
-      D2|D3|D4|D5a|D6|D8|D9|D10|D11) ;;
+      D2|D3|D4|D6|D8|D9|D10|D11) ;;
       *) error "Unknown deliverable: $filter_id. Valid: $DELIVERABLE_IDS" ;;
     esac
     ids="$filter_id"
@@ -510,44 +473,6 @@ apply_deliverable() {
       else
         install_from_template "$TEMPLATE_DIR/llm/_ARCHETYPES.md" "intent/llm/ARCHETYPES.md"
         echo "  created: intent/llm/ARCHETYPES.md"
-      fi
-      ;;
-
-    D5a)
-      if ! is_elixir_project; then
-        echo "  skipped: $label (not an Elixir project)"
-        return
-      fi
-      if [ "$dry_run" = "true" ]; then
-        echo "  would copy: Credo check templates to credo_checks/"
-      else
-        local first_install="false"
-        if [ ! -d "credo_checks" ]; then
-          first_install="true"
-        fi
-        mkdir -p "credo_checks"
-        if [ -d "$CHECKS_TEMPLATE_DIR" ]; then
-          local count=0
-          for tmpl in "$CHECKS_TEMPLATE_DIR"/*.ex; do
-            [ -f "$tmpl" ] || continue
-            local basename
-            basename=$(basename "$tmpl")
-            cp "$tmpl" "credo_checks/$basename"
-            count=$((count + 1))
-          done
-          # Remove deprecated check templates
-          rm -f "credo_checks/boolean_operators.ex"
-          rm -f "credo_checks/dependency_graph.ex"
-          echo "  created: $count Credo check templates in credo_checks/"
-          if command -v elixir >/dev/null 2>&1; then
-            local config_result
-            config_result=$(elixir "$CONFIGURE_CREDO_SCRIPT" --remove-stale 2>&1) && \
-              echo "  $config_result" || \
-              echo "  warning: could not auto-configure .credo.exs"
-          fi
-        else
-          echo "  warning: Credo check template directory not found"
-        fi
       fi
       ;;
 

@@ -351,6 +351,74 @@ doctor_check() {
     fi
   fi
 
+  # Check 4e: leftover credo_checks/ from the retired st zero D5a (issue 0021).
+  #
+  # D5a copied six custom Credo checks into consumer trees and then tried to
+  # register them in .credo.exs. The registration was best-effort -- skipped
+  # entirely when `elixir` was off PATH, and reduced to a printed warning when
+  # it failed -- while the copy was unconditional. The usual result is a
+  # directory of checks that no runner ever loads, duplicating concerns the
+  # rule library and the critic gate already enforce.
+  #
+  # Three states, three different stories, and the report must not conflate
+  # them: never-wired (inert), wired (live, and a pre-1.7-API check will take
+  # a whole `mix credo --strict` run down), and stale registration (files gone,
+  # .credo.exs still naming them).
+  #
+  # It reports and never acts, on the 0018 rule: staging deletions across
+  # someone else's tree during a command they ran for other reasons is not this
+  # tool's decision. It names BOTH ends, because removing the directory without
+  # its elixirc_paths entries breaks the build -- a two-ended migration whose
+  # report must name everything, or it damages what follows it (the 0017 rule).
+  if [ -n "$PROJECT_ROOT" ]; then
+    if [ "$QUIET" != true ]; then
+      echo -n "  checking: leftover credo_checks "
+    fi
+    if [ -d "$PROJECT_ROOT/credo_checks" ]; then
+      local credo_wired="false" mix_wired="false"
+      if [ -f "$PROJECT_ROOT/.credo.exs" ] && grep -q 'credo_checks' "$PROJECT_ROOT/.credo.exs" 2>/dev/null; then
+        credo_wired="true"
+      fi
+      if [ -f "$PROJECT_ROOT/mix.exs" ] && grep -q 'credo_checks' "$PROJECT_ROOT/mix.exs" 2>/dev/null; then
+        mix_wired="true"
+      fi
+
+      if [ "$credo_wired" = "true" ]; then
+        show_warning "credo_checks/ is wired into .credo.exs -- these checks DO run"
+        if [ "$QUIET" != true ]; then
+          echo "  intent no longer ships them (v2.19.0, issue 0021): the rule library and the"
+          echo "  critic pre-commit gate already cover the same concerns."
+          echo "  before trusting them, verify against your installed Credo -- a check written"
+          echo "  for a pre-1.7 API crashes the whole 'mix credo --strict' run."
+        fi
+      else
+        show_warning "credo_checks/ present but not referenced by .credo.exs -- these checks have never run"
+        if [ "$QUIET" != true ]; then
+          echo "  a check absent from the runner's config is invisible, and its presence in the"
+          echo "  repo reads as 'enforced' to anyone who finds it. intent no longer ships these"
+          echo "  (v2.19.0, issue 0021); the rule library and critic gate cover the same rules."
+          echo "  remove with: cd $PROJECT_ROOT && git rm -r credo_checks/"
+          echo "  (or: rm -rf credo_checks/ if it was never tracked)"
+        fi
+      fi
+
+      if [ "$mix_wired" = "true" ] && [ "$QUIET" != true ]; then
+        echo "  ALSO: mix.exs names credo_checks (elixirc_paths) -- removing the directory"
+        echo "  without those entries breaks the build. Both ends, one commit:"
+        grep -n 'credo_checks' "$PROJECT_ROOT/mix.exs" 2>/dev/null | sed 's/^/    mix.exs:/'
+      fi
+    elif [ -f "$PROJECT_ROOT/.credo.exs" ] && grep -q 'credo_checks' "$PROJECT_ROOT/.credo.exs" 2>/dev/null; then
+      show_warning ".credo.exs references credo_checks/ but the directory is gone -- stale registration"
+      if [ "$QUIET" != true ]; then
+        echo "  credo will fail to load them. Remove the 'requires:' entry and any check"
+        echo "  modules named under 'checks:' in $PROJECT_ROOT/.credo.exs"
+      fi
+    else
+      show_ok
+      verbose "no leftover credo_checks/ directory"
+    fi
+  fi
+
   # Check 5: PATH
   if [ "$QUIET" != true ]; then
     echo -n "  checking: path "

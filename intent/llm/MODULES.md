@@ -71,29 +71,27 @@
 
 ## Templates
 
-| Concern                   | THE Module                                            | Notes                                                                                                                        |
-| ------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| CLAUDE.md template        | `lib/templates/llm/_CLAUDE.md`                        | Single source -- used by init + upgrade                                                                                      |
-| Module registry           | `lib/templates/llm/_MODULES.md`                       | Highlander registry template                                                                                                 |
-| Decision tree             | `lib/templates/llm/_DECISION_TREE.md`                 | Code placement guide template                                                                                                |
-| Archetypes reference      | `lib/templates/llm/_ARCHETYPES.md`                    | Archetype listing template                                                                                                   |
-| Usage rules template      | `lib/templates/llm/_usage-rules.md`                   | Downstream project DO / NEVER scaffold                                                                                       |
-| Elixir archetypes         | `lib/templates/archetypes/elixir/`                    | 9 .ex.eex code templates                                                                                                     |
-| ST info template          | `lib/templates/prj/st/ST####/info.md`                 | Steel thread frontmatter                                                                                                     |
-| ST acceptance template    | `lib/templates/prj/st/ST####/acceptance.md`           | Acceptance contract (AC/AT); stamped into every new ST by the doc-set glob (ST0044)                                          |
-| WP info template          | `lib/templates/prj/st/WP/info.md`                     | Work package frontmatter                                                                                                     |
-| WIP template              | `lib/templates/prj/_wip.md`                           | Work-in-progress file                                                                                                        |
-| Dependency graph template | `lib/templates/llm/_DEPENDENCY_GRAPH.md`              | Dependency rules template                                                                                                    |
-| Hook template             | `lib/templates/hooks/module_check_hook.json`          | Advisory write hook for Claude Code                                                                                          |
-| Pre-commit critic gate    | `lib/templates/hooks/pre-commit.sh`                   | `.git/hooks/pre-commit` template; runs `intent critic --staged` (ST0035/WP06)                                                |
-| Critic config template    | `lib/templates/_intent_critic.yml`                    | `.intent_critic.yml` install default (ST0035/WP07)                                                                           |
-| Claude settings template  | `lib/templates/.claude/settings.json`                 | Canonical hook stanzas (ST0035)                                                                                              |
-| Session context hook      | `lib/templates/.claude/scripts/session-context.sh`    | SessionStart: project/git/WIP context                                                                                        |
-| In-session gate hook      | `lib/templates/.claude/scripts/require-in-session.sh` | UserPromptSubmit strict gate (ST0035)                                                                                        |
-| Post-tool advisory hook   | `lib/templates/.claude/scripts/post-tool-advisory.sh` | Opt-in PostToolUse critic (off default)                                                                                      |
-| Credo check templates     | `lib/templates/credo_checks/elixir/`                  | bracket_access_on_struct, debug_artifacts, highlander_suspect, map_get_on_struct, missing_impl_annotation, thick_coordinator |
-| Credo config script       | `lib/scripts/configure_credo.exs`                     | Configures .credo.exs in target projects                                                                                     |
-| Treeindex ignore template | `lib/templates/_treeindexignore`                      | `.treeindexignore` install default (ST0036/WP06)                                                                             |
+| Concern                   | THE Module                                            | Notes                                                                               |
+| ------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| CLAUDE.md template        | `lib/templates/llm/_CLAUDE.md`                        | Single source -- used by init + upgrade                                             |
+| Module registry           | `lib/templates/llm/_MODULES.md`                       | Highlander registry template                                                        |
+| Decision tree             | `lib/templates/llm/_DECISION_TREE.md`                 | Code placement guide template                                                       |
+| Archetypes reference      | `lib/templates/llm/_ARCHETYPES.md`                    | Archetype listing template                                                          |
+| Usage rules template      | `lib/templates/llm/_usage-rules.md`                   | Downstream project DO / NEVER scaffold                                              |
+| Elixir archetypes         | `lib/templates/archetypes/elixir/`                    | 9 .ex.eex code templates                                                            |
+| ST info template          | `lib/templates/prj/st/ST####/info.md`                 | Steel thread frontmatter                                                            |
+| ST acceptance template    | `lib/templates/prj/st/ST####/acceptance.md`           | Acceptance contract (AC/AT); stamped into every new ST by the doc-set glob (ST0044) |
+| WP info template          | `lib/templates/prj/st/WP/info.md`                     | Work package frontmatter                                                            |
+| WIP template              | `lib/templates/prj/_wip.md`                           | Work-in-progress file                                                               |
+| Dependency graph template | `lib/templates/llm/_DEPENDENCY_GRAPH.md`              | Dependency rules template                                                           |
+| Hook template             | `lib/templates/hooks/module_check_hook.json`          | Advisory write hook for Claude Code                                                 |
+| Pre-commit critic gate    | `lib/templates/hooks/pre-commit.sh`                   | `.git/hooks/pre-commit` template; runs `intent critic --staged` (ST0035/WP06)       |
+| Critic config template    | `lib/templates/_intent_critic.yml`                    | `.intent_critic.yml` install default (ST0035/WP07)                                  |
+| Claude settings template  | `lib/templates/.claude/settings.json`                 | Canonical hook stanzas (ST0035)                                                     |
+| Session context hook      | `lib/templates/.claude/scripts/session-context.sh`    | SessionStart: project/git/WIP context                                               |
+| In-session gate hook      | `lib/templates/.claude/scripts/require-in-session.sh` | UserPromptSubmit strict gate (ST0035)                                               |
+| Post-tool advisory hook   | `lib/templates/.claude/scripts/post-tool-advisory.sh` | Opt-in PostToolUse critic (off default)                                             |
+| Treeindex ignore template | `lib/templates/_treeindexignore`                      | `.treeindexignore` install default (ST0036/WP06)                                    |
 
 ## Help Files
 

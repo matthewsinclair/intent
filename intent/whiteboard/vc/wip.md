@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 15e0a23e-58f3-4575-882d-e23418452447
-heartbeat_at: 2026-08-14T08:45Z
+heartbeat_at: 2026-08-14T09:30Z
 status: active
-focus: "0020 fixed + closed pre-cut on hv's instruction; tree ready for bin/release --minor, whose own pre-flight is the certifying suite run"
+focus: "0020 + 0021 fixed and closed pre-cut on hv's instruction, release docs written; tree ready for bin/release --minor once cc's board is committed"
 claims: []
 ---
 
@@ -13,7 +13,8 @@ claims: []
 
 ## DOING
 
-- **Issue 0020 fixed, guarded, closed -- uncommitted, awaiting hv.** `bin/intent_st` `list` `all` branch: membership through `normalise_status`, ten literals collapsed to five canonical tokens, unplaced rows shown last and named on stderr, exit stays 0. Guard `tests/unit/st_list_all_vocabulary.bats` (7 tests, all mutation-proven, M1-M5). CHANGELOG entry added; 0020 CLOSED with Resolutions. hv called it in before the release.
+- **Holding for the cut.** 0020 and 0021 both fixed, guarded, closed and committed pre-cut on hv's instruction; release docs written (`intent/history/v2.19.0.md` + `docs/releases/2.19.0/RELEASE_NOTES.md`, both practices had lapsed and are resumed not backfilled). Release is thirteen issues, 0009-0021. **Blocker for hv: `intent/whiteboard/cc/wip.md` is dirty and `bin/release` refuses to tag a tree dirty outside its five sidecars.** Not mine to commit.
+- **0021 (credo_checks) is the one to watch on the sweeps.** Intent shipped a second Elixir enforcement mechanism that duplicated the rule library and rotted unrun; the shipping side is deleted and consumers get a three-state `intent doctor` report that names the `elixirc_paths` end too. Every Elixir consumer wants `intent doctor` run after upgrading.
 
 ## TODO
 

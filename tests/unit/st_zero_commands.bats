@@ -344,22 +344,46 @@ EOF
 }
 
 # ============================================================
-# Credo Check Templates (D5a)
+# Credo checks (D5a) -- REMOVED in v2.19.0, issue 0021
+#
+# D5a installed a second Elixir enforcement mechanism whose concerns the rule
+# library and the critic pre-commit gate already cover, and whose wiring step
+# failed silently -- so the usual outcome was a directory of checks no runner
+# ever loaded. The test that used to live here asserted that install as the
+# contract, which is why nothing objected for as long as it shipped. These
+# assert the removal instead.
 # ============================================================
 
-@test "st zero install copies Credo check templates for Elixir" {
+@test "st zero no longer creates credo_checks/ in an Elixir project" {
   project_dir=$(create_test_project "Zero Test")
   cd "$project_dir"
   echo 'defmodule MyApp.MixProject do end' > mix.exs
 
-  run run_intent st zero install --deliverable D5a
+  run run_intent st zero install
   assert_success
-  assert_output_contains "Credo check templates"
-  [ -d "credo_checks" ]
-  # Should have .ex files
-  local count
-  count=$(find credo_checks -name '*.ex' -type f | wc -l | tr -d ' ')
-  [ "$count" -gt 0 ]
+  [ ! -d "credo_checks" ] || fail "st zero created credo_checks/ -- D5a is meant to be gone (issue 0021)"
+}
+
+@test "D5a is rejected as an unknown deliverable" {
+  project_dir=$(create_test_project "Zero Test")
+  cd "$project_dir"
+  echo 'defmodule MyApp.MixProject do end' > mix.exs
+
+  # Silent acceptance of a retired id would let a script keep asking for it and
+  # report success while installing nothing.
+  run run_intent st zero install --deliverable D5a
+  assert_failure
+  assert_output_contains "Unknown deliverable"
+}
+
+@test "no code path under bin/ creates credo_checks/" {
+  # Mechanical, because the removal is only real if nothing recreates it --
+  # grep for the rule rather than reading for it (the 0011 lesson).
+  run grep -rn 'credo_checks' "${INTENT_PROJECT_ROOT}/bin" "${INTENT_PROJECT_ROOT}/lib"
+  # The only permitted mentions are the doctor residue report and prose.
+  local offenders
+  offenders=$(printf '%s\n' "$output" | grep -E 'mkdir|cp |install_from_template' || true)
+  [ -z "$offenders" ] || fail "something still creates credo_checks/: $offenders"
 }
 
 # ============================================================

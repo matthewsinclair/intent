@@ -8,7 +8,9 @@ Intent v2.19.0 gives the **acceptance-test (AT) row a real grammar** and makes `
 
 This is a minor, not a patch. It is behaviour-changing for any project that keeps acceptance contracts: **the close-gate honours the new grammar from the day it ships**, so an estate written against the old free-form convention will gate `BLOCKED` until it is swept. That is the fix working -- every row it names was already contributing no coverage, silently, and the gate was reporting threads closer to done than they were. `intent upgrade` runs the mechanical migration for you.
 
-Twelve issues closed: 0009 through 0020.
+Thirteen issues closed: 0009 through 0021.
+
+**Elixir projects: one thing to check after upgrading.** If your project has a root-level `credo_checks/` directory, Intent put it there and has now stopped shipping it. Run `intent doctor` — it will tell you whether those checks were ever actually running, and what to remove. Details under [Removed](#removed-credo_checks) below.
 
 ## The headline: the AT row has a grammar
 
@@ -76,6 +78,32 @@ Both new states are non-blocking and **reported separately rather than folded in
 | **0009** | `AGENTS.md` prerequisites come from the declared `languages`, not filesystem probes                                                   |
 | **0010** | `st done` / `wp done` warn when the Objective still holds the template placeholder (warn, never block)                                |
 | **0012** | the whiteboard header block is ruled line-oriented `key: value`, not YAML, and `ws hygiene` enforces what it actually implements      |
+
+<a id="removed-credo_checks"></a>
+
+## Removed: `credo_checks/` (Elixir)
+
+`intent st zero install` used to copy six custom Credo checks into a root-level `credo_checks/` directory in any Elixir project it retrofitted, then try to register them in `.credo.exs`. **The copy was unconditional; the registration was not** — it was skipped silently when `elixir` was not on PATH, and reduced to a printed warning when it failed. The command reported success either way.
+
+So the usual result was a directory of checks that no runner ever loaded. One project carried them in `elixirc_paths` for five months — compiled into every `dev` and `test` build, executed zero times. By the time they were wired up experimentally, one of them crashed Credo 1.7.19 outright: it calls `ExecutionIssues.append/2` with an argument shape from a pre-1.7 API. They had stopped being _wirable_ during routine dependency bumps, and nothing signalled it, because nothing ran them.
+
+They were also redundant. Their concerns — Highlander, thin coordinator, debug artifacts, `@impl`, assertive access — are the same rules the Intent rule library states and the `critic-<lang>` pre-commit gate enforces. Two mechanisms for one concern, and the second one dead.
+
+**`lib/templates/credo_checks/` and the `.credo.exs` configuration script are deleted**, and `D5a` is now rejected as an unknown deliverable. They are not ported to the current Credo API: that would restore the duplication deliberately, at maintenance cost, to shadow a gate that already works.
+
+### What to do if you have one
+
+Run `intent doctor`. It reports three states, and they are genuinely different situations:
+
+| What doctor says      | What it means                                  | What to do                                                                                              |
+| --------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `have never run`      | `.credo.exs` does not reference the directory  | Inert. Delete it — doctor prints the `git rm`                                                           |
+| `these checks DO run` | `.credo.exs` references it                     | **Verify against your installed Credo first.** A pre-1.7-API check takes your whole `--strict` run down |
+| `stale registration`  | `.credo.exs` names checks whose files are gone | Remove the `requires:` entry and the check modules from `.credo.exs`                                    |
+
+**If `mix.exs` also names `credo_checks` in `elixirc_paths`, doctor quotes those lines with their numbers.** Remove both ends in one commit — deleting the directory on its own breaks the build.
+
+Doctor warns and never errors here, so this will not block a release or a gate.
 
 ## Upgrading
 
