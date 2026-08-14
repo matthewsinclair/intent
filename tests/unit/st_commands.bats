@@ -1152,3 +1152,27 @@ EOF
   run grep -q "ST####" "intent/st/NOT-STARTED/ST0001/acceptance.md"
   assert_failure
 }
+
+@test "st done lands the completed row in steel_threads.md, with the thread's own Created date" {
+  # The index's contract is "an index of ALL steel threads"; composing the
+  # DEFAULT (WIP-only) list into it meant a completed thread VANISHED from the
+  # committed index at the moment of its close (issue 0019). The past Created
+  # date is what makes this bite: a row rebuilt from the wrong source would
+  # show today, and a WIP-only index would show no row at all.
+  project_dir=$(create_test_project "Index Sync Test")
+  cd "$project_dir"
+  export EDITOR=echo
+
+  run run_intent st new "Index probe"
+  assert_success
+  sed -i.bak 's/^- \*\*Created\*\*: .*/- **Created**: 2026-01-15/' intent/st/NOT-STARTED/ST0001/info.md
+  sed -i.bak 's/^created: .*/created: 20260115/' intent/st/NOT-STARTED/ST0001/info.md
+  rm -f intent/st/NOT-STARTED/ST0001/info.md.bak
+  printf -- '---\nacceptance: exempt\n---\n# Acceptance -- ST0001\n' > intent/st/NOT-STARTED/ST0001/acceptance.md
+
+  run run_intent st done ST0001
+  assert_success
+  assert_file_exists "intent/st/steel_threads.md"
+  run grep -E '^\| ST0001 \|.*\| Completed \| 2026-01-15 \|' intent/st/steel_threads.md
+  assert_success
+}

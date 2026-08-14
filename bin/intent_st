@@ -233,7 +233,14 @@ get_next_steel_thread_id() {
 # slugify() is sourced from bin/intent_helpers (Highlander -- one slugifier
 # shared by st / wp / issues).
 
-# Function to update steel threads index
+# Refresh the canonical index (intent/st/steel_threads.md): ensure the file and
+# its markers exist, then regenerate the WHOLE table via `sync --write` (issue
+# 0019). Takes NO arguments -- the row content comes from each thread's info.md
+# on disk at regeneration time, never from the caller. It took five for years,
+# and no code path ever read one; two call sites even computed a Created date by
+# grepping a path the thread had already moved away from, and the wrong answer
+# was discarded with everything else. Dead parameters invite exactly that:
+# effort spent making an ignored value correct.
 update_steel_threads_index() {
   local index_file="intent/st/steel_threads.md"
 
@@ -272,8 +279,11 @@ EOF
     mv "$tmp_file" "$index_file"
   fi
 
-  # Highlander Rule: one code path for index updates
-  "${BASH_SOURCE[0]}" sync --write > /dev/null 2>&1
+  # Highlander Rule: one code path for index updates. Stdout is quiet (the
+  # calling command has its own voice) but stderr FLOWS: `2>&1 >/dev/null` here
+  # hid every sync failure, so a broken index write looked identical to a clean
+  # one (issue 0019; No Silent Errors).
+  "${BASH_SOURCE[0]}" sync --write > /dev/null
 }
 
 # Normalize the command (handle alternative spelling)
@@ -464,7 +474,7 @@ TEMPLATE
     fi
 
     # Update index
-    update_steel_threads_index "$ST_ID" "$TITLE" "$ST_STATUS" "$DATE" ""
+    update_steel_threads_index
     ;;
     
   "done")
@@ -547,7 +557,7 @@ TEMPLATE
     fi
 
     # Update index
-    update_steel_threads_index "$ST_ID" "$TITLE" "Completed" "$(grep '^\- \*\*Created\*\*:' "$ST_FILE" 2>/dev/null | sed 's/^\- \*\*Created\*\*: //' || echo "$DATE")" "$DATE"
+    update_steel_threads_index
 
     echo "Marked steel thread as complete: $ST_ID: $TITLE"
 
@@ -615,7 +625,7 @@ TEMPLATE
     fi
 
     # Update index
-    update_steel_threads_index "$ST_ID" "$TITLE" "Cancelled" "$(grep '^\- \*\*Created\*\*:' "$ST_FILE" 2>/dev/null | sed 's/^\- \*\*Created\*\*: //' || echo "$DATE")" ""
+    update_steel_threads_index
 
     echo "Marked steel thread as cancelled: $ST_ID: $TITLE"
     ;;
@@ -733,7 +743,7 @@ TEMPLATE
     fi
     
     # Update index
-    update_steel_threads_index "$ST_ID" "$TITLE" "WIP" "$CREATED" ""
+    update_steel_threads_index
     
     echo "Marked steel thread as in progress: $ST_ID: $TITLE"
     ;;
@@ -1141,8 +1151,14 @@ TEMPLATE
 
     # sync composes `list`; forward an explicit --width so both honour it, and
     # without it both fall through to the terminal width (identical output).
-    LIST_ARGS=""
-    if [ -n "$WIDTH" ]; then LIST_ARGS="--width $WIDTH"; fi
+    # --status all is the contract: the document's own preamble says "an index
+    # of all steel threads", and composing the DEFAULT list here silently made
+    # it an index of WIP only -- 1-2 rows tracking whatever was in flight, and
+    # an EMPTY committed table the moment a release closed the last thread
+    # (issue 0019). It was born this way; nobody noticed because the file
+    # decays to empty exactly when nobody is looking at it.
+    LIST_ARGS="--status all"
+    if [ -n "$WIDTH" ]; then LIST_ARGS="$LIST_ARGS --width $WIDTH"; fi
 
     # Paths
     ST_DIR="intent/st"
