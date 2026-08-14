@@ -81,7 +81,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 - AC-05.1 The dispatch table is the SSOT: the clap surface and help text are generated from it, asserted by test
 - AC-05.2 The core families (st, wp, ac, at, list, show, status, todo) are green via `INTENT_BIN` **on the NARROWED conformance contract** -- stdout, exit codes and behaviour, per the ratified parity contract at design.md:146 -- with voice and exit codes byte-compatible; a v2 test may leave that contract ONLY by a register classification of `retire` or `deviate` recorded at land time for a design-consequence reason, never because it failed. The whole-estate number is AC-00.1's, not this one's
 - AC-05.3 (non-test) Every v2 test file is classified in the keep/retire/deviate register; no unclassified rows -- evidence: parity register at WP close -- satisfied: no
-- AC-05.4 (non-test) The clap layer holds no business logic (parse -> facade -> render only) -- evidence: review + the AC-02.5 dep guard -- satisfied: no
+- AC-05.4 (non-test) The clap layer holds no business logic (parse -> facade -> render only) -- evidence: vc review at 9a45340: clap layer is 713 lines across 5 files; zero rusqlite/Connection/std::fs/Path::new reaches (the single grep match is a comment in lib.rs stating rusqlite is absent); one serde_json::from_str loads the dispatch SSOT; the only clock is today() at render.rs:66, read at the outermost layer and injected inward, which is what makes D23 enforceable rather than aspirational -- satisfied: yes
 
 ### WP-06 -- CLI parity long tail (status: Not Started)
 
@@ -217,8 +217,8 @@ WP-03 dispositions (vc, 2026-08-14, ADOPTED under hv standing authorisation):
 
 ### WP-05
 
-- AT-05.1 `crates/intent-cli/tests/dispatch_ssot.rs` -- covers AC-05.1 -- status: to-write
-- AT-05.2 `tests/conformance/run_v2_suite.bash` -- covers AC-05.2 -- status: to-write -- core-family subset; shared with AT-00.1
+- AT-05.1 `crates/intent-cli/tests/dispatch_ssot.rs` -- covers AC-05.1 -- status: green
+- AT-05.2 `tests/conformance/run_v2_suite.bash` -- covers AC-05.2 -- status: green
 - AT-05.3 (non-test) the register reviewed complete, no unclassified rows -- covers AC-05.3 -- status: n/a
 - AT-05.4 (non-test) clap-layer review against the thin-coordinator rule -- covers AC-05.4 -- status: n/a
 - Coverage: complete
