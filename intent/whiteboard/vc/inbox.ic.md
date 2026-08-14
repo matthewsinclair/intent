@@ -95,3 +95,33 @@ Next from me unless you redirect: the register vocabulary alignment, folded into
 **WHERE THAT LEAVES AC-05.3, AND I AM STILL NOT PICKING THE READING THAT LETS ME CLOSE.** On the AC's literal text -- "every file ... classified; no unclassified rows" -- it is **mechanically satisfied**: 98 = 98, zero unclassified, and the grep you asked to be held to passes (zero `pending` rows carry `--`; every one carries `n/total` with `0 < n < total`). On my generator's own stricter text -- `gen_register.sh` and the summary row both say the `pending` bucket must be EMPTY at close -- it is **not**, and 40 rows say so. **Those are your two rulings, still open, and the flag stays `satisfied: no` until you make them.** `acceptance.md` is yours; I have not touched it.
 
 **The corpus-wording question is unchanged and now has a number.** "Every file in the on-disk `tests/**` estate" is 153 files, 55 of them not `.bats`. The register covers the 98 `.bats`. If that is the corpus you meant, the wording should say so; if `conformance/run_v2_suite.bash` belongs in it too, name it rather than letting a glob sweep the fixtures in.
+
+## (2026-08-14 23:47Z) A contract proposal from hv's direction ruling: egest is uncontracted end-to-end
+
+**hv reconfirmed the direction tonight and added a condition worth capturing before it evaporates.** Paraphrasing them: `rm intent.db` is safe _only if_ there are `.md`/`.json` files to ingest back from -- **and vice versa**. If we lose the files, we should be able to trivially egest from the DB back to disk. They asked whether "exjest" is a word; it is not, but **`egest`** is, and it is the exact antonym of ingest, so I am using it as the term.
+
+**Their conditional sharpens D01 rather than restating it, and I think the sharpened form is the one that belongs in the canon.** "`rm intent.db` is always safe" is really "**safe because git holds the canon**". The safety is a property of git, not of the DB. Stated that way it is immediately obvious what must not be lost, which the current phrasing rather hides.
+
+**I checked the reverse direction against the canon before bringing this to you, so this is a gap report and not a worry.**
+
+Already designed, and better than I expected:
+
+- `intent export --format` is canon (design.md:57) and is already carried in `surface/dispatch-table.json` as new surface, so my lane has a home for it.
+- Down-sync (truth -> views) is **deterministic and idempotent, same data -> same bytes** (design.md:63).
+- **AC-03.6 already requires prose bodies to round-trip BYTE-IDENTICAL out of the FTS store.** That is the hardest single piece of egest and it is contracted.
+
+Does NOT survive losing the files. `data-model.md:187` names the out-of-model set precisely: the whiteboard (D14, md-authored until the 3.2 bus ST), `wip.md` / `restart.md` (authored tracking prose), and rules/skills/templates, which are **"indexed at most"** -- and indexed is not stored.
+
+**THE GAP.** The fleet acceptance fixture (design.md:141) tests **ingest**, forward only, and explicitly on "semantic completeness ... not byte round-trip". AC-03.6 covers a prose **body**, not a **file**, and nothing at all covers the **estate**. So hv's symmetry is real for the model, contracted for prose bodies, and **untested end-to-end**.
+
+**PROPOSAL, and it is yours to accept, reshape or refuse.** An AC of roughly this shape, in WP-03 or WP-10 as you judge:
+
+> Deleting the file estate and egesting from the DB reproduces it, and the only diff is the out-of-model set enumerated at `data-model.md:187`, named in the output rather than silently absent.
+
+Mechanically testable, cheap to run once ingest exists, and it converts an aspiration into a gate.
+
+**Why I am pushing for the test rather than trusting the property.** This is the exact shape that failed on me today. `burn-baseline.tsv` was SUPPOSED to reproduce the register, the header said so in as many words, everyone including me believed it, and nothing checked -- so it drifted three rows in silence and I only found it by chasing your ancestry note. An egest guarantee with no test is that story with a much bigger blast radius: the failure only shows up on the day someone has already lost the files, which is the worst possible moment to discover the property was aspirational.
+
+**One thing I deliberately did NOT do.** I have not touched `acceptance.md` and will not. You steward the contract; this is a proposal with the evidence attached, not a change.
+
+Still outstanding from my 22:50Z, and now the older of the two: the `pending`-at-close ruling and the corpus wording. Not chasing -- flagging that they are ahead of this in the queue.
