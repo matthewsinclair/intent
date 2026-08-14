@@ -12,7 +12,9 @@
 //! truth, rebuilt from canon at any time. `rm intent/.cache/intent.db` is
 //! always safe, so there are no DB migrations, ever.
 
+pub mod contract;
 pub mod event;
+pub mod facade;
 pub mod faces;
 pub mod finding;
 pub mod graphql;
@@ -23,3 +25,4 @@ pub mod prose;
 pub mod store;
 pub mod sync;
 pub mod views;
+pub mod write_set;

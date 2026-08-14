@@ -1,4 +1,4 @@
-//! Shared fixtures for the WP-03 acceptance tests.
+//! Shared fixtures for the WP-03 and WP-04 acceptance tests.
 //!
 //! One home for "make me a project on disk" (IN-EX-TEST-007 generalised): six
 //! AT files need a fixture project, and six private copies would drift until
@@ -29,6 +29,21 @@ pub fn ctx() -> RenderContext<'static> {
   }
 }
 
+/// A fixed project UUID, so envelope assertions compare against a constant
+/// rather than against whatever was generated.
+pub const PROJECT_ID: &str = "00000000-0000-0000-0000-00000000cc03";
+
+/// The facade's ambient facts. `today` is FIXED: the facade owns no clock, so
+/// a test never has to freeze one.
+pub fn facade_ctx() -> intentsvcs::facade::FacadeContext {
+  intentsvcs::facade::FacadeContext {
+    principal: "cc".to_string(),
+    project_id: PROJECT_ID.to_string(),
+    version: VERSION.to_string(),
+    today: "2026-08-14".to_string(),
+  }
+}
+
 pub struct Fixture {
   pub dir: tempfile::TempDir,
 }
@@ -55,15 +70,60 @@ impl Fixture {
     Project::open(self.root()).expect("open fixture project")
   }
 
+  /// A facade over this fixture, against an in-memory store.
+  pub fn facade(&self) -> intentsvcs::facade::Facade {
+    intentsvcs::facade::Facade::open_in_memory(self.project(), facade_ctx())
+      .expect("open fixture facade")
+  }
+
+  /// Make a directory unwritable, returning its previous mode so the caller
+  /// can restore it -- a tempdir that cannot be written also cannot be
+  /// cleaned up.
+  ///
+  /// This is how AC-04.1's mid-write failure is INJECTED rather than reasoned
+  /// about: a real `rename` into a read-only directory, failing the way the
+  /// operating system fails it, not a synthetic seam the production code knows
+  /// about.
+  #[cfg(unix)]
+  pub fn make_readonly(&self, rel: &str) -> u32 {
+    use std::os::unix::fs::PermissionsExt;
+    let path = self.path(rel);
+    let mode = std::fs::metadata(&path)
+      .expect("metadata")
+      .permissions()
+      .mode();
+    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o555)).expect("chmod");
+    mode
+  }
+
+  #[cfg(unix)]
+  pub fn restore_mode(&self, rel: &str, mode: u32) {
+    use std::os::unix::fs::PermissionsExt;
+    let _ = std::fs::set_permissions(self.path(rel), std::fs::Permissions::from_mode(mode));
+  }
+
   pub fn path(&self, rel: &str) -> PathBuf {
     self.root().join(rel)
   }
 
-  /// Write a thread's canonical JSON.
+  /// Write a thread's canonical JSON, and stub every test file its contract
+  /// cites.
+  ///
+  /// The stubs are not decoration. The close gate reproduces v2's lint rules
+  /// L2 and L3 -- an AT whose cited file does not exist BLOCKS, and so does one
+  /// whose cited file does not carry the AT's own id, however green the row
+  /// claims to be. A fixture thread citing paths that are not there is not a
+  /// valid estate and would block every gate test for the wrong reason, so the
+  /// stub carries its id exactly as a real test would.
   pub fn write_thread(&self, thread: &Thread) {
     let path = self.project().thread_json(&thread.id);
     std::fs::create_dir_all(path.parent().expect("thread dir")).expect("mkdir st");
     std::fs::write(&path, to_canonical_json(thread).expect("render canon")).expect("write thread");
+    for test in &thread.tests {
+      if let Some(cited) = test.file.as_deref() {
+        self.write_file(cited, &format!("// {}: a cited test file\n", test.id));
+      }
+    }
   }
 
   /// Write raw bytes as a thread's canon -- for the cases where the point is

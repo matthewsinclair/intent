@@ -246,6 +246,46 @@ impl Store {
     Ok(())
   }
 
+  /// Every envelope, oldest first.
+  ///
+  /// Ordered by id rather than by `ts`: a ULID is lexically sortable by its
+  /// own timestamp prefix, so it gives a total order even for two events
+  /// minted inside the same millisecond -- which `ts` alone does not.
+  pub fn events(&self) -> Result<Vec<Envelope>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT id, ts, principal, project_id, op, subject_type, subject_id, payload FROM event_log ORDER BY id",
+    )?;
+    let rows = stmt.query_map([], |row| {
+      Ok((
+        row.get::<_, String>(0)?,
+        row.get::<_, String>(1)?,
+        row.get::<_, String>(2)?,
+        row.get::<_, String>(3)?,
+        row.get::<_, String>(4)?,
+        row.get::<_, String>(5)?,
+        row.get::<_, String>(6)?,
+        row.get::<_, String>(7)?,
+      ))
+    })?;
+    let mut out = Vec::new();
+    for row in rows {
+      let (id, ts, principal, project_id, op, subject_type, subject_id, payload) = row?;
+      out.push(Envelope {
+        id,
+        ts,
+        principal,
+        project_id,
+        op,
+        subject: crate::event::Subject {
+          kind: subject_type,
+          id: subject_id,
+        },
+        payload: serde_json::from_str(&payload)?,
+      });
+    }
+    Ok(out)
+  }
+
   /// A deterministic, ordered dump of the DERIVED tables, for equality
   /// checks (the D01 rebuild-identity invariant). Excludes the event log,
   /// which is not derived.

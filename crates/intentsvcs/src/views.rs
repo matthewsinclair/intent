@@ -25,9 +25,10 @@
 
 use std::path::PathBuf;
 
+use crate::contract::{group_of, satisfied_by_tests};
 use crate::finding::{Finding, FindingClass};
 use crate::ingest::Canon;
-use crate::model::{AcScope, AcceptanceTest, AtKind, AtStatus, Criterion, Thread, ThreadStatus};
+use crate::model::{AcScope, AcceptanceTest, AtKind, Criterion, Thread, ThreadStatus};
 use crate::project::Project;
 
 /// Everything a render is allowed to depend on besides the model.
@@ -333,15 +334,6 @@ fn groups(thread: &Thread) -> Vec<String> {
   seen
 }
 
-/// `AC-03.1` -> `03`; anything unparseable keeps its whole id so it still
-/// renders somewhere visible rather than vanishing into a default bucket.
-fn group_of(id: &str) -> String {
-  id.split_once('-')
-    .and_then(|(_, rest)| rest.split_once('.'))
-    .map(|(group, _)| group.to_string())
-    .unwrap_or_else(|| id.to_string())
-}
-
 fn group_heading(thread: &Thread, group: &str) -> String {
   if group == "00" {
     return "ST-level".to_string();
@@ -410,16 +402,6 @@ fn criterion_line(thread: &Thread, c: &Criterion) -> String {
   }
   line.push('\n');
   line
-}
-
-/// A test-backed AC is satisfied exactly when a covering AT is green. Computed
-/// here and never stored: two homes for one fact is how they disagree.
-pub fn satisfied_by_tests(thread: &Thread, ac_id: &str) -> bool {
-  thread
-    .tests
-    .iter()
-    .filter(|t| t.covers.iter().any(|c| c == ac_id))
-    .any(|t| t.status == AtStatus::Green)
 }
 
 fn test_line(t: &AcceptanceTest) -> String {
