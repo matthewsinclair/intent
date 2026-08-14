@@ -33,7 +33,12 @@
 #   bash intent/st/ST0056/parity/tools/gen_dispatch_table.sh
 #   IN=<canon.json> OUT=<view.md> bash .../gen_dispatch_table.sh
 
-set -uo pipefail
+# IN-SH-CODE-003. `-e` is not redundant beside the explicit `die` guards below:
+# an abort partway through leaves the render in $OUT_TMP, so the `mv` at the end
+# never runs and the committed view survives untouched. Failing hard mid-render
+# is therefore SAFER here than continuing, which is the opposite of the usual
+# trade and the reason to take it rather than document an exception.
+set -euo pipefail
 
 die() {
   echo "error: $1" >&2
@@ -103,7 +108,7 @@ emit "# Command dispatch table -- Intent v3 (ST0056, AC-05.1)"
 emit ""
 emit "> GENERATED VIEW -- the canon is \`dispatch-table.json\` beside this file. Regenerate with \`parity/tools/gen_dispatch_table.sh\`; do not hand-edit rows. Measured at \`$MEASURED_AT\` on $MEASURED_ON by $MEASURED_BY."
 emit ""
-[ -n "$STATUS" ] && { emit "**Status:** $STATUS"; emit ""; }
+if [ -n "$STATUS" ]; then emit "**Status:** $STATUS"; emit ""; fi
 
 jq -r '.about[]? | "- " + .' "$IN" >> "$OUT_TMP"
 emit ""
@@ -127,6 +132,8 @@ jq -r "$JQ_LIB"'
   "\(.rule)\n",
   "- **v2:** \(.v2 | cell)",
   (if .evidence then "- **Evidence:** \(.evidence | cell)" else empty end),
+  (if .evidence_class then ("- **Evidence class:** `\(.evidence_class.class)` -- \(.evidence_class.why)" +
+     (if .evidence_class.pinned_by then "\n  - Pinned by: \(.evidence_class.pinned_by)" else "" end)) else empty end),
   "- **Target:** `\(.target.state)`" +
     (if .target.ratification then " -- ratified: \(.target.ratification)" else "" end) +
     (if .target.behaviour then " -- behaviour: \(.target.behaviour)" else "" end) +
@@ -157,7 +164,9 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
   emit "- **Owning work package:** $WP"
   emit ""
   printf '%s' "$F" | jq -r '.family_notes[]? | "- " + .' >> "$OUT_TMP"
-  printf '%s' "$F" | jq -e '.family_notes | length > 0' >/dev/null 2>&1 && emit ""
+  # A false predicate is not an error. Under `set -e` a bare `cond && action`
+  # tail would abort the whole render whenever a family simply has no notes.
+  if printf '%s' "$F" | jq -e '(.family_notes // []) | length > 0' >/dev/null 2>&1; then emit ""; fi
 
   emit "| command | args | flags | help | disposition |"
   emit "| ------- | ---- | ----- | ---- | ----------- |"
@@ -191,7 +200,16 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
     "- **stderr:** \(.observed.stderr | cell)",
     (if .observed.side_effects then ("- **Side effects:**\n" + (.observed.side_effects | map("  - " + .) | join("\n"))) else empty end),
     (if .observed.notes then "- **Observed notes:** \(.observed.notes)" else empty end),
-    (if .observed.defects then ("- **Defects observed in v2:**\n" + (.observed.defects | map("  - " + .) | join("\n"))) else empty end),
+    (if .observed.defects then ("- **Defects observed in v2:**\n" + (.observed.defects | map(
+       # `id: local` means an entry-specific defect that no invariant covers,
+       # so there is no ID to point at and the detail stands alone. Any other
+       # id names an invariant: print the ID plus this entry`s locus and STOP.
+       # Restating the rule here is the divergent copy ruling 3 exists to stop.
+       if type == "object" then
+         (if .id == "local" then "  - " + .detail
+          else "  - " + .id + (if .where then " at " + .where else "" end) end)
+       else "  - " + . end
+     ) | join("\n"))) else empty end),
     "- **Target:** `\(.target.state)`" +
       (if .target.ratification then " -- ratified: \(.target.ratification)" else "" end) +
       (if .target.behaviour then " -- behaviour: \(.target.behaviour)" else "" end),

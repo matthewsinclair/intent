@@ -8,6 +8,9 @@
 - This is the AUTHORED artefact. `dispatch-table.md` beside it is a GENERATED view -- run `parity/tools/gen_dispatch_table.sh`, never hand-edit the view.
 - `observed` records what v2 measurably does, at the revision stamped above. `target` records what v3 will do. They are separate fields because they genuinely differ, and a table that conflated them would launder a v2 defect into a v3 requirement -- which is the failure mode an output-equality parity suite cannot catch (parity.md, 'Parity properties beyond output equality').
 - `target.state: pending-hv` is an honest blank, not an omission. hv ratified the `corrected` class at the 2026-08-14 bounce; WHICH v2 behaviours join it is a scope call still open. A guess recorded here would be indistinguishable from a ruling by the time WP-05 read it.
+- Every claim carries an `evidence_class`, because 'verified' is not one thing. `measured` = a probe was run against v2 at the stamped revision. `documented-default` = a framework's published default, correct today and CHANGEABLE by a major bump or a single builder setting. `read` = taken from source without executing it. The distinction was forced by vc catching this file claiming clap's exit code was measured -- it cannot have been, since no clap dependency exists in the workspace yet. A documented default that goes unpinned is a finding with a silent expiry date.
+- `disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep · retire · deviate · pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.
+- Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them.
 
 ## Surface-wide invariants
 
@@ -36,6 +39,8 @@ Every failure writes `error: <message>` to STDERR. Every success line that annou
 A missing required argument, an unknown option, or an unknown subcommand exits 1.
 
 - **v2:** bin/intent_helpers:7-11 -- `error()` is `echo >&2; exit 1`, and it is the only failure exit in the shipped surface bar `intent critic`
+- **Evidence class:** `measured (v2 half) + documented-default (clap half)` -- The v2 half is measured: probes on `st show`, `st bogusverb` and `wp list` all exit 1, and `error()` is read directly. The clap half is NOT measured and could not be -- `crates/intent-cli/Cargo.toml` carries no clap dependency, so nothing in this workspace exits 2 yet. clap's documented default is 2; that is a framework default, which a major bump or a single `Command::` setting can change.
+  - Pinned by: WP-05 must land a test asserting exit 1 on a missing required argument AND on an unknown flag, WRITTEN BEFORE the clap spine exists. Then a changed default reds one named invariant instead of a hundred BATS tests failing for a reason nobody traces back here. (vc, 2026-08-14, on catching this row overclaiming its evidence.)
 - **Target:** `as-observed` -- ratified: D17
 - **Implementation constraint:** clap exits 2 for both `ErrorKind::MissingRequiredArgument` and `ErrorKind::UnknownArgument` by default. D17 rules the v2 code carries over, so WP-05 MUST override clap's exit code rather than inherit it. This is surface-wide -- it affects nearly every command -- and it is recorded here precisely so it is a build-time constraint rather than something discovered in test triage. Exception: `intent critic` genuinely uses 2 (see INV-04).
 
@@ -87,6 +92,8 @@ Two shapes: usage to STDOUT with exit 1 (`init`, `st`, `wp`, `todo`, `treeindex`
 `intent info --zzz`, `intent config --zzz` (zero output) and `intent version --zzz` all succeed.
 
 - **v2:** measured
+- **Evidence class:** `measured (v2 half) + documented-default (clap half)` -- Same split as INV-02: the three v2 commands were probed; clap's rejection of unrecognised arguments is its documented default, not something measured in this workspace.
+  - Pinned by: The same WP-05 unknown-flag test that pins INV-02 pins this.
 - **Target:** `corrected` -- ratified: hv, 2026-08-14 bounce -- the `corrected` class; this member is forced rather than chosen -- behaviour: Unknown arguments are refused, exit 1 per INV-02.
 - **Note:** This one cannot be reproduced by accident: clap rejects unrecognised arguments by default, so v3 diverges here on day one whether or not anyone decides to. Recorded as ratified because the ALTERNATIVE (faithfully reproducing silent acceptance) would take deliberate work to build.
 
@@ -133,8 +140,8 @@ Manage steel threads for the project
 - **stdout:** usage block (2330B) on the --help path only
 - **stderr:** `error: ...` on the bare and unknown-verb paths (40B / 41B)
 - **Defects observed in v2:**
-  - INV-05: bare invocation reaches `error` then a dead `usage`
-  - INV-07: --help exits 1
+  - INV-05 at bare invocation (bin/intent_st:1620)
+  - INV-07 at `st --help` / `-h` / `help`
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- see the invariant; the bare-invocation shape follows INV-05
 
@@ -159,7 +166,7 @@ Create a new steel thread
   - Writes `intent/st/<ID>/` from `lib/templates/prj/st/ST####`
   - Triggers the index resync (`intent st sync --write`, bin/intent_st:287)
 - **Defects observed in v2:**
-  - surplus positional args discarded silently
+  - surplus positional args discarded silently (bin/intent_st:305, 314)
 - **Target:** `as-observed`
 
 ### `st start`
@@ -231,7 +238,7 @@ List steel threads (default: in progress only)
 - **stdout:** the table
 - **stderr:** `error: ...`
 - **Defects observed in v2:**
-  - `--status` and `--width` consume the next positional blindly (shift; VALUE="$1"). A trailing `--status` with no value silently yields an empty filter rather than a usage error. Same for `--width`.
+  - `--status` and `--width` consume the next positional blindly (shift; VALUE="$1"). A trailing `--status` with no value silently yields an empty filter rather than a usage error.
 - **Target:** `as-observed`
 - **Note:** clap makes the missing-value case an error for free -- that is a `corrected` consequence rather than a choice, same shape as INV-08. Byte-exact column padding is parity-bound: `tests/unit/output_width.bats:44-140` pins it.
 
@@ -338,7 +345,7 @@ STZero retrofit -- install the zeroth steel thread (newly authored; v2 has no us
 - **stderr:** --
 - **Defects observed in v2:**
   - UNDOCUMENTED: absent from bin/intent_st's usage() block entirely. It was missing from parity.md's command-level table until the deep pass measured it.
-  - Exits 0 on a bare invocation that printed only usage -- the opposite of INV-07's defect, and inconsistent with every other family in this file.
+  - INV-07 at inverted -- bare invocation prints only usage and exits 0, where every other family exits 1
 - **Target:** `pending-hv`
 - **Open question for hv:** parity.md already flags `st_zero` as a candidate for a ratified retire if the fleet does not use it. That ruling decides this row too -- both faces (`intent st zero` and `intent st_zero`) or neither.
 - **Cross-reference:** The top-level `st_zero` family covers bin/intent_st_zero; this entry is the alias face only.

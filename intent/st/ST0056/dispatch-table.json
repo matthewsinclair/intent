@@ -8,7 +8,10 @@
     "THE command-surface source of truth for Intent v3 (AC-05.1). The clap surface, the help text, the MCP tool list and the `intent llm` agent guide all render FROM this file; nothing renders from `bin/**` and nothing describes the surface a second time.",
     "This is the AUTHORED artefact. `dispatch-table.md` beside it is a GENERATED view -- run `parity/tools/gen_dispatch_table.sh`, never hand-edit the view.",
     "`observed` records what v2 measurably does, at the revision stamped above. `target` records what v3 will do. They are separate fields because they genuinely differ, and a table that conflated them would launder a v2 defect into a v3 requirement -- which is the failure mode an output-equality parity suite cannot catch (parity.md, 'Parity properties beyond output equality').",
-    "`target.state: pending-hv` is an honest blank, not an omission. hv ratified the `corrected` class at the 2026-08-14 bounce; WHICH v2 behaviours join it is a scope call still open. A guess recorded here would be indistinguishable from a ruling by the time WP-05 read it."
+    "`target.state: pending-hv` is an honest blank, not an omission. hv ratified the `corrected` class at the 2026-08-14 bounce; WHICH v2 behaviours join it is a scope call still open. A guess recorded here would be indistinguishable from a ruling by the time WP-05 read it.",
+    "Every claim carries an `evidence_class`, because 'verified' is not one thing. `measured` = a probe was run against v2 at the stamped revision. `documented-default` = a framework's published default, correct today and CHANGEABLE by a major bump or a single builder setting. `read` = taken from source without executing it. The distinction was forced by vc catching this file claiming clap's exit code was measured -- it cannot have been, since no clap dependency exists in the workspace yet. A documented default that goes unpinned is a finding with a silent expiry date.",
+    "`disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep · retire · deviate · pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.",
+    "Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them."
   ],
   "invariants": [
     {
@@ -26,6 +29,11 @@
       "title": "Usage errors exit 1, NOT clap's default 2",
       "rule": "A missing required argument, an unknown option, or an unknown subcommand exits 1.",
       "v2": "bin/intent_helpers:7-11 -- `error()` is `echo >&2; exit 1`, and it is the only failure exit in the shipped surface bar `intent critic`",
+      "evidence_class": {
+        "class": "measured (v2 half) + documented-default (clap half)",
+        "why": "The v2 half is measured: probes on `st show`, `st bogusverb` and `wp list` all exit 1, and `error()` is read directly. The clap half is NOT measured and could not be -- `crates/intent-cli/Cargo.toml` carries no clap dependency, so nothing in this workspace exits 2 yet. clap's documented default is 2; that is a framework default, which a major bump or a single `Command::` setting can change.",
+        "pinned_by": "WP-05 must land a test asserting exit 1 on a missing required argument AND on an unknown flag, WRITTEN BEFORE the clap spine exists. Then a changed default reds one named invariant instead of a hundred BATS tests failing for a reason nobody traces back here. (vc, 2026-08-14, on catching this row overclaiming its evidence.)"
+      },
       "target": {
         "state": "as-observed",
         "ratification": "D17"
@@ -91,6 +99,11 @@
       "title": "Three commands accept an unknown flag silently at exit 0",
       "rule": "`intent info --zzz`, `intent config --zzz` (zero output) and `intent version --zzz` all succeed.",
       "v2": "measured",
+      "evidence_class": {
+        "class": "measured (v2 half) + documented-default (clap half)",
+        "why": "Same split as INV-02: the three v2 commands were probed; clap's rejection of unrecognised arguments is its documented default, not something measured in this workspace.",
+        "pinned_by": "The same WP-05 unknown-flag test that pins INV-02 pins this."
+      },
       "target": {
         "state": "corrected",
         "ratification": "hv, 2026-08-14 bounce -- the `corrected` class; this member is forced rather than chosen",
@@ -124,7 +137,11 @@
           ],
           "flags": [
             {
-              "spellings": ["help", "--help", "-h"],
+              "spellings": [
+                "help",
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "note": "`help` is a bare word arm, not a flag; grouped here because the three spellings share one arm (bin/intent_st:1614)"
@@ -133,15 +150,30 @@
           "v2": "bin/intent_st:1614-1616, 1618-1621",
           "observed": {
             "exit": [
-              { "code": 1, "when": "bare -- `error: Steel thread command is required`" },
-              { "code": 1, "when": "--help / -h / help -- usage block printed, exit 1" },
-              { "code": 1, "when": "unknown verb -- `error: Unknown command: <verb>`" }
+              {
+                "code": 1,
+                "when": "bare -- `error: Steel thread command is required`"
+              },
+              {
+                "code": 1,
+                "when": "--help / -h / help -- usage block printed, exit 1"
+              },
+              {
+                "code": 1,
+                "when": "unknown verb -- `error: Unknown command: <verb>`"
+              }
             ],
             "stdout": "usage block (2330B) on the --help path only",
             "stderr": "`error: ...` on the bare and unknown-verb paths (40B / 41B)",
             "defects": [
-              "INV-05: bare invocation reaches `error` then a dead `usage`",
-              "INV-07: --help exits 1"
+              {
+                "id": "INV-05",
+                "where": "bare invocation (bin/intent_st:1620)"
+              },
+              {
+                "id": "INV-07",
+                "where": "`st --help` / `-h` / `help`"
+              }
             ]
           },
           "target": {
@@ -163,7 +195,10 @@
           ],
           "flags": [
             {
-              "spellings": ["-s", "--start"],
+              "spellings": [
+                "-s",
+                "--start"
+              ],
               "type": "bool",
               "help": "Mark the new thread in progress immediately"
             }
@@ -171,10 +206,22 @@
           "v2": "bin/intent_st:296-445",
           "observed": {
             "exit": [
-              { "code": 0, "when": "created" },
-              { "code": 1, "when": "no title -- `error: Steel thread title is required`" },
-              { "code": 1, "when": "unknown option -- `error: Unknown option: <opt>`" },
-              { "code": 1, "when": "templates missing -- names INTENT_HOME and states that nothing was created (bin/intent_st:375)" }
+              {
+                "code": 0,
+                "when": "created"
+              },
+              {
+                "code": 1,
+                "when": "no title -- `error: Steel thread title is required`"
+              },
+              {
+                "code": 1,
+                "when": "unknown option -- `error: Unknown option: <opt>`"
+              },
+              {
+                "code": 1,
+                "when": "templates missing -- names INTENT_HOME and states that nothing was created (bin/intent_st:375)"
+              }
             ],
             "stdout": "the created id and path",
             "stderr": "`error: ...`",
@@ -182,22 +229,44 @@
               "Writes `intent/st/<ID>/` from `lib/templates/prj/st/ST####`",
               "Triggers the index resync (`intent st sync --write`, bin/intent_st:287)"
             ],
-            "defects": ["surplus positional args discarded silently"]
+            "defects": [
+              {
+                "id": "local",
+                "detail": "surplus positional args discarded silently (bin/intent_st:305, 314)"
+              }
+            ]
           },
-          "target": { "state": "as-observed" },
+          "target": {
+            "state": "as-observed"
+          },
           "disposition": "keep"
         },
         {
           "path": "st start",
           "help": "Mark a steel thread as in progress",
-          "args": [{ "name": "id", "type": "st-id", "arity": "1" }],
+          "args": [
+            {
+              "name": "id",
+              "type": "st-id",
+              "arity": "1"
+            }
+          ],
           "flags": [],
           "v2": "bin/intent_st:599-716",
           "observed": {
             "exit": [
-              { "code": 0, "when": "started" },
-              { "code": 0, "when": "ALREADY in progress -- prints `skipped: <ID> already in progress` and exits 0 (bin/intent_st:634-637, 678-681)" },
-              { "code": 1, "when": "no id / thread not found" }
+              {
+                "code": 0,
+                "when": "started"
+              },
+              {
+                "code": 0,
+                "when": "ALREADY in progress -- prints `skipped: <ID> already in progress` and exits 0 (bin/intent_st:634-637, 678-681)"
+              },
+              {
+                "code": 1,
+                "when": "no id / thread not found"
+              }
             ],
             "stdout": "`skipped: ...` on the idempotent path",
             "stderr": "`error: ...`",
@@ -212,14 +281,29 @@
         {
           "path": "st done",
           "help": "Mark a steel thread as complete",
-          "args": [{ "name": "id", "type": "st-id", "arity": "1" }],
+          "args": [
+            {
+              "name": "id",
+              "type": "st-id",
+              "arity": "1"
+            }
+          ],
           "flags": [],
           "v2": "bin/intent_st:446-535",
           "observed": {
             "exit": [
-              { "code": 0, "when": "closed" },
-              { "code": 1, "when": "no id / thread not found" },
-              { "code": 1, "when": "acceptance contract BLOCKED -- `error: cannot close <ID>: acceptance contract is BLOCKED (run 'intent ac status <ID>')` (bin/intent_st:470-471)" }
+              {
+                "code": 0,
+                "when": "closed"
+              },
+              {
+                "code": 1,
+                "when": "no id / thread not found"
+              },
+              {
+                "code": 1,
+                "when": "acceptance contract BLOCKED -- `error: cannot close <ID>: acceptance contract is BLOCKED (run 'intent ac status <ID>')` (bin/intent_st:470-471)"
+              }
             ],
             "stdout": "closure confirmation",
             "stderr": "`error: ...`",
@@ -237,19 +321,33 @@
         {
           "path": "st cancel",
           "help": "Mark a steel thread as cancelled",
-          "args": [{ "name": "id", "type": "st-id", "arity": "1" }],
+          "args": [
+            {
+              "name": "id",
+              "type": "st-id",
+              "arity": "1"
+            }
+          ],
           "flags": [],
           "v2": "bin/intent_st:536-598",
           "observed": {
             "exit": [
-              { "code": 0, "when": "cancelled" },
-              { "code": 1, "when": "no id / thread not found" }
+              {
+                "code": 0,
+                "when": "cancelled"
+              },
+              {
+                "code": 1,
+                "when": "no id / thread not found"
+              }
             ],
             "stdout": "cancellation confirmation",
             "stderr": "`error: ...`",
             "notes": "No close-gate consultation -- cancel is not a close. Deliberate (feedback: use the existing Cancelled status, never invent a new one)."
           },
-          "target": { "state": "as-observed" },
+          "target": {
+            "state": "as-observed"
+          },
           "disposition": "keep"
         },
         {
@@ -258,20 +356,26 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--status"],
+              "spellings": [
+                "--status"
+              ],
               "type": "string",
               "value": "<status>",
               "help": "`all`, or a comma-separated list rendered in the order given",
               "accepts": "wip|in progress -> WIP; tbc|not started -> TBC; completed|done -> COMPLETED; cancelled|canceled -> CANCELLED; hold|on hold -> HOLD (case-insensitive, normalised to caps)"
             },
             {
-              "spellings": ["--width"],
+              "spellings": [
+                "--width"
+              ],
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width; 0 or absent means terminal width"
             },
             {
-              "spellings": ["--markdown"],
+              "spellings": [
+                "--markdown"
+              ],
               "type": "bool",
               "help": "Emit canonical GFM instead of terminal rendering",
               "note": "UNDOCUMENTED in v2's usage() block; consumed by `st sync --write`. Real surface, so it is in the table."
@@ -280,14 +384,26 @@
           "v2": "bin/intent_st:717-1043",
           "observed": {
             "exit": [
-              { "code": 0, "when": "listed (including an empty list)" },
-              { "code": 1, "when": "unknown option -- `error: Unknown option: <opt>`" },
-              { "code": 1, "when": "`error: Steel threads directory not found`" }
+              {
+                "code": 0,
+                "when": "listed (including an empty list)"
+              },
+              {
+                "code": 1,
+                "when": "unknown option -- `error: Unknown option: <opt>`"
+              },
+              {
+                "code": 1,
+                "when": "`error: Steel threads directory not found`"
+              }
             ],
             "stdout": "the table",
             "stderr": "`error: ...`",
             "defects": [
-              "`--status` and `--width` consume the next positional blindly (shift; VALUE=\"$1\"). A trailing `--status` with no value silently yields an empty filter rather than a usage error. Same for `--width`."
+              {
+                "id": "local",
+                "detail": "`--status` and `--width` consume the next positional blindly (shift; VALUE=\"$1\"). A trailing `--status` with no value silently yields an empty filter rather than a usage error."
+              }
             ]
           },
           "target": {
@@ -300,23 +416,46 @@
           "path": "st show",
           "help": "Show details of a specific steel thread",
           "args": [
-            { "name": "id", "type": "st-id", "arity": "1" },
+            {
+              "name": "id",
+              "type": "st-id",
+              "arity": "1"
+            },
             {
               "name": "file",
               "type": "enum",
               "arity": "0..1",
               "default": "info",
-              "values": ["info", "design", "impl", "tasks", "acceptance", "all"]
+              "values": [
+                "info",
+                "design",
+                "impl",
+                "tasks",
+                "acceptance",
+                "all"
+              ]
             }
           ],
           "flags": [],
           "v2": "bin/intent_st:1044-1100",
           "observed": {
             "exit": [
-              { "code": 0, "when": "printed" },
-              { "code": 1, "when": "no id / thread not found" },
-              { "code": 1, "when": "`error: Unknown file type: <t>`" },
-              { "code": 1, "when": "`error: File not found: <t>.md for steel thread <ID>`" }
+              {
+                "code": 0,
+                "when": "printed"
+              },
+              {
+                "code": 1,
+                "when": "no id / thread not found"
+              },
+              {
+                "code": 1,
+                "when": "`error: Unknown file type: <t>`"
+              },
+              {
+                "code": 1,
+                "when": "`error: File not found: <t>.md for steel thread <ID>`"
+              }
             ],
             "stdout": "file contents; `all` concatenates with `-- <file>` separators",
             "stderr": "`error: ...`"
@@ -331,13 +470,23 @@
           "path": "st edit",
           "help": "Print the absolute path to a steel thread file",
           "args": [
-            { "name": "id", "type": "st-id", "arity": "1" },
+            {
+              "name": "id",
+              "type": "st-id",
+              "arity": "1"
+            },
             {
               "name": "file",
               "type": "enum",
               "arity": "0..1",
               "default": "info",
-              "values": ["info", "design", "impl", "tasks", "acceptance"],
+              "values": [
+                "info",
+                "design",
+                "impl",
+                "tasks",
+                "acceptance"
+              ],
               "note": "NO `all` -- unlike `show`. Asymmetry is deliberate and correct: there is no single path for `all`."
             }
           ],
@@ -345,8 +494,14 @@
           "v2": "bin/intent_st:1101-1144",
           "observed": {
             "exit": [
-              { "code": 0, "when": "path printed" },
-              { "code": 1, "when": "no id / thread dir not found / unknown file type" }
+              {
+                "code": 0,
+                "when": "path printed"
+              },
+              {
+                "code": 1,
+                "when": "no id / thread dir not found / unknown file type"
+              }
             ],
             "stdout": "the absolute path, one line, nothing else",
             "stderr": "`error: ...`",
@@ -364,12 +519,16 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--write"],
+              "spellings": [
+                "--write"
+              ],
               "type": "bool",
               "help": "Write the index; without it the command is a dry run"
             },
             {
-              "spellings": ["--width"],
+              "spellings": [
+                "--width"
+              ],
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width"
@@ -378,8 +537,14 @@
           "v2": "bin/intent_st:1145-1211",
           "observed": {
             "exit": [
-              { "code": 0, "when": "synced or dry-run reported" },
-              { "code": 1, "when": "unknown option / `error: Steel threads directory not found` / `error: Steel threads index file not found`" }
+              {
+                "code": 0,
+                "when": "synced or dry-run reported"
+              },
+              {
+                "code": 1,
+                "when": "unknown option / `error: Steel threads directory not found` / `error: Steel threads index file not found`"
+              }
             ],
             "stdout": "the diff or the confirmation",
             "stderr": "`error: ...`",
@@ -404,7 +569,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--write"],
+              "spellings": [
+                "--write"
+              ],
               "type": "bool",
               "help": "Apply the repairs; without it the command is a dry run"
             }
@@ -412,14 +579,26 @@
           "v2": "bin/intent_st:1212-1433",
           "observed": {
             "exit": [
-              { "code": 0, "when": "repaired or dry-run reported" },
-              { "code": 1, "when": "`error: Unknown option or invalid steel thread ID: <arg>`" },
-              { "code": 1, "when": "`error: Steel thread not found: <ID>`" }
+              {
+                "code": 0,
+                "when": "repaired or dry-run reported"
+              },
+              {
+                "code": 1,
+                "when": "`error: Unknown option or invalid steel thread ID: <arg>`"
+              },
+              {
+                "code": 1,
+                "when": "`error: Steel thread not found: <ID>`"
+              }
             ],
             "stdout": "per-thread findings",
             "stderr": "`error: ...`",
             "defects": [
-              "DEAD ARM at bin/intent_st:1231: `[0-9]+)` is a `case` GLOB, where `+` is a literal character -- it matches a single digit followed by a `+`, never a run of digits. So `intent st repair 5` and `intent st repair 12345` both fall through to the error arm. Verified by executing the case statement in isolation, not by reading it. The intended bare-number form is unreachable; only the 4-digit `0001` arm works."
+              {
+                "id": "local",
+                "detail": "DEAD ARM at bin/intent_st:1231: `[0-9]+)` is a `case` GLOB, where `+` is a literal character -- it matches a single digit followed by a `+`, never a run of digits. So `intent st repair 5` and `intent st repair 12345` both fall through to the error arm. Verified by executing the case statement in isolation, not by reading it. The intended bare-number form is unreachable; only the 4-digit `0001` arm works."
+              }
             ]
           },
           "target": {
@@ -431,11 +610,15 @@
         {
           "path": "st organize",
           "help": "Organize ST files in directories by status",
-          "aliases": ["st organise"],
+          "aliases": [
+            "st organise"
+          ],
           "args": [],
           "flags": [
             {
-              "spellings": ["--write"],
+              "spellings": [
+                "--write"
+              ],
               "type": "bool",
               "help": "Move the files; without it the command is a dry run"
             }
@@ -443,8 +626,14 @@
           "v2": "bin/intent_st:1434-1609; the `organise` -> `organize` normalisation is at bin/intent_st:289-292",
           "observed": {
             "exit": [
-              { "code": 0, "when": "swept" },
-              { "code": 1, "when": "`error: <n> steel thread(s) could not be moved (see above); the rest of the sweep completed`" }
+              {
+                "code": 0,
+                "when": "swept"
+              },
+              {
+                "code": 1,
+                "when": "`error: <n> steel thread(s) could not be moved (see above); the rest of the sweep completed`"
+              }
             ],
             "stdout": "`Already organized: <ID> in intent/st/<STATUS>` per thread (73B for one thread in a fresh project)",
             "stderr": "`error: ...`; a move collision also prints mv's raw stderr",
@@ -461,17 +650,35 @@
           "path": "st zero",
           "help": "STZero retrofit -- install the zeroth steel thread (newly authored; v2 has no usage line for this verb)",
           "args": [
-            { "name": "subcommand", "type": "subcommand", "arity": "0..1", "values": ["install"] }
+            {
+              "name": "subcommand",
+              "type": "subcommand",
+              "arity": "0..1",
+              "values": [
+                "install"
+              ]
+            }
           ],
           "flags": [],
           "v2": "bin/intent_st:1610-1612 -- `exec \"$INTENT_HOME/bin/intent_st_zero\" \"$@\"`; the real surface is bin/intent_st_zero",
           "observed": {
-            "exit": [{ "code": 0, "when": "bare -- prints `Usage: intent st zero install` and exits 0" }],
+            "exit": [
+              {
+                "code": 0,
+                "when": "bare -- prints `Usage: intent st zero install` and exits 0"
+              }
+            ],
             "stdout": "the usage line",
             "stderr": "--",
             "defects": [
-              "UNDOCUMENTED: absent from bin/intent_st's usage() block entirely. It was missing from parity.md's command-level table until the deep pass measured it.",
-              "Exits 0 on a bare invocation that printed only usage -- the opposite of INV-07's defect, and inconsistent with every other family in this file."
+              {
+                "id": "local",
+                "detail": "UNDOCUMENTED: absent from bin/intent_st's usage() block entirely. It was missing from parity.md's command-level table until the deep pass measured it."
+              },
+              {
+                "id": "INV-07",
+                "where": "inverted -- bare invocation prints only usage and exits 0, where every other family exits 1"
+              }
             ]
           },
           "target": {
@@ -485,10 +692,32 @@
     }
   ],
   "families_outstanding": [
-    "wp", "ac", "at", "issues", "todo", "info", "init", "bootstrap", "config",
-    "doctor", "upgrade", "agents", "claude", "critic", "lang", "llm", "learn",
-    "modules", "organize", "plugin", "ext", "treeindex", "fileindex", "help",
-    "st_zero", "version"
+    "wp",
+    "ac",
+    "at",
+    "issues",
+    "todo",
+    "info",
+    "init",
+    "bootstrap",
+    "config",
+    "doctor",
+    "upgrade",
+    "agents",
+    "claude",
+    "critic",
+    "lang",
+    "llm",
+    "learn",
+    "modules",
+    "organize",
+    "plugin",
+    "ext",
+    "treeindex",
+    "fileindex",
+    "help",
+    "st_zero",
+    "version"
   ],
   "new_surface": [
     {
@@ -498,7 +727,9 @@
       "basis": "design.md:68 -- FTS5 across all bodies, from CLI and MCP. There is no bin/intent_search.",
       "owner_wp": "WP-06",
       "acceptance": "AC-06.4 (added by vc, 2026-08-14, on the finding that all 62 ACs had zero coverage of search)",
-      "target": { "state": "new-surface" }
+      "target": {
+        "state": "new-surface"
+      }
     },
     {
       "path": "schema",
@@ -506,36 +737,69 @@
       "v2": "new-surface",
       "basis": "design.md:43",
       "owner_wp": "WP-06",
-      "target": { "state": "new-surface" }
+      "target": {
+        "state": "new-surface"
+      }
     },
     {
       "path": "export",
       "help": "Project the canon into another format",
-      "flags": [{ "spellings": ["--format"], "type": "string", "value": "<fmt>" }],
+      "flags": [
+        {
+          "spellings": [
+            "--format"
+          ],
+          "type": "string",
+          "value": "<fmt>"
+        }
+      ],
       "v2": "new-surface",
       "basis": "design.md:57 -- YAML/md/anything else are export projections",
       "owner_wp": "WP-06",
-      "target": { "state": "new-surface" }
+      "target": {
+        "state": "new-surface"
+      }
     },
     {
       "path": "ingest",
       "help": "Rebuild the canon from markdown (the recovery path, and the v2 migrator)",
-      "flags": [{ "spellings": ["--from-md"], "type": "bool" }],
+      "flags": [
+        {
+          "spellings": [
+            "--from-md"
+          ],
+          "type": "bool"
+        }
+      ],
       "v2": "new-surface",
       "basis": "design.md:66; WP-03 deliverable, shared with the WP-10 migrator",
       "owner_wp": "WP-03",
-      "target": { "state": "new-surface" }
+      "target": {
+        "state": "new-surface"
+      }
     },
     {
       "path": "daemon",
       "help": "Manage the machine-level intentd",
       "args": [
-        { "name": "subcommand", "type": "subcommand", "arity": "1", "values": ["start", "stop", "status", "run"] }
+        {
+          "name": "subcommand",
+          "type": "subcommand",
+          "arity": "1",
+          "values": [
+            "start",
+            "stop",
+            "status",
+            "run"
+          ]
+        }
       ],
       "v2": "new-surface",
       "basis": "design.md:73-74, D07/D08/D19",
       "owner_wp": "WP-08",
-      "target": { "state": "new-surface" }
+      "target": {
+        "state": "new-surface"
+      }
     },
     {
       "path": "mcp",
@@ -543,7 +807,9 @@
       "v2": "new-surface",
       "basis": "design.md:84, D11",
       "owner_wp": "WP-09",
-      "target": { "state": "new-surface" }
+      "target": {
+        "state": "new-surface"
+      }
     }
   ]
 }
