@@ -32,7 +32,7 @@ claims: [ST0056]
 - **Never mutate `bin/**` or `tests/**` in place** -- `~/.local/bin/intent` symlinks into this repo; sacrificial worktrees only. `crates/**` has no symlink hazard, but suites run concurrently.
 - **The machine-global gitignore ignores `*.sql`** -- committed faces need their `!` exception; `git check-ignore -v` any new non-json artefact.
 - **This shell is zsh; MULTIOS makes `cmd 2>&1 >/dev/null` tee stdout to the terminal.**
-- **Commit by explicit pathspec, never `-A`** -- cc and ic run concurrently; devbin's arrival has `bin/release` mid-move in the tree.
+- **`git add <paths>` + bare `git commit` commits the WHOLE INDEX -- a peer's staged work rides along.** It happened: cc's staged `bin/release` -> devbin rename rode vc's `072d277`. The protocol's own spelling is `git commit --only <paths>`; use it verbatim, every time, and never `-A`.
 - Release-window mechanics live in `intent/restart.md`'s checklist.
 
 ## Decisions
