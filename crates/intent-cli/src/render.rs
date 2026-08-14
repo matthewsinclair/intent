@@ -28,6 +28,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), String> {
     Some(("at", m)) => at(m),
     Some(("search", m)) => search(m),
     Some(("schema", m)) => schema(m),
+    Some(("doctor", _)) => doctor(),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -45,6 +46,17 @@ pub fn run(matches: &ArgMatches) -> Result<(), String> {
 /// when there is not one, rather than half-working. The marker is the config
 /// file's presence, never an environment variable (issue 0025).
 fn open() -> Result<Facade, String> {
+  let (project, ctx) = context()?;
+  Facade::open(project, ctx).map_err(fail)
+}
+
+/// Locate the project and assemble the ambient context, WITHOUT loading canon
+/// into the store.
+///
+/// Split out from [`open`] because `doctor` needs exactly this much and no
+/// more: it has to run on a project that cannot be opened, since that is when
+/// someone reaches for it. Every other verb goes on to [`Facade::open`].
+fn context() -> Result<(Project, FacadeContext), String> {
   let cwd = std::env::current_dir()
     .map_err(|e| format!("error: cannot read the working directory: {e}"))?;
   let project = Project::discover(&cwd).map_err(|e| {
@@ -56,7 +68,7 @@ fn open() -> Result<Facade, String> {
     version: env!("CARGO_PKG_VERSION").to_string(),
     today: today(),
   };
-  Facade::open(project, ctx).map_err(fail)
+  Ok((project, ctx))
 }
 
 /// Today, ISO 8601, read at the OUTERMOST layer.
@@ -242,6 +254,35 @@ fn search(m: &ArgMatches) -> Result<(), String> {
     println!("{}:{}  {}  {}", hit.file, hit.seq, hit.owner_id, heading);
   }
   Ok(())
+}
+
+/// AC-06.2: the health report.
+///
+/// Findings go to STDOUT, not stderr, and the exit code carries the verdict.
+/// A report IS the output of a successful doctor run -- the command did its
+/// job when it found things -- so writing findings to stderr would put the
+/// answer on the error channel. The nonzero exit is what a script reads, in
+/// the same shape `ac gate` uses.
+fn doctor() -> Result<(), String> {
+  let (project, ctx) = context()?;
+  let report = Facade::doctor(&project, &ctx);
+  for finding in &report.findings {
+    println!("{finding}");
+  }
+  println!(
+    "doctor: {} finding(s) across {} thread(s), {} issue(s), {} view(s), {} file(s)",
+    report.findings.len(),
+    report.threads_checked,
+    report.issues_checked,
+    report.views_checked,
+    report.files_checked
+  );
+  if report.is_healthy() {
+    Ok(())
+  } else {
+    // The report above IS the message; the exit code is the machine's copy.
+    Err(String::new())
+  }
 }
 
 /// AC-06.5: print the generated schema faces.

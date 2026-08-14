@@ -253,6 +253,32 @@ impl Facade {
     })
   }
 
+  /// Run every health check (AC-06.2). A read: it reports, and repairs
+  /// nothing.
+  ///
+  /// **An associated function, not a method, and that is the design.** A
+  /// method would require an opened facade, which is precisely the
+  /// precondition doctor must not have: the first version went through
+  /// [`Facade::open`], so a duplicate criterion id tripped a UNIQUE constraint
+  /// during the DB load and the command died before it could report the thing
+  /// it exists to report -- while the tool advised running `intent doctor`.
+  /// The skin still calls only the facade (D06); the facade knows that this
+  /// one verb has to work on a project nothing else can open.
+  ///
+  /// Reporting-only is likewise deliberate. A doctor that fixed what it found
+  /// would change the thing it was measuring, and the operator would be
+  /// reading a report about a state that no longer existed -- which is how
+  /// `at lint --fix` came to half-migrate rows.
+  pub fn doctor(project: &Project, ctx: &FacadeContext) -> crate::doctor::Report {
+    crate::doctor::diagnose(
+      project,
+      &RenderContext {
+        version: &ctx.version,
+        todo_watermark: None,
+      },
+    )
+  }
+
   /// Run the close gate. A read: it changes nothing and refuses nothing.
   pub fn gate(&self, st: &str, scope: Scope) -> Result<Verdict, FacadeError> {
     Ok(contract::gate(

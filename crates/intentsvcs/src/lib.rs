@@ -13,6 +13,7 @@
 //! always safe, so there are no DB migrations, ever.
 
 pub mod contract;
+pub mod doctor;
 pub mod event;
 pub mod facade;
 pub mod faces;

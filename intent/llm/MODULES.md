@@ -271,12 +271,12 @@ Maintainer tooling for cutting Intent releases. Not part of the user-facing CLI 
 
 The Intent v3.0.0 Rust workspace. `intentsvcs` is the Highlander layer: sole owner of the DB and the file canon; the CLI and daemon are thin skins over its facade. `rusqlite` may appear in exactly ONE Cargo.toml (intentsvcs) -- the dependency graph is the enforcement, asserted by `dep_graph_guard.rs`.
 
-| Concern                  | THE Module          | Notes                                                                                        |
-| ------------------------ | ------------------- | -------------------------------------------------------------------------------------------- |
-| v3 model + store + faces | `crates/intentsvcs` | Entity types (the single authored master), schema faces, SQLite store, sync, facade (ST0056) |
-| v3 CLI binary            | `crates/intent-cli` | The `intent` binary: parse -> facade -> render, in-process or GraphQL to intentd (D06, D18)  |
-| v3 daemon binary         | `crates/intentd`    | One per machine, N projects; socket GraphQL + mgmt plane + watch (D07, D18)                  |
-| Generated schema faces   | `schema/`           | GENERATED from intentsvcs types (JSON Schema, DDL, SDL) -- never hand-edited; drift-checked  |
+| Concern                  | THE Module          | Notes                                                                                                |
+| ------------------------ | ------------------- | ---------------------------------------------------------------------------------------------------- |
+| v3 model + store + faces | `crates/intentsvcs` | Entity types (the single authored master), schema faces, SQLite store, sync, facade, doctor (ST0056) |
+| v3 CLI binary            | `crates/intent-cli` | The `intent` binary: parse -> facade -> render, in-process or GraphQL to intentd (D06, D18)          |
+| v3 daemon binary         | `crates/intentd`    | One per machine, N projects; socket GraphQL + mgmt plane + watch (D07, D18)                          |
+| Generated schema faces   | `schema/`           | GENERATED from intentsvcs types (JSON Schema, DDL, SDL) -- never hand-edited; drift-checked          |
 
 ### Parity and interface toolchain (ST0056, ic)
 
@@ -292,3 +292,4 @@ v2-side measurement tools plus the interface SSOT they feed. Every artefact in `
 | Family coverage cross-map  | `intent/st/ST0056/parity/tools/coverage_map.sh`       | THE parity-hole finder: joins the dispatch table's families against `burn-baseline.tsv` to answer "is any command family exercised by nothing?". Static -- runs no tests, safe to run while a peer holds the estate                |
 | Surface drift check        | `intent/st/ST0056/parity/tools/drift_check.sh`        | THE EXP-02 mechanism: diffs the measured `cmd-*.md` inventory against the authored `surface/dispatch-table.json`. REPORTS disagreement, never resolves it -- inventory is measurement, table is judgement, opposite remedies       |
 | Baseline corpus coverage   | `intent/st/ST0056/parity/tools/lib_corpus.sh`         | THE check that a burn TSV covers the on-disk `.bats` estate, sourced by every baseline consumer. Sourced-only library, not executable. Exists because the same silent-undercount bug appeared independently in two consumers       |
+| Generated-view formatting  | `intent/st/ST0056/parity/tools/lib_mdfmt.sh`          | THE markdown table aligner for generated views, sourced by every generator that emits one. Sourced-only library. A generated view must be idempotent THROUGH the repo formatter, not merely through its own renderer (AC-03.2)     |

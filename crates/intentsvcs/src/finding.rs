@@ -43,20 +43,43 @@ pub enum FindingClass {
   /// hand-edit that would otherwise be silently overwritten, or silently
   /// believed.
   ViewSkew,
+  /// The canon parses and validates, but says two things that cannot both be
+  /// true -- an acceptance test covering a criterion that does not exist, a
+  /// completed thread with no completion date. The schema cannot catch these:
+  /// every one of them is individually well-formed, and only the RELATIONSHIP
+  /// is wrong. This is what `doctor`'s model half reports (AC-06.2).
+  ModelInconsistent,
 }
 
 impl FindingClass {
-  /// The wire spelling, via serde -- the one naming authority, exactly as
-  /// [`crate::model::enum_str`] establishes for the model enums.
-  pub fn as_str(&self) -> &'static str {
+  /// Rank and wire spelling, from ONE exhaustive match.
+  ///
+  /// Exhaustive because the compiler must refuse a new variant that forgets
+  /// either -- an omission here is a class that reports under the wrong name
+  /// or sorts arbitrarily, and neither announces itself.
+  fn meta(self) -> (u8, &'static str) {
     match self {
-      Self::MalformedJson => "malformed-json",
-      Self::SchemaInvalid => "schema-invalid",
-      Self::ConflictMarkers => "conflict-markers",
-      Self::UnknownFileShape => "unknown-file-shape",
-      Self::DuplicateId => "duplicate-id",
-      Self::ViewSkew => "view-skew",
+      Self::MalformedJson => (0, "malformed-json"),
+      Self::SchemaInvalid => (1, "schema-invalid"),
+      Self::ConflictMarkers => (2, "conflict-markers"),
+      Self::UnknownFileShape => (3, "unknown-file-shape"),
+      Self::DuplicateId => (4, "duplicate-id"),
+      Self::ViewSkew => (5, "view-skew"),
+      Self::ModelInconsistent => (6, "model-inconsistent"),
     }
+  }
+
+  /// The wire spelling. Asserted against serde's by test rather than routed
+  /// through it: the return is `&'static str`, and serde's is an owned
+  /// `String`, so the two cannot be the same function. The test is what makes
+  /// this a single authority in practice.
+  pub fn as_str(&self) -> &'static str {
+    self.meta().1
+  }
+
+  /// Declaration order, for a stable totals line.
+  fn rank(&self) -> u8 {
+    self.meta().0
   }
 }
 
@@ -118,22 +141,24 @@ impl Refusal {
 
   /// Count per class, in the class's declaration order -- the per-class totals
   /// migration.md's report prints.
+  ///
+  /// **Counted from the findings present, never from a list of classes.** The
+  /// list version was a hand-maintained array the compiler could not check, so
+  /// a class added to the enum would simply never appear in the totals line --
+  /// a silent undercount, in the function that exists to honour the
+  /// no-silent-caps rule. Ordering comes from [`FindingClass::rank`], which is
+  /// an exhaustive match, so a new variant cannot be silently dropped OR
+  /// silently unordered.
   pub fn totals(&self) -> Vec<(FindingClass, usize)> {
-    let classes = [
-      FindingClass::MalformedJson,
-      FindingClass::SchemaInvalid,
-      FindingClass::ConflictMarkers,
-      FindingClass::UnknownFileShape,
-      FindingClass::DuplicateId,
-      FindingClass::ViewSkew,
-    ];
-    classes
-      .into_iter()
-      .filter_map(|c| {
-        let n = self.findings.iter().filter(|f| f.class == c).count();
-        (n > 0).then_some((c, n))
-      })
-      .collect()
+    let mut out: Vec<(FindingClass, usize)> = Vec::new();
+    for finding in &self.findings {
+      match out.iter_mut().find(|(c, _)| *c == finding.class) {
+        Some((_, n)) => *n += 1,
+        None => out.push((finding.class, 1)),
+      }
+    }
+    out.sort_by_key(|(c, _)| c.rank());
+    out
   }
 }
 
