@@ -10,13 +10,16 @@ The whiteboard process was pioneered **by convention in Lamplight** (`../Lamplig
 
 ## Nodes (workstreams)
 
-`hv` is **Workstream Zero** -- the always-present human node. Intent is CLI plus data, not UX, so there is deliberately no interface node; the roster is three.
+`hv` is **Workstream Zero** -- the always-present human node. The roster is four.
 
 | Node | Name                   | Scope (Intent)                                                                                                                      |
 | ---- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `hv` | Hypervisor (the human) | Workstream Zero: adjudicates scope, sequences work, owns releases plus commits-to-main; standing directives plus escalation landing |
-| `cc` | Control Claude         | the engine: `bin/` CLI, `intent/plugins/`, `lib/templates/`, the rule library, and skills; ST/WP execution                          |
+| `cc` | Control Claude         | the engine: `bin/` CLI, `crates/`, `intent/plugins/`, `lib/templates/`, the rule library, and skills; ST/WP execution               |
 | `vc` | Validation Claude      | independent check (correct / complete / consistent / faithful to hv's ask); advisory; the bats suite plus critic discipline         |
+| `ic` | Interface Claude       | the dispatch-table SSOT and everything rendered from it: command surface, help, voice, exit codes, MCP tool list, `intent llm`      |
+
+The earlier form of this section said Intent is CLI plus data rather than UX, so there was deliberately no interface node and the roster was three. That stopped being true when `ic` was scaffolded, and a roster doc that describes a node out of existence is worse than no roster doc. Corrected by vc 2026-08-14 on ic's ask, with hv AFK and the pen handed to all three nodes; `ic`'s scope line above is vc's PROVISIONAL charter ruling, for hv to ratify or replace.
 
 ## Layout + single-writer rule
 
