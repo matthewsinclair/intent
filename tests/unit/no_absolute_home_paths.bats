@@ -64,7 +64,7 @@ HOME_PATH_RE='(/Users/[a-z]|/home/[a-z])'
   project_dir=$(create_test_project "Hook Portability")
   cd "$project_dir"
   # The engine prompts before writing; feed it a yes and check what it wrote.
-  run bash -c "yes | '$INTENT_HOME/bin/intent' claude upgrade --apply >/dev/null 2>&1; true"
+  run bash -c "yes | '$INTENT_BIN' claude upgrade --apply >/dev/null 2>&1; true"
   [ -f .claude/settings.json ]
   run bash -c "grep -cE '$HOME_PATH_RE' .claude/settings.json || true"
   assert_output "0"
@@ -77,16 +77,16 @@ HOME_PATH_RE='(/Users/[a-z]|/home/[a-z])'
   # specifically, and reads the event JSON on stdin. A wrapper that swallowed
   # either would turn the gate into a no-op or into a hard block on every
   # prompt, so this is the contract that matters most about the indirection.
-  run bash -c "printf '%s' '{\"prompt\":\"do something\"}' | CLAUDE_CODE_SESSION_ID=bats-none '$INTENT_HOME/bin/intent' claude hook require-in-session"
+  run bash -c "printf '%s' '{\"prompt\":\"do something\"}' | CLAUDE_CODE_SESSION_ID=bats-none '$INTENT_BIN' claude hook require-in-session"
   [ "$status" -eq 2 ]
 
   # stdin is genuinely parsed: a slash command passes through.
-  run bash -c "printf '%s' '{\"prompt\":\"/in-session\"}' | CLAUDE_CODE_SESSION_ID=bats-none '$INTENT_HOME/bin/intent' claude hook require-in-session"
+  run bash -c "printf '%s' '{\"prompt\":\"/in-session\"}' | CLAUDE_CODE_SESSION_ID=bats-none '$INTENT_BIN' claude hook require-in-session"
   [ "$status" -eq 0 ]
 
   # And the sentinel releases it.
   mkdir -p /tmp/intent && touch /tmp/intent/in-session-bats-yes.sentinel
-  run bash -c "printf '%s' '{\"prompt\":\"do something\"}' | CLAUDE_CODE_SESSION_ID=bats-yes '$INTENT_HOME/bin/intent' claude hook require-in-session"
+  run bash -c "printf '%s' '{\"prompt\":\"do something\"}' | CLAUDE_CODE_SESSION_ID=bats-yes '$INTENT_BIN' claude hook require-in-session"
   rm -f /tmp/intent/in-session-bats-yes.sentinel
   [ "$status" -eq 0 ]
 }
@@ -110,11 +110,11 @@ HOME_PATH_RE='(/Users/[a-z]|/home/[a-z])'
   git init -q . && git config user.email t@t && git config user.name t
   printf '# pre-existing\n*.log\n' > .gitignore
 
-  run bash -c "yes | '$INTENT_HOME/bin/intent' claude upgrade --apply >/dev/null 2>&1; true"
+  run bash -c "yes | '$INTENT_BIN' claude upgrade --apply >/dev/null 2>&1; true"
   run bash -c "grep -cE '^/?intent/\.treeindex/?\$' .gitignore"
   assert_output "1"
   # Idempotent: a second apply must not append a duplicate.
-  run bash -c "yes | '$INTENT_HOME/bin/intent' claude upgrade --apply >/dev/null 2>&1; true"
+  run bash -c "yes | '$INTENT_BIN' claude upgrade --apply >/dev/null 2>&1; true"
   run bash -c "grep -cE '^/?intent/\.treeindex/?\$' .gitignore"
   assert_output "1"
   # The pre-existing content survives.
@@ -135,7 +135,7 @@ HOME_PATH_RE='(/Users/[a-z]|/home/[a-z])'
   printf 'cached\n' > intent/.treeindex/bin/.treeindex
   git add -A && git commit -qm "cache tracked, as a consumer would have it"
 
-  run bash -c "yes | '$INTENT_HOME/bin/intent' claude upgrade --apply 2>&1"
+  run bash -c "yes | '$INTENT_BIN' claude upgrade --apply 2>&1"
   assert_output_contains "tracked file(s) under intent/.treeindex/"
   assert_output_contains "git rm -r --cached intent/.treeindex/"
   # It reported; it did NOT act.
@@ -145,7 +145,7 @@ HOME_PATH_RE='(/Users/[a-z]|/home/[a-z])'
 }
 
 @test "an unknown hook name is refused by name, not left to the shell" {
-  run bash -c "'$INTENT_HOME/bin/intent' claude hook definitely-not-a-hook"
+  run bash -c "'$INTENT_BIN' claude hook definitely-not-a-hook"
   assert_failure
   assert_output_contains "unknown hook"
 }

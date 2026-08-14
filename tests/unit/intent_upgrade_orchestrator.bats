@@ -33,7 +33,7 @@ EOF
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-orch-e2e-XXXXXX)"; cd "$TEST_TEMP_DIR" || exit 1
   setup_fake_home
   _scaffold ".intent/config.json" "2.9.0" ""
-  run "${INTENT_BIN_DIR}/intent" upgrade --no-backup
+  run "$INTENT_BIN" upgrade --no-backup
   assert_success
   [ -f intent/.config/config.json ] || fail "expected relocated intent/.config/config.json"
   [ ! -d .intent ] || fail "expected old .intent/ removed"
@@ -51,7 +51,7 @@ EOF
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-orch-interrupt-XXXXXX)"; cd "$TEST_TEMP_DIR" || exit 1
   setup_fake_home
   _scaffold ".intent/config.json" "2.11.0" ""
-  run "${INTENT_BIN_DIR}/intent" upgrade --no-backup
+  run "$INTENT_BIN" upgrade --no-backup
   assert_success
   [ -f intent/.config/config.json ] || fail "expected relocation to complete on re-run"
   [ ! -d .intent ] || fail "expected stale .intent/ removed on re-run"
@@ -87,7 +87,7 @@ EOF
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-orch-future-XXXXXX)"; cd "$TEST_TEMP_DIR" || exit 1
   setup_fake_home
   _scaffold "intent/.config/config.json" "2.10.5" ',"languages":[]'
-  run "${INTENT_BIN_DIR}/intent" upgrade --no-backup
+  run "$INTENT_BIN" upgrade --no-backup
   assert_success
   refute_output_contains "Unknown version"
   local target; target=$(cat "${INTENT_PROJECT_ROOT}/VERSION")
@@ -100,7 +100,7 @@ EOF
   TEST_TEMP_DIR="$(mktemp -d /tmp/intent-orch-downgrade-XXXXXX)"; cd "$TEST_TEMP_DIR" || exit 1
   setup_fake_home
   _scaffold "intent/.config/config.json" "9.9.9" ',"languages":[]'
-  run "${INTENT_BIN_DIR}/intent" upgrade
+  run "$INTENT_BIN" upgrade
   assert_failure
   [ ! -d .backup ] || fail "downgrade must be refused BEFORE any backup/mutation"
   teardown_fake_home; cd "${INTENT_PROJECT_ROOT}" || exit 1; rm -rf "$TEST_TEMP_DIR"
@@ -110,7 +110,7 @@ EOF
   mkdir -p intent/.config intent/llm intent/st
   echo '{"project_name":"NoVer","author":"t","st_prefix":"ST"}' > intent/.config/config.json
   git init -q .; git config user.email t@t.com; git config user.name Tester; git add -A; git commit -qm init
-  run "${INTENT_BIN_DIR}/intent" upgrade
+  run "$INTENT_BIN" upgrade
   assert_failure
   [ ! -d .backup ] || fail "missing version must be refused BEFORE any backup/mutation"
   teardown_fake_home; cd "${INTENT_PROJECT_ROOT}" || exit 1; rm -rf "$TEST_TEMP_DIR"
@@ -122,7 +122,7 @@ EOF
   setup_fake_home
   _scaffold "intent/.config/config.json" "2.10.0" ""
   touch .backup   # .backup is now a file, so the backup dir copy fails
-  run "${INTENT_BIN_DIR}/intent" upgrade
+  run "$INTENT_BIN" upgrade
   assert_failure
   refute_output_contains "Backup created successfully"
   [ "$(jq -r '.intent_version' intent/.config/config.json)" = "2.10.0" ] || fail "stamp must be untouched after a failed backup"
@@ -138,7 +138,7 @@ EOF
   setup_fake_home
   _scaffold "intent/.config/config.json" "2.12.0" ',"languages":["shell"]'
   ln -s /no/such/target/usage-rules.md intent/llm/broken.md   # dangling symlink
-  run "${INTENT_BIN_DIR}/intent" upgrade
+  run "$INTENT_BIN" upgrade
   assert_success
   [ -d .backup ] || fail "backup should have been created"
   find .backup -name broken.md -type l | grep -q . || fail "broken symlink must be preserved in the backup, not followed"

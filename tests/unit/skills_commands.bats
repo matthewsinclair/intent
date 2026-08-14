@@ -128,7 +128,7 @@ teardown() {
   assert_success
 
   # Try to install again, saying no to overwrite
-  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent claude skills install in-elixir-essentials"
+  run bash -c "echo 'n' | $INTENT_BIN claude skills install in-elixir-essentials"
   assert_success
   assert_output_contains "already exists"
   assert_output_contains "skipped"
@@ -144,7 +144,7 @@ teardown() {
   echo "# Modified" >> "$HOME/.claude/skills/in-elixir-essentials/SKILL.md"
 
   # Try to install again, saying yes to overwrite
-  run bash -c "echo 'y' | ${INTENT_BIN_DIR}/intent claude skills install in-elixir-essentials"
+  run bash -c "echo 'y' | $INTENT_BIN claude skills install in-elixir-essentials"
   assert_success
   assert_output_contains "already exists"
   assert_output_contains "installed"
@@ -255,7 +255,7 @@ teardown() {
   echo "# Test modification" >> "$HOME/.claude/skills/in-elixir-essentials/SKILL.md"
 
   # Sync should detect modification
-  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent claude skills sync"
+  run bash -c "echo 'n' | $INTENT_BIN claude skills sync"
   assert_success
   assert_output_contains "warning: modified locally"
   assert_output_contains "overwrite local changes?"
@@ -377,7 +377,7 @@ EOF
   assert_success
 
   # Try to uninstall, saying no
-  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent claude skills uninstall in-elixir-essentials"
+  run bash -c "echo 'n' | $INTENT_BIN claude skills uninstall in-elixir-essentials"
   assert_success
   assert_output_contains "will remove:"
   assert_output_contains "- in-elixir-essentials"

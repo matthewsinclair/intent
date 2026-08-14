@@ -41,7 +41,7 @@ EOF
   git add -A
   git commit -qm "init"
 
-  run "${INTENT_BIN_DIR}/intent" upgrade --no-backup
+  run "$INTENT_BIN" upgrade --no-backup
   assert_success
 
   local target
@@ -82,7 +82,7 @@ EOF
   git commit -qm "init"
 
   # Run the upgrade. Expectation: NOT "Unknown version: 2.11.0".
-  run "${INTENT_BIN_DIR}/intent" upgrade --no-backup
+  run "$INTENT_BIN" upgrade --no-backup
   refute_output_contains "Unknown version: 2.11.0"
 
   teardown_fake_home
@@ -124,7 +124,7 @@ EOF
   git add -A
   git commit -qm "init"
 
-  run "${INTENT_BIN_DIR}/intent" upgrade --no-backup
+  run "$INTENT_BIN" upgrade --no-backup
   assert_success
   assert_output_contains "Ensuring in-whiteboard skill is installed"
 
@@ -170,7 +170,7 @@ EOF
   git add -A
   git commit -qm "init"
 
-  run "${INTENT_BIN_DIR}/intent" upgrade --no-backup
+  run "$INTENT_BIN" upgrade --no-backup
   assert_success
   assert_output_contains "Syncing canon subagent updates"
 
@@ -203,7 +203,7 @@ EOF
   # Make .backup unusable as a directory so the backup copy fails.
   touch .backup
 
-  run "${INTENT_BIN_DIR}/intent" upgrade
+  run "$INTENT_BIN" upgrade
   assert_failure
   refute_output_contains "Backup created successfully"
 

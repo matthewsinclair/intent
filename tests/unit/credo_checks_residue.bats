@@ -34,7 +34,7 @@ mix_with_elixirc_paths() {
   local project="$(create_test_project "credo-clean")"
   cd "$project" || exit 1
 
-  run "${INTENT_BIN_DIR}/intent" doctor
+  run "$INTENT_BIN" doctor
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"checking: leftover credo_checks ok"* ]]
@@ -46,7 +46,7 @@ mix_with_elixirc_paths() {
   touch "$project/credo_checks/highlander_suspect.ex"
   cd "$project" || exit 1
 
-  run "${INTENT_BIN_DIR}/intent" doctor
+  run "$INTENT_BIN" doctor
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"have never run"* ]]
@@ -60,7 +60,7 @@ mix_with_elixirc_paths() {
   wired_credo_exs "$project"
   cd "$project" || exit 1
 
-  run "${INTENT_BIN_DIR}/intent" doctor
+  run "$INTENT_BIN" doctor
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"DO run"* ]]
@@ -74,7 +74,7 @@ mix_with_elixirc_paths() {
   wired_credo_exs "$project"
   cd "$project" || exit 1
 
-  run "${INTENT_BIN_DIR}/intent" doctor
+  run "$INTENT_BIN" doctor
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"stale registration"* ]]
@@ -87,7 +87,7 @@ mix_with_elixirc_paths() {
   mix_with_elixirc_paths "$project"
   cd "$project" || exit 1
 
-  run "${INTENT_BIN_DIR}/intent" doctor
+  run "$INTENT_BIN" doctor
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"elixirc_paths"* ]]
@@ -105,7 +105,7 @@ mix_with_elixirc_paths() {
   mix_with_elixirc_paths "$project"
   cd "$project" || exit 1
 
-  run "${INTENT_BIN_DIR}/intent" doctor
+  run "$INTENT_BIN" doctor
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"0 errors"* ]]

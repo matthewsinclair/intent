@@ -9,7 +9,7 @@
 
 load "../lib/test_helper.bash"
 
-INTENT="$INTENT_BIN_DIR/intent"
+INTENT="$INTENT_BIN"
 
 # Override the shared setup(): the cwi command resolves the CURRENT project via
 # find_project_root, so the test must run inside a project. Provision a throwaway

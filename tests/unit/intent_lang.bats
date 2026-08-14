@@ -21,7 +21,7 @@ teardown() {
 }
 
 @test "intent lang help displays usage" {
-  run "${INTENT_BIN_DIR}/intent" lang help
+  run "$INTENT_BIN" lang help
   assert_success
   assert_output_contains "Usage: intent lang"
   assert_output_contains "list"
@@ -31,13 +31,13 @@ teardown() {
 }
 
 @test "intent lang (no subcommand) shows usage" {
-  run "${INTENT_BIN_DIR}/intent" lang
+  run "$INTENT_BIN" lang
   assert_success
   assert_output_contains "Usage: intent lang"
 }
 
 @test "intent lang list enumerates the canon language packs including author" {
-  run "${INTENT_BIN_DIR}/intent" lang list
+  run "$INTENT_BIN" lang list
   assert_success
   assert_output_contains "elixir"
   assert_output_contains "rust"
@@ -50,7 +50,7 @@ teardown() {
 }
 
 @test "intent lang show <lang> describes installation targets" {
-  run "${INTENT_BIN_DIR}/intent" lang show elixir
+  run "$INTENT_BIN" lang show elixir
   assert_success
   assert_output_contains "Language pack: elixir"
   assert_output_contains "intent/llm/RULES-elixir.md"
@@ -58,7 +58,7 @@ teardown() {
 }
 
 @test "intent lang show on unknown language errors with available list" {
-  run "${INTENT_BIN_DIR}/intent" lang show bogus-language
+  run "$INTENT_BIN" lang show bogus-language
   assert_failure
   assert_output_contains "no template for 'bogus-language'"
   assert_output_contains "available:"
@@ -66,14 +66,14 @@ teardown() {
 
 @test "intent lang init (no args) errors" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init
+  run "$INTENT_BIN" lang init
   assert_failure
   assert_output_contains "missing language argument"
 }
 
 @test "intent lang init <lang> installs RULES + ARCHITECTURE files" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init elixir
+  run "$INTENT_BIN" lang init elixir
   assert_success
   assert_file_exists "$PROJECT_DIR/intent/llm/RULES-elixir.md"
   assert_file_exists "$PROJECT_DIR/intent/llm/ARCHITECTURE-elixir.md"
@@ -87,7 +87,7 @@ teardown() {
 
 @test "intent lang init author installs RULES-author.md + ARCHITECTURE-author.md" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init author
+  run "$INTENT_BIN" lang init author
   assert_success
   assert_file_exists "$PROJECT_DIR/intent/llm/RULES-author.md"
   assert_file_exists "$PROJECT_DIR/intent/llm/ARCHITECTURE-author.md"
@@ -97,7 +97,7 @@ teardown() {
 
 @test "intent lang init author appends the Language Packs entry and writes config languages" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init author
+  run "$INTENT_BIN" lang init author
   assert_success
   assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**author** -- rules via"
   run jq -r '.languages | .[]' "$PROJECT_DIR/intent/.config/config.json"
@@ -111,7 +111,7 @@ teardown() {
 
 @test "intent lang init content installs RULES-content.md + ARCHITECTURE-content.md" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init content
+  run "$INTENT_BIN" lang init content
   assert_success
   assert_file_exists "$PROJECT_DIR/intent/llm/RULES-content.md"
   assert_file_exists "$PROJECT_DIR/intent/llm/ARCHITECTURE-content.md"
@@ -121,7 +121,7 @@ teardown() {
 
 @test "intent lang init content appends the Language Packs entry and writes config languages" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init content
+  run "$INTENT_BIN" lang init content
   assert_success
   assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**content** -- rules via"
   run jq -r '.languages | .[]' "$PROJECT_DIR/intent/.config/config.json"
@@ -131,20 +131,20 @@ teardown() {
 
 @test "intent lang init appends Language Packs entry to agnostic RULES.md" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init rust
+  run "$INTENT_BIN" lang init rust
   assert_success
   assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**rust** -- rules via"
 }
 
 @test "intent lang init is idempotent (zero diff on re-run)" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init shell
+  run "$INTENT_BIN" lang init shell
   assert_success
   local checksum_before
   # Use shasum for portability (md5 differs between BSD and GNU coreutils).
   checksum_before="$(find "$PROJECT_DIR/intent/llm" -type f -exec shasum {} \; | sort | shasum)"
 
-  run "${INTENT_BIN_DIR}/intent" lang init shell
+  run "$INTENT_BIN" lang init shell
   assert_success
   local checksum_after
   checksum_after="$(find "$PROJECT_DIR/intent/llm" -type f -exec shasum {} \; | sort | shasum)"
@@ -154,7 +154,7 @@ teardown() {
 
 @test "intent lang init multi-lang installs each in order" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init rust shell lua
+  run "$INTENT_BIN" lang init rust shell lua
   assert_success
   assert_file_exists "$PROJECT_DIR/intent/llm/RULES-rust.md"
   assert_file_exists "$PROJECT_DIR/intent/llm/RULES-shell.md"
@@ -166,7 +166,7 @@ teardown() {
 
 @test "intent lang init unknown language errors but does not abort other languages" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init bogus elixir
+  run "$INTENT_BIN" lang init bogus elixir
   assert_failure
   assert_output_contains "no template for 'bogus'"
   assert_file_exists "$PROJECT_DIR/intent/llm/RULES-elixir.md"
@@ -175,7 +175,7 @@ teardown() {
 
 @test "intent lang init outside an Intent project errors cleanly" {
   cd "$TEST_TEMP_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init elixir
+  run "$INTENT_BIN" lang init elixir
   assert_failure
   assert_output_contains "no intent/llm/ directory"
 }
@@ -186,7 +186,7 @@ teardown() {
 
 @test "intent lang init writes the language to config.json languages field" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init elixir
+  run "$INTENT_BIN" lang init elixir
   assert_success
   run jq -r '.languages | .[]' "$PROJECT_DIR/intent/.config/config.json"
   assert_success
@@ -195,7 +195,7 @@ teardown() {
 
 @test "intent lang init multi-lang writes all languages to config in order" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init rust shell lua
+  run "$INTENT_BIN" lang init rust shell lua
   assert_success
   local langs
   langs=$(jq -r '.languages | join(",")' "$PROJECT_DIR/intent/.config/config.json")
@@ -204,9 +204,9 @@ teardown() {
 
 @test "intent lang init is idempotent for the languages config field" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init shell
+  run "$INTENT_BIN" lang init shell
   assert_success
-  run "${INTENT_BIN_DIR}/intent" lang init shell
+  run "$INTENT_BIN" lang init shell
   assert_success
   local count
   count=$(jq -r '[.languages[] | select(. == "shell")] | length' "$PROJECT_DIR/intent/.config/config.json")
@@ -215,16 +215,16 @@ teardown() {
 
 @test "intent lang remove (no args) errors" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang remove
+  run "$INTENT_BIN" lang remove
   assert_failure
   assert_output_contains "missing language argument"
 }
 
 @test "intent lang remove deletes RULES + ARCHITECTURE files" {
   cd "$PROJECT_DIR"
-  "${INTENT_BIN_DIR}/intent" lang init rust >/dev/null
+  "$INTENT_BIN" lang init rust >/dev/null
   assert_file_exists "$PROJECT_DIR/intent/llm/RULES-rust.md"
-  run "${INTENT_BIN_DIR}/intent" lang remove rust
+  run "$INTENT_BIN" lang remove rust
   assert_success
   [ ! -f "$PROJECT_DIR/intent/llm/RULES-rust.md" ]
   [ ! -f "$PROJECT_DIR/intent/llm/ARCHITECTURE-rust.md" ]
@@ -232,8 +232,8 @@ teardown() {
 
 @test "intent lang remove drops the entry from config.json languages" {
   cd "$PROJECT_DIR"
-  "${INTENT_BIN_DIR}/intent" lang init shell elixir >/dev/null
-  run "${INTENT_BIN_DIR}/intent" lang remove shell
+  "$INTENT_BIN" lang init shell elixir >/dev/null
+  run "$INTENT_BIN" lang remove shell
   assert_success
   local langs
   langs=$(jq -r '.languages | join(",")' "$PROJECT_DIR/intent/.config/config.json")
@@ -242,9 +242,9 @@ teardown() {
 
 @test "intent lang remove drops the marker entry from agnostic RULES.md" {
   cd "$PROJECT_DIR"
-  "${INTENT_BIN_DIR}/intent" lang init rust >/dev/null
+  "$INTENT_BIN" lang init rust >/dev/null
   assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "**rust** -- rules via"
-  run "${INTENT_BIN_DIR}/intent" lang remove rust
+  run "$INTENT_BIN" lang remove rust
   assert_success
   run grep -F "**rust** -- rules via" "$PROJECT_DIR/intent/llm/RULES.md"
   [ "$status" -ne 0 ]
@@ -252,18 +252,18 @@ teardown() {
 
 @test "intent lang remove on never-installed language is noop" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang remove rust
+  run "$INTENT_BIN" lang remove rust
   assert_success
   assert_output_contains "noop: 'rust' not present"
 }
 
 @test "intent lang remove is idempotent (zero diff on second call)" {
   cd "$PROJECT_DIR"
-  "${INTENT_BIN_DIR}/intent" lang init lua >/dev/null
-  "${INTENT_BIN_DIR}/intent" lang remove lua >/dev/null
+  "$INTENT_BIN" lang init lua >/dev/null
+  "$INTENT_BIN" lang remove lua >/dev/null
   local checksum_before
   checksum_before="$(find "$PROJECT_DIR/intent/llm" -type f -exec shasum {} \; | sort | shasum)"
-  run "${INTENT_BIN_DIR}/intent" lang remove lua
+  run "$INTENT_BIN" lang remove lua
   assert_success
   local checksum_after
   checksum_after="$(find "$PROJECT_DIR/intent/llm" -type f -exec shasum {} \; | sort | shasum)"
@@ -278,7 +278,7 @@ teardown() {
 
 @test "the Language Packs entry names the command, not a path that is not there" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init rust
+  run "$INTENT_BIN" lang init rust
   assert_success
 
   # Points at resolution the reader can actually run...
@@ -292,7 +292,7 @@ teardown() {
 
 @test "re-running lang init heals an entry left behind by an older Intent" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init rust
+  run "$INTENT_BIN" lang init rust
   assert_success
 
   # Simulate a project that ran an older Intent: the block is tool-managed, so
@@ -303,7 +303,7 @@ teardown() {
 
   # A re-run rewrites it in place -- it used to skip whenever any entry existed,
   # so every already-initialised project kept the dangling path for good.
-  run "${INTENT_BIN_DIR}/intent" lang init rust
+  run "$INTENT_BIN" lang init rust
   assert_success
   run grep -F "rule pack at" "$PROJECT_DIR/intent/llm/RULES.md"
   assert_failure
@@ -320,7 +320,7 @@ teardown() {
 
 @test "lang sync heals a stale Language Packs entry without touching RULES-<lang>.md" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init shell
+  run "$INTENT_BIN" lang init shell
   assert_success
 
   # A project carrying the pre-2.17.4 wording, plus a local edit in the
@@ -328,7 +328,7 @@ teardown() {
   perl -i -pe 's{^- \*\*shell\*\* -- .*$}{- **shell** -- rule pack at `intent/plugins/claude/rules/shell/`; concretised RULES at `intent/llm/RULES-shell.md`.}' "$PROJECT_DIR/intent/llm/RULES.md"
   echo "<!-- USER EDIT -->" >> "$PROJECT_DIR/intent/llm/RULES-shell.md"
 
-  run "${INTENT_BIN_DIR}/intent" lang sync
+  run "$INTENT_BIN" lang sync
   assert_success
   assert_file_contains "$PROJECT_DIR/intent/llm/RULES.md" "intent claude rules list --lang shell"
   run grep -F "rule pack at" "$PROJECT_DIR/intent/llm/RULES.md"
@@ -340,18 +340,18 @@ teardown() {
 
 @test "lang sync --check reports staleness without writing" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang init shell
+  run "$INTENT_BIN" lang init shell
   assert_success
 
   # Current -> check passes.
-  run "${INTENT_BIN_DIR}/intent" lang sync --check
+  run "$INTENT_BIN" lang sync --check
   assert_success
 
   perl -i -pe 's{^- \*\*shell\*\* -- .*$}{- **shell** -- rule pack at `intent/plugins/claude/rules/shell/`; concretised RULES at `intent/llm/RULES-shell.md`.}' "$PROJECT_DIR/intent/llm/RULES.md"
   cp "$PROJECT_DIR/intent/llm/RULES.md" "$PROJECT_DIR/rules.before"
 
   # Stale -> check fails, and writes nothing.
-  run "${INTENT_BIN_DIR}/intent" lang sync --check
+  run "$INTENT_BIN" lang sync --check
   assert_failure
   run diff "$PROJECT_DIR/rules.before" "$PROJECT_DIR/intent/llm/RULES.md"
   assert_success
@@ -359,9 +359,9 @@ teardown() {
 
 @test "lang sync is a no-op when no languages are declared" {
   cd "$PROJECT_DIR"
-  run "${INTENT_BIN_DIR}/intent" lang sync
+  run "$INTENT_BIN" lang sync
   assert_success
   assert_output_contains "no declared languages"
-  run "${INTENT_BIN_DIR}/intent" lang sync --check
+  run "$INTENT_BIN" lang sync --check
   assert_success
 }

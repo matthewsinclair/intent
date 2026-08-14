@@ -50,7 +50,7 @@ set_status() {
   # The census that found the bug: count info.md on disk, count rows emitted,
   # compare. Nothing else in the output distinguishes "correctly filtered" from
   # "silently dropped".
-  run bash -c "cd '$project_dir' && '${INTENT_BIN_DIR}/intent' st list --status all 2>/dev/null | grep -cE '^ST[0-9]{4}'"
+  run bash -c "cd '$project_dir' && '$INTENT_BIN' st list --status all 2>/dev/null | grep -cE '^ST[0-9]{4}'"
   assert_output "4"
 }
 
@@ -68,7 +68,7 @@ set_status() {
   # canonical_status folds COMPLETE -> Completed and always could; this path
   # bypassed it, which is what made the vocabulary brittle rather than the
   # normaliser redundant.
-  run bash -c "cd '$project_dir' && '${INTENT_BIN_DIR}/intent' st list --status all 2>/dev/null | grep -c '^ST0003'"
+  run bash -c "cd '$project_dir' && '$INTENT_BIN' st list --status all 2>/dev/null | grep -c '^ST0003'"
   assert_output "1"
 }
 
@@ -76,7 +76,7 @@ set_status() {
   setup_vocabulary
   # SUPERSEDED is nobody's synonym, so normalisation alone cannot rescue it.
   # `all` must mean all: a view that cannot classify a row still has to show it.
-  run bash -c "cd '$project_dir' && '${INTENT_BIN_DIR}/intent' st list --status all 2>/dev/null | grep -c '^ST0004'"
+  run bash -c "cd '$project_dir' && '$INTENT_BIN' st list --status all 2>/dev/null | grep -c '^ST0004'"
   assert_output "1"
 }
 
@@ -85,7 +85,7 @@ set_status() {
   # Issue 0007's precedent: report the row AND the anomaly. Neither substitutes
   # for the other -- showing it silently hides a data problem, warning without
   # showing it is the bug.
-  run bash -c "cd '$project_dir' && '${INTENT_BIN_DIR}/intent' st list --status all 2>&1 >/dev/null"
+  run bash -c "cd '$project_dir' && '$INTENT_BIN' st list --status all 2>&1 >/dev/null"
   assert_output_contains "outside the vocabulary"
   assert_output_contains "ST0004: SUPERSEDED"
   # The placed threads are not denounced.
@@ -110,6 +110,6 @@ set_status() {
   # ordering -- WIP, Not Started, On Hold, Completed, Cancelled -- and the
   # unplaced rows come last. Pinned, because a wrong collapse reorders every
   # `--status all` listing and every regenerated index silently.
-  run bash -c "cd '$project_dir' && '${INTENT_BIN_DIR}/intent' st list --status all 2>/dev/null | grep -nE '^ST[0-9]{4}' | cut -d: -f2 | cut -d' ' -f1 | tr '\n' ' '"
+  run bash -c "cd '$project_dir' && '$INTENT_BIN' st list --status all 2>/dev/null | grep -nE '^ST[0-9]{4}' | cut -d: -f2 | cut -d' ' -f1 | tr '\n' ' '"
   assert_output "ST0001 ST0002 ST0003 ST0004 "
 }

@@ -123,7 +123,7 @@ EOF
 
 @test "config: without .intent_critic.yml the finding fires (defaults path)" {
   make_runner_fixture
-  run bash -c "cd '$PROJ' && '${INTENT_BIN_DIR}/intent' critic shell --rules '$RULES_DIR' --files target.sh --format text"
+  run bash -c "cd '$PROJ' && '$INTENT_BIN' critic shell --rules '$RULES_DIR' --files target.sh --format text"
   [ "$status" -eq 1 ]
   assert_output_contains "IN-SH-TEST-903"
 }
@@ -134,7 +134,7 @@ EOF
 disabled:
   - IN-SH-TEST-903 # reason: synthetic rule disabled for config test
 EOF
-  run bash -c "cd '$PROJ' && '${INTENT_BIN_DIR}/intent' critic shell --rules '$RULES_DIR' --files target.sh --format text"
+  run bash -c "cd '$PROJ' && '$INTENT_BIN' critic shell --rules '$RULES_DIR' --files target.sh --format text"
   [ "$status" -eq 0 ]
   refute_output_contains "IN-SH-TEST-903"
 }
@@ -145,7 +145,7 @@ EOF
 disabled:
   - IN-SH-OTHER-999 # reason: unrelated id
 EOF
-  run bash -c "cd '$PROJ' && '${INTENT_BIN_DIR}/intent' critic shell --rules '$RULES_DIR' --files target.sh --format text"
+  run bash -c "cd '$PROJ' && '$INTENT_BIN' critic shell --rules '$RULES_DIR' --files target.sh --format text"
   [ "$status" -eq 1 ]
   assert_output_contains "IN-SH-TEST-903"
 }

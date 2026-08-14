@@ -136,11 +136,11 @@ DELETED_PATHS=(
 
   cd "${INTENT_PROJECT_ROOT}" || fail "could not cd to project root"
 
-  "${INTENT_BIN_DIR}/intent" agents sync >/dev/null 2>&1 \
+  "$INTENT_BIN" agents sync >/dev/null 2>&1 \
     || fail "first intent agents sync failed"
   cp "$agents_md" "$first"
 
-  "${INTENT_BIN_DIR}/intent" agents sync >/dev/null 2>&1 \
+  "$INTENT_BIN" agents sync >/dev/null 2>&1 \
     || fail "second intent agents sync failed"
   cp "$agents_md" "$second"
 

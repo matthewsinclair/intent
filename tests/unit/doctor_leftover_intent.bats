@@ -10,7 +10,7 @@ load "../lib/test_helper.bash"
   local project="$(create_test_project "leftover-clean")"
   cd "$project" || exit 1
 
-  run "${INTENT_BIN_DIR}/intent" doctor
+  run "$INTENT_BIN" doctor
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"checking: leftover .intent ok"* ]]
@@ -22,7 +22,7 @@ load "../lib/test_helper.bash"
   echo '{"intent_version":"2.9.0"}' > "$project/.intent/config.json"
   cd "$project" || exit 1
 
-  run "${INTENT_BIN_DIR}/intent" doctor
+  run "$INTENT_BIN" doctor
 
   # Status should be 0 (warning, not error)
   [ "$status" -eq 0 ]
@@ -35,7 +35,7 @@ load "../lib/test_helper.bash"
   mkdir -p "$project/.intent"
   cd "$project" || exit 1
 
-  run "${INTENT_BIN_DIR}/intent" doctor
+  run "$INTENT_BIN" doctor
 
   [[ "$output" == *"git rm -rf .intent/"* ]]
   [[ "$output" == *"chore: drop leftover .intent/"* ]]
@@ -45,7 +45,7 @@ load "../lib/test_helper.bash"
   local project="$(create_test_project "leftover-quiet-ok")"
   cd "$project" || exit 1
 
-  run "${INTENT_BIN_DIR}/intent" doctor --quiet
+  run "$INTENT_BIN" doctor --quiet
 
   [ "$status" -eq 0 ]
   # Quiet mode suppresses the per-check "checking: ..." prefix
@@ -57,7 +57,7 @@ load "../lib/test_helper.bash"
   mkdir -p "$project/.intent"
   cd "$project" || exit 1
 
-  run "${INTENT_BIN_DIR}/intent" doctor --quiet
+  run "$INTENT_BIN" doctor --quiet
 
   [[ "$output" == *"warning"* ]]
   [[ "$output" == *"stale .intent/"* ]]

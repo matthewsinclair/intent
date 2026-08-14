@@ -194,7 +194,7 @@ EOF
   # Invoke generate via the bare-env path the dispatcher exposed.
   # `run_intent` is a bash function and is not visible to `env`; invoke the
   # binary directly so PROJECT_ROOT can be unset before the child starts.
-  run env -u PROJECT_ROOT "${INTENT_BIN_DIR}/intent" agents generate
+  run env -u PROJECT_ROOT "$INTENT_BIN" agents generate
   assert_success
   # Project name comes from `basename "$PROJECT_ROOT"`, ie the project
   # directory name (`test-project` per `create_test_project` defaults).

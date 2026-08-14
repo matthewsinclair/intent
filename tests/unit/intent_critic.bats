@@ -211,7 +211,7 @@ EOF
   # `intent critic` is a project command and requires a valid intent/.config/
   # project root. Run from INTENT_PROJECT_ROOT itself (the Intent repo).
   cd "${INTENT_PROJECT_ROOT}"
-  run "${INTENT_BIN_DIR}/intent" critic --help
+  run "$INTENT_BIN" critic --help
   assert_success
   assert_output_contains "intent critic <lang>"
 }

@@ -8,6 +8,19 @@ INTENT_BIN_DIR="${INTENT_PROJECT_ROOT}/bin"
 INTENT_TEST_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures"
 INTENT_TEMP_DIR="${INTENT_PROJECT_ROOT}/tests/tmp"
 
+# The CLI under test. Defaults to the shell implementation in this repo; set
+# INTENT_BIN in the environment to run the estate against another one (ST0056:
+# the v3 binary) without editing a single test.
+#
+# INTENT_BIN_DIR is NOT a substitute. It names a DIRECTORY of 27 scripts, and the
+# ~146 `${INTENT_BIN_DIR}/intent_<sub>` call sites invoke those directly,
+# bypassing the bin/intent dispatcher and everything it does (PROJECT_ROOT
+# resolution, INTENT_ORIG_CWD, cd to project root -- bin/intent:198-218). Those
+# have no equivalent under a single binary and are classified in the register,
+# not mechanically retargeted here.
+INTENT_BIN="${INTENT_BIN:-${INTENT_BIN_DIR}/intent}"
+export INTENT_BIN
+
 # Export INTENT_HOME for tests
 export INTENT_HOME="${INTENT_PROJECT_ROOT}"
 
@@ -98,7 +111,7 @@ ACCEPTANCE_EOF
 
 # Helper function to run intent command
 run_intent() {
-  "${INTENT_BIN_DIR}/intent" "$@"
+  "$INTENT_BIN" "$@"
 }
 
 # Helper to check if command output contains expected text

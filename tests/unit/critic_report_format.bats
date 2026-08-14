@@ -99,7 +99,7 @@ teardown() {
 }
 
 run_critic() {
-  run "${INTENT_BIN_DIR}/intent" critic shell --rules "$RULES_DIR" "$@"
+  run "$INTENT_BIN" critic shell --rules "$RULES_DIR" "$@"
 }
 
 # ====================================================================

@@ -142,7 +142,7 @@ teardown() {
   assert_success
   
   # Try to install again, saying no to overwrite
-  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent claude subagents install intent"
+  run bash -c "echo 'n' | $INTENT_BIN claude subagents install intent"
   assert_success
   assert_output_contains "already exists"
   assert_output_contains "skipped"
@@ -158,7 +158,7 @@ teardown() {
   echo "# Modified" >> "$HOME/.claude/agents/intent.md"
   
   # Try to install again, saying yes to overwrite
-  run bash -c "echo 'y' | ${INTENT_BIN_DIR}/intent claude subagents install intent"
+  run bash -c "echo 'y' | $INTENT_BIN claude subagents install intent"
   assert_success
   assert_output_contains "already exists"
   assert_output_contains "installed"
@@ -230,7 +230,7 @@ teardown() {
   
   # Wait a moment and reinstall
   sleep 1
-  run bash -c "echo 'y' | ${INTENT_BIN_DIR}/intent claude subagents install intent"
+  run bash -c "echo 'y' | $INTENT_BIN claude subagents install intent"
   assert_success
   
   # Verify manifest was updated
@@ -320,7 +320,7 @@ teardown() {
   echo "# Test modification" >> "$HOME/.claude/agents/intent.md"
   
   # Sync should detect modification
-  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent claude subagents sync"
+  run bash -c "echo 'n' | $INTENT_BIN claude subagents sync"
   assert_success
   assert_output_contains "warning: modified locally"
   assert_output_contains "overwrite local changes?"
@@ -428,7 +428,7 @@ teardown() {
   assert_success
   
   # Try to uninstall, saying no
-  run bash -c "echo 'n' | ${INTENT_BIN_DIR}/intent claude subagents uninstall intent"
+  run bash -c "echo 'n' | $INTENT_BIN claude subagents uninstall intent"
   assert_success
   assert_output_contains "will remove:"
   assert_output_contains "- intent"
@@ -511,7 +511,7 @@ teardown() {
   echo "# Manual agent" > "$HOME/.claude/agents/manual.md"
   
   # Try to uninstall - need to confirm twice (once for uninstall, once for unmanaged)
-  run bash -c "printf 'y\nn\n' | ${INTENT_BIN_DIR}/intent claude subagents uninstall manual"
+  run bash -c "printf 'y\nn\n' | $INTENT_BIN claude subagents uninstall manual"
   assert_success
   assert_output_contains "warning: not managed by intent"
   assert_output_contains "Remove anyway?"
