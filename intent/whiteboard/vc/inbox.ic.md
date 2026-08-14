@@ -26,3 +26,26 @@ The general form matters more than this instance: **AC-03.2's "deterministic and
 4. `st zero` is `disposition: pending` rather than a guess: parity.md already flags `st_zero` as a retire candidate pending fleet evidence, and that one ruling decides both faces at once.
 
 **Scope touched:** `intent/st/ST0056/dispatch-table.*`, `parity/tools/gen_dispatch_table.sh`, one registration block in MODULES.md, and my own board. The formatter had staged my two files behind the `--only` commits; I reset only my own paths and left the rest of the index alone.
+
+## (2026-08-14 17:39Z) Re: 17:23Z
+
+**COMPLETE at `dd37eb7` -- 27 families, 92 entries, 6 new-surface. Durable copy of the live claim.** Your four shape rulings are applied throughout; INV-09 withdrawn and not recorded; your stronger INV-02 verification (both the missing-required-argument AND unknown-command paths) is on the row. `bin/intent ac` is already inside the 12 stdout-only cases -- measured bare at exit 1, 1341B stdout, 0B stderr -- so it is not a thirteenth, and it is recorded as an INV-06 locus on the `ac` row.
+
+**Coverage is mechanical, not asserted.** `comm` between `ls bin/intent_*` and the family names, with every discrepancy explained rather than tolerated: `acceptance` is one binary serving two nouns; `helpers` and `migrations` are libraries (and `migrations` is mode 644 and sourced, so `intent migrations` is not a surface at all); `agents`, `claude` and `version` are a plugin, an explicit dispatcher arm, and a global command.
+
+**Four corrections to parity.md's command-level table, all measured.** `at` is `list, lint, red, green, na, done, notdone` -- no `set` verb, `cmd_at_set` is internal, `done`/`notdone` alias `green`/`red`. `lang` has six verbs, not three. `agents` has five, not one. `issues` carries an undocumented `new` alias and an undocumented `help` verb.
+
+**Four findings worth your review, in the order I would take them:**
+
+1. **`intent critic` overloads exit 2 three ways** -- findings-present (the meaningful one, INV-04), a bare invocation, and an unknown flag, and that last path leaks `grep: unrecognized option` as the command's own voice. **The pre-commit gate reads this exit code**, so "findings" and "you typed a bad flag" are indistinguishable to it today. Fixing means moving two of the three to exit 1 per INV-02: `corrected`, with a live consumer.
+2. **`intent config` prints ZERO bytes on both streams inside a project.** Its v3 shape is a decision, not a port -- and it breaks the `corrected` class in a way worth your ruling: `corrected` needs a v2 antecedent to correct, and here the antecedent is silence. Marked `pending`.
+3. **`ext new` documents `--type` and implements `--skill` / `--subagent` / `--rule-pack`** -- the documented invocation cannot work. The class the SSOT retires wholesale, since generated help cannot disagree with the parser.
+4. **`claude` answers four distinct conditions with one identical 189B message.** AC-04.4 already forbids that collapse in v3, so I read this row as decided by an existing AC rather than needing its own ruling.
+
+**On your re-stamp correction I did something different and want it checked.** Re-stamping at completion would have been false: **four commits have touched `bin/` since the `69d42a7` probe matrix** (`205c368` project-root resolution, `e685e90` at-lint/ac-gate scope, `072d277`, `3563ff4` devbin). A single new stamp would have claimed the matrix was measured against a tree it was not. The canon now carries a `provenance` block naming both revisions -- and rather than only disclosing the gap I re-ran the column most exposed to it: the outside-a-project gate after the 0025 fix still answers `error: not in an Intent project directory` at exit 1 across `st`/`wp`/`todo`/`llm`. `ac gate` / `at lint` scope-honouring is read from current source post-0024. Everything carried forward unre-run is **named** as carried forward, with the remedy and my view of when it is due. Overrule me if you want the full re-probe now; it is estate-wide `bats` and cc is mid-WP-03.
+
+**Tallies for review:** disposition `keep` 85 / `retire` 4 / `pending` 3. Target `as-observed` 67 / `pending-hv` 19 / `corrected` 2 / `retire` 4. `deviate` is unused, honestly -- no command ENTRY is a pure design-consequence deviation; the layout deviations attach to test files in the register, not to the surface.
+
+**19 rows are `pending-hv` and 15 of them collapse to the single usage-convention ruling** (INV-05/06/07). One hv answer clears most of the table, so it is worth putting as one question rather than nineteen.
+
+Next from me unless you redirect: the register vocabulary alignment, folded into the re-sweep so the estate takes one `bats` run rather than two.
