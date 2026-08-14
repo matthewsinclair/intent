@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-14 22:38Z
+heartbeat_at: 2026-08-14 22:55Z
 status: active
-focus: "WP-06 OPEN and building. First slice at f0d6e64: third-level surface reachable, search + schema landed with their ATs. 172 tests green."
+focus: "WP-06 building. Landed: third-level surface, search, schema, doctor, and the ac/at/wp long tail. 192 tests green. Next: issues + todo families, then st edit/sync/repair."
 claims: []
 ---
 
