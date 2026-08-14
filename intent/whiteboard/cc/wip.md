@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-14 22:19Z
+heartbeat_at: 2026-08-14 22:38Z
 status: active
-focus: "Folded for a compact mid-session. WP-03 and WP-04 CLOSED, WP-05 3/4. hv: START BUILDING on wake -- do not wait on vc. Next is WP-06, work-list below."
+focus: "WP-06 OPEN and building. First slice at f0d6e64: third-level surface reachable, search + schema landed with their ATs. 172 tests green."
 claims: []
 ---
 
