@@ -9,6 +9,20 @@ description = "Intent v3 CLI: a thin coordinator over the intentsvcs facade (in-
 # NOTE (design.md D06): this crate must NEVER depend on rusqlite -- the CLI
 # reaches data only through the intentsvcs facade. dep_graph_guard.rs enforces.
 
+[dependencies]
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+time.workspace = true
+intentsvcs = { path = "../intentsvcs" }
+
+[lib]
+name = "intent_cli"
+path = "src/lib.rs"
+
 [[bin]]
 name = "intent"
 path = "src/main.rs"
+
+[dev-dependencies]
+tempfile.workspace = true

@@ -1,13 +1,31 @@
-//! The `intent` v3 binary -- WP-02 placeholder.
+//! `intent` -- the v3 CLI binary.
 //!
-//! The clap spine over the dispatch-table SSOT lands in WP-05; until then
-//! this binary exists so the workspace shape (design.md D18: two shipped
-//! binaries) and the dependency-graph guard are real from the first commit.
-//! It is not installed anywhere; the v2 shell CLI remains the working tool.
+//! A thin coordinator and nothing else (AC-05.4, `IN-AG-THIN-COORD-001`):
+//! parse, call the intentsvcs facade, render. The command surface is BUILT
+//! from the committed dispatch table (AC-05.1), so this file dispatches verbs
+//! it never declared.
 
-fn main() {
-  println!(
-    "intent {} -- v3 scaffold (ST0056/WP-02); the installed v2 CLI remains the working tool",
-    env!("CARGO_PKG_VERSION")
-  );
+use std::process::ExitCode;
+
+use intent_cli::{render, spine};
+
+fn main() -> ExitCode {
+  let argv: Vec<String> = std::env::args().collect();
+  let matches = match spine::parse(argv) {
+    Ok(matches) => matches,
+    Err(code) => return ExitCode::from(code as u8),
+  };
+  match render::run(&matches) {
+    Ok(()) => ExitCode::from(spine::EXIT_OK as u8),
+    Err(message) => {
+      // The gate writes its own verdict to stdout and returns an empty
+      // message, because it is read by machines via the exit code -- v2 does
+      // the same. Printing an empty line there would add noise to a contract
+      // that other tools parse.
+      if !message.is_empty() {
+        eprintln!("{message}");
+      }
+      ExitCode::from(spine::EXIT_ERROR as u8)
+    }
+  }
 }

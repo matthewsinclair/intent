@@ -9,6 +9,15 @@ authors = ["Matthew Sinclair <hello@matthewsinclair.com>"]
 license = "MIT"
 
 [workspace.dependencies]
+# The CLI surface. BUILDER api, not derive: the dispatch table is runtime
+# data and IS the surface (AC-05.1), so the spine is constructed from it
+# rather than declared twice.
+# `string` is load-bearing, not a convenience: the surface is built from
+# runtime table data, so every name is an owned String rather than a
+# `'static` literal. Without it, clap can only accept the compile-time
+# constants a derive-based spine would use -- which is the design AC-05.1
+# rules out.
+clap = { version = "4", features = ["string"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 schemars = "1"
@@ -29,7 +38,7 @@ async-graphql = "7"
 # crate is a build-time architecture violation, not a style nit.
 rusqlite = { version = "0.32", features = ["bundled"] }
 ulid = "1"
-time = { version = "0.3", features = ["formatting"] }
+time = { version = "0.3", features = ["formatting", "macros"] }
 # Content hashing for the sync engine's file index. AC-03.3 requires detecting
 # a same-size same-mtime rewrite, which stat cannot see by construction, so the
 # hash is computed on EVERY scan and stat is reporting metadata only.

@@ -122,6 +122,8 @@ pub enum StoreError {
   Sqlite(#[from] rusqlite::Error),
   #[error("serialisation: {0}")]
   Serde(#[from] serde_json::Error),
+  #[error("creating the runtime cache directory: {0}")]
+  Cache(#[source] std::io::Error),
 }
 
 pub struct Store {
@@ -132,6 +134,14 @@ impl Store {
   /// Open (creating if absent) the DB at `path`, apply the DDL, set WAL +
   /// foreign keys. Reopening an existing DB is a no-op apply (IF NOT EXISTS).
   pub fn open(path: &std::path::Path) -> Result<Self, StoreError> {
+    // SQLite creates the FILE but not its directory, and `intent/.cache/` is
+    // gitignored (D21) so it is absent on every fresh clone and every fresh
+    // project. Without this, the first command in a new project fails with
+    // "unable to open database file" -- a confusing message for a directory
+    // the tool owns and can simply make.
+    if let Some(parent) = path.parent() {
+      std::fs::create_dir_all(parent).map_err(StoreError::Cache)?;
+    }
     let conn = Connection::open(path)?;
     conn.pragma_update(None, "journal_mode", "WAL")?;
     Self::init(conn)
