@@ -19,7 +19,6 @@ claims: [ST0056]
 
 - **Review WP-02 at cc's close claim**: AC-02.6 renumbers into WP-04's group at close (vc recommendation, unobjected at the bounce; hv veto stays open until review); verify the SDL face + AcScopeView projection guards on the as-built.
 - **Review ic's register follow-ups**: the 95th test file (`at_lint_wp_scope.bats`, post-baseline) has no row; per-test rows for the 40 `split` files (unblocked -- `corrected` ratified).
-- Watch the in-flight Intent Tests run on `736033d` (31812129679); a red goes to cc.
 - ic's charter + roster asks: surfaced at the bounce, not ruled; still open with hv.
 
 ## Watch-outs
