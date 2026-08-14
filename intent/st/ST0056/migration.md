@@ -10,7 +10,7 @@ The migrator is the v3 binary's `intent upgrade` detecting a v2 project. Its par
 
 ## The flow
 
-**Phase A -- check (read-only).** Strict-parse the entire estate with the legacy parser. Produce the residue report. If ANY residue: **BLOCKED**, print the work list, exit non-zero, write nothing. Migration is atomic per project -- there is no partially-converted tree, no `--defer`, no mixed v2/v3 state. Residue is fixed under v2 tooling (the two-hop's other purpose: the last v2 release is the fixing environment), then re-run.
+**Phase A -- check (read-only).** Strict-parse the entire estate with the legacy parser. Produce the residue report. If ANY residue in a LIVE thread: **BLOCKED**, print the work list, exit non-zero, write nothing. Migration is atomic per project -- there is no partially-converted tree, no `--defer`, no mixed v2/v3 state. Live-thread residue is fixed under v2 tooling (the two-hop's other purpose: the last v2 release is the fixing environment), then re-run. Legacy-grammar rows in CLOSED threads are not residue -- they convert under the closed-thread carry policy below and are counted in the report as carried, per class.
 
 **Phase B -- convert (only from a clean Phase A).**
 
@@ -55,11 +55,15 @@ The acceptance fixture for AC-00.2 / AC-10.5. A corpus manifest names `{project,
 
 Corpus order: **Intent's own tree first (canary), then Lamplight, Utilz, Baize** at named current revisions. The canary run includes exercising rollback for real (AC-10.6): migrate, revert, assert tree-identical.
 
-## Open policy question (forced by the fleet, 2026-08-14 -- hv to rule)
+## Closed-thread carry policy (hv-ruled 2026-08-14)
 
-The sweep program is dead: Lamplight's hv ruled AT remediation on Done work off outright, so their ~1158 legacy-grammar rows (70% of the estate) will never be brought to the v2.19 grammar. Under Phase A's BLOCKED-until-clean, Lamplight can therefore never migrate to v3 -- the policy as written meets an estate for which "fix under v2 tooling, then re-run" is refused by its owner, permanently.
+The forcing fact: the sweep program is dead. Lamplight's hv ruled AT remediation on Done work off outright, so their ~1158 legacy-grammar rows (70% of the estate) will never be brought to the v2.19 grammar. An unconditional BLOCKED-until-clean would meet an estate for which "fix under v2 tooling, then re-run" is refused by its owner, permanently. hv ruling:
 
-The likely resolution, for hv rather than decided here: a distinct conversion class for CLOSED (Completed/Cancelled) threads that is **lossless-by-carrying** -- the legacy reference, `::name` citation and multi-file list carried whole into the model (marked legacy, nothing guessed, nothing dropped, nothing reformatted) -- while LIVE threads keep BLOCKED-until-clean. The 0017 refusal was about a fixer that would have destroyed one end of a two-ended migration; carrying the whole row into a richer model destroys nothing, which is exactly the distinction between migrating data and improving it. Neither class ever gets a lossy path.
+- **CLOSED threads (Completed/Cancelled): lossless-by-carrying.** The legacy reference, `::name` citation and multi-file list are carried whole into the model -- marked legacy, nothing guessed, nothing dropped, nothing reformatted. The 0017 refusal was about a fixer that would have destroyed one end of a two-ended migration; carrying the whole row into a richer model destroys nothing, which is exactly the distinction between migrating data and improving it.
+- **LIVE threads keep BLOCKED-until-clean.** Residue in a live thread is fixed under v2 tooling, then re-run.
+- **Neither class ever gets a lossy path.**
+
+**Model consequence (spec before WP-08):** carrying needs an explicit marked-legacy form on the AT row -- the raw v2 reference preserved verbatim beside the parsed fields, never reformatted. Lands in data-model.md before the migrator is built.
 
 ## What the migrator does not do
 
