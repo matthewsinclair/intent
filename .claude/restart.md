@@ -5,35 +5,24 @@
 1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the gate. (Languages: shell only.) Whiteboard present (`intent/whiteboard/`, hv+cc+vc) -- `/in-session` chains `/in-whiteboard pickup`. Solo unless launched as a node via `intent claude start <ws>`.
 2. **Read this file + `intent/wip.md`.**
 
-## State: v2.18.0 SHIPPED
+## State: v2.19.0 BUILT + GREEN, CUT PENDING
 
-**Two releases the same day (2026-07-30).**
+**The next action is the release cut** (`bin/release --minor`; interactive; NEVER `--no-confirm`; it stamps all five sidecars and dates the CHANGELOG at the cut -- VERSION/config are deliberately still 2.18.0 until then).
 
-**v2.17.4** -- four issues closed in two pairs. **0006 + 0007** (high, `bin/intent_acceptance`): a `sed` non-match is invisible, so the extractors were total BY ACCIDENT (a failed parse returned the whole line as a plausible value -- `status: **green` gated a green test as unsatisfied in silence) and `ac satisfy` printed `ok:` having written nothing. Fixed with one extraction seam (`extract_field`) + post-state write verification (`assert_written`). New diagnostics name bad AT statuses and unclosed `(non-test` markers but do NOT block -- these already fail closed; they failed closed silently. **0005 + 0008** (medium): a generator asserting into a consumer repo something true only where the tool lives (a dangling rule-pack path; an unconditional `Bash 4.0+`). 0005 was widened to an upsert because as specified it would have healed nothing. **0009 filed** (probes vs declared `languages`), deliberately not folded in.
+**What v2.19.0 is:** eleven issues closed (0009-0019). The centrepiece is the AT row grammar (0017, subsuming 0014 + 0015): two anchored arms, `intent at lint` L1-L5, a `--fix` that refuses what it cannot migrate without loss, the close-gate honouring the grammar from day one, and an `at_grammar` ledger step so consumers are swept by upgrading. Alongside: four AC states with descope/rescope + withdraw/reinstate (0013 + hv verb); THE steel-thread enumerator, a voiced `organize`, and a doctor duplicate-id check (0011); the whiteboard header block ruled not-YAML and enforced (0012); `intent claude hook <name>` runtime resolution, settings.json byte-identical everywhere (0016); AGENTS.md prerequisites from declared languages + upgrade convergence (0009); objective-placeholder warning at close (0010); treeindex cache untracked + ignored, consumers converge (0018); the canonical thread index actually indexes all threads (0019); `warning()` lowercase voice. `--fix` was hardened three times on real-estate evidence, and the 87 name links its lossy first version destroyed in our own contracts were restored from git (`ee44f63`).
 
-**v2.18.0** -- makes those corrections REACH existing projects, which was the more interesting bug. `intent upgrade` now converges the Language Packs block (`lang_packs` ledger step -> new `intent lang sync [--check]`); it delegates to `sync`, NOT `lang init`, because `init` copies `RULES-<lang>.md` over hand-edited files. `bin/release` now stamps all five sidecars before the tag: **`v2.18.0` is the first self-consistent tag Intent has cut** (v2.17.2/3/4 each carried the previous version in `config.json` + `CLAUDE.md`), and needed no wrap.
+**Suite green at HEAD (hv-run, 2026-08-14). Nothing pushed; no tag.**
 
-Tags `v2.17.4` (`af13633`), `v2.18.0` (`6cd4400`); both remotes + GitHub releases. Suite 1132/1132. Detail: `intent/done.md`, `intent/restart.md`, CHANGELOG `[2.17.4]`/`[2.18.0]`, `intent/issues/CLOSED/000{5,6,7,8}/`.
+## After the cut
 
-## Standing lesson
+1. `intent/history/v2.19.0.md` narrative; done.md entry flips to shipped + tag; push both remotes + GitHub release.
+2. **Consumer sweeps, one `intent upgrade` each** (Lamplight first: 314 AT rows + four bad-status contracts; expect BLOCKED-until-swept -- that is the fix working; residue is named, never guessed). The same pass converges AGENTS.md, portable-hook settings.json, gitignore entries, and PRINTS (never runs) any treeindex `git rm`.
+3. Push fleet issue-normalisation commits (Utilz `0171297`, Lamplight `7058fd3a8`).
+4. hv-ruling queue: 0004 item 4; `javascript` pack (0009's Node exception); pruning consumers' inert `.claude/scripts/` copies; `intent_claude_prime:212` voice+stream.
 
-For tooling that only runs at release or upgrade time, the dry-run path and the real path diverge -- exercise the real one in a sacrificial copy. Both fixes were proven that way (a real release cut in a throwaway clone with a `gh` stub; a poisoned consumer fixture upgraded end to end), and each turned up defects a dry run could not show. One fixture was built wrong and gave the WRONG answer; it was rebuilt rather than trusted.
+## Standing lessons (this cycle)
 
-## Open follow-ups (non-blocking)
-
-- **Consumer sweep: `intent upgrade` per project** -- one command now (v2.18.0). Utilz / Lamplight / Baize still on old canon. Watch the first: one fixture behind it, not a live estate.
-- **Lamplight contract sweep:** ST0276 (11 bolded `**green` rows) + `ST0298` `GREEN`, `ST0270` `BOTH`, `ST0198` `BUILT`. Not flipped by the fix (emphasis deliberately not tolerated); each row is now named by the tool.
-- **hv ruling owed -- issue 0004 item 4:** non-zero exit on a BLOCKED `ac status`; premise does not reproduce. `status` = reporter (stdout), `gate` = gate (`$?`). Own issue if wanted.
-- Issue 0009 (open). Push Utilz (`0171297`) + Lamplight (`7058fd3a8`) issue-normalisation commits (Conflab pushed). Utilz-side todo guard.
-- AT-name traceability (vc deferral) -- now load-bearing: two ST0043 guards keep their `@test` names verbatim because ST0043's contract cites them. `bin/release` v2 polish is DONE. Headless `intent critic prose` gate (D4); `docs/blog/README.md` dead link 0007.
-
-## Backlog
-
-`/in-review` Elixir fleet sweep (Anvil, Lamplight, MeetZaya, MicroGPTEx, Conflab); Conflab TEST-001/005/007; Homebrew tap; `$N`-in-SKILL.md audit; shell-critic-inception blog; skill-sync blind spot; ST0040/ST0041 deferred.
-
-## Fleet
-
-Members pick up v2.18.0 on next `intent upgrade`. Excludes Pplr, Sites-in-Laksa, llm-tropes. NOTE: v2.18.0 makes `intent upgrade` REWRITE `intent/llm/RULES.md` (the Language Packs block) on every member where it previously did not -- entries are upserted to canon once. That is the fix working. Hand edits to `RULES-<lang>.md` are untouched; only the tool-managed block inside the `intent-lang-packs` markers changes. Carried forward from v2.17.4: contracts with out-of-vocabulary AT statuses now emit warnings naming those rows -- the rows were already failing to satisfy their criteria, so the warning reports what was previously silent, not a new restriction.
+Grep for a Highlander rule, never read for it (the guard found what two reading passes missed). Mutation-test every guard before believing it (five could not fail as first written). A migrator must not do half of a two-ended migration -- refuse and name everything. Diagnose by running, not reading (five claims fell to three-minute repros, two of them the reviewer's own). Run the real path in a sacrificial copy.
 
 ## Conventions
 
