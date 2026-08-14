@@ -11,7 +11,8 @@
     "`target.state: pending-hv` is an honest blank, not an omission. hv ratified the `corrected` class at the 2026-08-14 bounce; WHICH v2 behaviours join it is a scope call still open. A guess recorded here would be indistinguishable from a ruling by the time WP-05 read it.",
     "Every claim carries an `evidence_class`, because 'verified' is not one thing. `measured` = a probe was run against v2 at the stamped revision. `documented-default` = a framework's published default, correct today and CHANGEABLE by a major bump or a single builder setting. `read` = taken from source without executing it. The distinction was forced by vc catching this file claiming clap's exit code was measured -- it cannot have been, since no clap dependency exists in the workspace yet. A documented default that goes unpinned is a finding with a silent expiry date.",
     "`disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep · retire · deviate · pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.",
-    "Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them."
+    "Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them.",
+    "There is a FIFTH parity class, `undefined` (vc ruling, 2026-08-14, on `intent config` as its first member). `corrected` needs a v2 antecedent to correct; silence is not an antecedent. Where v2 exhibited NO behaviour at all, v3 is DESIGNING rather than porting or correcting, and that is a different decision needing a different reviewer. Folding it into `corrected` would hide a design decision inside a bug-fix class."
   ],
   "invariants": [
     {
@@ -2413,8 +2414,10 @@
             }
           },
           "target": {
-            "state": "pending-hv",
-            "question": "v3 should print the resolved config -- but that is a NEW behaviour, not parity, because there is no v2 output to be faithful to. Ratify as `corrected` (v2 prints nothing, which is a defect), or as new surface? The distinction matters for the register: `corrected` needs a v2 antecedent to correct, and here the antecedent is silence."
+            "state": "undefined",
+            "ratification": "vc ruling, 2026-08-14 -- the fifth parity class, opened on this entry; `config` is its first member",
+            "behaviour": "v3 prints the resolved project configuration. This is DESIGNED, not ported and not corrected.",
+            "note": "v2 exhibits no behaviour here at all (0B on both streams, exit 0), so there is nothing to be faithful to and nothing to correct. Recording it as `corrected` would have hidden a design decision inside a bug-fix class, and design decisions need a different reviewer."
           },
           "disposition": "pending"
         }
@@ -3115,8 +3118,9 @@
             }
           },
           "target": {
-            "state": "pending-hv",
-            "question": "INV-07 plus the message collapse. AC-04.4 already rules that v3 errors are typed and render a remedy with the full cause chain, so this one is arguably decided by that AC rather than needing its own ruling."
+            "state": "as-observed",
+            "ratification": "AC-04.4 -- every facade error is typed and renders a remedy with its full cause chain, with no same-text-for-different-causes collapses",
+            "note": "**Governed, not unexamined.** The four-conditions-one-message collapse is already forbidden by AC-04.4, so this row needs no separate hv ruling: v3 cannot reproduce it and stay inside its own contract. Cited here so the next reader sees it was decided rather than missed. (vc, 2026-08-14.)"
           },
           "disposition": "keep"
         },
@@ -3606,7 +3610,7 @@
             "exit": [
               {
                 "code": 0,
-                "when": "clean, or `--languages`/`--help` listing"
+                "when": "clean scan, or `--languages` / `--help`"
               },
               {
                 "code": 1,
@@ -3614,7 +3618,19 @@
               },
               {
                 "code": 2,
-                "when": "findings present at or above --severity-min -- AND on a bare invocation with no <lang>"
+                "when": "findings present at or above --severity-min -- THE MEANINGFUL ONE (INV-04)"
+              },
+              {
+                "code": 2,
+                "when": "bare invocation -- 1588B usage printed to STDOUT"
+              },
+              {
+                "code": 2,
+                "when": "unknown flag -- 657B of grep's own error on stderr"
+              },
+              {
+                "code": 2,
+                "when": "bad positional after a valid lang -- `error: unknown flag ...`"
               }
             ],
             "stdout": "the findings report, grouped by severity",
@@ -3622,11 +3638,15 @@
             "defects": [
               {
                 "id": "local",
-                "detail": "An unknown flag is passed straight through to grep: `intent critic --zzz-not-a-flag` answers `grep: unrecognized option ...` on stderr at exit 2. A raw tool error leaks as the command's voice, and it collides with the meaningful exit 2 (findings present), so a caller cannot distinguish 'findings' from 'you typed a bad flag'."
+                "detail": "**Exit 2 means FOUR different things** -- findings-present (the meaningful one), a bare invocation, an unknown flag, and a bad positional. Independently measured by vc; my first pass reported three and undercounted. The pre-commit gate reads this exit code, so a caller genuinely cannot distinguish 'findings' from 'you typed it wrong'."
               },
               {
                 "id": "local",
-                "detail": "A BARE invocation (no <lang>) also exits 2 while printing usage to stdout -- so exit 2 currently means three different things."
+                "detail": "The unknown-flag path leaks `grep: unrecognized option` as the command's own voice -- a raw tool error surfacing as Intent's."
+              },
+              {
+                "id": "INV-06",
+                "where": "the bare-invocation usage block goes to STDOUT on a failing (exit 2) invocation"
               }
             ],
             "evidence_class": {
@@ -3636,7 +3656,8 @@
           },
           "target": {
             "state": "pending-hv",
-            "question": "Exit 2 must keep meaning findings-present (INV-04). That requires the bare-invocation and unknown-flag paths to move to 1 per INV-02, which is a `corrected` change with a real consumer: the pre-commit gate reads this exit code."
+            "question": "**Highest priority of the 19 pending rows, and a different risk class from the other 18: this one has a LIVE CONSUMER.** Exit 2 must keep meaning findings-present (INV-04), which requires the other three conditions to move to exit 1 per INV-02. That is a `corrected` change the pre-commit gate reads today.",
+            "note": "Confirmed independently by vc at the same revision; escalate to hv ahead of the usage-convention bundle."
           },
           "disposition": "keep"
         }
