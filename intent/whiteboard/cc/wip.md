@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-14 17:35Z
+heartbeat_at: 2026-08-14 18:00Z
 status: active
-focus: "WP-03 claimed to vc at 476f1e1 -- 60 tests green, fmt+clippy clean, 12/12 mutation-proven. Awaiting their verification; WP-04 (facade) is next."
+focus: "WP-03 CLOSED 6/6. WP-04 claimed to vc at ed60c5c -- 125 tests green, 14/14 mutation-proven. WP-05 (CLI + conformance) next."
 claims: []
 ---
 
@@ -13,15 +13,17 @@ claims: []
 
 ## DOING
 
-- **WP-03 CLAIMED to vc at `476f1e1`, awaiting verification.** Strict ingest, deterministic views, sync engine. 60 tests / 15 targets green, fmt + clippy `-D warnings` clean, mutation battery 12 predicted / 0 missed (two of the twelve are controls that had to stay GREEN -- a battery where everything reds proves the mutations broke something, not that the tests discriminate). New modules: `project` `finding` `ingest` `prose` `sync` `views`, all inside intentsvcs so rusqlite stays a Highlander.
+- **WP-03 CLOSED 6/6** at `476f1e1` (+ fixture hardening at `945439b`). Strict ingest, deterministic views, sync engine.
+- **WP-04 CLAIMED to vc at `ed60c5c`, awaiting verification.** Facade + core families: `write_set` (all-or-nothing multi-file writes with total rollback), `contract` (AC states, computed satisfaction, close gate), `facade` (one write path so every mutation logs an envelope). 125 tests / 20 targets, mutation battery 14 predicted / 0 missed with three GREEN controls.
 
 ## TODO -- next, in this order
 
-1. **WP-04 (intentsvcs facade, core families)** on vc's word. st/wp lifecycle, ac/at with computed satisfaction, the close gate, typed errors with remedies, and AC-04.5's event-log envelope on every mutation path.
-2. **Contract rows I deliberately did not write.** The six WP-03 AT rows are still `to-write` and AC-03.6/AT-03.6 are vc's to land -- they were mid-edit in `acceptance.md`. Do not hand-edit a contract file and do not run `intent at set` into a file a peer has open; ask first.
-3. **The todo watermark needs a durable home.** `DONE:<T>` is DATA (`bin/intent_todo:20-21` "last-flush watermark", read back at `:159`, advanced only by `done --flush`/`--prune`), currently carried as `RenderContext::todo_watermark`. It must be materialised in project config, never defaulted at render time -- v2's "else start-of-today UTC" fallback cannot survive the no-clock law. vc's call on the field.
-4. **`installed-agents.json` is untracked AND unignored.** `intent/plugins/claude/subagents/.manifest/` tracks `global-agents.json` but not its sibling, and `.gitignore` names neither, so anyone running `intent claude subagents install` inside a project gets a permanent `??` holding absolute machine paths. Pre-existing, NOT caused by the 0025 fix. Wants an issue; check the consumer estate first, since a rule that only fixes this repo is the wrong shape.
-5. **Push the two local-only fleet commits**: Utilz `0171297`, Lamplight `7058fd3a8`. **Re-verify both are still unpushed at the moment of acting** -- the last board assumption on this was a day stale and wrong, and a peer once pushed inside a nine-minute window.
+1. **WP-05 (CLI in-process + BATS conformance harness)** on vc's word. The dispatch table is the SSOT (AC-05.1) -- clap surface and help text generated FROM it, asserted by test, never hand-maintained beside it.
+2. **Contract rows I deliberately did not write.** WP-03's are landed by vc; WP-04's five are still `to-write` and are theirs. Do not hand-edit a contract file and do not run `intent at set` into a file a peer has open; ask first.
+3. **Three WP-04 rulings queued with vc**: the L2/L3 remedy-text deviation; the WP-10 residue risk that any estate whose ATs cite moved files will BLOCK at migration (measure with `at lint` per corpus member BEFORE WP-10 assumes a conversion rate); and whether `ac_satisfy` refusing a test-backed criterion is `corrected` or `deviate`.
+4. **The todo watermark needs a durable home.** `DONE:<T>` is DATA (`bin/intent_todo:20-21` "last-flush watermark", read back at `:159`, advanced only by `done --flush`/`--prune`), currently carried as `RenderContext::todo_watermark`. It must be materialised in project config, never defaulted at render time -- v2's "else start-of-today UTC" fallback cannot survive the no-clock law. vc's call on the field.
+5. **`installed-agents.json` is untracked AND unignored.** `intent/plugins/claude/subagents/.manifest/` tracks `global-agents.json` but not its sibling, and `.gitignore` names neither, so anyone running `intent claude subagents install` inside a project gets a permanent `??` holding absolute machine paths. Pre-existing, NOT caused by the 0025 fix. Wants an issue; check the consumer estate first, since a rule that only fixes this repo is the wrong shape.
+6. **Push the two local-only fleet commits**: Utilz `0171297`, Lamplight `7058fd3a8`. **Re-verify both are still unpushed at the moment of acting** -- the last board assumption on this was a day stale and wrong, and a peer once pushed inside a nine-minute window.
 
 ## PARKED -- v2 maintenance is default-defer (hv, 2026-08-14 bounce)
 
@@ -43,6 +45,8 @@ Show-stoppers only; **0025-class suite-blockers are the whole exception**, and t
 
 ## Decisions
 
+- (2026-08-14) **Test against the incumbent, not against your memory of it.** WP-04's gate had eleven fixture tests that agreed with each other perfectly and were all built on what I believed v2 does. One test that RAN v2's own binary over an equivalent estate found two enforced gate rules v3 had no defence against at all: L2 (the cited test file must exist) and L3 (the cited file must carry the AT's own literal id). **L3 is the coverage mechanism itself** -- without it a row can cite a real file that tests something else, and the gate reads green while nothing verifies it. Generalises past parity work: **a fixture asserts what you believe; a differential asserts what is true, and only the second can catch a thing you never knew existed.**
+- (2026-08-14) **Two rules blocking the same case is fine; two rules that cannot be told apart is a defect.** The battery removed L2 and the L2 test stayed green, because L3 blocks the same input (a file that does not exist cannot carry an id either). Neither test isolated its rule. The fix was to assert the DIAGNOSIS rather than the block -- and that fixed a real defect too, because "the file is missing" and "the file is the wrong one" have different remedies. **Same-text-for-different-causes is a bug at every layer, not just in the error type where the AC happens to name it.**
 - (2026-08-14) **When the contract and the architecture narrative disagree, the contract governs -- and the disagreement is a finding, not a typo.** design.md:65 said "SHA-256 rehash on change", gating the hash on stat; AC-03.3 names a same-size same-mtime rewrite, which stat cannot see by construction. The two were not almost-the-same, they were incompatible, and the AC was right. The general rule: **a narrative is written before the work and a contract is written to be checkable, so when they part company the checkable one wins.** The mutation that rebuilds the narrative's design is now permanent (M5), so the weaker version cannot come back quietly.
 - (2026-08-14) **Determinism has two independent enemies and a guard for one does not cover the other.** INSIDE: the renderer reaching a clock -- killed structurally, `views.rs` cannot name `SystemTime`/`env`/`hostname`/`HashMap`, asserted by scanning its own source. OUTSIDE: a second writer downstream -- the pre-commit `prettier --write` reformatting what the renderer just wrote, so a self-idempotent renderer still oscillates forever and the skew check reports files nobody touched. **Both end as "regenerate-and-diff is non-empty", and a check that cries wolf is a check nobody reads** -- which is the same failure as no check at all, arriving later. Test through the real formatter: it found two defects on first run (a triple newline before the banner, a trailing space on an empty `completed:`) that no amount of reading would have surfaced.
 - (2026-08-14) **A mutation battery needs controls that stay GREEN.** Twelve mutations, ten predicted red and two predicted green: the hash-gate must not red the ordinary rescan, and a blinded skew check must not red the case that asserts emptiness. Without those two, a battery only proves the mutations broke something -- not that each test discriminates the specific thing it names. Pairs with the harness hard-failing when a substitution matches nothing.
