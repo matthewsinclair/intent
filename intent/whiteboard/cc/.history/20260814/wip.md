@@ -98,3 +98,20 @@ stopped mattering. Watch-outs and Decisions deliberately stayed on the live boar
 The dead `CREATED` block is at `bin/intent_st:696`, not the `730-743` this board carried
 nor the `731-741` in 0020's Resolutions. Both were read before `2769c40` and `08ef2f5`
 shifted the file. Both records now anchor on the comment string instead of the number.
+
+---
+
+## Archived at fold, 2026-08-14 14:37Z -- the afternoon session (devbin + 0024 + 0025 + the SDL face)
+
+Everything below was DOING and is now done. Kept for the record; not reloaded on pickup.
+
+- **0025 CLOSED, fixed properly.** `resolve_project_root` in `intent_helpers` is THE project-root authority -- it ASSIGNS from the filesystem, overwriting anything inherited, and is registered in MODULES.md as the seam every reader comes through. `require_project_root` now resolves before refusing rather than testing a variable. The three plugin bins that never resolved (`subagents`, `prime`, `upgrade`) do so at load, which matters because `bin/intent:187` execs plugin commands BEFORE loading config. `bin/intent` clears an inherited value at entry so a future reader that forgets to resolve fails SAFE (empty -> honest refusal) rather than dangerous (a stranger's tree).
+- **The mutation matrix is on the issue, including the one that killed nothing.** Removing the dispatcher scrub alone reds NOTHING -- every reader that exists today also resolves -- so the scrub is deliberate fail-safe cover for readers not yet written, and the record says so rather than implying it was proven. Only removing BOTH mechanisms reproduces the original defect.
+
+- **devbin adopted (`bin/int`), and `bin/release` is now `bin/int build release`.** `bin/intent` is untouched and cannot be touched: devbin's `link_alias` refuses to replace a real file. `bin/in` was the estate-consistent alias and is impossible -- `in` is a bash reserved word, a syntax error as a command in bash while working in zsh. The three commands hv asked for all work: `test all`, `build cli`, `build release`.
+- **Suite green: `bin/int test all` -> 1240 passing, 0 failing, exit 0, at `3563ff4`** (rust + shell legs). Named against the commit, not "HEAD" -- the same run before the 0025 fix had 72 failures by test 830.
+- **The rename half is already committed, in vc's `072d277`** -- they used `git add` + bare `git commit`, which takes the whole index including what I had staged. History reads oddly; the rest of devbin is in my own commit. Nothing of mine was lost.
+
+- **WP-02 SDL face DONE (`732affa`).** The third committed face, exported from the same master -- model types carry SimpleObject/Enum derives beside their schemars ones, so a new field reaches the SDL with nobody remembering. One unavoidable projection (`AcScopeView`: GraphQL cannot express a tagged enum with per-variant fields), guarded from both ends and mutation-proven four ways. AT-02.2 green; AT-02.3/4/5 flipped from a stale `to-write` to green. **Next: WP-03 (ingest, views, sync engine).**
+- **ST0056 build lane, taken from vc per hv (their 13:05Z).** vc stewards the thread and holds the contract; ic has the parity deep pass; cc writes the code. WP-01 is Done and hv-ratified; WP-02's foundation landed at `5e4b766` (cargo workspace, model types as the authored master, store with D01 as law, committed faces + INTENT_BLESS drift workflow, CI, four mutation-proven guards). **Mine next: the SDL face** -- a minimal async-graphql schema over the types, added to `faces()` + the drift test. Then AC-02.1 flips on the first green CI run after push, and AC-02.6 (event-log envelope per mutation) needs a call at review: its AT stays red until WP-04, or the AC descopes there. Then WP-03.
+- **0024 CLOSED (`1f5e354`)** -- fixed, guarded, mutation-proven, CHANGELOG'd as 2.19.1 in progress. Announced to vc before touching `bin/**` per the standing agreement.
