@@ -111,8 +111,21 @@ pub fn sample_thread(id: &str) -> Thread {
     created: "2026-08-14".to_string(),
     completed: None,
     acceptance: None,
-    objective: "Ship Intent v3.0.0.\n\nOne major release, patched by 3.0.x.".to_string(),
-    context: "v2 is 12,492 lines of bash where every reader reimplements parsing.".to_string(),
+    // MARKUP-BEARING BY DESIGN. `objective` and `context` are markdown under
+    // D22, AT notes carry backticked paths routinely, and titles carry
+    // underscores -- so the fixture carries every delimiter that could
+    // interleave with markup the renderer adds.
+    //
+    // A tame fixture proves the LAYOUT half (column widths, blank runs,
+    // trailing space) and passes while the DATA half is wide open: a value
+    // containing markdown, wrapped in inline markup by the renderer, resolves
+    // differently from how anyone meant it and the formatter re-emits its own
+    // reading. Found live in ic's `dispatch-table.md`, where two spaces
+    // vanished from `` `stzero`against`bin/intent_st_zero` `` and regeneration
+    // put them back -- permanent oscillation.
+    objective: "Ship `intent` v3.0.0 -- see `bin/intent_st_zero`.\n\nOne _major_ release, patched by 3.0.x, with snake_case_names and a | pipe.".to_string(),
+    context: "v2 is 12,492 lines of bash where `every reader` reimplements parsing (NAME DRIFT: `stzero` against `bin/intent_st_zero`)."
+      .to_string(),
     related: vec![
       Related {
         id: "ST0043".to_string(),
@@ -132,7 +145,7 @@ pub fn sample_thread(id: &str) -> Thread {
       },
       WorkPackage {
         seq: 3,
-        title: "Ingest, views and sync".to_string(),
+        title: "Ingest, views and sync -- `intent_st_zero` | strict".to_string(),
         scope: TShirt::L,
         status: WpStatus::Wip,
       },
@@ -186,7 +199,7 @@ pub fn sample_thread(id: &str) -> Thread {
         prose: None,
         covers: vec!["AC-03.1".to_string()],
         status: AtStatus::Green,
-        note: Some("red-first".to_string()),
+        note: Some("red-first; see `bin/intent_st_zero` and _not_ `bin/intent`".to_string()),
         legacy: None,
       },
       AcceptanceTest {

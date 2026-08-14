@@ -167,6 +167,70 @@ fn the_formatter_leaves_rendered_views_unchanged() {
   }
 }
 
+/// The KNOWN GAP, asserted rather than hidden.
+///
+/// Authored prose passes through the renderer verbatim -- migration.md forbids
+/// reflowing or "improving" it, and `objective` / `context` are markdown by
+/// design (D22). But a formatter normalises markdown SYNTAX: prettier rewrites
+/// `*emphasis*` to `_emphasis_`. So a canon whose prose uses `*` renders a view
+/// the formatter then rewrites, and the skew check flags a file nobody edited.
+///
+/// This is a THIRD class, distinct from the two already ruled on:
+///   - layout the renderer controls (column widths, blank runs, trailing
+///     space) -- fixed at `finish()` and `kv()`;
+///   - markup the renderer ADDS around data that carries its own delimiters --
+///     vc's ruling: never wrap a possibly-markdown value in inline markup;
+///   - THIS: markup the AUTHOR wrote, which the renderer must not touch and the
+///     formatter will not leave alone.
+///
+/// It cannot be fixed in the renderer without rewriting authored prose, which
+/// is the one thing the renderer is forbidden to do. The structural fix is to
+/// stop the formatter running over tool-owned files at all -- one writer per
+/// file, the same principle as D02 applied to writers rather than content --
+/// and that is a repo-level decision, not cc's to take unilaterally.
+///
+/// The test asserts the gap EXISTS so it cannot close by accident and go
+/// unnoticed. If it starts failing, the class has been fixed and this test
+/// should be replaced by one asserting stability.
+#[test]
+fn authored_prose_emphasis_is_the_one_case_the_renderer_cannot_stabilise() {
+  if std::process::Command::new("prettier")
+    .arg("--version")
+    .output()
+    .is_err()
+  {
+    eprintln!("SKIPPED: prettier is not on PATH");
+    return;
+  }
+
+  let fx = Fixture::new();
+  let mut thread = sample_thread("ST0056");
+  thread.objective = "One *major* release.".to_string();
+  let canon = Canon {
+    threads: vec![thread],
+    issues: Vec::new(),
+    sections: Vec::new(),
+  };
+  views::write_all(&fx.project(), &canon, &ctx()).expect("write");
+
+  let before = fx.read("intent/st/ST0056/info.md");
+  assert!(
+    before.contains("*major*"),
+    "precondition: the renderer passed the author's `*` through verbatim, as it must"
+  );
+  std::process::Command::new("prettier")
+    .arg("--write")
+    .arg(fx.path("intent/st/ST0056/info.md"))
+    .output()
+    .expect("run prettier");
+  let after = fx.read("intent/st/ST0056/info.md");
+
+  assert!(
+    after.contains("_major_") && !after.contains("*major*"),
+    "the formatter normalises the AUTHOR's emphasis marker. If this assertion fails, the class has been closed -- replace this test with a stability assertion rather than deleting it."
+  );
+}
+
 /// Contiguous runs of table lines.
 fn table_blocks(text: &str) -> Vec<Vec<String>> {
   let mut blocks = Vec::new();
