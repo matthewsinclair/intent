@@ -86,12 +86,21 @@ This is empirical where reading assertions is inferential, and the difference is
 | zero, and it calls \`bin/intent_<sub>\` | tests an entry point v3 will not have | **deviate** -- semantic rewrite, not a path swap |
 | zero, and it sources a shell file | unit-tests a bash function | **retire** -- dies with the shell |
 | zero, and it never invokes the CLI | pins this repo's own content | **out-of-scope** -- not a conformance test |
-| some | mixed concerns in one file | **split** -- needs per-test rows before WP-05 leans on it |
+| some | mixed concerns in one file | **pending** -- needs per-test rows before WP-05 leans on it |
 | any, but baseline not green | the delta carries no information | **UNCLASSIFIED** |
 
 A file matching no rule is emitted UNCLASSIFIED rather than assigned a best guess. A wrong \`retire\` is coverage that disappears at the cut with nobody watching, which is the defect the AT grammar existed to kill; the refuse-lossy discipline applies to classification exactly as it applies to migration.
 
-**Scope note:** \`split\` is a first-pass verdict, not a final one. Those files carry both portable and non-portable tests and need per-test rows; this pass deliberately stops at the file level rather than guessing which half is which.
+**Vocabulary (vc ruling, 2026-08-14): \`keep · retire · deviate · pending\`, shared verbatim with the dispatch table at \`surface/dispatch-table.json\`, with \`pending\` written explicitly and never implied by omitting a field.** Absence-as-meaning is un-greppable and reads as an oversight. The payoff is that **AC-05.3 becomes mechanical rather than eyeballed**: no row carries \`pending\` at close.
+
+This pass renames \`split\` to \`pending\`. Nothing is lost -- the reason a row is pending was always carried by the \`basis\` column (\`partial burn\`), not by the class name, so the name was free to become the one the other artefact uses.
+
+**Two values sit outside that four, deliberately, and ic flagged the divergence rather than collapsing it.** \`out-of-scope\` and \`UNCLASSIFIED\` are not dispositions on the same axis as the other four:
+
+- \`out-of-scope\` answers *is this in the parity contract at all* -- a decided answer, not a deferred one. Folding it into \`keep\` would claim a repo-content test is part of the conformance suite; folding it into \`retire\` would schedule a perfectly good test for deletion. Neither is true, and the orthogonal axis is real.
+- \`UNCLASSIFIED\` is a MEASUREMENT FAILURE, not a deferred decision: the baseline was not green, so the burn delta means nothing. It must be zero at close for the same reason \`pending\` must, but the remedy is different -- \`pending\` needs a judgement, \`UNCLASSIFIED\` needs a working measurement.
+
+**Scope note:** \`pending\` is a first-pass verdict, not a final one. Those files carry both portable and non-portable tests and need per-test rows; this pass deliberately stops at the file level rather than guessing which half is which.
 
 ## Rows
 
@@ -116,7 +125,7 @@ PREAMBLE
         printf '| `%s` | %s | 0/%s | %s | %s | %s |\n' "$f" "$total" "$total" "$cls" "$basis" "$note"
         ;;
       MIXED)
-        printf '| `%s` | %s | %s/%s | split | partial burn | %s of %s tests reach the CLI; the remainder do not. Needs per-test rows before WP-05 relies on it. |\n' "$f" "$total" "$burn" "$total" "$burn" "$total"
+        printf '| `%s` | %s | %s/%s | pending | partial burn | %s of %s tests reach the CLI; the remainder do not. Needs per-test rows before WP-05 relies on it. |\n' "$f" "$total" "$burn" "$total" "$burn" "$total"
         ;;
       UNSTABLE)
         printf '| `%s` | %s | -- | UNCLASSIFIED | unstable baseline | %s test(s) already fail with the default binding, so the burn delta carries no information. Fix or explain before classifying. |\n' "$f" "$total" "$dfail"
@@ -130,12 +139,12 @@ PREAMBLE
   printf '\n## Summary\n\n'
   printf '| class | files | what WP-05 does with them |\n'
   printf '| ----- | ----- | ------------------------- |\n'
-  for k in keep split deviate retire out-of-scope UNCLASSIFIED; do
+  for k in keep pending deviate retire out-of-scope UNCLASSIFIED; do
     n=$(awk -F'|' -v K="$k" '/^\| `tests\// {gsub(/^ +| +$/,"",$5); if ($5==K) c++} END{print c+0}' "$OUT" 2>/dev/null)
     [ "${n:-0}" = "0" ] && continue
     case "$k" in
       keep)         w='Run unmodified against the v3 binary. These are the conformance suite.' ;;
-      split)        w='Need per-test rows first: each mixes tests that reach the CLI with tests that do not.' ;;
+      pending)      w='Need per-test rows first: each mixes tests that reach the CLI with tests that do not. AC-05.3 requires this bucket EMPTY at close.' ;;
       deviate)      w='Rewrite against the single-binary entry point, or retire with the sub-script they exercise.' ;;
       retire)       w='Retire with the shell. No binary to point them at.' ;;
       out-of-scope) w='Leave alone. They pin this repo content and are unaffected by the binary swap.' ;;
