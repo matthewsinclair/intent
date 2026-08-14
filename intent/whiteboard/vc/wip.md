@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: f8f9fad0-67fd-4132-8544-e61a24ceac50
-heartbeat_at: 2026-07-02T22:05Z
+session_id: 1f98ea43-d71a-47a3-aba8-9597183b2e67
+heartbeat_at: 2026-08-14T00:10Z
 status: paused
-focus: "ST0050 as-built audit DELIVERED -- verdict PASS/ship-clean; the sticky-DONE-watermark acceptance decision is escalated to hv before the 2.14.0 tag"
+focus: "folded 2026-08-14 pre-compact; v2.19.0 audited CLEAN + hv fix-its landed (8aba5ab, ba52339); next fire = suite verdict, the cut, then the estate sweeps"
 claims: []
 ---
 
@@ -13,20 +13,20 @@ claims: []
 
 ## DOING
 
-- (idle) ST0050 validation complete. Awaiting hv's next instruction.
+- (paused -- localfolded 2026-08-14 ahead of a compact, awaiting hv's full-suite verdict and the v2.19.0 cut. The day's delivered work is in `.history/20260814/`; the ten-issue corpus 0009-0018 plus 0019 is CLOSED end to end.)
 
 ## TODO
 
-- Watch for the 2.14.0 tag: hv's sticky-watermark sign-off is the only open gate (see Decisions). If hv revises the model, re-audit the change.
-- Offer stands: independent read on ST0051 (width, closed 9/9) if hv wants it.
+- Fire on the suite verdict: commits `8aba5ab` (warning voice) + `ba52339` (0019 index fix) postdate any suite run started before them -- they touch `intent_st`, `intent_helpers`, `intent_migrations` + two test files. If hv's run predates them, the delta needs a re-run or targeted files.
+- Fire on the cut: `bin/release` stamps all five sidecars (still 2.18.0 at HEAD by design); CHANGELOG heading `## [2.19.0] - in progress` for the script to date. hv cuts; NEVER `--no-confirm`.
+- Post-cut estate sweeps: Lamplight first (`intent upgrade` now converges AT grammar via `at lint --fix` -- 314 rows, expect BLOCKED-until-swept with residue named never guessed -- plus AGENTS.md, settings hooks, gitignore entries, and a printed-never-run `git rm` for any tracked treeindex). Utilz / Baize follow.
 
 ## Watch-outs
 
-- 2.14.0 tag hinges on ONE hv decision: the DONE watermark is sticky (no automatic daily sweep) -- faithful to `design.md:46` but reverses the original "swept daily" (`design.md:32`). hv accepts as-is or asks cc for an auto-sweep. Full audit in `cc/inbox.vc.md`; escalation in `hv/inbox.vc.md`.
-- Two LOW post-release notes with cc: JSON/markdown enumeration Highlander duplication (`intent_todo` `emit_bucket` vs `emit_bucket_json`); `acceptance.md` AT ids not matching the bats `@test` names.
+- Trusted on cc's record, not independently re-run: the poisoned-consumer upgrade fixtures and the adapted gitignore-idempotence fixture. hv's external suite is the final word.
+- `intent_claude_prime:212` still prints its truncation notice to STDOUT with a capital prefix -- deliberately left (changing its voice means changing its stream); surface if prime output pollution ever bites.
 
 ## Decisions
 
+- (2026-08-13) vc triage rulings for the 0009-0018 corpus: all executed and recorded in the issues' Resolutions; archived detail in `.history/20260814/wip.md`.
 - (2026-07-02) vc fires on cc's close/green/freeze trigger or an hv request, never on in-flight edits. Advisory only; findings to the owner's inbox, compounding risk to hv; vc claims no STs.
-- (2026-07-02) hv RATIFIED cc's ST0050 D1-D4 rulings (in session).
-- (2026-07-02) ST0050 as-built audit: VERDICT PASS/ship-clean. 23/23 verified meaningful (gate + watermark + flush/prune tests assert real behaviour); ISO `completed:` stamp + tolerant membership + directory-based DONE membership all correct; the earlier D1 double-listing worry is resolved by the as-built. One acceptance decision escalated to hv.
