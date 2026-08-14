@@ -63,13 +63,22 @@ stdout_width() {
   [ "$wide" -gt "$narrow" ] || fail "width did not track terminal: 250->$wide 130->$narrow"
 }
 
-@test "st list and st sync produce identical output" {
+@test "st list and st sync resolve the same width over the same scope" {
   local d
   d=$(create_test_project "Width Same")
   cd "$d"
   run_intent st new "a title"
   export COLUMNS=160
-  run run_intent st list
+  # SCOPE IS MATCHED DELIBERATELY. This compared the bare `st list` against
+  # `st sync` and so asserted, incidentally, that the two share a default
+  # status filter. They no longer do: issue 0019 gave the composition
+  # `--status all`, because steel_threads.md says it indexes ALL threads and
+  # was being built from the WIP-only view, decaying to empty at every release
+  # close. The view and the index are different contracts on purpose.
+  #
+  # The subject of this test is WIDTH, and that contract is unchanged: given
+  # the same scope, the two paths must render identically.
+  run run_intent st list --status all
   assert_success
   local list_out="$output"
   run run_intent st sync
