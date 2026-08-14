@@ -19,7 +19,7 @@ The whiteboard process was pioneered **by convention in Lamplight** (`../Lamplig
 | `vc` | Validation Claude      | independent check (correct / complete / consistent / faithful to hv's ask); advisory; the bats suite plus critic discipline         |
 | `ic` | Interface Claude       | the dispatch-table SSOT and everything rendered from it: command surface, help, voice, exit codes, MCP tool list, `intent llm`      |
 
-The earlier form of this section said Intent is CLI plus data rather than UX, so there was deliberately no interface node and the roster was three. That stopped being true when `ic` was scaffolded, and a roster doc that describes a node out of existence is worse than no roster doc. Corrected by vc 2026-08-14 on ic's ask, with hv AFK and the pen handed to all three nodes; `ic`'s scope line above is vc's PROVISIONAL charter ruling, for hv to ratify or replace.
+The earlier form of this section said Intent is CLI plus data rather than UX, so there was deliberately no interface node and the roster was three. That stopped being true when `ic` was scaffolded, and a roster doc that describes a node out of existence is worse than no roster doc. Corrected by vc 2026-08-14 on ic's ask, with hv AFK and the pen handed to all three nodes; `ic`'s scope line above is vc's charter ruling, adopted under hv's standing authorisation of 2026-08-14 and open to replacement.
 
 ## Layout + single-writer rule
 

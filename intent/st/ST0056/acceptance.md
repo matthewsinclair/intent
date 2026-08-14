@@ -35,7 +35,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 
 ### ST-level -- the v3.0.0 gate
 
-- AC-00.1 The v3 binary passes the narrowed BATS conformance contract (stdout, exit codes, behaviour), with every file-layout divergence recorded in the ratified keep/retire/deviate register, **and no command family has zero burning coverage** -- a contract with a hole passes trivially at that hole (strengthened by vc 2026-08-14 on ic's `config` finding; PROVISIONAL pending hv)
+- AC-00.1 The v3 binary passes the narrowed BATS conformance contract (stdout, exit codes, behaviour), with every file-layout divergence recorded in the ratified keep/retire/deviate register, **and no command family has zero burning coverage** -- a contract with a hole passes trivially at that hole (strengthened by vc 2026-08-14 on ic's `config` finding; ADOPTED under hv standing authorisation)
 - AC-00.2 The fleet corpus (Intent's own tree as canary, then Lamplight/Utilz/Baize at named post-sweep revisions) ingests losslessly, or every unconverted artefact appears in the residue report by name
 - AC-00.3 intentd ships in the release: project registry, unix-socket GraphQL, mgmt plane, debounced watching, CLI-owned launchd lifecycle
 - AC-00.4 MCP ships: stdio server with the tiered typed tools + `intent_graphql` escape hatch, bridging to intentd when it is up
@@ -199,7 +199,7 @@ Found by cross-checking all twelve deliverable lists against all sixty-two ACs, 
 - AT-03.6 `crates/intentsvcs/tests/prose_ingest_fts.rs` -- covers AC-03.6 -- status: green
 - Coverage: complete
 
-WP-03 dispositions (vc, 2026-08-14, PROVISIONAL pending hv):
+WP-03 dispositions (vc, 2026-08-14, ADOPTED under hv standing authorisation):
 
 - **AC-03.6 / AT-03.6 are an ADDITION to the WP-01-ratified boundary**, not a reinterpretation of it. Prose ingest, FTS5 and `intent search` are design.md deliverables (`:68`, and the WP-03 deliverable list) that a grep of all 62 ACs for `fts|search` matched zero times. Widening the boundary is the safe direction under this file's own change-control note; shrinking it would need the owner.
 - **`intent ingest --from-md` deliberately has no WP-03 AT.** It is a WP-03 deliverable whose acceptance lives at AC-10.2 / AC-10.3, where the migrator exercises it for real. Recorded here as a decision so it stops reading like an oversight; the scaffolding still ships in WP-03.
@@ -232,7 +232,7 @@ WP-03 dispositions (vc, 2026-08-14, PROVISIONAL pending hv):
 - AT-06.5 `crates/intent-cli/tests/schema_command.rs` -- covers AC-06.5 -- status: to-write
 - Coverage: complete
 
-WP-06 disposition (vc, 2026-08-14, PROVISIONAL pending hv): AC-06.4 puts one NON-parity command inside a work package titled "CLI parity long tail". That is deliberate -- it is where the remaining CLI surface lands -- but the title now understates the WP by one command, and `intent search` must be recorded in the register as an **addition**, never as a deviation. A deviation is a v2 behaviour we chose not to reproduce; this has no v2 behaviour to deviate from. Flagged to hv in case the WP wants renaming rather than a footnote.
+WP-06 disposition (vc, 2026-08-14, ADOPTED under hv standing authorisation): AC-06.4 puts one NON-parity command inside a work package titled "CLI parity long tail". That is deliberate -- it is where the remaining CLI surface lands -- but the title now understates the WP by one command, and `intent search` must be recorded in the register as an **addition**, never as a deviation. A deviation is a v2 behaviour we chose not to reproduce; this has no v2 behaviour to deviate from. Flagged to hv in case the WP wants renaming rather than a footnote.
 
 ### WP-07
 
@@ -244,7 +244,7 @@ WP-06 disposition (vc, 2026-08-14, PROVISIONAL pending hv): AC-06.4 puts one NON
 - AT-07.6 `crates/intent-cli/tests/view_single_writer.rs` -- covers AC-07.6 -- status: to-write -- renders a view carrying authored `*emphasis*`, runs the formatter, asserts unchanged
 - Coverage: complete
 
-WP-07 disposition (vc, 2026-08-14, PROVISIONAL pending hv) -- **the third formatter class, and why the fix is repo-level rather than renderer-level:**
+WP-07 disposition (vc, 2026-08-14, ADOPTED under hv standing authorisation) -- **the third formatter class, and why the fix is repo-level rather than renderer-level:**
 
 Three distinct classes have now been found, each by a different route:
 
@@ -328,7 +328,7 @@ The consequence, which is the part that must be written down before the referee 
 - AT-13.9 (non-test) design.md carries the T3/T4 staging with S1-S5 shown sufficient -- covers AC-13.9 -- status: n/a
 - Coverage: complete
 
-WP-13 dispositions (vc, 2026-08-14, PROVISIONAL pending hv):
+WP-13 dispositions (vc, 2026-08-14, ADOPTED under hv standing authorisation):
 
 - **AT-13.5 is the one to write first and the one most likely to be written vacuously.** It asserts a deliberate ASYMMETRY -- the same edit must be caught in `intent/**` and may be missed in the source corpus -- so a test that merely proves "edits are detected" passes while proving nothing. Both arms come from the same fixture, and the source-corpus arm must fail if someone quietly makes it hash-always for tidiness.
 - **`fileindex` is deliberately NOT in this WP.** It shares a naming convention with treeindex and nothing else -- it manages file lists with checkbox states, not an index. It stays in WP-06's port list until hv rules on it directly. Bundling it because the names rhyme is the error class this thread exists to remove.

@@ -2,7 +2,7 @@
 
 Status: ratified structure per design.md D01-D05. WP-02 landed the schemars faces, so **this document describes, it does not define** -- the authored master is the Rust type layer and the committed faces under `schema/` are generated from it. The WP-01 draft schema that stood at the foot of this file is pruned; see "The schema face" below.
 
-Amendments after WP-01 (vc, 2026-08-14, PROVISIONAL pending hv): `objective`/`context`/`related` modelled on `steel_thread`; the marked-legacy `legacy` form on `acceptance_test`; the no-clock law on generated views. Each carries its rationale inline below.
+Amendments after WP-01 (vc, 2026-08-14, ADOPTED under hv standing authorisation): `objective`/`context`/`related` modelled on `steel_thread`; the marked-legacy `legacy` form on `acceptance_test`; the no-clock law on generated views. Each carries its rationale inline below.
 
 ## Entities
 
@@ -28,7 +28,7 @@ Found by cc at WP-03 when the no-clock law (D23) forced the question of whether 
 
 So the view is the only durable home of a fact the tool reads back as truth. Three consequences, all fatal to v3's model: the view cannot be regenerated from truth (deleting `todo.md` silently resets the watermark to start-of-today); a generated artefact is authoritative, which is the exact inverse of D02; and the render path reads a clock, which D23 forbids.
 
-Ruling (vc, 2026-08-14; PROVISIONAL pending hv): the watermark is **durable project state**, homed in `config.json` under a `todo` block, **always materialised and never defaulted at render time**. The render path receives it as an input and never reads it back. The v2 start-of-today fallback does not survive -- a default computed from a clock is the defect wearing a different hat.
+Ruling (vc, 2026-08-14; ADOPTED under hv standing authorisation): the watermark is **durable project state**, homed in `config.json` under a `todo` block, **always materialised and never defaulted at render time**. The render path receives it as an input and never reads it back. The v2 start-of-today fallback does not survive -- a default computed from a clock is the defect wearing a different hat.
 
 Open for hv, and it decides whether this field exists at all: whether `todo --flush` / `--prune` semantics carry into v3. If they retire, the watermark retires with them and DONE filtering becomes a query parameter over the `completed` dates already in the model. The field is provisional precisely because it is downstream of that behaviour question.
 
@@ -57,7 +57,7 @@ No verblock: git is the history of structured files. Authored prose files keep t
 
 D02 forbids mixed files, and v2's `info.md` is flatly one: frontmatter and status (structure), Objective and Context (authored prose), Related Steel Threads (structured links), and a "Context for LLM" template block. design.md's layout table makes `info.md` a generated cover while listing "objective/context prose" as authored -- naming no file for it. Surfaced by cc at WP-03 start, when the view renderer became the thing that would have had to discover the answer.
 
-Ruling (vc, 2026-08-14; PROVISIONAL pending hv): the three fields are **modelled on `steel_thread`**, and `info.md` becomes 100% generated. There is no sixth default steel-thread doc.
+Ruling (vc, 2026-08-14; ADOPTED under hv standing authorisation): the three fields are **modelled on `steel_thread`**, and `info.md` becomes 100% generated. There is no sixth default steel-thread doc.
 
 - `objective` is already a field the tool has an opinion about -- the 0010 empty-objective warning -- which is the signature of a modelled field rather than free prose. The warning stays **computed from emptiness, never stored**, on the same double-truth grounds as `satisfied`.
 - `context` and `related` follow it into the model because splitting one cover across a modelled half and an authored half rebuilds the mixed file one level down.
