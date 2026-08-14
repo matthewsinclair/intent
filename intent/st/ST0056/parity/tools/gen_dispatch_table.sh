@@ -113,6 +113,22 @@ if [ -n "$STATUS" ]; then emit "**Status:** $STATUS"; emit ""; fi
 jq -r '.about[]? | "- " + .' "$IN" >> "$OUT_TMP"
 emit ""
 
+# Provenance is rendered, never summarised into the one-line stamp above. A
+# view that showed a single `measured_at` while the canon recorded two would
+# hide precisely what the block exists to disclose.
+if jq -e '.provenance' "$IN" >/dev/null 2>&1; then
+  emit "## Provenance"
+  emit ""
+  jq -r '.provenance |
+    "- **Source reads and live probes at:** `\(.source_reads_and_live_probes_at)`",
+    "- **Runtime probe matrix at:** `\(.probe_matrix_at)`",
+    "- **Why two revisions:** \(.why_two_revisions)",
+    "- **Re-validated after those bin/ changes:**",
+    (.revalidated_after_the_bin_changes[] | "  - " + .),
+    "- **Known limit:** \(.known_limit)"' "$IN" >> "$OUT_TMP"
+  emit ""
+fi
+
 # --- Surface-wide invariants ------------------------------------------------
 emit "## Surface-wide invariants"
 emit ""
@@ -223,9 +239,17 @@ done
 # --- Outstanding + new surface ----------------------------------------------
 emit "## Families outstanding"
 emit ""
-emit "Not yet authored. Named individually rather than counted, so a family that quietly never gets written is visible as a gap rather than absent from a total."
-emit ""
-jq -r '.families_outstanding[]? | "- `" + . + "`"' "$IN" >> "$OUT_TMP"
+# An empty list must SAY it is empty. Rendering the prose and then nothing
+# leaves the reader unable to tell "none left" from "the loop broke" -- the same
+# absence-as-meaning failure that made `pending` an explicit value rather than a
+# missing field (vc ruling 2, 2026-08-14).
+if [ "$(jq -r '(.families_outstanding // []) | length' "$IN")" -eq 0 ]; then
+  emit "**None.** Every v2 command family is authored."
+else
+  emit "Not yet authored. Named individually rather than counted, so a family that quietly never gets written is visible as a gap rather than absent from a total."
+  emit ""
+  jq -r '.families_outstanding[]? | "- `" + . + "`"' "$IN" >> "$OUT_TMP"
+fi
 emit ""
 
 emit "## New surface (no v2 antecedent, no parity obligation)"

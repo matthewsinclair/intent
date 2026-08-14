@@ -1,8 +1,8 @@
 # Command dispatch table -- Intent v3 (ST0056, AC-05.1)
 
-> GENERATED VIEW -- the canon is `dispatch-table.json` beside this file. Regenerate with `parity/tools/gen_dispatch_table.sh`; do not hand-edit rows. Measured at `f7434f1` on 2026-08-14 by ic.
+> GENERATED VIEW -- the canon is `dispatch-table.json` beside this file. Regenerate with `parity/tools/gen_dispatch_table.sh`; do not hand-edit rows. Measured at `9ec1656` on 2026-08-14 by ic.
 
-**Status:** WIP -- `st` family complete as the shape canary; 26 families outstanding
+**Status:** All 27 v2 families authored + 6 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling.
 
 - THE command-surface source of truth for Intent v3 (AC-05.1). The clap surface, the help text, the MCP tool list and the `intent llm` agent guide all render FROM this file; nothing renders from `bin/**` and nothing describes the surface a second time.
 - This is the AUTHORED artefact. `dispatch-table.md` beside it is a GENERATED view -- run `parity/tools/gen_dispatch_table.sh`, never hand-edit the view.
@@ -11,6 +11,16 @@
 - Every claim carries an `evidence_class`, because 'verified' is not one thing. `measured` = a probe was run against v2 at the stamped revision. `documented-default` = a framework's published default, correct today and CHANGEABLE by a major bump or a single builder setting. `read` = taken from source without executing it. The distinction was forced by vc catching this file claiming clap's exit code was measured -- it cannot have been, since no clap dependency exists in the workspace yet. A documented default that goes unpinned is a finding with a silent expiry date.
 - `disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep · retire · deviate · pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.
 - Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them.
+
+## Provenance
+
+- **Source reads and live probes at:** `9ec1656`
+- **Runtime probe matrix at:** `69d42a7`
+- **Why two revisions:** A single stamp would have been wrong for half this file. The 108-probe runtime matrix (bare / --help / unknown flag / outside a project, four per command) was captured at 69d42a7. Four commits have touched bin/ since: 205c368 (project-root resolution), e685e90 (at lint / ac gate WP scope), 072d277, and 3563ff4 (devbin -- out of parity scope). Per-arm source reads and every live probe in this file were taken at the revision above.
+- **Re-validated after those bin/ changes:**
+  - INV-03, the outside-a-project gate, re-probed at the head revision after 205c368 changed project-root resolution -- st / wp / todo / llm all still answer `error: not in an Intent project directory` at exit 1. That was the matrix column most exposed to the change, so it is the one re-run rather than assumed.
+  - `ac gate` and `at lint` scope-honouring is recorded from a read of the CURRENT bin/intent_acceptance, post-e685e90, not from the older matrix.
+- **Known limit:** The matrix's bare / --help / unknown-flag columns for commands untouched by those four commits are carried forward unre-run. Stated rather than papered over: a full re-probe is one `gen_inventory.sh` run and is the right move before WP-05 leans on this file, not before vc reviews its shape.
 
 ## Surface-wide invariants
 
@@ -350,36 +360,1867 @@ STZero retrofit -- install the zeroth steel thread (newly authored; v2 has no us
 - **Open question for hv:** parity.md already flags `st_zero` as a candidate for a ratified retire if the fleet does not use it. That ruling decides this row too -- both faces (`intent st zero` and `intent st_zero`) or neither.
 - **Cross-reference:** The top-level `st_zero` family covers bin/intent_st_zero; this entry is the alias face only.
 
+## Family: `wp`
+
+Manage work packages within steel threads
+
+- **v2 source:** `bin/intent_wp`
+- **v2 help file:** none
+- **Owning work package:** WP-04
+
+- Specifier syntax is shared across every verb and parsed by `parse_wp_specifier` (bin/intent_helpers, ST0050): `STID` accepts `ST0011` or the bare number `11`; `STID/NN` accepts `ST0011/01` or `11/01`. Unlike `st repair`, the bare-number form here actually works -- the resolver is a function, not a `case` glob (contrast the dead arm at bin/intent_st:1231).
+- No help file; `intent help wp` falls through to the no-help path. The usage() block is the only authored help and is unreachable from `intent help`.
+
+| command    | args           | flags          | help                                      | disposition |
+| ---------- | -------------- | -------------- | ----------------------------------------- | ----------- |
+| `wp`       | <command>      | help/--help/-h | Manage work packages within steel threads | keep        |
+| `wp new`   | <stid> <title> | --             | Create a new work package                 | keep        |
+| `wp start` | <specifier>    | --             | Mark a work package as WIP                | keep        |
+| `wp done`  | <specifier>    | --             | Mark a work package as Done               | keep        |
+| `wp list`  | <stid>         | --             | List work packages for a steel thread     | keep        |
+| `wp show`  | <specifier>    | --             | Show work package info.md                 | keep        |
+
+### `wp`
+
+Manage work packages within steel threads
+
+- **v2:** bin/intent_wp:287 (`*)` arm) + the arity check above it
+- **Arguments:**
+  - `command` (subcommand, arity `1`)
+- **Flags:**
+  - `help`, `--help`, `-h` (bool) -- Print the usage block
+    - bare-word arm plus the two flag spellings
+- **Exit codes:**
+  - `1` -- bare -- `error: Work package command is required`
+  - `1` -- `--help` prints usage to STDOUT and exits 1
+  - `1` -- unknown verb
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** usage block on the --help path
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Defects observed in v2:**
+  - INV-05 at bare invocation
+  - INV-07 at `wp --help`
+- **Target:** `pending-hv`
+- **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+
+### `wp new`
+
+Create a new work package
+
+- **v2:** bin/intent_wp:83
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+  - `title` (string, arity `1`)
+- **Exit codes:**
+  - `0` -- created
+  - `1` -- missing STID or title
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the created WP id and path
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Side effects:**
+  - Writes `intent/st/<ID>/WP/<NN>/info.md` from template
+- **Target:** `as-observed`
+
+### `wp start`
+
+Mark a work package as WIP
+
+- **v2:** bin/intent_wp:190
+- **Arguments:**
+  - `specifier` (st-id/NN, arity `1`)
+- **Exit codes:**
+  - `0` -- started
+  - `1` -- missing or unresolvable specifier
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** confirmation
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `wp done`
+
+Mark a work package as Done
+
+- **v2:** bin/intent_wp:135
+- **Arguments:**
+  - `specifier` (st-id/NN, arity `1`)
+- **Exit codes:**
+  - `0` -- closed
+  - `1` -- missing or unresolvable specifier
+  - `1` -- acceptance contract BLOCKED for the WP group (close-gate, ST0044/ST0048)
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** confirmation
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Side effects:**
+  - Consults the close-gate; warns on an unedited `## Objective` placeholder (`warn_unedited_objective`, issue 0010)
+- **Target:** `as-observed`
+- **Note:** The gate becomes an in-process facade call at WP-04 (AC-04.3). Behaviour and message are parity-bound; the mechanism is not.
+
+### `wp list`
+
+List work packages for a steel thread
+
+- **v2:** bin/intent_wp:218
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+- **Exit codes:**
+  - `0` -- listed, including the empty case -- prints `no work packages for <ID>` and exits 0
+  - `1` -- no STID -- `error: Usage: intent wp list <STID>`
+  - `1` -- steel thread not found
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** table via the shared `render_table`, the same renderer `st list` uses
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** Renders through `render_table` in bin/intent_helpers deliberately, so `wp list` and `st list` column layout cannot drift apart.
+- **Defects observed in v2:**
+  - The arity message is `error: Usage: intent wp list <STID>` -- `error()` used to print a usage line, so the `error:` prefix and the `Usage:` voice collide in one string. Voice nit, not a wrong answer. NOTE: an earlier report that this path answers `error: Unknown command 'wp list'` was a zsh harness artefact (unquoted parameters are not word-split, so the dispatcher received one argument literally named `wp list`); it does NOT reproduce with separated arguments and is not a v2 defect.
+- **Target:** `as-observed`
+
+### `wp show`
+
+Show work package info.md
+
+- **v2:** bin/intent_wp:263
+- **Arguments:**
+  - `specifier` (st-id/NN, arity `1`)
+- **Exit codes:**
+  - `0` -- printed
+  - `1` -- missing or unresolvable specifier
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the info.md contents
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+- **Note:** WP info.md becomes a generated view in v3 (D01/D04); the command reads the view, so its output is unchanged in kind.
+
+## Family: `ac`
+
+Acceptance criteria: the ratified completeness boundary of a unit
+
+- **v2 source:** `bin/intent_acceptance`
+- **v2 help file:** none
+- **Owning work package:** WP-04
+
+- `ac` and `at` are two nouns over ONE binary (`bin/intent_acceptance`), dispatched on `$1` as the noun and `$2` as the verb. They share a usage block, so `intent ac --help` and `intent at --help` are the same text -- and both FAIL, because `--help` is parsed as the verb (INV-07).
+- An AC has four states, not two (issue 0013): in-scope, satisfied, descoped-to-a-named-thread, withdrawn-with-reason. Descoped and withdrawn are non-blocking and reported separately rather than folded into the satisfied count. This is already reified in the v3 model as `AcScope` (crates/intentsvcs/src/model.rs), so the CLI surface here maps onto it directly.
+- Satisfaction for test-backed ACs is COMPUTED from covering green ATs and never stored; only non-test ACs carry `satisfied` inline with their evidence. v3 must preserve that asymmetry -- storing it would be double truth (data-model.md).
+
+| command        | args          | flags                                    | help                                                                  | disposition |
+| -------------- | ------------- | ---------------------------------------- | --------------------------------------------------------------------- | ----------- |
+| `ac`           | <command>     | --                                       | Acceptance criteria commands                                          | keep        |
+| `ac list`      | <stid>        | --                                       | List ACs + covering AT + satisfied state                              | keep        |
+| `ac status`    | <stid>        | --                                       | Report N/M satisfied + verdict (PASS/BLOCKED)                         | keep        |
+| `ac satisfy`   | <stid> <acid> | --evidence <ref>                         | Satisfy a non-test AC by named evidence                               | keep        |
+| `ac gate`      | <stid>        | --                                       | Close-gate: exit non-zero + BLOCKED if unsatisfied                    | keep        |
+| `ac descope`   | <stid> <acid> | --to <stid>, --by <who>, --reason <text> | Record that an AC moved to another thread (non-blocking)              | keep        |
+| `ac rescope`   | <stid> <acid> | --                                       | Undo a descope: back in scope, unsatisfied                            | keep        |
+| `ac withdraw`  | <stid> <acid> | --reason <text>, --by <who>              | Withdraw an AC outright, with its reason on the record (non-blocking) | keep        |
+| `ac reinstate` | <stid> <acid> | --                                       | Undo a withdrawal: back in scope, unsatisfied                         | keep        |
+
+### `ac`
+
+Acceptance criteria commands
+
+- **v2:** bin/intent_acceptance:1345-1352 + :22 (shared usage)
+- **Arguments:**
+  - `command` (subcommand, arity `1`)
+- **Exit codes:**
+  - `1` -- bare -- prints the 1341B shared usage block to STDOUT and exits 1
+  - `1` -- `--help` parsed as an unknown verb
+  - `1` -- unknown verb -- names the valid set
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the shared ac/at usage block (1341B), on STDOUT
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Defects observed in v2:**
+  - INV-06 at usage to STDOUT on a failing invocation
+  - INV-07 at `ac --help` parsed as an unknown verb
+- **Target:** `pending-hv`
+- **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+
+### `ac list`
+
+List ACs + covering AT + satisfied state
+
+- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id[/NN], arity `1`)
+    - the optional `/NN` narrows to one WP group
+- **Exit codes:**
+  - `0` -- listed
+  - `1` -- thread not found / contract missing
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** one row per AC
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `ac status`
+
+Report N/M satisfied + verdict (PASS/BLOCKED)
+
+- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+- **Exit codes:**
+  - `0` -- reported
+  - `1` -- thread not found
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the count and verdict
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** Issue 0004 item 4 queried this verb's exit code; the premise did not reproduce, and it is parked awaiting a close ruling rather than work.
+- **Target:** `as-observed`
+
+### `ac satisfy`
+
+Satisfy a non-test AC by named evidence
+
+- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+  - `acid` (ac-id, arity `1`)
+- **Flags:**
+  - `--evidence` `<ref>` (string) -- The named evidence reference
+- **Exit codes:**
+  - `0` -- satisfied
+  - `1` -- missing --evidence
+  - `1` -- AC not found, or is test-backed -- satisfaction there is computed, never written
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** `ok: <AC> satisfied`
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `ac gate`
+
+Close-gate: exit non-zero + BLOCKED if unsatisfied
+
+- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id[/NN], arity `1`)
+- **Exit codes:**
+  - `0` -- PASS -- every in-scope AC satisfied, or the unit declares `acceptance: exempt`
+  - `1` -- BLOCKED -- at least one in-scope AC unsatisfied
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the verdict plus the unsatisfied set
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** Consulted by `st done` and `wp done`. Fail-by-default since ST0048: an empty or missing contract is REFUSED, and the sole escape is a declared `acceptance: exempt`, never inferred from emptiness. Scope-honouring since issue 0024: a `/NN` scope is actually applied -- it used to be silently dropped.
+- **Target:** `as-observed`
+- **Note:** AC-04.3 requires v3 to reproduce v2 gate verdicts across the corpus contracts. This is the single highest-value parity row in the family.
+
+### `ac descope`
+
+Record that an AC moved to another thread (non-blocking)
+
+- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+  - `acid` (ac-id, arity `1`)
+- **Flags:**
+  - `--to` `<stid>` (string) -- The thread the requirement moved to
+  - `--by` `<who>` (string) -- Who decided
+  - `--reason` `<text>` (string) -- Why
+- **Exit codes:**
+  - `0` -- descoped
+  - `1` -- missing --to
+  - `1` -- AC not found
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** `ok: <AC> descoped to <ID>`
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `ac rescope`
+
+Undo a descope: back in scope, unsatisfied
+
+- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+  - `acid` (ac-id, arity `1`)
+- **Exit codes:**
+  - `0` -- rescoped
+  - `1` -- AC not found or not descoped
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** `ok: <AC> back in scope`
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `ac withdraw`
+
+Withdraw an AC outright, with its reason on the record (non-blocking)
+
+- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+  - `acid` (ac-id, arity `1`)
+- **Flags:**
+  - `--reason` `<text>` (string) -- Why it was dropped -- REQUIRED
+  - `--by` `<who>` (string) -- Who decided
+- **Exit codes:**
+  - `0` -- withdrawn
+  - `1` -- missing --reason -- the reason is mandatory, by design
+  - `1` -- AC not found
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** `ok: <AC> withdrawn`
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** `--reason` being mandatory is the whole point of the verb: the alternative to withdrawing is deleting the line and losing the audit trail.
+- **Target:** `as-observed`
+
+### `ac reinstate`
+
+Undo a withdrawal: back in scope, unsatisfied
+
+- **v2:** bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+  - `acid` (ac-id, arity `1`)
+- **Exit codes:**
+  - `0` -- reinstated
+  - `1` -- AC not found or not withdrawn
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** `ok: <AC> back in scope`
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+## Family: `at`
+
+Acceptance tests: the small red-to-green tests that prove ACs
+
+- **v2 source:** `bin/intent_acceptance`
+- **v2 help file:** none
+- **Owning work package:** WP-04
+
+- **parity.md's command-level table was wrong about this family and the deep pass corrected it.** The table said `lint [--fix], set, list`. Measured: `list, lint, red, green, na, done, notdone`. There is NO `set` verb -- `cmd_at_set` is an internal function -- and `done`/`notdone` are aliases for `green`/`red`. Evidence: `intent at set` answers `error: unknown at command: set`.
+- The AT row has an enforced grammar (issue 0017) with exactly two shapes and nothing else parsing. The reference is the test FILE -- backticked, repo-relative, at least one `/`, no `:`. A test is named by putting the AT id INSIDE the test, which is checkable from both ends and survives rewording; a cited test NAME is not.
+- `n-a` is a status for non-test rows ONLY and is NOT green: satisfaction for such a row lives on the AC's own line. v3 reifies this as `AtStatus::Na` with the serde rename `n-a` (crates/intentsvcs/src/model.rs).
+
+| command                       | args          | flags | help                                                                  | disposition |
+| ----------------------------- | ------------- | ----- | --------------------------------------------------------------------- | ----------- |
+| `at`                          | <command>     | --    | Acceptance test commands                                              | keep        |
+| `at list`                     | <stid>        | --    | List ATs (id, reference, status)                                      | keep        |
+| `at lint`                     | <stid>        | --fix | Check AT rows against the grammar (--fix migrates what is mechanical) | keep        |
+| `at green` (alias `at done`)  | <stid> <atid> | --    | Set an AT green (reachable only from red)                             | keep        |
+| `at red` (alias `at notdone`) | <stid> <atid> | --    | Set an AT red                                                         | keep        |
+| `at na`                       | <stid> <atid> | --    | Set a non-test AT to n-a (the doc / eyeball / gate status)            | keep        |
+
+### `at`
+
+Acceptance test commands
+
+- **v2:** bin/intent_acceptance:1345-1352 + :22 (shared usage)
+- **Arguments:**
+  - `command` (subcommand, arity `1`)
+- **Exit codes:**
+  - `1` -- bare -- shared usage block to STDOUT, exit 1
+  - `1` -- `--help` parsed as an unknown verb
+  - `1` -- unknown verb -- names the valid set
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the shared ac/at usage block (1341B), on STDOUT
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Defects observed in v2:**
+  - INV-06 at usage to STDOUT on a failing invocation
+  - INV-07 at `at --help` parsed as an unknown verb
+- **Target:** `pending-hv`
+- **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+
+### `at list`
+
+List ATs (id, reference, status)
+
+- **v2:** bin/intent_acceptance:1368-1377 (the `at` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id[/NN], arity `1`)
+- **Exit codes:**
+  - `0` -- listed
+  - `1` -- thread not found
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** one row per AT
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `at lint`
+
+Check AT rows against the grammar (--fix migrates what is mechanical)
+
+- **v2:** bin/intent_acceptance:1368-1377 (the `at` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id[/NN], arity `1`)
+- **Flags:**
+  - `--fix` (bool) -- Migrate the mechanical part of a legacy row -- and REFUSE what cannot migrate without loss
+- **Exit codes:**
+  - `0` -- all rows parse
+  - `1` -- L1-L5 findings present
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** findings, one per offending row, each naming its line
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** Scope-honouring since issue 0024: a `/NN` scope is applied, and a scoped `--fix` no longer rewrites rows OUTSIDE the scope.
+- **Target:** `as-observed`
+- **Note:** **The refuse-lossy discipline is the load-bearing part and must survive into WP-10's migrator.** `--fix` once half-migrated rows and destroyed the only link a row had; the SUGGESTION was lossy before the fixer was, so every human following it lost the same data. A tool that cannot finish a job must not start it.
+
+### `at green`
+
+Set an AT green (reachable only from red)
+
+- **v2:** bin/intent_acceptance:1368-1377 (the `at` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+  - `atid` (at-id, arity `1`)
+- **Exit codes:**
+  - `0` -- set
+  - `1` -- AT not found
+  - `1` -- cited test file does not exist -- a green AT must resolve against the tree
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** `ok: <AT> -> green`
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** The file-existence check fires on the transition to green specifically (bin/intent_acceptance:1337): a green row whose test does not exist is the exact shape of a vacuous pass.
+- **Target:** `as-observed`
+
+### `at red`
+
+Set an AT red
+
+- **v2:** bin/intent_acceptance:1368-1377 (the `at` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+  - `atid` (at-id, arity `1`)
+- **Exit codes:**
+  - `0` -- set
+  - `1` -- AT not found
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** `ok: <AT> -> red`
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `at na`
+
+Set a non-test AT to n-a (the doc / eyeball / gate status)
+
+- **v2:** bin/intent_acceptance:1368-1377 (the `at` dispatch arm)
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+  - `atid` (at-id, arity `1`)
+- **Exit codes:**
+  - `0` -- set
+  - `1` -- AT not found
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** `ok: <AT> -> n-a`
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** `n-a` belongs to `(non-test)` rows only and never satisfies anything.
+- **Target:** `as-observed`
+
+## Family: `issues`
+
+Track issues without the ceremony of a steel thread
+
+- **v2 source:** `bin/intent_issues`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- **The OPEN/CLOSED directory layout is a ratified deviation.** v2 stores issues at `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md`, so the directory encodes status. In v3 status is data (`issues/<n>.json`) and index views replace directory browsing (parity.md, D01). Tests asserting the directory shape retire with the layout.
+- `new` is an undocumented alias for `add`, and there is an undocumented `help` verb -- both measured, neither in parity.md's original table.
+
+| command                           | args      | flags                               | help                                                | disposition |
+| --------------------------------- | --------- | ----------------------------------- | --------------------------------------------------- | ----------- |
+| `issues`                          | [command] | --                                  | Track issues without the ceremony of a steel thread | keep        |
+| `issues list`                     | --        | --kind open/closed/all              | List issues (default: open)                         | keep        |
+| `issues add` (alias `issues new`) | <title>   | --severity critical/high/medium/low | Add a new issue, print its ID:TITLE                 | keep        |
+| `issues show`                     | <id>      | --json                              | Show one issue (optionally as JSON)                 | keep        |
+| `issues close`                    | <id>      | --                                  | Mark an issue done: OPEN -> CLOSED                  | keep        |
+| `issues open`                     | <id>      | --                                  | Reopen an issue: CLOSED -> OPEN                     | keep        |
+
+### `issues`
+
+Track issues without the ceremony of a steel thread
+
+- **v2:** bin/intent_issues:308-316
+- **Arguments:**
+  - `command` (subcommand, arity `0..1`), default `list`
+- **Exit codes:**
+  - `0` -- bare -- defaults to `list`, prints `no open issues` and exits 0
+  - `0` -- `--help` -- 577B usage to STDOUT, exit 0
+  - `1` -- unknown verb -- `error: Unknown issues command '<v>'. Run 'intent issues help' for usage.`
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the issue list, or the usage block
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** One of the 17 commands whose `--help` correctly exits 0 -- it is NOT an INV-07 member.
+- **Target:** `as-observed`
+
+### `issues list`
+
+List issues (default: open)
+
+- **v2:** bin/intent_issues:310, buckets at :207-209
+- **Flags:**
+  - `--kind` `open|closed|all` (enum) -- Which bucket to list
+- **Exit codes:**
+  - `0` -- listed
+  - `1` -- unknown --kind value
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** one row per issue
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `issues add`
+
+Add a new issue, print its ID:TITLE
+
+- **v2:** bin/intent_issues:311
+- **Arguments:**
+  - `title` (string, arity `1`)
+- **Flags:**
+  - `--severity` `critical|high|medium|low` (enum) -- Severity
+- **Exit codes:**
+  - `0` -- created -- prints `<ID>:<TITLE>`
+  - `1` -- no title -- `error: Issue title is required`
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** `<ID>:<TITLE>`
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** `new` is an undocumented alias, verified by invocation: `intent issues new` answers `error: Issue title is required`, identical to `add`.
+- **Target:** `as-observed`
+
+### `issues show`
+
+Show one issue (optionally as JSON)
+
+- **v2:** bin/intent_issues:312
+- **Arguments:**
+  - `id` (issue-id, arity `1`)
+- **Flags:**
+  - `--json` (bool) -- Emit as JSON instead of prose
+- **Exit codes:**
+  - `0` -- printed
+  - `1` -- issue not found
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the issue body, or JSON
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `issues close`
+
+Mark an issue done: OPEN -> CLOSED
+
+- **v2:** bin/intent_issues:313
+- **Arguments:**
+  - `id` (issue-id, arity `1`)
+- **Exit codes:**
+  - `0` -- closed
+  - `1` -- issue not found
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** confirmation
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Side effects:**
+  - Moves the issue directory between OPEN/ and CLOSED/ -- the v2 layout that retires under the ratified deviation
+- **Target:** `as-observed`
+
+### `issues open`
+
+Reopen an issue: CLOSED -> OPEN
+
+- **v2:** bin/intent_issues:314
+- **Arguments:**
+  - `id` (issue-id, arity `1`)
+- **Exit codes:**
+  - `0` -- reopened
+  - `1` -- issue not found
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** confirmation
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Side effects:**
+  - Moves the issue directory back
+- **Target:** `as-observed`
+
+## Family: `todo`
+
+A flat DOING / TODO / DONE view of steel threads and work packages
+
+- **v2 source:** `bin/intent_todo`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- `intent/todo.md` is GENERATED from ST/WP status and is never hand-maintained. In v3 it is a generated view proper (WP-03), so the `update` verb becomes explicit regeneration rather than the thing that keeps it from going stale.
+- The DONE bucket is watermarked: `done --flush` advances a `## DONE:<T>` marker so completed threads fall out of the view without being deleted. That watermark is authored state with no home in the reified model yet -- flagged, since it is neither thread data nor a pure view.
+
+| command        | args        | flags            | help                                                           | disposition |
+| -------------- | ----------- | ---------------- | -------------------------------------------------------------- | ----------- |
+| `todo`         | [command]   | --json           | Show intent/todo.md (generates it if absent)                   | keep        |
+| `todo update`  | --          | --               | Regenerate intent/todo.md from current status                  | keep        |
+| `todo done`    | [specifier] | --flush, --prune | Mark a thread/WP done (via intent st/wp done), then regenerate | keep        |
+| `todo notdone` | <specifier> | --               | Reopen a thread/WP to WIP, then regenerate                     | keep        |
+| `todo toggle`  | <specifier> | --               | Flip done/not-done, then regenerate                            | keep        |
+
+### `todo`
+
+Show intent/todo.md (generates it if absent)
+
+- **v2:** bin/intent_todo:384 (dispatch arms sit at zero indent here, which is what defeated one static enumerator)
+- **Arguments:**
+  - `command` (subcommand, arity `0..1`), default `list`
+- **Flags:**
+  - `--json` (bool) -- Emit the DOING/TODO/DONE view as JSON on stdout
+- **Exit codes:**
+  - `0` -- bare -- prints the view, generating the file if absent
+  - `1` -- `--help` prints 1077B usage to STDOUT and exits 1
+  - `1` -- unknown verb -- `error: Unknown todo command: <v>. Run 'intent todo help' for usage.`
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the DOING / TODO / DONE view
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Defects observed in v2:**
+  - INV-07 at `todo --help`
+- **Target:** `pending-hv`
+- **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+
+### `todo update`
+
+Regenerate intent/todo.md from current status
+
+- **v2:** bin/intent_todo (update arm)
+- **Exit codes:**
+  - `0` -- regenerated
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** confirmation
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Side effects:**
+  - Rewrites intent/todo.md
+- **Target:** `as-observed`
+- **Note:** In v3 this is a view regeneration on the WP-03 renderer, and the skew check (AC-03.4) makes a stale todo.md detectable rather than merely refreshable.
+
+### `todo done`
+
+Mark a thread/WP done (via intent st/wp done), then regenerate
+
+- **v2:** bin/intent_todo (done arm)
+- **Arguments:**
+  - `specifier` (st-id[/NN], arity `0..1`)
+    - omitted when --flush or --prune is given
+- **Flags:**
+  - `--flush` (bool) -- Advance the DONE watermark to now, clearing the DONE view
+  - `--prune` (bool) -- Emit the DONE items for archiving, then flush
+- **Exit codes:**
+  - `0` -- marked and regenerated
+  - `1` -- specifier not resolvable
+  - `1` -- close-gate BLOCKED, propagated from st/wp done
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** confirmation, or the pruned DONE items under --prune
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** Delegates to `intent st done` / `intent wp done`, so the acceptance close-gate applies transitively.
+- **Target:** `as-observed`
+
+### `todo notdone`
+
+Reopen a thread/WP to WIP, then regenerate
+
+- **v2:** bin/intent_todo (notdone arm)
+- **Arguments:**
+  - `specifier` (st-id[/NN], arity `1`)
+- **Exit codes:**
+  - `0` -- reopened
+  - `1` -- specifier not resolvable
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** confirmation
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `todo toggle`
+
+Flip done/not-done, then regenerate
+
+- **v2:** bin/intent_todo (toggle arm)
+- **Arguments:**
+  - `specifier` (st-id[/NN], arity `1`)
+- **Exit codes:**
+  - `0` -- flipped
+  - `1` -- specifier not resolvable
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** confirmation
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+## Family: `info`
+
+Show the Intent process overview and project status
+
+- **v2 source:** `bin/intent_info`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- Single-action command: no dispatch `case`, no flags parsed at all.
+
+| command | args         | flags | help                                                | disposition |
+| ------- | ------------ | ----- | --------------------------------------------------- | ----------- |
+| `info`  | [ignored]... | --    | Show the Intent process overview and project status | keep        |
+
+### `info`
+
+Show the Intent process overview and project status
+
+- **v2:** bin/intent_info
+- **Arguments:**
+  - `ignored` (any, arity `0..n`)
+    - every argument is silently discarded
+- **Exit codes:**
+  - `0` -- bare -- 595B to stdout
+  - `0` -- `--help` -- IDENTICAL 595B output; the flag is not parsed, merely ignored
+  - `0` -- unknown flag -- also 595B, exit 0
+  - `0` -- outside a project -- 374B, exit 0; this command does NOT gate
+- **stdout:** the overview (595B in a project, 374B outside one)
+- **stderr:** --
+- **Defects observed in v2:**
+  - INV-08 at `intent info --zzz` succeeds silently at exit 0
+- **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced rather than chosen -- clap rejects unrecognised arguments by default -- behaviour: Unknown arguments refused, exit 1 per INV-02.
+
+## Family: `config`
+
+Display the resolved project configuration
+
+- **v2 source:** `bin/intent_config`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- **This command produces NO OUTPUT AT ALL in a project** -- 0 bytes on both streams, exit 0, measured. `bin/intent_config` is primarily a LIBRARY: `bin/intent:211` sources it for `load_intent_config`, and the executable path is close to vestigial.
+- It is the clearest case in the surface of a command whose v3 shape is a decision rather than a port: `intent config` printing nothing is not a behaviour worth reproducing.
+
+| command  | args | flags | help                                       | disposition |
+| -------- | ---- | ----- | ------------------------------------------ | ----------- |
+| `config` | --   | --    | Display the resolved project configuration | pending     |
+
+### `config`
+
+Display the resolved project configuration
+
+- **v2:** bin/intent_config
+- **Exit codes:**
+  - `0` -- bare -- ZERO bytes on both streams
+  - `0` -- `--help` -- also zero bytes
+  - `0` -- unknown flag -- also zero bytes, exit 0
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** nothing (0B)
+- **stderr:** nothing (0B), except the project gate outside a project
+- **Defects observed in v2:**
+  - INV-08 at `intent config --zzz` succeeds silently at exit 0
+  - Produces no output whatsoever in a project. A user cannot distinguish 'ran and printed the empty config' from 'did nothing'.
+- **Target:** `pending-hv`
+- **Open question for hv:** v3 should print the resolved config -- but that is a NEW behaviour, not parity, because there is no v2 output to be faithful to. Ratify as `corrected` (v2 prints nothing, which is a defect), or as new surface? The distinction matters for the register: `corrected` needs a v2 antecedent to correct, and here the antecedent is silence.
+
+## Family: `init`
+
+Initialize a new Intent project in the current directory
+
+- **v2 source:** `bin/intent_init`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- Templates are read from `lib/templates/` at `INTENT_HOME`. In v3 they are embedded in the binary (WP-07, rust-embed), which removes the whole class of broken-install failure this command currently has to report.
+
+| command | args           | flags                                   | help                                                     | disposition |
+| ------- | -------------- | --------------------------------------- | -------------------------------------------------------- | ----------- |
+| `init`  | [project_name] | --with-st0000, --lang <list>, --help/-h | Initialize a new Intent project in the current directory | keep        |
+
+### `init`
+
+Initialize a new Intent project in the current directory
+
+- **v2:** bin/intent_init
+- **Arguments:**
+  - `project_name` (string, arity `0..1`), default `the current directory name`
+- **Flags:**
+  - `--with-st0000` (bool) -- Bootstrap all ST0000 deliverables after init
+  - `--lang` `<list>` (string) -- Comma- or space-separated languages to install canon for
+    - Accepts: eg `--lang elixir` or `--lang elixir,rust,shell`
+  - `--help`, `-h` (bool) -- Print the usage block
+- **Exit codes:**
+  - `0` -- created
+  - `1` -- already an Intent project -- `error: This directory is already an Intent project`
+  - `1` -- `--help` prints usage to STDOUT and exits 1
+  - `1` -- unknown flag
+- **stdout:** progress lines and the created layout
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Side effects:**
+  - Writes intent/.config/config.json, the intent/ tree, and root canon (AGENTS.md, CLAUDE.md, usage-rules.md)
+- **Defects observed in v2:**
+  - INV-07 at `init --help`
+- **Target:** `as-observed`
+- **Note:** v3 additionally stamps `project_id` (the D15 cloud seam) at init and at migration.
+
+## Family: `bootstrap`
+
+First-time setup: create global Intent configuration
+
+- **v2 source:** `bin/intent_bootstrap`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- Runs OUTSIDE a project by design (measured: exit 0, 982B). It is one of the global commands.
+- Its own usage block says `Usage: intent_bootstrap [OPTIONS]` and `Initial setup for Intent v2.0.0` -- it names the underlying script rather than the `intent bootstrap` the user typed, and the version is nine minors stale. Both retire when help is generated from this table.
+
+| command     | args | flags                             | help                                                 | disposition |
+| ----------- | ---- | --------------------------------- | ---------------------------------------------------- | ----------- |
+| `bootstrap` | --   | --force/-f, --quiet/-q, --help/-h | First-time setup: create global Intent configuration | keep        |
+
+### `bootstrap`
+
+First-time setup: create global Intent configuration
+
+- **v2:** bin/intent_bootstrap
+- **Flags:**
+  - `--force`, `-f` (bool) -- Force recreation of config even if it exists
+  - `--quiet`, `-q` (bool) -- Suppress informational output
+  - `--help`, `-h` (bool) -- Print the usage block
+- **Exit codes:**
+  - `0` -- bare -- 1161B in a project, 982B outside one
+  - `0` -- `--help` -- 399B usage, exit 0
+  - `1` -- unknown flag -- `Unknown option: --zzz-not-a-flag`
+- **stdout:** setup progress and instructions
+- **stderr:** the unknown-option message
+- **Defects observed in v2:**
+  - INV-01 at the unknown-option message is `Unknown option: ...` with NO `error:` prefix
+  - Usage block says `intent_bootstrap` and `Intent v2.0.0` -- names the script rather than the command, and the version is stale by nine minors.
+- **Target:** `pending-hv`
+- **Open question for hv:** The missing `error:` prefix is an INV-01 violation and a candidate `corrected` member. Same shape as `doctor` and `fileindex`.
+
+## Family: `doctor`
+
+Diagnose and fix common Intent configuration issues
+
+- **v2 source:** `bin/intent_doctor`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- Runs outside a project (measured: exit 0, 397B), so it is a global command.
+- v3 gains two checks that have no v2 antecedent because they are consequences of the new truth model: the SKEW check (a hand-edited generated view, AC-03.4) and the UNPARSED state (AC-03.5). Both are additions, not deviations.
+
+| command  | args | flags                                         | help                                                | disposition |
+| -------- | ---- | --------------------------------------------- | --------------------------------------------------- | ----------- |
+| `doctor` | --   | --fix/-f, --verbose/-v, --quiet/-q, --help/-h | Diagnose and fix common Intent configuration issues | keep        |
+
+### `doctor`
+
+Diagnose and fix common Intent configuration issues
+
+- **v2:** bin/intent_doctor
+- **Flags:**
+  - `--fix`, `-f` (bool) -- Attempt to fix issues automatically
+  - `--verbose`, `-v` (bool) -- Show detailed information
+  - `--quiet`, `-q` (bool) -- Only show errors and warnings
+  - `--help`, `-h` (bool) -- Print the usage block
+- **Exit codes:**
+  - `0` -- bare -- 563B, exit 0 whether or not findings exist
+  - `0` -- `--help` -- 384B, exit 0
+  - `1` -- unknown flag -- `Unknown option: --zzz-not-a-flag`
+- **stdout:** check results (checks 1..4e)
+- **stderr:** the unknown-option message
+- **Defects observed in v2:**
+  - INV-01 at the unknown-option message has NO `error:` prefix
+  - Exits 0 even with findings, so it cannot be used as a CI gate as it stands. Usage block also names `intent_doctor` rather than `intent doctor`.
+- **Target:** `pending-hv`
+- **Open question for hv:** Should `doctor` exit non-zero when it finds something? v2 does not, so a CI job cannot gate on it. Changing it is `corrected`; leaving it means the skew and unparsed checks v3 adds are reportable but not enforceable.
+
+## Family: `upgrade`
+
+Upgrade an Intent project to the current version
+
+- **v2 source:** `bin/intent_upgrade`
+- **v2 help file:** none
+- **Owning work package:** WP-10
+
+- **REPLACED, not ported.** D09's two-hop policy: v2's own upgrade ledger is never reimplemented in Rust. A project below the v2.19.0 floor runs v2's `intent upgrade` first, then the v3 migrator takes it from there. The two `intent_migrations_*` BATS files retire by design for the same reason.
+- `bin/intent_migrations` is mode 644 and is NOT a command -- it exists only to be sourced by the orchestrator, and `bin/intent_help`'s auto-list requires `-x`, so it is correctly absent from help. There is no `intent migrations` in the surface.
+
+| command   | args | flags                                      | help                                             | disposition |
+| --------- | ---- | ------------------------------------------ | ------------------------------------------------ | ----------- |
+| `upgrade` | --   | --backup-dir <dir>, --no-backup, --help/-h | Upgrade an Intent project to the current version | retire      |
+
+### `upgrade`
+
+Upgrade an Intent project to the current version
+
+- **v2:** bin/intent_upgrade
+- **Flags:**
+  - `--backup-dir` `<dir>` (string) -- Custom backup directory name
+  - `--no-backup` (bool) -- Skip backup creation (dangerous)
+  - `--help`, `-h` (bool) -- Print the usage block
+- **Exit codes:**
+  - `0` -- bare -- 78B, `Current version: 2.19.0`
+  - `0` -- `--help` -- 593B, exit 0
+  - `1` -- unknown flag -- `error: Unknown option: ...`
+  - `1` -- outside a project -- supplies its OWN message, not the standard gate (INV-03 exception)
+- **stdout:** the convergent ledger walk
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** Convergent since ST0043: it probes on-disk state, runs only the steps still needed, applies canon via `intent claude upgrade --apply`, and stamps the version once at the end. Safe to re-run after an interruption.
+- **Target:** `retire` -- ratified: D09 -- migration floor v2.19.0, two-hop; v2's ledger is never reimplemented in Rust -- behaviour: The v3 migrator (WP-10) is the successor surface: `intent ingest --from-md` is its engine.
+
+## Family: `organize`
+
+Organize steel threads into status directories based on their metadata
+
+- **v2 source:** `bin/intent_organize`
+- **v2 help file:** none
+- **Owning work package:** --
+
+- **A live Highlander violation, registered in the very file that exists to prevent it.** MODULES.md gives `bin/intent_organize` this job AND gives `bin/intent_st` an `organize` verb. Measured against one thread in a fresh project the two share no output: the top-level form prints `ok: moved 0, kept 0` plus per-directory counts (117B), the `st` form prints `Already organized: ST0001 in intent/st/NOT-STARTED` (73B).
+- **`intent organise` is NOT a top-level alias** -- it answers `error: Unknown command 'organise'`. The alias exists only one level down, at `intent st organise` (normalised at bin/intent_st:289-292). Both measured.
+- The flags differ between the two faces too: this one takes `--dry-run` (dry by request), `st organize` takes `--write` (dry by default). Opposite polarity for the same operation.
+
+| command    | args | flags                | help                                                                   | disposition |
+| ---------- | ---- | -------------------- | ---------------------------------------------------------------------- | ----------- |
+| `organize` | --   | --dry-run, --help/-h | Organize steel threads into status directories based on their metadata | retire      |
+
+### `organize`
+
+Organize steel threads into status directories based on their metadata
+
+- **v2:** bin/intent_organize
+- **Flags:**
+  - `--dry-run` (bool) -- Preview changes without making them
+    - OPPOSITE polarity to `st organize --write`: this face acts by default, that one previews by default
+  - `--help`, `-h` (bool) -- Print the usage block
+- **Exit codes:**
+  - `0` -- bare -- 117B
+  - `0` -- `--help` -- 575B, exit 0
+  - `1` -- unknown flag
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** `ok: moved N, kept M` plus per-directory counts
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `retire` -- ratified: hv, 2026-08-14 -- organize (both faces) is planned vestigial by construction; a strictly structured model cannot hold data in the wrong spot or the wrong format, so the disorder this repairs cannot arise. Confirmed finally at the surface cut (WP-05/06).
+- **Note:** Retiring both faces dissolves the Highlander violation rather than resolving it -- nobody has to choose which implementation was right.
+- **Cross-reference:** `st organize` is the other face; see the `st` family.
+
+## Family: `agents`
+
+Manage AGENTS.md -- the primary tool-agnostic LLM config at project root
+
+- **v2 source:** `intent/plugins/agents/ (plugin command)`
+- **v2 help file:** none
+- **Owning work package:** WP-07
+
+- **parity.md's table said this family was just `sync`. Measured: five verbs** -- init, generate, sync, validate, template.
+- A PLUGIN command, so it execs before the project check (bin/intent:188-191) and runs outside a project (measured: exit 0, 984B) despite not being in GLOBAL_COMMANDS. That is INV-03's second exception.
+
+| command           | args         | flags             | help                                            | disposition |
+| ----------------- | ------------ | ----------------- | ----------------------------------------------- | ----------- |
+| `agents`          | [command]    | --                | Manage AGENTS.md for Intent projects            | keep        |
+| `agents init`     | --           | --template <name> | Initialize AGENTS.md at project root            | keep        |
+| `agents generate` | --           | --                | Emit generated AGENTS.md content to stdout      | keep        |
+| `agents sync`     | --           | --                | Regenerate AGENTS.md from current project state | keep        |
+| `agents validate` | --           | --                | Validate AGENTS.md shape and required sections  | keep        |
+| `agents template` | [subcommand] | --                | Manage AGENTS.md templates                      | keep        |
+
+### `agents`
+
+Manage AGENTS.md for Intent projects
+
+- **v2:** intent/plugins/agents/ dispatch
+- **Arguments:**
+  - `command` (subcommand, arity `0..1`)
+- **Exit codes:**
+  - `0` -- bare -- prints 984B usage, exit 0
+  - `0` -- `--help` -- same 984B, exit 0
+  - `1` -- unknown verb -- 1018B on STDOUT, `Unknown command: ...`, exit 1
+- **stdout:** the usage block
+- **stderr:** --
+- **Defects observed in v2:**
+  - INV-06 at the unknown-verb error goes to STDOUT, not stderr
+  - INV-01 at `Unknown command: ...` carries no `error:` prefix
+- **Target:** `pending-hv`
+- **Open question for hv:** Both defects are INV-01/INV-06 members awaiting the same scope ruling.
+
+### `agents init`
+
+Initialize AGENTS.md at project root
+
+- **v2:** plugin dispatch
+- **Flags:**
+  - `--template` `<name>` (string) -- Initial content from a named template
+- **Exit codes:**
+  - `0` -- created
+  - `1` -- already exists
+- **stdout:** confirmation
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `agents generate`
+
+Emit generated AGENTS.md content to stdout
+
+- **v2:** plugin dispatch
+- **Exit codes:**
+  - `0` -- emitted
+- **stdout:** the generated AGENTS.md content
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** Pure emit-path -- writes nothing. The composable half of `sync`.
+- **Target:** `as-observed`
+
+### `agents sync`
+
+Regenerate AGENTS.md from current project state
+
+- **v2:** plugin dispatch
+- **Exit codes:**
+  - `0` -- regenerated
+- **stdout:** confirmation
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Side effects:**
+  - Rewrites AGENTS.md at project root
+- **Observed notes:** AGENTS.md is THE proven generated-committed-view precedent that D04 generalises to info.md, acceptance.md, steel_threads.md and todo.md.
+- **Target:** `as-observed`
+
+### `agents validate`
+
+Validate AGENTS.md shape and required sections
+
+- **v2:** plugin dispatch
+- **Exit codes:**
+  - `0` -- valid
+  - `1` -- findings
+- **stdout:** findings
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `agents template`
+
+Manage AGENTS.md templates
+
+- **v2:** plugin dispatch
+- **Arguments:**
+  - `subcommand` (subcommand, arity `0..1`) -- one of: `list`
+- **Exit codes:**
+  - `0` -- listed or applied
+  - `1` -- unknown template
+- **stdout:** template list or detail
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+## Family: `claude`
+
+Claude Code integration: subagents, skills, rules, hooks, workstreams
+
+- **v2 source:** `bin/intent (claude arms) + intent/plugins/claude/`
+- **v2 help file:** `lib/help/rules.help.md (documents `claude rules`, misfiled as a top-level command)`
+- **Owning work package:** WP-07
+
+- The largest family in the surface and the only one needing an explicit arm in `bin/intent` -- every other `bin/intent_<name>` auto-dispatches via the `*)` default case.
+- **`intent claude` bare, `--help`, an unknown flag and outside-a-project all produce the SAME 189B error** (`error: Unknown claude subcommand. Try: ...`). Four distinct conditions, one message: a user who typed `--help` is told they used an unknown subcommand. It also means the family never reaches the project gate (INV-03's first exception).
+- **`intent claude rules` bare does not print usage -- it LISTS rules**, defaulting to the `list` verb. Measured.
+- `claude hook <name>` must stay byte-compatible on day one (parity.md): issue 0016's runtime-resolved hooks plus byte-identical settings.json is what makes the v2-to-v3 binary swap invisible at the consumer hook layer. It propagates the hook's own exit code, including 2, by design (INV-04).
+
+| command            | args             | flags         | help                                            | disposition |
+| ------------------ | ---------------- | ------------- | ----------------------------------------------- | ----------- |
+| `claude`           | <subcommand>     | --            | Claude Code integration                         | keep        |
+| `claude subagents` | <verb> [name]... | -v            | Manage Claude Code subagents                    | keep        |
+| `claude skills`    | <verb> [name]... | -v            | Manage Claude Code skills                       | keep        |
+| `claude rules`     | [verb] [id]      | --lang <lang> | List and show rule-library rules                | keep        |
+| `claude hook`      | <name>           | --            | Run a named Intent hook                         | keep        |
+| `claude upgrade`   | --               | --apply       | Apply Claude canon to the project               | keep        |
+| `claude prime`     | --               | --            | Generate MEMORY.md content for a Claude session | keep        |
+| `claude ws`        | <verb> [wsid]    | --            | Manage whiteboard workstreams                   | keep        |
+| `claude start`     | <ws>             | --            | Launch a Claude session bound to a workstream   | keep        |
+
+### `claude`
+
+Claude Code integration
+
+- **v2:** bin/intent (explicit `claude` arm)
+- **Arguments:**
+  - `subcommand` (subcommand, arity `1`) -- one of: `subagents`, `skills`, `rules`, `hook`, `upgrade`, `prime`, `ws`, `start`
+- **Exit codes:**
+  - `1` -- bare / `--help` / unknown flag / outside a project -- all FOUR produce the identical 189B `error: Unknown claude subcommand. Try: ...`
+- **stdout:** --
+- **stderr:** the 189B subcommand list (INV-01 voice, correct stream)
+- **Defects observed in v2:**
+  - INV-07 at `claude --help` answered as an unknown subcommand
+  - Four distinct conditions collapse to one message, so the error cannot tell the user which mistake they made. This is the same-text-for-different-causes collapse AC-04.4 forbids in v3.
+- **Target:** `pending-hv`
+- **Open question for hv:** INV-07 plus the message collapse. AC-04.4 already rules that v3 errors are typed and render a remedy with the full cause chain, so this one is arguably decided by that AC rather than needing its own ruling.
+
+### `claude subagents`
+
+Manage Claude Code subagents
+
+- **v2:** bin/intent claude arm -> plugin
+- **Arguments:**
+  - `verb` (subcommand, arity `1`) -- one of: `init`, `list`, `install`, `sync`, `uninstall`, `show`, `status`
+  - `name` (string, arity `0..n`)
+- **Flags:**
+  - `-v` (bool) -- Show full descriptions in `list`
+- **Exit codes:**
+  - `0` -- listed / installed / synced
+  - `1` -- unknown verb
+  - `1` -- named subagent not found
+- **stdout:** the subagent table or detail
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** `intent/plugins/claude/subagents/.manifest/` tracks global-agents.json but NOT its sibling installed-agents.json, and .gitignore names neither, so running `install` inside a project leaves a permanent untracked file holding absolute machine paths. Pre-existing; wants an issue.
+- **Target:** `as-observed`
+
+### `claude skills`
+
+Manage Claude Code skills
+
+- **v2:** bin/intent claude arm -> plugin
+- **Arguments:**
+  - `verb` (subcommand, arity `1`) -- one of: `list`, `install`, `sync`, `uninstall`, `show`
+  - `name` (string, arity `0..n`)
+- **Flags:**
+  - `-v` (bool) -- Show full descriptions in `list`
+- **Exit codes:**
+  - `0` -- listed / installed / synced
+  - `1` -- unknown verb
+  - `1` -- named skill not found
+- **stdout:** the skill table or detail
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** `sync` checksums SKILL.md ONLY, so a change confined to a skill's scripts/ does not propagate -- it needs `install --force` (or touching SKILL.md). Known trap, worth not reproducing in v3.
+- **Target:** `as-observed`
+
+### `claude rules`
+
+List and show rule-library rules
+
+- **v2:** bin/intent claude arm
+- **Arguments:**
+  - `verb` (subcommand, arity `0..1`), default `list` -- one of: `list`, `show`, `validate`, `index`
+  - `id` (rule-id, arity `0..1`)
+- **Flags:**
+  - `--lang` `<lang>` (string) -- Filter to one language
+- **Exit codes:**
+  - `0` -- listed / shown
+  - `1` -- unknown rule id
+- **stdout:** the rule table, or one rule's full text
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** Bare `intent claude rules` LISTS rather than printing usage -- measured.
+- **Defects observed in v2:**
+  - `intent claude rules index` MUTATES `INTENT_HOME` -- it rewrote a tracked file (intent/plugins/claude/rules/index.json) in the worktree under test. A verb that reads like a query modifies the installation.
+- **Target:** `pending-hv`
+- **Open question for hv:** In v3 rules are embedded in the binary (WP-07), so `index` has no installation to mutate and arguably retires with the on-disk rules root. Decide at the surface cut.
+
+### `claude hook`
+
+Run a named Intent hook
+
+- **v2:** bin/intent claude arm
+- **Arguments:**
+  - `name` (string, arity `1`)
+- **Exit codes:**
+  - `0` -- hook succeeded
+  - `1` -- hook failed
+  - `2` -- the hook's OWN exit code, propagated verbatim -- by design (INV-04)
+- **stdout:** the hook's stdout, verbatim
+- **stderr:** the hook's stderr, verbatim
+- **Target:** `as-observed`
+- **Note:** **Byte-compatible on day one is a hard requirement, not a preference** (parity.md). Consumer `.claude/settings.json` files reference `intent claude hook <name>` by runtime resolution (issue 0016); if this path changes shape, every consumer's hooks break on the binary swap. The single most parity-critical entry in the family.
+
+### `claude upgrade`
+
+Apply Claude canon to the project
+
+- **v2:** bin/intent claude arm
+- **Flags:**
+  - `--apply` (bool) -- Write the canon; without it the command reports only
+- **Exit codes:**
+  - `0` -- applied or reported
+  - `1` -- canon source missing
+- **stdout:** the canon convergence report
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** Called by `intent upgrade` as its single canon step (ST0043).
+- **Target:** `as-observed`
+
+### `claude prime`
+
+Generate MEMORY.md content for a Claude session
+
+- **v2:** bin/intent claude arm
+- **Exit codes:**
+  - `0` -- emitted
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the primed memory content
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** Consumes `intent/.config/learnings.md` (written by `intent learn`).
+- **Defects observed in v2:**
+  - INV-06 at intent_claude_prime:212 writes `Error:` to stdout -- one of the parked plugin-bin sites
+- **Target:** `as-observed`
+
+### `claude ws`
+
+Manage whiteboard workstreams
+
+- **v2:** bin/intent claude arm (ST0047)
+- **Arguments:**
+  - `verb` (subcommand, arity `1`) -- one of: `new`, `list`, `archive`, `hygiene`
+  - `wsid` (string, arity `0..1`)
+- **Exit codes:**
+  - `0` -- scaffolded / listed / archived / linted
+  - `1` -- unknown verb
+  - `1` -- workstream not found
+- **stdout:** the workstream table, or scaffold confirmation
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** `hygiene` enforces the line-oriented `key: value` header contract (D13) and says nothing about YAML validity, because validity is not the contract.
+- **Target:** `as-observed`
+- **Note:** D14: the whiteboard stays md-authored through 3.0.0/3.1 and is restructured in the 3.2 bus ST. So this family ports as-is rather than being reified.
+
+### `claude start`
+
+Launch a Claude session bound to a workstream
+
+- **v2:** bin/intent claude arm (ST0047)
+- **Arguments:**
+  - `ws` (string, arity `1`)
+- **Exit codes:**
+  - `0` -- launched
+  - `1` -- unknown workstream
+- **stdout:** session launch output
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+## Family: `critic`
+
+Run Intent rule-library critics against source files without invoking an LLM
+
+- **v2 source:** `bin/intent_critic`
+- **v2 help file:** none
+- **Owning work package:** WP-07
+
+- **The only command in the shipped surface that legitimately uses exit code 2** (bin/intent_critic:89,95) -- findings-present, distinct from failure. INV-04's named exception, and INV-02 must not flatten it.
+- Strict-proxy contract since ST0039: the headless runner enforces ONLY rules publishing a simple `Greppable proxy`, and REFUSES non-simple proxies with a once-per-rule stderr note rather than approximating them. A critic that silently approximates a rule reports findings the rule does not actually make.
+- `author` and `content` are accepted as a clean no-op: prose critique is on-demand via the critic-prose subagent, not this runner.
+
+| command  | args   | flags                                                                                                         | help                                                 | disposition |
+| -------- | ------ | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ----------- |
+| `critic` | <lang> | --files <path> ..., --staged, --severity-min <lvl>, --format text/json, --rules <dir>, --languages, --help/-h | Run Intent rule-library critics against source files | keep        |
+
+### `critic`
+
+Run Intent rule-library critics against source files
+
+- **v2:** bin/intent_critic
+- **Arguments:**
+  - `lang` (enum, arity `1`) -- one of: `elixir`, `rust`, `swift`, `lua`, `shell`, `author`, `content`
+- **Flags:**
+  - `--files` `<path> ...` (string) -- Explicit file list
+    - default: scan nothing unless --staged
+  - `--staged` (bool) -- Scan files in the git staging area (pre-commit mode)
+  - `--severity-min` `<lvl>` (enum) -- Minimum severity to report
+    - Accepts: critical | warning | recommendation | style
+  - `--format` `text|json` (enum) -- Output format
+  - `--rules` `<dir>` (string) -- Alternative rules root, overriding canon discovery
+  - `--languages` (bool) -- List languages with a headless code critic, one per line, and exit
+    - consumed by the pre-commit gate so the gate and the runner cannot drift
+  - `--help`, `-h` (bool) -- Print the usage block
+- **Exit codes:**
+  - `0` -- clean, or `--languages`/`--help` listing
+  - `1` -- outside a project (INV-03)
+  - `2` -- findings present at or above --severity-min -- AND on a bare invocation with no <lang>
+- **stdout:** the findings report, grouped by severity
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Defects observed in v2:**
+  - An unknown flag is passed straight through to grep: `intent critic --zzz-not-a-flag` answers `grep: unrecognized option ...` on stderr at exit 2. A raw tool error leaks as the command's voice, and it collides with the meaningful exit 2 (findings present), so a caller cannot distinguish 'findings' from 'you typed a bad flag'.
+  - A BARE invocation (no <lang>) also exits 2 while printing usage to stdout -- so exit 2 currently means three different things.
+- **Target:** `pending-hv`
+- **Open question for hv:** Exit 2 must keep meaning findings-present (INV-04). That requires the bare-invocation and unknown-flag paths to move to 1 per INV-02, which is a `corrected` change with a real consumer: the pre-commit gate reads this exit code.
+
+## Family: `lang`
+
+Per-language canon: install language-specific RULES + ARCHITECTURE templates
+
+- **v2 source:** `bin/intent_lang`
+- **v2 help file:** none
+- **Owning work package:** WP-07
+
+- **parity.md's table said `init, remove, list`. Measured: six verbs** -- list, show, init, remove, sync, plus `rm` as an alias of `remove`. Evidence: `intent lang sync` answers `ok: no declared languages; nothing to sync`.
+- The `languages` array in config.json is authoritative (ST0037); filesystem-marker detection was retired because filesystem presence is unreliable evidence.
+
+| command                         | args      | flags   | help                                                                      | disposition |
+| ------------------------------- | --------- | ------- | ------------------------------------------------------------------------- | ----------- |
+| `lang`                          | [command] | --      | Per-language canon management                                             | keep        |
+| `lang list`                     | --        | --      | List languages with available templates                                   | keep        |
+| `lang show`                     | <lang>    | --      | Show what `intent lang init <lang>` installs                              | keep        |
+| `lang init`                     | <lang>... | --      | Install per-language canon (idempotent; multi-lang)                       | keep        |
+| `lang remove` (alias `lang rm`) | <lang>... | --      | Remove per-language canon (idempotent; multi-lang)                        | keep        |
+| `lang sync`                     | --        | --check | Converge the Language Packs block in RULES.md for every declared language | keep        |
+
+### `lang`
+
+Per-language canon management
+
+- **v2:** bin/intent_lang
+- **Arguments:**
+  - `command` (subcommand, arity `0..1`)
+- **Exit codes:**
+  - `0` -- bare -- 1149B usage, exit 0
+  - `0` -- `--help` -- same, exit 0
+  - `1` -- unknown verb -- `error: unknown lang subcommand '<v>'`
+  - `0` -- outside a project -- usage, exit 0
+- **stdout:** the usage block
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `lang list`
+
+List languages with available templates
+
+- **v2:** bin/intent_lang list arm
+- **Exit codes:**
+  - `0` -- listed
+- **stdout:** one row per language
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `lang show`
+
+Show what `intent lang init <lang>` installs
+
+- **v2:** bin/intent_lang show arm
+- **Arguments:**
+  - `lang` (string, arity `1`)
+- **Exit codes:**
+  - `0` -- shown
+  - `1` -- unknown language
+- **stdout:** the file list
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `lang init`
+
+Install per-language canon (idempotent; multi-lang)
+
+- **v2:** bin/intent_lang init arm
+- **Arguments:**
+  - `lang` (string, arity `1..n`)
+- **Exit codes:**
+  - `0` -- installed
+  - `1` -- unknown language
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** confirmation per language
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Side effects:**
+  - Writes intent/llm/RULES-<lang>.md + ARCHITECTURE-<lang>.md
+  - Adds the language to config.json's `languages` array
+- **Target:** `as-observed`
+
+### `lang remove`
+
+Remove per-language canon (idempotent; multi-lang)
+
+- **v2:** bin/intent_lang remove arm
+- **Arguments:**
+  - `lang` (string, arity `1..n`)
+- **Exit codes:**
+  - `0` -- removed
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** confirmation per language
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `lang sync`
+
+Converge the Language Packs block in RULES.md for every declared language
+
+- **v2:** bin/intent_lang sync arm
+- **Flags:**
+  - `--check` (bool) -- Report without writing; exit 1 if any entry is missing or stale
+- **Exit codes:**
+  - `0` -- converged, or `ok: no declared languages; nothing to sync`
+  - `1` -- --check found a missing or stale entry
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the convergence report
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** Touches ONLY the Language Packs block -- never the RULES-<lang>.md files, which `init` overwrites.
+- **Target:** `as-observed`
+
+## Family: `llm`
+
+LLM-related commands for working with AI assistants
+
+- **v2 source:** `bin/intent_llm`
+- **v2 help file:** none
+- **Owning work package:** WP-06 + WP-09
+
+- **The `intent llm` agent guide is regenerated from the dispatch table at WP-09** (design.md:85, the Lamplight DD-6 pattern), so this family is both a parity subject and a CONSUMER of this file.
+
+| command           | args         | flags           | help                                    | disposition |
+| ----------------- | ------------ | --------------- | --------------------------------------- | ----------- |
+| `llm`             | [subcommand] | --              | LLM-related commands                    | keep        |
+| `llm usage_rules` | --           | --symlink [dir] | Display the Intent usage rules for LLMs | keep        |
+
+### `llm`
+
+LLM-related commands
+
+- **v2:** bin/intent_llm
+- **Arguments:**
+  - `subcommand` (subcommand, arity `0..1`)
+- **Exit codes:**
+  - `0` -- bare -- 596B usage, exit 0
+  - `0` -- `--help` -- same
+  - `1` -- unknown subcommand -- `error: Unknown subcommand: <v>`
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the usage block
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `llm usage_rules`
+
+Display the Intent usage rules for LLMs
+
+- **v2:** bin/intent_llm usage_rules arm
+- **Flags:**
+  - `--symlink` `[dir]` (string) -- Create a symlink to usage-rules.md in the current or specified directory
+    - the directory argument is OPTIONAL, defaulting to the current directory -- an optional-value flag, which clap models differently from v2's positional peek
+- **Exit codes:**
+  - `0` -- displayed or symlinked
+  - `1` -- symlink target unwritable
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the usage-rules content, or the symlink confirmation
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+- **Note:** The optional-value flag is a genuine clap modelling decision (`num_args(0..=1)`), not a free port. Worth naming here so WP-05 does not discover it as a parse bug.
+
+## Family: `learn`
+
+Capture project-specific learnings for future LLM sessions
+
+- **v2 source:** `bin/intent_learn`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- Storage is `intent/.config/learnings.md`, consumed by `intent claude prime` for MEMORY.md injection.
+- Unusually for this surface, the primary action takes a POSITIONAL description and the verbs are expressed as flags (`--list`) rather than subcommands.
+
+| command | args          | flags                    | help                                                       | disposition |
+| ------- | ------------- | ------------------------ | ---------------------------------------------------------- | ----------- |
+| `learn` | [description] | --category <cat>, --list | Capture project-specific learnings for future LLM sessions | keep        |
+
+### `learn`
+
+Capture project-specific learnings for future LLM sessions
+
+- **v2:** bin/intent_learn
+- **Arguments:**
+  - `description` (string, arity `0..1`)
+    - required unless --list is given
+- **Flags:**
+  - `--category` `<cat>` (enum) -- Which kind of learning
+    - Accepts: footgun (default), worked, failed
+  - `--list` (bool) -- Show all learnings
+- **Exit codes:**
+  - `0` -- captured, or listed
+  - `0` -- bare -- 904B usage, exit 0
+  - `1` -- unknown flag -- `error: Unknown option: <f>. Run 'intent learn help' for usage.`
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** confirmation, or the learnings list
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+## Family: `modules`
+
+Module registry guardrails and enforcement
+
+- **v2 source:** `bin/intent_modules`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- One of the few v2 commands with DOCUMENTED exit codes in its own help: 0 clean, 1 issues found. Most of the surface documents none.
+- `check` honours `file::function` rows since v2.11.12, so a helper registered against a function name is not reported as missing.
+
+| command         | args      | flags      | help                                           | disposition |
+| --------------- | --------- | ---------- | ---------------------------------------------- | ----------- |
+| `modules`       | [command] | --         | Module registry guardrails                     | keep        |
+| `modules check` | --        | --register | Compare MODULES.md registry against filesystem | keep        |
+| `modules find`  | <term>    | --         | Search MODULES.md for a term                   | keep        |
+
+### `modules`
+
+Module registry guardrails
+
+- **v2:** bin/intent_modules
+- **Arguments:**
+  - `command` (subcommand, arity `0..1`)
+- **Exit codes:**
+  - `0` -- bare -- 673B usage, exit 0
+  - `0` -- `--help` -- same
+  - `1` -- unknown verb -- `error: Unknown modules command: <v>. Run 'intent modules help' for usage.`
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the usage block
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `modules check`
+
+Compare MODULES.md registry against filesystem
+
+- **v2:** bin/intent_modules check arm
+- **Flags:**
+  - `--register` (bool) -- Interactively register unregistered modules
+    - INTERACTIVE -- the only interactive path in the surface, and a shape a non-tty caller cannot use
+- **Exit codes:**
+  - `0` -- registry clean
+  - `1` -- issues found -- unregistered or stale entries
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the findings
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+- **Note:** The interactive `--register` needs an explicit non-tty behaviour in v3; v2 has none stated.
+
+### `modules find`
+
+Search MODULES.md for a term
+
+- **v2:** bin/intent_modules find arm
+- **Arguments:**
+  - `term` (string, arity `1`)
+- **Exit codes:**
+  - `0` -- found, or no match
+  - `1` -- no term given
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** matching rows
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+## Family: `plugin`
+
+Discover installed Intent plugins and their commands
+
+- **v2 source:** `bin/intent_plugin`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- Runs outside a project (measured: exit 0, 1076B).
+
+| command       | args      | flags | help                                                 | disposition |
+| ------------- | --------- | ----- | ---------------------------------------------------- | ----------- |
+| `plugin`      | [command] | --    | Discover installed Intent plugins and their commands | keep        |
+| `plugin list` | --        | --    | List all plugins and their commands                  | keep        |
+| `plugin show` | <name>    | --    | Show detailed information for a plugin               | keep        |
+
+### `plugin`
+
+Discover installed Intent plugins and their commands
+
+- **v2:** bin/intent_plugin
+- **Arguments:**
+  - `command` (subcommand, arity `0..1`), default `list`
+- **Exit codes:**
+  - `0` -- bare -- defaults to `list`, 1076B
+  - `0` -- `--help` -- 371B, exit 0
+  - `1` -- unknown verb -- `error: Unknown plugin subcommand '<v>'. Run 'intent plugin help' for usage.`
+  - `0` -- outside a project -- lists, exit 0
+- **stdout:** the plugin list
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `plugin list`
+
+List all plugins and their commands
+
+- **v2:** bin/intent_plugin list arm
+- **Exit codes:**
+  - `0` -- listed
+- **stdout:** one block per plugin
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `plugin show`
+
+Show detailed information for a plugin
+
+- **v2:** bin/intent_plugin show arm
+- **Arguments:**
+  - `name` (string, arity `1`)
+- **Exit codes:**
+  - `0` -- shown
+  - `1` -- plugin not found
+- **stdout:** the plugin detail
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+## Family: `ext`
+
+Manage Intent user extensions at ~/.intent/ext/<name>/
+
+- **v2 source:** `bin/intent_ext`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- Extensions live OUTSIDE the project, under `~/.intent/ext/`, so this family runs outside a project (measured: exit 0).
+- Its help block still marks two verbs with development-session tags -- `validate [Session 3]` and `new [Session 4]` -- which are internal scheduling notes leaking into user-facing help.
+
+| command        | args      | flags                            | help                                            | disposition |
+| -------------- | --------- | -------------------------------- | ----------------------------------------------- | ----------- |
+| `ext`          | [command] | --                               | Manage Intent user extensions                   | keep        |
+| `ext list`     | --        | --                               | List installed extensions                       | keep        |
+| `ext show`     | <name>    | --                               | Show manifest + contributions for one extension | keep        |
+| `ext validate` | [name]    | --                               | Validate extension manifests                    | keep        |
+| `ext new`      | <name>    | --skill, --subagent, --rule-pack | Scaffold a new extension                        | keep        |
+
+### `ext`
+
+Manage Intent user extensions
+
+- **v2:** bin/intent_ext
+- **Arguments:**
+  - `command` (subcommand, arity `0..1`), default `list`
+- **Exit codes:**
+  - `0` -- bare -- defaults to `list`; `ok: no extensions installed (<path> does not exist)`
+  - `0` -- `--help` -- 672B, exit 0
+  - `1` -- unknown verb -- `error: unknown ext subcommand '<v>'`
+  - `0` -- outside a project -- lists, exit 0
+- **stdout:** the extension list
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** Honours INTENT_EXT_DIR (override the default root, used by tests) and INTENT_EXT_DISABLE=1 (suppress ext discovery entirely).
+- **Target:** `as-observed`
+
+### `ext list`
+
+List installed extensions
+
+- **v2:** bin/intent_ext list arm
+- **Exit codes:**
+  - `0` -- listed
+- **stdout:** one row per extension
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `ext show`
+
+Show manifest + contributions for one extension
+
+- **v2:** bin/intent_ext show arm
+- **Arguments:**
+  - `name` (string, arity `1`)
+- **Exit codes:**
+  - `0` -- shown
+  - `1` -- extension not found
+- **stdout:** the manifest and contributions
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Target:** `as-observed`
+
+### `ext validate`
+
+Validate extension manifests
+
+- **v2:** bin/intent_ext validate arm
+- **Arguments:**
+  - `name` (string, arity `0..1`)
+    - omitted validates all
+- **Exit codes:**
+  - `0` -- valid
+  - `1` -- findings
+- **stdout:** findings
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Defects observed in v2:**
+  - Help text marks this `[Session 3]` -- an internal development-scheduling tag in user-facing help.
+- **Target:** `as-observed`
+
+### `ext new`
+
+Scaffold a new extension
+
+- **v2:** bin/intent_ext new arm
+- **Arguments:**
+  - `name` (string, arity `1`)
+- **Flags:**
+  - `--skill` (bool) -- Scaffold a skill extension
+  - `--subagent` (bool) -- Scaffold a subagent extension
+  - `--rule-pack` (bool) -- Scaffold a rule-pack extension
+- **Exit codes:**
+  - `0` -- scaffolded
+  - `1` -- missing --type
+  - `1` -- name already exists
+- **stdout:** the created layout
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Defects observed in v2:**
+  - Help says `new <name> --type` but the parsed flags are `--skill` / `--subagent` / `--rule-pack`; there is no `--type` flag. The documented invocation cannot work.
+- **Target:** `pending-hv`
+- **Open question for hv:** The help/implementation mismatch is a `corrected` candidate: v3 generates help from this table, so the two cannot disagree by construction. That is the class of defect the SSOT retires wholesale.
+
+## Family: `treeindex`
+
+Generate LLM-oriented directory summaries
+
+- **v2 source:** `bin/intent_treeindex`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- **53 of the 53 tests in `tests/unit/treeindex_commands.bats` exec `bin/intent_treeindex` DIRECTLY, bypassing the dispatcher entirely -- burn ratio zero.** The file reads as CLI-shaped and is not; that discovery is the reason the register classifies by burn measurement rather than by reading assertions.
+- D21: the treeindex cache location is unchanged until WP-06 ports the command. If it moves under `intent/.cache/`, that is its own register entry.
+
+| command     | args  | flags                                                                           | help                                      | disposition |
+| ----------- | ----- | ------------------------------------------------------------------------------- | ----------------------------------------- | ----------- |
+| `treeindex` | <dir> | --depth/-d <n>, --check, --dry-run, --force, --prune, --model <name>, --help/-h | Generate LLM-oriented directory summaries | keep        |
+
+### `treeindex`
+
+Generate LLM-oriented directory summaries
+
+- **v2:** bin/intent_treeindex
+- **Arguments:**
+  - `dir` (path, arity `1`)
+    - NEVER the project root -- always a subdirectory
+- **Flags:**
+  - `--depth`, `-d` `<n>` (integer) -- How deep to descend
+  - `--check` (bool) -- Report without writing
+  - `--dry-run` (bool) -- Preview
+  - `--force` (bool) -- Regenerate even if current
+  - `--prune` (bool) -- Remove stale index entries
+  - `--model` `<name>` (string) -- Model to summarise with
+  - `--help`, `-h` (bool) -- Print the usage block
+- **Exit codes:**
+  - `1` -- bare -- prints 1548B usage to STDOUT and exits 1
+  - `1` -- `--help` -- identical, exit 1
+  - `1` -- unknown flag -- 1548B on stdout AND 33B on stderr, exit 1
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the usage block, or per-directory progress
+- **stderr:** the unknown-option note
+- **Defects observed in v2:**
+  - INV-07 at `treeindex --help`
+  - INV-06 at the unknown-flag path writes to BOTH streams -- one of only two such cases in 108 probes
+- **Target:** `pending-hv`
+- **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+
+## Family: `fileindex`
+
+Maintain checkbox file indexes
+
+- **v2 source:** `bin/intent_fileindex`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- The widest short-flag surface in the CLI (-C -U -X -f -h -i -r -v), and the only family where short flags carry meaning beyond an alias for a long form.
+- 45 of 47 tests in `tests/unit/fileindex_commands.bats` bypass the dispatcher (burn 2/47), the same shape as treeindex.
+
+| command     | args                  | flags                                                                                                                                               | help                           | disposition |
+| ----------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ----------- |
+| `fileindex` | [startdir] [filespec] | --check/-C, --uncheck/-U, --toggle/-X, --file/-f <path>, --index/-i <path>, --index-dir <path>, --intent-dir <path>, --no-intent, -r, -v, --help/-h | Maintain checkbox file indexes | keep        |
+
+### `fileindex`
+
+Maintain checkbox file indexes
+
+- **v2:** bin/intent_fileindex
+- **Arguments:**
+  - `startdir` (path, arity `0..1`)
+  - `filespec` (string, arity `0..1`)
+- **Flags:**
+  - `--check`, `-C` (bool) -- Mark checked
+  - `--uncheck`, `-U` (bool) -- Mark unchecked
+  - `--toggle`, `-X` (bool) -- Flip the mark
+  - `--file`, `-f` `<path>` (string) -- Target file
+  - `--index`, `-i` `<path>` (string) -- Index file
+  - `--index-dir` `<path>` (string) -- Index directory
+  - `--intent-dir` `<path>` (string) -- Intent directory
+  - `--no-intent` (bool) -- Operate without an Intent project
+  - `-r` (bool) -- Recurse
+  - `-v` (bool) -- Verbose
+  - `--help`, `-h` (bool) -- Print the usage block
+- **Exit codes:**
+  - `0` -- bare -- prints `[ ]`, 5B, exit 0
+  - `1` -- `--help` -- 1518B usage to STDOUT, exit 1
+  - `1` -- unknown flag -- 1551B on STDOUT, `Unknown option: ...`, exit 1
+  - `0` -- outside a project -- prints `[ ]`, exit 0
+- **stdout:** the checkbox line, or the usage block
+- **stderr:** --
+- **Defects observed in v2:**
+  - INV-07 at `fileindex --help`
+  - INV-06 at the unknown-flag error goes to STDOUT
+  - INV-01 at `Unknown option: ...` carries no `error:` prefix
+- **Target:** `pending-hv`
+- **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+
+## Family: `help`
+
+Show usage for Intent or one of its commands
+
+- **v2 source:** `bin/intent_help`
+- **v2 help file:** none
+- **Owning work package:** WP-05
+
+- **This family is RETIRED AND REPLACED in v3, not ported: help is generated from this dispatch table (AC-05.1).** That retires the entire `lib/help/` mechanism along with its drift.
+- The drift is the argument. `lib/help/` holds 11 help files for 27 `bin/intent_*` scripts, so 17 commands have none. Its `@usage:` / `@options:` / `@arguments:` / `@examples:` grammar is used exactly ONCE each. `stzero.help.md` is named against `bin/intent_st_zero`, and `rules.help.md` documents a `claude` SUBcommand as though it were top-level. At v2.19.0 it still describes `upgrade` as an STP migration.
+- `bin/intent_help` also hand-maintains its command list behind a skip list rather than enumerating the surface, so the list and the surface are two things that must be kept in agreement by hand. **`lib/help/` therefore cannot be used as the v2 spec to port from** -- which is precisely why this table was measured from `bin/**` and by invocation instead.
+
+| command | args      | flags | help                                         | disposition |
+| ------- | --------- | ----- | -------------------------------------------- | ----------- |
+| `help`  | [command] | --    | Show usage for Intent or one of its commands | retire      |
+
+### `help`
+
+Show usage for Intent or one of its commands
+
+- **v2:** bin/intent_help; the no-help fallthrough is at bin/intent_help:37
+- **Arguments:**
+  - `command` (string, arity `0..1`)
+- **Exit codes:**
+  - `0` -- bare -- 2320B command list, exit 0
+  - `1` -- `--help` -- `error: Unknown command '--help'`, exit 1
+  - `1` -- unknown argument -- `error: Unknown command '<arg>'`
+  - `0` -- outside a project -- lists, exit 0
+- **stdout:** the command list, or one command's help
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Defects observed in v2:**
+  - INV-07 at `intent help --help` fails outright -- asking help for help is an error
+  - 17 of 26 commands have no help file, so `intent help <cmd>` silently falls through to a no-help path for most of the surface.
+- **Target:** `retire` -- ratified: AC-05.1 -- the dispatch table is the SSOT and help text is generated from it, asserted by test -- behaviour: The `help` COMMAND survives as a surface; its v2 IMPLEMENTATION (lib/help/ + the hand-maintained list + the skip list) does not.
+
+## Family: `st_zero`
+
+Retrofit ST0000 deliverables into brownfield projects
+
+- **v2 source:** `bin/intent_st_zero`
+- **v2 help file:** `lib/help/stzero.help.md (NAME DRIFT: `stzero`against`bin/intent_st_zero`)`
+- **Owning work package:** WP-06
+
+- Reachable by two spellings: `intent st_zero` (top level, auto-dispatched) and `intent st zero` (bin/intent_st:1610 execs this binary). Its own usage block says `intent st zero install`, so it documents only the second.
+- parity.md flags this family as a candidate for a ratified RETIRE if the fleet does not use it -- decided at port time, in the register. That one ruling decides both spellings.
+
+| command                     | args      | flags                                       | help                                                  | disposition |
+| --------------------------- | --------- | ------------------------------------------- | ----------------------------------------------------- | ----------- |
+| `st_zero` (alias `st zero`) | [command] | --audit-only, --dry-run, --deliverable <id> | Retrofit ST0000 deliverables into brownfield projects | pending     |
+
+### `st_zero`
+
+Retrofit ST0000 deliverables into brownfield projects
+
+- **v2:** bin/intent_st_zero
+- **Arguments:**
+  - `command` (subcommand, arity `0..1`) -- one of: `install`
+- **Flags:**
+  - `--audit-only` (bool) -- Show gap analysis only, no changes
+  - `--dry-run` (bool) -- Show what would change, no writes
+  - `--deliverable` `<id>` (string) -- Target a single deliverable (D2-D11)
+- **Exit codes:**
+  - `0` -- bare -- prints `Usage: intent st zero install [options]`, 879B, exit 0
+  - `0` -- `--help` -- same, exit 0
+  - `1` -- unknown verb -- `error: Unknown st zero command: <v>. Run 'intent st zero help' for usage.`
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the gap analysis and install report
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Defects observed in v2:**
+  - A bare invocation that printed only usage exits 0, where every other family in this table exits 1 for the same shape. Inconsistent in the opposite direction to INV-07.
+- **Target:** `pending-hv`
+- **Open question for hv:** parity.md already flags st_zero as a retire candidate pending fleet evidence. That ruling decides both spellings at once; until it lands this is `pending`, not a guess.
+
+## Family: `version`
+
+Print the Intent version
+
+- **v2 source:** `bin/intent (global command)`
+- **v2 help file:** none
+- **Owning work package:** WP-06
+
+- A global command: runs outside a project.
+- `get_intent_version` in bin/intent_helpers is THE single fallback site for version resolution (consolidated in v2.11.12); v3 bakes GIT_HASH into the version string (design.md:74).
+
+| command   | args | flags | help                     | disposition |
+| --------- | ---- | ----- | ------------------------ | ----------- |
+| `version` | --   | --    | Print the Intent version | keep        |
+
+### `version`
+
+Print the Intent version
+
+- **v2:** bin/intent (GLOBAL_COMMANDS); resolution via `get_intent_version` in bin/intent_helpers
+- **Exit codes:**
+  - `0` -- printed
+  - `0` -- unknown flag -- ACCEPTED SILENTLY, exit 0
+- **stdout:** the version string
+- **stderr:** --
+- **Defects observed in v2:**
+  - INV-08 at `intent version --zzz` succeeds silently at exit 0
+- **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced -- clap rejects unrecognised arguments by default -- behaviour: Unknown arguments refused, exit 1 per INV-02. The version string itself gains a baked GIT_HASH.
+
 ## Families outstanding
 
-Not yet authored. Named individually rather than counted, so a family that quietly never gets written is visible as a gap rather than absent from a total.
-
-- `wp`
-- `ac`
-- `at`
-- `issues`
-- `todo`
-- `info`
-- `init`
-- `bootstrap`
-- `config`
-- `doctor`
-- `upgrade`
-- `agents`
-- `claude`
-- `critic`
-- `lang`
-- `llm`
-- `learn`
-- `modules`
-- `organize`
-- `plugin`
-- `ext`
-- `treeindex`
-- `fileindex`
-- `help`
-- `st_zero`
-- `version`
+**None.** Every v2 command family is authored.
 
 ## New surface (no v2 antecedent, no parity obligation)
 
