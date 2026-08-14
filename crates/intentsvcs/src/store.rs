@@ -11,7 +11,10 @@ use rusqlite::{Connection, params};
 use serde_json::json;
 
 use crate::event::Envelope;
-use crate::model::{Issue, Thread, enum_str};
+use crate::model::{
+  AcceptanceTest, Criterion, ISSUE_SCHEMA, Issue, Legacy, Related, THREAD_SCHEMA, Thread,
+  WorkPackage, enum_str,
+};
 use crate::prose::DocSection;
 use crate::sync::FileEntry;
 
@@ -126,6 +129,17 @@ pub enum StoreError {
   Cache(#[source] std::io::Error),
 }
 
+/// Read a model enum back from its stored wire spelling.
+///
+/// The mirror of [`enum_str`], and routed through serde for the same reason:
+/// the wire names have ONE authority (the serde attributes on the model), so a
+/// hand-written parse table here could disagree with the one that wrote them.
+fn enum_from<T: serde::de::DeserializeOwned>(wire: &str) -> Result<T, StoreError> {
+  Ok(serde_json::from_value(serde_json::Value::String(
+    wire.to_string(),
+  ))?)
+}
+
 pub struct Store {
   conn: Connection,
 }
@@ -236,6 +250,219 @@ impl Store {
     }
     tx.commit()?;
     Ok(())
+  }
+
+  /// Reconstruct the whole model FROM the store -- the read half of
+  /// [`Store::rebuild`].
+  ///
+  /// **This is what makes the DB the daily driver** (hv, 2026-08-14: "all cli
+  /// commands are going to go to the intentsvcs -- db route, not to/from the
+  /// file versions"). Without it the store could only be written to, so every
+  /// command had to re-parse every `thread.json` before it could answer
+  /// anything, and the DB was a scratch index rather than the thing being
+  /// queried.
+  ///
+  /// It does NOT weaken D01. Committed canon is still the durable truth and
+  /// the store is still rebuildable from it; what changes is how often we pay
+  /// for that rebuild -- on a detected change, rather than on every
+  /// invocation.
+  ///
+  /// The correctness property is round-trip identity: `rebuild` then
+  /// `load_canon` must return exactly what went in. Anything this drops is a
+  /// question the DB would answer differently from the files, which is the one
+  /// failure that would make the whole arrangement unsafe. `store_round_trip`
+  /// asserts it against the markup-bearing fixture rather than a tame one.
+  pub fn load_canon(&self) -> Result<(Vec<Thread>, Vec<Issue>), StoreError> {
+    let mut threads = Vec::new();
+    let mut stmt = self.conn.prepare(
+      "SELECT id, title, slug, status, created, completed, acceptance, objective, context FROM threads ORDER BY id",
+    )?;
+    let rows = stmt.query_map([], |row| {
+      Ok((
+        row.get::<_, String>(0)?,
+        row.get::<_, String>(1)?,
+        row.get::<_, Option<String>>(2)?,
+        row.get::<_, String>(3)?,
+        row.get::<_, String>(4)?,
+        row.get::<_, Option<String>>(5)?,
+        row.get::<_, Option<String>>(6)?,
+        row.get::<_, String>(7)?,
+        row.get::<_, String>(8)?,
+      ))
+    })?;
+
+    let mut shells = Vec::new();
+    for row in rows {
+      shells.push(row?);
+    }
+
+    for (id, title, slug, status, created, completed, acceptance, objective, context) in shells {
+      threads.push(Thread {
+        schema: THREAD_SCHEMA.to_string(),
+        related: self.related_of(&id)?,
+        wps: self.wps_of(&id)?,
+        criteria: self.criteria_of(&id)?,
+        tests: self.tests_of(&id)?,
+        id,
+        title,
+        slug,
+        status: enum_from(&status)?,
+        created,
+        completed,
+        acceptance: acceptance.as_deref().map(enum_from).transpose()?,
+        objective,
+        context,
+      });
+    }
+
+    let mut stmt = self.conn.prepare(
+      "SELECT number, slug, title, status, severity, created, closed FROM issues ORDER BY number",
+    )?;
+    let issues = stmt
+      .query_map([], |row| {
+        Ok((
+          row.get::<_, u32>(0)?,
+          row.get::<_, String>(1)?,
+          row.get::<_, String>(2)?,
+          row.get::<_, String>(3)?,
+          row.get::<_, Option<String>>(4)?,
+          row.get::<_, String>(5)?,
+          row.get::<_, Option<String>>(6)?,
+        ))
+      })?
+      .collect::<Result<Vec<_>, _>>()?;
+
+    let issues = issues
+      .into_iter()
+      .map(|(number, slug, title, status, severity, created, closed)| {
+        Ok(Issue {
+          schema: ISSUE_SCHEMA.to_string(),
+          number,
+          slug,
+          title,
+          status: enum_from(&status)?,
+          severity,
+          created,
+          closed,
+        })
+      })
+      .collect::<Result<Vec<_>, StoreError>>()?;
+
+    Ok((threads, issues))
+  }
+
+  fn related_of(&self, thread: &str) -> Result<Vec<Related>, StoreError> {
+    let mut stmt = self
+      .conn
+      .prepare("SELECT id, note FROM related WHERE thread_id = ?1 ORDER BY seq")?;
+    let rows = stmt.query_map(params![thread], |row| {
+      Ok(Related {
+        id: row.get(0)?,
+        note: row.get(1)?,
+      })
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
+  }
+
+  fn wps_of(&self, thread: &str) -> Result<Vec<WorkPackage>, StoreError> {
+    let mut stmt = self
+      .conn
+      .prepare("SELECT seq, title, scope, status FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
+    let raw = stmt
+      .query_map(params![thread], |row| {
+        Ok((
+          row.get::<_, u32>(0)?,
+          row.get::<_, String>(1)?,
+          row.get::<_, String>(2)?,
+          row.get::<_, String>(3)?,
+        ))
+      })?
+      .collect::<Result<Vec<_>, _>>()?;
+    raw
+      .into_iter()
+      .map(|(seq, title, scope, status)| {
+        Ok(WorkPackage {
+          seq,
+          title,
+          scope: enum_from(&scope)?,
+          status: enum_from(&status)?,
+        })
+      })
+      .collect()
+  }
+
+  fn criteria_of(&self, thread: &str) -> Result<Vec<Criterion>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT id, text, kind, scope, evidence, satisfied FROM criteria WHERE thread_id = ?1 ORDER BY rowid",
+    )?;
+    let raw = stmt
+      .query_map(params![thread], |row| {
+        Ok((
+          row.get::<_, String>(0)?,
+          row.get::<_, String>(1)?,
+          row.get::<_, String>(2)?,
+          row.get::<_, String>(3)?,
+          row.get::<_, Option<String>>(4)?,
+          row.get::<_, Option<bool>>(5)?,
+        ))
+      })?
+      .collect::<Result<Vec<_>, _>>()?;
+    raw
+      .into_iter()
+      .map(|(id, text, kind, scope, evidence, satisfied)| {
+        Ok(Criterion {
+          id,
+          text,
+          kind: enum_from(&kind)?,
+          scope: serde_json::from_str(&scope)?,
+          evidence,
+          satisfied,
+        })
+      })
+      .collect()
+  }
+
+  fn tests_of(&self, thread: &str) -> Result<Vec<AcceptanceTest>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT id, kind, file, prose, covers, status, note, legacy FROM tests WHERE thread_id = ?1 ORDER BY rowid",
+    )?;
+    let raw = stmt
+      .query_map(params![thread], |row| {
+        Ok((
+          row.get::<_, String>(0)?,
+          row.get::<_, String>(1)?,
+          row.get::<_, Option<String>>(2)?,
+          row.get::<_, Option<String>>(3)?,
+          row.get::<_, String>(4)?,
+          row.get::<_, String>(5)?,
+          row.get::<_, Option<String>>(6)?,
+          row.get::<_, Option<String>>(7)?,
+        ))
+      })?
+      .collect::<Result<Vec<_>, _>>()?;
+    raw
+      .into_iter()
+      .map(|(id, kind, file, prose, covers, status, note, legacy)| {
+        Ok(AcceptanceTest {
+          id,
+          kind: enum_from(&kind)?,
+          file,
+          prose,
+          covers: serde_json::from_str(&covers)?,
+          status: enum_from(&status)?,
+          note,
+          legacy: legacy.map(|raw| Legacy { raw }),
+        })
+      })
+      .collect()
+  }
+
+  /// Every prose section in the index, in a total order.
+  pub fn doc_sections(&self) -> Result<Vec<DocSection>, StoreError> {
+    self.doc_sections_query(
+      "SELECT owner_type, owner_id, file, seq, heading, level, body FROM doc_sections ORDER BY file, seq",
+      [],
+    )
   }
 
   /// Append one envelope to the event log.

@@ -148,6 +148,71 @@ pub fn load(project: &Project, store: &mut Store) -> Result<Canon, IngestError> 
   Ok(canon)
 }
 
+/// Load the model for a command to answer from -- **from the STORE when the
+/// working tree has not moved**, and from canon only when it has.
+///
+/// This is the daily-driver path (hv, 2026-08-14: "the whole point of this is
+/// to get away from files for the daily driver"). Before it existed, every
+/// invocation parsed every `thread.json`, validated each against the generated
+/// JSON Schema, and rebuilt the whole DB before answering a question as small
+/// as `st list` -- correct, and the wrong shape entirely.
+///
+/// What it does NOT do is weaken D01. Committed canon is still the durable
+/// truth and the store is still rebuildable from it at any instant; `rm` of
+/// the cache is still always safe, because a cold store simply takes the
+/// ingest path. What changes is how often the rebuild is PAID FOR: on a
+/// detected change, not on every command.
+///
+/// **The freshness test is content hashing, not stat** (AC-03.3). Reading a
+/// file to hash it is far cheaper than parsing and schema-validating it, and
+/// it is the only test that cannot be fooled by a same-size same-mtime write.
+/// The scan remains on the command path until WP-08's daemon watches the tree
+/// and keeps the store hot -- at which point this check leaves the command
+/// path entirely, which is the real end state.
+pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestError> {
+  let previous = store.file_index()?;
+  let entries = sync::scan(project.root(), &previous).map_err(|e| IngestError::Io {
+    path: project.root().display().to_string(),
+    source: std::io::Error::other(e.to_string()),
+  })?;
+
+  // An unparsed file refuses the whole command (AC-03.5), whichever path we
+  // would have taken. Nothing reads through a conflict-markered artefact.
+  let findings: Vec<Finding> = entries
+    .iter()
+    .filter(|e| e.state == FileState::Unparsed)
+    .flat_map(|e| e.findings.iter().cloned())
+    .collect();
+  if !findings.is_empty() {
+    return Err(Refusal::new(findings).into());
+  }
+
+  let moved = entries.iter().any(|e| e.state == FileState::Changed)
+    || entries.len() != previous.len()
+    || previous.is_empty();
+
+  if !moved {
+    let (threads, issues) = store.load_canon()?;
+    // A store holding no threads while the tree holds canon files means a
+    // cold cache that the index nonetheless considers unchanged -- take the
+    // ingest path rather than answering an empty model, which would report
+    // "no steel threads" on a project full of them.
+    if !(threads.is_empty() && entries.iter().any(|e| e.path.ends_with("thread.json"))) {
+      return Ok(Canon {
+        threads,
+        issues,
+        sections: store.doc_sections()?,
+      });
+    }
+  }
+
+  let canon = read(project)?;
+  store.rebuild(&canon.threads, &canon.issues)?;
+  store.replace_doc_sections(&canon.sections)?;
+  store.replace_file_index(&entries)?;
+  Ok(canon)
+}
+
 /// Refresh the file index, and refuse if any file in scope is unparsed.
 ///
 /// This is the AC-03.5 gate: a command that needs the estate calls it and gets

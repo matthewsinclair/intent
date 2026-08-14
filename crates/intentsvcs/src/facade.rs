@@ -190,7 +190,8 @@ impl Facade {
   /// Open a project, loading and validating its whole canon.
   pub fn open(project: Project, ctx: FacadeContext) -> Result<Self, FacadeError> {
     let mut store = Store::open(&project.db_path()).map_err(FacadeError::Store)?;
-    let canon = ingest::load(&project, &mut store)?;
+    // The daily-driver path: answer from the store unless the tree moved.
+    let canon = ingest::load_fresh(&project, &mut store)?;
     Ok(Self {
       project,
       store,
@@ -415,7 +416,6 @@ impl Facade {
       },
       json!({"title": title}),
       next,
-      std::slice::from_ref(&id),
     )?;
     Ok(id)
   }
@@ -463,7 +463,6 @@ impl Facade {
       },
       json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&status)}),
       next,
-      &[id.to_string()],
     )
   }
 
@@ -495,7 +494,6 @@ impl Facade {
       },
       json!({"title": title, "scope": crate::model::enum_str(&scope)}),
       next,
-      &[st.to_string()],
     )?;
     Ok(seq)
   }
@@ -552,7 +550,6 @@ impl Facade {
       },
       json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&status)}),
       next,
-      &[st.to_string()],
     )
   }
 
@@ -582,7 +579,6 @@ impl Facade {
       },
       json!({"evidence": evidence}),
       next,
-      &[st.to_string()],
     )
   }
 
@@ -688,7 +684,6 @@ impl Facade {
       },
       payload,
       next,
-      &[st.to_string()],
     )
   }
 
@@ -731,7 +726,6 @@ impl Facade {
       },
       json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&status)}),
       next,
-      &[st.to_string()],
     )
   }
 
@@ -755,14 +749,37 @@ impl Facade {
     subject: Subject,
     payload: serde_json::Value,
     next: Canon,
-    touched: &[String],
   ) -> Result<(), FacadeError> {
     let mut set = WriteSet::new();
-    for id in touched {
-      if let Some(thread) = next.threads.iter().find(|t| &t.id == id) {
+
+    // What gets written is DIFFED, not declared. The caller used to hand in a
+    // list of touched ids, which made "the mutation did not persist" reachable
+    // by naming the wrong id -- a silent failure, since the DB and the return
+    // value would both say it worked. Comparing against the loaded canon
+    // cannot forget, and it generalises to issues for free.
+    for thread in &next.threads {
+      let unchanged = self
+        .canon
+        .threads
+        .iter()
+        .any(|current| current.id == thread.id && current == thread);
+      if !unchanged {
         set.add(
-          self.project.thread_json(id),
+          self.project.thread_json(&thread.id),
           to_canonical_json(thread).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
+        );
+      }
+    }
+    for issue in &next.issues {
+      let unchanged = self
+        .canon
+        .issues
+        .iter()
+        .any(|current| current.number == issue.number && current == issue);
+      if !unchanged {
+        set.add(
+          self.project.issue_json(issue.number),
+          to_canonical_json(issue).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
         );
       }
     }
