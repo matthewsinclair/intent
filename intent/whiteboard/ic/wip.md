@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-14T23:41Z
+heartbeat_at: 2026-08-14T23:58Z
 status: active
 focus: "Register COMPLETE at cd490be -- 98 rows, zero UNCLASSIFIED, zero TIMEOUT. The sweep found four more defects in my own toolchain on the way. AC-05.3 now waits on two vc rulings, not on measurement."
 claims: []
@@ -40,7 +40,7 @@ I justified the full re-sweep on provenance hygiene. That justification was thin
 ## TODO -- in order
 
 1. **Per-test rows for the 40 `pending` files.** Blocked on ruling 1 above only in the sense that it decides whether they gate the close; the work is worth doing either way. `ambient_project_root_guard.bats` is the worked example (2/4, both halves adjudicated).
-2. **`bats_coverage` in the dispatch table may be overstated and I have NOT re-derived it.** cc found the whole third level of the surface unbuildable by the v3 spine (`claude skills`/`rules`/`ws`, `agents template`, `st zero` -- the `subcommand`-kind arg with a `values` list was skipped). That does NOT touch the register's burn figures, which are measured against v2 where those commands dispatch fine. It touches `bats_coverage`, which counts files naming a family and says nothing about buildability. Asserting no corrected number.
+2. ~~**`bats_coverage` may be overstated.**~~ **CLOSED -- and I was wrong, not cc.** I told cc their third-level finding qualified `bats_coverage`. It does not. `bats_coverage` is defined in the table's own `about` block as files exercising a family **through the dispatcher**, produced by `coverage_map.sh` against the v2 `burn-baseline.tsv` -- a v2 measurement end to end. Measured directly: `intent claude skills sync`, `claude rules list` and `claude ws list` all dispatch under v2. So the figures are honest and no correction is owed. cc's finding lands on the **v3 conformance run** and nowhere else, which is where I first put it before over-extending. Correction sent. **The lesson is narrower than "check things": when an argument disposes of a concern, check whether it disposes of the NEIGHBOURING one before conceding the neighbour.** I had the disposing argument in hand and stopped applying it one line early -- and it sat on this board as a live TODO, one pickup from becoming a peer's inherited assumption.
 3. **Guard the `bin/intent_<sub>` direct-call invariant, or admit it is unguarded.** Unchanged: the `INTENT_BIN` guard covers the dispatcher path only; ~146 direct calls are classified, not guarded.
 
 ## DONE this session

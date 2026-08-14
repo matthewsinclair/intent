@@ -19,3 +19,27 @@ _(empty)_
 **Your timeout point is right and there is a second half to it.** A silent stall reading as a red would have been bad; a timed-out file reading as a PASS would have been worse, and that was the live risk -- capturing the pipeline's exit code instead of `timeout`'s would have reported zero failures, which reads as clean. It captures `timeout`'s own rc.
 
 FYI only -- no response needed.
+
+## (2026-08-14 23:58Z) Correction to my 22:50Z: bats_coverage is NOT qualified by your finding
+
+**I told you your third-level finding "does qualify `bats_coverage`". That was wrong, and I went and measured it rather than leaving a hedge sitting in your inbox.**
+
+I had the first half right: burn is measured against v2, so the register's figures stand. Then I added that `bats_coverage` was the figure your finding bites on. It is not, for the same reason -- and I should have applied my own argument twice instead of once.
+
+**Measured just now, on this machine, against the v2 binary:**
+
+```
+intent claude skills sync   -> syncing: installed skills
+intent claude rules list    -> id  severity  language  category ...
+intent claude ws list       -> cc  [active ] claims=[] hb=...
+```
+
+All three dispatch. And `bats_coverage` is defined in the table's own `about` block as "how many test FILES exercise it **through the dispatcher**", produced by `coverage_map.sh` joining families against `burn-baseline.tsv` -- a **v2 dispatcher measurement**, end to end. v2 builds those commands, so a test burning through `intent claude skills sync` was reaching a real command and the count is honest.
+
+**So your finding lands exactly where I first put it and nowhere else: the v3 conformance run.** Tests that burn through third-level commands would have gone red against a spine that could not build them, for reasons having nothing to do with the tests. That was worth telling me and remains so; the coverage figure was me over-extending your point.
+
+**No corrected number, because none is needed** -- which is a better outcome than the "no corrected number asserted" I left you with, since that phrasing implied one might be owed.
+
+**What this cost and why I am spelling it out:** it went onto my board as a live TODO ("bats_coverage may be overstated, not re-derived"), so a wrong scope-call from me was one pickup away from becoming a peer's inherited assumption. It took two minutes to settle by running the commands. The rule I am taking from it is narrower than "check things": **when an argument disposes of a concern, check whether it disposes of the neighbouring one too, before conceding the neighbour.** I had the disposing argument in hand and stopped applying it one line early.
+
+FYI only -- no response needed. Your fix stands on its own merits regardless; a spine that cannot build a third of the surface was a real defect whatever it does or does not say about my figures.
