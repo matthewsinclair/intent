@@ -30,3 +30,71 @@ v2.19.0 finished: Unit 7, vc's five audit findings, the docs pass, ten issues cl
 ## Inbox
 
 vc's work order (2026-08-13 20:59) and their U1-U5 audit (22:36) are both fully handled and can be cleared next session.
+
+---
+
+# Second fold, 2026-08-14 (post-tag) -- archived from the live board
+
+The release shipped during this session. Everything below was live DOING or a closed
+question at the time of the fold; it is here because it is finished, not because it
+stopped mattering. Watch-outs and Decisions deliberately stayed on the live board.
+
+## DOING (all complete -- v2.19.0 is cut, tagged and pushed)
+
+- **Commit the board so the tree is clean for the cut.** Landed as `e709149`. The
+  hazard behind it: `bin/release` runs its leftover-dirt check at `:437-447`, AFTER
+  stamping and committing the five sidecars, so anything dirty outside them costs a
+  `release: vX.Y.Z` commit with no tag rather than an early abort. Every node pickup
+  writes a heartbeat, which makes the board itself the likeliest offender. Kept as a
+  standing watch-out.
+- **Reported to vc before the cut: `intent/wip.md` was half-swept by `e1e2300`.** The
+  count moved to fifteen and the enumeration did not -- it named eleven and stopped at
+  0021 -- and "0020 and 0021 were both called in by hv" had become four. vc's reading of
+  the second point is the better one: two reads as an exception, four reads as the
+  batching principle.
+- **The sharper half of the same report: "Full suite GREEN at HEAD (post-0020)" was
+  false at HEAD**, with three code commits (0021, 0022, 0023) postdating the cited run.
+  It turned out to be in FOUR documents, not one -- `intent/wip.md`, `intent/restart.md`,
+  `.claude/restart.md` and `intent/done.md`. Fixed at `dde7b59`; all four now name the
+  commit the run covered and say what stands behind HEAD. Generalised into a Decision.
+- **One finding checked and dropped rather than filed:** `RELEASE_NOTES.md:7` ("fourteen
+  other fixes") is fifteen issues minus the 0017 centrepiece, and `e1e2300` did touch the
+  file -- so the number is the swept one and it is correct. Reported as a negative so vc
+  would not re-derive it.
+
+## Closed by vc under hv's pre-cut batching (three of the four in cc's lane)
+
+- **0020** `2769c40`: `st list --status all` membership through `normalise_status`; ten
+  literals collapse to five canonical tokens; unplaced rows emitted last and named on
+  stderr; exit stays 0, because escalating would break index regeneration on exactly the
+  estates that have the problem. Guard mutation-proven M1-M5.
+- **0021** `3949f56`: `st zero` D5a removed -- Intent had been shipping a second, dead
+  Elixir enforcement mechanism (six custom Credo checks, copied unconditionally, wired
+  best-effort, usually loaded by nothing). `doctor` check 4e reports consumer residue in
+  three states and quotes the `elixirc_paths` lines, because deleting the directory alone
+  breaks their build.
+- **0022** `08ef2f5`: both no-template fallback heredocs DELETED rather than corrected --
+  this board's "adjacent, not fixed" item, executed. Correcting them restores two copies
+  and buys another year of drift. Consequence: the two 0010 drift guards are now inverted,
+  from "the constant still matches the second generator" to "there is no second generator".
+- **0023** `e1e2300`: `error()` and its 25 imitators speak the documented lowercase voice
+  -- the other half of `8aba5ab`, and the worse half, because the one function whose whole
+  job is to give failures a single voice was setting the wrong example. 26 sites, six
+  files. The twelve test assertions pinning the old string were found by sweeping for them
+  BEFORE the change rather than by watching them fail. **Named and deliberately left:**
+  every `Error:` echo in the three plugin bins goes to STDOUT, which changes what callers
+  capture rather than merely what they read -- same class as the 0019 silent-sync failure,
+  now queued beside `intent_claude_prime:212`.
+- **Release docs written PRE-cut** `86cdbe1` + `62e8e24`: `intent/history/v2.19.0.md` and
+  `docs/releases/2.19.0/RELEASE_NOTES.md`. Both practices had lapsed (history after
+  v2.16.0, releases after 2.17.0), resumed here and NOT backfilled.
+- **"vc's residual 1" refuted** by vc and by cc independently, same day, same conclusion:
+  0019 removed the mechanism, so no Created value travels from the `st done` call site at
+  all. vc's method settled it (a scratch `st new` -> `start` -> `done` showing the row comes
+  out right); cc's only showed the value cannot travel.
+
+## Record correction made in passing
+
+The dead `CREATED` block is at `bin/intent_st:696`, not the `730-743` this board carried
+nor the `731-741` in 0020's Resolutions. Both were read before `2769c40` and `08ef2f5`
+shifted the file. Both records now anchor on the comment string instead of the number.
