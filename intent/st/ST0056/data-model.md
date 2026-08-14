@@ -69,12 +69,16 @@ Deferring this to WP-10 was the rejected option. The migrator would have discove
 
 ### work_package (inside thread.json)
 
-| Field  | Type   | Notes                       |
-| ------ | ------ | --------------------------- |
-| seq    | int    | rendered `WP-01`            |
-| title  | string |                             |
-| scope  | enum   | `XS · S · M · L · XL · XXL` |
-| status | enum   | `not-started · wip · done`  |
+| Field     | Type    | Notes                                                                                                                              |
+| --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| seq       | int     | rendered `WP-01`                                                                                                                   |
+| title     | string  |                                                                                                                                    |
+| scope     | enum    | `XS · S · M · L · XL · XXL`                                                                                                        |
+| status    | enum    | `not-started · wip · done`                                                                                                         |
+| objective | string? | authored prose, the `## Objective` section (D28)                                                                                   |
+| body      | string? | authored prose, every other section verbatim (D28) -- `## Deliverables` and `## Dependencies` live here, deliberately unstructured |
+
+`objective` and `body` exist because `WP/<NN>/info.md` is the same mixed file `steel_thread`'s `info.md` was, and D22 was never applied one level down -- see D28. Without them the WP-10 migration drops every work package's authored prose, which AC-10.5's prose-conservation clause forbids. **The contract already carried that gate; the model did not carry the field.** `## Acceptance` is not modelled: its text is fixed boilerplate pointing at `acceptance.md`, so it is generated, and restating ACs in a WP view would be the double truth the single-source rule exists to stop.
 
 ### acceptance_criterion (inside thread.json)
 

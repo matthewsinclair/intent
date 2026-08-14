@@ -90,6 +90,8 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 - AC-06.3 (non-test) The register is complete: every deviation was recorded at land time, none discovered after -- evidence: register diff history -- satisfied: no
 - AC-06.4 `intent search` returns hits across ST prose, issue bodies and WP text from the FTS index, in the shipped voice and exit codes (new surface with no v2 antecedent -- an ADDITION in the register, never a deviation)
 - AC-06.5 `intent schema` prints the three committed faces (JSON Schema, DDL, SDL), and what it prints is byte-identical to the files under `schema/` (re-homed from WP-02's deliverable list -- see the WP-02 note below)
+- AC-06.6 `intent export --format <fmt>` projects the canon into a non-canonical format and round-trips: what it emits re-ingests to a byte-identical canon, or the format is refused by name rather than emitted lossily. This is D03's mechanism -- "YAML/md/anything else are `intent export --format` projections" (design.md:57) -- and it is the reason v3 can refuse YAML canon without refusing YAML users (surfaced by cc: `export` was an `owner_wp:WP-06` row in the dispatch SSOT with no acceptance criterion at all -- the same uncovered-deliverable class as `intent schema`, one artefact over, and this time in an artefact that IS read mechanically)
+- AC-06.7 `work_package.objective` and `work_package.body` round-trip authored WP prose verbatim: a work package carrying sections beyond the template survives canon -> view -> canon byte-identical, and `intent search` finds a phrase that appears only in a WP body (D28; the gap that made AC-06.4's "WP text" unindexable, since the model had no WP prose to index)
 
 ### WP-07 -- Canon and claude subsystem (status: Not Started)
 
@@ -230,6 +232,8 @@ WP-03 dispositions (vc, 2026-08-14, ADOPTED under hv standing authorisation):
 - AT-06.3 (non-test) register diff history shows land-time recording -- covers AC-06.3 -- status: n/a
 - AT-06.4 `crates/intent-cli/tests/search_surface.rs` -- covers AC-06.4 -- status: to-write
 - AT-06.5 `crates/intent-cli/tests/schema_command.rs` -- covers AC-06.5 -- status: to-write
+- AT-06.6 `crates/intent-cli/tests/export_roundtrip.rs` -- covers AC-06.6 -- status: to-write
+- AT-06.7 `crates/intentsvcs/tests/wp_prose_roundtrip.rs` -- covers AC-06.7 -- status: to-write
 - Coverage: complete
 
 WP-06 disposition (vc, 2026-08-14, ADOPTED under hv standing authorisation): AC-06.4 puts one NON-parity command inside a work package titled "CLI parity long tail". That is deliberate -- it is where the remaining CLI surface lands -- but the title now understates the WP by one command, and `intent search` must be recorded in the register as an **addition**, never as a deviation. A deviation is a v2 behaviour we chose not to reproduce; this has no v2 behaviour to deviate from. Flagged to hv in case the WP wants renaming rather than a footnote.
