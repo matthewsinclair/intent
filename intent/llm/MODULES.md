@@ -265,3 +265,14 @@ Maintainer tooling for cutting Intent releases. Not part of the user-facing CLI 
 | ------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | Release script      | `bin/release`                                                     | Pre-flight + version bump + sidecar sync + tag + multi-remote push + GitHub release. Modelled on Conflab's pattern.  |
 | Gate-release helper | `intent/plugins/claude/skills/in-session/scripts/release-gate.sh` | Touches per-session sentinel for require-in-session.sh; extracted from SKILL.md to survive renderer token-stripping. |
+
+## v3 Workspace (ST0056)
+
+The Intent v3.0.0 Rust workspace. `intentsvcs` is the Highlander layer: sole owner of the DB and the file canon; the CLI and daemon are thin skins over its facade. `rusqlite` may appear in exactly ONE Cargo.toml (intentsvcs) -- the dependency graph is the enforcement, asserted by `dep_graph_guard.rs`.
+
+| Concern                  | THE Module          | Notes                                                                                        |
+| ------------------------ | ------------------- | -------------------------------------------------------------------------------------------- |
+| v3 model + store + faces | `crates/intentsvcs` | Entity types (the single authored master), schema faces, SQLite store, sync, facade (ST0056) |
+| v3 CLI binary            | `crates/intent-cli` | The `intent` binary: parse -> facade -> render, in-process or GraphQL to intentd (D06, D18)  |
+| v3 daemon binary         | `crates/intentd`    | One per machine, N projects; socket GraphQL + mgmt plane + watch (D07, D18)                  |
+| Generated schema faces   | `schema/`           | GENERATED from intentsvcs types (JSON Schema, DDL, SDL) -- never hand-edited; drift-checked  |

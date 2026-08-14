@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Issue",
+  "description": "An issue: `issues/<n>.json` (structure) + `issues/<n>.md` (authored body).",
+  "type": "object",
+  "properties": {
+    "closed": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created": {
+      "type": "string"
+    },
+    "number": {
+      "description": "Rendered zero-padded, eg `0021`.",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "schema": {
+      "description": "Always [`ISSUE_SCHEMA`].",
+      "type": "string"
+    },
+    "severity": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "slug": {
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/IssueStatus"
+    },
+    "title": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "number",
+    "slug",
+    "title",
+    "status",
+    "created"
+  ],
+  "$defs": {
+    "IssueStatus": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed"
+      ]
+    }
+  }
+}

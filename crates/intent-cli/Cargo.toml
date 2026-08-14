@@ -1,0 +1,14 @@
+[package]
+name = "intent-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Intent v3 CLI: a thin coordinator over the intentsvcs facade (in-process) or GraphQL to intentd"
+
+# NOTE (design.md D06): this crate must NEVER depend on rusqlite -- the CLI
+# reaches data only through the intentsvcs facade. dep_graph_guard.rs enforces.
+
+[[bin]]
+name = "intent"
+path = "src/main.rs"

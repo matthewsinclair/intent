@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Thread",
+  "description": "A steel thread: `st/<ID>/thread.json`.",
+  "type": "object",
+  "properties": {
+    "acceptance": {
+      "description": "`exempt` (ST0048) or absent = acceptance enforced.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AcceptanceMode"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "completed": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created": {
+      "description": "ISO 8601 date, `YYYY-MM-DD`.",
+      "type": "string"
+    },
+    "criteria": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Criterion"
+      }
+    },
+    "id": {
+      "description": "Natural id, eg `ST0056`. Global identity is `(project_id, id)` (D15).",
+      "type": "string"
+    },
+    "schema": {
+      "description": "Always [`THREAD_SCHEMA`]; lets validators pick the schema.",
+      "type": "string"
+    },
+    "slug": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "$ref": "#/$defs/ThreadStatus"
+    },
+    "tests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/AcceptanceTest"
+      }
+    },
+    "title": {
+      "type": "string"
+    },
+    "wps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/WorkPackage"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "title",
+    "status",
+    "created"
+  ],
+  "$defs": {
+    "AcKind": {
+      "type": "string",
+      "enum": [
+        "test",
+        "non-test"
+      ]
+    },
+    "AcScope": {
+      "description": "The four AC states beyond satisfied/unsatisfied (issue 0013): in scope,\ndescoped to a named thread, or withdrawn with its reason on the record.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "state": {
+              "type": "string",
+              "const": "in-scope"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "by": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "reason": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "state": {
+              "type": "string",
+              "const": "descoped"
+            },
+            "to": {
+              "description": "The thread the requirement moved to, eg `ST0057`.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "to"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "by": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "reason": {
+              "type": "string"
+            },
+            "state": {
+              "type": "string",
+              "const": "withdrawn"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason"
+          ]
+        }
+      ]
+    },
+    "AcceptanceMode": {
+      "type": "string",
+      "enum": [
+        "exempt"
+      ]
+    },
+    "AcceptanceTest": {
+      "type": "object",
+      "properties": {
+        "covers": {
+          "description": "Covered AC ids; at least one.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "file": {
+          "description": "Test kind: the repo-relative test file (the 0017 reference rules --\nat least one `/`, no `:`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "description": "`AT-<gg>.<n>`.",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/AtKind"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prose": {
+          "description": "Non-test kind: what was read / eyeballed.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "$ref": "#/$defs/AtStatus"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "covers",
+        "status"
+      ]
+    },
+    "AtKind": {
+      "type": "string",
+      "enum": [
+        "test",
+        "non-test"
+      ]
+    },
+    "AtStatus": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "to-write",
+            "red",
+            "green"
+          ]
+        },
+        {
+          "description": "Non-test rows only -- the doc / eyeball / gate status. `n-a` is not\ngreen; satisfaction lives on the AC's own line.",
+          "type": "string",
+          "const": "n-a"
+        }
+      ]
+    },
+    "Criterion": {
+      "type": "object",
+      "properties": {
+        "evidence": {
+          "description": "Non-test only: the named evidence reference.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "description": "`AC-<gg>.<n>`; group `00` is ST-level, otherwise the WP seq.",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/AcKind"
+        },
+        "satisfied": {
+          "description": "Non-test only. Test-backed satisfaction is COMPUTED from covering green\nATs and never stored -- storing it would be double truth (data-model.md).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/AcScope"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "kind",
+        "scope"
+      ]
+    },
+    "TShirt": {
+      "description": "T-shirt sizes -- the only sizing vocabulary in Intent.",
+      "type": "string",
+      "enum": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ]
+    },
+    "ThreadStatus": {
+      "type": "string",
+      "enum": [
+        "not-started",
+        "wip",
+        "tbc",
+        "hold",
+        "completed",
+        "cancelled"
+      ]
+    },
+    "WorkPackage": {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/TShirt"
+        },
+        "seq": {
+          "description": "Rendered `WP-01`; unique within the thread.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "status": {
+          "$ref": "#/$defs/WpStatus"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "seq",
+        "title",
+        "scope",
+        "status"
+      ]
+    },
+    "WpStatus": {
+      "type": "string",
+      "enum": [
+        "not-started",
+        "wip",
+        "done"
+      ]
+    }
+  }
+}

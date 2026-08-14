@@ -58,3 +58,6 @@ npm-debug.log
 
 # Treeindex cache (derived, machine-local; regenerate with 'intent treeindex <dir>').
 intent/.treeindex/
+target/
+# The DDL face is a COMMITTED artefact (the global gitignore excludes *.sql).
+!schema/ddl.sql

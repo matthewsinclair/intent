@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Envelope",
+  "type": "object",
+  "properties": {
+    "id": {
+      "description": "ULID -- lexically sortable, globally unique.",
+      "type": "string"
+    },
+    "op": {
+      "description": "The facade operation, eg `st.done`.",
+      "type": "string"
+    },
+    "payload": {
+      "description": "Operation-specific detail; opaque to the log."
+    },
+    "principal": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "subject": {
+      "$ref": "#/$defs/Subject"
+    },
+    "ts": {
+      "description": "RFC 3339 UTC timestamp.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "ts",
+    "principal",
+    "project_id",
+    "op",
+    "subject",
+    "payload"
+  ],
+  "$defs": {
+    "Subject": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Natural id, eg `ST0056`, `ST0056/02`, `0021`.",
+          "type": "string"
+        },
+        "type": {
+          "description": "Entity type, eg `thread`, `wp`, `issue`.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "id"
+      ]
+    }
+  }
+}

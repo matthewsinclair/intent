@@ -1,0 +1,20 @@
+[package]
+name = "intentsvcs"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Intent v3 services: the reified model, schema faces, SQLite store, sync and facade"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+schemars.workspace = true
+rusqlite.workspace = true
+ulid.workspace = true
+time.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+tempfile.workspace = true
