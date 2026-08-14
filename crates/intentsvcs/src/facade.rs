@@ -70,6 +70,14 @@ pub enum FacadeError {
   ScopeUnchanged { ac: String, state: String },
   #[error("{ac} is in scope, so there is nothing to reinstate")]
   NotOffScope { ac: String },
+  #[error("{ac} is {actual}, not {wanted}")]
+  WrongOffScopeState {
+    ac: String,
+    actual: String,
+    wanted: String,
+    /// The verb that DOES undo the state it is actually in.
+    verb: String,
+  },
   #[error("the search query `{query}` was refused")]
   BadQuery {
     query: String,
@@ -119,6 +127,9 @@ impl FacadeError {
       Self::NotOffScope { .. } => {
         "reinstate applies only to a descoped or withdrawn criterion".to_string()
       }
+      Self::WrongOffScopeState { verb, ac, .. } => {
+        format!("run `intent ac {verb} <thread> {ac}` instead -- a descoped requirement still exists on another thread, and a withdrawn one does not exist at all")
+      }
       Self::BadQuery { .. } => {
         "search takes an FTS5 expression -- quote a phrase, and escape or drop bare punctuation like `:` and `*`".to_string()
       }
@@ -154,6 +165,17 @@ impl FacadeError {
     out.push_str(&format!("\n  remedy: {}", self.remedy()));
     out
   }
+}
+
+/// One row of `intent ac list`: the criterion, its computed state, and the
+/// tests that cover it.
+#[derive(Debug, Clone)]
+pub struct AcRow {
+  pub id: String,
+  pub text: String,
+  /// Computed, never read off the criterion -- see [`Facade::ac_list`].
+  pub state: String,
+  pub covered_by: Vec<String>,
 }
 
 /// The facade: a project, its store, and the canon it has loaded.
@@ -230,6 +252,75 @@ impl Facade {
 
   pub fn wp_list(&self, st: &str) -> Result<&[WorkPackage], FacadeError> {
     Ok(&self.st_show(st)?.wps)
+  }
+
+  pub fn wp_show(&self, st: &str, seq: u32) -> Result<&WorkPackage, FacadeError> {
+    self
+      .st_show(st)?
+      .wps
+      .iter()
+      .find(|w| w.seq == seq)
+      .ok_or_else(|| FacadeError::NoSuchWorkPackage {
+        st: st.to_string(),
+        seq,
+      })
+  }
+
+  /// Every criterion with its COMPUTED state and its covering tests.
+  ///
+  /// The state is computed here rather than read off the criterion, because
+  /// for a test-backed AC it is not stored anywhere: satisfaction comes from a
+  /// covering green test, and storing it too would be the double truth
+  /// data-model.md forbids.
+  pub fn ac_list(&self, st: &str) -> Result<Vec<AcRow>, FacadeError> {
+    let thread = self.st_show(st)?;
+    Ok(
+      thread
+        .criteria
+        .iter()
+        .map(|c| AcRow {
+          id: c.id.clone(),
+          text: c.text.clone(),
+          // v2's own vocabulary (`bin/intent_acceptance:904-907`). The state
+          // is COMPUTED -- for a test-backed AC it is stored nowhere, because
+          // satisfaction comes from a covering green test and storing it too
+          // would be the double truth data-model.md forbids.
+          state: match &c.scope {
+            AcScope::Descoped { to, .. } => format!("descoped-to: {to}"),
+            AcScope::Withdrawn { reason, .. } => format!("withdrawn: {reason}"),
+            AcScope::InScope => format!(
+              "satisfied: {}",
+              if contract::ac_state(thread, c) == contract::AcState::Satisfied {
+                "yes"
+              } else {
+                "no"
+              }
+            ),
+          },
+          covered_by: thread
+            .tests
+            .iter()
+            .filter(|t| t.covers.iter().any(|covered| covered == &c.id))
+            .map(|t| t.id.clone())
+            .collect(),
+        })
+        .collect(),
+    )
+  }
+
+  /// Check the acceptance-test rows against the grammar the GATE enforces.
+  ///
+  /// It calls the same `contract_findings` the close gate calls, deliberately.
+  /// A lint with its own copy of the rules is a lint that can say clean while
+  /// the gate refuses, and an operator who cannot trust the lint runs the gate
+  /// instead -- at which point the lint has no reason to exist.
+  pub fn at_lint(&self, st: &str) -> Result<Vec<String>, FacadeError> {
+    let thread = self.st_show(st)?;
+    Ok(contract::contract_findings(
+      thread,
+      None,
+      &contract::RepoFiles(self.project.root()),
+    ))
   }
 
   /// Full-text search across every authored section -- thread prose, issue
@@ -536,11 +627,41 @@ impl Facade {
   }
 
   /// Bring a descoped or withdrawn criterion back into scope.
+  /// Undo a WITHDRAWAL: back in scope, unsatisfied.
+  ///
+  /// It refuses a descoped criterion and names `rescope` instead, because v2
+  /// does (`bin/intent_acceptance:1246`) and because the two are genuinely
+  /// different acts: a descoped requirement still exists somewhere else, and a
+  /// withdrawn one does not exist at all. Treating them as one verb would make
+  /// the tool answer "done" to a question it had not been asked.
   pub fn ac_reinstate(&mut self, st: &str, ac: &str) -> Result<(), FacadeError> {
-    if matches!(self.criterion(st, ac)?.scope, AcScope::InScope) {
-      return Err(FacadeError::NotOffScope { ac: ac.to_string() });
+    match self.criterion(st, ac)?.scope {
+      AcScope::Withdrawn { .. } => {
+        self.set_scope(st, ac, AcScope::InScope, "ac.reinstate", json!({}))
+      }
+      AcScope::Descoped { .. } => Err(FacadeError::WrongOffScopeState {
+        ac: ac.to_string(),
+        actual: "descoped".to_string(),
+        wanted: "withdrawn".to_string(),
+        verb: "rescope".to_string(),
+      }),
+      AcScope::InScope => Err(FacadeError::NotOffScope { ac: ac.to_string() }),
     }
-    self.set_scope(st, ac, AcScope::InScope, "ac.reinstate", json!({}))
+  }
+
+  /// Undo a DESCOPE: back in scope, unsatisfied. The mirror of
+  /// [`Facade::ac_reinstate`], refusing a withdrawn criterion the same way.
+  pub fn ac_rescope(&mut self, st: &str, ac: &str) -> Result<(), FacadeError> {
+    match self.criterion(st, ac)?.scope {
+      AcScope::Descoped { .. } => self.set_scope(st, ac, AcScope::InScope, "ac.rescope", json!({})),
+      AcScope::Withdrawn { .. } => Err(FacadeError::WrongOffScopeState {
+        ac: ac.to_string(),
+        actual: "withdrawn".to_string(),
+        wanted: "descoped".to_string(),
+        verb: "reinstate".to_string(),
+      }),
+      AcScope::InScope => Err(FacadeError::NotOffScope { ac: ac.to_string() }),
+    }
   }
 
   fn set_scope(

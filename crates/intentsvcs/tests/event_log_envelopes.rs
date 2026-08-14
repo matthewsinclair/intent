@@ -47,15 +47,21 @@ fn every_mutating_verb_writes_an_envelope() {
   facade
     .ac_satisfy("ST0056", "AC-03.2", "evidence")
     .expect("ac.satisfy");
+  // `rescope` undoes a DESCOPE and `reinstate` undoes a WITHDRAWAL; each
+  // refuses the other's state and names it (v2, `bin/intent_acceptance:1241`
+  // and `:1246`). They are driven in their own states here, because calling
+  // either on the wrong one is now a refusal rather than a no-op -- which is
+  // how this guard caught the change.
   facade
     .ac_descope("ST0056", "AC-03.1", "ST0057", None, None)
     .expect("ac.descope");
-  facade
-    .ac_reinstate("ST0056", "AC-03.1")
-    .expect("ac.reinstate");
+  facade.ac_rescope("ST0056", "AC-03.1").expect("ac.rescope");
   facade
     .ac_withdraw("ST0056", "AC-03.1", "reason", None)
     .expect("ac.withdraw");
+  facade
+    .ac_reinstate("ST0056", "AC-03.1")
+    .expect("ac.reinstate");
   facade
     .at_set("ST0056", "AT-03.1", AtStatus::Red)
     .expect("at.set");
@@ -69,8 +75,9 @@ fn every_mutating_verb_writes_an_envelope() {
     "wp.start",
     "ac.satisfy",
     "ac.descope",
-    "ac.reinstate",
+    "ac.rescope",
     "ac.withdraw",
+    "ac.reinstate",
     "at.set",
   ] {
     assert!(
@@ -80,7 +87,7 @@ fn every_mutating_verb_writes_an_envelope() {
   }
   assert_eq!(
     recorded.len(),
-    10,
+    11,
     "one envelope per mutation, no more and no fewer: {recorded:?}"
   );
 }

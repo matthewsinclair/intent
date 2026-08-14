@@ -135,17 +135,61 @@ fn withdraw_requires_a_reason_and_records_it() {
   );
 }
 
+/// `rescope` undoes a descope; `reinstate` undoes a withdrawal. Each returns
+/// the criterion to scope, unsatisfied.
 #[test]
-fn reinstate_returns_a_criterion_to_scope() {
+fn rescope_and_reinstate_each_return_their_own_state_to_scope() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
   // The fixture ships AC-03.9 descoped and AC-03.8 withdrawn.
-  facade.ac_reinstate("ST0056", "AC-03.9").expect("reinstate");
+  facade.ac_rescope("ST0056", "AC-03.9").expect("rescope");
   assert_eq!(state(&facade, "ST0056", "AC-03.9"), AcState::Unsatisfied);
   facade.ac_reinstate("ST0056", "AC-03.8").expect("reinstate");
   assert_eq!(state(&facade, "ST0056", "AC-03.8"), AcState::Unsatisfied);
+}
+
+/// **The two are not aliases**, and each refusal names the other verb.
+///
+/// v2 enforces this (`bin/intent_acceptance:1241` and `:1246`) and it is not
+/// pedantry: a descoped requirement still exists on another thread, and a
+/// withdrawn one does not exist at all. A single verb that undid whichever it
+/// found would answer "done" to a question nobody asked -- and the first
+/// version of this facade had exactly that, because it was designed from what
+/// the two commands looked like rather than from what v2 does.
+#[test]
+fn rescope_and_reinstate_refuse_each_others_states_and_name_the_right_verb() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0056"));
+  let mut facade = fx.facade();
+
+  // AC-03.9 is DESCOPED, so reinstate must refuse and point at rescope.
+  match facade.ac_reinstate("ST0056", "AC-03.9") {
+    Err(e @ FacadeError::WrongOffScopeState { .. }) => {
+      let rendered = e.render();
+      assert!(rendered.contains("descoped, not withdrawn"), "{rendered}");
+      assert!(
+        rendered.contains("ac rescope"),
+        "the remedy names the verb that WOULD work: {rendered}"
+      );
+    }
+    other => panic!("expected WrongOffScopeState, got: {other:?}"),
+  }
+
+  // AC-03.8 is WITHDRAWN, so rescope must refuse and point at reinstate.
+  match facade.ac_rescope("ST0056", "AC-03.8") {
+    Err(e @ FacadeError::WrongOffScopeState { .. }) => {
+      let rendered = e.render();
+      assert!(rendered.contains("withdrawn, not descoped"), "{rendered}");
+      assert!(rendered.contains("ac reinstate"), "{rendered}");
+    }
+    other => panic!("expected WrongOffScopeState, got: {other:?}"),
+  }
+
+  // And neither refusal changed anything.
+  assert_eq!(state(&facade, "ST0056", "AC-03.9"), AcState::Descoped);
+  assert_eq!(state(&facade, "ST0056", "AC-03.8"), AcState::Withdrawn);
 }
 
 #[test]

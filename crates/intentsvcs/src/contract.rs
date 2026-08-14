@@ -295,7 +295,14 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
 /// same-text-for-different-causes collapse AC-04.4 forbids one layer up -- and
 /// the mutation battery proved the point, because L2 and L3 were mutually
 /// covering until the test started asserting which one fired.
-fn contract_findings(thread: &Thread, wanted: Option<&str>, refs: &dyn References) -> Vec<String> {
+/// Public because `intent at lint` reports exactly what the gate enforces.
+/// Two rule sets would be the drift where the lint says clean and the gate
+/// refuses -- which is the shape that made v2's `at lint` untrustworthy.
+pub fn contract_findings(
+  thread: &Thread,
+  wanted: Option<&str>,
+  refs: &dyn References,
+) -> Vec<String> {
   // L3 is exempt on a closed thread: retrofitting id labels into a completed
   // thread's tests is archaeology, and v2 says so at `at_row_findings`.
   let completed = thread.status == ThreadStatus::Completed;

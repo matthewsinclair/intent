@@ -9,7 +9,7 @@
 use clap::ArgMatches;
 use intentsvcs::contract::Scope;
 use intentsvcs::facade::{Facade, FacadeContext, FacadeError};
-use intentsvcs::model::TShirt;
+use intentsvcs::model::{AtStatus, TShirt};
 use intentsvcs::project::Project;
 
 /// Everything a rendered failure says. The facade's own rendering already
@@ -186,6 +186,15 @@ fn wp(m: &ArgMatches) -> Result<(), String> {
       }
       Ok(())
     }
+    Some(("show", a)) => {
+      let (st, seq) = wp_target(a)?;
+      let f = open()?;
+      let wp = f.wp_show(&st, seq).map_err(fail)?;
+      println!("{st}/WP-{:02}: {}", wp.seq, wp.title);
+      println!("status: {}", intentsvcs::model::enum_str(&wp.status));
+      println!("scope: {}", intentsvcs::model::enum_str(&wp.scope));
+      Ok(())
+    }
     Some((verb, _)) => unwired("wp", verb),
     None => Err("error: a work package command is required".to_string()),
   }
@@ -215,6 +224,69 @@ fn ac(m: &ArgMatches) -> Result<(), String> {
       println!("ok: {id} satisfied");
       Ok(())
     }
+    Some(("list", a)) => {
+      let st = arg(a, "stid")?;
+      let f = open()?;
+      // v2's shape verbatim (`bin/intent_acceptance:909`), including the
+      // absent space after `covered-by:` -- the ids arrive space-prefixed, so
+      // an uncovered criterion renders `covered-by:` with nothing after it.
+      for row in f.ac_list(&st).map_err(fail)? {
+        let covering = row
+          .covered_by
+          .iter()
+          .map(|id| format!(" {id}"))
+          .collect::<String>();
+        println!("ac: {}  covered-by:{covering}  {}", row.id, row.state);
+      }
+      Ok(())
+    }
+    Some(("status", a)) => {
+      let target = arg(a, "stid")?;
+      let (st, scope) = scope_of(&target);
+      let f = open()?;
+      let verdict = f.gate(&st, scope).map_err(fail)?;
+      // v2 reports N/M plus the verdict, and exits 0 either way: `status` is a
+      // read. Only `gate` carries the verdict in its exit code.
+      println!("{}", verdict.line(&target));
+      Ok(())
+    }
+    Some(("descope", a)) => {
+      let st = arg(a, "stid")?;
+      let id = arg(a, "acid")?;
+      let to = arg(a, "to")?;
+      let by = arg(a, "by").ok();
+      let reason = arg(a, "reason").ok();
+      open()?
+        .ac_descope(&st, &id, &to, by.as_deref(), reason.as_deref())
+        .map_err(fail)?;
+      println!("ok: {id} descoped to {to}");
+      Ok(())
+    }
+    Some(("withdraw", a)) => {
+      let st = arg(a, "stid")?;
+      let id = arg(a, "acid")?;
+      let reason = arg(a, "reason")?;
+      let by = arg(a, "by").ok();
+      open()?
+        .ac_withdraw(&st, &id, &reason, by.as_deref())
+        .map_err(fail)?;
+      println!("ok: {id} withdrawn");
+      Ok(())
+    }
+    Some(("rescope", a)) => {
+      let st = arg(a, "stid")?;
+      let id = arg(a, "acid")?;
+      open()?.ac_rescope(&st, &id).map_err(fail)?;
+      println!("ok: {id} back in scope");
+      Ok(())
+    }
+    Some(("reinstate", a)) => {
+      let st = arg(a, "stid")?;
+      let id = arg(a, "acid")?;
+      open()?.ac_reinstate(&st, &id).map_err(fail)?;
+      println!("ok: {id} reinstated");
+      Ok(())
+    }
     Some((verb, _)) => unwired("ac", verb),
     None => Err("error: an acceptance criterion command is required".to_string()),
   }
@@ -234,6 +306,41 @@ fn at(m: &ArgMatches) -> Result<(), String> {
         );
       }
       Ok(())
+    }
+    Some((state @ ("green" | "red" | "na"), a)) => {
+      let st = arg(a, "stid")?;
+      let id = arg(a, "atid")?;
+      let status = match state {
+        "green" => AtStatus::Green,
+        "red" => AtStatus::Red,
+        _ => AtStatus::Na,
+      };
+      open()?.at_set(&st, &id, status).map_err(fail)?;
+      println!("ok: {id} {state}");
+      Ok(())
+    }
+    Some(("lint", a)) => {
+      let st = arg(a, "stid")?;
+      if a.try_get_one::<bool>("fix").ok().flatten() == Some(&true) {
+        // The 0017 `--fix` half-migrated rows: it rewrote what it could parse
+        // and silently left the rest, which is worse than refusing, because a
+        // lossy fixer damages what it touches and a lossy SUGGESTION damages
+        // everything touched after it. v3 will not ship one that cannot finish
+        // the job.
+        return Err(
+          "error: `at lint --fix` is not implemented in v3\n  remedy: fix the rows `intent at lint` names -- v2's --fix rewrote what it could parse and left the rest, which is why it is not being carried over".to_string(),
+        );
+      }
+      let f = open()?;
+      let findings = f.at_lint(&st).map_err(fail)?;
+      for finding in &findings {
+        println!("{finding}");
+      }
+      if findings.is_empty() {
+        Ok(())
+      } else {
+        Err(String::new())
+      }
     }
     Some((verb, _)) => unwired("at", verb),
     None => Err("error: an acceptance test command is required".to_string()),
