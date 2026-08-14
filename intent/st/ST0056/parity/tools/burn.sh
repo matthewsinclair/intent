@@ -53,6 +53,25 @@ set -uo pipefail
 WT="${WT:?set WT}"
 cd "$WT"
 
+# OPT-IN TAP CAPTURE. With BURN_TAP_DIR set, both runs' raw TAP output is kept
+# per file, so a downstream tool can name WHICH tests burn rather than only how
+# many. This exists so per-test adjudication does not need its own copy of the
+# run logic -- gen_pertest.sh reads these files and never invokes bats.
+#
+# One instrument, one measurement, two granularities of classification. The
+# alternative was a second tool doing its own two runs per file, which is two
+# copies of the thing that has to stay identical for the numbers to be
+# comparable at all, and the exact drift lib_corpus.sh exists to catch.
+#
+# Both bindings are captured, not just the mutant one. The mutant `not ok` set
+# IS the burning set ONLY IF the default run is green, so the consumer must be
+# able to check that per file rather than trust the estate-level claim.
+BURN_TAP_DIR="${BURN_TAP_DIR:-}"
+if [ -n "$BURN_TAP_DIR" ]; then
+  mkdir -p "$BURN_TAP_DIR" || { echo "burn.sh: cannot create BURN_TAP_DIR=$BURN_TAP_DIR" >&2; exit 2; }
+fi
+tap_slug() { printf '%s' "$1" | tr '/' '_'; }
+
 printf 'FILE\tTESTS\tDEFAULT_FAIL\tBURN\tSTATUS\n'
 
 for f in $(find tests -name '*.bats' | sort); do
@@ -68,6 +87,16 @@ for f in $(find tests -name '*.bats' | sort); do
   m=$(printf '%s' "$m_out" | grep -cE '^not ok' || true)
   burn=$(( m - d ))
   [ "$burn" -lt 0 ] && burn=0
+
+  # Keep the raw TAP for both bindings when asked. Written for EVERY file
+  # including TIMEOUT and UNSTABLE ones, deliberately: the consumer needs to see
+  # that a file's measurement was unusable, and a missing file would let it
+  # infer "no failures" from an absence. Same reason a timed-out row is emitted
+  # rather than dropped.
+  if [ -n "$BURN_TAP_DIR" ]; then
+    printf '%s\n' "$d_out" > "$BURN_TAP_DIR/$(tap_slug "$f").default.tap"
+    printf '%s\n' "$m_out" > "$BURN_TAP_DIR/$(tap_slug "$f").mutant.tap"
+  fi
   if [ "$d_rc" -eq 124 ] || [ "$m_rc" -eq 124 ]; then
     # 124 is timeout(1)'s "deadline reached". No classification: an unfinished
     # measurement is not a measurement.
