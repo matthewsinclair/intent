@@ -150,6 +150,27 @@ assert_guard() {
   assert_guard PASS
 }
 
+@test "clock guard: control -- a Re: anchor points backwards and must not block" {
+  # The documented heading is `## (<stamp>)   [Re: <prior-anchor>]`, and the
+  # anchor names the EARLIER entry being replied to, so it is older than the
+  # entry carrying it -- always. Reading every date on the line makes every
+  # threaded reply look like an inbox running backwards. This guard blocked its
+  # own announcement commit that way, on its first real use.
+  printf '\n## (%sZ)   Re: %s\n\nthreaded reply\n' "$NOW" "$PAST3" \
+    >> intent/whiteboard/cc/inbox.ic.md
+  git add -A
+  assert_guard PASS
+}
+
+@test "clock guard: a Re: anchor does not mask a genuinely out-of-order entry" {
+  # The complement. Narrowing check C to the opening stamp must not make it
+  # blind: an entry whose OWN stamp goes backwards still blocks, anchor or not.
+  printf '\n## (%sZ)   Re: %sZ\n\nbackwards despite the anchor\n' "$PAST3" "$PAST3" \
+    >> intent/whiteboard/cc/inbox.ic.md
+  git add -A
+  assert_guard BLOCK
+}
+
 @test "clock guard: control -- a project with no whiteboard is untouched" {
   rm -rf intent/whiteboard
   printf 'x\n' > unrelated.txt

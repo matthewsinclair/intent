@@ -215,16 +215,26 @@ EOF
 changed_inboxes="$(git diff --cached --name-only --diff-filter=ACM -- "${WB_PATHS[@]}" 2>/dev/null |
   grep -E '/inbox\.[a-z]{2}\.md$' || true)"
 
+# A heading can carry MORE than one date: the documented message format is
+#   ## (<stamp>)   [Re: <prior-anchor>]   [FYI only ...]
+# and a `Re:` anchor points BACKWARDS by definition -- it names the earlier
+# entry being replied to. Taking every date on the line makes every threaded
+# reply look like an inbox travelling back in time. Found by this guard blocking
+# its own announcement commit, on its first real use; the upstream original has
+# the same defect. So: take only the parenthesised stamp that OPENS the heading,
+# which is the entry's own.
+heading_stamps() {
+  sed -nE 's/^\+?## \(([0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}).*/\1/p' | tr 'T' ' '
+}
+
 for f in $changed_inboxes; do
   f_added="$(git diff --cached --unified=0 -- "$f" 2>/dev/null |
-    grep -E '^\+## \(' |
-    grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}' | tr 'T' ' ' | sort -u || true)"
+    grep -E '^\+## \(' | heading_stamps | sort -u || true)"
   [ -n "$f_added" ] || continue
 
   # The file as it WILL be, in document order.
   f_all="$(git show ":$f" 2>/dev/null |
-    grep -E '^## \(' |
-    grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}[T ][0-9]{2}:[0-9]{2}' | tr 'T' ' ' || true)"
+    grep -E '^## \(' | heading_stamps || true)"
   [ -n "$f_all" ] || continue
 
   running_max=""
