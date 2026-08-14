@@ -48,7 +48,7 @@ teardown() {
 @test "an ambient PROJECT_ROOT does not redirect the subagent manifest" {
   cd "$OUTSIDE" || return 1
 
-  run env PROJECT_ROOT="$DECOY" "${INTENT_PROJECT_ROOT}/bin/intent" \
+  run env PROJECT_ROOT="$DECOY" "$INTENT_BIN" \
     claude subagents install intent --force
   assert_success
 
@@ -64,7 +64,7 @@ teardown() {
   # `st list` is a project command. Standing outside a project it must refuse,
   # whatever the environment says -- before the fix the dispatcher's own
   # emptiness check was satisfied by the inherited value.
-  run env PROJECT_ROOT="$DECOY" "${INTENT_PROJECT_ROOT}/bin/intent" st list
+  run env PROJECT_ROOT="$DECOY" "$INTENT_BIN" st list
   assert_failure
   echo "$output" | grep -qi "not in an intent project"
 }
