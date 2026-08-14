@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 15e0a23e-58f3-4575-882d-e23418452447
-heartbeat_at: 2026-08-14T11:55Z
-status: paused
-focus: "ST0056 (Intent v3.0.0): design canon landed, 12-WP ladder cut, WP-01 WIP. Released for compact; resumes at hv's pre-kickoff check-in."
+heartbeat_at: 2026-08-14T12:45Z
+status: active
+focus: "ST0056/WP-01 authored complete (design + data-model + migration + parity + 62-AC contract); AC-01.2 awaits hv contract ratification, then WP-01 closes and WP-02 begins"
 claims: [ST0056]
 ---
 
@@ -13,19 +13,21 @@ claims: [ST0056]
 
 ## DOING
 
-- **ST0056 / WP-01 -- design canon** (hv-assigned). design.md (architecture + decision log D01-D17), acceptance contract (ST gate + WP-01 group, lint-clean), tasks.md ladder, 12 WP info files -- all landed 2026-08-14 pm. Holding for hv's pre-kickoff check-in, then WP-01 completes: data-model spec + JSON Schema draft, migration spec, parity contract (command-surface inventory + keep/retire/deviate register), WP-02..12 AC/AT groups, four open questions closed (bin count -- lean two; launchd label; subscription extent; `.cache` layout).
+- **ST0056 / WP-01 -- complete but for the close.** hv ratified the design ("ST0056/WP01: Ratified"); the remaining deliverables are authored: `data-model.md` (entities + canonical JSON form + draft thread.json schema), `migration.md` (two-hop flow, six residue classes, atomic BLOCKED-until-clean policy, fleet corpus harness), `parity.md` (conformance contract, register format, command inventory, IC handoff), the full-ladder acceptance contract (62 ACs / 60 AT rows, lint-clean), and D18-D21 closing the four open questions. AC-01.1/.3/.4 satisfied by evidence; **AC-01.2 needs hv's ratification of the contract**, then `wp done ST0056/01` closes through the gate and WP-02 (workspace + reified model) starts.
 
 ## TODO
 
-- **Measure cc's consumer sweep** (protocol agreed with cc): cc counts immediately post-sweep as its stop condition; vc re-runs the AT-row-scoped counts independently as the record, against `intent/analysis/20260814-lamplight-at-sweep-baseline.md` (1639 rows at `15dbccc92`). Same method for Utilz/Baize once cc takes their baselines. **Post-sweep revisions per project must be recorded -- they are WP-10's fleet-corpus fixture.**
-- Carry into WP-01: the IC-delegable parity raw material (v2 command-surface inventory; BATS `INTENT_BIN` retarget + classification) -- offered to hv for an IC fire-up.
+- **On hv's contract nod**: satisfy AC-01.2, close WP-01 via the gate, start WP-02.
+- **Measure cc's consumer sweep** (protocol agreed): cc counts post-sweep as stop condition, vc re-counts as the record against the Lamplight baseline (1639 rows at `15dbccc92`); cc takes Utilz/Baize baselines with the same method. **Post-sweep revisions become WP-10's corpus manifest.**
+- **IC's opening brief is in `ic/inbox.vc.md`** (the parity deep pass per parity.md's handoff section) -- hv confirms or redirects on IC's first pickup; deliverables land under `intent/st/ST0056/parity/` and feed WP-05.
 
 ## Watch-outs
 
-- **Never mutate `bin/**` in place** -- `~/.local/bin/intent` symlinks into this repo; sacrificial worktrees only. Same while any suite runs.
+- **Never mutate `bin/**` or `tests/**` in place** -- `~/.local/bin/intent` symlinks into this repo; sacrificial worktrees only. Same while any suite runs.
 - **This shell is zsh; MULTIOS makes `cmd 2>&1 >/dev/null` tee stdout to the terminal.** Measure stream separation by redirecting to a file and counting bytes.
-- **Commit by explicit pathspec, never `-A`** -- cc runs concurrently and its board is frequently dirty in the tree.
-- Release-window mechanics live in `intent/restart.md`'s checklist (not re-carried here).
+- **Commit by explicit pathspec, never `-A`** -- cc and ic run concurrently.
+- **A claim collision happened today** (cc picked up ST0056 before my claim entry landed; both boards briefly said `[ST0056]`; cc stood down cleanly). Third datapoint for the pickup-time-inbox item -- which is now designed-for in ST0056's 3.2 bus ST rather than queued as a v2 ruling.
+- Release-window mechanics live in `intent/restart.md`'s checklist.
 
 ## Decisions
 

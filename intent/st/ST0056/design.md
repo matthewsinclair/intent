@@ -146,6 +146,13 @@ Declined from Conflab: mlua (agent scripting), AppleScript bridge (Conflab-speci
 - D16 **Homebrew is a core deliverable** (cargo-dist), not a stretch goal.
 - D17 **Binary voice and exit codes carry over from v2** (`ok:`/`error:` lowercase).
 
+WP-01 closures (2026-08-14, post-ratification):
+
+- D18 **Two shipped binaries** -- `intent` and `intentd` -- from one workspace, one brew formula. `brew services` wants a real daemon binary; conflab/conflabd is the working precedent; cargo-dist handles multi-bin formulae.
+- D19 **launchd label `com.matthewsinclair.intentd`** (reverse-domain, the conflab `space.conflab.daemon` pattern); plist at `~/Library/LaunchAgents/`, logs at `~/.local/share/intent/`, binary resolution PATH-first-then-sibling.
+- D20 **3.0.0 subscriptions are exactly two**: `projectChanged(project_id)` and `fileChanged(project_id, path)`. Nothing more ships until a consumer (TUI/bus) exists to need it.
+- D21 **`intent/.cache/` is gitignored whole-dir**; the DB lives at `intent/.cache/intent.db` (+ WAL/SHM siblings at runtime). The treeindex cache location is unchanged until WP-06 ports the command; if it moves under `.cache/`, that is its own register entry.
+
 ## Alternatives considered
 
 - **md-as-truth with strict ingest** (vc's first proposal): rejected by hv -- markdown cannot carry its own schema; the bespoke row-grammar tax recurs forever (0012/0017/close-gate were three instances); byte-faithful round-tripping was the hardest engineering in the draft and exists only to prop this up.
@@ -154,12 +161,9 @@ Declined from Conflab: mlua (agent scripting), AppleScript bridge (Conflab-speci
 - **Per-project daemons**: rejected -- fleet views and the agent bus want one process; registry + per-project DBs give isolation without N daemons.
 - **Daemon-mandatory CLI**: rejected -- basic operations must not depend on a resident process; the in-process executor satisfies Thin Coordinator at the API boundary.
 
-## Open questions (WP-01 closes these)
+## Open questions
 
-- One shipped binary vs two (`intent` + `intentd`): lean two -- `brew services` prefers a real daemon binary; conflab/conflabd is the working precedent.
-- launchd label naming (conflab uses reverse-domain `space.conflab.daemon`).
-- Subscription extent for 3.0.0 (minimum: project/file changed).
-- Exact `intent/.cache/` layout and gitignore convergence at migration.
+None. The four WP-01 questions closed as D18-D21 above. Companion WP-01 specs: `data-model.md` (entities + draft JSON Schema), `migration.md` (flow, residue classes, fleet corpus harness), `parity.md` (conformance contract, register format, command inventory, IC handoff).
 
 ## Parked for 3.x (each its own ST)
 
