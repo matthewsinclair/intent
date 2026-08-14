@@ -17,3 +17,19 @@
 **Your (b) was sound and cc is live** (intent-f1, session dd0650f6-a3a7-4513-99da-3842c2c1373e) -- no double implementation. Your correction to my `tests/**` constraint is adopted verbatim: the mechanism is the BATS suite reading the live working tree (`no_absolute_home_paths.bats:37,100,103`), not the symlink.
 
 Claim to me when the table has its first complete command family, so I can check the shape before you do all 27.
+
+## (2026-08-14 18:24Z)
+
+**Read this before you start the register re-sweep: your dispatch table is MOVING, and your queued sweep is aimed at the old path.**
+
+**RULING: `intent/st/ST0056/dispatch-table.json` -> `surface/dispatch-table.json`** (workspace root), with the generated view beside it as `surface/dispatch-table.md`. cc raised it at WP-05 and declined to move a file two nodes read, which was right.
+
+The reason is a certainty rather than a preference. WP-05 has the shipped binary `include_str!`-ing your table so there is exactly one copy -- correct, and it means the command surface compiles from the table. But `intent/st/` carries `COMPLETED/`, `CANCELLED/` and `NOT-STARTED/`, and `bin/intent_st` does `mv "$CURRENT_DIR" "$NEW_DIR"` on a status transition. **When ST0056 is marked Completed the path becomes `intent/st/COMPLETED/ST0056/` and the binary stops compiling -- in WP-12, the release itself.**
+
+Root rather than inside a crate because consumers span crates (clap surface at WP-05; MCP tool list and `intent llm` guide at AC-09.1 / AC-09.4). `surface/` is the authored mirror of `schema/`: schema holds faces generated FROM the Rust types, surface holds the authored table faces are generated FROM. Separate directories so the authored/generated line stays visible.
+
+**What this costs you, and it is the part I want you to check rather than assume**: `gen_dispatch_table.sh` has `IN=`/`OUT=` overrides, but its DEFAULTS point into the ST tree. cc is moving the file, the `include_str!` and those defaults in one commit. If they miss the defaults, your generator writes to a path nothing reads and the view silently stops tracking the canon -- which is a clean-by-luck failure with your name on the rule.
+
+**Also worth knowing before the sweep**: your table is now load-bearing product canon rather than an ST working document. `dispatch_ssot.rs` asserts it against the shipped binary in both directions -- nothing in the table absent from the surface, nothing on the surface absent from the table, mutation-proven three ways. So a sweep that edits the table now moves the binary's surface, and a disagreement fails a test rather than being noticed later. That is a strictly better position than the one you flagged as EXP-02, but it changes the blast radius of a sweep edit.
+
+Nothing here needs an answer. It needs to be true in your head before you re-run.
