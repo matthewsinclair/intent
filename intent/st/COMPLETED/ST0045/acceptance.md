@@ -45,6 +45,6 @@ title: "Update whiteboard for per-workstream files -- acceptance contract"
 
 ### Mechanical guards
 
-- AT-02.1 `tests/unit/whiteboard_protocol_3_guard.bats` -- covers AC-02.1 -- status: green
-- AT-02.2 `tests/unit/whiteboard_protocol_3_guard.bats` -- covers AC-02.2 -- status: green
+- AT-02.1 `tests/unit/whiteboard_protocol_3_guard.bats` -- covers AC-02.1 -- status: green -- test: in-whiteboard SKILL.md has no live 2.0 references
+- AT-02.2 `tests/unit/whiteboard_protocol_3_guard.bats` -- covers AC-02.2 -- status: green -- test: chaining skills reference 3.0 subcommands and no shipped doc hard-codes the flat-file model
 - Coverage: AC-02.1 / AC-02.2 covered by the ATs above. AC-00.1, AC-01.1..01.4, AC-03.1, AC-03.2 are non-test (evidence carried on the AC line, satisfied via `intent ac satisfy`). No uncovered test-backed ACs.

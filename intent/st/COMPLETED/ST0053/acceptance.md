@@ -63,7 +63,7 @@ title: "Content (web-content) project-type pack -- acceptance contract"
 - AT-01.1 `tests/unit/pr_language_code_guard.bats` -- covers AC-01.1 -- status: green
 - AT-01.2 `tests/unit/rule_pack_prose.bats` -- covers AC-01.2 -- status: green
 - AT-01.3 `tests/unit/rule_pack_author.bats` -- covers AC-01.3 -- status: green
-- AT-01.4 `tests/unit/in_author_essentials_skill.bats` -- covers AC-01.4 -- status: green
+- AT-01.4 `tests/unit/in_author_essentials_skill.bats` -- covers AC-01.4 -- status: green -- test: "references the prose base + author rules by ID"
 - Coverage: AC-01.1..01.3 test-backed (green); AC-01.4 is non-test (evidence satisfied) and additionally backstopped by AT-01.4.
 
 ### WP-02

@@ -49,16 +49,16 @@ All test-backed ATs live in `tests/unit/acceptance_close_gate.bats` (extending t
 
 ### WP-01
 
-- AT-01.1 `tests/unit/acceptance_close_gate.bats` -- covers AC-01.1 -- status: green
-- AT-01.2 `tests/unit/acceptance_close_gate.bats` -- covers AC-01.2 -- status: green
-- AT-01.3 `tests/unit/acceptance_close_gate.bats` -- covers AC-01.3 -- status: green
-- AT-01.4 `tests/unit/acceptance_close_gate.bats` -- covers AC-01.4 -- status: green
-- AT-01.5 `tests/unit/acceptance_close_gate.bats` -- covers AC-01.5 -- status: green
+- AT-01.1 `tests/unit/acceptance_close_gate.bats` -- covers AC-01.1 -- status: green -- test: "gate blocks a present contract with zero in-scope ACs"
+- AT-01.2 `tests/unit/acceptance_close_gate.bats` -- covers AC-01.2 -- status: green -- test: "gate blocks a missing acceptance.md (no contract)"
+- AT-01.3 `tests/unit/acceptance_close_gate.bats` -- covers AC-01.3 -- status: green -- test: "gate passes and reports EXEMPT for acceptance: exempt with zero ACs"
+- AT-01.4 `tests/unit/acceptance_close_gate.bats` -- covers AC-01.4 -- status: green -- test: "gate unaffected by a real satisfied contract; still blocks unsatisfied and malformed"
+- AT-01.5 `tests/unit/acceptance_close_gate.bats` -- covers AC-01.5 -- status: green -- test: "wp done honours the WP-lenient granularity rule"
 - Coverage: AC-01.1..01.5 test-backed (ATs above). AT-01.1 inverts the retired AT-04.4; AT-01.2 revises the retired no-acceptance.md open test.
 
 ### WP-02
 
-- AT-02.1 `tests/unit/acceptance_close_gate.bats` -- covers AC-02.2 -- status: green
+- AT-02.1 `tests/unit/acceptance_close_gate.bats` -- covers AC-02.2 -- status: green -- test: "no opt-in or closes-as-before claim survives in canon and comments"
 - Coverage: AC-02.2 test-backed (mechanical grep guard above); AC-02.1 non-test (template diff evidence on the AC line).
 
 ### WP-03

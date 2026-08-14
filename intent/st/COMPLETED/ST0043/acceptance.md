@@ -53,28 +53,28 @@ title: "Rethink 'intent upgrade' -- acceptance contract"
 
 ### ST-level
 
-- AT-00.1 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-00.1 -- status: green
+- AT-00.1 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-00.1 -- status: green -- test: convergent upgrade from a v2.9.x project lands at target (relocate then languages then canon then stamp-once)
 
 ### Interruption safety + stamp
 
-- AT-01.1 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.1 -- status: green
-- AT-01.2 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.1 -- status: green
+- AT-01.1 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.1 -- status: green -- test: interrupted upgrade re-run completes only the remaining work via state probe
+- AT-01.2 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.1 -- status: green -- test: no ledger step writes the version; only the orchestrator stamps, last
 
 ### Version-range robustness
 
-- AT-01.3 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.2 -- status: green
-- AT-01.4 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.2 -- status: green
+- AT-01.3 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.2 -- status: green -- test: future or unknown version does not hard-fail before mutation
+- AT-01.4 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.2 -- status: green -- test: semver sanity refuses downgrade and missing VERSION before any mutation
 
 ### Backup
 
-- AT-01.5 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.3 -- status: green
+- AT-01.5 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.3 -- status: green -- test: backup failure surfaces via error() and aborts before mutation
 
 ### Highlander
 
-- AT-01.6 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.4 -- status: green
-- AT-01.7 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.5 -- status: green
+- AT-01.6 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.4 -- status: green -- test: only intent_upgrade writes the stamp and the canon engine carries no version-bump
+- AT-01.7 `tests/unit/intent_upgrade_orchestrator.bats` -- covers AC-01.5 -- status: green -- test: migration code is not sourced into non-upgrade commands
 
 ### Portability
 
-- AT-01.8 `tests/unit/intent_claude_upgrade.bats` -- covers AC-01.6 -- status: green
+- AT-01.8 `tests/unit/intent_claude_upgrade.bats` -- covers AC-01.6 -- status: green -- test: sed edits are portable and the version handling is anchored
 - Coverage: every test-backed AC (AC-00.1, AC-01.1..AC-01.6) has >=1 covering AT; AC-01.7 is non-test (the rewritten suite is the evidence, satisfied on matts's green full-suite run). Fleet-floor ratified 2026-06-15: ledger = [relocate_config, languages_field]; below-v2.9.0 migration code + ext_migration.bats deleted (fail-forward; git preserves).

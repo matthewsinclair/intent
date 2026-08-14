@@ -69,28 +69,28 @@ None -- WP-distributed.
 
 ### WP-01
 
-- AT-01.1 `tests/unit/intent_todo.bats` -- covers AC-01.1, AC-01.3 -- status: green
-- AT-01.2 `tests/unit/intent_todo.bats` -- covers AC-01.2 -- status: green
-- AT-01.3 `tests/unit/intent_todo.bats` -- covers AC-01.3 -- status: green
-- AT-01.4 `tests/unit/intent_todo.bats` -- covers AC-01.4 -- status: green
-- AT-01.5 `tests/unit/intent_todo.bats` -- covers AC-01.5 -- status: green
-- AT-01.6 `tests/unit/intent_todo.bats` -- covers AC-01.6 -- status: green
-- AT-01.7 `tests/unit/intent_todo.bats` -- covers AC-01.7 -- status: green
-- AT-01.8 `tests/unit/intent_todo.bats` -- covers AC-01.8 -- status: green
+- AT-01.1 `tests/unit/intent_todo.bats` -- covers AC-01.1, AC-01.3 -- status: green -- test: update_projects_buckets_from_status
+- AT-01.2 `tests/unit/intent_todo.bats` -- covers AC-01.2 -- status: green -- test: checkbox_glyphs_map_each_status
+- AT-01.3 `tests/unit/intent_todo.bats` -- covers AC-01.3 -- status: green -- test: done_bucket_self_sweeps_to_today
+- AT-01.4 `tests/unit/intent_todo.bats` -- covers AC-01.4 -- status: green -- test: on_hold_thread_tagged_in_doing
+- AT-01.5 `tests/unit/intent_todo.bats` -- covers AC-01.5 -- status: green -- test: todo_md_has_only_headings_and_data
+- AT-01.6 `tests/unit/intent_todo.bats` -- covers AC-01.6 -- status: green -- test: output_is_prettier_stable
+- AT-01.7 `tests/unit/intent_todo.bats` -- covers AC-01.7 -- status: green -- test: list_prints_and_help_shows_usage
+- AT-01.8 `tests/unit/intent_todo.bats` -- covers AC-01.8 -- status: green -- test: json_emits_valid_structured_buckets
 - Coverage: all WP-01 ACs covered.
 
 ### WP-02
 
-- AT-02.1 `tests/unit/intent_todo.bats` -- covers AC-02.1 -- status: green
-- AT-02.2 `tests/unit/intent_todo.bats` -- covers AC-02.2 -- status: green
-- AT-02.3 `tests/unit/intent_todo.bats` -- covers AC-02.3 -- status: green
-- AT-02.4 `tests/unit/intent_todo.bats` -- covers AC-02.4 -- status: green
+- AT-02.1 `tests/unit/intent_todo.bats` -- covers AC-02.1 -- status: green -- test: done_wraps_st_wp_and_regenerates
+- AT-02.2 `tests/unit/intent_todo.bats` -- covers AC-02.2 -- status: green -- test: done_inherits_close_gate_on_blocked
+- AT-02.3 `tests/unit/intent_todo.bats` -- covers AC-02.3 -- status: green -- test: notdone_reopens_to_wip
+- AT-02.4 `tests/unit/intent_todo.bats` -- covers AC-02.4 -- status: green -- test: toggle_flips_from_current_status
 - Coverage: AC-02.1..02.4 covered; AC-02.5 is non-test (Highlander review).
 
 ### WP-03
 
-- AT-03.1 `tests/unit/intent_todo.bats` -- covers AC-03.1 -- status: green
-- AT-03.2 `tests/unit/intent_todo.bats` -- covers AC-03.2 -- status: green
+- AT-03.1 `tests/unit/intent_todo.bats` -- covers AC-03.1 -- status: green -- test: todo_registered_in_help_and_usage
+- AT-03.2 `tests/unit/intent_todo.bats` -- covers AC-03.2 -- status: green -- test: dispatches_via_default_fallthrough
 - Coverage: AC-03.1 + AC-03.2 covered (guards -- the CLI integration is the existing auto-discovery + fall-through architecture).
 
 ### WP-04
@@ -104,8 +104,8 @@ None -- WP-distributed.
 
 ### WP-06
 
-- AT-06.1 `tests/unit/intent_todo.bats` -- covers AC-06.1 -- status: green
-- AT-06.2 `tests/unit/intent_todo.bats` -- covers AC-06.2, AC-06.3 -- status: green
-- AT-06.3 `tests/unit/intent_todo.bats` -- covers AC-06.4 -- status: green
-- AT-06.4 `tests/unit/intent_todo.bats` -- covers AC-06.5 -- status: green
+- AT-06.1 `tests/unit/intent_todo.bats` -- covers AC-06.1 -- status: green -- test: st_done_stamps_iso_completed
+- AT-06.2 `tests/unit/intent_todo.bats` -- covers AC-06.2, AC-06.3 -- status: green -- test: done_bucket_watermarked_and_membership
+- AT-06.3 `tests/unit/intent_todo.bats` -- covers AC-06.4 -- status: green -- test: flush_advances_watermark_empties_done
+- AT-06.4 `tests/unit/intent_todo.bats` -- covers AC-06.5 -- status: green -- test: prune_emits_then_flushes
 - Coverage: all WP-06 ACs covered.

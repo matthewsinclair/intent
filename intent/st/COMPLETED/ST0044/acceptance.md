@@ -67,8 +67,8 @@ title: "Add in acceptance.md and supporting process -- acceptance contract"
 
 ### WP-01
 
-- AT-01.1 `tests/unit/st_commands.bats` -- covers AC-01.1 -- status: green -- red witnessed by matts 2026-06-13, then green
-- AT-01.2 `tests/unit/st_commands.bats` -- covers AC-01.2, AC-02.1 -- status: green -- red witnessed by matts 2026-06-13, then green
+- AT-01.1 `tests/unit/st_commands.bats` -- covers AC-01.1 -- status: green -- red witnessed by matts 2026-06-13, then green -- test: st new stamps acceptance.md into the doc-set
+- AT-01.2 `tests/unit/st_commands.bats` -- covers AC-01.2, AC-02.1 -- status: green -- red witnessed by matts 2026-06-13, then green -- test: st new stamps acceptance.md content from the template file
 - Coverage: AC-01.1 by AT-01.1; AC-01.2 and AC-02.1 by AT-01.2.
 
 ### WP-02
@@ -77,27 +77,27 @@ title: "Add in acceptance.md and supporting process -- acceptance contract"
 
 ### WP-03
 
-- AT-03.1 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.1 -- status: green
-- AT-03.2 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.2 -- status: green
-- AT-03.3 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.2 -- status: green
-- AT-03.4 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.3 -- status: green
-- AT-03.5 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.4 -- status: green
-- AT-03.6 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.5 -- status: green
-- AT-03.7 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.1 -- status: green -- normalisation lap: red then green, 2026-06-13
+- AT-03.1 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.1 -- status: green -- test: at list and ac list render ids, paths, status
+- AT-03.2 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.2 -- status: green -- test: green only from red; to-write to green is refused
+- AT-03.3 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.2 -- status: green -- test: done aliases green and notdone aliases red
+- AT-03.4 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.3 -- status: green -- test: ac status reports counts and gate verdict
+- AT-03.5 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.4 -- status: green -- test: ac satisfy refuses test-backed ACs
+- AT-03.6 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.5 -- status: green -- test: status edit is linter-stable
+- AT-03.7 `tests/unit/intent_acceptance_cli.bats` -- covers AC-03.1 -- status: green -- normalisation lap: red then green, 2026-06-13 -- test: list accepts a bare numeric st id (normalised), like intent wp
 - Coverage: AC-03.1 (incl. id normalisation) through AC-03.5 each covered. Lap: red witnessed by matts 2026-06-13 (6/6 fail) -> green (6/6 pass); AT states set via the new `intent at` CLI. Review finding: `at` bypassed `normalise_st_id` (Highlander) -- fixed at the shared home (helpers:286), which also closed a latent octal misresolution (0044 -> ST0036) and added ST-prefixed padding; `tests/unit/helpers.bats` guards it.
 
 ### WP-04
 
-- AT-04.1 `tests/unit/acceptance_close_gate.bats` -- covers AC-04.1 -- status: green
-- AT-04.2 `tests/unit/acceptance_close_gate.bats` -- covers AC-04.1 -- status: green
-- AT-04.3 `tests/unit/acceptance_close_gate.bats` -- covers AC-04.1 -- status: green
-- AT-04.4 `tests/unit/acceptance_close_gate.bats` -- covers AC-04.1 -- status: green
+- AT-04.1 `tests/unit/acceptance_close_gate.bats` -- covers AC-04.1 -- status: green -- test: wp done is blocked while a WP AC is uncovered
+- AT-04.2 `tests/unit/acceptance_close_gate.bats` -- covers AC-04.1 -- status: green -- test: st done is blocked when the ST-level sign-off AC is unsatisfied
+- AT-04.3 `tests/unit/acceptance_close_gate.bats` -- covers AC-04.1 -- status: green -- test: st done is allowed once every AC including sign-off is satisfied
+- AT-04.4 `tests/unit/acceptance_close_gate.bats` -- covers AC-04.1 -- status: green -- test: st done is not gated for a freshly stamped ST with no real ACs
 - Coverage: AC-04.1 covered by AT-04.1/04.2 (must-block) + AT-04.3/04.4 (must-allow guards: done still closes when every AC is satisfied / when there are no live ACs). Lap: ATs written + red witnessed by matts (04.1/04.2 reported "expected fail, succeeded") -> green build 2026-06-14 (gate verb in `intent_acceptance`; `st done` / `wp done` consult `ac gate`; template re-indents the example AC/AT lines so freshly stamped STs carry no live col-0 ACs); 4/4 green, AT states set via the `intent at` CLI.
 
 ### WP-05
 
-- AT-05.1 `tests/unit/st_new_acceptance.bats` -- covers AC-05.1 -- status: green
-- AT-05.2 `tests/unit/st_new_acceptance.bats` -- covers AC-05.2 -- status: green
+- AT-05.1 `tests/unit/st_new_acceptance.bats` -- covers AC-05.1 -- status: green -- test: info templates reference acceptance.md and restate no ACs
+- AT-05.2 `tests/unit/st_new_acceptance.bats` -- covers AC-05.2 -- status: green -- test: st show and edit know the acceptance file type
 - Coverage: AC-05.1 by AT-05.1; AC-05.2 by AT-05.2. Lap: ATs written + red witnessed by matts 2026-06-14 (2/2 fail) -> green build (ST + WP `info.md` templates point at `acceptance.md` and restate no ACs; `st show` / `st edit` / `st show all` learn the `acceptance` type; `st edit` reworked to pure emit-path, global, dropping the editor launch); 2/2 green, AT states set via the `intent at` CLI.
 
 ### WP-06
@@ -106,7 +106,7 @@ title: "Add in acceptance.md and supporting process -- acceptance contract"
 
 ### WP-07
 
-- AT-07.1 `tests/unit/st_new_acceptance.bats` -- covers AC-07.1 -- status: green
+- AT-07.1 `tests/unit/st_new_acceptance.bats` -- covers AC-07.1 -- status: green -- test: open STs ST0043 and ST0044 each have an acceptance.md
 - Coverage: AC-07.1 by AT-07.1, a green-by-construction guard -- both open STs already carried `acceptance.md`, so there was no honest red phase; like AT-04.4 it asserts a standing invariant (globbed across `st/<ID>/` and `st/*/<ID>/` so it survives `st done` relocating a thread to `COMPLETED/`). The `red -> green` flip via `intent at` was the mechanical step the transition guard demands, not a witnessed RED. AC-07.2 is non-test (evidence on the AC line).
 
 ### WP-08

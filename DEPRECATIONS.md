@@ -30,7 +30,7 @@ A field with no grammar cannot fail to parse; it can only be partially recovered
 
 - A contract written against the old convention gates **BLOCKED** until it is swept. This is deliberate: every row the linter names was already contributing no coverage.
 - `intent at green|red` refuse a citation that does not resolve, at the moment it goes load-bearing rather than at the next gate.
-- The `path::name` form is gone from `lib/templates/prj/st/ST####/acceptance.md` and from the tool's own doc comment. Historical steel-thread documents still contain it, as the record of what was true at the time.
+- The `path::name` form is gone from `lib/templates/prj/st/ST####/acceptance.md`, from the tool's own doc comment, and from this repo's historical steel-thread contracts, which were migrated in the same sweep. The test names those rows carried are not lost: each one is preserved verbatim in its row's trailing `-- test:` note (restored from git after the pre-fix migrator stripped them -- see issue 0017's Resolutions).
 
 ## February 24, 2026: Backlog.md integration removed
 

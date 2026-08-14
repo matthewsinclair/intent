@@ -58,30 +58,30 @@ All ATs live in `tests/unit/claude_with_intent.bats` (ported from the Baize `tes
 
 ### WP-01
 
-- AT-01.1 `tests/unit/claude_with_intent.bats` -- covers AC-01.1 -- status: green
-- AT-01.2 `tests/unit/claude_with_intent.bats` -- covers AC-01.2 -- status: green
-- AT-01.3 `tests/unit/claude_with_intent.bats` -- covers AC-01.3 -- status: green
-- AT-01.4 `tests/unit/claude_with_intent.bats` -- covers AC-01.4 -- status: green
-- AT-01.5 `tests/unit/claude_with_intent.bats` -- covers AC-01.5 -- status: green
+- AT-01.1 `tests/unit/claude_with_intent.bats` -- covers AC-01.1 -- status: green -- test: "AT-01.1 ws new scaffolds a protocol-3.0 node"
+- AT-01.2 `tests/unit/claude_with_intent.bats` -- covers AC-01.2 -- status: green -- test: "AT-01.2 ws new refuses an existing wsid with no mutation"
+- AT-01.3 `tests/unit/claude_with_intent.bats` -- covers AC-01.3 -- status: green -- test: "AT-01.3 ws new rejects invalid ids with no partial scaffold"
+- AT-01.4 `tests/unit/claude_with_intent.bats` -- covers AC-01.4 -- status: green -- test: "AT-01.4 hv is workstream zero (active) by default; working nodes paused"
+- AT-01.5 `tests/unit/claude_with_intent.bats` -- covers AC-01.5 -- status: green -- test: "AT-01.5 ws list prints one line per node from frontmatter, no writes"
 - Coverage: AC-01.1..01.5 test-backed (ATs above); AC-01.6 non-test (dogfood diff evidence on the AC line).
 
 ### WP-02
 
-- AT-02.1 `tests/unit/claude_with_intent.bats` -- covers AC-02.1 -- status: green
-- AT-02.2 `tests/unit/claude_with_intent.bats` -- covers AC-02.2 -- status: green
-- AT-02.3 `tests/unit/claude_with_intent.bats` -- covers AC-02.3 -- status: green
+- AT-02.1 `tests/unit/claude_with_intent.bats` -- covers AC-02.1 -- status: green -- test: "AT-02.1 start assembles the verified claude argv (dry-run)"
+- AT-02.2 `tests/unit/claude_with_intent.bats` -- covers AC-02.2 -- status: green -- test: "AT-02.2 compose_ctx carries identity + pickup + plan instruction, not the board"
+- AT-02.3 `tests/unit/claude_with_intent.bats` -- covers AC-02.3 -- status: green -- test: "AT-02.3 provision-if-absent: n exits clean (no mutation), y scaffolds then launches"
 - Coverage: AC-02.1..02.3 test-backed; AC-02.4 + AC-02.5 non-test (live-launch evidence on the AC lines).
 
 ### WP-03
 
-- AT-03.1 `tests/unit/claude_with_intent.bats` -- covers AC-03.1 -- status: green
-- AT-03.2 `tests/unit/claude_with_intent.bats` -- covers AC-03.2 -- status: green
-- AT-03.3 `tests/unit/claude_with_intent.bats` -- covers AC-03.3 -- status: green
-- AT-03.4 `tests/unit/claude_with_intent.bats` -- covers AC-03.4 -- status: green
+- AT-03.1 `tests/unit/claude_with_intent.bats` -- covers AC-03.1 -- status: green -- test: "AT-03.1 ws archive retires a node, history intact, gone from list"
+- AT-03.2 `tests/unit/claude_with_intent.bats` -- covers AC-03.2 -- status: green -- test: "AT-03.2 ws hygiene flags a corrupted fixture non-zero with a report"
+- AT-03.3 `tests/unit/claude_with_intent.bats` -- covers AC-03.3 -- status: green -- test: "AT-03.3 ws hygiene leaves DOING content untouched"
+- AT-03.4 `tests/unit/claude_with_intent.bats` -- covers AC-03.4 -- status: green -- test: "AT-03.4 ws hygiene passes a clean board (zero exit, no mutation)"
 - Coverage: AC-03.1..03.4 test-backed (ATs above).
 
 ### WP-04
 
-- AT-04.1 `tests/unit/claude_with_intent.bats` -- covers AC-04.1 -- status: green
-- AT-04.2 `tests/unit/claude_with_intent.bats` -- covers AC-04.2 -- status: green
+- AT-04.1 `tests/unit/claude_with_intent.bats` -- covers AC-04.1 -- status: green -- test: "AT-04.1 invocable as intent claude start|ws through the dispatch"
+- AT-04.2 `tests/unit/claude_with_intent.bats` -- covers AC-04.2 -- status: green -- test: "AT-04.2 in-whiteboard skill points at the script with no lazy-inbox drift (SSOT)"
 - Coverage: AC-04.1 + AC-04.2 now test-backed (mechanical guards above); AC-04.3 non-test (per-project back-fill smoke, evidence on the AC line).

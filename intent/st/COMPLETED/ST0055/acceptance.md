@@ -66,29 +66,29 @@ Test file: `tests/unit/intent_issues.bats` (to be created red-first).
 
 ### WP-01
 
-- AT-01.1 `tests/unit/intent_issues.bats` -- covers AC-01.1 -- status: green
-- AT-01.4 `tests/unit/intent_issues.bats` -- covers AC-01.4 -- status: green
+- AT-01.1 `tests/unit/intent_issues.bats` -- covers AC-01.1 -- status: green -- test: "dispatch: intent issues routes to bin/intent_issues"
+- AT-01.4 `tests/unit/intent_issues.bats` -- covers AC-01.4 -- status: green -- test: "help: usage lists the five verbs; unknown verb exits non-zero"
 - Coverage: AC-01.2 + AC-01.3 are non-test (evidence on the AC line).
 
 ### WP-02
 
-- AT-02.1 `tests/unit/intent_issues.bats` -- covers AC-02.1 -- status: green
-- AT-02.2 `tests/unit/intent_issues.bats` -- covers AC-02.2 -- status: green
-- AT-02.3 `tests/unit/intent_issues.bats` -- covers AC-02.3 -- status: green
-- AT-02.4 `tests/unit/intent_issues.bats` -- covers AC-02.4 -- status: green
-- AT-02.5 `tests/unit/intent_issues.bats` -- covers AC-02.5 -- status: green
-- AT-02.6 `tests/unit/intent_issues.bats` -- covers AC-02.6 -- status: green
-- AT-02.7 `tests/unit/intent_issues.bats` -- covers AC-02.7 -- status: green
+- AT-02.1 `tests/unit/intent_issues.bats` -- covers AC-02.1 -- status: green -- test: "add: allocates id, writes OPEN/NNNN/NNNN-slug.md, prints ID:Title"
+- AT-02.2 `tests/unit/intent_issues.bats` -- covers AC-02.2 -- status: green -- test: "add: second add increments id, no collision"
+- AT-02.3 `tests/unit/intent_issues.bats` -- covers AC-02.3 -- status: green -- test: "list: default lists OPEN"
+- AT-02.4 `tests/unit/intent_issues.bats` -- covers AC-02.4 -- status: green -- test: "list: --kind filters; empty state clean; invalid kind errors"
+- AT-02.5 `tests/unit/intent_issues.bats` -- covers AC-02.5 -- status: green -- test: "add: lazily scaffolds issues dirs, no _templ"
+- AT-02.6 `tests/unit/intent_issues.bats` -- covers AC-02.6 -- status: green -- test: "add: --severity sets severity; invalid severity errors"
+- AT-02.7 `tests/unit/intent_issues.bats` -- covers AC-02.7 -- status: green -- test: "add: 'new' is an alias for 'add'"
 - Coverage: every WP-02 AC has an AT.
 
 ### WP-03
 
-- AT-03.1 `tests/unit/intent_issues.bats` -- covers AC-03.1 -- status: green
-- AT-03.2 `tests/unit/intent_issues.bats` -- covers AC-03.2 -- status: green
-- AT-03.3 `tests/unit/intent_issues.bats` -- covers AC-03.3 -- status: green
-- AT-03.4 `tests/unit/intent_issues.bats` -- covers AC-03.4 -- status: green
-- AT-03.5 `tests/unit/intent_issues.bats` -- covers AC-03.5 -- status: green
-- AT-03.6 `tests/unit/intent_issues.bats` -- covers AC-03.6 -- status: green
+- AT-03.1 `tests/unit/intent_issues.bats` -- covers AC-03.1 -- status: green -- test: "show: prints frontmatter + body"
+- AT-03.2 `tests/unit/intent_issues.bats` -- covers AC-03.2 -- status: green -- test: "show --json: valid json with expected fields"
+- AT-03.3 `tests/unit/intent_issues.bats` -- covers AC-03.3 -- status: green -- test: "close: moves OPEN/NNNN dir to CLOSED + status"
+- AT-03.4 `tests/unit/intent_issues.bats` -- covers AC-03.4 -- status: green -- test: "open: moves CLOSED/NNNN dir to OPEN + status"
+- AT-03.5 `tests/unit/intent_issues.bats` -- covers AC-03.5 -- status: green -- test: "read: RESOLVED normalised to CLOSED"
+- AT-03.6 `tests/unit/intent_issues.bats` -- covers AC-03.6 -- status: green -- test: "error: unknown id on show/close/open exits non-zero"
 - Coverage: every WP-03 AC has an AT.
 
 ### WP-04
@@ -97,5 +97,5 @@ Test file: `tests/unit/intent_issues.bats` (to be created red-first).
 
 ### WP-05
 
-- AT-05.2 `tests/unit/intent_issues.bats` -- covers AC-05.2 -- status: green
+- AT-05.2 `tests/unit/intent_issues.bats` -- covers AC-05.2 -- status: green -- test: "show: picks the frontmatter-bearing primary among multi-file issue dirs"
 - Coverage: AC-05.1 is non-test (cross-repo, post-ship; evidence = per-repo `intent issues list` + tree diff).
