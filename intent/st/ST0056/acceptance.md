@@ -157,10 +157,10 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 ### WP-02
 
 - AT-02.1 (non-test) first green CI run on macOS + Linux with fmt/clippy gates -- covers AC-02.1 -- status: n/a
-- AT-02.2 `crates/intentsvcs/tests/schema_faces_drift.rs` -- covers AC-02.2 -- status: to-write
-- AT-02.3 `crates/intentsvcs/tests/store_rebuild.rs` -- covers AC-02.3 -- status: to-write
-- AT-02.4 `crates/intentsvcs/tests/model_laws.rs` -- covers AC-02.4 -- status: to-write -- proptest round-trips + unknown-field refusal
-- AT-02.5 `crates/intentsvcs/tests/dep_graph_guard.rs` -- covers AC-02.5 -- status: to-write -- shared with AT-00.5
+- AT-02.2 `crates/intentsvcs/tests/schema_faces_drift.rs` -- covers AC-02.2 -- status: green
+- AT-02.3 `crates/intentsvcs/tests/store_rebuild.rs` -- covers AC-02.3 -- status: green
+- AT-02.4 `crates/intentsvcs/tests/model_laws.rs` -- covers AC-02.4 -- status: green
+- AT-02.5 `crates/intentsvcs/tests/dep_graph_guard.rs` -- covers AC-02.5 -- status: green
 - AT-02.6 `crates/intentsvcs/tests/event_log_envelopes.rs` -- covers AC-02.6 -- status: to-write
 - Coverage: complete; AC-02.1 is non-test with evidence on its line
 
