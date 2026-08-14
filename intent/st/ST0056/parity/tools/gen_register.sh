@@ -23,48 +23,11 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 cd "$WT" || { echo "gen_register: WT is not a directory: $WT" >&2; exit 2; }
 
-# DECIDED, not inferred. Every rule below is a grep, and a grep cannot tell code
-# from data: a file that carries a call-site pattern as a test FIXTURE matches
-# the rule for making that call. `intent_bin_retarget_guard.bats` is the live
-# case -- it greps the estate for `bin/intent_<sub>` spellings and holds them as
-# literal strings, so the sub-script rule fires on a file that invokes nothing.
-#
-# Rather than loosen the rule until it stops noticing (which would blind it to
-# the real sites), such files are named here with the reason. Same discipline as
-# the guard's own allowlist: a classification the machine cannot make is stated
-# by a human, never guessed, because a wrong `retire` is coverage that vanishes
-# at the cut with nobody watching.
-#
-# Format: <basename>|<class>|<basis>|<note>
-OVERRIDES="
-intent_bin_retarget_guard.bats|out-of-scope|harness invariant, decided|Guards the \$INTENT_BIN invariant across the estate by reading test SOURCE; it invokes no CLI at all. It holds \`bin/intent_<sub>\` spellings as literal needles, which the sub-script rule cannot tell from a call site. Carries into v3 unchanged in purpose -- whatever the binary is, the estate must reach it through one name.
-whiteboard_clock_guard.bats|out-of-scope|hook behaviour, decided|Exercises a pre-commit hook in a throwaway git repo, not the Intent CLI. Unaffected by the binary swap.
-organize_commands.bats|retire|hv ruling 2026-08-14|Retires with the command. hv ruled \`organize\` vestigial by construction -- a strictly structured model cannot hold data in the wrong spot or format -- so both implementations are planned retires (parity.md, 2026-08-14; via vc). Classified by ruling, not by burn.
-"
-
-lookup_override() {
-  printf '%s\n' "$OVERRIDES" | grep -F "$(basename "$1")|" | head -1 | cut -d'|' -f2-
-}
-
-classify_none() {
-  local f="$1"
-  if grep -qE '\$\{INTENT_BIN_DIR\}/intent_[a-z_]+' "$f"; then
-    echo "deviate|sub-script entry point|Invokes bin/intent_<sub> directly, bypassing the dispatcher (PROJECT_ROOT resolution, INTENT_ORIG_CWD, cd to root -- bin/intent:198-218). No equivalent under one binary; needs a semantic rewrite, not a path swap."
-  elif grep -qE 'source "\$\{?(INTENT_PROJECT_ROOT|INTENT_HOME)\}?/bin/intent|source .*(rules_lib|critic_runner)\.sh' "$f"; then
-    echo "retire|shell-function unit test|Sources a shell file and calls its functions directly. Dies with bash; there is no binary to retarget."
-  elif ! grep -qE 'run_intent|\$INTENT_BIN\b' "$f"; then
-    # Never invokes the CLI in any form. Not a conformance test at all: it pins
-    # this repository's own content (skills, rules, docs, attribution) and
-    # survives a binary swap untouched. This is the widened rule -- the first
-    # version keyed on `git ls-files`/`grep -r` and left seven such files
-    # UNCLASSIFIED, certifying the shapes it already knew about.
-    echo "out-of-scope|no CLI invocation|Never invokes the CLI. Asserts this repository's own content, not the command surface; survives a binary swap untouched and is not a conformance test."
-  else
-    # Invokes the CLI and yet nothing changes when the binary is redirected.
-    # That combination is genuinely odd and is flagged rather than guessed.
-    echo "UNCLASSIFIED|invokes CLI, zero burn|Calls the CLI but no test changes result when the binary is redirected. Either the invocation is inert or the assertions do not depend on it. Needs adjudication."
-  fi
-}
+# The no-burn rules moved to lib_classify.sh when gen_pertest.sh needed the
+# SAME judgement at test granularity. Two copies of a rule set that must agree
+# is exactly the drift lib_corpus.sh was written to catch, and it was found in
+# this directory once already today.
+. "$HERE/lib_classify.sh" || { echo "gen_register: cannot source $HERE/lib_classify.sh -- refusing to classify without the shared rules" >&2; exit 2; }
 
 REV="$(cd "$WT" && git rev-parse --short HEAD 2>/dev/null)"
 # A register that cannot name its revision is a rumour with a decimal point --
@@ -152,7 +115,7 @@ PREAMBLE
         printf '| `%s` | %s | %s/%s | keep | full burn | Every test changes result when the binary is redirected: the file exercises the CLI and nothing else. |\n' "$f" "$total" "$burn" "$total"
         ;;
       NONE)
-        IFS='|' read -r cls basis note <<< "$(classify_none "$f")"
+        IFS='|' read -r cls basis note <<< "$(classify_no_burn "$f")"
         printf '| `%s` | %s | 0/%s | %s | %s | %s |\n' "$f" "$total" "$total" "$cls" "$basis" "$note"
         ;;
       MIXED)
