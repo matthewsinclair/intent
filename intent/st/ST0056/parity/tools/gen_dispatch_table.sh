@@ -176,7 +176,16 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
   emit "$FHELP"
   emit ""
   emit "- **v2 source:** \`$V2SRC\`"
-  emit "- **v2 help file:** $(printf '%s' "$F" | jq -r 'if .v2_help_file then "`" + .v2_help_file + "`" else "none" end')"
+  # Wrap in backticks ONLY when the value does not already contain one.
+  # Wrapping a value that carries its own backticks produces a nested span the
+  # markdown formatter then "normalises" by collapsing the spaces inside it --
+  # turning `a` against `b` into `a`against`b`, which inverts nothing here but
+  # silently could. Caught by the skew check on this very file, which is the
+  # first time that check has paid for itself.
+  emit "- **v2 help file:** $(printf '%s' "$F" | jq -r '
+    if .v2_help_file == null then "none"
+    elif (.v2_help_file | test("`")) then .v2_help_file
+    else "`" + .v2_help_file + "`" end')"
   emit "- **Owning work package:** $WP"
   emit ""
   printf '%s' "$F" | jq -r '.family_notes[]? | "- " + .' >> "$OUT_TMP"

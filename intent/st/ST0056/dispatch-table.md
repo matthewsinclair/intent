@@ -1388,7 +1388,7 @@ Manage AGENTS.md templates
 Claude Code integration: subagents, skills, rules, hooks, workstreams
 
 - **v2 source:** `bin/intent (claude arms) + intent/plugins/claude/`
-- **v2 help file:** `lib/help/rules.help.md (documents `claude rules`, misfiled as a top-level command)`
+- **v2 help file:** lib/help/rules.help.md (documents `claude rules`, misfiled as a top-level command)
 - **Owning work package:** WP-07
 
 - The largest family in the surface and the only one needing an explicit arm in `bin/intent` -- every other `bin/intent_<name>` auto-dispatches via the `*)` default case.
@@ -2156,9 +2156,10 @@ Show usage for Intent or one of its commands
 Retrofit ST0000 deliverables into brownfield projects
 
 - **v2 source:** `bin/intent_st_zero`
-- **v2 help file:** `lib/help/stzero.help.md (NAME DRIFT: `stzero`against`bin/intent_st_zero`)`
+- **v2 help file:** `lib/help/stzero.help.md`
 - **Owning work package:** WP-06
 
+- NAME DRIFT in the help file: `lib/help/stzero.help.md` against `bin/intent_st_zero`. One of the reasons `lib/help/` cannot serve as the v2 spec to port from -- see the `help` family.
 - Reachable by two spellings: `intent st_zero` (top level, auto-dispatched) and `intent st zero` (bin/intent_st:1610 execs this binary). Its own usage block says `intent st zero install`, so it documents only the second.
 - parity.md flags this family as a candidate for a ratified RETIRE if the fleet does not use it -- decided at port time, in the register. That one ruling decides both spellings.
 
