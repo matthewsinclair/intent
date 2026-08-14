@@ -221,7 +221,70 @@ jq -r "$JQ_LIB"'
 emit ""
 jq -r '.new_surface[]? | select(.acceptance) | "- `" + .path + "` -- acceptance: " + .acceptance' "$IN" >> "$OUT_TMP"
 
-# Only now, with the whole view rendered, does the committed file change.
+# --- Column-align every table BEFORE the file lands -------------------------
+#
+# NOT cosmetic. Two independent reasons, and the second is the load-bearing one.
+#
+# 1. House rule: "All markdown tables must be column-aligned" (in-standards).
+#
+# 2. THE SKEW CHECK. A generated view that is committed (D04) is verified by
+#    regenerating it and requiring an empty diff -- that is AC-03.4, and it is
+#    how a hand-edited view gets caught instead of silently outvoted. This
+#    repository's markdown formatter runs in the pre-commit gate and aligns
+#    tables. So an unaligned generator produces: generator writes narrow ->
+#    formatter widens on commit -> next regeneration narrows again -> the skew
+#    check reports drift, forever, on a file nobody touched. The view renderer
+#    must emit EXACTLY what the formatter would produce, or the two fight and
+#    the check cries wolf until someone turns it off.
+#
+#    Found by committing this file and watching it happen, not by reasoning
+#    about it. It generalises straight to WP-03: every view v3 generates
+#    (info.md, acceptance.md, steel_threads.md, todo.md) lands in repositories
+#    with formatters, and "deterministic and idempotent" (AC-03.2) has to mean
+#    idempotent THROUGH the formatter, not just through the renderer.
+ALIGNER='
+  function flush(  i, j, w, out, cell, n) {
+    if (rows == 0) return
+    for (i = 1; i <= rows; i++)
+      for (j = 1; j <= cols[i]; j++)
+        if (length(cellv[i, j]) > w_[j]) w_[j] = length(cellv[i, j])
+    for (i = 1; i <= rows; i++) {
+      out = "|"
+      for (j = 1; j <= cols[i]; j++) {
+        if (sep[i]) { cell = ""; while (length(cell) < w_[j]) cell = cell "-" }
+        else { cell = cellv[i, j]; while (length(cell) < w_[j]) cell = cell " " }
+        out = out " " cell " |"
+      }
+      print out
+    }
+    rows = 0; n = 0
+    for (j in w_) delete w_[j]
+  }
+  /^[ \t]*\|.*\|[ \t]*$/ {
+    line = $0
+    sub(/^[ \t]+/, "", line); sub(/[ \t]+$/, "", line)
+    sub(/^\|/, "", line); sub(/\|$/, "", line)
+    rows++
+    n = split(line, parts, "\\|")
+    cols[rows] = n
+    issep = 1
+    for (j = 1; j <= n; j++) {
+      c = parts[j]
+      gsub(/^[ \t]+|[ \t]+$/, "", c)
+      cellv[rows, j] = c
+      if (c !~ /^:?-+:?$/) issep = 0
+    }
+    sep[rows] = issep
+    next
+  }
+  { flush(); print }
+  END { flush() }
+'
+awk "$ALIGNER" "$OUT_TMP" > "$OUT_TMP.aligned" || die "table alignment failed"
+mv "$OUT_TMP.aligned" "$OUT_TMP" || die "table alignment failed to land"
+
+# Only now, with the whole view rendered and aligned, does the committed file
+# change.
 mv "$OUT_TMP" "$OUT" || die "cannot write: $OUT"
 trap - EXIT
 
