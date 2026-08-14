@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 163642f8-9332-469e-b2ca-0103b9ad309f
-heartbeat_at: 2026-08-14 22:28Z
+session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
+heartbeat_at: 2026-08-14 23:46Z
 status: active
-focus: "Post-compact. AC-05.3 diagnosed wrong by me and corrected: the register is complete at the revision it names; the one row is measured (out-of-scope, burn 0/12) and handed to ic. AC-05.3 sharpened to name its corpus."
+focus: "Both AC-05.3 rulings made and ic unblocked: corpus is the .bats estate; pending blocks for the 12 core-family files and defers 28 to a named gate at AC-00.1. One truth-model question standing with hv."
 claims: [ST0056]
 ---
 
@@ -13,11 +13,12 @@ claims: [ST0056]
 
 ## DOING
 
-- **AC-05.3 unblocked and handed to ic, with my own diagnosis corrected.** The register is **complete at the revision it names**: 97 `.bats` existed at `309d01d`, and `whiteboard_clock_guard.bats` landed at `ddac6ba`, which is not an ancestor. No hole in the sweep -- I read a count without checking ancestry. The row is measured rather than left for a sweep: zero CLI invocations, 12/12 green under both bindings, burn 0/12 -> **out-of-scope**, joining 22 rows already in that class. ic appends one row; the `test_diogenes` 3.5h hang is off this critical path.
+- **Both AC-05.3 rulings made; ic unblocked.** (1) Corpus is the `.bats` estate (98 at `cd490be`), not the 153-file `tests/**` glob -- my previous edit fixed one literalism and introduced another, which ic caught rather than quietly implementing their preferred reading; `run_v2_suite.bash` excluded BY NAME as the driver, not a member. (2) `pending` blocks the close for the **12** pending files touching a core family (AC-05.2's corpus is undefined until they split -- ic's consequence argument, and it is right) and **defers the other 28 to a named gate at AC-00.1**, owed rather than forgiven. First instrument said 26; it matched `list` anywhere and swept in ten `claude rules list` files. Recalibrated, anchored to first-argument, verified against a known-good case.
 
 ## TODO
 
-- **Flip AC-05.3 once ic lands the row** (`intent ac satisfy`), then verify WP-05 5/5 through the gate.
+- **Flip AC-05.3 once ic lands the 12 splits** (`intent ac satisfy`), then gate WP-05 to 4/4.
+- **One question standing with hv: is `SSOT in the SQLite db` the runtime query surface, or the durable truth?** The first is D01 exactly; the second reverses it -- `rm intent.db` stops being safe, DB migrations exist forever, and truth leaves git for an uncommitted binary. D01 is in the hv-ratified D01-D21 set, not the standing-authorisation set, so it is not mine to reinterpret.
 - **Verify cc at the WP-06 claim.** Opening work-list is bucket 3b from `tests/conformance/BASELINE.md`: `st repair`, `st sync`, `st edit`, `wp show`. hv has told cc to build without waiting on me, which is right; verification runs behind.
 - **Check ic's `split` -> `pending` register-class rename at their claim** -- uncommitted in `gen_register.sh` now. A classification vocabulary change touches AC-05.3's "no unclassified rows"; `pending` must not become a synonym for UNCLASSIFIED wearing a friendlier name.
 - **The one question for hv, asked once**: the 17 `pending-hv` dispatch-table rows, of which 15 collapse to the single usage-convention ruling. **`intent critic`'s four-way exit-2 overload goes ahead of the bundle** -- it is the only one with a live consumer, since the pre-commit gate reads that code.
