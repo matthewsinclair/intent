@@ -942,10 +942,12 @@ A flat DOING / TODO / DONE view of steel threads and work packages
 
 - `intent/todo.md` is GENERATED from ST/WP status and is never hand-maintained. In v3 it is a generated view proper (WP-03), so the `update` verb becomes explicit regeneration rather than the thing that keeps it from going stale.
 - The DONE bucket is watermarked: `done --flush` advances a `## DONE:<T>` marker so completed threads fall out of the view without being deleted. That watermark is authored state with no home in the reified model yet -- flagged, since it is neither thread data nor a pure view.
+- **`todo list` was missing from this table until `drift_check.sh` found it.** The arms in `bin/intent_todo` sit at ZERO indent (`list)` at :384, not `  "list")`), which is the inconsistent-dispatch-formatting trap already recorded in the parity README -- one indentation-anchored regex scored the 1621-line `intent_st` at zero subcommands. The measured inventory had it; the authored table did not. That is the drift check earning its place on its first real run, in the direction that matters: the measurement was right and the judgement had a hole.
 
 | command        | args        | flags            | help                                                           | disposition |
 | -------------- | ----------- | ---------------- | -------------------------------------------------------------- | ----------- |
 | `todo`         | [command]   | --json           | Show intent/todo.md (generates it if absent)                   | keep        |
+| `todo list`    | --          | --json           | Show intent/todo.md (generates it if absent)                   | keep        |
 | `todo update`  | --          | --               | Regenerate intent/todo.md from current status                  | keep        |
 | `todo done`    | [specifier] | --flush, --prune | Mark a thread/WP done (via intent st/wp done), then regenerate | keep        |
 | `todo notdone` | <specifier> | --               | Reopen a thread/WP to WIP, then regenerate                     | keep        |
@@ -971,6 +973,21 @@ Show intent/todo.md (generates it if absent)
   - INV-07 at `todo --help`
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+
+### `todo list`
+
+Show intent/todo.md (generates it if absent)
+
+- **v2:** bin/intent_todo:384 -- the `list)` arm; `COMMAND="${1:-list}"` at :380 makes it the default
+- **Flags:**
+  - `--json` (bool) -- Emit the DOING/TODO/DONE view as JSON on stdout
+- **Exit codes:**
+  - `0` -- printed, generating the file first if absent
+  - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
+- **stdout:** the DOING / TODO / DONE view, or its JSON form under --json
+- **stderr:** `error: ...` on stderr (INV-01)
+- **Observed notes:** The EXPLICIT spelling of the family default. `intent todo` and `intent todo list` are the same code path, verified by invocation (exit 0).
+- **Target:** `as-observed`
 
 ### `todo update`
 
