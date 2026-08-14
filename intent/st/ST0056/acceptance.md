@@ -79,7 +79,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 ### WP-05 -- CLI in-process + conformance harness (status: Not Started)
 
 - AC-05.1 The dispatch table is the SSOT: the clap surface and help text are generated from it, asserted by test
-- AC-05.2 Core families are green under the v2 BATS estate via `INTENT_BIN` with voice and exit codes byte-compatible
+- AC-05.2 The core families (st, wp, ac, at, list, show, status, todo) are green via `INTENT_BIN` **on the NARROWED conformance contract** -- stdout, exit codes and behaviour, per the ratified parity contract at design.md:146 -- with voice and exit codes byte-compatible; a v2 test may leave that contract ONLY by a register classification of `retire` or `deviate` recorded at land time for a design-consequence reason, never because it failed. The whole-estate number is AC-00.1's, not this one's
 - AC-05.3 (non-test) Every v2 test file is classified in the keep/retire/deviate register; no unclassified rows -- evidence: parity register at WP close -- satisfied: no
 - AC-05.4 (non-test) The clap layer holds no business logic (parse -> facade -> render only) -- evidence: review + the AC-02.5 dep guard -- satisfied: no
 
