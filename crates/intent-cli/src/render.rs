@@ -235,7 +235,7 @@ fn arg(m: &ArgMatches, name: &str) -> Result<String, String> {
     Ok(Some(value)) => Ok(value.clone()),
     Ok(None) => Err(format!("error: {name} is required")),
     Err(e) => Err(format!(
-      "error: the CLI asked for an argument `{name}` that the dispatch table does not declare\n  caused by: {e}\n  remedy: this is a build defect -- the renderer and intent/st/ST0056/dispatch-table.json disagree"
+      "error: the CLI asked for an argument `{name}` that the dispatch table does not declare\n  caused by: {e}\n  remedy: this is a build defect -- the renderer and surface/dispatch-table.json disagree"
     )),
   }
 }

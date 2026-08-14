@@ -60,6 +60,12 @@ fn ok(root: &Path, args: &[&str]) -> String {
 }
 
 /// The very first command in a brand-new project. Defect (1) made this fail.
+///
+/// **This is AC-07.1's 0022 broken-install class**, arriving two work packages
+/// before the AC that forbids it (vc, 2026-08-14). AC-07.1 requires that a
+/// fresh `intent init` works from the binary alone and that the broken-install
+/// class is unconstructible; this test is what will make that provable, so the
+/// connection is recorded here rather than rediscovered in WP-07.
 #[test]
 fn the_first_command_in_a_fresh_project_succeeds() {
   let dir = project();

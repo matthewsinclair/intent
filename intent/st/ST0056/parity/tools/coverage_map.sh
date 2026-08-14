@@ -21,7 +21,7 @@
 set -euo pipefail
 
 BASE="intent/st/ST0056/parity/tools/burn-baseline.tsv"
-CANON="intent/st/ST0056/dispatch-table.json"
+CANON="surface/dispatch-table.json"
 [ -f "$BASE" ] || { echo "error: no burn baseline at $BASE" >&2; exit 1; }
 [ -f "$CANON" ] || { echo "error: no dispatch-table canon at $CANON" >&2; exit 1; }
 

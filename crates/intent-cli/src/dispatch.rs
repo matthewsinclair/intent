@@ -1,10 +1,28 @@
 //! The dispatch table -- the command surface's single source of truth
 //! (AC-05.1).
 //!
-//! ic authored `intent/st/ST0056/dispatch-table.json` from the v2 surface: 27
-//! families, 92 entries, each carrying its help text, arguments, flags,
-//! observed exit codes, the v2 antecedent as `file:line`, and a target state.
-//! `dispatch-table.md` is GENERATED from it; this module reads the JSON.
+//! ic authored `surface/dispatch-table.json` from the v2 surface: 27 families,
+//! 92 entries, each carrying its help text, arguments, flags, observed exit
+//! codes, the v2 antecedent as `file:line`, and a target state.
+//! `surface/dispatch-table.md` is GENERATED from it; this module reads the JSON.
+//!
+//! **`surface/` is the authored mirror of `schema/`** (vc ruling, 2026-08-14).
+//! `schema/` holds faces generated FROM the Rust types; `surface/` holds the
+//! authored table those faces are generated FROM. Same committed-and-drift-
+//! checked discipline, opposite direction -- which is why they are two
+//! directories rather than one, and the authored-vs-generated line D02 exists
+//! to hold stays visible in the layout.
+//!
+//! It lives at the workspace root rather than in the ST tree because
+//! `intent st done` relocates a completed thread (`mv "$CURRENT_DIR"
+//! "$NEW_DIR"`, `bin/intent_st:392`) into `intent/st/COMPLETED/`. Compiling
+//! the table in from there would have broken the build the moment ST0056 was
+//! marked Completed -- which happens in WP-12, the release itself.
+//!
+//! Root rather than inside this crate because its consumers span crates: the
+//! clap surface here, and WP-09's MCP typed tool list and `intent llm` agent
+//! guide (AC-09.1, AC-09.4). A crate-local SSOT would make two later work
+//! packages reach sideways into a peer crate for their own source of truth.
 //!
 //! **It is compiled in with `include_str!`, so there is exactly one copy.**
 //! Not a markdown parser over the generated view, and not a second
@@ -20,7 +38,7 @@
 use serde::Deserialize;
 
 /// The committed table, compiled into the binary.
-const TABLE: &str = include_str!("../../../intent/st/ST0056/dispatch-table.json");
+const TABLE: &str = include_str!("../../../surface/dispatch-table.json");
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Table {

@@ -49,9 +49,15 @@ command -v jq >/dev/null 2>&1 || die "jq is required and was not found on PATH"
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ST_DIR="$(cd "$HERE/../.." && pwd)"
+# The table lives at the WORKSPACE ROOT, not in the ST tree (vc ruling,
+# 2026-08-14). `intent st done` does `mv "$CURRENT_DIR" "$NEW_DIR"`
+# (bin/intent_st:392) into `intent/st/COMPLETED/`, so anything that compiles
+# the table in -- the CLI's include_str! -- would stop resolving the moment
+# ST0056 is marked Completed. That happens in WP-12, which IS the release.
+REPO_ROOT="$(cd "$ST_DIR/../../.." && pwd)"
 
-IN="${IN:-$ST_DIR/dispatch-table.json}"
-OUT="${OUT:-$ST_DIR/dispatch-table.md}"
+IN="${IN:-$REPO_ROOT/surface/dispatch-table.json}"
+OUT="${OUT:-$REPO_ROOT/surface/dispatch-table.md}"
 
 [ -f "$IN" ] || die "canon not found: $IN"
 jq empty "$IN" 2>/dev/null || die "canon is not valid JSON: $IN"
