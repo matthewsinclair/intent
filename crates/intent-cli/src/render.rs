@@ -70,6 +70,19 @@ fn today() -> String {
     .expect("formatting a date cannot fail")
 }
 
+/// A verb the dispatch table carries and the facade does not yet implement.
+///
+/// It must NOT say "a command is required" -- one WAS given, and reporting a
+/// missing command for a present-but-unwired one is the same
+/// same-text-for-different-causes collapse AC-04.4 forbids. The operator needs
+/// to know the difference between "you typed nothing" and "we have not built
+/// that yet", because only one of them is their problem.
+fn unwired(family: &str, verb: &str) -> Result<(), String> {
+  Err(format!(
+    "error: `{family} {verb}` is in the dispatch table but not yet wired to the facade (ST0056 WP-06)\n  remedy: run `intent {family} --help` for the verbs that are"
+  ))
+}
+
 fn st(m: &ArgMatches) -> Result<(), String> {
   match m.subcommand() {
     Some(("new", a)) => {
@@ -116,7 +129,8 @@ fn st(m: &ArgMatches) -> Result<(), String> {
       }
       Ok(())
     }
-    _ => Err("error: a steel thread command is required".to_string()),
+    Some((verb, _)) => unwired("st", verb),
+    None => Err("error: a steel thread command is required".to_string()),
   }
 }
 
@@ -150,7 +164,8 @@ fn wp(m: &ArgMatches) -> Result<(), String> {
       }
       Ok(())
     }
-    _ => Err("error: a work package command is required".to_string()),
+    Some((verb, _)) => unwired("wp", verb),
+    None => Err("error: a work package command is required".to_string()),
   }
 }
 
@@ -178,7 +193,8 @@ fn ac(m: &ArgMatches) -> Result<(), String> {
       println!("ok: {id} satisfied");
       Ok(())
     }
-    _ => Err("error: an acceptance criterion command is required".to_string()),
+    Some((verb, _)) => unwired("ac", verb),
+    None => Err("error: an acceptance criterion command is required".to_string()),
   }
 }
 
@@ -197,7 +213,8 @@ fn at(m: &ArgMatches) -> Result<(), String> {
       }
       Ok(())
     }
-    _ => Err("error: an acceptance test command is required".to_string()),
+    Some((verb, _)) => unwired("at", verb),
+    None => Err("error: an acceptance test command is required".to_string()),
   }
 }
 

@@ -195,6 +195,39 @@ fn every_wired_verb_takes_its_arguments_without_panicking() {
   }
 }
 
+/// An unwired verb says SO -- it does not claim no command was given.
+///
+/// Found while classifying the conformance baseline: `intent st repair` used to
+/// answer "a steel thread command is required" when a command had plainly been
+/// given. That is the same-text-for-different-causes collapse AC-04.4 forbids,
+/// one layer out, and it actively misled the classification: 35 conformance
+/// rows looked like "no command" when they were "not built yet".
+#[test]
+fn an_unwired_verb_is_distinguishable_from_a_missing_one() {
+  let dir = project();
+  let root = dir.path();
+
+  let unwired = run(root, &["st", "repair"]);
+  let missing = run(root, &["st"]);
+
+  let unwired_err = String::from_utf8_lossy(&unwired.stderr).to_string();
+  let missing_err = String::from_utf8_lossy(&missing.stderr).to_string();
+
+  assert!(
+    unwired_err.contains("not yet wired"),
+    "an unwired verb names itself: {unwired_err}"
+  );
+  assert!(
+    unwired_err.contains("st repair"),
+    "and names WHICH verb: {unwired_err}"
+  );
+  assert_ne!(
+    unwired_err.trim(),
+    missing_err.trim(),
+    "'you typed nothing' and 'we have not built that' are different problems and only one of them is the operator's"
+  );
+}
+
 /// The generated views are real markdown a human can read, and carry the
 /// no-clock banner rather than a render timestamp (D23).
 #[test]
