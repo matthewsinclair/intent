@@ -148,7 +148,13 @@ fn a_duplicate_criterion_id_within_a_thread_is_found() {
   let mut thread = clean_thread("ST0001");
   let mut dup = thread.criteria[0].clone();
   dup.text = "a second criterion wearing the same id".to_string();
+  // The kind is flipped so the two rows are TELLABLE APART in the finding, and
+  // the state moves with it: since the cross-field clause landed on the schema
+  // face, `(non-test, computed)` is refused at ingest -- so leaving the state
+  // behind would fail this test at a gate that has nothing to do with
+  // duplicate ids.
   dup.kind = AcKind::NonTest;
+  dup.state = AcState::Unsatisfied;
   thread.criteria.push(dup);
   seed(&fx, &thread);
 
@@ -192,12 +198,66 @@ fn a_thread_level_group_is_not_mistaken_for_a_missing_work_package() {
 fn a_test_backed_criterion_carrying_stored_satisfaction_is_found() {
   let fx = Fixture::new();
   let mut thread = clean_thread("ST0001");
-  thread.criteria[0].state = intentsvcs::model::AcState::Satisfied {
-    evidence: "hand-authored on a test-backed AC, which canon can be".to_string(),
+  thread.criteria[0].state = AcState::Satisfied {
+    evidence: "hand-authored on a test-backed AC".to_string(),
   };
-  seed(&fx, &thread);
+  // NOT `seed`, which ingests -- and the reason is the point of this test now.
+  // The cross-field clause on the schema face means this estate no longer
+  // LOADS, so doctor reports it from the ingest gate rather than from the model
+  // check. That is a strictly earlier and louder diagnosis of the same fault,
+  // and asserting the old finding text here would have quietly become a test
+  // that the schema clause does NOT work.
+  fx.write_thread(&thread);
 
-  assert!(details(&run(&fx)).contains("double truth"));
+  let found = details(&run(&fx));
+  assert!(
+    found.contains("/criteria/0/state"),
+    "doctor still diagnoses it, and names the criterion: {found}"
+  );
+  assert!(
+    found.contains("satisfied"),
+    "and names the state canon must not carry on a test-backed criterion: {found}"
+  );
+}
+
+/// **And the model check that used to catch it is still live, because one
+/// producer of the mismatch does not come through the schema.**
+///
+/// This is the question the test above raises and must not leave hanging: if
+/// ingest refuses the pair, is `doctor`'s kind/state check now dead code? No --
+/// the migration reader (WP-10) is deliberately lenient where ingest is strict,
+/// so a v2 estate whose AC carried a satisfaction flag with no `(non-test)`
+/// marker arrives as exactly this pair, having never met the schema. Doctor is
+/// the right instrument there, and deleting the check as "unreachable" would
+/// remove the only thing watching that road.
+///
+/// Asserted against the model directly rather than through a file, because a
+/// file is precisely what this pair can no longer be.
+#[test]
+fn the_model_check_still_reports_the_pair_for_the_paths_that_bypass_the_schema() {
+  use intentsvcs::model::AcState;
+
+  let satisfied_on_a_test_ac = AcState::Satisfied {
+    evidence: "carried from a v2 estate".to_string(),
+  };
+  assert!(
+    !satisfied_on_a_test_ac.permitted_for(AcKind::Test),
+    "the model still knows the pair is wrong"
+  );
+  assert!(
+    !AcState::Computed.permitted_for(AcKind::NonTest),
+    "and knows it in both directions"
+  );
+  assert!(
+    AcState::Descoped {
+      to: "ST0002".to_string(),
+      by: None,
+      reason: None,
+    }
+    .permitted_for(AcKind::Test),
+    "while a scope decision stays legal on both kinds -- it is a decision about \
+     the requirement, and no test status recomputes one"
+  );
 }
 
 #[test]
@@ -309,6 +369,7 @@ fn doctor_runs_on_a_project_that_cannot_be_opened() {
   let mut thread = clean_thread("ST0001");
   let mut dup = thread.criteria[0].clone();
   dup.kind = AcKind::NonTest;
+  dup.state = AcState::Unsatisfied;
   thread.criteria.push(dup);
   seed(&fx, &thread);
 
@@ -399,8 +460,15 @@ fn every_fault_is_reported_in_one_pass() {
     id: "ST9999".to_string(),
     note: None,
   }];
-  thread.criteria[0].state = intentsvcs::model::AcState::Satisfied {
-    evidence: "hand-authored on a test-backed AC, which canon can be".to_string(),
+  // A descope pointing nowhere, rather than the kind/state mismatch this used
+  // to carry: that fault is now refused by the schema face at ingest, and an
+  // estate that does not load cannot demonstrate "every fault in one pass" --
+  // it demonstrates one refusal. The property under test is unchanged; the
+  // fault chosen to exercise it is one the earlier gate does not catch.
+  thread.criteria[0].state = AcState::Descoped {
+    to: "ST4242".to_string(),
+    by: None,
+    reason: None,
   };
   seed(&fx, &thread);
 
@@ -410,7 +478,7 @@ fn every_fault_is_reported_in_one_pass() {
     "Completed with no completion date",
     "covers AC-99.9",
     "names ST9999 as related",
-    "double truth",
+    "descoped to ST4242",
   ] {
     assert!(
       found.contains(expected),

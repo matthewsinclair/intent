@@ -176,3 +176,103 @@ fn a_valid_estate_ingests() {
     "a marked-legacy reference survives ingest verbatim"
   );
 }
+
+/// **A hand-authored satisfaction on a test-backed AC is refused at the FILE**,
+/// not merely reported later.
+///
+/// vc's discriminating case, 2026-08-15. The facade's `NonTestOnly` guard
+/// already refuses `ac satisfy` on a test-backed criterion, so the only way
+/// this state reaches an estate is by someone writing it into canon by hand or
+/// carrying it from v2 -- which is exactly the path ingest is the gate for.
+/// Before the cross-field clause landed on `Criterion`, the extract could carry
+/// this and the tool would take it, leaving `doctor` to report afterwards a
+/// thing that should never have loaded.
+///
+/// The pair-level proof lives in `ac_kind_state_invariant.rs`; this is the one
+/// that proves the schema clause is actually ON the path a file travels.
+#[test]
+fn a_hand_authored_satisfaction_on_a_test_backed_ac_is_refused_by_name() {
+  let fx = Fixture::new();
+  fx.write_raw_thread(
+    "ST0056",
+    r#"{
+  "schema": "intent/thread@3.0",
+  "id": "ST0056",
+  "title": "Intent v3.0.0",
+  "status": "wip",
+  "created": "2026-08-14",
+  "criteria": [
+    {
+      "id": "AC-03.1",
+      "text": "strict ingest refuses schema-invalid canon",
+      "kind": "test",
+      "state": { "is": "satisfied", "evidence": "I say so" }
+    }
+  ]
+}
+"#,
+  );
+
+  let findings = refusal(ingest::read(&fx.project()).expect_err("must refuse"));
+  assert_eq!(findings[0].class, FindingClass::SchemaInvalid);
+  let detail = findings
+    .iter()
+    .map(|f| f.detail.clone())
+    .collect::<Vec<_>>()
+    .join(" | ");
+  assert!(
+    detail.contains("satisfied"),
+    "the refusal names the state it will not accept, got: {detail}"
+  );
+  assert!(
+    detail.contains("/criteria/0/state"),
+    "and points at the criterion that carries it, got: {detail}"
+  );
+}
+
+/// **A DESCOPED test-backed AC ingests, and keeps its payload.**
+///
+/// The other side of the same clause, and the reason it is not simply "test
+/// kind stores nothing". `ac descope` and `ac withdraw` carry no kind guard in
+/// the ratified machine: they are decisions about the REQUIREMENT, and no AT
+/// status recomputes one. A clause that refused every stored state on a
+/// test-backed criterion would have made a descoped test-backed AC
+/// unrepresentable in the extract -- data loss at the clone boundary (D34),
+/// arrived at while closing a different hole.
+///
+/// vc named this as the case a test over non-test ACs alone passes straight
+/// through, which is why the criterion here is `kind: test` and not `non-test`.
+#[test]
+fn a_descoped_test_backed_ac_ingests_and_keeps_its_payload() {
+  let fx = Fixture::new();
+  fx.write_raw_thread(
+    "ST0056",
+    r#"{
+  "schema": "intent/thread@3.0",
+  "id": "ST0056",
+  "title": "Intent v3.0.0",
+  "status": "wip",
+  "created": "2026-08-14",
+  "criteria": [
+    {
+      "id": "AC-03.9",
+      "text": "a descoped requirement",
+      "kind": "test",
+      "state": { "is": "descoped", "to": "ST0057", "by": "hv", "reason": "moved with the daemon" }
+    }
+  ]
+}
+"#,
+  );
+
+  let canon = ingest::read(&fx.project()).expect("a descoped test-backed AC is legal canon");
+  assert_eq!(
+    canon.threads[0].criteria[0].state,
+    intentsvcs::model::AcState::Descoped {
+      to: "ST0057".to_string(),
+      by: Some("hv".to_string()),
+      reason: Some("moved with the daemon".to_string()),
+    },
+    "the decision and everyone who made it survived the file"
+  );
+}

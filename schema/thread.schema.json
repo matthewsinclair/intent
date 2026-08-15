@@ -316,6 +316,63 @@
         }
       },
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "test"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "properties": {
+                  "is": {
+                    "enum": [
+                      "computed",
+                      "descoped",
+                      "withdrawn"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "non-test"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "properties": {
+                  "is": {
+                    "enum": [
+                      "unsatisfied",
+                      "satisfied",
+                      "descoped",
+                      "withdrawn"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
       "required": [
         "id",
         "text",

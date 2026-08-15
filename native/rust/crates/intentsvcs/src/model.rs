@@ -209,9 +209,53 @@ pub enum WpStatus {
 // Acceptance (the 0013 four-state AC model + the 0017 AT grammar, reified)
 // ---------------------------------------------------------------------------
 
+// PLAIN COMMENTS, NOT DOC COMMENTS -- for the reason stated three fields down,
+// and it caught me writing this block. schemars lifts `///` into the JSON
+// Schema face as a `description` and async-graphql lifts it into the SDL, both
+// of which `intent schema` prints to a consumer's terminal. The first cut of
+// this block was a doc comment and put "AC-02.6", a node name, a date, and a
+// test file path into two published faces -- **a D37 violation authored while
+// closing a different hole**, in the one file that already carries the warning.
+//
+// **The `kind`/`state` invariant is carried in the JSON Schema face, not only
+// in Rust** (vc, 2026-08-15). Two fields can express nonsense --
+// `{kind: test, state: satisfied}` records a satisfaction nothing computed,
+// `{kind: non-test, state: computed}` claims a derivation with nothing to
+// derive from -- and `AcState::permitted_for` is the one place that says so.
+// The facade's `NonTestOnly` guard shuts the door at the API, which is the gate
+// that matters under D01; this shuts it at the FILE.
+//
+// It has to be in the FACE rather than only in ingest because of what the
+// extract is for. Under D34 the committed extract is the interchange, and an
+// external reader validating a `thread.json` against the published face must
+// reach the same verdict Intent does -- a rule that lives only in this crate is
+// a rule every other reader has to reimplement, which is the thing openness
+// exists to prevent. Expressing it here also means ingest enforces it for free:
+// ingest validates against this generated schema before deserialising, so the
+// file refusal and the published contract are one artefact rather than two that
+// agree today.
+//
+// `tests/ac_kind_state_invariant.rs` holds the two sides to each other over
+// every variant, and fails if a variant appears that this block has not been
+// taught -- because the block is hand-written JSON, which is exactly the kind
+// of hand-kept roster that goes stale in silence.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 #[graphql(complex)]
+#[schemars(extend("allOf" = [
+  {
+    "if": { "properties": { "kind": { "const": "test" } }, "required": ["kind"] },
+    "then": { "properties": { "state": { "properties": {
+      "is": { "enum": ["computed", "descoped", "withdrawn"] }
+    } } } }
+  },
+  {
+    "if": { "properties": { "kind": { "const": "non-test" } }, "required": ["kind"] },
+    "then": { "properties": { "state": { "properties": {
+      "is": { "enum": ["unsatisfied", "satisfied", "descoped", "withdrawn"] }
+    } } } }
+  }
+]))]
 pub struct Criterion {
   /// `AC-<gg>.<n>`; group `00` is ST-level, otherwise the WP seq.
   pub id: String,
@@ -304,6 +348,33 @@ impl AcState {
     match kind {
       AcKind::Test => Self::Computed,
       AcKind::NonTest => Self::Unsatisfied,
+    }
+  }
+
+  /// **Whether a criterion of `kind` can hold this state -- the one home for
+  /// the cross-field invariant.**
+  ///
+  /// The pair is checked in three places and decided in exactly one: the
+  /// facade's `NonTestOnly` guard refuses the transition, the JSON Schema face
+  /// on [`Criterion`] refuses the file, and `doctor` reports an estate that
+  /// already carries the mismatch. Before this, the rule was a `match` inside
+  /// `doctor` with a `_ => None` arm, which meant a sixth variant would have
+  /// been silently consistent with everything.
+  ///
+  /// The match is exhaustive on purpose. **A new variant does not compile until
+  /// someone says which kinds may hold it**, which is the property a fallthrough
+  /// arm gives away.
+  pub fn permitted_for(&self, kind: AcKind) -> bool {
+    match self {
+      // Derived from covering ATs, so there must be ATs to derive from.
+      Self::Computed => kind == AcKind::Test,
+      // A recorded satisfaction, which is double truth on a test-backed
+      // criterion: its satisfaction is computed and cannot also be asserted.
+      Self::Unsatisfied | Self::Satisfied { .. } => kind == AcKind::NonTest,
+      // Decisions about the REQUIREMENT rather than about its satisfaction, so
+      // both kinds hold them and both must store them -- an AT status cannot
+      // recompute a scope decision (vc, 2026-08-15).
+      Self::Descoped { .. } | Self::Withdrawn { .. } => true,
     }
   }
 

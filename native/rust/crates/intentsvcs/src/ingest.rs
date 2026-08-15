@@ -169,12 +169,13 @@ pub fn load(project: &Project, store: &mut Store) -> Result<Canon, IngestError> 
 /// JSON Schema, and rebuilt the whole DB before answering a question as small
 /// as `st list` -- correct, and the wrong shape entirely.
 ///
-/// What it does NOT do is weaken D01. Committed canon is still the durable
-/// an extract, and the store is re-creatable from it as a CAPABILITY. `rm` of
-/// the store is NOT safe under the reversed D01 -- it discards anything the
-/// extract does not carry -- but a COLD store is a different thing and is
-/// still routine, because a cold store simply takes the
-/// ingest path via [`resync`]. What changes is WHEN that is paid for.
+/// What it does NOT do is weaken D01 as reversed. **The store is truth and the
+/// committed canon is the extract** (D34), so re-creating the store from canon
+/// is a CAPABILITY rather than a licence -- it recovers what the extract
+/// carries, which is not everything the store held. A COLD store is a different
+/// thing entirely and stays routine: it takes the ingest path via [`resync`] on
+/// first use and is then warm. What this changes is WHEN that is paid for, not
+/// which side is authoritative.
 pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestError> {
   // THE DAILY DRIVER DOES NOT LOOK AT THE FILES. hv, 2026-08-14: "A sync
   // ingest/egest is fine to be (relatively) expensive. This is infrequent and

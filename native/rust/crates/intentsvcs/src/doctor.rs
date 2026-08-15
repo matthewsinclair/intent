@@ -255,18 +255,39 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     // way the two-field model could contradict itself that anyone had named.
     // With one enum the rule is total: a test-backed criterion in scope records
     // `Computed` and nothing else, and an authored one never records
-    // `Computed`. The facade cannot produce either mismatch; canon written by
-    // hand or carried from v2 still can, which is what this is for.
-    let mismatch = match (criterion.kind, &criterion.state) {
-      (AcKind::Test, AcState::Satisfied { .. } | AcState::Unsatisfied) => Some(
-        "is test-backed but records its own satisfaction, which is double truth -- satisfaction comes from its covering tests, so its recorded state must be `computed`",
-      ),
-      (AcKind::NonTest, AcState::Computed) => Some(
-        "is `(non-test)` but records `computed`, which claims a satisfaction nothing computes -- an authored criterion has no covering tests to derive one from",
-      ),
-      _ => None,
-    };
-    if let Some(complaint) = mismatch {
+    // `Computed`.
+    //
+    // **The DECISION is `AcState::permitted_for`, not this match.** What lives
+    // here is only the wording, because a finding has to read like something a
+    // person can act on. The match below used to make the decision too, with a
+    // `_ => None` arm -- so a sixth variant would have been consistent with
+    // every kind and this check would have gone quiet about it. Now the model
+    // decides, exhaustively, and the worst this can do is describe a real
+    // mismatch generically.
+    //
+    // Three enforcement points, one rule: the facade refuses the transition,
+    // the schema face refuses the file, and this reports an estate that already
+    // carries it.
+    //
+    // **Which road is left, now that the first two are shut?** This used to say
+    // "canon written by hand or carried from v2", and the hand-written half
+    // stopped being true the moment the cross-field clause reached the schema
+    // face -- such a file is refused at ingest and never becomes a model. What
+    // remains is the CARRIED half, and it is enough on its own: the migration
+    // reader (WP-10) is deliberately lenient where ingest is strict, so a v2 AC
+    // that carried a satisfaction flag without a `(non-test)` marker arrives as
+    // exactly this pair, having never met a schema. That road has no other
+    // watcher.
+    if !criterion.state.permitted_for(criterion.kind) {
+      let complaint = match (criterion.kind, &criterion.state) {
+        (AcKind::Test, AcState::Satisfied { .. } | AcState::Unsatisfied) =>
+          "is test-backed but records its own satisfaction, which is double truth -- satisfaction comes from its covering tests, so its recorded state must be `computed`".to_string(),
+        (AcKind::NonTest, AcState::Computed) =>
+          "is `(non-test)` but records `computed`, which claims a satisfaction nothing computes -- an authored criterion has no covering tests to derive one from".to_string(),
+        (kind, state) => format!(
+          "records a state its kind cannot hold: {state:?} on a {kind:?} criterion"
+        ),
+      };
       add(
         format!("{} {complaint}", criterion.id),
         FindingClass::ModelInconsistent,
