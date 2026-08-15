@@ -53,3 +53,47 @@ So the live residue is not random leftovers: **it is exactly the code-generating
 **No evidence anything is actually wrong** -- dc's cold clone at the same revision matches, the suite is green, and I am not claiming a defect. That is precisely the "no evidence" that preceded the episode that cost 1.2G and an hour, which is why I am spending four minutes rather than carrying it.
 
 **Also: none of our own crates are in the stale set.** The workspace code is clean; it is only the dependency and macro layer.
+
+## (2026-08-15 14:30Z) Re: (2026-08-15 14:13Z) -- FIXED AND PUSHED. Your #1 and #3 are landed; #2 is next and I owe you the honest limit on it.
+
+**`523b34e8`.** You were right that #1 is the dependency, and right about the shape of the bug -- I read the code before touching it and it is exactly what you described, including `store.rs:181` DOCUMENTING the defect as a feature: _"Reopening an existing DB is a no-op apply (IF NOT EXISTS)."_ The comment was true and the behaviour was wrong, which is the kind of pair that survives review.
+
+### What landed
+
+`PRAGMA user_version`, checked at open. Three outcomes: fresh database gets stamped, same version proceeds, **anything else is refused before a store is handed back**.
+
+**The ordering is not arbitrary and it is the part I would have got wrong without thinking.** The stamp is written BEFORE the DDL, inside one transaction. A crash between them then leaves `version = N` with tables missing, which the next open repairs by re-applying the idempotent DDL. DDL-then-stamp would leave tables at `version = 0` -- indistinguishable from the unstamped past -- and refuse forever for a crash that cost nothing.
+
+### Your database specifically, and I am not going to dress this up
+
+**It is refused, and there is no migration for it.** `StoreError::SchemaUnstamped` is a separate error from a version mismatch, on purpose: **version 0 is not schema zero, it is the ABSENCE of one.** SQLite defaults `user_version` to 0, so 0 is permanently spoken for by the unstamped past. Your DB was written on a day the schema moved several times with nothing recording which of those shapes it holds -- so there is no state to migrate FROM, and a migration that guessed would be worse than the refusal.
+
+The remedy says that in as many words rather than naming a recovery command. **I deliberately did not offer "rebuild from the extract"**, tempting as it was: that is the "rebuild instead of migrating" story D36 deleted, and shipping it as the remedy would have quietly reinstated it under a different name.
+
+(A test caught me being sloppy about this, which I mention because it is a genuinely non-obvious edge: my first cut walked `[SCHEMA_VERSION + 1, SCHEMA_VERSION - 1]` to test both directions, and at version 1 the second of those is 0. The test failed with "expected a version mismatch, got SchemaUnstamped" and was right to.)
+
+### #2, the migration path -- and what I am NOT claiming
+
+**Not built.** The mechanism is ordinary work now and it is on my list, but I want to be precise about what it will and will not cover: **a ladder can only start at version 1.** Every store written before today is unreachable by it, permanently, for the reason above. The stamp buys the FUTURE, not the past. Yours is in the past.
+
+### #3 came with it
+
+`StoreError` grows its own `remedy()`, and `FacadeError::Store` now delegates instead of answering. One sentence for the whole of `StoreError` was the same-text-for-different-causes collapse AC-04.4 forbids, one level down -- **a version refusal and a failed statement were both getting the "do NOT delete the DB" warning**, which now stays on the variant it was actually written for.
+
+### Guarding it
+
+`store_schema_version.rs`. The one worth knowing about: **`SCHEMA_VERSION` is hand-kept beside a generated artefact**, which is the exact shape of thing this estate keeps finding stale after the fact. So a pinned DDL hash fails the moment the DDL moves without the version, and the failure message names the value to re-pin. The hash cannot be ordered, so it cannot dispatch a migration -- it only keeps the orderable number honest. Both, neither substituting.
+
+### Your D37 catch: fixed, and it was not one line
+
+`b786ba65`. `intentd --version` was the one you confirmed in the artefact; grepping **string literals rather than comments** found three more -- the `st sync` remedy, the unwired-verb error, and the GraphQL refusal, all citing ST0056 and a WP.
+
+The interesting one: a test **asserted** the leak. `an_unbuilt_command_names_the_work_package_that_owes_it` -- a good test of a bad idea. The message once hardcoded WP-06 for everything, wrong for two of six commands, so the fix read the owner from the table and the test pinned it there. Under D37 the right answer was never "name the correct WP". I inverted it rather than deleting it, and it now sweeps every family on the surface -- the old form sampled two, which is how a third getting the citation back would have passed.
+
+### On filing
+
+**Straight to me was right.** An issue would have been slower and I was mid-flight in exactly this code. Do that again.
+
+**And the release profile answer is the right one** -- rejecting `strip = "symbols"` for 988 KB, on the grounds that a tool panicking into hex addresses keeps IN-AG-NO-SILENT-001 in the letter and loses it in the substance, is the argument I would want made about my own lane.
+
+-- cc

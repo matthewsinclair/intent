@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 14:06Z
+heartbeat_at: 2026-08-15 14:30Z
 status: active
-focus: "Steps 1-3 of vc's sequencing landed and pushed. Next: AC-02.6 openness, the last WP-02 blocker, against faces that have now stopped moving."
+focus: "Three landed post-compact: the kind/state clause on the published face, the store schema stamp (dc found the hole by dogfooding), and the D37 output sweep. AC-02.6 openness is next and is now unblocked."
 claims: []
 ---
 
@@ -19,13 +19,19 @@ claims: []
 
 ## DOING -- AC-02.6, openness
 
-**The last WP-02 blocker, and vc's ordering put it last on purpose: the faces have stopped moving.** `AT-02.6` = `openness.rs`.
+**The last WP-02 blocker.** `AT-02.6` = `openness.rs`.
 
-- **Enumerate tables FROM THE GENERATED DDL FACE, never a hand roster.** The day's evidence says this twice over: the schema walk's own `["state","status"]` tag roster silently stopped classifying a field, and `event_log` survived a whole AC because a test over the tables that already had file forms passes on the defect.
+- **Enumerate tables FROM THE GENERATED DDL FACE, never a hand roster.** The evidence is now threefold: the schema walk's own `["state","status"]` tag roster silently stopped classifying a field; `event_log` survived a whole AC because a test over the tables that already had file forms passes on the defect; and the store had no version stamp at all, so nothing could detect a shape it could not read.
 - Each table needs a **file form OR an exemption DECLARED with its reason**. Round-trip both directions, lossless.
 - **The discriminating case is ADDING a table with no file form and no exemption and watching it go red.**
-- Known: `event_log` -> `events.jsonl` (ruled, NOT built -- `event.rs` says so). `file_index` is exempt on derivability but is **NOT a discardable cache** -- hv ruled it the `.treeindex` replacement, so it is a product feature.
-- **New surface since the ratification**: `status_reason` on thread and work package, and `Criterion.state` replacing `scope`/`evidence`/`satisfied`.
+- Known: `event_log` -> `events.jsonl` (ruled, NOT built). `file_index` is exempt on derivability but is **NOT a discardable cache** -- hv ruled it the `.treeindex` replacement, so it is a product feature.
+- **New surface since the ratification**: `status_reason` x2, `Criterion.state`, and now `PRAGMA user_version` -- which is store metadata rather than a table, and openness has to say which of those it is asking about.
+
+## LANDED post-compact
+
+- **`ef62cded`** -- the kind/state clause on the JSON Schema face (vc's cost from the AC collapse). One decision in `AcState::permitted_for`, exhaustive; three enforcement points; roster discovered from the schema's `oneOf`. **Posture change raised to vc, unruled: a mismatched pair now stops the whole estate loading, not just doctor reporting.**
+- **`523b34e8`** -- the store schema stamp. dc found it by dogfooding: `CREATE TABLE IF NOT EXISTS` makes the DDL apply a no-op, so open SUCCEEDED on a database it could not read. Stamp-before-DDL in one transaction so a crash repairs rather than bricks. **Version 0 is not schema zero, it is the absence of one** -- unstamped stores are refused with no migration, and the remedy says so instead of promising one.
+- **`b786ba65`** -- D37, four shipped strings. **One of them was asserted by a test**, which had been written as the fix to a worse version of the same leak.
 
 ## TODO
 
@@ -35,9 +41,11 @@ claims: []
 
 ## Waiting
 
-- **vc**: (a) the extract shape -- I took the discriminated `Computed` variant over an absent key; reversible in one commit. (b) **A BEHAVIOUR CHANGE**: `ac descope` now enforces the ratified "target thread exists" guard, which costs the descope-to-a-thread-you-are-about-to-create workflow. (c) `data-model.md`'s AC entity + the two `status_reason` fields.
-- **ic**: **seven dispatch rows** (`st triage|hold|resume|reopen|reinstate`, `wp reopen|unstart`). The facade has all seven; the CLI cannot drive the lifecycle past `triage`. Plus `--reason` on `st cancel` (read optionally already, so it works the day the row lands) and the `sync` direction selector. **The ask is a failing surface in `cli_end_to_end.rs`, not a note.**
+- **vc**: (a) **the ingest posture** -- a kind/state mismatch now refuses the whole estate at load, not just at doctor. Correct under D05, but a posture change is vc's not mine. (b) **Does D37 reach the published schema faces?** ~30 more hits in `thread.schema.json` + `schema.graphql`, lifted from doc comments; `intent schema` prints both. Not all are violations -- "eg `ST0056`" as a value-format example is not our backlog -- so it needs reading every hit, not a count. (c) **Whose is AT-00.8's guard**: mine, ic's or vc's. (d) `data-model.md`'s AC entity + the two `status_reason` fields. (e) `ac descope` now enforces the ratified "target thread exists" guard, which costs the descope-to-a-thread-you-are-about-to-create workflow.
+- **THE FIFTH STATE IS PENDING, NOT SETTLED.** vc has `computed` in `data-model.md` and has NOT ratified it -- extending an hv-ratified four-value machine is hv's call. I am now building on it in three more places, so a reversal costs more than it did at 14:07Z. vc owns the escalation.
+- **ic**: **seven dispatch rows** (`st triage|hold|resume|reopen|reinstate`, `wp reopen|unstart`). The facade has all seven; the CLI cannot drive the lifecycle past `triage`. **A failing surface in `cli_end_to_end.rs`, not a note.** Plus `--reason` on `st cancel` and the `sync` direction selector.
 - **ic**: the `at` guard ruling -- v3 has NONE of v2's four `at` set-time guards; the gate recovers two, and _green-only-from-red cannot be recovered at gate time ever_ because it is a property of history.
+- **dc**: nothing owed. The migration ladder (their #2) is mine and unbuilt; **it can only start at version 1, so every pre-stamp store is permanently unreachable by it.** The stamp buys the future, not the past.
 
 ## Lane boundary -- PROPOSED (vc), not ruled
 
@@ -59,6 +67,12 @@ Anything amounting to "remember to" is archived; it failed twice on entries this
 - **A HAND-KEPT ROSTER INSIDE AN INSTRUMENT IS THE SAME DEFECT THE INSTRUMENT LOOKS FOR.** The schema walk read tag names from `["state","status"]`; renaming a tag to `is` silently stopped it classifying a field, and its own completeness check then reported the field ABSENT FROM THE SCHEMA. **Discover structurally; never enumerate names by hand.**
 - **A COLLAPSE MAKES THE NEW REPRESENTATION OBVIOUS AND THE OLD INVARIANT INVISIBLE.** Rewriting `resolve()` the natural way would have let a hand-authored `satisfied` on a test-backed AC satisfy the gate. **Re-derive what the old shape enforced; do not assume it survived.**
 - **A DOC CAN OUTLIVE ITS OWN SUBJECT, not just its model.** `facade.rs` said "THERE IS NO DB -> DISK SYNC YET" -- true when written, false the same day by my own work. Alongside the three remedies that named a command after the reasoning behind it had moved.
+- **A `///` DOC COMMENT IS SHIPPED OUTPUT.** schemars lifts it into the JSON Schema face and async-graphql into the SDL, and `intent schema` prints both to a consumer's terminal. I put an AC id, a node name, a date and a test path into two published faces while closing a different hole -- in the one file that already carries this warning, three fields down. **Plain `//` for reasoning; `///` only for what a stranger needs.**
+- **A GREP OVER COMMENTS FINDS THE WRONG HALF.** The D37 sites that mattered were in string LITERALS. Grep `"[^"]*PATTERN[^"]*"` and exclude comment lines, or the four shipped strings hide behind fifty harmless mentions.
+- **A TEST CAN ASSERT THE DEFECT, and it looks like diligence.** `an_unbuilt_command_names_the_work_package_that_owes_it` pinned a D37 leak in place -- written as the fix to a WORSE version of the same leak, which is why it read as careful. **When a ruling lands, grep the tests for what now asserts the old behaviour.**
+- **A COMMENT CAN DOCUMENT THE BUG AS A FEATURE.** `store.rs:181` said "Reopening an existing DB is a no-op apply (IF NOT EXISTS)" -- accurate, and describing the hole. **An accurate comment is not evidence of correct behaviour.**
+- **`IF NOT EXISTS` MAKES A SCHEMA CHANGE INVISIBLE UNTIL A QUERY FAILS.** Open succeeds on a database it cannot read. Any DDL change needs the stamp bumped and `store_schema_version.rs` re-pinned in the same commit; the test names the value.
+- **VERSION 0 IS NEVER "SCHEMA ZERO".** SQLite defaults `user_version` to 0, so 0 permanently means unstamped. Arithmetic like `SCHEMA_VERSION - 1` to get "an older version" is wrong at version 1 and silently right-looking.
 - **`--only` commits what you NAME, and a move is TWO facts.** `a1a949c` committed 58 additions and left 55 deletions staged, on both remotes, where a fresh clone would have built the OLD tree. **Every working-tree check passed.** Name the deletion side too, verify at HEAD (`git ls-tree`), never on disk. After any move, clone fresh and build.
 - **`--only` NEVER CLEARS THE INDEX** (issue 0028): a linter-on-save rewrite after `git add` leaves a third version staged forever, invisible to `git diff HEAD`. `git reset -- <your paths>` clears it without touching peers.
 - **TWO symlinks point INTO this repo**: `which -a intent` returns three reachable copies. Mutating `bin/intent*` in place changes the tool every live session runs -- sacrificial `git worktree` only.
