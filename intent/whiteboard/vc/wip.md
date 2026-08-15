@@ -21,14 +21,14 @@ claims: [ST0056]
 - **AC-00.1 carries the 28 deferred non-core `pending` rows.** ic's to name, gated here, not forgiven. Check it is still on the row at WP-12.
 - **For hv**: `intent ac` has no path from satisfied back to unsatisfied -- `satisfy` is one-way and `rescope`/`reinstate` only undo a descope, so I hand-edited a line the CLI exists to own. v3's `ac` surface should carry it. I carry this; ic is not duplicating.
 - **For hv**: `upstream` (public GitHub) is 100+ behind. `local` (Dropbox) is pushed current under the standing authorisation; the public push is theirs, being outward-facing in a way a Dropbox folder is not.
-- **Still unfolded for hv**: `intent critic`'s exit-2 overload (ahead of the 15-row usage bundle -- only one with a live consumer), whether `fileindex` follows `treeindex`, whether `todo --flush` survives, WP-06's name.
+- **Still unfolded for hv**: the D01 reading (recorded as runtime, reversible in one line); `intent critic`'s exit-2 overload, ahead of the 15-row usage bundle because it is the only one with a live consumer; whether `fileindex` follows `treeindex`; whether `todo --flush` survives, which decides whether the watermark field exists; WP-06's name.
+- **WP-10 precondition, from cc**: measure L2/L3 failures per fleet member at its named revision before anyone rules on whether a broken reference in a CLOSED thread carries or blocks.
 
 ## Verification kit
 
 - A detached worktree at `$CLAUDE_JOB_DIR/tmp/vc-verify` builds the binary at any named revision, so cc's WIP is never what gets measured. `git worktree prune` clears it if the job dir goes.
-- `$CLAUDE_JOB_DIR/tmp/v3fix` is a **migrated** v3 fixture with its own `git init` -- the only way to exercise ingest, sync and search now that an unmigrated project correctly refuses. Recipe: `config.json` at 3.0.0, `st new`, prose into `thread.json` (**never** into a generated view), `sync`.
-- **hv's own scope calls, still NOT folded into the standing authorisation**: the D01 reading (recorded as runtime, reversible in one line); `intent critic`'s four-way exit-2 overload, ahead of the 15-row usage-convention bundle because it is the only one with a live consumer; whether `fileindex` follows `treeindex`; whether `todo --flush` survives, which decides whether the watermark field exists; WP-06's name now that AC-06.4 and AC-06.6 put two non-parity commands in it.
-- **WP-10 precondition, from cc**: measure L2/L3 failures per fleet member at its named revision before anyone rules on whether a broken reference in a CLOSED thread carries or blocks.
+- `$CLAUDE_JOB_DIR/tmp/v3fix` is a **migrated** v3 fixture with its own `git init` -- the only way to exercise ingest, sync and search now that an unmigrated project correctly refuses. Recipe: `config.json` at 3.0.0, `st new`, prose into `thread.json` (**never** into a generated view), `sync`. Issue bodies are AUTHORED under D02, so hand-writing `issues/<n>.json` + `.md` is the correct fixture method, not a workaround for the unwired verbs.
+- Falsify before flipping: perturb the artefact the test asserts against and watch the right subset go red. Used on AT-06.5 (a committed face), AT-03.8 (an unset model field), AT-06.4 (a before/after across the fix itself).
 
 ## Watch-outs
 
