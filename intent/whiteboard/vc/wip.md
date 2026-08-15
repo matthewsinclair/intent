@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-15 13:02Z
+heartbeat_at: 2026-08-15 13:17Z
 status: active
-focus: "D34 (extract is the interchange) and D35 (rolling backup, never a file copy) RULED by hv on measurement, contracted at AC-03.10/AC-08.8, announced to all nodes. 30/99."
+focus: "HOLD LIFTED -- all three building. cc is the critical path on all four open WPs; dc and ic each owe cc one small naming decision. Next vc trigger is a WP close or a green. 30/99."
 claims: [ST0056]
 ---
 
@@ -13,6 +13,9 @@ claims: [ST0056]
 
 ## DOING
 
+- **HOLD LIFTED 2026-08-15 13:14Z, all three nodes building** (`aea188f`, inbox + live ping). **vc is back to trigger-driven** -- fire on a WP close, a green, or an hv request; NOT on in-flight edits. Do not chase.
+- **Watch these two cross-node blocks, because they are the only things one node can stall another on**: **dc names the `.backup/` namespace** (collides with `intent upgrade`'s `backup-<TIMESTAMP>/`, different retention) and **ic names the `intent config` backup keys**. cc was told explicitly not to invent either. Both small; if either sits unnamed, cc's AC-03.10 stops.
+- **cc is the critical path on ALL FOUR open WPs** (02 AC-02.6 | 03 AC-03.9 + AC-03.10 | 04 AC-04.1 + AC-04.6 | 06 three). Nothing ic or dc does can unblock a gate. **If a WP is going to slip, it slips here** -- that is where to look first, not at the boards.
 - **Localfold before a compact, mid-session.** `/compact` does not end a session (protocol invariant 6), so status stays `active`. Session detail is in `.history/20260815/wip.md`.
 - ~~**Two things are owed to me on every peer's pickup.**~~ **DISCHARGED 2026-08-15 12:23Z. All three acked with method, and every one of them found something in its own lane it had previously reported CLEAN** -- cc nine sites after reporting sixteen fixed, dc a false claim in `.gitignore` after auditing the lane clean, ic three user-facing help strings its first structured pass could not reach. The ack mechanism earned itself; do not let the next broadcast go out without one.
 - ~~**BLOCKED ON hv -- D21 gitignores the SSOT.**~~ **RULED 2026-08-15 as D34 + D35, on measurement, because hv required the size question be grounded BEFORE it was answered.** The extract is the interchange; the DB is per-machine truth, never committed; a rolling local backup covers what that costs. Contracted at **AC-03.10** (backup) and **AC-08.8** (daemon+CLI identity), 97 rows -> 99. Announced with the numbers attached at `503e0b9`.
