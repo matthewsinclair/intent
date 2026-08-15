@@ -320,3 +320,45 @@ fn a_rebuild_restamps_the_record_time_and_carries_the_authored_date_through() {
     "and the clone's own record timestamp is its own: this store wrote this row just now"
   );
 }
+
+/// **The domain date and the record stamp are the SAME INSTANT, by
+/// construction.**
+///
+/// `st new` hands in an empty `created`; the INSERT fills it and `created_at`
+/// takes its DEFAULT in the same statement. SQLite guarantees `'now'` returns
+/// one value for every reference within a single statement, so these cannot
+/// drift -- not even across a UTC midnight, which is the boundary a
+/// read-then-write pair fails at silently.
+///
+/// This also settles vc's adopted derivation without implementing it twice: if
+/// `created` is ever derived from the `st.new` event's `ts` instead, it must
+/// still land on this day, and this assertion already says so.
+#[test]
+fn the_authored_date_and_the_record_stamp_agree_because_one_statement_wrote_both() {
+  let fx = Fixture::new();
+  let db = fx.project().db_path();
+  let created = {
+    let mut facade = fx.facade_on_disk();
+    let id = facade.st_new("a thread that stamps itself").expect("new");
+    facade.st_show(&id).expect("show").created.clone()
+  };
+
+  let conn = Connection::open(&db).expect("open");
+  assert_eq!(
+    stamp(&conn, "SELECT date(created_at) FROM threads"),
+    created,
+    "the domain date and the record stamp came out of one INSERT and must name one day"
+  );
+  assert_eq!(created.len(), 10, "a date, not a timestamp: {created}");
+
+  // And the event the mutation wrote agrees too -- same transaction, so the
+  // derivation vc adopted lands on the same day whichever way it is computed.
+  let event_day = stamp(
+    &conn,
+    "SELECT date(ts) FROM event_log WHERE op = 'st.new' ORDER BY ts LIMIT 1",
+  );
+  assert_eq!(
+    event_day, created,
+    "`thread.created` and its own `st.new` event must name the same day"
+  );
+}

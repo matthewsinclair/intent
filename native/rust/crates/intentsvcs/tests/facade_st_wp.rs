@@ -30,18 +30,16 @@ fn st_new_creates_canon_and_every_view() {
 
   let thread = facade.st_show("ST0001").expect("show");
   assert_eq!(thread.status, ThreadStatus::Triage);
-  // **The SHAPE, not a pinned value.** The date comes from the store's clock
-  // (hv: time comes from the DB), so there is no injected `today` to pin it
-  // to -- and a test that pinned it would be asserting what day it is rather
-  // than that the tool stamped one.
-  assert_eq!(
-    thread.created,
-    facade.store().today().expect("the store's clock"),
-    "created is stamped from the store's clock"
-  );
+  // **The SHAPE, and there is nothing left to pin it to.** `created` is filled
+  // by SQLite inside the INSERT and handed back (D42), so nothing in this
+  // process ever held the value. This used to compare it against
+  // `store.today()`, which was a tautology the day it was written -- the same
+  // clock on both sides of an equals sign -- and is now not even expressible,
+  // because the clock is gone. That the date agrees with the row's OWN record
+  // stamp is proved in `record_timestamps.rs`, where the column is readable.
   assert!(
     thread.created.len() == 10 && thread.created.split('-').count() == 3,
-    "and it is an ISO date: {}",
+    "the tool stamped an ISO date: {}",
     thread.created
   );
   assert_eq!(thread.slug.as_deref(), Some("add-a-rust-based-cli"));
@@ -75,10 +73,13 @@ fn the_lifecycle_moves_status_and_stamps_completion() {
     .expect("cancel");
   let thread = facade.st_show("ST0001").unwrap();
   assert_eq!(thread.status, ThreadStatus::Cancelled);
-  assert_eq!(
-    thread.completed.as_deref(),
-    Some(facade.store().today().expect("the store's clock").as_str()),
-    "a close stamps completion from the same one clock"
+  let completed = thread
+    .completed
+    .as_deref()
+    .expect("a close stamps completion");
+  assert!(
+    completed.len() == 10 && completed.split('-').count() == 3,
+    "and the database wrote it as an ISO date: {completed}"
   );
 }
 

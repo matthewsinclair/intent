@@ -764,7 +764,11 @@ impl Facade {
       slug: Some(slugify(title)),
       status: ThreadStatus::Triage,
       status_reason: None,
-      created: self.store.today().map_err(FacadeError::Store)?,
+      // **EMPTY, AND THAT IS THE POINT** (D42). Nothing here knows what day it
+      // is, and nothing needs to: the store fills this inside the INSERT and
+      // hands back what it wrote. Same idiom as `Envelope::minted`, which mints
+      // an event with no `ts` for the same reason.
+      created: String::new(),
       completed: None,
       acceptance: None,
       objective: String::new(),
@@ -866,10 +870,11 @@ impl Facade {
     let thread = find_thread_mut(&mut next, id)?;
     thread.status = status;
     thread.status_reason = reason.clone();
+    // `Some("")` is "completed, and the database says when" -- the third state
+    // the CREATE door recognises. `None` stays null; a date already recorded is
+    // carried. The facade never holds a time in any of the three.
     thread.completed = match status {
-      ThreadStatus::Completed | ThreadStatus::Cancelled => {
-        Some(self.store.today().map_err(FacadeError::Store)?)
-      }
+      ThreadStatus::Completed | ThreadStatus::Cancelled => Some(String::new()),
       _ => None,
     };
     self.apply(
@@ -1395,14 +1400,20 @@ impl Facade {
     op: &str,
     subject: Subject,
     payload: serde_json::Value,
-    next: Canon,
+    mut next: Canon,
   ) -> Result<(), FacadeError> {
     // What gets written is DIFFED, not declared. The caller used to hand in a
     // list of touched ids, which made "the mutation did not persist" reachable
     // by naming the wrong id -- a silent failure, since the DB and the return
     // value would both say it worked. Comparing against the loaded canon
     // cannot forget, and it generalises to issues for free.
-    let changed_threads: Vec<&Thread> = next
+    //
+    // **The diff is kept as IDS rather than as references** (D42). The
+    // database fills a new thread's `created` and hands it back, so `next` has
+    // to be patched with what actually landed before the files are rendered
+    // from it -- and a `Vec<&Thread>` borrowed from `next` would still be alive
+    // at that point. Ids re-resolve at each use site and cost nothing here.
+    let changed_thread_ids: Vec<String> = next
       .threads
       .iter()
       .filter(|t| {
@@ -1412,8 +1423,9 @@ impl Facade {
           .iter()
           .any(|current| current.id == t.id && current == *t)
       })
+      .map(|t| t.id.clone())
       .collect();
-    let changed_issues: Vec<&Issue> = next
+    let changed_issue_numbers: Vec<u32> = next
       .issues
       .iter()
       .filter(|i| {
@@ -1423,6 +1435,7 @@ impl Facade {
           .iter()
           .any(|current| current.number == i.number && current == *i)
       })
+      .map(|i| i.number)
       .collect();
     let removed_threads: Vec<String> = self
       .canon
@@ -1438,10 +1451,6 @@ impl Facade {
       .filter(|current| !next.issues.iter().any(|i| i.number == current.number))
       .map(|i| i.number)
       .collect();
-
-    // The SAME projection both sync directions use, so a mutation and a
-    // resync cannot render the tree differently.
-    let set = self.projection(&next, &changed_threads, &changed_issues)?;
 
     // **No time is read here, and that is D42.** The envelope is minted
     // without one and the database stamps it as part of the INSERT, inside
@@ -1487,7 +1496,17 @@ impl Facade {
     // One transaction covers the entities, the prose index and the envelope
     // together -- see [`Mutation`]. If it fails, nothing has been written
     // anywhere and truth is untouched.
-    self
+    let changed_threads: Vec<&Thread> = next
+      .threads
+      .iter()
+      .filter(|t| changed_thread_ids.contains(&t.id))
+      .collect();
+    let changed_issues: Vec<&Issue> = next
+      .issues
+      .iter()
+      .filter(|i| changed_issue_numbers.contains(&i.number))
+      .collect();
+    let dates = self
       .store
       .commit_mutation(crate::store::Mutation {
         threads: &changed_threads,
@@ -1498,6 +1517,35 @@ impl Facade {
         envelope: &envelope,
       })
       .map_err(FacadeError::Store)?;
+    drop(changed_threads);
+    drop(changed_issues);
+
+    // **THE DATES COME BACK FROM THE WRITE, AND THE FILES ARE RENDERED FROM
+    // WHAT LANDED** (D42). `st new` handed in an empty `created`; SQLite filled
+    // it as part of the INSERT. Rendering `thread.json` before this point would
+    // write the empty string into the extract -- truth and its projection
+    // disagreeing on the one field neither of them can recompute.
+    for stamped in dates {
+      let thread = find_thread_mut(&mut next, &stamped.id)?;
+      thread.created = stamped.created;
+      thread.completed = stamped.completed;
+    }
+
+    // The SAME projection both sync directions use, so a mutation and a
+    // resync cannot render the tree differently.
+    let changed_threads: Vec<&Thread> = next
+      .threads
+      .iter()
+      .filter(|t| changed_thread_ids.contains(&t.id))
+      .collect();
+    let changed_issues: Vec<&Issue> = next
+      .issues
+      .iter()
+      .filter(|i| changed_issue_numbers.contains(&i.number))
+      .collect();
+    let set = self.projection(&next, &changed_threads, &changed_issues)?;
+    drop(changed_threads);
+    drop(changed_issues);
 
     // Truth has landed. The files are a projection of it, so a failure here is
     // REPORTED AND RECOVERABLE rather than corrupting: `intent sync` writes

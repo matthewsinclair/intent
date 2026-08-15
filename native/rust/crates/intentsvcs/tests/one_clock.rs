@@ -1,5 +1,11 @@
-//! **There is exactly one clock in this workspace, and it is the store's**
-//! (hv, 2026-08-15: time comes from the DB).
+//! **There is no clock in this workspace at all** (hv, 2026-08-15: time comes
+//! from the DB).
+//!
+//! It said "exactly one clock, and it is the store's", which was the right step
+//! and not the destination. A `Store::now()` returning `SELECT strftime('now')`
+//! still hands a time to the application, which then holds it across a gap
+//! before writing it -- better provenance, same confection. **A record is
+//! stamped BY the write that creates it**, so nothing needs to ask.
 //!
 //! The rule needs a mechanical guard rather than a note, because a second
 //! clock is the easiest thing in the world to add by accident: reaching for
@@ -11,7 +17,9 @@
 //!
 //! Before this rule there were three: the CLI's `today()`, `Envelope::new`'s
 //! `now_utc()`, and the caller-supplied `FacadeContext.today` that carried the
-//! first into the second. All three are gone.
+//! first into the second. They were collapsed into `Store::now()` /
+//! `Store::today()`, and those are now gone too. **Four positions, each better
+//! sourced than the last, and only the fourth removes the gap.**
 //!
 //! **The roster is DISCOVERED, never listed.** Every `src/**/*.rs` in every
 //! crate is scanned, so a new file is covered the day it is written and a new
@@ -40,11 +48,27 @@ const CLOCK: &[&str] = &[
   "Local::now",
   "Utc::now",
   "chrono::",
+  // **The store clock, and its absence here was a real hole.** When
+  // `Store::now()` existed, every needle above was a call into an external time
+  // API and none of them matched a `SELECT strftime(...)` -- so the one clock
+  // this workspace actually had was invisible to the guard watching for clocks
+  // (vc, 2026-08-15). A standalone SELECT is the banned shape: it hands a time
+  // to the application, which then holds it across a gap before writing it.
+  // `strftime` INSIDE an INSERT or an UPDATE is the ratified mechanism and is
+  // deliberately not matched -- there the stamp and the write are one
+  // operation, which is the whole of D42.
+  "SELECT strftime(",
 ];
 
-/// The ONE file allowed to read a clock -- and it does not read a process
-/// clock either; it asks SQLite.
-const THE_CLOCK: &str = "crates/intentsvcs/src/store.rs";
+/// **Files allowed to read a clock: NONE, and this list must stay empty.**
+///
+/// It held `store.rs` until the store clock was deleted. That exemption was
+/// correct under the model of the morning -- one well-sourced clock beat three
+/// process clocks -- and D42 superseded it: a function returning a time that
+/// went through no RECORD is a confection with better provenance. **Time is a
+/// property of a write**, so no Rust file needs to ask what time it is, and the
+/// exemption shrank to zero rather than moving.
+const EXEMPT: &[&str] = &[];
 
 fn workspace_root() -> PathBuf {
   // `crates/intentsvcs` -> `native/rust`
@@ -113,7 +137,7 @@ fn code_of(path: &Path) -> String {
 }
 
 #[test]
-fn only_the_store_reads_a_clock() {
+fn nothing_in_this_workspace_reads_a_clock() {
   let root = workspace_root();
   let files = sources(&root);
   assert!(
@@ -129,7 +153,7 @@ fn only_the_store_reads_a_clock() {
       .expect("under the root")
       .to_string_lossy()
       .replace('\\', "/");
-    if rel == THE_CLOCK {
+    if EXEMPT.contains(&rel.as_str()) {
       continue;
     }
     // This file lists the banned needles in code (a `const`, not a comment),
@@ -147,23 +171,45 @@ fn only_the_store_reads_a_clock() {
 
   assert!(
     offenders.is_empty(),
-    "time comes from the DB (hv, 2026-08-15): `Store::now` / `Store::today` are the one clock, and these reached for another --\n  {}",
+    "time comes from the DB (hv, 2026-08-15). There is no clock in this workspace at all: a record is stamped BY the write that creates it, so nothing needs to ask. These asked --\n  {}",
     offenders.join("\n  ")
   );
 }
 
-/// The guard is only worth anything if the file it exempts actually holds a
-/// clock. An exemption pointing at a file that stopped being the clock would
-/// pass forever while the workspace had none.
+/// **The exemption list is empty, and the clock it used to point at now lives
+/// in the SCHEMA.**
+///
+/// Inverted rather than deleted, and the reason is the failure it used to
+/// guard: an exemption that stops describing reality passes forever. The old
+/// form asserted `store.rs` still held `fn now()` and `fn today()`, so it would
+/// have failed the build the moment those were deleted -- **a guard enforcing
+/// the superseded model, whose failure text argued for keeping the thing being
+/// removed** (vc, who caught it before it was hit).
+///
+/// The same intent, pointed at the model that now holds: nothing is exempt, and
+/// the thing that does the stamping is a column DEFAULT.
 #[test]
-fn the_exempt_file_is_actually_the_clock() {
-  let code = code_of(&workspace_root().join(THE_CLOCK));
+fn nothing_is_exempt_and_the_stamping_lives_in_the_schema() {
   assert!(
-    code.contains("fn now(") && code.contains("fn today("),
-    "{THE_CLOCK} is exempt because it IS the clock; if these moved, move the exemption with them"
+    EXEMPT.is_empty(),
+    "a file was exempted from the clock ban; D42 leaves nothing that needs one, so this wants a \
+     stated reason rather than an entry: {EXEMPT:?}"
   );
-  assert!(
-    code.contains("'now'"),
-    "and it asks SQLite rather than the process: the DB is the clock, not merely the owner of one"
+
+  // Where the clock went. Every record-timestamp column is filled by SQLite as
+  // part of the write, which is why no Rust file has to ask.
+  let defaults = intentsvcs::store::RECORD_TIMESTAMPS
+    .iter()
+    .filter(|c| {
+      intentsvcs::store::DDL.contains(&format!(
+        "{c} TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+      ))
+    })
+    .count();
+  assert_eq!(
+    defaults,
+    intentsvcs::store::RECORD_TIMESTAMPS.len(),
+    "every record-timestamp column must be stamped by a column DEFAULT -- if one is not, the \
+     application is filling it and the clock came back somewhere this scan cannot see"
   );
 }

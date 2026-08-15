@@ -571,6 +571,18 @@ pub struct Store {
 /// be an unaudited change to the source of truth -- and AC-04.5 requires the
 /// envelope end to end. Before this they were three separate calls, one of
 /// which did not open a transaction at all.
+/// What the database stored for one thread's DOMAIN dates.
+///
+/// Handed back from the write rather than predicted before it, which is the
+/// whole of D42 at this seam: the caller had no time to give, so the only way
+/// it can know the date is to be told by the write that set it.
+#[derive(Debug, Clone)]
+pub struct ThreadDates {
+  pub id: String,
+  pub created: String,
+  pub completed: Option<String>,
+}
+
 pub struct Mutation<'a> {
   pub threads: &'a [&'a Thread],
   pub issues: &'a [&'a Issue],
@@ -742,7 +754,29 @@ impl Store {
   /// cannot drift into disagreeing about what a thread looks like in the
   /// store -- which is the divergent-copy failure with a transaction wrapped
   /// round it.
-  fn write_thread(tx: &rusqlite::Transaction<'_>, t: &Thread) -> Result<(), StoreError> {
+  /// **The two doors, on the thread's DOMAIN dates** (D42) -- the same split
+  /// `write_event` already makes, for the same reason.
+  ///
+  /// [`Stamp::ByTheDatabase`] is the CREATE door: an empty `created` means
+  /// "this is happening now, and the database says when", so SQLite fills it
+  /// inside the INSERT and the caller never holds a time. `completed` follows
+  /// the same rule with a third state -- `None` stays null, `Some("")` is
+  /// stamped, `Some(date)` is carried.
+  ///
+  /// [`Stamp::CarriedFromTheExtract`] is the RESTORE door: whatever the extract
+  /// recorded is written verbatim. **Re-stamping here would move every thread's
+  /// creation date to the moment someone cloned the repository, and every date
+  /// would still look valid.**
+  ///
+  /// Both forms `RETURNING` what was actually stored, so the caller learns the
+  /// value from the write rather than predicting it. `'now'` is constant within
+  /// one SQL statement in SQLite, so `created` and `created_at` here are the
+  /// same instant by construction rather than by luck.
+  fn write_thread(
+    tx: &rusqlite::Transaction<'_>,
+    t: &Thread,
+    stamp: Stamp,
+  ) -> Result<(String, Option<String>), StoreError> {
     tx.execute("DELETE FROM tests WHERE thread_id = ?1", params![t.id])?;
     tx.execute("DELETE FROM criteria WHERE thread_id = ?1", params![t.id])?;
     tx.execute("DELETE FROM related WHERE thread_id = ?1", params![t.id])?;
@@ -758,19 +792,34 @@ impl Store {
     // `updated_at` moves DB-side in the conflict clause. It is not a trigger:
     // nothing in this store issues a bare UPDATE, so an `ON UPDATE` trigger
     // would never fire and would pass vacuously forever.
-    tx.execute(
-      "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
-       ON CONFLICT (id) DO UPDATE SET
-         title = excluded.title,
-         slug = excluded.slug,
-         status = excluded.status,
-         status_reason = excluded.status_reason,
-         created = excluded.created,
-         completed = excluded.completed,
-         acceptance = excluded.acceptance,
-         objective = excluded.objective,
-         context = excluded.context,
-         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+    // The only difference between the doors is how `created` and `completed`
+    // reach the row: filled by SQLite when the caller has nothing, or carried
+    // verbatim from the extract.
+    let dates = match stamp {
+      Stamp::ByTheDatabase => {
+        "COALESCE(NULLIF(?6, ''), strftime('%Y-%m-%d', 'now')),
+         CASE WHEN ?7 IS NULL THEN NULL
+              WHEN ?7 = '' THEN strftime('%Y-%m-%d', 'now')
+              ELSE ?7 END"
+      }
+      Stamp::CarriedFromTheExtract => "?6, ?7",
+    };
+    let stored = tx.query_row(
+      &format!(
+        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10)
+         ON CONFLICT (id) DO UPDATE SET
+           title = excluded.title,
+           slug = excluded.slug,
+           status = excluded.status,
+           status_reason = excluded.status_reason,
+           created = excluded.created,
+           completed = excluded.completed,
+           acceptance = excluded.acceptance,
+           objective = excluded.objective,
+           context = excluded.context,
+           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+         RETURNING created, completed"
+      ),
       params![
         t.id,
         t.title,
@@ -783,6 +832,7 @@ impl Store {
         t.objective,
         t.context,
       ],
+      |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
     )?;
     for (seq, r) in t.related.iter().enumerate() {
       tx.execute(
@@ -833,7 +883,7 @@ impl Store {
         ],
       )?;
     }
-    Ok(())
+    Ok(stored)
   }
 
   /// Write ONE issue inside an open transaction. Same Highlander reason as
@@ -866,7 +916,13 @@ impl Store {
   /// it made every keystroke O(estate). `rebuild` survives unchanged as the
   /// disk -> db sync direction, which is the one place a wholesale reload is
   /// the correct operation.
-  pub fn commit_mutation(&mut self, change: Mutation<'_>) -> Result<(), StoreError> {
+  ///
+  /// **Returns what the database actually stored for each thread's domain
+  /// dates** (D42). A mutation that creates a thread hands in an empty
+  /// `created`; SQLite fills it as part of the INSERT and the value comes back
+  /// here, so the caller learns the date from the write instead of reading a
+  /// clock and predicting it.
+  pub fn commit_mutation(&mut self, change: Mutation<'_>) -> Result<Vec<ThreadDates>, StoreError> {
     let tx = self.conn.transaction()?;
     for id in change.removed_threads {
       tx.execute("DELETE FROM tests WHERE thread_id = ?1", params![id])?;
@@ -878,8 +934,16 @@ impl Store {
     for number in change.removed_issues {
       tx.execute("DELETE FROM issues WHERE number = ?1", params![number])?;
     }
+    let mut dates = Vec::new();
     for t in change.threads {
-      Self::write_thread(&tx, t)?;
+      // The CREATE door: this write is the thing happening, so the database
+      // stamps it.
+      let (created, completed) = Self::write_thread(&tx, t, Stamp::ByTheDatabase)?;
+      dates.push(ThreadDates {
+        id: t.id.clone(),
+        created,
+        completed,
+      });
     }
     for i in change.issues {
       Self::write_issue(&tx, i)?;
@@ -889,7 +953,7 @@ impl Store {
     // transaction as the rows it describes (D42).
     Self::write_event(&tx, change.envelope, Stamp::ByTheDatabase)?;
     tx.commit()?;
-    Ok(())
+    Ok(dates)
   }
 
   /// Rebuild the whole store from canon -- the DISK -> DB sync direction.
@@ -901,7 +965,9 @@ impl Store {
     let tx = self.conn.transaction()?;
     tx.execute_batch("DELETE FROM tests; DELETE FROM criteria; DELETE FROM related; DELETE FROM wps; DELETE FROM threads; DELETE FROM issues;")?;
     for t in threads {
-      Self::write_thread(&tx, t)?;
+      // The RESTORE door: these dates were recorded before, and rebuilding a
+      // store is not the project happening again.
+      Self::write_thread(&tx, t, Stamp::CarriedFromTheExtract)?;
     }
     for i in issues {
       Self::write_issue(&tx, i)?;
@@ -1142,44 +1208,6 @@ impl Store {
     self.doc_sections_query(
       "SELECT owner_type, owner_id, file, seq, heading, level, body FROM doc_sections ORDER BY file, seq",
       [],
-    )
-  }
-
-  /// **THE CLOCK. Time comes from the DB** (hv, 2026-08-15).
-  ///
-  /// RFC 3339 UTC, the format the event log already declares for `ts`.
-  ///
-  /// The store owns the clock because the store owns durable truth. Every
-  /// other arrangement gives a project more than one clock: the CLI had one,
-  /// `Envelope::new` had another, and a daemon would have brought a third --
-  /// three processes stamping one project's history from three readings, with
-  /// nothing to reconcile them. That is the whiteboard's local-versus-UTC
-  /// failure one layer down, and it fails the same way, silently: a stamp from
-  /// the wrong clock is indistinguishable from a right one by inspection.
-  ///
-  /// It also removes the injected-clock seam. A caller-supplied `today` is a
-  /// value a caller can get wrong, and two callers can disagree while both
-  /// look correct -- exactly what AC-08.8 forbids between the CLI and the
-  /// daemon for backup, and the same argument applies to every timestamp.
-  pub fn now(&self) -> Result<String, StoreError> {
-    Ok(
-      self
-        .conn
-        .query_row("SELECT strftime('%Y-%m-%dT%H:%M:%SZ', 'now')", [], |r| {
-          r.get(0)
-        })?,
-    )
-  }
-
-  /// Today, `YYYY-MM-DD` -- the same clock as [`Store::now`], truncated.
-  ///
-  /// Derived from the same query rather than from a formatted `now()`, so the
-  /// two can never disagree about which day it is at a UTC midnight boundary.
-  pub fn today(&self) -> Result<String, StoreError> {
-    Ok(
-      self
-        .conn
-        .query_row("SELECT strftime('%Y-%m-%d', 'now')", [], |r| r.get(0))?,
     )
   }
 
