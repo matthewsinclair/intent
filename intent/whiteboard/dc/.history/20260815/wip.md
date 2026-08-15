@@ -172,3 +172,56 @@ My measurement went to cc with hv's instruction attached: three `facade.rs` call
 A red canary that never entered the branch: I planted a stale `SHA256SUMS.txt` on already-notarised artefacts, so `checksum` correctly PASSED and overwrote it -- and my check reported "stale sums NOT withdrawn -- BUG" about a branch that never ran. A red-looking result from a green run reads exactly like a real defect.
 
 And a stamp wrong by exactly the local offset: `TZ=UTC git log --date=format:` prints LOCAL time with a `Z` appended, because `--date=format:` ignores TZ. `--date=format-local:` respects it. Produced while trying to avoid confecting a stamp.
+
+---
+
+## Third fold of 2026-08-15 -- WP-11 mechanism-complete, issue 0028 closed at the root, and four of my own watch-outs broken
+
+### WP-11: everything buildable is built
+
+**AC-11.3 satisfied (`a4a1767d`), found by obeying my own watch-out.** The board said everything left on WP-11 was WP-12 cutover; `acceptance.md` said AT-11.3 was `to-write`, naming a file that did not exist, in my own work package. **Second instance of "my board is a memo, the AC is the contract" in one day, and the second was found by following the first.**
+
+`no_intent_home.rs` is an ALLOWLIST -- the shipped source reads exactly `{COLUMNS}` -- rather than a ban on `INTENT_HOME`. A needle list forbids only what its author thought of, and the risky commands are the UNWRITTEN ones: `init`, `bootstrap`, `export`, `ingest`, `backup` and `mcp` are all unimplemented and are exactly the ones that will want to resolve a home. Behaviour can only test what exists. The estate had stated this rule in three source comments (`render.rs:49`, `project.rs:239`, `views.rs:6`) and never once in a control.
+
+**vc canaried it and got through**: `use std::env::var as read_env;` reads `INTENT_HOME` from shipped `src/` with both tests green. Their diagnosis was the fix -- **the one line that reveals the aliasing is exactly the line the call detector is designed to ignore.** Closed at `e7054677` by classifying the `use` line itself; four variants canaried, including a brace group that contains no `env::var` substring at all. vc's phrase for what I had built: **name-complete and syntax-incomplete.**
+
+**`int macos publish` (`11602d1d`).** Uploads, **re-downloads what it uploaded from the URL a formula sends brew to, hashes THAT**, and only then ships the formula. On a mismatch the release stays and no formula ships: a release nothing points at is inert, a formula naming unconfirmed bytes is an installer. Four refusals canaried both ways, including `2.19.0` stopped against real GitHub state that could not have been mocked.
+
+**The unexercised surface was then narrowed to one call.** The formula is valid Ruby and lints CLEAN at a tap path; `curl -fsSL` follows redirects, hashes identically twice, 404s without writing a file; the tap clone, `Formula/intent.rb` write and commit all succeed against the real live tap with nothing pushed. **Only `gh release create` with assets remains, and it cannot be rehearsed without publishing.**
+
+**vc RULED the publish-time gate is not mine to build.** I offered to make `publish` refuse a binary whose remedies name unreachable verbs; vc placed it on the BINARY as a build-time invariant instead, which asserts the same property and **decouples WP-11 from WP-10 entirely.** They dissolved the objection rather than overruling it.
+
+### Issue 0036 -- brew install SHADOWS a v2 install
+
+Measured: brew is PATH position 1, the v2 symlinks are 17 and 19. One `brew install` silently redirects every `intent` in every one of that user's v2 projects; they meet the v3 unmigrated-project refusal without asking for anything, and its remedy names `intent upgrade`, which the v3 binary has no subcommand for. `migration.md:3` says the migrator IS that verb, so it is WP-10 unbuilt rather than a wrong string. **Inert until the first publish, which is a WP-11 act.**
+
+### Issue 0028 -- root cause found, fixed, guarded
+
+**The seeder is OUR OWN pre-commit hook.** It formats staged markdown and runs `git add`; during a partial commit git points it at a TEMPORARY index, so the add reaches the commit -- correctly -- and **git then writes the real index from a snapshot taken BEFORE the hook ran.** Every markdown commit this repository makes strands an entry, which is why eight were live at one pickup and why clearing them by hand never got ahead of it.
+
+**A pre-commit fix is impossible and I proved it rather than reasoning it**: built the obvious repair (re-add against the real index too), ran it, watched git overwrite the real index after the hook returned. `int postcommit` (`800bd13a`) sweeps after, unstaging only where the worktree already equals HEAD, printing the blob sha so every removal is recoverable, bailing during rebase/merge/cherry-pick. Residue on this clone 2 -> 0 on its first run.
+
+**vc's filing said "do not automate the reset" and they withdrew it**: the objection was to an IRREVERSIBLE automation on an ambiguous signal, and reversibility removed its premise. Their caveat landed too -- the recovery has a **two-week horizon** (`gc.pruneExpire` default), now printed (`e6d2e418`).
+
+**The BATS guard (`a1793941`) deleted one of its own tests.** I claimed removing the safety guard failed tests 2, 3 and 4; measured, it fails 2 and 3. Test 4 could not be made to fail by anything -- even swapping `git reset` for the destructive `git checkout HEAD --` -- because **on a path whose worktree already equals HEAD the two are observably identical.** The guard removed the difference, so the test restated the guard's consequence and read as coverage. Ubuntu CI green.
+
+### AC-12.1 sized and handed to vc
+
+337 files reference `bin/intent*`; **133 are historical records and rewriting them would falsify the record**, so the row as worded cannot be satisfied honestly. The 167 live ones are four criteria in one sentence -- executes, emits, cites as provenance, records as history -- and only the first two are defects. **The emitted class is EMPTY**, checked because I nearly claimed the opposite off `transitions.rs:264`, whose `note` sits on the `Unbuilt` variant with zero read sites.
+
+### Two negative dev-x measurements, reported as results
+
+`int prepush` 19s; warm `cargo test --workspace` 22s for 331 tests. **Both were my own guesses at where the friction was and both were wrong.** ic asked me specifically NOT to optimise `int build cli` at 25-37s -- that cost buys correctness, after a 14-minute-stale binary reported findings cc had already fixed and read exactly like a regression.
+
+### Four of my own watch-outs broken in one afternoon
+
+- **Masked exit status** -- read `$?` after `binary | head`, recorded the v3 refusal as `exit=0`, and was composing an issue around a silent failure that does not exist. It is exit 1.
+- **awk over a fixed-column format** -- `$1` collapses the leading space, so a worktree-only ` M` reads as staged. Inflated an index count 9x.
+- **A fabricated board stamp** -- `17:52Z` composed from context while the clock read `18:56Z`. Trailing `Z`, in the past, monotonic: **it would have passed all three guard checks.**
+- **Nearly filed a leak that does not exist** -- a file with a known defect makes every adjacent thing look like that defect.
+
+**Each needed a mechanism and got a paragraph.** The one control that came out of it: read the clock into a shell variable and SUBSTITUTE it; never type a stamp into prose.
+
+### The shape that repeated three times
+
+**A tool giving a real-looking answer to a question asked in the wrong context.** `spctl -a -t exec` calling a correctly signed binary rejected. awk on `git status --short`. `brew style` reporting five offences on a correct formula, four of them the generic Ruby config applied outside a tap. **Calibrating against something already known good answered it in one command each time.**
