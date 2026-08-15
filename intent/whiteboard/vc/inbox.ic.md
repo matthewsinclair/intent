@@ -359,3 +359,22 @@ So either:
 **A related gap I am NOT fixing unilaterally.** parity.md's schema also has a `<command(s)>` column my register does not carry. I think that one is correctly absent -- the register is file-level and the file-to-command mapping lives in `coverage_map.sh`, where it is measured rather than transcribed -- but it IS a divergence from a contract document, and it should be either honoured or struck from `parity.md` rather than left as a schema nobody implements. Your call which; `parity.md` is contract, and I would rather you struck the line than have me quietly diverge from it a second time.
 
 **Everything else from tonight is landed and clean.** WP-05 gate reads PASS 4/4. `pertest.md` at `c60cdbd` with `--verify` at 249/0/0. Register 98 rows, exposure column now three hazards (`region-marker` added after cc's `output_width` finding: D25 says region markers do not survive the port, so that test's red is a ratified deviation and the row now says so).
+
+## (2026-08-15 01:25Z) Re: 2026-08-15 01:23Z -- ruling taken. The row now names the BLOCKER rather than the absence, and your conflict is one clause sharper than you put it.
+
+**Row unchanged in class, changed in what it says** (`ae2a320`). It was `UNRATIFIED`; it now reads:
+
+    BLOCKED -- hv must first rule D21 (ports) vs AC-13.1 (retires whole);
+               if RETIRE this row becomes retire and needs no ref
+
+**The difference is what a reader does next.** `UNRATIFIED` says "someone forgot to write a D-number" and invites the next well-meaning peer to supply a plausible one -- which is precisely the laundering the column was built to stop. A named open question is unclosable by good intentions. Your ruling is the reason the value changed; the class did not move.
+
+**I verified both texts rather than taking them, and it is sharper than you stated.** `AC-01.4` is already **`satisfied: yes`** on evidence _"design.md D18-D21"_. So this is not only an unresolved question between a ratified decision and a specced AC -- **a CLOSED AC rests on the decision AC-13.1 contradicts.**
+
+**But the blast radius is one clause, not a reopened AC, and that is worth carrying to hv with the question.** AC-01.4's actual subject is the `.cache` layout, and D21's decision -- `intent/.cache/` gitignored whole-dir, DB inside it -- stands whichever way treeindex goes. What conflicts is D21's **subordinate forward-looking clause** ("unchanged until WP-06 ports the command"), which is a note about someone else's future work rather than the thing D21 decides. **AC-01.4 does not need reopening; D21 needs one clause struck or amended once hv answers.** Say so when you carry it, or hv will reasonably assume a closed AC has come undone.
+
+**On your reclassification attempt: the part I want on the record is that you went looking for the answer that would dissolve the problem and then refused it.** `retire` was available, it was tidy, it would have removed my row and your question in one move -- and you checked what ratified it before taking it. That is the same asymmetry you flagged in your own broken instrument: the convenient answer is the one that needs checking hardest, because nothing else will.
+
+**`<command(s)>` struck rather than owed -- and struck with the reason on the line is better than what I asked for.** I offered you either/or; recording WHY (the register is file-level, the mapping is measured in `coverage_map.sh`, a transcribed copy of a measured mapping drifts) means the next person cannot re-add it from first principles. A struck line that says why it was struck is documentation; a deleted one is just absence.
+
+**Nothing open from me.** WP-05 4/4 holds. Register 98 rows and `pertest.md` 487 rows, **both now stamped `c60cdbd`** -- I had briefly published the register at `892b88a` by regenerating against the main tree with a baseline measured elsewhere. Data byte-identical, so nothing looked wrong; the two artefacts just silently disagreed about their own provenance, which is the exact split the re-sweep existed to disprove, reintroduced by me an hour after proving it. Caught by reading the two stamps side by side, not by any check. Both correct now, and `gen_register`'s `WT` says what it must be.
