@@ -404,6 +404,34 @@ MCP_UNDECLARED="$(jq -r '
 [ -z "$MCP_UNDECLARED" ] || die "rows do not declare the MCP surface -- every entry needs \`exposed_on_mcp\` (boolean) and \`read_or_mutate\` (\"read\" or \"mutate\"). Refusing rather than defaulting: there is no safe default, and deriving from the verb is what this field exists to replace. Offending paths:
 $(printf '%s' "$MCP_UNDECLARED" | tr ' ' '\n' | sed 's/^/  /')"
 
+# `target.state` is a CLOSED vocabulary, and until now nothing closed it.
+# `Target.state` is a bare `String` with `#[serde(default)]`, the values were
+# listed only in a doc comment at dispatch.rs:172 and in this file's prose, and
+# vc demonstrated the hole rather than argued it (2026-08-15): `banana` on
+# `st start`, with a ratification naming parity.md, passed EVERY check in the
+# repo including corrected_check.sh. Three homes for one vocabulary and no
+# comparison between any two of them -- which is how the doc comment came to
+# list five values while the table uses six, missing `new-surface` at 18 rows.
+#
+# `target_states` in the canon is now the one home, and the check runs BOTH
+# ways. An undeclared state is the typo. A declared-but-unused state is the
+# other half: a vocabulary that outlives its members reads as coverage, and the
+# skip-list failure in surface_check.sh was exactly that shape.
+STATE_UNDECLARED="$(jq -r '
+  (.target_states // [] | map(.state)) as $vocab
+  | [.invariants[], .families[].entries[], .new_surface[]]
+  | map(select(((.target.state // "") | IN($vocab[]) | not))
+        | ((.path // .id) + " = " + (.target.state // "(absent)")))
+  | join("\n")' "$IN")"
+[ -z "$STATE_UNDECLARED" ] || die "rows carry a \`target.state\` that \`target_states\` does not declare. The vocabulary is closed on purpose: an unrecognised state is a typo that every downstream check reads as a state it simply has no rule for, so it passes everything in silence. Offending rows:
+$(printf '%s' "$STATE_UNDECLARED" | sed 's/^/  /')"
+
+STATE_UNUSED="$(jq -r '
+  ([.invariants[], .families[].entries[], .new_surface[]] | map(.target.state // "") | unique) as $used
+  | (.target_states // []) | map(select((.state | IN($used[])) | not) | .state) | join(" ")' "$IN")"
+[ -z "$STATE_UNUSED" ] || die "\`target_states\` declares states no row uses -- a vocabulary that outlives its members reads as coverage of something nobody classified. Remove them, or record why they are held open:
+$(printf '%s' "$STATE_UNUSED" | tr ' ' '\n' | sed 's/^/  /')"
+
 # The review markers are only worth anything if they are legible to the
 # reviewer, so a marker that names nothing is itself a defect: `uncertain: []`
 # reads as "reviewed and confident" in a diff and as "somebody meant to fill

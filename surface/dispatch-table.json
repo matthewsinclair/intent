@@ -4,6 +4,44 @@
   "measured_on": "2026-08-14",
   "measured_by": "ic",
   "status": "All 27 v2 families authored + 8 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling.",
+  "target_states": [
+    {
+      "state": "as-observed",
+      "is_parity_class": false,
+      "gloss": "v3 reproduces what v2 was measured doing. The default and the largest class; it asserts no deviation, so there is nothing for parity.md to ratify.",
+      "provenance": "The parity contract's baseline -- parity.md's `In scope (parity holds)` bullet"
+    },
+    {
+      "state": "corrected",
+      "is_parity_class": true,
+      "gloss": "A v2 behaviour that is simply wrong and is fixed rather than faithfully reproduced. Distinct from `deviate`, which is a design consequence rather than a bug fix.",
+      "provenance": "proposed by ic, hv-ratified at the 2026-08-14 bounce; named in parity.md's ratified deviation classes"
+    },
+    {
+      "state": "undefined",
+      "is_parity_class": true,
+      "gloss": "v2 exhibits no defined behaviour, so there is no antecedent to be faithful to. `corrected` needs something to correct; silence is not an antecedent.",
+      "provenance": "vc ruling, 2026-08-14, on `intent config` as its first member -- and the ruling calls it THE FIFTH PARITY CLASS in as many words, which is why it must appear in parity.md and does not"
+    },
+    {
+      "state": "retire",
+      "is_parity_class": false,
+      "gloss": "The command does not ship in v3. It is a deviation from v2 and it is NOT ratified by class membership -- every retire row carries its own ratification (hv rulings for organize/treeindex/st_zero, D09 for upgrade, AC-05.1 for help), so the class is not the authority and parity.md is not where its warrant lives.",
+      "provenance": "per-row; see each entry's target.ratification"
+    },
+    {
+      "state": "pending-hv",
+      "is_parity_class": false,
+      "gloss": "An honest blank. The scope call is open and a guess recorded here would read exactly like a decision.",
+      "provenance": "the honest-blank convention in this file's about block"
+    },
+    {
+      "state": "new-surface",
+      "is_parity_class": false,
+      "gloss": "A v3 command with no v2 antecedent, so there is nothing to deviate from. Second-largest class at 18 rows -- 8 in the new_surface array plus 10 new verbs inside existing families.",
+      "provenance": "UNRECORDED. Used on 18 rows and decided nowhere this table can cite: it appears in prose as a COUNT (`8 new-surface entries`) and never as a ruling. Recorded as unrecorded rather than back-filled with a plausible attribution, which would be the same defect AC-05.5 exists to catch."
+    }
+  ],
   "about": [
     "THE command-surface source of truth for Intent v3 (AC-05.1). The clap surface, the help text, the MCP tool list and the `intent llm` agent guide all render FROM this file; nothing renders from `bin/**` and nothing describes the surface a second time.",
     "This is the AUTHORED artefact. `dispatch-table.md` beside it is a GENERATED view -- run `parity/tools/gen_dispatch_table.sh`, never hand-edit the view.",
