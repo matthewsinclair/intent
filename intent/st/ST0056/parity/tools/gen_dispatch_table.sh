@@ -103,6 +103,30 @@ MEASURED_ON="$(jq -r '.measured_on // empty' "$IN")"
 MEASURED_BY="$(jq -r '.measured_by // empty' "$IN")"
 STATUS="$(jq -r '.status // empty' "$IN")"
 
+# THE COUNTS IN `status` ARE DERIVED, NOT TRANSCRIBED, and an authored count
+# that disagrees with the file it describes is a REFUSAL rather than a warning.
+#
+# Found 2026-08-15: the canon carried "All 27 v2 families authored + 6
+# new-surface entries" while holding SEVEN. A hand-typed number sitting inside
+# the artefact it counts is a second copy of data the file already has, and it
+# went stale the moment cc authored an entry -- correctly, telling me at the
+# time. Nothing could have caught it, because nothing was comparing the sentence
+# to the rows.
+#
+# This is the same defect this whole directory exists to prevent, in the file
+# that is supposed to be THE source of truth for the command surface. A view
+# whose own header miscounts its rows undermines every number below it.
+N_FAM="$(jq -r '.families | length' "$IN")"
+N_NEW="$(jq -r '.new_surface | length' "$IN")"
+if [ -n "$STATUS" ]; then
+  claimed_fam="$(printf '%s' "$STATUS" | sed -nE 's/.*All ([0-9]+) v2 families.*/\1/p')"
+  claimed_new="$(printf '%s' "$STATUS" | sed -nE 's/.*\+ ([0-9]+) new-surface.*/\1/p')"
+  [ -z "$claimed_fam" ] || [ "$claimed_fam" = "$N_FAM" ] || \
+    die "canon status claims $claimed_fam v2 families; the file holds $N_FAM. Fix the sentence or the rows -- a view that miscounts its own contents discredits every figure in it."
+  [ -z "$claimed_new" ] || [ "$claimed_new" = "$N_NEW" ] || \
+    die "canon status claims $claimed_new new-surface entries; the file holds $N_NEW. Fix the sentence or the rows -- a view that miscounts its own contents discredits every figure in it."
+fi
+
 # The stamp is not decoration. A record that does not name the commit it covers
 # cannot be spotted as stale, and "full suite GREEN at HEAD" was false by three
 # commits across four documents for exactly this reason. Refuse rather than
@@ -316,6 +340,13 @@ jq -r "$JQ_LIB"'
 ' "$IN" >> "$OUT_TMP"
 emit ""
 jq -r '.new_surface[]? | select(.acceptance) | "- `" + .path + "` -- acceptance: " + .acceptance' "$IN" >> "$OUT_TMP"
+
+# NOTES ARE RENDERED, because an authored field the view omits is unreviewable.
+# `sync` carried a note whose second clause was wrong for a day, and the human-
+# reviewable face of this canon did not show it -- so the only thing that could
+# ever have caught it was the author re-reading their own code, which is what
+# happened. A view that silently drops a field is not a view of the file.
+jq -r '.new_surface[]? | select(.note) | "- `" + .path + "` -- note: " + .note' "$IN" >> "$OUT_TMP"
 
 # --- Column-align every table BEFORE the file lands -------------------------
 #

@@ -2,7 +2,7 @@
 
 > GENERATED VIEW -- the canon is `dispatch-table.json` beside this file. Regenerate with `parity/tools/gen_dispatch_table.sh`; do not hand-edit rows. Measured at `9ec1656` on 2026-08-14 by ic.
 
-**Status:** All 27 v2 families authored + 6 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling.
+**Status:** All 27 v2 families authored + 7 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling.
 
 - THE command-surface source of truth for Intent v3 (AC-05.1). The clap surface, the help text, the MCP tool list and the `intent llm` agent guide all render FROM this file; nothing renders from `bin/**` and nothing describes the surface a second time.
 - This is the AUTHORED artefact. `dispatch-table.md` beside it is a GENERATED view -- run `parity/tools/gen_dispatch_table.sh`, never hand-edit the view.
@@ -2355,3 +2355,4 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 | `mcp`    | --           | --             | Serve the MCP surface over stdio                                         | WP-09     | design.md:84, D11                                                                                                                                                                                                                                                                                                            |
 
 - `search` -- acceptance: AC-06.4 (added by vc, 2026-08-14, on the finding that all 62 ACs had zero coverage of search)
+- `sync` -- note: NOT the same command as `st sync`, and NOT a superset of it either. v2's `st sync` composes `list` and PRINTS the thread table; only `--write` persists `steel_threads.md` (bin/intent_st:1145-1211, verified by ic). Reconciling the store from canon is a different job, so the two are two commands sharing a name and v3 treats them as such. Added by cc at build time (2026-08-14); second clause originally read "v2's job is a strict subset of this reconciliation and both spellings run it", corrected 2026-08-15 after cc found their own test could not catch it -- it was written from the same misreading as the code, asserted the two spellings produce identical bytes, and passed.
