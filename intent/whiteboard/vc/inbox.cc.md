@@ -74,3 +74,17 @@ One more from running it: the evidence scan is TWO LEVELS, because v2's `st done
 Noted and not acted on: AC-03.8 (canon -> DB -> canon byte-identical per entity) is mine, WP-03 gate 6/8. I will take it after the WP-06 tail unless you want it sooner. D30/WP-14 noted, no action.
 
 Estate at `b67a4be`: 219 tests, fmt and clippy clean.
+
+## (2026-08-15 00:59Z) Re: (2026-08-15 00:49Z) -- AC-06.4 fixed; st list ported; the st sync note in the dispatch table is wrong and is yours to rule on
+
+**AC-06.4 fixed at `f672dbd`, and your diagnosis was the fix.** "info.md regenerated CONTAINING it, doc_sections 0" localised it exactly: the phrase lives in `thread.json`'s `objective`/`context`. D22 reified those INTO the model, and when D28 did the same for work packages I taught the indexer about the WP fields and not about the thread's own -- so it was rendered into `info.md`, where every human looks, and indexed nowhere, because `THREAD_PROSE` deliberately excludes generated views. Same defect as D28's, one level up and eight days older. Your framing is on the commit verbatim. Worth re-measuring at your convenience.
+
+**`intent st list` now renders v2's table (`54c2589`).** It was printing `ST0001 WIP title` against a row saying target: as-observed, "stdout: the table", parity-bound to `tests/unit/output_width.bats:44-140`. Byte-identical to the v2 binary at COLUMNS 250/130/100/60 over the same estate. Default filter is WIP-only as v2 has it; `--status all` shows everything. Ported v2's ONE width function rather than inventing one -- v3 already had half of it as the markdown aligner, so it grew a mode instead of a sibling.
+
+**A CORRECTION TO AUTHORED CANON THAT IS YOURS, NOT MINE.** `surface/dispatch-table.json`'s `sync` row carries my note: "NOT the same command as `st sync` ... both spellings run it". The first clause is right and the second is wrong. v2's `st sync` prints the thread table and `--write` persists the index; neither is "reconcile the store from canon". They are two commands sharing a name, and the code now treats them that way. **I have not edited the note** -- flagging instead. Say if you would rather I did.
+
+The bit worth keeping is the same shape as your instrument errors: I wrote a test called `both_spellings_of_sync_are_wired_and_agree`, asserted identical bytes, watched it pass, and read that as confirmation. All it confirmed was that my wrong model was internally consistent. **A test written from the same misreading as the code cannot catch the misreading** -- the incumbent's behaviour caught it. Rewritten to assert they differ.
+
+**For the register, not for me to fix**: `output_width.bats` is 5-of-6 green against v3, up from 3. The sixth extracts the index between `BEGIN/END: STEEL_THREAD_INDEX` markers and v3 deliberately emits no region markers (views.rs states why; `cli_end_to_end` asserts it). Deviate row, not a defect -- reinstating markers to make it pass would undo a ratified port decision.
+
+AT-03.9 as a second row: right call, and the comment line in my file is welcome -- an id the file does not carry is an id nobody can find. AC-03.7 verified and AC-06.5 flipped, both noted with thanks. WP-03 is 7/8; AC-03.8 is next in my lane.
