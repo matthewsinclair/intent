@@ -33,6 +33,39 @@ set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
 
+# THE GUARD ROSTER -- declared ONCE here and consumed TWICE: the run labels its
+# steps from these names, and `--list-guards` prints them for `int hooks`.
+#
+# WHY THIS EXISTS AT ALL, and it is a defect I shipped. `int hooks` derived its
+# roster by grepping `$TOOLS/[a-z]*.sh` out of this runner, and I wrote in its
+# source that reading the names from the runner meant "the roster cannot rot".
+# It rotted the same day: guard 0 below is implemented INLINE rather than as a
+# script under `$TOOLS/`, so the grep could not see it and `int hooks` reported
+# a gate enforcing two things when it enforces three. Under-reporting what a
+# gate enforces is worse than most defects, because the tool people consult to
+# find out is the thing that is wrong.
+#
+# The error was anchoring on a PATH SHAPE rather than on the structural fact --
+# my own watch-out about needles that stop matching when the prefix changes,
+# self-inflicted one file over. The fix is the other Decision on my board: ASK
+# THE TOOL, DO NOT REIMPLEMENT ITS RULE. The runner is the authority on what the
+# runner checks, so it declares, and `int hooks` asks.
+#
+# Format is `name<TAB>script-or-dash`. A dash means the guard has no script to
+# stat, which is a legitimate state and not a missing file -- the distinction
+# `int hooks` needs in order to keep flagging a guard whose script has actually
+# gone missing.
+G_NODB="no database enters history (D34: the DB is per-machine truth, never committed)"
+G_PROV="provenance: artefacts from one measurement name one revision"
+G_SKEW="skew: committed generated views still match their canon"
+
+if [ "${1:-}" = "--list-guards" ]; then
+  printf '%s\t-\n' "$G_NODB"
+  printf '%s\t%s\n' "$G_PROV" "provenance_check.sh"
+  printf '%s\t%s\n' "$G_SKEW" "view_skew_check.sh"
+  exit 0
+fi
+
 TOOLS="${PROJECT_ROOT:?}/intent/st/ST0056/parity/tools"
 
 # The staged set, which is what a pre-commit gate is entitled to have an opinion
@@ -81,7 +114,7 @@ failed=""
 # differ exactly when it matters, and the index is what would land -- the same
 # reason a green suite is evidence about the tree you have and not the tree you
 # pushed.
-step "no database enters history (D34: the DB is per-machine truth, never committed)"
+step "$G_NODB"
 staged_db=""
 while IFS= read -r p; do
   [ -n "$p" ] || continue
@@ -138,7 +171,7 @@ fi
 #    group is exactly when the group can be split, so narrowing it to the staged
 #    set would blind it to the failure it exists to catch.
 if [ "$HAVE_TOOLS" -eq 1 ]; then
-  step "provenance: artefacts from one measurement name one revision"
+  step "$G_PROV"
   if ! bash "$TOOLS/provenance_check.sh"; then
     rc=1
     failed="${failed}  provenance_check.sh -- a measurement group names more than one revision
@@ -149,7 +182,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   #    is cry-wolf arriving through a different door. It is sound rather than a
   #    fudge -- a generator reads only its canon, so a view cannot go stale unless
   #    canon, generator or view changes, and all three are paths.
-  step "skew: committed generated views still match their canon"
+  step "$G_SKEW"
   if [ "$FULL" -eq 1 ] || [ -z "$STAGED" ]; then
     skew_run=(bash "$TOOLS/view_skew_check.sh")
   else

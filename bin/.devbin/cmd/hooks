@@ -91,23 +91,66 @@ _hp="$(git -C "$ROOT" config --get core.hooksPath 2>/dev/null || true)"
 [ -n "$_hp" ] && REDIRECTED="  (core.hooksPath = $_hp)"
 [ -f "$ROOT/.git" ] && REDIRECTED="${REDIRECTED}  (linked worktree -- hooks live in the main repository)"
 
-# guards_of <runner-name> -- read the guard scripts a runner actually invokes,
-# and report whether each is present and executable. Measured from the runner's
-# own source rather than from a list kept here.
+# guards_of <runner-name> -- ASK THE RUNNER what it enforces, then report whether
+# each guard that names a script has one that is present and executable.
+#
+# THIS REPLACES A GREP THAT UNDER-REPORTED, and the correction is worth keeping
+# because the original was wrong in the way that is hardest to notice. It read
+# `$TOOLS/[a-z]*.sh` out of the runner's source, and this file claimed that
+# deriving the names from the runner meant the roster could not rot. It rotted
+# within the day: `int precommit` grew a guard implemented INLINE, the grep could
+# not see it, and this command reported a gate enforcing two things while it
+# enforced three.
+#
+# **A check that under-reports what a gate enforces is worse than no check**,
+# because it is consulted precisely by someone trying to find out, and it answers
+# confidently. It is the same failure this command exists to expose -- a hook that
+# looks installed and protects less than it claims -- reproduced by the tool doing
+# the exposing.
+#
+# The root error was anchoring on a PATH SHAPE (`$TOOLS/...`) rather than on the
+# structural fact (what the runner checks). A needle built from a path stops
+# matching the moment the path stops being the shape, and then passes in silence.
+# `--list-guards` makes the runner the authority, which is the only arrangement
+# where the roster genuinely cannot rot.
 guards_of() {
-  local runner="$ROOT/bin/.devbin/cmd/$1" line g
-  [ -f "$runner" ] || { printf '                 runner MISSING: bin/.devbin/cmd/%s\n' "$1"; return; }
-  # `|| true`: a runner with no $TOOLS/*.sh guards is legitimate (prepush is one
-  # -- its check is inline), and under `set -e` grep's exit 1 on no-match would
-  # abort the whole report.
-  while IFS= read -r line; do
-    g="$ROOT/intent/st/ST0056/parity/tools/$line"
-    if [ -x "$g" ]; then
-      printf '                 guard: %s\n' "$line"
+  local runner="$ROOT/bin/.devbin/cmd/$1" name script
+  [ -f "$runner" ] || {
+    printf '                 runner MISSING: bin/.devbin/cmd/%s\n' "$1"
+    return
+  }
+  # CAPABILITY-DETECT BEFORE INVOKING, and this is not defensive noise -- the
+  # obvious version of this function ran `<runner> --list-guards` and read the
+  # exit code to decide whether the runner supported it. Measured before
+  # shipping: `prepush` tests only for `--force` and otherwise FALLS THROUGH AND
+  # RUNS, so that probe would have cloned the repository and cold-built it, ~16s,
+  # every single time anyone asked what the hooks were wired to. **A probe with a
+  # side effect is not a probe.** Never ask a question by running the thing.
+  #
+  # So support is detected from the source (a yes/no capability question whose
+  # answer is genuinely in the text) and the ROSTER still comes from the runner
+  # (the authority on what it checks). Grepping for a capability marker is not
+  # the same mistake as grepping for the roster: this cannot go stale in a way
+  # that under-reports, because a runner that declares the flag must contain it.
+  if ! grep -q -- '--list-guards' "$runner" 2>/dev/null; then
+    # Silence and "none" are different answers and only one of them is true;
+    # printing nothing here would be the same false green this command exists
+    # to expose.
+    printf '                 (runner declares no guard roster -- checks are inline)\n'
+    return
+  fi
+  while IFS="$(printf '\t')" read -r name script; do
+    [ -n "$name" ] || continue
+    if [ "$script" = "-" ] || [ -z "$script" ]; then
+      # No script to stat. A legitimate state, not a missing file -- saying so
+      # keeps the MISSING report below meaningful.
+      printf '                 guard: %s\n' "$name"
+    elif [ -x "$ROOT/intent/st/ST0056/parity/tools/$script" ]; then
+      printf '                 guard: %s  [%s]\n' "$name" "$script"
     else
-      printf '                 guard: %s  <- NOT EXECUTABLE OR MISSING\n' "$line"
+      printf '                 guard: %s  [%s]  <- NOT EXECUTABLE OR MISSING\n' "$name" "$script"
     fi
-  done < <(grep -oE '\$TOOLS/[A-Za-z0-9_]+\.sh' "$runner" 2>/dev/null | sed 's|\$TOOLS/||' | sort -u || true)
+  done < <("$ROOT/bin/int" "$1" --list-guards 2>/dev/null || true)
 }
 
 # report_hook <hook-name> <runner-name>
