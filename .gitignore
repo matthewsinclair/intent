@@ -95,6 +95,17 @@ intent/.treeindex/
 # git delta-compresses SQLite well, but FTS5 expansion is ~1.95x and GitHub hard-
 # blocks at 100 MB, which a whole-project corpus crosses.
 #
+# THAT 1.95x HAS A PENDING FALSIFIER, PAIRED WITH ISSUE 0029 (vc, 2026-08-15).
+# 0029 proposes contentless FTS5 -- `doc_sections` declares no `content=`, so it
+# stores a verbatim second copy of every file's text -- which roughly halves the
+# DB and takes the ratio to ~0.70x. If 0029 lands this number is FALSE, sitting
+# in a comment that reads as settled measurement and justifying a rule that stays
+# correct for a reason that has changed. That is the D29 shape arriving through
+# the fix rather than through the original. 0029 carries "update this ratio" as
+# part of its fix; this note is the other end, because a cross-reference written
+# at one end only is not a pairing. The CONCLUSION does NOT move either way:
+# ~29.6 MB still stays well out of git, so 0029 does not reopen D34.
+#
 # THIS IS A PATH RULE AND DELIBERATELY NOT A CLASS RULE. There is no `*.db` line
 # here and there should not be: now that the DB is durable truth, a blanket glob
 # would assert a durability policy about a whole class for every consumer of this

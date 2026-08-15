@@ -3,10 +3,10 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 13:52Z
+heartbeat_at: 2026-08-15 14:05Z
 status: active
-focus: "Dogfooding v3 for real: int dogfood ships a throwaway v3 project, because THIS repo is v2 and the v3 binary refuses here. AC-11.3 evidenced non-vacuously. Corrected my own wrong claim that it needed WP-06. Five devbin commands finally registered in MODULES.md."
-claims: []
+focus: "WP-11 CLAIMED and WIP (vc ratified it as dev-x). Signing measured and it inverted my starting position: brew binaries are all ad-hoc, and a valid Developer ID already exists. One item escalated to hv -- CI secrets for notarisation."
+claims: [ST0056/11]
 ---
 
 # DevX Claude (dc)
@@ -31,6 +31,12 @@ hv reversed D01 on 2026-08-15 and vc has rolled it out. This is what I hold, and
 - **hv RULING RELAYED 13:33Z -- `rm intent.db` should not exist as an operation anywhere.** hv: _"Why would anything in Intent EVER do this? If the db is the durable SSOT, this should simply NEVER BE A THING."_ Measured whole-repo before relaying: **production is CLEAN** (zero in `bin/`, zero in `crates/*/src/` -- `write_set.rs`'s removes are file-canon rollback), and cc has already fixed most doc comments. What survives is **three live test operations** (`store_rebuild.rs:150`, `cli_end_to_end.rs:575`, `search_surface.rs:56`) and **canon still pricing work in it** (`AT-14.11` to-write with `rm intent.db` AS ITS METHOD, `acceptance.md:156`, `WP/13/info.md:45`, `migration.md:27`, `restart.md:5`). Sent to vc (canon) and cc (tests); **I wrote none of it** -- relaying a ruling is not writing canon. **The argument that makes it more than stale wording: `rm intent.db` was never safe even under OLD D01** -- `event_log` has no canon path, so it destroys the audit trail AC-04.5 requires. The phrase was doing damage while it was still officially correct.
 
 ## TODO
+
+0. **WP-11 (Distribution) -- MINE, CLAIMED, WIP.** vc ratified it as dev-x at 13:50Z; hv had already given every node the pen. Doing the half that does not depend on WP-06, because deciding a release late is how a release grows a rushed answer.
+   - **One-vs-two binaries: CONFIRMED, nothing to decide.** D18 ruled two; the workspace produces exactly two `[[bin]]` targets, `intent` and `intentd`, and `intentsvcs` produces none. Ratified canon matches built reality.
+   - **Signing (AC-11.2): the measurement INVERTED my starting position.** I was going to argue for notarisation on install-experience grounds. **All three signed Homebrew binaries on this machine -- `jq`, `gh`, `rustc` -- are ad-hoc with no TeamIdentifier and NO quarantine xattr.** Homebrew fetches with curl, curl sets no quarantine, Gatekeeper never engages. **For the brew path ad-hoc is the ecosystem norm, not a compromise.** Gatekeeper only engages on a browser-downloaded archive, which cargo-dist creates by construction -- so: ad-hoc for brew, Developer ID + notarisation for the downloadable artefacts. **The cost objection does not exist: a valid `Developer ID Application: Geodica Pty Ltd` is already on this machine.** UNMEASURED and not asserted: whether a cargo-dist tap ships OUR artefact or a Homebrew-rebuilt bottle.
+   - **`bin/release` successor: a SPLIT, not a replacement.** `int build release` stays THE release command and keeps the tag; cargo-dist owns artefacts and the tap, triggered BY the tag. **Measured gap: the handler syncs `config.json` but knows nothing about `Cargo.toml`'s version** -- for a Rust release the tag would say 3.0.0 and the binary something else. `Cargo.toml` joins its sidecar sync.
+   - **ESCALATED TO hv, the only thing here I cannot decide**: the Developer ID cert + App Store Connect API key must exist in CI as secrets. Private key material I should not handle, and an org decision (Geodica Pty Ltd signing a public tool).
 
 1. **Issues 0030 and 0031 filed against `intent upgrade`, DEFERRED not done.** Both are `bin/**` v2 edits under hv's DEFAULT-DEFER, and neither is a show-stopper because the namespace rule already contains them.
    - **0030 (medium): `intent upgrade` stamps `date +%Y%m%d-%H%M%S` -- LOCAL time** (`intent_upgrade:117`). Does not sort chronologically across a DST fall-back, so an oldest-first retention deletes the newer artefact. **Latent only because nothing sweeps `.backup/` root**, which is exactly what my layout rule guarantees; it goes live the moment anyone extends retention to `upgrade/`.

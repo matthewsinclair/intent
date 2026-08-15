@@ -3,7 +3,7 @@ verblock: "14 Aug 2026:v0.2: vc - Populated from the ratified design session"
 wp_id: WP-11
 title: "Distribution: cargo-dist, Homebrew, signing"
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-11: Distribution: cargo-dist, Homebrew, signing
