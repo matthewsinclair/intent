@@ -219,7 +219,7 @@ Found by cross-checking all twelve deliverable lists against all sixty-two ACs, 
 - AT-03.5 `crates/intentsvcs/tests/unparsed_state.rs` -- covers AC-03.5 -- status: green
 - AT-03.6 `crates/intentsvcs/tests/prose_ingest_fts.rs` -- covers AC-03.6 -- status: green
 - AT-03.7 `crates/intentsvcs/tests/ignored_paths_corpus.rs` -- covers AC-03.7 -- status: green
-- AT-03.8 `crates/intentsvcs/tests/canon_roundtrip.rs` -- covers AC-03.8 -- status: to-write -- canon -> DB -> canon byte-identical per entity; a field added without a round-trip must fail this
+- AT-03.8 `crates/intentsvcs/tests/canon_round_trip.rs` -- covers AC-03.8 -- status: green
 - AT-03.9 `crates/intent-cli/tests/corpus_machine_independence.rs` -- covers AC-03.7 -- status: green
 - Coverage: complete
 
