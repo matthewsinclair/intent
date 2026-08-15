@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 14:56Z
+heartbeat_at: 2026-08-15 15:29Z
 status: active
-focus: "AC-02.6 built and verified green by vc; AC-02.7 built before it was contracted. Next: wire the seven st/wp verbs to the facade -- MY work, which I twice reported as a block on ic."
+focus: "Seven verbs wired, AC-03.9 selector built (D36 cleanup taken), st new -s composes, AC-06.4 + AC-06.7 guarded. WP-02 is 7/7. Next: AC-03.10 backup, then the declared-flag guard."
 claims: []
 ---
 
@@ -15,28 +15,32 @@ claims: []
 
 **The db is what is true. Everything on disk is an EXTRACT** -- `thread.json`, the `.md` views, `events.jsonl` are the same kind of object and none of them asserts anything. **One door in: the typed Rust API, and ingest is a CALLER of it.** **Sync's two directions are different operations**: db -> disk re-derives and cannot lose; disk -> db is a RESTORE that replaces truth -- except the event log, which MERGES, because nothing derives history. **Migrations are NORMAL.** **The standing requirement is PLATFORM AND DATA-MODEL OPENNESS** (AC-02.6): every db entity has a lossless `.json`/`.md` form usable without Intent. **D34**: the extract is the interchange, the DB is per-machine and never committed. **D35** (as vc sharpened it): snapshot = same-schema rollback ONLY; the recovery path for an outdated store is the EXTRACT, never a snapshot -- a snapshot from before a schema change restores the schema you were escaping. **D36**: `rm intent.db` is not an operation, including as a test-fixture idiom. **D37**: our ST/WP/AC ids never reach Intent's output, and that includes the published schema faces (`intent schema` prints them).
 
-## DOING -- wire the seven st/wp verbs to the facade
+## DONE this session -- five commits, `01079fd5` both remotes, 288 pass
 
-**MY work, and I twice reported it as a block on ic.** The rows landed at `8999adc`; the facade has had every verb since `2aec5f6`; `render.rs`'s `st` and `wp` both fall through to `unwired` for all seven. Seven match arms over methods that already exist.
+- **Seven verbs wired** (`546c06ef`). The rows were ic's and shipped; the wiring was mine. Mutation-proved: deleting an arm fails the drive on `not implemented yet`.
+- **AC-03.9 selector built** (`d7f3afdb`) -- `--to-disk` / `--to-store`, both D36 sites retired. **No store-deletion site remains.**
+- **`st new -s` composes** (`b0641c8b`) -- test reads the EVENT LOG, per vc's discriminating case.
+- **AT-02.7 marker** (`9df18b10`) -- **WP-02 gates 7/7 PASS.**
+- **AC-06.4 + AC-06.7 guarded** (`01079fd5`) -- empty index no longer answers like a miss; WP-body search tested.
 
-- `st triage | hold | resume | reopen | reinstate`, `wp reopen | unstart`. `st cancel --reason` reads optionally already.
-- **The lifecycle test in `cli_end_to_end.rs` does not distinguish the two worlds**: it asserts `st start` is REFUSED from `triage`, and `unwired` also refuses. Written to make an ask concrete, it made the ask invisible. **Replace with arm-by-arm assertions.**
-- **`st new -s|--start` is RULED (vc 14:15Z, ic 14:22Z): it must COMPOSE two declared transitions, never construct the end state.** Not yet read in full -- read the entry in `.history/20260815/inbox.vc.md` before building it.
+## DOING -- next up
+
+1. **AC-03.10** (DB backup). `VACUUM INTO`, never a serialiser. **Do not invent the `.backup/` namespace (dc's) or the `intent config` keys (ic's).** D35 as sharpened: do NOT describe the snapshot as the recovery path for a corrupt or outdated store.
+2. **The declared-flag guard.** Nothing mechanically links a table-declared flag to a renderer that reads it, so the next silent drop looks identical to a working flag from the help text. **Asked vc whether it is theirs to contract or mine to build.** A whole-file grep UNDER-REPORTS -- must be per-arm.
 
 ## TODO
 
-1. **AC-03.10** (DB backup). `VACUUM INTO`, never a serialiser. **Do not invent the `.backup/` namespace (dc's) or the `intent config` keys (ic's).** D35 as sharpened: do NOT describe the snapshot as the recovery path for a corrupt or outdated store.
-2. **AT-00.8 -- the D37 guard is MINE** (vc ruled; ic owns the dispatch table as an INPUT, dc gets the pre-commit hook later). **The hard part is referent, not regex**: an Intent WP id in `owner_wp` is RED, `ST0000` in help text is GREEN because it names a thing in the reader's own project. A regex over `ST0\d{3}` passes neither honestly.
-3. **D37 in the published faces, ~30 hits** -- vc RULED they are in scope and is doing the read themselves. Await their list. Pattern already set: value-format examples keep the description and take a NEUTRAL id (`ST0001`); backlog citations go.
-4. **AC-06.6 export**, then **AC-06.1 surface tail**. Issues 0026-0029 DEFAULT-DEFER; check AC-03.6 before touching 0029.
-5. **AC-04.1's `TornRollback` arm** -- independent of everything.
+1. **AT-00.8 -- the D37 guard is MINE** (vc ruled; ic owns the dispatch table as an INPUT, dc gets the pre-commit hook later). **The hard part is referent, not regex**: an Intent WP id in `owner_wp` is RED, `ST0000` in help text is GREEN because it names a thing in the reader's own project. A regex over `ST0\d{3}` passes neither honestly.
+2. **D37 in the published faces, ~30 hits** -- vc RULED they are in scope and is doing the read themselves. Await their list. **One I walked past and did NOT fix, deliberately, to avoid half a two-ended sweep: `event.rs:60`, `/// Natural id, eg ``ST0056``, ``ST0056/02``, ``0021``` on a `JsonSchema`type.** Pattern already set: keep the description, neutralise to`ST0001`.
+3. **AC-06.6 export**, then **AC-06.1 surface tail**. Issues 0026-0029 DEFAULT-DEFER; check AC-03.6 before touching 0029.
+4. **AC-04.1's `TornRollback` arm** -- independent of everything.
 
 ## Waiting
 
-- **vc**: (a) **AC-02.7 is already BUILT** (`523b34e8`) -- told them at 14:56Z with the mapping to their own discriminating case; WP-02 may be 7/7 rather than 6/7. (b) The **limit** they must price before setting it green: a migration ladder can only start at version 1, so every pre-stamp store is permanently unrecoverable -- the stamp buys the future, not the past. (c) `data-model.md`'s AC entity + the two `status_reason` fields.
+- **vc**: (a) whether `search`'s empty-index remedy may name `sync --to-store` -- **I decided it rather than stalling** and asked them to check. My reading: AC-03.9 forbids a remedy sending an operator to a RESTORE **to recover from a failure**, and prose is disk-native (D02), so disk -> db is not a recovery path for it but its only path. (b) **`doctor --fix` is theirs** -- a flag whose name promises mutation, declared and unread; what it may touch is a contract question and I am not building it. (c) AC-03.9's own text carries a stale measurement (says db-to-disk "does not exist at all"; `sync_to_disk` exists). (d) `data-model.md`'s AC entity + the two `status_reason` fields.
 - **THE FIFTH STATE IS WITH hv, NOT SETTLED.** vc reversed their own ruling in its favour on the record and says keep building; if hv rules against it the cost is one enum value and two edges. **Do not stall on it.**
-- **ic**: nothing owed. Their surface-text answer: **there is NO surface-text baseline anywhere in the parity apparatus** -- my two D37 string changes could not have been detected by anything they own. Which strings are parity-bound is a contract question for vc.
-- **Two D36 sites LEFT DELIBERATELY** (`search_surface.rs:56`, `cli_end_to_end.rs:591`): they delete the store to force a cold re-ingest, working around the missing AC-03.9 direction selector. vc UPHELD leaving them -- hiding them behind the clone fixture would remove the only pressure to ship the selector and make a later sweep come back clean while the gap persisted. **Condition: the comments must keep naming AC-03.9.**
+- **ic**: nothing owed either way. Told them about `wp rescope` (in the facade, no dispatch row) as an observation with the query, not an ask -- the omission may be deliberate.
+- **dc**: FYI only, no action. A `cargo build --release` ad-hoc signs the binary and silently de-notarises it; `codesign --verify --strict` returns 0 on it. `int macos verify` is the cheap check.
 
 ## Lane boundary
 
@@ -51,6 +55,9 @@ claims: []
 
 ## Watch-outs -- mechanical only
 
+- **A DISCARDED `ArgMatches` DROPS EVERY FLAG ON THE COMMAND, SILENTLY.** `Some(("sync", _))` and `Some(("doctor", _))` threw the matches away, so six declared flags could not be read even in principle -- and clap accepts a declared flag whether or not anything reads it, so `--help` advertises what the renderer denies. **Six found; five were real.** No mechanism links the two.
+- **A CENSUS BY WHOLE-FILE GREP UNDER-REPORTS.** My first flag census missed `st new -s` because its long spelling is `start`, which is everywhere in the renderer as a verb name. **Check per-ARM, never per-file.**
+- **A FIXTURE CAN PUT THE TEST IN THE WRONG WORLD.** `no_match_is_exit_zero_and_silent` used a bare `st new`, so its index was empty: it believed it was proving "searched and found nothing" and was exercising "never searched anything" -- the exact two cases its own criterion exists to separate, and it passed either way.
 - **A LANE BOUNDARY YOU ASSERT CAN BE BACKWARDS, and that is worse than a stale premise** -- it moves your work onto someone else's list, where it sits undone. I reported the seven verbs as owed by ic twice, in writing. **Before naming a peer's block, run the query that proves it.** ic's form: _"verify this rather than take my word"_.
 - **A TEST THAT ASSERTS A REFUSAL CANNOT TELL WHICH REFUSAL.** The lifecycle test passed identically whether the verbs were wired or not, because `unwired` also refuses. **A test written to make an ask concrete made the ask invisible.**
 - **A REPORT OF N SITES IS A SAMPLE UNTIL SOMEONE COUNTS.** Grep the phrase FAMILY, then READ every hit instead of counting.
