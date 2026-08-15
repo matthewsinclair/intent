@@ -187,7 +187,7 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
 
   let mut by_type: Vec<(&str, String)> = Vec::new();
   for (name, schema_key) in SCHEMA_VER_KEYS {
-    let contract = strip_versions(&published(name));
+    let contract = contract_of(&published(name));
     match by_type.iter_mut().find(|(k, _)| k == schema_key) {
       // The three JSON Schemas are ONE contract, so they hash together --
       // otherwise a change in `issue` alone would not be visible in a check
@@ -197,10 +197,18 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     }
   }
 
+  // **These three moved once WITHOUT a version bump, and that is the one
+  // legitimate reason to re-pin alone** (cc, 2026-08-15): `contract_of` started
+  // excluding documentation, so the same contract hashes differently. The
+  // versions are unchanged because nothing a consumer compiles against changed
+  // -- proven rather than asserted, by stripping the faces at the previous
+  // commit with the new rules and diffing: **zero contract lines differ across
+  // all five.** A re-pin without that measurement is the failure this whole
+  // mechanism exists to prevent.
   let pinned: &[(&str, u32, u64)] = &[
-    ("SCHEMA_DDL_VER", 2, 0x7409_34b3_71fd_e349),
-    ("SCHEMA_SDL_VER", 1, 0x95cf_14ce_d053_a361),
-    ("SCHEMA_JSON_VER", 2, 0x9659_84e7_22ca_b726),
+    ("SCHEMA_DDL_VER", 2, 0x56d1_6080_53fa_2b6f),
+    ("SCHEMA_SDL_VER", 1, 0x2a57_8b37_f00e_886a),
+    ("SCHEMA_JSON_VER", 2, 0x665c_22ee_d1bb_ca38),
   ];
 
   let mut moved = Vec::new();
@@ -238,47 +246,125 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   );
 }
 
-/// Remove the injected version markers, leaving the contract.
+/// Reduce a face to its CONTRACT: the version markers and the documentation
+/// removed, everything a consumer compiles against kept.
 ///
-/// Shared by the hash above and canaried below, because a stripper that
-/// silently stopped stripping would make the hash cover `INTENT_VER` and turn
-/// every patch release into a false contract change -- a guard that cries wolf
-/// is a guard someone re-pins without reading.
-fn strip_versions(face: &str) -> String {
-  face
-    .lines()
-    .filter(|line| {
-      let t = line.trim();
-      !(t.contains(INTENT_VER_KEY)
-        || SCHEMA_VER_KEYS.iter().any(|(_, k)| t.contains(k))
-        || t.starts_with("\"x-intent-ver\"")
-        || t.starts_with("\"x-schema-json-ver\""))
-    })
-    .collect::<Vec<_>>()
-    .join("\n")
+/// **DOCUMENTATION IS NOT CONTRACT, and this hash covered it until a doc edit
+/// proved otherwise** (cc, 2026-08-15). Rewriting comments in `store.rs` and
+/// field descriptions in `model.rs` -- no table, no column, no constraint, no
+/// field, no type -- moved ALL THREE hashes and demanded three version bumps.
+/// Obeying that would have told every consumer their contract had changed in
+/// order to record that a sentence had been reworded.
+///
+/// **It is the identical defect `store_schema_version.rs` had already found and
+/// fixed one layer down**, whose own note reads: _"the first thing that touched
+/// the DDL afterwards was a comment ... a guard that cries wolf on a comment is
+/// a guard someone re-pins without reading."_ That lesson was written hours
+/// before this file, by the same hand, and this file did not inherit it -- which
+/// is the argument for the strip being CANARIED below rather than trusted.
+///
+/// Each face is stripped in its own syntax, because there is no common one:
+/// SQL `--` lines, JSON `"description"` members, GraphQL `"""` blocks.
+fn contract_of(face: &str) -> String {
+  let mut out: Vec<&str> = Vec::new();
+  let mut in_sdl_description = false;
+  for line in face.lines() {
+    let t = line.trim();
+
+    // GraphQL: a `"""` block is a description. The delimiters are always on
+    // their own line in async-graphql's output, so this is a toggle rather than
+    // a parse.
+    if t == "\"\"\"" {
+      in_sdl_description = !in_sdl_description;
+      continue;
+    }
+    if in_sdl_description {
+      continue;
+    }
+
+    // The injected version markers, or the check is circular and every patch
+    // release becomes a contract change.
+    if t.contains(INTENT_VER_KEY)
+      || SCHEMA_VER_KEYS.iter().any(|(_, k)| t.contains(k))
+      || t.starts_with("\"x-intent-ver\"")
+      || t.starts_with("\"x-schema-json-ver\"")
+    {
+      continue;
+    }
+
+    // SQL: whole-line comments only. Stripping `--` wherever it appeared would
+    // need a tokeniser to avoid eating one inside a string literal, so the
+    // absence of in-line comments is CHECKED rather than assumed -- the same
+    // posture, and for the same reason, as the schema-hash strip in
+    // `store_schema_version.rs`.
+    if t.starts_with("--") {
+      continue;
+    }
+    assert!(
+      !t.contains("--") || t.contains("\"") || t.contains("->"),
+      "the DDL grew an in-line comment, so stripping whole lines no longer isolates the \
+       contract: {t}"
+    );
+
+    // JSON Schema: a `description` member. Values are single-line with escaped
+    // newlines, so a line test is exact here.
+    if t.starts_with("\"description\":") {
+      continue;
+    }
+
+    out.push(line);
+  }
+  out.join("\n")
 }
 
+/// **The strip is canaried in both directions**, because it can fail two ways
+/// and only one of them is loud: stripping too little makes the hash cry wolf,
+/// and stripping too much makes it green forever.
 #[test]
-fn the_stripper_removes_the_markers_and_nothing_else() {
-  let face = published("ddl.sql");
-  let stripped = strip_versions(&face);
-
+fn the_strip_removes_the_markers_and_the_prose_and_nothing_else() {
+  let ddl = contract_of(&published("ddl.sql"));
   assert!(
-    marker(&stripped, INTENT_VER_KEY).is_none(),
+    marker(&ddl, INTENT_VER_KEY).is_none(),
     "the tool version must not reach the contract hash, or a patch release becomes a contract \
      change"
   );
   assert!(
-    marker(&stripped, "SCHEMA_DDL_VER").is_none(),
+    marker(&ddl, "SCHEMA_DDL_VER").is_none(),
     "and neither must the contract version, or the check is circular"
   );
   assert!(
-    stripped.contains("CREATE TABLE IF NOT EXISTS threads ("),
+    !ddl.contains("--"),
+    "a SQL comment reached the contract hash, so rewording one would read as a schema change"
+  );
+  assert!(
+    ddl.contains("CREATE TABLE IF NOT EXISTS threads ("),
     "the strip removed the contract itself, which would make the hash meaningless and green"
   );
-  assert_eq!(
-    face.lines().count() - stripped.lines().count(),
-    2,
-    "exactly the two marker lines came out of ddl.sql"
+
+  let json = contract_of(&published("thread.schema.json"));
+  assert!(
+    !json.contains("\"description\""),
+    "a JSON Schema description reached the contract hash"
+  );
+  assert!(
+    json.contains("\"required\""),
+    "the strip removed the JSON Schema's own contract"
+  );
+
+  let sdl = contract_of(&published("schema.graphql"));
+  assert!(
+    !sdl.contains("\"\"\""),
+    "a GraphQL description block reached the contract hash"
+  );
+  assert!(
+    sdl.contains("type Thread {"),
+    "the strip removed the SDL's own contract"
+  );
+  // The toggle must not run away: an odd number of delimiters would swallow the
+  // rest of the file and leave a hash over almost nothing, which is the failure
+  // that looks like success.
+  assert!(
+    sdl.lines().count() > published("schema.graphql").lines().count() / 3,
+    "the description strip consumed most of the SDL, so the `\"\"\"` toggle did not close"
   );
 }
