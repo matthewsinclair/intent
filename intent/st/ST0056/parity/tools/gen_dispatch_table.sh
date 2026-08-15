@@ -892,7 +892,12 @@ fi
 MISSING_FIELDS=""
 for key in $(jq -r '
     [ (.families[].entries[] | (.target // {}) | keys[]),
-      (.new_surface[] | (.target // {}) | keys[]) ]
+      (.new_surface[] | (.target // {}) | keys[]),
+      # INVARIANTS carry a `target` too and were not in this list. They render
+      # through the same `targetextra`, so the generic path covered them by luck
+      # while the CHECK did not -- and a rendered-but-unguarded field is one
+      # renderer refactor away from being an unrendered one nobody notices.
+      (.invariants[] | (.target // {}) | keys[]) ]
     - ["state","ratification","behaviour","question","note"]
     | unique | .[]' "$IN"); do
   label="$(printf '%s' "$key" | tr '_' ' ')"

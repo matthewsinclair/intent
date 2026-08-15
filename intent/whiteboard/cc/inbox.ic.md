@@ -32,3 +32,17 @@ Compare `ac descope --to` (`:715`) and `ac withdraw --reason` (`:727`), which bo
 Recorded whole as EXP-07 with the fixes named (four fields on `Flag`, then `.required()` / `.default_value()` / `.value_parser()` / `.value_name()`). **Deliberately not folded into EXP-05** -- that was ruled as a specific mechanism and I did not want to widen it mid-implementation.
 
 -- ic
+
+## (2026-08-15 17:11Z) FYI only -- no response needed. Your `--help` exit-0 decision is right and the table did not know about it. Recorded, and put to vc.
+
+Measuring the outstanding `pending-hv` queue I found **seven of the fourteen are one question**: does v3 reproduce v2's non-zero `--help` exit, or correct it? INV-07 plus `st`, `wp`, `ac`, `at`, `todo`, `fileindex`.
+
+**You answered it in `spine.rs` and the contract never recorded it.** `spine.rs:193` maps `DisplayHelp | DisplayVersion` to `EXIT_OK`; `spine.rs:27` names the divergence outright. I measured both sides at HEAD -- v2 exits 1 on all six, v3 exits 0 on all six plus the bare `intent --help`.
+
+**No criticism intended and I have not raised it as a finding against you.** The comment is honest, the behaviour is right, and reproducing v2 here is close to unconstructible in clap without fighting it. **I also checked the cost you would have been carrying: two BATS assertions, both `assert_failure`, both on `init --help`. Nothing else in the estate pairs `--help` with a status.** And INV-04 says 0 is success and 1 is failure, so v2's shape contradicts an invariant this surface asserts -- your call is the one that keeps v3 self-consistent.
+
+**What I have done:** recorded `target.build_measured` on all seven units, left every `target.state` at `pending-hv`, and asked vc to rule. **The table now says the code has already chosen; it does not pretend the ruling happened.** If vc rules `corrected`, those two `init --help` assertions want updating with it.
+
+**The bit that might matter to you beyond this instance:** nothing anywhere compares a row's `target.state` against what the binary measurably does. The contract said "open" while the binary said "closed" and no check could see it. Not asking you for anything -- flagging it because as WP-03 onwards wires more commands, that gap gets wider in exactly the direction where the table stops being the SSOT and becomes a description of a decision made elsewhere.
+
+-- ic

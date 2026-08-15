@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15 16:51Z
+heartbeat_at: 2026-08-15 17:12Z
 status: active
 focus: "EXP-05 DONE in this file -- 93 flags classified, 3 refusals, all 93 render. The SPINE half is cc's and still open. New: EXP-07, four flag properties the Flag struct cannot see, one live."
 claims: []
@@ -38,9 +38,10 @@ claims: []
 
 ## Open with others
 
-1. **vc:** the `sync --to-store` vs `ingest` boundary is still undeclared, and `sync` is flagged for MCP review precisely because that boundary decides whether it stays exposed.
-2. **cc:** the spine must honour the flag `disposition` once I land it. `--fix` on `doctor` is the mechanism's first user.
-3. **D42 audit is DONE, and its D42 result is CLEAN -- all three findings withdrawn as D42.** `doctor` withdrawn outright; the other two survive under other names as `target.exposure`. **The `d42_exposure` key is GONE** (a census key with no members and a wrong name is worse than none) -- vc referenced it by name, so it is worth knowing it no longer exists. **`todo done` is the one that needs an owner: WP-03's renderer, not WP-06.** And vc's caution on the census stands and is the important half: a green here is about DECLARED FLAGS AND ARGUMENTS, while hv's rule is about function PARAMETERS, which never appear in a flag inventory. **This file cannot see the thing the rule forbids.** That needle is cc's guard.
+1. **vc, WAITING ON A RULING -- the biggest unblock in my lane. SEVEN of the 14 `pending-hv` units are ONE question and the BINARY HAS ALREADY ANSWERED IT.** INV-07 plus `st`, `wp`, `ac`, `at`, `todo`, `fileindex`: reproduce v2's non-zero `--help` exit, or correct it? **Measured at HEAD -- v2 exits 1 on all six, v3 as built exits 0 on all six plus bare `intent --help`**, deliberately (`spine.rs:193` maps `DisplayHelp` to `EXIT_OK`; `:27` names the divergence). **The cost is TWO BATS assertions, both `assert_failure`, both on `init --help`** -- nothing else in the estate pairs `--help` with a status. And INV-04 says 0 is success and 1 is failure, so reproducing v2 ships a v3 that breaks its own invariant on 10 of 27 commands. **I recorded the MEASUREMENT (`target.build_measured` on all seven) and left every `target.state` at `pending-hv`** -- I will not write hv's name on a ratification. My recommendation is `corrected`; vc may rule it waits for hv, which is fine because it is recorded either way.
+2. **cc:** the spine must honour the flag `disposition` -- it is landed on my side and `spine.rs:142` still builds every declared flag unconditionally. `--fix` on `doctor` is the mechanism's first user. **Also EXP-07's live one: `ac satisfy --evidence` is declared `required` and read as `unwrap_or_default()`.**
+3. **THE GAP BEHIND ITEM 1, which is mine and is not fixed: nothing compares a row's `target.state` against what the binary measurably DOES.** The contract said "open" while the binary said "closed" for hours and no check could see it. As WP-03 onward wires commands this widens in exactly the direction where **the table stops being the SSOT and becomes a description of a decision made elsewhere.** A probe-vs-target check is the obvious answer and I have not built it.
+4. **D42 audit is DONE, and its D42 result is CLEAN -- all three findings withdrawn as D42.** `doctor` withdrawn outright; the other two survive under other names as `target.exposure`. **The `d42_exposure` key is GONE** (a census key with no members and a wrong name is worse than none) -- vc referenced it by name, so it is worth knowing it no longer exists. **`todo done` is the one that needs an owner: WP-03's renderer, not WP-06.** And vc's caution on the census stands and is the important half: a green here is about DECLARED FLAGS AND ARGUMENTS, while hv's rule is about function PARAMETERS, which never appear in a flag inventory. **This file cannot see the thing the rule forbids.** That needle is cc's guard.
 
 ## Watch-outs
 

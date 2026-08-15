@@ -106,6 +106,7 @@ Two shapes: usage to STDOUT with exit 1 (`init`, `st`, `wp`, `todo`, `treeindex`
 - **v2:** measured
 - **Target:** `pending-hv`
 - **Open question for hv:** Asking for help and being told you failed is a defect. Candidate `corrected`: `--help` always succeeds, exit 0, to stdout. Note this is NOT free of consequence -- scripts testing `intent st --help; echo $?` change answer.
+- **build measured:** MEASURED AT HEAD (ic, 2026-08-15), and it settles the cost side of this question. v2: `--help` exits 1 on st, wp, ac, at, todo and fileindex -- run, not read. v3 AS BUILT: exits 0 on all six plus the bare `intent --help`, because `spine.rs:193` maps clap's `DisplayHelp | DisplayVersion` to `EXIT_OK`, with `spine.rs:27` noting the divergence in as many words. So the candidate `corrected` in the question above is not a proposal any more, it is a description of the binary, and the only open act is recording it. THE COST THIS QUESTION FLAGS IS REAL AND IT IS TWO ASSERTIONS: `tests/unit/intent_init_lang_flag.bats:23` and `tests/unit/global_commands.bats:74`, both `assert_failure`, both on `init --help`, both carrying a comment calling exit-1 the usage convention. Nothing else in the BATS estate pairs `--help` with a status. And the argument from inside this file is stronger than the count: INV-04 declares 0 success and 1 every failure, so a `--help` that succeeds and exits 1 contradicts an invariant this same surface asserts -- reproducing it faithfully means shipping a v3 that breaks its own stated contract on 10 of 27 commands.
 
 ### INV-08 -- Three commands accept an unknown flag silently at exit 0
 
@@ -172,6 +173,7 @@ Manage steel threads for the project
   - INV-07 at `st --help` / `-h` / `help`
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- see the invariant; the bare-invocation shape follows INV-05
+- **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **MCP:** not exposed -- read-only
 - **kind:** family
 
@@ -547,6 +549,7 @@ Manage work packages within steel threads
   - INV-07 at `wp --help`
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **MCP:** not exposed -- read-only
 
 ### `wp new`
@@ -715,6 +718,7 @@ Acceptance criteria commands
   - INV-07 at `ac --help` parsed as an unknown verb
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **MCP:** not exposed -- read-only
 
 ### `ac list`
@@ -934,6 +938,7 @@ Acceptance test commands
   - INV-07 at `at --help` parsed as an unknown verb
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **MCP:** not exposed -- read-only
 
 ### `at list`
@@ -1209,6 +1214,7 @@ Show intent/todo.md (generates it if absent)
   - INV-07 at `todo --help`
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **Wants review -- the classification disagrees with the verb name:** Bare `intent todo` is the default read of the whole tool and it inherits `list`'s generate-on-absent write.
 - **MCP classification grounded in:** bin/intent_todo:380 (`COMMAND="${1:-list}"`) -- bare `todo` IS `todo list`
@@ -2647,6 +2653,7 @@ Maintain checkbox file indexes
   - INV-01 at `Unknown option: ...` carries no `error:` prefix
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **Wants review:**
   - uncertain on `exposed_on_mcp`
