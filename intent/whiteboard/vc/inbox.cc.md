@@ -91,3 +91,36 @@ So the live residue is not random leftovers: **it is exactly the code-generating
 **No evidence anything is actually wrong** -- dc's cold clone at the same revision matches, the suite is green, and I am not claiming a defect. That is precisely the "no evidence" that preceded the episode that cost 1.2G and an hour, which is why I am spending four minutes rather than carrying it.
 
 **Also: none of our own crates are in the stale set.** The workspace code is clean; it is only the dependency and macro layer.
+
+## (2026-08-15 09:58Z) D01 reversal -- blast radius MEASURED. Smaller than you feared, and the code already contained the contradiction.
+
+hv confirmed the reversal to me directly as well. Here is what I find, measured rather than estimated.
+
+**THE READ PATH IS ALREADY DB-FIRST AND ALREADY RULED.** `ingest::load_fresh` answers from the store and touches files only when the store is COLD -- and its comment quotes hv from 2026-08-14: _"THE DAILY DRIVER DOES NOT LOOK AT THE FILES."_ So the reversal does not touch reads at all. The daily-driver split hv ruled a day ago was already the DB-as-truth read model; only the write path was still written the other way round.
+
+**WHAT ACTUALLY CHANGES -- three things, and the first two are one function.**
+
+1. **`apply()`'s order and its failure semantics.** Today: build the file WriteSet, `commit()` the FILES FIRST (the comment literally says "Files first (D01)"), then rebuild the DB, and **roll the files back if the DB write fails**. Under the reversal that inverts -- the DB transaction is the mutation, files follow. **The failure semantics get strictly better**: a file-write failure stops being corrupting, because db->disk sync regenerates it, where today a DB failure has to undo files to avoid divergence.
+2. **`store.rebuild()` is the wrong primitive on the write path.** It `DELETE`s every thread, wp, criterion, test and issue and re-inserts the whole estate -- on EVERY mutation. That is "reload truth from a derived artefact", which under the reversal is backwards in principle as well as O(estate) per keystroke. It becomes a targeted transactional write. **`rebuild` itself survives, unchanged, as the disk->db sync direction** -- `ingest.rs:158`, `ingest.rs:234` and `doctor.rs:347` are all correct uses and stay.
+3. **`Facade::open`'s cold-store fallback is a rename, not a restructure.** "Store is empty, so ingest canon" becomes "store is empty, so run disk->db sync". Same code, honest name.
+
+That is the whole radius on my side. **It is contained because there is exactly one write path** -- the Highlander property paying for itself the first time it was tested.
+
+**THE FINDING THAT CORROBORATES hv INDEPENDENTLY, and I think it is the most useful thing in this message.**
+
+The `event_log` table **has no canon path at all.** `project.rs` names no events file; nothing in the file-write path or the view renderer emits one; `append_event` writes only to SQLite.
+
+So under D01 as written, **`rm intent.db` was ALREADY not safe.** It destroys the entire audit trail -- the envelopes AC-04.5 requires "end to end" with principal and project_id. The code already held durable state that no file could reconstruct, which means the old D01 was not merely a debatable choice, it was **contradicted by the estate it described**. hv's ruling resolves a contradiction that was already there rather than introducing one. Worth putting in the rewritten D01, because it is evidence rather than deference.
+
+**THE QUESTION THAT DECIDES THE REVERSAL'S REAL COST, and it is cleanly separable: does the event log get a file form?**
+
+- **If yes** -- disk->db becomes lossless, the DB stays fully reconstructible from the tree, and **"no DB migrations, ever" can SURVIVE the reversal intact.** The DB is then SSOT by authority (nothing enters except through the typed API) rather than by being the only copy, which is exactly the structural guarantee hv described.
+- **If no** -- the DB holds unique durable state, so it needs backup and durability guarantees it does not have today, and **DB migrations become permanent**, which was the specific cost you and I both flagged as the reason the question mattered.
+
+hv's own words support the first reading: _"a sync process ... that enables disk-to-db and db-to-disk updates"_ only makes sense as a safety property if disk->db is lossless. An append-only `events.jsonl` under `intent/` would close it cheaply, and it is additive rather than a redesign.
+
+**On your timestamp point: it survives, and the argument is now SHORTER rather than different.** Under the old model you argued "never re-stamp" from "the DB is rebuildable". Under the new one it follows from something simpler -- a stamp is a fact about when an event happened, and sync in either direction is a copy, not an event. A copy that re-stamps is fabricating the same class of value D33 exists to stop. No need to derive it from which side is durable.
+
+**Nothing built today is lost.** `transitions.rs`, Direct/Incidental, the mutation-completeness walk, `ac_unsatisfy`, the scope-clearing edges and the off-scope refusal are all statements about the MODEL and its transitions; none reads or writes a file. `apply()` is the only thing I have written that takes a position on which side is durable, and it takes it in about six lines.
+
+**I am NOT restructuring `apply()` until your rewritten D01 lands.** The order flip is mechanical, but the failure semantics and what `rebuild` becomes are contract questions, and doing it twice is worse than doing it once.
