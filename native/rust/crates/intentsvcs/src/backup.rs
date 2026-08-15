@@ -134,6 +134,30 @@ impl Retention {
   }
 }
 
+/// How often a backup is expected, in hours. Default daily.
+///
+/// **Read separately from [`Retention`] because it answers a different
+/// question**: retention is how much history to keep, and this is how often to
+/// add to it. Collapsing them would make "keep 7 daily" imply a daily
+/// schedule, which is exactly the inference that lets a stopped scheduler look
+/// configured.
+///
+/// **There is deliberately no setting that silences a stale backup.** A switch
+/// to turn the warning off is a switch to turn the backup off without noticing,
+/// and this is the backup of the durable source of truth.
+pub fn schedule_hours(project: &Project) -> u32 {
+  project
+    .config()
+    .extra
+    .get("backup")
+    .and_then(|v| v.as_object())
+    .and_then(|t| t.get("every_hours"))
+    .and_then(serde_json::Value::as_u64)
+    .and_then(|n| u32::try_from(n).ok())
+    .filter(|n| *n > 0)
+    .unwrap_or(24)
+}
+
 /// Where snapshots live for this project.
 pub fn snapshot_dir(project: &Project) -> PathBuf {
   project.intent_dir().join(".backup").join(SNAPSHOT_DIR)

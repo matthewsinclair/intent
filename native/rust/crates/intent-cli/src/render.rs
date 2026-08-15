@@ -31,6 +31,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), String> {
     Some(("schema", m)) => schema(m),
     Some(("doctor", _)) => doctor(),
     Some(("sync", m)) => sync(m),
+    Some(("backup", m)) => backup(m),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -873,7 +874,15 @@ fn search(m: &ArgMatches) -> Result<(), String> {
 /// the same shape `ac gate` uses.
 fn doctor() -> Result<(), String> {
   let (project, ctx) = context()?;
-  let report = Facade::doctor(&project, &ctx);
+  // **Opened opportunistically, and a failure to open is not reported here.**
+  // `doctor` exists to run on a project that cannot be opened, so the store is
+  // a bonus rather than a requirement: with one, the backup half of the report
+  // is answerable; without one, every other check still runs and the backup
+  // question is simply not asked. Reporting "no backup" because the store
+  // could not be read would be a confident wrong answer at the moment a user
+  // is least able to check it.
+  let opened = Facade::open(project.clone(), ctx.clone()).ok();
+  let report = Facade::doctor(&project, &ctx, opened.as_ref().map(|f| f.store()));
   for finding in &report.findings {
     println!("{finding}");
   }
@@ -987,4 +996,57 @@ fn status(s: intentsvcs::model::ThreadStatus) -> &'static str {
     S::Completed => "Completed",
     S::Cancelled => "Cancelled",
   }
+}
+
+/// `intent backup` takes a snapshot; `--list` reports what exists.
+///
+/// **`--list` is deliberately NOT the health report.** It answers what exists,
+/// and one place reports health -- `doctor`. Two commands answering "is my
+/// backup all right" is how they come to disagree, and the one a user reaches
+/// for first would be the one that never says no.
+fn backup(m: &ArgMatches) -> Result<(), String> {
+  let facade = open()?;
+  let project = facade.project().clone();
+
+  if flag(m, "list") {
+    let snapshots = facade
+      .store()
+      .snapshots()
+      .map_err(|e| format!("error: {e}\n  remedy: {}", e.remedy()))?;
+    if snapshots.is_empty() {
+      // Not silence: an empty list and a broken backup look identical on an
+      // empty stream, and only one of them is fine.
+      println!("no snapshots have been taken of this store");
+      return Ok(());
+    }
+    for snapshot in &snapshots {
+      match (&snapshot.path, snapshot.bytes) {
+        (Some(path), Some(bytes)) => {
+          println!("{}  {path}  {bytes} bytes", snapshot.taken_at)
+        }
+        // An attempt with no file is the record of a failure, and it prints
+        // rather than being filtered out -- filtering it is how a list of
+        // successes comes to read as a history.
+        _ => println!(
+          "{}  {}  {}",
+          snapshot.taken_at,
+          snapshot.outcome,
+          snapshot.detail.as_deref().unwrap_or("no detail recorded")
+        ),
+      }
+    }
+    return Ok(());
+  }
+
+  let written = intentsvcs::backup::take(&project, facade.store())
+    .map_err(|e| format!("error: {e}\n  remedy: {}", e.remedy()))?;
+  println!("created: {}", project.relative(&written));
+
+  let retention = intentsvcs::backup::Retention::from_project(&project);
+  let removed = intentsvcs::backup::prune(&project, facade.store(), retention)
+    .map_err(|e| format!("error: {e}\n  remedy: {}", e.remedy()))?;
+  for path in &removed {
+    println!("removed: {}", project.relative(path));
+  }
+  Ok(())
 }

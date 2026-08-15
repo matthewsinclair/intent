@@ -1,5 +1,5 @@
-//! AC-03.10 (c): rolling retention, in its own namespace, that cannot reach
-//! `intent upgrade`'s rollback artefacts.
+//! AC-03.10 (c) and the reporting half of (d): rolling retention in its own
+//! namespace, and `doctor` telling a stale backup from one that never ran.
 //!
 //! **The discriminating case is not "does it delete old snapshots".** Any
 //! plausible pruner does that. It is whether the pruner can reach the OTHER
@@ -277,5 +277,114 @@ fn retention_settings_fall_back_to_the_default_rather_than_to_zero() {
   assert!(
     default.daily > 0 && default.weekly > 0 && default.monthly > 0,
     "and no default is zero, or an unconfigured project would prune everything"
+  );
+}
+
+// ---------------------------------------------------------------------------
+// AC-03.10 (d), second half: `doctor` reports STALENESS.
+//
+// A failure report cannot cover this. A schedule that never fires produces no
+// failure, so waiting for an error leaves a user unable to tell a working
+// backup from one that silently never started -- the ambiguity that was living
+// inside the clause written to prevent it.
+// ---------------------------------------------------------------------------
+
+use common::ctx;
+use intentsvcs::finding::FindingClass;
+
+fn backup_findings(fx: &Fixture, store: &Store) -> Vec<String> {
+  intentsvcs::doctor::diagnose(&fx.project(), &ctx(), Some(store))
+    .findings
+    .into_iter()
+    .filter(|f| f.class == FindingClass::BackupStale)
+    .map(|f| f.detail)
+    .collect()
+}
+
+/// **Never-taken is its own message, not a very large number.**
+///
+/// "nothing has ever been backed up" and "the last backup is old" call for
+/// different actions -- the first says the mechanism has never run, the second
+/// says it has stopped -- and a check that reported an enormous age for both
+/// would lose exactly the distinction it was added for.
+#[test]
+fn doctor_reports_a_store_that_has_never_been_backed_up() {
+  let fx = Fixture::new();
+  let store = store_of(&fx);
+
+  let found = backup_findings(&fx, &store);
+  assert_eq!(found.len(), 1, "one finding, got {found:?}");
+  assert!(
+    found[0].contains("ever been taken") && !found[0].contains("schedule"),
+    "it says the mechanism has never run rather than quoting an age against a schedule: {}",
+    found[0]
+  );
+}
+
+#[test]
+fn doctor_is_quiet_when_a_backup_was_taken_recently() {
+  let fx = Fixture::new();
+  let store = store_of(&fx);
+  backup::take(&fx.project(), &store).expect("take");
+
+  assert!(
+    backup_findings(&fx, &store).is_empty(),
+    "a backup taken moments ago is not stale, and a check that said so would be turned off"
+  );
+}
+
+/// An old snapshot is reported, and the message carries the two numbers a user
+/// needs: how old it is and what was expected.
+#[test]
+fn doctor_reports_a_backup_older_than_the_schedule() {
+  let fx = Fixture::new();
+  let store = store_of(&fx);
+  historical(&fx, "2020-01-01T00:00:00.000Z");
+
+  let found = backup_findings(&fx, &store);
+  assert_eq!(found.len(), 1, "one finding, got {found:?}");
+  assert!(
+    found[0].contains("24h schedule"),
+    "the message names what was expected, or the age is a number with no meaning: {}",
+    found[0]
+  );
+  assert!(
+    !found[0].contains("ever been taken"),
+    "and it is NOT the never-ran message -- something was taken, it is just old: {}",
+    found[0]
+  );
+}
+
+/// **A FAILING schedule reads as stale, which is the truth.**
+///
+/// This is the case a naive "when did we last try" gets wrong: something IS
+/// happening every hour, so a check keyed on attempts reports a healthy recent
+/// number while nothing restorable exists.
+#[test]
+fn doctor_reports_a_schedule_that_runs_and_fails_as_unbacked() {
+  let fx = Fixture::new();
+  let store = store_of(&fx);
+  let (id, _) = store.begin_snapshot().expect("begin");
+  store
+    .finish_snapshot(
+      id,
+      intentsvcs::store::SnapshotOutcome::Failed,
+      None,
+      None,
+      Some("disk full"),
+    )
+    .expect("finish");
+
+  let found = backup_findings(&fx, &store);
+  assert_eq!(
+    found.len(),
+    1,
+    "a backup that ran and failed leaves nothing to restore from, so it is reported: {found:?}"
+  );
+  assert!(
+    found[0].contains("ever been taken"),
+    "a failed attempt leaves nothing restorable, so it reads as never-backed rather than as a \
+     recent one: {}",
+    found[0]
   );
 }

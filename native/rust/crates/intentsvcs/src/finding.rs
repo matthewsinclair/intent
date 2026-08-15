@@ -54,6 +54,15 @@ pub enum FindingClass {
   /// every one of them is individually well-formed, and only the RELATIONSHIP
   /// is wrong. This is what `doctor`'s model half reports (AC-06.2).
   ModelInconsistent,
+  /// The durable store has no recent restorable snapshot -- either none has
+  /// ever succeeded, or the newest is older than the configured schedule.
+  ///
+  /// **This is the half of the backup rule that a failure report cannot
+  /// cover.** A schedule that never fires produces no failure, so "surface the
+  /// failure" leaves a user unable to tell a working backup from one that has
+  /// silently never started. It is the two-sided construction: two recorded
+  /// values compared to each other rather than an error waited for.
+  BackupStale,
 }
 
 impl FindingClass {
@@ -128,6 +137,11 @@ impl FindingClass {
         7,
         "model-inconsistent",
         "the canon says two things that cannot both be true; correct the artefact named above",
+      ),
+      Self::BackupStale => (
+        8,
+        "backup-stale",
+        "run `intent backup` -- and if a schedule was supposed to be doing this, it is not running",
       ),
     }
   }

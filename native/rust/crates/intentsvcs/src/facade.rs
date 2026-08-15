@@ -724,13 +724,18 @@ impl Facade {
   /// would change the thing it was measuring, and the operator would be
   /// reading a report about a state that no longer existed -- which is how
   /// `at lint --fix` came to half-migrate rows.
-  pub fn doctor(project: &Project, ctx: &FacadeContext) -> crate::doctor::Report {
+  pub fn doctor(
+    project: &Project,
+    ctx: &FacadeContext,
+    store: Option<&crate::store::Store>,
+  ) -> crate::doctor::Report {
     crate::doctor::diagnose(
       project,
       &RenderContext {
         version: &ctx.version,
         todo_watermark: None,
       },
+      store,
     )
   }
 

@@ -79,7 +79,7 @@ fn seed(fx: &Fixture, thread: &Thread) {
 }
 
 fn run(fx: &Fixture) -> Vec<Finding> {
-  intentsvcs::doctor::diagnose(&fx.project(), &ctx()).findings
+  intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None).findings
 }
 
 /// The detail texts, for asserting that a specific check fired.
@@ -100,7 +100,7 @@ fn a_consistent_project_reports_nothing() {
   let fx = Fixture::new();
   seed(&fx, &clean_thread("ST0001"));
 
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx());
+  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
   assert!(
     report.is_healthy(),
     "a clean estate must report nothing, or every finding below is noise: {}",
@@ -381,7 +381,7 @@ fn doctor_runs_on_a_project_that_cannot_be_opened() {
     "precondition: a duplicate criterion id must defeat the normal open path"
   );
 
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx());
+  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
   assert!(
     !report.is_healthy(),
     "doctor ran and reported on an estate the facade could not open"
@@ -411,7 +411,7 @@ fn a_cold_cache_is_healthy_and_a_stale_one_is_not() {
   seed(&fx, &clean_thread("ST0001"));
 
   assert!(
-    intentsvcs::doctor::diagnose(&fx.project(), &ctx()).is_healthy(),
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None).is_healthy(),
     "a project whose on-disk cache was never written is healthy"
   );
 
@@ -437,7 +437,7 @@ fn unreadable_canon_becomes_findings() {
   let fx = Fixture::new();
   fx.write_raw_thread("ST0001", "{ this is not json");
 
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx());
+  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
   assert!(!report.is_healthy());
   assert!(
     report
@@ -524,7 +524,7 @@ fn skew_is_judged_against_the_rendering_version() {
     version: "9.9.9-not-the-fixture-version",
     todo_watermark: None,
   };
-  let findings = intentsvcs::doctor::diagnose(&fx.project(), &other).findings;
+  let findings = intentsvcs::doctor::diagnose(&fx.project(), &other, None).findings;
   assert!(
     findings.iter().any(|f| f.class == FindingClass::ViewSkew),
     "a different version renders a different banner, which IS skew: {}",

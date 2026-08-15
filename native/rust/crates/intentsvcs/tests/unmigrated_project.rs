@@ -294,7 +294,7 @@ fn below_the_floor_the_remedy_is_the_two_hop_not_the_v3_migrator() {
 fn doctor_reports_the_migration_and_nothing_downstream_of_it() {
   let dir = legacy("2.19.0", &["ST0001", "ST0002"]);
   let project = Project::open(dir.path()).expect("open");
-  let report = Facade::doctor(&project, &facade_ctx());
+  let report = Facade::doctor(&project, &facade_ctx(), None);
 
   assert_eq!(
     report.findings.len(),
@@ -324,7 +324,7 @@ fn doctor_does_not_invent_a_migration_on_a_v3_project() {
   facade.st_new("A thread").expect("st new");
   drop(facade);
 
-  let report = Facade::doctor(&fixture.project(), &facade_ctx());
+  let report = Facade::doctor(&fixture.project(), &facade_ctx(), None);
   assert!(
     !report
       .findings

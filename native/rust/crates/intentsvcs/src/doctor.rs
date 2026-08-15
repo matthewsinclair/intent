@@ -89,7 +89,18 @@ impl Report {
 /// - a working tree that cannot be scanned becomes a finding.
 ///
 /// A `Report` always comes back. Doctor never refuses.
-pub fn diagnose(project: &Project, ctx: &RenderContext<'_>) -> Report {
+/// **The store is OPTIONAL, and its absence is not a finding.** `doctor` has to
+/// work on a project nothing else can open -- that is the whole reason it is a
+/// static call rather than a facade method -- so a caller that could not open a
+/// store passes `None` and every other check still runs. The backup half is
+/// simply not answerable without one, and reporting "no backup" because the
+/// store could not be read would be a confident wrong answer at the moment a
+/// user is least able to check it.
+pub fn diagnose(
+  project: &Project,
+  ctx: &RenderContext<'_>,
+  store: Option<&crate::store::Store>,
+) -> Report {
   let mut report = Report::default();
 
   // FIRST, and it returns rather than continuing. Every check below this line
@@ -109,6 +120,10 @@ pub fn diagnose(project: &Project, ctx: &RenderContext<'_>) -> Report {
       format!("{pending} -- {}", pending.remedy()),
     ));
     return report;
+  }
+
+  if let Some(store) = store {
+    report.findings.extend(backup_findings(project, store));
   }
 
   let canon = match crate::ingest::read(project) {
@@ -459,6 +474,50 @@ fn file_checks(project: &Project, canon: &Canon, ctx: &RenderContext<'_>, report
       FindingClass::UnknownFileShape,
       format!("the working tree could not be scanned: {e}"),
     )),
+  }
+}
+
+/// **Backup health, as the two-sided test.**
+///
+/// The question is not "did a backup fail" -- a schedule that never fires
+/// produces no failure to report, so waiting for an error cannot distinguish a
+/// working backup from one that has silently never started. It is "how does
+/// the newest good snapshot compare to the schedule", which is two recorded
+/// values compared to each other and needs nothing to have gone wrong.
+///
+/// Nothing here learns the time. `hours_since_last_good_snapshot` returns an
+/// interval computed inside SQLite, and an interval cannot be written into a
+/// record or mistaken for a moment.
+fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Finding> {
+  let Ok(age) = store.hours_since_last_good_snapshot() else {
+    // The store is open but the query failed, which is not a backup problem
+    // and must not be reported as one.
+    return Vec::new();
+  };
+  let every = f64::from(crate::backup::schedule_hours(project));
+  let where_ = project.relative(&crate::backup::snapshot_dir(project));
+
+  match age {
+    // **Never is its own message, not a very large number.** "no restorable
+    // snapshot has ever been taken" and "the last one is old" call for
+    // different actions -- the first says the mechanism has never run, the
+    // second says it has stopped -- and collapsing them loses exactly the
+    // distinction this check was added for.
+    None => vec![Finding::new(
+      where_,
+      FindingClass::BackupStale,
+      "no restorable snapshot has ever been taken of this store".to_string(),
+    )],
+    // A schedule is a period, not a deadline, so a backup is not late the
+    // instant the period elapses. Twice the period is late by any reading, and
+    // it keeps a daily schedule from reporting RED every morning before it
+    // runs.
+    Some(hours) if hours > every * 2.0 => vec![Finding::new(
+      where_,
+      FindingClass::BackupStale,
+      format!("the newest restorable snapshot is {hours:.0}h old against a {every:.0}h schedule"),
+    )],
+    Some(_) => Vec::new(),
   }
 }
 
