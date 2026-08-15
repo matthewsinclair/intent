@@ -103,6 +103,10 @@ Also fix the invariant at `:276`, because the false sentence is what makes the s
 
 > **One writer per file.** `wip.md` = the node; `inbox.<sender>.md` = **one appender (the sender) and one clearer (the recipient) -- two mutators, so it is committed by the directory's owner, never by the sender.**
 
+**ONE NAMED EXCEPTION, and the fix is wrong without it: `hv` never runs a session, so `hv/` has no committer.** The hypervisor node is human-driven -- no `pickup`, no fold, no commit -- so "the directory's owner commits it" leaves `hv/inbox.<sender>.md` and `hv/.history/` in nobody's hands. **Measured: that is exactly how `2b3a8961` shipped hv's inbox emptied with its `.history/` capture untracked** -- the reporter's own instance, and the reason it went unnoticed is that the rule being violated had not been written yet.
+
+So: **for `hv`, the SENDER commits both halves**, including the archive when it clears hv's inbox on hv's instruction. The general rule and this exception have the same justification -- **whoever can see both halves commits both halves** -- which is why the exception is not a special case so much as the rule stated in terms of capability rather than of directory.
+
 Not proposed: changing the file layout. Inboxes belong in the recipient's directory -- that is what makes `clear` and `archive` single-owner operations, and moving them would trade this hazard for a worse one.
 
 ## Related
