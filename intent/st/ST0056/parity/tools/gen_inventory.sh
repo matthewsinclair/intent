@@ -26,6 +26,43 @@ REV="$(cd "$WT" && git rev-parse --short HEAD)"
 DATE="$(date -u +%Y-%m-%d)"
 TSV="$SP/probes/toplevel.tsv"
 
+die() { echo "error: $1" >&2; exit 2; }
+
+# THE PROBE TSV IS AN INPUT THIS SCRIPT ONLY EVER READS, AND ITS ABSENCE WAS
+# SILENT. Measured 2026-08-15, not suspected:
+#
+#   awk against a missing file prints to stderr, exits 2, and produces NOTHING
+#   -- the `-|-|-|-|-` fallback in probe_row never runs, because END does not
+#   execute when the file cannot be opened.
+#
+# This script runs under `set -uo pipefail` with NO `-e`, so that failure did
+# not stop it. It would have carried on and rewritten all 26 `cmd-*.md` files
+# with empty probe fields -- overwriting the measurement with a plausible-looking
+# husk, at the revision stamp of the good data.
+#
+# THE TRAP IS THAT EVERY GENERATED FILE INSTRUCTS THE READER TO DO EXACTLY THIS.
+# Each `cmd-*.md` header reads "re-run it rather than editing this file", which
+# is right advice that silently destroyed the file the day its input went away.
+# The probe scratch (`$SP`) is a throwaway directory and `probes/toplevel.tsv`
+# has NEVER been tracked (`git log --all -- '*toplevel.tsv'` is empty), so the
+# input for the committed 2026-08-14 measurement at `69d42a7` no longer exists
+# anywhere on disk.
+#
+# So this refuses instead. It cannot restore the input, and that is the point:
+# a missing measurement must present as a REFUSAL to measure, never as a
+# measurement of nothing. The reproducibility this file's own header argues for
+# -- "a hand-typed list cannot be diffed ... nobody could re-run it" -- is the
+# thing the untracked input quietly took away.
+[ -f "$TSV" ] || die "probe data not found: $TSV -- this script READS the probe TSV and cannot produce it. Re-run the probe step against a worktree at the target revision first. REFUSING rather than emitting an inventory with empty probe fields, which would overwrite good measurement with a husk carrying a valid-looking revision stamp."
+[ "$(awk 'END{print NR}' "$TSV" 2>/dev/null || echo 0)" -gt 1 ] || die "probe data has no rows: $TSV -- header-only or empty. Every command would take the dash fallback in probe_row and the inventory would render as a complete document describing nothing measured."
+# NO BACKTICKS IN A DOUBLE-QUOTED DIE MESSAGE. The first version of the line
+# above quoted the fallback as `-|-|-|-|-`, and bash ran it as a command
+# substitution: five "command not found" lines above the real error, and the
+# quoted text silently deleted from the message. An error message that mangles
+# itself is worse than a terse one -- it is loudest exactly when someone is
+# already debugging. Backticks inside SINGLE quotes are literal and fine, which
+# is why the two hits in gen_pertest.sh and gen_register.sh are not this bug.
+
 mkdir -p "$OUTDIR"
 
 # probe_row <label> -> "rc|out|err|outfirst|errfirst"
