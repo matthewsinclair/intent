@@ -114,7 +114,10 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   ok(root, &["wp", "new", "ST0001", "Ingest and views"]);
   ok(root, &["wp", "start", "ST0001/01"]);
   let wps = ok(root, &["wp", "list", "ST0001"]);
-  assert!(wps.contains("WP-01"), "{wps}");
+  assert!(
+    wps.lines().any(|l| l.starts_with("01 ")),
+    "the WP column is v2's bare sequence number: {wps}"
+  );
 }
 
 /// The gate reaches the CLI with v2's contract: its verdict on stdout, exit 1.
@@ -427,5 +430,65 @@ fn st_sync_dry_run_is_the_index_table_not_a_reconciliation_report() {
   assert!(
     ok(root, &["st", "sync", "--write"]).starts_with("updated: "),
     "and --write says what it wrote"
+  );
+}
+
+/// `wp list` renders through the SAME table as `st list`, and its empty case
+/// is v2's sentence rather than a bare header.
+///
+/// The dispatch row asks for the shared renderer in as many words -- "so `wp
+/// list` and `st list` column layout cannot drift apart" -- so this asserts
+/// the sharing, not the appearance: same separator, same fill behaviour.
+/// v3 had been printing `WP-01  Wip  title`, which is wrong on the prefix, the
+/// status vocabulary and the shape at once.
+#[test]
+fn wp_list_shares_the_table_and_v2s_empty_case() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "a thread"]);
+
+  // The empty case is a SENTENCE at exit 0 -- deliberately unlike `st list`,
+  // which prints its header. Both are v2's, and they differ.
+  let empty = ok(root, &["wp", "list", "ST0001"]);
+  assert_eq!(empty.trim(), "no work packages for ST0001");
+
+  ok(root, &["wp", "new", "ST0001", "Ingest and views"]);
+  let listed = ok(root, &["wp", "list", "ST0001"]);
+  let header = listed.lines().next().unwrap_or_default();
+  assert!(
+    header.starts_with("WP") && header.contains("| Title") && header.contains("| Scope"),
+    "v2's columns, whatever the padding: {header:?}"
+  );
+  assert!(
+    listed.lines().nth(1).is_some_and(|l| l.contains("---|---")),
+    "the shared pipeless separator: {listed:?}"
+  );
+  assert!(
+    listed.lines().any(|l| l.starts_with("01 ")),
+    "v2 numbers the column `01`, not `WP-01`: {listed:?}"
+  );
+  assert!(
+    listed.contains("Not Started"),
+    "v2's status vocabulary, not the enum's Debug spelling: {listed:?}"
+  );
+}
+
+/// `wp new` writes v2's default scope.
+///
+/// v2 takes no scope flag, so every work package it creates carries the
+/// template's `scope: Small`. v3 hardcoded `M`, which is the same command
+/// writing different canon -- a parity break with no visible output to give it
+/// away.
+#[test]
+fn wp_new_defaults_to_v2s_template_scope() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "a thread"]);
+  ok(root, &["wp", "new", "ST0001", "a package"]);
+
+  let canon = std::fs::read_to_string(root.join("intent/st/ST0001/thread.json")).expect("canon");
+  assert!(
+    canon.contains("\"scope\": \"S\""),
+    "the canon carries S, as v2's template seeds: {canon}"
   );
 }

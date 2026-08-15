@@ -87,6 +87,44 @@ fn today() -> String {
 /// The columns `intent st list` and the generated index share.
 const ST_COLUMNS: &[&str] = &["ID", "Slug", "Status", "Created", "Completed"];
 
+const WP_COLUMNS: &[&str] = &["WP", "Title", "Scope", "Status"];
+
+/// The work-package status vocabulary, in v2's spelling.
+fn wp_status(s: intentsvcs::model::WpStatus) -> &'static str {
+  use intentsvcs::model::WpStatus as W;
+  match s {
+    W::NotStarted => "Not Started",
+    W::Wip => "WIP",
+    W::Done => "Done",
+  }
+}
+
+/// T-shirt scope, in the canonical short form.
+///
+/// **A `corrected` divergence, and one v2 could not have avoided.** v2 reads
+/// `scope:` as free text, so it renders whatever the file happens to say --
+/// and this repository's own corpus carries TEN spellings for six sizes:
+/// `Small` x56, `Medium` x34, `Large`, `L`, `XL`, `M`, `S`, `ExtraSmall`,
+/// `Extra Small`, `XS`. "As observed" cannot mean reproducing that, because
+/// it is not a behaviour -- it is the absence of one, which is exactly what
+/// modelling the field fixes.
+///
+/// The short form because it is what the canon says (the enum's own wire
+/// spelling) and what the project's sizing convention states, so the column
+/// and the file agree. Same shape as the `TBC` / `Not Started` collapse that
+/// `views.rs` records: v3 faithfully reproducing a v2 defect would be the
+/// worse choice.
+fn scope(s: TShirt) -> &'static str {
+  match s {
+    TShirt::XS => "XS",
+    TShirt::S => "S",
+    TShirt::M => "M",
+    TShirt::L => "L",
+    TShirt::XL => "XL",
+    TShirt::XXL => "XXL",
+  }
+}
+
 /// How wide to render, in v2's order of preference
 /// (`bin/intent_helpers:get_terminal_width`).
 ///
@@ -324,7 +362,13 @@ fn wp(m: &ArgMatches) -> Result<(), String> {
       let st = arg(a, "stid")?;
       let title = arg(a, "title")?;
       let mut f = open()?;
-      let seq = f.wp_new(&st, &title, TShirt::M).map_err(fail)?;
+      // S, not M, and it is not a taste call. v2's `wp new` takes no scope
+      // flag at all, so every work package it creates carries whatever
+      // `lib/templates/prj/st/WP/info.md` seeds -- and that template says
+      // `scope: Small`. A different default writes different canon for the
+      // same command, which is a parity break hiding in a value rather than
+      // in an output.
+      let seq = f.wp_new(&st, &title, TShirt::S).map_err(fail)?;
       println!("created: {st}/{seq:02}");
       Ok(())
     }
@@ -343,9 +387,39 @@ fn wp(m: &ArgMatches) -> Result<(), String> {
     Some(("list", a)) => {
       let st = arg(a, "stid")?;
       let f = open()?;
-      for w in f.wp_list(&st).map_err(fail)? {
-        println!("WP-{:02}  {:?}  {}", w.seq, w.status, w.title);
+      let wps = f.wp_list(&st).map_err(fail)?;
+      // v2's empty case is a SENTENCE, not an empty table -- unlike `st list`,
+      // which prints its header. Both exit 0. Reproduced rather than
+      // regularised: the row is target: as-observed, and a caller parsing this
+      // output today is parsing that sentence.
+      if wps.is_empty() {
+        println!("no work packages for {st}");
+        return Ok(());
       }
+      let rows: Vec<Vec<String>> = wps
+        .iter()
+        .map(|w| {
+          vec![
+            format!("{:02}", w.seq),
+            w.title.clone(),
+            scope(w.scope).to_string(),
+            wp_status(w.status).to_string(),
+          ]
+        })
+        .collect();
+      // The SAME renderer `st list` uses, which is what the v2 row asks for in
+      // as many words: "so `wp list` and `st list` column layout cannot drift
+      // apart".
+      print!(
+        "{}",
+        views::table(
+          WP_COLUMNS,
+          &rows,
+          views::TableMode::Terminal {
+            fill: terminal_width()
+          }
+        )
+      );
       Ok(())
     }
     Some(("show", a)) => {
