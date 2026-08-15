@@ -81,7 +81,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 
 - AC-05.1 The dispatch table is the SSOT: the clap surface and help text are generated from it, asserted by test
 - AC-05.2 The core families (st, wp, ac, at, todo) **and their read verbs** (list, show, status) are green via `INTENT_BIN` **on the NARROWED conformance contract** -- stdout, exit codes and behaviour, per the ratified parity contract at design.md:146 -- with voice and exit codes byte-compatible; a v2 test may leave that contract ONLY by a register classification of `retire` or `deviate` recorded at land time for a design-consequence reason, never because it failed. The whole-estate number is AC-00.1's, not this one's
-- AC-05.3 (non-test) Every `.bats` file in the `tests/**` estate **at WP close** is classified in the keep/retire/deviate register; no unclassified rows. **Corpus**: the `.bats` test-file estate (98 at `cd490be`), not the wider `tests/**` glob -- fixtures, helpers and runners have no keep/retire/deviate answer, and `tests/conformance/run_v2_suite.bash` is excluded by name as the v3-authored DRIVER of the corpus rather than a member of it. The corpus is the estate at the close, not at an earlier sweep -- a guard landing after a measurement moves it, so the register names the revision it covers and is brought current at close. A file that **never invokes the CLI** is classified by inspection as out-of-scope, not by burn-in. **`pending` is a classification, not a synonym for unclassified**, held to the mechanical test that every `pending` row carries `n/total` with `0 < n < total` while every `UNCLASSIFIED` row carries `--`; but a `pending` file **touching a core family** (st, wp, ac, at, list, show, status, todo) leaves AC-05.2's own corpus undefined and MUST be split to per-test rows before this AC closes -- the 12 measured at `cd490be` are that set, and the other 28 are owed at AC-00.1, not forgiven -- evidence: register.md 98/98 at HEAD, zero UNCLASSIFIED data rows (the 4 textual hits are the class-rules prose); ic's falsifiable guard passes -- no pending row carries '--' and all carry n/total with 0<n<total; all 12 core-family pending files split to per-test rows in parity/pertest.md (493 rows / 41 files, measured at c60cdbd from the INTENT_BIN mutant TAP, not read from assertions); verified by vc re-running each check -- satisfied: yes
+- AC-05.3 (non-test) Every `.bats` file in the `tests/**` estate **at WP close** is classified in the keep/retire/deviate register; no unclassified rows. **Corpus**: the `.bats` test-file estate (98 at `cd490be`), not the wider `tests/**` glob -- fixtures, helpers and runners have no keep/retire/deviate answer, and `tests/conformance/run_v2_suite.bash` is excluded by name as the v3-authored DRIVER of the corpus rather than a member of it. The corpus is the estate at the close, not at an earlier sweep -- a guard landing after a measurement moves it, so the register names the revision it covers and is brought current at close. A file that **never invokes the CLI** is classified by inspection as out-of-scope, not by burn-in. **`pending` is a classification, not a synonym for unclassified**, held to the mechanical test that every `pending` row carries `n/total` with `0 < n < total` while every `UNCLASSIFIED` row carries `--`; but a `pending` file **touching a core family** (the AC-05.2 set, read from there rather than restated here) leaves AC-05.2's own corpus undefined and MUST be split to per-test rows before this AC closes -- the 12 measured at `cd490be` are that set, and the other 28 are owed at AC-00.1, not forgiven -- evidence: register.md 98/98 at HEAD, zero UNCLASSIFIED data rows (the 4 textual hits are the class-rules prose); ic's falsifiable guard passes -- no pending row carries '--' and all carry n/total with 0<n<total; all 12 core-family pending files split to per-test rows in parity/pertest.md (487 data rows / 40 files, measured at c60cdbd from the INTENT_BIN mutant TAP, not read from assertions; `organize_commands.bats` is the deliberate 41st, listed at the foot and NOT split because per-test rows would contradict the ruling its file row carries); verified by vc re-running each check -- satisfied: yes
 - AC-05.4 (non-test) The clap layer holds no business logic (parse -> facade -> render only) -- evidence: vc review at 9a45340: clap layer is 713 lines across 5 files; zero rusqlite/Connection/std::fs/Path::new reaches (the single grep match is a comment in lib.rs stating rusqlite is absent); one serde_json::from_str loads the dispatch SSOT; the only clock is today() at render.rs:66, read at the outermost layer and injected inward, which is what makes D23 enforceable rather than aspirational -- satisfied: yes
 
 ### WP-06 -- CLI parity long tail (status: Not Started)
@@ -157,6 +157,21 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 - AC-13.7 intentd maintains the index incrementally in the background, and a daemonless query returns identical results to a daemon-served one
 - AC-13.8 The MCP search tool and `intent search` return the same result shape from the same index -- one surface, two skins
 - AC-13.9 (non-test) T3 (semantic) and T4 (type-aware) are specified in design.md as staged additions, with S1-S5 shown sufficient to admit them without changing the CLI contract or the MCP tool schema -- evidence: design.md "Project search" section -- satisfied: no
+
+### WP-14 -- Coordination model: whiteboard and inboxes in the store (status: Not Started)
+
+> D30, from hv's direct ruling of 2026-08-15, superseding D14's deferral. The AC/AT half of hv's ask is deliberately absent here because it needs no new work: `acceptance_criterion` and `acceptance_test` are already model entities (`data-model.md:83,94`) with `intent ac`/`intent at` as the API and `acceptance.md` already generated under D02. Only the whiteboard half is new.
+
+- AC-14.1 `wb_node`, `wb_item` and `wb_message` are model entities with committed JSON canon and schema faces, and a `rm intent.db` rebuild reproduces every board byte-identically
+- AC-14.2 `wip.md` and `inbox.<sender>.md` are 100% generated views: regeneration reproduces the committed bytes exactly, through the repository formatter and not merely through the renderer
+- AC-14.3 An over-bound write is refused by name, stating the bound and the remedy; nothing is truncated and nothing over-bound is accepted, with a body one byte over the limit as the discriminating case
+- AC-14.4 Every timestamp is read from the clock by the API, and a caller-supplied timestamp is refused rather than honoured -- the fabricated-stamp class closed by construction, not by detection
+- AC-14.5 The single-writer invariant is enforced by the API rather than by convention: a node writing another node's board, or an inbox it does not own, is refused
+- AC-14.6 Archival is the API's: handled messages and completed DOING items transition on schedule, and no node action is required for a board to stay within its bounds
+- AC-14.7 Every `/in-whiteboard` verb is served by `intent wb` from the store, in-process and over GraphQL, and any workstream can read any node's board
+- AC-14.8 Boards and inboxes are FTS-indexed and reachable from `intent search` with the same result shape as the rest of the corpus
+- AC-14.9 The existing three-node board migrates into the model with nothing dropped silently: what cannot be carried is named per item, and the count of carried items reconciles against the source
+- AC-14.10 (non-test) `/in-whiteboard` and the `intent claude ws` family are updated in this WP, so the protocol documents no workflow the tool refuses -- evidence: skill + command diff in the WP-14 range -- satisfied: no
 
 ## Acceptance Tests
 
@@ -335,6 +350,27 @@ The consequence, which is the part that must be written down before the referee 
 - AT-13.8 `crates/intent-cli/tests/mcp_search_tool.rs` -- covers AC-13.8 -- status: to-write
 - AT-13.9 (non-test) design.md carries the T3/T4 staging with S1-S5 shown sufficient -- covers AC-13.9 -- status: n/a
 - Coverage: complete
+
+### WP-14
+
+- AT-14.1 `crates/intentsvcs/tests/whiteboard_model.rs` -- covers AC-14.1 -- status: to-write -- canon round-trip plus a rebuild-from-canon byte comparison
+- AT-14.2 `crates/intentsvcs/tests/whiteboard_view_render.rs` -- covers AC-14.2 -- status: to-write -- idempotent THROUGH the formatter, per ic's three measured instances
+- AT-14.3 `crates/intentsvcs/tests/whiteboard_bounds.rs` -- covers AC-14.3 -- status: to-write -- the one-byte-over case is the assertion; an at-limit write must succeed in the same test
+- AT-14.4 `crates/intentsvcs/tests/whiteboard_clock.rs` -- covers AC-14.4 -- status: to-write -- a caller-supplied stamp is refused, not silently replaced
+- AT-14.5 `crates/intentsvcs/tests/whiteboard_single_writer.rs` -- covers AC-14.5 -- status: to-write
+- AT-14.6 `crates/intentsvcs/tests/whiteboard_archival.rs` -- covers AC-14.6 -- status: to-write
+- AT-14.7 `crates/intent-cli/tests/wb_command.rs` -- covers AC-14.7 -- status: to-write -- in-process and GraphQL paths return identical results
+- AT-14.8 `crates/intentsvcs/tests/whiteboard_search.rs` -- covers AC-14.8 -- status: to-write
+- AT-14.9 `crates/intentsvcs/tests/whiteboard_migrate.rs` -- covers AC-14.9 -- status: to-write -- red-first against the live three-node board as the fixture
+- AT-14.10 (non-test) skill and `ws` command diff reviewed at WP close -- covers AC-14.10 -- status: n/a
+- Coverage: complete
+
+WP-14 dispositions (vc, 2026-08-15, from hv's direct ruling):
+
+- **AT-14.3 is the one most likely to be written vacuously.** A test that only proves "an over-bound write is refused" passes while an implementation that refuses everything also passes. The at-limit write must succeed in the same test, or the bound is untested in the direction that matters.
+- **AT-14.9's fixture is the live board, not a synthetic one.** The three-node board at ~354KB live-plus-archived is the hardest input this migration will ever see and it already exists; a hand-built fixture would be built to the shape the migrator expects, which is the failure mode.
+- **The bound values are hv's, not this contract's.** AC-14.3 contracts the mechanism -- refusal by name, no truncation -- and is satisfiable at any numbers. Recommended starting point from the D30 measurement: message body 2KB, live messages per inbox 10, DOING 5, TODO 15, board total 8KB.
+- **Whether `hv` is bounded at all is an open question on the WP.** The human's board is the only one that never needed a limit, and a refusal aimed at hv is the mechanism obstructing the person who asked for it.
 
 WP-13 dispositions (vc, 2026-08-14, ADOPTED under hv standing authorisation):
 

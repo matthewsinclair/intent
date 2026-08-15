@@ -148,6 +148,24 @@ Envelope: `{id: ulid, ts: rfc3339, principal, project_id, op, subject: {type, id
 
 `{owner_type, owner_id, file, seq, heading, level, body}` -- FTS5-indexed; powers `intent search`. Prose bodies are stored verbatim, never modelled.
 
+### wb_node / wb_item / wb_message (`whiteboard/<node>/board.json`; D30, WP-14)
+
+The coordination entities. Durable form is committed JSON canon per D01; `wip.md` and `inbox.<sender>.md` become generated views per D02, ending the hand-authored board.
+
+| Entity       | Fields                                                                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `wb_node`    | `moniker` (PK), `name`, `role`, `session_id?`, `heartbeat_at`, `status` (`active · paused`), `focus`, `claims[]`                |
+| `wb_item`    | `node`, `kind` (`doing · todo · decision · watchout`), `seq`, `text`, `state` (`live · archived`), `created_at`, `archived_at?` |
+| `wb_message` | `sender`, `recipient`, `sent_at`, `body`, `re?` (prior anchor), `fyi` (bool), `state` (`live · handled`), `handled_at?`         |
+
+Three properties are the point of modelling these rather than parsing them (D30):
+
+- **Timestamps are read from the clock by the API**, never supplied by the caller, so a fabricated stamp stops being constructible rather than being detected after the fact.
+- **Bounds are enforced on write and refused by name.** Per-entry body size, live items per node per kind, and live messages per inbox are configured, and an over-bound write is refused with the bound and the remedy stated -- the D05 posture applied to size, never truncation, never a silent accept.
+- **`state` transitions are the API's**, so archival happens on schedule rather than when a node remembers, which is what produced 251KB of `.history`.
+
+The header block stays line-oriented `key: value` in the rendered view (D13) -- it is generated from `wb_node` rather than parsed into it.
+
 ## Generated views: the renderer has no clock
 
 Every generated view carries a generated-banner footer instead of a verblock (the AGENTS.md pattern). One constraint governs the banner and every other byte a renderer emits:
@@ -188,4 +206,6 @@ Validation posture (D05): `additionalProperties: false` everywhere -- an unknown
 
 ## What is deliberately not modelled
 
-Prose (stored verbatim, FTS-indexed). The whiteboard (D14: md-authored until the 3.2 bus ST). Rules/skills/templates (shipped content, embedded in the binary, indexed at most). wip.md / restart.md (authored tracking prose).
+Prose (stored verbatim, FTS-indexed). Rules/skills/templates (shipped content, embedded in the binary, indexed at most). wip.md / restart.md (authored tracking prose -- the project-level pair at `intent/`, not the whiteboard's per-node boards).
+
+**The whiteboard left this set at D30** (hv ruling, 2026-08-15) and is modelled above as `wb_node`/`wb_item`/`wb_message`, built in WP-14. It was the largest entry here, and its removal is also the largest single closure of the egest-symmetry gap: what remains below is what an `intent export` cannot reproduce from the DB alone.
