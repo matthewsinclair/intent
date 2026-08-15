@@ -70,6 +70,16 @@ pub enum FacadeError {
   ScopeUnchanged { ac: String, state: String },
   #[error("{ac} is in scope, so there is nothing to reinstate")]
   NotOffScope { ac: String },
+  #[error("{ac} is not satisfied, so there is nothing to unsatisfy")]
+  NotSatisfied { ac: String },
+  #[error("{ac} is {state}, so it cannot be {verb}")]
+  OffScope {
+    ac: String,
+    state: String,
+    /// The verb that brings it back into scope first.
+    undo: String,
+    verb: String,
+  },
   #[error("{ac} is {actual}, not {wanted}")]
   WrongOffScopeState {
     ac: String,
@@ -131,6 +141,12 @@ impl FacadeError {
       }
       Self::NotOffScope { .. } => {
         "reinstate applies only to a descoped or withdrawn criterion".to_string()
+      }
+      Self::NotSatisfied { .. } => {
+        "run `intent ac list <thread>` to see which criteria carry evidence -- only a non-test criterion that was satisfied can be unsatisfied".to_string()
+      }
+      Self::OffScope { undo, ac, verb, .. } => {
+        format!("run `intent ac {undo} <thread> {ac}` first if you mean to {verb} it -- recording evidence for a requirement nobody is working on is the bookkeeping descope replaced")
       }
       Self::WrongOffScopeState { verb, ac, .. } => {
         format!("run `intent ac {verb} <thread> {ac}` instead -- a descoped requirement still exists on another thread, and a withdrawn one does not exist at all")
@@ -624,6 +640,12 @@ impl Facade {
     if criterion.kind != AcKind::NonTest {
       return Err(FacadeError::ComputedSatisfaction { ac: ac.to_string() });
     }
+    // v2 refuses this and v3 had stopped: on a descoped criterion, satisfy
+    // printed `ok:`, exited 0, and wrote a row that read as both descoped and
+    // satisfied, while `ac list` and the gate went on correctly reporting it
+    // descoped. Reported success, no effect -- the issue-0006 shape, reachable
+    // through the verbs added to fix issue 0013 (bin/intent_acceptance:117-127).
+    Self::refuse_if_off_scope(criterion, ac, "satisfied")?;
     let mut next = self.canon.clone();
     let c = find_criterion_mut(&mut next, st, ac)?;
     c.satisfied = Some(true);
@@ -717,6 +739,60 @@ impl Facade {
     }
   }
 
+  /// Reopen a non-test criterion: unsatisfied, and its evidence cleared.
+  ///
+  /// **The inverse `ac.satisfy` never had.** hv ruled on this instance
+  /// directly (D32, AC-04.6): satisfy was a one-way door, so a verifier whose
+  /// evidence proved incomplete had to hand-edit `acceptance.md` -- the file
+  /// this command exists to own. A state that can be entered and not left is a
+  /// missing mutation, not a missing flag.
+  ///
+  /// **The evidence goes with it, and that is the whole design content.**
+  /// Clearing satisfaction while leaving the evidence string behind would
+  /// produce a criterion that reads as unsatisfied and still cites the proof
+  /// that was withdrawn -- a worse lie than the one-way door, because it looks
+  /// like a record. v2 takes the same position for the same reason on a scope
+  /// change: "re-satisfying is a fresh, stated act, not something inherited"
+  /// (bin/intent_acceptance:1252-1255).
+  pub fn ac_unsatisfy(&mut self, st: &str, ac: &str) -> Result<(), FacadeError> {
+    let criterion = self.criterion(st, ac)?;
+    if criterion.kind != AcKind::NonTest {
+      return Err(FacadeError::ComputedSatisfaction { ac: ac.to_string() });
+    }
+    if criterion.satisfied != Some(true) {
+      return Err(FacadeError::NotSatisfied { ac: ac.to_string() });
+    }
+    let mut next = self.canon.clone();
+    let c = find_criterion_mut(&mut next, st, ac)?;
+    c.satisfied = None;
+    c.evidence = None;
+    self.apply(
+      "ac.unsatisfy",
+      Subject {
+        kind: "ac".to_string(),
+        id: format!("{st}/{ac}"),
+      },
+      json!({}),
+      next,
+    )
+  }
+
+  /// A criterion that has left scope refuses every verb that would record
+  /// something about its satisfaction, and the refusal names the undo.
+  fn refuse_if_off_scope(criterion: &Criterion, ac: &str, verb: &str) -> Result<(), FacadeError> {
+    let (state, undo) = match &criterion.scope {
+      AcScope::InScope => return Ok(()),
+      AcScope::Descoped { to, .. } => (format!("descoped to {to}"), "rescope"),
+      AcScope::Withdrawn { .. } => ("withdrawn".to_string(), "reinstate"),
+    };
+    Err(FacadeError::OffScope {
+      ac: ac.to_string(),
+      state,
+      undo: undo.to_string(),
+      verb: verb.to_string(),
+    })
+  }
+
   fn set_scope(
     &mut self,
     st: &str,
@@ -732,7 +808,21 @@ impl Facade {
       });
     }
     let mut next = self.canon.clone();
-    find_criterion_mut(&mut next, st, ac)?.scope = scope;
+    let c = find_criterion_mut(&mut next, st, ac)?;
+    c.scope = scope;
+    // A SCOPE CHANGE CLEARS SATISFACTION, in both directions. v2 does this for
+    // all four verbs -- `ac_strip_tail_expr` removes `evidence:` and
+    // `satisfied:` along with the scope markers, and descope calls it on the
+    // way out (bin/intent_acceptance:1191) exactly as rescope does on the way
+    // back (:1250). v3 changed `scope` alone, so a satisfied criterion that
+    // was descoped and rescoped came back still carrying the evidence for a
+    // claim that had been withdrawn -- while the verb's own help string, in
+    // v2's words and in the dispatch table, said "back in scope, unsatisfied".
+    //
+    // This is also the second edge out of `satisfied` (transitions.rs), and
+    // the reason one verb declares an edge on two fields.
+    c.satisfied = None;
+    c.evidence = None;
     self.apply(
       op,
       Subject {

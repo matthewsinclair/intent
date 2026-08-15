@@ -25,5 +25,6 @@ pub mod project;
 pub mod prose;
 pub mod store;
 pub mod sync;
+pub mod transitions;
 pub mod views;
 pub mod write_set;
