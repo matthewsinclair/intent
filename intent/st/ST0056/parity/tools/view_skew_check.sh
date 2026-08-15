@@ -31,9 +31,28 @@
 #
 # So `register.md` is in the SAME class as `pertest.md`, not a class above it:
 # NOT re-derivable from committed state, at any price short of a full re-sweep.
-# Two artefacts rest on their stamp alone, not one -- which makes the still-
-# unwired provenance check more load-bearing than anyone has been treating it,
-# and is the argument for vc's proposed measurement rule 13.
+#
+# AND THE SAME QUESTION, ASKED OF THE OTHER 27, GAVE THE SAME ANSWER. The
+# reported blocker on `cmd-*.md` was "gen_inventory.sh does not honour OUT".
+# It does -- via OUTDIR. That was a naming mismatch, not a missing capability,
+# and had it been treated as a one-line fix the 27 files would have been
+# promoted to CHECKABLE on a false premise. The real blocker is that
+# gen_inventory.sh renders from `$SP/probes/toplevel.tsv`, which is NOT TRACKED.
+#
+# So the honest count is ONE OF THIRTY. `dispatch-table.md` is the only
+# apparatus view re-derivable from committed state; the other 29 rest on their
+# stamp alone.
+#
+# That is not a reason to weaken this guard, it is the argument for the other
+# one. `provenance_check.sh` groups exactly those 29 -- the burn pair, the 26
+# cmd files, and the table -- so the two checks partition the apparatus rather
+# than overlapping it, and the stamp check is the ONLY guard 29 artefacts have.
+# It is also, per vc, still unwired.
+#
+# THE HIGHEST-LEVERAGE CHANGE AVAILABLE HERE IS NOT IN THIS FILE: committing
+# `probes/toplevel.tsv` would move 27 artefacts from stamp-only to content-
+# checked in one move. Recorded rather than done, because whether a measurement
+# input belongs in the repo is a judgement about the apparatus, not a tidy-up.
 #
 # THE BACKSTOP ENUMERATES; IT DOES NOT SNIFF A BANNER. The obvious design is to
 # look for the "GENERATED VIEW" banner and check everything carrying one. That
@@ -71,8 +90,8 @@ CHECKABLE="surface/dispatch-table.md|gen_dispatch_table.sh|surface/dispatch-tabl
 UNCHECKABLE="$(cat <<'EOF'
 intent/st/ST0056/parity/register.md|gen_register.sh needs SP (raw burn.tsv, untracked and absent) and WT (a detached worktree at the measured revision). Declaring OUT is not enough. Its stamp is its only guard.
 intent/st/ST0056/parity/pertest.md|gen_pertest.sh needs the ephemeral TAP that burn.sh captured under BURN_TAP_DIR, which is not committed. No cheap check exists and no expensive one either, short of a full re-sweep. Its stamp is its only guard.
-intent/st/ST0056/parity/README.md|emitted by gen_inventory.sh, which does not honour OUT -- cannot regenerate to a temp path without overwriting the artefact under test. One-line fix, then promote to CHECKABLE.
-intent/st/ST0056/parity/cmd-*.md|emitted by gen_inventory.sh, which does not honour OUT -- see README.md above. 26 files.
+intent/st/ST0056/parity/README.md|gen_inventory.sh DOES redirect (via OUTDIR, not OUT -- the reported "missing OUT" was a naming mismatch, not a missing capability). It is uncheckable for the real reason instead: it renders from $SP/probes/toplevel.tsv, which is not tracked. Its stamp is its only guard.
+intent/st/ST0056/parity/cmd-*.md|same as README.md -- rendered by gen_inventory.sh from the untracked probes/toplevel.tsv. 26 files. Committing that TSV would promote all 27 to CHECKABLE in one move, and is the single highest-leverage change available to this guard.
 EOF
 )"
 
