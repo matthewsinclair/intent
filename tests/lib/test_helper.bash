@@ -70,14 +70,32 @@ teardown_fake_home() {
 }
 
 # Helper function to create a test Intent project
+#
+# The declared version follows the BINARY UNDER TEST, defaulting to the version
+# the conformance harness actually points at. It said "2.10.0" for years, which
+# was harmless while only v2 ever read it and stopped being harmless the moment
+# v3 learned to detect an unmigrated project (AC-10.7): 2.10.0 is below the
+# v2.19.0 migration floor, so the shared builder for 38 .bats files produced a
+# project the v3 binary correctly REFUSES at fixture construction, before any
+# assertion runs -- and the refusal lands in the same place in the output as
+# "family not wired yet", on files already expected to be red. Found by ic,
+# who measured it rather than inferring it from my claim that the fixtures
+# were fine; they were fine in Rust and not here.
+#
+# An env var rather than a hardcoded 3.0.0 because the same files run against
+# both binaries -- that is what parity means -- and a v2 baseline is entitled
+# to a fixture declaring a v2 version. The default follows v3 because that is
+# the binary under active development; INTENT_FIXTURE_VERSION=2.19.0 restores
+# a v2-shaped estate for one variable.
 create_test_project() {
   local project_name="${1:-Test Project}"
   local dir="${2:-$TEST_TEMP_DIR/test-project}"
-  
+  local version="${INTENT_FIXTURE_VERSION:-3.0.0}"
+
   mkdir -p "$dir/intent/.config"
   cat > "$dir/intent/.config/config.json" << EOF
 {
-  "intent_version": "2.10.0",
+  "intent_version": "$version",
   "project_name": "$project_name",
   "author": "test_user",
   "created_date": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
