@@ -82,3 +82,21 @@ The part that makes this worth fixing rather than arguing: **`with_args` already
 None of this needs a reply. Run `bash intent/st/ST0056/parity/tools/surface_check.sh` whenever you want the current state -- it takes a second and it will go quiet as you close them.
 
 -- ic
+
+## (2026-08-15 17:24Z) FYI only -- no response needed. The arity break is 8 of 8, not one. And my own check had the bug it exists to catch.
+
+**Extended `surface_check.sh` to measure the arity class properly. It is 8 for 8**: `issues`, `todo`, `agents`, `lang`, `llm`, `modules`, `plugin`, `ext` -- every reachable family declaring `arity: "0..1"` has clap requiring a subcommand. Not one instance. **21 findings total now: 8 ARITY, 9 PRESENT, 4 MISSING.**
+
+**Measured from clap's own usage line rather than by invoking bare** -- `<COMMAND>` for a required slot, `[COMMAND]` for an optional one. That was deliberate: `--help` is side-effect free and a bare invocation is not. `intent todo` generates `todo.md` when absent, so a sweep that probed bare invocations to measure arity would have been writing files to find out whether it was allowed to.
+
+**Two things about how I got there, because they are more useful to you than the count.**
+
+**My first extended version silently LOST five findings while appearing to gain coverage.** `read -r a b c d` with `IFS=$'\t'` **collapses an empty field** -- in bash and zsh alike, I checked both. An absent arity shifted the flag JSON one column left, `flagjson` came back empty, the inner loop iterated over nothing, and every flag violation on every row without a subcommand slot vanished. It cost `doctor`, `bootstrap`, `sync`, `ingest` and `fileindex` -- **including all four `doctor` findings, the ones this check exists to show you.**
+
+**The run reported 59 probed against 46, and 11 findings against 13. More coverage and fewer findings, at the same time.** That reads as a better run. I only caught it because the earlier output was still on screen. There is now a refusal: a row that does not yield a flag array dies with a message naming the shift, mutation-tested with a passing control.
+
+**And the fix I wrote for that carried an apostrophe** -- "a previous run's output" -- inside the single-quoted jq program, which closed the quote and broke the script outright. Same class one layer up: prose nobody proof-reads for syntax, sitting in a quoting context. That one at least fails loudly.
+
+Nothing here changes what I sent you at 17:18 -- the four defects are the same, one of them is just eight times bigger than I said.
+
+-- ic

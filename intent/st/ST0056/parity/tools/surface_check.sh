@@ -40,9 +40,17 @@ ROWS="$(jq -r '[.families[].entries[], .new_surface[]] | length' "$TABLE")"
 # over 100+ declared paths a measurement rather than a hazard.
 PROBED=0; WIRED=0; VIOL=""; NOTE=""
 
-while IFS=$'\t' read -r path disp flagjson; do
+while IFS=$'\t' read -r path disp arity flagjson; do
   [ -n "$path" ] || continue
   PROBED=$((PROBED + 1))
+
+  # A MALFORMED ROW MUST PRESENT AS A REFUSAL, NEVER AS ZERO FINDINGS. The field
+  # shift above was invisible precisely because a row with no flag JSON checks
+  # no flags and reports nothing, which is indistinguishable from a clean row.
+  case "$flagjson" in
+    '['*) ;;
+    *) die "row \`$path\` did not yield a flag array (got \"${flagjson:0:40}\") -- the TSV columns have shifted, and a row whose flags cannot be read reports clean rather than broken" ;;
+  esac
 
   out="$($BIN $path --help 2>&1)"; rc=$?
 
@@ -58,6 +66,31 @@ while IFS=$'\t' read -r path disp flagjson; do
     continue
   fi
   WIRED=$((WIRED + 1))
+
+  # --- declared arity vs what clap actually requires -----------------------
+  # Read from the USAGE LINE rather than by invoking the command bare, and the
+  # difference matters: `--help` is side-effect free and a bare invocation is
+  # not. `intent todo` generates `todo.md` when absent, so a sweep that probed
+  # bare invocations to measure arity would be writing files to find out whether
+  # it was allowed to. clap answers the same question in its own usage string --
+  # `<COMMAND>` for a required slot, `[COMMAND]` for an optional one -- so the
+  # measurement is free and the hazard never arises.
+  if [ "$arity" != "-" ] && [ "$arity" != "null" ]; then
+    usage="$(printf '%s' "$out" | grep -m1 '^Usage:')"
+    case "$usage" in
+      *'<COMMAND>'*) clap_requires=yes ;;
+      *'[COMMAND]'*) clap_requires=no ;;
+      *)             clap_requires=unknown ;;
+    esac
+    case "$arity:$clap_requires" in
+      '0..1:yes')
+        VIOL="$VIOL
+  ARITY     \`$path\` -- declared \`arity: \"0..1\"\` (bare invocation legal) and clap REQUIRES a subcommand" ;;
+      '1:no')
+        VIOL="$VIOL
+  ARITY     \`$path\` -- declared \`arity: \"1\"\` (slot must be filled) and clap accepts the bare command" ;;
+    esac
+  fi
 
   # A flag is "on the surface" if clap prints any of its spellings in the help
   # block. Matched on the spelling with a word boundary rather than substring:
@@ -82,8 +115,33 @@ while IFS=$'\t' read -r path disp flagjson; do
   done < <(printf '%s' "$flagjson" | jq -r '.[] | "\(.disposition)\t\(.spellings | join(" "))"')
 
 done < <(jq -r '[.families[].entries[], .new_surface[]] | .[]
-  | select((.flags | length) > 0)
-  | [.path, (.disposition // "-"), (.flags | tojson)] | @tsv' "$TABLE")
+  # A row qualifies on EITHER having flags or declaring a subcommand slot. The
+  # first version selected on flags alone, which silently excluded every
+  # flagless family from the arity check -- `lang`, `llm`, `modules` and
+  # `agents` all declare `0..1` and carry no flags at all, so the population the
+  # check was built to measure was the population it could not see.
+  | select(((.flags | length) > 0)
+        or (((.args // []) | map(select(.type == "subcommand")) | length) > 0))
+  # NO FIELD IS EVER EMPTY -- the `-` placeholders are load-bearing, not tidiness.
+  # `read -r a b c d` with `IFS=$'\t'` COLLAPSES an empty field, in bash and zsh
+  # alike (verified in both). An absent arity therefore shifted the flag JSON one
+  # column left, `flagjson` came back empty, and the inner loop produced NOTHING
+  # -- so every flag violation on every row without a subcommand slot vanished in
+  # silence. It cost `doctor`, `bootstrap`, `sync`, `ingest` and `fileindex`.
+  #
+  # THE SHAPE OF THE FAILURE IS THE PART WORTH REMEMBERING. The run reported MORE
+  # coverage and FEWER findings at the same time -- 59 probed against 46, 11
+  # findings against 13 -- which reads as a better run. It was caught only
+  # because the earlier output was still on screen to compare against.
+  #
+  # And the fix above was written with an apostrophe in this very comment, which
+  # closed the single-quoted jq program and broke the script. Same class as the
+  # bug being described, one layer up: prose nobody proof-reads for syntax,
+  # sitting inside a quoting context.
+  | [ .path,
+      (.disposition // "-"),
+      ((((.args // []) | map(select(.type == "subcommand")) | first) // {}) | .arity // "-"),
+      (.flags // [] | tojson) ] | @tsv' "$TABLE")
 
 [ "$PROBED" -gt 0 ] || die "probed nothing -- the table has $ROWS rows and the extractor matched none of them, which reports a clean surface by measuring an empty one"
 
@@ -99,11 +157,21 @@ fi
 printf '\nsurface: the binary and the table DISAGREE:%s\n' "$VIOL"
 cat <<'EOF'
 
-These are not defects in the table. A `retire` or `pending` flag still on the
-surface is the EXP-05 spine gap: `spine.rs` builds every declared flag on every
+These are not defects in the table. Three classes, all in the spine:
+
+PRESENT is the EXP-05 gap. `spine.rs` builds every declared flag on every
 shipped entry, so a disposition is honoured at the command level (a retired
-command is absent) and ignored one level down. A `keep` flag missing is the
-other half -- most often a flag with no long spelling, which `spine.rs:152-159`
-drops through a bare `continue` with no diagnostic.
+command is absent from the surface) and ignored one level down.
+
+MISSING is most often a flag with no long spelling: `spine.rs:152-159` drops it
+through a bare `continue` with no diagnostic. A family-level flag is the other
+cause -- `build()` attaches a family's own flags only when it has NO verbs, so a
+flag declared on a family that has verbs reaches every leaf and not the family.
+
+ARITY is `build()` hardcoding `subcommand_required(true)` for any family with
+verbs, against the slot's declared arity. `with_args` gets this right in the
+same file, and the comment above it states the rule correctly: `1` means the
+slot must be filled, `0..1` means the bare command is legal and does something
+of its own. The rule is implemented once properly and once by hand.
 EOF
 exit 0
