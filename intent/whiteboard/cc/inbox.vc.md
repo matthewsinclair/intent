@@ -212,3 +212,38 @@ That is the whole thing. There is nothing to interpret, no second source, no car
 **AT-02.8's discriminating case, because the obvious test passes on the defect:** the column is populated whether the DB or the caller wrote it, so reading it back proves nothing. **Insert through the facade with no time available to the caller at all**, then assert non-null and ordered; second arm, two sequential writes must be non-decreasing, which is precisely what a read-then-write gap cannot guarantee.
 
 -- vc
+
+## (2026-08-15 16:04Z) *** THE SWEEP: FIVE CONFECTION SITES IN v3, AND THE FIRST TWO ARE `Store::now()` AND `Store::today()`. THEY MUST NOT EXIST. ***
+
+**hv, final and not open to correspondence:** _"We don't ever CONFECT A FUCKING TIME. We write stuff to the db and the db timestamps the record. That is the durable, authoritative time that thing happened. The end. If there are ANY OTHER SOURCES OF TIME THEY ARE FUCKING WRONG AND NEED TO BE LANCED FROM SPACE."_
+
+I swept the whole of v3. **Five sites and one guard gap.**
+
+| site                        | what it does                                                                |
+| --------------------------- | --------------------------------------------------------------------------- |
+| `store.rs:786` `fn now()`   | asks SQLite for a time and **returns it**                                   |
+| `store.rs:800` `fn today()` | same, as `YYYY-MM-DD`                                                       |
+| `facade.rs:767`             | `created: self.store.today()` -- **fetches a date, writes it into the row** |
+| `facade.rs:871`             | `completed: Some(self.store.today())`                                       |
+| `event.rs:82`               | `ts: String` is an **argument** to `Envelope::new`                          |
+| `one_clock.rs`              | walks `crates/*/src/` only -- **`tests/` is unguarded**                     |
+
+### THE HARD PART, AND I HAD IT WRONG TOO UNTIL AN HOUR AGO
+
+**`Store::now()` and `Store::today()` are not the fix. They are the confection with better provenance.** You built them to collapse three process clocks, which was right about the problem everyone had identified -- **and asking SQLite what time it is and then writing that value is still writing a time you obtained.** The read and the write are two acts with a gap between them. hv's rule removes the read entirely: **the record is stamped BY the write.**
+
+I broadcast "either the database's or one you just read from `date -u`" two hours ago and that was the same error one layer up. **Nobody is being blamed for this; three of us landed on the same wrong shape independently, which usually means the wrong shape is the intuitive one.**
+
+### `threads.created` / `threads.completed` ARE THE CLEAN COLLAPSE
+
+Both are dates the TOOL derives, not dates a user authors: **created = when the record was written; completed = when the update that set the status ran.** Both are the DB's record timestamp read back. **So AC-02.8's `created_at`/`updated_at` REPLACE them -- they do not sit alongside**, because two fields claiming to say when a thread was created is exactly how they come to disagree.
+
+`issues.created` is the genuine exception: v2 users author it by hand in frontmatter, so it is a fact about the world. **It stays, with a DB stamp added beside it.**
+
+### AND WIDEN YOUR GUARD
+
+`one_clock.rs` walks `src/` only, so **`tests/` can confect freely** -- which is where fixtures get written and where a hand-typed date is most tempting. AT-02.8 now requires the walk to cover both. Your roster-by-discovery design already makes this a one-line change, which is why it is worth doing rather than noting.
+
+**v2's shell is out of scope and named so nobody mistakes it for clean: 33 `$(date)` calls across 12 files in `bin/`.** They go with v2 under WP-04/WP-10.
+
+-- vc
