@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 18:30Z
+heartbeat_at: 2026-08-15 19:30Z
 status: active
-focus: "AC-02.8, AC-06.10(a)+(c), three spine parity breaks and AC-03.10 ALL FOUR ARMS landed and pushed. 331 tests, clippy and fmt clean. Gate 03 should be 10/10 and gate 02 8/8 -- both with vc. NEXT: AT-00.8, or the D37 face sweep once vc rules on D-numbers."
+focus: "AT-00.8 built (four surfaces, faces 37 ids -> 0) and AC-06.8/EXP-05 landed -- ic's parity check is at ZERO findings, from 21 this morning. 340 tests, clippy and fmt clean, both remotes at eb2e4dde. NEXT: AC-06.10(b) reader (ic's --versions row is in the binary), then the empty-category remedy on nine verbless leaves."
 claims: []
 ---
 
@@ -47,29 +47,31 @@ claims: []
 
 `70f1fc52` **AC-03.10(d), first half** -- the backup log is a TABLE recording ATTEMPTS, not a directory listing, so a schedule that never ran is distinguishable from one that fails. Row written before the copy; the snapshot filename comes from the stamp the INSERT returns; staleness is `julianday('now')` inside SQLite returning an INTERVAL, so **no clock is needed and none was added**. `SCHEMA_VERSION` 4, `SCHEMA_DDL_VER` 2.
 
+## DONE -- the evening, and both gates closed by vc
+
+**AT-00.8 / AC-00.9** (`26dacf1f`) -- the D37 guard, FOUR surfaces. **The faces are the biggest carrier and were in nobody's method**: `intent schema <face>` prints a face verbatim, so a `///` on a modelled type is emitted output. 37 identifiers across four faces -> 0; reasoning moved to `//`, nothing deleted. `owed_by` REMOVED from the model (a library another project links had no business naming our WPs); `owner_wp` guarded for a READER instead of for content. Four mutations, each dying at exactly one test.
+
+**Contract-hash fix** (`c001b639`) -- documentation is not contract. My doc edits moved all three face-version hashes and demanded three bumps. Re-pin measured, not taken: zero contract lines changed across all five faces, verified in a sacrificial worktree.
+
+**AC-06.8 / EXP-05** (`b8491e56`) -- `Flag.disposition` + `ships()`, honoured in the spine. **ic's `surface_check.sh` is at ZERO findings** (21 this morning, 6 at 19:05Z). `pending` sits with `retire`: an undecided flag that ships commits the surface by fait accompli.
+
+**vc closed WP-02 at 8/8 and gate 03 at 10/10**, by running the evidence rather than reading my claim.
+
 ## DOING -- nothing; picking up next from TODO
-
-**AC-03.10 IS DONE, ALL FOUR ARMS** (`70f1fc52`, `fbd66771`, `446d1f82`). Gate 03 should close at 10/10; with vc.
-
-- **(a)+(b)** were already green. **(c)** rolling day/week/month retention, configurable counts, **confined to `.backup/db/` by two independent mechanisms** -- the pruner acts only on rows it has, AND the directory is checked, because a corrupt row naming `intent upgrade`'s rollback must not make it deletable. Mutation-tested: without the second, the rollback is deleted.
-- **(d)** the backup log records ATTEMPTS, so never-ran and ran-and-failed are different observable states, and **`doctor` reports staleness with never-taken as its OWN message** -- the two call for different actions and collapsing them loses the distinction the check exists for. A schedule that runs and fails every hour reads as unbacked, which is the truth.
-- **No clock was added anywhere.** The snapshot filename comes from the stamp the INSERT returns; retention buckets in SQL; staleness is an interval SQLite computes. **hv's permission to read a clock in order to decide was not needed, which is the cheapest way to stop it eroding.**
-- `intent backup` and `--list` are wired. `--list` answers what EXISTS and is deliberately not the health report.
 
 ## TODO
 
-1. **AC-06.8 -- two live violations ic measured**: `doctor --quiet` and `--verbose` are declared and structurally unreadable (`fn doctor()` takes no `ArgMatches`; `run` dispatches `Some(("doctor", _))`). **44 more declared-and-unread flags** sit on unwired commands and become violations one at a time as each is wired -- the worst arrival schedule for a defect nobody watches for. ic raised the flag-disposition mechanism as EXP-05; **the spine change is mine when it lands.**
-2. **AT-00.8 -- the D37 guard is MINE.** The hard part is REFERENT, not regex.
-3. **D37 in the published faces** -- vc is doing the read. Two I found and did NOT fix, to avoid half a sweep: `event.rs` `Subject.id` doc (`eg ST0056`), and `FindingClass`'s own doc ("the two WP-03 adds").
-4. **AC-03.10 (c)+(d)** -- retention + `doctor` staleness. (a)+(b) are done and green.
-5. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
-6. **The EXP-05 disposition half is WRITTEN AND NOT COMMITTED.** Honouring it withdraws `sync --to-store`, which is built and covered by two tests, and its `pending` value has a stated reason -- the `sync`/`ingest` boundary is undeclared. **Landing it would answer ic's open question by making one answer true in the binary.** With ic and vc; my recommendation is that `sync` owns both directions and `ingest` retires.
+1. **AC-06.10(b) -- UNBLOCKED.** ic's `schema --versions` row is authored and already in the binary; the reader is mine and lands with the row rather than before it. `--versions` selects OUTPUT MODE, `face` selects WHICH -- they compose, no arm special-cases the other.
+2. **The empty-category remedy** (ic, measured): `remedy: run X --help for the verbs that are` on **nine leaves with zero verbs** -- `info`, `init`, `bootstrap`, `learn`, `fileindex`, `version`, `export`, `ingest`, `mcp`. Promises a category that is empty. Needs a leaf variant of the message.
+3. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
+4. **`intent ingest` has no source argument** (ic, measured). I ruled the shape: `path` at arity `0..1`, recovery DEFAULTS to this project's tree. ic writes the row, I wire it.
+5. **D-numbers in prose are not machine-enforceable** -- the faces are swept and guarded; help text and remedies are review-only. With vc; the alternative is a hand-kept roster inside the guard, which is the defect the guard class exists to find.
 
 ## Waiting
 
-- **vc**: nothing blocking. WP-02 reopened to 7/8 by their own audit; WP-03 was 9/10 before AC-02.8.
-- **ic**: nothing owed either way. `wp rescope` has no dispatch row (facade has the method) -- reported as an observation, may be deliberate.
-- **dc**: FYI only. `int macos verify` is the cheap release-state check; the shared `target/` hazard is structurally absorbed.
+- **vc**: the D-number exception (measured counter-example in shipped help text). Nothing blocking.
+- **ic**: the `ingest` path row when they want it. Boundary ruled AGAINST my recommendation on five measured axes -- `ingest` takes foreign md with a per-file error contract, `sync` moves our own extract with a round-trip guarantee. My argument read the shared gate as the identity; `st new` uses that gate too.
+- **dc**: `int prepush` reported "no native/ change" on a push carrying 900 lines of it. FYI, their call.
 
 ## Lane boundary
 
@@ -85,6 +87,11 @@ claims: []
 
 ## Watch-outs -- mechanical only
 
+- **A LESSON WRITTEN DOWN IS NOT A LESSON APPLIED, AND THE SECOND INSTANCE CAN BE HOURS LATER IN A SIBLING GUARD.** `store_schema_version.rs` hashes the DDL with comments STRIPPED, and says why in its own doc: a guard that cries wolf on a comment gets re-pinned without reading. I wrote that, then built the face-version hash the same afternoon covering every byte -- so rewording a comment demanded three contract-version bumps. **The fix does not generalise itself; grep the siblings when you write the note.**
+- **A REFERENT TRAP CAN LIVE IN A CLASS WITH NO BLESSABLE VALUE.** `ST0000` vs `ST0056` is soluble because one id is universal. `D2-D11` (STZero deliverables, the reader's) vs `D15` (a design decision, ours) is NOT: same shape, no carve-out. **When a class cannot be decided, decide the SURFACE instead** -- counted in the faces where the ambiguity cannot arise, review-only in prose. A guard that fires on correct help text gets switched off.
+- **A FIX CAN BE INVISIBLE TO THE ENTIRE SUITE WHILE AN EXTERNAL SCRIPT CATCHES IT.** Removing the flag-disposition skip left all 339 Rust tests green; only ic's `surface_check.sh` noticed, and it is not in CI. **A property whose sole witness lives outside CI regresses on the next refactor.** Mutation-test asks "does anything catch this", and "something outside the suite" is the wrong answer.
+- **`intent schema` PRINTS THE FACES, so the `///`-is-published rule reaches further than the repo.** It is not that a doc comment ends up in a committed artefact -- it ends up on a stranger's terminal. The comment exemption in a criterion about OUTPUT does not cover a comment a generator publishes.
+- **A PEER PUSHING BETWEEN YOUR TWO PUSHES CAN EMPTY A HOOK'S RANGE.** `@{upstream}` names ONE remote; a hook computing `@{upstream}...HEAD` answers "unpushed to the tracked remote", not "in this push". With two remotes those diverge silently and the gate opens.
 - **A GUARD CAN BE COARSER THAN THE DEFECT IT NAMES, AND THEN IT PASSES ON IT.** My `created_at` guard survived reverting `threads` to delete-and-reinsert, because both writes landed inside one second and second-granularity stamps compared equal. **The fix was the STAMP, not the assertion** -- the same collision is load-bearing in the product, since D34's cross-machine merge orders by exactly this value. Found by mutation test; unreachable by reading.
 - **"DOES THIS THING HAVE ONE" IS THE WRONG QUESTION WHEN IT HAS SEVERAL.** The completeness check asked whether a table had A stamp with a DEFAULT, so stripping `file_index.created_at`'s left `updated_at` to answer for it and the check passed. **Report per column, never per container.**
 - **A DEFECT THAT SURFACES SOMEWHERE ELSE IS A DEFECT THIS GUARD DOES NOT COVER.** That same mutation DID break the build -- through three unrelated snapshot tests hitting a NOT NULL violation. A loud failure elsewhere is not coverage here, and it reads like coverage.
