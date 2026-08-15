@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 15:29Z
+heartbeat_at: 2026-08-15 16:38Z
 status: active
-focus: "Seven verbs wired, AC-03.9 selector built (D36 cleanup taken), st new -s composes, AC-06.4 + AC-06.7 guarded. WP-02 is 7/7. Next: AC-03.10 backup, then the declared-flag guard."
+focus: "D42 half-landed (34d12557): event_log stamped by the DB, append/restore split, SCHEMA_VERSION 2 + first migration rung. NEXT: AC-02.8 -- created_at/updated_at on all eight tables, delete Store::now/today."
 claims: []
 ---
 
@@ -13,69 +13,85 @@ claims: []
 
 ## THE MODEL -- canon, hv ratified
 
-**The db is what is true. Everything on disk is an EXTRACT** -- `thread.json`, the `.md` views, `events.jsonl` are the same kind of object and none of them asserts anything. **One door in: the typed Rust API, and ingest is a CALLER of it.** **Sync's two directions are different operations**: db -> disk re-derives and cannot lose; disk -> db is a RESTORE that replaces truth -- except the event log, which MERGES, because nothing derives history. **Migrations are NORMAL.** **The standing requirement is PLATFORM AND DATA-MODEL OPENNESS** (AC-02.6): every db entity has a lossless `.json`/`.md` form usable without Intent. **D34**: the extract is the interchange, the DB is per-machine and never committed. **D35** (as vc sharpened it): snapshot = same-schema rollback ONLY; the recovery path for an outdated store is the EXTRACT, never a snapshot -- a snapshot from before a schema change restores the schema you were escaping. **D36**: `rm intent.db` is not an operation, including as a test-fixture idiom. **D37**: our ST/WP/AC ids never reach Intent's output, and that includes the published schema faces (`intent schema` prints them).
+**The db is what is true. Everything on disk is an EXTRACT** -- `thread.json`, the `.md` views, `events.jsonl` are the same kind of object and none of them asserts anything. **One door in: the typed Rust API, and ingest is a CALLER of it.** **Sync's two directions are different operations**: db -> disk re-derives and cannot lose; disk -> db is a RESTORE that replaces truth -- except the event log, which MERGES, because nothing derives history. **Migrations are NORMAL, and the ladder now exists.** **The standing requirement is PLATFORM AND DATA-MODEL OPENNESS** (AC-02.6). **D34**: the extract is the interchange, the DB is per-machine and never committed. **D35**: snapshot = same-schema rollback ONLY; the recovery path for an outdated store is the EXTRACT. **D36**: `rm intent.db` is not an operation. **D37**: our ST/WP/AC ids never reach Intent's output, including the published schema faces.
 
-## DONE this session -- five commits, `01079fd5` both remotes, 288 pass
+## D42 -- TIME. THE WHOLE RULE, AND IT HAS NO CLAUSES
 
-- **Seven verbs wired** (`546c06ef`). The rows were ic's and shipped; the wiring was mine. Mutation-proved: deleting an arm fails the drive on `not implemented yet`.
-- **AC-03.9 selector built** (`d7f3afdb`) -- `--to-disk` / `--to-store`, both D36 sites retired. **No store-deletion site remains.**
-- **`st new -s` composes** (`b0641c8b`) -- test reads the EVENT LOG, per vc's discriminating case.
-- **AT-02.7 marker** (`9df18b10`) -- **WP-02 gates 7/7 PASS.**
-- **AC-06.4 + AC-06.7 guarded** (`01079fd5`) -- empty index no longer answers like a miss; WP-body search tested.
+**DB records have a timestamp field. That is the source of truth for time. Nothing else. Ever.**
 
-## DOING -- next up
+**You never ask what time it is** -- not the OS, not `date`, not the filesystem, **and not the database either**. Asking SQLite and then writing the answer is still writing a time you obtained: the read and the write are two acts with a gap, and a write retried or deferred inside it is stamped when it was PREPARED. **The record is stamped BY the write.**
 
-1. **AC-03.10** (DB backup). `VACUUM INTO`, never a serialiser. **Do not invent the `.backup/` namespace (dc's) or the `intent config` keys (ic's).** D35 as sharpened: do NOT describe the snapshot as the recovery path for a corrupt or outdated store.
-2. **The declared-flag guard.** Nothing mechanically links a table-declared flag to a renderer that reads it, so the next silent drop looks identical to a working flag from the help text. **Asked vc whether it is theirs to contract or mine to build.** A whole-file grep UNDER-REPORTS -- must be per-arm.
+**hv's sharpening, verbatim and the most testable form of the rule:** _"intent3 won't have any cli or intentsvcs functions that TAKE a time. There will be cli and intentsvcs functions that RETURN times, but those will have gone end-to-end thru the db where the time was SET BY SQLite, not confected in an LLM hallucination."_ **That is a property of the API surface, not of the call sites** -- and it is a sharper guard than `one_clock.rs`, which bans `::now` and would not catch a time-shaped parameter.
+
+**Four things that are NOT exceptions**, each already used by one of us to reintroduce a clock: a test fixture; "I'm only reading it"; "the value came FROM the database"; "it's just a board label".
+
+**Creating vs restoring is the split that makes it workable**: create -> the DB stamps, no caller supplies anything; restore -> the recorded stamp is carried. **Re-stamping on restore or migration destroys history and every stamp still looks valid.**
+
+**Why load-bearing**: under D34 two machines MERGE event logs. A merge needs a time nobody could have typed.
+
+## DOING -- AC-02.8, and it is ONE indivisible unit
+
+**hv work instruction: "lance all five and widen the guard." Four are done; these are the rest.**
+
+1. **DELETE `Store::now()` and `Store::today()`.** Deleting is the point, not a side effect -- while they exist someone calls them, and a function that hands out a time IS the confection regardless of where it got the value. They also fail hv's surface rule twice over: they RETURN a time that never went through a record.
+2. **`created_at`/`updated_at` on ALL EIGHT tables**, written by the DB (DEFAULT or trigger). vc's audit: **zero of eight** have one today. Three columns look like the answer and none is -- `threads.created`/`issues.created` are authored dates, `file_index.mtime` is the FILE's, `event_log.ts` was an argument.
+3. **`threads.created`/`completed` are REPLACED by them, not supplemented** -- two fields claiming to say when a thread was created is how they come to disagree. Both are tool-derived: created = when the record was written, completed = when the update that set the status ran.
+4. **`issues.created` is the ONE exception and STAYS** -- v2 users author it by hand, so it is a fact about the world, with a DB stamp beside it.
+5. **Bumps `SCHEMA_VERSION` to 3 + re-pin the hash + a migration rung**, in the same commit. Existing rows carry their stamps through; re-stamping at migration is the violation, not the fix.
+6. **AT-02.8's discriminating case**: the column is populated whether the DB or a caller filled it, so reading it back proves nothing. **Insert through the facade with NO time available to the caller at all**; assert non-null and ordered, and that two sequential writes are non-decreasing -- the property a read-then-write gap cannot give.
+
+**Reopens WP-02 to 7/8**, knowingly, under "file a defect under its own noun even when that reopens a closed WP".
+
+**Then build hv's surface guard**: no `intentsvcs`/CLI function TAKES a time. The one legitimate seam is `restore_event(&Envelope)`, which takes a RECORD carrying a DB-set stamp through the extract -- make that explicit rather than implied.
 
 ## TODO
 
-1. **AT-00.8 -- the D37 guard is MINE** (vc ruled; ic owns the dispatch table as an INPUT, dc gets the pre-commit hook later). **The hard part is referent, not regex**: an Intent WP id in `owner_wp` is RED, `ST0000` in help text is GREEN because it names a thing in the reader's own project. A regex over `ST0\d{3}` passes neither honestly.
-2. **D37 in the published faces, ~30 hits** -- vc RULED they are in scope and is doing the read themselves. Await their list. **One I walked past and did NOT fix, deliberately, to avoid half a two-ended sweep: `event.rs:60`, `/// Natural id, eg ``ST0056``, ``ST0056/02``, ``0021``` on a `JsonSchema` type.** Pattern already set: keep the description, neutralise to `ST0001`.
-3. **AC-06.6 export**, then **AC-06.1 surface tail**. Issues 0026-0029 DEFAULT-DEFER; check AC-03.6 before touching 0029.
-4. **AC-04.1's `TornRollback` arm** -- independent of everything.
+1. **AC-06.8 -- two live violations ic measured**: `doctor --quiet` and `--verbose` are declared and structurally unreadable (`fn doctor()` takes no `ArgMatches`; `run` dispatches `Some(("doctor", _))`). **44 more declared-and-unread flags** sit on unwired commands and become violations one at a time as each is wired -- the worst arrival schedule for a defect nobody watches for. ic raised the flag-disposition mechanism as EXP-05; **the spine change is mine when it lands.**
+2. **AC-06.10 / D41** -- two-part face versions `INTENT_VER` / `SCHEMA_<TYPE>_VER`, **constants in code, injected by the generator**. AT asserts against the face AS PUBLISHED, never the constant -- the failure guarded is a generator that stops injecting.
+3. **AT-00.8 -- the D37 guard is MINE.** The hard part is REFERENT, not regex.
+4. **D37 in the published faces** -- vc is doing the read. Two I found and did NOT fix, to avoid half a sweep: `event.rs` `Subject.id` doc (`eg ST0056`), and `FindingClass`'s own doc ("the two WP-03 adds").
+5. **AC-03.10 (c)+(d)** -- retention + `doctor` staleness. (a)+(b) are done and green.
+6. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
 
 ## Waiting
 
-- **vc**: (a) whether `search`'s empty-index remedy may name `sync --to-store` -- **I decided it rather than stalling** and asked them to check. My reading: AC-03.9 forbids a remedy sending an operator to a RESTORE **to recover from a failure**, and prose is disk-native (D02), so disk -> db is not a recovery path for it but its only path. (b) **`doctor --fix` is theirs** -- a flag whose name promises mutation, declared and unread; what it may touch is a contract question and I am not building it. (c) AC-03.9's own text carries a stale measurement (says db-to-disk "does not exist at all"; `sync_to_disk` exists). (d) `data-model.md`'s AC entity + the two `status_reason` fields.
-- **THE FIFTH STATE IS WITH hv, NOT SETTLED.** vc reversed their own ruling in its favour on the record and says keep building; if hv rules against it the cost is one enum value and two edges. **Do not stall on it.**
-- **ic**: nothing owed either way. Told them about `wp rescope` (in the facade, no dispatch row) as an observation with the query, not an ask -- the omission may be deliberate.
-- **dc**: FYI only, no action. A `cargo build --release` ad-hoc signs the binary and silently de-notarises it; `codesign --verify --strict` returns 0 on it. `int macos verify` is the cheap check.
+- **vc**: nothing blocking. WP-02 reopened to 7/8 by their own audit; WP-03 was 9/10 before AC-02.8.
+- **ic**: nothing owed either way. `wp rescope` has no dispatch row (facade has the method) -- reported as an observation, may be deliberate.
+- **dc**: FYI only. `int macos verify` is the cheap release-state check; the shared `target/` hazard is structurally absorbed.
 
 ## Lane boundary
 
-`dc` owns dev-x, build, CI, release, git workflow, install. **cc is services and app functionality**: intentsvcs, the facade, the model, ingest/views/store, **and the CLI's behaviour -- which includes wiring dispatch rows to the facade.** `surface/dispatch-table.json` is ic's; `acceptance.md` + `design.md` + `data-model.md` are vc's. **`bin/intent*` is cc's and FROZEN** -- it is the baseline ic's burn figures are measured from. `bin/int` + `bin/.devbin/**` are dc's.
+`dc` owns dev-x, build, CI, release, git workflow, install. **cc is services and app functionality**: intentsvcs, the facade, the model, ingest/views/store, **and the CLI's behaviour -- including wiring dispatch rows to the facade.** `surface/dispatch-table.json` is ic's; `acceptance.md` + `design.md` + `data-model.md` are vc's. **`bin/intent*` is cc's and FROZEN** -- the baseline ic's burn figures are measured from. `bin/int` + `bin/.devbin/**` are dc's.
 
 ## Standing rulings
 
-- **`treeindex` and handover RETIRE** -- the db obviates both (D30/WP-14). **A retired command is PRESENT AND REFUSING, not absent**: `dispatch::is_shipped()` excludes `retire` rows, so it is absent from `shipped_entries()` and present in the spine. **`fileindex` is NOT covered** -- its `pending-hv` INV-07 question stands.
-- **`EdgeKind::Incidental` STAYS despite having no user.** `Edge::exits` is `leaves() && kind == Direct`, so deleting it collapses `exits` into `leaves` and the trap check silently starts accepting technicality exits again.
-- **`owner_wp` stays carried and unread** in the dispatch deserialiser -- it has three consumers in ic's `gen_dispatch_table.sh`.
+- **`treeindex` and handover RETIRE.** A retired command is PRESENT AND REFUSING, not absent. **`fileindex` is NOT covered.**
+- **`EdgeKind::Incidental` STAYS despite having no user** -- deleting it collapses `exits` into `leaves` and the trap check silently accepts technicality exits again.
+- **`owner_wp` stays carried and unread** -- three consumers in ic's `gen_dispatch_table.sh`.
+- **`doctor --fix` is WITHDRAWN, not deferred** (hv). A diagnostic that NAMES the remedy beats one that performs it. Nothing to remove in `render.rs` -- it was declared and never read; ic removes the row.
 - **Push to all remotes when needed.**
 
 ## Watch-outs -- mechanical only
 
-- **A DISCARDED `ArgMatches` DROPS EVERY FLAG ON THE COMMAND, SILENTLY.** `Some(("sync", _))` and `Some(("doctor", _))` threw the matches away, so six declared flags could not be read even in principle -- and clap accepts a declared flag whether or not anything reads it, so `--help` advertises what the renderer denies. **Six found; five were real.** No mechanism links the two.
-- **A CENSUS BY WHOLE-FILE GREP UNDER-REPORTS.** My first flag census missed `st new -s` because its long spelling is `start`, which is everywhere in the renderer as a verb name. **Check per-ARM, never per-file.**
-- **A FIXTURE CAN PUT THE TEST IN THE WRONG WORLD.** `no_match_is_exit_zero_and_silent` used a bare `st new`, so its index was empty: it believed it was proving "searched and found nothing" and was exercising "never searched anything" -- the exact two cases its own criterion exists to separate, and it passed either way.
-- **A LANE BOUNDARY YOU ASSERT CAN BE BACKWARDS, and that is worse than a stale premise** -- it moves your work onto someone else's list, where it sits undone. I reported the seven verbs as owed by ic twice, in writing. **Before naming a peer's block, run the query that proves it.** ic's form: _"verify this rather than take my word"_.
-- **A TEST THAT ASSERTS A REFUSAL CANNOT TELL WHICH REFUSAL.** The lifecycle test passed identically whether the verbs were wired or not, because `unwired` also refuses. **A test written to make an ask concrete made the ask invisible.**
-- **A REPORT OF N SITES IS A SAMPLE UNTIL SOMEONE COUNTS.** Grep the phrase FAMILY, then READ every hit instead of counting.
-- **A GREP FINDS THE SPELLING YOU ASKED FOR, AND A CLAIM HAS MORE THAN ONE.** "disposability" survived two passes against greps for "disposable".
-- **A GREP OVER COMMENTS FINDS THE WRONG HALF.** The D37 sites that mattered were in string LITERALS. Grep `"[^"]*PATTERN[^"]*"` and exclude comment lines.
-- **A `///` DOC COMMENT IS SHIPPED OUTPUT.** schemars lifts it into the JSON Schema face and async-graphql into the SDL; `intent schema` prints both. I put an AC id, a node name, a date and a test path into two published faces while closing a different hole -- in the file that carries this warning three fields down. **Plain `//` for reasoning.**
-- **A TEST CAN ASSERT THE DEFECT, and it looks like diligence.** `an_unbuilt_command_names_the_work_package_that_owes_it` pinned a D37 leak, having been written as the fix to a WORSE version of it. **When a ruling lands, grep the tests for what now asserts the old behaviour.**
-- **A COMMENT CAN DOCUMENT THE BUG AS A FEATURE.** `store.rs:181` said "Reopening an existing DB is a no-op apply (IF NOT EXISTS)" -- accurate, and describing the hole.
-- **A HAND-KEPT ROSTER INSIDE AN INSTRUMENT IS THE DEFECT THE INSTRUMENT LOOKS FOR.** Three instances now, the last in the CONTRACT: AC-02.6 said eight tables and the DDL has nine, inside the criterion that forbids hand-maintained rosters. **Discover structurally; never enumerate names by hand.**
-- **A COLLAPSE MAKES THE NEW REPRESENTATION OBVIOUS AND THE OLD INVARIANT INVISIBLE.** Rewriting `resolve()` the natural way would have let a hand-authored `satisfied` on a test-backed AC satisfy the gate. **Re-derive what the old shape enforced.**
-- **`git checkout -- <path>` REVERTS TO HEAD, NOT TO BEFORE YOUR MUTATION.** Used it to undo a mutation test; it took uncommitted work in the same file with it. **Twice.** Back up with `cp`, restore with `cp`.
-- **AN ERROR SWALLOWED IN A FIXTURE IS A SILENT ERROR.** `.ok()` on three fixture mutations made four tests fail on a precondition instead of on the refusal that caused it. **`expect()` in fixtures, always.**
-- **A `.jsonl` FILE ESCAPES A `.json` CHECK BY SUFFIX LENGTH.** Correct today by accident -- the same shape D29 named for the DB file. **Any new extension needs a decision, not a coincidence.**
-- **`IF NOT EXISTS` MAKES A SCHEMA CHANGE INVISIBLE UNTIL A QUERY FAILS.** Any DDL change needs `SCHEMA_VERSION` bumped and `store_schema_version.rs` re-pinned in the same commit; the test names the value. **Comments are excluded from the hash -- deliberately, after it demanded a bump for one.**
-- **VERSION 0 IS NEVER "SCHEMA ZERO".** SQLite defaults `user_version` to 0, so 0 permanently means unstamped. `SCHEMA_VERSION - 1` to get "an older version" is wrong at version 1 and looks right.
-- **`--only` commits what you NAME, and a move is TWO facts.** `a1a949c` committed 58 additions and left 55 deletions staged, on both remotes. Verify at HEAD (`git ls-tree`), never on disk.
-- **`--only` NEVER CLEARS THE INDEX** (issue 0028): `git reset -- <your paths>` clears it without touching peers.
-- **TWO symlinks point INTO this repo**: `which -a intent` returns three reachable copies. Sacrificial `git worktree` only for `bin/intent*`.
-- **`git stash` is unsafe here** -- two pre-existing 2025 stashes; a pop once dumped 522 lines of pruned migration code into the tree.
-- **Cargo runs from `native/rust`.** A build cache can be stale in a way its own freshness check cannot see.
-- **v3 REFUSES in this repository**, correctly -- unmigrated 2.19.0. BATS fixtures declare 3.0.0 via `INTENT_FIXTURE_VERSION`.
+- **BETTER PROVENANCE IS NOT THE ABSENCE OF A CONFECTION.** I built `Store::now()` to collapse three process clocks, and it was the same defect one layer up. **Three of us landed on "one well-sourced clock" independently, which means the wrong shape is the intuitive one** -- so the enforcement must be structural, never a rule to remember.
+- **A SUFFICIENT-LOOKING FIELD ANSWERS A NARROWER QUESTION THAN THE ONE BEING ASKED.** Eight tables shipped with no record timestamp because three columns look like one. Fourth instance of this class in a day.
+- **A SWEEP DOES NOT MOVE A FILE, IT SPLITS A CHANGE.** ic's unqualified `--amend` took my test file without the `store.rs` methods it called; HEAD did not build and every file in it looked finished. **After a sweep the check is "does it still build", not "whose file is this".** `--only` protects a commit and NOT an amend.
+- **STAGE NOTHING UNTIL THE MOMENT YOU COMMIT.** Staging early to get past a block is what made my file sweepable.
+- **`MM` WITH A CLEAN `git diff HEAD` IS A STALE INDEX ENTRY** (issue 0028) -- invisible to the diff, visible only as the left column of `git status --short`. `git reset -- <path>` clears it and touches no byte of the worktree.
+- **A DISCARDED `ArgMatches` DROPS EVERY FLAG SILENTLY.** `Some(("doctor", _))` -- clap accepts a declared flag whether or not anything reads it, so `--help` advertises what the renderer denies.
+- **A CENSUS BY WHOLE-FILE GREP UNDER-REPORTS.** Missed `st new -s` because its long spelling is `start`. **Check per-ARM.**
+- **A FIXTURE CAN PUT A TEST IN THE WRONG WORLD.** `no_match_is_exit_zero_and_silent` used a bare `st new`, so its index was empty: it proved "never searched anything" while claiming "searched and found nothing", and passed either way.
+- **A LANE BOUNDARY YOU ASSERT CAN BE BACKWARDS** -- worse than a stale premise, because it moves your work onto someone else's list. **Before naming a peer's block, run the query that proves it.**
+- **A TEST THAT ASSERTS A REFUSAL CANNOT TELL WHICH REFUSAL.** `unwired` refuses too.
+- **A `///` DOC COMMENT IS SHIPPED OUTPUT.** schemars lifts it into the JSON Schema face and async-graphql into the SDL. **Plain `//` for reasoning.**
+- **A TEST CAN ASSERT THE DEFECT, and it looks like diligence.** When a ruling lands, grep the tests for what now asserts the old behaviour.
+- **A HAND-KEPT ROSTER INSIDE AN INSTRUMENT IS THE DEFECT THE INSTRUMENT LOOKS FOR.** Discover structurally; never enumerate by hand.
+- **`git checkout -- <path>` REVERTS TO HEAD, NOT TO BEFORE YOUR MUTATION.** Back up with `cp`, restore with `cp`.
+- **AN ERROR SWALLOWED IN A FIXTURE IS A SILENT ERROR.** `expect()` in fixtures, always.
+- **`IF NOT EXISTS` MAKES A SCHEMA CHANGE INVISIBLE UNTIL A QUERY FAILS.** Any DDL change bumps `SCHEMA_VERSION`, re-pins `store_schema_version.rs`, and writes the migration rung -- in the same commit. **The guard earned its existence within hours: it forced the first rung on the first schema change after it was built.**
+- **VERSION 0 IS NEVER "SCHEMA ZERO".** SQLite defaults `user_version` to 0, so 0 permanently means unstamped.
+- **SCHEMARS RENDERS A DOCUMENTED ENUM AS `oneOf` OF `const`s AND AN UNDOCUMENTED ONE AS A FLAT `enum`.** A reader that knows one shape returns an EMPTY roster the day someone edits a comment, and every test over it passes vacuously.
+- **`--only` COMMITS WHAT YOU NAME, and a move is TWO facts.** Verify at HEAD (`git ls-tree`), never on disk.
+- **TWO symlinks point INTO this repo.** Sacrificial `git worktree` only for `bin/intent*`. **`git stash` is unsafe here.**
+- **Cargo runs from `native/rust`.** `INTENT_BLESS=1 cargo test -p intentsvcs --test schema_faces_drift` is what re-blesses the faces -- not a workspace-wide bless.
+- **Two remotes; a peer can push between your two pushes.** Verify both with `git ls-remote`.
