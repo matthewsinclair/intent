@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-15 12:13Z
+heartbeat_at: 2026-08-15 12:25Z
 status: active
-focus: "Resumed after compact. Specs ratified and rolled out; two acks now owed by every peer on pickup. Cleared a stale shared index and filed 0028. 30/97, four WPs open."
+focus: "All three acks in and accepted; each node found something it had reported clean. ONE THING WITH hv: D21 gitignores the SSOT, so what carries truth between machines. 30/97."
 claims: [ST0056]
 ---
 
@@ -14,7 +14,8 @@ claims: [ST0056]
 ## DOING
 
 - **Localfold before a compact, mid-session.** `/compact` does not end a session (protocol invariant 6), so status stays `active`. Session detail is in `.history/20260815/wip.md`.
-- **Two things are owed to me on every peer's pickup**, both broadcast and both durable in their inboxes: the **db-is-SSOT ack** (model in their own words, what in their lane still assumes the old one, how they checked) and **anything the ratified state machines invalidate**. Chase these before accepting any new work from a node.
+- ~~**Two things are owed to me on every peer's pickup.**~~ **DISCHARGED 2026-08-15 12:23Z. All three acked with method, and every one of them found something in its own lane it had previously reported CLEAN** -- cc nine sites after reporting sixteen fixed, dc a false claim in `.gitignore` after auditing the lane clean, ic three user-facing help strings its first structured pass could not reach. The ack mechanism earned itself; do not let the next broadcast go out without one.
+- **BLOCKED ON hv -- the ONE open decision: D21 gitignores the SSOT.** Git does not carry the durable truth, so what does? (A) commit the DB (unmergeable binary, already rejected on transport grounds) or (B) the committed extract is the interchange and a clone reconstitutes through the ingest gate. **Under (B), AC-02.6 stops being about third-party tools and becomes the durability mechanism** -- a lossy extract destroys truth at the clone boundary. Recorded under D21, NOT decided. Anything touching transport waits.
 
 ## THE MODEL, in case everything else is lost
 
@@ -62,6 +63,10 @@ Measurement rules live in `intent/st/ST0056/parity.md`. What follows is operatio
 
 Archived once a committed artefact carries them -- see `.history/`.
 
+- (2026-08-15) **Three nodes reaching one question from three unrelated entry points is the strongest evidence available that the gap is real.** cc from `rm intent.db`, dc from an ignore-rule premise that inverted underneath it, ic from two people on one project -- all landing on D21's transport question. One node asking is a node's confusion; three converging is a hole in the design.
+- (2026-08-15) **A board field is a claim about a session's last fold, not a fact about the present.** I inferred authorship of a live edit from `status: active` and was wrong -- the editing node was `paused`. We call heartbeats advisory and I then used one as evidence.
+- (2026-08-15) **A clean result is only as current as the needle set that produced it, and a needle set has a timestamp** (dc's, better than my "absence of the NAME is not absence of the mechanism" because it explains rather than names). Corollary from ic: **a structured query is a needle like any other and reports on the subtree it TRAVERSED** -- and it feels exhaustive in a way a grep never does, so a clean structured result is trusted harder than it has earned.
+- (2026-08-15) **`corrected` PRESERVES a ratified guard; "aspirational" reinterprets it.** When a ratified requirement and a measured v2 behaviour disagree, the requirement governs v3 and the gap is a parity class -- never a reason to widen the guard to fit what the code already does, which is invisible because the result is green.
 - (2026-08-15) **The number going DOWN is the contract working.** 31/94 -> 30/97 after the reversal, because three WPs were resting on sentences it invalidated. A rising satisfied-count during a spec change is the thing to distrust.
 - (2026-08-15) **Correct in place with a named Correction notice; never a quiet edit.** An issue that silently becomes a different issue is the same class of lie as the ones this board exists to catch.
 - (2026-08-15) **A control refuses; documentation reminds; only one is load-bearing** (cc). Treat a rule you can obey only by concentrating as an unfixed defect.
