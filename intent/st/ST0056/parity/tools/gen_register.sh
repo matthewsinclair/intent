@@ -89,6 +89,18 @@ exposure_for() {
   [ -n "$hit" ] && printf '%s' "$hit" || printf 'UNPROBED'
 }
 
+
+# parity.md:32 -- "each [deviate row] carries a D-number ratified in design.md
+# before the port lands". Meaningful only for `deviate`: a `keep` row changes
+# nothing and has nothing to ratify, so printing a ref there would dilute the
+# column into noise and make the one row that matters harder to find.
+ratification_for() {
+  case "$2" in
+    deviate) lookup_ratification "$1" ;;
+    *)       printf 'n/a' ;;
+  esac
+}
+
 REV="$(cd "$WT" && git rev-parse --short HEAD 2>/dev/null)"
 # A register that cannot name its revision is a rumour with a decimal point --
 # the exact defect this artefact was built to avoid. It emitted `Measured at ``
@@ -181,33 +193,33 @@ Authored prose (\`design.md\`, \`impl.md\`, \`tasks.md\`) stays authored in v3, 
 ## Rows
 
 PREAMBLE
-  printf '| test file | tests | burn | class | v3 exposure | basis | notes |\n'
-  printf '| --------- | ----- | ---- | ----- | ----------- | ----- | ----- |\n'
+  printf '| test file | tests | burn | class | v3 exposure | ratification | basis | notes |\n'
+  printf '| --------- | ----- | ---- | ----- | ----------- | ------------ | ----- | ----- |\n'
   tail -n +2 "$BURN" | while IFS=$'\t' read -r f total dfail burn status; do
     # A decided classification wins over any inferred one, whatever the burn
     # says. These are the files a grep cannot judge -- see OVERRIDES.
     ov="$(lookup_override "$f")"
     if [ -n "$ov" ]; then
       IFS='|' read -r cls basis note <<< "$ov"
-      printf '| `%s` | %s | %s/%s | %s | %s | %s | %s |\n' "$f" "$total" "$burn" "$total" "$cls" "$(exposure_for "$f")" "$basis" "$note"
+      printf '| `%s` | %s | %s/%s | %s | %s | %s | %s | %s |\n' "$f" "$total" "$burn" "$total" "$cls" "$(exposure_for "$f")" "$(ratification_for "$f" "$cls")" "$basis" "$note"
       continue
     fi
     case "$status" in
       FULL)
-        printf '| `%s` | %s | %s/%s | keep | %s | full burn | Every test changes result when the binary is redirected: the file exercises the CLI and nothing else. |\n' "$f" "$total" "$burn" "$total" "$(exposure_for "$f")"
+        printf '| `%s` | %s | %s/%s | keep | %s | n/a | full burn | Every test changes result when the binary is redirected: the file exercises the CLI and nothing else. |\n' "$f" "$total" "$burn" "$total" "$(exposure_for "$f")"
         ;;
       NONE)
         IFS='|' read -r cls basis note <<< "$(classify_no_burn "$f")"
-        printf '| `%s` | %s | 0/%s | %s | %s | %s | %s |\n' "$f" "$total" "$total" "$cls" "$(exposure_for "$f")" "$basis" "$note"
+        printf '| `%s` | %s | 0/%s | %s | %s | %s | %s | %s |\n' "$f" "$total" "$total" "$cls" "$(exposure_for "$f")" "$(ratification_for "$f" "$cls")" "$basis" "$note"
         ;;
       MIXED)
-        printf '| `%s` | %s | %s/%s | pending | %s | partial burn | %s of %s tests reach the CLI; the remainder do not. Needs per-test rows before WP-05 relies on it. |\n' "$f" "$total" "$burn" "$total" "$(exposure_for "$f")" "$burn" "$total"
+        printf '| `%s` | %s | %s/%s | pending | %s | n/a | partial burn | %s of %s tests reach the CLI; the remainder do not. Needs per-test rows before WP-05 relies on it. |\n' "$f" "$total" "$burn" "$total" "$(exposure_for "$f")" "$burn" "$total"
         ;;
       UNSTABLE)
-        printf '| `%s` | %s | -- | UNCLASSIFIED | %s | unstable baseline | %s test(s) already fail with the default binding, so the burn delta carries no information. Fix or explain before classifying. |\n' "$f" "$total" "$(exposure_for "$f")" "$dfail"
+        printf '| `%s` | %s | -- | UNCLASSIFIED | %s | n/a | unstable baseline | %s test(s) already fail with the default binding, so the burn delta carries no information. Fix or explain before classifying. |\n' "$f" "$total" "$(exposure_for "$f")" "$dfail"
         ;;
       TIMEOUT)
-        printf '| `%s` | %s | -- | UNCLASSIFIED | %s | measurement timed out | The run exceeded BURN_TIMEOUT and was killed, so neither binding produced a usable failure count. This is not a slow test and not a passing one: no measurement exists. Re-run this file alone before classifying. |\n' "$f" "$total" "$(exposure_for "$f")"
+        printf '| `%s` | %s | -- | UNCLASSIFIED | %s | n/a | measurement timed out | The run exceeded BURN_TIMEOUT and was killed, so neither binding produced a usable failure count. This is not a slow test and not a passing one: no measurement exists. Re-run this file alone before classifying. |\n' "$f" "$total" "$(exposure_for "$f")"
         ;;
       *)
         # NO SILENT ERRORS. burn.sh grew a TIMEOUT status on 2026-08-14 and this
@@ -222,7 +234,7 @@ PREAMBLE
         # status this generator does not recognise becomes a loud UNCLASSIFIED
         # row naming the unknown value, because the failure mode to design
         # against is the register that quietly got smaller.
-        printf '| `%s` | %s | -- | UNCLASSIFIED | %s | unrecognised burn status `%s` | burn.sh emitted a status this generator has no arm for. Emitted rather than dropped: a row silently absent from the register reads as a file that does not exist. Teach the generator this status, or fix the sweep that produced it. |\n' "$f" "$total" "$(exposure_for "$f")" "$status"
+        printf '| `%s` | %s | -- | UNCLASSIFIED | %s | n/a | unrecognised burn status `%s` | burn.sh emitted a status this generator has no arm for. Emitted rather than dropped: a row silently absent from the register reads as a file that does not exist. Teach the generator this status, or fix the sweep that produced it. |\n' "$f" "$total" "$(exposure_for "$f")" "$status"
         ;;
     esac
   done

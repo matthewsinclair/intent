@@ -211,6 +211,37 @@ whiteboard_clock_guard.bats|out-of-scope|hook behaviour, decided|Exercises a pre
 organize_commands.bats|retire|hv ruling 2026-08-14|Retires with the command. hv ruled \`organize\` vestigial by construction -- a strictly structured model cannot hold data in the wrong spot or format -- so both implementations are planned retires (parity.md, 2026-08-14; via vc). Classified by ruling, not by burn.
 "
 
+# ---------------------------------------------------------------------------
+# RATIFICATION REFERENCES for `deviate` rows.
+#
+# parity.md:32 is a contract and the register was not honouring it: "**deviate**
+# -- asserts surface we are deliberately changing; each carries a D-number
+# ratified in design.md BEFORE the port lands." The register had no column for
+# it, so no deviate row carried one and nothing noticed.
+#
+# The consequence is not cosmetic. **AC-06.3's evidence is "register diff
+# history shows land-time recording"** -- you cannot check whether a deviation
+# was recorded at land time against a register with nowhere to record its
+# ratification. The AC was uncollectable by construction, and would have stayed
+# so until someone tried to close it at the end of WP-06, which is the worst
+# moment to discover an evidence gap.
+#
+# UNRATIFIED IS A VALUE, NOT A BLANK. A deviate row with no D-number gets
+# `UNRATIFIED` in the column, loudly, because the whole point of the rule is
+# that the design decision precedes the port. Inventing a plausible D-number
+# here would be exactly the laundering the column exists to prevent -- ic builds
+# the mechanism, vc and hv ratify the decision.
+#
+# Format: <basename>|<ratification ref>
+RATIFICATIONS="
+"
+
+lookup_ratification() {
+  local hit
+  hit="$(printf '%s\n' "$RATIFICATIONS" | grep -F "$(basename "$1")|" | head -1 | cut -d'|' -f2-)"
+  printf '%s' "${hit:-UNRATIFIED}"
+}
+
 lookup_override() {
   printf '%s\n' "$OVERRIDES" | grep -F "$(basename "$1")|" | head -1 | cut -d'|' -f2-
 }
