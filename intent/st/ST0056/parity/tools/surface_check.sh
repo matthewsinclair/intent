@@ -21,8 +21,15 @@
 # probed -- because a check that cannot run must say so rather than pass.
 set -uo pipefail
 
-SP="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-REPO_ROOT="$(cd "$SP/../../../.." && pwd)"
+# `PARITY_DIR`, not `SP` -- the house name, taken from drift_check.sh which had
+# it right. This file said `SP`, and `SP` means "the scratch directory this run
+# owns" in six sibling tools that share this directory and get read together.
+# Same name, two meanings, one directory: harmless today because nothing here
+# reads it as a scratchpad, and precisely the setup where the next person to add
+# a line does.
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PARITY_DIR="$(cd "$HERE/.." && pwd)"
+REPO_ROOT="$(cd "$PARITY_DIR/../../../.." && pwd)"
 TABLE="${TABLE:-$REPO_ROOT/surface/dispatch-table.json}"
 BIN="${BIN:-$REPO_ROOT/native/rust/target/release/intent}"
 

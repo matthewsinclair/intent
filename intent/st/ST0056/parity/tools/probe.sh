@@ -24,22 +24,40 @@
 # that mattered lived in a sentence in someone's shell history, and the one that
 # was written down (INTENT_HOME) is the one that survived. Both belong in the
 # probe itself, where a caller cannot forget them.
-FAKEHOME="${FAKEHOME:-$SP/fakehome}"
-mkdir -p "$FAKEHOME"
-
 set -u
 
-# SP must be passed in or defaulted absolutely. Deriving it from BASH_SOURCE
-# breaks the moment this file is sourced from zsh, where BASH_SOURCE is unset:
-# SP then resolves somewhere plausible, every probe fails identically in `cd`,
-# and the run reports a uniform rc=1 surface that looks like real data.
-SP="${SP:-/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/0482e68a-709f-45b1-ab98-44bc9c962bd1/scratchpad}"
+# SP MUST BE PASSED IN. It is not defaulted, and the previous default is the
+# reason this ordering was rewritten (ic, 2026-08-15, from vc's sweep suggestion
+# after three defects in one day shared this cause).
+#
+# It used to read `SP="${SP:-/private/tmp/claude-501/.../<uuid>/scratchpad}"` --
+# ONE HISTORICAL SESSION'S SCRATCH DIRECTORY, named by UUID, hardcoded as the
+# fallback for every future run. It still resolves today only because that
+# directory happens not to have been reaped yet, which is luck rather than a
+# property. Deriving from BASH_SOURCE is genuinely wrong here for the reason the
+# old comment gave -- this file is sourced, and BASH_SOURCE is unset under zsh,
+# so SP would resolve somewhere plausible and every probe would fail identically
+# in `cd`, yielding a uniform rc=1 surface that reads as real data. **But the
+# answer to "cannot be derived" is REFUSE, not "default to wherever it worked
+# once."** A default that points at another session's temp directory is the
+# absent-input class that has now cost this estate three separate defects.
+SP="${SP:?set SP -- the scratch directory this run owns. NOT defaulted: the only honest fallback is a refusal, since a probe run against the wrong root produces a complete, uniform, entirely fictional surface}"
 WT="${WT:-$SP/wt}"
 SBX="${SBX:-$SP/sandbox}"
 OUT="${OUT:-$SP/probes}"
 CAP="$OUT/raw"
 
-mkdir -p "$CAP"
+# FAKEHOME IS COMPUTED HERE, AFTER SP EXISTS, AND THAT IS THE WHOLE FIX.
+# It used to sit twenty-six lines above, BEFORE the SP default and three lines
+# before `set -u`. With SP unset it expanded to the literal `/fakehome` and the
+# run then did `mkdir -p /fakehome` -- so **the HOME isolation this file's own
+# header calls its hard-won lesson was silently defeated in exactly the case the
+# default existed to cover.** `set -u` would have caught it; `set -u` was on the
+# next-but-two line. A guard that arrives after the statement it protects is not
+# a guard. Latent rather than live, because the sole caller passes SP.
+FAKEHOME="${FAKEHOME:-$SP/fakehome}"
+
+mkdir -p "$FAKEHOME" "$CAP"
 
 # Refuse to run against a missing worktree or sandbox. Without this the probes
 # still "work": every one fails in `cd` or exec, and the run yields a uniform
