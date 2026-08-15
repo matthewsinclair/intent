@@ -400,9 +400,9 @@ MCP_UNDECLARED="$(jq -r '
   | map(select((.exposed_on_mcp | type) != "boolean"
              or ((.read_or_mutate // "") | IN("read","mutate") | not))
         | .path)
-  | join(" ")' "$IN")"
+  | join("\n")' "$IN")"
 [ -z "$MCP_UNDECLARED" ] || die "rows do not declare the MCP surface -- every entry needs \`exposed_on_mcp\` (boolean) and \`read_or_mutate\` (\"read\" or \"mutate\"). Refusing rather than defaulting: there is no safe default, and deriving from the verb is what this field exists to replace. Offending paths:
-$(printf '%s' "$MCP_UNDECLARED" | tr ' ' '\n' | sed 's/^/  /')"
+$(printf '%s' "$MCP_UNDECLARED" | sed 's/^/  /')"
 
 # `target.state` is a CLOSED vocabulary, and until now nothing closed it.
 # `Target.state` is a bare `String` with `#[serde(default)]`, the values were
@@ -428,9 +428,9 @@ $(printf '%s' "$STATE_UNDECLARED" | sed 's/^/  /')"
 
 STATE_UNUSED="$(jq -r '
   ([.invariants[], .families[].entries[], .new_surface[]] | map(.target.state // "") | unique) as $used
-  | (.target_states // []) | map(select((.state | IN($used[])) | not) | .state) | join(" ")' "$IN")"
+  | (.target_states // []) | map(select((.state | IN($used[])) | not) | .state) | join("\n")' "$IN")"
 [ -z "$STATE_UNUSED" ] || die "\`target_states\` declares states no row uses -- a vocabulary that outlives its members reads as coverage of something nobody classified. Remove them, or record why they are held open:
-$(printf '%s' "$STATE_UNUSED" | tr ' ' '\n' | sed 's/^/  /')"
+$(printf '%s' "$STATE_UNUSED" | sed 's/^/  /')"
 
 # The review markers are only worth anything if they are legible to the
 # reviewer, so a marker that names nothing is itself a defect: `uncertain: []`
@@ -443,9 +443,9 @@ MCP_EMPTY_REVIEW="$(jq -r '
         ((.mcp_review | length) == 0)
         or ((.mcp_review.uncertain // null) != null and (.mcp_review.uncertain | length) == 0)))
         | .path)
-  | join(" ")' "$IN")"
+  | join("\n")' "$IN")"
 [ -z "$MCP_EMPTY_REVIEW" ] || die "rows carry an empty \`mcp_review\` -- a review marker that names no field is indistinguishable from a confident row in a diff. Either name the soft field or drop the block:
-$(printf '%s' "$MCP_EMPTY_REVIEW" | tr ' ' '\n' | sed 's/^/  /')"
+$(printf '%s' "$MCP_EMPTY_REVIEW" | sed 's/^/  /')"
 
 # --- EXP-05: a flag cannot join the surface by being typed ------------------
 # AC-06.8. `is_shipped()` reads an entry disposition, so a retired COMMAND never
@@ -463,9 +463,9 @@ $(printf '%s' "$MCP_EMPTY_REVIEW" | tr ' ' '\n' | sed 's/^/  /')"
 # costume of a settled one.
 FLAGS_ABSENT="$(jq -r '
   [.families[].entries[], .new_surface[]]
-  | map(select((.flags | type) != "array") | .path) | join(" ")' "$IN")"
+  | map(select((.flags | type) != "array") | .path) | join("\n")' "$IN")"
 [ -z "$FLAGS_ABSENT" ] || die "rows do not declare \`flags\` as an array -- an absent key and \`[]\` render identically as \`--\`, so 'this command has no flags' and 'nobody has said' are the same glyph. Write \`[]\` to mean none:
-$(printf '%s' "$FLAGS_ABSENT" | tr ' ' '\n' | sed 's/^/  /')"
+$(printf '%s' "$FLAGS_ABSENT" | sed 's/^/  /')"
 
 # SECOND: every declared flag declares a disposition, in vocabulary.
 # `keep` ships and must be read - `retire` is recorded from v2 and never reaches
@@ -480,9 +480,9 @@ $(printf '%s' "$FLAGS_ABSENT" | tr ' ' '\n' | sed 's/^/  /')"
 FLAG_UNDECLARED="$(jq -r '
   [.families[].entries[], .new_surface[]]
   | map(. as $e | (.flags // []) | map(select((.disposition // "") | IN("keep","retire","pending","intrinsic") | not)
-      | $e.path + ":" + (.spellings[0] // "?"))) | add // [] | join(" ")' "$IN")"
+      | $e.path + ":" + (.spellings[0] // "?"))) | add // [] | join("\n")' "$IN")"
 [ -z "$FLAG_UNDECLARED" ] || die "flags do not declare a \`disposition\` in vocabulary (keep, retire, pending, intrinsic) -- without one the spine builds every declared flag unconditionally, so a flag joins the v3 surface by being typed into this file. Offending flags:
-$(printf '%s' "$FLAG_UNDECLARED" | tr ' ' '\n' | sed 's/^/  /')"
+$(printf '%s' "$FLAG_UNDECLARED" | sed 's/^/  /')"
 
 # THIRD: a retired command cannot ship a flag. This is the one rule here that is
 # derivable rather than authored, so it is checked rather than trusted -- an
@@ -492,9 +492,9 @@ FLAG_ORPHAN="$(jq -r '
   [.families[].entries[], .new_surface[]]
   | map(select(.disposition == "retire") | . as $e | (.flags // [])
       | map(select(.disposition | IN("keep","pending")) | $e.path + ":" + (.spellings[0] // "?")))
-  | add // [] | join(" ")' "$IN")"
+  | add // [] | join("\n")' "$IN")"
 [ -z "$FLAG_ORPHAN" ] || die "flags declare they ship on a command that does not -- a retired command never reaches clap, so neither can its flags. Reconcile the flag with its entry:
-$(printf '%s' "$FLAG_ORPHAN" | tr ' ' '\n' | sed 's/^/  /')"
+$(printf '%s' "$FLAG_ORPHAN" | sed 's/^/  /')"
 
 # FOURTH: a retired command cannot be an agent tool, which is the SAME derivable
 # rule as FLAG_ORPHAN one level up. `exposed_on_mcp` is already refused when
@@ -514,9 +514,9 @@ MCP_ORPHAN="$(jq -r '
   | map(select(.exposed_on_mcp == true)
       | select((.disposition == "retire") or (.target.state == "retire"))
       | .path)
-  | join(" ")' "$IN")"
+  | join("\n")' "$IN")"
 [ -z "$MCP_ORPHAN" ] || die "commands are exposed as agent tools but do not ship -- a retired command never reaches clap, so it cannot be an MCP tool either. Reconcile \`exposed_on_mcp\` with the retirement:
-$(printf '%s' "$MCP_ORPHAN" | tr ' ' '\n' | sed 's/^/  /')"
+$(printf '%s' "$MCP_ORPHAN" | sed 's/^/  /')"
 
 emit "# Command dispatch table -- Intent v3 (ST0056, AC-05.1)"
 emit ""
