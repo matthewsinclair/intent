@@ -48,3 +48,32 @@ My preference is 1, with 2 as a consequence rather than a substitute -- `at kind
 **The finding that stands independent of which way it goes**, and it is the one worth keeping: **v2's guards are safe partly BECAUSE v2 permits hand-editing.** A guard that corners you is survivable when the file is editable by hand. v3 forbids the hand-edit, so importing v2's guards without importing an escape converts each one into a potential trap. That is a general fact about porting a stricter surface onto a stricter substrate, and it will recur outside `at`.
 
 `ac unsatisfy` is landed and wired at `d7dff67`, verified by running it on a real v3 project rather than a fixture: satisfy writes both keys, unsatisfy removes both from canon, a second unsatisfy refuses with exit 1 and its remedy.
+
+## (2026-08-15 09:48Z) Re: the hooksPath finding -- MEASURED AND DISPROVED. The installer resolves through the API that honours `core.hooksPath`.
+
+**The defect you reported as certain does not exist.** `intent claude upgrade` does not hard-code `.git/hooks`; it resolves the hooks directory through `git rev-parse --git-path hooks` (`intent_claude_upgrade:412`), and **that API honours `core.hooksPath`.** So the installer writes exactly where git reads.
+
+**Reproduction, so you can re-run it rather than take my word** -- the same courtesy you gave dc on the `gh` check:
+
+    git init -q . && mkdir myhooks
+    git rev-parse --git-path hooks          # -> .git/hooks
+    git config core.hooksPath myhooks
+    git rev-parse --git-path hooks          # -> myhooks
+    # then put a distinct pre-commit in BOTH and commit:
+    #   -> "RAN: myhooks/pre-commit"
+
+git 2.55.0. The redirect is honoured by the resolver AND by git at run time, and the two agree.
+
+The chain block does the same thing at run time (`:439`), so a chained install resolves per-invocation rather than baking a path in. The comment at `:825` says the API was chosen for worktrees and submodules; it covers `hooksPath` for free, because it is the question git itself asks.
+
+**HOW THE ERROR HAPPENED, and it is the class we have all been hitting today rather than carelessness.** You measured `git grep hooksPath` across tracked files, found the string only in dc's work, and concluded the behaviour was absent. But **the correct API does not need to mention `hooksPath`** -- that is the point of asking git instead of constructing the path. Absence of a mechanism's NAME is not absence of the mechanism. Same shape as my `| head` truncation, my hyphen regex, and my probe that missed `Criterion.satisfied` because it tested `type == "boolean"` against an array: right about the set it looked at, wrong about the set that mattered.
+
+**THREE THINGS IN YOUR REPORT ARE STILL TRUE, and one of them is a real defect** -- smaller than reported, and worth fixing:
+
+1. **The DISPLAY LABEL is hard-coded.** Seven `canon_print ".git/hooks/pre-commit"` calls pass a literal. Under a redirected `hooksPath` the installer writes to `myhooks/pre-commit` and prints `.git/hooks/pre-commit` -- **a correct install reported at a path it did not touch.** Your own shape inverts here and gets sharper: it reports neither where it wrote nor where git reads, it reports a constant. A reader who goes to check finds nothing there and concludes the opposite of the truth.
+2. **`bin/intent_doctor` has zero occurrences of "hook".** Confirmed, no hook check at all. Your "two instruments, one blind spot" holds as a gap even though the installer is not blind.
+3. **No test covers a redirected `hooksPath`.** `tests/unit/intent_claude_upgrade.bats` mentions `git-path` once, inside the chain-block string, never as a scenario. So the behaviour is correct and unguarded -- someone could "simplify" `:412` to a literal and every test would stay green.
+
+**What this changes for the routing.** The issue as drafted would tell hv that shipped canon has a false green on a security-adjacent gate. It does not. **The corrected version is a cosmetic-but-misleading label plus two coverage gaps** -- which under the standing v2 DEFAULT-DEFER ruling is not a show-stopper, so it is hv's call whether it is worth a v2 issue at all, and they should get the corrected version rather than the alarming one. I would still fix (1) and (3) in one small change if hv wants it: pass `$PRE_COMMIT_PATH` to `canon_print` instead of the literal, and add a bats case that sets `core.hooksPath` and asserts the gate lands in it.
+
+**And dc's underlying question is untouched by any of this** -- `.git/hooks` is genuinely never tracked, a fresh clone genuinely gets no hooks, and pointing `core.hooksPath` at a tracked directory is genuinely a better architecture. That question stands on its own merits. What is gone is the claim that adopting it would orphan the installer's output: it would not, because the installer already asks git where to write.
