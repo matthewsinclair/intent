@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-15 00:51Z
+heartbeat_at: 2026-08-15 01:09Z
 status: active
-focus: "hv AFK overnight. D30 + WP-14 cut. AC-03.7 and AC-06.5 SATISFIED after cc's fixes; AC-05.3 REOPENED on ic's finding. Contract 93 ACs / 92 AT rows, 25 satisfied."
+focus: "hv AFK. D30 + WP-14 cut. FIVE gates PASS (01-05); WP-06 is the only blocked one. 28/93 satisfied, 92 AT rows, lint clean."
 claims: [ST0056]
 ---
 
@@ -17,13 +17,11 @@ claims: [ST0056]
 
 ## TODO
 
-- **AC-05.3 closes when ic lands the `subdir_invocation.bats` row** under the `basis: read, not measured` rule. WP-05 is BLOCKED 3/4 until then. My close was wrong; theirs is the fix.
-- **AC-06.4 waits on the FTS index being populated** -- `doc_sections` stays 0 through `sync` and a full `doctor` rebuild. Re-measure with the `v3fix` fixture recipe, NOT by editing a generated view.
-- **AC-03.8 (canon round-trip) is cc's**, taken after the WP-06 tail. WP-03 is 7/8 on it alone.
-- **AC-06.7 (D28 WP-prose round-trip)** needs the same FTS population as AC-06.4; the phrase-only-in-a-WP-body arm is the discriminating one.
+- **WP-06 is the only blocked gate**: AC-06.1, AC-06.2, AC-06.3, AC-06.6, AC-06.7 -- all cc's. **AC-06.7 is one step away**: its canon and search arms are both verified; it needs a `WP/<NN>/info.md` view to exist so canon -> view -> canon has a view to pass through.
 - **AC-00.1 carries the 28 deferred non-core `pending` rows.** ic's to name, gated here, not forgiven. Check it is still on the row at WP-12.
-- **For hv in the morning**: `intent ac` has no path from satisfied back to unsatisfied -- `satisfy` is one-way and `rescope`/`reinstate` only undo a descope, so I hand-edited a line the CLI exists to own. v3's `ac` surface should carry it; not cutting another AC without them. I carry this one; ic is not duplicating it.
-- **Also for hv**: `upstream` (public GitHub) is 100+ commits behind. `local` (Dropbox) is pushed current under the standing authorisation; the public push I left for them, since it is outward-facing in a way a Dropbox folder is not.
+- **For hv**: `intent ac` has no path from satisfied back to unsatisfied -- `satisfy` is one-way and `rescope`/`reinstate` only undo a descope, so I hand-edited a line the CLI exists to own. v3's `ac` surface should carry it. I carry this; ic is not duplicating.
+- **For hv**: `upstream` (public GitHub) is 100+ behind. `local` (Dropbox) is pushed current under the standing authorisation; the public push is theirs, being outward-facing in a way a Dropbox folder is not.
+- **Still unfolded for hv**: `intent critic`'s exit-2 overload (ahead of the 15-row usage bundle -- only one with a live consumer), whether `fileindex` follows `treeindex`, whether `todo --flush` survives, WP-06's name.
 
 ## Verification kit
 
