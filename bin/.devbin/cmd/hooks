@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Report which git hooks are wired to which guards (bare form reports)
+#
+# intent hooks            -- REPORT the wiring state of this clone's git hooks.
+# intent hooks --install  -- wire the repo-local runners into the hooks.
+#
+# THE HOLE THIS EXISTS FOR, and it sits underneath every other guard here.
+# `bin/int precommit` and `bin/int prepush` are tracked, reviewed and tested.
+# The lines in `.git/hooks/` that CALL them are not, because git never tracks
+# `.git/hooks/`. So every guard landed this morning is a property of ONE MACHINE
+# rather than of the repository: a fresh clone receives every guard and nothing
+# invoking them.
+#
+# vc's framing, and it is exact: the guards are in the same state the
+# half-committed move was in -- correct in the working copy, absent from what
+# anyone else receives. Worse in one respect. A duplicated tree announces itself
+# to anyone who looks; an unwired guard does not fail, it reports NOTHING, and
+# **reporting nothing is indistinguishable from passing.**
+#
+# THE BARE FORM REPORTS, deliberately (the `int use` convention). An installer
+# someone forgets to run leaves you exactly where you started; a check turns
+# "did you run it?" into a measured fact. The check is the load-bearing half.
+#
+# THREE STATES, NOT A BOOLEAN, because the middle one is the dangerous one:
+#
+#   WIRED     the hook exists AND invokes the runner
+#   UNWIRED   the hook EXISTS and does NOT invoke it  <- looks installed, isn't
+#   ABSENT    no hook file at all
+#
+# A present-but-unwired hook is what a legacy v2 pre-commit, or a chain that
+# lost its link, actually looks like from outside: installed, executable, and
+# invoking nothing you rely on.
+#
+# GUARD NAMES ARE READ FROM THE RUNNER, never listed here. Today's ruling
+# applied to itself: report what is measured, not what was intended. A hard-coded
+# roster in this file would go stale the moment a guard is added and would then
+# report a guard that does not run, which is worse than reporting none.
+#
+# NOT A CI GATE, and the reason is structural rather than a preference: CI clones
+# fresh, so it has no hooks by construction and would report ABSENT on every run
+# forever. This answers "is THIS clone protected", which is a question only a
+# working clone can be asked.
+#
+# WHAT THIS CANNOT DO. It cannot make the repository carry the wiring. Git will
+# not adopt tracked hooks on its own -- that is a deliberate security property,
+# not an oversight -- so some per-clone action is irreducible. `core.hooksPath`
+# pointed at a tracked directory would shrink that action from "copy files" to
+# "run one config command" AND make the hook bodies reviewable, which is the
+# better architecture. It is not taken here because it collides with
+# `intent claude upgrade`, which installs the critic gate by writing
+# `.git/hooks/pre-commit` directly -- that installer is canon and another node's
+# lane. Flagged for a ruling rather than decided unilaterally.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+
+ROOT="${PROJECT_ROOT:?}"
+DO_INSTALL=0
+[ "${1:-}" = "--install" ] && DO_INSTALL=1
+
+# Honour core.hooksPath. If someone HAS redirected it, `.git/hooks` is not where
+# git looks, and a check that reads the wrong directory would report ABSENT for
+# a correctly-wired clone -- or WIRED for a directory git ignores. Both are the
+# failure this command exists to prevent, committed by the command itself.
+HOOKS_DIR="$(git -C "$ROOT" config --get core.hooksPath 2>/dev/null || true)"
+if [ -n "$HOOKS_DIR" ]; then
+  case "$HOOKS_DIR" in /*) ;; *) HOOKS_DIR="$ROOT/$HOOKS_DIR" ;; esac
+  REDIRECTED="  (core.hooksPath -> $HOOKS_DIR)"
+else
+  HOOKS_DIR="$ROOT/.git/hooks"
+  REDIRECTED=""
+fi
+
+# guards_of <runner-name> -- read the guard scripts a runner actually invokes,
+# and report whether each is present and executable. Measured from the runner's
+# own source rather than from a list kept here.
+guards_of() {
+  local runner="$ROOT/bin/.devbin/cmd/$1" line g
+  [ -f "$runner" ] || { printf '                 runner MISSING: bin/.devbin/cmd/%s\n' "$1"; return; }
+  # `|| true`: a runner with no $TOOLS/*.sh guards is legitimate (prepush is one
+  # -- its check is inline), and under `set -e` grep's exit 1 on no-match would
+  # abort the whole report.
+  while IFS= read -r line; do
+    g="$ROOT/intent/st/ST0056/parity/tools/$line"
+    if [ -x "$g" ]; then
+      printf '                 guard: %s\n' "$line"
+    else
+      printf '                 guard: %s  <- NOT EXECUTABLE OR MISSING\n' "$line"
+    fi
+  done < <(grep -oE '\$TOOLS/[A-Za-z0-9_]+\.sh' "$runner" 2>/dev/null | sed 's|\$TOOLS/||' | sort -u || true)
+}
+
+# report_hook <hook-name> <runner-name>
+rc=0
+report_hook() {
+  local hook="$1" runner="$2" path="$HOOKS_DIR/$1"
+  if [ ! -f "$path" ]; then
+    printf '  %-12s ABSENT    no hook file -- `int %s` is never invoked\n' "$hook" "$runner"
+    rc=1
+    return
+  fi
+  if [ ! -x "$path" ]; then
+    printf '  %-12s UNWIRED   present but NOT EXECUTABLE -- git will not run it\n' "$hook"
+    rc=1
+    return
+  fi
+  if grep -qE "int[[:space:]]+$runner\b" "$path" 2>/dev/null; then
+    printf '  %-12s WIRED     -> int %s\n' "$hook" "$runner"
+    guards_of "$runner"
+  else
+    printf '  %-12s UNWIRED   the file exists and does NOT invoke `int %s`\n' "$hook" "$runner"
+    printf '                 present, executable, and running something else -- this is\n'
+    printf '                 the state that looks installed and protects nothing.\n'
+    rc=1
+  fi
+}
+
+if [ "$DO_INSTALL" -eq 0 ]; then
+  printf 'hooks in %s%s\n\n' "$HOOKS_DIR" "$REDIRECTED"
+  report_hook pre-commit precommit
+  report_hook pre-push prepush
+  printf '\n'
+  if [ "$rc" -eq 0 ]; then
+    printf 'hooks: this clone is wired. NOTE this is a fact about THIS CLONE only --\n'
+    printf '  .git/hooks is never tracked, so it says nothing about anyone else.\n'
+  else
+    printf 'hooks: this clone is NOT fully wired. Run `int hooks --install`.\n'
+    printf '  An unwired guard does not fail; it reports nothing, and reporting\n'
+    printf '  nothing is indistinguishable from passing.\n'
+  fi
+  exit "$rc"
+fi
+
+# ---- install ----
+#
+# APPEND, never overwrite. `.git/hooks/pre-commit` here already carries the
+# intent-chain-block (installed by `intent claude upgrade`), prettier, and mix
+# format. Replacing it would silently drop the critic gate and the whiteboard
+# clock guard -- removing guards while claiming to install them.
+mkdir -p "$HOOKS_DIR"
+install_chain() {
+  local hook="$1" runner="$2" path="$HOOKS_DIR/$1"
+  if [ ! -f "$path" ]; then
+    printf '#!/usr/bin/env bash\nset -euo pipefail\n\n' > "$path"
+    printf 'created %s\n' "$path"
+  fi
+  if grep -qE "int[[:space:]]+$runner\b" "$path" 2>/dev/null; then
+    printf 'ok: %s already invokes `int %s` -- unchanged\n' "$hook" "$runner"
+  else
+    cat >> "$path" <<EOF
+
+# Repo-local gate, wired by \`int hooks --install\`. The runner is tracked at
+# bin/.devbin/cmd/$runner; this line is not, because .git/hooks never is.
+if [ -x bin/int ]; then
+  bin/int $runner || exit \$?
+fi
+EOF
+    printf 'wired: %s -> int %s\n' "$hook" "$runner"
+  fi
+  chmod +x "$path"
+}
+install_chain pre-commit precommit
+install_chain pre-push prepush
+printf '\n'
+exec "$0"
