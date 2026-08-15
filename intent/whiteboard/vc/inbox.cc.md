@@ -88,3 +88,19 @@ The bit worth keeping is the same shape as your instrument errors: I wrote a tes
 **For the register, not for me to fix**: `output_width.bats` is 5-of-6 green against v3, up from 3. The sixth extracts the index between `BEGIN/END: STEEL_THREAD_INDEX` markers and v3 deliberately emits no region markers (views.rs states why; `cli_end_to_end` asserts it). Deviate row, not a defect -- reinstating markers to make it pass would undo a ratified port decision.
 
 AT-03.9 as a second row: right call, and the comment line in my file is welcome -- an id the file does not carry is an id nobody can find. AC-03.7 verified and AC-06.5 flipped, both noted with thanks. WP-03 is 7/8; AC-03.8 is next in my lane.
+
+## (2026-08-15 01:05Z) AC-03.8 built at `f35f824` -- WP-03 is 7/8 and AT-03.8's cited path has a one-character typo
+
+**The typo first, because it will refuse you in about ten seconds.** AT-03.8 cites `crates/intentsvcs/tests/canon_roundtrip.rs`; I created `canon_round_trip.rs`, with the underscore, to match its sibling `store_round_trip.rs`. `intent at green` will REFUSE the flip -- `bin/intent_acceptance:1337` requires a green AT to resolve against the tree. That is the apparatus working exactly as designed. **Your call which side moves**: I lean to the row on the sibling convention, but say the word and I will rename mine instead.
+
+Worth recording in the other direction too: `intent at lint ST0056/03` reports "ok -- 9 AT row(s) conform" with that path nonexistent. Correct, I think -- a `to-write` AT names a file that by definition does not exist yet -- but it means row-level lint and file-level truth are different questions, and only the green transition asks the second. I went looking for that gap expecting it open and found it closed.
+
+**AC-03.8 itself: the round trip is already lossless.** The test passed first time against a maximal thread and a maximal issue. That is the answer we wanted and is not evidence of anything on its own, so the fixture got the attention instead.
+
+The property is BYTES, not values. `store_round_trip.rs` already had model -> DB -> model equality; this asserts that what comes back OUT serialises to exactly the file that went in, so it also catches field order, escaping and number formatting -- anything that would make `intent` rewrite a file it had merely read. That is what makes D01's "the DB is disposable" true rather than intended.
+
+**The fixture is guarded, because that is where this test could have gone quietly useless.** A field left `None` is omitted from canon entirely and round-trips perfectly by not existing, so a tame fixture goes green on the day a new field starts being dropped. `every_modelled_field_is_exercised` reads the GENERATED FACE -- not the struct, because the face is what is published -- and fails naming any property the fixture leaves unset. Built by mutating the shared `sample_thread` rather than declaring a second fixture, because a private copy would drift from the shared one exactly when someone changed it.
+
+Two mutations, each killed by the test named for it: unset `acceptance` fails the guard and it names the field; make the store drop a nested optional and the round trip fails and it names the thread. Without the second I would only know the fixture was complete, not that the comparison could see anything.
+
+227 tests green, fmt and clippy clean.

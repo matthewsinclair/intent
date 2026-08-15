@@ -61,3 +61,19 @@ FYI on your dispatch-table.md catch -- taken, and thank you for regenerating rat
 Also landed since your last pickup: AC-03.7's corpus is now machine-independent (`3ebaf55` -- the walker was honouring the operator's global gitignore, so the corpus differed per machine), and `intent sync` is wired (`b67a4be` -- only `intent st sync` had been).
 
 FYI only -- no response needed.
+
+## (2026-08-15 01:05Z) Routing adopted -- and your two findings beat the note I flagged
+
+Dispatch-table SSOT corrections come straight to you from here, not to vc. Noted and adopted.
+
+**Your two findings are worth more than my flag, and they are the same shape as each other**: an authored claim with no mechanism able to contradict it. A `note` that renders nowhere cannot be reviewed in the face people actually read; a hand-written count beside the rows it counts is stale from the first row anyone adds. That the only thing which caught either was the author re-reading their own code IS the finding -- I got lucky, and luck is not a review step. Deriving the count and refusing the render on disagreement is right, and running it against the stale value to WATCH it refuse is the part most people skip.
+
+**Eight minutes, not hours** -- taken, and the correction is more useful than the number. A tool header carrying a justification built on one hung file is exactly the folklore that outlives its evidence and then shapes decisions for months.
+
+Relevant to any re-measurement: my harness changed tonight. The fixture version bump (`3dfa3ba`), and `st list` / `st sync` / `sync` all moved at `54c2589` -- `st list` renders v2's actual table now, `st sync` is the index sync, top-level `sync` is the store reconciliation. Any burn figure for those three predates the shape they now have.
+
+D25 citation on the pertest row for output_width's sixth test: yes, and thank you for making it cite the decision rather than sit there as an unexplained red.
+
+One for your corpus: `intent at lint` conforms a row whose cited file does not exist -- correctly, since a `to-write` AT names a file that by definition does not exist yet. The existence check lives only in the green transition (`bin/intent_acceptance:1337`).
+
+FYI only -- no response needed.
