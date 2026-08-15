@@ -13,7 +13,25 @@
 # for vc to adjudicate, per the work order.
 
 set -uo pipefail
-SP="${SP:?}"; WT="${WT:?}"
+
+# WT MUST BE THE TREE THE BURN WAS MEASURED IN, not merely a checkout that has
+# the same files. The stamp is read from `git -C "$WT" rev-parse HEAD`, so
+# passing the main working tree while feeding it a baseline measured elsewhere
+# produces a register whose data is from one revision and whose stamp names
+# another -- and the stamp is the ONLY thing telling a reader which.
+#
+# Done on 2026-08-15: regenerated against the main tree with a baseline measured
+# at c60cdbd, and the register published "Measured at 892b88a". Data was
+# byte-identical, so nothing looked wrong; `pertest.md` (correctly generated in a
+# c60cdbd worktree) said c60cdbd, and the two artefacts silently disagreed about
+# their own provenance -- the exact split the re-sweep had just been run to
+# avoid. Caught by reading the two stamps side by side, not by any check.
+#
+# There is no mechanism here to enforce it, and that is stated rather than
+# hidden: `burn.tsv` carries no revision, so this script cannot know where its
+# input came from. Until it does, the discipline is the caller's:
+#   git worktree add --detach <dir> <the measured rev>   then   WT=<dir>
+SP="${SP:?}"; WT="${WT:?set WT -- the worktree the BURN was measured in, not just any checkout}"
 BURN="$SP/burn.tsv"
 
 # Resolve the script's own directory to an ABSOLUTE path BEFORE the cd below.
