@@ -124,3 +124,27 @@ hv's own words support the first reading: _"a sync process ... that enables disk
 **Nothing built today is lost.** `transitions.rs`, Direct/Incidental, the mutation-completeness walk, `ac_unsatisfy`, the scope-clearing edges and the off-scope refusal are all statements about the MODEL and its transitions; none reads or writes a file. `apply()` is the only thing I have written that takes a position on which side is durable, and it takes it in about six lines.
 
 **I am NOT restructuring `apply()` until your rewritten D01 lands.** The order flip is mechanical, but the failure semantics and what `rebuild` becomes are contract questions, and doing it twice is worse than doing it once.
+
+## (2026-08-15 10:10Z) All three D01 changes landed at `91b6882`. And `intent sync` is now a DATA-LOSS command -- that is the gap the reversal opens.
+
+247 tests, fmt and clippy clean, satisfy/unsatisfy re-verified end to end on a real v3 project. dc's prepush clone check ran the full cold build on this one and both binaries run from a fresh clone.
+
+**THE FINDING, and it needs a ruling rather than a fix from me.**
+
+`intent sync` is **disk -> db only**. `ingest::resync` reads canon FROM THE FILES and then `store.rebuild` replaces the store from them. Under D01 as written that was simply the sync; under D01 as reversed it is **restore-truth-from-a-backup**, and running it whenever the files are stale **overwrites the SSOT with the stale projection.**
+
+I found it because I had written `run \`intent sync\`` into the remedy for the new file-write-failure error. That remedy would have told an operator to destroy the exact change the error had just told them was safe. **A remedy naming a data-loss command is worse than no remedy**, and I only caught it by checking the premise of my own instruction at the moment of writing it.
+
+The remedy now warns OFF `sync` and the same falsehood is struck from the facade's module doc, which had it too. But that is a patch on the symptom. **There is no db -> disk direction at all**, and hv's ruling names both, so:
+
+- **`sync` needs to stop being one undifferentiated verb.** Disk -> db is now a restore, not a refresh, and a restore should say what it is going to overwrite. Db -> disk is the routine one and does not exist yet.
+- Until it does, a projection failure is repaired only by the next successful mutation. That is honest and thin, and it is recorded in the module doc rather than left for someone to discover through the gap.
+
+**What I built, in case any of it needs your review before it hardens:**
+
+- `apply()` runs the DB transaction first; files after. Contained to that one function, as measured.
+- **`store::Mutation` puts entities, prose index and envelope in ONE transaction.** They were three separate calls and `append_event` opened no transaction at all -- so under the old order a mutation could land and be denied its envelope by an unrelated failure. AC-04.5 says every mutation writes one; that is now true by construction rather than by sequence.
+- `store.rebuild()` is off the write path and survives as the disk -> db direction. `write_thread`/`write_issue`/`write_doc_sections`/`write_event` are extracted so sync and mutation cannot drift about what a row looks like.
+- **AC-04.1's no-torn-state guarantee survives on BOTH sides** and I think this is the part worth you checking: the DB is all-or-nothing by transaction, and the files are all-or-nothing because `WriteSet::commit` already unwinds what it wrote. The files are merely allowed to be STALE, which is what re-creatable means. So the reversal cost us nothing on that AC.
+
+**THREE TESTS ASSERTED THE OLD MODEL AND NOW ASSERT THE NEW ONE.** Flagging them explicitly because a verifier should not have to diff for them: the envelope test said _"minted only after the files land"_ and now requires the opposite; the torn-state test said _"the DB never saw the mutation"_ and now requires that it did; the cause-chain test said _"nothing was changed"_ and now requires the message to lead with what succeeded and say do NOT retry. **The hazard inverted with the model** -- from believing a change landed when it had not, to repeating one that already had -- and that is why the error variant is `ViewsNotWritten` rather than `Write`.
