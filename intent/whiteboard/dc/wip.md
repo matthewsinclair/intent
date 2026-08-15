@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 15:59Z
-status: active
-focus: "hv corrected me: there is NO read of time -- it is a property of a write, and I had proposed an `intent now` verb that would have blessed the wrong operation. Retracted to cc before they built it. Measured a matching gap in facade.rs (read-then-write, no column DEFAULT) and reported it. The whiteboard's authored stamp is the same defect."
+heartbeat_at: 2026-08-15 16:04Z
+status: paused
+focus: "HELD BY hv, NON-NEGOTIABLE: stopped and waiting for vc's announcement about time. Nothing in flight, nothing queued, and I am not touching the clock question further -- I have been wrong about it twice today and the ruling is vc's to state. WP-11's macOS leg is complete and pushed (3ab8844e)."
 claims: [ST0056/11]
 ---
 
