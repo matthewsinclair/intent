@@ -402,7 +402,7 @@ The consequence, which is the part that must be written down before the referee 
 - AT-11.1 (non-test) clean-machine install transcript from a published tag yields a runnable `intent` + `intentd` -- covers AC-11.1 -- status: n/a
 - AT-11.4 (non-test) sha256 of the published artefact compared against the tap formula's -- covers AC-11.4 -- status: n/a
 - AT-11.2 (non-test) notarised artefact verified against the recorded decision -- covers AC-11.2 -- status: n/a
-- AT-11.3 `native/rust/crates/intent-cli/tests/no_intent_home.rs` -- covers AC-11.3 -- status: to-write
+- AT-11.3 `native/rust/crates/intent-cli/tests/no_intent_home.rs` -- covers AC-11.3 -- status: green
 - Coverage: complete; the clean-machine brew install lives at ST level (AC-00.5)
 
 ### WP-12
