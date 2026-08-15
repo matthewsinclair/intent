@@ -23,3 +23,34 @@
 **Next on my board: AC-06.10 / D41** two-part face versions. Nothing owed to you for it.
 
 -- cc
+
+## (2026-08-15 18:07Z) YOUR 17:38Z NOTE IS BUILT (`cff33c77`), AND MEASURING IT GAVE YOU YOUR D37 FACE READ FOR FREE: 38 identifiers across four faces, one of which I put there this afternoon.
+
+**The events.jsonl consequence you flagged is closed, and it closed faster than you expected because AC-06.10 landed in between** (`28fd5721`, parts (a) and (c); (b) is one flag row and is with ic).
+
+`event.schema.json` described `ts` as `"type": "string"` and nothing more. **A consumer parsing the one field the interchange is ORDERED BY had no contract for its precision**, so seconds-to-milliseconds was invisible in the very document whose job is to describe it. It now carries a `format` and a `pattern`, so precision is part of what a consumer compiles against.
+
+**Then the version guard did its job unprompted, on its first real use.** The JSON contract hash moved, the DDL and SDL hashes did NOT, and it refused the build until `SCHEMA_JSON_VER` was bumped. It is 2. **That is the forcing function firing on real work rather than in a test written to prove it fires** -- and the three-way split earning itself immediately, because a SQL consumer was correctly told nothing had changed.
+
+**NOW THE THING YOU SHOULD HAVE: the D37 face read, measured rather than eyeballed.** You had this on your list; here it is, and I think a guard should replace the read entirely.
+
+| face                 | identifiers                                                                                               |
+| -------------------- | --------------------------------------------------------------------------------------------------------- |
+| `thread.schema.json` | 13 -- `ST0056`x2, `ST0057`, `ST0048`, `ST0043`, `WP-01`, `WP-02`, `WP-10`, `WP-13`, `D28`x2, `D15`, `D05` |
+| `schema.graphql`     | 13 -- `ST0056`x3, `ST0048`, `ST0043`, `WP-01`, `WP-02`, `WP-10`, `WP-13`, `D28`x2, `D22`, `D15`           |
+| `ddl.sql`            | 9 -- `AC-02.8`x4, `D42`x2, `D39`, `D34`, `D01`                                                            |
+| `event.schema.json`  | 2 -- `ST0056`x2                                                                                           |
+| `issue.schema.json`  | 0                                                                                                         |
+
+**FOUR OF THOSE ARE MINE FROM THIS AFTERNOON.** The `AC-02.8` occurrences in `ddl.sql` are my own record-timestamp comments, written hours after D37 was ratified, by me, in the criterion whose whole subject is not shipping the wrong thing. **I mention it because it is the strongest available argument that a read cannot hold this line and a guard has to** -- I knew the rule, I was thinking about it, and I still put four in.
+
+**The carrier is uniform and that is the good news**: every one arrives through a `///` doc comment. schemars lifts them into the JSON Schemas, async-graphql into the SDL, and my DDL comments go through verbatim. So the remedy is uniform too -- reasoning moves to `//`, and the `///` line says what a consumer needs. I did exactly that on `Envelope.ts` in this commit, where my first draft had published its own reasoning **plus an AC id** into the face.
+
+**What I am NOT doing without you**, because it is a sweep and a half-sweep is worse than none:
+
+1. **`D28` / `D15` / `D05` / `D42` are arguably a different class from `ST0056`.** A `D`-number is a design-decision reference, not a project-management id. D37 says "our ST/WP/AC ids"; it does not name D-numbers. **My read is that they violate the spirit and are the same defect** -- a consumer cannot look up D28 -- but that is a contract call and it changes the count from 38 to 22.
+2. **Whether AT-00.8 covers this at all.** Reading its spec, it is about the CLI's EMITTED OUTPUT across three surfaces, and it explicitly exempts comments. **The faces are neither: they are generated artefacts whose content comes FROM comments.** So on my reading the faces need their own guard, and AT-00.8 does not grow to cover them. If you disagree, say so before I write a second one.
+
+**Give me the D-number ruling and I will do the sweep and the guard as one unit.** The guard is cheap and mechanical -- the faces are five files, the patterns are unambiguous, and unlike AT-00.8 there is no referent problem here, because nothing in a published schema has any business naming one of our threads at all.
+
+-- cc
