@@ -134,6 +134,54 @@ fi
 [ -n "$MEASURED_AT" ] || die "canon has no measured_at -- refusing to emit an unstamped view"
 [ -n "$MEASURED_ON" ] || die "canon has no measured_on -- refusing to emit an unstamped view"
 
+# CANON MUST NOT NAME A RUST PATH THAT DOES NOT EXIST.
+#
+# 2026-08-15: the Rust tree moved twice in one morning -- `crates/` ->
+# `native/crates/` -> `native/rust/crates/` -- and the table was rewritten and
+# COMMITTED against the intermediate location. The path was verified present on
+# disk before the edit and the verification was still worthless, because the
+# tree was live under another node's hands. A point-in-time read of a moving
+# target is not a control; this is.
+#
+# THE NEEDLE IS `crates/`, DELIBERATELY, NOT `native/rust/`. A prefix needle
+# stops matching the moment the prefix changes and then passes in silence --
+# which is the exact class this check exists to catch, and it would have been
+# the third instance of it in this toolchain. Every relocation so far kept
+# `crates/` in the path, so the needle survives the move that breaks a prefix.
+#
+# WHY THIS DOES NOT CRY WOLF, measured rather than assumed: 55 distinct
+# path-shaped tokens live in canon and 8 do not resolve -- but every one of
+# those 8 is either a prose placeholder (`bin/intent_`, `intent/llm/RULES-`)
+# or a path named precisely BECAUSE it is absent (`lib/help/st.help.md`, one
+# of the 17 commands with no help file, which is the finding). None contains
+# `crates/`. A general path-existence check would fire on all 8 on its first
+# run against a healthy tree, and the first thing anyone does with a check that
+# cries wolf is switch it off.
+#
+# Zero matches is REPORTED, not silently passed: if canon ever stops naming the
+# Rust tree, that is either fine or the needle has died, and the difference has
+# to be visible to be decidable.
+# `|| true` IS LOAD-BEARING, not defensive noise. This script runs under
+# `set -euo pipefail`, and grep exits 1 on no-match, so without it a canon
+# holding zero crates/ paths ABORTS THE WHOLE GENERATOR -- exit 1, empty
+# stderr, no view, no explanation. Caught by the zero-match mutation below,
+# never by reading. Second occurrence of this exact class in this toolchain:
+# `corpus_require` was green under `set -uo pipefail` and dead under
+# `set -euo pipefail` the same way, which is why "a guard verified in one
+# harness is verified in THAT harness" is a standing watch-out.
+RUST_REFS="$(grep -oE '[A-Za-z0-9_./-]*crates/[A-Za-z0-9_./-]+' "$IN" | sed 's/\.*$//' | sort -u || true)"
+if [ -z "$RUST_REFS" ]; then
+  echo "note: canon names no crates/ paths -- either correct, or this needle has stopped matching" >&2
+else
+  RUST_MISSING=""
+  while IFS= read -r ref; do
+    [ -n "$ref" ] || continue
+    [ -e "$REPO_ROOT/$ref" ] || RUST_MISSING="$RUST_MISSING  $ref"$'\n'
+  done <<< "$RUST_REFS"
+  [ -z "$RUST_MISSING" ] || die "canon names Rust path(s) that do not exist on disk -- the tree moved and the table did not follow:
+$RUST_MISSING  Fix the JSON canon and re-run. Never hand-edit the rendered view to match."
+fi
+
 emit "# Command dispatch table -- Intent v3 (ST0056, AC-05.1)"
 emit ""
 emit "> GENERATED VIEW -- the canon is \`dispatch-table.json\` beside this file. Regenerate with \`parity/tools/gen_dispatch_table.sh\`; do not hand-edit rows. Measured at \`$MEASURED_AT\` on $MEASURED_ON by $MEASURED_BY."
