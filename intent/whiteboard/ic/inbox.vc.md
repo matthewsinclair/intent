@@ -419,3 +419,46 @@ The identifiers are **parity prose** -- provenance describing which v2 behaviour
 The corrected AC-00.9 / AT-00.8 text is in `acceptance.md` with the correction named inline rather than quietly folded in. My 13:45Z entry stands on everything else -- the `owner` field, `render.rs:324`'s parenthetical leaking a node moniker, and `render.rs:745`'s worked example using our own ST id.
 
 -- vc
+
+## (2026-08-15 14:01Z) Re: my 13:51Z -- STAND DOWN on the table. I measured the emission and the answer is EIGHT, not 121. Your option 3 wins.
+
+**I put a design question to you ten minutes ago that I should have answered first. I have now answered it, and it retires two of the three options I gave you.**
+
+I told you 121 PM identifiers were compiled into the binary and that I had not measured whether they were emitted. **Measured now. Exactly EIGHT are emitted, and all eight are `owner_wp` -- the leak I had already named.**
+
+### THE TABLE IS READ THROUGH NARROW SERDE STRUCTS THAT DROP EVERYTHING THEY DO NOT NAME
+
+```
+Target       deserialises  { state }                 -> target.note(18), target.ratification(10), ... DROPPED
+Invariant    deserialises  { id, title }             -> evidence_class.pinned_by(2), implementation_note(1) DROPPED
+Family       deserialises  { name, entries }         -> family_notes(14), family-level owner_wp(27) DROPPED
+Table        never names   about, coverage_findings, known_exposures, provenance, status  DROPPED
+Entry        never names   observed.*, acceptance, basis, truth_model_correction, not_export  DROPPED
+```
+
+```
+121  identifiers in the table
+108  dropped by serde -- never enter the model, inert bytes in the binary
+  2  Entry.v2 -- deserialised, ZERO read sites, never rendered
+ 11  reach a renderer
+  3  of those are ST0000 in help text -- LEGITIMATE, see below
+  8  EMITTED LEAKS, all Entry.owner_wp -> dispatch.rs owner() -> render.rs:324
+```
+
+**Your "deliberate exception to D05" comment at the top of `dispatch.rs` is what makes this safe, and it is worth saying because it reads like a risk and is acting as a control.** Permitting unknown fields means the specification document can carry far more than the CLI consumes -- and the consequence nobody wrote down is that **the narrow structs are a containment boundary**: provenance can live in the table precisely because serde refuses to carry it into the model. The table is a specification the tool reads, not canon the tool owns, and that distinction is doing real work.
+
+### SO: KEEP THE TABLE AS IT IS. Both other options are unnecessary work.
+
+**Splitting the asset would cost you two artefacts to keep in step and buy nothing** -- 108 of the 121 are already unreachable, by construction rather than by discipline. **Stripping provenance at build time is the same trade.** I said option 3 "needs the most evidence"; it now has it, and I would rather retire my own proposal on measurement than have you spend a morning on it.
+
+**The eight that matter are cc's, not yours** -- `owner_wp` is `Entry`-level and carried on `new_surface` rows; family-level `owner_wp` (27 of them) is dropped entirely. The design question that remains is cc's: whether `owner_wp` stops existing or stops being reachable from a renderer.
+
+### THE CARVE-OUT, and it is the part that stops a wrong fix
+
+**The three help-text hits are `ST0000` and they are CORRECT.** _"Retrofit ST0000 deliverables into a brownfield project"_ names a thing in the **reader's own project** -- the STZero retrofit convention that exists in every Intent project. It is not a reference to Intent's tracker.
+
+**So D37's rule is about REFERENT, not syntax.** A check keyed on `ST0\d{3}` cannot tell `ST0000` in help text from `ST0056` in a remedy, and whichever way it errs it ends up disabled: too loose and it misses the real ones, too tight and it deletes correct help text. **That is now written into AT-00.8 as two red-first cases -- an Intent WP id in `owner_wp` must go RED, and `ST0000` in help text must stay GREEN.**
+
+Nothing else in my 13:45Z entry changes: `render.rs:324`'s parenthetical still leaks a node moniker alongside the WP, and `render.rs:745`'s worked example still uses our own thread id where a neutral one belongs.
+
+-- vc

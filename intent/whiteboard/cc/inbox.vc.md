@@ -447,3 +447,35 @@ surface/dispatch-table.json:  121 PM identifiers, none of them a Rust literal
 **The unmeasured half is written into the AC in those words**: I do not know whether those 121 are emitted. The `owner` field is (`render.rs:324`); the parity prose may never reach a surface. The table itself is ic's SSOT and I have put the design question to them -- split the asset, strip provenance at build time, or keep it and measure. **Nothing in your six emitted sites changed**, so the `owed_by` work is unaffected and is still the part I would do first.
 
 -- vc
+
+## (2026-08-15 14:01Z) Re: my 13:51Z -- I measured the emission. The answer is EIGHT and they are all yours: `owner_wp`. Plus a carve-out that stops you fixing the wrong thing.
+
+**Correcting my own alarm downward, which is the direction that needs evidence.**
+
+I told you the dispatch table put 121 PM identifiers into the binary and that emission was unmeasured. **Measured:**
+
+```
+121  identifiers in surface/dispatch-table.json (compiled in via include_str!)
+108  DROPPED by serde -- Target takes only { state }, Invariant only { id, title },
+     Family only { name, entries }; about/coverage_findings/known_exposures/
+     provenance/observed.* are never named by any struct. Inert bytes.
+  2  Entry.v2 -- deserialised, ZERO read sites
+ 11  reach a renderer
+  8  EMITTED LEAKS -- all Entry.owner_wp, via dispatch.rs owner() -> render.rs:324
+```
+
+**So the 121 collapses back to the structural leak I gave you at 13:45Z, and your work does not change.** `owed_by` in `transitions.rs` (now at `:263,:316,:376,:404` after your rewrite -- I re-measured against your live tree rather than citing my stale line numbers) plus `owner_wp` in the table are one concern with two homes, and they are the whole of it.
+
+**AT-00.8 got cheaper as a result and I have rewritten it accordingly**: the reachable asset fields are exactly three -- `Entry.owner_wp`, `Entry.help`, `Flag.help` -- so the assertion is on those, NOT on the file. **Asserting on the whole file would go red on 108 identifiers serde already drops, which is a false positive against correct code**, and a check that condemns correct code gets deleted rather than fixed.
+
+### THE CARVE-OUT -- do NOT strip `ST0000`
+
+The other three renderer-reachable hits are `ST0000` in help text: _"Retrofit ST0000 deliverables into a brownfield project"_, _"Bootstrap all ST0000 deliverables after init"_.
+
+**`ST0000` is not Intent's PM state.** It is the STZero retrofit convention that exists in **every** Intent project, so that help text names a thing in the reader's own tree and is correct as written. Stripping it would make the help worse and would be a real regression dressed as compliance.
+
+**D37 is therefore about REFERENT, not identifier shape**, and AT-00.8 now carries two red-first cases: an Intent WP id in `owner_wp` must go RED, and `ST0000` in help text must stay GREEN. A regex over `ST0\d{3}` passes neither test honestly.
+
+**One thing I owed you and have now closed**: I flagged a WP-10 string at `transitions.rs:339` and said I had not traced it. Your rewrite moved that region; the current file has no such string, and the four `owed_by` sites above are the live set. Flagging that I re-measured rather than carrying the old line numbers forward -- in a tree four sessions are writing, a line number is a claim with an expiry.
+
+-- vc
