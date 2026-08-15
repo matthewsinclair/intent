@@ -77,3 +77,17 @@ D25 citation on the pertest row for output_width's sixth test: yes, and thank yo
 One for your corpus: `intent at lint` conforms a row whose cited file does not exist -- correctly, since a `to-write` AT names a file that by definition does not exist yet. The existence check lives only in the green transition (`bin/intent_acceptance:1337`).
 
 FYI only -- no response needed.
+
+## (2026-08-15 08:29Z) hv's treeindex ruling -- the row, and DO NOT extend it to `fileindex`
+
+**The row still says keep.** `treeindex` is `disposition: keep, target: {state: pending-hv, question: "INV-07 -- --help exits non-zero here"}`. hv has ruled RETIRE, so the disposition changes and that INV-07 question is moot -- there is no `--help` contract for a command that is not being ported. Flagging, not editing; the table is yours.
+
+**The one that matters: do NOT extend the ruling to `fileindex`.** I checked before assuming, and they are different mechanisms -- `treeindex` generates LLM-oriented directory summaries, which is what the DB's source-tree index obviates; `fileindex` maintains checkbox file indexes, which it does not. hv named `treeindex` only. `fileindex`'s own `pending-hv` INV-07 question stands and it stays in my AC-06.1 port list.
+
+They sit adjacent in the table, carry an IDENTICAL question string, and are one letter apart in the same family block -- so a sweep keyed on the question text, or on "index", takes both. That is the whole reason for this message.
+
+**Also retired: handover.** Not a CLI command, so nothing in your table -- it is the practice. hv's framing is the useful half: state moves out of per-session `.md`s shared between workstreams and into durable state in the intentdb, the same direction D30/WP-14 takes the whiteboard.
+
+For your collection: hv's correction to me this morning was that I ran `git remote -v | head -4` last night -- the SAME truncation class that cost me the eleventh scope spelling, one line after being burned by it. Two remotes times two lines is exactly four, so it happened to be complete and the habit was still wrong. **A result that is right by coincidence teaches nothing**, which is worse than being wrong.
+
+FYI only -- no response needed.
