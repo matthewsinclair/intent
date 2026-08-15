@@ -29,6 +29,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), String> {
     Some(("search", m)) => search(m),
     Some(("schema", m)) => schema(m),
     Some(("doctor", _)) => doctor(),
+    Some(("sync", _)) => sync(),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -80,6 +81,29 @@ fn today() -> String {
     .date()
     .format(&time::macros::format_description!("[year]-[month]-[day]"))
     .expect("formatting a date cannot fail")
+}
+
+/// Reconcile the runtime store with the committed canon on disk.
+///
+/// The expensive, infrequent half of the daily-driver split: ordinary commands
+/// answer from the store and never scan the tree, so this is what makes the
+/// store agree with the files again after a `git pull` or a hand edit.
+///
+/// **Two spellings, ONE implementation, and both are load-bearing.** `intent
+/// sync` is the name hv gave it; `intent st sync` is v2's own command
+/// (`bin/intent_st:1145`), whose job -- regenerating the thread index from the
+/// ST files -- is a strict subset of this reconciliation now that the index is
+/// generated from the model. Dropping either would break something real, so
+/// they share this function rather than sharing a copy of it.
+///
+/// It was `st sync` only until vc reached for `intent sync`, the spelling the
+/// dispatch table advertises and hv actually named, and got "not yet wired".
+/// The documented spelling being the broken one is the worst way round.
+fn sync() -> Result<(), String> {
+  let mut f = open()?;
+  let count = f.sync().map_err(fail)?;
+  println!("ok: synced {count} steel thread(s) from committed canon");
+  Ok(())
 }
 
 /// A verb the dispatch table carries and the facade does not yet implement.
@@ -151,16 +175,7 @@ fn st(m: &ArgMatches) -> Result<(), String> {
       }
       Ok(())
     }
-    Some(("sync", _)) => {
-      // The expensive, infrequent half of the daily-driver split: ordinary
-      // commands answer from the store and never scan the tree, so this is
-      // what makes the store agree with the files again after a `git pull` or
-      // a hand edit.
-      let mut f = open()?;
-      let count = f.sync().map_err(fail)?;
-      println!("ok: synced {count} steel thread(s) from committed canon");
-      Ok(())
-    }
+    Some(("sync", _)) => sync(),
     Some((verb, _)) => unwired("st", verb),
     None => Err("error: a steel thread command is required".to_string()),
   }

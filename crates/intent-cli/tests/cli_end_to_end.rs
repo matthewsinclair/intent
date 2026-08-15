@@ -244,3 +244,42 @@ fn the_generated_index_is_written_and_carries_no_render_time() {
     "no region markers survive the port: {index}"
   );
 }
+
+/// Both spellings of the reconciliation are wired, and they do the same thing.
+///
+/// `intent sync` is the name hv gave the manual half of the daily-driver split;
+/// `intent st sync` is v2's own command, whose job is a strict subset of it now
+/// that the thread index is generated from the model. Both have to work, so the
+/// risk is not that one is missing but that they DRIFT -- and this asserts they
+/// are one implementation by asserting they produce the same answer.
+///
+/// It is here because they had already drifted in the worst direction: only
+/// `st sync` was wired, so the spelling the dispatch table advertises and hv
+/// actually named answered "not yet wired to the facade". vc hit it while
+/// trying to verify something else and reasonably concluded sync was unbuilt.
+#[test]
+fn both_spellings_of_sync_are_wired_and_agree() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "A thread"]);
+
+  // A hand edit behind the tool's back: the store still serves the old title
+  // until a reconciliation runs, which is exactly what sync is for.
+  let canon = root.join("intent/st/ST0001/thread.json");
+  let edited = std::fs::read_to_string(&canon)
+    .expect("read canon")
+    .replace("A thread", "A renamed thread");
+  std::fs::write(&canon, edited).expect("write canon");
+
+  let long = ok(root, &["st", "sync"]);
+  let short = ok(root, &["sync"]);
+  assert_eq!(
+    long, short,
+    "two spellings, one implementation -- if these ever differ, one of them \
+     has grown its own copy"
+  );
+  assert!(
+    ok(root, &["st", "list"]).contains("A renamed thread"),
+    "and the reconciliation actually took"
+  );
+}
