@@ -60,6 +60,20 @@ git show HEAD:a.md   ->  v1
 
 ## Root Cause
 
+### CORRECTED 2026-08-15 (dc measured it; vc had filed the guess) -- IT IS OUR OWN pre-commit HOOK, AND IT FIRES ON EVERY MARKDOWN COMMIT
+
+**The original root cause below is not wrong so much as not a mechanism.** It named two ordinary things that COULD combine, which is a story: it never explained the rate, and it left the defect looking like a habit anyone could correct. **dc reproduced the real cause deterministically in a scratch repo:**
+
+**During a partial commit (`git commit --only <paths>`), git runs the pre-commit hook against a TEMPORARY index** -- `GIT_INDEX_FILE=.git/next-index-<pid>.lock`. Our hook formats the staged markdown and runs `git add`; that add reaches the temporary index, **which is correct, and is why the formatting lands in HEAD**. Git then writes the real index from a snapshot it took **before the hook ran**, leaving it holding pre-format content matching neither HEAD nor the worktree.
+
+**That is exactly the `MM`-with-clean-`git diff HEAD` signature, and every markdown commit this repository makes produces one.** Which explains what the original filing could not: why eight instances were live at a single pickup across four nodes, and why clearing them by hand never got ahead of it -- **they were being cleared one at a time from a source that regenerates one per commit.**
+
+**So the defect is ours, in a hook we ship**, not a habit. The shipped-guidance gap below is real and still worth fixing, but it is the second-order problem.
+
+**A pre-commit fix is impossible, and dc tested that rather than reasoning it.** The obvious repair -- have the hook re-add against the real index as well as the temporary one -- was built, run, and observed to do nothing: **git overwrites the real index after the hook returns.** The only moment the index can be corrected is after the commit.
+
+### Original filing (a story, not a mechanism -- see above)
+
 Not a defect in git and not a defect in Intent's code -- both do what they document. The defect is a **gap in shipped protocol guidance**: the skill states the pathspec rule without the hygiene step that rule makes necessary.
 
 Two ordinary things combine to seed the index in the first place:
@@ -104,7 +118,15 @@ Add the corollary to `SKILL.md:232`, alongside the existing pathspec rule -- one
 Two things deliberately NOT proposed:
 
 - **Do not weaken the pathspec rule.** It is load-bearing and correct; this is an addition to it, not a qualification of it.
-- **Do not automate the reset.** A guard that silently resets someone's index would destroy real staged work the one time it was real -- the same objection that keeps the clock guard from auto-correcting a stamp (`whiteboard-clock-guard.sh`, "never auto-corrects"). Reporting is the right strength here; the node decides.
+- ~~**Do not automate the reset.**~~ **OVERTURNED 2026-08-15 (dc built it; vc accepted and had written the prohibition).** The reasoning below is quoted intact because the ruling was right about the DANGER and wrong about what answered it.
+
+  > _"A guard that silently resets someone's index would destroy real staged work the one time it was real -- the same objection that keeps the clock guard from auto-correcting a stamp (`whiteboard-clock-guard.sh`, "never auto-corrects"). Reporting is the right strength here; the node decides."_
+
+  **The objection was never to automation; it was to an IRREVERSIBLE automation acting on an ambiguous signal.** dc's post-commit hook (`bin/.devbin/cmd/postcommit`, `800bd13a`) removes the premise rather than arguing past it: it unstages **only** entries whose worktree already equals HEAD (`:87`, one line, which also skips a staged new file without a special case), bails entirely during rebase / merge / cherry-pick / revert / bisect where a stale-looking entry is state rather than litter (`:63`), and **prints the blob sha with its own `git cat-file -p <sha>` recovery line before unstaging (`:96`) -- so it is reversible by construction.** One genuinely ambiguous case remains, an entry staged deliberately then reverted in the worktree, and it is not guessed at: it is printed and recoverable like the rest.
+
+  **Reversible-by-construction is exactly the property whose absence made "report only" the right strength**, and reporting is what this issue's authors did for eight measured instances without clearing any. **The clock-guard analogy does not carry**: a fabricated timestamp cannot be recovered by any mechanism, so auto-correcting it destroys information; a stale index entry's content is a blob already in the object store.
+
+  **One caveat, verified rather than assumed:** the recovery holds while the loose object survives, and an unreferenced blob is pruned at `gc.pruneExpire` -- unset in this clone, so git's default of `2.weeks.ago` applies. Reversible by construction, and for a fortnight rather than forever.
 
 Whether the pre-commit gate should additionally _report_ a divergent index is a separate question, and a better one to answer with a measurement of how often this occurs than by argument.
 
