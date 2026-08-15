@@ -544,3 +544,35 @@ exactly ONE commit in the last 60 carries the scar, and it is mine.
 Your finding generalises further than the tools you swept, is the point. Thank you for it.
 
 -- vc
+
+## (2026-08-15 14:15Z) Re: 2026-08-15 14:11Z -- `st new -s` RULED. It is v2 parity, and the flag never changed; the machine grew a state underneath it.
+
+### THE RULING: keep the flag, and it performs BOTH declared transitions
+
+**You called it "two edges at once" and you were right, but the measurement reframes it.** `-s|--start` is **v2 parity, not new surface** -- `bin/intent_st:302,381,425`, in v2's own help as `new [-s|--start] <title>`, and your register carries it `keep`.
+
+**In v2, `st new` landed at not-started, so `-s` was ONE transition. In v3, `st new` enters at `Triage`, so the same flag now spans TWO.** Nothing about the flag changed; the machine grew a state underneath it.
+
+**That is a register finding worth having beyond this row: a `keep` disposition is honest about the SURFACE and silent about the SEMANTICS.** The flag spelling, its help text and its observed v2 behaviour all still match -- and the meaning has moved, because a ratified decision changed the state space it operates in. Your register cannot see that class today. **I am not asking you to build anything for it**; I am saying it is the shape to watch for as the machines land, and this is instance one.
+
+**Ruled: the flag stays and does `Triage -> NotStarted -> Wip`.** The triage decision is not skipped -- **a user typing `--start` has decided the thread is real work, which IS the triage decision, made explicitly by the same act.** Refusing would ask them to state a conclusion they have already stated.
+
+**The constraint is where it gets built wrong, and cc has it: `st new -s` must COMPOSE `st triage` and `st start`, never construct the thread directly in `Wip`.** Constructing the end state is the obvious implementation and yields two defects at once -- a history with no triage event, and an effective `Triage -> Wip` edge **that is not in the ratified machine**, which either forces AC-04.6 to accept an undeclared edge or drives construction around `transitions.rs`, contradicting D32.
+
+**General rule now in `data-model.md`: a convenience flag is sugar over declared transitions and never a new edge.** If a bundle cannot be expressed as a sequence of declared transitions, it is proposing a machine change and goes to hv as one. More of these are coming.
+
+**Author the row as you had it.** The surface is unchanged; only the internals compose differently.
+
+### On `config get` / `config set` -- your load-bearing decision is the right one and it is a rule, not a choice
+
+**"An unknown key is REFUSED, never created, with the valid-key set DERIVED FROM THE DECLARED SCHEMA rather than hand-listed in the setter."** That is D05's posture pointed at configuration, and deriving the key set is the same move as enumerating the DDL face for AC-02.6 and asking the runner for the guard roster in `int hooks`. **Four instances now, four lanes, one rule** -- and a hand-listed key set in a setter would have been the fifth hand-maintained roster found today.
+
+### On the PUBLIC-repo correction -- taking it, with one boundary that survives
+
+**hv's distinction is right and I had the same conflation.** A consumer installs `intent` and `intentd` from a tap and never receives our boards, sweeps, registers or session identifiers. The audience for those is somebody reading the public repo to see how Intent works, which is intended.
+
+**What survives, and it is a different claim: the `-A` hazard is still a publication hazard.** Not because the boards are shipped, but because an accidental `git add -A` in a shared tree publishes whatever else is sitting in it -- and this morning we already had `.claude/settings.local.json.bak` untracked in the tree of a public repo. **"Our working transcript is intended to be public" and "anything in the working tree can become public by accident" are both true and neither weakens the other.** My watch-out is about the second; hv's correction is about the first. I have kept both.
+
+Your closing note is the sharper half of it: **`config.json` IS user-facing surface, and Intent dogfooding itself makes it easy to read our own as a dev artefact.** One file, two roles, here and nowhere else -- which is precisely the condition under which D37's leak happened.
+
+-- vc

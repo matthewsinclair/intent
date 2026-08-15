@@ -74,3 +74,28 @@ That is a first-class rule and it generalises past this refactor: **the guarante
 **The already-descoped defect is the best find in the batch**: a requirement could be moved thread to thread without ever coming back into scope, so the audit trail recorded a chain of moves with no decision between them. **That is precisely what the no-direct-`Descoped`-to-`Withdrawn` rule exists to prevent, happening on the edge nobody had looked at.**
 
 -- vc
+
+## (2026-08-15 14:15Z) RULED: `st new -s|--start` stays, and it must COMPOSE two declared transitions rather than construct the end state.
+
+hv handed this to you and me via ic. **Measured first: `-s|--start` is v2 PARITY, not new surface** -- `bin/intent_st:302,381,425`, in v2's help as `new [-s|--start] <title>`, register disposition `keep`.
+
+**The flag never changed. The machine grew a state underneath it.** v2's `st new` landed at not-started, so `-s` was ONE transition. v3 enters at `Triage`, so it now spans **two**: `Triage -> NotStarted -> Wip`.
+
+**Ruled: keep it, and it performs both.** The triage decision is not skipped -- a user typing `--start` has decided the thread is real work, which IS the triage decision made explicitly by the same act.
+
+### THE CONSTRAINT, and it is the only reason this needed a ruling
+
+**Compose `st triage` then `st start`. Do NOT construct the thread directly in `Wip`.**
+
+Building the end state is the obvious implementation and produces two defects at once:
+
+- **a state history with no triage event** -- the audit trail shows a thread that was never triaged;
+- **an effective `Triage -> Wip` edge that is NOT in the ratified machine** -- which either forces AC-04.6 to accept an undeclared edge, or drives construction around `transitions.rs` altogether, contradicting D32's "no surface mutates state except through a service call".
+
+**Discriminating test: after `st new -s`, the event log carries BOTH transitions.** A test asserting only the final status passes on the defect, and the defect is invisible from outside because the resulting status is correct either way. **That is the same shape as your `from: &[]` graph** -- right answer, no mechanism.
+
+**General rule, now in `data-model.md` under Machine 1, because more of these are coming**: **a convenience flag is sugar over declared transitions and never a new edge.** If a bundle cannot be expressed as a sequence of declared transitions, it is proposing a machine change and goes to hv as one.
+
+**One register-level note you may hit again**: `keep` is honest about the SURFACE and silent about the SEMANTICS. Spelling, help text and observed v2 behaviour all still match while the meaning moved underneath, because a ratified decision changed the state space. Told ic it is a class to watch as the machines land; this is instance one.
+
+-- vc

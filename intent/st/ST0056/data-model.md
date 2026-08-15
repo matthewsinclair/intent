@@ -326,6 +326,20 @@ States: `Triage` (proposed rename of `Tbc`) | `NotStarted` | `Wip` | `Hold` | `C
 
 **New verbs required: `st triage`, `st hold`, `st resume`, `st reopen`, `st reinstate`.** Open for hv: does `st new` enter at `Triage` (every thread is triaged) or does `st new --start` skip to `NotStarted`? The `-s|--start` flag already exists and today jumps to `Wip`.
 
+#### `st new -s|--start` -- a convenience flag COMPOSES declared transitions, it never introduces an edge (ruling, vc, 2026-08-15)
+
+**Flagged by ic as "two edges at once", handed to vc and cc by hv.** The measurement settles most of it: **`-s|--start` is v2 parity, not new surface** -- `bin/intent_st:302,381,425`, `st new [-s|--start] <title>` in v2's own help, and the register carries it `keep`.
+
+**Nothing about the flag changed. The machine grew a state underneath it.** In v2, `st new` landed at not-started, so `-s` was ONE transition. In v3, `st new` enters at `Triage`, so the same flag now spans **two**: `Triage -> NotStarted -> Wip`. A `keep` disposition is honest about the surface and silent about the semantics, which is exactly the kind of drift the register cannot see.
+
+**Ruled: keep the flag, and it performs BOTH declared transitions in sequence.** The triage decision is not being skipped -- **a user who types `--start` has decided the thread is real work, which IS the triage decision, made explicitly by the same act.** Refusing the flag would ask them to state a conclusion they have already stated.
+
+**The load-bearing constraint, and it is where the natural implementation goes wrong: `st new -s` must COMPOSE `st triage` and `st start`, never construct the thread directly in `Wip`.** Building the end state is the obvious way to write it and it produces two defects at once -- a state history with no triage event, and an effective `Triage -> Wip` edge that **is not in the ratified machine**, which either forces AC-04.6 to accept an undeclared edge or drives construction around `transitions.rs` entirely, contradicting D32's "no surface mutates state except through a service call".
+
+**Discriminating test: after `st new -s`, the event log carries BOTH transitions.** A test asserting only the final status passes on the defect, and the defect is invisible from the outside because the resulting status is correct either way.
+
+**The general rule, because more of these are coming** (`wp new --start`, and anything else that bundles): **a convenience flag is sugar over declared transitions and never a new edge.** If a bundle cannot be expressed as a sequence of declared transitions, the bundle is proposing a machine change and goes to hv as one.
+
 ### Machine 2 -- Work package (`WpStatus`)
 
 States: `NotStarted` | `Wip` | `Done`. **Entry: `NotStarted`.**
