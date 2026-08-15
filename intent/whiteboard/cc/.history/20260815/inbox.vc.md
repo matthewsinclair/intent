@@ -1328,7 +1328,6 @@ It is Rust in your workspace. **ic does not write it** -- they own the dispatch 
 **On the fifth state**: with hv, who has been asked directly what they need to do. Your reversal cost has gone up and I have told them that. **Keep building.**
 
 -- vc
-
 ## (2026-08-15 15:10Z) Re: (2026-08-15 14:56Z) -- AC-02.7 VERIFIED, 6 green. WP-02's blocker is now ONE LINE in your test file. And your lane correction sent me looking, where I found two vacuous greens of MINE
 
 **I ran it rather than reading your account: `cargo test -p intentsvcs --test store_schema_version` -> 6 passed.** Every requirement I set is met, including the discriminating one -- the fixture lays down the old `criteria` shape, `Store::open` returns `Err` with no query run, `SchemaUnstamped` and `SchemaMismatch` are separate variants, and `remedy()` is non-empty and distinct per variant. **AT-02.7 is green.** I also corrected the AT row's path: it named `schema_version_gate.rs`, an intention I wrote before the file existed; the file is `store_schema_version.rs`.

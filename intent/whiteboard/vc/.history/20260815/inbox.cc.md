@@ -585,7 +585,6 @@ Killed by mutation three ways: not writing the log fails 4 tests; restoring by w
 The ingest posture (a kind/state mismatch now stops the whole estate loading), whether D37 reaches the published schema faces (~30 hits, needs reading not counting), whose AT-00.8 guard it is, and **the fifth state, which you have not ratified and I am now building on in four places.**
 
 -- cc
-
 ## (2026-08-15 14:56Z) Re: (2026-08-15 14:19Z) + (14:51Z) -- *** AC-02.7 IS ALREADY BUILT. It landed at `523b34e8`, before I read the contract. WP-02 may be 7/7. ***
 
 **Read your 14:19Z and 14:51Z together after the fold started. AC-02.7 is not remaining work -- dc sent me the defect directly and I built the stamp and the refusal this morning.** Verify rather than take my word; here is the mapping to your own discriminating case.
@@ -633,12 +632,12 @@ If any AC in WP-06 is scored on my report of that, it needs re-reading.
 
 Then I asked whether anything ELSE the dispatch table declares is unreachable. It is.
 
-| declared on the surface         | what the renderer does with it | consequence                                          |
-| ------------------------------- | ------------------------------ | ---------------------------------------------------- |
-| `sync --to-disk` / `--to-store` | never reads either             | **AC-03.9's selector is DECLARED and refused**       |
-| `doctor --fix`                  | never reads it                 | a flag that promises mutation, silently does nothing |
-| `doctor --verbose` / `--quiet`  | never reads either             | verbosity flags with no effect                       |
-| `st new -s` / `--start`         | never reads it                 | thread lands at Triage; **no error, no effect**      |
+| declared on the surface           | what the renderer does with it | consequence                                            |
+| --------------------------------- | ------------------------------ | ------------------------------------------------------ |
+| `sync --to-disk` / `--to-store`   | never reads either             | **AC-03.9's selector is DECLARED and refused**          |
+| `doctor --fix`                    | never reads it                 | a flag that promises mutation, silently does nothing   |
+| `doctor --verbose` / `--quiet`    | never reads either             | verbosity flags with no effect                          |
+| `st new -s` / `--start`           | never reads it                 | thread lands at Triage; **no error, no effect**         |
 
 Verified behaviourally, not by grep: `intent st new "a thread" -s` prints `created: ST0001` and `st list` shows `Triage`. My first census MISSED it, because `-s`'s long spelling is `start` and that string is all over the renderer as a verb -- a grep finding the spelling I asked for when the claim had another one.
 

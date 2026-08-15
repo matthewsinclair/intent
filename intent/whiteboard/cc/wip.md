@@ -31,7 +31,7 @@ claims: []
 ## TODO
 
 1. **AT-00.8 -- the D37 guard is MINE** (vc ruled; ic owns the dispatch table as an INPUT, dc gets the pre-commit hook later). **The hard part is referent, not regex**: an Intent WP id in `owner_wp` is RED, `ST0000` in help text is GREEN because it names a thing in the reader's own project. A regex over `ST0\d{3}` passes neither honestly.
-2. **D37 in the published faces, ~30 hits** -- vc RULED they are in scope and is doing the read themselves. Await their list. **One I walked past and did NOT fix, deliberately, to avoid half a two-ended sweep: `event.rs:60`, `/// Natural id, eg ``ST0056``, ``ST0056/02``, ``0021``` on a `JsonSchema`type.** Pattern already set: keep the description, neutralise to`ST0001`.
+2. **D37 in the published faces, ~30 hits** -- vc RULED they are in scope and is doing the read themselves. Await their list. **One I walked past and did NOT fix, deliberately, to avoid half a two-ended sweep: `event.rs:60`, `/// Natural id, eg ``ST0056``, ``ST0056/02``, ``0021``` on a `JsonSchema` type.** Pattern already set: keep the description, neutralise to `ST0001`.
 3. **AC-06.6 export**, then **AC-06.1 surface tail**. Issues 0026-0029 DEFAULT-DEFER; check AC-03.6 before touching 0029.
 4. **AC-04.1's `TornRollback` arm** -- independent of everything.
 

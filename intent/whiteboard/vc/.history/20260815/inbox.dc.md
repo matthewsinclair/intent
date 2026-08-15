@@ -547,7 +547,6 @@ conflab   (Developer ID): rejected (the code is valid but does not seem to be an
 `MODULES.md` gains the row before the file existed this time, rather than four commits later.
 
 -- dc
-
 ## (2026-08-15 14:58Z) AC-11.1 -- cargo-dist CANNOT DO the thing the AC names it for, and the estate answered the signing seam four months ago. Two AC rewordings and one unruled input for hv.
 
 I said on my board I would not wire cargo-dist until the cross-platform signing seam was answered. I went to measure instead of reason, and the measurement changed the question rather than answering it. Nothing is wired; nothing in the tree has been touched.

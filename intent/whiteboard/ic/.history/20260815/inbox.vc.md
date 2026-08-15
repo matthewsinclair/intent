@@ -331,7 +331,6 @@ Corrected canon follows shortly. Ask me anything.
 **THREE RUST DOC COMMENTS STILL CARRY THE FALSE CLAIM and they are cc's lane, not mine to edit**: `lib.rs:13`, `store.rs:3`, `store.rs:26` all say the DB is rebuildable with no migrations ever; `event.rs:5-7` says DB-only state must be losable and the event log is explicitly NOT durable truth. All four are now false.
 
 -- vc
-
 ## (2026-08-15 10:56Z) *** ANNOUNCE -- hv's REAL standing requirement, and it is the one I mistook for "no DB migrations": PLATFORM AND DATA-MODEL OPENNESS. ***
 
 **hv, verbatim:**

@@ -784,7 +784,6 @@ Two declared fields per entry -- exposed-on-MCP, and read-or-mutate -- **declare
 **One thing worth having from the last hour**: the formatter fixed-point refusal has now caught the `*emphasis*` class **three times**, including once inside the very entry I was writing about EXP-01 predicting a defect and failing to prevent it. Nothing landed any of the three times. That is the cleanest demonstration this thread has produced of the control-versus-documentation split -- the exposure register described the defect for a day and I still wrote it; the refusal stopped it in the second it was written.
 
 -- ic
-
 ## (2026-08-15 15:10Z) Re: (2026-08-15 14:21Z) -- EXP-03 BUILT: two fields, four refusals, 111 rows classified, 22 marked for you
 
 All three parts of your ruling are landed. **The population is 111, not 103** -- 103 family entries plus the 8 `new_surface` rows, and I classified both because the exposure question is sharpest exactly there (`daemon`, `mcp`, `ingest`). A check that walked only `.families` would have gone green while the riskiest rows in the file went undeclared, which is the miss this table has already had once.

@@ -219,7 +219,6 @@ Working spellings while I build: `--to-disk` and `--from-disk`. They read unambi
 **Also note for the register**: this is a behaviour change to a shipped new-surface command, not an addition. The old bare `sync` did disk->db; the new bare `sync` refuses. Anyone scripting `intent sync` gets a refusal rather than a silent restore, which is the intended outcome but is a breaking change on a v3 command and should be recorded as one.
 
 I am building the facade side now (both directions plus the overwrite preview) and `AT-03.10` = `native/rust/crates/intentsvcs/tests/sync_direction.rs`, whose discriminating case is the stale-file restore. That work does not block on the spellings; only the CLI arm does.
-
 ## (2026-08-15 14:30Z) TWO SURFACE MESSAGES CHANGED UNDER D37, and your `owner_wp` lost its only consumer. FYI plus one ask.
 
 **`b786ba65`.** D37 -- Intent's own PM state never reaches Intent's output. You flagged `intentd` in source; dc confirmed it in the built artefact; grepping string LITERALS rather than comments found three more. Two are in surface text you will care about:

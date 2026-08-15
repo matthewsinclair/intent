@@ -90,8 +90,24 @@ CHECKABLE="surface/dispatch-table.md|gen_dispatch_table.sh|surface/dispatch-tabl
 UNCHECKABLE="$(cat <<'EOF'
 intent/st/ST0056/parity/register.md|gen_register.sh needs SP (raw burn.tsv, untracked and absent) and WT (a detached worktree at the measured revision). Declaring OUT is not enough. Its stamp is its only guard.
 intent/st/ST0056/parity/pertest.md|gen_pertest.sh needs the ephemeral TAP that burn.sh captured under BURN_TAP_DIR, which is not committed. No cheap check exists and no expensive one either, short of a full re-sweep. Its stamp is its only guard.
-intent/st/ST0056/parity/README.md|gen_inventory.sh DOES redirect (via OUTDIR, not OUT -- the reported "missing OUT" was a naming mismatch, not a missing capability). It is uncheckable for the real reason instead: it renders from $SP/probes/toplevel.tsv, which is not tracked. Its stamp is its only guard.
-intent/st/ST0056/parity/cmd-*.md|same as README.md -- rendered by gen_inventory.sh from the untracked probes/toplevel.tsv. 26 files. Committing that TSV would promote all 27 to CHECKABLE in one move, and is the single highest-leverage change available to this guard.
+intent/st/ST0056/parity/README.md|gen_inventory.sh DOES redirect (via OUTDIR, not OUT -- the reported "missing OUT" was a naming mismatch, not a missing capability). The probe TSV it renders from is now COMMITTED at parity/probes/toplevel.tsv (2026-08-15), so the input is no longer the blocker. What remains is $WT: a detached worktree at the measured revision, because the verb and flag extractors read the v2 SOURCE, not the probe data. Not cheap, so still declared. Its stamp plus a 26/26 content check against the committed TSV are its guards.
+intent/st/ST0056/parity/cmd-*.md|same as README.md. 26 files. THIS ENTRY USED TO CLAIM committing the TSV would promote all 27 to CHECKABLE in one move, and that was wrong -- measured 2026-08-15 by committing it and then running the generator, which still demanded a worktree at the revision for extract_verbs.sh and extract_flags.sh. The TSV was necessary and not sufficient. Recorded rather than quietly corrected, because a guard that names its own highest-leverage fix and is mistaken about it will send the next person the same way.
+EOF
+)"
+
+# ---------------------------------------------------------------------------
+# AUTHORED -- view-or-glob | what it is
+# A THIRD CATEGORY, because two were not enough and the second was lying. The
+# backstop below demands every apparatus .md be checkable or declared, and the
+# summary line calls the declared ones "un-re-derivable" -- which is true of a
+# generated view whose input is gone, and false of a file nobody generates.
+# Filing an authored document under un-re-derivable would inflate the count of
+# artefacts this apparatus cannot check with one it was never supposed to.
+# Found the moment the first authored file landed in surface/ and the guard
+# refused it, which is the backstop working.
+# ---------------------------------------------------------------------------
+AUTHORED="$(cat <<'EOF'
+surface/agent-guide.spec.md|The AC-09.4 spec for the `intent llm` agent guide (ic). Authored, not generated: it describes what the guide contains and where each half comes from. There is no canon it derives from, so there is nothing to check it against and nothing missing.
 EOF
 )"
 
@@ -185,6 +201,14 @@ for f in "$ROOT/surface"/*.md "$P"/*.md; do
     case "$rel" in $pat) known=1; break ;; esac
   done <<< "$UNCHECKABLE"
 
+  if [ "$known" -eq 0 ]; then
+    while IFS='|' read -r pat _what; do
+      [ -n "$pat" ] || continue
+      # shellcheck disable=SC2254 -- deliberate glob, same as above
+      case "$rel" in $pat) known=1; break ;; esac
+    done <<< "$AUTHORED"
+  fi
+
   [ "$known" -eq 1 ] || unregistered="$unregistered  $rel"$'\n'
 done
 
@@ -198,7 +222,7 @@ if [ "$rc" -eq 0 ]; then
   if [ "$TRIGGERED" -eq 1 ] && [ "$checked" -eq 0 ]; then
     echo "skew: no generated view was touched by this change -- nothing to check."
   else
-    echo "skew: $checked generated view(s) match their canon; $(printf '%s' "$UNCHECKABLE" | grep -c .) declared un-re-derivable."
+    echo "skew: $checked generated view(s) match their canon; $(printf '%s' "$UNCHECKABLE" | grep -c .) declared un-re-derivable; $(printf '%s' "$AUTHORED" | grep -c .) authored (nothing to check)."
   fi
 fi
 

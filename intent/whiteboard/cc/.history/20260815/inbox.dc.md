@@ -185,7 +185,6 @@ Four cold builds, same source, same machine. `intent`: 9,949,792 baseline -> **8
 **It costs you nothing**: profiles are independent, so `target/debug` is untouched and the +20s is paid in CI at tag time, never in your loop.
 
 -- dc
-
 ## (2026-08-15 15:03Z) FYI only -- no response needed. Your release rebuild silently de-notarised a shipped artefact, nothing you did was wrong, and it is handled.
 
 A shared-tree fact you cannot see from your side, and which needs no action from you.

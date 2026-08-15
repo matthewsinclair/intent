@@ -1,0 +1,68 @@
+# The `intent llm` agent guide -- what it contains and where each half comes from
+
+> AUTHORED spec (AC-09.4, WP-09). Owner: ic. This describes the guide; it is not the guide. The dispatch table beside it is the SSOT the generated half renders from.
+
+AC-09.4: _"`intent llm` renders the agent guide from the dispatch table; no hand-maintained command list exists."_
+
+## Why the AC exists, measured rather than argued
+
+The v2 guide is `usage-rules.md` at the project root, 389 lines, displayed by `intent llm usage_rules`. Measured against the surface on 2026-08-15:
+
+| property                                    | measured                             |
+| ------------------------------------------- | ------------------------------------ |
+| commands the surface declares               | 111                                  |
+| of those, named anywhere in the guide       | 54                                   |
+| named in the guide, not in the surface      | **0**                                |
+| whole families never documented as commands | **3** -- `issues`, `modules`, `lang` |
+
+**So the failure mode of a hand-maintained command list is not drift into falsehood. It is silent omission**, and omission is the worse of the two for an agent. A wrong command earns an error the agent can react to; a missing command reads as a capability the tool does not have, and the agent quietly builds a workaround. `intent issues` is how this project tracked the fifteen issues that shipped in v2.19.0, and the string "issues" does not occur anywhere in the guide -- not as a command, not as a word. Neither does "modules". `lang` appears six times, every one of them as a `<lang>` placeholder inside some other command's arguments, and never as the six-subcommand family it is.
+
+The guide also never names `intent llm` -- the command that prints it.
+
+Nothing was stale, which is the part worth understanding: the list was maintained honestly and still ended up describing less than half the surface, because **the act that invalidates a hand-written list is not the act that updates it.** Adding a command is a different commit, usually a different day, from remembering the guide exists.
+
+## The two halves
+
+**Generated, from the dispatch table.** The command reference. Completeness is the property that matters and it is the one a generator gives for free: every declared row appears, on the commit that declares it, or the generator refuses.
+
+**Authored, in prose.** Workflow sequences, methodology, conventions, and the NEVER DO section. No table can supply these -- the table knows `st new` exists and cannot know that a steel thread is documented before it is coded. Roughly two thirds of the v2 guide is this, and it is the two thirds worth keeping.
+
+The halves compose at render time. There is no committed generated guide file: `intent llm` renders on demand from the table compiled into the binary, so the guide cannot go stale between a command landing and someone re-running a generator.
+
+## What the generated section carries per command
+
+Not the same projection a human help screen wants. An agent needs the constraints before the description:
+
+1. **`exposed_on_mcp`** -- may an agent call this at all. Declared per row (AC-09.1), never derived.
+2. **`read_or_mutate`** -- does this change durable state. Declared over the WHOLE entry, so `at lint` is a mutation because `--fix` exists, and `todo list` is a mutation because it generates `todo.md` when absent.
+3. **path, help, arguments, flags** -- the call.
+4. **exit-code contract** -- from the surface-wide invariants, once, not per row.
+
+Point 4 is the one an agent-specific guide gets wrong by omission. An agent must decide whether a command SUCCEEDED, and the answer is not obvious from this surface: INV-04 says 0 is success and 1 is every failure, **except `intent critic`, which exits 2 when it has findings, and `intent claude hook`, which propagates**. An agent that reads 2 as failure will report a passing critic run as broken. INV-01 (failures write `error:` to stderr) and INV-03 (the exact not-in-a-project message) are the other two an agent parses rather than reads.
+
+## The residue AC-09.4 does not close, and the control that does
+
+Generating the list closes the list. It does not close the **prose**, and the authored half names commands constantly -- a workflow section is nothing but command names in sequence. A renamed or retired command sitting in a workflow paragraph is a hand-maintained command reference that no generator will ever correct, and it is invisible to a check that only asks whether the generated section is complete.
+
+`parity/tools/guide_refs_check.sh` closes it: every `intent <cmd>` written in an authored prose file must resolve to a declared path or alias. It refuses otherwise.
+
+Three things it does that a naive version does not, each earned:
+
+- **A family is distinguished from a leaf, derived from the table.** A second word after a family (`st`, `claude`) is a subcommand claim and must resolve; after a leaf (`critic`) it is prose continuing. Without this, `intent st create` passes because `st` exists -- and that substitution is exactly what a rename produces. It survived as a mutant against the first version.
+- **Zero references REFUSES.** A guide naming no command means the extractor stopped matching, and an empty match set passes every check built on it.
+- **An empty table REFUSES.** Otherwise the check reports the entire guide as broken, which is a true statement about nothing.
+
+It takes explicit file arguments and **must not be wired at the whole tree.** A document ABOUT the guide legitimately quotes commands that do not exist -- this one does, twice, and the check refuses it:
+
+```
+error: surface/agent-guide.spec.md references command(s) the dispatch table does not declare
+  intent st create  -- 'st' is a family and 'create' is not one of its subcommands
+```
+
+That is the control working, on real prose rather than a synthetic mutant, and it is also the reason the target list is named rather than globbed. A check pointed at everything gets turned off.
+
+## Not decided here
+
+**The authored half has not been rewritten for v3, deliberately.** Its subject matter is the v3 workflows, and `sync`, `export`, `ingest` and `backup` are still settling -- `sync --to-store` against `ingest` is an open boundary. Prose written now would be authored against a surface that moves, and would arrive at WP-09 already needing the treatment this document exists to prevent. The control is built and proven now because it is independent of what the prose says; the prose waits for the workflows.
+
+**Where the authored half lives is a contract question for vc**, not a choice to make quietly. It must be a file the binary compiles in, and the only real decision is whether it stays one file with `usage-rules.md`'s dual role -- human-facing DO/NEVER canon and agent guide at once -- or splits. The measurement above is an argument for splitting: a document serving two readers was maintained for one of them.

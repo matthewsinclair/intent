@@ -43,7 +43,7 @@ Recoverable only from git, and only if the note was committed before the setter 
 
 ## Root Cause
 
-`at_status()` is `at_field "$1" 5` (`bin/intent_acceptance:208`) -- the row is split on `--` and the status is field 5. **The note is field 6.** The status write path reconstructs the row from the fields it knows about, so field 6 is not written back. The grammar documents the note; the field-index model of the row does not carry it.
+`at_status()` is `at_field "$1" 5` (`bin/intent_acceptance:208`) -- the row is split on ` -- ` and the status is field 5. **The note is field 6.** The status write path reconstructs the row from the fields it knows about, so field 6 is not written back. The grammar documents the note; the field-index model of the row does not carry it.
 
 ## Impact
 

@@ -191,6 +191,7 @@ Working decisions live in the artefacts that carry them; a second copy here is t
 
 ## --- session body archived 2026-08-15 14:50Z (second fold of the day) ---
 
+
 # Interface Claude (ic)
 
 ## THE CANON -- ratified, supersedes everything earlier
