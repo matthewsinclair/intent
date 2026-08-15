@@ -159,6 +159,8 @@ The split is **measured, not read**. Under the default binding every test passes
 | \`not ok\`            | the test's result depends on the binary | **keep** -- real conformance coverage        |
 | \`ok\`                | the binary is irrelevant to it          | classified by why, using the shared rules    |
 
+**One class of row is NOT measured, and says so.** A test asserting a FAILURE passes under both bindings, because \`/usr/bin/false\` fails too -- so the burn ratio is structurally blind to it and a zero there means "the instrument cannot see this", not "this does not reach the CLI". Those rows carry **\`basis: read, not measured\`**, are **excluded from every burn arithmetic**, and are **counted separately** in the tally (vc ruling, 2026-08-15). The register's authority is that it never reads assertions; that holds for every measured row, and these sit visibly outside it rather than quietly inside. The blindness is one-directional -- burn under-counts CLI reach and never over-counts -- so every burn figure here is a FLOOR.
+
 Files whose class was **decided by ruling** rather than measured are listed at the foot and deliberately not split: per-test rows would quietly contradict the ruling the file row carries.
 
 ## Rows
@@ -256,5 +258,14 @@ echo "rows: $(grep -c '^| `tests/' "$OUT")"
 # by one, and the tally then reported a class of `yes` (the BURNS column) for
 # that row. The ROW was right and the COUNT was wrong, which is the more
 # dangerous way round: the artefact looks fine and only the summary lies.
-awk -F'|' '{gsub(/\\\|/, "!")} /^\| `tests\// {gsub(/^ +| +$/,"",$5); c[$5]++} END {for (k in c) printf "  %-14s %s\n", k, c[k]}' "$OUT"
+awk -F'|' '{gsub(/\\\|/, "!")} /^\| `tests\// {
+  gsub(/^ +| +$/,"",$5); gsub(/^ +| +$/,"",$6);
+  # A `read, not measured` row is counted SEPARATELY and never folded into its
+  # class total. The ruling by vc makes the evidence class mechanical rather
+  # than trusted: these rows rest on reading an assertion, every other row rests
+  # on a measurement, and a tally that merges them launders the difference.
+  # (No apostrophes in here -- this awk program is a single-quoted shell string,
+  # so one would close it and hand the rest of the block to the shell.)
+  if ($6 == "read, not measured") c[$5 " (read)"]++; else c[$5]++
+} END {for (k in c) printf "  %-20s %s\n", k, c[k]}' "$OUT"
 echo "files split: $split_files   refused: $refusals"

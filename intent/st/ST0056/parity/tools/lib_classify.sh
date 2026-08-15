@@ -89,13 +89,50 @@ classify_no_burn() {
   # matching.
   elif grep -qE $'source [\'"]?\\$\\{?(INTENT_PROJECT_ROOT|INTENT_HOME)\\}?/bin/intent|source .*(rules_lib|critic_runner)\\.sh' "$f"; then
     echo "retire|shell-function unit test|Sources a shell file and calls its functions directly. Dies with bash; there is no binary to retarget."
-  elif ! grep -qE 'run_intent|\$INTENT_BIN\b' "$f"; then
+  elif ! grep -qE '(^|[^\\])\$INTENT_BIN\b|run_intent' "$f"; then
+    # AN ESCAPED `\$INTENT_BIN` IS A NEEDLE, NOT AN INVOCATION. A test that
+    # greps a script for the literal text `"\$INTENT_BIN/intent" lang init` is
+    # asserting repository content and invokes nothing; a real call site never
+    # escapes the dollar. Without the exclusion such a body reads as
+    # CLI-invoking, falls past this rule, and lands in the arm below -- which
+    # is how one row in `intent_upgrade_orchestrator.bats` was reported as
+    # UNCLASSIFIED ("invokes the CLI and yet burns zero") when the honest answer
+    # is that it never invoked anything.
+    #
+    # Third instance of the same trap in this file's history, after the sub-script
+    # rule and the guard's own allowlist. A grep cannot tell a call site from a
+    # string being searched for, so every needle here needs the complement case
+    # asking what it must NOT match.
     # Never invokes the CLI in any form. Not a conformance test at all: it pins
     # this repository's own content (skills, rules, docs, attribution) and
     # survives a binary swap untouched. This is the WIDENED rule -- the first
     # version keyed on `git ls-files`/`grep -r` and left seven such files
     # UNCLASSIFIED, certifying only the shapes it already knew about.
     echo "out-of-scope|no CLI invocation|Never invokes the CLI. Asserts this repository's own content, not the command surface; survives a binary swap untouched and is not a conformance test."
+  elif grep -qE 'assert_failure|refute_output_contains|assert_file_not_exists' "$f" \
+    && ! grep -qE 'assert_success|assert_output_contains|assert_output\b' "$f"; then
+    # THE NEGATIVE-ASSERTION BLIND SPOT, ruled `keep` by vc 2026-08-15.
+    #
+    # A test asserting a FAILURE passes under both bindings, because
+    # `/usr/bin/false` fails too. The burn ratio therefore cannot see it: zero
+    # burn here means "the instrument is blind to this test", not "this test
+    # does not reach the CLI". One-directionally -- burn under-counts CLI reach
+    # and never over-counts -- so every burn figure in this estate is a FLOOR.
+    #
+    # The condition is two-sided on purpose. A negative assertion must be
+    # PRESENT, and no positive assertion on status or output may be, because a
+    # body carrying `assert_success` on a CLI run and still burning zero is
+    # genuinely anomalous and must stay UNCLASSIFIED rather than be swept in
+    # here. Widening this to "has any negative assertion" would quietly absorb
+    # the very rows the refusal path exists to surface.
+    #
+    # BASIS IS MANDATORY AND LOAD-BEARING. This row rests on READING an
+    # assertion, and every other row in this register rests on a measurement.
+    # vc's ruling makes the distinction mechanical rather than trusted: a
+    # `read, not measured` row is barred from every burn arithmetic and counted
+    # separately, so the register's authority -- that it never reads assertions
+    # -- holds for the measured rows while these sit visibly outside it.
+    echo "keep|read, not measured|Invokes the CLI and asserts a FAILURE, so it passes under both bindings and the burn ratio is structurally blind to it. Real conformance coverage: v3 must reproduce the failure behaviour. Classified by READING the assertion, not by measuring -- excluded from burn arithmetic and counted separately (vc ruling, 2026-08-15)."
   else
     # Invokes the CLI and yet nothing changes when the binary is redirected.
     # That combination is genuinely odd and is flagged rather than guessed.
@@ -248,6 +285,20 @@ classify_calibrate() {
     '  run grep -F "stamp_project_version" "${INTENT_HOME}/bin/intent_upgrade"'
   _cc_case UNCLASSIFIED 'invokes the CLI but sources nothing -- must not fall to out-of-scope' \
     '  run run_intent st list'
+
+  # -- the negative-assertion arm, and its complement.
+  _cc_case keep 'asserts a FAILURE -- burn is blind to it, class rests on reading' \
+    '  run "$INTENT_BIN" upgrade' \
+    '  assert_failure' \
+    '  refute_output_contains "Backup created successfully"'
+  _cc_case UNCLASSIFIED 'a positive assertion alongside a negative one must NOT be swept into keep' \
+    '  run "$INTENT_BIN" st list' \
+    '  assert_success' \
+    '  refute_output_contains "boom"'
+
+  # -- an ESCAPED $INTENT_BIN is a search string, not a call site.
+  _cc_case out-of-scope 'greps a script for the literal text "\$INTENT_BIN" -- invokes nothing' \
+    '  grep -qE '"'"'"\\$INTENT_BIN/intent" lang init'"'"' "$MIGRATIONS"'
 
   unset -f _cc_case
   rm -f "$tmp"
