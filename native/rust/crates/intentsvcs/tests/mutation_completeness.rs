@@ -836,29 +836,29 @@ fn a_self_edge_is_not_an_exit() {
 /// the implementation to confirm itself. This is the second witness: a typo in
 /// either copy is a failure, and the only way to make both wrong in the same
 /// way is to make the same mistake twice.
-const RATIFIED_THREAD: &[(&str, &[&str], &str, Guard)] = &[
-  ("st.triage", &["triage"], "not-started", Guard::None),
-  ("st.start", &["not-started"], "wip", Guard::None),
-  ("st.resume", &["hold"], "wip", Guard::None),
+const RATIFIED_THREAD: &[(&str, &[&str], &str, &[Guard])] = &[
+  ("st.triage", &["triage"], "not-started", &[]),
+  ("st.start", &["not-started"], "wip", &[]),
+  ("st.resume", &["hold"], "wip", &[]),
   (
     "st.hold",
     &["not-started", "wip"],
     "hold",
-    Guard::ReasonRecorded,
+    &[Guard::ReasonRecorded],
   ),
-  ("st.done", &["wip"], "completed", Guard::GatePass),
+  ("st.done", &["wip"], "completed", &[Guard::GatePass]),
   (
     "st.cancel",
     &["triage", "not-started", "wip", "hold"],
     "cancelled",
-    Guard::ReasonRecorded,
+    &[Guard::ReasonRecorded],
   ),
-  ("st.reopen", &["completed"], "wip", Guard::ReasonRecorded),
+  ("st.reopen", &["completed"], "wip", &[Guard::ReasonRecorded]),
   (
     "st.reinstate",
     &["cancelled"],
     "not-started",
-    Guard::ReasonRecorded,
+    &[Guard::ReasonRecorded],
   ),
 ];
 
@@ -870,43 +870,48 @@ const RATIFIED_THREAD: &[(&str, &[&str], &str, Guard)] = &[
 /// "-> Unsatisfied" row is written for the authored criterion it had in mind.
 /// The second row is the test-backed case the same rule implies -- stated here
 /// rather than left implicit, so a disagreement surfaces as a failing test.
-const RATIFIED_CRITERION: &[(&str, &[&str], &str, Guard)] = &[
+const RATIFIED_CRITERION: &[(&str, &[&str], &str, &[Guard])] = &[
   (
     "ac.satisfy",
     &["unsatisfied"],
     "satisfied",
-    Guard::NonTestOnly,
+    // **Two guards, and the second is the one the single-valued column could
+    // not hold.** Evidence was ruled required and recorded as structural; a
+    // `String` field only made it mandatory, so `ac satisfy` with no evidence
+    // wrote a satisfaction the gate counted (ic, 2026-08-15). Ratified here as
+    // part of the machine so the transcription check holds the code to it.
+    &[Guard::NonTestOnly, Guard::EvidenceRecorded],
   ),
   (
     "ac.unsatisfy",
     &["satisfied"],
     "unsatisfied",
-    Guard::NonTestOnly,
+    &[Guard::NonTestOnly],
   ),
   (
     "ac.descope",
     &["computed", "unsatisfied", "satisfied"],
     "descoped",
-    Guard::TargetExists,
+    &[Guard::TargetExists],
   ),
   (
     "ac.withdraw",
     &["computed", "unsatisfied", "satisfied"],
     "withdrawn",
-    Guard::ReasonRecorded,
+    &[Guard::ReasonRecorded],
   ),
-  ("ac.rescope", &["descoped"], "unsatisfied", Guard::None),
-  ("ac.rescope", &["descoped"], "computed", Guard::None),
-  ("ac.reinstate", &["withdrawn"], "unsatisfied", Guard::None),
-  ("ac.reinstate", &["withdrawn"], "computed", Guard::None),
+  ("ac.rescope", &["descoped"], "unsatisfied", &[]),
+  ("ac.rescope", &["descoped"], "computed", &[]),
+  ("ac.reinstate", &["withdrawn"], "unsatisfied", &[]),
+  ("ac.reinstate", &["withdrawn"], "computed", &[]),
 ];
 
 /// The ratified work-package machine, same discipline.
-const RATIFIED_WP: &[(&str, &[&str], &str, Guard)] = &[
-  ("wp.start", &["not-started"], "wip", Guard::None),
-  ("wp.unstart", &["wip"], "not-started", Guard::None),
-  ("wp.done", &["wip"], "done", Guard::GatePass),
-  ("wp.reopen", &["done"], "wip", Guard::ReasonRecorded),
+const RATIFIED_WP: &[(&str, &[&str], &str, &[Guard])] = &[
+  ("wp.start", &["not-started"], "wip", &[]),
+  ("wp.unstart", &["wip"], "not-started", &[]),
+  ("wp.done", &["wip"], "done", &[Guard::GatePass]),
+  ("wp.reopen", &["done"], "wip", &[Guard::ReasonRecorded]),
 ];
 
 fn declared(entity: &str, field: &str) -> &'static [Edge] {
@@ -953,7 +958,7 @@ fn the_implemented_graph_is_the_ratified_one_edge_for_edge() {
 }
 
 /// Drive `verb` from `from`, and report the refusal if there was one.
-fn attempt(entity: &str, verb: &str, from: &str, reason: &str) -> Result<(), FacadeError> {
+fn attempt(entity: &str, verb: &str, from: &str, justification: &str) -> Result<(), FacadeError> {
   let fx = Fixture::new();
   let mut facade: Facade = match entity {
     "Thread" => {
@@ -982,24 +987,24 @@ fn attempt(entity: &str, verb: &str, from: &str, reason: &str) -> Result<(), Fac
   let seq = 3;
   const AC: &str = "AC-03.2";
   match verb {
-    "ac.satisfy" => facade.ac_satisfy(ST, AC, "the render itself"),
+    "ac.satisfy" => facade.ac_satisfy(ST, AC, justification),
     "ac.unsatisfy" => facade.ac_unsatisfy(ST, AC),
     "ac.descope" => facade.ac_descope(ST, AC, "ST0057", Some("hv"), Some("moved")),
-    "ac.withdraw" => facade.ac_withdraw(ST, AC, reason, Some("hv")),
+    "ac.withdraw" => facade.ac_withdraw(ST, AC, justification, Some("hv")),
     "ac.rescope" => facade.ac_rescope(ST, AC),
     "ac.reinstate" => facade.ac_reinstate(ST, AC),
     "st.triage" => facade.st_triage(ST),
     "st.start" => facade.st_start(ST),
     "st.resume" => facade.st_resume(ST),
-    "st.hold" => facade.st_hold(ST, reason),
+    "st.hold" => facade.st_hold(ST, justification),
     "st.done" => facade.st_done(ST),
-    "st.cancel" => facade.st_cancel(ST, reason),
-    "st.reopen" => facade.st_reopen(ST, reason),
-    "st.reinstate" => facade.st_reinstate(ST, reason),
+    "st.cancel" => facade.st_cancel(ST, justification),
+    "st.reopen" => facade.st_reopen(ST, justification),
+    "st.reinstate" => facade.st_reinstate(ST, justification),
     "wp.start" => facade.wp_start(ST, seq),
     "wp.unstart" => facade.wp_unstart(ST, seq),
     "wp.done" => facade.wp_done(ST, seq),
-    "wp.reopen" => facade.wp_reopen(ST, seq, reason),
+    "wp.reopen" => facade.wp_reopen(ST, seq, justification),
     other => panic!("no arm drives {other}"),
   }
 }
@@ -1063,26 +1068,58 @@ fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
   );
 }
 
-/// A `ReasonRecorded` guard REFUSES an absent or blank reason.
+/// A verb declared to record a justification REFUSES a blank one -- for every
+/// entity, and for both kinds of justification.
 ///
-/// The guard is declared in the table, so this reads the declaration rather
+/// The guards are declared in the table, so this reads the declaration rather
 /// than a list of verbs somebody has to keep in step with it.
+///
+/// **It used to loop `Thread` and `WorkPackage` and stop, and that omission is
+/// how two defects lived here at once.** `Criterion` was the one entity whose
+/// declared guards nothing enforced -- `set_ac_state` consulted the table for
+/// the from-state and never for the guard column -- and it was also the one
+/// entity this check did not visit. So `ac.withdraw` carried a ratified
+/// `ReasonRecorded` that was transcribed, conformance-checked, and dead, while
+/// `ac.satisfy` could not even declare the evidence rule it needed. **An
+/// instrument that enumerates its subjects by hand can be wrong in exactly the
+/// place its subject is wrong, and it reports green.** The list is now derived
+/// from the ratified tables themselves.
 #[test]
-fn a_verb_declared_with_reason_recorded_refuses_a_blank_one() {
+fn a_verb_declared_to_record_a_justification_refuses_a_blank_one() {
   let mut checked = 0;
-  for (entity, ratified) in [("Thread", RATIFIED_THREAD), ("WorkPackage", RATIFIED_WP)] {
-    for (verb, from, _, guard) in ratified.iter().filter(|r| r.3 == Guard::ReasonRecorded) {
+  for (entity, ratified) in [
+    ("Thread", RATIFIED_THREAD),
+    ("WorkPackage", RATIFIED_WP),
+    ("Criterion", RATIFIED_CRITERION),
+  ] {
+    for (verb, from, _, guards) in ratified {
+      // Both prose guards, together, because they are one rule asked of two
+      // fields and a check that knew only about reasons is what let the
+      // evidence half go unwritten.
+      let reason = guards.contains(&Guard::ReasonRecorded);
+      let evidence = guards.contains(&Guard::EvidenceRecorded);
+      if !reason && !evidence {
+        continue;
+      }
       for blank in ["", "   "] {
         let outcome = attempt(entity, verb, from[0], blank);
+        let refused = match &outcome {
+          Err(FacadeError::ReasonRequired { .. }) => reason,
+          Err(FacadeError::EvidenceRequired { .. }) => evidence,
+          _ => false,
+        };
         assert!(
-          matches!(outcome, Err(FacadeError::ReasonRequired { .. })),
-          "{entity}: `{verb}` is declared {guard:?} and accepted the reason {blank:?} -- got {outcome:?}"
+          refused,
+          "{entity}: `{verb}` is declared {guards:?} and accepted the justification {blank:?} -- got {outcome:?}"
         );
         checked += 1;
       }
     }
   }
-  assert!(checked >= 8, "only {checked} guarded verbs were exercised");
+  assert!(
+    checked >= 12,
+    "only {checked} guarded verbs were exercised -- the enumeration is collapsing, and a check that examines nothing passes"
+  );
 }
 
 /// And the mirror: an UNGUARDED transition CLEARS a reason left by a guarded

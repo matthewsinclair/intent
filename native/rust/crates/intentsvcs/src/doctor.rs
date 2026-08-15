@@ -309,6 +309,32 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
       );
     }
 
+    // **A satisfaction with nothing behind it, on the one road still open to
+    // it.** Same three enforcement points as the kind/state rule above and the
+    // same division of labour: `Guard::EvidenceRecorded` refuses the API call,
+    // `minLength` on the face refuses the file, and this reports an estate that
+    // already carries one. What that leaves is the CARRIED half -- the
+    // migration reader (WP-10) is deliberately lenient where ingest is strict,
+    // so a v2 AC marked satisfied whose evidence text was blank arrives here
+    // having never met a schema.
+    //
+    // **Reported rather than refused, because refusing it is a migration-policy
+    // decision and not this module's.** The ruled policy is that a closed
+    // thread converts lossless-by-carrying and a live one stays blocked until
+    // clean; which of those a blank evidence makes it is hv's and vc's call, so
+    // the estate says what it found and does not pre-empt them.
+    if let AcState::Satisfied { evidence } = &criterion.state
+      && evidence.trim().is_empty()
+    {
+      add(
+        format!(
+          "{} records satisfied with no evidence, and a non-test criterion has nothing else to show -- there is no test to re-run to find out whether it holds",
+          criterion.id
+        ),
+        FindingClass::ModelInconsistent,
+      );
+    }
+
     // A descoped criterion naming a thread this project does not have is a
     // dangling promise: the requirement was moved somewhere that does not
     // exist, so nobody is holding it.

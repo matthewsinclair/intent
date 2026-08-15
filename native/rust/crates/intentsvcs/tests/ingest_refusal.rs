@@ -276,3 +276,84 @@ fn a_descoped_test_backed_ac_ingests_and_keeps_its_payload() {
     "the decision and everyone who made it survived the file"
   );
 }
+
+/// **A satisfaction with nothing behind it is not valid canon** -- the FILE
+/// half of the rule whose API half is `Guard::EvidenceRecorded`.
+///
+/// The model recorded this as structural and it was not: `Satisfied { evidence:
+/// String }` makes the FIELD mandatory, not the evidence present, so
+/// `evidence: ""` was representable, writable through the CLI, and counted by
+/// the close gate (ic traced it end to end, 2026-08-15). The published face now
+/// carries `minLength`, which is what makes this a refusal rather than a
+/// convention -- and under D34 it is also what lets an external reader of
+/// `thread.schema.json` reach the same verdict Intent does, instead of
+/// reimplementing a rule that lives only in this crate.
+///
+/// Written against RAW bytes on purpose. Going through `Fixture::write_thread`
+/// would render the file from a model value, so the test would depend on the
+/// serialiser producing the shape under test; hand-authored canon is exactly
+/// the road this guards, so the test drives that road.
+#[test]
+fn a_satisfaction_carrying_no_evidence_is_refused() {
+  let fx = Fixture::new();
+  fx.write_raw_thread(
+    "ST0056",
+    r#"{
+  "schema": "intent/thread@3.0",
+  "id": "ST0056",
+  "title": "Intent v3.0.0",
+  "status": "wip",
+  "created": "2026-08-14",
+  "criteria": [
+    {
+      "id": "AC-03.2",
+      "text": "view rendering is deterministic",
+      "kind": "non-test",
+      "state": { "is": "satisfied", "evidence": "" }
+    }
+  ]
+}
+"#,
+  );
+
+  let findings = refusal(ingest::read(&fx.project()).expect_err("must refuse"));
+  assert_eq!(findings[0].class, FindingClass::SchemaInvalid);
+  assert_eq!(findings[0].file, "intent/st/ST0056/thread.json");
+  assert!(
+    findings[0].detail.contains("evidence"),
+    "the refusal names the field that is empty, so the author knows what to write: {}",
+    findings[0].detail
+  );
+
+  // **The discriminating half, and it is not decoration here.** `minLength: 1`
+  // is one character away from a rule that refuses every satisfaction, and a
+  // test that only ever writes the empty case passes just as happily on that
+  // mutation -- which would block every legitimate close in the estate.
+  let fx = Fixture::new();
+  fx.write_raw_thread(
+    "ST0056",
+    r#"{
+  "schema": "intent/thread@3.0",
+  "id": "ST0056",
+  "title": "Intent v3.0.0",
+  "status": "wip",
+  "created": "2026-08-14",
+  "criteria": [
+    {
+      "id": "AC-03.2",
+      "text": "view rendering is deterministic",
+      "kind": "non-test",
+      "state": { "is": "satisfied", "evidence": "reviewed at 53cb9f00" }
+    }
+  ]
+}
+"#,
+  );
+  let canon = ingest::read(&fx.project()).expect("evidence present is legal canon");
+  assert_eq!(
+    canon.threads[0].criteria[0].state,
+    intentsvcs::model::AcState::Satisfied {
+      evidence: "reviewed at 53cb9f00".to_string(),
+    }
+  );
+}

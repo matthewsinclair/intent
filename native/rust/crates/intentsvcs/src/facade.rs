@@ -125,6 +125,12 @@ pub enum FacadeError {
   },
   #[error("`{verb}` requires a reason and was given none")]
   ReasonRequired { verb: &'static str },
+  // Its own variant rather than `ReasonRequired` with a different word in it:
+  // the two are owed for different reasons and the remedy has to say which. A
+  // reason explains a decision; evidence is the whole substitute for a test
+  // result on a criterion that has none.
+  #[error("{ac} is a non-test criterion, so satisfying it requires evidence and none was given")]
+  EvidenceRequired { ac: String },
   #[error("cannot descope {ac} to {to}, which is not a steel thread in this project")]
   DescopeTargetMissing { ac: String, to: String },
   // NOT `#[source]`-bearing and NOT constructed from anything: the whole value
@@ -220,6 +226,11 @@ impl FacadeError {
       Self::ReasonRequired { verb } => {
         format!(
           "give `{verb}` a reason. It is recorded on the entity as the reason for its CURRENT state, and in the event log as part of the decision, which is what lets anyone reconstruct why later"
+        )
+      }
+      Self::EvidenceRequired { ac } => {
+        format!(
+          "run `intent ac satisfy <thread> {ac} --evidence \"<what you checked>\"` -- a non-test criterion has no test to run, so the evidence IS the verification: cite the commit, the command, or the review that settled it"
         )
       }
       Self::NotSatisfied { .. } => {
@@ -944,14 +955,72 @@ impl Facade {
     verb: &'static str,
     reason: Option<&str>,
   ) -> Result<Option<String>, FacadeError> {
-    match transitions::guard_for(entity, field, verb) {
-      transitions::Guard::ReasonRecorded => reason
+    if transitions::guard_for(entity, field, verb).contains(&transitions::Guard::ReasonRecorded) {
+      return reason
         .map(str::trim)
         .filter(|r| !r.is_empty())
         .map(|r| Some(r.to_string()))
-        .ok_or(FacadeError::ReasonRequired { verb }),
-      _ => Ok(None),
+        .ok_or(FacadeError::ReasonRequired { verb });
     }
+    Ok(None)
+  }
+
+  /// The prose a criterion's state carries to justify itself, for the guards
+  /// that require one.
+  ///
+  /// **One function for both, because they are one question asked of two
+  /// states**: a withdrawal explains a decision, a satisfaction stands in for a
+  /// test result, and in each case the state is worthless without it. The
+  /// guard decides WHICH is owed and the refusal says so; this only knows where
+  /// to look.
+  fn justification(state: &AcState) -> Option<&str> {
+    match state {
+      AcState::Satisfied { evidence } => Some(evidence),
+      AcState::Withdrawn { reason, .. } => Some(reason),
+      _ => None,
+    }
+  }
+
+  /// Enforce the guards the AC machine DECLARES for this verb.
+  ///
+  /// **The guard column existed for criteria and nothing read it.**
+  /// `set_ac_state` consulted the declaration for the FROM-STATE only, so
+  /// `ac.withdraw`'s ratified `ReasonRecorded` was declared, transcribed,
+  /// checked for faithfulness by `mutation_completeness.rs` -- and never
+  /// enforced, because the enforcement path for reasons ran through
+  /// [`Self::check_reason`], which only Thread and WorkPackage verbs call.
+  /// Found while confirming ic's evidence defect; the two are one defect seen
+  /// at two verbs.
+  ///
+  /// Blank counts as absent. A shell makes `--reason ""` and `--reason "  "`
+  /// the same gesture, so a guard that refuses one and stores the other is a
+  /// guard that teaches its own bypass.
+  fn check_ac_guards(verb: &'static str, ac: &str, state: &AcState) -> Result<(), FacadeError> {
+    let supplied = Self::justification(state)
+      .map(str::trim)
+      .is_some_and(|j| !j.is_empty());
+    if supplied {
+      return Ok(());
+    }
+    for guard in transitions::guard_for("Criterion", "state", verb) {
+      match guard {
+        transitions::Guard::ReasonRecorded => {
+          return Err(FacadeError::ReasonRequired { verb });
+        }
+        transitions::Guard::EvidenceRecorded => {
+          return Err(FacadeError::EvidenceRequired { ac: ac.to_string() });
+        }
+        // `NonTestOnly` and `TargetExists` are enforced by the verbs, which
+        // have the criterion and the canon this static check does not. They
+        // are named rather than swept into a wildcard so that a guard added to
+        // the table cannot land in a silent arm -- the failure that produced
+        // this function.
+        transitions::Guard::NonTestOnly
+        | transitions::Guard::TargetExists
+        | transitions::Guard::GatePass => {}
+      }
+    }
+    Ok(())
   }
 
   // -------------------------------------------------------------------------
@@ -1126,14 +1195,22 @@ impl Facade {
   // -------------------------------------------------------------------------
 
   /// Mark a NON-TEST criterion satisfied, with its evidence.
-  ///
-  /// **Two of this verb's three guards are now structural rather than
-  /// enforced.** `Satisfied { evidence }` cannot be built without evidence, so
-  /// "satisfied with nothing to show" stops being representable; and a
-  /// test-backed criterion has no satisfaction field to write, because in scope
-  /// it records [`AcState::Computed`]. What is left below is the one guard that
-  /// is genuinely a policy: refusing the verb on a criterion that has left
-  /// scope, and naming the undo.
+  //
+  // **This comment used to say two of the three guards were structural rather
+  // than enforced, and one half of that was wrong.** The test-backed half
+  // holds: a criterion in scope records [`AcState::Computed`] and there is no
+  // satisfaction field to write. The evidence half did not. `Satisfied {
+  // evidence: String }` makes the FIELD mandatory, not the evidence present, so
+  // "satisfied with nothing to show" stayed representable -- and because this
+  // comment said otherwise, no guard was written for it, the renderer reached
+  // for `unwrap_or_default()`, and an AC could record Satisfied with empty
+  // evidence and count toward the close gate (ic, 2026-08-15).
+  //
+  // It is now declared as `Guard::EvidenceRecorded` on the `ac.satisfy` edge
+  // and enforced by `set_ac_state` from that declaration, with `minLength` on
+  // the model carrying the same rule into the schema face. A comment asserting
+  // a property is not the property, and this one was cited as the reason not to
+  // build the thing that would have made it true.
   pub fn ac_satisfy(&mut self, st: &str, ac: &str, evidence: &str) -> Result<(), FacadeError> {
     let criterion = self.criterion(st, ac)?;
     if criterion.kind != AcKind::NonTest {
@@ -1330,6 +1407,7 @@ impl Facade {
     // between them. The ratified machine declares `ac.descope` only from the
     // in-scope states, and now so does the code.
     Self::check_transition("Criterion", "state", op, state_name(current), ac)?;
+    Self::check_ac_guards(op, ac, &state)?;
     let mut next = self.canon.clone();
     let c = find_criterion_mut(&mut next, st, ac)?;
     c.state = state;

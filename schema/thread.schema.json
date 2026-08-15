@@ -8,7 +8,7 @@
       "type": "string"
     },
     "AcState": {
-      "description": "**What a criterion RECORDS.** One enum, replacing the `satisfied:\nOption<bool>` + `scope: AcScope` pair that produced \"three stored values,\ntwo meanings, one of them never written\" (hv ruling, 2026-08-15).\n\nThe ratified machine is `Satisfied | Unsatisfied | Descoped | Withdrawn`.\nThis type has a fifth variant, [`AcState::Computed`], and it is what makes\nthe ratified asymmetry STRUCTURAL rather than a rule somebody enforces:\n\n- **A test-backed criterion in scope records `Computed`** -- nothing about\n  satisfaction is stored, because it is derived from covering green ATs.\n  There is no field for `ac satisfy` to write and no method that could,\n  where before there was a `satisfied: Option<bool>` that the linter's L5\n  was the only thing keeping empty.\n- **`Satisfied` carries its evidence and cannot be constructed without it**\n  (hv, 2026-08-15), so \"satisfied with no evidence\" stops being a state the\n  model can represent, rather than one a guard has to refuse.\n- **`Descoped` and `Withdrawn` apply to BOTH kinds** and are always stored:\n  they are decisions about the requirement, not about its satisfaction.\n\n`Descoped` and `Withdrawn` stay distinct with no direct edge between them --\ndescoped means the requirement still exists on a named thread and is a\npointer you can follow; withdrawn means it does not exist at all. Moving\nbetween them routes through `Unsatisfied` so the audit trail records the\nintermediate decision instead of smearing two facts into one.\n\nThe tag is `is` rather than `state` so the extract reads\n`\"state\": {\"is\": \"satisfied\", ...}` rather than doubling the word. Nesting\nrather than `#[serde(flatten)]` is forced: flatten and `deny_unknown_fields`\ndo not compose in serde, and strict rejection of unknown fields is the\nproperty that must win.",
+      "description": "**What a criterion RECORDS.** One enum, replacing the `satisfied:\nOption<bool>` + `scope: AcScope` pair that produced \"three stored values,\ntwo meanings, one of them never written\" (hv ruling, 2026-08-15).\n\nThe ratified machine is `Satisfied | Unsatisfied | Descoped | Withdrawn`.\nThis type has a fifth variant, [`AcState::Computed`], and it is what makes\nthe ratified asymmetry STRUCTURAL rather than a rule somebody enforces:\n\n- **A test-backed criterion in scope records `Computed`** -- nothing about\n  satisfaction is stored, because it is derived from covering green ATs.\n  There is no field for `ac satisfy` to write and no method that could,\n  where before there was a `satisfied: Option<bool>` that the linter's L5\n  was the only thing keeping empty.\n- **`Satisfied` carries its evidence, which must not be empty** (hv,\n  2026-08-15): a criterion with no test to run has nothing BUT its evidence,\n  so a satisfaction with none behind it is the one state this type exists to\n  rule out. The rule is published here as `minLength` so a reader of this\n  face reaches the same verdict Intent does, and the service refuses the\n  same call at its API.\n- **`Descoped` and `Withdrawn` apply to BOTH kinds** and are always stored:\n  they are decisions about the requirement, not about its satisfaction.\n\n`Descoped` and `Withdrawn` stay distinct with no direct edge between them --\ndescoped means the requirement still exists on a named thread and is a\npointer you can follow; withdrawn means it does not exist at all. Moving\nbetween them routes through `Unsatisfied` so the audit trail records the\nintermediate decision instead of smearing two facts into one.\n\nThe tag is `is` rather than `state` so the extract reads\n`\"state\": {\"is\": \"satisfied\", ...}` rather than doubling the word. Nesting\nrather than `#[serde(flatten)]` is forced: flatten and `deny_unknown_fields`\ndo not compose in serde, and strict rejection of unknown fields is the\nproperty that must win.",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -40,9 +40,10 @@
         },
         {
           "additionalProperties": false,
-          "description": "Non-test and satisfied. **Unconstructible without evidence.**",
+          "description": "Non-test and satisfied, carrying the evidence that settled it.",
           "properties": {
             "evidence": {
+              "minLength": 1,
               "type": "string"
             },
             "is": {
@@ -100,6 +101,7 @@
               "type": "string"
             },
             "reason": {
+              "minLength": 1,
               "type": "string"
             }
           },
@@ -492,5 +494,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.0.0-dev",
-  "x-schema-json-ver": 2
+  "x-schema-json-ver": 3
 }

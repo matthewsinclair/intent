@@ -697,7 +697,11 @@ fn ac(m: &ArgMatches) -> Result<(), String> {
     Some(("satisfy", a)) => {
       let st = arg(a, "stid")?;
       let id = arg(a, "acid")?;
-      let evidence = arg(a, "evidence").unwrap_or_default();
+      // Read through `opt` and passed through, like the five thread and work
+      // package verbs that owe a reason: the facade's `EvidenceRecorded` guard
+      // is what refuses it, and it refuses `--evidence ""` as well as an absent
+      // flag -- which re-checking the flag here could not do.
+      let evidence = opt(a, "evidence").unwrap_or_default();
       open()?.ac_satisfy(&st, &id, &evidence).map_err(fail)?;
       println!("ok: {id} satisfied");
       Ok(())
@@ -741,6 +745,13 @@ fn ac(m: &ArgMatches) -> Result<(), String> {
     Some(("descope", a)) => {
       let st = arg(a, "stid")?;
       let id = arg(a, "acid")?;
+      // **`to` stays on `arg(..)?`, and the difference is not an oversight.**
+      // The passthrough rule applies to a value the facade guards with a
+      // message worth reading; `to` is guarded by `TargetExists`, whose
+      // refusal for a blank one reads "cannot descope AC-03.2 to , which is not
+      // a steel thread in this project". For a JUSTIFICATION the facade knows
+      // exactly what is missing and says so; for a REFERENT it can only report
+      // that nothing answers to the empty name.
       let to = arg(a, "to")?;
       let by = arg(a, "by").ok();
       let reason = arg(a, "reason").ok();
@@ -753,7 +764,13 @@ fn ac(m: &ArgMatches) -> Result<(), String> {
     Some(("withdraw", a)) => {
       let st = arg(a, "stid")?;
       let id = arg(a, "acid")?;
-      let reason = arg(a, "reason")?;
+      // Same passthrough, and this arm is why the rule is worth stating twice.
+      // It USED to re-check requiredness here with `arg(..)?`, which looked
+      // like the careful choice and was the reason the identical hole in
+      // `satisfy` read as a simple oversight rather than as a missing guard:
+      // two arms hand-implementing a rule that belonged in one place, and
+      // nothing able to say which of them was right.
+      let reason = opt(a, "reason").unwrap_or_default();
       let by = arg(a, "by").ok();
       open()?
         .ac_withdraw(&st, &id, &reason, by.as_deref())

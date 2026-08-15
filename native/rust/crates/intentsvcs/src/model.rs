@@ -298,9 +298,12 @@ pub enum AcKind {
 ///   There is no field for `ac satisfy` to write and no method that could,
 ///   where before there was a `satisfied: Option<bool>` that the linter's L5
 ///   was the only thing keeping empty.
-/// - **`Satisfied` carries its evidence and cannot be constructed without it**
-///   (hv, 2026-08-15), so "satisfied with no evidence" stops being a state the
-///   model can represent, rather than one a guard has to refuse.
+/// - **`Satisfied` carries its evidence, which must not be empty** (hv,
+///   2026-08-15): a criterion with no test to run has nothing BUT its evidence,
+///   so a satisfaction with none behind it is the one state this type exists to
+///   rule out. The rule is published here as `minLength` so a reader of this
+///   face reaches the same verdict Intent does, and the service refuses the
+///   same call at its API.
 /// - **`Descoped` and `Withdrawn` apply to BOTH kinds** and are always stored:
 ///   they are decisions about the requirement, not about its satisfaction.
 ///
@@ -326,8 +329,28 @@ pub enum AcState {
   /// Non-test and in scope, not yet satisfied. The entry state for an authored
   /// criterion.
   Unsatisfied,
-  /// Non-test and satisfied. **Unconstructible without evidence.**
-  Satisfied { evidence: String },
+  /// Non-test and satisfied, carrying the evidence that settled it.
+  //
+  // **The evidence must be NON-EMPTY, and `String` does not say that.** The
+  // ruling was recorded as structural -- "unconstructible without evidence" --
+  // and a required field of type `String` delivers a narrower property than the
+  // one that was ruled: it makes the field mandatory, not the evidence present.
+  // `evidence: String::new()` builds it. Three separate pieces of reasoning
+  // rested on the stronger reading (this variant's doc, `AcState`'s, and
+  // `Facade::ac_satisfy`'s "structural rather than enforced"), which is why no
+  // guard was written and why ic could trace an empty evidence from the CLI all
+  // the way to the close gate counting it (2026-08-15).
+  //
+  // So the constraint is written down where it is checkable, on the three
+  // enforcement points this estate already uses for the kind/state invariant:
+  // `minLength` here refuses the FILE (ingest validates against this generated
+  // schema, and an external reader of the published face reaches the same
+  // verdict under D34), `Guard::EvidenceRecorded` refuses the API call, and
+  // `doctor` reports an estate that already carries one.
+  Satisfied {
+    #[schemars(length(min = 1))]
+    evidence: String,
+  },
   Descoped {
     /// The thread the requirement moved to, eg `ST0000`.
     to: String,
@@ -337,6 +360,11 @@ pub enum AcState {
     reason: Option<String>,
   },
   Withdrawn {
+    // Non-empty for the same reason and by the same three points: a withdrawal
+    // whose reason is blank records that a requirement was dropped and nothing
+    // about why, which is the state `withdraw` exists to prevent being reached
+    // by deletion.
+    #[schemars(length(min = 1))]
     reason: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     by: Option<String>,

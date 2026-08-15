@@ -131,8 +131,14 @@ fn descope_carries_its_target_and_reporter() {
   }
 }
 
+/// **Renamed from `withdraw_requires_a_reason_and_records_it`, which claimed a
+/// requirement it never drove.** It passes a reason and checks it reaches the
+/// view -- the RECORDS half. Nothing here ever withheld one, so the requirement
+/// half was asserted by the name alone, and reading the test list told you the
+/// guard was covered when the guard did not exist.
+/// `withdrawing_a_criterion_with_a_blank_reason_is_refused` now carries it.
 #[test]
-fn withdraw_requires_a_reason_and_records_it() {
+fn withdraw_records_its_reason_in_the_view() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
@@ -324,3 +330,100 @@ fn descoping_to_a_thread_that_does_not_exist_is_refused() {
     .ac_descope("ST0056", "AC-03.2", "ST9999", None, None)
     .expect("the same call, once the target exists");
 }
+
+/// **Evidence that is not there is not evidence, and `ac.satisfy` took it.**
+///
+/// ic chased this to the facade and could not execute the last two links, so
+/// this is those links run rather than read (their 19:26Z note). The reason it
+/// is worse than an ordinary missing-validation defect is `contract.rs`'s own
+/// header: evidence is a human judgement with NO GREEN TO READ. A non-test
+/// criterion has evidence precisely because there is no test to run, so
+/// satisfied-with-nothing is the one state the design exists to make
+/// impossible, on the one verb whose whole job is recording that a criterion
+/// was met.
+///
+/// **Blank as well as empty, because the CLI cannot tell them apart.** A shell
+/// makes `--evidence ""` and `--evidence "  "` the same gesture, and a guard
+/// that refuses one and stores the other is a guard that teaches its own
+/// bypass.
+#[test]
+fn satisfying_a_criterion_with_no_evidence_is_refused() {
+  for blank in ["", "   ", "\t\n "] {
+    let fx = Fixture::new();
+    fx.write_thread(&sample_thread("ST0056"));
+    let mut facade = fx.facade();
+    facade
+      .ac_unsatisfy("ST0056", "AC-03.2")
+      .expect("unsatisfy first");
+
+    let Err(refused) = facade.ac_satisfy("ST0056", "AC-03.2", blank) else {
+      panic!("evidence {blank:?} was accepted as evidence");
+    };
+    assert!(
+      refused.remedy().contains("evidence"),
+      "the remedy says what is missing: {}",
+      refused.remedy()
+    );
+    assert_eq!(
+      state(&facade, "ST0056", "AC-03.2"),
+      Resolved::Unsatisfied,
+      "and the refusal changed nothing -- {blank:?} left the criterion where it was"
+    );
+  }
+
+  // The discriminating half: the same call with evidence succeeds, so this is
+  // a guard and not a blanket refusal of the verb.
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0056"));
+  let mut facade = fx.facade();
+  facade
+    .ac_unsatisfy("ST0056", "AC-03.2")
+    .expect("unsatisfy first");
+  facade
+    .ac_satisfy("ST0056", "AC-03.2", "reviewed at 53cb9f00")
+    .expect("the same call, with evidence");
+}
+
+/// **The second guard the ratified machine declares and nothing enforces.**
+///
+/// `ac.withdraw` is `Guard::ReasonRecorded` in the ratified AC machine and in
+/// the transcription -- and `set_ac_state` consults the declaration for the
+/// FROM-STATE only, so the guard column has never been read for a criterion.
+/// Exactly the shape of `descoping_to_a_thread_that_does_not_exist_is_refused`
+/// above, in the same field's table, found while confirming ic's evidence
+/// defect.
+///
+/// **Nothing could have caught it**: the blank-reason guard test in
+/// `mutation_completeness.rs` loops `Thread` and `WorkPackage` and stops --
+/// `Criterion` is not in the list, so the one entity whose guards go unread is
+/// also the one the guard test does not visit.
+#[test]
+fn withdrawing_a_criterion_with_a_blank_reason_is_refused() {
+  for blank in ["", "   "] {
+    let fx = Fixture::new();
+    fx.write_thread(&sample_thread("ST0056"));
+    let mut facade = fx.facade();
+
+    let refused = facade
+      .ac_withdraw("ST0056", "AC-03.2", blank, Some("hv"))
+      .expect_err("a withdrawal with no reason is a withdrawal nobody can review");
+    assert!(
+      matches!(refused, FacadeError::ReasonRequired { .. }),
+      "the declared guard is ReasonRecorded, so its refusal is the declared one: got {refused:?}"
+    );
+    assert_eq!(
+      state(&facade, "ST0056", "AC-03.2"),
+      Resolved::Satisfied,
+      "and nothing moved"
+    );
+  }
+}
+
+// **The other door is shut in `ingest_refusal.rs`**, where the refusal helper
+// and the finding-class assertions live: a `thread.json` carrying a
+// satisfaction with empty evidence is refused as schema-invalid before it can
+// become a model. Both points, because neither implies the other -- the guard
+// above shuts the door a VERB comes through, and canon is hand-authorable.
+// This is the estate's settled shape for a rule of this kind rather than a new
+// one: `Criterion`'s `kind`/`state` invariant is enforced at exactly those two
+// places plus `doctor` (vc, 2026-08-15).

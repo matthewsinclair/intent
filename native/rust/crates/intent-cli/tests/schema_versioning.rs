@@ -205,10 +205,20 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   // commit with the new rules and diffing: **zero contract lines differ across
   // all five.** A re-pin without that measurement is the failure this whole
   // mechanism exists to prevent.
+  //
+  // **JSON went 2 -> 3 the next day, and that re-pin is the mechanism working
+  // rather than being worked around.** `AcState::Satisfied.evidence` and
+  // `Withdrawn.reason` gained `minLength: 1`, which narrows what a consumer may
+  // send us, so a consumer generating from this face has to know. The same
+  // commit rewrote that type's `description` at length -- and the DDL and SDL
+  // hashes did not move at all. Documentation changing while the contract holds
+  // still, and the contract changing loudly when it moves, is exactly the
+  // discrimination the strip was built for; it was tested against a real change
+  // one day after being written.
   let pinned: &[(&str, u32, u64)] = &[
     ("SCHEMA_DDL_VER", 2, 0x56d1_6080_53fa_2b6f),
     ("SCHEMA_SDL_VER", 1, 0x2a57_8b37_f00e_886a),
-    ("SCHEMA_JSON_VER", 2, 0x665c_22ee_d1bb_ca38),
+    ("SCHEMA_JSON_VER", 3, 0x976c_8013_c0e6_fe6a),
   ];
 
   let mut moved = Vec::new();

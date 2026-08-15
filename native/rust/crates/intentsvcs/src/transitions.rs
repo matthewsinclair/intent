@@ -72,12 +72,19 @@ pub enum EdgeKind {
 /// of a transition a success-path test never sees: an edge that lands on the
 /// right value from the right state proves nothing about what happens when the
 /// precondition is unmet, and "unmet" is the case the guard exists for.
+///
+/// **A verb can have more than one, and the list is the reason this is a slice
+/// rather than a value.** `ac.satisfy` is both "non-test criteria only" and
+/// "evidence recorded", and while the guard was single-valued the second one
+/// could not be written down -- so it was not written down, and then it was not
+/// enforced. An absent precondition is the empty list; there is no `None`
+/// value, because two spellings of "no guard" is the three-representations-for
+/// -two-meanings defect this module already pruned from `satisfied: false`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Guard {
-  /// Nothing beyond the from-state.
-  None,
-  /// The verb takes a reason, records it on the entity's `status_reason`, and
-  /// puts it in the event envelope. Refuses an empty one.
+  /// The verb takes a reason, records it on the entity (`status_reason`, or the
+  /// state's own `reason` for a criterion), and puts it in the event envelope.
+  /// Refuses an empty or blank one.
   ReasonRecorded,
   /// The close gate must PASS.
   GatePass,
@@ -86,6 +93,16 @@ pub enum Guard {
   NonTestOnly,
   /// The thread the requirement is being moved to must exist.
   TargetExists,
+  /// **The verb records evidence, and refuses an empty or blank one.**
+  ///
+  /// Its own guard rather than a second use of [`Guard::ReasonRecorded`],
+  /// because the two answer different questions and the refusal has to say
+  /// which. A reason explains a decision the operator took; evidence is the
+  /// substitute for a test result on a criterion that has none -- `contract.rs`
+  /// puts it as "a human judgement with no green to read". Telling someone
+  /// satisfying a criterion that they owe a "reason" points them at the wrong
+  /// thing.
+  EvidenceRecorded,
 }
 
 /// One step the service layer offers on one field.
@@ -108,7 +125,7 @@ pub struct Edge {
   pub from: &'static [&'static str],
   pub to: &'static str,
   pub kind: EdgeKind,
-  pub guard: Guard,
+  pub guard: &'static [Guard],
 }
 
 impl Edge {
@@ -118,7 +135,7 @@ impl Edge {
       from,
       to,
       kind: EdgeKind::Direct,
-      guard: Guard::None,
+      guard: &[],
     }
   }
 
@@ -126,7 +143,7 @@ impl Edge {
     verb: &'static str,
     from: &'static [&'static str],
     to: &'static str,
-    guard: Guard,
+    guard: &'static [Guard],
   ) -> Self {
     Self {
       verb,
@@ -148,7 +165,7 @@ impl Edge {
       from,
       to,
       kind: EdgeKind::Incidental { via },
-      guard: Guard::None,
+      guard: &[],
     }
   }
 
@@ -234,21 +251,21 @@ pub const FIELDS: &[Field] = &[
           "st.hold",
           &["not-started", "wip"],
           "hold",
-          Guard::ReasonRecorded,
+          &[Guard::ReasonRecorded],
         ),
-        Edge::guarded("st.done", &["wip"], "completed", Guard::GatePass),
+        Edge::guarded("st.done", &["wip"], "completed", &[Guard::GatePass]),
         Edge::guarded(
           "st.cancel",
           &["triage", "not-started", "wip", "hold"],
           "cancelled",
-          Guard::ReasonRecorded,
+          &[Guard::ReasonRecorded],
         ),
-        Edge::guarded("st.reopen", &["completed"], "wip", Guard::ReasonRecorded),
+        Edge::guarded("st.reopen", &["completed"], "wip", &[Guard::ReasonRecorded]),
         Edge::guarded(
           "st.reinstate",
           &["cancelled"],
           "not-started",
-          Guard::ReasonRecorded,
+          &[Guard::ReasonRecorded],
         ),
       ],
       // **Both former orphans are answered by ratification rather than by a
@@ -285,8 +302,8 @@ pub const FIELDS: &[Field] = &[
       edges: &[
         Edge::direct("wp.start", &["not-started"], "wip"),
         Edge::direct("wp.unstart", &["wip"], "not-started"),
-        Edge::guarded("wp.done", &["wip"], "done", Guard::GatePass),
-        Edge::guarded("wp.reopen", &["done"], "wip", Guard::ReasonRecorded),
+        Edge::guarded("wp.done", &["wip"], "done", &[Guard::GatePass]),
+        Edge::guarded("wp.reopen", &["done"], "wip", &[Guard::ReasonRecorded]),
       ],
       orphans: &[],
     },
@@ -345,29 +362,37 @@ pub const FIELDS: &[Field] = &[
       // the mechanism built this morning for the mutation that survived is
       // retired by the structure rather than by a decision.
       edges: &[
+        // **TWO guards, and the second one is here because it could not be
+        // written down before.** `ac.satisfy` has always been both "non-test
+        // only" and "evidence recorded"; with a single-valued guard column only
+        // one of them fitted, the one that fitted was enforced, and the other
+        // was left to a renderer arm that used `unwrap_or_default()`. ic traced
+        // that to an AC recorded Satisfied with empty evidence, printing `ok:`
+        // and counting toward the close gate (2026-08-15). **The table could
+        // not express the requirement, so nothing was checking that it held.**
         Edge::guarded(
           "ac.satisfy",
           &["unsatisfied"],
           "satisfied",
-          Guard::NonTestOnly,
+          &[Guard::NonTestOnly, Guard::EvidenceRecorded],
         ),
         Edge::guarded(
           "ac.unsatisfy",
           &["satisfied"],
           "unsatisfied",
-          Guard::NonTestOnly,
+          &[Guard::NonTestOnly],
         ),
         Edge::guarded(
           "ac.descope",
           &["computed", "unsatisfied", "satisfied"],
           "descoped",
-          Guard::TargetExists,
+          &[Guard::TargetExists],
         ),
         Edge::guarded(
           "ac.withdraw",
           &["computed", "unsatisfied", "satisfied"],
           "withdrawn",
-          Guard::ReasonRecorded,
+          &[Guard::ReasonRecorded],
         ),
         Edge::direct("ac.rescope", &["descoped"], "unsatisfied"),
         Edge::direct("ac.rescope", &["descoped"], "computed"),
@@ -464,13 +489,20 @@ pub fn accepted_from(entity: &str, field: &str, verb: &'static str) -> Vec<&'sta
   seen
 }
 
-/// The guard declared for `verb`, so the service enforces the written one
-/// rather than one it remembers.
-pub fn guard_for(entity: &str, field: &str, verb: &'static str) -> Guard {
+/// The guards declared for `verb`, so the service enforces the written ones
+/// rather than the ones it remembers.
+///
+/// A verb declared over several edges -- `ac.rescope` lands on two states
+/// depending on the criterion's kind -- carries its guards on all of them, so
+/// the first non-empty list is the verb's. Returning the first list rather than
+/// the union is deliberate: a verb whose edges disagreed about their
+/// preconditions would be a defect in the table, and quietly unioning them is
+/// how that defect would become invisible.
+pub fn guard_for(entity: &str, field: &str, verb: &'static str) -> &'static [Guard] {
   edges_for(entity, field, verb)
     .map(|e| e.guard)
-    .find(|g| *g != Guard::None)
-    .unwrap_or(Guard::None)
+    .find(|g| !g.is_empty())
+    .unwrap_or(&[])
 }
 
 /// Values that can be ENTERED and not LEFT: hv's ruling, as a computation.
