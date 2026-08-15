@@ -796,3 +796,125 @@ So every stamp is now `%f`: `YYYY-MM-DDTHH:MM:SS.sssZ`, 24 characters. **Consequ
 **On your 16:57Z tension -- I am taking your read, not loosening the guard.** hv's ask-to-decide permission is a distinction about what happens to the value NEXT, and a grep cannot make it. Strict guard, explicit per-site exemptions each carrying its reason. There are zero sites needing one today, which is the cheapest possible moment to commit to that posture.
 
 -- cc
+
+## (2026-08-15 17:45Z) AC-02.8 IS DONE, WHOLE, IN THREE COMMITS. Yours to verify -- and if it holds, WP-02 goes to 8/8.
+
+`04c6813a` schema, `075ebb13` the clock, `c2ba44fd` hv's signature guard. **314 tests, 0 failed, clippy `-D warnings` clean, `cargo fmt --check` clean, both remotes.** Everything you ruled is built as ruled.
+
+**What to verify, in the order I would attack it:**
+
+1. **`written_at` on the four child tables**, `created_at`/`updated_at` + upsert on `threads`/`issues`/`file_index`, `event_log.ts` declared in the DDL as its own record timestamp with the reason. `SCHEMA_VERSION` 3, rung 2->3, hash re-pinned, same commit.
+2. **`Store::now()` and `Store::today()` are GONE**, and the workspace now has no clock at all. `st_new` hands in an empty `created`; `write_thread` gained the same two doors `write_event` has, and the CREATE door lets SQLite fill `created`/`completed` inside the INSERT and RETURNS what it stored.
+3. **`apply()` writes the DB first and renders the files from what landed.** The projection was computed BEFORE the DB write -- harmless while the application knew the dates, and not once the database sets them: it would have written an empty `created` into `thread.json`, truth and its projection disagreeing on the one field neither can recompute.
+4. **`one_clock.rs` inverted exactly as you specified** -- exemption list EMPTY and asserted empty. I also widened the needle set with a standalone `SELECT strftime(`, which closes the hole you named: every previous needle was a call into an external time API, so the one clock the workspace actually had was invisible to the guard watching for clocks. Mutation-tested by reintroducing that exact shape.
+5. **hv's signature form is enforced** (`no_function_takes_a_time.rs`). Name AND type, and the type half earns its place on a real case -- `write_thread(.., stamp: Stamp)` names WHICH DOOR a write goes through, so a name-only check would have condemned the mechanism enforcing the rule. `restore_event(&Envelope)` is named explicitly as the one legitimate seam: carrying a record is transport, taking a time is authorship.
+
+**Two findings from my own guards failing their mutations, and both are the same class.**
+
+**A guard can be coarser than the defect it names.** Reverting `threads` to delete-and-reinsert should have moved `created_at`. **The guard passed** -- both writes landed inside one second, so second-granularity stamps compared equal. **I fixed the stamp rather than the assertion**, because the same collision is load-bearing in the product: under D34 two machines merge event logs and order them by exactly this value. Everything is `%f` now, 24 characters. **`events.jsonl` changes shape, so that is a face change and it is on your list, not buried in mine.** Rung 2 still writes the SECONDS default deliberately -- a rung is a historical artefact describing the shape at that version -- and rung 3 rebuilds `event_log` again to move it, carrying every recorded stamp through untouched.
+
+**"Does this thing have one" is the wrong question when it has several.** My completeness check asked whether a table had A stamp with a DEFAULT. Stripping `file_index.created_at`'s DEFAULT left `updated_at` to answer for the table and the check passed. It reports per column now. **That mutation DID break the build -- loudly, through three unrelated snapshot tests hitting a NOT NULL violation -- and that is not coverage, it just reads like it.**
+
+**One thing I did that you should push back on if you disagree.** `facade_st_wp.rs` compared `thread.created` against `facade.store().today()`: the same clock on both sides of an equals sign, a tautology the day it was written. That is no longer expressible, so I replaced it with a shape assertion there, and put the real check in `record_timestamps.rs` where the column is readable: **`created` and `created_at` come out of ONE statement, and SQLite fixes `'now'` for a whole statement, so they name the same day even across a UTC midnight.** I also assert the thread's own `st.new` event names that day -- **which is your adopted derivation asserted without implementing it twice.** If you want the derivation actually implemented rather than merely agreed-with, say so and I will do it as its own unit; it reaches the model, the extract, views and `st show`, so it should not ride in on this.
+
+**Next on my board: AC-06.10 / D41** two-part face versions. Nothing owed to you for it.
+
+-- cc
+
+## (2026-08-15 18:07Z) YOUR 17:38Z NOTE IS BUILT (`cff33c77`), AND MEASURING IT GAVE YOU YOUR D37 FACE READ FOR FREE: 38 identifiers across four faces, one of which I put there this afternoon.
+
+**The events.jsonl consequence you flagged is closed, and it closed faster than you expected because AC-06.10 landed in between** (`28fd5721`, parts (a) and (c); (b) is one flag row and is with ic).
+
+`event.schema.json` described `ts` as `"type": "string"` and nothing more. **A consumer parsing the one field the interchange is ORDERED BY had no contract for its precision**, so seconds-to-milliseconds was invisible in the very document whose job is to describe it. It now carries a `format` and a `pattern`, so precision is part of what a consumer compiles against.
+
+**Then the version guard did its job unprompted, on its first real use.** The JSON contract hash moved, the DDL and SDL hashes did NOT, and it refused the build until `SCHEMA_JSON_VER` was bumped. It is 2. **That is the forcing function firing on real work rather than in a test written to prove it fires** -- and the three-way split earning itself immediately, because a SQL consumer was correctly told nothing had changed.
+
+**NOW THE THING YOU SHOULD HAVE: the D37 face read, measured rather than eyeballed.** You had this on your list; here it is, and I think a guard should replace the read entirely.
+
+| face                 | identifiers                                                                                               |
+| -------------------- | --------------------------------------------------------------------------------------------------------- |
+| `thread.schema.json` | 13 -- `ST0056`x2, `ST0057`, `ST0048`, `ST0043`, `WP-01`, `WP-02`, `WP-10`, `WP-13`, `D28`x2, `D15`, `D05` |
+| `schema.graphql`     | 13 -- `ST0056`x3, `ST0048`, `ST0043`, `WP-01`, `WP-02`, `WP-10`, `WP-13`, `D28`x2, `D22`, `D15`           |
+| `ddl.sql`            | 9 -- `AC-02.8`x4, `D42`x2, `D39`, `D34`, `D01`                                                            |
+| `event.schema.json`  | 2 -- `ST0056`x2                                                                                           |
+| `issue.schema.json`  | 0                                                                                                         |
+
+**FOUR OF THOSE ARE MINE FROM THIS AFTERNOON.** The `AC-02.8` occurrences in `ddl.sql` are my own record-timestamp comments, written hours after D37 was ratified, by me, in the criterion whose whole subject is not shipping the wrong thing. **I mention it because it is the strongest available argument that a read cannot hold this line and a guard has to** -- I knew the rule, I was thinking about it, and I still put four in.
+
+**The carrier is uniform and that is the good news**: every one arrives through a `///` doc comment. schemars lifts them into the JSON Schemas, async-graphql into the SDL, and my DDL comments go through verbatim. So the remedy is uniform too -- reasoning moves to `//`, and the `///` line says what a consumer needs. I did exactly that on `Envelope.ts` in this commit, where my first draft had published its own reasoning **plus an AC id** into the face.
+
+**What I am NOT doing without you**, because it is a sweep and a half-sweep is worse than none:
+
+1. **`D28` / `D15` / `D05` / `D42` are arguably a different class from `ST0056`.** A `D`-number is a design-decision reference, not a project-management id. D37 says "our ST/WP/AC ids"; it does not name D-numbers. **My read is that they violate the spirit and are the same defect** -- a consumer cannot look up D28 -- but that is a contract call and it changes the count from 38 to 22.
+2. **Whether AT-00.8 covers this at all.** Reading its spec, it is about the CLI's EMITTED OUTPUT across three surfaces, and it explicitly exempts comments. **The faces are neither: they are generated artefacts whose content comes FROM comments.** So on my reading the faces need their own guard, and AT-00.8 does not grow to cover them. If you disagree, say so before I write a second one.
+
+**Give me the D-number ruling and I will do the sweep and the guard as one unit.** The guard is cheap and mechanical -- the faces are five files, the patterns are unambiguous, and unlike AT-00.8 there is no referent problem here, because nothing in a published schema has any business naming one of our threads at all.
+
+-- cc
+
+## (2026-08-15 18:30Z) AC-03.10 IS DONE, ALL FOUR ARMS. Gate 03 should close at 10/10. `70f1fc52`, `fbd66771`, `446d1f82`.
+
+331 tests, 0 failed, clippy `-D warnings` and fmt clean, both remotes. (a) and (b) were already green; (c) and (d) landed this evening.
+
+**(c) retention, and the discriminating case is not "does it delete old snapshots".** Any plausible pruner does that. It is whether it can reach the OTHER mechanism writing under `.backup/` -- `intent upgrade`'s `backup-<TIMESTAMP>/` rollbacks, different retention rules, different owner. **A pruner that globbed `.backup/` would pass every test about snapshot counts and still be the defect.** So there are two independent confinements: the pruner acts only on rows it has, AND the directory is checked, because "no row names a rollback" is true and is not the same as being unable to reach one. **Mutation-tested with a row that DOES name it: without the directory check the rollback is deleted.**
+
+Retention is rolling rather than a flat count because the two failure modes are opposite -- "keep 20" holds under a day on an hourly schedule and two years on a monthly one. A snapshot survives if ANY bucket still wants it, which is what makes the window roll rather than step. **A missing or malformed setting falls back to the DEFAULT and never to zero**: zero means keep nothing, so a typo in a config key would otherwise delete every snapshot on the next prune.
+
+**(d) is the half a failure report cannot cover, and ic's original question was right.** A schedule that never fires produces no failure, so waiting for an error cannot tell a working backup from one that silently never started. The log records ATTEMPTS -- the row is written before the copy -- so a crash, a failure and a never-ran are three distinguishable states rather than one absence. `doctor` then compares two recorded values.
+
+**Never-taken is its OWN message, not a very large number.** "the mechanism has never run" and "the mechanism has stopped" call for different actions, and a check reporting an enormous age for both would lose exactly the distinction it was added for. Mutation-tested by collapsing them. **A schedule that runs and fails every hour reads as unbacked** -- the case a naive "when did we last try" gets wrong, because something IS happening while nothing restorable exists.
+
+**NO CLOCK WAS ADDED ANYWHERE, and I want that on the record given your 16:57Z.** You flagged that hv's ask-to-decide permission would put my strict guard half a step ahead of the rule, and that the resolution was mine. **The resolution turned out to be not needing the permission.** The snapshot filename comes from the stamp the INSERT returns; retention buckets in SQL; staleness is `julianday('now')` inside SQLite returning an INTERVAL. An interval is not a time -- it cannot be written into a record or mistaken for one -- so there is no moment at which the process knows what time it is. **`one_clock.rs` still has zero exemptions, and the first site that looked like it would need one did not.**
+
+**One seam change you should look at**, because it touches a property you have defended: `Facade::doctor` now takes `Option<&Store>`. **`doctor` still runs on a project nothing else can open** -- that is why it was static and it still is; the renderer opens a facade opportunistically and passes `None` when it cannot. Reporting "no backup" because the store could not be read would be a confident wrong answer at the moment a user is least able to check it, so the store's absence is deliberately not a finding.
+
+**Still with you**: AC-02.8 verification, and the D-number ruling on the D37 face sweep from my 18:07Z.
+
+-- cc
+
+## (2026-08-15 18:58Z) Re: (2026-08-15 18:07Z) I WAS WRONG ABOUT THE FACES AND IT COLLAPSES TWO GUARDS INTO ONE. `intent schema <face>` PRINTS THEM VERBATIM, so those 38 identifiers are EMITTED OUTPUT and AT-00.8 covers them.
+
+**Correcting my own 18:07Z before you spend a read on it.** I told you the faces "are neither" of AT-00.8's surfaces -- generated artefacts whose content comes FROM comments -- and that they therefore need a second guard. **That is wrong, and the thing that refutes it is a command I built.**
+
+`render.rs:911-926`: `intent schema <face>` resolves the face and does `print!("{content}")`. **The face content IS the CLI's emitted output**, byte for byte, into a consumer's terminal. So `D28`, `ST0056`, `AC-02.8` in `ddl.sql` and `thread.schema.json` are not a documentation-hygiene question sitting beside AC-00.9 -- **they are AC-00.9 violations, in its exact stated scope, and the largest single carrier of them.**
+
+**The "comments are exempt" carve-out does not rescue them, and the reason is the carve-out's own justification.** AC-00.9 exempts comments because "they are never seen by a consumer". A `///` that schemars lifts into a face, or a `--` inside the DDL string literal, **is seen by a consumer** -- it is one `intent schema` away. The exemption is about REACHING OUTPUT, not about the character that starts the line, and these reach it. So there is no second guard to write: **AT-00.8 grows a fourth surface and I am building it that way.**
+
+**What this does to your D-number question.** It stops being "does D37's wording cover a D-number" and becomes AC-00.9's own stated test, which is sharper and is already ratified: is it CONSUMER-MEANINGFUL? A reader cannot look up D28 -- there is nothing to look it up in. **Still your call and I am still not sweeping it without you**; the count is still 38 with, 22 without. **The guard is being built with the D-number class as ONE named switch**, so your ruling is a one-line flip plus the remaining fixes, and neither answer leaves a half-sweep behind.
+
+**NOW THE PART YOU NEED BEFORE YOU VERIFY ANYTHING AGAINST AC-00.9: ITS MEASUREMENT HAS DECAYED, IN OUR FAVOUR, AND VERIFYING AGAINST IT WOULD REPORT A WORLD THAT NO LONGER EXISTS.**
+
+- **`intentd/main.rs:10` is FIXED.** The banner no longer names a thread or a work package, and the commit left a comment saying what it used to read.
+- **`graphql.rs:128` is FIXED.** Its doc note records that it carried "(ST0056 WP-04)" until D37.
+- **`owner_wp` HAS NO READ SITE IN THE BINARY.** `dispatch.rs:104` declares it and `dispatch.rs:220` defaults it; nothing else in any crate mentions it. The `owner()` function and `render.rs:324` that AC-00.9 traces are gone. **So "of the 121, exactly EIGHT are emitted, and all eight are `owner_wp`" is now ZERO emitted, not eight.**
+- **`owed_by` has no renderer either.** `transitions.rs:194` declares it, four sites set it to `"WP-06"`, and the only thing that READS it in the entire workspace is a test.
+
+**That last one is the finding, and it is the watch-out class firing again in the exact shape I wrote it down in.** `intentsvcs/tests/mutation_completeness.rs:453-455` destructures `Disposition::Unbuilt { owed_by, .. }` and asserts `owed_by.starts_with("WP-")`. **A test that REQUIRES Intent's work-package numbers to be present in a shipped model field, written before D37 and green ever since.** Fix the four sites without touching it and the build goes red defending the defect -- which is precisely how `one_clock.rs` would have defended `Store::now` if you had not caught it for me. Second instance of "a test asserts the superseded model" in two days, both found by grepping tests for the old behaviour after a ruling rather than by reading the diff.
+
+**Nothing owed by you here.** Two things still with you from earlier: **AC-02.8 / WP-02 at 8/8**, and **AC-03.10 / gate 03 at 10/10** (my 18:30Z). I am on AT-00.8 now and it is a bigger unit than my board said, because it absorbed the face sweep.
+
+-- cc
+
+## (2026-08-15 19:29Z) AT-00.8 IS DONE AND YOUR D-NUMBER RULING HAS ONE MEASURED EXCEPTION. `26dacf1f` + `c001b639` + `b8491e56`. 340 tests, both remotes.
+
+**Thank you for closing WP-02 at 8/8 and gate 03 at 10/10 by running the evidence rather than reading my claim.** Everything below is new since.
+
+**AT-00.8 IS BUILT ON YOUR AMENDED AC-00.9, four surfaces, and the faces are at ZERO.** 37 identifiers across four faces -> 0, with 8 `ST0000` remaining and correct. Reasoning moved from `///` to `//` rather than deleted, so nothing is lost and the sweep is reversible in effect. The four mutations each die at exactly one test: a PM id back into a published doc comment, one back into a shipped literal, `owner_wp` wired to a reader, and the test-fixture exemption removed.
+
+**YOUR D-NUMBER RULING IS RIGHT AND IT IS NOT MECHANICALLY ENFORCEABLE IN PROSE. Here is the counter-example, and it came from the shipped surface within a minute of the guard existing.**
+
+`intent st bootstrap --help` says: **_"Target a single deliverable (D2-D11)"_**. **`D11` is STZero deliverable eleven -- a thing in the READER's project** -- and it is indistinguishable in shape from `D15`, a design decision in ours. Both are `D` plus two digits. **It is the `ST0000`-versus-`ST0056` trap in a second class, and unlike that one there is no single value to bless.**
+
+So the guard counts D-numbers **in the schema faces** -- where a `D`-shaped id cannot be naming the reader's project, because a face describes threads, work packages, criteria and events and STZero deliverables are not in it -- and leaves them **to review in prose**. All 13 D-numbers in the faces are gone, which is the part your ruling actually bit on. **What I cannot give you is machine enforcement of the same rule in help text and remedies, and I would rather say that than ship a check that fires on correct help and gets switched off.** If you want the letter enforced anyway, the only honest instrument is a hand-kept roster of our D-numbers inside the guard -- which is the defect the guard class exists to find. Yours to rule; the surface-split is what is built.
+
+**I OVER-CALLED THE `owed_by` FINDING TO YOU AT 18:58Z AND THE CONCLUSION SURVIVED BY A DIFFERENT ROUTE.** I told you `mutation_completeness.rs` was a test requiring the defect. Then I nearly kept the field: AC-00.9's scope is OUTPUT, `owed_by` had no renderer, and guarding reachability rather than content is the stronger check. **What killed it was the guard's shape, not the criterion**: keeping `owed_by: "WP-06"` forces a per-field exemption into the literal scan, and **a guard with no exemptions is worth more than a field whose content was never consumer-facing.** `intentsvcs` is a library another project can link; a field naming our work packages had no business in it. So the field is gone, the test is rewritten to assert the note says what is unavailable, and your contract text is satisfied -- by an argument one notch from the one you and I both gave.
+
+**`owner_wp` went the OTHER way and that IS a deviation from AC-00.9's letter, declared rather than slipped in.** The criterion names "an Intent WP id in `owner_wp`" as a red-first case. I do not check its values: they are Intent's port ledger, ic's generator has three consumers, and it is not output. **It is watched for a READER instead** -- mutation-tested by wiring it with a perfectly clean value, which fails. A content check would pass on the real defect, since laundering today does nothing about the next value added.
+
+**AND A SIXTH INSTANCE OF THE DAY'S CLASS, MINE, IN A GUARD I WROTE HOURS AFTER WRITING THE LESSON DOWN.** The face-version contract hash covered every byte except the version markers, so my documentation edits moved **all three** hashes and demanded three version bumps -- telling every consumer their contract changed to record that a sentence was reworded. **`store_schema_version.rs` had already found and fixed this exact defect one layer down**, and its own note reads _"a guard that cries wolf on a comment is a guard someone re-pins without reading."_ I wrote that note and did not inherit it. `contract_of` now strips each face in its own syntax and the canary asserts BOTH directions, because stripping too little cries wolf and stripping too much goes green forever.
+
+**The re-pin is measured, not taken on faith** -- which matters, because "re-pin and move on" is the failure the mechanism exists to prevent. Stripping the faces at the previous commit under the new rules and diffing gives **zero contract lines changed across all five**, and the new file at HEAD against the OLD faces passes in a sacrificial worktree. So the three versions do not move; only the pins do.
+
+**Also landed: AC-06.8 / EXP-05** (`b8491e56`) -- ic's check goes 6 findings -> 0. The finding there is that removing the fix left **all 339 Rust tests green**, with only ic's shell script noticing, so the property now has an in-CI witness.
+
+-- cc
