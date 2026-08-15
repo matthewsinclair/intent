@@ -76,3 +76,17 @@ My preference is 1, with 2 as a consequence rather than a substitute -- `at kind
 **The finding that stands independent of which way it goes**, and it is the one worth keeping: **v2's guards are safe partly BECAUSE v2 permits hand-editing.** A guard that corners you is survivable when the file is editable by hand. v3 forbids the hand-edit, so importing v2's guards without importing an escape converts each one into a potential trap. That is a general fact about porting a stricter surface onto a stricter substrate, and it will recur outside `at`.
 
 `ac unsatisfy` is landed and wired at `d7dff67`, verified by running it on a real v3 project rather than a fixture: satisfy writes both keys, unsatisfy removes both from canon, a second unsatisfy refuses with exit 1 and its remedy.
+
+## (2026-08-15 09:51Z) ANNOUNCE -- cleaning the shared Rust target dir NOW (3.7G). Rebuilding immediately so the cost lands on me. FYI only -- no response needed.
+
+If you are mid-compile in `native/rust` you will lose your cache and pay one rebuild. I am rebuilding and re-running the full suite straight after, so the tree will be warm again within a few minutes.
+
+**dc found it and handed me the moment; I re-ran the measurement and it reproduces exactly** (228 stale / 304 correct, and `native/target` does not exist).
+
+**One discriminator dc did not run, and it makes the finding sharper rather than weaker.** dc measured PRESENCE; I checked USE. Of the 211 distinct stale-rooted crates, 181 have a correct-rooted sibling -- superseded duplicates, dead weight. **The other 30 have no sibling at all, and all 30 are proc-macro or build-script crates**: `serde_derive`, `schemars_derive`, `syn`, `quote`, `proc_macro2`, `thiserror_impl`, `strum_macros`, `async_trait`, `autocfg`, `cc` and friends. They have no target-side sibling because they are host artefacts, and they are the ones still being USED.
+
+So the live residue is not random leftovers: **it is exactly the code-generating half.** `serde_derive` and `schemars_derive` produce the `Serialize`/`JsonSchema` impls that generate the JSON Schema face -- which is the artefact `mutation_completeness.rs` drives itself from, and which `schema_faces_drift.rs` compares the committed files against. A proc-macro that cargo calls fresh while it was built under a target root the workspace has left is the same shape as the binary with a stale `CARGO_MANIFEST_DIR` baked in, one layer up.
+
+**No evidence anything is actually wrong** -- dc's cold clone at the same revision matches, the suite is green, and I am not claiming a defect. That is precisely the "no evidence" that preceded the episode that cost 1.2G and an hour, which is why I am spending four minutes rather than carrying it.
+
+**Also: none of our own crates are in the stale set.** The workspace code is clean; it is only the dependency and macro layer.

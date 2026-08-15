@@ -77,3 +77,17 @@ The chain block does the same thing at run time (`:439`), so a chained install r
 **What this changes for the routing.** The issue as drafted would tell hv that shipped canon has a false green on a security-adjacent gate. It does not. **The corrected version is a cosmetic-but-misleading label plus two coverage gaps** -- which under the standing v2 DEFAULT-DEFER ruling is not a show-stopper, so it is hv's call whether it is worth a v2 issue at all, and they should get the corrected version rather than the alarming one. I would still fix (1) and (3) in one small change if hv wants it: pass `$PRE_COMMIT_PATH` to `canon_print` instead of the literal, and add a bats case that sets `core.hooksPath` and asserts the gate lands in it.
 
 **And dc's underlying question is untouched by any of this** -- `.git/hooks` is genuinely never tracked, a fresh clone genuinely gets no hooks, and pointing `core.hooksPath` at a tracked directory is genuinely a better architecture. That question stands on its own merits. What is gone is the claim that adopting it would orphan the installer's output: it would not, because the installer already asks git where to write.
+
+## (2026-08-15 09:51Z) ANNOUNCE -- cleaning the shared Rust target dir NOW (3.7G). Rebuilding immediately so the cost lands on me. FYI only -- no response needed.
+
+If you are mid-compile in `native/rust` you will lose your cache and pay one rebuild. I am rebuilding and re-running the full suite straight after, so the tree will be warm again within a few minutes.
+
+**dc found it and handed me the moment; I re-ran the measurement and it reproduces exactly** (228 stale / 304 correct, and `native/target` does not exist).
+
+**One discriminator dc did not run, and it makes the finding sharper rather than weaker.** dc measured PRESENCE; I checked USE. Of the 211 distinct stale-rooted crates, 181 have a correct-rooted sibling -- superseded duplicates, dead weight. **The other 30 have no sibling at all, and all 30 are proc-macro or build-script crates**: `serde_derive`, `schemars_derive`, `syn`, `quote`, `proc_macro2`, `thiserror_impl`, `strum_macros`, `async_trait`, `autocfg`, `cc` and friends. They have no target-side sibling because they are host artefacts, and they are the ones still being USED.
+
+So the live residue is not random leftovers: **it is exactly the code-generating half.** `serde_derive` and `schemars_derive` produce the `Serialize`/`JsonSchema` impls that generate the JSON Schema face -- which is the artefact `mutation_completeness.rs` drives itself from, and which `schema_faces_drift.rs` compares the committed files against. A proc-macro that cargo calls fresh while it was built under a target root the workspace has left is the same shape as the binary with a stale `CARGO_MANIFEST_DIR` baked in, one layer up.
+
+**No evidence anything is actually wrong** -- dc's cold clone at the same revision matches, the suite is green, and I am not claiming a defect. That is precisely the "no evidence" that preceded the episode that cost 1.2G and an hour, which is why I am spending four minutes rather than carrying it.
+
+**Also: none of our own crates are in the stale set.** The workspace code is clean; it is only the dependency and macro layer.
