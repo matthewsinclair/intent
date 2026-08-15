@@ -317,6 +317,15 @@ impl Project {
     self.thread_dir(id).join("info.md")
   }
 
+  /// A work package's generated cover, `st/<ID>/WP/<NN>/info.md`.
+  pub fn wp_info_view(&self, id: &str, seq: u32) -> PathBuf {
+    self
+      .thread_dir(id)
+      .join("WP")
+      .join(format!("{seq:02}"))
+      .join("info.md")
+  }
+
   /// A thread's generated acceptance contract + coverage map.
   pub fn acceptance_view(&self, id: &str) -> PathBuf {
     self.thread_dir(id).join("acceptance.md")

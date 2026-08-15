@@ -492,3 +492,64 @@ fn wp_new_defaults_to_v2s_template_scope() {
     "the canon carries S, as v2's template seeds: {canon}"
   );
 }
+
+/// AC-06.7's last clause: a work package carrying sections the template never
+/// named survives canon -> view -> canon byte-identical.
+///
+/// The `WP/<NN>/info.md` view was the missing third of this AC (vc): the canon
+/// half and the search half were already verified, and there was no view for
+/// the round trip to pass through. D28 gave work packages `objective` and
+/// `body` as TWO fields rather than a set of named sections precisely because
+/// real work packages exceed the template freely -- ST0056's own WP-13 runs to
+/// hundreds of lines -- so `body` is emitted verbatim and a renderer that
+/// re-derived fixed headings would drop whatever it did not foresee.
+#[test]
+fn a_work_package_body_survives_canon_to_view_to_canon() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "a thread"]);
+  ok(root, &["wp", "new", "ST0001", "Ingest and views"]);
+
+  let canon_path = root.join("intent/st/ST0001/thread.json");
+  let authored = "## Why the incumbents go\n\nA section the template never named, carried verbatim.\n\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\n## The seams\n\nA `pipe | inside` prose, and _emphasis_ the formatter rewrites.";
+  let text = std::fs::read_to_string(&canon_path).expect("canon");
+  let edited = text.replace(
+    "\"body\": \"\"",
+    &format!(
+      "\"body\": {}",
+      serde_json::to_string(authored).expect("json")
+    ),
+  );
+  assert_ne!(text, edited, "the fixture must actually set a body");
+  std::fs::write(&canon_path, &edited).expect("write canon");
+
+  ok(root, &["sync"]);
+
+  // The view carries the authored sections VERBATIM.
+  let view = std::fs::read_to_string(root.join("intent/st/ST0001/WP/01/info.md")).expect("view");
+  for fragment in [
+    "## Why the incumbents go",
+    "A section the template never named",
+    "| --- | --- |",
+    "## The seams",
+    "`pipe | inside`",
+  ] {
+    assert!(
+      view.contains(fragment),
+      "missing {fragment:?} from:\n{view}"
+    );
+  }
+
+  // And the canon is untouched by having been rendered -- the round trip does
+  // not rewrite a file it merely read.
+  let after = std::fs::read_to_string(&canon_path).expect("canon after");
+  assert_eq!(
+    edited, after,
+    "canon -> view -> canon must be byte-identical"
+  );
+
+  // Idempotent: rendering twice writes the same bytes (AC-03.2).
+  ok(root, &["sync"]);
+  let again = std::fs::read_to_string(root.join("intent/st/ST0001/WP/01/info.md")).expect("view");
+  assert_eq!(view, again, "the view renders the same bytes twice");
+}

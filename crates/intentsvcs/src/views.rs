@@ -28,7 +28,7 @@ use std::path::PathBuf;
 use crate::contract::{group_of, satisfied_by_tests};
 use crate::finding::{Finding, FindingClass};
 use crate::ingest::Canon;
-use crate::model::{AcScope, AcceptanceTest, AtKind, Criterion, Thread, ThreadStatus};
+use crate::model::{AcScope, AcceptanceTest, AtKind, Criterion, Thread, ThreadStatus, WorkPackage};
 use crate::project::Project;
 
 /// Everything a render is allowed to depend on besides the model.
@@ -530,6 +530,56 @@ pub fn index_order(threads: &[Thread]) -> Vec<&Thread> {
   ordered
 }
 
+/// `WP/<NN>/info.md` -- a work package's cover.
+///
+/// **The last view v3 was missing, and the one D22 never got applied to.**
+/// v2's `WP/<NN>/info.md` is the same mixed authored/generated file that D22
+/// split at thread level: template sections beside prose a human wrote. D28
+/// reified the prose into `thread.json` as `objective` and `body`; this is the
+/// other end of that, and without it AC-06.7's canon -> view -> canon has no
+/// view to pass through.
+///
+/// `body` is emitted VERBATIM, and that is the whole point of D28's two-field
+/// shape. Real work packages exceed the template freely -- ST0056's own WP-13
+/// runs to hundreds of lines with sections the template never named -- so a
+/// renderer that re-derived a fixed set of headings would silently drop
+/// whatever it did not foresee, which is exactly what WP-10 would have done to
+/// them.
+///
+/// `## Deliverables` is deliberately absent: D28 left it unmodelled, so it
+/// arrives inside `body` like any other authored section rather than being
+/// invented here from nothing.
+pub fn wp_info(thread: &Thread, wp: &WorkPackage, ctx: &RenderContext<'_>) -> String {
+  let mut out = String::new();
+  out.push_str("---\n");
+  out.push_str(&kv("wp_id", &format!("WP-{:02}", wp.seq)));
+  out.push_str(&kv("title", &wp.title));
+  out.push_str(&kv("scope", &crate::model::enum_str(&wp.scope)));
+  out.push_str(&kv("status", wp_status_display(wp.status)));
+  out.push_str("---\n\n");
+
+  out.push_str(&format!("# WP-{:02}: {}\n\n", wp.seq, wp.title));
+
+  out.push_str("## Objective\n\n");
+  out.push_str(&section_body(&wp.objective));
+
+  if !wp.body.trim().is_empty() {
+    out.push_str(wp.body.trim_end());
+    out.push_str("\n\n");
+  }
+
+  // The acceptance pointer, not the acceptance. v2's template says the same
+  // thing and it is load-bearing: ACs live in the thread's `acceptance.md`,
+  // and a work package restating them is a second copy that goes stale.
+  out.push_str("## Acceptance\n\n");
+  out.push_str(&format!(
+    "Acceptance Criteria for this work package live in `{}/acceptance.md`, under the `WP-{:02}` heading -- the single source of truth. This cover never restates them.\n\n",
+    thread.id, wp.seq
+  ));
+
+  finish(out, ctx, "the thread canon")
+}
+
 pub fn steel_threads(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
   let ordered = index_order(threads);
 
@@ -654,6 +704,12 @@ pub fn render_all(project: &Project, canon: &Canon, ctx: &RenderContext<'_>) -> 
       path: project.acceptance_view(&thread.id),
       content: acceptance(thread, ctx),
     });
+    for wp in &thread.wps {
+      views.push(View {
+        path: project.wp_info_view(&thread.id, wp.seq),
+        content: wp_info(thread, wp, ctx),
+      });
+    }
   }
   views.push(View {
     path: project.steel_threads_view(),
