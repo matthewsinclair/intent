@@ -57,22 +57,84 @@ pub enum FindingClass {
 }
 
 impl FindingClass {
-  /// Rank and wire spelling, from ONE exhaustive match.
+  /// Rank, wire spelling and REMEDY, from ONE exhaustive match.
   ///
   /// Exhaustive because the compiler must refuse a new variant that forgets
-  /// either -- an omission here is a class that reports under the wrong name
-  /// or sorts arbitrarily, and neither announces itself.
-  fn meta(self) -> (u8, &'static str) {
+  /// any of them -- an omission here is a class that reports under the wrong
+  /// name, sorts arbitrarily, or tells an operator nothing to do, and none of
+  /// the three announces itself.
+  ///
+  /// **The remedy is carried because `doctor --fix` was WITHDRAWN** (hv,
+  /// 2026-08-15), and the ruling generalises past that flag: a diagnostic that
+  /// NAMES the exact remedy is strictly better than one that performs it. The
+  /// operator sees what will happen, decides whether it is what they meant,
+  /// and keeps the blast radius in their own hands. A repair verb claims the
+  /// tool understands the fault well enough to act unattended; a named remedy
+  /// claims only that it understands it well enough to describe it -- and the
+  /// second is the claim `doctor` can actually make.
+  ///
+  /// Two rules bind every string below. **No remedy proposes an operation
+  /// whose blast radius exceeds the fault it repairs** (vc, 2026-08-15), which
+  /// is why none of them reaches for `sync --to-store`: it replaces the whole
+  /// store, and `event_log` is durable truth no file can reconstruct. And **no
+  /// remedy names deleting the store** (D36) -- it is the source of truth, not
+  /// a cache.
+  fn meta(self) -> (u8, &'static str, &'static str) {
     match self {
-      Self::Unmigrated => (0, "unmigrated"),
-      Self::MalformedJson => (1, "malformed-json"),
-      Self::SchemaInvalid => (2, "schema-invalid"),
-      Self::ConflictMarkers => (3, "conflict-markers"),
-      Self::UnknownFileShape => (4, "unknown-file-shape"),
-      Self::DuplicateId => (5, "duplicate-id"),
-      Self::ViewSkew => (6, "view-skew"),
-      Self::ModelInconsistent => (7, "model-inconsistent"),
+      // The detail already carries `Migration::remedy()`, which names the
+      // version and the command. This says the part that is true of the class:
+      // nothing else is worth reading until it is done.
+      Self::Unmigrated => (
+        0,
+        "unmigrated",
+        "migrate the project first -- every other finding on it is downstream of this one",
+      ),
+      Self::MalformedJson => (
+        1,
+        "malformed-json",
+        "repair the file's JSON, or restore that one file from version control",
+      ),
+      Self::SchemaInvalid => (
+        2,
+        "schema-invalid",
+        "correct the field named above; `intent schema` prints the shape the file must match",
+      ),
+      Self::ConflictMarkers => (
+        3,
+        "conflict-markers",
+        "finish the merge in the named file -- Intent will not read around a conflict marker",
+      ),
+      Self::UnknownFileShape => (
+        4,
+        "unknown-file-shape",
+        "move or rename it -- a modelled directory carries only the artefacts Intent writes",
+      ),
+      Self::DuplicateId => (
+        5,
+        "duplicate-id",
+        "two artefacts claim one id; rename or remove one of them",
+      ),
+      // The one remedy that is a command, and it is bounded on purpose: it
+      // rewrites artefacts that are re-creatable from the store by
+      // definition, so nothing authored is at risk. It says what it costs
+      // anyway, because the finding exists BECAUSE someone hand-edited the
+      // view, and regenerating is precisely what discards that edit.
+      Self::ViewSkew => (
+        6,
+        "view-skew",
+        "`intent sync --to-disk` regenerates the views from the store, DISCARDING the hand edit -- copy anything you meant to keep out first",
+      ),
+      Self::ModelInconsistent => (
+        7,
+        "model-inconsistent",
+        "the canon says two things that cannot both be true; correct the artefact named above",
+      ),
     }
+  }
+
+  /// What an operator should do about it, in words they can act on.
+  pub fn remedy(&self) -> &'static str {
+    self.meta().2
   }
 
   /// The wire spelling. Asserted against serde's by test rather than routed
@@ -126,7 +188,11 @@ impl fmt::Display for Finding {
     if let Some(line) = self.line {
       write!(f, ":{line}")?;
     }
-    write!(f, " -- {} -- {}", self.class.as_str(), self.detail)
+    write!(f, " -- {} -- {}", self.class.as_str(), self.detail)?;
+    // The two-line refusal grammar the rest of the estate uses: what is wrong,
+    // then what to do about it. `doctor --fix` is withdrawn, so this line is
+    // the whole of the tool's repair offer -- and it has to be runnable.
+    write!(f, "\n  remedy: {}", self.class.remedy())
   }
 }
 

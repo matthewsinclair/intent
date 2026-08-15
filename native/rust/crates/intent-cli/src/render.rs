@@ -834,16 +834,26 @@ fn search(m: &ArgMatches) -> Result<(), String> {
     eprintln!(
       "note: nothing is indexed, so this search could not have matched -- an empty result here does NOT mean `{query}` is absent"
     );
-    // **This names the destructive direction, and it is not the thing AC-03.9
-    // forbids.** That rule is about remedies sending an operator to a RESTORE
-    // to recover from a failure. Authored prose is disk-native under D02: it
-    // exists nowhere but the working tree, so disk -> db is not a recovery
-    // path for it, it is the only path it has. The wrinkle is real and is
-    // vc's -- the same direction is routine for prose and destructive for
-    // modelled entities -- and the command it names prints what it would
-    // overwrite before it runs.
+    // **It NAMES THE FACT AND NOT A COMMAND, on vc's ruling** (2026-08-15).
+    //
+    // This used to say `intent sync --to-store`. That reading was right about
+    // the direction -- authored prose is disk-native under D02, so disk -> db
+    // is not a recovery path for prose but the only path it has -- and wrong
+    // about the command, on a ground the direction argument cannot reach:
+    // **a remedy must not propose an operation whose blast radius exceeds the
+    // fault it repairs.** The fault is an unpopulated prose index.
+    // `--to-store` replaces the ENTIRE store, and `event_log` is the one table
+    // that is durable truth and not reconstructible from the files -- so an
+    // operator following that remedy to fix a search result could lose history
+    // that exists nowhere else. "The direction is routine for this data" is
+    // not the same claim as "this command is routine for this data".
+    //
+    // **There is no command whose blast radius matches this fault**, which is
+    // why this states a condition rather than an action: a narrow re-index of
+    // prose alone does not exist yet. Naming the too-large command anyway
+    // would be trading a search result for a history nobody could get back.
     eprintln!(
-      "  remedy: `intent sync --to-store` reads the working tree's authored prose into the index"
+      "  note: authored prose reaches the index only when the working tree is read into the store, and that has not happened in this project yet"
     );
     return Ok(());
   }

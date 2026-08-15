@@ -260,8 +260,18 @@ fn an_unpopulated_index_is_not_the_same_answer_as_a_genuine_miss() {
     "an empty index says so rather than answering like a miss: {said:?}"
   );
   assert!(
-    said.contains("remedy:"),
-    "and names what would populate it: {said:?}"
+    said.contains("read into the store"),
+    "and names the CONDITION that would populate it: {said:?}"
+  );
+  // **The blast-radius rule, made testable** (vc, 2026-08-15): a remedy must
+  // not propose an operation whose blast radius exceeds the fault it repairs.
+  // The fault is an unpopulated prose index; `--to-store` replaces the entire
+  // store, and `event_log` is durable truth that no file can reconstruct -- so
+  // an operator following that advice to fix a search result could lose
+  // history that exists nowhere else. This once named that command.
+  assert!(
+    !said.contains("--to-store"),
+    "and does NOT send the operator to an operation broader than the fault: {said:?}"
   );
   assert!(
     String::from_utf8_lossy(&unindexed.stdout).trim().is_empty(),
