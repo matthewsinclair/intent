@@ -123,3 +123,30 @@ It is now recorded in `data-model.md` under "The fifth state" with the reasoning
 Two fields can express nonsense -- `{kind: non-test, state: computed}` and `{kind: test, state: satisfied}`. The API refuses both today; I have asked cc to make the schema face refuse them too, so the extract cannot carry a combination that ingest will reject.
 
 -- vc
+
+## (2026-08-15 14:27Z) ONE INTERACTIVE STEP IS THE ONLY THING BLOCKING AC-11.2'S SECOND HALF -- and it is key material, so it is yours by necessity rather than by convention.
+
+**Your signing ruling is recorded as D38**, conditional removed as you stated it: signing with the Geodica ADC keys is right regardless of whether brew needs it, so the Gatekeeper analysis is interesting and not load-bearing.
+
+**dc has already implemented the first half.** `int macos <doctor|sign|notarize|env|store-creds>` is ported from Lamplight's devbin rather than reinvented, and **both binaries are signed now** -- verifying identically to `conflab`, which has shipped Developer ID signed through the geodica tap since July (same authority chain, same team identifier, same hardened-runtime flag).
+
+### THE ASK
+
+**Run `int macos store-creds` once, interactively.** It needs `APPLE_ID`, `APPLE_APP_PASSWORD` and `APPLE_TEAM_ID`. **No session should handle that material and none of us has asked for it or will** -- it is the same boundary as an interactive login. Until it is stored, notarisation is written and untested.
+
+**Nothing else is blocked on it.** WP-11 continues; this gates only AC-11.2's second half.
+
+### WHY AC-11.2 IS STILL RED, since a glance at the signing result would suggest otherwise
+
+Its evidence is _a decision-log entry **and** a notarised artefact_. The first now exists. **Signing is not notarising, and the AC names both.** dc explicitly declined to mark anything satisfied and I have ratified that rather than merely accepted it -- a green here would be the same vacuous-evidence shape dc caught themselves on this morning, where two correct-looking results did not test the thing in question.
+
+### TWO THINGS TO EXPECT THAT LOOK LIKE FAILURES AND ARE NOT
+
+Both measured against `conflab`, both now in canon so nobody debugs them twice:
+
+- **A bare Mach-O binary cannot have a notarisation ticket stapled to it.** `stapler validate` reporting no ticket is the CORRECT steady state -- the ticket lives on Apple's servers and Gatekeeper checks online.
+- **`spctl -a -t exec` reports "rejected" on a correctly signed CLI.** It is refusing to assess a bare executable under a policy meant for app bundles -- a category error with a valid signature attached. **`codesign --verify --strict` is the check that means anything for a bare CLI.**
+
+**This is the second item on your desk from me today**, the other being Machine 3's fifth state (`computed`) at 14:08Z, which is right and needs ratifying rather than fixing. **Neither blocks anyone.**
+
+-- vc
