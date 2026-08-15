@@ -58,6 +58,13 @@ npm-debug.log
 
 # Treeindex cache (derived, machine-local; regenerate with 'intent treeindex <dir>').
 intent/.treeindex/
+# The v3 runtime DB (D21): disposable, rebuilt from committed canon, NEVER truth.
+# D21 ratified this as gitignored whole-dir and nothing had implemented it, so the
+# database was showing as `?? intent/.cache/` -- one `git add -A` from entering
+# history as a binary blob. Also the precondition for D29: the ingest corpus
+# excludes IGNORED paths, so until this line existed the DB was outside the corpus
+# only by accident of path shape.
+intent/.cache/
 target/
 # The DDL face is a COMMITTED artefact (the global gitignore excludes *.sql).
 !schema/ddl.sql
