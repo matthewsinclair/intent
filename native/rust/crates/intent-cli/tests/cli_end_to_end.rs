@@ -472,6 +472,19 @@ fn sync_and_st_sync_are_different_commands_and_both_are_wired() {
     "a refusal writes nothing to stdout, so a pipe sees no result: {:?}",
     stdout(&refusal)
   );
+  // **The refusal's remedy names the SAFE direction only.** AC-03.9 is explicit
+  // that a remedy sending an operator to the destructive direction to recover
+  // is itself the defect, so `--to-store` may appear in the refusal as a COST
+  // and never on the `remedy:` line.
+  let remedy = said
+    .lines()
+    .find(|l| l.contains("remedy:"))
+    .expect("the refusal carries a remedy");
+  assert!(remedy.contains("--to-disk"), "{remedy:?}");
+  assert!(
+    !remedy.contains("--to-store"),
+    "no remedy sends an operator to the destructive direction: {remedy:?}"
+  );
 
   let index = ok(root, &["st", "sync"]);
   assert!(
@@ -481,6 +494,61 @@ fn sync_and_st_sync_are_different_commands_and_both_are_wired() {
   assert!(
     !index.contains("two directions"),
     "st sync is a different command and is NOT the refusing one -- collapsing them is what this test exists to prevent: {index:?}"
+  );
+}
+
+/// AC-03.9's selector: both directions RUN, naming both refuses, and the
+/// destructive one states what it will overwrite BEFORE it overwrites it.
+///
+/// **The rows were declared for a day before anything read them.** `run`
+/// matched `Some(("sync", _))` and discarded the `ArgMatches`, so clap accepted
+/// `--to-disk` and the renderer never saw it -- while the bare verb's remedy
+/// told the operator the selector was not built and `sync --help` listed it.
+/// A surface that advertises a flag and an implementation that denies it exists
+/// disagree in the one place a user checks, so this test drives the flags
+/// rather than asserting they parse.
+#[test]
+fn sync_runs_the_direction_it_is_given_and_names_the_loss_before_taking_it() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "A thread"]);
+
+  assert!(
+    ok(root, &["sync", "--to-disk"]).starts_with("ok: extract written"),
+    "the routine direction runs and says what it did"
+  );
+
+  // Opposite directions over the same two endpoints: running both would make
+  // one pointless and the other authoritative by accident of ordering.
+  let both = run(root, &["sync", "--to-disk", "--to-store"]);
+  assert_eq!(both.status.code(), Some(1));
+  assert!(
+    String::from_utf8_lossy(&both.stderr).contains("opposite directions"),
+    "naming both chooses neither, and says so"
+  );
+
+  // The discriminating case: make the EXTRACT disagree with the store, then
+  // restore from it. The restore must name the overwrite before taking it --
+  // a summary afterwards is a receipt for a loss the operator needed one
+  // moment earlier.
+  let canon = root.join("intent/st/ST0001/thread.json");
+  let text = std::fs::read_to_string(&canon).expect("canon");
+  std::fs::write(
+    &canon,
+    text.replace("\"A thread\"", "\"A stale title from the extract\""),
+  )
+  .expect("write canon");
+
+  let restored = run(root, &["sync", "--to-store"]);
+  assert_eq!(restored.status.code(), Some(0));
+  let warned = String::from_utf8_lossy(&restored.stderr).to_string();
+  assert!(
+    warned.contains("OVERWRITES") && warned.contains("ST0001"),
+    "the destructive direction names WHAT it overwrites, on stderr: {warned:?}"
+  );
+  assert!(
+    ok(root, &["st", "show", "ST0001"]).contains("A stale title from the extract"),
+    "and it really did overwrite -- the warning describes an act, not an intention"
   );
 }
 
@@ -721,15 +789,16 @@ fn a_work_package_body_survives_canon_to_view_to_canon() {
 
   // **D01 REVERSED: a hand-edited canon file is not truth any more.** The
   // projection reads the STORE, so the edit above has to be brought INTO the
-  // store before it can be rendered -- which is the disk -> db direction, and
-  // the direction the CLI cannot yet spell (AC-03.9, owed by WP-06).
+  // store before it can be rendered -- the disk -> db direction.
   //
-  // Dropping the cache forces it: a cold store ingests from the files on the
-  // next open (`ingest::load_fresh`). That is the same movement the restore
-  // will make explicit, so this is a stand-in for the command rather than a
-  // trick -- and it is exactly what the reversal means, since editing canon by
-  // hand now changes a projection and not the source of truth.
-  std::fs::remove_file(root.join("intent/.cache/intent.db")).expect("drop the cold store");
+  // **This line used to delete the store**, because the CLI could not spell
+  // that direction and a cold open re-ingests from the files. It was a D36
+  // violation left in deliberately, on the argument that hiding it behind a
+  // clone fixture would remove the only pressure to ship the selector -- a
+  // later D36 sweep would then come back clean while the gap persisted. This
+  // is the named cleanup vc attached to AC-03.9, taken now that the flag it
+  // was waiting for exists.
+  ok(root, &["sync", "--to-store"]);
 
   // The projection, via the safe direction -- the bare verb now refuses.
   ok(root, &["st", "sync", "--write"]);

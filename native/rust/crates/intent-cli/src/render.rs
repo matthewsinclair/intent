@@ -30,7 +30,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), String> {
     Some(("search", m)) => search(m),
     Some(("schema", m)) => schema(m),
     Some(("doctor", _)) => doctor(),
-    Some(("sync", _)) => sync(),
+    Some(("sync", m)) => sync(m),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -276,33 +276,87 @@ fn st_rows(
 /// silent default, so this one has none. It used to default to the
 /// destructive direction, which is how the defect existed.
 ///
-/// The direction selector is not spelled yet -- it needs a row in the dispatch
-/// table, which is ic's lane -- and this refusal deliberately does NOT name a
-/// flag that would not parse. Naming a remedy that does not work is the defect
-/// this AC was written about, one artefact over.
-fn sync() -> Result<(), String> {
-  let f = open()?;
-  let overwrite = f.sync_overwrite().map_err(fail)?;
-  eprintln!("error: `sync` has two directions and will not guess which one you mean");
-  eprintln!("  db -> disk  rewrites the files from the store. Safe: the files are re-creatable");
-  eprintln!(
-    "  disk -> db  replaces the store from the files. DESTRUCTIVE: any change not yet written to disk is lost"
-  );
-  if overwrite.is_empty() {
-    eprintln!("  (nothing would be overwritten by a disk -> db restore right now)");
-  } else {
-    eprintln!("  a disk -> db restore would currently overwrite:");
-    for line in &overwrite {
-      eprintln!("    {line}");
+/// **The selector is `--to-disk` / `--to-store`, and the flags name the
+/// DESTINATION rather than the source** -- ic's row, and the reasoning is
+/// theirs: the destination is the side that gets overwritten, so it is the side
+/// the operator needs to be sure about.
+///
+/// This function used to take no `ArgMatches` at all -- `Some(("sync", _))`
+/// discarded them -- so the two rows the table had been advertising for a day
+/// could not be read even in principle, and the bare verb's remedy told the
+/// operator the selector was not built while `sync --help` listed it. **That is
+/// worse than the gap it was describing**: a surface that advertises a flag and
+/// an implementation that denies it exists disagree in the one place a user
+/// checks. It is also the mechanical shape of a whole class -- a discarded
+/// `ArgMatches` drops every flag on the command silently, because clap accepts
+/// what the table declares whether or not anything reads it.
+fn sync(m: &ArgMatches) -> Result<(), String> {
+  match (flag(m, "to-disk"), flag(m, "to-store")) {
+    // Both is not "do both": they are opposite directions over the same two
+    // endpoints, so running them in either order makes one of them pointless
+    // and the other authoritative by accident of ordering.
+    (true, true) => Err(
+      "error: `--to-disk` and `--to-store` are opposite directions, so naming both chooses neither\n  remedy: run the one whose DESTINATION you mean -- `--to-disk` writes the extract from the store, `--to-store` replaces the store from the extract"
+        .to_string(),
+    ),
+    (true, false) => {
+      let mut f = open()?;
+      let count = f.sync_to_disk().map_err(fail)?;
+      println!("ok: extract written for {count} thread(s)");
+      Ok(())
+    }
+    (false, true) => {
+      let mut f = open()?;
+      // **Stated BEFORE, never reported after.** The facade computes this
+      // against the store rather than trusting a timestamp, and the whole
+      // reason it is a separate call is that a summary afterwards is a receipt
+      // for a loss the operator needed one moment earlier.
+      //
+      // It states and then proceeds rather than refusing: naming `--to-store`
+      // IS the choice AC-03.9 asks the operator to make, and a second gate
+      // would need a force flag the table does not declare. The limit is real
+      // and is vc's to price -- in a non-interactive invocation "one moment
+      // earlier" is one line earlier -- so it is recorded here rather than
+      // quietly resolved by inventing surface.
+      let overwrite = f.sync_overwrite().map_err(fail)?;
+      if overwrite.is_empty() {
+        eprintln!("note: the store and the extract agree; this restore overwrites nothing");
+      } else {
+        eprintln!("warning: replacing the store from the extract OVERWRITES:");
+        for line in &overwrite {
+          eprintln!("  {line}");
+        }
+      }
+      let count = f.sync_from_disk().map_err(fail)?;
+      println!("ok: store replaced from the extract, {count} thread(s)");
+      Ok(())
+    }
+    (false, false) => {
+      let f = open()?;
+      let overwrite = f.sync_overwrite().map_err(fail)?;
+      eprintln!("error: `sync` has two directions and will not guess which one you mean");
+      eprintln!(
+        "  --to-disk   rewrites the files from the store. Safe: the files are re-creatable"
+      );
+      eprintln!(
+        "  --to-store  replaces the store from the files. DESTRUCTIVE: any change not yet written to disk is lost"
+      );
+      if overwrite.is_empty() {
+        eprintln!("  (nothing would be overwritten by `--to-store` right now)");
+      } else {
+        eprintln!("  `--to-store` would currently overwrite:");
+        for line in &overwrite {
+          eprintln!("    {line}");
+        }
+      }
+      // **The remedy names the SAFE direction only.** AC-03.9 is explicit that
+      // a remedy sending an operator to the destructive direction to recover is
+      // itself the defect, and the list above is the only place `--to-store`
+      // is named -- as a cost, not as a suggestion.
+      eprintln!("  remedy: `intent sync --to-disk` is the routine direction");
+      Err(String::new())
     }
   }
-  // D37: the remedy said "owed by WP-06". Which of OUR work packages owes a
-  // selector is not something a user of Intent can act on, or should have to
-  // read. What they need is the direction that works today.
-  eprintln!(
-    "  remedy: `intent st sync` runs the safe direction today; an explicit selector for both directions is not built yet"
-  );
-  Err(String::new())
 }
 
 /// A verb the dispatch table carries and the facade does not yet implement.

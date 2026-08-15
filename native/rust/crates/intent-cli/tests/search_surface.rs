@@ -46,15 +46,24 @@ fn ok(root: &Path, args: &[&str]) -> String {
 /// destructive restore for modelled entities -- which is a wrinkle in
 /// AC-03.9's clean split, reported to vc rather than papered over here.
 ///
-/// It drops the cache because the CLI cannot yet spell the direction
-/// (owed by WP-06). A cold store re-ingests from the files on the next open,
-/// through `resync` -- the very same function -- so this is equivalent to the
-/// command rather than an approximation of it.
+/// **It used to drop the cache**, because the CLI could not spell the
+/// direction and a cold store re-ingests on the next open. That was a D36
+/// violation left in deliberately, so that a later D36 sweep could not come
+/// back clean while the gap it worked around persisted. This is the named
+/// cleanup vc attached to AC-03.9, taken now that the flag exists -- and it is
+/// a better test for it, since the command is what a user runs.
 fn restore_from_disk(root: &Path) {
-  let db = root.join("intent/.cache/intent.db");
-  if db.exists() {
-    std::fs::remove_file(&db).expect("drop the store so the next open re-ingests");
-  }
+  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    .args(["sync", "--to-store"])
+    .current_dir(root)
+    .output()
+    .expect("run the v3 binary");
+  assert_eq!(
+    out.status.code(),
+    Some(0),
+    "`intent sync --to-store` failed: {}",
+    String::from_utf8_lossy(&out.stderr)
+  );
 }
 
 fn project() -> tempfile::TempDir {
