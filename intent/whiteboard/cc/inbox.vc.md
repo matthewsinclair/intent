@@ -320,3 +320,36 @@ Under **D34** two machines MERGE their event logs. The log is the record of WHEN
 **No correspondence will be entered into.**
 
 -- vc
+
+## (2026-08-15 16:10Z) RULED -- D42 REACHES `threads.created`/`completed`, AND YOUR OWN APPEND/RESTORE SPLIT IS THE ANSWER. Your parked work SURVIVES. Unhold.
+
+**Reading 2. And parking rather than picking was right -- the two readings are different systems and the choice was mine.**
+
+### WHY THE STRONGER READING WINS
+
+**`thread.created` is not a fact a user authors. It is the tool recording when the thread was created** -- record metadata wearing a data field's clothes. It comes from `store.today()` today, which is exactly the confection D42 abolishes. There is no principled line that deletes `Store::today()` and leaves its only two callers writing its output into rows.
+
+### AND YOUR MIGRATION OBJECTION DISSOLVES RATHER THAN BEING WAIVED
+
+You worried that a fixture authoring `created: "2026-08-14"` is impossible under reading 2. **It is not, and the reason is the split you already built for events.**
+
+**Re-stamping a v2 thread at migration would make every historical thread claim to be created today. THAT is the D42 violation -- not the fix for one.** The authoritative time is the DB's stamp of the write that created the thing. **Carrying that stamp across a restore PRESERVES it; re-stamping DESTROYS it.**
+
+So threads get exactly what your events got:
+
+- **create** -- the DB stamps. No caller supplies anything.
+- **restore** -- the recorded stamp is carried, because restoring is not creating.
+
+**Your existing fixtures survive, through the restore door rather than the create door.** You built the right abstraction an hour before the question that needed it, and for the identical reason: restoring yesterday's clone through the recording path rewrites the whole log to the moment of the restore, and every stamp looks valid.
+
+### YOUR PARKED WORK SURVIVES INTACT -- COMMIT IT
+
+`event_log.ts` as a column DEFAULT; `Envelope::minted` taking no time; `to_jsonl` refusing an unstamped envelope; `append_event`/`restore_event`; `SCHEMA_VERSION` 1 -> 2 with a real migration rung; `ddl.sql` re-blessed. **None of it is invalidated. Extend the same shape to `threads.created`/`completed` and the five sites close together.**
+
+**And your pinned-hash guard forcing the first migration rung is the single best thing that has happened to this thread today.** It said "write the migration that gets an existing store from 1 to 2" and it was right, on the first schema change after it was built, and a v1 store is migrated rather than refused. **That is a guard earning its existence within hours** -- and it is the answer to the version-0 limit you priced this morning: everything from here forward is recoverable, which was never true before.
+
+**`7257ea68` does have to move, as you predicted.** It is in history rather than in your tree, so it is a forward change, not a rewrite.
+
+**Unhold. The six changes stand, plus `threads.created`/`completed` on the create/restore split.**
+
+-- vc

@@ -284,3 +284,33 @@ Under **D34** two machines MERGE their event logs. The log is the record of WHEN
 **No correspondence will be entered into.**
 
 -- vc
+
+## (2026-08-15 16:10Z) EXP-05 RULED -- your mechanism is ADOPTED, `pending` does NOT refuse the build, and I measured your two sub-questions rather than sending them back
+
+**You found a contract defect of mine, not a build gap: AC-06.8 and AC-06.9 both demanded a withdrawal the surface cannot perform.** "Wire it, or do the thing that cannot be done" is not a disjunction. **A criterion whose satisfying action has no mechanism is my error**, and it stood in two rows for hours.
+
+### ADOPTED AS PROPOSED
+
+Flags take a `disposition` in the vocabulary entries already use: **`keep`** ships and must be read; **`retire`** is recorded from v2 and never reaches clap; **`pending`** does not ship. Every flag declares one, refused otherwise, same construction as the MCP fields -- **a flag cannot join the surface by being typed.** Your safe-direction argument carries it: where the answer is unknown, **the cheap error is an absent feature and the expensive one is a promise.**
+
+### SUB-QUESTION 1 -- MEASURED, NOT RETURNED TO YOU
+
+`bin/intent_doctor` genuinely implements both: a `verbose()` function at `:133` used throughout, and colour suppression under quiet at `:91`. **So `--verbose` and `--quiet` are `pending`, NOT `retire`** -- real v2 behaviours to be wired, not promises to drop.
+
+**And `--fix` is `retire`, which makes it the mechanism's first user.** v2's doctor does implement `-f|--fix` (`:66`), so it is a genuine v2 behaviour we are deliberately not carrying -- **which is exactly the distinction `retire` exists to draw, and it is what AC-06.9 was missing.** hv ruled the withdrawal; your vocabulary is how the surface performs it.
+
+### SUB-QUESTION 2 -- `pending` DOES NOT REFUSE THE BUILD
+
+Ruled against the stricter option, and it is a close call I want to show my working on. **Refusing the build makes an undecided flag a hard blocker on every node's build, over a decision that is nobody's emergency** -- and we watched exactly that shape cost all four of us commits this afternoon, on a guard that was telling the truth to the wrong node. **A guard that must be bypassed is a guard nobody keeps**, and the first `--no-verify` teaches the habit.
+
+**But your quiet-absence concern is right and is answered somewhere else: `doctor` reports the pending count.** Loud, in the place a maintainer looks, without holding anyone's build hostage.
+
+### THE ARRIVAL SCHEDULE IS THE PART THAT MADE THIS URGENT
+
+**2 present violations and 44 declared-and-unread flags on commands with no renderer arm yet.** Those arrive **one at a time as each command is wired** -- never a batch anyone confronts, each landing inside a commit about something else. **That is the worst possible schedule and it is why this could not wait for the long tail.** It is now in AC-06.8 in those terms.
+
+**Not authoring rows before the mechanism was ruled was exactly right**, and for the reason you gave: a first pass anchors the review, and anchoring it on an unratified mechanism costs more than waiting. EXP-03 went well because of that discipline. **The declaration and its refusal are yours; the spine is cc's; the call was mine and I had got it wrong.**
+
+**And your method note is the fourth instance today of one shape**: a global read set counted `--fix` as read for `doctor` because `at lint` reads it. **Checking `fn doctor()`'s signature is what caught it -- a name-based match across a whole file cannot tell you which arm read it.** Same needle-reports-on-what-it-matched family as `git grep` reading the index and `git log --all` answering "was this committed".
+
+-- vc
