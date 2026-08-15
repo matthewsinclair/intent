@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 16:33Z
-status: paused
-focus: "PAUSED after a localfold. WP-11's macOS leg is COMPLETE and proven end to end -- signing happens on STAGED copies now, so the shared-target race is removed rather than backstopped, and `int macos prepare` runs the sequence as one pass. D42 absorbed: my lane is a no-op under it, because every date reach I own is devbin and devbin is not Intent. Everything left on WP-11 is WP-12 cutover."
+heartbeat_at: 2026-08-15 17:01Z
+status: active
+focus: "AC-11.3 SATISFIED at `a4a1767d` -- WP-11 is 2/4. My board said everything left was WP-12 cutover; the contract said AT-11.3 was unwritten, in my own work package. `no_intent_home.rs` asserts the shipped source reads exactly {COLUMNS} -- an allowlist, so it covers the commands that do not exist yet, which are the ones that will want a home. Six canaries. WAS: PAUSED after a localfold. WP-11's macOS leg is COMPLETE and proven end to end -- signing happens on STAGED copies now, so the shared-target race is removed rather than backstopped, and `int macos prepare` runs the sequence as one pass. D42 absorbed: my lane is a no-op under it, because every date reach I own is devbin and devbin is not Intent. Everything left on WP-11 is WP-12 cutover."
 claims: [ST0056/11]
 ---
 
@@ -30,12 +30,14 @@ Ratified in `design.md` (D01 as reversed) and `data-model.md`, and deliberately 
 
 ## DOING
 
-- **Nothing in flight.** WP-11's macOS leg is complete; everything left is WP-12 cutover. Folded at hv's instruction.
+- **Nothing in flight.** AC-11.3 landed and pushed (`a4a1767d`, both remotes). WP-11's two open rows are AC-11.1 and AC-11.4, and **both are blocked on a publication that does not exist** -- WP-12 cutover, not mine to force.
+- **Out with cc:** the Highlander walker question (`sources()`/`code_of()` duplicate `one_clock.rs`; a `test-support` crate is their call, not mine to impose mid-flight). **Out with vc:** the contract change, and the two of their items that were already moot.
 
 ## TODO
 
 0. **WP-11 (Distribution) -- MINE, WIP. WHAT REMAINS IS WP-12 CUTOVER AND NOT MINE TO FORCE.**
    - **BUILT AND PROVEN: `int macos <doctor|stage|sign|notarize|verify|checksum|prepare|formula|env|store-creds>`.** Signing acts on STAGED copies in `target/dist`; `prepare` runs stage/sign/notarize/checksum as one pass. Canaried both directions at every step. The tap `matthewsinclair/homebrew-intent` is live and **deliberately carries no formula** until there is a release to point at.
+   - **AC-11.3 SATISFIED 2026-08-15 (`a4a1767d`).** `crates/intent-cli/tests/no_intent_home.rs`: a structural allowlist (the shipped source reads exactly `{COLUMNS}`) plus a behavioural differential (`doctor`/`sync`/`schema`/`--version` under the variable absent, garbage and plausible, byte-identical). **The allowlist is the half that matters** -- `init`, `bootstrap`, `export`, `ingest`, `backup` and `mcp` are all unimplemented, and they are exactly the commands that will want to resolve a home. Behaviour can only test what exists.
    - **REMAINS:** (a) **a real version** -- the binary reports `3.0.0-dev`, and **the publish step must REFUSE to emit a formula for a dev build**; (b) **the publish step** itself.
    - **AC-11.4 stays UNSATISFIED and that is correct.** The criterion is the published hash matching the published bytes; nothing is published. **A better-built mechanism is no more a satisfied AC than a built one was** -- the trap to avoid on the bounce.
    - **HELD until WP-12: `int build release` gaining `Cargo.toml` to its sidecar sync.** Right for a v3 release, wrong today -- the Rust workspace is versioned independently at `3.0.0-dev`, so wiring it now makes a v2 release stamp its own version into `Cargo.toml`.
@@ -52,8 +54,9 @@ Facts about this estate, not reminders. Everything amounting to "remember to" is
 - **`target/release/` IS SHARED MUTABLE STATE -- WHICH IS WHY NOTHING SIGNS THERE ANY MORE.** A peer's `cargo build --release` silently replaced a Developer ID signature with the linker's ad-hoc one and de-notarised a shipped binary inside the hour, with no signal and every artefact of the proof still reading as valid. Fixed structurally: `stage` copies to `target/dist` first. **Never sign anything in a directory someone else writes.**
 - **SIGNING MUTATES THE BINARY; NOTARISATION DOES NOT. SIGN BEFORE YOU CHECKSUM.** A sha256 taken one step early **does not fail for us -- it fails for every `brew install`**, where we have the least visibility.
 - **A CANARY PROVES NOTHING UNTIL YOU CONFIRM THE FIXTURE REACHED THE BRANCH.** I planted a stale sums file on already-notarised artefacts, so the command correctly PASSED and my check reported "BUG" about a branch that never ran. **A red-looking result from a green run reads exactly like a real defect** -- the direction nobody watches, because it feels like diligence working. Canary both ways.
+- **A PIPELINE'S EXIT STATUS IS THE LAST COMMAND'S, SO `check | head && echo ok` PRINTS `ok` WHILE THE CHECK IS FAILING.** `cargo fmt --check` found real diffs and my own line reported "(fmt clean)" over the top of them, because `head` succeeded. **Same shape as every other failure this estate had today: a green that was never connected to the thing it claimed to measure.** Read the rc, never the wrapper's.
 - **`--date=format:` IGNORES `TZ`; `--date=format-local:` RESPECTS IT.** `TZ=UTC git log --date=format:` prints LOCAL time with a `Z` appended -- wrong by exactly the offset and looking perfect. `git log` is local by default and is the usual source of that error.
-- **MY BOARD IS A MEMO; THE AC IS THE CONTRACT.** AC-11.4 already ordered the staged-copy restructure, conditional on hv ruling the matrix -- which hv did. I re-read my board instead and rebuilt an agreed case from scratch. **A deferral recorded in two places has its precondition met in only one, and the copy you re-read on a bounce is the wrong copy.**
+- **MY BOARD IS A MEMO; THE AC IS THE CONTRACT -- TWICE NOW, AND THE SECOND WAS FOUND BY OBEYING THE FIRST.** My board's TODO stated what remained on WP-11 and did not mention AC-11.3 at all; `acceptance.md` had AT-11.3 `to-write`, naming a file that did not exist, in my own work package. **A board says what I was thinking when I wrote it; the contract says what was agreed.** The first instance: AC-11.4 already ordered the staged-copy restructure, conditional on hv ruling the matrix -- which hv did. I re-read my board instead and rebuilt an agreed case from scratch. **A deferral recorded in two places has its precondition met in only one, and the copy you re-read on a bounce is the wrong copy.**
 - **A GUARD MUST BLOCK ON WHAT THE COMMIT ADDS, NOT ON THE WORKING TREE.** `provenance_check.sh` globbed the tree, so one node's untracked mid-generation file froze every node's commits on paths they had never touched. **A guard that must be bypassed is a guard nobody keeps.** Hold the commit and diagnose; never reach for `--no-verify`.
 - **`--only` COMMITS WHAT YOU NAME, AND `--amend` IGNORES IT ENTIRELY.** A move is two facts; naming the new path leaves the deletion staged. And `--amend` with no pathspec re-commits the WHOLE INDEX -- ic's swept 19 files including peer boards. **A sweep does not move a file, it SPLITS A CHANGE**: a method and its test are one unit, each half reads as finished alone, and HEAD stopped building while every worktree stayed green. **Verify at HEAD with `git ls-tree`, and read `git status --short`, not the diff.**
 - **NEVER mutate `bin/**` or `tests/**` in place.** `~/.local/bin/intent` AND `~/bin/intent` both symlink to `bin/intent`; several sessions are live. Sacrificial worktree only. **`bin/.devbin/**` and `native/**` are safe** -- and devbin is vendored external code, not Intent's.
@@ -66,6 +69,7 @@ Facts about this estate, not reminders. Everything amounting to "remember to" is
 
 Standing only. The day's full set is in `.history/20260815/wip.md`.
 
+- (2026-08-15) **AN ALLOWLIST FORBIDS EVERYTHING ITS AUTHOR DID NOT THINK OF; A NEEDLE LIST FORBIDS ONLY WHAT THEY DID.** AT-11.3 asked for `INTENT_HOME`. Asserting the read set is exactly `{COLUMNS}` costs the same and catches the variable nobody has invented yet -- **including one added by a command that is not implemented today**, which is where the risk actually is, because the unwritten commands are the ones that will want a home.
 - (2026-08-15) **A STRUCTURE THAT CANNOT FAIL BEATS A CONTROL THAT CATCHES THE FAILURE, AND "RECORDED AS THE BETTER SHAPE, DELIBERATELY UNBUILT" IS USUALLY DEFERRAL WEARING A REASON.** I shipped the refusal and left the design written down. A refusal detects the race only at the END, after a notarisation round trip has been spent on bytes that no longer exist. Building it took under an hour.
 - (2026-08-15) **THE DEFECT IS OFTEN THE GAP BETWEEN CORRECT STEPS, NOT ANY STEP.** Four individually-correct macOS subcommands, run by hand with a multi-minute wait in the middle. A note saying "run these as one sequence" is a reminder; `int macos prepare` is the sequence.
 - (2026-08-15) **REFUSING TO SETTLE BY INFERENCE IS NOT A RESTING STATE -- IT OBLIGES YOU TO GO AND GET THE ANSWER** (vc's). An open question parked across three rulings is a decision made by default. **Three independent stops is one alarm, not three data points.**
