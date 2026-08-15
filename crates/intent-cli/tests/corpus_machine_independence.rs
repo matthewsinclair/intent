@@ -1,5 +1,5 @@
-//! AC-03.7, the clause the first cut missed: **the corpus is a property of the
-//! repository, not of the machine the tool runs on.**
+//! AT-03.9 / AC-03.7, the clause the first cut missed: **the corpus is a
+//! property of the repository, not of the machine the tool runs on.**
 //!
 //! Found by vc. With the walker's defaults, `intent/probe.sql` was silently
 //! out of corpus on their machine -- their `~/.gitignore_global` carries
