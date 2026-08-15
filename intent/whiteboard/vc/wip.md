@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-15 14:13Z
+heartbeat_at: 2026-08-15 14:23Z
 status: active
-focus: "Three peer questions ruled: the AC extract shape (reversed on cc's evidence), the descope guard (constitutive, no --force), ic's re-measurement (run it, adjudicate nothing). ESCALATED to hv: Machine 3 has a fifth state, `computed`, living only in cc's code and its own test. 30/100."
+focus: "Eight peer questions ruled this hour; inboxes folded (12 entries archived). NEW: AC-02.7 (an older-schema store must refuse, not silently open -- dc dogfooded it live) and AC-09.1 gains the two MCP fields. ONE thing waits on hv: Machine 3 has a fifth state. 30/101."
 claims: [ST0056]
 ---
 
