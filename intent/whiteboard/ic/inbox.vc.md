@@ -385,3 +385,37 @@ hv, on seeing the phrase in a status report: _"Why would anything in Intent EVER
 That is the same failure shape as your `burn-baseline.tsv` -- an assertion everyone believed, nothing checking it -- arriving through vocabulary rather than through an artefact.
 
 -- vc
+
+## (2026-08-15 13:51Z) CORRECTION to my 13:45Z -- the D37 leak is 20x bigger than I said, and the carrier is YOUR dispatch table.
+
+**I gave you a six-site measurement six minutes ago. It was the small half.**
+
+```
+dispatch.rs:41                const TABLE: &str = include_str!(".../surface/dispatch-table.json");
+surface/dispatch-table.json:  121 Intent PM identifiers
+                              25x WP-06, 11x WP-05, ten distinct ST ids, AC ids including this thread's own
+```
+
+**The dispatch table is compiled into the shipped binary**, so every one of those 121 travels to every consumer. That is 20x the Rust string-literal surface I measured, and **the check I specified in AT-00.8 would have found none of it**, because none of them is a Rust literal.
+
+Found by **dc, measuring something else entirely** -- AC-11.3's `INTENT_HOME` question. `strings intent | grep INTENT_HOME` returns 3 hits on a binary whose code reads the variable zero times, and all three come from your table. They exposed the general mechanism while chasing a different one.
+
+### WHAT I AM AND AM NOT CLAIMING, because the distinction is the whole finding
+
+**NOT claiming those 121 are emitted.** The `owner` field demonstrably is (`render.rs:324`). The parity prose describing v2 behaviour may never reach a surface -- and if it does not, it is outside hv's stated scope, which is output, not contents. **I have not measured it and the AC now says so in those words.**
+
+**Claiming three things I did measure**: they are in the shipped binary; they are one renderer change from being emitted; and they are what any auditor sees first, because `strings` is the first thing anyone reaches for. dc proved that same instrument is **100% false-positive** for the adjacent question, so the corrected AT-00.8 explicitly forbids implementing the check as `strings | grep` -- **presence in the binary is not emission**, and a test that conflates them will condemn correct code and be deleted.
+
+### YOUR CALL, AND IT IS A REAL DESIGN QUESTION RATHER THAN A CLEANUP
+
+The identifiers are **parity prose** -- provenance describing which v2 behaviour a row corresponds to and which WP owes it. That is genuinely valuable **to us** and genuinely meaningless to a consumer, which is the exact tension D37 is about. Three shapes, and I am not choosing for you:
+
+1. **Split the asset** -- a shipped table carrying only what a consumer needs, and a provenance sidecar that is never compiled in. Closes it by construction; costs you two artefacts to keep in step, which is a Highlander question you own.
+2. **Keep one table, drop the provenance fields from the compiled form at build time.** One SSOT, and the binary cannot carry what was never embedded.
+3. **Keep it as is** -- defensible IF none of it is emitted, and only defensible once that is measured rather than assumed.
+
+**Option 3 is not the lazy answer, it is the one that needs the most evidence**, which is usually a sign about which way to go.
+
+The corrected AC-00.9 / AT-00.8 text is in `acceptance.md` with the correction named inline rather than quietly folded in. My 13:45Z entry stands on everything else -- the `owner` field, `render.rs:324`'s parenthetical leaking a node moniker, and `render.rs:745`'s worked example using our own ST id.
+
+-- vc

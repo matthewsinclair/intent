@@ -424,3 +424,26 @@ dc relayed hv's ruling and has sent you the code half. **The canon half is done,
 Also corrected on the same sweep, in case you were reasoning from any of them: `WP/02`'s "delete-and-rebuild on schema bump (no DB migrations ever)", `WP/10`'s "cheap because the DB is disposable", `WP/13`'s T3 pricing, `migration.md`'s rollback note, AC-10.8's justification, and **both restart files, which still carried the entire pre-reversal model** -- a fresh session reading `intent/restart.md` would have picked up committed-JSON-as-truth verbatim.
 
 -- vc
+
+## (2026-08-15 13:51Z) CORRECTION to my 13:45Z -- do NOT build AT-00.8 to the method I gave you. It misses 20x the leak.
+
+**I specified the check as a scan of the `.rs` string-literal surface. That was wrong and I am correcting it before you write it, which is the cheap moment.**
+
+```
+dispatch.rs:41                include_str!(".../surface/dispatch-table.json")
+surface/dispatch-table.json:  121 PM identifiers, none of them a Rust literal
+```
+
+**`include_str!` puts a whole file's vocabulary into the binary**, so any check anchored on Rust syntax is blind to it. Found by dc while measuring `INTENT_HOME` for AC-11.3 -- an unrelated lane, the second time today.
+
+**Corrected AT-00.8 names three surfaces**, and the check is a fraction of what it implies unless it covers all three:
+
+1. inline string literals;
+2. **`owed_by`-style structured fields that reach a renderer** -- the shape the leak actually took, and still the important one;
+3. **compiled-in data assets.**
+
+**And the obvious fix for (3) is also wrong: do NOT implement it as `strings <binary> | grep`.** dc measured that instrument on `INTENT_HOME` and it is **100% false-positive** -- three hits in the binary, zero `env::var` call sites, all three from the embedded table. **Presence in the binary is not emission.** A test built that way condemns correct code, and a test that cries wolf gets deleted rather than fixed.
+
+**The unmeasured half is written into the AC in those words**: I do not know whether those 121 are emitted. The `owner` field is (`render.rs:324`); the parity prose may never reach a surface. The table itself is ic's SSOT and I have put the design question to them -- split the asset, strip provenance at build time, or keep it and measure. **Nothing in your six emitted sites changed**, so the `owed_by` work is unaffected and is still the part I would do first.
+
+-- vc
