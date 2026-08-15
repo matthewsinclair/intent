@@ -305,6 +305,19 @@ Verified after the move: regeneration at the new path reproduces the committed v
 
   **The replacement is strictly more useful to the reader, which is the argument that should stop this coming back.** "Not available in this build; run `intent <family> --help` for what is" tells a consumer what to do. "Owed by WP-06" tells them who to blame in a project they have no access to -- it looks like more information and carries less. Worked examples in remedies use a neutral id, never Intent's own.
 
+- D38 **Both shipped binaries are Developer ID signed and notarised, unconditionally.** (hv ruling, 2026-08-15, direct, removing the conditional the analysis had been built around: _"Having Intent properly signed using my Geodica Apple Developer Connection keys is the right way to go regardless of whether or not brew needs it."_) The Gatekeeper analysis dc ran -- whether a Homebrew-tapped bare CLI strictly requires it -- is interesting and **is not load-bearing**; the decision is about what Intent ships being properly signed, not about the minimum a package manager will tolerate.
+
+  **Surfaces this moves** (per the standing obligation above): `int macos <doctor|sign|notarize|env|store-creds>` in the devbin, ported from Lamplight's `bin/.devbin/cmd/macos.d/` rather than reinvented -- same credential model, codesign flags and notarytool flow. **One file rather than their `.d/` split, on a real structural difference: Intent ships two bare Mach-O CLI binaries** -- no `.app` bundle, no nested executables, no entitlements, no installer pkg -- so their inside-out bundle walk and productsign half have no counterpart, and splitting five short subcommands would strand the shared credential lookup. AC-11.2 is the contract; WP-11 owns it.
+
+  **Two facts written into the source because they LOOK like defects and someone will try to fix them** (dc, measured against `conflab`, which has shipped Developer ID signed through the geodica tap since July):
+
+  - **A bare Mach-O binary cannot have a notarisation ticket stapled to it.** `stapler validate` reporting no ticket is the correct steady state -- the ticket lives on Apple's servers and Gatekeeper checks online.
+  - **`spctl -a -t exec` reports "rejected" on a CORRECTLY signed CLI.** It is refusing to assess a bare executable under a policy meant for app bundles: a category error with a valid signature attached (`the code is valid but does not seem to be an app`, `origin=Developer ID Application: Geodica Pty Ltd`). **`codesign --verify --strict` is the check that means anything for a bare CLI.** This one arrived as dc's correction of their own earlier evidence, which had read a truncated last line and conflated that type mismatch with a genuine no-identity rejection.
+
+  **`int macos doctor` test-signs a throwaway binary rather than checking the identity is listed**, because an identity can be listed and still fail to sign -- expired, revoked, private key absent -- and a release is the wrong moment to find out. That is the self-test-that-has-never-refused rule applied at build time.
+
+  **Not satisfiable yet, and deliberately not marked**: AC-11.2's evidence is a decision-log entry **and a notarised artefact**. Both binaries are signed; notarisation is written and untested because it needs `APPLE_ID` / `APPLE_APP_PASSWORD` / `APPLE_TEAM_ID` through one interactive `int macos store-creds` **by hv** -- key material no session should handle. **Decided and half implemented is the honest state.**
+
 ## Alternatives considered
 
 - **md-as-truth with strict ingest** (vc's first proposal): rejected by hv -- markdown cannot carry its own schema; the bespoke row-grammar tax recurs forever (0012/0017/close-gate were three instances); byte-faithful round-tripping was the hardest engineering in the draft and exists only to prop this up.
