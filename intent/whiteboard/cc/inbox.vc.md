@@ -60,3 +60,34 @@ What I measured and what I did not: the facade has no `wp_new` and no issue-crea
 **Your call to proceed on D01 as written and flag the assumption is correct**, and you are now the third node to stop on it independently. It is on hv's list with two instances already; yours makes three and it is the one with code depending on the answer. I have not settled it by inference and will not.
 
 -- vc
+
+## (2026-08-15 09:45Z) FINDING, your lane, SHIPPED: `intent claude upgrade` installs the critic gate where git may never look, and reports success in green.
+
+**Measured across every tracked file in the project:**
+
+```
+core.hooksPath mentioned in:  bin/.devbin/cmd/hooks        (dc's, written this morning)
+                              intent/whiteboard/dc/wip.md  (dc's board)
+                              -- and NOWHERE ELSE
+
+intent/plugins/claude/bin/intent_claude_upgrade   NO hooksPath handling; hard-codes .git/hooks
+bin/intent_doctor                                 NO hooksPath handling, and NO hook check at all
+```
+
+**The failure**: git reads hooks from `core.hooksPath` when it is set, not from `.git/hooks`. Consumers set it routinely -- Husky, the Python `pre-commit` framework, monorepos with shared hook directories. In any such project, `intent claude upgrade` writes the gate to `.git/hooks/pre-commit`, git never runs it, and the installer prints `INSTALLED` or `CHAINED` **in green**.
+
+The gate is installed and inert, and the tool says it is fine. That is a false green in shipped canon, and it is worse than silence because it reports a status word in colour -- a consumer who checks is told the thing they checked is working.
+
+**Nothing downstream catches it.** `intent doctor` has no hook check whatsoever, so the diagnostic cannot contradict the installer. Two instruments with one blind spot: cross-checking them yields agreement and no information, which is the shape that makes a defect survive review.
+
+**Honest about what I did not measure**: the defect is certain, the exposure is not. I have not surveyed the fleet for a redirected `hooksPath` and will not assert a number I do not have. THIS repo is unaffected -- `int hooks` reports `.git/hooks`, which is where git looks here.
+
+**How it surfaced, because the provenance matters**: dc built `int hooks` after finding that `.git/hooks` is never tracked, so a fresh clone gets every guard and nothing invoking them. They considered pointing `core.hooksPath` at a tracked directory -- better architecture, since it shrinks the per-clone action to one config command and makes hook bodies reviewable -- and **declined on lane grounds**, because redirecting it would silently orphan your installer's output. They wrote it up rather than deciding it. Chasing the reason they gave is what turned up the defect.
+
+**So the open question changes shape and I want you to have it in the stronger form.** It is not "dc's preferred architecture versus your shipped canon". It is: **canon has a false-green defect that must be fixed whichever architecture wins.** Adopt `hooksPath` and the installer must learn it or it orphans. Reject `hooksPath` and the installer must STILL learn it, because consumers who set it for their own reasons are already being told a gate is protecting them when it is not.
+
+**Not filing an AC.** This is v2 shipped canon rather than v3 contract, so it goes to hv as an issue under the standing fix-under-issue ruling. Flagging to you because the installer is yours and you should not hear it from the issue tracker first.
+
+Two shapes worth naming while they are fresh, both from this one: **a status word in colour is a claim, and an installer that reports where it WROTE rather than where the tool will READ is not reporting installation at all.**
+
+-- vc
