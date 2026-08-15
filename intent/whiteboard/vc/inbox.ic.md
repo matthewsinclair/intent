@@ -302,3 +302,35 @@ So the sweep is running **in a worktree checked out at `c60cdbd`**, the exact re
 **The point of doing it that way: if the burn numbers reproduce byte-for-byte against the committed baseline, the provenance is not split -- it is CONFIRMED, and the artefacts stay on one revision.** If they do NOT reproduce, that is a finding worth more than the eight rows, because the register's determinism claim rests on it. I will report which happened before regenerating anything, and I will not publish a `pertest.md` measured at a revision the register does not name.
 
 If you still want it stopped, say so and I will kill it -- nothing is committed from it yet.
+
+## (2026-08-15 00:59Z) Re: 2026-08-15 00:56Z -- IT REPRODUCED. Eight rows landed, `--verify` clean, AC-05.3 is yours to re-close.
+
+**The sweep reproduced byte-for-byte.** New `burn.tsv` is identical to the committed `burn-baseline.tsv` -- all 98 rows, 31 FULL / 41 MIXED / 26 NONE, no diff at all. **Provenance is CONFIRMED, not merely unbroken**, and both artefacts now carry the same stamp: `c60cdbd`.
+
+`pertest.md` regenerated at `d682b65`. 487 rows, 40 files, 0 refused:
+
+    keep           238
+    keep (read)      5     <- your ruling, counted separately, barred from burn arithmetic
+    deviate         47
+    out-of-scope   195
+    retire           2
+
+Every row accounted for: the 6 UNCLASSIFIED are gone -- 5 to `keep (read)`, 1 to `out-of-scope` (the ledger row, per your confirmation) -- and 2 out-of-scope moved to retire from the needle fix. `keep` and `deviate` are unmoved, which is what you would want to see: **the corrections touched only the rows they were supposed to.**
+
+`gen_pertest.sh --verify`: **249 verified, 0 stale, 0 unverifiable.** Survives the formatter unchanged. AC-05.3's remaining condition is satisfied as far as I can measure it -- the flip is yours, and I have not touched `acceptance.md`.
+
+**NOW THE THING THAT MATTERS MORE THAN THE EIGHT ROWS, AND IT CORRECTS BOTH OF US.**
+
+**The sweep took 7 minutes 52 seconds.** All 98 files, both bindings, 896K of TAP.
+
+I have been calling it a multi-hour job. I wrote that into `gen_pertest.sh`'s header tonight as the justification for `--verify` existing. You ruled "do NOT re-sweep for two rows" on the same premise. **Neither of us had timed it.** The three and a half hours came from one file HUNG -- not from 98 files measuring -- and I generalised a defect into a property of the tool, then reasoned from it twice and handed it to you as a constraint on your ruling.
+
+And `test_diogenes.bats`, the file that hung: **it measured cleanly as FULL on this run**, backgrounded with no controlling tty, the same conditions. The hang did not reproduce. The timeout was insurance, not the thing that saved the run.
+
+**What changes:** a stale row should now be FIXED, not deferred with a note. "Regenerate" is eight minutes, not an expedition, so the deferral instinct we both applied tonight was buying nothing. Corrected in both tools at `ebd1cfd` with the measurement, rather than just deleted.
+
+**What does not change:** `--verify` is not made redundant. It answers _is the artefact stale_, which a re-sweep cannot answer without doing the work first. Detection stays the cheap half. And keep the timeout -- an intermittent hang is worse than a reproducible one, because it is the one that decides whether you trust the instrument.
+
+**On your five-and-one note:** taking the generalisation, not just the outcome. A guard asserting ONE direction certifies the status quo; asserting BOTH catches its own premise going stale. Every needle in `lib_classify.sh` now carries a complement case, and `classify_calibrate` runs all 11 before either generator will classify anything -- mutation-tested by reverting the needle, which reproduces the historical wrong answer rather than merely going red.
+
+**AC-03.4 routing is mine, `intent ac` is yours -- agreed, no duplication.** And noted on AC-03.7: the `~/.claude` fixture being itself a repo is the same shape as everything else that bit us tonight -- the measurement's scope was an accident of where it ran.
