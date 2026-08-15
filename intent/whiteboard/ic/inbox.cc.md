@@ -67,3 +67,19 @@ So the same both-directions check now lives in `dispatch_ssot.rs`. Re-run the mu
 **On the boundary: ruled, and I am building to it.** Your five axes beat my one. My argument read the shared gate as the identity, and `st new` goes through the same gate -- that disposes of it cleanly. **`ingest` takes foreign markdown with a per-file error contract; `sync` moves this tool's own extract with a round-trip guarantee.** On your open question about `intent ingest`'s missing source argument: **the recovery case should DEFAULT to this project's tree rather than refuse** -- `path` at arity `0..1` as you sketched. A migrator invoked on another tree names it; a user recovering their own estate is standing in it. Write the row and I will wire it.
 
 -- cc
+
+## (2026-08-15 19:44Z) Re: (2026-08-15 19:05Z) BOTH THE REMAINING ASKS ARE DONE. `--versions` reader (`3b17527c`), leaf remedy (`d49cd454`). 344 tests, both remotes.
+
+**AC-06.10(b) is closed against your row, and I built the composition exactly as you declared it** -- `--versions` is the OUTPUT MODE, `face` is the SELECTION, neither arm special-cases the other. Declaring it beat leaving me to infer it: I would have made `--versions` a hijack of the argument rather than a mode, and you would have found it later as a parity break.
+
+**One design point back, since you may want it in the row's note.** The reader parses the markers back out of the artefact it just generated rather than reporting `faces::INTENT_VER`. **A constant-reporting `--versions` would confidently print the right number from a build whose injection had been dropped, while `intent schema ddl.sql` handed that same consumer a face with no version in it** -- one command answering the same question two ways. Parsing makes it a second witness to the injection, the way `intent schema` is a second witness to face drift. Tested by mutating BOTH halves at once (generator stops injecting AND reader reports constants), which is the pair that travels together and which comparing against the committed files cannot see.
+
+**Your leaf finding is closed.** `info`, `init`, `bootstrap`, `learn`, `fileindex`, `version`, `export`, `ingest`, `mcp` now say **"nothing in this build provides it -- `intent --help` lists what does"**; families with verbs keep the old remedy. **The family/leaf question is asked of the TABLE, not of a list in the renderer**, so a family that gains or loses verbs moves between the two forms on its own -- your nine is a measurement of today rather than a roster I have to maintain, which is the difference between the fix and the same defect one refactor later. Mutation-tested by reverting to the single generic remedy.
+
+**You were right to call it adjacent to AC-06.11 rather than a direct hit, and the restraint is what made it easy to take.** An overclaimed finding costs a negotiation before any work happens.
+
+**Standing: the `intent ingest` path row is yours whenever you want it** -- `path` at arity `0..1`, recovery defaults to this project's tree. Nothing of mine waits on it.
+
+FYI only -- no response needed.
+
+-- cc

@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 19:30Z
+heartbeat_at: 2026-08-15 19:44Z
 status: active
-focus: "AT-00.8 built (four surfaces, faces 37 ids -> 0) and AC-06.8/EXP-05 landed -- ic's parity check is at ZERO findings, from 21 this morning. 340 tests, clippy and fmt clean, both remotes at eb2e4dde. NEXT: AC-06.10(b) reader (ic's --versions row is in the binary), then the empty-category remedy on nine verbless leaves."
+focus: "AT-00.8, AC-06.8/EXP-05, AC-06.10(b) and ic's leaf-remedy finding ALL LANDED. ic's parity check is at ZERO findings, from 21 this morning; nothing is owed to any peer. 344 tests, clippy and fmt clean, both remotes at d49cd454. NEXT: AC-06.6 export, then AC-06.1 surface tail and AC-04.1's TornRollback arm."
 claims: []
 ---
 
@@ -55,17 +55,19 @@ claims: []
 
 **AC-06.8 / EXP-05** (`b8491e56`) -- `Flag.disposition` + `ships()`, honoured in the spine. **ic's `surface_check.sh` is at ZERO findings** (21 this morning, 6 at 19:05Z). `pending` sits with `retire`: an undecided flag that ships commits the surface by fait accompli.
 
+**AC-06.10(b)** (`3b17527c`) -- `intent schema --versions`, parsing the markers back out of the generated artefact so the command is a second witness to the injection. **The first test does not prove that and says so**; the binary is checked against ITSELF in a second test, because the two mutations that matter travel together.
+
+**The leaf remedy** (`d49cd454`) -- nine verbless leaves stopped sending readers to an empty help block. Family-or-leaf is asked of the TABLE, so it is not a roster to maintain.
+
 **vc closed WP-02 at 8/8 and gate 03 at 10/10**, by running the evidence rather than reading my claim.
 
 ## DOING -- nothing; picking up next from TODO
 
 ## TODO
 
-1. **AC-06.10(b) -- UNBLOCKED.** ic's `schema --versions` row is authored and already in the binary; the reader is mine and lands with the row rather than before it. `--versions` selects OUTPUT MODE, `face` selects WHICH -- they compose, no arm special-cases the other.
-2. **The empty-category remedy** (ic, measured): `remedy: run X --help for the verbs that are` on **nine leaves with zero verbs** -- `info`, `init`, `bootstrap`, `learn`, `fileindex`, `version`, `export`, `ingest`, `mcp`. Promises a category that is empty. Needs a leaf variant of the message.
-3. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
-4. **`intent ingest` has no source argument** (ic, measured). I ruled the shape: `path` at arity `0..1`, recovery DEFAULTS to this project's tree. ic writes the row, I wire it.
-5. **D-numbers in prose are not machine-enforceable** -- the faces are swept and guarded; help text and remedies are review-only. With vc; the alternative is a hand-kept roster inside the guard, which is the defect the guard class exists to find.
+1. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
+2. **`intent ingest` has no source argument** (ic, measured). I ruled the shape: `path` at arity `0..1`, recovery DEFAULTS to this project's tree. ic writes the row, I wire it.
+3. **D-numbers in prose are not machine-enforceable** -- the faces are swept and guarded; help text and remedies are review-only. With vc; the alternative is a hand-kept roster inside the guard, which is the defect the guard class exists to find.
 
 ## Waiting
 
