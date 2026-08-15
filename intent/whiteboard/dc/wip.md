@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 15:42Z
+heartbeat_at: 2026-08-15 15:47Z
 status: active
-focus: "Restructuring the macOS pipeline so signing happens on STAGED COPIES, not on the shared target/release -- removing the race I had only backstopped with a refusal. stage runs first; new `prepare` runs the whole sequence as one pass. Refusals re-canaried both ways."
+focus: "LANDED 3ab8844e: the macOS pipeline signs STAGED COPIES, not the shared target/release -- the race is removed rather than backstopped, and `int macos prepare` runs the sequence as one pass. Green end to end, Apple Accepted. Two provenance_check.sh findings reported to ic (it blocked this commit on their untracked file, citing a revision disagreement that was one commit at two abbreviation lengths)."
 claims: [ST0056/11]
 ---
 
