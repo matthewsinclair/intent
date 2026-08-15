@@ -134,6 +134,30 @@ CREATE TABLE IF NOT EXISTS event_log (
 );
 ";
 
+/// **The shape of [`DDL`], stamped into every store this binary creates**
+/// (`PRAGMA user_version`). Bump it in the same commit as any DDL change --
+/// `tests/store_schema_version.rs` fails if the DDL moves and this does not.
+///
+/// It exists because `CREATE TABLE IF NOT EXISTS` makes applying the DDL to an
+/// existing database a NO-OP. Without a stamp, opening a store written by an
+/// older binary SUCCEEDS, hands back a connection on the old shape, and defers
+/// the failure to whichever query first names a column that is not there --
+/// so the distance between "this is broken" and "you find out" is however long
+/// it takes to run the right verb. Found by dc dogfooding on 2026-08-15, about
+/// forty minutes after the criteria table changed shape underneath it:
+///
+/// ```text
+/// error: could not read the committed canon
+///   caused by: sqlite: no such column: state in SELECT id, text, kind, state FROM criteria ...
+/// ```
+///
+/// **1 is the first stamped version, and the unstamped past is deliberately
+/// not version 0 of anything.** Databases written before this stamp existed
+/// carry `user_version = 0` and no record of which of the day's several shapes
+/// they hold, so there is no state to migrate FROM. They are refused, by name,
+/// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
+pub const SCHEMA_VERSION: i32 = 1;
+
 #[derive(Debug, thiserror::Error)]
 pub enum StoreError {
   #[error("sqlite: {0}")]
@@ -142,6 +166,59 @@ pub enum StoreError {
   Serde(#[from] serde_json::Error),
   #[error("creating the runtime cache directory: {0}")]
   Cache(#[source] std::io::Error),
+  /// The store holds a schema this binary does not speak. **Refused at open**,
+  /// which is the whole point: the alternative is answering questions from a
+  /// database whose shape disagrees with the queries.
+  #[error("the runtime store holds schema version {found}; this build of intent speaks {expected}")]
+  SchemaMismatch { found: i32, expected: i32 },
+  /// The store predates schema versioning altogether.
+  #[error("the runtime store predates schema versioning and does not record which shape it holds")]
+  SchemaUnstamped,
+}
+
+impl StoreError {
+  /// What the operator should DO. Distinct per variant -- a remedy that fits
+  /// two causes is telling the operator to guess which one they hit.
+  ///
+  /// The two schema variants are separated because the ACTION differs: one is
+  /// "your build is out of step with your database", which is recoverable by
+  /// moving either end, and the other is "nothing knows what this database
+  /// is", which is not recoverable by the tool at all. Collapsing them would
+  /// promise a migration for the case that cannot have one.
+  pub fn remedy(&self) -> String {
+    match self {
+      Self::SchemaMismatch { found, expected } if found > expected => format!(
+        "this store was written by a NEWER intent than the one you are running -- upgrade intent rather than migrating the store down; it holds version {found} and this build speaks {expected}"
+      ),
+      Self::SchemaMismatch { .. } => {
+        "run `intent doctor` -- it names the store's version against this build's, and reports whether a migration for it has shipped".to_string()
+      }
+      Self::SchemaUnstamped => {
+        // NO RECOVERY COMMAND, because there is none and inventing one is
+        // worse than admitting it. The database was written on the day the
+        // schema moved several times without a stamp, so its shape is not
+        // knowable and a migration cannot be dispatched for it. What CAN be
+        // said honestly is where the work is: the committed extract carries
+        // everything that was ever synced out (D34), which for a project under
+        // version control is a `git status` away from being checked.
+        "this database cannot be migrated -- nothing recorded which shape it holds. Check what your committed extract carries before replacing it; anything never synced out of this store exists only here".to_string()
+      }
+      // CARRIES THE WARNING THE FACADE USED TO SHOW FOR EVERY STORE FAILURE,
+      // because this is the variant it was written for: an unclassified
+      // statement failure is the one where an operator starts reaching for
+      // the file. The store is truth and the files are an extract that may be
+      // older than it, so deleting it is not a reset -- it is the loss.
+      Self::Sqlite(_) => {
+        "the change was not made. Do NOT delete the store -- it is the source of truth, not a cache, and the committed extract may be older than it. Run `intent doctor` to inspect the estate".to_string()
+      }
+      Self::Serde(_) => {
+        "a stored value could not be read back as its modelled type -- run `intent doctor`, and do not delete the store to clear it".to_string()
+      }
+      Self::Cache(_) => {
+        "check that `intent/.cache/` is writable by you".to_string()
+      }
+    }
+  }
 }
 
 /// Read a model enum back from its stored wire spelling.
@@ -177,8 +254,8 @@ pub struct Mutation<'a> {
 }
 
 impl Store {
-  /// Open (creating if absent) the DB at `path`, apply the DDL, set WAL +
-  /// foreign keys. Reopening an existing DB is a no-op apply (IF NOT EXISTS).
+  /// Open (creating if absent) the DB at `path`, set WAL + foreign keys, and
+  /// **check the schema stamp before handing back a usable store**.
   pub fn open(path: &std::path::Path) -> Result<Self, StoreError> {
     // SQLite creates the FILE but not its directory, and `intent/.cache/` is
     // gitignored (D21) so it is absent on every fresh clone and every fresh
@@ -198,10 +275,58 @@ impl Store {
     Self::init(Connection::open_in_memory()?)
   }
 
-  fn init(conn: Connection) -> Result<Self, StoreError> {
+  /// Apply the schema and refuse a store whose shape this binary does not
+  /// speak.
+  ///
+  /// **The stamp is written BEFORE the DDL, inside one transaction, and the
+  /// order is not arbitrary.** A crash between the two must leave a state the
+  /// next open can repair rather than one it must refuse. Stamp-then-DDL leaves
+  /// `version = N` with tables missing, and the next open re-applies the
+  /// (idempotent) DDL and completes the job. DDL-then-stamp would leave tables
+  /// at `version = 0` -- indistinguishable from the unstamped past, and refused
+  /// forever for a crash that cost nothing.
+  fn init(mut conn: Connection) -> Result<Self, StoreError> {
     conn.pragma_update(None, "foreign_keys", "ON")?;
-    conn.execute_batch(DDL)?;
+    let found: i32 = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
+
+    match found {
+      // A fresh database: nothing has been written and nothing can be lost.
+      0 if !Self::has_tables(&conn)? => {
+        let tx = conn.transaction()?;
+        tx.pragma_update(None, "user_version", SCHEMA_VERSION)?;
+        tx.execute_batch(DDL)?;
+        tx.commit()?;
+      }
+      // Written before the stamp existed, so its shape is not knowable.
+      0 => return Err(StoreError::SchemaUnstamped),
+      v if v == SCHEMA_VERSION => {
+        // Same shape. The apply is a genuine no-op here, and it is what
+        // finishes an interrupted create -- see the ordering note above.
+        conn.execute_batch(DDL)?;
+      }
+      found => {
+        return Err(StoreError::SchemaMismatch {
+          found,
+          expected: SCHEMA_VERSION,
+        });
+      }
+    }
     Ok(Self { conn })
+  }
+
+  /// Whether this database holds anything at all.
+  ///
+  /// `sqlite_master` rather than a probe for a known table name: the question
+  /// is "has anyone written here", and asking after a specific table would
+  /// answer "no" for every past shape that did not happen to contain it.
+  fn has_tables(conn: &Connection) -> Result<bool, rusqlite::Error> {
+    conn
+      .query_row(
+        "SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
+        [],
+        |row| row.get::<_, i64>(0),
+      )
+      .map(|n| n > 0)
   }
 
   /// Rebuild every derived table from canon: wipe and reload in one

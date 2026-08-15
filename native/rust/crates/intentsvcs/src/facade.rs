@@ -248,9 +248,15 @@ impl FacadeError {
       // It deliberately names no recovery COMMAND: `intent events ingest` is
       // ruled and unbuilt, and naming a command that does not exist is the
       // same defect one step further on.
-      Self::Store { .. } => {
-        "do NOT delete `intent/.cache/intent.db` -- it is the source of truth, not a cache, and the files on disk are an extract that may be older than it. The change was not made; inspect the store, and recover from the committed extract only if you accept losing anything newer than it".to_string()
-      }
+      //
+      // **AND IT NO LONGER SPEAKS FOR EVERY STORE FAILURE.** One remedy for
+      // the whole of `StoreError` is the same collapse this method exists to
+      // prevent, one level down: a schema-version refusal and a failed
+      // statement are different problems with different actions, and both were
+      // getting this sentence. `StoreError::remedy` distinguishes them, and
+      // this variant now asks rather than answers -- the store knows which of
+      // its failures happened and this does not.
+      Self::Store(cause) => cause.remedy(),
       Self::Ingest { .. } => {
         "fix the artefacts named above, then retry -- run `intent doctor` to list them".to_string()
       }
