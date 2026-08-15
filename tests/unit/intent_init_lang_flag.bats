@@ -20,7 +20,15 @@ teardown() {
 
 @test "intent init --help mentions --lang" {
   run "$INTENT_BIN" init --help
-  assert_failure  # init --help exits non-zero (usage convention)
+  # v2 exits non-zero here. That is NOT a convention -- it is a RATIFIED
+  # DEVIATION (parity.md, `Corrected` class, hv 2026-08-14; INV-07): asking for
+  # help and being told you failed is a defect, and v3 exits 0. This assertion
+  # is correct as it stands because it asserts the INCUMBENT, which is what
+  # INTENT_BIN defaults to. Under the conformance runner it fails against v3,
+  # and that is the harness working: expect red, and expect it for ratified
+  # reasons. Do not flip it -- that reds v2's own suite and deletes the evidence
+  # that the deviation exists.
+  assert_failure
   assert_output_contains "--lang"
 }
 

@@ -71,7 +71,11 @@ load "../lib/test_helper.bash"
 @test "intent init --help shows usage outside any project (global command)" {
   local version=$(get_intent_version)
   run run_intent init --help
-  # Note: init --help exits with status 1
+  # v2 exits 1 here, and that is a RATIFIED DEVIATION rather than a convention
+  # (parity.md, `Corrected` class, hv 2026-08-14; INV-07) -- v3 exits 0, because
+  # asking for help and being told you failed is a defect. This asserts the
+  # INCUMBENT, which is what INTENT_BIN defaults to, so it is correct as it
+  # stands; it fails under the conformance runner against v3 by design.
   assert_failure
   assert_output_contains "Initialize a new Intent v${version} project"
 }
