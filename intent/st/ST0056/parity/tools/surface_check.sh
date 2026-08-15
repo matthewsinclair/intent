@@ -30,7 +30,8 @@ set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PARITY_DIR="$(cd "$HERE/.." && pwd)"
 REPO_ROOT="$(cd "$PARITY_DIR/../../../.." && pwd)"
-TABLE="${TABLE:-$REPO_ROOT/surface/dispatch-table.json}"
+DEFAULT_TABLE="$REPO_ROOT/surface/dispatch-table.json"
+TABLE="${TABLE:-$DEFAULT_TABLE}"
 BIN="${BIN:-$REPO_ROOT/native/rust/target/release/intent}"
 
 die() { echo "error: $1" >&2; exit 2; }
@@ -54,7 +55,22 @@ die() { echo "error: $1" >&2; exit 2; }
 # `find -newer` rather than `stat`: BSD and GNU `stat` take different format
 # flags, and the one thing this check must not do is fail differently on the
 # platform it is not being run on.
-STALE="$(find "$TABLE" "$REPO_ROOT/native/rust/crates/intent-cli/src" -newer "$BIN" -print 2>/dev/null)"
+# THE OVERRIDDEN TABLE IS DELIBERATELY EXCLUDED, and that is a correction to
+# this check rather than an exemption from it. `TABLE` is env-overridable for
+# exactly one purpose -- probing the binary against a VARIANT table, which is how
+# the flag half gets mutation-tested -- so a variant is a table the binary was
+# never built from BY CONSTRUCTION, and asking whether the binary postdates it is
+# the wrong question. Measured the moment it mattered: the first mutation run
+# after this refusal landed was refused by it, on a synthetic table written
+# seconds earlier. A check that blocks its own mutation test makes "green"
+# unfalsifiable, which is the class this whole file exists to fight.
+#
+# The SOURCE half is checked unconditionally, because a binary older than
+# `spine.rs` is stale no matter which table it is being asked about.
+STALE_INPUTS="$REPO_ROOT/native/rust/crates/intent-cli/src"
+[ "$TABLE" = "$DEFAULT_TABLE" ] && STALE_INPUTS="$TABLE $STALE_INPUTS"
+# shellcheck disable=SC2086 -- STALE_INPUTS is a deliberate path list
+STALE="$(find $STALE_INPUTS -newer "$BIN" -print 2>/dev/null)"
 if [ -n "$STALE" ]; then
   die "the binary at $BIN is OLDER than $(printf '%s\n' "$STALE" | wc -l | tr -d ' ') of its own inputs -- rebuild it first (\`int build cli\`, ~30s).
   newest offenders: $(printf '%s\n' "$STALE" | sed "s|$REPO_ROOT/||" | head -3 | tr '\n' ' ')
