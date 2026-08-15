@@ -136,6 +136,68 @@ JQ_LIB='
       ) | join("\n") end;
 
   def targetextra: extras(["state","ratification","behaviour","question","note"]);
+
+  # The entry level had NO generic remainder and no completeness check -- only
+  # `target` did. Closing the class one level down and leaving it open one level
+  # up is the shape of a fix that reads as done: the three MCP fields authored
+  # today are entry-level, and every one of them would have rendered nowhere
+  # while the target-level check stayed green.
+  # A SKIP LIST IS A PROMISE THAT SOMETHING ELSE RENDERS THE KEY, and it is only
+  # as good as that promise. The first version of this list was copied from the
+  # new_surface one and skipped `kind`, `basis`, `owner_wp` and `acceptance` --
+  # none of which any family-entry renderer touches. `kind` was not hypothetical:
+  # the `st` entry carries `kind: "family"` and the view rendered it nowhere,
+  # while both the generic path and the completeness check agreed to ignore it.
+  # So this list now holds ONLY keys rendered bespoke above, and everything else
+  # falls through to `extras` and is checked. Found by mutation-testing the
+  # check, not by reading it -- reading it is what produced the bad list.
+  def entryextra: extras([
+    "path","help","args","flags","v2","aliases","observed","target",
+    "disposition","cross_ref",
+    "exposed_on_mcp","read_or_mutate","mcp_review"
+  ]);
+
+  # The MCP fields render BESPOKE rather than through `extras`, because this is
+  # the line a reviewer is actually here to read and `- **exposed on mcp:** true`
+  # makes them do the join in their head. One sentence, both facts, and the
+  # mutating case says so in bold -- the asymmetry is deliberate: an over-loud
+  # `mutates` costs a second of attention, a quiet one costs a steel thread.
+  def mcpline:
+    "- **MCP:** "
+    + (if .exposed_on_mcp then "exposed as an agent tool" else "not exposed" end)
+    + " -- "
+    + (if .read_or_mutate == "mutate" then "**mutates**" else "read-only" end);
+
+  # "Wants review" must mean WANTS REVIEW, so only the two marks that ask for a
+  # second opinion live under it. The first version folded `grounded_in` and the
+  # plain notes in there too, and the result was ~40 rows flagged for review of
+  # which most were simply CITING THEIR SOURCE -- which is the opposite of
+  # wanting one. A marker that fires on the confident rows is noise, and noise on
+  # a review list is spent exactly where the reviewer attention was meant to go.
+  # Evidence and rationale get their own bullets; the flag stays scarce.
+  #
+  # NO APOSTROPHE ANYWHERE IN THIS BLOCK. JQ_LIB is a SINGLE-QUOTED shell
+  # string, so one apostrophe in a COMMENT closes it and the rest of the line
+  # becomes shell -- this paragraph originally read "where vc-apostrophe-s
+  # attention", and bash reported `attention: command not found` from inside
+  # what looks like a jq function library. Same family as the backtick trap
+  # already recorded twice: a quote character inside a quoting context, in prose
+  # nobody proof-reads for syntax. It failed loudly, but at the wrong layer --
+  # the error names a shell command, not the string that swallowed it.
+  def mcpreview:
+    (.mcp_review // {}) as $r |
+    ( (if ($r.uncertain // []) | length > 0 then
+         ["- **Wants review:**"
+          + "\n  - uncertain on " + ($r.uncertain | map("`" + . + "`") | join(", "))
+          + (if $r.why_uncertain then "\n  - " + $r.why_uncertain else "" end)]
+       else [] end)
+    + (if $r.counterintuitive then
+         ["- **Wants review -- the classification disagrees with the verb name:** " + $r.counterintuitive]
+       else [] end)
+    + (if $r.note then ["- **MCP note:** " + $r.note] else [] end)
+    + (if $r.grounded_in then ["- **MCP classification grounded in:** " + $r.grounded_in] else [] end)
+    ) as $bullets
+    | if ($bullets | length) == 0 then empty else ($bullets | join("\n")) end;
 '
 
 # Render to a temp file and move into place only on success. Writing straight
@@ -254,6 +316,61 @@ MISSING_OBS="$(jq -r '
   | .path' "$IN")"
 [ -z "$MISSING_OBS" ] || die "entries name a v2 antecedent but carry no observed block -- a measured command must ship its measurement, or the view will state there was nothing to measure:
 $(printf '%s' "$MISSING_OBS" | sed 's/^/  /')"
+
+# --- MCP DECLARATION: both fields, on every row, no defaults ----------------
+# AC-09.1. The MCP tool list renders from this file, so a row that declares
+# nothing has to be resolved SOMEHOW at render time, and every available
+# resolution is wrong:
+#
+#   default to exposed    -- a new command joins the agent surface because
+#                            somebody added a row, which is the opposite of a
+#                            decision.
+#   default to hidden     -- the surface silently loses commands and the only
+#                            symptom is an agent that cannot do its job.
+#   derive from the verb  -- dies on one pair alone: `ac gate` READS while
+#                            `wp done` consults the same gate and WRITES, and
+#                            the two do not share a spelling. Four more rows
+#                            (`at lint`, `doctor`, `llm usage_rules`,
+#                            `todo list`) mutate only under a flag or on first
+#                            run, and `st edit` -- the most obviously-mutating
+#                            verb name here -- writes nothing at all.
+#
+# So absence REFUSES. This is the same shape as `disposition: pending`: the
+# uncertain state is written down and greppable, never expressed by leaving a
+# field out, because absence-as-meaning reads as an oversight and cannot be
+# counted. Uncertainty has its own home in `mcp_review.uncertain`, which names
+# the soft FIELD -- the two lean opposite ways when unsure (exposed leans
+# false, read_or_mutate leans mutate), so an unqualified doubt is unactionable.
+#
+# Checked over families AND new_surface together: the new-surface rows are
+# where the exposure question is sharpest (`daemon`, `mcp`, `ingest`), and a
+# check that walked only `.families` would pass while the riskiest rows in the
+# file went undeclared. That exact miss -- a structured query that read one
+# array and silently skipped a top-level sibling -- has already happened once
+# in this table.
+MCP_UNDECLARED="$(jq -r '
+  [.families[].entries[], .new_surface[]]
+  | map(select((.exposed_on_mcp | type) != "boolean"
+             or ((.read_or_mutate // "") | IN("read","mutate") | not))
+        | .path)
+  | join(" ")' "$IN")"
+[ -z "$MCP_UNDECLARED" ] || die "rows do not declare the MCP surface -- every entry needs \`exposed_on_mcp\` (boolean) and \`read_or_mutate\` (\"read\" or \"mutate\"). Refusing rather than defaulting: there is no safe default, and deriving from the verb is what this field exists to replace. Offending paths:
+$(printf '%s' "$MCP_UNDECLARED" | tr ' ' '\n' | sed 's/^/  /')"
+
+# The review markers are only worth anything if they are legible to the
+# reviewer, so a marker that names nothing is itself a defect: `uncertain: []`
+# reads as "reviewed and confident" in a diff and as "somebody meant to fill
+# this in" to the author, and no reader can tell which. Same for an
+# `mcp_review` block with no content.
+MCP_EMPTY_REVIEW="$(jq -r '
+  [.families[].entries[], .new_surface[]]
+  | map(select(has("mcp_review") and (
+        ((.mcp_review | length) == 0)
+        or ((.mcp_review.uncertain // null) != null and (.mcp_review.uncertain | length) == 0)))
+        | .path)
+  | join(" ")' "$IN")"
+[ -z "$MCP_EMPTY_REVIEW" ] || die "rows carry an empty \`mcp_review\` -- a review marker that names no field is indistinguishable from a confident row in a diff. Either name the soft field or drop the block:
+$(printf '%s' "$MCP_EMPTY_REVIEW" | tr ' ' '\n' | sed 's/^/  /')"
 
 emit "# Command dispatch table -- Intent v3 (ST0056, AC-05.1)"
 emit ""
@@ -398,7 +515,10 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
     (if .target.question then "- **Open question for hv:** \(.target.question)" else empty end),
     (if .target.note then "- **Note:** \(.target.note)" else empty end),
     (.target | targetextra),
+    mcpline,
+    mcpreview,
     (if .cross_ref then "- **Cross-reference:** \(.cross_ref)" else empty end),
+    (entryextra),
     ""
   ' >> "$OUT_TMP"
 done
@@ -489,17 +609,24 @@ jq -r "$JQ_LIB"'
   # even though its TOP-LEVEL extras were non-empty. Caught by re-checking the
   # field list, not by reading the output: the section still looked populated,
   # because `backup` -- the entry with both halves non-empty -- rendered fine.
-  (extras(["path","args","flags","help","owner_wp","basis","target"]) // null) as $top |
+  (extras(["path","args","flags","help","owner_wp","basis","target",
+           "exposed_on_mcp","read_or_mutate","mcp_review"]) // null) as $top |
   ((.target | targetextra) // null) as $tgt |
+  # Bespoke like the family entries, and the same three names are skipped above
+  # so they are not rendered twice. Unlike $top/$tgt this is never null: every
+  # row declares both fields or the run has already refused, so the block below
+  # can no longer be empty -- which is why `daemon` and `mcp`, whose only other
+  # authored key is `target.state`, now appear here at all. They were the two
+  # rows this section had least to say about and the two the exposure question
+  # is sharpest for.
+  (mcpline + (mcpreview // "" | if . == "" then "" else "\n" + . end)) as $mcp |
   # The separator blank line LEADS each block rather than trailing it. jq -r
   # already appends a newline per output, so a trailing "\n" produced a blank
   # after EVERY entry including the last -- and a trailing blank line at EOF is
   # not a fixed point of the formatter, which strips it. Leading gives exactly
   # one blank between entries and none at the end.
-  if ($top == null and $tgt == null) then empty
-  else "\n### `" + .path + "`\n\n"
-    + ([$top, $tgt] | map(select(. != null)) | join("\n"))
-  end
+  "\n### `" + .path + "`\n\n"
+    + ([$top, $tgt, $mcp] | map(select(. != null)) | join("\n"))
 ' "$IN" >> "$OUT_TMP"
 
 # --- Column-align every table BEFORE the file lands -------------------------
@@ -681,11 +808,40 @@ for key in $(jq -r '
 done
 for key in $(jq -r '
     [ .new_surface[] | keys[] ]
-    - ["path","args","flags","help","owner_wp","basis","target"]
+    - ["path","args","flags","help","owner_wp","basis","target",
+       "exposed_on_mcp","read_or_mutate","mcp_review"]
     | unique | .[]' "$IN"); do
   label="$(printf '%s' "$key" | tr '_' ' ')"
   grep -qF -- "**$label:**" "$OUT_TMP" || MISSING_FIELDS="$MISSING_FIELDS $key"
 done
+# FAMILY ENTRY-LEVEL KEYS HAD NO CHECK AT ALL. The two loops above cover
+# `target` sub-keys and `new_surface` top-level keys, which is what the gap
+# looked like the day it was found -- and it left the biggest population in the
+# file, the 100-odd family entries, entirely unguarded. The three MCP fields
+# authored under AC-09.1 are entry-level, so they would have been written,
+# committed, and invisible in the view while both existing loops stayed green.
+# A completeness check with a hole in it is the same defect it was built to
+# catch, one level up.
+# THE SAME LIST as `entryextra` above, and it has to stay the same list: this
+# loop compares the canon keys against the rendered TEXT, so if the generic path
+# stops firing the check goes red rather than quiet. Skipping a key HERE that
+# `extras` renders is harmless; skipping one that nothing renders is the hole.
+for key in $(jq -r '
+    [ .families[].entries[] | keys[] ]
+    - ["path","help","args","flags","v2","aliases","observed","target",
+       "disposition","cross_ref",
+       "exposed_on_mcp","read_or_mutate","mcp_review"]
+    | unique | .[]' "$IN"); do
+  label="$(printf '%s' "$key" | tr '_' ' ')"
+  grep -qF -- "**$label:**" "$OUT_TMP" || MISSING_FIELDS="$MISSING_FIELDS $key"
+done
+# The three skipped above are rendered BESPOKE, so their skip is a promise that
+# something else renders them. An unverified promise in a completeness check is
+# how the check becomes decoration, so it is verified here against the rendered
+# text: every row emits one `- **MCP:**` line, and the count must match.
+MCP_ROWS="$(jq -r '[.families[].entries[], .new_surface[]] | length' "$IN")"
+MCP_RENDERED="$(grep -cF -- '- **MCP:**' "$OUT_TMP" || true)"
+[ "$MCP_RENDERED" = "$MCP_ROWS" ] || die "the view renders $MCP_RENDERED MCP lines for $MCP_ROWS declared rows -- the bespoke renderer is skipped by the completeness loops on the promise that it fires for every row, and it did not"
 [ -z "$MISSING_FIELDS" ] || die "the view drops authored field(s) the canon carries:$MISSING_FIELDS -- a view that silently omits a field is not a view of the file, and the omitted field is unreviewable by anyone who reads the view instead of the JSON"
 
 # Only now, with the whole view rendered, aligned and proved complete, does the

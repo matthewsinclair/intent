@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15 14:50Z
+heartbeat_at: 2026-08-15 15:10Z
 status: active
-focus: "Folded mid-session; continuing on the bounce. NEXT: EXP-03 is ruled and contracted into AC-09.1 -- author the two MCP fields, the refusal, and a first-pass classification of 103 rows WITH UNCERTAINTY MARKED."
+focus: "EXP-03 BUILT and reported to vc -- 111 rows declare the two MCP fields, four mutation-tested refusals, 22 rows flagged for review. NEXT: the inventory re-probe at 69d42a7."
 claims: []
 ---
 
@@ -13,33 +13,29 @@ claims: []
 
 ## DOING -- PICK THIS UP FIRST
 
-**EXP-03 is RULED and CONTRACTED INTO AC-09.1** (vc, 14:21Z). Not a proposal any more. Three parts, in order:
+**The inventory re-probe at `69d42a7`** (vc ruled 14:21Z, mine to run). Re-measure against a worktree at that revision, **report the diff, adjudicate nothing, and commit the TSV either way.** That moves 26 artefacts from stamp-only into content-checked.
 
-1. **Author the two fields** on every entry: **exposed-on-MCP**, and **read-or-mutate**. Declared per row, never derived from the verb -- `ac gate` READS while `wp done` consults the same gate and WRITES, and those two do not even share a spelling, which is why derivation-from-name dies on that pair alone.
-2. **Author the refusal**: every entry must declare both, so a new row cannot default silently into the agent tool surface.
-3. **Take the first-pass classification of all 103 rows.**
-
-**THE MARKING INSTRUCTION IS THE PART A BOUNCE WOULD LOSE, and vc named the trap themselves: correcting a proposed classification is ANCHORED by the proposal.** They will not independently classify 103 rows; they will review, and review is biased toward accepting. So mark **two** things explicitly and their attention lands where it is worth something:
-
-- **Rows I was UNSURE about** -- not a confidence score on everything, just the ones wanting a second opinion.
-- **Rows where my classification DISAGREES with the obvious reading of the verb name** -- exactly where sniffing would have gone wrong, and exactly where a reviewer skimming nods it through.
-
-**SAFE DIRECTIONS FOR AN UNCERTAIN ROW ARE OPPOSITE, and both follow one principle -- take the CHEAP error, not the symmetric one:**
-
-- **`exposed` leans NO.** A command wrongly omitted is an inconvenience; one wrongly included lets an agent run `daemon`.
-- **`mutates` leans YES.** A read mislabelled as a mutation costs a confirmation; a mutation mislabelled as a read lets an agent close a steel thread believing it is querying.
+**Read `gen_inventory.sh` before starting** -- it now REFUSES a missing or header-only probe TSV rather than writing 26 husks at the good revision's stamp. The refusal is the thing that makes this job possible to do wrong loudly instead of quietly.
 
 ## TODO
 
-1. **NO SURFACE-TEXT BASELINE EXISTS ANYWHERE, and it is a gap in my lane** (answered to cc, 14:50Z). `drift_check.sh` compares **verb sets only** -- not flags, not one character of prose. cc changed two user-facing messages under D37 and **nothing I own would have noticed**; the table records none of the old strings, so it did not go stale, but that is luck. **Not fixed in the same breath because a text baseline is a contract question -- WHICH strings are parity-bound? -- and that is vc's.** Raise it as one.
-2. **The inventory re-probe is RULED and is mine to run** (vc, 14:21Z): re-measure against a worktree at `69d42a7`, **report the diff, adjudicate nothing, and commit the TSV either way.** That moves 26 artefacts from stamp-only into content-checked.
-3. **`intent llm` guide (AC-09.4)** -- unexamined beyond EXP-03. The agent guide needs more than a command list, and nothing has established what.
+1. **`intent llm` guide (AC-09.4)** -- unexamined beyond EXP-03. The agent guide needs more than a command list, and nothing has established what.
+2. **The surface-text baseline is now vc's to rule** (raised 15:10Z with cc's datum). See "Open with others".
+
+## Done this session
+
+**EXP-03 built, all three parts** (AC-09.1). `exposed_on_mcp` + `read_or_mutate` on **111 rows** -- 103 family entries AND the 8 `new_surface` rows, because that is where the exposure question is sharpest (`daemon`, `mcp`, `ingest`) and a check walking only `.families` would have gone green with the riskiest rows undeclared.
+
+**The definition is the load-bearing part.** `read` means no invocation, under ANY flag, changes durable state -- store, working tree, or config. Five rows lie under the other reading and all five were found by reading source: `at lint` (`--fix`), `doctor` (`--fix` mv's both configs), `llm usage_rules` (`--symlink`), `todo list` (generates `todo.md` when absent -- reads on every run AFTER the first, so it is invisible in testing and appears on a fresh clone), `export` (writes files it can clobber).
+
+**22 of 111 flagged, deliberately scarce.** The first renderer folded `grounded_in` into the review block and produced ~40 -- most just citing their source, which is the opposite of wanting a second opinion. Noise on a review list is spent where the reviewer attention was meant to go.
 
 ## Open with others
 
-1. **cc has twice reported the seven verbs as blocking; they landed at `8999adc`.** Verified at HEAD again 14:50Z, `st cancel --reason` with them. Sent them the query to run themselves. **If their checkout disagrees, that matters far more than the rows.**
-2. **EXP-04 ruled the OTHER WAY by vc, and better than my proposal.** I offered a per-row semantics stamp; vc ruled the obligation belongs on the RULING -- **a decision that changes the MODEL must name the SURFACES it moves**, now standing in `design.md`. Cost proportional to the CHANGE, not to the surface, and **the knowledge is where the ruling is written and cannot be put in the table at any price.** My `known_exposures` entry stays for the residue.
-3. **vc:** the `sync --to-store` vs `ingest` boundary is still undeclared.
+1. **NO SURFACE-TEXT BASELINE EXISTS ANYWHERE -- raised to vc as a contract question, 15:10Z.** `drift_check.sh` compares verb sets only; not flags, not one character of prose. **cc supplied the datum that makes it worth ruling: when D37 lands on the schema faces ~30 more strings move, and those are PUBLISHED (`intent schema` prints them).** So the question is sharper than "which strings are parity-bound": do the published faces get a baseline even if help text does not? The faces are the first part of this surface with a consumer who would notice a silent change.
+2. **The seven verbs are CLOSED and the boundary was cc's, not mine** (cc, 14:56Z). Rows landed at `8999adc`; the seven `render.rs` match arms are cc's and had not been started. Their `cli_end_to_end` could not tell the two worlds apart -- `unwired` and a real state refusal both produce a refusal -- so a test written to make an ask concrete made it invisible. Nothing outstanding on my side.
+3. **EXP-04 ruled the OTHER WAY by vc, and better than my proposal.** I offered a per-row semantics stamp; vc ruled the obligation belongs on the RULING -- **a decision that changes the MODEL must name the SURFACES it moves**, now standing in `design.md`. Cost proportional to the CHANGE, not the surface, and the knowledge is where the ruling is written and cannot be put in the table at any price. My `known_exposures` entry stays for the residue.
+4. **vc:** the `sync --to-store` vs `ingest` boundary is still undeclared, and it now has a dependent -- `sync` is flagged for review precisely because that boundary decides whether it stays exposed.
 
 ## Watch-outs
 
@@ -50,7 +46,8 @@ Durable only. Everything settled lives in the artefact that carries it.
 - **ENUMERATE THE POPULATION; DO NOT SNIFF FOR A MARKER.** A needle reports on the set it MATCHED. Banner-sniffing would have covered 1 file in 30; `jq '.families[].entries[]'` missed a whole top-level array; a mutation went red from a DIFFERENT guard because the fixture never reached the branch. **A structured query is a needle too.**
 - **A CONTROL REFUSES; DOCUMENTATION REMINDS.** The formatter fixed-point refusal caught `*emphasis*` **three times today**, once inside the entry I was writing about registers that predict defects without preventing them. The exposure register described that class for a day and I still wrote it.
 - **A MISSING MEASUREMENT MUST PRESENT AS A REFUSAL TO MEASURE, NEVER AS A MEASUREMENT OF NOTHING.** `gen_inventory.sh` would have written 26 husks carrying the good revision's stamp -- and every generated file's header tells the reader to re-run it.
-- **BACKTICKS IN A DOUBLE-QUOTED SHELL STRING ARE COMMAND SUBSTITUTION.** Twice today: a `git commit -m` message and a `die` message that mangled itself. Use `-F` with a file; backticks inside SINGLE quotes are literal.
+- **A QUOTE CHARACTER INSIDE A QUOTING CONTEXT, IN PROSE NOBODY PROOF-READS FOR SYNTAX.** Three hits, two shapes. Backticks in a DOUBLE-quoted string are command substitution (a `git commit -m` message; a `die` message that mangled itself) -- use `-F` with a file. An apostrophe in a SINGLE-quoted string CLOSES it: `vc's` inside the `JQ_LIB='...'` block turned the rest of the line into shell and bash reported `attention: command not found` from inside what looks like a jq library. **It failed loudly at the wrong layer** -- the error names a shell command, never the string that swallowed it. Scan the block, do not trust the read.
+- **A SKIP LIST IS A PROMISE THAT SOMETHING ELSE RENDERS THE KEY.** My entry-level list was copied from the `new_surface` one and skipped four keys nothing renders. `kind` was live: `st` carries `kind: "family"` and the view has shown it nowhere. **Reading the list is what produced the bad list; the mutation test is what found it.** Verify the promise against the rendered text, or the exemption becomes the hole.
 - **I REASON FROM THE DOCUMENT WITHOUT MEASURING THE THING.** `st_zero`, `wp scope`, and `st new -s` -- where I read the ratified machine and vc measured the flag, which INVERTED the reading. **Reasoning from a ratified document feels rigorous, which is what makes an unmeasured premise underneath it durable.**
 - **A red test is evidence about the tree it RAN AGAINST.** cc's failing assertion was real and caused by a stale checkout; my first mutant's red came from an unrelated guard.
 - **ic cannot certify a green suite.** matts owns the authoritative run; everything here is evidence.

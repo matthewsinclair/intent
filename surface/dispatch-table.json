@@ -10,11 +10,15 @@
     "`observed` records what v2 measurably does, at the revision stamped above. `target` records what v3 will do. They are separate fields because they genuinely differ, and a table that conflated them would launder a v2 defect into a v3 requirement -- which is the failure mode an output-equality parity suite cannot catch (parity.md, 'Parity properties beyond output equality').",
     "`target.state: pending-hv` is an honest blank, not an omission. hv ratified the `corrected` class at the 2026-08-14 bounce; WHICH v2 behaviours join it is a scope call still open. A guess recorded here would be indistinguishable from a ruling by the time WP-05 read it.",
     "Every claim carries an `evidence_class`, because 'verified' is not one thing. `measured` = a probe was run against v2 at the stamped revision. `documented-default` = a framework's published default, correct today and CHANGEABLE by a major bump or a single builder setting. `read` = taken from source without executing it. The distinction was forced by vc catching this file claiming clap's exit code was measured -- it cannot have been, since no clap dependency exists in the workspace yet. A documented default that goes unpinned is a finding with a silent expiry date.",
-    "`disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep \u00b7 retire \u00b7 deviate \u00b7 pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.",
+    "`disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep · retire · deviate · pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.",
     "Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them.",
     "There is a FIFTH parity class, `undefined` (vc ruling, 2026-08-14, on `intent config` as its first member). `corrected` needs a v2 antecedent to correct; silence is not an antecedent. Where v2 exhibited NO behaviour at all, v3 is DESIGNING rather than porting or correcting, and that is a different decision needing a different reviewer. Folding it into `corrected` would hide a design decision inside a bug-fix class.",
     "Each family carries `bats_coverage`: how many test FILES exercise it through the dispatcher (`files_real`), how many name it but never reach the CLI (`files_vacuous`), and how many individual tests actually burn. Produced by `parity/tools/coverage_map.sh`, which joins these families against `burn-baseline.tsv`. The join is the point -- a naive grep reports `treeindex` as well covered when all 53 of its tests exec `bin/intent_treeindex` directly and the dispatcher never sees them. **A family with no burning coverage is a parity hole: v3 can change it freely and the conformance suite stays green.**",
-    "`known_exposures` records defects this artefact does NOT currently have but is not protected against. A file that is clean by luck and a file that is clean by construction look identical in a diff, and only one of them stays clean."
+    "`known_exposures` records defects this artefact does NOT currently have but is not protected against. A file that is clean by luck and a file that is clean by construction look identical in a diff, and only one of them stays clean.",
+    "Every entry declares `exposed_on_mcp` and `read_or_mutate` (AC-09.1, from EXP-03). The MCP tool list renders from this file like everything else, and the alternative was deriving it from the verb -- which dies on one pair alone: `ac gate` READS while `wp done` consults the same gate and WRITES, and the two do not share a spelling. Declare, do not derive. Both fields are REQUIRED on every row and the generator refuses a row missing either, because a defaulted field is how a new command joins the agent surface without anyone deciding it should.",
+    "`read_or_mutate` is a claim about the WHOLE entry, not about its default invocation. `read` means no invocation of the entry, under any flag, changes durable state -- not the store, not the working tree, not a config file. Everything else is `mutate`. Defined that way because the other reading (\"what it does when you just run it\") makes four rows lie: `at lint` is a report until `--fix`, `doctor` is a diagnosis until `--fix`, `llm usage_rules` prints until `--symlink`, and `todo list` prints unless `todo.md` is absent, in which case it generates it. That last one is the worst shape available -- it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone. A field that describes the default is one an agent can be wrong about while reading it correctly.",
+    "The two fields lean in OPPOSITE directions when the answer is uncertain, and both leans take the cheap error over the symmetric one. `exposed_on_mcp` leans FALSE: a command wrongly omitted is an inconvenience a human fixes in one line, while one wrongly included lets an agent run `daemon`. `read_or_mutate` leans MUTATE: a read mislabelled as a mutation costs a confirmation prompt, while a mutation mislabelled as a read lets an agent close a steel thread believing it is querying.",
+    "`mcp_review` is present only on rows wanting a second opinion, and it exists because of how review actually fails: correcting a proposed classification is ANCHORED by the proposal (vc, 2026-08-15). Nobody re-derives a table this size row by row -- they review, and review is biased toward accepting. So the rows are MARKED rather than the confidence scored. `uncertain` names WHICH field is soft, because the two lean opposite ways and an unqualified \"uncertain\" is unactionable; `why_uncertain` gives the reason to argue with. `counterintuitive` flags a value that disagrees with the obvious reading of the verb -- precisely where a reviewer skimming nods it through, and where classifying from the name would have gone wrong. `grounded_in` cites the source actually read; its ABSENCE means the row was classified from the verb and the help text alone, which is a weaker claim and is meant to look like one."
   ],
   "invariants": [
     {
@@ -140,11 +144,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "help",
-                "--help",
-                "-h"
-              ],
+              "spellings": ["help", "--help", "-h"],
               "type": "bool",
               "help": "Print the usage block",
               "note": "`help` is a bare word arm, not a flag; grouped here because the three spellings share one arm (bin/intent_st:1614)"
@@ -183,7 +183,9 @@
             "state": "pending-hv",
             "question": "INV-07 -- see the invariant; the bare-invocation shape follows INV-05"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
         },
         {
           "path": "st new",
@@ -198,10 +200,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "-s",
-                "--start"
-              ],
+              "spellings": ["-s", "--start"],
               "type": "bool",
               "help": "Mark the new thread in progress immediately"
             }
@@ -247,7 +246,9 @@
             "start_flag_ruled": "RULED by vc, 2026-08-15: **the flag STAYS and performs BOTH declared transitions**, `Triage -> NotStarted -> Wip`. I had flagged it as two edges at once; the measurement reframes it. `-s|--start` is **v2 PARITY, not new surface** (`bin/intent_st:302,381,425`, and in v2's own help as `new [-s|--start] <title>`), and **nothing about the flag changed -- the machine grew a state underneath it.** In v2 `st new` landed at not-started so `-s` was ONE transition; in v3 it enters at `Triage` so the same flag spans two. The triage decision is not skipped: **a user typing `--start` has decided the thread is real work, which IS the triage decision, made explicitly by the same act**, and refusing would ask them to state a conclusion they have already stated.",
             "composition_constraint": "**`st new -s` must COMPOSE `st triage` and `st start`, never construct the thread directly in `Wip`.** Constructing the end state is the obvious implementation and yields two defects at once: a history with no triage event, and an effective `Triage -> Wip` edge **that is not in the ratified machine** -- which either forces AC-04.6 to accept an undeclared edge or drives construction around `transitions.rs`, contradicting D32. The general rule, now in `data-model.md`: **a convenience flag is sugar over declared transitions and never a new edge.** A bundle that cannot be expressed as a sequence of declared transitions is proposing a machine change and goes to hv as one."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "st start",
@@ -284,7 +285,9 @@
             "state": "pending-hv",
             "question": "Does `skipped:` survive as a first-class prefix, or become `ok: <ID> already in progress`? Scripts matching on it exist in the BATS estate."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "st done",
@@ -324,7 +327,9 @@
             "state": "as-observed",
             "note": "The gate becomes an in-process facade call in WP-04 (AC-04.3), not a subprocess. Behaviour and message are parity-bound; the mechanism is not."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "st cancel",
@@ -338,9 +343,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--reason"
-              ],
+              "spellings": ["--reason"],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being cancelled -- required by the machine's guard"
@@ -368,7 +371,9 @@
             "conflict_resolved": "RESOLVED 2026-08-15 -- the guard wins and this row is CORRECTED. I raised it as a conflict the machine and this row could not both survive: `data-model.md` guards every edge into `Cancelled` with `reason recorded`, and v2 `st cancel` took no `--reason` and recorded none (measured, its flags array was empty). cc has wired the CLI to read the flag OPTIONALLY at `2aec5f6`, so the facade refuses with `ReasonRequired` naming what is missing until the row declares it -- and declaring it here is what makes the flag start working. **The refusal is the reason this was safe to leave open**: an unimplemented guard that FAILS LOUD costs a clear error message, where one that silently accepted a cancellation with no reason would have put unexplained Cancelled threads in the record permanently. cc deliberately did not add the flag themselves; the table is mine.",
             "why_not_as_observed": "This row is no longer faithful to v2 and should not pretend to be: v2 cancels with no reason at all. The change is a `corrected` one -- v2's behaviour is the defect (a state entered with no record of why) rather than a contract to preserve."
           },
-          "disposition": "corrected"
+          "disposition": "corrected",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "st triage",
@@ -387,7 +392,9 @@
             "ratification": "hv, 2026-08-15 -- Machine 1 (ThreadStatus) in data-model.md: the `Triage -> NotStarted` edge. `st new` now enters at `Triage`, so without this verb every new thread is stranded in its entry state and the machine's entry point is a trap.",
             "note": "`Triage` is a NEW state, not a rename of a state that had members. v2's `TBC` token means To Be Commenced and maps to `NotStarted` (bin/intent_helpers:544 maps `tbc` and `to be commenced` to the same value), so `Triage` begins with ZERO legacy members and this verb has no v2 caller to be compatible with."
           },
-          "disposition": "new-surface"
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "st hold",
@@ -401,9 +408,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--reason"
-              ],
+              "spellings": ["--reason"],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being held -- required by the machine's guard"
@@ -415,7 +420,9 @@
             "ratification": "hv, 2026-08-15 -- Machine 1: the `NotStarted -> Hold` and `Wip -> Hold` edges, guard `reason recorded`.",
             "note": "`Hold` ALREADY EXISTS as a state and is reachable only by HAND-EDITING a file (cc's archaeology, confirmed): the v2 status filter recognises `hold|on hold -> HOLD` and no verb sets it. So this is not a new state, it is the missing door to a state v2 already renders, which is why the `--status` normaliser could always name a status the tool could not produce."
           },
-          "disposition": "new-surface"
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "st resume",
@@ -434,7 +441,9 @@
             "ratification": "hv, 2026-08-15 -- Machine 1: the `Hold -> Wip` edge, no guard.",
             "note": "Returns to `Wip`, NOT to whichever state the thread was held from. The machine declares one exit edge and this verb implements exactly that one; restoring a remembered prior state would be an undeclared edge and would need the machine changed first."
           },
-          "disposition": "new-surface"
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "st reopen",
@@ -448,9 +457,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--reason"
-              ],
+              "spellings": ["--reason"],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being reopened -- required by the machine's guard"
@@ -462,7 +469,9 @@
             "ratification": "hv, 2026-08-15 -- Machine 1: the `Completed -> Wip` edge, guard `reason recorded`. D32 forbids terminal states, and `Completed` was one.",
             "note": "`st done` RELOCATES the thread directory (measured on the `st done` row above), so this verb has a file-system half that `wp reopen` does not: reopening has to move the directory back. Flagged for cc because the state change is the easy half and the relocation is where a half-applied reopen would leave a thread findable under neither status."
           },
-          "disposition": "new-surface"
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "st reinstate",
@@ -476,9 +485,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--reason"
-              ],
+              "spellings": ["--reason"],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being reinstated -- required by the machine's guard"
@@ -490,7 +497,9 @@
             "ratification": "hv, 2026-08-15 -- Machine 1: the `Cancelled -> NotStarted` edge, guard `reason recorded`.",
             "note": "Lands in `NotStarted`, not in whatever the thread was before it was cancelled, and not in `Triage` -- a reinstated thread has already been triaged once and sending it back to the entry state would ask that decision to be made twice. The verb is spelled `reinstate` to match `ac reinstate`, which already carries this exact meaning at criterion level (undo a withdrawal); one word, one meaning, across both machines."
           },
-          "disposition": "new-surface"
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "st list",
@@ -498,26 +507,20 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--status"
-              ],
+              "spellings": ["--status"],
               "type": "string",
               "value": "<status>",
               "help": "`all`, or a comma-separated list rendered in the order given",
               "accepts": "wip|in progress -> WIP; tbc|not started -> TBC; completed|done -> COMPLETED; cancelled|canceled -> CANCELLED; hold|on hold -> HOLD (case-insensitive, normalised to caps)"
             },
             {
-              "spellings": [
-                "--width"
-              ],
+              "spellings": ["--width"],
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width; 0 or absent means terminal width"
             },
             {
-              "spellings": [
-                "--markdown"
-              ],
+              "spellings": ["--markdown"],
               "type": "bool",
               "help": "Emit canonical GFM instead of terminal rendering",
               "note": "UNDOCUMENTED in v2's usage() block; consumed by `st sync --write`. Real surface, so it is in the table."
@@ -555,7 +558,12 @@
             "tbc_trap": "MEASURED, and it strengthens the ratified migration rule with a second independent witness. In v2 `TBC` IS NOT A STATE AT ALL -- it is a DISPLAY ABBREVIATION of `Not Started`, narrow enough for the table column. Three sites, all read: `canonical_status()` at bin/intent_helpers:544 maps `tbc` AND `to be commenced` to the stored value `Not Started`; bin/intent_st:120 abbreviates `Not Started` to `TBC` for rendering; and the tool's OWN usage text at bin/intent_st:46 spells it out in words -- `tbc, not started -> TBC   To be commenced`. So the ratified rule (v2 `TBC` maps to `NotStarted`, never to `Triage`) is not merely defensible, it is what the tool has always documented about itself. THE SURFACE TRAP THAT FOLLOWS IS MINE: v3 must NOT abbreviate `Triage` as `TBC`, and must NOT accept `--status tbc` as `Triage`. Either would give a familiar token a second meaning in the render column and the filter -- the two places a v2 user reads fastest and checks least. `tbc` should keep resolving to `NotStarted`, exactly as it always has.",
             "render_order": "bin/intent_st:941 pins the display order as a five-element list -- `WIP TBC HOLD COMPLETED CANCELLED`. Six states means this list grows, and `Triage` belongs BEFORE the `Not Started` slot because it precedes it in the machine. Named here because it is a surface fact hiding in an array literal, and a new state that renders in the wrong place looks like a sorting bug rather than a missing decision."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "grounded_in": "bin/intent_st:717-1043 -- no write primitive in the arm"
+          }
         },
         {
           "path": "st show",
@@ -571,14 +579,7 @@
               "type": "enum",
               "arity": "0..1",
               "default": "info",
-              "values": [
-                "info",
-                "design",
-                "impl",
-                "tasks",
-                "acceptance",
-                "all"
-              ]
+              "values": ["info", "design", "impl", "tasks", "acceptance", "all"]
             }
           ],
           "flags": [],
@@ -609,7 +610,12 @@
             "state": "as-observed",
             "note": "`info.md` and `acceptance.md` become GENERATED VIEWS in v3 (D02/D04). `show` reads the view, so its output is unchanged in kind -- but the view's bytes are v3's to define, and every BATS test asserting v2's exact info.md bytes retires under the ratified file-layout class."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "grounded_in": "bin/intent_st:1044-1100 -- no write primitive in the arm"
+          }
         },
         {
           "path": "st edit",
@@ -625,13 +631,7 @@
               "type": "enum",
               "arity": "0..1",
               "default": "info",
-              "values": [
-                "info",
-                "design",
-                "impl",
-                "tasks",
-                "acceptance"
-              ],
+              "values": ["info", "design", "impl", "tasks", "acceptance"],
               "note": "NO `all` -- unlike `show`. Asymmetry is deliberate and correct: there is no single path for `all`."
             }
           ],
@@ -656,7 +656,13 @@
             "state": "as-observed",
             "note": "Under authored-once, `edit` on a GENERATED view (info/acceptance) hands the user a path to a file their edits will lose at the next regeneration. v3 emitting the path unchanged is defensible only if the skew check (AC-03.4) catches the edit. Flagged for the WP-05 surface cut, not decided here."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "counterintuitive": "`edit` is the most obviously-mutating verb name in the table and the command writes nothing -- it is a path resolver, and the entry beside this one already said so in `observed.notes` (\"never launches an editor and never creates the file\", called a historical misnomer). I still had to read bin/intent_st:1125-1141 to stop classifying it as a mutation, which is the argument for declaring the field: the correct fact was ALREADY WRITTEN DOWN one bullet away and the verb name still won. It also inverts the exposure reading -- an $EDITOR launch could not be an MCP tool at all, since it would block on stdio, while a path resolver is one of the safest things here.",
+            "grounded_in": "bin/intent_st:1125-1141 -- 'Pure emit-path ... No touch, no editor'; it prints the absolute path and returns"
+          }
         },
         {
           "path": "st sync",
@@ -664,16 +670,12 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--write"
-              ],
+              "spellings": ["--write"],
               "type": "bool",
               "help": "Write the index; without it the command is a dry run"
             },
             {
-              "spellings": [
-                "--width"
-              ],
+              "spellings": ["--width"],
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width"
@@ -699,7 +701,9 @@
             "state": "as-observed",
             "note": "In v3 `steel_threads.md` is a generated view and the resync is part of the transactional write path (AC-04.1), not a subprocess. The COMMAND survives for explicit regeneration; the implicit call has no v3 analogue because it cannot fall out of date."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "st repair",
@@ -714,9 +718,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--write"
-              ],
+              "spellings": ["--write"],
               "type": "bool",
               "help": "Apply the repairs; without it the command is a dry run"
             }
@@ -750,20 +752,22 @@
             "state": "pending-hv",
             "question": "Does v3's id parser accept a bare number of any length (what :1231 evidently INTENDED), or only the two spellings that measurably work? Reproducing the dead arm faithfully is not an option -- it is unconstructible in clap. Same class as INV-08: a defect whose fix is forced."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "uncertain": ["exposed_on_mcp"],
+            "why_uncertain": "Bulk metadata rewrite across threads. Leaning closed because the blast radius is every thread at once and a wrong repair is not obvious in the output."
+          }
         },
         {
           "path": "st organize",
           "help": "Organize ST files in directories by status",
-          "aliases": [
-            "st organise"
-          ],
+          "aliases": ["st organise"],
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--write"
-              ],
+              "spellings": ["--write"],
               "type": "bool",
               "help": "Move the files; without it the command is a dry run"
             }
@@ -789,7 +793,9 @@
             "ratification": "hv, 2026-08-14 -- organize (both faces) is planned vestigial by construction; a strictly structured model cannot hold data in the wrong spot, so the disorder it repairs cannot arise. Confirmed finally at the surface cut (WP-05/06).",
             "note": "Retiring this face also dissolves the pre-existing Highlander violation: `bin/intent_organize` and `bin/intent_st organize` are two implementations of one concern, both registered in MODULES.md, and they print different things against the same input (117B vs 73B, no shared output)."
           },
-          "disposition": "retire"
+          "disposition": "retire",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "st bootstrap",
@@ -797,23 +803,17 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--audit-only"
-              ],
+              "spellings": ["--audit-only"],
               "type": "bool",
               "help": "Show gap analysis only, no changes"
             },
             {
-              "spellings": [
-                "--dry-run"
-              ],
+              "spellings": ["--dry-run"],
               "type": "bool",
               "help": "Show what would change, no writes"
             },
             {
-              "spellings": [
-                "--deliverable"
-              ],
+              "spellings": ["--deliverable"],
               "type": "string",
               "help": "Target a single deliverable (D2-D11)",
               "value": "<id>"
@@ -850,7 +850,13 @@
             "never_built": false
           },
           "disposition": "corrected",
-          "cross_ref": "THE surviving face. The top-level `st_zero` family is the deleted root spelling; see its entry for the divergence cost."
+          "cross_ref": "THE surviving face. The top-level `st_zero` family is the deleted root spelling; see its entry for the divergence cost.",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "uncertain": ["exposed_on_mcp"],
+            "why_uncertain": "One-time project scaffolding. An agent that runs it in an already-bootstrapped project is doing something nobody asked for."
+          }
         }
       ],
       "bats_coverage": {
@@ -883,11 +889,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "help",
-                "--help",
-                "-h"
-              ],
+              "spellings": ["help", "--help", "-h"],
               "type": "bool",
               "help": "Print the usage block",
               "note": "bare-word arm plus the two flag spellings"
@@ -934,7 +936,9 @@
             "state": "pending-hv",
             "question": "INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
         },
         {
           "path": "wp new",
@@ -981,7 +985,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "wp start",
@@ -1020,7 +1026,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "wp done",
@@ -1068,7 +1076,12 @@
             "note": "The gate becomes an in-process facade call at WP-04 (AC-04.3). Behaviour and message are parity-bound; the mechanism is not.",
             "machine_note": "hv, 2026-08-15 -- Machine 2 ratifies `wp done` REFUSED on a BLOCKED gate, and the measured v2 behaviour above ALREADY does that (exit 1 when the WP group's contract is BLOCKED). So the ratification adds no surface change here; the change is `wp reopen` below. Recorded because `as-observed` staying correct after a ratification is a fact worth stating -- the alternative is a later reader assuming this row was never re-checked."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "note": "Pairs with `ac gate` below and is the reason the field is DECLARED, not derived: `wp done` consults the same gate `ac gate` runs, and then WRITES. The two do not share a spelling, so no naming rule separates them."
+          }
         },
         {
           "path": "wp reopen",
@@ -1082,9 +1095,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--reason"
-              ],
+              "spellings": ["--reason"],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being reopened -- required by the machine's guard"
@@ -1096,7 +1107,9 @@
             "ratification": "hv, 2026-08-15 -- Machine 2 (WpStatus): the `Done -> Wip` edge, guard `reason recorded`.",
             "note": "THE URGENT ONE, and it is not urgent in the abstract: its absence is CURRENTLY CORRUPTING this thread's own tracking data. Three of five WPs disagree with their own gate (WP-02 Done/BLOCKED, WP-04 Done/BLOCKED, WP-05 Wip/PASS), because adding an AC reopens a WP in the contract while nothing moves the status back. Until this verb exists the ONLY repair is hand-editing the file the CLI exists to own -- which is the same trap `ac satisfy` had before `ac unsatisfy`, in the same tool, found the same way. Second instance of one class; the guard against a third is Machine 2 itself, which now declares the edge whether or not anyone has built it."
           },
-          "disposition": "new-surface"
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "wp unstart",
@@ -1115,7 +1128,9 @@
             "ratification": "hv, 2026-08-15 -- Machine 2: the `Wip -> NotStarted` edge, no guard.",
             "note": "No `--reason`: the machine declares no guard on this edge, and adding one would be a stricter surface than the ratified machine rather than a safer one. Unstarting is the cheap correction of a mis-click; reopening a closed WP is a claim about finished work, which is why only the second one has to be justified."
           },
-          "disposition": "new-surface"
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "wp list",
@@ -1165,7 +1180,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read"
         },
         {
           "path": "wp show",
@@ -1205,7 +1222,9 @@
             "state": "as-observed",
             "note": "WP info.md becomes a generated view in v3 (D02/D04); the command reads the view, so its output is unchanged in kind."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read"
         }
       ],
       "bats_coverage": {
@@ -1279,7 +1298,9 @@
             "state": "pending-hv",
             "question": "INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
         },
         {
           "path": "ac list",
@@ -1319,7 +1340,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read"
         },
         {
           "path": "ac status",
@@ -1359,7 +1382,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read"
         },
         {
           "path": "ac satisfy",
@@ -1378,9 +1403,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--evidence"
-              ],
+              "spellings": ["--evidence"],
               "type": "string",
               "help": "The named evidence reference",
               "value": "<ref>",
@@ -1417,7 +1440,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "ac unsatisfy",
@@ -1443,7 +1468,9 @@
             "consequence": "Refuses a test-backed AC (satisfaction there is COMPUTED from covering green ATs and never stored -- unsetting it would be writing to a derived field) and refuses an AC that is not satisfied (nothing to undo; silent success on a no-op is INV-01 territory).",
             "placement": "FIRST sub-verb addition in this canon: every `new_surface[]` entry is a top-level command (search, sync, schema, export, ingest, backup, daemon, mcp). This one is recorded as a FAMILY ENTRY instead, because the spine places verbs under their family from `families[].entries[]` and a bare `ac unsatisfy` in the top-level array would have no parent. Flagged rather than assumed -- cc owns the spine and should confirm it builds from here; vc owns whether the contract wants one home or two."
           },
-          "disposition": "new-surface"
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "ac gate",
@@ -1484,7 +1511,13 @@
             "state": "as-observed",
             "note": "AC-04.3 requires v3 to reproduce v2 gate verdicts across the corpus contracts. This is the single highest-value parity row in the family."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "counterintuitive": "`gate` reads as an enforcement action that stamps a verdict somewhere. It computes and reports; the write lives in the caller (`st done` / `wp done`). vc's own example of why derivation-from-name dies.",
+            "grounded_in": "bin/intent_acceptance:973 (cmd_ac_gate) -- no write primitive in the body"
+          }
         },
         {
           "path": "ac descope",
@@ -1503,26 +1536,20 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--to"
-              ],
+              "spellings": ["--to"],
               "type": "string",
               "help": "The thread the requirement moved to",
               "value": "<stid>",
               "required": true
             },
             {
-              "spellings": [
-                "--by"
-              ],
+              "spellings": ["--by"],
               "type": "string",
               "help": "Who decided",
               "value": "<who>"
             },
             {
-              "spellings": [
-                "--reason"
-              ],
+              "spellings": ["--reason"],
               "type": "string",
               "help": "Why",
               "value": "<text>"
@@ -1558,7 +1585,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "ac rescope",
@@ -1602,7 +1631,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "ac withdraw",
@@ -1621,18 +1652,14 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--reason"
-              ],
+              "spellings": ["--reason"],
               "type": "string",
               "help": "Why it was dropped -- REQUIRED",
               "value": "<text>",
               "required": true
             },
             {
-              "spellings": [
-                "--by"
-              ],
+              "spellings": ["--by"],
               "type": "string",
               "help": "Who decided",
               "value": "<who>"
@@ -1669,7 +1696,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "ac reinstate",
@@ -1713,7 +1742,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         }
       ],
       "bats_coverage": {
@@ -1787,7 +1818,9 @@
             "state": "pending-hv",
             "question": "INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
         },
         {
           "path": "at list",
@@ -1826,7 +1859,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read"
         },
         {
           "path": "at lint",
@@ -1840,9 +1875,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--fix"
-              ],
+              "spellings": ["--fix"],
               "type": "bool",
               "help": "Migrate the mechanical part of a legacy row -- and REFUSE what cannot migrate without loss"
             }
@@ -1875,7 +1908,13 @@
             "state": "as-observed",
             "note": "**The refuse-lossy discipline is the load-bearing part and must survive into WP-10's migrator.** `--fix` once half-migrated rows and destroyed the only link a row had; the SUGGESTION was lossy before the fixer was, so every human following it lost the same data. A tool that cannot finish a job must not start it."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "counterintuitive": "`lint` is the canonical read-only verb and `intent at lint --fix` migrates rows in place. Classified by the whole entry, not by its default invocation.",
+            "grounded_in": "bin/intent_acceptance:1266 (`--fix) fix=1`), at_lint_fix / at_fix_line"
+          }
         },
         {
           "path": "at green",
@@ -1921,9 +1960,7 @@
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
             }
           },
-          "aliases": [
-            "at done"
-          ],
+          "aliases": ["at done"],
           "target": {
             "state": "corrected",
             "spelling": "intent at green",
@@ -1932,7 +1969,9 @@
             "consequence": "Three instances on 2026-08-15 alone of a green that proved nothing, none of which had ever been seen red: four vacuous greps that never opened a file, a normaliser that silently did nothing under BSD sed, and a `touch`ed canary whose empty diff sent the run down the wrong branch. v3 restores the from-red guard.",
             "open_to_cc": "v2 carries FOUR guards on `at`, not one, and only the from-guard was raised. The others: `na` refuses on a test-backed AT; a non-`na` status refuses on a `(non-test)` AT; and green/red on a test-backed row refuse unless the CITED TEST FILE RESOLVES on disk (issue 0015 -- catching a rename at the point of the lie rather than after a stale green has counted as coverage for months). Please report whether v3 has those three, because if they went with the from-guard the divergence is four times what was reported."
           },
-          "disposition": "corrected"
+          "disposition": "corrected",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "at red",
@@ -1973,13 +2012,13 @@
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
             }
           },
-          "aliases": [
-            "at notdone"
-          ],
+          "aliases": ["at notdone"],
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "at na",
@@ -2024,7 +2063,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         }
       ],
       "bats_coverage": {
@@ -2088,7 +2129,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
         },
         {
           "path": "issues list",
@@ -2096,9 +2139,7 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--kind"
-              ],
+              "spellings": ["--kind"],
               "type": "enum",
               "help": "Which bucket to list",
               "value": "open|closed|all",
@@ -2131,7 +2172,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read"
         },
         {
           "path": "issues add",
@@ -2145,9 +2188,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--severity"
-              ],
+              "spellings": ["--severity"],
               "type": "enum",
               "help": "Severity",
               "value": "critical|high|medium|low",
@@ -2178,13 +2219,13 @@
               "why": "probe matrix at the stamped revision (bare / --help / unknown flag / outside a project), four invocations per command, single-argument probes only"
             }
           },
-          "aliases": [
-            "issues new"
-          ],
+          "aliases": ["issues new"],
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "issues show",
@@ -2198,9 +2239,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--json"
-              ],
+              "spellings": ["--json"],
               "type": "bool",
               "help": "Emit as JSON instead of prose"
             }
@@ -2231,7 +2270,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read"
         },
         {
           "path": "issues close",
@@ -2273,7 +2314,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "issues open",
@@ -2304,9 +2347,7 @@
             ],
             "stdout": "confirmation",
             "stderr": "`error: ...` on stderr (INV-01)",
-            "side_effects": [
-              "Moves the issue directory back"
-            ],
+            "side_effects": ["Moves the issue directory back"],
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
@@ -2315,7 +2356,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         }
       ],
       "bats_coverage": {
@@ -2350,9 +2393,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--json"
-              ],
+              "spellings": ["--json"],
               "type": "bool",
               "help": "Emit the DOING/TODO/DONE view as JSON on stdout"
             }
@@ -2394,7 +2435,13 @@
             "state": "pending-hv",
             "question": "INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "counterintuitive": "Bare `intent todo` is the default read of the whole tool and it inherits `list`'s generate-on-absent write.",
+            "grounded_in": "bin/intent_todo:380 (`COMMAND=\"${1:-list}\"`) -- bare `todo` IS `todo list`"
+          }
         },
         {
           "path": "todo list",
@@ -2402,9 +2449,7 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--json"
-              ],
+              "spellings": ["--json"],
               "type": "bool",
               "help": "Emit the DOING/TODO/DONE view as JSON on stdout"
             }
@@ -2432,7 +2477,13 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "counterintuitive": "`list` is THE read verb of this table and this one writes a file the first time it is called. It is also the worst shape for a bug: it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone.",
+            "grounded_in": "bin/intent_todo:384-393 -- the else branch calls generate(), which does `mv \"$tmp\" \"$TODO_FILE\"` at :246"
+          }
         },
         {
           "path": "todo update",
@@ -2453,9 +2504,7 @@
             ],
             "stdout": "confirmation",
             "stderr": "`error: ...` on stderr (INV-01)",
-            "side_effects": [
-              "Rewrites intent/todo.md"
-            ],
+            "side_effects": ["Rewrites intent/todo.md"],
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
@@ -2465,7 +2514,9 @@
             "state": "as-observed",
             "note": "In v3 this is a view regeneration on the WP-03 renderer, and the skew check (AC-03.4) makes a stale todo.md detectable rather than merely refreshable."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "todo done",
@@ -2480,16 +2531,12 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--flush"
-              ],
+              "spellings": ["--flush"],
               "type": "bool",
               "help": "Advance the DONE watermark to now, clearing the DONE view"
             },
             {
-              "spellings": [
-                "--prune"
-              ],
+              "spellings": ["--prune"],
               "type": "bool",
               "help": "Emit the DONE items for archiving, then flush"
             }
@@ -2525,7 +2572,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "todo notdone",
@@ -2564,7 +2613,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "todo toggle",
@@ -2603,7 +2654,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         }
       ],
       "bats_coverage": {
@@ -2673,7 +2726,12 @@
             "ratification": "hv 2026-08-14 bounce (the `corrected` class); forced rather than chosen -- clap rejects unrecognised arguments by default",
             "behaviour": "Unknown arguments refused, exit 1 per INV-02."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "grounded_in": "bin/intent_info -- no write primitive in the file"
+          }
         }
       ],
       "bats_coverage": {
@@ -2756,11 +2814,7 @@
                   "key": "backup.schedule",
                   "type": "string",
                   "default": "daily",
-                  "values": [
-                    "hourly",
-                    "daily",
-                    "weekly"
-                  ],
+                  "values": ["hourly", "daily", "weekly"],
                   "meaning": "Base cadence. The daemon takes a snapshot when the newest one is older than this interval.",
                   "note": "ENUMERATED, NOT A CRON EXPRESSION, and that is a decision rather than a simplification. A cron string is a mini-language embedded in a hand-edited config file -- the shape behind the 0012 quoting scar -- and it is SILENTLY wrong when mistyped rather than refused. D35 fixes the retention tiers at day/week/month, so arbitrary cadences have nowhere to land anyway; a schedule coarser than a tier simply leaves that tier unfilled, which needs no special case."
                 },
@@ -2792,7 +2846,13 @@
               "carry_forward": "vc, 2026-08-15, to hold rather than act on: **if config ever enters the model the way the whiteboard did under D30, the setter question returns as a D32 question rather than a surface preference** -- _a state that can be entered and not left is a missing mutation, not a missing flag_. It is NOT a D32 question today, because `config.json` is project configuration and not model state. Recorded on the row so the trigger is attached to the thing it would change."
             }
           },
-          "disposition": "pending"
+          "disposition": "pending",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "uncertain": ["exposed_on_mcp", "read_or_mutate"],
+            "why_uncertain": "The only row uncertain on BOTH fields, and the only row whose parity class is already `undefined`. `bin/intent_config` is dispatched to AND sourced as a library, and it carries a default-config writer (`mkdir -p` + `cat >` at :100-102) that I did not trace to the display path. Leaning mutate under the safe direction rather than guessing the call graph."
+          }
         },
         {
           "path": "config get",
@@ -2813,7 +2873,9 @@
             "unknown_key_refuses": "AN UNKNOWN KEY EXITS NON-ZERO AND SAYS SO. It must NOT print an empty line at exit 0, because empty is indistinguishable from a key legitimately set to empty -- the same absence-as-meaning collapse that makes an absent retention count different from `0`. A user scripting against this needs the two cases separable, and the only place that can be decided is here.",
             "scope_caution": "hv, 2026-08-15: this is USER-FACING project configuration. Intent dogfoods itself so this repo's own `config.json` is also a dev artefact, but that is a coincidence of the project and not a property of the command."
           },
-          "disposition": "new-surface"
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read"
         },
         {
           "path": "config set",
@@ -2840,7 +2902,13 @@
             "typed_writes": "VALUES ARE WRITTEN WITH THEIR DECLARED TYPE, NOT AS STRINGS. `config set backup.enabled false` must write JSON `false`, not `\"false\"` -- a non-empty string is truthy nearly everywhere, so the string form would turn `disable the scheduled backup` into `enable it`, which is the worst available direction for that particular key. The type comes from the same schema that validates the key, so a value that cannot be coerced is a refusal rather than a cast.",
             "not_model_state": "`config.json` is project configuration, NOT model state, so this writes the file rather than mutating through the store -- and D32's every-state-is-leavable reasoning does not apply. vc's carry-forward on the `config` row above records the trigger that would change that: if configuration ever enters the model the way the whiteboard did under D30, this becomes a D32 question rather than a surface one."
           },
-          "disposition": "new-surface"
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "uncertain": ["exposed_on_mcp"],
+            "why_uncertain": "Leaned OPEN against the standing lean, so it wants a look. hv ruled config is legitimate per-project surface; that ruling was about the keys existing, not about who may write them. An agent that can write config can turn `backup.enabled` off."
+          }
         }
       ],
       "bats_coverage": {
@@ -2873,26 +2941,19 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--with-st0000"
-              ],
+              "spellings": ["--with-st0000"],
               "type": "bool",
               "help": "Bootstrap all ST0000 deliverables after init"
             },
             {
-              "spellings": [
-                "--lang"
-              ],
+              "spellings": ["--lang"],
               "type": "string",
               "help": "Comma- or space-separated languages to install canon for",
               "value": "<list>",
               "accepts": "eg `--lang elixir` or `--lang elixir,rust,shell`"
             },
             {
-              "spellings": [
-                "--help",
-                "-h"
-              ],
+              "spellings": ["--help", "-h"],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -2937,7 +2998,13 @@
             "state": "as-observed",
             "note": "v3 additionally stamps `project_id` (the D15 cloud seam) at init and at migration."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "uncertain": ["exposed_on_mcp"],
+            "why_uncertain": "Creating a project is a human's decision about a directory, not a task step."
+          }
         }
       ],
       "bats_coverage": {
@@ -2964,26 +3031,17 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--force",
-                "-f"
-              ],
+              "spellings": ["--force", "-f"],
               "type": "bool",
               "help": "Force recreation of config even if it exists"
             },
             {
-              "spellings": [
-                "--quiet",
-                "-q"
-              ],
+              "spellings": ["--quiet", "-q"],
               "type": "bool",
               "help": "Suppress informational output"
             },
             {
-              "spellings": [
-                "--help",
-                "-h"
-              ],
+              "spellings": ["--help", "-h"],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -3025,7 +3083,9 @@
             "state": "pending-hv",
             "question": "The missing `error:` prefix is an INV-01 violation and a candidate `corrected` member. Same shape as `doctor` and `fileindex`."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate"
         }
       ],
       "bats_coverage": {
@@ -3052,34 +3112,22 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--fix",
-                "-f"
-              ],
+              "spellings": ["--fix", "-f"],
               "type": "bool",
               "help": "Attempt to fix issues automatically"
             },
             {
-              "spellings": [
-                "--verbose",
-                "-v"
-              ],
+              "spellings": ["--verbose", "-v"],
               "type": "bool",
               "help": "Show detailed information"
             },
             {
-              "spellings": [
-                "--quiet",
-                "-q"
-              ],
+              "spellings": ["--quiet", "-q"],
               "type": "bool",
               "help": "Only show errors and warnings"
             },
             {
-              "spellings": [
-                "--help",
-                "-h"
-              ],
+              "spellings": ["--help", "-h"],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -3126,7 +3174,13 @@
             ],
             "question_sharpened_by_them": "BOTH obligations above make the open exit-code question materially heavier, and this is new evidence for a decision hv has not yet made. When `doctor` only reported configuration tidiness, `reportable but not enforceable` was a mild gap. It now detects (a) tracking data that is actively lying about whether work is finished and (b) a backup of the DURABLE SSOT that may never have run. Those are not advisory findings. A check that cannot fail a CI job is one nobody is obliged to read -- which is the unwired-guard shape dc measured: VISIBLE IS NOT CLOSED."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "counterintuitive": "`doctor` is a diagnostic in every other tool that ships one, and `--fix` moves the global config and the project config aside. The diagnosis is the default; the entry is still a mutation.",
+            "grounded_in": "bin/intent_doctor:66 (`-f|--fix`), :216 and :308 both `mv` real files"
+          }
         }
       ],
       "bats_coverage": {
@@ -3153,26 +3207,19 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--backup-dir"
-              ],
+              "spellings": ["--backup-dir"],
               "type": "string",
               "help": "Custom backup directory name",
               "value": "<dir>",
               "default": ".backup/backup-TIMESTAMP"
             },
             {
-              "spellings": [
-                "--no-backup"
-              ],
+              "spellings": ["--no-backup"],
               "type": "bool",
               "help": "Skip backup creation (dangerous)"
             },
             {
-              "spellings": [
-                "--help",
-                "-h"
-              ],
+              "spellings": ["--help", "-h"],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -3210,7 +3257,9 @@
             "ratification": "D09 -- migration floor v2.19.0, two-hop; v2's ledger is never reimplemented in Rust",
             "behaviour": "The v3 migrator (WP-10) is the successor surface: `intent ingest --from-md` is its engine."
           },
-          "disposition": "retire"
+          "disposition": "retire",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate"
         }
       ],
       "bats_coverage": {
@@ -3238,18 +3287,13 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--dry-run"
-              ],
+              "spellings": ["--dry-run"],
               "type": "bool",
               "help": "Preview changes without making them",
               "note": "OPPOSITE polarity to `st organize --write`: this face acts by default, that one previews by default"
             },
             {
-              "spellings": [
-                "--help",
-                "-h"
-              ],
+              "spellings": ["--help", "-h"],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -3287,7 +3331,9 @@
             "note": "Retiring both faces dissolves the Highlander violation rather than resolving it -- nobody has to choose which implementation was right."
           },
           "disposition": "retire",
-          "cross_ref": "`st organize` is the other face; see the `st` family."
+          "cross_ref": "`st organize` is the other face; see the `st` family.",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate"
         }
       ],
       "bats_coverage": {
@@ -3356,7 +3402,9 @@
             "state": "pending-hv",
             "question": "Both defects are INV-01/INV-06 members awaiting the same scope ruling."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
         },
         {
           "path": "agents init",
@@ -3364,9 +3412,7 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--template"
-              ],
+              "spellings": ["--template"],
               "type": "string",
               "help": "Initial content from a named template",
               "value": "<name>"
@@ -3394,7 +3440,12 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "grounded_in": "intent/plugins/agents/bin/intent_agents:196-216 -- cp of AGENTS.md / RULES.md / ARCHITECTURE.md"
+          }
         },
         {
           "path": "agents generate",
@@ -3420,7 +3471,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "agents sync",
@@ -3437,9 +3490,7 @@
             ],
             "stdout": "confirmation",
             "stderr": "`error: ...` on stderr (INV-01)",
-            "side_effects": [
-              "Rewrites AGENTS.md at project root"
-            ],
+            "side_effects": ["Rewrites AGENTS.md at project root"],
             "notes": "AGENTS.md is THE proven generated-committed-view precedent that D04 generalises to info.md, acceptance.md, steel_threads.md and todo.md.",
             "evidence_class": {
               "class": "read",
@@ -3449,7 +3500,12 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "grounded_in": "intent/plugins/agents/bin/intent_agents:693 -- backs up AGENTS.md then rewrites it"
+          }
         },
         {
           "path": "agents validate",
@@ -3478,7 +3534,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read"
         },
         {
           "path": "agents template",
@@ -3488,9 +3546,7 @@
               "name": "subcommand",
               "type": "subcommand",
               "arity": "0..1",
-              "values": [
-                "list"
-              ]
+              "values": ["list"]
             }
           ],
           "flags": [],
@@ -3516,7 +3572,13 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "uncertain": ["read_or_mutate"],
+            "why_uncertain": "No write primitive found near the arm, but I did not read the arm itself -- this is the one row classified `read` without either grounding or an obvious reading to fall back on."
+          }
         }
       ],
       "bats_coverage": {
@@ -3590,7 +3652,9 @@
             "ratification": "AC-04.4 -- every facade error is typed and renders a remedy with its full cause chain, with no same-text-for-different-causes collapses",
             "note": "**Governed, not unexamined.** The four-conditions-one-message collapse is already forbidden by AC-04.4, so this row needs no separate hv ruling: v3 cannot reproduce it and stay inside its own contract. Cited here so the next reader sees it was decided rather than missed. (vc, 2026-08-14.)"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
         },
         {
           "path": "claude subagents",
@@ -3618,9 +3682,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "-v"
-              ],
+              "spellings": ["-v"],
               "type": "bool",
               "help": "Show full descriptions in `list`"
             }
@@ -3652,7 +3714,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "claude skills",
@@ -3662,13 +3726,7 @@
               "name": "verb",
               "type": "subcommand",
               "arity": "1",
-              "values": [
-                "list",
-                "install",
-                "sync",
-                "uninstall",
-                "show"
-              ]
+              "values": ["list", "install", "sync", "uninstall", "show"]
             },
             {
               "name": "name",
@@ -3678,9 +3736,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "-v"
-              ],
+              "spellings": ["-v"],
               "type": "bool",
               "help": "Show full descriptions in `list`"
             }
@@ -3712,7 +3768,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "claude rules",
@@ -3723,12 +3781,7 @@
               "type": "subcommand",
               "arity": "0..1",
               "default": "list",
-              "values": [
-                "list",
-                "show",
-                "validate",
-                "index"
-              ]
+              "values": ["list", "show", "validate", "index"]
             },
             {
               "name": "id",
@@ -3738,9 +3791,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--lang"
-              ],
+              "spellings": ["--lang"],
               "type": "string",
               "help": "Filter to one language",
               "value": "<lang>"
@@ -3776,7 +3827,13 @@
             "state": "pending-hv",
             "question": "In v3 rules are embedded in the binary (WP-07), so `index` has no installation to mutate and arguably retires with the on-disk rules root. Decide at the surface cut."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "uncertain": ["read_or_mutate"],
+            "why_uncertain": "Leaned mutate against the obvious reading. `rules list` / `rules show` are plainly reads and are the ones agents want, but `intent_claude_rules` carries write primitives I did not attribute to an arm. If they all live in an unrelated arm this is a `read`."
+          }
         },
         {
           "path": "claude hook",
@@ -3816,7 +3873,13 @@
             "state": "as-observed",
             "note": "**Byte-compatible on day one is a hard requirement, not a preference** (parity.md). Consumer `.claude/settings.json` files reference `intent claude hook <name>` by runtime resolution (issue 0016); if this path changes shape, every consumer's hooks break on the binary swap. The single most parity-critical entry in the family."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "uncertain": ["exposed_on_mcp"],
+            "why_uncertain": "Installs and removes Claude Code lifecycle hooks -- an agent editing the hooks that police it is the shape of the problem, even when each step is legitimate."
+          }
         },
         {
           "path": "claude upgrade",
@@ -3824,9 +3887,7 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--apply"
-              ],
+              "spellings": ["--apply"],
               "type": "bool",
               "help": "Write the canon; without it the command reports only"
             }
@@ -3854,7 +3915,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "claude prime",
@@ -3890,7 +3953,12 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "grounded_in": "intent/plugins/claude/bin/intent_claude_prime:250-251 -- `mkdir -p \"$memory_dir\"` then `echo \"$content\" > \"$memory_path\"`"
+          }
         },
         {
           "path": "claude ws",
@@ -3900,12 +3968,7 @@
               "name": "verb",
               "type": "subcommand",
               "arity": "1",
-              "values": [
-                "new",
-                "list",
-                "archive",
-                "hygiene"
-              ]
+              "values": ["new", "list", "archive", "hygiene"]
             },
             {
               "name": "wsid",
@@ -3942,7 +4005,9 @@
             "state": "as-observed",
             "note": "D14: the whiteboard stays md-authored through 3.0.0/3.1 and is restructured in the 3.2 bus ST. So this family ports as-is rather than being reified."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "claude start",
@@ -3977,7 +4042,12 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "note": "Not a data operation at all -- it launches an interactive Claude Code session bound to a node. An agent that can call it can spawn agents."
+          }
         }
       ],
       "bats_coverage": {
@@ -4020,25 +4090,19 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--files"
-              ],
+              "spellings": ["--files"],
               "type": "string",
               "help": "Explicit file list",
               "value": "<path> ...",
               "note": "default: scan nothing unless --staged"
             },
             {
-              "spellings": [
-                "--staged"
-              ],
+              "spellings": ["--staged"],
               "type": "bool",
               "help": "Scan files in the git staging area (pre-commit mode)"
             },
             {
-              "spellings": [
-                "--severity-min"
-              ],
+              "spellings": ["--severity-min"],
               "type": "enum",
               "help": "Minimum severity to report",
               "value": "<lvl>",
@@ -4046,35 +4110,26 @@
               "default": "warning"
             },
             {
-              "spellings": [
-                "--format"
-              ],
+              "spellings": ["--format"],
               "type": "enum",
               "help": "Output format",
               "value": "text|json",
               "default": "text"
             },
             {
-              "spellings": [
-                "--rules"
-              ],
+              "spellings": ["--rules"],
               "type": "string",
               "help": "Alternative rules root, overriding canon discovery",
               "value": "<dir>"
             },
             {
-              "spellings": [
-                "--languages"
-              ],
+              "spellings": ["--languages"],
               "type": "bool",
               "help": "List languages with a headless code critic, one per line, and exit",
               "note": "consumed by the pre-commit gate so the gate and the runner cannot drift"
             },
             {
-              "spellings": [
-                "--help",
-                "-h"
-              ],
+              "spellings": ["--help", "-h"],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -4133,7 +4188,12 @@
             "question": "**Highest priority of the 19 pending rows, and a different risk class from the other 18: this one has a LIVE CONSUMER.** Exit 2 must keep meaning findings-present (INV-04), which requires the other three conditions to move to exit 1 per INV-02. That is a `corrected` change the pre-commit gate reads today.",
             "note": "Confirmed independently by vc at the same revision; escalate to hv ahead of the usage-convention bundle."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "grounded_in": "bin/intent_critic -- no write primitive in the file; it reports and sets an exit code"
+          }
         }
       ],
       "bats_coverage": {
@@ -4195,7 +4255,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
         },
         {
           "path": "lang list",
@@ -4220,7 +4282,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read"
         },
         {
           "path": "lang show",
@@ -4255,7 +4319,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read"
         },
         {
           "path": "lang init",
@@ -4298,7 +4364,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         },
         {
           "path": "lang remove",
@@ -4330,13 +4398,17 @@
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
             }
           },
-          "aliases": [
-            "lang rm"
-          ],
+          "aliases": ["lang rm"],
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "uncertain": ["exposed_on_mcp"],
+            "why_uncertain": "Removes per-language canon files. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool."
+          }
         },
         {
           "path": "lang sync",
@@ -4344,9 +4416,7 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--check"
-              ],
+              "spellings": ["--check"],
               "type": "bool",
               "help": "Report without writing; exit 1 if any entry is missing or stale"
             }
@@ -4378,7 +4448,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         }
       ],
       "bats_coverage": {
@@ -4439,7 +4511,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
         },
         {
           "path": "llm usage_rules",
@@ -4447,9 +4521,7 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--symlink"
-              ],
+              "spellings": ["--symlink"],
               "type": "string",
               "help": "Create a symlink to usage-rules.md in the current or specified directory",
               "value": "[dir]",
@@ -4483,7 +4555,13 @@
             "state": "as-observed",
             "note": "The optional-value flag is a genuine clap modelling decision (`num_args(0..=1)`), not a free port. Worth naming here so WP-05 does not discover it as a parse bug."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "counterintuitive": "Reads as a display command, and its default IS display. The flag is what makes the entry a mutation -- the same shape as `at lint`, `doctor`, and `todo list`, which is why the field is defined over the entry rather than the default.",
+            "grounded_in": "bin/intent_llm:65 is `cat \"$USAGE_RULES_FILE\"`; :88-100 is the `--symlink` path, which creates a symlink and warns when one exists"
+          }
         }
       ],
       "bats_coverage": {
@@ -4517,9 +4595,7 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--category"
-              ],
+              "spellings": ["--category"],
               "type": "enum",
               "help": "Which kind of learning",
               "value": "<cat>",
@@ -4527,9 +4603,7 @@
               "default": "footgun"
             },
             {
-              "spellings": [
-                "--list"
-              ],
+              "spellings": ["--list"],
               "type": "bool",
               "help": "Show all learnings"
             }
@@ -4564,7 +4638,12 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "grounded_in": "bin/intent_learn:82 (append_learning), called at :201"
+          }
         }
       ],
       "bats_coverage": {
@@ -4626,7 +4705,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
         },
         {
           "path": "modules check",
@@ -4634,9 +4715,7 @@
           "args": [],
           "flags": [
             {
-              "spellings": [
-                "--register"
-              ],
+              "spellings": ["--register"],
               "type": "bool",
               "help": "Interactively register unregistered modules",
               "note": "INTERACTIVE -- the only interactive path in the surface, and a shape a non-tty caller cannot use"
@@ -4669,7 +4748,12 @@
             "state": "as-observed",
             "note": "The interactive `--register` needs an explicit non-tty behaviour in v3; v2 has none stated."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "grounded_in": "bin/intent_modules -- no write primitive in the file"
+          }
         },
         {
           "path": "modules find",
@@ -4708,7 +4792,12 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "grounded_in": "bin/intent_modules -- no write primitive in the file"
+          }
         }
       ],
       "bats_coverage": {
@@ -4724,9 +4813,7 @@
       "v2_source": "bin/intent_plugin",
       "v2_help_file": null,
       "owner_wp": "WP-06",
-      "family_notes": [
-        "Runs outside a project (measured: exit 0, 1076B)."
-      ],
+      "family_notes": ["Runs outside a project (measured: exit 0, 1076B)."],
       "entries": [
         {
           "path": "plugin",
@@ -4770,7 +4857,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
         },
         {
           "path": "plugin list",
@@ -4795,7 +4884,12 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "grounded_in": "bin/intent_plugin -- no write primitive in the file"
+          }
         },
         {
           "path": "plugin show",
@@ -4830,7 +4924,12 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "grounded_in": "bin/intent_plugin -- no write primitive in the file"
+          }
         }
       ],
       "bats_coverage": {
@@ -4894,7 +4993,9 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read"
         },
         {
           "path": "ext list",
@@ -4919,7 +5020,12 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "grounded_in": "bin/intent_ext -- every write primitive in the file is inside ext_new (:743-759)"
+          }
         },
         {
           "path": "ext show",
@@ -4954,7 +5060,12 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "grounded_in": "bin/intent_ext -- writes confined to ext_new (:743-759)"
+          }
         },
         {
           "path": "ext validate",
@@ -4996,7 +5107,12 @@
           "target": {
             "state": "as-observed"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "grounded_in": "bin/intent_ext -- writes confined to ext_new (:743-759)"
+          }
         },
         {
           "path": "ext new",
@@ -5010,23 +5126,17 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--skill"
-              ],
+              "spellings": ["--skill"],
               "type": "bool",
               "help": "Scaffold a skill extension"
             },
             {
-              "spellings": [
-                "--subagent"
-              ],
+              "spellings": ["--subagent"],
               "type": "bool",
               "help": "Scaffold a subagent extension"
             },
             {
-              "spellings": [
-                "--rule-pack"
-              ],
+              "spellings": ["--rule-pack"],
               "type": "bool",
               "help": "Scaffold a rule-pack extension"
             }
@@ -5064,7 +5174,9 @@
             "state": "pending-hv",
             "question": "The help/implementation mismatch is a `corrected` candidate: v3 generates help from this table, so the two cannot disagree by construction. That is the class of defect the SSOT retires wholesale."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate"
         }
       ],
       "bats_coverage": {
@@ -5098,55 +5210,39 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--depth",
-                "-d"
-              ],
+              "spellings": ["--depth", "-d"],
               "type": "integer",
               "help": "How deep to descend",
               "value": "<n>"
             },
             {
-              "spellings": [
-                "--check"
-              ],
+              "spellings": ["--check"],
               "type": "bool",
               "help": "Report without writing"
             },
             {
-              "spellings": [
-                "--dry-run"
-              ],
+              "spellings": ["--dry-run"],
               "type": "bool",
               "help": "Preview"
             },
             {
-              "spellings": [
-                "--force"
-              ],
+              "spellings": ["--force"],
               "type": "bool",
               "help": "Regenerate even if current"
             },
             {
-              "spellings": [
-                "--prune"
-              ],
+              "spellings": ["--prune"],
               "type": "bool",
               "help": "Remove stale index entries"
             },
             {
-              "spellings": [
-                "--model"
-              ],
+              "spellings": ["--model"],
               "type": "string",
               "help": "Model to summarise with",
               "value": "<name>"
             },
             {
-              "spellings": [
-                "--help",
-                "-h"
-              ],
+              "spellings": ["--help", "-h"],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -5194,7 +5290,9 @@
             "note": "D21 (design.md:195) still reads \"the treeindex cache location is unchanged until WP-06 ports the command\" -- which assumes a port. Its DECISION (`intent/.cache/` gitignored whole-dir, DB inside) is unaffected and AC-01.4 does not reopen; the subordinate forward-looking clause needs striking. Flagged by ic, surfaced by vc following the register's UNRATIFIED marker.",
             "consequence": "Removes 762 lines of bash from WP-06's port list, and INV-07 (`--help` exits non-zero here) is moot rather than pending-hv: there is no v3 command to correct."
           },
-          "disposition": "retire"
+          "disposition": "retire",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate"
         }
       ],
       "bats_coverage": {
@@ -5233,89 +5331,61 @@
           ],
           "flags": [
             {
-              "spellings": [
-                "--check",
-                "-C"
-              ],
+              "spellings": ["--check", "-C"],
               "type": "bool",
               "help": "Mark checked"
             },
             {
-              "spellings": [
-                "--uncheck",
-                "-U"
-              ],
+              "spellings": ["--uncheck", "-U"],
               "type": "bool",
               "help": "Mark unchecked"
             },
             {
-              "spellings": [
-                "--toggle",
-                "-X"
-              ],
+              "spellings": ["--toggle", "-X"],
               "type": "bool",
               "help": "Flip the mark"
             },
             {
-              "spellings": [
-                "--file",
-                "-f"
-              ],
+              "spellings": ["--file", "-f"],
               "type": "string",
               "help": "Target file",
               "value": "<path>"
             },
             {
-              "spellings": [
-                "--index",
-                "-i"
-              ],
+              "spellings": ["--index", "-i"],
               "type": "string",
               "help": "Index file",
               "value": "<path>"
             },
             {
-              "spellings": [
-                "--index-dir"
-              ],
+              "spellings": ["--index-dir"],
               "type": "string",
               "help": "Index directory",
               "value": "<path>"
             },
             {
-              "spellings": [
-                "--intent-dir"
-              ],
+              "spellings": ["--intent-dir"],
               "type": "string",
               "help": "Intent directory",
               "value": "<path>"
             },
             {
-              "spellings": [
-                "--no-intent"
-              ],
+              "spellings": ["--no-intent"],
               "type": "bool",
               "help": "Operate without an Intent project"
             },
             {
-              "spellings": [
-                "-r"
-              ],
+              "spellings": ["-r"],
               "type": "bool",
               "help": "Recurse"
             },
             {
-              "spellings": [
-                "-v"
-              ],
+              "spellings": ["-v"],
               "type": "bool",
               "help": "Verbose"
             },
             {
-              "spellings": [
-                "--help",
-                "-h"
-              ],
+              "spellings": ["--help", "-h"],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -5365,7 +5435,13 @@
             "state": "pending-hv",
             "question": "INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce"
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "uncertain": ["exposed_on_mcp"],
+            "why_uncertain": "Writes an index an agent would plausibly want to refresh before searching. Leaned open; the cost of being wrong is a stale-index rebuild, not lost work."
+          }
         }
       ],
       "bats_coverage": {
@@ -5440,7 +5516,12 @@
             "ratification": "AC-05.1 -- the dispatch table is the SSOT and help text is generated from it, asserted by test",
             "behaviour": "The `help` COMMAND survives as a surface; its v2 IMPLEMENTATION (lib/help/ + the hand-maintained list + the skip list) does not."
           },
-          "disposition": "retire"
+          "disposition": "retire",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "counterintuitive": "Classified `false` despite being the single most harmless command in the table. In v3 help RENDERS FROM this file, so an MCP client already holds every string `help` would print; exposing it would be a second copy of the surface description, which is the thing this file exists to prevent."
+          }
         }
       ],
       "bats_coverage": {
@@ -5470,30 +5551,22 @@
               "name": "command",
               "type": "subcommand",
               "arity": "0..1",
-              "values": [
-                "install"
-              ]
+              "values": ["install"]
             }
           ],
           "flags": [
             {
-              "spellings": [
-                "--audit-only"
-              ],
+              "spellings": ["--audit-only"],
               "type": "bool",
               "help": "Show gap analysis only, no changes"
             },
             {
-              "spellings": [
-                "--dry-run"
-              ],
+              "spellings": ["--dry-run"],
               "type": "bool",
               "help": "Show what would change, no writes"
             },
             {
-              "spellings": [
-                "--deliverable"
-              ],
+              "spellings": ["--deliverable"],
               "type": "string",
               "help": "Target a single deliverable (D2-D11)",
               "value": "<id>"
@@ -5542,7 +5615,9 @@
             "face": "deleted",
             "never_built": true
           },
-          "disposition": "corrected"
+          "disposition": "corrected",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate"
         }
       ],
       "bats_coverage": {
@@ -5598,7 +5673,9 @@
             "ratification": "hv 2026-08-14 bounce (the `corrected` class); forced -- clap rejects unrecognised arguments by default",
             "behaviour": "Unknown arguments refused, exit 1 per INV-02. The version string itself gains a baked GIT_HASH."
           },
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read"
         }
       ],
       "bats_coverage": {
@@ -5628,23 +5705,21 @@
       "acceptance": "AC-06.4 (added by vc, 2026-08-14, on the finding that all 62 ACs had zero coverage of search)",
       "target": {
         "state": "new-surface"
-      }
+      },
+      "exposed_on_mcp": true,
+      "read_or_mutate": "read"
     },
     {
       "path": "sync",
       "help": "Sync this machine's store with the committed extract, in both directions",
       "flags": [
         {
-          "spellings": [
-            "--to-disk"
-          ],
+          "spellings": ["--to-disk"],
           "type": "bool",
           "help": "Write the store out to the committed extract"
         },
         {
-          "spellings": [
-            "--to-store"
-          ],
+          "spellings": ["--to-store"],
           "type": "bool",
           "help": "Read the committed extract into the store, through the API gate"
         }
@@ -5659,6 +5734,12 @@
       "d34_wording": "FINAL wording, released by D34 (hv, 2026-08-15) after I held it pending the multi-machine question. **The DB is per-machine truth and is never committed; the committed extract IS the interchange between nodes**, and a fresh clone reconstitutes its DB by passing that extract through the ingest gate. So the help names both endpoints exactly: `this machine's store` (per-machine, authoritative locally) and `the committed extract` (what travels). D34 adopts the formulation _authority is not bidirectional just because transport is_ -- which is why the string says `in both directions` about the MOVEMENT and says nothing about precedence. A help line implying the file could win would describe a different architecture.",
       "target": {
         "state": "new-surface"
+      },
+      "exposed_on_mcp": true,
+      "read_or_mutate": "mutate",
+      "mcp_review": {
+        "uncertain": ["exposed_on_mcp"],
+        "why_uncertain": "Leaned OPEN against the standing lean because sync is ordinary workflow, and it is the one row where that lean is least comfortable: it moves truth in BOTH directions, so a wrong `--to-store` can overwrite this machine's store from a stale extract. If the boundary with `ingest` is drawn so that `sync --to-store` is the recovery path, this should close."
       }
     },
     {
@@ -5678,16 +5759,16 @@
       "owner_wp": "WP-06",
       "target": {
         "state": "new-surface"
-      }
+      },
+      "exposed_on_mcp": true,
+      "read_or_mutate": "read"
     },
     {
       "path": "export",
       "help": "Extract the store into a portable format usable without Intent",
       "flags": [
         {
-          "spellings": [
-            "--format"
-          ],
+          "spellings": ["--format"],
           "type": "string",
           "value": "<fmt>"
         }
@@ -5699,6 +5780,11 @@
       "truth_model_correction": "2026-08-15, ic. The help read `Project the canon into another format`, which named the DISK side as the canon and so read as one on-disk format converting to another. Under hv's ratified model the store is the truth and this command is the OPENNESS half of it -- hv, verbatim: 'I can get my data out of the db and use it somewhere else LOSSLESSLY.' The `usable without Intent` clause is in the help deliberately: AC-02.6 requires the file form to be usable without this tool, and a promise a user cannot read is a promise nobody can hold us to. This is the surface half of AC-02.6; vc owns whether the contract wants it cited on this row.",
       "target": {
         "state": "new-surface"
+      },
+      "exposed_on_mcp": true,
+      "read_or_mutate": "mutate",
+      "mcp_review": {
+        "counterintuitive": "`export` reads as a read -- it takes nothing out of the store that was not already there. It is `mutate` because the field is defined over DURABLE STATE, not over the store: export writes files into the working tree and can clobber them. Anyone who reads this field as 'touches the database' will disagree with this row, which is why the definition is written down."
       }
     },
     {
@@ -5706,9 +5792,7 @@
       "help": "Ingest markdown into the store through the API gate (the recovery path, and the v2 migrator)",
       "flags": [
         {
-          "spellings": [
-            "--from-md"
-          ],
+          "spellings": ["--from-md"],
           "type": "bool"
         }
       ],
@@ -5718,6 +5802,12 @@
       "truth_model_correction": "2026-08-15, ic. The help read `Rebuild the canon from markdown`, which under the retracted model meant reconstructing the durable thing and so read as an authority-restoring act. Under hv's ratified model it is the opposite: markdown is a secondary artefact and ingest is the path INTO the truth, well-formed ONLY because it passes the hard gate of the intentsvcs API. `through the API gate` is in the user-facing string on purpose -- the gate is what makes the result trustworthy, so hiding it would let a reader assume a file's own format was sufficient. Recreation from an extract stays a CAPABILITY and is not a licence to treat the store as disposable.",
       "target": {
         "state": "new-surface"
+      },
+      "exposed_on_mcp": false,
+      "read_or_mutate": "mutate",
+      "mcp_review": {
+        "uncertain": ["exposed_on_mcp"],
+        "why_uncertain": "The recovery path and the v2 migrator behind one verb. Both are operations a human decides to run after something went wrong; neither is a task step. Closed on the strength of what it is FOR rather than what it costs."
       }
     },
     {
@@ -5725,9 +5815,7 @@
       "help": "Snapshot this machine's store for fast local restore",
       "flags": [
         {
-          "spellings": [
-            "--list"
-          ],
+          "spellings": ["--list"],
           "type": "bool",
           "help": "List retained snapshots and when each was taken",
           "note": "RATIFIED -- vc, 2026-08-15: `--list` STANDS. Proposed by ic on the grounds that D35 requires a failed or skipped backup to SURFACE, and with no read path a user cannot tell a working schedule from one that has silently never run -- the nothing-is-wrong / nothing-ran ambiguity again. **The question turned out to expose a hole in AC-03.10 itself**: the clause said only that a FAILED backup surfaces, and A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could have shipped where nothing had ever run -- the ambiguity living inside the clause written to prevent it. AC-03.10 is amended and `doctor` now reports backup STALENESS, which detects never-ran without needing anything to have failed."
@@ -5743,6 +5831,12 @@
         "ratification": "D35 -- the SERVICE owns the backup and both surfaces reach it. `intent backup` triggers one manually; `intentd` schedules the rolling one; ONE implementation, so CLI and daemon cannot drift into two retention policies. AC-08.8 checks that these are the SAME function, not two that agree.",
         "note": "The snapshot is taken with `VACUUM INTO` (or the `sqlite3_backup_*` API) and NEVER `cp` / `fs::copy` / a tar of the directory. D35 measured why: the store opens WAL, so with a writer connection still open -- exactly as a running daemon holds it -- the live DB had 50 rows, `VACUUM INTO` captured 50, and a naive `cp` captured ZERO. The `cp` result opens cleanly and reports no error, so it is indistinguishable from a good backup by inspection. That is the fabricated-stamp failure shape in a new artefact: a plausible record of something that never happened.",
         "surfacing": "RATIFIED -- vc, 2026-08-15: the split is the ruling. A failed or skipped scheduled backup must surface (IN-AG-NO-SILENT-001), and **`doctor` is THE ONE PLACE health is reported** -- not a second status surface here -- because `doctor` already exists for exactly that and Highlander says one place, not two. `--list` answers only _what snapshots exist_, which is inventory rather than health. `doctor`'s obligation is recorded on its own row as `target.new_obligations`, so the requirement lives where the command that owns it is described."
+      },
+      "exposed_on_mcp": false,
+      "read_or_mutate": "mutate",
+      "mcp_review": {
+        "uncertain": ["exposed_on_mcp"],
+        "why_uncertain": "Genuinely harmless -- it writes a snapshot into `.backup/db/` and touches nothing else. Closed only by the standing lean, which is the weakest reason on this list."
       }
     },
     {
@@ -5753,12 +5847,7 @@
           "name": "subcommand",
           "type": "subcommand",
           "arity": "1",
-          "values": [
-            "start",
-            "stop",
-            "status",
-            "run"
-          ]
+          "values": ["start", "stop", "status", "run"]
         }
       ],
       "v2": "new-surface",
@@ -5766,6 +5855,11 @@
       "owner_wp": "WP-08",
       "target": {
         "state": "new-surface"
+      },
+      "exposed_on_mcp": false,
+      "read_or_mutate": "mutate",
+      "mcp_review": {
+        "note": "The canonical example behind the whole exposure field: `daemon start|stop|run` is machine-level process control, and it is the row that makes 'lean closed' the right default rather than a nicety."
       }
     },
     {
@@ -5776,6 +5870,11 @@
       "owner_wp": "WP-09",
       "target": {
         "state": "new-surface"
+      },
+      "exposed_on_mcp": false,
+      "read_or_mutate": "mutate",
+      "mcp_review": {
+        "note": "The MCP server's own launcher. Listing it inside the tool surface it serves is recursive, and an agent that can call it can spawn a second server against the same store."
       }
     }
   ],

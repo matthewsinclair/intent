@@ -14,6 +14,10 @@
 - There is a FIFTH parity class, `undefined` (vc ruling, 2026-08-14, on `intent config` as its first member). `corrected` needs a v2 antecedent to correct; silence is not an antecedent. Where v2 exhibited NO behaviour at all, v3 is DESIGNING rather than porting or correcting, and that is a different decision needing a different reviewer. Folding it into `corrected` would hide a design decision inside a bug-fix class.
 - Each family carries `bats_coverage`: how many test FILES exercise it through the dispatcher (`files_real`), how many name it but never reach the CLI (`files_vacuous`), and how many individual tests actually burn. Produced by `parity/tools/coverage_map.sh`, which joins these families against `burn-baseline.tsv`. The join is the point -- a naive grep reports `treeindex` as well covered when all 53 of its tests exec `bin/intent_treeindex` directly and the dispatcher never sees them. **A family with no burning coverage is a parity hole: v3 can change it freely and the conformance suite stays green.**
 - `known_exposures` records defects this artefact does NOT currently have but is not protected against. A file that is clean by luck and a file that is clean by construction look identical in a diff, and only one of them stays clean.
+- Every entry declares `exposed_on_mcp` and `read_or_mutate` (AC-09.1, from EXP-03). The MCP tool list renders from this file like everything else, and the alternative was deriving it from the verb -- which dies on one pair alone: `ac gate` READS while `wp done` consults the same gate and WRITES, and the two do not share a spelling. Declare, do not derive. Both fields are REQUIRED on every row and the generator refuses a row missing either, because a defaulted field is how a new command joins the agent surface without anyone deciding it should.
+- `read_or_mutate` is a claim about the WHOLE entry, not about its default invocation. `read` means no invocation of the entry, under any flag, changes durable state -- not the store, not the working tree, not a config file. Everything else is `mutate`. Defined that way because the other reading ("what it does when you just run it") makes four rows lie: `at lint` is a report until `--fix`, `doctor` is a diagnosis until `--fix`, `llm usage_rules` prints until `--symlink`, and `todo list` prints unless `todo.md` is absent, in which case it generates it. That last one is the worst shape available -- it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone. A field that describes the default is one an agent can be wrong about while reading it correctly.
+- The two fields lean in OPPOSITE directions when the answer is uncertain, and both leans take the cheap error over the symmetric one. `exposed_on_mcp` leans FALSE: a command wrongly omitted is an inconvenience a human fixes in one line, while one wrongly included lets an agent run `daemon`. `read_or_mutate` leans MUTATE: a read mislabelled as a mutation costs a confirmation prompt, while a mutation mislabelled as a read lets an agent close a steel thread believing it is querying.
+- `mcp_review` is present only on rows wanting a second opinion, and it exists because of how review actually fails: correcting a proposed classification is ANCHORED by the proposal (vc, 2026-08-15). Nobody re-derives a table this size row by row -- they review, and review is biased toward accepting. So the rows are MARKED rather than the confidence scored. `uncertain` names WHICH field is soft, because the two lean opposite ways and an unqualified "uncertain" is unactionable; `why_uncertain` gives the reason to argue with. `counterintuitive` flags a value that disagrees with the obvious reading of the verb -- precisely where a reviewer skimming nods it through, and where classifying from the name would have gone wrong. `grounded_in` cites the source actually read; its ABSENCE means the row was classified from the verb and the help text alone, which is a weaker claim and is meant to look like one.
 
 ## Provenance
 
@@ -163,6 +167,8 @@ Manage steel threads for the project
   - INV-07 at `st --help` / `-h` / `help`
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- see the invariant; the bare-invocation shape follows INV-05
+- **MCP:** not exposed -- read-only
+- **kind:** family
 
 ### `st new`
 
@@ -191,6 +197,7 @@ Create a new steel thread
 - **not a rename:** `Triage` REUSES THE LETTERS OF v2's `TBC` AND NOT ITS MEANING, which is why a parity row matching on the string would be comparing two different things. v2's `TBC` means To Be Commenced -- `bin/intent_helpers:544` maps `tbc` and `to be commenced` to the same stored value `Not Started`, and the tool's own usage at `bin/intent_st:46` says so in words. So every v2 `TBC` migrates to `NotStarted` and `Triage` begins with ZERO legacy members. The display string is `Triage`; `TBC` must not be reused as its abbreviation (see `st list`'s `tbc_trap`).
 - **start flag ruled:** RULED by vc, 2026-08-15: **the flag STAYS and performs BOTH declared transitions**, `Triage -> NotStarted -> Wip`. I had flagged it as two edges at once; the measurement reframes it. `-s|--start` is **v2 PARITY, not new surface** (`bin/intent_st:302,381,425`, and in v2's own help as `new [-s|--start] <title>`), and **nothing about the flag changed -- the machine grew a state underneath it.** In v2 `st new` landed at not-started so `-s` was ONE transition; in v3 it enters at `Triage` so the same flag spans two. The triage decision is not skipped: **a user typing `--start` has decided the thread is real work, which IS the triage decision, made explicitly by the same act**, and refusing would ask them to state a conclusion they have already stated.
 - **composition constraint:** **`st new -s` must COMPOSE `st triage` and `st start`, never construct the thread directly in `Wip`.** Constructing the end state is the obvious implementation and yields two defects at once: a history with no triage event, and an effective `Triage -> Wip` edge **that is not in the ratified machine** -- which either forces AC-04.6 to accept an undeclared edge or drives construction around `transitions.rs`, contradicting D32. The general rule, now in `data-model.md`: **a convenience flag is sugar over declared transitions and never a new edge.** A bundle that cannot be expressed as a sequence of declared transitions is proposing a machine change and goes to hv as one.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `st start`
 
@@ -208,6 +215,7 @@ Mark a steel thread as in progress
 - **Observed notes:** `skipped:` is a THIRD voice prefix alongside `ok:` and `error:`; INV-01 does not currently name it. Carried into v3 or folded into `ok:` is a decision, flagged.
 - **Target:** `pending-hv`
 - **Open question for hv:** Does `skipped:` survive as a first-class prefix, or become `ok: <ID> already in progress`? Scripts matching on it exist in the BATS estate.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `st done`
 
@@ -227,6 +235,7 @@ Mark a steel thread as complete
   - Relocates the thread directory and resyncs the index
 - **Target:** `as-observed`
 - **Note:** The gate becomes an in-process facade call in WP-04 (AC-04.3), not a subprocess. Behaviour and message are parity-bound; the mechanism is not.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `st cancel`
 
@@ -246,6 +255,7 @@ Mark a steel thread as cancelled, with a reason
 - **Target:** `corrected` -- ratified: hv, 2026-08-15 -- Machine 1 guards every edge into `Cancelled` with `reason recorded`; cc wired the facade at `2aec5f6` and left the flag for this table to declare.
 - **conflict resolved:** RESOLVED 2026-08-15 -- the guard wins and this row is CORRECTED. I raised it as a conflict the machine and this row could not both survive: `data-model.md` guards every edge into `Cancelled` with `reason recorded`, and v2 `st cancel` took no `--reason` and recorded none (measured, its flags array was empty). cc has wired the CLI to read the flag OPTIONALLY at `2aec5f6`, so the facade refuses with `ReasonRequired` naming what is missing until the row declares it -- and declaring it here is what makes the flag start working. **The refusal is the reason this was safe to leave open**: an unimplemented guard that FAILS LOUD costs a clear error message, where one that silently accepted a cancellation with no reason would have put unexplained Cancelled threads in the record permanently. cc deliberately did not add the flag themselves; the table is mine.
 - **why not as observed:** This row is no longer faithful to v2 and should not pretend to be: v2 cancels with no reason at all. The change is a `corrected` one -- v2's behaviour is the defect (a state entered with no record of why) rather than a contract to preserve.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `st triage`
 
@@ -257,6 +267,7 @@ Move a triaged thread out of Triage into NotStarted
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1 (ThreadStatus) in data-model.md: the `Triage -> NotStarted` edge. `st new` now enters at `Triage`, so without this verb every new thread is stranded in its entry state and the machine's entry point is a trap.
 - **Note:** `Triage` is a NEW state, not a rename of a state that had members. v2's `TBC` token means To Be Commenced and maps to `NotStarted` (bin/intent_helpers:544 maps `tbc` and `to be commenced` to the same value), so `Triage` begins with ZERO legacy members and this verb has no v2 caller to be compatible with.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `st hold`
 
@@ -270,6 +281,7 @@ Put a thread on hold, with a reason
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `NotStarted -> Hold` and `Wip -> Hold` edges, guard `reason recorded`.
 - **Note:** `Hold` ALREADY EXISTS as a state and is reachable only by HAND-EDITING a file (cc's archaeology, confirmed): the v2 status filter recognises `hold|on hold -> HOLD` and no verb sets it. So this is not a new state, it is the missing door to a state v2 already renders, which is why the `--status` normaliser could always name a status the tool could not produce.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `st resume`
 
@@ -281,6 +293,7 @@ Take a thread off hold and back into Wip
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `Hold -> Wip` edge, no guard.
 - **Note:** Returns to `Wip`, NOT to whichever state the thread was held from. The machine declares one exit edge and this verb implements exactly that one; restoring a remembered prior state would be an undeclared edge and would need the machine changed first.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `st reopen`
 
@@ -294,6 +307,7 @@ Reopen a completed thread back into Wip, with a reason
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `Completed -> Wip` edge, guard `reason recorded`. D32 forbids terminal states, and `Completed` was one.
 - **Note:** `st done` RELOCATES the thread directory (measured on the `st done` row above), so this verb has a file-system half that `wp reopen` does not: reopening has to move the directory back. Flagged for cc because the state change is the easy half and the relocation is where a half-applied reopen would leave a thread findable under neither status.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `st reinstate`
 
@@ -307,6 +321,7 @@ Reinstate a cancelled thread into NotStarted, with a reason
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `Cancelled -> NotStarted` edge, guard `reason recorded`.
 - **Note:** Lands in `NotStarted`, not in whatever the thread was before it was cancelled, and not in `Triage` -- a reinstated thread has already been triaged once and sending it back to the entry state would ask that decision to be made twice. The verb is spelled `reinstate` to match `ac reinstate`, which already carries this exact meaning at criterion level (undo a withdrawal); one word, one meaning, across both machines.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `st list`
 
@@ -332,6 +347,8 @@ List steel threads (default: in progress only)
 - **status vocabulary:** THE RATIFIED SIX-STATE MACHINE REACHES THE SURFACE HERE, and this flag is the only place a user types a status name. v3 must accept the six states of Machine 1: `triage`, `not started`, `wip`, `hold`, `completed`, `cancelled`. `triage` is the addition -- v2 accepts five and has no spelling for it.
 - **tbc trap:** MEASURED, and it strengthens the ratified migration rule with a second independent witness. In v2 `TBC` IS NOT A STATE AT ALL -- it is a DISPLAY ABBREVIATION of `Not Started`, narrow enough for the table column. Three sites, all read: `canonical_status()` at bin/intent_helpers:544 maps `tbc` AND `to be commenced` to the stored value `Not Started`; bin/intent_st:120 abbreviates `Not Started` to `TBC` for rendering; and the tool's OWN usage text at bin/intent_st:46 spells it out in words -- `tbc, not started -> TBC   To be commenced`. So the ratified rule (v2 `TBC` maps to `NotStarted`, never to `Triage`) is not merely defensible, it is what the tool has always documented about itself. THE SURFACE TRAP THAT FOLLOWS IS MINE: v3 must NOT abbreviate `Triage` as `TBC`, and must NOT accept `--status tbc` as `Triage`. Either would give a familiar token a second meaning in the render column and the filter -- the two places a v2 user reads fastest and checks least. `tbc` should keep resolving to `NotStarted`, exactly as it always has.
 - **render order:** bin/intent_st:941 pins the display order as a five-element list -- `WIP TBC HOLD COMPLETED CANCELLED`. Six states means this list grows, and `Triage` belongs BEFORE the `Not Started` slot because it precedes it in the machine. Named here because it is a surface fact hiding in an array literal, and a new state that renders in the wrong place looks like a sorting bug rather than a missing decision.
+- **MCP:** exposed as an agent tool -- read-only
+- **MCP classification grounded in:** bin/intent_st:717-1043 -- no write primitive in the arm
 
 ### `st show`
 
@@ -350,6 +367,8 @@ Show details of a specific steel thread
 - **stderr:** `error: ...`
 - **Target:** `as-observed`
 - **Note:** `info.md` and `acceptance.md` become GENERATED VIEWS in v3 (D02/D04). `show` reads the view, so its output is unchanged in kind -- but the view's bytes are v3's to define, and every BATS test asserting v2's exact info.md bytes retires under the ratified file-layout class.
+- **MCP:** exposed as an agent tool -- read-only
+- **MCP classification grounded in:** bin/intent_st:1044-1100 -- no write primitive in the arm
 
 ### `st edit`
 
@@ -368,6 +387,9 @@ Print the absolute path to a steel thread file
 - **Observed notes:** Pure emit-path: it never launches an editor and never creates the file. The name is a historical misnomer the docs already work around (`$EDITOR "$(intent st edit ST0001 acceptance)"`). The thread DIRECTORY must exist; the file need not.
 - **Target:** `as-observed`
 - **Note:** Under authored-once, `edit` on a GENERATED view (info/acceptance) hands the user a path to a file their edits will lose at the next regeneration. v3 emitting the path unchanged is defensible only if the skew check (AC-03.4) catches the edit. Flagged for the WP-05 surface cut, not decided here.
+- **MCP:** exposed as an agent tool -- read-only
+- **Wants review -- the classification disagrees with the verb name:** `edit` is the most obviously-mutating verb name in the table and the command writes nothing -- it is a path resolver, and the entry beside this one already said so in `observed.notes` ("never launches an editor and never creates the file", called a historical misnomer). I still had to read bin/intent_st:1125-1141 to stop classifying it as a mutation, which is the argument for declaring the field: the correct fact was ALREADY WRITTEN DOWN one bullet away and the verb name still won. It also inverts the exposure reading -- an $EDITOR launch could not be an MCP tool at all, since it would block on stdio, while a path resolver is one of the safest things here.
+- **MCP classification grounded in:** bin/intent_st:1125-1141 -- 'Pure emit-path ... No touch, no editor'; it prints the absolute path and returns
 
 ### `st sync`
 
@@ -385,6 +407,7 @@ Synchronize steel_threads.md with individual ST files
 - **Observed notes:** Called internally by every mutating verb via `"${BASH_SOURCE[0]}" sync --write > /dev/null` (bin/intent_st:287). stdout is suppressed there but stderr FLOWS deliberately -- `2>&1 >/dev/null` once hid every sync failure (issue 0019).
 - **Target:** `as-observed`
 - **Note:** In v3 `steel_threads.md` is a generated view and the resync is part of the transactional write path (AC-04.1), not a subprocess. The COMMAND survives for explicit regeneration; the implicit call has no v3 analogue because it cannot fall out of date.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `st repair`
 
@@ -406,6 +429,10 @@ Repair malformed steel thread metadata
   - DEAD ARM at bin/intent_st:1231: `[0-9]+)` is a `case` GLOB, where `+` is a literal character -- it matches a single digit followed by a `+`, never a run of digits. So `intent st repair 5` and `intent st repair 12345` both fall through to the error arm. Verified by executing the case statement in isolation, not by reading it. The intended bare-number form is unreachable; only the 4-digit `0001` arm works.
 - **Target:** `pending-hv`
 - **Open question for hv:** Does v3's id parser accept a bare number of any length (what :1231 evidently INTENDED), or only the two spellings that measurably work? Reproducing the dead arm faithfully is not an option -- it is unconstructible in clap. Same class as INV-08: a defect whose fix is forced.
+- **MCP:** not exposed -- **mutates**
+- **Wants review:**
+  - uncertain on `exposed_on_mcp`
+  - Bulk metadata rewrite across threads. Leaning closed because the blast radius is every thread at once and a wrong repair is not obvious in the output.
 
 ### `st organize`
 
@@ -422,6 +449,7 @@ Organize ST files in directories by status
 - **Observed notes:** `organise` is an alias ONLY here, one level down. `intent organise` at top level is `error: Unknown command 'organise'` -- measured both.
 - **Target:** `retire` -- ratified: hv, 2026-08-14 -- organize (both faces) is planned vestigial by construction; a strictly structured model cannot hold data in the wrong spot, so the disorder it repairs cannot arise. Confirmed finally at the surface cut (WP-05/06).
 - **Note:** Retiring this face also dissolves the pre-existing Highlander violation: `bin/intent_organize` and `bin/intent_st organize` are two implementations of one concern, both registered in MODULES.md, and they print different things against the same input (117B vs 73B, no shared output).
+- **MCP:** not exposed -- **mutates**
 
 ### `st bootstrap`
 
@@ -445,6 +473,10 @@ Retrofit ST0000 deliverables into a brownfield project -- audit what is present,
 - **consequence:** `intent bootstrap` (top level) already exists and means "first-time setup: create global Intent configuration". This is NOT a collision, it is the same verb meaning the same thing at two levels -- bootstrap the machine, bootstrap the steel-thread structure in a project. Checked before landing; it strengthens the choice rather than qualifying it.
 - **face:** surviving
 - **never built:** false
+- **MCP:** not exposed -- **mutates**
+- **Wants review:**
+  - uncertain on `exposed_on_mcp`
+  - One-time project scaffolding. An agent that runs it in an already-bootstrapped project is doing something nobody asked for.
 - **Cross-reference:** THE surviving face. The top-level `st_zero` family is the deleted root spelling; see its entry for the divergence cost.
 
 ## Family: `wp`
@@ -492,6 +524,7 @@ Manage work packages within steel threads
   - INV-07 at `wp --help`
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **MCP:** not exposed -- read-only
 
 ### `wp new`
 
@@ -510,6 +543,7 @@ Create a new work package
 - **Side effects:**
   - Writes `intent/st/<ID>/WP/<NN>/info.md` from template
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `wp start`
 
@@ -525,6 +559,7 @@ Mark a work package as WIP
 - **stdout:** confirmation
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `wp done`
 
@@ -545,6 +580,8 @@ Mark a work package as Done
 - **Target:** `as-observed`
 - **Note:** The gate becomes an in-process facade call at WP-04 (AC-04.3). Behaviour and message are parity-bound; the mechanism is not.
 - **machine note:** hv, 2026-08-15 -- Machine 2 ratifies `wp done` REFUSED on a BLOCKED gate, and the measured v2 behaviour above ALREADY does that (exit 1 when the WP group's contract is BLOCKED). So the ratification adds no surface change here; the change is `wp reopen` below. Recorded because `as-observed` staying correct after a ratification is a fact worth stating -- the alternative is a later reader assuming this row was never re-checked.
+- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP note:** Pairs with `ac gate` below and is the reason the field is DECLARED, not derived: `wp done` consults the same gate `ac gate` runs, and then WRITES. The two do not share a spelling, so no naming rule separates them.
 
 ### `wp reopen`
 
@@ -558,6 +595,7 @@ Reopen a done work package back into Wip, with a reason
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 2 (WpStatus): the `Done -> Wip` edge, guard `reason recorded`.
 - **Note:** THE URGENT ONE, and it is not urgent in the abstract: its absence is CURRENTLY CORRUPTING this thread's own tracking data. Three of five WPs disagree with their own gate (WP-02 Done/BLOCKED, WP-04 Done/BLOCKED, WP-05 Wip/PASS), because adding an AC reopens a WP in the contract while nothing moves the status back. Until this verb exists the ONLY repair is hand-editing the file the CLI exists to own -- which is the same trap `ac satisfy` had before `ac unsatisfy`, in the same tool, found the same way. Second instance of one class; the guard against a third is Machine 2 itself, which now declares the edge whether or not anyone has built it.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `wp unstart`
 
@@ -569,6 +607,7 @@ Return a started work package to NotStarted
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 2: the `Wip -> NotStarted` edge, no guard.
 - **Note:** No `--reason`: the machine declares no guard on this edge, and adding one would be a stricter surface than the ratified machine rather than a safer one. Unstarting is the cheap correction of a mis-click; reopening a closed WP is a claim about finished work, which is why only the second one has to be justified.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `wp list`
 
@@ -588,6 +627,7 @@ List work packages for a steel thread
 - **Defects observed in v2:**
   - The arity message is `error: Usage: intent wp list <STID>` -- `error()` used to print a usage line, so the `error:` prefix and the `Usage:` voice collide in one string. Voice nit, not a wrong answer. NOTE: an earlier report that this path answers `error: Unknown command 'wp list'` was a zsh harness artefact (unquoted parameters are not word-split, so the dispatcher received one argument literally named `wp list`); it does NOT reproduce with separated arguments and is not a v2 defect.
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
 
 ### `wp show`
 
@@ -604,6 +644,7 @@ Show work package info.md
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **Note:** WP info.md becomes a generated view in v3 (D02/D04); the command reads the view, so its output is unchanged in kind.
+- **MCP:** exposed as an agent tool -- read-only
 
 ## Family: `ac`
 
@@ -650,6 +691,7 @@ Acceptance criteria commands
   - INV-07 at `ac --help` parsed as an unknown verb
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **MCP:** not exposed -- read-only
 
 ### `ac list`
 
@@ -666,6 +708,7 @@ List ACs + covering AT + satisfied state
 - **stdout:** one row per AC
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
 
 ### `ac status`
 
@@ -682,6 +725,7 @@ Report N/M satisfied + verdict (PASS/BLOCKED)
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** Issue 0004 item 4 queried this verb's exit code; the premise did not reproduce, and it is parked awaiting a close ruling rather than work.
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
 
 ### `ac satisfy`
 
@@ -701,6 +745,7 @@ Satisfy a non-test AC by named evidence
 - **stdout:** `ok: <AC> satisfied`
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `ac unsatisfy`
 
@@ -715,6 +760,7 @@ Reopen a satisfied non-test AC -- clears satisfaction AND its evidence together
 - **Note:** Clears satisfaction and evidence TOGETHER, deliberately. Evidence outliving the claim it supported is the defect this fixes, not a convenience it preserves -- a cleared AC keeping its old evidence reads as satisfied-with-provenance to every later reader.
 - **consequence:** Refuses a test-backed AC (satisfaction there is COMPUTED from covering green ATs and never stored -- unsetting it would be writing to a derived field) and refuses an AC that is not satisfied (nothing to undo; silent success on a no-op is INV-01 territory).
 - **placement:** FIRST sub-verb addition in this canon: every `new_surface[]` entry is a top-level command (search, sync, schema, export, ingest, backup, daemon, mcp). This one is recorded as a FAMILY ENTRY instead, because the spine places verbs under their family from `families[].entries[]` and a bare `ac unsatisfy` in the top-level array would have no parent. Flagged rather than assumed -- cc owns the spine and should confirm it builds from here; vc owns whether the contract wants one home or two.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `ac gate`
 
@@ -732,6 +778,9 @@ Close-gate: exit non-zero + BLOCKED if unsatisfied
 - **Observed notes:** Consulted by `st done` and `wp done`. Fail-by-default since ST0048: an empty or missing contract is REFUSED, and the sole escape is a declared `acceptance: exempt`, never inferred from emptiness. Scope-honouring since issue 0024: a `/NN` scope is actually applied -- it used to be silently dropped.
 - **Target:** `as-observed`
 - **Note:** AC-04.3 requires v3 to reproduce v2 gate verdicts across the corpus contracts. This is the single highest-value parity row in the family.
+- **MCP:** exposed as an agent tool -- read-only
+- **Wants review -- the classification disagrees with the verb name:** `gate` reads as an enforcement action that stamps a verdict somewhere. It computes and reports; the write lives in the caller (`st done` / `wp done`). vc's own example of why derivation-from-name dies.
+- **MCP classification grounded in:** bin/intent_acceptance:973 (cmd_ac_gate) -- no write primitive in the body
 
 ### `ac descope`
 
@@ -753,6 +802,7 @@ Record that an AC moved to another thread (non-blocking)
 - **stdout:** `ok: <AC> descoped to <ID>`
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `ac rescope`
 
@@ -769,6 +819,7 @@ Undo a descope: back in scope, unsatisfied
 - **stdout:** `ok: <AC> back in scope`
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `ac withdraw`
 
@@ -790,6 +841,7 @@ Withdraw an AC outright, with its reason on the record (non-blocking)
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** `--reason` being mandatory is the whole point of the verb: the alternative to withdrawing is deleting the line and losing the audit trail.
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `ac reinstate`
 
@@ -806,6 +858,7 @@ Undo a withdrawal: back in scope, unsatisfied
 - **stdout:** `ok: <AC> back in scope`
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ## Family: `at`
 
@@ -848,6 +901,7 @@ Acceptance test commands
   - INV-07 at `at --help` parsed as an unknown verb
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **MCP:** not exposed -- read-only
 
 ### `at list`
 
@@ -863,6 +917,7 @@ List ATs (id, reference, status)
 - **stdout:** one row per AT
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
 
 ### `at lint`
 
@@ -882,6 +937,9 @@ Check AT rows against the grammar (--fix migrates what is mechanical)
 - **Observed notes:** Scope-honouring since issue 0024: a `/NN` scope is applied, and a scoped `--fix` no longer rewrites rows OUTSIDE the scope.
 - **Target:** `as-observed`
 - **Note:** **The refuse-lossy discipline is the load-bearing part and must survive into WP-10's migrator.** `--fix` once half-migrated rows and destroyed the only link a row had; the SUGGESTION was lossy before the fixer was, so every human following it lost the same data. A tool that cannot finish a job must not start it.
+- **MCP:** exposed as an agent tool -- **mutates**
+- **Wants review -- the classification disagrees with the verb name:** `lint` is the canonical read-only verb and `intent at lint --fix` migrates rows in place. Classified by the whole entry, not by its default invocation.
+- **MCP classification grounded in:** bin/intent_acceptance:1266 (`--fix) fix=1`), at_lint_fix / at_fix_line
 
 ### `at green`
 
@@ -904,6 +962,7 @@ Set an AT green (reachable only from red)
 - **spelling:** intent at green
 - **consequence:** Three instances on 2026-08-15 alone of a green that proved nothing, none of which had ever been seen red: four vacuous greps that never opened a file, a normaliser that silently did nothing under BSD sed, and a `touch`ed canary whose empty diff sent the run down the wrong branch. v3 restores the from-red guard.
 - **open to cc:** v2 carries FOUR guards on `at`, not one, and only the from-guard was raised. The others: `na` refuses on a test-backed AT; a non-`na` status refuses on a `(non-test)` AT; and green/red on a test-backed row refuse unless the CITED TEST FILE RESOLVES on disk (issue 0015 -- catching a rename at the point of the lie rather than after a stale green has counted as coverage for months). Please report whether v3 has those three, because if they went with the from-guard the divergence is four times what was reported.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `at red`
 
@@ -920,6 +979,7 @@ Set an AT red
 - **stdout:** `ok: <AT> -> red`
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `at na`
 
@@ -937,6 +997,7 @@ Set a non-test AT to n-a (the doc / eyeball / gate status)
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** `n-a` belongs to `(non-test)` rows only and never satisfies anything.
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ## Family: `issues`
 
@@ -975,6 +1036,7 @@ Track issues without the ceremony of a steel thread
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** One of the 17 commands whose `--help` correctly exits 0 -- it is NOT an INV-07 member.
 - **Target:** `as-observed`
+- **MCP:** not exposed -- read-only
 
 ### `issues list`
 
@@ -990,6 +1052,7 @@ List issues (default: open)
 - **stdout:** one row per issue
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
 
 ### `issues add`
 
@@ -1008,6 +1071,7 @@ Add a new issue, print its ID:TITLE
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** `new` is an undocumented alias, verified by invocation: `intent issues new` answers `error: Issue title is required`, identical to `add`.
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `issues show`
 
@@ -1025,6 +1089,7 @@ Show one issue (optionally as JSON)
 - **stdout:** the issue body, or JSON
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
 
 ### `issues close`
 
@@ -1042,6 +1107,7 @@ Mark an issue done: OPEN -> CLOSED
 - **Side effects:**
   - Moves the issue directory between OPEN/ and CLOSED/ -- the v2 layout that retires under the ratified deviation
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `issues open`
 
@@ -1059,6 +1125,7 @@ Reopen an issue: CLOSED -> OPEN
 - **Side effects:**
   - Moves the issue directory back
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ## Family: `todo`
 
@@ -1102,6 +1169,9 @@ Show intent/todo.md (generates it if absent)
   - INV-07 at `todo --help`
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **MCP:** exposed as an agent tool -- **mutates**
+- **Wants review -- the classification disagrees with the verb name:** Bare `intent todo` is the default read of the whole tool and it inherits `list`'s generate-on-absent write.
+- **MCP classification grounded in:** bin/intent_todo:380 (`COMMAND="${1:-list}"`) -- bare `todo` IS `todo list`
 
 ### `todo list`
 
@@ -1117,6 +1187,9 @@ Show intent/todo.md (generates it if absent)
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** The EXPLICIT spelling of the family default. `intent todo` and `intent todo list` are the same code path, verified by invocation (exit 0).
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **Wants review -- the classification disagrees with the verb name:** `list` is THE read verb of this table and this one writes a file the first time it is called. It is also the worst shape for a bug: it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone.
+- **MCP classification grounded in:** bin/intent_todo:384-393 -- the else branch calls generate(), which does `mv "$tmp" "$TODO_FILE"` at :246
 
 ### `todo update`
 
@@ -1132,6 +1205,7 @@ Regenerate intent/todo.md from current status
   - Rewrites intent/todo.md
 - **Target:** `as-observed`
 - **Note:** In v3 this is a view regeneration on the WP-03 renderer, and the skew check (AC-03.4) makes a stale todo.md detectable rather than merely refreshable.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `todo done`
 
@@ -1153,6 +1227,7 @@ Mark a thread/WP done (via intent st/wp done), then regenerate
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** Delegates to `intent st done` / `intent wp done`, so the acceptance close-gate applies transitively.
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `todo notdone`
 
@@ -1168,6 +1243,7 @@ Reopen a thread/WP to WIP, then regenerate
 - **stdout:** confirmation
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `todo toggle`
 
@@ -1183,6 +1259,7 @@ Flip done/not-done, then regenerate
 - **stdout:** confirmation
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ## Family: `info`
 
@@ -1217,6 +1294,8 @@ Show the Intent process overview and project status
 - **Defects observed in v2:**
   - INV-08 at `intent info --zzz` succeeds silently at exit 0
 - **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced rather than chosen -- clap rejects unrecognised arguments by default -- behaviour: Unknown arguments refused, exit 1 per INV-02.
+- **MCP:** exposed as an agent tool -- read-only
+- **MCP classification grounded in:** bin/intent_info -- no write primitive in the file
 
 ## Family: `config`
 
@@ -1286,6 +1365,10 @@ Display the resolved project configuration
   - `deliberately_not_keys.1`: ANY SWITCH THAT SILENCES BACKUP FAILURE -- IN-AG-NO-SILENT-001 at its sharpest. This is the backup of the durable SSOT, and D35 records that the natural implementation (best-effort, on a timer, in a daemon nobody watches) is the one that fails silently. A key to turn the warning off MANUFACTURES that failure and gives it a supported name.
   - `resolved_by_hv`: ANSWERED 2026-08-15. I had declined to invent `config get` / `config set` and flagged the reading; hv ruled they ARE new surface and should exist. Rows authored on this family. **hv's accompanying caution is recorded because it is the more useful half: project configuration is USER-FACING surface, and must not be conflated with this repository's own dev/PM apparatus.** Intent dogfoods itself, so one `config.json` serves both roles HERE and nowhere else -- which is precisely what makes the two easy to confuse. A consumer installs `intent` from a tap and gets the command surface; they never get this repo's boards, sweeps or registers.
   - `carry_forward`: vc, 2026-08-15, to hold rather than act on: **if config ever enters the model the way the whiteboard did under D30, the setter question returns as a D32 question rather than a surface preference** -- _a state that can be entered and not left is a missing mutation, not a missing flag_. It is NOT a D32 question today, because `config.json` is project configuration and not model state. Recorded on the row so the trigger is attached to the thing it would change.
+- **MCP:** not exposed -- **mutates**
+- **Wants review:**
+  - uncertain on `exposed_on_mcp`, `read_or_mutate`
+  - The only row uncertain on BOTH fields, and the only row whose parity class is already `undefined`. `bin/intent_config` is dispatched to AND sourced as a library, and it carries a default-config writer (`mkdir -p` + `cat >` at :100-102) that I did not trace to the display path. Leaning mutate under the safe direction rather than guessing the call graph.
 
 ### `config get`
 
@@ -1299,6 +1382,7 @@ Print one configuration value
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15, answering D35's `configurable from intent config`: `config get` / `config set` are new surface and should exist.
 - **unknown key refuses:** AN UNKNOWN KEY EXITS NON-ZERO AND SAYS SO. It must NOT print an empty line at exit 0, because empty is indistinguishable from a key legitimately set to empty -- the same absence-as-meaning collapse that makes an absent retention count different from `0`. A user scripting against this needs the two cases separable, and the only place that can be decided is here.
 - **scope caution:** hv, 2026-08-15: this is USER-FACING project configuration. Intent dogfoods itself so this repo's own `config.json` is also a dev artefact, but that is a coincidence of the project and not a property of the command.
+- **MCP:** exposed as an agent tool -- read-only
 
 ### `config set`
 
@@ -1314,6 +1398,10 @@ Set one configuration value
 - **known keys are derived:** THE VALID-KEY SET IS DERIVED FROM THE DECLARED CONFIG SCHEMA, NEVER A HAND-MAINTAINED LIST IN THE SETTER. A hand list is a designed figure: correct the day it is typed, silently wrong at the next key added, because the act that invalidates it (declaring a new setting) is not the act that updates it. Derived, a new key becomes settable the day it is declared and an unknown one stays refused for free. Same rule the drift check applies to new surface, pointed at configuration.
 - **typed writes:** VALUES ARE WRITTEN WITH THEIR DECLARED TYPE, NOT AS STRINGS. `config set backup.enabled false` must write JSON `false`, not `"false"` -- a non-empty string is truthy nearly everywhere, so the string form would turn `disable the scheduled backup` into `enable it`, which is the worst available direction for that particular key. The type comes from the same schema that validates the key, so a value that cannot be coerced is a refusal rather than a cast.
 - **not model state:** `config.json` is project configuration, NOT model state, so this writes the file rather than mutating through the store -- and D32's every-state-is-leavable reasoning does not apply. vc's carry-forward on the `config` row above records the trigger that would change that: if configuration ever enters the model the way the whiteboard did under D30, this becomes a D32 question rather than a surface one.
+- **MCP:** exposed as an agent tool -- **mutates**
+- **Wants review:**
+  - uncertain on `exposed_on_mcp`
+  - Leaned OPEN against the standing lean, so it wants a look. hv ruled config is legitimate per-project surface; that ruling was about the keys existing, not about who may write them. An agent that can write config can turn `backup.enabled` off.
 
 ## Family: `init`
 
@@ -1355,6 +1443,10 @@ Initialize a new Intent project in the current directory
   - INV-07 at `init --help`
 - **Target:** `as-observed`
 - **Note:** v3 additionally stamps `project_id` (the D15 cloud seam) at init and at migration.
+- **MCP:** not exposed -- **mutates**
+- **Wants review:**
+  - uncertain on `exposed_on_mcp`
+  - Creating a project is a human's decision about a directory, not a task step.
 
 ## Family: `bootstrap`
 
@@ -1392,6 +1484,7 @@ First-time setup: create global Intent configuration
   - Usage block says `intent_bootstrap` and `Intent v2.0.0` -- names the script rather than the command, and the version is stale by nine minors.
 - **Target:** `pending-hv`
 - **Open question for hv:** The missing `error:` prefix is an INV-01 violation and a candidate `corrected` member. Same shape as `doctor` and `fileindex`.
+- **MCP:** not exposed -- **mutates**
 
 ## Family: `doctor`
 
@@ -1434,6 +1527,9 @@ Diagnose and fix common Intent configuration issues
   - STATUS-VS-GATE DISAGREEMENT (hv, 2026-08-15, ratifying the state machines): `doctor` reports any unit whose status disagrees with its gate. Refusal on the way in is not enough on its own -- a status that was TRUE when it was set becomes a false green the moment its contract grows, which is how three of five WPs came to disagree with their own gates while every one of them had been closed legitimately.
   - BACKUP STALENESS (vc, 2026-08-15, amending AC-03.10 after ic's `--list` question): `doctor` reports the newest snapshot's age against the configured `backup.schedule`. AC-03.10(d) had said only that a failed backup surfaces -- but A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could ship where nothing had ever run. Staleness is the two-sided test: it detects never-ran WITHOUT needing anything to have failed, the same construction as the clock guard's check C, which compares two stamps to each other and needs no clock at all.
 - **question sharpened by them:** BOTH obligations above make the open exit-code question materially heavier, and this is new evidence for a decision hv has not yet made. When `doctor` only reported configuration tidiness, `reportable but not enforceable` was a mild gap. It now detects (a) tracking data that is actively lying about whether work is finished and (b) a backup of the DURABLE SSOT that may never have run. Those are not advisory findings. A check that cannot fail a CI job is one nobody is obliged to read -- which is the unwired-guard shape dc measured: VISIBLE IS NOT CLOSED.
+- **MCP:** exposed as an agent tool -- **mutates**
+- **Wants review -- the classification disagrees with the verb name:** `doctor` is a diagnostic in every other tool that ships one, and `--fix` moves the global config and the project config aside. The diagnosis is the default; the entry is still a mutation.
+- **MCP classification grounded in:** bin/intent_doctor:66 (`-f|--fix`), :216 and :308 both `mv` real files
 
 ## Family: `upgrade`
 
@@ -1469,6 +1565,7 @@ Upgrade an Intent project to the current version
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** Convergent since ST0043: it probes on-disk state, runs only the steps still needed, applies canon via `intent claude upgrade --apply`, and stamps the version once at the end. Safe to re-run after an interruption.
 - **Target:** `retire` -- ratified: D09 -- migration floor v2.19.0, two-hop; v2's ledger is never reimplemented in Rust -- behaviour: The v3 migrator (WP-10) is the successor surface: `intent ingest --from-md` is its engine.
+- **MCP:** not exposed -- **mutates**
 
 ## Family: `organize`
 
@@ -1505,6 +1602,7 @@ Organize steel threads into status directories based on their metadata
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `retire` -- ratified: hv, 2026-08-14 -- organize (both faces) is planned vestigial by construction; a strictly structured model cannot hold data in the wrong spot or the wrong format, so the disorder this repairs cannot arise. Confirmed finally at the surface cut (WP-05/06).
 - **Note:** Retiring both faces dissolves the Highlander violation rather than resolving it -- nobody has to choose which implementation was right.
+- **MCP:** not exposed -- **mutates**
 - **Cross-reference:** `st organize` is the other face; see the `st` family.
 
 ## Family: `agents`
@@ -1546,6 +1644,7 @@ Manage AGENTS.md for Intent projects
   - INV-01 at `Unknown command: ...` carries no `error:` prefix
 - **Target:** `pending-hv`
 - **Open question for hv:** Both defects are INV-01/INV-06 members awaiting the same scope ruling.
+- **MCP:** not exposed -- read-only
 
 ### `agents init`
 
@@ -1560,6 +1659,8 @@ Initialize AGENTS.md at project root
 - **stdout:** confirmation
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** not exposed -- **mutates**
+- **MCP classification grounded in:** intent/plugins/agents/bin/intent_agents:196-216 -- cp of AGENTS.md / RULES.md / ARCHITECTURE.md
 
 ### `agents generate`
 
@@ -1572,6 +1673,7 @@ Emit generated AGENTS.md content to stdout
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** Pure emit-path -- writes nothing. The composable half of `sync`.
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `agents sync`
 
@@ -1586,6 +1688,8 @@ Regenerate AGENTS.md from current project state
   - Rewrites AGENTS.md at project root
 - **Observed notes:** AGENTS.md is THE proven generated-committed-view precedent that D04 generalises to info.md, acceptance.md, steel_threads.md and todo.md.
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP classification grounded in:** intent/plugins/agents/bin/intent_agents:693 -- backs up AGENTS.md then rewrites it
 
 ### `agents validate`
 
@@ -1598,6 +1702,7 @@ Validate AGENTS.md shape and required sections
 - **stdout:** findings
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
 
 ### `agents template`
 
@@ -1612,6 +1717,10 @@ Manage AGENTS.md templates
 - **stdout:** template list or detail
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
+- **Wants review:**
+  - uncertain on `read_or_mutate`
+  - No write primitive found near the arm, but I did not read the arm itself -- this is the one row classified `read` without either grounding or an obvious reading to fall back on.
 
 ## Family: `claude`
 
@@ -1655,6 +1764,7 @@ Claude Code integration
   - Four distinct conditions collapse to one message, so the error cannot tell the user which mistake they made. This is the same-text-for-different-causes collapse AC-04.4 forbids in v3.
 - **Target:** `as-observed` -- ratified: AC-04.4 -- every facade error is typed and renders a remedy with its full cause chain, with no same-text-for-different-causes collapses
 - **Note:** **Governed, not unexamined.** The four-conditions-one-message collapse is already forbidden by AC-04.4, so this row needs no separate hv ruling: v3 cannot reproduce it and stay inside its own contract. Cited here so the next reader sees it was decided rather than missed. (vc, 2026-08-14.)
+- **MCP:** not exposed -- read-only
 
 ### `claude subagents`
 
@@ -1674,6 +1784,7 @@ Manage Claude Code subagents
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** `intent/plugins/claude/subagents/.manifest/` tracks global-agents.json but NOT its sibling installed-agents.json, and .gitignore names neither, so running `install` inside a project leaves a permanent untracked file holding absolute machine paths. Pre-existing; wants an issue.
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `claude skills`
 
@@ -1693,6 +1804,7 @@ Manage Claude Code skills
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** `sync` checksums SKILL.md ONLY, so a change confined to a skill's scripts/ does not propagate -- it needs `install --force` (or touching SKILL.md). Known trap, worth not reproducing in v3.
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `claude rules`
 
@@ -1714,6 +1826,10 @@ List and show rule-library rules
   - `intent claude rules index` MUTATES `INTENT_HOME` -- it rewrote a tracked file (intent/plugins/claude/rules/index.json) in the worktree under test. A verb that reads like a query modifies the installation.
 - **Target:** `pending-hv`
 - **Open question for hv:** In v3 rules are embedded in the binary (WP-07), so `index` has no installation to mutate and arguably retires with the on-disk rules root. Decide at the surface cut.
+- **MCP:** exposed as an agent tool -- **mutates**
+- **Wants review:**
+  - uncertain on `read_or_mutate`
+  - Leaned mutate against the obvious reading. `rules list` / `rules show` are plainly reads and are the ones agents want, but `intent_claude_rules` carries write primitives I did not attribute to an arm. If they all live in an unrelated arm this is a `read`.
 
 ### `claude hook`
 
@@ -1730,6 +1846,10 @@ Run a named Intent hook
 - **stderr:** the hook's stderr, verbatim
 - **Target:** `as-observed`
 - **Note:** **Byte-compatible on day one is a hard requirement, not a preference** (parity.md). Consumer `.claude/settings.json` files reference `intent claude hook <name>` by runtime resolution (issue 0016); if this path changes shape, every consumer's hooks break on the binary swap. The single most parity-critical entry in the family.
+- **MCP:** exposed as an agent tool -- **mutates**
+- **Wants review:**
+  - uncertain on `exposed_on_mcp`
+  - Installs and removes Claude Code lifecycle hooks -- an agent editing the hooks that police it is the shape of the problem, even when each step is legitimate.
 
 ### `claude upgrade`
 
@@ -1745,6 +1865,7 @@ Apply Claude canon to the project
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** Called by `intent upgrade` as its single canon step (ST0043).
 - **Target:** `as-observed`
+- **MCP:** not exposed -- **mutates**
 
 ### `claude prime`
 
@@ -1760,6 +1881,8 @@ Generate MEMORY.md content for a Claude session
 - **Defects observed in v2:**
   - INV-06 at intent_claude_prime:212 writes `Error:` to stdout -- one of the parked plugin-bin sites
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP classification grounded in:** intent/plugins/claude/bin/intent_claude_prime:250-251 -- `mkdir -p "$memory_dir"` then `echo "$content" > "$memory_path"`
 
 ### `claude ws`
 
@@ -1778,6 +1901,7 @@ Manage whiteboard workstreams
 - **Observed notes:** `hygiene` enforces the line-oriented `key: value` header contract (D13) and says nothing about YAML validity, because validity is not the contract.
 - **Target:** `as-observed`
 - **Note:** D14: the whiteboard stays md-authored through 3.0.0/3.1 and is restructured in the 3.2 bus ST. So this family ports as-is rather than being reified.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `claude start`
 
@@ -1792,6 +1916,8 @@ Launch a Claude session bound to a workstream
 - **stdout:** session launch output
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** Not a data operation at all -- it launches an interactive Claude Code session bound to a node. An agent that can call it can spawn agents.
 
 ## Family: `critic`
 
@@ -1844,6 +1970,8 @@ Run Intent rule-library critics against source files
 - **Target:** `pending-hv`
 - **Open question for hv:** **Highest priority of the 19 pending rows, and a different risk class from the other 18: this one has a LIVE CONSUMER.** Exit 2 must keep meaning findings-present (INV-04), which requires the other three conditions to move to exit 1 per INV-02. That is a `corrected` change the pre-commit gate reads today.
 - **Note:** Confirmed independently by vc at the same revision; escalate to hv ahead of the usage-convention bundle.
+- **MCP:** exposed as an agent tool -- read-only
+- **MCP classification grounded in:** bin/intent_critic -- no write primitive in the file; it reports and sets an exit code
 
 ## Family: `lang`
 
@@ -1881,6 +2009,7 @@ Per-language canon management
 - **stdout:** the usage block
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** not exposed -- read-only
 
 ### `lang list`
 
@@ -1892,6 +2021,7 @@ List languages with available templates
 - **stdout:** one row per language
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
 
 ### `lang show`
 
@@ -1906,6 +2036,7 @@ Show what `intent lang init <lang>` installs
 - **stdout:** the file list
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
 
 ### `lang init`
 
@@ -1924,6 +2055,7 @@ Install per-language canon (idempotent; multi-lang)
   - Writes intent/llm/RULES-<lang>.md + ARCHITECTURE-<lang>.md
   - Adds the language to config.json's `languages` array
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ### `lang remove`
 
@@ -1938,6 +2070,10 @@ Remove per-language canon (idempotent; multi-lang)
 - **stdout:** confirmation per language
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** not exposed -- **mutates**
+- **Wants review:**
+  - uncertain on `exposed_on_mcp`
+  - Removes per-language canon files. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool.
 
 ### `lang sync`
 
@@ -1954,6 +2090,7 @@ Converge the Language Packs block in RULES.md for every declared language
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** Touches ONLY the Language Packs block -- never the RULES-<lang>.md files, which `init` overwrites.
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ## Family: `llm`
 
@@ -1986,6 +2123,7 @@ LLM-related commands
 - **stdout:** the usage block
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** not exposed -- read-only
 
 ### `llm usage_rules`
 
@@ -2003,6 +2141,9 @@ Display the Intent usage rules for LLMs
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **Note:** The optional-value flag is a genuine clap modelling decision (`num_args(0..=1)`), not a free port. Worth naming here so WP-05 does not discover it as a parse bug.
+- **MCP:** exposed as an agent tool -- **mutates**
+- **Wants review -- the classification disagrees with the verb name:** Reads as a display command, and its default IS display. The flag is what makes the entry a mutation -- the same shape as `at lint`, `doctor`, and `todo list`, which is why the field is defined over the entry rather than the default.
+- **MCP classification grounded in:** bin/intent_llm:65 is `cat "$USAGE_RULES_FILE"`; :88-100 is the `--symlink` path, which creates a symlink and warns when one exists
 
 ## Family: `learn`
 
@@ -2040,6 +2181,8 @@ Capture project-specific learnings for future LLM sessions
 - **stdout:** confirmation, or the learnings list
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP classification grounded in:** bin/intent_learn:82 (append_learning), called at :201
 
 ## Family: `modules`
 
@@ -2074,6 +2217,7 @@ Module registry guardrails
 - **stdout:** the usage block
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** not exposed -- read-only
 
 ### `modules check`
 
@@ -2091,6 +2235,8 @@ Compare MODULES.md registry against filesystem
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **Note:** The interactive `--register` needs an explicit non-tty behaviour in v3; v2 has none stated.
+- **MCP:** exposed as an agent tool -- read-only
+- **MCP classification grounded in:** bin/intent_modules -- no write primitive in the file
 
 ### `modules find`
 
@@ -2106,6 +2252,8 @@ Search MODULES.md for a term
 - **stdout:** matching rows
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
+- **MCP classification grounded in:** bin/intent_modules -- no write primitive in the file
 
 ## Family: `plugin`
 
@@ -2139,6 +2287,7 @@ Discover installed Intent plugins and their commands
 - **stdout:** the plugin list
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** not exposed -- read-only
 
 ### `plugin list`
 
@@ -2150,6 +2299,8 @@ List all plugins and their commands
 - **stdout:** one block per plugin
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
+- **MCP classification grounded in:** bin/intent_plugin -- no write primitive in the file
 
 ### `plugin show`
 
@@ -2164,6 +2315,8 @@ Show detailed information for a plugin
 - **stdout:** the plugin detail
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
+- **MCP classification grounded in:** bin/intent_plugin -- no write primitive in the file
 
 ## Family: `ext`
 
@@ -2201,6 +2354,7 @@ Manage Intent user extensions
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** Honours INTENT_EXT_DIR (override the default root, used by tests) and INTENT_EXT_DISABLE=1 (suppress ext discovery entirely).
 - **Target:** `as-observed`
+- **MCP:** not exposed -- read-only
 
 ### `ext list`
 
@@ -2212,6 +2366,8 @@ List installed extensions
 - **stdout:** one row per extension
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
+- **MCP classification grounded in:** bin/intent_ext -- every write primitive in the file is inside ext_new (:743-759)
 
 ### `ext show`
 
@@ -2226,6 +2382,8 @@ Show manifest + contributions for one extension
 - **stdout:** the manifest and contributions
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
+- **MCP classification grounded in:** bin/intent_ext -- writes confined to ext_new (:743-759)
 
 ### `ext validate`
 
@@ -2243,6 +2401,8 @@ Validate extension manifests
 - **Defects observed in v2:**
   - Help text marks this `[Session 3]` -- an internal development-scheduling tag in user-facing help.
 - **Target:** `as-observed`
+- **MCP:** exposed as an agent tool -- read-only
+- **MCP classification grounded in:** bin/intent_ext -- writes confined to ext_new (:743-759)
 
 ### `ext new`
 
@@ -2265,6 +2425,7 @@ Scaffold a new extension
   - Help says `new <name> --type` but the parsed flags are `--skill` / `--subagent` / `--rule-pack`; there is no `--type` flag. The documented invocation cannot work.
 - **Target:** `pending-hv`
 - **Open question for hv:** The help/implementation mismatch is a `corrected` candidate: v3 generates help from this table, so the two cannot disagree by construction. That is the class of defect the SSOT retires wholesale.
+- **MCP:** exposed as an agent tool -- **mutates**
 
 ## Family: `treeindex`
 
@@ -2311,6 +2472,7 @@ Generate LLM-oriented directory summaries
 - **Target:** `retire` -- ratified: hv, 2026-08-15 -- treeindex retires WHOLE (command, `intent/.treeindex/` cache, `/in-essentials` rules 3 and 4, every canon reference), together with the `in-handoff` skill. The source tree index in the DB obviates treeindex, and the DB model obviates handover: state moves out of per-session `.md` files shared between workstreams into durable state in the intentdb. Settles AC-13.1, which had been vc-specced under standing authorisation and contradicted by D21.
 - **Note:** D21 (design.md:195) still reads "the treeindex cache location is unchanged until WP-06 ports the command" -- which assumes a port. Its DECISION (`intent/.cache/` gitignored whole-dir, DB inside) is unaffected and AC-01.4 does not reopen; the subordinate forward-looking clause needs striking. Flagged by ic, surfaced by vc following the register's UNRATIFIED marker.
 - **consequence:** Removes 762 lines of bash from WP-06's port list, and INV-07 (`--help` exits non-zero here) is moot rather than pending-hv: there is no v3 command to correct.
+- **MCP:** not exposed -- **mutates**
 
 ## Family: `fileindex`
 
@@ -2362,6 +2524,10 @@ Maintain checkbox file indexes
   - INV-01 at `Unknown option: ...` carries no `error:` prefix
 - **Target:** `pending-hv`
 - **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **MCP:** exposed as an agent tool -- **mutates**
+- **Wants review:**
+  - uncertain on `exposed_on_mcp`
+  - Writes an index an agent would plausibly want to refresh before searching. Leaned open; the cost of being wrong is a stale-index rebuild, not lost work.
 
 ## Family: `help`
 
@@ -2398,6 +2564,8 @@ Show usage for Intent or one of its commands
   - INV-07 at `intent help --help` fails outright -- asking help for help is an error
   - 17 of 26 commands have no help file, so `intent help <cmd>` silently falls through to a no-help path for most of the surface.
 - **Target:** `retire` -- ratified: AC-05.1 -- the dispatch table is the SSOT and help text is generated from it, asserted by test -- behaviour: The `help` COMMAND survives as a surface; its v2 IMPLEMENTATION (lib/help/ + the hand-maintained list + the skip list) does not.
+- **MCP:** not exposed -- read-only
+- **Wants review -- the classification disagrees with the verb name:** Classified `false` despite being the single most harmless command in the table. In v3 help RENDERS FROM this file, so an MCP client already holds every string `help` would print; exposing it would be a second copy of the surface description, which is the thing this file exists to prevent.
 
 ## Family: `st_zero`
 
@@ -2442,6 +2610,7 @@ Retrofit ST0000 deliverables into brownfield projects
 - **consequence:** The divergence cost is ZERO for anyone following the command's own documentation: its usage block only ever said `intent st zero install`, never the root spelling. So the face that dies is the one no user was told to use, and the face that survives is a rewording of the one that was.
 - **face:** deleted
 - **never built:** true
+- **MCP:** not exposed -- **mutates**
 
 ## Family: `version`
 
@@ -2472,6 +2641,7 @@ Print the Intent version
 - **Defects observed in v2:**
   - INV-08 at `intent version --zzz` succeeds silently at exit 0
 - **Target:** `corrected` -- ratified: hv 2026-08-14 bounce (the `corrected` class); forced -- clap rejects unrecognised arguments by default -- behaviour: Unknown arguments refused, exit 1 per INV-02. The version string itself gains a baked GIT_HASH.
+- **MCP:** exposed as an agent tool -- read-only
 
 ## Known exposures -- defects this file does not have, and is not protected against
 
@@ -2571,6 +2741,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 
 - **v2:** new-surface
 - **acceptance:** AC-06.4 (added by vc, 2026-08-14, on the finding that all 62 ACs had zero coverage of search)
+- **MCP:** exposed as an agent tool -- read-only
 
 ### `sync`
 
@@ -2580,21 +2751,32 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **note:** NOT the same command as `st sync`, and NOT a superset of it either. v2's `st sync` composes `list` and PRINTS the thread table; only `--write` persists `steel_threads.md` (bin/intent_st:1145-1211, verified by ic). Reconciling the store from canon is a different job, so the two are two commands sharing a name and v3 treats them as such. Added by cc at build time (2026-08-14); second clause originally read "v2's job is a strict subset of this reconciliation and both spellings run it", corrected 2026-08-15 after cc found their own test could not catch it -- it was written from the same misreading as the code, asserted the two spellings produce identical bytes, and passed.
 - **truth model correction:** 2026-08-15, ic, under hv's ratified db-is-SSOT model. The help read `Reconcile the runtime store with committed canon on disk` and was backwards in BOTH halves: the store is not runtime, it is the DURABLE SSOT, and disk is not canon, it is a secondary artefact. Corrected here rather than filed because this string is USER-FACING -- it renders to `--help`, the MCP tool list and the `intent llm` guide, so the retracted model would have been the sentence a user READS, in the help for the very command the model is about. `Reconcile` went too: it implies two authorities being arbitrated, and the model is ONE authority with two-way transport.
 - **d34 wording:** FINAL wording, released by D34 (hv, 2026-08-15) after I held it pending the multi-machine question. **The DB is per-machine truth and is never committed; the committed extract IS the interchange between nodes**, and a fresh clone reconstitutes its DB by passing that extract through the ingest gate. So the help names both endpoints exactly: `this machine's store` (per-machine, authoritative locally) and `the committed extract` (what travels). D34 adopts the formulation _authority is not bidirectional just because transport is_ -- which is why the string says `in both directions` about the MOVEMENT and says nothing about precedence. A help line implying the file could win would describe a different architecture.
+- **MCP:** exposed as an agent tool -- **mutates**
+- **Wants review:**
+  - uncertain on `exposed_on_mcp`
+  - Leaned OPEN against the standing lean because sync is ordinary workflow, and it is the one row where that lean is least comfortable: it moves truth in BOTH directions, so a wrong `--to-store` can overwrite this machine's store from a stale extract. If the boundary with `ingest` is drawn so that `sync --to-store` is the recovery path, this should close.
 
 ### `schema`
 
 - **v2:** new-surface
+- **MCP:** exposed as an agent tool -- read-only
 
 ### `export`
 
 - **v2:** new-surface
 - **not backup:** SEE `backup`, which carries the full distinction. In short: this is the INTERCHANGE -- lossless text, usable without Intent, the artefact that travels between machines under D34 and reconstitutes a DB through the ingest gate. `backup` is a binary SQLite snapshot for fast local restore, carrying the derived index. Both help strings carry their own distinguishing clause deliberately, because a user choosing between them is not reading them side by side.
 - **truth model correction:** 2026-08-15, ic. The help read `Project the canon into another format`, which named the DISK side as the canon and so read as one on-disk format converting to another. Under hv's ratified model the store is the truth and this command is the OPENNESS half of it -- hv, verbatim: 'I can get my data out of the db and use it somewhere else LOSSLESSLY.' The `usable without Intent` clause is in the help deliberately: AC-02.6 requires the file form to be usable without this tool, and a promise a user cannot read is a promise nobody can hold us to. This is the surface half of AC-02.6; vc owns whether the contract wants it cited on this row.
+- **MCP:** exposed as an agent tool -- **mutates**
+- **Wants review -- the classification disagrees with the verb name:** `export` reads as a read -- it takes nothing out of the store that was not already there. It is `mutate` because the field is defined over DURABLE STATE, not over the store: export writes files into the working tree and can clobber them. Anyone who reads this field as 'touches the database' will disagree with this row, which is why the definition is written down.
 
 ### `ingest`
 
 - **v2:** new-surface
 - **truth model correction:** 2026-08-15, ic. The help read `Rebuild the canon from markdown`, which under the retracted model meant reconstructing the durable thing and so read as an authority-restoring act. Under hv's ratified model it is the opposite: markdown is a secondary artefact and ingest is the path INTO the truth, well-formed ONLY because it passes the hard gate of the intentsvcs API. `through the API gate` is in the user-facing string on purpose -- the gate is what makes the result trustworthy, so hiding it would let a reader assume a file's own format was sufficient. Recreation from an extract stays a CAPABILITY and is not a licence to treat the store as disposable.
+- **MCP:** not exposed -- **mutates**
+- **Wants review:**
+  - uncertain on `exposed_on_mcp`
+  - The recovery path and the v2 migrator behind one verb. Both are operations a human decides to run after something went wrong; neither is a task step. Closed on the strength of what it is FOR rather than what it costs.
 
 ### `backup`
 
@@ -2602,11 +2784,19 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **config:** Reads `backup.enabled` / `backup.schedule` / `backup.retain.{daily,weekly,monthly}` -- named on the `config` entry in this table. `backup.enabled` gates the DAEMON's schedule and deliberately does NOT gate this command.
 - **not export:** *** `backup` AND `export` ARE NOT SYNONYMS, AND CONFLATING THEM COSTS A USER THE THING THEY WERE TRYING TO SAVE. *** `export` is AC-02.6 OPENNESS: lossless, text, usable WITHOUT Intent, and under D34 it is THE INTERCHANGE -- the artefact that travels between machines and reconstitutes a DB through the ingest gate. `backup` is a binary SQLite snapshot: NOT usable without SQLite, NOT the interchange, and it carries the DERIVED INDEX so a restore is immediate with no re-ingest and no re-index. Different jobs, and neither is redundant. The failure mode is directional and asymmetric: a user who reaches for `backup` when they wanted portability gets a file no other tool can read, and a user who reaches for `export` when they wanted a fast restore gets a correct artefact that costs a full re-index -- so BOTH help strings must carry their own distinguishing clause rather than relying on a reader comparing them side by side, which is exactly what nobody does at the moment they need one.
 - **surfacing:** RATIFIED -- vc, 2026-08-15: the split is the ruling. A failed or skipped scheduled backup must surface (IN-AG-NO-SILENT-001), and **`doctor` is THE ONE PLACE health is reported** -- not a second status surface here -- because `doctor` already exists for exactly that and Highlander says one place, not two. `--list` answers only _what snapshots exist_, which is inventory rather than health. `doctor`'s obligation is recorded on its own row as `target.new_obligations`, so the requirement lives where the command that owns it is described.
+- **MCP:** not exposed -- **mutates**
+- **Wants review:**
+  - uncertain on `exposed_on_mcp`
+  - Genuinely harmless -- it writes a snapshot into `.backup/db/` and touches nothing else. Closed only by the standing lean, which is the weakest reason on this list.
 
 ### `daemon`
 
 - **v2:** new-surface
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** The canonical example behind the whole exposure field: `daemon start|stop|run` is machine-level process control, and it is the row that makes 'lean closed' the right default rather than a nicety.
 
 ### `mcp`
 
 - **v2:** new-surface
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** The MCP server's own launcher. Listing it inside the tool surface it serves is recursive, and an agent that can call it can spawn a second server against the same store.
