@@ -232,8 +232,31 @@ organize_commands.bats|retire|hv ruling 2026-08-14|Retires with the command. hv 
 # here would be exactly the laundering the column exists to prevent -- ic builds
 # the mechanism, vc and hv ratify the decision.
 #
+# A NAMED BLOCKER IS A BETTER VALUE THAN `UNRATIFIED`, and the difference is
+# what a reader does next. `UNRATIFIED` says "someone forgot to write a
+# D-number" and invites anyone to supply one. The treeindex row is not that: it
+# is blocked on a prior question that must be answered before any ratification
+# could be correct, and naming the question stops a well-meaning peer from
+# closing it with a plausible reference.
+#
+# THE CONFLICT (found by vc 2026-08-15, following this column's UNRATIFIED
+# marker, which is what the marker was built to do):
+#   D21 (design.md:195) -- "The treeindex cache location is unchanged UNTIL
+#       WP-06 PORTS THE COMMAND" -- assumes treeindex is PORTED.
+#   AC-13.1 (acceptance.md:153) -- treeindex is "retired whole -- command,
+#       cache, rules and every canon reference".
+# D21 is hv-ratified and sits inside AC-01.4, which is already `satisfied: yes`
+# on evidence "design.md D18-D21". AC-13.1 is vc-specced under standing
+# authorisation, and standing authorisation does not reach a ratified decision.
+#
+# So the row cannot be reclassified to `retire` (which would otherwise dissolve
+# the whole problem, since a test for a retired command retires with it and
+# needs no ratification) until hv answers ONE question: does treeindex PORT or
+# RETIRE? That answer settles this row, WP-06's port list and WP-13's T0.
+#
 # Format: <basename>|<ratification ref>
 RATIFICATIONS="
+treeindex_commands.bats|BLOCKED -- hv must first rule D21 (ports) vs AC-13.1 (retires whole); if RETIRE this row becomes retire and needs no ref
 "
 
 lookup_ratification() {
