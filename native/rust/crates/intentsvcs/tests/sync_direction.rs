@@ -169,7 +169,7 @@ fn the_directions_round_trip_on_a_healthy_estate() {
     .expect("a legal mutation from wip");
 
   let canon_before = fx.read("intent/st/ST0056/thread.json");
-  let db_before = facade.store().snapshot().expect("snapshot");
+  let db_before = facade.store().derived_dump().expect("snapshot");
 
   facade.sync_to_disk().expect("db -> disk");
   facade.sync_from_disk().expect("disk -> db");
@@ -181,7 +181,7 @@ fn the_directions_round_trip_on_a_healthy_estate() {
     "the canon file is byte-identical after a full round trip"
   );
   assert_eq!(
-    facade.store().snapshot().expect("snapshot"),
+    facade.store().derived_dump().expect("snapshot"),
     db_before,
     "and so is the store -- neither direction drifts on an estate that is in step"
   );

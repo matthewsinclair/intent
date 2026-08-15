@@ -740,6 +740,74 @@ impl Store {
     )
   }
 
+  /// **THE CLOCK. Time comes from the DB** (hv, 2026-08-15).
+  ///
+  /// RFC 3339 UTC, the format the event log already declares for `ts`.
+  ///
+  /// The store owns the clock because the store owns durable truth. Every
+  /// other arrangement gives a project more than one clock: the CLI had one,
+  /// `Envelope::new` had another, and a daemon would have brought a third --
+  /// three processes stamping one project's history from three readings, with
+  /// nothing to reconcile them. That is the whiteboard's local-versus-UTC
+  /// failure one layer down, and it fails the same way, silently: a stamp from
+  /// the wrong clock is indistinguishable from a right one by inspection.
+  ///
+  /// It also removes the injected-clock seam. A caller-supplied `today` is a
+  /// value a caller can get wrong, and two callers can disagree while both
+  /// look correct -- exactly what AC-08.8 forbids between the CLI and the
+  /// daemon for backup, and the same argument applies to every timestamp.
+  pub fn now(&self) -> Result<String, StoreError> {
+    Ok(
+      self
+        .conn
+        .query_row("SELECT strftime('%Y-%m-%dT%H:%M:%SZ', 'now')", [], |r| {
+          r.get(0)
+        })?,
+    )
+  }
+
+  /// Today, `YYYY-MM-DD` -- the same clock as [`Store::now`], truncated.
+  ///
+  /// Derived from the same query rather than from a formatted `now()`, so the
+  /// two can never disagree about which day it is at a UTC midnight boundary.
+  pub fn today(&self) -> Result<String, StoreError> {
+    Ok(
+      self
+        .conn
+        .query_row("SELECT strftime('%Y-%m-%d', 'now')", [], |r| r.get(0))?,
+    )
+  }
+
+  /// **D35's SNAPSHOT: a byte-image of the store, taken through SQLite.**
+  ///
+  /// `VACUUM INTO`, and the choice is the whole arm rather than a preference
+  /// (AC-03.10a). The store opens in WAL mode, so a committed transaction
+  /// lives in `intent.db-wal` until something checkpoints it -- and a file
+  /// copy of `intent.db` alone silently omits every such transaction. Measured
+  /// on this shape: a live store with 50 rows yields 50 through `VACUUM INTO`
+  /// and **0** through a naive copy, and the bad copy OPENS CLEANLY and
+  /// reports no error. `fs::copy`, `cp` and a directory tar are all defects
+  /// here, not slower alternatives.
+  ///
+  /// SQLite writes the destination itself and REFUSES a path that already
+  /// exists, which is the behaviour we want: a snapshot that silently replaced
+  /// an earlier one would make retention a lie. The caller creates the parent
+  /// directory; nothing else about the destination is this method's business,
+  /// because the layout under `.backup/` belongs to whoever owns that
+  /// namespace.
+  ///
+  /// **What it is NOT for.** A snapshot is restorable only into a binary that
+  /// speaks its schema. It is same-schema rollback, never the recovery path
+  /// for a store an upgraded binary refuses -- restoring a snapshot from
+  /// before a schema change reinstates the schema you were escaping. The
+  /// recovery path for that is the committed extract (D35, as vc sharpened it).
+  pub fn snapshot_into(&self, dest: &std::path::Path) -> Result<(), StoreError> {
+    self
+      .conn
+      .execute("VACUUM INTO ?1", [dest.to_string_lossy().as_ref()])?;
+    Ok(())
+  }
+
   /// How many prose sections the index holds.
   ///
   /// **A COUNT rather than `doc_sections().len()`**, because the only caller
@@ -826,7 +894,15 @@ impl Store {
   /// A deterministic, ordered dump of the DERIVED tables, for equality
   /// checks (the D01 rebuild-identity invariant). Excludes the event log,
   /// which is not derived.
-  pub fn snapshot(&self) -> Result<serde_json::Value, StoreError> {
+  ///
+  /// **It was called `snapshot` and the name is now spoken for.** D35 gives
+  /// "snapshot" a precise meaning -- a byte-image of the store at a schema,
+  /// good for same-schema rollback and nothing else -- and this is a LOGICAL
+  /// dump of six tables in JSON, which is a different object with different
+  /// properties: it survives a schema change, it cannot be restored from, and
+  /// it deliberately omits data. Two referents for one word on one type is how
+  /// a reader connects a ratified decision to the wrong method.
+  pub fn derived_dump(&self) -> Result<serde_json::Value, StoreError> {
     let mut out = serde_json::Map::new();
     for table in ["threads", "related", "wps", "criteria", "tests", "issues"] {
       out.insert(table.to_string(), self.dump_table(table)?);

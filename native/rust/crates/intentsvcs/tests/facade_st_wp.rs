@@ -30,9 +30,19 @@ fn st_new_creates_canon_and_every_view() {
 
   let thread = facade.st_show("ST0001").expect("show");
   assert_eq!(thread.status, ThreadStatus::Triage);
+  // **The SHAPE, not a pinned value.** The date comes from the store's clock
+  // (hv: time comes from the DB), so there is no injected `today` to pin it
+  // to -- and a test that pinned it would be asserting what day it is rather
+  // than that the tool stamped one.
   assert_eq!(
-    thread.created, "2026-08-14",
-    "the date comes from the caller"
+    thread.created,
+    facade.store().today().expect("the store's clock"),
+    "created is stamped from the store's clock"
+  );
+  assert!(
+    thread.created.len() == 10 && thread.created.split('-').count() == 3,
+    "and it is an ISO date: {}",
+    thread.created
   );
   assert_eq!(thread.slug.as_deref(), Some("add-a-rust-based-cli"));
 }
@@ -65,7 +75,11 @@ fn the_lifecycle_moves_status_and_stamps_completion() {
     .expect("cancel");
   let thread = facade.st_show("ST0001").unwrap();
   assert_eq!(thread.status, ThreadStatus::Cancelled);
-  assert_eq!(thread.completed.as_deref(), Some("2026-08-14"));
+  assert_eq!(
+    thread.completed.as_deref(),
+    Some(facade.store().today().expect("the store's clock").as_str()),
+    "a close stamps completion from the same one clock"
+  );
 }
 
 #[test]
@@ -153,7 +167,7 @@ fn a_mid_write_failure_leaves_no_torn_state() {
   let canon_before = fx.read("intent/st/ST0056/thread.json");
   let info_before = fx.read("intent/st/ST0056/info.md");
   let index_before = fx.read("intent/st/steel_threads.md");
-  let db_before = facade.store().snapshot().expect("snapshot");
+  let db_before = facade.store().derived_dump().expect("snapshot");
 
   // `intent/` read-only: writes into `intent/st/**` still succeed (they need
   // write permission on their OWN directory), but the rename of
@@ -205,7 +219,7 @@ fn a_mid_write_failure_leaves_no_torn_state() {
   // half-applied -- the files are merely allowed to be STALE relative to
   // truth, which is what "re-creatable" means.
   assert_ne!(
-    facade.store().snapshot().expect("snapshot"),
+    facade.store().derived_dump().expect("snapshot"),
     db_before,
     "the mutation landed in the store -- under D01 as reversed that is truth, not damage"
   );

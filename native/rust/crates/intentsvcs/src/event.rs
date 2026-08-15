@@ -28,8 +28,6 @@
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use time::OffsetDateTime;
-use time::format_description::well_known::Rfc3339;
 
 /// The principal a facade call runs as. `local` until the 3.2 agent bus
 /// gives principals meaning (vc/cc/hv) and intentc federates them (v4).
@@ -62,17 +60,27 @@ pub struct Subject {
 }
 
 impl Envelope {
-  /// Mint an envelope stamped now, with a fresh ULID.
+  /// Mint an envelope with a fresh ULID, stamped with the time the CALLER
+  /// read from the store.
+  ///
+  /// **It used to read the process clock, and under hv's ruling that is the
+  /// defect** (2026-08-15): time comes from the DB. The event log is the
+  /// durable record of when things happened, so a `ts` taken from whichever
+  /// machine's process happened to write it made the log's ordering an
+  /// accident of who ran the command. Two nodes syncing their logs together
+  /// (D34) would interleave by two unreconciled clocks.
+  ///
+  /// `ts` is a parameter rather than a store handle because this type knows
+  /// nothing about storage and should not learn. [`crate::store::Store::now`]
+  /// is the one clock; this is the one place a record is stamped with it.
   pub fn new(
     principal: &str,
     project_id: &str,
     op: &str,
     subject: Subject,
     payload: serde_json::Value,
+    ts: String,
   ) -> Self {
-    let ts = OffsetDateTime::now_utc()
-      .format(&Rfc3339)
-      .expect("RFC 3339 formatting of a UTC timestamp cannot fail");
     Self {
       id: ulid::Ulid::new().to_string(),
       ts,

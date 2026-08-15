@@ -62,8 +62,6 @@ pub struct FacadeContext {
   pub project_id: String,
   /// The Intent version, for generated banners.
   pub version: String,
-  /// Today, ISO 8601. Supplied by the caller; the facade owns no clock.
-  pub today: String,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -762,7 +760,7 @@ impl Facade {
       slug: Some(slugify(title)),
       status: ThreadStatus::Triage,
       status_reason: None,
-      created: self.ctx.today.clone(),
+      created: self.store.today().map_err(FacadeError::Store)?,
       completed: None,
       acceptance: None,
       objective: String::new(),
@@ -865,7 +863,9 @@ impl Facade {
     thread.status = status;
     thread.status_reason = reason.clone();
     thread.completed = match status {
-      ThreadStatus::Completed | ThreadStatus::Cancelled => Some(self.ctx.today.clone()),
+      ThreadStatus::Completed | ThreadStatus::Cancelled => {
+        Some(self.store.today().map_err(FacadeError::Store)?)
+      }
       _ => None,
     };
     self.apply(
@@ -1439,12 +1439,15 @@ impl Facade {
     // resync cannot render the tree differently.
     let set = self.projection(&next, &changed_threads, &changed_issues)?;
 
+    // THE clock, read from the store (hv: time comes from the DB).
+    let ts = self.store.now().map_err(FacadeError::Store)?;
     let envelope = Envelope::new(
       &self.ctx.principal,
       &self.ctx.project_id,
       op,
       subject,
       payload,
+      ts,
     );
     // The prose index is refreshed with the derived tables, not left behind.
     //

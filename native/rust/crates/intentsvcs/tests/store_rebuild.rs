@@ -101,12 +101,12 @@ fn rebuild_is_idempotent_and_a_second_store_from_the_same_extract_matches() {
 
   let mut first = Store::open_in_memory().expect("open");
   first.rebuild(&threads, &issues).expect("rebuild");
-  let snap_one = first.snapshot().expect("snapshot");
+  let snap_one = first.derived_dump().expect("snapshot");
 
   // Idempotent: rebuilding the same canon changes nothing.
   first.rebuild(&threads, &issues).expect("second rebuild");
   assert_eq!(
-    first.snapshot().expect("snapshot"),
+    first.derived_dump().expect("snapshot"),
     snap_one,
     "rebuild is idempotent"
   );
@@ -120,7 +120,7 @@ fn rebuild_is_idempotent_and_a_second_store_from_the_same_extract_matches() {
   let mut fresh = Store::open_in_memory().expect("open fresh");
   fresh.rebuild(&threads, &issues).expect("rebuild fresh");
   assert_eq!(
-    fresh.snapshot().expect("snapshot"),
+    fresh.derived_dump().expect("snapshot"),
     snap_one,
     "a second store built from the same extract is the same store"
   );
@@ -151,7 +151,7 @@ fn a_machine_that_never_held_the_store_builds_an_identical_one_from_the_extract(
 
   let mut original = Store::open(&dir.path().join("original/intent.db")).expect("open file store");
   original.rebuild(&threads, &issues).expect("rebuild");
-  let before = original.snapshot().expect("snapshot");
+  let before = original.derived_dump().expect("snapshot");
   drop(original);
 
   // A different path: a machine that has only ever had the extract.
@@ -161,7 +161,7 @@ fn a_machine_that_never_held_the_store_builds_an_identical_one_from_the_extract(
     .rebuild(&threads, &issues)
     .expect("build from the extract");
   assert_eq!(
-    clone.snapshot().expect("snapshot"),
+    clone.derived_dump().expect("snapshot"),
     before,
     "the extract reconstitutes the same store on a machine that never had it"
   );
@@ -182,12 +182,14 @@ fn event_log_is_not_derived_and_survives_rebuild() {
       id: "ST0056/02".to_string(),
     },
     serde_json::json!({"from": "not-started", "to": "wip"}),
+    // The store's clock, not the process's (hv: time comes from the DB).
+    store.now().expect("the store answers what time it is"),
   );
   store.append_event(&envelope).expect("append");
 
   // A rebuild wipes derived tables only; the log is append-only state.
   store.rebuild(&threads, &issues).expect("rebuild again");
-  let snap = store.snapshot().expect("snapshot");
+  let snap = store.derived_dump().expect("snapshot");
   assert!(
     snap.get("event_log").is_none(),
     "snapshot covers derived tables only"

@@ -33,14 +33,15 @@ pub fn ctx() -> RenderContext<'static> {
 /// rather than against whatever was generated.
 pub const PROJECT_ID: &str = "00000000-0000-0000-0000-00000000cc03";
 
-/// The facade's ambient facts. `today` is FIXED: the facade owns no clock, so
+/// The facade's ambient facts. There is no `today` here any more: time comes
+/// from the DB (hv, 2026-08-15), so there is no clock to inject and no way for
+/// a fixture to disagree with the store about what day it is. Formerly
 /// a test never has to freeze one.
 pub fn facade_ctx() -> intentsvcs::facade::FacadeContext {
   intentsvcs::facade::FacadeContext {
     principal: "cc".to_string(),
     project_id: PROJECT_ID.to_string(),
     version: VERSION.to_string(),
-    today: "2026-08-14".to_string(),
   }
 }
 

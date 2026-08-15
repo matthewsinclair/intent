@@ -68,21 +68,16 @@ fn context() -> Result<(Project, FacadeContext), String> {
     principal: "local".to_string(),
     project_id: project.config().project_id.clone().unwrap_or_default(),
     version: env!("CARGO_PKG_VERSION").to_string(),
-    today: today(),
   };
   Ok((project, ctx))
 }
 
-/// Today, ISO 8601, read at the OUTERMOST layer.
-///
-/// The facade takes the date as an argument and the renderer has no clock at
-/// all (D23), so this is the single place the tool asks what day it is.
-fn today() -> String {
-  time::OffsetDateTime::now_utc()
-    .date()
-    .format(&time::macros::format_description!("[year]-[month]-[day]"))
-    .expect("formatting a date cannot fail")
-}
+// **The renderer's clock is GONE, and its absence is the point** (hv,
+// 2026-08-15: time comes from the DB). `fn today()` read the process clock and
+// handed the result to the facade as `FacadeContext.today`, which made the
+// date a value a caller supplied -- so the CLI, the daemon and any test could
+// each supply a different one and all look correct. `Store::now` / `today` are
+// the one clock now, and there is no seam here to disagree through.
 
 /// The columns `intent st list` and the generated index share.
 const ST_COLUMNS: &[&str] = &["ID", "Slug", "Status", "Created", "Completed"];

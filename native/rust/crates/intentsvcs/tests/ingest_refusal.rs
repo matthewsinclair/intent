@@ -138,7 +138,7 @@ fn a_refusal_loads_nothing_into_the_store() {
 
   let mut store = Store::open_in_memory().expect("open");
   ingest::load(&fx.project(), &mut store).expect("the good estate loads");
-  let before = store.snapshot().expect("snapshot");
+  let before = store.derived_dump().expect("snapshot");
   assert_eq!(
     before["threads"].as_array().expect("threads").len(),
     1,
@@ -151,7 +151,7 @@ fn a_refusal_loads_nothing_into_the_store() {
   assert!(matches!(err, IngestError::Refused(_)));
 
   assert_eq!(
-    store.snapshot().expect("snapshot"),
+    store.derived_dump().expect("snapshot"),
     before,
     "a refused ingest leaves the store byte-identical -- no half-loaded estate, and specifically NOT the valid subset, which would be a queryable project silently missing a thread"
   );

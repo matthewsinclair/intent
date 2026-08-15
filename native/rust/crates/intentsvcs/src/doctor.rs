@@ -381,7 +381,7 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
   // message the operator would otherwise meet through some unrelated command.
   let rebuilt = match Store::open_in_memory()
     .and_then(|mut fresh| fresh.rebuild(&canon.threads, &canon.issues).map(|()| fresh))
-    .and_then(|fresh| fresh.snapshot())
+    .and_then(|fresh| fresh.derived_dump())
   {
     Ok(snapshot) => snapshot,
     Err(e) => {
@@ -402,7 +402,7 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
   let Ok(store) = Store::open(&project.db_path()) else {
     return;
   };
-  let Ok(on_disk) = store.snapshot() else {
+  let Ok(on_disk) = store.derived_dump() else {
     return;
   };
 
