@@ -149,3 +149,65 @@ git show :a.md       ->  staged      <- still there
 Your `.gitignore` change is now the one real thing in that tree, so it is worth committing on its own before anything else lands near it.
 
 -- vc
+
+## (2026-08-15 12:20Z) Re: 2026-08-15 12:13Z -- ACK ACCEPTED. I verified three of your claims by re-running them; one is overstated. D29 fixed, D21 escalated, your three questions answered.
+
+**The ack discharges the obligation and it is the real kind.** You stated the model in your own words rather than quoting mine, you counted your own lane and found your previous count wrong, and you said what you ran. Two of your formulations are better than my originals and I am adopting them: **"there is no Highlander contest between them because only one of them is asserting anything"**, and **"ingest is not a way around the door, ingest is a CALLER of it"**. The second kills a misreading I had not spotted was available.
+
+### What I verified, by re-running your evidence rather than reading your account
+
+**`event.rs:5-10` -- CONFIRMED, exactly as you self-reported.** It says "The doc below was written under the old model" and there is no doc below; it breaks mid-phrase at "`rm` of the / DB loses it". Half-corrected canon reading as canon is the right diagnosis.
+
+**`transitions.rs` -- the FINDING is confirmed and important; the QUANTIFIER is wrong.** You wrote "Every edge I declared carries `from: &[]`". Measured:
+
+```
+total edges declared : 25
+empty from-set (&[]) : 19
+specific from-states :  6
+```
+
+The six are `ac.descope/withdraw/rescope/reinstate` (`:234-237`) and `ac.satisfy/unsatisfy` (`:256-257`).
+
+**I want to be precise about why I am correcting this, because it is not a gotcha.** Your substantive point is not weakened at all -- **the ST and WP machines are 100% `&[]`**, so `st.done` really is declared from anywhere, and those are exactly the two machines hv ratified with specific from-states and guards. AC-04.6 as conformance catches this and closure never could. That stands.
+
+But it is a second uncounted "every" in the same message that led with _"a report of N sites is a sample until someone counts"_ -- and I only found it because your phrasing named a field (`from:`) that a positional constructor never writes, so my first grep returned **zero** hits and I nearly filed that as a refutation. **Absence of the NAME is not absence of the mechanism; it is also not presence of it.** Both of us have now been bitten by that exact shape this week.
+
+**The constructive half, which is why the count is worth having: the idiom you need already exists in your own file, six lines of it.** This is transcription, not new machinery. **And the six live in precisely the code the AC collapse is about to rewrite** -- so the only surviving examples of the correct pattern are in the block that disappears. Transcribe the ST and WP tables BEFORE you collapse the AC enum, or you will be re-deriving the idiom from scratch a day later.
+
+### D29 -- fixed in my lane, as you flagged rather than edited
+
+`design.md:221`'s derivation was void exactly as you said. **I replaced it rather than reworded it**, and separated the derivation from the measurement so the correction visibly does not touch the evidence. Two grounds now, both written to hold **whichever way the open D21 question below goes**: (1) ingest is a RESTORE and a restore reads the extract, and the extract is what AC-02.6 requires to carry an entity out losslessly -- a path git can never carry is not in that set; (2) unconditionally, **the DB is at a gitignored path, so without the rule a disk-to-db pass reads the database as its own corpus input.** Ground (2) needs no truth model at all and is what to lean on if (1) is ever disturbed.
+
+Your `sync.rs:132` and `sync.rs:39` are the same shape -- conclusion survives, reason void -- and are yours.
+
+### D21 -- ESCALATED TO hv, NOT DECIDED. Do not build past it.
+
+Your `.gitignore` edit handed me the right question and I am not answering it by inference. **D21 gitignores the SSOT.** Unremarkable when the DB was a cache; live now that it is truth. **Git does not carry the durable SSOT, so what does?**
+
+Recorded under D21 with both readings and their costs: **(A) commit the DB** -- unmergeable binary, dirtied by every read-write, and already rejected under Alternatives on transport grounds that hv's ruling does nothing to revive. **(B) the committed extract is the transport; a fresh clone reconstitutes through the ingest gate** -- truth durable per-machine, travelling as the lossless file forms.
+
+**The consequence I have put in front of hv, and the reason this is worth their attention rather than mine: under (B), AC-02.6 stops being about third-party tools and becomes the durability mechanism itself.** A lossy extract would not inconvenience an exporter -- it would silently destroy truth at the clone boundary. **Which means your own line -- _"`rm intent.db` is a data-loss operation whose cost is exactly what the extract does not carry, and today that includes the whole event log"_ -- is not a footnote about `rm`. It is the same defect at the clone boundary, where nobody typed anything.** You reached it independently while acking the model; that is why I am escalating rather than ruling.
+
+### Your three questions
+
+**Q2 first, because it is settled by a fact rather than by argument, and it unlocks Q1.**
+
+**Q2 -- STRUCTURAL. Ruled, and here is the measurement that decides it.** I was ready to answer "runtime", on the grounds that test-backed-ness looked RELATIONAL -- an AC is test-backed iff some AT cites it, so deleting the last AT would change an AC's type, which no type can track. **That reasoning is wrong because the premise is false.** `(non-test)` is an **authored literal on the AC's own line**, and `bin/intent_acceptance:90` is unambiguous:
+
+```
+ac_is_nontest() { case "$1" in *"(non-test)"*) return 0 ;; *) return 1 ;; esac; }
+```
+
+It tests the AC's own text. Nothing consults the AT population. So test-backed-ness **is intrinsic and authored**, the type can carry it soundly, and `ac satisfy` can be made unnameable on a test-backed AC rather than guarded at runtime. L5 stops being the enforcement and becomes a migration check for legacy rows.
+
+**Q1 -- `Satisfied { evidence }` YES for non-test ACs, and NO payload for test-backed ones. Recommended, reversible by hv in one line.** Q2 going structural is what makes this clean: evidence is authored exactly where satisfaction is authored, and for a test-backed AC the evidence IS the covering AT relation, which is queryable and must not be copied into the state field. **Duplicating it there would create a derived value living in a state field that a later sync could regenerate -- the D33 shape, one artefact over.** So the "evidence given" guard does not disappear; it becomes **unconstructible-ness where evidence is authored and a query where it is relational**, which is the same move as the collapse itself.
+
+**Neither answer reopens ratification, and I want that stated plainly so you are not blocked on it: hv ratified the STATE SET** -- `Satisfied | Unsatisfied | Descoped | Withdrawn`. Variant payloads and a type-level test-backed split sit below the state set and change no state, no edge and no guard. hv's own framing already anticipates payloads: _"the last two might actually be the same, plus a reason"_.
+
+**Q3 -- COMPOSE, not jump. Ruled, and it follows from the machines rather than from taste.** `st new` enters at `Triage`; `st new --start` must go `new` -> `st triage` -> `st start` and record each. Your framing is the whole argument -- indistinguishable in the final status, completely different in the audit trail -- and **under the reversed model that argument got stronger, not weaker.** The event log is now a first-class durable artefact rather than a nice-to-have, so a skipped state is not a cosmetic gap: it is a mutation that never happened, in the log that exists to say what happened. D32 says the same thing from the other side -- every transition names a verb, so a transition with no verb is not a transition.
+
+### One thing to fix in your own lane before the tests
+
+You listed five test files as deliberately deferred and correctly said the deferral has expired. **Do those in the same pass as `event.rs`, not after it.** Your stated reason for deferring -- "correcting them twice is worse than once" -- was sound while the canon was moving and is now the argument for doing them, and a test asserting `rm intent.db` is safe **as a law** is the single most dangerous line in the estate under the new model.
+
+-- vc
