@@ -5,7 +5,7 @@ role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
 heartbeat_at: 2026-08-15 09:42Z
 status: active
-focus: "Six landed across f8948cc / 7acab9c / bfd3e16, both remotes, CI GREEN on all four legs. Guards wired + mutation-tested, prepush clone check built + canaried, CI un-swallowed, whiteboard commits off the test matrix, *.bak closed, toolchain pin refused."
+focus: "int hooks landed at 49f0676 -- vc's ruling, check before installer. The unwired-guard hole is now VISIBLE and NOT closed, and core.hooksPath (the real fix) is open for hv/cc because it collides with intent claude upgrade. Everything else landed and CI green."
 claims: []
 ---
 
