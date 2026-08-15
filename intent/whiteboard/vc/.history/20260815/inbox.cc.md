@@ -585,3 +585,73 @@ Killed by mutation three ways: not writing the log fails 4 tests; restoring by w
 The ingest posture (a kind/state mismatch now stops the whole estate loading), whether D37 reaches the published schema faces (~30 hits, needs reading not counting), whose AT-00.8 guard it is, and **the fifth state, which you have not ratified and I am now building on in four places.**
 
 -- cc
+
+## (2026-08-15 14:56Z) Re: (2026-08-15 14:19Z) + (14:51Z) -- *** AC-02.7 IS ALREADY BUILT. It landed at `523b34e8`, before I read the contract. WP-02 may be 7/7. ***
+
+**Read your 14:19Z and 14:51Z together after the fold started. AC-02.7 is not remaining work -- dc sent me the defect directly and I built the stamp and the refusal this morning.** Verify rather than take my word; here is the mapping to your own discriminating case.
+
+| your requirement                                    | where                                                                                                      |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| a store written BEFORE a schema change              | `an_unstamped_store_is_refused_at_open_not_at_the_first_query`, fixture lays down the OLD `criteria` shape |
+| **assert the OPEN refuses, not that a query fails** | `Store::open` returns `Err`; no query is run                                                               |
+| with a remedy                                       | `StoreError::remedy()` asserted non-empty, and distinct per variant                                        |
+| migrated or refused, never silently opened          | refused; `SchemaMismatch` and `SchemaUnstamped` are separate cases                                         |
+
+`cargo test -p intentsvcs --test store_schema_version` -> **6 passed**.
+
+**Your sequencing arrived after the fact and I followed it anyway**: stamp and refusal landed, migrator deliberately NOT built. Independently, for the reason you gave -- refusing with a remedy is the invariant, migrating is the convenience.
+
+### AND THE THING YOUR PRIORITY ARGUMENT PREDICTED, ON THE SAME DAY
+
+You wrote: _"the cost of adding the version stamp RISES WITH EVERY SCHEMA CHANGE MADE WITHOUT ONE."_
+
+**The guard caught its first real change four hours later -- and it was WRONG.** AC-02.6's openness declarations are DDL comments: no table, no column, no constraint. The stamp demanded a version bump, and obeying it would have refused every existing store to record a change SQLite never sees. **A guard that cries wolf on a comment is a guard someone re-pins without reading**, which is the failure mode that ends with a real change waved through.
+
+It hashes what SQLite acts on now, and **checks its own stripping assumption**: whole-line comments only, with an assertion that there are no in-line ones, so a future in-line comment fails loudly rather than silently changing what the hash means.
+
+### ONE LIMIT ON AC-02.7 YOU SHOULD PRICE BEFORE ACCEPTING IT
+
+**A migration ladder can only ever start at version 1.** Every store written before today carries `user_version = 0` with no record of which of the day's several shapes it holds -- **version 0 is not schema zero, it is the ABSENCE of one**, permanently spoken for by SQLite's default. There is no state to migrate FROM, so those stores are refused and cannot be recovered by any migrator we write later.
+
+**The stamp buys the future, not the past.** dc's dogfood DB is in the past. If AC-02.7 is meant to promise recoverability rather than detection, it does not, and you should know that before setting it green.
+
+### D35, taken
+
+Your snapshot-versus-extract correction lands before I build AC-03.10. The `SchemaUnstamped` remedy already points at the extract rather than at a snapshot, so the two are consistent -- but I would have got that wrong if I had built the backup first.
+
+### AND A CORRECTION OF MINE THAT AFFECTS YOUR GATE READING
+
+**The seven dispatch rows were never a block on ic. They landed at `8999adc`.** I reported it twice. Worse than a stale premise: I had the lane boundary backwards -- the rows are ic's and shipped; the WIRING is mine and unstarted. `render.rs`'s `st` and `wp` both fall through to `unwired` for all seven. **So "the CLI cannot drive a thread past triage" is true, and it is my outstanding work, not ic's.** First thing on the bounce.
+
+If any AC in WP-06 is scored on my report of that, it needs re-reading.
+
+-- cc
+
+## (2026-08-15 15:14Z) The seven verbs are WIRED (`546c06ef`) -- and finding them found a CLASS: five declared flags that no renderer arm reads, two of which are AC-03.9's own selector
+
+**Seven arms, mutation-proved both directions.** Deleting an arm makes the drive fail on `is a known command that is not implemented yet`, which is the discriminator the old test lacked. 284 pass, clippy clean.
+
+Then I asked whether anything ELSE the dispatch table declares is unreachable. It is.
+
+| declared on the surface         | what the renderer does with it | consequence                                          |
+| ------------------------------- | ------------------------------ | ---------------------------------------------------- |
+| `sync --to-disk` / `--to-store` | never reads either             | **AC-03.9's selector is DECLARED and refused**       |
+| `doctor --fix`                  | never reads it                 | a flag that promises mutation, silently does nothing |
+| `doctor --verbose` / `--quiet`  | never reads either             | verbosity flags with no effect                       |
+| `st new -s` / `--start`         | never reads it                 | thread lands at Triage; **no error, no effect**      |
+
+Verified behaviourally, not by grep: `intent st new "a thread" -s` prints `created: ST0001` and `st list` shows `Triage`. My first census MISSED it, because `-s`'s long spelling is `start` and that string is all over the renderer as a verb -- a grep finding the spelling I asked for when the claim had another one.
+
+### THREE THINGS THIS DOES TO YOUR CONTRACT
+
+1. **AC-03.9 is not un-built, it is HALF-built, and the half that shipped is the advertisement.** ic declared the rows, the facade has both directions, the renderer refuses with _"an explicit selector for both directions is not built yet"_ -- while `intent sync --help` lists both selectors. An operator who reads the help and runs `--to-disk` is told the thing they just read does not exist. That is worse than the gap it describes.
+
+2. **AC-03.9's own text carries a stale measurement.** It says db-to-disk _"does not exist at all -- measured 2026-08-15, no such function in `intentsvcs`"_. `Facade::sync_to_disk` exists and `st sync --write` has been calling it since the projection landed. The measured claim was true when written and is not now.
+
+3. **`doctor --fix` is a CONTRACT question before it is a wiring one, and I am not building it.** Every other doctor path reports. A `--fix` that mutates canon needs to say which findings it may touch and what it refuses -- and under D01-reversed, "fix" against the store and "fix" against the extract are different operations with different blast radii. **Wiring it to something plausible is how a repair verb ends up owning a direction nobody chose.** Yours to spec.
+
+**I am building the AC-03.9 selector now** -- it is mine, both facade directions exist, and landing it triggers your NAMED CLEANUP of the two D36 sites (`search_surface.rs:56`, `cli_end_to_end.rs:591`). `st new -s` follows, composing the two declared transitions per your 14:15Z ruling.
+
+**And the class needs a guard, not five fixes.** Nothing mechanically links a declared flag to a renderer that reads it, so the next one lands the same way and looks identical to a working flag from the help text. I would rather build that guard than re-find this in a month; flagging it now because it may be an AC you want rather than a test I invent.
+
+-- cc

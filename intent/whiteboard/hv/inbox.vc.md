@@ -180,3 +180,48 @@ One word, yes or no. It is right and needs ratifying rather than fixing. Nothing
 The cause worth your half-minute: **an AT covers a FILE, an AC states a CRITERION, and the coverage claim joining them is hand-made by me and never re-tested.** Both ACs grew arms over three days as cc reported progress; the AT rows never moved. Underneath it, `ac gate` satisfies an AC on the **first green AT** covering it (`bin/intent_acceptance:454` ORs, it does not AND), so the natural repair -- a second row at `to-write` naming the gap -- has no effect on the verdict. **Filed as issue 0032**, not fixed: it is v2 tooling that WP-04 replaces, `bin/**` is not mutated with sessions live, and the interim control is in place. The note that matters is in the issue: **whoever builds the v3 close-gate must not port the early-return.**
 
 -- vc
+
+## (2026-08-15 15:15Z) CORRECTION to my 14:26Z: the codesign check I told you was the one that means anything RETURNS 0 ON AN UNSIGNED-BY-US BINARY
+
+**FYI only in the sense that nothing is blocked -- but read it, because I put a bad check in front of you three hours ago and you may have written it down.**
+
+At 14:26Z I told you: _"`codesign --verify --strict` is the check that means anything for a bare CLI."_ That was wrong in the dangerous direction.
+
+**`codesign --verify --strict` returns 0 on an ad-hoc signed binary.** An ad-hoc signature is a valid signature -- the check answers "is this signature intact", not "is this OUR signature". A binary the linker signed with no identity at all passes it cleanly. **The check that actually discriminates is verification from a QUARANTINED copy**, which is what dc built into `int macos verify` and `int macos stage`.
+
+**dc proved it by accident, on live bytes, within the hour.** `target/release/` is shared mutable state: cc rebuilt at 14:59Z, and the linker's ad-hoc signature silently replaced the Developer ID one on `intent` (`Signature=adhoc`, `TeamIdentifier=not set`), while `intentd`, untouched since 14:23Z, kept `76BQL8L47U`. **One of two shipped binaries stopped being notarised with no signal anywhere, and the obvious check still said 0.**
+
+**The class is the one I have been holding everyone else to, and I supplied an instance: a sufficient-looking check that answers a NARROWER question than the one being asked, and fails green.** It is the same shape as cc's schema stamp this morning (a store that opens cleanly and cannot be read) and dc's own doctor blank-field bug. Mine had the extra property of being handed to you as a recommendation.
+
+Two things that follow, neither needing you:
+
+- **AC-11.2 stays satisfied and its evidence is updated.** The criterion is that the decision is recorded and the mechanism implemented -- both true, and now proven twice (Apple Accepted `cc52d5da` and `5eddb54a`). What changed is that the evidence line now says the **artefact is transient and is not the evidence**; a binary on disk in a shared build directory cannot carry a claim for longer than the next `cargo build`.
+- **The two facts I gave you at 14:26Z about stapling and `spctl` still hold** -- a bare Mach-O cannot have a ticket stapled, and `spctl -a -t exec` rejecting a valid CLI is a category error. Those were right. It is only the "use `codesign --verify --strict` instead" half that was wrong.
+
+-- vc
+
+## (2026-08-15 15:17Z) A SECOND DECISION, and it is a one-liner with a measurement behind it: the five schema faces we PUBLISH carry no version at all
+
+Raised by ic's contract question, measured by me before ruling. **Short, and it is a genuine D-number candidate rather than a bug.**
+
+```
+schema/ddl.sql             0 occurrences of "version"
+schema/schema.graphql      0
+schema/thread.schema.json  0
+schema/issue.schema.json   0
+schema/event.schema.json   0
+```
+
+**cc gave the internal, per-machine, never-committed store a `SCHEMA_VERSION` and a hard refusal this morning. The five artefacts we actually publish to people outside this repo have nothing.** A consumer compiles against the DDL, the SDL and the JSON Schemas; a silent change breaks them at their next upgrade with nothing to diagnose it by.
+
+**AC-06.5 does not cover this and it looks like it does** -- it asserts the printed face is byte-identical to the committed file. Both move together, both stay identical, the gate stays green, and the consumer still breaks. **It is a consistency check, not an anchor.**
+
+**The internal artefact is versioned and the external contract is not, which is exactly backwards:** the store can be rebuilt from the extract, and a consumer's code cannot be rebuilt from anything we hold.
+
+**What I would rule if it were mine:** the published faces carry a version, and moving it is a deliberate act -- the same instrument cc built for the DDL, pointed outward. Help text gets nothing; changing a help string breaks nobody's code and pinning it buys churn. **The distinction is whether a consumer COMPILES against it.**
+
+**The pattern this is the third instance of, named so we stop meeting it fresh: a generated artefact with a hand-kept companion that must move with it.** cc's `SCHEMA_VERSION` beside the DDL. dc's sha256 beside the tap formula. The published faces, beside nothing. The first two got tripwires today; the third is the one with a consumer we cannot see.
+
+**Nothing is blocked and nobody is waiting on it** -- ic has been told it is yours and has moved on to the inventory re-probe. It wants a D-number before WP-06 closes, not before the bounce.
+
+-- vc
