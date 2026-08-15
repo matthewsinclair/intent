@@ -76,6 +76,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 - AC-04.2 ac/at operations implement the four AC states with computed satisfaction for test-backed ACs (never stored) and inline evidence for non-test
 - AC-04.3 The close-gate reads the model and reproduces v2 gate verdicts -- including every one of v2's own gate rules that remains constructible in v3, each with its own distinguishable diagnosis, proven against contracts built to trip them rather than against a corpus that happens to be clean
 - AC-04.4 Every facade error is typed and renders a remedy with its full cause chain (no same-text-for-different-causes collapses)
+- AC-04.6 **Mutation completeness (D32): every state an entity can enter, it can leave, by a service call reachable from every surface.** No state transition exists only as a hand-edit. Held to a mechanical test rather than a review: for each modelled state field, the set of transitions offered by the service layer is closed -- an entity that can be moved into a state and not out of it fails, naming the state and the missing inverse. Ruled by hv 2026-08-15 on a concrete instance vc hit while using the apparatus: `intent ac satisfy` is a one-way door, `rescope`/`reinstate` only undo a descope, so a verifier whose evidence proved incomplete had to hand-edit `acceptance.md` -- the file the CLI exists to own -- to reopen an AC. **A state that can be entered and not left is a missing mutation, not a missing flag.** In WP-04 because `ac`/`at` are its families; the same rule binds D30's whiteboard operations and anything else that models state
 - AC-04.5 Every mutation path writes an event-log envelope carrying principal + project_id (the D15 seams exist end to end; renumbered from AC-02.6 at WP-02 close per the 2026-08-14 bounce ruling)
 
 ### WP-05 -- CLI in-process + conformance harness (status: Not Started)
@@ -150,7 +151,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 
 > Tiered by hv's "reach for the stars, but not all at once". T0-T2 need no external model and are in the 3.0.0 gate; T3 (semantic) and T4 (type-aware) are specified now and land later, which is only safe because AC-13.9 proves the seams admit them. D01's rebuildable DB is what makes deferring a tier free -- adding vector tables later is a `rm intent.db`, never a migration.
 
-- AC-13.1 `treeindex` and the `in-handoff` skill are retired whole -- command, `intent/.treeindex/` cache, `/in-essentials` rules 3 and 4, and every canon reference -- and nothing in the repo references either
+- AC-13.1 **(hv-RATIFIED 2026-08-15 as D31 -- was vc-specced under standing authorisation, which is what blocked ic's register row)** `treeindex` and the `in-handoff` skill are retired whole -- command, `intent/.treeindex/` cache, `/in-essentials` rules 3 and 4, and every canon reference -- and nothing in the repo references either
 - AC-13.2 The index scope is the gitignore-aware repository, not `intent/**`: a source file is indexed, and a gitignored file never appears in any result
 - AC-13.3 Lexical (FTS5) search returns hits across prose and source in the one result shape `{path, span, kind, tier, score, snippet}`
 - AC-13.4 Structural (tree-sitter) search returns definition and reference hits for every language in the project's `languages` array, and a language absent from that array loads no grammar
@@ -238,6 +239,7 @@ WP-03 dispositions (vc, 2026-08-14, ADOPTED under hv standing authorisation):
 - AT-04.3 `crates/intentsvcs/tests/close_gate_parity.rs` -- covers AC-04.3 -- status: green
 - AT-04.4 `crates/intentsvcs/tests/error_remedies.rs` -- covers AC-04.4 -- status: green
 - AT-04.5 `crates/intentsvcs/tests/event_log_envelopes.rs` -- covers AC-04.5 -- status: green
+- AT-04.6 `crates/intentsvcs/tests/mutation_completeness.rs` -- covers AC-04.6 -- status: to-write -- enumerate each modelled state field and assert its transition set is closed; the discriminating case is satisfy-then-unsatisfy on a non-test AC, which is the instance that produced the rule
 - Coverage: complete
 
 ### WP-05
