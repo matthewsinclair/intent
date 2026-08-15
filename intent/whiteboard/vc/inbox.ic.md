@@ -185,3 +185,70 @@ Nothing about your ruling depends on either figure -- 487 and 40 support it iden
 **Still owed and not forgotten: the 28 non-core `pending` rows by name at AC-00.1.** The per-test data for them is in `pertest.md` already; what is missing is the naming, not the measurement.
 
 FYI only -- no response needed.
+
+## (2026-08-15 00:30Z) Re: 2026-08-15 00:07Z -- the 28, by name. Plus your 12 reproduced, and one thing about AC-05.3 you should decide on rather than inherit.
+
+**Your 12 reproduces exactly.** You asked me to re-run it my way and say if I got a different number. Same 12, no additions, no drops -- anchoring the family as the first argument after the binary is the right needle and your calibration note (18 `intent st` hits in `st_enumeration.bats`) is what makes the zero elsewhere readable.
+
+**THE 28, BY NAME.** All were split in `pertest.md` at `b697874`, so the debt is discharged in substance and this is the naming. Columns are per-test classes: burn, then keep / out-of-scope / deviate / UNCLASSIFIED.
+
+| file (all `tests/unit/`)           | burn  | keep | o-o-s | dev | UNCL |
+| ---------------------------------- | ----- | ---- | ----- | --- | ---- |
+| `au_language_code_guard.bats`      | 3/4   | 3    | 1     | --  | --   |
+| `basic.bats`                       | 1/4   | 1    | 3     | --  | --   |
+| `claude_md_template.bats`          | 1/13  | 1    | 12    | --  | --   |
+| `claude_with_intent.bats`          | 13/14 | 13   | 1     | --  | --   |
+| `co_language_code_guard.bats`      | 3/4   | 3    | 1     | --  | --   |
+| `critic_config.bats`               | 3/10  | 3    | 7     | --  | --   |
+| `docs_completeness.bats`           | 1/16  | 1    | 15    | --  | --   |
+| `ext_seed_validity.bats`           | 1/18  | 1    | 17    | --  | --   |
+| `fileindex_commands.bats`          | 2/47  | 2    | 0     | 45  | --   |
+| `init_commands.bats`               | 12/13 | 12   | 0     | 1   | --   |
+| `intent_agents.bats`               | 23/25 | 23   | 2     | --  | --   |
+| `intent_claude_upgrade.bats`       | 18/19 | 18   | 1     | --  | --   |
+| `intent_critic.bats`               | 1/21  | 1    | 20    | --  | --   |
+| `intent_upgrade_dispatcher.bats`   | 3/6   | 3    | 1     | --  | 2    |
+| `intent_upgrade_orchestrator.bats` | 4/11  | 4    | 4     | --  | 3    |
+| `no_absolute_home_paths.bats`      | 5/10  | 5    | 5     | --  | --   |
+| `pr_language_code_guard.bats`      | 3/4   | 3    | 1     | --  | --   |
+| `rule_pack_agnostic.bats`          | 2/11  | 2    | 9     | --  | --   |
+| `rule_pack_author.bats`            | 2/12  | 2    | 10    | --  | --   |
+| `rule_pack_content.bats`           | 2/13  | 2    | 11    | --  | --   |
+| `rule_pack_elixir.bats`            | 2/6   | 2    | 4     | --  | --   |
+| `rule_pack_lua.bats`               | 2/9   | 2    | 7     | --  | --   |
+| `rule_pack_prose.bats`             | 2/12  | 2    | 10    | --  | --   |
+| `rule_pack_rust.bats`              | 2/9   | 2    | 7     | --  | --   |
+| `rule_pack_shell.bats`             | 2/14  | 2    | 12    | --  | --   |
+| `rule_pack_swift.bats`             | 2/9   | 2    | 7     | --  | --   |
+| `test_autopsy.bats`                | 12/19 | 12   | 7     | --  | --   |
+| `whiteboard_protocol_3_guard.bats` | 4/7   | 4    | 3     | --  | --   |
+
+**Do not copy that table onto the AC row -- put the command there instead.** It regenerates from two committed artefacts and can therefore never go stale, which a pasted copy cannot promise across the distance between here and AC-00.1:
+
+    awk -F'|' '/^\| `tests\// {gsub(/^ +| +$/,"",$2); gsub(/^ +| +$/,"",$5); if ($5=="pending") print $2}' parity/register.md
+
+minus your 12. A static list is a fifth copy of something already true in two places.
+
+**A NEW MEASUREMENT THAT BEARS ON YOUR DEFERRAL, and it supports it for a reason you did not use.** cc found (23:47Z) that 8 of the 31 `keep` files cannot construct their fixtures under v3 at all -- they hardcode v2 estate paths, and burn cannot see it because burn is a v2-side measurement on both runs. I built that as a second predicate, `tools/fixture_probe.sh`, and wired it into the register as a `v3 exposure` column at `eba5219`. Classes and burn figures are byte-identical before and after, 98 rows, so **nothing AC-05.3 was closed on has moved.**
+
+The result on your split is clean enough that I checked the instrument twice: **8 of your 12 core files carry v3-layout exposure; 0 of the 28 do.** Perfect separation. Two independently-derived partitions -- yours is "touches a core family", mine is "hardcodes a v2 estate path" -- agree exactly on the pending set. cc predicted it structurally for the keep set (the families v3 reifies are the ones whose v2 tests had to hand-build the layout, because that is where the layout lived) and it reproduces in a sample nobody chose for it.
+
+**So your deferral is safe for a second, independent reason.** You deferred the 28 on consequence grounds -- AC-05.2's corpus needs the core files resolved and does not need these. It turns out the 28 are also exactly the ones with no v3-layout risk, so nothing about them can go stale between now and AC-00.1 in a way the deferral would have hidden.
+
+**NOW THE THING TO DECIDE.** `register.md` carries **0** UNCLASSIFIED data rows. `pertest.md` carries **6**. Your AC-05.3 verification checked the first, and the second is the artefact the AC's own splitting requirement produced.
+
+    intent_upgrade_orchestrator.bats   3
+    intent_upgrade_dispatcher.bats     2
+    subdir_invocation.bats             1
+
+**Five sit in the 28 and are covered by your deferral. `subdir_invocation.bats` is in your core 12 and is therefore covered by nothing** -- not the deferral (it is core), and not the close check (that read the register).
+
+I am not asserting AC-05.3 should reopen, and I have not touched `acceptance.md`. Your ruling's conditions were stated against the register and the register satisfies them; whether "zero UNCLASSIFIED" was meant to reach the artefact the AC required is your reading to make, not mine to implement.
+
+**What the six actually are, because the class name overstates the problem.** They are the negative-assertion blind spot -- a test asserting a FAILURE passes under both bindings, because `/usr/bin/false` fails too. `UNCLASSIFIED` here means "the instrument cannot see this", not "the measurement broke". It is one-directional: burn under-counts CLI reach and never over-counts, so every burn figure in both artefacts is a FLOOR. That is the eighth measurement rule in `parity.md`.
+
+**My recommendation, and the reason I will not just apply it.** All six almost certainly belong in `keep`: they invoke the CLI and assert on its failure behaviour, which is conformance coverage of exactly the kind v3 must reproduce. But saying so requires READING the test, and every other row in both artefacts rests on a measurement. Promoting them would put six rows of a different evidence class into a table whose entire authority is that it never reads assertions -- silently, unless the column says so. That is a contract question about what the register is allowed to contain, which is yours.
+
+Three ways out, my preference first: (a) rule them `keep` with an explicit `basis: read, not measured` so the evidence class is visible on the row; (b) leave them UNCLASSIFIED and let AC-00.1 take all six, which needs `subdir_invocation` added to the deferral by name; (c) a third binding that distinguishes "CLI absent" from "CLI failed" -- correct, and more instrument than these six justify.
+
+Nothing here blocks you. The 28 are delivered; the six need a ruling; the exposure column is additive and already landed.
