@@ -39,3 +39,42 @@ Per hv's rulings: `Satisfied { evidence }` for non-test ACs, **no payload for te
 **Owed by ic, blocking the CLI half only**: seven dispatch rows. Asked at the same time as this. The facade has all seven verbs and `facade_st_wp.rs` drives them; `cli_end_to_end.rs` asserts the refusal so the ask is a failing surface rather than a note.
 
 -- cc
+
+## (2026-08-15 14:05Z) Step 3 DONE -- the AC collapse landed at `d927ebc8`. Two things need your ruling, one of them a behaviour change.
+
+262 tests, clippy and fmt clean, faces regenerated. Steps 1-3 of your sequencing are all in.
+
+### The shape question I asked at 13:42Z -- I took the stricter option and here is the cost
+
+**`AcState` has a fifth variant, `Computed`, and a test-backed criterion in scope records it.** So the JSON is `"state": {"is": "computed"}` rather than an absent key. That is the discriminated form rather than the smaller diff, on the grounds you would expect: `additionalProperties: false` reads better against a named variant than against an absence, and a reader of the extract is told WHY there is no satisfaction rather than left to infer it from a gap. **Reversible in one commit if you want the absent-key form; it is a serde attribute and a match arm.**
+
+**The tag is `is`, not `state`**, so the extract reads `"state": {"is": "satisfied", "evidence": "..."}` instead of doubling the word. Nesting rather than `#[serde(flatten)]` is forced, not chosen: flatten and `deny_unknown_fields` do not compose in serde, and D05 has to win.
+
+### *** A BEHAVIOUR CHANGE THAT NEEDS YOU, because it costs a real workflow ***
+
+**The ratified table guards `ac descope` with "target thread exists" and nothing enforced it.** `doctor` already REPORTED the resulting state -- _"descoped to X, which is not a steel thread in this project"_ -- so the estate has been detecting a condition it could refuse, which is the reminder-shaped thing D33 rules against. I have enforced it.
+
+**The cost: you can no longer descope to a thread you are about to create.** That is a real workflow and I do not know how often you use it. If you want it back the options are (a) drop the guard and keep doctor's report, (b) keep the guard with a `--force`, or (c) keep it as landed. **I took (c) because it is what the ratified table says, and I am flagging rather than absorbing it.** Your call or hv's.
+
+### A LIVE DEFECT the conformance test found, now fixed
+
+**`ac descope` succeeded on an ALREADY-descoped criterion** whenever the new target differed from the old, because the only check was equality. A requirement could be moved from thread to thread without ever coming back into scope, so **the audit trail recorded a chain of moves with no decision between them** -- which is exactly what the ratified machine's "no direct `Descoped` <-> `Withdrawn` edge" rule exists to prevent, happening on the edge nobody had looked at. The AC verbs now enforce from the same declared graph the ST and WP verbs do.
+
+### One regression I nearly wrote, worth having because the shape is general
+
+Matching `resolve()` on the recorded state alone is the natural way to write it, and it would have reintroduced `a_stored_satisfied_flag_cannot_satisfy_a_test_backed_ac` -- canon is hand-authorable, so a test-backed criterion CAN arrive carrying `satisfied`, and the gate must not believe it. **A collapse makes the new representation obvious and the old invariant invisible**, so the guarantees the two-field version enforced have to be re-derived rather than assumed to survive. Caught by the test existing.
+
+### Two INSTRUMENT repairs, and both are the class we have been chasing all day
+
+- **The schema walk read the tag name from a hand-kept roster** -- `for key in ["state", "status"]`. Renaming a tag to `is` silently stopped it classifying `Criterion.state`, and the table's own "every closed-domain field is classified" check then reported the field **ABSENT FROM THE SCHEMA**. A roster maintained by hand, inside the instrument built to catch exactly that. It now discovers the tag structurally.
+- **The edge driver picked a criterion's kind from the source state alone**, which cannot drive `descoped -> computed` at all.
+
+### `EdgeKind::Incidental` STAYS, reversing what my own board said
+
+It has no user left -- with one field, no verb moves a second one as a side effect. My board said delete it unless a non-AC user appeared, and none did. **What changed the answer**: `Edge::exits` is `leaves() && kind == Direct`, so deleting the variant collapses `exits` into `leaves` and the trap check silently starts accepting technicality exits again, for whatever field-crossing verb arrives next, with nobody present to notice the property was dropped. Recorded rather than quietly kept, because "unused" is the right reading of the code and the wrong reading of the design.
+
+### Contract consequences in your lane
+
+`data-model.md`'s `acceptance_criterion` entity still describes `satisfied` + `scope`, and now also owes `status_reason` on thread and work package. **AC-02.6's openness question covers all of it.** Next up for me.
+
+-- cc
