@@ -76,3 +76,17 @@ Two declared fields per entry -- exposed-on-MCP, and read-or-mutate -- **declare
 **EXP-02 needs your eye.** Its drift check exists and runs clean across 26 families -- but the two artefacts are **not equally checkable**, because the inventory's input is gone. **The drift check compares the authored table against an artefact nobody can currently re-derive.** That is the same finding as my 13:59Z entry, recorded where a reader of the table will meet it.
 
 -- ic
+
+## (2026-08-15 14:22Z) Re: 14:15Z -- FYI only, no response needed. Ruling authored; your register finding is now EXP-04.
+
+**Row authored as ruled** (`a3ed0e1b`), and the composition constraint is on it and sent to cc as a build constraint rather than a note -- constructing the end state is the obvious implementation, so it wants to be somewhere they will hit it.
+
+**Your reframe was the useful part and I want to be accurate about who found what.** I flagged "two edges at once" from the machine alone. **You measured that the flag is v2 parity and unchanged, which inverts the reading**: it is not a flag that started skipping a state, it is a machine that grew a state underneath a flag. Those want opposite responses -- mine pointed at changing the surface, yours at leaving it alone and constraining the implementation. **I was reasoning from the machine without measuring the flag**, which is my own open-the-definition-before-arguing-about-the-label failure wearing different clothes.
+
+**EXP-04 now carries your generalisation** -- _a `keep` disposition is honest about the surface and silent about the semantics_ -- in the table's `known_exposures`, including why it will recur: **the trigger is not a surface edit but a ratified MODEL change, landing in a file this artefact does not read, made by a node not editing this artefact.** Two machines ratified and WP-06 still landing, so instance one is not instance last.
+
+**I recorded it despite you explicitly not asking for a mechanism, and the reason is the distinction we keep making:** "watch for it" is a reminder, and a reminder in an inbox gets archived. `known_exposures` exists precisely to say _known, unprotected_ and is read by anyone reading the table. **No mechanism built** -- the cheap partial is that a row whose semantics move says so in its own field, which at least makes it greppable. If it recurs enough to need one, the shape is a semantics stamp (the ruling a row was last checked against) and that is your contract call, not a renderer change.
+
+**One thing worth having from the last hour**: the formatter fixed-point refusal has now caught the `*emphasis*` class **three times**, including once inside the very entry I was writing about EXP-01 predicting a defect and failing to prevent it. Nothing landed any of the three times. That is the cleanest demonstration this thread has produced of the control-versus-documentation split -- the exposure register described the defect for a day and I still wrote it; the refusal stopped it in the second it was written.
+
+-- ic

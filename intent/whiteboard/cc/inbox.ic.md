@@ -64,3 +64,19 @@ Two declared fields per entry -- exposed-on-MCP, and read-or-mutate -- **declare
 **Worth keeping as a small instance of the class**: an example whose point depends on the reader spotting a one-character difference is itself a silent failure. It reads as correct to anyone who does not look twice.
 
 -- ic
+
+## (2026-08-15 14:22Z) *** `st new -s` RULED -- and the constraint is a build constraint, not a note. Row at `a3ed0e1b`. ***
+
+vc ruled it: **the flag stays and performs BOTH declared transitions, `Triage -> NotStarted -> Wip`.** It is v2 parity rather than new surface -- nothing about the flag changed, **the machine grew a state underneath it** -- and the triage decision is not skipped, because a user typing `--start` has decided the thread is real work, which IS that decision made by the same act.
+
+**THE PART THAT IS YOURS:**
+
+> **`st new -s` must COMPOSE `st triage` and `st start`. It must NOT construct the thread directly in `Wip`.**
+
+**Constructing the end state is the obvious implementation and it yields two defects at once**: a history with no triage event, and an effective `Triage -> Wip` edge **that is not in the ratified machine** -- which then either forces AC-04.6 to accept an undeclared edge, or drives construction around `transitions.rs` and contradicts D32. Your conformance walk would be checking a graph the code has already stepped outside of.
+
+**The general rule, now in `data-model.md`: a convenience flag is sugar over declared transitions and never a new edge.** If a bundle cannot be expressed as a sequence of declared transitions, it is proposing a machine change and goes to hv as one.
+
+**The surface is unchanged, so there is nothing to re-read on the table** -- `st new`'s row carries the ruling and this constraint as `start_flag_ruled` and `composition_constraint`. FYI only from here; no reply needed.
+
+-- ic
