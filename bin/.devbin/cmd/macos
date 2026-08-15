@@ -531,6 +531,27 @@ cmd_prepare() {
 # belongs in the publish step. **Put the control where the harm is, not where it
 # is convenient to write.**
 #
+# VALIDATED WITH `brew style`, AND THE CALIBRATION IS THE POINT. Linted as a bare
+# file the generated formula reports five offences; linted AT A TAP PATH it
+# reports one. Four of the five were artefacts of judging a formula by the
+# generic Ruby config -- Sorbet sigils, a frozen-string-literal comment,
+# top-level class documentation -- none of which Homebrew applies inside a tap.
+# **Calibrated against `geodica/homebrew-conflab`'s live shipped formula**, which
+# reports the same one offence and none of the four, then confirmed by linting a
+# copy of ours at a real tap path. `Style/MutableConstant` is now fixed here, so
+# this generates a formula that lints clean where the reference does not.
+#
+# **A linter run in the wrong context reports real-looking findings about a
+# correct artefact**, and the only way to tell was to run it against something
+# already known good. Same shape as `spctl -a -t exec` calling a correctly signed
+# binary rejected.
+#
+# THE CONSTANT ITSELF STAYS, deliberately. `#{version}` may well work in the URL
+# and would remove the second copy, but the constant is what the shipped conflab
+# formula does, this path has no end-to-end test, and refactoring an unexercised
+# artefact for elegance is how the first real run finds something new. The two
+# copies come from one shell variable, so they cannot drift.
+#
 # EXPIRY, stated rather than left to be noticed: this lives under `macos` because
 # hv ruled 2026-08-15 that v3.0.0 ships macOS arm64 ONLY, which makes the formula
 # a single-platform document. If Linux artefacts are ever added the formula grows
@@ -579,7 +600,7 @@ class Intent < Formula
   version "$version"
   license "MIT"
 
-  RELEASE_VERSION = "$version"
+  RELEASE_VERSION = "$version".freeze
 
   # macOS arm64 only, by ruling (hv, 2026-08-15) rather than by omission. Both
   # binaries are Developer ID signed and notarised; nothing is stapled, because a
