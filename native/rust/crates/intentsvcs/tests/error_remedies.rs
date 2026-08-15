@@ -198,13 +198,28 @@ fn a_wrapped_failure_renders_its_full_cause_chain() {
     rendered.contains("do NOT retry"),
     "the remedy names the actual hazard under D01-as-reversed, which is a second application of a change that already landed: {rendered}"
   );
-  // It names `intent sync` only to REFUSE it. Under D01 as reversed, sync is
-  // disk -> db, so running it against stale files would overwrite the store
-  // with them and destroy the change this very error says is safe. The first
-  // draft of this remedy told the operator to run it.
+  // **This remedy has now been edited twice, for two different reasons, and
+  // the pair is the point.** The first draft told the operator to run `intent
+  // sync` -- disk -> db, which would have destroyed the change this error
+  // calls safe -- and was fixed by warning them OFF it. That warning was then
+  // the entire remedy for exactly as long as there was no db -> disk direction
+  // to point AT, and AC-03.9 landed one the same day. So a remedy that only
+  // said "do not" went from honest to under-serving without anybody touching
+  // it: the same class as the first edit, arriving from the opposite side.
+  //
+  // The assertions therefore check the two surviving PROPERTIES rather than
+  // the sentence, because the sentence has already moved twice.
   assert!(
-    rendered.contains("do NOT run `intent sync`"),
-    "the remedy warns off the disk-to-db command rather than recommending it: {rendered}"
+    !rendered.contains("run `intent sync`"),
+    "the remedy must never RECOMMEND the disk -> db direction -- that is the data-loss instruction this assertion exists to keep out, and it was once here: {rendered}"
+  );
+  assert!(
+    rendered.contains("disk -> db") && rendered.contains("Do NOT reach"),
+    "it still warns off that direction by name: {rendered}"
+  );
+  assert!(
+    rendered.contains("intent st sync"),
+    "and it names the repair that EXISTS, rather than telling the operator to wait for the next mutation as it did before AC-03.9: {rendered}"
   );
 }
 

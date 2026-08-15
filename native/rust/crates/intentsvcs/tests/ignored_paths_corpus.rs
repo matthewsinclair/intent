@@ -9,9 +9,12 @@
 //! residue lines naming 12 gitignored files. Because AC-10.2 makes residue a
 //! migration BLOCK, that failure propagated straight to the fleet rollout.
 //!
-//! **D05 is not weakened; the corpus is defined.** The rule is derived from
-//! D01 rather than picked to fit the symptom: durable truth is committed,
-//! schema-validated JSON, so a path git can never commit can never be canon.
+//! **D05 is not weakened; the corpus is defined.** The derivation changed with
+//! D01's reversal and the conclusion did not, which is the interesting part: it
+//! used to run "durable truth is committed JSON, so an uncommittable path
+//! cannot be canon", and it now runs through D34 -- the committed extract is
+//! the interchange and ingest is the only door into the DB, so a path git can
+//! never commit can never travel, and therefore can never become canon.
 //!
 //! The discriminating test is `the_same_unreadable_file_is_in_or_out_of_scope
 //! _by_ignore_status_alone` -- identical bytes, opposite outcomes, differing

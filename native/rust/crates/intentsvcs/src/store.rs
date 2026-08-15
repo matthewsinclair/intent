@@ -1,12 +1,15 @@
-//! The runtime store (design.md D01): a per-project SQLite DB, derived from
-//! committed canon and rebuilt from it at any time. `rm` of the DB file is
-//! NOT safe: the store is the durable SSOT (D01, reversed 2026-08-15), and DB
-//! MIGRATIONS ARE NORMAL. What follows was written under the old model -- a schema bump deleted
-//! and rebuilds.
+//! The store (design.md D01 as reversed, 2026-08-15): a per-project SQLite DB
+//! that is **the durable SSOT**, not an index of the files. `rm` of it is NOT
+//! safe -- it costs whatever the committed extract does not carry -- and **DB
+//! MIGRATIONS ARE NORMAL**, so there is no "rebuild instead of migrating" story
+//! here to lean on.
 //!
-//! Derived tables (threads, wps, criteria, tests, issues) are wiped and
-//! reloaded by [`Store::rebuild`]. The event log is the deliberate exception
-//! (D15): append-only, not derived, and DURABLE -- hv ruled it a first-class
+//! **[`Store::rebuild`] is the disk -> db sync direction and nothing else.** It
+//! wipes threads, wps, criteria, tests and issues and reloads them from an
+//! extract: the right operation for reconstituting a machine's DB from the
+//! interchange form (D34), the wrong one for every other job, which is why the
+//! write path stopped calling it. The event log is not in that set at all
+//! (D15): append-only, nothing derives it, and hv ruled it a first-class
 //! artefact with its own committed file form (`events.jsonl`), so "losable by
 //! design" is struck.
 
@@ -350,16 +353,20 @@ impl Store {
   /// anything, and the DB was a scratch index rather than the thing being
   /// queried.
   ///
-  /// It does NOT weaken D01. Committed canon is still the durable truth and
-  /// the store is still rebuildable from it; what changes is how often we pay
-  /// for that rebuild -- on a detected change, rather than on every
-  /// invocation.
+  /// **Under D01 as reversed this is the ordinary read of truth, not a cache
+  /// warmed from the files.** The paragraph that stood here said "committed
+  /// canon is still the durable truth and the store is still rebuildable from
+  /// it" -- true while the DB was an index, backwards now. Nothing is rebuilt
+  /// on a read: `load_canon` returns what the DB holds, and the committed
+  /// extract is written FROM it (D34).
   ///
-  /// The correctness property is round-trip identity: `rebuild` then
-  /// `load_canon` must return exactly what went in. Anything this drops is a
-  /// question the DB would answer differently from the files, which is the one
-  /// failure that would make the whole arrangement unsafe. `store_round_trip`
-  /// asserts it against the markup-bearing fixture rather than a tame one.
+  /// **The correctness property survives the reversal and gains a name.**
+  /// Round-trip identity -- `rebuild` then `load_canon` returns exactly what
+  /// went in -- is what makes the extract LOSSLESS, which is AC-02.6's openness
+  /// requirement measured at one table instead of across the schema. Anything
+  /// this drops is a fact that leaves the machine (D34) and does not come back.
+  /// `store_round_trip` asserts it against the markup-bearing fixture rather
+  /// than a tame one.
   pub fn load_canon(&self) -> Result<(Vec<Thread>, Vec<Issue>), StoreError> {
     let mut threads = Vec::new();
     let mut stmt = self.conn.prepare(

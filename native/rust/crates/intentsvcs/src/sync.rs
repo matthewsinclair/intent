@@ -36,8 +36,11 @@ pub const ROOT_FILES: &[&str] = &["AGENTS.md", "CLAUDE.md", "usage-rules.md"];
 
 /// Paths under `intent/` that the scan does not walk.
 ///
-/// `.cache/` holds the rebuildable DB (D21) -- indexing the index is circular.
-/// `.treeindex/` is an untracked derived cache (issue 0018).
+/// `.cache/` holds the DB, which under D01 as reversed is TRUTH rather than an
+/// index of these files -- scanning it would ingest the store as though it were
+/// a source document. `.treeindex/` is an untracked derived cache (issue 0018).
+/// `.backup/` matters for the same reason once D35's rolling snapshots land
+/// there: a copy of truth must never re-enter through the ingest gate.
 pub const SKIPPED_DIRS: &[&str] = &[".cache", ".treeindex", ".backup"];
 
 /// What the scan concluded about one file.
@@ -128,10 +131,15 @@ pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncE
 /// checkout, on every Mac. Because AC-10.2 makes residue a migration BLOCK,
 /// that failure propagated to the fleet rollout's first step.
 ///
-/// **D05 is not weakened; the CORPUS is defined.** The rule is derived from
-/// D01 rather than picked to fit: durable truth is committed, schema-validated
-/// JSON, so a path git can never commit can never be canon, and must never
-/// produce residue or block a read.
+/// **D05 is not weakened; the CORPUS is defined.** The rule still derives from
+/// the truth model rather than being picked to fit -- but the derivation
+/// changed under D01's reversal while the conclusion did not, which is worth
+/// recording rather than quietly restating. It used to run: durable truth is
+/// committed schema-validated JSON, so a path git can never commit can never be
+/// canon. It now runs through D34: the committed extract is the interchange and
+/// ingest is the only door into the DB, so a path git can never commit can
+/// never TRAVEL, and therefore can never become canon -- and must never produce
+/// residue or block a read.
 ///
 /// **Not a `.DS_Store` special case, deliberately.** The same rule is already
 /// load-bearing and currently held by luck: `intent/.cache/intent.db` escapes

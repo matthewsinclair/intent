@@ -105,8 +105,12 @@ fn rebuild_is_idempotent_and_delete_then_rebuild_is_identity() {
     "rebuild is idempotent"
   );
 
-  // Disposable: a brand-new store from the same canon is identical -- this is
-  // `rm intent.db` being safe, as a law rather than a slogan.
+  // RE-CREATABLE, which is not the same as disposable. This line used to read
+  // "`rm intent.db` being safe, as a law rather than a slogan" -- the most
+  // dangerous sentence in the estate under D34, because it is true of the
+  // FIXTURE and false of a project. What is proved here is that a store rebuilt
+  // from THE SAME EXTRACT is identical; a real `rm` costs everything the extract
+  // does not carry, and today that includes the whole event log.
   let mut fresh = Store::open_in_memory().expect("open fresh");
   fresh.rebuild(&threads, &issues).expect("rebuild fresh");
   assert_eq!(
@@ -116,8 +120,14 @@ fn rebuild_is_idempotent_and_delete_then_rebuild_is_identity() {
   );
 }
 
+/// **Renamed from `file_backed_store_survives_deletion`, which claimed more
+/// than it proves.** The store does not survive deletion; it is RE-CREATED, and
+/// only because the same extract is handed back in on the next line. Under D34
+/// that distinction is the whole point -- a project's DB re-creates from its
+/// committed extract and loses whatever the extract does not carry, so a test
+/// name promising survival is the slogan the comment above was written to kill.
 #[test]
-fn file_backed_store_survives_deletion() {
+fn a_deleted_store_rebuilt_from_the_same_extract_is_identical() {
   let dir = tempfile::tempdir().expect("tempdir");
   let db = dir.path().join("intent.db");
   let (threads, issues) = canon();

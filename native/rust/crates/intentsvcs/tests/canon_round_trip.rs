@@ -3,10 +3,14 @@
 //! ic's egest-symmetry proposal, homed in WP-03 by vc rather than at WP-10 for
 //! a reason worth restating: an unreversible FIELD is cheap to change now and
 //! expensive at migration, which is ic's own "worst possible moment" argument
-//! applied to the schedule. The whole v3 bet is that the DB is rebuildable
-//! from committed canon and therefore disposable (D01); a field that does not
-//! survive the trip makes `rm intent/.cache` lossy, and it would do it
-//! silently, because both sides stay internally consistent.
+//! applied to the schedule. **Restated for D01 as reversed, where it gets
+//! sharper rather than weaker.** The old reading was that the DB is rebuildable
+//! from committed canon and therefore disposable, so a lost field made
+//! `rm intent/.cache` lossy. The DB is now truth and the committed canon is the
+//! extract that carries it between machines (D34) -- so a field that does not
+//! survive this trip is a field that cannot LEAVE, and the loss lands on the
+//! clone rather than on the machine that had it. Either way it is silent,
+//! because both sides stay internally consistent.
 //!
 //! **Bytes, not values, and that is the point.** `store_round_trip.rs`
 //! already proves model -> DB -> model equality. This proves the stronger

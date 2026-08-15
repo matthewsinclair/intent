@@ -10,9 +10,12 @@
 //! it would answer it confidently, with no error anywhere, because both sides
 //! are internally consistent.
 //!
-//! It does not weaken D01. Committed canon is still durable truth and the
-//! store is still rebuildable from it; this asserts that the rebuild is
-//! LOSSLESS, which is what lets us stop paying for it on every invocation.
+//! **Under D01 as reversed the property is the same and its job changed.** The
+//! note here used to say committed canon was durable truth and the store merely
+//! rebuildable from it. It is the other way round: the DB is truth, the canon is
+//! the extract, and losslessness is no longer a licence to stop paying for a
+//! rebuild -- it is AC-02.6's openness requirement, checked at the store
+//! boundary. A field that does not survive is one that cannot travel (D34).
 //!
 //! Asserted against the markup-bearing fixture rather than a tame one. A
 //! fixture of short ASCII titles would round-trip through almost any encoding

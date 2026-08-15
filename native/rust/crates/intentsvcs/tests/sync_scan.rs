@@ -120,7 +120,7 @@ fn the_scan_is_ordered_and_scoped() {
   assert!(paths.contains(&"intent/a.md"));
   assert!(
     !paths.iter().any(|p| p.starts_with("intent/.cache/")),
-    "the rebuildable DB is not indexed -- indexing the index is circular: {paths:?}"
+    "the DB is not indexed -- under D01 as reversed it is truth, not an index of these files, so scanning it would ingest the store as a source document: {paths:?}"
   );
   assert!(
     !paths.iter().any(|p| p.starts_with("intent/.treeindex/")),

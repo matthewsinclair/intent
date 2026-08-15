@@ -19,13 +19,15 @@
 //! first and a DB failure rolled them back. The reversal put the recoverable
 //! half second, where it belongs.
 //!
-//! **THERE IS NO DB -> DISK SYNC YET, and that is the gap the reversal opens.**
-//! `intent sync` runs DISK -> DB, so it cannot repair stale files -- it would
-//! read them into the store and overwrite the truth they are stale against.
-//! Until the other direction exists (hv's ruling names both), a projection
-//! failure is repaired by the next successful mutation, and the remedy on
-//! [`FacadeError::ViewsNotWritten`] warns the operator OFF `sync` rather than
-//! toward it.
+//! **Sync has BOTH directions now, and they are not interchangeable** --
+//! [`Facade::sync_to_disk`] rewrites the extract from truth and is the repair
+//! for a stale tree; [`Facade::sync_from_disk`] replaces truth from the extract
+//! and is a RESTORE that loses anything newer. [`Facade::sync_overwrite`]
+//! prices the second one before it is paid. The paragraph that stood here said
+//! the db -> disk direction did not exist, which was true when it was written
+//! and stopped being true the same day AC-03.9 landed -- so it is recorded as
+//! the second instance of a doc outliving its own subject, alongside the three
+//! remedies that named a command after the reasoning behind it had moved.
 //!
 //! **The facade has no clock.** Dates arrive from the caller in
 //! [`FacadeContext::today`]. That is not the renderer's no-clock law (D23) --
@@ -168,13 +170,20 @@ impl FacadeError {
         "reinstate applies only to a descoped or withdrawn criterion".to_string()
       }
       Self::ViewsNotWritten { .. } => {
-        // NOT `intent sync`, and that instruction was in this remedy until it
-        // was checked. `sync` is DISK -> DB (`ingest::resync` reads canon from
-        // the files, then `store.rebuild` replaces the store from them), so
-        // running it here would overwrite truth with the stale projection and
-        // destroy the very change this error says is safe. A remedy that
-        // names a data-loss command is worse than no remedy.
-        "the change is safe in the store -- do NOT retry it, and do NOT run `intent sync`, which reads the FILES into the database and would overwrite it with the stale copy. Clear the filesystem cause; the files are rewritten by the next successful mutation".to_string()
+        // NOT bare `intent sync`, and that instruction was in this remedy
+        // until it was checked. The disk -> db direction reads canon from the
+        // files and replaces the store from them, so running it here would
+        // overwrite truth with the stale projection and destroy the very
+        // change this error says is safe. A remedy that names a data-loss
+        // command is worse than no remedy.
+        //
+        // It now names a REPAIR rather than a wait, and that is a second edit
+        // for a second reason: until AC-03.9 landed `sync_to_disk` there was
+        // no db -> disk direction, so "the files are rewritten by the next
+        // successful mutation" was the honest answer. It stopped being the
+        // best one the same day, which is the same class as the first edit --
+        // a remedy outliving the estate it was written against.
+        "the change is safe in the store -- do NOT retry it. Clear the filesystem cause, then run `intent st sync` to rewrite the files from the store. Do NOT reach for the disk -> db direction, which reads the FILES into the database and would overwrite the change with the stale copy".to_string()
       }
       Self::NotSatisfied { .. } => {
         "run `intent ac list <thread>` to see which criteria carry evidence -- only a non-test criterion that was satisfied can be unsatisfied".to_string()

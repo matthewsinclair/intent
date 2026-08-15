@@ -2,12 +2,16 @@
 //! envelope. It is the audit trail, the subscription feed the TUI/bus will
 //! consume, and the substrate a future intentc sync protocol replays.
 //!
-//! The event log is DURABLE and is not derived from anything -- hv ruled it a
-//! first-class artefact with a committed append-only file form
-//! (`events.jsonl`), queried and replayed through `intent events`. The doc
-//! below was written under the old model, in which it was explicitly NOT
-//! durable truth and `rm` of the
-//! DB loses it, by design (data-model.md).
+//! **Nothing derives it, which makes it the sharpest case in the truth model.**
+//! Under D01 as reversed the DB is truth and the files are an extract; for
+//! every other entity that extract is a faithful copy, so losing the DB costs
+//! the work of rebuilding and nothing else. History is where that stops being
+//! true. Nothing recomputes what happened, so the log's committed file form
+//! (`events.jsonl`, D34) is the only thing that could carry it off this
+//! machine -- and **it is not built yet** (AC-02.6 owes it), so today the DB is
+//! the only copy there is. `rm intent.db` is therefore not a rebuild here, it
+//! is a deletion, which is the concrete reason D35 puts the DB on a rolling
+//! local backup instead of trusting re-creation.
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
