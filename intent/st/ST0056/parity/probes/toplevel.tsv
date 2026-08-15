@@ -1,0 +1,109 @@
+LABEL	RC	OUT_B	ERR_B	OUT_FIRST	ERR_FIRST	ARGS
+info.bare	0	595	0	Intent: The Steel Thread Process		info
+info.help	0	595	0	Intent: The Steel Thread Process		info --help
+info.badflag	0	595	0	Intent: The Steel Thread Process		info --zzz-not-a-flag
+info.noproj	0	374	0	Intent: The Steel Thread Process		info
+init.bare	1	0	51		error: This directory is already an Intent project	init
+init.help	1	580	0	Usage: intent init [project_name]		init --help
+init.badflag	1	0	40		error: Unknown option: --zzz-not-a-flag	init --zzz-not-a-flag
+init.noproj	1	71	148	Initializing Intent v2.19.0 project: /	mkdir: intent: Read-only file system	init
+st.bare	1	0	40		error: Steel thread command is required	st
+st.help	1	2330	0	Usage: intent st <command> [options] [arguments]		st --help
+st.badflag	1	0	41		error: Unknown command: --zzz-not-a-flag	st --zzz-not-a-flag
+st.noproj	1	0	110		error: not in an Intent project directory	st
+wp.bare	1	0	40		error: Work package command is required	wp
+wp.help	1	658	0	Usage: intent wp <command> [options] [arguments]		wp --help
+wp.badflag	1	0	77		error: Unknown wp command: --zzz-not-a-flag. Run 'intent wp help' for usage.	wp --zzz-not-a-flag
+wp.noproj	1	0	110		error: not in an Intent project directory	wp
+ac.bare	1	1342	0	Usage: intent ac <command> <stid> [args]   |   intent at <command> <stid> <atid>		ac
+ac.help	1	0	108		error: unknown ac command: --help (try: list, status, satisfy, gate, descope, rescope, withdraw, reinstate)	ac --help
+ac.badflag	1	0	118		error: unknown ac command: --zzz-not-a-flag (try: list, status, satisfy, gate, descope, rescope, withdraw, reinstate)	ac --zzz-not-a-flag
+ac.noproj	1	0	110		error: not in an Intent project directory	ac
+at.bare	1	1342	0	Usage: intent ac <command> <stid> [args]   |   intent at <command> <stid> <atid>		at
+at.help	1	0	83		error: unknown at command: --help (try: list, lint, red, green, na, done, notdone)	at --help
+at.badflag	1	0	93		error: unknown at command: --zzz-not-a-flag (try: list, lint, red, green, na, done, notdone)	at --zzz-not-a-flag
+at.noproj	1	0	110		error: not in an Intent project directory	at
+issues.bare	0	15	0	no open issues		issues
+issues.help	0	577	0	Usage: intent issues <command> [options]		issues --help
+issues.badflag	1	0	86		error: Unknown issues command '--zzz-not-a-flag'. Run 'intent issues help' for usage.	issues --zzz-not-a-flag
+issues.noproj	1	0	114		error: not in an Intent project directory	issues
+todo.bare	0	174	0	no intent/todo.md yet -- generating...		todo
+todo.help	1	1077	0	Usage: intent todo [command] [arguments]		todo --help
+todo.badflag	1	0	81		error: Unknown todo command: --zzz-not-a-flag. Run 'intent todo help' for usage.	todo --zzz-not-a-flag
+todo.noproj	1	0	112		error: not in an Intent project directory	todo
+doctor.bare	0	563	0	doctor: intent v2.19.0		doctor
+doctor.help	0	384	0	Usage: intent_doctor [OPTIONS]		doctor --help
+doctor.badflag	1	0	66		Unknown option: --zzz-not-a-flag	doctor --zzz-not-a-flag
+doctor.noproj	0	397	0	doctor: intent v2.19.0		doctor
+config.bare	0	0	0			config
+config.help	0	0	0			config --help
+config.badflag	0	0	0			config --zzz-not-a-flag
+config.noproj	1	0	114		error: not in an Intent project directory	config
+lang.bare	0	1149	0	Usage: intent lang <command> [options]		lang
+lang.help	0	1149	0	Usage: intent lang <command> [options]		lang --help
+lang.badflag	1	0	83		error: unknown lang subcommand '--zzz-not-a-flag'	lang --zzz-not-a-flag
+lang.noproj	0	1149	0	Usage: intent lang <command> [options]		lang
+llm.bare	0	596	0	Usage: intent llm <subcommand> [options]		llm
+llm.help	0	596	0	Usage: intent llm <subcommand> [options]		llm --help
+llm.badflag	1	0	44		error: Unknown subcommand: --zzz-not-a-flag	llm --zzz-not-a-flag
+llm.noproj	1	0	111		error: not in an Intent project directory	llm
+learn.bare	0	904	0	Usage: intent learn [options] "description"		learn
+learn.help	0	904	0	Usage: intent learn [options] "description"		learn --help
+learn.badflag	1	0	76		error: Unknown option: --zzz-not-a-flag. Run 'intent learn help' for usage.	learn --zzz-not-a-flag
+learn.noproj	1	0	113		error: not in an Intent project directory	learn
+modules.bare	0	673	0	Usage: intent modules <command> [options]		modules
+modules.help	0	673	0	Usage: intent modules <command> [options]		modules --help
+modules.badflag	1	0	87		error: Unknown modules command: --zzz-not-a-flag. Run 'intent modules help' for usage.	modules --zzz-not-a-flag
+modules.noproj	1	0	115		error: not in an Intent project directory	modules
+organize.bare	0	117	0			organize
+organize.help	0	575	0	Usage: intent organize [--dry-run]		organize --help
+organize.badflag	1	0	40		error: Unknown option: --zzz-not-a-flag	organize --zzz-not-a-flag
+organize.noproj	1	0	116		error: not in an Intent project directory	organize
+plugin.bare	0	1076	0	Intent Plugins		plugin
+plugin.help	0	371	0	Usage: intent plugin [command]		plugin --help
+plugin.badflag	1	0	89		error: Unknown plugin subcommand '--zzz-not-a-flag'. Run 'intent plugin help' for usage.	plugin --zzz-not-a-flag
+plugin.noproj	0	1076	0	Intent Plugins		plugin
+ext.bare	0	168	0	ok: no extensions installed (/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/0482e68a-709f-45b1-ab98-44bc9c962bd1/scratchpad/fakehome/.intent/ext does not exist)		ext
+ext.help	0	672	0	Usage: intent ext <command> [options]		ext --help
+ext.badflag	1	0	81		error: unknown ext subcommand '--zzz-not-a-flag'	ext --zzz-not-a-flag
+ext.noproj	0	168	0	ok: no extensions installed (/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/0482e68a-709f-45b1-ab98-44bc9c962bd1/scratchpad/fakehome/.intent/ext does not exist)		ext
+treeindex.bare	1	1548	0	Usage: intent treeindex [OPTIONS] DIR		treeindex
+treeindex.help	1	1548	0	Usage: intent treeindex [OPTIONS] DIR		treeindex --help
+treeindex.badflag	1	1548	33	Usage: intent treeindex [OPTIONS] DIR	Unknown option: --zzz-not-a-flag	treeindex --zzz-not-a-flag
+treeindex.noproj	1	0	117		error: not in an Intent project directory	treeindex
+fileindex.bare	0	5	0	[ ] 		fileindex
+fileindex.help	1	1518	0	Usage: intent_fileindex [OPTIONS] [STARTDIR] [FILESPEC]		fileindex --help
+fileindex.badflag	1	1551	0	Unknown option: --zzz-not-a-flag		fileindex --zzz-not-a-flag
+fileindex.noproj	0	5	0	[ ] 		fileindex
+critic.bare	2	1589	0	intent critic <lang> [options]		critic
+critic.help	0	1589	0	intent critic <lang> [options]		critic --help
+critic.badflag	2	0	680		grep: unrecognized option `--zzz-not-a-flag'	critic --zzz-not-a-flag
+critic.noproj	1	0	114		error: not in an Intent project directory	critic
+help.bare	0	2320	0	Intent v2.19.0 - Structured Development Process		help
+help.help	1	0	32		error: Unknown command '--help'	help --help
+help.badflag	1	0	42		error: Unknown command '--zzz-not-a-flag'	help --zzz-not-a-flag
+help.noproj	0	2320	0	Intent v2.19.0 - Structured Development Process		help
+upgrade.bare	0	78	0	Current version: 2.19.0		upgrade
+upgrade.help	0	593	0	Usage: intent upgrade [--backup-dir DIR] [--no-backup]		upgrade --help
+upgrade.badflag	1	0	40		error: Unknown option: --zzz-not-a-flag	upgrade --zzz-not-a-flag
+upgrade.noproj	1	0	125		error: could not detect a project version (not an Intent project, or an unrecognised layout). For a new project: intent init	upgrade
+bootstrap.bare	0	1161	0	bootstrap: intent v2.0.0		bootstrap
+bootstrap.help	0	399	0	Usage: intent_bootstrap [OPTIONS]		bootstrap --help
+bootstrap.badflag	1	0	66		Unknown option: --zzz-not-a-flag	bootstrap --zzz-not-a-flag
+bootstrap.noproj	0	982	0	bootstrap: intent v2.0.0		bootstrap
+st_zero.bare	0	879	0	Usage: intent st zero install [options]		st_zero
+st_zero.help	0	879	0	Usage: intent st zero install [options]		st_zero --help
+st_zero.badflag	1	0	87		error: Unknown st zero command: --zzz-not-a-flag. Run 'intent st zero help' for usage.	st_zero --zzz-not-a-flag
+st_zero.noproj	1	0	115		error: not in an Intent project directory	st_zero
+agents.bare	0	984	0	Usage: intent agents <command> [options]		agents
+agents.help	0	984	0	Usage: intent agents <command> [options]		agents --help
+agents.badflag	1	1018	0	Unknown command: --zzz-not-a-flag		agents --zzz-not-a-flag
+agents.noproj	0	984	0	Usage: intent agents <command> [options]		agents
+claude.bare	1	0	189		error: Unknown claude subcommand. Try: intent claude subagents, intent claude skills, intent claude upgrade, intent claude prime, intent claude rules, intent claude start, intent claude ws	claude
+claude.help	1	0	189		error: Unknown claude subcommand. Try: intent claude subagents, intent claude skills, intent claude upgrade, intent claude prime, intent claude rules, intent claude start, intent claude ws	claude --help
+claude.badflag	1	0	189		error: Unknown claude subcommand. Try: intent claude subagents, intent claude skills, intent claude upgrade, intent claude prime, intent claude rules, intent claude start, intent claude ws	claude --zzz-not-a-flag
+claude.noproj	1	0	189		error: Unknown claude subcommand. Try: intent claude subagents, intent claude skills, intent claude upgrade, intent claude prime, intent claude rules, intent claude start, intent claude ws	claude
+version.bare	0	22	0	Intent version 2.19.0		version
+version.help	0	22	0	Intent version 2.19.0		version --help
+version.badflag	0	22	0	Intent version 2.19.0		version --zzz-not-a-flag
+version.noproj	0	22	0	Intent version 2.19.0		version

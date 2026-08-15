@@ -10,6 +10,22 @@
 # Isolation: INTENT_HOME is passed explicitly. bin/intent only self-resolves it
 # when unset (bin/intent:12), so an inherited INTENT_HOME silently redirects
 # every probe at the developer's live tree instead of the worktree under test.
+#
+# HOME is isolated too, and it was NOT isolated here until 2026-08-15. The
+# 2026-08-14 matrix got it right by accident of the caller -- the ad-hoc driver
+# did `export HOME="$SP/fakehome"` before sourcing this file, and that driver was
+# never committed, so the isolation left with it. A re-probe written against this
+# file alone therefore reads the DEVELOPER's machine: measured, `intent ext`
+# answered `Extensions in /Users/matts/.intent/ext:` instead of the sandbox's
+# `ok: no extensions installed`, a different code path and a different first
+# line, not merely a different byte count.
+#
+# This is the parity.md rule about mechanisms turned on this file: the isolation
+# that mattered lived in a sentence in someone's shell history, and the one that
+# was written down (INTENT_HOME) is the one that survived. Both belong in the
+# probe itself, where a caller cannot forget them.
+FAKEHOME="${FAKEHOME:-$SP/fakehome}"
+mkdir -p "$FAKEHOME"
 
 set -u
 
@@ -36,7 +52,7 @@ probe() {
   local label="$1"; shift
   local cwd="$1"; shift
   local o="$CAP/$label.out" e="$CAP/$label.err" rc
-  ( cd "$cwd" && env INTENT_HOME="$WT" "$WT/bin/intent" "$@" ) >"$o" 2>"$e"
+  ( cd "$cwd" && env INTENT_HOME="$WT" HOME="$FAKEHOME" "$WT/bin/intent" "$@" ) >"$o" 2>"$e"
   rc=$?
   local ob eb of ef
   ob=$(wc -c <"$o" | tr -d ' ')
