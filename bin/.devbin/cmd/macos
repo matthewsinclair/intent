@@ -2,12 +2,14 @@
 #
 # devbin: summary = Sign and notarise the macOS release binaries with the Geodica Developer ID
 #
-# intent macos <doctor|sign|notarize|verify|env|store-creds>
+# intent macos <doctor|sign|notarize|verify|stage|env|store-creds>
 #
 #   doctor       Preflight: identity present, a real test-sign, notary creds
 #   sign         Developer ID sign both release binaries, then verify
 #   notarize     Submit the signed binaries to Apple, wait, report
 #   verify       Prove the whole chain: quarantine a copy and run it
+#   stage        Name the artefacts per target triple, prove each one, and only
+#                then checksum them -- REFUSES to hash anything unproven
 #   env          Print the resolved identity + which creds are present
 #   store-creds  Store APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID in the
 #                login Keychain (interactive; once per machine)
@@ -261,43 +263,115 @@ cmd_notarize() {
   printf '  servers and Gatekeeper checks online. conflab ships exactly this way.\n'
 }
 
+# verify_notarised <dir> <file> -- THE ONLY CHECK THAT PROVES THE WHOLE CHAIN,
+# and the reason it exists is that every other check passes on a binary that is
+# signed but NOT notarised. codesign verifies the signature; spctl -t exec
+# answers the wrong question; `stapler` correctly reports no ticket on a bare
+# binary either way. **A release that quietly stopped being notarised would sail
+# through all of them.**
+#
+# So this reproduces the only scenario notarisation exists for: a file that
+# arrived with the quarantine xattr, as a browser download does. Gatekeeper
+# engages ONLY on quarantined files -- which is why an unquarantined check is not
+# evidence, and why brew-installed ad-hoc binaries run happily.
+#
+# IT TAKES A DIRECTORY BECAUSE IT HAS TWO CALLERS, and one implementation is the
+# point: `verify` asks it about the build output, `stage` asks it about the
+# copies that will actually ship. A second copy of this logic would be the exact
+# Highlander failure that lets a release-time check drift away from the
+# development-time one that everybody actually runs.
+verify_notarised() {
+  local dir="$1" file="$2" t verdict rc=0
+  t="$(mktemp -d)"
+  /usr/bin/ditto "$dir/$file" "$t/$file"
+  # Set quarantine, then ASSERT IT IS SET before reading any verdict: a fixture
+  # that never entered the branch proves nothing and looks like a pass.
+  xattr -w com.apple.quarantine "0083;0;dc-verify;" "$t/$file"
+  if ! xattr -p com.apple.quarantine "$t/$file" >/dev/null 2>&1; then
+    printf '    %-34s SKIPPED -- could not set the quarantine xattr; verdict withheld\n' "$file"
+    rm -rf "$t"
+    return 1
+  fi
+  verdict="$(spctl -a -t open --context context:primary-signature -vv "$t/$file" 2>&1 |
+    sed -n 's/^source=//p')"
+  if [ "$verdict" = "Notarized Developer ID" ] && (cd "$t" && "./$file" --version >/dev/null 2>&1); then
+    printf '    %-34s quarantined, accepted, runs -- source=%s\n' "$file" "$verdict"
+  else
+    printf '    %-34s FAILED -- source=%s (expected: Notarized Developer ID)\n' "$file" "${verdict:-<none>}"
+    rc=1
+  fi
+  rm -rf "$t"
+  return $rc
+}
+
 cmd_verify() {
   require_binaries
-  # THE ONLY CHECK THAT PROVES THE WHOLE CHAIN, and the reason it exists is that
-  # every other check passes on a binary that is signed but NOT notarised.
-  # codesign verifies the signature; spctl -t exec answers the wrong question;
-  # `stapler` correctly reports no ticket on a bare binary either way. **A release
-  # that quietly stopped being notarised would sail through all of them.**
-  #
-  # So this reproduces the only scenario notarisation exists for: a file that
-  # arrived with the quarantine xattr, as a browser download does. Gatekeeper
-  # engages ONLY on quarantined files -- which is why an unquarantined check is
-  # not evidence, and why brew-installed ad-hoc binaries run happily.
-  local rc=0 t
-  t="$(mktemp -d)"
+  local rc=0
   for b in $BINARIES; do
-    /usr/bin/ditto "$RELEASE_DIR/$b" "$t/$b"
-    # Set quarantine, then ASSERT IT IS SET before reading any verdict: a fixture
-    # that never entered the branch proves nothing and looks like a pass.
-    xattr -w com.apple.quarantine "0083;0;dc-verify;" "$t/$b"
-    if ! xattr -p com.apple.quarantine "$t/$b" >/dev/null 2>&1; then
-      printf '    %-8s SKIPPED -- could not set the quarantine xattr; verdict withheld\n' "$b"
-      rc=1
-      continue
-    fi
-    local verdict
-    verdict="$(spctl -a -t open --context context:primary-signature -vv "$t/$b" 2>&1 |
-      sed -n 's/^source=//p')"
-    if [ "$verdict" = "Notarized Developer ID" ] && (cd "$t" && "./$b" --version >/dev/null 2>&1); then
-      printf '    %-8s quarantined, accepted, runs -- source=%s\n' "$b" "$verdict"
-    else
-      printf '    %-8s FAILED -- source=%s (expected: Notarized Developer ID)\n' "$b" "${verdict:-<none>}"
-      rc=1
-    fi
+    verify_notarised "$RELEASE_DIR" "$b" || rc=1
   done
-  rm -rf "$t"
   [ "$rc" -eq 0 ] && { ok; printf '  Signed, notarised, and Gatekeeper-clean from a quarantined download.\n'; }
   return $rc
+}
+
+# cmd_stage -- name the artefacts, prove them, and only then checksum them.
+#
+# WHY THIS IS A COMMAND AND NOT A NOTE IN A RELEASE DOC. The two operations in a
+# release pipeline have OPPOSITE effects on the bytes, and the asymmetry is easy
+# to get backwards:
+#
+#   codesign --force   REWRITES THE BINARY IN PLACE      -> checksum after
+#   notarytool submit  uploads a ZIP OF A COPY, no staple -> checksum before or
+#                      (a bare Mach-O has nowhere to put   after, both correct
+#                      a ticket, so the file is unchanged)
+#
+# So a sha256 taken before signing is wrong, and it is wrong in the worst
+# available way: **it does not fail for us, it fails for every `brew install`**,
+# against a formula we published, at the point where we have the least
+# visibility. Homebrew's error will say the download is corrupt, which is a
+# perfectly misleading description of a checksum computed one step too early.
+#
+# THE ORDER IS THEREFORE ENFORCED, NOT DOCUMENTED: nothing here computes a
+# checksum until `verify_notarised` has passed on the STAGED COPY -- the artefact
+# that actually ships, not the build output it came from. Verify the thing you
+# are about to hash, not its ancestor.
+#
+# The triple comes from `rustc -vV`, not from `uname`: the artefact name is a
+# claim about what the compiler targeted, and only the compiler can answer that.
+cmd_stage() {
+  require_binaries
+  local stage_dir="$ROOT/native/rust/target/dist" triple rc=0
+  triple="$(rustc -vV | sed -n 's/^host: //p')"
+  [ -n "$triple" ] || die "could not read the host target triple from 'rustc -vV'"
+
+  step "staging $BINARIES for $triple"
+  rm -rf "$stage_dir"
+  mkdir -p "$stage_dir"
+  for b in $BINARIES; do
+    /usr/bin/ditto "$RELEASE_DIR/$b" "$stage_dir/$b-$triple"
+  done
+
+  step "proving every staged artefact before anything is hashed"
+  for b in $BINARIES; do
+    verify_notarised "$stage_dir" "$b-$triple" || rc=1
+  done
+  if [ "$rc" -ne 0 ]; then
+    rm -rf "$stage_dir"
+    die "refusing to checksum -- a staged artefact is not signed AND notarised. Run: int macos sign && int macos notarize"
+  fi
+
+  step "checksums"
+  (cd "$stage_dir" && shasum -a 256 ./*-"$triple" | sed 's|\./||' >SHA256SUMS.txt) ||
+    die "could not write SHA256SUMS.txt"
+
+  printf '\n'
+  ok
+  printf '  staged: %s\n\n' "$stage_dir"
+  sed 's/^/    /' "$stage_dir/SHA256SUMS.txt"
+  printf '\n  Every line above is a hash of a binary this command has just proven\n'
+  printf '  signed and notarised from a quarantined copy. Safe to paste into a\n'
+  printf '  formula. NOT REGENERATED ON RE-SIGN -- re-run `stage` after any\n'
+  printf '  `sign`, because signing rewrites the bytes these hashes describe.\n'
 }
 
 cmd_store_creds() {
@@ -330,6 +404,7 @@ case "${1:-}" in
   sign) cmd_sign ;;
   notarize | notarise) cmd_notarize ;;
   verify) cmd_verify ;;
+  stage) cmd_stage ;;
   store-creds) cmd_store_creds ;;
-  *) die "unknown macos subcommand: $1 (try: doctor, sign, notarize, verify, env, store-creds)" ;;
+  *) die "unknown macos subcommand: $1 (try: doctor, sign, notarize, verify, stage, env, store-creds)" ;;
 esac
