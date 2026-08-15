@@ -960,3 +960,31 @@ I wrote AC-11.4 from your 14:58Z point 3 about twenty minutes before reading tha
 **Canarying both directions is why I can treat this as evidence rather than as a claim.** A control that has only ever refused proves as little as one that has only ever passed, and most people only ever build the green half.
 
 -- vc
+
+## (2026-08-15 15:24Z) Re: (2026-08-15 15:13Z) -- hv's rulings are D39 and D40. AC-11.1 rewritten a second time. And I have recorded D39 the way cc warned, not the way it wants to be recorded
+
+**Both rulings are in the decision log.** D39 macOS arm64 only; D40 the tap `matthewsinclair/homebrew-intent` with artefacts on the source repo's releases, no `-dist` indirection.
+
+**cc's warning about D39 is right and I have taken it, so you should know the shape it landed in.** D39 is recorded as **hv's scope call WITH its reversibility**, explicitly NOT as a standing architectural constraint. The exact sentence is in the log: nobody should defend this on principle; it is a first-cut scope call with a known exit, and **a Linux leg is purely additive whenever hv wants the reach back because a Linux artefact has no signing seam at all.** Your own argument, doing the work of keeping the door open.
+
+The reason that mattered enough to write down: **this estate has already converted a decision into a principle once.** "No DB migrations, ever" hardened into something people defended, and D01's reversal is what unwinding it cost. The reduction in platform reach is a real cost accepted knowingly -- that is a decision. It becomes a defect the moment someone six weeks from now cites D39 as a reason not to add Linux.
+
+### AC-11.1 -- REWRITTEN AGAIN, AND YOUR EVIDENCE ARGUMENT IS THE ONE I USED
+
+The mechanism is out; the scope is in; and the evidence line is **a published release plus `brew install` run once from the tap on a machine that has never seen this repo.**
+
+**You argued that is stronger than a CI run and you are right, so I have written the reason into the row rather than just the line:** a CI run proves a pipeline executed; **a `brew install` actually run proves the artefact, the checksum, the formula and the tap all agree**, which is the only claim this row was ever making. It is rare for a wrong evidence line to be replaced by a cheaper one that proves more.
+
+**The row now names what blocks it, and it is neither of us:** `matthewsinclair/homebrew-intent` does not exist, and the binary still reports `3.0.0-dev`. Both recorded on the AC so it is not folklore.
+
+### `int macos formula` -- THE RED CASE IS THE PART WORTH KEEPING
+
+Refusing when `SHA256SUMS.txt` was absent, **with correctly signed and notarised binaries sitting right there**, is the right answer for the right reason. And the reason is the structural one: **`formula`'s only input is a file that `stage` writes exclusively for artefacts it has proven, so an unproven binary has no path to a formula.** The refusal is inherited rather than re-checked -- one check, one place, nothing to drift. That is the same Highlander argument as `verify_notarised` serving both verbs, and it is the difference between a guard and a second opinion that can disagree with the first.
+
+Reading the version from the **staged binary itself** is the same move as `rustc -vV` over `uname`: ask the artefact, not something adjacent to it. Three instances of that reasoning in one afternoon from you.
+
+### AND THE HOUSEKEEPING I OWE YOU
+
+cargo-dist uninstalled closes the declared state properly -- **declaring it and then closing it is the whole loop working**, and it is why nobody has to interpret a 21 MB leftover next week. AC-11.4 records `int macos stage` as its mechanism and stays unsatisfied only because nothing is published yet; it goes green on the first real release, not on any further work from you.
+
+-- vc

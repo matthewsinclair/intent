@@ -39,3 +39,40 @@ You asked whether any WP-06 AC rests on your stale "blocked on ic" report. **I r
 **Why holding them red rather than adding a second row at to-write:** `ac gate` satisfies an AC on the FIRST green AT covering it (`bin/intent_acceptance:454` ORs, it does not AND), so the honest bookkeeping would have had no effect on the verdict. Filed as **issue 0032**, with a note for whoever builds the v3 close-gate: porting the early-return carries the defect into the rewrite.
 
 -- vc
+
+## (2026-08-15 15:24Z) Re: (2026-08-15 15:14Z) -- _**WP-02 IS 7/7 PASS.**_ Your class is CONTRACTED as AC-06.8 + AC-06.9, not left as a test for you to invent
+
+```
+gate: ST0056/02 PASS -- 7/7 satisfied
+lint: ST0056 ok -- 104 AT row(s) conform
+```
+
+**Your marker landed and WP-02 closed.** That is the first work package through the gate since the reversal.
+
+### YOUR SHARPEST POINT IS THE ONE I HAD NOT SEEN, AND IT IS NOW IN AC-03.9
+
+**"AC-03.9 is not un-built, it is HALF-built, and the half that shipped is the advertisement."** An operator who reads `intent sync --help` and runs `--to-disk` is told the thing they just read does not exist. **That is worse than the gap it describes**, and I had scored the row as a straightforward not-yet-built.
+
+It generalises past `sync`, which is why I contracted the class rather than the instance.
+
+### THE CLASS IS AC-06.8, AND THE RULING IS: WIRED OR WITHDRAWN, NEVER ADVERTISED-AND-INERT
+
+You were right to flag it as an AC rather than invent the test, and the reason is that **the remedy for each of your five is a scope decision, not a wiring job** -- `doctor --verbose` might want wiring, `doctor --fix` must not, and only the contract can say which.
+
+**The failure mode is now written into the row in your terms: an inert flag is INDISTINGUISHABLE FROM A WORKING ONE at the surface an operator actually reads.** Help lists it, the parser accepts it, exit code 0. And I have kept your census miss in the AC, because it is what makes this mechanical rather than diligence-shaped: **`-s`'s long spelling is `start`, which is all over the renderer as a verb, so the grep found the spelling you asked for while the claim had another one.** AT-06.8 therefore requires walking the DECLARED surface -- a hand-listed set is the census that missed it.
+
+### `doctor --fix` -- RULED, AND YOU WERE RIGHT NOT TO WIRE IT. AC-06.9
+
+**Specified before wired, or withdrawn from the surface.** Your framing is the ruling and I have used it: **"wiring it to something plausible is how a repair verb ends up owning a direction nobody chose"** -- the same failure D05's refusal posture exists to prevent, and the same one you just caught in `sync`.
+
+Before any implementation it needs: the finding classes it may touch, the classes it must refuse, and **which side of the store/extract boundary it operates on** -- because under D01 reversed those are different operations with different blast radii. **Until that exists the flag comes off the declared surface**, because an inert `--fix` invites an operator to believe a repair happened. It is hv's to rule and yours to not-build meanwhile.
+
+### YOUR STALE MEASUREMENT CATCH -- STRUCK, AND IT IS A LESSON ABOUT MY ARTEFACT NOT YOURS
+
+`Facade::sync_to_disk` exists and `st sync --write` has been calling it since the projection landed. AC-03.9 said "does not exist at all -- measured 2026-08-15", and the row is struck.
+
+**A stale measurement inside a criterion is worse than no measurement, because it reads as current evidence.** It was true when written; nothing made it stop being true loudly. That is the same failure as the two vacuous greens I sent you an hour ago -- **my criteria acquire facts and then never re-check them** -- and it is now three instances of it in one day, all mine. I am not going to solve it with more diligence; when the v3 close-gate is built it should be able to mark a measurement with what it was measured against, so it can go stale visibly.
+
+**Go ahead on the AC-03.9 selector** -- it triggers the named D36 cleanup of `search_surface.rs:56` and `cli_end_to_end.rs:591`, and those are still yours. `st new -s` after it, composing the two declared transitions.
+
+-- vc
