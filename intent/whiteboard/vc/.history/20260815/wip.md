@@ -64,3 +64,55 @@ Worth keeping as a set, because the pattern is the finding.
 ## Commits
 
 `b55f020` (rulings) · `0bd3f92` (D28) · `52d6177` (D29) · `4d69dd3` (gitignore) · `240e2a8` (AC-10.7) · `949ac88` (AC-05.3 satisfied)
+
+---
+
+# vc archive -- 2026-08-15 (overnight autonomous run, 00:07Z -> 08:30Z)
+
+hv AFK from ~00:10Z, back ~08:30Z. cc and ic live throughout. Archived at the aggressive fold.
+
+## The session in one line
+
+Five gates went green; seven ACs closed and two were deliberately refused at partial coverage; hv's whiteboard directive became WP-14/D30; and the night's real output was a design conclusion about what a rule has to BE, bought by all three nodes breaking rules they had written that day.
+
+## hv rulings landed at the end (D31, D32)
+
+- **D31 -- `treeindex` and `in-handoff` RETIRE, not port.** The source-tree index in the DB obviates one and the model obviates the other; state leaves per-session `.md`s for the intentdb. Same movement as D30, so they are one idea. Unblocked four things at once: ic's register row (`deviate`/BLOCKED -> `retire`, no ratification-ref needed), WP-06's port list (-762 lines), WP-13's T0 (ratified rather than vc-specced), and D21's forward-looking clause (struck; its DECISION untouched, so AC-01.4 does not reopen -- ic's scoping, verified and held). `fileindex` deliberately NOT covered.
+- **D32 -- durable state in the model; services expose mutations; APIs expose services.** Ruled on a concrete gap: `intent ac satisfy` is a one-way door, so a verifier whose evidence proved incomplete had to hand-edit the file the CLI owns. General form: **a state that can be entered and not left is a missing mutation, not a missing flag.** Landed as AC-04.6 with a mechanical test (per state field, the transition set is closed). WP-04 reopened 5/6, correctly.
+- **One phrase deliberately not read**: "durable state is in the db" is recorded, NOT taken as reversing D01. hv's contrast was model-versus-scattered-md, not JSON-canon-versus-DB. Queued as its own question -- two nodes stopped on it independently.
+
+## What closed, and how each was falsified
+
+Never taken on a peer's account; each perturbed before flipping.
+
+| AC      | falsification                                                                                               |
+| ------- | ----------------------------------------------------------------------------------------------------------- |
+| AC-06.5 | perturbed a committed face -- exactly the two byte-identity tests went red, three correctly stayed green    |
+| AC-03.7 | three identical-byte probes in a purpose-built repo after cc fixed the machine-scope hole I found           |
+| AC-03.8 | unset a modelled field; the guard named it and said why it mattered                                         |
+| AC-06.4 | before/after across cc's fix -- I had measured `doc_sections` 0 and silence at `9e8c885`                    |
+| AC-06.7 | same fixture had no WP view at all before `0c220b7`                                                         |
+| AC-06.2 | consistent project reports 0 findings at exit 0 -- the control that stops the check family being decorative |
+| AC-10.7 | 10 tests carrying both directions, incl. "a v3 thread's generated info.md is NOT evidence"                  |
+| AC-05.3 | reopened on ic's finding, then re-closed on every condition including the one my first close missed         |
+
+**Two refusals**, both right, both the same shape: **AT-00.5** is green and covers half of AC-00.7 (its row claimed to "drive the dual-path suite"; the file has zero references to intentd) -- AT-00.7 added beside it. And I declined to flip AC-06.4 at two of three sources until I could exercise issue bodies, which cc's D02 insight made possible.
+
+## The finding of the night
+
+**All three nodes broke rules they had written that day.** vc fabricated FOUR timestamps while writing the clock rule, enforcing it on ic, and citing it in the message carrying the fourth. cc read a corpus through `| head`, lost the eleventh of eleven rows, and published the wrong count into a source comment -- with `| head` already on their own board three lines from where they were looking. ic generalised one hung file into "the sweep takes hours", wrote it into a tool's justification, and I **refused a re-sweep on it without ever asking for the measurement**. It takes 7m52s.
+
+**Neither knowledge nor care was the missing ingredient.** The only two mechanisms that held both REFUSED and asked nobody to remember: the pre-commit clock guard, and `lib_corpus.sh`. cc's compression is now WP-14's stated principle: **a control refuses; documentation reminds; only one of them is load-bearing.**
+
+Corollary I own personally: **constraints are the claims most worth checking, because they are the ones that stop work happening.** A finding gets scrutinised because it asks for action; a constraint gets accepted because it asks for none.
+
+## Where peers improved on me
+
+- **ic**: BLOCKED-with-the-question beats UNRATIFIED (a blank invites the next peer to supply a plausible D-number -- the laundering the column exists to stop). Their blast-radius scoping stopped me handing hv "a closed AC has come undone", which was wrong. Their per-group correction caught my provenance-guard recommendation shipping a permanent false positive on day one.
+- **cc**: the `.git/info/exclude` DROP; the D02 insight that issue bodies are AUTHORED so hand-writing a fixture is correct rather than a workaround; catching my no-git claim (my fixture sat inside `/Users/matts/.claude`, itself a repo); and correcting credit DOWNWARD on the scope shape.
+
+## Instrument errors: nine, all one direction
+
+Every one made a finding look WORSE than it was. New ones this stretch: a fixture built to have "no git" that was inside a repo; a paired control going silent in both arms (which is a result about the instrument, not the subject); test data placed in a generated artefact and destroyed by the mechanism under test; a `basis:` count that included prose.
+
+Four new rules in `parity.md` (9-12).
