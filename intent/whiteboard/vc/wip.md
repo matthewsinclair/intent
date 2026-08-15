@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-14 23:58Z
+heartbeat_at: 2026-08-15 00:08Z
 status: active
-focus: "Both AC-05.3 rulings made and ic unblocked: corpus is the .bats estate; pending blocks for the 12 core-family files and defers 28 to a named gate at AC-00.1. One truth-model question standing with hv."
+focus: "Localfold before a compact, continuing on the bounce. WP-05 CLOSED (gate PASS 4/4). WP-03 REOPENED by AC-03.7. Contract 81 ACs / 79 AT rows. D28, D29 and the D01 disambiguation landed."
 claims: [ST0056]
 ---
 
@@ -13,42 +13,45 @@ claims: [ST0056]
 
 ## DOING
 
-- **Both AC-05.3 rulings made; ic unblocked.** (1) Corpus is the `.bats` estate (98 at `cd490be`), not the 153-file `tests/**` glob -- my previous edit fixed one literalism and introduced another, which ic caught rather than quietly implementing their preferred reading; `run_v2_suite.bash` excluded BY NAME as the driver, not a member. (2) `pending` blocks the close for the **12** pending files touching a core family (AC-05.2's corpus is undefined until they split -- ic's consequence argument, and it is right) and **defers the other 28 to a named gate at AC-00.1**, owed rather than forgiven. First instrument said 26; it matched `list` anywhere and swept in ten `claude rules list` files. Recalibrated, anchored to first-argument, verified against a known-good case.
+- **Localfold before a compact, not a release.** `/compact` does not end a session (protocol invariant 6), so status stays `active`; hv has said we continue on the bounce. The session's detail is in `.history/20260815/wip.md`.
 
 ## TODO
 
-- **Flip AC-05.3 once ic lands the 12 splits** (`intent ac satisfy`), then gate WP-05 to 4/4.
-- **One question standing with hv: is `SSOT in the SQLite db` the runtime query surface, or the durable truth?** The first is D01 exactly; the second reverses it -- `rm intent.db` stops being safe, DB migrations exist forever, and truth leaves git for an uncommitted binary. D01 is in the hv-ratified D01-D21 set, not the standing-authorisation set, so it is not mine to reinterpret.
-- **Verify cc at the WP-06 claim.** Opening work-list is bucket 3b from `tests/conformance/BASELINE.md`: `st repair`, `st sync`, `st edit`, `wp show`. hv has told cc to build without waiting on me, which is right; verification runs behind.
-- **Check ic's `split` -> `pending` register-class rename at their claim** -- uncommitted in `gen_register.sh` now. A classification vocabulary change touches AC-05.3's "no unclassified rows"; `pending` must not become a synonym for UNCLASSIFIED wearing a friendlier name.
-- **The one question for hv, asked once**: the 17 `pending-hv` dispatch-table rows, of which 15 collapse to the single usage-convention ruling. **`intent critic`'s four-way exit-2 overload goes ahead of the bundle** -- it is the only one with a live consumer, since the pre-commit gate reads that code.
-- **hv's own scope calls, deliberately NOT folded into the standing authorisation**: whether `fileindex` follows `treeindex` into retirement (WP-13 leaves it in WP-06 on purpose); whether `todo --flush` / `--prune` semantics survive at all, which decides whether the watermark field exists; WP-06's name now that AC-06.4 puts a non-parity command in it.
-- **WP-10 precondition, from cc**: measure L2/L3 failures per fleet member at its named revision before anyone rules on whether a broken reference in a CLOSED thread carries or blocks. The number comes before the policy question; hv's carry ruling addressed legacy GRAMMAR, and a well-formed row citing a moved file is a different animal.
+- **Verify cc on the four live defects, in this order**: AC-10.7 (`st list` silent-empty -- the one every user meets first), D29 (ingest dead on macOS), D28 (WP prose fields), AC-06.6 (`export`). All four are cc's lane; none is blocked on me.
+- **Re-verify AC-06.4 once D29 lands.** `intent search` cannot be verified today -- it exits 1 on the `.DS_Store` residue before reaching the query. AC-06.5 is already verified behaviourally and waits only on AT-06.5 being written.
+- **WP-03 is REOPENED at 6/7** by AC-03.7. Whether its WP _status_ returns to wip is cc's call; I have not touched wp state. Do not let a Done-marked WP with a failing gate sit quietly -- that is the false green this contract exists to prevent.
+- **AC-00.1 carries the 28 deferred non-core `pending` rows.** Owed, gated, not forgiven. Check it is still on the row at WP-12.
+- **hv's own scope calls, still NOT folded into the standing authorisation**: the D01 reading (recorded as runtime, reversible in one line); `intent critic`'s four-way exit-2 overload, ahead of the 15-row usage-convention bundle because it is the only one with a live consumer; whether `fileindex` follows `treeindex`; whether `todo --flush` survives, which decides whether the watermark field exists; WP-06's name now that AC-06.4 and AC-06.6 put two non-parity commands in it.
+- **WP-10 precondition, from cc**: measure L2/L3 failures per fleet member at its named revision before anyone rules on whether a broken reference in a CLOSED thread carries or blocks.
 
 ## Watch-outs
 
-The measurement rules earned this session live in `intent/st/ST0056/parity.md` under `## Measurement rules` -- calibrate before believing a zero, clean-by-luck vs clean-by-construction, a file named after a command that does not test it, file-level classification is structurally blind, an instrument whose error strengthens your finding is not questioned, success is reported by the mechanism. They are on the thread rather than here because a board does not outlive the session that writes it. What remains below is operational to this node.
+Measurement rules earned on this thread live in `intent/st/ST0056/parity.md` under `## Measurement rules`, not here -- a board does not outlive the session that writes it. What follows is operational to this node.
 
-- **Confirming a peer's finding by re-running the peer's own command is not corroboration.** cc reported `intent/steel_threads.md` absent; I "confirmed" it on the same wrong path and ruled on it. The file is at `intent/st/steel_threads.md`. Test the premise, not the report -- with peers live, that hop is fast enough that a wrong premise reaches code before anyone re-reads it.
-- **Correction standing on the record: `8abbbaf`'s message claims it also committed the formatted form of two files; it changed one.** The `MM` I read in `git status` was stale against a settled index and I acted on it without checking the three-way state. The mechanism that message then offers -- `git commit --only` bypassing a pre-commit hook's `git add` -- is **unverified and probably false**. Not amended, because two peers were committing to this branch and rewriting shared history for a cosmetic fix is the worse trade.
-- **A generated view can be damaged by the formatter in ways alignment work cannot reach.** Three classes: layout the renderer controls; markup the renderer ADDS around data carrying its own delimiters; and markup the AUTHOR wrote (`*x*` -> `_x_`), which no renderer discipline reaches. AC-07.6 removes the second writer instead, converged at init and migration so it reaches consumer repos.
-- **Whiteboard stamps carry a trailing `Z`, always**, read from `date -u` per stamp. The pre-commit clock guard refuses a commit adding an unmarked stamp, a stamp postdating the commit, or an inbox going backwards.
-- **Re-read an inbox from disk immediately before appending** (cc's rule). It is the recipient's to empty; appending from context restores entries they already cleared. cc cleared theirs at this fold.
+- **Read `$?` before anything else touches it.** `cmd | head; echo $?` reports the PAGER's exit. It fired three times in one session and manufactured two clean defects that do not exist (`intent search` "exiting 0 on a usage error"; `ac gate` "printing BLOCKED and exiting 0" -- both are exit 1), each one send away from reaching cc as a bug in their code. Redirect to a file, or use `${PIPESTATUS[0]}`.
+- **Scope every grep to the thing being counted.** `grep -c UNCLASSIFIED` counted the class-rules prose as data rows; `find | wc -l` counted `COMPLETED/` threads that v2's default view excludes, inflating a real finding by 194; a `list`-anywhere match swept ten `claude rules list` files into a core-family count. **All of them made a finding stronger.** Anchor the pattern, then calibrate it against a known-good case before believing it.
+- **Confirming a peer's finding by re-running the peer's own command is not corroboration.** cc reported `intent/steel_threads.md` absent; I "confirmed" it on the same wrong path and ruled on it. The file is at `intent/st/steel_threads.md`.
+- **Correction standing on the record: `8abbbaf`'s message claims it also committed the formatted form of two files; it changed one.** The mechanism that message then offers -- `git commit --only` bypassing a pre-commit hook's `git add` -- is **unverified and probably false**. Not amended: rewriting shared history for a cosmetic fix while two peers commit is the worse trade.
+- **Whiteboard stamps are READ from `date -u`, per stamp, always.** I fabricated one this session (`00:03Z` against a real `00:00Z`) and the pre-commit clock guard refused the commit. It cannot be repaired by inventing a better one -- re-read the clock.
+- **Re-read an inbox from disk immediately before appending** (cc's rule). It is the recipient's to empty.
 - **Never mutate `bin/**` or `tests/**` in place.** Two mechanisms: `~/.local/bin/intent` symlinks into this repo, AND the BATS suite reads the live working tree (`no_absolute_home_paths.bats:37,100,103`). Sacrificial worktrees only.
-- **`git add <paths>` + bare `git commit` commits the WHOLE INDEX.** Use `git commit --only <paths>` verbatim, never `-A`. It has already cost once: cc's staged `bin/release` rename rode vc's `072d277`.
-- **The machine-global gitignore ignores `*.sql`** -- committed faces need their `!` exception; `git check-ignore -v` any new non-json artefact.
+- **`git add <paths>` + bare `git commit` commits the WHOLE INDEX.** Use `git commit --only <paths>` verbatim, never `-A`. It has already cost once.
+- **The machine-global gitignore ignores `*.sql`** -- committed faces need their `!` exception; `git check-ignore -v` any new non-json artefact. Verified still true after adding `intent/.cache/`.
 - **This shell is zsh**: no word-splitting of unquoted parameters, and MULTIOS makes `cmd 2>&1 >/dev/null` tee stdout to the terminal.
-- **`cmd | head; echo $?` reads the PAGER's exit, never the command's.** Fired three times in one session and manufactured two clean defects that do not exist -- `intent search` "exiting 0 on a usage error" and `ac gate` "printing BLOCKED and exiting 0"; both are exit 1. Both were one send away from reaching cc as bugs in their code. Redirect to a file and read `$?` first. Now also a rule in parity.md, since exit codes are half of what the parity contract is.
+- **The live channel does not survive a peer's restart; the inbox does.** cc's session vanished from the socket roster mid-send and reappeared renamed. Write the durable copy first and treat the live ping as the accelerant, never the delivery.
 - Release-window mechanics live in `intent/restart.md`'s checklist.
 
 ## Decisions
 
-Working decisions are archived once they live in a committed artefact -- see `.history/20260814/wip.md` for this session's, each with the file that now carries it. What remains governs how this node behaves rather than what any file says.
+Working decisions are archived once a committed artefact carries them -- see `.history/` for the trail with the file that carries each. What remains governs how this node behaves rather than what any file says.
 
-- (2026-08-14) **Verify a claim by re-running its evidence, never by reading its account.** Both directions in one window: re-running ic's findings confirmed three and caught an overclaim; re-running cc's mutation turned my own D24 from agreed to mechanically protected. The single claim I did not re-run became a wrong ruling.
-- (2026-08-14) **A record names what it covers -- and checking whether a stamp would be TRUE beats writing a fresh one.** ic applied this to an instruction of mine and produced a better artefact than the instruction asked for. Apply it to instructions, not only to files.
-- (2026-08-14) **The contract leads the build or it trails it, and trailing costs more.** Three of four WP-03 rulings were surfaced by builders inside the first hour of touching code; none were visible from the documents alone. A contract is a live artefact during a build, not a gate before one.
-- (2026-08-14) **hv standing authorisation is not review.** "Go with your recs, unless they're existential" authorises proceeding; it does not record hv reading each ruling. D22-D27 stay listed apart from D01-D21 for that reason, and hv's own scope calls are never folded into the grant.
-- (2026-08-14) **hv ruling: cc and ic write the code; vc ensures.** vc holds the ST0056 claim as steward and does not build. Reaffirmed under "you all have the pen(s)": vc's pen is the contract, not the crates.
-- (2026-08-14) **hv bounce rulings, still standing**: `corrected` parity class ratified; migration carry policy ratified (CLOSED threads lossless-by-carrying, LIVE threads BLOCKED-until-clean, neither ever lossy); `organize` planned vestigial by construction; push authorised as soon as it makes sense; v2 maintenance default-defer, show-stoppers only.
+- (2026-08-15) **A count is not a diagnosis.** 97-against-98 was a true number and an invented cause; the register was complete at the revision it named. Ancestry and a two-way set difference settle it, arithmetic does not. My single worst call of the thread came from reading a count and skipping the check.
+- (2026-08-15) **File a defect under its own noun, even when that reopens a closed WP.** AC-03.7 reopened a Done WP-03 rather than ride into WP-06 as a convenient new AC. A Done WP shipping an ingest broken on every Mac is a false green, and filing under a convenient noun is how L4/L5 nearly shipped missing at WP-04.
+- (2026-08-15) **Verify the implementation against the MODEL before calling it wrong.** cc's `collect_wp_text` looked like an AC-wording problem and was a correct implementation of a defective model. The bug was one layer down, and going in expecting to find a wording fix is what surfaced D28.
+- (2026-08-15) **When a rule has a precondition, land the precondition or the rule is theatre.** D29 excludes gitignored paths; `intent/.cache/` was not gitignored, so D29 would not have covered the DB it was written to protect.
+- (2026-08-14) **Verify a claim by re-running its evidence, never by reading its account.** Both directions in one window. The single claim I did not re-run became a wrong ruling.
+- (2026-08-14) **The contract leads the build or it trails it, and trailing costs more.** Rulings surfaced by builders inside the first hour of touching code were invisible from the documents alone. A contract is a live artefact during a build, not a gate before one.
+- (2026-08-14) **hv standing authorisation is not review.** "Go with your recs, unless they're existential" authorises proceeding; it does not record hv reading each ruling. It does not reach a ratified decision either -- D01 stays hv's.
+- (2026-08-14) **hv ruling: cc and ic write the code; vc ensures.** vc holds the ST0056 claim as steward and does not build. The one exception taken this session was a one-line protective `.gitignore`, on an asymmetry: a binary DB in git history is expensive to undo, the line costs nothing.
+- (2026-08-14) **hv bounce rulings, still standing**: `corrected` parity class ratified; migration carry policy ratified (CLOSED threads lossless-by-carrying, LIVE threads BLOCKED-until-clean, neither ever lossy); `organize` planned vestigial; push authorised as soon as it makes sense; v2 maintenance default-defer, show-stoppers only.
 - (2026-07-02) vc fires on a close/green/freeze trigger or an hv request, never on in-flight edits. Advisory only; findings to the owner's inbox, compounding risk to hv; vc claims no STs (ST0056 stewardship excepted).
