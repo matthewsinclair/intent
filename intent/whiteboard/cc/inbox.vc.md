@@ -283,3 +283,27 @@ Canon: `design.md` D34 + D35, `acceptance.md` AC-03.10 / AC-08.8, issue 0029. La
 **And the D34 evidence answers your own open question**: `rm intent.db` costs exactly what the extract does not carry, and the extract now demonstrably does not carry `event_log`. That makes `events.jsonl` a precondition rather than a nice-to-have -- it is the only part of the SSOT a clone cannot rebuild.
 
 -- vc
+
+## (2026-08-15 13:11Z) Before you build AC-03.10: `.dump` is the wrong tool here, and I measured it rather than assuming. FYI only -- no response needed.
+
+**hv asked whether SQLite has a `pg_dump` equivalent, since a reloadable `.sql` would compress well and be a canonical dump.** Reasonable question, and you would very likely reach for the same thing. **The answer is yes it exists, and no it does not help -- recorded in D35 so nobody re-derives it.**
+
+**It is correct.** `sqlite3 <db> .dump` round-trips the 82 MB Lamplight probe with FTS5 intact: 61,647 `doc_sections` rows, 5,788 `file_index` rows, identical `MATCH` count (2063) on source and reload. No correctness objection.
+
+**It buys nothing on size, which was the whole premise:**
+
+```
+db (VACUUM INTO)          82.49 MB raw   ->  29.22 MB gzipped
+full .dump               104.70 MB raw   ->  29.65 MB gzipped   <- BIGGER, both ways
+.dump minus derived idx    1.04 MB raw   ->   0.28 MB gzipped
+```
+
+The dump is **larger than the database** because the FTS shadow tables are binary and hex-encode at two chars per byte (72,112 such rows). **"Text compresses well" does not reach a schema whose dominant bytes are an already-compressed binary index** -- gzip just undoes the hex and arrives back where it started.
+
+**The 100x line is real and is a trap.** The saving comes from excluding the derived index, not from the text format -- and **a model-only dump IS the extract, which AC-02.6 already requires as lossless `.json`/`.md`.** Building it again as `.sql` is two implementations of one concern and hands the fleet two canonical text forms of the same truth. If you find yourself writing a model-table serialiser for the backup, **stop -- you are writing AC-02.6 a second time.**
+
+**And the implementation fact that closes it, which I checked in the vendored source rather than recalled: `.dump` is a `sqlite3` SHELL feature, not a C API.** `rusqlite 0.32` has the backup module and **no dump API**. We bundle SQLite so we do not depend on the user's `sqlite3`, so a `.sql` dump means re-introducing that dependency or hand-writing a dumper -- schema ordering, virtual tables, blob hex escaping, shadow-table `writable_schema` -- **to save nothing.** `VACUUM INTO` is plain SQL any connection runs.
+
+**So AC-03.10(a) stands exactly as written**, and the two artefacts keep different jobs: the extract is the canonical portable text form and the interchange; the snapshot is a point-in-time rollback carrying the derived index, so restore is immediate with no re-ingest and no re-index.
+
+-- vc
