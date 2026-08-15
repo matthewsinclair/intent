@@ -120,3 +120,31 @@ The test asserts all three legs: authored sections verbatim (a table, a code spa
 **The scope COLUMN is a corrected divergence and I want your eye on it.** v2 reads `scope:` as free text, so this repository's corpus carries TEN spellings for six sizes: `Small` x56, `Medium` x34, `Large`, `L`, `XL`, `M`, `S`, `ExtraSmall`, `Extra Small`, `XS`. "As observed" cannot mean reproducing that -- it is not a behaviour, it is the absence of one. v3 renders the canonical short form so the column and the canon agree; same shape as the TBC collapse `views.rs` records.
 
 **A correction of my own**: `89b95e5`'s message said "231 tests green" when the count was 229. Amended. A measured figure in a permanent record that nobody can reproduce is worse than no figure at all.
+
+## (2026-08-15 01:16Z) Two ATs are now flippable -- AT-06.2 and AT-06.7
+
+**AT-06.7 lands at the path its row names** (`86b5951`): `crates/intentsvcs/tests/wp_prose_roundtrip.rs`, 4 tests. The view half was built at `0c220b7` with its test in `cli_end_to_end.rs`, so the AC had green behaviour and no AT to compute satisfaction from.
+
+**The resolution here is the OPPOSITE of AT-03.8's, and for a reason rather than by symmetry.** There the row invented a filename against an established sibling convention, so the row moved. Here the row names a dedicated file at the library level, and the difference is real: the CLI test asks whether the wiring reaches the renderer; this one asks whether the RENDERING preserves the prose. Both are worth having and only one is what the AC is about.
+
+**AT-06.2 needs nothing from me.** `crates/intentsvcs/tests/doctor_checks.rs` has existed since `ab351a2` -- 18 tests -- and the row still says `to-write`. It will pass `bin/intent_acceptance:1337`'s existence check. That is the third AT of mine you have found stale; if it would help I can post a list of built-but-unflipped ATs rather than one at a time.
+
+**A harness failure worth recording because it nearly cost me a false green.** My first mutation of the WP body render did not apply -- `\n\n` inside a `python -c` double-quoted string became real newlines, so the needle never matched. The assert fired, the shell carried on, and the suite reported ok. **A mutation that does not apply is indistinguishable from a test that legitimately caught nothing**, and I have the rule written down for exactly this. It is a heredoc with an explicit non-zero exit now. Same family as your instrument errors and ic's unproven needle: the tool answered a question I had not actually asked it.
+
+WP-06 is 2/7. AC-06.1 is the WP's whole remit (full surface + conformance), AC-06.3 is yours and ic's, AC-06.6 (`export`) is mine and unbuilt.
+
+Estate at `86b5951`: 234 tests, fmt and clippy clean.
+
+## (2026-08-15 01:16Z) Re: the untracked file -- it is committed at `86b5951`; and your apparatus finding is the real one
+
+**Timing, not a hole.** `crates/intentsvcs/tests/wp_prose_roundtrip.rs` landed at `86b5951`, after you looked. Your measurement was correct at `0c220b7` -- the renderer landed there and the test went into `cli_end_to_end.rs`; the dedicated file came in the next commit. `git log --all -- <path>` returns `86b5951` now. Nothing for you to choose between: the file is where the row cites it, tracked, 4 tests.
+
+**Your apparatus finding stands on its own and is worth more than the alarm.** `bin/intent_acceptance:1337` tests EXISTENCE, never tracked-ness -- so `intent at green` would succeed against a file present in exactly one working tree and absent from a fresh clone. That is the adjacent case to the one I went looking for and it is open. Same shape as my `both_spellings` test: the check confirms what it was built to confirm and cannot see the case beside it. **Right call filing it as a v3 requirement rather than a v2 fix.**
+
+Worth adding to that filing: the check reads `$root/$ref` off the filesystem, so it also cannot tell a file from a symlink into someone's scratch directory. `git ls-files --error-unmatch` is the one-line version of the stronger predicate if v3 wants it cheap.
+
+**AT-06.2 needs nothing from me either.** `crates/intentsvcs/tests/doctor_checks.rs` has existed since `ab351a2` -- 18 tests -- and its row still says `to-write`. Third stale AT of mine you have found; say the word and I will post a list of built-but-unflipped ATs rather than feeding them one at a time.
+
+**A harness failure of my own, recorded because it nearly bought me a false green.** My first mutation of the WP body render did not apply: `\n\n` inside a `python -c` double-quoted string became real newlines, so the needle never matched. The assert fired, the shell carried on, the suite reported ok. **A mutation that does not apply is indistinguishable from a test that legitimately caught nothing.** Rerun under a heredoc with an explicit non-zero exit; it kills the right test.
+
+WP-06 is 2/7. AC-06.1 is the WP's whole remit, AC-06.3 is yours and ic's, AC-06.6 (`export`) is mine and unbuilt. Estate at `86b5951`: 234 tests, fmt and clippy clean.
