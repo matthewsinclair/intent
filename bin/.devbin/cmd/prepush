@@ -47,23 +47,95 @@ ROOT="${PROJECT_ROOT:?}"
 FORCE=0
 [ "${1:-}" = "--force" ] && FORCE=1
 
-# What is about to be pushed. A pre-push hook is handed the ref pairs on stdin,
-# but the question here is only "does this push carry build-relevant changes",
-# and HEAD against the upstream tracking ref answers it without parsing stdin --
-# which also keeps `int prepush` meaningful when run by hand.
+# What is about to be pushed -- and "about to be pushed" is a property of THIS
+# PUSH, not of the tracked remote.
 #
-# `|| true` throughout: no upstream, a new branch, or a shallow history are all
-# legitimate states, and under `set -e` any of them would abort the gate instead
-# of letting it decide. A legitimately-empty result must never kill the script.
-UPSTREAM="$(git -C "$ROOT" rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || true)"
-if [ -n "$UPSTREAM" ]; then
-  CHANGED="$(git -C "$ROOT" diff --name-only "$UPSTREAM"...HEAD 2>/dev/null || true)"
-else
-  # No tracking ref: cannot compute a range, so do not guess a narrow one.
-  # Fall back to checking, because the expensive-but-correct answer beats a
-  # cheap wrong one at a boundary this gate exists to protect.
-  CHANGED=""
-  FORCE=1
+# THE DEFECT THIS REPLACES, measured by cc 2026-08-15: the gate printed
+# `no native/ or build-manifest change in this push` on a push whose diff was 14
+# files under `native/` and `schema/`. The grep was fine. The RANGE was wrong.
+#
+# The old computation was `git diff --name-only @{upstream}...HEAD`, and
+# `@{upstream}` names exactly ONE remote -- `upstream/main` here. **This hook
+# fires for a push to EITHER remote, and this project's standing instruction is
+# to push both.** So the moment `git push upstream main` succeeds, `upstream/main`
+# IS HEAD, and the `git push local main` that follows carries every one of those
+# commits while computing an EMPTY range and opening the gate. **The second push
+# of the standard two-push sequence has been ungated by construction**, and it
+# failed in the direction nobody watches: quietly, with a confident message,
+# saying the true thing about the wrong question.
+#
+# A pre-push hook is handed the ref pairs on stdin, one per ref:
+#
+#   <local ref> <local sha> <remote ref> <remote sha>
+#
+# `<remote sha>` is what THAT remote currently holds for the ref, so it yields a
+# range that is per-push and per-remote **without needing to know which remote it
+# is** -- which is why the argv the hook does not forward is not needed here.
+#
+# `|| true` and the FORCE fallbacks throughout: a new branch, a shallow history,
+# a sha the remote has and we do not, no remotes at all -- every one is a
+# legitimate state, and under `set -e` any of them would abort the gate rather
+# than let it decide. **Where a range cannot be computed honestly, pay for the
+# check.** An expensive right answer beats a cheap wrong one at the boundary this
+# gate exists to protect.
+CHANGED=""
+pairs=0
+
+# NOT a pipeline: `CHANGED` and `pairs` must survive the loop, and `cmd | while`
+# would run the body in a subshell and discard both.
+if [ ! -t 0 ]; then
+  while read -r _lref lsha _rref rsha; do
+    [ -n "${lsha:-}" ] || continue
+    pairs=$((pairs + 1))
+    # An all-zero sha is git's "this ref does not exist". Matched by shape
+    # rather than against a 40-character literal, so sha256 repositories read
+    # the same.
+    case "$lsha" in
+      *[!0]*) ;;
+      *) continue ;; # deleting a ref pushes no tree, so nothing can fail to build
+    esac
+    case "$rsha" in
+      *[!0]*)
+        # The remote has this ref. If we cannot resolve its sha locally the
+        # remote holds history we do not -- git will reject the push anyway, but
+        # a gate that guesses at that moment is worse than one that checks.
+        if git -C "$ROOT" cat-file -e "$rsha" 2>/dev/null; then
+          CHANGED="$CHANGED
+$(git -C "$ROOT" diff --name-only "$rsha"..."$lsha" 2>/dev/null || true)"
+        else
+          FORCE=1
+        fi
+        ;;
+      *)
+        # New ref on this remote: every commit is arriving, and there is no
+        # bounded range to compute. Check.
+        FORCE=1
+        ;;
+    esac
+  done
+fi
+
+if [ "$pairs" -eq 0 ]; then
+  # Run by hand rather than as a hook. "What would go if I pushed now" has a
+  # DIFFERENT ANSWER PER REMOTE, so answer for the remote that is furthest
+  # behind: the union across all of them. Under-reporting is the entire failure
+  # this change is about, and a by-hand run that answers for one remote would
+  # reintroduce it wearing a different name.
+  branch="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  remotes="$(git -C "$ROOT" remote 2>/dev/null || true)"
+  if [ -z "$remotes" ] || [ -z "$branch" ] || [ "$branch" = HEAD ]; then
+    FORCE=1
+  else
+    for r in $remotes; do
+      if git -C "$ROOT" rev-parse --verify --quiet "refs/remotes/$r/$branch" >/dev/null 2>&1; then
+        CHANGED="$CHANGED
+$(git -C "$ROOT" diff --name-only "refs/remotes/$r/$branch"...HEAD 2>/dev/null || true)"
+      else
+        # This remote has never seen the branch: pushing there sends everything.
+        FORCE=1
+      fi
+    done
+  fi
 fi
 
 if [ "$FORCE" -eq 0 ]; then
