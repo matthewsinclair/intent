@@ -703,7 +703,9 @@
             "spelling": "intent st bootstrap",
             "ratification": "hv, 2026-08-15 -- `st_zero` is wrong and the root spelling dies. `zero` was never a verb: it is the NAME of the thing (Steel Thread Zero / ST0000), which is why `intent st zero install` parses noun-then-verb and why the spelling reads as \"initialise something to zero\" -- not what the command does. It audits which ST0000 deliverables are present, missing or partial in a brownfield project and installs the missing ones. `bootstrap` names that operation and promotes the real verb to the right position. hv considered `initzero` and preferred `bootstrap`.",
             "note": "`install` COLLAPSED into the bare form, deliberately, as part of the same correction. It was the only value of the subcommand and the real verb hiding a level down; keeping it gives `intent st bootstrap install`, two stacked verbs, which rebuilds the exact defect this ruling removes. The audit path is already a flag (`--audit-only`), so nothing is lost. Landed rather than asked because delivering the ruled verb on top of the unruled noise word would deliver the problem in a new costume; one sentence reverses it.",
-            "consequence": "`intent bootstrap` (top level) already exists and means \"first-time setup: create global Intent configuration\". This is NOT a collision, it is the same verb meaning the same thing at two levels -- bootstrap the machine, bootstrap the steel-thread structure in a project. Checked before landing; it strengthens the choice rather than qualifying it."
+            "consequence": "`intent bootstrap` (top level) already exists and means \"first-time setup: create global Intent configuration\". This is NOT a collision, it is the same verb meaning the same thing at two levels -- bootstrap the machine, bootstrap the steel-thread structure in a project. Checked before landing; it strengthens the choice rather than qualifying it.",
+            "face": "surviving",
+            "never_built": false
           },
           "disposition": "corrected",
           "cross_ref": "THE surviving face. The top-level `st_zero` family is the deleted root spelling; see its entry for the divergence cost."
@@ -1228,6 +1230,32 @@
           "disposition": "keep"
         },
         {
+          "path": "ac unsatisfy",
+          "help": "Reopen a satisfied non-test AC -- clears satisfaction AND its evidence together",
+          "args": [
+            {
+              "name": "stid",
+              "type": "positional",
+              "arity": "1"
+            },
+            {
+              "name": "acid",
+              "type": "positional",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "cc, 2026-08-15, service half at `acf8491` -- the inverse D32 requires. `ac satisfy` was a one-way door: a verifier whose evidence later proved incomplete had to HAND-EDIT acceptance.md, the one file the CLI exists to own. Recorded here BEFORE the surface is wired, per AC-06.3, because the spine builds from this table and the command cannot exist until the row does.",
+            "note": "Clears satisfaction and evidence TOGETHER, deliberately. Evidence outliving the claim it supported is the defect this fixes, not a convenience it preserves -- a cleared AC keeping its old evidence reads as satisfied-with-provenance to every later reader.",
+            "consequence": "Refuses a test-backed AC (satisfaction there is COMPUTED from covering green ATs and never stored -- unsetting it would be writing to a derived field) and refuses an AC that is not satisfied (nothing to undo; silent success on a no-op is INV-01 territory).",
+            "placement": "FIRST sub-verb addition in this canon: all seven `new_surface[]` entries are top-level commands (search, sync, schema, export, ingest, daemon, mcp). This one is recorded as a FAMILY ENTRY instead, because the spine places verbs under their family from `families[].entries[]` and a bare `ac unsatisfy` in the top-level array would have no parent. Flagged rather than assumed -- cc owns the spine and should confirm it builds from here; vc owns whether the contract wants one home or two."
+          },
+          "disposition": "new-surface"
+        },
+        {
           "path": "ac gate",
           "help": "Close-gate: exit non-zero + BLOCKED if unsatisfied",
           "args": [
@@ -1707,9 +1735,14 @@
             "at done"
           ],
           "target": {
-            "state": "as-observed"
+            "state": "corrected",
+            "spelling": "intent at green",
+            "ratification": "ic, 2026-08-15, ruling cc's parity question -- KEEP THE GUARD. v2 refuses green unless the AT is currently red (bin/intent_acceptance:1325). v3's at_set takes any status from any status. This is v3 more OPEN and less faithful, not more closed.",
+            "note": "THE GUARD IS NOT AN ARBITRARY RESTRICTION, WHICH IS WHY THIS IS NOT A DIVERGENCE WORTH BUYING. Requiring green to come from red means an AT cannot be marked passing without first having been recorded as failing -- it is the MECHANISED form of this thread's own central doctrine, that a check which has only ever passed is not verified. Drop it and the discipline survives only as prose, which is rule 12 exactly.",
+            "consequence": "Three instances on 2026-08-15 alone of a green that proved nothing, none of which had ever been seen red: four vacuous greps that never opened a file, a normaliser that silently did nothing under BSD sed, and a `touch`ed canary whose empty diff sent the run down the wrong branch. v3 restores the from-red guard.",
+            "open_to_cc": "v2 carries FOUR guards on `at`, not one, and only the from-guard was raised. The others: `na` refuses on a test-backed AT; a non-`na` status refuses on a `(non-test)` AT; and green/red on a test-backed row refuse unless the CITED TEST FILE RESOLVES on disk (issue 0015 -- catching a rename at the point of the lie rather than after a stale green has counted as coverage for months). Please report whether v3 has those three, because if they went with the from-guard the divergence is four times what was reported."
           },
-          "disposition": "keep"
+          "disposition": "corrected"
         },
         {
           "path": "at red",
@@ -5212,7 +5245,9 @@
             "spelling": "intent st bootstrap",
             "ratification": "hv, 2026-08-15 -- `st_zero` is wrong and the root spelling dies. `zero` was never a verb: it is the NAME of the thing (Steel Thread Zero / ST0000), which is why `intent st zero install` parses noun-then-verb and why the spelling reads as \"initialise something to zero\" -- not what the command does. It audits which ST0000 deliverables are present, missing or partial in a brownfield project and installs the missing ones. `bootstrap` names that operation and promotes the real verb to the right position. hv considered `initzero` and preferred `bootstrap`.",
             "note": "The ROOT face is DELETED, not renamed in place -- `st_zero` is the only underscore in the entire command surface, which was its own tell. The retire question this row carried is MOOT rather than answered: you do not rehome a command you are retiring. parity.md:69's retire-candidate flag needs striking (vc's file).",
-            "consequence": "The divergence cost is ZERO for anyone following the command's own documentation: its usage block only ever said `intent st zero install`, never the root spelling. So the face that dies is the one no user was told to use, and the face that survives is a rewording of the one that was."
+            "consequence": "The divergence cost is ZERO for anyone following the command's own documentation: its usage block only ever said `intent st zero install`, never the root spelling. So the face that dies is the one no user was told to use, and the face that survives is a rewording of the one that was.",
+            "face": "deleted",
+            "never_built": true
           },
           "disposition": "corrected"
         }

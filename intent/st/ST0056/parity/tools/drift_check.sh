@@ -131,6 +131,29 @@ for fam in $(jq -r '.families[].name' "$CANON"); do
   only_inv="$(comm -23 <(printf '%s\n' "$inv_list") <(printf '%s\n' "$tbl_verbs") )"
   only_tbl="$(comm -13 <(printf '%s\n' "$inv_list") <(printf '%s\n' "$tbl_verbs") )"
 
+  # NEW SURFACE IS DERIVED, NEVER HAND-LISTED. A verb whose entry declares
+  # `v2: new-surface` has no v2 antecedent BY DEFINITION, so its absence from a
+  # measured v2 inventory is not drift and never can be. Reading that from the
+  # canon beats adding a line to EXPLAINED per addition, for the reason this
+  # toolchain keeps rediscovering: a hand-maintained exceptions list is a
+  # DESIGNED figure -- correct the day it is typed, silently wrong at the next
+  # addition, because the thing that invalidates it is exactly the thing that
+  # does not update it. WP-06 will land many of these.
+  #
+  # It is derived from a claim the row makes about ITSELF and which a reader can
+  # check, not from a side list nobody revisits. And it is REPORTED rather than
+  # skipped: a silent exemption is how a guard stops covering what it claims to.
+  new_surface_verbs="$(jq -r --arg f "$fam" '
+    .families[] | select(.name==$f) | .entries[] |
+    select((.v2 // "") == "new-surface") | .path' "$CANON" |
+    sed "s/^$fam *//" | grep -v '^$' | sort -u)"
+
+  if [ -n "$new_surface_verbs" ]; then
+    only_tbl="$(comm -23 <(printf '%s\n' "$only_tbl") <(printf '%s\n' "$new_surface_verbs"))"
+    printf 'addition   %-12s %s -- declared new-surface, no v2 antecedent to measure\n' \
+      "$fam" "$(printf '%s' "$new_surface_verbs" | tr '\n' ' ')"
+  fi
+
   new_inv="$(printf '%s\n' "$only_inv" | unexplained "$fam")"
   new_tbl="$(printf '%s\n' "$only_tbl" | unexplained "$fam")"
 

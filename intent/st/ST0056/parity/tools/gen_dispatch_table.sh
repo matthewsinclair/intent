@@ -182,6 +182,27 @@ else
 $RUST_MISSING  Fix the JSON canon and re-run. Never hand-edit the rendered view to match."
 fi
 
+# AN ENTRY WITH A v2 ANTECEDENT MUST CARRY ITS MEASUREMENT.
+#
+# The renderer above tolerates a missing `observed` block, because an addition
+# has no v2 command and there was never anything to run -- fabricating an
+# `observed` block for a command that does not exist would be inventing
+# measurement, which is the one thing this toolchain refuses everywhere else.
+#
+# That tolerance is a HOLE unless this refusal exists beside it. Without it, a
+# real measured command that lost its `observed` block renders as "nothing to
+# observe -- no v2 antecedent", which is not a gap in the record, it is a FALSE
+# STATEMENT about v2 generated automatically and indistinguishable from the
+# truthful case. The tolerance and the refusal are one change; neither is safe
+# alone.
+MISSING_OBS="$(jq -r '
+  .families[].entries[]
+  | select((.v2 // "new-surface") != "new-surface")
+  | select(has("observed") | not)
+  | .path' "$IN")"
+[ -z "$MISSING_OBS" ] || die "entries name a v2 antecedent but carry no observed block -- a measured command must ship its measurement, or the view will state there was nothing to measure:
+$(printf '%s' "$MISSING_OBS" | sed 's/^/  /')"
+
 emit "# Command dispatch table -- Intent v3 (ST0056, AC-05.1)"
 emit ""
 emit "> GENERATED VIEW -- the canon is \`dispatch-table.json\` beside this file. Regenerate with \`parity/tools/gen_dispatch_table.sh\`; do not hand-edit rows. Measured at \`$MEASURED_AT\` on $MEASURED_ON by $MEASURED_BY."
@@ -301,9 +322,11 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
        (if .accepts then "\n    - Accepts: \(.accepts)" else "" end) +
        (if .note then "\n    - " + .note else "" end)
      ) | join("\n"))) else empty end),
-    "- **Exit codes:**\n" + (.observed.exit | map("  - `\(.code)` -- \(.when)") | join("\n")),
-    "- **stdout:** \(.observed.stdout | cell)",
-    "- **stderr:** \(.observed.stderr | cell)",
+    (if .observed then
+      "- **Exit codes:**\n" + (.observed.exit | map("  - `\(.code)` -- \(.when)") | join("\n"))
+     else "- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run" end),
+    (if .observed then "- **stdout:** \(.observed.stdout | cell)" else empty end),
+    (if .observed then "- **stderr:** \(.observed.stderr | cell)" else empty end),
     (if .observed.side_effects then ("- **Side effects:**\n" + (.observed.side_effects | map("  - " + .) | join("\n"))) else empty end),
     (if .observed.notes then "- **Observed notes:** \(.observed.notes)" else empty end),
     (if .observed.defects then ("- **Defects observed in v2:**\n" + (.observed.defects | map(

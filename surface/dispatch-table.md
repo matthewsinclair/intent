@@ -510,17 +510,18 @@ Acceptance criteria: the ratified completeness boundary of a unit
 - An AC has four states, not two (issue 0013): in-scope, satisfied, descoped-to-a-named-thread, withdrawn-with-reason. Descoped and withdrawn are non-blocking and reported separately rather than folded into the satisfied count. This is already reified in the v3 model as `AcScope` (native/rust/crates/intentsvcs/src/model.rs), so the CLI surface here maps onto it directly.
 - Satisfaction for test-backed ACs is COMPUTED from covering green ATs and never stored; only non-test ACs carry `satisfied` inline with their evidence. v3 must preserve that asymmetry -- storing it would be double truth (data-model.md).
 
-| command        | args          | flags                                    | help                                                                  | disposition |
-| -------------- | ------------- | ---------------------------------------- | --------------------------------------------------------------------- | ----------- |
-| `ac`           | <command>     | --                                       | Acceptance criteria commands                                          | keep        |
-| `ac list`      | <stid>        | --                                       | List ACs + covering AT + satisfied state                              | keep        |
-| `ac status`    | <stid>        | --                                       | Report N/M satisfied + verdict (PASS/BLOCKED)                         | keep        |
-| `ac satisfy`   | <stid> <acid> | --evidence <ref>                         | Satisfy a non-test AC by named evidence                               | keep        |
-| `ac gate`      | <stid>        | --                                       | Close-gate: exit non-zero + BLOCKED if unsatisfied                    | keep        |
-| `ac descope`   | <stid> <acid> | --to <stid>, --by <who>, --reason <text> | Record that an AC moved to another thread (non-blocking)              | keep        |
-| `ac rescope`   | <stid> <acid> | --                                       | Undo a descope: back in scope, unsatisfied                            | keep        |
-| `ac withdraw`  | <stid> <acid> | --reason <text>, --by <who>              | Withdraw an AC outright, with its reason on the record (non-blocking) | keep        |
-| `ac reinstate` | <stid> <acid> | --                                       | Undo a withdrawal: back in scope, unsatisfied                         | keep        |
+| command        | args          | flags                                    | help                                                                            | disposition |
+| -------------- | ------------- | ---------------------------------------- | ------------------------------------------------------------------------------- | ----------- |
+| `ac`           | <command>     | --                                       | Acceptance criteria commands                                                    | keep        |
+| `ac list`      | <stid>        | --                                       | List ACs + covering AT + satisfied state                                        | keep        |
+| `ac status`    | <stid>        | --                                       | Report N/M satisfied + verdict (PASS/BLOCKED)                                   | keep        |
+| `ac satisfy`   | <stid> <acid> | --evidence <ref>                         | Satisfy a non-test AC by named evidence                                         | keep        |
+| `ac unsatisfy` | <stid> <acid> | --                                       | Reopen a satisfied non-test AC -- clears satisfaction AND its evidence together | new-surface |
+| `ac gate`      | <stid>        | --                                       | Close-gate: exit non-zero + BLOCKED if unsatisfied                              | keep        |
+| `ac descope`   | <stid> <acid> | --to <stid>, --by <who>, --reason <text> | Record that an AC moved to another thread (non-blocking)                        | keep        |
+| `ac rescope`   | <stid> <acid> | --                                       | Undo a descope: back in scope, unsatisfied                                      | keep        |
+| `ac withdraw`  | <stid> <acid> | --reason <text>, --by <who>              | Withdraw an AC outright, with its reason on the record (non-blocking)           | keep        |
+| `ac reinstate` | <stid> <acid> | --                                       | Undo a withdrawal: back in scope, unsatisfied                                   | keep        |
 
 ### `ac`
 
@@ -592,6 +593,18 @@ Satisfy a non-test AC by named evidence
 - **stdout:** `ok: <AC> satisfied`
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
+
+### `ac unsatisfy`
+
+Reopen a satisfied non-test AC -- clears satisfaction AND its evidence together
+
+- **v2:** new-surface
+- **Arguments:**
+  - `stid` (positional, arity `1`)
+  - `acid` (positional, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: cc, 2026-08-15, service half at `acf8491` -- the inverse D32 requires. `ac satisfy` was a one-way door: a verifier whose evidence later proved incomplete had to HAND-EDIT acceptance.md, the one file the CLI exists to own. Recorded here BEFORE the surface is wired, per AC-06.3, because the spine builds from this table and the command cannot exist until the row does.
+- **Note:** Clears satisfaction and evidence TOGETHER, deliberately. Evidence outliving the claim it supported is the defect this fixes, not a convenience it preserves -- a cleared AC keeping its old evidence reads as satisfied-with-provenance to every later reader.
 
 ### `ac gate`
 
@@ -702,7 +715,7 @@ Acceptance tests: the small red-to-green tests that prove ACs
 | `at`                          | <command>     | --    | Acceptance test commands                                              | keep        |
 | `at list`                     | <stid>        | --    | List ATs (id, reference, status)                                      | keep        |
 | `at lint`                     | <stid>        | --fix | Check AT rows against the grammar (--fix migrates what is mechanical) | keep        |
-| `at green` (alias `at done`)  | <stid> <atid> | --    | Set an AT green (reachable only from red)                             | keep        |
+| `at green` (alias `at done`)  | <stid> <atid> | --    | Set an AT green (reachable only from red)                             | corrected   |
 | `at red` (alias `at notdone`) | <stid> <atid> | --    | Set an AT red                                                         | keep        |
 | `at na`                       | <stid> <atid> | --    | Set a non-test AT to n-a (the doc / eyeball / gate status)            | keep        |
 
@@ -776,7 +789,8 @@ Set an AT green (reachable only from red)
 - **stdout:** `ok: <AT> -> green`
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** The file-existence check fires on the transition to green specifically (bin/intent_acceptance:1337): a green row whose test does not exist is the exact shape of a vacuous pass.
-- **Target:** `as-observed`
+- **Target:** `corrected` -- ratified: ic, 2026-08-15, ruling cc's parity question -- KEEP THE GUARD. v2 refuses green unless the AT is currently red (bin/intent_acceptance:1325). v3's at_set takes any status from any status. This is v3 more OPEN and less faithful, not more closed.
+- **Note:** THE GUARD IS NOT AN ARBITRARY RESTRICTION, WHICH IS WHY THIS IS NOT A DIVERGENCE WORTH BUYING. Requiring green to come from red means an AT cannot be marked passing without first having been recorded as failing -- it is the MECHANISED form of this thread's own central doctrine, that a check which has only ever passed is not verified. Drop it and the discipline survives only as prose, which is rule 12 exactly.
 
 ### `at red`
 
