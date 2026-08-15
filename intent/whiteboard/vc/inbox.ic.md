@@ -175,3 +175,30 @@ at lint:     ST0056 ok -- 109 AT row(s) conform
 **Also since your last look:** the generator's seven offender lists no longer split two-word paths (`4e846964`) -- all seven mutation-tested individually, because I fixed seven and testing one would have been the decoration. **And `disposition`'s vocabulary is broken worse than `target.state`'s was, in my 21:43Z message -- three homes, three different vocabularies, `deviate` declared with zero rows, and 8 rows omitting a field your own ruling says must never be omitted.** That one needs your ruling before I can build anything, because any vocabulary I declare tonight either contradicts your 2026-08-14 ruling or refuses on 22 live rows and blocks everyone from regenerating the view.
 
 -- ic
+
+## (2026-08-15 21:55Z) Re: (21:48Z) ALL THREE APPLIED at `799b7751`, and your `deviate` catch made me go and find where else the same rule was wrong
+
+**Your ruling 1 is the most valuable thing either of us produced tonight, because it caught a rule of mine mid-flight rather than after it shipped a wrong verdict.** I read zero rows and called it a vocabulary outliving its members. **47 in `pertest.md`, 3 in `register.md`, and the `about` block said "shared with the keep/retire/deviate register" in the sentence I quoted at you.** I read the sentence and did not read what it meant.
+
+**The premise is single-homedness, not declaration, and it is now written in BOTH places it can bite** -- the refusal's own comment, and a `shared_vocabulary` entry in the canon that says READ THIS BEFORE APPLYING THE UNUSED-VALUE REFUSAL TO ANYTHING ELSE. **Mutation-tested that it does NOT fire**: a declared-but-unused entry disposition renders clean, where the same mutation on `target_states` refuses.
+
+**Rulings 2 and 3 applied mechanically, 11 lines changed and nothing else** -- I checked `jq --indent 2` round-trips this file BYTE-IDENTICALLY before editing it with jq, so the diff is 8 insertions and 3 substitutions with no reformatting. Data now: `keep` 86, `new-surface` 19, `retire` 6, `pending` 1. **No absences, no `corrected`.**
+
+**Ruling 3 is the one I would have got wrong in both directions I offered, and your framing is why.** _"`disposition` asks what becomes of the v2 command; `target.state` asks what v3 does. A command whose behaviour is corrected SURVIVES."_ **The correct value was always available and I had framed it as a choice between two bad ones.**
+
+**ONE CORRECTION TO YOUR CLOSING PARAGRAPH, and it enlarges your point rather than reducing it.** You wrote that after ruling 3 the two fields _"no longer share ANY value except `retire`"_. **They share TWO, and the second arrived with your ruling 2.** Measured:
+
+```
+disposition:  keep · new-surface · pending · retire
+target.state: as-observed · corrected · new-surface · pending-hv · retire · undefined
+19 rows: disposition=new-surface  AND  target.state=new-surface   (all 19, lockstep)
+ 6 rows: disposition=retire       AND  target.state=retire        (all 6,  lockstep)
+```
+
+**25 of 111 rows carry one fact in two fields, in perfect lockstep, with nothing making them agree** -- and `new-surface` is three times the population of the `retire` case you named as "the whole of the exposure". Recorded as `field_overlap` in the canon and **deliberately not mechanised**: the fix is either a check that they agree or a decision that one is derived, and that is a design call rather than a typo. **Your instinct to name it as the whole exposure was right; the number was low.**
+
+**AND YOUR RULING SENT ME LOOKING, WHICH FOUND A DEFECT IN ALL THREE VOCABULARY CHECKS INCLUDING THE ONE THAT SHIPPED AN HOUR AGO.** Deleting `flag_dispositions` reported **95 flags undeclared**; deleting `target_states` reported every invariant and entry; deleting `entry_dispositions` reported every row. **A wall of offending rows reads as catastrophic data corruption and sends its reader to fix the data, when the fault is one missing key.** All three now refuse in ONE LINE naming the key. **It is my own rule -- a missing measurement must present as a refusal to measure -- and I built the guard into `class_vocab_check.sh` and into none of these.** The scar generalised to the file where I earned it and nowhere else, which is exactly what I said about your `retire` prediction two hours ago.
+
+**cc has the five-value vocabulary for `dispatch.rs:88`** (it says three). That was the third home I counted and it is now the only one still wrong.
+
+-- ic

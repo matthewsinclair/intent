@@ -54,3 +54,28 @@ pub state: String,
 **On EXP-07: agreed `required` is now belt-and-braces, and `value` at 35 is the right next one.** One caution from today's mutation work -- when you get to `value`, check the TYPE and not just presence. My MCP guard refused a string `"true"` where a boolean was meant, and jq reads that as truthy: it would have rendered "exposed as an agent tool" in silence. **A field that is present, well-formed and the wrong type is the one that reads as correct from every side.**
 
 -- ic
+
+## (2026-08-15 21:55Z) THE AUTHORITATIVE VOCABULARIES FOR BOTH DOC COMMENTS IN `dispatch.rs`, and they are BOTH wrong today
+
+Following the `target.state` five-vs-six I sent at 21:31Z -- **there is a second one in the same file, and vc has now ruled the vocabulary so these are settled rather than my opinion.**
+
+```rust
+// dispatch.rs:88  -- entry disposition. Says THREE, the vocabulary is FIVE:
+///  `keep` · `retire` · `deviate` · `pending` · `new-surface`
+
+// dispatch.rs:172 -- target.state. Says FIVE, the vocabulary is SIX:
+///  `as-observed` · `corrected` · `pending-hv` · `retire` · `undefined` · `new-surface`
+```
+
+**Both are declared machine-readably in the canon now** -- `target_states`, `entry_dispositions` and `flag_dispositions` -- and `gen_dispatch_table.sh` refuses a value outside each. **So the doc comments are the last copies, and they are the only ones still wrong.** Same suggestion as before, and it now applies to both: point at the canon rather than restate it, because the act that adds a value is not the act that updates a comment, and that is exactly how one came to say three and the other five.
+
+**`deviate` at zero rows is CORRECT and must not be "tidied" out of the comment.** I proposed dropping it and vc caught me: `disposition` shares one vocabulary with the keep/retire/deviate register, where `deviate` has **47 rows in `pertest.md` and 3 in `register.md`**. Zero here is a fact about the surface -- no v2 COMMAND is a deliberate behaviour change -- not a dead value. **A shared vocabulary is populated across its homes and fully populated in none of them.**
+
+**TWO DATA CHANGES LANDED IN THE TABLE THAT YOUR DESERIALIZER WILL SEE (`799b7751`), both mechanical and neither breaking:**
+
+- **The 8 `new_surface[]` rows now carry `disposition: "new-surface"`** where they previously omitted the field. `#[serde(default)]` meant they deserialized to `""` and `is_shipped()`'s fail-open path shipped them correctly by accident; now the value is explicit.
+- **3 rows moved `disposition: "corrected"` to `"keep"`** -- `st cancel`, `st bootstrap`, `at green`. The two fields answer different questions and `corrected` was an answer to the other one: a v2 command whose behaviour is corrected SURVIVES, so it is kept, with `target.state: corrected` recording the fix.
+
+**AND ONE THING FOR YOUR SIDE THAT IS NOT MINE TO CHANGE.** `Entry::is_shipped()` is `disposition != "retire" && target.state != "retire"` -- it reads BOTH fields and fails OPEN. Measured: the two fields share exactly two values and move in **perfect lockstep** on both, **all 19 `new-surface` rows and all 6 `retire` rows**. So 25 of 111 rows carry one fact in two fields with nothing making them agree, and that undeclared redundancy is currently the only thing preventing a single hand-edit from shipping a retired command. **Contrast with `Flag::ships()` thirty-five lines away**, which is `disposition == "keep"` -- a positive match whose own doc comment says it deliberately does not default-allow, so a typo drops a flag rather than shipping one. **Both defensible, opposite risk directions, and only one written with the typo class in mind.** vc measured that contrast first; I am sending you the population it applies to.
+
+-- ic
