@@ -28,7 +28,7 @@ use crate::model::{
   AcKind, AcScope, AcceptanceTest, AtStatus, Criterion, TShirt, Thread, ThreadStatus, WorkPackage,
   WpStatus, to_canonical_json,
 };
-use crate::project::Project;
+use crate::project::{Migration, Pending, Project};
 use crate::store::{Store, StoreError};
 use crate::views::{self, RenderContext};
 use crate::write_set::{WriteError, WriteSet};
@@ -86,6 +86,11 @@ pub enum FacadeError {
   },
   #[error("no schema face named `{face}`")]
   NoSuchFace { face: String },
+  // NOT `#[source]`-bearing and NOT constructed from anything: the whole value
+  // of this variant is that it carries the EVIDENCE, so that a refusal can be
+  // told apart from an empty project by reading it.
+  #[error("{0}")]
+  Unmigrated(Pending),
   #[error("could not write the project files")]
   Write(#[from] WriteError),
   #[error("could not update the runtime store")]
@@ -136,6 +141,10 @@ impl FacadeError {
       Self::NoSuchFace { .. } => {
         "run `intent schema` with no argument to print every face, which also names them".to_string()
       }
+      // Delegated, because the remedy DIFFERS by state: below the v2.19.0
+      // floor it is the two-hop, and naming the v3 migrator there would send
+      // half the operators who read it to a command that refuses them.
+      Self::Unmigrated(pending) => pending.remedy(),
       Self::Write { .. } => {
         "check permissions and free space on the project directory, then retry -- nothing was changed".to_string()
       }
@@ -187,8 +196,26 @@ pub struct Facade {
 }
 
 impl Facade {
+  /// Refuse a project whose canon this binary cannot read (AC-10.7).
+  ///
+  /// **Here, and not in [`ingest`], because this is the boundary where a
+  /// question gets answered.** `ingest::read` is also what `doctor` and the
+  /// WP-10 migrator call, and both of those must be able to look at an
+  /// unmigrated project -- a gate that stopped them would take away the two
+  /// tools whose entire job is this state.
+  ///
+  /// It also runs BEFORE the store is opened, so the refusal never depends on
+  /// a DB that an unmigrated project has no reason to have.
+  fn readable(project: &Project) -> Result<(), FacadeError> {
+    match project.migration() {
+      Migration::Done => Ok(()),
+      Migration::Pending(pending) => Err(FacadeError::Unmigrated(pending)),
+    }
+  }
+
   /// Open a project, loading and validating its whole canon.
   pub fn open(project: Project, ctx: FacadeContext) -> Result<Self, FacadeError> {
+    Self::readable(&project)?;
     let mut store = Store::open(&project.db_path()).map_err(FacadeError::Store)?;
     // The daily-driver path: answer from the store unless the tree moved.
     let canon = ingest::load_fresh(&project, &mut store)?;
@@ -203,6 +230,7 @@ impl Facade {
   /// Open against an in-memory store, for callers that do not want the DB on
   /// disk (tests, and the daemonless read paths).
   pub fn open_in_memory(project: Project, ctx: FacadeContext) -> Result<Self, FacadeError> {
+    Self::readable(&project)?;
     let mut store = Store::open_in_memory().map_err(FacadeError::Store)?;
     let canon = ingest::load(&project, &mut store)?;
     Ok(Self {

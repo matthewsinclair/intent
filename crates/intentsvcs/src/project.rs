@@ -67,6 +67,141 @@ pub enum ProjectError {
   },
 }
 
+/// The v2 release a project must already be at before v3 can migrate it (D09,
+/// migration.md). Below it, v2's own `intent upgrade` runs first -- v3 never
+/// reimplements the v2 ledger.
+pub const MIGRATION_FLOOR: (u64, u64, u64) = (2, 19, 0);
+
+/// Whether this project's canon is in a form THIS binary can read.
+///
+/// The question exists because "no threads found" and "threads this binary
+/// cannot see" are the same empty vector, and answering the second as though
+/// it were the first is a confident lie about someone's work (AC-10.7).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Migration {
+  /// v3 canon, or a genuinely empty project.
+  Done,
+  Pending(Pending),
+}
+
+/// A project v3 must not answer questions about yet, and everything the
+/// operator needs to tell this state from an empty estate.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Pending {
+  /// What `config.json` declares, verbatim -- reported as it stands rather
+  /// than normalised, because the operator has to find it in the file.
+  pub declared: String,
+  /// Below [`MIGRATION_FLOOR`], so the remedy is the two-hop rather than a v3
+  /// migration that would refuse.
+  pub below_floor: bool,
+  /// Thread ids carrying v2 canon this binary cannot read, sorted.
+  pub legacy_threads: Vec<String>,
+}
+
+impl Pending {
+  /// What the operator should DO -- and the two states must not share a text,
+  /// because one of them names a command that will refuse them.
+  pub fn remedy(&self) -> String {
+    if self.below_floor {
+      let (major, minor, patch) = MIGRATION_FLOOR;
+      format!(
+        "this project is below the v{major}.{minor}.{patch} migration floor -- run `install intent@2 && intent upgrade` first, then migrate it with v3"
+      )
+    } else {
+      "run `intent upgrade` to migrate this project to Intent v3".to_string()
+    }
+  }
+}
+
+impl std::fmt::Display for Pending {
+  /// One line, inside the existing refusal grammar. A second report shape
+  /// would be a second thing to learn for the same job.
+  ///
+  /// It deliberately does NOT name `config.json`. The remedy is a command, so
+  /// the path buys the operator nothing -- and it invites the one repair that
+  /// makes things worse: hand-editing `intent_version` to 3.0.0 produces a
+  /// config claiming v3 over canon that is not, which is the half-migrated
+  /// estate this whole check exists to catch. `doctor` still points at the
+  /// file, because pointing at artefacts is what `doctor` is for and its
+  /// finding carries the path in its own field.
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(
+      f,
+      "this project has not been migrated to Intent v3 -- it declares Intent {}",
+      self.declared
+    )?;
+    match self.legacy_threads.len() {
+      0 => Ok(()),
+      // Named, not just counted: a count alone is indistinguishable from a
+      // count of nothing, and the ids are how the operator recognises their
+      // own work. Capped, because this repository has 56 of them at f7434f1
+      // and an error message is not a listing.
+      n => write!(
+        f,
+        ", and {n} steel thread{} carr{} v2 canon this binary cannot read ({})",
+        if n == 1 { "" } else { "s" },
+        if n == 1 { "ies" } else { "y" },
+        summarise(&self.legacy_threads)
+      ),
+    }
+  }
+}
+
+fn summarise(ids: &[String]) -> String {
+  const SHOWN: usize = 3;
+  if ids.len() <= SHOWN {
+    return ids.join(", ");
+  }
+  format!(
+    "{}, and {} more",
+    ids[..SHOWN].join(", "),
+    ids.len() - SHOWN
+  )
+}
+
+/// Walk `dir` for v2 thread directories, descending exactly one level into
+/// anything that is not itself a thread -- which is what v2's `st/<STATUS>/`
+/// archive directories are.
+///
+/// One level, not arbitrary depth: v2 has exactly this shape, and a full walk
+/// would start reporting thread-shaped directories from unrelated trees
+/// (a vendored checkout, a fixture directory) as this project's own canon.
+fn collect_legacy(dir: &std::path::Path, descend: bool, out: &mut Vec<String>) {
+  let Ok(entries) = std::fs::read_dir(dir) else {
+    return;
+  };
+  for path in entries.filter_map(Result::ok).map(|e| e.path()) {
+    if !path.is_dir() || path.join("thread.json").is_file() {
+      continue;
+    }
+    match path.join("info.md").is_file() {
+      true => out.extend(
+        path
+          .file_name()
+          .and_then(|s| s.to_str())
+          .map(str::to_string),
+      ),
+      false if descend => collect_legacy(&path, false, out),
+      false => {}
+    }
+  }
+}
+
+/// `major.minor.patch`, ignoring any pre-release suffix.
+///
+/// Returns `None` rather than guessing. An unparseable version means the
+/// declaration ABSTAINS -- the evidence check still applies -- because a typo
+/// in one config field must not brick the tool, and a version we cannot read
+/// is not evidence of anything in either direction.
+fn parse_version(text: &str) -> Option<(u64, u64, u64)> {
+  let core = text.split(['-', '+']).next()?;
+  let mut parts = core.split('.').map(str::parse::<u64>);
+  match (parts.next(), parts.next(), parts.next()) {
+    (Some(Ok(major)), Some(Ok(minor)), Some(Ok(patch))) => Some((major, minor, patch)),
+    _ => None,
+  }
+}
+
 /// A resolved project.
 #[derive(Debug, Clone)]
 pub struct Project {
@@ -75,9 +210,16 @@ pub struct Project {
 }
 
 impl Project {
+  /// `intent/.config/config.json` under `root`. The marker file's location is
+  /// FIXED -- it is what identifies a project, so it cannot itself be read
+  /// from the project's config.
+  pub fn config_path(root: &Path) -> PathBuf {
+    root.join("intent").join(".config").join("config.json")
+  }
+
   /// Open the project rooted exactly at `root`.
   pub fn open(root: &Path) -> Result<Self, ProjectError> {
-    let path = root.join("intent").join(".config").join("config.json");
+    let path = Self::config_path(root);
     let text = std::fs::read_to_string(&path).map_err(|source| ProjectError::Io {
       path: path.display().to_string(),
       source,
@@ -100,12 +242,7 @@ impl Project {
   /// and differ exactly when it matters (issue 0025).
   pub fn discover(start: &Path) -> Result<Self, ProjectError> {
     for dir in start.ancestors() {
-      if dir
-        .join("intent")
-        .join(".config")
-        .join("config.json")
-        .is_file()
-      {
+      if Self::config_path(dir).is_file() {
         return Self::open(dir);
       }
     }
@@ -199,6 +336,72 @@ impl Project {
       .collect();
     ids.sort();
     Ok(ids)
+  }
+
+  /// Whether this project's canon is in a form this binary can read.
+  ///
+  /// TWO independent signals, and each closes a hole the other cannot see:
+  ///
+  /// - the **declaration** -- `intent_version` below 3 -- catches a project
+  ///   with nothing in it yet, which has no evidence to find and is still not
+  ///   a v3 project, because migration is what stamps the version;
+  /// - the **evidence** -- a thread directory with a v2 `info.md` and no v3
+  ///   `thread.json` -- catches a config claiming 3.0.0 over canon that is
+  ///   not, which is a HALF-migrated estate and strictly worse than an
+  ///   unmigrated one: half of it answers and half is invisible.
+  ///
+  /// `project_id` is deliberately not the marker, though D15's wording makes
+  /// it look like the obvious candidate. It is a migration-PROVENANCE stamp,
+  /// and a project created natively under v3 was never migrated at all, so
+  /// gating on it would refuse every project that never needed migrating.
+  ///
+  /// The evidence check is a `read_dir` plus two `stat`s per entry, and it is
+  /// paid on every read. Measured A/B on a 200-thread v3 project, debug build,
+  /// `intent st list` x60 interleaved: **+0.61 ms** against a 13.74 ms floor.
+  /// Interleaved and taking the minimum because the first attempt at this
+  /// measured the unchecked build as SLOWER -- process-spawn noise is larger
+  /// than the effect, so a before/after pair of runs says nothing.
+  ///
+  /// That is the price of never mistaking "cannot see it" for "it is not
+  /// there", and it is the right side of hv's daily-driver ruling: sync is
+  /// allowed to be expensive, reads are not, and half a millisecond is not
+  /// where reads become expensive.
+  pub fn migration(&self) -> Migration {
+    let parsed = parse_version(&self.config.intent_version);
+    let declared_pre_v3 = parsed.is_some_and(|(major, _, _)| major < 3);
+    let legacy_threads = self.legacy_thread_ids();
+
+    if !declared_pre_v3 && legacy_threads.is_empty() {
+      return Migration::Done;
+    }
+    Migration::Pending(Pending {
+      declared: self.config.intent_version.clone(),
+      below_floor: parsed.is_some_and(|v| v < MIGRATION_FLOOR),
+      legacy_threads,
+    })
+  }
+
+  /// Thread directories carrying v2 canon and no v3 canon, sorted.
+  ///
+  /// The discriminator is `thread.json` being ABSENT, never `info.md` being
+  /// present: v3 renders `info.md` as a generated view, so every healthy
+  /// migrated thread has both, and a rule keyed on `info.md` alone would flag
+  /// every project in existence.
+  ///
+  /// **Two levels, because v2 has two.** `intent st done` RELOCATES a thread
+  /// to `st/<STATUS>/<ID>/`, so a one-level scan sees only the threads that
+  /// are still open. Measured on this repository when this was one level: it
+  /// found ST0056 and missed the 55 threads under `COMPLETED/`, `CANCELLED/`
+  /// and `NOT-STARTED/`. The declaration signal happened to catch it anyway,
+  /// which is exactly how a hole like this survives -- the case it fails on is
+  /// a project whose live threads are migrated and whose ARCHIVE is not, and
+  /// that project would have read as fully migrated.
+  fn legacy_thread_ids(&self) -> Vec<String> {
+    let mut ids = Vec::new();
+    collect_legacy(&self.st_dir(), true, &mut ids);
+    ids.sort();
+    ids.dedup();
+    ids
   }
 
   /// Every issue number with committed canon, sorted.

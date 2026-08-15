@@ -88,6 +88,25 @@ impl Report {
 pub fn diagnose(project: &Project, ctx: &RenderContext<'_>) -> Report {
   let mut report = Report::default();
 
+  // FIRST, and it returns rather than continuing. Every check below this line
+  // compares the model against the files, and on an unmigrated project the
+  // model is EMPTY -- so every one of them fires, and every one of them
+  // describes a consequence rather than the cause.
+  //
+  // Measured before this landed, on a two-thread v2 fixture: doctor reported
+  // "2 findings across 0 threads", both of them view-skew saying the
+  // generated views were missing. That is a confident RED at first contact
+  // whose honest remedy -- regenerate the views -- would have rendered an
+  // empty estate over the top of real work.
+  if let crate::project::Migration::Pending(pending) = project.migration() {
+    report.findings.push(Finding::new(
+      project.relative(&Project::config_path(project.root())),
+      FindingClass::Unmigrated,
+      format!("{pending} -- {}", pending.remedy()),
+    ));
+    return report;
+  }
+
   let canon = match crate::ingest::read(project) {
     Ok(canon) => canon,
     Err(e) => {

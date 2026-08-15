@@ -27,6 +27,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum FindingClass {
+  /// The project's canon is not in a form this binary can read -- v2 canon
+  /// not yet migrated, or a config declaring a pre-v3 version. FIRST, because
+  /// every other finding on such a project is downstream of this one and
+  /// would send the operator after the wrong thing.
+  Unmigrated,
   /// Not parseable as JSON at all.
   MalformedJson,
   /// Parses as JSON; violates the schema. Includes the D05 unknown-field
@@ -59,13 +64,14 @@ impl FindingClass {
   /// or sorts arbitrarily, and neither announces itself.
   fn meta(self) -> (u8, &'static str) {
     match self {
-      Self::MalformedJson => (0, "malformed-json"),
-      Self::SchemaInvalid => (1, "schema-invalid"),
-      Self::ConflictMarkers => (2, "conflict-markers"),
-      Self::UnknownFileShape => (3, "unknown-file-shape"),
-      Self::DuplicateId => (4, "duplicate-id"),
-      Self::ViewSkew => (5, "view-skew"),
-      Self::ModelInconsistent => (6, "model-inconsistent"),
+      Self::Unmigrated => (0, "unmigrated"),
+      Self::MalformedJson => (1, "malformed-json"),
+      Self::SchemaInvalid => (2, "schema-invalid"),
+      Self::ConflictMarkers => (3, "conflict-markers"),
+      Self::UnknownFileShape => (4, "unknown-file-shape"),
+      Self::DuplicateId => (5, "duplicate-id"),
+      Self::ViewSkew => (6, "view-skew"),
+      Self::ModelInconsistent => (7, "model-inconsistent"),
     }
   }
 
