@@ -46,3 +46,24 @@ Built the piece every option needs regardless of how hv rules the matrix. Then i
 **AC-11.2 is untouched by this** -- it is about the decision being recorded and implemented, and it is. But its evidence line names submission `cc52d5da`; there is now a second, `5eddb54a`, covering the current bytes. Yours whether that matters to the record.
 
 FYI to cc sent separately, framed as a shared-tree fact and not a complaint -- rebuilding in a build directory is what it is for, and the wrong assumption was mine.
+
+## (2026-08-15 15:13Z) hv RULED BOTH OPEN QUESTIONS, DIRECT. AC-11.1 is unblocked, and it now needs your rewording rather than my work.
+
+I put the two questions from my 14:58Z to hv directly with recommendations attached rather than parking them, and both came back on the recommendation.
+
+**RULING 1 (hv, direct, 2026-08-15): v3.0.0 ships macOS arm64 ONLY.** Taken knowing the cost, which I stated in the ask rather than buried: **v2 installs by clone-and-symlink and runs anywhere bash runs, so this is a REDUCTION IN PLATFORM REACH**, and v2.11.14 fixed a Linux-only `set -e` break so Linux is supported in fact and not only in principle. **Worth recording alongside the ruling that it is reversible at zero cost to the work done: a Linux artefact needs no signature, so a Linux leg is purely additive in CI whenever hv wants that reach back.** It changes how much gets built, never how signing works.
+
+**RULING 2 (hv, direct, 2026-08-15): the tap is `matthewsinclair/homebrew-intent`**, with artefacts on the source repo's own releases. **No `-dist` repo** -- that exists for Conflab only because Conflab is closed-source and its source repo is private; Intent is public, so the indirection buys nothing.
+
+**CONSEQUENCE: cargo-dist is DEFERRED.** macOS-only means there is no matrix for it to manage, and it cannot notarise regardless. **I have uninstalled it from the machine**, as I said I would if the deferral was ruled -- so that declared state is now closed rather than lingering as something the next person has to interpret.
+
+**WHAT IS NOW YOURS. AC-11.1 as written is still wrong in the two ways I flagged, and the rulings settle which way to fix them.**
+
+- The mechanism should come out of the AC text. It names cargo-dist, which is now deferred by ruling; the AC's substance is "installable artefacts + a working tap formula for both binaries", and that is what it should say.
+- **"evidence: release CI run" cannot stand.** The release is local by ruling. The honest evidence is a published release plus a tap formula that installs from it -- and, I would argue, the `brew install` actually being run once. That is a stronger evidence line than a CI run, not a weaker one.
+
+Also for your record: hv's two rulings look like D-numbers to me (shipped platform scope, and distribution topology). Whether they earn them is yours, but **the platform-scope one in particular is exactly the sort of consequence-recorded-next-to-a-decision that we both got burned by with "no DB migrations, ever"** -- so if it goes in, it should go in as hv's ruling with the reversibility noted, not as a standing architectural constraint that someone later defends on principle.
+
+**BUILT SINCE, both directions canaried: `int macos formula`.** Emits the tap formula from the staged artefacts -- **generated, never hand-edited**. The version is read from the **staged binary itself**, the only source that cannot disagree with what a user actually runs, which is also why the formula's own `test do` block passes by construction rather than by coincidence. **RED is the interesting one: the binaries were sitting there correctly signed and notarised, and it still refused**, because `SHA256SUMS.txt` was absent. **The refusal is inherited structurally rather than re-checked** -- `formula`'s only input is a file that `stage` writes exclusively for artefacts it has proven, so an unproven binary has no path to a formula. One check, one place, nothing to drift.
+
+**ONE ASK OUTSTANDING, and it is hv's not yours: `matthewsinclair/homebrew-intent` DOES NOT EXIST YET** (`gh repo view` returns "Could not resolve to a Repository"). Creating a public repo under hv's account is outward-facing, so I am asking rather than doing. Everything else on the macOS leg is built and proven; the tap repo and a real version (the binary still reports `3.0.0-dev`) are what stand between here and a working `brew install intent`.

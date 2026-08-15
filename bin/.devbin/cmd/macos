@@ -10,6 +10,8 @@
 #   verify       Prove the whole chain: quarantine a copy and run it
 #   stage        Name the artefacts per target triple, prove each one, and only
 #                then checksum them -- REFUSES to hash anything unproven
+#   formula      Emit the Homebrew formula from the staged artefacts. Generated,
+#                never hand-edited; refuses if stage has not proven them
 #   env          Print the resolved identity + which creds are present
 #   store-creds  Store APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID in the
 #                login Keychain (interactive; once per machine)
@@ -374,6 +376,102 @@ cmd_stage() {
   printf '  `sign`, because signing rewrites the bytes these hashes describe.\n'
 }
 
+# cmd_formula -- emit the Homebrew formula from the staged artefacts.
+#
+# GENERATED, NEVER HAND-EDITED, and that is the whole point. A tap formula
+# carries a version and one sha256 per artefact, and every one of them is a
+# restatement of a fact that already exists somewhere else. Conflab hand-maintains
+# exactly these lines and has a `release sync` command partly to heal the drift
+# that follows. **A number copied by hand is a number that will eventually be
+# copied wrong**, and this particular wrong number does not fail for us -- it
+# fails for every `brew install`, against a formula we already published.
+#
+# IT INHERITS `stage`'s REFUSAL STRUCTURALLY RATHER THAN RE-CHECKING IT. The only
+# input is `SHA256SUMS.txt`, which `stage` writes ONLY for artefacts it has proven
+# signed and notarised from a quarantined copy. So there is no path from an
+# unproven binary to a formula: not because this command checks again, but because
+# the file it needs does not exist. One check, one place, no second opinion to
+# drift out of step.
+#
+# THE DEV-VERSION REFUSAL IS DELIBERATELY NOT HERE. Emitting a formula that reads
+# `version "3.0.0-dev"` is harmless -- it is text on a terminal, and it is
+# self-evidently not a release. The harm is in PUBLISHING one, so the refusal
+# belongs in the publish step. **Put the control where the harm is, not where it
+# is convenient to write.**
+#
+# EXPIRY, stated rather than left to be noticed: this lives under `macos` because
+# hv ruled 2026-08-15 that v3.0.0 ships macOS arm64 ONLY, which makes the formula
+# a single-platform document. If Linux artefacts are ever added the formula grows
+# a second platform block and stops being a macOS concern -- move it then.
+cmd_formula() {
+  local stage_dir="$ROOT/native/rust/target/dist" triple version sums
+  triple="$(rustc -vV | sed -n 's/^host: //p')"
+  [ -n "$triple" ] || die "could not read the host target triple from 'rustc -vV'"
+  sums="$stage_dir/SHA256SUMS.txt"
+  [ -f "$sums" ] ||
+    die "no proven artefacts to describe -- run 'int macos stage' first (it writes SHA256SUMS.txt only for artefacts it has proven signed AND notarised)"
+
+  # The version comes from the STAGED BINARY, not from a config file or a tag.
+  # It is the only source that cannot disagree with what a user will actually
+  # run, which is also what makes the formula's own `test do` block pass by
+  # construction rather than by coincidence.
+  version="$("$stage_dir/intent-$triple" --version 2>/dev/null | sed -n 's/^intent //p')"
+  [ -n "$version" ] || die "could not read a version from $stage_dir/intent-$triple"
+
+  local sha_cli sha_daemon
+  sha_cli="$(awk -v f="intent-$triple" '$2 == f { print $1 }' "$sums")"
+  sha_daemon="$(awk -v f="intentd-$triple" '$2 == f { print $1 }' "$sums")"
+  [ -n "$sha_cli" ] && [ -n "$sha_daemon" ] ||
+    die "$sums does not carry a hash for both binaries -- re-run 'int macos stage'"
+
+  cat <<FORMULA
+class Intent < Formula
+  desc "Steel thread process for helping LLMs help you work with your code"
+  homepage "https://github.com/matthewsinclair/intent"
+  version "$version"
+  license "MIT"
+
+  RELEASE_VERSION = "$version"
+
+  # macOS arm64 only, by ruling (hv, 2026-08-15) rather than by omission. Both
+  # binaries are Developer ID signed and notarised; nothing is stapled, because a
+  # bare Mach-O has nowhere to hold a ticket and Gatekeeper checks online.
+  on_macos do
+    on_arm do
+      url "https://github.com/matthewsinclair/intent/releases/download/v#{RELEASE_VERSION}/intent-$triple"
+      sha256 "$sha_cli"
+
+      resource "intentd" do
+        url "https://github.com/matthewsinclair/intent/releases/download/v#{RELEASE_VERSION}/intentd-$triple"
+        sha256 "$sha_daemon"
+      end
+    end
+  end
+
+  def install
+    bin.install Dir["intent-*"].first => "intent"
+    resource("intentd").stage do
+      bin.install Dir["intentd-*"].first => "intentd"
+    end
+  end
+
+  # NO \`service do\` BLOCK YET, and its absence is deliberate. intentd currently
+  # reports "not yet implemented": there is no start verb and no log path, so any
+  # block here would be a guess at an interface that does not exist. It arrives
+  # with the daemon lifecycle.
+
+  test do
+    assert_match version.to_s, shell_output("#{bin}/intent --version")
+  end
+end
+FORMULA
+
+  printf '\n' >&2
+  printf 'generated from %s\n' "$sums" >&2
+  printf 'The URLs above assume a release tagged v%s exists on matthewsinclair/intent\n' "$version" >&2
+  printf 'carrying these exact artefacts. Publish the release BEFORE the formula.\n' >&2
+}
+
 cmd_store_creds() {
   printf 'Storing Apple notary credentials in the login Keychain under "%s.*".\n' "$KC_PREFIX"
   printf 'Nothing is written to this repository. Values are not echoed.\n\n'
@@ -405,6 +503,7 @@ case "${1:-}" in
   notarize | notarise) cmd_notarize ;;
   verify) cmd_verify ;;
   stage) cmd_stage ;;
+  formula) cmd_formula ;;
   store-creds) cmd_store_creds ;;
-  *) die "unknown macos subcommand: $1 (try: doctor, sign, notarize, verify, stage, env, store-creds)" ;;
+  *) die "unknown macos subcommand: $1 (try: doctor, sign, notarize, verify, stage, formula, env, store-creds)" ;;
 esac

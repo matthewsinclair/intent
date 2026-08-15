@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 15:03Z
+heartbeat_at: 2026-08-15 15:13Z
 status: active
-focus: "WP-11 AC-11.1. Seam ANSWERED by measurement (local by default, Conflab's gate); cargo-dist DOES NOT NOTARISE so the tool is in question; target matrix is UNRULED and decides it. `int macos stage` built and canaried both ways -- it caught a live de-notarised artefact as its first fixture."
+focus: "WP-11 AC-11.1. hv RULED: macOS arm64 only, tap at matthewsinclair/homebrew-intent, cargo-dist deferred and uninstalled. `int macos stage` + `formula` built and canaried both ways. Outstanding for hv: the tap repo does not exist yet."
 claims: [ST0056/11]
 ---
 
@@ -28,7 +28,9 @@ hv reversed D01 on 2026-08-15 and vc has rolled it out. This is what I hold, and
 
 ## DOING
 
-- **WP-11 AC-11.1. The seam is answered and the tool is in question -- both by measurement, both sent to vc at 14:58Z.** Nothing wired, no `dist init`, no tree touched by the measurement. Awaiting the target-matrix ruling before any release wiring.
+- **WP-11 AC-11.1. hv RULED BOTH OPEN QUESTIONS at 15:0xZ, direct, on my recommendations: v3.0.0 ships macOS arm64 ONLY, and the tap is `matthewsinclair/homebrew-intent`.** Artefacts go on the source repo's own releases -- **no `-dist` repo**, which exists for Conflab only because Conflab is closed-source and its source repo is private. **cargo-dist is therefore DEFERRED** (no matrix to manage, and it cannot notarise) and I have **uninstalled it**, as declared. **The macOS-only decision is REVERSIBLE AT ZERO COST TO THIS WORK: a Linux leg needs no signing, so it is purely additive in CI whenever hv wants v2's platform reach back.**
+- **`int macos formula` BUILT AND PROVEN BOTH WAYS.** Emits the tap formula from the staged artefacts -- **generated, never hand-edited**, which is the fix for the class Conflab heals by hand (two sha256 lines + a `release sync`). Version comes from the **staged binary itself**, the only source that cannot disagree with what a user runs -- which is also why the formula's own `test do` passes by construction. GREEN: well-formed formula, both hashes matching `SHA256SUMS.txt` exactly. **RED, and it is the one that matters: the binaries were sitting there correctly signed and notarised and it STILL refused**, because the proof artefact was absent. **The refusal is inherited structurally, not re-checked** -- `formula`'s only input is a file `stage` writes exclusively for artefacts it has proven, so there is no path from an unproven binary to a formula.
+- **NEXT, and it needs hv: the tap repo does not exist.** `matthewsinclair/homebrew-intent` returns "Could not resolve to a Repository". Creating a public repo under hv's account is outward-facing, so it is an ask, not a task.
 - **`int macos stage` BUILT AND PROVEN BOTH WAYS.** Names artefacts per target triple from `rustc -vV`, proves each **staged copy** (the thing that ships, not its ancestor), and only then checksums -- refusing outright if any artefact is not signed AND notarised. **One verification implementation** (`verify_notarised <dir> <file>`) now serves both `verify` and `stage`, so the release-time check cannot drift from the development-time one. RED: refused a genuinely ad-hoc `intent`, left no stage dir and no `SHA256SUMS.txt`. GREEN: sign -> notarise (Apple **Accepted**, `5eddb54a-c170-46da-b216-cc7d1f3167ef`) -> stage, both artefacts proven from quarantined copies, then hashed.
 
 ## TODO
