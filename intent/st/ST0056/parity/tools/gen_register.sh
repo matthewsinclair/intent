@@ -233,9 +233,20 @@ PREAMBLE
     # userspace buffering, so the rows above are on disk by the time awk runs.
     n=$(awk -F'|' -v K="$k" '/^\| `tests\// {gsub(/^ +| +$/,"",$5); if ($5==K) c++} END{print c+0}' "$OUT_TMP" 2>/dev/null)
     [ "${n:-0}" = "0" ] && continue
+    # The `keep` line is EXPOSURE-AWARE, because the unqualified version was the
+    # over-promise this column was added to correct: `keep` is assigned on burn,
+    # burn is a v2-side measurement, and a file can burn fully and still fail
+    # every test under v3 before an assertion runs. Saying "run unmodified"
+    # about all of them is the claim cc falsified by running them.
+    kexp=$(awk -F'|' '/^\| `tests\// {gsub(/^ +| +$/,"",$5); gsub(/^ +| +$/,"",$6); if ($5=="keep" && $6!="none" && $6!="") c++} END{print c+0}' "$OUT_TMP" 2>/dev/null)
     case "$k" in
-      keep)         w='Run unmodified against the v3 binary. These are the conformance suite.' ;;
-      pending)      w='Need per-test rows first: each mixes tests that reach the CLI with tests that do not. AC-05.3 requires this bucket EMPTY at close.' ;;
+      keep)
+        if [ "${kexp:-0}" -gt 0 ]; then
+          w="Run unmodified against the v3 binary -- EXCEPT the $kexp carrying v3-layout exposure (see that column), whose fixtures hardcode v2 estate paths and fail in setup before any assertion runs. The rest are the conformance suite."
+        else
+          w='Run unmodified against the v3 binary. These are the conformance suite.'
+        fi ;;
+      pending)      w='Need per-test rows first: each mixes tests that reach the CLI with tests that do not. At close, no `pending` row may remain for a file touching a CORE family; non-core `pending` rows are deferred to AC-00.1 by name (vc ruling, 2026-08-14, superseding the earlier "bucket EMPTY at close").' ;;
       deviate)      w='Rewrite against the single-binary entry point, or retire with the sub-script they exercise.' ;;
       retire)       w='Retire with the shell. No binary to point them at.' ;;
       out-of-scope) w='Leave alone. They pin this repo content and are unaffected by the binary swap.' ;;
