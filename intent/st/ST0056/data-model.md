@@ -73,10 +73,20 @@ Deferring this to WP-10 was the rejected option. The migrator would have discove
 | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | seq       | int     | rendered `WP-01`                                                                                                                   |
 | title     | string  |                                                                                                                                    |
-| scope     | enum    | `XS · S · M · L · XL · XXL`                                                                                                        |
+| scope     | enum    | `XS · S · M · L · XL · XXL`, plus a marked-legacy form for a v2 value outside the set (see below)                                  |
 | status    | enum    | `not-started · wip · done`                                                                                                         |
 | objective | string? | authored prose, the `## Objective` section (D28)                                                                                   |
 | body      | string? | authored prose, every other section verbatim (D28) -- `## Deliverables` and `## Dependencies` live here, deliberately unstructured |
+
+#### scope: canonicalisation is not loss, but one v2 value is outside the set
+
+Measured on this repository's own corpus (vc, 2026-08-15, on cc's WP-06 finding): v2 reads `scope` as **free text**, and 129 work packages carry **eleven spellings** -- `Small` 56, `Medium` 34, `Large` 8, `L` 8, `XL` 5, `M` 5, `S` 4, `ExtraSmall` 4, `Extra Small` 3, `XS` 1 -- and `Medium-Large` 1.
+
+**The first ten are `corrected`, and rendering them canonically is not lossy.** The model declares `scope` an enum, so the enum is the truth and the spelling was always incidental presentation of one of six values; `Extra Small` and `XS` carry identical information. "As observed" cannot mean reproducing ten spellings for six sizes, because the thing observed was a free-text field standing in for an enum.
+
+**`Medium-Large` is the eleventh and it decides the rule.** It maps to nothing in `XS · S · M · L · XL · XXL` -- it sits between two of them -- and it lives at `intent/st/COMPLETED/ST0020/WP/09/info.md`, in a **CLOSED** thread. hv's ratified carry policy is that CLOSED threads are lossless-by-carrying and LIVE threads are BLOCKED-until-clean, and **neither is ever lossy**. So all three obvious moves are forbidden at once: normalising it to `M` or `L` is a guess and lossy; blocking on it violates lossless-by-carrying for a closed thread; dropping it is loss outright.
+
+**Ruling: `scope` carries a marked-legacy form for a value outside the enum**, following the precedent this model already sets for `acceptance_test`'s marked-legacy shape. A closed thread carries losslessly, the value stays visible AS legacy rather than being silently canonicalised into a lie, and the enum stays honest for everything new. A LIVE thread carrying an unmappable scope still BLOCKS, per the same policy. The general form is D05's posture applied one level down: an unknown enum VALUE is refused or marked by name, never guessed -- exactly as an unknown FIELD is.
 
 `objective` and `body` exist because `WP/<NN>/info.md` is the same mixed file `steel_thread`'s `info.md` was, and D22 was never applied one level down -- see D28. Without them the WP-10 migration drops every work package's authored prose, which AC-10.5's prose-conservation clause forbids. **The contract already carried that gate; the model did not carry the field.** `## Acceptance` is not modelled: its text is fixed boilerplate pointing at `acceptance.md`, so it is generated, and restating ACs in a WP view would be the double truth the single-source rule exists to stop.
 

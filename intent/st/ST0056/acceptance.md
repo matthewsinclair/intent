@@ -183,7 +183,8 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 - AT-00.2 `crates/intentsvcs/tests/fleet_corpus_ingest.rs` -- covers AC-00.2 -- status: to-write -- red-first against the canary tree
 - AT-00.3 `crates/intentd/tests/daemon_lifecycle.rs` -- covers AC-00.3 -- status: to-write
 - AT-00.4 `crates/intent-cli/tests/mcp_surface.rs` -- covers AC-00.4 -- status: to-write
-- AT-00.5 `crates/intentsvcs/tests/dep_graph_guard.rs` -- covers AC-00.7 -- status: to-write -- asserts the rusqlite Highlander + drives the dual-path suite
+- AT-00.5 `crates/intentsvcs/tests/dep_graph_guard.rs` -- covers AC-00.7 -- status: to-write -- asserts the rusqlite Highlander ONLY. Held at to-write deliberately: it is green (2 tests) and covers half of AC-00.7. The row previously claimed it also "drives the dual-path suite" and the file has ZERO references to intentd, dual-path or GraphQL -- an intention written as a description. The dual-path half cannot exist before WP-08 ships intentd, so AC-00.7 needs AT-00.7 alongside this row and does not close on one of two
+- AT-00.7 `crates/intent-cli/tests/dual_path_conformance.rs` -- covers AC-00.7 -- status: to-write -- in-process vs intentd, identical results across the verb surface; lands with WP-08
 - AT-00.6 `crates/intentsvcs/tests/migrate_v2_project.rs` -- covers AC-00.8 -- status: to-write
 - Coverage: AC-00.5 and AC-00.6 are non-test (evidence on the AC lines); intended paths above are refined as the workspace lands in WP-02
 
@@ -250,12 +251,12 @@ WP-03 dispositions (vc, 2026-08-14, ADOPTED under hv standing authorisation):
 ### WP-06
 
 - AT-06.1 `tests/conformance/run_v2_suite.bash` -- covers AC-06.1 -- status: to-write -- full estate
-- AT-06.2 `crates/intentsvcs/tests/doctor_checks.rs` -- covers AC-06.2 -- status: to-write
+- AT-06.2 `crates/intentsvcs/tests/doctor_checks.rs` -- covers AC-06.2 -- status: green
 - AT-06.3 (non-test) register diff history shows land-time recording -- covers AC-06.3 -- status: n/a
 - AT-06.4 `crates/intent-cli/tests/search_surface.rs` -- covers AC-06.4 -- status: green
 - AT-06.5 `crates/intent-cli/tests/schema_command.rs` -- covers AC-06.5 -- status: green
 - AT-06.6 `crates/intent-cli/tests/export_roundtrip.rs` -- covers AC-06.6 -- status: to-write
-- AT-06.7 `crates/intentsvcs/tests/wp_prose_roundtrip.rs` -- covers AC-06.7 -- status: to-write
+- AT-06.7 `crates/intentsvcs/tests/wp_prose_roundtrip.rs` -- covers AC-06.7 -- status: green
 - Coverage: complete
 
 WP-06 disposition (vc, 2026-08-14, ADOPTED under hv standing authorisation): AC-06.4 puts one NON-parity command inside a work package titled "CLI parity long tail". That is deliberate -- it is where the remaining CLI surface lands -- but the title now understates the WP by one command, and `intent search` must be recorded in the register as an **addition**, never as a deviation. A deviation is a v2 behaviour we chose not to reproduce; this has no v2 behaviour to deviate from. Flagged to hv in case the WP wants renaming rather than a footnote.
@@ -324,7 +325,7 @@ The consequence, which is the part that must be written down before the referee 
 - AT-10.4 `crates/intentsvcs/tests/migrate_hooks_continuity.rs` -- covers AC-10.4 -- status: to-write
 - AT-10.5 `crates/intentsvcs/tests/fleet_corpus_ingest.rs` -- covers AC-10.5 -- status: to-write -- shared with AT-00.2
 - AT-10.6 (non-test) canary rollback exercised and recorded in impl.md -- covers AC-10.6 -- status: n/a
-- AT-10.7 `crates/intentsvcs/tests/unmigrated_project.rs` -- covers AC-10.7 -- status: to-write
+- AT-10.7 `crates/intentsvcs/tests/unmigrated_project.rs` -- covers AC-10.7 -- status: green
 - AT-10.8 `crates/intentsvcs/tests/egest_estate.rs` -- covers AC-10.8 -- status: to-write -- delete the estate, egest, diff; the out-of-model set must be NAMED in the output, and a test that only compares what egest emitted proves nothing
 - Coverage: complete
 
