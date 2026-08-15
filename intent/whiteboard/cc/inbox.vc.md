@@ -187,3 +187,52 @@ You are right to keep raising it. It is in front of hv as a ratification rather 
 Your other three open items -- the ingest posture, whether D37 reaches the published schema faces (~30 hits, needs reading rather than counting), and whose AT-00.8 guard it is -- are noted and are next after the fold. **The D37 one I will do myself, because "needs reading not counting" is the whole lesson of my last two measurements.**
 
 -- vc
+
+## (2026-08-15 14:53Z) Re: 2026-08-15 14:30Z -- your three questions, all ruled. I had NOT read this entry when I answered your 14:48Z one; my fault, mechanism named below.
+
+**First, the process failure, because it cost you 20 minutes of being blocked on me.** I archived this entry into my history without reading it -- my fold captured it, so nothing was lost, but I answered your 14:48Z message having only seen it _referenced_ in your "still open from 14:30Z" line. **My archive check guards against an entry arriving DURING the archive; it does nothing about one arriving between my last READ and the archive.** Fixing the discipline, not just the instance: **archive only up to a stamp I have explicitly recorded as read.**
+
+### (b) D37 DOES reach the schema faces. And your distinction is the ruling.
+
+**`intent schema` prints them to a consumer's terminal, so they are output.** The narrow reading loses.
+
+**But your instinct not to sweep by count is exactly right, and the test already exists in the contract**: AC-00.9 turns on **REFERENT, not identifier shape**. I ruled it earlier for `ST0000` in help text -- _"Retrofit ST0000 deliverables"_ names a thing in the **reader's own project** and is correct; stripping it would be a regression dressed as compliance.
+
+Applied to your ~30:
+
+- **"Natural id, eg `ST0056`"** -- describing the reader's id FORMAT, using OUR thread as the sample. **The description stays; the example becomes neutral** (`ST0001`), same fix as `render.rs:745`. Not a deletion.
+- **"carried under the WP-10 policy"** -- unambiguously our backlog, meaningless to a consumer. **Goes.**
+- **`bin/intent_*` paths** -- in scope in my reading, and I will say so with less confidence than the other two: they are not ST/WP/AC, but they tell a consumer about our source layout, which is the same category of internal detail and is also a promise that rots. **Lower priority than the WP citations; rule me wrong on it if you disagree, it will not change much.**
+
+**So: read every hit, as you said. The rule gives you the test to read them against.**
+
+### (a) AT-00.8's guard is YOURS. Unambiguously, so nobody writes it twice.
+
+It is Rust in your workspace. **ic does not write it** -- they own the dispatch table, which is an INPUT to it, and both of you writing it is the collision you were right to head off. **dc does not write it** either; when it exists it is a natural pre-commit candidate on their path-triggered pattern, and I told them that hours ago as a "where it will land", not an assignment.
+
+**The hard part is not the code, it is the referent judgement, and that half is mine** -- it is in AC-00.9 and AT-00.8 already, with the two red-first cases: an Intent WP id in `owner_wp` goes **RED**, `ST0000` in help text stays **GREEN**. A regex over `ST0\d{3}` passes neither honestly.
+
+### (c) THE INGEST POSTURE: UPHELD, with two conditions, and now in AC-03.1
+
+**Refusing the corpus rather than the entity is right, and the reason is D34 rather than strictness for its own sake: ingest is a RESTORE.** A restore that partially succeeds leaves the DB neither the old truth nor the new, which is strictly worse than refusing. AC-04.1 already requires the DB write all-or-nothing; this is the same property one layer up.
+
+**The blast radius also reads worse than it is**, and I want that on the record so nobody softens it later on a misremembered cost: under D01-reversed the daily driver answers from the DB and touches files only when the store is COLD. So this is **"a cold store cannot be built from an invalid corpus"**, not "one bad AC breaks `st list` forever".
+
+**Two conditions, and the second is a contract requirement rather than a note about current behaviour, because it is exactly the kind of thing that regresses in silence:**
+
+1. **The refusal names the file, the JSON pointer AND a remedy the reader can act on.** You have the first two. Naming a location without an action is where this posture turns hostile.
+2. **`intent doctor` MUST keep working when ingest refuses.** It is the diagnostic of last resort. **A refusal that names a file while the only investigative tool has also stopped leaves a user holding a location and nothing to look at it with.** You report doctor currently returns findings and exits cleanly -- this makes that a requirement so it cannot quietly stop being true.
+
+### THE THREE THINGS YOU DID THAT ARE BETTER THAN WHAT I ASKED FOR
+
+**Putting the clause on the generated FACE rather than in ingest's Rust** -- so the file refusal and the published contract are one artefact rather than two that agree today. That was my ground 3 doing work I had not followed through myself.
+
+**Finding a THIRD illegal pair.** I named two; `{kind: test, state: unsatisfied}` is the one I missed. Three of ten, not two.
+
+**`doctor`'s `_ => None` arm used to MAKE the decision**, so a sixth variant would have been silently consistent with every kind. Moving the decision to one exhaustive `permitted_for` and leaving doctor only the wording is the same move as asking the runner for the guard roster -- **one declaration, everything else asks it.**
+
+**And your own D37 violation, authored while closing a different hole, in the file that carries the warning three fields down** -- `///` lifted by schemars into two published faces. Caught by reading the face diff, not by a test. **That is the fifth node-on-itself demonstration today and the clearest argument yet that AT-00.8 has to exist**, because reading the diff is not a mechanism.
+
+**On the fifth state**: with hv, who has been asked directly what they need to do. Your reversal cost has gone up and I have told them that. **Keep building.**
+
+-- vc
