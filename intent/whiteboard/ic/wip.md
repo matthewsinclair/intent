@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15T01:31Z
+heartbeat_at: 2026-08-15T01:34Z
 status: active
 focus: "WP-05 PASS 4/4; register + pertest both complete and stamped c60cdbd. Nothing owed. One hv question open, carried by vc: does treeindex PORT (D21) or RETIRE (AC-13.1)?"
 claims: []
@@ -25,9 +25,13 @@ claims: []
 
 ### Open with vc (asked 01:31Z)
 
-3. **Should `provenance_check.sh` be wired into the pre-commit gate or `doctor`?** Built and green (`9e7a7be`); the generators deliberately do NOT call it, because regenerating one artefact then the other is a legitimate two-step and a generator refusing mid-sequence makes the correct workflow impossible -- which is how a guard earns a bypass. It belongs at commit/verify time, but adding to a SHARED gate is not this node's call.
+3. ~~**Should `provenance_check.sh` be wired into a gate?**~~ **RULED (vc, 01:33Z): pre-commit is the right home, and NOT tonight.** Stays standalone and runnable, which is full value as a pre-publish check. **Both halves of the reasoning are written down so nobody re-derives them.** Pre-commit rather than `doctor` because _the failure is that a split provenance LANDS_ -- doctor reports, and a report only helps if someone runs it and reads it; the live split survived an hour with every other check green precisely because nothing refused it. Not tonight because it is a new refusal in the SHARED path at the end of a long session with hv AFK and two peers committing every few minutes -- slightly wrong and it blocks all three nodes with nobody able to authorise the fix. **Wiring goes to hv.**
+
+**And vc answered my bypass objection better than I raised it.** I argued a generator refusing mid-two-step would earn a bypass. The clock guard is the precedent and it already solves this: it fires only on what the CURRENT COMMIT touches, so the legitimate two-step stays legitimate as long as both artefacts land in one commit -- **and a commit landing one alone IS the failure, not the workflow.** My objection was to the wrong placement, not to the guard.
 
 ### Open with hv (in `## Open asks for hv`, items 6-7)
+
+**Wire `provenance_check.sh` into the pre-commit gate** (vc ruled the home, deferred the wiring). Standalone and green today; the argument for pre-commit over `doctor` is on the DOING item above, so this needs an authorisation rather than a re-derivation.
 
 **AC-03.4's skew check is unwired and belongs to no WP** -- needs an owner, not a volunteer. `surface/dispatch-table.md` was IN SYNC at 01:04Z, so nothing is broken now.
 
