@@ -38,7 +38,28 @@ pub const LOCAL_PRINCIPAL: &str = "local";
 pub struct Envelope {
   /// ULID -- lexically sortable, globally unique.
   pub id: String,
-  /// RFC 3339 UTC timestamp.
+  /// RFC 3339 UTC, millisecond precision: `YYYY-MM-DDTHH:MM:SS.sssZ`.
+  // **Everything below is `//` on purpose: a `///` here is SHIPPED OUTPUT.**
+  // schemars lifts it into `event.schema.json` and async-graphql into the SDL,
+  // so the first draft of this comment published its own reasoning -- and an
+  // internal criterion id with it, straight into a face our own rules say must
+  // never carry one. The line above is what a consumer needs; the rest is why.
+  //
+  // **The exact shape is PUBLISHED rather than merely described.** The stamp
+  // moved from second to millisecond precision, and a consumer parsing this
+  // field could not have seen that: the face said `"type": "string"` and
+  // nothing else, so a format change to the one field the interchange is
+  // ORDERED BY was invisible in the contract describing it. The `pattern`
+  // makes precision part of what a consumer compiles against, so the next such
+  // change moves the schema version instead of passing in silence.
+  //
+  // Milliseconds rather than seconds because two machines MERGE their event
+  // logs (D34) and order them by this value; at second resolution two writes
+  // in one second collide, which is what any script does.
+  #[schemars(
+    extend("format" = "date-time"),
+    extend("pattern" = r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")
+  )]
   pub ts: String,
   pub principal: String,
   pub project_id: String,

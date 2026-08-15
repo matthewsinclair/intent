@@ -41,7 +41,7 @@ pub const INTENT_VER: &str = env!("CARGO_PKG_VERSION");
 /// content changes and its version does not, which is the same forcing
 /// function `SCHEMA_VERSION` has for the store -- the one that earned its
 /// existence within hours of being written.
-pub const SCHEMA_JSON_VER: u32 = 1;
+pub const SCHEMA_JSON_VER: u32 = 2;
 /// See [`SCHEMA_JSON_VER`].
 pub const SCHEMA_DDL_VER: u32 = 1;
 /// See [`SCHEMA_JSON_VER`].

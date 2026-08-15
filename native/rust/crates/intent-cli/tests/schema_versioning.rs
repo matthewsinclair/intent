@@ -200,7 +200,7 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   let pinned: &[(&str, u32, u64)] = &[
     ("SCHEMA_DDL_VER", 1, 0x17c0_335d_9ab3_c28f),
     ("SCHEMA_SDL_VER", 1, 0x95cf_14ce_d053_a361),
-    ("SCHEMA_JSON_VER", 1, 0xc9c8_7bab_d5c6_5658),
+    ("SCHEMA_JSON_VER", 2, 0x9659_84e7_22ca_b726),
   ];
 
   let mut moved = Vec::new();
