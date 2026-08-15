@@ -39,9 +39,22 @@
 MD_ALIGNER='
   function flush(  i, j, w, out, cell, n) {
     if (rows == 0) return
+    # SEPARATOR ROWS MUST NOT SET THE WIDTH. Their cells are runs of dashes
+    # whose length is whatever the author happened to type, so a hand-written
+    # separator wider than any real cell silently inflates the whole column --
+    # and since the aligner then reproduces that width faithfully, the table is
+    # stably wrong and looks deliberate.
+    #
+    # Found in pertest.md, on the first artefact generated after this library
+    # was extracted: the repo formatter padded `class` to 41 (the widest actual
+    # cell) and this padded it to 44 (a separator typed too long in the
+    # preamble heredoc). Every commit would have diffed for ever, which is the
+    # precise cry-wolf failure the header above says this file exists to stop.
+    # The aligner had the same bug it was written to fix.
     for (i = 1; i <= rows; i++)
-      for (j = 1; j <= cols[i]; j++)
-        if (length(cellv[i, j]) > w_[j]) w_[j] = length(cellv[i, j])
+      if (!sep[i])
+        for (j = 1; j <= cols[i]; j++)
+          if (length(cellv[i, j]) > w_[j]) w_[j] = length(cellv[i, j])
     for (i = 1; i <= rows; i++) {
       out = "|"
       for (j = 1; j <= cols[i]; j++) {
