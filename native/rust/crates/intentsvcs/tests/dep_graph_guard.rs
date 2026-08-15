@@ -6,15 +6,8 @@
 //! without violating it.
 
 use std::fs;
-use std::path::{Path, PathBuf};
-
-fn workspace_root() -> PathBuf {
-  Path::new(env!("CARGO_MANIFEST_DIR"))
-    .ancestors()
-    .nth(2)
-    .expect("crates/intentsvcs sits two levels under the workspace root")
-    .to_path_buf()
-}
+use std::path::Path;
+use testkit::workspace_root;
 
 /// Manifest content with `#` comment lines removed.
 fn without_comments(path: &Path) -> String {

@@ -24,19 +24,7 @@ use intentsvcs::model::{
   AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA,
   TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
 };
-
-/// The REPOSITORY root -- where `bin/`, `schema/` and `surface/` live.
-///
-/// Searched, never counted: this was `ancestors().nth(2)` three times over,
-/// correct only while the workspace root and the repository root were the same
-/// directory. `native/rust/` made them different and all three broke at once.
-fn repo_root() -> std::path::PathBuf {
-  std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-    .ancestors()
-    .find(|d| d.join("schema").is_dir() && d.join("surface").is_dir())
-    .expect("a repository root carrying schema/ and surface/ above this crate")
-    .to_path_buf()
-}
+use testkit::repo_root;
 
 fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
   Thread {

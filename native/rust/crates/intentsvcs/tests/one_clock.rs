@@ -28,6 +28,7 @@
 //! updates it.
 
 use std::path::{Path, PathBuf};
+use testkit::workspace_root;
 
 /// Every way to reach a clock that is not the store's. `now_utc` and
 /// `SystemTime` are the direct routes; `Instant` measures elapsed time, which
@@ -69,15 +70,6 @@ const CLOCK: &[&str] = &[
 /// property of a write**, so no Rust file needs to ask what time it is, and the
 /// exemption shrank to zero rather than moving.
 const EXEMPT: &[&str] = &[];
-
-fn workspace_root() -> PathBuf {
-  // `crates/intentsvcs` -> `native/rust`
-  Path::new(env!("CARGO_MANIFEST_DIR"))
-    .parent()
-    .and_then(Path::parent)
-    .expect("the crate sits two levels under the workspace root")
-    .to_path_buf()
-}
 
 /// Every `.rs` under every crate's `src/` AND `tests/`, discovered by walking.
 ///

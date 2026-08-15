@@ -23,25 +23,8 @@
 //! store rebuilds from the extract, and a consumer's code rebuilds from nothing
 //! we hold.
 
-use std::path::{Path, PathBuf};
-
 use intentsvcs::faces::{INTENT_VER, INTENT_VER_KEY, SCHEMA_VER_KEYS};
-
-/// The repository root, searched rather than counted.
-///
-/// **This is the third copy of this helper in the estate** (`intentsvcs`'s
-/// `schema_faces_drift.rs` and `intent-cli`'s `no_intent_home.rs` are the
-/// others, the latter raised by dc as the second instance). Rust integration
-/// tests cannot share a helper across crates without a dev-dependency crate to
-/// hold it, so the fix is a workspace change rather than a local one -- and the
-/// workspace is dc's lane. Copied knowingly and reported, not copied quietly.
-fn repo_root() -> PathBuf {
-  Path::new(env!("CARGO_MANIFEST_DIR"))
-    .ancestors()
-    .find(|d| d.join("schema").is_dir() && d.join("surface").is_dir())
-    .expect("a repository root carrying schema/ and surface/ above this crate")
-    .to_path_buf()
-}
+use testkit::repo_root;
 
 fn published(name: &str) -> String {
   let path = repo_root().join("schema").join(name);

@@ -54,6 +54,7 @@
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use testkit::repo_root;
 
 // ---------------------------------------------------------------------------
 // The referent rule
@@ -172,19 +173,6 @@ fn identifier_at(b: &[u8], i: usize, decisions: Decisions) -> Option<usize> {
 // ---------------------------------------------------------------------------
 // Driving the shipped binary
 // ---------------------------------------------------------------------------
-
-/// The REPOSITORY root -- where `schema/` and `surface/` live.
-///
-/// Searched, never counted: a depth is a claim about a layout and goes stale in
-/// silence, which is how `ancestors().nth(2)` broke everywhere at once when
-/// `native/rust/` appeared.
-fn repo_root() -> PathBuf {
-  Path::new(env!("CARGO_MANIFEST_DIR"))
-    .ancestors()
-    .find(|d| d.join("schema").is_dir() && d.join("surface").is_dir())
-    .expect("a repository root carrying schema/ and surface/ above this crate")
-    .to_path_buf()
-}
 
 /// Run the shipped binary somewhere that is NOT an Intent project.
 ///

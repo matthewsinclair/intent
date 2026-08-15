@@ -7,25 +7,8 @@
 //! and commit the face change WITH the type change that caused it.
 
 use std::fs;
-use std::path::{Path, PathBuf};
-
-/// The REPOSITORY root -- where `schema/`, `surface/` and `bin/` live.
-///
-/// Searched, never counted. This was `ancestors().nth(2)`, which was correct
-/// only while the workspace root and the repository root were the same
-/// directory; `native/rust/` made them different and every counting caller
-/// broke at once. A depth is a claim about a layout, and it goes stale
-/// silently -- a search for the thing actually wanted cannot.
-///
-/// The marker is `schema/` AND `surface/` together, because either alone
-/// could match some unrelated ancestor.
-fn repo_root() -> PathBuf {
-  Path::new(env!("CARGO_MANIFEST_DIR"))
-    .ancestors()
-    .find(|d| d.join("schema").is_dir() && d.join("surface").is_dir())
-    .expect("a repository root carrying schema/ and surface/ above this crate")
-    .to_path_buf()
-}
+use std::path::PathBuf;
+use testkit::repo_root;
 
 fn schema_dir() -> PathBuf {
   repo_root().join("schema")

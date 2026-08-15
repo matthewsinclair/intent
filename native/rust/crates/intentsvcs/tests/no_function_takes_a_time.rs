@@ -28,6 +28,7 @@
 //! the different and narrower question of whether a fixture INVENTS a time.
 
 use std::path::{Path, PathBuf};
+use testkit::workspace_root;
 
 /// Parameter names that denote a moment.
 ///
@@ -84,14 +85,6 @@ fn is_time_shaped(ty: &str) -> bool {
     "DateTime",
   ]
   .contains(&ty)
-}
-
-fn workspace_root() -> PathBuf {
-  Path::new(env!("CARGO_MANIFEST_DIR"))
-    .parent()
-    .and_then(Path::parent)
-    .expect("the crate sits two levels under the workspace root")
-    .to_path_buf()
 }
 
 /// Every `src/**/*.rs` in every crate, discovered by walking rather than

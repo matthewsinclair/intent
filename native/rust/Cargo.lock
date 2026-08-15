@@ -976,6 +976,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "terminal_size",
+ "testkit",
  "time",
 ]
 
@@ -997,6 +998,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
+ "testkit",
  "thiserror",
  "time",
  "ulid",
@@ -1890,6 +1892,10 @@ dependencies = [
  "rustix",
  "windows-sys",
 ]
+
+[[package]]
+name = "testkit"
+version = "3.0.0-dev"
 
 [[package]]
 name = "thiserror"

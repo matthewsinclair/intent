@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/intentsvcs", "crates/intent-cli", "crates/intentd"]
+members = ["crates/intentsvcs", "crates/intent-cli", "crates/intentd", "crates/testkit"]
 
 [workspace.package]
 version = "3.0.0-dev"

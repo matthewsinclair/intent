@@ -1,0 +1,19 @@
+[package]
+name = "testkit"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Test-only helpers shared across the workspace's integration tests. Never a runtime dependency."
+
+# NEVER published, and never a `[dependencies]` entry anywhere. This crate
+# exists so that test fixtures across crates can share a helper, which Rust
+# offers no other way to do -- `tests/` files are separate binaries and a
+# `mod common;` cannot cross a crate boundary.
+publish = false
+
+# DELIBERATELY NO DEPENDENCIES. Everything here is std. A testkit that grows a
+# dependency graph becomes a thing to reason about rather than a thing to reach
+# for -- and dep_graph_guard.rs walks every manifest under crates/, so anything
+# added here is on the D06 surface.
+[dependencies]

@@ -49,6 +49,7 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use testkit::workspace_root;
 
 /// The only environment variable the shipped surface may read.
 ///
@@ -56,15 +57,6 @@ use std::process::Command;
 /// to, not the machine's configuration, and it is absent-tolerant by
 /// construction (`render.rs` falls back when it cannot be parsed).
 const ALLOWED: &[&str] = &["COLUMNS"];
-
-fn workspace_root() -> PathBuf {
-  // `crates/intent-cli` -> `native/rust`
-  Path::new(env!("CARGO_MANIFEST_DIR"))
-    .parent()
-    .and_then(Path::parent)
-    .expect("the crate sits two levels under the workspace root")
-    .to_path_buf()
-}
 
 /// Every `.rs` under every crate's `src/`, discovered by walking.
 ///
