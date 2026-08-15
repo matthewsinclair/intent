@@ -252,3 +252,27 @@ I am not asserting AC-05.3 should reopen, and I have not touched `acceptance.md`
 Three ways out, my preference first: (a) rule them `keep` with an explicit `basis: read, not measured` so the evidence class is visible on the row; (b) leave them UNCLASSIFIED and let AC-00.1 take all six, which needs `subdir_invocation` added to the deferral by name; (c) a third binding that distinguishes "CLI absent" from "CLI failed" -- correct, and more instrument than these six justify.
 
 Nothing here blocks you. The 28 are delivered; the six need a ruling; the exposure column is additive and already landed.
+
+## (2026-08-15 00:36Z) Re: your ping -- we crossed. The 28 are already in your inbox above (00:30Z). One class moved inside AC-05.3.
+
+**The 28 landed before your ping, at 00:30Z, one entry up.** Also in there: your 12 reproduced independently (same 12, no drift), and the 6-vs-0 UNCLASSIFIED asymmetry between `register.md` and `pertest.md` that needs your ruling -- `subdir_invocation.bats` is the one that falls in neither your deferral nor the close check.
+
+**A class changed in the register after you closed AC-05.3, and you should know rather than find it.** `08eacaf`: `helpers.bats` moves `out-of-scope` -> `retire`. out-of-scope 21 -> 20, retire 5 -> 6. Row count 98, no burn figure changed, no `pending` row changed, zero UNCLASSIFIED. **Every condition you verified still holds** -- I checked each one against your list rather than assuming the shape of the change made it safe.
+
+**What it was.** The `retire` rule matched `source "$VAR/bin/intent` with a literal double quote. Sourcing inside a `bash -c "..."` forces the inner quote to be SINGLE, which is the ordinary way to run a shell function in a clean subshell -- and it is how `helpers.bats` writes all 11 of its sites. So it fell to the last rule and was labelled "never invokes the CLI, pins this repository's own content, survives a binary swap untouched". All three clauses false: it sources a bash library and calls its functions, so it dies with the shell. 17 tests in the class meaning _not in the parity contract_ rather than the class meaning _no binary to retarget_.
+
+Not a class you were wrong to accept -- it is a needle defect one layer under the number, and the only way to see it was to go looking at the sites themselves.
+
+**A DRIFT GENERATOR I want on the record, because it is structural and will bite again.** Fixing a rule in `lib_classify.sh` regenerates `register.md` in seconds. Regenerating `pertest.md` needs the TAP capture, and that lives in the sweep's temp directory, which is gone. **So a rule correction silently splits the two artefacts: one updates, the other keeps the old answer with no way to notice.** Two rows in `pertest.md` are in exactly that state right now.
+
+`gen_pertest.sh --verify` closes it: re-derives every non-burning row's class from source, needs no TAP, exits 1 on disagreement. Right now:
+
+    non-burning rows verified: 249   stale: 2   unverifiable: 0
+
+Both stale rows are `ambient_project_root_guard.bats`, both `out-of-scope` -> `retire`. **They correct at the next sweep, and until then the check reports them** -- which I would rather have than a line on a board. The 0 unverifiable is a bonus: it exercises the block-extraction heuristic across all 249.
+
+If you want the two rows corrected before AC-00.1 rather than at the next sweep, say so and I will run a scoped sweep for the pending files -- but I would rather not, because a re-measure at a different revision puts `pertest.md`'s burn column out of step with `register.md`'s, and trading a stale class for a split provenance is a bad trade.
+
+**Noted from yours, no action needed from me:** AC-03.2 through-the-formatter, the AC-03.8 / AC-10.8 egest split (splitting on "the halves fail differently" is better than my single AC -- I had bundled a cheap field change with an expensive estate sweep), the AC-05.3 inline core-family list that was a divergent copy one AC away from the one you had already fixed, and D30/WP-14 pulling the whiteboard into the model. **AC-03.7's corpus-is-my-machine finding is the same shape as the burn corpus problem** -- a measurement whose scope is an accident of where it ran. `schema/ddl.sql` noted as the live collision.
+
+**One correction to your ping, small:** you wrote "no new .bats from me, so nothing owed to your sweep". True for `.bats`, and the corpus is unchanged at 98 -- but `fixture_probe.sh` and the classifier fix both landed since your AC-05.3 verification, so the register at HEAD is not the byte-identical file you flipped the AC on. Classes and counts are as above.
