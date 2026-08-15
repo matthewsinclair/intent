@@ -61,9 +61,9 @@ fn a_word_in_authored_thread_prose_is_found() {
   .expect("author prose");
   // Written outside the tool, so the store has not seen it. Daily-driver
   // commands answer from the store and never scan the tree (hv, 2026-08-14),
-  // and `intent st sync` is the explicit reconciliation. This is the trade
+  // and `intent sync` is the explicit reconciliation. This is the trade
   // being exercised, not worked around.
-  ok(root, &["st", "sync"]);
+  ok(root, &["sync"]);
 
   let hits = ok(root, &["search", "kestrel"]);
   assert!(
@@ -100,7 +100,7 @@ fn a_word_in_an_issue_body_is_found() {
     "# Pelican drift\n\nThe pelican index drifts after a rebuild.\n",
   )
   .expect("write issue body");
-  ok(root, &["st", "sync"]);
+  ok(root, &["sync"]);
 
   let hits = ok(root, &["search", "pelican"]);
   assert!(

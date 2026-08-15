@@ -264,10 +264,12 @@ impl Facade {
   // Reads
   // -------------------------------------------------------------------------
 
+  /// Threads in the order the index renders them -- open first, newest id
+  /// first. Ascending id would have been the obvious choice and is wrong:
+  /// v2 lists newest-first, and `st list` has to agree with the generated
+  /// index byte for byte.
   pub fn st_list(&self) -> Vec<&Thread> {
-    let mut threads: Vec<&Thread> = self.canon.threads.iter().collect();
-    threads.sort_by(|a, b| a.id.cmp(&b.id));
-    threads
+    views::index_order(&self.canon.threads)
   }
 
   pub fn st_show(&self, id: &str) -> Result<&Thread, FacadeError> {

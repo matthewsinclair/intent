@@ -96,9 +96,16 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   assert!(root.join("intent/st/steel_threads.md").is_file(), "index");
   assert!(root.join("intent/todo.md").is_file(), "todo view");
 
-  let listed = ok(root, &["st", "list"]);
+  // `--status all` because bare `st list` shows WIP ONLY, as v2 does, and this
+  // thread is Not Started. The bare form used to list everything, which is what
+  // made this assertion pass before the filter was ported.
+  let listed = ok(root, &["st", "list", "--status", "all"]);
   assert!(listed.contains("ST0001"), "{listed}");
   assert!(listed.contains("Not Started"), "{listed}");
+  assert!(
+    ok(root, &["st", "list"]).lines().count() == 2,
+    "and the bare form is header + separator only, not an error and not silence"
+  );
 
   ok(root, &["st", "start", "ST0001"]);
   let shown = ok(root, &["st", "show", "ST0001"]);
@@ -245,41 +252,180 @@ fn the_generated_index_is_written_and_carries_no_render_time() {
   );
 }
 
-/// Both spellings of the reconciliation are wired, and they do the same thing.
+/// `intent sync` and `intent st sync` are DIFFERENT commands, and both work.
 ///
-/// `intent sync` is the name hv gave the manual half of the daily-driver split;
-/// `intent st sync` is v2's own command, whose job is a strict subset of it now
-/// that the thread index is generated from the model. Both have to work, so the
-/// risk is not that one is missing but that they DRIFT -- and this asserts they
-/// are one implementation by asserting they produce the same answer.
+/// I had them wired as one: `st sync` delegated to the store reconciliation,
+/// and the dispatch table carries my note saying "both spellings run it". That
+/// note was wrong. `tests/unit/output_width.bats` proved it -- v2's `st sync`
+/// prints the thread table and `--write` persists the index, neither of which
+/// is "reconcile the store from canon".
 ///
-/// It is here because they had already drifted in the worst direction: only
-/// `st sync` was wired, so the spelling the dispatch table advertises and hv
-/// actually named answered "not yet wired to the facade". vc hit it while
-/// trying to verify something else and reasonably concluded sync was unbuilt.
+/// The lesson worth keeping is not the fix. It is that I wrote a test called
+/// `both_spellings_of_sync_are_wired_and_agree`, asserted they produced the
+/// same bytes, watched it pass, and took that as confirmation -- when all it
+/// confirmed was that my own wrong model was internally consistent. A test
+/// written from the same misreading as the code cannot catch the misreading.
+/// The incumbent's behaviour caught it.
 #[test]
-fn both_spellings_of_sync_are_wired_and_agree() {
+fn sync_and_st_sync_are_different_commands_and_both_are_wired() {
   let dir = project();
   let root = dir.path();
   ok(root, &["st", "new", "A thread"]);
 
-  // A hand edit behind the tool's back: the store still serves the old title
-  // until a reconciliation runs, which is exactly what sync is for.
-  let canon = root.join("intent/st/ST0001/thread.json");
-  let edited = std::fs::read_to_string(&canon)
-    .expect("read canon")
-    .replace("A thread", "A renamed thread");
-  std::fs::write(&canon, edited).expect("write canon");
+  let reconcile = ok(root, &["sync"]);
+  assert!(
+    reconcile.starts_with("ok: synced"),
+    "top-level sync reconciles the store: {reconcile:?}"
+  );
 
-  let long = ok(root, &["st", "sync"]);
-  let short = ok(root, &["sync"]);
+  let index = ok(root, &["st", "sync"]);
+  assert!(
+    index.starts_with("ID "),
+    "st sync reports the index as a table: {index:?}"
+  );
+  assert_ne!(
+    reconcile, index,
+    "two different jobs -- collapsing them is what this test exists to prevent"
+  );
+}
+
+/// `intent st list` renders v2's table, and renders it even when empty.
+///
+/// The empty case is the point. v2 prints a 161-byte header for an estate with
+/// no threads; v3 printed ZERO BYTES, which is the same shape as the AC-10.7
+/// defect one level down -- a command that answers a question by saying
+/// nothing at all, so a script cannot tell "ran and found none" from "did not
+/// run". The answer here was honest and the silence still was not.
+#[test]
+fn st_list_prints_the_table_header_even_with_no_threads() {
+  let dir = project();
+  let out = ok(dir.path(), &["st", "list"]);
+  assert!(out.starts_with("ID "), "v2's column order: {out:?}");
+  assert!(out.contains("| Slug"), "{out:?}");
+  assert!(out.contains("| Completed"), "{out:?}");
+  assert!(
+    out.lines().nth(1).is_some_and(|l| l.contains("---|---")),
+    "and v2's pipeless separator: {out:?}"
+  );
+}
+
+/// The table fills the terminal, and content-fit is the FLOOR rather than a
+/// target -- a narrow terminal stops padding, it never truncates.
+///
+/// Measured byte-identical against the v2 binary over the same estate at
+/// COLUMNS 250/130/100/60 before this was written; this pins the relationships
+/// that survive without v2 present to compare against.
+#[test]
+fn the_table_tracks_the_terminal_width_and_never_truncates() {
+  let dir = project();
+  let root = dir.path();
+  ok(
+    root,
+    &[
+      "st",
+      "new",
+      "a deliberately long steel thread title for measuring",
+    ],
+  );
+
+  let width_at = |cols: &str| -> usize {
+    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+      .args(["st", "list", "--status", "all"])
+      .current_dir(root)
+      .env("COLUMNS", cols)
+      .output()
+      .expect("run");
+    let text = String::from_utf8_lossy(&out.stdout).to_string();
+    assert!(
+      text.contains("a-deliberately-long"),
+      "the slug is never truncated to fit: {text:?}"
+    );
+    text.lines().map(|l| l.chars().count()).max().unwrap_or(0)
+  };
+
+  let wide = width_at("250");
+  let narrow = width_at("60");
+  assert!(wide >= 200, "fills a wide terminal: {wide}");
+  assert!(
+    wide > narrow,
+    "width tracks the terminal: 250 -> {wide}, 60 -> {narrow}"
+  );
+
+  // Content-fit is the floor: at 60 columns the table is WIDER than 60,
+  // because the slug alone does not fit and nothing is ever cut.
+  assert!(
+    narrow > 60,
+    "a narrow terminal stops padding rather than truncating: {narrow}"
+  );
+}
+
+/// `--width` beats the terminal, and `--markdown` ignores both.
+#[test]
+fn width_is_overridable_and_markdown_is_width_independent() {
+  let dir = project();
+  let root = dir.path();
+  ok(
+    root,
+    &[
+      "st",
+      "new",
+      "yet another long steel thread title to exercise the override",
+    ],
+  );
+
+  let run_at = |cols: &str, args: &[&str]| -> String {
+    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+      .args(args)
+      .current_dir(root)
+      .env("COLUMNS", cols)
+      .output()
+      .expect("run");
+    String::from_utf8_lossy(&out.stdout).to_string()
+  };
+
+  let overridden = run_at("250", &["st", "list", "--status", "all", "--width", "120"]);
+  let longest = overridden
+    .lines()
+    .map(|l| l.chars().count())
+    .max()
+    .unwrap_or(0);
+  assert!(
+    (110..=130).contains(&longest),
+    "--width 120 beats COLUMNS=250: got {longest}"
+  );
+
+  // A persisted file must not depend on the window that generated it.
+  let a = run_at("200", &["st", "list", "--status", "all", "--markdown"]);
+  let b = run_at("60", &["st", "list", "--status", "all", "--markdown"]);
+  assert_eq!(a, b, "markdown is content-fit at every terminal width");
+  assert!(a.starts_with("| ID "), "canonical piped GFM: {a:?}");
+}
+
+/// `st sync` is v2's INDEX sync, not the store reconciliation, and its dry run
+/// is byte-identical to `st list --status all`.
+///
+/// They were wired as the same command. `tests/unit/output_width.bats` is what
+/// caught it, and this keeps it caught without the BATS estate in the loop.
+#[test]
+fn st_sync_dry_run_is_the_index_table_not_a_reconciliation_report() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "alpha"]);
+  ok(root, &["st", "new", "bravo"]);
+  ok(root, &["st", "start", "ST0002"]);
+
+  let listed = ok(root, &["st", "list", "--status", "all"]);
+  let synced = ok(root, &["st", "sync"]);
   assert_eq!(
-    long, short,
-    "two spellings, one implementation -- if these ever differ, one of them \
-     has grown its own copy"
+    listed, synced,
+    "same scope, same width, same renderer -- so the same bytes"
   );
   assert!(
-    ok(root, &["st", "list"]).contains("A renamed thread"),
-    "and the reconciliation actually took"
+    !synced.contains("ok: synced"),
+    "the dry run reports the index, not the store: {synced:?}"
+  );
+  assert!(
+    ok(root, &["st", "sync", "--write"]).starts_with("updated: "),
+    "and --write says what it wrote"
   );
 }

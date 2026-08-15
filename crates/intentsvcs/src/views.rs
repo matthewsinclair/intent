@@ -79,22 +79,45 @@ fn is_closed(status: ThreadStatus) -> bool {
 // Markdown tables -- one aligner, formatter-stable
 // ---------------------------------------------------------------------------
 
-/// Render a markdown table the way `prettier` would write it.
+/// How a table is being rendered.
 ///
-/// **Idempotence has to hold THROUGH the formatter, not merely through the
-/// renderer** (vc ruling, 2026-08-14, from a defect ic hit for real). This
-/// repository -- and every consumer repository -- runs `prettier --write` over
-/// staged markdown in its pre-commit hook. A renderer that emitted narrow
-/// separator rows would have its output widened at commit time and narrowed
-/// again at the next regeneration, so every generated view would oscillate
-/// forever and the skew check (AC-03.4) would report files nobody had touched.
-/// A check that cries wolf gets ignored, which is the same failure as a
-/// non-deterministic renderer arriving by a different road.
+/// Both modes live in one function for the reason v2 gives at
+/// `bin/intent_helpers:render_table` -- `st list`, `st sync` and `wp list`
+/// share it "so the two tables cannot drift apart", and
+/// `tests/unit/output_width.bats` pins that by asserting `st list --status
+/// all` and `st sync` render byte-identically. Two renderers would satisfy
+/// that on the day they were written and not afterwards.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TableMode {
+  /// On-screen: pipeless (`a | b`, `---|---`), expanded to fill `fill`
+  /// columns. `0` means content-fit only.
+  Terminal { fill: usize },
+  /// A persisted file: canonical GFM, always content-fit.
+  ///
+  /// It ignores any fill target ON PURPOSE. A markdown file whose column
+  /// widths depended on the terminal that happened to generate it would
+  /// change bytes every time someone regenerated it at a different window
+  /// size, and AC-03.4's skew check would report files nobody had touched.
+  Markdown,
+}
+
+/// Render a table: on-screen for the CLI, or the way `prettier` would write it
+/// for a persisted file.
 ///
-/// So: columns are padded to the widest cell, minimum three, exactly as
-/// prettier pads them. `view_determinism.rs` runs the real formatter over the
-/// real output rather than trusting this comment.
-fn table(headers: &[&str], rows: &[Vec<String>]) -> String {
+/// **Markdown idempotence has to hold THROUGH the formatter, not merely
+/// through the renderer** (vc ruling, 2026-08-14, from a defect ic hit for
+/// real). This repository -- and every consumer repository -- runs `prettier
+/// --write` over staged markdown in its pre-commit hook. A renderer that
+/// emitted narrow separator rows would have its output widened at commit time
+/// and narrowed again at the next regeneration, so every generated view would
+/// oscillate forever and the skew check (AC-03.4) would report files nobody
+/// had touched. A check that cries wolf gets ignored, which is the same
+/// failure as a non-deterministic renderer arriving by a different road.
+///
+/// So in markdown mode: columns padded to the widest cell, minimum three,
+/// exactly as prettier pads them. `view_determinism.rs` runs the real
+/// formatter over the real output rather than trusting this comment.
+pub fn table(headers: &[&str], rows: &[Vec<String>], mode: TableMode) -> String {
   let mut widths: Vec<usize> = headers.iter().map(|h| h.chars().count()).collect();
   for row in rows {
     for (i, c) in row.iter().enumerate() {
@@ -103,30 +126,76 @@ fn table(headers: &[&str], rows: &[Vec<String>]) -> String {
       }
     }
   }
-  // prettier never writes a separator narrower than `---`.
-  for w in &mut widths {
-    *w = (*w).max(3);
+
+  match mode {
+    // prettier never writes a separator narrower than `---`, and prettier is
+    // a SECOND WRITER of this file that wins any disagreement. v2 has no such
+    // floor, which is the one place the two modes genuinely differ -- and it
+    // is only visible on a column narrower than three, so on an empty table.
+    TableMode::Markdown => {
+      for w in &mut widths {
+        *w = (*w).max(3);
+      }
+    }
+    // Expand to fill the terminal, sharing the slack out in proportion to
+    // each column's content width so the widest column absorbs most of it,
+    // with the remainder landing on the last. Content-fit is the FLOOR, so a
+    // narrow terminal never truncates -- it just stops padding.
+    TableMode::Terminal { fill } => {
+      let separators = widths.len().saturating_sub(1) * 3;
+      let content: usize = widths.iter().sum();
+      if fill > content + separators && content > 0 {
+        let slack = fill - content - separators;
+        let mut distributed = 0;
+        let last = widths.len() - 1;
+        // Shares are computed from the CONTENT widths, so an earlier column's
+        // expansion cannot change a later column's share.
+        let shares = widths.clone();
+        for (i, w) in widths.iter_mut().enumerate() {
+          let add = if i == last {
+            slack - distributed
+          } else {
+            slack * shares[i] / content
+          };
+          *w += add;
+          distributed += add;
+        }
+      }
+    }
   }
 
   let header_cells: Vec<String> = headers.iter().map(|h| (*h).to_string()).collect();
-  let mut out = row_line(&header_cells, &widths);
-  out.push('|');
-  for w in &widths {
-    out.push_str(&format!(" {} |", "-".repeat(*w)));
+  let mut out = row_line(&header_cells, &widths, mode);
+  let dashes: Vec<String> = widths.iter().map(|w| "-".repeat(*w)).collect();
+  match mode {
+    TableMode::Markdown => {
+      out.push('|');
+      for d in &dashes {
+        out.push_str(&format!(" {d} |"));
+      }
+    }
+    TableMode::Terminal { .. } => out.push_str(&dashes.join("-|-")),
   }
   out.push('\n');
   for row in rows {
-    out.push_str(&row_line(row, &widths));
+    out.push_str(&row_line(row, &widths, mode));
   }
   out
 }
 
-fn row_line(cells: &[String], widths: &[usize]) -> String {
-  let mut line = String::from("|");
-  for (i, width) in widths.iter().enumerate() {
-    let cell = cells.get(i).map(String::as_str).unwrap_or("");
-    line.push_str(&format!(" {cell:<width$} |"));
-  }
+fn row_line(cells: &[String], widths: &[usize], mode: TableMode) -> String {
+  let padded: Vec<String> = widths
+    .iter()
+    .enumerate()
+    .map(|(i, width)| {
+      let cell = cells.get(i).map(String::as_str).unwrap_or("");
+      format!("{cell:<width$}")
+    })
+    .collect();
+  let mut line = match mode {
+    TableMode::Markdown => format!("| {} |", padded.join(" | ")),
+    TableMode::Terminal { .. } => padded.join(" | "),
+  };
   line.push('\n');
   line
 }
@@ -224,7 +293,11 @@ pub fn info(thread: &Thread, ctx: &RenderContext<'_>) -> String {
         ]
       })
       .collect();
-    out.push_str(&table(&["WP", "Title", "Size", "Status"], &rows));
+    out.push_str(&table(
+      &["WP", "Title", "Size", "Status"],
+      &rows,
+      TableMode::Markdown,
+    ));
     out.push('\n');
   }
 
@@ -441,13 +514,24 @@ fn test_line(t: &AcceptanceTest) -> String {
 /// Ordering matches v2's index exactly: in-flight threads first, then closed
 /// ones, each block by id descending. Taken from the committed exemplar and
 /// confirmed against `update_steel_threads_index` (`bin/intent_st:244`).
-pub fn steel_threads(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
+/// THE thread ordering: open threads first, then newest id first.
+///
+/// One function because `intent st list` and the generated index must agree --
+/// `tests/unit/output_width.bats` asserts `st list --status all` and `st sync`
+/// render byte-identically, and two sorts that happen to match today would
+/// satisfy it until one of them changed.
+pub fn index_order(threads: &[Thread]) -> Vec<&Thread> {
   let mut ordered: Vec<&Thread> = threads.iter().collect();
   ordered.sort_by(|a, b| {
     is_closed(a.status)
       .cmp(&is_closed(b.status))
       .then_with(|| b.id.cmp(&a.id))
   });
+  ordered
+}
+
+pub fn steel_threads(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
+  let ordered = index_order(threads);
 
   let mut out = String::new();
   out.push_str("# Steel Threads\n\n");
@@ -469,6 +553,7 @@ pub fn steel_threads(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
   out.push_str(&table(
     &["ID", "Slug", "Status", "Created", "Completed"],
     &rows,
+    TableMode::Markdown,
   ));
   finish(out, ctx, "the thread canon")
 }

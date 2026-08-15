@@ -9,8 +9,9 @@
 use clap::ArgMatches;
 use intentsvcs::contract::Scope;
 use intentsvcs::facade::{Facade, FacadeContext, FacadeError};
-use intentsvcs::model::{AtStatus, TShirt};
+use intentsvcs::model::{AtStatus, TShirt, ThreadStatus};
 use intentsvcs::project::Project;
+use intentsvcs::views;
 
 /// Everything a rendered failure says. The facade's own rendering already
 /// carries the message, the full cause chain and the remedy (AC-04.4), so this
@@ -81,6 +82,119 @@ fn today() -> String {
     .date()
     .format(&time::macros::format_description!("[year]-[month]-[day]"))
     .expect("formatting a date cannot fail")
+}
+
+/// The columns `intent st list` and the generated index share.
+const ST_COLUMNS: &[&str] = &["ID", "Slug", "Status", "Created", "Completed"];
+
+/// How wide to render, in v2's order of preference
+/// (`bin/intent_helpers:get_terminal_width`).
+///
+/// `COLUMNS` first because that is what the BATS estate sets to make width
+/// testable; a real terminal query second; a fixed 100 last, so output is
+/// deterministic when there is no terminal at all -- which is every CI run and
+/// every pipe.
+fn terminal_width() -> usize {
+  if let Ok(cols) = std::env::var("COLUMNS")
+    && let Ok(n) = cols.trim().parse::<usize>()
+    && n > 0
+  {
+    return n;
+  }
+  if let Some((w, _)) = terminal_size::terminal_size() {
+    return w.0 as usize;
+  }
+  100
+}
+
+/// v2's status synonyms, normalised (`bin/intent_helpers:canonical_status`).
+///
+/// Case-insensitive, and both spellings of every state are accepted because
+/// v2 accepts both -- `wip` and `in progress` are the same filter, and an
+/// operator who learned one of them must not get an empty table for using it.
+fn status_filter(spec: &str) -> Result<Option<Vec<ThreadStatus>>, String> {
+  use ThreadStatus as S;
+  if spec.eq_ignore_ascii_case("all") {
+    return Ok(None);
+  }
+  let mut wanted = Vec::new();
+  for raw in spec.split(',') {
+    let name = raw.trim().to_ascii_lowercase();
+    let status = match name.as_str() {
+      "wip" | "in progress" => S::Wip,
+      "tbc" | "not started" => S::NotStarted,
+      "completed" | "done" => S::Completed,
+      "cancelled" | "canceled" => S::Cancelled,
+      "hold" | "on hold" => S::Hold,
+      "" => continue,
+      other => {
+        return Err(format!(
+          "error: `{other}` is not a steel thread status\n  remedy: use one of wip, tbc, completed, cancelled, hold -- or `all`"
+        ));
+      }
+    };
+    wanted.push(status);
+  }
+  Ok(Some(wanted))
+}
+
+/// Render the steel-thread table.
+///
+/// Shared by `st list` and `sync` because v2 shares them
+/// (`bin/intent_st:717-1043` composes one from the other) and
+/// `tests/unit/output_width.bats` asserts they are byte-identical over the
+/// same scope. The default scope differs on purpose, though: bare `st list`
+/// shows WIP only, while the index covers everything -- issue 0019, because
+/// `steel_threads.md` says it indexes ALL threads and was being built from the
+/// WIP-only view, so it decayed to empty at every release close.
+fn st_table(f: &Facade, a: &ArgMatches) -> Result<String, String> {
+  let wanted = match opt(a, "status") {
+    Some(spec) => status_filter(&spec)?,
+    // v2's default: WIP only. NOT the same as `--status all`.
+    None => Some(vec![ThreadStatus::Wip]),
+  };
+  st_rows(f, a, wanted)
+}
+
+/// The index scope: every thread, whatever `--status` would have said.
+/// `st sync` has no status filter in v2 -- the index is the whole estate.
+fn st_table_all(f: &Facade, a: &ArgMatches) -> Result<String, String> {
+  st_rows(f, a, None)
+}
+
+fn st_rows(
+  f: &Facade,
+  a: &ArgMatches,
+  wanted: Option<Vec<ThreadStatus>>,
+) -> Result<String, String> {
+  let markdown = flag(a, "markdown");
+  let width = match opt(a, "width").map(|w| w.parse::<usize>()) {
+    Some(Ok(n)) if n > 0 => n,
+    Some(Err(_)) => return Err("error: --width takes a number of columns".to_string()),
+    _ => terminal_width(),
+  };
+
+  let rows: Vec<Vec<String>> = f
+    .st_list()
+    .into_iter()
+    .filter(|t| wanted.as_ref().is_none_or(|w| w.contains(&t.status)))
+    .map(|t| {
+      vec![
+        t.id.clone(),
+        t.slug.clone().unwrap_or_default(),
+        status(t.status).to_string(),
+        t.created.clone(),
+        t.completed.clone().unwrap_or_default(),
+      ]
+    })
+    .collect();
+
+  let mode = if markdown {
+    views::TableMode::Markdown
+  } else {
+    views::TableMode::Terminal { fill: width }
+  };
+  Ok(views::table(ST_COLUMNS, &rows, mode))
 }
 
 /// Reconcile the runtime store with the committed canon on disk.
@@ -156,11 +270,9 @@ fn st(m: &ArgMatches) -> Result<(), String> {
       println!("ok: {id} cancelled");
       Ok(())
     }
-    Some(("list", _)) => {
+    Some(("list", a)) => {
       let f = open()?;
-      for t in f.st_list() {
-        println!("{}  {}  {}", t.id, status(t.status), t.title);
-      }
+      print!("{}", st_table(&f, a)?);
       Ok(())
     }
     Some(("show", a)) => {
@@ -175,7 +287,32 @@ fn st(m: &ArgMatches) -> Result<(), String> {
       }
       Ok(())
     }
-    Some(("sync", _)) => sync(),
+    // `intent st sync` is v2's INDEX sync, and it is NOT the top-level
+    // `intent sync`. I had wired it as an alias for the store reconciliation
+    // and the dispatch table carries my note saying "both spellings run it".
+    // That note was wrong, and `tests/unit/output_width.bats` is what proved
+    // it: v2's `st sync` prints the thread table -- byte-identical to `st list
+    // --status all` over the same scope -- and `--write` persists the index,
+    // printing `updated: <path>`. Neither is "reconcile the store".
+    //
+    // The scope difference is deliberate and is issue 0019: bare `st list`
+    // shows WIP only, while the index covers ALL threads, because
+    // `steel_threads.md` says it indexes every thread and was being built from
+    // the WIP-only view -- so it decayed to empty at every release close.
+    Some(("sync", a)) => {
+      if flag(a, "write") {
+        let mut f = open()?;
+        f.sync().map_err(fail)?;
+        println!(
+          "updated: {}",
+          f.project().relative(&f.project().steel_threads_view())
+        );
+      } else {
+        let f = open()?;
+        print!("{}", st_table_all(&f, a)?);
+      }
+      Ok(())
+    }
     Some((verb, _)) => unwired("st", verb),
     None => Err("error: a steel thread command is required".to_string()),
   }
@@ -482,6 +619,23 @@ fn arg(m: &ArgMatches, name: &str) -> Result<String, String> {
       "error: the CLI asked for an argument `{name}` that the dispatch table does not declare\n  caused by: {e}\n  remedy: this is a build defect -- the renderer and surface/dispatch-table.json disagree"
     )),
   }
+}
+
+/// An optional value, ABSENT rather than fatal when this subcommand does not
+/// declare it.
+///
+/// `get_one` panics on an undeclared id -- exit 101, neither a v2 code nor an
+/// Intent error -- so a helper shared by two subcommands cannot use it. That
+/// is not hypothetical: `st list` and `st sync` share a renderer, `st sync`
+/// declares no `--markdown`, and the shared code panicked the moment it asked.
+fn opt(m: &ArgMatches, name: &str) -> Option<String> {
+  m.try_get_one::<String>(name).ok().flatten().cloned()
+}
+
+/// A boolean flag, FALSE when this subcommand does not declare it. Same
+/// reasoning as [`opt`].
+fn flag(m: &ArgMatches, name: &str) -> bool {
+  m.try_get_one::<bool>(name).ok().flatten().copied() == Some(true)
 }
 
 fn status(s: intentsvcs::model::ThreadStatus) -> &'static str {
