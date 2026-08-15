@@ -48,6 +48,61 @@ commands:
         summary: the BATS suite via the project runner (exports INTENT_HOME + BATS_LIB_PATH)
         run: tests/run_tests.sh
 
+      # THE CARGO WORKSPACE IS NOT AT THE PROJECT ROOT, AND THE CATALOGUE
+      # ASSUMES IT IS. Every catalogue-derived cargo line -- `test rust`,
+      # `check clippy`, `fmt rust`, and the `check format` builtin's rust arm --
+      # runs in a subshell at PROJECT_ROOT (lib/resolve, and that is the right
+      # default: a declared `run:` is a project command and belongs at the root).
+      # Since a1a949c moved all native code to native/rust/ there is no
+      # Cargo.toml there, so all four died with `could not find Cargo.toml`.
+      #
+      # THE ROOT MANIFEST IS NOT COMING BACK. It is what the move deleted, and
+      # cmd/prepush now REFUSES a push that reintroduces a second workspace
+      # manifest outside crates/. `--manifest-path` is cargo's own answer to
+      # "the workspace is not where you are standing" and needs no cd.
+      #
+      # These read verbatim like .github/workflows/rust.yml, which sets
+      # `working-directory: native/rust` and was updated by the move while these
+      # were not. Same three checks, two homes, one of them followed the move --
+      # so keep the flags identical and the drift stays visible.
+      rust:
+        summary: the workspace suite (native/rust -- the catalogue assumes a root manifest)
+        run: cargo test --workspace --manifest-path native/rust/Cargo.toml
+
+  check:
+    options:
+      clippy:
+        # `--manifest-path` before the `--`; everything after it is rustc's.
+        summary: clippy over the whole workspace, warnings as errors
+        run: cargo clippy --workspace --all-targets --manifest-path native/rust/Cargo.toml -- -D warnings
+
+      # DECLARED BECAUSE `fmt rust` IS DECLARED, and devbin will not let it be
+      # otherwise: builtin_check_format REFUSES a language whose `fmt` arm the
+      # config has overridden, rather than verifying a command line the
+      # formatter no longer runs. Loud by design -- follow its instruction.
+      #
+      # THE COST, WHICH IS REAL: this replaces the whole multi-language builtin
+      # with one command line. Today `languages: [shell, rust]` and shell has no
+      # formatter arm, so rust IS the entire check and this is equivalent. ADD A
+      # THIRD LANGUAGE AND ITS FORMAT CHECK SILENTLY DOES NOT HAPPEN. The
+      # tripwire is in tests/unit/devbin_rust_gates.bats, which pins the
+      # declared language set for exactly this reason.
+      format:
+        summary: rustfmt over the workspace, non-mutating
+        run: cargo fmt --all --manifest-path native/rust/Cargo.toml --check
+
+  fmt:
+    options:
+      # `--all` IS LOAD-BEARING AND ITS ABSENCE FAILS IN THE DIRECTION THAT
+      # LOOKS LIKE A FINDING. native/rust/Cargo.toml is a VIRTUAL manifest (no
+      # root package), so `cargo fmt --manifest-path <it>` reports
+      # `Failed to find targets` and exits 1 -- indistinguishable at the exit
+      # code from "found unformatted files". Measured, not assumed: with --all
+      # this covers the same 49 files as CI's invocation, set-for-set.
+      rust:
+        summary: rustfmt over the workspace, in place
+        run: cargo fmt --all --manifest-path native/rust/Cargo.toml
+
   build:
     group: Build
     # Both arms are handlers under cmd/build.d/, not `run:` lines: `release` is
