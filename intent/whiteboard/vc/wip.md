@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-15 11:57Z
+heartbeat_at: 2026-08-15 12:13Z
 status: active
-focus: "D01 REVERSED -- intentdb is the durable SSOT. State machines ratified. Rolled out to all nodes with an ack due on their pickup. 30/97, four WPs open."
+focus: "Resumed after compact. Specs ratified and rolled out; two acks now owed by every peer on pickup. Cleared a stale shared index and filed 0028. 30/97, four WPs open."
 claims: [ST0056]
 ---
 
@@ -31,7 +31,7 @@ claims: [ST0056]
 - **`wp reopen` does not exist and three of five WPs disagree with their own gate** (WP-02 and WP-04 say `Done` against BLOCKED; WP-05 says `WIP` against PASS). I caused two by adding ACs to closed WPs. Cannot be repaired through the tool until the verb exists -- do NOT hand-edit the status field to paper over it.
 - **Open WPs**: 02 (AC-02.6 openness), 03 (AC-03.9 sync directions), 04 (AC-04.1 TornRollback, AC-04.6 graph conformance), 06 (AC-06.1, AC-06.3, AC-06.6).
 - **AC-00.1 carries the 28 deferred non-core `pending` rows.** ic's to name, gated here, not forgiven.
-- **Issues 0026 and 0027 are filed and are cc's to fix under hv's DEFAULT-DEFER.** 0026 was corrected from my own false high-severity version; read the Correction notice before acting on it.
+- **Issues 0026, 0027 and 0028 are filed under hv's DEFAULT-DEFER.** 0026 was corrected from my own false high-severity version; read the Correction notice before acting on it. 0028 is a one-sentence addition to the shipped whiteboard SKILL.md and touches every node's commit habit.
 - **hv rulings not yet built**: devbin moves `bin/.devbin` -> `devbin/` (dc's lane); `intent doctor` flags an unwired hook and `--fix` repairs it (the flag is `--fix`, NOT `--repair` -- it already exists, do not add a second); auth model for WP-08 (local password at first install, Conflab-style cli-to-daemon).
 - **WP-10 precondition, from cc**: measure L2/L3 failures per fleet member at its named revision before ruling whether a broken reference in a CLOSED thread carries or blocks.
 
@@ -51,7 +51,7 @@ Measurement rules live in `intent/st/ST0056/parity.md`. What follows is operatio
 - **Absence of a mechanism's NAME is not absence of the mechanism.** I grepped for `hooksPath`, found it only in dc's files, and filed a false `high` defect on a public repo. The correct API never needs to name it.
 - **A rule true in its own scope is the easiest to over-apply**, because it keeps being true wherever you check it. Check the SHAPE matches the shape the rule was measured on.
 - **Verify at HEAD (`git ls-tree`), never on disk -- better, clone fresh and build.** **A green suite is evidence about the tree you HAVE, never the tree you PUSHED.**
-- **`git commit --only <paths>`, never `-A`** -- and **a move is TWO facts**: naming only the new paths commits half a move, silently, with a green working tree.
+- **`git commit --only <paths>`, never `-A`** -- and **a move is TWO facts**: naming only the new paths commits half a move, silently, with a green working tree. **`--only` also never CLEARS the index** (measured, issue 0028): a stale entry survives every subsequent commit, is invisible to `git diff HEAD`, and shows only as the left `M` of `MM` in `git status --short`. Read the short status, not the diff.
 - **THIS REPOSITORY IS PUBLIC** and hv has ratified that the whiteboards are part of the public record, intentionally. The `-A` hazard is therefore a _publication_ hazard into a history nobody can rewrite. Check `git status` for untracked strays before any commit.
 - **Never mutate `bin/**` or `tests/**` in place** -- `~/.local/bin/intent` symlinks here and the BATS suite reads the live tree. Sacrificial worktrees only.
 - **Never `head` a list you are counting**; a frequency-sorted list puts the RARE value last. **Read `$?` before anything else touches it** -- but the pipe trap is the pipe trap; `A || echo "$?"` reports A correctly.
