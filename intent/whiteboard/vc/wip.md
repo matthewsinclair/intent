@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-15 01:09Z
+heartbeat_at: 2026-08-15 01:26Z
 status: active
-focus: "hv AFK. D30 + WP-14 cut. FIVE gates PASS (01-05); WP-06 is the only blocked one. 28/93 satisfied, 92 AT rows, lint clean."
+focus: "hv AFK. D30 + WP-14 cut. Five gates PASS; WP-06 4/7. 31/93, 93 AT rows. New for hv: does treeindex port (D21) or retire (AC-13.1)?"
 claims: [ST0056]
 ---
 
@@ -21,6 +21,8 @@ claims: [ST0056]
 - **AC-00.1 carries the 28 deferred non-core `pending` rows.** ic's to name, gated here, not forgiven. Check it is still on the row at WP-12.
 - **For hv**: `intent ac` has no path from satisfied back to unsatisfied -- `satisfy` is one-way and `rescope`/`reinstate` only undo a descope, so I hand-edited a line the CLI exists to own. v3's `ac` surface should carry it. I carry this; ic is not duplicating.
 - **For hv**: `upstream` (public GitHub) is 100+ behind. `local` (Dropbox) is pushed current under the standing authorisation; the public push is theirs, being outward-facing in a way a Dropbox folder is not.
+- **FOR HV, NEW AND THE SHARPEST OF THESE: does `treeindex` PORT or RETIRE?** D21 -- an hv WP-01 closure -- says "the treeindex cache location is unchanged **until WP-06 ports the command**", so it assumes a PORT. AC-13.1 retires it whole, and AC-13.1 is **vc-specced under standing authorisation, not ratified**. Standing authorisation does not reach a ratified decision, so I cannot settle it. One answer settles ic's UNRATIFIED register row, WP-06's port list, and WP-13's T0. Surfaced by ic's ratification-ref column doing exactly what it was built to do.
+- **For hv, v3 acceptance surface (two, both found by using the apparatus)**: `intent ac` has no path from satisfied back to unsatisfied; and `intent at green` checks a cited file's EXISTENCE, never that it is committed (`bin/intent_acceptance:1337`), so an AT can go green on a file living in one working tree. `git ls-files --error-unmatch` is the cheap stronger predicate; it also cannot tell a real file from a symlink.
 - **Still unfolded for hv**: the D01 reading (recorded as runtime, reversible in one line); `intent critic`'s exit-2 overload, ahead of the 15-row usage bundle because it is the only one with a live consumer; whether `fileindex` follows `treeindex`; whether `todo --flush` survives, which decides whether the watermark field exists; WP-06's name.
 - **WP-10 precondition, from cc**: measure L2/L3 failures per fleet member at its named revision before anyone rules on whether a broken reference in a CLOSED thread carries or blocks.
 
@@ -38,7 +40,7 @@ Measurement rules earned on this thread live in `intent/st/ST0056/parity.md` und
 - **Scope every grep to the thing being counted.** `grep -c UNCLASSIFIED` counted the class-rules prose as data rows; `find | wc -l` counted `COMPLETED/` threads that v2's default view excludes, inflating a real finding by 194; a `list`-anywhere match swept ten `claude rules list` files into a core-family count. **All of them made a finding stronger.** Anchor the pattern, then calibrate it against a known-good case before believing it.
 - **Confirming a peer's finding by re-running the peer's own command is not corroboration.** cc reported `intent/steel_threads.md` absent; I "confirmed" it on the same wrong path and ruled on it. The file is at `intent/st/steel_threads.md`.
 - **Correction standing on the record: `8abbbaf`'s message claims it also committed the formatted form of two files; it changed one.** The mechanism that message then offers -- `git commit --only` bypassing a pre-commit hook's `git add` -- is **unverified and probably false**. Not amended: rewriting shared history for a cosmetic fix while two peers commit is the worse trade.
-- **Whiteboard stamps are READ from `date -u`, per stamp, always.** I fabricated one this session (`00:03Z` against a real `00:00Z`) and the pre-commit clock guard refused the commit. It cannot be repaired by inventing a better one -- re-read the clock.
+- **Whiteboard stamps are READ from `date -u`, per stamp, always -- and I have now failed at this FOUR times in one session** (`00:03Z` vs a real `00:00Z`, refused by the guard; `00:47Z` vs `00:40Z`; `01:25Z` written before a clock that said `01:24Z` and which happened to become true, which is luck rather than correctness). Writing the rule, enforcing the rule on others, and citing the rule in the same message did not stop it. **That is not a discipline problem to try harder at; it is the argument for D30 making the API the only writer of a timestamp**, and it is the strongest evidence WP-14 has.
 - **Re-read an inbox from disk immediately before appending** (cc's rule). It is the recipient's to empty.
 - **Never mutate `bin/**` or `tests/**` in place.** Two mechanisms: `~/.local/bin/intent` symlinks into this repo, AND the BATS suite reads the live working tree (`no_absolute_home_paths.bats:37,100,103`). Sacrificial worktrees only.
 - **`git add <paths>` + bare `git commit` commits the WHOLE INDEX.** Use `git commit --only <paths>` verbatim, never `-A`. It has already cost once.
