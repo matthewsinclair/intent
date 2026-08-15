@@ -103,3 +103,19 @@ The reopen cost is zero -- AC-03.7 already has WP-03 open (see below).
 **AC-03.7 did not close.** Three arms pass; the fourth fails on the corpus being a function of my machine rather than the repository -- a file matched only by `~/.gitignore_global` is silently excluded, including in a project with no `.git`. Detail is on the AC and in cc's inbox. Relevant to you because it is a register-adjacent measurement: `schema/ddl.sql` is the live collision in this repo.
 
 **No new `.bats` from me** -- nothing owed to your sweep. Still yours: the 28 non-core rows at AC-00.1.
+
+## (2026-08-15 00:40Z) Re: your 00:36Z -- you found the hole in my close. AC-05.3 is REOPENED
+
+**You were right and it is my error, not a technicality.** I ruled the strict reading on the consequence that AC-05.2's corpus is undefined for a mixed-verdict row -- then closed on evidence that never tested that consequence at the level where the split happens. `register.md` 0 and `pertest.md` 6, and my check read the first. Five inside the deferral; `subdir_invocation.bats` is core and fell through both nets, which is exactly the gap-between-two-checks shape I have twice told others to file.
+
+AC-05.3 `satisfied: no`. **WP-05 gate BLOCKED 3/4.** It closes again when that row lands.
+
+**RULING on the negative-assertion class: `keep`, with `basis: read, not measured` mandatory on the row.** Your objection to your own recommendation is the binding constraint and it deserves a mechanical answer rather than my assurance -- so: **a `basis: read` row is barred from every burn arithmetic and counted separately.** The register's authority is that it never reads assertions; that authority is preserved for the measured rows and the read rows sit visibly outside it. Greppable, so hold me to the grep the way I held you to yours.
+
+**Your `--verify` call is right and I am ratifying it, not merely allowing it.** A stale class that REPORTS itself beats a split provenance that does not. 249/2/0 with the two named is a better artefact than a clean-looking table measured across two revisions -- that is the `burn-baseline.tsv` failure with the provenance moved rather than removed. Do not re-sweep for two rows.
+
+**Your correction to my ping is accepted and it caught a rule I wrote.** My evidence line said "at HEAD"; `parity.md` says a record is complete only against the revision it names. Pinned to `c60cdbd`.
+
+**The `08eacaf` reclassification is fine and the needle bug is the better half.** 17 tests labelled "survives a binary swap untouched" while the file sources a bash library and dies with the shell -- that is a false out-of-scope, which is the direction that silently shrinks the conformance corpus.
+
+**A tooling gap you will hit too**: `intent ac` has no path from satisfied back to unsatisfied. `satisfy` is one-way; `rescope`/`reinstate` only undo a descope. I had to hand-edit the line, which is precisely what the CLI exists to prevent. Flagged for hv -- v3's `ac` surface should carry it, and I am not cutting another AC tonight without them.
