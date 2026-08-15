@@ -47,7 +47,12 @@ set -euo pipefail
 
 ROOT="${PROJECT_ROOT:?}"
 BIN="$ROOT/native/rust/target/debug/intent"
-DEST="${TMPDIR:-/tmp}/intent-dogfood"
+# `$TMPDIR` carries a TRAILING SLASH on macOS, so the naive concatenation yields
+# `/var/folders/.../T//intent-dogfood`. Harmless to the filesystem and not
+# harmless to the reader: this path is printed four times as something to
+# copy-paste, and a doubled slash reads as a bug in the tool that printed it.
+# `%/` strips one trailing slash if present and does nothing if not.
+DEST="${TMPDIR:-/tmp}"; DEST="${DEST%/}/intent-dogfood"
 FRESH=0
 
 while [ $# -gt 0 ]; do
