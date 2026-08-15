@@ -26,8 +26,9 @@
 mod common;
 
 use common::{Fixture, sample_thread};
+use intentsvcs::facade::{Facade, FacadeError};
 use intentsvcs::model::{AcScope, AtStatus, Criterion, Thread, ThreadStatus, WpStatus, enum_str};
-use intentsvcs::transitions::{ABSENT, Disposition, Edge, FIELDS, find, traps, unreachable};
+use intentsvcs::transitions::{ABSENT, Disposition, Edge, FIELDS, Guard, find, traps, unreachable};
 use serde_json::Value;
 
 // ---------------------------------------------------------------------------
@@ -472,6 +473,10 @@ fn every_declared_edge_is_a_mutation_that_exists() {
 
 const ST: &str = "ST0056";
 
+/// The reason every guarded verb is driven with. One constant so a test that
+/// asserts a reason lands can name the same value the driver supplied.
+const REASON: &str = "the contract grew after the close";
+
 /// Drive one edge: build a thread with `field` at `from`, apply the verb, and
 /// report where the field landed.
 fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
@@ -481,9 +486,14 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       fx.write_thread(&thread_with(|t| t.status = parse(from)));
       let mut facade = fx.facade();
       match edge.verb {
+        "st.triage" => facade.st_triage(ST).expect("st triage"),
         "st.start" => facade.st_start(ST).expect("st start"),
+        "st.resume" => facade.st_resume(ST).expect("st resume"),
+        "st.hold" => facade.st_hold(ST, REASON).expect("st hold"),
         "st.done" => facade.st_done(ST).expect("st done"),
-        "st.cancel" => facade.st_cancel(ST).expect("st cancel"),
+        "st.cancel" => facade.st_cancel(ST, REASON).expect("st cancel"),
+        "st.reopen" => facade.st_reopen(ST, REASON).expect("st reopen"),
+        "st.reinstate" => facade.st_reinstate(ST, REASON).expect("st reinstate"),
         other => panic!("no arm drives {other} on Thread.status"),
       }
       enum_str(&facade.st_show(ST).expect("thread").status).to_string()
@@ -508,7 +518,9 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       let seq = 3;
       match edge.verb {
         "wp.start" => facade.wp_start(ST, seq).expect("wp start"),
+        "wp.unstart" => facade.wp_unstart(ST, seq).expect("wp unstart"),
         "wp.done" => facade.wp_done(ST, seq).expect("wp done"),
+        "wp.reopen" => facade.wp_reopen(ST, seq, REASON).expect("wp reopen"),
         other => panic!("no arm drives {other} on WorkPackage.status"),
       }
       enum_str(&facade.wp_show(ST, seq).expect("wp").status).to_string()
@@ -753,5 +765,214 @@ fn a_self_edge_is_not_an_exit() {
   assert_eq!(
     traps(&values, &["only"], self_edge),
     vec!["only".to_string()]
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CONFORMANCE -- the ratified machines, not merely a closed graph
+// ---------------------------------------------------------------------------
+//
+// AC-04.6 changed shape when hv ratified the state machines on 2026-08-15. It
+// used to ask "is the graph closed?", which the code answered about a graph it
+// had discovered from itself. It now asks "does the code implement THE ratified
+// machine?" -- and the difference is not academic, because the graph that
+// passed the closure check declared every edge with `from: &[]`, meaning any
+// state. A graph where every verb accepts every state cannot have a trap. It
+// was closed, and it let `st done` fire from `cancelled`.
+
+/// The ratified steel-thread machine, transcribed from `data-model.md`
+/// INDEPENDENTLY of `transitions.rs`.
+///
+/// **Two transcriptions of one document, compared.** The production table is
+/// what the service layer enforces from, so a test that read it would be asking
+/// the implementation to confirm itself. This is the second witness: a typo in
+/// either copy is a failure, and the only way to make both wrong in the same
+/// way is to make the same mistake twice.
+const RATIFIED_THREAD: &[(&str, &[&str], &str, Guard)] = &[
+  ("st.triage", &["triage"], "not-started", Guard::None),
+  ("st.start", &["not-started"], "wip", Guard::None),
+  ("st.resume", &["hold"], "wip", Guard::None),
+  (
+    "st.hold",
+    &["not-started", "wip"],
+    "hold",
+    Guard::ReasonRecorded,
+  ),
+  ("st.done", &["wip"], "completed", Guard::GatePass),
+  (
+    "st.cancel",
+    &["triage", "not-started", "wip", "hold"],
+    "cancelled",
+    Guard::ReasonRecorded,
+  ),
+  ("st.reopen", &["completed"], "wip", Guard::ReasonRecorded),
+  (
+    "st.reinstate",
+    &["cancelled"],
+    "not-started",
+    Guard::ReasonRecorded,
+  ),
+];
+
+/// The ratified work-package machine, same discipline.
+const RATIFIED_WP: &[(&str, &[&str], &str, Guard)] = &[
+  ("wp.start", &["not-started"], "wip", Guard::None),
+  ("wp.unstart", &["wip"], "not-started", Guard::None),
+  ("wp.done", &["wip"], "done", Guard::GatePass),
+  ("wp.reopen", &["done"], "wip", Guard::ReasonRecorded),
+];
+
+fn declared(entity: &str, field: &str) -> &'static [Edge] {
+  match find(entity, field).map(|f| &f.disposition) {
+    Some(Disposition::State { edges, .. }) => edges,
+    _ => panic!("{entity}.{field} is not a State"),
+  }
+}
+
+#[test]
+fn the_implemented_graph_is_the_ratified_one_edge_for_edge() {
+  for (entity, ratified) in [("Thread", RATIFIED_THREAD), ("WorkPackage", RATIFIED_WP)] {
+    let implemented = declared(entity, "status");
+    assert_eq!(
+      implemented.len(),
+      ratified.len(),
+      "{entity}.status declares {} edges and the ratified machine has {} -- an EXTRA edge is as much a divergence as a missing one, because it is a transition nobody approved",
+      implemented.len(),
+      ratified.len()
+    );
+    for (verb, from, to, guard) in ratified {
+      let found = implemented
+        .iter()
+        .find(|e| e.verb == *verb && e.to == *to)
+        .unwrap_or_else(|| {
+          panic!("{entity}.status: the ratified machine has `{verb}` -> `{to}` and the code declares no such edge")
+        });
+      assert_eq!(
+        found.from, *from,
+        "{entity}.status: `{verb}` is ratified from {from:?} and declared from {:?}",
+        found.from
+      );
+      assert_eq!(
+        found.guard, *guard,
+        "{entity}.status: `{verb}` is ratified with {guard:?} and declared with {:?} -- a guard is the half a success-path test never sees",
+        found.guard
+      );
+    }
+  }
+}
+
+/// Drive `verb` from `from`, and report the refusal if there was one.
+fn attempt(entity: &str, verb: &str, from: &str, reason: &str) -> Result<(), FacadeError> {
+  let fx = Fixture::new();
+  let mut facade: Facade = match entity {
+    "Thread" => {
+      fx.write_thread(&thread_with(|t| t.status = parse(from)));
+      fx.facade()
+    }
+    "WorkPackage" => {
+      fx.write_thread(&thread_with(|t| t.wps[1].status = parse::<WpStatus>(from)));
+      fx.facade()
+    }
+    other => panic!("no fixture for {other}"),
+  };
+  let seq = 3;
+  match verb {
+    "st.triage" => facade.st_triage(ST),
+    "st.start" => facade.st_start(ST),
+    "st.resume" => facade.st_resume(ST),
+    "st.hold" => facade.st_hold(ST, reason),
+    "st.done" => facade.st_done(ST),
+    "st.cancel" => facade.st_cancel(ST, reason),
+    "st.reopen" => facade.st_reopen(ST, reason),
+    "st.reinstate" => facade.st_reinstate(ST, reason),
+    "wp.start" => facade.wp_start(ST, seq),
+    "wp.unstart" => facade.wp_unstart(ST, seq),
+    "wp.done" => facade.wp_done(ST, seq),
+    "wp.reopen" => facade.wp_reopen(ST, seq, reason),
+    other => panic!("no arm drives {other}"),
+  }
+}
+
+/// **THE conformance test, and the one the old shape could not have written.**
+///
+/// Every (verb, state) pair the ratified machine does NOT declare must be
+/// REFUSED. Without this, a graph could declare the right edges and still
+/// accept every other transition on top of them -- which is exactly what
+/// `from: &[]` was: the declared edges were all present and correct, and so was
+/// every edge nobody declared.
+#[test]
+fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
+  let mut checked = 0;
+  for (entity, ratified) in [("Thread", RATIFIED_THREAD), ("WorkPackage", RATIFIED_WP)] {
+    let states: Vec<&str> = ratified
+      .iter()
+      .flat_map(|(_, from, to, _)| from.iter().copied().chain(std::iter::once(*to)))
+      .collect::<std::collections::BTreeSet<_>>()
+      .into_iter()
+      .collect();
+    for (verb, from, _, _) in ratified {
+      for state in states.iter().filter(|s| !from.contains(s)) {
+        let outcome = attempt(
+          entity,
+          verb,
+          state,
+          "a reason, so the refusal is about the STATE",
+        );
+        assert!(
+          matches!(outcome, Err(FacadeError::IllegalTransition { .. })),
+          "{entity}: `{verb}` from `{state}` is not in the ratified machine and was not refused as an illegal transition -- got {outcome:?}"
+        );
+        checked += 1;
+      }
+    }
+  }
+  assert!(
+    checked >= 20,
+    "only {checked} undeclared pairs were exercised -- the enumeration is collapsing, and a check that examines nothing passes"
+  );
+}
+
+/// A `ReasonRecorded` guard REFUSES an absent or blank reason.
+///
+/// The guard is declared in the table, so this reads the declaration rather
+/// than a list of verbs somebody has to keep in step with it.
+#[test]
+fn a_verb_declared_with_reason_recorded_refuses_a_blank_one() {
+  let mut checked = 0;
+  for (entity, ratified) in [("Thread", RATIFIED_THREAD), ("WorkPackage", RATIFIED_WP)] {
+    for (verb, from, _, guard) in ratified.iter().filter(|r| r.3 == Guard::ReasonRecorded) {
+      for blank in ["", "   "] {
+        let outcome = attempt(entity, verb, from[0], blank);
+        assert!(
+          matches!(outcome, Err(FacadeError::ReasonRequired { .. })),
+          "{entity}: `{verb}` is declared {guard:?} and accepted the reason {blank:?} -- got {outcome:?}"
+        );
+        checked += 1;
+      }
+    }
+  }
+  assert!(checked >= 8, "only {checked} guarded verbs were exercised");
+}
+
+/// And the mirror: an UNGUARDED transition CLEARS a reason left by a guarded
+/// one, so a thread never explains itself with a condition that has ended.
+#[test]
+fn an_unguarded_transition_clears_the_reason_a_guarded_one_left() {
+  let fx = Fixture::new();
+  fx.write_thread(&thread_with(|t| t.status = ThreadStatus::Wip));
+  let mut facade = fx.facade();
+
+  facade.st_hold(ST, "waiting on the fleet").expect("hold");
+  assert_eq!(
+    facade.st_show(ST).expect("thread").status_reason.as_deref(),
+    Some("waiting on the fleet"),
+    "precondition: the guarded verb recorded it"
+  );
+
+  facade.st_resume(ST).expect("resume");
+  assert_eq!(
+    facade.st_show(ST).expect("thread").status_reason,
+    None,
+    "a resumed thread must not still be explaining why it was paused -- the reason belongs to the state it was given for"
   );
 }

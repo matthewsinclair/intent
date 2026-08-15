@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS threads (
   title TEXT NOT NULL,
   slug TEXT,
   status TEXT NOT NULL,
+  status_reason TEXT,
   created TEXT NOT NULL,
   completed TEXT,
   acceptance TEXT,
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS wps (
   title TEXT NOT NULL,
   scope TEXT NOT NULL,
   status TEXT NOT NULL,
+  status_reason TEXT,
   objective TEXT NOT NULL,
   body TEXT NOT NULL,
   PRIMARY KEY (thread_id, seq)

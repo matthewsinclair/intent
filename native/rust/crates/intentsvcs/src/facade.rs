@@ -47,6 +47,7 @@ use crate::model::{
 };
 use crate::project::{Migration, Pending, Project};
 use crate::store::{Store, StoreError};
+use crate::transitions;
 use crate::views::{self, RenderContext};
 use crate::write_set::{Applied, WriteError, WriteSet};
 
@@ -113,6 +114,19 @@ pub enum FacadeError {
   },
   #[error("no schema face named `{face}`")]
   NoSuchFace { face: String },
+  // The ratified machines have no terminal states, so every refusal here is
+  // about ORDER rather than about a dead end -- there is always a route, and
+  // the remedy names where it starts.
+  #[error("`{verb}` is not a legal transition for {subject}, which is `{from}`")]
+  IllegalTransition {
+    verb: &'static str,
+    subject: String,
+    from: String,
+    /// The states the declared graph accepts this verb from.
+    legal: String,
+  },
+  #[error("`{verb}` requires a reason and was given none")]
+  ReasonRequired { verb: &'static str },
   // NOT `#[source]`-bearing and NOT constructed from anything: the whole value
   // of this variant is that it carries the EVIDENCE, so that a refusal can be
   // told apart from an empty project by reading it.
@@ -184,6 +198,16 @@ impl FacadeError {
         // best one the same day, which is the same class as the first edit --
         // a remedy outliving the estate it was written against.
         "the change is safe in the store -- do NOT retry it. Clear the filesystem cause, then run `intent st sync` to rewrite the files from the store. Do NOT reach for the disk -> db direction, which reads the FILES into the database and would overwrite the change with the stale copy".to_string()
+      }
+      Self::IllegalTransition { verb, legal, .. } => {
+        format!(
+          "`{verb}` is declared only from: {legal}. The machine has no terminal states, so there IS a route from here -- move through the states rather than around them"
+        )
+      }
+      Self::ReasonRequired { verb } => {
+        format!(
+          "give `{verb}` a reason. It is recorded on the entity as the reason for its CURRENT state, and in the event log as part of the decision, which is what lets anyone reconstruct why later"
+        )
       }
       Self::NotSatisfied { .. } => {
         "run `intent ac list <thread>` to see which criteria carry evidence -- only a non-test criterion that was satisfied can be unsatisfied".to_string()
@@ -615,6 +639,10 @@ impl Facade {
   // -------------------------------------------------------------------------
 
   /// Create a thread. The id is the next free `ST<nnnn>`.
+  ///
+  /// **Entry is `Triage`, ratified** -- it used to be `NotStarted`. Every
+  /// thread is now triaged rather than assumed wanted, and `st triage` is the
+  /// verb that accepts it into the backlog.
   pub fn st_new(&mut self, title: &str) -> Result<String, FacadeError> {
     let id = self.next_thread_id();
     if self.canon.threads.iter().any(|t| t.id == id) {
@@ -625,7 +653,8 @@ impl Facade {
       id: id.clone(),
       title: title.to_string(),
       slug: Some(slugify(title)),
-      status: ThreadStatus::NotStarted,
+      status: ThreadStatus::Triage,
+      status_reason: None,
       created: self.ctx.today.clone(),
       completed: None,
       acceptance: None,
@@ -650,8 +679,31 @@ impl Facade {
     Ok(id)
   }
 
+  /// Accept a thread out of triage and into the backlog.
+  pub fn st_triage(&mut self, id: &str) -> Result<(), FacadeError> {
+    self.set_thread_status(id, ThreadStatus::NotStarted, "st.triage", None)
+  }
+
   pub fn st_start(&mut self, id: &str) -> Result<(), FacadeError> {
-    self.set_thread_status(id, ThreadStatus::Wip, "st.start")
+    self.set_thread_status(id, ThreadStatus::Wip, "st.start", None)
+  }
+
+  /// Pause a thread, recording why.
+  ///
+  /// **`Hold` was in the vocabulary for two major versions with no verb that
+  /// set it** -- v2 recognised it in its status filter and reached it only by
+  /// hand-editing frontmatter, which is the defect class hv ruled on, sitting
+  /// in the tool's own status enum.
+  pub fn st_hold(&mut self, id: &str, reason: &str) -> Result<(), FacadeError> {
+    self.set_thread_status(id, ThreadStatus::Hold, "st.hold", Some(reason))
+  }
+
+  /// Resume a held thread. **The hold reason is cleared**, because it described
+  /// a condition that has ended -- see [`Thread::status_reason`].
+  ///
+  /// [`Thread::status_reason`]: crate::model::Thread::status_reason
+  pub fn st_resume(&mut self, id: &str) -> Result<(), FacadeError> {
+    self.set_thread_status(id, ThreadStatus::Wip, "st.resume", None)
   }
 
   /// Close a thread. Consults the close gate first -- the single authority, so
@@ -664,23 +716,47 @@ impl Facade {
         verdict: verdict.line(id),
       });
     }
-    self.set_thread_status(id, ThreadStatus::Completed, "st.done")
+    self.set_thread_status(id, ThreadStatus::Completed, "st.done", None)
   }
 
-  pub fn st_cancel(&mut self, id: &str) -> Result<(), FacadeError> {
-    self.set_thread_status(id, ThreadStatus::Cancelled, "st.cancel")
+  /// Reopen a completed thread.
+  ///
+  /// **The ratified machines have no terminal states**, and this is one of the
+  /// two exits that makes that true. A thread whose contract grows after it
+  /// closed was previously repairable only by editing the file the CLI exists
+  /// to own -- and the gate then kept saying PASS against a contract that had
+  /// moved underneath it.
+  pub fn st_reopen(&mut self, id: &str, reason: &str) -> Result<(), FacadeError> {
+    self.set_thread_status(id, ThreadStatus::Wip, "st.reopen", Some(reason))
+  }
+
+  /// Bring a cancelled thread back, to the backlog rather than to where it was.
+  ///
+  /// It lands on `not-started` deliberately: a thread that was cancelled mid-
+  /// flight has had its work overtaken, and resuming it as `wip` would assert
+  /// a continuity nobody checked.
+  pub fn st_reinstate(&mut self, id: &str, reason: &str) -> Result<(), FacadeError> {
+    self.set_thread_status(id, ThreadStatus::NotStarted, "st.reinstate", Some(reason))
+  }
+
+  pub fn st_cancel(&mut self, id: &str, reason: &str) -> Result<(), FacadeError> {
+    self.set_thread_status(id, ThreadStatus::Cancelled, "st.cancel", Some(reason))
   }
 
   fn set_thread_status(
     &mut self,
     id: &str,
     status: ThreadStatus,
-    op: &str,
+    op: &'static str,
+    reason: Option<&str>,
   ) -> Result<(), FacadeError> {
     let from = self.st_show(id)?.status;
+    Self::check_transition("Thread", "status", op, &crate::model::enum_str(&from), id)?;
+    let reason = Self::check_reason("Thread", "status", op, reason)?;
     let mut next = self.canon.clone();
     let thread = find_thread_mut(&mut next, id)?;
     thread.status = status;
+    thread.status_reason = reason.clone();
     thread.completed = match status {
       ThreadStatus::Completed | ThreadStatus::Cancelled => Some(self.ctx.today.clone()),
       _ => None,
@@ -691,9 +767,70 @@ impl Facade {
         kind: "thread".to_string(),
         id: id.to_string(),
       },
-      json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&status)}),
+      json!({
+        "from": crate::model::enum_str(&from),
+        "to": crate::model::enum_str(&status),
+        "reason": reason,
+      }),
       next,
     )
+  }
+
+  /// Refuse a transition the ratified machine does not have.
+  ///
+  /// **It asks [`crate::transitions`] rather than carrying its own copy of the
+  /// from-states**, so there is one machine rather than a declaration and an
+  /// implementation that can disagree. That disagreement is precisely what
+  /// AC-04.6 exists to find, and the cheapest way to never find it is to make
+  /// it unconstructible.
+  fn check_transition(
+    entity: &'static str,
+    field: &'static str,
+    verb: &'static str,
+    from: &str,
+    subject: &str,
+  ) -> Result<(), FacadeError> {
+    if transitions::permits(entity, field, verb, from) {
+      return Ok(());
+    }
+    Err(FacadeError::IllegalTransition {
+      verb,
+      subject: subject.to_string(),
+      from: from.to_string(),
+      legal: transitions::accepted_from(entity, field, verb).join(", "),
+    })
+  }
+
+  /// Require a reason exactly where the declared guard says one is required.
+  ///
+  /// **The clearing of a stale reason is NOT done here, and saying it was is a
+  /// claim mutation-testing refused.** Replacing the `None` arm below with a
+  /// pass-through changed no test, because every unguarded verb passes `None`
+  /// anyway -- so the declaration was not what cleared anything, the caller's
+  /// signature was. The clearing lives in the unconditional
+  /// `status_reason = reason` assignment at each call site, and THAT is what a
+  /// test kills a mutant on. Recorded rather than quietly reworded, because a
+  /// comment claiming the wrong mechanism is how the next person builds on a
+  /// guarantee that is not there.
+  ///
+  /// What it is guarding against is real: `st hold --reason "waiting on the
+  /// fleet"` followed by `st resume` must not leave a running thread explaining
+  /// why it was paused -- a reason outliving the condition it described, which
+  /// is this estate's remedy-outliving-its-model class in different clothes.
+  fn check_reason(
+    entity: &'static str,
+    field: &'static str,
+    verb: &'static str,
+    reason: Option<&str>,
+  ) -> Result<Option<String>, FacadeError> {
+    match transitions::guard_for(entity, field, verb) {
+      transitions::Guard::ReasonRecorded => reason
+        .map(str::trim)
+        .filter(|r| !r.is_empty())
+        .map(|r| Some(r.to_string()))
+        .ok_or(FacadeError::ReasonRequired { verb }),
+      _ => Ok(None),
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -717,6 +854,7 @@ impl Facade {
       title: title.to_string(),
       scope,
       status: WpStatus::NotStarted,
+      status_reason: None,
     });
     self.apply(
       "wp.new",
@@ -731,7 +869,13 @@ impl Facade {
   }
 
   pub fn wp_start(&mut self, st: &str, seq: u32) -> Result<(), FacadeError> {
-    self.set_wp_status(st, seq, WpStatus::Wip, "wp.start")
+    self.set_wp_status(st, seq, WpStatus::Wip, "wp.start", None)
+  }
+
+  /// Put a work package back to `not-started` -- the inverse of `wp start`,
+  /// for one started by mistake or on the wrong thread.
+  pub fn wp_unstart(&mut self, st: &str, seq: u32) -> Result<(), FacadeError> {
+    self.set_wp_status(st, seq, WpStatus::NotStarted, "wp.unstart", None)
   }
 
   /// Close a work package, gated on its own scope.
@@ -744,7 +888,21 @@ impl Facade {
         verdict: verdict.line(&label),
       });
     }
-    self.set_wp_status(st, seq, WpStatus::Done, "wp.done")
+    self.set_wp_status(st, seq, WpStatus::Done, "wp.done", None)
+  }
+
+  /// Reopen a closed work package, recording why.
+  ///
+  /// **This is the verb whose absence was doing live damage.** `wp done`
+  /// consults the gate on the way in and nothing re-checks afterwards, so a
+  /// work package that was legitimately `Done` becomes a false green the moment
+  /// an AC is added to it -- and with no inverse, the only repair was editing
+  /// the file the CLI exists to own. Measured on this thread on 2026-08-15:
+  /// three of five work packages carried a status that disagreed with their own
+  /// gate, two of them written by the verifier enforcing the rule that names
+  /// the class.
+  pub fn wp_reopen(&mut self, st: &str, seq: u32, reason: &str) -> Result<(), FacadeError> {
+    self.set_wp_status(st, seq, WpStatus::Wip, "wp.reopen", Some(reason))
   }
 
   /// Re-size a work package.
@@ -794,8 +952,10 @@ impl Facade {
     st: &str,
     seq: u32,
     status: WpStatus,
-    op: &str,
+    op: &'static str,
+    reason: Option<&str>,
   ) -> Result<(), FacadeError> {
+    let label = format!("{st}/{seq:02}");
     let from = self
       .st_show(st)?
       .wps
@@ -806,6 +966,14 @@ impl Facade {
         st: st.to_string(),
         seq,
       })?;
+    Self::check_transition(
+      "WorkPackage",
+      "status",
+      op,
+      &crate::model::enum_str(&from),
+      &label,
+    )?;
+    let reason = Self::check_reason("WorkPackage", "status", op, reason)?;
     let mut next = self.canon.clone();
     let wp = find_thread_mut(&mut next, st)?
       .wps
@@ -816,13 +984,18 @@ impl Facade {
         seq,
       })?;
     wp.status = status;
+    wp.status_reason = reason.clone();
     self.apply(
       op,
       Subject {
         kind: "wp".to_string(),
-        id: format!("{st}/{seq:02}"),
+        id: label,
       },
-      json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&status)}),
+      json!({
+        "from": crate::model::enum_str(&from),
+        "to": crate::model::enum_str(&status),
+        "reason": reason,
+      }),
       next,
     )
   }

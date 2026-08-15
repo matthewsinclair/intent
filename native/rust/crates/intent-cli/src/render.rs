@@ -348,7 +348,14 @@ fn st(m: &ArgMatches) -> Result<(), String> {
     }
     Some(("cancel", a)) => {
       let id = arg(a, "id")?;
-      open()?.st_cancel(&id).map_err(fail)?;
+      // The ratified machine guards `st cancel` with "reason recorded", so the
+      // facade refuses without one. `--reason` is a dispatch-table row and the
+      // table is ic's lane, so it is READ optionally here rather than invented:
+      // the day ic declares it this starts carrying the operator's text, and
+      // until then the facade's `ReasonRequired` says exactly what is missing
+      // instead of cancelling a thread with no record of why.
+      let reason = opt(a, "reason").unwrap_or_default();
+      open()?.st_cancel(&id, &reason).map_err(fail)?;
       println!("ok: {id} cancelled");
       Ok(())
     }
@@ -780,7 +787,7 @@ fn status(s: intentsvcs::model::ThreadStatus) -> &'static str {
   match s {
     S::NotStarted => "Not Started",
     S::Wip => "WIP",
-    S::Tbc => "TBC",
+    S::Triage => "Triage",
     S::Hold => "On Hold",
     S::Completed => "Completed",
     S::Cancelled => "Cancelled",

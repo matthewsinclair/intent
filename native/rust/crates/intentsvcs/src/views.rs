@@ -64,7 +64,7 @@ fn status_display(status: ThreadStatus) -> &'static str {
   match status {
     ThreadStatus::NotStarted => "Not Started",
     ThreadStatus::Wip => "WIP",
-    ThreadStatus::Tbc => "TBC",
+    ThreadStatus::Triage => "Triage",
     ThreadStatus::Hold => "On Hold",
     ThreadStatus::Completed => "Completed",
     ThreadStatus::Cancelled => "Cancelled",
@@ -630,7 +630,9 @@ pub fn todo(threads: &[Thread], ctx: &RenderContext<'_>) -> String {
     let label = format!("{}: {}", t.id, t.title);
     match t.status {
       ThreadStatus::Wip => doing.push(label),
-      ThreadStatus::NotStarted | ThreadStatus::Tbc | ThreadStatus::Hold => todo_items.push(label),
+      ThreadStatus::Triage | ThreadStatus::NotStarted | ThreadStatus::Hold => {
+        todo_items.push(label)
+      }
       ThreadStatus::Completed | ThreadStatus::Cancelled => {
         if in_done_bucket(t, ctx.todo_watermark) {
           done.push(label);

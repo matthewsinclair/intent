@@ -32,10 +32,12 @@ use intentsvcs::model::ThreadStatus;
 #[cfg(unix)]
 fn store_ahead_of_disk(fx: &Fixture) -> intentsvcs::facade::Facade {
   let mut facade = fx.facade();
-  facade.st_start("ST0056").expect("materialise the views");
+  facade
+    .st_hold("ST0056", "waiting on the fleet")
+    .expect("a legal mutation from wip");
 
   let mode = fx.make_readonly("intent");
-  let result = facade.st_cancel("ST0056");
+  let result = facade.st_cancel("ST0056", "superseded by the v3 line");
   fx.restore_mode("intent", mode);
 
   assert!(
@@ -69,7 +71,11 @@ fn a_restore_from_stale_files_destroys_a_change_the_store_alone_holds() {
 
   assert_eq!(
     facade.st_show("ST0056").expect("thread").status,
-    ThreadStatus::Wip,
+    // `Hold`, not `Wip`: the materialising mutation is now `st hold`, because
+    // the ratified machine declares `st start` only from `not-started` and the
+    // fixture thread is `wip`. The state the files last received is what a
+    // restore restores, and here that is the hold.
+    ThreadStatus::Hold,
     "the cancel is GONE: the restore read files that never received it and replaced truth with them. This is the loss AC-03.9 exists to make visible, not a bug in the restore"
   );
 }
@@ -141,7 +147,9 @@ fn an_estate_in_step_has_nothing_to_overwrite() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
-  facade.st_start("ST0056").expect("mutate and project");
+  facade
+    .st_hold("ST0056", "waiting on the fleet")
+    .expect("a legal mutation from wip");
 
   assert!(
     facade.sync_overwrite().expect("preview").is_empty(),
@@ -156,7 +164,9 @@ fn the_directions_round_trip_on_a_healthy_estate() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
-  facade.st_start("ST0056").expect("mutate and project");
+  facade
+    .st_hold("ST0056", "waiting on the fleet")
+    .expect("a legal mutation from wip");
 
   let canon_before = fx.read("intent/st/ST0056/thread.json");
   let db_before = facade.store().snapshot().expect("snapshot");

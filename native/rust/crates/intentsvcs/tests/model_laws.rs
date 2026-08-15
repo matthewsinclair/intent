@@ -23,7 +23,7 @@ fn thread_status() -> impl Strategy<Value = ThreadStatus> {
   prop_oneof![
     Just(ThreadStatus::NotStarted),
     Just(ThreadStatus::Wip),
-    Just(ThreadStatus::Tbc),
+    Just(ThreadStatus::Triage),
     Just(ThreadStatus::Hold),
     Just(ThreadStatus::Completed),
     Just(ThreadStatus::Cancelled),
@@ -82,8 +82,9 @@ prop_compose! {
     // which is the whole reason `body` exists.
     objective in "[A-Za-z ,.`|]{0,80}",
     body in "(?s)[A-Za-z0-9 \n#`|_-]{0,200}",
+    status_reason in proptest::option::of("[A-Za-z ,.]{1,60}"),
   ) -> WorkPackage {
-    WorkPackage { seq, title, scope, status, objective, body }
+    WorkPackage { seq, title, scope, status, status_reason, objective, body }
   }
 }
 
@@ -106,13 +107,14 @@ prop_compose! {
 }
 
 prop_compose! {
-  fn thread()(n in 0u32..9999, title in "[A-Za-z ]{1,60}", slug in proptest::option::of("[a-z-]{3,20}"), status in thread_status(), completed in proptest::option::of(Just("2026-08-14".to_string())), exempt in any::<bool>(), objective in prose_text(), context in prose_text(), related in prop::collection::vec(related(), 0..3), wps in prop::collection::vec(work_package(), 0..3), criteria in prop::collection::vec(criterion(), 0..3), tests in prop::collection::vec(acceptance_test(), 0..3)) -> Thread {
+  fn thread()(n in 0u32..9999, title in "[A-Za-z ]{1,60}", slug in proptest::option::of("[a-z-]{3,20}"), status in thread_status(), status_reason in proptest::option::of("[A-Za-z ,.]{1,60}"), completed in proptest::option::of(Just("2026-08-14".to_string())), exempt in any::<bool>(), objective in prose_text(), context in prose_text(), related in prop::collection::vec(related(), 0..3), wps in prop::collection::vec(work_package(), 0..3), criteria in prop::collection::vec(criterion(), 0..3), tests in prop::collection::vec(acceptance_test(), 0..3)) -> Thread {
     Thread {
       schema: THREAD_SCHEMA.to_string(),
       id: format!("ST{n:04}"),
       title,
       slug,
       status,
+      status_reason,
       created: "2026-08-14".to_string(),
       completed,
       acceptance: exempt.then_some(AcceptanceMode::Exempt),
@@ -200,6 +202,7 @@ fn sample_thread() -> Thread {
     title: "Intent v3.0.0".to_string(),
     slug: Some("intent-v3".to_string()),
     status: ThreadStatus::Wip,
+    status_reason: Some("reopened: AC-02.6 was added after the close".to_string()),
     created: "2026-08-14".to_string(),
     completed: None,
     acceptance: None,
@@ -214,6 +217,7 @@ fn sample_thread() -> Thread {
       title: "Workspace and reified model".to_string(),
       scope: TShirt::L,
       status: WpStatus::Wip,
+      status_reason: None,
       objective: String::new(),
       body: String::new(),
     }],

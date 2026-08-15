@@ -39,10 +39,15 @@ fn every_mutating_verb_writes_an_envelope() {
 
   // Drive the whole mutating surface.
   facade.st_new("a second thread").expect("st.new");
+  facade
+    .st_triage("ST0057")
+    .expect("st.triage -- `st new` enters at triage");
   facade.st_start("ST0057").expect("st.start");
   facade.wp_new("ST0057", "a wp", TShirt::S).expect("wp.new");
   facade.wp_start("ST0057", 1).expect("wp.start");
-  facade.st_cancel("ST0057").expect("st.cancel");
+  facade
+    .st_cancel("ST0057", "superseded by the v3 line")
+    .expect("st.cancel");
 
   facade
     .ac_satisfy("ST0056", "AC-03.2", "evidence")
@@ -79,6 +84,9 @@ fn every_mutating_verb_writes_an_envelope() {
     "ac.withdraw",
     "ac.reinstate",
     "at.set",
+    // Ratified 2026-08-15: `st new` enters at triage, so reaching `wip`
+    // is two transitions and the log records both.
+    "st.triage",
   ] {
     assert!(
       recorded.iter().any(|op| op == expected),
@@ -87,7 +95,7 @@ fn every_mutating_verb_writes_an_envelope() {
   }
   assert_eq!(
     recorded.len(),
-    11,
+    12,
     "one envelope per mutation, no more and no fewer: {recorded:?}"
   );
 }
@@ -110,7 +118,9 @@ fn every_envelope_carries_the_principal_and_project_id() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
-  facade.st_start("ST0056").expect("start");
+  facade
+    .st_hold("ST0056", "waiting on the fleet")
+    .expect("a legal mutation from wip");
   facade
     .at_set("ST0056", "AT-03.1", AtStatus::Red)
     .expect("at set");
@@ -137,13 +147,19 @@ fn the_envelope_names_its_subject_and_carries_the_transition() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
-  facade.wp_start("ST0056", 2).expect("wp start");
+  facade
+    .wp_reopen("ST0056", 2, "AC-02.6 was added after the close")
+    .expect("wp reopen");
 
   let events = facade.store().events().expect("events");
   let e = events.last().expect("one event");
   assert_eq!(e.subject.kind, "wp");
   assert_eq!(e.subject.id, "ST0056/02");
   assert_eq!(e.payload["from"], "done", "the fixture WP-02 was done");
+  assert_eq!(
+    e.payload["reason"], "AC-02.6 was added after the close",
+    "a guarded verb puts its reason in the envelope, which is where the HISTORY of decisions lives -- `status_reason` on the entity only ever carries the latest"
+  );
   assert_eq!(e.payload["to"], "wip");
 }
 
@@ -178,8 +194,12 @@ fn envelopes_accumulate_across_mutations_rather_than_being_rebuilt_away() {
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
-  facade.st_start("ST0056").expect("start");
-  facade.wp_start("ST0056", 2).expect("wp start");
+  facade
+    .st_hold("ST0056", "waiting on the fleet")
+    .expect("a legal mutation from wip");
+  facade
+    .wp_reopen("ST0056", 2, "AC-02.6 was added after the close")
+    .expect("wp reopen -- WP-02 is Done in the fixture, so `wp start` is not a legal edge");
   facade
     .at_set("ST0056", "AT-03.1", AtStatus::Red)
     .expect("at set");
@@ -212,11 +232,13 @@ fn a_file_write_failure_still_records_the_envelope() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
-  facade.st_start("ST0056").expect("materialise views");
+  facade
+    .st_hold("ST0056", "waiting on the fleet")
+    .expect("a legal mutation from wip");
   let before = ops(&facade).len();
 
   let mode = fx.make_readonly("intent");
-  let result = facade.st_cancel("ST0056");
+  let result = facade.st_cancel("ST0056", "superseded by the v3 line");
   fx.restore_mode("intent", mode);
   assert!(result.is_err(), "precondition: the file write failed");
 
@@ -258,10 +280,12 @@ fn the_envelope_and_the_change_share_one_transaction() {
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
   let before = ops(&facade).len();
-  facade.st_start("ST0056").expect("start");
+  facade
+    .st_hold("ST0056", "waiting on the fleet")
+    .expect("a legal mutation from wip");
   assert_eq!(ops(&facade).len(), before + 1);
   assert_eq!(
     facade.st_show("ST0056").expect("thread").status,
-    intentsvcs::model::ThreadStatus::Wip
+    intentsvcs::model::ThreadStatus::Hold
   );
 }

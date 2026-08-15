@@ -45,6 +45,7 @@ fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
     title: "gate parity".to_string(),
     slug: None,
     status: ThreadStatus::Wip,
+    status_reason: None,
     created: "2026-08-14".to_string(),
     completed: None,
     acceptance: None,
@@ -56,6 +57,7 @@ fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
       title: "one".to_string(),
       scope: TShirt::M,
       status: WpStatus::Wip,
+      status_reason: None,
       objective: String::new(),
       body: String::new(),
     }],
@@ -202,6 +204,7 @@ fn an_ac_free_wp_rolls_up_and_says_so() {
     title: "later".to_string(),
     scope: TShirt::S,
     status: WpStatus::NotStarted,
+    status_reason: None,
     objective: String::new(),
     body: String::new(),
   });
@@ -241,6 +244,7 @@ fn a_wp_scope_evaluates_only_that_wps_criteria() {
     title: "two".to_string(),
     scope: TShirt::M,
     status: WpStatus::Wip,
+    status_reason: None,
     objective: String::new(),
     body: String::new(),
   });

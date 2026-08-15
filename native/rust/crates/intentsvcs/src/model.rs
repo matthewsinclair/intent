@@ -59,6 +59,26 @@ pub struct Thread {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub slug: Option<String>,
   pub status: ThreadStatus,
+  /// Why the thread is in [`Thread::status`], for the transitions the ratified
+  /// machine guards with "reason recorded" (`st hold`, `st cancel`,
+  /// `st reopen`, `st reinstate`).
+  ///
+  /// **It belongs to the CURRENT status and is cleared by any transition that
+  /// does not carry one**, which is the whole reason it is a separate field
+  /// rather than a note appended to the title. Without the clear, `st hold
+  /// --reason "waiting on the fleet"` followed by `st resume` would leave a
+  /// live thread explaining why it was paused -- a reason surviving the
+  /// condition it described, which is the same shape as a remedy outliving its
+  /// model.
+  ///
+  /// **The HISTORY is the event log, not this field.** Every guarded verb puts
+  /// its reason in the envelope, so the sequence of decisions is durable and
+  /// queryable; this carries only the latest one, so `intent st show` can
+  /// answer "why is this on hold" without a log query. That is a denormalised
+  /// read of the log rather than a second source of truth: both are written by
+  /// the same call, and only the log is ever read for history.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub status_reason: Option<String>,
   /// ISO 8601 date, `YYYY-MM-DD`.
   pub created: String,
   #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -85,12 +105,22 @@ pub struct Thread {
   pub tests: Vec<AcceptanceTest>,
 }
 
+/// The ratified steel-thread machine (data-model.md, hv 2026-08-15). Declared
+/// in LIFECYCLE order, entry first, because this list is the schema face's enum
+/// order and a reader meets it there before they meet the transition table.
+///
+/// **`Triage` is not v2's `Tbc` renamed, and the distinction is load-bearing at
+/// migration.** v2's `TBC` means "To Be Commenced" -- `bin/intent_helpers:544`
+/// maps both `tbc` and `to be commenced` to `Not Started` -- so every v2 `TBC`
+/// migrates to [`ThreadStatus::NotStarted`]. `Triage` reuses none of that
+/// meaning and begins with zero legacy members; mapping on the string would
+/// invent a triage decision nobody made, for every thread that ever carried it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
 #[serde(rename_all = "kebab-case")]
 pub enum ThreadStatus {
+  Triage,
   NotStarted,
   Wip,
-  Tbc,
   Hold,
   Completed,
   Cancelled,
@@ -126,6 +156,12 @@ pub struct WorkPackage {
   pub title: String,
   pub scope: TShirt,
   pub status: WpStatus,
+  /// Why the work package is in [`WorkPackage::status`] -- `wp reopen` is the
+  /// one WP transition the ratified machine guards with "reason recorded".
+  /// Same rule as [`Thread::status_reason`]: it belongs to the current status
+  /// and any transition without a reason clears it.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub status_reason: Option<String>,
   /// What this work package ships. The guaranteed authored section (D28).
   ///
   /// D22 modelled `objective` and `context` on the thread and stopped there;

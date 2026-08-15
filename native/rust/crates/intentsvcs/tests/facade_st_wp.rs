@@ -29,7 +29,7 @@ fn st_new_creates_canon_and_every_view() {
   assert!(fx.path("intent/todo.md").is_file());
 
   let thread = facade.st_show("ST0001").expect("show");
-  assert_eq!(thread.status, ThreadStatus::NotStarted);
+  assert_eq!(thread.status, ThreadStatus::Triage);
   assert_eq!(
     thread.created, "2026-08-14",
     "the date comes from the caller"
@@ -51,6 +51,7 @@ fn the_lifecycle_moves_status_and_stamps_completion() {
   let mut facade = fx.facade();
   facade.st_new("a thread").expect("new");
 
+  facade.st_triage("ST0001").expect("triage");
   facade.st_start("ST0001").expect("start");
   assert_eq!(facade.st_show("ST0001").unwrap().status, ThreadStatus::Wip);
   assert_eq!(
@@ -59,7 +60,9 @@ fn the_lifecycle_moves_status_and_stamps_completion() {
     "a thread in flight has no completion date"
   );
 
-  facade.st_cancel("ST0001").expect("cancel");
+  facade
+    .st_cancel("ST0001", "superseded by the v3 line")
+    .expect("cancel");
   let thread = facade.st_show("ST0001").unwrap();
   assert_eq!(thread.status, ThreadStatus::Cancelled);
   assert_eq!(thread.completed.as_deref(), Some("2026-08-14"));
@@ -143,7 +146,9 @@ fn a_mid_write_failure_leaves_no_torn_state() {
   // One successful mutation first, so the views exist on disk and "before" is
   // a real state rather than an absence. Without this the test would be
   // asserting that nothing changed in files that were never there.
-  facade.st_start("ST0056").expect("materialise the views");
+  facade
+    .st_hold("ST0056", "waiting on the fleet")
+    .expect("a legal mutation from wip");
 
   let canon_before = fx.read("intent/st/ST0056/thread.json");
   let info_before = fx.read("intent/st/ST0056/info.md");
@@ -155,7 +160,7 @@ fn a_mid_write_failure_leaves_no_torn_state() {
   // `intent/todo.md` fails -- so the batch dies after several writes landed.
   let mode = fx.make_readonly("intent");
 
-  let result = facade.st_cancel("ST0056");
+  let result = facade.st_cancel("ST0056", "superseded by the v3 line");
 
   fx.restore_mode("intent", mode);
 
@@ -267,8 +272,9 @@ fn views_are_regenerated_by_every_mutation() {
   let mut facade = fx.facade();
   facade.st_new("a thread").expect("new");
   let before = fx.read("intent/st/steel_threads.md");
-  assert!(before.contains("Not Started"));
+  assert!(before.contains("Triage"));
 
+  facade.st_triage("ST0001").expect("triage");
   facade.st_start("ST0001").expect("start");
   let after = fx.read("intent/st/steel_threads.md");
   assert!(

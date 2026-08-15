@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS threads (
   title TEXT NOT NULL,
   slug TEXT,
   status TEXT NOT NULL,
+  status_reason TEXT,
   created TEXT NOT NULL,
   completed TEXT,
   acceptance TEXT,
@@ -55,6 +56,7 @@ CREATE TABLE IF NOT EXISTS wps (
   title TEXT NOT NULL,
   scope TEXT NOT NULL,
   status TEXT NOT NULL,
+  status_reason TEXT,
   objective TEXT NOT NULL,
   body TEXT NOT NULL,
   PRIMARY KEY (thread_id, seq)
@@ -214,12 +216,13 @@ impl Store {
     tx.execute("DELETE FROM wps WHERE thread_id = ?1", params![t.id])?;
     tx.execute("DELETE FROM threads WHERE id = ?1", params![t.id])?;
     tx.execute(
-      "INSERT INTO threads (id, title, slug, status, created, completed, acceptance, objective, context) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+      "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
       params![
         t.id,
         t.title,
         t.slug,
         enum_str(&t.status),
+        t.status_reason,
         t.created,
         t.completed,
         t.acceptance.as_ref().map(enum_str),
@@ -235,13 +238,14 @@ impl Store {
     }
     for wp in &t.wps {
       tx.execute(
-        "INSERT INTO wps (thread_id, seq, title, scope, status, objective, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        "INSERT INTO wps (thread_id, seq, title, scope, status, status_reason, objective, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
         params![
           t.id,
           wp.seq,
           wp.title,
           enum_str(&wp.scope),
           enum_str(&wp.status),
+          wp.status_reason,
           wp.objective,
           wp.body
         ],
@@ -370,7 +374,7 @@ impl Store {
   pub fn load_canon(&self) -> Result<(Vec<Thread>, Vec<Issue>), StoreError> {
     let mut threads = Vec::new();
     let mut stmt = self.conn.prepare(
-      "SELECT id, title, slug, status, created, completed, acceptance, objective, context FROM threads ORDER BY id",
+      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context FROM threads ORDER BY id",
     )?;
     let rows = stmt.query_map([], |row| {
       Ok((
@@ -378,11 +382,12 @@ impl Store {
         row.get::<_, String>(1)?,
         row.get::<_, Option<String>>(2)?,
         row.get::<_, String>(3)?,
-        row.get::<_, String>(4)?,
-        row.get::<_, Option<String>>(5)?,
+        row.get::<_, Option<String>>(4)?,
+        row.get::<_, String>(5)?,
         row.get::<_, Option<String>>(6)?,
-        row.get::<_, String>(7)?,
+        row.get::<_, Option<String>>(7)?,
         row.get::<_, String>(8)?,
+        row.get::<_, String>(9)?,
       ))
     })?;
 
@@ -391,7 +396,19 @@ impl Store {
       shells.push(row?);
     }
 
-    for (id, title, slug, status, created, completed, acceptance, objective, context) in shells {
+    for (
+      id,
+      title,
+      slug,
+      status,
+      status_reason,
+      created,
+      completed,
+      acceptance,
+      objective,
+      context,
+    ) in shells
+    {
       threads.push(Thread {
         schema: THREAD_SCHEMA.to_string(),
         related: self.related_of(&id)?,
@@ -402,6 +419,7 @@ impl Store {
         title,
         slug,
         status: enum_from(&status)?,
+        status_reason,
         created,
         completed,
         acceptance: acceptance.as_deref().map(enum_from).transpose()?,
@@ -462,7 +480,7 @@ impl Store {
   fn wps_of(&self, thread: &str) -> Result<Vec<WorkPackage>, StoreError> {
     let mut stmt = self
       .conn
-      .prepare("SELECT seq, title, scope, status, objective, body FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
+      .prepare("SELECT seq, title, scope, status, status_reason, objective, body FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
     let raw = stmt
       .query_map(params![thread], |row| {
         Ok((
@@ -470,23 +488,27 @@ impl Store {
           row.get::<_, String>(1)?,
           row.get::<_, String>(2)?,
           row.get::<_, String>(3)?,
-          row.get::<_, String>(4)?,
+          row.get::<_, Option<String>>(4)?,
           row.get::<_, String>(5)?,
+          row.get::<_, String>(6)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
     raw
       .into_iter()
-      .map(|(seq, title, scope, status, objective, body)| {
-        Ok(WorkPackage {
-          seq,
-          title,
-          scope: enum_from(&scope)?,
-          status: enum_from(&status)?,
-          objective,
-          body,
-        })
-      })
+      .map(
+        |(seq, title, scope, status, status_reason, objective, body)| {
+          Ok(WorkPackage {
+            seq,
+            title,
+            scope: enum_from(&scope)?,
+            status: enum_from(&status)?,
+            status_reason,
+            objective,
+            body,
+          })
+        },
+      )
       .collect()
   }
 

@@ -96,20 +96,39 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   assert!(root.join("intent/st/steel_threads.md").is_file(), "index");
   assert!(root.join("intent/todo.md").is_file(), "todo view");
 
-  // `--status all` because bare `st list` shows WIP ONLY, as v2 does, and this
-  // thread is Not Started. The bare form used to list everything, which is what
-  // made this assertion pass before the filter was ported.
+  // `--status all` because bare `st list` shows WIP ONLY, as v2 does, and a
+  // fresh thread is not WIP. The bare form used to list everything, which is
+  // what made this assertion pass before the filter was ported.
+  //
+  // **`Triage` rather than `Not Started` since the machines were ratified**:
+  // `st new` enters at triage and `st triage` accepts it into the backlog.
   let listed = ok(root, &["st", "list", "--status", "all"]);
   assert!(listed.contains("ST0001"), "{listed}");
-  assert!(listed.contains("Not Started"), "{listed}");
+  assert!(listed.contains("Triage"), "{listed}");
   assert!(
     ok(root, &["st", "list"]).lines().count() == 2,
     "and the bare form is header + separator only, not an error and not silence"
   );
 
-  ok(root, &["st", "start", "ST0001"]);
-  let shown = ok(root, &["st", "show", "ST0001"]);
-  assert!(shown.contains("status: WIP"), "{shown}");
+  // **The lifecycle cannot be driven past here from the CLI yet, and that is a
+  // SURFACE gap rather than a service one.** The ratified machines add seven
+  // verbs -- `st triage`, `st hold`, `st resume`, `st reopen`, `st reinstate`,
+  // `wp reopen`, `wp unstart` -- and each needs a row in
+  // `surface/dispatch-table.json`, which is ic's lane. The facade has them all;
+  // `facade_st_wp.rs` drives the full machine through it. Asked of ic on
+  // 2026-08-15; this assertion is what turns the ask into a failing test rather
+  // than a note somebody has to remember.
+  let refused = run(root, &["st", "start", "ST0001"]);
+  assert_eq!(
+    refused.status.code(),
+    Some(1),
+    "`st start` from triage is refused by the ratified machine, not silently allowed"
+  );
+  let why = String::from_utf8_lossy(&refused.stderr);
+  assert!(
+    why.contains("not a legal transition") && why.contains("not-started"),
+    "and the refusal names the state the verb IS declared from, so the operator can get there: {why}"
+  );
 
   ok(root, &["wp", "new", "ST0001", "Ingest and views"]);
   ok(root, &["wp", "start", "ST0001/01"]);
@@ -435,7 +454,11 @@ fn st_sync_dry_run_is_the_index_table_not_a_reconciliation_report() {
   let root = dir.path();
   ok(root, &["st", "new", "alpha"]);
   ok(root, &["st", "new", "bravo"]);
-  ok(root, &["st", "start", "ST0002"]);
+  // No `st start` here any more: this test is about the sync table sharing the
+  // list renderer, and driving a status was only ever incidental. It cannot be
+  // driven from the CLI until `st triage` has a dispatch row (ic), and a test
+  // that reached for an unrelated verb to make state is a test with a
+  // dependency it did not need.
 
   let listed = ok(root, &["st", "list", "--status", "all"]);
   let synced = ok(root, &["st", "sync"]);

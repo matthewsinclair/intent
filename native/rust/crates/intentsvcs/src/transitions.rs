@@ -50,18 +50,44 @@ pub enum EdgeKind {
   Incidental { via: &'static str },
 }
 
+/// A precondition the verb enforces BEFORE taking the edge.
+///
+/// Declared rather than left to the implementation because a guard is the half
+/// of a transition a success-path test never sees: an edge that lands on the
+/// right value from the right state proves nothing about what happens when the
+/// precondition is unmet, and "unmet" is the case the guard exists for.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Guard {
+  /// Nothing beyond the from-state.
+  None,
+  /// The verb takes a reason, records it on the entity's `status_reason`, and
+  /// puts it in the event envelope. Refuses an empty one.
+  ReasonRecorded,
+  /// The close gate must PASS.
+  GatePass,
+}
+
 /// One step the service layer offers on one field.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Edge {
   /// The event-log op, eg `ac.satisfy`, so an edge is traceable from the log
   /// back to the declaration that promised it.
   pub verb: &'static str,
-  /// Source values. **Empty means "any current value"** -- which is how
-  /// `intent st start` reopens a completed thread, and therefore why
-  /// `completed` is not a trap despite there being no verb named `reopen`.
+  /// Source values. **Empty means "any current value"**, which is now a
+  /// deliberate exception rather than the norm: the ratified machines
+  /// (data-model.md) name specific from-states, and an empty list survives only
+  /// where the field genuinely has no ordering -- `at.set` and `wp.rescope`,
+  /// where any value legitimately reaches any other.
+  ///
+  /// **It used to be on every edge, and that is the defect conformance found.**
+  /// A graph declared with `from: &[]` everywhere is CLOSED -- nothing can be a
+  /// trap when every verb accepts every state -- so the closure check passed on
+  /// a graph that let `st done` fire from `cancelled`. Closure is the weaker
+  /// question; a graph can be closed and still be the wrong graph.
   pub from: &'static [&'static str],
   pub to: &'static str,
   pub kind: EdgeKind,
+  pub guard: Guard,
 }
 
 impl Edge {
@@ -71,6 +97,22 @@ impl Edge {
       from,
       to,
       kind: EdgeKind::Direct,
+      guard: Guard::None,
+    }
+  }
+
+  pub const fn guarded(
+    verb: &'static str,
+    from: &'static [&'static str],
+    to: &'static str,
+    guard: Guard,
+  ) -> Self {
+    Self {
+      verb,
+      from,
+      to,
+      kind: EdgeKind::Direct,
+      guard,
     }
   }
 
@@ -85,6 +127,7 @@ impl Edge {
       from,
       to,
       kind: EdgeKind::Incidental { via },
+      guard: Guard::None,
     }
   }
 
@@ -151,25 +194,45 @@ pub const FIELDS: &[Field] = &[
     entity: "Thread",
     field: "status",
     disposition: Disposition::State {
-      initial: &["not-started"],
-      // No `from` guards anywhere: `st start` accepts any current value, which
-      // is what makes `completed` and `cancelled` leavable. Measured against
-      // `Facade::set_thread_status`, not assumed from the verb names.
+      // Entry is `triage`, ratified. `st new` used to land on `not-started`.
+      initial: &["triage"],
+      // **The ratified machine, transcribed** (data-model.md "Machine 1").
+      // `mutation_completeness.rs` holds a SECOND transcription of the same
+      // table and asserts the two agree, so a typo in either is a failure
+      // rather than a quiet divergence from the document both come from.
       edges: &[
-        Edge::direct("st.start", &[], "wip"),
-        Edge::direct("st.done", &[], "completed"),
-        Edge::direct("st.cancel", &[], "cancelled"),
-      ],
-      orphans: &[
-        (
-          "tbc",
-          "no verb produces it. v2 treats `TBC` as the DISPLAY of `Not Started` (bin/intent_st:120), not a distinct status, so this is very likely a display alias reified into the model rather than a missing mutation. Zero instances in this estate. Model question for hv, not a mutation gap",
-        ),
-        (
+        Edge::direct("st.triage", &["triage"], "not-started"),
+        Edge::direct("st.start", &["not-started"], "wip"),
+        Edge::direct("st.resume", &["hold"], "wip"),
+        Edge::guarded(
+          "st.hold",
+          &["not-started", "wip"],
           "hold",
-          "real v2 vocabulary (bin/intent_st:989) with no v2 command that sets it -- v2 reaches it by hand-editing frontmatter. Zero instances in this estate. Needs a verb or removal; queued for hv with `acceptance`",
+          Guard::ReasonRecorded,
+        ),
+        Edge::guarded("st.done", &["wip"], "completed", Guard::GatePass),
+        Edge::guarded(
+          "st.cancel",
+          &["triage", "not-started", "wip", "hold"],
+          "cancelled",
+          Guard::ReasonRecorded,
+        ),
+        Edge::guarded("st.reopen", &["completed"], "wip", Guard::ReasonRecorded),
+        Edge::guarded(
+          "st.reinstate",
+          &["cancelled"],
+          "not-started",
+          Guard::ReasonRecorded,
         ),
       ],
+      // **Both former orphans are answered by ratification rather than by a
+      // build.** `tbc` was a display alias reified into the model and is now
+      // `triage`, a real state with a real entry point and a real exit; `hold`
+      // was v2 vocabulary reachable only by hand-editing frontmatter and now
+      // has `st hold` in and `st resume` out. Neither was a mutation gap and
+      // both were recorded here rather than forgotten, which is what the
+      // orphan list is for.
+      orphans: &[],
     },
   },
   Field {
@@ -185,9 +248,20 @@ pub const FIELDS: &[Field] = &[
     field: "status",
     disposition: Disposition::State {
       initial: &["not-started"],
+      // The ratified machine, transcribed (data-model.md "Machine 2"). No
+      // `Hold` or `Cancelled` at WP level: a work package that stops mattering
+      // is a scope change on the thread, not a state on the package.
+      //
+      // **`wp.reopen` is the verb whose absence was causing live damage.**
+      // Adding an AC to a closed WP reopens it in the contract, nothing undid
+      // `wp done`, and three of this thread's five WPs were carrying a status
+      // that disagreed with their own gate -- two of them written by the
+      // verifier enforcing the rule that names the class.
       edges: &[
-        Edge::direct("wp.start", &[], "wip"),
-        Edge::direct("wp.done", &[], "done"),
+        Edge::direct("wp.start", &["not-started"], "wip"),
+        Edge::direct("wp.unstart", &["wip"], "not-started"),
+        Edge::guarded("wp.done", &["wip"], "done", Guard::GatePass),
+        Edge::guarded("wp.reopen", &["done"], "wip", Guard::ReasonRecorded),
       ],
       orphans: &[],
     },
@@ -308,6 +382,55 @@ pub fn find(entity: &str, field: &str) -> Option<&'static Field> {
   FIELDS
     .iter()
     .find(|f| f.entity == entity && f.field == field)
+}
+
+/// Every declared edge for one verb on one field.
+fn edges_for(entity: &str, field: &str, verb: &'static str) -> impl Iterator<Item = &'static Edge> {
+  find(entity, field)
+    .and_then(|f| match &f.disposition {
+      Disposition::State { edges, .. } => Some(*edges),
+      Disposition::Unbuilt { .. } => None,
+    })
+    .unwrap_or(&[])
+    .iter()
+    .filter(move |e| e.verb == verb)
+}
+
+/// Whether the declared graph permits `verb` from `current`.
+///
+/// **The service layer consults this instead of restating it, and that is a
+/// deliberate reversal of how the table started.** Writing the from-states
+/// twice -- once in a table the test reads and once in a guard the code runs --
+/// is the Highlander violation that produces exactly the drift AC-04.6 exists
+/// to catch: a graph the tests describe and the code does not implement. So
+/// there is ONE machine, the service enforces it, and the test's job moves up a
+/// level to checking that this table is a faithful transcription of the
+/// ratified document (`mutation_completeness.rs` holds the second copy).
+pub fn permits(entity: &str, field: &str, verb: &'static str, current: &str) -> bool {
+  edges_for(entity, field, verb).any(|e| e.accepts(current))
+}
+
+/// The values `verb` is declared to accept, so a refusal can name them rather
+/// than telling the operator to go and look (AC-04.4).
+pub fn accepted_from(entity: &str, field: &str, verb: &'static str) -> Vec<&'static str> {
+  let mut seen: Vec<&'static str> = Vec::new();
+  for edge in edges_for(entity, field, verb) {
+    for value in edge.from {
+      if !seen.contains(value) {
+        seen.push(value);
+      }
+    }
+  }
+  seen
+}
+
+/// The guard declared for `verb`, so the service enforces the written one
+/// rather than one it remembers.
+pub fn guard_for(entity: &str, field: &str, verb: &'static str) -> Guard {
+  edges_for(entity, field, verb)
+    .map(|e| e.guard)
+    .find(|g| *g != Guard::None)
+    .unwrap_or(Guard::None)
 }
 
 /// Values that can be ENTERED and not LEFT: hv's ruling, as a computation.

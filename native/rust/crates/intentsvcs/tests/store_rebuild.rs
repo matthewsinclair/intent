@@ -1,6 +1,13 @@
-//! AT-02.3 / AC-02.3: the D01 disposability invariant -- deleting the DB and
-//! rebuilding from canon yields identical queryable content, and rebuild is
+//! AT-02.3 / AC-02.3: RE-CREATABILITY -- deleting the DB and rebuilding it from
+//! the same extract yields identical queryable content, and rebuild is
 //! idempotent. Also: the event log is NOT derived and survives a rebuild.
+//!
+//! **It said "the D01 disposability invariant" and that word is now wrong.**
+//! Under D01 as reversed the DB is truth and re-creation from an extract is a
+//! CAPABILITY, so what is invariant is that the round trip is faithful -- never
+//! that the thing being rebuilt was disposable. This line is the third in this
+//! one file to carry the old model, and it survived two corrections because it
+//! spells it "disposability" while the grep asked for "disposable".
 
 use intentsvcs::event::{Envelope, LOCAL_PRINCIPAL, Subject};
 use intentsvcs::model::{
@@ -16,6 +23,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
     title: "Intent v3.0.0".to_string(),
     slug: Some("intent-v3".to_string()),
     status: ThreadStatus::Wip,
+    status_reason: None,
     created: "2026-08-14".to_string(),
     completed: None,
     acceptance: None,
@@ -31,6 +39,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
         title: "Design canon".to_string(),
         scope: TShirt::L,
         status: WpStatus::Done,
+        status_reason: None,
         objective: String::new(),
         body: String::new(),
       },
@@ -39,6 +48,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
         title: "Workspace".to_string(),
         scope: TShirt::L,
         status: WpStatus::Wip,
+        status_reason: None,
         objective: String::new(),
         body: String::new(),
       },

@@ -380,6 +380,7 @@ mod tests {
       title: "t".to_string(),
       slug: None,
       status: ThreadStatus::Wip,
+      status_reason: None,
       created: "2026-08-14".to_string(),
       completed: None,
       acceptance: None,
@@ -391,6 +392,7 @@ mod tests {
         title: "w".to_string(),
         scope: crate::model::TShirt::L,
         status: crate::model::WpStatus::Wip,
+        status_reason: None,
         objective: String::new(),
         body: String::new(),
       }],
@@ -553,6 +555,7 @@ mod tests {
       title: "later".to_string(),
       scope: crate::model::TShirt::S,
       status: crate::model::WpStatus::NotStarted,
+      status_reason: None,
       objective: String::new(),
       body: String::new(),
     });

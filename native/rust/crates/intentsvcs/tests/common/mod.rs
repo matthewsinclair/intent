@@ -168,6 +168,12 @@ pub fn sample_thread(id: &str) -> Thread {
     title: "Intent v3.0.0".to_string(),
     slug: Some("intent-v3".to_string()),
     status: ThreadStatus::Wip,
+    // A `wip` thread CARRYING a reason is the realistic shape, not a
+    // contradiction: `st reopen` lands on `wip` and records why. Set here so
+    // the round-trip tests actually carry the field -- a new field the fixture
+    // leaves `None` round-trips vacuously, which is how a field that does not
+    // survive the trip would go unnoticed by the very test written to catch it.
+    status_reason: Some("reopened: AC-02.6 was added after the close".to_string()),
     created: "2026-08-14".to_string(),
     completed: None,
     acceptance: None,
@@ -202,6 +208,7 @@ pub fn sample_thread(id: &str) -> Thread {
         title: "Workspace and reified model".to_string(),
         scope: TShirt::L,
         status: WpStatus::Done,
+        status_reason: None,
         objective: "Stand up the cargo workspace and reify the model.".to_string(),
         body: String::new(),
       },
@@ -210,6 +217,7 @@ pub fn sample_thread(id: &str) -> Thread {
         title: "Ingest, views and sync -- `intent_st_zero` | strict".to_string(),
         scope: TShirt::L,
         status: WpStatus::Wip,
+        status_reason: None,
         // MARKUP-BEARING AND DISTINCTIVE, for the same reason the thread's
         // prose fields are (D28). `quokka` appears in NO other field of this
         // fixture, so AC-06.7's "search finds a phrase that exists only in a

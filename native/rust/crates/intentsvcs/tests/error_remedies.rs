@@ -163,10 +163,12 @@ fn a_wrapped_failure_renders_its_full_cause_chain() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
-  facade.st_start("ST0056").expect("materialise views");
+  facade
+    .st_hold("ST0056", "waiting on the fleet")
+    .expect("a legal mutation from wip");
 
   let mode = fx.make_readonly("intent");
-  let result = facade.st_cancel("ST0056");
+  let result = facade.st_cancel("ST0056", "superseded by the v3 line");
   fx.restore_mode("intent", mode);
 
   let err = result.expect_err("the write must fail");
