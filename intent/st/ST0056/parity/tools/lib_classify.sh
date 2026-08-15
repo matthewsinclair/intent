@@ -81,6 +81,15 @@ extract_test_body() {
         last = 0
         for (i = length(rest); i > 0; i--) if (substr(rest, i, 1) == "\"") { last = i; break }
         nm = substr(rest, 1, last - 1)
+        # BATS UNESCAPES THE NAME BEFORE PRINTING IT TO TAP, so the source and
+        # the TAP disagree for any name containing an escape. Live case:
+        # ext_seed_validity.bats writes `\$INTENT_HOME` in the @test line and
+        # bats reports `$INTENT_HOME`. Comparing the two literally missed the
+        # block and the caller reported "body not found" -- which is how this
+        # was found, the refusal naming the extraction heuristic as the suspect
+        # rather than silently classifying an empty body as out-of-scope.
+        gsub(/\\\$/, "$", nm)
+        gsub(/\\"/, "\"", nm)
         if (nm == want) { grabbing = 1; next }
         else if (grabbing) { grabbing = 0 }
       }

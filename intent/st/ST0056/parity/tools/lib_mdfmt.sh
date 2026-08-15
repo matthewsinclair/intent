@@ -58,6 +58,14 @@ MD_ALIGNER='
     line = $0
     sub(/^[ \t]+/, "", line); sub(/[ \t]+$/, "", line)
     sub(/^\|/, "", line); sub(/\|$/, "", line)
+    # AN ESCAPED PIPE IS CONTENT, NOT A COLUMN BOUNDARY. A cell may legitimately
+    # hold `\|` -- claude_with_intent.bats has a test named "invocable as intent
+    # claude start|ws through the dispatch" -- and splitting on it silently adds
+    # a column, shunting every later cell one place left. The row still LOOKS
+    # like a table, which is what makes it nasty: the corruption is invisible
+    # until something counts columns. Protect through the split, restore
+    # immediately after, so widths are measured on the real text.
+    gsub(/\\\|/, "\001", line)
     rows++
     n = split(line, parts, "\\|")
     cols[rows] = n
@@ -65,6 +73,7 @@ MD_ALIGNER='
     for (j = 1; j <= n; j++) {
       c = parts[j]
       gsub(/^[ \t]+|[ \t]+$/, "", c)
+      gsub(/\001/, "\\|", c)
       cellv[rows, j] = c
       if (c !~ /^:?-+:?$/) issep = 0
     }

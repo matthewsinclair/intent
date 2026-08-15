@@ -174,5 +174,12 @@ mv "$OUT_TMP.aligned" "$OUT" || { echo "gen_pertest: cannot move the rendered vi
 # stronger check. It reports what was actually written, not what the code
 # believed it wrote, and those diverge exactly when something has gone wrong.
 echo "rows: $(grep -c '^| `tests/' "$OUT")"
-awk -F'|' '/^\| `tests\// {gsub(/^ +| +$/,"",$5); c[$5]++} END {for (k in c) printf "  %-14s %s\n", k, c[k]}' "$OUT"
+# STRIP ESCAPED PIPES BEFORE SPLITTING ON PIPE. A test name may contain a
+# literal `|` -- claude_with_intent.bats has "invocable as intent claude
+# start|ws through the dispatch" -- which md_cell escapes to `\|` so the table
+# renders correctly. awk -F'|' splits on it anyway, shifting every later column
+# by one, and the tally then reported a class of `yes` (the BURNS column) for
+# that row. The ROW was right and the COUNT was wrong, which is the more
+# dangerous way round: the artefact looks fine and only the summary lies.
+awk -F'|' '{gsub(/\\\|/, "!")} /^\| `tests\// {gsub(/^ +| +$/,"",$5); c[$5]++} END {for (k in c) printf "  %-14s %s\n", k, c[k]}' "$OUT"
 echo "files split: $split_files   refused: $refusals"
