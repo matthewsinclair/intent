@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Stand up a throwaway v3 project so the real binary can be exercised
+#
+# intent dogfood            -- create/refresh a scratch v3 project and print how to use it
+# intent dogfood --fresh    -- delete and recreate it
+# intent dogfood --at DIR   -- put it somewhere specific
+#
+# WHY THIS EXISTS. hv, 2026-08-15: "~/Devel/prj/Intent is an Intent2 project.
+# We're building Intent3 using Intent. So we need to be a) aware of that at all
+# times, and b) eat our own dogfood."
+#
+# The first half of that is a trap with teeth. **This repository declares Intent
+# 2.19.0, so the v3 binary REFUSES here** -- correctly, on migration grounds:
+#
+#   error: this project has not been migrated to Intent v3 -- it declares Intent
+#   2.19.0, and 56 steel threads carry v2 canon this binary cannot read
+#
+# Which means **every measurement taken with the v3 binary inside this tree
+# measures the refusal path, not the function.** That is not a hypothetical: I
+# ran the binary with and without INTENT_HOME across five verbs, got
+# byte-identical output, and nearly recorded it as evidence for AC-11.3. It was
+# five identical refusals. Two matched failures prove nothing -- the same shape
+# as a coverage test that only checks the tables which already pass, and a WAL
+# snapshot test that closes the DB first. Three instances of one class in a day.
+#
+# The second half is what this command is for. Dogfooding needs a v3 project and
+# `intent init` is not wired yet (WP-06), so the barrier to eating our own
+# dogfood is currently "know that a v3 project is a config.json, and know the
+# exact fields". That is enough friction to stop it happening, which is how a
+# dogfood instruction quietly becomes a dogfood aspiration.
+#
+# THIS IS A STOPGAP AND SAYS SO IN ITS OWN OUTPUT. It hand-writes the one file
+# `intent init` would otherwise write, which makes it a second implementation of
+# something production will own -- a Highlander violation with a deliberate,
+# stated expiry. **When `intent init` is wired, this command delegates to it or
+# is deleted.** It is written down here rather than left to be noticed because a
+# stopgap with no expiry condition is just a duplicate.
+#
+# IT REFUSES TO BUILD INSIDE AN EXISTING PROJECT. A v3 config.json nested under
+# this v2 tree would be found by upward path resolution and would make some
+# tool, somewhere, silently answer for the wrong project.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+
+ROOT="${PROJECT_ROOT:?}"
+BIN="$ROOT/native/rust/target/debug/intent"
+DEST="${TMPDIR:-/tmp}/intent-dogfood"
+FRESH=0
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --fresh) FRESH=1; shift ;;
+    --at) DEST="${2:?--at needs a directory}"; shift 2 ;;
+    *) die "unknown argument: $1 (see: int dogfood --help)" ;;
+  esac
+done
+
+[ -x "$BIN" ] || die "no v3 binary at native/rust/target/debug/intent -- run 'int build' first"
+
+# Never inside a project. Walk up from the destination the way the tool does.
+probe="$(cd "$(dirname "$DEST")" 2>/dev/null && pwd || echo "")"
+while [ -n "$probe" ] && [ "$probe" != "/" ]; do
+  if [ -f "$probe/intent/.config/config.json" ]; then
+    die "refusing: $DEST sits inside the Intent project at $probe -- a nested config.json is found by upward resolution and answers for the wrong project"
+  fi
+  probe="$(dirname "$probe")"
+done
+
+if [ "$FRESH" -eq 1 ] && [ -d "$DEST" ]; then
+  step "removing the previous scratch project"
+  rm -rf "$DEST"
+fi
+
+if [ ! -f "$DEST/intent/.config/config.json" ]; then
+  step "creating a v3 project at $DEST"
+  mkdir -p "$DEST/intent/.config"
+  # The minimum a v3 project is. Kept in step with the shape the Rust test
+  # fixture uses (intentsvcs/tests/common/mod.rs) -- if that fixture changes and
+  # this does not, this command starts lying about what a v3 project is.
+  cat >"$DEST/intent/.config/config.json" <<'JSON'
+{
+  "intent_version": "3.0.0",
+  "project_name": "Dogfood",
+  "author": "dc",
+  "intent_dir": "intent",
+  "languages": ["rust"]
+}
+JSON
+else
+  step "reusing the v3 project at $DEST"
+fi
+
+# Prove it works rather than asserting it. A scratch project that silently fails
+# to accept the binary is worse than none, because the next person reads their
+# own command as broken.
+#
+# THE PROBE IS `st list`, NOT `doctor`, AND THE FIRST VERSION OF THIS GOT IT
+# WRONG. `doctor` exits 1 on a brand-new empty project -- correctly, because a
+# generated view is genuinely missing -- so using it here refused a project that
+# was perfectly good. **Health and ACCEPTANCE are different questions**, and the
+# one being asked is acceptance: does the binary agree this is a v3 project, or
+# does it refuse on migration grounds. `st list` answers exactly that -- 0 on an
+# accepted project, 1 with the migration error on a v2 one -- and nothing else.
+# Worth keeping because the check caught it: a self-test that has never refused
+# anything is not yet known to work.
+if ! (cd "$DEST" && "$BIN" st list >/dev/null 2>&1); then
+  die "the scratch project at $DEST is not accepted by the v3 binary -- run '$BIN st list' there and read the refusal"
+fi
+
+printf '\n'
+ok
+printf '  v3 project:  %s\n' "$DEST"
+printf '  binary:      %s  (%s)\n' "$BIN" "$("$BIN" --version 2>/dev/null || echo '?')"
+printf '\n'
+printf '  cd %s\n' "$DEST"
+printf '  %s st new "something"\n' "$BIN"
+printf '  %s st list --status all      # st new enters at Triage, which the\n' "$BIN"
+printf '                                        # default list does NOT show\n'
+printf '\n'
+printf '  THROWAWAY. It is under %s and nothing backs it up.\n' "${TMPDIR:-/tmp}"
+printf '  STOPGAP. When `intent init` is wired (WP-06) this command delegates to\n'
+printf '  it or goes away -- it hand-writes the one file init will own.\n'
