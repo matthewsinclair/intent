@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 13:25Z
+heartbeat_at: 2026-08-15 13:42Z
 status: active
-focus: "Hold lifted. cc unblocked -- .backup/ namespace named. Three edits landed: the D34 gitignore comment, a no-database-enters-history guard in int precommit (6 canaries), and pr-checks.yml asking the tool instead of hardcoding the layout. Issues 0030 + 0031 filed on intent upgrade."
+focus: "hv gave everyone the pen. Pushed e5ecf9d + 964adad to both remotes. Namespace named, DB guard wired, pr-checks asking the tool -- then found and fixed int hooks under-reporting the gate it exists to report on. Asked vc for the restart.md lane."
 claims: []
 ---
 
@@ -27,6 +27,10 @@ hv reversed D01 on 2026-08-15 and vc has rolled it out. This is what I hold, and
 **The state machines are RATIFIED too** (ST / WP / AC, `data-model.md`). `st new` enters at `Triage`; no terminal states; WP has no Hold/Cancelled; AC collapses two fields into one four-valued enum. `wp done` is refused on a BLOCKED gate AND `doctor` reports status-disagrees-with-gate, because **a status that was true when set becomes a false green the moment its contract grows.** New verbs are red tests now: `st triage/hold/resume/reopen/reinstate`, `wp reopen/unstart`.
 
 ## DOING
+
+- **A DEFECT I SHIPPED THIS MORNING, FOUND BY RUNNING THE TOOL RATHER THAN READING IT.** `int hooks` reported **two** guards while the gate enforced **three**. It derived the roster by grepping `$TOOLS/[a-z]*.sh` out of the runner, and I wrote in its own source that reading the names from the runner meant the roster "cannot rot". **It rotted the same day** -- the new DB guard is inline, not a `$TOOLS/` script, so the grep could not see it. **This is the failure the command exists to expose, committed by the command**: something that looks installed and protects less than it claims, one level up, answering confidently to whoever consults it to find out. Root error: **anchoring on a PATH SHAPE rather than the structural fact** -- my own watch-out, self-inflicted one file over. Fixed at `964adad` by the Decision I had already recorded: `int precommit` declares its roster ONCE, the run's step labels and a new `--list-guards` both read it, and `int hooks` asks.
+
+  **The hazard I caught before shipping is the better half.** The obvious version ran `<runner> --list-guards` and read the exit code to detect support. **Measured first: `prepush` tests only `--force` and otherwise FALLS THROUGH AND RUNS**, so that probe would have cloned and cold-built the repo (~16s) every time anyone asked what the hooks were wired to. **A probe with a side effect is not a probe.** Capability now detected from the source; roster still from the runner. Four canaries -- and the first attempt at two proved nothing, because a fresh clone has no hooks so `guards_of` was never reached and empty output reads exactly like "no guards".
 
 - **hv RULING RELAYED 13:33Z -- `rm intent.db` should not exist as an operation anywhere.** hv: _"Why would anything in Intent EVER do this? If the db is the durable SSOT, this should simply NEVER BE A THING."_ Measured whole-repo before relaying: **production is CLEAN** (zero in `bin/`, zero in `crates/*/src/` -- `write_set.rs`'s removes are file-canon rollback), and cc has already fixed most doc comments. What survives is **three live test operations** (`store_rebuild.rs:150`, `cli_end_to_end.rs:575`, `search_surface.rs:56`) and **canon still pricing work in it** (`AT-14.11` to-write with `rm intent.db` AS ITS METHOD, `acceptance.md:156`, `WP/13/info.md:45`, `migration.md:27`, `restart.md:5`). Sent to vc (canon) and cc (tests); **I wrote none of it** -- relaying a ruling is not writing canon. **The argument that makes it more than stale wording: `rm intent.db` was never safe even under OLD D01** -- `event_log` has no canon path, so it destroys the audit trail AC-04.5 requires. The phrase was doing damage while it was still officially correct.
 
