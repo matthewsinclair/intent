@@ -7,6 +7,8 @@
 //! that is a defect being corrected, not a contract being reproduced.
 
 use clap::ArgMatches;
+
+use crate::dispatch;
 use intentsvcs::contract::Scope;
 use intentsvcs::facade::{Facade, FacadeContext, FacadeError};
 use intentsvcs::model::{AtStatus, TShirt, ThreadStatus};
@@ -373,14 +375,40 @@ fn sync(m: &ArgMatches) -> Result<(), String> {
 /// typed nothing" versus "we have not built that yet" -- because only one of
 /// those is the operator's problem. What is dropped is the internal citation,
 /// not the meaning.
+/// **A LEAF GETS A DIFFERENT REMEDY, because the generic one promises a
+/// category that is empty** (ic, measured 2026-08-15). Seventeen commands are
+/// unimplemented and **nine of them are leaves with zero verbs** -- `info`,
+/// `init`, `bootstrap`, `learn`, `fileindex`, `version`, `export`, `ingest`,
+/// `mcp`. On every one, "run `intent <x> --help` for the verbs that are" sends
+/// the reader to a help block that lists no verbs at all, so the remedy costs
+/// them a command and returns nothing.
+///
+/// A remedy that cannot be acted on is worse than no remedy: it reads as a lead
+/// and spends the reader's next move. The leaf form points at the root surface,
+/// which is never empty, and says plainly that nothing here provides it.
+///
+/// The family/leaf question is asked of the TABLE rather than of a list kept
+/// here, so a family that gains or loses its verbs moves between the two forms
+/// on its own -- ic's nine is a measurement of today, not a roster to maintain.
 fn unwired(family: &str, verb: &str) -> Result<(), String> {
   let path = if verb.is_empty() {
     family.to_string()
   } else {
     format!("{family} {verb}")
   };
+  let has_verbs = dispatch::table()
+    .families
+    .iter()
+    .filter(|f| f.name == family)
+    .flat_map(|f| f.entries.iter())
+    .any(|e| e.verb().is_some() && e.is_shipped());
+  let remedy = if has_verbs {
+    format!("run `intent {family} --help` for the verbs that are")
+  } else {
+    "nothing in this build provides it -- `intent --help` lists what does".to_string()
+  };
   Err(format!(
-    "error: `{path}` is a known command that is not implemented yet\n  remedy: run `intent {family} --help` for the verbs that are"
+    "error: `{path}` is a known command that is not implemented yet\n  remedy: {remedy}"
   ))
 }
 

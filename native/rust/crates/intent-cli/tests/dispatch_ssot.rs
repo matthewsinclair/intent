@@ -391,3 +391,73 @@ fn a_flags_disposition_decides_whether_it_reaches_the_surface() {
      written for"
   );
 }
+
+/// **A REMEDY MUST NOT PROMISE AN EMPTY CATEGORY** (ic, measured).
+///
+/// The unbuilt-command refusal sent every reader to `intent <x> --help` "for
+/// the verbs that are". On a family that has verbs that is a real lead; on a
+/// LEAF it costs the reader a command and returns a help block listing nothing.
+/// ic swept it: 17 unimplemented commands, **9 of them leaves**.
+///
+/// A remedy that cannot be acted on is worse than none, because it reads as a
+/// lead and spends the reader's next move. Both populations are asserted
+/// non-empty: with either at zero this is checking one branch and would pass on
+/// the defect.
+#[test]
+fn an_unbuilt_leaf_does_not_send_the_reader_to_an_empty_help() {
+  let table = dispatch::table();
+  let (mut leaves, mut families) = (0, 0);
+  let mut wrong = Vec::new();
+
+  for family in &table.families {
+    let Some(entry) = family.entries.iter().find(|e| e.verb().is_none()) else {
+      continue;
+    };
+    if !entry.is_shipped() {
+      continue;
+    }
+    let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+      .arg(&family.name)
+      .output()
+      .expect("run the v3 binary");
+    let text = format!(
+      "{}{}",
+      String::from_utf8_lossy(&out.stdout),
+      String::from_utf8_lossy(&out.stderr)
+    );
+    if !text.contains("is a known command that is not implemented yet") {
+      continue;
+    }
+
+    let has_verbs = family
+      .entries
+      .iter()
+      .any(|e| e.verb().is_some() && e.is_shipped());
+    let points_at_own_help = text.contains(&format!("intent {} --help", family.name));
+    if has_verbs {
+      families += 1;
+      if !points_at_own_help {
+        wrong.push(format!(
+          "`{}` has verbs and its remedy does not name them: {text}",
+          family.name
+        ));
+      }
+    } else {
+      leaves += 1;
+      if points_at_own_help {
+        wrong.push(format!(
+          "`{}` has NO verbs and its remedy sends the reader to a help block that lists none: \
+           {text}",
+          family.name
+        ));
+      }
+    }
+  }
+
+  assert!(wrong.is_empty(), "{}", wrong.join("\n"));
+  assert!(
+    leaves > 0 && families > 0,
+    "both shapes must be exercised to be discriminating: {leaves} unbuilt leaves and {families} \
+     unbuilt families with verbs"
+  );
+}
