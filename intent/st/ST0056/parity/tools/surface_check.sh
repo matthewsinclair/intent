@@ -215,7 +215,7 @@ INV_PROBED="INV-01 INV-02 INV-04 INV-06 INV-07 INV-08"
 INV_SKIPPED="INV-03 INV-05"
 inv_skip_reason() {
   case "$1" in
-    INV-03) echo "the project-context gate needs a probe run OUTSIDE a project, plus its own declared exception list (upgrade supplies its own message) -- checkable, not checked here, and not claimed to be" ;;
+    INV-03) echo "the project-context gate. MEASURED 2026-08-15 rather than assumed: only ~5 declared paths reach it bare (doctor, sync, backup and two more), because clap's missing-argument error fires FIRST on every command that takes an argument, and 40 more are still unimplemented. A 5-member uniformity check that already passes is closer to a decoration than a check, so it is deliberately not built YET -- revisit when the implemented surface is wide enough for the population to mean something. NOTE: building this probe is what found that v3's gate MESSAGE diverges from the v2 text INV-03 declares, with no ratified deviation -- so the skip was hiding a finding, which is the argument for revisiting a skip rather than trusting its reason" ;;
     INV-05) echo "a property of v2 SOURCE (an unreachable second call after error), not of observable v3 behaviour -- there is nothing to probe, which is why it is not merely unimplemented" ;;
     *) echo "no reason recorded" ;;
   esac
