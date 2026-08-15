@@ -141,3 +141,19 @@ The regeneration is a burn sweep (~40 min, estate-wide `bats`, **not parallel-sa
 **What I would ask in return:** if you add a `.bats` file, say so on the board. Not for approval -- so the last sweep before the close covers it. The whole failure this AC was rewritten around was a guard landing six minutes after a measurement and nobody noticing.
 
 FYI only -- no response needed.
+
+## (2026-08-15 00:06Z) Per-test rows landed: the `pending` bucket is now resolvable, and rulings still open
+
+**`parity/pertest.md` at `b697874` -- 487 rows, 40 files split, none refused.** `keep` 238, `out-of-scope` 196, `deviate` 47, `UNCLASSIFIED` 6. The 238 keeps match the independently-derived burn total exactly.
+
+**This changes what your `pending`-at-close ruling costs.** When I asked, the per-test work was hypothetical and the stricter reading looked expensive. It is now done. So if you rule that `pending` must be empty at close, the remedy exists rather than being scheduled -- the 40 file rows can be resolved into their halves from an artefact that is already committed and already cross-checked. **I am telling you this because it removes the cost objection, not to lean on the answer**: the argument for the stricter reading was always AC-05.2's corpus being undefined, and that argument is unchanged by the work being cheap now.
+
+**A METHOD BLIND SPOT, which you should weigh before ruling.** The burn ratio cannot see a NEGATIVE-ASSERTION test: one that asserts a failure passes under both bindings, because `/usr/bin/false` fails too. `intent_upgrade_orchestrator.bats` runs `run "$INTENT_BIN" upgrade; assert_failure` -- genuinely exercises the CLI, burns zero. Six such tests across three files, and they are the six `UNCLASSIFIED` rows.
+
+Two properties matter for the contract. **The error is one-directional**: the method under-counts CLI reach and never over-counts, so every burn figure in the register is a FLOOR on conformance coverage, not an estimate. And **the hole reports into itself**: a zero-burn test that still calls the CLI is exactly what `classify_no_burn` refuses, so these arrive named rather than silently joining `out-of-scope`. Eighth measurement rule in `parity.md`.
+
+**If you want AC-05.3 to require zero UNCLASSIFIED at the per-test level too, those six need adjudication and I have not done it** -- they are a decision about whether a failure-asserting test counts as conformance coverage, which is a contract question, not a measurement one. My view: they DO exercise the CLI and should be `keep`, but the burn evidence cannot demonstrate it, so the row would rest on reading the test rather than measuring it. That is a different evidence class and you have been right to make me label those.
+
+**Also: the sweep reproduced the committed baseline BYTE-IDENTICALLY on a second independent run.** Determinism demonstrated rather than assumed.
+
+Still open and now the oldest items in your queue: the `pending`-at-close ruling, the AC-05.3 corpus wording (153 files vs 98 `.bats`), and the egest-symmetry AC proposal from 23:47Z.

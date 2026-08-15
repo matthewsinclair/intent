@@ -3,51 +3,44 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15T00:01Z
-status: active
-focus: "Register COMPLETE at cd490be -- 98 rows, zero UNCLASSIFIED, zero TIMEOUT. The sweep found four more defects in my own toolchain on the way. AC-05.3 now waits on two vc rulings, not on measurement."
+heartbeat_at: 2026-08-15T00:08Z
+status: paused
+focus: "Register + per-test register both COMPLETE and committed. AC-05.3 is blocked on two vc RULINGS, not on measurement -- do not close it from this node. Six negative-assertion rows need adjudication."
 claims: []
 ---
 
 # Interface Claude (ic)
 
-## DOING -- waiting on vc, not on measurement
+## DOING -- PICK THIS UP FIRST
 
-**The register is COMPLETE at `cd490be`.** 98 rows against 98 on-disk `.bats`, zero UNCLASSIFIED, zero TIMEOUT, zero UNSTABLE. `keep` 31 / `pending` 40 / `out-of-scope` 21 / `retire` 5 / `deviate` 1. 1260 tests, 718 reaching the CLI. `coverage_map.sh` and `drift_check.sh` both clean against the fresh baseline. Committed `f11e200` + `bd5938f`.
+**Nothing here is blocked on measurement. Both open items are RULINGS sitting with vc, and neither is this node's to make.**
 
-**AC-05.3 is BLOCKED ON TWO RULINGS, both with vc, and they are not measurement questions.** Do not close it from this node.
+**The register is COMPLETE at `cd490be`** (98 rows = 98 on-disk `.bats`, zero UNCLASSIFIED/TIMEOUT/UNSTABLE) and **the per-test register is COMPLETE at `b697874`** (`parity/pertest.md`, 487 rows, 40 files split, none refused, `keep` 238 matching the independent burn total exactly). The sweep reproduces byte-identically across two independent runs.
 
-1. **Does `pending` block the close?** The AC's literal text ("every file classified; no unclassified rows") is mechanically SATISFIED -- and vc's own falsifiability grep passes: zero `pending` rows carry `--`, every one carries `n/total` with `0 < n < total`. But `gen_register.sh` and the summary row both say the `pending` bucket must be EMPTY at close, and 40 rows say it is not. vc's live message reads the other way. **Two contracts, 40 rows turning on it, and the convenient reading is the one that closes -- which is exactly why this node does not get to pick.** Recommendation sent: the stricter one, argued from consequence (AC-05.2 needs the core families green on the narrowed contract, and a `pending` file is one where some tests are inside that contract and some outside, unseparated -- so 05.2's corpus is undefined until the split is done).
-2. **What is the corpus?** AC-05.3 says "every file in the on-disk `tests/**` estate" = **153 files, 55 of them not `.bats`** (fixtures, README, test_helper.bash). The register covers the 98 `.bats`. vc fixed one literalism and introduced another; asked them to name the corpus rather than have me implement the reading I prefer.
+`intent ac gate ST0056/05` still reads `BLOCKED -- 3/4; unsatisfied: AC-05.3`, and that is CORRECT, not stale.
 
-`acceptance.md` is vc's file. Not touched.
+### The two rulings, and why this node must not resolve them
 
-## What the sweep actually bought -- four defects, none of them the one I went looking for
+1. **Does `pending` block the close?** The AC's literal text is mechanically SATISFIED and vc's own falsifiability grep passes (zero `pending` rows carry `--`). But `gen_register.sh:94` and the summary row both say the bucket must be EMPTY at close. vc's live message reads the other way. **Two contracts; the convenient reading is the one that closes.** My recommendation is the stricter one, argued from AC-05.2's corpus being undefined while files stay unsplit -- and note the cost objection is now GONE, because the per-test work is done. That removes a reason to say no; it is not a reason to say yes.
+2. **What is the corpus?** "Every file in the on-disk `tests/**` estate" is **153 files, 55 of them not `.bats`**. The register covers the 98 `.bats`. vc must name it rather than have me implement the reading I prefer.
 
-I justified the full re-sweep on provenance hygiene. That justification was thin; the sweep paid for itself another way.
+`acceptance.md` is vc's. Not touched, and should not be touched from here.
 
-**The finding that started it.** `burn-baseline.tsv` had 94 data rows against a 97-row register -- the artefact the register NAMES as its provenance could no longer reproduce it. Three files landed after the baseline. Nothing noticed, because a register built from a short TSV is not malformed, just silently smaller than the estate it claims.
+### If the stricter ruling comes back, the work is a short hop
 
-**Then, in my own tools:**
+The 40 `pending` file rows resolve from `pertest.md`, which is committed and cross-checked. **Six rows need human adjudication first** -- the negative-assertion tests (below); they are a contract question about whether a failure-asserting test counts as conformance coverage, not a measurement gap.
 
-1. **`gen_register.sh` had no `TIMEOUT` arm and no default arm.** So the timeout I added to `burn.sh` that morning -- to stop a sweep failing silently -- had installed a _second_ silent failure one stage downstream: a timed-out file was emitted NOWHERE. Proven against the pre-edit generator: 2 rows out for a 3-file TSV.
-2. **The summary claimed "all N tests pass with the default `INTENT_BIN`" from a template, not the data.** A red baseline would have published a clean bill of health it had just measured to be false.
-3. **Unmeasured tests were averaged into the ratio as zeroes** -- "no measurement exists" reported as "does not reach the CLI".
-4. **`coverage_map.sh` SKIPPED files absent from the baseline** (`[ -n "$row" ] || continue`), so the three missing files were counted as neither REAL nor VACUOUS in any family they touched. They left the arithmetic entirely, under a confident verdict. It also crashed on a `--` burn cell (`[ "--" -gt 0 ]` is fatal under `set -e`).
+## Live findings a fresh session should not rediscover
 
-**Two consumers of one artefact had independently grown two different wrong behaviours around the same missing check.** That is Highlander's case made by demonstration rather than by argument, and the comparison now lives once in `lib_corpus.sh`.
+**The burn ratio is BLIND TO NEGATIVE-ASSERTION TESTS.** A test asserting a failure passes under both bindings, because `/usr/bin/false` fails too. Six such tests across three files, surfaced as the six `UNCLASSIFIED` per-test rows. **One-directional**: the method under-counts CLI reach and never over-counts, so every burn figure is a FLOOR. Eighth measurement rule in `parity.md`.
+
+**`surface/dispatch-table.md` was stale against its own canon** -- cc's `sync` row existed in the JSON and not in the view since `f0d6e64`. Repaired at `b697874`. Nothing caught it because **AC-03.4's skew check is not wired up yet**, on the very artefact that ratifies the generated-view pattern.
 
 ## TODO -- in order
 
-1. **Per-test rows for the 40 `pending` files.** Blocked on ruling 1 above only in the sense that it decides whether they gate the close; the work is worth doing either way. `ambient_project_root_guard.bats` is the worked example (2/4, both halves adjudicated).
-2. ~~**`bats_coverage` may be overstated.**~~ **CLOSED -- and I was wrong, not cc.** I told cc their third-level finding qualified `bats_coverage`. It does not. `bats_coverage` is defined in the table's own `about` block as files exercising a family **through the dispatcher**, produced by `coverage_map.sh` against the v2 `burn-baseline.tsv` -- a v2 measurement end to end. Measured directly: `intent claude skills sync`, `claude rules list` and `claude ws list` all dispatch under v2. So the figures are honest and no correction is owed. cc's finding lands on the **v3 conformance run** and nowhere else, which is where I first put it before over-extending. Correction sent. **The lesson is narrower than "check things": when an argument disposes of a concern, check whether it disposes of the NEIGHBOURING one before conceding the neighbour.** I had the disposing argument in hand and stopped applying it one line early -- and it sat on this board as a live TODO, one pickup from becoming a peer's inherited assumption.
-3. **Guard the `bin/intent_<sub>` direct-call invariant, or admit it is unguarded.** Unchanged: the `INTENT_BIN` guard covers the dispatcher path only; ~146 direct calls are classified, not guarded.
-
-## DONE this session
-
-**The dispatch-table SSOT is complete** -- now at `surface/dispatch-table.json` + `surface/dispatch-table.md` (moved by cc under D26; `intent st done` relocates a thread's directory, so a table the binary `include_str!`s would have broken the build at the release). 27 families, 93 entries, 6 new-surface. Detail archived to `.history/20260814/`.
-
-**`intent config` is a parity HOLE** -- no v2 behaviour AND no test invoking it. Ruled into AC-00.1 + AC-06.1; opened the fifth parity class `undefined`. **Two exposures** named against my own work (EXP-01, EXP-02). **Seven measurement rules** in `parity.md`. **Two new tools**, both registered: `coverage_map.sh` (parity-hole finder) and `drift_check.sh` (the EXP-02 mechanism, which found `todo list` missing from my own table on its first run).
+1. **Adjudicate the six negative-assertion `UNCLASSIFIED` rows** (`intent_upgrade_orchestrator.bats` x3, `intent_upgrade_dispatcher.bats` x2, `subdir_invocation.bats` x1). My view: they DO exercise the CLI and should be `keep` -- but the burn evidence cannot demonstrate it, so the row would rest on READING the test, a different evidence class. Route through vc.
+2. **Guard the `bin/intent_<sub>` direct-call invariant, or admit it is unguarded.** 147 sites across 5 files. The existing guard's third test EXPLICITLY excludes them, so the gap is documented rather than accidental. **Build it as a tool under `parity/tools/`, not a `.bats` file** -- a new test file moves the corpus and forces a register regeneration before the close.
+3. **Wire AC-03.4's skew check** for `surface/dispatch-table.md`, or hand it to whoever owns AC-03.4. The stale-view incident is the argument.
 
 ## Open asks for hv
 
