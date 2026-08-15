@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 14:13Z
+heartbeat_at: 2026-08-15 14:23Z
 status: active
-focus: "WP-11 WIP. Release profile measured and landed (9.95MB -> 8.08MB). Signing decided on a same-org precedent already installed here. DOGFOOD FOUND A REAL ONE: a schema change with no version stamp, where IF NOT EXISTS makes Store::open succeed on a DB it cannot read."
+focus: "Both release binaries are Developer ID SIGNED (Geodica 76BQL8L47U), structurally identical to conflab. int macos ported from Lamplight. Notarisation written but untested -- needs one interactive store-creds by hv, the only thing here I cannot do."
 claims: [ST0056/11]
 ---
 
@@ -27,6 +27,10 @@ hv reversed D01 on 2026-08-15 and vc has rolled it out. This is what I hold, and
 **The state machines are RATIFIED too** (ST / WP / AC, `data-model.md`). `st new` enters at `Triage`; no terminal states; WP has no Hold/Cancelled; AC collapses two fields into one four-valued enum. `wp done` is refused on a BLOCKED gate AND `doctor` reports status-disagrees-with-gate, because **a status that was true when set becomes a false green the moment its contract grows.** New verbs are red tests now: `st triage/hold/resume/reopen/reinstate`, `wp reopen/unstart`.
 
 ## DOING
+
+- **BOTH RELEASE BINARIES ARE DEVELOPER ID SIGNED.** hv removed the conditional -- _"Having Intent properly signed using my Geodica Apple Developer Connection keys is the right way to go regardless of whether or not brew needs it"_ -- and pointed at **Lamplight, which already signs its CLI and Wrighter with the same ADC**. Its `bin/.devbin/cmd/macos.d/` is the same devbin dispatcher Intent adopted, so `int macos <doctor|sign|notarize|env|store-creds>` is a **port, not an invention** (`556d1d0f`). One file rather than their `.d/` split, because Intent has no `.app`, no entitlements and no installer pkg -- their bundle walk and productsign half have no counterpart. **Signing needed no credential ceremony**: the identity was already in the keychain. Result is structurally identical to conflab -- same authority chain, `flags=0x10000(runtime)`, `TeamIdentifier=76BQL8L47U`, secure timestamp -- and both binaries still run.
+
+  **REMAINING, and it is the hv item**: notarisation is written and UNTESTED; it needs one interactive `int macos store-creds`. Key material I should not handle. **AC-11.2 is decided and half implemented -- not marking it satisfied**, because its evidence is "decision-log entry + a notarised artefact" and the second half does not exist.
 
 - **DOGFOOD FOUND A REAL DEFECT, ~40 minutes after the change landed, and it is the first live instance of the class D34 created.** A v3 project made this morning, opened by the current binary: `error: could not read the committed canon / no such column: state in SELECT ... FROM criteria`. The ratified AC enum added `state`; the existing DB still has `scope` + `satisfied`. **The shape is the bad one: `CREATE TABLE IF NOT EXISTS` makes the DDL apply a NO-OP on an existing DB, so `Store::open()` reports SUCCESS and hands back a store on the old schema** -- the open path succeeds on a database it cannot read, and nothing fails until a query names the new column. **No `user_version`, no `schema_version`, so detection is impossible today** and no migration could dispatch even once written. `store.rs:4` already states "MIGRATIONS ARE NORMAL"; the policy is written and the mechanism is not built. **Checked the debug binary first** -- fails identically -- because I had just changed the release profile and it was the obvious thing to blame. Sent to cc (lane) and vc (the invariant has no AC behind it).
 
@@ -56,6 +60,8 @@ hv reversed D01 on 2026-08-15 and vc has rolled it out. This is what I hold, and
 
 Facts about this estate, not reminders. Everything amounting to "remember to" is worthless here -- three nodes broke rules they had personally written, on the day they wrote them.
 
+- **A BARE MACH-O BINARY CANNOT BE STAPLED, and `spctl -a -t exec` REPORTS "rejected" ON A CORRECTLY SIGNED CLI.** Both look like defects and neither is. `stapler` writes tickets into `.app`/`.pkg`/`.dmg`; there is nowhere to put one in a bare executable, so the ticket lives on Apple's servers -- conflab has shipped that way since July. And spctl's `-t exec` policy is for app bundles, so it answers "does not seem to be an app" with a perfectly valid signature attached. **`codesign --verify --strict` is the check that means anything here.**
+- **READ THE WHOLE OUTPUT, NOT ITS LAST LINE.** I reported `spctl` "rejected" for two binaries as one finding to vc; they were a trust failure and a category error with identical first words. Truncating to `tail -1` hid the clause that distinguished them. Same shape as taking `conflab` off `PATH` when the question was about the Cellar artefact: **a short answer that fits the expectation is the one to look at twice.**
 - **NEVER `git pull --rebase` IN THIS SHARED TREE.** I ran it reflexively before a push and it **refused, because the index held peers' uncommitted work** -- which is the only reason it was harmless. A rebase in a tree three other sessions are working in rewrites history under them while their edits are unstaged. The push had nothing to rebase onto anyway. **Push; if it is rejected as non-fast-forward, coordinate -- do not rewrite.**
 - **A peer's `.git/index.lock` means a peer is running git. WAIT, never remove it.** Hit it once today; it cleared on its own. The `stale lock` wording in git's message is an invitation to do the wrong thing in a tree with four live sessions.
 - **THIS REPO IS A v2 PROJECT AND THE v3 BINARY REFUSES HERE BY DESIGN.** `intent/.config/config.json` declares 2.19.0 and 56 threads carry v2 canon, so the v3 binary exits 1 with a migration remedy for every verb. **Any measurement taken with the v3 binary inside this tree measures the REFUSAL PATH, not the function** -- I compared five verbs with and without `INTENT_HOME`, got byte-identical output, and nearly banked five identical refusals as evidence. `int dogfood` exists so there is a v3 project to measure against. hv, 2026-08-15: _"we're building Intent3 using Intent... be aware of that at all times, and eat our own dogfood."_
