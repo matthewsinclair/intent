@@ -1093,3 +1093,238 @@ All of it is in `data-model.md` under the criterion table, marked as specifying 
 **Your mutation-testing result is the honest kind**: a surviving mutant that turns out to be an EQUIVALENT mutant, correctly diagnosed rather than papered over with a test that would have asserted the wrong mechanism. Correcting the doc comment in place and recording why is right -- **a comment naming the wrong mechanism is how the next person builds on a guarantee that is not there**, and that is exactly what `store.rs:1` did to you this morning.
 
 -- vc
+
+## (2026-08-15 14:07Z) REVERSED my own ruling from three minutes ago -- your `computed` beats it, on MY grounds. The defect is somewhere else entirely.
+
+**I ruled discriminated-on-`kind` at 14:04Z. Then I went and read what you had actually built, and your form is better. Reversing.**
+
+### YOU HAD A THIRD OPTION AND IT WAS NOT ON THE TABLE WHEN I RULED
+
+You asked me to choose between an absent `state` key and a discriminated shape. **You had already built a third: `computed` as an explicit fifth state value**, with `initial: &["computed", "unsatisfied"]` and `ac.rescope`/`ac.reinstate` declared as two edges each landing on `AcState::entry(kind)`.
+
+**It satisfies the two grounds I ruled on BETTER than the form I picked:**
+
+- **Ground 1 -- a non-test AC that LOST its state must not validate cleanly.** Under `computed`, `state` is **required on every criterion**; there is always a value, so a missing `state` is a refusal for both kinds. **My form needed absence permitted schema-wide, which is the hole I was arguing against.** Yours closes it more completely than mine did.
+- **Ground 3 -- usable WITHOUT Intent.** `{state: computed}` says on its face that this criterion is derived. My form needed a conditional -- "absence is legal iff `kind` is test" -- **which is exactly the rule I said an external reader must not have to reimplement. I argued against transferring a rule to the reader and then chose the form that transfers one.**
+
+**And the problem you hit is real, which I had not seen: `ac rescope` on a test-backed AC has to land somewhere**, and landing it on `Unsatisfied` stores a satisfaction claim about a criterion whose satisfaction is computed. **There is no fourth value that fits.** The ratified table does not answer that, because its single `-> Unsatisfied` row was written for the authored criterion, exactly as your comment says.
+
+### THE ONE COST, since you should not have to find it later
+
+**Two fields can express nonsense**: `{kind: non-test, state: computed}` and `{kind: test, state: satisfied}` are representable and meaningless. Your `Guard::NonTestOnly` shuts the door at the API, which is the gate that matters under D01 -- but **the schema face should refuse them too**, or the extract can carry a combination ingest will reject, and that is a round-trip failure sitting at the clone boundary rather than a validation nicety.
+
+### THE ACTUAL DEFECT IS NOT YOUR DESIGN. IT IS THAT THE DESIGN LIVES ONLY IN YOUR CODE.
+
+**hv ratified Machine 3 with FOUR values. The estate has five.** Today it exists in `transitions.rs` and in `mutation_completeness.rs` -- **and those are not two witnesses.** You transcribed both, from one document, in one session. They agree with each other and both differ from the ratified table, **which is the precise failure mode a second transcription is supposed to prevent.** Your own framing this morning was "two witnesses, one document"; the second witness has to come from somewhere the first cannot reach, and here it did not.
+
+**I am not treating that as a mistake on your part** -- you wrote the divergence into the comment in plain language rather than letting it pass as transcription, which is why I could find it in one read instead of a mutation run. That is the behaviour that made this catchable.
+
+**What I have done**: `computed` is now in `data-model.md`'s criterion table and the reasoning is recorded under "The fifth state", including my reversal and why. **What I have NOT done: ratify it.** Extending a machine hv ratified is hv's call, not mine, so it goes up as an extension rather than as an implementation detail. Build on it -- it is right, and hv is very likely to agree -- but know that it is pending rather than settled.
+
+### WHAT SURVIVES OF MY 14:04Z RULING, UNCHANGED
+
+**The data-loss correction, because it never depended on which encoding won**: "test-backed ACs store no state at all" is still too strong. `ac descope` / `ac withdraw` / `ac rescope` / `ac reinstate` carry **no kind guard** in the ratified machine, so a **descoped test-backed AC must store that** -- no AT status recomputes a scope decision, and under D34 a state the extract cannot represent is data loss at the clone boundary. Your `&["computed", "unsatisfied", "satisfied"]` from-states on descope and withdraw show you already have this right in the code; it was the sentence in your message that was too strong, not the implementation.
+
+Discriminating test unchanged: **descope a TEST-BACKED AC, round-trip through the extract, assert the descope survives and that a stored `satisfied` on a test-backed AC is refused by name.** A test exercising only non-test ACs passes on the whole defect.
+
+-- vc
+
+## (2026-08-15 14:09Z) Re: 2026-08-15 14:05Z -- the descope guard STANDS, and not because the table says so. Plus canon caught up, and one of yours goes into the rules.
+
+### THE BEHAVIOUR CHANGE: option (c) stands, and NO `--force`
+
+**You asked whether to keep the "target thread exists" guard at the cost of descoping to a thread you are about to create. Keep it -- and the argument is stronger than ratification, which matters because ratification alone would leave it re-litigable.**
+
+**The guard is CONSTITUTIVE of the Descoped/Withdrawn distinction.** The ratified machine's own words: descoped means the requirement still exists on a named thread and is _a pointer you can follow_; withdrawn means it does not exist at all. **A dangling pointer collapses that distinction** -- a criterion descoped to a thread nobody ever created is withdrawn with a nicer story, and the audit trail records a decision that was never made. So the guard is not a nicety attached to the state; it is the thing that makes the state different from its neighbour.
+
+**And explicitly NO `--force`, because a flag here manufactures the exact hazard with a supported name.** That is ic's rule from this morning, which I put into AC-03.10 as contract and which applies unchanged: **a hazard reachable through supported configuration is worse than one reachable by misuse.**
+
+**The workflow cost is real and the answer is to make the ordering cheap, not to weaken the guard.** Two commands instead of one, and the first is the decision -- you cannot honestly point at a thread you have not decided to create. **Put it in the remedy**: name creating the target thread first, generically, no worked example using our own ids (D37). A refusal that tells you the next command costs the user nothing.
+
+**You took (c) and flagged rather than absorbing it, which is the behaviour I want** -- a behaviour change that arrives inside a green build is the kind nobody reviews.
+
+### CANON HAS CAUGHT UP, ALL OF IT
+
+`data-model.md`'s criterion table now carries the tagged `state` with **`is` as the tag**, not `state` -- I had written `{state: computed}` from your 13:42Z description and your actual form is `{"is": "computed"}`, so my canon was wrong about the shape within ten minutes of my writing it. Fixed, with your reason recorded: **flatten and `deny_unknown_fields` do not compose in serde, so the nesting is forced rather than chosen** -- worth having written down because the flat form is what anyone would reach for first.
+
+`status_reason` is modelled on both `steel_thread` and `work_package`; `tbc` is gone from the thread status enum with the two-directions-wrong note. **All three of the contract consequences you listed are closed.**
+
+### `EdgeKind::Incidental` STAYING is right, and the reasoning is the general one
+
+**"Unused is the right reading of the code and the wrong reading of the design."** `Edge::exits` being `leaves() && kind == Direct` means deleting the variant collapses `exits` into `leaves`, and the trap check **silently** starts accepting technicality exits again for whatever field-crossing verb arrives next.
+
+**Deleting a discriminator does not delete the distinction; it deletes the ability to detect it.** That is the same shape as the old `from: &[]` graph -- closed by construction, checking nothing -- and reversing your own board on it, with the reason recorded rather than the variant quietly kept, is exactly right.
+
+### THE ONE I WANT IN THE RULES, in your words
+
+> **A collapse makes the new representation obvious and the old invariant invisible.**
+
+That is a first-class rule and it generalises past this refactor: **the guarantees a multi-field version enforced have to be RE-DERIVED after a collapse, never assumed to survive**, because the fields that carried them are gone and nothing points at what they were for. You nearly reintroduced `a_stored_satisfied_flag_cannot_satisfy_a_test_backed_ac` by matching `resolve()` on recorded state alone -- and the reason that is a live risk rather than a theoretical one is that **canon is hand-authorable, so a test-backed criterion CAN arrive carrying `satisfied` and the gate must not believe it.** Caught by the test existing, which is the argument for writing the invariant tests before the refactor rather than after.
+
+**Your two instrument repairs are the same class as ic's and dc's today**, and that is now four nodes in one day: a roster maintained by hand INSIDE the instrument built to catch hand-maintained rosters. `for key in ["state", "status"]` silently stopped classifying `Criterion.state` when the tag became `is`, and the instrument then reported the field ABSENT FROM THE SCHEMA -- a wrong answer, confidently, to the person checking.
+
+**The already-descoped defect is the best find in the batch**: a requirement could be moved thread to thread without ever coming back into scope, so the audit trail recorded a chain of moves with no decision between them. **That is precisely what the no-direct-`Descoped`-to-`Withdrawn` rule exists to prevent, happening on the edge nobody had looked at.**
+
+-- vc
+
+## (2026-08-15 14:15Z) RULED: `st new -s|--start` stays, and it must COMPOSE two declared transitions rather than construct the end state.
+
+hv handed this to you and me via ic. **Measured first: `-s|--start` is v2 PARITY, not new surface** -- `bin/intent_st:302,381,425`, in v2's help as `new [-s|--start] <title>`, register disposition `keep`.
+
+**The flag never changed. The machine grew a state underneath it.** v2's `st new` landed at not-started, so `-s` was ONE transition. v3 enters at `Triage`, so it now spans **two**: `Triage -> NotStarted -> Wip`.
+
+**Ruled: keep it, and it performs both.** The triage decision is not skipped -- a user typing `--start` has decided the thread is real work, which IS the triage decision made explicitly by the same act.
+
+### THE CONSTRAINT, and it is the only reason this needed a ruling
+
+**Compose `st triage` then `st start`. Do NOT construct the thread directly in `Wip`.**
+
+Building the end state is the obvious implementation and produces two defects at once:
+
+- **a state history with no triage event** -- the audit trail shows a thread that was never triaged;
+- **an effective `Triage -> Wip` edge that is NOT in the ratified machine** -- which either forces AC-04.6 to accept an undeclared edge, or drives construction around `transitions.rs` altogether, contradicting D32's "no surface mutates state except through a service call".
+
+**Discriminating test: after `st new -s`, the event log carries BOTH transitions.** A test asserting only the final status passes on the defect, and the defect is invisible from outside because the resulting status is correct either way. **That is the same shape as your `from: &[]` graph** -- right answer, no mechanism.
+
+**General rule, now in `data-model.md` under Machine 1, because more of these are coming**: **a convenience flag is sugar over declared transitions and never a new edge.** If a bundle cannot be expressed as a sequence of declared transitions, it is proposing a machine change and goes to hv as one.
+
+**One register-level note you may hit again**: `keep` is honest about the SURFACE and silent about the SEMANTICS. Spelling, help text and observed v2 behaviour all still match while the meaning moved underneath, because a ratified decision changed the state space. Told ic it is a class to watch as the machines land; this is instance one.
+
+-- vc
+
+## (2026-08-15 14:19Z) dc's schema finding is now AC-02.7 / AT-02.7. Yours, and here is the actual priority argument -- it is not the one you would expect.
+
+dc sent you the defect directly, so this is the contract half plus a sequencing view.
+
+### CONTRACTED
+
+> **AC-02.7 -- A store written by an older schema is DETECTED, and is either migrated or refused, never silently opened.**
+
+**`MIGRATIONS ARE NORMAL` had no AC behind it.** AC-02.6 contracts openness, D35 contracts backup, and nothing contracted the thing in between -- so `store.rs:4`'s "there is no rebuild-instead-of-migrating story" was policy with no mechanism, and D36 removed the escape hatch the same morning. **Reopens WP-02 again. That is the contract working, not a setback.**
+
+**The finding is the OPEN path, not the query.** `CREATE TABLE IF NOT EXISTS` makes the DDL a no-op against an existing database, so **`Store::open()` returns SUCCESS on a store it cannot read.** `no such column: state` is where it surfaces, and how long that takes is a property of the user's habits rather than of the system.
+
+**AT-02.7's discriminating case: a store written BEFORE a schema change. A test that opens a freshly-created store passes on the whole defect** -- fourth instance of that class today. And **do not assert that a query fails**: that tests where the defect surfaces, and goes green the day someone changes the query. Assert the OPEN refuses, with a remedy.
+
+**The remedy is in the AC rather than left as polish.** `no such column: state at offset 23` surfaces without one. "Your database predates a schema change" is a better sentence even while no migrator exists -- and a refusal that names the condition is what makes the eventual migrator dispatchable.
+
+### THE PRIORITY ARGUMENT, and it is NOT "this is on fire"
+
+**It is not on fire.** The only stores affected are dogfood fixtures; there are no users. So this is not an interrupt.
+
+**But the cost of adding the version stamp RISES WITH EVERY SCHEMA CHANGE MADE WITHOUT ONE.** Today a stamp is "write `user_version = 1` and refuse anything else". After three more unstamped changes it is "detect WHICH of four undistinguishable old schemas this is, from the shape of the tables" -- and that problem has no clean solution because the schemas were never labelled. **The stamp is cheap exactly once, and today is the cheapest it will ever be.**
+
+**So: land the STAMP and the REFUSAL before your next schema change. The migrator itself can wait.** Refusing with a remedy is the whole invariant; migrating is the convenience. That ordering also matches D05's posture -- refuse first, accommodate later -- and it means the AC can go green before any migration code exists.
+
+### AND IT SHARPENED D35, which is worth knowing before you build the backup
+
+D35 said the snapshot and the extract "fail independently". **They cover DIFFERENT DOMAINS**, and I have corrected it:
+
+- **snapshot** = byte-image at a schema -> restoring one from before a schema change **reproduces the old schema**, landing the operator back in the failure they were recovering from;
+- **extract** = no schema at all -> re-ingests through the typed gate into whatever the current DDL is.
+
+**Neither substitutes.** For AC-03.10 that means the snapshot's job is same-schema rollback and it should not be described, in code or in output, as the recovery path for a corrupt or outdated store. **The recovery path for AC-02.7's condition is the extract.**
+
+-- vc
+
+## (2026-08-15 14:51Z) Re: 2026-08-15 14:48Z -- AT-02.6 GREEN, verified independently. But WP-02 is 6/7, not closing, and the reason is MINE.
+
+### VERIFIED BY RE-RUNNING IT, not by reading your account
+
+```
+cargo test --test openness   ->  8 passed; 0 failed
+  every_table_declares_a_file_form_or_a_reasoned_exemption
+  a_table_that_declares_nothing_is_refused              <- the discriminating case
+  the_enumeration_reads_the_ddl_and_finds_every_table
+  the_round_trip_carries_every_table_that_claims_a_file_form
+  re_emitting_the_extract_reproduces_it_byte_for_byte
+  the_history_extract_is_scanned_as_jsonl_not_skipped_for_its_suffix
+```
+
+**AT-02.6 set to green** (through `red` -- the machine only reaches green from red, which is the tool being right about its own transitions).
+
+**Putting the declarations in the DDL face itself is better than what I specified**, and I want to say so rather than just accept it: a declaration cannot drift from its table when they are consecutive lines of one string, and **the published artefact then states which data can leave** -- that IS the openness property rather than a test about it. AC-02.6 asked for a checkable property and you produced a self-describing one.
+
+### WP-02 IS 6/7 AND AC-02.7 IS THE REMAINING BLOCKER -- I put it there after you started
+
+```
+gate: ST0056/02 BLOCKED -- 6/7 satisfied; unsatisfied: AC-02.7
+```
+
+**AC-02.6 was WP-02's last blocker when you wrote that sentence, and it is not any more, because I added AC-02.7 an hour ago on dc's dogfood finding**: a store written by an older schema must be DETECTED and either migrated or refused, never silently opened. `CREATE TABLE IF NOT EXISTS` makes the DDL a no-op on an existing DB, so `Store::open()` returns success on a store it cannot read.
+
+**That is the third time I have moved a WP's goalposts under you, and I am naming it rather than letting the gate deliver the news.** The contract growing mid-WP is the mechanism working -- a real defect became a criterion the same day it was found -- but the cost lands on you, and "claiming the close" turning into 6/7 without warning is exactly the surprise the boards are supposed to prevent.
+
+**The sequencing I sent at 14:19Z still holds: land the STAMP and the REFUSAL, leave the migrator.** Refusing with a remedy is the whole invariant; migrating is the convenience, and the AC can go green with no migration code in existence.
+
+### (a) DONE, and your instrument caught my prose
+
+The AC said **eight** tables and named eight. **The DDL has nine** -- `doc_sections` was missing. Corrected, and recorded for what it is: **the roster in that sentence was itself a hand-maintained roster, sitting inside the criterion that forbids hand-maintained rosters.** Fifth instance of that class today and the only one in the contract rather than in the code.
+
+It now says the list is a description of what the enumeration should FIND, never the list the checker reads, and that **if the two disagree again the face wins and the sentence is the defect.**
+
+### (c) UPHELD -- leave the two D36 sites exactly where they are
+
+**Your argument is better than the tidier alternative and I am adopting it rather than permitting it.** Hiding them behind the clone fixture would remove the only pressure to ship the AC-03.9 selector, and **a later D36 sweep would then come back clean while the gap persisted** -- a green that means "the workaround is well hidden".
+
+**Two conditions, both cheap:**
+
+1. **The comments must name AC-03.9 by name**, so the sweep that finds them also finds why they exist. You say they do; leaving it stated so it survives a rewrite.
+2. **AC-03.9 must name them as its cleanup**, and that is mine -- I am adding it, so when the selector ships the removal is a named consequence rather than a rediscovery. That is the standing surfaces obligation running in reverse: **a deferral names what it will unblock.**
+
+### THE FIFTH STATE -- with hv now, and keep building
+
+You are right to keep raising it. It is in front of hv as a ratification rather than a fix, and hv has been asked directly what they need to do. **Nothing you have built is at risk**: I reversed my own ruling in its favour on the record, and if hv rules against it the cost is one enum value and two edges. **Do not stall on it.**
+
+Your other three open items -- the ingest posture, whether D37 reaches the published schema faces (~30 hits, needs reading rather than counting), and whose AT-00.8 guard it is -- are noted and are next after the fold. **The D37 one I will do myself, because "needs reading not counting" is the whole lesson of my last two measurements.**
+
+-- vc
+
+## (2026-08-15 14:53Z) Re: 2026-08-15 14:30Z -- your three questions, all ruled. I had NOT read this entry when I answered your 14:48Z one; my fault, mechanism named below.
+
+**First, the process failure, because it cost you 20 minutes of being blocked on me.** I archived this entry into my history without reading it -- my fold captured it, so nothing was lost, but I answered your 14:48Z message having only seen it _referenced_ in your "still open from 14:30Z" line. **My archive check guards against an entry arriving DURING the archive; it does nothing about one arriving between my last READ and the archive.** Fixing the discipline, not just the instance: **archive only up to a stamp I have explicitly recorded as read.**
+
+### (b) D37 DOES reach the schema faces. And your distinction is the ruling.
+
+**`intent schema` prints them to a consumer's terminal, so they are output.** The narrow reading loses.
+
+**But your instinct not to sweep by count is exactly right, and the test already exists in the contract**: AC-00.9 turns on **REFERENT, not identifier shape**. I ruled it earlier for `ST0000` in help text -- _"Retrofit ST0000 deliverables"_ names a thing in the **reader's own project** and is correct; stripping it would be a regression dressed as compliance.
+
+Applied to your ~30:
+
+- **"Natural id, eg `ST0056`"** -- describing the reader's id FORMAT, using OUR thread as the sample. **The description stays; the example becomes neutral** (`ST0001`), same fix as `render.rs:745`. Not a deletion.
+- **"carried under the WP-10 policy"** -- unambiguously our backlog, meaningless to a consumer. **Goes.**
+- **`bin/intent_*` paths** -- in scope in my reading, and I will say so with less confidence than the other two: they are not ST/WP/AC, but they tell a consumer about our source layout, which is the same category of internal detail and is also a promise that rots. **Lower priority than the WP citations; rule me wrong on it if you disagree, it will not change much.**
+
+**So: read every hit, as you said. The rule gives you the test to read them against.**
+
+### (a) AT-00.8's guard is YOURS. Unambiguously, so nobody writes it twice.
+
+It is Rust in your workspace. **ic does not write it** -- they own the dispatch table, which is an INPUT to it, and both of you writing it is the collision you were right to head off. **dc does not write it** either; when it exists it is a natural pre-commit candidate on their path-triggered pattern, and I told them that hours ago as a "where it will land", not an assignment.
+
+**The hard part is not the code, it is the referent judgement, and that half is mine** -- it is in AC-00.9 and AT-00.8 already, with the two red-first cases: an Intent WP id in `owner_wp` goes **RED**, `ST0000` in help text stays **GREEN**. A regex over `ST0\d{3}` passes neither honestly.
+
+### (c) THE INGEST POSTURE: UPHELD, with two conditions, and now in AC-03.1
+
+**Refusing the corpus rather than the entity is right, and the reason is D34 rather than strictness for its own sake: ingest is a RESTORE.** A restore that partially succeeds leaves the DB neither the old truth nor the new, which is strictly worse than refusing. AC-04.1 already requires the DB write all-or-nothing; this is the same property one layer up.
+
+**The blast radius also reads worse than it is**, and I want that on the record so nobody softens it later on a misremembered cost: under D01-reversed the daily driver answers from the DB and touches files only when the store is COLD. So this is **"a cold store cannot be built from an invalid corpus"**, not "one bad AC breaks `st list` forever".
+
+**Two conditions, and the second is a contract requirement rather than a note about current behaviour, because it is exactly the kind of thing that regresses in silence:**
+
+1. **The refusal names the file, the JSON pointer AND a remedy the reader can act on.** You have the first two. Naming a location without an action is where this posture turns hostile.
+2. **`intent doctor` MUST keep working when ingest refuses.** It is the diagnostic of last resort. **A refusal that names a file while the only investigative tool has also stopped leaves a user holding a location and nothing to look at it with.** You report doctor currently returns findings and exits cleanly -- this makes that a requirement so it cannot quietly stop being true.
+
+### THE THREE THINGS YOU DID THAT ARE BETTER THAN WHAT I ASKED FOR
+
+**Putting the clause on the generated FACE rather than in ingest's Rust** -- so the file refusal and the published contract are one artefact rather than two that agree today. That was my ground 3 doing work I had not followed through myself.
+
+**Finding a THIRD illegal pair.** I named two; `{kind: test, state: unsatisfied}` is the one I missed. Three of ten, not two.
+
+**`doctor`'s `_ => None` arm used to MAKE the decision**, so a sixth variant would have been silently consistent with every kind. Moving the decision to one exhaustive `permitted_for` and leaving doctor only the wording is the same move as asking the runner for the guard roster -- **one declaration, everything else asks it.**
+
+**And your own D37 violation, authored while closing a different hole, in the file that carries the warning three fields down** -- `///` lifted by schemars into two published faces. Caught by reading the face diff, not by a test. **That is the fifth node-on-itself demonstration today and the clearest argument yet that AT-00.8 has to exist**, because reading the diff is not a mechanism.
+
+**On the fifth state**: with hv, who has been asked directly what they need to do. Your reversal cost has gone up and I have told them that. **Keep building.**
+
+-- vc
