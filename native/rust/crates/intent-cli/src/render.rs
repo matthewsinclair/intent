@@ -264,11 +264,42 @@ fn st_rows(
 /// It was `st sync` only until vc reached for `intent sync`, the spelling the
 /// dispatch table advertises and hv actually named, and got "not yet wired".
 /// The documented spelling being the broken one is the worst way round.
+/// **The bare verb REFUSES (AC-03.9).**
+///
+/// `sync` has two directions and they differ in destructiveness: db -> disk
+/// rewrites re-creatable files from the source of truth, and disk -> db
+/// replaces the source of truth from the files. Under D01 as reversed the
+/// second is a RESTORE, and it destroys any change that is in the store and
+/// not yet projected.
+///
+/// A verb whose two directions differ in destructiveness must not have a
+/// silent default, so this one has none. It used to default to the
+/// destructive direction, which is how the defect existed.
+///
+/// The direction selector is not spelled yet -- it needs a row in the dispatch
+/// table, which is ic's lane -- and this refusal deliberately does NOT name a
+/// flag that would not parse. Naming a remedy that does not work is the defect
+/// this AC was written about, one artefact over.
 fn sync() -> Result<(), String> {
-  let mut f = open()?;
-  let count = f.sync().map_err(fail)?;
-  println!("ok: synced {count} steel thread(s) from committed canon");
-  Ok(())
+  let f = open()?;
+  let overwrite = f.sync_overwrite().map_err(fail)?;
+  eprintln!("error: `sync` has two directions and will not guess which one you mean");
+  eprintln!("  db -> disk  rewrites the files from the store. Safe: the files are re-creatable");
+  eprintln!(
+    "  disk -> db  replaces the store from the files. DESTRUCTIVE: any change not yet written to disk is lost"
+  );
+  if overwrite.is_empty() {
+    eprintln!("  (nothing would be overwritten by a disk -> db restore right now)");
+  } else {
+    eprintln!("  a disk -> db restore would currently overwrite:");
+    for line in &overwrite {
+      eprintln!("    {line}");
+    }
+  }
+  eprintln!(
+    "  remedy: `intent st sync` runs the safe direction today. The explicit selector for both is owed by WP-06"
+  );
+  Err(String::new())
 }
 
 /// A verb the dispatch table carries and the facade does not yet implement.
@@ -353,9 +384,18 @@ fn st(m: &ArgMatches) -> Result<(), String> {
     Some(("sync", a)) => {
       if flag(a, "write") {
         let mut f = open()?;
-        f.sync().map_err(fail)?;
+        // v2's `st sync` regenerates `steel_threads.md` from the threads --
+        // a projection, which under the reversed D01 is the db -> disk
+        // direction. It maps onto the SAFE half, never the restore.
+        let count = f.sync_to_disk().map_err(fail)?;
+        // v2 prints the index path, and that is kept because it is the file
+        // this verb is named for and what a script greps. The COUNT is added
+        // because it would otherwise be the narrower-than-the-act message
+        // class: the projection rewrites every view, not just the index, and a
+        // line naming one file while writing many is how an operator learns to
+        // trust a report that is not describing what happened.
         println!(
-          "updated: {}",
+          "updated: {} (and the projection for {count} thread(s))",
           f.project().relative(&f.project().steel_threads_view())
         );
       } else {

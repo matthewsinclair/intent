@@ -36,6 +36,27 @@ fn ok(root: &Path, args: &[&str]) -> String {
   String::from_utf8_lossy(&out.stdout).to_string()
 }
 
+/// Bring disk-authored content INTO the store -- the disk -> db direction.
+///
+/// **These tests need it for a reason that outlives the transition, and it is
+/// worth stating.** Authored prose (`design.md`, an issue body) is
+/// DISK-NATIVE: D02 keeps it authored rather than generated, so it exists
+/// nowhere else and disk -> db is the only way it reaches the index. That
+/// makes this direction routine for prose at the same time as it is a
+/// destructive restore for modelled entities -- which is a wrinkle in
+/// AC-03.9's clean split, reported to vc rather than papered over here.
+///
+/// It drops the cache because the CLI cannot yet spell the direction
+/// (owed by WP-06). A cold store re-ingests from the files on the next open,
+/// through `resync` -- the very same function -- so this is equivalent to the
+/// command rather than an approximation of it.
+fn restore_from_disk(root: &Path) {
+  let db = root.join("intent/.cache/intent.db");
+  if db.exists() {
+    std::fs::remove_file(&db).expect("drop the store so the next open re-ingests");
+  }
+}
+
 fn project() -> tempfile::TempDir {
   let dir = tempfile::tempdir().expect("tempdir");
   let config = dir.path().join("intent").join(".config");
@@ -63,7 +84,7 @@ fn a_word_in_authored_thread_prose_is_found() {
   // commands answer from the store and never scan the tree (hv, 2026-08-14),
   // and `intent sync` is the explicit reconciliation. This is the trade
   // being exercised, not worked around.
-  ok(root, &["sync"]);
+  restore_from_disk(root);
 
   let hits = ok(root, &["search", "kestrel"]);
   assert!(
@@ -100,7 +121,7 @@ fn a_word_in_an_issue_body_is_found() {
     "# Pelican drift\n\nThe pelican index drifts after a rebuild.\n",
   )
   .expect("write issue body");
-  ok(root, &["sync"]);
+  restore_from_disk(root);
 
   let hits = ok(root, &["search", "pelican"]);
   assert!(
@@ -222,7 +243,7 @@ fn a_phrase_in_a_thread_objective_is_found() {
   );
   assert_ne!(text, edited, "the fixture must actually set an objective");
   std::fs::write(&canon, edited).expect("write canon");
-  ok(root, &["sync"]);
+  restore_from_disk(root);
 
   let hits = ok(root, &["search", "quokka"]);
   assert!(

@@ -436,18 +436,124 @@ impl Facade {
   ///
   /// It also refreshes the generated views, because a resync that fixed the
   /// store and left the views stale would swap one disagreement for another.
-  pub fn sync(&mut self) -> Result<usize, FacadeError> {
-    let canon = ingest::resync(&self.project, &mut self.store)?;
-    let views = views::write_all(&self.project, &canon, &self.render_ctx()).map_err(|e| {
-      FacadeError::Write(WriteError::Io {
-        path: self.project.root().display().to_string(),
-        source: e,
-      })
-    })?;
+  /// **db -> disk. The ROUTINE direction: rewrite every projected file from
+  /// the store.**
+  ///
+  /// This did not exist until AC-03.9, and its absence was the actual defect
+  /// rather than a missing convenience: with the DB as the SSOT (D01, reversed
+  /// 2026-08-15) the files are the re-creatable side, so re-creating them is
+  /// the operation the model is built around -- and `sync` had only its
+  /// dangerous half. Everything else about the old verb was a symptom of that.
+  ///
+  /// Safe by construction: it reads the source of truth and overwrites
+  /// artefacts derived from it. Nothing authored can be lost, because nothing
+  /// it writes is authored -- prose lives in modelled fields (D22, D28), which
+  /// is what makes the whole projection disposable.
+  pub fn sync_to_disk(&mut self) -> Result<usize, FacadeError> {
+    let (threads, issues) = self.store.load_canon().map_err(FacadeError::Store)?;
+    let sections = self.store.doc_sections().map_err(FacadeError::Store)?;
+    let canon = Canon {
+      threads,
+      issues,
+      sections,
+    };
+    let all_threads: Vec<&Thread> = canon.threads.iter().collect();
+    let all_issues: Vec<&Issue> = canon.issues.iter().collect();
+    let set = self.projection(&canon, &all_threads, &all_issues)?;
+    set.commit()?.keep();
     let count = canon.threads.len();
     self.canon = canon;
-    let _ = views;
     Ok(count)
+  }
+
+  /// **disk -> db. The DESTRUCTIVE direction: replace the store from the
+  /// files.**
+  ///
+  /// Under the reversed D01 this is a RESTORE, not a refresh. It reads the
+  /// re-creatable side and overwrites the source of truth with it, so a change
+  /// that is in the store and not yet projected is destroyed -- which is
+  /// exactly the situation the file-write failure leaves behind, and why no
+  /// remedy may send an operator here to recover.
+  ///
+  /// Callers are expected to have shown [`Facade::sync_overwrite`] first. This
+  /// method does not print, because the facade renders nothing; it refuses
+  /// nothing either, because a service call with a stated direction has
+  /// already been chosen. The REFUSAL belongs on the bare verb (AC-03.9).
+  pub fn sync_from_disk(&mut self) -> Result<usize, FacadeError> {
+    let canon = ingest::resync(&self.project, &mut self.store)?;
+    let all_threads: Vec<&Thread> = canon.threads.iter().collect();
+    let all_issues: Vec<&Issue> = canon.issues.iter().collect();
+    let set = self.projection(&canon, &all_threads, &all_issues)?;
+    set.commit()?.keep();
+    let count = canon.threads.len();
+    self.canon = canon;
+    Ok(count)
+  }
+
+  /// What a [`Facade::sync_from_disk`] would overwrite, computed BEFORE it
+  /// runs.
+  ///
+  /// AC-03.9 requires the destructive direction to state what it will
+  /// overwrite rather than report what it did. The difference is the whole
+  /// point: a summary afterwards is a receipt for a loss, and the operator
+  /// needed it one moment earlier.
+  ///
+  /// It compares the store against the files by VALUE, so an entity present in
+  /// both and identical is not listed -- the usual case is an empty answer,
+  /// and an empty answer is what makes a non-empty one worth reading.
+  pub fn sync_overwrite(&self) -> Result<Vec<String>, FacadeError> {
+    let (stored_threads, stored_issues) = self.store.load_canon().map_err(FacadeError::Store)?;
+    let on_disk = ingest::read(&self.project)?;
+    let mut out = Vec::new();
+    for thread in &stored_threads {
+      match on_disk.threads.iter().find(|t| t.id == thread.id) {
+        Some(same) if same == thread => {}
+        Some(_) => out.push(format!("{}: differs on disk", thread.id)),
+        None => out.push(format!("{}: absent from disk, would be DELETED", thread.id)),
+      }
+    }
+    for issue in &stored_issues {
+      match on_disk.issues.iter().find(|i| i.number == issue.number) {
+        Some(same) if same == issue => {}
+        Some(_) => out.push(format!("issue {}: differs on disk", issue.number)),
+        None => out.push(format!(
+          "issue {}: absent from disk, would be DELETED",
+          issue.number
+        )),
+      }
+    }
+    Ok(out)
+  }
+
+  /// Every file the model projects onto disk, as one batch.
+  ///
+  /// THE ONE PLACE THE db -> disk DIRECTION IS EXPRESSED. `apply` and both
+  /// sync directions go through it, so a mutation and a resync cannot disagree
+  /// about what the tree should look like -- which would be a divergent copy
+  /// of the projection rules with a filesystem in between.
+  fn projection(
+    &self,
+    canon: &Canon,
+    threads: &[&Thread],
+    issues: &[&Issue],
+  ) -> Result<WriteSet, FacadeError> {
+    let mut set = WriteSet::new();
+    for thread in threads {
+      set.add(
+        self.project.thread_json(&thread.id),
+        to_canonical_json(thread).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
+      );
+    }
+    for issue in issues {
+      set.add(
+        self.project.issue_json(issue.number),
+        to_canonical_json(issue).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
+      );
+    }
+    for view in views::render_all(&self.project, canon, &self.render_ctx()) {
+      set.add(view.path, view.content);
+    }
+    Ok(set)
   }
 
   /// Run every health check (AC-06.2). A read: it reports, and repairs
@@ -973,42 +1079,51 @@ impl Facade {
     payload: serde_json::Value,
     next: Canon,
   ) -> Result<(), FacadeError> {
-    let mut set = WriteSet::new();
-
     // What gets written is DIFFED, not declared. The caller used to hand in a
     // list of touched ids, which made "the mutation did not persist" reachable
     // by naming the wrong id -- a silent failure, since the DB and the return
     // value would both say it worked. Comparing against the loaded canon
     // cannot forget, and it generalises to issues for free.
-    for thread in &next.threads {
-      let unchanged = self
-        .canon
-        .threads
-        .iter()
-        .any(|current| current.id == thread.id && current == thread);
-      if !unchanged {
-        set.add(
-          self.project.thread_json(&thread.id),
-          to_canonical_json(thread).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
-        );
-      }
-    }
-    for issue in &next.issues {
-      let unchanged = self
-        .canon
-        .issues
-        .iter()
-        .any(|current| current.number == issue.number && current == issue);
-      if !unchanged {
-        set.add(
-          self.project.issue_json(issue.number),
-          to_canonical_json(issue).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
-        );
-      }
-    }
-    for view in views::render_all(&self.project, &next, &self.render_ctx()) {
-      set.add(view.path, view.content);
-    }
+    let changed_threads: Vec<&Thread> = next
+      .threads
+      .iter()
+      .filter(|t| {
+        !self
+          .canon
+          .threads
+          .iter()
+          .any(|current| current.id == t.id && current == *t)
+      })
+      .collect();
+    let changed_issues: Vec<&Issue> = next
+      .issues
+      .iter()
+      .filter(|i| {
+        !self
+          .canon
+          .issues
+          .iter()
+          .any(|current| current.number == i.number && current == *i)
+      })
+      .collect();
+    let removed_threads: Vec<String> = self
+      .canon
+      .threads
+      .iter()
+      .filter(|current| !next.threads.iter().any(|t| t.id == current.id))
+      .map(|t| t.id.clone())
+      .collect();
+    let removed_issues: Vec<u32> = self
+      .canon
+      .issues
+      .iter()
+      .filter(|current| !next.issues.iter().any(|i| i.number == current.number))
+      .map(|i| i.number)
+      .collect();
+
+    // The SAME projection both sync directions use, so a mutation and a
+    // resync cannot render the tree differently.
+    let set = self.projection(&next, &changed_threads, &changed_issues)?;
 
     let envelope = Envelope::new(
       &self.ctx.principal,
@@ -1049,43 +1164,6 @@ impl Facade {
     // One transaction covers the entities, the prose index and the envelope
     // together -- see [`Mutation`]. If it fails, nothing has been written
     // anywhere and truth is untouched.
-    let changed_threads: Vec<&Thread> = next
-      .threads
-      .iter()
-      .filter(|t| {
-        !self
-          .canon
-          .threads
-          .iter()
-          .any(|current| current.id == t.id && current == *t)
-      })
-      .collect();
-    let changed_issues: Vec<&Issue> = next
-      .issues
-      .iter()
-      .filter(|i| {
-        !self
-          .canon
-          .issues
-          .iter()
-          .any(|current| current.number == i.number && current == *i)
-      })
-      .collect();
-    let removed_threads: Vec<String> = self
-      .canon
-      .threads
-      .iter()
-      .filter(|current| !next.threads.iter().any(|t| t.id == current.id))
-      .map(|t| t.id.clone())
-      .collect();
-    let removed_issues: Vec<u32> = self
-      .canon
-      .issues
-      .iter()
-      .filter(|current| !next.issues.iter().any(|i| i.number == current.number))
-      .map(|i| i.number)
-      .collect();
-
     self
       .store
       .commit_mutation(crate::store::Mutation {

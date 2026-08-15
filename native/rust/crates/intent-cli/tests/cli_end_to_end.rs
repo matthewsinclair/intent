@@ -275,20 +275,40 @@ fn sync_and_st_sync_are_different_commands_and_both_are_wired() {
   let root = dir.path();
   ok(root, &["st", "new", "A thread"]);
 
-  let reconcile = ok(root, &["sync"]);
+  // **The bare verb REFUSES (AC-03.9).** It used to run disk -> db, which
+  // under D01 as reversed is a RESTORE that overwrites the source of truth
+  // with the re-creatable side. A verb whose two directions differ in
+  // destructiveness must not have a silent default, and the default it had was
+  // the destructive one.
+  let refusal = run(root, &["sync"]);
+  assert_eq!(
+    refusal.status.code(),
+    Some(1),
+    "the bare verb refuses rather than picking a direction"
+  );
+  let said = String::from_utf8_lossy(&refusal.stderr).to_string();
   assert!(
-    reconcile.starts_with("ok: synced"),
-    "top-level sync reconciles the store: {reconcile:?}"
+    said.contains("two directions"),
+    "the refusal says WHY it refused: {said:?}"
+  );
+  assert!(
+    said.contains("DESTRUCTIVE"),
+    "and names which direction is the dangerous one, in a word that survives skimming: {said:?}"
+  );
+  assert!(
+    stdout(&refusal).is_empty(),
+    "a refusal writes nothing to stdout, so a pipe sees no result: {:?}",
+    stdout(&refusal)
   );
 
   let index = ok(root, &["st", "sync"]);
   assert!(
     index.starts_with("ID "),
-    "st sync reports the index as a table: {index:?}"
+    "st sync still reports the index as a table: {index:?}"
   );
-  assert_ne!(
-    reconcile, index,
-    "two different jobs -- collapsing them is what this test exists to prevent"
+  assert!(
+    !index.contains("two directions"),
+    "st sync is a different command and is NOT the refusing one -- collapsing them is what this test exists to prevent: {index:?}"
   );
 }
 
@@ -523,7 +543,20 @@ fn a_work_package_body_survives_canon_to_view_to_canon() {
   assert_ne!(text, edited, "the fixture must actually set a body");
   std::fs::write(&canon_path, &edited).expect("write canon");
 
-  ok(root, &["sync"]);
+  // **D01 REVERSED: a hand-edited canon file is not truth any more.** The
+  // projection reads the STORE, so the edit above has to be brought INTO the
+  // store before it can be rendered -- which is the disk -> db direction, and
+  // the direction the CLI cannot yet spell (AC-03.9, owed by WP-06).
+  //
+  // Dropping the cache forces it: a cold store ingests from the files on the
+  // next open (`ingest::load_fresh`). That is the same movement the restore
+  // will make explicit, so this is a stand-in for the command rather than a
+  // trick -- and it is exactly what the reversal means, since editing canon by
+  // hand now changes a projection and not the source of truth.
+  std::fs::remove_file(root.join("intent/.cache/intent.db")).expect("drop the cold store");
+
+  // The projection, via the safe direction -- the bare verb now refuses.
+  ok(root, &["st", "sync", "--write"]);
 
   // The view carries the authored sections VERBATIM.
   let view = std::fs::read_to_string(root.join("intent/st/ST0001/WP/01/info.md")).expect("view");
@@ -549,7 +582,8 @@ fn a_work_package_body_survives_canon_to_view_to_canon() {
   );
 
   // Idempotent: rendering twice writes the same bytes (AC-03.2).
-  ok(root, &["sync"]);
+  // The projection, via the safe direction -- the bare verb now refuses.
+  ok(root, &["st", "sync", "--write"]);
   let again = std::fs::read_to_string(root.join("intent/st/ST0001/WP/01/info.md")).expect("view");
   assert_eq!(view, again, "the view renders the same bytes twice");
 }

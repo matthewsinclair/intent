@@ -10,11 +10,12 @@
 //! leaves the estate in a third state that is neither before nor after, and
 //! that state has no name, no test, and nobody looking for it.
 //!
-//! Order matters at the call site, and the reason is D01. Canon is durable
-//! truth and the DB is rebuildable from it, so files are written first and the
-//! DB second: a DB failure after a good file write is recoverable by rebuilding,
-//! where a file failure after a DB write would leave the DB asserting something
-//! the canon never said.
+//! Order matters at the call site, and D01 was REVERSED on 2026-08-15: the DB
+//! is the SSOT and the files are re-creatable, so the DB transaction lands
+//! FIRST and this batch is the projection that follows. A failure here leaves
+//! the tree stale rather than torn, and stale is repairable from truth --
+//! which is what makes this unwind the load-bearing part rather than an
+//! optimisation.
 
 use std::io;
 use std::path::{Path, PathBuf};
@@ -55,6 +56,15 @@ struct Prior {
   content: Option<Vec<u8>>,
   /// Directories this write created, deepest first, removed on rollback.
   created_dirs: Vec<PathBuf>,
+  /// Whether the write for this path actually LANDED.
+  ///
+  /// A prior is recorded before its write is attempted, so the path that FAILS
+  /// has a prior too -- and restoring it is restoring a file the failed write
+  /// never modified. Counting that restore's refusal as damage reported the
+  /// estate as TORN while it was byte-for-byte intact: the loudest message the
+  /// write layer has, raised for the calmest state. Its created directories
+  /// are still cleaned up, because `record` really did make those.
+  written: bool,
 }
 
 /// A batch of file writes that lands completely or not at all.
@@ -93,6 +103,10 @@ impl WriteSet {
       priors.push(prior);
       if let Err(e) = write_atomically(path, content) {
         return Err(unwind(priors, path, e));
+      }
+      // Only now is there something to undo for this path.
+      if let Some(last) = priors.last_mut() {
+        last.written = true;
       }
     }
     Ok(Applied { priors })
@@ -145,6 +159,13 @@ fn unwind(priors: Vec<Prior>, path: &Path, source: WriteError) -> WriteError {
 fn restore_all(priors: Vec<Prior>) -> usize {
   let mut failed = 0;
   for prior in priors.into_iter().rev() {
+    if !prior.written {
+      // Nothing to put back. Directories below are still ours to remove.
+      for dir in &prior.created_dirs {
+        let _ = std::fs::remove_dir(dir);
+      }
+      continue;
+    }
     let restored = match &prior.content {
       Some(bytes) => std::fs::write(&prior.path, bytes).is_ok(),
       None => match std::fs::remove_file(&prior.path) {
@@ -196,6 +217,7 @@ fn record(path: &Path) -> Result<Prior, WriteError> {
     path: path.to_path_buf(),
     content,
     created_dirs,
+    written: false,
   })
 }
 
