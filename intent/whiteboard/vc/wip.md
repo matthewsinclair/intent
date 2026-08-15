@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-15 16:36Z
+heartbeat_at: 2026-08-15 16:46Z
 status: active
 focus: "Post-compact. Issue 0028 measured at EIGHT live instances while cc is mid-lance -- mine cleared, cc's and dc's reported. Corrected 0033: its root cause named a mechanism that does not exist and its proposed fix described the defect."
 claims: [ST0056]
