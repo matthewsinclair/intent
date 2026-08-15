@@ -129,6 +129,11 @@ Manage steel threads for the project
 | `st start`                          | <id>        | --                                          | Mark a steel thread as in progress                                                                                                 | keep        |
 | `st done`                           | <id>        | --                                          | Mark a steel thread as complete                                                                                                    | keep        |
 | `st cancel`                         | <id>        | --                                          | Mark a steel thread as cancelled                                                                                                   | keep        |
+| `st triage`                         | <id>        | --                                          | Move a triaged thread out of Triage into NotStarted                                                                                | new-surface |
+| `st hold`                           | <id>        | --reason <text>                             | Put a thread on hold, with a reason                                                                                                | new-surface |
+| `st resume`                         | <id>        | --                                          | Take a thread off hold and back into Wip                                                                                           | new-surface |
+| `st reopen`                         | <id>        | --reason <text>                             | Reopen a completed thread back into Wip, with a reason                                                                             | new-surface |
+| `st reinstate`                      | <id>        | --reason <text>                             | Reinstate a cancelled thread into NotStarted, with a reason                                                                        | new-surface |
 | `st list`                           | --          | --status <status>, --width <n>, --markdown  | List steel threads (default: in progress only)                                                                                     | keep        |
 | `st show`                           | <id> [file] | --                                          | Show details of a specific steel thread                                                                                            | keep        |
 | `st edit`                           | <id> [file] | --                                          | Print the absolute path to a steel thread file                                                                                     | keep        |
@@ -233,6 +238,67 @@ Mark a steel thread as cancelled
 - **stderr:** `error: ...`
 - **Observed notes:** No close-gate consultation -- cancel is not a close. Deliberate (feedback: use the existing Cancelled status, never invent a new one).
 - **Target:** `as-observed`
+
+### `st triage`
+
+Move a triaged thread out of Triage into NotStarted
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (st-id, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1 (ThreadStatus) in data-model.md: the `Triage -> NotStarted` edge. `st new` now enters at `Triage`, so without this verb every new thread is stranded in its entry state and the machine's entry point is a trap.
+- **Note:** `Triage` is a NEW state, not a rename of a state that had members. v2's `TBC` token means To Be Commenced and maps to `NotStarted` (bin/intent_helpers:544 maps `tbc` and `to be commenced` to the same value), so `Triage` begins with ZERO legacy members and this verb has no v2 caller to be compatible with.
+
+### `st hold`
+
+Put a thread on hold, with a reason
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (st-id, arity `1`)
+- **Flags:**
+  - `--reason` `<text>` (string) -- Why it is being held -- required by the machine's guard
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `NotStarted -> Hold` and `Wip -> Hold` edges, guard `reason recorded`.
+- **Note:** `Hold` ALREADY EXISTS as a state and is reachable only by HAND-EDITING a file (cc's archaeology, confirmed): the v2 status filter recognises `hold|on hold -> HOLD` and no verb sets it. So this is not a new state, it is the missing door to a state v2 already renders, which is why the `--status` normaliser could always name a status the tool could not produce.
+
+### `st resume`
+
+Take a thread off hold and back into Wip
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (st-id, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `Hold -> Wip` edge, no guard.
+- **Note:** Returns to `Wip`, NOT to whichever state the thread was held from. The machine declares one exit edge and this verb implements exactly that one; restoring a remembered prior state would be an undeclared edge and would need the machine changed first.
+
+### `st reopen`
+
+Reopen a completed thread back into Wip, with a reason
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (st-id, arity `1`)
+- **Flags:**
+  - `--reason` `<text>` (string) -- Why it is being reopened -- required by the machine's guard
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `Completed -> Wip` edge, guard `reason recorded`. D32 forbids terminal states, and `Completed` was one.
+- **Note:** `st done` RELOCATES the thread directory (measured on the `st done` row above), so this verb has a file-system half that `wp reopen` does not: reopening has to move the directory back. Flagged for cc because the state change is the easy half and the relocation is where a half-applied reopen would leave a thread findable under neither status.
+
+### `st reinstate`
+
+Reinstate a cancelled thread into NotStarted, with a reason
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (st-id, arity `1`)
+- **Flags:**
+  - `--reason` `<text>` (string) -- Why it is being reinstated -- required by the machine's guard
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `Cancelled -> NotStarted` edge, guard `reason recorded`.
+- **Note:** Lands in `NotStarted`, not in whatever the thread was before it was cancelled, and not in `Triage` -- a reinstated thread has already been triaged once and sending it back to the entry state would ask that decision to be made twice. The verb is spelled `reinstate` to match `ac reinstate`, which already carries this exact meaning at criterion level (undo a withdrawal); one word, one meaning, across both machines.
 
 ### `st list`
 
@@ -378,14 +444,16 @@ Manage work packages within steel threads
 - Specifier syntax is shared across every verb and parsed by `parse_wp_specifier` (bin/intent_helpers, ST0050): `STID` accepts `ST0011` or the bare number `11`; `STID/NN` accepts `ST0011/01` or `11/01`. Unlike `st repair`, the bare-number form here actually works -- the resolver is a function, not a `case` glob (contrast the dead arm at bin/intent_st:1231).
 - No help file; `intent help wp` falls through to the no-help path. The usage() block is the only authored help and is unreachable from `intent help`.
 
-| command    | args           | flags          | help                                      | disposition |
-| ---------- | -------------- | -------------- | ----------------------------------------- | ----------- |
-| `wp`       | <command>      | help/--help/-h | Manage work packages within steel threads | keep        |
-| `wp new`   | <stid> <title> | --             | Create a new work package                 | keep        |
-| `wp start` | <specifier>    | --             | Mark a work package as WIP                | keep        |
-| `wp done`  | <specifier>    | --             | Mark a work package as Done               | keep        |
-| `wp list`  | <stid>         | --             | List work packages for a steel thread     | keep        |
-| `wp show`  | <specifier>    | --             | Show work package info.md                 | keep        |
+| command      | args           | flags           | help                                                    | disposition |
+| ------------ | -------------- | --------------- | ------------------------------------------------------- | ----------- |
+| `wp`         | <command>      | help/--help/-h  | Manage work packages within steel threads               | keep        |
+| `wp new`     | <stid> <title> | --              | Create a new work package                               | keep        |
+| `wp start`   | <specifier>    | --              | Mark a work package as WIP                              | keep        |
+| `wp done`    | <specifier>    | --              | Mark a work package as Done                             | keep        |
+| `wp reopen`  | <specifier>    | --reason <text> | Reopen a done work package back into Wip, with a reason | new-surface |
+| `wp unstart` | <specifier>    | --              | Return a started work package to NotStarted             | new-surface |
+| `wp list`    | <stid>         | --              | List work packages for a steel thread                   | keep        |
+| `wp show`    | <specifier>    | --              | Show work package info.md                               | keep        |
 
 ### `wp`
 
@@ -461,6 +529,30 @@ Mark a work package as Done
   - Consults the close-gate; warns on an unedited `## Objective` placeholder (`warn_unedited_objective`, issue 0010)
 - **Target:** `as-observed`
 - **Note:** The gate becomes an in-process facade call at WP-04 (AC-04.3). Behaviour and message are parity-bound; the mechanism is not.
+
+### `wp reopen`
+
+Reopen a done work package back into Wip, with a reason
+
+- **v2:** new-surface
+- **Arguments:**
+  - `specifier` (st-id/NN, arity `1`)
+- **Flags:**
+  - `--reason` `<text>` (string) -- Why it is being reopened -- required by the machine's guard
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 2 (WpStatus): the `Done -> Wip` edge, guard `reason recorded`.
+- **Note:** THE URGENT ONE, and it is not urgent in the abstract: its absence is CURRENTLY CORRUPTING this thread's own tracking data. Three of five WPs disagree with their own gate (WP-02 Done/BLOCKED, WP-04 Done/BLOCKED, WP-05 Wip/PASS), because adding an AC reopens a WP in the contract while nothing moves the status back. Until this verb exists the ONLY repair is hand-editing the file the CLI exists to own -- which is the same trap `ac satisfy` had before `ac unsatisfy`, in the same tool, found the same way. Second instance of one class; the guard against a third is Machine 2 itself, which now declares the edge whether or not anyone has built it.
+
+### `wp unstart`
+
+Return a started work package to NotStarted
+
+- **v2:** new-surface
+- **Arguments:**
+  - `specifier` (st-id/NN, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 2: the `Wip -> NotStarted` edge, no guard.
+- **Note:** No `--reason`: the machine declares no guard on this edge, and adding one would be a stricter surface than the ratified machine rather than a safer one. Unstarting is the cheap correction of a mis-click; reopening a closed WP is a claim about finished work, which is why only the second one has to be justified.
 
 ### `wp list`
 
@@ -2360,15 +2452,15 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 
 ## New surface (no v2 antecedent, no parity obligation)
 
-| command  | args         | flags          | help                                                                     | owning WP | basis                                                                                                                                                                                                                                                                                                                        |
-| -------- | ------------ | -------------- | ------------------------------------------------------------------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `search` | <query>      | --             | Full-text search across all authored prose                               | WP-06     | design.md:68 -- FTS5 across all bodies, from CLI and MCP. There is no bin/intent_search.                                                                                                                                                                                                                                     |
-| `sync`   | --           | --             | Reconcile the runtime store with committed canon on disk                 | WP-06     | hv, 2026-08-14: 'Syncing back-and-forth from disk to db is something that is triggered manually (eg via intent sync) or periodically (eg via intentd running its async synchronisation process).' Daily-driver commands answer from the store and never scan the tree; this is the expensive, infrequent half of that split. |
-| `schema` | [face]       | --             | Print the generated schema faces (JSON Schema, DDL, GraphQL SDL)         | WP-06     | design.md:43                                                                                                                                                                                                                                                                                                                 |
-| `export` | --           | --format <fmt> | Project the canon into another format                                    | WP-06     | design.md:57 -- YAML/md/anything else are export projections                                                                                                                                                                                                                                                                 |
-| `ingest` | --           | --from-md      | Rebuild the canon from markdown (the recovery path, and the v2 migrator) | WP-03     | design.md:66; WP-03 deliverable, shared with the WP-10 migrator                                                                                                                                                                                                                                                              |
-| `daemon` | <subcommand> | --             | Manage the machine-level intentd                                         | WP-08     | design.md:73-74, D07/D08/D19                                                                                                                                                                                                                                                                                                 |
-| `mcp`    | --           | --             | Serve the MCP surface over stdio                                         | WP-09     | design.md:84, D11                                                                                                                                                                                                                                                                                                            |
+| command  | args         | flags          | help                                                                                         | owning WP | basis                                                                                                                                                                                                                                                                                                                        |
+| -------- | ------------ | -------------- | -------------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `search` | <query>      | --             | Full-text search across all authored prose                                                   | WP-06     | design.md:68 -- FTS5 across all bodies, from CLI and MCP. There is no bin/intent_search.                                                                                                                                                                                                                                     |
+| `sync`   | --           | --             | Synchronise the store and its on-disk extracts, in both directions                           | WP-06     | hv, 2026-08-14: 'Syncing back-and-forth from disk to db is something that is triggered manually (eg via intent sync) or periodically (eg via intentd running its async synchronisation process).' Daily-driver commands answer from the store and never scan the tree; this is the expensive, infrequent half of that split. |
+| `schema` | [face]       | --             | Print the generated schema faces (JSON Schema, DDL, GraphQL SDL)                             | WP-06     | design.md:43                                                                                                                                                                                                                                                                                                                 |
+| `export` | --           | --format <fmt> | Extract the store into a portable format usable without Intent                               | WP-06     | design.md:57 -- YAML/md/anything else are export projections                                                                                                                                                                                                                                                                 |
+| `ingest` | --           | --from-md      | Ingest markdown into the store through the API gate (the recovery path, and the v2 migrator) | WP-03     | design.md:66; WP-03 deliverable, shared with the WP-10 migrator                                                                                                                                                                                                                                                              |
+| `daemon` | <subcommand> | --             | Manage the machine-level intentd                                                             | WP-08     | design.md:73-74, D07/D08/D19                                                                                                                                                                                                                                                                                                 |
+| `mcp`    | --           | --             | Serve the MCP surface over stdio                                                             | WP-09     | design.md:84, D11                                                                                                                                                                                                                                                                                                            |
 
 - `search` -- acceptance: AC-06.4 (added by vc, 2026-08-14, on the finding that all 62 ACs had zero coverage of search)
 - `sync` -- note: NOT the same command as `st sync`, and NOT a superset of it either. v2's `st sync` composes `list` and PRINTS the thread table; only `--write` persists `steel_threads.md` (bin/intent_st:1145-1211, verified by ic). Reconciling the store from canon is a different job, so the two are two commands sharing a name and v3 treats them as such. Added by cc at build time (2026-08-14); second clause originally read "v2's job is a strict subset of this reconciliation and both spellings run it", corrected 2026-08-15 after cc found their own test could not catch it -- it was written from the same misreading as the code, asserted the two spellings produce identical bytes, and passed.

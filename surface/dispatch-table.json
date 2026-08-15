@@ -349,9 +349,132 @@
             "notes": "No close-gate consultation -- cancel is not a close. Deliberate (feedback: use the existing Cancelled status, never invent a new one)."
           },
           "target": {
-            "state": "as-observed"
+            "state": "as-observed",
+            "conflict_open_to_vc": "THE RATIFIED MACHINE AND THIS ROW CANNOT BOTH BE RIGHT. data-model.md puts a `reason recorded` guard on EVERY edge into `Cancelled`, including this one -- but v2 `st cancel` takes no `--reason` flag (flags is empty above, measured, not assumed) and records none. So either this row stops being `as-observed` and gains `--reason` (making its disposition `corrected`, not `keep`), or the guard is aspirational and the machine should say so. Raised rather than resolved: the machine is hv-ratified and the measurement is mine, and I do not get to reconcile a ratified guard by editing the surface it constrains. Same question applies to `st hold`, `st reopen` and `st reinstate` below, which I have specified WITH `--reason` because they are new and have no v2 behaviour to preserve."
           },
           "disposition": "keep"
+        },
+        {
+          "path": "st triage",
+          "help": "Move a triaged thread out of Triage into NotStarted",
+          "args": [
+            {
+              "name": "id",
+              "type": "st-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-15 -- Machine 1 (ThreadStatus) in data-model.md: the `Triage -> NotStarted` edge. `st new` now enters at `Triage`, so without this verb every new thread is stranded in its entry state and the machine's entry point is a trap.",
+            "note": "`Triage` is a NEW state, not a rename of a state that had members. v2's `TBC` token means To Be Commenced and maps to `NotStarted` (bin/intent_helpers:544 maps `tbc` and `to be commenced` to the same value), so `Triage` begins with ZERO legacy members and this verb has no v2 caller to be compatible with."
+          },
+          "disposition": "new-surface"
+        },
+        {
+          "path": "st hold",
+          "help": "Put a thread on hold, with a reason",
+          "args": [
+            {
+              "name": "id",
+              "type": "st-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--reason"
+              ],
+              "type": "string",
+              "value": "<text>",
+              "help": "Why it is being held -- required by the machine's guard"
+            }
+          ],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-15 -- Machine 1: the `NotStarted -> Hold` and `Wip -> Hold` edges, guard `reason recorded`.",
+            "note": "`Hold` ALREADY EXISTS as a state and is reachable only by HAND-EDITING a file (cc's archaeology, confirmed): the v2 status filter recognises `hold|on hold -> HOLD` and no verb sets it. So this is not a new state, it is the missing door to a state v2 already renders, which is why the `--status` normaliser could always name a status the tool could not produce."
+          },
+          "disposition": "new-surface"
+        },
+        {
+          "path": "st resume",
+          "help": "Take a thread off hold and back into Wip",
+          "args": [
+            {
+              "name": "id",
+              "type": "st-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-15 -- Machine 1: the `Hold -> Wip` edge, no guard.",
+            "note": "Returns to `Wip`, NOT to whichever state the thread was held from. The machine declares one exit edge and this verb implements exactly that one; restoring a remembered prior state would be an undeclared edge and would need the machine changed first."
+          },
+          "disposition": "new-surface"
+        },
+        {
+          "path": "st reopen",
+          "help": "Reopen a completed thread back into Wip, with a reason",
+          "args": [
+            {
+              "name": "id",
+              "type": "st-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--reason"
+              ],
+              "type": "string",
+              "value": "<text>",
+              "help": "Why it is being reopened -- required by the machine's guard"
+            }
+          ],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-15 -- Machine 1: the `Completed -> Wip` edge, guard `reason recorded`. D32 forbids terminal states, and `Completed` was one.",
+            "note": "`st done` RELOCATES the thread directory (measured on the `st done` row above), so this verb has a file-system half that `wp reopen` does not: reopening has to move the directory back. Flagged for cc because the state change is the easy half and the relocation is where a half-applied reopen would leave a thread findable under neither status."
+          },
+          "disposition": "new-surface"
+        },
+        {
+          "path": "st reinstate",
+          "help": "Reinstate a cancelled thread into NotStarted, with a reason",
+          "args": [
+            {
+              "name": "id",
+              "type": "st-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--reason"
+              ],
+              "type": "string",
+              "value": "<text>",
+              "help": "Why it is being reinstated -- required by the machine's guard"
+            }
+          ],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-15 -- Machine 1: the `Cancelled -> NotStarted` edge, guard `reason recorded`.",
+            "note": "Lands in `NotStarted`, not in whatever the thread was before it was cancelled, and not in `Triage` -- a reinstated thread has already been triaged once and sending it back to the entry state would ask that decision to be made twice. The verb is spelled `reinstate` to match `ac reinstate`, which already carries this exact meaning at criterion level (undo a withdrawal); one word, one meaning, across both machines."
+          },
+          "disposition": "new-surface"
         },
         {
           "path": "st list",
@@ -411,7 +534,10 @@
           },
           "target": {
             "state": "as-observed",
-            "note": "clap makes the missing-value case an error for free -- that is a `corrected` consequence rather than a choice, same shape as INV-08. Byte-exact column padding is parity-bound: `tests/unit/output_width.bats:44-140` pins it."
+            "note": "clap makes the missing-value case an error for free -- that is a `corrected` consequence rather than a choice, same shape as INV-08. Byte-exact column padding is parity-bound: `tests/unit/output_width.bats:44-140` pins it.",
+            "status_vocabulary": "THE RATIFIED SIX-STATE MACHINE REACHES THE SURFACE HERE, and this flag is the only place a user types a status name. v3 must accept the six states of Machine 1: `triage`, `not started`, `wip`, `hold`, `completed`, `cancelled`. `triage` is the addition -- v2 accepts five and has no spelling for it.",
+            "tbc_trap": "MEASURED, and it strengthens the ratified migration rule with a second independent witness. In v2 `TBC` IS NOT A STATE AT ALL -- it is a DISPLAY ABBREVIATION of `Not Started`, narrow enough for the table column. Three sites, all read: `canonical_status()` at bin/intent_helpers:544 maps `tbc` AND `to be commenced` to the stored value `Not Started`; bin/intent_st:120 abbreviates `Not Started` to `TBC` for rendering; and the tool's OWN usage text at bin/intent_st:46 spells it out in words -- `tbc, not started -> TBC   To be commenced`. So the ratified rule (v2 `TBC` maps to `NotStarted`, never to `Triage`) is not merely defensible, it is what the tool has always documented about itself. THE SURFACE TRAP THAT FOLLOWS IS MINE: v3 must NOT abbreviate `Triage` as `TBC`, and must NOT accept `--status tbc` as `Triage`. Either would give a familiar token a second meaning in the render column and the filter -- the two places a v2 user reads fastest and checks least. `tbc` should keep resolving to `NotStarted`, exactly as it always has.",
+            "render_order": "bin/intent_st:941 pins the display order as a five-element list -- `WIP TBC HOLD COMPLETED CANCELLED`. Six states means this list grows, and `Triage` belongs BEFORE the `Not Started` slot because it precedes it in the machine. Named here because it is a surface fact hiding in an array literal, and a new state that renders in the wrong place looks like a sorting bug rather than a missing decision."
           },
           "disposition": "keep"
         },
@@ -923,9 +1049,57 @@
           },
           "target": {
             "state": "as-observed",
-            "note": "The gate becomes an in-process facade call at WP-04 (AC-04.3). Behaviour and message are parity-bound; the mechanism is not."
+            "note": "The gate becomes an in-process facade call at WP-04 (AC-04.3). Behaviour and message are parity-bound; the mechanism is not.",
+            "machine_note": "hv, 2026-08-15 -- Machine 2 ratifies `wp done` REFUSED on a BLOCKED gate, and the measured v2 behaviour above ALREADY does that (exit 1 when the WP group's contract is BLOCKED). So the ratification adds no surface change here; the change is `wp reopen` below. Recorded because `as-observed` staying correct after a ratification is a fact worth stating -- the alternative is a later reader assuming this row was never re-checked."
           },
           "disposition": "keep"
+        },
+        {
+          "path": "wp reopen",
+          "help": "Reopen a done work package back into Wip, with a reason",
+          "args": [
+            {
+              "name": "specifier",
+              "type": "st-id/NN",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--reason"
+              ],
+              "type": "string",
+              "value": "<text>",
+              "help": "Why it is being reopened -- required by the machine's guard"
+            }
+          ],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-15 -- Machine 2 (WpStatus): the `Done -> Wip` edge, guard `reason recorded`.",
+            "note": "THE URGENT ONE, and it is not urgent in the abstract: its absence is CURRENTLY CORRUPTING this thread's own tracking data. Three of five WPs disagree with their own gate (WP-02 Done/BLOCKED, WP-04 Done/BLOCKED, WP-05 Wip/PASS), because adding an AC reopens a WP in the contract while nothing moves the status back. Until this verb exists the ONLY repair is hand-editing the file the CLI exists to own -- which is the same trap `ac satisfy` had before `ac unsatisfy`, in the same tool, found the same way. Second instance of one class; the guard against a third is Machine 2 itself, which now declares the edge whether or not anyone has built it."
+          },
+          "disposition": "new-surface"
+        },
+        {
+          "path": "wp unstart",
+          "help": "Return a started work package to NotStarted",
+          "args": [
+            {
+              "name": "specifier",
+              "type": "st-id/NN",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-15 -- Machine 2: the `Wip -> NotStarted` edge, no guard.",
+            "note": "No `--reason`: the machine declares no guard on this edge, and adding one would be a stricter surface than the ratified machine rather than a safer one. Unstarting is the cheap correction of a mis-click; reopening a closed WP is a claim about finished work, which is why only the second one has to be justified."
+          },
+          "disposition": "new-surface"
         },
         {
           "path": "wp list",
@@ -5339,11 +5513,12 @@
     },
     {
       "path": "sync",
-      "help": "Reconcile the runtime store with committed canon on disk",
+      "help": "Synchronise the store and its on-disk extracts, in both directions",
       "v2": "new-surface",
       "basis": "hv, 2026-08-14: 'Syncing back-and-forth from disk to db is something that is triggered manually (eg via intent sync) or periodically (eg via intentd running its async synchronisation process).' Daily-driver commands answer from the store and never scan the tree; this is the expensive, infrequent half of that split.",
       "owner_wp": "WP-06",
       "note": "NOT the same command as `st sync`, and NOT a superset of it either. v2's `st sync` composes `list` and PRINTS the thread table; only `--write` persists `steel_threads.md` (bin/intent_st:1145-1211, verified by ic). Reconciling the store from canon is a different job, so the two are two commands sharing a name and v3 treats them as such. Added by cc at build time (2026-08-14); second clause originally read \"v2's job is a strict subset of this reconciliation and both spellings run it\", corrected 2026-08-15 after cc found their own test could not catch it -- it was written from the same misreading as the code, asserted the two spellings produce identical bytes, and passed.",
+      "truth_model_correction": "2026-08-15, ic, under hv's ratified db-is-SSOT model. The help read `Reconcile the runtime store with committed canon on disk` and was backwards in BOTH halves: the store is not runtime, it is the DURABLE SSOT, and disk is not canon, it is a secondary artefact. Corrected here rather than filed because this string is USER-FACING -- it renders to `--help`, the MCP tool list and the `intent llm` guide, so the retracted model would have been the sentence a user READS, in the help for the very command the model is about. `Reconcile` went too: it implies two authorities being arbitrated, and the model is ONE authority with two-way transport.",
       "target": {
         "state": "new-surface"
       }
@@ -5369,7 +5544,7 @@
     },
     {
       "path": "export",
-      "help": "Project the canon into another format",
+      "help": "Extract the store into a portable format usable without Intent",
       "flags": [
         {
           "spellings": [
@@ -5382,13 +5557,14 @@
       "v2": "new-surface",
       "basis": "design.md:57 -- YAML/md/anything else are export projections",
       "owner_wp": "WP-06",
+      "truth_model_correction": "2026-08-15, ic. The help read `Project the canon into another format`, which named the DISK side as the canon and so read as one on-disk format converting to another. Under hv's ratified model the store is the truth and this command is the OPENNESS half of it -- hv, verbatim: 'I can get my data out of the db and use it somewhere else LOSSLESSLY.' The `usable without Intent` clause is in the help deliberately: AC-02.6 requires the file form to be usable without this tool, and a promise a user cannot read is a promise nobody can hold us to. This is the surface half of AC-02.6; vc owns whether the contract wants it cited on this row.",
       "target": {
         "state": "new-surface"
       }
     },
     {
       "path": "ingest",
-      "help": "Rebuild the canon from markdown (the recovery path, and the v2 migrator)",
+      "help": "Ingest markdown into the store through the API gate (the recovery path, and the v2 migrator)",
       "flags": [
         {
           "spellings": [
@@ -5400,6 +5576,7 @@
       "v2": "new-surface",
       "basis": "design.md:66; WP-03 deliverable, shared with the WP-10 migrator",
       "owner_wp": "WP-03",
+      "truth_model_correction": "2026-08-15, ic. The help read `Rebuild the canon from markdown`, which under the retracted model meant reconstructing the durable thing and so read as an authority-restoring act. Under hv's ratified model it is the opposite: markdown is a secondary artefact and ingest is the path INTO the truth, well-formed ONLY because it passes the hard gate of the intentsvcs API. `through the API gate` is in the user-facing string on purpose -- the gate is what makes the result trustworthy, so hiding it would let a reader assume a file's own format was sufficient. Recreation from an extract stays a CAPABILITY and is not a licence to treat the store as disposable.",
       "target": {
         "state": "new-surface"
       }
