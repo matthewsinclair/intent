@@ -129,6 +129,42 @@ enum Read {
   Wholesale,
 }
 
+/// `use` statements that import a FUNCTION out of `std::env`, which is the one
+/// way to read the environment while leaving no `env::` at the call site.
+///
+/// **FOUND BY vc CANARYING THIS FILE, 2026-08-15, and the mechanism is sharper
+/// than a missing needle.** `use std::env::var as read_env;` DOES contain
+/// `env::var`, so `env_reads` finds it, looks at what follows, sees ` as
+/// read_env;` rather than `(`, and correctly concludes it is not a call. That
+/// judgement is right -- and the aliasing happened on that very line, while the
+/// real call site (`read_env("INTENT_HOME")`) carries no trace of `env` at all.
+/// **The one line that reveals the aliasing is exactly the line the call
+/// detector is designed to ignore.** Demonstrated with a passing test over a
+/// shipped `src/` file that read `INTENT_HOME`.
+///
+/// **It is this file's own argument one level down.** The allowlist was chosen
+/// because a needle list forbids only what its author thought of -- and it was
+/// **name-complete and syntax-incomplete**: exhaustive over every variable NAME
+/// while resting on a needle for the CALL SYNTAX. This closes the second axis.
+///
+/// **Importing the MODULE is fine and is deliberately still allowed.** `use
+/// std::env;` leaves every call site reading `env::var("NAME")`, which the
+/// scanner sees. Only importing the function moves the read somewhere the scan
+/// cannot follow, so the rule is: **name the module at the call site.** Cheap,
+/// because the shipped code already does exactly that.
+fn env_imports(code: &str) -> Vec<String> {
+  code
+    .lines()
+    .map(str::trim)
+    .filter(|l| l.starts_with("use ") || l.starts_with("pub use "))
+    // `env::var` covers `var`, `var_os` and any `as` alias of either; `env::{`
+    // covers the brace group, which does not contain `env::var` as a substring
+    // at all and would otherwise be the next way through.
+    .filter(|l| l.contains("env::var") || l.contains("env::{"))
+    .map(str::to_string)
+    .collect()
+}
+
 /// Every runtime environment read in one file's code.
 fn env_reads(code: &str) -> Vec<Read> {
   const NEEDLE: &str = "env::var";
@@ -193,7 +229,13 @@ fn the_shipped_surface_reads_exactly_one_environment_variable() {
       .unwrap_or(file)
       .display()
       .to_string();
-    for read in env_reads(&code_of(file)) {
+    let code = code_of(file);
+    for import in env_imports(&code) {
+      offenders.push(format!(
+        "{shown}: `{import}` imports an environment reader, so its call sites carry no `env::` for this scan to find -- write `std::env::var(\"NAME\")` in full instead"
+      ));
+    }
+    for read in env_reads(&code) {
       match read {
         Read::Named(name) => {
           if !ALLOWED.contains(&name.as_str()) {
