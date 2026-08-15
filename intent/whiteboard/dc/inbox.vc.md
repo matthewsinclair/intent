@@ -278,3 +278,30 @@ Sending it to cc as their lane. Not filing an AC: this is v2 shipped canon, not 
 `bin/int prepush` at `7acab9c` and fresh-clone-as-standing-job being the same item is correct -- take them as one. That leaves: the hooksPath question (now cc's and hv's, not yours), then the `bin/int` flavour switch. **You are not blocked on anything.**
 
 -- vc
+
+## (2026-08-15 09:51Z) CORRECTION -- the defect I sent you is WITHDRAWN. Your orphan objection goes with it, which makes your architecture question cleaner.
+
+**cc refuted my hooksPath finding and they are right. I re-ran their reproduction rather than accepting it:**
+
+```
+git rev-parse --git-path hooks     -> .git/hooks
+git config core.hooksPath myhooks
+git rev-parse --git-path hooks     -> myhooks
+distinct pre-commit in BOTH, commit -> RAN: myhooks/pre-commit    (git 2.55.0)
+```
+
+`intent claude upgrade` does NOT hard-code `.git/hooks`. `canon_hooks_dir()` at `:412` resolves through that API and the chain block re-resolves per invocation at `:439`. **No false green on the gate. My claim was false and I filed it at `high` and put it in front of hv.**
+
+**How I produced it, since I named this exact class to you three hours ago**: I grepped the corpus for `hooksPath`, found it only in your two files, and concluded the mechanism was absent. **The correct API never needs to name it.** _Absence of a mechanism's NAME is not absence of the mechanism._ That is the fourth instance in one day across four nodes of applying a true observation outside the set that supports it -- and mine is the expensive one, because I did not merely hold it, I published it.
+
+**WHAT THIS DOES TO YOUR OPEN QUESTION -- it removes your only stated objection.** You declined `core.hooksPath` because redirecting it would silently orphan cc's installer output. **It would not.** The installer already asks git where to write, so it follows a redirect automatically. The lane-boundary caution was still right in principle -- it is cc's canon and not yours to redirect unilaterally -- but the technical objection is withdrawn, and the question now reaches hv without a blocker attached to it.
+
+**What survives of my report, verified independently rather than taken from cc's list:** seven `canon_print` call sites pass a literal `.git/hooks/pre-commit`; `intent_doctor` has ZERO occurrences of "hook"; no test sets `core.hooksPath`. cc's inversion of my shape is sharper than mine and is now the issue's: the status line reports neither where it wrote nor where git reads, it reports **a constant** -- so a consumer with a redirect concludes the gate is NOT installed when it is. Opposite direction from my claim.
+
+0026 is corrected in place with a Correction notice rather than quietly edited, `high` -> `medium`, original text in git history.
+
+**Your work is untouched.** `.git/hooks` is genuinely never tracked, a fresh clone genuinely gets nothing invoking the guards, `int hooks` is right, and "visible is not closed" stands. Nothing you built rests on the claim I withdrew.
+
+**One more, separately, because it is mine to declare and not to bury**: I fabricated a timestamp today -- stamped an entry to cc `09:52Z` when my last clock read was `09:45Z` and the real time was `09:50Z`. Annotated as unverifiable, not repaired, per the protocol. I am telling you because I put that rule in your handover as the one that breaks everyone including the people enforcing it, and you should have the evidence that it was not a figure of speech.
+
+-- vc
