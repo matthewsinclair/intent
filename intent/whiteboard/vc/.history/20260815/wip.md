@@ -138,3 +138,45 @@ Continuation after the 08:30Z compact. The morning was the `native/` reorganisat
 **Issues filed**: 0026 (hook path label + doctor has no hook check + hooksPath unguarded; corrected from my false high-severity version), 0027 (the clock guard's tolerance rationale rests on an error-distribution claim a measured incident falsifies).
 
 **dc onboarded and productive within the hour**: CI un-swallowed so a green now means something, `int hooks` with three states and "visible is not closed", `*.bak` gitignore class, pre-push clone-and-build, and the PUBLIC-repo catch that corrected the machine's environment brief.
+
+---
+
+## Session arc, 12:10Z -> 13:22Z (post-compact segment). Archived at the 13:22Z localfold.
+
+**Shape of it: picked up, found a hazard in the shared tree, took three acks, then spent the back half turning an architectural question into a measurement and the measurement into canon.**
+
+### Pickup, and the stale index (issue 0028)
+
+Picked up to eleven files reading `MM` with a worktree **identical to HEAD** -- three of them peers' boards. Staged copies differed only in markdown emphasis markers and one blank line: the on-save linter rewrites files after they are staged. Cleared with `git reset`; nothing on disk moved.
+
+**Measured the mechanism in a scratch repo rather than inferring it**: `--only` commits the paths you name and leaves every other index entry exactly as it found it, indefinitely. Invisible to `git diff HEAD`. **The safety rule is the preserving mechanism** -- a node following `SKILL.md:232` exactly accumulates this; a node using `-A` would not. Filed **0028** (low). It then **reproduced itself in the commit that filed it**, which closed the last inferential gap in the root cause.
+
+### Three acks, all real, all self-incriminating
+
+Every node found something in its own lane it had **previously reported clean**. cc nine sites after reporting sixteen fixed. dc a false claim in `.gitignore` after auditing the lane and calling it clean. ic three user-facing help strings its first structured pass could not reach.
+
+**Verified rather than accepted.** cc's `transitions.rs` finding confirmed and its quantifier corrected: **25 edges, 19 with an empty from-set, 6 with declared from-states** -- and my first grep for `from: &[]` returned ZERO, because the constructor is positional and never writes the name. Nearly filed that as a refutation. The six correct ones sit inside the block the AC collapse rewrites, which is why cc was told to transcribe before collapsing.
+
+**One error of mine: I attributed dc's `.gitignore` fix to cc.** Hedged rather than asserted, but the inference was sloppy -- reasoned from "cc is the only node with `status: active`" to authorship, while dc was `paused` and editing.
+
+### D29 fixed, D21 escalated, then ruled as D34 + D35
+
+cc flagged D29's derivation as void without editing canon in another lane. Replaced rather than reworded, with the derivation separated from the measurement so the correction visibly does not reach the evidence.
+
+**D21 escalated, NOT decided** -- and three nodes had independently reached the same question within an hour from three unrelated entry points.
+
+**hv required the size question be grounded BEFORE answering it, and that changed the reasoning rather than just confirming the answer.** Measured: FTS5 expansion linear at 1.97x (Intent) and 1.95x (Lamplight); GitHub blocks at 100 MB; Lamplight markdown-only already 82.49 MB, whole-corpus projection ~163 MB. **And git deltas SQLite WELL** -- 82 MB packs to 29.5 MiB, a commit costs 219 KiB, three `VACUUM`s barely moved it. So the dirtiness argument everyone was repeating is the weak one and the ceiling is the strong one.
+
+`dbstat`: **98.6% of the DB is `doc_sections_*`**, 69.5% a verbatim second copy of text already on disk -> **issue 0029** (medium; contentless FTS5 cuts 82.49 MB to 29.62 MB; graded medium because nothing is incorrect today).
+
+**D35's hard requirement is measured**: `cp` of a WAL-mode DB captured **0 rows against a live 50**, and the copy opened cleanly. **My first attempt to demonstrate it FAILED** -- the probe read the DB before copying, and a lone reader closing cleanly checkpoints the WAL.
+
+hv then asked whether SQLite has a `pg_dump`. It does, and it round-trips FTS5 correctly (verified). **It buys nothing**: 104.70 MB raw (bigger than the DB), 29.65 MB gzipped against the DB's 29.22 MB. The 100x win comes from excluding the derived index -- **and a model-only dump IS the extract, which AC-02.6 already requires.** Closed on an implementation fact checked in the vendored source: `.dump` is a shell feature, `rusqlite 0.32` has the backup module and no dump API.
+
+### Hold lifted
+
+All three released to build with per-node ordered lists. cc's stated plan corrected (it transcribed the AC edges twice). Two cross-node naming blocks assigned explicitly -- dc's `.backup/` namespace, ic's `intent config` keys -- with cc told not to invent either.
+
+**One thing de-escalated on measurement**: nearly told two nodes the SSOT was unprotected and gitignored. The live DB holds **zero model rows**, so the backup is a WP-10 precondition, not an emergency.
+
+Contract 97 -> 99 rows. Gate 30/99. Commits `ce73e64` through `083031c`, both remotes.
