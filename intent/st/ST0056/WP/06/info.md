@@ -3,7 +3,7 @@ verblock: "14 Aug 2026:v0.2: vc - Populated from the ratified design session"
 wp_id: WP-06
 title: "CLI parity long tail"
 scope: XL
-status: Not Started
+status: WIP
 ---
 
 # WP-06: CLI parity long tail

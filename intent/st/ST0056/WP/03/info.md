@@ -3,7 +3,7 @@ verblock: "14 Aug 2026:v0.2: vc - Populated from the ratified design session"
 wp_id: WP-03
 title: "Ingest, views and sync engine"
 scope: L
-status: Done
+status: WIP
 ---
 
 # WP-03: Ingest, views and sync engine

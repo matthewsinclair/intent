@@ -3,7 +3,7 @@ verblock: "14 Aug 2026:v0.2: vc - Populated from the ratified design session"
 wp_id: WP-05
 title: "CLI in-process mode and BATS conformance harness"
 scope: L
-status: Not Started
+status: WIP
 ---
 
 # WP-05: CLI in-process mode and BATS conformance harness
