@@ -1,6 +1,7 @@
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
--- Derived from committed canon; rebuilt at any time; no migrations ever.
+-- The durable SSOT (D01, reversed 2026-08-15). Re-creatable from the committed
+-- extract as a CAPABILITY; migrations are normal when the schema moves.
 CREATE TABLE IF NOT EXISTS threads (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,

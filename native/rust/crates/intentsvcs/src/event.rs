@@ -2,8 +2,11 @@
 //! envelope. It is the audit trail, the subscription feed the TUI/bus will
 //! consume, and the substrate a future intentc sync protocol replays.
 //!
-//! DB-only state must be losable; the event log is the deliberate exception
-//! to derivability and is explicitly NOT durable truth in v3 -- `rm` of the
+//! The event log is DURABLE and is not derived from anything -- hv ruled it a
+//! first-class artefact with a committed append-only file form
+//! (`events.jsonl`), queried and replayed through `intent events`. The doc
+//! below was written under the old model, in which it was explicitly NOT
+//! durable truth and `rm` of the
 //! DB loses it, by design (data-model.md).
 
 use schemars::JsonSchema;

@@ -198,8 +198,18 @@ impl FacadeError {
       Self::Write { .. } => {
         "check permissions and free space on the project directory, then retry -- nothing was changed".to_string()
       }
+      // THIS REMEDY USED TO SAY "delete `intent/.cache/intent.db` and retry".
+      // Under the reversed D01 that instructs the operator to delete the
+      // SOURCE OF TRUTH, on any store error at all -- the third data-loss
+      // instruction found in this estate today, and the one shown most often.
+      // It was true when the DB was a rebuildable index; it became a
+      // destructive default the moment the DB stopped being one.
+      //
+      // It deliberately names no recovery COMMAND: `intent events ingest` is
+      // ruled and unbuilt, and naming a command that does not exist is the
+      // same defect one step further on.
       Self::Store { .. } => {
-        "the runtime store is rebuildable: delete `intent/.cache/intent.db` and retry".to_string()
+        "do NOT delete `intent/.cache/intent.db` -- it is the source of truth, not a cache, and the files on disk are an extract that may be older than it. The change was not made; inspect the store, and recover from the committed extract only if you accept losing anything newer than it".to_string()
       }
       Self::Ingest { .. } => {
         "fix the artefacts named above, then retry -- run `intent doctor` to list them".to_string()

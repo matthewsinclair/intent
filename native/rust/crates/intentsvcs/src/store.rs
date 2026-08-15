@@ -1,11 +1,14 @@
 //! The runtime store (design.md D01): a per-project SQLite DB, derived from
 //! committed canon and rebuilt from it at any time. `rm` of the DB file is
-//! always safe, so there are NO DB migrations, ever -- a schema bump deletes
+//! NOT safe: the store is the durable SSOT (D01, reversed 2026-08-15), and DB
+//! MIGRATIONS ARE NORMAL. What follows was written under the old model -- a schema bump deleted
 //! and rebuilds.
 //!
 //! Derived tables (threads, wps, criteria, tests, issues) are wiped and
 //! reloaded by [`Store::rebuild`]. The event log is the deliberate exception
-//! (D15): append-only, not derived, and losable by design.
+//! (D15): append-only, not derived, and DURABLE -- hv ruled it a first-class
+//! artefact with its own committed file form (`events.jsonl`), so "losable by
+//! design" is struck.
 
 use rusqlite::{Connection, params};
 use serde_json::json;
@@ -23,7 +26,8 @@ use crate::sync::FileEntry;
 pub const DDL: &str = "\
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
--- Derived from committed canon; rebuilt at any time; no migrations ever.
+-- The durable SSOT (D01, reversed 2026-08-15). Re-creatable from the committed
+-- extract as a CAPABILITY; migrations are normal when the schema moves.
 CREATE TABLE IF NOT EXISTS threads (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,

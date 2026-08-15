@@ -10,10 +10,14 @@
 //!   that cannot both be true. The schema cannot catch these: each statement
 //!   is individually well-formed and only the RELATIONSHIP is wrong. Remedy:
 //!   change the canon, through the CLI.
-//! - **DB integrity.** The rebuild-identity invariant (D01): rebuilding the
-//!   derived tables from canon must produce exactly what is in the store.
-//!   Remedy: delete `intent/.cache/` -- `rm` is always safe, which is the
-//!   whole point of D01, and no DB migration ever exists to go wrong.
+//! - **DB integrity.** The rebuild-identity invariant: re-deriving the tables
+//!   from the committed extract must reproduce what is in the store. Remedy:
+//!   investigate the disagreement. **NOT "delete the cache"** -- that was the
+//!   remedy while the DB was a rebuildable index, and under the reversed D01
+//!   (hv, 2026-08-15) the DB is the durable SSOT and the files are a secondary
+//!   artefact, so deleting it discards anything newer than the extract.
+//!   Re-creating the DB from the extract is a CAPABILITY, not a licence to
+//!   treat the DB as disposable.
 //! - **File checks.** The working tree disagreeing with the model: a
 //!   hand-edited generated view (skew), or a file that cannot be read as what
 //!   it claims to be (unparsed). Remedy: regenerate, or fix the file.
@@ -370,11 +374,17 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
     return;
   };
 
-  // A COLD cache is not a stale one. `intent/.cache/` is gitignored (D21), so
-  // an empty store is the normal state of every fresh clone and every project
-  // whose reads have run in memory -- and D01 makes it always safe. Reporting
-  // it would fire on the commonest healthy state there is, which is how a
-  // health check teaches people to ignore health checks.
+  // A COLD store is not a stale one. `intent/.cache/` is gitignored (D21), so
+  // an empty store is the normal state of every fresh clone, and the extract
+  // on disk is what it is re-created from. Reporting it would fire on the
+  // commonest healthy state there is, which is how a health check teaches
+  // people to ignore health checks.
+  //
+  // Note the reasoning changed under the reversed D01 even though the
+  // behaviour did not: this is silent because a cold store is EXPECTED and
+  // re-creatable from the committed extract, NOT because losing a store is
+  // harmless. It is not harmless once the store holds anything the extract
+  // does not.
   //
   // A cache with CONTENT that disagrees is different: it was written by an
   // older binary or by something out of band, and reads served from it would

@@ -7,10 +7,19 @@
 //! `rusqlite` appears in exactly this crate's Cargo.toml, and
 //! `tests/dep_graph_guard.rs` asserts it.
 //!
-//! Truth model (design.md D01): the schema is the source of truth for
-//! structure; committed JSON canon is durable truth; the SQLite DB is runtime
-//! truth, rebuilt from canon at any time. `rm intent/.cache/intent.db` is
-//! always safe, so there are no DB migrations, ever.
+//! Truth model (design.md D01, REVERSED by hv 2026-08-15): the schema is the
+//! source of truth for structure, and **the intentdb is the durable SSOT --
+//! everything on disk is a secondary artefact.** `thread.json`, the generated
+//! `.md` views and the event log's file form are extracts of the same kind;
+//! none of them is truth. Re-creating the DB from an extract is a CAPABILITY,
+//! not a licence to treat the DB as disposable, so `rm intent/.cache/intent.db`
+//! is NOT always safe -- it discards whatever the extract does not carry.
+//!
+//! **DB migrations are normal.** hv: *"If we have to do a db migration, we
+//! have to do a db migration. That is standard fare."* The old "no migrations,
+//! ever" was a CONSEQUENCE of the disposable-DB model that had been recorded
+//! beside the decisions and acquired their authority; it was never a
+//! constraint anyone asked for.
 
 pub mod contract;
 pub mod doctor;

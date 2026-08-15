@@ -170,8 +170,10 @@ pub fn load(project: &Project, store: &mut Store) -> Result<Canon, IngestError> 
 /// as `st list` -- correct, and the wrong shape entirely.
 ///
 /// What it does NOT do is weaken D01. Committed canon is still the durable
-/// truth and the store is still rebuildable from it at any instant; `rm` of
-/// the cache is still always safe, because a cold store simply takes the
+/// an extract, and the store is re-creatable from it as a CAPABILITY. `rm` of
+/// the store is NOT safe under the reversed D01 -- it discards anything the
+/// extract does not carry -- but a COLD store is a different thing and is
+/// still routine, because a cold store simply takes the
 /// ingest path via [`resync`]. What changes is WHEN that is paid for.
 pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestError> {
   // THE DAILY DRIVER DOES NOT LOOK AT THE FILES. hv, 2026-08-14: "A sync

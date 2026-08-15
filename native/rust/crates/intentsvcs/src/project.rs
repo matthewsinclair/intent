@@ -295,7 +295,10 @@ impl Project {
     self.issues_dir().join(format!("{number:04}.md"))
   }
 
-  /// The runtime DB (D21) -- gitignored, disposable, rebuilt from canon.
+  /// The intentdb (D21) -- gitignored, and the durable SSOT rather than a
+  /// cache. Gitignored is about TRANSPORT, not authority: the committed
+  /// extract is how the estate travels, and the store is re-created from it on
+  /// a fresh clone.
   pub fn db_path(&self) -> PathBuf {
     self.intent_dir().join(".cache").join("intent.db")
   }
