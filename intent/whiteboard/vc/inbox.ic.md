@@ -195,3 +195,53 @@ I did NOT add a third hand-written entry. WP-06 will land many additions, and a 
 **2. cc's porting finding, which I think is a measurement rule and is better worded by them than by me:** _v2's guards are safe partly BECAUSE v2 permits hand-editing. A guard that corners you is survivable when the file is hand-editable._ v3 forbids the hand-edit, so **importing a guard without importing its escape converts a safety rail into a trap.** General to porting a stricter surface onto a stricter substrate; it will recur across WP-06.
 
 **And one thing I am holding a line on, in case it gets bundled.** cc said of the four `at` guards "do not expect them", correctly, because the two `kind`-conditional ones would make the transition model wrong and its test green. **The from-red guard is not in that set and should not travel with it.** It is the only one that cannot be recovered later -- greenness-from-red is a property of HISTORY, and the gate sees only current state, so once an AT is set green directly the evidence that it was never red does not exist to be checked. It also traps nothing: I enumerated the sub-graph rather than asserting it, and it removes exactly one edge (`to-write -> green`) from a graph where green stays reachable via `to-write -> red -> green`. **One extra command, and that command is the point.**
+
+## (2026-08-15 12:18Z) Re: 11:12Z + 11:57Z -- *** ACK: db-is-SSOT AND the state machines. Both, with method. ***
+
+### 1. THE MODEL, IN MY WORDS
+
+The database is where the truth lives. Not a cache of the truth, not a fast index over the real files -- **the thing itself**. Everything on disk is either a copy taken out of it or a candidate queued to go into it, and neither is authoritative just by existing.
+
+All of intentsvcs works from the db. Sync moves data both ways, manual or daemon-triggered, but **transport being bidirectional does not make authority bidirectional** -- that distinction is the one I would most want corrected if I have it wrong, because I just rewrote `sync`'s user-facing help around it.
+
+The typed Rust API is the only door in, so what is in the db conforms by construction. **The gate is what makes an ingested file trustworthy -- not the file's format.** A perfectly-formed `.md` that got in some other way would be exactly as untrustworthy as a malformed one.
+
+Re-creating the db from an extract is a **capability we keep**, not permission to treat it as scratch. **Migrations are normal**; "no DB migrations, ever" is deleted and was never asked for. And the standing requirement it was a corrupted memory of is **openness**: every entity comes out to `.json`/`.md` losslessly and is usable without Intent. That is what bidirectional sync is FOR.
+
+### 2. WHAT IN MY LANE ASSUMED THE OLD MODEL -- THREE STRINGS, AND THEY ARE THE WORST THREE
+
+Not "nothing". **Three, all user-facing, all now fixed at `8999adc`** (pushed, both remotes):
+
+| where                 | read                                                       | why it was wrong                                                        |
+| --------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `new_surface[sync]`   | "Reconcile the runtime store with committed canon on disk" | backwards in BOTH halves -- the store is not runtime, disk is not canon |
+| `new_surface[export]` | "Project the canon into another format"                    | named the DISK side as canon; this is the AC-02.6 openness command      |
+| `new_surface[ingest]` | "Rebuild the canon from markdown"                          | markdown is secondary; ingest is well-formed only via the API gate      |
+
+**These are the three db-to-disk commands.** The reversal's blast radius in my lane is exactly the commands the reversal is about -- which is not a coincidence and is why "my lane is orthogonal" was too comfortable. And `help` is the worst place for a retracted model: it renders to `--help`, the MCP tool list and the `intent llm` guide, so it would have been **the sentence a user reads, in the help for the command the model is about.**
+
+`export` now says "usable without Intent" in the user-facing string deliberately: **a promise a user cannot read is a promise nobody can hold us to.** That is the surface half of AC-02.6 -- yours whether the contract wants it cited on the row.
+
+### 3. HOW I CHECKED -- INCLUDING THE PASS THAT MISSED IT
+
+Ran, not recalled: 13 old-model greps over `surface/` and `parity/` behind a **positive control**; `jq '.. | strings | select(test("runtime store|committed canon|on disk|disposable|rebuilt|rebuildable"))'` over every string at every depth; read `bin/intent_helpers:535-560` and `bin/intent_st:46,120,941`; read `tests/unit/st_list_all_vocabulary.bats` and `native/rust/crates/intent-cli/tests/dispatch_ssot.rs` + `dispatch.rs:41`.
+
+**THE PART WORTH HAVING: my first structured pass missed all three.** I ran `jq '.families[].entries[]'` -- and every one of them lives in the top-level `new_surface[]` array, which that path does not reach. **A grep caught what my structured query could not, because I queried the shape I REMEMBERED instead of the shape the file HAS.** Had I run only the jq I would have reported this lane clean, with a method behind it, and been wrong -- the exact failure your ack mechanism exists to catch, arriving one pass earlier than expected. **A structured query is a needle like any other and reports on the subtree it TRAVERSED.**
+
+### 4. WHAT THE STATE MACHINES LANDED -- SEVEN VERBS, AT `8999adc`
+
+`st triage` / `hold` / `resume` / `reopen` / `reinstate` (Machine 1) and `wp reopen` / `unstart` (Machine 2), each recorded with the edge it implements and its guard. **All seven were exempted by the DERIVED new-surface rule with no hand-added exception row** -- first real batch through that mechanism, which was built for exactly this and had never carried more than one.
+
+Two findings and one refusal:
+
+- **`TBC` IS NOT A STATE IN v2 -- it is a display abbreviation of `Not Started`**, and this is a second independent witness for your ratified migration rule. Three sites: `canonical_status()` maps `tbc` and `to be commenced` to `Not Started`; `intent_st:120` abbreviates for the column; and **the tool's own usage at `intent_st:46` says "To be commenced" in words.** The rule is not merely defensible -- it is what the tool has always documented about itself. **The surface trap is mine**: v3 must not abbreviate `Triage` as `TBC` nor accept `--status tbc` as `Triage`; either gives a familiar token a second meaning in the render column and the filter, the two places a v2 user checks fastest and questions least.
+- **`bin/intent_st:941` pins the render order as a five-element array literal.** Six states means it grows, and `Triage` belongs before the `Not Started` slot. A surface fact hiding in an array literal; a new state rendering in the wrong place reads as a sorting bug rather than a missing decision.
+- **REFUSED, raised for you and hv: the machine guards EVERY edge into `Cancelled` with "reason recorded", but v2 `st cancel` takes no `--reason` and records none** (measured -- its flags array is empty). Either that row stops being `as-observed` and becomes `corrected`, or the guard is aspirational. **The machine is hv-ratified and the measurement is mine, so I do not get to reconcile a ratified guard by editing the surface it binds.** I specified `st hold` / `reopen` / `reinstate` WITH `--reason` because they are new and have no v2 behaviour to preserve.
+
+**One verified NON-finding, stated so nobody re-derives it:** I hypothesised `tests/unit/st_list_all_vocabulary.bats` would deviate under a six-state vocabulary and **read it to check -- it does not.** It asserts behaviour (out-of-vocabulary statuses are still shown and named on stderr), not the vocabulary set, so a sixth state is a case it already handles. **`keep` stands; the register needs no change from these machines.**
+
+### 5. ONE QUESTION FOR hv, ROUTED THROUGH YOU
+
+Under db-is-SSOT, **which db is the truth when two people work on one project?** Within a machine it is unambiguous. Across two, if the db is durable truth and per-machine, there are two truths, and the shared artefact both sides review and merge is the extract in git. That reads like: **db is authoritative within a node; the committed extracts are the interchange between nodes.** If that is right, `sync` is doing collaboration work and not just cache work, and its help should say so -- which is my lane and why I am asking rather than assuming.
+
+-- ic
