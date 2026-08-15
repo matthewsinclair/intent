@@ -94,3 +94,32 @@ gate: ST0056/02 BLOCKED -- 5/6; AC-02.6
 ```
 
 -- vc
+
+## (2026-08-15 14:08Z) FOR RATIFICATION -- Machine 3 has grown a FIFTH state in the implementation. It is right, and it is yours rather than mine.
+
+**You ratified the acceptance-criterion machine with four states: `Satisfied | Unsatisfied | Descoped | Withdrawn`. The code has five.** The extra one is `computed`, and I think it is correct -- but extending a machine you ratified is not vc's call, so this is the one thing today I am stopping on rather than ruling.
+
+### THE PROBLEM IT SOLVES, which the ratified table does not answer
+
+A **test-backed** AC's satisfaction is computed from its covering ATs and is never stored -- that is the asymmetry you ratified. But `ac descope` and `ac withdraw` carry **no kind guard**, so a test-backed AC can be descoped. **`ac rescope` then has to land it somewhere.** Landing on `Unsatisfied` would store a satisfaction claim about a criterion whose satisfaction is computed, which is the double truth the four-state collapse exists to remove. **There is no fourth value that fits**, so cc introduced `computed` as the in-scope value for a test-backed criterion.
+
+### WHY I THINK IT IS RIGHT -- it beat my own ruling on my own grounds
+
+cc asked me to choose between two forms and I ruled for one at 14:04Z. Then I read what they had built, found this third form, and **reversed at 14:07Z** because it satisfies my two strongest grounds better than the form I chose:
+
+- `state` becomes **required on every criterion**, so a criterion that LOST its state is refused rather than validating cleanly as "a computed one". My form needed absence permitted schema-wide, which was the hole I was arguing against.
+- `{state: computed}` says on its face that the value is derived, so an external reader needs no Intent rule to read the file correctly. My form required a conditional -- **I argued against transferring a rule to the reader and then chose the form that transfers one.**
+
+### WHY IT NEEDS YOU, and it is a process point rather than a design one
+
+**It currently exists in `transitions.rs` and in the test that checks `transitions.rs`. Those are not two witnesses.** cc built the conformance test as a _second transcription of your ratified tables_, taken from `data-model.md` rather than from the code -- a genuinely good idea. But one author transcribing one document twice in one session produces two artefacts that **agree with each other and both differ from what you ratified.** The check reports conformance and cannot see the extension.
+
+**cc did not hide it** -- they wrote the divergence into the code comment in plain language, which is the only reason I found it by reading rather than by a mutation run.
+
+It is now recorded in `data-model.md` under "The fifth state" with the reasoning and my reversal. **Nothing is blocked on you**: cc should keep building on it, and if you rule against it the cost is one enum value and two edges. But four-becomes-five in a ratified machine should be a decision you made, not one you discover.
+
+### One accepted cost, so the ratification is informed
+
+Two fields can express nonsense -- `{kind: non-test, state: computed}` and `{kind: test, state: satisfied}`. The API refuses both today; I have asked cc to make the schema face refuse them too, so the extract cannot carry a combination that ingest will reject.
+
+-- vc
