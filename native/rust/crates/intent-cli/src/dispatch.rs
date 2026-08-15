@@ -130,6 +130,41 @@ pub struct Flag {
   pub kind: String,
   #[serde(default)]
   pub help: String,
+  /// `keep` · `intrinsic` · `retire` · `pending`.
+  #[serde(default)]
+  pub disposition: String,
+}
+
+impl Flag {
+  /// Whether this flag belongs in the shipped surface.
+  ///
+  /// **The disposition was honoured at the command level and ignored one level
+  /// down**, which is the gap ic raised as EXP-05 and measured: a retired
+  /// command is absent from the surface, and a retired FLAG on a shipped
+  /// command was built anyway. `--help` advertised what no renderer would
+  /// answer, and the table and the binary disagreed with nothing to say so.
+  ///
+  /// The four values split two ways, and the reason `pending` sits with
+  /// `retire` rather than with `keep` is the whole point of the value existing:
+  ///
+  /// - **`keep`** ships and something must read it.
+  /// - **`intrinsic`** ships because CLAP supplies it -- `--help` and friends.
+  ///   The spine must not declare these itself or it collides with clap, so
+  ///   they are false here and the spelling check above is what lets them
+  ///   through clap's own machinery.
+  /// - **`retire`** is out by ratification.
+  /// - **`pending`** is UNDECIDED, and an undecided flag must not ship. Offering
+  ///   it commits the surface to it by fait accompli, which is the failure this
+  ///   declaration exists to prevent -- it would answer an open question by
+  ///   making one answer true in the binary while the ruling is still open.
+  ///
+  /// **`ships()` deliberately does not default-allow.** An unrecognised or
+  /// empty disposition is out, so a typo or a new value drops a flag from the
+  /// surface where ic's check reports it as MISSING, rather than shipping
+  /// something nobody classified.
+  pub fn ships(&self) -> bool {
+    self.disposition == "keep"
+  }
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]

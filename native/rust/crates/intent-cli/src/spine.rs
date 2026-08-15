@@ -178,6 +178,14 @@ fn flags(mut cmd: Command, entry: &Entry) -> Command {
     {
       continue;
     }
+    // **THE DISPOSITION, HONOURED AT THE LEVEL IT IS DECLARED** (EXP-05). The
+    // entry-level check drops a retired COMMAND; without this, a retired or
+    // undecided flag on a SHIPPED command was built regardless, so `--help`
+    // advertised what no renderer would answer. See [`Flag::ships`] for why
+    // `pending` is out rather than in.
+    if !flag.ships() {
+      continue;
+    }
     let short = flag
       .spellings
       .iter()

@@ -284,3 +284,110 @@ fn the_recorded_invariants_are_carried() {
   assert!(ids.contains(&"INV-02"), "got: {ids:?}");
   assert!(ids.contains(&"INV-04"), "the critic exit-code exception");
 }
+
+/// The Options block of one command's help, which is where a flag surfaces.
+///
+/// The LAST `Options:` deliberately: a family with verbs prints `Commands:`
+/// first, and scanning the whole output would let a verb's description answer
+/// for a flag that is not there.
+fn options_block(args: &[&str]) -> String {
+  let text = help(args);
+  match text.rsplit_once("Options:") {
+    Some((_, rest)) => rest.to_string(),
+    None => String::new(),
+  }
+}
+
+/// Whether a help block offers this exact spelling.
+///
+/// A boundary check rather than `contains`, because `--fix` is a substring of
+/// `--fixup` and a flag that is absent would read as present the day a longer
+/// one is added beside it.
+fn offers(block: &str, spelling: &str) -> bool {
+  let mut from = 0;
+  while let Some(at) = block[from..].find(spelling) {
+    let at = from + at;
+    let after = block[at + spelling.len()..].chars().next();
+    let before = at.checked_sub(1).and_then(|i| block[i..].chars().next());
+    let bounded = !matches!(after, Some(c) if c.is_ascii_alphanumeric() || c == '-')
+      && !matches!(before, Some(c) if c.is_ascii_alphanumeric());
+    if bounded {
+      return true;
+    }
+    from = at + spelling.len();
+  }
+  false
+}
+
+/// **A FLAG'S DISPOSITION IS HONOURED AT THE FLAG LEVEL** (EXP-05, ic).
+///
+/// The entry-level disposition was honoured and the flag-level one was ignored,
+/// so a `retire` or `pending` flag on a shipped command was built anyway and
+/// `--help` advertised what no renderer would answer. ic measured it from
+/// outside with `surface_check.sh`; this is the same property inside the suite,
+/// **and it is here because the fix was INVISIBLE TO THE WHOLE RUST SUITE**:
+/// with the skip removed, all 339 tests still passed and only the shell
+/// instrument noticed. A property whose only witness is a script nobody runs in
+/// CI is a property that regresses on the next refactor.
+///
+/// Both directions, and the counts are asserted so neither can go vacuous. A
+/// version of this that only checked "declared flags are present" would pass on
+/// the original defect, since the defect was a flag being present that should
+/// not have been.
+#[test]
+fn a_flags_disposition_decides_whether_it_reaches_the_surface() {
+  let table = dispatch::table();
+  let entries: Vec<&dispatch::Entry> = table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .chain(table.new_surface.iter())
+    .filter(|e| e.is_shipped())
+    .collect();
+
+  let mut wrong = Vec::new();
+  let (mut shipped, mut withheld) = (0, 0);
+  for entry in entries {
+    let args: Vec<&str> = entry.path.split_whitespace().collect();
+    let block = options_block(&args);
+    if block.is_empty() {
+      continue;
+    }
+    for flag in &entry.flags {
+      // clap's own; it supplies them whatever the table says, which is why the
+      // table marks them `intrinsic` rather than `keep`.
+      if flag
+        .spellings
+        .iter()
+        .any(|s| s == "--help" || s == "-h" || s == "help")
+      {
+        continue;
+      }
+      let present = flag.spellings.iter().any(|s| offers(&block, s));
+      match (flag.ships(), present) {
+        (true, true) => shipped += 1,
+        (false, false) => withheld += 1,
+        (true, false) => wrong.push(format!(
+          "MISSING  `{}` {:?} -- declared `{}` (ships) and the surface does not offer it",
+          entry.path, flag.spellings, flag.disposition
+        )),
+        (false, true) => wrong.push(format!(
+          "PRESENT  `{}` {:?} -- declared `{}` (does not ship) and the surface offers it",
+          entry.path, flag.spellings, flag.disposition
+        )),
+      }
+    }
+  }
+
+  assert!(
+    wrong.is_empty(),
+    "the binary and the table disagree about which flags exist:\n  {}",
+    wrong.join("\n  ")
+  );
+  assert!(
+    shipped > 0 && withheld > 0,
+    "this check needs both kinds to be discriminating: {shipped} shipped and {withheld} withheld. \
+     With either at zero it is asserting only one direction and would pass on the defect it was \
+     written for"
+  );
+}
