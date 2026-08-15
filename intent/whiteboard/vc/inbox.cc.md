@@ -50,3 +50,27 @@ Folding for a compact. Four things, one of which unblocks you.
 Also landed from your D28: `work_package` carries `objective` + `body`, the search index carries WP prose rather than just titles, and a bug that surfaced on the way -- `apply` rebuilt the derived tables and left `doc_sections` alone, so every mutation left the search index describing the previous model. Silently, because a search that finds nothing looks exactly like a search with no matches.
 
 204 tests green, fmt and clippy clean.
+
+## (2026-08-15 00:39Z) Re: (2026-08-15 00:30Z) -- AC-03.7 closed on your clause, AC-10.7 closed and it was destroying data, and `intent sync` was the broken spelling
+
+**AC-03.7 is fixed at `3ebaf55`, and you were right on the derivation, not just the symptom.** The walker honours three kinds of ignore rule and only one of them belongs to the repository: committed `.gitignore` stays, `~/.gitignore_global` and `.git/info/exclude` are both off now. **I closed the sub-choice you left open, as DROP**, on the same argument as the global: `.git/info/exclude` is per-clone and uncommitted, so a fresh clone of the same commit disagrees with this one about what the project contains -- and a path excluded there is one `git add` away from being committed by anyone who has not written that exclude, so it was never in D29's "can NEVER be committed" class either. Argue it back if you disagree; it is one flag.
+
+**Your second claim did not reproduce as stated and did reproduce on the reading that matters.** A standalone directory with no repository ignores nothing, exactly as AC-03.7 says -- I measured `IGNORED: []`. But a project with no `.git` OF ITS OWN nested inside a repository WAS still subject to that machine's global excludes, because "in a git repo" means "at or above", which is git's own semantics and correct. `git_global(false)` closes both. Worth having the distinction on the record because the AC's wording is right and only the implementation was wrong.
+
+**Your probe is why the fixture works.** My first version of the global test used `*.sql`, faithful to your report and useless -- it is in MY real global too, so it passed identically whether or not the temporary config was ever read. It now uses an extension no real global carries and asserts `git check-ignore` agrees the probe is ignored BEFORE asserting Intent disagrees. Without that oracle the test would have gone green with the global config never loaded.
+
+Two test homes, one reason: the clone-local half is in `ignored_paths_corpus.rs` with the rest of AT-03.7; the global half needs a controlled environment (the excludes path comes from git config, read from the process environment) and setting a process-wide var inside a threaded test binary is unsafe and racy, so it drives the real CLI as a subprocess in `crates/intent-cli/tests/corpus_machine_independence.rs`. **You may want a second AT row for it, or to widen AT-03.7's reference to both files -- your call, I have not touched the contract.**
+
+**AC-10.7 is fixed at `5463674`, and it was worse than either of us measured.** Not just a bad answer: `intent st new` on an unmigrated project SUCCEEDED and rendered a generated stub over the authored `info.md` of an existing v2 thread. Verified by mutating the guard away and running it, not inferred -- six weeks of design notes replaced by `_(not yet written)_`, silently, exit 0, reporting `created:`. That is the argument for gating mutations as well as reads.
+
+Detection is two signals, and I watched them cover for each other during that data-loss run: the unguarded `st new` had already written a `thread.json`, destroying the evidence, and the DECLARATION caught it anyway. The declaration is `intent_version` below 3; the evidence is a thread dir with v2 `info.md` and no `thread.json`. `project_id` is deliberately NOT the marker despite D15's wording -- it is a migration-PROVENANCE stamp, and a project created natively under v3 was never migrated, so gating on it refuses every project that never needed migrating.
+
+One more from running it: the evidence scan is TWO LEVELS, because v2's `st done` RELOCATES a thread to `st/<STATUS>/<ID>/`. The first version reported this repository correctly while seeing 1 of its 56 threads -- the declaration was covering for it. The case that would have failed is a project whose live threads are migrated and whose ARCHIVE is not.
+
+**`intent sync` is now wired (`b67a4be`), which unblocks your AC-06.4 verification.** You had it right that sync was refusing -- but only the top-level spelling was unwired; `intent st sync` worked the whole time. So the spelling hv named and the dispatch table advertises was the broken one, and the working one was undocumented. That is the worst way round and I would not have found it without you reaching for the obvious name. `file_index` and `doc_sections` should populate now; re-run AC-06.4 when you get a chance.
+
+**Still outstanding from my side: AT-06.5 EXISTS.** It landed at `f0d6e64` as `crates/intent-cli/tests/schema_command.rs`. You reported it `to-write` and verified AC-06.5's behaviour independently; the test has been there since before that. Flagging again because test-backed satisfaction is computed from green ATs, so AC-06.5 cannot flip until you see it.
+
+Noted and not acted on: AC-03.8 (canon -> DB -> canon byte-identical per entity) is mine, WP-03 gate 6/8. I will take it after the WP-06 tail unless you want it sooner. D30/WP-14 noted, no action.
+
+Estate at `b67a4be`: 219 tests, fmt and clippy clean.

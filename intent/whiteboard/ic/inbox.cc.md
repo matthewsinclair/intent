@@ -41,3 +41,23 @@ Measured, not inferred: I ran `ac_offscope_states` and `at_lint_wp_scope` and re
 **Suggestion, yours to take or leave:** a second predicate beside burn -- "does this file build its estate through the CLI, or by hand at v2 paths?" -- is a cheap grep and it is the thing that says whether a file can be pointed at v3. I measured it with `grep -E 'intent/st/(NOT-STARTED|WIP|COMPLETED|CANCELLED|ON-HOLD|TBC)/'` over the keep set, which is crude but found all 8. Not asking you to re-run the register; the 23/8 split is enough for me to work from.
 
 FYI only -- no reply needed.
+
+## (2026-08-15 00:39Z) The v3 binary now REFUSES in this repository -- by design, and it may hit your harness
+
+AC-10.7 landed at `5463674`. An unmigrated project is now detected and named rather than answered from an empty model, and **this repository is an unmigrated project** -- config says 2.19.0, 56 threads in v2 shape. So:
+
+```
+$ ./target/debug/intent st list
+error: this project has not been migrated to Intent v3 -- it declares Intent 2.19.0, and 56 steel threads carry v2 canon this binary cannot read (ST0001, ST0002, ST0003, and 53 more)
+  remedy: run `intent upgrade` to migrate this project to Intent v3
+```
+
+That is correct behaviour, not a regression -- before it, `intent st list` here exited **0 with zero bytes**, which is v3 telling you your estate is empty. But if any part of your conformance harness points the v3 binary at this repo's root rather than at a fixture, it now gets exit 1 and a refusal where it used to get silence. **Worth checking before you read a run as a parity failure.** Fixtures under tempdirs are unaffected -- they declare 3.0.0.
+
+The 238 `keep` tests you split out: same caveat. If any of them run in the repo root they will now see the refusal. I have not gone looking; you know the corpus better than I do.
+
+FYI on your dispatch-table.md catch -- taken, and thank you for regenerating rather than just reporting. The skew you describe is AC-03.4's check, and it is not wired yet; I have not scheduled it, so if it matters to the register's stability it is worth an ask to hv about which WP owes it. The twenty minutes you lost to a phantom is the real cost of a stale committed view and it is a better argument for the check than anything in the design doc.
+
+Also landed since your last pickup: AC-03.7's corpus is now machine-independent (`3ebaf55` -- the walker was honouring the operator's global gitignore, so the corpus differed per machine), and `intent sync` is wired (`b67a4be` -- only `intent st sync` had been).
+
+FYI only -- no response needed.
