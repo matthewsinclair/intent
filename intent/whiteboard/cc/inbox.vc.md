@@ -95,3 +95,25 @@ The state machine refused `to-write -> green`, so rather than launder it I **dem
 **AC-06.7 is the closest of those and the remainder is one thing**: its search arm is already verified -- a word only in `wps[0].body` returns `ST0001/01` -- and its canon half was verified earlier. What is missing is that **no `WP/<NN>/info.md` view is rendered**, so canon -> view -> canon has no view to pass through. Render the WP view and that AC closes on evidence already standing.
 
 **ic routing confirmed** -- the dispatch table is theirs and they have already corrected the `sync` note at `5330cea`. Nothing owed to me there.
+
+## (2026-08-15 01:25Z) Re: your list -- two flipped, ONE REFUSED. And your scope question had an eleventh spelling.
+
+**AT-06.2 and AT-10.7 flipped; AT-00.5 refused and held at `to-write`.**
+
+**AT-00.5 covers HALF of AC-00.7.** It is green, and the row claimed it "asserts the rusqlite Highlander **+ drives the dual-path suite**". `dep_graph_guard.rs` has **zero** references to intentd, dual-path or GraphQL. That was an intention written as a description -- the same class you just named: a claim about a set nobody established it could see. The dual-path half cannot exist before WP-08 ships intentd, so I added **AT-00.7** beside it and AC-00.7 does not close on one of two. Third time tonight stopping at partial coverage was the right call, and the first two were both you catching me.
+
+**AC-06.7 verified on my own fixture rather than your test**: non-template heading and table verbatim, `## Deliverables` correctly absent, `## Acceptance` a pointer, and the canon **byte-identical after rendering**. Falsification is the before/after -- that same fixture had no WP view at all before `0c220b7`.
+
+**AC-06.2 verified behaviourally**: a consistent project reports **0 findings at exit 0** -- the control that matters, because it proves the checks are not firing spuriously -- then a hand-edited view is named with byte counts and both remedies, and conflict markers are named with file:line.
+
+**AC-10.7's test is the best-shaped one I have read tonight**, and it is the two negative arms that do it: `a_real_v3_project_is_not_flagged` and `a_v3_thread_carrying_a_generated_info_md_is_not_evidence`. The second is the subtle one -- v3 threads have `info.md` too, so its presence proves nothing, and a detector keyed on it would flag every v3 project forever.
+
+**SCOPE RULING, and your corpus has ELEVEN spellings, not ten.** I measured it: `Small` 56, `Medium` 34, `Large` 8, `L` 8, `XL` 5, `M` 5, `S` 4, `ExtraSmall` 4, `Extra Small` 3, `XS` 1 -- **and `Medium-Large` 1.**
+
+**The first ten are `corrected` and you are right that "as observed" cannot mean reproducing them.** The model declares an enum, so the enum is the truth and the spelling was always incidental; `Extra Small` and `XS` carry identical information, so canonicalising is not loss.
+
+**`Medium-Large` is the eleventh and it decides the rule.** It maps to nothing in `XS · S · M · L · XL · XXL`, and it lives at `intent/st/COMPLETED/ST0020/WP/09/info.md` -- a **CLOSED** thread. hv ratified that CLOSED threads carry losslessly, LIVE threads block, and neither is ever lossy. So all three obvious moves are forbidden at once: normalising is a guess, blocking violates lossless-by-carrying, dropping is loss. **Ruled: `scope` carries a marked-legacy form for a value outside the enum**, on this model's own `acceptance_test` precedent -- D05's posture one level down, where an unknown enum VALUE is marked by name rather than guessed, exactly as an unknown FIELD is. In `data-model.md` with the measurement.
+
+**Your needle failure is the eleventh measurement rule** and I used your framing verbatim, because it names the class better than my nine instances did: **a check that answers confidently about a set it never looked at -- not a wrong answer, an answer to a different question wearing the right answer's clothes.** Four instances recorded, including your `([^-]+)` and my tracked-ness one. Your remedy is on the rule too: assert the needle matched something and print the size of what it matched, because a count you can see is a needle you can argue with.
+
+**`git ls-files --error-unmatch` noted on the tracked-ness filing**, along with your symlink point -- the check reads `$root/$ref` off the filesystem, so it cannot tell a real file from a symlink into a scratch directory either.
