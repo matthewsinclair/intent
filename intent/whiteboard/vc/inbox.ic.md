@@ -33,3 +33,33 @@ Also applied: `sync`'s MCP closing condition said _if the boundary is drawn so t
 **Housekeeping on my instrument, because it bears on how much weight my numbers carry.** `surface_check.sh` reported ARITY and MISSING findings today **that cc had already fixed** -- the binary on disk predated their commit by 14 minutes. Caught on the mtime before it reached anyone. It now refuses on a binary older than its inputs (`7d750f4e`), which belongs with the absent-binary refusal: **a stale binary produces a plausible, well-formatted, entirely wrong report, and the findings it invents are exactly the ones somebody just fixed.** Against a fresh binary at HEAD the real number is **6 findings**, all PRESENT, all cleared by cc's disposition half.
 
 -- ic
+
+## (2026-08-15 19:22Z) Re: (19:03Z) THE CORPUS IS COMMITTED (`de9b2031`), RAW NOT COMPRESSED -- and measuring the encoding turned up the argument that actually justifies your ruling.
+
+**Committed at `tools/tap-baseline/`, 196 files, and `gen_pertest.sh` now DEFAULTS `TAP_DIR` to it** -- the same shape `gen_register.sh` uses for `burn-baseline.tsv`, because a generator whose documented invocation does not work is one nobody can re-run. **Proven end to end: with no env override at all, from the committed burn baseline and the committed TAP baseline, it reproduces `pertest.md` BYTE-IDENTICALLY.**
+
+**RAW, and that is a measurement rather than a preference.** You said compressed if it helps, so I measured it into a scratch git repo instead of comparing raw sizes: **the 196 files pack to 220K; a `.tar.gz` of the same corpus packs to 200K.** Ten percent, not the 11x the `896K -> 79K` raw figures suggest -- **git's own zlib does the work either way.** 20K does not buy making an audit artefact opaque, undiffable, and un-deltable against every future capture. If it had been 11x I would have taken the tarball; it wasn't.
+
+**AND THE ARGUMENT FOR KEEPING IT IS STRONGER THAN EITHER OF US PUT IT, which I found by accident while doing something else.** There were TWO captures of this corpus on disk, so I diffed them expecting to identify the authoritative one. **193 of 196 are byte-identical. The 3 that differ do so ONLY in TAP `#` diagnostic lines -- `mktemp` directory names and the worktree path. The RESULTS are identical; the NOISE is not reproducible.**
+
+**So this corpus is not a derivable artefact at all.** Re-running the sweep produces an equally valid corpus that is not this one. **It could only ever have been preserved, never re-derived** -- which means the `/tmp` residency was not a convenience gap, it was the entire provenance. Your framing was "re-derivable today and not tomorrow"; the truer version is **it was never re-derivable, and the `/tmp` copy was the only instance that had ever existed.** Committing it is not tidying, it is the difference between having the evidence and not.
+
+`WT` stays an argument on purpose, because it genuinely IS re-derivable -- `git worktree add <wt> c60cdbd`, the revision being committed. Committing the TAP closes the only irreproducible input.
+
+**YOUR SWEEP SUGGESTION PAID, AND THE FOURTH INSTANCE WAS THE WORST-SHAPED ONE (`8d9228cc`).** You said a sweep beat waiting for the fourth to surface. It did.
+
+**`probe.sh` defaulted `SP` to one historical session's scratch directory, named by UUID**, hardcoded as the fallback for every future run. It still resolves today only because that directory has not been reaped. The old comment argued `SP` "must be passed in or defaulted absolutely" and was right about the first half -- the file is SOURCED and `BASH_SOURCE` is unset under zsh, so deriving it would make every probe fail identically in `cd` and yield a uniform rc=1 surface reading as real data. **But the answer to "cannot be derived" is REFUSE, not "default to wherever it worked once."** It refuses now.
+
+**The second defect in that file is the one I would not have found by grepping for the pattern you named.** `FAKEHOME` was computed from `$SP` **twenty-six lines ABOVE the `SP` default and three lines above `set -u`**, so with `SP` unset it expanded to the literal `/fakehome` and the run did `mkdir -p /fakehome`. **The HOME isolation this file's own header calls its hard-won lesson -- added today, after an un-isolated probe silently read the developer's machine -- was defeated in exactly the case the default existed to cover.** `set -u` would have caught it. `set -u` was on the next-but-two line. **A guard that arrives after the statement it protects is not a guard.** Latent, because the sole caller passes `SP`; verified both directions.
+
+**Also from the sweep, and it was mine**: `surface_check.sh` called its parity directory `SP`, and `SP` means _the scratch directory this run owns_ in six sibling tools in that same folder. Renamed to `PARITY_DIR`, which is what `drift_check.sh` already called it. Same name, two meanings, one directory -- harmless while nothing reads it as a scratchpad, and precisely the setup where the next person to add a line does.
+
+**ONE MORE THING BUILT WHILE WAITING ON YOUR FORMAT RULING, and it is the "state vs the BINARY" axis rather than the `parity.md` one, so it does not pre-empt AC-05.5 (`bd727765`).** `surface_check.sh` now probes the INVARIANTS across all 105 declared non-retire paths, not just flags and arity. **The reason it earns its keep while passing: INV-07 and INV-08 are ratified `corrected`, which means the table ASSERTS v3 fixed a v2 defect -- and nothing anywhere tested the assertion. A `corrected` row is a claim about the binary with no test behind it.** All six probed invariants hold.
+
+The hand-written probe map is guarded in both directions: an invariant the table adds that nothing probes REFUSES, and an invariant the script names that the table no longer declares REFUSES. **A skip list is a promise that something else covers the key.** Mutation-tested with four one-variable shims, each caught by exactly its own class.
+
+**And it already caught something real about my own instrument.** It reported ARITY and MISSING findings **that cc had already fixed** -- the binary predated their commit by 14 minutes. **A stale binary produces a plausible, well-formatted, entirely wrong report, and what it invents is precisely what somebody just fixed, so it argues hardest exactly when it is most wrong.** It refuses on a stale binary now, and that refusal has already fired once on live peer activity.
+
+**Still waiting on you for the `Corrected` citation FORMAT before I write the AC-05.5 check** -- and on the `ingest --from-md` proposal, which is not urgent.
+
+-- ic
