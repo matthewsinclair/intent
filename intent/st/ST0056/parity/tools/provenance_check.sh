@@ -42,28 +42,112 @@ P="$ROOT/intent/st/ST0056/parity"
 
 rc=0
 
-stamp_of() { grep -m1 -oE 'Measured at `[a-f0-9]{7,}`' "$1" 2>/dev/null | grep -oE '[a-f0-9]{7,}'; }
+# SCOPE -- what this run is allowed to look at.
+#
+# `staged`  read every group member out of the INDEX, and check only the groups
+#           this commit actually touches.
+# `tree`    read the working tree, check everything (a manual run).
+# `auto`    staged when anything is staged, tree otherwise.
+#
+# BOTH HALVES OF `staged` FIX A REAL BLOCK, and dc found them by being blocked
+# (2026-08-15). This guard globbed the FILESYSTEM, so it assessed a `cmd-*.md`
+# that was untracked and mid-generation in ic's tree -- and refused dc's commit,
+# which touched `bin/.devbin/`, MODULES.md and dc's own board, and nothing in
+# `parity/` at all. **One node's in-flight work became a commit freeze for every
+# node, naming files they had never touched**, clearable only by editing someone
+# else's work or by `--no-verify`. dc did neither and diagnosed instead, which is
+# the only reason this is written down rather than bypassed.
+#
+# Reading the index fixes that: an untracked file is not in it, and neither is an
+# unstaged edit. Scoping to touched groups fixes the other half -- a split that
+# already exists in HEAD would otherwise block every commit by everyone until
+# somebody repaired it, and **a guard that must be bypassed to work is a guard
+# nobody keeps.** That rule is not new here; it is the clock guard's check C,
+# which deliberately refuses only on stamps the current commit ADDS. This file
+# already cited the clock guard as its model and had inherited the refusal
+# without the scoping.
+SCOPE="${PROV_SCOPE:-auto}"
+STAGED="$(git -C "$ROOT" diff --cached --name-only 2>/dev/null)"
+if [ "$SCOPE" = auto ]; then
+  if [ -n "$STAGED" ]; then SCOPE=staged; else SCOPE=tree; fi
+fi
+
+# Read a group member. In `staged` mode the INDEX is the source, so a file that
+# is untracked or only edited in the worktree does not participate at all.
+content_of() {
+  if [ "$SCOPE" = staged ]; then
+    git -C "$ROOT" show ":${1#$ROOT/}" 2>/dev/null
+  else
+    cat "$1" 2>/dev/null
+  fi
+}
+
+stamp_of() { content_of "$1" | grep -m1 -oE 'Measured at `[a-f0-9]{7,}`' | grep -oE '[a-f0-9]{7,}'; }
+
+# ABBREVIATED SHAs ARE NOT COMPARABLE AS TEXT, and this compared them as text.
+# `git rev-parse --short` chooses its length from the repo's object count, so it
+# GROWS: the same commit rendered `69d42a7` on 2026-08-14 and `69d42a7f` a day
+# later, and this guard reported that two artefacts "disagree about their own
+# revision" while both named the same one. It misread the stamp and accused the
+# artefact -- inverting the thing its own preamble says it exists to protect.
+#
+# dc found it and noted the part that makes it worse than a one-off: the
+# crossover moves ahead of us as the repo grows, so it will land on whoever is
+# committing at the time rather than on whoever caused it.
+#
+# Resolving through git compares commits instead of strings. An unresolvable
+# stamp (a shallow clone, a commit not present) falls back to the literal text,
+# so this degrades to the old behaviour rather than erroring on a tree it cannot
+# fully see.
+resolve() {
+  local full
+  full="$(git -C "$ROOT" rev-parse --verify --quiet "$1^{commit}" 2>/dev/null)"
+  if [ -n "$full" ]; then printf '%s' "$full"; else printf '%s' "$1"; fi
+}
 
 # check_group <name> <why they must agree> <file>...
 check_group() {
   local name="$1" why="$2"; shift 2
-  local f s first="" firstf="" n=0 bad=0
+  local f s r first="" firstr="" firstf="" n=0 bad=0 touched=0 offenders=""
+
+  # In `staged` mode, a group nobody touched is not this commit's business.
+  if [ "$SCOPE" = staged ]; then
+    for f in "$@"; do
+      case "$STAGED" in *"${f#$ROOT/}"*) touched=1; break ;; esac
+    done
+    [ "$touched" -eq 1 ] || return 0
+  fi
+
   for f in "$@"; do
-    [ -f "$f" ] || continue
     s="$(stamp_of "$f")"
+    # No stamp AND no content means the file is simply not in scope -- untracked
+    # in `staged` mode, or absent. Only a file we can READ and that carries no
+    # stamp is a finding; the distinction is what stops an untracked artefact
+    # being reported as unstamped.
     if [ -z "$s" ]; then
+      [ -n "$(content_of "$f")" ] || continue
       echo "provenance: ${f#$ROOT/} carries no revision stamp -- an unstamped artefact cannot be checked and cannot be trusted" >&2
       rc=1; continue
     fi
+    r="$(resolve "$s")"
     n=$((n + 1))
-    if [ -z "$first" ]; then first="$s"; firstf="$f"; continue; fi
-    if [ "$s" != "$first" ]; then
-      echo "provenance: $name disagrees about its own revision" >&2
-      printf '  %s -> %s\n  %s -> %s\n' "${firstf#$ROOT/}" "$first" "${f#$ROOT/}" "$s" >&2
-      echo "  $why" >&2
+    if [ -z "$first" ]; then first="$s"; firstr="$r"; firstf="$f"; continue; fi
+    if [ "$r" != "$firstr" ]; then
+      # COLLECT, REPORT ONCE. Reporting inside the loop printed the same
+      # sentence once per disagreeing file -- 26 identical lines for a
+      # single-file mistake, with the one useful line (which file, which stamp)
+      # buried among them. A guard that prints 26 lines to say one thing teaches
+      # its readers to skim, which costs it the next real finding.
+      offenders="$offenders
+  ${f#$ROOT/} -> $s"
       bad=1; rc=1
     fi
   done
+  if [ "$bad" -eq 1 ]; then
+    echo "provenance: $name disagrees about its own revision" >&2
+    printf '  %s -> %s (first)%s\n' "${firstf#$ROOT/}" "$first" "$offenders" >&2
+    echo "  $why" >&2
+  fi
   [ "$n" -gt 0 ] || return 0
   [ "$bad" -eq 0 ] && printf 'ok: %-22s %s file(s) @ %s\n' "$name" "$n" "$first"
 }
@@ -85,11 +169,18 @@ check_group "dispatch-table view" "single artefact" "$ROOT/surface/dispatch-tabl
 # ANY STAMPED ARTEFACT NOT IN A GROUP IS REPORTED. A new generator that starts
 # emitting stamps is exactly when this check needs to grow, and the only moment
 # anyone will notice is now.
+# Scoped the same way, and for the same reason: an unassigned artefact is worth
+# reporting to the node that ADDS it, and worth reporting to nobody else. The
+# unscoped version was the second half of dc's block -- it globbed the worktree
+# too, so an in-flight file appeared here as well.
 for f in "$P"/*.md "$ROOT/surface"/*.md; do
   [ -f "$f" ] || continue
   case "$f" in
     "$P/register.md"|"$P/pertest.md"|"$P"/cmd-*.md|"$ROOT/surface/dispatch-table.md") continue ;;
   esac
+  if [ "$SCOPE" = staged ]; then
+    case "$STAGED" in *"${f#$ROOT/}"*) ;; *) continue ;; esac
+  fi
   [ -n "$(stamp_of "$f")" ] || continue
   echo "provenance: ${f#$ROOT/} carries a stamp but belongs to no group -- assign it or state why it stands alone" >&2
   rc=1
