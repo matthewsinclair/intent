@@ -1,3 +1,5 @@
+-- INTENT_VER: 3.0.0-dev
+-- SCHEMA_DDL_VER: 1
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable SSOT (D01, reversed 2026-08-15). Re-creatable from the committed

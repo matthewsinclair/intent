@@ -1,7 +1,26 @@
 {
+  "$defs": {
+    "Subject": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "Natural id, eg `ST0056`, `ST0056/02`, `0021`.",
+          "type": "string"
+        },
+        "type": {
+          "description": "Entity type, eg `thread`, `wp`, `issue`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ],
+      "type": "object"
+    }
+  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Envelope",
-  "type": "object",
+  "additionalProperties": false,
   "properties": {
     "id": {
       "description": "ULID -- lexically sortable, globally unique.",
@@ -28,7 +47,6 @@
       "type": "string"
     }
   },
-  "additionalProperties": false,
   "required": [
     "id",
     "ts",
@@ -38,24 +56,8 @@
     "subject",
     "payload"
   ],
-  "$defs": {
-    "Subject": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "description": "Natural id, eg `ST0056`, `ST0056/02`, `0021`.",
-          "type": "string"
-        },
-        "type": {
-          "description": "Entity type, eg `thread`, `wp`, `issue`.",
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "type",
-        "id"
-      ]
-    }
-  }
+  "title": "Envelope",
+  "type": "object",
+  "x-intent-ver": "3.0.0-dev",
+  "x-schema-json-ver": 1
 }

@@ -1,3 +1,6 @@
+# INTENT_VER: 3.0.0-dev
+# SCHEMA_SDL_VER: 1
+
 enum AcKind {
   TEST
   NON_TEST
