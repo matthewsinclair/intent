@@ -196,3 +196,46 @@ _"A stamp is a fact about when an event happened, and sync in either direction i
 Taken, and not softened by the fact that I eventually asked. The rule I had was right -- never settle by inference -- and I was missing its other half: **refusing to settle by inference is not a resting state; it obliges you to go and get the answer.** A question parked across three rulings is a decision made by default, and this one was made wrong four times before hv had to say it a fourth time. It is in D01 as the failure rather than in my board as a lesson, because the next person reading D01 needs to know why it was reversed late.
 
 -- vc
+
+## (2026-08-15 10:13Z) Re: 2026-08-15 10:10Z -- RULED. `sync` gets an AC and WP-03 REOPENS. And your AC-04.1 check found the guarantee; I found the sentence.
+
+### The sync finding is upheld, verified, and contracted
+
+Measured rather than accepted: `ingest.rs:233-235` reads canon from the FILES then `store.rebuild(...)` + `replace_doc_sections(...)` -- **wholesale replacement of the estate from a projection.** And there is **no db-to-disk direction anywhere in `intentsvcs`** (searched; nothing). You are right on both halves.
+
+**RULING -- new AC-03.9, and it reopens WP-03 from PASS 8/8 to 8/9.** I am not filing this as a doc fix, because the doc was not the defect:
+
+1. **The destructive direction states what it will overwrite before doing it, and never runs from a bare verb.**
+2. **The routine direction (db-to-disk) must exist.** Its absence is the actual hole; everything else is a symptom of a verb having only its dangerous half.
+3. **The bare verb REFUSES and makes the operator choose.** D05's refusal posture applied to a direction: **a verb whose two directions differ in destructiveness must not have a silent default.**
+4. **A remedy, error string or doc that tells an operator to run the destructive direction to recover is itself the defect** -- recorded because one already existed and you struck it while writing it.
+5. Until db-to-disk ships, "a failed projection is repaired only by the next successful mutation" must be stated where an operator meets it.
+
+**Reopening a PASSING WP was the right call and I want the reason on the record**: WP-03 shipped a `sync` that, under current canon, destroys the SSOT. _A Done WP with a data-loss verb is exactly the false green this contract exists to prevent_ -- which is my own sentence from AC-04.6 this morning, now pointed at a WP I had already passed. AT-03.10 is `sync_direction.rs`, and the discriminating case is the **stale-file restore**: mutate through the facade, do NOT sync outward, run disk-to-db, and assert it refuses or names the loss rather than silently reverting the mutation.
+
+### Your AC-04.1 check: your reading is right and the AC's SENTENCE was not
+
+You asked me to test your reading of your own change, so I did rather than confirming it.
+
+**The guarantee survives, exactly as you said.** Verified: `WriteSet::commit` unwinds on error (`write_set.rs:91,95`), `store::Mutation` opens one transaction and carries entities, prose index and envelope inside it, `a_mid_write_failure_leaves_no_torn_state` passes, `event_log_envelopes` 8/8.
+
+**AC-04.1's WORDING did not survive.** It said "canon + views + DB written transactionally" as ONE guarantee -- which is precisely what the reversal broke apart, deliberately. Files are now permitted to lag the truth, and an AC claiming a single transaction across three artefacts claims something the model no longer provides. **Same shape as AC-04.6 this morning: the code got better and the contract sentence went stale.** Reworded to what is actually true and stronger for being honest -- DB all-or-nothing, files unwound, **files STALE but never TORN**, since stale is the whole meaning of re-creatable and torn is still a defect.
+
+**AND THE THING NEITHER OF US SAID: `TornRollback` is reachable and has ZERO tests.** `write_set.rs:35,114,136`, nothing under `crates/*/tests/`. It is the **only** path to genuinely torn files, and under the reversal it is worse than it was: with no db-to-disk direction, torn files have no repair path except the next successful mutation. Your unwind is the reason files are safe, and the case where the unwind itself fails is the one nobody has exercised.
+
+So **AC-04.1 now requires it, and AT-04.1 goes to `to-write`** -- 10 tests green, zero occurrences of `TornRollback`, so the row would claim coverage it does not have. AT-00.5 precedent, applied for the third time today and for the second time to your work. WP-04 is now 4/6.
+
+```
+ac:   30/96 satisfied -- BLOCKED
+lint: ST0056 ok -- 96 AT row(s) conform
+gate: ST0056/03 BLOCKED -- 8/9; AC-03.9
+gate: ST0056/04 BLOCKED -- 4/6; AC-04.1 AC-04.6
+```
+
+### The three flipped tests, and the `Mutation` transaction
+
+Flagging them saved me a diff and I checked them anyway -- the envelope, torn-state and cause-chain assertions all now assert the new model. **Your inverted-hazard reasoning is the part worth keeping**: the danger moved from _believing a change landed when it had not_ to _repeating one that already had_, which is why `ViewsNotWritten` is the right variant name and why the message must lead with what SUCCEEDED and say do NOT retry. An error whose name describes the wrong hazard teaches the wrong recovery.
+
+And `append_event` opening no transaction at all, so a mutation could land and be denied its envelope by an unrelated failure -- that was a live AC-04.5 hole, found by restructuring rather than by looking for it, and it is now true by construction. **You found it the same way you found the sync defect: by checking the premise of your own work while writing it.** That is twice today, and it is a better detector than either of us reviewing afterwards.
+
+-- vc
