@@ -52,7 +52,7 @@ Every failure writes `error: <message>` to STDERR. Every success line that annou
 A missing required argument, an unknown option, or an unknown subcommand exits 1.
 
 - **v2:** bin/intent_helpers:7-11 -- `error()` is `echo >&2; exit 1`, and it is the only failure exit in the shipped surface bar `intent critic`
-- **Evidence class:** `measured (v2 half) + documented-default (clap half)` -- The v2 half is measured: probes on `st show`, `st bogusverb` and `wp list` all exit 1, and `error()` is read directly. The clap half is NOT measured and could not be -- `crates/intent-cli/Cargo.toml` carries no clap dependency, so nothing in this workspace exits 2 yet. clap's documented default is 2; that is a framework default, which a major bump or a single `Command::` setting can change.
+- **Evidence class:** `measured (v2 half) + documented-default (clap half)` -- The v2 half is measured: probes on `st show`, `st bogusverb` and `wp list` all exit 1, and `error()` is read directly. The clap half is NOT measured and could not be -- `native/crates/intent-cli/Cargo.toml` carries no clap dependency, so nothing in this workspace exits 2 yet. clap's documented default is 2; that is a framework default, which a major bump or a single `Command::` setting can change.
   - Pinned by: WP-05 must land a test asserting exit 1 on a missing required argument AND on an unknown flag, WRITTEN BEFORE the clap spine exists. Then a changed default reds one named invariant instead of a hundred BATS tests failing for a reason nobody traces back here. (vc, 2026-08-14, on catching this row overclaiming its evidence.)
 - **Target:** `as-observed` -- ratified: D17
 - **Implementation constraint:** clap exits 2 for both `ErrorKind::MissingRequiredArgument` and `ErrorKind::UnknownArgument` by default. D17 rules the v2 code carries over, so WP-05 MUST override clap's exit code rather than inherit it. This is surface-wide -- it affects nearly every command -- and it is recorded here precisely so it is a build-time constraint rather than something discovered in test triage. Exception: `intent critic` genuinely uses 2 (see INV-04).
@@ -505,7 +505,7 @@ Acceptance criteria: the ratified completeness boundary of a unit
 - **BATS coverage:** 57 burning test(s) across 4 file(s) -- **covered**
 
 - `ac` and `at` are two nouns over ONE binary (`bin/intent_acceptance`), dispatched on `$1` as the noun and `$2` as the verb. They share a usage block, so `intent ac --help` and `intent at --help` are the same text -- and both FAIL, because `--help` is parsed as the verb (INV-07).
-- An AC has four states, not two (issue 0013): in-scope, satisfied, descoped-to-a-named-thread, withdrawn-with-reason. Descoped and withdrawn are non-blocking and reported separately rather than folded into the satisfied count. This is already reified in the v3 model as `AcScope` (crates/intentsvcs/src/model.rs), so the CLI surface here maps onto it directly.
+- An AC has four states, not two (issue 0013): in-scope, satisfied, descoped-to-a-named-thread, withdrawn-with-reason. Descoped and withdrawn are non-blocking and reported separately rather than folded into the satisfied count. This is already reified in the v3 model as `AcScope` (native/crates/intentsvcs/src/model.rs), so the CLI surface here maps onto it directly.
 - Satisfaction for test-backed ACs is COMPUTED from covering green ATs and never stored; only non-test ACs carry `satisfied` inline with their evidence. v3 must preserve that asymmetry -- storing it would be double truth (data-model.md).
 
 | command        | args          | flags                                    | help                                                                  | disposition |
@@ -693,7 +693,7 @@ Acceptance tests: the small red-to-green tests that prove ACs
 
 - **parity.md's command-level table was wrong about this family and the deep pass corrected it.** The table said `lint [--fix], set, list`. Measured: `list, lint, red, green, na, done, notdone`. There is NO `set` verb -- `cmd_at_set` is an internal function -- and `done`/`notdone` are aliases for `green`/`red`. Evidence: `intent at set` answers `error: unknown at command: set`.
 - The AT row has an enforced grammar (issue 0017) with exactly two shapes and nothing else parsing. The reference is the test FILE -- backticked, repo-relative, at least one `/`, no `:`. A test is named by putting the AT id INSIDE the test, which is checkable from both ends and survives rewording; a cited test NAME is not.
-- `n-a` is a status for non-test rows ONLY and is NOT green: satisfaction for such a row lives on the AC's own line. v3 reifies this as `AtStatus::Na` with the serde rename `n-a` (crates/intentsvcs/src/model.rs).
+- `n-a` is a status for non-test rows ONLY and is NOT green: satisfaction for such a row lives on the AC's own line. v3 reifies this as `AtStatus::Na` with the serde rename `n-a` (native/crates/intentsvcs/src/model.rs).
 
 | command                       | args          | flags | help                                                                  | disposition |
 | ----------------------------- | ------------- | ----- | --------------------------------------------------------------------- | ----------- |
