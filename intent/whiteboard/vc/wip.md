@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-15 00:08Z
+heartbeat_at: 2026-08-15 00:31Z
 status: active
-focus: "Localfold before a compact, continuing on the bounce. WP-05 CLOSED (gate PASS 4/4). WP-03 REOPENED by AC-03.7. Contract 81 ACs / 79 AT rows. D28, D29 and the D01 disambiguation landed."
+focus: "hv AFK overnight. D30 + WP-14 cut: the whiteboard enters the model. AC-03.7 fails on a machine-scope corpus hole. ic's two rulings made. Contract 93 ACs / 91 AT rows."
 claims: [ST0056]
 ---
 
@@ -13,14 +13,15 @@ claims: [ST0056]
 
 ## DOING
 
-- **Localfold before a compact, not a release.** `/compact` does not end a session (protocol invariant 6), so status stays `active`; hv has said we continue on the bounce. The session's detail is in `.history/20260815/wip.md`.
+- **Working autonomously; hv AFK until morning.** Board kept to pointers now that D30 contracts the bound -- detail lives in the artefact, not here.
 
 ## TODO
 
-- **Verify cc on the four live defects, in this order**: AC-10.7 (`st list` silent-empty -- the one every user meets first), D29 (ingest dead on macOS), D28 (WP prose fields), AC-06.6 (`export`). All four are cc's lane; none is blocked on me.
-- **Re-verify AC-06.4 once D29 lands.** `intent search` cannot be verified today -- it exits 1 on the `.DS_Store` residue before reaching the query. AC-06.5 is already verified behaviourally and waits only on AT-06.5 being written.
-- **WP-03 is REOPENED at 6/7** by AC-03.7. Whether its WP _status_ returns to wip is cc's call; I have not touched wp state. Do not let a Done-marked WP with a failing gate sit quietly -- that is the false green this contract exists to prevent.
-- **AC-00.1 carries the 28 deferred non-core `pending` rows.** Owed, gated, not forgiven. Check it is still on the row at WP-12.
+- **AC-06.5 is next up and unblocked**: AT-06.5 exists (`crates/intent-cli/tests/schema_command.rs`, cc, `f0d6e64`). Verify by the independent route -- `cmp` per face plus reading `faces.rs` for filesystem reaches -- then flip.
+- **AC-06.7 (D28 WP-prose round-trip)** is verifiable once cc's `objective`/`body` land; the phrase-only-in-a-WP-body arm needs the store populated, so it waits on `sync` with AC-06.4.
+- **AC-06.4 / AC-06.6 are blocked on `sync` being wired**, not on any defect: `file_index` and `doc_sections` are both empty after `doctor`, so `search` has nothing to search. Do not read a later empty result as a search defect.
+- **WP-03 is REOPENED at 6/8** by AC-03.7 (machine-scope corpus) and AC-03.8 (canon round-trip). Whether its WP _status_ returns to wip is cc's call; I have not touched wp state. Do not let a Done-marked WP with a failing gate sit quietly.
+- **AC-00.1 carries the 28 deferred non-core `pending` rows.** ic's to name, gated here, not forgiven. Check it is still on the row at WP-12.
 - **hv's own scope calls, still NOT folded into the standing authorisation**: the D01 reading (recorded as runtime, reversible in one line); `intent critic`'s four-way exit-2 overload, ahead of the 15-row usage-convention bundle because it is the only one with a live consumer; whether `fileindex` follows `treeindex`; whether `todo --flush` survives, which decides whether the watermark field exists; WP-06's name now that AC-06.4 and AC-06.6 put two non-parity commands in it.
 - **WP-10 precondition, from cc**: measure L2/L3 failures per fleet member at its named revision before anyone rules on whether a broken reference in a CLOSED thread carries or blocks.
 

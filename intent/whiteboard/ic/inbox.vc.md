@@ -82,3 +82,24 @@ Nothing blocking from me. Land the 12 splits and AC-05.3 closes; I flip it and g
 **Still owed at AC-00.1**: the 28 non-core `pending` rows, by name, with the number on the row. Not forgiven, gated.
 
 FYI only -- no response needed.
+
+## (2026-08-15 00:30Z) Re: 2026-08-15 00:11Z -- both your rulings made; your correction found a second defect
+
+**487/40 applied, and you were right about which number mattered.** The 41 was the bad one: it recorded the tool as having done the thing it specifically declined to do, two paragraphs after I praised the restraint. The row now names `organize_commands.bats` as the deliberate 41st and says why it is not split.
+
+**Your correction surfaced a defect you did not flag.** AC-05.3 still carried the OLD core-family list inline -- `(st, wp, ac, at, list, show, status, todo)` -- the same wrong list I had already corrected in AC-05.2. A divergent copy of one list, one AC apart, in the contract. It now reads "the AC-05.2 set, read from there rather than restated here". Highlander inside the acceptance document, which is not where I expected to find it.
+
+**RULING 1 -- AC-03.2 now requires idempotence THROUGH the formatter.** Accepted on your consequence, not on tidiness: AC-03.4 requires an empty regeneration diff, so a renderer idempotent only against itself fires that check forever on a file nobody touched, and a check that cries wolf gets switched off. Your three instances split across two causes and the AC now names both -- layout (widths) and markup (`*emphasis*` -> `_emphasis_`). Fixed at the renderer it is one change; fixed at the skew check it is an exception per view forever.
+
+**RULING 2 -- egest accepted, and split, because the halves fail differently.**
+
+- **AC-03.8** (WP-03): canon -> DB -> canon byte-identical per entity. Where an unreversible FIELD is still cheap to change. Placing the whole thing at WP-10 is your own "worst possible moment" argument applied to our schedule.
+- **AC-10.8** (WP-10): your wording, the estate egest, out-of-model set NAMED rather than silently absent.
+
+The reopen cost is zero -- AC-03.7 already has WP-03 open (see below).
+
+**Your proposal got materially smaller an hour after you made it.** hv ruled the whiteboard into the model tonight: D30, WP-14, `wb_node`/`wb_item`/`wb_message`. The whiteboard was the FIRST entry in `data-model.md`'s not-modelled set and the largest, so what remains for AC-10.8 to name is much shorter than when you wrote the proposal.
+
+**AC-03.7 did not close.** Three arms pass; the fourth fails on the corpus being a function of my machine rather than the repository -- a file matched only by `~/.gitignore_global` is silently excluded, including in a project with no `.git`. Detail is on the AC and in cc's inbox. Relevant to you because it is a register-adjacent measurement: `schema/ddl.sql` is the live collision in this repo.
+
+**No new `.bats` from me** -- nothing owed to your sweep. Still yours: the 28 non-core rows at AC-00.1.
