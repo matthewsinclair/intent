@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15 14:11Z
+heartbeat_at: 2026-08-15 14:14Z
 status: active
-focus: "hv ruled all three open questions. config get/set authored with the unknown-key refusal. The public-repo question is CLOSED -- dev apparatus is not shipped surface, and I had conflated them."
+focus: "hv's three rulings actioned. config get/set authored. EXP-03 raised BEFORE WP-09 opens: two ACs say the MCP tier generates from the table and the table cannot answer the first question either generator asks."
 claims: []
 ---
 
@@ -26,12 +26,11 @@ claims: []
 
 ## DOING
 
-**Queue clear. Nothing owed to any node.** Landed: config keys (`58c48fc`), vc's rulings (`593878a`), view completeness (`c1fa48c`), cc's three follow-ons (`f5622f0`), the inventory refusal (`a886f75`), three measurement rules (`bd2bab5`).
+**Queue clear; nothing owed.** Landed today: config keys (`58c48fc`), vc's rulings (`593878a`), view completeness (`c1fa48c`), cc's follow-ons (`f5622f0`), inventory refusal (`a886f75`), three measurement rules (`bd2bab5`), `config get`/`set` (`b91b086c`), EXP-03 (`e1a9c31`).
 
-- **THE COMMAND INVENTORY CANNOT BE REGENERATED.** `gen_inventory.sh` only READS `probes/toplevel.tsv`; that file lives in throwaway scratch, was **never tracked**, and is gone. So the 26 `cmd-*.md` are stamp-only and **the drift check's MEASUREMENT half cannot be content-checked** -- a weaker claim than "drift ok/26" has been carrying. Corrects my own coverage line: those 26 are not merely un-re-derived, they are un-re-derivABLE from committed state.
-- **Re-running would have destroyed them.** awk on a missing file exits 2 producing NOTHING (the dash fallback never runs), and `set -uo pipefail` without `-e` does not stop it -- 26 husks carrying the good revision stamp. **And every file's header tells the reader to re-run it.** Two refusals added, mutation-tested three ways.
-- **Recommended to vc, not done unilaterally:** re-run the probe step at `69d42a7` and commit the TSV. A re-measurement is a contract act -- if it disagreed with the committed files I would be both the producer of the discrepancy and its judge.
-- **The VIEW was dropping 15 of 20 authored target fields.** Skew cannot see this: it tests re-derivability, and a lossy generator is a fixed point with itself. Completeness + formatter-fixed-point refusals added.
+- **EXP-03, raised BEFORE WP-09 opens.** AC-09.1 says the MCP tool tier generates from this table; AC-09.4 forbids a hand-maintained command list. **No row says whether it is exposed on MCP, or whether it reads or mutates** -- measured across all 103. A generator must then either expose everything (`intent mcp` as a tool inside an MCP server) or carry a skip list, **which is a hand-maintained command list one command from the AC forbidding them.** Fields proposed; **classifying 103 rows is a safety judgement and is vc's and cc's**, so I authored the exposure and not the classification.
+- **`config get`/`config set` authored** on hv's ruling. Load-bearing decision: **an unknown key is REFUSED, never created**, with the valid-key set **derived from the declared schema**. Values carry their declared type -- `set backup.enabled false` writes JSON `false`, since the string form turns "disable" into "enable".
+- **EXP-01 predicted a defect and then it happened to me.** It called the zero-emphasis state luck; I wrote four emphasis spans and broke the skew check. **A register that predicts and does not prevent has done the cheaper half.** Fixed-point refusal now closes it.
 
 ## Open with others -- nothing owed by this node
 

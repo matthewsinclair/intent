@@ -43,3 +43,36 @@ Two refusals added (missing TSV; header-only or empty TSV), mutation-tested thre
 Also note the same caution applies to what I just authored: **project configuration IS user-facing surface**, and Intent dogfooding itself is precisely what makes it easy to read our own `config.json` as a dev artefact. One file, two roles, here and nowhere else.
 
 -- ic
+
+## (2026-08-15 14:14Z) *** EXP-03: WP-09 is specified to generate from a table that cannot answer its first question. Raised BEFORE the WP opens. ***
+
+**`e1a9c319`.** Found by reading two of your ACs against the artefact they name, not by hitting it.
+
+**AC-09.1**: _the typed tool tier is GENERATED from the dispatch table._ **AC-09.4**: _`intent llm` renders the agent guide from the dispatch table; **no hand-maintained command list exists**._
+
+**Measured against all 103 rows: no row says whether it is exposed on the MCP surface, and no row says whether it READS or MUTATES.** Neither is derivable from what is there. `observed.side_effects` sits on 10 rows of 103, so its absence means _not recorded_, not _no side effects_ -- reading it as a read/write flag would be absence-as-meaning in the one place it decides whether an agent may close a steel thread.
+
+### WHY IT BITES, AND WHY IT IS AC-09.4 SPECIFICALLY
+
+A generator that must decide per command, from a table that does not say, has exactly two options and **both are defects**:
+
+- **Expose everything** -- and `intent mcp` becomes a tool that starts an MCP server from inside one, alongside `daemon` and other commands with no agent-facing meaning.
+- **Carry a skip list in the generator** -- which is **a hand-maintained command list living one command away from the AC that forbids hand-maintained command lists.** It is also a designed figure: correct when typed, silently wrong at the next command added, because the act that invalidates it (I add a row) is not the act that updates it. **The identical argument settled `config set`'s valid-key set this morning.**
+
+**And read-versus-mutate is not cosmetic on an agent surface.** `st list` and `st done` are indistinguishable to a client holding only a name and a description, and one of them closes a steel thread. **AC-09.5 already separates read surfaces as MCP resources**, so the distinction exists in your contract and simply is not in the table for the tool tier to honour.
+
+### WHAT I PROPOSE, AND THE LINE I DID NOT CROSS
+
+Two declared fields per entry -- exposed-on-MCP, and read-or-mutate -- **declared per row rather than derived from the verb.** Deriving from a name is the sniffing we keep refusing, and this surface carries the standing proof: `st sync` and `sync` are different commands sharing a spelling, and `ac gate` reads while `wp done` consults the same gate and writes. Then **a refusal that every entry declares both**, so a new row cannot default silently into the tool surface.
+
+**I did not land it.** Adding the fields is authoring and is mine; **classifying 103 rows is a judgement with a safety edge** -- which commands an agent may invoke unattended -- and that is yours and cc's. Say the word and I will author the fields and the refusal, and take a first pass at the classification for you to correct rather than originate.
+
+**Raised now so WP-09 opens with a specification rather than a rediscovery** -- the same row-before-surface order that worked for `ac unsatisfy` and the seven lifecycle verbs.
+
+### TWO CORRECTIONS TO THE EXPOSURE REGISTER WHILE I WAS IN IT
+
+**EXP-01 predicted a defect and then it happened -- to me, that afternoon.** It said the view's zero-emphasis state was LUCK and that one canon note with single-asterisk emphasis would break the skew check on a file nobody touched. I wrote four. **An exposure register that correctly predicts a defect and does not prevent it has done half a job, and the cheaper half.** The formatter fixed-point refusal now closes the mechanism half without waiting on AC-07.6.
+
+**EXP-02 needs your eye.** Its drift check exists and runs clean across 26 families -- but the two artefacts are **not equally checkable**, because the inventory's input is gone. **The drift check compares the authored table against an artefact nobody can currently re-derive.** That is the same finding as my 13:59Z entry, recorded where a reader of the table will meet it.
+
+-- ic
