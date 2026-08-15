@@ -294,12 +294,38 @@ fn inspect(rel: &str, bytes: &[u8]) -> Vec<Finding> {
   };
 
   let mut findings = conflict_markers(rel, text);
-  if findings.is_empty()
-    && rel.ends_with(".json")
-    && let Err(e) = serde_json::from_str::<serde_json::Value>(text)
-  {
-    findings
-      .push(Finding::new(rel, FindingClass::MalformedJson, e.to_string()).at_line(e.line() as u32));
+  if findings.is_empty() {
+    // **`.jsonl` IS HANDLED EXPLICITLY, and the reason is that it was already
+    // handled correctly BY ACCIDENT.** `events.jsonl` does not end with
+    // `.json` -- the suffix is one character longer -- so it escaped the
+    // whole-document parse below through path shape rather than through any
+    // decision. That is the same passing-by-luck D29 named for the database
+    // file, arrived at a second time; a later `contains(".json")`, or an
+    // extension normaliser, would start reporting the one file that carries
+    // all history as malformed JSON, and a corrupt-looking history file blocks
+    // every ingest.
+    //
+    // Reading it as what it is also buys the right diagnosis: a damaged line
+    // is located, rather than the whole file being called broken.
+    if rel.ends_with(".jsonl") {
+      for (n, line) in text.lines().enumerate() {
+        if line.trim().is_empty() {
+          continue;
+        }
+        if let Err(e) = serde_json::from_str::<serde_json::Value>(line) {
+          findings.push(
+            Finding::new(rel, FindingClass::MalformedJson, e.to_string()).at_line(n as u32 + 1),
+          );
+          break;
+        }
+      }
+    } else if rel.ends_with(".json")
+      && let Err(e) = serde_json::from_str::<serde_json::Value>(text)
+    {
+      findings.push(
+        Finding::new(rel, FindingClass::MalformedJson, e.to_string()).at_line(e.line() as u32),
+      );
+    }
   }
   findings
 }

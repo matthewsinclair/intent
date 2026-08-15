@@ -76,6 +76,16 @@ impl Fixture {
       .expect("open fixture facade")
   }
 
+  /// A facade over this fixture against a REAL on-disk store.
+  ///
+  /// For the tests where the store outliving the process is the point --
+  /// openness round-trips the extract through a store on one machine and reads
+  /// it back on another, which an in-memory store cannot express because it
+  /// never existed anywhere to be left behind.
+  pub fn facade_on_disk(&self) -> intentsvcs::facade::Facade {
+    intentsvcs::facade::Facade::open(self.project(), facade_ctx()).expect("open fixture facade")
+  }
+
   /// Make a directory unwritable, returning its previous mode so the caller
   /// can restore it -- a tempdir that cannot be written also cannot be
   /// cleaned up.
@@ -155,6 +165,43 @@ impl Fixture {
 
   pub fn read(&self, rel: &str) -> String {
     std::fs::read_to_string(self.path(rel)).expect("read file")
+  }
+
+  /// **A fresh machine holding only this project's committed extract** -- what
+  /// `git clone` leaves behind.
+  ///
+  /// It copies the `intent/` tree and SKIPS `.cache/`, where the store lives and
+  /// which is gitignored (D21), so the result is a project with canon and no
+  /// database. That is the state a clone genuinely starts in.
+  ///
+  /// **It exists so tests stop reaching that state by deleting a database.**
+  /// Removing the store in place is the test-fixture idiom D36 rules out, and it
+  /// is also the weaker fixture: it proves something about a directory that HAD
+  /// a store, when the case under test is a directory that never did.
+  pub fn clone_extract(&self) -> Self {
+    let dest = tempfile::tempdir().expect("tempdir");
+    copy_tree(&self.root().join("intent"), &dest.path().join("intent"));
+    Self { dir: dest }
+  }
+}
+
+/// Copy a directory tree, skipping the gitignored runtime store.
+fn copy_tree(from: &Path, to: &Path) {
+  std::fs::create_dir_all(to).expect("mkdir");
+  for entry in std::fs::read_dir(from).expect("read_dir") {
+    let entry = entry.expect("entry");
+    let name = entry.file_name();
+    // `.cache/` is gitignored, so a clone does not carry it. Skipping it is
+    // what makes this a clone rather than a copy.
+    if name == ".cache" {
+      continue;
+    }
+    let target = to.join(&name);
+    if entry.file_type().expect("file_type").is_dir() {
+      copy_tree(&entry.path(), &target);
+    } else {
+      std::fs::copy(entry.path(), &target).expect("copy");
+    }
   }
 }
 

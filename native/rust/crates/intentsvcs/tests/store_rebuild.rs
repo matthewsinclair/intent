@@ -96,7 +96,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
 }
 
 #[test]
-fn rebuild_is_idempotent_and_delete_then_rebuild_is_identity() {
+fn rebuild_is_idempotent_and_a_second_store_from_the_same_extract_matches() {
   let (threads, issues) = canon();
 
   let mut first = Store::open_in_memory().expect("open");
@@ -122,36 +122,48 @@ fn rebuild_is_idempotent_and_delete_then_rebuild_is_identity() {
   assert_eq!(
     fresh.snapshot().expect("snapshot"),
     snap_one,
-    "delete + rebuild is identity"
+    "a second store built from the same extract is the same store"
   );
 }
 
-/// **Renamed from `file_backed_store_survives_deletion`, which claimed more
-/// than it proves.** The store does not survive deletion; it is RE-CREATED, and
-/// only because the same extract is handed back in on the next line. Under D34
-/// that distinction is the whole point -- a project's DB re-creates from its
-/// committed extract and loses whatever the extract does not carry, so a test
-/// name promising survival is the slogan the comment above was written to kill.
+/// **A machine that has never held this store builds an identical one from the
+/// extract** -- the clone case, which is what a file-backed rebuild is actually
+/// for (D34).
+///
+/// Renamed twice, and the second rename is D36 rather than accuracy. It was
+/// `file_backed_store_survives_deletion`, which claimed more than it proves:
+/// the store does not survive anything, it is RE-CREATED, and only because the
+/// same extract is handed back in. Then it became
+/// `a_deleted_store_rebuilt_from_the_same_extract_is_identical`, which was true
+/// and still built its fixture by deleting a database -- **the test-fixture
+/// idiom D36 names by name**, sitting one line below a comment written to kill
+/// the same idea in prose.
+///
+/// **So the deletion is gone, not renamed.** A second path IS the fresh
+/// machine, exactly and without pretending: nothing is removed, because the
+/// property was never about removal. The old form could only reach "a store
+/// that is not there" by destroying one, which made an operation Intent does
+/// not have look like a step in a procedure it does.
 #[test]
-fn a_deleted_store_rebuilt_from_the_same_extract_is_identical() {
+fn a_machine_that_never_held_the_store_builds_an_identical_one_from_the_extract() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let db = dir.path().join("intent.db");
   let (threads, issues) = canon();
 
-  let mut store = Store::open(&db).expect("open file store");
-  store.rebuild(&threads, &issues).expect("rebuild");
-  let before = store.snapshot().expect("snapshot");
-  drop(store);
+  let mut original = Store::open(&dir.path().join("original/intent.db")).expect("open file store");
+  original.rebuild(&threads, &issues).expect("rebuild");
+  let before = original.snapshot().expect("snapshot");
+  drop(original);
 
-  std::fs::remove_file(&db).expect("rm intent.db");
-  let mut rebuilt = Store::open(&db).expect("reopen after rm");
-  rebuilt
+  // A different path: a machine that has only ever had the extract.
+  let mut clone =
+    Store::open(&dir.path().join("clone/intent.db")).expect("open on a fresh machine");
+  clone
     .rebuild(&threads, &issues)
-    .expect("rebuild after rm");
+    .expect("build from the extract");
   assert_eq!(
-    rebuilt.snapshot().expect("snapshot"),
+    clone.snapshot().expect("snapshot"),
     before,
-    "rm + rebuild is identity"
+    "the extract reconstitutes the same store on a machine that never had it"
   );
 }
 

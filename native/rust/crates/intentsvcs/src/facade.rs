@@ -39,7 +39,7 @@
 use serde_json::json;
 
 use crate::contract::{self, Scope, Verdict};
-use crate::event::{Envelope, Subject};
+use crate::event::{self, Envelope, Subject};
 use crate::ingest::{self, Canon, IngestError};
 use crate::model::{
   AcKind, AcState, AcceptanceTest, AtStatus, Criterion, Issue, TShirt, Thread, ThreadStatus,
@@ -150,6 +150,14 @@ pub enum FacadeError {
   Store(#[from] StoreError),
   #[error("could not read the committed canon")]
   Ingest(#[from] IngestError),
+  /// The event log's extract exists and is not readable as one.
+  ///
+  /// Its own variant rather than an ingest finding: history is the one thing
+  /// nothing else can reconstruct, so "your history file is damaged" needs an
+  /// action of its own and must not be reported as though a thread were
+  /// malformed.
+  #[error("the event log extract at {path} could not be read")]
+  EventLogUnreadable { path: String, cause: String },
 }
 
 impl FacadeError {
@@ -260,6 +268,9 @@ impl FacadeError {
       Self::Ingest { .. } => {
         "fix the artefacts named above, then retry -- run `intent doctor` to list them".to_string()
       }
+      Self::EventLogUnreadable { path, cause } => format!(
+        "{cause}. Nothing recomputes history, so do NOT delete {path} to get past this -- repair the named line, from version control if the file is committed"
+      ),
     }
   }
 
@@ -515,7 +526,11 @@ impl Facade {
     };
     let all_threads: Vec<&Thread> = canon.threads.iter().collect();
     let all_issues: Vec<&Issue> = canon.issues.iter().collect();
-    let set = self.projection(&canon, &all_threads, &all_issues)?;
+    let mut set = self.projection(&canon, &all_threads, &all_issues)?;
+    // History travels only if something writes it out. Every other entity in
+    // this set can be re-derived from a file that is already there; this one
+    // cannot be re-derived from anything.
+    self.add_event_log(&mut set)?;
     set.commit()?.keep();
     let count = canon.threads.len();
     self.canon = canon;
@@ -537,6 +552,7 @@ impl Facade {
   /// already been chosen. The REFUSAL belongs on the bare verb (AC-03.9).
   pub fn sync_from_disk(&mut self) -> Result<usize, FacadeError> {
     let canon = ingest::resync(&self.project, &mut self.store)?;
+    self.restore_event_log()?;
     let all_threads: Vec<&Thread> = canon.threads.iter().collect();
     let all_issues: Vec<&Issue> = canon.issues.iter().collect();
     let set = self.projection(&canon, &all_threads, &all_issues)?;
@@ -544,6 +560,49 @@ impl Facade {
     let count = canon.threads.len();
     self.canon = canon;
     Ok(count)
+  }
+
+  /// Take into the log whatever the extract carries and the store does not.
+  ///
+  /// **The one place the destructive direction is NOT destructive, and it has
+  /// to be.** `sync_from_disk` replaces the store from the files because for
+  /// every other entity the files are a faithful copy. The event log is
+  /// append-only (D15) and nothing derives it, so a wipe-and-reload would
+  /// destroy exactly the history the extract had not caught up with -- a
+  /// restore from yesterday's clone would silently delete today.
+  ///
+  /// Merging on the ULID makes it idempotent and makes two machines' logs a
+  /// union rather than a conflict, so restoring an older extract over a newer
+  /// log adds nothing and loses nothing.
+  ///
+  /// An absent file is not an error: a project that has never synced out has no
+  /// extract of its history yet, and refusing here would make the first sync of
+  /// an old project impossible.
+  fn restore_event_log(&mut self) -> Result<usize, FacadeError> {
+    let path = self.project.events_jsonl();
+    let text = match std::fs::read_to_string(&path) {
+      Ok(text) => text,
+      Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(0),
+      Err(source) => {
+        return Err(FacadeError::Ingest(ingest::IngestError::Io {
+          path: self.project.relative(&path),
+          source,
+        }));
+      }
+    };
+    let incoming = event::from_jsonl(&text).map_err(|e| FacadeError::EventLogUnreadable {
+      path: self.project.relative(&path),
+      cause: e.to_string(),
+    })?;
+    let have = self.store.events().map_err(FacadeError::Store)?;
+    let missing = event::merge(&have, &incoming);
+    for envelope in &missing {
+      self
+        .store
+        .append_event(envelope)
+        .map_err(FacadeError::Store)?;
+    }
+    Ok(missing.len())
   }
 
   /// What a [`Facade::sync_from_disk`] would overwrite, computed BEFORE it
@@ -610,6 +669,29 @@ impl Facade {
       set.add(view.path, view.content);
     }
     Ok(set)
+  }
+
+  /// Add the event log's file form to a write set (D34, AC-02.6).
+  ///
+  /// **Separate from [`Facade::projection`] because it is a different kind of
+  /// artefact, and conflating them would be a real error rather than an
+  /// untidiness.** A projection re-derives files from the canon it is handed,
+  /// so it is correct to run it over a SUBSET -- a single mutated thread -- and
+  /// the mutation path does exactly that. The event log has no subset: it is
+  /// the whole log or a truncated one, and rendering it during a per-thread
+  /// write would rewrite the file down to whatever that call happened to know
+  /// about.
+  ///
+  /// It therefore joins only the whole-estate direction, and it goes through
+  /// the same [`WriteSet`] so the extract lands atomically or not at all
+  /// (AC-04.1) -- a partial history is worse than a stale one.
+  fn add_event_log(&self, set: &mut WriteSet) -> Result<(), FacadeError> {
+    let events = self.store.events().map_err(FacadeError::Store)?;
+    set.add(
+      self.project.events_jsonl(),
+      event::to_jsonl(&events).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
+    );
+    Ok(())
   }
 
   /// Run every health check (AC-06.2). A read: it reports, and repairs

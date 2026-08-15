@@ -173,39 +173,70 @@ fn the_mismatch_remedy_points_at_the_end_that_can_actually_move() {
 /// **The stamp cannot be left behind.**
 ///
 /// A hash of the DDL, pinned here beside the version it describes. Change the
-/// DDL and this fails; the fix is to bump `SCHEMA_VERSION` and re-pin, in the
+/// schema and this fails; the fix is to bump `SCHEMA_VERSION` and re-pin, in the
 /// same commit, which is the moment someone has to think about what an existing
 /// database now needs.
 ///
 /// The hash is NOT a version -- it cannot be ordered, so it cannot dispatch a
 /// migration. It is only the tripwire that makes the orderable number honest.
 /// Both are needed and neither substitutes for the other.
+///
+/// **It hashes what SQLite acts on, not the file.** The first cut hashed the
+/// whole constant, and the first thing that touched the DDL afterwards was a
+/// comment -- the openness declarations, which change no table, no column and
+/// no constraint. That build demanded a version bump, and obeying it would have
+/// refused every existing store to record a change SQLite never sees. A guard
+/// that cries wolf on a comment is a guard someone re-pins without reading.
 #[test]
 fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
+  // Whole-line comments only. Stripping `--` wherever it appears would need a
+  // SQL tokeniser to avoid eating one inside a string literal -- so instead the
+  // assumption that there are none is CHECKED, and a future in-line comment
+  // fails here rather than silently changing what this hash means.
+  let mut schema = String::new();
+  for line in DDL.lines() {
+    let t = line.trim();
+    if t.starts_with("--") || t.is_empty() {
+      continue;
+    }
+    assert!(
+      !t.contains("--"),
+      "the DDL grew an in-line comment, so stripping whole lines no longer isolates \
+       the schema: {t}"
+    );
+    schema.push_str(t);
+    schema.push('\n');
+  }
+  assert!(
+    schema.contains("CREATE TABLE IF NOT EXISTS threads ("),
+    "the strip removed the schema itself"
+  );
+
   // FNV-1a, written out rather than pulled in: the property wanted here is
   // "changes when the input changes", which needs no cryptographic strength
   // and should not add a dependency to the shipped crate to get.
   let mut hash: u64 = 0xcbf2_9ce4_8422_2325;
-  for byte in DDL.as_bytes() {
+  for byte in schema.as_bytes() {
     hash ^= u64::from(*byte);
     hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
   }
 
-  const PINNED_DDL_HASH: u64 = 0x4617_c61d_72ab_ec6d;
+  const PINNED_SCHEMA_HASH: u64 = 0x1bea_2f9e_3bcb_4e94;
   const PINNED_FOR_VERSION: i32 = 1;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,
-    "SCHEMA_VERSION moved to {SCHEMA_VERSION}; re-pin PINNED_FOR_VERSION and PINNED_DDL_HASH here \
+    "SCHEMA_VERSION moved to {SCHEMA_VERSION}; re-pin PINNED_FOR_VERSION and PINNED_SCHEMA_HASH here \
      in the same commit, and write the migration that gets an existing store from \
      {PINNED_FOR_VERSION} to {SCHEMA_VERSION}"
   );
   assert_eq!(
-    hash, PINNED_DDL_HASH,
-    "the DDL changed and SCHEMA_VERSION did not.\n\
+    hash, PINNED_SCHEMA_HASH,
+    "the DDL's SCHEMA changed and SCHEMA_VERSION did not (comments are excluded, so this is \
+     a real table, column or constraint).\n\
      `CREATE TABLE IF NOT EXISTS` means an existing store will NOT pick this change up -- it will \
      open cleanly and fail at whichever query first names the new shape.\n\
-     Bump SCHEMA_VERSION, re-pin PINNED_DDL_HASH to {hash:#018x}, and ship the migration in the \
+     Bump SCHEMA_VERSION, re-pin PINNED_SCHEMA_HASH to {hash:#018x}, and ship the migration in the \
      same commit."
   );
 }
