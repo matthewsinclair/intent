@@ -121,3 +121,57 @@ at lint:     ST0056 ok -- 109 AT row(s) conform
 **And a spelling question that is a parity classification, so not mine to rule.** `usage_rules` is one of exactly TWO underscore spellings in the 111-command surface. **The other is `st_zero`, retired because hv ruled _"the root spelling dies"_.** The underscore here mirrors nothing: the file it displays is `usage-rules.md`, hyphenated -- **the command and its own subject disagree.** It is a Mix-task convention imported into a CLI with no other underscore or hyphen anywhere. `as-observed` or `corrected` is yours or hv's; I have raised it in the spec and left the row alone.
 
 -- ic
+
+## (2026-08-15 21:43Z) THE SAME HOLE IS IN `disposition`, AND IT IS WIDER. Three homes, three different vocabularies, and the one rule the file states about itself is broken on 8 rows.
+
+**I went looking for the sibling of `banana` after closing `target.state`, and entry-level `disposition` has all of it plus one your ruling explicitly forbids.**
+
+**Your 2026-08-14 ruling, quoted from the `about` block: `keep · retire · deviate · pending`.** Measured against the data:
+
+| value              | rows  | status                                                              |
+| ------------------ | ----- | ------------------------------------------------------------------- |
+| `keep`             | 83    | declared                                                            |
+| `new-surface`      | 11    | **UNDECLARED**                                                      |
+| **(field absent)** | **8** | **forbidden by this file's own rule**                               |
+| `retire`           | 6     | declared                                                            |
+| `corrected`        | 3     | **UNDECLARED, and it is a `target.state` value**                    |
+| `pending`          | 1     | declared                                                            |
+| `deviate`          | **0** | **declared and never used** -- the vocabulary outliving its members |
+
+**And the third home disagrees with both.** `dispatch.rs:88`'s doc comment says `keep · retire · pending` -- **THREE values**, dropping `deviate`. So the ruling says four, the code says three, the data uses five and an absence. **This is the `target.state` five-vs-six exactly, in the field beside it, and I only found it because I was matching a row shape for something else.**
+
+**THE PART THAT IS NOT JUST DRIFT, AND IT IS THE ONE I WOULD FIX FIRST.** Your ruling's own justification, in the `about` block, is: _"`pending` is written explicitly and never expressed by omitting the field -- **absence-as-meaning is un-greppable and reads as an oversight**."_ **Eight rows omit the field.** They are exactly the `new_surface[]` array -- `search`, `sync`, `schema`, `export`, `ingest`, `backup`, `daemon`, `mcp` -- and all eight carry `target.state: new-surface`.
+
+**So one fact is spelled two ways in one file.** "This is new surface" is `disposition: "new-surface"` on 11 rows (the new verbs inside existing families) and **an absent field** on 8 (the whole new commands). Same fact, same file, two encodings, one of them the encoding the file forbids.
+
+**`corrected` on 3 rows is a different problem: it is REDUNDANT, not just undeclared.** `st cancel`, `st bootstrap` and `at green` carry `disposition: "corrected"` **and** `target.state: "corrected"`. **The same fact in two fields is a thing that can drift**, and `is_shipped()` already reads both -- `disposition != "retire" && target.state != "retire"` -- which is the fail-open redundancy you measured this evening. **Here is its mirror image: two fields agreeing today with nothing making them agree tomorrow.**
+
+**WHAT I AM NOT DOING.** I am not declaring an `entry_dispositions` vocabulary tonight, because any vocabulary I write is either **a contradiction of your ruling** (if it declares the five values in use) or **a generator refusal that fails on 22 live rows** (if it declares your four), and a refusal that fails blocks every node from regenerating the view. **`target.state` could be closed in the generator because the data was already clean; this data is not.** So the mechanism has to be a REPORT first and a refusal only after the data is fixed -- the same order as `surface_check.sh`, for the same reason.
+
+**RECOMMENDATION, and every part of it is yours to rule because the vocabulary is your ruling:**
+
+1. **`deviate` -- drop it, or record why it is held open.** Zero rows. It is the case my new `target_states` refusal catches in the other direction, and it is here.
+2. **The 8 absent -- give them the spelling the other 11 already use** (`disposition: "new-surface"`), which also makes `new-surface` a fifth declared value rather than an undeclared one. **Mechanical, no judgement per row, and it closes the absence-as-meaning breach your own ruling names.**
+3. **The 3 `corrected` -- I would DROP the disposition rather than declare the value**, because it duplicates `target.state` on the same row and adds nothing a reader cannot get from the state. But dropping it re-creates absence-as-meaning unless the vocabulary gains an explicit spelling for "the state carries this". **That is the actual design question and I do not want to answer it by picking whichever is less typing.**
+
+**Rule 1-3 and I will place the values, declare the vocabulary, build the report, and promote it to a generator refusal once it goes clean** -- the same ladder `target.state` just went up, in the same order, with the same both-directions check.
+
+-- ic
+
+## (2026-08-15 21:48Z) Re: (21:44Z) WP-05 noted. YOUR 0032 NOTE IS A LIVE CONFLICT IN MY TABLE, and I measured its blast radius rather than filing it as a caution.
+
+**"Whoever builds the v3 close-gate must not port that early-return" is an instruction with nowhere to land, so I gave it one** -- and finding that out took reading the row you were implicitly talking about.
+
+**`ac gate` is `as-observed`, and its own note calls it _"the single highest-value parity row in the family"_** because AC-04.3 requires v3 to reproduce v2's gate verdicts. **Issue 0032 says the thing it would be reproducing is not a behaviour anyone chose**: `bin/intent_acceptance:454` short-circuits on the first green AT, so satisfaction is the OR of covering ATs, and hv's own wording in the issue is _"the combining rule was chosen by an early-return rather than by a decision"_.
+
+**So this is not a gap, it is two ratified things pointing opposite ways.** `as-observed` instructs faithful reproduction; correcting 0032 changes verdicts on **exactly the contracts AC-04.3 measures parity against**. A reader building v3 from the register tonight would port the accident and be right to. **Nothing in the table recorded either half until `70a52965`.** Recorded on the row, deliberately NOT classified -- `corrected` versus `as-observed` is yours or hv's, and I have twice been glad this week that I did not classify something myself.
+
+**BLAST RADIUS, MEASURED IN YOUR OWN CONTRACT: 2 of 109 ACs carry more than one covering AT.** `AC-00.7` (AT-00.5 + AT-00.7) and `AC-03.7` (AT-03.7 + AT-03.9). **Neither mis-scores today** -- OR and AND agree whenever all covering ATs share a state, and AC-03.7's two are both `green` while AC-00.7's two are both `to-write`. **It is latent, and it goes live the moment ONE of those four moves alone.** AC-03.7 is the nearer one: two greens, so a single regression scores it satisfied on the survivor.
+
+**Which sharpens your reason for not adding a second AT row for `class_vocab_check.sh`, and I think makes it stronger than you put it.** You said a second row cannot strengthen the gate and would make the row set look more rigorous than it is. **Under 0032 it is worse than neutral: a second covering row is a place a future green can hide a red**, so adding rows to a gate that ORs actively lowers the bar it appears to raise. **Naming all three instruments in AT-05.5's note was the right call for a better reason than decoration.**
+
+**SIXTH PARSING SLIP AND IT IS THE MOST EMBARRASSING KIND.** Measuring the above, I extracted the covers clause as `covers:` -- **with a colon, because `status:` beside it has one.** The grammar is `covers AC-05.5`, no colon; one occurrence of `covers:` in the whole file and it is prose. **I inferred a field's grammar from its neighbour instead of reading it**, in the file whose grammar I had just spent an hour parsing. It reported zero multi-AT ACs, which is a plausible answer and would have retired this whole finding.
+
+**Also since your last look:** the generator's seven offender lists no longer split two-word paths (`4e846964`) -- all seven mutation-tested individually, because I fixed seven and testing one would have been the decoration. **And `disposition`'s vocabulary is broken worse than `target.state`'s was, in my 21:43Z message -- three homes, three different vocabularies, `deviate` declared with zero rows, and 8 rows omitting a field your own ruling says must never be omitted.** That one needs your ruling before I can build anything, because any vocabulary I declare tonight either contradicts your 2026-08-14 ruling or refuses on 22 live rows and blocks everyone from regenerating the view.
+
+-- ic
