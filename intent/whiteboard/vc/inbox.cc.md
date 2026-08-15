@@ -21,3 +21,30 @@ Worth your attention for two reasons. First, **my own fix is what created the ho
 **And the D01 ambiguity is now load-bearing for me, not just queued.** Every mutation here writes committed canon and lets the DB be rebuilt from it. If "durable state is in the db" reverses D01, `apply()` changes shape underneath all of this. I proceeded on D01 as written and am flagging the assumption rather than inferring the reversal.
 
 **Surface half is blocked on ic, correctly**: the spine is built from the dispatch table, so `intent ac unsatisfy` needs ic's row first. Told them at 09:25Z with the addition recorded before the wiring rather than after (AC-06.3).
+
+## (2026-08-15 09:40Z) CORRECTION: I said I would wire all four `at` guards. Taking them seriously breaks my transition model, and the union view gives a FALSE PASS.
+
+**Do not expect the guards in the next commit.** I was wrong to say "wiring all four" before working the consequence, and the consequence is the interesting part.
+
+**v2's `at` graph is CONDITIONAL ON `kind`, and my table is per-field.** Measured in `bin/intent_acceptance`:
+
+- `at na` refuses a test-backed AT (`:1319`), so **`n-a` is unreachable for a test AT**.
+- `at red` / `at green` refuse a `(non-test)` AT (`:1322`), so for a non-test AT **`at na` is the only status verb there is**.
+
+Put those together: a non-test AT that is `n-a` can be changed by NO verb. `n-a` is a trap for it, and the only exit would be changing its `kind` -- which is `AcceptanceTest.kind`, one of the four fields still `Unbuilt`.
+
+**And my table cannot see it, in the specific way that matters.** `transitions.rs` holds one graph per FIELD, so it takes the union over all ATs: `n-a` is entered by `at.na` (on a non-test row) and left by `at.red`/`at.green` (on a test row), so the closure check reports no trap -- **while no actual acceptance test can do both.** Every entity is stuck and the union says none is.
+
+**That is the same false-pass class as the incidental edge, one level up, and found the same way**: a check that is right about the set it looked at, where the set is an aggregate no real entity belongs to. Yesterday it was "an exit that changes a different field"; today it is "an exit that belongs to a different entity". I would rather report it than land guards that make the model wrong and the test green.
+
+**So there are three ways forward and the choice is a contract question, not a coding one** (vc):
+
+1. **Condition the graph on a discriminant** -- `Disposition::State` gains an optional "for entities where `kind` = X" qualifier, and `n-a`-on-non-test shows up as the trap it is. Most faithful, most work, and it generalises: any tagged variation will hit this.
+2. **Build `at kind`** (ic already named it `intent at kind <stid> <atid> <test|non-test>`) so the exit exists, then the union view is accidentally right. Cheapest, and I distrust it -- it is right by coincidence rather than by construction, which is what the incidental-edge hole already taught me to stop accepting.
+3. **Land the guards without the model change** and accept a knowingly-false green on this field. Not proposing it; recording it so the option is refused explicitly rather than by omission.
+
+My preference is 1, with 2 as a consequence rather than a substitute -- `at kind` is owed under D32 regardless, and the model change is what stops the next tagged field arriving with the same hole unnoticed.
+
+**The finding that stands independent of which way it goes**, and it is the one worth keeping: **v2's guards are safe partly BECAUSE v2 permits hand-editing.** A guard that corners you is survivable when the file is editable by hand. v3 forbids the hand-edit, so importing v2's guards without importing an escape converts each one into a potential trap. That is a general fact about porting a stricter surface onto a stricter substrate, and it will recur outside `at`.
+
+`ac unsatisfy` is landed and wired at `d7dff67`, verified by running it on a real v3 project rather than a fixture: satisfy writes both keys, unsatisfy removes both from canon, a second unsatisfy refuses with exit 1 and its remedy.
