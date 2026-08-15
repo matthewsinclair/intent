@@ -122,20 +122,20 @@ Manage steel threads for the project
 - `intent help st` falls through to the 'no help available' path (bin/intent_help:37) -- there is no `lib/help/st.help.md`. The usage() block at bin/intent_st:13-88 is the only authored help, and it is unreachable from `intent help`.
 - The one-line help strings below are lifted verbatim from that usage() block where it has one, so v3's generated help stays recognisable to existing users. Where v2 has no line (`zero`), the help is newly authored and marked as such.
 
-| command                             | args         | flags                                      | help                                                                                                    | disposition |
-| ----------------------------------- | ------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------- | ----------- |
-| `st`                                | <command>    | help/--help/-h                             | Manage steel threads for the project                                                                    | keep        |
-| `st new`                            | <title>      | -s/--start                                 | Create a new steel thread                                                                               | keep        |
-| `st start`                          | <id>         | --                                         | Mark a steel thread as in progress                                                                      | keep        |
-| `st done`                           | <id>         | --                                         | Mark a steel thread as complete                                                                         | keep        |
-| `st cancel`                         | <id>         | --                                         | Mark a steel thread as cancelled                                                                        | keep        |
-| `st list`                           | --           | --status <status>, --width <n>, --markdown | List steel threads (default: in progress only)                                                          | keep        |
-| `st show`                           | <id> [file]  | --                                         | Show details of a specific steel thread                                                                 | keep        |
-| `st edit`                           | <id> [file]  | --                                         | Print the absolute path to a steel thread file                                                          | keep        |
-| `st sync`                           | --           | --write, --width <n>                       | Synchronize steel_threads.md with individual ST files                                                   | keep        |
-| `st repair`                         | [id]         | --write                                    | Repair malformed steel thread metadata                                                                  | keep        |
-| `st organize` (alias `st organise`) | --           | --write                                    | Organize ST files in directories by status                                                              | retire      |
-| `st zero`                           | [subcommand] | --                                         | STZero retrofit -- install the zeroth steel thread (newly authored; v2 has no usage line for this verb) | pending     |
+| command                             | args        | flags                                       | help                                                                                                                               | disposition |
+| ----------------------------------- | ----------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| `st`                                | <command>   | help/--help/-h                              | Manage steel threads for the project                                                                                               | keep        |
+| `st new`                            | <title>     | -s/--start                                  | Create a new steel thread                                                                                                          | keep        |
+| `st start`                          | <id>        | --                                          | Mark a steel thread as in progress                                                                                                 | keep        |
+| `st done`                           | <id>        | --                                          | Mark a steel thread as complete                                                                                                    | keep        |
+| `st cancel`                         | <id>        | --                                          | Mark a steel thread as cancelled                                                                                                   | keep        |
+| `st list`                           | --          | --status <status>, --width <n>, --markdown  | List steel threads (default: in progress only)                                                                                     | keep        |
+| `st show`                           | <id> [file] | --                                          | Show details of a specific steel thread                                                                                            | keep        |
+| `st edit`                           | <id> [file] | --                                          | Print the absolute path to a steel thread file                                                                                     | keep        |
+| `st sync`                           | --          | --write, --width <n>                        | Synchronize steel_threads.md with individual ST files                                                                              | keep        |
+| `st repair`                         | [id]        | --write                                     | Repair malformed steel thread metadata                                                                                             | keep        |
+| `st organize` (alias `st organise`) | --          | --write                                     | Organize ST files in directories by status                                                                                         | retire      |
+| `st bootstrap`                      | --          | --audit-only, --dry-run, --deliverable <id> | Retrofit ST0000 deliverables into a brownfield project -- audit what is present, missing or partial, then install the missing ones | corrected   |
 
 ### `st`
 
@@ -346,13 +346,15 @@ Organize ST files in directories by status
 - **Target:** `retire` -- ratified: hv, 2026-08-14 -- organize (both faces) is planned vestigial by construction; a strictly structured model cannot hold data in the wrong spot, so the disorder it repairs cannot arise. Confirmed finally at the surface cut (WP-05/06).
 - **Note:** Retiring this face also dissolves the pre-existing Highlander violation: `bin/intent_organize` and `bin/intent_st organize` are two implementations of one concern, both registered in MODULES.md, and they print different things against the same input (117B vs 73B, no shared output).
 
-### `st zero`
+### `st bootstrap`
 
-STZero retrofit -- install the zeroth steel thread (newly authored; v2 has no usage line for this verb)
+Retrofit ST0000 deliverables into a brownfield project -- audit what is present, missing or partial, then install the missing ones
 
-- **v2:** bin/intent_st:1610-1612 -- `exec "$INTENT_HOME/bin/intent_st_zero" "$@"`; the real surface is bin/intent_st_zero
-- **Arguments:**
-  - `subcommand` (subcommand, arity `0..1`) -- one of: `install`
+- **v2:** bin/intent_st_zero, reached in v2 by TWO spellings: `intent st_zero` (top level, auto-dispatched) and `intent st zero` (bin/intent_st:1610-1612 execs the binary). Only the second was ever documented by the command itself.
+- **Flags:**
+  - `--audit-only` (bool) -- Show gap analysis only, no changes
+  - `--dry-run` (bool) -- Show what would change, no writes
+  - `--deliverable` `<id>` (string) -- Target a single deliverable (D2-D11)
 - **Exit codes:**
   - `0` -- bare -- prints `Usage: intent st zero install` and exits 0
 - **stdout:** the usage line
@@ -360,9 +362,9 @@ STZero retrofit -- install the zeroth steel thread (newly authored; v2 has no us
 - **Defects observed in v2:**
   - UNDOCUMENTED: absent from bin/intent_st's usage() block entirely. It was missing from parity.md's command-level table until the deep pass measured it.
   - INV-07 at inverted -- bare invocation prints only usage and exits 0, where every other family exits 1
-- **Target:** `pending-hv`
-- **Open question for hv:** SUPERSEDED, NOT ANSWERED. hv has ruled that st_zero moves under `st` and the underscore goes, which settles the retire question in the negative -- you do not rehome a command you are retiring. What is still open is ONLY THE VERB, and this face is the incumbent: `intent st zero` already works (bin/intent_st:1610 execs the binary) and is the ONLY spelling the command's own usage block documents, so keeping it is a zero-divergence outcome. hv floated `intent st initzero`, which reads better -- `st`'s other subcommands are verbs (new, list, show, edit, done, cancel) and `zero` is a noun, so `st zero install` parses noun-then-verb -- but it is a coinage nobody has typed, no more obviously right than `init-zero`, and it buys a divergence row on a face that currently has none. Held at pending rather than guessed: cc wires whatever this lands on.
-- **Cross-reference:** The top-level `st_zero` family covers bin/intent_st_zero; this entry is the alias face only.
+- **Target:** `corrected` -- ratified: hv, 2026-08-15 -- `st_zero` is wrong and the root spelling dies. `zero` was never a verb: it is the NAME of the thing (Steel Thread Zero / ST0000), which is why `intent st zero install` parses noun-then-verb and why the spelling reads as "initialise something to zero" -- not what the command does. It audits which ST0000 deliverables are present, missing or partial in a brownfield project and installs the missing ones. `bootstrap` names that operation and promotes the real verb to the right position. hv considered `initzero` and preferred `bootstrap`.
+- **Note:** `install` COLLAPSED into the bare form, deliberately, as part of the same correction. It was the only value of the subcommand and the real verb hiding a level down; keeping it gives `intent st bootstrap install`, two stacked verbs, which rebuilds the exact defect this ruling removes. The audit path is already a flag (`--audit-only`), so nothing is lost. Landed rather than asked because delivering the ruled verb on top of the unruled noise word would deliver the problem in a new costume; one sentence reverses it.
+- **Cross-reference:** THE surviving face. The top-level `st_zero` family is the deleted root spelling; see its entry for the divergence cost.
 
 ## Family: `wp`
 
@@ -2215,9 +2217,9 @@ Retrofit ST0000 deliverables into brownfield projects
 - Reachable by two spellings: `intent st_zero` (top level, auto-dispatched) and `intent st zero` (bin/intent_st:1610 execs this binary). Its own usage block says `intent st zero install`, so it documents only the second.
 - parity.md flags this family as a candidate for a ratified RETIRE if the fleet does not use it -- decided at port time, in the register. That one ruling decides both spellings.
 
-| command                     | args      | flags                                       | help                                                  | disposition |
-| --------------------------- | --------- | ------------------------------------------- | ----------------------------------------------------- | ----------- |
-| `st_zero` (alias `st zero`) | [command] | --audit-only, --dry-run, --deliverable <id> | Retrofit ST0000 deliverables into brownfield projects | pending     |
+| command   | args      | flags                                       | help                                                  | disposition |
+| --------- | --------- | ------------------------------------------- | ----------------------------------------------------- | ----------- |
+| `st_zero` | [command] | --audit-only, --dry-run, --deliverable <id> | Retrofit ST0000 deliverables into brownfield projects | corrected   |
 
 ### `st_zero`
 
@@ -2239,8 +2241,8 @@ Retrofit ST0000 deliverables into brownfield projects
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Defects observed in v2:**
   - A bare invocation that printed only usage exits 0, where every other family in this table exits 1 for the same shape. Inconsistent in the opposite direction to INV-07.
-- **Target:** `pending-hv`
-- **Open question for hv:** The retire question is MOOT, not answered: hv ruled st_zero rehomes under `st` rather than retiring, so parity.md:69's retire-candidate flag needs striking (vc's file). THIS ROOT FACE DIES EITHER WAY -- it is the only underscore in the entire command surface, which is its own tell, and the command's own usage block has never documented it, so deleting it is a `corrected` divergence against a spelling no user was ever told to use. Still `pending` rather than `corrected` because a correction needs a target and the surviving verb is undecided: `st zero` (incumbent, self-documented, zero divergence) vs `st initzero` (hv's floated name, reads better, costs a divergence row).
+- **Target:** `corrected` -- ratified: hv, 2026-08-15 -- `st_zero` is wrong and the root spelling dies. `zero` was never a verb: it is the NAME of the thing (Steel Thread Zero / ST0000), which is why `intent st zero install` parses noun-then-verb and why the spelling reads as "initialise something to zero" -- not what the command does. It audits which ST0000 deliverables are present, missing or partial in a brownfield project and installs the missing ones. `bootstrap` names that operation and promotes the real verb to the right position. hv considered `initzero` and preferred `bootstrap`.
+- **Note:** The ROOT face is DELETED, not renamed in place -- `st_zero` is the only underscore in the entire command surface, which was its own tell. The retire question this row carried is MOOT rather than answered: you do not rehome a command you are retiring. parity.md:69's retire-candidate flag needs striking (vc's file).
 
 ## Family: `version`
 

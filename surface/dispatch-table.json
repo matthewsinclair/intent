@@ -10,7 +10,7 @@
     "`observed` records what v2 measurably does, at the revision stamped above. `target` records what v3 will do. They are separate fields because they genuinely differ, and a table that conflated them would launder a v2 defect into a v3 requirement -- which is the failure mode an output-equality parity suite cannot catch (parity.md, 'Parity properties beyond output equality').",
     "`target.state: pending-hv` is an honest blank, not an omission. hv ratified the `corrected` class at the 2026-08-14 bounce; WHICH v2 behaviours join it is a scope call still open. A guess recorded here would be indistinguishable from a ruling by the time WP-05 read it.",
     "Every claim carries an `evidence_class`, because 'verified' is not one thing. `measured` = a probe was run against v2 at the stamped revision. `documented-default` = a framework's published default, correct today and CHANGEABLE by a major bump or a single builder setting. `read` = taken from source without executing it. The distinction was forced by vc catching this file claiming clap's exit code was measured -- it cannot have been, since no clap dependency exists in the workspace yet. A documented default that goes unpinned is a finding with a silent expiry date.",
-    "`disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep · retire · deviate · pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.",
+    "`disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep \u00b7 retire \u00b7 deviate \u00b7 pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.",
     "Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them.",
     "There is a FIFTH parity class, `undefined` (vc ruling, 2026-08-14, on `intent config` as its first member). `corrected` needs a v2 antecedent to correct; silence is not an antecedent. Where v2 exhibited NO behaviour at all, v3 is DESIGNING rather than porting or correcting, and that is a different decision needing a different reviewer. Folding it into `corrected` would hide a design decision inside a bug-fix class.",
     "Each family carries `bats_coverage`: how many test FILES exercise it through the dispatcher (`files_real`), how many name it but never reach the CLI (`files_vacuous`), and how many individual tests actually burn. Produced by `parity/tools/coverage_map.sh`, which joins these families against `burn-baseline.tsv`. The join is the point -- a naive grep reports `treeindex` as well covered when all 53 of its tests exec `bin/intent_treeindex` directly and the dispatcher never sees them. **A family with no burning coverage is a parity hole: v3 can change it freely and the conformance suite stays green.**",
@@ -650,20 +650,34 @@
           "disposition": "retire"
         },
         {
-          "path": "st zero",
-          "help": "STZero retrofit -- install the zeroth steel thread (newly authored; v2 has no usage line for this verb)",
-          "args": [
+          "path": "st bootstrap",
+          "help": "Retrofit ST0000 deliverables into a brownfield project -- audit what is present, missing or partial, then install the missing ones",
+          "args": [],
+          "flags": [
             {
-              "name": "subcommand",
-              "type": "subcommand",
-              "arity": "0..1",
-              "values": [
-                "install"
-              ]
+              "spellings": [
+                "--audit-only"
+              ],
+              "type": "bool",
+              "help": "Show gap analysis only, no changes"
+            },
+            {
+              "spellings": [
+                "--dry-run"
+              ],
+              "type": "bool",
+              "help": "Show what would change, no writes"
+            },
+            {
+              "spellings": [
+                "--deliverable"
+              ],
+              "type": "string",
+              "help": "Target a single deliverable (D2-D11)",
+              "value": "<id>"
             }
           ],
-          "flags": [],
-          "v2": "bin/intent_st:1610-1612 -- `exec \"$INTENT_HOME/bin/intent_st_zero\" \"$@\"`; the real surface is bin/intent_st_zero",
+          "v2": "bin/intent_st_zero, reached in v2 by TWO spellings: `intent st_zero` (top level, auto-dispatched) and `intent st zero` (bin/intent_st:1610-1612 execs the binary). Only the second was ever documented by the command itself.",
           "observed": {
             "exit": [
               {
@@ -685,11 +699,14 @@
             ]
           },
           "target": {
-            "state": "pending-hv",
-            "question": "SUPERSEDED, NOT ANSWERED. hv has ruled that st_zero moves under `st` and the underscore goes, which settles the retire question in the negative -- you do not rehome a command you are retiring. What is still open is ONLY THE VERB, and this face is the incumbent: `intent st zero` already works (bin/intent_st:1610 execs the binary) and is the ONLY spelling the command's own usage block documents, so keeping it is a zero-divergence outcome. hv floated `intent st initzero`, which reads better -- `st`'s other subcommands are verbs (new, list, show, edit, done, cancel) and `zero` is a noun, so `st zero install` parses noun-then-verb -- but it is a coinage nobody has typed, no more obviously right than `init-zero`, and it buys a divergence row on a face that currently has none. Held at pending rather than guessed: cc wires whatever this lands on."
+            "state": "corrected",
+            "spelling": "intent st bootstrap",
+            "ratification": "hv, 2026-08-15 -- `st_zero` is wrong and the root spelling dies. `zero` was never a verb: it is the NAME of the thing (Steel Thread Zero / ST0000), which is why `intent st zero install` parses noun-then-verb and why the spelling reads as \"initialise something to zero\" -- not what the command does. It audits which ST0000 deliverables are present, missing or partial in a brownfield project and installs the missing ones. `bootstrap` names that operation and promotes the real verb to the right position. hv considered `initzero` and preferred `bootstrap`.",
+            "note": "`install` COLLAPSED into the bare form, deliberately, as part of the same correction. It was the only value of the subcommand and the real verb hiding a level down; keeping it gives `intent st bootstrap install`, two stacked verbs, which rebuilds the exact defect this ruling removes. The audit path is already a flag (`--audit-only`), so nothing is lost. Landed rather than asked because delivering the ruled verb on top of the unruled noise word would deliver the problem in a new costume; one sentence reverses it.",
+            "consequence": "`intent bootstrap` (top level) already exists and means \"first-time setup: create global Intent configuration\". This is NOT a collision, it is the same verb meaning the same thing at two levels -- bootstrap the machine, bootstrap the steel-thread structure in a project. Checked before landing; it strengthens the choice rather than qualifying it."
           },
-          "disposition": "pending",
-          "cross_ref": "The top-level `st_zero` family covers bin/intent_st_zero; this entry is the alias face only."
+          "disposition": "corrected",
+          "cross_ref": "THE surviving face. The top-level `st_zero` family is the deleted root spelling; see its entry for the divergence cost."
         }
       ],
       "bats_coverage": {
@@ -5189,14 +5206,15 @@
               "why": "probe matrix at the stamped revision (bare / --help / unknown flag / outside a project), four invocations per command, single-argument probes only"
             }
           },
-          "aliases": [
-            "st zero"
-          ],
+          "aliases": [],
           "target": {
-            "state": "pending-hv",
-            "question": "The retire question is MOOT, not answered: hv ruled st_zero rehomes under `st` rather than retiring, so parity.md:69's retire-candidate flag needs striking (vc's file). THIS ROOT FACE DIES EITHER WAY -- it is the only underscore in the entire command surface, which is its own tell, and the command's own usage block has never documented it, so deleting it is a `corrected` divergence against a spelling no user was ever told to use. Still `pending` rather than `corrected` because a correction needs a target and the surviving verb is undecided: `st zero` (incumbent, self-documented, zero divergence) vs `st initzero` (hv's floated name, reads better, costs a divergence row)."
+            "state": "corrected",
+            "spelling": "intent st bootstrap",
+            "ratification": "hv, 2026-08-15 -- `st_zero` is wrong and the root spelling dies. `zero` was never a verb: it is the NAME of the thing (Steel Thread Zero / ST0000), which is why `intent st zero install` parses noun-then-verb and why the spelling reads as \"initialise something to zero\" -- not what the command does. It audits which ST0000 deliverables are present, missing or partial in a brownfield project and installs the missing ones. `bootstrap` names that operation and promotes the real verb to the right position. hv considered `initzero` and preferred `bootstrap`.",
+            "note": "The ROOT face is DELETED, not renamed in place -- `st_zero` is the only underscore in the entire command surface, which was its own tell. The retire question this row carried is MOOT rather than answered: you do not rehome a command you are retiring. parity.md:69's retire-candidate flag needs striking (vc's file).",
+            "consequence": "The divergence cost is ZERO for anyone following the command's own documentation: its usage block only ever said `intent st zero install`, never the root spelling. So the face that dies is the one no user was told to use, and the face that survives is a rewording of the one that was."
           },
-          "disposition": "pending"
+          "disposition": "corrected"
         }
       ],
       "bats_coverage": {
