@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 08:54Z
+heartbeat_at: 2026-08-15 08:56Z
 status: active
 focus: "cc is now services + app functionality; dev-x/build/git went to dc. AC-04.6 FIRST -- mutation completeness reopened WP-04 and is costing vc hand-edits. Then marked-legacy scope, export (AC-06.6), surface tail (AC-06.1)."
 claims: []
@@ -24,14 +24,9 @@ claims: []
 3. **AC-06.6 -- `intent export --format <fmt>`.** Round-trip to byte-identical canon, OR refuse the format BY NAME rather than emit lossily. Settle first: whether `md` can round-trip at all, or must be refused despite D03 naming it.
 4. **AC-06.1 -- the surface tail.** `st edit`, `st repair`, `st zero`; `issues`, `todo`; `info`, `version`, `config`, `init`, `bootstrap`; then `claude`, `agents`, `lang`, `ext`, `plugin`, `modules`, `llm`, `learn`, `critic`, `fileindex`. **`intent config` lands a conformance test BEFORE its behaviour is designed**, or the `undefined` ruling on it is unverifiable. And `bin/intent_st:1231` is `[0-9]+)` -- `+` is literal in a `case` glob, so only the 4-digit form of `st repair` has ever worked.
 
-## Handed to dc (DevX Claude), 2026-08-15
+## Lane boundary, from 2026-08-15
 
-hv brought `dc` online for dev-x / build / git, which leaves cc on services and app functionality. Moved out of my TODO and into theirs, with everything they need already measured:
-
-- **Binary flavour switching + staleness reporting** (hv's ask, port from Conflab). `Conflab bin/.devbin/cmd/use` switches via `brew link`/`unlink` exploiting PATH order (`/opt/homebrew/bin` at position 1, dev symlinks at 17+); `Conflab bin/.devbin/cmd/cli` selects among reachable copies with `--bin auto|brew|local|repo` and reports staleness; the two stay orthogonal. **Where Intent differs and it is not a detail**: Conflab switches two builds of ONE program, while Intent's `~/.local/bin/intent` points at the **v2 bash CLI** -- a different program from the v3 binary. The axis is three-valued during the rewrite and "out of date" is ambiguous across two of the three. No Homebrew tap yet either.
-- **`bin/.devbin/cmd/{cli,build,build.d/*}`** -- I wrote these this morning (hv's items 3 and 4) and they work; they are dc's to own now.
-- **The build system and CI** -- `native/rust/**` layout, `.github/workflows/rust.yml`, the `native/{platform}/` convention.
-- **Both rules learned this morning are dev-x rules and belong on their board**: the half-committed move (`--only` names two facts) and the stale build cache. Both are in my Watch-outs below; they are duplicated there deliberately because they bit ME while doing build work, and I will still trip them if they are only recorded elsewhere.
+`dc` (DevX Claude) owns dev-x, build, CI, release mechanics, git workflow and the install story -- including the devbin handlers I wrote this morning and hv's Conflab flavour-switch ask. **cc is services and app functionality**: intentsvcs, the facade, the model, ingest/views/store, and the CLI's behaviour. `surface/dispatch-table.json` is ic's; `acceptance.md` and `design.md` are vc's. Full handover with the measurements is in `dc/inbox.cc.md` and `.history/20260815/wip.md`.
 
 ## Waiting on hv
 
