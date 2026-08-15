@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15 17:32Z
+heartbeat_at: 2026-08-15 17:40Z
 status: active
 focus: "Folded. EXP-05 built + adopted, surface_check.sh built (21 findings), INV-07 applied. OWED: the register-vs-truth control -- do not start it before vc answers on the AC."
 claims: []
@@ -26,7 +26,7 @@ claims: []
 
 1. **The agent guide's AUTHORED half (AC-09.4)**, when the v3 workflows settle. Spec written (`surface/agent-guide.spec.md`), control built and mutation-tested (`parity/tools/guide_refs_check.sh`). **Waiting on vc: one file carrying `usage-rules.md`'s dual role, or split?** The measurement argues for splitting -- a document serving two readers was maintained for one of them.
 2. **`gen_pertest.sh` and `gen_register.sh` still read `date -u` into a `DATE=` stamp.** **NOT a D42 matter** -- a generator stamping its own run time into its own generated output is the case hv explicitly permits. The argument that survives is idempotence, which `gen_inventory.sh` now carries: a date in the output makes the artefact non-idempotent across days and destroys the byte-identity that is its only content check. **Still not fixed and the reason is unchanged: those two cannot be re-run (their burn inputs are gone), so editing them strands their committed outputs -- a generator I cannot run is one I cannot honestly edit.**
-3. **`gen_inventory.sh` still execs `$SP/extract_verbs.sh`**, so the tools must be COPIED into a scratch dir before it runs. A large part of why nobody re-ran it for a day.
+3. **DONE (fixed and proven).** `gen_inventory.sh` resolved its two extractors from `$SP`, the caller-supplied THROWAWAY scratch, so running it required hand-copying tools out of `tools/` first -- the documented invocation did not work and the working one was not documented. Now resolved from `$HERE`, the pattern this same file already used for `lib_mdfmt.sh` three lines up. **Both calls also carried `2>/dev/null`**, so a missing extractor gave an EMPTY verb/flag list instead of an error -- latent only because the workaround was always applied. It refuses now, mutation-tested. **Proven output-neutral against a reconstructed worktree at the measured revision `69d42a7`: 0 of 27 differ, before AND after, with no tools copied.** That baseline also re-proves the 27 inventories are exactly re-derivable from the committed TSV.
 
 ## Open with others -- LIVE ASKS ONLY
 

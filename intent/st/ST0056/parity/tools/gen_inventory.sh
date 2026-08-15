@@ -53,6 +53,29 @@ TSV="$SP/probes/toplevel.tsv"
 
 die() { echo "error: $1" >&2; exit 2; }
 
+# THE EXTRACTORS ARE SIBLINGS OF THIS SCRIPT, NOT INHABITANTS OF THE SCRATCH DIR.
+# They were resolved as `$SP/extract_verbs.sh` -- `$SP` being a caller-supplied
+# THROWAWAY directory that holds the probe corpus -- so running this generator
+# required hand-copying two tools out of `tools/` into the scratch first. A large
+# part of why nobody re-ran it for a day: the documented invocation did not work
+# and the working one was not documented.
+#
+# `HERE` was already computed at the top of this file and unused for this. The
+# correct value was three lines away the whole time.
+#
+# AND BOTH CALLS CARRIED `2>/dev/null`, so a missing extractor produced an EMPTY
+# verb or flag list rather than an error -- a missing measurement presenting as a
+# measurement of nothing, on the exact axis this file exists to measure. It never
+# fired, because the workaround was always applied; the committed 27 all carry
+# content. Latent, not live, and latent only because the wrong thing was tedious
+# rather than silent. Now it refuses.
+extract() {
+  local what="$1" target="$2" tool="$HERE/extract_$1.sh" out
+  [ -f "$tool" ] || die "missing extractor: $tool -- refusing rather than emitting an empty $what list, which is indistinguishable from a command that genuinely has none"
+  out="$(bash "$tool" "$target")" || die "extract_$what.sh failed on $target -- an extractor that errors must not be read as 'no $what'"
+  printf '%s\n' "$out"
+}
+
 # Tables are aligned before they land, for the reason gen_dispatch_table.sh
 # already gives: the repo formatter aligns markdown tables on save, so a
 # generator emitting unaligned ones can never produce the file that is committed.
@@ -156,9 +179,9 @@ gen() {
     # flags. Stated empty, and true: the dispatch table records no args and no
     # flags for it, and all four probes print the same 22-byte line at exit 0.
     version) verbs=""; flags="" ;;
-    *)      verbs="$(bash "$SP/extract_verbs.sh" "$script" 2>/dev/null | grep -vE '^(help|--help|-h)$' | tr '\n' ' ')" ;;
+    *)      verbs="$(extract verbs "$script" | grep -vE '^(help|--help|-h)$' | tr '\n' ' ')" ;;
   esac
-  [ "$cmd" = version ] || flags="$(bash "$SP/extract_flags.sh" "$script" 2>/dev/null | tr '\n' ' ')"
+  [ "$cmd" = version ] || flags="$(extract flags "$script" | tr '\n' ' ')"
 
   {
     printf '# Parity inventory: `intent %s`\n\n' "$cmd"
