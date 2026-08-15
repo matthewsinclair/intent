@@ -43,7 +43,7 @@ Rules that hold across the whole command surface. They are stated once here rath
 | INV-03 | The project-context gate                                         | as-observed |
 | INV-04 | Exit codes observed in the shipped surface are 0, 1 and 2 only   | as-observed |
 | INV-05 | `error ...; usage` -- the second call is unreachable, everywhere | pending-hv  |
-| INV-06 | About a fifth of v2 failure paths write to the wrong stream      | pending-hv  |
+| INV-06 | About a fifth of v2 failure paths write to the wrong stream      | corrected   |
 | INV-07 | `--help` reports failure on 10 of 27 commands                    | corrected   |
 | INV-08 | Three commands accept an unknown flag silently at exit 0         | corrected   |
 
@@ -96,8 +96,7 @@ v2 sources read as though a missing-argument error prints the usage block. It ne
 Across 108 probes, failing invocations split 45 stderr-only, 12 stdout-only, 2 both.
 
 - **v2:** measured; larger than the three known `Error:`-on-stdout sites in the plugin bins already queued for hv
-- **Target:** `pending-hv`
-- **Open question for hv:** Ratify the whole census into `corrected` (errors are stderr, always), or enumerate site by site? An error on stdout interleaves with captured command output, which is how a voice becomes data.
+- **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class, which names this census verbatim: "the stderr/stdout misroute census (45 stderr-only / 12 stdout-only / 2 both on failing invocations -- larger than the three sites in cc's hv queue)". Same numbers, same parenthetical; parity/README.md:39 carries the identical figures. FOUND by ic and VERIFIED by vc against both files rather than taken on report; applied by ic 2026-08-15. Not a new ruling -- hv answered the question WHOLE, and it was already written down. -- behaviour: Errors go to stderr, ALWAYS -- the whole census is corrected rather than enumerated site by site. An error on stdout interleaves with captured command output, which is how a voice becomes data.
 - **ratified elsewhere:** VERBATIM MATCH IN parity.md, NOT YET APPLIED HERE (ic, 2026-08-15). parity.md:13 lists the hv-ratified `Corrected` deviation class members and one of them reads: "the stderr/stdout misroute census (45 stderr-only / 12 stdout-only / 2 both on failing invocations -- larger than the three sites in cc's hv queue)". That is this invariant's rule and its v2 note, same numbers and same parenthetical. So the question above -- ratify the whole census or enumerate site by site -- was answered WHOLE by hv at the bounce on 2026-08-14. Recorded rather than applied: this is the SECOND instance of the same drift found in one afternoon (INV-07 was the first), and having found that I over-applied a rule twice earlier today, the pattern I trust is to state the match and let vc apply it. The state stays `pending-hv` until they do.
 
 ### INV-07 -- `--help` reports failure on 10 of 27 commands
@@ -2520,8 +2519,7 @@ Scaffold a new extension
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Defects observed in v2:**
   - Help says `new <name> --type` but the parsed flags are `--skill` / `--subagent` / `--rule-pack`; there is no `--type` flag. The documented invocation cannot work.
-- **Target:** `pending-hv`
-- **Open question for hv:** The help/implementation mismatch is a `corrected` candidate: v3 generates help from this table, so the two cannot disagree by construction. That is the class of defect the SSOT retires wholesale.
+- **Target:** `corrected` -- ratified: vc, 2026-08-15 -- and deliberately NOT an hv ruling, because none was required. NOTED ON THE ROW SO NOBODY RE-OPENS IT LOOKING FOR THE RULING THAT NEVER EXISTED: v3 generates help from this table, so a help/implementation mismatch CANNOT arise by construction. That is not a decision anyone has to make; it is a defect the SSOT retires wholesale, and this row was the last place still treating it as open. -- behaviour: Help text and implementation agree because both derive from this row. The v2 mismatch is not reproduced and needs no per-site correction.
 - **MCP:** exposed as an agent tool -- **mutates**
 
 ## Family: `treeindex`
@@ -2706,7 +2704,7 @@ Retrofit ST0000 deliverables into brownfield projects
 
 | command   | args      | flags                                       | help                                                  | disposition |
 | --------- | --------- | ------------------------------------------- | ----------------------------------------------------- | ----------- |
-| `st_zero` | [command] | --audit-only, --dry-run, --deliverable <id> | Retrofit ST0000 deliverables into brownfield projects | corrected   |
+| `st_zero` | [command] | --audit-only, --dry-run, --deliverable <id> | Retrofit ST0000 deliverables into brownfield projects | retire      |
 
 ### `st_zero`
 
@@ -2734,8 +2732,8 @@ Retrofit ST0000 deliverables into brownfield projects
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Defects observed in v2:**
   - A bare invocation that printed only usage exits 0, where every other family in this table exits 1 for the same shape. Inconsistent in the opposite direction to INV-07.
-- **Target:** `corrected` -- ratified: hv, 2026-08-15 -- `st_zero` is wrong and the root spelling dies. `zero` was never a verb: it is the NAME of the thing (Steel Thread Zero / ST0000), which is why `intent st zero install` parses noun-then-verb and why the spelling reads as "initialise something to zero" -- not what the command does. It audits which ST0000 deliverables are present, missing or partial in a brownfield project and installs the missing ones. `bootstrap` names that operation and promotes the real verb to the right position. hv considered `initzero` and preferred `bootstrap`.
-- **Note:** The ROOT face is DELETED, not renamed in place -- `st_zero` is the only underscore in the entire command surface, which was its own tell. The retire question this row carried is MOOT rather than answered: you do not rehome a command you are retiring. parity.md:69's retire-candidate flag needs striking (vc's file).
+- **Target:** `retire` -- ratified: hv, 2026-08-15: "`st_zero` is wrong and the root spelling dies." APPLIED as `retire` per vc's ruling of 2026-08-15, which chose this over teaching the spine to read `target.spelling`. Two reasons, and the second decides it: building a general rename facility for a population of ONE reads as foresight and ships as unused surface; and more importantly, the alternative makes this row assert something hv did NOT ratify. `corrected` says "this v2 command survives, renamed" -- a different and softer claim than "the root spelling dies", adopted for mechanical convenience. A mechanism that changes what a ratified row MEANS is not a neutral choice of mechanism. Reconsider at the SECOND instance, not before.
+- **Note:** MEASURED 2026-08-15: before this change the v3 binary offered BOTH `intent st_zero` and `intent st bootstrap`, because `is_shipped()` reads `disposition` and the command name comes from `entry.path` -- so `target.spelling` was declared and unread. `target.spelling` STAYS on this row as the human-readable record of the successor; it is simply not machine-read. The successor `st bootstrap` carries the behaviour and its own live copies of these three flags.
 - **spelling:** intent st bootstrap
 - **consequence:** The divergence cost is ZERO for anyone following the command's own documentation: its usage block only ever said `intent st zero install`, never the root spelling. So the face that dies is the one no user was told to use, and the face that survives is a rewording of the one that was.
 - **face:** deleted
