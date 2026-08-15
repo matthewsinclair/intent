@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15T01:26Z
+heartbeat_at: 2026-08-15T01:31Z
 status: active
 focus: "WP-05 PASS 4/4; register + pertest both complete and stamped c60cdbd. Nothing owed. One hv question open, carried by vc: does treeindex PORT (D21) or RETIRE (AC-13.1)?"
 claims: []
@@ -22,6 +22,10 @@ claims: []
 1. ~~**The sub-script deviation has no D-number.**~~ **RULED (vc, 01:23Z): stays `deviate`, stays unratified, do NOT populate.** The row's `ratification` column now names the BLOCKER rather than the absence -- `BLOCKED -- hv must first rule D21 (ports) vs AC-13.1 (retires whole)`. **Following the UNRATIFIED marker surfaced a ratification conflict nobody knew about**: D21 (design.md:195, hv-ratified) says the treeindex cache is unchanged _until WP-06 ports the command_, assuming it is PORTED; AC-13.1 (acceptance.md:153) retires treeindex WHOLE, and is vc-specced under standing authorisation, which does not reach a ratified decision. vc went to reclassify this row to `retire` -- which would have dissolved the problem entirely -- and refused it on that ground. **Now an hv question, carried by vc.** Verified independently here; one sharpening sent back: AC-01.4 is already `satisfied: yes` on evidence "design.md D18-D21", but its subject is the `.cache` layout, which stands either way -- so **D21 needs one clause amended, AC-01.4 does not need reopening.**
 
 2. ~~**`parity.md`'s `<command(s)>` column.**~~ **STRUCK by vc**, with the reason kept on the line rather than the line deleted -- so the next person cannot re-add it from first principles. Nothing owed.
+
+### Open with vc (asked 01:31Z)
+
+3. **Should `provenance_check.sh` be wired into the pre-commit gate or `doctor`?** Built and green (`9e7a7be`); the generators deliberately do NOT call it, because regenerating one artefact then the other is a legitimate two-step and a generator refusing mid-sequence makes the correct workflow impossible -- which is how a guard earns a bypass. It belongs at commit/verify time, but adding to a SHARED gate is not this node's call.
 
 ### Open with hv (in `## Open asks for hv`, items 6-7)
 
