@@ -51,7 +51,33 @@ pub fn build(table: &Table) -> Command {
       cmd = cmd.subcommand(leaf(entry));
     }
     if !verbs.is_empty() {
-      cmd = cmd.subcommand_required(true).arg_required_else_help(false);
+      // **THE FAMILY'S OWN FLAGS AND POSITIONALS ARE ATTACHED HERE**, and
+      // before this they were not: `with_args` was called only on the verbless
+      // branch, so a flag declared on the family row existed on every leaf and
+      // nowhere else. `todo` declares `--json`; `intent todo --json` exited 1
+      // while `intent todo list --json` worked. The flag existed everywhere
+      // except on the command that declares it (ic, measured).
+      //
+      // Not routed through `with_args`, deliberately: that function also
+      // expands a slot's `values` into subcommands, and here the verbs are
+      // sibling ENTRIES rather than slot values, so it would build them twice.
+      cmd = flags(positionals(cmd, family_entry), family_entry);
+
+      // **`subcommand_required` COMES FROM THE DECLARED ARITY**, and was
+      // hardcoded `true`. `arity: "0..1"` with a default verb means the bare
+      // command is legal -- v2 exits 0 on `intent todo`, v3 exited 1, on 8 of
+      // 8 reachable families that declare it. The rule was already implemented
+      // correctly three lines away in `with_args` and hardcoded wrongly here:
+      // **one rule, two implementations, and only one of them right** is the
+      // Highlander failure rather than a typo.
+      let required = family_entry
+        .args
+        .iter()
+        .find(|a| a.kind == "subcommand")
+        .is_none_or(|slot| slot.arity == "1");
+      cmd = cmd
+        .subcommand_required(required)
+        .arg_required_else_help(false);
     } else {
       cmd = with_args(cmd, family_entry);
     }
@@ -141,7 +167,10 @@ fn positionals(mut cmd: Command, entry: &Entry) -> Command {
 
 fn flags(mut cmd: Command, entry: &Entry) -> Command {
   for flag in &entry.flags {
-    // `help` spellings are clap's own; re-declaring them collides.
+    // `help` spellings are clap's own; re-declaring them collides. This is a
+    // fact about clap rather than a policy, so it stays even though the table
+    // now also marks those rows `intrinsic` -- `ships()` would skip them
+    // anyway, and the day it does not, this is what stops the collision.
     if flag
       .spellings
       .iter()
@@ -149,21 +178,39 @@ fn flags(mut cmd: Command, entry: &Entry) -> Command {
     {
       continue;
     }
-    let Some(long) = flag
+    let short = flag
+      .spellings
+      .iter()
+      .find(|s| s.len() == 2 && s.starts_with('-') && !s.starts_with("--"))
+      .and_then(|s| s.chars().nth(1));
+    // **A SHORT-ONLY FLAG IS BUILT, NOT DROPPED.** This was `let Some(long) =
+    // ... else { continue }`, so a flag with no long spelling vanished with no
+    // diagnostic -- three `keep` flags declared in the table and present in no
+    // surface (`claude subagents -v`, `claude skills -v`, `fileindex -r`).
+    // IN-AG-NO-SILENT-001, three times, and invisible from either end: the
+    // table said it shipped and the binary said no such flag.
+    let long = flag
       .spellings
       .iter()
       .find(|s| s.starts_with("--"))
-      .map(|s| s.trim_start_matches('-').to_string())
-    else {
-      continue;
+      .map(|s| s.trim_start_matches('-').to_string());
+    // A flag with neither spelling cannot be built at all, and the table and
+    // the spine disagree about what exists. Refusing is the only honest move:
+    // continuing here is what hid the three above.
+    let id = match (&long, short) {
+      (Some(long), _) => long.clone(),
+      (None, Some(short)) => short.to_string(),
+      (None, None) => panic!(
+        "dispatch table: a flag on `{}` declares no usable spelling ({:?}); the table claims a \
+         flag the spine cannot build",
+        entry.path, flag.spellings
+      ),
     };
-    let mut a = Arg::new(long.clone()).long(long).help(flag.help.clone());
-    if let Some(short) = flag
-      .spellings
-      .iter()
-      .find(|s| s.len() == 2 && s.starts_with('-'))
-      .and_then(|s| s.chars().nth(1))
-    {
+    let mut a = Arg::new(id).help(flag.help.clone());
+    if let Some(long) = long {
+      a = a.long(long);
+    }
+    if let Some(short) = short {
       a = a.short(short);
     }
     a = if flag.kind == "bool" {
