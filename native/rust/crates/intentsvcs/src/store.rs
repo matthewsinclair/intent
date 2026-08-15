@@ -740,6 +740,24 @@ impl Store {
     )
   }
 
+  /// How many prose sections the index holds.
+  ///
+  /// **A COUNT rather than `doc_sections().len()`**, because the only caller
+  /// runs it on the empty-result path of a search: loading every section's body
+  /// to discover there are none would make the answer most expensive exactly
+  /// when it is least informative.
+  ///
+  /// It exists so that "no hits" can be told apart from "nothing to hit". An
+  /// unpopulated index answers every query the same way a genuine miss does,
+  /// and a caller cannot tell those apart without asking this question
+  /// (AC-06.4).
+  pub fn doc_section_count(&self) -> Result<usize, StoreError> {
+    let n: i64 = self
+      .conn
+      .query_row("SELECT count(*) FROM doc_sections", [], |row| row.get(0))?;
+    Ok(n as usize)
+  }
+
   /// Append one envelope to the event log.
   pub fn append_event(&self, e: &Envelope) -> Result<(), StoreError> {
     Self::write_event(&self.conn, e)

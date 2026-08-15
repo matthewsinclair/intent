@@ -158,21 +158,136 @@ fn a_word_in_a_work_package_title_is_found() {
   );
 }
 
+/// AC-06.7's discriminator: a phrase that appears ONLY in a work package's
+/// BODY is found, and the hit names the work package.
+///
+/// **A title is not enough and that is the whole point of this test.** The
+/// sibling above searches a WP title, and a title hit could equally have come
+/// from the parent thread's own index entry -- so it cannot tell a WP hit from
+/// a thread hit. A phrase living only in `wps[0].body` can come from nowhere
+/// else.
+///
+/// This arm was verified once by hand at `1ca760b` and then guarded by
+/// nothing, which vc found by reading the criterion rather than the file. A
+/// property demonstrated once and guarded by nothing is a property that decays
+/// silently.
+#[test]
+fn a_phrase_only_in_a_work_package_body_is_found_and_names_the_work_package() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "a thread"]);
+  ok(root, &["wp", "new", "ST0001", "Ingest and views"]);
+
+  // The body is authored prose in a modelled field (D22/D28), so it is set in
+  // canon and brought in through the ingest gate -- not written to a view.
+  let canon_path = root.join("intent/st/ST0001/thread.json");
+  let text = std::fs::read_to_string(&canon_path).expect("canon");
+  let edited = text.replace(
+    "\"body\": \"\"",
+    "\"body\": \"## Notes\\n\\nThe capybara clause, which appears in no title.\"",
+  );
+  assert_ne!(text, edited, "the fixture must actually set a WP body");
+  std::fs::write(&canon_path, &edited).expect("write canon");
+  restore_from_disk(root);
+
+  let hits = ok(root, &["search", "capybara"]);
+  assert!(
+    hits.contains("ST0001/01"),
+    "the hit names the WORK PACKAGE, which a title hit could not have proved: {hits:?}"
+  );
+}
+
 /// A miss is a successful search, not a failure.
 ///
 /// Every grep-shaped use in a script would otherwise have to special-case the
 /// commonest answer, and v2's read verbs answer an empty set with exit 0.
+///
+/// **The fixture has to be INDEXED for this to be a miss at all.** It used to
+/// be a bare `st new`, which leaves the prose index empty -- so the test
+/// believed it was proving "searched and found nothing" while actually
+/// exercising "never searched anything", the two cases AC-06.4 exists to keep
+/// apart. It passed either way, which is what made it worth fixing rather than
+/// deleting.
 #[test]
 fn no_match_is_exit_zero_and_silent() {
   let dir = project();
   let root = dir.path();
   ok(root, &["st", "new", "a thread"]);
+  std::fs::write(
+    root.join("intent/st/ST0001/design.md"),
+    "# Design\n\nSomething.\n",
+  )
+  .expect("author prose");
+  restore_from_disk(root);
 
   let out = run(root, &["search", "nothingwhatsoevermatchesthis"]);
   assert_eq!(out.status.code(), Some(0), "a miss is not an error");
   assert!(
     String::from_utf8_lossy(&out.stdout).trim().is_empty(),
     "and it says nothing"
+  );
+  assert!(
+    String::from_utf8_lossy(&out.stderr).trim().is_empty(),
+    "a genuine miss over a populated index diagnoses NOTHING -- the note belongs only to the empty-index case"
+  );
+}
+
+/// AC-06.4's load-bearing property: an unpopulated index is distinguishable
+/// from a genuine miss.
+///
+/// **The row was never really about the hits.** A search over an index that
+/// has nothing in it returns exit 0 and zero bytes -- byte-identical to a
+/// search that genuinely matched nothing -- so the tool tells a user their
+/// phrase is absent when the truth is that the question was never asked. That
+/// is the AC-10.7 silent-empty class in a fourth command.
+///
+/// stdout stays empty in BOTH cases deliberately: a grep-shaped caller keeps
+/// its contract and a miss stays exit 0. The distinction is drawn on stderr,
+/// so this asserts the two invocations differ there and agree on stdout.
+#[test]
+fn an_unpopulated_index_is_not_the_same_answer_as_a_genuine_miss() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "a thread"]);
+
+  // Nothing has been indexed yet: the same query a populated project would
+  // answer with silence.
+  let unindexed = run(root, &["search", "nothingwhatsoevermatchesthis"]);
+  assert_eq!(unindexed.status.code(), Some(0));
+  let said = String::from_utf8_lossy(&unindexed.stderr).to_string();
+  assert!(
+    said.contains("nothing is indexed"),
+    "an empty index says so rather than answering like a miss: {said:?}"
+  );
+  assert!(
+    said.contains("remedy:"),
+    "and names what would populate it: {said:?}"
+  );
+  assert!(
+    String::from_utf8_lossy(&unindexed.stdout).trim().is_empty(),
+    "while stdout stays empty, so a pipe is not corrupted by a diagnosis"
+  );
+
+  // Now index the project and ask the SAME question. This is the comparison
+  // the criterion is about: same query, same exit code, same stdout, and the
+  // two invocations must not be the same bytes.
+  std::fs::write(
+    root.join("intent/st/ST0001/design.md"),
+    "# Design\n\nSomething.\n",
+  )
+  .expect("author prose");
+  restore_from_disk(root);
+  let missed = run(root, &["search", "nothingwhatsoevermatchesthis"]);
+  assert_eq!(missed.status.code(), Some(0), "both are still exit 0");
+  assert_eq!(
+    String::from_utf8_lossy(&missed.stdout),
+    String::from_utf8_lossy(&unindexed.stdout),
+    "and both are still silent on stdout"
+  );
+  assert_ne!(
+    String::from_utf8_lossy(&missed.stderr),
+    String::from_utf8_lossy(&unindexed.stderr),
+    "a no-match must not be the same bytes as a no-index -- this is the whole criterion"
   );
 }
 

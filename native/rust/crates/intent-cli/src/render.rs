@@ -820,7 +820,39 @@ fn at(m: &ArgMatches) -> Result<(), String> {
 fn search(m: &ArgMatches) -> Result<(), String> {
   let query = arg(m, "query")?;
   let f = open()?;
-  for hit in f.search(&query).map_err(fail)? {
+  let hits = f.search(&query).map_err(fail)?;
+  // **An unpopulated index answers every query exactly the way a genuine miss
+  // does**: exit 0, zero bytes, byte-identical. So a user whose prose has never
+  // been indexed is told, in the tool's own voice, that their phrase is not
+  // there -- when the truth is that the question was never asked. AC-06.4 was
+  // written for this shape rather than for the hits, and it is the AC-10.7
+  // silent-empty class in another command.
+  //
+  // Asked ONLY on the empty path, and as a COUNT: a search that found
+  // something has already answered the question, and paying for the check on
+  // the common path would tax every successful search to inform the empty one.
+  //
+  // stdout stays empty in both cases on purpose -- a grep-shaped caller keeps
+  // its contract and a miss is still exit 0 -- so the distinction is drawn on
+  // stderr, where a diagnosis belongs and where it cannot corrupt a pipe.
+  if hits.is_empty() && f.prose_sections_indexed().map_err(fail)? == 0 {
+    eprintln!(
+      "note: nothing is indexed, so this search could not have matched -- an empty result here does NOT mean `{query}` is absent"
+    );
+    // **This names the destructive direction, and it is not the thing AC-03.9
+    // forbids.** That rule is about remedies sending an operator to a RESTORE
+    // to recover from a failure. Authored prose is disk-native under D02: it
+    // exists nowhere but the working tree, so disk -> db is not a recovery
+    // path for it, it is the only path it has. The wrinkle is real and is
+    // vc's -- the same direction is routine for prose and destructive for
+    // modelled entities -- and the command it names prints what it would
+    // overwrite before it runs.
+    eprintln!(
+      "  remedy: `intent sync --to-store` reads the working tree's authored prose into the index"
+    );
+    return Ok(());
+  }
+  for hit in hits {
     let heading = hit.heading.as_deref().unwrap_or("(preamble)");
     println!("{}:{}  {}  {}", hit.file, hit.seq, hit.owner_id, heading);
   }

@@ -492,6 +492,18 @@ impl Facade {
     })
   }
 
+  /// How many prose sections the index holds -- the question that makes an
+  /// empty search result interpretable.
+  ///
+  /// **A search over an unpopulated index returns exactly what a genuine miss
+  /// returns**, so a caller reading zero hits cannot tell "the phrase is not
+  /// there" from "nothing has been indexed, so the question was never asked"
+  /// (AC-06.4). Every caller that reports an empty result to a human owes them
+  /// that distinction, and it cannot be derived from the result itself.
+  pub fn prose_sections_indexed(&self) -> Result<usize, FacadeError> {
+    self.store.doc_section_count().map_err(FacadeError::Store)
+  }
+
   /// Re-read committed canon and rebuild the store from it -- `intent sync`.
   ///
   /// The expensive, infrequent half of the daily-driver split (hv,
