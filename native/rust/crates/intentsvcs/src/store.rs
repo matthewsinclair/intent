@@ -37,6 +37,54 @@ pub const DDL: &str = "\
 -- why it needs none, and always says why. Absence of a declaration is never
 -- the answer -- a table with no line is a table nobody has said how to get
 -- data out of, and tests/openness.rs refuses one.
+-- **RECORD TIMESTAMPS (AC-02.8, D42), AND THEY ARE A DIFFERENT KIND OF THING
+-- FROM THE DATES BESIDE THEM.** Every table carries one, written by the
+-- database as part of the write and never passed in by a caller.
+--
+-- Two kinds of time live in this schema and conflating them is what put eight
+-- tables here with no record timestamp at all:
+--
+--   (a) A RECORD timestamp is a fact about THIS DATABASE -- when this store
+--       wrote this row. It is per-machine, it is deliberately NOT carried in
+--       the extract, and a rebuild correctly re-stamps it, because the row
+--       genuinely was written then. `created_at` / `updated_at` / `written_at`.
+--   (b) A DOMAIN date is a fact about the WORLD -- when a thread was created,
+--       when an issue was raised. It is carried in the extract, it is NEVER
+--       re-stamped, and it is what `st show` prints. `threads.created`,
+--       `threads.completed`, `issues.created`.
+--
+-- Both are needed and they are not interchangeable. A schema carrying a
+-- plausible `created` column is exactly how eight tables shipped with no
+-- record time and nobody noticed.
+--
+-- **THE COLUMN IS NAMED FOR WHAT IT CAN HONESTLY RECORD, NEVER FOR UNIFORMITY
+-- ACROSS TABLES** (vc, ruling, 2026-08-15). `threads`, `issues` and
+-- `file_index` have durable row identity, so they are UPSERTED and their
+-- `created_at` fires exactly once while `updated_at` moves with each write.
+-- `related`, `wps`, `criteria` and `tests` are deleted and re-inserted with
+-- their parent -- a removed WP must vanish -- so a `created_at` there would
+-- record the latest write while carrying the name of the first, which is
+-- AC-02.8's remedy reintroducing AC-02.8's defect. They get `written_at`:
+-- when THIS VERSION of this row was written, which is what the write strategy
+-- can actually support.
+--
+-- **MILLISECONDS, NOT SECONDS, AND THAT WAS MEASURED RATHER THAN PREFERRED.**
+-- Every stamp here is `%f`. At second resolution two writes in the same second
+-- carry identical stamps, and that is not an edge case -- it is what any script
+-- does, and it was found by a MUTATION TEST rather than by reasoning: reverting
+-- `threads` to delete-and-reinsert should have moved `created_at`, the test
+-- asserting it did not still passed, and the reason was that both writes landed
+-- inside one second. A guard blind to the defect it names is worse than no
+-- guard, and the same blindness is load-bearing in the product: under D34 two
+-- machines MERGE their event logs, and a merge orders records by a time nobody
+-- typed. Colliding stamps make that order arbitrary exactly when it is being
+-- relied on.
+--
+-- That is a scope call with a stated reversal, not a claim about the domain
+-- (D39): `wps` and `criteria` do have stable ids, so if per-row durable
+-- history is wanted the upgrade is delete-missing + upsert-present, and
+-- `written_at` does not block it. What is not reversible is shipping a
+-- `created_at` on a table that re-stamps it.
 -- openness: carried by intent/st/<ID>/thread.json
 CREATE TABLE IF NOT EXISTS threads (
   id TEXT PRIMARY KEY,
@@ -48,7 +96,9 @@ CREATE TABLE IF NOT EXISTS threads (
   completed TEXT,
   acceptance TEXT,
   objective TEXT NOT NULL,
-  context TEXT NOT NULL
+  context TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 -- openness: carried by intent/st/<ID>/thread.json
 CREATE TABLE IF NOT EXISTS related (
@@ -56,6 +106,7 @@ CREATE TABLE IF NOT EXISTS related (
   seq INTEGER NOT NULL,
   id TEXT NOT NULL,
   note TEXT,
+  written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   PRIMARY KEY (thread_id, seq)
 );
 -- openness: carried by intent/st/<ID>/thread.json
@@ -68,6 +119,7 @@ CREATE TABLE IF NOT EXISTS wps (
   status_reason TEXT,
   objective TEXT NOT NULL,
   body TEXT NOT NULL,
+  written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   PRIMARY KEY (thread_id, seq)
 );
 -- `state` is the whole recorded AC state as its serde JSON, replacing the
@@ -83,6 +135,7 @@ CREATE TABLE IF NOT EXISTS criteria (
   text TEXT NOT NULL,
   kind TEXT NOT NULL,
   state TEXT NOT NULL,
+  written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   PRIMARY KEY (thread_id, id)
 );
 -- openness: carried by intent/st/<ID>/thread.json
@@ -96,8 +149,12 @@ CREATE TABLE IF NOT EXISTS tests (
   status TEXT NOT NULL,
   note TEXT,
   legacy TEXT,
+  written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   PRIMARY KEY (thread_id, id)
 );
+-- `created` is AUTHORED -- v2 users write it by hand in frontmatter, so it is a
+-- fact about the world and stays, with a DB stamp beside it rather than
+-- replaced by one.
 -- openness: carried by intent/issues/<NNNN>.json
 CREATE TABLE IF NOT EXISTS issues (
   number INTEGER PRIMARY KEY,
@@ -106,20 +163,28 @@ CREATE TABLE IF NOT EXISTS issues (
   status TEXT NOT NULL,
   severity TEXT,
   created TEXT NOT NULL,
-  closed TEXT
+  closed TEXT,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 -- The sync engine's git-style index (data-model.md). DB-only and derived from
 -- the working tree, not from canon, so `rebuild` does not touch it.
 -- `findings` is a JSON array; `state` is clean | changed | unparsed.
 -- openness: DERIVED -- rebuilt by re-scanning the working tree, and the files it
 -- indexes are the user's own data, already readable without Intent.
+-- `mtime` is the FILE's, read from the filesystem -- a fact about the file, not
+-- about this row. `created_at` / `updated_at` are the row's own, and the two
+-- answer different questions: a file untouched since last scan has a moving
+-- `updated_at` and a still `mtime`.
 CREATE TABLE IF NOT EXISTS file_index (
   path TEXT PRIMARY KEY,
   size INTEGER NOT NULL,
   mtime TEXT NOT NULL,
   sha256 TEXT NOT NULL,
   state TEXT NOT NULL,
-  findings TEXT NOT NULL
+  findings TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 -- Prose ingest (data-model.md): bodies stored VERBATIM, never modelled, and
 -- FTS5-indexed to power `intent search`. One table, not an external-content
@@ -148,10 +213,17 @@ CREATE VIRTUAL TABLE IF NOT EXISTS doc_sections USING fts5 (
 -- The column is still WRITABLE, and that is not a loophole: restoring the
 -- committed extract must carry each envelope's ORIGINAL time, which is a
 -- different act from recording that something just happened.
+-- **`ts` IS THIS TABLE'S RECORD TIMESTAMP AND THERE IS DELIBERATELY NO SECOND
+-- COLUMN.** Stated rather than left as an absence, because a missing
+-- measurement must present as a refusal and never as a measurement of nothing
+-- -- an unexplained gap here reads as the oversight AC-02.8 was raised to fix
+-- and gets re-audited. An event row is append-only and immutable, so it has no
+-- `updated_at` to have: nothing ever updates it, and a column recording an act
+-- that cannot happen is a guard that passes vacuously.
 -- openness: carried by intent/events.jsonl
 CREATE TABLE IF NOT EXISTS event_log (
   id TEXT PRIMARY KEY,
-  ts TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+  ts TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   principal TEXT NOT NULL,
   project_id TEXT NOT NULL,
   op TEXT NOT NULL,
@@ -183,7 +255,20 @@ CREATE TABLE IF NOT EXISTS event_log (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 2;
+pub const SCHEMA_VERSION: i32 = 3;
+
+/// **The record-timestamp columns (AC-02.8, D42), named once.**
+///
+/// Every one is written by the database and never passed in by a caller. They
+/// are a fact about THIS store rather than about the project, so they are
+/// deliberately absent from the extract and correctly re-stamped by a rebuild.
+///
+/// Public and single-sourced because two readers need the same answer and a
+/// hand-kept copy in either would rot: [`Store::derived_dump`] excludes them so
+/// rebuild-identity compares modelled content, and `tests/record_timestamps.rs`
+/// DISCOVERS the stamped columns from the DDL rather than listing them, so a
+/// table added tomorrow is covered without anyone remembering to add it here.
+pub const RECORD_TIMESTAMPS: &[&str] = &["created_at", "updated_at", "written_at"];
 
 /// **The migration ladder: one rung per version step, applied in order.**
 ///
@@ -222,6 +307,152 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      SELECT id, ts, principal, project_id, op, subject_type, subject_id, payload FROM event_log;
    DROP TABLE event_log;
    ALTER TABLE event_log_v2 RENAME TO event_log;",
+), (
+  3,
+  // 2 -> 3: every table gains its DB-written record timestamp (AC-02.8).
+  //
+  // Rebuilt rather than ALTERed, and not by preference: SQLite refuses
+  // `ADD COLUMN` for a NOT NULL column whose default is non-constant, and
+  // `strftime(...)` is non-constant by definition. The alternative -- a
+  // nullable column -- would ship a record timestamp that is allowed to be
+  // absent, which is the measurement-of-nothing this criterion exists to stop.
+  //
+  // **EXISTING ROWS TAKE THE MIGRATION'S OWN STAMP, AND THAT IS NOT THE
+  // RE-STAMPING RUNG 2 REFUSED TO DO.** There the column already held recorded
+  // history and rewriting it would have moved the whole log to the moment of
+  // the upgrade. Here there is no prior value to destroy: the column did not
+  // exist, so nothing was ever recorded, and the honest answer to "when did
+  // this store write this row" is the rebuild that is writing it now.
+  //
+  // **`event_log` is rebuilt again here, for PRECISION** -- `%S` to `%f`. Its
+  // stamps are carried through unchanged; only the DEFAULT that future rows
+  // will take moves. See the DDL for why a second is not fine enough.
+  "CREATE TABLE threads_v3 (
+     id TEXT PRIMARY KEY,
+     title TEXT NOT NULL,
+     slug TEXT,
+     status TEXT NOT NULL,
+     status_reason TEXT,
+     created TEXT NOT NULL,
+     completed TEXT,
+     acceptance TEXT,
+     objective TEXT NOT NULL,
+     context TEXT NOT NULL,
+     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+   );
+   INSERT INTO threads_v3 (id, title, slug, status, status_reason, created, completed, acceptance, objective, context)
+     SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context FROM threads;
+   DROP TABLE threads;
+   ALTER TABLE threads_v3 RENAME TO threads;
+
+   CREATE TABLE related_v3 (
+     thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+     seq INTEGER NOT NULL,
+     id TEXT NOT NULL,
+     note TEXT,
+     written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     PRIMARY KEY (thread_id, seq)
+   );
+   INSERT INTO related_v3 (thread_id, seq, id, note)
+     SELECT thread_id, seq, id, note FROM related;
+   DROP TABLE related;
+   ALTER TABLE related_v3 RENAME TO related;
+
+   CREATE TABLE wps_v3 (
+     thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+     seq INTEGER NOT NULL,
+     title TEXT NOT NULL,
+     scope TEXT NOT NULL,
+     status TEXT NOT NULL,
+     status_reason TEXT,
+     objective TEXT NOT NULL,
+     body TEXT NOT NULL,
+     written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     PRIMARY KEY (thread_id, seq)
+   );
+   INSERT INTO wps_v3 (thread_id, seq, title, scope, status, status_reason, objective, body)
+     SELECT thread_id, seq, title, scope, status, status_reason, objective, body FROM wps;
+   DROP TABLE wps;
+   ALTER TABLE wps_v3 RENAME TO wps;
+
+   CREATE TABLE criteria_v3 (
+     thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+     id TEXT NOT NULL,
+     text TEXT NOT NULL,
+     kind TEXT NOT NULL,
+     state TEXT NOT NULL,
+     written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     PRIMARY KEY (thread_id, id)
+   );
+   INSERT INTO criteria_v3 (thread_id, id, text, kind, state)
+     SELECT thread_id, id, text, kind, state FROM criteria;
+   DROP TABLE criteria;
+   ALTER TABLE criteria_v3 RENAME TO criteria;
+
+   CREATE TABLE tests_v3 (
+     thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+     id TEXT NOT NULL,
+     kind TEXT NOT NULL,
+     file TEXT,
+     prose TEXT,
+     covers TEXT NOT NULL,
+     status TEXT NOT NULL,
+     note TEXT,
+     legacy TEXT,
+     written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     PRIMARY KEY (thread_id, id)
+   );
+   INSERT INTO tests_v3 (thread_id, id, kind, file, prose, covers, status, note, legacy)
+     SELECT thread_id, id, kind, file, prose, covers, status, note, legacy FROM tests;
+   DROP TABLE tests;
+   ALTER TABLE tests_v3 RENAME TO tests;
+
+   CREATE TABLE issues_v3 (
+     number INTEGER PRIMARY KEY,
+     slug TEXT NOT NULL,
+     title TEXT NOT NULL,
+     status TEXT NOT NULL,
+     severity TEXT,
+     created TEXT NOT NULL,
+     closed TEXT,
+     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+   );
+   INSERT INTO issues_v3 (number, slug, title, status, severity, created, closed)
+     SELECT number, slug, title, status, severity, created, closed FROM issues;
+   DROP TABLE issues;
+   ALTER TABLE issues_v3 RENAME TO issues;
+
+   CREATE TABLE file_index_v3 (
+     path TEXT PRIMARY KEY,
+     size INTEGER NOT NULL,
+     mtime TEXT NOT NULL,
+     sha256 TEXT NOT NULL,
+     state TEXT NOT NULL,
+     findings TEXT NOT NULL,
+     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+   );
+   INSERT INTO file_index_v3 (path, size, mtime, sha256, state, findings)
+     SELECT path, size, mtime, sha256, state, findings FROM file_index;
+   DROP TABLE file_index;
+   ALTER TABLE file_index_v3 RENAME TO file_index;
+
+   CREATE TABLE event_log_v3 (
+     id TEXT PRIMARY KEY,
+     ts TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     principal TEXT NOT NULL,
+     project_id TEXT NOT NULL,
+     op TEXT NOT NULL,
+     subject_type TEXT NOT NULL,
+     subject_id TEXT NOT NULL,
+     payload TEXT NOT NULL
+   );
+   INSERT INTO event_log_v3 (id, ts, principal, project_id, op, subject_type, subject_id, payload)
+     SELECT id, ts, principal, project_id, op, subject_type, subject_id, payload FROM event_log;
+   DROP TABLE event_log;
+   ALTER TABLE event_log_v3 RENAME TO event_log;",
 )];
 
 /// Which of the two write acts is happening (D42).
@@ -255,6 +486,14 @@ pub enum StoreError {
   /// The store predates schema versioning altogether.
   #[error("the runtime store predates schema versioning and does not record which shape it holds")]
   SchemaUnstamped,
+  /// A migration rebuilt a table and left rows pointing at a parent that is no
+  /// longer there. Foreign keys are off for the rebuild and re-checked inside
+  /// the same transaction, so this is the check firing and rolling the rung
+  /// back rather than the damage going unnoticed.
+  #[error(
+    "migrating the runtime store left {violations} row(s) referencing a parent that is not there"
+  )]
+  MigrationLeftDanglingRows { violations: i64 },
 }
 
 impl StoreError {
@@ -297,6 +536,13 @@ impl StoreError {
       }
       Self::Cache(_) => {
         "check that `intent/.cache/` is writable by you".to_string()
+      }
+      // The migration ran inside a transaction that has already rolled back,
+      // so the store is still at its old version and its old shape -- which is
+      // the recoverable case, and worth saying, because "migration failed"
+      // reads as damage.
+      Self::MigrationLeftDanglingRows { .. } => {
+        "the migration was rolled back and the store is untouched at its previous version -- this is a defect in intent rather than in your data; report it with the version `intent doctor` prints".to_string()
       }
     }
   }
@@ -428,13 +674,49 @@ impl Store {
   /// rungs leaves a store that is validly at some intermediate version, which
   /// the next open resumes from -- never a store stamped with a shape it does
   /// not have.
+  /// **A rung may REBUILD a table, so foreign keys come off around the ladder**
+  /// -- SQLite's own documented recipe for a schema change it cannot express as
+  /// an `ALTER`. Three pragmas, and each is load-bearing:
+  ///
+  /// - `foreign_keys = OFF`, because a rebuild drops the parent while children
+  ///   still reference it. **It has to be set OUTSIDE a transaction** -- inside
+  ///   one it is silently a no-op, which would leave the guard looking applied
+  ///   and doing nothing.
+  /// - `legacy_alter_table = ON`, because modern `RENAME TO` re-parses every
+  ///   table that references the one being renamed, and mid-rebuild those
+  ///   references point at a table that momentarily does not exist.
+  /// - `foreign_key_check` inside each rung's own transaction, so turning the
+  ///   enforcement off cannot quietly leave a violation behind it. Off for the
+  ///   rebuild is not off for the result.
   fn migrate(conn: &mut Connection, from: i32) -> Result<(), StoreError> {
+    conn.pragma_update(None, "foreign_keys", "OFF")?;
+    conn.pragma_update(None, "legacy_alter_table", "ON")?;
+    let walked = Self::walk_ladder(conn, from);
+    conn.pragma_update(None, "legacy_alter_table", "OFF")?;
+    conn.pragma_update(None, "foreign_keys", "ON")?;
+    walked
+  }
+
+  fn walk_ladder(conn: &mut Connection, from: i32) -> Result<(), StoreError> {
     for (to, sql) in MIGRATIONS {
       if *to <= from {
         continue;
       }
       let tx = conn.transaction()?;
       tx.execute_batch(sql)?;
+      // **CHECKED INSIDE THE RUNG'S TRANSACTION, BEFORE THE VERSION MOVES.** A
+      // migration that left dangling children is a corrupt store that opens
+      // cleanly -- the failure class the schema stamp exists to stop. Checking
+      // after the commit would report damage that had already landed; checking
+      // here means the rung rolls back and the store stays validly at its
+      // previous version and previous shape.
+      let violations: i64 =
+        tx.query_row("SELECT count(*) FROM pragma_foreign_key_check", [], |r| {
+          r.get(0)
+        })?;
+      if violations > 0 {
+        return Err(StoreError::MigrationLeftDanglingRows { violations });
+      }
       tx.pragma_update(None, "user_version", to)?;
       tx.commit()?;
     }
@@ -465,9 +747,30 @@ impl Store {
     tx.execute("DELETE FROM criteria WHERE thread_id = ?1", params![t.id])?;
     tx.execute("DELETE FROM related WHERE thread_id = ?1", params![t.id])?;
     tx.execute("DELETE FROM wps WHERE thread_id = ?1", params![t.id])?;
-    tx.execute("DELETE FROM threads WHERE id = ?1", params![t.id])?;
+    // **UPSERT, not delete-and-reinsert, and the record timestamps are the
+    // whole reason** (AC-02.8). A thread has durable identity, so destroying
+    // the row and building a new one would re-fire `created_at` on every
+    // mutation -- a column recording the LATEST write while carrying the name
+    // of the FIRST. The child rows above have no identity across writes (a
+    // removed WP must vanish), which is why they keep the delete and take
+    // `written_at` instead.
+    //
+    // `updated_at` moves DB-side in the conflict clause. It is not a trigger:
+    // nothing in this store issues a bare UPDATE, so an `ON UPDATE` trigger
+    // would never fire and would pass vacuously forever.
     tx.execute(
-      "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+      "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+       ON CONFLICT (id) DO UPDATE SET
+         title = excluded.title,
+         slug = excluded.slug,
+         status = excluded.status,
+         status_reason = excluded.status_reason,
+         created = excluded.created,
+         completed = excluded.completed,
+         acceptance = excluded.acceptance,
+         objective = excluded.objective,
+         context = excluded.context,
+         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
       params![
         t.id,
         t.title,
@@ -536,9 +839,18 @@ impl Store {
   /// Write ONE issue inside an open transaction. Same Highlander reason as
   /// [`Store::write_thread`].
   fn write_issue(tx: &rusqlite::Transaction<'_>, i: &Issue) -> Result<(), StoreError> {
-    tx.execute("DELETE FROM issues WHERE number = ?1", params![i.number])?;
+    // Upserted for the same reason as a thread: durable identity, so
+    // `created_at` must fire once rather than on every write.
     tx.execute(
-      "INSERT INTO issues (number, slug, title, status, severity, created, closed) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+      "INSERT INTO issues (number, slug, title, status, severity, created, closed) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+       ON CONFLICT (number) DO UPDATE SET
+         slug = excluded.slug,
+         title = excluded.title,
+         status = excluded.status,
+         severity = excluded.severity,
+         created = excluded.created,
+         closed = excluded.closed,
+         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
       params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed],
     )?;
     Ok(())
@@ -1039,12 +1351,30 @@ impl Store {
   // -------------------------------------------------------------------------
 
   /// Replace the whole file index in one transaction.
+  ///
+  /// **Delete-missing then upsert-present, rather than wipe-and-reload**
+  /// (AC-02.8). A path has durable identity across scans, so wiping the table
+  /// would re-fire `created_at` on every sync and the column would silently
+  /// mean `updated_at`. The observable content is identical either way -- what
+  /// changes is whether "when did this store first index this path" survives
+  /// the next scan.
   pub fn replace_file_index(&mut self, entries: &[FileEntry]) -> Result<(), StoreError> {
     let tx = self.conn.transaction()?;
-    tx.execute("DELETE FROM file_index", [])?;
+    let keep = serde_json::to_string(&entries.iter().map(|e| &e.path).collect::<Vec<_>>())?;
+    tx.execute(
+      "DELETE FROM file_index WHERE path NOT IN (SELECT value FROM json_each(?1))",
+      params![keep],
+    )?;
     for e in entries {
       tx.execute(
-        "INSERT INTO file_index (path, size, mtime, sha256, state, findings) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+        "INSERT INTO file_index (path, size, mtime, sha256, state, findings) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+         ON CONFLICT (path) DO UPDATE SET
+           size = excluded.size,
+           mtime = excluded.mtime,
+           sha256 = excluded.sha256,
+           state = excluded.state,
+           findings = excluded.findings,
+           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
         params![
           e.path,
           e.size as i64,
@@ -1172,6 +1502,18 @@ impl Store {
     let rows = stmt.query_map([], |row| {
       let mut obj = serde_json::Map::new();
       for (idx, name) in names.iter().enumerate() {
+        // **RECORD TIMESTAMPS ARE EXCLUDED, AND THE ALTERNATIVE IS A FLAKY
+        // TEST RATHER THAN A FAILING ONE.** This dump answers "is the modelled
+        // content identical", which is what rebuild-identity and the openness
+        // round trip assert. A record timestamp is per-machine and re-stamped
+        // on rebuild BY DESIGN, so including it makes those properties false
+        // by construction -- and at one-second granularity two rebuilds inside
+        // the same test usually land in the same second, so it would pass on
+        // this machine and fail on a slow one. Excluded here, once, rather
+        // than worked around at each assertion.
+        if RECORD_TIMESTAMPS.contains(&name.as_str()) {
+          continue;
+        }
         let value = match row.get_ref(idx)? {
           rusqlite::types::ValueRef::Null => serde_json::Value::Null,
           rusqlite::types::ValueRef::Integer(i) => json!(i),

@@ -53,8 +53,10 @@ fn an_envelope_is_minted_without_a_time_and_the_database_supplies_it() {
     !stamp.is_empty(),
     "the database stamped the row and returned what it wrote"
   );
-  // The shape the log declares: RFC 3339 UTC, seconds precision.
-  assert_eq!(stamp.len(), 20, "YYYY-MM-DDTHH:MM:SSZ -- got {stamp}");
+  // The shape the log declares: RFC 3339 UTC, MILLISECOND precision. Seconds
+  // were not fine enough -- two writes in one second carried identical stamps,
+  // which is the ordering D34's cross-machine merge depends on.
+  assert_eq!(stamp.len(), 24, "YYYY-MM-DDTHH:MM:SS.sssZ -- got {stamp}");
   assert!(stamp.ends_with('Z'), "UTC, explicitly: {stamp}");
 
   let stored = store.events().expect("read back");
@@ -129,42 +131,95 @@ fn a_facade_mutation_produces_a_database_stamped_event() {
     .iter()
     .find(|e| e.op == "st.hold")
     .expect("the mutation wrote its event");
-  assert_eq!(held.ts.len(), 20, "stamped by the DB: {}", held.ts);
+  assert_eq!(held.ts.len(), 24, "stamped by the DB: {}", held.ts);
   assert!(held.ts.ends_with('Z'));
 
   drop(facade);
 }
 
-/// **A store at the previous schema version is MIGRATED, not refused** -- and
-/// the migration does not rewrite the history it inherits.
+/// **The v1 schema, frozen.** A historical artefact and deliberately a full
+/// copy rather than a trimmed one: a migration is only proved by a store that
+/// could actually have existed, and the first cut of the test below laid down
+/// `event_log` ALONE. That fixture passed rung 2 and then met rung 3, which
+/// rebuilds seven tables that the fixture had never created -- so the test was
+/// asserting the ladder against a database no binary ever wrote, and it was
+/// the ladder growing a second rung that exposed it rather than any reasoning
+/// about the fixture.
+const V1_SCHEMA: &str = "
+  CREATE TABLE threads (
+    id TEXT PRIMARY KEY, title TEXT NOT NULL, slug TEXT, status TEXT NOT NULL,
+    status_reason TEXT, created TEXT NOT NULL, completed TEXT, acceptance TEXT,
+    objective TEXT NOT NULL, context TEXT NOT NULL
+  );
+  CREATE TABLE related (
+    thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+    seq INTEGER NOT NULL, id TEXT NOT NULL, note TEXT,
+    PRIMARY KEY (thread_id, seq)
+  );
+  CREATE TABLE wps (
+    thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+    seq INTEGER NOT NULL, title TEXT NOT NULL, scope TEXT NOT NULL,
+    status TEXT NOT NULL, status_reason TEXT, objective TEXT NOT NULL,
+    body TEXT NOT NULL, PRIMARY KEY (thread_id, seq)
+  );
+  CREATE TABLE criteria (
+    thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+    id TEXT NOT NULL, text TEXT NOT NULL, kind TEXT NOT NULL,
+    state TEXT NOT NULL, PRIMARY KEY (thread_id, id)
+  );
+  CREATE TABLE tests (
+    thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+    id TEXT NOT NULL, kind TEXT NOT NULL, file TEXT, prose TEXT,
+    covers TEXT NOT NULL, status TEXT NOT NULL, note TEXT, legacy TEXT,
+    PRIMARY KEY (thread_id, id)
+  );
+  CREATE TABLE issues (
+    number INTEGER PRIMARY KEY, slug TEXT NOT NULL, title TEXT NOT NULL,
+    status TEXT NOT NULL, severity TEXT, created TEXT NOT NULL, closed TEXT
+  );
+  CREATE TABLE file_index (
+    path TEXT PRIMARY KEY, size INTEGER NOT NULL, mtime TEXT NOT NULL,
+    sha256 TEXT NOT NULL, state TEXT NOT NULL, findings TEXT NOT NULL
+  );
+  CREATE VIRTUAL TABLE doc_sections USING fts5 (
+    owner_type UNINDEXED, owner_id UNINDEXED, file UNINDEXED, seq UNINDEXED,
+    heading, level UNINDEXED, body, tokenize = 'porter unicode61'
+  );
+  CREATE TABLE event_log (
+    id TEXT PRIMARY KEY, ts TEXT NOT NULL, principal TEXT NOT NULL,
+    project_id TEXT NOT NULL, op TEXT NOT NULL, subject_type TEXT NOT NULL,
+    subject_id TEXT NOT NULL, payload TEXT NOT NULL
+  );
+";
+
+/// **A store at an older schema version is MIGRATED, not refused** -- and the
+/// migration does not rewrite the history it inherits.
 ///
-/// This direction was unreachable until now: at version 1, `SCHEMA_VERSION - 1`
-/// is 0, and 0 is the ABSENCE of a version rather than schema zero. Version 2
-/// is the first release where an older stamped store can exist at all.
+/// This direction was unreachable until version 2: at version 1,
+/// `SCHEMA_VERSION - 1` is 0, and 0 is the ABSENCE of a version rather than
+/// schema zero. It now walks the whole ladder, 1 -> 2 -> 3, from the oldest
+/// store any binary ever stamped.
 #[test]
 fn a_store_at_the_previous_version_is_migrated_and_keeps_its_history() {
   let dir = tempfile::tempdir().expect("tempdir");
   let path = dir.path().join("v1.db");
 
-  // A v1 store: `event_log.ts` with no DEFAULT, which is the shape the stamp
-  // was introduced against.
+  // A v1 store: `event_log.ts` with no DEFAULT and no record timestamp on any
+  // table, which is the shape the stamp was introduced against. It carries a
+  // thread as well as an event, so the rung-3 rebuilds move real rows rather
+  // than empty tables.
   {
     let conn = Connection::open(&path).expect("create");
+    conn.execute_batch(V1_SCHEMA).expect("lay down v1");
     conn
       .execute_batch(
-        "CREATE TABLE event_log (
-           id TEXT PRIMARY KEY,
-           ts TEXT NOT NULL,
-           principal TEXT NOT NULL,
-           project_id TEXT NOT NULL,
-           op TEXT NOT NULL,
-           subject_type TEXT NOT NULL,
-           subject_id TEXT NOT NULL,
-           payload TEXT NOT NULL
-         );
-         INSERT INTO event_log VALUES ('01ARZ3', '2019-03-14T09:26:53Z', 'local', 'p', 'st.new', 'thread', 'ST0001', '{}');",
+        "INSERT INTO event_log VALUES ('01ARZ3', '2019-03-14T09:26:53Z', 'local', 'p', 'st.new', 'thread', 'ST0001', '{}');
+         INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context)
+           VALUES ('ST0001', 'The first thread', 'the-first-thread', 'wip', NULL, '2019-03-14', NULL, NULL, '', '');
+         INSERT INTO wps (thread_id, seq, title, scope, status, status_reason, objective, body)
+           VALUES ('ST0001', 1, 'A work package', 'M', 'done', NULL, '', '');",
       )
-      .expect("lay down a v1 event log");
+      .expect("lay down v1 rows");
     conn
       .pragma_update(None, "user_version", 1)
       .expect("stamp 1");
@@ -177,6 +232,22 @@ fn a_store_at_the_previous_version_is_migrated_and_keeps_its_history() {
   assert_eq!(
     events[0].ts, "2019-03-14T09:26:53Z",
     "and it kept its ORIGINAL stamp -- re-stamping would move the whole log to the moment of the upgrade"
+  );
+
+  // Rung 3 rebuilt seven tables to add the record timestamps. The rows have to
+  // arrive on the other side, with their DOMAIN dates untouched -- a migration
+  // that quietly emptied a table would otherwise read as a clean upgrade.
+  let (threads, _issues) = store.load_canon().expect("read the migrated canon");
+  assert_eq!(threads.len(), 1, "the thread survived the rebuild");
+  assert_eq!(
+    threads[0].created, "2019-03-14",
+    "its AUTHORED date is a fact about the world and the migration must not touch it"
+  );
+  assert_eq!(
+    threads[0].wps.len(),
+    1,
+    "and its child rows came across with it -- foreign keys are off during the rebuild, so \
+     losing them here would be silent"
   );
 
   // The point of the migration: the DEFAULT now fires on this store too.
