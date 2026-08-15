@@ -13,12 +13,14 @@ claims: []
 
 ## DOING -- PICK THIS UP FIRST
 
-**`intent llm` guide (AC-09.4)** -- the last unexamined thing in my lane. The agent guide needs more than a command list and nothing has established what. The MCP fields authored today are the raw material: **the guide now has a declared, reviewable answer to "which commands may an agent call, and which of those write"**, which is the question a guide exists to answer and previously had no source for.
+**The AUTHORED half of the agent guide (AC-09.4), when the v3 workflows settle.** The spec is written (`surface/agent-guide.spec.md`) and the control is built and mutation-tested (`parity/tools/guide_refs_check.sh`); what is deliberately NOT written is the prose, because its subject is `sync` / `export` / `ingest` / `backup` and the `sync --to-store` vs `ingest` boundary is still open. **Prose written before that boundary lands would arrive at WP-09 already needing the treatment the spec exists to prevent.**
+
+**Waiting on vc for one contract call:** whether the authored half stays one file carrying `usage-rules.md`'s dual role -- human DO/NEVER canon and agent guide at once -- or splits. The measurement argues for splitting: a document serving two readers was maintained for one of them.
 
 ## TODO
 
-1. **`gen_inventory.sh` has TWO reported-not-fixed defects** (both to vc, 15:24Z, deliberately left). It emits **unaligned** tables while the committed files are aligned, so its output can never match the tree -- no `lib_mdfmt.sh`, no formatter fixed point, unlike `gen_dispatch_table.sh`. And it execs `$SP/extract_verbs.sh`, so the tools must be COPIED into a scratch dir beside the probe data before it runs at all. **Not fixed in the same breath because fixing the first regenerates all 26 and would have conflated formatting with the measurement question vc asked.**
-2. **`version` has probe data and no inventory** -- 27 units probed, 26 rendered, because `gen_inventory.sh`'s spec list has no `version` entry. vc's to rule whether `cmd-version.md` should exist.
+1. **`gen_inventory.sh` still execs `$SP/extract_verbs.sh`**, so the tools must be COPIED into a scratch dir beside the probe data before it runs. That layout is a large part of why nobody re-ran it for a day. Reported to vc, not fixed.
+2. **The 27 inventories are re-derivable but not cheaply checkable** -- the remaining cost is a detached worktree at the measured revision, because the verb and flag extractors read the v2 source, not the probe data. The skew declaration now names the commands to check them on demand. Promoting them to CHECKABLE means making the gate pay for a worktree, and a slow gate is one that gets `--no-verify`d.
 
 ## Done this session
 
@@ -64,5 +66,6 @@ Durable only. Everything settled lives in the artefact that carries it.
 - **Read `bin/**`, never mutate it** -- two symlinks point at `bin/intent` and four sessions are live. `native/**` and `bin/.devbin/**` are safe.
 - **This repo is PUBLIC and that is FINE and intended** (hv ruled). Dev/PM apparatus is **not** shipped surface -- a consumer installs from a tap and never receives our boards. What survives is ordinary: no secrets, and `-A` in a shared tree publishes whatever is sitting in it (vc).
 - **`--only` commits what you NAME, and a move is TWO facts.** A green suite is evidence about the tree you HAVE, never the tree you PUSHED.
+- **A SWEEP DOES NOT MOVE A FILE, IT SPLITS A CHANGE** (cc, 15:48Z, about my amend). It took cc's `backup_snapshot.rs` without the `store.rs` methods it calls, so **HEAD did not build for ten minutes** -- each half reads as finished alone and only the pair is coherent, so there was nothing file-shaped for either of us to notice. **After a sweep the question is not "whose file is this", it is "does it still build".** And I told three nodes the damage was "attribution and process, not data" on the strength of `git show --stat`: **a stat says which files moved and cannot say whether the tree compiles.** I asserted a whole-tree property from a per-file summary -- the same instinct as `git log --all` for "does this exist", twice in one day.
 - **`--only` PROTECTS THE COMMIT AND NOT THE AMEND, and I proved it at 15:40Z.** `git commit --amend -F <file>` with no pathspec re-commits the WHOLE INDEX exactly like a bare commit: mine took **19 files** including cc's 136-line `backup_snapshot.rs`, cc's and vc's `wip.md` (**peer boards -- single-writer files I must never write**), four nodes' `.history/`, and MODULES.md -- under my message, with `--no-verify`, and pushed. **I had used `--only` on every commit today and dropped it at the one step where the pathspec is least visible.** Not rewritten: four sessions are live on `main` and a force-push costs more than the mess. Announced to all three instead. **Name paths on the amend too: `git commit --amend --only <paths>`.**
 - **This shell is zsh**: no word-splitting of unquoted parameters. Never enumerate remotes through `head`.
