@@ -134,3 +134,41 @@ Archived from the live board at 2026-08-15 15:28Z. Everything here is DONE or is
 The live board carried **"`codesign --verify --strict` is the check that means anything here"** as a watch-out, and carried my own measurement refuting it **two lines below**. Both were true when written and only one survived the day. vc had also given that same claim to hv as a recommendation and retracted it in writing rather than quietly editing it.
 
 **A board can hold a refuted claim and its refutation simultaneously without either one looking wrong**, because each reads as a finding in isolation and nothing compares them. Archiving would have preserved the contradiction; the fold merged them instead. **Folding is not only compaction -- it is the only moment anything re-reads the whole board at once, which makes it the only moment a contradiction of this shape is visible at all.**
+
+---
+
+## late afternoon -- D42, and the day I was wrong about time twice in ten minutes
+
+### WP-11: the macOS pipeline restructured (3ab8844e)
+
+Signing moved off the shared `target/release` and onto staged copies in `target/dist`. `stage` runs FIRST; `sign` / `notarize` / `verify` / `checksum` all act on the copies; `prepare` runs the four as one uninterrupted pass. The race that de-notarised a shipped artefact shrank from a multi-minute Apple round trip to one `ditto`. Canaried both ways -- red: four downstream steps refuse with nothing staged, and a fixture with one of two artefacts ad-hoc signed makes `checksum` refuse, name the bad one, withdraw the stale `SHA256SUMS.txt` and keep both binaries. Green: `prepare` end to end, Apple `Accepted` (`b8687d21`), formula hashes matching exactly.
+
+Also fixed: the help text was `sed -n '5,15p'` of the file's own header, so adding a subcommand would silently drop the last entry from the help. One `usage()` heredoc now.
+
+**AC-11.4 had already ordered the restructure** as an obligation conditional on hv ruling the target matrix, and hv ruled it at ~15:20Z. I re-read my own board instead of the AC and rebuilt the case from scratch. vc took it as a defect in their artefact rather than mine: a contract cannot trigger its own preconditions, and they had filed one as though it could.
+
+### The provenance guard: two defects, found by being blocked
+
+It refused my commit citing `cmd-ac.md -> 69d42a7` against `cmd-version.md -> 69d42a7f`. Same commit. It string-compared abbreviated SHAs, and git's abbreviation length grows with object count. Worse, it globbed the working tree rather than the commit, so ic's untracked mid-generation file froze a commit touching only `bin/.devbin/`. ic fixed both -- it now reads the INDEX and resolves through `rev-parse`. ic had hit finding 1 an hour earlier and pinned their generator to `--short=7`, which fixed their symptom and left three other generators loaded.
+
+Holding the commit and diagnosing rather than reaching for `--no-verify` is why two latent defects got found instead of one block getting worked around.
+
+### D42, and being wrong twice
+
+hv ruled it four times and it was reinterpreted after three. **DB records have a timestamp field. That is the source of truth for time. Nothing else. Ever.**
+
+I used `date -u` for every stamp all session. Told "time comes from the DB", I heard _read the clock from the DB instead_, swapped `date -u` for `sqlite3 ... strftime`, called it fixed, and proposed an `intent now` verb to make the fetch ergonomic -- which would have made a second clock blessed and spread it. Retracted to cc in four minutes, before they built it.
+
+cc built `Store::now()`. vc broadcast "either the database's or one you read from `date -u`". **Three nodes, three independent arrivals at "one well-sourced clock", when the rule is "no clock".** That the wrong shape is the intuitive one is the whole argument for structural enforcement.
+
+My measurement went to cc with hv's instruction attached: three `facade.rs` call sites reading a time into a variable and then writing it, and no `CURRENT_TIMESTAMP` or column `DEFAULT` anywhere in the schema -- so the application still supplied every timestamp, just from the right clock. `pub fn now()` was the seam and is being deleted.
+
+**hv's structural close, which is stronger than the rule:** intent3 will have no CLI or intentsvcs function that TAKES a time. Functions RETURN times, but those went end to end through the DB where SQLite set them. No door, no confection.
+
+**Scope, hv:** devbin is not Intent -- external, vendored, no db, does what it likes with time. Every `date` hit in my lane was devbin, so my D42 directive resolved to a no-op.
+
+### Caught in the act, twice
+
+A red canary that never entered the branch: I planted a stale `SHA256SUMS.txt` on already-notarised artefacts, so `checksum` correctly PASSED and overwrote it -- and my check reported "stale sums NOT withdrawn -- BUG" about a branch that never ran. A red-looking result from a green run reads exactly like a real defect.
+
+And a stamp wrong by exactly the local offset: `TZ=UTC git log --date=format:` prints LOCAL time with a `Z` appended, because `--date=format:` ignores TZ. `--date=format-local:` respects it. Produced while trying to avoid confecting a stamp.
