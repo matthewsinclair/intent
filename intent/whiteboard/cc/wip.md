@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 14:30Z
+heartbeat_at: 2026-08-15 14:48Z
 status: active
-focus: "Three landed post-compact: the kind/state clause on the published face, the store schema stamp (dc found the hole by dogfooding), and the D37 output sweep. AC-02.6 openness is next and is now unblocked."
+focus: "AC-02.6 BUILT -- WP-02's last blocker. events.jsonl exists, the DDL declares how every table's data leaves, and the enumeration caught the contract's own table count. Close claim with vc."
 claims: []
 ---
 
@@ -17,17 +17,13 @@ claims: []
 
 **The three ratified machines are in `data-model.md:223-317` and are BUILT.** AC-04.6 is now CONFORMANCE, not closure -- the implemented graph must match the ratified tables exactly, because a closed graph can still be the wrong graph.
 
-## DOING -- AC-02.6, openness
+## DOING -- nothing claimed; WP-02's blocker is cleared
 
-**The last WP-02 blocker.** `AT-02.6` = `openness.rs`.
-
-- **Enumerate tables FROM THE GENERATED DDL FACE, never a hand roster.** The evidence is now threefold: the schema walk's own `["state","status"]` tag roster silently stopped classifying a field; `event_log` survived a whole AC because a test over the tables that already had file forms passes on the defect; and the store had no version stamp at all, so nothing could detect a shape it could not read.
-- Each table needs a **file form OR an exemption DECLARED with its reason**. Round-trip both directions, lossless.
-- **The discriminating case is ADDING a table with no file form and no exemption and watching it go red.**
-- Known: `event_log` -> `events.jsonl` (ruled, NOT built). `file_index` is exempt on derivability but is **NOT a discardable cache** -- hv ruled it the `.treeindex` replacement, so it is a product feature.
-- **New surface since the ratification**: `status_reason` x2, `Criterion.state`, and now `PRAGMA user_version` -- which is store metadata rather than a table, and openness has to say which of those it is asking about.
+**AC-02.6 is built and the close claim is with vc** (`b8405e2e`, 283 tests). Next from TODO unless vc rules otherwise.
 
 ## LANDED post-compact
+
+- **`b8405e2e`** -- **AC-02.6, openness.** `events.jsonl` BUILT (JSONL because the log is append-only; merged on the ULID because the restore direction must not be destructive for the one table nothing derives). Every table declares its route out IN THE DDL, so the published face says which data can leave. **The enumeration caught the contract**: acceptance.md says eight tables, the DDL has nine. Discriminating case is an assertion over a synthetic DDL, not a hand mutation.
 
 - **`ef62cded`** -- the kind/state clause on the JSON Schema face (vc's cost from the AC collapse). One decision in `AcState::permitted_for`, exhaustive; three enforcement points; roster discovered from the schema's `oneOf`. **Posture change raised to vc, unruled: a mismatched pair now stops the whole estate loading, not just doctor reporting.**
 - **`523b34e8`** -- the store schema stamp. dc found it by dogfooding: `CREATE TABLE IF NOT EXISTS` makes the DDL apply a no-op, so open SUCCEEDED on a database it could not read. Stamp-before-DDL in one transaction so a crash repairs rather than bricks. **Version 0 is not schema zero, it is the absence of one** -- unstamped stores are refused with no migration, and the remedy says so instead of promising one.
@@ -67,6 +63,9 @@ Anything amounting to "remember to" is archived; it failed twice on entries this
 - **A HAND-KEPT ROSTER INSIDE AN INSTRUMENT IS THE SAME DEFECT THE INSTRUMENT LOOKS FOR.** The schema walk read tag names from `["state","status"]`; renaming a tag to `is` silently stopped it classifying a field, and its own completeness check then reported the field ABSENT FROM THE SCHEMA. **Discover structurally; never enumerate names by hand.**
 - **A COLLAPSE MAKES THE NEW REPRESENTATION OBVIOUS AND THE OLD INVARIANT INVISIBLE.** Rewriting `resolve()` the natural way would have let a hand-authored `satisfied` on a test-backed AC satisfy the gate. **Re-derive what the old shape enforced; do not assume it survived.**
 - **A DOC CAN OUTLIVE ITS OWN SUBJECT, not just its model.** `facade.rs` said "THERE IS NO DB -> DISK SYNC YET" -- true when written, false the same day by my own work. Alongside the three remedies that named a command after the reasoning behind it had moved.
+- **`git checkout -- <path>` REVERTS TO HEAD, NOT TO BEFORE YOUR MUTATION.** Used it to undo a mutation test and it silently took an hour of uncommitted work in the same file with it. **Twice.** Back up with `cp` before mutating; restore with `cp`.
+- **A `.jsonl` FILE ESCAPES A `.json` CHECK BY SUFFIX LENGTH.** `"events.jsonl".ends_with(".json")` is false. Correct today, by accident -- the same shape D29 named for the DB file. **Any new extension needs a decision, not a coincidence.**
+- **AN ERROR SWALLOWED IN A FIXTURE IS A SILENT ERROR.** `.ok()` on three fixture mutations made four tests fail on a row-count precondition instead of on the refusal that caused it; two verbs were illegal from the fixture's own states. **`expect()` in fixtures, always.**
 - **A `///` DOC COMMENT IS SHIPPED OUTPUT.** schemars lifts it into the JSON Schema face and async-graphql into the SDL, and `intent schema` prints both to a consumer's terminal. I put an AC id, a node name, a date and a test path into two published faces while closing a different hole -- in the one file that already carries this warning, three fields down. **Plain `//` for reasoning; `///` only for what a stranger needs.**
 - **A GREP OVER COMMENTS FINDS THE WRONG HALF.** The D37 sites that mattered were in string LITERALS. Grep `"[^"]*PATTERN[^"]*"` and exclude comment lines, or the four shipped strings hide behind fifty harmless mentions.
 - **A TEST CAN ASSERT THE DEFECT, and it looks like diligence.** `an_unbuilt_command_names_the_work_package_that_owes_it` pinned a D37 leak in place -- written as the fix to a WORSE version of the same leak, which is why it read as careful. **When a ruling lands, grep the tests for what now asserts the old behaviour.**
