@@ -555,6 +555,61 @@ jq -r "$JQ_LIB"'
 md_align "$OUT_TMP" "$OUT_TMP.aligned" || die "table alignment failed"
 mv "$OUT_TMP.aligned" "$OUT_TMP" || die "table alignment failed to land"
 
+# --- INVARIANT INTEGRITY: citations resolve, and nothing is orphaned --------
+#
+# The canon declares 8 invariants and cites them by ID across 103 rows. Nothing
+# checked that a citation RESOLVES. `INV-09` would have read exactly like a real
+# reference -- and the whole point of the entry-level `defects` design is that
+# "the rule text lives in exactly one place, the invariant", so a citation that
+# points nowhere silently reintroduces the divergent copy it was built to avoid,
+# in the direction nobody looks (a reference to nothing, rather than a second
+# copy of something).
+#
+# THE POPULATION IS EVERY `INV-NN` TOKEN IN THE FILE, not the `defects[].id`
+# array. Measured before writing this: citations live in BOTH -- the structured
+# array AND free text like "outside a project ... (INV-03)". A check scoped to
+# the structured half would have covered part of the population and reported
+# confidently on all of it, which is this toolchain's most-repeated failure.
+# Scanning every string is the enumerate-the-population form.
+#
+# Both directions, because they are different defects. A dangling citation is a
+# typo. An UNCITED invariant is an orphan -- a rule that survived the removal of
+# every row that referenced it, still declared, still read as governing, and
+# governing nothing. Neither shows up in a diff.
+INV_DECLARED="$(jq -r '[.invariants[].id] | sort | join(" ")' "$IN")"
+INV_DANGLING="$(jq -r '
+  ([.invariants[].id]) as $ok
+  | [.. | strings | scan("INV-[0-9]+")] | unique
+  | map(select(. as $i | $ok | index($i) | not)) | join(" ")' "$IN")"
+# `del(.id)` on the invariants before scanning, and it is the whole check.
+# WITHOUT IT THIS IS VACUOUS: the scan reads every string in the file, so an
+# invariant's own `id` field counts as a citation of itself and NOTHING can ever
+# be uncited. The first version had that bug, the mutation test caught it -- a
+# declared-and-never-cited INV-99 sailed through -- and the measurement I had
+# run by hand minutes earlier ("every invariant is cited somewhere") could not
+# have returned any other answer. A check that cannot fail is not a weak check,
+# it is a decoration, and this one had already produced a reassuring result.
+#
+# Only the `id` is removed, not the whole block: an invariant's rule text may
+# legitimately cite ANOTHER invariant, and dropping the block would turn those
+# into false orphans.
+INV_UNCITED="$(jq -r '
+  ((.invariants |= map(del(.id))) | [.. | strings | scan("INV-[0-9]+")] | unique) as $cited
+  | [.invariants[].id] | map(select(. as $i | $cited | index($i) | not)) | join(" ")' "$IN")"
+[ -n "$INV_DECLARED" ] || die "the canon declares no invariants -- either the block was removed or this needle has stopped matching"
+[ -z "$INV_DANGLING" ] || die "citation(s) to undeclared invariant(s):$INV_DANGLING -- the rule text lives in exactly one place, so a citation pointing nowhere is a divergent copy in the direction nobody checks"
+[ -z "$INV_UNCITED" ] || die "declared but never cited:$INV_UNCITED -- an invariant no row references is an orphan that still reads as governing. Cite it or retire it; leaving it is the stale-canon shape."
+
+# INV-04 asserts the shipped surface exits 0, 1 or 2 ONLY. That is a claim about
+# MEASURED data sitting in the same file as the measurements, so it can be
+# checked against them rather than trusted. REPORTS THE DISAGREEMENT AND REFUSES
+# rather than picking a side: a code outside the set means either a genuinely new
+# exit path was measured (INV-04 needs updating) or a row is wrong, and those
+# have opposite remedies. Same posture as drift_check.sh, for the same reason.
+EXIT_ODD="$(jq -r '[.families[].entries[] | (.observed.exit // [])[] | .code]
+  | unique | map(select(. != 0 and . != 1 and . != 2)) | join(" ")' "$IN")"
+[ -z "$EXIT_ODD" ] || die "observed exit code(s) outside INV-04's set of 0/1/2:$EXIT_ODD -- the canon contradicts its own invariant. Either a new exit path was measured and INV-04 must be updated, or a row is wrong. Decide; this refuses rather than choosing."
+
 # --- FORMATTER FIXED POINT: the view must survive the repo formatter --------
 #
 # lib_mdfmt.sh names two causes of generator/formatter skew and fixes only the
