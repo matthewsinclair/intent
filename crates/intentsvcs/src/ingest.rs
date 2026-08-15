@@ -380,6 +380,40 @@ impl Validated for Issue {
 /// line D02 protects is untouched: nothing here is written back to a file.
 pub fn collect_wp_text(project: &Project, out: &mut Vec<DocSection>, thread: &Thread) {
   let file = project.relative(&project.thread_json(&thread.id));
+
+  // D22 reified the THREAD's own prose into `thread.json` -- `objective` and
+  // `context` -- exactly as D28 later did for work packages, and the indexer
+  // was only taught about the second one. So a phrase living in a thread's
+  // objective matched nothing at all.
+  //
+  // vc measured it as AC-06.4 failing: canon carries a unique phrase, `sync`
+  // exits 0, `info.md` is regenerated CONTAINING that phrase, and `search`
+  // returns exit 0 with zero bytes. That info.md is a generated VIEW, which
+  // `THREAD_PROSE` deliberately excludes -- indexing it would index the model
+  // twice and let a stale view answer a search -- so the phrase was rendered
+  // everywhere a human looks and indexed nowhere.
+  //
+  // The shape is the finding, and it is the AC-10.7 class in a fourth command
+  // (vc): a search over an unpopulated index is byte-identical to a search
+  // with no matches, on a project that IS migrated, so the migration guard
+  // cannot catch it.
+  let thread_body = match (thread.objective.trim(), thread.context.trim()) {
+    ("", context) => context.to_string(),
+    (objective, "") => objective.to_string(),
+    (objective, context) => format!("{objective}\n\n{context}"),
+  };
+  if !thread_body.is_empty() {
+    out.push(DocSection {
+      owner_type: "thread".to_string(),
+      owner_id: thread.id.clone(),
+      file: file.clone(),
+      seq: 0,
+      heading: Some(thread.title.clone()),
+      level: 0,
+      body: thread_body,
+    });
+  }
+
   for wp in &thread.wps {
     out.push(DocSection {
       owner_type: "work-package".to_string(),

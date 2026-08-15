@@ -193,3 +193,40 @@ fn a_missing_query_is_a_usage_error_exiting_one() {
     "INV-02: clap's own exit 2 does not reach the operator"
   );
 }
+
+/// Source 4: the thread's OWN reified prose (`objective`, `context`).
+///
+/// vc's finding, and the same defect as the work-package one two tests up,
+/// one level higher. D22 moved a thread's objective and context INTO
+/// `thread.json`; the indexer was only ever taught about D28's work-package
+/// fields. The phrase was rendered into `info.md` -- where every human looks
+/// -- and indexed nowhere, because `info.md` is a generated view that
+/// `THREAD_PROSE` deliberately excludes.
+///
+/// It is worth its own test rather than folding into the WP one for the
+/// reason this file already gives: a single search over a project containing
+/// all four sources passes while three of them are dark.
+#[test]
+fn a_phrase_in_a_thread_objective_is_found() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "a thread"]);
+
+  // Authored canon: the objective is a modelled field, so writing it here is
+  // writing the same bytes the tool writes, not a v2-style hand edit.
+  let canon = root.join("intent/st/ST0001/thread.json");
+  let text = std::fs::read_to_string(&canon).expect("read canon");
+  let edited = text.replace(
+    "\"objective\": \"\"",
+    "\"objective\": \"Establish the quokka invariant before ingest.\"",
+  );
+  assert_ne!(text, edited, "the fixture must actually set an objective");
+  std::fs::write(&canon, edited).expect("write canon");
+  ok(root, &["sync"]);
+
+  let hits = ok(root, &["search", "quokka"]);
+  assert!(
+    hits.contains("ST0001"),
+    "a thread's own objective is searchable: {hits:?}"
+  );
+}
