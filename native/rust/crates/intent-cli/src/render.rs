@@ -394,6 +394,37 @@ fn st(m: &ArgMatches) -> Result<(), String> {
       let title = arg(a, "title")?;
       let mut f = open()?;
       let id = f.st_new(&title).map_err(fail)?;
+      // **`-s|--start` COMPOSES two declared transitions and never constructs
+      // the end state** (vc, ruled 2026-08-15). The flag is v2 parity and it
+      // never changed; the machine grew a state underneath it. v2's `st new`
+      // landed at `not-started`, so `-s` was ONE step; v3 enters at `Triage`,
+      // so it now spans `Triage -> NotStarted -> Wip`.
+      //
+      // Building the end state directly is the obvious implementation and
+      // produces two defects at once: an audit trail showing a thread that was
+      // never triaged, and an effective `Triage -> Wip` edge that is not in the
+      // ratified machine -- which either forces AC-04.6 to accept an undeclared
+      // edge or routes construction around `transitions.rs` entirely.
+      //
+      // The triage decision is not skipped by composing. A user typing
+      // `--start` has decided the thread is real work, which IS the triage
+      // decision, made explicitly by the same act.
+      //
+      // **v2 reproduced the OUTCOME, not the mechanism.** Its `-s` sed-edits
+      // `status:` straight to WIP (`bin/intent_st:381`) -- the construct-the-
+      // end-state shape, in the incumbent. Parity is owed on what the operator
+      // observes, never on how the file got that way.
+      //
+      // A failure part-way leaves the thread at the state it reached and says
+      // so, rather than being rolled back: each step is a real transition that
+      // really happened, and the log is the record of what happened.
+      if flag(a, "start") {
+        f.st_triage(&id).map_err(fail)?;
+        f.st_start(&id).map_err(fail)?;
+      }
+      // v2 prints nothing extra for `-s` (`bin/intent_st:377-381`), so neither
+      // does this. The new status is one `st list` away and a second line here
+      // would be a deviation owed to nobody.
       println!("created: {id}");
       Ok(())
     }

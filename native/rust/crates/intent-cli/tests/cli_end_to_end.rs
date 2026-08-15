@@ -223,6 +223,48 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   );
 }
 
+/// `st new -s` COMPOSES two declared transitions and records both.
+///
+/// **The final status is not the test**, and that is the whole point of vc's
+/// ruling. Constructing the thread directly in `Wip` produces exactly the same
+/// status, so an assertion on status alone passes on the defect -- while the
+/// audit trail shows a thread that was never triaged and the machine acquires
+/// an effective `Triage -> Wip` edge nobody declared.
+///
+/// So this reads the EVENT LOG, which is where the difference is visible. The
+/// log is written out by the routine sync direction, which is also the first
+/// consumer proving `--to-disk` carries history rather than just entities.
+#[test]
+fn st_new_start_composes_the_two_transitions_rather_than_constructing_the_end_state() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "A thread", "-s"]);
+
+  assert!(
+    ok(root, &["st", "show", "ST0001"]).contains("status: WIP"),
+    "the flag still does what v2's flag did, from the operator's side"
+  );
+
+  ok(root, &["sync", "--to-disk"]);
+  let log = std::fs::read_to_string(root.join("intent/events.jsonl")).expect("the event log");
+  let ops: Vec<String> = log
+    .lines()
+    .filter(|l| !l.trim().is_empty())
+    .map(|l| {
+      serde_json::from_str::<serde_json::Value>(l).expect("each line is one envelope")["op"]
+        .as_str()
+        .expect("every envelope names its op")
+        .to_string()
+    })
+    .collect();
+
+  assert_eq!(
+    ops,
+    vec!["st.new", "st.triage", "st.start"],
+    "both transitions are recorded, in order -- a skipped state is not a cosmetic gap, it is a mutation that never happened in the log that exists to say what happened"
+  );
+}
+
 /// The two `reopen` verbs, driven to success -- the machine has no terminal
 /// states, and this is the test that proves it from the operator's side.
 ///
