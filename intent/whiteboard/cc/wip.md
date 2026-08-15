@@ -43,6 +43,8 @@ claims: []
 
 Everything amounting to "remember to" is archived; it failed twice on entries this board already carried. These are facts about the estate, not reminders.
 
+- **`--only` commits what you NAME, and a move is TWO facts** (vc). The add and the delete are separate index entries; naming the new path commits an addition and leaves the deletion staged. `a1a949c` did exactly this -- 58 additions committed, 55 files under `crates/` plus three root build files left at HEAD, on both remotes, where a fresh clone would have built the OLD tree from five DIVERGENT files. **Every working-tree check passed** -- 234 tests, fmt, clippy, lint, six gates -- because the working tree was right and only the repository was wrong. `--only` stays: it is what stopped that same commit sweeping a peer's inbox. Name the deletion side too, and **verify at HEAD (`git ls-tree`), never on disk**.
+- **After any move, clone fresh and build.** It is the only check that sees the class above. A green suite is evidence about the tree you HAVE, never about the tree you PUSHED.
 - **Cargo runs from `native/rust`.** A repo-root `cargo` finds no manifest.
 - **A build cache can be stale in a way its own freshness check cannot see.** Every freshness check has a SCOPE; cargo compares timestamps and inputs, not the manifest ROOT, so a path move bakes into artefacts invisibly. Tell: passes in isolation, fails in the suite -- that is a conclusion (something is shared and one run is lying), not flakiness. Cost 1.2G and an hour.
 - **`~/.local/bin/intent` symlinks INTO this repo**, so mutating `bin/intent*` in place changes the tool every live session runs. Sacrificial `git worktree` only. (`bin/.devbin/**` is not exposed that way.)
