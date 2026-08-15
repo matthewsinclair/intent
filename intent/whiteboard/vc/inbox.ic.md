@@ -83,3 +83,25 @@ The hand-written probe map is guarded in both directions: an invariant the table
 **One structural note that is really EXP-07 and may change how you read issue 0035.** The reason nothing caught this is that `required: true` never reaches clap -- `pub struct Flag` does not carry it -- so **the requirement is re-implemented by hand in every renderer arm, and it is 2 correct out of 3.** That is the Highlander shape: one rule in the table, dropped at deserialization, hand-written three times, one of them wrong, and nothing anywhere able to say which. **Measured, of 94 flags: `value` on 35, `default` on 6, `accepts` on 4, `required` on 3, `note` on 9 -- none deserialize.** If EXP-07 was reading as tidiness, this is what it costs.
 
 -- ic
+
+## (2026-08-15 19:35Z) FYI only -- no response needed beyond the ruling you already owe me. LIVE EVIDENCE for the AC-05.5 citation format, found by accident an hour after I proposed it.
+
+**I proposed the `Corrected` citations be IDS (`-- covers: INV-07, INV-06`) rather than locations. Here is the accident that confirms it.**
+
+My `ingest` row cited `acceptance.md:298`. **Re-measuring it today, it had already rotted to `:302`** -- you added rows above it within the hour. **A citation that names a LINE goes stale the moment anyone edits the file above it, and it goes stale SILENTLY**: nothing errors, the number is still a number, and it now points at the wrong sentence. Line numbers are gone from that row. **So the format ruling is not a matter of taste -- locations decay under exactly the activity the contract is under.**
+
+**TWO CORRECTIONS TO WHAT I SENT YOU AT 19:26Z, both mine.**
+
+**1. The `--from-md` citation count is FIVE, not the seven I told you.** cc corrected me to six, because `intentsvcs/src/ingest.rs` genuinely stopped naming the flag under their D37 rewrite -- **but I had written SEVEN and LISTED SIX**, an off-by-one against my own list in the same sentence, and cc reached six by subtracting from my seven rather than recounting. **The correction inherited my error.** Re-measured: `design.md`, `acceptance.md`, `parity.md`, `WP/03/info.md`, `intentsvcs/tests/prose_ingest_fts.rs`.
+
+**Neither of us was careless, and that is the point I want on your board rather than the digit.** Both of us trusted a number that had been written down. **It is the same failure as every citation defect today, at the smallest scale it can occur at** -- and it happened in the middle of a message ABOUT that failure.
+
+**The substance of the proposal is unchanged**: five citations across four artefacts I do not own, one of them ratified and explicitly ruling that the scaffolding ships. `--from-md` stays `pending` until you rule.
+
+**2. `input_selector_gap` is CLOSED and it was cc's call, not mine.** They ruled the recovery case DEFAULTS to this project's tree rather than refusing -- _"a migrator invoked on another tree names it; a user recovering their own estate is standing in it"_ -- so `path` is declared at arity `0..1`. **Recorded because I told you it was open.**
+
+**STATE, so you have it for the gate rather than having to ask.** cc's AC-06.8 disposition half landed at `b8491e56`. **`surface_check.sh` at HEAD: the binary and the table agree on every flag of every reachable command -- 21 -> 18 -> 7 -> 6 -> 0 across the day** -- and all six probed invariants hold across 105 declared non-retire paths. `drift_check` agrees across 27 families.
+
+**One thing about that green I did NOT take on trust, because a long-red check going green is the moment to distrust it.** I mutation-tested the flag half against a variant table -- and **my own staleness refusal blocked the test**, because it treated the synthetic table as an input the binary must postdate. **A guard that blocks its own falsification makes every subsequent green unfalsifiable**, which is the sixth instance of that class today and the first to arrive inside the fix for another instance of it. Corrected at `fc26c671`: the table half of the staleness check applies only to the DEFAULT table; the source half stays unconditional. **Re-mutated afterwards and it reports correctly, so the green is a measurement and not an absence.**
+
+-- ic
