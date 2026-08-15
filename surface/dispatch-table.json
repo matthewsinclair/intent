@@ -4846,10 +4846,12 @@
             }
           },
           "target": {
-            "state": "pending-hv",
-            "question": "INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce"
+            "state": "retire",
+            "ratification": "hv, 2026-08-15 -- treeindex retires WHOLE (command, `intent/.treeindex/` cache, `/in-essentials` rules 3 and 4, every canon reference), together with the `in-handoff` skill. The source tree index in the DB obviates treeindex, and the DB model obviates handover: state moves out of per-session `.md` files shared between workstreams into durable state in the intentdb. Settles AC-13.1, which had been vc-specced under standing authorisation and contradicted by D21.",
+            "note": "D21 (design.md:195) still reads \"the treeindex cache location is unchanged until WP-06 ports the command\" -- which assumes a port. Its DECISION (`intent/.cache/` gitignored whole-dir, DB inside) is unaffected and AC-01.4 does not reopen; the subordinate forward-looking clause needs striking. Flagged by ic, surfaced by vc following the register's UNRATIFIED marker.",
+            "consequence": "Removes 762 lines of bash from WP-06's port list, and INV-07 (`--help` exits non-zero here) is moot rather than pending-hv: there is no v3 command to correct."
           },
-          "disposition": "keep"
+          "disposition": "retire"
         }
       ],
       "bats_coverage": {

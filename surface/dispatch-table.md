@@ -2084,7 +2084,7 @@ Generate LLM-oriented directory summaries
 
 | command     | args  | flags                                                                           | help                                      | disposition |
 | ----------- | ----- | ------------------------------------------------------------------------------- | ----------------------------------------- | ----------- |
-| `treeindex` | <dir> | --depth/-d <n>, --check, --dry-run, --force, --prune, --model <name>, --help/-h | Generate LLM-oriented directory summaries | keep        |
+| `treeindex` | <dir> | --depth/-d <n>, --check, --dry-run, --force, --prune, --model <name>, --help/-h | Generate LLM-oriented directory summaries | retire      |
 
 ### `treeindex`
 
@@ -2112,8 +2112,8 @@ Generate LLM-oriented directory summaries
 - **Defects observed in v2:**
   - INV-07 at `treeindex --help`
   - INV-06 at the unknown-flag path writes to BOTH streams -- one of only two such cases in 108 probes
-- **Target:** `pending-hv`
-- **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **Target:** `retire` -- ratified: hv, 2026-08-15 -- treeindex retires WHOLE (command, `intent/.treeindex/` cache, `/in-essentials` rules 3 and 4, every canon reference), together with the `in-handoff` skill. The source tree index in the DB obviates treeindex, and the DB model obviates handover: state moves out of per-session `.md` files shared between workstreams into durable state in the intentdb. Settles AC-13.1, which had been vc-specced under standing authorisation and contradicted by D21.
+- **Note:** D21 (design.md:195) still reads "the treeindex cache location is unchanged until WP-06 ports the command" -- which assumes a port. Its DECISION (`intent/.cache/` gitignored whole-dir, DB inside) is unaffected and AC-01.4 does not reopen; the subordinate forward-looking clause needs striking. Flagged by ic, surfaced by vc following the register's UNRATIFIED marker.
 
 ## Family: `fileindex`
 

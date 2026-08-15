@@ -208,6 +208,7 @@ extract_test_body() {
 OVERRIDES="
 intent_bin_retarget_guard.bats|out-of-scope|harness invariant, decided|Guards the \$INTENT_BIN invariant across the estate by reading test SOURCE; it invokes no CLI at all. It holds \`bin/intent_<sub>\` spellings as literal needles, which the sub-script rule cannot tell from a call site. Carries into v3 unchanged in purpose -- whatever the binary is, the estate must reach it through one name.
 whiteboard_clock_guard.bats|out-of-scope|hook behaviour, decided|Exercises a pre-commit hook in a throwaway git repo, not the Intent CLI. Unaffected by the binary swap.
+treeindex_commands.bats|retire|hv ruling 2026-08-15|Retires with the command. hv ruled treeindex retired WHOLE -- the source tree index in the DB obviates it -- so its 53 tests retire with the thing they test and need no ratification ref, because nothing is being deliberately CHANGED. Note the class reason differs from the usual \`retire\`: this file does not die with the shell, it dies with the command. Classified by ruling; the burn measurement (0/53, sub-script entry point) is what it always was and is no longer what decides the row.
 organize_commands.bats|retire|hv ruling 2026-08-14|Retires with the command. hv ruled \`organize\` vestigial by construction -- a strictly structured model cannot hold data in the wrong spot or format -- so both implementations are planned retires (parity.md, 2026-08-14; via vc). Classified by ruling, not by burn.
 "
 
@@ -255,8 +256,14 @@ organize_commands.bats|retire|hv ruling 2026-08-14|Retires with the command. hv 
 # RETIRE? That answer settles this row, WP-06's port list and WP-13's T0.
 #
 # Format: <basename>|<ratification ref>
+# EMPTY, AND THAT IS THE ANSWER RATHER THAN AN OMISSION. The one entry this
+# table ever held was `treeindex_commands.bats|BLOCKED -- hv must first rule D21
+# (ports) vs AC-13.1 (retires whole)`. hv ruled RETIRE on 2026-08-15, so the row
+# moved to `retire` by override and a retired test needs no ratification ref --
+# nothing is being deliberately changed, the command is simply going. The column
+# is kept because `deviate` rows can reappear and parity.md:32 still requires a
+# D-number when they do.
 RATIFICATIONS="
-treeindex_commands.bats|BLOCKED -- hv must first rule D21 (ports) vs AC-13.1 (retires whole); if RETIRE this row becomes retire and needs no ref
 "
 
 lookup_ratification() {
