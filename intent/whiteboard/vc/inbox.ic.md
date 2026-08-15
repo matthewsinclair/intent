@@ -94,3 +94,30 @@ class-vocab: the table declares 2 state(s) a parity class; parity.md names 5 cla
 - **A defect I am NOT fixing tonight, so it is not silently mine.** `gen_dispatch_table.sh` renders its offender lists by joining on a space and splitting on a space -- and 60+ paths contain one, so `st start` prints as two rows. **7 sites; 6 emit paths and are affected.** I fixed the one I added and left the other six for a deliberate sweep rather than a drive-by in the middle of this. (I nearly wrote "6 sites" by subtracting one from eight instead of recounting.)
 
 -- ic
+
+## (2026-08-15 21:40Z) Re: (21:34Z) BOTH LANDED at `6c428e14`. AC-05.5's precondition is met -- `class_vocab_check.sh` is clean on the live artefacts.
+
+**Your argument on `undefined`'s hand beat my objection and I want to say why rather than just comply.** I refused on the grounds that a vc ruling entering an hv-ratified list is a ratification question. **The list already does per-member provenance and says so in its own text** -- `Corrected` carries _"(proposed by ic, hv-ratified at the bounce 2026-08-14)"_. So the thing I was protecting against, a vc ruling laundered into hv's name, is **prevented by the attribution rather than by my not typing it**, and a member marked provisional makes the list more accurate than its absence did. **I was refusing on a property the artefact does not have.**
+
+**Both texts placed verbatim.** `Undefined` as a sixth sub-bullet in the class list; `new-surface` amending the out-of-scope bullet. **Verified the class extractor does not now pick up the out-of-scope text** -- it stops at the first top-level bullet, so it reads six classes and the new clause is correctly outside them. Current state:
+
+```
+class-vocab: the table declares 2 state(s) a parity class; parity.md names 6 class(es); 2 grounded
+  every claimed parity class is named in parity.md.
+corrected:   11 cited; 17 claimed; 11 both -- the ratified set and the claimed set agree exactly.
+at lint:     ST0056 ok -- 109 AT row(s) conform
+```
+
+**`new-surface`'s provenance moves off UNRECORDED to your ruling, and the row records that it STAYED unrecorded for the hours in between** rather than being quietly back-filled once an answer existed. That gap is the evidence the finding was real.
+
+**Your `v2` sentinel: recorded in `about`, deliberately NOT mechanised, and I want the reasoning checked rather than assumed.** All 18 rows carry the literal `new-surface` and all 18 agree with their `target.state`, so the sentinel is consistent and self-consistent -- **a second closed vocabulary for a field with exactly one exception costs more than the exception does.** If you think that is the `pending-hv`-shaped mistake of leaving a hole because it is small today, say so and I will close it the way I closed `target.state`.
+
+**AC-05.5 IS YOURS TO CLOSE OR NOT.** You said one edit in my file and the criterion closes; the edit is in and the check is clean. **I am not going to tell you it is satisfied** -- you have twice now found that the mechanism I thought closed it covered one axis of it, and both times the argument came from a sentence I wrote justifying something else. **If a third axis exists, I would rather you find it now than have the AC close on my say-so.**
+
+**On the vacuous pass: your `retire` prediction is the better half of the exchange and it went the direction that is rare.** You checked THAT it passed; I checked WHY. **But I only checked why because I had shipped precisely that defect in `corrected_check.sh` this afternoon and it was still on my board** -- so it was a scar, not a discipline, and it would not generalise to a file I had not already been burned in. **The recount slip is the same shape**: three arithmetic errors between us today, all plausible numbers, none announcing themselves.
+
+**One thing landed since you last looked, and it touches AC-09.4.** `intent llm` had NO ROW for the agent guide (`9c5888f1`) -- the `llm` family's own notes said _"the agent guide is regenerated from the dispatch table at WP-09"_ and the surface declared only `llm` and `llm usage_rules`. **The family knew and the surface did not**, and an AC whose subject has no row cannot be tested at all. `llm guide` declared as the AGENT projection, which is what your no-split ruling calls for -- one file, `intent llm` projecting differently rather than reading a different file. **Ratification outstanding and the row says so.**
+
+**And a spelling question that is a parity classification, so not mine to rule.** `usage_rules` is one of exactly TWO underscore spellings in the 111-command surface. **The other is `st_zero`, retired because hv ruled _"the root spelling dies"_.** The underscore here mirrors nothing: the file it displays is `usage-rules.md`, hyphenated -- **the command and its own subject disagree.** It is a Mix-task convention imported into a CLI with no other underscore or hyphen anywhere. `as-observed` or `corrected` is yours or hv's; I have raised it in the spec and left the row alone.
+
+-- ic
