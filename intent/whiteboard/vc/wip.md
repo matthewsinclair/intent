@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-15 08:57Z
+heartbeat_at: 2026-08-15 09:05Z
 status: active
-focus: "dc (DevX Claude) onboarded on hv's ask -- roster is five. native/rust move verified clean at HEAD and on both remotes after the half-move defect. ic corrected my skew-check table. 31/94."
+focus: "D33 landed -- hv ruled no node ever authors a timestamp, project-wide, clock rules DELETED once WP-14 lands. dc onboarded and sequenced (tests.yml false green first). 31/95."
 claims: [ST0056]
 ---
 
@@ -22,7 +22,9 @@ claims: [ST0056]
 - **AC-00.1 carries the 28 deferred non-core `pending` rows.** ic's to name, gated here, not forgiven.
 - **`whiteboard/README.md` has no single writer and that is now written into the file itself.** It described cc's lane as `crates/` through the whole `native/` move and nobody owned correcting it. Two candidate fixes, both open: give it a writer, or generate the roster rows from each node's `wip.md` header so it cannot disagree with the boards it describes (cc's, and the D30 direction -- probably free out of WP-14).
 - **ONE QUESTION STILL OPEN FOR HV, and it is the only existential one left**: does "durable state is in the db" (D32) reverse D01? D01 says durable truth is committed JSON canon and the DB is rebuildable -- `rm intent.db` always safe, no DB migrations ever, git can review the model. Recorded as NOT reversing it, because hv's contrast was model-versus-scattered-md. Two nodes stopped on it independently. **Never settle this by inference.**
-- **Two apparatus guards ruled, both ic's to build, both still unwired.** (a) `provenance_check.sh` into pre-commit -- and it is more load-bearing than it looks: **`pertest.md` cannot be re-derived from committed state by anything** (`gen_pertest.sh` needs burn.sh's uncommitted TAP), so for that one artefact the stamp is the ONLY guard in existence. (b) AC-03.4 ruled 08:43Z: a sibling `view_skew_check.sh`, **not** an AC and **not** merged into provenance_check -- different invariants behind one exit code is `intent critic`'s exit-2 overload rebuilt in new apparatus. Path-triggered, since `gen_dispatch_table.sh` reads only `$IN`. `gen_inventory.sh` does not honour `OUT`, so `cmd-*.md` is unverifiable until it does.
+- **dc's queue sequenced (09:02Z) and dc holds pending hv's go.** `tests.yml` first and recommended to hv as not needing plan approval: `bats ... || echo "status: $?"` means a CI leg **cannot fail** -- a false green over integration tests, and the `$?` reads the wrong command so even its diagnostic lies. Then `rust-toolchain.toml`, then the two guards WITH `gen_inventory.sh`'s `OUT` (26 of 30 apparatus views are unverifiable without it), then fresh-clone-and-build (pre-commit/pre-push/CI trade is dc's to settle), then `bin/int`.
+- **THE D01 QUESTION NOW HAS A SECOND INSTANCE and should be settled, not carried.** D32's "durable state is in the db" and D33's "db-enforced timestamp" both read against D01 if taken literally. D33 records the requirement that survives either answer -- a timestamp must survive `rm intent.db` unchanged, so stamping is the service write path's and not a DB column default.
+- **Two apparatus guards ruled, both ic's to build, both still unwired -- now dc's to WIRE.** (a) `provenance_check.sh` into pre-commit -- and it is more load-bearing than it looks: **`pertest.md` cannot be re-derived from committed state by anything** (`gen_pertest.sh` needs burn.sh's uncommitted TAP), so for that one artefact the stamp is the ONLY guard in existence. (b) AC-03.4 ruled 08:43Z: a sibling `view_skew_check.sh`, **not** an AC and **not** merged into provenance_check -- different invariants behind one exit code is `intent critic`'s exit-2 overload rebuilt in new apparatus. Path-triggered, since `gen_dispatch_table.sh` reads only `$IN`. `gen_inventory.sh` does not honour `OUT`, so `cmd-*.md` is unverifiable until it does.
 - **WP-10 precondition, from cc**: measure L2/L3 failures per fleet member at its named revision before ruling on whether a broken reference in a CLOSED thread carries or blocks.
 
 ## Verification kit
@@ -36,7 +38,7 @@ claims: [ST0056]
 
 Measurement rules live in `intent/st/ST0056/parity.md` under `## Measurement rules` -- twelve now, not here. A board does not outlive the session that writes it. What follows is operational to this node.
 
-- **THE CLOCK. Four fabrications in one session, while writing the rule, enforcing it on a peer, and citing it in the message carrying the fourth.** It is not a care problem and concentrating harder is demonstrably not the fix -- there is no internal clock to be approximately right about, so a stamp is generated like any other token unless composition is interrupted to run `date -u`. **Run the command, in its own step, and paste the output.** The structural fix is D30/WP-14 making the API the only writer.
+- **THE CLOCK -- STILL IN FORCE AT FULL STRENGTH, and now on death row.** D33 (hv, 2026-08-15) rules that no node ever authors a timestamp and that these rules get DELETED, not softened, the moment WP-14's API is the only writer. Until then the class is still constructible, so nothing relaxes. **Four fabrications in one session, while writing the rule, enforcing it on a peer, and citing it in the message carrying the fourth.** It is not a care problem and concentrating harder is demonstrably not the fix -- there is no internal clock to be approximately right about, so a stamp is generated like any other token unless composition is interrupted to run `date -u`. **Run the command, in its own step, and paste the output.** The structural fix is D30/WP-14 making the API the only writer.
 - **Never `head` a list you are counting.** cc lost the eleventh of eleven scope spellings this way -- and a frequency-sorted list puts the RARE value last, which is the one that decides the rule. hv's version: never `head -1` when examining what remotes exist.
 - **Read `$?` before anything else touches it.** `cmd | head; echo $?` reports the PAGER's exit; it manufactured two clean defects that do not exist. Redirect to a file, or `${PIPESTATUS[0]}`.
 - **Scope every grep to the thing being counted, then calibrate against a known-good case.** Prose in a class-rules table has counted as data rows twice.
