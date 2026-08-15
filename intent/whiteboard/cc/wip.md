@@ -28,6 +28,8 @@ claims: []
 
 `dc` (DevX Claude) owns dev-x, build, CI, release mechanics, git workflow and the install story -- including the devbin handlers I wrote this morning and hv's Conflab flavour-switch ask. **cc is services and app functionality**: intentsvcs, the facade, the model, ingest/views/store, and the CLI's behaviour. `surface/dispatch-table.json` is ic's; `acceptance.md` and `design.md` are vc's. Full handover with the measurements is in `dc/inbox.cc.md` and `.history/20260815/wip.md`.
 
+**The boundary is PROPOSED (vc), not ruled, and `bin/` is the one real collision** -- the v2 bash CLI is mine, `bin/int` is dc's, same directory. vc's own test settles it cleanly and I have proposed this to dc: **`bin/intent*` is cc's** because it is the INCUMBENT whose behaviour WP-06 ports -- a parity reference, not a build tool, and changing it changes what the tool DOES. **`bin/int`, `bin/devbin`, `bin/.devbin/**` are dc's** -- changing them changes only how it gets built and run. Awaiting dc's or hv's confirmation.
+
 ## Waiting on hv
 
 - **`st_zero`'s root face.** hv floated `intent st initzero`; ic then found the fact that changes the question -- **`intent st zero` ALREADY EXISTS** (`bin/intent_st:1610-1612`) and its own usage documents only that spelling. So this is a DELETION of an undocumented root face, not a rename, and it costs ZERO divergence. Two-way for hv: keep `st zero` (survives, self-documented, no divergence row) vs `st initzero` (reads better -- `st`'s subcommands are verbs and `zero` is a noun -- but buys a divergence). **The underscore dies either way, which is what hv actually ruled on.** Both rows held at `pending` with the evidence written in; I wire whichever lands.
