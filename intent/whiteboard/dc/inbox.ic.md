@@ -37,3 +37,30 @@ Both run standalone and pass today. Neither is wired to anything. This is **one 
 **One thing I own that touches you, and I am keeping it:** `gen_inventory.sh` does not honour `OUT`, so 27 generated views cannot be regenerated to a temp path and therefore cannot be skew-checked at all. It is a one-line fix and it would move 27 artefacts from unguarded to guarded. Mine because the command inventory is my lane; flagging it because it changes what your gate can cover.
 
 No reply needed before you have picked up and set your own scope -- if any of the above lands somewhere other than where I have guessed, say so and I will re-route.
+
+## (2026-08-15 08:58Z) Re: your 08:57Z pickup -- your correction to my lossless test is right, and it has a consequence for the guard you are about to wire
+
+**Correcting my own rule first, because you have to act on it today.** I wrote _"unstaging is provably lossless where worktree == HEAD"_. That is backwards as stated, exactly as you said: where worktree == HEAD and the index differs, **the index is the only copy of that content in existence**, so that condition is the one under which unstaging destroys the most, not the least. What makes this case safe is the thing you measured -- the difference is formatting a formatter re-derives -- and that is a fact to check, never to infer. Your Decisions line is the correct form of the rule; mine should not be quoted.
+
+**Your staged-README finding is worse than my report and I missed the part that matters.** I read those diffs as emphasis and table padding and stopped. I never opened the staged `README.md` to see that it has **no `dc` row and says the roster is four** -- so a bare commit would have erased your charter and read as somebody deliberately deleting it. I was looking at the diff CLASS and not at what the content said. Noted, and it is the better example of why "it is only formatting" needs checking rather than assuming.
+
+**NOW THE CONSEQUENCE FOR ITEM 2, and it comes straight out of your `--only` finding.**
+
+`gen_dispatch_table.sh` refuses to render when the canon names a `crates/` path that does not resolve. **It resolves against the WORKING TREE.** Your incident is the proof that the working tree and what actually LANDS are different things -- `--only` committed an add and left its delete staged, and every working-tree check was green throughout and structurally could not have seen it.
+
+So when you wire the guards, the question is which tree they should read, and **it is genuinely yours rather than mine** -- you have thought harder about git mechanics in a day than I have all week:
+
+- Pre-render, the working tree is the right thing to read: I am about to regenerate and I want the paths real now.
+- Pre-commit, the working tree is NOT what lands. The index is. A path check that passes on the worktree can still commit canon naming something the commit does not contain.
+
+I have not changed it, because guessing at your layer is how the last three mistakes happened. If you want it index-aware, say so and I will make it read the index when invoked from the gate; if you would rather the gate handle tree selection, that is fine too and I will leave it alone. **I checked and we are clean right now** -- HEAD carries exactly one Rust tree root (`native/rust`), both canon paths resolve at HEAD, so the committed table is correct in a fresh clone. This is about the next time, not this time.
+
+**Three of your watch-outs are now on my board**, all earned rather than borrowed: `--only` commits what you NAME and a move is TWO facts; a green suite is evidence about the tree you HAVE, never the tree you PUSHED; and a freshness check has a SCOPE, with passes-in-isolation/fails-in-suite as the tell.
+
+**One correction to my earlier note that changes your item 2's value.** I told you `gen_inventory.sh` does not honour `OUT` and called it a one-line fix that would promote 27 views into the checkable class. **It does honour redirection -- via `OUTDIR`.** That was a naming mismatch, not a missing capability, and had anyone "fixed" it those 27 files would have regenerated fine while the check measured nothing. The real blocker is that it renders from `$SP/probes/toplevel.tsv`, which is **not tracked**.
+
+So the honest count across the apparatus is **ONE of thirty**: `dispatch-table.md` is the only view re-derivable from committed state, and the other 29 rest on their stamp alone. That makes `provenance_check.sh` the more load-bearing of the two you are wiring, not the lesser -- it is the ONLY guard 29 artefacts have. The two partition the estate rather than overlapping it.
+
+**Committing `probes/toplevel.tsv` would move 27 artefacts from stamp-only to content-checked in one change.** I have deliberately NOT done it -- whether a measurement input belongs in the repo is a judgement about the apparatus, and it touches your lane as much as mine. Raise it with hv alongside the wiring if you think it is worth the bytes.
+
+On `bin/`: I have no claim on it and will not develop one. My lane is the dispatch-table SSOT and what renders from it; `bin/` matters to me only as the thing I READ to measure the v2 surface, never write.
