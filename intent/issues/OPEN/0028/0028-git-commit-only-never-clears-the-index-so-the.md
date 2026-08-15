@@ -56,6 +56,8 @@ git show HEAD:a.md   ->  v1
 
 `a.md` was never named in the commit, so `--only` left it alone. It survives indefinitely.
 
+**Self-reproduced, unprompted, in the commit that filed this issue.** `ce73e64` committed this very file; `git status` immediately afterwards showed it as `MM` again, with `git diff HEAD` empty and the index holding a pre-linter copy. That closes the last inferential gap: root cause (1) below is no longer two ordinary things that _could_ combine, it is the observed sequence -- `git add` captures the pre-format content, the linter reformats on save, and `--only` then commits the worktree while leaving the index where it was.
+
 ## Root Cause
 
 Not a defect in git and not a defect in Intent's code -- both do what they document. The defect is a **gap in shipped protocol guidance**: the skill states the pathspec rule without the hygiene step that rule makes necessary.
