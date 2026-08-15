@@ -238,6 +238,7 @@ Mark a steel thread as cancelled
 - **stderr:** `error: ...`
 - **Observed notes:** No close-gate consultation -- cancel is not a close. Deliberate (feedback: use the existing Cancelled status, never invent a new one).
 - **Target:** `as-observed`
+- **conflict open to vc:** THE RATIFIED MACHINE AND THIS ROW CANNOT BOTH BE RIGHT. data-model.md puts a `reason recorded` guard on EVERY edge into `Cancelled`, including this one -- but v2 `st cancel` takes no `--reason` flag (flags is empty above, measured, not assumed) and records none. So either this row stops being `as-observed` and gains `--reason` (making its disposition `corrected`, not `keep`), or the guard is aspirational and the machine should say so. Raised rather than resolved: the machine is hv-ratified and the measurement is mine, and I do not get to reconcile a ratified guard by editing the surface it constrains. Same question applies to `st hold`, `st reopen` and `st reinstate` below, which I have specified WITH `--reason` because they are new and have no v2 behaviour to preserve.
 
 ### `st triage`
 
@@ -321,6 +322,9 @@ List steel threads (default: in progress only)
   - `--status` and `--width` consume the next positional blindly (shift; VALUE="$1"). A trailing `--status` with no value silently yields an empty filter rather than a usage error.
 - **Target:** `as-observed`
 - **Note:** clap makes the missing-value case an error for free -- that is a `corrected` consequence rather than a choice, same shape as INV-08. Byte-exact column padding is parity-bound: `tests/unit/output_width.bats:44-140` pins it.
+- **status vocabulary:** THE RATIFIED SIX-STATE MACHINE REACHES THE SURFACE HERE, and this flag is the only place a user types a status name. v3 must accept the six states of Machine 1: `triage`, `not started`, `wip`, `hold`, `completed`, `cancelled`. `triage` is the addition -- v2 accepts five and has no spelling for it.
+- **tbc trap:** MEASURED, and it strengthens the ratified migration rule with a second independent witness. In v2 `TBC` IS NOT A STATE AT ALL -- it is a DISPLAY ABBREVIATION of `Not Started`, narrow enough for the table column. Three sites, all read: `canonical_status()` at bin/intent_helpers:544 maps `tbc` AND `to be commenced` to the stored value `Not Started`; bin/intent_st:120 abbreviates `Not Started` to `TBC` for rendering; and the tool's OWN usage text at bin/intent_st:46 spells it out in words -- `tbc, not started -> TBC   To be commenced`. So the ratified rule (v2 `TBC` maps to `NotStarted`, never to `Triage`) is not merely defensible, it is what the tool has always documented about itself. THE SURFACE TRAP THAT FOLLOWS IS MINE: v3 must NOT abbreviate `Triage` as `TBC`, and must NOT accept `--status tbc` as `Triage`. Either would give a familiar token a second meaning in the render column and the filter -- the two places a v2 user reads fastest and checks least. `tbc` should keep resolving to `NotStarted`, exactly as it always has.
+- **render order:** bin/intent_st:941 pins the display order as a five-element list -- `WIP TBC HOLD COMPLETED CANCELLED`. Six states means this list grows, and `Triage` belongs BEFORE the `Not Started` slot because it precedes it in the machine. Named here because it is a surface fact hiding in an array literal, and a new state that renders in the wrong place looks like a sorting bug rather than a missing decision.
 
 ### `st show`
 
@@ -430,6 +434,10 @@ Retrofit ST0000 deliverables into a brownfield project -- audit what is present,
   - INV-07 at inverted -- bare invocation prints only usage and exits 0, where every other family exits 1
 - **Target:** `corrected` -- ratified: hv, 2026-08-15 -- `st_zero` is wrong and the root spelling dies. `zero` was never a verb: it is the NAME of the thing (Steel Thread Zero / ST0000), which is why `intent st zero install` parses noun-then-verb and why the spelling reads as "initialise something to zero" -- not what the command does. It audits which ST0000 deliverables are present, missing or partial in a brownfield project and installs the missing ones. `bootstrap` names that operation and promotes the real verb to the right position. hv considered `initzero` and preferred `bootstrap`.
 - **Note:** `install` COLLAPSED into the bare form, deliberately, as part of the same correction. It was the only value of the subcommand and the real verb hiding a level down; keeping it gives `intent st bootstrap install`, two stacked verbs, which rebuilds the exact defect this ruling removes. The audit path is already a flag (`--audit-only`), so nothing is lost. Landed rather than asked because delivering the ruled verb on top of the unruled noise word would deliver the problem in a new costume; one sentence reverses it.
+- **spelling:** intent st bootstrap
+- **consequence:** `intent bootstrap` (top level) already exists and means "first-time setup: create global Intent configuration". This is NOT a collision, it is the same verb meaning the same thing at two levels -- bootstrap the machine, bootstrap the steel-thread structure in a project. Checked before landing; it strengthens the choice rather than qualifying it.
+- **face:** surviving
+- **never built:** false
 - **Cross-reference:** THE surviving face. The top-level `st_zero` family is the deleted root spelling; see its entry for the divergence cost.
 
 ## Family: `wp`
@@ -529,6 +537,7 @@ Mark a work package as Done
   - Consults the close-gate; warns on an unedited `## Objective` placeholder (`warn_unedited_objective`, issue 0010)
 - **Target:** `as-observed`
 - **Note:** The gate becomes an in-process facade call at WP-04 (AC-04.3). Behaviour and message are parity-bound; the mechanism is not.
+- **machine note:** hv, 2026-08-15 -- Machine 2 ratifies `wp done` REFUSED on a BLOCKED gate, and the measured v2 behaviour above ALREADY does that (exit 1 when the WP group's contract is BLOCKED). So the ratification adds no surface change here; the change is `wp reopen` below. Recorded because `as-observed` staying correct after a ratification is a fact worth stating -- the alternative is a later reader assuming this row was never re-checked.
 
 ### `wp reopen`
 
@@ -697,6 +706,8 @@ Reopen a satisfied non-test AC -- clears satisfaction AND its evidence together
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: cc, 2026-08-15, service half at `acf8491` -- the inverse D32 requires. `ac satisfy` was a one-way door: a verifier whose evidence later proved incomplete had to HAND-EDIT acceptance.md, the one file the CLI exists to own. Recorded here BEFORE the surface is wired, per AC-06.3, because the spine builds from this table and the command cannot exist until the row does.
 - **Note:** Clears satisfaction and evidence TOGETHER, deliberately. Evidence outliving the claim it supported is the defect this fixes, not a convenience it preserves -- a cleared AC keeping its old evidence reads as satisfied-with-provenance to every later reader.
+- **consequence:** Refuses a test-backed AC (satisfaction there is COMPUTED from covering green ATs and never stored -- unsetting it would be writing to a derived field) and refuses an AC that is not satisfied (nothing to undo; silent success on a no-op is INV-01 territory).
+- **placement:** FIRST sub-verb addition in this canon: every `new_surface[]` entry is a top-level command (search, sync, schema, export, ingest, backup, daemon, mcp). This one is recorded as a FAMILY ENTRY instead, because the spine places verbs under their family from `families[].entries[]` and a bare `ac unsatisfy` in the top-level array would have no parent. Flagged rather than assumed -- cc owns the spine and should confirm it builds from here; vc owns whether the contract wants one home or two.
 
 ### `ac gate`
 
@@ -883,6 +894,9 @@ Set an AT green (reachable only from red)
 - **Observed notes:** The file-existence check fires on the transition to green specifically (bin/intent_acceptance:1337): a green row whose test does not exist is the exact shape of a vacuous pass.
 - **Target:** `corrected` -- ratified: ic, 2026-08-15, ruling cc's parity question -- KEEP THE GUARD. v2 refuses green unless the AT is currently red (bin/intent_acceptance:1325). v3's at_set takes any status from any status. This is v3 more OPEN and less faithful, not more closed.
 - **Note:** THE GUARD IS NOT AN ARBITRARY RESTRICTION, WHICH IS WHY THIS IS NOT A DIVERGENCE WORTH BUYING. Requiring green to come from red means an AT cannot be marked passing without first having been recorded as failing -- it is the MECHANISED form of this thread's own central doctrine, that a check which has only ever passed is not verified. Drop it and the discipline survives only as prose, which is rule 12 exactly.
+- **spelling:** intent at green
+- **consequence:** Three instances on 2026-08-15 alone of a green that proved nothing, none of which had ever been seen red: four vacuous greps that never opened a file, a normaliser that silently did nothing under BSD sed, and a `touch`ed canary whose empty diff sent the run down the wrong branch. v3 restores the from-red guard.
+- **open to cc:** v2 carries FOUR guards on `at`, not one, and only the from-guard was raised. The others: `na` refuses on a test-backed AT; a non-`na` status refuses on a `(non-test)` AT; and green/red on a test-backed row refuse unless the CITED TEST FILE RESOLVES on disk (issue 0015 -- catching a rename at the point of the lie rather than after a stale green has counted as coverage for months). Please report whether v3 has those three, because if they went with the from-guard the divergence is four times what was reported.
 
 ### `at red`
 
@@ -1230,6 +1244,39 @@ Display the resolved project configuration
   - Produces no output whatsoever in a project. A user cannot distinguish 'ran and printed the empty config' from 'did nothing'.
 - **Target:** `undefined` -- ratified: vc ruling, 2026-08-14 -- the fifth parity class, opened on this entry; `config` is its first member -- behaviour: v3 prints the resolved project configuration. This is DESIGNED, not ported and not corrected.
 - **Note:** v2 exhibits no behaviour here at all (0B on both streams, exit 0), so there is nothing to be faithful to and nothing to correct. Recording it as `corrected` would have hidden a design decision inside a bug-fix class, and design decisions need a different reviewer.
+- **keys backup:**
+  - `ratification`: D35 (hv, 2026-08-15) puts the backup schedule and retention in `intent/.config/config.json`, read through `intent config`. Key names are SURFACE, so ic names them and cc implements against these; cc was told not to invent them. Named 2026-08-15 to unblock AC-03.10.
+  - `shape`: A nested `backup` object, on the existing `plugins` precedent -- config.json already groups a subsystem's settings under one object rather than flattening them behind a prefix. Single-word snake_case keys are the file's convention throughout (`intent_version`, `project_name`, `st_prefix`, `dft_width`, `intent_dir`).
+  - `keys.0.key`: backup.enabled
+  - `keys.0.type`: bool
+  - `keys.0.default`: true
+  - `keys.0.meaning`: Whether the DAEMON takes scheduled snapshots.
+  - `keys.0.note`: DELIBERATELY DOES NOT GATE `intent backup`. A manual snapshot always runs, because the moment a user most wants one is the moment they have just discovered the schedule was off. One flag disabling both would turn a preference into a trap.
+  - `keys.1.key`: backup.schedule
+  - `keys.1.type`: string
+  - `keys.1.default`: daily
+  - `keys.1.values.0`: hourly
+  - `keys.1.values.1`: daily
+  - `keys.1.values.2`: weekly
+  - `keys.1.meaning`: Base cadence. The daemon takes a snapshot when the newest one is older than this interval.
+  - `keys.1.note`: ENUMERATED, NOT A CRON EXPRESSION, and that is a decision rather than a simplification. A cron string is a mini-language embedded in a hand-edited config file -- the shape behind the 0012 quoting scar -- and it is SILENTLY wrong when mistyped rather than refused. D35 fixes the retention tiers at day/week/month, so arbitrary cadences have nowhere to land anyway; a schedule coarser than a tier simply leaves that tier unfilled, which needs no special case.
+  - `keys.2.key`: backup.retain.daily
+  - `keys.2.type`: integer
+  - `keys.2.default`: 7
+  - `keys.2.meaning`: How many daily-tier snapshots to keep.
+  - `keys.3.key`: backup.retain.weekly
+  - `keys.3.type`: integer
+  - `keys.3.default`: 4
+  - `keys.3.meaning`: How many weekly-tier snapshots to keep. A snapshot enters this tier by being the newest of its ISO week.
+  - `keys.4.key`: backup.retain.monthly
+  - `keys.4.type`: integer
+  - `keys.4.default`: 12
+  - `keys.4.meaning`: How many monthly-tier snapshots to keep. A snapshot enters this tier by being the newest of its calendar month.
+  - `keys.4.note`: Pruning removes any snapshot held by NO tier. `0` disables a tier explicitly; an ABSENT key means the default. Absence and zero must not be the same value in a retention policy, because one of them deletes backups -- the absence-as-meaning failure this toolchain keeps refusing, in the one place it costs data.
+  - `deliberately_not_keys.0`: THE SNAPSHOT DIRECTORY -- fixed at `.backup/db/`. D35 requires DB snapshots to hold their own namespace under `.backup/`, because `intent upgrade` already writes `backup-<TIMESTAMP>/` rollback artefacts there and the two carry different retention rules. A configurable path is exactly how someone points the pruner at the upgrade namespace, making the collision this rule exists to prevent reachable through SUPPORTED configuration.
+  - `deliberately_not_keys.1`: ANY SWITCH THAT SILENCES BACKUP FAILURE -- IN-AG-NO-SILENT-001 at its sharpest. This is the backup of the durable SSOT, and D35 records that the natural implementation (best-effort, on a timer, in a daemon nobody watches) is the one that fails silently. A key to turn the warning off MANUFACTURES that failure and gives it a supported name.
+  - `open_to_hv`: D35 quotes hv as `configurable from intent config`. I read that as _the setting lives in the config this command displays_ and have NOT invented `config get` / `config set` -- v2's `config` has no verbs and adding a setter is new surface nobody asked me for. If hv meant a writable `intent config set backup.enabled false`, say so and I will author the rows. Editing `config.json` directly works under either reading, so cc is unblocked either way. **vc, 2026-08-15: reading CONFIRMED and declining to invent the setter was the correct call.** Still open for hv, but no longer open in the sense of nobody having looked at it.
+  - `carry_forward`: vc, 2026-08-15, to hold rather than act on: **if config ever enters the model the way the whiteboard did under D30, the setter question returns as a D32 question rather than a surface preference** -- _a state that can be entered and not left is a missing mutation, not a missing flag_. It is NOT a D32 question today, because `config.json` is project configuration and not model state. Recorded on the row so the trigger is attached to the thing it would change.
 
 ## Family: `init`
 
@@ -1346,6 +1393,10 @@ Diagnose and fix common Intent configuration issues
   - Exits 0 even with findings, so it cannot be used as a CI gate as it stands. Usage block also names `intent_doctor` rather than `intent doctor`.
 - **Target:** `pending-hv`
 - **Open question for hv:** Should `doctor` exit non-zero when it finds something? v2 does not, so a CI job cannot gate on it. Changing it is `corrected`; leaving it means the skew and unparsed checks v3 adds are reportable but not enforceable.
+- **new obligations:**
+  - STATUS-VS-GATE DISAGREEMENT (hv, 2026-08-15, ratifying the state machines): `doctor` reports any unit whose status disagrees with its gate. Refusal on the way in is not enough on its own -- a status that was TRUE when it was set becomes a false green the moment its contract grows, which is how three of five WPs came to disagree with their own gates while every one of them had been closed legitimately.
+  - BACKUP STALENESS (vc, 2026-08-15, amending AC-03.10 after ic's `--list` question): `doctor` reports the newest snapshot's age against the configured `backup.schedule`. AC-03.10(d) had said only that a failed backup surfaces -- but A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could ship where nothing had ever run. Staleness is the two-sided test: it detects never-ran WITHOUT needing anything to have failed, the same construction as the clock guard's check C, which compares two stamps to each other and needs no clock at all.
+- **question sharpened by them:** BOTH obligations above make the open exit-code question materially heavier, and this is new evidence for a decision hv has not yet made. When `doctor` only reported configuration tidiness, `reportable but not enforceable` was a mild gap. It now detects (a) tracking data that is actively lying about whether work is finished and (b) a backup of the DURABLE SSOT that may never have run. Those are not advisory findings. A check that cannot fail a CI job is one nobody is obliged to read -- which is the unwired-guard shape dc measured: VISIBLE IS NOT CLOSED.
 
 ## Family: `upgrade`
 
@@ -2222,6 +2273,7 @@ Generate LLM-oriented directory summaries
   - INV-06 at the unknown-flag path writes to BOTH streams -- one of only two such cases in 108 probes
 - **Target:** `retire` -- ratified: hv, 2026-08-15 -- treeindex retires WHOLE (command, `intent/.treeindex/` cache, `/in-essentials` rules 3 and 4, every canon reference), together with the `in-handoff` skill. The source tree index in the DB obviates treeindex, and the DB model obviates handover: state moves out of per-session `.md` files shared between workstreams into durable state in the intentdb. Settles AC-13.1, which had been vc-specced under standing authorisation and contradicted by D21.
 - **Note:** D21 (design.md:195) still reads "the treeindex cache location is unchanged until WP-06 ports the command" -- which assumes a port. Its DECISION (`intent/.cache/` gitignored whole-dir, DB inside) is unaffected and AC-01.4 does not reopen; the subordinate forward-looking clause needs striking. Flagged by ic, surfaced by vc following the register's UNRATIFIED marker.
+- **consequence:** Removes 762 lines of bash from WP-06's port list, and INV-07 (`--help` exits non-zero here) is moot rather than pending-hv: there is no v3 command to correct.
 
 ## Family: `fileindex`
 
@@ -2349,6 +2401,10 @@ Retrofit ST0000 deliverables into brownfield projects
   - A bare invocation that printed only usage exits 0, where every other family in this table exits 1 for the same shape. Inconsistent in the opposite direction to INV-07.
 - **Target:** `corrected` -- ratified: hv, 2026-08-15 -- `st_zero` is wrong and the root spelling dies. `zero` was never a verb: it is the NAME of the thing (Steel Thread Zero / ST0000), which is why `intent st zero install` parses noun-then-verb and why the spelling reads as "initialise something to zero" -- not what the command does. It audits which ST0000 deliverables are present, missing or partial in a brownfield project and installs the missing ones. `bootstrap` names that operation and promotes the real verb to the right position. hv considered `initzero` and preferred `bootstrap`.
 - **Note:** The ROOT face is DELETED, not renamed in place -- `st_zero` is the only underscore in the entire command surface, which was its own tell. The retire question this row carried is MOOT rather than answered: you do not rehome a command you are retiring. parity.md:69's retire-candidate flag needs striking (vc's file).
+- **spelling:** intent st bootstrap
+- **consequence:** The divergence cost is ZERO for anyone following the command's own documentation: its usage block only ever said `intent st zero install`, never the root spelling. So the face that dies is the one no user was told to use, and the face that survives is a rewording of the one that was.
+- **face:** deleted
+- **never built:** true
 
 ## Family: `version`
 
@@ -2463,5 +2519,44 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 | `daemon` | <subcommand> | --             | Manage the machine-level intentd                                                             | WP-08     | design.md:73-74, D07/D08/D19                                                                                                                                                                                                                                                                                                 |
 | `mcp`    | --           | --             | Serve the MCP surface over stdio                                                             | WP-09     | design.md:84, D11                                                                                                                                                                                                                                                                                                            |
 
-- `search` -- acceptance: AC-06.4 (added by vc, 2026-08-14, on the finding that all 62 ACs had zero coverage of search)
-- `sync` -- note: NOT the same command as `st sync`, and NOT a superset of it either. v2's `st sync` composes `list` and PRINTS the thread table; only `--write` persists `steel_threads.md` (bin/intent_st:1145-1211, verified by ic). Reconciling the store from canon is a different job, so the two are two commands sharing a name and v3 treats them as such. Added by cc at build time (2026-08-14); second clause originally read "v2's job is a strict subset of this reconciliation and both spellings run it", corrected 2026-08-15 after cc found their own test could not catch it -- it was written from the same misreading as the code, asserted the two spellings produce identical bytes, and passed.
+### `search`
+
+- **v2:** new-surface
+- **acceptance:** AC-06.4 (added by vc, 2026-08-14, on the finding that all 62 ACs had zero coverage of search)
+
+### `sync`
+
+- **v2:** new-surface
+- **note:** NOT the same command as `st sync`, and NOT a superset of it either. v2's `st sync` composes `list` and PRINTS the thread table; only `--write` persists `steel_threads.md` (bin/intent_st:1145-1211, verified by ic). Reconciling the store from canon is a different job, so the two are two commands sharing a name and v3 treats them as such. Added by cc at build time (2026-08-14); second clause originally read "v2's job is a strict subset of this reconciliation and both spellings run it", corrected 2026-08-15 after cc found their own test could not catch it -- it was written from the same misreading as the code, asserted the two spellings produce identical bytes, and passed.
+- **truth model correction:** 2026-08-15, ic, under hv's ratified db-is-SSOT model. The help read `Reconcile the runtime store with committed canon on disk` and was backwards in BOTH halves: the store is not runtime, it is the DURABLE SSOT, and disk is not canon, it is a secondary artefact. Corrected here rather than filed because this string is USER-FACING -- it renders to `--help`, the MCP tool list and the `intent llm` guide, so the retracted model would have been the sentence a user READS, in the help for the very command the model is about. `Reconcile` went too: it implies two authorities being arbitrated, and the model is ONE authority with two-way transport.
+- **d34 wording:** FINAL wording, released by D34 (hv, 2026-08-15) after I held it pending the multi-machine question. **The DB is per-machine truth and is never committed; the committed extract IS the interchange between nodes**, and a fresh clone reconstitutes its DB by passing that extract through the ingest gate. So the help names both endpoints exactly: `this machine's store` (per-machine, authoritative locally) and `the committed extract` (what travels). D34 adopts the formulation _authority is not bidirectional just because transport is_ -- which is why the string says `in both directions` about the MOVEMENT and says nothing about precedence. A help line implying the file could win would describe a different architecture.
+
+### `schema`
+
+- **v2:** new-surface
+
+### `export`
+
+- **v2:** new-surface
+- **not backup:** SEE `backup`, which carries the full distinction. In short: this is the INTERCHANGE -- lossless text, usable without Intent, the artefact that travels between machines under D34 and reconstitutes a DB through the ingest gate. `backup` is a binary SQLite snapshot for fast local restore, carrying the derived index. Both help strings carry their own distinguishing clause deliberately, because a user choosing between them is not reading them side by side.
+- **truth model correction:** 2026-08-15, ic. The help read `Project the canon into another format`, which named the DISK side as the canon and so read as one on-disk format converting to another. Under hv's ratified model the store is the truth and this command is the OPENNESS half of it -- hv, verbatim: 'I can get my data out of the db and use it somewhere else LOSSLESSLY.' The `usable without Intent` clause is in the help deliberately: AC-02.6 requires the file form to be usable without this tool, and a promise a user cannot read is a promise nobody can hold us to. This is the surface half of AC-02.6; vc owns whether the contract wants it cited on this row.
+
+### `ingest`
+
+- **v2:** new-surface
+- **truth model correction:** 2026-08-15, ic. The help read `Rebuild the canon from markdown`, which under the retracted model meant reconstructing the durable thing and so read as an authority-restoring act. Under hv's ratified model it is the opposite: markdown is a secondary artefact and ingest is the path INTO the truth, well-formed ONLY because it passes the hard gate of the intentsvcs API. `through the API gate` is in the user-facing string on purpose -- the gate is what makes the result trustworthy, so hiding it would let a reader assume a file's own format was sufficient. Recreation from an extract stays a CAPABILITY and is not a licence to treat the store as disposable.
+
+### `backup`
+
+- **v2:** new-surface
+- **config:** Reads `backup.enabled` / `backup.schedule` / `backup.retain.{daily,weekly,monthly}` -- named on the `config` entry in this table. `backup.enabled` gates the DAEMON's schedule and deliberately does NOT gate this command.
+- **not export:** *** `backup` AND `export` ARE NOT SYNONYMS, AND CONFLATING THEM COSTS A USER THE THING THEY WERE TRYING TO SAVE. *** `export` is AC-02.6 OPENNESS: lossless, text, usable WITHOUT Intent, and under D34 it is THE INTERCHANGE -- the artefact that travels between machines and reconstitutes a DB through the ingest gate. `backup` is a binary SQLite snapshot: NOT usable without SQLite, NOT the interchange, and it carries the DERIVED INDEX so a restore is immediate with no re-ingest and no re-index. Different jobs, and neither is redundant. The failure mode is directional and asymmetric: a user who reaches for `backup` when they wanted portability gets a file no other tool can read, and a user who reaches for `export` when they wanted a fast restore gets a correct artefact that costs a full re-index -- so BOTH help strings must carry their own distinguishing clause rather than relying on a reader comparing them side by side, which is exactly what nobody does at the moment they need one.
+- **surfacing:** RATIFIED -- vc, 2026-08-15: the split is the ruling. A failed or skipped scheduled backup must surface (IN-AG-NO-SILENT-001), and **`doctor` is THE ONE PLACE health is reported** -- not a second status surface here -- because `doctor` already exists for exactly that and Highlander says one place, not two. `--list` answers only _what snapshots exist_, which is inventory rather than health. `doctor`'s obligation is recorded on its own row as `target.new_obligations`, so the requirement lives where the command that owns it is described.
+
+### `daemon`
+
+- **v2:** new-surface
+
+### `mcp`
+
+- **v2:** new-surface

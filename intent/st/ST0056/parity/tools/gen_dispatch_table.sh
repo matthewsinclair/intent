@@ -84,6 +84,58 @@ JQ_LIB='
       (.spellings | join("/")) as $s |
       if .value then "\($s) \(.value)" else $s end
     ) | join(", ") | gsub("\\|"; "/")) end;
+
+  # EVERY target field reaches the view, not an enumerated five.
+  #
+  # MEASURED, not suspected: the canon carried 20 distinct `target` sub-fields
+  # and the renderer named 5, so 15 were dropped SILENTLY -- among them the
+  # backup config keys, `doctor`s two new obligations, and the whole TBC ruling.
+  # The view is what a human reads; content only in the JSON is content only a
+  # reader who opens the JSON will find.
+  #
+  # THE SKEW CHECK CANNOT SEE THIS, and that is the part worth keeping. It asks
+  # whether the committed view matches what the generator PRODUCES -- so a lossy
+  # generator is a perfect fixed point with itself and reports ok forever. Skew
+  # tests re-derivability; nothing was testing COMPLETENESS. Same shape as every
+  # other hole this session: the check answers its own question faithfully and is
+  # silent about the one beside it.
+  #
+  # Rendering the REMAINDER generically beats extending the enumeration, because
+  # an enumeration has to be updated by the same act that invalidates it -- and
+  # that act is "ic adds a field", which is exactly when nobody is thinking about
+  # the renderer. This way a new field appears in the view the day it is written,
+  # and the class is gone rather than the instance fixed.
+  def extras($skip):
+    (. // {}) | to_entries
+    | map(select(.key as $k | $skip | index($k) == null))
+    | if length == 0 then empty
+      else map(
+        (.key | gsub("_"; " ")) as $label |
+        # NO FENCED JSON. The first version emitted ```json + tojson, and the
+        # repo formatter PRETTY-PRINTS fenced json -- so the committed view was
+        # reformatted the instant it landed and could never again match what this
+        # generator produces. The skew check caught it at the commit gate, which
+        # is the guard working: an emitter that cannot survive the formatter is
+        # exactly what lib_mdfmt.sh exists to prevent, and I reintroduced it one
+        # layer up. Leaf-path bullets are lossless and formatter-stable.
+        # SCALARS INLINE, and booleans/numbers are scalars too. The first version
+        # tested only `string`, so `never_built: false` fell through to the
+        # paths(scalars) branch -- and `paths` on a scalar yields NOTHING, so the
+        # field rendered as a bare label with no value AND left a stray blank
+        # line that broke the formatter fixed point. A renderer that drops a
+        # value while keeping its label is worse than one that drops both: it
+        # looks like the canon holds an empty field.
+        if (.value | type) | IN("string","boolean","number")
+          then "- **" + $label + ":** " + (.value | tostring)
+        elif (.value | type) == "array" and ((.value | map(type) | unique) == ["string"])
+          then "- **" + $label + ":**\n" + (.value | map("  - " + .) | join("\n"))
+        else "- **" + $label + ":**\n"
+          + ([ .value | paths(scalars) as $p |
+               "  - `" + ($p | map(tostring) | join(".")) + "`: " + (getpath($p) | tostring)
+             ] | join("\n")) end
+      ) | join("\n") end;
+
+  def targetextra: extras(["state","ratification","behaviour","question","note"]);
 '
 
 # Render to a temp file and move into place only on success. Writing straight
@@ -254,6 +306,7 @@ jq -r "$JQ_LIB"'
     (if .target.behaviour then " -- behaviour: \(.target.behaviour)" else "" end) +
     (if .target.question then "\n- **Open question for hv:** \(.target.question)" else "" end),
   (if .target.note then "- **Note:** \(.target.note)" else empty end),
+  (.target | targetextra),
   (if .implementation_note then "- **Implementation constraint:** \(.implementation_note)" else empty end),
   (if .exceptions then ("- **Exceptions:**\n" + (.exceptions | map("  - " + .) | join("\n"))) else empty end),
   ""
@@ -344,6 +397,7 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
       (if .target.behaviour then " -- behaviour: \(.target.behaviour)" else "" end),
     (if .target.question then "- **Open question for hv:** \(.target.question)" else empty end),
     (if .target.note then "- **Note:** \(.target.note)" else empty end),
+    (.target | targetextra),
     (if .cross_ref then "- **Cross-reference:** \(.cross_ref)" else empty end),
     ""
   ' >> "$OUT_TMP"
@@ -409,15 +463,44 @@ jq -r "$JQ_LIB"'
   .new_surface[]? |
   "| `\(.path)` | \(.args | argsig | gsub("\\|"; "/")) | \(.flags | flagsig) | \(.help | cell) | \(.owner_wp | cell) | \(.basis | cell) |"
 ' "$IN" >> "$OUT_TMP"
-emit ""
-jq -r '.new_surface[]? | select(.acceptance) | "- `" + .path + "` -- acceptance: " + .acceptance' "$IN" >> "$OUT_TMP"
+# NO `emit ""` here: each detail block below LEADS with its own blank line, so
+# emitting one as well produced two in a row -- which the formatter collapses,
+# breaking the fixed point. One owner per separator.
 
-# NOTES ARE RENDERED, because an authored field the view omits is unreviewable.
-# `sync` carried a note whose second clause was wrong for a day, and the human-
-# reviewable face of this canon did not show it -- so the only thing that could
-# ever have caught it was the author re-reading their own code, which is what
-# happened. A view that silently drops a field is not a view of the file.
-jq -r '.new_surface[]? | select(.note) | "- `" + .path + "` -- note: " + .note' "$IN" >> "$OUT_TMP"
+# EVERY authored field is rendered, because an authored field the view omits is
+# unreviewable. `sync` carried a note whose second clause was wrong for a day and
+# the human-reviewable face of this canon did not show it -- so the only thing
+# that could ever have caught it was the author re-reading their own code, which
+# is what happened. A view that silently drops a field is not a view of the file.
+#
+# THAT PARAGRAPH WAS ALREADY HERE AND THE CODE UNDER IT DROPPED FIELDS ANYWAY.
+# It enumerated `acceptance` and `note`, so every later field -- the truth-model
+# corrections, the export/backup distinction, the D34 wording, the whole `target`
+# block including `backup`s `VACUUM INTO` requirement -- was written, committed,
+# and invisible in the view. The rule was stated correctly and enforced by an
+# enumeration that could not keep up with it: documentation reminds, only a
+# control is load-bearing, demonstrated by the comment that says so.
+jq -r "$JQ_LIB"'
+  .new_surface[]? |
+  # `// null`, NOT `// empty`, and the difference silently ate three entries.
+  # `empty as $x | ...` yields NOTHING AT ALL -- the binding has no value to make,
+  # so the whole expression vanishes rather than binding an absent one. So an
+  # entry whose target held only `state` (sync, export, ingest) produced no output
+  # even though its TOP-LEVEL extras were non-empty. Caught by re-checking the
+  # field list, not by reading the output: the section still looked populated,
+  # because `backup` -- the entry with both halves non-empty -- rendered fine.
+  (extras(["path","args","flags","help","owner_wp","basis","target"]) // null) as $top |
+  ((.target | targetextra) // null) as $tgt |
+  # The separator blank line LEADS each block rather than trailing it. jq -r
+  # already appends a newline per output, so a trailing "\n" produced a blank
+  # after EVERY entry including the last -- and a trailing blank line at EOF is
+  # not a fixed point of the formatter, which strips it. Leading gives exactly
+  # one blank between entries and none at the end.
+  if ($top == null and $tgt == null) then empty
+  else "\n### `" + .path + "`\n\n"
+    + ([$top, $tgt] | map(select(. != null)) | join("\n"))
+  end
+' "$IN" >> "$OUT_TMP"
 
 # --- Column-align every table BEFORE the file lands -------------------------
 #
@@ -472,8 +555,86 @@ jq -r '.new_surface[]? | select(.note) | "- `" + .path + "` -- note: " + .note' 
 md_align "$OUT_TMP" "$OUT_TMP.aligned" || die "table alignment failed"
 mv "$OUT_TMP.aligned" "$OUT_TMP" || die "table alignment failed to land"
 
-# Only now, with the whole view rendered and aligned, does the committed file
-# change.
+# --- FORMATTER FIXED POINT: the view must survive the repo formatter --------
+#
+# lib_mdfmt.sh names two causes of generator/formatter skew and fixes only the
+# first: it aligns tables (layout the renderer controls) and deliberately does
+# NOT rewrite cell content, because rewriting a value would corrupt data. Its
+# ruling on cause 2 -- MARKUP THE DATA CARRIES -- is "author the canon in the
+# form the formatter already agrees with".
+#
+# THAT RULING HAD NO CONTROL, AND I BROKE IT THE DAY I RELIED ON IT. Four canon
+# strings written today carried `*emphasis*`; the formatter rewrites it to
+# `_emphasis_`; so the committed view could never again match its generator. It
+# cost a blocked commit and a long diagnosis, and the message it blocked on --
+# "the committed view is stale, or a row was hand-edited" -- named neither cause.
+#
+# REFUSING IS NOT REWRITING. The library ruled out silently normalising content,
+# and it was right; this refuses and names the offending lines instead, so the
+# rule stays "author it correctly" and becomes enforceable rather than merely
+# stated. Checking the fixed point EXACTLY also beats matching emphasis with a
+# regex: a pattern approximating CommonMark would false-positive on the globs
+# this canon is full of (`bin/intent_*`, `doc_sections_*`), and it would only
+# ever catch the one markup class I already know about.
+if command -v npx >/dev/null 2>&1; then
+  cp "$OUT_TMP" "$OUT_TMP.check.md" || die "cannot copy the render for the formatter check"
+  if npx --no-install prettier --write "$OUT_TMP.check.md" >/dev/null 2>&1; then
+    if ! diff -q "$OUT_TMP" "$OUT_TMP.check.md" >/dev/null 2>&1; then
+      echo "error: the rendered view is NOT a fixed point of the repo formatter -- it would be rewritten the instant it landed, and every later regeneration would diff against the committed file for ever." >&2
+      diff "$OUT_TMP" "$OUT_TMP.check.md" 2>&1 | sed -n '1,10p' | sed 's/^/  /' >&2
+      rm -f "$OUT_TMP.check.md"
+      die "author the canon in the form the formatter already agrees with (lib_mdfmt.sh, cause 2) -- most often *emphasis* which must be written _emphasis_"
+    fi
+  else
+    # NOT a silent skip. A check that cannot run must say so, or its silence
+    # reads as a pass -- the whole nothing-is-wrong / nothing-ran class.
+    echo "note: prettier did not run, so the formatter fixed-point check was SKIPPED -- the pre-commit gate is the backstop" >&2
+  fi
+  rm -f "$OUT_TMP.check.md"
+else
+  echo "note: npx not found, so the formatter fixed-point check was SKIPPED -- the pre-commit gate is the backstop" >&2
+fi
+
+# --- COMPLETENESS: no authored field may be missing from the view -----------
+#
+# THE SKEW CHECK CANNOT CATCH THIS AND NEVER COULD. It asks whether the committed
+# view matches what this generator PRODUCES, so a generator that drops a field is
+# a perfect fixed point with itself and reports ok forever. Skew tests
+# RE-DERIVABILITY; this tests COMPLETENESS, and they are different properties.
+# Measured when the gap was found: 20 distinct `target` sub-fields in the canon,
+# 5 named by the renderer, 15 dropped in silence -- including the backup config
+# keys another node was blocked on and `doctor`s two new obligations.
+#
+# Every key NOT rendered bespoke must appear via the generic `extras` path. The
+# skip lists below are the SAME sets passed to `extras`, which is what makes this
+# non-circular: it compares the canon's keys against the rendered TEXT, so if the
+# generic path stops firing the check goes red rather than quiet.
+#
+# This refuses rather than warns. The class has now bitten twice in one sitting
+# -- once as an enumeration that could not keep up with the fields, once as
+# `empty as $x` silently voiding three whole entries -- and both times the view
+# still LOOKED populated. A one-off sweep would not have caught the second,
+# because nothing downstream ever contradicts a sweep.
+MISSING_FIELDS=""
+for key in $(jq -r '
+    [ (.families[].entries[] | (.target // {}) | keys[]),
+      (.new_surface[] | (.target // {}) | keys[]) ]
+    - ["state","ratification","behaviour","question","note"]
+    | unique | .[]' "$IN"); do
+  label="$(printf '%s' "$key" | tr '_' ' ')"
+  grep -qF -- "**$label:**" "$OUT_TMP" || MISSING_FIELDS="$MISSING_FIELDS $key"
+done
+for key in $(jq -r '
+    [ .new_surface[] | keys[] ]
+    - ["path","args","flags","help","owner_wp","basis","target"]
+    | unique | .[]' "$IN"); do
+  label="$(printf '%s' "$key" | tr '_' ' ')"
+  grep -qF -- "**$label:**" "$OUT_TMP" || MISSING_FIELDS="$MISSING_FIELDS $key"
+done
+[ -z "$MISSING_FIELDS" ] || die "the view drops authored field(s) the canon carries:$MISSING_FIELDS -- a view that silently omits a field is not a view of the file, and the omitted field is unreviewable by anyone who reads the view instead of the JSON"
+
+# Only now, with the whole view rendered, aligned and proved complete, does the
+# committed file change.
 mv "$OUT_TMP" "$OUT" || die "cannot write: $OUT"
 trap - EXIT
 
