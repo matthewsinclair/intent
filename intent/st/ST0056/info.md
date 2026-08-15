@@ -29,7 +29,7 @@ Acceptance Criteria and Acceptance Tests for this steel thread live in `acceptan
 
 - ST0043: Rethink `intent upgrade` -- the v2 convergent orchestrator; v3's migrator supersedes it, and its ledger is the first hop of the two-hop migration policy
 - ST0044: acceptance.md + the AC/AT process -- the contract model v3 reifies as first-class entities
-- ST0045: Whiteboard Protocol 3.0 -- deferred to the 3.2 agent-bus ST; md-authored through 3.0.0/3.1
+- ST0045: Whiteboard Protocol 3.0 -- the md-authored boards v3 reifies as `wb_node` / `wb_item` / `wb_message` (D30, WP-14); the deferral to the 3.2 agent-bus ST was argued on transport and did not reach shape, size or searchability
 
 ## Context for LLM
 
