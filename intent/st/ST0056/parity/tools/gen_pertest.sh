@@ -1,4 +1,14 @@
 #!/bin/bash
+#
+# INPUTS ARE DECLARED, NOT INFERRED, and generator_inputs_check.sh reads these
+# two lines. Repo-relative paths, each of which must be tracked by git: a
+# committed artefact whose only input lives in a scratchpad is re-derivable
+# today and not tomorrow, and nothing else records which of those it is.
+# NOTE: the paths below are the COMMITTED inputs. Where this generator still
+# reads a `$SP` scratch copy of one, that is a gap between what it needs and
+# what it reaches for -- not a gap in the declaration.
+# inputs: intent/st/ST0056/parity/tools/burn-baseline.tsv intent/st/ST0056/parity/tools/tap-baseline intent/st/ST0056/parity/tools/lib_classify.sh intent/st/ST0056/parity/tools/lib_corpus.sh intent/st/ST0056/parity/tools/lib_mdfmt.sh
+# inputs-exempt: WT -- a detached git worktree at a committed revision. Re-derivable by `git worktree add <dir> <sha>` and not a file in this repository, so it can never be tracked. The rule is about inputs that are FILES.
 # gen_pertest.sh -- per-test rows for the `pending` files.
 #
 # A `pending` file is one the burn ratio found MIXED: some of its tests reach

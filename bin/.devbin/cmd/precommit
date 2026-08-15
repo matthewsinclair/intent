@@ -58,11 +58,13 @@ set -euo pipefail
 G_NODB="no database enters history (D34: the DB is per-machine truth, never committed)"
 G_PROV="provenance: artefacts from one measurement name one revision"
 G_SKEW="skew: committed generated views still match their canon"
+G_GENIN="generator inputs: git holds everything a committed artefact is made from"
 
 if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t-\n' "$G_NODB"
   printf '%s\t%s\n' "$G_PROV" "provenance_check.sh"
   printf '%s\t%s\n' "$G_SKEW" "view_skew_check.sh"
+  printf '%s\t%s\n' "$G_GENIN" "generator_inputs_check.sh"
   exit 0
 fi
 
@@ -196,6 +198,20 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   if ! "${skew_run[@]}"; then
     rc=1
     failed="${failed}  view_skew_check.sh -- a committed view no longer matches its canon
+"
+  fi
+
+  # 3. Generator inputs. NOT path-triggered, unlike the skew check above, and the
+  #    difference is the invariant rather than an inconsistency. Skew asks "does
+  #    this view still match its canon", which only changes when a path changes.
+  #    This asks "does git hold what this generator reads", and that can go false
+  #    with NO path in this repository changing at all -- someone deletes a
+  #    scratchpad, or reboots. It is a whole-set check over four files and reads
+  #    only the index, so it costs nothing to run every time.
+  step "$G_GENIN"
+  if ! bash "$TOOLS/generator_inputs_check.sh"; then
+    rc=1
+    failed="${failed}  generator_inputs_check.sh -- a committed artefact names an input git cannot hold
 "
   fi
 fi

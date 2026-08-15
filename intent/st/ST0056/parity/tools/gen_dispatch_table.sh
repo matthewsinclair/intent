@@ -1,4 +1,13 @@
 #!/bin/bash
+#
+# INPUTS ARE DECLARED, NOT INFERRED, and generator_inputs_check.sh reads these
+# two lines. Repo-relative paths, each of which must be tracked by git: a
+# committed artefact whose only input lives in a scratchpad is re-derivable
+# today and not tomorrow, and nothing else records which of those it is.
+# NOTE: the paths below are the COMMITTED inputs. Where this generator still
+# reads a `$SP` scratch copy of one, that is a gap between what it needs and
+# what it reaches for -- not a gap in the declaration.
+# inputs: surface/dispatch-table.json intent/st/ST0056/parity/tools/lib_mdfmt.sh
 # gen_dispatch_table.sh -- render `dispatch-table.md` (the view) from
 # `dispatch-table.json` (the canon).
 #
