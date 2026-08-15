@@ -35,15 +35,6 @@ set -euo pipefail
 
 TOOLS="${PROJECT_ROOT:?}/intent/st/ST0056/parity/tools"
 
-# Named, not silent -- the clock guard's precedent. Apparatus present with no
-# guard behind it is the invisible non-enforcement this mechanism exists to end,
-# and after ST0056 closes this directory will legitimately go away. Either way
-# the operator is told which it is rather than getting a green.
-if [ ! -d "$TOOLS" ]; then
-  warn "no ST0056 parity apparatus at $TOOLS -- repo-local gates SKIPPED this commit."
-  exit 0
-fi
-
 # The staged set, which is what a pre-commit gate is entitled to have an opinion
 # about. --diff-filter=ACM excludes deletions: a deleted path cannot be skewed
 # against its canon, and feeding one to the skew check would ask it to compare a
@@ -53,6 +44,9 @@ fi
 # nothing is staged, and under `set -e` that would abort the gate instead of
 # letting it correctly find nothing to do. (This is the same shape that killed
 # ic's generator -- a legitimately-empty pipeline aborting the whole script.)
+#
+# Computed BEFORE the apparatus check below, because guard 0 is not an ST0056
+# guard and must outlive that directory.
 STAGED="$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || true)"
 
 # --all forces the full sweep regardless of what is staged, for running by hand.
@@ -62,36 +56,115 @@ FULL=0
 rc=0
 failed=""
 
+# 0. NO SQLITE DATABASE ENTERS HISTORY.
+#
+# D34 (hv, 2026-08-15): the intentdb is per-machine durable truth and is NEVER
+# committed -- truth travels as the lossless .json/.md extract and a clone
+# reconstitutes through the ingest gate. So a DB in a commit is always wrong.
+#
+# WHY THIS IS A GUARD AND NOT A WIDER .gitignore GLOB, which was the obvious
+# move and is the wrong one. vc ruled the ignore file stays a PATH rule: now
+# that the DB is durable truth, a blanket `*.db` there asserts a durability
+# policy about a whole class for every consumer of that file. It also cannot
+# work -- `Store::open()` takes a path PARAMETER, so no list of paths is
+# exhaustive by construction. The two mechanisms are not interchangeable:
+# **an ignore silently hides the paths it already knows; a guard refuses the
+# ones nobody thought of.** Only the second is load-bearing, and this repository
+# is PUBLIC, so the cost of the miss is permanent and world-readable.
+#
+# TWO DETECTORS, because each closes a hole the other cannot see. By NAME
+# catches the `-wal`/`-shm` companions, which are not SQLite-format files at all
+# and carry their own headers. By CONTENT catches a database committed under any
+# name at all, which is the case a name rule can never reach.
+#
+# It reads the STAGED BLOB (`git show :path`), never the worktree file. Those
+# differ exactly when it matters, and the index is what would land -- the same
+# reason a green suite is evidence about the tree you have and not the tree you
+# pushed.
+step "no database enters history (D34: the DB is per-machine truth, never committed)"
+staged_db=""
+while IFS= read -r p; do
+  [ -n "$p" ] || continue
+  case "$p" in
+    *.db | *.db-wal | *.db-shm | *.sqlite | *.sqlite3)
+      staged_db="${staged_db}    $p   (by name)
+"
+      ;;
+  esac
+done <<<"$STAGED"
+
+# Content-probe only the paths git already calls binary -- numstat prints `-`
+# for both counts on a binary blob. A SQLite file is always binary, so this
+# loses nothing and keeps `git show` off every text file in a large commit.
+# --no-renames because the rename form prints a path pair this would misread.
+BINARIES="$(git diff --cached --numstat --no-renames --diff-filter=ACM 2>/dev/null | awk '$1 == "-" && $2 == "-" { print $3 }' || true)"
+while IFS= read -r p; do
+  [ -n "$p" ] || continue
+  case "$p" in
+    *.db | *.db-wal | *.db-shm | *.sqlite | *.sqlite3) continue ;; # already named above
+  esac
+  # `|| true` on the pipeline: `head -c` closes the pipe early, git dies of
+  # SIGPIPE, and pipefail would abort the whole gate over a file that is merely
+  # shorter than the probe.
+  magic="$( (git show ":$p" 2>/dev/null | head -c 15) 2>/dev/null || true)"
+  if [ "$magic" = "SQLite format 3" ]; then
+    staged_db="${staged_db}    $p   (by CONTENT -- SQLite magic under a name that does not say so)
+"
+  fi
+done <<<"$BINARIES"
+
+if [ -n "$staged_db" ]; then
+  rc=1
+  failed="${failed}  a SQLite database is staged -- D34 says the DB is never committed
+${staged_db}"
+fi
+
+# Named, not silent -- the clock guard's precedent. Apparatus present with no
+# guard behind it is the invisible non-enforcement this mechanism exists to end,
+# and after ST0056 closes this directory will legitimately go away. Either way
+# the operator is told which it is rather than getting a green.
+#
+# Guard 0 above has already run and its verdict is carried to the report at the
+# bottom: a missing apparatus skips the ST0056 guards, it does not turn a staged
+# database into a pass.
+HAVE_TOOLS=1
+if [ ! -d "$TOOLS" ]; then
+  warn "no ST0056 parity apparatus at $TOOLS -- those two gates SKIPPED this commit."
+  HAVE_TOOLS=0
+fi
+
 # 1. Provenance. Always runs the full sweep: it is three greps over 29 files,
 #    and its invariant is CROSS-artefact -- staging one file of a measurement
 #    group is exactly when the group can be split, so narrowing it to the staged
 #    set would blind it to the failure it exists to catch.
-step "provenance: artefacts from one measurement name one revision"
-if ! bash "$TOOLS/provenance_check.sh"; then
-  rc=1
-  failed="${failed}  provenance_check.sh -- a measurement group names more than one revision
+if [ "$HAVE_TOOLS" -eq 1 ]; then
+  step "provenance: artefacts from one measurement name one revision"
+  if ! bash "$TOOLS/provenance_check.sh"; then
+    rc=1
+    failed="${failed}  provenance_check.sh -- a measurement group names more than one revision
 "
-fi
+  fi
 
-# 2. View skew. Path-triggered by design: a slow gate gets --no-verify'd, which
-#    is cry-wolf arriving through a different door. It is sound rather than a
-#    fudge -- a generator reads only its canon, so a view cannot go stale unless
-#    canon, generator or view changes, and all three are paths.
-step "skew: committed generated views still match their canon"
-if [ "$FULL" -eq 1 ] || [ -z "$STAGED" ]; then
-  skew_run=(bash "$TOOLS/view_skew_check.sh")
-else
-  # Unquoted expansion is wrong here and this shell is zsh for interactive use,
-  # so build the argv explicitly rather than relying on word splitting.
-  skew_run=(bash "$TOOLS/view_skew_check.sh" --changed)
-  while IFS= read -r p; do
-    [ -n "$p" ] && skew_run+=("$p")
-  done <<<"$STAGED"
-fi
-if ! "${skew_run[@]}"; then
-  rc=1
-  failed="${failed}  view_skew_check.sh -- a committed view no longer matches its canon
+  # 2. View skew. Path-triggered by design: a slow gate gets --no-verify'd, which
+  #    is cry-wolf arriving through a different door. It is sound rather than a
+  #    fudge -- a generator reads only its canon, so a view cannot go stale unless
+  #    canon, generator or view changes, and all three are paths.
+  step "skew: committed generated views still match their canon"
+  if [ "$FULL" -eq 1 ] || [ -z "$STAGED" ]; then
+    skew_run=(bash "$TOOLS/view_skew_check.sh")
+  else
+    # Unquoted expansion is wrong here and this shell is zsh for interactive use,
+    # so build the argv explicitly rather than relying on word splitting.
+    skew_run=(bash "$TOOLS/view_skew_check.sh" --changed)
+    while IFS= read -r p; do
+      [ -n "$p" ] && skew_run+=("$p")
+    done <<<"$STAGED"
+  fi
+  if ! "${skew_run[@]}"; then
+    rc=1
+    failed="${failed}  view_skew_check.sh -- a committed view no longer matches its canon
 "
+  fi
 fi
 
 if [ "$rc" -ne 0 ]; then

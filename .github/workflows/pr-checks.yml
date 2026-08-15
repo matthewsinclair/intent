@@ -25,11 +25,23 @@ jobs:
           THREAD_ID=$(echo "$PR_BODY" | grep -oE "ST[0-9]{4}" | head -1)
           echo "Referenced thread: $THREAD_ID"
           
-          # Check if the thread exists (either as file or directory)
-          if [ -f "intent/st/${THREAD_ID}.md" ] || [ -d "intent/st/${THREAD_ID}" ]; then
-            echo "✅ Steel thread exists"
-          elif [ -d "intent/st/COMPLETED/${THREAD_ID}" ] || [ -d "intent/st/NOT-STARTED/${THREAD_ID}" ] || [ -d "intent/st/CANCELLED/${THREAD_ID}" ]; then
-            echo "✅ Steel thread exists (in status subdirectory)"
+          # ASK THE TOOL, DO NOT REIMPLEMENT ITS LAYOUT RULE. `st show` exits 0
+          # when the thread exists and 1 when it does not, wherever it actually
+          # lives -- flat while live, or relocated into a status directory --
+          # because it resolves through the same helper the CLI itself uses.
+          #
+          # What this replaced hardcoded intent/st/{COMPLETED,NOT-STARTED,
+          # CANCELLED}/. That was true of v2's on-disk layout, and it is a fact
+          # with a shelf life: the ratified state machines add Triage and Hold,
+          # and v3 holds status as a FIELD rather than a directory at all. The
+          # fix is not that a command is shorter -- it is that a directory
+          # layout does not survive the port and a command name does.
+          #
+          # Verified in a clean clone with no local config or cache, which is
+          # what this job has: flat/WIP, relocated/Completed, relocated/Not
+          # Started and absent all return the right code.
+          if ./bin/intent st show "$THREAD_ID" >/dev/null 2>&1; then
+            echo "✅ Steel thread ${THREAD_ID} exists"
           else
             echo "❌ Error: Steel thread ${THREAD_ID} not found"
             exit 1

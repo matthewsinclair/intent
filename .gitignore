@@ -19,7 +19,17 @@ erl_crash.dump
 # Temporary files, for example, from tests.
 /tmp/
 
-# Intent upgrade backups (per-project rollback artefacts; never commit).
+# Local backup namespaces -- never commit. TWO mechanisms live here with
+# DIFFERENT retention rules, each confined to its own directory so that a sweep
+# of one cannot reach the other's artefacts (D35, dc 2026-08-15):
+#
+#   .backup/upgrade/<UTC>/        rollback artefacts from `intent upgrade`
+#   .backup/db/<tier>/<UTC>.db    rolling DB snapshots; tier = daily|weekly|monthly
+#
+# The namespace is a DIRECTORY rather than a filename prefix on purpose: it makes
+# the filesystem enforce the separation instead of every future glob having to be
+# written correctly. NOTHING ever sweeps `.backup/` root, so `backup-<TS>/`
+# directories predating this layout stay there untouched and permanently safe.
 /.backup/
 
 # Per-developer Claude Code permissions (paths and tool allowlist vary by user).
@@ -73,10 +83,34 @@ npm-debug.log
 
 # Treeindex cache (derived, machine-local; regenerate with 'intent treeindex <dir>').
 intent/.treeindex/
-# The v3 runtime DB (D21): disposable, rebuilt from committed canon, NEVER truth.
-# D21 ratified this as gitignored whole-dir and nothing had implemented it, so the
-# database was showing as `?? intent/.cache/` -- one `git add -A` from entering
-# history as a binary blob. Also the precondition for D29: the ingest corpus
+# The v3 intentdb. NOT disposable, NOT derived, and NOT "never truth" -- hv
+# reversed D01 on 2026-08-15: the intentdb is the DURABLE SSOT and everything on
+# disk is a secondary artefact. The three claims this comment used to make are
+# all false and are deleted rather than reworded.
+#
+# RULED (D34, hv, 2026-08-15): the DB is per-machine truth and is NEVER
+# committed. Truth TRAVELS as the lossless .json/.md extract, and a fresh clone
+# reconstitutes its DB by passing that extract through the intentsvcs ingest
+# gate. So the ignore is correct -- on the ceiling, not on binary-merge folklore:
+# git delta-compresses SQLite well, but FTS5 expansion is ~1.95x and GitHub hard-
+# blocks at 100 MB, which a whole-project corpus crosses.
+#
+# THIS IS A PATH RULE AND DELIBERATELY NOT A CLASS RULE. There is no `*.db` line
+# here and there should not be: now that the DB is durable truth, a blanket glob
+# would assert a durability policy about a whole class for every consumer of this
+# file. The one instance is named because `Project::db_path()` resolves exactly
+# one location (`project.rs:302`) -- but `Store::open()` takes a path PARAMETER,
+# so this list can never be exhaustive by construction. The class-wide protection
+# is a REFUSAL in `bin/int precommit`, not a wider glob here: an ignore silently
+# hides the paths it knows, whereas the guard blocks the ones it does not.
+#
+# `intent/.cache/` remains a name that contradicts the model -- a directory
+# called `.cache` holding durable truth keeps telling readers it is disposable,
+# which is what made the old comment here natural to write. cc's under D21.
+#
+# Kept for the reason it was added, which is unaffected: the database was showing
+# as `?? intent/.cache/` -- one `git add -A` from entering history as a binary
+# blob. Also the precondition for D29: the ingest corpus
 # excludes IGNORED paths, so until this line existed the DB was outside the corpus
 # only by accident of path shape.
 intent/.cache/
