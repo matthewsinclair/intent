@@ -94,6 +94,48 @@ done <<<"$stale_roots"
 
 printf '\n  %s artefacts total. cargo reports these FRESH -- it compares timestamps\n' "$total"
 printf '  and input hashes, never the manifest root, so a path move is invisible to it.\n'
+
+# PRESENCE IS NOT USE, and the split is what turns a count into a severity.
+# cc's discriminator, and it is theirs rather than mine: a stale-rooted crate
+# with a correct-rooted build of the same crate beside it has been SUPERSEDED --
+# dead weight. One with no such sibling is the copy still being used.
+#
+# Measured once, on the 2026-08-15 residue: 211 distinct crates, 181 superseded,
+# and the 30 with no sibling were ALL proc-macro or build-script crates
+# (serde_derive, schemars_derive, syn, quote, proc_macro2, thiserror_impl ...).
+# They have no target-side sibling because they are HOST artefacts. That is not
+# random leftovers -- it is exactly the code-generating half, including the
+# derives that produce the JSON Schema face the drift guard compares against.
+#
+# "228 artefacts" reads as noise. "30 with no current sibling, all proc-macro"
+# reads as a reason to act, and it was what made cc act rather than file it.
+crate_of() { basename "$1" .d | sed -E 's/-[0-9a-f]{8,}$//'; }
+
+stale_crates="" ; fresh_crates=""
+for f in "$DEPS"/*.d; do
+  [ -e "$f" ] || continue
+  if grep -qE "$(printf '%s' "$stale_roots" | head -1)" "$f" 2>/dev/null; then
+    stale_crates="${stale_crates}$(crate_of "$f")
+"
+  else
+    fresh_crates="${fresh_crates}$(crate_of "$f")
+"
+  fi
+done
+stale_u="$(printf '%s' "$stale_crates" | sort -u | grep -c . || true)"
+orphans="$(comm -23 <(printf '%s' "$stale_crates" | sort -u) <(printf '%s' "$fresh_crates" | sort -u) || true)"
+n_orph="$(printf '%s' "$orphans" | grep -c . || true)"
+n_sup=$((stale_u - n_orph))
+
+printf '\n  Of %s distinct crates:\n' "$stale_u"
+printf '    %-5s superseded -- a correct-rooted build of the same crate exists beside it\n' "$n_sup"
+printf '    %-5s NO CURRENT SIBLING -- these are the copies still in use\n' "$n_orph"
+if [ "$n_orph" -gt 0 ]; then
+  printf '          %s\n' "$(printf '%s' "$orphans" | tr '\n' ' ' | cut -c1-68)"
+  printf '\n  Judge severity on the second number, not the first. Host artefacts --\n'
+  printf '  proc-macro and build-script crates -- have no target-side sibling by\n'
+  printf '  construction, so they are what survives a move and keeps being used.\n'
+fi
 printf '\n  This is LATENT rather than broken: a tree in this state builds and tests\n'
 printf '  green. The tell when it does bite is a test that passes in isolation and\n'
 printf '  fails in the suite -- a conclusion, not flakiness.\n'
