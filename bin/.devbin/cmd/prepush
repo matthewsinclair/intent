@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Clone what you are about to push and build it (post-move check)
+#
+# intent prepush [--force] -- clone THIS repository at HEAD into a temp dir and
+# build it, to check that the artefact a stranger receives is coherent.
+# Invoked by .git/hooks/pre-push; safe to run by hand.
+#
+# THE FAILURE THIS EXISTS FOR, and it is not hypothetical. On 2026-08-15 a
+# commit titled "all native code moves to native/rust/" committed 58 additions
+# and left 55 files plus three root build files at HEAD, then pushed to both
+# remotes. Five of the duplicated files were DIVERGENT rather than
+# stale-identical, and the root Cargo.toml still pointed a workspace at the
+# stale copy -- so a fresh clone would have built a second implementation
+# nobody knew existed.
+#
+# Every local instrument was green throughout: 234 tests, fmt, clippy, lint, six
+# acceptance gates. None of them could have caught it, and that is the point
+# rather than an oversight. `--only` commits the paths you NAME and a rename is
+# TWO index entries; name the addition and the deletion stays staged. The
+# working tree was correct. Only the repository was wrong.
+#
+# **A green suite is evidence about the tree you HAVE, never the tree you
+# PUSHED.** The only instrument that can tell the difference is one that reads
+# the repository rather than the working tree, which means cloning it.
+#
+# WHY PRE-PUSH AND NOT PRE-COMMIT OR CI. Measured 2026-08-15: a depth-1 local
+# clone plus a cold `cargo build --workspace --bins` is ~16s. That is too slow
+# to sit in front of every commit -- and a slow gate gets --no-verify'd, which
+# is cry-wolf arriving through a different door. CI does clone fresh, but it is
+# path-filtered and it reports AFTER the push has already landed on remotes;
+# this failure's whole cost is that the bad state is public. Push is the moment
+# the repository stops being private to one machine, so push is where the check
+# belongs.
+#
+# PATH-TRIGGERED for the same reason. The failure class is a move or a
+# restructure of native code and build files. A whiteboard-only push -- which is
+# most pushes on this project -- cannot produce it, and charging those 16s would
+# guarantee the gate gets bypassed. Sound rather than a fudge: the build cannot
+# break unless something the build reads has changed.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+
+ROOT="${PROJECT_ROOT:?}"
+FORCE=0
+[ "${1:-}" = "--force" ] && FORCE=1
+
+# What is about to be pushed. A pre-push hook is handed the ref pairs on stdin,
+# but the question here is only "does this push carry build-relevant changes",
+# and HEAD against the upstream tracking ref answers it without parsing stdin --
+# which also keeps `int prepush` meaningful when run by hand.
+#
+# `|| true` throughout: no upstream, a new branch, or a shallow history are all
+# legitimate states, and under `set -e` any of them would abort the gate instead
+# of letting it decide. A legitimately-empty result must never kill the script.
+UPSTREAM="$(git -C "$ROOT" rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || true)"
+if [ -n "$UPSTREAM" ]; then
+  CHANGED="$(git -C "$ROOT" diff --name-only "$UPSTREAM"...HEAD 2>/dev/null || true)"
+else
+  # No tracking ref: cannot compute a range, so do not guess a narrow one.
+  # Fall back to checking, because the expensive-but-correct answer beats a
+  # cheap wrong one at a boundary this gate exists to protect.
+  CHANGED=""
+  FORCE=1
+fi
+
+if [ "$FORCE" -eq 0 ]; then
+  # The build's inputs: the native tree and anything that tells cargo where the
+  # workspace is. Anchored on `native/` and root manifests rather than a longer
+  # prefix, because a prefix needle stops matching the moment the prefix moves
+  # and then passes in SILENCE -- which is exactly how the tree moved twice in
+  # one morning without the tooling noticing.
+  if ! printf '%s\n' "$CHANGED" | grep -qE '^(native/|Cargo\.(toml|lock)$|rust-toolchain)'; then
+    printf 'prepush: no native/ or build-manifest change in this push -- clone check not needed.\n'
+    exit 0
+  fi
+fi
+
+command -v cargo >/dev/null 2>&1 || die "cargo not on PATH -- cannot verify the clone builds"
+
+TMP="$(mktemp -d)" || die "cannot create a temp dir"
+# shellcheck disable=SC2064
+trap "rm -rf '$TMP'" EXIT
+
+step "prepush: cloning HEAD -- reading the repository, not the working tree"
+git clone --quiet --depth 1 "file://$ROOT" "$TMP/clone" \
+  || die "the repository does not clone -- that is the finding; do not push"
+
+# Structural check first: it is instant, and it names the specific failure that
+# actually happened rather than leaving it to be inferred from a build error.
+manifests="$(find "$TMP/clone" -name Cargo.toml -not -path '*/crates/*' | sort)"
+count="$(printf '%s\n' "$manifests" | grep -c . || true)"
+if [ "$count" -ne 1 ]; then
+  printf '\n' >&2
+  printf 'prepush: expected exactly ONE cargo workspace manifest outside crates/, found %s:\n' "$count" >&2
+  printf '%s\n' "$manifests" >&2
+  die "a duplicated or stray workspace is the half-committed-move signature -- do not push"
+fi
+
+step "prepush: building the clone (cold, no shared target dir)"
+workspace="$(dirname "$manifests")"
+( cd "$workspace" && cargo build --workspace --bins ) \
+  || die "the pushed repository does not build -- your working tree does, which is the whole point of this check"
+
+# A build that produces nothing runnable is a green that means nothing, so the
+# binaries are executed rather than merely tested for existence.
+built=0
+for b in "$workspace"/target/debug/*; do
+  [ -x "$b" ] && [ ! -d "$b" ] || continue
+  case "$(basename "$b")" in
+    *.d | *.rlib) continue ;;
+  esac
+  if "$b" --version >/dev/null 2>&1; then
+    printf '    ok: %s runs from a fresh clone\n' "$(basename "$b")"
+    built=$((built + 1))
+  fi
+done
+[ "$built" -gt 0 ] || die "the clone built but produced no runnable binary"
+
+printf 'prepush: the repository you are about to push clones, builds and runs (%s binaries).\n' "$built"
+exit 0
