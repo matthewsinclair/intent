@@ -34,6 +34,43 @@ fn project() -> tempfile::TempDir {
   dir
 }
 
+/// Seed a thread whose contract is satisfied, as committed canon.
+///
+/// **A fresh store ingests the working tree on first open**, so this is the
+/// real ingest path rather than a back door into the database -- the same one
+/// a clone of a real repository takes. It has to be: `intent sync` refuses to
+/// guess a direction (AC-03.9's selector is not built), so a thread written
+/// beside an EXISTING store would never reach it.
+///
+/// `AC-01.1` is not an arbitrary id. The id carries the work package, so a
+/// criterion numbered `01` is what makes `wp done ST0001/01` evaluable at all;
+/// under any other number the WP scope would match nothing and block for
+/// arithmetic reasons rather than contractual ones.
+fn seed_closeable_thread(root: &Path) {
+  let dir = root.join("intent/st/ST0001");
+  std::fs::create_dir_all(&dir).expect("mkdir");
+  std::fs::write(
+    dir.join("thread.json"),
+    r#"{
+  "schema": "intent/thread@3.0",
+  "id": "ST0001",
+  "slug": "a-thread",
+  "title": "A thread",
+  "status": "wip",
+  "created": "2026-08-15",
+  "objective": "",
+  "context": "",
+  "wps": [ { "seq": 1, "title": "A package", "scope": "S", "status": "wip" } ],
+  "criteria": [
+    { "id": "AC-01.1", "text": "It works", "kind": "non-test",
+      "state": { "is": "satisfied", "evidence": "verified by hand" } }
+  ]
+}
+"#,
+  )
+  .expect("write canon");
+}
+
 fn run(root: &Path, args: &[&str]) -> Output {
   Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
@@ -110,32 +147,136 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
     "and the bare form is header + separator only, not an error and not silence"
   );
 
-  // **The lifecycle cannot be driven past here from the CLI yet, and that is a
-  // SURFACE gap rather than a service one.** The ratified machines add seven
-  // verbs -- `st triage`, `st hold`, `st resume`, `st reopen`, `st reinstate`,
-  // `wp reopen`, `wp unstart` -- and each needs a row in
-  // `surface/dispatch-table.json`, which is ic's lane. The facade has them all;
-  // `facade_st_wp.rs` drives the full machine through it. Asked of ic on
-  // 2026-08-15; this assertion is what turns the ask into a failing test rather
-  // than a note somebody has to remember.
+  // A thread at `triage` has not been accepted into the backlog, so `st start`
+  // is refused BY THE MACHINE rather than being silently allowed.
   let refused = run(root, &["st", "start", "ST0001"]);
-  assert_eq!(
-    refused.status.code(),
-    Some(1),
-    "`st start` from triage is refused by the ratified machine, not silently allowed"
-  );
+  assert_eq!(refused.status.code(), Some(1));
   let why = String::from_utf8_lossy(&refused.stderr);
   assert!(
     why.contains("not a legal transition") && why.contains("not-started"),
     "and the refusal names the state the verb IS declared from, so the operator can get there: {why}"
   );
 
+  // **Now drive the machine, arm by arm, asserting each verb's own success
+  // line.** The previous version of this block stopped at the refusal above
+  // and left a comment saying the rest was a surface gap owed by ic. It was
+  // not: the dispatch rows had landed, the facade had every verb, and what was
+  // missing was the wiring in this crate's renderer -- mine. The test could
+  // not tell, because it asserted only that `st start` was REFUSED, and an
+  // unwired verb refuses too. A test written to make an ask concrete made the
+  // ask invisible.
+  //
+  // So every assertion below is on a SUCCESS line, which `unwired` cannot
+  // produce: it exits 1 and says "not implemented yet". Exit 0 plus the verb's
+  // own wording is the only shape that distinguishes a wired arm from a
+  // present-but-unbuilt one.
+  assert_eq!(
+    ok(root, &["st", "triage", "ST0001"]).trim(),
+    "ok: ST0001 accepted out of triage",
+    "and the message names where the thread LANDED -- `triage` reads in both directions"
+  );
+  assert_eq!(
+    ok(root, &["st", "start", "ST0001"]).trim(),
+    "ok: ST0001 started"
+  );
+  assert_eq!(
+    ok(
+      root,
+      &["st", "hold", "ST0001", "--reason", "waiting on the fleet"]
+    )
+    .trim(),
+    "ok: ST0001 on hold"
+  );
+  assert_eq!(
+    ok(root, &["st", "resume", "ST0001"]).trim(),
+    "ok: ST0001 resumed"
+  );
+
   ok(root, &["wp", "new", "ST0001", "Ingest and views"]);
+  ok(root, &["wp", "start", "ST0001/01"]);
+  assert_eq!(
+    ok(root, &["wp", "unstart", "ST0001/01"]).trim(),
+    "ok: ST0001/01 back to not started"
+  );
   ok(root, &["wp", "start", "ST0001/01"]);
   let wps = ok(root, &["wp", "list", "ST0001"]);
   assert!(
     wps.lines().any(|l| l.starts_with("01 ")),
     "the WP column is v2's bare sequence number: {wps}"
+  );
+
+  // `cancel` and `reinstate` are the machine's other exit and re-entry, and
+  // neither consults the gate -- so the round trip runs here rather than in
+  // the closed-state test below.
+  assert_eq!(
+    ok(root, &["st", "cancel", "ST0001", "--reason", "overtaken"]).trim(),
+    "ok: ST0001 cancelled"
+  );
+  assert_eq!(
+    ok(
+      root,
+      &["st", "reinstate", "ST0001", "--reason", "wanted again"]
+    )
+    .trim(),
+    "ok: ST0001 reinstated to the backlog",
+    "a reinstated thread lands in the BACKLOG, not back at wip, and the message says so"
+  );
+}
+
+/// The two `reopen` verbs, driven to success -- the machine has no terminal
+/// states, and this is the test that proves it from the operator's side.
+///
+/// They need a CLOSED unit, so they need a gate that passes, so they need a
+/// contract. **A thread created by `st new` in this session cannot supply
+/// one**: no CLI verb creates an acceptance criterion, and `ac satisfy` only
+/// moves one that already exists. Criteria enter the store by ingest, so the
+/// fixture seeds them the way a real repository does -- as committed canon a
+/// fresh open reads.
+#[test]
+fn a_closed_thread_and_work_package_can_both_be_reopened() {
+  let dir = project();
+  let root = dir.path();
+  seed_closeable_thread(root);
+
+  assert!(
+    ok(root, &["ac", "gate", "ST0001"]).contains("PASS"),
+    "precondition: the seeded contract is satisfied, so `done` is reachable"
+  );
+
+  ok(root, &["wp", "done", "ST0001/01"]);
+  assert_eq!(
+    ok(
+      root,
+      &[
+        "wp",
+        "reopen",
+        "ST0001/01",
+        "--reason",
+        "an AC arrived after it closed"
+      ]
+    )
+    .trim(),
+    "ok: ST0001/01 reopened"
+  );
+  assert!(
+    ok(root, &["wp", "show", "ST0001/01"]).contains("status: wip"),
+    "and the reopen actually moved it, rather than only printing that it had"
+  );
+
+  ok(root, &["st", "done", "ST0001"]);
+  assert_eq!(
+    ok(
+      root,
+      &["st", "reopen", "ST0001", "--reason", "the contract grew"]
+    )
+    .trim(),
+    "ok: ST0001 reopened"
+  );
+  let shown = ok(root, &["st", "show", "ST0001"]);
+  assert!(shown.contains("status: WIP"), "{shown}");
+  assert!(
+    !shown.contains("completed:"),
+    "and reopening CLEARS the completion date, which would otherwise outlive the state it recorded: {shown}"
   );
 }
 
@@ -466,11 +607,11 @@ fn st_sync_dry_run_is_the_index_table_not_a_reconciliation_report() {
   let root = dir.path();
   ok(root, &["st", "new", "alpha"]);
   ok(root, &["st", "new", "bravo"]);
-  // No `st start` here any more: this test is about the sync table sharing the
-  // list renderer, and driving a status was only ever incidental. It cannot be
-  // driven from the CLI until `st triage` has a dispatch row (ic), and a test
-  // that reached for an unrelated verb to make state is a test with a
-  // dependency it did not need.
+  // No `st start` here: this test is about the sync table sharing the list
+  // renderer, and driving a status was only ever incidental. A test that
+  // reaches for an unrelated verb to make state acquires a dependency it did
+  // not need -- which is the whole reason for leaving it out, and it stays the
+  // reason now that `st triage` is wired and the state IS reachable.
 
   let listed = ok(root, &["st", "list", "--status", "all"]);
   let synced = ok(root, &["st", "sync"]);

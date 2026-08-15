@@ -358,14 +358,59 @@ fn st(m: &ArgMatches) -> Result<(), String> {
     Some(("cancel", a)) => {
       let id = arg(a, "id")?;
       // The ratified machine guards `st cancel` with "reason recorded", so the
-      // facade refuses without one. `--reason` is a dispatch-table row and the
-      // table is ic's lane, so it is READ optionally here rather than invented:
-      // the day ic declares it this starts carrying the operator's text, and
-      // until then the facade's `ReasonRequired` says exactly what is missing
+      // facade refuses without one. `--reason` is read through `opt` rather
+      // than `arg` on purpose: the flag is a dispatch-table row and the table
+      // is ic's lane, so an absent one must not crash the renderer. When it is
+      // absent the facade's `ReasonRequired` says exactly what is missing,
       // instead of cancelling a thread with no record of why.
       let reason = opt(a, "reason").unwrap_or_default();
       open()?.st_cancel(&id, &reason).map_err(fail)?;
       println!("ok: {id} cancelled");
+      Ok(())
+    }
+    // The five lifecycle verbs below have NO v2 antecedent -- every one is a
+    // `new-surface` row -- so there is no parity text to reproduce and the
+    // wording is authored here. The arms are in dispatch-table row order, so
+    // a verb the table carries and this match does not is visible by reading
+    // down the two side by side rather than by trusting a count.
+    //
+    // **Where the verb does not name its own landing state, the message
+    // does.** `triage` and `reinstate` are both readable in the wrong
+    // direction -- "triage" sounds like it puts a thread INTO triage, and a
+    // reinstated thread lands in the backlog rather than back at `wip` -- and
+    // an operator who has to run `st show` to find out where a verb put their
+    // thread has been told less than the verb knew.
+    Some(("triage", a)) => {
+      let id = arg(a, "id")?;
+      open()?.st_triage(&id).map_err(fail)?;
+      println!("ok: {id} accepted out of triage");
+      Ok(())
+    }
+    Some(("hold", a)) => {
+      let id = arg(a, "id")?;
+      let reason = opt(a, "reason").unwrap_or_default();
+      open()?.st_hold(&id, &reason).map_err(fail)?;
+      println!("ok: {id} on hold");
+      Ok(())
+    }
+    Some(("resume", a)) => {
+      let id = arg(a, "id")?;
+      open()?.st_resume(&id).map_err(fail)?;
+      println!("ok: {id} resumed");
+      Ok(())
+    }
+    Some(("reopen", a)) => {
+      let id = arg(a, "id")?;
+      let reason = opt(a, "reason").unwrap_or_default();
+      open()?.st_reopen(&id, &reason).map_err(fail)?;
+      println!("ok: {id} reopened");
+      Ok(())
+    }
+    Some(("reinstate", a)) => {
+      let id = arg(a, "id")?;
+      let reason = opt(a, "reason").unwrap_or_default();
+      open()?.st_reinstate(&id, &reason).map_err(fail)?;
+      println!("ok: {id} reinstated to the backlog");
       Ok(())
     }
     Some(("list", a)) => {
@@ -451,6 +496,25 @@ fn wp(m: &ArgMatches) -> Result<(), String> {
       let (st, seq) = wp_target(a)?;
       open()?.wp_done(&st, seq).map_err(fail)?;
       println!("ok: {st}/{seq:02} done");
+      Ok(())
+    }
+    // `wp reopen` is the inverse `wp done` never had, and its absence was
+    // doing live damage rather than being a tidiness gap: `wp done` consults
+    // the gate on the way in and nothing re-checks afterwards, so a work
+    // package legitimately closed becomes a false green the moment an AC is
+    // added to it. Until this arm existed the only repair was hand-editing the
+    // file the CLI exists to own.
+    Some(("reopen", a)) => {
+      let (st, seq) = wp_target(a)?;
+      let reason = opt(a, "reason").unwrap_or_default();
+      open()?.wp_reopen(&st, seq, &reason).map_err(fail)?;
+      println!("ok: {st}/{seq:02} reopened");
+      Ok(())
+    }
+    Some(("unstart", a)) => {
+      let (st, seq) = wp_target(a)?;
+      open()?.wp_unstart(&st, seq).map_err(fail)?;
+      println!("ok: {st}/{seq:02} back to not started");
       Ok(())
     }
     Some(("list", a)) => {
