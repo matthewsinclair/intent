@@ -2772,7 +2772,8 @@
                 "THE SNAPSHOT DIRECTORY -- fixed at `.backup/db/`. D35 requires DB snapshots to hold their own namespace under `.backup/`, because `intent upgrade` already writes `backup-<TIMESTAMP>/` rollback artefacts there and the two carry different retention rules. A configurable path is exactly how someone points the pruner at the upgrade namespace, making the collision this rule exists to prevent reachable through SUPPORTED configuration.",
                 "ANY SWITCH THAT SILENCES BACKUP FAILURE -- IN-AG-NO-SILENT-001 at its sharpest. This is the backup of the durable SSOT, and D35 records that the natural implementation (best-effort, on a timer, in a daemon nobody watches) is the one that fails silently. A key to turn the warning off MANUFACTURES that failure and gives it a supported name."
               ],
-              "open_to_hv": "D35 quotes hv as `configurable from intent config`. I read that as *the setting lives in the config this command displays* and have NOT invented `config get` / `config set` -- v2's `config` has no verbs and adding a setter is new surface nobody asked me for. If hv meant a writable `intent config set backup.enabled false`, say so and I will author the rows. Editing `config.json` directly works under either reading, so cc is unblocked either way."
+              "open_to_hv": "D35 quotes hv as `configurable from intent config`. I read that as *the setting lives in the config this command displays* and have NOT invented `config get` / `config set` -- v2's `config` has no verbs and adding a setter is new surface nobody asked me for. If hv meant a writable `intent config set backup.enabled false`, say so and I will author the rows. Editing `config.json` directly works under either reading, so cc is unblocked either way. **vc, 2026-08-15: reading CONFIRMED and declining to invent the setter was the correct call.** Still open for hv, but no longer open in the sense of nobody having looked at it.",
+              "carry_forward": "vc, 2026-08-15, to hold rather than act on: **if config ever enters the model the way the whiteboard did under D30, the setter question returns as a D32 question rather than a surface preference** -- *a state that can be entered and not left is a missing mutation, not a missing flag*. It is NOT a D32 question today, because `config.json` is project configuration and not model state. Recorded on the row so the trigger is attached to the thing it would change."
             }
           },
           "disposition": "pending"
@@ -3054,7 +3055,12 @@
           },
           "target": {
             "state": "pending-hv",
-            "question": "Should `doctor` exit non-zero when it finds something? v2 does not, so a CI job cannot gate on it. Changing it is `corrected`; leaving it means the skew and unparsed checks v3 adds are reportable but not enforceable."
+            "question": "Should `doctor` exit non-zero when it finds something? v2 does not, so a CI job cannot gate on it. Changing it is `corrected`; leaving it means the skew and unparsed checks v3 adds are reportable but not enforceable.",
+            "new_obligations": [
+              "STATUS-VS-GATE DISAGREEMENT (hv, 2026-08-15, ratifying the state machines): `doctor` reports any unit whose status disagrees with its gate. Refusal on the way in is not enough on its own -- a status that was TRUE when it was set becomes a false green the moment its contract grows, which is how three of five WPs came to disagree with their own gates while every one of them had been closed legitimately.",
+              "BACKUP STALENESS (vc, 2026-08-15, amending AC-03.10 after ic's `--list` question): `doctor` reports the newest snapshot's age against the configured `backup.schedule`. AC-03.10(d) had said only that a failed backup surfaces -- but A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could ship where nothing had ever run. Staleness is the two-sided test: it detects never-ran WITHOUT needing anything to have failed, the same construction as the clock guard's check C, which compares two stamps to each other and needs no clock at all."
+            ],
+            "question_sharpened_by_them": "BOTH obligations above make the open exit-code question materially heavier, and this is new evidence for a decision hv has not yet made. When `doctor` only reported configuration tidiness, `reportable but not enforceable` was a mild gap. It now detects (a) tracking data that is actively lying about whether work is finished and (b) a backup of the DURABLE SSOT that may never have run. Those are not advisory findings. A check that cannot fail a CI job is one nobody is obliged to read -- which is the unwired-guard shape dc measured: VISIBLE IS NOT CLOSED."
           },
           "disposition": "keep"
         }
@@ -5642,7 +5648,7 @@
           ],
           "type": "bool",
           "help": "List retained snapshots and when each was taken",
-          "note": "PROPOSED BY ic, not ruled. D35 requires that a failed or skipped backup SURFACE, and with no read path a user cannot tell a working schedule from one that has silently never run -- which is the same nothing-is-wrong / nothing-ran ambiguity this toolchain keeps closing. Strike it if the contract wants the trigger alone; the trigger is the part vc asked for."
+          "note": "RATIFIED -- vc, 2026-08-15: `--list` STANDS. Proposed by ic on the grounds that D35 requires a failed or skipped backup to SURFACE, and with no read path a user cannot tell a working schedule from one that has silently never run -- the nothing-is-wrong / nothing-ran ambiguity again. **The question turned out to expose a hole in AC-03.10 itself**: the clause said only that a FAILED backup surfaces, and A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could have shipped where nothing had ever run -- the ambiguity living inside the clause written to prevent it. AC-03.10 is amended and `doctor` now reports backup STALENESS, which detects never-ran without needing anything to have failed."
         }
       ],
       "v2": "new-surface",
@@ -5654,7 +5660,7 @@
         "state": "new-surface",
         "ratification": "D35 -- the SERVICE owns the backup and both surfaces reach it. `intent backup` triggers one manually; `intentd` schedules the rolling one; ONE implementation, so CLI and daemon cannot drift into two retention policies. AC-08.8 checks that these are the SAME function, not two that agree.",
         "note": "The snapshot is taken with `VACUUM INTO` (or the `sqlite3_backup_*` API) and NEVER `cp` / `fs::copy` / a tar of the directory. D35 measured why: the store opens WAL, so with a writer connection still open -- exactly as a running daemon holds it -- the live DB had 50 rows, `VACUUM INTO` captured 50, and a naive `cp` captured ZERO. The `cp` result opens cleanly and reports no error, so it is indistinguishable from a good backup by inspection. That is the fabricated-stamp failure shape in a new artefact: a plausible record of something that never happened.",
-        "surfacing": "A failed or skipped scheduled backup must surface (IN-AG-NO-SILENT-001). Recommending `doctor` as the home for that report rather than a second status surface here -- `doctor` already exists to report a project's health and Highlander says one place, not two. `--list` above answers *what snapshots exist*, which is inventory rather than health."
+        "surfacing": "RATIFIED -- vc, 2026-08-15: the split is the ruling. A failed or skipped scheduled backup must surface (IN-AG-NO-SILENT-001), and **`doctor` is THE ONE PLACE health is reported** -- not a second status surface here -- because `doctor` already exists for exactly that and Highlander says one place, not two. `--list` answers only *what snapshots exist*, which is inventory rather than health. `doctor`'s obligation is recorded on its own row as `target.new_obligations`, so the requirement lives where the command that owns it is described."
       }
     },
     {
