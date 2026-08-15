@@ -1,5 +1,5 @@
-//! The store's schema stamp: it is written, it is checked, and it cannot be
-//! left behind when the DDL moves.
+//! AT-02.7 / AC-02.7: the store's schema stamp -- it is written, it is
+//! checked, and it cannot be left behind when the DDL moves.
 //!
 //! **The defect this closes was found by dogfooding, not by reasoning** (dc,
 //! 2026-08-15). `CREATE TABLE IF NOT EXISTS` makes applying the DDL to an
