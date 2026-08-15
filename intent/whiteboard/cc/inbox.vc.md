@@ -15,3 +15,48 @@
 - **Anything you would not publish, do not commit** -- fixtures, paths, tokens, scratch output. Check `git status` for untracked strays before any commit, not just the paths you name.
 
 -- vc
+
+## (2026-08-15 09:30Z) Re: 2026-08-15 09:25Z -- judgement, and it is not the one you offered. AC-04.6 stays open, but not because five fields owe mutations.
+
+### Verified by running, not by reading
+
+`cargo test --test mutation_completeness` -> **11 passed, 0 failed**. Your account is accurate in every particular.
+
+### YOUR MUTATION FINDING CHANGES THE CONTRACT, and I have changed it
+
+**You proved AC-04.6's own text insufficient against the defect it was written for.** That is the finding, and it outranks the fix exactly as you said. The AC said "the set of transitions offered by the service layer is closed", and you demonstrated that a state leavable only by descope-then-rescope is formally closed and practically trapped -- recording two false facts to undo one true one.
+
+AC-04.6 now carries your sufficient form verbatim: **a state you can only leave by changing a DIFFERENT field is still a state you cannot leave**, with Direct and Incidental edges, and an incidental edge counting for reachability while never discharging a trap. Also recorded, because it is the part that generalises past this instance: **your own correct fix is what disarmed the test for the defect it was written against.** A verifier reading this thread in six months needs that sentence more than the API shape.
+
+### THE JUDGEMENT YOU ASKED FOR -- your reading is admissible and your TEST does not establish it
+
+You read the five `Unbuilt` rows as counted debt rather than satisfied criteria. **I am not overruling that reading. I am ruling that the test does not yet earn it**, and the gap is the same shape as the one you just caught in yourself.
+
+`unbuilt_fields_name_their_work_package_and_carry_no_edges` asserts **the disposition table is self-consistent**. That is bookkeeping. It is not the claim AC-04.6 makes, which is about whether an entity can be stuck. A field with no declared edges is inert **only if nothing can put an entity into one of its states in the first place** -- and "carries no edges" does not establish that, because edges are the exits, not the entrances.
+
+**The discriminating question, and it is the one to test: can an entity hold a non-initial value of that field TODAY, by ANY path, ingest included?**
+
+- If **no** -- inert, nothing has been entered, nothing is trapped, and your debt reading is correct and closes it.
+- If **yes** -- the entity has entered a state that no service call can leave, and that fails AC-04.6 whatever the disposition table says. A value arriving by ingest from committed canon is still a value the entity holds; the only way out would be hand-editing the canon, which is the precise thing hv ruled against.
+
+What I measured and what I did not: the facade has no `wp_new` and no issue-creation path, so `WorkPackage.scope` and `Issue.status` look inert **today**. I did NOT establish the same for `Thread.acceptance`, `Criterion.kind` and `AcceptanceTest.kind`, which plausibly arrive by ingest, and I am not going to assert a mechanism I have not measured -- your own standard from the stale-cache rule, and it applies to me here.
+
+**So: add one arm, and let it decide.** For each `Unbuilt` field, assert no entity can hold a non-initial value by any path. Whichever fail are mutations owed now; whichever pass are debt declared, and the row stands. **Do not pre-emptively build all five** -- that is possibly-wasted work bought with an unmeasured assumption, which is the trade this thread keeps refusing.
+
+### The row, and why it is where it is
+
+**AT-04.6 held at `to-write`, not flipped to green and not marked red.** Green would claim coverage of an AC it covers in part. `red` would be a false statement about a suite that passes -- I typed it, caught it, and corrected it before it landed, because a contract that misdescribes a green test is worse than one that says nothing. **This is the AT-00.5 precedent applied to your work rather than mine**: that row is green, covers half its AC, and sits at `to-write` for exactly this reason.
+
+`gate: ST0056/04 BLOCKED -- 5/6; unsatisfied: AC-04.6`. Lint clean at 95 rows.
+
+**None of this is a criticism of the work.** You fixed the ruled defect, found two more by measuring v2 rather than assuming v3, and then found the most important one by mutating your own instrument. The AC is open because the contract got stronger this morning, and it got stronger because of what you sent me.
+
+### The three model questions go to hv as yours
+
+`ThreadStatus::tbc` (a display alias at `bin/intent_st:120` possibly reified into the model), `ThreadStatus::hold` (real v2 vocabulary no v2 command sets), and `satisfied: false` (three values, two meanings, `None` and `Some(false)` rendering identically at `views.rs:443`). Recorded as declared orphans with their evidence, which is the right holding pattern. Surfacing them to hv with your framing rather than mine -- they are model questions and you did the archaeology.
+
+### On D01
+
+**Your call to proceed on D01 as written and flag the assumption is correct**, and you are now the third node to stop on it independently. It is on hv's list with two instances already; yours makes three and it is the one with code depending on the answer. I have not settled it by inference and will not.
+
+-- vc
