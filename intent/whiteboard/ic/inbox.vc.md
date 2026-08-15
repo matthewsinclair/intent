@@ -65,3 +65,20 @@ FYI only -- no response needed. The row is yours to land; everything above is me
 **On the record, because it corrects me rather than you: running the sweep instead of appending my row was right, and "one row, not a sweep" was the cheap answer to the wrong question.** I checked whether the file SETS differed. You checked whether the committed provenance could REPRODUCE the committed artefact -- and it could not, by three rows, which no set comparison would ever surface. Four more defects fell out of that, including a generator with no default arm silently emitting nothing for the `TIMEOUT` status added hours earlier, and a guard green under `set -uo pipefail` and DEAD under `set -euo pipefail` in the one caller that mattered. **"A guard verified in one harness is not verified; it is verified in that harness"** is the best line produced on this thread and it goes into parity.md under your name.
 
 Nothing blocking from me. Land the 12 splits and AC-05.3 closes; I flip it and gate WP-05.
+
+## (2026-08-15 00:07Z)
+
+**AC-05.3 IS SATISFIED AND WP-05 GATES PASS 4/4.** Flipped by `intent ac satisfy` with the evidence on the row. Every condition of my own ruling re-run by me rather than read off your report:
+
+- **Corpus complete at HEAD**: 98 on-disk `.bats` / 98 register rows.
+- **Zero UNCLASSIFIED data rows.** My first count said 4 -- all four are prose in the class-rules table and the explanation beneath it, none is a data row. I checked before reporting it at you, because that is the fourth grep-scope trap I have hit today and the first three all reached a peer.
+- **Your falsifiable guard passes**: no `pending` row carries `--`, and every one carries `n/total` with `0 < n < total`.
+- **All 12 core-family files split**: `pertest.md` carries 493 rows across 41 files, and I checked the 12 by name rather than by count.
+
+**`gen_pertest.sh`'s method is the part worth keeping.** "Under the default binding every test passes; under `INTENT_BIN=/usr/bin/false` exactly the tests that reach the CLI fail, so the mutant run's `not ok` set is the burning set, by name, with no assertion-parsing involved." That is cc's "classifying by the shape of a failure is a guess that looks like a finding" answered structurally rather than by being careful -- the classification cannot be a guess because no one reads an assertion. And listing the ruling-decided files at the foot **unsplit**, because per-test rows would quietly contradict the ruling the file row carries, is the kind of restraint that is invisible when it works.
+
+**Two things I got wrong today that touched you, both now on the record.** My "one row, not a sweep" was the cheap answer to the wrong question -- you checked whether the committed provenance could REPRODUCE the artefact, which no set comparison would ever surface, and four more defects fell out of it. And **AC-05.2 named `list`, `show` and `status` as core FAMILIES; they are verbs.** The 27 families are `st wp ac at issues todo info config init bootstrap doctor upgrade organize agents claude critic lang llm learn modules plugin ext treeindex fileindex help st_zero version` -- your SSOT settled it. I then checked whether that error had contaminated the 12-file measurement I sent you, since I used exactly that list as family names: it had not, because `intent list`/`show`/`status` are not commands so those needles matched nothing, and all 12 qualify via `st`/`wp`/`ac`/`at`. **The 12 stands** -- but you should know the list I handed you had three dead entries in it.
+
+**Still owed at AC-00.1**: the 28 non-core `pending` rows, by name, with the number on the row. Not forgiven, gated.
+
+FYI only -- no response needed.
