@@ -18,7 +18,10 @@
     "Every entry declares `exposed_on_mcp` and `read_or_mutate` (AC-09.1, from EXP-03). The MCP tool list renders from this file like everything else, and the alternative was deriving it from the verb -- which dies on one pair alone: `ac gate` READS while `wp done` consults the same gate and WRITES, and the two do not share a spelling. Declare, do not derive. Both fields are REQUIRED on every row and the generator refuses a row missing either, because a defaulted field is how a new command joins the agent surface without anyone deciding it should.",
     "`read_or_mutate` is a claim about the WHOLE entry, not about its default invocation. `read` means no invocation of the entry, under any flag, changes durable state -- not the store, not the working tree, not a config file. Everything else is `mutate`. Defined that way because the other reading (\"what it does when you just run it\") makes four rows lie: `at lint` is a report until `--fix`, `doctor` is a diagnosis until `--fix`, `llm usage_rules` prints until `--symlink`, and `todo list` prints unless `todo.md` is absent, in which case it generates it. That last one is the worst shape available -- it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone. A field that describes the default is one an agent can be wrong about while reading it correctly.",
     "The two fields lean in OPPOSITE directions when the answer is uncertain, and both leans take the cheap error over the symmetric one. `exposed_on_mcp` leans FALSE: a command wrongly omitted is an inconvenience a human fixes in one line, while one wrongly included lets an agent run `daemon`. `read_or_mutate` leans MUTATE: a read mislabelled as a mutation costs a confirmation prompt, while a mutation mislabelled as a read lets an agent close a steel thread believing it is querying.",
-    "`mcp_review` is present only on rows wanting a second opinion, and it exists because of how review actually fails: correcting a proposed classification is ANCHORED by the proposal (vc, 2026-08-15). Nobody re-derives a table this size row by row -- they review, and review is biased toward accepting. So the rows are MARKED rather than the confidence scored. `uncertain` names WHICH field is soft, because the two lean opposite ways and an unqualified \"uncertain\" is unactionable; `why_uncertain` gives the reason to argue with. `counterintuitive` flags a value that disagrees with the obvious reading of the verb -- precisely where a reviewer skimming nods it through, and where classifying from the name would have gone wrong. `grounded_in` cites the source actually read; its ABSENCE means the row was classified from the verb and the help text alone, which is a weaker claim and is meant to look like one."
+    "`mcp_review` is present only on rows wanting a second opinion, and it exists because of how review actually fails: correcting a proposed classification is ANCHORED by the proposal (vc, 2026-08-15). Nobody re-derives a table this size row by row -- they review, and review is biased toward accepting. So the rows are MARKED rather than the confidence scored. `uncertain` names WHICH field is soft, because the two lean opposite ways and an unqualified \"uncertain\" is unactionable; `why_uncertain` gives the reason to argue with. `counterintuitive` flags a value that disagrees with the obvious reading of the verb -- precisely where a reviewer skimming nods it through, and where classifying from the name would have gone wrong. `grounded_in` cites the source actually read; its ABSENCE means the row was classified from the verb and the help text alone, which is a weaker claim and is meant to look like one.",
+    "Every FLAG declares a `disposition` (AC-06.8, EXP-05), and it answers a DIFFERENT question from the entry-level field of the same name. At entry level `disposition` is a PARITY classification: what becomes of this v2 command. At flag level it is a SHIPPING classification: does this flag reach clap, and is the renderer obliged to read it. The words are shared on purpose, and they do not mean the same thing -- a new-surface flag is `keep`, because it ships, even though its command's entry disposition is `new-surface`. Four values: `keep` ships and must be read; `retire` is recorded from v2 and never reaches clap; `pending` does not ship, because an undecided flag on the surface IS the defect AC-06.8 names; `intrinsic` ships and clap supplies it, so no renderer arm is expected. `deviate` has no flag-level meaning and is deliberately absent -- a flag either reaches the surface or it does not, and a behaviour change is a property of the command. `intrinsic` correspondingly has no entry-level meaning.",
+    "`intrinsic` is a PROPOSAL awaiting vc, and it is proposed because the code already needed it and expressed it the wrong way. `spine.rs:145-151` skips `--help` / `-h` / `help` by MATCHING ON THE SPELLING, with the comment that they are clap's own. That behaviour is correct and its reason is undeclared -- which is precisely the inference-from-name that EXP-05 exists to replace with a declaration. Under a three-value vocabulary these ten flags have no honest answer: `keep` says the renderer must read them and it must not, `retire` says they never reach clap and they do. Ten rows change if vc rules otherwise, which is cheap; a spelling-keyed skip list in the spine is not.",
+    "The three EXP-05 refusals lean the same way `exposed_on_mcp` does, and the direction is chosen rather than inherited. `flags` must be PRESENT as an array, because `flagsig` renders an absent key and `[]` identically as `--`, so 'this command has no flags' and 'nobody has said' were the same glyph on four rows. Every flag must declare a disposition IN VOCABULARY, so a flag cannot join the v3 surface by being typed into this file. And a `retire` command cannot carry a shipping flag -- the one rule here that is derivable rather than authored, which is exactly why it is checked: an inherited value is the kind that gets hand-edited out of agreement with its source, and nothing else would notice. `pending` deliberately does NOT refuse; `doctor` reports the pending count instead, because a guard that must be bypassed is a guard nobody keeps."
   ],
   "invariants": [
     {
@@ -151,7 +154,9 @@
               ],
               "type": "bool",
               "help": "Print the usage block",
-              "note": "`help` is a bare word arm, not a flag; grouped here because the three spellings share one arm (bin/intent_st:1614)"
+              "note": "`help` is a bare word arm, not a flag; grouped here because the three spellings share one arm (bin/intent_st:1614)",
+              "disposition": "intrinsic",
+              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_st:1614-1616, 1618-1621",
@@ -209,7 +214,8 @@
                 "--start"
               ],
               "type": "bool",
-              "help": "Mark the new thread in progress immediately"
+              "help": "Mark the new thread in progress immediately",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_st:296-445",
@@ -355,7 +361,8 @@
               ],
               "type": "string",
               "value": "<text>",
-              "help": "Why it is being cancelled -- required by the machine's guard"
+              "help": "Why it is being cancelled -- required by the machine's guard",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_st:536-598",
@@ -422,7 +429,8 @@
               ],
               "type": "string",
               "value": "<text>",
-              "help": "Why it is being held -- required by the machine's guard"
+              "help": "Why it is being held -- required by the machine's guard",
+              "disposition": "keep"
             }
           ],
           "v2": "new-surface",
@@ -473,7 +481,8 @@
               ],
               "type": "string",
               "value": "<text>",
-              "help": "Why it is being reopened -- required by the machine's guard"
+              "help": "Why it is being reopened -- required by the machine's guard",
+              "disposition": "keep"
             }
           ],
           "v2": "new-surface",
@@ -503,7 +512,8 @@
               ],
               "type": "string",
               "value": "<text>",
-              "help": "Why it is being reinstated -- required by the machine's guard"
+              "help": "Why it is being reinstated -- required by the machine's guard",
+              "disposition": "keep"
             }
           ],
           "v2": "new-surface",
@@ -528,7 +538,8 @@
               "type": "string",
               "value": "<status>",
               "help": "`all`, or a comma-separated list rendered in the order given",
-              "accepts": "wip|in progress -> WIP; tbc|not started -> TBC; completed|done -> COMPLETED; cancelled|canceled -> CANCELLED; hold|on hold -> HOLD (case-insensitive, normalised to caps)"
+              "accepts": "wip|in progress -> WIP; tbc|not started -> TBC; completed|done -> COMPLETED; cancelled|canceled -> CANCELLED; hold|on hold -> HOLD (case-insensitive, normalised to caps)",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -536,7 +547,8 @@
               ],
               "type": "integer",
               "value": "<n>",
-              "help": "Render at a fixed column width; 0 or absent means terminal width"
+              "help": "Render at a fixed column width; 0 or absent means terminal width",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -544,7 +556,8 @@
               ],
               "type": "bool",
               "help": "Emit canonical GFM instead of terminal rendering",
-              "note": "UNDOCUMENTED in v2's usage() block; consumed by `st sync --write`. Real surface, so it is in the table."
+              "note": "UNDOCUMENTED in v2's usage() block; consumed by `st sync --write`. Real surface, so it is in the table.",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_st:717-1043",
@@ -708,7 +721,8 @@
                 "--write"
               ],
               "type": "bool",
-              "help": "Write the index; without it the command is a dry run"
+              "help": "Write the index; without it the command is a dry run",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -716,7 +730,8 @@
               ],
               "type": "integer",
               "value": "<n>",
-              "help": "Render at a fixed column width"
+              "help": "Render at a fixed column width",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_st:1145-1211",
@@ -760,7 +775,8 @@
                 "--write"
               ],
               "type": "bool",
-              "help": "Apply the repairs; without it the command is a dry run"
+              "help": "Apply the repairs; without it the command is a dry run",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_st:1212-1433",
@@ -815,7 +831,9 @@
                 "--write"
               ],
               "type": "bool",
-              "help": "Move the files; without it the command is a dry run"
+              "help": "Move the files; without it the command is a dry run",
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             }
           ],
           "v2": "bin/intent_st:1434-1609; the `organise` -> `organize` normalisation is at bin/intent_st:289-292",
@@ -853,14 +871,16 @@
                 "--audit-only"
               ],
               "type": "bool",
-              "help": "Show gap analysis only, no changes"
+              "help": "Show gap analysis only, no changes",
+              "disposition": "keep"
             },
             {
               "spellings": [
                 "--dry-run"
               ],
               "type": "bool",
-              "help": "Show what would change, no writes"
+              "help": "Show what would change, no writes",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -868,7 +888,8 @@
               ],
               "type": "string",
               "help": "Target a single deliverable (D2-D11)",
-              "value": "<id>"
+              "value": "<id>",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_st_zero, reached in v2 by TWO spellings: `intent st_zero` (top level, auto-dispatched) and `intent st zero` (bin/intent_st:1610-1612 execs the binary). Only the second was ever documented by the command itself.",
@@ -950,7 +971,9 @@
               ],
               "type": "bool",
               "help": "Print the usage block",
-              "note": "bare-word arm plus the two flag spellings"
+              "note": "bare-word arm plus the two flag spellings",
+              "disposition": "intrinsic",
+              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_wp:287 (`*)` arm) + the arity check above it",
@@ -1158,7 +1181,8 @@
               ],
               "type": "string",
               "value": "<text>",
-              "help": "Why it is being reopened -- required by the machine's guard"
+              "help": "Why it is being reopened -- required by the machine's guard",
+              "disposition": "keep"
             }
           ],
           "v2": "new-surface",
@@ -1469,7 +1493,8 @@
               "type": "string",
               "help": "The named evidence reference",
               "value": "<ref>",
-              "required": true
+              "required": true,
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)",
@@ -1604,7 +1629,8 @@
               "type": "string",
               "help": "The thread the requirement moved to",
               "value": "<stid>",
-              "required": true
+              "required": true,
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -1612,7 +1638,8 @@
               ],
               "type": "string",
               "help": "Who decided",
-              "value": "<who>"
+              "value": "<who>",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -1620,7 +1647,8 @@
               ],
               "type": "string",
               "help": "Why",
-              "value": "<text>"
+              "value": "<text>",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)",
@@ -1726,7 +1754,8 @@
               "type": "string",
               "help": "Why it was dropped -- REQUIRED",
               "value": "<text>",
-              "required": true
+              "required": true,
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -1734,7 +1763,8 @@
               ],
               "type": "string",
               "help": "Who decided",
-              "value": "<who>"
+              "value": "<who>",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_acceptance:1354-1366 (the `ac` dispatch arm)",
@@ -1951,7 +1981,8 @@
                 "--fix"
               ],
               "type": "bool",
-              "help": "Migrate the mechanical part of a legacy row -- and REFUSE what cannot migrate without loss"
+              "help": "Migrate the mechanical part of a legacy row -- and REFUSE what cannot migrate without loss",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_acceptance:1368-1377 (the `at` dispatch arm)",
@@ -2223,7 +2254,8 @@
               "type": "enum",
               "help": "Which bucket to list",
               "value": "open|closed|all",
-              "default": "open"
+              "default": "open",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_issues:310, buckets at :207-209",
@@ -2274,7 +2306,8 @@
               "type": "enum",
               "help": "Severity",
               "value": "critical|high|medium|low",
-              "default": "medium"
+              "default": "medium",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_issues:311",
@@ -2327,7 +2360,8 @@
                 "--json"
               ],
               "type": "bool",
-              "help": "Emit as JSON instead of prose"
+              "help": "Emit as JSON instead of prose",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_issues:312",
@@ -2485,7 +2519,8 @@
                 "--json"
               ],
               "type": "bool",
-              "help": "Emit the DOING/TODO/DONE view as JSON on stdout"
+              "help": "Emit the DOING/TODO/DONE view as JSON on stdout",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_todo:384 (dispatch arms sit at zero indent here, which is what defeated one static enumerator)",
@@ -2543,7 +2578,8 @@
                 "--json"
               ],
               "type": "bool",
-              "help": "Emit the DOING/TODO/DONE view as JSON on stdout"
+              "help": "Emit the DOING/TODO/DONE view as JSON on stdout",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_todo:384 -- the `list)` arm; `COMMAND=\"${1:-list}\"` at :380 makes it the default",
@@ -2629,14 +2665,16 @@
                 "--flush"
               ],
               "type": "bool",
-              "help": "Advance the DONE watermark to now, clearing the DONE view"
+              "help": "Advance the DONE watermark to now, clearing the DONE view",
+              "disposition": "keep"
             },
             {
               "spellings": [
                 "--prune"
               ],
               "type": "bool",
-              "help": "Emit the DONE items for archiving, then flush"
+              "help": "Emit the DONE items for archiving, then flush",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_todo (done arm)",
@@ -3053,7 +3091,8 @@
                 "--with-st0000"
               ],
               "type": "bool",
-              "help": "Bootstrap all ST0000 deliverables after init"
+              "help": "Bootstrap all ST0000 deliverables after init",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -3062,7 +3101,8 @@
               "type": "string",
               "help": "Comma- or space-separated languages to install canon for",
               "value": "<list>",
-              "accepts": "eg `--lang elixir` or `--lang elixir,rust,shell`"
+              "accepts": "eg `--lang elixir` or `--lang elixir,rust,shell`",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -3070,7 +3110,9 @@
                 "-h"
               ],
               "type": "bool",
-              "help": "Print the usage block"
+              "help": "Print the usage block",
+              "disposition": "intrinsic",
+              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_init",
@@ -3153,7 +3195,8 @@
                 "-f"
               ],
               "type": "bool",
-              "help": "Force recreation of config even if it exists"
+              "help": "Force recreation of config even if it exists",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -3161,7 +3204,9 @@
                 "-q"
               ],
               "type": "bool",
-              "help": "Suppress informational output"
+              "help": "Suppress informational output",
+              "disposition": "pending",
+              "disposition_basis": "VERBOSITY CLUSTER. Same undecided design question as `doctor --quiet`, and it is one question, not four: does v3 carry per-command verbosity flags or one global pair? Classified together so the answer lands in one place instead of being re-litigated per command."
             },
             {
               "spellings": [
@@ -3169,7 +3214,9 @@
                 "-h"
               ],
               "type": "bool",
-              "help": "Print the usage block"
+              "help": "Print the usage block",
+              "disposition": "intrinsic",
+              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_bootstrap",
@@ -3243,7 +3290,9 @@
                 "-f"
               ],
               "type": "bool",
-              "help": "Attempt to fix issues automatically"
+              "help": "Attempt to fix issues automatically",
+              "disposition": "retire",
+              "disposition_basis": "vc measured bin/intent_doctor:66 -- v2 really implements --fix, so this is a genuine v2 behaviour v3 is deliberately not carrying. That is the distinction `retire` exists to draw, and AC-06.9 was missing it."
             },
             {
               "spellings": [
@@ -3251,7 +3300,9 @@
                 "-v"
               ],
               "type": "bool",
-              "help": "Show detailed information"
+              "help": "Show detailed information",
+              "disposition": "pending",
+              "disposition_basis": "vc measured `verbose()` at bin/intent_doctor:133 -- implemented in v2, undecided for v3. Part of the verbosity cluster below."
             },
             {
               "spellings": [
@@ -3259,7 +3310,9 @@
                 "-q"
               ],
               "type": "bool",
-              "help": "Only show errors and warnings"
+              "help": "Only show errors and warnings",
+              "disposition": "pending",
+              "disposition_basis": "vc measured colour suppression under quiet at bin/intent_doctor:91 -- implemented in v2, undecided for v3. Part of the verbosity cluster below."
             },
             {
               "spellings": [
@@ -3267,7 +3320,9 @@
                 "-h"
               ],
               "type": "bool",
-              "help": "Print the usage block"
+              "help": "Print the usage block",
+              "disposition": "intrinsic",
+              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_doctor",
@@ -3351,14 +3406,18 @@
               "type": "string",
               "help": "Custom backup directory name",
               "value": "<dir>",
-              "default": ".backup/backup-TIMESTAMP"
+              "default": ".backup/backup-TIMESTAMP",
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
                 "--no-backup"
               ],
               "type": "bool",
-              "help": "Skip backup creation (dangerous)"
+              "help": "Skip backup creation (dangerous)",
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -3366,7 +3425,9 @@
                 "-h"
               ],
               "type": "bool",
-              "help": "Print the usage block"
+              "help": "Print the usage block",
+              "disposition": "intrinsic",
+              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_upgrade",
@@ -3437,7 +3498,9 @@
               ],
               "type": "bool",
               "help": "Preview changes without making them",
-              "note": "OPPOSITE polarity to `st organize --write`: this face acts by default, that one previews by default"
+              "note": "OPPOSITE polarity to `st organize --write`: this face acts by default, that one previews by default",
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -3445,7 +3508,9 @@
                 "-h"
               ],
               "type": "bool",
-              "help": "Print the usage block"
+              "help": "Print the usage block",
+              "disposition": "intrinsic",
+              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_organize",
@@ -3567,7 +3632,8 @@
               ],
               "type": "string",
               "help": "Initial content from a named template",
-              "value": "<name>"
+              "value": "<name>",
+              "disposition": "keep"
             }
           ],
           "v2": "plugin dispatch",
@@ -3844,7 +3910,8 @@
                 "-v"
               ],
               "type": "bool",
-              "help": "Show full descriptions in `list`"
+              "help": "Show full descriptions in `list`",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent claude arm -> plugin",
@@ -3906,7 +3973,8 @@
                 "-v"
               ],
               "type": "bool",
-              "help": "Show full descriptions in `list`"
+              "help": "Show full descriptions in `list`",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent claude arm -> plugin",
@@ -3969,7 +4037,8 @@
               ],
               "type": "string",
               "help": "Filter to one language",
-              "value": "<lang>"
+              "value": "<lang>",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent claude arm",
@@ -4070,7 +4139,8 @@
                 "--apply"
               ],
               "type": "bool",
-              "help": "Write the canon; without it the command reports only"
+              "help": "Write the canon; without it the command reports only",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent claude arm",
@@ -4282,14 +4352,16 @@
               "type": "string",
               "help": "Explicit file list",
               "value": "<path> ...",
-              "note": "default: scan nothing unless --staged"
+              "note": "default: scan nothing unless --staged",
+              "disposition": "keep"
             },
             {
               "spellings": [
                 "--staged"
               ],
               "type": "bool",
-              "help": "Scan files in the git staging area (pre-commit mode)"
+              "help": "Scan files in the git staging area (pre-commit mode)",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -4299,7 +4371,8 @@
               "help": "Minimum severity to report",
               "value": "<lvl>",
               "accepts": "critical | warning | recommendation | style",
-              "default": "warning"
+              "default": "warning",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -4308,7 +4381,8 @@
               "type": "enum",
               "help": "Output format",
               "value": "text|json",
-              "default": "text"
+              "default": "text",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -4316,7 +4390,8 @@
               ],
               "type": "string",
               "help": "Alternative rules root, overriding canon discovery",
-              "value": "<dir>"
+              "value": "<dir>",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -4324,7 +4399,8 @@
               ],
               "type": "bool",
               "help": "List languages with a headless code critic, one per line, and exit",
-              "note": "consumed by the pre-commit gate so the gate and the runner cannot drift"
+              "note": "consumed by the pre-commit gate so the gate and the runner cannot drift",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -4332,7 +4408,9 @@
                 "-h"
               ],
               "type": "bool",
-              "help": "Print the usage block"
+              "help": "Print the usage block",
+              "disposition": "intrinsic",
+              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_critic",
@@ -4625,7 +4703,8 @@
                 "--check"
               ],
               "type": "bool",
-              "help": "Report without writing; exit 1 if any entry is missing or stale"
+              "help": "Report without writing; exit 1 if any entry is missing or stale",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_lang sync arm",
@@ -4734,7 +4813,8 @@
               "type": "string",
               "help": "Create a symlink to usage-rules.md in the current or specified directory",
               "value": "[dir]",
-              "note": "the directory argument is OPTIONAL, defaulting to the current directory -- an optional-value flag, which clap models differently from v2's positional peek"
+              "note": "the directory argument is OPTIONAL, defaulting to the current directory -- an optional-value flag, which clap models differently from v2's positional peek",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_llm usage_rules arm",
@@ -4811,14 +4891,16 @@
               "help": "Which kind of learning",
               "value": "<cat>",
               "accepts": "footgun (default), worked, failed",
-              "default": "footgun"
+              "default": "footgun",
+              "disposition": "keep"
             },
             {
               "spellings": [
                 "--list"
               ],
               "type": "bool",
-              "help": "Show all learnings"
+              "help": "Show all learnings",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_learn",
@@ -4933,7 +5015,8 @@
               ],
               "type": "bool",
               "help": "Interactively register unregistered modules",
-              "note": "INTERACTIVE -- the only interactive path in the surface, and a shape a non-tty caller cannot use"
+              "note": "INTERACTIVE -- the only interactive path in the surface, and a shape a non-tty caller cannot use",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_modules check arm",
@@ -5347,21 +5430,24 @@
                 "--skill"
               ],
               "type": "bool",
-              "help": "Scaffold a skill extension"
+              "help": "Scaffold a skill extension",
+              "disposition": "keep"
             },
             {
               "spellings": [
                 "--subagent"
               ],
               "type": "bool",
-              "help": "Scaffold a subagent extension"
+              "help": "Scaffold a subagent extension",
+              "disposition": "keep"
             },
             {
               "spellings": [
                 "--rule-pack"
               ],
               "type": "bool",
-              "help": "Scaffold a rule-pack extension"
+              "help": "Scaffold a rule-pack extension",
+              "disposition": "keep"
             }
           ],
           "v2": "bin/intent_ext new arm",
@@ -5439,35 +5525,45 @@
               ],
               "type": "integer",
               "help": "How deep to descend",
-              "value": "<n>"
+              "value": "<n>",
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
                 "--check"
               ],
               "type": "bool",
-              "help": "Report without writing"
+              "help": "Report without writing",
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
                 "--dry-run"
               ],
               "type": "bool",
-              "help": "Preview"
+              "help": "Preview",
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
                 "--force"
               ],
               "type": "bool",
-              "help": "Regenerate even if current"
+              "help": "Regenerate even if current",
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
                 "--prune"
               ],
               "type": "bool",
-              "help": "Remove stale index entries"
+              "help": "Remove stale index entries",
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -5475,7 +5571,9 @@
               ],
               "type": "string",
               "help": "Model to summarise with",
-              "value": "<name>"
+              "value": "<name>",
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -5483,7 +5581,9 @@
                 "-h"
               ],
               "type": "bool",
-              "help": "Print the usage block"
+              "help": "Print the usage block",
+              "disposition": "intrinsic",
+              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_treeindex",
@@ -5575,7 +5675,8 @@
                 "-C"
               ],
               "type": "bool",
-              "help": "Mark checked"
+              "help": "Mark checked",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -5583,7 +5684,8 @@
                 "-U"
               ],
               "type": "bool",
-              "help": "Mark unchecked"
+              "help": "Mark unchecked",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -5591,7 +5693,8 @@
                 "-X"
               ],
               "type": "bool",
-              "help": "Flip the mark"
+              "help": "Flip the mark",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -5600,7 +5703,8 @@
               ],
               "type": "string",
               "help": "Target file",
-              "value": "<path>"
+              "value": "<path>",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -5609,7 +5713,8 @@
               ],
               "type": "string",
               "help": "Index file",
-              "value": "<path>"
+              "value": "<path>",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -5617,7 +5722,8 @@
               ],
               "type": "string",
               "help": "Index directory",
-              "value": "<path>"
+              "value": "<path>",
+              "disposition": "keep"
             },
             {
               "spellings": [
@@ -5625,28 +5731,33 @@
               ],
               "type": "string",
               "help": "Intent directory",
-              "value": "<path>"
+              "value": "<path>",
+              "disposition": "keep"
             },
             {
               "spellings": [
                 "--no-intent"
               ],
               "type": "bool",
-              "help": "Operate without an Intent project"
+              "help": "Operate without an Intent project",
+              "disposition": "keep"
             },
             {
               "spellings": [
                 "-r"
               ],
               "type": "bool",
-              "help": "Recurse"
+              "help": "Recurse",
+              "disposition": "keep"
             },
             {
               "spellings": [
                 "-v"
               ],
               "type": "bool",
-              "help": "Verbose"
+              "help": "Verbose",
+              "disposition": "pending",
+              "disposition_basis": "VERBOSITY CLUSTER -- log-level verbosity, same open question as `doctor --verbose`. NOT the same thing as `claude skills -v` / `claude subagents -v`, which are a list display mode and ship."
             },
             {
               "spellings": [
@@ -5654,7 +5765,9 @@
                 "-h"
               ],
               "type": "bool",
-              "help": "Print the usage block"
+              "help": "Print the usage block",
+              "disposition": "intrinsic",
+              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_fileindex",
@@ -5831,14 +5944,18 @@
                 "--audit-only"
               ],
               "type": "bool",
-              "help": "Show gap analysis only, no changes"
+              "help": "Show gap analysis only, no changes",
+              "disposition": "retire",
+              "disposition_basis": "The root `st_zero` spelling dies (hv ratified, 2026-08-15) -- these three flags reach clap via `st bootstrap`, whose row carries its own live copies. Recorded from v2, never built."
             },
             {
               "spellings": [
                 "--dry-run"
               ],
               "type": "bool",
-              "help": "Show what would change, no writes"
+              "help": "Show what would change, no writes",
+              "disposition": "retire",
+              "disposition_basis": "The root `st_zero` spelling dies (hv ratified, 2026-08-15) -- these three flags reach clap via `st bootstrap`, whose row carries its own live copies. Recorded from v2, never built."
             },
             {
               "spellings": [
@@ -5846,7 +5963,9 @@
               ],
               "type": "string",
               "help": "Target a single deliverable (D2-D11)",
-              "value": "<id>"
+              "value": "<id>",
+              "disposition": "retire",
+              "disposition_basis": "The root `st_zero` spelling dies (hv ratified, 2026-08-15) -- these three flags reach clap via `st bootstrap`, whose row carries its own live copies. Recorded from v2, never built."
             }
           ],
           "v2": "bin/intent_st_zero",
@@ -5984,7 +6103,8 @@
         "state": "new-surface"
       },
       "exposed_on_mcp": true,
-      "read_or_mutate": "read"
+      "read_or_mutate": "read",
+      "flags": []
     },
     {
       "path": "sync",
@@ -5995,14 +6115,17 @@
             "--to-disk"
           ],
           "type": "bool",
-          "help": "Write the store out to the committed extract"
+          "help": "Write the store out to the committed extract",
+          "disposition": "keep"
         },
         {
           "spellings": [
             "--to-store"
           ],
           "type": "bool",
-          "help": "Read the committed extract into the store, through the API gate"
+          "help": "Read the committed extract into the store, through the API gate",
+          "disposition": "pending",
+          "disposition_basis": "The `sync --to-store` vs `ingest` boundary is UNDECLARED, and it is the reason `sync` is flagged for MCP review -- the boundary decides whether it stays exposed at all. Two spellings for one act is the thing to resolve before either ships."
         }
       ],
       "direction_selector": "REQUESTED BY cc (2026-08-15): the bare verb refuses and names both directions, and needed a selector row. FLAGS NAME THE DESTINATION, NOT THE SOURCE, because the destination is the side that gets overwritten and therefore the side a user needs to be sure about. `--to-disk` / `--to-store` are symmetric and each says which way the bytes move without the reader having to hold D34's endpoint vocabulary in their head. **The bare verb continuing to REFUSE is right and should stay** -- the two directions have opposite blast radii, so there is no safe default, and picking one would make the dangerous case reachable by typing the short form. This is INV-01 territory rather than convenience.",
@@ -6044,7 +6167,8 @@
         "state": "new-surface"
       },
       "exposed_on_mcp": true,
-      "read_or_mutate": "read"
+      "read_or_mutate": "read",
+      "flags": []
     },
     {
       "path": "export",
@@ -6055,7 +6179,8 @@
             "--format"
           ],
           "type": "string",
-          "value": "<fmt>"
+          "value": "<fmt>",
+          "disposition": "keep"
         }
       ],
       "v2": "new-surface",
@@ -6080,7 +6205,9 @@
           "spellings": [
             "--from-md"
           ],
-          "type": "bool"
+          "type": "bool",
+          "disposition": "pending",
+          "disposition_basis": "The other half of the undeclared `sync --to-store` boundary. Also worth noting on its own: if reading md into the store is what `ingest` IS, then `--from-md` is a mode flag with one mode."
         }
       ],
       "v2": "new-surface",
@@ -6109,7 +6236,8 @@
           ],
           "type": "bool",
           "help": "List retained snapshots and when each was taken",
-          "note": "RATIFIED -- vc, 2026-08-15: `--list` STANDS. Proposed by ic on the grounds that D35 requires a failed or skipped backup to SURFACE, and with no read path a user cannot tell a working schedule from one that has silently never run -- the nothing-is-wrong / nothing-ran ambiguity again. **The question turned out to expose a hole in AC-03.10 itself**: the clause said only that a FAILED backup surfaces, and A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could have shipped where nothing had ever run -- the ambiguity living inside the clause written to prevent it. AC-03.10 is amended and `doctor` now reports backup STALENESS, which detects never-ran without needing anything to have failed."
+          "note": "RATIFIED -- vc, 2026-08-15: `--list` STANDS. Proposed by ic on the grounds that D35 requires a failed or skipped backup to SURFACE, and with no read path a user cannot tell a working schedule from one that has silently never run -- the nothing-is-wrong / nothing-ran ambiguity again. **The question turned out to expose a hole in AC-03.10 itself**: the clause said only that a FAILED backup surfaces, and A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could have shipped where nothing had ever run -- the ambiguity living inside the clause written to prevent it. AC-03.10 is amended and `doctor` now reports backup STALENESS, which detects never-ran without needing anything to have failed.",
+          "disposition": "keep"
         }
       ],
       "v2": "new-surface",
@@ -6159,7 +6287,8 @@
       "read_or_mutate": "mutate",
       "mcp_review": {
         "note": "The canonical example behind the whole exposure field: `daemon start|stop|run` is machine-level process control, and it is the row that makes 'lean closed' the right default rather than a nicety."
-      }
+      },
+      "flags": []
     },
     {
       "path": "mcp",
@@ -6174,7 +6303,8 @@
       "read_or_mutate": "mutate",
       "mcp_review": {
         "note": "The MCP server's own launcher. Listing it inside the tool surface it serves is recursive, and an agent that can call it can spawn a second server against the same store."
-      }
+      },
+      "flags": []
     }
   ],
   "provenance": {
@@ -6245,10 +6375,10 @@
     },
     {
       "id": "EXP-05",
-      "title": "Entries declare whether they ship; FLAGS do not, and three are on the surface today doing nothing",
+      "title": "Entries declare whether they ship; FLAGS could not -- CLOSED in this file, still open in the spine",
       "detail": "`is_shipped()` reads an entry's `disposition` and `target.state`, so a retired COMMAND never reaches clap. There is no equivalent one level down: `spine.rs` builds every declared flag on every shipped entry, unconditionally, and the flag schema carries no field that could say otherwise -- measured, the union of all flag keys across this table is: accepts, default, help, note, required, spellings, type, value. So the table can withdraw a command from the v3 surface and CANNOT withdraw a flag. That is the structural gap behind AC-06.8, and it is the same shape as EXP-03: a fact a generator needs, that this file does not carry, and that cannot be derived -- whether a flag is READ is a property of the renderer, never of its spelling.",
       "it_happened": "Measured 2026-08-15 (ic) against the BUILT BINARY, not read off the source. `intent doctor` declares --fix, --verbose and --quiet; `fn doctor()` takes no ArgMatches and its dispatch arm discards them, so it cannot read any of the three even in principle. All four invocations -- bare, --fix, --quiet, --verbose -- produce BYTE-IDENTICAL output, while `intent doctor --help` prints 'Attempt to fix issues automatically'. AC-06.8 calls a declared-and-inert flag a lie told by --help; AC-06.9 says doctor --fix is specified before it is wired OR withdrawn from the surface, and records that cc declined to wire it and was right to. BOTH ACs already forbid this and it shipped anyway, because withdrawal had no mechanism: declining to wire it was the whole of the action available.",
-      "resolution": "Flags need a declared disposition, in the vocabulary entries already use, and the spine must honour it. keep ships and must be read; retire is recorded from v2 and never reaches clap; pending does NOT ship, because an undecided flag on the surface IS the defect AC-06.8 names. Same safe-direction logic as exposed_on_mcp: where the answer is unknown, the cheap error is an absent feature and the expensive one is a promise. The contract call is vc's, the spine is cc's, the declaration and its refusal are mine. Deliberately NOT authored unilaterally -- classifying roughly 130 flags is the EXP-03 shape, and that one went better because the mechanism was ruled before the rows were filled in.",
+      "resolution": "CLOSED HERE, AND ONLY HERE. All 93 flags now declare a disposition (63 keep, 14 retire, 10 intrinsic, 6 pending), three refusals enforce it, and a shared renderer plus a COUNT-based check puts every one of them in the view. THE SPINE DOES NOT YET HONOUR IT: `spine.rs:142` still builds every declared flag on every shipped entry, so today the declaration is documentation with a guard on it. That half is cc's and the first user is `doctor --fix`, whose `retire` is the one classification vc measured in v2 source rather than inferred. Until it lands, this file can say a flag does not ship and the binary will ship it -- which is a smaller gap than not being able to say it at all, and is not the same as closed.",
       "consequence_for_this_generator": "Nothing yet: the generator renders flags faithfully and has no opinion about whether they ship. It gains one the moment the field exists -- every flag must declare a disposition or the run refuses, the same construction as the MCP fields, so a flag cannot join the surface by being typed. Until then this register is the only place the gap is written down. The 44 further declared-and-unread flags all sit on commands with NO renderer arm at all, so they are future violations rather than current ones: they become AC-06.8 breaches one at a time as each command is wired, which is the worst arrival schedule available for a defect nobody is watching for."
     },
     {
@@ -6258,6 +6388,14 @@
       "it_happened": "The audit was still worth running, because two of the three findings turned out to be real defects of a different kind and one of them is only visible from here. `doctor` staleness is WITHDRAWN outright -- comparing snapshot age against a schedule is a decision, which is the permitted case, and nothing durable is written. `backup --list` is NOT a clock defect but a PROVENANCE one, displaying a file mtime as a record fact; vc ruled the same thing from the contract end and it is now AC-02.8's fourth instance. `todo done --flush` is the one that pays for the exercise: chasing my own D42 claim into bin/intent_todo to check it showed the watermark is read BACK OUT of the generated todo.md, so a generated view is the sole store of durable state -- which the v3 truth model, where deleting a derived artefact is always safe, turns from a wart into a data-loss path. Both survivors are recorded on their rows as `target.exposure`; the `d42_exposure` key is GONE, because a census key with no members and a wrong name is worse than none.",
       "resolution": "None adopted here; each row names its own owner (`todo done` is WP-03's renderer constraint, `backup` is AC-02.8). The finding worth keeping is about auditing, not about time. THE AUDIT WAS RIGHT TO RUN AND WRONG IN EVERY VERDICT IT FIRST REACHED, and it still produced two real defects -- because the only way to check a claim about a surface is to read the code under it, and the reading is what found them. An audit that had trusted its own pattern match would have filed three wrong findings and stopped.",
       "consequence_for_this_generator": "None today; the generator renders `exposure` through the generic `targetextra` path like any other authored sub-key, and the entry-level completeness check proves it reaches the view. Two standing obligations, and they are different sizes. The small one: re-audit when new_surface changes. The large one: THIS CENSUS CANNOT SEE THE THING THE RULE ACTUALLY FORBIDS. vc's caution is exact -- a clean result here is about DECLARED FLAGS AND ARGUMENTS, and hv's rule is about function PARAMETERS, which need never appear in a flag inventory. A green from this file is not evidence about signatures, and the needle that checks them lives in cc's guard, not here."
+    },
+    {
+      "id": "EXP-07",
+      "title": "The flag schema declares five properties the CLI cannot see, and one of them is a live defect on an implemented command",
+      "detail": "Measured while classifying for EXP-05, by reading `dispatch.rs` rather than reasoning about the renderer. `pub struct Flag` at dispatch.rs:126-133 has exactly THREE fields -- `spellings`, `kind`, `help`. The canon authors eight: those three plus `accepts` (4 instances), `default` (6), `required` (3), `value` (35) and `note` (9). So `accepts`, `default`, `required` and `value` DO NOT DESERIALIZE AT ALL. This is not a renderer that forgets to read them; it is a type with no field for them, which is the same shape EXP-05 diagnosed for `disposition` -- except EXP-05 said the schema was missing ONE field and the measurement says it is missing FOUR that are already authored.",
+      "it_happened": "`required` is the one that bites, and all three instances land differently, none of them driven by the declaration. `ac satisfy --evidence` is declared `required: true` and read as `arg(a, \"evidence\").unwrap_or_default()` (render.rs:671), so a missing `--evidence` SILENTLY BECOMES THE EMPTY STRING and the criterion is satisfied with no citation -- on an implemented command, today. `ac descope --to` and `ac withdraw --reason` ARE enforced, by `?` in the renderer (render.rs:715, :727), which is the right outcome reached at the wrong layer: clap never sees a required argument, and `ac withdraw --reason`s own help text says REQUIRED. Three declarations, three fates, and the table's claim caused none of them. `accepts` is worse in kind if not in effect: four enum domains are declared and unvalidated, so `--severity-min banana` parses. `value` is a metavar clap supports and the spine already uses for positional args (spine.rs:131) but never for flags. And separately from the struct: `spine.rs:152-159` SILENTLY DROPS any flag with no long spelling -- `claude subagents -v`, `claude skills -v`, `fileindex -r`, `fileindex -v` are declared here and reach no surface at all, via a bare `continue` with no diagnostic, which is IN-AG-NO-SILENT-001 in four instances.",
+      "resolution": "Not adopted here, and deliberately NOT folded into EXP-05. EXP-05 was ruled as a specific mechanism and vc anchors review to the proposal, so widening it silently while implementing it is the way a reviewed change becomes an unreviewed one. Recorded whole instead. The cheap half is this file's and is already done -- `default` and `required` now RENDER, so a reader of the view can at least see the claim. The rest is cc's: four fields on `Flag`, `.required()`/`.default_value()`/`.value_parser()`/`.value_name()` on the clap side, and a refusal rather than a `continue` for a flag the spine cannot build. `ac satisfy --evidence` is the one worth doing first because it is live and silent.",
+      "consequence_for_this_generator": "Two, both now closed. The flag level was the LAST population with an enumerated renderer and no generic remainder -- `extras` had closed the entry and `target` levels and nothing descended into `flags` -- so `default` and `required` had been in the canon and out of the view for as long as they had existed, and no check anywhere could say so. `flagextra` closes it. The second is sharper and is a lesson about checks rather than about flags: the flag completeness loop I wrote to close this class WENT GREEN ON ITS FIRST RUN while five flags rendered nothing, because it greps for the LABEL and 88 of 93 flags supplied it. Presence-of-label and completeness-of-population are different questions. It is now a COUNT, matched against the declared total, and the count is what found the fact that new_surface flags had never rendered in detail at all."
     }
   ]
 }

@@ -137,6 +137,53 @@ JQ_LIB='
 
   def targetextra: extras(["state","ratification","behaviour","question","note"]);
 
+  # THE THIRD LEVEL, and it was the one still open. `extras` closed the entry and
+  # `target` levels; FLAGS kept an enumerated renderer -- spellings, value, type,
+  # help, accepts, note -- and no remainder, so a flag key outside those six was
+  # authored into a view that could not show it.
+  #
+  # Measured before writing this, not suspected: `default` (6 instances) and
+  # `required` (3) were ALREADY in the canon and had never once appeared in the
+  # view. `ac withdraw --reason` carries `required: true` and says REQUIRED in
+  # its own help text, and the machine-readable half of that promise was
+  # invisible to every reader of the view. The disposition authored under EXP-05
+  # would have been the third such key on the day it landed.
+  #
+  # Indented two levels because a flag is already a sub-bullet; scalars only,
+  # because every flag key measured is a scalar and a nested one here would be a
+  # schema change worth noticing rather than rendering silently.
+  def flagextra:
+    (. // {}) | to_entries
+    | map(select(.key as $k | ["spellings","type","help","value","accepts","note"] | index($k) == null))
+    | if length == 0 then ""
+      else map(
+        "\n    - **" + (.key | gsub("_"; " ")) + ":** " +
+        (if (.value | type) | IN("string","boolean","number")
+           then (.value | tostring)
+           else (.value | tojson) end)
+      ) | join("") end;
+
+  # ONE flag renderer, used by BOTH the family and new_surface paths.
+  #
+  # It was inline in the family path only, and new_surface flags rendered
+  # nowhere but as a `flagsig` summary in the table -- so five flags carried a
+  # disposition, a help string and a basis that no reader of the view could see.
+  # Found by counting: 88 rendered for 93 declared. NOT found by the completeness
+  # loop, which greps for the LABEL and was satisfied by the 88 -- the exact
+  # shape of check-that-cannot-fail this file keeps re-learning, and it went
+  # green on the first run of the very loop written to close this class.
+  def flagblock:
+    if ((.flags // []) | length) == 0 then null
+    else "- **Flags:**\n" + (.flags | map(
+       "  - `" + (.spellings | join("`, `")) + "`" +
+       (if .value then " `\(.value)`" else "" end) +
+       " (\(.type))" +
+       (if .help then " -- \(.help)" else "" end) +
+       (if .accepts then "\n    - Accepts: \(.accepts)" else "" end) +
+       (if .note then "\n    - " + .note else "" end) +
+       flagextra
+     ) | join("\n")) end;
+
   # The entry level had NO generic remainder and no completeness check -- only
   # `target` did. Closing the class one level down and leaving it open one level
   # up is the shape of a fix that reads as done: the three MCP fields authored
@@ -372,6 +419,55 @@ MCP_EMPTY_REVIEW="$(jq -r '
 [ -z "$MCP_EMPTY_REVIEW" ] || die "rows carry an empty \`mcp_review\` -- a review marker that names no field is indistinguishable from a confident row in a diff. Either name the soft field or drop the block:
 $(printf '%s' "$MCP_EMPTY_REVIEW" | tr ' ' '\n' | sed 's/^/  /')"
 
+# --- EXP-05: a flag cannot join the surface by being typed ------------------
+# AC-06.8. `is_shipped()` reads an entry disposition, so a retired COMMAND never
+# reaches clap; there was no equivalent one level down, and `spine.rs` built
+# every declared flag on every shipped entry unconditionally. A table that can
+# withdraw a command and cannot withdraw a flag is the gap, and the fix is a
+# declaration rather than a heuristic: whether a flag is READ is a property of
+# the renderer and never of its spelling.
+#
+# FIRST: `flags` must be PRESENT, not merely non-null. `flagsig` renders a
+# missing key and an empty array identically as `--`, so four new_surface rows
+# that had never authored their flags were indistinguishable in the view from
+# rows that genuinely have none -- and a per-flag refusal cannot see a row with
+# no flags array to walk. An absent key is an unanswered question wearing the
+# costume of a settled one.
+FLAGS_ABSENT="$(jq -r '
+  [.families[].entries[], .new_surface[]]
+  | map(select((.flags | type) != "array") | .path) | join(" ")' "$IN")"
+[ -z "$FLAGS_ABSENT" ] || die "rows do not declare \`flags\` as an array -- an absent key and \`[]\` render identically as \`--\`, so 'this command has no flags' and 'nobody has said' are the same glyph. Write \`[]\` to mean none:
+$(printf '%s' "$FLAGS_ABSENT" | tr ' ' '\n' | sed 's/^/  /')"
+
+# SECOND: every declared flag declares a disposition, in vocabulary.
+# `keep` ships and must be read - `retire` is recorded from v2 and never reaches
+# clap - `pending` does not ship - `intrinsic` ships and clap supplies it, so the
+# renderer is not expected to read it.
+#
+# `pending` deliberately does NOT refuse. Ruled against the stricter option for
+# the reason that cost four nodes commits in one afternoon: a guard that must be
+# bypassed is a guard nobody keeps. The quiet-absence risk it leaves behind is
+# answered elsewhere and on purpose -- `doctor` reports the pending count, so an
+# undecided flag is visible without being a roadblock.
+FLAG_UNDECLARED="$(jq -r '
+  [.families[].entries[], .new_surface[]]
+  | map(. as $e | (.flags // []) | map(select((.disposition // "") | IN("keep","retire","pending","intrinsic") | not)
+      | $e.path + ":" + (.spellings[0] // "?"))) | add // [] | join(" ")' "$IN")"
+[ -z "$FLAG_UNDECLARED" ] || die "flags do not declare a \`disposition\` in vocabulary (keep, retire, pending, intrinsic) -- without one the spine builds every declared flag unconditionally, so a flag joins the v3 surface by being typed into this file. Offending flags:
+$(printf '%s' "$FLAG_UNDECLARED" | tr ' ' '\n' | sed 's/^/  /')"
+
+# THIRD: a retired command cannot ship a flag. This is the one rule here that is
+# derivable rather than authored, so it is checked rather than trusted -- an
+# inherited value is exactly the kind that gets hand-edited out of agreement
+# with the thing it was inherited from, and nothing else would notice.
+FLAG_ORPHAN="$(jq -r '
+  [.families[].entries[], .new_surface[]]
+  | map(select(.disposition == "retire") | . as $e | (.flags // [])
+      | map(select(.disposition | IN("keep","pending")) | $e.path + ":" + (.spellings[0] // "?")))
+  | add // [] | join(" ")' "$IN")"
+[ -z "$FLAG_ORPHAN" ] || die "flags declare they ship on a command that does not -- a retired command never reaches clap, so neither can its flags. Reconcile the flag with its entry:
+$(printf '%s' "$FLAG_ORPHAN" | tr ' ' '\n' | sed 's/^/  /')"
+
 emit "# Command dispatch table -- Intent v3 (ST0056, AC-05.1)"
 emit ""
 emit "> GENERATED VIEW -- the canon is \`dispatch-table.json\` beside this file. Regenerate with \`parity/tools/gen_dispatch_table.sh\`; do not hand-edit rows. Measured at \`$MEASURED_AT\` on $MEASURED_ON by $MEASURED_BY."
@@ -484,14 +580,7 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
        (if .values then " -- one of: " + (.values | map("`" + . + "`") | join(", ")) else "" end) +
        (if .note then "\n    - " + .note else "" end)
      ) | join("\n"))) else empty end),
-    (if (.flags | length) > 0 then ("- **Flags:**\n" + (.flags | map(
-       "  - `" + (.spellings | join("`, `")) + "`" +
-       (if .value then " `\(.value)`" else "" end) +
-       " (\(.type))" +
-       (if .help then " -- \(.help)" else "" end) +
-       (if .accepts then "\n    - Accepts: \(.accepts)" else "" end) +
-       (if .note then "\n    - " + .note else "" end)
-     ) | join("\n"))) else empty end),
+    (flagblock // empty),
     (if .observed then
       "- **Exit codes:**\n" + (.observed.exit | map("  - `\(.code)` -- \(.when)") | join("\n"))
      else "- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run" end),
@@ -620,13 +709,16 @@ jq -r "$JQ_LIB"'
   # rows this section had least to say about and the two the exposure question
   # is sharpest for.
   (mcpline + (mcpreview // "" | if . == "" then "" else "\n" + . end)) as $mcp |
+  # `flags` is skipped in $top above on the promise that something renders it,
+  # and for five flags nothing did. Same renderer as the family path.
+  flagblock as $flg |
   # The separator blank line LEADS each block rather than trailing it. jq -r
   # already appends a newline per output, so a trailing "\n" produced a blank
   # after EVERY entry including the last -- and a trailing blank line at EOF is
   # not a fixed point of the formatter, which strips it. Leading gives exactly
   # one blank between entries and none at the end.
   "\n### `" + .path + "`\n\n"
-    + ([$top, $tgt, $mcp] | map(select(. != null)) | join("\n"))
+    + ([$top, $flg, $tgt, $mcp] | map(select(. != null)) | join("\n"))
 ' "$IN" >> "$OUT_TMP"
 
 # --- Column-align every table BEFORE the file lands -------------------------
@@ -835,10 +927,36 @@ for key in $(jq -r '
   label="$(printf '%s' "$key" | tr '_' ' ')"
   grep -qF -- "**$label:**" "$OUT_TMP" || MISSING_FIELDS="$MISSING_FIELDS $key"
 done
+# FLAG-LEVEL KEYS, the third and last population. The two loops above walk
+# `target` sub-keys and top-level keys; neither descends into `flags`, so the six
+# bespoke flag keys were the whole of what any check knew about. `default` and
+# `required` had been in the canon and out of the view for as long as they had
+# existed, and no check anywhere was capable of saying so.
+# THE SAME LIST as `flagextra`, for the same reason the entry list must match
+# `entryextra`: this compares canon keys against rendered TEXT, so a key skipped
+# here that nothing renders is the hole the loop exists to find.
+for key in $(jq -r '
+    [ (.families[].entries[] | (.flags // [])[] | keys[]),
+      (.new_surface[] | (.flags // [])[] | keys[]) ]
+    - ["spellings","type","help","value","accepts","note"]
+    | unique | .[]' "$IN"); do
+  label="$(printf '%s' "$key" | tr '_' ' ')"
+  grep -qF -- "**$label:**" "$OUT_TMP" || MISSING_FIELDS="$MISSING_FIELDS flags.$key"
+done
+
 # The three skipped above are rendered BESPOKE, so their skip is a promise that
 # something else renders them. An unverified promise in a completeness check is
 # how the check becomes decoration, so it is verified here against the rendered
 # text: every row emits one `- **MCP:**` line, and the count must match.
+# AND THE FLAG LOOP ABOVE NEEDS THE SAME TREATMENT, for a reason it demonstrated
+# on its own first run: it greps for the LABEL, so one rendering path satisfies
+# it for every path. 88 of 93 flags rendered a `disposition` and the loop went
+# green, because presence-of-label and completeness-of-population are different
+# questions and only the second one matters. Counted, not sniffed.
+FLAG_COUNT="$(jq -r '[.families[].entries[], .new_surface[]] | map(.flags // []) | add | length' "$IN")"
+FLAG_RENDERED="$(grep -cE '^    - \*\*disposition:\*\* ' "$OUT_TMP" || true)"
+[ "$FLAG_RENDERED" = "$FLAG_COUNT" ] || die "the view renders $FLAG_RENDERED flag dispositions for $FLAG_COUNT declared flags -- every flag must reach the view through the shared renderer, and a label-presence check cannot see a whole path that renders none"
+
 MCP_ROWS="$(jq -r '[.families[].entries[], .new_surface[]] | length' "$IN")"
 MCP_RENDERED="$(grep -cF -- '- **MCP:**' "$OUT_TMP" || true)"
 [ "$MCP_RENDERED" = "$MCP_ROWS" ] || die "the view renders $MCP_RENDERED MCP lines for $MCP_ROWS declared rows -- the bespoke renderer is skipped by the completeness loops on the promise that it fires for every row, and it did not"

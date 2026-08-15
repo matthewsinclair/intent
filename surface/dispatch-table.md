@@ -18,6 +18,9 @@
 - `read_or_mutate` is a claim about the WHOLE entry, not about its default invocation. `read` means no invocation of the entry, under any flag, changes durable state -- not the store, not the working tree, not a config file. Everything else is `mutate`. Defined that way because the other reading ("what it does when you just run it") makes four rows lie: `at lint` is a report until `--fix`, `doctor` is a diagnosis until `--fix`, `llm usage_rules` prints until `--symlink`, and `todo list` prints unless `todo.md` is absent, in which case it generates it. That last one is the worst shape available -- it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone. A field that describes the default is one an agent can be wrong about while reading it correctly.
 - The two fields lean in OPPOSITE directions when the answer is uncertain, and both leans take the cheap error over the symmetric one. `exposed_on_mcp` leans FALSE: a command wrongly omitted is an inconvenience a human fixes in one line, while one wrongly included lets an agent run `daemon`. `read_or_mutate` leans MUTATE: a read mislabelled as a mutation costs a confirmation prompt, while a mutation mislabelled as a read lets an agent close a steel thread believing it is querying.
 - `mcp_review` is present only on rows wanting a second opinion, and it exists because of how review actually fails: correcting a proposed classification is ANCHORED by the proposal (vc, 2026-08-15). Nobody re-derives a table this size row by row -- they review, and review is biased toward accepting. So the rows are MARKED rather than the confidence scored. `uncertain` names WHICH field is soft, because the two lean opposite ways and an unqualified "uncertain" is unactionable; `why_uncertain` gives the reason to argue with. `counterintuitive` flags a value that disagrees with the obvious reading of the verb -- precisely where a reviewer skimming nods it through, and where classifying from the name would have gone wrong. `grounded_in` cites the source actually read; its ABSENCE means the row was classified from the verb and the help text alone, which is a weaker claim and is meant to look like one.
+- Every FLAG declares a `disposition` (AC-06.8, EXP-05), and it answers a DIFFERENT question from the entry-level field of the same name. At entry level `disposition` is a PARITY classification: what becomes of this v2 command. At flag level it is a SHIPPING classification: does this flag reach clap, and is the renderer obliged to read it. The words are shared on purpose, and they do not mean the same thing -- a new-surface flag is `keep`, because it ships, even though its command's entry disposition is `new-surface`. Four values: `keep` ships and must be read; `retire` is recorded from v2 and never reaches clap; `pending` does not ship, because an undecided flag on the surface IS the defect AC-06.8 names; `intrinsic` ships and clap supplies it, so no renderer arm is expected. `deviate` has no flag-level meaning and is deliberately absent -- a flag either reaches the surface or it does not, and a behaviour change is a property of the command. `intrinsic` correspondingly has no entry-level meaning.
+- `intrinsic` is a PROPOSAL awaiting vc, and it is proposed because the code already needed it and expressed it the wrong way. `spine.rs:145-151` skips `--help` / `-h` / `help` by MATCHING ON THE SPELLING, with the comment that they are clap's own. That behaviour is correct and its reason is undeclared -- which is precisely the inference-from-name that EXP-05 exists to replace with a declaration. Under a three-value vocabulary these ten flags have no honest answer: `keep` says the renderer must read them and it must not, `retire` says they never reach clap and they do. Ten rows change if vc rules otherwise, which is cheap; a spelling-keyed skip list in the spine is not.
+- The three EXP-05 refusals lean the same way `exposed_on_mcp` does, and the direction is chosen rather than inherited. `flags` must be PRESENT as an array, because `flagsig` renders an absent key and `[]` identically as `--`, so 'this command has no flags' and 'nobody has said' were the same glyph on four rows. Every flag must declare a disposition IN VOCABULARY, so a flag cannot join the v3 surface by being typed into this file. And a `retire` command cannot carry a shipping flag -- the one rule here that is derivable rather than authored, which is exactly why it is checked: an inherited value is the kind that gets hand-edited out of agreement with its source, and nothing else would notice. `pending` deliberately does NOT refuse; `doctor` reports the pending count instead, because a guard that must be bypassed is a guard nobody keeps.
 
 ## Provenance
 
@@ -156,6 +159,8 @@ Manage steel threads for the project
 - **Flags:**
   - `help`, `--help`, `-h` (bool) -- Print the usage block
     - `help` is a bare word arm, not a flag; grouped here because the three spellings share one arm (bin/intent_st:1614)
+    - **disposition:** intrinsic
+    - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
   - `1` -- bare -- `error: Steel thread command is required`
   - `1` -- --help / -h / help -- usage block printed, exit 1
@@ -180,6 +185,7 @@ Create a new steel thread
     - v2 collects ALL non-flag args into ARGS and uses only ARGS[0] (bin/intent_st:305, 314) -- surplus positionals are silently discarded. v3 should refuse them (INV-02); flagged, not assumed.
 - **Flags:**
   - `-s`, `--start` (bool) -- Mark the new thread in progress immediately
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- created
   - `1` -- no title -- `error: Steel thread title is required`
@@ -246,6 +252,7 @@ Mark a steel thread as cancelled, with a reason
   - `id` (st-id, arity `1`)
 - **Flags:**
   - `--reason` `<text>` (string) -- Why it is being cancelled -- required by the machine's guard
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- cancelled
   - `1` -- no id / thread not found
@@ -278,6 +285,7 @@ Put a thread on hold, with a reason
   - `id` (st-id, arity `1`)
 - **Flags:**
   - `--reason` `<text>` (string) -- Why it is being held -- required by the machine's guard
+    - **disposition:** keep
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `NotStarted -> Hold` and `Wip -> Hold` edges, guard `reason recorded`.
 - **Note:** `Hold` ALREADY EXISTS as a state and is reachable only by HAND-EDITING a file (cc's archaeology, confirmed): the v2 status filter recognises `hold|on hold -> HOLD` and no verb sets it. So this is not a new state, it is the missing door to a state v2 already renders, which is why the `--status` normaliser could always name a status the tool could not produce.
@@ -304,6 +312,7 @@ Reopen a completed thread back into Wip, with a reason
   - `id` (st-id, arity `1`)
 - **Flags:**
   - `--reason` `<text>` (string) -- Why it is being reopened -- required by the machine's guard
+    - **disposition:** keep
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `Completed -> Wip` edge, guard `reason recorded`. D32 forbids terminal states, and `Completed` was one.
 - **Note:** `st done` RELOCATES the thread directory (measured on the `st done` row above), so this verb has a file-system half that `wp reopen` does not: reopening has to move the directory back. Flagged for cc because the state change is the easy half and the relocation is where a half-applied reopen would leave a thread findable under neither status.
@@ -318,6 +327,7 @@ Reinstate a cancelled thread into NotStarted, with a reason
   - `id` (st-id, arity `1`)
 - **Flags:**
   - `--reason` `<text>` (string) -- Why it is being reinstated -- required by the machine's guard
+    - **disposition:** keep
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 1: the `Cancelled -> NotStarted` edge, guard `reason recorded`.
 - **Note:** Lands in `NotStarted`, not in whatever the thread was before it was cancelled, and not in `Triage` -- a reinstated thread has already been triaged once and sending it back to the entry state would ask that decision to be made twice. The verb is spelled `reinstate` to match `ac reinstate`, which already carries this exact meaning at criterion level (undo a withdrawal); one word, one meaning, across both machines.
@@ -331,9 +341,12 @@ List steel threads (default: in progress only)
 - **Flags:**
   - `--status` `<status>` (string) -- `all`, or a comma-separated list rendered in the order given
     - Accepts: wip|in progress -> WIP; tbc|not started -> TBC; completed|done -> COMPLETED; cancelled|canceled -> CANCELLED; hold|on hold -> HOLD (case-insensitive, normalised to caps)
+    - **disposition:** keep
   - `--width` `<n>` (integer) -- Render at a fixed column width; 0 or absent means terminal width
+    - **disposition:** keep
   - `--markdown` (bool) -- Emit canonical GFM instead of terminal rendering
     - UNDOCUMENTED in v2's usage() block; consumed by `st sync --write`. Real surface, so it is in the table.
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- listed (including an empty list)
   - `1` -- unknown option -- `error: Unknown option: <opt>`
@@ -398,7 +411,9 @@ Synchronize steel_threads.md with individual ST files
 - **v2:** bin/intent_st:1145-1211
 - **Flags:**
   - `--write` (bool) -- Write the index; without it the command is a dry run
+    - **disposition:** keep
   - `--width` `<n>` (integer) -- Render at a fixed column width
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- synced or dry-run reported
   - `1` -- unknown option / `error: Steel threads directory not found` / `error: Steel threads index file not found`
@@ -419,6 +434,7 @@ Repair malformed steel thread metadata
     - Parsed inside the FLAG loop, not positionally -- accepted spellings are `ST0001` and `0001` ONLY
 - **Flags:**
   - `--write` (bool) -- Apply the repairs; without it the command is a dry run
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- repaired or dry-run reported
   - `1` -- `error: Unknown option or invalid steel thread ID: <arg>`
@@ -441,6 +457,8 @@ Organize ST files in directories by status
 - **v2:** bin/intent_st:1434-1609; the `organise` -> `organize` normalisation is at bin/intent_st:289-292
 - **Flags:**
   - `--write` (bool) -- Move the files; without it the command is a dry run
+    - **disposition:** retire
+    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
 - **Exit codes:**
   - `0` -- swept
   - `1` -- `error: <n> steel thread(s) could not be moved (see above); the rest of the sweep completed`
@@ -458,8 +476,11 @@ Retrofit ST0000 deliverables into a brownfield project -- audit what is present,
 - **v2:** bin/intent_st_zero, reached in v2 by TWO spellings: `intent st_zero` (top level, auto-dispatched) and `intent st zero` (bin/intent_st:1610-1612 execs the binary). Only the second was ever documented by the command itself.
 - **Flags:**
   - `--audit-only` (bool) -- Show gap analysis only, no changes
+    - **disposition:** keep
   - `--dry-run` (bool) -- Show what would change, no writes
+    - **disposition:** keep
   - `--deliverable` `<id>` (string) -- Target a single deliverable (D2-D11)
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- bare -- prints `Usage: intent st zero install` and exits 0
 - **stdout:** the usage line
@@ -512,6 +533,8 @@ Manage work packages within steel threads
 - **Flags:**
   - `help`, `--help`, `-h` (bool) -- Print the usage block
     - bare-word arm plus the two flag spellings
+    - **disposition:** intrinsic
+    - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
   - `1` -- bare -- `error: Work package command is required`
   - `1` -- `--help` prints usage to STDOUT and exits 1
@@ -592,6 +615,7 @@ Reopen a done work package back into Wip, with a reason
   - `specifier` (st-id/NN, arity `1`)
 - **Flags:**
   - `--reason` `<text>` (string) -- Why it is being reopened -- required by the machine's guard
+    - **disposition:** keep
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15 -- Machine 2 (WpStatus): the `Done -> Wip` edge, guard `reason recorded`.
 - **Note:** THE URGENT ONE, and it is not urgent in the abstract: its absence is CURRENTLY CORRUPTING this thread's own tracking data. Three of five WPs disagree with their own gate (WP-02 Done/BLOCKED, WP-04 Done/BLOCKED, WP-05 Wip/PASS), because adding an AC reopens a WP in the contract while nothing moves the status back. Until this verb exists the ONLY repair is hand-editing the file the CLI exists to own -- which is the same trap `ac satisfy` had before `ac unsatisfy`, in the same tool, found the same way. Second instance of one class; the guard against a third is Machine 2 itself, which now declares the edge whether or not anyone has built it.
@@ -737,6 +761,8 @@ Satisfy a non-test AC by named evidence
   - `acid` (ac-id, arity `1`)
 - **Flags:**
   - `--evidence` `<ref>` (string) -- The named evidence reference
+    - **required:** true
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- satisfied
   - `1` -- missing --evidence
@@ -792,8 +818,12 @@ Record that an AC moved to another thread (non-blocking)
   - `acid` (ac-id, arity `1`)
 - **Flags:**
   - `--to` `<stid>` (string) -- The thread the requirement moved to
+    - **required:** true
+    - **disposition:** keep
   - `--by` `<who>` (string) -- Who decided
+    - **disposition:** keep
   - `--reason` `<text>` (string) -- Why
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- descoped
   - `1` -- missing --to
@@ -831,7 +861,10 @@ Withdraw an AC outright, with its reason on the record (non-blocking)
   - `acid` (ac-id, arity `1`)
 - **Flags:**
   - `--reason` `<text>` (string) -- Why it was dropped -- REQUIRED
+    - **required:** true
+    - **disposition:** keep
   - `--by` `<who>` (string) -- Who decided
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- withdrawn
   - `1` -- missing --reason -- the reason is mandatory, by design
@@ -928,6 +961,7 @@ Check AT rows against the grammar (--fix migrates what is mechanical)
   - `stid` (st-id[/NN], arity `1`)
 - **Flags:**
   - `--fix` (bool) -- Migrate the mechanical part of a legacy row -- and REFUSE what cannot migrate without loss
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- all rows parse
   - `1` -- L1-L5 findings present
@@ -1045,6 +1079,8 @@ List issues (default: open)
 - **v2:** bin/intent_issues:310, buckets at :207-209
 - **Flags:**
   - `--kind` `open|closed|all` (enum) -- Which bucket to list
+    - **default:** open
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- listed
   - `1` -- unknown --kind value
@@ -1063,6 +1099,8 @@ Add a new issue, print its ID:TITLE
   - `title` (string, arity `1`)
 - **Flags:**
   - `--severity` `critical|high|medium|low` (enum) -- Severity
+    - **default:** medium
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- created -- prints `<ID>:<TITLE>`
   - `1` -- no title -- `error: Issue title is required`
@@ -1082,6 +1120,7 @@ Show one issue (optionally as JSON)
   - `id` (issue-id, arity `1`)
 - **Flags:**
   - `--json` (bool) -- Emit as JSON instead of prose
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- printed
   - `1` -- issue not found
@@ -1158,6 +1197,7 @@ Show intent/todo.md (generates it if absent)
   - `command` (subcommand, arity `0..1`), default `list`
 - **Flags:**
   - `--json` (bool) -- Emit the DOING/TODO/DONE view as JSON on stdout
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- bare -- prints the view, generating the file if absent
   - `1` -- `--help` prints 1077B usage to STDOUT and exits 1
@@ -1180,6 +1220,7 @@ Show intent/todo.md (generates it if absent)
 - **v2:** bin/intent_todo:384 -- the `list)` arm; `COMMAND="${1:-list}"` at :380 makes it the default
 - **Flags:**
   - `--json` (bool) -- Emit the DOING/TODO/DONE view as JSON on stdout
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- printed, generating the file first if absent
   - `1` -- outside a project -- `error: not in an Intent project directory` (INV-03)
@@ -1217,7 +1258,9 @@ Mark a thread/WP done (via intent st/wp done), then regenerate
     - omitted when --flush or --prune is given
 - **Flags:**
   - `--flush` (bool) -- Advance the DONE watermark to now, clearing the DONE view
+    - **disposition:** keep
   - `--prune` (bool) -- Emit the DONE items for archiving, then flush
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- marked and regenerated
   - `1` -- specifier not resolvable
@@ -1428,9 +1471,13 @@ Initialize a new Intent project in the current directory
   - `project_name` (string, arity `0..1`), default `the current directory name`
 - **Flags:**
   - `--with-st0000` (bool) -- Bootstrap all ST0000 deliverables after init
+    - **disposition:** keep
   - `--lang` `<list>` (string) -- Comma- or space-separated languages to install canon for
     - Accepts: eg `--lang elixir` or `--lang elixir,rust,shell`
+    - **disposition:** keep
   - `--help`, `-h` (bool) -- Print the usage block
+    - **disposition:** intrinsic
+    - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
   - `0` -- created
   - `1` -- already an Intent project -- `error: This directory is already an Intent project`
@@ -1472,8 +1519,13 @@ First-time setup: create global Intent configuration
 - **v2:** bin/intent_bootstrap
 - **Flags:**
   - `--force`, `-f` (bool) -- Force recreation of config even if it exists
+    - **disposition:** keep
   - `--quiet`, `-q` (bool) -- Suppress informational output
+    - **disposition:** pending
+    - **disposition basis:** VERBOSITY CLUSTER. Same undecided design question as `doctor --quiet`, and it is one question, not four: does v3 carry per-command verbosity flags or one global pair? Classified together so the answer lands in one place instead of being re-litigated per command.
   - `--help`, `-h` (bool) -- Print the usage block
+    - **disposition:** intrinsic
+    - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
   - `0` -- bare -- 1161B in a project, 982B outside one
   - `0` -- `--help` -- 399B usage, exit 0
@@ -1510,9 +1562,17 @@ Diagnose and fix common Intent configuration issues
 - **v2:** bin/intent_doctor
 - **Flags:**
   - `--fix`, `-f` (bool) -- Attempt to fix issues automatically
+    - **disposition:** retire
+    - **disposition basis:** vc measured bin/intent_doctor:66 -- v2 really implements --fix, so this is a genuine v2 behaviour v3 is deliberately not carrying. That is the distinction `retire` exists to draw, and AC-06.9 was missing it.
   - `--verbose`, `-v` (bool) -- Show detailed information
+    - **disposition:** pending
+    - **disposition basis:** vc measured `verbose()` at bin/intent_doctor:133 -- implemented in v2, undecided for v3. Part of the verbosity cluster below.
   - `--quiet`, `-q` (bool) -- Only show errors and warnings
+    - **disposition:** pending
+    - **disposition basis:** vc measured colour suppression under quiet at bin/intent_doctor:91 -- implemented in v2, undecided for v3. Part of the verbosity cluster below.
   - `--help`, `-h` (bool) -- Print the usage block
+    - **disposition:** intrinsic
+    - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
   - `0` -- bare -- 563B, exit 0 whether or not findings exist
   - `0` -- `--help` -- 384B, exit 0
@@ -1555,8 +1615,15 @@ Upgrade an Intent project to the current version
 - **v2:** bin/intent_upgrade
 - **Flags:**
   - `--backup-dir` `<dir>` (string) -- Custom backup directory name
+    - **default:** .backup/backup-TIMESTAMP
+    - **disposition:** retire
+    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
   - `--no-backup` (bool) -- Skip backup creation (dangerous)
+    - **disposition:** retire
+    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
   - `--help`, `-h` (bool) -- Print the usage block
+    - **disposition:** intrinsic
+    - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
   - `0` -- bare -- 78B, `Current version: 2.19.0`
   - `0` -- `--help` -- 593B, exit 0
@@ -1593,7 +1660,11 @@ Organize steel threads into status directories based on their metadata
 - **Flags:**
   - `--dry-run` (bool) -- Preview changes without making them
     - OPPOSITE polarity to `st organize --write`: this face acts by default, that one previews by default
+    - **disposition:** retire
+    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
   - `--help`, `-h` (bool) -- Print the usage block
+    - **disposition:** intrinsic
+    - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
   - `0` -- bare -- 117B
   - `0` -- `--help` -- 575B, exit 0
@@ -1654,6 +1725,7 @@ Initialize AGENTS.md at project root
 - **v2:** plugin dispatch
 - **Flags:**
   - `--template` `<name>` (string) -- Initial content from a named template
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- created
   - `1` -- already exists
@@ -1777,6 +1849,7 @@ Manage Claude Code subagents
   - `name` (string, arity `0..n`)
 - **Flags:**
   - `-v` (bool) -- Show full descriptions in `list`
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- listed / installed / synced
   - `1` -- unknown verb
@@ -1797,6 +1870,7 @@ Manage Claude Code skills
   - `name` (string, arity `0..n`)
 - **Flags:**
   - `-v` (bool) -- Show full descriptions in `list`
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- listed / installed / synced
   - `1` -- unknown verb
@@ -1817,6 +1891,7 @@ List and show rule-library rules
   - `id` (rule-id, arity `0..1`)
 - **Flags:**
   - `--lang` `<lang>` (string) -- Filter to one language
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- listed / shown
   - `1` -- unknown rule id
@@ -1859,6 +1934,7 @@ Apply Claude canon to the project
 - **v2:** bin/intent claude arm
 - **Flags:**
   - `--apply` (bool) -- Write the canon; without it the command reports only
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- applied or reported
   - `1` -- canon source missing
@@ -1947,14 +2023,24 @@ Run Intent rule-library critics against source files
 - **Flags:**
   - `--files` `<path> ...` (string) -- Explicit file list
     - default: scan nothing unless --staged
+    - **disposition:** keep
   - `--staged` (bool) -- Scan files in the git staging area (pre-commit mode)
+    - **disposition:** keep
   - `--severity-min` `<lvl>` (enum) -- Minimum severity to report
     - Accepts: critical | warning | recommendation | style
+    - **default:** warning
+    - **disposition:** keep
   - `--format` `text|json` (enum) -- Output format
+    - **default:** text
+    - **disposition:** keep
   - `--rules` `<dir>` (string) -- Alternative rules root, overriding canon discovery
+    - **disposition:** keep
   - `--languages` (bool) -- List languages with a headless code critic, one per line, and exit
     - consumed by the pre-commit gate so the gate and the runner cannot drift
+    - **disposition:** keep
   - `--help`, `-h` (bool) -- Print the usage block
+    - **disposition:** intrinsic
+    - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
   - `0` -- clean scan, or `--languages` / `--help`
   - `1` -- outside a project (INV-03)
@@ -2083,6 +2169,7 @@ Converge the Language Packs block in RULES.md for every declared language
 - **v2:** bin/intent_lang sync arm
 - **Flags:**
   - `--check` (bool) -- Report without writing; exit 1 if any entry is missing or stale
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- converged, or `ok: no declared languages; nothing to sync`
   - `1` -- --check found a missing or stale entry
@@ -2134,6 +2221,7 @@ Display the Intent usage rules for LLMs
 - **Flags:**
   - `--symlink` `[dir]` (string) -- Create a symlink to usage-rules.md in the current or specified directory
     - the directory argument is OPTIONAL, defaulting to the current directory -- an optional-value flag, which clap models differently from v2's positional peek
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- displayed or symlinked
   - `1` -- symlink target unwritable
@@ -2173,7 +2261,10 @@ Capture project-specific learnings for future LLM sessions
 - **Flags:**
   - `--category` `<cat>` (enum) -- Which kind of learning
     - Accepts: footgun (default), worked, failed
+    - **default:** footgun
+    - **disposition:** keep
   - `--list` (bool) -- Show all learnings
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- captured, or listed
   - `0` -- bare -- 904B usage, exit 0
@@ -2228,6 +2319,7 @@ Compare MODULES.md registry against filesystem
 - **Flags:**
   - `--register` (bool) -- Interactively register unregistered modules
     - INTERACTIVE -- the only interactive path in the surface, and a shape a non-tty caller cannot use
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- registry clean
   - `1` -- issues found -- unregistered or stale entries
@@ -2414,8 +2506,11 @@ Scaffold a new extension
   - `name` (string, arity `1`)
 - **Flags:**
   - `--skill` (bool) -- Scaffold a skill extension
+    - **disposition:** keep
   - `--subagent` (bool) -- Scaffold a subagent extension
+    - **disposition:** keep
   - `--rule-pack` (bool) -- Scaffold a rule-pack extension
+    - **disposition:** keep
 - **Exit codes:**
   - `0` -- scaffolded
   - `1` -- missing --type
@@ -2454,12 +2549,26 @@ Generate LLM-oriented directory summaries
     - NEVER the project root -- always a subdirectory
 - **Flags:**
   - `--depth`, `-d` `<n>` (integer) -- How deep to descend
+    - **disposition:** retire
+    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
   - `--check` (bool) -- Report without writing
+    - **disposition:** retire
+    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
   - `--dry-run` (bool) -- Preview
+    - **disposition:** retire
+    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
   - `--force` (bool) -- Regenerate even if current
+    - **disposition:** retire
+    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
   - `--prune` (bool) -- Remove stale index entries
+    - **disposition:** retire
+    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
   - `--model` `<name>` (string) -- Model to summarise with
+    - **disposition:** retire
+    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
   - `--help`, `-h` (bool) -- Print the usage block
+    - **disposition:** intrinsic
+    - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
   - `1` -- bare -- prints 1548B usage to STDOUT and exits 1
   - `1` -- `--help` -- identical, exit 1
@@ -2502,16 +2611,29 @@ Maintain checkbox file indexes
   - `filespec` (string, arity `0..1`)
 - **Flags:**
   - `--check`, `-C` (bool) -- Mark checked
+    - **disposition:** keep
   - `--uncheck`, `-U` (bool) -- Mark unchecked
+    - **disposition:** keep
   - `--toggle`, `-X` (bool) -- Flip the mark
+    - **disposition:** keep
   - `--file`, `-f` `<path>` (string) -- Target file
+    - **disposition:** keep
   - `--index`, `-i` `<path>` (string) -- Index file
+    - **disposition:** keep
   - `--index-dir` `<path>` (string) -- Index directory
+    - **disposition:** keep
   - `--intent-dir` `<path>` (string) -- Intent directory
+    - **disposition:** keep
   - `--no-intent` (bool) -- Operate without an Intent project
+    - **disposition:** keep
   - `-r` (bool) -- Recurse
+    - **disposition:** keep
   - `-v` (bool) -- Verbose
+    - **disposition:** pending
+    - **disposition basis:** VERBOSITY CLUSTER -- log-level verbosity, same open question as `doctor --verbose`. NOT the same thing as `claude skills -v` / `claude subagents -v`, which are a list display mode and ship.
   - `--help`, `-h` (bool) -- Print the usage block
+    - **disposition:** intrinsic
+    - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
 - **Exit codes:**
   - `0` -- bare -- prints `[ ]`, 5B, exit 0
   - `1` -- `--help` -- 1518B usage to STDOUT, exit 1
@@ -2594,8 +2716,14 @@ Retrofit ST0000 deliverables into brownfield projects
   - `command` (subcommand, arity `0..1`) -- one of: `install`
 - **Flags:**
   - `--audit-only` (bool) -- Show gap analysis only, no changes
+    - **disposition:** retire
+    - **disposition basis:** The root `st_zero` spelling dies (hv ratified, 2026-08-15) -- these three flags reach clap via `st bootstrap`, whose row carries its own live copies. Recorded from v2, never built.
   - `--dry-run` (bool) -- Show what would change, no writes
+    - **disposition:** retire
+    - **disposition basis:** The root `st_zero` spelling dies (hv ratified, 2026-08-15) -- these three flags reach clap via `st bootstrap`, whose row carries its own live copies. Recorded from v2, never built.
   - `--deliverable` `<id>` (string) -- Target a single deliverable (D2-D11)
+    - **disposition:** retire
+    - **disposition basis:** The root `st_zero` spelling dies (hv ratified, 2026-08-15) -- these three flags reach clap via `st bootstrap`, whose row carries its own live copies. Recorded from v2, never built.
 - **Exit codes:**
   - `0` -- bare -- prints `Usage: intent st zero install [options]`, 879B, exit 0
   - `0` -- `--help` -- same, exit 0
@@ -2669,10 +2797,10 @@ Print the Intent version
 - **Detail:** vc, 2026-08-15, generalising from `st new -s|--start`. The whole disposition vocabulary -- `keep · retire · deviate · corrected · new-surface · pending` -- classifies what happens to a COMMAND'S SURFACE. It has no way to say _the spelling, the flags and the observed behaviour are all unchanged, and the meaning moved anyway_. That is exactly what happened to `-s|--start`: it is v2 parity, its help text still matches, its v2 behaviour still matches, and **a ratified decision changed the state space underneath it** so that one transition became two. **Nothing in this file could have shown that**, and a reader scanning dispositions would have seen `keep` and moved on.
 - **Resolution:** **Deliberately NOT solved today, and vc explicitly did not ask for a mechanism.** Recorded here rather than left as a note in an inbox because an inbox entry gets archived and this section is read by anyone who reads the table -- and because the honest status of this exposure is _known, unprotected_, which is precisely what `known_exposures` exists to say. The cheap partial already in use: when a row's semantics move under a ruling, say so ON the row in its own field (`st new` now carries `start_flag_ruled` and `composition_constraint`), so the fact is at least greppable even though the disposition cannot carry it. If it recurs often enough to need a mechanism, the shape is a semantics stamp -- the ruling a row was last checked against -- and that is a contract decision for vc, not a renderer change.
 
-### EXP-05 -- Entries declare whether they ship; FLAGS do not, and three are on the surface today doing nothing
+### EXP-05 -- Entries declare whether they ship; FLAGS could not -- CLOSED in this file, still open in the spine
 
 - **Detail:** `is_shipped()` reads an entry's `disposition` and `target.state`, so a retired COMMAND never reaches clap. There is no equivalent one level down: `spine.rs` builds every declared flag on every shipped entry, unconditionally, and the flag schema carries no field that could say otherwise -- measured, the union of all flag keys across this table is: accepts, default, help, note, required, spellings, type, value. So the table can withdraw a command from the v3 surface and CANNOT withdraw a flag. That is the structural gap behind AC-06.8, and it is the same shape as EXP-03: a fact a generator needs, that this file does not carry, and that cannot be derived -- whether a flag is READ is a property of the renderer, never of its spelling.
-- **Resolution:** Flags need a declared disposition, in the vocabulary entries already use, and the spine must honour it. keep ships and must be read; retire is recorded from v2 and never reaches clap; pending does NOT ship, because an undecided flag on the surface IS the defect AC-06.8 names. Same safe-direction logic as exposed_on_mcp: where the answer is unknown, the cheap error is an absent feature and the expensive one is a promise. The contract call is vc's, the spine is cc's, the declaration and its refusal are mine. Deliberately NOT authored unilaterally -- classifying roughly 130 flags is the EXP-03 shape, and that one went better because the mechanism was ruled before the rows were filled in.
+- **Resolution:** CLOSED HERE, AND ONLY HERE. All 93 flags now declare a disposition (63 keep, 14 retire, 10 intrinsic, 6 pending), three refusals enforce it, and a shared renderer plus a COUNT-based check puts every one of them in the view. THE SPINE DOES NOT YET HONOUR IT: `spine.rs:142` still builds every declared flag on every shipped entry, so today the declaration is documentation with a guard on it. That half is cc's and the first user is `doctor --fix`, whose `retire` is the one classification vc measured in v2 source rather than inferred. Until it lands, this file can say a flag does not ship and the binary will ship it -- which is a smaller gap than not being able to say it at all, and is not the same as closed.
 - **Consequence for the generator:** Nothing yet: the generator renders flags faithfully and has no opinion about whether they ship. It gains one the moment the field exists -- every flag must declare a disposition or the run refuses, the same construction as the MCP fields, so a flag cannot join the surface by being typed. Until then this register is the only place the gap is written down. The 44 further declared-and-unread flags all sit on commands with NO renderer arm at all, so they are future violations rather than current ones: they become AC-06.8 breaches one at a time as each command is wired, which is the worst arrival schedule available for a defect nobody is watching for.
 
 ### EXP-06 -- D42 audit of the declared surface: it came back CLEAN, and the two findings that survive are not about clocks
@@ -2680,6 +2808,12 @@ Print the Intent version
 - **Detail:** Audited the dispatch table and the 27 command inventories against D42 and filed three findings. hv then narrowed the rule twice within the day and BOTH narrowings cut against me. First: the rule is ASYMMETRIC -- no CLI or intentsvcs function TAKES a time, but functions may RETURN times, because those went end-to-end through the DB where SQLite set them; vc has since sharpened this into its strongest form, a property of the SIGNATURE rather than of a value, so a time-typed input parameter is a defect by inspection and nobody has to trace provenance. Second: reading a clock to MAKE A DECISION is fine, and so is stamping WHEN A COMMAND RAN into a GENERATED artefact -- what D42 forbids is confecting a time and injecting it into a source document. Under the rule as it now stands the declared surface has NO D42 exposure at all: zero of three findings survive as D42, and the inventories were already clean because v2 declares no time-bearing flag or argument anywhere.
 - **Resolution:** None adopted here; each row names its own owner (`todo done` is WP-03's renderer constraint, `backup` is AC-02.8). The finding worth keeping is about auditing, not about time. THE AUDIT WAS RIGHT TO RUN AND WRONG IN EVERY VERDICT IT FIRST REACHED, and it still produced two real defects -- because the only way to check a claim about a surface is to read the code under it, and the reading is what found them. An audit that had trusted its own pattern match would have filed three wrong findings and stopped.
 - **Consequence for the generator:** None today; the generator renders `exposure` through the generic `targetextra` path like any other authored sub-key, and the entry-level completeness check proves it reaches the view. Two standing obligations, and they are different sizes. The small one: re-audit when new_surface changes. The large one: THIS CENSUS CANNOT SEE THE THING THE RULE ACTUALLY FORBIDS. vc's caution is exact -- a clean result here is about DECLARED FLAGS AND ARGUMENTS, and hv's rule is about function PARAMETERS, which need never appear in a flag inventory. A green from this file is not evidence about signatures, and the needle that checks them lives in cc's guard, not here.
+
+### EXP-07 -- The flag schema declares five properties the CLI cannot see, and one of them is a live defect on an implemented command
+
+- **Detail:** Measured while classifying for EXP-05, by reading `dispatch.rs` rather than reasoning about the renderer. `pub struct Flag` at dispatch.rs:126-133 has exactly THREE fields -- `spellings`, `kind`, `help`. The canon authors eight: those three plus `accepts` (4 instances), `default` (6), `required` (3), `value` (35) and `note` (9). So `accepts`, `default`, `required` and `value` DO NOT DESERIALIZE AT ALL. This is not a renderer that forgets to read them; it is a type with no field for them, which is the same shape EXP-05 diagnosed for `disposition` -- except EXP-05 said the schema was missing ONE field and the measurement says it is missing FOUR that are already authored.
+- **Resolution:** Not adopted here, and deliberately NOT folded into EXP-05. EXP-05 was ruled as a specific mechanism and vc anchors review to the proposal, so widening it silently while implementing it is the way a reviewed change becomes an unreviewed one. Recorded whole instead. The cheap half is this file's and is already done -- `default` and `required` now RENDER, so a reader of the view can at least see the claim. The rest is cc's: four fields on `Flag`, `.required()`/`.default_value()`/`.value_parser()`/`.value_name()` on the clap side, and a refusal rather than a `continue` for a flag the spine cannot build. `ac satisfy --evidence` is the one worth doing first because it is live and silent.
+- **Consequence for the generator:** Two, both now closed. The flag level was the LAST population with an enumerated renderer and no generic remainder -- `extras` had closed the entry and `target` levels and nothing descended into `flags` -- so `default` and `required` had been in the canon and out of the view for as long as they had existed, and no check anywhere could say so. `flagextra` closes it. The second is sharper and is a lesson about checks rather than about flags: the flag completeness loop I wrote to close this class WENT GREEN ON ITS FIRST RUN while five flags rendered nothing, because it greps for the LABEL and 88 of 93 flags supplied it. Presence-of-label and completeness-of-population are different questions. It is now a COUNT, matched against the declared total, and the count is what found the fact that new_surface flags had never rendered in detail at all.
 
 ## Parity holes -- what the BATS estate does NOT cover
 
@@ -2764,6 +2898,12 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **note:** NOT the same command as `st sync`, and NOT a superset of it either. v2's `st sync` composes `list` and PRINTS the thread table; only `--write` persists `steel_threads.md` (bin/intent_st:1145-1211, verified by ic). Reconciling the store from canon is a different job, so the two are two commands sharing a name and v3 treats them as such. Added by cc at build time (2026-08-14); second clause originally read "v2's job is a strict subset of this reconciliation and both spellings run it", corrected 2026-08-15 after cc found their own test could not catch it -- it was written from the same misreading as the code, asserted the two spellings produce identical bytes, and passed.
 - **truth model correction:** 2026-08-15, ic, under hv's ratified db-is-SSOT model. The help read `Reconcile the runtime store with committed canon on disk` and was backwards in BOTH halves: the store is not runtime, it is the DURABLE SSOT, and disk is not canon, it is a secondary artefact. Corrected here rather than filed because this string is USER-FACING -- it renders to `--help`, the MCP tool list and the `intent llm` guide, so the retracted model would have been the sentence a user READS, in the help for the very command the model is about. `Reconcile` went too: it implies two authorities being arbitrated, and the model is ONE authority with two-way transport.
 - **d34 wording:** FINAL wording, released by D34 (hv, 2026-08-15) after I held it pending the multi-machine question. **The DB is per-machine truth and is never committed; the committed extract IS the interchange between nodes**, and a fresh clone reconstitutes its DB by passing that extract through the ingest gate. So the help names both endpoints exactly: `this machine's store` (per-machine, authoritative locally) and `the committed extract` (what travels). D34 adopts the formulation _authority is not bidirectional just because transport is_ -- which is why the string says `in both directions` about the MOVEMENT and says nothing about precedence. A help line implying the file could win would describe a different architecture.
+- **Flags:**
+  - `--to-disk` (bool) -- Write the store out to the committed extract
+    - **disposition:** keep
+  - `--to-store` (bool) -- Read the committed extract into the store, through the API gate
+    - **disposition:** pending
+    - **disposition basis:** The `sync --to-store` vs `ingest` boundary is UNDECLARED, and it is the reason `sync` is flagged for MCP review -- the boundary decides whether it stays exposed at all. Two spellings for one act is the thing to resolve before either ships.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **Wants review:**
   - uncertain on `exposed_on_mcp`
@@ -2779,6 +2919,9 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **v2:** new-surface
 - **not backup:** SEE `backup`, which carries the full distinction. In short: this is the INTERCHANGE -- lossless text, usable without Intent, the artefact that travels between machines under D34 and reconstitutes a DB through the ingest gate. `backup` is a binary SQLite snapshot for fast local restore, carrying the derived index. Both help strings carry their own distinguishing clause deliberately, because a user choosing between them is not reading them side by side.
 - **truth model correction:** 2026-08-15, ic. The help read `Project the canon into another format`, which named the DISK side as the canon and so read as one on-disk format converting to another. Under hv's ratified model the store is the truth and this command is the OPENNESS half of it -- hv, verbatim: 'I can get my data out of the db and use it somewhere else LOSSLESSLY.' The `usable without Intent` clause is in the help deliberately: AC-02.6 requires the file form to be usable without this tool, and a promise a user cannot read is a promise nobody can hold us to. This is the surface half of AC-02.6; vc owns whether the contract wants it cited on this row.
+- **Flags:**
+  - `--format` `<fmt>` (string)
+    - **disposition:** keep
 - **MCP:** exposed as an agent tool -- **mutates**
 - **Wants review -- the classification disagrees with the verb name:** `export` reads as a read -- it takes nothing out of the store that was not already there. It is `mutate` because the field is defined over DURABLE STATE, not over the store: export writes files into the working tree and can clobber them. Anyone who reads this field as 'touches the database' will disagree with this row, which is why the definition is written down.
 
@@ -2786,6 +2929,10 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 
 - **v2:** new-surface
 - **truth model correction:** 2026-08-15, ic. The help read `Rebuild the canon from markdown`, which under the retracted model meant reconstructing the durable thing and so read as an authority-restoring act. Under hv's ratified model it is the opposite: markdown is a secondary artefact and ingest is the path INTO the truth, well-formed ONLY because it passes the hard gate of the intentsvcs API. `through the API gate` is in the user-facing string on purpose -- the gate is what makes the result trustworthy, so hiding it would let a reader assume a file's own format was sufficient. Recreation from an extract stays a CAPABILITY and is not a licence to treat the store as disposable.
+- **Flags:**
+  - `--from-md` (bool)
+    - **disposition:** pending
+    - **disposition basis:** The other half of the undeclared `sync --to-store` boundary. Also worth noting on its own: if reading md into the store is what `ingest` IS, then `--from-md` is a mode flag with one mode.
 - **MCP:** not exposed -- **mutates**
 - **Wants review:**
   - uncertain on `exposed_on_mcp`
@@ -2796,6 +2943,10 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **v2:** new-surface
 - **config:** Reads `backup.enabled` / `backup.schedule` / `backup.retain.{daily,weekly,monthly}` -- named on the `config` entry in this table. `backup.enabled` gates the DAEMON's schedule and deliberately does NOT gate this command.
 - **not export:** *** `backup` AND `export` ARE NOT SYNONYMS, AND CONFLATING THEM COSTS A USER THE THING THEY WERE TRYING TO SAVE. *** `export` is AC-02.6 OPENNESS: lossless, text, usable WITHOUT Intent, and under D34 it is THE INTERCHANGE -- the artefact that travels between machines and reconstitutes a DB through the ingest gate. `backup` is a binary SQLite snapshot: NOT usable without SQLite, NOT the interchange, and it carries the DERIVED INDEX so a restore is immediate with no re-ingest and no re-index. Different jobs, and neither is redundant. The failure mode is directional and asymmetric: a user who reaches for `backup` when they wanted portability gets a file no other tool can read, and a user who reaches for `export` when they wanted a fast restore gets a correct artefact that costs a full re-index -- so BOTH help strings must carry their own distinguishing clause rather than relying on a reader comparing them side by side, which is exactly what nobody does at the moment they need one.
+- **Flags:**
+  - `--list` (bool) -- List retained snapshots and when each was taken
+    - RATIFIED -- vc, 2026-08-15: `--list` STANDS. Proposed by ic on the grounds that D35 requires a failed or skipped backup to SURFACE, and with no read path a user cannot tell a working schedule from one that has silently never run -- the nothing-is-wrong / nothing-ran ambiguity again. **The question turned out to expose a hole in AC-03.10 itself**: the clause said only that a FAILED backup surfaces, and A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could have shipped where nothing had ever run -- the ambiguity living inside the clause written to prevent it. AC-03.10 is amended and `doctor` now reports backup STALENESS, which detects never-ran without needing anything to have failed.
+    - **disposition:** keep
 - **surfacing:** RATIFIED -- vc, 2026-08-15: the split is the ruling. A failed or skipped scheduled backup must surface (IN-AG-NO-SILENT-001), and **`doctor` is THE ONE PLACE health is reported** -- not a second status surface here -- because `doctor` already exists for exactly that and Highlander says one place, not two. `--list` answers only _what snapshots exist_, which is inventory rather than health. `doctor`'s obligation is recorded on its own row as `target.new_obligations`, so the requirement lives where the command that owns it is described.
 - **exposure:** PROVENANCE EXPOSURE (ic, audit 2026-08-15; twice corrected). NOT a D42 exposure -- I filed it first for emitting a time, which is legal, and the residue is not about clocks at all. `--list` promises to show WHEN EACH SNAPSHOT WAS TAKEN and answers from the file mtime of a snapshot under .backup/db/, so a filesystem attribute is DISPLAYED AS a record fact. vc reached the identical ruling from the contract end and has absorbed it into AC-02.8: `threads.created` and `issues.created` are authored dates, `file_index.mtime` is a file mtime, `event_log.ts` was an argument, and this snapshot mtime is the fourth instance -- in all four the display was never the problem and the provenance always was. The fix is unchanged and now correctly reasoned: taking a snapshot WRITES A RECORD and `--list` reads that record stamp. Owned under AC-02.8; recorded here so the surface row carries its own obligation.
 - **MCP:** not exposed -- **mutates**
