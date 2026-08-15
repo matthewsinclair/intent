@@ -2,19 +2,16 @@
 #
 # devbin: summary = Sign and notarise the macOS release binaries with the Geodica Developer ID
 #
-# intent macos <doctor|sign|notarize|verify|stage|env|store-creds>
+# intent macos <subcommand>  -- run `int macos` with no arguments for the list.
 #
-#   doctor       Preflight: identity present, a real test-sign, notary creds
-#   sign         Developer ID sign both release binaries, then verify
-#   notarize     Submit the signed binaries to Apple, wait, report
-#   verify       Prove the whole chain: quarantine a copy and run it
-#   stage        Name the artefacts per target triple, prove each one, and only
-#                then checksum them -- REFUSES to hash anything unproven
-#   formula      Emit the Homebrew formula from the staged artefacts. Generated,
-#                never hand-edited; refuses if stage has not proven them
-#   env          Print the resolved identity + which creds are present
-#   store-creds  Store APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID in the
-#                login Keychain (interactive; once per machine)
+# THE SUBCOMMAND LIST LIVES IN usage() AT THE FOOT OF THIS FILE, not here, and it
+# moved for a reason worth keeping. The help used to be `sed -n '5,15p'` of this
+# header -- a hard-coded line range over a block that grows every time a
+# subcommand is added. Adding one pushes the last entry past line 15 and the help
+# silently stops listing it: no error, no truncation marker, just a command that
+# has stopped being discoverable. **A help text that can go quietly out of date is
+# the one place that must not.** One definition, printed and read from the same
+# string.
 #
 # hv, 2026-08-15: "Having Intent properly signed using my Geodica Apple Developer
 # Connection keys is the right way to go regardless of whether or not brew needs
@@ -69,6 +66,41 @@ RELEASE_DIR="$ROOT/native/rust/target/release"
 BINARIES="intent intentd"
 KC_PREFIX="intent.apple"
 
+# EVERYTHING AFTER THE COPY HAPPENS HERE, AND THAT IS THE WHOLE POINT.
+#
+# `target/release/` is SHARED MUTABLE STATE. Four sessions build in this tree and
+# `cargo build --release` is the most ordinary thing any of them does -- so a
+# signature living there is not a property of a file, it is a property of a file
+# that nobody has rebuilt yet.
+#
+# MEASURED LIVE, 2026-08-15: a peer's release build replaced a Developer ID
+# signature with the linker's ad-hoc one, and one of two shipped binaries stopped
+# being notarised inside the hour, with NO signal and every artefact of the
+# earlier proof still reading as valid. Nobody did anything wrong; a shared target
+# directory is what it is for.
+#
+# The first response was to make `stage` REFUSE to checksum anything it could not
+# prove. That was right and it stays -- but a refusal DETECTS the race, it does
+# not remove it, and it detects it only at the end, after a notarisation round
+# trip has already been spent on bytes that no longer exist.
+#
+# So the target moved instead. `target/dist/` is written by this command and by
+# nothing else, which means the window in which a peer can disturb an artefact
+# shrinks from "the whole sign -> notarise -> stage sequence", minutes long and
+# spanning a network round trip to Apple, to "the ditto on the line below". **A
+# structure that cannot fail beats a control that catches the failure**, and the
+# control is still there underneath because catching it is free.
+STAGE_DIR="$ROOT/native/rust/target/dist"
+
+# The triple comes from `rustc -vV`, never from `uname`: the artefact name is a
+# claim about what the compiler targeted, and only the compiler can answer that.
+host_triple() {
+  local t
+  t="$(rustc -vV | sed -n 's/^host: //p')"
+  [ -n "$t" ] || die "could not read the host target triple from 'rustc -vV'"
+  printf '%s' "$t"
+}
+
 # --- credentials -------------------------------------------------------------
 # Read from the login Keychain, never from the environment or a file. Silent on
 # a miss; the callers report presence.
@@ -101,6 +133,18 @@ require_binaries() {
     [ -f "$RELEASE_DIR/$b" ] || missing="$missing $b"
   done
   [ -z "$missing" ] || die "missing release binaries:$missing -- run 'int build all --release' first"
+}
+
+# require_staged -- every subcommand after `stage` acts on the staged copies, so
+# each one has to be able to say WHICH step has not been run rather than failing
+# on a missing path. Names the fix, not the symptom.
+require_staged() {
+  local triple missing=""
+  triple="$(host_triple)"
+  for b in $BINARIES; do
+    [ -f "$STAGE_DIR/$b-$triple" ] || missing="$missing $b-$triple"
+  done
+  [ -z "$missing" ] || die "nothing staged:$missing -- run 'int macos stage' first (it copies the build output into $STAGE_DIR, where a peer's cargo build cannot reach it)"
 }
 
 # --- subcommands -------------------------------------------------------------
@@ -187,27 +231,37 @@ cmd_doctor() {
 
 cmd_sign() {
   require_identity
-  require_binaries
+  require_staged
+  local triple
+  triple="$(host_triple)"
   printf 'identity: %s\n\n' "$IDENTITY"
   for b in $BINARIES; do
-    step "signing $b"
+    step "signing $b-$triple"
     # --options runtime  hardened runtime; notarisation REFUSES without it
     # --timestamp        secure timestamp; notarisation REFUSES without it
     # --force            replace the ad-hoc signature the linker already applied
     #                    (arm64 binaries are always signed; this is a re-sign)
-    codesign --force --options runtime --timestamp --sign "$IDENTITY" "$RELEASE_DIR/$b"
-    # --strict, because the lenient verify passes on things notarisation rejects.
-    codesign --verify --strict --verbose=2 "$RELEASE_DIR/$b" 2>&1 | sed 's/^/    /'
+    codesign --force --options runtime --timestamp --sign "$IDENTITY" "$STAGE_DIR/$b-$triple"
+    # --strict, and READ WHAT THIS PROVES: that the signature present is internally
+    # valid. It is NOT evidence the binary is ours -- `codesign --verify --strict`
+    # returns 0 on the linker's ad-hoc signature too, because an ad-hoc signature
+    # is a valid signature. This board carried it as "the check that means
+    # something" for hours and it took a live incident to refute. The check that
+    # means something is `verify_notarised`, on a quarantined copy.
+    codesign --verify --strict --verbose=2 "$STAGE_DIR/$b-$triple" 2>&1 | sed 's/^/    /'
   done
   printf '\n'
   ok
-  printf '  Both binaries carry a Developer ID signature with the hardened runtime.\n'
+  printf '  Both STAGED artefacts carry a Developer ID signature with the hardened\n'
+  printf '  runtime. Signing rewrote their bytes, so any earlier checksum is stale.\n'
   printf '  NEXT: int macos notarize   (needs the notary credentials)\n'
 }
 
 cmd_notarize() {
   require_identity
-  require_binaries
+  require_staged
+  local triple
+  triple="$(host_triple)"
   [ -n "$APPLE_ID" ] && [ -n "$APPLE_APP_PASSWORD" ] && [ -n "$APPLE_TEAM_ID" ] ||
     die "notary credentials missing -- run: int macos store-creds (see: int macos doctor)"
 
@@ -215,8 +269,8 @@ cmd_notarize() {
   # anyway, minutes later, with a less useful message -- and a gate that fails
   # early beats one that fails after a round trip to Apple.
   for b in $BINARIES; do
-    codesign -dv "$RELEASE_DIR/$b" 2>&1 | grep -q 'TeamIdentifier=not set' &&
-      die "$b is not Developer ID signed -- run 'int macos sign' first"
+    codesign -dv "$STAGE_DIR/$b-$triple" 2>&1 | grep -q 'TeamIdentifier=not set' &&
+      die "$b-$triple is not Developer ID signed -- run 'int macos sign' first"
   done
 
   local staging payload zip
@@ -233,7 +287,7 @@ cmd_notarize() {
   # what the first version of this did. Notarytool is happy with a zip of a
   # directory; it walks it and assesses every Mach-O inside.
   for b in $BINARIES; do
-    /usr/bin/ditto "$RELEASE_DIR/$b" "$payload/$b" || die "could not stage $b"
+    /usr/bin/ditto "$STAGE_DIR/$b-$triple" "$payload/$b-$triple" || die "could not stage $b-$triple"
   done
   /usr/bin/ditto -c -k --keepParent --sequesterRsrc "$payload" "$zip" ||
     die "could not build the submission archive"
@@ -277,15 +331,20 @@ cmd_notarize() {
 # engages ONLY on quarantined files -- which is why an unquarantined check is not
 # evidence, and why brew-installed ad-hoc binaries run happily.
 #
-# IT TAKES A DIRECTORY BECAUSE IT HAS TWO CALLERS, and one implementation is the
-# point: `verify` asks it about the build output, `stage` asks it about the
-# copies that will actually ship. A second copy of this logic would be the exact
-# Highlander failure that lets a release-time check drift away from the
-# development-time one that everybody actually runs.
+# IT ASKS ONLY ABOUT STAGED ARTEFACTS, and it used to take a directory so that
+# `verify` could ask about the build output while `stage` asked about the shipping
+# copies. That parameter is gone with the reason for it: the build output is no
+# longer a thing that ever ships, so a verdict about it would be a confident
+# answer to a question nobody is asking. **Verify the artefact you are going to
+# publish, never its ancestor.**
+#
+# One implementation, one target, three callers -- which is the arrangement where
+# a release-time check cannot drift away from the development-time one everybody
+# actually runs.
 verify_notarised() {
-  local dir="$1" file="$2" t verdict rc=0
+  local file="$1" t verdict rc=0
   t="$(mktemp -d)"
-  /usr/bin/ditto "$dir/$file" "$t/$file"
+  /usr/bin/ditto "$STAGE_DIR/$file" "$t/$file"
   # Set quarantine, then ASSERT IT IS SET before reading any verdict: a fixture
   # that never entered the branch proves nothing and looks like a pass.
   xattr -w com.apple.quarantine "0083;0;dc-verify;" "$t/$file"
@@ -307,16 +366,53 @@ verify_notarised() {
 }
 
 cmd_verify() {
-  require_binaries
-  local rc=0
+  require_staged
+  local triple rc=0
+  triple="$(host_triple)"
   for b in $BINARIES; do
-    verify_notarised "$RELEASE_DIR" "$b" || rc=1
+    verify_notarised "$b-$triple" || rc=1
   done
   [ "$rc" -eq 0 ] && { ok; printf '  Signed, notarised, and Gatekeeper-clean from a quarantined download.\n'; }
   return $rc
 }
 
-# cmd_stage -- name the artefacts, prove them, and only then checksum them.
+# cmd_stage -- copy the build output out of shared space, under its shipping name.
+#
+# THIS IS NOW THE FIRST STEP, NOT THE LAST, and that inversion is the fix for the
+# race described at STAGE_DIR above. It used to run after sign and notarise, which
+# meant the artefacts were exposed to every peer's `cargo build --release` for the
+# whole minutes-long notarisation round trip. Copying FIRST and signing the copies
+# means the exposure is this ditto and nothing else.
+#
+# It deliberately does NOT checksum any more. Checksums belong after signing --
+# see cmd_checksum -- and a `stage` that both copied and hashed could only ever
+# have hashed unsigned bytes once the order was corrected.
+#
+# `rm -rf` first, and that is not housekeeping: staging means "start again from
+# the build output". Anything already in here is a signature over bytes we are
+# about to replace, and keeping it would let a stale artefact survive a rebuild.
+cmd_stage() {
+  require_binaries
+  local triple
+  triple="$(host_triple)"
+
+  step "staging $BINARIES for $triple"
+  rm -rf "$STAGE_DIR"
+  mkdir -p "$STAGE_DIR"
+  for b in $BINARIES; do
+    /usr/bin/ditto "$RELEASE_DIR/$b" "$STAGE_DIR/$b-$triple" ||
+      die "could not stage $b"
+    printf '    %-34s <- target/release/%s\n' "$b-$triple" "$b"
+  done
+
+  printf '\n'
+  ok
+  printf '  Staged into %s, which only this command writes.\n' "$STAGE_DIR"
+  printf '  These copies are UNSIGNED -- they carry whatever the linker applied.\n'
+  printf '  NEXT: int macos sign\n'
+}
+
+# cmd_checksum -- prove every staged artefact, and only then hash it.
 #
 # WHY THIS IS A COMMAND AND NOT A NOTE IN A RELEASE DOC. The two operations in a
 # release pipeline have OPPOSITE effects on the bytes, and the asymmetry is easy
@@ -334,46 +430,70 @@ cmd_verify() {
 # perfectly misleading description of a checksum computed one step too early.
 #
 # THE ORDER IS THEREFORE ENFORCED, NOT DOCUMENTED: nothing here computes a
-# checksum until `verify_notarised` has passed on the STAGED COPY -- the artefact
-# that actually ships, not the build output it came from. Verify the thing you
-# are about to hash, not its ancestor.
+# checksum until `verify_notarised` has passed on the artefact being hashed.
 #
-# The triple comes from `rustc -vV`, not from `uname`: the artefact name is a
-# claim about what the compiler targeted, and only the compiler can answer that.
-cmd_stage() {
-  require_binaries
-  local stage_dir="$ROOT/native/rust/target/dist" triple rc=0
-  triple="$(rustc -vV | sed -n 's/^host: //p')"
-  [ -n "$triple" ] || die "could not read the host target triple from 'rustc -vV'"
-
-  step "staging $BINARIES for $triple"
-  rm -rf "$stage_dir"
-  mkdir -p "$stage_dir"
-  for b in $BINARIES; do
-    /usr/bin/ditto "$RELEASE_DIR/$b" "$stage_dir/$b-$triple"
-  done
+# WHAT IT DELETES ON REFUSAL IS THE PROOF, NOT THE WORK. The earlier version wiped
+# the whole staging directory, which was harmless when staging was a copy of the
+# build output and is actively wrong now that the staged files carry a signature
+# and a notarisation. Throwing them away would spend another round trip to Apple
+# to rebuild something that was already correct.
+#
+# But a STALE `SHA256SUMS.txt` cannot be allowed to survive a failure, because
+# `formula` treats that file's existence as the proof -- so leaving one behind
+# would hand a refused run's output to the next command as if it had passed. The
+# artefacts stay; the claim about them goes.
+cmd_checksum() {
+  require_staged
+  local triple rc=0
+  triple="$(host_triple)"
+  local sums="$STAGE_DIR/SHA256SUMS.txt"
 
   step "proving every staged artefact before anything is hashed"
   for b in $BINARIES; do
-    verify_notarised "$stage_dir" "$b-$triple" || rc=1
+    verify_notarised "$b-$triple" || rc=1
   done
   if [ "$rc" -ne 0 ]; then
-    rm -rf "$stage_dir"
-    die "refusing to checksum -- a staged artefact is not signed AND notarised. Run: int macos sign && int macos notarize"
+    rm -f "$sums"
+    die "refusing to checksum -- a staged artefact is not signed AND notarised. Run: int macos sign && int macos notarize (the staged binaries are left alone; only the checksum claim is withdrawn)"
   fi
 
   step "checksums"
-  (cd "$stage_dir" && shasum -a 256 ./*-"$triple" | sed 's|\./||' >SHA256SUMS.txt) ||
+  (cd "$STAGE_DIR" && shasum -a 256 ./*-"$triple" | sed 's|\./||' >SHA256SUMS.txt) ||
     die "could not write SHA256SUMS.txt"
 
   printf '\n'
   ok
-  printf '  staged: %s\n\n' "$stage_dir"
-  sed 's/^/    /' "$stage_dir/SHA256SUMS.txt"
+  printf '  staged: %s\n\n' "$STAGE_DIR"
+  sed 's/^/    /' "$sums"
   printf '\n  Every line above is a hash of a binary this command has just proven\n'
   printf '  signed and notarised from a quarantined copy. Safe to paste into a\n'
-  printf '  formula. NOT REGENERATED ON RE-SIGN -- re-run `stage` after any\n'
+  printf '  formula. NOT REGENERATED ON RE-SIGN -- re-run `checksum` after any\n'
   printf '  `sign`, because signing rewrites the bytes these hashes describe.\n'
+}
+
+# cmd_prepare -- the whole sequence, as one command, because it has to be one.
+#
+# THE OPERATOR'S MEMORY IS NOT A CONTROL. Every individual subcommand here is
+# correct in isolation and the failure this exists to prevent is not a bug in any
+# of them -- it is the GAP BETWEEN them. Four commands run by hand, with a
+# multi-minute wait in the middle, is four chances to stop halfway and come back
+# to a tree a peer has rebuilt underneath you. That is not hypothetical; it is
+# what happened, and the note I wrote afterwards said "must run as one
+# uninterrupted sequence", which is a reminder, and reminders are not load-bearing.
+#
+# The subcommands stay individually callable, for diagnosis and for re-running one
+# step. This is the path anyone cutting a release actually takes.
+cmd_prepare() {
+  cmd_stage
+  printf '\n'
+  cmd_sign
+  printf '\n'
+  cmd_notarize
+  printf '\n'
+  cmd_checksum
+  printf '\n'
+  printf 'prepare: staged, signed, notarised, proven and hashed in one pass.\n'
+  printf '  NEXT: int macos formula\n'
 }
 
 # cmd_formula -- emit the Homebrew formula from the staged artefacts.
@@ -404,12 +524,11 @@ cmd_stage() {
 # a single-platform document. If Linux artefacts are ever added the formula grows
 # a second platform block and stops being a macOS concern -- move it then.
 cmd_formula() {
-  local stage_dir="$ROOT/native/rust/target/dist" triple version sums
-  triple="$(rustc -vV | sed -n 's/^host: //p')"
-  [ -n "$triple" ] || die "could not read the host target triple from 'rustc -vV'"
+  local stage_dir="$STAGE_DIR" triple version sums
+  triple="$(host_triple)"
   sums="$stage_dir/SHA256SUMS.txt"
   [ -f "$sums" ] ||
-    die "no proven artefacts to describe -- run 'int macos stage' first (it writes SHA256SUMS.txt only for artefacts it has proven signed AND notarised)"
+    die "no proven artefacts to describe -- run 'int macos prepare' first (SHA256SUMS.txt is written only by 'checksum', and only for artefacts it has proven signed AND notarised)"
 
   # The version comes from the STAGED BINARY, not from a config file or a tag.
   # It is the only source that cannot disagree with what a user will actually
@@ -492,18 +611,48 @@ cmd_store_creds() {
   printf '  Stored. Verify with: int macos doctor\n'
 }
 
+SUBCOMMANDS="doctor stage sign notarize verify checksum prepare formula env store-creds"
+
+usage() {
+  cat <<'USAGE'
+intent macos <subcommand>
+
+  THE PIPELINE, in order. Every step after `stage` acts on the staged copies in
+  native/rust/target/dist -- never on target/release, which four sessions share
+  and any `cargo build --release` will overwrite underneath you.
+
+  prepare      RUN THE WHOLE SEQUENCE AS ONE PASS: stage, sign, notarize,
+               checksum. This is the path for cutting a release; the individual
+               steps below exist for diagnosis and for re-running one of them.
+
+  stage        Copy the build output into target/dist under its shipping name
+               (<binary>-<target-triple>), out of shared space. Wipes first.
+  sign         Developer ID sign the STAGED artefacts, hardened runtime
+  notarize     Submit the staged artefacts to Apple, wait, report
+  checksum     Prove every staged artefact from a quarantined copy, and only
+               then hash it -- REFUSES to hash anything unproven
+
+  verify       Prove the staged artefacts without hashing them (read-only)
+  formula      Emit the Homebrew formula. Generated, never hand-edited; refuses
+               unless `checksum` has proven the artefacts it describes
+  doctor       Preflight: identity present, a real test-sign, notary creds
+  env          Print the resolved identity + which creds are present
+  store-creds  Store APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID in the
+               login Keychain (interactive; once per machine)
+USAGE
+}
+
 case "${1:-}" in
-  "" | -h | --help)
-    sed -n '5,15p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
-    exit 0
-    ;;
+  "" | -h | --help) usage; exit 0 ;;
   env) cmd_env ;;
   doctor) cmd_doctor ;;
+  stage) cmd_stage ;;
   sign) cmd_sign ;;
   notarize | notarise) cmd_notarize ;;
   verify) cmd_verify ;;
-  stage) cmd_stage ;;
+  checksum) cmd_checksum ;;
+  prepare) cmd_prepare ;;
   formula) cmd_formula ;;
   store-creds) cmd_store_creds ;;
-  *) die "unknown macos subcommand: $1 (try: doctor, sign, notarize, verify, stage, formula, env, store-creds)" ;;
+  *) die "unknown macos subcommand: $1 (try: $SUBCOMMANDS)" ;;
 esac

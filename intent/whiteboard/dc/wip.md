@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 15:28Z
-status: paused
-focus: "PAUSED after an aggressive localfold. WP-11's macOS leg is COMPLETE and proven end to end (sign -> notarise -> stage -> formula, every step canaried both ways); the tap is live and deliberately formula-free. Everything remaining on WP-11 is WP-12 cutover work."
+heartbeat_at: 2026-08-15 15:42Z
+status: active
+focus: "Restructuring the macOS pipeline so signing happens on STAGED COPIES, not on the shared target/release -- removing the race I had only backstopped with a refusal. stage runs first; new `prepare` runs the whole sequence as one pass. Refusals re-canaried both ways."
 claims: [ST0056/11]
 ---
 
@@ -28,7 +28,8 @@ hv reversed D01 on 2026-08-15 and vc has rolled it out. This is what I hold, and
 
 ## DOING
 
-- **Nothing in flight.** WP-11's macOS leg is complete; everything left on the WP is WP-12 cutover. Folded at hv's instruction.
+- **DONE this bounce: the macOS pipeline signs STAGED COPIES, not the shared build output.** `stage` now runs FIRST (ditto `target/release/*` -> `target/dist/<binary>-<triple>`), and `sign` / `notarize` / `verify` / `checksum` all act on `target/dist`, which only `int macos` writes. The race that de-notarised a shipped artefact this afternoon shrinks from "the whole sign -> notarise -> stage sequence, minutes long, spanning a round trip to Apple" to "one ditto". **New `int macos prepare` runs the four steps as one uninterrupted pass** -- the failure was never in any step, it was in the gap between them, and my note saying "must run as one sequence" was a reminder, which is not load-bearing. Canaried both ways: four downstream steps refuse with nothing staged; a partially de-notarised fixture (one of two ad-hoc signed, exactly the live shape) makes `checksum` refuse, name the bad artefact, **withdraw the stale `SHA256SUMS.txt` while leaving both binaries alone**, and `formula` then refuses structurally. Green: `prepare` end to end, Apple `Accepted` (submission `b8687d21`), and the formula's hashes match `SHA256SUMS.txt` exactly.
+- **Also fixed while in there: the help text was `sed -n '5,15p'` of the file's own header.** Adding a subcommand pushes the last entry past line 15 and the help silently stops listing it -- no error, no truncation marker, just a command that quietly stops being discoverable. Now one `usage()` heredoc, printed and read from the same string.
 
 ## TODO
 
@@ -47,7 +48,7 @@ hv reversed D01 on 2026-08-15 and vc has rolled it out. This is what I hold, and
 Facts about this estate, not reminders. Everything amounting to "remember to" is worthless here -- three nodes broke rules they had personally written, on the day they wrote them.
 
 - **THE ONLY macOS CHECK THAT MEANS ANYTHING IS A QUARANTINED COPY. Three plausible checks all answer a different question, and this board carried the wrong answer for hours.** `stapler` reports no ticket on a bare Mach-O -- **correct**, there is nowhere to put one, so the ticket lives on Apple's servers. `spctl -a -t exec` reports "does not seem to be an app" -- **correct**, that policy is for bundles. And **`codesign --verify --strict` RETURNS 0 ON AN AD-HOC BINARY WE DID NOT SIGN**, because an ad-hoc signature is a valid signature; I had it written here as "the check that means anything", vc had given hv the same claim, and it took a live incident to refute. **Use `spctl -a -t open --context context:primary-signature` on a copy carrying `com.apple.quarantine`** -- what `int macos verify` does.
-- **`target/release/` IS SHARED MUTABLE STATE, SO A SIGNED BINARY THERE IS TRANSIENT.** Measured live: a peer's `cargo build --release` silently replaced a Developer ID signature with the linker's ad-hoc one, and one of two shipped binaries stopped being notarised inside an hour with **no signal and every artefact of the proof still reading as valid.** Nobody did anything wrong -- a shared target dir is what it is for. **sign -> notarise -> stage must run as one uninterrupted sequence, and `stage`'s refusal is the backstop, not the operator's memory.** The better shape (stage first, sign the staged copies) is recorded and deliberately unbuilt.
+- **`target/release/` IS SHARED MUTABLE STATE, SO A SIGNED BINARY THERE IS TRANSIENT -- AND THAT IS WHY NOTHING SIGNS THERE ANY MORE.** Measured live: a peer's `cargo build --release` silently replaced a Developer ID signature with the linker's ad-hoc one, and one of two shipped binaries stopped being notarised inside an hour with **no signal and every artefact of the proof still reading as valid.** Nobody did anything wrong -- a shared target dir is what it is for. **FIXED STRUCTURALLY, not documented:** `int macos stage` copies into `target/dist` first and everything downstream signs, notarises and hashes the copies. Still true and still worth knowing: **anything you sign in `target/release` is a property of a file nobody has rebuilt yet**, so never reach for that path by hand.
 - **SIGNING MUTATES THE BINARY; NOTARISATION DOES NOT. SO SIGN BEFORE YOU CHECKSUM.** `codesign --force` rewrites in place; `notarytool submit` uploads a zip of a copy and cannot staple, so the file is byte-identical. A sha256 taken one step early **does not fail for us -- it fails for every `brew install`**, against a published formula, where we have the least visibility.
 - **READ THE WHOLE OUTPUT, NOT ITS LAST LINE.** I reported two `spctl` "rejected" results as one finding; they were a trust failure and a category error with identical first words. **A short answer that fits the expectation is the one to look at twice.**
 - **NEVER `git pull --rebase` IN THIS SHARED TREE.** It refused once only because the index held peers' uncommitted work. **Push; if rejected as non-fast-forward, coordinate -- do not rewrite.** And **a peer's `.git/index.lock` means a peer is running git: WAIT, never remove it.**
@@ -61,7 +62,8 @@ Facts about this estate, not reminders. Everything amounting to "remember to" is
 - **Read `date -u +'%Y-%m-%d %H:%MZ'` in its own step, then write the line.** `git log` prints LOCAL time and is the usual source of a stamp wrong by exactly the offset.
 - **This shell is zsh**: no word-splitting of unquoted parameters. **Read `$?` before anything else touches it** -- `cmd | head; echo $?` reports the pager's exit.
 - **The repository is PUBLIC.** Every board and inbox is world-readable at push, permanently.
-- **Two remotes, `local` and `upstream`. Push both**, and never enumerate them through `head`. (At this fold, `local` was one commit behind `upstream` -- a peer's push in flight. Worth re-checking on the bounce.)
+- **Two remotes, `local` and `upstream`. Push both**, and never enumerate them through `head`. (Re-checked on the bounce: both level. The fold's `local`-behind-`upstream` gap was a push in flight and is closed.)
+- **ASSERT THE FIXTURE ENTERED THE BRANCH -- I DID IT AGAIN, ONE LINE UNDER MY OWN NOTE SAYING SO.** Testing `checksum`'s refusal, I planted a stale `SHA256SUMS.txt` on artefacts that were _already_ signed and notarised, so the command correctly PASSED and overwrote it -- and my check then reported "stale sums NOT withdrawn -- BUG" about a branch that never ran. **A red-looking result from a green run reads exactly like a real defect.** The fix is to build the failure, not to assume the precondition: ad-hoc sign one of the two staged copies and confirm `TeamIdentifier=not set` BEFORE reading any verdict.
 
 ## Decisions
 
@@ -73,4 +75,6 @@ Standing only. The full day's set is in `.history/20260815/wip.md`; these are th
 - (2026-08-15) **VISIBLE IS NOT CLOSED.** Making a hole measurable is not making it fixed. vc has taken this as a standard rather than a one-off.
 - (2026-08-15) **A PEER CANNOT AUTHORISE WHAT A HARNESS REFUSED, AND A PEER PERFORMING IT ON YOUR BEHALF LAUNDERS THE REFUSAL.** Boundaries of this kind erode by increments, each of which looks reasonable alone.
 - (2026-08-15) **AN AC NAMES THE OUTCOME; THE MECHANISM BELONGS IN THE WORK PACKAGE** (vc's, earned from AC-11.1 naming cargo-dist). A criterion that names a tool can be invalidated by a measurement of that tool while the thing the project actually wanted is still perfectly achievable.
+- (2026-08-15) **A STRUCTURE THAT CANNOT FAIL BEATS A CONTROL THAT CATCHES THE FAILURE, AND "RECORDED AS THE BETTER SHAPE, DELIBERATELY UNBUILT" IS USUALLY JUST DEFERRAL WEARING A REASON.** I had the right design for the signing race written down and shipped the refusal instead. The refusal was correct and cheap and it stays -- but it detects the race only at the END, after a notarisation round trip has been spent on bytes that no longer exist. Building the structure took under an hour. **When the better shape is known and small, "backstopped" is not a resting state either** -- the same failure as parking an open question, one lane over.
+- (2026-08-15) **THE DEFECT IS OFTEN THE GAP BETWEEN CORRECT STEPS, NOT ANY STEP.** Every macOS subcommand was individually right; what broke was four of them run by hand with a multi-minute wait in the middle. A note saying "run these as one sequence" is a reminder. `int macos prepare` is the sequence.
 - (2026-08-15) **A WRONG ARTEFACT IS NOT A NEUTRAL PLACEHOLDER -- IT MAKES A CONFIDENT FALSE STATEMENT.** A formula pointing at a nonexistent release would have read as "the tap is broken" rather than "the release is not out yet". **An empty tap says the true thing.**
