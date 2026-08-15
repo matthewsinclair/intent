@@ -240,7 +240,11 @@
             ]
           },
           "target": {
-            "state": "as-observed"
+            "state": "corrected",
+            "ratification": "hv, 2026-08-15 -- Machine 1 (ThreadStatus) enters at `Triage`, not `NotStarted`. cc landed it at `2aec5f6`.",
+            "entry_state_changed": "THE ENTRY STATE MOVED AND THAT IS USER-VISIBLE, so this row stops being `as-observed`. v2 `st new` creates a thread at `Not Started`; v3 creates it at `Triage`, and `st triage` is the verb that advances it. A user who runs `st new` then `st start` now meets a refusal that names `not-started` -- correct, and correct FOREVER, but it is a behaviour change and recording it as ported would have hidden one.",
+            "not_a_rename": "`Triage` REUSES THE LETTERS OF v2's `TBC` AND NOT ITS MEANING, which is why a parity row matching on the string would be comparing two different things. v2's `TBC` means To Be Commenced -- `bin/intent_helpers:544` maps `tbc` and `to be commenced` to the same stored value `Not Started`, and the tool's own usage at `bin/intent_st:46` says so in words. So every v2 `TBC` migrates to `NotStarted` and `Triage` begins with ZERO legacy members. The display string is `Triage`; `TBC` must not be reused as its abbreviation (see `st list`'s `tbc_trap`).",
+            "open": "`-s|--start` today jumps straight to `Wip`. Under the ratified machine that is two edges at once (`Triage -> NotStarted -> Wip`) with no `st triage` decision recorded in between. Left as-is and flagged rather than silently re-pointed: whether the flag should now mean `--start` (to `Wip`, skipping triage) or be replaced is a scope question for vc and hv, not a surface preference for me."
           },
           "disposition": "keep"
         },
@@ -323,7 +327,7 @@
         },
         {
           "path": "st cancel",
-          "help": "Mark a steel thread as cancelled",
+          "help": "Mark a steel thread as cancelled, with a reason",
           "args": [
             {
               "name": "id",
@@ -331,7 +335,16 @@
               "arity": "1"
             }
           ],
-          "flags": [],
+          "flags": [
+            {
+              "spellings": [
+                "--reason"
+              ],
+              "type": "string",
+              "value": "<text>",
+              "help": "Why it is being cancelled -- required by the machine's guard"
+            }
+          ],
           "v2": "bin/intent_st:536-598",
           "observed": {
             "exit": [
@@ -349,10 +362,12 @@
             "notes": "No close-gate consultation -- cancel is not a close. Deliberate (feedback: use the existing Cancelled status, never invent a new one)."
           },
           "target": {
-            "state": "as-observed",
-            "conflict_open_to_vc": "THE RATIFIED MACHINE AND THIS ROW CANNOT BOTH BE RIGHT. data-model.md puts a `reason recorded` guard on EVERY edge into `Cancelled`, including this one -- but v2 `st cancel` takes no `--reason` flag (flags is empty above, measured, not assumed) and records none. So either this row stops being `as-observed` and gains `--reason` (making its disposition `corrected`, not `keep`), or the guard is aspirational and the machine should say so. Raised rather than resolved: the machine is hv-ratified and the measurement is mine, and I do not get to reconcile a ratified guard by editing the surface it constrains. Same question applies to `st hold`, `st reopen` and `st reinstate` below, which I have specified WITH `--reason` because they are new and have no v2 behaviour to preserve."
+            "state": "corrected",
+            "ratification": "hv, 2026-08-15 -- Machine 1 guards every edge into `Cancelled` with `reason recorded`; cc wired the facade at `2aec5f6` and left the flag for this table to declare.",
+            "conflict_resolved": "RESOLVED 2026-08-15 -- the guard wins and this row is CORRECTED. I raised it as a conflict the machine and this row could not both survive: `data-model.md` guards every edge into `Cancelled` with `reason recorded`, and v2 `st cancel` took no `--reason` and recorded none (measured, its flags array was empty). cc has wired the CLI to read the flag OPTIONALLY at `2aec5f6`, so the facade refuses with `ReasonRequired` naming what is missing until the row declares it -- and declaring it here is what makes the flag start working. **The refusal is the reason this was safe to leave open**: an unimplemented guard that FAILS LOUD costs a clear error message, where one that silently accepted a cancellation with no reason would have put unexplained Cancelled threads in the record permanently. cc deliberately did not add the flag themselves; the table is mine.",
+            "why_not_as_observed": "This row is no longer faithful to v2 and should not pretend to be: v2 cancels with no reason at all. The change is a `corrected` one -- v2's behaviour is the defect (a state entered with no record of why) rather than a contract to preserve."
           },
-          "disposition": "keep"
+          "disposition": "corrected"
         },
         {
           "path": "st triage",
@@ -5569,6 +5584,24 @@
     {
       "path": "sync",
       "help": "Sync this machine's store with the committed extract, in both directions",
+      "flags": [
+        {
+          "spellings": [
+            "--to-disk"
+          ],
+          "type": "bool",
+          "help": "Write the store out to the committed extract"
+        },
+        {
+          "spellings": [
+            "--to-store"
+          ],
+          "type": "bool",
+          "help": "Read the committed extract into the store, through the API gate"
+        }
+      ],
+      "direction_selector": "REQUESTED BY cc (2026-08-15): the bare verb refuses and names both directions, and needed a selector row. FLAGS NAME THE DESTINATION, NOT THE SOURCE, because the destination is the side that gets overwritten and therefore the side a user needs to be sure about. `--to-disk` / `--to-store` are symmetric and each says which way the bytes move without the reader having to hold D34's endpoint vocabulary in their head. **The bare verb continuing to REFUSE is right and should stay** -- the two directions have opposite blast radii, so there is no safe default, and picking one would make the dangerous case reachable by typing the short form. This is INV-01 territory rather than convenience.",
+      "boundary_open_to_vc": "`sync --to-store` OVERLAPS `ingest` AND I AM FLAGGING IT RATHER THAN QUIETLY DECIDING IT, because vc's export/backup trap this morning was exactly this shape: two commands a user can confuse at the moment they can least afford to. As I read them they differ -- `ingest` is the RECOVERY path and the v2 migrator, taking arbitrary markdown; `sync --to-store` is routine reconciliation of the project's OWN committed extract -- but that is a distinction I inferred, and two commands that both write the store through the same gate want one owner's ruling, not two authors' assumptions. If they are one concern, `sync --to-store` should be the spelling and `ingest` the migrator-only path, or the reverse; either is fine and having both undeclared is not.",
       "v2": "new-surface",
       "basis": "hv, 2026-08-14: 'Syncing back-and-forth from disk to db is something that is triggered manually (eg via intent sync) or periodically (eg via intentd running its async synchronisation process).' Daily-driver commands answer from the store and never scan the tree; this is the expensive, infrequent half of that split.",
       "owner_wp": "WP-06",
