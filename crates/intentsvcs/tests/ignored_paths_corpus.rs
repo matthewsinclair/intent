@@ -65,6 +65,15 @@ impl Project {
     self
   }
 
+  /// Add a `.git/info/exclude` rule: per-clone, uncommitted, and therefore
+  /// NOT part of what the repository says about itself.
+  fn with_local_exclude(self, rule: &str) -> Self {
+    let info = self.root().join(".git").join("info");
+    std::fs::create_dir_all(&info).expect("mkdir .git/info");
+    std::fs::write(info.join("exclude"), rule).expect("write exclude");
+    self
+  }
+
   fn write(&self, rel: &str, bytes: &[u8]) {
     let path = self.root().join(rel);
     std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
@@ -207,6 +216,35 @@ fn a_negated_ignore_rule_puts_a_file_back_in_scope() {
     fx.unparsed(),
     vec!["intent/st/ST0001/keep.bin".to_string()],
     "git would commit this file, so it is in corpus, so strict ingest refuses it"
+  );
+}
+
+/// **The corpus is a property of the REPOSITORY, not of the clone.**
+///
+/// `.git/info/exclude` is real git ignore machinery and the walker honours it
+/// by default -- so a file excluded there was silently out of corpus here and
+/// in corpus in a fresh clone of the same commit. Two operators, same
+/// repository, different answers to "what does this project contain", and
+/// under AC-10.2 different answers to "does this project migrate".
+///
+/// It also fails D29's derivation on its own terms: the rule is that a path
+/// git can NEVER commit can never be canon, and this one is one `git add`
+/// away from being committed by anybody who has not written that exclude.
+#[test]
+fn a_clone_local_exclude_does_not_shrink_the_corpus() {
+  let fx = Project::new()
+    .with_git("*.bin\n")
+    .with_local_exclude("local.dat\n");
+  fx.thread("ST0001");
+  fx.write("intent/st/ST0001/local.dat", NOT_UTF8);
+  fx.write("intent/st/ST0001/shared.bin", NOT_UTF8);
+
+  assert_eq!(
+    fx.unparsed(),
+    vec!["intent/st/ST0001/local.dat".to_string()],
+    "the committed `.gitignore` rule takes `shared.bin` out of corpus; the \
+     clone-local exclude must NOT take `local.dat` out, because a fresh clone \
+     would carry it"
   );
 }
 

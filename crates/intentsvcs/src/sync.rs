@@ -147,6 +147,30 @@ pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncE
 /// - A project with no git has no ignore rules, so nothing is ignored and the
 ///   corpus degrades to everything-in-scope rather than to nothing. That falls
 ///   out of the walker's `require_git` default rather than being special-cased.
+///   Note that "no git" means no repository at or ABOVE the project, which is
+///   git's own reading: a project nested inside an outer repository is subject
+///   to that repository's committed rules, and correctly so.
+///
+/// **Only the repository's OWN committed rules count** -- not the user's
+/// global excludes, and not `.git/info/exclude`. Found by vc: with the
+/// walker's defaults, `intent/probe.sql` was silently out of corpus on their
+/// machine because their `~/.gitignore_global` carries `*.sql`, and in corpus
+/// on a machine without it. That is not a cosmetic difference. AC-10.2 makes
+/// residue a migration BLOCK, so the same fleet member migrates cleanly for
+/// one operator and blocks for another, with nothing in the repository to
+/// explain why.
+///
+/// It also fails D29's own derivation on its own terms. The rule is "a path
+/// git can NEVER commit can never be canon", and a path excluded only by my
+/// global config is one `git add` away from being committed by anybody else --
+/// it was never in that class. This repository already collides with it:
+/// `.gitignore` carries `!schema/ddl.sql` purely to defeat a global `*.sql`,
+/// so a committed, generated, load-bearing schema face was invisible to the
+/// corpus on exactly the machines that have that global rule.
+///
+/// `.git/info/exclude` goes for the same reason one step weaker: it is
+/// per-clone and uncommitted, so a fresh clone of the same repository
+/// disagrees with this one about what the project contains.
 struct Ignored {
   paths: std::collections::HashSet<PathBuf>,
 }
@@ -161,7 +185,14 @@ impl Ignored {
   fn for_root(root: &Path) -> Self {
     let visible: std::collections::HashSet<PathBuf> = ignore::WalkBuilder::new(root)
       .hidden(false)
+      // Committed and shared -- the repository's own statement about what it
+      // will never carry, and the same on every clone and every machine.
+      .git_ignore(true)
       .parents(true)
+      // Machine-local and clone-local respectively. Honouring either makes the
+      // corpus a property of who is running the tool.
+      .git_global(false)
+      .git_exclude(false)
       .build()
       .filter_map(Result::ok)
       .map(|e| e.into_path())
