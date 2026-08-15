@@ -211,11 +211,10 @@ done < <(jq -r '[.families[].entries[], .new_surface[]] | .[]
 # declared-unprobeable WITH A REASON, and an id in neither REFUSES. A skip list
 # is a promise that something else covers the key, and it is only ever as good
 # as that promise.
-INV_PROBED="INV-01 INV-02 INV-04 INV-06 INV-07 INV-08"
-INV_SKIPPED="INV-03 INV-05"
+INV_PROBED="INV-01 INV-02 INV-03 INV-04 INV-06 INV-07 INV-08"
+INV_SKIPPED="INV-05"
 inv_skip_reason() {
   case "$1" in
-    INV-03) echo "the project-context gate. MEASURED 2026-08-15 rather than assumed: only ~5 declared paths reach it bare (doctor, sync, backup and two more), because clap's missing-argument error fires FIRST on every command that takes an argument, and 40 more are still unimplemented. A 5-member uniformity check that already passes is closer to a decoration than a check, so it is deliberately not built YET -- revisit when the implemented surface is wide enough for the population to mean something. NOTE: building this probe is what found that v3's gate MESSAGE diverges from the v2 text INV-03 declares, with no ratified deviation -- so the skip was hiding a finding, which is the argument for revisiting a skip rather than trusting its reason" ;;
     INV-05) echo "a property of v2 SOURCE (an unreachable second call after error), not of observable v3 behaviour -- there is nothing to probe, which is why it is not merely unimplemented" ;;
     *) echo "no reason recorded" ;;
   esac
@@ -254,7 +253,47 @@ while IFS= read -r p; do
   INV-01    \`$p\` -- first stderr line is not the lowercase \`error: \` voice: $(printf '%s' "$iline" | cut -c1-50)"
 done < <(jq -r '[.families[].entries[], .new_surface[]] | .[] | select((.disposition // "") != "retire") | .path' "$TABLE")
 
-[ "$INV_N" -gt 0 ] || die "the invariant sweep probed no paths -- it reports six clean invariants by measuring nothing"
+[ "$INV_N" -gt 0 ] || die "the invariant sweep probed no paths -- it reports clean invariants by measuring nothing"
+
+# --- INV-03: the project-context gate --------------------------------------
+# Runs from OUTSIDE a project, which is why it is a separate sweep: every other
+# probe above is indifferent to where it stands, and this one is entirely about
+# where it stands.
+#
+# WHY IT IS BUILT NOW, HAVING BEEN DECLINED AN HOUR AGO. It was skipped on a
+# measurement -- only ~5 declared paths reach the gate on a bare invocation,
+# because clap's missing-argument error fires first on everything that takes an
+# argument, and a 5-member UNIFORMITY check that already passes is a decoration.
+# That reasoning was right for the question being asked then. **vc's ruling
+# changed the question.** INV-03 is now ratified `corrected`, so the table
+# ASSERTS that v3 deliberately speaks a different message from v2 -- and that
+# made it the ONLY `corrected` invariant with nothing witnessing its claim,
+# which is the exact argument that justified probing INV-06/07/08. A claim about
+# the binary with no test behind it is the register-vs-truth axis pointed at my
+# own artefact.
+#
+# So the assertion is NOT "the gate is uniform" (weak, always true). It is
+# **"no path emits the v2 form"** -- a direct witness to the correction, which
+# fails the moment anyone reintroduces the old wording.
+INV3_TMP="$(mktemp -d "${TMPDIR:-/tmp}/surfchk-gate-XXXXXX")" || die "cannot make a scratch directory to probe the project gate from"
+trap 'rm -rf "$INV3_TMP"' EXIT
+# The scratch dir must not sit inside a project, or every command finds one and
+# the gate never fires -- a green measured on the wrong ground.
+( cd "$INV3_TMP" && d="$PWD"; while [ "$d" != "/" ]; do [ -f "$d/intent/.config/config.json" ] && exit 1; d="$(dirname "$d")"; done; exit 0 ) \
+  || die "the scratch directory $INV3_TMP is INSIDE an Intent project, so the gate would never fire and INV-03 would pass by standing in the wrong place"
+
+INV3_GATED=0
+while IFS= read -r p; do
+  # shellcheck disable=SC2086 -- $p is a multi-word command path and MUST split
+  gerr="$(cd "$INV3_TMP" && $BIN $p 2>&1 >/dev/null)"
+  gline="$(printf '%s' "$gerr" | head -1)"
+  case "$gline" in
+    *"no Intent project found"*) INV3_GATED=$((INV3_GATED + 1)) ;;
+    *"not in an Intent project directory"*)
+      INV_VIOL="$INV_VIOL
+  INV-03    \`$p\` -- emits v2's gate wording; the row is ratified \`corrected\`, which asserts v3 does not" ;;
+  esac
+done < <(jq -r '[.families[].entries[], .new_surface[]] | .[] | select((.disposition // "") != "retire") | .path' "$TABLE")
 
 # --- report ----------------------------------------------------------------
 printf 'surface: probed %d declared commands, %d reachable in this build\n' "$PROBED" "$WIRED"
@@ -266,6 +305,7 @@ printf 'surface: probed %d declared commands, %d reachable in this build\n' "$PR
 # the part a reader most needs to know is NOT covered.
 printf 'invariants: %d path(s) probed against %s; NOT checked here: %s\n' \
   "$INV_N" "$(printf '%s' "$INV_PROBED" | tr ' ' ',')" "$(printf '%s' "$INV_SKIPPED" | tr ' ' ',')"
+printf '  INV-03: %d of %d path(s) actually reach the project gate outside a project (clap arg errors fire first on the rest)\n' "$INV3_GATED" "$INV_N"
 for s in $INV_SKIPPED; do printf '  skipped %s -- %s\n' "$s" "$(inv_skip_reason "$s")"; done
 if [ -n "$INV_VIOL" ]; then
   printf '\ninvariants: the binary VIOLATES what the table declares:%s\n' "$INV_VIOL"
