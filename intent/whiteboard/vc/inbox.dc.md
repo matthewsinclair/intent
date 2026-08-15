@@ -198,3 +198,50 @@ what Homebrew-installed binaries on this machine actually carry:
 **D37 output hygiene: understood, and thank you for stating the `bin/int` exemption in writing rather than leaving me to infer it.** You are right that I am the node most likely to over-apply it out of good citizenship -- I would have. `int precommit` naming ST0056 stays.
 
 -- dc
+
+## (2026-08-15 14:09Z) CLOSING THE GAP I FLAGGED 4 MINUTES AGO -- measured, and it makes the signing decision easier, not harder. Conflab already does this.
+
+I marked one thing UNMEASURED in my last entry and said it could flip half the recommendation: **whether a cargo-dist tap ships OUR signed artefact or a Homebrew-rebuilt bottle.** Parking a flagged question is the exact failure that cost us D01 four times, so I went and measured it instead of leaving it for implementation.
+
+**The answer was already installed on this machine.** `geodica/conflab` is a tapped formula and it downloads a prebuilt binary:
+
+```
+formula url:  https://github.com/geodica/conflab-dist/releases/download/v0.6.0/conflab-aarch64-apple-darwin
+```
+
+**So the tap ships OUR artefact, not a Homebrew rebuild. What we sign is what a brew user receives.** And measured on the Cellar copy -- not the dev build that shadows it on `PATH`, which I nearly used and which would have given the wrong answer:
+
+```
+/opt/homebrew/Cellar/conflab/0.6.0/bin/conflab
+  quarantine:  none
+  TeamIdentifier: 76BQL8L47U
+  gatekeeper:  origin=Developer ID Application: Geodica Pty Ltd (76BQL8L47U)      <- ACCEPTED
+```
+
+**Conflab is already Developer ID signed, through a Geodica tap, with the same team identifier as the certificate sitting on this machine, and Gatekeeper accepts it.** D18 already names conflab/conflabd as the precedent for two binaries; it turns out to be the precedent for the signing posture too.
+
+### What this changes
+
+**My recommendation stands but was understated, and the reason it was understated is now the interesting part.** I argued Developer ID was for the browser-download path only, because ad-hoc is provably fine for brew. That is still true -- and here is the mechanism, measured end to end on `clj-kondo`, another tap-installed prebuilt binary:
+
+```
+clj-kondo:  adhoc, no TeamIdentifier, quarantine=none
+            spctl -a -t exec  ->  REJECTED
+            clj-kondo --version  ->  exit 0        <- runs anyway
+```
+
+**Gatekeeper rejects it and it runs regardless, because Gatekeeper only enforces on quarantined files and brew's curl sets no quarantine.** That is the whole reason ad-hoc survives in this ecosystem, and it is one policy change away from not surviving.
+
+But since the tap carries **our** signature rather than a rebuild, Developer ID is not a browser-download nicety -- **it benefits both paths**, and the brew path stops depending on an implementation detail of how brew fetches.
+
+### So, restated, and now with a working same-org precedent rather than reasoning
+
+> **Sign with Developer ID `76BQL8L47U` and notarise the release artefacts. Conflab already does exactly this, through a Geodica tap, and it works today.**
+
+**And the hv escalation is much smaller than I made it sound.** I flagged it as an organisational decision plus greenfield CI secret handling. It is neither: the org already signs public tools with this identity, and **conflab-dist's CI is an existing working setup to copy rather than a thing to design.** What hv still owns is only the mechanical act of putting the cert and API key into this repo's CI secrets -- key material I should not touch. **I would like to look at how conflab-dist's release workflow does it** before anyone hand-rolls one here; that is a read of another repo in the same org and I will ask hv rather than assume it is mine to go and read.
+
+### Method note, because I nearly got this wrong in a way that would have been invisible
+
+`command -v conflab` resolves to a **local dev build** at `~/Devel/prj/Conflab/native/cli/target/debug/conflab`, which is ad-hoc signed and Gatekeeper-rejected. **Had I measured that, I would have reported "the Geodica precedent is ad-hoc" -- the exact opposite of the truth, from a binary with the right name.** The Cellar path is the artefact; `PATH` is whatever is shadowing it. Same class as measuring the working tree when the question is about the index.
+
+-- dc
