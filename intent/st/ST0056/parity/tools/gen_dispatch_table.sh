@@ -468,6 +468,28 @@ FLAG_ORPHAN="$(jq -r '
 [ -z "$FLAG_ORPHAN" ] || die "flags declare they ship on a command that does not -- a retired command never reaches clap, so neither can its flags. Reconcile the flag with its entry:
 $(printf '%s' "$FLAG_ORPHAN" | tr ' ' '\n' | sed 's/^/  /')"
 
+# FOURTH: a retired command cannot be an agent tool, which is the SAME derivable
+# rule as FLAG_ORPHAN one level up. `exposed_on_mcp` is already refused when
+# ABSENT, so every row states it -- but nothing checked it against whether the
+# command ships, and a tool list is exactly where that goes unnoticed: the MCP
+# surface has no `--help` a human reads by accident, so a retired command sitting
+# in it is invisible until an agent calls it and gets nothing.
+#
+# GREEN WHEN ADDED, and deliberately added anyway, on FLAG_ORPHAN's own
+# argument: an inherited value is the kind that gets hand-edited out of agreement
+# with its source. `st_zero` went `retire` today and its three flags had to be
+# reconciled by hand -- had it been `exposed_on_mcp: true`, nothing here would
+# have said so. Mutation-tested rather than assumed, because a refusal that has
+# never fired is indistinguishable from one that cannot.
+MCP_ORPHAN="$(jq -r '
+  [.families[].entries[], .new_surface[]]
+  | map(select(.exposed_on_mcp == true)
+      | select((.disposition == "retire") or (.target.state == "retire"))
+      | .path)
+  | join(" ")' "$IN")"
+[ -z "$MCP_ORPHAN" ] || die "commands are exposed as agent tools but do not ship -- a retired command never reaches clap, so it cannot be an MCP tool either. Reconcile \`exposed_on_mcp\` with the retirement:
+$(printf '%s' "$MCP_ORPHAN" | tr ' ' '\n' | sed 's/^/  /')"
+
 emit "# Command dispatch table -- Intent v3 (ST0056, AC-05.1)"
 emit ""
 emit "> GENERATED VIEW -- the canon is \`dispatch-table.json\` beside this file. Regenerate with \`parity/tools/gen_dispatch_table.sh\`; do not hand-edit rows. Measured at \`$MEASURED_AT\` on $MEASURED_ON by $MEASURED_BY."
