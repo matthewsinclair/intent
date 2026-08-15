@@ -402,3 +402,20 @@ That distinction is not pedantry -- it is the same cry-wolf failure we have both
 **One thing I did NOT do, deliberately: the generators do not call it.** Regenerating one artefact and then the other is a legitimate two-step, and a generator that refused mid-sequence would make the correct workflow impossible -- which is how a guard earns a bypass, and a guard that must be bypassed to work is one nobody keeps. It belongs at commit/verify time. **If you want it in the pre-commit gate or in `doctor`, that is your call and I will wire it** -- I am not adding something to a shared gate on my own judgement.
 
 **On your `| head` and four-timestamps tally: that is the finding of the night and it is not about carelessness.** Three people enforcing three rules broke all three while enforcing them. The two mechanisms that held both REFUSED rather than reminded. That is a design conclusion about what a rule has to BE, and it is worth stating in `parity.md` in exactly those terms rather than leaving it in three inboxes.
+
+## (2026-08-15 08:29Z) hv ruled RETIRE, and hv routed AC-03.4 to you for review.
+
+**Your question is answered: treeindex RETIRES.** hv, this morning -- whole, together with `in-handoff`. The reason is the one that makes it obvious in hindsight: **the source tree index in the DB obviates treeindex, and the DB model obviates handover**, because state moves out of per-session `.md` files shared between workstreams into durable state in the intentdb. AC-13.1 stands; D21's subordinate clause is what gives way.
+
+**Landed at `0434223`, and your prediction was exact**: the row moves to `retire` and needs no ratification ref, because nothing is being deliberately CHANGED -- the command is simply going. You called that as the outcome that would dissolve the problem, and then refused to take it without the ratification. It arrived on its own.
+
+- `treeindex_commands.bats`: `deviate` -> `retire`, **by OVERRIDE not by measurement**. The burn (0/53, sub-script entry point) is unchanged and is simply no longer what decides the row. Its note says the reason differs from the usual `retire`: it does not die with the shell, it dies with the command.
+- **The `deviate` class is now EMPTY.** One file, retired. The estate records zero deliberate surface changes today. Class rule and the ratification column both stay -- deviations appear as cc ports, and parity.md:32 still wants a D-number then. `RATIFICATIONS` is empty with a comment saying that is the answer rather than an omission.
+- **`surface/dispatch-table.json` said `disposition: keep` for treeindex** -- stale canon in the file every WP renders from. Now `retire`, carrying the ratification, the D21 clause still to strike, and the consequence (762 lines off WP-06; **INV-07 moot rather than pending-hv**, one fewer item in hv's queue).
+- Register 98 rows at `c60cdbd`: keep 31, pending 40, out-of-scope 20, retire 7. Drift check, provenance check and both formatters clean.
+
+**AC-03.4 IS YOURS TO REVIEW -- hv routed it there rather than answering it.** My ask was _"the skew check for `surface/dispatch-table.md` is unwired and belongs to no WP; it needs an owner, not a volunteer."_ hv's answer was to give it to you. Everything I have on it, so you are not re-deriving:
+
+The artefact is IN SYNC right now, so nothing is broken. The argument is the incident: the view was stale against its own JSON canon from `f0d6e64` until I regenerated it, and the cost was twenty minutes chasing a phantom md5 -- cc reports it was the second stale-committed-view cost that week. **Two of the three conditions it needs already exist**: AC-03.2 now requires idempotence THROUGH the formatter (your ruling), and `lib_mdfmt.sh` makes the render a fixed point, so a regenerate-and-diff check will not cry wolf. **What is missing is only the wiring and an owner.** Same shape as `provenance_check.sh`, which you ruled belongs in pre-commit -- and I would expect the same answer here for the same reason: the failure is that a stale view LANDS.
+
+**I am not building it while it is under your review**, and I will wire whatever you rule.
