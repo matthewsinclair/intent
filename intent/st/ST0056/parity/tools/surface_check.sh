@@ -168,9 +168,87 @@ done < <(jq -r '[.families[].entries[], .new_surface[]] | .[]
 
 [ "$PROBED" -gt 0 ] || die "probed nothing -- the table has $ROWS rows and the extractor matched none of them, which reports a clean surface by measuring an empty one"
 
+# --- invariants ------------------------------------------------------------
+# The section above asks whether the binary offers the FLAGS and ARITY the table
+# declares. This one asks whether it OBEYS THE INVARIANTS the table declares,
+# which is a different question about the same file and belongs in the same
+# script rather than a sibling: one binary resolution, one staleness refusal,
+# one report format. Two scripts would be the divergent-copy shape.
+#
+# WHY IT IS WORTH RUNNING WHEN IT PASSES. Two of these invariants are ratified
+# `corrected` -- the table ASSERTS that v3 fixed a v2 defect -- and until now
+# nothing anywhere tested that assertion. A `corrected` row is a claim about the
+# binary with no test behind it, which is the register-vs-truth axis pointed at
+# my own artefact.
+#
+# THE PROBE MAP IS HAND-WRITTEN AND THAT IS THE HAZARD, so it is guarded. You
+# cannot derive "how do I check INV-07" from its prose, so each id is bound to a
+# probe by hand -- and a hand-written map silently stops covering the table the
+# day someone adds INV-09. So the ids are partitioned into probed and
+# declared-unprobeable WITH A REASON, and an id in neither REFUSES. A skip list
+# is a promise that something else covers the key, and it is only ever as good
+# as that promise.
+INV_PROBED="INV-01 INV-02 INV-04 INV-06 INV-07 INV-08"
+INV_SKIPPED="INV-03 INV-05"
+inv_skip_reason() {
+  case "$1" in
+    INV-03) echo "the project-context gate needs a probe run OUTSIDE a project, plus its own declared exception list (upgrade supplies its own message) -- checkable, not checked here, and not claimed to be" ;;
+    INV-05) echo "a property of v2 SOURCE (an unreachable second call after error), not of observable v3 behaviour -- there is nothing to probe, which is why it is not merely unimplemented" ;;
+    *) echo "no reason recorded" ;;
+  esac
+}
+
+INV_DECLARED="$(jq -r '.invariants[].id' "$TABLE" | sort)"
+INV_KNOWN="$(printf '%s %s' "$INV_PROBED" "$INV_SKIPPED" | tr ' ' '\n' | grep -v '^$' | sort)"
+INV_UNKNOWN="$(comm -23 <(printf '%s\n' "$INV_DECLARED") <(printf '%s\n' "$INV_KNOWN"))"
+INV_PHANTOM="$(comm -13 <(printf '%s\n' "$INV_DECLARED") <(printf '%s\n' "$INV_KNOWN"))"
+[ -z "$INV_UNKNOWN" ] || die "the table declares invariant(s) this check has no probe for and does not skip: $(printf '%s' "$INV_UNKNOWN" | tr '\n' ' ') -- add a probe or add it to INV_SKIPPED with a reason. Refusing rather than reporting on the subset it happens to know: a check that quietly stops covering the table is worse than one that stops running."
+[ -z "$INV_PHANTOM" ] || die "this check names invariant(s) the table does not declare: $(printf '%s' "$INV_PHANTOM" | tr '\n' ' ') -- the id was renamed or removed and the probe now measures nothing while still reporting a pass."
+
+# Every declared non-retire path, probed with one bad flag. `--help` is already
+# probed above; this needs a FAILING invocation, because five of the six
+# invariants are properties of the failure path and are unobservable on success.
+INV_N=0; INV_VIOL=""
+while IFS= read -r p; do
+  INV_N=$((INV_N + 1))
+  # shellcheck disable=SC2086 -- $p is a multi-word command path and MUST split
+  ihelp_rc=0; $BIN $p --help >/dev/null 2>&1 || ihelp_rc=$?
+  iout="$($BIN $p --zzz-not-a-flag 2>/dev/null)"; irc=$?
+  ierr="$($BIN $p --zzz-not-a-flag 2>&1 >/dev/null)"
+  iline="$(printf '%s' "$ierr" | head -1)"
+
+  [ "$ihelp_rc" = "0" ] || INV_VIOL="$INV_VIOL
+  INV-07    \`$p\` -- \`--help\` exits $ihelp_rc; the row is ratified \`corrected\`, which asserts v3 exits 0"
+  [ "$irc" = "0" ] && INV_VIOL="$INV_VIOL
+  INV-08    \`$p\` -- accepts an unknown flag SILENTLY at exit 0"
+  [ "$irc" = "2" ] && INV_VIOL="$INV_VIOL
+  INV-02    \`$p\` -- usage error exits 2 (clap's default); the invariant is exit 1"
+  case "$irc" in 0|1|2) ;; *) INV_VIOL="$INV_VIOL
+  INV-04    \`$p\` -- exit $irc is outside the observed set {0, 1, 2}" ;; esac
+  { [ "$irc" != "0" ] && [ -n "$iout" ]; } && INV_VIOL="$INV_VIOL
+  INV-06    \`$p\` -- writes to STDOUT on a failing invocation"
+  { [ -n "$iline" ] && ! printf '%s' "$iline" | grep -qE '^error: '; } && INV_VIOL="$INV_VIOL
+  INV-01    \`$p\` -- first stderr line is not the lowercase \`error: \` voice: $(printf '%s' "$iline" | cut -c1-50)"
+done < <(jq -r '[.families[].entries[], .new_surface[]] | .[] | select((.disposition // "") != "retire") | .path' "$TABLE")
+
+[ "$INV_N" -gt 0 ] || die "the invariant sweep probed no paths -- it reports six clean invariants by measuring nothing"
+
 # --- report ----------------------------------------------------------------
 printf 'surface: probed %d declared commands, %d reachable in this build\n' "$PROBED" "$WIRED"
 [ -n "$NOTE" ] && printf '%s\n' "$NOTE"
+
+# The invariant line prints its POPULATION and its SKIPS every run, pass or
+# fail. A bare "invariants: ok" is the shape that reassures without informing --
+# it reads identically whether it swept 105 paths or none, and the two skips are
+# the part a reader most needs to know is NOT covered.
+printf 'invariants: %d path(s) probed against %s; NOT checked here: %s\n' \
+  "$INV_N" "$(printf '%s' "$INV_PROBED" | tr ' ' ',')" "$(printf '%s' "$INV_SKIPPED" | tr ' ' ',')"
+for s in $INV_SKIPPED; do printf '  skipped %s -- %s\n' "$s" "$(inv_skip_reason "$s")"; done
+if [ -n "$INV_VIOL" ]; then
+  printf '\ninvariants: the binary VIOLATES what the table declares:%s\n' "$INV_VIOL"
+else
+  printf '  all %s hold across every declared non-retire path.\n' "$(printf '%s' "$INV_PROBED" | wc -w | tr -d ' ')"
+fi
 
 if [ -z "$VIOL" ]; then
   echo "surface: the binary and the table agree on every flag of every reachable command."
