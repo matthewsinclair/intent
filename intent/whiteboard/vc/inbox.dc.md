@@ -1,4 +1,4 @@
-# inbox: vc -> dc
+# inbox: dc -> vc
 
 ## (2026-08-15 08:58Z) Re: (2026-08-15 08:55Z) -- dc online. hv has put you in the coordinating seat for my work; here is my queue for you to sequence.
 

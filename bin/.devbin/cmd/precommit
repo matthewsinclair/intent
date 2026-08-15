@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Run this repo's local commit gates (ST0056 apparatus guards)
+#
+# intent precommit [--all] -- run the guards that protect THIS repository's
+# apparatus. Invoked by .git/hooks/pre-commit; safe to run by hand.
+#
+# WHY THIS IS NOT IN lib/templates/hooks/pre-commit.sh, which is where the
+# critic gate and the whiteboard clock guard live. That file is SHIPPED: every
+# consumer project receives it via `intent claude upgrade --apply`. The two
+# guards run here check `intent/st/ST0056/parity/**`, which exists in this
+# repository and nowhere else. Putting an ST-specific check into the shipped
+# canon would hand every consumer a gate for a steel thread they do not have,
+# and it would outlive ST0056 in the canon forever. Repo-local guards get a
+# repo-local runner.
+#
+# WHY ONE COMMAND FOR TWO GUARDS IS NOT THE EXIT-CODE OVERLOAD ic WARNED ABOUT.
+# The defect in `intent critic` is that four unrelated conditions share exit 2
+# with no way for the caller to tell them apart. Here each guard keeps its own
+# script, its own invariant and its own message; this runner aggregates and
+# NAMES the one that refused. The guards were also deliberately kept separate
+# by vc's ruling -- provenance checks that STAMPS AGREE (metadata), skew checks
+# that CONTENT MATCHES CANON -- and nothing here merges them.
+#
+# COVERAGE IS REPORTED AS MEASURED, NEVER AS DESIGNED. Measured 2026-08-15:
+# view_skew covers ONE of thirty apparatus views (`dispatch-table.md` is the
+# only one re-derivable from committed state); provenance groups the other 29,
+# for which the stamp is the only guard that exists. Do not write those numbers
+# into this file as constants -- the guards print what they actually checked,
+# and a hard-coded figure rots the moment somebody adds artefact 31.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+
+TOOLS="${PROJECT_ROOT:?}/intent/st/ST0056/parity/tools"
+
+# Named, not silent -- the clock guard's precedent. Apparatus present with no
+# guard behind it is the invisible non-enforcement this mechanism exists to end,
+# and after ST0056 closes this directory will legitimately go away. Either way
+# the operator is told which it is rather than getting a green.
+if [ ! -d "$TOOLS" ]; then
+  warn "no ST0056 parity apparatus at $TOOLS -- repo-local gates SKIPPED this commit."
+  exit 0
+fi
+
+# The staged set, which is what a pre-commit gate is entitled to have an opinion
+# about. --diff-filter=ACM excludes deletions: a deleted path cannot be skewed
+# against its canon, and feeding one to the skew check would ask it to compare a
+# file that is not there.
+#
+# `|| true` is load-bearing rather than defensive noise: git exits non-zero when
+# nothing is staged, and under `set -e` that would abort the gate instead of
+# letting it correctly find nothing to do. (This is the same shape that killed
+# ic's generator -- a legitimately-empty pipeline aborting the whole script.)
+STAGED="$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || true)"
+
+# --all forces the full sweep regardless of what is staged, for running by hand.
+FULL=0
+[ "${1:-}" = "--all" ] && FULL=1
+
+rc=0
+failed=""
+
+# 1. Provenance. Always runs the full sweep: it is three greps over 29 files,
+#    and its invariant is CROSS-artefact -- staging one file of a measurement
+#    group is exactly when the group can be split, so narrowing it to the staged
+#    set would blind it to the failure it exists to catch.
+step "provenance: artefacts from one measurement name one revision"
+if ! bash "$TOOLS/provenance_check.sh"; then
+  rc=1
+  failed="${failed}  provenance_check.sh -- a measurement group names more than one revision
+"
+fi
+
+# 2. View skew. Path-triggered by design: a slow gate gets --no-verify'd, which
+#    is cry-wolf arriving through a different door. It is sound rather than a
+#    fudge -- a generator reads only its canon, so a view cannot go stale unless
+#    canon, generator or view changes, and all three are paths.
+step "skew: committed generated views still match their canon"
+if [ "$FULL" -eq 1 ] || [ -z "$STAGED" ]; then
+  skew_run=(bash "$TOOLS/view_skew_check.sh")
+else
+  # Unquoted expansion is wrong here and this shell is zsh for interactive use,
+  # so build the argv explicitly rather than relying on word splitting.
+  skew_run=(bash "$TOOLS/view_skew_check.sh" --changed)
+  while IFS= read -r p; do
+    [ -n "$p" ] && skew_run+=("$p")
+  done <<<"$STAGED"
+fi
+if ! "${skew_run[@]}"; then
+  rc=1
+  failed="${failed}  view_skew_check.sh -- a committed view no longer matches its canon
+"
+fi
+
+if [ "$rc" -ne 0 ]; then
+  printf '\n' >&2
+  printf 'intent repo-local gate: commit blocked.\n' >&2
+  printf '%s' "$failed" >&2
+  printf '  each guard printed the specific artefact above; regenerate it and re-stage.\n' >&2
+  printf '  to bypass (use sparingly): git commit --no-verify\n' >&2
+  exit 1
+fi
+
+exit 0

@@ -36,6 +36,23 @@ jobs:
           # so the cache action needs telling where the workspace is or it
           # looks for Cargo.toml at the repository root and finds none.
           workspaces: native/rust
+      - name: record the toolchain this run actually used
+        # `fmt --check` and `clippy -D warnings` are both gates and both move
+        # with the compiler, so this job can go red with zero code change when
+        # a new stable lands. That is legitimate -- catching new lints early is
+        # part of why the gate floats on @stable -- but it is only diagnosable
+        # if the version is visible, so it is recorded here rather than left to
+        # be dug out of a `uses:` step's log.
+        #
+        # DELIBERATELY NOT a rust-toolchain.toml. Measured on the primary dev
+        # machine 2026-08-15: cargo/rustc are Homebrew's real binaries, rustup
+        # is NOT INSTALLED, and a rust-toolchain.toml pinning 1.70.0 is ignored
+        # in silence -- rustc still reported 1.97.1. Such a file would bind CI
+        # only, while reading as a project-wide guarantee. A pin that does not
+        # bind is worse than no pin: it does not refuse, and it misleads.
+        run: |
+          rustc --version | tee -a "$GITHUB_STEP_SUMMARY"
+          cargo --version | tee -a "$GITHUB_STEP_SUMMARY"
       - name: fmt
         run: cargo fmt --check
       - name: clippy

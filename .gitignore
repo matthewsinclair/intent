@@ -25,8 +25,23 @@ erl_crash.dump
 # Per-developer Claude Code permissions (paths and tool allowlist vary by user).
 .claude/settings.local.json
 
-# AGENTS.md regeneration safety net (intent agents sync writes this; transient).
-/AGENTS.md.bak
+# Backup and editor scratch files, as a CLASS.
+#
+# An ignore rule naming an exact filename never covers that file's backups, and
+# this repository is PUBLIC (`gh repo view --json visibility` -> PUBLIC), so an
+# unignored backup is one `git add -A` away from being world-readable and
+# permanently in a history nobody can rewrite. Four concurrent sessions share
+# this working tree and the `-A` hazard has already fired here once.
+#
+# This project has patched this exact class one filename at a time before --
+# the line here used to read `/AGENTS.md.bak`, and `.claude/settings.local.json`
+# above is ignored while `.claude/settings.local.json.bak` was not. Both are
+# covered by the class rule, so the single-filename rule is pruned rather than
+# left beside it (Highlander: one rule for one concern).
+*.bak
+*.orig
+*~
+*.swp
 
 # Ignore package tarball (built via "mix hex.build").
 multiplyer-*.tar

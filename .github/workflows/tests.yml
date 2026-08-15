@@ -83,32 +83,32 @@ jobs:
         clone_with_retry https://github.com/bats-core/bats-assert.git tests/lib/bats-assert
         clone_with_retry https://github.com/bats-core/bats-file.git tests/lib/bats-file
 
-    - name: Run unit tests
+    - name: Run tests
       env:
         BATS_LIB_PATH: ${{ github.workspace }}/tests/lib
       run: |
+        # `run_tests.sh` with no argument runs EVERY .bats under tests/ --
+        # unit and integration alike -- and exits with bats's status, so a
+        # failing test fails the job. It is also the only thing that exports
+        # INTENT_HOME, which the suites need; raw bats finds the files and
+        # then fails them.
+        #
+        # Two silent-success paths were deleted here rather than repaired
+        # (IN-AG-NO-SILENT-001):
+        #
+        #   1. A separate "Run integration tests" step ran
+        #      `bats integration/end_to_end.bats || echo "...status: $?"`.
+        #      The `||` meant the step could not fail the job. It was also
+        #      redundant -- this step already covers integration/ -- and it
+        #      named one of the two files there, so core_functionality.bats
+        #      was never in it. Measured before deleting: the suite passes,
+        #      so the swallow was hiding nothing at the time it was removed.
+        #   2. A `bats "$test_file" || true` fallback for a missing
+        #      run_tests.sh, which would have reported green over an
+        #      arbitrary number of failures. A missing runner now fails
+        #      loudly, which is the correct signal.
         cd tests
-        if [ -f "./run_tests.sh" ]; then
-          ./run_tests.sh
-        else
-          # Run tests directly if run_tests.sh doesn't exist (excluding lib directory)
-          find . -name "*.bats" -type f -not -path "./lib/*" | sort | while read -r test_file; do
-            echo "Running: $test_file"
-            bats "$test_file" || true
-          done
-        fi
-    
-    - name: Run integration tests
-      env:
-        BATS_LIB_PATH: ${{ github.workspace }}/tests/lib
-      run: |
-        cd tests
-        echo "Running integration tests..."
-        if [ -f "integration/end_to_end.bats" ]; then
-          bats integration/end_to_end.bats || echo "Integration tests completed with status: $?"
-        else
-          echo "No integration tests found"
-        fi
+        ./run_tests.sh
 
   test-macos:
     name: Test on macOS
@@ -175,17 +175,14 @@ jobs:
       env:
         BATS_LIB_PATH: ${{ github.workspace }}/tests/lib
       run: |
+        # See the Ubuntu leg for the full rationale. The `|| true` fallback
+        # that sat here could not fail the job and is deleted rather than
+        # repaired; the `chmod +x` it carried is dropped as a duplicate of
+        # the "Make scripts executable" step above (Highlander). If that
+        # chmod ever fails, this line now fails loudly instead of being
+        # silently papered over.
         cd tests
-        if [ -f "./run_tests.sh" ]; then
-          chmod +x run_tests.sh
-          ./run_tests.sh
-        else
-          # Run tests directly (excluding lib directory)
-          find . -name "*.bats" -type f -not -path "./lib/*" | sort | while read -r test_file; do
-            echo "Running: $test_file"
-            bats "$test_file" || true
-          done
-        fi
+        ./run_tests.sh
 
   shellcheck:
     name: Shell Script Analysis
