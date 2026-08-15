@@ -44,7 +44,7 @@ Rules that hold across the whole command surface. They are stated once here rath
 | INV-04 | Exit codes observed in the shipped surface are 0, 1 and 2 only   | as-observed |
 | INV-05 | `error ...; usage` -- the second call is unreachable, everywhere | pending-hv  |
 | INV-06 | About a fifth of v2 failure paths write to the wrong stream      | pending-hv  |
-| INV-07 | `--help` reports failure on 10 of 27 commands                    | pending-hv  |
+| INV-07 | `--help` reports failure on 10 of 27 commands                    | corrected   |
 | INV-08 | Three commands accept an unknown flag silently at exit 0         | corrected   |
 
 ### INV-01 -- Voice: lowercase `ok:` / `error:` prefixes, no banners
@@ -104,8 +104,7 @@ Across 108 probes, failing invocations split 45 stderr-only, 12 stdout-only, 2 b
 Two shapes: usage to STDOUT with exit 1 (`init`, `st`, `wp`, `todo`, `treeindex`, `fileindex`), and an error to STDERR (`ac`, `at`, `help`, `claude`). `intent at --help` is parsed as an unknown verb; `intent help --help` fails outright.
 
 - **v2:** measured
-- **Target:** `pending-hv`
-- **Open question for hv:** Asking for help and being told you failed is a defect. Candidate `corrected`: `--help` always succeeds, exit 0, to stdout. Note this is NOT free of consequence -- scripts testing `intent st --help; echo $?` change answer.
+- **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: `--help` always succeeds: exit 0, usage to stdout. v2 exits 1 on st, wp, ac, at, todo and fileindex (measured). v3 as built already does this -- `spine.rs:193` maps clap's DisplayHelp and DisplayVersion to EXIT_OK. The two v2 BATS assertions on `init --help` (tests/unit/intent_init_lang_flag.bats:23, tests/unit/global_commands.bats:74) are CORRECT as they stand and must NOT be flipped: they assert the incumbent, the estate runs against v2 by default and against v3 only under an INTENT_BIN override, and the conformance harness is built to expect red for ratified reasons. Flipping them would turn v2's own suite red and destroy the evidence of a deviation the contract already classifies.
 - **build measured:** MEASURED AT HEAD (ic, 2026-08-15), and it settles the cost side of this question. v2: `--help` exits 1 on st, wp, ac, at, todo and fileindex -- run, not read. v3 AS BUILT: exits 0 on all six plus the bare `intent --help`, because `spine.rs:193` maps clap's `DisplayHelp | DisplayVersion` to `EXIT_OK`, with `spine.rs:27` noting the divergence in as many words. So the candidate `corrected` in the question above is not a proposal any more, it is a description of the binary, and the only open act is recording it. THE COST THIS QUESTION FLAGS IS REAL AND IT IS TWO ASSERTIONS: `tests/unit/intent_init_lang_flag.bats:23` and `tests/unit/global_commands.bats:74`, both `assert_failure`, both on `init --help`, both carrying a comment calling exit-1 the usage convention. Nothing else in the BATS estate pairs `--help` with a status. And the argument from inside this file is stronger than the count: INV-04 declares 0 success and 1 every failure, so a `--help` that succeeds and exits 1 contradicts an invariant this same surface asserts -- reproducing it faithfully means shipping a v3 that breaks its own stated contract on 10 of 27 commands.
 
 ### INV-08 -- Three commands accept an unknown flag silently at exit 0
@@ -171,8 +170,7 @@ Manage steel threads for the project
 - **Defects observed in v2:**
   - INV-05 at bare invocation (bin/intent_st:1620)
   - INV-07 at `st --help` / `-h` / `help`
-- **Target:** `pending-hv`
-- **Open question for hv:** INV-07 -- see the invariant; the bare-invocation shape follows INV-05
+- **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **MCP:** not exposed -- read-only
 - **kind:** family
@@ -547,8 +545,7 @@ Manage work packages within steel threads
 - **Defects observed in v2:**
   - INV-05 at bare invocation
   - INV-07 at `wp --help`
-- **Target:** `pending-hv`
-- **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **MCP:** not exposed -- read-only
 
@@ -716,8 +713,7 @@ Acceptance criteria commands
 - **Defects observed in v2:**
   - INV-06 at usage to STDOUT on a failing invocation
   - INV-07 at `ac --help` parsed as an unknown verb
-- **Target:** `pending-hv`
-- **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **MCP:** not exposed -- read-only
 
@@ -936,8 +932,7 @@ Acceptance test commands
 - **Defects observed in v2:**
   - INV-06 at usage to STDOUT on a failing invocation
   - INV-07 at `at --help` parsed as an unknown verb
-- **Target:** `pending-hv`
-- **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **MCP:** not exposed -- read-only
 
@@ -1212,8 +1207,7 @@ Show intent/todo.md (generates it if absent)
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Defects observed in v2:**
   - INV-07 at `todo --help`
-- **Target:** `pending-hv`
-- **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **Wants review -- the classification disagrees with the verb name:** Bare `intent todo` is the default read of the whole tool and it inherits `list`'s generate-on-absent write.
@@ -2651,8 +2645,7 @@ Maintain checkbox file indexes
   - INV-07 at `fileindex --help`
   - INV-06 at the unknown-flag error goes to STDOUT
   - INV-01 at `Unknown option: ...` carries no `error:` prefix
-- **Target:** `pending-hv`
-- **Open question for hv:** INV-07 -- `--help` exits non-zero here; ratify into `corrected` or reproduce
+- **Target:** `corrected` -- ratified: hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: "`--help` reporting failure on 10 of 27 commands". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question. -- behaviour: Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.
 - **build measured:** BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **Wants review:**
