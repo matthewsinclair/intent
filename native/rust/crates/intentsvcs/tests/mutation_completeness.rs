@@ -444,27 +444,50 @@ fn an_unbuilt_field_is_one_no_service_call_can_set() {
   }
 }
 
-/// An `Unbuilt` field owes a work package and declares no edges -- so the day
-/// a mutation for it lands, the disposition is contradicted rather than
-/// quietly outliving the gap it described.
+/// An `Unbuilt` field says what is unavailable -- so the day a mutation for it
+/// lands, the disposition is contradicted rather than quietly outliving the gap
+/// it described.
+///
+/// **This asserted `owed_by.starts_with("WP-")` until D37, and it was a test
+/// REQUIRING the defect.** The field carried which of Intent's work packages
+/// owed the verb, in a library crate another project can depend on, and this
+/// assertion made removing it fail the build -- so the guard against the leak
+/// would have read as a regression. Second instance in two days of a test
+/// defending a superseded model, both found by grepping the tests for the old
+/// behaviour after a ruling rather than by reading the diff.
+///
+/// What remains is the half that was always the useful one: a note a READER can
+/// act on. `note` is what a refusal is built from, so an empty one is a refusal
+/// that says nothing.
 #[test]
-fn unbuilt_fields_name_their_work_package_and_carry_no_edges() {
+fn unbuilt_fields_say_what_is_unavailable_and_carry_no_edges() {
   for field in FIELDS {
-    if let Disposition::Unbuilt { owed_by, note } = &field.disposition {
+    if let Disposition::Unbuilt { note } = &field.disposition {
       assert!(
-        owed_by.starts_with("WP-"),
-        "{}.{} is Unbuilt and must name the work package that owes it",
+        !note.is_empty(),
+        "{}.{} is Unbuilt and must say what is unavailable",
         field.entity,
         field.field
       );
       assert!(
-        !note.is_empty(),
-        "{}.{} is Unbuilt and must say why",
+        pm_free(note),
+        "{}.{} is Unbuilt and its note names Intent's own project-management state, which a \
+         consumer of this crate cannot look up: {note}",
         field.entity,
         field.field
       );
     }
   }
+}
+
+/// Whether a note is free of Intent's own thread and work-package ids.
+///
+/// Deliberately narrow and deliberately here rather than shared: this is one
+/// last check at the point the string is DECLARED, and the emitted surfaces are
+/// covered end-to-end by `intent-cli`'s `no_pm_state_in_output.rs`, which
+/// drives the binary instead of reading the source.
+fn pm_free(note: &str) -> bool {
+  !note.contains("WP-") && !note.contains("ST00")
 }
 
 // ---------------------------------------------------------------------------

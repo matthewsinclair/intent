@@ -53,7 +53,10 @@ pub fn to_canonical_json<T: Serialize>(value: &T) -> serde_json::Result<String> 
 pub struct Thread {
   /// Always [`THREAD_SCHEMA`]; lets validators pick the schema.
   pub schema: String,
-  /// Natural id, eg `ST0056`. Global identity is `(project_id, id)` (D15).
+  // The example is `ST0000` -- the STZero retrofit id, present in every Intent
+  // project -- because this line is PUBLISHED into thread.schema.json and the
+  // SDL, and a reader cannot look up a thread in our repository (D37).
+  /// Natural id, eg `ST0000`. Global identity is `(project_id, id)`.
   pub id: String,
   pub title: String,
   #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -83,7 +86,7 @@ pub struct Thread {
   pub created: String,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub completed: Option<String>,
-  /// `exempt` (ST0048) or absent = acceptance enforced.
+  /// `exempt` or absent = acceptance enforced.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub acceptance: Option<AcceptanceMode>,
   /// What this thread ships. Modelled rather than authored prose (vc ruling,
@@ -138,7 +141,7 @@ pub enum AcceptanceMode {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 pub struct Related {
-  /// The related thread's natural id, eg `ST0043`.
+  /// The related thread's natural id, eg `ST0000`.
   pub id: String,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub note: Option<String>,
@@ -151,7 +154,7 @@ pub struct Related {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
 #[serde(deny_unknown_fields)]
 pub struct WorkPackage {
-  /// Rendered `WP-01`; unique within the thread.
+  /// Unique within the thread, and rendered zero-padded as `WP-<seq>`.
   pub seq: u32,
   pub title: String,
   pub scope: TShirt,
@@ -162,26 +165,28 @@ pub struct WorkPackage {
   /// and any transition without a reason clears it.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub status_reason: Option<String>,
-  /// What this work package ships. The guaranteed authored section (D28).
-  ///
-  /// D22 modelled `objective` and `context` on the thread and stopped there;
-  /// `WP/<NN>/info.md` is the same mixed file one level down, and nothing
-  /// carried its prose. Without this the WP-10 migration would have destroyed
-  /// it -- ST0056's own `WP/13/info.md` is the search work package's spec,
-  /// hundreds of lines -- and hv has ratified that a migration is never lossy.
+  // PUBLISHED (D37): the two `///` blocks below become field descriptions in
+  // thread.schema.json and the SDL, so the design provenance that used to be in
+  // them -- which decision modelled what, which of our work packages would have
+  // destroyed which of our own files -- is here instead. D22 modelled
+  // `objective` and `context` on the thread and stopped there; `WP/<NN>/info.md`
+  // is the same mixed authored/generated file one level down, and nothing
+  // carried its prose. Without `objective` + `body` the WP-10 migration would
+  // have destroyed it -- ST0056's own `WP/13/info.md` is the search work
+  // package's spec, hundreds of lines -- and hv has ratified that a migration is
+  // never lossy. Two fields rather than three is vc's call under D28.
+  // `deliverables` is deliberately NOT modelled as an array: this thread already
+  // demoted it when WP-02 closed with `intent schema` unbuilt, and structuring
+  // it would re-privilege what the acceptance contract replaced.
+  /// What this work package ships: the one section every work package has.
   #[serde(default)]
   pub objective: String,
   /// Every OTHER authored section of the work package, verbatim.
   ///
-  /// Two fields rather than three, deliberately (vc, D28). Real work packages
-  /// exceed the template freely -- WP-13 carries "Why the incumbents go", "The
-  /// tiers", "The seams" -- so `objective` takes the one guaranteed section
-  /// and `body` takes the rest whole. That is lossless by construction, where
-  /// a fixed set of named sections would silently drop anything unforeseen.
-  ///
-  /// `deliverables` is deliberately NOT modelled as an array: it is the
-  /// artefact this thread already demoted when WP-02 closed with `intent
-  /// schema` unbuilt, and structuring it would re-privilege what ACs replaced.
+  /// Work packages exceed the template freely, so `objective` takes the one
+  /// guaranteed section and this takes the rest whole. That is lossless by
+  /// construction, where a fixed set of named sections would silently drop
+  /// anything unforeseen.
   #[serde(default)]
   pub body: String,
 }
@@ -308,7 +313,8 @@ pub enum AcKind {
 /// The tag is `is` rather than `state` so the extract reads
 /// `"state": {"is": "satisfied", ...}` rather than doubling the word. Nesting
 /// rather than `#[serde(flatten)]` is forced: flatten and `deny_unknown_fields`
-/// do not compose in serde, and D05's strictness is the thing that must win.
+/// do not compose in serde, and strict rejection of unknown fields is the
+/// property that must win.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "is", rename_all = "kebab-case", deny_unknown_fields)]
 pub enum AcState {
@@ -323,7 +329,7 @@ pub enum AcState {
   /// Non-test and satisfied. **Unconstructible without evidence.**
   Satisfied { evidence: String },
   Descoped {
-    /// The thread the requirement moved to, eg `ST0057`.
+    /// The thread the requirement moved to, eg `ST0000`.
     to: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     by: Option<String>,

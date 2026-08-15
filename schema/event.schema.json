@@ -4,7 +4,7 @@
       "additionalProperties": false,
       "properties": {
         "id": {
-          "description": "Natural id, eg `ST0056`, `ST0056/02`, `0021`.",
+          "description": "Natural id, eg `ST0000`, `ST0000/02`, `0021`.",
           "type": "string"
         },
         "type": {

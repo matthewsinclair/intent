@@ -76,7 +76,7 @@ pub struct Subject {
   /// Entity type, eg `thread`, `wp`, `issue`.
   #[serde(rename = "type")]
   pub kind: String,
-  /// Natural id, eg `ST0056`, `ST0056/02`, `0021`.
+  /// Natural id, eg `ST0000`, `ST0000/02`, `0021`.
   pub id: String,
 }
 

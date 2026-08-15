@@ -157,7 +157,7 @@ fn unwired<T>(field: &str) -> async_graphql::Result<T> {
 
 #[Object]
 impl Query {
-  /// One steel thread by its natural id, eg `ST0056`.
+  /// One steel thread by its natural id, eg `ST0000`.
   async fn thread(&self, _ctx: &Context<'_>, id: String) -> async_graphql::Result<Option<Thread>> {
     let _ = id;
     unwired("thread")

@@ -165,7 +165,7 @@ type Legacy {
 
 type Query {
   """
-  One steel thread by its natural id, eg `ST0056`.
+  One steel thread by its natural id, eg `ST0000`.
   """
   thread(id: String!): Thread
   """
@@ -189,7 +189,7 @@ Threads`; the id and the reason are separable facts, so they separate.
 """
 type Related {
   """
-  The related thread's natural id, eg `ST0043`.
+  The related thread's natural id, eg `ST0000`.
   """
   id: String!
   note: String
@@ -204,7 +204,7 @@ type Thread {
   """
   schema: String!
   """
-  Natural id, eg `ST0056`. Global identity is `(project_id, id)` (D15).
+  Natural id, eg `ST0000`. Global identity is `(project_id, id)`.
   """
   id: String!
   title: String!
@@ -237,7 +237,7 @@ type Thread {
   created: String!
   completed: String
   """
-  `exempt` (ST0048) or absent = acceptance enforced.
+  `exempt` or absent = acceptance enforced.
   """
   acceptance: AcceptanceMode
   """
@@ -292,7 +292,7 @@ enum Tshirt {
 
 type WorkPackage {
   """
-  Rendered `WP-01`; unique within the thread.
+  Unique within the thread, and rendered zero-padded as `WP-<seq>`.
   """
   seq: Int!
   title: String!
@@ -306,27 +306,16 @@ type WorkPackage {
   """
   statusReason: String
   """
-  What this work package ships. The guaranteed authored section (D28).
-  
-  D22 modelled `objective` and `context` on the thread and stopped there;
-  `WP/<NN>/info.md` is the same mixed file one level down, and nothing
-  carried its prose. Without this the WP-10 migration would have destroyed
-  it -- ST0056's own `WP/13/info.md` is the search work package's spec,
-  hundreds of lines -- and hv has ratified that a migration is never lossy.
+  What this work package ships: the one section every work package has.
   """
   objective: String!
   """
   Every OTHER authored section of the work package, verbatim.
   
-  Two fields rather than three, deliberately (vc, D28). Real work packages
-  exceed the template freely -- WP-13 carries "Why the incumbents go", "The
-  tiers", "The seams" -- so `objective` takes the one guaranteed section
-  and `body` takes the rest whole. That is lossless by construction, where
-  a fixed set of named sections would silently drop anything unforeseen.
-  
-  `deliverables` is deliberately NOT modelled as an array: it is the
-  artefact this thread already demoted when WP-02 closed with `intent
-  schema` unbuilt, and structuring it would re-privilege what ACs replaced.
+  Work packages exceed the template freely, so `objective` takes the one
+  guaranteed section and this takes the rest whole. That is lossless by
+  construction, where a fixed set of named sections would silently drop
+  anything unforeseen.
   """
   body: String!
 }

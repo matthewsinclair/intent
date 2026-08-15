@@ -277,7 +277,11 @@ pub fn from_md(project: &Project) -> Result<Canon, IngestError> {
     Refusal::new(vec![Finding::new(
       project.relative(&project.st_dir()),
       FindingClass::UnknownFileShape,
-      "ingest --from-md is scaffolding: the frozen legacy markdown parser lands in WP-10 (ST0056). Nothing has been read and nothing has been written.",
+      // **What is unavailable and what to do instead** (D37). This read
+      // "the frozen legacy markdown parser lands in WP-10 (ST0056)", which
+      // tells a stranger to consult a roadmap they have no access to; the
+      // sentence that matters to them is that their estate is untouched.
+      "reading a v2 estate from markdown is not available in this build -- nothing has been read and nothing has been written, so the project is exactly as it was. Keep using the version of Intent that wrote it until a build offers this.",
     )])
     .into(),
   )

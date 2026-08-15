@@ -946,7 +946,10 @@ fn wp_target(a: &ArgMatches) -> Result<(String, u32), String> {
   match scope_of(&target) {
     (st, Scope::WorkPackage(seq)) => Ok((st, seq)),
     _ => Err(format!(
-      "error: `{target}` is not a work package\n  remedy: name it as `<ST id>/<NN>`, eg ST0001/03"
+      // The worked example is `ST0000` deliberately (D37): it is the STZero
+      // retrofit id, so it names something in the READER's own project rather
+      // than a thread in ours.
+      "error: `{target}` is not a work package\n  remedy: name it as `<ST id>/<NN>`, eg ST0000/03"
     )),
   }
 }

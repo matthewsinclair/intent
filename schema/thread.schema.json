@@ -8,7 +8,7 @@
       "type": "string"
     },
     "AcState": {
-      "description": "**What a criterion RECORDS.** One enum, replacing the `satisfied:\nOption<bool>` + `scope: AcScope` pair that produced \"three stored values,\ntwo meanings, one of them never written\" (hv ruling, 2026-08-15).\n\nThe ratified machine is `Satisfied | Unsatisfied | Descoped | Withdrawn`.\nThis type has a fifth variant, [`AcState::Computed`], and it is what makes\nthe ratified asymmetry STRUCTURAL rather than a rule somebody enforces:\n\n- **A test-backed criterion in scope records `Computed`** -- nothing about\n  satisfaction is stored, because it is derived from covering green ATs.\n  There is no field for `ac satisfy` to write and no method that could,\n  where before there was a `satisfied: Option<bool>` that the linter's L5\n  was the only thing keeping empty.\n- **`Satisfied` carries its evidence and cannot be constructed without it**\n  (hv, 2026-08-15), so \"satisfied with no evidence\" stops being a state the\n  model can represent, rather than one a guard has to refuse.\n- **`Descoped` and `Withdrawn` apply to BOTH kinds** and are always stored:\n  they are decisions about the requirement, not about its satisfaction.\n\n`Descoped` and `Withdrawn` stay distinct with no direct edge between them --\ndescoped means the requirement still exists on a named thread and is a\npointer you can follow; withdrawn means it does not exist at all. Moving\nbetween them routes through `Unsatisfied` so the audit trail records the\nintermediate decision instead of smearing two facts into one.\n\nThe tag is `is` rather than `state` so the extract reads\n`\"state\": {\"is\": \"satisfied\", ...}` rather than doubling the word. Nesting\nrather than `#[serde(flatten)]` is forced: flatten and `deny_unknown_fields`\ndo not compose in serde, and D05's strictness is the thing that must win.",
+      "description": "**What a criterion RECORDS.** One enum, replacing the `satisfied:\nOption<bool>` + `scope: AcScope` pair that produced \"three stored values,\ntwo meanings, one of them never written\" (hv ruling, 2026-08-15).\n\nThe ratified machine is `Satisfied | Unsatisfied | Descoped | Withdrawn`.\nThis type has a fifth variant, [`AcState::Computed`], and it is what makes\nthe ratified asymmetry STRUCTURAL rather than a rule somebody enforces:\n\n- **A test-backed criterion in scope records `Computed`** -- nothing about\n  satisfaction is stored, because it is derived from covering green ATs.\n  There is no field for `ac satisfy` to write and no method that could,\n  where before there was a `satisfied: Option<bool>` that the linter's L5\n  was the only thing keeping empty.\n- **`Satisfied` carries its evidence and cannot be constructed without it**\n  (hv, 2026-08-15), so \"satisfied with no evidence\" stops being a state the\n  model can represent, rather than one a guard has to refuse.\n- **`Descoped` and `Withdrawn` apply to BOTH kinds** and are always stored:\n  they are decisions about the requirement, not about its satisfaction.\n\n`Descoped` and `Withdrawn` stay distinct with no direct edge between them --\ndescoped means the requirement still exists on a named thread and is a\npointer you can follow; withdrawn means it does not exist at all. Moving\nbetween them routes through `Unsatisfied` so the audit trail records the\nintermediate decision instead of smearing two facts into one.\n\nThe tag is `is` rather than `state` so the extract reads\n`\"state\": {\"is\": \"satisfied\", ...}` rather than doubling the word. Nesting\nrather than `#[serde(flatten)]` is forced: flatten and `deny_unknown_fields`\ndo not compose in serde, and strict rejection of unknown fields is the\nproperty that must win.",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -76,7 +76,7 @@
               ]
             },
             "to": {
-              "description": "The thread the requirement moved to, eg `ST0057`.",
+              "description": "The thread the requirement moved to, eg `ST0000`.",
               "type": "string"
             }
           },
@@ -303,7 +303,7 @@
       "description": "A cross-reference to another steel thread, with the note explaining WHY it\nis related. v2 carried these as free bullets under `## Related Steel\nThreads`; the id and the reason are separable facts, so they separate.",
       "properties": {
         "id": {
-          "description": "The related thread's natural id, eg `ST0043`.",
+          "description": "The related thread's natural id, eg `ST0000`.",
           "type": "string"
         },
         "note": {
@@ -347,19 +347,19 @@
       "properties": {
         "body": {
           "default": "",
-          "description": "Every OTHER authored section of the work package, verbatim.\n\nTwo fields rather than three, deliberately (vc, D28). Real work packages\nexceed the template freely -- WP-13 carries \"Why the incumbents go\", \"The\ntiers\", \"The seams\" -- so `objective` takes the one guaranteed section\nand `body` takes the rest whole. That is lossless by construction, where\na fixed set of named sections would silently drop anything unforeseen.\n\n`deliverables` is deliberately NOT modelled as an array: it is the\nartefact this thread already demoted when WP-02 closed with `intent\nschema` unbuilt, and structuring it would re-privilege what ACs replaced.",
+          "description": "Every OTHER authored section of the work package, verbatim.\n\nWork packages exceed the template freely, so `objective` takes the one\nguaranteed section and this takes the rest whole. That is lossless by\nconstruction, where a fixed set of named sections would silently drop\nanything unforeseen.",
           "type": "string"
         },
         "objective": {
           "default": "",
-          "description": "What this work package ships. The guaranteed authored section (D28).\n\nD22 modelled `objective` and `context` on the thread and stopped there;\n`WP/<NN>/info.md` is the same mixed file one level down, and nothing\ncarried its prose. Without this the WP-10 migration would have destroyed\nit -- ST0056's own `WP/13/info.md` is the search work package's spec,\nhundreds of lines -- and hv has ratified that a migration is never lossy.",
+          "description": "What this work package ships: the one section every work package has.",
           "type": "string"
         },
         "scope": {
           "$ref": "#/$defs/TShirt"
         },
         "seq": {
-          "description": "Rendered `WP-01`; unique within the thread.",
+          "description": "Unique within the thread, and rendered zero-padded as `WP-<seq>`.",
           "format": "uint32",
           "minimum": 0,
           "type": "integer"
@@ -408,7 +408,7 @@
           "type": "null"
         }
       ],
-      "description": "`exempt` (ST0048) or absent = acceptance enforced."
+      "description": "`exempt` or absent = acceptance enforced."
     },
     "completed": {
       "type": [
@@ -432,7 +432,7 @@
       "type": "array"
     },
     "id": {
-      "description": "Natural id, eg `ST0056`. Global identity is `(project_id, id)` (D15).",
+      "description": "Natural id, eg `ST0000`. Global identity is `(project_id, id)`.",
       "type": "string"
     },
     "objective": {

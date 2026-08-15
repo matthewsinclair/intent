@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 pub struct DocSection {
   /// The entity the file belongs to, eg `thread`, `issue`, `project`.
   pub owner_type: String,
-  /// That entity's natural id, eg `ST0056`.
+  /// That entity's natural id, eg `ST0000`.
   pub owner_id: String,
   /// Project-relative path.
   pub file: String,

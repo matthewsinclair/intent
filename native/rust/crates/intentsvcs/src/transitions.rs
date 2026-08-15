@@ -184,16 +184,21 @@ pub enum Disposition {
     /// value fails while these known ones stay recorded with their evidence.
     orphans: &'static [(&'static str, &'static str)],
   },
-  /// No service verb touches this field yet. Carries the work package that
-  /// owes it, so the debt is counted rather than hidden -- the same posture
-  /// the dispatch-table guard takes for an unbuilt command.
+  /// No service verb touches this field yet. The variant IS the count, so the
+  /// debt is visible rather than hidden -- the same posture the dispatch-table
+  /// guard takes for an unbuilt command.
   ///
   /// An `Unbuilt` field must declare NO edges, so the day a mutation lands the
   /// disposition is contradicted and the test says so.
-  Unbuilt {
-    owed_by: &'static str,
-    note: &'static str,
-  },
+  ///
+  /// **It carried an `owed_by: "WP-06"` beside the note until D37, and dropping
+  /// it is not cosmetic.** `intentsvcs` is a library another project can depend
+  /// on, so a field whose job is to name which of OUR work packages will build
+  /// something is Intent's roadmap sitting one `println!` away from a
+  /// stranger's terminal -- which is the exact structural leak AC-00.9 was
+  /// written from. Which work package owes this belongs in the contract that
+  /// tracks it; what a reader needs is `note`, which says what is unavailable.
+  Unbuilt { note: &'static str },
 }
 
 /// One closed-domain field of one entity. `entity` is the JSON Schema
@@ -260,7 +265,6 @@ pub const FIELDS: &[Field] = &[
     entity: "Thread",
     field: "acceptance",
     disposition: Disposition::Unbuilt {
-      owed_by: "WP-06",
       note: "the close-gate exemption. v2 has NO verb for it either -- `bin/intent_acceptance:987` instructs the user to \"add 'acceptance: exempt' to its frontmatter\", ie the tool's own error message prescribes hand-editing the file the tool owns, which is hv's ruled defect in v2's voice. Three threads in this estate use it. The verb spelling is ic's lane, so it is named as owed rather than invented here",
     },
   },
@@ -313,7 +317,6 @@ pub const FIELDS: &[Field] = &[
     entity: "Criterion",
     field: "kind",
     disposition: Disposition::Unbuilt {
-      owed_by: "WP-06",
       note: "test-backed against non-test. Converting one to the other when its test gets written is ordinary workflow and currently needs a hand-edit",
     },
   },
@@ -383,7 +386,6 @@ pub const FIELDS: &[Field] = &[
     entity: "AcceptanceTest",
     field: "kind",
     disposition: Disposition::Unbuilt {
-      owed_by: "WP-06",
       note: "test against non-test, the AT-side mirror of `Criterion.kind` and owed for the same reason",
     },
   },
@@ -411,7 +413,6 @@ pub const FIELDS: &[Field] = &[
     entity: "Issue",
     field: "status",
     disposition: Disposition::Unbuilt {
-      owed_by: "WP-06",
       note: "the whole `issues` family is unported, so there is no verb to open or close one. Both values are reachable only by authoring canon directly",
     },
   },
