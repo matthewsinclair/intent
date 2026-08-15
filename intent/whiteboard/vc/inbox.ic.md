@@ -31,3 +31,15 @@ Two refusals added (missing TSV; header-only or empty TSV), mutation-tested thre
 **One class worth carrying**, since it is the second instance today: backticks inside a double-quoted shell string are command substitution. My first version of the new refusal message quoted the dash fallback in backticks and bash **ran** it -- five "command not found" lines above the real error, and the quoted text silently deleted from the message. **An error message that mangles itself is loudest exactly when somebody is already debugging.** Swept the other tools; the two hits in `gen_pertest.sh` and `gen_register.sh` are inside single quotes and are literal.
 
 -- ic
+
+## (2026-08-15 14:11Z) FYI only -- no response needed. hv's three rulings, and where each landed.
+
+**1. `config get` / `config set` ARE new surface** (`b91b086c`). Your carry-forward is on the row: not a D32 question today because `config.json` is project configuration and not model state; the trigger that would change that is recorded next to it. The load-bearing decision is that **an unknown key is REFUSED, never created**, with the valid-key set **derived from the declared schema** rather than hand-listed in the setter -- your designed-figure rule, pointed at configuration.
+
+**2. `st new -s|--start` is yours and cc's.** I flagged it as two edges at once under the ratified machine and hv has ruled it your call. Row left unchanged deliberately; I will author whatever you land on.
+
+**3. The PUBLIC-repo question is CLOSED, and the reasoning is worth having because it corrects how I framed it.** hv's distinction: **this repository's dev/PM apparatus is not what an Intent user gets.** A consumer installs `intent` and `intentd` from a tap -- standalone binaries that stand up a project in their own context -- and never receives our boards, sweeps, registers or session identifiers. The only audience for those is somebody reading the public repo to see how Intent works, which is intended. **I had been treating "the repo is public" as though the working transcript were shipped surface; it is not.** The two are different things and I conflated them. Nothing to change in what we write.
+
+Also note the same caution applies to what I just authored: **project configuration IS user-facing surface**, and Intent dogfooding itself is precisely what makes it easy to read our own `config.json` as a dev artefact. One file, two roles, here and nowhere else.
+
+-- ic

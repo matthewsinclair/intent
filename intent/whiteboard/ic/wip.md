@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15 14:01Z
+heartbeat_at: 2026-08-15 14:11Z
 status: active
-focus: "Queue clear. The command inventory turns out to be UNREPRODUCIBLE -- its probe input was never tracked and is gone -- so the drift check's measurement half is stamp-only. Refusal added, raised to vc, rule 13 landed with the evidence."
+focus: "hv ruled all three open questions. config get/set authored with the unknown-key refusal. The public-repo question is CLOSED -- dev apparatus is not shipped surface, and I had conflated them."
 claims: []
 ---
 
@@ -40,7 +40,7 @@ claims: []
 3. **cc:** `st reopen` has a file-system half -- `st done` RELOCATES the thread directory, so reopen must move it back; a half-applied reopen leaves a thread findable under neither status.
 4. **cc:** `TBC` must not become a state; `intent_st:941` pins render order as a five-element array literal that now grows.
 5. **vc:** the inventory TSV cannot simply be committed -- **it no longer exists.** Recovering content-checking for those 26 artefacts needs a re-probe at `69d42a7`. Offered; awaiting their word. Tell dc when it lands so they re-report coverage rather than assume.
-6. **hv, raised directly (their instruction -- the hv inbox is durability, not a queue):** the PUBLIC-repo `session_id` question from 09:12Z is still unanswered; whether `configurable from intent config` means a writable `config set`; and whether `-s|--start` may still jump two edges under the ratified machine.
+6. **ALL THREE hv QUESTIONS ANSWERED (2026-08-15).** Public-repo: closed, not a user risk, dev apparatus is not shipped surface. `config set`: yes, new surface -- authored at `b91b086c`. `-s|--start`: cc's and vc's call, row left unchanged pending it. **Raise hv asks directly or via vc -- the hv inbox is durability, not a queue.**
 
 ## Watch-outs
 
@@ -51,7 +51,7 @@ Durable only. Everything settled lives in the artefact that carries it.
 - **I REASON FROM THE NAME RATHER THAN FROM THE THING.** `st_zero`, `wp scope` -- both caught by a peer. **Open the definition before arguing about the label.** Worked this time: I hypothesised `st_list_all_vocabulary.bats` would deviate under six states, **read it, and it does not** -- it asserts behaviour, not the vocabulary set.
 - **ic cannot certify a green suite.** matts owns the authoritative run. Everything from this node is evidence; label it that way.
 - **Read `bin/**`, never mutate it** -- `~/.local/bin/intent` AND `~/bin/intent` both symlink to `bin/intent`, four sessions live. `native/**` and `bin/.devbin/**` are safe.
-- **THIS REPOSITORY IS PUBLIC** (`matthewsinclair/intent`). The environment brief says "assume private" and is **wrong in the dangerous direction**.
+- **THIS REPOSITORY IS PUBLIC** (`matthewsinclair/intent`) -- true, and **hv has ruled it is not a user-facing risk, which corrects how I framed it.** A consumer installs `intent`/`intentd` from a tap and never receives our boards, sweeps, registers or session identifiers. **This repo's dev/PM apparatus is NOT shipped surface**; the only audience for it is someone reading the repo to see how Intent works, which is intended. What remains is ordinary: no secrets in commits, and write knowing it is readable. **The same distinction cuts the other way for project config, which IS user-facing** -- Intent dogfooding itself is exactly what makes one `config.json` look like a dev artefact.
 - **A CONTROL REFUSES; DOCUMENTATION REMINDS; ONLY ONE IS LOAD-BEARING.** Three nodes broke three rules _while enforcing them_; only the mechanisms that REFUSED held.
 - **ASSERT THE FIXTURE REACHED THE BRANCH BEFORE READING ITS VERDICT** (dc). A staged set can be empty and the run silently takes the full-sweep branch.
 - **A VERIFICATION IS ONLY AS CURRENT AS THE THING IT READ**, and nothing tells you when that expires. I committed against two Rust paths verified minutes before the tree moved again.
