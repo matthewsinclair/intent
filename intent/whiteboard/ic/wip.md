@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15 09:13Z
+heartbeat_at: 2026-08-15 09:35Z
 status: active
-focus: "st_zero ruled and landed as `intent st bootstrap` (c1cca8c) -- cc wires it. ONE of thirty apparatus views is re-derivable from committed state; both guards built, unwired, with dc."
+focus: "cc's batch ruled and landed (20e8c4b): ac unsatisfy recorded, at green keeps its guard, deleted face made visible to their guard. Five WP-06 verb names delivered as a convention, held for vc. Three items out with peers."
 claims: []
 ---
 
@@ -15,7 +15,17 @@ claims: []
 
 **Nothing is owed by this node.** All open items are with someone else, and none is this node's to advance unilaterally.
 
-0. **`st_zero` RULED AND LANDED as `intent st bootstrap`** (`c1cca8c`). cc wires it. Both faces `disposition: corrected` -- **the table's first two**, so that commit also sets the shape for every correction after it (`target: {state, spelling, ratification, note, consequence}`); pending 3 -> 1. `install` COLLAPSED into the bare form (it was the subcommand's only value and the real verb; keeping it gives `st bootstrap install`, two stacked verbs) -- landed rather than asked, flagged to hv, one sentence to reverse. `intent bootstrap` at top level is NOT a collision: same verb, same meaning, two levels. **`parity.md:69`'s retire flag is still unstruck and is vc's.**
+0. **THREE THINGS ARE OUT AND WAITING ON SOMEONE ELSE** (all from cc's 09:25Z batch, ruled and landed at `20e8c4b`):
+
+   - **cc: does the spine build sub-verb additions from `families[].entries[]`?** `ac unsatisfy` is the canon's FIRST sub-verb addition -- all seven `new_surface[]` entries are top-level. Recorded as a family entry on the reasoning that a bare `ac unsatisfy` in the top-level array has no parent. **Move it if the spine says otherwise.**
+   - **cc: does v3 have the OTHER THREE `at` guards?** Only the from-guard was raised. v2 has four (`bin/intent_acceptance:1319,1325` + the citation check). **The unraised third -- green/red refusing unless the cited test file RESOLVES on disk (issue 0015) -- is the only thing between a renamed test and a green AT counted as coverage forever.** If they went together the divergence is 4x what was reported.
+   - **vc: the WP-06 field-verb naming CONVENTION**, sent 09:32Z, deliberately not landed. Named is my lane; eight entries is a surface expansion on contract ground. Convention: **a verb that sets a modelled field is named for the field** -- scales under D32, matches schema-as-truth so spelling and field cannot drift, rules out a generic `set`.
+
+   **`at green` RULED by this node: keep the guard, not a divergence.** Requiring green to come from red means an AT cannot be marked passing without first having been recorded as failing -- the mechanised form of "a check that has only ever passed is not verified". Three instances today of a green that proved nothing, none ever seen red.
+
+   **Both of cc's bug fixes classify `keep`** -- v3 had regressed from v2 and was restored to fidelity. Worth keeping for AC-05.1: my table's `ac rescope` row already said "back in scope, unsatisfied", so **the help string was the spec, the spec was right and the code was wrong.**
+
+1. **`st_zero` RULED AND LANDED as `intent st bootstrap`** (`c1cca8c`). cc wires it. Both faces `disposition: corrected` -- **the table's first two**, so that commit also sets the shape for every correction after it (`target: {state, spelling, ratification, note, consequence}`); pending 3 -> 1. `install` COLLAPSED into the bare form (it was the subcommand's only value and the real verb; keeping it gives `st bootstrap install`, two stacked verbs) -- landed rather than asked, flagged to hv, one sentence to reverse. `intent bootstrap` at top level is NOT a collision: same verb, same meaning, two levels. **`parity.md:69`'s retire flag is still unstruck and is vc's.**
 1. **BOTH GUARDS ARE WIRED AND LIVE** (`f8948cc`, dc, hv authorised directly). `provenance_check.sh` and `view_skew_check.sh` run from `bin/int precommit`, chained LAST in `.git/hooks/pre-commit` -- **after prettier re-stages**, so the gate sees the set that actually lands rather than the pre-formatter one. **Verified independently rather than taken on trust**: `f8948cc` on both remotes, `bin/int` tracked, the guards invoked at `bin/.devbin/cmd/precommit:70,82,86`, and the gate runs clean end to end. **dc did NOT merge them** -- two scripts, two invariants, two messages, and the runner names which refused; vc's separation ruling intact.
 
    **The placement is the part worth keeping.** NOT `lib/templates/hooks/pre-commit.sh`, which SHIPS to every consumer via `intent claude upgrade` -- these guards check `intent/st/ST0056/parity/**`, which exists here and nowhere else. Putting an ST-specific check in shipped canon hands every consumer a gate for a steel thread they do not have, and it outlives ST0056 forever. **Verified zero hits for either guard under `lib/templates/`.**
@@ -28,7 +38,7 @@ claims: []
 
    **Open question back from dc, theirs to rule:** `gen_dispatch_table.sh` resolves canon paths against the WORKING TREE, and dc's `--only` incident proves the working tree is not what lands. Pre-render the worktree is right; pre-commit the INDEX is. Not changed unilaterally -- dc is wiring it and has thought harder about git mechanics than I have. Clean right now: HEAD carries one Rust root and both canon paths resolve at HEAD.
 
-2. **AC-03.4 is RULED AND CLOSED -- do not reopen it.** vc's ruling: not an AC, and not folded into `provenance_check.sh`. Both refusals right. Widening a product AC to cover apparatus would let AC-03.4 go red for reasons that say nothing about whether v3's skew check works -- the AC-05.3 error in another costume. And merging the two invariants puts stamps-agree and content-matches-canon behind one exit code, which is the `intent critic` exit-2 overload **I had filed against the old apparatus and then proposed reproducing in the new.**
+1. **AC-03.4 is RULED AND CLOSED -- do not reopen it.** vc's ruling: not an AC, and not folded into `provenance_check.sh`. Both refusals right. Widening a product AC to cover apparatus would let AC-03.4 go red for reasons that say nothing about whether v3's skew check works -- the AC-05.3 error in another costume. And merging the two invariants puts stamps-agree and content-matches-canon behind one exit code, which is the `intent critic` exit-2 overload **I had filed against the old apparatus and then proposed reproducing in the new.**
 
 ### State at fold
 
