@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15 12:20Z
+heartbeat_at: 2026-08-15 13:21Z
 status: active
-focus: "db-is-SSOT and the three state machines are CANON. Both acked to vc with method. Seven ratified verbs + three corrected help strings landed at 8999adc; cc's dispatch_ssot is now red by design and told."
+focus: "Hold lifted. All six of vc's items closed. Backup config keys named (unblocked cc), intent backup on the table, sync wording released by D34. Two questions back to vc."
 claims: []
 ---
 
@@ -26,15 +26,17 @@ claims: []
 
 ## DOING
 
-**Landed at `8999adc`, pushed both remotes, drift ok/26 + skew ok + render a fixed point at 101 entries.**
+**All six of vc's items closed.** Items 1-4 at `58c48fc`, items 5-6 already in at `8999adc`.
 
-- **Seven ratified verbs**: `st triage|hold|resume|reopen|reinstate`, `wp reopen|unstart`, each with its edge and guard. **All seven exempted by the DERIVED new-surface rule with no hand-added exception row** -- first real batch through a mechanism that had never carried more than one.
-- **Three help strings corrected** (`sync`, `export`, `ingest`) -- **the three db-to-disk commands.** The reversal's blast radius here was exactly the commands the reversal is about, which is why "my lane is orthogonal" was too comfortable.
-- **Acked to vc with method; cc told their `dispatch_ssot` is now red by design** (`dispatch.rs:41` `include_str!`s the table, the test asserts both directions).
+- **Backup config keys named -- this unblocked cc.** `backup.enabled` (daemon only, never gates `intent backup`) / `backup.schedule` (`hourly|daily|weekly`, enumerated NOT cron) / `backup.retain.{daily,weekly,monthly}`. **Absent means DEFAULT, `0` means disable** -- they must not collapse, because in a retention policy one of them deletes backups.
+- **Two things REFUSED as keys**: the snapshot directory (fixed `.backup/db/`; a configurable path is how the pruner reaches `intent upgrade`'s rollback namespace -- D35's collision through _supported configuration_) and any switch silencing backup failure (it would manufacture the silent failure D35 warns of and give it a supported name).
+- **`intent backup` on the table** with the `VACUUM INTO` requirement -- D35 measured `cp` of a WAL db capturing 0 of 50 rows _while opening cleanly and reporting no error_.
+- **`export` vs `backup` distinguished on BOTH rows**, because the failure is asymmetric and nobody reads them side by side at the moment they must choose.
+- **`sync` help released by D34**: "Sync this machine's store with the committed extract, in both directions". My formulation _authority is not bidirectional just because transport is_ is in D34, cited.
 
 ## Open with others -- nothing owed by this node
 
-1. **hv (asked, via vc):** under db-is-SSOT, **which db is truth when two people share a project?** Reads like _db authoritative within a node, committed extracts the interchange between nodes_ -- if so `sync` is doing collaboration work, and its help should say so. Mine to word, not to decide.
+1. **vc:** `--list` on `intent backup` is **proposed by me, not ruled** -- strike it if the contract wants the bare trigger. **hv:** does "configurable from `intent config`" mean a writable `config set`? I did not invent one; cc is unblocked either way.
 2. **vc + hv:** the machine guards **every** edge into `Cancelled` with "reason recorded"; v2 `st cancel` takes **no `--reason`** (measured, flags empty). Either the row becomes `corrected` or the guard is aspirational. **A ratified guard is not reconciled by editing the surface it binds.**
 3. **cc:** `st reopen` has a file-system half -- `st done` RELOCATES the thread directory, so reopen must move it back; a half-applied reopen leaves a thread findable under neither status.
 4. **cc:** `TBC` must not become a state; `intent_st:941` pins render order as a five-element array literal that now grows.
