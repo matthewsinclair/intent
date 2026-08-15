@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-15 08:30Z
+heartbeat_at: 2026-08-15 08:44Z
 status: active
-focus: "Aggressive localfold before a compact, continuing on the bounce. Five gates PASS; WP-04 and WP-06 open. D31/D32 landed from hv. 31/94, 94 AT rows."
+focus: "hv's native/ reorganisation is in flight in cc's hands; ruled the acceptance.md rewrite anchored, not blanket. AC-03.4 ruled back to ic as a guard, not an AC. Verifying after cc's commit."
 claims: [ST0056]
 ---
 
@@ -13,14 +13,15 @@ claims: [ST0056]
 
 ## DOING
 
-- **Aggressive localfold before a compact, not a release.** `/compact` does not end a session (protocol invariant 6), so status stays `active`. Session detail is in `.history/20260815/wip.md`.
+- **VERIFY AFTER cc's `native/` COMMIT.** hv ruled all Rust material moves under `native/`. Ruled to cc: one commit including acceptance.md, and the rewrite is **anchored to the AT row grammar, not a blanket prefix sed** -- 74 `crates/` occurrences, 73 on AT rows, 1 at acceptance.md:209 inside a DATED finding that must not move. Dry-run verified 73 lines, line count identical. On landing: `intent at lint ST0056`, all six gates, and specifically re-verify AC-03.7 / AT-03.9 (machine independence) and AC-03.8 (canon round-trip), because a directory move changes corpus shape and those are the two ACs whose evidence is about exactly that.
 
 ## TODO
 
 - **WP-04 reopened at 5/6 by AC-04.6** (D32 mutation completeness). WP-06 is 4/7: AC-06.1, AC-06.3, AC-06.6. AC-06.3 is mine and ic's; the rest are cc's.
 - **AC-00.1 carries the 28 deferred non-core `pending` rows.** ic's to name, gated here, not forgiven.
+- **`intent/whiteboard/README.md:18` still describes cc's lane as `crates/`.** Hand-authored roster, no single writer -- needs `native/`. Flagged to cc; owned by nobody, which is why it will rot.
 - **ONE QUESTION STILL OPEN FOR HV, and it is the only existential one left**: does "durable state is in the db" (D32) reverse D01? D01 says durable truth is committed JSON canon and the DB is rebuildable -- `rm intent.db` always safe, no DB migrations ever, git can review the model. Recorded as NOT reversing it, because hv's contrast was model-versus-scattered-md. Two nodes stopped on it independently. **Never settle this by inference.**
-- **Wiring ic's `provenance_check.sh` into the pre-commit gate** -- ruled correct in principle, deliberately not done at the end of a long session in a shared path. Fresh session or hv.
+- **Two apparatus guards ruled, both ic's to build, both still unwired.** (a) `provenance_check.sh` into pre-commit -- and it is more load-bearing than it looks: **`pertest.md` cannot be re-derived from committed state by anything** (`gen_pertest.sh` needs burn.sh's uncommitted TAP), so for that one artefact the stamp is the ONLY guard in existence. (b) AC-03.4 ruled 08:43Z: a sibling `view_skew_check.sh`, **not** an AC and **not** merged into provenance_check -- different invariants behind one exit code is `intent critic`'s exit-2 overload rebuilt in new apparatus. Path-triggered, since `gen_dispatch_table.sh` reads only `$IN`. `gen_inventory.sh` does not honour `OUT`, so `cmd-*.md` is unverifiable until it does.
 - **WP-10 precondition, from cc**: measure L2/L3 failures per fleet member at its named revision before ruling on whether a broken reference in a CLOSED thread carries or blocks.
 
 ## Verification kit
