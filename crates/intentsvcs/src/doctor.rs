@@ -368,7 +368,7 @@ fn db_checks(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
     out.push(Finding::new(
       "intent/.cache/intent.db",
       FindingClass::ModelInconsistent,
-      "the runtime store does not match a rebuild from committed canon; the DB is derived and rebuildable, so delete intent/.cache/ and let the next command rebuild it",
+      "the runtime store does not match a rebuild from committed canon -- commands are answering from the store and will report the stale model until it is refreshed; run `intent sync` (deleting intent/.cache/ also works, since the store is derived)",
     ));
   }
 }

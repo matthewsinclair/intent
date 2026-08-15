@@ -5283,6 +5283,17 @@
       }
     },
     {
+      "path": "sync",
+      "help": "Reconcile the runtime store with committed canon on disk",
+      "v2": "new-surface",
+      "basis": "hv, 2026-08-14: 'Syncing back-and-forth from disk to db is something that is triggered manually (eg via intent sync) or periodically (eg via intentd running its async synchronisation process).' Daily-driver commands answer from the store and never scan the tree; this is the expensive, infrequent half of that split.",
+      "owner_wp": "WP-06",
+      "note": "NOT the same command as `st sync`, which in v2 regenerates steel_threads.md from the ST files (bin/intent_st:1145). In v3 the index is GENERATED from the model, so v2's job is a strict subset of this reconciliation and both spellings run it. Added by cc at build time (2026-08-14).",
+      "target": {
+        "state": "new-surface"
+      }
+    },
+    {
       "path": "schema",
       "help": "Print the generated schema faces (JSON Schema, DDL, GraphQL SDL)",
       "args": [

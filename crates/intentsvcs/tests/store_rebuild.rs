@@ -31,12 +31,16 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
         title: "Design canon".to_string(),
         scope: TShirt::L,
         status: WpStatus::Done,
+        objective: String::new(),
+        body: String::new(),
       },
       WorkPackage {
         seq: 2,
         title: "Workspace".to_string(),
         scope: TShirt::L,
         status: WpStatus::Wip,
+        objective: String::new(),
+        body: String::new(),
       },
     ],
     criteria: vec![

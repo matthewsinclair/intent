@@ -97,16 +97,18 @@ fn io_err(path: &Path, source: io::Error) -> SyncError {
 /// Output is ordered by path, so two scans of one tree are comparable without
 /// the caller sorting.
 pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncError> {
+  let ignored = Ignored::for_root(root);
+
   let mut paths = Vec::new();
   for name in ROOT_FILES {
     let candidate = root.join(name);
-    if candidate.is_file() {
+    if candidate.is_file() && !ignored.contains(&candidate) {
       paths.push(candidate);
     }
   }
   let intent_dir = root.join("intent");
   if intent_dir.is_dir() {
-    walk(&intent_dir, &mut paths)?;
+    walk(&intent_dir, &ignored, &mut paths)?;
   }
   paths.sort();
 
@@ -117,10 +119,74 @@ pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncE
   Ok(entries)
 }
 
+/// The set of paths git would never commit, which are therefore never canon.
+///
+/// **D29 / AC-03.7.** Ingest walks the filesystem; git does not. On macOS every
+/// directory acquires a `.DS_Store`, `.gitignore` excludes them, and strict
+/// ingest then correctly refused a corpus containing what it correctly could
+/// not parse -- so `intent search` exited 1 having read nothing, on a clean
+/// checkout, on every Mac. Because AC-10.2 makes residue a migration BLOCK,
+/// that failure propagated to the fleet rollout's first step.
+///
+/// **D05 is not weakened; the CORPUS is defined.** The rule is derived from
+/// D01 rather than picked to fit: durable truth is committed, schema-validated
+/// JSON, so a path git can never commit can never be canon, and must never
+/// produce residue or block a read.
+///
+/// **Not a `.DS_Store` special case, deliberately.** The same rule is already
+/// load-bearing and currently held by luck: `intent/.cache/intent.db` escapes
+/// today through path shape (`SKIPPED_DIRS`) rather than through any rule, and
+/// WP-13 widens the corpus to the whole project for search, at which point a
+/// binary SQLite file walks into scope. One rule now, or two bugs later.
+///
+/// Two edges, both of which are worse to get backwards than the original bug:
+///
+/// - It keys on IGNORED, never on untracked. A `thread.json` you just created
+///   and have not committed must still ingest -- that is what most of a
+///   working session looks like.
+/// - A project with no git has no ignore rules, so nothing is ignored and the
+///   corpus degrades to everything-in-scope rather than to nothing. That falls
+///   out of the walker's `require_git` default rather than being special-cased.
+struct Ignored {
+  paths: std::collections::HashSet<PathBuf>,
+}
+
+impl Ignored {
+  /// Enumerate the ignored paths under `root` by walking WITH ignore rules off
+  /// and again with them on, and taking the difference.
+  ///
+  /// The walker reports what it keeps, not what it drops, so the set is
+  /// derived rather than read off. Cheap enough here because the tree is the
+  /// project's own and already being scanned.
+  fn for_root(root: &Path) -> Self {
+    let visible: std::collections::HashSet<PathBuf> = ignore::WalkBuilder::new(root)
+      .hidden(false)
+      .parents(true)
+      .build()
+      .filter_map(Result::ok)
+      .map(|e| e.into_path())
+      .collect();
+    let all: std::collections::HashSet<PathBuf> = ignore::WalkBuilder::new(root)
+      .hidden(false)
+      .standard_filters(false)
+      .build()
+      .filter_map(Result::ok)
+      .map(|e| e.into_path())
+      .collect();
+    Self {
+      paths: all.difference(&visible).cloned().collect(),
+    }
+  }
+
+  fn contains(&self, path: &Path) -> bool {
+    self.paths.contains(path)
+  }
+}
+
 /// Depth-first, name-ordered walk. Ordering is explicit because `read_dir`
 /// order is filesystem-dependent, and an index whose row order varies by
 /// machine cannot be compared across them.
-fn walk(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SyncError> {
+fn walk(dir: &Path, ignored: &Ignored, out: &mut Vec<PathBuf>) -> Result<(), SyncError> {
   let mut children: Vec<PathBuf> = std::fs::read_dir(dir)
     .map_err(|e| io_err(dir, e))?
     .collect::<Result<Vec<_>, _>>()
@@ -135,11 +201,14 @@ fn walk(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SyncError> {
       .file_name()
       .map(|n| n.to_string_lossy().into_owned())
       .unwrap_or_default();
+    if ignored.contains(&child) {
+      continue;
+    }
     if child.is_dir() {
       if SKIPPED_DIRS.contains(&name.as_str()) {
         continue;
       }
-      walk(&child, out)?;
+      walk(&child, ignored, out)?;
     } else if child.is_file() {
       out.push(child);
     }

@@ -202,12 +202,20 @@ pub fn sample_thread(id: &str) -> Thread {
         title: "Workspace and reified model".to_string(),
         scope: TShirt::L,
         status: WpStatus::Done,
+        objective: "Stand up the cargo workspace and reify the model.".to_string(),
+        body: String::new(),
       },
       WorkPackage {
         seq: 3,
         title: "Ingest, views and sync -- `intent_st_zero` | strict".to_string(),
         scope: TShirt::L,
         status: WpStatus::Wip,
+        // MARKUP-BEARING AND DISTINCTIVE, for the same reason the thread's
+        // prose fields are (D28). `quokka` appears in NO other field of this
+        // fixture, so AC-06.7's "search finds a phrase that exists only in a
+        // work package body" is asserted by a word that cannot match a title.
+        objective: "Land strict ingest, deterministic views and the sync engine.".to_string(),
+        body: "## Why the incumbents go\n\nThe quokka clause: a section the template never named, carried verbatim.\n\n## The seams\n\nA `pipe | inside` prose, and _emphasis_ the formatter rewrites.".to_string(),
       },
     ],
     criteria: vec![

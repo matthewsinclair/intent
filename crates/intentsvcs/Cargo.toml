@@ -17,6 +17,7 @@ ulid.workspace = true
 time.workspace = true
 thiserror.workspace = true
 sha2.workspace = true
+ignore.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true

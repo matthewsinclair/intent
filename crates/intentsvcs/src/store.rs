@@ -48,6 +48,8 @@ CREATE TABLE IF NOT EXISTS wps (
   title TEXT NOT NULL,
   scope TEXT NOT NULL,
   status TEXT NOT NULL,
+  objective TEXT NOT NULL,
+  body TEXT NOT NULL,
   PRIMARY KEY (thread_id, seq)
 );
 CREATE TABLE IF NOT EXISTS criteria (
@@ -201,13 +203,15 @@ impl Store {
       }
       for wp in &t.wps {
         tx.execute(
-          "INSERT INTO wps (thread_id, seq, title, scope, status) VALUES (?1, ?2, ?3, ?4, ?5)",
+          "INSERT INTO wps (thread_id, seq, title, scope, status, objective, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
           params![
             t.id,
             wp.seq,
             wp.title,
             enum_str(&wp.scope),
-            enum_str(&wp.status)
+            enum_str(&wp.status),
+            wp.objective,
+            wp.body
           ],
         )?;
       }
@@ -367,7 +371,7 @@ impl Store {
   fn wps_of(&self, thread: &str) -> Result<Vec<WorkPackage>, StoreError> {
     let mut stmt = self
       .conn
-      .prepare("SELECT seq, title, scope, status FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
+      .prepare("SELECT seq, title, scope, status, objective, body FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
     let raw = stmt
       .query_map(params![thread], |row| {
         Ok((
@@ -375,17 +379,21 @@ impl Store {
           row.get::<_, String>(1)?,
           row.get::<_, String>(2)?,
           row.get::<_, String>(3)?,
+          row.get::<_, String>(4)?,
+          row.get::<_, String>(5)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
     raw
       .into_iter()
-      .map(|(seq, title, scope, status)| {
+      .map(|(seq, title, scope, status, objective, body)| {
         Ok(WorkPackage {
           seq,
           title,
           scope: enum_from(&scope)?,
           status: enum_from(&status)?,
+          objective,
+          body,
         })
       })
       .collect()

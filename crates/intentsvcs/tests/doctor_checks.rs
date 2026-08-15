@@ -45,6 +45,8 @@ fn clean_thread(id: &str) -> Thread {
       title: "The only package".to_string(),
       scope: TShirt::S,
       status: WpStatus::Wip,
+      objective: String::new(),
+      body: String::new(),
     }],
     criteria: vec![Criterion {
       id: "AC-01.1".to_string(),

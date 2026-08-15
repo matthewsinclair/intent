@@ -37,8 +37,14 @@ pub struct Canon {
 
 #[derive(Debug, thiserror::Error)]
 pub enum IngestError {
+  // NOT `#[from]`: that implies `#[source]`, so with `{0}` as the Display body
+  // the refusal renders once as this variant's message and again as its own
+  // cause, and every residue count reads DOUBLE. Measured on this repo: 12
+  // findings, 24 printed lines, against a summary line correctly saying 12.
+  // AC-10.2 shows a migrator its residue per line, so a migration would have
+  // reported twelve problems as twenty-four.
   #[error("{0}")]
-  Refused(#[from] Refusal),
+  Refused(Refusal),
   #[error(transparent)]
   Store(#[from] StoreError),
   #[error(transparent)]
@@ -49,6 +55,12 @@ pub enum IngestError {
     #[source]
     source: std::io::Error,
   },
+}
+
+impl From<Refusal> for IngestError {
+  fn from(refusal: Refusal) -> Self {
+    Self::Refused(refusal)
+  }
 }
 
 /// The authored prose files that belong to a thread. Generated views
@@ -160,24 +172,55 @@ pub fn load(project: &Project, store: &mut Store) -> Result<Canon, IngestError> 
 /// What it does NOT do is weaken D01. Committed canon is still the durable
 /// truth and the store is still rebuildable from it at any instant; `rm` of
 /// the cache is still always safe, because a cold store simply takes the
-/// ingest path. What changes is how often the rebuild is PAID FOR: on a
-/// detected change, not on every command.
-///
-/// **The freshness test is content hashing, not stat** (AC-03.3). Reading a
-/// file to hash it is far cheaper than parsing and schema-validating it, and
-/// it is the only test that cannot be fooled by a same-size same-mtime write.
-/// The scan remains on the command path until WP-08's daemon watches the tree
-/// and keeps the store hot -- at which point this check leaves the command
-/// path entirely, which is the real end state.
+/// ingest path via [`resync`]. What changes is WHEN that is paid for.
 pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestError> {
+  // THE DAILY DRIVER DOES NOT LOOK AT THE FILES. hv, 2026-08-14: "A sync
+  // ingest/egest is fine to be (relatively) expensive. This is infrequent and
+  // can even be done periodically by intentd in the background. But CLI and
+  // TOOL and MCP use for daily driver use needs to be FAST."
+  //
+  // The first version of this verified freshness by content-hashing the whole
+  // tree before every command, which was measured at 244 files and ~13ms on an
+  // 80-thread project -- and the hashing, not the parsing, was the dominant
+  // cost. Hashing is the only honest freshness test (AC-03.3), so the way to
+  // stop paying for it is not to make it cheaper but to take it OFF this path.
+  //
+  // Where freshness comes from instead:
+  //   - `intent sync`, explicitly, which is [`resync`] below;
+  //   - WP-08's intentd, watching the tree and keeping the store hot;
+  //   - a cold store, which ingests once here and is then warm.
+  //
+  // And staleness stays VISIBLE rather than becoming a silent wrong answer:
+  // `doctor` rebuilds from canon and compares, so "the store disagrees with
+  // the files" is a reported finding with a named remedy. That is the trade
+  // hv is making, made explicit rather than assumed.
+  let (threads, issues) = store.load_canon()?;
+  if !threads.is_empty() || !issues.is_empty() {
+    return Ok(Canon {
+      threads,
+      issues,
+      sections: store.doc_sections()?,
+    });
+  }
+
+  // Cold store: ingest once, from the files, and warm it.
+  resync(project, store)
+}
+
+/// Re-read the committed canon and rebuild the store from it -- the expensive,
+/// infrequent path (`intent sync`, and intentd's background pass).
+///
+/// This is where the whole-tree scan lives now. It refuses on an unparsed file
+/// (AC-03.5) rather than reading through it, and it leaves the file index
+/// updated so the sync engine can answer "what changed" without re-deriving
+/// it.
+pub fn resync(project: &Project, store: &mut Store) -> Result<Canon, IngestError> {
   let previous = store.file_index()?;
   let entries = sync::scan(project.root(), &previous).map_err(|e| IngestError::Io {
     path: project.root().display().to_string(),
     source: std::io::Error::other(e.to_string()),
   })?;
 
-  // An unparsed file refuses the whole command (AC-03.5), whichever path we
-  // would have taken. Nothing reads through a conflict-markered artefact.
   let findings: Vec<Finding> = entries
     .iter()
     .filter(|e| e.state == FileState::Unparsed)
@@ -185,25 +228,6 @@ pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestE
     .collect();
   if !findings.is_empty() {
     return Err(Refusal::new(findings).into());
-  }
-
-  let moved = entries.iter().any(|e| e.state == FileState::Changed)
-    || entries.len() != previous.len()
-    || previous.is_empty();
-
-  if !moved {
-    let (threads, issues) = store.load_canon()?;
-    // A store holding no threads while the tree holds canon files means a
-    // cold cache that the index nonetheless considers unchanged -- take the
-    // ingest path rather than answering an empty model, which would report
-    // "no steel threads" on a project full of them.
-    if !(threads.is_empty() && entries.iter().any(|e| e.path.ends_with("thread.json"))) {
-      return Ok(Canon {
-        threads,
-        issues,
-        sections: store.doc_sections()?,
-      });
-    }
   }
 
   let canon = read(project)?;
@@ -354,7 +378,7 @@ impl Validated for Issue {
 /// projections rebuilt from `thread.json` on every load, so this is one truth
 /// carrying two indexes, which is what an index is. The authored/generated
 /// line D02 protects is untouched: nothing here is written back to a file.
-fn collect_wp_text(project: &Project, out: &mut Vec<DocSection>, thread: &Thread) {
+pub fn collect_wp_text(project: &Project, out: &mut Vec<DocSection>, thread: &Thread) {
   let file = project.relative(&project.thread_json(&thread.id));
   for wp in &thread.wps {
     out.push(DocSection {
@@ -364,7 +388,17 @@ fn collect_wp_text(project: &Project, out: &mut Vec<DocSection>, thread: &Thread
       seq: wp.seq,
       heading: Some(wp.title.clone()),
       level: 0,
-      body: String::new(),
+      // D28: the authored prose, not just the title. AC-06.7 requires `intent
+      // search` to find a phrase that appears ONLY in a work package's body,
+      // which is what makes AC-06.4's "WP text" mean something rather than
+      // matching titles.
+      body: if wp.objective.is_empty() {
+        wp.body.clone()
+      } else if wp.body.is_empty() {
+        wp.objective.clone()
+      } else {
+        format!("{}\n\n{}", wp.objective, wp.body)
+      },
     });
   }
 }

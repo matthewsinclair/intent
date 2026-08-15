@@ -345,6 +345,31 @@ impl Facade {
     })
   }
 
+  /// Re-read committed canon and rebuild the store from it -- `intent sync`.
+  ///
+  /// The expensive, infrequent half of the daily-driver split (hv,
+  /// 2026-08-14). Ordinary commands answer from the store and never scan the
+  /// tree; this is what makes the store agree with the files again after a
+  /// `git pull`, a hand edit, or anything else that moved canon behind the
+  /// tool's back. WP-08's intentd runs it in the background, at which point
+  /// the operator stops needing to.
+  ///
+  /// It also refreshes the generated views, because a resync that fixed the
+  /// store and left the views stale would swap one disagreement for another.
+  pub fn sync(&mut self) -> Result<usize, FacadeError> {
+    let canon = ingest::resync(&self.project, &mut self.store)?;
+    let views = views::write_all(&self.project, &canon, &self.render_ctx()).map_err(|e| {
+      FacadeError::Write(WriteError::Io {
+        path: self.project.root().display().to_string(),
+        source: e,
+      })
+    })?;
+    let count = canon.threads.len();
+    self.canon = canon;
+    let _ = views;
+    Ok(count)
+  }
+
   /// Run every health check (AC-06.2). A read: it reports, and repairs
   /// nothing.
   ///
@@ -481,6 +506,8 @@ impl Facade {
       + 1;
     let mut next = self.canon.clone();
     find_thread_mut(&mut next, st)?.wps.push(WorkPackage {
+      objective: String::new(),
+      body: String::new(),
       seq,
       title: title.to_string(),
       scope,
@@ -798,9 +825,29 @@ impl Facade {
       subject,
       payload,
     );
+    // The prose index is refreshed with the derived tables, not left behind.
+    //
+    // Work-package text is DERIVED FROM CANON (D28), so a mutation that
+    // rebuilt the model and left `doc_sections` alone would leave `intent
+    // search` answering from the previous model -- silently, since a search
+    // that finds nothing looks exactly like a search with no matches. The
+    // file-derived sections are kept as they were; only the canon-derived ones
+    // are recomputed, because nothing here read a file.
+    let mut sections: Vec<crate::prose::DocSection> = self
+      .canon
+      .sections
+      .iter()
+      .filter(|s| s.owner_type != "work-package")
+      .cloned()
+      .collect();
+    for thread in &next.threads {
+      ingest::collect_wp_text(&self.project, &mut sections, thread);
+    }
+
     let db = self
       .store
       .rebuild(&next.threads, &next.issues)
+      .and_then(|()| self.store.replace_doc_sections(&sections))
       .and_then(|()| self.store.append_event(&envelope));
 
     match db {

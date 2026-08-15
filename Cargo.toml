@@ -18,6 +18,16 @@ license = "MIT"
 # constants a derive-based spine would use -- which is the design AC-05.1
 # rules out.
 clap = { version = "4", features = ["string"] }
+# The CORPUS rule (D29 / AC-03.7): a path git can never commit can never be
+# canon. ripgrep's walker rather than a hand-rolled .gitignore parser, because
+# gitignore is not a simple format -- nested files, negation, `**`, directory
+# vs file semantics, .git/info/exclude, the global core.excludesFile -- and a
+# partial reimplementation would silently disagree with git on exactly the
+# edge cases that put a file back in scope.
+# Its default `require_git(true)` is what gives the no-repo edge for free: with
+# no repository there are no ignore rules, so the corpus degrades to
+# everything-in-scope rather than to nothing.
+ignore = "0.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 schemars = "1"

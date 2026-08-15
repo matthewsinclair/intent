@@ -356,6 +356,16 @@
     "WorkPackage": {
       "type": "object",
       "properties": {
+        "body": {
+          "description": "Every OTHER authored section of the work package, verbatim.\n\nTwo fields rather than three, deliberately (vc, D28). Real work packages\nexceed the template freely -- WP-13 carries \"Why the incumbents go\", \"The\ntiers\", \"The seams\" -- so `objective` takes the one guaranteed section\nand `body` takes the rest whole. That is lossless by construction, where\na fixed set of named sections would silently drop anything unforeseen.\n\n`deliverables` is deliberately NOT modelled as an array: it is the\nartefact this thread already demoted when WP-02 closed with `intent\nschema` unbuilt, and structuring it would re-privilege what ACs replaced.",
+          "type": "string",
+          "default": ""
+        },
+        "objective": {
+          "description": "What this work package ships. The guaranteed authored section (D28).\n\nD22 modelled `objective` and `context` on the thread and stopped there;\n`WP/<NN>/info.md` is the same mixed file one level down, and nothing\ncarried its prose. Without this the WP-10 migration would have destroyed\nit -- ST0056's own `WP/13/info.md` is the search work package's spec,\nhundreds of lines -- and hv has ratified that a migration is never lossy.",
+          "type": "string",
+          "default": ""
+        },
         "scope": {
           "$ref": "#/$defs/TShirt"
         },

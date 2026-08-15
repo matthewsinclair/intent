@@ -151,6 +151,16 @@ fn st(m: &ArgMatches) -> Result<(), String> {
       }
       Ok(())
     }
+    Some(("sync", _)) => {
+      // The expensive, infrequent half of the daily-driver split: ordinary
+      // commands answer from the store and never scan the tree, so this is
+      // what makes the store agree with the files again after a `git pull` or
+      // a hand edit.
+      let mut f = open()?;
+      let count = f.sync().map_err(fail)?;
+      println!("ok: synced {count} steel thread(s) from committed canon");
+      Ok(())
+    }
     Some((verb, _)) => unwired("st", verb),
     None => Err("error: a steel thread command is required".to_string()),
   }

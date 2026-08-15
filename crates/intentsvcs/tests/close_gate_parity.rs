@@ -43,6 +43,8 @@ fn thread(criteria: Vec<Criterion>, tests: Vec<AcceptanceTest>) -> Thread {
       title: "one".to_string(),
       scope: TShirt::M,
       status: WpStatus::Wip,
+      objective: String::new(),
+      body: String::new(),
     }],
     criteria,
     tests,
@@ -187,6 +189,8 @@ fn an_ac_free_wp_rolls_up_and_says_so() {
     title: "later".to_string(),
     scope: TShirt::S,
     status: WpStatus::NotStarted,
+    objective: String::new(),
+    body: String::new(),
   });
   assert_eq!(
     gate(&t, Scope::WorkPackage(4), &AllResolve).line("ST0001/04"),
@@ -224,6 +228,8 @@ fn a_wp_scope_evaluates_only_that_wps_criteria() {
     title: "two".to_string(),
     scope: TShirt::M,
     status: WpStatus::Wip,
+    objective: String::new(),
+    body: String::new(),
   });
 
   assert_eq!(

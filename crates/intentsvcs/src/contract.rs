@@ -391,6 +391,8 @@ mod tests {
         title: "w".to_string(),
         scope: crate::model::TShirt::L,
         status: crate::model::WpStatus::Wip,
+        objective: String::new(),
+        body: String::new(),
       }],
       criteria,
       tests,
@@ -551,6 +553,8 @@ mod tests {
       title: "later".to_string(),
       scope: crate::model::TShirt::S,
       status: crate::model::WpStatus::NotStarted,
+      objective: String::new(),
+      body: String::new(),
     });
     assert_eq!(
       gate(&t, Scope::WorkPackage(7), &AllResolve).line("ST0056/07"),

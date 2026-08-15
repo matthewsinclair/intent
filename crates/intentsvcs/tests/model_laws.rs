@@ -72,8 +72,18 @@ fn ac_scope() -> impl Strategy<Value = AcScope> {
 }
 
 prop_compose! {
-  fn work_package()(seq in 1u32..99, title in "[A-Za-z ]{1,40}", scope in tshirt(), status in wp_status()) -> WorkPackage {
-    WorkPackage { seq, title, scope, status }
+  fn work_package()(
+    seq in 1u32..99,
+    title in "[A-Za-z ]{1,40}",
+    scope in tshirt(),
+    status in wp_status(),
+    // D28's authored prose is GENERATED, not stubbed: the round-trip and
+    // canonical-JSON laws have to hold for a work package carrying markdown,
+    // which is the whole reason `body` exists.
+    objective in "[A-Za-z ,.`|]{0,80}",
+    body in "(?s)[A-Za-z0-9 \n#`|_-]{0,200}",
+  ) -> WorkPackage {
+    WorkPackage { seq, title, scope, status, objective, body }
   }
 }
 
@@ -204,6 +214,8 @@ fn sample_thread() -> Thread {
       title: "Workspace and reified model".to_string(),
       scope: TShirt::L,
       status: WpStatus::Wip,
+      objective: String::new(),
+      body: String::new(),
     }],
     criteria: vec![Criterion {
       id: "AC-02.4".to_string(),

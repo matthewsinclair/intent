@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS wps (
   title TEXT NOT NULL,
   scope TEXT NOT NULL,
   status TEXT NOT NULL,
+  objective TEXT NOT NULL,
+  body TEXT NOT NULL,
   PRIMARY KEY (thread_id, seq)
 );
 CREATE TABLE IF NOT EXISTS criteria (
