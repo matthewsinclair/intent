@@ -361,7 +361,7 @@ STZero retrofit -- install the zeroth steel thread (newly authored; v2 has no us
   - UNDOCUMENTED: absent from bin/intent_st's usage() block entirely. It was missing from parity.md's command-level table until the deep pass measured it.
   - INV-07 at inverted -- bare invocation prints only usage and exits 0, where every other family exits 1
 - **Target:** `pending-hv`
-- **Open question for hv:** parity.md already flags `st_zero` as a candidate for a ratified retire if the fleet does not use it. That ruling decides this row too -- both faces (`intent st zero` and `intent st_zero`) or neither.
+- **Open question for hv:** SUPERSEDED, NOT ANSWERED. hv has ruled that st_zero moves under `st` and the underscore goes, which settles the retire question in the negative -- you do not rehome a command you are retiring. What is still open is ONLY THE VERB, and this face is the incumbent: `intent st zero` already works (bin/intent_st:1610 execs the binary) and is the ONLY spelling the command's own usage block documents, so keeping it is a zero-divergence outcome. hv floated `intent st initzero`, which reads better -- `st`'s other subcommands are verbs (new, list, show, edit, done, cancel) and `zero` is a noun, so `st zero install` parses noun-then-verb -- but it is a coinage nobody has typed, no more obviously right than `init-zero`, and it buys a divergence row on a face that currently has none. Held at pending rather than guessed: cc wires whatever this lands on.
 - **Cross-reference:** The top-level `st_zero` family covers bin/intent_st_zero; this entry is the alias face only.
 
 ## Family: `wp`
@@ -2240,7 +2240,7 @@ Retrofit ST0000 deliverables into brownfield projects
 - **Defects observed in v2:**
   - A bare invocation that printed only usage exits 0, where every other family in this table exits 1 for the same shape. Inconsistent in the opposite direction to INV-07.
 - **Target:** `pending-hv`
-- **Open question for hv:** parity.md already flags st_zero as a retire candidate pending fleet evidence. That ruling decides both spellings at once; until it lands this is `pending`, not a guess.
+- **Open question for hv:** The retire question is MOOT, not answered: hv ruled st_zero rehomes under `st` rather than retiring, so parity.md:69's retire-candidate flag needs striking (vc's file). THIS ROOT FACE DIES EITHER WAY -- it is the only underscore in the entire command surface, which is its own tell, and the command's own usage block has never documented it, so deleting it is a `corrected` divergence against a spelling no user was ever told to use. Still `pending` rather than `corrected` because a correction needs a target and the surviving verb is undecided: `st zero` (incumbent, self-documented, zero divergence) vs `st initzero` (hv's floated name, reads better, costs a divergence row).
 
 ## Family: `version`
 
