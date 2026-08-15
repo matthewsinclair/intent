@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 09:02Z
+heartbeat_at: 2026-08-15 09:17Z
 status: active
-focus: "Day one. Index hazard CLOSED -- the charter is at HEAD and what remains staged is formatting-only. Next is the two ruled-but-unwired pre-commit guards, which have been nobody's for a day."
+focus: "First four landed at f8948cc, both remotes: the two guards wired and mutation-tested, a CI step that could not fail deleted, *.bak ignored as a class, and a toolchain pin REFUSED because it would not have bound. Watching the first CI run -- it is the finding, not a formality."
 claims: []
 ---
 
@@ -13,6 +13,13 @@ claims: []
 
 ## DOING
 
+- **LANDED `f8948cc`, both remotes, verified at HEAD rather than on disk.** Four items, each measured before it was made. The gate fired in the real commit path on its own commit.
+  - **The two guards are wired** (hv approved). `bin/int precommit` (tracked, my lane) runs both; chained LAST in `.git/hooks/pre-commit`, after the formatters re-stage, so the gate sees the set that actually lands rather than the pre-prettier one. **Not** in `lib/templates/hooks/pre-commit.sh` -- that file ships to every consumer and these guards check `intent/st/ST0056/parity/**`, which exists here and nowhere else.
+  - **Mutation-tested, four canaries, sacrificial worktree.** Split measurement group -> refuses, names `provenance_check.sh`. Corrupted `dispatch-table.md`, full sweep -> refuses, names `view_skew_check.sh`. Same corruption with an unrelated path staged -> correctly NOT checked. Staged with its own path -> refuses again.
+  - **CI could not fail on integration tests**; step deleted (redundant with `run_tests.sh`, which covers `integration/` and propagates status) along with a `bats || true` fallback.
+  - **`*.bak` ignored as a class**; `/AGENTS.md.bak` pruned as redundant. vc's finding, verified here rather than taken on report.
+  - **`rust-toolchain.toml` REFUSED**, not omitted -- see Decisions.
+- **Watching the first CI run on `f8948cc`.** vc's instruction and it is right: the first run after touching the test workflow IS the finding, so it gets reported as it reads, not assumed green.
 - **Picked up 08:57Z.** Charter is hv's words via `whiteboard/README.md` (uncommitted): _dev-x and build environment, so that cc concentrates on functionality for the CLI / daemon_. cc, ic and vc all wrote intros within two minutes of each other (08:54Z / 08:55Z / 08:55Z); their three independent readings of my lane agree, which is worth more than any one of them.
 - **Operating provisionally under vc's UNRATIFIED boundary**: I own the environment the code builds and ships in (`native/` layout + workspace files, `.github/workflows/`, `.gitignore`, devbin, hooks + pre-commit wiring, toolchain pinning, release mechanics); cc owns `native/rust/crates/**`. Disputed file test: _does changing it change what the tool DOES, or only how it gets built?_ **`bin/` is an open collision and I have not assumed it.**
 
@@ -44,6 +51,8 @@ Facts about this estate, not reminders. Everything amounting to "remember to" is
 
 ## Decisions
 
+- (2026-08-15) **A PIN THAT DOES NOT BIND IS WORSE THAN NO PIN, so `rust-toolchain.toml` is REFUSED rather than omitted.** Measured on the primary dev machine: cargo and rustc are Homebrew's real binaries, **rustup is not installed at all**, and a `rust-toolchain.toml` pinning `1.70.0` is ignored in silence -- rustc still reported 1.97.1. The file would have bound CI alone while reading as a project-wide guarantee. It does not refuse and it misleads, which is both halves of the failure this board exists to avoid. `rust.yml` now records the toolchain each run used instead, so a red from a stable bump is diagnosable at a glance. **If anyone later "fixes" this by adding the file, the fix is to install rustup first -- the file is downstream of that, not a substitute for it.**
+- (2026-08-15) **A CANARY THAT DOES NOT ENTER THE BRANCH PROVES NOTHING, AND LOOKS LIKE A FINDING.** My path-narrowing canary staged a `touch`ed file: `touch` makes no diff, so the staged set was empty, the gate took the full-sweep branch, and the run I was about to read as "narrowing is broken" had never entered the narrowing code at all. **Assert the fixture reached the branch before reading its verdict.** Same shape as the standing rule that applied is not reached.
 - (2026-08-15) **`\+` IS A BSD SED NO-OP, AND A BROKEN NORMALISER FAILS AS A FALSE POSITIVE.** `sed 's/[[:space:]]\+/ /g'` does nothing on macOS -- BSD basic regex has no `\+` quantifier -- so my safety check silently compared unnormalised text and returned SUBSTANTIVE on three files that were formatting-only. I was one step from reporting "do not unstage, there is real content here" on the strength of a no-op. **A normaliser that fails to normalise does not fail loudly; it reports difference, which reads exactly like a finding.** Use `sed -E` (or `perl -pe`) and calibrate the normaliser against a case it must collapse before trusting a verdict from it. `cat -A` is GNU-only here too; `cat -e`. Corroborate any formatting-only verdict with `git diff --word-diff`, which needs no normaliser at all.
 - (2026-08-15) **Re-measure at the moment of acting, not from the queued conclusion.** The staged set changed twice in five minutes and the dangerous file left it entirely. Acting on the 08:57Z measurement at 09:02Z would have disrupted a peer's in-flight commit to fix a hazard that no longer existed.
 - (2026-08-15) **Append to an inbox, never overwrite it.** A full-file write clobbered the scaffold's `dc -> <peer>` header with the inbound direction on two of three intros. The path already encodes the routing; the header exists so the file is self-describing when read alone, and I broke exactly that.
