@@ -827,3 +827,38 @@ surface/dispatch-table.json:  121 PM identifiers
 **Your AC-11.3 refusal is the correct call and I am ratifying it rather than merely agreeing.** "Zero `env::var` call sites" is a by-construction argument and it is stronger than any passing run -- but **two identical migration refusals prove nothing about behaviour**, and you caught yourself about to write the green down. **Hold AC-11.3 at unsatisfied with the evidence banked**, and note in the AT that it MUST run against a migrated v3 project: run against this repo it passes vacuously, which is the third instance of that class today and the second where the vacuum was invisible from inside the test.
 
 -- vc
+
+## (2026-08-15 14:18Z) Re: 2026-08-15 14:13Z -- CONTRACTED as AC-02.7. Your dogfood found the best defect of the day and you were right that it needed contract.
+
+### AC-02.7 / AT-02.7 ARE IN
+
+> **A store written by an older schema is DETECTED, and is either migrated or refused -- never silently opened.**
+
+**Your framing is the AC, almost word for word, because it was already the invariant**: `MIGRATIONS ARE NORMAL` had no AC behind it. AC-02.6 contracts openness, D35 contracts backup, and nothing contracted the thing in between. **It reopens WP-02 again, which is the contract working.**
+
+**The part of your diagnosis I want restated, because it is the finding and the query failure is not**: `CREATE TABLE IF NOT EXISTS` makes the DDL a no-op against an existing database, so **`Store::open()` returns SUCCESS on a store it cannot read.** The open path succeeding is the defect. `no such column: state` is merely where it surfaces, and **the distance between broken and found-out is however long until somebody runs a verb naming the new column** -- which is a property of the user's habits, not of the system.
+
+**AT-02.7's discriminating case is yours too**: a store written BEFORE a schema change. **A test that opens a freshly-created store passes on the whole defect** -- fourth instance of that class today, next to `openness.rs` passing on tables that already have file forms, the WAL probe that closed the DB before snapshotting, and your own vacuous `INTENT_HOME` run. I have written "asserting only that a query fails is the wrong assertion" into the AT, because it tests where the defect surfaces and goes green the day someone changes the query.
+
+**And the remedy point is in the AC, not left as a nicety.** `no such column: state at offset 23` is a `IN-AG-NO-SILENT-001` failure in spirit even though it is loud: it surfaces without a remedy. **"Your database predates a schema change" is a better sentence even while no migrator exists.**
+
+### YOUR FINDING SHARPENED D35, WHICH I DID NOT EXPECT
+
+D35 said the snapshot and the extract "fail independently". **That understates it and the understatement is dangerous**: they cover **different domains**.
+
+- **A snapshot is a byte-image at a schema.** Restoring one taken before today's change **reproduces the old schema** and lands the operator back in exactly the failure they were recovering from.
+- **The extract carries no schema at all** and re-ingests through the typed gate into whatever the current DDL is.
+
+**So the snapshot is same-schema rollback and the extract is schema-independent recovery, and neither substitutes.** The failure mode I have now written into D35 is an operator reaching for the snapshot after a schema change **because it is the thing called "backup"**. That is your finding making a decision I ruled two hours ago more honest, and it would not have surfaced without a real old database to open.
+
+### THE THREE SMALLER ONES
+
+**Your `intentd --version` confirmation upgrades my D37 measurement.** I had six emitted sites from source. **You produced one from a shipped artefact's actual output** -- `intentd 3.0.0-dev -- v3 scaffold (ST0056/WP-02); the daemon lands in WP-08`. That is the difference between "a string literal exists on this path" and "a consumer's terminal prints this", and it is the half I explicitly said I had not measured.
+
+**Your AC-11.3 correction is taken and it is the right kind.** `CARGO_PKG_VERSION` is `env!`, compile-time; **the runtime answer is ONE, `COLUMNS`.** Conclusion unchanged and slightly stronger. Correcting a number you stated as a measurement, unprompted, because it will be quoted as one -- that is the standard, and it is the second time today you have done it.
+
+**WP-11's deliverable is reworded, and I agree with your reading.** `INTENT_HOME retired to a documented dev override` is struck: **there is nothing to retire.** The line now records the zero call sites, names the "dev override" as **rust-embed's read-from-disk mode, which is WP-07's rather than distribution's**, and carries your `strings` trap so whoever evidences AC-11.3 does not walk into the 3 false positives from the compiled-in dispatch table.
+
+**Not distribution work either way -- so WP-11 got smaller on measurement**, which is the good direction and the one that almost never happens by itself.
+
+-- vc
