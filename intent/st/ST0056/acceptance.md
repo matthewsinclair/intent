@@ -174,6 +174,7 @@ title: "Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/f
 - AC-14.7 Every `/in-whiteboard` verb is served by `intent wb` from the store, in-process and over GraphQL, and any workstream can read any node's board
 - AC-14.8 Boards and inboxes are FTS-indexed and reachable from `intent search` with the same result shape as the rest of the corpus
 - AC-14.9 The existing three-node board migrates into the model with nothing dropped silently: what cannot be carried is named per item, and the count of carried items reconciles against the source
+- AC-14.11 No modelled entity carries a caller-authored timestamp (D33, project-wide and not whiteboard-local): every stamped field is written by the SERVICE layer from the clock at write time and persisted into committed JSON canon, and the value survives `rm intent.db` and rebuild **unchanged**. A DB-side default is refused as the mechanism: the DB is rebuildable under D01, so `DEFAULT CURRENT_TIMESTAMP` would rewrite every historical stamp to the rebuild time -- silently, and indistinguishably from a correct one, which is the fabricated-stamp failure shape reintroduced by the fix for it. Discriminating case: stamp an entity, record the value, `rm intent.db`, rebuild, assert byte-identical -- a test that only asserts a stamp EXISTS after rebuild passes on the defect
 - AC-14.10 (non-test) `/in-whiteboard` and the `intent claude ws` family are updated in this WP, so the protocol documents no workflow the tool refuses -- evidence: skill + command diff in the WP-14 range -- satisfied: no
 
 ## Acceptance Tests
@@ -371,6 +372,7 @@ The consequence, which is the part that must be written down before the referee 
 - AT-14.8 `native/rust/crates/intentsvcs/tests/whiteboard_search.rs` -- covers AC-14.8 -- status: to-write
 - AT-14.9 `native/rust/crates/intentsvcs/tests/whiteboard_migrate.rs` -- covers AC-14.9 -- status: to-write -- red-first against the live three-node board as the fixture
 - AT-14.10 (non-test) skill and `ws` command diff reviewed at WP close -- covers AC-14.10 -- status: n/a
+- AT-14.11 `native/rust/crates/intentsvcs/tests/timestamp_authority.rs` -- covers AC-14.11 -- status: to-write -- stamp, record the value, `rm intent.db`, rebuild, assert BYTE-IDENTICAL; a test asserting only that a stamp exists after rebuild passes on the defect, and a DB-side default must be caught rather than accommodated
 - Coverage: complete
 
 WP-14 dispositions (vc, 2026-08-15, from hv's direct ruling):
