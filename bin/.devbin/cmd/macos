@@ -66,6 +66,18 @@ RELEASE_DIR="$ROOT/native/rust/target/release"
 BINARIES="intent intentd"
 KC_PREFIX="intent.apple"
 
+# WHERE THE ARTEFACTS GO AND WHERE THE CLAIM ABOUT THEM GOES. Two repositories,
+# by hv's ruling of 2026-08-15 (D40): artefacts live on the source repo's own
+# releases, and the tap carries only the formula that names them.
+#
+# The three spellings are all real and none is derivable from the others without
+# a rule someone has to remember: GitHub calls the tap `homebrew-intent`, brew
+# calls the same thing `matthewsinclair/intent`, and the source repo is a third
+# name again. Written out once rather than reconstructed at each use.
+REPO="matthewsinclair/intent"
+TAP="matthewsinclair/homebrew-intent"
+BREW_TAP="matthewsinclair/intent"
+
 # EVERYTHING AFTER THE COPY HAPPENS HERE, AND THAT IS THE WHOLE POINT.
 #
 # `target/release/` is SHARED MUTABLE STATE. Four sessions build in this tree and
@@ -523,19 +535,36 @@ cmd_prepare() {
 # hv ruled 2026-08-15 that v3.0.0 ships macOS arm64 ONLY, which makes the formula
 # a single-platform document. If Linux artefacts are ever added the formula grows
 # a second platform block and stops being a macOS concern -- move it then.
+# require_sums -- the proof file, or the reason there isn't one.
+#
+# ONE MESSAGE FOR ONE MISSING FILE. `formula` and `publish` both need it and both
+# need to say the same thing about why it is absent, because the answer is never
+# "create it" -- it is "prove the artefacts and it will be written for you".
+require_sums() {
+  [ -f "$STAGE_DIR/SHA256SUMS.txt" ] ||
+    die "no proven artefacts to describe -- run 'int macos prepare' first (SHA256SUMS.txt is written only by 'checksum', and only for artefacts it has proven signed AND notarised)"
+}
+
+# staged_version -- the version the SHIPPING binary reports.
+#
+# From the BINARY, never from Cargo.toml or a git tag. It is the only source that
+# cannot disagree with what a user will actually run: a version read from a
+# manifest describes what was meant to be built, and the gap between those two is
+# exactly what a release must not ship. It also makes the formula's `test do`
+# block pass by construction rather than by coincidence.
+staged_version() {
+  local v
+  v="$("$STAGE_DIR/intent-$(host_triple)" --version 2>/dev/null | sed -n 's/^intent //p')"
+  [ -n "$v" ] || die "could not read a version from the staged intent binary"
+  printf '%s' "$v"
+}
+
 cmd_formula() {
   local stage_dir="$STAGE_DIR" triple version sums
   triple="$(host_triple)"
   sums="$stage_dir/SHA256SUMS.txt"
-  [ -f "$sums" ] ||
-    die "no proven artefacts to describe -- run 'int macos prepare' first (SHA256SUMS.txt is written only by 'checksum', and only for artefacts it has proven signed AND notarised)"
-
-  # The version comes from the STAGED BINARY, not from a config file or a tag.
-  # It is the only source that cannot disagree with what a user will actually
-  # run, which is also what makes the formula's own `test do` block pass by
-  # construction rather than by coincidence.
-  version="$("$stage_dir/intent-$triple" --version 2>/dev/null | sed -n 's/^intent //p')"
-  [ -n "$version" ] || die "could not read a version from $stage_dir/intent-$triple"
+  require_sums
+  version="$(staged_version)"
 
   local sha_cli sha_daemon
   sha_cli="$(awk -v f="intent-$triple" '$2 == f { print $1 }' "$sums")"
@@ -591,6 +620,158 @@ FORMULA
   printf 'carrying these exact artefacts. Publish the release BEFORE the formula.\n' >&2
 }
 
+# cmd_publish -- put the proven artefacts where a user can reach them, and only
+# then make the claim that points at them.
+#
+# THE ORDER IS THE DESIGN. Upload, then DOWNLOAD WHAT WAS UPLOADED AND HASH IT,
+# then write the formula. AC-11.4 is not "we computed a checksum correctly", it
+# is "the published checksum matches the bytes the user downloads" -- and the
+# only way to assert that is to be the user for one round trip. Hashing the local
+# file and publishing that number asserts the same thing about a file nobody will
+# ever fetch. The extra cost is one download; the class of defect it removes is
+# the one that never fails for us and fails for every `brew install`.
+#
+# AND IF THE DOWNLOAD DISAGREES, THE RELEASE STAYS AND THE FORMULA DOES NOT SHIP.
+# That asymmetry is deliberate. A release with no formula pointing at it is
+# inert -- nobody installs it by accident. A formula pointing at bytes whose hash
+# we could not confirm is a confident false statement, and it is the same
+# reasoning that keeps the tap deliberately empty rather than carrying a formula
+# for a release that does not exist: **a wrong artefact is not a neutral
+# placeholder.**
+#
+# THE DEV-VERSION REFUSAL LIVES HERE, WHERE THE HARM IS. `formula` will happily
+# print `version "3.0.0-dev"` to a terminal, and should -- that is text, and it is
+# self-evidently not a release. The same bytes in a tap install a build nobody
+# meant to ship. **A control belongs at the point of harm, not at the first point
+# it could have been written.**
+#
+# IT DOES NOT CREATE THE TAG, and that is a boundary rather than an omission. A
+# tag is the release cut's act; this command publishes artefacts for a cut that
+# has already happened. A publisher that silently tags is doing half of somebody
+# else's job, and the half it does is the irreversible one.
+cmd_publish() {
+  local dry=0
+  case "${1:-}" in
+    --dry-run) dry=1 ;;
+    "") ;;
+    *) die "unknown publish option: $1 (only --dry-run)" ;;
+  esac
+
+  require_tool gh "Install it with: brew install gh"
+  require_tool curl
+  require_staged
+  require_sums
+
+  local triple version tag
+  triple="$(host_triple)"
+  version="$(staged_version)"
+  tag="v$version"
+
+  step "the version the STAGED BINARY reports: $version"
+
+  # One predicate for "is this a release version", borrowed rather than
+  # restated: assert_semver is the estate's answer and it dies on anything that
+  # is not X.Y.Z. The subshell contains its exit so this can own the message,
+  # because the reason publishing is refused is not the reason a version is
+  # malformed.
+  if ! (assert_semver "$version") 2>/dev/null; then
+    die "refusing to publish '$version' -- this is a development build, not a release.
+       A formula in the tap is not a document, it is an INSTALLER: whatever it
+       names is what 'brew install intent' puts on a stranger's machine. Printing
+       one is harmless and 'int macos formula' will still do it.
+       Set a real version in native/rust/Cargo.toml, rebuild, and re-run
+       'int macos prepare' so the staged binary reports it."
+  fi
+
+  # Refuse to republish. Overwriting the assets of a release a formula already
+  # points at changes the bytes under a hash that has been published as true --
+  # the precise failure this command exists to prevent, committed by the command
+  # itself.
+  if gh release view "$tag" --repo "$REPO" >/dev/null 2>&1; then
+    die "$REPO already has a release $tag. Refusing to overwrite published bytes: a hash that has already been published as true must keep describing the same file. Cut a new version."
+  fi
+
+  git -C "$ROOT" rev-parse -q --verify "refs/tags/$tag" >/dev/null 2>&1 ||
+    die "no tag $tag in this repository. The release cut owns tagging; this command only publishes artefacts for a cut that has already happened."
+
+  gh repo view "$TAP" >/dev/null 2>&1 ||
+    die "cannot reach the tap $TAP -- check 'gh auth status'"
+
+  local assets=""
+  for b in $BINARIES; do assets="$assets $STAGE_DIR/$b-$triple"; done
+
+  step "plan"
+  printf '    release   %s %s\n' "$REPO" "$tag"
+  for b in $BINARIES; do printf '    artefact  %s-%s\n' "$b" "$triple"; done
+  printf '    tap       %s (Formula/intent.rb)\n' "$TAP"
+
+  if [ "$dry" -eq 1 ]; then
+    printf '\n'
+    printf 'dry run: nothing was published. Every check above passed.\n'
+    printf '  The steps NOT run: create the release, upload, re-download and hash,\n'
+    printf '  and push the formula. Re-run without --dry-run to do them.\n'
+    return 0
+  fi
+
+  step "creating $tag on $REPO"
+  # shellcheck disable=SC2086
+  gh release create "$tag" $assets --repo "$REPO" --title "Intent $tag" --notes "Intent $version -- macOS arm64. Both binaries are Developer ID signed and notarised." ||
+    die "could not create the release"
+  ok
+
+  # BE THE USER. Same public URL a formula sends brew to.
+  step "re-downloading the published artefacts and hashing what came back"
+  local tmp rc=0
+  tmp="$(mktemp -d)"
+  for b in $BINARIES; do
+    local name="$b-$triple" want got
+    want="$(awk -v f="$name" '$2 == f { print $1 }' "$STAGE_DIR/SHA256SUMS.txt")"
+    curl -fsSL -o "$tmp/$name" "https://github.com/$REPO/releases/download/$tag/$name" ||
+      die "could not download the artefact we just published: $name"
+    got="$(shasum -a 256 "$tmp/$name" | awk '{ print $1 }')"
+    if [ "$want" = "$got" ]; then
+      printf '    %-34s %s\n' "$name" "matches"
+    else
+      printf '    %-34s MISMATCH\n      published: %s\n      expected:  %s\n' "$name" "$got" "$want"
+      rc=1
+    fi
+  done
+  rm -rf "$tmp"
+
+  if [ "$rc" -ne 0 ]; then
+    die "the bytes GitHub serves do not hash to what we published as their checksum.
+       The release $tag is left in place and NO FORMULA HAS BEEN PUSHED, so nothing
+       installs these bytes. Delete the release, re-run 'int macos prepare', and
+       publish again."
+  fi
+
+  step "pushing the formula to $TAP"
+  local formula work
+  formula="$(cmd_formula 2>/dev/null)" || die "could not generate the formula"
+  work="$(mktemp -d)"
+  gh repo clone "$TAP" "$work/tap" -- --quiet >/dev/null 2>&1 || die "could not clone $TAP"
+  mkdir -p "$work/tap/Formula"
+  printf '%s\n' "$formula" >"$work/tap/Formula/intent.rb"
+  git -C "$work/tap" add Formula/intent.rb
+  git -C "$work/tap" commit -q -m "intent $version
+
+Generated by 'int macos publish' from artefacts proven signed and notarised,
+and re-downloaded from the published release to confirm the hashes describe the
+bytes a user actually receives.
+
+(C) hello@matthewsinclair.com" || die "nothing to commit -- the formula is unchanged"
+  git -C "$work/tap" push -q origin HEAD || die "could not push the formula to $TAP"
+  rm -rf "$work"
+  ok
+
+  printf '\n'
+  printf 'published: %s %s, artefacts verified from the published URL, formula live in the tap.\n' "$REPO" "$tag"
+  printf '  STILL OWED, and this command cannot supply it: an install run on a machine\n'
+  printf '  that has never seen this repository. Everything above proves the artefacts\n'
+  printf '  and the formula agree; only that proves the tap works for a stranger.\n'
+  printf '    brew install %s/intent\n' "$BREW_TAP"
+}
+
 cmd_store_creds() {
   printf 'Storing Apple notary credentials in the login Keychain under "%s.*".\n' "$KC_PREFIX"
   printf 'Nothing is written to this repository. Values are not echoed.\n\n'
@@ -611,7 +792,7 @@ cmd_store_creds() {
   printf '  Stored. Verify with: int macos doctor\n'
 }
 
-SUBCOMMANDS="doctor stage sign notarize verify checksum prepare formula env store-creds"
+SUBCOMMANDS="doctor stage sign notarize verify checksum prepare formula publish env store-creds"
 
 usage() {
   cat <<'USAGE'
@@ -633,8 +814,14 @@ intent macos <subcommand>
                then hash it -- REFUSES to hash anything unproven
 
   verify       Prove the staged artefacts without hashing them (read-only)
-  formula      Emit the Homebrew formula. Generated, never hand-edited; refuses
-               unless `checksum` has proven the artefacts it describes
+  formula      Emit the Homebrew formula to stdout. Generated, never hand-edited;
+               refuses unless `checksum` has proven the artefacts it describes
+  publish      Create the release, upload the artefacts, RE-DOWNLOAD them and
+               confirm they hash to what we are about to publish, and only then
+               push the formula to the tap. Refuses a dev version, refuses to
+               overwrite an existing release, and requires the tag to exist
+               already -- tagging is the release cut's job, not this one's.
+               `--dry-run` runs every check and publishes nothing.
   doctor       Preflight: identity present, a real test-sign, notary creds
   env          Print the resolved identity + which creds are present
   store-creds  Store APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID in the
@@ -653,6 +840,7 @@ case "${1:-}" in
   checksum) cmd_checksum ;;
   prepare) cmd_prepare ;;
   formula) cmd_formula ;;
+  publish) shift; cmd_publish "${1:-}" ;;
   store-creds) cmd_store_creds ;;
   *) die "unknown macos subcommand: $1 (try: $SUBCOMMANDS)" ;;
 esac
