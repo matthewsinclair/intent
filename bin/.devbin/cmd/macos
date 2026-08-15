@@ -78,6 +78,15 @@ REPO="matthewsinclair/intent"
 TAP="matthewsinclair/homebrew-intent"
 BREW_TAP="matthewsinclair/intent"
 
+# MEASURED 2026-08-15: neither `intent` nor `intentd` exists in homebrew-core, so
+# the names are free and `brew install intent` would resolve to our tap once it
+# is tapped. **We still print the fully-qualified `matthewsinclair/intent/intent`
+# everywhere, deliberately.** The short form works only while core stays empty of
+# that name, and the day core gains one, every published instruction becomes
+# ambiguous at best and installs somebody else's software at worst -- in an
+# instruction users have already copied into their own docs. The long form cannot
+# be shadowed and costs one line of typing.
+
 # EVERYTHING AFTER THE COPY HAPPENS HERE, AND THAT IS THE WHOLE POINT.
 #
 # `target/release/` is SHARED MUTABLE STATE. Four sessions build in this tree and
