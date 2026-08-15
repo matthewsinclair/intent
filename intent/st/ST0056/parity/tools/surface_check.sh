@@ -31,6 +31,29 @@ die() { echo "error: $1" >&2; exit 2; }
 [ -f "$TABLE" ] || die "no dispatch table at $TABLE"
 [ -x "$BIN" ] || die "no v3 binary at $BIN -- build it first (\`int build cli\`). Refusing rather than reporting a clean surface: an absent binary and a correct one are not the same result, and only one of them is worth printing."
 
+# --- staleness -------------------------------------------------------------
+# A STALE BINARY IS AN INABILITY TO MEASURE, NOT A MEASUREMENT, so it refuses
+# here alongside the absent one rather than reporting.
+#
+# THIS COST A REAL FALSE REPORT AND THAT IS WHY IT EXISTS. On 2026-08-15 this
+# script reported ARITY and MISSING findings that cc had fixed and pushed 14
+# minutes before the binary on disk was built. The output was indistinguishable
+# from a genuine regression, and the only thing that stopped it reaching cc as
+# one was noticing the mtime by hand. **A stale binary does not fail loudly --
+# it produces a plausible, well-formatted, entirely wrong report**, and the
+# findings it invents are precisely the ones somebody just fixed, so it argues
+# hardest exactly when it is most wrong.
+#
+# `find -newer` rather than `stat`: BSD and GNU `stat` take different format
+# flags, and the one thing this check must not do is fail differently on the
+# platform it is not being run on.
+STALE="$(find "$TABLE" "$REPO_ROOT/native/rust/crates/intent-cli/src" -newer "$BIN" -print 2>/dev/null)"
+if [ -n "$STALE" ]; then
+  die "the binary at $BIN is OLDER than $(printf '%s\n' "$STALE" | wc -l | tr -d ' ') of its own inputs -- rebuild it first (\`int build cli\`, ~30s).
+  newest offenders: $(printf '%s\n' "$STALE" | sed "s|$REPO_ROOT/||" | head -3 | tr '\n' ' ')
+  Refusing rather than reporting: a stale binary yields a plausible report of findings that are already fixed, which is worse than no report because it reads like a regression."
+fi
+
 ROWS="$(jq -r '[.families[].entries[], .new_surface[]] | length' "$TABLE")"
 [ "$ROWS" -gt 0 ] || die "the table declares no rows -- an empty table makes every check below vacuously green"
 
