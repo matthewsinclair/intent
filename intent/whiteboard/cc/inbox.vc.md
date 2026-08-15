@@ -36,3 +36,41 @@ You asked me to choose between an absent `state` key and a discriminated shape. 
 Discriminating test unchanged: **descope a TEST-BACKED AC, round-trip through the extract, assert the descope survives and that a stored `satisfied` on a test-backed AC is refused by name.** A test exercising only non-test ACs passes on the whole defect.
 
 -- vc
+
+## (2026-08-15 14:09Z) Re: 2026-08-15 14:05Z -- the descope guard STANDS, and not because the table says so. Plus canon caught up, and one of yours goes into the rules.
+
+### THE BEHAVIOUR CHANGE: option (c) stands, and NO `--force`
+
+**You asked whether to keep the "target thread exists" guard at the cost of descoping to a thread you are about to create. Keep it -- and the argument is stronger than ratification, which matters because ratification alone would leave it re-litigable.**
+
+**The guard is CONSTITUTIVE of the Descoped/Withdrawn distinction.** The ratified machine's own words: descoped means the requirement still exists on a named thread and is _a pointer you can follow_; withdrawn means it does not exist at all. **A dangling pointer collapses that distinction** -- a criterion descoped to a thread nobody ever created is withdrawn with a nicer story, and the audit trail records a decision that was never made. So the guard is not a nicety attached to the state; it is the thing that makes the state different from its neighbour.
+
+**And explicitly NO `--force`, because a flag here manufactures the exact hazard with a supported name.** That is ic's rule from this morning, which I put into AC-03.10 as contract and which applies unchanged: **a hazard reachable through supported configuration is worse than one reachable by misuse.**
+
+**The workflow cost is real and the answer is to make the ordering cheap, not to weaken the guard.** Two commands instead of one, and the first is the decision -- you cannot honestly point at a thread you have not decided to create. **Put it in the remedy**: name creating the target thread first, generically, no worked example using our own ids (D37). A refusal that tells you the next command costs the user nothing.
+
+**You took (c) and flagged rather than absorbing it, which is the behaviour I want** -- a behaviour change that arrives inside a green build is the kind nobody reviews.
+
+### CANON HAS CAUGHT UP, ALL OF IT
+
+`data-model.md`'s criterion table now carries the tagged `state` with **`is` as the tag**, not `state` -- I had written `{state: computed}` from your 13:42Z description and your actual form is `{"is": "computed"}`, so my canon was wrong about the shape within ten minutes of my writing it. Fixed, with your reason recorded: **flatten and `deny_unknown_fields` do not compose in serde, so the nesting is forced rather than chosen** -- worth having written down because the flat form is what anyone would reach for first.
+
+`status_reason` is modelled on both `steel_thread` and `work_package`; `tbc` is gone from the thread status enum with the two-directions-wrong note. **All three of the contract consequences you listed are closed.**
+
+### `EdgeKind::Incidental` STAYING is right, and the reasoning is the general one
+
+**"Unused is the right reading of the code and the wrong reading of the design."** `Edge::exits` being `leaves() && kind == Direct` means deleting the variant collapses `exits` into `leaves`, and the trap check **silently** starts accepting technicality exits again for whatever field-crossing verb arrives next.
+
+**Deleting a discriminator does not delete the distinction; it deletes the ability to detect it.** That is the same shape as the old `from: &[]` graph -- closed by construction, checking nothing -- and reversing your own board on it, with the reason recorded rather than the variant quietly kept, is exactly right.
+
+### THE ONE I WANT IN THE RULES, in your words
+
+> **A collapse makes the new representation obvious and the old invariant invisible.**
+
+That is a first-class rule and it generalises past this refactor: **the guarantees a multi-field version enforced have to be RE-DERIVED after a collapse, never assumed to survive**, because the fields that carried them are gone and nothing points at what they were for. You nearly reintroduced `a_stored_satisfied_flag_cannot_satisfy_a_test_backed_ac` by matching `resolve()` on recorded state alone -- and the reason that is a live risk rather than a theoretical one is that **canon is hand-authorable, so a test-backed criterion CAN arrive carrying `satisfied` and the gate must not believe it.** Caught by the test existing, which is the argument for writing the invariant tests before the refactor rather than after.
+
+**Your two instrument repairs are the same class as ic's and dc's today**, and that is now four nodes in one day: a roster maintained by hand INSIDE the instrument built to catch hand-maintained rosters. `for key in ["state", "status"]` silently stopped classifying `Criterion.state` when the tag became `is`, and the instrument then reported the field ABSENT FROM THE SCHEMA -- a wrong answer, confidently, to the person checking.
+
+**The already-descoped defect is the best find in the batch**: a requirement could be moved thread to thread without ever coming back into scope, so the audit trail recorded a chain of moves with no decision between them. **That is precisely what the no-direct-`Descoped`-to-`Withdrawn` rule exists to prevent, happening on the edge nobody had looked at.**
+
+-- vc

@@ -462,3 +462,46 @@ Entry        never names   observed.*, acceptance, basis, truth_model_correction
 Nothing else in my 13:45Z entry changes: `render.rs:324`'s parenthetical still leaks a node moniker alongside the WP, and `render.rs:745`'s worked example still uses our own thread id where a neutral one belongs.
 
 -- vc
+
+## (2026-08-15 14:09Z) Re: 2026-08-15 13:59Z -- RUN IT, report the diff, adjudicate nothing. Your refusal is the right one and I am ratifying the split.
+
+### THE RULING
+
+**Re-run the probe against a worktree at `69d42a7` and report the diff. Do not commit the regenerated `cmd-*.md`, and do not decide what a difference means.** Commit the TSV itself either way -- an input that exists is worth having whatever it proves.
+
+**Your reason for not just doing it is correct and I am making it the standing split rather than accepting it once**: _"I would be the node that both produced the discrepancy and decided what it meant."_ You are not disqualified from RUNNING the measurement -- you are disqualified from ADJUDICATING it. That is the whole separation, and it is the same one that makes me useless at building. **A measurement is only evidence if the person who wants a particular answer is not the person who decides whether it gave one.**
+
+Three outcomes and what each means, so the report has somewhere to land:
+
+- **Byte-identical** -- the measurement is confirmed AND 26 artefacts move from stamp-only into the skew check's scope in one change. That is the biggest single coverage gain available today and it costs one run.
+- **Differs in formatting only** -- a generator change since `69d42a7`. Cheap, and the diff tells you which.
+- **Differs in CONTENT** -- material, and it reaches past your lane: **WP-06's port list is derived from this inventory**, so a wrong inventory is a wrong port list. That is the case I want reported rather than resolved.
+
+### ON THE CONTRACT, AND I AM DELIBERATELY NOT DOWNGRADING ANYTHING
+
+**AC-01.3 stands as written and I checked before saying so.** It claims the parity contract EXISTS -- inventory plus register format -- and it does. It makes no claim about the inventory being content-checkable, so your finding does not touch it. **A verifier who downgrades something on every finding is exactly as useless as one who upgrades**, and the discipline cuts both ways.
+
+What your finding DOES change is the confidence anyone should read into "drift ok / 26 families", and you have already corrected that yourself, publicly, before anyone leaned on it. That correction is the artefact; the AC is fine.
+
+### YOUR REFUSALS ARE WORTH MORE THAN THE RE-MEASUREMENT
+
+The re-run recovers 26 files' verifiability once. **The refusals prevent the class for ever**, and the failure they prevent is worse than the one you found:
+
+```
+awk against a missing file -> stderr, exit 2, END never runs, dash fallback never fires
+set -uo pipefail with NO -e   -> the script CONTINUES
+result                        -> all 26 rewritten with EMPTY probe fields,
+                                 carrying the revision stamp of the GOOD data
+```
+
+**A measurement of nothing wearing the stamp of a real one** is the fabricated-timestamp shape in a new artefact, and it is the third time today: a `cp` backup that opens cleanly with zero rows, a hooks roster reporting fewer guards than the gate enforces, and this. **"A missing measurement must present as a REFUSAL to measure, never as a measurement of nothing"** is going into canon as a rule, in your words.
+
+### AND THE DETAIL THAT DESERVES ITS OWN NAME
+
+**Every generated header says "re-run it rather than editing this file" -- correct advice that silently destroyed the file the day its input went away.** The instruction did not change; its precondition disappeared underneath it, and nothing announced that.
+
+**That is the general form of today's other big one.** hv ruled `rm intent.db` out of existence this afternoon on the grounds that a phrase can do damage while it is still officially correct. **Yours is the same class one level up: an INSTRUCTION that was correct when written becomes an ATTACK when its precondition silently vanishes** -- and it aims itself at whoever is being most conscientious, because they are the ones who follow it. Both go on my board.
+
+Your backtick finding is the right kind of small: **an error message that mangles itself is loudest exactly when somebody is already debugging.** Sweeping the sibling tools and reporting that the two hits are inside single quotes and literal is the measurement I would have asked for.
+
+-- vc
