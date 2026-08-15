@@ -29,6 +29,39 @@ cd "$WT" || { echo "gen_register: WT is not a directory: $WT" >&2; exit 2; }
 # this directory once already today.
 . "$HERE/lib_classify.sh" || { echo "gen_register: cannot source $HERE/lib_classify.sh -- refusing to classify without the shared rules" >&2; exit 2; }
 
+# THE SECOND PREDICATE. Burn says whether a file reaches the v2 CLI; it is a
+# v2-side measurement and structurally cannot say whether the file's own SETUP
+# survives v3's file layout. Both runs are v2. So a file can burn 12/12, earn
+# `keep`, and still fail every test under v3 before an assertion executes.
+#
+# cc measured that gap from the v3 side (2026-08-14 23:47Z): 8 of the 31 `keep`
+# files cannot construct their fixtures at all. This column is the v2-side half
+# of it -- computed statically here so the register carries both predicates on
+# one row, rather than a consumer having to join two artefacts and get the join
+# right. It runs no tests and adds no sweep cost.
+#
+# It REFUSES rather than degrading: an uncalibrated needle reporting `none` for
+# every file is indistinguishable from a clean estate, and this register would
+# then publish "no v3 exposure" as a finding. Same discipline as the corpus
+# check -- absence is only evidence when the instrument is known to be alive.
+EXPOSURE_TSV="$(mktemp "${TMPDIR:-/tmp}/gen_register_exposure.XXXXXX")"
+ROOT="$WT" bash "$HERE/fixture_probe.sh" > "$EXPOSURE_TSV" || {
+  echo "gen_register: fixture_probe.sh refused -- refusing to emit a register whose v3-exposure column would be silently empty" >&2
+  rm -f "$EXPOSURE_TSV"; exit 2
+}
+
+# bash 3.x on macOS has no associative arrays, so the lookup is a grep over the
+# temp file. 98 rows x 98 lookups is nothing, and it keeps the map on disk where
+# it can be inspected after a bad run.
+exposure_for() {
+  local hit
+  hit="$(awk -F'\t' -v f="$1" '$1 == f {print $4; exit}' "$EXPOSURE_TSV")"
+  # An empty lookup is a MISSING measurement, not a clean one. The probe walks
+  # the same on-disk estate the burn TSV covers, so a miss means the two
+  # disagree about what exists -- report it rather than printing `none`.
+  [ -n "$hit" ] && printf '%s' "$hit" || printf 'UNPROBED'
+}
+
 REV="$(cd "$WT" && git rev-parse --short HEAD 2>/dev/null)"
 # A register that cannot name its revision is a rumour with a decimal point --
 # the exact defect this artefact was built to avoid. It emitted `Measured at ``
@@ -37,6 +70,10 @@ REV="$(cd "$WT" && git rev-parse --short HEAD 2>/dev/null)"
 DATE="$(date -u +%Y-%m-%d)"
 OUT="${OUT:-$SP/register.md}"
 OUT_TMP="$(mktemp "${TMPDIR:-/tmp}/gen_register.XXXXXX")"
+# One trap rather than a rm at each exit: this script has several refuse-and-
+# exit paths and each new one is a chance to leak a temp file that nobody
+# notices because leaking is silent.
+trap 'rm -f "${OUT_TMP:-}" "${OUT_TMP:-}.aligned" "${EXPOSURE_TSV:-}"' EXIT
 
 . "$HERE/lib_mdfmt.sh" || { echo "gen_register: cannot source $HERE/lib_mdfmt.sh -- refusing to emit a view that will not survive the formatter" >&2; exit 2; }
 
@@ -96,36 +133,54 @@ This pass renames \`split\` to \`pending\`. Nothing is lost -- the reason a row 
 
 **Scope note:** \`pending\` is a first-pass verdict, not a final one. Those files carry both portable and non-portable tests and need per-test rows; this pass deliberately stops at the file level rather than guessing which half is which.
 
+## The \`v3 exposure\` column -- a SECOND predicate, orthogonal to burn
+
+Burn asks whether a file reaches the **v2** CLI. Both of its runs are v2, one with the binary redirected, so it structurally cannot ask whether the file's own SETUP survives v3's file layout. Those are different questions and only the first was being measured -- which means \`keep\` was quietly promising something its evidence never established. A file can burn 12/12, earn \`keep\`, and fail every one of those tests under v3 **before a single assertion runs**, because its fixture wrote to a directory v3 does not have.
+
+Found by cc from the v3 side (2026-08-14): they ran the \`keep\` set against the real v3 binary and got files where 17 of 17 reds trace to one cause in \`setup\`. This column is the v2-side half, computed statically by \`tools/fixture_probe.sh\` so both predicates sit on one row.
+
+| value | what it means | remedy |
+| ----- | ------------- | ------ |
+| \`none\` | no literal v2 estate path | nothing -- burn's verdict stands |
+| \`status-dir\` | writes \`intent/st/{COMPLETED,NOT-STARTED,CANCELLED}/\` | v3 holds status as a FIELD in \`st/<ID>/thread.json\`; there is no such directory, so the write fails outright |
+| \`gen-view\` | hand-writes an \`info.md\` / \`acceptance.md\` under an st path | v3 GENERATES both. Worse than a failed write: it succeeds and is then outvoted by regeneration, or refused by the skew check |
+
+**The two are not the same repair, and merging them overstates the cost.** A file that hand-builds the estate with \`mkdir\` converts to CLI-built fixtures, which is real work. A file that builds through the CLI and then reaches in at a literal path needs the path resolved, which is not. Several of the exposed files are the second kind and read as the first.
+
+**This column reports EXPOSURE, not breakage.** Whether a given file actually goes red under v3 is a v3-side question owned by whoever runs it there; what is measurable from here is whether the file hardcodes a layout assumption at all -- the necessary condition, not the sufficient one. Reading it as the latter would repeat, in a new column, exactly the error it exists to correct.
+
+Authored prose (\`design.md\`, \`impl.md\`, \`tasks.md\`) stays authored in v3, so fixtures touching those are deliberately not flagged.
+
 ## Rows
 
 PREAMBLE
-  printf '| test file | tests | burn | class | basis | notes |\n'
-  printf '| --------- | ----- | ---- | ----- | ----- | ----- |\n'
+  printf '| test file | tests | burn | class | v3 exposure | basis | notes |\n'
+  printf '| --------- | ----- | ---- | ----- | ----------- | ----- | ----- |\n'
   tail -n +2 "$BURN" | while IFS=$'\t' read -r f total dfail burn status; do
     # A decided classification wins over any inferred one, whatever the burn
     # says. These are the files a grep cannot judge -- see OVERRIDES.
     ov="$(lookup_override "$f")"
     if [ -n "$ov" ]; then
       IFS='|' read -r cls basis note <<< "$ov"
-      printf '| `%s` | %s | %s/%s | %s | %s | %s |\n' "$f" "$total" "$burn" "$total" "$cls" "$basis" "$note"
+      printf '| `%s` | %s | %s/%s | %s | %s | %s | %s |\n' "$f" "$total" "$burn" "$total" "$cls" "$(exposure_for "$f")" "$basis" "$note"
       continue
     fi
     case "$status" in
       FULL)
-        printf '| `%s` | %s | %s/%s | keep | full burn | Every test changes result when the binary is redirected: the file exercises the CLI and nothing else. |\n' "$f" "$total" "$burn" "$total"
+        printf '| `%s` | %s | %s/%s | keep | %s | full burn | Every test changes result when the binary is redirected: the file exercises the CLI and nothing else. |\n' "$f" "$total" "$burn" "$total" "$(exposure_for "$f")"
         ;;
       NONE)
         IFS='|' read -r cls basis note <<< "$(classify_no_burn "$f")"
-        printf '| `%s` | %s | 0/%s | %s | %s | %s |\n' "$f" "$total" "$total" "$cls" "$basis" "$note"
+        printf '| `%s` | %s | 0/%s | %s | %s | %s | %s |\n' "$f" "$total" "$total" "$cls" "$(exposure_for "$f")" "$basis" "$note"
         ;;
       MIXED)
-        printf '| `%s` | %s | %s/%s | pending | partial burn | %s of %s tests reach the CLI; the remainder do not. Needs per-test rows before WP-05 relies on it. |\n' "$f" "$total" "$burn" "$total" "$burn" "$total"
+        printf '| `%s` | %s | %s/%s | pending | %s | partial burn | %s of %s tests reach the CLI; the remainder do not. Needs per-test rows before WP-05 relies on it. |\n' "$f" "$total" "$burn" "$total" "$(exposure_for "$f")" "$burn" "$total"
         ;;
       UNSTABLE)
-        printf '| `%s` | %s | -- | UNCLASSIFIED | unstable baseline | %s test(s) already fail with the default binding, so the burn delta carries no information. Fix or explain before classifying. |\n' "$f" "$total" "$dfail"
+        printf '| `%s` | %s | -- | UNCLASSIFIED | %s | unstable baseline | %s test(s) already fail with the default binding, so the burn delta carries no information. Fix or explain before classifying. |\n' "$f" "$total" "$(exposure_for "$f")" "$dfail"
         ;;
       TIMEOUT)
-        printf '| `%s` | %s | -- | UNCLASSIFIED | measurement timed out | The run exceeded BURN_TIMEOUT and was killed, so neither binding produced a usable failure count. This is not a slow test and not a passing one: no measurement exists. Re-run this file alone before classifying. |\n' "$f" "$total"
+        printf '| `%s` | %s | -- | UNCLASSIFIED | %s | measurement timed out | The run exceeded BURN_TIMEOUT and was killed, so neither binding produced a usable failure count. This is not a slow test and not a passing one: no measurement exists. Re-run this file alone before classifying. |\n' "$f" "$total" "$(exposure_for "$f")"
         ;;
       *)
         # NO SILENT ERRORS. burn.sh grew a TIMEOUT status on 2026-08-14 and this
@@ -140,7 +195,7 @@ PREAMBLE
         # status this generator does not recognise becomes a loud UNCLASSIFIED
         # row naming the unknown value, because the failure mode to design
         # against is the register that quietly got smaller.
-        printf '| `%s` | %s | -- | UNCLASSIFIED | unrecognised burn status `%s` | burn.sh emitted a status this generator has no arm for. Emitted rather than dropped: a row silently absent from the register reads as a file that does not exist. Teach the generator this status, or fix the sweep that produced it. |\n' "$f" "$total" "$status"
+        printf '| `%s` | %s | -- | UNCLASSIFIED | %s | unrecognised burn status `%s` | burn.sh emitted a status this generator has no arm for. Emitted rather than dropped: a row silently absent from the register reads as a file that does not exist. Teach the generator this status, or fix the sweep that produced it. |\n' "$f" "$total" "$(exposure_for "$f")" "$status"
         ;;
     esac
   done
