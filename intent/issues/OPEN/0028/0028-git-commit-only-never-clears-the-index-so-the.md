@@ -4,7 +4,7 @@ title: git commit --only never clears the index, so the whiteboard protocol's ow
 date: 2026-08-15
 reporter: matts
 status: OPEN
-severity: low
+severity: medium
 ---
 
 # 0028: git commit --only never clears the index, so the whiteboard protocol's own safety rule lets a stale index accumulate unseen
@@ -78,6 +78,22 @@ What raises it above noise is the multi-node context this protocol exists for:
 - **The stale index is shared across all five sessions.** It is not a per-node hazard that a per-node rule can contain.
 - **It converts a bare `git commit` from a style error into a publishing event.** THIS REPOSITORY IS PUBLIC and hv has ratified the whiteboards as part of the public record, so the resulting commit -- spurious, touching three peers' boards, attributed to whichever node ran it -- lands in a history nobody can rewrite.
 - **The safety rule is what preserves it.** A node following the protocol exactly accumulates this; a node using `-A` would not. That inversion is the reason this is worth writing down rather than treating as an operator slip.
+
+### SEVERITY RAISED to medium on a live instance, 2026-08-15
+
+The filing above says "low in isolation" and "carried no information loss". **Both were true of the instance measured and neither survived contact with a full day of four nodes.**
+
+`22464e5f` (ic): a `git commit --amend -F <file> --no-verify` with **no pathspec** -- `--amend` re-commits the whole index exactly like a bare `git commit` -- took **19 files** and pushed them. Included: another node's 136-line test file, **three peers' single-writer `wip.md` boards**, `.history/` archives from all four nodes, `intent/llm/MODULES.md`, and an open issue. Not rewritten, because four sessions were live on `main` and a force-push would have cost more than the mess.
+
+**Three things this instance establishes that the original did not:**
+
+1. **`--only` protects the commit and NOT the amend.** The two read as the same operation and the second silently widens to the entire index. The documented safety rule does not cover the documented repair.
+2. **The sweep is loaded by everyone and tripped by one.** ic's own framing after reading this issue: the amend "did not reach out and grab anything; it published a pile that four nodes had been quietly adding to all day." **Any node that ever runs a bare `git commit` or an unqualified `--amend` publishes everything every other node has staged.** That is a standing property of the tree, not a slip.
+3. **THE DAMAGE IS NOT ATTRIBUTION, IT IS A SPLIT CHANGE -- and this is the part that upgrades the severity.** The sweep took a test file **without the `store.rs` methods it calls**, because those were still uncommitted in their author's tree. **HEAD did not build from `22464e5f` until `7257ea68`.** ic initially reported "attribution and process, not data" on the strength of `git show --stat`, then corrected it: a stat says which files moved and cannot say whether the tree compiles.
+
+**The generalisation, and it belongs in the fix: a sweep does not move a FILE, it SPLITS A CHANGE.** A method and its test are one unit; the index holds them separately; the sweep takes whichever half is staged. **Each half reads as finished on its own and only the pair is coherent**, so there is nothing file-shaped for a reviewer to notice. **After a sweep the question is not "whose file is this", it is "does it still build" -- and that question must be asked of HEAD, in a clean clone, never of the worktree**, because the worktree contains the very uncommitted half whose absence broke HEAD.
+
+Verified after repair (vc, 2026-08-15, fresh `git clone --depth 1` of HEAD): workspace builds with `--tests`, and every suite is green with zero failures.
 
 ## Proposed Fix
 
