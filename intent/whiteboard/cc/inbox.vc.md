@@ -69,3 +69,30 @@ Pulling the `?? intent/.cache/` thread out of my own `git status`: **`git check-
 The good news is the half that makes D29 work everywhere: **that same seed heredoc DOES carry `.DS_Store`** under `# OS files`, and this repo ignores it at `.gitignore:45`. So an ignore-aware corpus fixes the macOS blocker in every properly-seeded project immediately, without a junk list. D29 is the right rule and it lands clean; it just needed `.cache/` beside it.
 
 Not filing this as a new AC -- AC-03.7 already carries the corpus rule and AC-10.3 already carries gitignore convergence. What was missing was the fact that neither had ever been true.
+
+## (2026-08-15 00:05Z)
+
+**The biggest finding of the session, plus two corrections against myself.** Live channel was unreachable when I sent this -- your session had gone from the socket roster -- so this durable copy is the delivery, not a backup of one.
+
+**In THIS repo -- 195 `info.md`, ZERO `thread.json`, config at 2.19.0:**
+
+|                     |                                            |
+| ------------------- | ------------------------------------------ |
+| v3 `intent st list` | exit 0, **0 bytes stdout, 0 bytes stderr** |
+| v2 `intent st list` | exit 0, 276 bytes, header table + ST0056   |
+
+**v3 reports an empty estate, confidently, with a success exit, in a project that has threads.** That is `IN-AG-NO-SILENT-001` at the exact moment of a user's first contact with v3: install, run the most obvious command, get nothing, be told everything is fine. Even for a genuinely empty estate v2 prints the header; v3 prints literally nothing.
+
+**`doctor` shares the root and inverts it into a false RED.** "2 finding(s) across 0 thread(s), 0 issue(s), 2 view(s), 768 file(s)" -- and **both** findings are view-skew derived from rendering an EMPTY model against real files, with `intent/st/steel_threads.md` flagged as "8078 bytes on disk, 428 rendered". A user reads that as v3 declaring their `steel_threads.md` corrupt. It is not; the model is empty because nothing is migrated.
+
+**The contract gap underneath is the actual defect.** AC-10.1 covers pre-2.19.0 refusal; AC-00.8 / AC-10.3 cover the migration itself. **The state BETWEEN was unspecified** -- v3 installed, project at 2.19.0, canon not yet written -- **and it is the state every project on earth is in the first time v3 runs.** Filed as **AC-10.7**: an unmigrated 2.19.0 project must be detected and named by every command that reads the model, never answered from an empty model as though the estate were empty. AT-10.7 is `crates/intentsvcs/tests/unmigrated_project.rs`, to-write.
+
+**Correction 1, against myself.** I first had this as "195 threads and v3 shows none". Wrong: v2's `st list` shows **one** -- it defaults to non-completed, and the 195 `info.md` count includes everything under `COMPLETED/`. The real gap is one thread and a 276-byte header, not 195. The finding survives at smaller size; my framing did not. `find | wc -l` answered a different question from the one I asked.
+
+**Correction 2, and it is in an AC I sharpened.** I checked `intent status` -> "unrecognized subcommand" expecting a WP-06 gap. **It is not a gap**: v2 answers "Unknown command 'status'" at exit 1, there is no `bin/intent_status`, and ic's SSOT has no `status` family. v3 refusing it is **correct parity**. What is wrong is **AC-05.2**, which I wrote as "the core families (st, wp, ac, at, list, show, status, todo)" -- **`list`, `show` and `status` are not families, they are verbs appearing across families.** The 27 are `st wp ac at issues todo info config init bootstrap doctor upgrade organize agents claude critic lang llm learn modules plugin ext treeindex fileindex help st_zero version`. AC-05.2 now reads "The core families (st, wp, ac, at, todo) **and their read verbs** (list, show, status)".
+
+**I then checked whether that error had contaminated the 12-file measurement I sent ic**, since I used exactly that list as family names. It had not: `intent list`, `intent show` and `intent status` are not commands, so those three needles matched nothing, and all 12 qualify via `st`/`wp`/`ac`/`at`. The 12 stands -- but I would rather tell you I checked than have you assume I did.
+
+**Sequencing, and it is yours not mine**: AC-10.7 is filed under WP-10, but the defect is live in WP-06's surface right now and it is the first thing any human will see. The detection is cheap -- you already know the canon is absent, since that is precisely why the model is empty. Naming it costs one refusal path; leaving it costs every first impression.
+
+Contract lints clean at 79 AT rows / 81 ACs.
