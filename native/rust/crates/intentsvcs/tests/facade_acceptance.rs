@@ -10,18 +10,18 @@
 mod common;
 
 use common::{Fixture, sample_thread};
-use intentsvcs::contract::{AcState, ac_state};
+use intentsvcs::contract::{Resolved, resolve};
 use intentsvcs::facade::FacadeError;
-use intentsvcs::model::{AcScope, AtStatus};
+use intentsvcs::model::{AcState, AtStatus};
 
-fn state(facade: &intentsvcs::facade::Facade, st: &str, ac: &str) -> AcState {
+fn state(facade: &intentsvcs::facade::Facade, st: &str, ac: &str) -> Resolved {
   let thread = facade.st_show(st).expect("thread");
   let criterion = thread
     .criteria
     .iter()
     .find(|c| c.id == ac)
     .unwrap_or_else(|| panic!("no {ac}"));
-  ac_state(thread, criterion)
+  resolve(thread, criterion)
 }
 
 #[test]
@@ -30,18 +30,18 @@ fn a_test_backed_criterion_is_satisfied_only_by_a_green_test() {
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
-  assert_eq!(state(&facade, "ST0056", "AC-03.1"), AcState::Satisfied);
+  assert_eq!(state(&facade, "ST0056", "AC-03.1"), Resolved::Satisfied);
 
   // Both covering ATs must go red -- the fixture has two, and satisfaction is
   // "ANY covering AT is green".
   facade.at_set("ST0056", "AT-03.1", AtStatus::Red).unwrap();
   assert_eq!(
     state(&facade, "ST0056", "AC-03.1"),
-    AcState::Satisfied,
+    Resolved::Satisfied,
     "one covering AT is still green, so the criterion holds"
   );
   facade.at_set("ST0056", "AT-03.7", AtStatus::Red).unwrap();
-  assert_eq!(state(&facade, "ST0056", "AC-03.1"), AcState::Unsatisfied);
+  assert_eq!(state(&facade, "ST0056", "AC-03.1"), Resolved::Unsatisfied);
 }
 
 /// The refusal that keeps satisfaction single-homed.
@@ -71,16 +71,27 @@ fn a_non_test_criterion_carries_its_evidence_inline() {
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
 
+  // The fixture's AC-03.2 arrives satisfied, and since the AC verbs began
+  // enforcing the declared graph, satisfying a satisfied criterion is a
+  // refusal rather than a rewrite. Withdrawing the claim first is the honest
+  // route and exercises the round trip the evidence has to survive.
+  facade
+    .ac_unsatisfy("ST0056", "AC-03.2")
+    .expect("unsatisfy first");
   facade
     .ac_satisfy("ST0056", "AC-03.2", "the render was reviewed at 476f1e1")
     .expect("satisfy");
 
   let thread = facade.st_show("ST0056").unwrap();
   let criterion = thread.criteria.iter().find(|c| c.id == "AC-03.2").unwrap();
-  assert_eq!(criterion.satisfied, Some(true));
+  assert!(
+    matches!(criterion.state, AcState::Satisfied { .. }),
+    "the recorded state IS the satisfaction now -- there is no separate flag to check"
+  );
   assert_eq!(
-    criterion.evidence.as_deref(),
-    Some("the render was reviewed at 476f1e1")
+    criterion.state.evidence(),
+    Some("the render was reviewed at 476f1e1"),
+    "and the evidence lives INSIDE `Satisfied`, so it cannot outlive it"
   );
   assert!(
     fx.read("intent/st/ST0056/acceptance.md")
@@ -93,22 +104,25 @@ fn a_non_test_criterion_carries_its_evidence_inline() {
 fn descope_carries_its_target_and_reporter() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
+  // The target has to EXIST -- the ratified machine guards `ac descope` with
+  // "target thread exists" and the guard is now enforced.
+  fx.write_thread(&sample_thread("ST0057"));
   let mut facade = fx.facade();
 
   facade
     .ac_descope("ST0056", "AC-03.1", "ST0057", Some("hv"), Some("moved"))
     .expect("descope");
 
-  assert_eq!(state(&facade, "ST0056", "AC-03.1"), AcState::Descoped);
+  assert_eq!(state(&facade, "ST0056", "AC-03.1"), Resolved::Descoped);
   let thread = facade.st_show("ST0056").unwrap();
   match &thread
     .criteria
     .iter()
     .find(|c| c.id == "AC-03.1")
     .unwrap()
-    .scope
+    .state
   {
-    AcScope::Descoped { to, by, reason } => {
+    AcState::Descoped { to, by, reason } => {
       assert_eq!(to, "ST0057");
       assert_eq!(by.as_deref(), Some("hv"));
       assert_eq!(reason.as_deref(), Some("moved"));
@@ -127,7 +141,7 @@ fn withdraw_requires_a_reason_and_records_it() {
     .ac_withdraw("ST0056", "AC-03.1", "the premise did not reproduce", None)
     .expect("withdraw");
 
-  assert_eq!(state(&facade, "ST0056", "AC-03.1"), AcState::Withdrawn);
+  assert_eq!(state(&facade, "ST0056", "AC-03.1"), Resolved::Withdrawn);
   assert!(
     fx.read("intent/st/ST0056/acceptance.md")
       .contains("WITHDRAWN: the premise did not reproduce"),
@@ -145,9 +159,9 @@ fn rescope_and_reinstate_each_return_their_own_state_to_scope() {
 
   // The fixture ships AC-03.9 descoped and AC-03.8 withdrawn.
   facade.ac_rescope("ST0056", "AC-03.9").expect("rescope");
-  assert_eq!(state(&facade, "ST0056", "AC-03.9"), AcState::Unsatisfied);
+  assert_eq!(state(&facade, "ST0056", "AC-03.9"), Resolved::Unsatisfied);
   facade.ac_reinstate("ST0056", "AC-03.8").expect("reinstate");
-  assert_eq!(state(&facade, "ST0056", "AC-03.8"), AcState::Unsatisfied);
+  assert_eq!(state(&facade, "ST0056", "AC-03.8"), Resolved::Unsatisfied);
 }
 
 /// **The two are not aliases**, and each refusal names the other verb.
@@ -188,8 +202,8 @@ fn rescope_and_reinstate_refuse_each_others_states_and_name_the_right_verb() {
   }
 
   // And neither refusal changed anything.
-  assert_eq!(state(&facade, "ST0056", "AC-03.9"), AcState::Descoped);
-  assert_eq!(state(&facade, "ST0056", "AC-03.8"), AcState::Withdrawn);
+  assert_eq!(state(&facade, "ST0056", "AC-03.9"), Resolved::Descoped);
+  assert_eq!(state(&facade, "ST0056", "AC-03.8"), Resolved::Withdrawn);
 }
 
 #[test]
@@ -269,4 +283,44 @@ fn satisfaction_has_no_second_home_to_go_stale() {
       .contains("AC-03.1 strict ingest refuses schema-invalid canon -- satisfied: no (computed)"),
     "the view reports the computed answer and says it is computed"
   );
+}
+
+/// **The guard the ratified machine declared and nothing enforced.**
+///
+/// `doctor` already reported the resulting state -- "descoped to X, which is
+/// not a steel thread in this project" -- so the estate was DETECTING a
+/// condition it could refuse. Detection after the fact is the reminder-shaped
+/// thing D33 rules against, and the row was in the ratified table all along.
+///
+/// The discriminating half is the pair: the same call succeeds once the target
+/// exists, so this is a guard rather than a blanket refusal.
+#[test]
+fn descoping_to_a_thread_that_does_not_exist_is_refused() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0056"));
+  let mut facade = fx.facade();
+
+  let refused = facade
+    .ac_descope("ST0056", "AC-03.2", "ST9999", None, None)
+    .expect_err("the target does not exist");
+  assert!(
+    matches!(refused, FacadeError::DescopeTargetMissing { .. }),
+    "got {refused:?}"
+  );
+  assert!(
+    refused.remedy().contains("ST9999"),
+    "the remedy names the thread that has to exist first: {}",
+    refused.remedy()
+  );
+  assert_eq!(
+    state(&facade, "ST0056", "AC-03.2"),
+    Resolved::Satisfied,
+    "and nothing moved -- the fixture criterion is satisfied and a refused mutation changes nothing"
+  );
+
+  fx.write_thread(&sample_thread("ST9999"));
+  let mut facade = fx.facade();
+  facade
+    .ac_descope("ST0056", "AC-03.2", "ST9999", None, None)
+    .expect("the same call, once the target exists");
 }

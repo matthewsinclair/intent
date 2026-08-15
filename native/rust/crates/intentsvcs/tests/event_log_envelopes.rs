@@ -49,6 +49,13 @@ fn every_mutating_verb_writes_an_envelope() {
     .st_cancel("ST0057", "superseded by the v3 line")
     .expect("st.cancel");
 
+  // Unsatisfy FIRST: the fixture's AC-03.2 is already satisfied, and since the
+  // AC verbs started enforcing the declared graph, `ac satisfy` on a satisfied
+  // criterion is a refusal rather than a rewrite. The pair still produces one
+  // envelope each, which is what this is counting.
+  facade
+    .ac_unsatisfy("ST0056", "AC-03.2")
+    .expect("ac.unsatisfy");
   facade
     .ac_satisfy("ST0056", "AC-03.2", "evidence")
     .expect("ac.satisfy");
@@ -95,7 +102,7 @@ fn every_mutating_verb_writes_an_envelope() {
   }
   assert_eq!(
     recorded.len(),
-    12,
+    13,
     "one envelope per mutation, no more and no fewer: {recorded:?}"
   );
 }

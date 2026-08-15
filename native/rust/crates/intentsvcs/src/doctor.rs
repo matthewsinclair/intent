@@ -37,7 +37,7 @@
 
 use crate::finding::{Finding, FindingClass};
 use crate::ingest::Canon;
-use crate::model::{AcKind, AcScope, AtKind, AtStatus, Thread, ThreadStatus};
+use crate::model::{AcKind, AcState, AtKind, AtStatus, Thread, ThreadStatus};
 use crate::project::Project;
 use crate::store::Store;
 use crate::sync::{self, FileState};
@@ -249,15 +249,26 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
       );
     }
 
-    // Test-backed satisfaction is COMPUTED from covering green tests and must
-    // never be stored (data-model.md). The facade refuses to set it; canon
-    // written by hand or carried from v2 can still carry it.
-    if criterion.kind == AcKind::Test && criterion.satisfied.is_some() {
+    // **Kind and recorded state must agree, and the collapse made this
+    // checkable in BOTH directions.** It used to ask one question -- does a
+    // test-backed AC carry a stored `satisfied`? -- because that was the only
+    // way the two-field model could contradict itself that anyone had named.
+    // With one enum the rule is total: a test-backed criterion in scope records
+    // `Computed` and nothing else, and an authored one never records
+    // `Computed`. The facade cannot produce either mismatch; canon written by
+    // hand or carried from v2 still can, which is what this is for.
+    let mismatch = match (criterion.kind, &criterion.state) {
+      (AcKind::Test, AcState::Satisfied { .. } | AcState::Unsatisfied) => Some(
+        "is test-backed but records its own satisfaction, which is double truth -- satisfaction comes from its covering tests, so its recorded state must be `computed`",
+      ),
+      (AcKind::NonTest, AcState::Computed) => Some(
+        "is `(non-test)` but records `computed`, which claims a satisfaction nothing computes -- an authored criterion has no covering tests to derive one from",
+      ),
+      _ => None,
+    };
+    if let Some(complaint) = mismatch {
       add(
-        format!(
-          "{} is test-backed but carries a stored `satisfied`, which is double truth -- satisfaction comes from its covering tests",
-          criterion.id
-        ),
+        format!("{} {complaint}", criterion.id),
         FindingClass::ModelInconsistent,
       );
     }
@@ -265,7 +276,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     // A descoped criterion naming a thread this project does not have is a
     // dangling promise: the requirement was moved somewhere that does not
     // exist, so nobody is holding it.
-    if let AcScope::Descoped { to, .. } = &criterion.scope
+    if let AcState::Descoped { to, .. } = &criterion.state
       && !canon.threads.iter().any(|t| &t.id == to)
     {
       add(

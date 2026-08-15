@@ -4,21 +4,33 @@ enum AcKind {
 }
 
 """
-The discriminant of [`AcScope`], as GraphQL's flat enum.
+The discriminant of [`AcState`], as GraphQL's flat enum.
+
+**`Computed` is one of the values, and exposing it is the point.** A client
+asking a test-backed criterion for its state gets the honest answer -- that
+nothing is stored and the answer comes from covering tests -- rather than a
+fabricated `unsatisfied` that would be indistinguishable from an authored
+one.
 """
-enum AcScopeState {
-  IN_SCOPE
+enum AcStateName {
+  COMPUTED
+  UNSATISFIED
+  SATISFIED
   DESCOPED
   WITHDRAWN
 }
 
 """
-[`AcScope`] flattened to `state` + the union of its variants' fields, which
+[`AcState`] flattened to `state` + the union of its variants' fields, which
 is precisely serde's internally-tagged form. A field is `None` exactly when
 the serde form omits it, so the two representations carry the same data.
 """
-type AcScopeView {
-  state: AcScopeState!
+type AcStateView {
+  state: AcStateName!
+  """
+  Satisfied only: the named evidence.
+  """
+  evidence: String
   """
   Descoped only: the thread the requirement moved to.
   """
@@ -92,20 +104,17 @@ type Criterion {
   """
   id: String!
   text: String!
+  """
+  Test-backed or not. **Authored on the AC line and independent of the
+  state**, which is why it stays its own field: `(non-test)` is a literal
+  the author writes (`bin/intent_acceptance:90`), not something derived from
+  AT coverage, so the type can carry it soundly (vc, 2026-08-15).
+  """
   kind: AcKind!
   """
-  Non-test only: the named evidence reference.
+  The recorded AC state, flattened -- see [`AcStateView`].
   """
-  evidence: String
-  """
-  Non-test only. Test-backed satisfaction is COMPUTED from covering green
-  ATs and never stored -- storing it would be double truth (data-model.md).
-  """
-  satisfied: Boolean
-  """
-  The four-state AC scope (issue 0013), flattened -- see [`AcScopeView`].
-  """
-  scope: AcScopeView!
+  state: AcStateView!
 }
 
 """

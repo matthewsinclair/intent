@@ -27,7 +27,9 @@ mod common;
 
 use common::{Fixture, sample_thread};
 use intentsvcs::facade::{Facade, FacadeError};
-use intentsvcs::model::{AcScope, AtStatus, Criterion, Thread, ThreadStatus, WpStatus, enum_str};
+use intentsvcs::model::{
+  AcKind, AcState, AtStatus, Criterion, Thread, ThreadStatus, WpStatus, enum_str,
+};
 use intentsvcs::transitions::{ABSENT, Disposition, Edge, FIELDS, Guard, find, traps, unreachable};
 use serde_json::Value;
 
@@ -109,7 +111,7 @@ fn domain_of(prop: &Value, defs: Option<&serde_json::Map<String, Value>>) -> Opt
 }
 
 /// The values a `$defs` entry admits: a plain string enum, or a `oneOf` whose
-/// arms are bare strings (`AtStatus`) or tagged objects (`AcScope`).
+/// arms are bare strings (`AtStatus`) or tagged objects (`AcState`).
 fn def_values(def: &Value) -> Option<Vec<String>> {
   if let Some(values) = string_list(def.get("enum")) {
     return Some(values);
@@ -123,13 +125,23 @@ fn def_values(def: &Value) -> Option<Vec<String>> {
       values.push(one.to_string());
     } else if let Some(props) = arm.get("properties").and_then(Value::as_object) {
       // A tagged union: the discriminant carries the state's name.
-      for key in ["state", "status"] {
-        if let Some(tag) = props.get(key) {
-          if let Some(one) = tag.get("const").and_then(Value::as_str) {
-            values.push(one.to_string());
-          } else if let Some(list) = string_list(tag.get("enum")) {
-            values.extend(list);
-          }
+      //
+      // **The tag is DISCOVERED, not guessed from a roster.** This read
+      // `for key in ["state", "status"]` -- a hand-kept list of tag names --
+      // and the AC collapse renamed a tag to `is`, at which point the walk
+      // silently stopped classifying `Criterion.state` and the table's own
+      // "every closed-domain field is classified" check reported the field as
+      // ABSENT FROM THE SCHEMA. A roster that has to be updated by hand is the
+      // enumerate-don't-sniff failure, in the instrument built to catch it.
+      //
+      // What identifies the tag structurally: serde emits each arm with the
+      // discriminant as a single-valued property. Anything shaped that way IS
+      // the tag, whatever it is called.
+      for tag in props.values() {
+        if let Some(one) = tag.get("const").and_then(Value::as_str) {
+          values.push(one.to_string());
+        } else if let Some(list) = string_list(tag.get("enum")) {
+          values.extend(list);
         }
       }
     }
@@ -276,17 +288,39 @@ fn count_boolean_nodes(value: &Value) -> usize {
   }
 }
 
-/// The ruled instance, named. `Criterion.satisfied` is the field hv ruled on
-/// and the one shape with no `$defs` entry behind it, so it is asserted by
-/// name as well as by count.
+/// The ruled instance, named -- and it now asserts the COLLAPSE rather than the
+/// field the collapse removed.
+///
+/// `Criterion.satisfied` is what hv ruled on: an `Option<bool>` beside an
+/// `AcScope`, three representable values for two meanings, one of them written
+/// by nothing. It is gone, and "gone" is the assertion -- a schema that still
+/// carried it would mean the two-field model had survived somewhere.
 #[test]
-fn the_ruled_field_is_in_the_walk() {
+fn the_ruled_field_is_gone_and_the_collapsed_one_is_walked() {
   let fields = all_fields();
+  assert!(
+    !fields
+      .iter()
+      .any(|(e, f, _)| e == "Criterion" && f == "satisfied"),
+    "`Criterion.satisfied` is the field the collapse removed; a schema still carrying it means the two-field model survived"
+  );
   let (_, _, values) = fields
     .iter()
-    .find(|(e, f, _)| e == "Criterion" && f == "satisfied")
-    .expect("Criterion.satisfied is the field AC-04.6 was ruled on and must be walked");
-  assert_eq!(values, &[ABSENT, "false", "true"]);
+    .find(|(e, f, _)| e == "Criterion" && f == "state")
+    .expect("`Criterion.state` is what replaced it and must be walked");
+  let mut sorted = values.clone();
+  sorted.sort();
+  assert_eq!(
+    sorted,
+    vec![
+      "computed".to_string(),
+      "descoped".to_string(),
+      "satisfied".to_string(),
+      "unsatisfied".to_string(),
+      "withdrawn".to_string()
+    ],
+    "all five recorded states reach the walk, including BOTH entry values -- `computed` for a test-backed criterion and `unsatisfied` for an authored one"
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -538,44 +572,46 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       let test = thread.tests.iter().find(|t| t.id == "AT-03.1").expect("AT");
       enum_str(&test.status).to_string()
     }
-    ("Criterion", "scope") => {
+    ("Criterion", "state") => {
       let fx = Fixture::new();
-      fx.write_thread(&thread_with(|t| t.criteria[1].scope = scope_named(from)));
-      let mut facade = fx.facade();
-      apply_ac_verb(&mut facade, edge.verb);
-      scope_name(&criterion(&facade).scope).to_string()
-    }
-    ("Criterion", "satisfied") => {
-      let fx = Fixture::new();
-      // A scope verb needs the criterion in the scope it undoes, so the
-      // fixture is set up from the VERB as well as from the value -- the one
-      // place an edge's precondition lives on a different field.
-      let scope = match edge.verb {
-        "ac.rescope" => "descoped",
-        "ac.reinstate" => "withdrawn",
-        _ => "in-scope",
+      // **The fixture is set up from the VALUE alone now**, where it used to
+      // need the verb as well. With two fields, `ac.rescope` had a
+      // precondition living on a DIFFERENT field from the one the edge moved,
+      // so the driver had to know which scope each verb undid. One field, one
+      // precondition.
+      //
+      // The criterion is driven as `(non-test)` for the authored states and as
+      // test-backed for `computed`, which is what makes the two entry values
+      // reachable at all.
+      // **The kind is read from BOTH endpoints, not just the source.** Coming
+      // back into scope lands on `AcState::entry(kind)`, so `descoped ->
+      // computed` and `descoped -> unsatisfied` are the same verb on
+      // criteria of different kinds -- and a driver that guessed from `from`
+      // alone would set up a non-test criterion and then assert it landed on
+      // the test-backed value.
+      let kind = if from == "computed" || edge.to == "computed" {
+        AcKind::Test
+      } else {
+        AcKind::NonTest
       };
       fx.write_thread(&thread_with(|t| {
-        t.criteria[1].satisfied = satisfied_named(from);
-        t.criteria[1].evidence = Some("the render itself".to_string());
-        t.criteria[1].scope = scope_named(scope);
+        t.criteria[1].kind = kind;
+        t.criteria[1].state = state_named(from);
       }));
+      // `ac.descope` names ST0057 and its ratified guard requires the target to
+      // exist, so the fixture provides one. The guard is exercised on its own
+      // in `facade_acceptance.rs`; here it is a precondition, not the subject.
+      fx.write_thread(&sample_thread("ST0057"));
       let mut facade = fx.facade();
       apply_ac_verb(&mut facade, edge.verb);
       let c = criterion(&facade);
-      // The evidence goes with the satisfaction, on every edge that removes
-      // it. A criterion that reads unsatisfied while still citing the proof
-      // that was withdrawn is a worse record than the one-way door this AC
-      // removed, because it looks like a record. Edges that ADD satisfaction
-      // are exempt -- setting evidence is what they are for.
-      if edge.to == ABSENT {
-        assert_eq!(
-          c.evidence, None,
-          "`{}` cleared satisfaction and left the evidence behind",
-          edge.verb
-        );
-      }
-      satisfied_name(c.satisfied).to_string()
+      // **The evidence assertion that used to live here is DELETED, and its
+      // deletion is the result rather than a loss of coverage.** It checked
+      // that every edge clearing satisfaction also cleared the evidence -- a
+      // rule two assignments had to keep. The evidence now lives inside
+      // `Satisfied`, so an edge that leaves `Satisfied` takes it with it and
+      // there is no state in which the pair can disagree.
+      state_name_of(&c.state).to_string()
     }
     other => panic!("no arm drives {other:?} -- every State field needs one"),
   }
@@ -633,44 +669,33 @@ fn parse<T: serde::de::DeserializeOwned>(name: &str) -> T {
     .unwrap_or_else(|e| panic!("`{name}` is not a value of this field: {e}"))
 }
 
-fn scope_named(name: &str) -> AcScope {
+fn state_named(name: &str) -> AcState {
   match name {
-    "in-scope" => AcScope::InScope,
-    "descoped" => AcScope::Descoped {
+    "computed" => AcState::Computed,
+    "unsatisfied" => AcState::Unsatisfied,
+    "satisfied" => AcState::Satisfied {
+      evidence: "the render itself".to_string(),
+    },
+    "descoped" => AcState::Descoped {
       to: "ST0057".to_string(),
       by: Some("hv".to_string()),
       reason: None,
     },
-    "withdrawn" => AcScope::Withdrawn {
+    "withdrawn" => AcState::Withdrawn {
       reason: "the premise did not reproduce".to_string(),
       by: None,
     },
-    other => panic!("no such AC scope: {other}"),
+    other => panic!("no such AC state: {other}"),
   }
 }
 
-fn scope_name(scope: &AcScope) -> &'static str {
-  match scope {
-    AcScope::InScope => "in-scope",
-    AcScope::Descoped { .. } => "descoped",
-    AcScope::Withdrawn { .. } => "withdrawn",
-  }
-}
-
-fn satisfied_named(name: &str) -> Option<bool> {
-  match name {
-    ABSENT => None,
-    "true" => Some(true),
-    "false" => Some(false),
-    other => panic!("no such satisfied value: {other}"),
-  }
-}
-
-fn satisfied_name(value: Option<bool>) -> &'static str {
-  match value {
-    None => ABSENT,
-    Some(true) => "true",
-    Some(false) => "false",
+fn state_name_of(state: &AcState) -> &'static str {
+  match state {
+    AcState::Computed => "computed",
+    AcState::Unsatisfied => "unsatisfied",
+    AcState::Satisfied { .. } => "satisfied",
+    AcState::Descoped { .. } => "descoped",
+    AcState::Withdrawn { .. } => "withdrawn",
   }
 }
 
@@ -814,6 +839,45 @@ const RATIFIED_THREAD: &[(&str, &[&str], &str, Guard)] = &[
   ),
 ];
 
+/// The ratified acceptance-criterion machine, same discipline.
+///
+/// **`ac.rescope` and `ac.reinstate` each appear TWICE**, landing on
+/// `unsatisfied` or `computed`. That is not a transcription error: coming back
+/// into scope lands on `AcState::entry(kind)`, and the ratified table's single
+/// "-> Unsatisfied" row is written for the authored criterion it had in mind.
+/// The second row is the test-backed case the same rule implies -- stated here
+/// rather than left implicit, so a disagreement surfaces as a failing test.
+const RATIFIED_CRITERION: &[(&str, &[&str], &str, Guard)] = &[
+  (
+    "ac.satisfy",
+    &["unsatisfied"],
+    "satisfied",
+    Guard::NonTestOnly,
+  ),
+  (
+    "ac.unsatisfy",
+    &["satisfied"],
+    "unsatisfied",
+    Guard::NonTestOnly,
+  ),
+  (
+    "ac.descope",
+    &["computed", "unsatisfied", "satisfied"],
+    "descoped",
+    Guard::TargetExists,
+  ),
+  (
+    "ac.withdraw",
+    &["computed", "unsatisfied", "satisfied"],
+    "withdrawn",
+    Guard::ReasonRecorded,
+  ),
+  ("ac.rescope", &["descoped"], "unsatisfied", Guard::None),
+  ("ac.rescope", &["descoped"], "computed", Guard::None),
+  ("ac.reinstate", &["withdrawn"], "unsatisfied", Guard::None),
+  ("ac.reinstate", &["withdrawn"], "computed", Guard::None),
+];
+
 /// The ratified work-package machine, same discipline.
 const RATIFIED_WP: &[(&str, &[&str], &str, Guard)] = &[
   ("wp.start", &["not-started"], "wip", Guard::None),
@@ -831,12 +895,16 @@ fn declared(entity: &str, field: &str) -> &'static [Edge] {
 
 #[test]
 fn the_implemented_graph_is_the_ratified_one_edge_for_edge() {
-  for (entity, ratified) in [("Thread", RATIFIED_THREAD), ("WorkPackage", RATIFIED_WP)] {
-    let implemented = declared(entity, "status");
+  for (entity, field, ratified) in [
+    ("Thread", "status", RATIFIED_THREAD),
+    ("WorkPackage", "status", RATIFIED_WP),
+    ("Criterion", "state", RATIFIED_CRITERION),
+  ] {
+    let implemented = declared(entity, field);
     assert_eq!(
       implemented.len(),
       ratified.len(),
-      "{entity}.status declares {} edges and the ratified machine has {} -- an EXTRA edge is as much a divergence as a missing one, because it is a transition nobody approved",
+      "{entity}.{field} declares {} edges and the ratified machine has {} -- an EXTRA edge is as much a divergence as a missing one, because it is a transition nobody approved",
       implemented.len(),
       ratified.len()
     );
@@ -845,16 +913,16 @@ fn the_implemented_graph_is_the_ratified_one_edge_for_edge() {
         .iter()
         .find(|e| e.verb == *verb && e.to == *to)
         .unwrap_or_else(|| {
-          panic!("{entity}.status: the ratified machine has `{verb}` -> `{to}` and the code declares no such edge")
+          panic!("{entity}.{field}: the ratified machine has `{verb}` -> `{to}` and the code declares no such edge")
         });
       assert_eq!(
         found.from, *from,
-        "{entity}.status: `{verb}` is ratified from {from:?} and declared from {:?}",
+        "{entity}.{field}: `{verb}` is ratified from {from:?} and declared from {:?}",
         found.from
       );
       assert_eq!(
         found.guard, *guard,
-        "{entity}.status: `{verb}` is ratified with {guard:?} and declared with {:?} -- a guard is the half a success-path test never sees",
+        "{entity}.{field}: `{verb}` is ratified with {guard:?} and declared with {:?} -- a guard is the half a success-path test never sees",
         found.guard
       );
     }
@@ -873,10 +941,30 @@ fn attempt(entity: &str, verb: &str, from: &str, reason: &str) -> Result<(), Fac
       fx.write_thread(&thread_with(|t| t.wps[1].status = parse::<WpStatus>(from)));
       fx.facade()
     }
+    "Criterion" => {
+      let kind = if from == "computed" {
+        AcKind::Test
+      } else {
+        AcKind::NonTest
+      };
+      fx.write_thread(&thread_with(|t| {
+        t.criteria[1].kind = kind;
+        t.criteria[1].state = state_named(from);
+      }));
+      fx.write_thread(&sample_thread("ST0057"));
+      fx.facade()
+    }
     other => panic!("no fixture for {other}"),
   };
   let seq = 3;
+  const AC: &str = "AC-03.2";
   match verb {
+    "ac.satisfy" => facade.ac_satisfy(ST, AC, "the render itself"),
+    "ac.unsatisfy" => facade.ac_unsatisfy(ST, AC),
+    "ac.descope" => facade.ac_descope(ST, AC, "ST0057", Some("hv"), Some("moved")),
+    "ac.withdraw" => facade.ac_withdraw(ST, AC, reason, Some("hv")),
+    "ac.rescope" => facade.ac_rescope(ST, AC),
+    "ac.reinstate" => facade.ac_reinstate(ST, AC),
     "st.triage" => facade.st_triage(ST),
     "st.start" => facade.st_start(ST),
     "st.resume" => facade.st_resume(ST),
@@ -903,7 +991,11 @@ fn attempt(entity: &str, verb: &str, from: &str, reason: &str) -> Result<(), Fac
 #[test]
 fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
   let mut checked = 0;
-  for (entity, ratified) in [("Thread", RATIFIED_THREAD), ("WorkPackage", RATIFIED_WP)] {
+  for (entity, ratified) in [
+    ("Thread", RATIFIED_THREAD),
+    ("WorkPackage", RATIFIED_WP),
+    ("Criterion", RATIFIED_CRITERION),
+  ] {
     let states: Vec<&str> = ratified
       .iter()
       .flat_map(|(_, from, to, _)| from.iter().copied().chain(std::iter::once(*to)))
@@ -919,9 +1011,25 @@ fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
           "a reason, so the refusal is about the STATE",
         );
         assert!(
-          matches!(outcome, Err(FacadeError::IllegalTransition { .. })),
-          "{entity}: `{verb}` from `{state}` is not in the ratified machine and was not refused as an illegal transition -- got {outcome:?}"
+          outcome.is_err(),
+          "{entity}: `{verb}` from `{state}` is not in the ratified machine and was NOT refused -- got {outcome:?}"
         );
+        // **The AC verbs are held to refusal, not to a particular variant, and
+        // that is a deliberate asymmetry rather than a weaker check.** The
+        // thread and work-package verbs enforce from the declared graph and so
+        // raise one error; the AC verbs predate the table and raise richer,
+        // per-cause ones -- `NotSatisfied` says there is nothing to unsatisfy,
+        // `WrongOffScopeState` names the verb that DOES undo the state it is
+        // actually in. AC-04.4 wants a remedy per cause, so collapsing those
+        // into `IllegalTransition` would trade a better message for a tidier
+        // test. What must hold either way is that the transition does not
+        // happen, and that is what is asserted.
+        if entity != "Criterion" {
+          assert!(
+            matches!(outcome, Err(FacadeError::IllegalTransition { .. })),
+            "{entity}: `{verb}` from `{state}` must be refused AS an illegal transition -- got {outcome:?}"
+          );
+        }
         checked += 1;
       }
     }

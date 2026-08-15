@@ -42,6 +42,22 @@
 /// problem in a new costume and records two false facts on the way. So an
 /// incidental edge counts for REACHABILITY (it genuinely produces the value)
 /// and never discharges a TRAP.
+///
+/// **It has NO current user, and it stays -- which reverses what cc's board
+/// said, on evidence that arrived after.** The defect it was built for is gone:
+/// the AC collapse left one field where there were two, so no verb moves a
+/// second field as a side effect and nothing constructs an `Incidental` edge.
+/// The board's rule was "delete it unless a non-AC user appears", and none did.
+///
+/// What changed the answer is what the variant actually protects.
+/// [`Edge::exits`] is `leaves() && kind == Direct`, so WITHOUT this variant
+/// `exits` collapses into `leaves` and the trap check silently starts
+/// accepting technicality exits again -- for whatever field-crossing verb
+/// arrives next, with nobody present to notice the property was dropped. The
+/// cost of keeping it is one variant and one test; the cost of deleting it is a
+/// subtle property that took mutation testing to find in the first place.
+/// Recorded rather than quietly kept, because "unused" is the correct reading
+/// of the code and the wrong reading of the design.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EdgeKind {
   /// The verb exists to move this field.
@@ -65,6 +81,11 @@ pub enum Guard {
   ReasonRecorded,
   /// The close gate must PASS.
   GatePass,
+  /// The verb applies only to a `(non-test)` criterion. A test-backed one has
+  /// no stored satisfaction to write.
+  NonTestOnly,
+  /// The thread the requirement is being moved to must exist.
+  TargetExists,
 }
 
 /// One step the service layer offers on one field.
@@ -298,46 +319,64 @@ pub const FIELDS: &[Field] = &[
   },
   Field {
     entity: "Criterion",
-    field: "scope",
+    field: "state",
     disposition: Disposition::State {
-      initial: &["in-scope"],
-      // The one field that was already closed, and the reason it is: descope
-      // and withdraw were each built WITH their inverse, and the inverses
-      // refuse each other's state rather than collapsing into one verb.
-      edges: &[
-        Edge::direct("ac.descope", &["in-scope"], "descoped"),
-        Edge::direct("ac.withdraw", &["in-scope"], "withdrawn"),
-        Edge::direct("ac.rescope", &["descoped"], "in-scope"),
-        Edge::direct("ac.reinstate", &["withdrawn"], "in-scope"),
-      ],
-      orphans: &[],
-    },
-  },
-  Field {
-    entity: "Criterion",
-    field: "satisfied",
-    disposition: Disposition::State {
-      initial: &[ABSENT],
-      // THE instance hv ruled on. `ac.satisfy` had no inverse, so a verifier
-      // whose evidence proved incomplete had to hand-edit acceptance.md.
+      // **TWO entry values, and that is the collapse working.** An authored
+      // criterion is created `unsatisfied`; a test-backed one is created
+      // `computed`, meaning nothing about its satisfaction is stored at all.
+      // The two-field model could not express that -- it had `satisfied:
+      // Option<bool>` on every criterion and a linter rule keeping it empty on
+      // the test-backed ones.
+      initial: &["computed", "unsatisfied"],
+      // The ratified AC machine (data-model.md "Machine 3"), transcribed.
       //
-      // All four SCOPE verbs appear here as well as on `scope`, because one
-      // verb moves two fields: v2 strips the row's whole tail on every scope
-      // change, on the way out (bin/intent_acceptance:1191) as well as on the
-      // way back (:1250), so a criterion that changes scope loses the evidence
-      // it carried before the move. One verb, two declared edges, all executed.
+      // **`ac.rescope` and `ac.reinstate` each declare TWO edges** because
+      // where a criterion lands coming back into scope depends on its kind:
+      // `AcState::entry(kind)`. That is not a special case bolted on -- it is
+      // the same fact as the two initial values, seen from the other side.
+      //
+      // **No `EdgeKind::Incidental` anywhere.** It existed because one verb
+      // moved two fields: a scope change also had to clear `satisfied`, so
+      // `ac.descope` declared an edge on a field that was not its subject.
+      // With one field there is no second field to move as a side effect, and
+      // the mechanism built this morning for the mutation that survived is
+      // retired by the structure rather than by a decision.
       edges: &[
-        Edge::direct("ac.satisfy", &[ABSENT, "false"], "true"),
-        Edge::direct("ac.unsatisfy", &["true"], ABSENT),
-        Edge::incidental("ac.descope", &[], ABSENT, "scope"),
-        Edge::incidental("ac.withdraw", &[], ABSENT, "scope"),
-        Edge::incidental("ac.rescope", &[], ABSENT, "scope"),
-        Edge::incidental("ac.reinstate", &[], ABSENT, "scope"),
+        Edge::guarded(
+          "ac.satisfy",
+          &["unsatisfied"],
+          "satisfied",
+          Guard::NonTestOnly,
+        ),
+        Edge::guarded(
+          "ac.unsatisfy",
+          &["satisfied"],
+          "unsatisfied",
+          Guard::NonTestOnly,
+        ),
+        Edge::guarded(
+          "ac.descope",
+          &["computed", "unsatisfied", "satisfied"],
+          "descoped",
+          Guard::TargetExists,
+        ),
+        Edge::guarded(
+          "ac.withdraw",
+          &["computed", "unsatisfied", "satisfied"],
+          "withdrawn",
+          Guard::ReasonRecorded,
+        ),
+        Edge::direct("ac.rescope", &["descoped"], "unsatisfied"),
+        Edge::direct("ac.rescope", &["descoped"], "computed"),
+        Edge::direct("ac.reinstate", &["withdrawn"], "unsatisfied"),
+        Edge::direct("ac.reinstate", &["withdrawn"], "computed"),
       ],
-      orphans: &[(
-        "false",
-        "nothing produces it. Strict ingest reads v3 canon only and never writes the field; no verb writes `false`; and the view renders `None` and `Some(false)` identically (`satisfied.unwrap_or(false)`, views.rs:443). So the domain has three representable values and two meanings. WP-10 decides whether v2's 13 `satisfied: no` rows in this estate migrate to absent or to false -- if false, this stops being an orphan and the entry comes out",
-      )],
+      // **The `satisfied: false` orphan is GONE, by construction rather than by
+      // a decision.** The old table recorded it with evidence: nothing produced
+      // it, no verb wrote it, and `views.rs` rendered `None` and `Some(false)`
+      // identically -- three representable values for two meanings. One enum
+      // has no such value to be orphaned.
+      orphans: &[],
     },
   },
   Field {

@@ -11,7 +11,7 @@
 
 use intentsvcs::event::{Envelope, LOCAL_PRINCIPAL, Subject};
 use intentsvcs::model::{
-  AcKind, AcScope, AcceptanceTest, AtKind, AtStatus, Criterion, ISSUE_SCHEMA, Issue, IssueStatus,
+  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, ISSUE_SCHEMA, Issue, IssueStatus,
   Related, THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
 };
 use intentsvcs::store::Store;
@@ -58,21 +58,17 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
         id: "AC-02.3".to_string(),
         text: "rebuild identity".to_string(),
         kind: AcKind::Test,
-        scope: AcScope::InScope,
-        evidence: None,
-        satisfied: None,
+        state: AcState::Computed,
       },
       Criterion {
         id: "AC-02.9".to_string(),
         text: "a descoped example".to_string(),
         kind: AcKind::NonTest,
-        scope: AcScope::Descoped {
+        state: AcState::Descoped {
           to: "ST0057".to_string(),
           by: Some("hv".to_string()),
           reason: None,
         },
-        evidence: Some("design.md".to_string()),
-        satisfied: Some(false),
       },
     ],
     tests: vec![AcceptanceTest {

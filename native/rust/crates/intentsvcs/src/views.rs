@@ -28,7 +28,7 @@ use std::path::PathBuf;
 use crate::contract::{group_of, satisfied_by_tests};
 use crate::finding::{Finding, FindingClass};
 use crate::ingest::Canon;
-use crate::model::{AcScope, AcceptanceTest, AtKind, Criterion, Thread, ThreadStatus, WorkPackage};
+use crate::model::{AcState, AcceptanceTest, AtKind, Criterion, Thread, ThreadStatus, WorkPackage};
 use crate::project::Project;
 
 /// Everything a render is allowed to depend on besides the model.
@@ -432,15 +432,15 @@ fn criterion_line(thread: &Thread, c: &Criterion) -> String {
     line.push_str("(non-test) ");
   }
   line.push_str(&c.text);
-  if let Some(evidence) = &c.evidence {
+  if let Some(evidence) = c.state.evidence() {
     line.push_str(&format!(" -- evidence: {evidence}"));
   }
-  match &c.scope {
-    AcScope::InScope => {
+  match &c.state {
+    AcState::Computed | AcState::Unsatisfied | AcState::Satisfied { .. } => {
       if c.kind == crate::model::AcKind::NonTest {
         line.push_str(&format!(
           " -- satisfied: {}",
-          if c.satisfied.unwrap_or(false) {
+          if matches!(c.state, AcState::Satisfied { .. }) {
             "yes"
           } else {
             "no"
@@ -457,7 +457,7 @@ fn criterion_line(thread: &Thread, c: &Criterion) -> String {
         ));
       }
     }
-    AcScope::Descoped { to, by, reason } => {
+    AcState::Descoped { to, by, reason } => {
       line.push_str(&format!(" -- DESCOPED to {to}"));
       if let Some(by) = by {
         line.push_str(&format!(" by {by}"));
@@ -466,7 +466,7 @@ fn criterion_line(thread: &Thread, c: &Criterion) -> String {
         line.push_str(&format!(": {reason}"));
       }
     }
-    AcScope::Withdrawn { reason, by } => {
+    AcState::Withdrawn { reason, by } => {
       line.push_str(&format!(" -- WITHDRAWN: {reason}"));
       if let Some(by) = by {
         line.push_str(&format!(" (by {by})"));

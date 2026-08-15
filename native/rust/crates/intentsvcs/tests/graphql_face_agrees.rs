@@ -2,7 +2,7 @@
 //! Schema face does.
 //!
 //! The SDL is exported from the authored master, so most of it cannot drift by
-//! construction. One thing can: [`intentsvcs::graphql::AcScopeView`], the
+//! construction. One thing can: [`intentsvcs::graphql::AcStateView`], the
 //! hand-written projection GraphQL needs because its type system cannot express
 //! a tagged enum with per-variant fields. A projection that silently stops
 //! matching the master is the failure this whole release has been about, so it
@@ -164,10 +164,10 @@ fn every_model_field_reaches_the_sdl_on_its_own_type() {
       "{schema_name} yielded no types -- the probe is not reading the schema"
     );
     for (type_name, props) in types {
-      // AcScope is the one type with no SDL counterpart by that name: GraphQL
-      // cannot express it, so it is projected as AcScopeView and checked by
+      // AcState is the one type with no SDL counterpart by that name: GraphQL
+      // cannot express it, so it is projected as AcStateView and checked by
       // the projection test below.
-      if type_name == "AcScope" {
+      if type_name == "AcState" {
         continue;
       }
       let fields = members_of(&blocks, "type", &type_name);
@@ -218,54 +218,64 @@ fn every_enum_reaches_the_sdl_with_all_its_variants() {
   assert_eq!(count("IssueStatus"), 2, "IssueStatus variants");
   assert_eq!(count("Tshirt"), 6, "TShirt variants");
   assert_eq!(count("AcceptanceMode"), 1, "AcceptanceMode variants");
-  // The projection's own discriminant, one per AcScope variant.
-  assert_eq!(count("AcScopeState"), 3, "AcScopeState variants");
+  // The projection's own discriminant, one per AcState variant.
+  assert_eq!(count("AcStateName"), 5, "AcStateName variants");
 }
 
 #[test]
 fn the_ac_scope_projection_carries_exactly_the_serde_form() {
-  use intentsvcs::graphql::AcScopeView;
-  use intentsvcs::model::AcScope;
+  use intentsvcs::graphql::AcStateView;
+  use intentsvcs::model::AcState;
 
   let cases = vec![
-    AcScope::InScope,
-    AcScope::Descoped {
+    AcState::Computed,
+    AcState::Unsatisfied,
+    AcState::Satisfied {
+      evidence: "the render itself".into(),
+    },
+    AcState::Descoped {
       to: "ST0057".into(),
       by: Some("hv".into()),
       reason: Some("moved".into()),
     },
-    AcScope::Descoped {
+    AcState::Descoped {
       to: "ST0057".into(),
       by: None,
       reason: None,
     },
-    AcScope::Withdrawn {
+    AcState::Withdrawn {
       reason: "not doing it".into(),
       by: Some("hv".into()),
     },
-    AcScope::Withdrawn {
+    AcState::Withdrawn {
       reason: "not doing it".into(),
       by: None,
     },
   ];
 
   for scope in cases {
-    let json = serde_json::to_value(&scope).expect("AcScope serialises");
+    let json = serde_json::to_value(&scope).expect("AcState serialises");
     let obj = json
       .as_object()
       .expect("internally-tagged form is an object");
-    let view = AcScopeView::from(&scope);
+    let view = AcStateView::from(&scope);
 
     // The serde form's non-tag keys and the view's populated fields must be
     // the same set. Either direction failing is data the other face loses.
     let mut serde_keys: Vec<&str> = obj
       .keys()
       .map(String::as_str)
-      .filter(|k| *k != "state")
+      // `is` is the discriminant, carried by the view as `state` rather than
+      // as a field. It used to be spelled `state`; the tag was renamed so the
+      // extract reads `"state": {"is": ...}` instead of doubling the word.
+      .filter(|k| *k != "is")
       .collect();
     serde_keys.sort_unstable();
 
     let mut view_keys = Vec::new();
+    if view.evidence.is_some() {
+      view_keys.push("evidence");
+    }
     if view.to.is_some() {
       view_keys.push("to");
     }
@@ -279,21 +289,22 @@ fn the_ac_scope_projection_carries_exactly_the_serde_form() {
 
     assert_eq!(
       serde_keys, view_keys,
-      "AcScopeView and the serde form disagree about which fields {scope:?} carries"
+      "AcStateView and the serde form disagree about which fields {scope:?} carries"
     );
 
     // And the values themselves, not just their presence.
     for key in &serde_keys {
       let serde_val = obj.get(*key).and_then(Value::as_str);
       let view_val = match *key {
+        "evidence" => view.evidence.as_deref(),
         "to" => view.to.as_deref(),
         "by" => view.by.as_deref(),
         "reason" => view.reason.as_deref(),
-        other => panic!("unexpected AcScope field {other} -- the projection needs updating"),
+        other => panic!("unexpected AcState field {other} -- the projection needs updating"),
       };
       assert_eq!(
         serde_val, view_val,
-        "AcScope field {key} differs between faces"
+        "AcState field {key} differs between faces"
       );
     }
   }

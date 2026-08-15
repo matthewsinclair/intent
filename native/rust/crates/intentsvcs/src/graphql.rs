@@ -31,7 +31,7 @@ use async_graphql::{
   Context, EmptyMutation, EmptySubscription, Enum, Object, Schema, SimpleObject,
 };
 
-use crate::model::{AcScope, Criterion, Issue, Thread};
+use crate::model::{AcState, Criterion, Issue, Thread};
 
 /// Rendered by [`crate::faces::faces`] as the committed `schema.graphql`.
 ///
@@ -56,23 +56,33 @@ pub fn schema() -> Schema<Query, EmptyMutation, EmptySubscription> {
 }
 
 // ---------------------------------------------------------------------------
-// The one projection: AcScope
+// The one projection: AcState
 // ---------------------------------------------------------------------------
 
-/// The discriminant of [`AcScope`], as GraphQL's flat enum.
+/// The discriminant of [`AcState`], as GraphQL's flat enum.
+///
+/// **`Computed` is one of the values, and exposing it is the point.** A client
+/// asking a test-backed criterion for its state gets the honest answer -- that
+/// nothing is stored and the answer comes from covering tests -- rather than a
+/// fabricated `unsatisfied` that would be indistinguishable from an authored
+/// one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Enum)]
-pub enum AcScopeState {
-  InScope,
+pub enum AcStateName {
+  Computed,
+  Unsatisfied,
+  Satisfied,
   Descoped,
   Withdrawn,
 }
 
-/// [`AcScope`] flattened to `state` + the union of its variants' fields, which
+/// [`AcState`] flattened to `state` + the union of its variants' fields, which
 /// is precisely serde's internally-tagged form. A field is `None` exactly when
 /// the serde form omits it, so the two representations carry the same data.
 #[derive(Debug, Clone, PartialEq, Eq, SimpleObject)]
-pub struct AcScopeView {
-  pub state: AcScopeState,
+pub struct AcStateView {
+  pub state: AcStateName,
+  /// Satisfied only: the named evidence.
+  pub evidence: Option<String>,
   /// Descoped only: the thread the requirement moved to.
   pub to: Option<String>,
   /// Descoped or withdrawn: who ruled.
@@ -81,26 +91,38 @@ pub struct AcScopeView {
   pub reason: Option<String>,
 }
 
-impl From<&AcScope> for AcScopeView {
-  fn from(scope: &AcScope) -> Self {
-    match scope {
-      AcScope::InScope => Self {
-        state: AcScopeState::InScope,
-        to: None,
-        by: None,
-        reason: None,
+impl From<&AcState> for AcStateView {
+  fn from(state: &AcState) -> Self {
+    let base = Self {
+      state: AcStateName::Computed,
+      evidence: None,
+      to: None,
+      by: None,
+      reason: None,
+    };
+    match state {
+      AcState::Computed => base,
+      AcState::Unsatisfied => Self {
+        state: AcStateName::Unsatisfied,
+        ..base
       },
-      AcScope::Descoped { to, by, reason } => Self {
-        state: AcScopeState::Descoped,
+      AcState::Satisfied { evidence } => Self {
+        state: AcStateName::Satisfied,
+        evidence: Some(evidence.clone()),
+        ..base
+      },
+      AcState::Descoped { to, by, reason } => Self {
+        state: AcStateName::Descoped,
         to: Some(to.clone()),
         by: by.clone(),
         reason: reason.clone(),
+        ..base
       },
-      AcScope::Withdrawn { reason, by } => Self {
-        state: AcScopeState::Withdrawn,
-        to: None,
+      AcState::Withdrawn { reason, by } => Self {
+        state: AcStateName::Withdrawn,
         by: by.clone(),
         reason: Some(reason.clone()),
+        ..base
       },
     }
   }
@@ -108,9 +130,9 @@ impl From<&AcScope> for AcScopeView {
 
 #[async_graphql::ComplexObject]
 impl Criterion {
-  /// The four-state AC scope (issue 0013), flattened -- see [`AcScopeView`].
-  async fn scope(&self) -> AcScopeView {
-    AcScopeView::from(&self.scope)
+  /// The recorded AC state, flattened -- see [`AcStateView`].
+  async fn state(&self) -> AcStateView {
+    AcStateView::from(&self.state)
   }
 }
 

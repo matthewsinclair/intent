@@ -3,7 +3,7 @@
 //! name, never dropped (design.md D05).
 
 use intentsvcs::model::{
-  AcKind, AcScope, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Criterion, Issue, IssueStatus,
+  AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Criterion, Issue, IssueStatus,
   Legacy, Related, THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
   to_canonical_json,
 };
@@ -58,16 +58,22 @@ fn at_status() -> impl Strategy<Value = AtStatus> {
   ]
 }
 
-fn ac_scope() -> impl Strategy<Value = AcScope> {
+/// **Every recorded AC state, including both in-scope ones.** `Computed` and
+/// `Unsatisfied` are separate arms deliberately: they are the two entry states,
+/// they mean different things (nothing is stored, versus authored-and-not-yet),
+/// and a generator that produced only one would round-trip the other never.
+fn ac_state() -> impl Strategy<Value = AcState> {
   prop_oneof![
-    Just(AcScope::InScope),
-    (0u32..9999, proptest::option::of("[a-z]{2,8}")).prop_map(|(n, by)| AcScope::Descoped {
+    Just(AcState::Computed),
+    Just(AcState::Unsatisfied),
+    "[a-z/. ]{3,30}".prop_map(|evidence| AcState::Satisfied { evidence }),
+    (0u32..9999, proptest::option::of("[a-z]{2,8}")).prop_map(|(n, by)| AcState::Descoped {
       to: format!("ST{n:04}"),
       by,
       reason: None,
     }),
     ("[a-z ]{1,30}", proptest::option::of("[a-z]{2,8}"))
-      .prop_map(|(reason, by)| AcScope::Withdrawn { reason, by }),
+      .prop_map(|(reason, by)| AcState::Withdrawn { reason, by }),
   ]
 }
 
@@ -89,8 +95,8 @@ prop_compose! {
 }
 
 prop_compose! {
-  fn criterion()(g in 0u32..99, n in 1u32..9, text in "[A-Za-z ]{1,60}", kind in prop_oneof![Just(AcKind::Test), Just(AcKind::NonTest)], scope in ac_scope(), evidence in proptest::option::of("[a-z/.]{3,30}"), satisfied in proptest::option::of(any::<bool>())) -> Criterion {
-    Criterion { id: format!("AC-{g:02}.{n}"), text, kind, scope, evidence, satisfied }
+  fn criterion()(g in 0u32..99, n in 1u32..9, text in "[A-Za-z ]{1,60}", kind in prop_oneof![Just(AcKind::Test), Just(AcKind::NonTest)], state in ac_state()) -> Criterion {
+    Criterion { id: format!("AC-{g:02}.{n}"), text, kind, state }
   }
 }
 
@@ -225,9 +231,7 @@ fn sample_thread() -> Thread {
       id: "AC-02.4".to_string(),
       text: "laws hold".to_string(),
       kind: AcKind::Test,
-      scope: AcScope::InScope,
-      evidence: None,
-      satisfied: None,
+      state: AcState::Computed,
     }],
     tests: vec![AcceptanceTest {
       id: "AT-02.4".to_string(),

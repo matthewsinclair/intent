@@ -11,7 +11,7 @@
 use std::path::{Path, PathBuf};
 
 use intentsvcs::model::{
-  AcKind, AcScope, AcceptanceTest, AtKind, AtStatus, Criterion, ISSUE_SCHEMA, Issue, IssueStatus,
+  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, ISSUE_SCHEMA, Issue, IssueStatus,
   Related, THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
 };
 use intentsvcs::project::Project;
@@ -231,40 +231,34 @@ pub fn sample_thread(id: &str) -> Thread {
         id: "AC-03.1".to_string(),
         text: "strict ingest refuses schema-invalid canon".to_string(),
         kind: AcKind::Test,
-        scope: AcScope::InScope,
-        evidence: None,
-        satisfied: None,
+        state: AcState::Computed,
       },
       Criterion {
         id: "AC-03.2".to_string(),
         text: "view rendering is deterministic".to_string(),
         kind: AcKind::NonTest,
-        scope: AcScope::InScope,
-        evidence: Some("the render itself".to_string()),
-        satisfied: Some(true),
+        state: AcState::Satisfied {
+          evidence: "the render itself".to_string(),
+        },
       },
       Criterion {
         id: "AC-03.9".to_string(),
         text: "a descoped requirement".to_string(),
         kind: AcKind::Test,
-        scope: AcScope::Descoped {
+        state: AcState::Descoped {
           to: "ST0057".to_string(),
           by: Some("hv".to_string()),
           reason: Some("moved with the daemon".to_string()),
         },
-        evidence: None,
-        satisfied: None,
       },
       Criterion {
         id: "AC-03.8".to_string(),
         text: "a withdrawn requirement".to_string(),
         kind: AcKind::Test,
-        scope: AcScope::Withdrawn {
+        state: AcState::Withdrawn {
           reason: "the premise did not reproduce".to_string(),
           by: None,
         },
-        evidence: None,
-        satisfied: None,
       },
     ],
     tests: vec![

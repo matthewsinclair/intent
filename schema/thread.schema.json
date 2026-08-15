@@ -103,20 +103,53 @@
         "non-test"
       ]
     },
-    "AcScope": {
-      "description": "The four AC states beyond satisfied/unsatisfied (issue 0013): in scope,\ndescoped to a named thread, or withdrawn with its reason on the record.",
+    "AcState": {
+      "description": "**What a criterion RECORDS.** One enum, replacing the `satisfied:\nOption<bool>` + `scope: AcScope` pair that produced \"three stored values,\ntwo meanings, one of them never written\" (hv ruling, 2026-08-15).\n\nThe ratified machine is `Satisfied | Unsatisfied | Descoped | Withdrawn`.\nThis type has a fifth variant, [`AcState::Computed`], and it is what makes\nthe ratified asymmetry STRUCTURAL rather than a rule somebody enforces:\n\n- **A test-backed criterion in scope records `Computed`** -- nothing about\n  satisfaction is stored, because it is derived from covering green ATs.\n  There is no field for `ac satisfy` to write and no method that could,\n  where before there was a `satisfied: Option<bool>` that the linter's L5\n  was the only thing keeping empty.\n- **`Satisfied` carries its evidence and cannot be constructed without it**\n  (hv, 2026-08-15), so \"satisfied with no evidence\" stops being a state the\n  model can represent, rather than one a guard has to refuse.\n- **`Descoped` and `Withdrawn` apply to BOTH kinds** and are always stored:\n  they are decisions about the requirement, not about its satisfaction.\n\n`Descoped` and `Withdrawn` stay distinct with no direct edge between them --\ndescoped means the requirement still exists on a named thread and is a\npointer you can follow; withdrawn means it does not exist at all. Moving\nbetween them routes through `Unsatisfied` so the audit trail records the\nintermediate decision instead of smearing two facts into one.\n\nThe tag is `is` rather than `state` so the extract reads\n`\"state\": {\"is\": \"satisfied\", ...}` rather than doubling the word. Nesting\nrather than `#[serde(flatten)]` is forced: flatten and `deny_unknown_fields`\ndo not compose in serde, and D05's strictness is the thing that must win.",
       "oneOf": [
         {
+          "description": "Test-backed and in scope: satisfaction is computed from covering ATs and\n**nothing is stored**. Carries no payload -- a test-backed criterion's\nevidence IS the AT relation and must not be copied into a state field\n(hv, 2026-08-15).",
           "type": "object",
           "properties": {
-            "state": {
+            "is": {
               "type": "string",
-              "const": "in-scope"
+              "const": "computed"
             }
           },
           "additionalProperties": false,
           "required": [
-            "state"
+            "is"
+          ]
+        },
+        {
+          "description": "Non-test and in scope, not yet satisfied. The entry state for an authored\ncriterion.",
+          "type": "object",
+          "properties": {
+            "is": {
+              "type": "string",
+              "const": "unsatisfied"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "is"
+          ]
+        },
+        {
+          "description": "Non-test and satisfied. **Unconstructible without evidence.**",
+          "type": "object",
+          "properties": {
+            "evidence": {
+              "type": "string"
+            },
+            "is": {
+              "type": "string",
+              "const": "satisfied"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "is",
+            "evidence"
           ]
         },
         {
@@ -128,15 +161,15 @@
                 "null"
               ]
             },
+            "is": {
+              "type": "string",
+              "const": "descoped"
+            },
             "reason": {
               "type": [
                 "string",
                 "null"
               ]
-            },
-            "state": {
-              "type": "string",
-              "const": "descoped"
             },
             "to": {
               "description": "The thread the requirement moved to, eg `ST0057`.",
@@ -145,7 +178,7 @@
           },
           "additionalProperties": false,
           "required": [
-            "state",
+            "is",
             "to"
           ]
         },
@@ -158,17 +191,17 @@
                 "null"
               ]
             },
-            "reason": {
-              "type": "string"
-            },
-            "state": {
+            "is": {
               "type": "string",
               "const": "withdrawn"
+            },
+            "reason": {
+              "type": "string"
             }
           },
           "additionalProperties": false,
           "required": [
-            "state",
+            "is",
             "reason"
           ]
         }
@@ -267,29 +300,16 @@
     "Criterion": {
       "type": "object",
       "properties": {
-        "evidence": {
-          "description": "Non-test only: the named evidence reference.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
         "id": {
           "description": "`AC-<gg>.<n>`; group `00` is ST-level, otherwise the WP seq.",
           "type": "string"
         },
         "kind": {
+          "description": "Test-backed or not. **Authored on the AC line and independent of the\nstate**, which is why it stays its own field: `(non-test)` is a literal\nthe author writes (`bin/intent_acceptance:90`), not something derived from\nAT coverage, so the type can carry it soundly (vc, 2026-08-15).",
           "$ref": "#/$defs/AcKind"
         },
-        "satisfied": {
-          "description": "Non-test only. Test-backed satisfaction is COMPUTED from covering green\nATs and never stored -- storing it would be double truth (data-model.md).",
-          "type": [
-            "boolean",
-            "null"
-          ]
-        },
-        "scope": {
-          "$ref": "#/$defs/AcScope"
+        "state": {
+          "$ref": "#/$defs/AcState"
         },
         "text": {
           "type": "string"
@@ -300,7 +320,7 @@
         "id",
         "text",
         "kind",
-        "scope"
+        "state"
       ]
     },
     "Legacy": {

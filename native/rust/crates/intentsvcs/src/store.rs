@@ -61,14 +61,18 @@ CREATE TABLE IF NOT EXISTS wps (
   body TEXT NOT NULL,
   PRIMARY KEY (thread_id, seq)
 );
+-- `state` is the whole recorded AC state as its serde JSON, replacing the
+-- `scope`/`evidence`/`satisfied` trio. One column because the state is one
+-- value: the trio could hold combinations the model has no meaning for (a
+-- descoped row carrying `satisfied`), and a schema that can represent a
+-- contradiction eventually stores one. Same treatment `legacy` already gets.
+-- The discriminant stays queryable as `json_extract(state, '$.is')`.
 CREATE TABLE IF NOT EXISTS criteria (
   thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
   id TEXT NOT NULL,
   text TEXT NOT NULL,
   kind TEXT NOT NULL,
-  scope TEXT NOT NULL,
-  evidence TEXT,
-  satisfied INTEGER,
+  state TEXT NOT NULL,
   PRIMARY KEY (thread_id, id)
 );
 CREATE TABLE IF NOT EXISTS tests (
@@ -253,15 +257,13 @@ impl Store {
     }
     for c in &t.criteria {
       tx.execute(
-        "INSERT INTO criteria (thread_id, id, text, kind, scope, evidence, satisfied) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        "INSERT INTO criteria (thread_id, id, text, kind, state) VALUES (?1, ?2, ?3, ?4, ?5)",
         params![
           t.id,
           c.id,
           c.text,
           enum_str(&c.kind),
-          serde_json::to_string(&c.scope)?,
-          c.evidence,
-          c.satisfied,
+          serde_json::to_string(&c.state)?,
         ],
       )?;
     }
@@ -513,9 +515,9 @@ impl Store {
   }
 
   fn criteria_of(&self, thread: &str) -> Result<Vec<Criterion>, StoreError> {
-    let mut stmt = self.conn.prepare(
-      "SELECT id, text, kind, scope, evidence, satisfied FROM criteria WHERE thread_id = ?1 ORDER BY rowid",
-    )?;
+    let mut stmt = self
+      .conn
+      .prepare("SELECT id, text, kind, state FROM criteria WHERE thread_id = ?1 ORDER BY rowid")?;
     let raw = stmt
       .query_map(params![thread], |row| {
         Ok((
@@ -523,21 +525,17 @@ impl Store {
           row.get::<_, String>(1)?,
           row.get::<_, String>(2)?,
           row.get::<_, String>(3)?,
-          row.get::<_, Option<String>>(4)?,
-          row.get::<_, Option<bool>>(5)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
     raw
       .into_iter()
-      .map(|(id, text, kind, scope, evidence, satisfied)| {
+      .map(|(id, text, kind, state)| {
         Ok(Criterion {
           id,
           text,
           kind: enum_from(&kind)?,
-          scope: serde_json::from_str(&scope)?,
-          evidence,
-          satisfied,
+          state: serde_json::from_str(&state)?,
         })
       })
       .collect()

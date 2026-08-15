@@ -12,7 +12,7 @@
 //! answer even by accident. Non-test ACs carry their state inline because their
 //! evidence is a human judgement with no green to read.
 
-use crate::model::{AcKind, AcScope, AtKind, AtStatus, Criterion, Thread, ThreadStatus};
+use crate::model::{AcKind, AcState, AtKind, AtStatus, Criterion, Thread, ThreadStatus};
 
 /// What the gate is being asked about.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -33,10 +33,19 @@ impl Scope {
   }
 }
 
-/// An AC's state. Four, not two (issue 0013): a requirement can leave scope
-/// while remaining real.
+/// An AC's state as the gate SEES it. Four, not two (issue 0013): a
+/// requirement can leave scope while remaining real.
+///
+/// **This is deliberately a different type from [`crate::model::AcState`], and
+/// the pair is the collapse's design rather than an accident.** The model type
+/// is what canon RECORDS and has a fifth variant, `Computed`, for a test-backed
+/// criterion whose satisfaction is not stored anywhere. This type is what the
+/// question resolves TO, and `Computed` is not one of its answers -- resolving
+/// it is exactly the work [`resolve`] does. One type for what is written down,
+/// one for what is true, and no way to confuse a stored `Computed` for an
+/// answer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AcState {
+pub enum Resolved {
   Satisfied,
   Unsatisfied,
   Descoped,
@@ -64,18 +73,41 @@ pub fn satisfied_by_tests(thread: &Thread, ac_id: &str) -> bool {
     .any(|t| t.status == AtStatus::Green)
 }
 
-/// Resolve one AC's state. Scope first: a descoped or withdrawn AC is not
-/// asked whether it is satisfied, because the question no longer applies.
-pub fn ac_state(thread: &Thread, criterion: &Criterion) -> AcState {
-  match criterion.scope {
-    AcScope::Descoped { .. } => AcState::Descoped,
-    AcScope::Withdrawn { .. } => AcState::Withdrawn,
-    AcScope::InScope => match criterion.kind {
-      AcKind::NonTest if criterion.satisfied.unwrap_or(false) => AcState::Satisfied,
-      AcKind::NonTest => AcState::Unsatisfied,
-      AcKind::Test if satisfied_by_tests(thread, &criterion.id) => AcState::Satisfied,
-      AcKind::Test => AcState::Unsatisfied,
-    },
+/// Resolve one AC's recorded state into the state the gate acts on.
+///
+/// Scope first: a descoped or withdrawn AC is not asked whether it is
+/// satisfied, because the question no longer applies.
+///
+/// **`Computed` is the only variant that needs work here, and that is the
+/// point.** Before the collapse this function had to decide, for every
+/// criterion, whether to believe a stored `satisfied` flag or the ATs -- and
+/// getting that precedence wrong was a live hazard, since a test-backed AC
+/// could carry `satisfied: true` with every covering AT red. Now the recorded
+/// state says which question it is: an authored criterion has already answered
+/// it, and a test-backed one has no answer to be wrong.
+pub fn resolve(thread: &Thread, criterion: &Criterion) -> Resolved {
+  match &criterion.state {
+    AcState::Descoped { .. } => Resolved::Descoped,
+    AcState::Withdrawn { .. } => Resolved::Withdrawn,
+    // **In scope, and the KIND decides which question is being asked -- not the
+    // recorded state.** Matching on the state alone would have been the
+    // natural way to write this and it would have reintroduced the exact
+    // defect `a_stored_satisfied_flag_cannot_satisfy_a_test_backed_ac` exists
+    // to prevent: canon can be hand-authored, so a test-backed criterion CAN
+    // arrive carrying `satisfied`, and the gate must not believe it. `doctor`
+    // reports that row as inconsistent; this refuses to act on it.
+    _ if criterion.kind == AcKind::Test => {
+      if satisfied_by_tests(thread, &criterion.id) {
+        Resolved::Satisfied
+      } else {
+        Resolved::Unsatisfied
+      }
+    }
+    AcState::Satisfied { .. } => Resolved::Satisfied,
+    // `Computed` recorded on a non-test criterion is the mirror inconsistency,
+    // reported by `doctor` and treated here as the honest answer: nothing
+    // computes satisfaction for an authored criterion, so it has none.
+    AcState::Unsatisfied | AcState::Computed => Resolved::Unsatisfied,
   }
 }
 
@@ -251,11 +283,11 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   let mut withdrawn = 0;
   let mut unsatisfied: Vec<&str> = Vec::new();
   for c in &in_scope {
-    match ac_state(thread, c) {
-      AcState::Descoped => descoped += 1,
-      AcState::Withdrawn => withdrawn += 1,
-      AcState::Satisfied => satisfied += 1,
-      AcState::Unsatisfied => unsatisfied.push(&c.id),
+    match resolve(thread, c) {
+      Resolved::Descoped => descoped += 1,
+      Resolved::Withdrawn => withdrawn += 1,
+      Resolved::Satisfied => satisfied += 1,
+      Resolved::Unsatisfied => unsatisfied.push(&c.id),
     }
   }
   let active = total - descoped - withdrawn;
@@ -401,15 +433,19 @@ mod tests {
     }
   }
 
-  fn ac(id: &str, kind: AcKind, scope: AcScope, satisfied: Option<bool>) -> Criterion {
+  fn ac(id: &str, kind: AcKind, state: AcState) -> Criterion {
     Criterion {
       id: id.to_string(),
       text: "x".to_string(),
       kind,
-      scope,
-      evidence: None,
-      satisfied,
+      state,
     }
+  }
+
+  /// A test-backed criterion in scope, which under the collapse records
+  /// `Computed` and nothing else.
+  fn computed(id: &str) -> Criterion {
+    ac(id, AcKind::Test, AcState::Computed)
   }
 
   fn at(id: &str, covers: &str, status: AtStatus) -> AcceptanceTest {
@@ -428,26 +464,26 @@ mod tests {
   #[test]
   fn a_green_at_satisfies_its_ac_and_a_red_one_does_not() {
     let t = thread(
-      vec![ac("AC-03.1", AcKind::Test, AcScope::InScope, None)],
+      vec![computed("AC-03.1")],
       vec![at("AT-03.1", "AC-03.1", AtStatus::Green)],
     );
-    assert_eq!(ac_state(&t, &t.criteria[0]), AcState::Satisfied);
+    assert_eq!(resolve(&t, &t.criteria[0]), Resolved::Satisfied);
 
     let t = thread(
-      vec![ac("AC-03.1", AcKind::Test, AcScope::InScope, None)],
+      vec![computed("AC-03.1")],
       vec![at("AT-03.1", "AC-03.1", AtStatus::Red)],
     );
-    assert_eq!(ac_state(&t, &t.criteria[0]), AcState::Unsatisfied);
+    assert_eq!(resolve(&t, &t.criteria[0]), Resolved::Unsatisfied);
   }
 
   /// `n-a` is the non-test doc status. Counting it as coverage is issue 0015.
   #[test]
   fn an_n_a_at_never_satisfies_a_test_backed_ac() {
     let t = thread(
-      vec![ac("AC-03.1", AcKind::Test, AcScope::InScope, None)],
+      vec![computed("AC-03.1")],
       vec![at("AT-03.1", "AC-03.1", AtStatus::Na)],
     );
-    assert_eq!(ac_state(&t, &t.criteria[0]), AcState::Unsatisfied);
+    assert_eq!(resolve(&t, &t.criteria[0]), Resolved::Unsatisfied);
   }
 
   #[test]
@@ -455,12 +491,18 @@ mod tests {
     // The flag is non-test-only. If a test-backed AC carried one, honouring it
     // would be exactly the double truth data-model.md forbids.
     let t = thread(
-      vec![ac("AC-03.1", AcKind::Test, AcScope::InScope, Some(true))],
+      vec![ac(
+        "AC-03.1",
+        AcKind::Test,
+        AcState::Satisfied {
+          evidence: "hand-authored, which canon can be".to_string(),
+        },
+      )],
       vec![at("AT-03.1", "AC-03.1", AtStatus::Red)],
     );
     assert_eq!(
-      ac_state(&t, &t.criteria[0]),
-      AcState::Unsatisfied,
+      resolve(&t, &t.criteria[0]),
+      Resolved::Unsatisfied,
       "only a green AT satisfies a test-backed AC"
     );
   }
@@ -468,7 +510,7 @@ mod tests {
   #[test]
   fn the_gate_passes_a_fully_satisfied_scope() {
     let t = thread(
-      vec![ac("AC-03.1", AcKind::Test, AcScope::InScope, None)],
+      vec![computed("AC-03.1")],
       vec![at("AT-03.1", "AC-03.1", AtStatus::Green)],
     );
     assert_eq!(
@@ -481,25 +523,23 @@ mod tests {
   fn the_gate_reports_offscope_counts_separately() {
     let t = thread(
       vec![
-        ac("AC-03.1", AcKind::Test, AcScope::InScope, None),
+        computed("AC-03.1"),
         ac(
           "AC-03.2",
           AcKind::Test,
-          AcScope::Descoped {
+          AcState::Descoped {
             to: "ST0057".to_string(),
             by: None,
             reason: None,
           },
-          None,
         ),
         ac(
           "AC-03.3",
           AcKind::Test,
-          AcScope::Withdrawn {
+          AcState::Withdrawn {
             reason: "r".to_string(),
             by: None,
           },
-          None,
         ),
       ],
       vec![at("AT-03.1", "AC-03.1", AtStatus::Green)],
@@ -516,11 +556,10 @@ mod tests {
       vec![ac(
         "AC-03.1",
         AcKind::Test,
-        AcScope::Withdrawn {
+        AcState::Withdrawn {
           reason: "r".to_string(),
           by: None,
         },
-        None,
       )],
       vec![],
     );
@@ -536,7 +575,7 @@ mod tests {
   #[test]
   fn a_nonexistent_wp_is_blocked_rather_than_rolling_up() {
     let t = thread(
-      vec![ac("AC-03.1", AcKind::Test, AcScope::InScope, None)],
+      vec![computed("AC-03.1")],
       vec![at("AT-03.1", "AC-03.1", AtStatus::Green)],
     );
     let verdict = gate(&t, Scope::WorkPackage(99), &AllResolve);
@@ -547,7 +586,7 @@ mod tests {
   #[test]
   fn an_ac_free_wp_rolls_up_and_says_so() {
     let mut t = thread(
-      vec![ac("AC-00.1", AcKind::Test, AcScope::InScope, None)],
+      vec![computed("AC-00.1")],
       vec![at("AT-00.1", "AC-00.1", AtStatus::Green)],
     );
     t.wps.push(WorkPackage {
@@ -586,13 +625,7 @@ mod tests {
 
   #[test]
   fn the_blocked_line_names_every_unsatisfied_ac() {
-    let t = thread(
-      vec![
-        ac("AC-03.1", AcKind::Test, AcScope::InScope, None),
-        ac("AC-03.2", AcKind::Test, AcScope::InScope, None),
-      ],
-      vec![],
-    );
+    let t = thread(vec![computed("AC-03.1"), computed("AC-03.2")], vec![]);
     assert_eq!(
       gate(&t, Scope::WorkPackage(3), &AllResolve).line("ST0056/03"),
       "gate: ST0056/03 BLOCKED -- 0/2 satisfied; unsatisfied: AC-03.1 AC-03.2"

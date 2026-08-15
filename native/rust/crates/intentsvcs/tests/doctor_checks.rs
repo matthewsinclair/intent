@@ -20,7 +20,7 @@ mod common;
 use common::{Fixture, VERSION, ctx};
 use intentsvcs::finding::{Finding, FindingClass};
 use intentsvcs::model::{
-  AcKind, AcScope, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA, TShirt, Thread,
+  AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA, TShirt, Thread,
   ThreadStatus, WorkPackage, WpStatus,
 };
 
@@ -54,9 +54,7 @@ fn clean_thread(id: &str) -> Thread {
       id: "AC-01.1".to_string(),
       text: "the thing works".to_string(),
       kind: AcKind::Test,
-      scope: AcScope::InScope,
-      evidence: None,
-      satisfied: None,
+      state: AcState::Computed,
     }],
     tests: vec![AcceptanceTest {
       id: "AT-01.1".to_string(),
@@ -194,7 +192,9 @@ fn a_thread_level_group_is_not_mistaken_for_a_missing_work_package() {
 fn a_test_backed_criterion_carrying_stored_satisfaction_is_found() {
   let fx = Fixture::new();
   let mut thread = clean_thread("ST0001");
-  thread.criteria[0].satisfied = Some(true);
+  thread.criteria[0].state = intentsvcs::model::AcState::Satisfied {
+    evidence: "hand-authored on a test-backed AC, which canon can be".to_string(),
+  };
   seed(&fx, &thread);
 
   assert!(details(&run(&fx)).contains("double truth"));
@@ -204,7 +204,7 @@ fn a_test_backed_criterion_carrying_stored_satisfaction_is_found() {
 fn a_criterion_descoped_to_a_thread_that_does_not_exist_is_found() {
   let fx = Fixture::new();
   let mut thread = clean_thread("ST0001");
-  thread.criteria[0].scope = AcScope::Descoped {
+  thread.criteria[0].state = AcState::Descoped {
     to: "ST4242".to_string(),
     by: None,
     reason: None,
@@ -399,7 +399,9 @@ fn every_fault_is_reported_in_one_pass() {
     id: "ST9999".to_string(),
     note: None,
   }];
-  thread.criteria[0].satisfied = Some(true);
+  thread.criteria[0].state = intentsvcs::model::AcState::Satisfied {
+    evidence: "hand-authored on a test-backed AC, which canon can be".to_string(),
+  };
   seed(&fx, &thread);
 
   let findings = run(&fx);

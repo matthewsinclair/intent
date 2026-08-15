@@ -216,20 +216,17 @@ pub struct Criterion {
   /// `AC-<gg>.<n>`; group `00` is ST-level, otherwise the WP seq.
   pub id: String,
   pub text: String,
+  /// Test-backed or not. **Authored on the AC line and independent of the
+  /// state**, which is why it stays its own field: `(non-test)` is a literal
+  /// the author writes (`bin/intent_acceptance:90`), not something derived from
+  /// AT coverage, so the type can carry it soundly (vc, 2026-08-15).
   pub kind: AcKind,
   // A plain comment, NOT a doc comment: schemars lifts `///` into the JSON
   // Schema face as a `description`, and why the SDL needs a projection is a
   // GraphQL concern that has no business in the JSON face. The reasoning lives
-  // in `graphql::AcScopeView`, which is the thing it describes.
+  // in `graphql::AcStateView`, which is the thing it describes.
   #[graphql(skip)]
-  pub scope: AcScope,
-  /// Non-test only: the named evidence reference.
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub evidence: Option<String>,
-  /// Non-test only. Test-backed satisfaction is COMPUTED from covering green
-  /// ATs and never stored -- storing it would be double truth (data-model.md).
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub satisfied: Option<bool>,
+  pub state: AcState,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Enum)]
@@ -239,12 +236,48 @@ pub enum AcKind {
   NonTest,
 }
 
-/// The four AC states beyond satisfied/unsatisfied (issue 0013): in scope,
-/// descoped to a named thread, or withdrawn with its reason on the record.
+/// **What a criterion RECORDS.** One enum, replacing the `satisfied:
+/// Option<bool>` + `scope: AcScope` pair that produced "three stored values,
+/// two meanings, one of them never written" (hv ruling, 2026-08-15).
+///
+/// The ratified machine is `Satisfied | Unsatisfied | Descoped | Withdrawn`.
+/// This type has a fifth variant, [`AcState::Computed`], and it is what makes
+/// the ratified asymmetry STRUCTURAL rather than a rule somebody enforces:
+///
+/// - **A test-backed criterion in scope records `Computed`** -- nothing about
+///   satisfaction is stored, because it is derived from covering green ATs.
+///   There is no field for `ac satisfy` to write and no method that could,
+///   where before there was a `satisfied: Option<bool>` that the linter's L5
+///   was the only thing keeping empty.
+/// - **`Satisfied` carries its evidence and cannot be constructed without it**
+///   (hv, 2026-08-15), so "satisfied with no evidence" stops being a state the
+///   model can represent, rather than one a guard has to refuse.
+/// - **`Descoped` and `Withdrawn` apply to BOTH kinds** and are always stored:
+///   they are decisions about the requirement, not about its satisfaction.
+///
+/// `Descoped` and `Withdrawn` stay distinct with no direct edge between them --
+/// descoped means the requirement still exists on a named thread and is a
+/// pointer you can follow; withdrawn means it does not exist at all. Moving
+/// between them routes through `Unsatisfied` so the audit trail records the
+/// intermediate decision instead of smearing two facts into one.
+///
+/// The tag is `is` rather than `state` so the extract reads
+/// `"state": {"is": "satisfied", ...}` rather than doubling the word. Nesting
+/// rather than `#[serde(flatten)]` is forced: flatten and `deny_unknown_fields`
+/// do not compose in serde, and D05's strictness is the thing that must win.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(tag = "state", rename_all = "kebab-case", deny_unknown_fields)]
-pub enum AcScope {
-  InScope,
+#[serde(tag = "is", rename_all = "kebab-case", deny_unknown_fields)]
+pub enum AcState {
+  /// Test-backed and in scope: satisfaction is computed from covering ATs and
+  /// **nothing is stored**. Carries no payload -- a test-backed criterion's
+  /// evidence IS the AT relation and must not be copied into a state field
+  /// (hv, 2026-08-15).
+  Computed,
+  /// Non-test and in scope, not yet satisfied. The entry state for an authored
+  /// criterion.
+  Unsatisfied,
+  /// Non-test and satisfied. **Unconstructible without evidence.**
+  Satisfied { evidence: String },
   Descoped {
     /// The thread the requirement moved to, eg `ST0057`.
     to: String,
@@ -258,6 +291,37 @@ pub enum AcScope {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     by: Option<String>,
   },
+}
+
+impl AcState {
+  /// The state a criterion of `kind` starts in.
+  ///
+  /// **The entry state differs by kind, which is the collapse's whole point**:
+  /// an authored criterion starts `Unsatisfied` and a test-backed one starts
+  /// `Computed`, so the pair (kind, entry) can never be the inconsistent
+  /// combination the two-field model made representable.
+  pub fn entry(kind: AcKind) -> Self {
+    match kind {
+      AcKind::Test => Self::Computed,
+      AcKind::NonTest => Self::Unsatisfied,
+    }
+  }
+
+  /// Whether the requirement is still being asked for.
+  pub fn in_scope(&self) -> bool {
+    matches!(
+      self,
+      Self::Computed | Self::Unsatisfied | Self::Satisfied { .. }
+    )
+  }
+
+  /// The evidence, when there is any to have.
+  pub fn evidence(&self) -> Option<&str> {
+    match self {
+      Self::Satisfied { evidence } => Some(evidence),
+      _ => None,
+    }
+  }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]

@@ -32,14 +32,18 @@ CREATE TABLE IF NOT EXISTS wps (
   body TEXT NOT NULL,
   PRIMARY KEY (thread_id, seq)
 );
+-- `state` is the whole recorded AC state as its serde JSON, replacing the
+-- `scope`/`evidence`/`satisfied` trio. One column because the state is one
+-- value: the trio could hold combinations the model has no meaning for (a
+-- descoped row carrying `satisfied`), and a schema that can represent a
+-- contradiction eventually stores one. Same treatment `legacy` already gets.
+-- The discriminant stays queryable as `json_extract(state, '$.is')`.
 CREATE TABLE IF NOT EXISTS criteria (
   thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
   id TEXT NOT NULL,
   text TEXT NOT NULL,
   kind TEXT NOT NULL,
-  scope TEXT NOT NULL,
-  evidence TEXT,
-  satisfied INTEGER,
+  state TEXT NOT NULL,
   PRIMARY KEY (thread_id, id)
 );
 CREATE TABLE IF NOT EXISTS tests (

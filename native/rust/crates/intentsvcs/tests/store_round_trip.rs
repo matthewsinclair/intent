@@ -26,7 +26,7 @@ mod common;
 
 use common::{Fixture, sample_thread};
 use intentsvcs::model::{
-  AcScope, AcceptanceTest, AtKind, AtStatus, ISSUE_SCHEMA, Issue, IssueStatus, Legacy,
+  AcState, AcceptanceTest, AtKind, AtStatus, ISSUE_SCHEMA, Issue, IssueStatus, Legacy,
 };
 use intentsvcs::store::Store;
 
@@ -69,12 +69,12 @@ fn rebuild_then_load_returns_exactly_what_went_in() {
 #[test]
 fn every_ac_scope_variant_survives_with_its_payload() {
   let mut thread = sample_thread("ST0056");
-  thread.criteria[0].scope = AcScope::Descoped {
+  thread.criteria[0].state = AcState::Descoped {
     to: "ST0057".to_string(),
     by: Some("hv".to_string()),
     reason: Some("moved, with a | pipe in the reason".to_string()),
   };
-  thread.criteria[1].scope = AcScope::Withdrawn {
+  thread.criteria[1].state = AcState::Withdrawn {
     reason: "the premise did not reproduce".to_string(),
     by: Some("vc".to_string()),
   };
@@ -83,8 +83,8 @@ fn every_ac_scope_variant_survives_with_its_payload() {
   store.rebuild(std::slice::from_ref(&thread), &[]).unwrap();
   let (back, _) = store.load_canon().expect("load");
 
-  assert_eq!(back[0].criteria[0].scope, thread.criteria[0].scope);
-  assert_eq!(back[0].criteria[1].scope, thread.criteria[1].scope);
+  assert_eq!(back[0].criteria[0].state, thread.criteria[0].state);
+  assert_eq!(back[0].criteria[1].state, thread.criteria[1].state);
 }
 
 /// A legacy-carried AT keeps its verbatim raw reference.
