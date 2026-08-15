@@ -219,3 +219,96 @@ Validation posture (D05): `additionalProperties: false` everywhere -- an unknown
 Prose (stored verbatim, FTS-indexed). Rules/skills/templates (shipped content, embedded in the binary, indexed at most). wip.md / restart.md (authored tracking prose -- the project-level pair at `intent/`, not the whiteboard's per-node boards).
 
 **The whiteboard left this set at D30** (hv ruling, 2026-08-15) and is modelled above as `wb_node`/`wb_item`/`wb_message`, built in WP-14. It was the largest entry here, and its removal is also the largest single closure of the egest-symmetry gap: what remains below is what an `intent export` cannot reproduce from the DB alone.
+
+## State machines (DRAFT for hv, 2026-08-15)
+
+Drafted on hv's instruction after the `TBC` / `On Hold` / `satisfied` rulings: _"we will obviously need state toggles and a state machine process that moves threads programmatically thru the states. So we should take a beat now and define the states and the legal transitions."_ These are **proposals for ratification**, not canon; the enums they describe are already in `model.rs` and the transitions mostly are not.
+
+### Why now, with live evidence
+
+Measured 2026-08-15 in this thread's own tracking data -- **three of five WPs have a status that disagrees with their own gate**:
+
+| WP    | `status:` | gate verdict          |
+| ----- | --------- | --------------------- |
+| WP-02 | **Done**  | BLOCKED 5/6 (AC-02.6) |
+| WP-03 | WIP       | BLOCKED 8/9 (AC-03.9) |
+| WP-04 | **Done**  | BLOCKED 4/6           |
+| WP-05 | WIP       | **PASS 4/4**          |
+| WP-06 | WIP       | BLOCKED 4/7           |
+
+Two of those were caused by vc adding ACs to a closed WP: **`wp done` exists and nothing undoes it, so a WP reopened in the contract keeps saying `Done`.** That is AC-04.6's own defect class -- a state entered and not leavable -- occurring live, in the tracking tool, committed by the verifier enforcing the rule that names it. WP-05 is the inverse: gate PASS, status WIP, because nothing moves a status forward on evidence either.
+
+### Three findings that shape the draft
+
+1. **`TBC` already means "To Be Commenced", not "to be confirmed".** `bin/intent_helpers:544` maps `"tbc"` and `"to be commenced"` to the SAME canonical value, `Not Started`. So hv's new meaning -- the raw pre-triage state -- is a **new meaning for a token that is already spoken for**, in every v2 document and every user's head. **Recommendation: name the state `Triage`, not `Tbc`.** Reusing a token for a second meaning is the defect class this thread has spent two days removing, and migration then has an unambiguous rule: every v2 `TBC` is `NotStarted`, and `Triage` starts with no legacy members.
+2. **`Hold` is reachable only by hand-editing a file.** It is recognised by the status filter (`hold, on hold -> HOLD`) and no verb sets it. cc's archaeology, confirmed.
+3. **`Completed` and `Done` are one-way doors.** No `reopen` at either level.
+
+### The rules these machines obey
+
+- **No terminal states.** Every state has at least one declared exit (D32/AC-04.6). A state that should be hard to leave gets a **guard**, not a missing verb.
+- **Every transition names a verb**, reachable from every surface (D32).
+- **Guards are declared, not implied** -- eg `Completed` requires a gate PASS.
+- **Direct vs Incidental** (cc, 2026-08-15): an edge that exists only as a side effect of changing a different field counts for reachability and **never discharges a trap**.
+
+### Machine 1 -- Steel thread (`ThreadStatus`)
+
+States: `Triage` (proposed rename of `Tbc`) | `NotStarted` | `Wip` | `Hold` | `Completed` | `Cancelled`. **Entry: `Triage`.**
+
+| From         | To           | Verb           | Guard              |
+| ------------ | ------------ | -------------- | ------------------ |
+| _(none)_     | `Triage`     | `st new`       | --                 |
+| `Triage`     | `NotStarted` | `st triage`    | --                 |
+| `Triage`     | `Cancelled`  | `st cancel`    | reason recorded    |
+| `NotStarted` | `Wip`        | `st start`     | --                 |
+| `NotStarted` | `Hold`       | `st hold`      | reason recorded    |
+| `NotStarted` | `Cancelled`  | `st cancel`    | reason recorded    |
+| `Wip`        | `Completed`  | `st done`      | **`ac gate` PASS** |
+| `Wip`        | `Hold`       | `st hold`      | reason recorded    |
+| `Wip`        | `Cancelled`  | `st cancel`    | reason recorded    |
+| `Hold`       | `Wip`        | `st resume`    | --                 |
+| `Hold`       | `Cancelled`  | `st cancel`    | reason recorded    |
+| `Completed`  | `Wip`        | `st reopen`    | reason recorded    |
+| `Cancelled`  | `NotStarted` | `st reinstate` | reason recorded    |
+
+**New verbs required: `st triage`, `st hold`, `st resume`, `st reopen`, `st reinstate`.** Open for hv: does `st new` enter at `Triage` (every thread is triaged) or does `st new --start` skip to `NotStarted`? The `-s|--start` flag already exists and today jumps to `Wip`.
+
+### Machine 2 -- Work package (`WpStatus`)
+
+States: `NotStarted` | `Wip` | `Done`. **Entry: `NotStarted`.**
+
+| From         | To           | Verb         | Guard              |
+| ------------ | ------------ | ------------ | ------------------ |
+| _(none)_     | `NotStarted` | `wp new`     | --                 |
+| `NotStarted` | `Wip`        | `wp start`   | --                 |
+| `Wip`        | `Done`       | `wp done`    | **`ac gate` PASS** |
+| `Done`       | `Wip`        | `wp reopen`  | reason recorded    |
+| `Wip`        | `NotStarted` | `wp unstart` | --                 |
+
+**New verbs required: `wp reopen` (the one whose absence is causing the live inconsistency above), `wp unstart`.** No `Hold` or `Cancelled` at WP level is proposed -- a WP that stops mattering is a scope change on the thread, not a state on the package. Open for hv if that is wrong.
+
+**Open for hv, and it is the sharper question**: should `wp done` be **refused** while the gate is BLOCKED, or should a status that disagrees with its gate be **reported** as the defect it is? Today it is neither -- `wp done` consults the gate, but nothing re-checks afterwards, so a WP that was legitimately `Done` silently becomes a false green the moment its contract grows. **Recommendation: both.** Refuse on the way in, and have `doctor` report any unit whose status disagrees with its gate, because the contract can change under a status that was true when it was set.
+
+### Machine 3 -- Acceptance criterion
+
+**One enum replaces two fields.** Today `Criterion` carries `satisfied: Option<bool>` AND `scope: AcScope`, which is what produces "three stored values, two meanings, one of them never written". Per hv: `Satisfied | Unsatisfied | Descoped | Withdrawn`. **Entry: `Unsatisfied`.**
+
+| From          | To            | Verb                    | Guard                                |
+| ------------- | ------------- | ----------------------- | ------------------------------------ |
+| _(none)_      | `Unsatisfied` | authored                | --                                   |
+| `Unsatisfied` | `Satisfied`   | `ac satisfy --evidence` | **non-test AC only**; evidence given |
+| `Satisfied`   | `Unsatisfied` | `ac unsatisfy`          | clears evidence (cc built this)      |
+| `Unsatisfied` | `Descoped`    | `ac descope --to <ID>`  | target thread exists                 |
+| `Satisfied`   | `Descoped`    | `ac descope --to <ID>`  | clears evidence first                |
+| `Descoped`    | `Unsatisfied` | `ac rescope`            | --                                   |
+| `Unsatisfied` | `Withdrawn`   | `ac withdraw --reason`  | reason recorded                      |
+| `Satisfied`   | `Withdrawn`   | `ac withdraw --reason`  | clears evidence first                |
+| `Withdrawn`   | `Unsatisfied` | `ac reinstate`          | --                                   |
+
+**`Descoped` and `Withdrawn` are NOT the same state** and there is no direct edge between them -- descoped means the requirement still exists on a named thread and is a pointer you can follow; withdrawn means it does not exist at all. Moving between them routes through `Unsatisfied`, so the audit trail records the intermediate decision rather than smearing two facts into one.
+
+**The asymmetry that must be explicit: a TEST-BACKED AC is never `satisfy`-ed by hand.** Its state is COMPUTED from its covering ATs -- green ATs satisfy it, anything else does not. So for test-backed ACs the `Unsatisfied <-> Satisfied` edges are not verbs at all; they are consequences of the AT status changing. `ac satisfy` applies only to `(non-test)` ACs. **This means the AC machine has two variants and only one of them has a satisfy verb** -- a fact currently enforced by L5 in the linter and nowhere in the model.
+
+### What this gives cc's `transitions.rs`
+
+The mutation-completeness walk built on 2026-08-15 currently DISCOVERS edges from the service layer and checks the graph is closed. With these tables ratified it gets a **declared** graph to check the implementation against, so the walk changes from "is the code closed?" to "does the code implement the ratified machine, exactly?" -- and a missing verb becomes a red test rather than a fact nobody noticed until a WP could not be reopened.
