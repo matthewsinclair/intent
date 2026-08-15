@@ -109,3 +109,37 @@ Agreed and it is the better target. **`gen_inventory.sh` renders 104 from a hand
 Repaired by cc, nothing owed by anyone. Correcting it here because you both got the reassuring version.
 
 -- ic
+
+## (2026-08-15 15:57Z) -- CONTRACT CALL: the table can withdraw a COMMAND from the v3 surface and cannot withdraw a FLAG. AC-06.8 is unsatisfiable without one.
+
+Recorded as **EXP-05**. Measured against the built binary, not read off the source.
+
+**`intent doctor` declares `--fix`, `--verbose` and `--quiet`. All four invocations -- bare and each flag -- produce BYTE-IDENTICAL output**, while `intent doctor --help` prints "Attempt to fix issues automatically". It is not a missed read: `fn doctor()` takes no `ArgMatches` and its dispatch arm discards them, so there is no seam through which a flag could be read.
+
+### The part that makes it a contract question rather than a bug
+
+**AC-06.8 says a declared flag is read or it is WITHDRAWN FROM THE SURFACE. AC-06.9 says `doctor --fix` is specified before it is wired, or WITHDRAWN. Neither is satisfiable, because withdrawal has no mechanism.**
+
+`is_shipped()` gates an ENTRY on `disposition` and `target.state`. There is nothing equivalent one level down: `spine.rs` builds every declared flag on every shipped entry unconditionally, and the flag schema carries no field that could say otherwise -- the union of all flag keys in the table is `accepts default help note required spellings type value`. **cc declined to wire `doctor --fix` and was right to, and that was the whole of the action available to them.** The surface published the promise anyway.
+
+So AC-06.9's disjunction currently reads "specify it, or do the thing that cannot be done".
+
+### Scale, and the arrival schedule is the dangerous half
+
+**Two current violations** (`--quiet`, `--verbose` on `doctor`; `--fix` is AC-06.9's own). **Forty-four more** declared-and-unread flags sit on commands with no renderer arm at all -- future violations, not present ones.
+
+**They arrive one at a time as each command is wired**, which is the worst schedule available: never a batch anyone confronts, each instance landing inside a commit about something else. And AT-06.8's own note names why nothing would catch them -- a test exercising only wired flags passes on both worlds. Same shape as cc's `unwired` assertion this morning.
+
+### What I propose, and what I deliberately have NOT done
+
+Flags take a `disposition` in the vocabulary entries already use: **`keep`** ships and must be read; **`retire`** is recorded from v2 and never reaches clap; **`pending`** does **not** ship -- because an undecided flag on the surface IS the defect AC-06.8 names. Same safe direction as `exposed_on_mcp`: where the answer is unknown, **the cheap error is an absent feature and the expensive one is a promise**. Then the refusal, same construction as the MCP fields: every flag declares one, so a flag cannot join the surface by being typed.
+
+**I have not authored a row of it.** Classifying ~130 flags is exactly the EXP-03 shape, and EXP-03 went better precisely because you ruled the mechanism before I filled in the rows -- a first pass anchors the review, and anchoring it on an unratified mechanism costs more than waiting. The contract call is yours, the spine is cc's, the declaration and its refusal are mine.
+
+**Two sub-questions I cannot answer from here.** Whether `--quiet` / `--verbose` on `doctor` are `pending` (to be wired) or `retire` (v2 behaviour we are not carrying). And whether `pending`-does-not-ship is right, or whether it should refuse the BUILD instead -- refusing the build is stricter and would have caught this at WP-02 rather than at WP-06, but it makes an undecided flag a hard blocker rather than a quiet absence.
+
+### One method note, because I got it wrong first
+
+My first pass over-credited: the read set was global, so `--fix` being read in `at lint` counted as read for `doctor` too, and the measurement reported only `--quiet`/`--verbose`. **Checking `fn doctor()`'s signature is what caught it** -- a name-based match across a whole file cannot tell you which arm read it. Same needle-reports-on-what-it-matched shape as the rest of today.
+
+-- ic
