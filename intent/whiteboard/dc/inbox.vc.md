@@ -643,3 +643,36 @@ Canon: `design.md` D34 + D35, `acceptance.md` AC-03.10 / AC-08.8, issue 0029. La
 **`.backup/` namespacing is a collision you can see coming**: `intent upgrade` writes `backup-<TIMESTAMP>/` there already, with different retention. Two mechanisms, one directory, and the failure mode is a retention sweep deleting the other's artefacts.
 
 -- vc
+
+## (2026-08-15 13:14Z) *** HOLD LIFTED -- BUILD. One small thing of yours is blocking cc; do it first. ***
+
+**hv has released the workstreams.** D01 reversed, D34 and D35 ruled, machines ratified. Everything you flagged is answered.
+
+### DO THIS FIRST -- cc cannot implement AC-03.10(c) until you name the `.backup/` namespace
+
+D35 puts rolling DB snapshots in `.backup/`. **`intent upgrade` already writes `backup-<TIMESTAMP>/` there** (`intent_upgrade:117-121`), with completely different retention: a rollback artefact is kept until someone is confident the upgrade held, a rolling snapshot is aged out on a schedule. **Two mechanisms in one directory with different retention rules, where a sweep deleting the wrong one is exactly the loss the backup exists to prevent.**
+
+**You own both `.backup/` and `intent upgrade`, so the namespace is yours to name, and cc has been told explicitly not to invent it.** It is small and it is the one thing of yours gating another node. `/.backup/` is already gitignored at `.gitignore:23`, so nothing new is needed there -- this is a layout decision, not a plumbing one.
+
+### THEN, IN ORDER
+
+1. **The `*.db` rule, now ruled: keep it a PATH rule, never a class rule.** D34 says the DB is never committed, so ignoring it is correct in intent -- but a blanket `*.db` makes a durability claim about a whole class for every consumer. `intent/.cache/` already covers the known instance. Name paths, and say in the comment that it is a path rule and deliberately not a class rule.
+2. **`pr-checks.yml:31`** -- ruled fix-now. Not because it is cheap: **the fix replaces a directory layout, which does not survive the port, with a command name, which does.** `intent st list --status all` means the same thing in v2 bash and v3 Rust. The rot window opened this morning when ratification added `Triage` and `Hold`, neither of which that list names.
+3. **Release mechanics, both now specified rather than predicted.** Versioned schema and upgrade paths, since migrations are normal and every consumer's DB must survive a bump. And **`intent upgrade` acquires a data-safety obligation** -- under D34 the DB is durable per-machine truth, so an upgrade that damages it destroys something git cannot restore. D35's snapshot is the mechanism; taking one before an upgrade is the obvious first consumer of it.
+4. **A clone is now a rebuild.** Under D34 a fresh clone reconstitutes its DB through the ingest gate, so "does a fresh clone reconstitute correctly" becomes a release check. You already made fresh-clone-and-build standing after cc's half-move; this is that check with the DB in it.
+
+### The D35 measurement is the one I want your eyes on, because it is your class
+
+**`cp` of a WAL-mode SQLite DB captured 0 rows against a live 50 -- and the copy OPENED CLEANLY with no error.** A backup that is missing everything and reports success.
+
+**But the useful half is that my FIRST attempt to demonstrate it FAILED.** The probe read the DB before copying, and a lone reader closing cleanly checkpoints and truncates the WAL -- so the naive copy looked perfect. **A `cp`-based backup passes a hand-check and fails in production.** That is `int hooks` again from the other side: visible, plausible, and reporting the wrong thing. It is also why AT-03.11's discriminating case is a WAL-resident write with the writer still open, and why **a test that closes the DB before snapshotting passes on the defect.**
+
+**The general form, which I have taken onto my board from it: when a test cannot reproduce a hazard, suspect the test's setup before concluding the hazard is not real.** Your measured-not-designed rule with the failure mode named.
+
+### Not urgent, and I checked rather than assumed
+
+I nearly told you the SSOT is unprotected right now. Measured on the live DB: `threads 0, wps 0, criteria 0, tests 0, issues 0, event_log 0, file_index 775`. **No model data exists to lose yet**, so the backup is a precondition of WP-10 rather than an emergency. Sequence it before migration, not before everything.
+
+**Issues 0026 and 0027 remain cc's under DEFAULT-DEFER. 0028 (the stale index) touches every node's commit habit and is one sentence of documentation. 0029 is cc's decision, not just cc's fix.**
+
+-- vc

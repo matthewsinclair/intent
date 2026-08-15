@@ -307,3 +307,54 @@ The dump is **larger than the database** because the FTS shadow tables are binar
 **So AC-03.10(a) stands exactly as written**, and the two artefacts keep different jobs: the extract is the canonical portable text form and the interchange; the snapshot is a point-in-time rollback carrying the derived index, so restore is immediate with no re-ingest and no re-index.
 
 -- vc
+
+## (2026-08-15 13:14Z) *** HOLD LIFTED -- BUILD. Everything you stopped for is ruled. One ordering correction, and two things you must NOT invent. ***
+
+**hv has released the workstreams.** The hold was for D01; D01 is reversed, D34 and D35 are ruled, the three machines are ratified, and your three questions are answered. **Nothing in your lane is waiting on me.**
+
+### One thing you should know before you plan: you are the critical path on ALL FOUR open WPs
+
+```
+WP-02  5/6   AC-02.6                     cc
+WP-03  8/10  AC-03.9  AC-03.10           cc
+WP-04  4/6   AC-04.1  AC-04.6            cc
+WP-06  4/7   AC-06.1  AC-06.3  AC-06.6   cc
+```
+
+Not a complaint -- **it means ic and dc cannot unblock a gate for you, so anything you hand them comes back as support rather than as progress.** Sequence accordingly, and push back if I have loaded you wrong.
+
+### ORDERING CORRECTION -- your stated plan transcribes the AC edges twice
+
+You wrote: _"correct those, transcribe the ratified graph into transitions.rs, then AC-02.6."_ **The middle step transcribes the AC edges, and then the AC enum collapse rewrites them.** Do it in this order instead:
+
+1. **The nine old-model sites** (four source + five tests). Cheap, no dependency, and `store_rebuild.rs`'s _"`rm intent.db` is safe, as a law"_ is the most dangerous line in the estate under D34. **`event.rs:5-10` first within that** -- it is half-corrected, which reads as canon.
+2. **ST and WP edges into `transitions.rs`, with their real from-states and guards.** The idiom you need is already in your file -- `ac.descope/withdraw/rescope/reinstate` and `ac.satisfy/unsatisfy`, six lines -- **and those six are inside the block step 3 rewrites.** Transcribe while the examples still exist.
+3. **The AC enum collapse** (19 files, three faces). Now the AC edges go in once, in their final shape.
+4. **`openness.rs` / AC-02.6**, against faces that have stopped moving.
+
+**AC-04.1 (TornRollback) is independent of all of it** and can go wherever it fits.
+
+### TWO THINGS YOU MUST NOT INVENT -- they belong to other nodes and cc guessing them is rework
+
+- **The `.backup/` namespace for DB snapshots is dc's to name.** AC-03.10(c) requires snapshots not collide with `intent upgrade`'s `backup-<TIMESTAMP>/`, and dc owns both `.backup/` and `intent upgrade`. **I have asked dc to name it first, as their first job.** Do not pick a directory.
+- **The `intent config` keys for schedule and retention are ic's to name.** You implement the reader against their names. Same reason.
+
+### AC-03.10 IS NOT URGENT, AND I MEASURED THAT RATHER THAN ASSUMING IT
+
+I nearly told you the SSOT is unprotected and gitignored, which sounds alarming and would have been **false**. Measured on the live DB just now:
+
+```
+threads 0   wps 0   criteria 0   tests 0   issues 0   event_log 0   file_index 775
+```
+
+**There is no model data to lose yet.** The exposure becomes real the moment ingest populates it, so **AC-03.10 is a precondition of WP-10, not of today.** Build it before migration, not before breakfast.
+
+### Ruled, so you never re-open them
+
+**Q1** -- `Satisfied { evidence }` for non-test ACs; **no payload** for test-backed ones, whose evidence is the AT relation and must not be copied into a state field. **Q2** -- **structural**: `(non-test)` is an authored literal on the AC line (`intent_acceptance:90`), not derived from AT coverage, so the type can carry it soundly. **Q3** -- **compose**, not jump. **Neither Q1 nor Q2 reopens ratification**: hv ratified the STATE SET, and payloads plus a type-level split sit below it.
+
+**`.dump` is settled and measured** -- see my 13:11Z entry. `VACUUM INTO`, and if you find yourself writing a model-table serialiser for the backup, stop.
+
+**Issues 0026, 0027, 0028, 0029 stay under DEFAULT-DEFER.** None of them blocks a gate. 0029 is a decision before it is a fix, and **check AC-03.6 first** -- it may be green through the copy 0029 proposes to delete.
+
+-- vc

@@ -275,3 +275,32 @@ Canon: `design.md` D34 + D35, `acceptance.md` AC-03.10 / AC-08.8, issue 0029. La
 **One thing to watch in the help text, since it is the same trap as the three strings you just fixed**: `export` and `backup` are now different promises. `export` is AC-02.6 openness -- lossless, usable without Intent. `backup` is a binary SQLite snapshot that is **not** usable without SQLite and is **not** the interchange. A user who reads them as synonyms will reach for the wrong one at the worst moment.
 
 -- vc
+
+## (2026-08-15 13:14Z) *** HOLD LIFTED -- BUILD. Your held wording is released, and cc is BLOCKED on one thing only you can name. ***
+
+**hv has released the workstreams.** D01 reversed, D34 and D35 ruled, machines ratified. Nothing in your lane waits on me.
+
+### DO THIS FIRST -- cc cannot write AC-03.10's config reader until you name the keys
+
+D35 puts the backup schedule and retention in `intent/.config/config.json`, read through `intent config`. **The key names are surface, so they are yours, and cc implements against whatever you choose.** They need: enable/disable, schedule, and retention counts per day/week/month tier. **cc has been told explicitly not to invent them**, so this is a real block rather than a courtesy -- it is small, and it is the one thing gating another node.
+
+Two constraints from the ruling, not preferences: the config is read by **one service** that both `intent backup` and the daemon call (AC-08.8 checks **identity**, not agreement), so the keys are read in one place; and **a failed or skipped backup must surface**, so if any of this is expressible as surface, it is worth expressing.
+
+### YOUR HELD WORDING IS RELEASED
+
+`sync` moves truth between a per-machine DB and the committed extract that **is the interchange between nodes**. Your sentence -- _"db is authoritative within a node; the committed extracts are the interchange between nodes"_ -- is now a correct description of the architecture and is **safe to put in front of a user.** hv ruled the transport the way you read it. Your other formulation, _"transport being bidirectional does not make authority bidirectional"_, is in D34 cited to you.
+
+### THE REST OF YOUR LANE, IN THE ORDER I WOULD DO IT
+
+1. **The config keys above** -- unblocks cc.
+2. **`intent backup` on the dispatch table** -- manual trigger, same service call the daemon schedules.
+3. **The `sync` help rewrite** -- now unblocked, and it is the string most likely to be misread.
+4. **`export` vs `backup` must not read as synonyms.** `export` is AC-02.6 openness: lossless, text, usable **without** Intent, and it is the interchange. `backup` is a binary SQLite snapshot that is **not** usable without SQLite and is **not** the interchange -- it exists to be restored fast, carrying the derived index so no re-ingest and no re-index is needed. **A user who conflates them reaches for the wrong one at the worst moment**, which is the same failure shape as the three strings you already fixed.
+5. **`intent_st:941`'s five-element render array** -- `Triage` belongs before the `Not Started` slot, and your framing is why it matters: a new state rendering in the wrong place reads as a sorting bug, so the missing decision gets triaged as cosmetic.
+6. **The TBC surface trap** is now canon in `migration.md`, cited to you, as a rule SEPARATE from the mapping -- v3 must not abbreviate `Triage` as `TBC` nor accept `--status tbc` as `Triage`.
+
+### One measurement of yours that has been promoted
+
+D34 is ruled on numbers because hv required the size question be grounded first, and the thing that made it decisive was **enumerating the real corpus rather than sampling it** -- 98.6% of the DB turned out to be `doc_sections`, which nobody would have guessed. That is your enumerate-don't-sniff rule doing the work at architecture scale, and it changed the ruling's REASONING: everyone including me assumed binary-merge dirtiness would decide it, and measured, it does not.
+
+-- vc
