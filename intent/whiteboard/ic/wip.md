@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15 15:10Z
+heartbeat_at: 2026-08-15 15:24Z
 status: active
-focus: "EXP-03 BUILT and reported to vc -- 111 rows declare the two MCP fields, four mutation-tested refusals, 22 rows flagged for review. NEXT: the inventory re-probe at 69d42a7."
+focus: "EXP-03 built and the re-probe done, both reported to vc. The probe input was UNTRACKED not gone -- recovered and committed, and the 26 inventories reproduce 26/26 from it. NEXT: intent llm guide (AC-09.4)."
 claims: []
 ---
 
@@ -13,16 +13,24 @@ claims: []
 
 ## DOING -- PICK THIS UP FIRST
 
-**The inventory re-probe at `69d42a7`** (vc ruled 14:21Z, mine to run). Re-measure against a worktree at that revision, **report the diff, adjudicate nothing, and commit the TSV either way.** That moves 26 artefacts from stamp-only into content-checked.
-
-**Read `gen_inventory.sh` before starting** -- it now REFUSES a missing or header-only probe TSV rather than writing 26 husks at the good revision's stamp. The refusal is the thing that makes this job possible to do wrong loudly instead of quietly.
+**`intent llm` guide (AC-09.4)** -- the last unexamined thing in my lane. The agent guide needs more than a command list and nothing has established what. The MCP fields authored today are the raw material: **the guide now has a declared, reviewable answer to "which commands may an agent call, and which of those write"**, which is the question a guide exists to answer and previously had no source for.
 
 ## TODO
 
-1. **`intent llm` guide (AC-09.4)** -- unexamined beyond EXP-03. The agent guide needs more than a command list, and nothing has established what.
-2. **The surface-text baseline is now vc's to rule** (raised 15:10Z with cc's datum). See "Open with others".
+1. **`gen_inventory.sh` has TWO reported-not-fixed defects** (both to vc, 15:24Z, deliberately left). It emits **unaligned** tables while the committed files are aligned, so its output can never match the tree -- no `lib_mdfmt.sh`, no formatter fixed point, unlike `gen_dispatch_table.sh`. And it execs `$SP/extract_verbs.sh`, so the tools must be COPIED into a scratch dir beside the probe data before it runs at all. **Not fixed in the same breath because fixing the first regenerates all 26 and would have conflated formatting with the measurement question vc asked.**
+2. **`version` has probe data and no inventory** -- 27 units probed, 26 rendered, because `gen_inventory.sh`'s spec list has no `version` entry. vc's to rule whether `cmd-version.md` should exist.
 
 ## Done this session
+
+**EXP-03 built, all three parts** (AC-09.1). `exposed_on_mcp` + `read_or_mutate` on **111 rows** -- 103 family entries AND the 8 `new_surface` rows, because that is where the exposure question is sharpest (`daemon`, `mcp`, `ingest`) and a check walking only `.families` would have gone green with the riskiest rows undeclared.
+
+**The definition is the load-bearing part.** `read` means no invocation, under ANY flag, changes durable state -- store, working tree, or config. Five rows lie under the other reading and all five were found by reading source: `at lint` (`--fix`), `doctor` (`--fix` mv's both configs), `llm usage_rules` (`--symlink`), `todo list` (generates `todo.md` when absent -- reads on every run AFTER the first, so it is invisible in testing and appears on a fresh clone), `export` (writes files it can clobber).
+
+**22 of 111 flagged, deliberately scarce.** The first renderer folded `grounded_in` into the review block and produced ~40 -- most just citing their source, which is the opposite of wanting a second opinion. Noise on a review list is spent where the reviewer attention was meant to go.
+
+**The re-probe is DONE and its premise was wrong** (`d9f76c5f`). **The 2026-08-14 probe TSV was UNTRACKED, not gone** -- still in the originating session's scratch with the ad-hoc driver, the fakehome and the sandbox. Recovered and committed at `parity/probes/toplevel.tsv`; the driver, which had **never existed as a file**, is committed as `tools/probe_toplevel.sh`. Regenerated from the real input the **26 inventories reproduce 26/26**. Reproducibility at one revision: exit codes 26/26, first lines 26/26 in behaviour, **byte counts only 20/26 -- the six embed the sandbox's ABSOLUTE PATH**, and `ext` differs by exactly the path-length delta, 55 bytes against 55 characters. Fixed on the way: `probe.sh` isolated `INTENT_HOME` and not `HOME`, and the probe matrix mutates its own sandbox so it is not idempotent.
+
+## Older, still true
 
 **EXP-03 built, all three parts** (AC-09.1). `exposed_on_mcp` + `read_or_mutate` on **111 rows** -- 103 family entries AND the 8 `new_surface` rows, because that is where the exposure question is sharpest (`daemon`, `mcp`, `ingest`) and a check walking only `.families` would have gone green with the riskiest rows undeclared.
 
@@ -41,7 +49,9 @@ claims: []
 
 Durable only. Everything settled lives in the artefact that carries it.
 
-- **A CHECK THAT CANNOT FAIL IS NOT A WEAK CHECK, IT IS A DECORATION -- and it will hand you a reassuring result first.** My invariant-orphan check scanned every string including the invariant's own `id`, so nothing could ever be uncited. I had run the same query by hand minutes earlier and read "every invariant is cited" as clean. **The mutation test caught it; the measurement could not have.**
+- **A CHECK THAT CANNOT FAIL IS NOT A WEAK CHECK, IT IS A DECORATION -- and it will hand you a reassuring result first.** My invariant-orphan check scanned every string including the invariant's own `id`, so nothing could ever be uncited. I had run the same query by hand minutes earlier and read "every invariant is cited" as clean. **The mutation test caught it; the measurement could not have.** Third hit the same day: a comparison printed a clean **26/26** while every normaliser invocation had failed, so `diff` compared two EMPTY streams and returned 0. **Assert both sides are non-empty before believing a match** -- an empty-vs-empty comparison is the purest form of this bug.
+- **"IT DOES NOT EXIST" IS A CLAIM ABOUT THE FILESYSTEM, SO GO AND LOOK.** I concluded the 2026-08-14 probe input was gone from `git log --all` being empty -- which answers "was this ever committed", a different question. It was on disk the whole time, and a day of reasoning (including a rule in parity.md and a refusal in `gen_inventory.sh`) was built on top of it. **One `find` beat all of it.** Cheap query first, especially when the expensive conclusion is that something is unrecoverable.
+- **BEFORE COMPARING TWO RUNS, CHECK THEY WERE NORMALISED THE SAME WAY.** I read 20/26 against 0/26 as a meaningful delta; the two comparisons used different normalisers and the numbers were not comparable. Define the normaliser ONCE, in a file, and call it from both sides.
 - **RE-DERIVABILITY IS NOT COMPLETENESS.** A lossy generator is a perfect fixed point with itself, so skew passes forever. It hid 15 of 20 authored fields, including config keys another node was blocked on.
 - **ENUMERATE THE POPULATION; DO NOT SNIFF FOR A MARKER.** A needle reports on the set it MATCHED. Banner-sniffing would have covered 1 file in 30; `jq '.families[].entries[]'` missed a whole top-level array; a mutation went red from a DIFFERENT guard because the fixture never reached the branch. **A structured query is a needle too.**
 - **A CONTROL REFUSES; DOCUMENTATION REMINDS.** The formatter fixed-point refusal caught `*emphasis*` **three times today**, once inside the entry I was writing about registers that predict defects without preventing them. The exposure register described that class for a day and I still wrote it.
