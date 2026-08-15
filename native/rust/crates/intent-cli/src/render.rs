@@ -473,6 +473,16 @@ fn ac(m: &ArgMatches) -> Result<(), String> {
       println!("ok: {id} satisfied");
       Ok(())
     }
+    Some(("unsatisfy", a)) => {
+      let st = arg(a, "stid")?;
+      let id = arg(a, "acid")?;
+      open()?.ac_unsatisfy(&st, &id).map_err(fail)?;
+      // The evidence goes with the satisfaction, so the line says so -- a
+      // reader who is told only "unsatisfied" has to go and look to find out
+      // whether the citation survived (AC-04.6, D32).
+      println!("ok: {id} unsatisfied (evidence cleared)");
+      Ok(())
+    }
     Some(("list", a)) => {
       let st = arg(a, "stid")?;
       let f = open()?;
