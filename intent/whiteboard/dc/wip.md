@@ -5,7 +5,7 @@ role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
 heartbeat_at: 2026-08-15 17:01Z
 status: active
-focus: "AC-11.3 SATISFIED at `a4a1767d` -- WP-11 is 2/4. My board said everything left was WP-12 cutover; the contract said AT-11.3 was unwritten, in my own work package. `no_intent_home.rs` asserts the shipped source reads exactly {COLUMNS} -- an allowlist, so it covers the commands that do not exist yet, which are the ones that will want a home. Six canaries. WAS: PAUSED after a localfold. WP-11's macOS leg is COMPLETE and proven end to end -- signing happens on STAGED copies now, so the shared-target race is removed rather than backstopped, and `int macos prepare` runs the sequence as one pass. D42 absorbed: my lane is a no-op under it, because every date reach I own is devbin and devbin is not Intent. Everything left on WP-11 is WP-12 cutover."
+focus: "AC-11.3 SATISFIED at `a4a1767d`; WP-11 is 2/4 and both open rows need a publication that does not exist (WP-12 cutover). My board said everything left was cutover; the contract said AT-11.3 was unwritten, in my own work package. `no_intent_home.rs` asserts the shipped source reads exactly {COLUMNS} -- an allowlist, so it covers the commands that do not exist yet, which are the ones that will want a home. Six canaries, both fixtures self-proving. macOS leg still complete."
 claims: [ST0056/11]
 ---
 
