@@ -50,6 +50,12 @@ set -uo pipefail
 if [ "${1:-}" = "--verify" ]; then
   HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   . "$HERE/lib_classify.sh" || { echo "gen_pertest --verify: cannot source lib_classify.sh" >&2; exit 2; }
+  # Calibrate here too, and the reason is specific to this mode: --verify
+  # compares the artefact against the CURRENT rules, so a broken needle does not
+  # merely mis-verify -- it reports the correct committed rows as stale and
+  # sends someone off to "fix" them. A wrong answer that generates work is worse
+  # than a wrong answer that sits still.
+  classify_calibrate || { echo "gen_pertest --verify: classification rules failed calibration -- refusing to call rows stale against a needle that is itself broken" >&2; exit 2; }
   ART="${ART:-$HERE/../pertest.md}"
   [ -f "$ART" ] || { echo "gen_pertest --verify: no artefact at $ART" >&2; exit 2; }
   WT="${WT:-$(cd "$HERE/../../../../.." && pwd)}"
@@ -102,6 +108,7 @@ BURN="$SP/burn.tsv"
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib_classify.sh" || { echo "gen_pertest: cannot source lib_classify.sh -- refusing to classify without the shared rules" >&2; exit 2; }
+classify_calibrate || { echo "gen_pertest: classification rules failed calibration -- refusing to emit per-test rows from a needle that has stopped matching a form it covers" >&2; exit 2; }
 . "$HERE/lib_mdfmt.sh"    || { echo "gen_pertest: cannot source lib_mdfmt.sh -- refusing to emit a view that will not survive the formatter" >&2; exit 2; }
 . "$HERE/lib_corpus.sh"   || { echo "gen_pertest: cannot source lib_corpus.sh -- refusing to report without the corpus guard" >&2; exit 2; }
 

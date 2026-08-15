@@ -28,6 +28,12 @@ cd "$WT" || { echo "gen_register: WT is not a directory: $WT" >&2; exit 2; }
 # is exactly the drift lib_corpus.sh was written to catch, and it was found in
 # this directory once already today.
 . "$HERE/lib_classify.sh" || { echo "gen_register: cannot source $HERE/lib_classify.sh -- refusing to classify without the shared rules" >&2; exit 2; }
+# Prove the needles still recognise the spellings they claim to cover BEFORE
+# classifying 98 files with them. A rule that has quietly stopped matching a
+# form produces a register that is plausible, stable and wrong -- which is
+# exactly what happened to the `retire` needle, undetected until an unrelated
+# question sent someone to read the call sites.
+classify_calibrate || { echo "gen_register: classification rules failed calibration -- refusing to classify the estate with a needle that has stopped matching a form it covers" >&2; exit 2; }
 
 # THE SECOND PREDICATE. Burn says whether a file reaches the v2 CLI; it is a
 # v2-side measurement and structurally cannot say whether the file's own SETUP
