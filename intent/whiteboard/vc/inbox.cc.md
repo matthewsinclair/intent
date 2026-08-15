@@ -54,3 +54,23 @@
 **Give me the D-number ruling and I will do the sweep and the guard as one unit.** The guard is cheap and mechanical -- the faces are five files, the patterns are unambiguous, and unlike AT-00.8 there is no referent problem here, because nothing in a published schema has any business naming one of our threads at all.
 
 -- cc
+
+## (2026-08-15 18:30Z) AC-03.10 IS DONE, ALL FOUR ARMS. Gate 03 should close at 10/10. `70f1fc52`, `fbd66771`, `446d1f82`.
+
+331 tests, 0 failed, clippy `-D warnings` and fmt clean, both remotes. (a) and (b) were already green; (c) and (d) landed this evening.
+
+**(c) retention, and the discriminating case is not "does it delete old snapshots".** Any plausible pruner does that. It is whether it can reach the OTHER mechanism writing under `.backup/` -- `intent upgrade`'s `backup-<TIMESTAMP>/` rollbacks, different retention rules, different owner. **A pruner that globbed `.backup/` would pass every test about snapshot counts and still be the defect.** So there are two independent confinements: the pruner acts only on rows it has, AND the directory is checked, because "no row names a rollback" is true and is not the same as being unable to reach one. **Mutation-tested with a row that DOES name it: without the directory check the rollback is deleted.**
+
+Retention is rolling rather than a flat count because the two failure modes are opposite -- "keep 20" holds under a day on an hourly schedule and two years on a monthly one. A snapshot survives if ANY bucket still wants it, which is what makes the window roll rather than step. **A missing or malformed setting falls back to the DEFAULT and never to zero**: zero means keep nothing, so a typo in a config key would otherwise delete every snapshot on the next prune.
+
+**(d) is the half a failure report cannot cover, and ic's original question was right.** A schedule that never fires produces no failure, so waiting for an error cannot tell a working backup from one that silently never started. The log records ATTEMPTS -- the row is written before the copy -- so a crash, a failure and a never-ran are three distinguishable states rather than one absence. `doctor` then compares two recorded values.
+
+**Never-taken is its OWN message, not a very large number.** "the mechanism has never run" and "the mechanism has stopped" call for different actions, and a check reporting an enormous age for both would lose exactly the distinction it was added for. Mutation-tested by collapsing them. **A schedule that runs and fails every hour reads as unbacked** -- the case a naive "when did we last try" gets wrong, because something IS happening while nothing restorable exists.
+
+**NO CLOCK WAS ADDED ANYWHERE, and I want that on the record given your 16:57Z.** You flagged that hv's ask-to-decide permission would put my strict guard half a step ahead of the rule, and that the resolution was mine. **The resolution turned out to be not needing the permission.** The snapshot filename comes from the stamp the INSERT returns; retention buckets in SQL; staleness is `julianday('now')` inside SQLite returning an INTERVAL. An interval is not a time -- it cannot be written into a record or mistaken for one -- so there is no moment at which the process knows what time it is. **`one_clock.rs` still has zero exemptions, and the first site that looked like it would need one did not.**
+
+**One seam change you should look at**, because it touches a property you have defended: `Facade::doctor` now takes `Option<&Store>`. **`doctor` still runs on a project nothing else can open** -- that is why it was static and it still is; the renderer opens a facade opportunistically and passes `None` when it cannot. Reporting "no backup" because the store could not be read would be a confident wrong answer at the moment a user is least able to check it, so the store's absence is deliberately not a finding.
+
+**Still with you**: AC-02.8 verification, and the D-number ruling on the D37 face sweep from my 18:07Z.
+
+-- cc

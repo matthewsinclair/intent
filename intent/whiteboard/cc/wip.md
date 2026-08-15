@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 18:15Z
+heartbeat_at: 2026-08-15 18:30Z
 status: active
-focus: "AC-02.8, AC-06.10(a)+(c), three of ic's four spine parity breaks, and AC-03.10(d)'s backup registry all landed and pushed. 322 tests. AC-02.8 with vc; AC-06.10(b) with ic. NEXT: the backup module + retention, to close gate 03 at 10/10."
+focus: "AC-02.8, AC-06.10(a)+(c), three spine parity breaks and AC-03.10 ALL FOUR ARMS landed and pushed. 331 tests, clippy and fmt clean. Gate 03 should be 10/10 and gate 02 8/8 -- both with vc. NEXT: AT-00.8, or the D37 face sweep once vc rules on D-numbers."
 claims: []
 ---
 
@@ -47,12 +47,14 @@ claims: []
 
 `70f1fc52` **AC-03.10(d), first half** -- the backup log is a TABLE recording ATTEMPTS, not a directory listing, so a schedule that never ran is distinguishable from one that fails. Row written before the copy; the snapshot filename comes from the stamp the INSERT returns; staleness is `julianday('now')` inside SQLite returning an INTERVAL, so **no clock is needed and none was added**. `SCHEMA_VERSION` 4, `SCHEMA_DDL_VER` 2.
 
-## DOING -- AC-03.10 (c) + the rest of (d): closes gate 03 at 10/10
+## DOING -- nothing; picking up next from TODO
 
-1. **The `backup` module**: `take()` -> `VACUUM INTO intent/.backup/db/<db-stamp>.db`, recording the attempt through `begin_snapshot`/`finish_snapshot`. Its own namespace so it can never collide with `intent upgrade`'s `backup-<TIMESTAMP>/` -- **two mechanisms in one directory with different retention rules, where pruning the wrong one is the loss this AC exists to prevent.**
-2. **(c) rolling retention** day/week/month with configurable counts from `intent/.config/config.json`. **Bucket in SQL** (`strftime` over `taken_at`), so the retention decision stays where the stamps are. Two settings are ruled NOT configurable: the snapshot directory, and any key that silences a backup failure.
-3. **`doctor` reports staleness** -- `hours_since_last_good_snapshot()` against the configured schedule. The store half is built and tested.
-4. **`intent backup --list`** -- the row exists and `--list` is ratified. It answers WHAT EXISTS and is deliberately NOT the health report; one place reports health and it is `doctor`.
+**AC-03.10 IS DONE, ALL FOUR ARMS** (`70f1fc52`, `fbd66771`, `446d1f82`). Gate 03 should close at 10/10; with vc.
+
+- **(a)+(b)** were already green. **(c)** rolling day/week/month retention, configurable counts, **confined to `.backup/db/` by two independent mechanisms** -- the pruner acts only on rows it has, AND the directory is checked, because a corrupt row naming `intent upgrade`'s rollback must not make it deletable. Mutation-tested: without the second, the rollback is deleted.
+- **(d)** the backup log records ATTEMPTS, so never-ran and ran-and-failed are different observable states, and **`doctor` reports staleness with never-taken as its OWN message** -- the two call for different actions and collapsing them loses the distinction the check exists for. A schedule that runs and fails every hour reads as unbacked, which is the truth.
+- **No clock was added anywhere.** The snapshot filename comes from the stamp the INSERT returns; retention buckets in SQL; staleness is an interval SQLite computes. **hv's permission to read a clock in order to decide was not needed, which is the cheapest way to stop it eroding.**
+- `intent backup` and `--list` are wired. `--list` answers what EXISTS and is deliberately not the health report.
 
 ## TODO
 
