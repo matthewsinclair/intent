@@ -138,10 +138,20 @@ CREATE VIRTUAL TABLE IF NOT EXISTS doc_sections USING fts5 (
   body,
   tokenize = 'porter unicode61'
 );
+-- **D42: THE DB STAMPS THE RECORD, AND THE APPLICATION NEVER SUPPLIES A TIME.**
+-- `ts` carries a DEFAULT so the stamp is applied AS PART OF THE INSERT. A
+-- caller that read a clock and then wrote the value would hold it across a
+-- gap, so a retried, deferred or batched write would be stamped when it was
+-- PREPARED rather than when it happened -- invisible by inspection, which is
+-- this estate's recurring failure shape. A DEFAULT has no gap: the stamp and
+-- the write are one operation.
+-- The column is still WRITABLE, and that is not a loophole: restoring the
+-- committed extract must carry each envelope's ORIGINAL time, which is a
+-- different act from recording that something just happened.
 -- openness: carried by intent/events.jsonl
 CREATE TABLE IF NOT EXISTS event_log (
   id TEXT PRIMARY KEY,
-  ts TEXT NOT NULL,
+  ts TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
   principal TEXT NOT NULL,
   project_id TEXT NOT NULL,
   op TEXT NOT NULL,
@@ -173,7 +183,61 @@ CREATE TABLE IF NOT EXISTS event_log (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 1;
+pub const SCHEMA_VERSION: i32 = 2;
+
+/// **The migration ladder: one rung per version step, applied in order.**
+///
+/// `MIGRATIONS ARE NORMAL` had a stamp and a refusal and no ladder, which was
+/// deliberate sequencing (refusing with a remedy is the invariant; migrating
+/// is the convenience) and stopped being enough the moment the DDL actually
+/// moved. A store at 1 opened by this binary is now MIGRATED rather than
+/// refused.
+///
+/// **A rung can only ever start at 1.** SQLite defaults `user_version` to 0,
+/// so 0 is permanently the ABSENCE of a version rather than schema zero: there
+/// is no state to migrate FROM, and those stores stay refused by name. The
+/// stamp bought the future, not the past.
+///
+/// Each rung is `(to_version, sql)` and runs in one transaction with the
+/// version bump, so an interrupted migration leaves the old version and the
+/// old shape rather than a half-migrated store claiming the new one.
+const MIGRATIONS: &[(i32, &str)] = &[(
+  2,
+  // 1 -> 2: `event_log.ts` gains a DEFAULT so the DATABASE stamps the row at
+  // INSERT (D42). SQLite cannot alter an existing column's default, so the
+  // table is rebuilt -- and every existing row keeps its original `ts`,
+  // because the stamps already recorded are history and re-stamping them
+  // would move the whole log to the moment of the upgrade.
+  "CREATE TABLE event_log_v2 (
+     id TEXT PRIMARY KEY,
+     ts TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+     principal TEXT NOT NULL,
+     project_id TEXT NOT NULL,
+     op TEXT NOT NULL,
+     subject_type TEXT NOT NULL,
+     subject_id TEXT NOT NULL,
+     payload TEXT NOT NULL
+   );
+   INSERT INTO event_log_v2 (id, ts, principal, project_id, op, subject_type, subject_id, payload)
+     SELECT id, ts, principal, project_id, op, subject_type, subject_id, payload FROM event_log;
+   DROP TABLE event_log;
+   ALTER TABLE event_log_v2 RENAME TO event_log;",
+)];
+
+/// Which of the two write acts is happening (D42).
+///
+/// Named rather than a `bool`, because `write_event(conn, e, true)` at a call
+/// site says nothing about which world it is in, and the two worlds are
+/// "record that this is happening now" and "reinstate a record of something
+/// that happened then". Getting them the wrong way round rewrites history to
+/// the moment of the restore, silently.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Stamp {
+  /// The DEFAULT fires: the database stamps the row as part of the INSERT.
+  ByTheDatabase,
+  /// The envelope's own `ts` is carried verbatim -- transport, not recording.
+  CarriedFromTheExtract,
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum StoreError {
@@ -321,6 +385,14 @@ impl Store {
         // finishes an interrupted create -- see the ordering note above.
         conn.execute_batch(DDL)?;
       }
+      // An OLDER store is migrated, not refused: migrations are normal.
+      v if v < SCHEMA_VERSION => {
+        Self::migrate(&mut conn, v)?;
+        conn.execute_batch(DDL)?;
+      }
+      // A NEWER store is refused, and there is no rung that could help. The
+      // shape was written by a binary this one has never heard of, so the
+      // remedy is to move the TOOL forward, never the data back.
       found => {
         return Err(StoreError::SchemaMismatch {
           found,
@@ -350,6 +422,25 @@ impl Store {
   /// `sqlite_master` rather than a probe for a known table name: the question
   /// is "has anyone written here", and asking after a specific table would
   /// answer "no" for every past shape that did not happen to contain it.
+  /// Walk the ladder from `from` up to [`SCHEMA_VERSION`].
+  ///
+  /// Each rung runs with its version bump in ONE transaction. A crash between
+  /// rungs leaves a store that is validly at some intermediate version, which
+  /// the next open resumes from -- never a store stamped with a shape it does
+  /// not have.
+  fn migrate(conn: &mut Connection, from: i32) -> Result<(), StoreError> {
+    for (to, sql) in MIGRATIONS {
+      if *to <= from {
+        continue;
+      }
+      let tx = conn.transaction()?;
+      tx.execute_batch(sql)?;
+      tx.pragma_update(None, "user_version", to)?;
+      tx.commit()?;
+    }
+    Ok(())
+  }
+
   fn has_tables(conn: &Connection) -> Result<bool, rusqlite::Error> {
     conn
       .query_row(
@@ -482,7 +573,9 @@ impl Store {
       Self::write_issue(&tx, i)?;
     }
     Self::write_doc_sections(&tx, change.sections)?;
-    Self::write_event(&tx, change.envelope)?;
+    // The mutation's own event: the DB stamps it inside the same
+    // transaction as the rows it describes (D42).
+    Self::write_event(&tx, change.envelope, Stamp::ByTheDatabase)?;
     tx.commit()?;
     Ok(())
   }
@@ -827,28 +920,53 @@ impl Store {
   }
 
   /// Append one envelope to the event log.
-  pub fn append_event(&self, e: &Envelope) -> Result<(), StoreError> {
-    Self::write_event(&self.conn, e)
+  /// Record that something just happened. **The DB assigns the time** (D42);
+  /// the stamp it assigned is returned, because the caller has no other way to
+  /// learn it and must never compute it.
+  pub fn append_event(&self, e: &Envelope) -> Result<String, StoreError> {
+    Self::write_event(&self.conn, e, Stamp::ByTheDatabase)
+  }
+
+  /// Take an envelope back from the committed extract, carrying the time it
+  /// was originally written with.
+  ///
+  /// **A different act from [`Store::append_event`], and the difference is the
+  /// whole of D42.** Recording that something happens NOW is the database's
+  /// job. Reinstating a record of something that happened THEN is transport,
+  /// and re-stamping it would rewrite history to the moment of the restore --
+  /// turning a clone of yesterday's extract into a log that claims everything
+  /// happened today.
+  pub fn restore_event(&self, e: &Envelope) -> Result<String, StoreError> {
+    Self::write_event(&self.conn, e, Stamp::CarriedFromTheExtract)
   }
 
   /// THE ONLY PLACE AN ENVELOPE BECOMES A ROW. Takes anything that derefs to a
   /// `Connection`, so the standalone append and the one inside a mutation's
   /// transaction are the same code.
-  fn write_event(conn: &rusqlite::Connection, e: &Envelope) -> Result<(), StoreError> {
-    conn.execute(
-      "INSERT INTO event_log (id, ts, principal, project_id, op, subject_type, subject_id, payload) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-      params![
-        e.id,
-        e.ts,
-        e.principal,
-        e.project_id,
-        e.op,
-        e.subject.kind,
-        e.subject.id,
-        serde_json::to_string(&e.payload)?,
-      ],
-    )?;
-    Ok(())
+  fn write_event(
+    conn: &rusqlite::Connection,
+    e: &Envelope,
+    stamp: Stamp,
+  ) -> Result<String, StoreError> {
+    let payload = serde_json::to_string(&e.payload)?;
+    // ONE insert in two forms, and the only difference is whether `ts` is
+    // named. Omitting the column is what lets the DEFAULT fire, which is the
+    // mechanism D42 asks for -- there is no application-side expression to
+    // get wrong, and `RETURNING` reads back what the database actually wrote
+    // rather than what we hoped it would.
+    let ts = match stamp {
+      Stamp::ByTheDatabase => conn.query_row(
+        "INSERT INTO event_log (id, principal, project_id, op, subject_type, subject_id, payload) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7) RETURNING ts",
+        params![e.id, e.principal, e.project_id, e.op, e.subject.kind, e.subject.id, payload],
+        |row| row.get(0),
+      )?,
+      Stamp::CarriedFromTheExtract => conn.query_row(
+        "INSERT INTO event_log (id, ts, principal, project_id, op, subject_type, subject_id, payload) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) RETURNING ts",
+        params![e.id, e.ts, e.principal, e.project_id, e.op, e.subject.kind, e.subject.id, payload],
+        |row| row.get(0),
+      )?,
+    };
+    Ok(ts)
   }
 
   /// Every envelope, oldest first.

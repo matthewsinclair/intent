@@ -109,10 +109,20 @@ CREATE VIRTUAL TABLE IF NOT EXISTS doc_sections USING fts5 (
   body,
   tokenize = 'porter unicode61'
 );
+-- **D42: THE DB STAMPS THE RECORD, AND THE APPLICATION NEVER SUPPLIES A TIME.**
+-- `ts` carries a DEFAULT so the stamp is applied AS PART OF THE INSERT. A
+-- caller that read a clock and then wrote the value would hold it across a
+-- gap, so a retried, deferred or batched write would be stamped when it was
+-- PREPARED rather than when it happened -- invisible by inspection, which is
+-- this estate's recurring failure shape. A DEFAULT has no gap: the stamp and
+-- the write are one operation.
+-- The column is still WRITABLE, and that is not a loophole: restoring the
+-- committed extract must carry each envelope's ORIGINAL time, which is a
+-- different act from recording that something just happened.
 -- openness: carried by intent/events.jsonl
 CREATE TABLE IF NOT EXISTS event_log (
   id TEXT PRIMARY KEY,
-  ts TEXT NOT NULL,
+  ts TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
   principal TEXT NOT NULL,
   project_id TEXT NOT NULL,
   op TEXT NOT NULL,

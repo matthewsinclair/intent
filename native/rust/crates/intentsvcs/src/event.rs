@@ -60,8 +60,8 @@ pub struct Subject {
 }
 
 impl Envelope {
-  /// Mint an envelope with a fresh ULID, stamped with the time the CALLER
-  /// read from the store.
+  /// Mint an envelope that has NOT been written yet, and therefore has NO
+  /// time.
   ///
   /// **It used to read the process clock, and under hv's ruling that is the
   /// defect** (2026-08-15): time comes from the DB. The event log is the
@@ -70,17 +70,23 @@ impl Envelope {
   /// accident of who ran the command. Two nodes syncing their logs together
   /// (D34) would interleave by two unreconciled clocks.
   ///
-  /// `ts` is a parameter rather than a store handle because this type knows
-  /// nothing about storage and should not learn. [`crate::store::Store::now`]
-  /// is the one clock; this is the one place a record is stamped with it.
-  pub fn new(
+  /// **D42: `ts` is left EMPTY and the database fills it at the point of
+  /// INSERT.** An envelope in this state is a record of nothing until it is
+  /// written, which is exactly what it is -- and there is no argument here for
+  /// a caller to supply a time through, because a caller has none to give.
+  ///
+  /// The emptiness is load-bearing rather than a placeholder, and
+  /// [`to_jsonl`] refuses it: an unwritten envelope serialised into the
+  /// history file would be a record claiming to have happened at the start of
+  /// time.
+  pub fn minted(
     principal: &str,
     project_id: &str,
     op: &str,
     subject: Subject,
     payload: serde_json::Value,
-    ts: String,
   ) -> Self {
+    let ts = String::new();
     Self {
       id: ulid::Ulid::new().to_string(),
       ts,
@@ -110,6 +116,16 @@ pub const JSONL: &str = "events.jsonl";
 pub fn to_jsonl(events: &[Envelope]) -> Result<String, serde_json::Error> {
   let mut out = String::new();
   for e in events {
+    // **An envelope with no `ts` was never written** (D42: the database
+    // stamps at INSERT), so it is not history and must not enter the history
+    // file. Serialising it would publish a record claiming to have happened
+    // at the start of time -- and an empty string sorts before every real
+    // stamp, so it would also land first in any log a peer merged it into.
+    debug_assert!(
+      !e.ts.is_empty(),
+      "envelope {} has no timestamp, so it was never written to the store; only a written record is history",
+      e.id
+    );
     out.push_str(&serde_json::to_string(e)?);
     out.push('\n');
   }

@@ -173,7 +173,7 @@ fn event_log_is_not_derived_and_survives_rebuild() {
   let mut store = Store::open_in_memory().expect("open");
   store.rebuild(&threads, &issues).expect("rebuild");
 
-  let envelope = Envelope::new(
+  let envelope = Envelope::minted(
     LOCAL_PRINCIPAL,
     "00000000-0000-0000-0000-000000000000",
     "wp.start",
@@ -182,8 +182,6 @@ fn event_log_is_not_derived_and_survives_rebuild() {
       id: "ST0056/02".to_string(),
     },
     serde_json::json!({"from": "not-started", "to": "wip"}),
-    // The store's clock, not the process's (hv: time comes from the DB).
-    store.now().expect("the store answers what time it is"),
   );
   store.append_event(&envelope).expect("append");
 

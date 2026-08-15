@@ -607,9 +607,13 @@ impl Facade {
     let have = self.store.events().map_err(FacadeError::Store)?;
     let missing = event::merge(&have, &incoming);
     for envelope in &missing {
+      // **`restore_event`, never `append_event`** (D42). These already
+      // happened; the extract carries when. Recording them as happening now
+      // would rewrite the whole of an older clone's history to the moment
+      // someone restored it -- and every stamp would look perfectly valid.
       self
         .store
-        .append_event(envelope)
+        .restore_event(envelope)
         .map_err(FacadeError::Store)?;
     }
     Ok(missing.len())
@@ -1439,15 +1443,17 @@ impl Facade {
     // resync cannot render the tree differently.
     let set = self.projection(&next, &changed_threads, &changed_issues)?;
 
-    // THE clock, read from the store (hv: time comes from the DB).
-    let ts = self.store.now().map_err(FacadeError::Store)?;
-    let envelope = Envelope::new(
+    // **No time is read here, and that is D42.** The envelope is minted
+    // without one and the database stamps it as part of the INSERT, inside
+    // the same transaction as the rows it describes. Reading a clock and
+    // writing the value would hold it across a gap the write could be
+    // retried or deferred inside.
+    let envelope = Envelope::minted(
       &self.ctx.principal,
       &self.ctx.project_id,
       op,
       subject,
       payload,
-      ts,
     );
     // The prose index is refreshed with the derived tables, not left behind.
     //

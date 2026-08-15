@@ -55,7 +55,18 @@ fn workspace_root() -> PathBuf {
     .to_path_buf()
 }
 
-/// Every `.rs` under every crate's `src/`, discovered by walking.
+/// Every `.rs` under every crate's `src/` AND `tests/`, discovered by walking.
+///
+/// **`tests/` is in scope on hv's instruction, and it is where the rule is
+/// most likely to be broken.** A clock in a fixture looks harmless -- nobody
+/// ships a test -- but a fixture is exactly where "I only need a time for
+/// setup" gets written, and the value then becomes the thing the assertion
+/// trusts. A test that confects a time proves the system agrees with a
+/// confection.
+///
+/// It bans ASKING, not dates. A fixture may still author a literal like
+/// `"2026-08-14"`, because under D42 those arrive through the RESTORE door --
+/// carrying a recorded stamp is preserving history, not confecting it.
 fn sources(root: &Path) -> Vec<PathBuf> {
   fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
     let Ok(entries) = std::fs::read_dir(dir) else {
@@ -76,9 +87,11 @@ fn sources(root: &Path) -> Vec<PathBuf> {
     .expect("read the crates dir")
     .flatten()
   {
-    let src = entry.path().join("src");
-    if src.is_dir() {
-      walk(&src, &mut out);
+    for dir in ["src", "tests"] {
+      let d = entry.path().join(dir);
+      if d.is_dir() {
+        walk(&d, &mut out);
+      }
     }
   }
   out.sort();
@@ -117,6 +130,11 @@ fn only_the_store_reads_a_clock() {
       .to_string_lossy()
       .replace('\\', "/");
     if rel == THE_CLOCK {
+      continue;
+    }
+    // This file lists the banned needles in code (a `const`, not a comment),
+    // so it would always find itself.
+    if rel.ends_with("tests/one_clock.rs") {
       continue;
     }
     let code = code_of(path);
