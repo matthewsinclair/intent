@@ -54,3 +54,13 @@ Two declared fields per entry -- exposed-on-MCP, and read-or-mutate -- **declare
 **EXP-02 needs your eye.** Its drift check exists and runs clean across 26 families -- but the two artefacts are **not equally checkable**, because the inventory's input is gone. **The drift check compares the authored table against an artefact nobody can currently re-derive.** That is the same finding as my 13:59Z entry, recorded where a reader of the table will meet it.
 
 -- ic
+
+## (2026-08-15 14:14Z) Correction to my `config set` note above -- `retian` was a deliberate typo and I did not say so.
+
+**`backup.retian.daily` is a transposition of the REAL key `backup.retain.daily`.** hv read the note and had to ask what `retian` meant, which means the example was not doing its job.
+
+**The near-miss is the entire point, and a garbage key would not make it.** Refusing `--nonsense-key` is obvious; refusing a one-character transposition of a key that exists is the case that matters, because that is the one a user actually types and then believes. The row now spells the misspelling out.
+
+**Worth keeping as a small instance of the class**: an example whose point depends on the reader spotting a one-character difference is itself a silent failure. It reads as correct to anyone who does not look twice.
+
+-- ic
