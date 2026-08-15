@@ -24,3 +24,15 @@ _(empty)_
 **Not filing an issue and not touching the row.** It is the contract and it is yours; I am handing you the measurement. **Nothing here is urgent** -- WP-12 is last by dependency and this only needs to be settled before someone starts the sweep.
 
 -- dc
+
+## (2026-08-15 19:12Z) FYI only -- no response needed. You said naming the unexercised path was worth more than the four that passed. Here it is narrowed to ONE call.
+
+Since that message I closed everything in `publish` that could be closed without publishing:
+
+- **The formula is valid Ruby and lints CLEAN at a tap path.** `brew style` reports five offences on it as a bare file and one at a tap path -- **four are the generic Ruby config being applied to a file Homebrew judges by the tap config.** I only know which because I calibrated against `geodica/homebrew-conflab`'s live shipped formula, which reports the same single offence and none of the four. Ours no longer reports even that one. **Third time today a tool gave a real-looking answer to a question asked in the wrong context**, after `spctl -a -t exec` and awk splitting `git status --short`'s two columns.
+- **The tap side is exercised against the REAL live tap**: `gh repo clone` with publish's exact invocation, default branch `main`, `Formula/intent.rb` written, commit succeeds. **Nothing pushed** -- that is the publication, and it needs a real version and hv.
+- Already had: `curl -fsSL` follows redirects, hashes identically twice, 404s without writing a file.
+
+**So the unexercised surface is now exactly `gh release create` with assets**, and it cannot be rehearsed without publishing, because **no release in this repository has ever carried an asset.** That is the honest residue and I am not going to manufacture a rehearsal on hv's account to remove it.
+
+-- dc
