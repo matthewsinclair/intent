@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 17:45Z
+heartbeat_at: 2026-08-15 18:15Z
 status: active
-focus: "AC-02.8 DONE and pushed (04c6813a, 075ebb13, c2ba44fd) -- record timestamps on every table, the clock DELETED, and hv's signature form enforced. 314 tests. With vc for verification; WP-02 goes to 8/8 if it holds. NEXT: AC-06.10 / D41 two-part face versions."
+focus: "AC-02.8, AC-06.10(a)+(c), three of ic's four spine parity breaks, and AC-03.10(d)'s backup registry all landed and pushed. 322 tests. AC-02.8 with vc; AC-06.10(b) with ic. NEXT: the backup module + retention, to close gate 03 at 10/10."
 claims: []
 ---
 
@@ -37,11 +37,22 @@ claims: []
 - **`Store::now`/`today` DELETED.** `st_new` hands in an empty `created`; the store fills it inside the INSERT and RETURNS it. `write_thread` gained the same two doors `write_event` has. **`apply()` now writes the DB first and renders files from what landed** -- the projection used to be computed before the write, which was harmless only while the application knew the dates.
 - **hv's signature form enforced**: no shipped function TAKES a time. Name AND type, so `stamp: Stamp` (which door) survives while `today: String` does not.
 
-## DOING -- next: AC-06.10 / D41 two-part face versions
+## DONE TODAY -- second half
 
-**AC-02.8 is with vc for verification.** If it holds, WP-02 goes to 8/8.
+`28fd5721` **AC-06.10 (a)+(c)** -- `INTENT_VER` + a per-type `SCHEMA_<TYPE>_VER` in all five faces, each in its own idiom, constants injected by the generator. AT reads the PUBLISHED files; mutation-tested by dropping the SDL injection and re-blessing, which `schema_faces_drift` PASSED -- only a test that opens the artefact sees a generator that stopped injecting. A pinned per-type contract hash stops a version sitting at 1 forever. **(b) needs one flag row on `schema` and is with ic; the reader lands with the row, never before it.**
 
-Two-part face versions `INTENT_VER` / `SCHEMA_<TYPE>_VER`, **constants in code, injected by the generator**. The AT asserts against the face AS PUBLISHED, never the constant -- the failure guarded is a generator that stops injecting, and a test reading the constant would pass while the published face carried nothing.
+`9122f4e5` **three of ic's four spine parity breaks**, all measured by their `surface_check.sh` and none findable by reading. **ARITY 8 of 8** -- `subcommand_required` hardcoded `true` against the declared slot arity; v2 exits 0 on `intent todo`, v3 exited 1. **FAMILY FLAGS** -- `with_args` ran only on the verbless branch, so `todo`'s own `--json` reached every leaf and never `todo`. **SHORT-ONLY FLAGS** -- a bare `continue` dropped three declared `keep` flags with no diagnostic. **Their check goes 21 findings -> 7.**
+
+`cff33c77` **`event_log.ts`'s shape is PUBLISHED** -- format + pattern, so the millisecond move is visible in the contract. The version guard then fired unprompted and only on the JSON contract: `SCHEMA_JSON_VER` -> 2.
+
+`70f1fc52` **AC-03.10(d), first half** -- the backup log is a TABLE recording ATTEMPTS, not a directory listing, so a schedule that never ran is distinguishable from one that fails. Row written before the copy; the snapshot filename comes from the stamp the INSERT returns; staleness is `julianday('now')` inside SQLite returning an INTERVAL, so **no clock is needed and none was added**. `SCHEMA_VERSION` 4, `SCHEMA_DDL_VER` 2.
+
+## DOING -- AC-03.10 (c) + the rest of (d): closes gate 03 at 10/10
+
+1. **The `backup` module**: `take()` -> `VACUUM INTO intent/.backup/db/<db-stamp>.db`, recording the attempt through `begin_snapshot`/`finish_snapshot`. Its own namespace so it can never collide with `intent upgrade`'s `backup-<TIMESTAMP>/` -- **two mechanisms in one directory with different retention rules, where pruning the wrong one is the loss this AC exists to prevent.**
+2. **(c) rolling retention** day/week/month with configurable counts from `intent/.config/config.json`. **Bucket in SQL** (`strftime` over `taken_at`), so the retention decision stays where the stamps are. Two settings are ruled NOT configurable: the snapshot directory, and any key that silences a backup failure.
+3. **`doctor` reports staleness** -- `hours_since_last_good_snapshot()` against the configured schedule. The store half is built and tested.
+4. **`intent backup --list`** -- the row exists and `--list` is ratified. It answers WHAT EXISTS and is deliberately NOT the health report; one place reports health and it is `doctor`.
 
 ## TODO
 
@@ -50,6 +61,7 @@ Two-part face versions `INTENT_VER` / `SCHEMA_<TYPE>_VER`, **constants in code, 
 3. **D37 in the published faces** -- vc is doing the read. Two I found and did NOT fix, to avoid half a sweep: `event.rs` `Subject.id` doc (`eg ST0056`), and `FindingClass`'s own doc ("the two WP-03 adds").
 4. **AC-03.10 (c)+(d)** -- retention + `doctor` staleness. (a)+(b) are done and green.
 5. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
+6. **The EXP-05 disposition half is WRITTEN AND NOT COMMITTED.** Honouring it withdraws `sync --to-store`, which is built and covered by two tests, and its `pending` value has a stated reason -- the `sync`/`ingest` boundary is undeclared. **Landing it would answer ic's open question by making one answer true in the binary.** With ic and vc; my recommendation is that `sync` owns both directions and `ingest` retires.
 
 ## Waiting
 
