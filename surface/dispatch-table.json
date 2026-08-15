@@ -42,6 +42,21 @@
       "provenance": "vc ruling 2026-08-15, provisional pending hv, on ic's finding that 18 rows carried the state and no decision recorded it: OUT OF PARITY SCOPE BY CONSTRUCTION, and it lives in parity.md's out-of-scope bullet rather than its deviation list. Measured before ruling -- all 18 rows declare `v2: \"new-surface\"`, so there is no antecedent on any of them and nothing for parity to hold or deviate from. It was recorded here as UNRECORDED for the hours between the finding and the ruling, rather than back-filled with a plausible attribution, which would have been the defect AC-05.5 exists to catch."
     }
   ],
+  "entry_dispositions": [
+    { "value": "keep", "gloss": "The v2 command survives into v3. It is the answer for a corrected command too -- a behaviour that is fixed still SURVIVES, and `target.state: corrected` is what records the fix." },
+    { "value": "retire", "gloss": "The v2 command does not ship in v3. Every retire row carries its own ratification; the class is not the warrant." },
+    { "value": "deviate", "gloss": "A deliberate behaviour change that is a design consequence rather than a bug fix. ZERO rows here and that is a FACT ABOUT THE SURFACE, not a gap: no v2 COMMAND is a deliberate behaviour change. See `shared_vocabulary` below before concluding it is dead." },
+    { "value": "pending", "gloss": "Undecided, written explicitly. Never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight." },
+    { "value": "new-surface", "gloss": "There is no v2 command, so the question `what becomes of it` does not apply. Declared rather than omitted for the same reason `pending` is." }
+  ],
+  "flag_dispositions": [
+    { "value": "keep", "gloss": "Ships and must be read by the renderer." },
+    { "value": "retire", "gloss": "Recorded from v2 and never reaches clap." },
+    { "value": "pending", "gloss": "Does not ship. Deliberately does NOT refuse the build; `doctor` reports the count instead, because a guard that must be bypassed is a guard nobody keeps." },
+    { "value": "intrinsic", "gloss": "Ships, and clap supplies it, so the renderer is not expected to read it." }
+  ],
+  "shared_vocabulary": "READ THIS BEFORE APPLYING THE `target_states` UNUSED-VALUE REFUSAL TO ANYTHING ELSE. `target_states` is checked in BOTH directions -- an undeclared state, and a declared state no row uses -- and the second direction is only valid because that vocabulary has ONE HOME. `entry_dispositions` does not: the `about` block says `disposition` uses one vocabulary SHARED WITH the keep/retire/deviate register, and `deviate` has 47 rows in `pertest.md` and 3 in `register.md` while having none here. A shared vocabulary is populated ACROSS its homes and fully populated in none of them, so an unused-value refusal would fire on a correct value, correctly declared, with 47 members one artefact away. The refusal's premise is SINGLE-HOMEDNESS, not declaration. Caught by vc 2026-08-15, on ic proposing to drop `deviate` after reading zero rows -- the same rule, the same author and the same evening as the refusal it would have broken.",
+  "field_overlap": "`disposition` and `target.state` answer DIFFERENT questions -- what becomes of the v2 command, versus what v3 does -- and they share exactly two values, on which they move in perfect lockstep: all 19 `new-surface` rows and all 6 `retire` rows carry the same value in both fields. NOTHING MAKES THEM AGREE. `is_shipped()` reads both for `retire` (`disposition != \"retire\" && target.state != \"retire\"`), which fails OPEN on a typo, so a single hand-edit out of agreement ships a retired command; the redundancy is what currently prevents that and it is undeclared. 25 of 111 rows carry one fact in two fields. Recorded rather than mechanised: the fix is either a check that the two agree, or a decision that one of them is derived -- and that is a design call, not a typo.",
   "about": [
     "THE command-surface source of truth for Intent v3 (AC-05.1). The clap surface, the help text, the MCP tool list and the `intent llm` agent guide all render FROM this file; nothing renders from `bin/**` and nothing describes the surface a second time.",
     "This is the AUTHORED artefact. `dispatch-table.md` beside it is a GENERATED view -- run `parity/tools/gen_dispatch_table.sh`, never hand-edit the view.",
@@ -437,7 +452,7 @@
             "conflict_resolved": "RESOLVED 2026-08-15 -- the guard wins and this row is CORRECTED. I raised it as a conflict the machine and this row could not both survive: `data-model.md` guards every edge into `Cancelled` with `reason recorded`, and v2 `st cancel` took no `--reason` and recorded none (measured, its flags array was empty). cc has wired the CLI to read the flag OPTIONALLY at `2aec5f6`, so the facade refuses with `ReasonRequired` naming what is missing until the row declares it -- and declaring it here is what makes the flag start working. **The refusal is the reason this was safe to leave open**: an unimplemented guard that FAILS LOUD costs a clear error message, where one that silently accepted a cancellation with no reason would have put unexplained Cancelled threads in the record permanently. cc deliberately did not add the flag themselves; the table is mine.",
             "why_not_as_observed": "This row is no longer faithful to v2 and should not pretend to be: v2 cancels with no reason at all. The change is a `corrected` one -- v2's behaviour is the defect (a state entered with no record of why) rather than a contract to preserve."
           },
-          "disposition": "corrected",
+          "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate"
         },
@@ -972,7 +987,7 @@
             "face": "surviving",
             "never_built": false
           },
-          "disposition": "corrected",
+          "disposition": "keep",
           "cross_ref": "THE surviving face. The top-level `st_zero` family is the deleted root spelling; see its entry for the divergence cost.",
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
@@ -2133,7 +2148,7 @@
             "consequence": "Three instances on 2026-08-15 alone of a green that proved nothing, none of which had ever been seen red: four vacuous greps that never opened a file, a normaliser that silently did nothing under BSD sed, and a `touch`ed canary whose empty diff sent the run down the wrong branch. v3 restores the from-red guard.",
             "open_to_cc": "v2 carries FOUR guards on `at`, not one, and only the from-guard was raised. The others: `na` refuses on a test-backed AT; a non-`na` status refuses on a `(non-test)` AT; and green/red on a test-backed row refuse unless the CITED TEST FILE RESOLVES on disk (issue 0015 -- catching a rename at the point of the lie rather than after a stale green has counted as coverage for months). Please report whether v3 has those three, because if they went with the from-guard the divergence is four times what was reported."
           },
-          "disposition": "corrected",
+          "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate"
         },
@@ -6183,6 +6198,7 @@
       "target": {
         "state": "new-surface"
       },
+      "disposition": "new-surface",
       "exposed_on_mcp": true,
       "read_or_mutate": "read",
       "flags": []
@@ -6221,6 +6237,7 @@
       "target": {
         "state": "new-surface"
       },
+      "disposition": "new-surface",
       "exposed_on_mcp": true,
       "read_or_mutate": "mutate",
       "mcp_review": {
@@ -6248,6 +6265,7 @@
       "target": {
         "state": "new-surface"
       },
+      "disposition": "new-surface",
       "exposed_on_mcp": true,
       "read_or_mutate": "read",
       "flags": [
@@ -6286,6 +6304,7 @@
       "target": {
         "state": "new-surface"
       },
+      "disposition": "new-surface",
       "exposed_on_mcp": true,
       "read_or_mutate": "mutate",
       "mcp_review": {
@@ -6325,6 +6344,7 @@
       "target": {
         "state": "new-surface"
       },
+      "disposition": "new-surface",
       "exposed_on_mcp": false,
       "read_or_mutate": "mutate",
       "mcp_review": {
@@ -6360,6 +6380,7 @@
         "surfacing": "RATIFIED -- vc, 2026-08-15: the split is the ruling. A failed or skipped scheduled backup must surface (IN-AG-NO-SILENT-001), and **`doctor` is THE ONE PLACE health is reported** -- not a second status surface here -- because `doctor` already exists for exactly that and Highlander says one place, not two. `--list` answers only _what snapshots exist_, which is inventory rather than health. `doctor`'s obligation is recorded on its own row as `target.new_obligations`, so the requirement lives where the command that owns it is described.",
         "exposure": "PROVENANCE EXPOSURE (ic, audit 2026-08-15; twice corrected). NOT a D42 exposure -- I filed it first for emitting a time, which is legal, and the residue is not about clocks at all. `--list` promises to show WHEN EACH SNAPSHOT WAS TAKEN and answers from the file mtime of a snapshot under .backup/db/, so a filesystem attribute is DISPLAYED AS a record fact. vc reached the identical ruling from the contract end and has absorbed it into AC-02.8: `threads.created` and `issues.created` are authored dates, `file_index.mtime` is a file mtime, `event_log.ts` was an argument, and this snapshot mtime is the fourth instance -- in all four the display was never the problem and the provenance always was. The fix is unchanged and now correctly reasoned: taking a snapshot WRITES A RECORD and `--list` reads that record stamp. Owned under AC-02.8; recorded here so the surface row carries its own obligation."
       },
+      "disposition": "new-surface",
       "exposed_on_mcp": false,
       "read_or_mutate": "mutate",
       "mcp_review": {
@@ -6391,6 +6412,7 @@
       "target": {
         "state": "new-surface"
       },
+      "disposition": "new-surface",
       "exposed_on_mcp": false,
       "read_or_mutate": "mutate",
       "mcp_review": {
@@ -6407,6 +6429,7 @@
       "target": {
         "state": "new-surface"
       },
+      "disposition": "new-surface",
       "exposed_on_mcp": false,
       "read_or_mutate": "mutate",
       "mcp_review": {

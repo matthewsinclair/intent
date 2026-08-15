@@ -417,6 +417,32 @@ $(printf '%s' "$MCP_UNDECLARED" | sed 's/^/  /')"
 # ways. An undeclared state is the typo. A declared-but-unused state is the
 # other half: a vocabulary that outlives its members reads as coverage, and the
 # skip-list failure in surface_check.sh was exactly that shape.
+#
+# **THE SECOND DIRECTION IS VALID HERE ONLY BECAUSE THIS VOCABULARY HAS ONE
+# HOME. Do not lift it to a vocabulary that does not.** `entry_dispositions` is
+# shared with the keep/retire/deviate register, where `deviate` has 47 rows in
+# `pertest.md` and 3 in `register.md` while having none here -- so the same
+# refusal applied there would fire on a correct value, correctly declared, with
+# 47 members one artefact away. **The premise is single-homedness, not
+# declaration.** Caught by vc 2026-08-15 on ic proposing to drop `deviate` after
+# reading zero rows: same rule, same author, same evening, and the second
+# application would have been wrong.
+# EVERY VOCABULARY CHECK BELOW REFUSES ON AN ABSENT VOCABULARY BEFORE IT
+# REFUSES ON THE DATA, and all three needed it: measured 2026-08-15, deleting
+# `flag_dispositions` reported 95 flags as undeclared, deleting `target_states`
+# reported every invariant and entry, and deleting `entry_dispositions` reported
+# every row. **A wall of offending rows reads as catastrophic data corruption
+# and sends its reader to fix the data**, when the actual fault is one missing
+# key. A missing measurement must present as a refusal to measure, never as a
+# measurement of nothing -- the rule `class_vocab_check.sh` was built with and
+# these three were not.
+vocab_or_die() {
+  local key="$1" n
+  n="$(jq -r --arg k "$key" '(.[$k] // []) | length' "$IN")"
+  [ "$n" -gt 0 ] || die "\`$key\` is absent or empty, so nothing can be checked against it. Refusing rather than reporting every row as undeclared, which is a true statement about nothing and points its reader at the data instead of at the missing key."
+}
+
+vocab_or_die "target_states"
 STATE_UNDECLARED="$(jq -r '
   (.target_states // [] | map(.state)) as $vocab
   | [.invariants[], .families[].entries[], .new_surface[]]
@@ -431,6 +457,23 @@ STATE_UNUSED="$(jq -r '
   | (.target_states // []) | map(select((.state | IN($used[])) | not) | .state) | join("\n")' "$IN")"
 [ -z "$STATE_UNUSED" ] || die "\`target_states\` declares states no row uses -- a vocabulary that outlives its members reads as coverage of something nobody classified. Remove them, or record why they are held open:
 $(printf '%s' "$STATE_UNUSED" | sed 's/^/  /')"
+
+# Entry `disposition`, same treatment as `target.state` and DELIBERATELY ONE
+# DIRECTION ONLY. An undeclared or absent value is refused; a declared value no
+# row uses is NOT checked, because this vocabulary is shared with the register
+# (see `shared_vocabulary` in the canon, and the note above). `pending` is
+# written explicitly and never expressed by omitting the field -- absence here
+# was a real breach, on the 8 `new_surface[]` rows, of the rationale the canon
+# gives for that very rule.
+vocab_or_die "entry_dispositions"
+DISPOSITION_UNDECLARED="$(jq -r '
+  (.entry_dispositions // [] | map(.value)) as $vocab
+  | [.families[].entries[], .new_surface[]]
+  | map(select(((.disposition // "") | IN($vocab[]) | not))
+        | (.path + " = " + (.disposition // "(absent)")))
+  | join("\n")' "$IN")"
+[ -z "$DISPOSITION_UNDECLARED" ] || die "rows carry a \`disposition\` that \`entry_dispositions\` does not declare. Absence is a value nobody wrote and reads as an oversight, so it is refused alongside a typo:
+$(printf '%s' "$DISPOSITION_UNDECLARED" | sed 's/^/  /')"
 
 # The review markers are only worth anything if they are legible to the
 # reviewer, so a marker that names nothing is itself a defect: `uncertain: []`
@@ -477,9 +520,16 @@ $(printf '%s' "$FLAGS_ABSENT" | sed 's/^/  /')"
 # bypassed is a guard nobody keeps. The quiet-absence risk it leaves behind is
 # answered elsewhere and on purpose -- `doctor` reports the pending count, so an
 # undecided flag is visible without being a roadblock.
+# The vocabulary is read from `flag_dispositions` in the canon rather than
+# hardcoded here. It used to be the literal list `IN("keep","retire","pending",
+# "intrinsic")` in this line -- a vocabulary living in a script that checks a
+# file, which is the same shape as `target.state`'s having lived in a doc
+# comment. One home, and the check reads it.
+vocab_or_die "flag_dispositions"
 FLAG_UNDECLARED="$(jq -r '
-  [.families[].entries[], .new_surface[]]
-  | map(. as $e | (.flags // []) | map(select((.disposition // "") | IN("keep","retire","pending","intrinsic") | not)
+  (.flag_dispositions // [] | map(.value)) as $vocab
+  | [.families[].entries[], .new_surface[]]
+  | map(. as $e | (.flags // []) | map(select((.disposition // "") | IN($vocab[]) | not)
       | $e.path + ":" + (.spellings[0] // "?"))) | add // [] | join("\n")' "$IN")"
 [ -z "$FLAG_UNDECLARED" ] || die "flags do not declare a \`disposition\` in vocabulary (keep, retire, pending, intrinsic) -- without one the spine builds every declared flag unconditionally, so a flag joins the v3 surface by being typed into this file. Offending flags:
 $(printf '%s' "$FLAG_UNDECLARED" | sed 's/^/  /')"

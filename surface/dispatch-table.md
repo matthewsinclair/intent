@@ -139,7 +139,7 @@ Manage steel threads for the project
 | `st new`                            | <title>     | -s/--start                                  | Create a new steel thread                                                                                                          | keep        |
 | `st start`                          | <id>        | --                                          | Mark a steel thread as in progress                                                                                                 | keep        |
 | `st done`                           | <id>        | --                                          | Mark a steel thread as complete                                                                                                    | keep        |
-| `st cancel`                         | <id>        | --reason <text>                             | Mark a steel thread as cancelled, with a reason                                                                                    | corrected   |
+| `st cancel`                         | <id>        | --reason <text>                             | Mark a steel thread as cancelled, with a reason                                                                                    | keep        |
 | `st triage`                         | <id>        | --                                          | Move a triaged thread out of Triage into NotStarted                                                                                | new-surface |
 | `st hold`                           | <id>        | --reason <text>                             | Put a thread on hold, with a reason                                                                                                | new-surface |
 | `st resume`                         | <id>        | --                                          | Take a thread off hold and back into Wip                                                                                           | new-surface |
@@ -151,7 +151,7 @@ Manage steel threads for the project
 | `st sync`                           | --          | --write, --width <n>                        | Synchronize steel_threads.md with individual ST files                                                                              | keep        |
 | `st repair`                         | [id]        | --write                                     | Repair malformed steel thread metadata                                                                                             | keep        |
 | `st organize` (alias `st organise`) | --          | --write                                     | Organize ST files in directories by status                                                                                         | retire      |
-| `st bootstrap`                      | --          | --audit-only, --dry-run, --deliverable <id> | Retrofit ST0000 deliverables into a brownfield project -- audit what is present, missing or partial, then install the missing ones | corrected   |
+| `st bootstrap`                      | --          | --audit-only, --dry-run, --deliverable <id> | Retrofit ST0000 deliverables into a brownfield project -- audit what is present, missing or partial, then install the missing ones | keep        |
 
 ### `st`
 
@@ -916,7 +916,7 @@ Acceptance tests: the small red-to-green tests that prove ACs
 | `at`                          | <command>     | --    | Acceptance test commands                                              | keep        |
 | `at list`                     | <stid>        | --    | List ATs (id, reference, status)                                      | keep        |
 | `at lint`                     | <stid>        | --fix | Check AT rows against the grammar (--fix migrates what is mechanical) | keep        |
-| `at green` (alias `at done`)  | <stid> <atid> | --    | Set an AT green (reachable only from red)                             | corrected   |
+| `at green` (alias `at done`)  | <stid> <atid> | --    | Set an AT green (reachable only from red)                             | keep        |
 | `at red` (alias `at notdone`) | <stid> <atid> | --    | Set an AT red                                                         | keep        |
 | `at na`                       | <stid> <atid> | --    | Set a non-test AT to n-a (the doc / eyeball / gate status)            | keep        |
 
@@ -2905,6 +2905,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 
 - **v2:** new-surface
 - **acceptance:** AC-06.4 (added by vc, 2026-08-14, on the finding that all 62 ACs had zero coverage of search)
+- **disposition:** new-surface
 - **MCP:** exposed as an agent tool -- read-only
 
 ### `sync`
@@ -2916,6 +2917,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **note:** NOT the same command as `st sync`, and NOT a superset of it either. v2's `st sync` composes `list` and PRINTS the thread table; only `--write` persists `steel_threads.md` (bin/intent_st:1145-1211, verified by ic). Reconciling the store from canon is a different job, so the two are two commands sharing a name and v3 treats them as such. Added by cc at build time (2026-08-14); second clause originally read "v2's job is a strict subset of this reconciliation and both spellings run it", corrected 2026-08-15 after cc found their own test could not catch it -- it was written from the same misreading as the code, asserted the two spellings produce identical bytes, and passed.
 - **truth model correction:** 2026-08-15, ic, under hv's ratified db-is-SSOT model. The help read `Reconcile the runtime store with committed canon on disk` and was backwards in BOTH halves: the store is not runtime, it is the DURABLE SSOT, and disk is not canon, it is a secondary artefact. Corrected here rather than filed because this string is USER-FACING -- it renders to `--help`, the MCP tool list and the `intent llm` guide, so the retracted model would have been the sentence a user READS, in the help for the very command the model is about. `Reconcile` went too: it implies two authorities being arbitrated, and the model is ONE authority with two-way transport.
 - **d34 wording:** FINAL wording, released by D34 (hv, 2026-08-15) after I held it pending the multi-machine question. **The DB is per-machine truth and is never committed; the committed extract IS the interchange between nodes**, and a fresh clone reconstitutes its DB by passing that extract through the ingest gate. So the help names both endpoints exactly: `this machine's store` (per-machine, authoritative locally) and `the committed extract` (what travels). D34 adopts the formulation _authority is not bidirectional just because transport is_ -- which is why the string says `in both directions` about the MOVEMENT and says nothing about precedence. A help line implying the file could win would describe a different architecture.
+- **disposition:** new-surface
 - **Flags:**
   - `--to-disk` (bool) -- Write the store out to the committed extract
     - **disposition:** keep
@@ -2930,6 +2932,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 ### `schema`
 
 - **v2:** new-surface
+- **disposition:** new-surface
 - **Flags:**
   - `--versions` (bool) -- Print each face's INTENT_VER and SCHEMA_<TYPE>_VER instead of the face bodies
     - **disposition:** keep
@@ -2944,6 +2947,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **v2:** new-surface
 - **not backup:** SEE `backup`, which carries the full distinction. In short: this is the INTERCHANGE -- lossless text, usable without Intent, the artefact that travels between machines under D34 and reconstitutes a DB through the ingest gate. `backup` is a binary SQLite snapshot for fast local restore, carrying the derived index. Both help strings carry their own distinguishing clause deliberately, because a user choosing between them is not reading them side by side.
 - **truth model correction:** 2026-08-15, ic. The help read `Project the canon into another format`, which named the DISK side as the canon and so read as one on-disk format converting to another. Under hv's ratified model the store is the truth and this command is the OPENNESS half of it -- hv, verbatim: 'I can get my data out of the db and use it somewhere else LOSSLESSLY.' The `usable without Intent` clause is in the help deliberately: AC-02.6 requires the file form to be usable without this tool, and a promise a user cannot read is a promise nobody can hold us to. This is the surface half of AC-02.6; vc owns whether the contract wants it cited on this row.
+- **disposition:** new-surface
 - **Flags:**
   - `--format` `<fmt>` (string)
     - **disposition:** keep
@@ -2955,6 +2959,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **input selector gap:** CLOSED at the `path` arg above (ic declared, cc ruled the default), 2026-08-15. Kept as the record of what the gap WAS: **`intent ingest` had no way to say what to ingest** -- measured, `Usage: intent ingest [OPTIONS]`, one bool flag and no positional. The recovery path and the v2 migrator both inherently take a source, and the migrator's source is ANOTHER project's tree, which cannot be implied by the working directory.
 - **v2:** new-surface
 - **truth model correction:** 2026-08-15, ic. The help read `Rebuild the canon from markdown`, which under the retracted model meant reconstructing the durable thing and so read as an authority-restoring act. Under hv's ratified model it is the opposite: markdown is a secondary artefact and ingest is the path INTO the truth, well-formed ONLY because it passes the hard gate of the intentsvcs API. `through the API gate` is in the user-facing string on purpose -- the gate is what makes the result trustworthy, so hiding it would let a reader assume a file's own format was sufficient. Recreation from an extract stays a CAPABILITY and is not a licence to treat the store as disposable.
+- **disposition:** new-surface
 - **Flags:**
   - `--from-md` (bool)
     - **disposition:** keep
@@ -2971,6 +2976,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **v2:** new-surface
 - **config:** Reads `backup.enabled` / `backup.schedule` / `backup.retain.{daily,weekly,monthly}` -- named on the `config` entry in this table. `backup.enabled` gates the DAEMON's schedule and deliberately does NOT gate this command.
 - **not export:** *** `backup` AND `export` ARE NOT SYNONYMS, AND CONFLATING THEM COSTS A USER THE THING THEY WERE TRYING TO SAVE. *** `export` is AC-02.6 OPENNESS: lossless, text, usable WITHOUT Intent, and under D34 it is THE INTERCHANGE -- the artefact that travels between machines and reconstitutes a DB through the ingest gate. `backup` is a binary SQLite snapshot: NOT usable without SQLite, NOT the interchange, and it carries the DERIVED INDEX so a restore is immediate with no re-ingest and no re-index. Different jobs, and neither is redundant. The failure mode is directional and asymmetric: a user who reaches for `backup` when they wanted portability gets a file no other tool can read, and a user who reaches for `export` when they wanted a fast restore gets a correct artefact that costs a full re-index -- so BOTH help strings must carry their own distinguishing clause rather than relying on a reader comparing them side by side, which is exactly what nobody does at the moment they need one.
+- **disposition:** new-surface
 - **Flags:**
   - `--list` (bool) -- List retained snapshots and when each was taken
     - RATIFIED -- vc, 2026-08-15: `--list` STANDS. Proposed by ic on the grounds that D35 requires a failed or skipped backup to SURFACE, and with no read path a user cannot tell a working schedule from one that has silently never run -- the nothing-is-wrong / nothing-ran ambiguity again. **The question turned out to expose a hole in AC-03.10 itself**: the clause said only that a FAILED backup surfaces, and A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could have shipped where nothing had ever run -- the ambiguity living inside the clause written to prevent it. AC-03.10 is amended and `doctor` now reports backup STALENESS, which detects never-ran without needing anything to have failed.
@@ -2985,11 +2991,13 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 ### `daemon`
 
 - **v2:** new-surface
+- **disposition:** new-surface
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** The canonical example behind the whole exposure field: `daemon start|stop|run` is machine-level process control, and it is the row that makes 'lean closed' the right default rather than a nicety.
 
 ### `mcp`
 
 - **v2:** new-surface
+- **disposition:** new-surface
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** The MCP server's own launcher. Listing it inside the tool surface it serves is recursive, and an agent that can call it can spawn a second server against the same store.
