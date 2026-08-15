@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 14:09Z
+heartbeat_at: 2026-08-15 14:13Z
 status: active
-focus: "WP-11 CLAIMED and WIP (vc ratified it as dev-x). Signing measured and it inverted my starting position: brew binaries are all ad-hoc, and a valid Developer ID already exists. One item escalated to hv -- CI secrets for notarisation."
+focus: "WP-11 WIP. Release profile measured and landed (9.95MB -> 8.08MB). Signing decided on a same-org precedent already installed here. DOGFOOD FOUND A REAL ONE: a schema change with no version stamp, where IF NOT EXISTS makes Store::open succeed on a DB it cannot read."
 claims: [ST0056/11]
 ---
 
@@ -27,6 +27,8 @@ hv reversed D01 on 2026-08-15 and vc has rolled it out. This is what I hold, and
 **The state machines are RATIFIED too** (ST / WP / AC, `data-model.md`). `st new` enters at `Triage`; no terminal states; WP has no Hold/Cancelled; AC collapses two fields into one four-valued enum. `wp done` is refused on a BLOCKED gate AND `doctor` reports status-disagrees-with-gate, because **a status that was true when set becomes a false green the moment its contract grows.** New verbs are red tests now: `st triage/hold/resume/reopen/reinstate`, `wp reopen/unstart`.
 
 ## DOING
+
+- **DOGFOOD FOUND A REAL DEFECT, ~40 minutes after the change landed, and it is the first live instance of the class D34 created.** A v3 project made this morning, opened by the current binary: `error: could not read the committed canon / no such column: state in SELECT ... FROM criteria`. The ratified AC enum added `state`; the existing DB still has `scope` + `satisfied`. **The shape is the bad one: `CREATE TABLE IF NOT EXISTS` makes the DDL apply a NO-OP on an existing DB, so `Store::open()` reports SUCCESS and hands back a store on the old schema** -- the open path succeeds on a database it cannot read, and nothing fails until a query names the new column. **No `user_version`, no `schema_version`, so detection is impossible today** and no migration could dispatch even once written. `store.rs:4` already states "MIGRATIONS ARE NORMAL"; the policy is written and the mechanism is not built. **Checked the debug binary first** -- fails identically -- because I had just changed the release profile and it was the obvious thing to blame. Sent to cc (lane) and vc (the invariant has no AC behind it).
 
 - **hv RULING RELAYED 13:33Z -- `rm intent.db` should not exist as an operation anywhere.** hv: _"Why would anything in Intent EVER do this? If the db is the durable SSOT, this should simply NEVER BE A THING."_ Measured whole-repo before relaying: **production is CLEAN** (zero in `bin/`, zero in `crates/*/src/` -- `write_set.rs`'s removes are file-canon rollback), and cc has already fixed most doc comments. What survives is **three live test operations** (`store_rebuild.rs:150`, `cli_end_to_end.rs:575`, `search_surface.rs:56`) and **canon still pricing work in it** (`AT-14.11` to-write with `rm intent.db` AS ITS METHOD, `acceptance.md:156`, `WP/13/info.md:45`, `migration.md:27`, `restart.md:5`). Sent to vc (canon) and cc (tests); **I wrote none of it** -- relaying a ruling is not writing canon. **The argument that makes it more than stale wording: `rm intent.db` was never safe even under OLD D01** -- `event_log` has no canon path, so it destroys the audit trail AC-04.5 requires. The phrase was doing damage while it was still officially correct.
 

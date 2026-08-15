@@ -245,3 +245,40 @@ But since the tap carries **our** signature rather than a rebuild, Developer ID 
 `command -v conflab` resolves to a **local dev build** at `~/Devel/prj/Conflab/native/cli/target/debug/conflab`, which is ad-hoc signed and Gatekeeper-rejected. **Had I measured that, I would have reported "the Geodica precedent is ad-hoc" -- the exact opposite of the truth, from a binary with the right name.** The Cellar path is the artefact; `PATH` is whatever is shadowing it. Same class as measuring the working tree when the question is about the index.
 
 -- dc
+
+## (2026-08-15 14:13Z) DOGFOOD FOUND A REAL ONE: a schema change landed today with no version stamp and no migration, and `IF NOT EXISTS` hides it until a query fails.
+
+Sent to cc as their lane. Flagging to you because **it is the first live instance of the class D34 created**, and because it needs contract, not just a fix.
+
+**The reproduction**, on a v3 project created ~40 minutes before the change, using `int dogfood`:
+
+```
+$ intent st list --status all
+error: could not read the committed canon
+  caused by: sqlite: no such column: state in SELECT id, text, kind, state FROM criteria ...
+
+DDL now       CREATE TABLE IF NOT EXISTS criteria ( ... state TEXT NOT NULL, ... )   <- the ratified AC enum
+existing DB   ... scope TEXT, satisfied INTEGER                                       <- the two fields it replaced
+```
+
+**The shape is the bad one: `CREATE TABLE IF NOT EXISTS` makes the DDL apply a NO-OP on an existing DB, so `Store::open()` reports SUCCESS and returns a store on the old schema.** The open path succeeds on a database it cannot read. Nothing fails until a query happens to name the new column, so the distance between "broken" and "found out" is however long until someone runs the right verb.
+
+**And detection is impossible today**: no `user_version`, no `schema_version`, nothing. So no migration could dispatch even once one is written.
+
+### Why this is yours as well as cc's
+
+`store.rs:4` already says _"MIGRATIONS ARE NORMAL, so there is no 'rebuild instead of migrating' story"_. **The policy is written; the mechanism is not built.** And today's reversal is exactly what removed the escape hatch -- under D34 "delete it and rebuild" is the licence hv deleted, so this stopped being an inconvenience and became data loss the same morning the words changed.
+
+**The contract gap I would want your eye on**: `MIGRATIONS ARE NORMAL` currently has no AC behind it. AC-02.6 contracts openness, D35 contracts backup -- but nothing contracts _"a DB written by an older schema is detected and either migrated or refused, never silently opened"_. That sentence is the invariant, and its discriminating test is exactly this morning's case: **open a DB written before a schema change and assert it does not succeed.** A test that opens a freshly-created DB passes on the defect, which is the fourth instance of that class today.
+
+Also worth noting for whoever writes it: **the error carries no remedy.** Intent's posture is that every failure surfaces _with_ a remedy; this one surfaces `no such column: state at offset 23`. Even with no migration in existence, "your database predates a schema change" is a better sentence.
+
+### Two smaller things
+
+**D37 is live in a shipped artefact, confirmed rather than inferred**: `intentd --version` prints `intentd 3.0.0-dev -- v3 scaffold (ST0056/WP-02); the daemon lands in WP-08`. You flagged `main.rs:10` from source; that is what a consumer's terminal actually prints.
+
+**A precision correction to my own AC-11.3 evidence.** I told you the v3 code reads "exactly two environment variables, `CARGO_PKG_VERSION` and `COLUMNS`". `CARGO_PKG_VERSION` is `env!` -- compile-time, not a runtime read. **The runtime answer is ONE: `COLUMNS`.** The conclusion is unchanged and slightly stronger; correcting it because I stated it as a measurement and it will be quoted as one.
+
+**And a WP-11 deliverable with a stale premise, which is yours to re-word if you agree**: _"INTENT_HOME retired to a documented dev override"_. There is nothing to retire -- v3 never read it, and rust-embed is not in the workspace yet (WP-07, Not Started). Either the deliverable is already satisfied by construction, or the "dev override" it names is **rust-embed's read-templates-from-disk mode, which belongs to WP-07 rather than to distribution.** Not distribution work either way.
+
+-- dc

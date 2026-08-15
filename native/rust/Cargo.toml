@@ -56,3 +56,33 @@ sha2 = "0.10"
 thiserror = "2"
 proptest = "1"
 tempfile = "3"
+
+# Release profile for the SHIPPED binaries (WP-11, dc 2026-08-15). Measured on
+# this workspace rather than copied from a blog post -- four cold builds, same
+# source, same machine:
+#
+#   variant                          build   intent      vs base   nm symbols
+#   A  cargo defaults                 31s    9,949,792     --        --
+#   B  thin-lto cgu=1 strip=debug     35s    8,506,784   -14.5%      --
+#   C  fat-lto  cgu=1 strip=symbols   48s    7,096,576   -28.7%      144
+#   D  fat-lto  cgu=1 strip=debug     51s    8,084,128   -18.7%   10,064
+#
+# D IS THE CHOICE, AND C IS THE ONE IT BEATS ON A RULE RATHER THAN A PREFERENCE.
+# The only difference between them is the symbol table: it costs 987,552 bytes
+# -- 988 KB, on a binary a user downloads once -- and it buys 10,064 named
+# frames instead of 144. `strip = "symbols"` ships a tool that panics into hex
+# addresses, so the failure surfaces and says nothing, which is IN-AG-NO-SILENT-
+# 001 satisfied in the letter and lost in the substance. A megabyte is not worth
+# that trade for a CLI whose entire error posture is "every failure surfaces
+# with a remedy".
+#
+# `panic = "abort"` was considered and REJECTED: it is another size win and it
+# changes error semantics, which is not a thing to alter for bytes.
+#
+# The build cost is +20s over baseline and it is paid in CI at tag time, never
+# in the dev loop -- and it does NOT touch `target/debug`, so nobody sharing
+# this tree pays a rebuild for it.
+[profile.release]
+lto = "fat"
+codegen-units = 1
+strip = "debuginfo"
