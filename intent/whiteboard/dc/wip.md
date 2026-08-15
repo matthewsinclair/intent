@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 13:42Z
+heartbeat_at: 2026-08-15 13:52Z
 status: active
-focus: "hv gave everyone the pen. Pushed e5ecf9d + 964adad to both remotes. Namespace named, DB guard wired, pr-checks asking the tool -- then found and fixed int hooks under-reporting the gate it exists to report on. Asked vc for the restart.md lane."
+focus: "Dogfooding v3 for real: int dogfood ships a throwaway v3 project, because THIS repo is v2 and the v3 binary refuses here. AC-11.3 evidenced non-vacuously. Corrected my own wrong claim that it needed WP-06. Five devbin commands finally registered in MODULES.md."
 claims: []
 ---
 
@@ -28,29 +28,7 @@ hv reversed D01 on 2026-08-15 and vc has rolled it out. This is what I hold, and
 
 ## DOING
 
-- **A DEFECT I SHIPPED THIS MORNING, FOUND BY RUNNING THE TOOL RATHER THAN READING IT.** `int hooks` reported **two** guards while the gate enforced **three**. It derived the roster by grepping `$TOOLS/[a-z]*.sh` out of the runner, and I wrote in its own source that reading the names from the runner meant the roster "cannot rot". **It rotted the same day** -- the new DB guard is inline, not a `$TOOLS/` script, so the grep could not see it. **This is the failure the command exists to expose, committed by the command**: something that looks installed and protects less than it claims, one level up, answering confidently to whoever consults it to find out. Root error: **anchoring on a PATH SHAPE rather than the structural fact** -- my own watch-out, self-inflicted one file over. Fixed at `964adad` by the Decision I had already recorded: `int precommit` declares its roster ONCE, the run's step labels and a new `--list-guards` both read it, and `int hooks` asks.
-
-  **The hazard I caught before shipping is the better half.** The obvious version ran `<runner> --list-guards` and read the exit code to detect support. **Measured first: `prepush` tests only `--force` and otherwise FALLS THROUGH AND RUNS**, so that probe would have cloned and cold-built the repo (~16s) every time anyone asked what the hooks were wired to. **A probe with a side effect is not a probe.** Capability now detected from the source; roster still from the runner. Four canaries -- and the first attempt at two proved nothing, because a fresh clone has no hooks so `guards_of` was never reached and empty output reads exactly like "no guards".
-
 - **hv RULING RELAYED 13:33Z -- `rm intent.db` should not exist as an operation anywhere.** hv: _"Why would anything in Intent EVER do this? If the db is the durable SSOT, this should simply NEVER BE A THING."_ Measured whole-repo before relaying: **production is CLEAN** (zero in `bin/`, zero in `crates/*/src/` -- `write_set.rs`'s removes are file-canon rollback), and cc has already fixed most doc comments. What survives is **three live test operations** (`store_rebuild.rs:150`, `cli_end_to_end.rs:575`, `search_surface.rs:56`) and **canon still pricing work in it** (`AT-14.11` to-write with `rm intent.db` AS ITS METHOD, `acceptance.md:156`, `WP/13/info.md:45`, `migration.md:27`, `restart.md:5`). Sent to vc (canon) and cc (tests); **I wrote none of it** -- relaying a ruling is not writing canon. **The argument that makes it more than stale wording: `rm intent.db` was never safe even under OLD D01** -- `event_log` has no canon path, so it destroys the audit trail AC-04.5 requires. The phrase was doing damage while it was still officially correct.
-
-- **`.backup/` NAMESPACE NAMED -- cc unblocked, and it was the one thing of mine gating another node.** Delivered at 13:19Z.
-
-  ```
-  .backup/
-    db/<tier>/<UTC>.db        D35 rolling snapshots.  cc's.   tier = daily|weekly|monthly
-    upgrade/<UTC>/            `intent upgrade` rollback artefacts.  mine.
-  ```
-
-  **The namespace is a DIRECTORY, never a filename prefix**, and that is the whole decision: `.backup/db-<TS>/` beside `.backup/backup-<TS>/` was the smaller change and would have made containment depend on every future glob being written correctly. A directory makes the filesystem enforce it. Tier is a directory for the same reason -- a mis-globbed daily sweep is confined to dailies. **Nothing ever sweeps `.backup/` root**, so the two pre-namespace artefacts on this machine, and every one across the fleet, are permanently safe by construction: no migration, no move, no cleanup. I am not relocating existing user rollback data to make a layout tidy.
-
-- **A NO-DATABASE-ENTERS-HISTORY GUARD in `int precommit`, and it is the _right_ control rather than the obvious one.** vc ruled the ignore file stays a PATH rule -- a blanket `*.db` there asserts a durability policy about a whole class for every consumer, and cannot work anyway because `Store::open()` takes a path PARAMETER. So the class protection went where it REFUSES: **an ignore silently hides the paths it already knows; a guard blocks the ones nobody thought of.** Two detectors: by name (catches `-wal`/`-shm`, which carry their own headers and are not SQLite-format at all) and by SQLite magic in the **staged blob** (catches a database committed under any name). Content-probes only what git already calls binary, so it stays off every text file in a large commit.
-
-  **Six canaries in a sacrificial clone, both directions**: clean→0; `real.db`→refused by name; **SQLite under `renamed_as_data.bin`→refused by content, with the binary set printed first to prove the branch was entered**; a non-SQLite PNG→**passes**, so it is not merely refusing all binaries; `stray.db-wal`→refused; and **apparatus absent + staged db→still refuses**, which is why the guard moved above the ST0056 skip and the skip stopped being an `exit 0`.
-
-- **`pr-checks.yml` now asks the tool.** `./bin/intent st show "$ID"` replaces the hardcoded `{COMPLETED,NOT-STARTED,CANCELLED}` list. vc's deciding reason is the right one and it is not cost: **a directory layout does not survive the port and a command name does** -- v3 holds status as a FIELD, not a directory. Verified in a clean clone with no config or cache, which is what that job has: flat/WIP, relocated/Completed, relocated/Not Started, absent, and malformed all return the right code.
-
-- **`.gitignore` states D34 rather than folklore.** The ignore is correct on the **ceiling** -- git delta-compresses SQLite well; it is FTS5's ~1.95x expansion against GitHub's 100 MB hard block that decides it. Recording the real reason because we all had a correct conclusion resting on a wrong one.
 
 ## TODO
 
@@ -67,6 +45,8 @@ hv reversed D01 on 2026-08-15 and vc has rolled it out. This is what I hold, and
 
 Facts about this estate, not reminders. Everything amounting to "remember to" is worthless here -- three nodes broke rules they had personally written, on the day they wrote them.
 
+- **THIS REPO IS A v2 PROJECT AND THE v3 BINARY REFUSES HERE BY DESIGN.** `intent/.config/config.json` declares 2.19.0 and 56 threads carry v2 canon, so the v3 binary exits 1 with a migration remedy for every verb. **Any measurement taken with the v3 binary inside this tree measures the REFUSAL PATH, not the function** -- I compared five verbs with and without `INTENT_HOME`, got byte-identical output, and nearly banked five identical refusals as evidence. `int dogfood` exists so there is a v3 project to measure against. hv, 2026-08-15: _"we're building Intent3 using Intent... be aware of that at all times, and eat our own dogfood."_
+- **A v3 project is a `config.json` declaring `3.0.0`.** Six lines. I inferred from one refusal that a v3 project needed the migrator, and told vc so. **The refusal was about THIS project and I generalised it to all projects.**
 - **A control refuses; documentation reminds; only one is load-bearing.** Anything I can obey only by concentrating is an unfixed defect, not a discipline. The truth model now says the same thing about the intentsvcs API: conformance is structural, not procedural.
 - **A rule inherited WITH a rationale: the rationale is the part most likely to be wrong**, because it is the part nobody re-derives (vc's, after "no DB migrations" turned out to be a consequence mistaken for a requirement for four rulings running). Check what a rule is actually FOR before defending it.
 - **`--only` commits what you NAME, and a move is TWO facts.** The add and the delete are separate index entries; naming the new path commits the addition and leaves the deletion staged. It put two complete copies of the Rust tree at HEAD, on both remotes, with every working-tree check green throughout.
@@ -83,6 +63,8 @@ Facts about this estate, not reminders. Everything amounting to "remember to" is
 
 ## Decisions
 
+- (2026-08-15) **HEALTH AND ACCEPTANCE ARE DIFFERENT QUESTIONS, and a probe that asks the wrong one refuses good input.** `int dogfood` first tested "is this project usable" with `doctor`, which exits 1 on a brand-new empty project because a view is genuinely missing. **Ask the narrowest question that decides the thing.** Corollary: a self-test that has never refused anything is not yet known to work -- this one having refused is the reason to trust it.
+- (2026-08-15) **DO NOT GENERALISE FROM THE FAILURE YOU HAPPENED TO HIT.** The v3 binary refused in this tree, so I concluded no v3 project could exist without the migrator and reported that to vc. The refusal was about THIS project. **Ask what the thing IS, not what blocked you from it.**
 - (2026-08-15) **AN IGNORE HIDES THE PATHS IT KNOWS; A GUARD REFUSES THE ONES NOBODY THOUGHT OF.** They are not two strengths of the same control, they are different controls, and only the second is load-bearing. The tell that you have reached for the wrong one: the rule you are about to write has to be exhaustive to work. `Store::open()` takes a path parameter, so no `.gitignore` list can be complete by construction -- which is the argument for the guard, not for a longer list.
 - (2026-08-15) **CONTAINMENT IS STRUCTURAL OR IT IS NOT CONTAINMENT.** A namespace expressed as a directory is enforced by the filesystem; the same namespace expressed as a filename prefix is enforced by every future glob being written correctly. Chose directories for `.backup/{db,upgrade}/` and for the retention tiers inside them. Same shape as the typed API being the only door into the DB.
 - (2026-08-15) **EXISTING USER DATA IS NOT MIGRATED TO MAKE A LAYOUT TIDY.** Pre-namespace `backup-<TS>/` directories stay at `.backup/` root untouched, and the rule "nothing ever sweeps root" makes them permanently unreachable. Fail-forward governs code, not somebody's rollback artefacts.
