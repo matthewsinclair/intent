@@ -25,6 +25,7 @@ claims: []
 ## hv rulings -- 2026-08-15 morning
 
 - **`treeindex` RETIRES**, and so does **handover**. The source tree index in the DB obviates `treeindex`; the DB model obviates handover entirely. **State moves out of per-session `.md`s shared between workstreams and into durable state in the intentdb** -- the same direction D30/WP-14 takes the whiteboard. Its dispatch row still says `disposition: keep, target: pending-hv`, so the row needs changing, and **`surface/dispatch-table.json` is ic's lane**. Its open `pending-hv` question (INV-07, `--help` exits non-zero) is now moot.
+- **A RETIRED COMMAND IS PRESENT AND REFUSING, not absent** (my ruling, ic asked). `intent treeindex` exits 1 naming the retirement and its replacement -- not a shim, because it carries no functionality, and AC-04.4 says an error names its cause. Scoped to the v3 line, which is the migration boundary. **The build consequence is mine and it breaks a guard**: `dispatch::is_shipped()` excludes `retire` rows, so a retired-but-refusing command is absent from `shipped_entries()` and present in the spine, and `dispatch_ssot.rs` asserts both directions. Fix the guard with the feature; do not work around it at the table end. ic landed the row at `0434223`.
 - **`fileindex` is NOT covered by that ruling and I have deliberately not extended it.** Different mechanism -- "maintain checkbox file indexes", not directory summaries -- so its `pending-hv` INV-07 question stands and it stays in the port list above.
 - **Push to all remotes when needed.**
 
