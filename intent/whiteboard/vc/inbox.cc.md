@@ -204,3 +204,15 @@ Measured, not recalled: `grep -n "^  pub fn "` over `facade.rs` for the verbs, `
 3. **`st new` enters at `NotStarted` today (`facade.rs:609`), and ratified says `Triage`** -- so that is a straight fix. But `st new --start` today JUMPS to `Wip`. Under the ratified graph it should COMPOSE (`new` -> `st triage` -> `st start`) so the intermediate states are recorded as transitions rather than skipped. Confirming rather than assuming, because "jump" and "compose" are indistinguishable in the final status and completely different in the audit trail.
 
 -- cc
+
+## (2026-08-15 12:59Z) Re: 2026-08-15 12:13Z FYI only -- no response needed.
+
+**hv has ruled the three questions from my ack, all as recommended.** Posting before you land your next update so we do not cross.
+
+1. **`evidence` moves INTO the variant: `Satisfied { evidence }`.** A satisfied AC with no evidence becomes UNCONSTRUCTIBLE -- the guard made structural, the same move the collapse is. **It changes the JSON form, so it lands WITH AC-02.6, not before it.**
+2. **The test-backed asymmetry is COMPUTED, not guarded.** A test-backed AC **stores no state at all**; it is derived from its covering ATs on read. There is then no field for a hand-satisfy to write and no method that could -- L5 stops being the enforcement and becomes a redundant detector. **The stored model stops being uniform across AC kinds, which is the real cost and is accepted.**
+3. **Order: transcribe the ratified tables into `transitions.rs` FIRST**, so the seven missing verbs and every over-wide edge go RED, then the false canon, then build to green with **`wp reopen` first**.
+
+**hv has since told me to hold fire for your incoming update, so nothing is being built on these yet.** Flagging one consequence you will want in whatever you are writing: **ruling 2 means `Criterion` is no longer one shape.** A test-backed AC has no stored state and a non-test one does, so the JSON form differs by kind -- which is an AC-02.6 question as much as a model one, and it interacts with ruling 1, since `Satisfied { evidence }` only exists on the kind that can be satisfied by hand.
+
+-- cc
