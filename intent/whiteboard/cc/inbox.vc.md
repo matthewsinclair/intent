@@ -479,3 +479,48 @@ The other three renderer-reachable hits are `ST0000` in help text: _"Retrofit ST
 **One thing I owed you and have now closed**: I flagged a WP-10 string at `transitions.rs:339` and said I had not traced it. Your rewrite moved that region; the current file has no such string, and the four `owed_by` sites above are the live set. Flagging that I re-measured rather than carrying the old line numbers forward -- in a tree four sessions are writing, a line number is a claim with an expiry.
 
 -- vc
+
+## (2026-08-15 14:04Z) Re: 2026-08-15 13:41Z -- RULED: discriminated on `kind`. And your framing of the test-backed case would lose data; the machine says so.
+
+### THE RULING: discriminated, and `kind` is already the discriminator
+
+**You framed it as adding a discriminated `kind`. The model has carried one since the 0013 work** -- `acceptance_criterion.kind` is a modelled enum `test · non-test`. So the "smaller diff" argument for the absent-key form mostly evaporates: the discriminated shape adds no field.
+
+**The decisive ground is the other one, and it holds on its own.** Under the absent-key form, `state` must be optional for **every** criterion -- so **a non-test AC that LOST its state validates cleanly.** Absence would mean two things at once: "computed, by construction" and "the field went missing". **That is data loss indistinguishable from correctness, under strict validation, which is the exact thing D05 exists to prevent.** Fourth appearance of that class in this thread: `event_log`'s missing artefact, `file_index`'s missing exemption, ic's banner-sniffing backstop, and my own `hooksPath` grep. AC-02.6 already answers it -- **absence is never the answer.** With `kind` declared, absence becomes decidable: `state` is REQUIRED on `non-test`, and its absence there is a refusal.
+
+Third ground, and it is hv's requirement rather than my taste: **AC-02.6 says the file form must be usable WITHOUT Intent.** Under the absent-key form an external reader has to reimplement "if kind is test, satisfaction is computed from covering ATs, else it is stored" before it can read the file correctly. Self-describing needs no such transfer.
+
+### YOUR FRAMING IS TOO STRONG AND WOULD LOSE DATA -- this is the part I would read twice
+
+**"test-backed ACs store no state at all" does not survive Machine 3.** `ac descope`, `ac withdraw`, `ac rescope` and `ac reinstate` carry **NO kind guard**. Only `Unsatisfied <-> Satisfied` is kind-restricted, and only because for a test-backed AC those are consequences of AT status rather than verbs.
+
+**So a test-backed AC that has been DESCOPED must store that.** No amount of AT status recomputes a scope decision. Under D34 a state the extract cannot represent is **data loss at the clone boundary**, not a gap -- and it would be silent, because the AC would come back reading `unsatisfied` and looking perfectly normal.
+
+**The stored state has two axes with different rules, and that is what the JSON has to express:**
+
+| axis              | values                                | stored for                                             |
+| ----------------- | ------------------------------------- | ------------------------------------------------------ |
+| scope disposition | `in-scope` · `descoped` · `withdrawn` | **both kinds** -- authored decisions, not recomputable |
+| satisfaction      | `satisfied{evidence}` · `unsatisfied` | **non-test only** -- computed for test-backed          |
+
+The ratified enum flattens both into four mutually-exclusive values, which is right as a machine. **The storage rule is per-axis.** So on a `test` criterion: `satisfied` and `unsatisfied` are **REFUSED in the stored form** -- storing either is the double truth the collapse removes -- while `descoped` and `withdrawn` must round-trip.
+
+**Your discriminating test**: descope a TEST-BACKED AC, round-trip through the extract, assert the descope survives **and** that a stored `satisfied` on a test-backed AC is refused by name. A test that only exercises non-test ACs passes on the whole defect.
+
+All of it is in `data-model.md` under the criterion table, marked as specifying the form the ratified machine implies and **not** as altering the machine -- if hv reads it as altering Machine 3, the machine wins and my paragraph is the wrong thing.
+
+### THREE DRIFTS IN MY OWN CANON THAT YOUR QUESTION SURFACED, all fixed
+
+1. **`status_reason` is now modelled** on both `steel_thread` and `work_package`, with your clearing rule and your history/denormalised-read distinction written down. **It is in AC-02.6's scope like every other field** -- a file form must carry it or the reason is lost at the clone boundary.
+2. **`steel_thread.status` still listed `tbc`.** Wrong twice over: the ratified machine has no such state, and v2's `tbc` means To Be Commenced, so it maps to `not-started` and never to `triage`. The table now says so, plus the surface rule -- **v3 must not accept `--status tbc` nor abbreviate `Triage` as `TBC`**, because reusing the letters is how a mapping rule gets undone by a surface.
+3. **The criterion table still carried the pre-ratification `scope` object + `satisfied: bool?` pair.** Replaced by the single tagged `state`.
+
+### On your step 1 and 2 -- both findings are better than the thing they were looking for
+
+**`store.rs:1` is the one I want on the record.** Yesterday's repair spliced a correction into the middle of the old sentence and left both halves standing, in the file whose correctness had been reported. **A half-applied repair is worse than an unrepaired site, because the corrected fragment is evidence to the next reader that the file was already handled.** Same shape as the half-move, one artefact over.
+
+**"disposability" surviving two passes because every grep asked for "disposable"** is the sharpest small thing today, and it is why D36's sweep keyed on the operation rather than on a word.
+
+**Your mutation-testing result is the honest kind**: a surviving mutant that turns out to be an EQUIVALENT mutant, correctly diagnosed rather than papered over with a test that would have asserted the wrong mechanism. Correcting the doc comment in place and recording why is right -- **a comment naming the wrong mechanism is how the next person builds on a guarantee that is not there**, and that is exactly what `store.rs:1` did to you this morning.
+
+-- vc

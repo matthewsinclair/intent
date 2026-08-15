@@ -34,22 +34,27 @@ Open for hv, and it decides whether this field exists at all: whether `todo --fl
 
 ### steel_thread (`st/<ID>/thread.json`)
 
-| Field      | Type   | Notes                                                    |
-| ---------- | ------ | -------------------------------------------------------- |
-| schema     | string | `intent/thread@3.0` -- lets validators pick the schema   |
-| id         | string | `ST0056`                                                 |
-| title      | string |                                                          |
-| slug       | string |                                                          |
-| objective  | string | authored prose; may be empty (see below)                 |
-| context    | string | authored prose, markdown, carried verbatim               |
-| related    | array  | `{id, note?}` -- the Related Steel Threads block         |
-| status     | enum   | `not-started · wip · tbc · hold · completed · cancelled` |
-| created    | date   |                                                          |
-| completed  | date?  |                                                          |
-| acceptance | enum?  | `exempt` (ST0048) or absent = enforced                   |
-| wps        | array  | work_package records, ordered by seq                     |
-| criteria   | array  | acceptance_criterion records                             |
-| tests      | array  | acceptance_test records                                  |
+| Field          | Type    | Notes                                                                                                  |
+| -------------- | ------- | ------------------------------------------------------------------------------------------------------ |
+| schema         | string  | `intent/thread@3.0` -- lets validators pick the schema                                                 |
+| id             | string  | `ST0056`                                                                                               |
+| title          | string  |                                                                                                        |
+| slug           | string  |                                                                                                        |
+| objective      | string  | authored prose; may be empty (see below)                                                               |
+| context        | string  | authored prose, markdown, carried verbatim                                                             |
+| related        | array   | `{id, note?}` -- the Related Steel Threads block                                                       |
+| status         | enum    | `triage · not-started · wip · hold · completed · cancelled` -- **`tbc` is NOT a v3 value** (see below) |
+| status\_reason | string? | the reason for the CURRENT status; cleared by any transition that does not carry one                   |
+| created        | date    |                                                                                                        |
+| completed      | date?   |                                                                                                        |
+| acceptance     | enum?   | `exempt` (ST0048) or absent = enforced                                                                 |
+| wps            | array   | work_package records, ordered by seq                                                                   |
+| criteria       | array   | acceptance_criterion records                                                                           |
+| tests          | array   | acceptance_test records                                                                                |
+
+**`tbc` was in this row until 2026-08-15 and it was WRONG in two directions at once**, which is why it is called out rather than quietly swapped. The ratified machine (Machine 1 below) has no such state; `triage` is the real entry state. And v2's `tbc` means **To Be Commenced**, not triage -- so it maps to `not-started`, never to `triage` (migration.md carries the rule and ic's independent witness for it). **v3 must not accept `--status tbc` nor abbreviate `Triage` as `TBC`**: reusing the letters is exactly how a mapping rule gets undone by a surface.
+
+**`status_reason` is a denormalised read of the latest guarded transition, never a second source for history** (cc, 2026-08-15, on hv's _"feel free to add to the schema to support this kind of thing"_). The history is the event envelope, which every guarded verb writes. It is cleared by any transition that does not carry a reason -- otherwise `st hold --reason "waiting on the fleet"` followed by `st resume` leaves a running thread explaining why it was paused, which is a stale value that reads as current. **It is in AC-02.6's scope like every other field**: a file form must carry it, or the round-trip loses the reason at the clone boundary.
 
 No verblock: git is the history of structured files. Authored prose files keep the v2 verblock convention unchanged; generated views carry a generated-banner footer instead (the AGENTS.md pattern).
 
@@ -69,14 +74,15 @@ Deferring this to WP-10 was the rejected option. The migrator would have discove
 
 ### work_package (inside thread.json)
 
-| Field     | Type    | Notes                                                                                                                              |
-| --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| seq       | int     | rendered `WP-01`                                                                                                                   |
-| title     | string  |                                                                                                                                    |
-| scope     | enum    | `XS · S · M · L · XL · XXL`, plus a marked-legacy form for a v2 value outside the set (see below)                                  |
-| status    | enum    | `not-started · wip · done`                                                                                                         |
-| objective | string? | authored prose, the `## Objective` section (D28)                                                                                   |
-| body      | string? | authored prose, every other section verbatim (D28) -- `## Deliverables` and `## Dependencies` live here, deliberately unstructured |
+| Field          | Type    | Notes                                                                                                                              |
+| -------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| seq            | int     | rendered `WP-01`                                                                                                                   |
+| title          | string  |                                                                                                                                    |
+| scope          | enum    | `XS · S · M · L · XL · XXL`, plus a marked-legacy form for a v2 value outside the set (see below)                                  |
+| status         | enum    | `not-started · wip · done`                                                                                                         |
+| status\_reason | string? | as `steel_thread.status_reason` -- current status only, cleared by a transition carrying none                                      |
+| objective      | string? | authored prose, the `## Objective` section (D28)                                                                                   |
+| body           | string? | authored prose, every other section verbatim (D28) -- `## Deliverables` and `## Dependencies` live here, deliberately unstructured |
 
 #### scope: canonicalisation is not loss, but one v2 value is outside the set
 
@@ -92,14 +98,39 @@ Measured on this repository's own corpus (vc, 2026-08-15, on cc's WP-06 finding)
 
 ### acceptance_criterion (inside thread.json)
 
-| Field     | Type    | Notes                                                                                                                             |
-| --------- | ------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| id        | string  | `AC-01.1` (group = WP seq or `00` for ST-level)                                                                                   |
-| text      | string  |                                                                                                                                   |
-| kind      | enum    | `test · non-test`                                                                                                                 |
-| scope     | object  | `{state: in-scope}` · `{state: descoped, to: STxxxx, by?, reason?}` · `{state: withdrawn, reason, by?}` (the 0013 model)          |
-| evidence  | string? | non-test only                                                                                                                     |
-| satisfied | bool?   | **non-test only.** Test-backed satisfaction is COMPUTED from covering green ATs, never stored -- storing it would be double truth |
+| Field | Type   | Notes                                                                                                                                                                                                                                                                |
+| ----- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id    | string | `AC-01.1` (group = WP seq or `00` for ST-level)                                                                                                                                                                                                                      |
+| text  | string |                                                                                                                                                                                                                                                                      |
+| kind  | enum   | `test · non-test` -- **the DISCRIMINATOR for `state`'s shape below; it already existed and is not being added**                                                                                                                                                      |
+| state | tagged | `{state: unsatisfied}` · `{state: satisfied, evidence}` · `{state: descoped, to: STxxxx, by?, reason?}` · `{state: withdrawn, reason, by?}` -- **required on `non-test`; on `test` only the descoped/withdrawn forms are representable, and absence means COMPUTED** |
+
+**Replaces the pre-ratification `scope` object + `satisfied: bool?` pair** (2026-08-15). The ratified Machine 3 collapses two fields into one enum, which is what kills "three stored values, two meanings, one never written" by construction.
+
+#### The JSON form differs by AC kind, and `kind` is the discriminator (ruling, vc, 2026-08-15)
+
+**Asked by cc before cutting the collapse, which is the cheap moment.** Two candidate forms: an **absent `state` key** on a test-backed AC (smaller diff), or a **discriminated shape** where the absence is structural. **Ruled: discriminated, on `kind`.** Three grounds, and the first is decisive on its own.
+
+**1. Under the absent-key form, `state` must be optional for EVERY criterion -- so a non-test AC that LOST its state validates cleanly.** Absence would carry two meanings: "computed, by construction" and "the field went missing". That is data loss indistinguishable from correctness under D05's strict validation, and it is the fourth appearance of the class this thread keeps meeting -- `event_log`'s missing artefact, `file_index`'s missing exemption, ic's banner-sniffing backstop, vc's `hooksPath` grep. **AC-02.6's posture is already the answer: absence is never the answer.** With `kind` declared, absence becomes decidable rather than ambiguous: `state` is REQUIRED on `non-test` and its absence is a refusal.
+
+**2. `kind` is ALREADY a modelled enum**, so the discriminated form adds no field and the "smaller diff" argument mostly evaporates. cc framed this as adding a discriminator; the model has carried one since the 0013 work.
+
+**3. AC-02.6 requires the file form to be usable WITHOUT Intent.** Under the absent-key form an external reader must reimplement the rule "if kind is test then satisfaction is computed from the covering ATs, else it is stored" before it can read the data correctly. A self-describing shape needs no such transfer, and "use my data somewhere else" is hv's stated requirement, not a preference.
+
+#### The correction cc's question needs, and it is bigger than the question
+
+**"Test-backed ACs store no state at all" is TOO STRONG and would lose data.** Read Machine 3 again: `ac descope`, `ac withdraw`, `ac rescope` and `ac reinstate` carry **no kind guard**. Only the `Unsatisfied <-> Satisfied` edges are kind-restricted, and only because for a test-backed AC they are consequences of AT status rather than verbs.
+
+**So a test-backed AC that has been DESCOPED must store that.** It is a scope decision no amount of AT status can recompute, and under D34 a state the extract cannot represent is data loss at the clone boundary, not a gap. The stored state therefore has two axes with different rules:
+
+| axis              | values                                | stored for                                             |
+| ----------------- | ------------------------------------- | ------------------------------------------------------ |
+| scope disposition | `in-scope` · `descoped` · `withdrawn` | **both kinds** -- authored decisions, not recomputable |
+| satisfaction      | `satisfied{evidence}` · `unsatisfied` | **non-test only** -- computed for test-backed          |
+
+The ratified enum flattens both axes into four mutually-exclusive values, which is correct as a machine. **The storage rule is per-axis, and that is what the JSON form has to express.** Consequence for the schema: on a `test` criterion, `satisfied` and `unsatisfied` are **REFUSED in the stored form** -- storing either is precisely the double truth the collapse exists to remove -- while `descoped` and `withdrawn` are required to round-trip.
+
+**Not a change to the ratified machine, and deliberately not**: it specifies the file form the machine implies. If hv reads it as altering Machine 3, the machine wins and this paragraph is the thing that is wrong.
 
 ### acceptance_test (inside thread.json)
 
