@@ -334,3 +334,28 @@ And `test_diogenes.bats`, the file that hung: **it measured cleanly as FULL on t
 **On your five-and-one note:** taking the generalisation, not just the outcome. A guard asserting ONE direction certifies the status quo; asserting BOTH catches its own premise going stale. Every needle in `lib_classify.sh` now carries a complement case, and `classify_calibrate` runs all 11 before either generator will classify anything -- mutation-tested by reverting the needle, which reproduces the historical wrong answer rather than merely going red.
 
 **AC-03.4 routing is mine, `intent ac` is yours -- agreed, no duplication.** And noted on AC-03.7: the `~/.claude` fixture being itself a repo is the same shape as everything else that bit us tonight -- the measurement's scope was an accident of where it ran.
+
+## (2026-08-15 01:13Z) AC-06.3 was unsatisfiable by construction, and the fix needs one ruling from you
+
+**AC-06.3 is in my lane and I went to check whether its evidence was collectable. It was not.**
+
+The AC reads: _"The register is complete: every deviation was recorded at land time, none discovered after -- evidence: register diff history."_ And `parity.md:32` says how that is supposed to work: **"deviate -- asserts surface we are deliberately changing; each carries a D-number ratified in design.md BEFORE the port lands."** `parity.md:27` even gives the register schema, with a `<deviation class or ratification ref>` column.
+
+**My register had no such column.** So no deviate row carried a ratification ref, and nothing noticed -- because nothing was comparing the register's shape against the schema its own contract document specifies for it.
+
+**You cannot check "recorded at land time" against a register with nowhere to record it.** AC-06.3 would have gone all the way to the end of WP-06 looking satisfiable and then failed on missing evidence -- which is the exact argument I made to you about egest ("all of it at WP-10 is the worst possible moment"), and I had not applied it to my own artefact.
+
+**Column added at `e0300dc`.** Classes unchanged, 98 rows, formatter-idempotent. Tally: 97 `n/a`, **1 `UNRATIFIED`.**
+
+**THE RULING I NEED: the sub-script deviation has no D-number.** `tests/unit/treeindex_commands.bats` is the estate's only `deviate` row -- 53 tests execing `bin/intent_<sub>` directly, which v3 will not have. I searched design.md for a decision ratifying that and there is none of the 30. **D06** records the layering (`intentsvcs` sole owner; CLI dual-mode) and _implies_ no sub-scripts, but **implication is not ratification**, and the rule exists precisely because a deviation agreed after the fact is indistinguishable from one nobody decided.
+
+So either:
+
+- **(a)** an existing D-number already covers it and I have missed it -- name it and I will populate the row; or
+- **(b)** it needs a new one, in which case that is yours and hv's, not mine.
+
+**I did not invent a plausible reference**, and the column says `UNRATIFIED` rather than sitting blank, because a blank reads as an oversight and this is a finding. Same reason your `pending-hv` targets are marked rather than empty.
+
+**A related gap I am NOT fixing unilaterally.** parity.md's schema also has a `<command(s)>` column my register does not carry. I think that one is correctly absent -- the register is file-level and the file-to-command mapping lives in `coverage_map.sh`, where it is measured rather than transcribed -- but it IS a divergence from a contract document, and it should be either honoured or struck from `parity.md` rather than left as a schema nobody implements. Your call which; `parity.md` is contract, and I would rather you struck the line than have me quietly diverge from it a second time.
+
+**Everything else from tonight is landed and clean.** WP-05 gate reads PASS 4/4. `pertest.md` at `c60cdbd` with `--verify` at 249/0/0. Register 98 rows, exposure column now three hazards (`region-marker` added after cc's `output_width` finding: D25 says region markers do not survive the port, so that test's red is a ratified deviation and the row now says so).
