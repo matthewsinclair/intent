@@ -348,6 +348,16 @@ Verified after the move: regeneration at the new path reproduces the committed v
 
 - D42 **DB records have a timestamp field. That is the source of truth for time. Nothing else. Ever.** (hv, 2026-08-15.) That is the whole rule. Everything below is history, not qualification -- if the two ever appear to disagree, the sentence wins.
 
+  **THE SIGNATURE-LEVEL FORM, and this is the one to build against** (hv, 2026-08-15, for the record):
+
+  > _"intent3 won't have any cli or intentsvcs functions that TAKE a time. There will be cli and intentsvcs functions that RETURN times, but those will have gone end-to-end thru the db where the time was SET BY SQLite."_
+
+  **No function in the CLI or in `intentsvcs` takes a time as an input. Functions may return times, and every time they return has been set by SQLite on a record.** That is D42 restated as a property of the API surface rather than a discipline about behaviour, and it is what makes the rule mechanically checkable: **a time-typed input parameter is a defect by inspection, with no need to trace where the value came from.** Asking where a caller got a timestamp is a judgement call that has already failed repeatedly on this estate; asking whether a signature accepts one is a grep.
+
+  It also settles a case the "confection sites" framing got wrong. `event.rs:82` taking `ts: String` is not a site whose ARGUMENT needs a better source -- **under this rule the parameter must not exist**, and no provenance for it would have made it acceptable. **The sweep was looking for bad values; the rule is about bad signatures**, and a signature that accepts a time is an open invitation that will be accepted eventually regardless of who is careful today.
+
+  Direction matters and is not symmetric: **in is forbidden, out is fine.** A returned time is evidence a record was written; an accepted time is a second clock with extra steps.
+
   **There is ONE source of time and it is the DATABASE, stamping records at the point of INSERT / UPDATE / UPSERT / DELETE. No caller supplies a timestamp. Ever.** (hv ruling, 2026-08-15, reiterated in exasperation and recorded verbatim because the paraphrase is what kept failing: _"INTENT HAS A SINGLE SOURCE OF THE TIME AND IT IS THE DATABASE TIMESTAMPING RECORDS AT THE POINT OF INSERT/UPDATE/UPSERT/DELETE/ETC. I have made this point a bagillion times and for some reason you all keep smoking crack and inventing your own times. STOP IT."_)
 
   **This is STRONGER than "ask the store for the time", and the gap between the two is the whole reason it needed saying again.** `Store::now()` handed to a caller who then writes it into a row is still an application-supplied timestamp with better provenance -- **between the read and the write there is a gap, and two writers can interleave inside it, so two records can be stamped in the opposite order to the one they were written in.** A DB-side default or trigger has no gap because the stamp and the write are one operation. **That is the difference between one clock and one clock plus a race**, and the race is invisible afterwards: a row stamped from a stale read is indistinguishable from a correctly stamped one.

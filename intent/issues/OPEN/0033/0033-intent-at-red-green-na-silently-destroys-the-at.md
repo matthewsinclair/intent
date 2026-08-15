@@ -43,7 +43,27 @@ Recoverable only from git, and only if the note was committed before the setter 
 
 ## Root Cause
 
-`at_status()` is `at_field "$1" 5` (`bin/intent_acceptance:208`) -- the row is split on ` -- ` and the status is field 5. **The note is field 6.** The status write path reconstructs the row from the fields it knows about, so field 6 is not written back. The grammar documents the note; the field-index model of the row does not carry it.
+### CORRECTED 2026-08-15 (vc, on reading the write path instead of inferring it)
+
+**The original root cause below named a mechanism that does not exist, and the correction makes the defect smaller, sharper, and fixable in one line.** It is kept verbatim underneath because the wrong version is what produced the wrong Proposed Fix, and the pair is the lesson.
+
+The read path is not a split and the note is not unreadable. `at_field` matches the WHOLE row against an anchored regex -- `AT_GRAMMAR_TEST` / `AT_GRAMMAR_NONTEST` (`bin/intent_acceptance:180-181`) -- and returns one numbered capture group. The group numbers are deliberately aligned across both arms so one accessor serves both, and the source says so at `:171-172`: **1 id, 2 reference, 3 covers, 5 status, 6 note.** `AT_G_NOTE` (`:179`) is `( -- .*)?`, so **the note IS captured**, delimited by a space-hyphen-hyphen-space separator and nothing else (`:169`). Any caller could have it today for `at_field "$1" 6`.
+
+**The whole defect is one greedy `.*` in the setter**, `bin/intent_acceptance:1341`:
+
+```
+replace_line "$acc" "s|^(- ${esc} .*) -- status:.*|\1 -- status: ${target}|"
+```
+
+`-- status:.*` matches from the status separator to end-of-line. **The note is inside that match, so it is consumed and replaced rather than never-read.** The row is not reconstructed from parsed fields at any point -- the setter never calls a field accessor at all.
+
+That distinction is the whole repair: the parser had the note in hand and the writer overwrote it, so nothing needs to be modelled, taught, or ported. One anchored pattern has to stop being greedy past the status token.
+
+### Original filing (WRONG about the mechanism -- see above)
+
+`at_status()` is `at_field "$1" 5` (`bin/intent_acceptance:208`) -- the row is split on a space-hyphen-hyphen-space separator and the status is field 5. **The note is field 6.** The status write path reconstructs the row from the fields it knows about, so field 6 is not written back. The grammar documents the note; the field-index model of the row does not carry it.
+
+**Also corrected here:** the original sentence wrote that separator as a code span with the spaces inside the backticks. The markdown linter strips the padding from such a span on save (CommonMark drops one space from each side), so a claim whose entire subject is that the delimiter is made of spaces silently became a claim about a bare double hyphen. **Written out in words above so the formatter cannot rewrite the fact.**
 
 ## Impact
 
@@ -61,11 +81,29 @@ Shipped in v2.19.0, which is also the release that introduced the AT row grammar
 
 ## Proposed Fix
 
-Preserve field 6 across a status write: capture the note before rewriting and re-append it, or rewrite only the status token in place (a targeted `sed` on ` -- status: <old>` -> ` -- status: <new>`) rather than reconstructing the row from parsed fields. The in-place token rewrite is preferable -- it cannot lose a field it never parses, and it is the same shape `at_fix_line` already uses for the emphasis and parenthetical-note normalisations.
+### CORRECTED 2026-08-15 (vc) -- THE ORIGINAL FIX BELOW RECOMMENDED THE SHAPE THAT IS THE BUG
+
+**The original recommendation was "rewrite only the status token in place (a targeted `sed`) rather than reconstructing the row from parsed fields", and called that shape preferable because "it cannot lose a field it never parses".** `bin/intent_acceptance:1341` already IS a targeted in-place `sed` that parses no fields, and it is the line that destroys the note. **The recommended cure was a description of the disease**, and anyone following it would have written the defect a second time and reasonably believed they had fixed it.
+
+It read as sound because every clause of it was true. The setter does rewrite in place; it does not parse fields; that shape genuinely cannot lose a field it never parses. **What none of that establishes is the thing being claimed -- an in-place rewrite loses whatever its own pattern matches, and this one matches to end-of-line.** The property was real and simply not the property that mattered.
+
+**The actual fix: stop the setter's trailing wildcard at the status token and re-emit what follows.** Shape, not a tested patch:
+
+```
+s|^(- ${esc} .*) -- status: [^ ]+(( -- .*)?)$|\1 -- status: ${target}\2|
+```
+
+The status vocabulary contains no spaces, so `[^ ]+` bounds it, and the note re-emits through the trailing group. **Verify against a row with a note, a row without one, and both grammar arms before landing it** -- the leading group is greedy and a note that itself contains the status separator is the case to check.
+
+### Original proposal (kept -- it is the instance)
+
+Preserve field 6 across a status write: capture the note before rewriting and re-append it, or rewrite only the status token in place (a targeted `sed` on a status-separator match) rather than reconstructing the row from parsed fields. The in-place token rewrite is preferable -- it cannot lose a field it never parses, and it is the same shape `at_fix_line` already uses for the emphasis and parenthetical-note normalisations.
+
+### Guard
 
 Add a guard asserting a row with a note survives a full `to-write -> red -> green` cycle byte-identical apart from the status token.
 
-Not fixed at the time of filing: `bin/**` is not mutated in place in this repo while sessions are live, and ST0056/WP-04 replaces this tooling with the Rust facade. **The note that must not be lost in that port: the row is not a tuple of five fields.**
+Not fixed at the time of filing: `bin/**` is not mutated in place in this repo while sessions are live, and ST0056/WP-04 replaces this tooling with the Rust facade. **The note that must not be lost in that port: the note is captured and then overwritten, so the port must not treat "the writer never saw it" as the thing being fixed.**
 
 ## Related
 
