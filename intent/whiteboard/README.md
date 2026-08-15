@@ -15,7 +15,7 @@ The whiteboard process was pioneered **by convention in Lamplight** (`../Lamplig
 | Node | Name                   | Scope (Intent)                                                                                                                      |
 | ---- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `hv` | Hypervisor (the human) | Workstream Zero: adjudicates scope, sequences work, owns releases plus commits-to-main; standing directives plus escalation landing |
-| `cc` | Control Claude         | the engine: `bin/` CLI, `crates/`, `intent/plugins/`, `lib/templates/`, the rule library, and skills; ST/WP execution               |
+| `cc` | Control Claude         | the engine: `bin/` CLI, `native/rust/`, `intent/plugins/`, `lib/templates/`, the rule library, and skills; ST/WP execution          |
 | `vc` | Validation Claude      | independent check (correct / complete / consistent / faithful to hv's ask); advisory; the bats suite plus critic discipline         |
 | `ic` | Interface Claude       | the dispatch-table SSOT and everything rendered from it: command surface, help, voice, exit codes, MCP tool list, `intent llm`      |
 

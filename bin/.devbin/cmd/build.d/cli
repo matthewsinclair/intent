@@ -21,6 +21,6 @@ for a in "$@"; do
   esac
 done
 
-cd "$PROJECT_ROOT"
+cd "$PROJECT_ROOT/native/rust" || die "no Rust workspace at native/rust"
 # shellcheck disable=SC2086  # $profile is one optional flag or empty, by design
 exec cargo build -p intent-cli $profile "${args[@]}"

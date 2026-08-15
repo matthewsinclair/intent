@@ -1,0 +1,3 @@
+edition = "2024"
+# House rule: 2-space indentation in ALL code in ALL languages in Intent.
+tab_spaces = 2

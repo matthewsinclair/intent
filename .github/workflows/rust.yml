@@ -4,19 +4,15 @@ on:
   push:
     branches: [main]
     paths:
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "rustfmt.toml"
-      - "crates/**"
+      - "native/rust/**"
       - "schema/**"
+      - "surface/**"
       - ".github/workflows/rust.yml"
   pull_request:
     paths:
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "rustfmt.toml"
-      - "crates/**"
+      - "native/rust/**"
       - "schema/**"
+      - "surface/**"
       - ".github/workflows/rust.yml"
 
 jobs:
@@ -26,12 +22,20 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: native/rust
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
+        with:
+          # `defaults.run.working-directory` does not apply to `uses:` steps,
+          # so the cache action needs telling where the workspace is or it
+          # looks for Cargo.toml at the repository root and finds none.
+          workspaces: native/rust
       - name: fmt
         run: cargo fmt --check
       - name: clippy

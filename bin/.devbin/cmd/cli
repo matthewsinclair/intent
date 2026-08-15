@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Run the Intent v3 native CLI
+#
+# intent cli [args...] -- run the ST0056 Rust binary against this project.
+#
+# Overrides devbin's built-in `cli`, which is `exec mix <task>` and assumes an
+# Elixir project. Intent is not one, so the builtin's language gate refused
+# with "this project does not declare the 'elixir' language" -- a true
+# statement about a question nobody asked.
+#
+# Prefers an already-built binary and only builds when there is none, because
+# `int cli` is the command you reach for to RUN the thing: making it rebuild
+# first would put a compile in front of every invocation. Use `int build cli`
+# when you want the build.
+#
+# Debug before release, deliberately: during the v3 build the debug binary is
+# the one that has just been compiled by `cargo test`, so it is the one whose
+# behaviour matches the tree you are looking at. A stale release binary
+# answering questions about code you changed an hour ago is the failure this
+# ordering prevents.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+
+workspace="${PROJECT_ROOT:?}/native/rust"
+[ -d "$workspace" ] || die "no Rust workspace at native/rust -- has the tree moved?"
+
+for candidate in "$workspace/target/debug/intent" "$workspace/target/release/intent"; do
+  if [ -x "$candidate" ]; then
+    exec "$candidate" "$@"
+  fi
+done
+
+# Nothing built yet. Build once, quietly, then run -- rather than failing with
+# "no binary", which tells the operator to go and run a different command.
+warn "no intent binary yet -- building (debug)"
+cd "$workspace" || die "cannot enter $workspace"
+cargo build -p intent-cli >&2 || die "cargo build failed"
+exec "$workspace/target/debug/intent" "$@"

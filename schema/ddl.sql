@@ -1,5 +1,5 @@
 -- Intent v3 runtime store (GENERATED FACE -- the master is
--- crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
+-- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- Derived from committed canon; rebuilt at any time; no migrations ever.
 CREATE TABLE IF NOT EXISTS threads (
   id TEXT PRIMARY KEY,

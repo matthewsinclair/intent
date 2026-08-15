@@ -1,0 +1,58 @@
+[workspace]
+resolver = "3"
+members = ["crates/intentsvcs", "crates/intent-cli", "crates/intentd"]
+
+[workspace.package]
+version = "3.0.0-dev"
+edition = "2024"
+authors = ["Matthew Sinclair <hello@matthewsinclair.com>"]
+license = "MIT"
+
+[workspace.dependencies]
+# The CLI surface. BUILDER api, not derive: the dispatch table is runtime
+# data and IS the surface (AC-05.1), so the spine is constructed from it
+# rather than declared twice.
+# `string` is load-bearing, not a convenience: the surface is built from
+# runtime table data, so every name is an owned String rather than a
+# `'static` literal. Without it, clap can only accept the compile-time
+# constants a derive-based spine would use -- which is the design AC-05.1
+# rules out.
+clap = { version = "4", features = ["string"] }
+# The CORPUS rule (D29 / AC-03.7): a path git can never commit can never be
+# canon. ripgrep's walker rather than a hand-rolled .gitignore parser, because
+# gitignore is not a simple format -- nested files, negation, `**`, directory
+# vs file semantics, .git/info/exclude, the global core.excludesFile -- and a
+# partial reimplementation would silently disagree with git on exactly the
+# edge cases that put a file back in scope.
+# Its default `require_git(true)` is what gives the no-repo edge for free: with
+# no repository there are no ignore rules, so the corpus degrades to
+# everything-in-scope rather than to nothing.
+ignore = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+schemars = "1"
+# Ingest validation against the generated JSON Schema face -- ONE validation
+# authority, so a hand-written check can never drift from the committed schema
+# (design.md D05). `default-features = false` is load-bearing, not tidiness:
+# the defaults pull reqwest + TLS and an HTTP $ref resolver, and a validator
+# that can reach the network to resolve a schema is a validator whose verdict
+# depends on the network. In-doc resolution only, per the stack shortlist.
+jsonschema = { version = "0.49", default-features = false }
+# The GraphQL SDL face (AC-02.2). The SDL is EXPORTED from the model types the
+# same way the JSON Schema face is -- one authored master, three generated
+# faces -- so async-graphql sits with the model in intentsvcs. The server that
+# serves this schema is intentd's (D06); only the export lives here.
+async-graphql = "7"
+# The Highlander dependency: rusqlite is consumed by intentsvcs and NOWHERE
+# else (design.md D06). dep_graph_guard.rs asserts this; adding it to another
+# crate is a build-time architecture violation, not a style nit.
+rusqlite = { version = "0.32", features = ["bundled"] }
+ulid = "1"
+time = { version = "0.3", features = ["formatting", "macros"] }
+# Content hashing for the sync engine's file index. AC-03.3 requires detecting
+# a same-size same-mtime rewrite, which stat cannot see by construction, so the
+# hash is computed on EVERY scan and stat is reporting metadata only.
+sha2 = "0.10"
+thiserror = "2"
+proptest = "1"
+tempfile = "3"

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = The intentd daemon binary (cargo build -p intentd)
+#
+# intent build daemon [cargo opts] -- build the ST0056 machine-level daemon.
+#
+# Same shape as `build cli`: release profile by default because the reason to
+# build it is to run or ship it, `--debug` for a debug build, extra arguments
+# ride through to cargo untouched.
+#
+# The crate exists and is a workspace member from WP-02; WP-08 is what fills
+# it in. Building a stub is not a waste -- it is what keeps the workspace
+# honest, since a member that never compiles is a member nobody notices has
+# rotted.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+
+profile=--release
+args=()
+for a in "$@"; do
+  case "$a" in
+    --debug) profile="" ;;
+    *) args+=("$a") ;;
+  esac
+done
+
+cd "$PROJECT_ROOT/native/rust" || die "no Rust workspace at native/rust"
+# shellcheck disable=SC2086  # $profile is one optional flag or empty, by design
+exec cargo build -p intentd $profile "${args[@]}"

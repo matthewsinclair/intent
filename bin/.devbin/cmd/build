@@ -2,15 +2,21 @@
 #
 # devbin: summary = Build this project's artefacts, and cut its releases
 #
-# intent build <cli|release> ...
+# intent build <cli|daemon|all|release> ...
 #
 #   cli      [cargo opts]   the Rust CLI binary        -> cmd/build.d/cli
+#   daemon   [cargo opts]   the intentd daemon binary  -> cmd/build.d/daemon
+#   all      [cargo opts]   every binary (cli+daemon)  -> cmd/build.d/all
 #   release  <bump|vX.Y.Z>  cut, tag and publish       -> cmd/build.d/release
 #
-# Both subs are routed straight to their handler by the descent; what arrives
-# here is bare, -h, and mistakes. There is deliberately no `all`: one arm
-# compiles a binary and the other publishes a release, and no one wants those
-# in a single pass.
+# Every sub is routed straight to its handler by the descent; what arrives here
+# is bare, -h, and mistakes.
+#
+# `all` means all BINARIES and pointedly not `release`. This block used to read
+# "there is deliberately no `all`: one arm compiles a binary and the other
+# publishes a release, and no one wants those in a single pass" -- that
+# reasoning is right and is preserved by keeping release outside `all`, not by
+# refusing to have an `all` at all.
 #
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
@@ -18,10 +24,10 @@ set -euo pipefail
 
 case "${1:-}" in
   ""|-h|--help)
-    sed -n '5,14p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
+    sed -n '5,20p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
     exit 0
     ;;
   *)
-    die "unknown build target: $1 (try: cli, release)"
+    die "unknown build target: $1 (try: cli, daemon, all, release)"
     ;;
 esac

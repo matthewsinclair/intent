@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Every native binary in the workspace (cli + daemon)
+#
+# intent build all [cargo opts] -- build every binary the workspace produces.
+#
+# ALL MEANS ALL BINARIES, AND DELIBERATELY NOT `release`. This file's parent
+# used to say "there is deliberately no `all`: one arm compiles a binary and
+# the other publishes a release, and no one wants those in a single pass" --
+# and that reasoning is correct and preserved. `all` builds; `release`
+# publishes; a target that did both would be the thing that comment refused.
+#
+# One `cargo build` over the workspace rather than a loop over the other
+# handlers: cargo already builds members in parallel and shares the dependency
+# graph, so looping would serialise work cargo does better and would compile
+# the shared intentsvcs twice over.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+
+profile=--release
+args=()
+for a in "$@"; do
+  case "$a" in
+    --debug) profile="" ;;
+    *) args+=("$a") ;;
+  esac
+done
+
+cd "$PROJECT_ROOT/native/rust" || die "no Rust workspace at native/rust"
+# shellcheck disable=SC2086  # $profile is one optional flag or empty, by design
+exec cargo build --workspace --bins $profile "${args[@]}"

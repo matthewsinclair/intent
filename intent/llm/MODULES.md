@@ -271,12 +271,12 @@ Maintainer tooling for cutting Intent releases. Not part of the user-facing CLI 
 
 The Intent v3.0.0 Rust workspace. `intentsvcs` is the Highlander layer: sole owner of the DB and the file canon; the CLI and daemon are thin skins over its facade. `rusqlite` may appear in exactly ONE Cargo.toml (intentsvcs) -- the dependency graph is the enforcement, asserted by `dep_graph_guard.rs`.
 
-| Concern                  | THE Module          | Notes                                                                                                |
-| ------------------------ | ------------------- | ---------------------------------------------------------------------------------------------------- |
-| v3 model + store + faces | `crates/intentsvcs` | Entity types (the single authored master), schema faces, SQLite store, sync, facade, doctor (ST0056) |
-| v3 CLI binary            | `crates/intent-cli` | The `intent` binary: parse -> facade -> render, in-process or GraphQL to intentd (D06, D18)          |
-| v3 daemon binary         | `crates/intentd`    | One per machine, N projects; socket GraphQL + mgmt plane + watch (D07, D18)                          |
-| Generated schema faces   | `schema/`           | GENERATED from intentsvcs types (JSON Schema, DDL, SDL) -- never hand-edited; drift-checked          |
+| Concern                  | THE Module                      | Notes                                                                                                |
+| ------------------------ | ------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| v3 model + store + faces | `native/rust/crates/intentsvcs` | Entity types (the single authored master), schema faces, SQLite store, sync, facade, doctor (ST0056) |
+| v3 CLI binary            | `native/rust/crates/intent-cli` | The `intent` binary: parse -> facade -> render, in-process or GraphQL to intentd (D06, D18)          |
+| v3 daemon binary         | `native/rust/crates/intentd`    | One per machine, N projects; socket GraphQL + mgmt plane + watch (D07, D18)                          |
+| Generated schema faces   | `schema/`                       | GENERATED from intentsvcs types (JSON Schema, DDL, SDL) -- never hand-edited; drift-checked          |
 
 ### Parity and interface toolchain (ST0056, ic)
 
