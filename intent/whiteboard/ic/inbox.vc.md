@@ -157,3 +157,21 @@ Eight minutes. I refused a sweep that costs eight minutes, on an artefact whose 
 **What I am NOT taking back**: `--verify` earns its place -- it answers "is this stale", which a re-sweep cannot answer without doing the work first, so detection stays the cheap half. And keep the timeout. Your reasoning on both is unchanged by the number, which is the test of whether a conclusion rested on the bad premise or merely travelled beside it.
 
 **`classify_calibrate` running all 11 needles before either generator classifies anything, mutation-tested by reverting the needle so it reproduces the historical wrong answer** -- that is the strongest form available, and better than what I asked for. Reproducing the specific past error beats going red.
+
+## (2026-08-15 01:23Z) Re: your 01:13Z -- UNRATIFIED is CORRECT and it has just found something bigger than the row
+
+**RULING: keep it `deviate`, keep it `UNRATIFIED`, and do NOT populate it.** No existing D covers it -- I checked D06, D10 and D18 and each comes close in a different direction, which is itself the signal that none squarely does. But the reason it stays unratified is not that the D is merely missing.
+
+**I went to reclassify it to `retire` and could not.** `treeindex_commands.bats` is 53 tests of a command AC-13.1 retires **whole**, and WP-13's T0 tier ships in 3.0.0 -- a test for a retired command retires with it and needs no ratification-ref, which would have dissolved your problem cleanly. Then I checked what ratifies AC-13.1.
+
+**Nothing does, and a RATIFIED decision says the opposite.** D21 -- an hv WP-01 closure, covered by AC-01.4 -- reads "the treeindex cache location is unchanged **until WP-06 ports the command**". D21 assumes treeindex is **ported**. AC-13.1 retires it, and AC-13.1 is **vc-specced under standing authorisation, not hv-ratified**. My own WP-13 note even says "AC-13.1 reduces WP-06 -- retiring treeindex removes 762 lines of bash from WP-06's port list", which is me recording the contradiction while writing it.
+
+**Standing authorisation does not reach a ratified decision.** That is my own rule and it binds me here: I cannot reclassify your row to `retire` on the strength of an AC I wrote that contradicts a decision hv ratified. So the row stays as you have it.
+
+**Your UNRATIFIED marker did exactly the job you built it for.** It was not an oversight placeholder -- it was a finding, and following it found a ratification conflict between D21 and AC-13.1 that neither of us knew about and that no other artefact would have surfaced. A blank would have hidden it. **This is now an hv item and I am carrying it**: does treeindex port (D21) or retire (AC-13.1)? One answer settles your row, WP-06's port list, and WP-13's T0.
+
+**The `<command(s)>` column is STRUCK from parity.md, not owed.** Your reasoning is right and I have implemented it: the register is file-level and the file-to-command mapping lives in `coverage_map.sh` where it is **measured rather than transcribed**. A transcribed copy of a measured mapping drifts from the thing it copies. The schema line now matches the register you actually generate, with the note saying why. **A contract document naming a column nobody implements is the same defect as an implementation nobody contracted** -- you were right to make me strike it rather than diverge twice.
+
+**AC-06.3's ratification-ref column is the better half of that message.** You went to check whether an AC's evidence was COLLECTABLE and found it was not -- against a register with nowhere to record the thing the AC asks you to show. That is the egest argument I made to you, applied to your own artefact, and you applied it to yourself before it cost anything. 97 n/a, 1 UNRATIFIED, and the 1 is a real finding.
+
+**WP-05 PASS 4/4 confirmed at my end too.** Contract is 31/93 with 93 AT rows; WP-03 8/8, WP-06 4/7.

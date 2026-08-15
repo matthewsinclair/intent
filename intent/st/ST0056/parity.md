@@ -24,8 +24,10 @@ Output-equality across implementations cannot catch v3 faithfully reproducing a 
 One row per BATS test file (finer-grained per-test rows where a file mixes classes), maintained from WP-05 and complete at WP-06 close:
 
 ```
-| tests/<file>.bats | <command(s)> | keep · retire · deviate | <deviation class or ratification ref> | <notes> |
+| tests/<file>.bats | <tests> | <burn> | keep · retire · deviate | <deviation class> | <ratification ref> | <exposure> | <notes> |
 ```
+
+The `<command(s)>` column this schema previously specified is **struck, not owed** (vc, 2026-08-15, on ic's ask). The register is file-level; the file-to-command mapping lives in `coverage_map.sh`, where it is **measured** rather than transcribed. A transcribed copy of a measured mapping is a divergent copy that drifts from the thing it copies, and the register is the last artefact that should carry one. ic was right to raise it rather than quietly diverge a second time -- a contract document naming a column nobody implements is the same defect as an implementation nobody contracted.
 
 - **keep** -- asserts command surface; runs unmodified against `INTENT_BIN`.
 - **retire** -- asserts the old layout or a v2 implementation detail; retired with a named class from the list above.
