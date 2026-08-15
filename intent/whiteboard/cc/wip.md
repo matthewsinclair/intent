@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 19:44Z
+heartbeat_at: 2026-08-15 20:57Z
 status: active
-focus: "AT-00.8, AC-06.8/EXP-05, AC-06.10(b) and ic's leaf-remedy finding ALL LANDED. ic's parity check is at ZERO findings, from 21 this morning; nothing is owed to any peer. 344 tests, clippy and fmt clean, both remotes at d49cd454. NEXT: AC-06.6 export, then AC-06.1 surface tail and AC-04.1's TornRollback arm."
+focus: "LOCALFOLD at 20:57Z, board archived to .history/20260815/. Evening landed AT-00.8 + AC-06.8 + AC-06.10(b) + the leaf remedy; 344 tests, both remotes. NEXT AND FIRST: ic's `ac satisfy` defect -- an AC records Satisfied with EMPTY evidence, prints ok:, and counts toward the gate."
 claims: []
 ---
 
@@ -29,51 +29,21 @@ claims: []
 
 **Why load-bearing**: under D34 two machines MERGE event logs. A merge needs a time nobody could have typed.
 
-## DONE TODAY -- AC-02.8 whole, three commits, with vc
-
-`04c6813a` schema, `075ebb13` the clock, `c2ba44fd` the signature guard. 314 tests, clippy `-D warnings` and fmt clean, both remotes. **Q1 and Q2 both ruled my way by vc and built as ruled.**
-
-- **Record timestamps on every table**, DB-written via DEFAULT. `created_at`/`updated_at` + upsert on `threads`/`issues`/`file_index`; **`written_at`** on `related`/`wps`/`criteria`/`tests`, because a row deleted and re-inserted with its parent can only honestly record when THIS VERSION was written. `event_log.ts` IS its record timestamp and the DDL says so. `SCHEMA_VERSION` 3, rung 2->3 rebuilding eight tables, FKs off per SQLite's recipe and re-checked inside each rung's transaction.
-- **`Store::now`/`today` DELETED.** `st_new` hands in an empty `created`; the store fills it inside the INSERT and RETURNS it. `write_thread` gained the same two doors `write_event` has. **`apply()` now writes the DB first and renders files from what landed** -- the projection used to be computed before the write, which was harmless only while the application knew the dates.
-- **hv's signature form enforced**: no shipped function TAKES a time. Name AND type, so `stamp: Stamp` (which door) survives while `today: String` does not.
-
-## DONE TODAY -- second half
-
-`28fd5721` **AC-06.10 (a)+(c)** -- `INTENT_VER` + a per-type `SCHEMA_<TYPE>_VER` in all five faces, each in its own idiom, constants injected by the generator. AT reads the PUBLISHED files; mutation-tested by dropping the SDL injection and re-blessing, which `schema_faces_drift` PASSED -- only a test that opens the artefact sees a generator that stopped injecting. A pinned per-type contract hash stops a version sitting at 1 forever. **(b) needs one flag row on `schema` and is with ic; the reader lands with the row, never before it.**
-
-`9122f4e5` **three of ic's four spine parity breaks**, all measured by their `surface_check.sh` and none findable by reading. **ARITY 8 of 8** -- `subcommand_required` hardcoded `true` against the declared slot arity; v2 exits 0 on `intent todo`, v3 exited 1. **FAMILY FLAGS** -- `with_args` ran only on the verbless branch, so `todo`'s own `--json` reached every leaf and never `todo`. **SHORT-ONLY FLAGS** -- a bare `continue` dropped three declared `keep` flags with no diagnostic. **Their check goes 21 findings -> 7.**
-
-`cff33c77` **`event_log.ts`'s shape is PUBLISHED** -- format + pattern, so the millisecond move is visible in the contract. The version guard then fired unprompted and only on the JSON contract: `SCHEMA_JSON_VER` -> 2.
-
-`70f1fc52` **AC-03.10(d), first half** -- the backup log is a TABLE recording ATTEMPTS, not a directory listing, so a schedule that never ran is distinguishable from one that fails. Row written before the copy; the snapshot filename comes from the stamp the INSERT returns; staleness is `julianday('now')` inside SQLite returning an INTERVAL, so **no clock is needed and none was added**. `SCHEMA_VERSION` 4, `SCHEMA_DDL_VER` 2.
-
-## DONE -- the evening, and both gates closed by vc
-
-**AT-00.8 / AC-00.9** (`26dacf1f`) -- the D37 guard, FOUR surfaces. **The faces are the biggest carrier and were in nobody's method**: `intent schema <face>` prints a face verbatim, so a `///` on a modelled type is emitted output. 37 identifiers across four faces -> 0; reasoning moved to `//`, nothing deleted. `owed_by` REMOVED from the model (a library another project links had no business naming our WPs); `owner_wp` guarded for a READER instead of for content. Four mutations, each dying at exactly one test.
-
-**Contract-hash fix** (`c001b639`) -- documentation is not contract. My doc edits moved all three face-version hashes and demanded three bumps. Re-pin measured, not taken: zero contract lines changed across all five faces, verified in a sacrificial worktree.
-
-**AC-06.8 / EXP-05** (`b8491e56`) -- `Flag.disposition` + `ships()`, honoured in the spine. **ic's `surface_check.sh` is at ZERO findings** (21 this morning, 6 at 19:05Z). `pending` sits with `retire`: an undecided flag that ships commits the surface by fait accompli.
-
-**AC-06.10(b)** (`3b17527c`) -- `intent schema --versions`, parsing the markers back out of the generated artefact so the command is a second witness to the injection. **The first test does not prove that and says so**; the binary is checked against ITSELF in a second test, because the two mutations that matter travel together.
-
-**The leaf remedy** (`d49cd454`) -- nine verbless leaves stopped sending readers to an empty help block. Family-or-leaf is asked of the TABLE, so it is not a roster to maintain.
-
-**vc closed WP-02 at 8/8 and gate 03 at 10/10**, by running the evidence rather than reading my claim.
-
 ## DOING -- nothing; picking up next from TODO
 
-## TODO
+## TODO -- in order; 1 is a live defect in my lane
 
-1. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
-2. **`intent ingest` has no source argument** (ic, measured). I ruled the shape: `path` at arity `0..1`, recovery DEFAULTS to this project's tree. ic writes the row, I wire it.
-3. **D-numbers in prose are not machine-enforceable** -- the faces are swept and guarded; help text and remedies are review-only. With vc; the alternative is a hand-kept roster inside the guard, which is the defect the guard class exists to find.
+1. **`ac satisfy` STORES AN EMPTY `evidence` AND THE GATE COUNTS IT** (ic, 19:26Z, chased end to end). `render.rs` uses `arg(a, "evidence").unwrap_or_default()` where its two siblings `ac withdraw`/`ac descope` use `arg(a, ..)?`. **One rule, three hand-written implementations, one wrong** -- the table declares `--evidence` `required: true` and `required` never reaches clap (EXP-07 / issue 0035). **Why it is worse than ordinary missing validation, in `contract.rs`'s own words: _"evidence is a human judgement with no green to read"_** -- evidence is the entire substitute for a test on a non-test AC, so empty-evidence `Satisfied` is the one state the design exists to make impossible. **ic could NOT execute links 5-6** (`facade.rs:1137` stores it unchecked; `contract.rs:106` destructures PAST evidence and `:289` counts it) because `intent init` is unimplemented and they would not run it against the live store. **I have facade fixtures that build a project -- confirm end to end FIRST, then fix.**
+2. **EXP-07 / issue 0035 -- `Flag` drops four declared fields.** `required` (3 rows), `value` (35), `default` (6), `accepts` (4) never deserialize. **`value` at 35 is the one to look at after `required`**: it renders the `<fmt>` placeholder in a usage line, so every value-taking flag may be showing clap's fallback instead of the authored one. The structural fix makes the hand-written `?` belt-and-braces instead of the only thing standing there.
+3. **Wire `intent ingest [PATH]`** -- ic landed the row at `3280b43d` on my ruling (`0..1`; recovery defaults to this project's tree, a migrator names another).
+4. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
+5. **D-numbers: vc RULED THEM IN (38, sweep all) on D37's contracted text, which says "decision number" explicitly.** The faces are swept and guarded. **My measured counter-example post-dates their ruling and is with them**: `D2-D11` in shipped help text is the READER's STZero deliverables, identical in shape to our `D15`, with no blessable value -- so the class is not machine-decidable in prose. Enforced in the faces, review-only elsewhere.
 
 ## Waiting
 
-- **vc**: the D-number exception (measured counter-example in shipped help text). Nothing blocking.
-- **ic**: the `ingest` path row when they want it. Boundary ruled AGAINST my recommendation on five measured axes -- `ingest` takes foreign md with a per-file error contract, `sync` moves our own extract with a round-trip guarantee. My argument read the shared gate as the identity; `st new` uses that gate too.
-- **dc**: `int prepush` reported "no native/ change" on a push carrying 900 lines of it. FYI, their call.
+- **vc**: nothing owed either way -- they closed WP-02 8/8 and WP-03 10/10 by running the evidence. Open with them: the D-number prose exception above, and they qualified D37 for the `///`-is-a-publication-channel hole.
+- **ic**: nothing blocking. Their `[PATH]` row is in and waiting on my wiring; `ac satisfy` is mine to confirm and fix.
+- **dc**: blocked on hv for the tap, offering capacity. Offers 1 and 3 are already done (AC-02.8 landed; `no_function_takes_a_time.rs` covers time-typed parameters). Taken instead: the `repo_root()` triplication needs a dev-dependency crate, which is a workspace change and theirs.
 
 ## Lane boundary
 

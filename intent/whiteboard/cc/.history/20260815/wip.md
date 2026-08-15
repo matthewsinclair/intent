@@ -58,3 +58,35 @@ hv brought `dc` online for dev-x / build / git, which leaves cc on services and 
 1. **The marked-legacy `scope` field.** Shape DECIDED, so this is a build: keep `scope` a **unit-only, non-optional** enum, carry the out-of-enum spelling in a **sibling optional field**. Unit-only because `TShirt` derives async-graphql's `Enum`; non-optional because `Option<TShirt>` would make it nullable for all 129 well-formed work packages and admit an invalid both-none state. Requirement: **the value is neither guessed nor dropped**. Driven by `Medium-Large` (1 of 129, `intent/st/COMPLETED/ST0020/WP/09/info.md`). Ruling: `data-model.md:83-89`.
 2. **AC-06.6 -- `intent export --format <fmt>`.** Round-trip to byte-identical canon, OR refuse the format BY NAME rather than emit lossily. Settle first: whether `md` can round-trip at all, or must be refused despite D03 naming it.
 3. **AC-06.1 -- the surface tail.** `st edit`, `st repair`, **`st bootstrap`** (hv RULED the verb at `c1cca8c` -- not `initzero`, not the incumbent `st zero`; `zero` was never a verb, it is the NAME of the thing, so the real verb was `install` hiding a level down. `install` is COLLAPSED into the bare form, flags `--audit-only`/`--dry-run`/`--deliverable`, root face DELETED. **Watch when wiring**: `st_zero`'s row is `corrected`, so `is_shipped()` is true for a deliberately deleted face and it is today indistinguishable from a merely-unbuilt one); `issues`, `todo`; `info`, `version`, `config`, `init`, `bootstrap`; then `claude`, `agents`, `lang`, `ext`, `plugin`, `modules`, `llm`, `learn`, `critic`, `fileindex`. **`intent config` lands a conformance test BEFORE its behaviour is designed**, or the `undefined` ruling on it is unverifiable. And `bin/intent_st:1231` is `[0-9]+)` -- `+` is literal in a `case` glob, so only the 4-digit form of `st repair` has ever worked.
+
+## DONE TODAY -- AC-02.8 whole, three commits, with vc
+
+`04c6813a` schema, `075ebb13` the clock, `c2ba44fd` the signature guard. 314 tests, clippy `-D warnings` and fmt clean, both remotes. **Q1 and Q2 both ruled my way by vc and built as ruled.**
+
+- **Record timestamps on every table**, DB-written via DEFAULT. `created_at`/`updated_at` + upsert on `threads`/`issues`/`file_index`; **`written_at`** on `related`/`wps`/`criteria`/`tests`, because a row deleted and re-inserted with its parent can only honestly record when THIS VERSION was written. `event_log.ts` IS its record timestamp and the DDL says so. `SCHEMA_VERSION` 3, rung 2->3 rebuilding eight tables, FKs off per SQLite's recipe and re-checked inside each rung's transaction.
+- **`Store::now`/`today` DELETED.** `st_new` hands in an empty `created`; the store fills it inside the INSERT and RETURNS it. `write_thread` gained the same two doors `write_event` has. **`apply()` now writes the DB first and renders files from what landed** -- the projection used to be computed before the write, which was harmless only while the application knew the dates.
+- **hv's signature form enforced**: no shipped function TAKES a time. Name AND type, so `stamp: Stamp` (which door) survives while `today: String` does not.
+
+## DONE TODAY -- second half
+
+`28fd5721` **AC-06.10 (a)+(c)** -- `INTENT_VER` + a per-type `SCHEMA_<TYPE>_VER` in all five faces, each in its own idiom, constants injected by the generator. AT reads the PUBLISHED files; mutation-tested by dropping the SDL injection and re-blessing, which `schema_faces_drift` PASSED -- only a test that opens the artefact sees a generator that stopped injecting. A pinned per-type contract hash stops a version sitting at 1 forever. **(b) needs one flag row on `schema` and is with ic; the reader lands with the row, never before it.**
+
+`9122f4e5` **three of ic's four spine parity breaks**, all measured by their `surface_check.sh` and none findable by reading. **ARITY 8 of 8** -- `subcommand_required` hardcoded `true` against the declared slot arity; v2 exits 0 on `intent todo`, v3 exited 1. **FAMILY FLAGS** -- `with_args` ran only on the verbless branch, so `todo`'s own `--json` reached every leaf and never `todo`. **SHORT-ONLY FLAGS** -- a bare `continue` dropped three declared `keep` flags with no diagnostic. **Their check goes 21 findings -> 7.**
+
+`cff33c77` **`event_log.ts`'s shape is PUBLISHED** -- format + pattern, so the millisecond move is visible in the contract. The version guard then fired unprompted and only on the JSON contract: `SCHEMA_JSON_VER` -> 2.
+
+`70f1fc52` **AC-03.10(d), first half** -- the backup log is a TABLE recording ATTEMPTS, not a directory listing, so a schedule that never ran is distinguishable from one that fails. Row written before the copy; the snapshot filename comes from the stamp the INSERT returns; staleness is `julianday('now')` inside SQLite returning an INTERVAL, so **no clock is needed and none was added**. `SCHEMA_VERSION` 4, `SCHEMA_DDL_VER` 2.
+
+## DONE -- the evening, and both gates closed by vc
+
+**AT-00.8 / AC-00.9** (`26dacf1f`) -- the D37 guard, FOUR surfaces. **The faces are the biggest carrier and were in nobody's method**: `intent schema <face>` prints a face verbatim, so a `///` on a modelled type is emitted output. 37 identifiers across four faces -> 0; reasoning moved to `//`, nothing deleted. `owed_by` REMOVED from the model (a library another project links had no business naming our WPs); `owner_wp` guarded for a READER instead of for content. Four mutations, each dying at exactly one test.
+
+**Contract-hash fix** (`c001b639`) -- documentation is not contract. My doc edits moved all three face-version hashes and demanded three bumps. Re-pin measured, not taken: zero contract lines changed across all five faces, verified in a sacrificial worktree.
+
+**AC-06.8 / EXP-05** (`b8491e56`) -- `Flag.disposition` + `ships()`, honoured in the spine. **ic's `surface_check.sh` is at ZERO findings** (21 this morning, 6 at 19:05Z). `pending` sits with `retire`: an undecided flag that ships commits the surface by fait accompli.
+
+**AC-06.10(b)** (`3b17527c`) -- `intent schema --versions`, parsing the markers back out of the generated artefact so the command is a second witness to the injection. **The first test does not prove that and says so**; the binary is checked against ITSELF in a second test, because the two mutations that matter travel together.
+
+**The leaf remedy** (`d49cd454`) -- nine verbless leaves stopped sending readers to an empty help block. Family-or-leaf is asked of the TABLE, so it is not a roster to maintain.
+
+**vc closed WP-02 at 8/8 and gate 03 at 10/10**, by running the evidence rather than reading my claim.
