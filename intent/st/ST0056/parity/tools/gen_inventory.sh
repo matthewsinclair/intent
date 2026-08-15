@@ -30,20 +30,25 @@ OUTDIR="${OUTDIR:?set OUTDIR}"
 # true statement about a set that was actually consistent. Pinned to 7 so the
 # stamp is a property of the commit and not of when it was rendered.
 REV="$(cd "$WT" && git rev-parse --short=7 HEAD)"
-# NO CLOCK READ. D42 (hv, 2026-08-15): DB records have a timestamp field, that is
-# the source of truth for time, nothing else, ever. The generalisation vc drew
-# from it is the one that bites here -- you never need the time, so never write
-# one down, because the record already knows.
+# NO CLOCK READ, AND THE REASON IS IDEMPOTENCE -- NOT D42. This header used to
+# carry `date -u`. A date in the output makes these views NON-IDEMPOTENT ACROSS
+# DAYS: re-run tomorrow against the same committed TSV at the same revision and
+# all 27 files change, one line each, for no reason -- which destroys the
+# byte-identity that is the only content check these artefacts have. Measured in
+# the small on 2026-08-15: rendering `cmd-version.md` from probe data captured on
+# 08-14 made it assert a measurement that never happened on the day it named. The
+# date is also redundant twice over -- git records when the generated file
+# landed, and `REV` already identifies the state that was measured.
 #
-# This header used to carry `date -u`, and the date was redundant twice over:
-# git records when the generated file landed, and `REV` already identifies the
-# state that was measured. It was also actively harmful. A date in the output
-# makes these views NON-IDEMPOTENT ACROSS DAYS: re-run tomorrow against the same
-# committed TSV at the same revision and all 27 files change, one line each, for
-# no reason -- which destroys the byte-identity that is the only content check
-# these artefacts have. Measured earlier the same day, in the small: rendering
-# `cmd-version.md` on 08-15 from probe data captured on 08-14 made it assert a
-# measurement that never happened on the day it named.
+# The removal is right; the reason first written here was not. It cited D42 as
+# "you never need the time, so never write one down", and hv has since narrowed
+# that twice: RETURNING a time is fine, and reading a clock to make a decision or
+# to stamp WHEN A COMMAND RAN into a GENERATED artefact is fine too -- what D42
+# forbids is confecting a time into a source document. Stamping a generator's own
+# run time into its own output is the permitted case, so D42 never prohibited
+# this line and citing it made a good deletion look like compliance. THE ARGUMENT
+# THAT ACTUALLY HOLDS IS THE ONE ABOVE, and it is a stronger one: idempotence is a
+# property this file can check, whereas a rule cited from memory drifts under it.
 TSV="$SP/probes/toplevel.tsv"
 
 die() { echo "error: $1" >&2; exit 2; }

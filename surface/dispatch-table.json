@@ -144,7 +144,11 @@
           ],
           "flags": [
             {
-              "spellings": ["help", "--help", "-h"],
+              "spellings": [
+                "help",
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "note": "`help` is a bare word arm, not a flag; grouped here because the three spellings share one arm (bin/intent_st:1614)"
@@ -200,7 +204,10 @@
           ],
           "flags": [
             {
-              "spellings": ["-s", "--start"],
+              "spellings": [
+                "-s",
+                "--start"
+              ],
               "type": "bool",
               "help": "Mark the new thread in progress immediately"
             }
@@ -343,7 +350,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being cancelled -- required by the machine's guard"
@@ -408,7 +417,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being held -- required by the machine's guard"
@@ -457,7 +468,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being reopened -- required by the machine's guard"
@@ -485,7 +498,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being reinstated -- required by the machine's guard"
@@ -507,20 +522,26 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--status"],
+              "spellings": [
+                "--status"
+              ],
               "type": "string",
               "value": "<status>",
               "help": "`all`, or a comma-separated list rendered in the order given",
               "accepts": "wip|in progress -> WIP; tbc|not started -> TBC; completed|done -> COMPLETED; cancelled|canceled -> CANCELLED; hold|on hold -> HOLD (case-insensitive, normalised to caps)"
             },
             {
-              "spellings": ["--width"],
+              "spellings": [
+                "--width"
+              ],
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width; 0 or absent means terminal width"
             },
             {
-              "spellings": ["--markdown"],
+              "spellings": [
+                "--markdown"
+              ],
               "type": "bool",
               "help": "Emit canonical GFM instead of terminal rendering",
               "note": "UNDOCUMENTED in v2's usage() block; consumed by `st sync --write`. Real surface, so it is in the table."
@@ -579,7 +600,14 @@
               "type": "enum",
               "arity": "0..1",
               "default": "info",
-              "values": ["info", "design", "impl", "tasks", "acceptance", "all"]
+              "values": [
+                "info",
+                "design",
+                "impl",
+                "tasks",
+                "acceptance",
+                "all"
+              ]
             }
           ],
           "flags": [],
@@ -631,7 +659,13 @@
               "type": "enum",
               "arity": "0..1",
               "default": "info",
-              "values": ["info", "design", "impl", "tasks", "acceptance"],
+              "values": [
+                "info",
+                "design",
+                "impl",
+                "tasks",
+                "acceptance"
+              ],
               "note": "NO `all` -- unlike `show`. Asymmetry is deliberate and correct: there is no single path for `all`."
             }
           ],
@@ -670,12 +704,16 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--write"],
+              "spellings": [
+                "--write"
+              ],
               "type": "bool",
               "help": "Write the index; without it the command is a dry run"
             },
             {
-              "spellings": ["--width"],
+              "spellings": [
+                "--width"
+              ],
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width"
@@ -718,7 +756,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--write"],
+              "spellings": [
+                "--write"
+              ],
               "type": "bool",
               "help": "Apply the repairs; without it the command is a dry run"
             }
@@ -756,18 +796,24 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "Bulk metadata rewrite across threads. Leaning closed because the blast radius is every thread at once and a wrong repair is not obvious in the output."
           }
         },
         {
           "path": "st organize",
           "help": "Organize ST files in directories by status",
-          "aliases": ["st organise"],
+          "aliases": [
+            "st organise"
+          ],
           "args": [],
           "flags": [
             {
-              "spellings": ["--write"],
+              "spellings": [
+                "--write"
+              ],
               "type": "bool",
               "help": "Move the files; without it the command is a dry run"
             }
@@ -803,17 +849,23 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--audit-only"],
+              "spellings": [
+                "--audit-only"
+              ],
               "type": "bool",
               "help": "Show gap analysis only, no changes"
             },
             {
-              "spellings": ["--dry-run"],
+              "spellings": [
+                "--dry-run"
+              ],
               "type": "bool",
               "help": "Show what would change, no writes"
             },
             {
-              "spellings": ["--deliverable"],
+              "spellings": [
+                "--deliverable"
+              ],
               "type": "string",
               "help": "Target a single deliverable (D2-D11)",
               "value": "<id>"
@@ -854,7 +906,9 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "One-time project scaffolding. An agent that runs it in an already-bootstrapped project is doing something nobody asked for."
           }
         }
@@ -889,7 +943,11 @@
           ],
           "flags": [
             {
-              "spellings": ["help", "--help", "-h"],
+              "spellings": [
+                "help",
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block",
               "note": "bare-word arm plus the two flag spellings"
@@ -1095,7 +1153,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "value": "<text>",
               "help": "Why it is being reopened -- required by the machine's guard"
@@ -1403,7 +1463,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--evidence"],
+              "spellings": [
+                "--evidence"
+              ],
               "type": "string",
               "help": "The named evidence reference",
               "value": "<ref>",
@@ -1536,20 +1598,26 @@
           ],
           "flags": [
             {
-              "spellings": ["--to"],
+              "spellings": [
+                "--to"
+              ],
               "type": "string",
               "help": "The thread the requirement moved to",
               "value": "<stid>",
               "required": true
             },
             {
-              "spellings": ["--by"],
+              "spellings": [
+                "--by"
+              ],
               "type": "string",
               "help": "Who decided",
               "value": "<who>"
             },
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "help": "Why",
               "value": "<text>"
@@ -1652,14 +1720,18 @@
           ],
           "flags": [
             {
-              "spellings": ["--reason"],
+              "spellings": [
+                "--reason"
+              ],
               "type": "string",
               "help": "Why it was dropped -- REQUIRED",
               "value": "<text>",
               "required": true
             },
             {
-              "spellings": ["--by"],
+              "spellings": [
+                "--by"
+              ],
               "type": "string",
               "help": "Who decided",
               "value": "<who>"
@@ -1875,7 +1947,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--fix"],
+              "spellings": [
+                "--fix"
+              ],
               "type": "bool",
               "help": "Migrate the mechanical part of a legacy row -- and REFUSE what cannot migrate without loss"
             }
@@ -1960,7 +2034,9 @@
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
             }
           },
-          "aliases": ["at done"],
+          "aliases": [
+            "at done"
+          ],
           "target": {
             "state": "corrected",
             "spelling": "intent at green",
@@ -2012,7 +2088,9 @@
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
             }
           },
-          "aliases": ["at notdone"],
+          "aliases": [
+            "at notdone"
+          ],
           "target": {
             "state": "as-observed"
           },
@@ -2139,7 +2217,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--kind"],
+              "spellings": [
+                "--kind"
+              ],
               "type": "enum",
               "help": "Which bucket to list",
               "value": "open|closed|all",
@@ -2188,7 +2268,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--severity"],
+              "spellings": [
+                "--severity"
+              ],
               "type": "enum",
               "help": "Severity",
               "value": "critical|high|medium|low",
@@ -2219,7 +2301,9 @@
               "why": "probe matrix at the stamped revision (bare / --help / unknown flag / outside a project), four invocations per command, single-argument probes only"
             }
           },
-          "aliases": ["issues new"],
+          "aliases": [
+            "issues new"
+          ],
           "target": {
             "state": "as-observed"
           },
@@ -2239,7 +2323,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--json"],
+              "spellings": [
+                "--json"
+              ],
               "type": "bool",
               "help": "Emit as JSON instead of prose"
             }
@@ -2347,7 +2433,9 @@
             ],
             "stdout": "confirmation",
             "stderr": "`error: ...` on stderr (INV-01)",
-            "side_effects": ["Moves the issue directory back"],
+            "side_effects": [
+              "Moves the issue directory back"
+            ],
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
@@ -2393,7 +2481,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--json"],
+              "spellings": [
+                "--json"
+              ],
               "type": "bool",
               "help": "Emit the DOING/TODO/DONE view as JSON on stdout"
             }
@@ -2449,7 +2539,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--json"],
+              "spellings": [
+                "--json"
+              ],
               "type": "bool",
               "help": "Emit the DOING/TODO/DONE view as JSON on stdout"
             }
@@ -2504,7 +2596,9 @@
             ],
             "stdout": "confirmation",
             "stderr": "`error: ...` on stderr (INV-01)",
-            "side_effects": ["Rewrites intent/todo.md"],
+            "side_effects": [
+              "Rewrites intent/todo.md"
+            ],
             "evidence_class": {
               "class": "read",
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
@@ -2531,12 +2625,16 @@
           ],
           "flags": [
             {
-              "spellings": ["--flush"],
+              "spellings": [
+                "--flush"
+              ],
               "type": "bool",
               "help": "Advance the DONE watermark to now, clearing the DONE view"
             },
             {
-              "spellings": ["--prune"],
+              "spellings": [
+                "--prune"
+              ],
               "type": "bool",
               "help": "Emit the DONE items for archiving, then flush"
             }
@@ -2571,7 +2669,7 @@
           },
           "target": {
             "state": "as-observed",
-            "d42_exposure": "D42 EXPOSURE (ic, audit 2026-08-15). `--flush` is described as advancing the DONE watermark TO NOW, and 'now' is a time the CLI would have to obtain. Under D42 there is no source to obtain it from: not the OS, not the filesystem, and not a read from the store either, because the read and the write are two acts with a gap in them. The v3 watermark must therefore be a REFERENCE TO A RECORD -- the newest done transition already carries the stamp the database wrote -- rather than a computed instant. Flagged, not redesigned: the fix names a record and that is WP-06's to choose."
+            "exposure": "EXPOSURE -- NOT a D42 one, and the first two versions of this note got that wrong (ic, audit 2026-08-15, corrected twice the same day). hv has narrowed D42 twice since I filed it: RETURNING a time is fine, and READING a clock to make a decision or to stamp when a command ran into a GENERATED artefact is fine too -- there is no need to be pathological about it. `--flush` is exactly that permitted case on both counts: v2 `flush_watermark` reads `date -u` and writes the instant into `todo.md`, which is a generated view, and the value is then used to decide DONE-bucket membership. So the clock read is legitimate and I withdraw the D42 complaint. WHAT SURVIVES IS A DIFFERENT AND BETTER DEFECT, found only by reading the v2 source to check the first claim: `generate()` reads the watermark BACK OUT of `todo.md` (`read_done_watermark`, bin/intent_todo:228), so the generated view is the watermark's ONLY store. Under the v3 truth model -- DB rebuildable, `rm` of a derived artefact always safe, md = generated views plus authored prose -- a watermark is neither, and deleting `todo.md` to regenerate it silently resets the flush to zero and resurrects every flushed item. The v3 watermark must live in the store. WP-03 owns the renderer and this is its constraint, not WP-06's."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -2815,7 +2913,11 @@
                   "key": "backup.schedule",
                   "type": "string",
                   "default": "daily",
-                  "values": ["hourly", "daily", "weekly"],
+                  "values": [
+                    "hourly",
+                    "daily",
+                    "weekly"
+                  ],
                   "meaning": "Base cadence. The daemon takes a snapshot when the newest one is older than this interval.",
                   "note": "ENUMERATED, NOT A CRON EXPRESSION, and that is a decision rather than a simplification. A cron string is a mini-language embedded in a hand-edited config file -- the shape behind the 0012 quoting scar -- and it is SILENTLY wrong when mistyped rather than refused. D35 fixes the retention tiers at day/week/month, so arbitrary cadences have nowhere to land anyway; a schedule coarser than a tier simply leaves that tier unfilled, which needs no special case."
                 },
@@ -2851,7 +2953,10 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp", "read_or_mutate"],
+            "uncertain": [
+              "exposed_on_mcp",
+              "read_or_mutate"
+            ],
             "why_uncertain": "The only row uncertain on BOTH fields, and the only row whose parity class is already `undefined`. `bin/intent_config` is dispatched to AND sourced as a library, and it carries a default-config writer (`mkdir -p` + `cat >` at :100-102) that I did not trace to the display path. Leaning mutate under the safe direction rather than guessing the call graph."
           }
         },
@@ -2907,7 +3012,9 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "Leaned OPEN against the standing lean, so it wants a look. hv ruled config is legitimate per-project surface; that ruling was about the keys existing, not about who may write them. An agent that can write config can turn `backup.enabled` off."
           }
         }
@@ -2942,19 +3049,26 @@
           ],
           "flags": [
             {
-              "spellings": ["--with-st0000"],
+              "spellings": [
+                "--with-st0000"
+              ],
               "type": "bool",
               "help": "Bootstrap all ST0000 deliverables after init"
             },
             {
-              "spellings": ["--lang"],
+              "spellings": [
+                "--lang"
+              ],
               "type": "string",
               "help": "Comma- or space-separated languages to install canon for",
               "value": "<list>",
               "accepts": "eg `--lang elixir` or `--lang elixir,rust,shell`"
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -3003,7 +3117,9 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "Creating a project is a human's decision about a directory, not a task step."
           }
         }
@@ -3032,17 +3148,26 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--force", "-f"],
+              "spellings": [
+                "--force",
+                "-f"
+              ],
               "type": "bool",
               "help": "Force recreation of config even if it exists"
             },
             {
-              "spellings": ["--quiet", "-q"],
+              "spellings": [
+                "--quiet",
+                "-q"
+              ],
               "type": "bool",
               "help": "Suppress informational output"
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -3113,22 +3238,34 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--fix", "-f"],
+              "spellings": [
+                "--fix",
+                "-f"
+              ],
               "type": "bool",
               "help": "Attempt to fix issues automatically"
             },
             {
-              "spellings": ["--verbose", "-v"],
+              "spellings": [
+                "--verbose",
+                "-v"
+              ],
               "type": "bool",
               "help": "Show detailed information"
             },
             {
-              "spellings": ["--quiet", "-q"],
+              "spellings": [
+                "--quiet",
+                "-q"
+              ],
               "type": "bool",
               "help": "Only show errors and warnings"
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -3173,8 +3310,7 @@
               "STATUS-VS-GATE DISAGREEMENT (hv, 2026-08-15, ratifying the state machines): `doctor` reports any unit whose status disagrees with its gate. Refusal on the way in is not enough on its own -- a status that was TRUE when it was set becomes a false green the moment its contract grows, which is how three of five WPs came to disagree with their own gates while every one of them had been closed legitimately.",
               "BACKUP STALENESS (vc, 2026-08-15, amending AC-03.10 after ic's `--list` question): `doctor` reports the newest snapshot's age against the configured `backup.schedule`. AC-03.10(d) had said only that a failed backup surfaces -- but A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could ship where nothing had ever run. Staleness is the two-sided test: it detects never-ran WITHOUT needing anything to have failed, the same construction as the clock guard's check C, which compares two stamps to each other and needs no clock at all."
             ],
-            "question_sharpened_by_them": "BOTH obligations above make the open exit-code question materially heavier, and this is new evidence for a decision hv has not yet made. When `doctor` only reported configuration tidiness, `reportable but not enforceable` was a mild gap. It now detects (a) tracking data that is actively lying about whether work is finished and (b) a backup of the DURABLE SSOT that may never have run. Those are not advisory findings. A check that cannot fail a CI job is one nobody is obliged to read -- which is the unwired-guard shape dc measured: VISIBLE IS NOT CLOSED.",
-            "d42_exposure": "D42 EXPOSURE (ic, audit 2026-08-15). The backup-staleness obligation above reads 'the newest snapshot AGE against the configured backup.schedule', and an age against NOW requires obtaining a now, which is the prohibited half of the rule. The obligation is right and its wording implies a clock -- and the resolution sits in the same sentence, which cites the clock guard check C: compare two stamps to EACH OTHER. Concretely, the newest snapshot record against the newest event record. Both values are RETURNED by the DB, so a duration computed between them takes nothing and confects nothing. Reword before WP-06 builds it, or the first implementation reaches for a clock because the requirement asked for one."
+            "question_sharpened_by_them": "BOTH obligations above make the open exit-code question materially heavier, and this is new evidence for a decision hv has not yet made. When `doctor` only reported configuration tidiness, `reportable but not enforceable` was a mild gap. It now detects (a) tracking data that is actively lying about whether work is finished and (b) a backup of the DURABLE SSOT that may never have run. Those are not advisory findings. A check that cannot fail a CI job is one nobody is obliged to read -- which is the unwired-guard shape dc measured: VISIBLE IS NOT CLOSED."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -3209,19 +3345,26 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--backup-dir"],
+              "spellings": [
+                "--backup-dir"
+              ],
               "type": "string",
               "help": "Custom backup directory name",
               "value": "<dir>",
               "default": ".backup/backup-TIMESTAMP"
             },
             {
-              "spellings": ["--no-backup"],
+              "spellings": [
+                "--no-backup"
+              ],
               "type": "bool",
               "help": "Skip backup creation (dangerous)"
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -3289,13 +3432,18 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--dry-run"],
+              "spellings": [
+                "--dry-run"
+              ],
               "type": "bool",
               "help": "Preview changes without making them",
               "note": "OPPOSITE polarity to `st organize --write`: this face acts by default, that one previews by default"
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -3414,7 +3562,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--template"],
+              "spellings": [
+                "--template"
+              ],
               "type": "string",
               "help": "Initial content from a named template",
               "value": "<name>"
@@ -3492,7 +3642,9 @@
             ],
             "stdout": "confirmation",
             "stderr": "`error: ...` on stderr (INV-01)",
-            "side_effects": ["Rewrites AGENTS.md at project root"],
+            "side_effects": [
+              "Rewrites AGENTS.md at project root"
+            ],
             "notes": "AGENTS.md is THE proven generated-committed-view precedent that D04 generalises to info.md, acceptance.md, steel_threads.md and todo.md.",
             "evidence_class": {
               "class": "read",
@@ -3548,7 +3700,9 @@
               "name": "subcommand",
               "type": "subcommand",
               "arity": "0..1",
-              "values": ["list"]
+              "values": [
+                "list"
+              ]
             }
           ],
           "flags": [],
@@ -3578,7 +3732,9 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "read",
           "mcp_review": {
-            "uncertain": ["read_or_mutate"],
+            "uncertain": [
+              "read_or_mutate"
+            ],
             "why_uncertain": "No write primitive found near the arm, but I did not read the arm itself -- this is the one row classified `read` without either grounding or an obvious reading to fall back on."
           }
         }
@@ -3684,7 +3840,9 @@
           ],
           "flags": [
             {
-              "spellings": ["-v"],
+              "spellings": [
+                "-v"
+              ],
               "type": "bool",
               "help": "Show full descriptions in `list`"
             }
@@ -3728,7 +3886,13 @@
               "name": "verb",
               "type": "subcommand",
               "arity": "1",
-              "values": ["list", "install", "sync", "uninstall", "show"]
+              "values": [
+                "list",
+                "install",
+                "sync",
+                "uninstall",
+                "show"
+              ]
             },
             {
               "name": "name",
@@ -3738,7 +3902,9 @@
           ],
           "flags": [
             {
-              "spellings": ["-v"],
+              "spellings": [
+                "-v"
+              ],
               "type": "bool",
               "help": "Show full descriptions in `list`"
             }
@@ -3783,7 +3949,12 @@
               "type": "subcommand",
               "arity": "0..1",
               "default": "list",
-              "values": ["list", "show", "validate", "index"]
+              "values": [
+                "list",
+                "show",
+                "validate",
+                "index"
+              ]
             },
             {
               "name": "id",
@@ -3793,7 +3964,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--lang"],
+              "spellings": [
+                "--lang"
+              ],
               "type": "string",
               "help": "Filter to one language",
               "value": "<lang>"
@@ -3833,7 +4006,9 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["read_or_mutate"],
+            "uncertain": [
+              "read_or_mutate"
+            ],
             "why_uncertain": "Leaned mutate against the obvious reading. `rules list` / `rules show` are plainly reads and are the ones agents want, but `intent_claude_rules` carries write primitives I did not attribute to an arm. If they all live in an unrelated arm this is a `read`."
           }
         },
@@ -3879,7 +4054,9 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "Installs and removes Claude Code lifecycle hooks -- an agent editing the hooks that police it is the shape of the problem, even when each step is legitimate."
           }
         },
@@ -3889,7 +4066,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--apply"],
+              "spellings": [
+                "--apply"
+              ],
               "type": "bool",
               "help": "Write the canon; without it the command reports only"
             }
@@ -3970,7 +4149,12 @@
               "name": "verb",
               "type": "subcommand",
               "arity": "1",
-              "values": ["new", "list", "archive", "hygiene"]
+              "values": [
+                "new",
+                "list",
+                "archive",
+                "hygiene"
+              ]
             },
             {
               "name": "wsid",
@@ -4092,19 +4276,25 @@
           ],
           "flags": [
             {
-              "spellings": ["--files"],
+              "spellings": [
+                "--files"
+              ],
               "type": "string",
               "help": "Explicit file list",
               "value": "<path> ...",
               "note": "default: scan nothing unless --staged"
             },
             {
-              "spellings": ["--staged"],
+              "spellings": [
+                "--staged"
+              ],
               "type": "bool",
               "help": "Scan files in the git staging area (pre-commit mode)"
             },
             {
-              "spellings": ["--severity-min"],
+              "spellings": [
+                "--severity-min"
+              ],
               "type": "enum",
               "help": "Minimum severity to report",
               "value": "<lvl>",
@@ -4112,26 +4302,35 @@
               "default": "warning"
             },
             {
-              "spellings": ["--format"],
+              "spellings": [
+                "--format"
+              ],
               "type": "enum",
               "help": "Output format",
               "value": "text|json",
               "default": "text"
             },
             {
-              "spellings": ["--rules"],
+              "spellings": [
+                "--rules"
+              ],
               "type": "string",
               "help": "Alternative rules root, overriding canon discovery",
               "value": "<dir>"
             },
             {
-              "spellings": ["--languages"],
+              "spellings": [
+                "--languages"
+              ],
               "type": "bool",
               "help": "List languages with a headless code critic, one per line, and exit",
               "note": "consumed by the pre-commit gate so the gate and the runner cannot drift"
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -4400,7 +4599,9 @@
               "why": "taken from the v2 source at the stamped revision without executing that specific arm"
             }
           },
-          "aliases": ["lang rm"],
+          "aliases": [
+            "lang rm"
+          ],
           "target": {
             "state": "as-observed"
           },
@@ -4408,7 +4609,9 @@
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "Removes per-language canon files. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool."
           }
         },
@@ -4418,7 +4621,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--check"],
+              "spellings": [
+                "--check"
+              ],
               "type": "bool",
               "help": "Report without writing; exit 1 if any entry is missing or stale"
             }
@@ -4523,7 +4728,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--symlink"],
+              "spellings": [
+                "--symlink"
+              ],
               "type": "string",
               "help": "Create a symlink to usage-rules.md in the current or specified directory",
               "value": "[dir]",
@@ -4597,7 +4804,9 @@
           ],
           "flags": [
             {
-              "spellings": ["--category"],
+              "spellings": [
+                "--category"
+              ],
               "type": "enum",
               "help": "Which kind of learning",
               "value": "<cat>",
@@ -4605,7 +4814,9 @@
               "default": "footgun"
             },
             {
-              "spellings": ["--list"],
+              "spellings": [
+                "--list"
+              ],
               "type": "bool",
               "help": "Show all learnings"
             }
@@ -4717,7 +4928,9 @@
           "args": [],
           "flags": [
             {
-              "spellings": ["--register"],
+              "spellings": [
+                "--register"
+              ],
               "type": "bool",
               "help": "Interactively register unregistered modules",
               "note": "INTERACTIVE -- the only interactive path in the surface, and a shape a non-tty caller cannot use"
@@ -4815,7 +5028,9 @@
       "v2_source": "bin/intent_plugin",
       "v2_help_file": null,
       "owner_wp": "WP-06",
-      "family_notes": ["Runs outside a project (measured: exit 0, 1076B)."],
+      "family_notes": [
+        "Runs outside a project (measured: exit 0, 1076B)."
+      ],
       "entries": [
         {
           "path": "plugin",
@@ -5128,17 +5343,23 @@
           ],
           "flags": [
             {
-              "spellings": ["--skill"],
+              "spellings": [
+                "--skill"
+              ],
               "type": "bool",
               "help": "Scaffold a skill extension"
             },
             {
-              "spellings": ["--subagent"],
+              "spellings": [
+                "--subagent"
+              ],
               "type": "bool",
               "help": "Scaffold a subagent extension"
             },
             {
-              "spellings": ["--rule-pack"],
+              "spellings": [
+                "--rule-pack"
+              ],
               "type": "bool",
               "help": "Scaffold a rule-pack extension"
             }
@@ -5212,39 +5433,55 @@
           ],
           "flags": [
             {
-              "spellings": ["--depth", "-d"],
+              "spellings": [
+                "--depth",
+                "-d"
+              ],
               "type": "integer",
               "help": "How deep to descend",
               "value": "<n>"
             },
             {
-              "spellings": ["--check"],
+              "spellings": [
+                "--check"
+              ],
               "type": "bool",
               "help": "Report without writing"
             },
             {
-              "spellings": ["--dry-run"],
+              "spellings": [
+                "--dry-run"
+              ],
               "type": "bool",
               "help": "Preview"
             },
             {
-              "spellings": ["--force"],
+              "spellings": [
+                "--force"
+              ],
               "type": "bool",
               "help": "Regenerate even if current"
             },
             {
-              "spellings": ["--prune"],
+              "spellings": [
+                "--prune"
+              ],
               "type": "bool",
               "help": "Remove stale index entries"
             },
             {
-              "spellings": ["--model"],
+              "spellings": [
+                "--model"
+              ],
               "type": "string",
               "help": "Model to summarise with",
               "value": "<name>"
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -5333,61 +5570,89 @@
           ],
           "flags": [
             {
-              "spellings": ["--check", "-C"],
+              "spellings": [
+                "--check",
+                "-C"
+              ],
               "type": "bool",
               "help": "Mark checked"
             },
             {
-              "spellings": ["--uncheck", "-U"],
+              "spellings": [
+                "--uncheck",
+                "-U"
+              ],
               "type": "bool",
               "help": "Mark unchecked"
             },
             {
-              "spellings": ["--toggle", "-X"],
+              "spellings": [
+                "--toggle",
+                "-X"
+              ],
               "type": "bool",
               "help": "Flip the mark"
             },
             {
-              "spellings": ["--file", "-f"],
+              "spellings": [
+                "--file",
+                "-f"
+              ],
               "type": "string",
               "help": "Target file",
               "value": "<path>"
             },
             {
-              "spellings": ["--index", "-i"],
+              "spellings": [
+                "--index",
+                "-i"
+              ],
               "type": "string",
               "help": "Index file",
               "value": "<path>"
             },
             {
-              "spellings": ["--index-dir"],
+              "spellings": [
+                "--index-dir"
+              ],
               "type": "string",
               "help": "Index directory",
               "value": "<path>"
             },
             {
-              "spellings": ["--intent-dir"],
+              "spellings": [
+                "--intent-dir"
+              ],
               "type": "string",
               "help": "Intent directory",
               "value": "<path>"
             },
             {
-              "spellings": ["--no-intent"],
+              "spellings": [
+                "--no-intent"
+              ],
               "type": "bool",
               "help": "Operate without an Intent project"
             },
             {
-              "spellings": ["-r"],
+              "spellings": [
+                "-r"
+              ],
               "type": "bool",
               "help": "Recurse"
             },
             {
-              "spellings": ["-v"],
+              "spellings": [
+                "-v"
+              ],
               "type": "bool",
               "help": "Verbose"
             },
             {
-              "spellings": ["--help", "-h"],
+              "spellings": [
+                "--help",
+                "-h"
+              ],
               "type": "bool",
               "help": "Print the usage block"
             }
@@ -5441,7 +5706,9 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "mcp_review": {
-            "uncertain": ["exposed_on_mcp"],
+            "uncertain": [
+              "exposed_on_mcp"
+            ],
             "why_uncertain": "Writes an index an agent would plausibly want to refresh before searching. Leaned open; the cost of being wrong is a stale-index rebuild, not lost work."
           }
         }
@@ -5553,22 +5820,30 @@
               "name": "command",
               "type": "subcommand",
               "arity": "0..1",
-              "values": ["install"]
+              "values": [
+                "install"
+              ]
             }
           ],
           "flags": [
             {
-              "spellings": ["--audit-only"],
+              "spellings": [
+                "--audit-only"
+              ],
               "type": "bool",
               "help": "Show gap analysis only, no changes"
             },
             {
-              "spellings": ["--dry-run"],
+              "spellings": [
+                "--dry-run"
+              ],
               "type": "bool",
               "help": "Show what would change, no writes"
             },
             {
-              "spellings": ["--deliverable"],
+              "spellings": [
+                "--deliverable"
+              ],
               "type": "string",
               "help": "Target a single deliverable (D2-D11)",
               "value": "<id>"
@@ -5716,12 +5991,16 @@
       "help": "Sync this machine's store with the committed extract, in both directions",
       "flags": [
         {
-          "spellings": ["--to-disk"],
+          "spellings": [
+            "--to-disk"
+          ],
           "type": "bool",
           "help": "Write the store out to the committed extract"
         },
         {
-          "spellings": ["--to-store"],
+          "spellings": [
+            "--to-store"
+          ],
           "type": "bool",
           "help": "Read the committed extract into the store, through the API gate"
         }
@@ -5740,7 +6019,9 @@
       "exposed_on_mcp": true,
       "read_or_mutate": "mutate",
       "mcp_review": {
-        "uncertain": ["exposed_on_mcp"],
+        "uncertain": [
+          "exposed_on_mcp"
+        ],
         "why_uncertain": "Leaned OPEN against the standing lean because sync is ordinary workflow, and it is the one row where that lean is least comfortable: it moves truth in BOTH directions, so a wrong `--to-store` can overwrite this machine's store from a stale extract. If the boundary with `ingest` is drawn so that `sync --to-store` is the recovery path, this should close."
       }
     },
@@ -5770,7 +6051,9 @@
       "help": "Extract the store into a portable format usable without Intent",
       "flags": [
         {
-          "spellings": ["--format"],
+          "spellings": [
+            "--format"
+          ],
           "type": "string",
           "value": "<fmt>"
         }
@@ -5794,7 +6077,9 @@
       "help": "Ingest markdown into the store through the API gate (the recovery path, and the v2 migrator)",
       "flags": [
         {
-          "spellings": ["--from-md"],
+          "spellings": [
+            "--from-md"
+          ],
           "type": "bool"
         }
       ],
@@ -5808,7 +6093,9 @@
       "exposed_on_mcp": false,
       "read_or_mutate": "mutate",
       "mcp_review": {
-        "uncertain": ["exposed_on_mcp"],
+        "uncertain": [
+          "exposed_on_mcp"
+        ],
         "why_uncertain": "The recovery path and the v2 migrator behind one verb. Both are operations a human decides to run after something went wrong; neither is a task step. Closed on the strength of what it is FOR rather than what it costs."
       }
     },
@@ -5817,7 +6104,9 @@
       "help": "Snapshot this machine's store for fast local restore",
       "flags": [
         {
-          "spellings": ["--list"],
+          "spellings": [
+            "--list"
+          ],
           "type": "bool",
           "help": "List retained snapshots and when each was taken",
           "note": "RATIFIED -- vc, 2026-08-15: `--list` STANDS. Proposed by ic on the grounds that D35 requires a failed or skipped backup to SURFACE, and with no read path a user cannot tell a working schedule from one that has silently never run -- the nothing-is-wrong / nothing-ran ambiguity again. **The question turned out to expose a hole in AC-03.10 itself**: the clause said only that a FAILED backup surfaces, and A SCHEDULE THAT NEVER FIRES PRODUCES NO FAILURE TO REPORT, so a green implementation could have shipped where nothing had ever run -- the ambiguity living inside the clause written to prevent it. AC-03.10 is amended and `doctor` now reports backup STALENESS, which detects never-ran without needing anything to have failed."
@@ -5833,12 +6122,14 @@
         "ratification": "D35 -- the SERVICE owns the backup and both surfaces reach it. `intent backup` triggers one manually; `intentd` schedules the rolling one; ONE implementation, so CLI and daemon cannot drift into two retention policies. AC-08.8 checks that these are the SAME function, not two that agree.",
         "note": "The snapshot is taken with `VACUUM INTO` (or the `sqlite3_backup_*` API) and NEVER `cp` / `fs::copy` / a tar of the directory. D35 measured why: the store opens WAL, so with a writer connection still open -- exactly as a running daemon holds it -- the live DB had 50 rows, `VACUUM INTO` captured 50, and a naive `cp` captured ZERO. The `cp` result opens cleanly and reports no error, so it is indistinguishable from a good backup by inspection. That is the fabricated-stamp failure shape in a new artefact: a plausible record of something that never happened.",
         "surfacing": "RATIFIED -- vc, 2026-08-15: the split is the ruling. A failed or skipped scheduled backup must surface (IN-AG-NO-SILENT-001), and **`doctor` is THE ONE PLACE health is reported** -- not a second status surface here -- because `doctor` already exists for exactly that and Highlander says one place, not two. `--list` answers only _what snapshots exist_, which is inventory rather than health. `doctor`'s obligation is recorded on its own row as `target.new_obligations`, so the requirement lives where the command that owns it is described.",
-        "d42_exposure": "D42 (ic, audit 2026-08-15; CORRECTED after hv's clarification the same day). NOT an exposure for emitting a time -- hv: v3 will have CLI and intentsvcs functions that RETURN times, and that is fine, provided the value went end-to-end through the DB where SQLite SET it. Returning is legal; only obtaining is not. So `--list` showing when each snapshot was taken is a legitimate surface and stays. The defect is its SOURCE: a snapshot is a file under .backup/db/, and a file mtime is a filesystem clock. Taking a snapshot must therefore WRITE A RECORD and `--list` must read that record stamp -- which is a data-model consequence recorded nowhere else. The first draft of this note argued the emission itself was the problem, which would have withdrawn a surface that is allowed."
+        "exposure": "PROVENANCE EXPOSURE (ic, audit 2026-08-15; twice corrected). NOT a D42 exposure -- I filed it first for emitting a time, which is legal, and the residue is not about clocks at all. `--list` promises to show WHEN EACH SNAPSHOT WAS TAKEN and answers from the file mtime of a snapshot under .backup/db/, so a filesystem attribute is DISPLAYED AS a record fact. vc reached the identical ruling from the contract end and has absorbed it into AC-02.8: `threads.created` and `issues.created` are authored dates, `file_index.mtime` is a file mtime, `event_log.ts` was an argument, and this snapshot mtime is the fourth instance -- in all four the display was never the problem and the provenance always was. The fix is unchanged and now correctly reasoned: taking a snapshot WRITES A RECORD and `--list` reads that record stamp. Owned under AC-02.8; recorded here so the surface row carries its own obligation."
       },
       "exposed_on_mcp": false,
       "read_or_mutate": "mutate",
       "mcp_review": {
-        "uncertain": ["exposed_on_mcp"],
+        "uncertain": [
+          "exposed_on_mcp"
+        ],
         "why_uncertain": "Genuinely harmless -- it writes a snapshot into `.backup/db/` and touches nothing else. Closed only by the standing lean, which is the weakest reason on this list."
       }
     },
@@ -5850,7 +6141,12 @@
           "name": "subcommand",
           "type": "subcommand",
           "arity": "1",
-          "values": ["start", "stop", "status", "run"]
+          "values": [
+            "start",
+            "stop",
+            "status",
+            "run"
+          ]
         }
       ],
       "v2": "new-surface",
@@ -5957,11 +6253,11 @@
     },
     {
       "id": "EXP-06",
-      "title": "D42 audit of the declared surface: two rows would have to OBTAIN a time, and one only had the wrong source",
-      "detail": "The rule is ASYMMETRIC and the audit is only correct once that is stated (hv, 2026-08-15): no CLI or intentsvcs function TAKES a time; functions that RETURN times are fine, because those values went end-to-end through the DB where SQLite set them. So the thing to hunt for is a surface that must OBTAIN an instant or a duration, never one that displays a stamp. Audited the table and the 27 inventories. The inventories are CLEAN -- v2's measured surface declares no time-bearing flag or argument anywhere, so nothing is inherited, and every finding is in the NEW surface: a design exposure rather than a porting one, still cheap to change.",
-      "it_happened": "Two genuine, one corrected. `todo done --flush` advances the DONE watermark TO NOW, which is an instant it would have to obtain -- the v3 watermark must reference a record instead, and the newest done transition already carries the stamp the database wrote. `doctor` staleness compares a snapshot AGE against a schedule, and an age against now is the same defect wearing a duration -- answered by comparing two record stamps to each other, both of them returned. `backup --list` was flagged for EMITTING a time and that was my error: emitting is legal. Its only defect is the source, a file mtime rather than a record stamp, and the fix I had already written -- snapshots must write a record -- is the right one for the wrong stated reason.",
-      "resolution": "Each row carries its own note and none of the fixes is adopted here. The shared shape survives the correction and is worth stating once: EVERY REMAINING CASE WANTS AN INSTANT OR A DURATION, AND EVERY ONE CAN BE ANSWERED BY COMPARING TWO RECORD STAMPS. That is the clock guard check C construction this project has already ratified -- two stamps compared to each other need no clock, and cannot be fabricated by a node that has none.",
-      "consequence_for_this_generator": "None today; the generator renders these like any other authored field and the entry-level completeness check proves they reach the view. The standing obligation is on the AUDIT: this table grows new surface every week, and a D42 exposure enters by someone writing plausible help text, never by a check going red. Re-run the word-bounded audit whenever new_surface changes -- and hunt for OBTAINING, not for the word `time`. The first pass matched `manage`, `validate` and `update` on substrings of `age` and `date` and reported 25 rows including every `--help`; word boundaries cut it to five, of which three looked real and two were."
+      "title": "D42 audit of the declared surface: it came back CLEAN, and the two findings that survive are not about clocks",
+      "detail": "Audited the dispatch table and the 27 command inventories against D42 and filed three findings. hv then narrowed the rule twice within the day and BOTH narrowings cut against me. First: the rule is ASYMMETRIC -- no CLI or intentsvcs function TAKES a time, but functions may RETURN times, because those went end-to-end through the DB where SQLite set them; vc has since sharpened this into its strongest form, a property of the SIGNATURE rather than of a value, so a time-typed input parameter is a defect by inspection and nobody has to trace provenance. Second: reading a clock to MAKE A DECISION is fine, and so is stamping WHEN A COMMAND RAN into a GENERATED artefact -- what D42 forbids is confecting a time and injecting it into a source document. Under the rule as it now stands the declared surface has NO D42 exposure at all: zero of three findings survive as D42, and the inventories were already clean because v2 declares no time-bearing flag or argument anywhere.",
+      "it_happened": "The audit was still worth running, because two of the three findings turned out to be real defects of a different kind and one of them is only visible from here. `doctor` staleness is WITHDRAWN outright -- comparing snapshot age against a schedule is a decision, which is the permitted case, and nothing durable is written. `backup --list` is NOT a clock defect but a PROVENANCE one, displaying a file mtime as a record fact; vc ruled the same thing from the contract end and it is now AC-02.8's fourth instance. `todo done --flush` is the one that pays for the exercise: chasing my own D42 claim into bin/intent_todo to check it showed the watermark is read BACK OUT of the generated todo.md, so a generated view is the sole store of durable state -- which the v3 truth model, where deleting a derived artefact is always safe, turns from a wart into a data-loss path. Both survivors are recorded on their rows as `target.exposure`; the `d42_exposure` key is GONE, because a census key with no members and a wrong name is worse than none.",
+      "resolution": "None adopted here; each row names its own owner (`todo done` is WP-03's renderer constraint, `backup` is AC-02.8). The finding worth keeping is about auditing, not about time. THE AUDIT WAS RIGHT TO RUN AND WRONG IN EVERY VERDICT IT FIRST REACHED, and it still produced two real defects -- because the only way to check a claim about a surface is to read the code under it, and the reading is what found them. An audit that had trusted its own pattern match would have filed three wrong findings and stopped.",
+      "consequence_for_this_generator": "None today; the generator renders `exposure` through the generic `targetextra` path like any other authored sub-key, and the entry-level completeness check proves it reaches the view. Two standing obligations, and they are different sizes. The small one: re-audit when new_surface changes. The large one: THIS CENSUS CANNOT SEE THE THING THE RULE ACTUALLY FORBIDS. vc's caution is exact -- a clean result here is about DECLARED FLAGS AND ARGUMENTS, and hv's rule is about function PARAMETERS, which need never appear in a flag inventory. A green from this file is not evidence about signatures, and the needle that checks them lives in cc's guard, not here."
     }
   ]
 }
