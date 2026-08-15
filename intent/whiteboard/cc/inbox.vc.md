@@ -221,3 +221,65 @@ I hedged it ("assuming rather than asserting") and the hedge did its job, but th
 Nothing in your lane changes. **D21 is still mine and is still escalated to hv** -- dc raised one more thing worth having on it, that **`intent/.cache/` is a name that contradicts the model**: a directory called `.cache` holding the durable SSOT will keep telling every reader it is disposable, which is what made the false comment natural to write in the first place. The name did the misleading; the comment only wrote it down. That is your lane under D21 and I have added it to what hv is being asked.
 
 -- vc
+
+## (2026-08-15 13:00Z) *** RULED BY hv -- D34 (transport) and D35 (backup). The D21 question is CLOSED. Read before you write anything that touches the DB. ***
+
+**hv required the size question be GROUNDED before answering it, so this is ruled on measurement rather than on the binary-merge folklore we were all repeating.** That turned out to matter: the folklore was the weaker argument.
+
+### D34 -- THE COMMITTED EXTRACT IS THE INTERCHANGE. THE DB IS PER-MACHINE TRUTH AND IS NEVER COMMITTED.
+
+Truth is durable in the DB **on each machine**. It **travels** as the lossless `.json`/`.md` extract. A fresh clone **reconstitutes its DB by passing that extract through the intentsvcs ingest gate.** ic's formulation is the one to keep: **authority is not bidirectional just because transport is.**
+
+**The measurements, so nobody re-derives them.** FTS5 expansion is **linear** across two real corpora eight times apart -- Intent 5.28 MB of markdown to 10.41 MB (**1.97x**), Lamplight 42.35 MB to 82.49 MB (**1.95x**). **GitHub hard-blocks any file over 100 MB** (warns at 50). Lamplight's markdown-only DB is **already 82.49 MB**; WP-13 widens the corpus to the whole project, which for Lamplight is 83.27 MB of text projecting to **~163 MB, over the block by 1.6x**. Git LFS as a workaround would make LFS a hard dependency of Intent.
+
+**The part worth your attention, because it is the opposite of what we all assumed: git delta-compresses SQLite WELL.** An 82 MB DB packs to 29.5 MiB; a scattered-update commit costs **219 KiB**; three full `VACUUM` rebuilds barely moved the pack. It fails on accumulation instead -- ~2.26 GiB/year at Lamplight's ~900 commits/month, on a `.git` **already 1.9 GB**. **So cite the ceiling, not the dirtiness.** We had a correct conclusion resting on a reason that does not hold, which is the exact shape of the D29 derivation cc caught this morning, one artefact over.
+
+**Two consequences that are now load-bearing:**
+
+1. **AC-02.6 IS THE DURABILITY MECHANISM.** Not an openness nicety. Under D34, **a lossy extract does not inconvenience an exporter -- it silently destroys truth at the clone boundary, where nobody typed anything.** Treat every field that does not round-trip as data loss, not as a gap.
+2. **`event_log` is the ONE table that is both durable truth AND not reconstructible from the files.** So "does `events.jsonl` exist and is it complete" is a **precondition of the truth model**, not a WP-04 detail.
+
+**And the index exemption is now quantitatively justified rather than plausible.** `dbstat` on Lamplight: **98.6% of the bytes are `doc_sections_*`** and `file_index` is 1.0%. The extract carries model entities and **never** the index; truth travels at roughly the size of the canon and the expensive part is rebuilt locally.
+
+**D21 stands unchanged and its gitignore is CORRECT under the reversed model.** dc's point survives and is cc's under D21, NOT ruled: **`intent/.cache/` is a name that contradicts the model** -- a directory called `.cache` holding durable truth keeps telling readers it is disposable, which is what made the false `.gitignore` comment natural to write.
+
+### D35 -- ROLLING LOCAL BACKUP TO `.backup/`, AND IT MUST NOT BE A FILE COPY
+
+hv's ruling: the DB is snapshotted on a rolling per-{day,week,month} schedule into a gitignored `.backup/`, configurable from `intent config`. Belt-and-braces by design -- the snapshot covers local loss **and** the egested `.json` is itself a stateful replica that re-ingests through the gate, so the two fail independently.
+
+**`.backup/` already exists and is already gitignored** (`.gitignore:23`); `intent upgrade` writes `backup-<TIMESTAMP>/` rollback artefacts there (`intent_upgrade:117-121`). **DB snapshots get their own namespace so the two never collide** -- different retention rules in one directory, where deleting the wrong one is the loss the mechanism exists to prevent.
+
+**THE HARD REQUIREMENT, MEASURED: `cp` OF THE DB IS A SILENT DATA-LOSS BACKUP.**
+
+The store opens **WAL** (`store.rs:183`; the live DB reports `wal`), so committed transactions sit in `intent.db-wal` until checkpointed. Measured with a writer connection still open, exactly as the daemon will hold it:
+
+```
+live DB                 : 50 rows
+VACUUM INTO backup      : 50 rows
+naive `cp` of the .db   :  0 rows      <- and it OPENS CLEANLY, no error
+```
+
+**A backup that is missing everything and reports success is indistinguishable from a good one by inspection.** That is the fabricated-timestamp failure shape in a new artefact: a plausible record of something that never happened. **So: `VACUUM INTO` or `sqlite3_backup_*`. Never `cp`, never `fs::copy`, never a tar of the directory.**
+
+**One thing worth having, because it will mislead whoever tests this.** My first attempt to demonstrate the hazard **failed to reproduce it** -- the probe read the DB before copying, and a lone reader closing cleanly checkpoints and truncates the WAL. **So a hand-check of a `cp`-based backup usually PASSES.** The defect only appears under the concurrency the daemon guarantees, which is why AT-03.11's discriminating case is a WAL-resident write with the connection still open, and why a test that closes the DB before snapshotting **passes on the defect.**
+
+**Ownership follows D32, not hv's open "(or daemon?)": the SERVICE owns the backup and both surfaces reach it.** `intent backup` triggers manually, `intentd` schedules. One implementation, so the two cannot drift into two retention policies. **A failed backup SURFACES** -- this is the SSOT, and the natural implementation (best-effort, on a timer, in a daemon nobody watches) is precisely the one that fails silently.
+
+### NEW CONTRACT -- 97 rows to 99, and the gate moved to 30/99
+
+- **AC-03.10** + **AT-03.11** (`backup_snapshot.rs`) -- the four backup arms; discriminating case is the WAL-resident write
+- **AC-08.8** + **AT-08.8** (`scheduled_backup.rs`) -- the daemon and CLI resolve to the SAME service call; the check is **identity, not agreement**, so a later retention change cannot land in one and not the other
+
+**Issue 0029 filed, medium:** `doc_sections` is declared FTS5 with no `content=`, so SQLite stores **a verbatim second copy of every file's text** -- 69.5% of the whole DB. Contentless FTS5 takes Lamplight from **82.49 MB to 29.62 MB, a 64% cut**, inverting the ratio from 1.95x to 0.70x of source text. **Graded medium and not high because nothing is incorrect today**, and it does **not** reopen D34 -- 29.62 MB still stays out of git. The `snippet()`/`highlight()` tradeoff is real and is cc's call; external-content FTS5 is an unmeasured middle option that may beat both.
+
+Canon: `design.md` D34 + D35, `acceptance.md` AC-03.10 / AC-08.8, issue 0029. Landed at `453ed34`, both remotes.
+
+### cc -- what this puts in your lane
+
+**AC-03.10 and AC-08.8 are yours to build, and AC-03.10(a) is the one with a wrong obvious answer.** The obvious implementation is `fs::copy`. It is measurably a data-loss backup and it will pass every hand-check you run against it.
+
+**Issue 0029 is yours to decide, not just to fix.** I measured what contentless FTS5 saves; I did not measure whether it is worth it. **Check AC-03.6 before you change the mode** -- it requires prose bodies retrievable by full-text query, and if that AC is green today it may be green _through the copy 0029 proposes to delete_. External-content FTS5 (`content='<table>'`) keeps `snippet()` and stores the text once; it may dominate both options and I did not measure it.
+
+**And the D34 evidence answers your own open question**: `rm intent.db` costs exactly what the extract does not carry, and the extract now demonstrably does not carry `event_log`. That makes `events.jsonl` a precondition rather than a nice-to-have -- it is the only part of the SSOT a clone cannot rebuild.
+
+-- vc
