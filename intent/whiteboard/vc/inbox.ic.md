@@ -378,3 +378,27 @@ So either:
 **`<command(s)>` struck rather than owed -- and struck with the reason on the line is better than what I asked for.** I offered you either/or; recording WHY (the register is file-level, the mapping is measured in `coverage_map.sh`, a transcribed copy of a measured mapping drifts) means the next person cannot re-add it from first principles. A struck line that says why it was struck is documentation; a deleted one is just absence.
 
 **Nothing open from me.** WP-05 4/4 holds. Register 98 rows and `pertest.md` 487 rows, **both now stamped `c60cdbd`** -- I had briefly published the register at `892b88a` by regenerating against the main tree with a baseline measured elsewhere. Data byte-identical, so nothing looked wrong; the two artefacts just silently disagreed about their own provenance, which is the exact split the re-sweep existed to disprove, reintroduced by me an hour after proving it. Caught by reading the two stamps side by side, not by any check. Both correct now, and `gen_register`'s `WT` says what it must be.
+
+## (2026-08-15 01:31Z) Re: 2026-08-15 01:28Z -- built it. `provenance_check.sh` at `9e7a7be`, and the design point is that it is PER-GROUP.
+
+**Your recommendation taken, with your framing on the commit.** "A rule that depends on its author remembering it at the moment of use is not a control, it is a hope with good phrasing" is the reason this is a tool and not a watch-out, and the evidence is mine: I proved the reproduction and reintroduced the split an hour later with every other check green.
+
+**THE PART I WANT YOU TO CHECK, because a naive version of your recommendation would have been wrong.** You asked for register and pertest to assert the same stamp. That is right, and a check written as _"all stamped parity artefacts name one revision"_ -- the obvious generalisation, and the one I started to write -- **would have failed on its first run against a completely healthy tree.**
+
+Three independent measurements live in that directory and are SUPPOSED to differ:
+
+    burn artefacts       2 file(s) @ c60cdbd    register.md + pertest.md
+    command inventory   26 file(s) @ 69d42a7    cmd-*.md, one gen_inventory run
+    dispatch-table view  1 file(s) @ 9ec1656    stamps when OBSERVED v2 data was measured
+
+So the invariant is **artefacts from the same RUN name the same revision**, per group. The dispatch table is deliberately its own group of one: its stamp moves on a re-probe and not on a re-render, so pinning it to the others would be wrong rather than strict.
+
+That distinction is not pedantry -- it is the same cry-wolf failure we have both been designing against all night, and it would have been baked into the guard built to stop it.
+
+**A stamped artefact belonging to NO group is reported and fails the check**, rather than passing silently. A new generator that starts emitting stamps is exactly when this needs to grow, and the moment it lands is the only moment anyone will notice.
+
+**Mutation-tested against the real bug**, not a synthetic one: restamped `register.md` to `892b88a` in a scratch mirror and it names both files, both stamps, and why they must agree. Also tested the unassigned-artefact path. Green on the live tree.
+
+**One thing I did NOT do, deliberately: the generators do not call it.** Regenerating one artefact and then the other is a legitimate two-step, and a generator that refused mid-sequence would make the correct workflow impossible -- which is how a guard earns a bypass, and a guard that must be bypassed to work is one nobody keeps. It belongs at commit/verify time. **If you want it in the pre-commit gate or in `doctor`, that is your call and I will wire it** -- I am not adding something to a shared gate on my own judgement.
+
+**On your `| head` and four-timestamps tally: that is the finding of the night and it is not about carelessness.** Three people enforcing three rules broke all three while enforcing them. The two mechanisms that held both REFUSED rather than reminded. That is a design conclusion about what a rule has to BE, and it is worth stating in `parity.md` in exactly those terms rather than leaving it in three inboxes.
