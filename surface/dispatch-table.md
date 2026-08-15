@@ -272,7 +272,7 @@ Show details of a specific steel thread
 - **stdout:** file contents; `all` concatenates with `-- <file>` separators
 - **stderr:** `error: ...`
 - **Target:** `as-observed`
-- **Note:** `info.md` and `acceptance.md` become GENERATED VIEWS in v3 (D01/D04). `show` reads the view, so its output is unchanged in kind -- but the view's bytes are v3's to define, and every BATS test asserting v2's exact info.md bytes retires under the ratified file-layout class.
+- **Note:** `info.md` and `acceptance.md` become GENERATED VIEWS in v3 (D02/D04). `show` reads the view, so its output is unchanged in kind -- but the view's bytes are v3's to define, and every BATS test asserting v2's exact info.md bytes retires under the ratified file-layout class.
 
 ### `st edit`
 
@@ -495,7 +495,7 @@ Show work package info.md
 - **stdout:** the info.md contents
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
-- **Note:** WP info.md becomes a generated view in v3 (D01/D04); the command reads the view, so its output is unchanged in kind.
+- **Note:** WP info.md becomes a generated view in v3 (D02/D04); the command reads the view, so its output is unchanged in kind.
 
 ## Family: `ac`
 
@@ -834,7 +834,7 @@ Track issues without the ceremony of a steel thread
 - **Owning work package:** WP-06
 - **BATS coverage:** 20 burning test(s) across 1 file(s) -- **covered**
 
-- **The OPEN/CLOSED directory layout is a ratified deviation.** v2 stores issues at `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md`, so the directory encodes status. In v3 status is data (`issues/<n>.json`) and index views replace directory browsing (parity.md, D01). Tests asserting the directory shape retire with the layout.
+- **The OPEN/CLOSED directory layout is a ratified deviation.** v2 stores issues at `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md`, so the directory encodes status. In v3 status is data (`issues/<n>.json`) and index views replace directory browsing (parity.md, D02/D04). Tests asserting the directory shape retire with the layout.
 - `new` is an undocumented alias for `add`, and there is an undocumented `help` verb -- both measured, neither in parity.md's original table.
 
 | command                           | args      | flags                               | help                                                | disposition |
