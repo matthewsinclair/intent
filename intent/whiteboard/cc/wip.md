@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 01:16Z
+heartbeat_at: 2026-08-15 01:27Z
 status: active
 focus: "WP-06 is the only blocked gate. Built tonight: AC-10.7, AC-03.7, AC-03.8, AC-06.4, AC-06.7, st list + wp list to v2's table. Next: AC-06.6 (export), then AC-06.1's surface tail."
 claims: []
@@ -13,14 +13,14 @@ claims: []
 
 ## DOING
 
-- **Estate at `86b5951`: 234 tests, fmt and clippy clean.** Twelve code commits this session. **Gates 01-05 are all green; WP-06 is the only blocked one and it is mine** (2/7).
+- **Estate at `732519b`: 234 tests, fmt and clippy clean.** **Gates 01-05 are all green; WP-06 is the only blocked one and it is mine** (3/7 -- AC-06.1, AC-06.2, AC-06.3, AC-06.6 outstanding).
 - WP-03 closed 8/8 -- AC-03.7 (machine-independent corpus) and AC-03.8 (canon round-trip) both landed and vc verified them.
 
 ## TODO -- in this order
 
 1. **AC-06.6 -- `intent export --format <fmt>`.** Mine, unbuilt, and the last WP-06 AC that is purely mine. D03's mechanism: "YAML/md/anything else are `intent export --format` projections", which is how v3 refuses YAML canon without refusing YAML users. **It must round-trip -- what it emits re-ingests to byte-identical canon -- OR refuse the format BY NAME rather than emitting lossily.** That is the `at lint --fix` scar applied before the tool exists: a tool that cannot finish a job must not start it.
 2. **AC-06.1 -- the full surface.** The WP's whole remit. Remaining: `st edit`, `st repair`, `st zero`; the `issues` and `todo` families; `info`, `version`, `config`, `init`, `bootstrap`; then the tool-infrastructure families (`claude`, `agents`, `lang`, `ext`, `plugin`, `modules`, `llm`, `learn`, `critic`, `treeindex`, `fileindex`). Note the AC's own clause: **`intent config` lands a conformance test BEFORE its behaviour is designed**, or the `undefined` ruling on it is unverifiable by construction.
-3. **Post vc a list of built-but-unflipped ATs** rather than feeding them one at a time -- they have found three of mine stale tonight while in the middle of their own verification passes. AT-06.2 (`doctor_checks.rs`, 18 tests, live since `ab351a2`) is outstanding right now.
+3. **The marked-legacy `scope` form** (vc ruling, data-model.md:89). `Medium-Large` maps to nothing in the enum and sits in a CLOSED thread, where hv's policy is lossless-by-carrying -- so normalising is a guess, blocking violates the policy, dropping is loss. Follow `acceptance_test`'s `Legacy { raw }` precedent. **The constraint that makes this a decision rather than an edit: `TShirt` derives async-graphql's `Enum`, which requires a UNIT-ONLY enum, so a data-carrying variant breaks the SDL face.** Touches the model, all three faces, the store DDL, ingest and the renderer.
 4. **`bin/intent_init:257` seeds v2 gitignore paths and no `intent/.cache/`.** Every project `intent init` creates fails to ignore the v3 DB, and D29 depends on ignored status. No convergence path, so AC-10.3's migrator must write it outright.
 5. **Before porting `st repair`**: `bin/intent_st:1231` is `[0-9]+)`, and `+` is literal in a `case` glob, so only the 4-digit form has ever worked. `pending-hv` as unconstructible in clap -- a forced fix, not a free choice.
 6. **The todo watermark still needs a durable home** (`DONE:<T>` is DATA, carried today as `RenderContext::todo_watermark`); v2's "else start-of-today UTC" fallback cannot survive the no-clock law.
@@ -50,7 +50,7 @@ The ratified ones are `design.md` D22-D30; these are the working lessons.
 - (2026-08-15) **Derive the sweep from the table, never a hand-list.** A hand-list is complete the day it is written and silently incomplete from the next verb on.
 - (2026-08-15) **Interleave and take the minimum, or do not report the number.** My first cost measurement made the UNCHECKED build look slower; spawn noise exceeds the effect.
 - (2026-08-15) **Port the incumbent's ONE function, not its output.** v2's width algorithm is a single `render_table` shared by three commands "so the two tables cannot drift apart" -- reproducing the look would have passed the tests and drifted at the first change. Porting it made `wp list` free.
-- (2026-08-15) **"As observed" cannot mean reproducing an absence of behaviour.** v2 reads `scope:` as free text and this repo carries ten spellings for six sizes; there is no observed behaviour to reproduce, which is exactly what modelling the field fixes.
+- (2026-08-15) **"As observed" cannot mean reproducing an absence of behaviour.** v2 reads `scope:` as free text and this repo carries ELEVEN spellings across 129 work packages; there is no observed behaviour to reproduce, which is exactly what modelling the field fixes.
 - (2026-08-15) **A confident claim about a corpus you do not own is a defect handed to someone else.** "Tempdir fixtures are unaffected" was true of my Rust fixtures and false of the BATS estate; ic measured instead of believing me.
 - (2026-08-15) **Check whether an apparatus you depend on has the hole you would expect, before it costs anything** (vc's framing). I found the `to-write` case closed and stopped; vc found the tracked-ness case beside it open.
 - (2026-08-15) **`| head` truncates a measurement silently, and it took the row that mattered.** I reported TEN scope spellings; there are eleven, and the eleventh -- `Medium-Large`, which maps to nothing in the enum and forced vc's marked-legacy ruling -- was cut off by exactly one line. Fourth instance of the needle class in one session, and the only one that reached a source comment and a commit message rather than a terminal. **`| head` was already on this board as a watch-out when I did it.** The rule being written down was not sufficient; printing the size of what you matched is (`sort -u | wc -l` would have said 11).
