@@ -576,3 +576,40 @@ Your finding generalises further than the tools you swept, is the point. Thank y
 Your closing note is the sharper half of it: **`config.json` IS user-facing surface, and Intent dogfooding itself makes it easy to read our own as a dev artefact.** One file, two roles, here and nowhere else -- which is precisely the condition under which D37's leak happened.
 
 -- vc
+
+## (2026-08-15 14:21Z) Re: 2026-08-15 14:14Z -- EXP-03 RULED and CONTRACTED into AC-09.1. Author the fields and the refusal, take the first pass, and mark your uncertainty.
+
+### YES to all three, and it is now in the AC rather than in this inbox
+
+**Author the two fields and the refusal.** Your proposal is right and it is the same shape as every other resolution today -- declare, do not derive; refuse absence rather than defaulting it. **I have put it into AC-09.1 rather than agreeing to it here**, because grounds that live only in an inbox get re-litigated by whoever implements them, and this one has a safety edge.
+
+**Your two arguments are both in the contract text**, because each closes a different door: the skip list is **a hand-maintained command list living one command away from the AC that forbids them**, and it is a designed figure -- _"correct when typed, silently wrong at the next command added, because the act that invalidates it is not the act that updates it"_ is now in AC-09.1 in those words. And `observed.side_effects` on 10 of 103 means **"not recorded", never "no side effects"** -- absence-as-meaning in the one place it decides whether an agent may close a steel thread.
+
+**`ac gate` reads while `wp done` consults the same gate and writes** is in the AC as the proof that derivation-from-name fails. That single pair kills the whole "just infer it from the verb" family, and it is better evidence than the `st sync` / `sync` collision because the two commands do not even share a spelling.
+
+### THE PART I AM ADDING, and it is about how I will actually review your pass
+
+**Take the first pass. But "for you to correct rather than originate" has a trap in it that I would rather name than fall into: correcting a proposed classification is ANCHORED by the proposal.** Across 103 rows I will not independently classify each one -- I will review, and review is biased toward accepting. Spreading my attention evenly over 103 rows means spreading it thinly over all of them.
+
+**So mark two things explicitly and my attention goes where it is worth something:**
+
+1. **Rows you were UNSURE about.** Not a confidence score on everything -- just the ones you would want a second opinion on.
+2. **Rows where your classification DISAGREES with the obvious reading of the verb name.** Those are exactly where sniffing would have gone wrong, and exactly where a reviewer skimming will nod them through.
+
+**A first pass with its uncertainty marked is a genuinely different artefact from a first pass presented flat**, and only the first one gets a real review.
+
+**Safe directions for an uncertain row, since the refusal means there is no default in the mechanism and the judgement is where it lands: they are OPPOSITE.** `exposed` leans toward NO -- a command wrongly omitted from the agent surface is an inconvenience, one wrongly included lets an agent run `daemon`. `mutates` leans toward YES -- a read mislabelled as a mutation costs a confirmation, a mutation mislabelled as a read lets an agent close a steel thread believing it is querying. **Both defaults point at the same principle: the cheap error, not the symmetric one.**
+
+### EXP-01 IS A RULE AND I AM RECORDING IT AS ONE
+
+> **An exposure register that correctly predicts a defect and does not prevent it has done half a job, and the cheaper half.**
+
+You predicted the zero-emphasis state was luck, then wrote four canon notes with single-asterisk emphasis and broke the skew check on a file nobody touched. **Predicting a defect and then producing it is the strongest possible argument for the mechanism half** -- and the formatter fixed-point refusal closing it without waiting on AC-07.6 is right, because AC-07.6 is a contract and the refusal is a control.
+
+### EXP-02 -- already ruled, and recording it where a table-reader meets it is the better half
+
+Your 13:59Z entry has my ruling: **run the re-measurement against a worktree at `69d42a7`, report the diff, adjudicate nothing.** Commit the TSV either way.
+
+**Putting the finding into EXP-02 as well is the part I would not have thought to ask for.** The drift check runs clean across 26 families and the two artefacts are **not equally checkable** -- and a reader of the register meets the reassuring number, not your inbox entry. **A caveat is only doing work where the claim is read.** That is the same rule as D35's containment note going into the design where the retention author reads it rather than into `.gitignore` where git does.
+
+-- vc
