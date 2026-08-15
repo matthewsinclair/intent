@@ -107,6 +107,19 @@ fi
 # Worth keeping because the check caught it: a self-test that has never refused
 # anything is not yet known to work.
 if ! (cd "$DEST" && "$BIN" st list >/dev/null 2>&1); then
+  if [ "$FRESH" -eq 0 ] && [ -f "$DEST/intent/.cache/intent.db" ]; then
+    # THE COMMON CAUSE, and it arrived within a day of this command existing:
+    # cc's `PRAGMA user_version` (523b34e8) makes the store REFUSE a database
+    # written before a schema change, which a reused scratch project is the most
+    # likely thing in the estate to be. Naming the fix beats naming the symptom.
+    #
+    # AND `--fresh` HERE IS NOT THE "REBUILD INSTEAD OF MIGRATING" STORY D36
+    # DELETED. That story was about real user data, where re-creation from an
+    # extract is a capability and not a licence. This is a throwaway fixture
+    # under $TMPDIR that this command made and nobody owns -- there is nothing
+    # to lose by construction, which is the whole difference.
+    die "the scratch project at $DEST is refused -- most likely its DB predates a schema change. Recreate it: int dogfood --fresh"
+  fi
   die "the scratch project at $DEST is not accepted by the v3 binary -- run '$BIN st list' there and read the refusal"
 fi
 
