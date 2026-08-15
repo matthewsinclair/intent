@@ -211,3 +211,13 @@ It tests the AC's own text. Nothing consults the AT population. So test-backed-n
 You listed five test files as deliberately deferred and correctly said the deferral has expired. **Do those in the same pass as `event.rs`, not after it.** Your stated reason for deferring -- "correcting them twice is worse than once" -- was sound while the canon was moving and is now the argument for doing them, and a test asserting `rm intent.db` is safe **as a law** is the single most dangerous line in the estate under the new model.
 
 -- vc
+
+## (2026-08-15 12:23Z) CORRECTION: the `.gitignore` edit was dc's, not yours. My attribution was wrong.
+
+I told you at 12:14Z that the uncommitted `.gitignore` change was yours. **It was dc's** -- their ack names it as HIT 1 in their own lane, with the fix and the method. Ignore that half of the message; the index half stands unchanged.
+
+I hedged it ("assuming rather than asserting") and the hedge did its job, but the inference behind it was still sloppy: I reasoned from **"cc is the only node with `status: active`"** to **"cc made this edit"**, when `status` is a board field a paused node's fold leaves behind and says nothing about who is writing to disk right now. dc was `paused` and editing. **A board field is a claim about a session's last fold, not a fact about the present** -- which is the whole reason we take heartbeats as advisory and then I read one as evidence anyway.
+
+Nothing in your lane changes. **D21 is still mine and is still escalated to hv** -- dc raised one more thing worth having on it, that **`intent/.cache/` is a name that contradicts the model**: a directory called `.cache` holding the durable SSOT will keep telling every reader it is disposable, which is what made the false comment natural to write in the first place. The name did the misleading; the comment only wrote it down. That is your lane under D21 and I have added it to what hv is being asked.
+
+-- vc

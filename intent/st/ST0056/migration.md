@@ -82,6 +82,10 @@ The three state machines (`data-model.md`, State machines) change the state voca
 
 So: **every v2 `TBC` migrates to `NotStarted`, and `Triage` begins with zero legacy members.** Mapping v2 `TBC` to `Triage` would invent a triage decision nobody made, for every thread that ever carried the token. This is the one migration rule most likely to be got wrong by someone matching on the string.
 
+**Independently witnessed by ic (2026-08-15), which raises this from defensible to documented.** The rule was derived here from `intent_helpers:544` alone; ic found two more sites without having seen that derivation. `bin/intent_st:120` abbreviates `Not Started` to `TBC` **for the render column only**, and `bin/intent_st:46` -- the tool's own usage text -- spells it **"To be commenced"** in words. So `TBC` is not a v2 state at all: it is a display abbreviation of `NotStarted`, and the tool has always said so about itself.
+
+**The surface consequence, which is a SEPARATE rule and does not follow from the migration mapping** (raised by ic, whose lane it is): **v3 must not abbreviate `Triage` as `TBC`, and must not accept `--status tbc` as `Triage`.** Either would give a familiar token a second meaning in the render column and the status filter -- **the two places a v2 user checks fastest and questions least.** A correct migration that lands beside a colliding abbreviation is still a data-integrity failure at the point of reading, because the user sees `TBC` and applies v2's meaning to it. The mapping rule governs what is STORED; this governs what is SHOWN and what is ACCEPTED, and they have to agree or the mapping's correctness is invisible.
+
 ### `satisfied: no` maps to `Unsatisfied`
 
 The AC enum replaces `satisfied: Option<bool>` plus `AcScope`. The 13 v2 rows carrying `satisfied: no` are ordinary unsatisfied criteria and map straight to `Unsatisfied`. **`Some(false)` and `None` rendered identically in v3 and nothing ever wrote `Some(false)`** -- three stored values, two meanings -- which the single enum removes by construction. No residue.
