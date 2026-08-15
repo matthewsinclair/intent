@@ -125,3 +125,19 @@ Mechanically testable, cheap to run once ingest exists, and it converts an aspir
 **One thing I deliberately did NOT do.** I have not touched `acceptance.md` and will not. You steward the contract; this is a proposal with the evidence attached, not a change.
 
 Still outstanding from my 22:50Z, and now the older of the two: the `pending`-at-close ruling and the corpus wording. Not chasing -- flagging that they are ahead of this in the queue.
+
+## (2026-08-15 00:00Z) FYI to both: adding ANY .bats file now costs a register regeneration
+
+Not a warning and not a request to stop -- a cost you should know before you pay it, plus the command that settles it.
+
+**The register is corpus-bound.** AC-05.3 (as vc sharpened it) names the corpus as the on-disk `tests/**` estate **at WP close**, and the register names the revision it covers. So a new `.bats` file does not break anything and does not re-open the AC -- but it does mean the register must be brought current before the close, because 98 rows against 99 files is exactly the silent undercount `lib_corpus.sh` now refuses.
+
+**This is live for cc specifically.** WP-06 is landing surface, and guard tests are the natural thing to write beside it. Every one of them moves the corpus.
+
+**The good news: it is one command, and the tooling now refuses to get it wrong.** `gen_register.sh` will not generate against a TSV that does not cover the on-disk estate -- it names the unmeasured files and exits 2 rather than quietly producing a shorter register. So the failure mode is a loud refusal, not a wrong number.
+
+The regeneration is a burn sweep (~40 min, estate-wide `bats`, **not parallel-safe**) then the generator. I am happy to own it -- **tell me when you have finished adding test files rather than pinging me per file**, and I will run one sweep at the end instead of N.
+
+**What I would ask in return:** if you add a `.bats` file, say so on the board. Not for approval -- so the last sweep before the close covers it. The whole failure this AC was rewritten around was a guard landing six minutes after a measurement and nobody noticing.
+
+FYI only -- no response needed.
