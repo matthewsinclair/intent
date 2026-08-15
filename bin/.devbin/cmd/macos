@@ -1,0 +1,255 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Sign and notarise the macOS release binaries with the Geodica Developer ID
+#
+# intent macos <doctor|sign|notarize|env|store-creds>
+#
+#   doctor       Preflight: identity present, a real test-sign, notary creds
+#   sign         Developer ID sign both release binaries, then verify
+#   notarize     Submit the signed binaries to Apple, wait, report
+#   env          Print the resolved identity + which creds are present
+#   store-creds  Store APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID in the
+#                login Keychain (interactive; once per machine)
+#
+# hv, 2026-08-15: "Having Intent properly signed using my Geodica Apple Developer
+# Connection keys is the right way to go regardless of whether or not brew needs
+# it." So this is not conditional on the Gatekeeper analysis -- ad-hoc happens to
+# survive the brew path, and signing properly is the decision anyway.
+#
+# PORTED FROM LAMPLIGHT (`bin/.devbin/cmd/macos.d/`), which signs the lamplight
+# CLI and Wrighter.app with the same Geodica ADC, team 76BQL8L47U. Ported rather
+# than reinvented: the credential model, the codesign flags and the notarytool
+# flow are all theirs. **This is a fraction of theirs and deliberately one file**
+# -- Intent ships two bare Mach-O CLI binaries with no .app bundle, no nested
+# executables, no entitlements and no installer pkg, so the inside-out bundle
+# walk and the productsign half have no counterpart here. Splitting five short
+# subcommands into a `.d/` would only stroy the shared credential lookup.
+#
+# CREDENTIALS LIVE IN THE LOGIN KEYCHAIN AND NOWHERE ELSE. No key material in
+# this repository, in CI config, or in any file this writes. `store-creds` is
+# interactive and runs once per machine. Nothing here ever prints a secret --
+# `env` and `doctor` report PRESENT/MISSING, never a value.
+#
+# THE THING THAT WILL LOOK LIKE A BUG AND IS NOT: **a bare Mach-O binary cannot
+# have a notarisation ticket stapled to it.** `stapler` writes tickets into
+# .app/.pkg/.dmg containers; there is nowhere to put one in a bare executable.
+# Measured on the closest possible precedent -- conflab, a Developer ID signed
+# bare binary shipped through the geodica tap: `stapler validate` says "does not
+# have a ticket stapled to it", and that is the correct steady state. The ticket
+# lives on Apple's servers and Gatekeeper checks online. Do not "fix" this.
+#
+# AND `spctl -a -t exec` WILL SAY "rejected" ON A CORRECTLY SIGNED CLI. Measured
+# on conflab: `rejected (the code is valid but does not seem to be an app)`, with
+# a valid `origin=Developer ID Application: Geodica Pty Ltd`. That is spctl
+# refusing to assess a bare executable under a policy meant for app bundles --
+# a category error, not a verdict. **`codesign --verify --strict` is the check
+# that means something here**, and this script uses it.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+
+ROOT="${PROJECT_ROOT:?}"
+RELEASE_DIR="$ROOT/native/rust/target/release"
+BINARIES="intent intentd"
+KC_PREFIX="intent.apple"
+
+# --- credentials -------------------------------------------------------------
+# Read from the login Keychain, never from the environment or a file. Silent on
+# a miss; the callers report presence.
+kc_get() { security find-generic-password -a "$USER" -s "$KC_PREFIX.$1" -w 2>/dev/null || true; }
+
+APPLE_ID="$(kc_get APPLE_ID)"
+APPLE_APP_PASSWORD="$(kc_get APPLE_APP_PASSWORD)"
+APPLE_TEAM_ID="$(kc_get APPLE_TEAM_ID)"
+
+# The identity is DERIVED from the team id rather than stored, so there is one
+# place a team id can be wrong. Falls back to discovering it from the keychain
+# when no team id is stored yet -- which is the normal state before store-creds,
+# and is what lets `sign` work today while notarisation waits on hv.
+if [ -n "$APPLE_TEAM_ID" ]; then
+  IDENTITY="Developer ID Application: Geodica Pty Ltd ($APPLE_TEAM_ID)"
+else
+  IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null |
+    sed -n 's/.*"\(Developer ID Application: [^"]*\)".*/\1/p' | head -1)"
+fi
+
+present() { [ -n "$1" ] && printf 'PRESENT' || printf 'MISSING'; }
+
+require_identity() {
+  [ -n "$IDENTITY" ] || die "no Developer ID Application identity in the keychain -- run: int macos doctor"
+}
+
+require_binaries() {
+  local missing=""
+  for b in $BINARIES; do
+    [ -f "$RELEASE_DIR/$b" ] || missing="$missing $b"
+  done
+  [ -z "$missing" ] || die "missing release binaries:$missing -- run 'int build all --release' first"
+}
+
+# --- subcommands -------------------------------------------------------------
+
+cmd_env() {
+  printf 'identity:   %s\n' "${IDENTITY:-<none found>}"
+  printf 'team id:    %s\n' "${APPLE_TEAM_ID:-<not stored>}"
+  printf '\nnotary credentials (values are never printed):\n'
+  printf '  APPLE_ID            %s\n' "$(present "$APPLE_ID")"
+  printf '  APPLE_APP_PASSWORD  %s\n' "$(present "$APPLE_APP_PASSWORD")"
+  printf '  APPLE_TEAM_ID       %s\n' "$(present "$APPLE_TEAM_ID")"
+}
+
+cmd_doctor() {
+  local rc=0
+
+  step "Developer ID identity"
+  if [ -n "$IDENTITY" ]; then
+    printf '    %s\n' "$IDENTITY"
+  else
+    printf '    MISSING -- no "Developer ID Application" in the login keychain\n'
+    rc=1
+  fi
+
+  # A REAL test-sign, not a presence check. An identity can be listed and still
+  # fail to sign -- expired, revoked, or missing its private key -- and finding
+  # that out during a release is finding it out too late.
+  step "test-sign against a throwaway binary"
+  if [ -n "$IDENTITY" ]; then
+    local tmp
+    tmp="$(mktemp -d)"
+    cp /bin/echo "$tmp/probe" 2>/dev/null || true
+    if [ -f "$tmp/probe" ] &&
+      codesign --force --options runtime --timestamp --sign "$IDENTITY" "$tmp/probe" >/dev/null 2>&1 &&
+      codesign --verify --strict "$tmp/probe" >/dev/null 2>&1; then
+      printf '    signs and verifies\n'
+    else
+      printf '    FAILED -- the identity is listed but cannot produce a valid signature\n'
+      rc=1
+    fi
+    rm -rf "$tmp"
+  else
+    printf '    skipped (no identity)\n'
+  fi
+
+  step "notary credentials in the login keychain"
+  printf '    APPLE_ID %s   APPLE_APP_PASSWORD %s   APPLE_TEAM_ID %s\n' \
+    "$(present "$APPLE_ID")" "$(present "$APPLE_APP_PASSWORD")" "$(present "$APPLE_TEAM_ID")"
+  if [ -z "$APPLE_ID" ] || [ -z "$APPLE_APP_PASSWORD" ] || [ -z "$APPLE_TEAM_ID" ]; then
+    printf '    notarisation is UNAVAILABLE until these exist -- run: int macos store-creds\n'
+    printf '    (signing does NOT need them and works now)\n'
+  fi
+
+  step "release binaries"
+  for b in $BINARIES; do
+    if [ -f "$RELEASE_DIR/$b" ]; then
+      printf '    %-8s %s\n' "$b" "$(codesign -dv "$RELEASE_DIR/$b" 2>&1 | sed -n 's/^Signature=//p')"
+    else
+      printf '    %-8s not built\n' "$b"
+    fi
+  done
+
+  return $rc
+}
+
+cmd_sign() {
+  require_identity
+  require_binaries
+  printf 'identity: %s\n\n' "$IDENTITY"
+  for b in $BINARIES; do
+    step "signing $b"
+    # --options runtime  hardened runtime; notarisation REFUSES without it
+    # --timestamp        secure timestamp; notarisation REFUSES without it
+    # --force            replace the ad-hoc signature the linker already applied
+    #                    (arm64 binaries are always signed; this is a re-sign)
+    codesign --force --options runtime --timestamp --sign "$IDENTITY" "$RELEASE_DIR/$b"
+    # --strict, because the lenient verify passes on things notarisation rejects.
+    codesign --verify --strict --verbose=2 "$RELEASE_DIR/$b" 2>&1 | sed 's/^/    /'
+  done
+  printf '\n'
+  ok
+  printf '  Both binaries carry a Developer ID signature with the hardened runtime.\n'
+  printf '  NEXT: int macos notarize   (needs the notary credentials)\n'
+}
+
+cmd_notarize() {
+  require_identity
+  require_binaries
+  [ -n "$APPLE_ID" ] && [ -n "$APPLE_APP_PASSWORD" ] && [ -n "$APPLE_TEAM_ID" ] ||
+    die "notary credentials missing -- run: int macos store-creds (see: int macos doctor)"
+
+  # Refuse to submit an unsigned or ad-hoc binary. notarytool would reject it
+  # anyway, minutes later, with a less useful message -- and a gate that fails
+  # early beats one that fails after a round trip to Apple.
+  for b in $BINARIES; do
+    codesign -dv "$RELEASE_DIR/$b" 2>&1 | grep -q 'TeamIdentifier=not set' &&
+      die "$b is not Developer ID signed -- run 'int macos sign' first"
+  done
+
+  local staging zip
+  staging="$(mktemp -d)"
+  zip="$staging/intent-macos.zip"
+  # ditto, not zip(1): ditto preserves the code signature and extended
+  # attributes that notarisation reads. A plain zip can strip them.
+  # shellcheck disable=SC2086
+  (cd "$RELEASE_DIR" && /usr/bin/ditto -c -k --keepParent --sequesterRsrc $BINARIES "$zip") ||
+    die "could not build the submission archive"
+
+  step "submitting to Apple (typically 1-5 minutes; notarytool waits)"
+  # `|| true` deliberately: notarytool exits non-zero on an Invalid verdict, and
+  # the verdict is what we want to read and report rather than abort over.
+  local out status
+  out="$(xcrun notarytool submit "$zip" \
+    --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" \
+    --wait 2>&1)" || true
+  printf '%s\n' "$out"
+  status="$(printf '%s' "$out" | awk '/^  status: / { print $2 }' | tail -1)"
+
+  if [ "$status" != "Accepted" ]; then
+    local id
+    id="$(printf '%s' "$out" | awk '/id: [0-9a-f-]{36}/ { print $2; exit }')"
+    [ -n "$id" ] && xcrun notarytool log "$id" \
+      --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" 2>&1 | head -40
+    rm -rf "$staging"
+    die "notarisation was not Accepted (status: ${status:-unknown})"
+  fi
+
+  rm -rf "$staging"
+  printf '\n'
+  ok
+  printf '  Accepted. NOTHING IS STAPLED, and that is correct: a bare Mach-O\n'
+  printf '  binary has nowhere to hold a ticket. The ticket lives on Apple'"'"'s\n'
+  printf '  servers and Gatekeeper checks online. conflab ships exactly this way.\n'
+}
+
+cmd_store_creds() {
+  printf 'Storing Apple notary credentials in the login Keychain under "%s.*".\n' "$KC_PREFIX"
+  printf 'Nothing is written to this repository. Values are not echoed.\n\n'
+  printf 'APPLE_ID (Apple account email): '
+  read -r a_id
+  printf 'APPLE_APP_PASSWORD (app-specific password, not the account password): '
+  read -rs a_pw
+  printf '\nAPPLE_TEAM_ID (eg 76BQL8L47U): '
+  read -r a_team
+  printf '\n'
+  for pair in "APPLE_ID:$a_id" "APPLE_APP_PASSWORD:$a_pw" "APPLE_TEAM_ID:$a_team"; do
+    local k="${pair%%:*}" v="${pair#*:}"
+    [ -n "$v" ] || die "$k was empty -- nothing stored"
+    security add-generic-password -U -a "$USER" -s "$KC_PREFIX.$k" -w "$v" ||
+      die "could not write $k to the keychain"
+  done
+  ok
+  printf '  Stored. Verify with: int macos doctor\n'
+}
+
+case "${1:-}" in
+  "" | -h | --help)
+    sed -n '5,14p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
+    exit 0
+    ;;
+  env) cmd_env ;;
+  doctor) cmd_doctor ;;
+  sign) cmd_sign ;;
+  notarize | notarise) cmd_notarize ;;
+  store-creds) cmd_store_creds ;;
+  *) die "unknown macos subcommand: $1 (try: doctor, sign, notarize, env, store-creds)" ;;
+esac
