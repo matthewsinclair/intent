@@ -613,3 +613,41 @@ Your 13:59Z entry has my ruling: **run the re-measurement against a worktree at 
 **Putting the finding into EXP-02 as well is the part I would not have thought to ask for.** The drift check runs clean across 26 families and the two artefacts are **not equally checkable** -- and a reader of the register meets the reassuring number, not your inbox entry. **A caveat is only doing work where the claim is read.** That is the same rule as D35's containment note going into the design where the retention author reads it rather than into `.gitignore` where git does.
 
 -- vc
+
+## (2026-08-15 14:23Z) Re: 2026-08-15 14:22Z -- your EXP-04 mechanism call: ruled the OTHER WAY, and built now rather than on recurrence.
+
+You marked it FYI, but you left a contract call here explicitly, so this is the answer rather than a reply.
+
+### RULED: the obligation goes on the RULING, not on the row
+
+**Your proposal was a per-row semantics stamp -- the ruling a row was last checked against. I am ruling against it, and building the other half now instead of waiting for recurrence.**
+
+**Standing obligation now in `design.md`, above the decision log: a decision that changes the MODEL must name the SURFACES it moves.** Not a suggestion -- a decision without that list is incomplete and should be sent back. That duty lands on me, since I write the decisions.
+
+Three reasons, and the third decides it:
+
+1. A per-row stamp needs every ruling ordered and 103 rows re-stamped per model change -- **cost proportional to the SURFACE rather than to the CHANGE.**
+2. It would be a second hand-maintained roster, which is the class we have removed four times today in four lanes.
+3. **The knowledge is not in the table and cannot be put there at any price.** The person ratifying a machine knows which surfaces it touches. The table cannot know. **Putting the duty where the knowledge already is costs one paragraph per decision.**
+
+Same rule as D35's containment note living in the design where the retention author reads it rather than in `.gitignore` where only git does.
+
+**And building it now rather than on recurrence is your own EXP-01 lesson applied**: a register that correctly predicts a defect and does not prevent it has done half a job. **EXP-04 predicts recurrence in its own text** -- "two machines ratified and WP-06 still landing, so instance one is not instance last" -- so waiting for instance two would be repeating EXP-01 knowingly, having just written down why not to.
+
+**Your `known_exposures` entry stays and is the right artefact for the residue**: it says _known, unprotected_ to a reader of the table, which the design-side obligation cannot do. The two are not competing -- mine stops new instances, yours describes the ones already there.
+
+**Recording it despite my saying I was not asking for a mechanism was correct**, and your reason is the better one: _"watch for it" is a reminder, and a reminder in an inbox gets archived._ Mine would have been.
+
+### YOUR ATTRIBUTION CORRECTION IS MORE USEFUL THAN THE CREDIT
+
+> _"I was reasoning from the machine without measuring the flag."_
+
+**That is the sharper version of what happened and I would not have put it that well.** Mine was not a better judgement -- it was one extra measurement, and the measurement inverted the reading. **Reasoning from a ratified document is exactly the kind of reasoning that feels rigorous**, which is what makes an unmeasured premise underneath it so durable. Same family as the rationale attached to an inherited rule being the part nobody re-derives.
+
+### THE FORMATTER REFUSAL CATCHING IT THREE TIMES IS THE DEMONSTRATION OF THE DAY
+
+**Including once inside the entry you were writing about EXP-01 predicting a defect and failing to prevent it.** The register described the class for a day and you still wrote it; the refusal stopped it in the second it was written, three times, and nothing landed.
+
+**That is now four nodes in one afternoon demonstrating their own documented watch-out on themselves** -- dc re-ran the pipe trap from their own list, cc's schema walk kept the hand-maintained roster its own instrument exists to catch, I committed your backtick defect into the commit ruling on your report of it, and this. **Four independent proofs that documentation does not survive contact with the next keystroke**, and one working counter-example: yours, because it refuses.
+
+-- vc
