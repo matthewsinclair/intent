@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 16:49Z
+heartbeat_at: 2026-08-15 17:45Z
 status: active
-focus: "AC-02.8 planned and two rulings put to vc: created_at cannot be BOTH a fact about the DB and the replacement for threads.created, and with every write a DELETE+INSERT an updated_at trigger never fires while created_at silently means updated_at. Unblocked half starts now -- delete Store::now/today, fill created/completed from what the write RETURNED."
+focus: "AC-02.8 DONE and pushed (04c6813a, 075ebb13, c2ba44fd) -- record timestamps on every table, the clock DELETED, and hv's signature form enforced. 314 tests. With vc for verification; WP-02 goes to 8/8 if it holds. NEXT: AC-06.10 / D41 two-part face versions."
 claims: []
 ---
 
@@ -29,29 +29,27 @@ claims: []
 
 **Why load-bearing**: under D34 two machines MERGE event logs. A merge needs a time nobody could have typed.
 
-## DOING -- AC-02.8, and it is ONE indivisible unit
+## DONE TODAY -- AC-02.8 whole, three commits, with vc
 
-**hv work instruction: "lance all five and widen the guard." Four are done; these are the rest.**
+`04c6813a` schema, `075ebb13` the clock, `c2ba44fd` the signature guard. 314 tests, clippy `-D warnings` and fmt clean, both remotes. **Q1 and Q2 both ruled my way by vc and built as ruled.**
 
-1. **DELETE `Store::now()` and `Store::today()`.** Deleting is the point, not a side effect -- while they exist someone calls them, and a function that hands out a time IS the confection regardless of where it got the value. They also fail hv's surface rule twice over: they RETURN a time that never went through a record.
-2. **`created_at`/`updated_at` on ALL EIGHT tables**, written by the DB (DEFAULT or trigger). vc's audit: **zero of eight** have one today. Three columns look like the answer and none is -- `threads.created`/`issues.created` are authored dates, `file_index.mtime` is the FILE's, `event_log.ts` was an argument.
-3. **`threads.created`/`completed` are REPLACED by them, not supplemented** -- two fields claiming to say when a thread was created is how they come to disagree. Both are tool-derived: created = when the record was written, completed = when the update that set the status ran.
-4. **`issues.created` is the ONE exception and STAYS** -- v2 users author it by hand, so it is a fact about the world, with a DB stamp beside it.
-5. **Bumps `SCHEMA_VERSION` to 3 + re-pin the hash + a migration rung**, in the same commit. Existing rows carry their stamps through; re-stamping at migration is the violation, not the fix.
-6. **AT-02.8's discriminating case**: the column is populated whether the DB or a caller filled it, so reading it back proves nothing. **Insert through the facade with NO time available to the caller at all**; assert non-null and ordered, and that two sequential writes are non-decreasing -- the property a read-then-write gap cannot give.
+- **Record timestamps on every table**, DB-written via DEFAULT. `created_at`/`updated_at` + upsert on `threads`/`issues`/`file_index`; **`written_at`** on `related`/`wps`/`criteria`/`tests`, because a row deleted and re-inserted with its parent can only honestly record when THIS VERSION was written. `event_log.ts` IS its record timestamp and the DDL says so. `SCHEMA_VERSION` 3, rung 2->3 rebuilding eight tables, FKs off per SQLite's recipe and re-checked inside each rung's transaction.
+- **`Store::now`/`today` DELETED.** `st_new` hands in an empty `created`; the store fills it inside the INSERT and RETURNS it. `write_thread` gained the same two doors `write_event` has. **`apply()` now writes the DB first and renders files from what landed** -- the projection used to be computed before the write, which was harmless only while the application knew the dates.
+- **hv's signature form enforced**: no shipped function TAKES a time. Name AND type, so `stamp: Stamp` (which door) survives while `today: String` does not.
 
-**Reopens WP-02 to 7/8**, knowingly, under "file a defect under its own noun even when that reopens a closed WP".
+## DOING -- next: AC-06.10 / D41 two-part face versions
 
-**Then build hv's surface guard**: no `intentsvcs`/CLI function TAKES a time. The one legitimate seam is `restore_event(&Envelope)`, which takes a RECORD carrying a DB-set stamp through the extract -- make that explicit rather than implied.
+**AC-02.8 is with vc for verification.** If it holds, WP-02 goes to 8/8.
+
+Two-part face versions `INTENT_VER` / `SCHEMA_<TYPE>_VER`, **constants in code, injected by the generator**. The AT asserts against the face AS PUBLISHED, never the constant -- the failure guarded is a generator that stops injecting, and a test reading the constant would pass while the published face carried nothing.
 
 ## TODO
 
 1. **AC-06.8 -- two live violations ic measured**: `doctor --quiet` and `--verbose` are declared and structurally unreadable (`fn doctor()` takes no `ArgMatches`; `run` dispatches `Some(("doctor", _))`). **44 more declared-and-unread flags** sit on unwired commands and become violations one at a time as each is wired -- the worst arrival schedule for a defect nobody watches for. ic raised the flag-disposition mechanism as EXP-05; **the spine change is mine when it lands.**
-2. **AC-06.10 / D41** -- two-part face versions `INTENT_VER` / `SCHEMA_<TYPE>_VER`, **constants in code, injected by the generator**. AT asserts against the face AS PUBLISHED, never the constant -- the failure guarded is a generator that stops injecting.
-3. **AT-00.8 -- the D37 guard is MINE.** The hard part is REFERENT, not regex.
-4. **D37 in the published faces** -- vc is doing the read. Two I found and did NOT fix, to avoid half a sweep: `event.rs` `Subject.id` doc (`eg ST0056`), and `FindingClass`'s own doc ("the two WP-03 adds").
-5. **AC-03.10 (c)+(d)** -- retention + `doctor` staleness. (a)+(b) are done and green.
-6. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
+2. **AT-00.8 -- the D37 guard is MINE.** The hard part is REFERENT, not regex.
+3. **D37 in the published faces** -- vc is doing the read. Two I found and did NOT fix, to avoid half a sweep: `event.rs` `Subject.id` doc (`eg ST0056`), and `FindingClass`'s own doc ("the two WP-03 adds").
+4. **AC-03.10 (c)+(d)** -- retention + `doctor` staleness. (a)+(b) are done and green.
+5. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
 
 ## Waiting
 
@@ -73,6 +71,12 @@ claims: []
 
 ## Watch-outs -- mechanical only
 
+- **A GUARD CAN BE COARSER THAN THE DEFECT IT NAMES, AND THEN IT PASSES ON IT.** My `created_at` guard survived reverting `threads` to delete-and-reinsert, because both writes landed inside one second and second-granularity stamps compared equal. **The fix was the STAMP, not the assertion** -- the same collision is load-bearing in the product, since D34's cross-machine merge orders by exactly this value. Found by mutation test; unreachable by reading.
+- **"DOES THIS THING HAVE ONE" IS THE WRONG QUESTION WHEN IT HAS SEVERAL.** The completeness check asked whether a table had A stamp with a DEFAULT, so stripping `file_index.created_at`'s left `updated_at` to answer for it and the check passed. **Report per column, never per container.**
+- **A DEFECT THAT SURFACES SOMEWHERE ELSE IS A DEFECT THIS GUARD DOES NOT COVER.** That same mutation DID break the build -- through three unrelated snapshot tests hitting a NOT NULL violation. A loud failure elsewhere is not coverage here, and it reads like coverage.
+- **A MIGRATION FIXTURE MUST BE A STORE THAT COULD ACTUALLY HAVE EXISTED.** The v1 fixture laid down `event_log` ALONE; it passed rung 2 and then met rung 3, which rebuilds seven tables it had never created. **The ladder growing a second rung exposed it, not any reasoning about the fixture.**
+- **SQLite REFUSES `ADD COLUMN` FOR A NOT NULL COLUMN WITH A NON-CONSTANT DEFAULT.** Any DB-stamped column means a table REBUILD, not an ALTER. And **`PRAGMA foreign_keys` inside a transaction is a silent no-op** -- set it outside, or the guard looks applied and does nothing.
+- **zsh EATS A BACKTICKED FRAGMENT IN A `-m` COMMIT MESSAGE.** `SELECT strftime(` vanished from a commit body and left "the needle set gained :". **Use `-F -` with a heredoc for any message containing backticks or parens.** `--only` protects a commit and NOT an `--amend`, so check `git diff --cached` is EMPTY before amending to repair one.
 - **BETTER PROVENANCE IS NOT THE ABSENCE OF A CONFECTION.** I built `Store::now()` to collapse three process clocks, and it was the same defect one layer up. **Three of us landed on "one well-sourced clock" independently, which means the wrong shape is the intuitive one** -- so the enforcement must be structural, never a rule to remember.
 - **A SUFFICIENT-LOOKING FIELD ANSWERS A NARROWER QUESTION THAN THE ONE BEING ASKED.** Eight tables shipped with no record timestamp because three columns look like one. Fourth instance of this class in a day.
 - **A SWEEP DOES NOT MOVE A FILE, IT SPLITS A CHANGE.** ic's unqualified `--amend` took my test file without the `store.rs` methods it called; HEAD did not build and every file in it looked finished. **After a sweep the check is "does it still build", not "whose file is this".** `--only` protects a commit and NOT an amend.
