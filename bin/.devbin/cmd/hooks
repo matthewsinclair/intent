@@ -182,6 +182,7 @@ if [ "$DO_INSTALL" -eq 0 ]; then
   printf 'hooks in %s%s\n\n' "$HOOKS_DIR" "$REDIRECTED"
   report_hook pre-commit precommit
   report_hook pre-push prepush
+  report_hook post-commit postcommit
   printf '\n'
   if [ "$rc" -eq 0 ]; then
     printf 'hooks: this clone is wired. NOTE this is a fact about THIS CLONE only --\n'
@@ -224,5 +225,6 @@ EOF
 }
 install_chain pre-commit precommit
 install_chain pre-push prepush
+install_chain post-commit postcommit
 printf '\n'
 exec "$0"

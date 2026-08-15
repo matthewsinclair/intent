@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Clear the stale index entries a partial commit leaves behind (issue 0028)
+#
+# WHY THIS EXISTS, AND WHY IT CANNOT BE A PRE-COMMIT FIX.
+#
+# The whiteboard protocol requires `git commit --only <paths>` so that one node
+# cannot sweep another's staged work into its own commit. That rule is right and
+# it stays. **Its corollary is that `--only` consumes the paths you name and
+# leaves every other index entry exactly as it found it, forever** -- so once
+# anything is staged, no number of `--only` commits will ever clear it.
+#
+# THE SEEDING IS OUR OWN HOOK, not a habit and not the on-save linter. Measured
+# in a scratch repo, 2026-08-15, and reproduced deterministically:
+#
+#   .git/hooks/pre-commit formats the staged markdown and runs `git add`. During
+#   a partial commit git points the hook at a TEMPORARY index (GIT_INDEX_FILE is
+#   set to `.git/next-index-<pid>.lock`), so that add lands in the commit, which
+#   is correct and is why formatting reaches HEAD. **Git then writes the real
+#   index from a snapshot it took BEFORE the hook ran** -- so the real index is
+#   left holding the pre-format content, which now matches neither HEAD nor the
+#   worktree.
+#
+# That is issue 0028's `MM`-with-clean-`git diff HEAD` signature, and it is
+# produced by every markdown commit this repository makes. With five nodes
+# committing coordination markdown continuously, it accumulates in shared state,
+# and a single bare `git commit` by anyone publishes the lot.
+#
+# **A PRE-COMMIT FIX IS IMPOSSIBLE, AND THIS WAS TESTED RATHER THAN ASSUMED.**
+# The obvious repair -- have the hook re-add against the real index as well as
+# the temporary one -- was built and measured, and it does nothing: git
+# overwrites the real index after the hook returns. Anything the hook writes
+# there is discarded. The only moment the index can be corrected is after the
+# commit, which is why this is a post-commit runner and not four more lines in
+# the pre-commit one.
+#
+# WHAT IT WILL NOT TOUCH, which is the whole safety argument. It unstages ONLY
+# entries whose worktree already equals HEAD. If the worktree differs from HEAD
+# the entry is somebody's work in progress and is left alone -- canaried in both
+# directions: a staged new file and a staged-v2/worktree-v3 pair both survive a
+# sweep that clears the hook's artefact in the same commit.
+#
+# AND IT DESTROYS NOTHING EVEN IN THE ONE AMBIGUOUS CASE. An entry staged
+# deliberately and then reverted in the worktree is indistinguishable from the
+# hook's artefact -- same shape, and no content test can separate them. Rather
+# than guess, this prints the index blob's sha before unstaging it. The blob is
+# already in the object store, so `git cat-file -p <sha>` recovers it in full.
+# **The sweep is reversible by construction, which is what earns it the right to
+# act rather than merely report** -- and reporting is what the estate has been
+# doing for eight measured instances without any of them getting cleared.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+
+ROOT="${PROJECT_ROOT:?}"
+cd "$ROOT"
+
+# NEVER SWEEP MID-OPERATION. A rebase, merge, cherry-pick or bisect drives
+# commits with an index that is under someone else's control, and an entry that
+# looks stale between two steps of a rebase is not litter -- it is state. Bail
+# on any of them; the litter can wait for an ordinary commit.
+for marker in rebase-merge rebase-apply MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD BISECT_LOG; do
+  if [ -e "$(git rev-parse --git-path "$marker")" ]; then
+    exit 0
+  fi
+done
+
+cleared=0
+while IFS= read -r line; do
+  x="${line:0:1}"
+  path="${line:3}"
+
+  # X is the index column. A space means nothing is staged; `?` is untracked.
+  case "$x" in ' ' | '?') continue ;; esac
+
+  # Renames report as `old -> new`; the staged path is the new one.
+  case "$path" in *' -> '*) path="${path##* -> }" ;; esac
+
+  # Quoted when the path carries characters git escapes. Leave those alone
+  # rather than half-unquote them: a path this command cannot name exactly is a
+  # path it must not act on.
+  case "$path" in '"'*) continue ;; esac
+
+  # THE GUARD. Worktree must already equal HEAD. If it does not, this is work in
+  # progress and none of our business.
+  git diff --quiet HEAD -- "$path" 2>/dev/null || continue
+
+  if [ "$cleared" -eq 0 ]; then
+    step "clearing stale index entries left by this commit (issue 0028)"
+  fi
+
+  blob="$(git rev-parse ":$path" 2>/dev/null || true)"
+  git reset -q -- "$path"
+  if [ -n "$blob" ]; then
+    printf '    %s\n      recoverable: git cat-file -p %s\n' "$path" "$blob"
+  else
+    printf '    %s\n' "$path"
+  fi
+  cleared=$((cleared + 1))
+done < <(git status --porcelain)
+
+if [ "$cleared" -gt 0 ]; then
+  printf '    (worktree already matched HEAD for each -- nothing in your tree changed)\n'
+fi
+exit 0
