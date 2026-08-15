@@ -22,7 +22,13 @@ claims: [ST0056]
 - **AC-03.8 (canon round-trip) is cc's**, taken after the WP-06 tail. WP-03 is 7/8 on it alone.
 - **AC-06.7 (D28 WP-prose round-trip)** needs the same FTS population as AC-06.4; the phrase-only-in-a-WP-body arm is the discriminating one.
 - **AC-00.1 carries the 28 deferred non-core `pending` rows.** ic's to name, gated here, not forgiven. Check it is still on the row at WP-12.
-- **For hv in the morning**: `intent ac` has no path from satisfied back to unsatisfied -- `satisfy` is one-way and `rescope`/`reinstate` only undo a descope, so I hand-edited a line the CLI exists to own. v3's `ac` surface should carry it; not cutting another AC without them.
+- **For hv in the morning**: `intent ac` has no path from satisfied back to unsatisfied -- `satisfy` is one-way and `rescope`/`reinstate` only undo a descope, so I hand-edited a line the CLI exists to own. v3's `ac` surface should carry it; not cutting another AC without them. I carry this one; ic is not duplicating it.
+- **Also for hv**: `upstream` (public GitHub) is 100+ commits behind. `local` (Dropbox) is pushed current under the standing authorisation; the public push I left for them, since it is outward-facing in a way a Dropbox folder is not.
+
+## Verification kit
+
+- A detached worktree at `$CLAUDE_JOB_DIR/tmp/vc-verify` builds the binary at any named revision, so cc's WIP is never what gets measured. `git worktree prune` clears it if the job dir goes.
+- `$CLAUDE_JOB_DIR/tmp/v3fix` is a **migrated** v3 fixture with its own `git init` -- the only way to exercise ingest, sync and search now that an unmigrated project correctly refuses. Recipe: `config.json` at 3.0.0, `st new`, prose into `thread.json` (**never** into a generated view), `sync`.
 - **hv's own scope calls, still NOT folded into the standing authorisation**: the D01 reading (recorded as runtime, reversible in one line); `intent critic`'s four-way exit-2 overload, ahead of the 15-row usage-convention bundle because it is the only one with a live consumer; whether `fileindex` follows `treeindex`; whether `todo --flush` survives, which decides whether the watermark field exists; WP-06's name now that AC-06.4 and AC-06.6 put two non-parity commands in it.
 - **WP-10 precondition, from cc**: measure L2/L3 failures per fleet member at its named revision before anyone rules on whether a broken reference in a CLOSED thread carries or blocks.
 
