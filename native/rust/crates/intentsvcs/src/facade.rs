@@ -588,6 +588,48 @@ impl Facade {
     self.set_wp_status(st, seq, WpStatus::Done, "wp.done")
   }
 
+  /// Re-size a work package.
+  ///
+  /// **`wp new` lets the caller choose a size and nothing could ever change
+  /// it.** Neither v2 nor v3 had this verb, so a work package mis-sized at
+  /// creation -- or, more usually, correctly sized and then understood better
+  /// -- could only be corrected by hand-editing the file the tool owns. That
+  /// is the shape hv ruled on, one entity over from the criterion it was ruled
+  /// on, and it was found by vc's discriminating test rather than by the
+  /// closure check: a value the caller supplies at creation is ENTERED, so
+  /// having no exit makes every one of the six sizes a trap.
+  pub fn wp_rescope(&mut self, st: &str, seq: u32, scope: TShirt) -> Result<(), FacadeError> {
+    let from = self
+      .st_show(st)?
+      .wps
+      .iter()
+      .find(|w| w.seq == seq)
+      .map(|w| w.scope)
+      .ok_or_else(|| FacadeError::NoSuchWorkPackage {
+        st: st.to_string(),
+        seq,
+      })?;
+    let mut next = self.canon.clone();
+    let wp = find_thread_mut(&mut next, st)?
+      .wps
+      .iter_mut()
+      .find(|w| w.seq == seq)
+      .ok_or_else(|| FacadeError::NoSuchWorkPackage {
+        st: st.to_string(),
+        seq,
+      })?;
+    wp.scope = scope;
+    self.apply(
+      "wp.rescope",
+      Subject {
+        kind: "wp".to_string(),
+        id: format!("{st}/{seq:02}"),
+      },
+      json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&scope)}),
+      next,
+    )
+  }
+
   fn set_wp_status(
     &mut self,
     st: &str,

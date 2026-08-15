@@ -356,6 +356,59 @@ fn unreachable_states_are_exactly_the_declared_orphans() {
   }
 }
 
+/// **An `Unbuilt` field must be one NO service call can put a value into.**
+///
+/// vc's correction, and it is the load-bearing test of the pair: "carries no
+/// edges" only says the table is self-consistent, and **edges are the exits,
+/// not the entrances**. A field with no exits is harmless only if nothing can
+/// enter it; if a service call can put a value in place, the entity is sitting
+/// in a state no service call can leave, and the disposition is a label on a
+/// defect rather than a description of one.
+///
+/// The reading held here is the SERVICE-PATH one, stated because the
+/// alternative was considered and discriminates nothing: strict ingest accepts
+/// any schema-valid canon, so under "reachable by any path including ingest"
+/// every value of every closed-domain field is enterable, every `Unbuilt` row
+/// fails, and the test fires on everything. A test that fires on everything is
+/// not a test. D32 is a statement about what SERVICES expose, so that is what
+/// this measures -- and the residue (a value that can only arrive by authoring
+/// canon by hand) is real, named in each row's note, and owed to WP-06.
+///
+/// It measures by DRIVING the creation verbs rather than by reading them. That
+/// is how `WorkPackage.scope` was caught: `wp_new` takes the size from the
+/// caller, so all six were entered at creation and none could be left.
+#[test]
+fn an_unbuilt_field_is_one_no_service_call_can_set() {
+  for field in FIELDS {
+    let Disposition::Unbuilt { .. } = &field.disposition else {
+      continue;
+    };
+    let settable = match (field.entity, field.field) {
+      // `st_new` hardcodes `acceptance: None`; the caller has no say.
+      ("Thread", "acceptance") => {
+        let fx = Fixture::new();
+        let mut facade = fx.facade();
+        let id = facade.st_new("a thread").expect("st new");
+        facade.st_show(&id).expect("thread").acceptance.is_some()
+      }
+      // No service call constructs a criterion, an acceptance test or an
+      // issue: they arrive only as authored canon. Asserted by the absence of
+      // a creation verb on the facade, which is a compile-time fact -- adding
+      // one and not adding an arm here leaves this returning false, so the
+      // arm below is what has to be kept honest, and the panic is the keeper.
+      ("Criterion", "kind") | ("AcceptanceTest", "kind") | ("Issue", "status") => false,
+      other => panic!(
+        "{other:?} is Unbuilt and no arm decides whether a service call can set it -- inertness is measured, never assumed"
+      ),
+    };
+    assert!(
+      !settable,
+      "{}.{} is declared Unbuilt and a service call CAN put a value into it -- so an entity can hold a value nothing can change, and the row is describing a trap rather than an absence. Make it a State and give it the exit",
+      field.entity, field.field
+    );
+  }
+}
+
 /// An `Unbuilt` field owes a work package and declares no edges -- so the day
 /// a mutation for it lands, the disposition is contradicted rather than
 /// quietly outliving the gap it described.
@@ -434,6 +487,19 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
         other => panic!("no arm drives {other} on Thread.status"),
       }
       enum_str(&facade.st_show(ST).expect("thread").status).to_string()
+    }
+    ("WorkPackage", "scope") => {
+      let fx = Fixture::new();
+      fx.write_thread(&thread_with(|t| t.wps[1].scope = parse(from)));
+      let mut facade = fx.facade();
+      let seq = 3;
+      match edge.verb {
+        "wp.rescope" => facade
+          .wp_rescope(ST, seq, parse(edge.to))
+          .expect("wp rescope"),
+        other => panic!("no arm drives {other} on WorkPackage.scope"),
+      }
+      enum_str(&facade.wp_show(ST, seq).expect("wp").scope).to_string()
     }
     ("WorkPackage", "status") => {
       let fx = Fixture::new();

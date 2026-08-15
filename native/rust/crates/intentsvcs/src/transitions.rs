@@ -195,9 +195,23 @@ pub const FIELDS: &[Field] = &[
   Field {
     entity: "WorkPackage",
     field: "scope",
-    disposition: Disposition::Unbuilt {
-      owed_by: "WP-06",
-      note: "the t-shirt size, set once by `wp new` and never again by any verb, in v2 or v3. Re-sizing a work package as its shape becomes clear is ordinary workflow, so under D32 this owes a mutation; it is not a lifecycle state, so it is not this AC's trap case",
+    disposition: Disposition::State {
+      // EVERY size is an initial value, because `wp_new` takes the size from
+      // the caller. That is what makes this a State rather than an inert
+      // attribute, and it is the distinction vc's test drew and this table
+      // originally got wrong: a value the caller supplies at creation has been
+      // ENTERED, so with no verb able to change it, all six were traps.
+      // Neither v2 nor v3 had the verb.
+      initial: &["XS", "S", "M", "L", "XL", "XXL"],
+      edges: &[
+        Edge::direct("wp.rescope", &[], "XS"),
+        Edge::direct("wp.rescope", &[], "S"),
+        Edge::direct("wp.rescope", &[], "M"),
+        Edge::direct("wp.rescope", &[], "L"),
+        Edge::direct("wp.rescope", &[], "XL"),
+        Edge::direct("wp.rescope", &[], "XXL"),
+      ],
+      orphans: &[],
     },
   },
   Field {
