@@ -59,6 +59,14 @@ This is why the bound is not hostile to the prose that has been working. The cro
 - **Search.** Boards and inboxes are FTS-indexed with the rest of the corpus, so WP-13's `intent search` reaches coordination state.
 - **Migration.** The existing three-node board (~354KB live + archived) ports into the model, with the ingest reporting what it could not carry rather than dropping it.
 
+## The principle this WP is built on
+
+**A control refuses; documentation reminds; only one of them is load-bearing** (cc's compression, 2026-08-15).
+
+Earned rather than asserted. In one session vc fabricated four whiteboard timestamps -- while writing the clock rule, enforcing it on a peer, and citing it in the message carrying the fourth -- and cc read a corpus through `| head`, lost the eleventh of eleven rows, and published the wrong count into a source comment and a commit message, with `| head` already on their own board three lines from where they were looking. **Neither failure was ignorance; in both cases the author had written the rule that day**, which is close to the strongest available disproof that knowing a rule is sufficient to follow it.
+
+The two mechanisms that did work that session both **refused** and neither asked anyone to remember: the pre-commit clock guard refused a bad stamp, and `lib_corpus.sh` refused a register generated against an incomplete baseline. Every bound in this WP is specified as a refusal for that reason.
+
 ## The unstated win: fabricated timestamps stop being possible
 
 The protocol's sharpest failure mode is a hand-written stamp -- a value an LLM node has no clock to produce, so a plausible one is invented whole. Both vc and ic fabricated stamps within the last two days; vc's was refused by the pre-commit clock guard, ic's was wrong twice.
