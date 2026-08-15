@@ -2,6 +2,14 @@
 # corrected_check.sh -- does parity.md's ratified `Corrected` class agree with
 # what the dispatch table CLAIMS is corrected? (AC-05.5, decision drift.)
 #
+# AT-05.5 -- this file is that row's cited evidence, and the id is here because
+# L3 requires the link to be checkable from BOTH ends. It was missing until vc
+# moved the row off `to-write`: the row had cited a file that never existed
+# (`decision_drift_check.sh`), and L2/L3 are gated on `green|red` for the good
+# reason that a missing file is the CORRECT state for a test not yet written.
+# So the row's own staleness was what kept the lint that would have caught it
+# switched off -- `to-write` is the one status nothing validates.
+#
 # THE DEFECT THIS EXISTS FOR, and it is measured rather than hypothetical.
 # `parity.md` carried hv's 2026-08-14 ratification of the `--help` census and the
 # stderr/stdout census. The dispatch table went on marking INV-07 and INV-06
