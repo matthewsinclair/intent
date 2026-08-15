@@ -10,7 +10,10 @@
   - **Issues directories** -- `OPEN/`/`CLOSED/` stop encoding status (status is data); index views replace directory browsing.
   - **Generated-view banners** -- views carry a generated footer; tests asserting their absence retire.
   - **Manual-edit workflows** -- tests that hand-edit structured md and expect the tool to honour it convert to mutation-based equivalents or retire (authored-once, D02).
-  - **Corrected** (proposed by ic, hv-ratified at the bounce 2026-08-14) -- a v2 behaviour that is simply wrong and is fixed rather than faithfully reproduced. Known members from ic's census: unknown flags accepted silently with exit 0 (`info`/`config`/`version` -- clap exits 2, so v3 diverges on day one whether or not anyone decides to); `--help` reporting failure on 10 of 27 commands; the stderr/stdout misroute census (45 stderr-only / 12 stdout-only / 2 both on failing invocations -- larger than the three sites in cc's hv queue). Distinct from **deviate**: deviate is a design consequence of v3; corrected is a bug fix. Both carry a ratification reference per register row.
+  - **Corrected** (proposed by ic, hv-ratified at the bounce 2026-08-14) -- a v2 behaviour that is simply wrong and is fixed rather than faithfully reproduced. Distinct from **deviate**: deviate is a design consequence of v3; corrected is a bug fix. Both carry a ratification reference per register row. Known members from ic's census, one per line so each can carry the machine-read `covers:` clause that binds it to the units it ratifies (format adopted by vc 2026-08-15 on ic's proposal: spaced `--` separator, comma-separated ids, nothing fused; checked by `parity/tools/corrected_check.sh`):
+    - unknown flags accepted silently with exit 0 (`info`/`config`/`version` -- clap exits 2, so v3 diverges on day one whether or not anyone decides to) -- covers: INV-08, info, version
+    - `--help` reporting failure on 10 of 27 commands -- covers: INV-07, st, wp, ac, at, todo, fileindex
+    - the stderr/stdout misroute census (45 stderr-only / 12 stdout-only / 2 both on failing invocations -- larger than the three sites in cc's hv queue) -- covers: INV-06
 - **Explicitly out of parity scope**: `bin/release` and the test harness itself (repo dev tooling, not shipped surface).
 
 ## Parity properties (beyond output equality)
