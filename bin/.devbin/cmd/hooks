@@ -60,18 +60,36 @@ ROOT="${PROJECT_ROOT:?}"
 DO_INSTALL=0
 [ "${1:-}" = "--install" ] && DO_INSTALL=1
 
-# Honour core.hooksPath. If someone HAS redirected it, `.git/hooks` is not where
-# git looks, and a check that reads the wrong directory would report ABSENT for
-# a correctly-wired clone -- or WIRED for a directory git ignores. Both are the
-# failure this command exists to prevent, committed by the command itself.
-HOOKS_DIR="$(git -C "$ROOT" config --get core.hooksPath 2>/dev/null || true)"
-if [ -n "$HOOKS_DIR" ]; then
-  case "$HOOKS_DIR" in /*) ;; *) HOOKS_DIR="$ROOT/$HOOKS_DIR" ;; esac
-  REDIRECTED="  (core.hooksPath -> $HOOKS_DIR)"
-else
-  HOOKS_DIR="$ROOT/.git/hooks"
-  REDIRECTED=""
-fi
+# ASK GIT WHERE THE HOOKS ARE. Never compute it.
+#
+# The first version of this file read `core.hooksPath` and fell back to
+# `$ROOT/.git/hooks`. That handled the redirect correctly and was still WRONG,
+# because it is a second implementation of a rule git already owns -- and it
+# missed a case the real rule covers. **In a git worktree `.git` is a FILE, not
+# a directory**, so `$ROOT/.git/hooks` does not resolve and the check reported
+# both hooks ABSENT on a worktree whose hooks are wired (git uses the main
+# repository's hooks directory). A false ABSENT.
+#
+# That is precisely the failure the previous comment here claimed this command
+# existed to prevent -- reading the wrong directory and reporting ABSENT for a
+# wired clone -- committed by the command itself, via a route the comment did
+# not consider. It matters practically rather than theoretically: sacrificial
+# worktrees are the mandated pattern on this project for anything that writes,
+# so the false ABSENT lands exactly where people are told to work.
+#
+# `rev-parse --git-path hooks` is git's own answer and covers all three cases at
+# once: the default, a core.hooksPath redirect, and a linked worktree. It
+# returns an absolute path or one relative to this directory.
+HOOKS_DIR="$(git -C "$ROOT" rev-parse --git-path hooks 2>/dev/null || true)"
+[ -n "$HOOKS_DIR" ] || HOOKS_DIR=".git/hooks"
+case "$HOOKS_DIR" in /*) ;; *) HOOKS_DIR="$ROOT/$HOOKS_DIR" ;; esac
+
+# Reported only, never used for resolution -- naming WHY the directory is where
+# it is helps a reader; deciding it here is what went wrong the first time.
+REDIRECTED=""
+_hp="$(git -C "$ROOT" config --get core.hooksPath 2>/dev/null || true)"
+[ -n "$_hp" ] && REDIRECTED="  (core.hooksPath = $_hp)"
+[ -f "$ROOT/.git" ] && REDIRECTED="${REDIRECTED}  (linked worktree -- hooks live in the main repository)"
 
 # guards_of <runner-name> -- read the guard scripts a runner actually invokes,
 # and report whether each is present and executable. Measured from the runner's
