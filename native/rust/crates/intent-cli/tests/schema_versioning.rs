@@ -368,3 +368,132 @@ fn the_strip_removes_the_markers_and_the_prose_and_nothing_else() {
     "the description strip consumed most of the SDL, so the `\"\"\"` toggle did not close"
   );
 }
+
+fn run(args: &[&str]) -> String {
+  let out = std::process::Command::new(env!("CARGO_BIN_EXE_intent"))
+    .args(args)
+    .output()
+    .expect("run the v3 binary");
+  String::from_utf8_lossy(&out.stdout).into_owned()
+}
+
+/// **AC-06.10(b): a consumer can ASK what contract they are compiling against**,
+/// without opening a file or knowing which idiom it uses.
+///
+/// The three assertions are not interchangeable, and the third is the one a
+/// naive version misses:
+///
+/// 1. Every face is listed, with BOTH parts. One part alone leaves the reader
+///    unable to tell a rebuild from a contract change.
+/// 2. `--versions` composes with `face` rather than overriding it -- the mode
+///    and the selection are separate axes (ic, declared with the row).
+/// 3. What it prints matches the COMMITTED face, so a build reporting a version
+///    the committed artefact does not carry fails here.
+///
+/// **What this test does NOT establish is that the command reads the artefact
+/// rather than the constants** -- in a healthy tree those agree, so a
+/// `--versions` wired straight to `faces::INTENT_VER` passes every assertion
+/// below. That property needs the binary checked against ITSELF and lives in
+/// [`what_versions_reports_is_what_the_printed_face_carries`]. Recorded here
+/// because a test that quietly implies a stronger claim than it makes is the
+/// more expensive kind of gap: it stops anyone writing the test that does.
+#[test]
+fn the_versions_flag_reports_what_the_faces_actually_carry() {
+  let printed = run(&["schema", "--versions"]);
+  let lines: Vec<&str> = printed.lines().filter(|l| !l.trim().is_empty()).collect();
+  assert_eq!(
+    lines.len(),
+    SCHEMA_VER_KEYS.len(),
+    "one line per face, got:\n{printed}"
+  );
+
+  for (name, schema_key) in SCHEMA_VER_KEYS {
+    let line = lines
+      .iter()
+      .find(|l| l.starts_with(name))
+      .unwrap_or_else(|| panic!("no line for {name} in:\n{printed}"));
+
+    // The published file is the independent witness: if the generator stopped
+    // injecting, the command's value goes empty while this one does not.
+    let face = published(name);
+    let tool = marker(&face, INTENT_VER_KEY).expect("the published face carries a tool version");
+    let contract =
+      marker(&face, schema_key).expect("the published face carries its contract version");
+    assert!(!tool.is_empty() && !contract.is_empty());
+
+    assert!(
+      line.contains(&format!("{INTENT_VER_KEY}={tool}")),
+      "{name}: the printed tool version does not match the artefact's -- a build reporting a \
+       constant while the face lost its marker is the failure this reads the artefact to catch. \
+       got: {line}"
+    );
+    assert!(
+      line.contains(&format!("{schema_key}={contract}")),
+      "{name}: the printed contract version does not match the artefact's. got: {line}"
+    );
+  }
+}
+
+/// The mode and the selection are separate axes, so naming a face narrows the
+/// listing rather than switching it off.
+#[test]
+fn the_versions_flag_composes_with_a_named_face() {
+  let one = run(&["schema", "ddl.sql", "--versions"]);
+  let lines: Vec<&str> = one.lines().filter(|l| !l.trim().is_empty()).collect();
+  assert_eq!(
+    lines.len(),
+    1,
+    "a named face narrows to its own line: {one}"
+  );
+  assert!(lines[0].starts_with("ddl.sql"), "got: {one}");
+  assert!(lines[0].contains("SCHEMA_DDL_VER="), "got: {one}");
+
+  // ...and without the flag the same invocation still prints the face itself,
+  // so the mode genuinely is a mode and not a hijack of the argument.
+  let body = run(&["schema", "ddl.sql"]);
+  assert!(
+    body.contains("CREATE TABLE IF NOT EXISTS threads ("),
+    "the bare form still prints the face body"
+  );
+}
+
+/// **The command's two outputs must agree with each other**, which is the
+/// property that makes reading the artefact load-bearing rather than merely
+/// tidy.
+///
+/// The check above compares `--versions` against the COMMITTED files, and that
+/// is worth having -- but it does not pin the mechanism: a `--versions` that
+/// reported `faces::INTENT_VER` straight from the constant would pass it, since
+/// the constant and the committed file agree in a healthy tree. **The two
+/// mutations that matter travel together** -- the generator stops injecting AND
+/// the command reports constants -- and against the committed files that pair
+/// is invisible.
+///
+/// So this compares the binary against ITSELF: whatever `intent schema
+/// --versions` claims a face's version is, `intent schema <face>` must actually
+/// carry. One command cannot answer the same question two ways, and a build
+/// that has stopped injecting fails here with nothing else needing to change.
+#[test]
+fn what_versions_reports_is_what_the_printed_face_carries() {
+  for (name, schema_key) in SCHEMA_VER_KEYS {
+    let body = run(&["schema", name]);
+    let claimed = run(&["schema", name, "--versions"]);
+
+    let in_body_tool = marker(&body, INTENT_VER_KEY).unwrap_or_else(|| {
+      panic!("{name}: the face the CLI printed carries no {INTENT_VER_KEY} at all:\n{body}")
+    });
+    let in_body_contract = marker(&body, schema_key)
+      .unwrap_or_else(|| panic!("{name}: the face the CLI printed carries no {schema_key} at all"));
+
+    assert!(
+      claimed.contains(&format!("{INTENT_VER_KEY}={in_body_tool}")),
+      "{name}: `--versions` and the face itself disagree about the tool version. `--versions` \
+       said:\n  {claimed}\nthe face carries {in_body_tool}"
+    );
+    assert!(
+      claimed.contains(&format!("{schema_key}={in_body_contract}")),
+      "{name}: `--versions` and the face itself disagree about the contract version. \
+       `--versions` said:\n  {claimed}\nthe face carries {in_body_contract}"
+    );
+  }
+}

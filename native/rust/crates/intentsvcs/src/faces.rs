@@ -87,6 +87,72 @@ fn versioned_sdl(body: &str) -> String {
   format!("# {INTENT_VER_KEY}: {INTENT_VER}\n# SCHEMA_SDL_VER: {SCHEMA_SDL_VER}\n\n{body}")
 }
 
+/// What each face SAYS its versions are, as `(face, tool version, contract
+/// key, contract version)`.
+///
+/// **Read back out of the generated artefact, never reported from the
+/// constants** -- and the distinction is the whole value of the command. The
+/// failure being guarded is a generator that stops injecting: a build where the
+/// injection is dropped, refactored away or short-circuited still has correct
+/// constants, and it is the ARTEFACT that lost its marker. A `--versions` that
+/// printed [`INTENT_VER`] directly would confidently report the right number
+/// while `intent schema ddl.sql` handed a consumer a face with no version in
+/// it, and the two outputs of one command would disagree.
+///
+/// So this parses what it just generated, which makes the command a second
+/// witness to the injection in the same way `intent schema` is a second witness
+/// to face drift.
+///
+/// A face missing a marker yields an empty string rather than being skipped: a
+/// missing measurement must present as a gap the caller can see, never as a row
+/// that is quietly absent from a list.
+pub fn versions() -> Vec<(&'static str, String, &'static str, String)> {
+  faces()
+    .into_iter()
+    .map(|(name, body)| {
+      let key = SCHEMA_VER_KEYS
+        .iter()
+        .find(|(face, _)| *face == name)
+        .map_or("SCHEMA_VER", |(_, key)| *key);
+      (
+        name,
+        marker(&body, INTENT_VER_KEY).unwrap_or_default(),
+        key,
+        marker(&body, key).unwrap_or_default(),
+      )
+    })
+    .collect()
+}
+
+/// The value a face records for a marker, in whichever idiom that face uses.
+///
+/// One reader for three idioms, because it is the same fact in all three and a
+/// per-idiom reader would let one of them quietly stop being checked. SQL says
+/// `-- KEY: value`, SDL says `# KEY: value`, JSON says `"x-key": value`.
+///
+/// `tests/schema_versioning.rs` deliberately carries its OWN copy of this
+/// logic. That is not drift: it reads the COMMITTED files while this reads the
+/// generated ones, and a test sharing its oracle with the code under test can
+/// only be as strict as that oracle.
+fn marker(face: &str, key: &str) -> Option<String> {
+  let json_key = format!("\"x-{}\"", key.to_lowercase().replace('_', "-"));
+  face.lines().find_map(|line| {
+    let line = line.trim();
+    let rest = line
+      .strip_prefix(&format!("-- {key}:"))
+      .or_else(|| line.strip_prefix(&format!("# {key}:")))
+      .or_else(|| line.strip_prefix(&format!("{json_key}:")))?;
+    Some(
+      rest
+        .trim()
+        .trim_end_matches(',')
+        .trim()
+        .trim_matches('"')
+        .to_string(),
+    )
+  })
+}
+
 /// One face by name, for `intent schema <face>`. `None` if no face has that
 /// name -- the caller reports it; this module does not know the error type.
 pub fn face(name: &str) -> Option<String> {

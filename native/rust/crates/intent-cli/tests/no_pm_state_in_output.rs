@@ -376,20 +376,26 @@ fn collect_rs(dir: &Path, out: &mut Vec<PathBuf>) {
 /// verbatim. A line-based scan sees no quote and skips exactly the lines that
 /// are published. So this tracks literal spans.
 ///
-/// Two constructs it does not handle are ASSERTED ABSENT rather than assumed
-/// absent, the same posture `store_schema_version.rs` takes to in-line SQL
-/// comments: a future block comment or `'"'` char literal fails here loudly
-/// instead of silently changing what this scan means.
+/// **Char literals are HANDLED rather than assumed absent, and the reason is
+/// that the assumption failed within the hour.** This first asserted that no
+/// `'"'` appeared in shipped source, on the grounds that none did. Then
+/// `faces.rs` grew a `marker()` reader whose last step is `.trim_matches('"')`
+/// -- ordinary, correct code -- and the assertion fired. **It fired rather than
+/// mis-scanning, which is the whole argument for stating an assumption instead
+/// of relying on it**, but a guard that refuses legitimate code is a guard
+/// someone deletes, so the scanner learned the construct.
+///
+/// A leading `'` is ambiguous in Rust -- `'a` is a lifetime, `'x'` is a char --
+/// so it is disambiguated by looking for the closing quote two or three bytes
+/// on. A lifetime has none and simply advances.
+///
+/// Block comments are still asserted absent, because there are none and
+/// handling nesting is real work for a construct this codebase does not use.
 fn string_literals(code: &str) -> Vec<String> {
   assert!(
     !code.contains("/*"),
     "a block comment appeared in shipped source; this scanner only skips `//` line comments, so \
      it would read the comment's body as code"
-  );
-  assert!(
-    !code.contains("'\"'"),
-    "a `'\"'` char literal appeared in shipped source; this scanner would read it as opening a \
-     string and mis-attribute everything after it"
   );
 
   // The trailing `#[cfg(test)] mod tests` is Intent's own test fixtures, which
@@ -417,6 +423,16 @@ fn string_literals(code: &str) -> Vec<String> {
         i += 1;
       }
       continue;
+    }
+    // A char literal, which may CONTAIN a quote (`'"'`) and would otherwise be
+    // read as opening a string. A lifetime (`'static`) has no closing quote in
+    // that position and falls through to the plain advance below.
+    if b[i] == b'\'' {
+      let closes_at = if b.get(i + 1) == Some(&b'\\') { 3 } else { 2 };
+      if b.get(i + closes_at) == Some(&b'\'') {
+        i += closes_at + 1;
+        continue;
+      }
     }
     // A raw string: `r"`, `r#"`, `r##"` ... which has no escapes, so it ends
     // only at a quote followed by the same number of hashes.
@@ -682,6 +698,9 @@ const DDL: &str = \"\\
 -- a SQL comment INSIDE a literal, naming D42
 CREATE TABLE t (id TEXT);\";
 let r = r#\"a raw string naming AC-02.8\"#;
+let q = s.trim_matches('\"');
+let n = t.contains('\\n');
+let s: &'static str = \"WP-99 is inside a literal after a lifetime\";
 ";
   let literals = string_literals(code);
   let found: Vec<String> = literals
@@ -690,9 +709,10 @@ let r = r#\"a raw string naming AC-02.8\"#;
     .collect();
   assert_eq!(
     found,
-    vec!["D42", "AC-02.8"],
-    "the two identifiers inside literals are found and the two inside comments are not; got \
-     literals: {literals:?}"
+    vec!["D42", "AC-02.8", "WP-99"],
+    "the identifiers inside literals are found and the two inside comments are not -- and the \
+     `'\"'` char literal did not throw the scan off, which is what a naive quote-counter does; \
+     got literals: {literals:?}"
   );
 }
 
