@@ -92,3 +92,45 @@ Landed and pushed: `556d1d0f` (int macos), `7cb29cec` (notarised + verify), plus
 **AC-11.2 CLOSED END TO END.** hv stored the notary credentials; submission `cc52d5da-c974-4820-87a7-a583a95ffa68` came back **Accepted**. `int macos verify` proves it from a quarantined copy -- `source=Notarized Developer ID`, both binaries, runs. **CI needs no Apple secrets**: Lamplight's `ci.yml` references none, so signing is local on the machine holding the identity, and the escalation is retired rather than answered.
 
 **Three corrections to my own work, all surfaced by hv running the tool**: `doctor` printed a BLANK signature field for correctly-signed binaries (`codesign` prints `Signature=adhoc` but `Signature size=N` -- a space, not an `=`, so the display went blank exactly when the news was good); `notarize` passed two sources to `ditto -c -k`, which takes one; and I had written into the source that spctl cannot assess a bare CLI, when `-t exec` was simply the wrong policy type.
+
+---
+
+## evening -- WP-11 distribution, closed out to the WP-12 boundary
+
+Archived from the live board at 2026-08-15 15:28Z. Everything here is DONE or is now held in project canon (design.md D39/D40, acceptance.md AC-11.1 / AC-11.2 / AC-11.4, MODULES.md), which is why it left the board: **a fact recorded in canon does not need a second home on a node board, and a second home is how the two drift.**
+
+### DONE -- the distribution leg
+
+- **hv RULED BOTH OPEN QUESTIONS, direct, on my recommendations** (now D39/D40): v3.0.0 ships **macOS arm64 ONLY**, and the tap is **`matthewsinclair/homebrew-intent`** with artefacts on the source repo's own releases -- no `-dist` repo, which exists for Conflab only because Conflab is closed-source. Recorded with the reversibility attached: a Linux artefact needs no signature, so a Linux leg is purely additive whenever the platform reach is wanted back.
+- **THE SEAM, answered by the estate four months before I asked it.** Conflab carries both a local and a CI signing path behind the repo variable `MACOS_RELEASE_CI`, which is **`off`** since 2026-04-16; the tap's whole 0.5.3 -> 0.6.0 run shipped from `bin/release --local`. The gate shape is the part worth stealing: with the variable off the macOS jobs **skip** rather than run unsigned, so "tag push publishes unsigned macOS artefacts" is structurally impossible rather than merely unlikely.
+- **cargo-dist 0.32.0 DOES NOT NOTARISE** -- `notarytool` 0 hits, `notariz` 0, `stapler` 0, `altool` 0, `xcrun` 0. It signs only, and does that by importing a base64 p12 from `CODESIGN_CERTIFICATE` into a temp keychain, ie the CI-secrets posture. DEFERRED by ruling and **uninstalled**, after the ruling rather than before (vc's point: removing it earlier would make the same measurement cost money to repeat).
+- **`int macos stage`** -- names artefacts per target triple from `rustc -vV`, proves each staged copy, then checksums; refuses if anything is unproven. **`verify_notarised <dir> <file>` is ONE implementation** serving both `verify` and `stage`.
+- **`int macos formula`** -- generated tap formula, version read from the staged binary itself. **Refusal inherited structurally**: its only input is a file `stage` writes exclusively for proven artefacts.
+- **The tap is live and deliberately formula-free.** A formula pointing at a nonexistent release would let `brew tap` succeed and `brew install` fail with a download error -- "the tap is broken" instead of "the release is not out yet".
+- **AC-11.2 closed**; both submissions recorded (`cc52d5da`, `5eddb54a`). vc rewrote its evidence line to state the artefact is **transient and is not the evidence** -- the criterion is the decision recorded and the mechanism implemented, never a binary on disk in a directory any peer's `cargo build` can reach.
+- **The release profile**: `lto=fat`, `codegen-units=1`, `strip=debuginfo`; 9,949,792 -> 8,084,128. Rejected `strip=symbols` (7,096,576) on No-Silent-Errors grounds -- 988 KB buys 10,064 named frames over 144.
+
+### Decisions archived -- superseded by a control, or now held in canon
+
+- **MEASURE THE TOOL BEFORE YOU DESIGN THE SEAM AROUND IT.** A question can be malformed and still feel rigorous, because rigour is about how you answer, not whether the question was worth answering. Corollary and the cheaper habit: **look for the estate's existing answer FIRST** -- Conflab had shipped this exact shape for four months and it was installed on my own machine.
+- **A REVEALED PREFERENCE BEATS A STATED ONE, AND A DISABLED MECHANISM IS EVIDENCE.** A capability deliberately switched off is the finding.
+- **AN AC NAMES THE OUTCOME; THE MECHANISM BELONGS IN THE WORK PACKAGE** (vc's, earned from AC-11.1 naming cargo-dist). A criterion naming a tool can be invalidated by measuring that tool while the thing the project wanted is still achievable -- a contract defect, not a discovery.
+- **HEALTH AND ACCEPTANCE ARE DIFFERENT QUESTIONS.** Ask the narrowest question that decides the thing.
+- **DO NOT GENERALISE FROM THE FAILURE YOU HAPPENED TO HIT.** Ask what the thing IS, not what blocked you from it.
+- **AN IGNORE HIDES THE PATHS IT KNOWS; A GUARD REFUSES THE ONES NOBODY THOUGHT OF.** The tell you reached for the wrong one: the rule has to be exhaustive to work.
+- **CONTAINMENT IS STRUCTURAL OR IT IS NOT CONTAINMENT.** A namespace as a directory is enforced by the filesystem; as a filename prefix it is enforced by every future glob being written correctly.
+- **EXISTING USER DATA IS NOT MIGRATED TO MAKE A LAYOUT TIDY.** Fail-forward governs code, not somebody's rollback artefacts.
+- **A CONSEQUENCE RECORDED NEXT TO A DECISION STARTS GETTING DEFENDED LIKE ONE** ("no DB migrations, ever" acquiring the authority of its neighbours).
+- **A RULE TRUE IN ITS OWN SCOPE IS THE EASIEST KIND TO OVER-APPLY**, precisely because it keeps being true wherever you check it.
+- **ASK THE TOOL, DO NOT REIMPLEMENT ITS RULE** -- `int hooks` recomputing the hooks dir; `pr-checks.yml` hardcoding status directories instead of asking the enumerator. Both fixed.
+- **A PIN THAT DOES NOT BIND IS WORSE THAN NO PIN** -- `rust-toolchain.toml` REFUSED rather than omitted; rustup is not installed, so it would bind CI while reading as a project-wide guarantee. If anyone later "fixes" this by adding the file, the fix is to install rustup first.
+- **A BROKEN NORMALISER FAILS AS A FALSE POSITIVE.** BSD basic regex has no `\+`, so `sed 's/…\+/…/'` is a silent no-op. Use `sed -E` and calibrate against a case it must collapse.
+- **Re-measure at the moment of acting, not from the queued conclusion.**
+- **Append to an inbox, never overwrite it.**
+- **A FILTER'S REAL-WORLD RELIEF IS BOUNDED BY HOW THE WORK BATCHES, NOT BY WHAT THE FILTER MATCHES** (vc's generalisation).
+
+### The correction this fold made, and why it is worth its own heading
+
+The live board carried **"`codesign --verify --strict` is the check that means anything here"** as a watch-out, and carried my own measurement refuting it **two lines below**. Both were true when written and only one survived the day. vc had also given that same claim to hv as a recommendation and retracted it in writing rather than quietly editing it.
+
+**A board can hold a refuted claim and its refutation simultaneously without either one looking wrong**, because each reads as a finding in isolation and nothing compares them. Archiving would have preserved the contradiction; the fold merged them instead. **Folding is not only compaction -- it is the only moment anything re-reads the whole board at once, which makes it the only moment a contradiction of this shape is visible at all.**
