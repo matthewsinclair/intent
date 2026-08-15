@@ -37,9 +37,57 @@ classify_no_burn() {
   local f="$1"
   [ -f "$f" ] || { echo "UNCLASSIFIED|unreadable|classify_no_burn could not read $f, so no rule was applied. A missing input is not a clean classification."; return 0; }
 
+  # THIS NEEDLE IS NARROWER THAN THE ESTATE AND STAYS THAT WAY DELIBERATELY.
+  # It matches one spelling, `${INTENT_BIN_DIR}/intent_<sub>`, and finds 5 files.
+  # A needle covering the other variable forms (`${INTENT_PROJECT_ROOT}/bin/`,
+  # `$INTENT_HOME/bin/`) finds 18. Measured 2026-08-15, so the gap is known
+  # rather than assumed.
+  #
+  # It causes no misclassification today, and the reason is worth writing down
+  # because it is luck with a structure. Thirteen of the eighteen have NON-ZERO
+  # burn, so this ladder never runs on them at all -- they are keep or pending
+  # on the burn measurement alone. Of the five that reach here, every one lands
+  # in the right class by a different rule: two `intent_migrations_*` and
+  # `helpers.bats` source a library (retire), `intent_bin_retarget_guard` is a
+  # named override, and `treeindex_commands` matches this needle directly.
+  #
+  # AND WIDENING IT WOULD BREAK A ROW THAT IS CURRENTLY RIGHT. `release_sidecars`
+  # matches the broad form only via `run grep -F 'stamp_project_version'
+  # "${INTENT_HOME}/bin/intent_upgrade"` -- it reads the script as DATA and
+  # invokes nothing. A wider needle classifies it `deviate` (semantic rewrite
+  # needed) when `out-of-scope` is correct. Same trap as the guard's own
+  # allowlist, one directory over: a grep cannot tell a call site from a file
+  # being read, and this rule runs FIRST, so a false positive here steals the
+  # row from every rule that would have got it right.
+  #
+  # So the limit is: a NEW zero-burn file that invokes a sub-script through one
+  # of the unmatched spellings would fall through to `out-of-scope` and read as
+  # "not a conformance test". Nothing currently does. `gen_pertest.sh --verify`
+  # is what notices if that changes at test granularity; at file granularity the
+  # register is regenerated often enough that the row would be seen.
   if grep -qE '\$\{INTENT_BIN_DIR\}/intent_[a-z_]+' "$f"; then
     echo "deviate|sub-script entry point|Invokes bin/intent_<sub> directly, bypassing the dispatcher (PROJECT_ROOT resolution, INTENT_ORIG_CWD, cd to root -- bin/intent:198-218). No equivalent under one binary; needs a semantic rewrite, not a path swap."
-  elif grep -qE 'source "\$\{?(INTENT_PROJECT_ROOT|INTENT_HOME)\}?/bin/intent|source .*(rules_lib|critic_runner)\.sh' "$f"; then
+  # THE QUOTE IS NOT ALWAYS A DOUBLE QUOTE, and hardcoding it cost a real
+  # misclassification. This needle read `source "$VAR/bin/intent...` with a
+  # literal `"`, which misses every site that sources from inside a
+  # `bash -c "..."` -- where the inner quote must be a SINGLE quote or the
+  # string ends. That is not an exotic spelling; it is the ordinary way to run a
+  # shell function in a clean subshell, and it is how `helpers.bats` writes all
+  # 11 of its call sites.
+  #
+  # The consequence was worse than a wrong label. `helpers.bats` fell through to
+  # the final rule and was classified `out-of-scope` -- "never invokes the CLI,
+  # pins this repository's own content, survives a binary swap untouched." Every
+  # clause of that is false: it sources a bash library and calls its functions,
+  # so it dies with the shell. 17 tests were sitting in the class that means
+  # "not part of the parity contract" when they belong in the class that means
+  # "there is no binary to retarget".
+  #
+  # Widened to either quote or none. Verified against the whole estate before
+  # landing: four files newly match, all four are genuine
+  # `source <lib>; call_function` sites, and nothing that matched before stopped
+  # matching.
+  elif grep -qE $'source [\'"]?\\$\\{?(INTENT_PROJECT_ROOT|INTENT_HOME)\\}?/bin/intent|source .*(rules_lib|critic_runner)\\.sh' "$f"; then
     echo "retire|shell-function unit test|Sources a shell file and calls its functions directly. Dies with bash; there is no binary to retarget."
   elif ! grep -qE 'run_intent|\$INTENT_BIN\b' "$f"; then
     # Never invokes the CLI in any form. Not a conformance test at all: it pins

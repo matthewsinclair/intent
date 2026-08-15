@@ -27,6 +27,74 @@
 
 set -uo pipefail
 
+# --verify -- re-derive every non-burning row's class from the SOURCE and report
+# disagreement with what the committed artefact records. Needs no TAP and runs
+# no tests, so it works long after the sweep's temp directory has gone.
+#
+# It exists because the classification rules live in lib_classify.sh and can be
+# CORRECTED, while regenerating this artefact needs a TAP capture that is
+# ephemeral. That asymmetry is a drift generator: fix a rule, regenerate the
+# file-level register in seconds, and the per-test register silently keeps the
+# old answer until someone happens to run a multi-hour sweep.
+#
+# Live case, and the reason this mode was written rather than a note left on a
+# board: the `retire` needle required a literal double quote after `source`, so
+# it missed every site sourcing from inside a `bash -c "..."` -- where the inner
+# quote MUST be single. Fixing it moved one file in the register and two rows
+# here, and the two rows were unreachable because the TAP was gone. A remembered
+# defect is a forgotten defect; a reported one is not.
+#
+# The burn column is NOT re-derived. That would mean reading this artefact to
+# regenerate itself, and a provenance chain that closes on its own output cannot
+# detect the error it was built to catch.
+if [ "${1:-}" = "--verify" ]; then
+  HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  . "$HERE/lib_classify.sh" || { echo "gen_pertest --verify: cannot source lib_classify.sh" >&2; exit 2; }
+  ART="${ART:-$HERE/../pertest.md}"
+  [ -f "$ART" ] || { echo "gen_pertest --verify: no artefact at $ART" >&2; exit 2; }
+  WT="${WT:-$(cd "$HERE/../../../../.." && pwd)}"
+  cd "$WT" || { echo "gen_pertest --verify: WT is not a directory: $WT" >&2; exit 2; }
+
+  vbody="$(mktemp "${TMPDIR:-/tmp}/gen_pertest_verify.XXXXXX")"
+  vrows="$(mktemp "${TMPDIR:-/tmp}/gen_pertest_rows.XXXXXX")"
+  trap 'rm -f "$vbody" "$vrows"' EXIT
+
+  # \001 stands in for an escaped pipe through the field split, exactly as the
+  # tally below does -- a test name may legitimately contain one.
+  awk -F'|' '{gsub(/\\\|/, "\001")} /^\| `tests\// {
+    gsub(/^ +| +$/,"",$2); gsub(/`/,"",$2);
+    gsub(/^ +| +$/,"",$3); gsub(/^ +| +$/,"",$4); gsub(/^ +| +$/,"",$5);
+    if ($4=="no") print $2"\t"$3"\t"$5
+  }' "$ART" > "$vrows"
+
+  vchecked=0; vmoved=0; vmissing=0
+  while IFS=$'\t' read -r vf vt vrec; do
+    vt="$(printf '%s' "$vt" | tr '\001' '|')"
+    if ! extract_test_body "$vf" "$vt" "$vbody"; then
+      # NOT skipped silently. A body that cannot be found is an unverified row,
+      # which is a different claim from a verified-clean one.
+      printf 'UNVERIFIED  %s\n            %s\n            body not found -- suspect the extraction heuristic before the classifier\n' "$vf" "$vt"
+      vmissing=$((vmissing + 1)); continue
+    fi
+    vchecked=$((vchecked + 1))
+    vnew="$(classify_no_burn "$vbody" | cut -d'|' -f1)"
+    if [ "$vnew" != "$vrec" ]; then
+      printf 'STALE       %s\n            %s\n            recorded %s, rules now say %s\n' "$vf" "$vt" "$vrec" "$vnew"
+      vmoved=$((vmoved + 1))
+    fi
+  done < "$vrows"
+
+  echo "---"
+  echo "non-burning rows verified: $vchecked   stale: $vmoved   unverifiable: $vmissing"
+  if [ "$vmoved" -gt 0 ] || [ "$vmissing" -gt 0 ]; then
+    echo "The artefact disagrees with the current rules. Regenerating it needs a TAP capture:"
+    echo "  BURN_TAP_DIR=<dir> burn.sh ...   then   TAP_DIR=<dir> gen_pertest.sh"
+    exit 1
+  fi
+  echo "pertest.md agrees with the current classification rules."
+  exit 0
+fi
+
 SP="${SP:?set SP -- directory holding burn.tsv}"
 WT="${WT:?set WT -- the worktree the sweep measured}"
 TAP_DIR="${TAP_DIR:?set TAP_DIR -- where burn.sh wrote its TAP}"
