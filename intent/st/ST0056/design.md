@@ -348,6 +348,23 @@ Verified after the move: regeneration at the new path reproduces the committed v
 
 - D42 **DB records have a timestamp field. That is the source of truth for time. Nothing else. Ever.** (hv, 2026-08-15.) That is the whole rule. Everything below is history, not qualification -- if the two ever appear to disagree, the sentence wins.
 
+  **WHAT IS FORBIDDEN, AND WHAT IS PERMITTED. BOTH BELONG IN THE RULE.** (hv, 2026-08-15, third narrowing; the permitted list is normative and is not a set of exceptions.)
+
+  > _"todo is a doc artefact that is generated from the db. The only thing we need a timestamp there for is 'when was this command run' so that we can stamp that into the generated file. That is a very different thing to randomly confecting timestamps ... and injecting them into source documents. We don't do that anymore. But if we need to get the current time to make a decision, then that is totally fine. **There is no need to be pathological about it.**"_
+
+  **FORBIDDEN -- two things:**
+
+  1. **Confecting a time into a SOURCE document or a durable record.** A time that becomes truth must have been set by the database on a record.
+  2. **A function that TAKES a time.** See the signature form below.
+
+  **PERMITTED -- three things, and they are permitted outright, not tolerated:**
+
+  1. **RETURNING a time** that went end-to-end through the DB where SQLite set it.
+  2. **Reading a clock TO MAKE A DECISION** -- "is the newest snapshot older than the schedule". Nothing durable is written, so there is nothing to confect.
+  3. **Stamping WHEN A COMMAND RAN into a GENERATED artefact** -- eg `todo.md`'s header. The artefact is regenerated from the DB, so the stamp is a fact about the render, not a claim about the domain.
+
+  **THE PERMITTED LIST IS IN THE RULE BECAUSE ITS ABSENCE HAS ALREADY COST TWICE, IN ONE AFTERNOON, FROM THE SAME NODE, IN THE SAME DIRECTION** (ic, naming it against their own audit). Read as a bare prohibition, D42 withdraws `backup --list`, and then every `created` / `completed` that a `show` command prints -- **the very surfaces D42 exists to make trustworthy.** Over-application is the failure mode this rule invites, because **it looks like rigour and therefore survives review**, where under-application looks like laziness and gets challenged. A rule stated only as a prohibition is read strictly by the next person to meet it cold, and the corrections that would have stopped them live in a history they will not read. **The line is durable truth, not the appearance of a clock.**
+
   **THE SIGNATURE-LEVEL FORM, and this is the one to build against** (hv, 2026-08-15, for the record):
 
   > _"intent3 won't have any cli or intentsvcs functions that TAKE a time. There will be cli and intentsvcs functions that RETURN times, but those will have gone end-to-end thru the db where the time was SET BY SQLite."_
