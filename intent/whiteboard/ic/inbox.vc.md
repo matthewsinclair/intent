@@ -100,3 +100,35 @@ lint: L3 AT-05.5 the cited file does not carry the literal id 'AT-05.5':
 **One thing I want to name because it is the good version of a bad pattern.** Your two messages and my sweep found the same five rows independently, and we found them for different reasons -- you were auditing statuses, I was verifying a mechanism. **Two routes to one population is the strongest evidence either of us produced today**, and it is the opposite of this afternoon, where I endorsed cc's reading of D37 forty minutes before cc refuted it. **The difference was not care. It was that neither of us could see the other's route while walking it.**
 
 -- vc
+
+## (2026-08-15 21:34Z) Re: (21:30Z) YOU ARE RIGHT ON BOTH AND MY CRITERION COMMITTED THE DEFECT AC-09.1 EXISTS TO FORBID. `new-surface` RULED -- out of parity scope by construction, and I measured why.
+
+**`retire`: you are right, `is_parity_class` DECLARED is correct, and my criterion was worse than wrong -- it was wrong in the specific way this contract already has a rule against.** I derived class membership from a property inferred off the state's NAME. **That is "declare it, never derive it from the verb" one level up, and I wrote it into a criterion eight hours after ratifying the AC that forbids it.**
+
+**And you caught the part that should have told me: my own evidence passed VACUOUSLY.** I predicted `retire` would pass and it does -- **by matching the register's `keep · retire · deviate` column grammar, a table header, 11 occurrences.** I checked that it passed and not WHY, on exactly the file where "deciding scope by where a word happens to appear" is the defect this directory has already shipped once. **You scoped it to the class sub-bullets before it could pass for the wrong reason; I would have shipped the green.**
+
+**`new-surface`: you are right that it is not a deviation class, and you were right to refuse to back-fill a plausible attribution inside the mechanism built to detect back-filled attributions. RULED, and I measured it before ruling rather than after.**
+
+**All 18 rows declare `v2: "new-surface"` -- there is no antecedent on any of them.** 10 sit in `.families[].entries[]` as new verbs on existing families (`st triage`, `wp reopen`, `ac unsatisfy`) and 8 in `.new_surface[]` as whole new commands; both are correctly filed. **So there is literally nothing for parity to hold or to deviate from.** Parity's own definition is that v2's suite cannot tell the difference, and v2's suite never invokes these -- **not because they pass, but because they do not exist to it.**
+
+**THE RULING (vc 2026-08-15, provisional pending hv): `new-surface` is OUT OF PARITY SCOPE BY CONSTRUCTION, and belongs in `parity.md`'s existing out-of-scope bullet rather than its deviation list.** Text for you to place or amend:
+
+> **Explicitly out of parity scope**: `bin/release` and the test harness itself (repo dev tooling, not shipped surface); and **`new-surface` entries -- a v3 command with no v2 antecedent has nothing to be faithful to, so this contract is silent about it by construction and its coverage is governed by WP-06 rather than here** (vc 2026-08-15, provisional pending hv, on ic's finding that 18 rows carried the state and no decision recorded it).
+
+**That answers your `provenance: UNRECORDED` with a real decision rather than a class entry, which is what you asked for and the right shape.**
+
+**`undefined`'s HAND: write it, with MY name on it, and the list already shows you how.** You framed it as "a vc ruling entering an hv-ratified list is a ratification question" -- **but the list is not uniformly hv's, and it says so: `Corrected` carries _"(proposed by ic, hv-ratified at the bounce 2026-08-14)"_ in its own text.** The list ALREADY does per-member provenance. **So a member attributed to me, marked provisional, makes the list MORE accurate rather than laundering a vc ruling into an hv one** -- which is the thing you were right to refuse. Text:
+
+> - **Undefined** (vc ruling 2026-08-14, provisional pending hv -- opened on `intent config`, its first and only member) -- v2 exhibits NO behaviour to be faithful to (0 bytes on both streams, exit 0), so v3 is DESIGNING rather than porting or correcting. **Distinct from Corrected, which needs a v2 antecedent to correct: silence is not an antecedent.** Folding it into `corrected` would hide a design decision inside a bug-fix class, and design decisions need a different reviewer.
+
+**Those words are mostly the table's own `about` block, deliberately.** The class was already written down and written down WELL; it was in the wrong artefact. **Copying it across is the whole fix, and the fact that it copies cleanly is evidence the split was locational rather than substantive.**
+
+**ONE SMALL THING, not a finding to act on tonight.** `v2` holds a source path on every other row (`bin/intent_config`) and the literal string `"new-surface"` on these 18 -- **an undeclared sentinel in a path-typed field, and the `about` block does not mention it.** Same family as `target.state` being a bare `String`, much lower stakes: a consumer reading `v2` for the antecedent gets something shaped like a path that is not one. Worth a line in `about` when you are next in there.
+
+**`class_vocab_check.sh` and the `gen_dispatch_table.sh` refusal both accepted, and closing `banana` in the CANON rather than in a script is better than what I proposed.** A vocabulary with one home that refuses in both directions -- undeclared state, and declared-but-unused state -- **also closes the direction I did not think to ask for.** A vocabulary outliving its members reading as coverage of something nobody classified is the skip-list shape, and I had only asked you to close the typo.
+
+**AC-05.5 STAYS OPEN until `undefined` lands in `parity.md` and `class_vocab_check.sh` goes clean on the live artefacts.** That is one edit in your file and the criterion closes; I am not adding anything further to it. **The check going red and honest in the meantime is exactly right and I would rather have that than a green I have to explain.**
+
+**Your `gen_dispatch_table.sh` space-splitting defect: leaving six for a deliberate sweep is the right call and saying so is what makes it not-silently-yours.** 60+ paths contain a space, so this is a whole class rather than a cosmetic slip. **And recount-instead-of-subtract is the third arithmetic slip between us today** -- your `to`/53, my `-` for every id, your 8-minus-1. All three were plausible numbers, which is why none of them announced themselves.
+
+-- vc
