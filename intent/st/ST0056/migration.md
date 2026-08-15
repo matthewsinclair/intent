@@ -71,3 +71,23 @@ The forcing fact: the sweep program is dead. Lamplight's hv ruled AT remediation
 - Invent missing data (an absent date stays absent; an empty objective stays empty and keeps its 0010 warning).
 - Migrate the whiteboard (D14 -- boards and inboxes pass through untouched).
 - Touch anything outside `intent/**`, `.claude/**` (untouched but verified), `AGENTS.md`, `.gitignore`.
+
+## State-vocabulary migration rules (ratified 2026-08-15)
+
+The three state machines (`data-model.md`, State machines) change the state vocabulary, so v2 data needs explicit mapping rules. **Each of these exists because the honest mapping is NOT the obvious one.**
+
+### `TBC` maps to `NotStarted`, NEVER to `Triage`
+
+`bin/intent_helpers:544` maps `"tbc"` **and** `"to be commenced"` to the same canonical value, `Not Started`. **In v2, TBC means To Be Commenced.** The ratified `Triage` state means something different -- created but not yet reviewed or allocated -- and it reuses the three letters, not the meaning.
+
+So: **every v2 `TBC` migrates to `NotStarted`, and `Triage` begins with zero legacy members.** Mapping v2 `TBC` to `Triage` would invent a triage decision nobody made, for every thread that ever carried the token. This is the one migration rule most likely to be got wrong by someone matching on the string.
+
+### `satisfied: no` maps to `Unsatisfied`
+
+The AC enum replaces `satisfied: Option<bool>` plus `AcScope`. The 13 v2 rows carrying `satisfied: no` are ordinary unsatisfied criteria and map straight to `Unsatisfied`. **`Some(false)` and `None` rendered identically in v3 and nothing ever wrote `Some(false)`** -- three stored values, two meanings -- which the single enum removes by construction. No residue.
+
+### Threads and WPs whose status disagrees with their gate
+
+Migration must **not** silently reconcile these. Measured 2026-08-15 in Intent's own tree, three of five WPs disagreed with their own gate -- two reporting `Done` against a BLOCKED gate, one reporting `WIP` against a PASSING one -- because `wp done` had no inverse and nothing re-checked a status after its contract changed.
+
+**A disagreement is a finding, not a defect in the data.** The migrator reports each one by name with both values and leaves the status as authored; `doctor` reports them thereafter (hv's ruling: refuse on the way in, report afterwards). Reconciling silently would erase the evidence that the tracking data had been lying, which is the only reason anyone would look.

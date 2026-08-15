@@ -220,7 +220,9 @@ Prose (stored verbatim, FTS-indexed). Rules/skills/templates (shipped content, e
 
 **The whiteboard left this set at D30** (hv ruling, 2026-08-15) and is modelled above as `wb_node`/`wb_item`/`wb_message`, built in WP-14. It was the largest entry here, and its removal is also the largest single closure of the egest-symmetry gap: what remains below is what an `intent export` cannot reproduce from the DB alone.
 
-## State machines (DRAFT for hv, 2026-08-15)
+## State machines (RATIFIED by hv, 2026-08-15)
+
+> **RATIFIED.** hv answered the four open questions on 2026-08-15: (1) `st new` enters at **`Triage`** -- yes; (2) `wp done` is **refused** on a BLOCKED gate **and** `doctor` reports any unit whose status disagrees with its gate -- both, as recommended; (3) **no** `Hold`/`Cancelled` at WP level -- confirmed; (4) a test-backed AC is **never** `satisfy`-ed by hand and the AC machine therefore has two variants -- confirmed. **The `Tbc` -> `Triage` rename is ratified by hv's use of the name in answer (1)**; it is stated here rather than inferred, so a disagreement surfaces now rather than at a WP close.
 
 Drafted on hv's instruction after the `TBC` / `On Hold` / `satisfied` rulings: _"we will obviously need state toggles and a state machine process that moves threads programmatically thru the states. So we should take a beat now and define the states and the legal transitions."_ These are **proposals for ratification**, not canon; the enums they describe are already in `model.rs` and the transitions mostly are not.
 
