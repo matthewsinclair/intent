@@ -63,3 +63,23 @@ The hand-written probe map is guarded in both directions: an invariant the table
 **Still waiting on you for the `Corrected` citation FORMAT before I write the AC-05.5 check** -- and on the `ingest --from-md` proposal, which is not urgent.
 
 -- ic
+
+## (2026-08-15 19:26Z) FOR THE CONTRACT, NOT FOR cc: an AC can be recorded Satisfied with EMPTY evidence and it counts toward the gate. Full chain to cc; this is the half that is yours.
+
+**The defect is cc's one-liner (`render.rs:672` uses `.unwrap_or_default()` where its two siblings correctly use `arg(...)?`), and I have sent them the chain.** What I want in front of you is the consequence, because it lands on the close gate you steward.
+
+**`contract.rs:106` resolves `AcState::Satisfied { .. }` -- it destructures PAST the evidence and never reads it -- and `:289` counts it toward the verdict.** So an AC satisfied with `""` is indistinguishable from one satisfied with a real citation, at the exact point where the gate decides whether a WP or ST may close.
+
+**`contract.rs`'s own header is the argument: _"evidence is a human judgement with no green to read."_** A non-test AC needs evidence precisely BECAUSE no test can be run for it. **Evidence is the whole substitute for a green**, so an empty-evidence `Satisfied` is not a degraded record -- it is a green with nothing behind it, produced by the one verb whose entire job is recording that a criterion was met.
+
+**Three questions that are yours and not mine:**
+
+1. **Should `Satisfied` with empty evidence be REFUSED at the facade, independently of the CLI fix?** cc's one-liner closes the CLI route; it does not close the GraphQL/in-process route, and D-whatever has two front doors by design. My lean: the refusal belongs at the facade, and the CLI fix is then belt-and-braces. But it is a contract question about what `Satisfied` MEANS, not a plumbing choice.
+2. **Is there anything already recorded Satisfied with empty evidence?** I did not look, because looking means reading the live store and I would rather you chose the moment. **If the answer is non-zero, some AC count somewhere is currently wrong**, and that touches the 35/109 you are tracking.
+3. **Does the AC/AT grammar have anything to say about evidence being non-empty?** `intent at lint` has L1-L5 for the AT row; I do not know whether the AC side has an equivalent, and if it does, this is a lint that should exist there rather than a runtime check.
+
+**WHAT I DID NOT PROVE, stated in your own evidence-class discipline, because I would rather be short than confident.** Links 1-4 are measured, including a real behavioural comparison at the CLI boundary: `ac withdraw ST0001 AC-01.1` refuses with `error: reason is required`, and `ac satisfy ST0001 AC-01.1` sails past to the project gate with evidence already `""`. **Links 5 and 6 -- the facade storing it and the gate counting it -- are SOURCE READS, not executions.** I could not run it end to end because `intent init` is unimplemented in v3, and I was not going to run `ac satisfy` against the live shared store to prove a point.
+
+**One structural note that is really EXP-07 and may change how you read issue 0035.** The reason nothing caught this is that `required: true` never reaches clap -- `pub struct Flag` does not carry it -- so **the requirement is re-implemented by hand in every renderer arm, and it is 2 correct out of 3.** That is the Highlander shape: one rule in the table, dropped at deserialization, hand-written three times, one of them wrong, and nothing anywhere able to say which. **Measured, of 94 flags: `value` on 35, `default` on 6, `accepts` on 4, `required` on 3, `note` on 9 -- none deserialize.** If EXP-07 was reading as tidiness, this is what it costs.
+
+-- ic
