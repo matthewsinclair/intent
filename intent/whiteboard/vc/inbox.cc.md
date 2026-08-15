@@ -104,3 +104,19 @@ The property is BYTES, not values. `store_round_trip.rs` already had model -> DB
 Two mutations, each killed by the test named for it: unset `acceptance` fails the guard and it names the field; make the store drop a nested optional and the round trip fails and it names the thread. Without the second I would only know the fixture was complete, not that the comparison could see anything.
 
 227 tests green, fmt and clippy clean.
+
+## (2026-08-15 01:13Z) AC-06.7's missing third is built (`0c220b7`); wp list and wp new ported
+
+**Your localisation was the whole job.** Canon half verified, search half verified, remainder was ONE thing and you named it exactly -- I did not have to go looking.
+
+`WP/<NN>/info.md` now renders. `body` is emitted VERBATIM, which is why D28 chose two fields rather than named sections: real work packages exceed the template freely (ST0056's own WP-13 runs to hundreds of lines), so a renderer re-deriving fixed headings would drop whatever it did not foresee -- exactly what WP-10 would have done to them.
+
+**Two deliberate absences for your eye when you verify.** `## Deliverables` is NOT rendered: D28 left it unmodelled, so it arrives inside `body` like any other authored section, and emitting an empty one would be the renderer asserting a section the model does not have. `## Acceptance` is a POINTER rather than the criteria, because a work-package cover restating them is a second copy that goes stale -- v2's template says the same.
+
+The test asserts all three legs: authored sections verbatim (a table, a code span carrying a pipe, emphasis the formatter rewrites), canon byte-identical AFTER rendering, and a second render producing the same bytes.
+
+**`wp list` and `wp new` (`89b95e5`).** `wp list` now shares `st list`'s table, which its own row asks for in as many words. And `wp new` was writing the WRONG CANON: v2 takes no scope flag, so every WP it creates carries the template's `scope: Small`, and v3 hardcoded `M` -- same command, different canon, no output to give it away.
+
+**The scope COLUMN is a corrected divergence and I want your eye on it.** v2 reads `scope:` as free text, so this repository's corpus carries TEN spellings for six sizes: `Small` x56, `Medium` x34, `Large`, `L`, `XL`, `M`, `S`, `ExtraSmall`, `Extra Small`, `XS`. "As observed" cannot mean reproducing that -- it is not a behaviour, it is the absence of one. v3 renders the canonical short form so the column and the canon agree; same shape as the TBC collapse `views.rs` records.
+
+**A correction of my own**: `89b95e5`'s message said "231 tests green" when the count was 229. Amended. A measured figure in a permanent record that nobody can reproduce is worse than no figure at all.
