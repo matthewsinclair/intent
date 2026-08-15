@@ -56,12 +56,33 @@ ROOT="$WT" bash "$HERE/fixture_probe.sh" > "$EXPOSURE_TSV" || {
   rm -f "$EXPOSURE_TSV"; exit 2
 }
 
+# ASSERT THE SCHEMA RATHER THAN COUNTING COLUMNS AND HOPING. The lookup below
+# reads a positional field, and a positional read is exactly what survives a
+# schema change without complaining -- which it just did: adding fixture_probe's
+# `region` column shifted `exposure` from field 4 to field 5, and the register
+# quietly published the region COUNT as its exposure value. Every row still
+# looked like a row. One line of header check turns that from a silent
+# mis-report into a refusal.
+EXPECTED_HDR=$'file\tstatus_dir\tgen_view\tregion\texposure'
+ACTUAL_HDR="$(head -1 "$EXPOSURE_TSV")"
+[ "$ACTUAL_HDR" = "$EXPECTED_HDR" ] || {
+  echo "gen_register: fixture_probe.sh emitted an unexpected header -- refusing rather than reading fields by position against a schema that has moved" >&2
+  printf '  expected: %s\n  actual:   %s\n' "$EXPECTED_HDR" "$ACTUAL_HDR" >&2
+  exit 2
+}
+
 # bash 3.x on macOS has no associative arrays, so the lookup is a grep over the
 # temp file. 98 rows x 98 lookups is nothing, and it keeps the map on disk where
 # it can be inspected after a bad run.
 exposure_for() {
   local hit
-  hit="$(awk -F'\t' -v f="$1" '$1 == f {print $4; exit}' "$EXPOSURE_TSV")"
+  # Field 5, and it is NOT a magic number: fixture_probe emits
+  # file / status_dir / gen_view / region / exposure. Adding the region column
+  # shifted `exposure` from 4 to 5 and this line kept reading 4, so the register
+  # briefly carried the region COUNT (0 or 1) in the exposure column -- a
+  # positional read silently surviving a schema change, which is the reason the
+  # header is asserted below rather than trusted.
+  hit="$(awk -F'\t' -v f="$1" '$1 == f {print $5; exit}' "$EXPOSURE_TSV")"
   # An empty lookup is a MISSING measurement, not a clean one. The probe walks
   # the same on-disk estate the burn TSV covers, so a miss means the two
   # disagree about what exists -- report it rather than printing `none`.

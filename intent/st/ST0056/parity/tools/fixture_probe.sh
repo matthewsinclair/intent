@@ -148,6 +148,30 @@ GENVIEW_AWK='
 count_genview() { awk "$GENVIEW_AWK" "$1" 2>/dev/null; }
 
 # ---------------------------------------------------------------------------
+# REGION MARKERS -- the third hazard, and deliberately the smallest.
+#
+# D25 (design.md:218): `intent/st/steel_threads.md` becomes 100% generated and
+# the `<!-- BEGIN/END: STEEL_THREAD_INDEX -->` markers do NOT survive the port.
+# A test that extracts content BETWEEN those markers therefore cannot pass under
+# v3 -- and the remedy is not to fix the test, it is to leave it failing, because
+# reinstating the markers would undo a ratified decision. That inverts the usual
+# reading of a red and is exactly why the row needs to say so.
+#
+# EXACTLY ONE FILE IN THE ESTATE DOES THIS (`output_width.bats`, one site,
+# measured 2026-08-15), which is an argument for a needle rather than against
+# one: a hazard with a single instance is the kind that gets explained in a
+# message, forgotten, and then rediscovered as an unexplained failure. It costs
+# three lines here and it travels with the row.
+#
+# Found from the v3 side by cc, who ran the file and got 5 of 6 -- the same
+# shape as their fixture finding, and again invisible to burn, which is a
+# v2-side measurement and cannot see a v3 layout decision.
+# ---------------------------------------------------------------------------
+REGION_RE='(BEGIN|END): [A-Z_]{4,}|<!-- *(BEGIN|END)'
+
+count_region() { count_re "$REGION_RE" "$1"; }
+
+# ---------------------------------------------------------------------------
 # CALIBRATION. A measuring instrument must be shown to report non-zero where it
 # should AND zero where it should, before its output is believed -- especially
 # when it reports zero, because a zero and a broken needle are indistinguishable
@@ -205,7 +229,27 @@ calibrate() {
 CANARY
   n="$(count_genview "$neg")"
   rm -f "$neg"
+
   [ "${n:-0}" -eq 0 ] || { echo "fixture_probe: CANARY FAILED -- gen-view needle fires on a file that only reads a generated view ($n hits). It is matching references, not writes, so every positive is suspect." >&2; fail=1; }
+
+  # -- REGION MARKERS: positive is the single real instance, negative is a
+  #    generated fixture. With only one instance in the estate the positive
+  #    control IS the finding, so if that file is ever repaired this canary goes
+  #    red and tells whoever repaired it that the needle now guards nothing --
+  #    which is the right moment to decide whether to keep it.
+  if [ -f "$ROOT/tests/unit/output_width.bats" ]; then
+    n="$(count_region "$ROOT/tests/unit/output_width.bats")"
+    [ "${n:-0}" -gt 0 ] || { echo "fixture_probe: CANARY FAILED -- region needle finds nothing in output_width.bats, the estate's only region-marker dependant. Either the file was repaired (in which case this needle now guards nothing) or the needle is dead." >&2; fail=1; }
+  else
+    echo "fixture_probe: CANARY MISSING -- tests/unit/output_width.bats is gone; the region-marker control no longer exists." >&2; fail=1
+  fi
+  local rneg
+  rneg="$(mktemp "${TMPDIR:-/tmp}/fixture_probe_rcanary.XXXXXX")"
+  printf '%s
+' '  run run_intent st list' '  assert_output --partial "ST0001"' > "$rneg"
+  n="$(count_region "$rneg")"
+  rm -f "$rneg"
+  [ "${n:-0}" -eq 0 ] || { echo "fixture_probe: CANARY FAILED -- region needle fires on a file with no region markers ($n hits)." >&2; fail=1; }
 
   return $fail
 }
@@ -213,7 +257,7 @@ CANARY
 if [ "${1:-}" = "--calibrate" ]; then
   verify_vocabulary || exit 2
   calibrate || exit 2
-  echo "fixture_probe: vocabulary verified against bin/intent_st; both needles behave on a positive and a negative control."
+  echo "fixture_probe: vocabulary verified against bin/intent_st; all three needles behave on a positive and a negative control."
   exit 0
 fi
 
@@ -222,15 +266,18 @@ calibrate || { echo "fixture_probe: refusing to report from an uncalibrated need
 
 SRE="$(status_re)"
 
-printf 'file\tstatus_dir\tgen_view\texposure\n'
+printf 'file\tstatus_dir\tgen_view\tregion\texposure\n'
 while IFS= read -r f; do
   rel="${f#$ROOT/}"
   sd="$(count_re "$SRE" "$f")"; sd="${sd:-0}"
   gv="$(count_genview "$f")"; gv="${gv:-0}"
-  if   [ "$sd" -gt 0 ] && [ "$gv" -gt 0 ]; then exposure="status-dir+gen-view"
-  elif [ "$sd" -gt 0 ]; then exposure="status-dir"
-  elif [ "$gv" -gt 0 ]; then exposure="gen-view"
-  else exposure="none"
-  fi
-  printf '%s\t%s\t%s\t%s\n' "$rel" "$sd" "$gv" "$exposure"
+  rg="$(count_region "$f")"; rg="${rg:-0}"
+  # Composed rather than ranked: a file can carry more than one hazard and they
+  # have different remedies, so collapsing to the "worst" would hide work.
+  exposure=""
+  [ "$sd" -gt 0 ] && exposure="status-dir"
+  [ "$gv" -gt 0 ] && exposure="${exposure:+$exposure+}gen-view"
+  [ "$rg" -gt 0 ] && exposure="${exposure:+$exposure+}region-marker"
+  [ -n "$exposure" ] || exposure="none"
+  printf '%s\t%s\t%s\t%s\t%s\n' "$rel" "$sd" "$gv" "$rg" "$exposure"
 done < <(find "$ROOT/tests" -name '*.bats' -type f | sort)
