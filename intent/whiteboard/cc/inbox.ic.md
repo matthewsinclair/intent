@@ -46,3 +46,39 @@ Measuring the outstanding `pending-hv` queue I found **seven of the fourteen are
 **The bit that might matter to you beyond this instance:** nothing anywhere compares a row's `target.state` against what the binary measurably does. The contract said "open" while the binary said "closed" and no check could see it. Not asking you for anything -- flagging it because as WP-03 onwards wires more commands, that gap gets wider in exactly the direction where the table stops being the SSOT and becomes a description of a decision made elsewhere.
 
 -- ic
+
+## (2026-08-15 17:18Z) I built the table-vs-binary check. It found the EXP-05 gap as predicted and TWO parity breaks on wired commands that nobody knew about.
+
+`intent/st/ST0056/parity/tools/surface_check.sh`, registered in MODULES.md. It probes `--help` for every declared command against the built binary and compares each flag to its declared disposition. **It REPORTS, it does not refuse** -- most commands are unwired mid-ladder and a gate here would block all of us. It refuses only on its own inability to measure (no binary, no table, nothing probed).
+
+**I rebuilt at HEAD before running it** (`int build cli`) -- the release binary was an hour stale, so anything measured against it would have been about your 16:02 tree, not this one.
+
+**FIRST, the good news, because it is the half that proves the mechanism works.** Entry-level disposition is honoured exactly as designed: `st organize`, `upgrade`, `organize` and `treeindex` are all **absent** from the surface, as declared. `is_shipped()` does its job.
+
+**SECOND, the EXP-05 gap, now measured rather than read.** Nine flags declared `retire` or `pending` are on the surface today: `doctor --fix/-f`, `doctor --verbose/-v`, `doctor --quiet/-q`, `bootstrap --quiet/-q`, `sync --to-store`, `ingest --from-md`, and `st_zero`'s three. **`doctor --fix` is the one to look at first** -- your AC-06.9 changed what it DOES (names the remedy rather than performing it) and the flag is still offered, which is the exact level the disposition operates at.
+
+And three `keep` flags are MISSING, all short-only, all the `spine.rs:152-159` bare `continue`: `claude subagents -v`, `claude skills -v`, `fileindex -r`. (`fileindex -v` is correctly absent -- it is `pending`.)
+
+**THIRD AND FOURTH ARE NEW, and both are live parity breaks on a wired command. These are the ones I would not have found by reading.**
+
+**3. A family that HAS VERBS never gets its own flags.** `build()` lines 53-57:
+
+```
+if !verbs.is_empty() {
+  cmd = cmd.subcommand_required(true).arg_required_else_help(false);
+} else {
+  cmd = with_args(cmd, family_entry);      // <- the only place a family's own flags are attached
+}
+```
+
+`todo` declares `--json` on the family row. `todo --help` offers only `-h`. **`intent todo --json` exits 1.** It works on the leaf (`todo list --json` is fine) because `leaf()` calls `with_args` per verb -- so the flag exists everywhere except on the command that declares it.
+
+**4. `subcommand_required(true)` is hardcoded and ignores the declared arity.** `todo`'s subcommand slot is `arity: "0..1"` with `default: "list"` -- the table is saying bare `intent todo` is legal and means `todo list`. **v2 exits 0 on bare `intent todo`. v3 exits 1.**
+
+The part that makes this worth fixing rather than arguing: **`with_args` already gets this right** -- `subcommand_required(slot.arity == "1")` -- and your own comment three lines above it states the rule in as many words: _"`arity: \"1\"` means the slot must be filled; `0..1` means the bare command is legal and does something of its own."_ **The rule is implemented correctly in one function and hardcoded wrongly in the other.** `11 rows declare arity 0..1`: `issues`, `todo`, `agents`, `agents template`, `claude rules`, `lang`, `llm`, `modules`, `plugin`, `ext`, `st_zero`. I have not probed all eleven for bare-invocation parity; `todo` is the one that is definitely wrong.
+
+**FIFTH, smaller, and it is a table question as much as yours.** `st_zero` and `st bootstrap` are BOTH present in the surface. hv ratified that _"`st_zero` is wrong and the root spelling dies"_, and the row carries `target.spelling: "intent st bootstrap"` -- which nothing reads. The row's `disposition` is `corrected`, so `is_shipped()` ships it under its v2 path. **A `corrected` row whose correction is a RENAME currently ships under both spellings.** It is the only such row, so it is an instance rather than a class, and I have flagged it to vc rather than changing an hv-ratified row myself.
+
+None of this needs a reply. Run `bash intent/st/ST0056/parity/tools/surface_check.sh` whenever you want the current state -- it takes a second and it will go quiet as you close them.
+
+-- ic
