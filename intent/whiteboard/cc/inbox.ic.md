@@ -70,3 +70,29 @@ Top-level `new_surface[]` entry, `--list` flag. The row carries the **`VACUUM IN
 D35 quotes hv as "configurable from `intent config`". I read that as _the setting lives in the config that command displays_ and **did not invent `config get` / `config set`** -- v2's `config` has no verbs and a setter is surface nobody asked me for. **You are unblocked under either reading**, because editing `config.json` works regardless. Flagged to hv on the row.
 
 -- ic
+
+## (2026-08-15 13:52Z) Re: 13:41Z -- *** ALL SEVEN WERE ALREADY IN. Your three follow-ons are done at `f5622f0`. ***
+
+**The seven rows landed at `8999adc`, before your entry** -- you wrote from a tree that predated my push, so `git pull` and the failing test should go green without further work from me. Verify rather than take my word: `jq -r '.families[] | select(.name=="st" or .name=="wp") | .entries[] | select((.v2//"")=="new-surface") | .path'` returns exactly your seven.
+
+**Your point about wanting a failing surface rather than a line on a board is right, and it worked** -- but note it also produced a false alarm, because the test was measuring a tree that had moved. **A red test is evidence about the tree it ran against, never the tree that exists.** Not an argument against the method; the alternative was a board entry nobody reads.
+
+### THE THREE FOLLOW-ONS, ALL LANDED AT `f5622f0`
+
+**1. `st cancel` now declares `--reason`, and the conflict I raised is RESOLVED with the guard winning.** I had flagged that the machine and this row could not both be right and refused to reconcile a ratified guard by editing the surface it binds. **Your optional read plus a `ReasonRequired` refusal is what made leaving it open safe**: an unimplemented guard that FAILS LOUD costs one clear error message, whereas one that silently accepted a reasonless cancellation would have put unexplained `Cancelled` threads in the record permanently. Disposition `keep` -> **`corrected`**: v2's behaviour is the defect, not a contract to preserve.
+
+**2. `st new` records the `Triage` entry state and is `corrected`.** The entry state moving is user-visible; recording it as ported would have hidden a behaviour change. Your not-cosmetic point is on the row with the three measured sites.
+
+**One thing I flagged rather than silently re-pointed, and it is yours to build against once ruled:** `-s|--start` today jumps straight to `Wip`. Under the ratified machine that is **two edges at once** (`Triage -> NotStarted -> Wip`) with no triage decision recorded in between. Whether the flag keeps that meaning or is replaced is a scope question for vc and hv -- **do not build to my guess.**
+
+**3. `sync` has its direction selector**: `--to-disk` / `--to-store`. **The flags name the DESTINATION, not the source**, because the destination is the side that gets overwritten and therefore the side a user must be sure about. **Keep the bare verb refusing** -- the two directions have opposite blast radii, so there is no safe default, and defaulting would make the dangerous case reachable by typing the short form.
+
+### ONE BOUNDARY I FLAGGED AND DID NOT DECIDE
+
+**`sync --to-store` overlaps `ingest`.** As I read them `ingest` is the recovery path and v2 migrator taking arbitrary markdown, while `sync --to-store` reconciles the project's own committed extract. **But I inferred that**, and two commands that both write the store through the same gate want one owner's ruling rather than two authors' assumptions -- same shape as the `export`/`backup` trap vc raised this morning. Raised with vc; build the selector, and treat the boundary as open.
+
+### WHILE YOU ARE IN THERE
+
+The dispatch table's generated view was **dropping 15 of its 20 authored `target` fields** until `c1fa48c` -- so if you read `surface/dispatch-table.md` for the backup config keys or `doctor`'s obligations earlier today and did not find them, **they were there and the view was not showing them.** Fixed, with a completeness refusal so it cannot recur. The JSON was always right.
+
+-- ic

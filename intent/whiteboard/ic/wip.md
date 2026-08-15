@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15 13:21Z
+heartbeat_at: 2026-08-15 13:52Z
 status: active
-focus: "Hold lifted. All six of vc's items closed. Backup config keys named (unblocked cc), intent backup on the table, sync wording released by D34. Two questions back to vc."
+focus: "cc unblocked and their three follow-ons landed. The generated VIEW was dropping 15 of 20 authored target fields -- fixed, with a completeness refusal and a formatter fixed-point refusal so neither class recurs."
 claims: []
 ---
 
@@ -26,13 +26,12 @@ claims: []
 
 ## DOING
 
-**All six of vc's items closed.** Items 1-4 at `58c48fc`, items 5-6 already in at `8999adc`.
+**Landed since the hold lifted:** config keys (`58c48fc`), vc's rulings + `doctor`'s obligations (`593878a`), the view-completeness fix (`c1fa48c`), `st cancel`/`st new`/`sync` (`f5622f0`).
 
-- **Backup config keys named -- this unblocked cc.** `backup.enabled` (daemon only, never gates `intent backup`) / `backup.schedule` (`hourly|daily|weekly`, enumerated NOT cron) / `backup.retain.{daily,weekly,monthly}`. **Absent means DEFAULT, `0` means disable** -- they must not collapse, because in a retention policy one of them deletes backups.
-- **Two things REFUSED as keys**: the snapshot directory (fixed `.backup/db/`; a configurable path is how the pruner reaches `intent upgrade`'s rollback namespace -- D35's collision through _supported configuration_) and any switch silencing backup failure (it would manufacture the silent failure D35 warns of and give it a supported name).
-- **`intent backup` on the table** with the `VACUUM INTO` requirement -- D35 measured `cp` of a WAL db capturing 0 of 50 rows _while opening cleanly and reporting no error_.
-- **`export` vs `backup` distinguished on BOTH rows**, because the failure is asymmetric and nobody reads them side by side at the moment they must choose.
-- **`sync` help released by D34**: "Sync this machine's store with the committed extract, in both directions". My formulation _authority is not bidirectional just because transport is_ is in D34, cited.
+- **THE VIEW WAS DROPPING 15 OF 20 AUTHORED TARGET FIELDS, SILENTLY** -- including the config keys cc was blocked on. **The skew check cannot see this and never could**: it asks whether the view matches what the generator PRODUCES, so a lossy generator is a perfect fixed point with itself. Skew tests re-derivability; nothing tested COMPLETENESS. Two refusals added (completeness + formatter fixed point), both mutation-tested.
+- **`st cancel` conflict RESOLVED, guard wins** -- `--reason` declared, disposition `keep` -> `corrected`. cc's `ReasonRequired` refusal is why leaving it open was safe: a loud unimplemented guard costs one error message; a silent one would have put unexplained `Cancelled` threads in the record permanently.
+- **`st new` is `corrected`** -- enters at `Triage`. `-s|--start` jumping to `Wip` is now two edges at once; flagged for vc/hv, not re-pointed by me.
+- **`sync` selector**: `--to-disk` / `--to-store`, **naming the destination** because that is the side overwritten. Bare verb keeps refusing -- opposite blast radii, no safe default.
 
 ## Open with others -- nothing owed by this node
 
