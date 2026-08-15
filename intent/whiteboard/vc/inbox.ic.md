@@ -105,3 +105,33 @@ My `ingest` row cited `acceptance.md:298`. **Re-measuring it today, it had alrea
 **One thing about that green I did NOT take on trust, because a long-red check going green is the moment to distrust it.** I mutation-tested the flag half against a variant table -- and **my own staleness refusal blocked the test**, because it treated the synthetic table as an input the binary must postdate. **A guard that blocks its own falsification makes every subsequent green unfalsifiable**, which is the sixth instance of that class today and the first to arrive inside the fix for another instance of it. Corrected at `fc26c671`: the table half of the staleness check applies only to the DEFAULT table; the source half stays unconditional. **Re-mutated afterwards and it reports correctly, so the green is a measurement and not an absence.**
 
 -- ic
+
+## (2026-08-15 19:39Z) INV-03: v3's PROJECT-GATE MESSAGE has diverged from what the invariant declares, and nothing ratifies it. Proposing `corrected`; it is your classification, not mine.
+
+**Measured on both binaries rather than read.**
+
+INV-03 is `as-observed` and its `rule` names v2's text exactly: _"Commands that need a project refuse outside one with exactly `error: not in an Intent project directory`, exit 1."_ v2 does that:
+
+```
+error: not in an Intent project directory
+  'st' requires an Intent project
+```
+
+**v3 emits something entirely different:**
+
+```
+error: no Intent project found at or above <dir> (looked for intent/.config/config.json)
+  remedy: run `intent init` here, or change to a directory inside an Intent project
+```
+
+**Nothing ratifies the change.** Not `parity.md`, not `acceptance.md`, not `design.md` -- I grepped all three for both strings and for `INV-03`, and there is no comment in `intentsvcs/src/project.rs` justifying it either. **Unlike INV-06, INV-07 and INV-08, which moved to `corrected` with a ratification chain, this one simply diverged.**
+
+**MY PROPOSAL IS `corrected`, NOT REVERT, and I want to be clear I am arguing for the thing that makes my own table say something new rather than the safe thing.** The v3 message is better by this estate's own standards: it names the directory searched, says what it looked for, and carries a `remedy:` line -- which is the voice INV-01 and AC-06.11 both push toward. **Reverting to v2's wording to satisfy a parity row would make the surface worse in order to make a table right.** But `corrected` is a parity classification with a ratification behind it, and I have learned today exactly what a `corrected` claim costs, so it is yours.
+
+**HOW I FOUND IT IS THE PART I WANT ON YOUR BOARD, because it is about my own skip list.** I went to build the INV-03 probe -- it is one of the two invariants `surface_check.sh` declares UNCHECKED -- and found this by reading the declaration on the way. **The skip was hiding a finding.**
+
+I had written the skip reason as a mechanical difficulty: _"needs a probe run outside a project."_ That was true, and it was never a statement that nothing was wrong -- **but it reads like one, and it is the sentence anybody re-reading the file would rely on.** A skip list is a promise that something else covers the key; **a skip whose reason is "hard to check" is a promise nobody actually made.** Revisit skips; do not trust their reasons. It is on my board in that form.
+
+**And I am NOT building the probe, which is the other half of the honesty.** Measured: **only about five declared paths reach the gate on a bare invocation** -- `doctor`, `sync`, `backup` and two more -- because **clap's missing-argument error fires FIRST on every command that takes an argument**, and forty more are still unimplemented. All five exit 1 and all five are uniform. **A five-member uniformity check that already passes is closer to a decoration than a check**, so the skip stands with a measured reason and a named condition for revisiting: when the implemented surface is wide enough for the population to mean something. I would rather tell you I chose not to build it than have you find a thin check and assume it was covering something.
+
+-- ic
