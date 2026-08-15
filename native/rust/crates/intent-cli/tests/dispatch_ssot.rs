@@ -119,14 +119,26 @@ fn every_added_command_in_the_table_reaches_the_surface() {
   );
 }
 
-/// An unbuilt verb names the work package that OWES it, read from the table.
+/// **No unbuilt verb tells the operator whose work package it is.**
 ///
-/// The message used to say WP-06 for everything. `daemon` is WP-08's and `mcp`
-/// is WP-09's, so that was wrong for two of the six added commands -- and
-/// wrong in the confident voice of a fact, which is the kind of wrong that
-/// gets believed.
+/// This test used to assert the opposite, and the inversion is the honest
+/// record of what happened rather than something to tidy away. It read
+/// `an_unbuilt_command_names_the_work_package_that_owes_it`, and it was a good
+/// test of a bad idea: the message hardcoded WP-06 for everything, which was
+/// wrong for two of the six added commands, so the fix was to read the owner
+/// from the table and the test pinned it there.
+///
+/// D37 says the whole category does not belong in output -- Intent's own
+/// project-management state never reaches Intent's users, because a consumer of
+/// the tool does not care about a work package in the Intent project. So the
+/// right answer was never "name the correct WP"; it was "name no WP", and a
+/// test asserting a more accurate leak is still a test asserting a leak.
+///
+/// **Swept over the whole unbuilt surface, not sampled.** The old form checked
+/// two commands, which is how a message that got the citation back on a third
+/// would have passed.
 #[test]
-fn an_unbuilt_command_names_the_work_package_that_owes_it() {
+fn no_unbuilt_command_leaks_intents_own_project_state() {
   let dir = tempfile::tempdir().expect("tempdir");
   let run = |args: &[&str]| {
     let out = Command::new(env!("CARGO_BIN_EXE_intent"))
@@ -137,19 +149,29 @@ fn an_unbuilt_command_names_the_work_package_that_owes_it() {
     String::from_utf8_lossy(&out.stderr).to_string()
   };
 
-  let mcp = run(&["mcp"]);
+  let families = surface_families();
   assert!(
-    mcp.contains("WP-09"),
-    "`intent mcp` is WP-09's to build: {mcp}"
+    families.len() > 5,
+    "the sweep found almost no surface to walk: {families:?}"
   );
-  let ingest = run(&["ingest"]);
+
+  let mut leaks = Vec::new();
+  let mut seen = 0;
+  for family in &families {
+    let text = run(&[family.as_str()]);
+    seen += 1;
+    for leak in ["ST00", "WP-", "AC-", "AT-"] {
+      if text.contains(leak) {
+        leaks.push(format!("`intent {family}` says {leak}: {}", text.trim()));
+      }
+    }
+  }
+
+  assert_eq!(seen, families.len(), "every family was run");
   assert!(
-    ingest.contains("WP-03"),
-    "`intent ingest` is WP-03's: {ingest}"
-  );
-  assert_ne!(
-    mcp, ingest,
-    "two different owners must not render the same sentence"
+    leaks.is_empty(),
+    "shipped output carries Intent's own project-management state (D37):\n  {}",
+    leaks.join("\n  ")
   );
 }
 

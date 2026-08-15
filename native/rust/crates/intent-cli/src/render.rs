@@ -296,8 +296,11 @@ fn sync() -> Result<(), String> {
       eprintln!("    {line}");
     }
   }
+  // D37: the remedy said "owed by WP-06". Which of OUR work packages owes a
+  // selector is not something a user of Intent can act on, or should have to
+  // read. What they need is the direction that works today.
   eprintln!(
-    "  remedy: `intent st sync` runs the safe direction today. The explicit selector for both is owed by WP-06"
+    "  remedy: `intent st sync` runs the safe direction today; an explicit selector for both directions is not built yet"
   );
   Err(String::new())
 }
@@ -309,19 +312,25 @@ fn sync() -> Result<(), String> {
 /// same-text-for-different-causes collapse AC-04.4 forbids. The operator needs
 /// to know the difference between "you typed nothing" and "we have not built
 /// that yet", because only one of them is their problem.
-/// It names the work package that OWES the verb, read from the table, rather
-/// than a hardcoded WP-06. `intent daemon` is WP-08's and `intent mcp` is
-/// WP-09's; a message telling the operator WP-06 owed them would be wrong the
-/// first time anyone read it, and wrong in the confident voice of a fact.
+/// **It used to name the work package that owes the verb** -- read from the
+/// dispatch table rather than hardcoded, which was the right fix for the
+/// problem it was solving and the wrong thing to be printing at all. D37: our
+/// own thread and work-package numbers are not output. A user reading
+/// "(ST0056 WP-08)" learns nothing they can act on; they learn that this tool
+/// leaks its authors' backlog.
+///
+/// The distinction the message exists to draw is preserved in full -- "you
+/// typed nothing" versus "we have not built that yet" -- because only one of
+/// those is the operator's problem. What is dropped is the internal citation,
+/// not the meaning.
 fn unwired(family: &str, verb: &str) -> Result<(), String> {
   let path = if verb.is_empty() {
     family.to_string()
   } else {
     format!("{family} {verb}")
   };
-  let owner = crate::dispatch::owner_of(&crate::dispatch::table(), &path);
   Err(format!(
-    "error: `{path}` is in the dispatch table but not yet wired to the facade (ST0056 {owner})\n  remedy: run `intent {family} --help` for the verbs that are"
+    "error: `{path}` is a known command that is not implemented yet\n  remedy: run `intent {family} --help` for the verbs that are"
   ))
 }
 
@@ -742,7 +751,7 @@ fn wp_target(a: &ArgMatches) -> Result<(String, u32), String> {
   match scope_of(&target) {
     (st, Scope::WorkPackage(seq)) => Ok((st, seq)),
     _ => Err(format!(
-      "error: `{target}` is not a work package\n  remedy: name it as `<ST id>/<NN>`, eg ST0056/03"
+      "error: `{target}` is not a work package\n  remedy: name it as `<ST id>/<NN>`, eg ST0001/03"
     )),
   }
 }

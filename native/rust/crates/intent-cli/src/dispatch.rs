@@ -96,6 +96,11 @@ pub struct Entry {
   /// WP-06 for everything, which would have been a lie for `daemon` and `mcp`
   /// the moment anyone read it.
   #[serde(default)]
+  /// Which work package owes the command. **Carried, not read** -- it is the
+  /// table author's bookkeeping, and the CLI had one consumer for it (the
+  /// unbuilt-verb message) until D37 ruled that our work-package numbers do not
+  /// reach a user's terminal. Kept because the field is theirs and dropping it
+  /// would make the table unparseable for a reason that is not the table's.
   pub owner_wp: String,
 }
 
@@ -161,16 +166,6 @@ impl Entry {
   pub fn is_shipped(&self) -> bool {
     self.disposition != "retire" && self.target.state != "retire"
   }
-
-  /// The work package that owes this command. Ported entries default to WP-06,
-  /// the CLI parity long tail; `new_surface` rows carry their own.
-  pub fn owner(&self) -> &str {
-    if self.owner_wp.is_empty() {
-      "WP-06"
-    } else {
-      &self.owner_wp
-    }
-  }
 }
 
 /// Parse the compiled-in table. Panics on a malformed table because the table
@@ -195,15 +190,6 @@ pub fn shipped_entries(table: &Table) -> Vec<&Entry> {
 /// Find one entry by its full path, eg `st new` or `search`.
 pub fn entry<'a>(table: &'a Table, path: &str) -> Option<&'a Entry> {
   shipped_entries(table).into_iter().find(|e| e.path == path)
-}
-
-/// The work package that owes `path`, for a verb that parses but does not run.
-///
-/// Falls back to WP-06 for a path the table does not carry at all -- which
-/// cannot normally happen, since the spine is built FROM the table, and is a
-/// build defect rather than anything the operator can act on.
-pub fn owner_of(table: &Table, path: &str) -> String {
-  entry(table, path).map_or("WP-06", Entry::owner).to_string()
 }
 
 #[cfg(test)]

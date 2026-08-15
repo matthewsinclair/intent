@@ -145,9 +145,13 @@ impl Criterion {
 pub struct Query;
 
 /// The one refusal, so the message cannot drift between resolvers.
+///
+/// It carried "(ST0056 WP-04)" until D37: a GraphQL client is the furthest
+/// thing from this project's backlog that Intent has, and the schedule note
+/// belongs in the module doc above, where it is.
 fn unwired<T>(field: &str) -> async_graphql::Result<T> {
   Err(async_graphql::Error::new(format!(
-    "Query.{field} is not wired to the intentsvcs facade yet (ST0056 WP-04); the SDL face is published ahead of the resolvers"
+    "Query.{field} is not implemented yet; the SDL face is published ahead of the resolvers"
   )))
 }
 

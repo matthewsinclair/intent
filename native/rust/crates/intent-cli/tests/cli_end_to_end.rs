@@ -243,7 +243,7 @@ fn an_unwired_verb_is_distinguishable_from_a_missing_one() {
   let missing_err = String::from_utf8_lossy(&missing.stderr).to_string();
 
   assert!(
-    unwired_err.contains("not yet wired"),
+    unwired_err.contains("not implemented yet"),
     "an unwired verb names itself: {unwired_err}"
   );
   assert!(
@@ -255,6 +255,18 @@ fn an_unwired_verb_is_distinguishable_from_a_missing_one() {
     missing_err.trim(),
     "'you typed nothing' and 'we have not built that' are different problems and only one of them is the operator's"
   );
+
+  // D37, on the message most likely to reach for an internal citation: this
+  // one used to read "(ST0056 WP-06)", naming the work package that owed the
+  // verb. Asserted here rather than left to review because the pressure to put
+  // it back is real -- the id is genuinely the most informative thing WE know,
+  // and it is information about us, not about the operator's problem.
+  for leak in ["ST00", "WP-", "AC-", "AT-"] {
+    assert!(
+      !unwired_err.contains(leak),
+      "shipped output carries Intent's own project-management state ({leak}): {unwired_err}"
+    );
+  }
 }
 
 /// The generated views are real markdown a human can read, and carry the
