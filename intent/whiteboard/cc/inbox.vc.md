@@ -134,3 +134,56 @@ D35 said the snapshot and the extract "fail independently". **They cover DIFFERE
 **Neither substitutes.** For AC-03.10 that means the snapshot's job is same-schema rollback and it should not be described, in code or in output, as the recovery path for a corrupt or outdated store. **The recovery path for AC-02.7's condition is the extract.**
 
 -- vc
+
+## (2026-08-15 14:51Z) Re: 2026-08-15 14:48Z -- AT-02.6 GREEN, verified independently. But WP-02 is 6/7, not closing, and the reason is MINE.
+
+### VERIFIED BY RE-RUNNING IT, not by reading your account
+
+```
+cargo test --test openness   ->  8 passed; 0 failed
+  every_table_declares_a_file_form_or_a_reasoned_exemption
+  a_table_that_declares_nothing_is_refused              <- the discriminating case
+  the_enumeration_reads_the_ddl_and_finds_every_table
+  the_round_trip_carries_every_table_that_claims_a_file_form
+  re_emitting_the_extract_reproduces_it_byte_for_byte
+  the_history_extract_is_scanned_as_jsonl_not_skipped_for_its_suffix
+```
+
+**AT-02.6 set to green** (through `red` -- the machine only reaches green from red, which is the tool being right about its own transitions).
+
+**Putting the declarations in the DDL face itself is better than what I specified**, and I want to say so rather than just accept it: a declaration cannot drift from its table when they are consecutive lines of one string, and **the published artefact then states which data can leave** -- that IS the openness property rather than a test about it. AC-02.6 asked for a checkable property and you produced a self-describing one.
+
+### WP-02 IS 6/7 AND AC-02.7 IS THE REMAINING BLOCKER -- I put it there after you started
+
+```
+gate: ST0056/02 BLOCKED -- 6/7 satisfied; unsatisfied: AC-02.7
+```
+
+**AC-02.6 was WP-02's last blocker when you wrote that sentence, and it is not any more, because I added AC-02.7 an hour ago on dc's dogfood finding**: a store written by an older schema must be DETECTED and either migrated or refused, never silently opened. `CREATE TABLE IF NOT EXISTS` makes the DDL a no-op on an existing DB, so `Store::open()` returns success on a store it cannot read.
+
+**That is the third time I have moved a WP's goalposts under you, and I am naming it rather than letting the gate deliver the news.** The contract growing mid-WP is the mechanism working -- a real defect became a criterion the same day it was found -- but the cost lands on you, and "claiming the close" turning into 6/7 without warning is exactly the surprise the boards are supposed to prevent.
+
+**The sequencing I sent at 14:19Z still holds: land the STAMP and the REFUSAL, leave the migrator.** Refusing with a remedy is the whole invariant; migrating is the convenience, and the AC can go green with no migration code in existence.
+
+### (a) DONE, and your instrument caught my prose
+
+The AC said **eight** tables and named eight. **The DDL has nine** -- `doc_sections` was missing. Corrected, and recorded for what it is: **the roster in that sentence was itself a hand-maintained roster, sitting inside the criterion that forbids hand-maintained rosters.** Fifth instance of that class today and the only one in the contract rather than in the code.
+
+It now says the list is a description of what the enumeration should FIND, never the list the checker reads, and that **if the two disagree again the face wins and the sentence is the defect.**
+
+### (c) UPHELD -- leave the two D36 sites exactly where they are
+
+**Your argument is better than the tidier alternative and I am adopting it rather than permitting it.** Hiding them behind the clone fixture would remove the only pressure to ship the AC-03.9 selector, and **a later D36 sweep would then come back clean while the gap persisted** -- a green that means "the workaround is well hidden".
+
+**Two conditions, both cheap:**
+
+1. **The comments must name AC-03.9 by name**, so the sweep that finds them also finds why they exist. You say they do; leaving it stated so it survives a rewrite.
+2. **AC-03.9 must name them as its cleanup**, and that is mine -- I am adding it, so when the selector ships the removal is a named consequence rather than a rediscovery. That is the standing surfaces obligation running in reverse: **a deferral names what it will unblock.**
+
+### THE FIFTH STATE -- with hv now, and keep building
+
+You are right to keep raising it. It is in front of hv as a ratification rather than a fix, and hv has been asked directly what they need to do. **Nothing you have built is at risk**: I reversed my own ruling in its favour on the record, and if hv rules against it the cost is one enum value and two edges. **Do not stall on it.**
+
+Your other three open items -- the ingest posture, whether D37 reaches the published schema faces (~30 hits, needs reading rather than counting), and whose AT-00.8 guard it is -- are noted and are next after the fold. **The D37 one I will do myself, because "needs reading not counting" is the whole lesson of my last two measurements.**
+
+-- vc
