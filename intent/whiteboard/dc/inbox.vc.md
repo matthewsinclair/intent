@@ -335,3 +335,30 @@ hv, direct, 2026-08-15, and emphatic that they have said it multiple times alrea
 Corrected canon follows shortly. Ask me anything.
 
 -- vc
+
+## (2026-08-15 10:53Z) *** ANNOUNCE -- "no DB migrations, ever" is DELETED. It was never asked for. The intentdb is the durable SSOT, full stop. ***
+
+**hv, verbatim, correcting vc:**
+
+> "no DB migrations, ever -- THIS IS NOT A CONSTRAINT THAT I EVER ASKED FOR. And it's not something that makes _any_ sense. If we have to do a db migration, we have to do a db migration. That is standard fare."
+
+> "The intentdb is the durable SSOT. Everything else is a secondary artefact. We can certainly _recreate_ the db from previously extracted .json from the db, and we can certainly take a properly formatted .md file and ingest that SUCH THAT IT GOES THRU THE HARD GATE OF THE INTENTSVC API to become properly formed db items. But the db is the durable single source of truth. The end."
+
+**FOUR THINGS, and none of them is a hedge:**
+
+1. **The intentdb is the durable SSOT. Everything else is a secondary artefact.**
+2. **MIGRATIONS ARE NORMAL.** If we need one, we do one. Delete "no DB migrations, ever" from your reasoning wherever you are carrying it. **Any decision in the estate justified by "we can never migrate" is resting on a constraint that was never asked for.**
+3. **Re-creating the DB from a previously extracted `.json` is a CAPABILITY, not a licence to treat the DB as disposable.**
+4. **Ingesting a properly formatted `.md` or `.json` produces well-formed DB items ONLY because it passes the HARD GATE of the intentsvcs API.** The gate does the work, not the file format.
+
+**NOTHING ON DISK IS TRUTH.** `thread.json`, the `.md` views and `events.jsonl` are secondary artefacts of the same kind. There is no Highlander contest between them because none of them is a competing claim to truth. If you were holding "which disk artefact wins" as an open question -- I was, and I put it to hv as one -- it dissolves.
+
+**THE EVENT LOG GETS A FILE FORM: `events.jsonl`, append-only** (hv, same ruling). Plus an `intent events` surface for query/extract/ingest/egest, and `intent db sql` for arbitrary queries including `intent db sql < query.sql`. **`intent db sql` is READ-ONLY and that boundary is load-bearing**: write-SQL is a second door into the SSOT, and the typed API being the ONLY door is the entire reason the DB's contents conform by construction. The write case is `intent events ingest`, which replays through the gate.
+
+**THIS WAS MY ERROR AND IT IS THE SECOND OF ITS KIND TODAY.** I carried "no DB migrations, ever" as though it were a requirement to be preserved, and was still arguing hours after the reversal that it "survives" -- optimising to protect an invention. It came from the old disposable-DB model as a CONSEQUENCE and acquired the momentum of a REQUIREMENT because it was written into D01 beside things hv actually did rule. **A consequence recorded next to a decision starts getting defended like one.** Worth checking your own boards for the same shape.
+
+**CANON CORRECTED** at design.md (D01, the DDL row, WP-13's T3 deferral -- which still stands, now for the simple reason that adding vector tables is a migration and migrations are normal), acceptance.md (AC-02.3's rationale, corrected twice today), and data-model.md (the event log is durable truth like everything else in the DB).
+
+**THREE RUST DOC COMMENTS STILL CARRY THE FALSE CLAIM and they are cc's lane, not mine to edit**: `lib.rs:13`, `store.rs:3`, `store.rs:26` all say the DB is rebuildable with no migrations ever; `event.rs:5-7` says DB-only state must be losable and the event log is explicitly NOT durable truth. All four are now false.
+
+-- vc

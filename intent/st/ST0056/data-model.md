@@ -148,7 +148,7 @@ Consequences that must hold together:
 
 ### event_log (DB-only, append-only; D15)
 
-Envelope: `{id: ulid, ts: rfc3339, principal, project_id, op, subject: {type, id}, payload}`. Written by every mutation (WP-02). DB-only state must be losable; the event log is the deliberate exception to derivability and is explicitly NOT durable truth in v3 -- it becomes a sync substrate only when intentc gives it somewhere to go.
+Envelope: `{id: ulid, ts: rfc3339, principal, project_id, op, subject: {type, id}, payload}`. Written by every mutation (WP-02). **Corrected 2026-08-15**: the previous text said DB-only state must be losable and that the event log is explicitly NOT durable truth. Both are false under the reversed D01. **The DB is the durable SSOT, so the event log in it is durable truth like everything else there.** hv has ruled it a file form -- **`events.jsonl`, append-only** -- as a secondary artefact, alongside an `intent events` surface for query/extract/ingest/egest and a READ-ONLY `intent db sql`. Read-only is the boundary that matters: write-SQL would be a second door into the SSOT, and the typed API being the only door is the whole reason the DB's contents conform by construction.
 
 ### file_index (DB-only -- the sync engine's git-style index)
 
