@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15T00:13Z
-status: paused
-focus: "Register + per-test register both COMPLETE and committed. AC-05.3 is blocked on two vc RULINGS, not on measurement -- do not close it from this node. Six negative-assertion rows need adjudication."
+heartbeat_at: 2026-08-15T00:51Z
+status: active
+focus: "Burn sweep re-running at c60cdbd to land 8 corrected pertest rows. The question is whether it REPRODUCES, not whether it re-measures -- report that before regenerating anything."
 claims: []
 ---
 
@@ -13,22 +13,27 @@ claims: []
 
 ## DOING -- PICK THIS UP FIRST
 
-**Nothing here is blocked on measurement. Both open items are RULINGS sitting with vc, and neither is this node's to make.**
+**A burn sweep is RUNNING in a detached worktree at `c60cdbd`** (`$CLAUDE_JOB_DIR/tmp/sweep`, TAP under `tap/`). It exists to land 8 corrected rows in `pertest.md`, which cannot be regenerated without a TAP capture -- and the previous capture died with its temp directory.
 
-**The register is COMPLETE at `cd490be`** (98 rows = 98 on-disk `.bats`, zero UNCLASSIFIED/TIMEOUT/UNSTABLE) and **the per-test register is COMPLETE at `b697874`** (`parity/pertest.md`, 487 rows, 40 files split, none refused, `keep` 238 matching the independent burn total exactly). The sweep reproduces byte-identically across two independent runs.
+**The question it is asking is whether the measurement REPRODUCES against the committed baseline, not whether it re-measures.** That is why it runs at `c60cdbd` -- the revision the register is pinned to -- and deliberately NOT at HEAD, which carries cc's `3dfa3ba` fixture-version change. If the burn numbers come back byte-identical, provenance is CONFIRMED rather than split, and both artefacts stay on one revision. If they do not, that is a finding worth more than the 8 rows, because the register's determinism claim rests on it.
 
-`intent ac gate ST0056/05` still reads `BLOCKED -- 3/4; unsatisfied: AC-05.3`, and that is CORRECT, not stale.
+**Report which happened BEFORE regenerating anything.** Do not publish a `pertest.md` measured at a revision the register does not name. vc has been told this is running and can stop it.
 
-### The two rulings, and why this node must not resolve them
+### What the 8 rows are
 
-1. **Does `pending` block the close?** The AC's literal text is mechanically SATISFIED and vc's own falsifiability grep passes (zero `pending` rows carry `--`). But `gen_register.sh:94` and the summary row both say the bucket must be EMPTY at close. vc's live message reads the other way. **Two contracts; the convenient reading is the one that closes.** My recommendation is the stricter one, argued from AC-05.2's corpus being undefined while files stay unsplit -- and note the cost objection is now GONE, because the per-test work is done. That removes a reason to say no; it is not a reason to say yes.
-2. **What is the corpus?** "Every file in the on-disk `tests/**` estate" is **153 files, 55 of them not `.bats`**. The register covers the 98 `.bats`. vc must name it rather than have me implement the reading I prefer.
+- **2** from the `retire`-needle fix (`ambient_project_root_guard.bats`, out-of-scope -> retire).
+- **5** are vc's negative-assertion ruling: `keep` with `basis: read, not measured` MANDATORY, barred from burn arithmetic, counted separately.
+- **1** is the row that broke the ruling: `intent_upgrade_orchestrator.bats :: the ledger converges the Language Packs block` never invokes the CLI -- it greps the migrations script for the literal text `"\$INTENT_BIN/intent" lang init`. Class is `out-of-scope`. **vc ruled six; five fit. Awaiting their confirmation on the sixth.**
 
-`acceptance.md` is vc's. Not touched, and should not be touched from here.
+`gen_pertest.sh --verify` reports all 8 and exits 1, so the artefact states its own staleness. AC-05.3 is REOPENED by vc (gate BLOCKED 3/4) and closes when they land.
 
-### If the stricter ruling comes back, the work is a short hop
+## This session, in one line each
 
-The 40 `pending` file rows resolve from `pertest.md`, which is committed and cross-checked. **Six rows need human adjudication first** -- the negative-assertion tests (below); they are a contract question about whether a failure-asserting test counts as conformance coverage, not a measurement gap.
+- **`v3 exposure` column** in the register (`eba5219`) -- the second predicate beside burn, from cc's finding. Estate-wide 18 files, 9 in `keep` (cc found 8; the 9th is `gen-view`, which their status-dir needle could not see).
+- **`retire` needle wanted a double quote** (`08eacaf`) -- 17 tests read as `out-of-scope` while the file dies with the shell.
+- **`classify_calibrate`** (`9381973`) -- 11 cases, both generators refuse if it fails, mutation-tested against the historical bug.
+- **The BATS fixtures declared 2.10.0**, so v3 refused 19 of the 31 keep files. cc fixed at `3dfa3ba` with `${INTENT_FIXTURE_VERSION:-3.0.0}`.
+- **`st list` blast radius**: 13 files touch it, 5 `keep`, and **nothing pins the header bytes**. `output_width.bats` pins width RELATIONSHIPS, which is harder.
 
 ## Live findings a fresh session should not rediscover
 
@@ -38,9 +43,9 @@ The 40 `pending` file rows resolve from `pertest.md`, which is committed and cro
 
 ## TODO -- in order
 
-1. **Adjudicate the six negative-assertion `UNCLASSIFIED` rows** (`intent_upgrade_orchestrator.bats` x3, `intent_upgrade_dispatcher.bats` x2, `subdir_invocation.bats` x1). My view: they DO exercise the CLI and should be `keep` -- but the burn evidence cannot demonstrate it, so the row would rest on READING the test, a different evidence class. Route through vc.
-2. **Guard the `bin/intent_<sub>` direct-call invariant, or admit it is unguarded.** 147 sites across 5 files. The existing guard's third test EXPLICITLY excludes them, so the gap is documented rather than accidental. **Build it as a tool under `parity/tools/`, not a `.bats` file** -- a new test file moves the corpus and forces a register regeneration before the close.
-3. **Wire AC-03.4's skew check** for `surface/dispatch-table.md`, or hand it to whoever owns AC-03.4. The stale-view incident is the argument.
+1. **When the sweep lands: check REPRODUCTION first, then regenerate.** Diff the new `burn.tsv` against `tools/burn-baseline.tsv`. Identical -> regenerate `pertest.md` from the new TAP, confirm `--verify` goes to `0 stale`, tell vc AC-05.3 can re-close. NOT identical -> stop, report the disagreement, regenerate nothing. The second outcome is the more valuable one and must not be treated as a setback.
+2. **The `deviate` needle is narrow by decision, not by accident** -- 5 files against 18 for a broad form, and widening it would break `release_sidecars` which is right today. Measurement and reasoning are in `lib_classify.sh`. Nothing to do unless a NEW zero-burn file invokes a sub-script through an unmatched spelling; `--verify` is what would notice at test granularity.
+3. **`gen_register.sh` has no `--verify`.** `gen_pertest.sh` grew one because its input is ephemeral; the register can always be regenerated, so it does not strictly need one -- but nothing currently checks the COMMITTED register against a fresh generation, which is the same skew class as AC-03.4 one directory over. Cheap; worth doing before anyone leans on the committed file.
 
 ## Open asks for hv
 
@@ -49,6 +54,10 @@ The 40 `pending` file rows resolve from `pertest.md`, which is committed and cro
 3. **The usage-convention ruling -- ONE question that clears 15 of the 17 pending rows.** Still open, routed through vc, **do not answer it from two nodes.** vc will not make a scope call on hv's behalf and is right not to; they are carrying it to hv alongside their own provisional list. Evidence: 45 stderr-only / 12 stdout-only / 2 both; `--help` failing on 10 of 27; three commands taking unknown flags at exit 0. Recorded as INV-05 (usage never printed on a usage error -- the `error ...; usage` pairs are all dead code), INV-06 (stream misroutes) and INV-07 (`--help` failing), with targets blank and marked `pending-hv`: a blank marked pending is honest, a guess is not. INV-08 is already `corrected` because clap forces it.
 4. **`intent critic` overloads exit 2 FOUR ways** -- findings-present (the meaningful one, INV-04), bare invocation, unknown flag, and bad positional; the unknown-flag path leaks grep's own error as the command's voice. **The only pending item with a live consumer**: the pre-commit gate reads this exit code, so "findings" and "you typed it wrong" are indistinguishable to it today. Worth hv seeing ahead of the usage-convention bundle -- everything else pending is a decision about what v3 should do, this is a defect in what v2 does now. (My first pass said three conditions; vc measured four. The undercount is named on the row rather than quietly replaced.)
 5. **NEW -- two forced fixes hv should see before WP-05, not during it.** (a) **INV-02**: v2 exits 1 on every usage error, clap exits 2 by default; D17 says v2 exit codes carry over, so WP-05 must override clap across nearly the whole surface. One deliberate decision now, or a hundred red conformance tests later that each look like an individual bug. (b) **`st repair`'s `[0-9]+)` arm is dead** (`bin/intent_st:1231`) -- in a case glob `+` is a literal, so `repair 5` and `repair 12345` both error and only the 4-digit form works. Reproducing it faithfully is unconstructible in clap, so this is a forced fix, not a choice.
+
+6. **NEW -- AC-03.4's skew check is unwired for `surface/dispatch-table.md`, and the artefact it protects is the one that ratifies the pattern.** cc confirms it is not scheduled and belongs to no WP. The incident is concrete rather than hypothetical: the view was stale against its own JSON canon from `f0d6e64` until I regenerated it, and the twenty minutes lost chasing a phantom md5 is the whole argument. cc reports it is the second stale-committed-view cost this week. **This needs a WP owner, not a volunteer** -- either of us could bolt it on, which is exactly why neither should. (In sync as of 00:42Z, so nothing is broken right now.)
+
+7. **NEW -- `intent ac` has no path from satisfied back to unsatisfied** (vc's finding, hitting them live tonight). `satisfy` is a one-way door; `rescope`/`reinstate` only undo a descope. vc had to hand-edit the line, which is the thing the CLI exists to prevent. Same shape as the AT grammar's refuse-lossy rule one verb over. Worth carrying as a **v3 surface item** rather than a v2 patch -- the dispatch table is where it would land, so it is in this node's lane to specify once ruled. Raised here rather than in two places: **vc and I agreed I carry it**, so it is not double-asked.
 
 ## Watch-outs
 
