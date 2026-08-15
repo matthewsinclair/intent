@@ -2,11 +2,12 @@
 #
 # devbin: summary = Sign and notarise the macOS release binaries with the Geodica Developer ID
 #
-# intent macos <doctor|sign|notarize|env|store-creds>
+# intent macos <doctor|sign|notarize|verify|env|store-creds>
 #
 #   doctor       Preflight: identity present, a real test-sign, notary creds
 #   sign         Developer ID sign both release binaries, then verify
 #   notarize     Submit the signed binaries to Apple, wait, report
+#   verify       Prove the whole chain: quarantine a copy and run it
 #   env          Print the resolved identity + which creds are present
 #   store-creds  Store APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID in the
 #                login Keychain (interactive; once per machine)
@@ -23,7 +24,7 @@
 # -- Intent ships two bare Mach-O CLI binaries with no .app bundle, no nested
 # executables, no entitlements and no installer pkg, so the inside-out bundle
 # walk and the productsign half have no counterpart here. Splitting five short
-# subcommands into a `.d/` would only stroy the shared credential lookup.
+# subcommands into a `.d/` would only strand the shared credential lookup.
 #
 # CREDENTIALS LIVE IN THE LOGIN KEYCHAIN AND NOWHERE ELSE. No key material in
 # this repository, in CI config, or in any file this writes. `store-creds` is
@@ -41,9 +42,19 @@
 # AND `spctl -a -t exec` WILL SAY "rejected" ON A CORRECTLY SIGNED CLI. Measured
 # on conflab: `rejected (the code is valid but does not seem to be an app)`, with
 # a valid `origin=Developer ID Application: Geodica Pty Ltd`. That is spctl
-# refusing to assess a bare executable under a policy meant for app bundles --
-# a category error, not a verdict. **`codesign --verify --strict` is the check
-# that means something here**, and this script uses it.
+# refusing to assess a bare executable under a policy meant for app BUNDLES --
+# a category error, not a verdict.
+#
+# **CORRECTION TO THE ABOVE, and it matters because I nearly wrote spctl off.**
+# `-t exec` is the wrong policy type, not proof that spctl cannot answer. The
+# right invocation for a bare binary is:
+#
+#   spctl -a -t open --context context:primary-signature -vv <binary>
+#
+# which on a notarised Intent binary reports `accepted` and, decisively,
+# `source=Notarized Developer ID`. **A tool giving a useless answer usually means
+# it was asked the wrong question** -- the same shape as probing acceptance with
+# `doctor` when the question was acceptance, not health.
 #
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
@@ -139,13 +150,32 @@ cmd_doctor() {
     printf '    (signing does NOT need them and works now)\n'
   fi
 
+  # REPORT THE TEAM, NOT THE `Signature=` LINE, and the first version of this got
+  # it backwards in the worst available direction. `codesign -dv` prints
+  # `Signature=adhoc` for an ad-hoc binary but `Signature size=NNNN` for a real
+  # one -- a SPACE, not an `=`. So `sed -n 's/^Signature=//p'` matched an ad-hoc
+  # binary and printed NOTHING for a correctly Developer ID signed one: **the
+  # display went blank exactly when the news was good.** hv ran `doctor` after
+  # signing and saw two empty fields.
+  #
+  # Nothing-means-bad is the same false-report shape as an unwired guard, and it
+  # is worse in a doctor, whose entire job is to be believed about state. The
+  # team identifier is the honest discriminator: absent on ad-hoc, present and
+  # named on Developer ID.
   step "release binaries"
   for b in $BINARIES; do
-    if [ -f "$RELEASE_DIR/$b" ]; then
-      printf '    %-8s %s\n' "$b" "$(codesign -dv "$RELEASE_DIR/$b" 2>&1 | sed -n 's/^Signature=//p')"
-    else
+    if [ ! -f "$RELEASE_DIR/$b" ]; then
       printf '    %-8s not built\n' "$b"
+      continue
     fi
+    local desc team
+    team="$(codesign -dv "$RELEASE_DIR/$b" 2>&1 | sed -n 's/^TeamIdentifier=//p')"
+    case "$team" in
+      "" ) desc="UNSIGNED" ;;
+      "not set" ) desc="ad-hoc (linker) -- not Developer ID; run: int macos sign" ;;
+      * ) desc="Developer ID ($team)" ;;
+    esac
+    printf '    %-8s %s\n' "$b" "$desc"
   done
 
   return $rc
@@ -185,13 +215,23 @@ cmd_notarize() {
       die "$b is not Developer ID signed -- run 'int macos sign' first"
   done
 
-  local staging zip
+  local staging payload zip
   staging="$(mktemp -d)"
+  payload="$staging/intent-macos"
   zip="$staging/intent-macos.zip"
-  # ditto, not zip(1): ditto preserves the code signature and extended
-  # attributes that notarisation reads. A plain zip can strip them.
-  # shellcheck disable=SC2086
-  (cd "$RELEASE_DIR" && /usr/bin/ditto -c -k --keepParent --sequesterRsrc $BINARIES "$zip") ||
+  mkdir -p "$payload"
+
+  # ditto throughout, never cp or zip(1): ditto preserves the code signature and
+  # the extended attributes notarisation reads, and a plain zip can strip them.
+  #
+  # STAGE INTO A DIRECTORY FIRST. `ditto -c -k` takes exactly ONE source, so
+  # passing both binaries fails with "Can't archive multiple sources" -- which is
+  # what the first version of this did. Notarytool is happy with a zip of a
+  # directory; it walks it and assesses every Mach-O inside.
+  for b in $BINARIES; do
+    /usr/bin/ditto "$RELEASE_DIR/$b" "$payload/$b" || die "could not stage $b"
+  done
+  /usr/bin/ditto -c -k --keepParent --sequesterRsrc "$payload" "$zip" ||
     die "could not build the submission archive"
 
   step "submitting to Apple (typically 1-5 minutes; notarytool waits)"
@@ -221,6 +261,45 @@ cmd_notarize() {
   printf '  servers and Gatekeeper checks online. conflab ships exactly this way.\n'
 }
 
+cmd_verify() {
+  require_binaries
+  # THE ONLY CHECK THAT PROVES THE WHOLE CHAIN, and the reason it exists is that
+  # every other check passes on a binary that is signed but NOT notarised.
+  # codesign verifies the signature; spctl -t exec answers the wrong question;
+  # `stapler` correctly reports no ticket on a bare binary either way. **A release
+  # that quietly stopped being notarised would sail through all of them.**
+  #
+  # So this reproduces the only scenario notarisation exists for: a file that
+  # arrived with the quarantine xattr, as a browser download does. Gatekeeper
+  # engages ONLY on quarantined files -- which is why an unquarantined check is
+  # not evidence, and why brew-installed ad-hoc binaries run happily.
+  local rc=0 t
+  t="$(mktemp -d)"
+  for b in $BINARIES; do
+    /usr/bin/ditto "$RELEASE_DIR/$b" "$t/$b"
+    # Set quarantine, then ASSERT IT IS SET before reading any verdict: a fixture
+    # that never entered the branch proves nothing and looks like a pass.
+    xattr -w com.apple.quarantine "0083;0;dc-verify;" "$t/$b"
+    if ! xattr -p com.apple.quarantine "$t/$b" >/dev/null 2>&1; then
+      printf '    %-8s SKIPPED -- could not set the quarantine xattr; verdict withheld\n' "$b"
+      rc=1
+      continue
+    fi
+    local verdict
+    verdict="$(spctl -a -t open --context context:primary-signature -vv "$t/$b" 2>&1 |
+      sed -n 's/^source=//p')"
+    if [ "$verdict" = "Notarized Developer ID" ] && (cd "$t" && "./$b" --version >/dev/null 2>&1); then
+      printf '    %-8s quarantined, accepted, runs -- source=%s\n' "$b" "$verdict"
+    else
+      printf '    %-8s FAILED -- source=%s (expected: Notarized Developer ID)\n' "$b" "${verdict:-<none>}"
+      rc=1
+    fi
+  done
+  rm -rf "$t"
+  [ "$rc" -eq 0 ] && { ok; printf '  Signed, notarised, and Gatekeeper-clean from a quarantined download.\n'; }
+  return $rc
+}
+
 cmd_store_creds() {
   printf 'Storing Apple notary credentials in the login Keychain under "%s.*".\n' "$KC_PREFIX"
   printf 'Nothing is written to this repository. Values are not echoed.\n\n'
@@ -243,13 +322,14 @@ cmd_store_creds() {
 
 case "${1:-}" in
   "" | -h | --help)
-    sed -n '5,14p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
+    sed -n '5,15p' "${BASH_SOURCE[0]}" | sed -e 's/^# //' -e 's/^#$//'
     exit 0
     ;;
   env) cmd_env ;;
   doctor) cmd_doctor ;;
   sign) cmd_sign ;;
   notarize | notarise) cmd_notarize ;;
+  verify) cmd_verify ;;
   store-creds) cmd_store_creds ;;
-  *) die "unknown macos subcommand: $1 (try: doctor, sign, notarize, env, store-creds)" ;;
+  *) die "unknown macos subcommand: $1 (try: doctor, sign, notarize, verify, env, store-creds)" ;;
 esac
