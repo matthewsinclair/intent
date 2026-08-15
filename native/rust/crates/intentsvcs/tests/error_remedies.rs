@@ -179,9 +179,32 @@ fn a_wrapped_failure_renders_its_full_cause_chain() {
     rendered.contains("todo.md"),
     "the chain names the file that actually failed: {rendered}"
   );
+  // D01 REVERSED (hv, 2026-08-15): this used to assert "nothing was changed",
+  // and that is now FALSE. The DB is the SSOT and it is written first, so by
+  // the time a file write fails the mutation IS recorded -- what failed is the
+  // projection of it onto disk.
+  //
+  // The new assertion is the stronger one, because the hazard inverted with
+  // the model. Under the old order the operator's risk was believing a change
+  // had landed when it had not; under the new one it is RETRYING a change that
+  // already landed. So the text must lead with what succeeded and say plainly
+  // not to repeat it -- a remedy that merely described the I/O error would be
+  // accurate and would still get the estate mutated twice.
   assert!(
-    rendered.contains("nothing was changed"),
-    "the remedy tells the operator the estate is intact, which is the fact they most need: {rendered}"
+    rendered.contains("the change is recorded"),
+    "the message leads with what SUCCEEDED, so the operator does not read a projection failure as a failed mutation: {rendered}"
+  );
+  assert!(
+    rendered.contains("do NOT retry"),
+    "the remedy names the actual hazard under D01-as-reversed, which is a second application of a change that already landed: {rendered}"
+  );
+  // It names `intent sync` only to REFUSE it. Under D01 as reversed, sync is
+  // disk -> db, so running it against stale files would overwrite the store
+  // with them and destroy the change this very error says is safe. The first
+  // draft of this remedy told the operator to run it.
+  assert!(
+    rendered.contains("do NOT run `intent sync`"),
+    "the remedy warns off the disk-to-db command rather than recommending it: {rendered}"
   );
 }
 

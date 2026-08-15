@@ -165,15 +165,19 @@ fn a_mid_write_failure_leaves_no_torn_state() {
       "the write into a read-only directory SUCCEEDED -- the failure was not injected, so this test proved nothing (running as root?)"
     );
   };
+  // D01 REVERSED (hv, 2026-08-15): the DB is the SSOT, so by the time the file
+  // write fails the mutation has ALREADY landed in truth. The variant says so
+  // -- `Write` would tell the operator the mutation failed, which is now the
+  // opposite of what happened, and a retry is the hazard.
   assert!(
-    matches!(err, FacadeError::Write(_)),
-    "expected a write failure, got: {err}"
+    matches!(err, FacadeError::ViewsNotWritten { .. }),
+    "expected a projection failure, got: {err}"
   );
 
   assert_eq!(
     fx.read("intent/st/ST0056/thread.json"),
     canon_before,
-    "the canon is byte-identical: the thread.json write landed and was rolled back"
+    "the canon file is byte-identical -- the write landed and the batch unwound it"
   );
   assert_eq!(
     fx.read("intent/st/ST0056/info.md"),
@@ -185,15 +189,25 @@ fn a_mid_write_failure_leaves_no_torn_state() {
     index_before,
     "the index too -- rollback is total, not best-effort on the file that failed"
   );
-  assert_eq!(
+  // THE INVERSION. The DB is truth and it is written first, so it DID see the
+  // mutation, and that is correct rather than torn: the files are the
+  // re-creatable side and `intent sync` rewrites them from here.
+  //
+  // What AC-04.1 asks for survives intact on both stores, which is the point
+  // worth keeping. The DB is all-or-nothing because entities, prose index and
+  // envelope share one transaction; the FILES are all-or-nothing because
+  // `WriteSet::commit` unwinds what it already wrote. So neither store is ever
+  // half-applied -- the files are merely allowed to be STALE relative to
+  // truth, which is what "re-creatable" means.
+  assert_ne!(
     facade.store().snapshot().expect("snapshot"),
     db_before,
-    "the DB never saw the mutation -- files land first, and the DB write never ran"
+    "the mutation landed in the store -- under D01 as reversed that is truth, not damage"
   );
   assert_eq!(
     facade.st_show("ST0056").unwrap().status,
-    ThreadStatus::Wip,
-    "the in-memory canon is unchanged too, so the next call does not build on a mutation that failed"
+    ThreadStatus::Cancelled,
+    "and the in-memory canon agrees with the store, so the next call builds on what actually happened"
   );
 }
 

@@ -187,13 +187,28 @@ fn envelopes_accumulate_across_mutations_rather_than_being_rebuilt_away() {
   assert_eq!(
     ops(&facade).len(),
     3,
-    "each mutation rebuilds the DERIVED tables; the log is not one of them"
+    "each mutation writes its own entities and the log is append-only -- three mutations, three envelopes, and no rebuild that could wipe them"
   );
 }
 
+/// **A FILE-WRITE FAILURE STILL RECORDS THE ENVELOPE, because the mutation
+/// happened.**
+///
+/// This test asserted the exact opposite until hv reversed D01 on 2026-08-15
+/// -- "the envelope is minted only after the files land" -- and that was
+/// correct while committed canon was durable truth. Now the DB is the SSOT, so
+/// the envelope is written in the SAME TRANSACTION as the change and the files
+/// are a projection written afterwards. A failure to project cannot unmake the
+/// event.
+///
+/// The inverted assertion is the one AC-04.5 actually needs. "Every mutation
+/// path writes an event-log envelope" is a claim about mutations that HAPPEN,
+/// and under the old order a mutation could land in the DB and be denied its
+/// envelope by an unrelated filesystem error -- an unaudited change to what is
+/// now the source of truth.
 #[cfg(unix)]
 #[test]
-fn a_rolled_back_mutation_writes_no_envelope() {
+fn a_file_write_failure_still_records_the_envelope() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
   let mut facade = fx.facade();
@@ -203,11 +218,50 @@ fn a_rolled_back_mutation_writes_no_envelope() {
   let mode = fx.make_readonly("intent");
   let result = facade.st_cancel("ST0056");
   fx.restore_mode("intent", mode);
-  assert!(result.is_err(), "precondition: the write failed");
+  assert!(result.is_err(), "precondition: the file write failed");
 
   assert_eq!(
     ops(&facade).len(),
-    before,
-    "the envelope is minted only after the files land -- a failed write leaves no record of a mutation that did not happen"
+    before + 1,
+    "the change landed in the store, so it is audited there -- a projection failure does not erase an event that occurred"
+  );
+  assert_eq!(
+    ops(&facade).last().map(String::as_str),
+    Some("st.cancel"),
+    "and the envelope is the one for the mutation that actually ran"
+  );
+
+  // The entity moved with its envelope, which is what makes them one
+  // transaction rather than two writes that happened to both succeed.
+  assert_eq!(
+    facade.st_show("ST0056").expect("thread").status,
+    intentsvcs::model::ThreadStatus::Cancelled,
+    "the mutation is in the store, not merely logged"
+  );
+}
+
+/// The other direction -- a failed DB transaction writing no envelope -- is
+/// NOT reachable through the facade in a fixture, and that is a property
+/// rather than a gap in the test.
+///
+/// `commit_mutation` puts the entities, the prose index and the envelope in
+/// one transaction, so the only way to write an entity without its envelope is
+/// for SQLite to fail mid-transaction, which rolls back all three. Reaching it
+/// would mean feeding the store data the typed API cannot express -- and that
+/// is exactly hv's stated guarantee for the reversal: "the typed API ensures
+/// the only data that goes into the db conforms by construction to the
+/// schema". Recorded here rather than left as an untested branch nobody
+/// noticed was untestable.
+#[test]
+fn the_envelope_and_the_change_share_one_transaction() {
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread("ST0056"));
+  let mut facade = fx.facade();
+  let before = ops(&facade).len();
+  facade.st_start("ST0056").expect("start");
+  assert_eq!(ops(&facade).len(), before + 1);
+  assert_eq!(
+    facade.st_show("ST0056").expect("thread").status,
+    intentsvcs::model::ThreadStatus::Wip
   );
 }

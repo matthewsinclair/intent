@@ -146,6 +146,23 @@ pub struct Store {
   conn: Connection,
 }
 
+/// Everything ONE mutation changes, written in ONE transaction.
+///
+/// Grouped into a struct rather than passed as six arguments because the whole
+/// point is that they are indivisible: under D01 as reversed, the DB is the
+/// truth, so a mutation that recorded the entity and lost its envelope would
+/// be an unaudited change to the source of truth -- and AC-04.5 requires the
+/// envelope end to end. Before this they were three separate calls, one of
+/// which did not open a transaction at all.
+pub struct Mutation<'a> {
+  pub threads: &'a [&'a Thread],
+  pub issues: &'a [&'a Issue],
+  pub removed_threads: &'a [String],
+  pub removed_issues: &'a [u32],
+  pub sections: &'a [DocSection],
+  pub envelope: &'a Envelope,
+}
+
 impl Store {
   /// Open (creating if absent) the DB at `path`, apply the DDL, set WAL +
   /// foreign keys. Reopening an existing DB is a no-op apply (IF NOT EXISTS).
@@ -176,81 +193,144 @@ impl Store {
 
   /// Rebuild every derived table from canon: wipe and reload in one
   /// transaction. The event log is untouched (not derived, D15).
+  /// Write ONE thread and its child rows inside an open transaction.
+  ///
+  /// THE ONLY PLACE A THREAD BECOMES ROWS. `rebuild` (disk -> db sync) and
+  /// `apply_changes` (the mutation write path) both go through it, so the two
+  /// cannot drift into disagreeing about what a thread looks like in the
+  /// store -- which is the divergent-copy failure with a transaction wrapped
+  /// round it.
+  fn write_thread(tx: &rusqlite::Transaction<'_>, t: &Thread) -> Result<(), StoreError> {
+    tx.execute("DELETE FROM tests WHERE thread_id = ?1", params![t.id])?;
+    tx.execute("DELETE FROM criteria WHERE thread_id = ?1", params![t.id])?;
+    tx.execute("DELETE FROM related WHERE thread_id = ?1", params![t.id])?;
+    tx.execute("DELETE FROM wps WHERE thread_id = ?1", params![t.id])?;
+    tx.execute("DELETE FROM threads WHERE id = ?1", params![t.id])?;
+    tx.execute(
+      "INSERT INTO threads (id, title, slug, status, created, completed, acceptance, objective, context) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+      params![
+        t.id,
+        t.title,
+        t.slug,
+        enum_str(&t.status),
+        t.created,
+        t.completed,
+        t.acceptance.as_ref().map(enum_str),
+        t.objective,
+        t.context,
+      ],
+    )?;
+    for (seq, r) in t.related.iter().enumerate() {
+      tx.execute(
+        "INSERT INTO related (thread_id, seq, id, note) VALUES (?1, ?2, ?3, ?4)",
+        params![t.id, seq as i64, r.id, r.note],
+      )?;
+    }
+    for wp in &t.wps {
+      tx.execute(
+        "INSERT INTO wps (thread_id, seq, title, scope, status, objective, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![
+          t.id,
+          wp.seq,
+          wp.title,
+          enum_str(&wp.scope),
+          enum_str(&wp.status),
+          wp.objective,
+          wp.body
+        ],
+      )?;
+    }
+    for c in &t.criteria {
+      tx.execute(
+        "INSERT INTO criteria (thread_id, id, text, kind, scope, evidence, satisfied) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![
+          t.id,
+          c.id,
+          c.text,
+          enum_str(&c.kind),
+          serde_json::to_string(&c.scope)?,
+          c.evidence,
+          c.satisfied,
+        ],
+      )?;
+    }
+    for at in &t.tests {
+      tx.execute(
+        "INSERT INTO tests (thread_id, id, kind, file, prose, covers, status, note, legacy) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+        params![
+          t.id,
+          at.id,
+          enum_str(&at.kind),
+          at.file,
+          at.prose,
+          serde_json::to_string(&at.covers)?,
+          enum_str(&at.status),
+          at.note,
+          at.legacy.as_ref().map(|l| l.raw.clone()),
+        ],
+      )?;
+    }
+    Ok(())
+  }
+
+  /// Write ONE issue inside an open transaction. Same Highlander reason as
+  /// [`Store::write_thread`].
+  fn write_issue(tx: &rusqlite::Transaction<'_>, i: &Issue) -> Result<(), StoreError> {
+    tx.execute("DELETE FROM issues WHERE number = ?1", params![i.number])?;
+    tx.execute(
+      "INSERT INTO issues (number, slug, title, status, severity, created, closed) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+      params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed],
+    )?;
+    Ok(())
+  }
+
+  /// THE MUTATION WRITE PATH (D01 as reversed 2026-08-15): apply exactly the
+  /// entities a mutation changed, transactionally.
+  ///
+  /// `rebuild` is deliberately NOT used here any more. It DELETEs the whole
+  /// estate and re-inserts it, which was defensible while the DB was a
+  /// rebuildable index of the files and is not defensible now that the DB is
+  /// the truth: reloading truth from a derived artefact inverts the model, and
+  /// it made every keystroke O(estate). `rebuild` survives unchanged as the
+  /// disk -> db sync direction, which is the one place a wholesale reload is
+  /// the correct operation.
+  pub fn commit_mutation(&mut self, change: Mutation<'_>) -> Result<(), StoreError> {
+    let tx = self.conn.transaction()?;
+    for id in change.removed_threads {
+      tx.execute("DELETE FROM tests WHERE thread_id = ?1", params![id])?;
+      tx.execute("DELETE FROM criteria WHERE thread_id = ?1", params![id])?;
+      tx.execute("DELETE FROM related WHERE thread_id = ?1", params![id])?;
+      tx.execute("DELETE FROM wps WHERE thread_id = ?1", params![id])?;
+      tx.execute("DELETE FROM threads WHERE id = ?1", params![id])?;
+    }
+    for number in change.removed_issues {
+      tx.execute("DELETE FROM issues WHERE number = ?1", params![number])?;
+    }
+    for t in change.threads {
+      Self::write_thread(&tx, t)?;
+    }
+    for i in change.issues {
+      Self::write_issue(&tx, i)?;
+    }
+    Self::write_doc_sections(&tx, change.sections)?;
+    Self::write_event(&tx, change.envelope)?;
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Rebuild the whole store from canon -- the DISK -> DB sync direction.
+  ///
+  /// Wholesale by design: this is the operation that makes the DB agree with
+  /// the tree, so replacing everything is what it means. It is no longer on
+  /// the mutation path (see [`Store::apply_changes`]).
   pub fn rebuild(&mut self, threads: &[Thread], issues: &[Issue]) -> Result<(), StoreError> {
     let tx = self.conn.transaction()?;
     tx.execute_batch("DELETE FROM tests; DELETE FROM criteria; DELETE FROM related; DELETE FROM wps; DELETE FROM threads; DELETE FROM issues;")?;
-
     for t in threads {
-      tx.execute(
-        "INSERT INTO threads (id, title, slug, status, created, completed, acceptance, objective, context) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
-        params![
-          t.id,
-          t.title,
-          t.slug,
-          enum_str(&t.status),
-          t.created,
-          t.completed,
-          t.acceptance.as_ref().map(enum_str),
-          t.objective,
-          t.context,
-        ],
-      )?;
-      for (seq, r) in t.related.iter().enumerate() {
-        tx.execute(
-          "INSERT INTO related (thread_id, seq, id, note) VALUES (?1, ?2, ?3, ?4)",
-          params![t.id, seq as i64, r.id, r.note],
-        )?;
-      }
-      for wp in &t.wps {
-        tx.execute(
-          "INSERT INTO wps (thread_id, seq, title, scope, status, objective, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-          params![
-            t.id,
-            wp.seq,
-            wp.title,
-            enum_str(&wp.scope),
-            enum_str(&wp.status),
-            wp.objective,
-            wp.body
-          ],
-        )?;
-      }
-      for c in &t.criteria {
-        tx.execute(
-          "INSERT INTO criteria (thread_id, id, text, kind, scope, evidence, satisfied) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-          params![
-            t.id,
-            c.id,
-            c.text,
-            enum_str(&c.kind),
-            serde_json::to_string(&c.scope)?,
-            c.evidence,
-            c.satisfied,
-          ],
-        )?;
-      }
-      for at in &t.tests {
-        tx.execute(
-          "INSERT INTO tests (thread_id, id, kind, file, prose, covers, status, note, legacy) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
-          params![
-            t.id,
-            at.id,
-            enum_str(&at.kind),
-            at.file,
-            at.prose,
-            serde_json::to_string(&at.covers)?,
-            enum_str(&at.status),
-            at.note,
-            at.legacy.as_ref().map(|l| l.raw.clone()),
-          ],
-        )?;
-      }
+      Self::write_thread(&tx, t)?;
     }
     for i in issues {
-      tx.execute(
-        "INSERT INTO issues (number, slug, title, status, severity, created, closed) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-        params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed],
-      )?;
+      Self::write_issue(&tx, i)?;
     }
     tx.commit()?;
     Ok(())
@@ -475,7 +555,14 @@ impl Store {
 
   /// Append one envelope to the event log.
   pub fn append_event(&self, e: &Envelope) -> Result<(), StoreError> {
-    self.conn.execute(
+    Self::write_event(&self.conn, e)
+  }
+
+  /// THE ONLY PLACE AN ENVELOPE BECOMES A ROW. Takes anything that derefs to a
+  /// `Connection`, so the standalone append and the one inside a mutation's
+  /// transaction are the same code.
+  fn write_event(conn: &rusqlite::Connection, e: &Envelope) -> Result<(), StoreError> {
+    conn.execute(
       "INSERT INTO event_log (id, ts, principal, project_id, op, subject_type, subject_id, payload) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
       params![
         e.id,
@@ -606,9 +693,20 @@ impl Store {
   /// Replace the whole prose index in one transaction.
   pub fn replace_doc_sections(&mut self, sections: &[DocSection]) -> Result<(), StoreError> {
     let tx = self.conn.transaction()?;
-    tx.execute("DELETE FROM doc_sections", [])?;
+    Self::write_doc_sections(&tx, sections)?;
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// THE ONLY PLACE SECTIONS BECOME ROWS, for the same Highlander reason as
+  /// [`Store::write_thread`].
+  fn write_doc_sections(
+    conn: &rusqlite::Connection,
+    sections: &[DocSection],
+  ) -> Result<(), StoreError> {
+    conn.execute("DELETE FROM doc_sections", [])?;
     for s in sections {
-      tx.execute(
+      conn.execute(
         "INSERT INTO doc_sections (owner_type, owner_id, file, seq, heading, level, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
         params![
           s.owner_type,
@@ -621,7 +719,6 @@ impl Store {
         ],
       )?;
     }
-    tx.commit()?;
     Ok(())
   }
 

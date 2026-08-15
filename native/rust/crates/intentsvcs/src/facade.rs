@@ -5,12 +5,27 @@
 //! touches the DB or the file canon, which is what makes the two entry skins
 //! incapable of drifting apart.
 //!
-//! **Every mutation is all-or-nothing across three stores** -- committed canon,
-//! generated views, and the DB -- and the order is forced by D01. Canon is
-//! durable truth and the DB is rebuildable from it, so files land first and
-//! the DB second: a DB failure after a good file write is repaired by
-//! rebuilding, where a file failure after a DB write would leave the DB
-//! asserting something the canon never said, with nothing to rebuild from.
+//! **The DB is the mutation; the files are its projection.** D01 was REVERSED
+//! by hv on 2026-08-15 -- the DB is the SSOT and the files are re-creatable --
+//! and the order here follows: one transaction writes the entities, the prose
+//! index and the event envelope together, and only then are the files
+//! rewritten. If the transaction fails, nothing was written anywhere. If the
+//! FILE write fails, the change is already safe, the batch unwinds so the tree
+//! is left STALE BUT CONSISTENT rather than half-applied, and the failure is
+//! reported through its own error variant that leads with what succeeded.
+//!
+//! It used to be the other way round, and under the old model that was
+//! correct: canon was durable, the DB was rebuildable from it, so files landed
+//! first and a DB failure rolled them back. The reversal put the recoverable
+//! half second, where it belongs.
+//!
+//! **THERE IS NO DB -> DISK SYNC YET, and that is the gap the reversal opens.**
+//! `intent sync` runs DISK -> DB, so it cannot repair stale files -- it would
+//! read them into the store and overwrite the truth they are stale against.
+//! Until the other direction exists (hv's ruling names both), a projection
+//! failure is repaired by the next successful mutation, and the remedy on
+//! [`FacadeError::ViewsNotWritten`] warns the operator OFF `sync` rather than
+//! toward it.
 //!
 //! **The facade has no clock.** Dates arrive from the caller in
 //! [`FacadeContext::today`]. That is not the renderer's no-clock law (D23) --
@@ -25,13 +40,13 @@ use crate::contract::{self, Scope, Verdict};
 use crate::event::{Envelope, Subject};
 use crate::ingest::{self, Canon, IngestError};
 use crate::model::{
-  AcKind, AcScope, AcceptanceTest, AtStatus, Criterion, TShirt, Thread, ThreadStatus, WorkPackage,
-  WpStatus, to_canonical_json,
+  AcKind, AcScope, AcceptanceTest, AtStatus, Criterion, Issue, TShirt, Thread, ThreadStatus,
+  WorkPackage, WpStatus, to_canonical_json,
 };
 use crate::project::{Migration, Pending, Project};
 use crate::store::{Store, StoreError};
 use crate::views::{self, RenderContext};
-use crate::write_set::{WriteError, WriteSet};
+use crate::write_set::{Applied, WriteError, WriteSet};
 
 /// Ambient facts a facade call runs with. Explicit rather than discovered, so
 /// a verb's result is a function of its arguments.
@@ -103,6 +118,16 @@ pub enum FacadeError {
   Unmigrated(Pending),
   #[error("could not write the project files")]
   Write(#[from] WriteError),
+  // NOT a failed mutation, and the text says so. Under D01 as reversed the DB
+  // is the truth, so by the time this is returned the change IS recorded --
+  // what failed is the projection of it onto disk. A caller that read this as
+  // "the mutation failed" and retried would be acting on the opposite of what
+  // happened, so the message leads with what succeeded.
+  #[error("the change is recorded, but the files on disk could not be rewritten")]
+  ViewsNotWritten {
+    #[source]
+    cause: WriteError,
+  },
   #[error("could not update the runtime store")]
   Store(#[from] StoreError),
   #[error("could not read the committed canon")]
@@ -141,6 +166,15 @@ impl FacadeError {
       }
       Self::NotOffScope { .. } => {
         "reinstate applies only to a descoped or withdrawn criterion".to_string()
+      }
+      Self::ViewsNotWritten { .. } => {
+        // NOT `intent sync`, and that instruction was in this remedy until it
+        // was checked. `sync` is DISK -> DB (`ingest::resync` reads canon from
+        // the files, then `store.rebuild` replaces the store from them), so
+        // running it here would overwrite truth with the stale projection and
+        // destroy the very change this error says is safe. A remedy that
+        // names a data-loss command is worse than no remedy.
+        "the change is safe in the store -- do NOT retry it, and do NOT run `intent sync`, which reads the FILES into the database and would overwrite it with the stale copy. Clear the filesystem cause; the files are rewritten by the next successful mutation".to_string()
       }
       Self::NotSatisfied { .. } => {
         "run `intent ac list <thread>` to see which criteria carry evidence -- only a non-test criterion that was satisfied can be unsatisfied".to_string()
@@ -976,10 +1010,6 @@ impl Facade {
       set.add(view.path, view.content);
     }
 
-    // Files first (D01): the DB is rebuildable from canon, canon is not
-    // rebuildable from the DB.
-    let applied = set.commit()?;
-
     let envelope = Envelope::new(
       &self.ctx.principal,
       &self.ctx.project_id,
@@ -1006,23 +1036,79 @@ impl Facade {
       ingest::collect_wp_text(&self.project, &mut sections, thread);
     }
 
-    let db = self
-      .store
-      .rebuild(&next.threads, &next.issues)
-      .and_then(|()| self.store.replace_doc_sections(&sections))
-      .and_then(|()| self.store.append_event(&envelope));
+    // THE DATABASE IS THE MUTATION (D01, reversed by hv 2026-08-15: the DB is
+    // the SSOT and the files are re-creatable).
+    //
+    // This used to write FILES first and roll them back if the DB write
+    // failed, which was right while canon was durable and the DB was a
+    // rebuildable index. Under the reversed model it is backwards in a way
+    // that matters: the file write is the one that can be redone from the
+    // other side, so committing it first put the recoverable half in front of
+    // the unrecoverable one.
+    //
+    // One transaction covers the entities, the prose index and the envelope
+    // together -- see [`Mutation`]. If it fails, nothing has been written
+    // anywhere and truth is untouched.
+    let changed_threads: Vec<&Thread> = next
+      .threads
+      .iter()
+      .filter(|t| {
+        !self
+          .canon
+          .threads
+          .iter()
+          .any(|current| current.id == t.id && current == *t)
+      })
+      .collect();
+    let changed_issues: Vec<&Issue> = next
+      .issues
+      .iter()
+      .filter(|i| {
+        !self
+          .canon
+          .issues
+          .iter()
+          .any(|current| current.number == i.number && current == *i)
+      })
+      .collect();
+    let removed_threads: Vec<String> = self
+      .canon
+      .threads
+      .iter()
+      .filter(|current| !next.threads.iter().any(|t| t.id == current.id))
+      .map(|t| t.id.clone())
+      .collect();
+    let removed_issues: Vec<u32> = self
+      .canon
+      .issues
+      .iter()
+      .filter(|current| !next.issues.iter().any(|i| i.number == current.number))
+      .map(|i| i.number)
+      .collect();
 
-    match db {
-      Ok(()) => {
-        applied.keep();
-        self.canon = next;
-        Ok(())
-      }
-      Err(e) => {
-        applied.rollback()?;
-        Err(FacadeError::Store(e))
-      }
-    }
+    self
+      .store
+      .commit_mutation(crate::store::Mutation {
+        threads: &changed_threads,
+        issues: &changed_issues,
+        removed_threads: &removed_threads,
+        removed_issues: &removed_issues,
+        sections: &sections,
+        envelope: &envelope,
+      })
+      .map_err(FacadeError::Store)?;
+
+    // Truth has landed. The files are a projection of it, so a failure here is
+    // REPORTED AND RECOVERABLE rather than corrupting: `intent sync` writes
+    // them again from the DB. Reporting it is not optional -- silently
+    // returning success would leave the tree disagreeing with truth and say
+    // nothing, which is the No Silent Errors case this whole apparatus exists
+    // to refuse.
+    // In-memory canon follows the STORE, not the files, so the next call in
+    // this process builds on what actually happened either way.
+    let projected = set.commit().map(Applied::keep);
+    self.canon = next;
+    projected.map_err(|cause| FacadeError::ViewsNotWritten { cause })
   }
 
   fn next_thread_id(&self) -> String {
