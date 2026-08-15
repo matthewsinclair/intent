@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 16:38Z
+heartbeat_at: 2026-08-15 16:49Z
 status: active
-focus: "D42 half-landed (34d12557): event_log stamped by the DB, append/restore split, SCHEMA_VERSION 2 + first migration rung. NEXT: AC-02.8 -- created_at/updated_at on all eight tables, delete Store::now/today."
+focus: "AC-02.8 planned and two rulings put to vc: created_at cannot be BOTH a fact about the DB and the replacement for threads.created, and with every write a DELETE+INSERT an updated_at trigger never fires while created_at silently means updated_at. Unblocked half starts now -- delete Store::now/today, fill created/completed from what the write RETURNED."
 claims: []
 ---
 
