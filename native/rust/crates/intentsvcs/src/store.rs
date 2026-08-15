@@ -1408,6 +1408,73 @@ impl Store {
     )?)
   }
 
+  /// Snapshots outside the retention window, as `(id, path)`.
+  ///
+  /// **The bucketing is SQL, so the retention decision is made where the
+  /// stamps are.** Rust never learns a date, a week number or the current
+  /// time; it receives a list of rows to forget.
+  ///
+  /// The rule is "keep the newest snapshot in each of the most recent N day
+  /// buckets, M week buckets and K month buckets". A snapshot can be kept by
+  /// any of the three, which is what makes the window roll: today's newest is
+  /// held by the day rule, and as it ages out of that it is still the newest
+  /// of its week, then of its month.
+  ///
+  /// **Only successful snapshots with a file are candidates.** A failed
+  /// attempt has nothing to delete and is the audit trail this table exists
+  /// for, so pruning is not allowed to quietly consume the evidence that
+  /// backups have been failing.
+  pub fn expired_snapshots(
+    &self,
+    daily: u32,
+    weekly: u32,
+    monthly: u32,
+  ) -> Result<Vec<(i64, String)>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "WITH good AS (
+         SELECT id, path, taken_at,
+                date(taken_at) AS d,
+                strftime('%Y-%W', taken_at) AS w,
+                strftime('%Y-%m', taken_at) AS m
+           FROM snapshots
+          WHERE outcome = 'ok' AND path IS NOT NULL
+       ),
+       keep_day AS (
+         SELECT max(taken_at) AS t FROM good GROUP BY d ORDER BY d DESC LIMIT ?1
+       ),
+       keep_week AS (
+         SELECT max(taken_at) AS t FROM good GROUP BY w ORDER BY w DESC LIMIT ?2
+       ),
+       keep_month AS (
+         SELECT max(taken_at) AS t FROM good GROUP BY m ORDER BY m DESC LIMIT ?3
+       ),
+       keep AS (
+         SELECT t FROM keep_day
+         UNION SELECT t FROM keep_week
+         UNION SELECT t FROM keep_month
+       )
+       SELECT id, path FROM good
+        WHERE taken_at NOT IN (SELECT t FROM keep)
+        ORDER BY taken_at",
+    )?;
+    let rows = stmt.query_map(params![daily, weekly, monthly], |row| {
+      Ok((row.get(0)?, row.get(1)?))
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
+  }
+
+  /// Drop a snapshot's row, once its file is gone.
+  ///
+  /// Deleted rather than marked, because this row's whole subject is a file
+  /// that exists; once it does not, a retained row would make `backup --list`
+  /// report snapshots nobody can restore from. The failure rows are what stay.
+  pub fn forget_snapshot(&self, id: i64) -> Result<(), StoreError> {
+    self
+      .conn
+      .execute("DELETE FROM snapshots WHERE id = ?1", params![id])?;
+    Ok(())
+  }
+
   pub fn doc_section_count(&self) -> Result<usize, StoreError> {
     let n: i64 = self
       .conn
