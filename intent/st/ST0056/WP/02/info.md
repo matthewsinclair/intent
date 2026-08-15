@@ -17,7 +17,7 @@ Lay the cargo workspace and reify the model: the intentsvcs type layer as the si
 - Cargo workspace (crates per the WP-01 binary decision); CI with fmt/clippy/test on macOS + Linux
 - intentsvcs entity types: project, steel_thread, work_package, acceptance_criterion (four states), acceptance_test, issue, doc_section, file_index, event_log
 - The three schema faces generated + committed + CI drift-checked; `intent schema` prints them
-- Store bootstrap: rusqlite (bundled, WAL, FTS5), delete-and-rebuild on schema bump (no DB migrations ever)
+- Store bootstrap: rusqlite (bundled, WAL, FTS5); a schema bump is a MIGRATION (D01 reversed, D36 -- "delete-and-rebuild on schema bump / no DB migrations ever" is void: the DB is durable truth and migrations are normal)
 - Cloud seams: `project_id` UUID, principal on every facade signature (default `local`), append-only event log
 - Serialise/deserialise laws under proptest; `serde_ignored`-style inbound refusal
 - The rusqlite dep-graph guard (Highlander: one Cargo.toml)

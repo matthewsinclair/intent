@@ -79,6 +79,8 @@ Two things to weigh alongside:
 - **AC-03.6 requires prose bodies to round-trip byte-identical out of the store and be retrievable by full-text query.** Contentless FTS5 cannot serve the retrieval half from the index. If the bodies are retrievable from the modelled `body` fields instead, the AC is still satisfiable through a different path -- but that path has to be named, and if the AC is currently green it is green through the copy this issue proposes to delete.
 - **An external-content FTS5 table (`content='<table>'`) is the middle option**: it keeps `snippet()` working by pointing FTS5 at a real table, so the text is stored once rather than twice. That may dominate both alternatives and was not measured here.
 
+**Whatever mode wins, the fix MUST also update the FTS ratio quoted in `.gitignore`** (vc, 2026-08-15). That comment now justifies the D34 ignore on the ceiling rather than on binary dirtiness, and cites **"FTS5 expansion is ~1.95x"** as the measurement doing the work. Halving the table falsifies that number while leaving the rule correct -- which is the D29 shape exactly: a true rule resting on a reason that has quietly become false, in a file nobody re-reads. The two move together or not at all. Recorded on both ends -- this issue and dc's inbox -- so neither depends on somebody remembering at the time.
+
 ## Related
 
 - D34 -- the DB is per-machine truth and never committed; this is why its size is a local cost rather than a transport one

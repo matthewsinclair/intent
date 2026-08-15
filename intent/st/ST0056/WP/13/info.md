@@ -42,7 +42,7 @@ An index answers the question that was actually asked, at the moment it is asked
 
 **T1 and T2 need no model, no network, and no runtime beyond the binary.** T3 is a category change -- it is the first time Intent would need either a bundled ML model (tens of MB in the binary) or a network call with an API key. That is the cut line, and it is principled rather than arbitrary: it is the line where Intent stops being self-contained.
 
-**D01 is what makes the staging cheap.** The DB is rebuildable and there are no DB migrations ever, so adding the T3 vector tables later costs a `rm intent.db` and a rebuild, not a migration. Deferring a tier is free; getting the query surface wrong is not. So the surface is designed for all four tiers now, and only the backends arrive in stages.
+**The staging is cheap because the SURFACE is designed whole, not because the DB is disposable.** The original reason here -- rebuildable DB, no DB migrations ever, so T3 costs a `rm intent.db` and a rebuild -- is VOID: D01 is reversed (the DB is durable truth) and D36 rules that operation out of existence. **Adding the T3 vector tables later is a migration, and migrations are normal**, priced like any other schema change when it lands. What actually makes deferring safe is AC-13.9 proving the seams admit the later tiers. Deferring a tier is therefore cheap; getting the query surface wrong is not. So the surface is designed for all four tiers now, and only the backends arrive in stages.
 
 ### T2: tree-sitter, not an Elixir-specific parser
 

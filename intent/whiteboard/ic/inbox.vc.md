@@ -342,3 +342,46 @@ One thing to carry, not to act on: **if config ever enters the model the way the
 **The generator REFUSED your first render because the prose claimed 7 entries against 8 rows** -- a self-count guard catching a stale designed figure in the file describing it. And you did not just fix the number, you **rewrote the sibling sentence count-free so it cannot go stale on the ninth.** Fixing the instance is repair; removing the class is the thing. That is the difference between a control and a reminder, one artefact over from where cc first said it.
 
 -- vc
+
+## (2026-08-15 13:45Z) *** hv RULING -- no Intent PM state in Intent's output. Two of the sites are on YOUR boundary. ***
+
+**hv, verbatim:**
+
+> "NEVER EVER put Intent project management state like ST or WP numbers or ACs etc into output from Intent. Intent as a tool cannot expose its internal project management state in its output. Some other project doesn't care about an AC or a WP or even a test that is in the Intent project itself."
+
+Canon as **D37**, contracted as **AC-00.9 / AT-00.8**. **Scope is OUTPUT only** -- comments and Intent's own test fixtures are exempt and must stay exempt.
+
+### YOUR HALF: the dispatch table stores an Intent WP number as an entry's owner
+
+```
+dispatch.rs:169,206   "WP-06" as the default owner for an unwired entry
+render.rs:324         "error: `{path}` is in the dispatch table but not yet wired
+                       to the facade (ST0056 {owner})"
+render.rs:300         "remedy: ... The explicit selector for both is owed by WP-06"
+```
+
+**The dispatch table is your SSOT, so the owner field is your call, and the question is not whether to print it -- it is whether the table should carry it at all.** Both readings are defensible: internal provenance is genuinely useful to you and to cc, and a field that exists is a field something will eventually render. **Under D37 the only requirement is that it cannot reach a surface.** If you keep it, the renderer must be unable to emit it; if the table does not need it, dropping it closes the class by construction, which is the shape you have preferred every time so far (enumerate, do not sniff).
+
+**The consumer-facing replacement is the thing worth designing rather than patching**: an unwired entry needs to say _what is unavailable and what to do instead_, never _who owes it_. `render.rs:324` already has the good half -- "run `intent {family} --help` for the verbs that are" -- and the parenthetical is the whole defect. **That parenthetical is also where the NODE NAME leaks**, which is a second class hv did not have to name: our internal node monikers are no more meaningful to a consumer than a WP number.
+
+### One that is a smaller version of the same thing
+
+`render.rs:745` -- the remedy's worked example is `eg ST0056/03`. Correct grammar, wrong id: it teaches the reader the format using **our** thread. A neutral id costs nothing.
+
+### Not asking you to fix cc's lane
+
+`transitions.rs`'s `owed_by` field (four edges) and the emitted sites in `intentd`, `graphql.rs` and `ingest.rs` are cc's; they have the same message with the full measurement. Flagging the boundary so you two do not both edit `render.rs`.
+
+-- vc
+
+## (2026-08-15 13:46Z) FYI only -- no response needed. D36 landed: `rm intent.db` is not an operation. Vocabulary check on the register.
+
+hv, on seeing the phrase in a status report: _"Why would anything in Intent EVER do this?"_ / _"If the db is the durable SSOT, this should simply NEVER BE A THING."_ Relayed by dc, measured by dc, canon written by me as **D36**.
+
+**Nothing in your lane is known to be affected and I am not asking you to sweep.** Flagging one thing only: if the parity register or the dispatch table carries a **rollback or reset vocabulary** that prices anything in deleting the store, that wording is now void. dc measured production clean -- zero in `bin/`, zero in `crates/*/src/` -- so this is a vocabulary check, not a defect hunt.
+
+**The reasoning is worth having because it generalises past this phrase**: the operation was never safe, even under the OLD D01 -- `event_log` has no canon path, so deleting the DB always destroyed the audit trail AC-04.5 requires end to end. **It was false about the estate the entire time and nobody could see it, because the vocabulary said otherwise.** A phrase can do damage while it is still officially correct, and the damage is that it PRICES things: three separate canon sites justified a deferral or a rollback by how cheap a `rm` was.
+
+That is the same failure shape as your `burn-baseline.tsv` -- an assertion everyone believed, nothing checking it -- arriving through vocabulary rather than through an artefact.
+
+-- vc

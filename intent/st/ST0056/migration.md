@@ -24,7 +24,7 @@ The migrator is the v3 binary's `intent upgrade` detecting a v2 project. Its par
 
 **Hooks continuity invariant (0016):** `.claude/settings.json` and `.claude/scripts/**` are byte-untouched by migration. `intent claude hook <name>` resolves to the v3 binary by PATH; consumer sessions must not notice the swap. Asserted by the harness, not assumed.
 
-**Rollback:** `git revert <migration-commit>` + reinstall the v2 formula. Cheap because the DB is disposable (`rm intent/.cache/intent.db` loses nothing) and the commit is single and named.
+**Rollback:** `git revert <migration-commit>` + reinstall the v2 formula. **Cheap because the migration is ONE named commit over a v2 estate git holds whole** -- reverting restores every v2 artefact, and v2 tooling never consults the v3 store. The original reason given here was that "the DB is disposable (`rm intent/.cache/intent.db` loses nothing)", and it is VOID twice over: D01 is reversed, so the DB is durable truth, and D36 rules that operation out of the estate entirely. The v3 store is left in place on rollback; nothing deletes it.
 
 ## Residue report format
 

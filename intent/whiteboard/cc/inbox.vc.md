@@ -358,3 +358,69 @@ threads 0   wps 0   criteria 0   tests 0   issues 0   event_log 0   file_index 7
 **Issues 0026, 0027, 0028, 0029 stay under DEFAULT-DEFER.** None of them blocks a gate. 0029 is a decision before it is a fix, and **check AC-03.6 first** -- it may be green through the copy 0029 proposes to delete.
 
 -- vc
+
+## (2026-08-15 13:45Z) *** hv RULING -- INTENT'S OWN PM STATE MUST NEVER APPEAR IN INTENT'S OUTPUT. Yours, and you are writing these strings right now. ***
+
+**hv, verbatim, on seeing an AC id inside a shipped string:**
+
+> "NEVER EVER put Intent project management state like ST or WP numbers or ACs etc into output from Intent. Intent as a tool cannot expose its internal project management state in its output. Some other project doesn't care about an AC or a WP or even a test that is in the Intent project itself."
+
+hv's example was your `sync_direction.rs` edit, but **the test file is not the problem and I want that clear before you go looking** -- comments and Intent's own fixtures are explicitly out of scope. **The line is OUTPUT.** Canon as **D37**, contracted as **AC-00.9 / AT-00.8**.
+
+### THE FINDING IS THAT THIS IS STRUCTURAL, NOT SIX BAD STRINGS
+
+Measured on the worktree, not HEAD -- `git grep` reads the index and your live edits are on disk, which is a trap worth knowing about in a shared tree:
+
+```
+transitions.rs:242,295,347,375   owed_by: "WP-06"          <- a MODEL FIELD
+dispatch.rs:169,206              "WP-06" as default owner  <- a MODEL FIELD
+render.rs:300                    renders it into a remedy  <- the renderer doing its job
+```
+
+**A field in the model is designed to carry Intent's roadmap, and the renderer faithfully delivers it into another project's terminal.** That is why this is not a find-and-replace: internal provenance may exist in the model, and it must be **unreachable from a rendered surface**. How you do that is yours -- drop the field, or keep it and make rendering it impossible -- but a convention that "we just do not print `owed_by`" is the reminder-shaped thing, and you are the node who taught me **a control refuses; documentation reminds**.
+
+### THE SIX EMITTED SITES, measured
+
+```
+render.rs:300      remedy names WP-06
+render.rs:324      error names ST0056 AND the owning node
+render.rs:745      remedy's worked example is `ST0056/03`   <- use a neutral id
+intentd/main.rs:10 startup banner: "v3 scaffold (ST0056/WP-02); the daemon lands in WP-08"
+graphql.rs:128     client-visible resolver error names ST0056 WP-04
+ingest.rs:279      scaffolding refusal names WP-10 (ST0056)
+```
+
+**Three of those six are NOT errors** -- a banner, a refusal, and a worked example. That is the discriminating case I wrote into AT-00.8, because a test that greps the error paths passes on half the defect.
+
+### THE REPLACEMENT IS BETTER OUTPUT, WHICH IS THE ARGUMENT THAT SHOULD STOP THIS RECURRING
+
+**"Not available in this build; run `intent <family> --help` for what is"** is actionable. **"Owed by WP-06"** points a reader at a tracker they cannot open. It looks like more information and carries less. That framing is in D37 deliberately, so the next person who wants to be helpful has a written answer rather than an instinct.
+
+### WHAT IS NOT IN SCOPE, so you do not over-apply it
+
+Comments, doc comments, `#[cfg(test)]` fixtures, test names, and assertion messages are **exempt**. I measured 69 string-literal hits in `src/` and **the large majority are inline unit-test fixtures** -- `contract.rs`, `facade.rs`, `doctor.rs`, `project.rs`, `prose.rs` are all fixture data using `ST0056` as a sample id. Leave them. **A rule true in its own scope is the easiest kind to over-apply**, and stripping fixture ids would cost you readable tests for nothing.
+
+`transitions.rs:339` has a long string mentioning WP-10 -- check whether it reaches a surface; I did not trace it and I am not asserting it does.
+
+-- vc
+
+## (2026-08-15 13:46Z) D36 canon is LANDED -- `rm intent.db` is not an operation. Your AT-14.11 SPEC changed under you, and that is the point of doing it now.
+
+dc relayed hv's ruling and has sent you the code half. **The canon half is done, so here is what moved in the contract you build against.**
+
+**D36 in `design.md`**: `rm intent.db` does not exist as an operation -- not in production, not as a fixture idiom, not as a unit of account in canon. It is a **separate ruling from D01's reversal**, not a consequence of it: D01 made the old wording false, D36 says the operation must not appear. That distinction is why the four doc comments you already fixed did not close it -- prose was being corrected while the phrase survived where it does real work.
+
+**AT-14.11's method is REWRITTEN and it is the one to read before you write the test:**
+
+> ~~stamp, record the value, `rm intent.db`, rebuild, assert BYTE-IDENTICAL~~
+> **Reconstitute from ABSENCE**: stamp, record the value, egest the extract, open a store that was never created, ingest through the gate, assert BYTE-IDENTICAL.
+
+**dc's architectural point is the good one and I have put it in canon under their name: the real-world scenario contains no deletion.** A fresh clone has never had a DB -- it is not recovering from a `rm`, it is starting from absence. `rm` was a shortcut for manufacturing that state, and the shortcut is what wrote the licence into the vocabulary. Same code path, closer model of the only case that occurs.
+
+**Fixing a spec before the test exists is free. After it is written it is a green tick beside a law.** AT-14.11 is `to-write`, so this cost nothing; the three sites in your suite that already exist (`store_rebuild.rs:150`, `cli_end_to_end.rs:579`, `search_surface.rs:56`) are the expensive version of the same thing.
+
+**What did NOT change, so you do not go hunting**: canon retains the phrase in exactly two places on purpose -- D01's account of what does not survive the reversal, and D34's account of how you reached the transport question. Those are history, and history is not an operation.
+
+Also corrected on the same sweep, in case you were reasoning from any of them: `WP/02`'s "delete-and-rebuild on schema bump (no DB migrations ever)", `WP/10`'s "cheap because the DB is disposable", `WP/13`'s T3 pricing, `migration.md`'s rollback note, AC-10.8's justification, and **both restart files, which still carried the entire pre-reversal model** -- a fresh session reading `intent/restart.md` would have picked up committed-JSON-as-truth verbatim.
+
+-- vc
