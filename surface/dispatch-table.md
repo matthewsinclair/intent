@@ -98,6 +98,7 @@ Across 108 probes, failing invocations split 45 stderr-only, 12 stdout-only, 2 b
 - **v2:** measured; larger than the three known `Error:`-on-stdout sites in the plugin bins already queued for hv
 - **Target:** `pending-hv`
 - **Open question for hv:** Ratify the whole census into `corrected` (errors are stderr, always), or enumerate site by site? An error on stdout interleaves with captured command output, which is how a voice becomes data.
+- **ratified elsewhere:** VERBATIM MATCH IN parity.md, NOT YET APPLIED HERE (ic, 2026-08-15). parity.md:13 lists the hv-ratified `Corrected` deviation class members and one of them reads: "the stderr/stdout misroute census (45 stderr-only / 12 stdout-only / 2 both on failing invocations -- larger than the three sites in cc's hv queue)". That is this invariant's rule and its v2 note, same numbers and same parenthetical. So the question above -- ratify the whole census or enumerate site by site -- was answered WHOLE by hv at the bounce on 2026-08-14. Recorded rather than applied: this is the SECOND instance of the same drift found in one afternoon (INV-07 was the first), and having found that I over-applied a rule twice earlier today, the pattern I trust is to state the match and let vc apply it. The state stays `pending-hv` until they do.
 
 ### INV-07 -- `--help` reports failure on 10 of 27 commands
 

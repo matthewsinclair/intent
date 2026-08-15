@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15 17:26Z
+heartbeat_at: 2026-08-15 17:29Z
 status: active
 focus: "EXP-05 built + surface_check.sh built (table-vs-binary). It confirmed EXP-05 both ways and found 2 live parity breaks: todo --json never built, and bare `intent todo` exits 1 where v2 exits 0."
 claims: []

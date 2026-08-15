@@ -42,3 +42,29 @@ The estate defaults to `INTENT_BIN=bin/intent` -- **v2** -- and reaches v3 only 
 **The comments are the part of your ruling that does bite, and you were right about them** -- _"a stale comment asserting a retired rule is how the rule comes back"_. `# init --help exits non-zero (usage convention)` states a convention that is now retired. **But I have not touched `tests/**` and will not without your say-so**: it is live for every node, and the edit is a comment change inside a file whose assertion I am arguing should stay. Tell me if you want the comments amended to name the ratified deviation instead, and I will make exactly that change and nothing else.
 
 -- ic
+
+## (2026-08-15 17:29Z) The audit you would have asked for: all 10 remaining pending-hv units against `parity.md`. ONE more is already ratified; the other eight are genuinely open. Smaller correction than I implied.
+
+I said the queue might be materially smaller than eight. **I checked all ten -- it is eight rows plus INV-05 and INV-06, and my earlier count omitted the invariants. Here is the whole audit rather than the encouraging half.**
+
+**RATIFIED ALREADY -- one, and it is verbatim.**
+
+**INV-06.** Its rule reads _"Across 108 probes, failing invocations split 45 stderr-only, 12 stdout-only, 2 both"_. `parity.md:13` names as a ratified `Corrected` member: _"the stderr/stdout misroute census (45 stderr-only / 12 stdout-only / 2 both on failing invocations -- larger than the three sites in cc's hv queue)"_. **Same numbers, same parenthetical, same census.** Its open question is _"ratify the whole census, or enumerate site by site?"_ -- **hv answered WHOLE, at the bounce, on 2026-08-14.**
+
+**I have NOT applied it.** Recorded as `target.ratified_elsewhere`, state left at `pending-hv`, yours to apply. **The reason is not deference for its own sake: I over-applied a rule twice today and both times the error ran towards more confidence, so the pattern I now trust is to state the match and let you make the change.** It is a two-minute ruling if you agree.
+
+**PARTIAL -- one.** `agents` says _"Both defects are INV-01/INV-06 members awaiting the same scope ruling"_. **The INV-06 half resolves with INV-06. The INV-01 half does not** -- INV-01 is the `error:` PREFIX voice, and the ratified census is about which STREAM. Different defects that read alike, so `agents` needs the INV-01 half decided separately.
+
+**GENUINELY OPEN -- eight, and `parity.md` names none of them.** I checked each against all three ratified `Corrected` members rather than pattern-matching on the word `corrected`:
+
+- **`critic`** exit 2 -- still the highest priority and still the only one with a **live consumer** (the pre-commit gate reads it today).
+- **`doctor`** exit non-zero on findings -- a real design question, not a defect. v2 does not, so CI cannot gate on it.
+- **INV-05** usage-on-error -- reproduce v2's terse line, or add usage as the dead code shows v2 intended.
+- **`bootstrap`** missing `error:` prefix -- INV-01, adjacent to the ratified stream census and **not covered by it**. This is the one I most wanted to fold in and could not honestly.
+- **`st start`** `skipped:` prefix, **`st repair`** id parser, **`claude rules index`** (WP-07 dependent), **`ext new`** help mismatch.
+
+**`ext new` is worth one line because it may dissolve rather than need a ruling.** Its question is a help/implementation mismatch, and the row already answers itself: v3 generates help from this table, so the two **cannot** disagree by construction. **That is not a decision hv needs to make; it is a defect the SSOT retires.** If you agree it can go `corrected` with no ruling beyond noting why.
+
+**So: 10 units, 1 ratified already, 1 half, 8 real. The queue was overstated by about one and a half, not by half.** I would rather give you that number than the one I was hoping for -- and the finding that matters is unchanged and is not about the count: **two of my own artefacts disagreed about what had been decided, twice, and both times I found it by accident while doing something else.** A `pending-hv` row that `parity.md` has already answered is invisible from either file alone. That wants a check, and it is the same missing control as the state-versus-measured one you called the better finding.
+
+-- ic
