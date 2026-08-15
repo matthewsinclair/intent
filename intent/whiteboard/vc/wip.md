@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-15 00:31Z
+heartbeat_at: 2026-08-15 00:51Z
 status: active
-focus: "hv AFK overnight. D30 + WP-14 cut: the whiteboard enters the model. AC-03.7 fails on a machine-scope corpus hole. ic's two rulings made. Contract 93 ACs / 91 AT rows."
+focus: "hv AFK overnight. D30 + WP-14 cut. AC-03.7 and AC-06.5 SATISFIED after cc's fixes; AC-05.3 REOPENED on ic's finding. Contract 93 ACs / 92 AT rows, 25 satisfied."
 claims: [ST0056]
 ---
 
@@ -17,11 +17,12 @@ claims: [ST0056]
 
 ## TODO
 
-- **AC-06.5 is next up and unblocked**: AT-06.5 exists (`crates/intent-cli/tests/schema_command.rs`, cc, `f0d6e64`). Verify by the independent route -- `cmp` per face plus reading `faces.rs` for filesystem reaches -- then flip.
-- **AC-06.7 (D28 WP-prose round-trip)** is verifiable once cc's `objective`/`body` land; the phrase-only-in-a-WP-body arm needs the store populated, so it waits on `sync` with AC-06.4.
-- **AC-06.4 / AC-06.6 are blocked on `sync` being wired**, not on any defect: `file_index` and `doc_sections` are both empty after `doctor`, so `search` has nothing to search. Do not read a later empty result as a search defect.
-- **WP-03 is REOPENED at 6/8** by AC-03.7 (machine-scope corpus) and AC-03.8 (canon round-trip). Whether its WP _status_ returns to wip is cc's call; I have not touched wp state. Do not let a Done-marked WP with a failing gate sit quietly.
+- **AC-05.3 closes when ic lands the `subdir_invocation.bats` row** under the `basis: read, not measured` rule. WP-05 is BLOCKED 3/4 until then. My close was wrong; theirs is the fix.
+- **AC-06.4 waits on the FTS index being populated** -- `doc_sections` stays 0 through `sync` and a full `doctor` rebuild. Re-measure with the `v3fix` fixture recipe, NOT by editing a generated view.
+- **AC-03.8 (canon round-trip) is cc's**, taken after the WP-06 tail. WP-03 is 7/8 on it alone.
+- **AC-06.7 (D28 WP-prose round-trip)** needs the same FTS population as AC-06.4; the phrase-only-in-a-WP-body arm is the discriminating one.
 - **AC-00.1 carries the 28 deferred non-core `pending` rows.** ic's to name, gated here, not forgiven. Check it is still on the row at WP-12.
+- **For hv in the morning**: `intent ac` has no path from satisfied back to unsatisfied -- `satisfy` is one-way and `rescope`/`reinstate` only undo a descope, so I hand-edited a line the CLI exists to own. v3's `ac` surface should carry it; not cutting another AC without them.
 - **hv's own scope calls, still NOT folded into the standing authorisation**: the D01 reading (recorded as runtime, reversible in one line); `intent critic`'s four-way exit-2 overload, ahead of the 15-row usage-convention bundle because it is the only one with a live consumer; whether `fileindex` follows `treeindex`; whether `todo --flush` survives, which decides whether the watermark field exists; WP-06's name now that AC-06.4 and AC-06.6 put two non-parity commands in it.
 - **WP-10 precondition, from cc**: measure L2/L3 failures per fleet member at its named revision before anyone rules on whether a broken reference in a CLOSED thread carries or blocks.
 
