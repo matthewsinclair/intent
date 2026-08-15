@@ -2,9 +2,34 @@ name: Intent Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+    # IGNORE-LIST, DELIBERATELY, NOT AN ALLOW-LIST. `paths-ignore` fails safe:
+    # forget an entry and the suite still runs. `paths:` fails SILENT -- forget
+    # an entry and the suite stops running while reporting nothing, which is the
+    # false-green class this project keeps closing. Only ever add here what has
+    # been measured to be inert.
+    #
+    # Why this one is inert, measured 2026-08-15 rather than assumed: no test in
+    # the estate reads the real `intent/whiteboard/**`. The two suites that name
+    # those paths build their own fixture first (`whiteboard_protocol_3_guard`
+    # and `whiteboard_clock_guard` both `create_test_project` and cd into it),
+    # and `docs_completeness` reads `usage-rules.md`, not a board. A board edit
+    # therefore cannot change a test outcome.
+    #
+    # Why it is worth having: Intent dogfoods a five-node whiteboard, so four
+    # concurrent sessions commit coordination markdown continuously. Every one
+    # of those was starting the full matrix -- Ubuntu plus macOS, whole BATS
+    # suite -- and the queue reached eleven minutes on 2026-08-15, which is the
+    # feedback loop for every node including the ones whose code changes matter.
+    #
+    # A commit touching a board AND anything else still runs: GitHub runs the
+    # workflow when any changed path is outside the ignore list.
+    paths-ignore:
+      - "intent/whiteboard/**"
   pull_request:
-    branches: [ main ]
+    branches: [main]
+    paths-ignore:
+      - "intent/whiteboard/**"
 
 jobs:
   test-linux:
