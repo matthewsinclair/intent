@@ -1650,7 +1650,8 @@
           },
           "target": {
             "state": "as-observed",
-            "note": "AC-04.3 requires v3 to reproduce v2 gate verdicts across the corpus contracts. This is the single highest-value parity row in the family."
+            "note": "AC-04.3 requires v3 to reproduce v2 gate verdicts across the corpus contracts. This is the single highest-value parity row in the family.",
+            "at_combination_open": "OPEN, RAISED BY ic 2026-08-15, NOT CLASSIFIED HERE -- and it is a conflict between two ratified things rather than a gap. Issue 0032 (OPEN, hv, medium): `bin/intent_acceptance:454` short-circuits `[ \"$(at_status \"$atline\")\" = \"green\" ] && return 0`, so an AC's satisfaction is the **OR** of its covering ATs, not the AND. The issue's own words: `the combining rule was chosen by an early-return rather than by a decision`. vc's instruction to whoever builds the v3 close-gate is `must not port that early-return`. **But this row says `as-observed`, and AC-04.3 requires v3 to reproduce v2's VERDICTS -- so correcting 0032 would change verdicts on exactly the contracts AC-04.3 measures parity against.** Faithful reproduction and the known-defect correction point opposite ways, and nothing in this table recorded that until now. **Blast radius measured in ST0056's own contract: 2 of 109 ACs carry more than one covering AT** -- AC-00.7 (AT-00.5 + AT-00.7, both `to-write`) and AC-03.7 (AT-03.7 + AT-03.9, both `green`). **Neither mis-scores TODAY, because OR and AND agree when all covering ATs share a state**, so this is latent rather than live -- and it becomes live the moment one of those four moves alone. `corrected` versus `as-observed` is a parity classification and belongs to vc or hv."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
