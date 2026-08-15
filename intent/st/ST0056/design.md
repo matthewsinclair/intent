@@ -350,7 +350,7 @@ Verified after the move: regeneration at the new path reproduces the committed v
 
   **WHAT IS FORBIDDEN, AND WHAT IS PERMITTED. BOTH BELONG IN THE RULE.** (hv, 2026-08-15, third narrowing; the permitted list is normative and is not a set of exceptions.)
 
-  > _"todo is a doc artefact that is generated from the db. The only thing we need a timestamp there for is 'when was this command run' so that we can stamp that into the generated file. That is a very different thing to randomly confecting timestamps ... and injecting them into source documents. We don't do that anymore. But if we need to get the current time to make a decision, then that is totally fine. **There is no need to be pathological about it.**"_
+  > _"todo is a doc artefact that is generated from the db. The only thing we need a timestamp there for is 'when was this command run' so that we can stamp that into the generated file. That is a very different thing to randomly confecting timestamps from a haywire DMT trip and injecting them into source documents. We don't do that anymore. But if we need to get the current time to make a decision, then that is totally fine. **There is no need to be pathological about it.**"_
 
   **FORBIDDEN -- two things:**
 
