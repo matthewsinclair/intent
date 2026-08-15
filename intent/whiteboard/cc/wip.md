@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 09:27Z
+heartbeat_at: 2026-08-15 10:57Z
 status: active
-focus: "AC-04.6 service half landed acf8491; surface blocked on ic's row. Closure is necessary and NOT sufficient -- my own fix disarmed the test, mutation-testing caught it. Next: marked-legacy scope."
+focus: "HOLDING at hv's instruction while hv+vc settle the D01 canon. Four WPs reopened today; AC-04.6, AC-04.1 and AC-03.9's facade half are landed. AC-02.6 (openness) is next, not started."
 claims: []
 ---
 
@@ -13,16 +13,21 @@ claims: []
 
 ## DOING
 
-- **AC-04.6's SERVICE half is landed at `acf8491`** -- `transitions.rs` (the declared graph) + `AT-04.6` green, 245 tests, fmt and clippy clean. **Surface half is blocked on ic** and correctly so: the spine is built from the dispatch table, so `intent ac unsatisfy` needs ic's row first. Told ic at 09:25Z with the addition recorded BEFORE the wiring (AC-06.3). vc has the gate row and the one judgement call: whether five `Unbuilt` fields owing mutations leave AC-04.6 short of closing.
-- **CLOSURE IS NECESSARY AND NOT SUFFICIENT** -- the morning's real finding, and it is against my own instrument. Mutation-testing showed that once scope changes cleared satisfaction, deleting `ac.unsatisfy` STILL left `satisfied: true` formally leavable via descope-then-rescope, so the closure check went green over the exact defect hv ruled on. **My own fix is what disarmed the test.** Edges are now Direct or Incidental; incidental counts for reachability and never discharges a trap. The rule: _a state you can only leave by changing a different field is still a state you cannot leave._ Six mutations, all caught.
-- Gates: 01, 02, 03, 05 PASS. WP-04 pending vc on AC-04.6; WP-06 4/7 (AC-06.1, AC-06.6 mine; AC-06.3 is vc's and ic's).
-- Session detail is in `.history/20260815/`.
+- **HOLDING.** hv: _"Just hold for a moment while VC and I sort this out. We'll come back with something definitive and canonical shortly."_ Folded and waiting. **Do not start AC-02.6 until they land it.**
+- **D01 IS REVERSED** (hv, 2026-08-15): the intentdb is the durable SSOT, everything on disk is a secondary artefact, and **DB migrations are normal** -- "no migrations, ever" was never hv's constraint. The real requirement is **platform and data-model openness**: a 1-1 mapping between every DB entity and a `.json`/`.md` form, so the data comes out LOSSLESSLY and is usable without Intent. That is why bidirectional sync exists -- not backup, not disposability.
+- **Landed today** (all pushed, clone-checked, 257 tests green): AC-04.6 mutation completeness + `transitions.rs`; AC-04.1's rollback tests; AC-03.9's facade half (`sync_to_disk`/`sync_from_disk`/`sync_overwrite`); the D01 write-path reversal; `ac unsatisfy` end to end; `wp_rescope`. Detail in `.history/20260815/`.
 
-## TODO -- in this order
+## TODO -- after the hold
 
-1. **The marked-legacy `scope` field.** Shape DECIDED, so this is a build: keep `scope` a **unit-only, non-optional** enum, carry the out-of-enum spelling in a **sibling optional field**. Unit-only because `TShirt` derives async-graphql's `Enum`; non-optional because `Option<TShirt>` would make it nullable for all 129 well-formed work packages and admit an invalid both-none state. Requirement: **the value is neither guessed nor dropped**. Driven by `Medium-Large` (1 of 129, `intent/st/COMPLETED/ST0020/WP/09/info.md`). Ruling: `data-model.md:83-89`.
-2. **AC-06.6 -- `intent export --format <fmt>`.** Round-trip to byte-identical canon, OR refuse the format BY NAME rather than emit lossily. Settle first: whether `md` can round-trip at all, or must be refused despite D03 naming it.
-3. **AC-06.1 -- the surface tail.** `st edit`, `st repair`, **`st bootstrap`** (hv RULED the verb at `c1cca8c` -- not `initzero`, not the incumbent `st zero`; `zero` was never a verb, it is the NAME of the thing, so the real verb was `install` hiding a level down. `install` is COLLAPSED into the bare form, flags `--audit-only`/`--dry-run`/`--deliverable`, root face DELETED. **Watch when wiring**: `st_zero`'s row is `corrected`, so `is_shipped()` is true for a deliberately deleted face and it is today indistinguishable from a merely-unbuilt one); `issues`, `todo`; `info`, `version`, `config`, `init`, `bootstrap`; then `claude`, `agents`, `lang`, `ext`, `plugin`, `modules`, `llm`, `learn`, `critic`, `fileindex`. **`intent config` lands a conformance test BEFORE its behaviour is designed**, or the `undefined` ruling on it is unverifiable. And `bin/intent_st:1231` is `[0-9]+)` -- `+` is literal in a `case` glob, so only the 4-digit form of `st repair` has ever worked.
+1. **AC-02.6 -- openness** (vc, WP-02 reopens 5/6). `AT-02.6` = `openness.rs`. **Enumerate the table list FROM THE GENERATED DDL FACE**, never a hand roster. Each table needs a file form OR a DECLARED exemption naming why it is derivable. Round-trip both directions. **The discriminating case is ADDING a table with no file form and no exemption and watching it go red** -- a test over the tables that already have forms passes on the defect, which is exactly how `event_log` survived. Two known gaps: `event_log` (now `events.jsonl`) and `file_index` (plausible exemption, must be declared).
+2. **Five test files still narrate old D01** in prose while asserting properties that survive as CAPABILITIES rather than laws: `canon_round_trip`, `store_round_trip`, `store_rebuild`, `ignored_paths_corpus`, `sync_scan`. Left deliberately -- correcting them twice is worse than once.
+3. **The marked-legacy `scope` field.** Shape decided (`data-model.md:83-89`): unit-only non-optional enum + sibling optional field. Driven by `Medium-Large`, 1 of 129.
+4. **AC-06.6 export**, then **AC-06.1 surface tail**.
+
+## Waiting
+
+- **hv + vc**: the definitive D01 canon. Blocks nothing landed; shapes everything next.
+- **ic**: the `sync` direction spelling (asked 10:16Z -- the facade has both directions, the CLI cannot select between them because `sync`'s dispatch row has no flags). And the `at` guard ruling -- **v3 has NONE of v2's four at set-time guards**; the gate recovers two, and _green-only-from-red CANNOT be recovered at gate time ever_, because it is a property of history. Taking them seriously breaks my per-field transition model: v2's `at` graph is conditional on `kind`, so the union view false-passes.
 
 ## Lane boundary, from 2026-08-15
 
@@ -53,4 +58,6 @@ Everything amounting to "remember to" is archived; it failed twice on entries th
 - **`git stash` is unsafe here** -- two pre-existing 2025 stashes; a pop once dumped 522 lines of pruned migration code into the tree.
 - **`git commit --only <paths>` takes whatever is in the working tree at those paths** -- no protection on a file a peer is also editing. Read the diff first. The index has carried staged-only content from before a formatter run more than once.
 - **v3 REFUSES in this repository**, correctly -- unmigrated 2.19.0. BATS fixtures declare 3.0.0 via `INTENT_FIXTURE_VERSION`.
+- **THREE REMEDIES IN THIS ESTATE INSTRUCTED DATA LOSS, all found the same day and all by checking a remedy's premise as it was written.** `ViewsNotWritten` said "run `intent sync`" (disk->db: overwrites the SSOT with the stale copy); `FacadeError::Store` said "delete `intent/.cache/intent.db`" (that IS the SSOT, and it is shown on every store error); `doctor`'s module doc said "`rm` is always safe". Each was TRUE under the model it was written against and became destructive when the model moved. Fact about the estate: **a remedy naming a command outlives the reasoning that made it correct.**
+- **A report of N sites is a sample until someone counts.** vc named four false-canon sites; there were sixteen. Same shape as their `hooksPath` grep, my `| head`, my hyphen regex, my `type == "boolean"` probe. Four instances, one class.
 - **`surface/dispatch-table.json` is ic's lane; `acceptance.md` is vc's.** Findings go to them, not into an edit -- except the one mechanical commit vc explicitly suspended it for.
