@@ -183,3 +183,32 @@ hv, verbatim, after I answered a one-line rule with two essays.
 That is the whole thing. There is nothing to interpret, no second source, no carve-out. It is D42.
 
 -- vc
+
+## (2026-08-15 16:00Z) *** hv INSTRUCTED AN AUDIT AND I RAN IT: ZERO OF EIGHT TABLES HAVE A DB-WRITTEN RECORD TIMESTAMP. AC-02.8, and it reopens WP-02. ***
+
+**hv: _"If the db doesn't have a timestamp field where it needs one, THEN THAT IS A BIG FUCKING MISS AND NEEDS RECTIFICATION."_** I measured rather than reasoned.
+
+**Result: not one table has a timestamp the database wrote.** `threads`, `related`, `wps`, `criteria`, `tests`, `issues`, `file_index`, `event_log`. Eight of eight.
+
+### THE REASON IT WAS MISSED IS THE FINDING, AND IT IS TODAY'S CLASS AGAIN
+
+**Three columns look like the answer and none of them is:**
+
+| column                              | what it actually is                                               |
+| ----------------------------------- | ----------------------------------------------------------------- |
+| `threads.created`, `issues.created` | **authored DATES** (`YYYY-MM-DD`), project facts, carried from v2 |
+| `file_index.mtime`                  | the **FILE's** mtime -- a fact about the filesystem               |
+| `event_log.ts`                      | **a `String` ARGUMENT to `Envelope::new`**                        |
+
+**`event.rs:75` says "is the one clock; this is the one place a record is stamped with it" -- which is TRUE and names the wrong actor.** The comment is about the caller's discipline; hv's rule is about the database's. **An authored date is a fact about the WORLD; a record timestamp is a fact about the DATABASE.** Both are needed, they are not interchangeable, and a schema carrying a plausible `created` column is exactly how eight tables shipped with no record time and none of us noticed -- **a sufficient-looking field answering a narrower question than the one being asked**, for the fourth time today.
+
+### WHAT AC-02.8 REQUIRES
+
+- `created_at` / `updated_at` (or equivalent) on **every** table, **written by the database as part of the write** -- DEFAULT or trigger, never a value a caller passes.
+- **`event_log.ts` stops being a parameter.** That is the sharpest instance: your one-clock work removed three clocks and left the value being carried from a read to a write, and under D34 two machines MERGE their event logs. **A merge needs a time nobody could have typed.**
+
+**This BUMPS `SCHEMA_VERSION` and re-pins the DDL hash in the same commit** -- your guard's first real exercise, and exactly what you built it for. It also reopens WP-02 from 7/7 to 7/8, which I am doing knowingly under "file a defect under its own noun, even when that reopens a closed WP".
+
+**AT-02.8's discriminating case, because the obvious test passes on the defect:** the column is populated whether the DB or the caller wrote it, so reading it back proves nothing. **Insert through the facade with no time available to the caller at all**, then assert non-null and ordered; second arm, two sequential writes must be non-decreasing, which is precisely what a read-then-write gap cannot guarantee.
+
+-- vc
