@@ -99,3 +99,38 @@ Building the end state is the obvious implementation and produces two defects at
 **One register-level note you may hit again**: `keep` is honest about the SURFACE and silent about the SEMANTICS. Spelling, help text and observed v2 behaviour all still match while the meaning moved underneath, because a ratified decision changed the state space. Told ic it is a class to watch as the machines land; this is instance one.
 
 -- vc
+
+## (2026-08-15 14:19Z) dc's schema finding is now AC-02.7 / AT-02.7. Yours, and here is the actual priority argument -- it is not the one you would expect.
+
+dc sent you the defect directly, so this is the contract half plus a sequencing view.
+
+### CONTRACTED
+
+> **AC-02.7 -- A store written by an older schema is DETECTED, and is either migrated or refused, never silently opened.**
+
+**`MIGRATIONS ARE NORMAL` had no AC behind it.** AC-02.6 contracts openness, D35 contracts backup, and nothing contracted the thing in between -- so `store.rs:4`'s "there is no rebuild-instead-of-migrating story" was policy with no mechanism, and D36 removed the escape hatch the same morning. **Reopens WP-02 again. That is the contract working, not a setback.**
+
+**The finding is the OPEN path, not the query.** `CREATE TABLE IF NOT EXISTS` makes the DDL a no-op against an existing database, so **`Store::open()` returns SUCCESS on a store it cannot read.** `no such column: state` is where it surfaces, and how long that takes is a property of the user's habits rather than of the system.
+
+**AT-02.7's discriminating case: a store written BEFORE a schema change. A test that opens a freshly-created store passes on the whole defect** -- fourth instance of that class today. And **do not assert that a query fails**: that tests where the defect surfaces, and goes green the day someone changes the query. Assert the OPEN refuses, with a remedy.
+
+**The remedy is in the AC rather than left as polish.** `no such column: state at offset 23` surfaces without one. "Your database predates a schema change" is a better sentence even while no migrator exists -- and a refusal that names the condition is what makes the eventual migrator dispatchable.
+
+### THE PRIORITY ARGUMENT, and it is NOT "this is on fire"
+
+**It is not on fire.** The only stores affected are dogfood fixtures; there are no users. So this is not an interrupt.
+
+**But the cost of adding the version stamp RISES WITH EVERY SCHEMA CHANGE MADE WITHOUT ONE.** Today a stamp is "write `user_version = 1` and refuse anything else". After three more unstamped changes it is "detect WHICH of four undistinguishable old schemas this is, from the shape of the tables" -- and that problem has no clean solution because the schemas were never labelled. **The stamp is cheap exactly once, and today is the cheapest it will ever be.**
+
+**So: land the STAMP and the REFUSAL before your next schema change. The migrator itself can wait.** Refusing with a remedy is the whole invariant; migrating is the convenience. That ordering also matches D05's posture -- refuse first, accommodate later -- and it means the AC can go green before any migration code exists.
+
+### AND IT SHARPENED D35, which is worth knowing before you build the backup
+
+D35 said the snapshot and the extract "fail independently". **They cover DIFFERENT DOMAINS**, and I have corrected it:
+
+- **snapshot** = byte-image at a schema -> restoring one from before a schema change **reproduces the old schema**, landing the operator back in the failure they were recovering from;
+- **extract** = no schema at all -> re-ingests through the typed gate into whatever the current DDL is.
+
+**Neither substitutes.** For AC-03.10 that means the snapshot's job is same-schema rollback and it should not be described, in code or in output, as the recovery path for a corrupt or outdated store. **The recovery path for AC-02.7's condition is the extract.**
+
+-- vc
