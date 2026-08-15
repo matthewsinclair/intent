@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15 13:52Z
+heartbeat_at: 2026-08-15 14:01Z
 status: active
-focus: "cc unblocked and their three follow-ons landed. The generated VIEW was dropping 15 of 20 authored target fields -- fixed, with a completeness refusal and a formatter fixed-point refusal so neither class recurs."
+focus: "Queue clear. The command inventory turns out to be UNREPRODUCIBLE -- its probe input was never tracked and is gone -- so the drift check's measurement half is stamp-only. Refusal added, raised to vc, rule 13 landed with the evidence."
 claims: []
 ---
 
@@ -26,12 +26,12 @@ claims: []
 
 ## DOING
 
-**Landed since the hold lifted:** config keys (`58c48fc`), vc's rulings + `doctor`'s obligations (`593878a`), the view-completeness fix (`c1fa48c`), `st cancel`/`st new`/`sync` (`f5622f0`).
+**Queue clear. Nothing owed to any node.** Landed: config keys (`58c48fc`), vc's rulings (`593878a`), view completeness (`c1fa48c`), cc's three follow-ons (`f5622f0`), the inventory refusal (`a886f75`), three measurement rules (`bd2bab5`).
 
-- **THE VIEW WAS DROPPING 15 OF 20 AUTHORED TARGET FIELDS, SILENTLY** -- including the config keys cc was blocked on. **The skew check cannot see this and never could**: it asks whether the view matches what the generator PRODUCES, so a lossy generator is a perfect fixed point with itself. Skew tests re-derivability; nothing tested COMPLETENESS. Two refusals added (completeness + formatter fixed point), both mutation-tested.
-- **`st cancel` conflict RESOLVED, guard wins** -- `--reason` declared, disposition `keep` -> `corrected`. cc's `ReasonRequired` refusal is why leaving it open was safe: a loud unimplemented guard costs one error message; a silent one would have put unexplained `Cancelled` threads in the record permanently.
-- **`st new` is `corrected`** -- enters at `Triage`. `-s|--start` jumping to `Wip` is now two edges at once; flagged for vc/hv, not re-pointed by me.
-- **`sync` selector**: `--to-disk` / `--to-store`, **naming the destination** because that is the side overwritten. Bare verb keeps refusing -- opposite blast radii, no safe default.
+- **THE COMMAND INVENTORY CANNOT BE REGENERATED.** `gen_inventory.sh` only READS `probes/toplevel.tsv`; that file lives in throwaway scratch, was **never tracked**, and is gone. So the 26 `cmd-*.md` are stamp-only and **the drift check's MEASUREMENT half cannot be content-checked** -- a weaker claim than "drift ok/26" has been carrying. Corrects my own coverage line: those 26 are not merely un-re-derived, they are un-re-derivABLE from committed state.
+- **Re-running would have destroyed them.** awk on a missing file exits 2 producing NOTHING (the dash fallback never runs), and `set -uo pipefail` without `-e` does not stop it -- 26 husks carrying the good revision stamp. **And every file's header tells the reader to re-run it.** Two refusals added, mutation-tested three ways.
+- **Recommended to vc, not done unilaterally:** re-run the probe step at `69d42a7` and commit the TSV. A re-measurement is a contract act -- if it disagreed with the committed files I would be both the producer of the discrepancy and its judge.
+- **The VIEW was dropping 15 of 20 authored target fields.** Skew cannot see this: it tests re-derivability, and a lossy generator is a fixed point with itself. Completeness + formatter-fixed-point refusals added.
 
 ## Open with others -- nothing owed by this node
 
@@ -39,7 +39,8 @@ claims: []
 2. **vc + hv:** the machine guards **every** edge into `Cancelled` with "reason recorded"; v2 `st cancel` takes **no `--reason`** (measured, flags empty). Either the row becomes `corrected` or the guard is aspirational. **A ratified guard is not reconciled by editing the surface it binds.**
 3. **cc:** `st reopen` has a file-system half -- `st done` RELOCATES the thread directory, so reopen must move it back; a half-applied reopen leaves a thread findable under neither status.
 4. **cc:** `TBC` must not become a state; `intent_st:941` pins render order as a five-element array literal that now grows.
-5. **Mine, unblocked, blocks nobody:** `gen_inventory.sh` renders from an untracked `probes/toplevel.tsv`. Committing it moves 27 artefacts from stamp-only to content-checked in one change. Tell dc when it lands so they re-report coverage rather than assume. Also owed to `parity.md`: measurement rule 13 + the enumerate-don't-sniff rule.
+5. **vc:** the inventory TSV cannot simply be committed -- **it no longer exists.** Recovering content-checking for those 26 artefacts needs a re-probe at `69d42a7`. Offered; awaiting their word. Tell dc when it lands so they re-report coverage rather than assume.
+6. **hv, raised directly (their instruction -- the hv inbox is durability, not a queue):** the PUBLIC-repo `session_id` question from 09:12Z is still unanswered; whether `configurable from intent config` means a writable `config set`; and whether `-s|--start` may still jump two edges under the ratified machine.
 
 ## Watch-outs
 
