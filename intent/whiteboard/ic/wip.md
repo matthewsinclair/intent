@@ -5,7 +5,7 @@ role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
 heartbeat_at: 2026-08-15 17:29Z
 status: active
-focus: "EXP-05 built + surface_check.sh built (table-vs-binary). It confirmed EXP-05 both ways and found 2 live parity breaks: todo --json never built, and bare `intent todo` exits 1 where v2 exits 0."
+focus: "EXP-05 built and ADOPTED (intrinsic + verbosity cluster). surface_check.sh built: 21 findings, 8 arity + 9 present + 4 missing. INV-07 applied. OWED: the register-vs-truth check, waiting on vc for an AC."
 claims: []
 ---
 
@@ -15,12 +15,9 @@ claims: []
 
 **EXP-05 is BUILT and it is only half the job.** All three parts landed: 93 flags classified (**63 keep, 14 retire, 10 intrinsic, 6 pending** -- it was 93, not the ~130 this board used to say, which counted spellings), three refusals, mutation-tested with a passing control and a surviving negative control. **THE SPINE DOES NOT HONOUR IT YET** -- `spine.rs:142` still builds every declared flag on every shipped entry, so today the declaration is documentation with a guard on it. **That half is cc's and `doctor --fix` is its first user.**
 
-**Two things I decided that vc has NOT ruled on, and both are cheap to reverse:**
+**vc ADOPTED both decisions I made provisionally** (17:11Z): the `intrinsic` fourth value for the 10 help flags, and the verbosity cluster (`doctor --verbose`/`--quiet` + `bootstrap --quiet` + `fileindex -v` as one design question, with `claude skills -v` / `claude subagents -v` deliberately OUT as a display mode). `sync --to-store` and `ingest --from-md` stay `pending` as the two halves of the undeclared boundary. **Nothing here is awaiting a ruling any more.**
 
-1. **`intrinsic` -- a PROPOSED fourth value** for the 10 `--help`/`-h`/`help` flags. Proposed because the code already needed it and said it the wrong way: **`spine.rs:145-151` skips these BY MATCHING ON THE SPELLING**, which is exactly the inference-from-name EXP-05 exists to replace. Under three values they have no honest answer -- `keep` says the renderer must read them and it must not, `retire` says they never reach clap and they do. **Ten rows change if vc rules otherwise.**
-2. **`pending` on the VERBOSITY CLUSTER**, extending vc's measured `doctor --verbose`/`--quiet` to `bootstrap --quiet` and `fileindex -v`. **It is one design question, not four**: does v3 carry per-command verbosity or one global pair? Classified together so it is answered once. **`claude skills -v` / `claude subagents -v` are NOT in the cluster** -- they are a list display mode and they ship.
-
-**Also `pending`: `sync --to-store` and `ingest --from-md`, the two halves of the undeclared boundary.** Neither ships until someone owns it, which is the safe direction.
+**THE ONE THING I OWE, and it is the control vc called the better finding of the day:** nothing compares what the register SAYS against what is true elsewhere. Two axes, both demonstrated by accident today. **(a) state vs the BINARY** -- `surface_check.sh` now covers the flag and arity half, but NOT `target.state` itself. **(b) state vs `parity.md`** -- INV-07 and INV-06 were both ratified there and the table went on asking hv for them. **The buildable design: `parity.md`'s ratified `Corrected` members should CITE the unit they cover (INV-07, INV-06, ...), and then the check is exact instead of prose-matching prose.** That is an authoring change to `parity.md` plus a check. **I have NOT started it: `parity.md` is the WP-01 spec, vc is mid-ruling on its contents, and vc said this is worth an AC -- inventing one is not mine.** Put to vc; do not start it before they answer.
 
 ## TODO
 
