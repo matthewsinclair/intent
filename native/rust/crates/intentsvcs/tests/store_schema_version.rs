@@ -221,8 +221,8 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
     hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
   }
 
-  const PINNED_SCHEMA_HASH: u64 = 0x8d0c_7508_10ce_1acf;
-  const PINNED_FOR_VERSION: i32 = 3;
+  const PINNED_SCHEMA_HASH: u64 = 0xdd8a_3c7a_1611_e0cf;
+  const PINNED_FOR_VERSION: i32 = 4;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

@@ -220,6 +220,34 @@ CREATE VIRTUAL TABLE IF NOT EXISTS doc_sections USING fts5 (
 -- and gets re-audited. An event row is append-only and immutable, so it has no
 -- `updated_at` to have: nothing ever updates it, and a column recording an act
 -- that cannot happen is a guard that passes vacuously.
+-- **THE BACKUP LOG RECORDS ATTEMPTS, NOT SUCCESSES**, and that is the whole
+-- reason it is a table rather than a directory listing.
+--
+-- A directory of snapshot files can only answer what EXISTS. It cannot tell
+-- a schedule that has never run from one that runs and fails every time, and
+-- those need different actions from a user. A row is written BEFORE the copy
+-- is attempted and updated after, so a crashed or failed attempt leaves a row
+-- saying so -- a backup that fails is not allowed to be indistinguishable from
+-- a backup that was never due.
+--
+-- `taken_at` is the row's record timestamp under its own name: there is one
+-- event here and it is the attempt, so `created_at` and a separate `taken_at`
+-- would be two columns for one moment. It is what retention buckets on and
+-- what staleness is measured from, and BOTH of those are computed in SQL --
+-- the database compares its own stamp against its own `now` and returns a
+-- verdict, so no time is ever handed to the application to hold.
+-- openness: DERIVED -- an operations log about files on THIS machine's disk.
+-- It describes nothing about the project, and the snapshots it points at are
+-- plain SQLite databases that any tool can open without Intent.
+CREATE TABLE IF NOT EXISTS snapshots (
+  id INTEGER PRIMARY KEY,
+  path TEXT,
+  bytes INTEGER,
+  outcome TEXT NOT NULL DEFAULT 'attempted',
+  detail TEXT,
+  taken_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
 -- openness: carried by intent/events.jsonl
 CREATE TABLE IF NOT EXISTS event_log (
   id TEXT PRIMARY KEY,
@@ -255,7 +283,7 @@ CREATE TABLE IF NOT EXISTS event_log (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 3;
+pub const SCHEMA_VERSION: i32 = 4;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -268,7 +296,7 @@ pub const SCHEMA_VERSION: i32 = 3;
 /// rebuild-identity compares modelled content, and `tests/record_timestamps.rs`
 /// DISCOVERS the stamped columns from the DDL rather than listing them, so a
 /// table added tomorrow is covered without anyone remembering to add it here.
-pub const RECORD_TIMESTAMPS: &[&str] = &["created_at", "updated_at", "written_at"];
+pub const RECORD_TIMESTAMPS: &[&str] = &["created_at", "updated_at", "written_at", "taken_at"];
 
 /// **The migration ladder: one rung per version step, applied in order.**
 ///
@@ -453,6 +481,19 @@ const MIGRATIONS: &[(i32, &str)] = &[(
      SELECT id, ts, principal, project_id, op, subject_type, subject_id, payload FROM event_log;
    DROP TABLE event_log;
    ALTER TABLE event_log_v3 RENAME TO event_log;",
+), (
+  4,
+  // 3 -> 4: the backup log. A new table, so this is an ADD rather than a
+  // rebuild -- nothing existing changes shape and no row moves.
+  "CREATE TABLE IF NOT EXISTS snapshots (
+     id INTEGER PRIMARY KEY,
+     path TEXT,
+     bytes INTEGER,
+     outcome TEXT NOT NULL DEFAULT 'attempted',
+     detail TEXT,
+     taken_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+   );",
 )];
 
 /// Which of the two write acts is happening (D42).
@@ -571,6 +612,34 @@ pub struct Store {
 /// be an unaudited change to the source of truth -- and AC-04.5 requires the
 /// envelope end to end. Before this they were three separate calls, one of
 /// which did not open a transaction at all.
+/// How a backup attempt ended.
+///
+/// Named rather than a `bool`, for the reason [`Stamp`] is: `finish(id, true)`
+/// at a call site says nothing about which world it is in, and the two worlds
+/// are "a snapshot exists" and "a snapshot was supposed to exist".
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SnapshotOutcome {
+  Ok,
+  Failed,
+}
+
+/// One recorded backup attempt.
+///
+/// `path` and `bytes` are optional because a row exists from the moment the
+/// attempt STARTS -- an attempt that died before producing a file is a real
+/// record with nothing to point at, and that is the state this table was added
+/// to make visible.
+#[derive(Debug, Clone)]
+pub struct SnapshotRecord {
+  pub id: i64,
+  pub path: Option<String>,
+  pub bytes: Option<u64>,
+  /// `attempted` · `ok` · `failed`.
+  pub outcome: String,
+  pub detail: Option<String>,
+  pub taken_at: String,
+}
+
 /// What the database stored for one thread's DOMAIN dates.
 ///
 /// Handed back from the write rather than predicted before it, which is the
@@ -1252,6 +1321,93 @@ impl Store {
   /// unpopulated index answers every query the same way a genuine miss does,
   /// and a caller cannot tell those apart without asking this question
   /// (AC-06.4).
+  /// Open a backup attempt and return its id and the stamp the DATABASE gave
+  /// it.
+  ///
+  /// **The row is written BEFORE the copy is attempted**, which is what lets a
+  /// failure be distinguishable from a backup that was never due. It also
+  /// solves the naming problem without a clock: the snapshot file is named from
+  /// the stamp this returns, so the filename is a value the database produced
+  /// rather than one the application asked for.
+  pub fn begin_snapshot(&self) -> Result<(i64, String), StoreError> {
+    Ok(self.conn.query_row(
+      "INSERT INTO snapshots DEFAULT VALUES RETURNING id, taken_at",
+      [],
+      |row| Ok((row.get(0)?, row.get(1)?)),
+    )?)
+  }
+
+  /// Close a backup attempt, succeeded or failed.
+  ///
+  /// One method for both outcomes on purpose: two would make "forgot to record
+  /// the failure" reachable, and an attempt left open forever is exactly the
+  /// silent state this table exists to remove.
+  pub fn finish_snapshot(
+    &self,
+    id: i64,
+    outcome: SnapshotOutcome,
+    path: Option<&str>,
+    bytes: Option<u64>,
+    detail: Option<&str>,
+  ) -> Result<(), StoreError> {
+    self.conn.execute(
+      "UPDATE snapshots SET outcome = ?2, path = ?3, bytes = ?4, detail = ?5,
+         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?1",
+      params![
+        id,
+        match outcome {
+          SnapshotOutcome::Ok => "ok",
+          SnapshotOutcome::Failed => "failed",
+        },
+        path,
+        bytes.map(|b| b as i64),
+        detail
+      ],
+    )?;
+    Ok(())
+  }
+
+  /// Every recorded backup attempt, newest first.
+  pub fn snapshots(&self) -> Result<Vec<SnapshotRecord>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT id, path, bytes, outcome, detail, taken_at FROM snapshots ORDER BY taken_at DESC, id DESC",
+    )?;
+    let rows = stmt.query_map([], |row| {
+      Ok(SnapshotRecord {
+        id: row.get(0)?,
+        path: row.get(1)?,
+        bytes: row.get::<_, Option<i64>>(2)?.map(|b| b as u64),
+        outcome: row.get(3)?,
+        detail: row.get(4)?,
+        taken_at: row.get(5)?,
+      })
+    })?;
+    Ok(rows.collect::<Result<Vec<_>, _>>()?)
+  }
+
+  /// **How many hours have passed since the newest SUCCESSFUL backup, computed
+  /// entirely inside SQLite.** `None` when none has ever succeeded.
+  ///
+  /// The comparison is the database's, not the application's, and that is the
+  /// design rather than a flourish. hv permits reading a clock to make a
+  /// decision, but the cheapest way to keep that permission from eroding is to
+  /// not need it: SQLite compares its own stamp against its own `now` and
+  /// returns an INTERVAL. **An interval is not a time** -- it cannot be written
+  /// into a record, it cannot be mistaken for one, and there is no moment at
+  /// which this process knows what the time is.
+  ///
+  /// Only `ok` rows count. A failed attempt is not a backup, and letting one
+  /// reset the staleness clock would make a schedule that runs and fails every
+  /// hour look healthier than one that has never run.
+  pub fn hours_since_last_good_snapshot(&self) -> Result<Option<f64>, StoreError> {
+    Ok(self.conn.query_row(
+      "SELECT (julianday('now') - julianday(max(taken_at))) * 24.0
+         FROM snapshots WHERE outcome = 'ok'",
+      [],
+      |row| row.get::<_, Option<f64>>(0),
+    )?)
+  }
+
   pub fn doc_section_count(&self) -> Result<usize, StoreError> {
     let n: i64 = self
       .conn

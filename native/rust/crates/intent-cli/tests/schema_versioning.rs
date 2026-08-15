@@ -198,7 +198,7 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   }
 
   let pinned: &[(&str, u32, u64)] = &[
-    ("SCHEMA_DDL_VER", 1, 0x17c0_335d_9ab3_c28f),
+    ("SCHEMA_DDL_VER", 2, 0x7409_34b3_71fd_e349),
     ("SCHEMA_SDL_VER", 1, 0x95cf_14ce_d053_a361),
     ("SCHEMA_JSON_VER", 2, 0x9659_84e7_22ca_b726),
   ];

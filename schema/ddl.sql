@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.0-dev
--- SCHEMA_DDL_VER: 1
+-- SCHEMA_DDL_VER: 2
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable SSOT (D01, reversed 2026-08-15). Re-creatable from the committed
@@ -193,6 +193,34 @@ CREATE VIRTUAL TABLE IF NOT EXISTS doc_sections USING fts5 (
 -- and gets re-audited. An event row is append-only and immutable, so it has no
 -- `updated_at` to have: nothing ever updates it, and a column recording an act
 -- that cannot happen is a guard that passes vacuously.
+-- **THE BACKUP LOG RECORDS ATTEMPTS, NOT SUCCESSES**, and that is the whole
+-- reason it is a table rather than a directory listing.
+--
+-- A directory of snapshot files can only answer what EXISTS. It cannot tell
+-- a schedule that has never run from one that runs and fails every time, and
+-- those need different actions from a user. A row is written BEFORE the copy
+-- is attempted and updated after, so a crashed or failed attempt leaves a row
+-- saying so -- a backup that fails is not allowed to be indistinguishable from
+-- a backup that was never due.
+--
+-- `taken_at` is the row's record timestamp under its own name: there is one
+-- event here and it is the attempt, so `created_at` and a separate `taken_at`
+-- would be two columns for one moment. It is what retention buckets on and
+-- what staleness is measured from, and BOTH of those are computed in SQL --
+-- the database compares its own stamp against its own `now` and returns a
+-- verdict, so no time is ever handed to the application to hold.
+-- openness: DERIVED -- an operations log about files on THIS machine's disk.
+-- It describes nothing about the project, and the snapshots it points at are
+-- plain SQLite databases that any tool can open without Intent.
+CREATE TABLE IF NOT EXISTS snapshots (
+  id INTEGER PRIMARY KEY,
+  path TEXT,
+  bytes INTEGER,
+  outcome TEXT NOT NULL DEFAULT 'attempted',
+  detail TEXT,
+  taken_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
 -- openness: carried by intent/events.jsonl
 CREATE TABLE IF NOT EXISTS event_log (
   id TEXT PRIMARY KEY,

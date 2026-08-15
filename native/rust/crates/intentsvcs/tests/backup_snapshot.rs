@@ -134,3 +134,126 @@ fn a_snapshot_refuses_to_overwrite_an_existing_file() {
 
   drop(facade);
 }
+
+// ---------------------------------------------------------------------------
+// AC-03.10 (d): a backup that never ran and a backup that failed are DIFFERENT
+// states, and neither is allowed to be silent.
+// ---------------------------------------------------------------------------
+
+use intentsvcs::store::SnapshotOutcome;
+
+/// **An attempt is recorded BEFORE the copy, so a failure leaves evidence.**
+///
+/// The natural implementation records a snapshot after it succeeds, which makes
+/// a crash mid-copy indistinguishable from a schedule that was never due --
+/// both leave no row. Opening the row first means the only way to leave nothing
+/// behind is to never have started.
+#[test]
+fn a_backup_attempt_is_recorded_before_it_can_succeed_or_fail() {
+  let store = Store::open_in_memory().expect("open");
+  let (id, stamp) = store.begin_snapshot().expect("begin");
+
+  let open = store.snapshots().expect("read");
+  assert_eq!(open.len(), 1, "the attempt exists before any file does");
+  assert_eq!(open[0].id, id);
+  assert_eq!(
+    open[0].outcome, "attempted",
+    "an attempt that has not finished says so, rather than looking like a success"
+  );
+  assert!(
+    open[0].path.is_none(),
+    "and it points at nothing, because nothing has been written yet"
+  );
+  assert_eq!(
+    open[0].taken_at, stamp,
+    "the stamp handed back is the one on the row -- it is what the snapshot file is named from, \
+     so a caller never has to ask what time it is to name a file"
+  );
+  assert_eq!(
+    stamp.len(),
+    24,
+    "DB-written, millisecond precision: {stamp}"
+  );
+}
+
+#[test]
+fn a_finished_attempt_carries_what_it_wrote() {
+  let store = Store::open_in_memory().expect("open");
+  let (id, _) = store.begin_snapshot().expect("begin");
+  store
+    .finish_snapshot(id, SnapshotOutcome::Ok, Some("db/x.db"), Some(4096), None)
+    .expect("finish");
+
+  let all = store.snapshots().expect("read");
+  assert_eq!(all[0].outcome, "ok");
+  assert_eq!(all[0].path.as_deref(), Some("db/x.db"));
+  assert_eq!(all[0].bytes, Some(4096));
+}
+
+/// **A FAILED attempt must not reset staleness, and this is the discriminating
+/// case for the whole arm.**
+///
+/// A schedule that fires hourly and fails every time is the worst state this
+/// criterion covers: something IS happening, so a naive "when did we last try"
+/// reports a healthy recent number while no restorable snapshot exists. Only
+/// `ok` rows count, so a failing schedule reads exactly as stale as one that
+/// never ran -- which is the truth, because in both cases there is nothing to
+/// restore from.
+#[test]
+fn a_failed_attempt_does_not_make_the_backup_look_fresh() {
+  let store = Store::open_in_memory().expect("open");
+
+  assert!(
+    store
+      .hours_since_last_good_snapshot()
+      .expect("query")
+      .is_none(),
+    "nothing has ever succeeded, and that is reported as an absence rather than as zero -- zero \
+     would read as a backup taken this instant"
+  );
+
+  let (id, _) = store.begin_snapshot().expect("begin");
+  store
+    .finish_snapshot(id, SnapshotOutcome::Failed, None, None, Some("disk full"))
+    .expect("finish");
+
+  assert!(
+    store
+      .hours_since_last_good_snapshot()
+      .expect("query")
+      .is_none(),
+    "a failure is still nothing to restore from; a schedule that runs and fails every hour must \
+     not read as healthier than one that has never run"
+  );
+  let all = store.snapshots().expect("read");
+  assert_eq!(all[0].outcome, "failed");
+  assert_eq!(
+    all[0].detail.as_deref(),
+    Some("disk full"),
+    "and the reason survives, or the report can only say that something went wrong"
+  );
+}
+
+/// A successful backup makes the age readable, and the age is an INTERVAL
+/// rather than a time.
+///
+/// Nothing in this test knows what time it is, and nothing can: the only value
+/// that crosses out of SQLite is a number of hours. That is what keeps D42's
+/// "reading a clock to decide" permission from being needed here at all.
+#[test]
+fn staleness_is_an_interval_the_database_computes() {
+  let store = Store::open_in_memory().expect("open");
+  let (id, _) = store.begin_snapshot().expect("begin");
+  store
+    .finish_snapshot(id, SnapshotOutcome::Ok, Some("db/x.db"), Some(1), None)
+    .expect("finish");
+
+  let hours = store
+    .hours_since_last_good_snapshot()
+    .expect("query")
+    .expect("one has succeeded");
+  assert!(
+    (0.0..1.0).contains(&hours),
+    "a backup taken moments ago is hours-old by a very small amount, got {hours}"
+  );
+}
