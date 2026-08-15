@@ -2787,11 +2787,59 @@
                 "THE SNAPSHOT DIRECTORY -- fixed at `.backup/db/`. D35 requires DB snapshots to hold their own namespace under `.backup/`, because `intent upgrade` already writes `backup-<TIMESTAMP>/` rollback artefacts there and the two carry different retention rules. A configurable path is exactly how someone points the pruner at the upgrade namespace, making the collision this rule exists to prevent reachable through SUPPORTED configuration.",
                 "ANY SWITCH THAT SILENCES BACKUP FAILURE -- IN-AG-NO-SILENT-001 at its sharpest. This is the backup of the durable SSOT, and D35 records that the natural implementation (best-effort, on a timer, in a daemon nobody watches) is the one that fails silently. A key to turn the warning off MANUFACTURES that failure and gives it a supported name."
               ],
-              "open_to_hv": "D35 quotes hv as `configurable from intent config`. I read that as _the setting lives in the config this command displays_ and have NOT invented `config get` / `config set` -- v2's `config` has no verbs and adding a setter is new surface nobody asked me for. If hv meant a writable `intent config set backup.enabled false`, say so and I will author the rows. Editing `config.json` directly works under either reading, so cc is unblocked either way. **vc, 2026-08-15: reading CONFIRMED and declining to invent the setter was the correct call.** Still open for hv, but no longer open in the sense of nobody having looked at it.",
+              "resolved_by_hv": "ANSWERED 2026-08-15. I had declined to invent `config get` / `config set` and flagged the reading; hv ruled they ARE new surface and should exist. Rows authored on this family. **hv's accompanying caution is recorded because it is the more useful half: project configuration is USER-FACING surface, and must not be conflated with this repository's own dev/PM apparatus.** Intent dogfoods itself, so one `config.json` serves both roles HERE and nowhere else -- which is precisely what makes the two easy to confuse. A consumer installs `intent` from a tap and gets the command surface; they never get this repo's boards, sweeps or registers.",
               "carry_forward": "vc, 2026-08-15, to hold rather than act on: **if config ever enters the model the way the whiteboard did under D30, the setter question returns as a D32 question rather than a surface preference** -- _a state that can be entered and not left is a missing mutation, not a missing flag_. It is NOT a D32 question today, because `config.json` is project configuration and not model state. Recorded on the row so the trigger is attached to the thing it would change."
             }
           },
           "disposition": "pending"
+        },
+        {
+          "path": "config get",
+          "help": "Print one configuration value",
+          "args": [
+            {
+              "name": "key",
+              "type": "config-key",
+              "arity": "1",
+              "note": "A DOTTED PATH addressing a nested value, eg `backup.retain.daily`. Worth stating because v2 cannot do this: `read_config_field` (bin/intent_helpers:75) is a FLAT `.[$key]` lookup, so v2 can read `project_name` and cannot read anything below the first level -- which is why every nested consumer in v2 rolls its own jq. v3 reads the path."
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-15, answering D35's `configurable from intent config`: `config get` / `config set` are new surface and should exist.",
+            "unknown_key_refuses": "AN UNKNOWN KEY EXITS NON-ZERO AND SAYS SO. It must NOT print an empty line at exit 0, because empty is indistinguishable from a key legitimately set to empty -- the same absence-as-meaning collapse that makes an absent retention count different from `0`. A user scripting against this needs the two cases separable, and the only place that can be decided is here.",
+            "scope_caution": "hv, 2026-08-15: this is USER-FACING project configuration. Intent dogfoods itself so this repo's own `config.json` is also a dev artefact, but that is a coincidence of the project and not a property of the command."
+          },
+          "disposition": "new-surface"
+        },
+        {
+          "path": "config set",
+          "help": "Set one configuration value",
+          "args": [
+            {
+              "name": "key",
+              "type": "config-key",
+              "arity": "1"
+            },
+            {
+              "name": "value",
+              "type": "string",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-15 -- see `config get`.",
+            "unknown_key_refuses": "*** THE LOAD-BEARING DECISION ON THIS ROW: AN UNKNOWN KEY IS REFUSED, NEVER CREATED. *** `intent config set backup.retian.daily 7` must fail and name the unknown key. Silently writing it produces a dead key that nothing reads, a config file that LOOKS configured, and a user who believes they set a retention policy they did not -- and the failure surfaces, if ever, as backups quietly pruned on defaults. This is the whole class this toolchain keeps closing, sitting in the one command whose entire job is to be believed about what is configured.",
+            "known_keys_are_derived": "THE VALID-KEY SET IS DERIVED FROM THE DECLARED CONFIG SCHEMA, NEVER A HAND-MAINTAINED LIST IN THE SETTER. A hand list is a designed figure: correct the day it is typed, silently wrong at the next key added, because the act that invalidates it (declaring a new setting) is not the act that updates it. Derived, a new key becomes settable the day it is declared and an unknown one stays refused for free. Same rule the drift check applies to new surface, pointed at configuration.",
+            "typed_writes": "VALUES ARE WRITTEN WITH THEIR DECLARED TYPE, NOT AS STRINGS. `config set backup.enabled false` must write JSON `false`, not `\"false\"` -- a non-empty string is truthy nearly everywhere, so the string form would turn `disable the scheduled backup` into `enable it`, which is the worst available direction for that particular key. The type comes from the same schema that validates the key, so a value that cannot be coerced is a refusal rather than a cast.",
+            "not_model_state": "`config.json` is project configuration, NOT model state, so this writes the file rather than mutating through the store -- and D32's every-state-is-leavable reasoning does not apply. vc's carry-forward on the `config` row above records the trigger that would change that: if configuration ever enters the model the way the whiteboard did under D30, this becomes a D32 question rather than a surface one."
+          },
+          "disposition": "new-surface"
         }
       ],
       "bats_coverage": {
