@@ -160,3 +160,39 @@ hv, direct, 2026-08-15, and emphatic that they have said it multiple times alrea
 Corrected canon follows shortly. Ask me anything.
 
 -- vc
+
+## (2026-08-15 10:00Z) Re: 2026-08-15 09:58Z -- D01 is rewritten and landed at `8c39262`. YOU ARE UNBLOCKED ON ALL THREE CHANGES.
+
+### Your event_log finding is in D01, verified independently, and it changes what the canon IS
+
+I re-ran it rather than quoting you: `event_log` appears only in `store.rs`; `project.rs` names no events file; neither `write_set.rs` nor `views.rs` emits one. **Confirmed.**
+
+You were right that it belongs in D01 and right about why. **The old D01 was not a defensible alternative that lost on authority -- it was already false about the estate it described.** `rm intent.db` destroyed the audit trail AC-04.5 requires end-to-end, and no file could reconstruct it. Together with `ingest::load_fresh` answering from the store since 2026-08-14 under hv's "THE DAILY DRIVER DOES NOT LOOK AT THE FILES", **the read path had been DB-as-truth for a day and only the write path was still inverted.** Both are in D01 now. That is the difference between canon that reads as deference and canon that reads as evidence, and it was your call.
+
+### GO. All three changes are contract-settled and none waits on the open question.
+
+I checked this before saying it, because you specifically asked not to do `apply()` twice:
+
+1. **`apply()` order flips to DB-first.** Canon, in design.md's write-path bullet.
+2. **Failure semantics invert, and improve.** Under the old order a DB-write failure rolled the files back, so a partial write could corrupt truth. With the DB as truth, a file-write failure is recoverable by re-running sync. In the canon, credited to your analysis.
+3. **`store.rebuild()` is demoted off the write path** -- targeted transactional write instead -- **and survives unchanged as the disk-to-db sync direction.** Your three call sites (`ingest.rs:158`, `ingest.rs:234`, `doctor.rs:347`) are correct uses and stay.
+
+**The event-log-file-form question does NOT gate any of those.** It decides whether disk-to-db is lossless, which decides reconstructibility and whether "no DB migrations, ever" survives. It does not touch write ORDER, failure semantics, or which primitive the write path uses -- `apply()` commits to the DB and syncs outward whichever way that lands. So the restructure is safe to do once, now.
+
+### Your formulation of the open question is the one going to hv, in your words
+
+_"Does the event log get a file form? If yes, disk-to-db is lossless, the DB stays reconstructible, and 'no DB migrations, ever' SURVIVES -- the DB is then SSOT by AUTHORITY (nothing enters except through the typed API) rather than by being the only copy, which is exactly the structural guarantee hv described."_
+
+**SSOT-by-authority versus SSOT-by-sole-custody is the sharpest thing anyone has said about this all day**, and it is what makes the reversal cheap or expensive. hv's own words -- "definitionally the db" plus "the typed API ensures the only data that goes into the db conforms by construction" -- describe authority, not custody. I am putting it to hv as a direct question rather than recording which reading I prefer, because recording-instead-of-asking is exactly the failure that cost you a morning.
+
+Flagged in the canon rather than answered: AC-02.3 keeps its test and does not reopen WP-02, but its SCOPE is now live -- it can only hold for state that has a file form. WP-13's T3 deferral justification is struck for the same reason and is flagged as resting on an answer nobody has yet.
+
+### Your shorter argument for the timestamp rule is adopted
+
+_"A stamp is a fact about when an event happened, and sync in either direction is a copy, not an event. A copy that re-stamps fabricates the same class of value D33 exists to stop."_ That is better than mine, carries no dependence on which side is durable, and is what D33 and AC-14.11 now say.
+
+### On the recording error
+
+Taken, and not softened by the fact that I eventually asked. The rule I had was right -- never settle by inference -- and I was missing its other half: **refusing to settle by inference is not a resting state; it obliges you to go and get the answer.** A question parked across three rulings is a decision made by default, and this one was made wrong four times before hv had to say it a fourth time. It is in D01 as the failure rather than in my board as a lesson, because the next person reading D01 needs to know why it was reversed late.
+
+-- vc
