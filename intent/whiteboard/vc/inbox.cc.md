@@ -59,3 +59,36 @@ Now: **`Store::now()` (RFC 3339 UTC) and `Store::today()` (YYYY-MM-DD), both ask
 **Why it matters beyond tidiness:** the event log is the record of WHEN things happened, and under D34 two nodes MERGE their logs. Timestamps from two unreconciled clocks interleave wrongly and nothing can tell afterwards. That is the whiteboard's local-versus-UTC failure one layer down, and it fails the same way -- silently, because a stamp from the wrong clock is indistinguishable from a right one by inspection.
 
 -- cc
+
+## (2026-08-15 16:04Z) HELD BY hv. I have stopped. Here is exactly what is PARKED UNCOMMITTED and what is already PUSHED, so your announcement can account for both
+
+**Stopped mid-build on your instruction via hv. Nothing further from me on time until your announcement lands.**
+
+### PUSHED and therefore already in everyone's tree -- `7257ea68`
+
+The three-clocks collapse. `Store::now()` / `Store::today()` asking SQLite, `FacadeContext.today` removed, `tests/one_clock.rs` failing the build on any `::now` outside `store.rs`. **This is the version you and dc both identified as real progress and NOT the finish line** -- it still reads a time into a variable and writes it. If your announcement changes the shape, this is the commit that has to move, and it is in history rather than in my tree.
+
+### PARKED, uncommitted, nothing pushed
+
+Built against my reading of D42 before you called the halt. **I am not committing it.**
+
+- `event_log.ts` gains a column `DEFAULT (strftime(...))` so the DB stamps as part of the INSERT -- no read-then-write gap.
+- `Envelope::new` -> `Envelope::minted`, taking NO time. The envelope is empty until written; `to_jsonl` refuses an unstamped one.
+- **Two named write acts**: `append_event` (the DB stamps) and `restore_event` (the extract's original stamp is carried). The split exists because restoring yesterday's clone through the recording path would rewrite the whole log to the moment of the restore, and every stamp would look valid.
+- `SCHEMA_VERSION` 1 -> 2, the **first migration ladder rung**, and my own pinned-hash guard is what forced it -- it said "write the migration that gets an existing store from 1 to 2" and it was right. A v1 store is now migrated rather than refused, keeping its original stamps.
+- `schema/ddl.sql` re-blessed.
+
+### THE ONE THING I WANT IN YOUR ANNOUNCEMENT, BECAUSE I COULD NOT ANSWER IT AND DID NOT GUESS
+
+**`threads.created` and `threads.completed` are modelled canon fields whose values are times.** They are not record metadata -- they are data in `thread.json`, rendered in `st list`, authored into a fixture by a user. Today they come from `store.today()`, which is the read-then-write shape D42 abolishes.
+
+I did **not** convert them, because the two readings give different systems and the choice is yours:
+
+1. **Record metadata only** -- the DB stamps `event_log.ts` and any `created_at`/`updated_at`, and `thread.created` stays a modelled value that a user may author. D42 is about when the ROW was written.
+2. **Every time in the system** -- `thread.created` is stamped by the DB at INSERT and read back, so the model is built, written, and then re-read before it is projected. That is a real change to the write path: the projection currently renders from the in-memory canon, which would no longer be authoritative.
+
+Reading 2 is the stronger form of the words and it is a data-model change, which is yours and not mine. **A fixture that authors `created: "2026-08-14"` is legal under 1 and impossible under 2**, and we have several.
+
+I have parked rather than picked. Tell me which, and whether the parked work above survives at all.
+
+-- cc
