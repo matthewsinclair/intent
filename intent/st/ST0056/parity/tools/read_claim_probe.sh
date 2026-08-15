@@ -131,7 +131,11 @@ run_one "critic"           critic shell
 
 COVERED="st list|st show|st edit|wp list|wp show|ac list|ac status|ac gate|at list|issues list|issues show|info|config get|agents validate|agents template|lang list|lang show|modules check|modules find|plugin list|plugin show|ext list|ext show|ext validate|version|critic"
 # No v2 incumbent, so there is nothing to run -- named, never folded into a green.
-NO_V2="search|schema"
+# `llm guide` earned its place here by being CAUGHT: it was declared minutes
+# after this probe landed and reported UNCOVERED on the next run, which is the
+# whole point of deriving the population from the table rather than from this
+# list. A row added later surfaces as a gap instead of shrinking the corpus.
+NO_V2="search|schema|llm guide"
 
 DECLARED="$(jq -r '[.families[].entries[], .new_surface[]][]
   | select(.exposed_on_mcp == true and .read_or_mutate == "read") | .path' "$TABLE" | sort -u)"

@@ -2193,10 +2193,11 @@ LLM-related commands for working with AI assistants
 
 - **The `intent llm` agent guide is regenerated from the dispatch table at WP-09** (design.md:85, the Lamplight DD-6 pattern), so this family is both a parity subject and a CONSUMER of this file.
 
-| command           | args         | flags           | help                                    | disposition |
-| ----------------- | ------------ | --------------- | --------------------------------------- | ----------- |
-| `llm`             | [subcommand] | --              | LLM-related commands                    | keep        |
-| `llm usage_rules` | --           | --symlink [dir] | Display the Intent usage rules for LLMs | keep        |
+| command           | args         | flags           | help                                                                                             | disposition |
+| ----------------- | ------------ | --------------- | ------------------------------------------------------------------------------------------------ | ----------- |
+| `llm`             | [subcommand] | --              | LLM-related commands                                                                             | keep        |
+| `llm usage_rules` | --           | --symlink [dir] | Display the Intent usage rules for LLMs                                                          | keep        |
+| `llm guide`       | --           | --              | Render the agent guide: the command reference generated from this table, plus the authored prose | new-surface |
 
 ### `llm`
 
@@ -2235,6 +2236,18 @@ Display the Intent usage rules for LLMs
 - **MCP:** exposed as an agent tool -- **mutates**
 - **Wants review -- the classification disagrees with the verb name:** Reads as a display command, and its default IS display. The flag is what makes the entry a mutation -- the same shape as `at lint`, `doctor`, and `todo list`, which is why the field is defined over the entry rather than the default.
 - **MCP classification grounded in:** bin/intent_llm:65 is `cat "$USAGE_RULES_FILE"`; :88-100 is the `--symlink` path, which creates a symlink and warns when one exists
+
+### `llm guide`
+
+Render the agent guide: the command reference generated from this table, plus the authored prose
+
+- **v2:** new-surface
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: DECLARED BY ic 2026-08-15, ratification OUTSTANDING. AC-09.4 says `intent llm` renders the agent guide and the `llm` family's own notes say it is regenerated from this table at WP-09 -- and no entry declared the command. The family knew; the surface did not. Declared now rather than at WP-09 because `guide_refs_check.sh` and the eventual `llm_guide_gen.rs` both need a command to test against, and an AC whose subject has no row cannot be tested at all.
+- **Note:** A SECOND PROJECTION OF ONE FILE, which is exactly what vc's 2026-08-15 no-split ruling calls for: `intent llm` projects differently rather than reading a different file. `llm usage_rules` stays the human-facing DO/NEVER projection and keeps its name, which `--symlink` and the Elixir `usage_rules.sync` habit both depend on; this is the agent projection, and it carries what a human projection has no reason to -- the generated command reference, the `exposed_on_mcp` and `read_or_mutate` constraints ahead of each description, and the exit-code contract once for the surface rather than per row.
+- **MCP:** exposed as an agent tool -- read-only
+- **Wants review -- the classification disagrees with the verb name:** Exposing to an agent the guide that tells an agent what it may call looks circular and is the opposite: it is the only row on this surface whose whole content is the answer to `what am I allowed to do`, so withholding it is what would be strange. It is also the safest kind of row here -- it renders to stdout and writes nothing, which is why it is `read` where its sibling `llm usage_rules` is `mutate` (that one carries `--symlink`).
+- **MCP classification grounded in:** AC-09.4 plus this family's own `family_notes`; no v2 antecedent, so there is nothing measured to ground it in and this row says so rather than implying a measurement
 
 ## Family: `learn`
 

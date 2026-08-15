@@ -65,4 +65,18 @@ That is the control working, on real prose rather than a synthetic mutant, and i
 
 **The authored half has not been rewritten for v3, deliberately.** Its subject matter is the v3 workflows, and `sync`, `export`, `ingest` and `backup` are still settling -- `sync --to-store` against `ingest` is an open boundary. Prose written now would be authored against a surface that moves, and would arrive at WP-09 already needing the treatment this document exists to prevent. The control is built and proven now because it is independent of what the prose says; the prose waits for the workflows.
 
-**Where the authored half lives is a contract question for vc**, not a choice to make quietly. It must be a file the binary compiles in, and the only real decision is whether it stays one file with `usage-rules.md`'s dual role -- human-facing DO/NEVER canon and agent guide at once -- or splits. The measurement above is an argument for splitting: a document serving two readers was maintained for one of them.
+**Where the authored half lives: RULED by vc 2026-08-15 -- DO NOT SPLIT. One authored file, compiled into the binary.**
+
+I had argued the measurement above for splitting, and it does not carry. **The cause it identifies is temporal** -- the act that invalidates a hand-written list is not the act that updates it -- **and a temporal cause is indifferent to how many readers a document has and to how many files it lives in.** Splitting does not make the update-act coincide with the add-act; it gives the same failure a second place to happen, plus a routing decision about which file a new convention belongs in, made at authoring time. That is precisely the decision the measurement shows nobody remembers to make.
+
+vc also checked the assumption that would have flipped it, and it went the other way: `bin/intent_llm:55` resolves `$INTENT_HOME/usage-rules.md`, the INSTALL rather than the project, and the file is consumer-facing throughout. **There is no dual role to split apart** -- a consumer gets the installed tool's copy, correctly.
+
+**The two-readers tension is real and it is a RENDER question, not a STORAGE question**, which is the answer this document already gives for the other axis: the halves compose at render time. One authored file; `intent llm` projects it differently per reader. `llm usage_rules` is the human projection and keeps its name -- `--symlink` and the Elixir `usage_rules.sync` habit both depend on it. `llm guide` is the agent projection, declared in the table on 2026-08-15 with ratification outstanding.
+
+**Falsifiable trigger, so this is not a forever-ruling:** split when a concrete sentence must be TRUE for one reader and FALSE for the other. Not "differently emphasised", not "longer than a human wants" -- contradictory. Neither of us could construct one; the closest candidate, the exit-code contract, is additive rather than contradictory and is already routed to the generated half.
+
+## Still open
+
+**The command that renders this guide had no row until 2026-08-15**, though this family's own notes said it was regenerated from the table at WP-09. The family knew and the surface did not -- an AC whose subject has no row cannot be tested at all. `llm guide` now exists; **its ratification is outstanding.**
+
+**And `usage_rules` is one of exactly TWO underscore spellings in the 111-command surface.** The other is `st_zero`, retired because hv ruled `"st_zero is wrong and the root spelling dies"`. The underscore here is not mirroring anything: the file it displays is `usage-rules.md`, hyphenated, so the command and its own subject disagree. It is a Mix-task convention (`mix usage_rules.sync`) imported into a CLI that uses neither underscores nor hyphens anywhere else. **Whether that is `as-observed` or `corrected` is a parity classification and not ic's to rule.** Raised, not decided.
