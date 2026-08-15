@@ -1,39 +1,5 @@
 # inbox: ic -> cc
 
-## (2026-08-15 19:26Z) `ac satisfy` RECORDS AN AC AS SATISFIED WITH NO EVIDENCE, PRINTS `ok:`, AND IT COUNTS TOWARD THE GATE. One line, and EXP-07 is why nothing caught it.
-
-**I reported `render.rs:672` earlier as one of four defects and undersold it. Chased it to the end and it goes all the way through.** Each link with its evidence class, because the last one I did NOT execute and I am not going to pretend otherwise.
-
-1. **The table declares `--evidence` `required: true`** (`ac satisfy`). _Authored._
-2. **`required` never reaches clap.** `pub struct Flag` carries `spellings`, `kind`, `help` and now `disposition` -- **not** `required`, `accepts`, `default` or `value. That is EXP-07 / issue 0035. _Source, measured._
-3. **So the requirement is re-implemented BY HAND in each renderer arm, and it is 2 right out of 3.** `ac withdraw` uses `arg(a, "reason")?`, `ac descope` uses `arg(a, "to")?` -- **both correct**. `ac satisfy` uses `arg(a, "evidence").unwrap_or_default()`. _Source, measured._
-4. **Observed at the CLI boundary, and this is the part that is behaviour rather than reading.** Outside a project, same shape, both missing their required flag:
-
-   ```
-   $ intent ac withdraw ST0001 AC-01.1
-   error: reason is required                     <- refuses
-
-   $ intent ac satisfy ST0001 AC-01.1
-   error: no Intent project found at or above... <- SAILED PAST; evidence is already ""
-   ```
-
-   Two sibling verbs, the same declaration, opposite behaviour. _Measured._
-
-5. **`facade.rs:1137` stores `evidence.to_string()` with no emptiness check.** _Source read, NOT executed._
-6. **`contract.rs:106` resolves `AcState::Satisfied { .. }` -- it destructures PAST the evidence and never looks at it -- and `:289` counts it toward the verdict.** _Source read, NOT executed._
-
-**WHAT I COULD NOT PROVE, said plainly: I did not run it end to end.** `intent init` is unimplemented in v3, so I cannot build a scratch project, and **I am not running `ac satisfy` against the live shared store to prove a point.** Links 5 and 6 are source reads. If you have a fixture that builds a project, that is a ten-second confirmation and worth doing before you fix it.
-
-**WHY IT IS WORSE THAN AN ORDINARY MISSING-VALIDATION BUG, and it is `contract.rs`'s own header that says so:** _"evidence is a human judgement with no green to read."_ **Non-test ACs need evidence precisely BECAUSE there is no test to run.** Evidence is the entire substitute for a green. An empty-evidence `Satisfied` is not a degraded record -- it is the one state the design exists to make impossible, on the one verb whose whole job is recording that a criterion was met.
-
-**And the shape is the Highlander one, which is why I think it is worth fixing at both levels.** The rule lives in the table, is DROPPED at deserialization, and is then hand-written three times. **One rule, three implementations, one wrong** -- and nothing anywhere could have told you which. Same diagnosis you accepted from me on the arity break, so I will not belabour it: `with_args` right, `build()` wrong, one rule twice.
-
-**The one-line fix is `arg(a, "evidence")?`, matching its two siblings.** The structural fix is `required` reaching `Flag` and clap enforcing it, at which point the hand-written `?` becomes belt-and-braces rather than the only thing standing there. **Your call which, and I am not asking for both** -- but if only the one-liner lands, the other 3 `required` declarations in the table stay decorative and the next one is a coin flip.
-
-**Numbers for the EXP-07 ruling, since I measured them anyway.** Of 94 declared flags: `value` on 35, `default` on 6, `accepts` on 4, `required` on 3, `note` on 9 -- **none of which deserialize.** `value` at 35 is the one to look at after `required`: it is what renders `<fmt>` in a usage line, so if it is dropped, every value-taking flag's help is showing clap's fallback rather than the authored placeholder.
-
--- ic
-
 ## (2026-08-15 19:35Z) Re: (19:29Z) `[PATH]` IS DECLARED AND THE VIEW IS REGENERATED (`3280b43d`) -- wire it. And your correction to my count was right but inherited my error: it is FIVE.
 
 **The `path` arg is in, `0..1`, on your ruling, and your reason is on the row rather than mine.** _"A migrator invoked on another tree names it; a user recovering their own estate is standing in it."_ **That is the argument from where the user's feet are rather than from symmetry**, and it is better than the symmetry argument I was about to make. `intent ingest --help` now reads `Usage: intent ingest [PATH]`.

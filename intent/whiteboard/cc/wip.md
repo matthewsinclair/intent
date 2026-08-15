@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: dd0650f6-a3a7-4513-99da-3842c2c1373e
-heartbeat_at: 2026-08-15 20:57Z
+heartbeat_at: 2026-08-15 21:22Z
 status: active
-focus: "LOCALFOLD at 20:57Z, board archived to .history/20260815/. Evening landed AT-00.8 + AC-06.8 + AC-06.10(b) + the leaf remedy; 344 tests, both remotes. NEXT AND FIRST: ic's `ac satisfy` defect -- an AC records Satisfied with EMPTY evidence, prints ok:, and counts toward the gate."
+focus: 'ic''s evidence defect CLOSED at 74ae7324, and the cause was a layer below either of us: the model was DOCUMENTED as making empty evidence unconstructible and a required String does not. Both fixes on offer would have left --evidence "" open. Found a second declared-and-unenforced guard beside it. 347 tests. NEXT: EXP-07''s `value` at 35 rows.'
 claims: []
 ---
 
@@ -31,18 +31,17 @@ claims: []
 
 ## DOING -- nothing; picking up next from TODO
 
-## TODO -- in order; 1 is a live defect in my lane
+## TODO -- in order
 
-1. **`ac satisfy` STORES AN EMPTY `evidence` AND THE GATE COUNTS IT** (ic, 19:26Z, chased end to end). `render.rs` uses `arg(a, "evidence").unwrap_or_default()` where its two siblings `ac withdraw`/`ac descope` use `arg(a, ..)?`. **One rule, three hand-written implementations, one wrong** -- the table declares `--evidence` `required: true` and `required` never reaches clap (EXP-07 / issue 0035). **Why it is worse than ordinary missing validation, in `contract.rs`'s own words: _"evidence is a human judgement with no green to read"_** -- evidence is the entire substitute for a test on a non-test AC, so empty-evidence `Satisfied` is the one state the design exists to make impossible. **ic could NOT execute links 5-6** (`facade.rs:1137` stores it unchecked; `contract.rs:106` destructures PAST evidence and `:289` counts it) because `intent init` is unimplemented and they would not run it against the live store. **I have facade fixtures that build a project -- confirm end to end FIRST, then fix.**
-2. **EXP-07 / issue 0035 -- `Flag` drops four declared fields.** `required` (3 rows), `value` (35), `default` (6), `accepts` (4) never deserialize. **`value` at 35 is the one to look at after `required`**: it renders the `<fmt>` placeholder in a usage line, so every value-taking flag may be showing clap's fallback instead of the authored one. The structural fix makes the hand-written `?` belt-and-braces instead of the only thing standing there.
-3. **Wire `intent ingest [PATH]`** -- ic landed the row at `3280b43d` on my ruling (`0..1`; recovery defaults to this project's tree, a migrator names another).
-4. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
-5. **D-numbers: vc RULED THEM IN (38, sweep all) on D37's contracted text, which says "decision number" explicitly.** The faces are swept and guarded. **My measured counter-example post-dates their ruling and is with them**: `D2-D11` in shipped help text is the READER's STZero deliverables, identical in shape to our `D15`, with no blessable value -- so the class is not machine-decidable in prose. Enforced in the faces, review-only elsewhere.
+1. **EXP-07 / issue 0035 -- `Flag` drops four declared fields.** `required` (3 rows), `value` (35), `default` (6), `accepts` (4) never deserialize. **`value` at 35 is now the one that matters**: it renders the `<fmt>` placeholder in a usage line, so every value-taking flag may be showing clap's fallback instead of the authored one. **`required` got SMALLER, not done** -- with the facade guarding, clap enforcing it is belt-and-braces for an earlier message rather than the only thing standing there.
+2. **Wire `intent ingest [PATH]`** -- ic landed the row at `3280b43d` on my ruling (`0..1`; recovery defaults to this project's tree, a migrator names another).
+3. **AC-06.6 export**, then **AC-06.1 surface tail**. **AC-04.1's `TornRollback` arm.**
+4. **D-numbers: vc RULED THEM IN (38, sweep all) on D37's contracted text, which says "decision number" explicitly.** The faces are swept and guarded. **My measured counter-example post-dates their ruling and is with them**: `D2-D11` in shipped help text is the READER's STZero deliverables, identical in shape to our `D15`, with no blessable value -- so the class is not machine-decidable in prose. Enforced in the faces, review-only elsewhere.
 
 ## Waiting
 
-- **vc**: nothing owed either way -- they closed WP-02 8/8 and WP-03 10/10 by running the evidence. Open with them: the D-number prose exception above, and they qualified D37 for the `///`-is-a-publication-channel hole.
-- **ic**: nothing blocking. Their `[PATH]` row is in and waiting on my wiring; `ac satisfy` is mine to confirm and fix.
+- **vc**: **one decision is theirs and I have deliberately not made it** (21:21Z) -- whether the WP-10 migrator should REFUSE a carried v2 satisfaction with blank evidence, or carry it with `doctor` reporting. It is where the ruled policy's "lossless-by-carrying" and "blocked-until-clean" pull opposite ways. Also with them: Machine 3 now declares `ac.satisfy` as `[NonTestOnly, EvidenceRecorded]` -- implemented ahead of ratification, reversible, and the transcription check holds me to whichever they rule. And the D-number prose exception.
+- **ic**: **two error-message changes to re-pin in their surface check** (sent 21:21Z, no rows moved). Their `[PATH]` row is in and still waiting on my wiring -- item 2.
 - **dc**: blocked on hv for the tap, offering capacity. Offers 1 and 3 are already done (AC-02.8 landed; `no_function_takes_a_time.rs` covers time-typed parameters). Taken instead: the `repo_root()` triplication needs a dev-dependency crate, which is a workspace change and theirs.
 
 ## Lane boundary
@@ -59,6 +58,10 @@ claims: []
 
 ## Watch-outs -- mechanical only
 
+- **A COMMENT ASSERTING A PROPERTY GETS CITED AS THE REASON NOT TO BUILD THE THING THAT WOULD MAKE IT TRUE.** The model said `Satisfied`'s evidence was "unconstructible without evidence" (hv-attributed, in the PUBLISHED face); `evidence: String` makes the FIELD mandatory, not the value present. **Three separate pieces of reasoning then rested on it and every one was correct given the premise** -- no guard was written, the renderer defaulted the flag, the gate destructured past it. **When a comment says a property is structural, go and look at the structure.** And the `///`-is-published rule has a second edge: the risk is not only that a private note ships, it is that a shipped note is BELIEVED by the next author.
+- **TWO PROPOSED FIXES CAN BOTH LEAVE THE HOLE OPEN, and agreeing which is "the right one" is how you ship neither.** ic offered the renderer `?` or clap-enforced `required`; **both refuse an ABSENT flag and both accept `--evidence ""`.** "The flag is present" and "the value is there" are different questions and the second is the one that was asked. **Drive the empty case, not just the missing one.**
+- **A TABLE THAT CANNOT EXPRESS A REQUIREMENT IS A TABLE NOTHING CAN CHECK AGAINST IT.** `Edge.guard` held ONE value; `ac.satisfy` needed two; the one that fitted got enforced and the other was never written down -- so the conformance test, the transcription check and the guard test all passed over a rule that had no place to be stated. **When a declaration looks complete, ask what it has no room to say.**
+- **A TEST NAME IS A COVERAGE CLAIM, and reading the list is how it gets believed.** `withdraw_requires_a_reason_and_records_it` passed a reason and checked it reached the view. It never withheld one. **The REQUIRES half was asserted by the name**, so the missing guard looked covered from the test list for as long as anyone read the list instead of the body.
 - **A LESSON WRITTEN DOWN IS NOT A LESSON APPLIED, AND THE SECOND INSTANCE CAN BE HOURS LATER IN A SIBLING GUARD.** `store_schema_version.rs` hashes the DDL with comments STRIPPED, and says why in its own doc: a guard that cries wolf on a comment gets re-pinned without reading. I wrote that, then built the face-version hash the same afternoon covering every byte -- so rewording a comment demanded three contract-version bumps. **The fix does not generalise itself; grep the siblings when you write the note.**
 - **A REFERENT TRAP CAN LIVE IN A CLASS WITH NO BLESSABLE VALUE.** `ST0000` vs `ST0056` is soluble because one id is universal. `D2-D11` (STZero deliverables, the reader's) vs `D15` (a design decision, ours) is NOT: same shape, no carve-out. **When a class cannot be decided, decide the SURFACE instead** -- counted in the faces where the ambiguity cannot arise, review-only in prose. A guard that fires on correct help text gets switched off.
 - **A FIX CAN BE INVISIBLE TO THE ENTIRE SUITE WHILE AN EXTERNAL SCRIPT CATCHES IT.** Removing the flag-disposition skip left all 339 Rust tests green; only ic's `surface_check.sh` noticed, and it is not in CI. **A property whose sole witness lives outside CI regresses on the next refactor.** Mutation-test asks "does anything catch this", and "something outside the suite" is the wrong answer.
@@ -71,7 +74,7 @@ claims: []
 - **SQLite REFUSES `ADD COLUMN` FOR A NOT NULL COLUMN WITH A NON-CONSTANT DEFAULT.** Any DB-stamped column means a table REBUILD, not an ALTER. And **`PRAGMA foreign_keys` inside a transaction is a silent no-op** -- set it outside, or the guard looks applied and does nothing.
 - **zsh EATS A BACKTICKED FRAGMENT IN A `-m` COMMIT MESSAGE.** `SELECT strftime(` vanished from a commit body and left "the needle set gained :". **Use `-F -` with a heredoc for any message containing backticks or parens.** `--only` protects a commit and NOT an `--amend`, so check `git diff --cached` is EMPTY before amending to repair one.
 - **BETTER PROVENANCE IS NOT THE ABSENCE OF A CONFECTION.** I built `Store::now()` to collapse three process clocks, and it was the same defect one layer up. **Three of us landed on "one well-sourced clock" independently, which means the wrong shape is the intuitive one** -- so the enforcement must be structural, never a rule to remember.
-- **A SUFFICIENT-LOOKING FIELD ANSWERS A NARROWER QUESTION THAN THE ONE BEING ASKED.** Eight tables shipped with no record timestamp because three columns look like one. Fourth instance of this class in a day.
+- **A SUFFICIENT-LOOKING FIELD ANSWERS A NARROWER QUESTION THAN THE ONE BEING ASKED.** Eight tables shipped with no record timestamp because three columns look like one. **Fifth instance: a required `evidence: String` answers "is there a field", where the ruling asked "is there evidence".** The type is always the narrower answer; say which question you needed.
 - **A SWEEP DOES NOT MOVE A FILE, IT SPLITS A CHANGE.** ic's unqualified `--amend` took my test file without the `store.rs` methods it called; HEAD did not build and every file in it looked finished. **After a sweep the check is "does it still build", not "whose file is this".** `--only` protects a commit and NOT an amend.
 - **STAGE NOTHING UNTIL THE MOMENT YOU COMMIT.** Staging early to get past a block is what made my file sweepable.
 - **`MM` WITH A CLEAN `git diff HEAD` IS A STALE INDEX ENTRY** (issue 0028) -- invisible to the diff, visible only as the left column of `git status --short`. `git reset -- <path>` clears it and touches no byte of the worktree.
@@ -82,7 +85,7 @@ claims: []
 - **A TEST THAT ASSERTS A REFUSAL CANNOT TELL WHICH REFUSAL.** `unwired` refuses too.
 - **A `///` DOC COMMENT IS SHIPPED OUTPUT.** schemars lifts it into the JSON Schema face and async-graphql into the SDL. **Plain `//` for reasoning.**
 - **A TEST CAN ASSERT THE DEFECT, and it looks like diligence.** When a ruling lands, grep the tests for what now asserts the old behaviour.
-- **A HAND-KEPT ROSTER INSIDE AN INSTRUMENT IS THE DEFECT THE INSTRUMENT LOOKS FOR.** Discover structurally; never enumerate by hand.
+- **A HAND-KEPT ROSTER INSIDE AN INSTRUMENT IS THE DEFECT THE INSTRUMENT LOOKS FOR, AND IT CAN BE WRONG IN EXACTLY THE PLACE ITS SUBJECT IS WRONG.** The blank-reason guard test enumerated `Thread` and `WorkPackage` by hand -- and `Criterion` was both the one entity whose declared guards nothing enforced AND the one entity the check did not visit. Green, twice over, on two live defects. **Discover structurally; never enumerate by hand.**
 - **`git checkout -- <path>` REVERTS TO HEAD, NOT TO BEFORE YOUR MUTATION.** Back up with `cp`, restore with `cp`.
 - **AN ERROR SWALLOWED IN A FIXTURE IS A SILENT ERROR.** `expect()` in fixtures, always.
 - **`IF NOT EXISTS` MAKES A SCHEMA CHANGE INVISIBLE UNTIL A QUERY FAILS.** Any DDL change bumps `SCHEMA_VERSION`, re-pins `store_schema_version.rs`, and writes the migration rung -- in the same commit. **The guard earned its existence within hours: it forced the first rung on the first schema change after it was built.**
