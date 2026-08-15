@@ -33,9 +33,23 @@ set -uo pipefail
 #
 # It exists because the classification rules live in lib_classify.sh and can be
 # CORRECTED, while regenerating this artefact needs a TAP capture that is
-# ephemeral. That asymmetry is a drift generator: fix a rule, regenerate the
-# file-level register in seconds, and the per-test register silently keeps the
-# old answer until someone happens to run a multi-hour sweep.
+# ephemeral -- it lives in the sweep's temp directory and dies with it. That
+# asymmetry is a drift generator: fix a rule, regenerate the file-level register
+# in seconds, and the per-test register silently keeps the old answer with
+# nothing to signal it.
+#
+# THE SWEEP IS CHEAP AND THIS COMMENT USED TO SAY OTHERWISE. It said "multi-hour",
+# taking that from the one measured run -- which spent nearly all of its time
+# HUNG on a single file rather than measuring. Timed properly on 2026-08-15:
+# **7m52s for all 98 files, both bindings, 896K of TAP.** The hang did not
+# reproduce, so the cost that justified calling this expensive was a defect, not
+# a property of the sweep.
+#
+# That does NOT make this mode redundant, and the distinction is worth keeping
+# straight: --verify answers "is the artefact stale?", which a re-sweep cannot
+# answer without doing the work first. Detection is the cheap half and it stays
+# cheap. What changes is the REMEDY -- eight minutes, not an expedition -- so a
+# stale row should now be fixed rather than deferred with a note.
 #
 # Live case, and the reason this mode was written rather than a note left on a
 # board: the `retire` needle required a literal double quote after `source`, so

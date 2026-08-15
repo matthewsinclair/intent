@@ -30,6 +30,16 @@
 # which is precisely the kind of difference a sweep must survive rather than
 # diagnose.
 #
+# AND IT DID NOT REPRODUCE. A full sweep on 2026-08-15, backgrounded and with no
+# tty, measured the same file cleanly as FULL and finished all 98 files in
+# 7m52s. So the timeout was insurance on that run rather than the thing that
+# saved it -- and the "sweep costs hours" belief this incident created was
+# false: it cost minutes plus one hang. Keep the timeout (an intermittent hang
+# is worse than a reproducible one, because it decides whether you trust the
+# instrument), but do not let the folklore stand: re-running this is cheap, and
+# treating it as expensive is what makes stale artefacts get deferred instead of
+# fixed.
+#
 # A timed-out file is reported TIMEOUT and carries NO classification, for the
 # same reason UNSTABLE does: a measurement that did not finish is not a
 # measurement, and emitting a burn number for it would be inventing data. The
