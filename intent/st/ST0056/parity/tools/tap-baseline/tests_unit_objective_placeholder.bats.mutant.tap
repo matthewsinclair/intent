@@ -1,0 +1,61 @@
+1..12
+not ok 1 st done warns when Objective is still the template placeholder
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_thread' in file tests/unit/objective_placeholder.bats, line 34,
+#  in test file tests/unit/objective_placeholder.bats, line 42)
+#   `setup_thread' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 st done still closes the thread despite the warning -- it is voice, not a gate
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_thread' in file tests/unit/objective_placeholder.bats, line 34,
+#  in test file tests/unit/objective_placeholder.bats, line 49)
+#   `setup_thread' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 st done names the file where it now lives, not where it was
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_thread' in file tests/unit/objective_placeholder.bats, line 34,
+#  in test file tests/unit/objective_placeholder.bats, line 59)
+#   `setup_thread' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 wp done warns when the work package Objective is still the placeholder
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_thread' in file tests/unit/objective_placeholder.bats, line 34,
+#  in test file tests/unit/objective_placeholder.bats, line 66)
+#   `setup_thread' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 st done is silent once the Objective says something
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_thread' in file tests/unit/objective_placeholder.bats, line 34,
+#  in test file tests/unit/objective_placeholder.bats, line 78)
+#   `setup_thread' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 wp done is silent once the work package Objective says something
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_thread' in file tests/unit/objective_placeholder.bats, line 34,
+#  in test file tests/unit/objective_placeholder.bats, line 86)
+#   `setup_thread' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 the check is scoped to Objective -- an unedited Context section does not fire it
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_thread' in file tests/unit/objective_placeholder.bats, line 34,
+#  in test file tests/unit/objective_placeholder.bats, line 96)
+#   `setup_thread' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 a thread that QUOTES the placeholder outside Objective does not fire it
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_thread' in file tests/unit/objective_placeholder.bats, line 34,
+#  in test file tests/unit/objective_placeholder.bats, line 114)
+#   `setup_thread' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 9 the ST placeholder constant still matches the steel-thread template
+ok 10 the WP placeholder constant still matches the work-package template
+ok 11 intent_st carries no second generator of the steel-thread Objective
+ok 12 intent_wp carries no second generator of the work-package Objective

@@ -1,0 +1,325 @@
+1..54
+not ok 1 st requires a command
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/st_commands.bats, line 12)
+#   `assert_output_contains "Steel thread command is required"' failed
+# Expected output to contain: Steel thread command is required
+# Actual output:
+not ok 2 st new creates a new steel thread
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 23)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 st new creates sequential steel thread IDs
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 40)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 st new stamps frontmatter with the current intent version
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 61)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 st list shows only in-progress threads by default
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 127)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 st list --status all shows all steel threads
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 173)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 st list --status filters by status
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 205)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 st show displays the content of a steel thread
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 241)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 st show works with just the number
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 255)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 st show errors on non-existent steel thread
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/st_commands.bats, line 265)
+#   `assert_output_contains "not found"' failed
+# Expected output to contain: not found
+# Actual output:
+not ok 11 st organize moves threads by status
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 302)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 st creates steel_threads.md index
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 319)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 13 st repair shows dry-run output
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 344)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 14 st repair --write fixes malformed frontmatter
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 380)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 15 st repair all threads without specific ID
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 420)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 16 st repair handles missing status field
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 444)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 17 st repair validates date formats
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 464)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 18 st repair handles non-existent steel thread
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/st_commands.bats, line 475)
+#   `assert_output_contains "Steel thread not found: ST9999"' failed
+# Expected output to contain: Steel thread not found: ST9999
+# Actual output:
+not ok 19 st start marks a not-started thread as in progress
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 499)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 20 st start works with just the number
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 527)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 21 st start works with various ID formats
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 548)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 22 st start does nothing if thread is already in progress
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 568)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 23 st start moves completed thread to in progress
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 596)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 24 st start updates steel_threads.md index
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 641)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 25 st start errors on non-existent steel thread
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/st_commands.bats, line 654)
+#   `assert_output_contains "Steel thread not found: ST9999"' failed
+# Expected output to contain: Steel thread not found: ST9999
+# Actual output:
+not ok 26 st start requires a steel thread ID
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/st_commands.bats, line 663)
+#   `assert_output_contains "Steel thread ID is required"' failed
+# Expected output to contain: Steel thread ID is required
+# Actual output:
+not ok 27 st start handles thread in main directory
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 682)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 28 st cancel marks a thread cancelled and relocates to CANCELLED/
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 713)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 29 st cancel errors on non-existent steel thread
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/st_commands.bats, line 728)
+#   `assert_output_contains "Steel thread not found: ST9999"' failed
+# Expected output to contain: Steel thread not found: ST9999
+# Actual output:
+not ok 30 st cancel requires a steel thread ID
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/st_commands.bats, line 737)
+#   `assert_output_contains "Steel thread ID is required"' failed
+# Expected output to contain: Steel thread ID is required
+# Actual output:
+not ok 31 st list with comma-separated statuses
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 774)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 32 st list status ordering
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 811)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 33 st list with TBC status
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 839)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 34 st list with case-insensitive status
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 859)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 35 st new handles slash in title
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 881)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 36 st new handles ampersand in title
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 891)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 37 st new handles backslash in title
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 901)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 38 st new handles mixed special characters in title
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 911)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 39 st new generates slug in frontmatter
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 925)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 40 st new generates slug from title with slashes
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 935)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 41 st new generates slug from title with ampersand
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 945)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 42 st new truncates slug to 50 chars
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 955)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 43 st list shows Slug column header
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 979)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 44 st list falls back to title when no slug field
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 998)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 45 st new -s creates and starts steel thread
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 1012)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 46 st new --start creates and starts steel thread
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 1026)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 47 st new without --start creates in NOT-STARTED
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 1039)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 48 st new with flag after title works
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 1051)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 49 st new -s generates slug in started thread
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 1064)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 50 st repair normalises wip body status to canonical WIP, not In Progress
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 1100)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 51 st new on legacy file-structure project errors instead of claiming creation
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/st_commands.bats, line 1118)
+#   `assert_output_contains "Legacy steel thread template not found"' failed
+# Expected output to contain: Legacy steel thread template not found
+# Actual output:
+not ok 52 st new stamps acceptance.md into the doc-set
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 1135)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 53 st new stamps acceptance.md content from the template file
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 1147)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 54 st done lands the completed row in steel_threads.md, with the thread's own Created date
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_commands.bats, line 1167)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

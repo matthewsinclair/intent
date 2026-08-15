@@ -1,0 +1,14 @@
+1..13
+ok 1 init uses directory name if no project name given
+ok 2 init creates a project in the current directory by default
+ok 3 init creates a project in a specified directory
+ok 4 init creates proper configuration file
+ok 5 init creates required project files
+ok 6 init fails on existing Intent project
+ok 7 init creates proper directory permissions
+ok 8 init --with-st0000 creates project with ST0000 deliverables
+ok 9 init --with-st0000 flag works before project name
+ok 10 init without --with-st0000 does not run ST0000 bootstrap
+ok 11 init --with-st0000 installs Elixir deliverables when mix.exs present
+ok 12 init respects author from git config
+ok 13 interactive agent install routes through the claude subagents dispatcher

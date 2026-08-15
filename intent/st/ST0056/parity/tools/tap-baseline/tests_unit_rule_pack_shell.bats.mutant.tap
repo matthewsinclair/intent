@@ -1,0 +1,25 @@
+1..14
+ok 1 shell pack: every catalogued rule exists
+ok 2 shell pack has the expected total rule count
+ok 3 shell pack: each rule declares its canonical id
+ok 4 shell pack: each rule declares language: shell
+ok 5 shell pack: bash-specific rule tagged correctly
+ok 6 shell pack: zsh-specific rule tagged correctly
+not ok 7 shell pack: each rule passes intent claude rules validate
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/rule_pack_shell.bats, line 78)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 shell pack: rules list reports every shell id
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/rule_pack_shell.bats, line 85)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 9 shell pack: each rule has a fenced bash or zsh code block in Bad section
+ok 10 shell pack: each rule has a fenced bash or zsh code block in Good section
+ok 11 agnostic no-silent-errors lists IN-SH-CODE-005 in concretised_by
+ok 12 agnostic highlander lists IN-SH-CODE-006 in concretised_by
+ok 13 critic-shell subagent directory exists with agent.md and metadata.json
+ok 14 critic-shell registered in global-agents.json

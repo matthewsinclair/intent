@@ -1,0 +1,80 @@
+1..19
+ok 1 in-autopsy SKILL.md exists in source
+ok 2 in-autopsy scripts directory exists
+ok 3 in-autopsy autopsy.exs exists
+ok 4 in-autopsy banned-words.txt exists
+ok 5 in-autopsy SKILL.md has frontmatter with description
+not ok 6 claude skills list shows in-autopsy
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/test_autopsy.bats, line 60)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 claude skills list shows in-autopsy as NOT INSTALLED
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/test_autopsy.bats, line 66)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 claude skills install copies SKILL.md for in-autopsy
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/test_autopsy.bats, line 77)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 claude skills install copies scripts directory for in-autopsy
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/test_autopsy.bats, line 85)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 claude skills install --all includes in-autopsy with scripts
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/test_autopsy.bats, line 93)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 11 existing skills still install correctly with directory copy
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/test_autopsy.bats, line 102)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 in-autopsy shows as INSTALLED after install
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/test_autopsy.bats, line 108)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 13 claude skills sync updates in-autopsy scripts
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/test_autopsy.bats, line 123)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 14 claude skills show displays in-autopsy info
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/test_autopsy.bats, line 147)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 15 claude skills show in-autopsy extracts description from frontmatter
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/test_autopsy.bats, line 155)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 16 claude skills uninstall removes in-autopsy completely
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/test_autopsy.bats, line 166)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 17 autopsy.exs --help shows usage
+ok 18 banned-words.txt has expected format
+not ok 19 in-autopsy full lifecycle: install, sync, uninstall
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/test_autopsy.bats, line 219)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

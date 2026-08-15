@@ -1,0 +1,12 @@
+1..11
+ok 1 intent with no args shows info
+ok 2 intent help works anywhere
+ok 3 intent doctor works anywhere
+ok 4 intent doctor surfaces interrupted-migration sentinel (ST0036)
+ok 5 intent info works anywhere
+ok 6 intent version works anywhere
+ok 7 intent --version works anywhere
+ok 8 intent bootstrap works anywhere
+ok 9 intent init --help shows usage outside any project (global command)
+ok 10 intent plugin works anywhere
+ok 11 intent handles unknown command gracefully

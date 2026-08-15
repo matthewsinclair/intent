@@ -1,0 +1,13 @@
+1..12
+ok 1 release --dry-run --patch prints plan and does not commit/tag/push
+ok 2 release --dry-run with explicit vX.Y.Z
+ok 3 release --dry-run --major bumps major version
+ok 4 release fails when no version arg provided
+ok 5 release fails when bump flag mixed with explicit version
+ok 6 release fails when target is not greater than current
+ok 7 release fails when CHANGELOG has no section for target
+ok 8 release fails on dirty working tree
+ok 9 release accepts CHANGELOG date that is today
+ok 10 release rejects stale CHANGELOG date without --allow-stale-date
+ok 11 release accepts stale CHANGELOG date with --allow-stale-date
+ok 12 release --help shows usage

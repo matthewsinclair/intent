@@ -1,0 +1,121 @@
+1..20
+not ok 1 modules shows usage when no subcommand given
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/modules_commands.bats, line 15)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 modules help shows usage
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/modules_commands.bats, line 26)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 modules --help shows usage
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/modules_commands.bats, line 35)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 modules unknown subcommand shows error
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/modules_commands.bats, line 45)
+#   `assert_output_contains "Unknown modules command: bogus"' failed
+# Expected output to contain: Unknown modules command: bogus
+# Actual output:
+not ok 5 intent help shows modules command
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/modules_commands.bats, line 54)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 intent help modules shows modules help file
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/modules_commands.bats, line 60)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 modules check with matching registry reports clean
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/modules_commands.bats, line 90)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 modules check detects unregistered files
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/modules_commands.bats, line 121)
+#   `assert_output_contains "unregistered files"' failed
+# Expected output to contain: unregistered files
+# Actual output:
+not ok 9 modules check detects stale entries
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/modules_commands.bats, line 145)
+#   `assert_output_contains "stale registry entries"' failed
+# Expected output to contain: stale registry entries
+# Actual output:
+not ok 10 modules check resolves file::function rows by the function, not as a path
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/modules_commands.bats, line 177)
+#   `assert_output_contains "bin/intent_thing::gone_helper"' failed
+# Expected output to contain: bin/intent_thing::gone_helper
+# Actual output:
+not ok 11 modules check exits 0 when clean
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/modules_commands.bats, line 194)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 modules check exits 1 when issues found
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/modules_commands.bats, line 211)
+#   `assert_output_contains "issue(s) found"' failed
+# Expected output to contain: issue(s) found
+# Actual output:
+not ok 13 modules find returns matching entries
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/modules_commands.bats, line 233)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 14 modules find with no match reports no results
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/modules_commands.bats, line 247)
+#   `assert_output_contains "no matches"' failed
+# Expected output to contain: no matches
+# Actual output:
+not ok 15 modules find without argument shows error
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/modules_commands.bats, line 260)
+#   `assert_output_contains "Missing search term"' failed
+# Expected output to contain: Missing search term
+# Actual output:
+not ok 16 modules check errors when no MODULES.md
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/modules_commands.bats, line 275)
+#   `assert_output_contains "No MODULES.md found"' failed
+# Expected output to contain: No MODULES.md found
+# Actual output:
+not ok 17 modules find errors when no MODULES.md
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/modules_commands.bats, line 286)
+#   `assert_output_contains "No MODULES.md found"' failed
+# Expected output to contain: No MODULES.md found
+# Actual output:
+not ok 18 modules requires project context
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/modules_commands.bats, line 296)
+#   `assert_output_contains "Intent project"' failed
+# Expected output to contain: Intent project
+# Actual output:
+not ok 19 modules check --register shows registration guidance
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/modules_commands.bats, line 317)
+#   `assert_output_contains "hint: add these"' failed
+# Expected output to contain: hint: add these
+# Actual output:
+not ok 20 modules check unknown option shows error
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/modules_commands.bats, line 331)
+#   `assert_output_contains "Unknown option: --bogus"' failed
+# Expected output to contain: Unknown option: --bogus
+# Actual output:

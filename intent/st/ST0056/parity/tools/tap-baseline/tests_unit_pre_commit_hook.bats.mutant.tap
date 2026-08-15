@@ -1,0 +1,16 @@
+1..15
+ok 1 hook template exists and is executable
+ok 2 hook template syntax is valid
+ok 3 staged bad fixture blocks the commit (exit 1)
+ok 4 staged good fixture at critical threshold passes (exit 0)
+ok 5 --no-verify bypasses the hook
+ok 6 single-step case in lib/*.ex does NOT block commit (ST0039 / Conflab regression)
+ok 7 compliant async test does NOT block commit (ST0039 / Conflab regression)
+ok 8 intent CLI missing → fail-open (exit 0, advisory on stderr)
+ok 9 non-Intent repo → fail-open (exit 0, advisory on stderr)
+ok 10 reads severity_min from .intent_critic.yml
+ok 11 empty languages array → hook runs no critics → commit proceeds
+ok 12 languages without elixir → bad elixir fixture not flagged
+ok 13 declared prose language (author/content) does not error the gate or fail-open (issue 0003)
+ok 14 mixed code+prose: elixir critic still fires, prose skipped cleanly (issue 0003)
+ok 15 honours disabled rule id

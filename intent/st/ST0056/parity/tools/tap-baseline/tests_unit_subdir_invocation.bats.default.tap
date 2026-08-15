@@ -1,0 +1,8 @@
+1..7
+ok 1 st list works from intent/st subdirectory
+ok 2 st list works from a deeply nested directory
+ok 3 st new from subdirectory creates ST at project root, not cwd
+ok 4 wp list works from subdirectory
+ok 5 doctor works from subdirectory
+ok 6 outside any project, commands fail cleanly without creating .intent
+ok 7 INTENT_ORIG_CWD is exported to subcommands

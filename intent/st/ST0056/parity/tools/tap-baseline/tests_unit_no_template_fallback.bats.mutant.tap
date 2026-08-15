@@ -1,0 +1,28 @@
+1..7
+ok 1 st new fails loudly when the steel-thread templates are missing
+ok 2 st new leaves nothing behind when it refuses
+not ok 3 wp new fails loudly when the work-package template is missing
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/no_template_fallback.bats, line 63)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 wp new leaves no work-package directory behind when it refuses
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/no_template_fallback.bats, line 77)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 a healthy install still creates all five steel-thread documents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/no_template_fallback.bats, line 91)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 a healthy wp carries the template's Acceptance pointer, not the retired checkbox form
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/no_template_fallback.bats, line 104)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 7 no info.md-shaped heredoc remains in the ST or WP creators

@@ -1,0 +1,5 @@
+1..4
+ok 1 rules validate accepts a well-formed IN-CO content id
+ok 2 rules validate rejects a malformed IN-CO id (bad zero-padding)
+ok 3 rules validate rejects a lowercase co language code
+ok 4 content is registered in the canon-enumeration LANG_SUBDIRS default

@@ -1,0 +1,31 @@
+1..30
+ok 1 wp requires a command
+ok 2 wp new requires STID and title
+ok 3 wp new requires title argument
+ok 4 wp new errors on non-existent ST
+ok 5 wp done requires STID/WP specifier
+ok 6 wp show requires STID/WP specifier
+ok 7 wp done requires WP number in specifier
+ok 8 wp new creates WP directory and info.md
+ok 9 wp new creates sequential WP numbers
+ok 10 wp new works with bare number STID
+ok 11 wp new works with full STID format
+ok 12 wp new creates WP directory if it doesn't exist
+ok 13 wp new handles special characters in title
+ok 14 wp new generates correct frontmatter
+ok 15 wp new finds ST in COMPLETED directory
+ok 16 wp done marks WP status as Done
+ok 17 wp done errors on non-existent WP
+ok 18 wp done works with bare number specifier
+ok 19 wp done hints when all WPs complete
+ok 20 wp start marks WP status as WIP
+ok 21 wp start errors on non-existent WP
+ok 22 wp list shows all WPs for a steel thread
+ok 23 wp list shows no work packages message when empty
+ok 24 wp list works with bare number STID
+ok 25 wp list handles WPs with missing frontmatter
+ok 26 wp list fills the terminal width and never truncates the title
+ok 27 wp show displays WP info.md content
+ok 28 wp show errors on non-existent WP
+ok 29 wp help displays usage information
+ok 30 unknown wp command shows error

@@ -1,0 +1,67 @@
+1..11
+not ok 1 intent with no args shows info
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/global_commands.bats, line 8)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 intent help works anywhere
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/global_commands.bats, line 17)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 intent doctor works anywhere
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/global_commands.bats, line 25)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 intent doctor surfaces interrupted-migration sentinel (ST0036)
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/global_commands.bats, line 38)
+#   `assert_output_contains "sentinel detected"' failed
+# Expected output to contain: sentinel detected
+# Actual output:
+not ok 5 intent info works anywhere
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/global_commands.bats, line 45)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 intent version works anywhere
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/global_commands.bats, line 53)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 intent --version works anywhere
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/global_commands.bats, line 60)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 intent bootstrap works anywhere
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/global_commands.bats, line 67)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 intent init --help shows usage outside any project (global command)
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/global_commands.bats, line 76)
+#   `assert_output_contains "Initialize a new Intent v${version} project"' failed
+# Expected output to contain: Initialize a new Intent v2.19.0 project
+# Actual output:
+not ok 10 intent plugin works anywhere
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/global_commands.bats, line 81)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 11 intent handles unknown command gracefully
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/global_commands.bats, line 88)
+#   `assert_output_contains "Unknown command 'nonexistentcommand'"' failed
+# Expected output to contain: Unknown command 'nonexistentcommand'
+# Actual output:

@@ -1,0 +1,13 @@
+1..12
+ok 1 st done warns when Objective is still the template placeholder
+ok 2 st done still closes the thread despite the warning -- it is voice, not a gate
+ok 3 st done names the file where it now lives, not where it was
+ok 4 wp done warns when the work package Objective is still the placeholder
+ok 5 st done is silent once the Objective says something
+ok 6 wp done is silent once the work package Objective says something
+ok 7 the check is scoped to Objective -- an unedited Context section does not fire it
+ok 8 a thread that QUOTES the placeholder outside Objective does not fire it
+ok 9 the ST placeholder constant still matches the steel-thread template
+ok 10 the WP placeholder constant still matches the work-package template
+ok 11 intent_st carries no second generator of the steel-thread Objective
+ok 12 intent_wp carries no second generator of the work-package Objective

@@ -1,0 +1,31 @@
+1..30
+ok 1 intent lang help displays usage
+ok 2 intent lang (no subcommand) shows usage
+ok 3 intent lang list enumerates the canon language packs including author
+ok 4 intent lang show <lang> describes installation targets
+ok 5 intent lang show on unknown language errors with available list
+ok 6 intent lang init (no args) errors
+ok 7 intent lang init <lang> installs RULES + ARCHITECTURE files
+ok 8 intent lang init author installs RULES-author.md + ARCHITECTURE-author.md
+ok 9 intent lang init author appends the Language Packs entry and writes config languages
+ok 10 intent lang init content installs RULES-content.md + ARCHITECTURE-content.md
+ok 11 intent lang init content appends the Language Packs entry and writes config languages
+ok 12 intent lang init appends Language Packs entry to agnostic RULES.md
+ok 13 intent lang init is idempotent (zero diff on re-run)
+ok 14 intent lang init multi-lang installs each in order
+ok 15 intent lang init unknown language errors but does not abort other languages
+ok 16 intent lang init outside an Intent project errors cleanly
+ok 17 intent lang init writes the language to config.json languages field
+ok 18 intent lang init multi-lang writes all languages to config in order
+ok 19 intent lang init is idempotent for the languages config field
+ok 20 intent lang remove (no args) errors
+ok 21 intent lang remove deletes RULES + ARCHITECTURE files
+ok 22 intent lang remove drops the entry from config.json languages
+ok 23 intent lang remove drops the marker entry from agnostic RULES.md
+ok 24 intent lang remove on never-installed language is noop
+ok 25 intent lang remove is idempotent (zero diff on second call)
+ok 26 the Language Packs entry names the command, not a path that is not there
+ok 27 re-running lang init heals an entry left behind by an older Intent
+ok 28 lang sync heals a stale Language Packs entry without touching RULES-<lang>.md
+ok 29 lang sync --check reports staleness without writing
+ok 30 lang sync is a no-op when no languages are declared

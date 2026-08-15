@@ -1,0 +1,7 @@
+1..6
+ok 1 in-content-essentials skill exists
+ok 2 in-content-essentials declares description and chains_to frontmatter
+ok 3 in-content-essentials carries the content pipeline steps
+ok 4 in-content-essentials references the prose base + content rules by ID
+ok 5 in-content-essentials dispatches critic-prose for the mechanical pass
+ok 6 in-content-essentials is renderer-safe (no em dash, no positional tokens)

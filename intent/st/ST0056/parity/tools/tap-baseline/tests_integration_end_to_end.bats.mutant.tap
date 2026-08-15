@@ -1,0 +1,19 @@
+1..3
+not ok 1 complete workflow: create project, add steel thread, list it
+# (from function `assert_success' in file tests/integration/../lib/test_helper.bash, line 132,
+#  in test file tests/integration/end_to_end.bats, line 29)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 error handling: project commands fail gracefully outside project
+# (from function `assert_output_contains' in file tests/integration/../lib/test_helper.bash, line 123,
+#  in test file tests/integration/end_to_end.bats, line 76)
+#   `assert_output_contains "not in an Intent project directory"' failed
+# Expected output to contain: not in an Intent project directory
+# Actual output:
+not ok 3 global commands work outside project
+# (from function `assert_success' in file tests/integration/../lib/test_helper.bash, line 132,
+#  in test file tests/integration/end_to_end.bats, line 84)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

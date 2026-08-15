@@ -1,0 +1,110 @@
+1..19
+not ok 1 fresh project --apply installs all canon artefacts
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 57)
+#   `init_scratch fresh' failed
+# intent init failed in /tmp/intent-test-LqMpNG/fresh
+not ok 2 re-running --apply produces no file changes (idempotence)
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 87)
+#   `init_scratch idem' failed
+# intent init failed in /tmp/intent-test-Hai0Wa/idem
+not ok 3 user-edited CLAUDE.md user-section is preserved on refresh
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 103)
+#   `init_scratch preserve' failed
+# intent init failed in /tmp/intent-test-loQFdX/preserve
+not ok 4 pre-existing non-Intent pre-commit hook is chained, body preserved
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 133)
+#   `init_scratch chain' failed
+# intent init failed in /tmp/intent-test-p48HVY/chain
+not ok 5 chain block insertion is idempotent across re-applies
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 163)
+#   `init_scratch chain_idem' failed
+# intent init failed in /tmp/intent-test-FpXoOD/chain_idem
+not ok 6 dry-run reports CHAIN_REQUIRED when chain block missing
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 189)
+#   `init_scratch chain_required' failed
+# intent init failed in /tmp/intent-test-ZPAMgO/chain_required
+not ok 7 dry-run reports CHAINED when chain block already present
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 207)
+#   `init_scratch chained_ok' failed
+# intent init failed in /tmp/intent-test-I29WsJ/chained_ok
+not ok 8 legacy single-file pre-commit (canon body verbatim) is migrated to chained
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 235)
+#   `init_scratch legacy_migrate' failed
+# intent init failed in /tmp/intent-test-rM4o1a/legacy_migrate
+not ok 9 dry-run reports LEGACY when canon body sits at pre-commit (no pre-commit.intent)
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 261)
+#   `init_scratch legacy_detect' failed
+# intent init failed in /tmp/intent-test-h3oSMx/legacy_detect
+not ok 10 legacy migration is idempotent (re-apply after migration is a no-op)
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 274)
+#   `init_scratch legacy_idem' failed
+# intent init failed in /tmp/intent-test-7PSw2g/legacy_idem
+not ok 11 NORMALIZE_GITIGNORE replaces broad .claude with .claude/settings.local.json
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 293)
+#   `init_scratch gi_broad' failed
+# intent init failed in /tmp/intent-test-y7IWT3/gi_broad
+not ok 12 NORMALIZE_GITIGNORE appends missing .claude/settings.local.json + AGENTS.md.bak
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 314)
+#   `init_scratch gi_missing' failed
+# intent init failed in /tmp/intent-test-ngRuU8/gi_missing
+not ok 13 NORMALIZE_GITIGNORE is idempotent (canonical .gitignore not re-touched)
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 330)
+#   `init_scratch gi_idem' failed
+# intent init failed in /tmp/intent-test-xXsZgE/gi_idem
+not ok 14 REVIEW warning fires only when RULES/ARCH match _default verbatim
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 355)
+#   `init_scratch review_default' failed
+# intent init failed in /tmp/intent-test-cNQU0m/review_default
+not ok 15 PROJECT_NAME resolves from config.json (not basename of relative path)
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 375)
+#   `init_scratch myproj' failed
+# intent init failed in /tmp/intent-test-hihcnj/myproj
+not ok 16 canon-installer always installs _default RULES/ARCHITECTURE (not language-specific)
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 393)
+#   `init_scratch any' failed
+# intent init failed in /tmp/intent-test-qRV67d/any
+not ok 17 canon-installer ignores language markers (multi-language reality)
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 412)
+#   `init_scratch polyglot' failed
+# intent init failed in /tmp/intent-test-xIiYSC/polyglot
+not ok 18 --dry-run does not modify the filesystem
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  from function `init_scratch' in file tests/unit/intent_claude_upgrade.bats, line 43,
+#  in test file tests/unit/intent_claude_upgrade.bats, line 428)
+#   `init_scratch dry' failed
+# intent init failed in /tmp/intent-test-X8oicN/dry
+ok 19 sed edits are portable and the version handling is anchored

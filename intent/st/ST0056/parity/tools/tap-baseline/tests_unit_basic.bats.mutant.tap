@@ -1,0 +1,10 @@
+1..4
+ok 1 test helper is loaded
+ok 2 intent executable exists
+ok 3 can create test project
+not ok 4 run_intent function works
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/basic.bats, line 23)
+#   `assert_output_contains "Intent version"' failed
+# Expected output to contain: Intent version
+# Actual output:

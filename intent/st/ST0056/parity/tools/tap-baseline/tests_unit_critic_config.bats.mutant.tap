@@ -1,0 +1,23 @@
+1..10
+ok 1 config: sample file exists at rules/_schema/
+ok 2 config: sample file documents the three schema keys
+ok 3 config: sample disabled entries carry a # reason comment
+ok 4 config: critics.md documents every sample key
+not ok 5 config: without .intent_critic.yml the finding fires (defaults path)
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/critic_config.bats, line 128)
+#   `assert_output_contains "IN-SH-TEST-903"' failed
+# Expected output to contain: IN-SH-TEST-903
+# Actual output:
+not ok 6 config: disabled rule id suppresses the finding
+# (in test file tests/unit/critic_config.bats, line 138)
+#   `[ "$status" -eq 0 ]' failed
+not ok 7 config: disabling one rule does not suppress others
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/critic_config.bats, line 150)
+#   `assert_output_contains "IN-SH-TEST-903"' failed
+# Expected output to contain: IN-SH-TEST-903
+# Actual output:
+ok 8 config: hook passes severity_min from .intent_critic.yml to the runner
+ok 9 config: hook falls back to warning on an invalid severity_min value
+ok 10 config: hook defaults to warning when .intent_critic.yml is absent

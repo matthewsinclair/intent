@@ -1,0 +1,18 @@
+1..17
+ok 1 normalise_st_id pads a bare number
+ok 2 normalise_st_id is octal-safe for leading-zero numbers
+ok 3 normalise_st_id pads an ST-prefixed short id
+ok 4 normalise_st_id leaves a canonical id unchanged
+ok 5 has_project_language is true only for a declared language
+ok 6 has_project_language matches whole entries, never substrings
+ok 7 has_project_language is false for an empty, absent or unreadable config
+ok 8 stamp_project_version writes the version and reports 0
+ok 9 stamp_project_version reports 1 and writes nothing when already at target
+ok 10 stamp_project_version reports 2 when it cannot stamp
+ok 11 stamp_project_version drops the legacy version key while stamping
+ok 12 list_st_dirs enumerates the canonical locations and nothing else
+ok 13 list_st_dirs ignores a staging area under intent/st however it is named
+ok 14 list_st_dirs requires info.md, so a bare directory is not a thread
+ok 15 warning() speaks the documented lowercase voice, on stderr
+ok 16 error() speaks the documented lowercase voice, on stderr, and exits 1
+ok 17 no shell command emits a capitalised Error: prefix

@@ -1,0 +1,9 @@
+1..8
+ok 1 require-in-session.sh exists and is executable
+ok 2 INTENT_SKIP_IN_SESSION_GATE=1 short-circuits with exit 0 and empty stderr
+ok 3 INTENT_SKIP_IN_SESSION_GATE=1 short-circuits with empty stdin
+ok 4 empty INTENT_SKIP_IN_SESSION_GATE still gates
+ok 5 unset INTENT_SKIP_IN_SESSION_GATE still gates
+ok 6 gate resolves session_id from CLAUDE_CODE_SESSION_ID, not the payload
+ok 7 slash-command prompt passes through without bypass
+ok 8 sentinel pass-through still works without bypass

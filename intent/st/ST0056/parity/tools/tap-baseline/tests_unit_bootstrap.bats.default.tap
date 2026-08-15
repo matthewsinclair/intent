@@ -1,0 +1,6 @@
+1..5
+ok 1 intent_bootstrap creates global config directory
+ok 2 intent_bootstrap creates default config.json
+ok 3 intent_bootstrap provides PATH setup instructions
+ok 4 intent_bootstrap handles existing config gracefully
+ok 5 intent_bootstrap runs doctor after setup

@@ -1,0 +1,7 @@
+1..6
+ok 1 in-author-essentials skill exists
+ok 2 in-author-essentials declares description and chains_to frontmatter
+ok 3 in-author-essentials carries the authoring pipeline steps
+ok 4 in-author-essentials references the prose base + author rules by ID
+ok 5 in-author-essentials wires the two-form detrope (mechanical default + /in-detrope handoff)
+ok 6 in-author-essentials is renderer-safe (no em dash, no positional tokens)

@@ -1,0 +1,194 @@
+1..33
+not ok 1 st zero shows usage when no subcommand given
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 15)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 st zero help shows usage
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 26)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 st zero --help shows usage
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 36)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 st zero unknown subcommand shows error
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/st_zero_commands.bats, line 46)
+#   `assert_output_contains "Unknown st zero command: bogus"' failed
+# Expected output to contain: Unknown st zero command: bogus
+# Actual output:
+not ok 5 st zero install requires project context
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/st_zero_commands.bats, line 58)
+#   `assert_output_contains "not in an Intent project"' failed
+# Expected output to contain: not in an Intent project
+# Actual output:
+not ok 6 st zero install --audit-only shows gap analysis
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 70)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 st zero install --audit-only detects missing CLAUDE.md
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 80)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 st zero install --audit-only detects present CLAUDE.md
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 92)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 st zero install --audit-only detects missing MODULES.md
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 102)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 st zero install --audit-only detects present MODULES.md
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 118)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 11 st zero install --audit-only detects missing learnings.md
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 127)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 st zero install --audit-only detects present learnings.md
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 143)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 13 st zero skips Elixir deliverables when no mix.exs
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 156)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 14 st zero checks Elixir deliverables when mix.exs present
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 167)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 15 st zero install --deliverable D3 targets single deliverable
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 182)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 16 st zero install --deliverable rejects invalid ID
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/st_zero_commands.bats, line 195)
+#   `assert_output_contains "Unknown deliverable: D99"' failed
+# Expected output to contain: Unknown deliverable: D99
+# Actual output:
+not ok 17 st zero install --dry-run shows what would change
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 207)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 18 st zero install --dry-run does not write files
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 217)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 19 st zero install creates CLAUDE.md from template when missing
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 233)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 20 st zero install never overwrites existing CLAUDE.md
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 244)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 21 st zero install creates DECISION_TREE.md from template
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 255)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 22 st zero install creates learnings.md
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 265)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 23 st zero install creates ARCHETYPES.md for Elixir projects
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 277)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 24 st zero install skips ARCHETYPES.md for non-Elixir projects
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 287)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 25 st zero install creates DEPENDENCY_GRAPH.md for Elixir projects
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 298)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 26 st zero install generates MODULES.md from .ex files
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 323)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 27 st zero install classifies web modules correctly
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 341)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 28 st zero no longer creates credo_checks/ in an Elixir project
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 363)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 29 D5a is rejected as an unknown deliverable
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/st_zero_commands.bats, line 376)
+#   `assert_output_contains "Unknown deliverable"' failed
+# Expected output to contain: Unknown deliverable
+# Actual output:
+ok 30 no code path under bin/ creates credo_checks/
+not ok 31 st zero install creates hook settings when missing
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 398)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 32 st zero install skips hook when already configured
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 411)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 33 st zero install reports nothing to install when all present
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_zero_commands.bats, line 443)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

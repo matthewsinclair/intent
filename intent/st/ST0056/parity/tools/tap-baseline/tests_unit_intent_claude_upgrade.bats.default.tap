@@ -1,0 +1,20 @@
+1..19
+ok 1 fresh project --apply installs all canon artefacts
+ok 2 re-running --apply produces no file changes (idempotence)
+ok 3 user-edited CLAUDE.md user-section is preserved on refresh
+ok 4 pre-existing non-Intent pre-commit hook is chained, body preserved
+ok 5 chain block insertion is idempotent across re-applies
+ok 6 dry-run reports CHAIN_REQUIRED when chain block missing
+ok 7 dry-run reports CHAINED when chain block already present
+ok 8 legacy single-file pre-commit (canon body verbatim) is migrated to chained
+ok 9 dry-run reports LEGACY when canon body sits at pre-commit (no pre-commit.intent)
+ok 10 legacy migration is idempotent (re-apply after migration is a no-op)
+ok 11 NORMALIZE_GITIGNORE replaces broad .claude with .claude/settings.local.json
+ok 12 NORMALIZE_GITIGNORE appends missing .claude/settings.local.json + AGENTS.md.bak
+ok 13 NORMALIZE_GITIGNORE is idempotent (canonical .gitignore not re-touched)
+ok 14 REVIEW warning fires only when RULES/ARCH match _default verbatim
+ok 15 PROJECT_NAME resolves from config.json (not basename of relative path)
+ok 16 canon-installer always installs _default RULES/ARCHITECTURE (not language-specific)
+ok 17 canon-installer ignores language markers (multi-language reality)
+ok 18 --dry-run does not modify the filesystem
+ok 19 sed edits are portable and the version handling is anchored

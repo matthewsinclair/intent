@@ -1,0 +1,11 @@
+1..10
+ok 1 a staging area under intent/st does not become duplicate live threads
+ok 2 st sync --write does not persist a duplicate id into the committed index
+ok 3 threads in every canonical bucket still resolve
+ok 4 organize names a collision, finishes the sweep, and exits non-zero
+ok 5 intent info counts threads, not directories that happen to sit in a bucket
+ok 6 no command re-rolls the thread enumeration outside the helper
+ok 7 an mv failure that is not a collision is diagnosed as what it is
+ok 8 organize still exits zero and moves cleanly when there is no collision
+ok 9 organize does not promote a staged copy into the live namespace
+ok 10 doctor reports a duplicate id as a defect rather than an extra table row

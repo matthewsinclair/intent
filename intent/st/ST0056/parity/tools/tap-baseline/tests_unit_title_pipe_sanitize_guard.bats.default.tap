@@ -1,0 +1,4 @@
+1..3
+ok 1 helper: sanitize_title replaces every pipe with a slash
+ok 2 st new: a piped title stores no raw pipe in the ST heading
+ok 3 wp new: a piped title stores no raw pipe in the wp title

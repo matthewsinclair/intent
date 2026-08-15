@@ -1,0 +1,14 @@
+1..13
+ok 1 content pack: every catalogued rule exists
+ok 2 content pack has the expected total rule count
+ok 3 content pack: each rule declares its canonical id
+ok 4 content pack: each rule declares language: content
+ok 5 content pack: each rule passes intent claude rules validate
+ok 6 content pack: rules list reports every content id
+ok 7 content pack: category matches the tier directory
+ok 8 content pack: the craft tier owns the web-distinct judgment rules
+ok 9 content pack: each rule has a fenced markdown block in Bad section
+ok 10 content pack: each rule has a fenced markdown block in Good section
+ok 11 content pack: no sibling .md example files alongside RULE.md
+ok 12 content pack: does not duplicate any prose-base mechanical rule slug
+ok 13 content pack: declares no IN-PR-* id (the base is referenced, not re-owned)

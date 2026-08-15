@@ -1,0 +1,8 @@
+1..7
+ok 1 clean migration: .intent v2.9.0 -> intent/.config v2.9.0 (stamp untouched by relocate)
+ok 2 idempotent re-run: second invocation is a no-op
+ok 3 sentinel recovery: existing migration-in-progress refuses, no mutation
+ok 4 symlink refusal: .intent is a symlink, no relocation, target unchanged
+ok 5 conflict refusal: both .intent/ and intent/.config/ exist, no mutation
+ok 6 step_relocate_config_needs: .intent/ present and no intent/.config/ -> needs (0)
+ok 7 step_relocate_config_needs: already on intent/.config/ -> not needed (1)

@@ -1,0 +1,23 @@
+1..12
+ok 1 prose pack: every catalogued rule exists
+ok 2 prose pack has the expected total rule count
+ok 3 prose pack: each rule declares its canonical id
+ok 4 prose pack: each rule declares language: prose
+ok 5 prose pack: each rule carries its IN-AU migration alias
+not ok 6 prose pack: each rule passes intent claude rules validate
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/rule_pack_prose.bats, line 80)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 prose pack: rules list reports every prose id
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/rule_pack_prose.bats, line 87)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 8 prose pack: every rule is the mechanical style tier
+ok 9 prose pack: each rule has a fenced markdown block in Bad section
+ok 10 prose pack: no sibling .md example files alongside RULE.md
+ok 11 prose pack: mechanical trope pass cites the in-detrope catalogue
+ok 12 prose pack: no vendored trope-indicator file (Highlander)

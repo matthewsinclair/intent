@@ -1,0 +1,19 @@
+1..6
+ok 1 get_default_width reads dft_width from config
+ok 2 get_default_width defaults to 120 when dft_width is absent
+not ok 3 st list stdout fills the terminal width and never truncates the slug
+# (from function `run_intent' in file tests/unit/../lib/test_helper.bash, line 114,
+#  in test file tests/unit/output_width.bats, line 48)
+#   `run_intent st new "another sufficiently long steel thread title for measuring stdout width"' failed
+not ok 4 st list and st sync resolve the same width over the same scope
+# (from function `run_intent' in file tests/unit/../lib/test_helper.bash, line 114,
+#  in test file tests/unit/output_width.bats, line 70)
+#   `run_intent st new "a title"' failed
+not ok 5 st sync --write index is canonical markdown, independent of terminal width
+# (from function `run_intent' in file tests/unit/../lib/test_helper.bash, line 114,
+#  in test file tests/unit/output_width.bats, line 93)
+#   `run_intent st new "a deliberately long steel thread title whose slug would truncate at eighty columns"' failed
+not ok 6 explicit --width overrides the terminal width (list and sync alike)
+# (from function `run_intent' in file tests/unit/../lib/test_helper.bash, line 114,
+#  in test file tests/unit/output_width.bats, line 122)
+#   `run_intent st new "yet another long steel thread title to exercise the width override path"' failed

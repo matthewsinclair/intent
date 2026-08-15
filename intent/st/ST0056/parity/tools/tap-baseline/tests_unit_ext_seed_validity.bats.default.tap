@@ -1,0 +1,19 @@
+1..18
+ok 1 worker-bee seed directory exists
+ok 2 worker-bee seed has extension.json manifest
+ok 3 worker-bee seed has README.md
+ok 4 worker-bee seed has agent.md at declared contribution path
+ok 5 worker-bee seed has metadata.json at declared contribution path
+ok 6 worker-bee seed preserves all original resource files
+ok 7 worker-bee manifest is valid JSON
+ok 8 worker-bee manifest declares schema intent-extension/v1
+ok 9 worker-bee manifest name matches directory
+ok 10 worker-bee manifest version is semver
+ok 11 worker-bee manifest contributes a single subagent
+ok 12 worker-bee manifest declares no skills or rules
+ok 13 worker-bee seed has no absolute path references
+ok 14 worker-bee seed has no $INTENT_HOME references
+ok 15 worker-bee seed has no canon subagent path references
+ok 16 intent ext validate passes for worker-bee seed
+ok 17 canon subagents directory no longer contains worker-bee
+ok 18 canon global-agents.json does not list worker-bee

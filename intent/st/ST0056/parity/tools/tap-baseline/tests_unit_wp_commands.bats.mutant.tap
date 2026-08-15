@@ -1,0 +1,181 @@
+1..30
+not ok 1 wp requires a command
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/wp_commands.bats, line 16)
+#   `assert_output_contains "Work package command is required"' failed
+# Expected output to contain: Work package command is required
+# Actual output:
+not ok 2 wp new requires STID and title
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/wp_commands.bats, line 25)
+#   `assert_output_contains "Usage: intent wp new"' failed
+# Expected output to contain: Usage: intent wp new
+# Actual output:
+not ok 3 wp new requires title argument
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/wp_commands.bats, line 42)
+#   `assert_output_contains "Usage: intent wp new"' failed
+# Expected output to contain: Usage: intent wp new
+# Actual output:
+not ok 4 wp new errors on non-existent ST
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/wp_commands.bats, line 51)
+#   `assert_output_contains "Steel thread not found"' failed
+# Expected output to contain: Steel thread not found
+# Actual output:
+not ok 5 wp done requires STID/WP specifier
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/wp_commands.bats, line 60)
+#   `assert_output_contains "Usage: intent wp done"' failed
+# Expected output to contain: Usage: intent wp done
+# Actual output:
+not ok 6 wp show requires STID/WP specifier
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/wp_commands.bats, line 69)
+#   `assert_output_contains "Usage: intent wp show"' failed
+# Expected output to contain: Usage: intent wp show
+# Actual output:
+not ok 7 wp done requires WP number in specifier
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/wp_commands.bats, line 86)
+#   `assert_output_contains "Work package number is required"' failed
+# Expected output to contain: Work package number is required
+# Actual output:
+not ok 8 wp new creates WP directory and info.md
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 106)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 wp new creates sequential WP numbers
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 125)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 wp new works with bare number STID
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 150)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 11 wp new works with full STID format
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 168)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 wp new creates WP directory if it doesn't exist
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 188)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 13 wp new handles special characters in title
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 205)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 14 wp new generates correct frontmatter
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 223)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 15 wp new finds ST in COMPLETED directory
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 243)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 16 wp done marks WP status as Done
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 274)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 17 wp done errors on non-existent WP
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/wp_commands.bats, line 293)
+#   `assert_output_contains "Work package not found"' failed
+# Expected output to contain: Work package not found
+# Actual output:
+not ok 18 wp done works with bare number specifier
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 319)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 19 wp done hints when all WPs complete
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 356)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 20 wp start marks WP status as WIP
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 386)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 21 wp start errors on non-existent WP
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/wp_commands.bats, line 405)
+#   `assert_output_contains "Work package not found"' failed
+# Expected output to contain: Work package not found
+# Actual output:
+not ok 22 wp list shows all WPs for a steel thread
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 444)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 23 wp list shows no work packages message when empty
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 464)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 24 wp list works with bare number STID
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 490)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 25 wp list handles WPs with missing frontmatter
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 515)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 26 wp list fills the terminal width and never truncates the title
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 545)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 27 wp show displays WP info.md content
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/wp_commands.bats, line 590)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 28 wp show errors on non-existent WP
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/wp_commands.bats, line 609)
+#   `assert_output_contains "Work package not found"' failed
+# Expected output to contain: Work package not found
+# Actual output:
+not ok 29 wp help displays usage information
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/wp_commands.bats, line 622)
+#   `assert_output_contains "Usage: intent wp"' failed
+# Expected output to contain: Usage: intent wp
+# Actual output:
+not ok 30 unknown wp command shows error
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/wp_commands.bats, line 636)
+#   `assert_output_contains "Unknown wp command"' failed
+# Expected output to contain: Unknown wp command
+# Actual output:

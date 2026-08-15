@@ -1,0 +1,73 @@
+1..12
+not ok 1 plugin with no args lists plugins
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/plugin_commands.bats, line 12)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 plugin list shows both plugins
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/plugin_commands.bats, line 20)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 plugin list shows command syntax
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/plugin_commands.bats, line 27)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 plugin list shows descriptions
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/plugin_commands.bats, line 36)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 plugin show claude shows detailed info
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/plugin_commands.bats, line 47)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 plugin show agents shows detailed info
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/plugin_commands.bats, line 61)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 plugin show missing plugin errors
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/plugin_commands.bats, line 72)
+#   `assert_output_contains "Unknown plugin 'nonexistent'"' failed
+# Expected output to contain: Unknown plugin 'nonexistent'
+# Actual output:
+not ok 8 plugin show with no name errors
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/plugin_commands.bats, line 78)
+#   `assert_output_contains "Usage: intent plugin show <name>"' failed
+# Expected output to contain: Usage: intent plugin show <name>
+# Actual output:
+not ok 9 plugin help shows usage
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/plugin_commands.bats, line 87)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 plugin --help shows usage
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/plugin_commands.bats, line 96)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 11 plugin invalid subcommand errors
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/plugin_commands.bats, line 107)
+#   `assert_output_contains "Unknown plugin subcommand 'badcmd'"' failed
+# Expected output to contain: Unknown plugin subcommand 'badcmd'
+# Actual output:
+not ok 12 plugin works from non-project directory
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/plugin_commands.bats, line 117)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

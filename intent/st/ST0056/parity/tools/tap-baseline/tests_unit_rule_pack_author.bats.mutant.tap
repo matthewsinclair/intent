@@ -1,0 +1,23 @@
+1..12
+ok 1 author pack: every catalogued rule exists
+ok 2 author pack has the expected total rule count
+ok 3 author pack: each rule declares its canonical id
+ok 4 author pack: each rule declares language: author
+not ok 5 author pack: each rule passes intent claude rules validate
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/rule_pack_author.bats, line 73)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 author pack: rules list reports every author id
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/rule_pack_author.bats, line 80)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 7 author pack: category matches the tier directory
+ok 8 author pack: every craft (judgment) rule is severity recommendation
+ok 9 author pack: each rule has a fenced markdown block in Bad section
+ok 10 author pack: each rule has a fenced markdown block in Good section
+ok 11 author pack: no sibling .md example files alongside RULE.md
+ok 12 author pack: full-trope-diagnosis links to the prose mechanical trope pass

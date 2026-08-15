@@ -1,0 +1,38 @@
+1..7
+not ok 1 st list works from intent/st subdirectory
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/subdir_invocation.bats, line 13)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 st list works from a deeply nested directory
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/subdir_invocation.bats, line 26)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 st new from subdirectory creates ST at project root, not cwd
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/subdir_invocation.bats, line 42)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 wp list works from subdirectory
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/subdir_invocation.bats, line 56)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 doctor works from subdirectory
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/subdir_invocation.bats, line 72)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 outside any project, commands fail cleanly without creating .intent
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/subdir_invocation.bats, line 79)
+#   `assert_output_contains "not in an Intent project"' failed
+# Expected output to contain: not in an Intent project
+# Actual output:
+ok 7 INTENT_ORIG_CWD is exported to subcommands

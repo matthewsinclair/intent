@@ -1,0 +1,26 @@
+1..25
+ok 1 intent_agents script is executable
+ok 2 intent_agents script syntax is valid
+ok 3 intent agents help shows the canon summary
+ok 4 init writes root AGENTS.md as a regular file, not intent/llm/AGENTS.md
+ok 5 init --template elixir writes root AGENTS.md and keeps RULES/ARCHITECTURE under intent/llm/
+ok 6 sync replaces a pre-existing symlink with a real file
+ok 7 sync is idempotent -- two consecutive runs produce byte-identical output
+ok 8 sync renders installed skills and subagents from .claude/
+ok 9 sync renders fallbacks when .claude/ is absent
+ok 10 validate passes on a clean project (regular file at root)
+ok 11 validate warns on a legacy symlink (exit 0, warning on output)
+ok 12 generate dispatcher self-loads project context (regression: bare PROJECT_ROOT)
+ok 13 generated Rule Library section routes through the CLI, not a local rules path
+ok 14 enriched content includes canon section pointers (critic, rules, extensions, hooks, FAQ)
+ok 15 init --template rust creates root AGENTS.md despite template having none
+ok 16 sync renders skills and subagents installed in HOME/.claude
+ok 17 init --template _default produces an AGENTS.md that passes validate
+ok 18 the shell prerequisite is gated on the declared languages, not asserted for every project
+ok 19 an empty Prerequisites block says so rather than leaving a bare heading
+ok 20 a stray marker file does not assert a toolchain the project never declared
+ok 21 a declared language is stated even when its marker file is elsewhere
+ok 22 lua and swift get prerequisite lines, which they never had
+ok 23 build and test commands still follow the marker file, not the declaration
+ok 24 agents sync --check reports staleness without writing
+ok 25 agents sync --check ignores the generated-by date

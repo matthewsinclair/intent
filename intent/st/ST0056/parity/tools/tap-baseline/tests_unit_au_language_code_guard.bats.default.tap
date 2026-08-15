@@ -1,0 +1,5 @@
+1..4
+ok 1 rules validate accepts a well-formed IN-AU author id
+ok 2 rules validate rejects a malformed IN-AU id (bad zero-padding)
+ok 3 rules validate rejects a lowercase au language code
+ok 4 author is registered in the canon-enumeration LANG_SUBDIRS default

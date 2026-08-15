@@ -1,0 +1,5 @@
+1..4
+ok 1 no .bats file invokes the dispatcher by a path that bypasses $INTENT_BIN
+ok 2 the guard's needle actually matches the form that regressed
+ok 3 the guard's needle does NOT match the intent_<sub> direct call sites
+ok 4 the allowlist names only files that exist

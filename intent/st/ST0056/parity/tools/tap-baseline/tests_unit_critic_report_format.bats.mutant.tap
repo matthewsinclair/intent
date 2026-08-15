@@ -1,0 +1,32 @@
+1..7
+not ok 1 text report: finding line is [SEVERITY] <id> at <file>:<line> with excerpt
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/critic_report_format.bats, line 112)
+#   `assert_output_contains "[WARNING] IN-SH-TEST-901 at $TARGET:2"' failed
+# Expected output to contain: [WARNING] IN-SH-TEST-901 at /tmp/intent-test-CzS3LW/target.sh:2
+# Actual output:
+not ok 2 text report: severity sections are headed and ordered critical-first
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  in test file tests/unit/critic_report_format.bats, line 122)
+#   `[ -n "$crit_line" ] || fail "no CRITICAL section header: $output"' failed
+# no CRITICAL section header:
+not ok 3 text report: clean run prints ok line and exits 0
+# (in test file tests/unit/critic_report_format.bats, line 129)
+#   `[ "$status" -eq 0 ]' failed
+not ok 4 text report: --severity-min critical filters the warning finding
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/critic_report_format.bats, line 136)
+#   `assert_output_contains "IN-SH-TEST-902"' failed
+# Expected output to contain: IN-SH-TEST-902
+# Actual output:
+not ok 5 json report: emits valid JSON with severity/rule_id/file/line/excerpt
+# (from function `fail' in file tests/unit/../lib/test_helper.bash, line 148,
+#  in test file tests/unit/critic_report_format.bats, line 148)
+#   `|| fail "output is not valid JSON: $output"' failed
+# output is not valid JSON:
+not ok 6 json report: clean run emits an empty array and exits 0
+# (in test file tests/unit/critic_report_format.bats, line 157)
+#   `[ "$status" -eq 0 ]' failed
+not ok 7 exit codes: 1 on findings at threshold, 0 below threshold
+# (in test file tests/unit/critic_report_format.bats, line 172)
+#   `[ "$status" -eq 0 ]' failed

@@ -1,0 +1,13 @@
+1..12
+ok 1 help displays general help when no command is specified
+ok 2 help displays command-specific help when a command is specified
+ok 3 help shows short descriptions for all commands
+ok 4 help handles unknown commands correctly
+ok 5 help works with --help flag
+ok 6 help shows proper command categories
+ok 7 help shows claude and plugin in core section
+ok 8 help plugin shows plugin help file
+ok 9 help claude shows claude help file
+ok 10 help agents shows corrected agents help
+ok 11 help Other: shows lang as a one-liner, not its whole help doc
+ok 12 help Other: strips the comment prefix from a double-dash header (critic)

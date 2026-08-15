@@ -1,0 +1,36 @@
+1..5
+not ok 1 at lint <ID>/NN counts only that work package's rows and names the scope
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_wp_contract' in file tests/unit/at_lint_wp_scope.bats, line 29,
+#  in test file tests/unit/at_lint_wp_scope.bats, line 55)
+#   `setup_two_wp_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 at lint on the whole thread still sees every row
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_wp_contract' in file tests/unit/at_lint_wp_scope.bats, line 29,
+#  in test file tests/unit/at_lint_wp_scope.bats, line 68)
+#   `setup_two_wp_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 at lint <ID>/NN --fix does not rewrite a row outside the scope
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_wp_contract' in file tests/unit/at_lint_wp_scope.bats, line 29,
+#  in test file tests/unit/at_lint_wp_scope.bats, line 81)
+#   `setup_two_wp_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 at lint <ID>/NN --fix still migrates rows inside the scope
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_wp_contract' in file tests/unit/at_lint_wp_scope.bats, line 29,
+#  in test file tests/unit/at_lint_wp_scope.bats, line 94)
+#   `setup_two_wp_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 ac gate <ID>/NN does not report findings from another work package
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_wp_contract' in file tests/unit/at_lint_wp_scope.bats, line 29,
+#  in test file tests/unit/at_lint_wp_scope.bats, line 103)
+#   `setup_two_wp_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

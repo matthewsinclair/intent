@@ -1,0 +1,13 @@
+1..12
+ok 1 a descoped AC stops blocking and the gate passes a genuinely finished thread
+ok 2 off-scope ACs are reported separately, never folded away
+ok 3 the audit trail lands on the line, which is the whole point over deleting it
+ok 4 a descope names a real thread, never itself, and never nothing
+ok 5 a withdrawal without a stated reason is refused
+ok 6 rescope and reinstate undo their own state and refuse the other's
+ok 7 an off-scope AC is not re-entered by another off-scope verb
+ok 8 a descoped test-backed AC is off-scope before it is hunted for a covering AT
+ok 9 an off-scope AC cannot be satisfied, and the refusal names the undo
+ok 10 a contract emptied by off-scope moves is refused, not passed on an empty set
+ok 11 a field value carrying the delimiter is refused rather than mangled
+ok 12 satisfied: n/a is read as itself, not as a truncated token

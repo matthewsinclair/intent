@@ -1,0 +1,32 @@
+1..11
+not ok 1 convergent upgrade from a v2.9.x project lands at target (relocate then languages then canon then stamp-once)
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_upgrade_orchestrator.bats, line 37)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 interrupted upgrade re-run completes only the remaining work via state probe
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_upgrade_orchestrator.bats, line 55)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 3 no ledger step writes the version; only the orchestrator stamps, last
+not ok 4 future or unknown version does not hard-fail before mutation
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_upgrade_orchestrator.bats, line 91)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 5 semver sanity refuses downgrade and missing VERSION before any mutation
+ok 6 backup failure surfaces via error() and aborts before mutation
+not ok 7 verified backup tolerates a broken symlink in the source (cp -R, not -r)
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_upgrade_orchestrator.bats, line 142)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 8 only intent_upgrade writes the stamp and the canon engine carries no version-bump
+ok 9 migration code is not sourced into non-upgrade commands
+ok 10 the ledger converges the Language Packs block via lang sync, never lang init
+ok 11 the final stamp survives set -e when the config is already at target

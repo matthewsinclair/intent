@@ -1,0 +1,20 @@
+1..4
+not ok 1 rules validate accepts a well-formed IN-CO content id
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/co_language_code_guard.bats, line 22)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 rules validate rejects a malformed IN-CO id (bad zero-padding)
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/co_language_code_guard.bats, line 32)
+#   `assert_output_contains "does not match"' failed
+# Expected output to contain: does not match
+# Actual output:
+not ok 3 rules validate rejects a lowercase co language code
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/co_language_code_guard.bats, line 40)
+#   `assert_output_contains "does not match"' failed
+# Expected output to contain: does not match
+# Actual output:
+ok 4 content is registered in the canon-enumeration LANG_SUBDIRS default

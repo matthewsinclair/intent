@@ -1,0 +1,48 @@
+1..47
+ok 1 fileindex: shows help with -h flag
+ok 2 fileindex: shows help with --help flag
+ok 3 fileindex: lists files in current directory (standalone mode)
+ok 4 fileindex: respects custom filespec
+ok 5 fileindex: recursive search with -r flag
+ok 6 fileindex: non-recursive by default
+ok 7 fileindex: output to file with -f
+ok 8 fileindex: output to file with --file
+ok 9 fileindex: creates index file with -i
+ok 10 fileindex: preserves checkbox states in index
+ok 11 fileindex: adds new files to existing index
+ok 12 fileindex: removes deleted files from index
+ok 13 fileindex: verbose mode shows processing details
+ok 14 fileindex: verbose mode with index file
+ok 15 fileindex: detects Intent project and uses lib/ default
+ok 16 fileindex: uses intent/.config/indexes/ for index files in Intent project
+ok 17 fileindex: --no-intent flag disables Intent integration
+ok 18 fileindex: --intent-dir specifies Intent project
+ok 19 fileindex: --index-dir overrides default index directory
+ok 20 fileindex: handles non-existent directory
+ok 21 fileindex: handles empty directory
+ok 22 fileindex: handles files with spaces in names
+ok 23 fileindex: sorts files consistently
+ok 24 fileindex: handles mixed file extensions correctly
+ok 25 fileindex: works through intent command
+ok 26 fileindex: help available through intent help
+ok 27 fileindex: toggle file state from unchecked to checked
+ok 28 fileindex: toggle file state from checked to unchecked
+ok 29 fileindex: toggle with --toggle flag
+ok 30 fileindex: toggle requires index file
+ok 31 fileindex: toggle with non-existent file
+ok 32 fileindex: toggle with non-existent index
+ok 33 fileindex: toggle preserves file order in index
+ok 34 fileindex: check file from unchecked to checked
+ok 35 fileindex: check already checked file remains checked
+ok 36 fileindex: check with --check flag
+ok 37 fileindex: check requires index file
+ok 38 fileindex: check with non-existent file
+ok 39 fileindex: check with non-existent index
+ok 40 fileindex: uncheck file from checked to unchecked
+ok 41 fileindex: uncheck already unchecked file remains unchecked
+ok 42 fileindex: uncheck with --uncheck flag
+ok 43 fileindex: uncheck requires index file
+ok 44 fileindex: uncheck with non-existent file
+ok 45 fileindex: uncheck with non-existent index
+ok 46 fileindex: check and uncheck preserve file order
+ok 47 fileindex: sequential check, uncheck, and toggle operations

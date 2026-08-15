@@ -1,0 +1,22 @@
+1..6
+not ok 1 v2.10.x project lands at current target stamp, not hard-coded 2.11.0
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_upgrade_dispatcher.bats, line 45)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 2 v2.11.x project upgrades to current target without 'Unknown version'
+not ok 3 v2.11.7+ upgrade installs in-whiteboard skill
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_upgrade_dispatcher.bats, line 128)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 4 v2.11.11+ upgrade wires canon subagent sync
+not ok 5 v2.11.11+ upgrade narrates subagent sync at runtime
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_upgrade_dispatcher.bats, line 174)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 6 upgrade aborts before migration when backup cannot be created

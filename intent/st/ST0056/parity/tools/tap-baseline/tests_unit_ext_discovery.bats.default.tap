@@ -1,0 +1,14 @@
+1..13
+ok 1 subagents list shows ext subagents when INTENT_EXT_DIR is set
+ok 2 subagents list tags shadowed canon names with shadows-canon marker
+ok 3 INTENT_EXT_DISABLE=1 suppresses ext discovery in subagents list
+ok 4 subagents list still shows canon agents when ext is set
+ok 5 skills list shows ext skills when INTENT_EXT_DIR is set
+ok 6 INTENT_EXT_DISABLE=1 suppresses ext skill discovery
+ok 7 skills list still shows canon skills when ext is set
+ok 8 claude rules list enumerates ext rules with ext provenance tag
+ok 9 INTENT_EXT_DISABLE=1 suppresses ext rule discovery
+ok 10 subagents show on a shadowed name emits shadow warning
+ok 11 INTENT_EXT_DIR pointing at a nonexistent dir does not crash list commands
+ok 12 INTENT_EXT_DIR pointing at an empty dir reports empty extensions
+ok 13 ext enumeration skips dotfile and underscore directories

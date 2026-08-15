@@ -1,0 +1,4 @@
+1..3
+ok 1 info templates reference acceptance.md and restate no ACs
+ok 2 st show and edit know the acceptance file type
+ok 3 open STs ST0043 and ST0044 each have an acceptance.md

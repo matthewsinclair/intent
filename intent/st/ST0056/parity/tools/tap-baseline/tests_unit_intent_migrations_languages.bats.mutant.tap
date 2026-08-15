@@ -1,0 +1,8 @@
+1..7
+ok 1 step_languages_field_run: no RULES-*.md, no pre-commit hook -> languages: []
+ok 2 step_languages_field_run: pre-commit hook present -> languages: ["shell"]
+ok 3 step_languages_field_run: back-fill from RULES-*.md presence (alphabetical)
+ok 4 step_languages_field_needs: absent -> needs (0); present -> not needed (1)
+ok 5 step_languages_field_needs: missing config -> not needed (1)
+ok 6 step_languages_field_run: missing config -> warning and skip
+ok 7 step_languages_field_verify: false before back-fill, true after

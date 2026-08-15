@@ -1,0 +1,40 @@
+1..39
+ok 1 claude skills command shows help when no subcommand given
+ok 2 claude skills help shows usage information
+ok 3 claude skills handles invalid subcommand
+ok 4 claude skills list shows available skills
+ok 5 claude skills list shows installation status
+ok 6 claude skills list warns when Claude not detected
+ok 7 claude skills install requires a skill name
+ok 8 claude skills install installs a single skill
+ok 9 claude skills install handles non-existent skill
+ok 10 claude skills install prompts before overwriting
+ok 11 claude skills install can overwrite when confirmed
+ok 12 claude skills install supports multiple skills
+ok 13 claude skills install --all installs all available skills
+ok 14 claude skills install creates manifest
+ok 15 claude skills install requires Claude directory
+ok 16 claude skills install creates skills subdirectory
+ok 17 claude skills sync requires installed skills
+ok 18 claude skills sync detects up-to-date skills
+ok 19 claude skills sync detects local modifications
+ok 20 claude skills sync can force overwrite modifications
+ok 21 claude skills sync handles missing Claude directory
+ok 22 claude skills sync works with multiple skills
+ok 23 claude skills sync migrates renamed skills (intent-* to in-*)
+ok 24 claude skills uninstall requires a skill name
+ok 25 claude skills uninstall removes a single skill
+ok 26 claude skills uninstall prompts for confirmation
+ok 27 claude skills uninstall handles non-existent skill
+ok 28 claude skills uninstall supports multiple skills
+ok 29 claude skills uninstall --all removes all managed skills
+ok 30 claude skills uninstall updates manifest
+ok 31 claude skills uninstall --all handles empty manifest
+ok 32 claude skills show requires a skill name
+ok 33 claude skills show displays skill information
+ok 34 claude skills show extracts description from frontmatter
+ok 35 claude skills show indicates installation status
+ok 36 claude skills show handles non-existent skill
+ok 37 claude skills show works for all available skills
+ok 38 claude skills full lifecycle: install, sync, uninstall
+ok 39 claude skills manifest tracks multiple installs correctly

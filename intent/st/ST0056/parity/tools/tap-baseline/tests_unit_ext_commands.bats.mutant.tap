@@ -1,0 +1,163 @@
+1..27
+not ok 1 ext list reports empty-set status when INTENT_EXT_DIR does not exist
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 16)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 ext list reports disabled status when INTENT_EXT_DISABLE=1
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 23)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 ext list enumerates all fixture extensions
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 30)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 ext list flags malformed extensions without crashing
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 40)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 ext list shows version for valid extensions
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 48)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 ext show requires a name
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/ext_commands.bats, line 61)
+#   `assert_output_contains "extension name required"' failed
+# Expected output to contain: extension name required
+# Actual output:
+not ok 7 ext show prints manifest fields for a valid extension
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 67)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 ext show lists each declared contribution
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 79)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 ext show emits shadow warning for canon collisions
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 88)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 ext show fails with clear error on missing extension
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/ext_commands.bats, line 96)
+#   `assert_output_contains "not found"' failed
+# Expected output to contain: not found
+# Actual output:
+not ok 11 ext show fails cleanly on malformed extension
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/ext_commands.bats, line 103)
+#   `assert_output_contains "malformed"' failed
+# Expected output to contain: malformed
+# Actual output:
+not ok 12 ext validate passes valid-ext
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 113)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 13 ext validate fails malformed-ext with schema error
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/ext_commands.bats, line 121)
+#   `assert_output_contains "missing required field 'schema'"' failed
+# Expected output to contain: missing required field 'schema'
+# Actual output:
+not ok 14 ext validate rejects path traversal
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/ext_commands.bats, line 128)
+#   `assert_output_contains "path traversal"' failed
+# Expected output to contain: path traversal
+# Actual output:
+not ok 15 ext validate passes shadow-ext (shadow is a runtime warning, not a validation error)
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 134)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 16 ext validate with no name checks every extension and summarises
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/ext_commands.bats, line 142)
+#   `assert_output_contains "summary:"' failed
+# Expected output to contain: summary:
+# Actual output:
+not ok 17 ext validate fails on unknown extension
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/ext_commands.bats, line 150)
+#   `assert_output_contains "not found"' failed
+# Expected output to contain: not found
+# Actual output:
+not ok 18 ext new requires a name
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/ext_commands.bats, line 163)
+#   `assert_output_contains "extension name required"' failed
+# Expected output to contain: extension name required
+# Actual output:
+not ok 19 ext new requires --subagent / --skill / --rule-pack
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/ext_commands.bats, line 172)
+#   `assert_output_contains "--subagent, --skill, or --rule-pack required"' failed
+# Expected output to contain: --subagent, --skill, or --rule-pack required
+# Actual output:
+not ok 20 ext new --subagent scaffolds a valid extension
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 180)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 21 ext new --skill scaffolds a valid extension
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 199)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 22 ext new --rule-pack scaffolds a valid extension with placeholder rule
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 213)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 23 ext new refuses to overwrite existing extension
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 227)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 24 ext new rejects invalid name
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/ext_commands.bats, line 240)
+#   `assert_output_contains "must match"' failed
+# Expected output to contain: must match
+# Actual output:
+not ok 25 ext new rejects unknown flag
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/ext_commands.bats, line 249)
+#   `assert_output_contains "unknown flag"' failed
+# Expected output to contain: unknown flag
+# Actual output:
+not ok 26 ext help prints usage
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ext_commands.bats, line 258)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 27 ext with unknown subcommand fails with usage hint
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/ext_commands.bats, line 269)
+#   `assert_output_contains "unknown ext subcommand"' failed
+# Expected output to contain: unknown ext subcommand
+# Actual output:

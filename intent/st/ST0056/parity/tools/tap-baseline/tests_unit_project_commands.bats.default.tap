@@ -1,0 +1,4 @@
+1..3
+ok 1 intent st requires project - shows error outside project
+ok 2 intent st list works inside project
+ok 3 intent info shows project details when inside project

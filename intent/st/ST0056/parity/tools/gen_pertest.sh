@@ -117,10 +117,40 @@ fi
 
 SP="${SP:?set SP -- directory holding burn.tsv}"
 WT="${WT:?set WT -- the worktree the sweep measured}"
-TAP_DIR="${TAP_DIR:?set TAP_DIR -- where burn.sh wrote its TAP}"
 BURN="$SP/burn.tsv"
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# THE TAP INPUT IS COMMITTED, AT `tools/tap-baseline/`, and defaults to it --
+# the same shape `gen_register.sh` uses for `tools/burn-baseline.tsv`, because
+# a generator whose documented invocation does not work is a generator nobody
+# can re-run. Ruled by vc 2026-08-15 after ic flagged that this artefact's only
+# input lived under a `/tmp` scratchpad: **a committed generated artefact whose
+# only input is in `/tmp` is re-derivable today and not tomorrow, and nothing
+# anywhere records which of those two states it is in.**
+#
+# COMMITTED RAW RATHER THAN COMPRESSED, and that is a measurement rather than a
+# preference. vc ruled "compressed if it helps" and it does not: measured into
+# a scratch git repo, the 196 raw files pack to 220K and a `.tar.gz` of the same
+# corpus packs to 200K. **10%, not the 11x the raw sizes suggest** -- git's own
+# zlib does the work either way. 20K does not buy making an audit artefact
+# opaque, undiffable, and un-deltable against every future capture.
+#
+# AND IT CANNOT BE RE-CAPTURED IDENTICALLY, which is the real argument for
+# keeping it rather than a note about convenience. Two independent runs of the
+# same corpus were compared: 193 of 196 files byte-identical, and the 3 that
+# differ do so ONLY in TAP `#` diagnostic lines carrying `mktemp` directory
+# names and the worktree path. The RESULTS are identical; the noise is not
+# reproducible. So this corpus is one measurement, preserved, not a derivable
+# artefact -- re-running the sweep produces an equally valid corpus that is not
+# this one.
+#
+# Re-run (WT is re-derivable, unlike the TAP -- the revision is committed):
+#   git worktree add <wt> c60cdbd
+#   mkdir -p <sp> && cp tools/burn-baseline.tsv <sp>/burn.tsv
+#   SP=<sp> WT=<wt> bash tools/gen_pertest.sh
+# Verified 2026-08-15: reproduces the committed `pertest.md` BYTE-IDENTICALLY.
+TAP_DIR="${TAP_DIR:-$HERE/tap-baseline}"
 . "$HERE/lib_classify.sh" || { echo "gen_pertest: cannot source lib_classify.sh -- refusing to classify without the shared rules" >&2; exit 2; }
 classify_calibrate || { echo "gen_pertest: classification rules failed calibration -- refusing to emit per-test rows from a needle that has stopped matching a form it covers" >&2; exit 2; }
 . "$HERE/lib_mdfmt.sh"    || { echo "gen_pertest: cannot source lib_mdfmt.sh -- refusing to emit a view that will not survive the formatter" >&2; exit 2; }

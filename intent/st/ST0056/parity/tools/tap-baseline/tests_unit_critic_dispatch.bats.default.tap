@@ -1,0 +1,15 @@
+1..14
+ok 1 in-review skill file exists
+ok 2 in-review skill reads languages from intent/.config/config.json
+ok 3 in-review skill names every critic
+ok 4 in-review skill shows a Task() invocation for each critic
+ok 5 in-review skill documents the polyglot dispatch path
+ok 6 in-review skill does not document filesystem-probe-based detection
+ok 7 in-review skill dispatches the prose packs (author + content) to critic-prose
+ok 8 in-review skill documents the D7 prose/code-critic exclusion
+ok 9 hook dispatches one critic invocation per declared language
+ok 10 hook with empty languages runs no critic and exits 0
+ok 11 hook fails open outside an Intent project
+ok 12 hook fails open when the intent CLI is not on PATH
+ok 13 hook blocks the commit when a critic reports findings
+ok 14 hook fails open on critic invocation error (exit 2)

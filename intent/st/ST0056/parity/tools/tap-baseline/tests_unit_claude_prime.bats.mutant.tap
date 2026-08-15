@@ -1,0 +1,13 @@
+1..2
+not ok 1 claude prime --dry-run previews MEMORY.md without writing
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/claude_prime.bats, line 28)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 claude prime writes MEMORY.md under HOME/.claude/projects
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/claude_prime.bats, line 43)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

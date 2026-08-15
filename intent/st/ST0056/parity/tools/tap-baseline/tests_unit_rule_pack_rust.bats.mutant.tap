@@ -1,0 +1,20 @@
+1..9
+ok 1 rust pack: every catalogued rule exists
+ok 2 rust pack has the expected total rule count
+ok 3 rust pack: each rule declares its canonical id
+ok 4 rust pack: each rule declares language: rust
+not ok 5 rust pack: each rule passes intent claude rules validate
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/rule_pack_rust.bats, line 74)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 rust pack: rules list reports every rust id
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/rule_pack_rust.bats, line 81)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 7 rust pack: each rule has a fenced rust code block in Bad section
+ok 8 rust pack: each rule has a fenced rust code block in Good section
+ok 9 rust pack: no sibling .rs files alongside RULE.md (textual-only invariant)

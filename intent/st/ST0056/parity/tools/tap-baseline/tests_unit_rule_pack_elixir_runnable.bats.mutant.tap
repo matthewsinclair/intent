@@ -1,0 +1,6 @@
+1..5
+ok 1 every code-rule good.exs exits 0 under standalone elixir
+ok 2 every test-rule good_test.exs exits 0 under standalone elixir
+ok 3 every code-rule bad.exs exits 0 (antipattern still runs cleanly)
+ok 4 every test-rule bad_test.exs exits 0 (antipattern still runs cleanly)
+ok 5 every runnable example starts with '# EXPECTED: passes'

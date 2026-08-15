@@ -1,0 +1,73 @@
+1..12
+not ok 1 help displays general help when no command is specified
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/help_commands.bats, line 10)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 help displays command-specific help when a command is specified
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/help_commands.bats, line 21)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 help shows short descriptions for all commands
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/help_commands.bats, line 28)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 help handles unknown commands correctly
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/help_commands.bats, line 39)
+#   `assert_output_contains "Unknown command 'unknown_command'"' failed
+# Expected output to contain: Unknown command 'unknown_command'
+# Actual output:
+not ok 5 help works with --help flag
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/help_commands.bats, line 45)
+#   `assert_output_contains "Unknown command '--help'"' failed
+# Expected output to contain: Unknown command '--help'
+# Actual output:
+not ok 6 help shows proper command categories
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/help_commands.bats, line 50)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 help shows claude and plugin in core section
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/help_commands.bats, line 63)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 help plugin shows plugin help file
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/help_commands.bats, line 71)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 help claude shows claude help file
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/help_commands.bats, line 78)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 help agents shows corrected agents help
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/help_commands.bats, line 87)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 11 help Other: shows lang as a one-liner, not its whole help doc
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/help_commands.bats, line 98)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 help Other: strips the comment prefix from a double-dash header (critic)
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/help_commands.bats, line 107)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

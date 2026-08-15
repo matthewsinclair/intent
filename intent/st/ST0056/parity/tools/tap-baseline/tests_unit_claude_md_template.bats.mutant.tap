@@ -1,0 +1,19 @@
+1..13
+ok 1 template exists
+ok 2 template is within the 100-line budget
+ok 3 template references AGENTS.md as the primary contract
+ok 4 template directs Claude to run /in-session
+ok 5 template references persistent memory directory
+ok 6 template references .claude/settings.json hooks
+ok 7 template includes a file map with canon landmarks
+ok 8 template cross-references rule IDs without duplicating rule text
+ok 9 template includes critic dispatch section
+ok 10 template includes user-preservation markers
+ok 11 template uses the four canonical placeholders
+ok 12 template routes rule access through the CLI, not a local rules directory
+not ok 13 intent init on a scratch project substitutes all placeholders
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/claude_md_template.bats, line 94)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

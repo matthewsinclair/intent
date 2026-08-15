@@ -1,0 +1,60 @@
+1..10
+not ok 1 a staging area under intent/st does not become duplicate live threads
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_shadowed' in file tests/unit/st_enumeration.bats, line 19,
+#  in test file tests/unit/st_enumeration.bats, line 34)
+#   `setup_shadowed' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 st sync --write does not persist a duplicate id into the committed index
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_shadowed' in file tests/unit/st_enumeration.bats, line 19,
+#  in test file tests/unit/st_enumeration.bats, line 44)
+#   `setup_shadowed' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 threads in every canonical bucket still resolve
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_shadowed' in file tests/unit/st_enumeration.bats, line 19,
+#  in test file tests/unit/st_enumeration.bats, line 55)
+#   `setup_shadowed' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 organize names a collision, finishes the sweep, and exits non-zero
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_enumeration.bats, line 69)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 intent info counts threads, not directories that happen to sit in a bucket
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_enumeration.bats, line 105)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 6 no command re-rolls the thread enumeration outside the helper
+not ok 7 an mv failure that is not a collision is diagnosed as what it is
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_enumeration.bats, line 149)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 organize still exits zero and moves cleanly when there is no collision
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_enumeration.bats, line 172)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 organize does not promote a staged copy into the live namespace
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_shadowed' in file tests/unit/st_enumeration.bats, line 19,
+#  in test file tests/unit/st_enumeration.bats, line 183)
+#   `setup_shadowed' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 doctor reports a duplicate id as a defect rather than an extra table row
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/st_enumeration.bats, line 200)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

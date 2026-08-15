@@ -1,0 +1,5 @@
+1..4
+ok 1 rules validate accepts a well-formed IN-PR prose id
+ok 2 rules validate rejects a malformed IN-PR id (bad zero-padding)
+ok 3 rules validate rejects a lowercase pr language code
+ok 4 prose is registered in the canon-enumeration LANG_SUBDIRS default

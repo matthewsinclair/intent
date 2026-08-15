@@ -1,0 +1,85 @@
+1..12
+not ok 1 list accepts a bare numeric st id (normalised), like intent wp
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_fixture_st' in file tests/unit/intent_acceptance_cli.bats, line 51,
+#  in test file tests/unit/intent_acceptance_cli.bats, line 62)
+#   `setup_fixture_st' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 at list and ac list render ids, paths, status
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_fixture_st' in file tests/unit/intent_acceptance_cli.bats, line 51,
+#  in test file tests/unit/intent_acceptance_cli.bats, line 71)
+#   `setup_fixture_st' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 green only from red; to-write to green is refused
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_fixture_st' in file tests/unit/intent_acceptance_cli.bats, line 51,
+#  in test file tests/unit/intent_acceptance_cli.bats, line 86)
+#   `setup_fixture_st' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 done aliases green and notdone aliases red
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_fixture_st' in file tests/unit/intent_acceptance_cli.bats, line 51,
+#  in test file tests/unit/intent_acceptance_cli.bats, line 103)
+#   `setup_fixture_st' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 ac status reports counts and gate verdict
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_fixture_st' in file tests/unit/intent_acceptance_cli.bats, line 51,
+#  in test file tests/unit/intent_acceptance_cli.bats, line 117)
+#   `setup_fixture_st' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 ac satisfy refuses test-backed ACs
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_fixture_st' in file tests/unit/intent_acceptance_cli.bats, line 51,
+#  in test file tests/unit/intent_acceptance_cli.bats, line 142)
+#   `setup_fixture_st' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 status edit is linter-stable
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_fixture_st' in file tests/unit/intent_acceptance_cli.bats, line 51,
+#  in test file tests/unit/intent_acceptance_cli.bats, line 159)
+#   `setup_fixture_st' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 ac satisfy writes a bare row instead of reporting a success it did not perform
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_fixture_st' in file tests/unit/intent_acceptance_cli.bats, line 51,
+#  in test file tests/unit/intent_acceptance_cli.bats, line 188)
+#   `setup_fixture_st' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 ac satisfy verifies the write landed rather than trusting sed's exit code
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_fixture_st' in file tests/unit/intent_acceptance_cli.bats, line 51,
+#  in test file tests/unit/intent_acceptance_cli.bats, line 207)
+#   `setup_fixture_st' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 an AT status carrying markdown emphasis is named, not silently read as not-green
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_fixture_st' in file tests/unit/intent_acceptance_cli.bats, line 51,
+#  in test file tests/unit/intent_acceptance_cli.bats, line 222)
+#   `setup_fixture_st' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 11 an out-of-vocabulary AT status is reported rather than ignored
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_fixture_st' in file tests/unit/intent_acceptance_cli.bats, line 51,
+#  in test file tests/unit/intent_acceptance_cli.bats, line 245)
+#   `setup_fixture_st' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 an unclosed non-test marker names the marker, not a missing test
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_fixture_st' in file tests/unit/intent_acceptance_cli.bats, line 51,
+#  in test file tests/unit/intent_acceptance_cli.bats, line 256)
+#   `setup_fixture_st' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

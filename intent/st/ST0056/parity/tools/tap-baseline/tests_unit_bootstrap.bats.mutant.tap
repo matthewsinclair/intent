@@ -1,0 +1,31 @@
+1..5
+not ok 1 intent_bootstrap creates global config directory
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/bootstrap.bats, line 31)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 intent_bootstrap creates default config.json
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/bootstrap.bats, line 40)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 intent_bootstrap provides PATH setup instructions
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/bootstrap.bats, line 52)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 intent_bootstrap handles existing config gracefully
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/bootstrap.bats, line 66)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 intent_bootstrap runs doctor after setup
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/bootstrap.bats, line 75)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

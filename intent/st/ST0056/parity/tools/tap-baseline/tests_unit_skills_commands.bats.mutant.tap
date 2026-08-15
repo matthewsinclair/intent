@@ -1,0 +1,235 @@
+1..39
+not ok 1 claude skills command shows help when no subcommand given
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 33)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 claude skills help shows usage information
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 44)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 claude skills handles invalid subcommand
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/skills_commands.bats, line 52)
+#   `assert_output_contains "error: Unknown command 'intent claude skills invalid'"' failed
+# Expected output to contain: error: Unknown command 'intent claude skills invalid'
+# Actual output:
+not ok 4 claude skills list shows available skills
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 62)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 claude skills list shows installation status
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 73)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 claude skills list warns when Claude not detected
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 91)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 claude skills install requires a skill name
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/skills_commands.bats, line 102)
+#   `assert_output_contains "error: no skill specified"' failed
+# Expected output to contain: error: no skill specified
+# Actual output:
+not ok 8 claude skills install installs a single skill
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 108)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 claude skills install handles non-existent skill
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/skills_commands.bats, line 121)
+#   `assert_output_contains "error: 'nonexistent' not found"' failed
+# Expected output to contain: error: 'nonexistent' not found
+# Actual output:
+not ok 10 claude skills install prompts before overwriting
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 128)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 11 claude skills install can overwrite when confirmed
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 141)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 claude skills install supports multiple skills
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 159)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 13 claude skills install --all installs all available skills
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 172)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 14 claude skills install creates manifest
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 191)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 15 claude skills install requires Claude directory
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/skills_commands.bats, line 208)
+#   `assert_output_contains "error: Claude Code not detected"' failed
+# Expected output to contain: error: Claude Code not detected
+# Actual output:
+not ok 16 claude skills install creates skills subdirectory
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 217)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 17 claude skills sync requires installed skills
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 231)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 18 claude skills sync detects up-to-date skills
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 239)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 19 claude skills sync detects local modifications
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 252)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 20 claude skills sync can force overwrite modifications
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 268)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 21 claude skills sync handles missing Claude directory
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/skills_commands.bats, line 290)
+#   `assert_output_contains "error: Claude Code not detected"' failed
+# Expected output to contain: error: Claude Code not detected
+# Actual output:
+not ok 22 claude skills sync works with multiple skills
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 296)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 23 claude skills sync migrates renamed skills (intent-* to in-*)
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 334)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 24 claude skills uninstall requires a skill name
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/skills_commands.bats, line 354)
+#   `assert_output_contains "error: no skill specified"' failed
+# Expected output to contain: error: no skill specified
+# Actual output:
+not ok 25 claude skills uninstall removes a single skill
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 361)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 26 claude skills uninstall prompts for confirmation
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 377)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 27 claude skills uninstall handles non-existent skill
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 393)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 28 claude skills uninstall supports multiple skills
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 402)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 29 claude skills uninstall --all removes all managed skills
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 419)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 30 claude skills uninstall updates manifest
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 437)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 31 claude skills uninstall --all handles empty manifest
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 458)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 32 claude skills show requires a skill name
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/skills_commands.bats, line 469)
+#   `assert_output_contains "error: Skill name required"' failed
+# Expected output to contain: error: Skill name required
+# Actual output:
+not ok 33 claude skills show displays skill information
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 475)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 34 claude skills show extracts description from frontmatter
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 482)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 35 claude skills show indicates installation status
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 490)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 36 claude skills show handles non-existent skill
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/skills_commands.bats, line 507)
+#   `assert_output_contains "error: Skill 'nonexistent' not found"' failed
+# Expected output to contain: error: Skill 'nonexistent' not found
+# Actual output:
+not ok 37 claude skills show works for all available skills
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 512)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 38 claude skills full lifecycle: install, sync, uninstall
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 531)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 39 claude skills manifest tracks multiple installs correctly
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/skills_commands.bats, line 554)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

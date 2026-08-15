@@ -1,0 +1,8 @@
+1..7
+ok 1 st list --status all emits a row for every thread on disk
+ok 2 st list --status all exits 0 and still reports the anomaly
+ok 3 a status the synonym table knows under another name lands in its group
+ok 4 a status outside the vocabulary is still shown
+ok 5 an out-of-vocabulary status is named on stderr with its id
+ok 6 sync --write carries every thread into the committed index
+ok 7 the presentation order survives collapsing the literal list

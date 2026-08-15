@@ -1,0 +1,10 @@
+1..9
+ok 1 lua pack: every catalogued rule exists
+ok 2 lua pack has the expected total rule count
+ok 3 lua pack: each rule declares its canonical id
+ok 4 lua pack: each rule declares language: lua
+ok 5 lua pack: each rule passes intent claude rules validate
+ok 6 lua pack: rules list reports every lua id
+ok 7 lua pack: each rule has a fenced lua code block in Bad section
+ok 8 lua pack: each rule has a fenced lua code block in Good section
+ok 9 lua pack: no sibling .lua files alongside RULE.md

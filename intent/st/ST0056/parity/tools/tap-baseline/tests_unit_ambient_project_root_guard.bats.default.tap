@@ -1,0 +1,5 @@
+1..4
+ok 1 an ambient PROJECT_ROOT does not redirect the subagent manifest
+ok 2 an ambient PROJECT_ROOT does not make a non-project look like a project
+ok 3 resolve_project_root overwrites an inherited value rather than trusting it
+ok 4 resolve_project_root finds the real project when standing in one

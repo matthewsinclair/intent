@@ -1,0 +1,11 @@
+1..10
+ok 1 config: sample file exists at rules/_schema/
+ok 2 config: sample file documents the three schema keys
+ok 3 config: sample disabled entries carry a # reason comment
+ok 4 config: critics.md documents every sample key
+ok 5 config: without .intent_critic.yml the finding fires (defaults path)
+ok 6 config: disabled rule id suppresses the finding
+ok 7 config: disabling one rule does not suppress others
+ok 8 config: hook passes severity_min from .intent_critic.yml to the runner
+ok 9 config: hook falls back to warning on an invalid severity_min value
+ok 10 config: hook defaults to warning when .intent_critic.yml is absent

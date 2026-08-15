@@ -1,0 +1,5 @@
+1..4
+ok 1 test helper is loaded
+ok 2 intent executable exists
+ok 3 can create test project
+ok 4 run_intent function works

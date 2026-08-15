@@ -1,0 +1,31 @@
+1..5
+not ok 1 llm with no arguments shows usage
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/llm_commands.bats, line 25)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 llm usage_rules displays the root canon usage-rules.md
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/llm_commands.bats, line 35)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 llm usage_rules --symlink creates a symlink in the target directory
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/llm_commands.bats, line 43)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 llm usage_rules --symlink errors on a missing target directory
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/llm_commands.bats, line 52)
+#   `assert_output_contains "Target directory does not exist"' failed
+# Expected output to contain: Target directory does not exist
+# Actual output:
+not ok 5 llm errors on an unknown subcommand
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/llm_commands.bats, line 58)
+#   `assert_output_contains "Unknown subcommand: bogus"' failed
+# Expected output to contain: Unknown subcommand: bogus
+# Actual output:

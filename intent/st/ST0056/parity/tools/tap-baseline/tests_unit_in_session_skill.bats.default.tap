@@ -1,0 +1,15 @@
+1..14
+ok 1 in-session skill exists
+ok 2 in-session declares description and chains_to frontmatter
+ok 3 in-session references the universal skills unconditionally
+ok 4 in-session reads languages from intent/.config/config.json
+ok 5 in-session does not probe filesystem markers for language detection
+ok 6 in-session names Elixir and author as the languages with essentials skills
+ok 7 in-session wires the author fan-out (table row + chains_to)
+ok 8 in-session wires the content fan-out (table row + chains_to)
+ok 9 in-session does not reference phantom rust/swift/lua/shell essentials skills
+ok 10 in-session points at rule packs for non-Elixir languages via the CLI
+ok 11 in-session fans out to Ash and LiveView skills on mix.exs match
+ok 12 CLAUDE.md instructs post-compact invocation of /in-session
+ok 13 in-session SKILL.md invokes release-gate.sh, not inline awk
+ok 14 in-session ships release-gate.sh in scripts/

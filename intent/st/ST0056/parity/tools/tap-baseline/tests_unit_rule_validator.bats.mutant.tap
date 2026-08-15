@@ -1,0 +1,55 @@
+1..9
+not ok 1 rules validate passes the valid fixture
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/rule_validator.bats, line 20)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 rules validate passes the ext valid-ext fixture rule
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/rule_validator.bats, line 28)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 rules validate fails missing-frontmatter fixture
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/rule_validator.bats, line 40)
+#   `assert_output_contains "no YAML frontmatter"' failed
+# Expected output to contain: no YAML frontmatter
+# Actual output:
+not ok 4 rules validate fails bad-id fixture
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/rule_validator.bats, line 46)
+#   `assert_output_contains "does not match"' failed
+# Expected output to contain: does not match
+# Actual output:
+not ok 5 rules validate fails unresolved-reference fixture
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/rule_validator.bats, line 52)
+#   `assert_output_contains "does not resolve"' failed
+# Expected output to contain: does not resolve
+# Actual output:
+not ok 6 rules validate warns on unknown-field fixture (warning, not error)
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/rule_validator.bats, line 57)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 rules validate detects duplicate ids across files
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/rule_validator.bats, line 78)
+#   `assert_output_contains "declared by more than one RULE.md"' failed
+# Expected output to contain: declared by more than one RULE.md
+# Actual output:
+not ok 8 rules validate against strong-assertions exemplar passes
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/rule_validator.bats, line 97)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 rules validate fails when given a non-existent id and non-existent path
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/rule_validator.bats, line 110)
+#   `assert_output_contains "neither a readable file nor a known rule id"' failed
+# Expected output to contain: neither a readable file nor a known rule id
+# Actual output:

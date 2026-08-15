@@ -1,0 +1,28 @@
+1..27
+ok 1 ext list reports empty-set status when INTENT_EXT_DIR does not exist
+ok 2 ext list reports disabled status when INTENT_EXT_DISABLE=1
+ok 3 ext list enumerates all fixture extensions
+ok 4 ext list flags malformed extensions without crashing
+ok 5 ext list shows version for valid extensions
+ok 6 ext show requires a name
+ok 7 ext show prints manifest fields for a valid extension
+ok 8 ext show lists each declared contribution
+ok 9 ext show emits shadow warning for canon collisions
+ok 10 ext show fails with clear error on missing extension
+ok 11 ext show fails cleanly on malformed extension
+ok 12 ext validate passes valid-ext
+ok 13 ext validate fails malformed-ext with schema error
+ok 14 ext validate rejects path traversal
+ok 15 ext validate passes shadow-ext (shadow is a runtime warning, not a validation error)
+ok 16 ext validate with no name checks every extension and summarises
+ok 17 ext validate fails on unknown extension
+ok 18 ext new requires a name
+ok 19 ext new requires --subagent / --skill / --rule-pack
+ok 20 ext new --subagent scaffolds a valid extension
+ok 21 ext new --skill scaffolds a valid extension
+ok 22 ext new --rule-pack scaffolds a valid extension with placeholder rule
+ok 23 ext new refuses to overwrite existing extension
+ok 24 ext new rejects invalid name
+ok 25 ext new rejects unknown flag
+ok 26 ext help prints usage
+ok 27 ext with unknown subcommand fails with usage hint

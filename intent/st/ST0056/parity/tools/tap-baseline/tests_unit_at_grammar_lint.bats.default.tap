@@ -1,0 +1,20 @@
+1..19
+ok 1 a conforming row is parsed whole: both arms, multi-AC coverage, delimited note
+ok 2 every retired reference form is rejected and told which edit to make
+ok 3 a coverage clause that does not fully parse is named with the ids it did see
+ok 4 a green AT whose cited test file does not exist is a finding, and to-write is exempt
+ok 5 the cited file must carry the AT id, so the link is checkable from both ends
+ok 6 coverage of an id that is not an AC row in this contract is a finding
+ok 7 a non-test AT covering a test-backed AC is named as unsatisfiable
+ok 8 n/a and the non-test marker are enforced as a biconditional
+ok 9 the trailing note must be delimited, and the shipped template teaches that form
+ok 10 at lint --fix migrates the mechanical forms and leaves judgement alone
+ok 11 the close-gate blocks on a grammar finding and names the command that fixes it
+ok 12 at green and at red refuse a citation that does not resolve
+ok 13 --fix refuses every row it cannot migrate without losing something
+ok 14 the suggestion for a multi-file row names every file, not just the first
+ok 15 a reference that cannot be a filename is never searched for, and never resolved by glob
+ok 16 a status from the wrong arm is refused before the write, not after it
+ok 17 the write verifier reports what it observed, not what it did not check
+ok 18 a row failing the grammar yields NO field rather than a plausible wrong one
+ok 19 the extraction seam cannot be reintroduced with a colliding sed delimiter

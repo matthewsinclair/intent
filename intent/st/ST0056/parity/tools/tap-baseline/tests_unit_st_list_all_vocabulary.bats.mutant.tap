@@ -1,0 +1,50 @@
+1..7
+not ok 1 st list --status all emits a row for every thread on disk
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_vocabulary' in file tests/unit/st_list_all_vocabulary.bats, line 30,
+#  in test file tests/unit/st_list_all_vocabulary.bats, line 49)
+#   `setup_vocabulary' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 st list --status all exits 0 and still reports the anomaly
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_vocabulary' in file tests/unit/st_list_all_vocabulary.bats, line 30,
+#  in test file tests/unit/st_list_all_vocabulary.bats, line 58)
+#   `setup_vocabulary' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 a status the synonym table knows under another name lands in its group
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_vocabulary' in file tests/unit/st_list_all_vocabulary.bats, line 30,
+#  in test file tests/unit/st_list_all_vocabulary.bats, line 67)
+#   `setup_vocabulary' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 a status outside the vocabulary is still shown
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_vocabulary' in file tests/unit/st_list_all_vocabulary.bats, line 30,
+#  in test file tests/unit/st_list_all_vocabulary.bats, line 76)
+#   `setup_vocabulary' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 an out-of-vocabulary status is named on stderr with its id
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_vocabulary' in file tests/unit/st_list_all_vocabulary.bats, line 30,
+#  in test file tests/unit/st_list_all_vocabulary.bats, line 84)
+#   `setup_vocabulary' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 sync --write carries every thread into the committed index
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_vocabulary' in file tests/unit/st_list_all_vocabulary.bats, line 30,
+#  in test file tests/unit/st_list_all_vocabulary.bats, line 97)
+#   `setup_vocabulary' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 the presentation order survives collapsing the literal list
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_vocabulary' in file tests/unit/st_list_all_vocabulary.bats, line 30,
+#  in test file tests/unit/st_list_all_vocabulary.bats, line 108)
+#   `setup_vocabulary' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

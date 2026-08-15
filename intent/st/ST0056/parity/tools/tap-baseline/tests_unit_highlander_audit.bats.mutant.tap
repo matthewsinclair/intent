@@ -1,0 +1,5 @@
+1..4
+ok 1 WP03-refactored skills carry no fenced code blocks
+ok 2 WP03-refactored skills are thin (under 150 lines)
+ok 3 canon subagents directory does not contain elixir subagent
+ok 4 canon manifest does not list elixir subagent

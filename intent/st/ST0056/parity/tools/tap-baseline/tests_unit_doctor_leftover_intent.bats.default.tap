@@ -1,0 +1,6 @@
+1..5
+ok 1 doctor: 'leftover .intent' check passes when no .intent/ exists
+ok 2 doctor: 'leftover .intent' check warns when .intent/ AND intent/.config/ both exist
+ok 3 doctor: leftover-.intent warning surfaces git-rm recovery hint
+ok 4 doctor: leftover-.intent check is silent in --quiet mode when ok
+ok 5 doctor: leftover-.intent check still warns in --quiet mode

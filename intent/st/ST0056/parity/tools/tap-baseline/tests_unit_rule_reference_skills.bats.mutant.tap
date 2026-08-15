@@ -1,0 +1,6 @@
+1..5
+ok 1 in-elixir-essentials references every Elixir code rule by ID
+ok 2 in-elixir-testing references every Elixir test rule by ID
+ok 3 in-ash-ecto-essentials references every Ash rule by ID
+ok 4 in-phoenix-liveview references every LiveView and Phoenix rule by ID
+ok 5 in-standards references every agnostic rule by ID

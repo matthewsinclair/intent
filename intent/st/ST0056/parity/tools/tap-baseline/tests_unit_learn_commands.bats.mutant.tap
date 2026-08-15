@@ -1,0 +1,109 @@
+1..18
+not ok 1 learn shows usage when no args given
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 15)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 learn help shows usage
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 24)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 learn --help shows usage
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 35)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 learn unknown option shows error
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/learn_commands.bats, line 45)
+#   `assert_output_contains "Unknown option: --bogus"' failed
+# Expected output to contain: Unknown option: --bogus
+# Actual output:
+not ok 5 intent help shows learn command
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 54)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 intent help learn shows learn help file
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 60)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 learn adds default footgun learning
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 74)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 learn adds learning with worked category
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 89)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 learn adds learning with failed category
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 101)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 learn rejects invalid category
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/learn_commands.bats, line 113)
+#   `assert_output_contains "Unknown category: bogus"' failed
+# Expected output to contain: Unknown category: bogus
+# Actual output:
+not ok 11 learn --category without argument shows error
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/learn_commands.bats, line 122)
+#   `assert_output_contains "Missing argument for --category"' failed
+# Expected output to contain: Missing argument for --category
+# Actual output:
+not ok 12 learn without description shows error
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/learn_commands.bats, line 131)
+#   `assert_output_contains "Missing description"' failed
+# Expected output to contain: Missing description
+# Actual output:
+not ok 13 learn creates learnings file if missing
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 141)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 14 learn appends multiple learnings to same category
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 152)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 15 learn adds date prefix to entries
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 165)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 16 learn --list shows learnings
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 181)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 17 learn --list with no file shows message
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/learn_commands.bats, line 194)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 18 learn requires project context
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/learn_commands.bats, line 205)
+#   `assert_output_contains "Intent project"' failed
+# Expected output to contain: Intent project
+# Actual output:

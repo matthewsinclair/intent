@@ -1,0 +1,7 @@
+1..6
+ok 1 doctor: check passes when no credo_checks/ exists
+ok 2 doctor: an unwired credo_checks/ is reported as never having run
+ok 3 doctor: a wired credo_checks/ is reported as live, with the Credo version caveat
+ok 4 doctor: a stale .credo.exs registration is reported when the directory is gone
+ok 5 doctor: the mix.exs elixirc_paths end is named, with line numbers
+ok 6 doctor: residue warns and never errors, so it cannot abort a release

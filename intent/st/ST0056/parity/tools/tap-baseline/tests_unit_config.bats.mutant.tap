@@ -1,0 +1,33 @@
+1..7
+not ok 1 PROJECT_ROOT is detected correctly
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/config.bats, line 14)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 config.json is loaded correctly
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/config.bats, line 45)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 legacy stp structure is detected
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/config.bats, line 61)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 missing config shows appropriate error
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/config.bats, line 73)
+#   `assert_output_contains "not in an Intent project directory"' failed
+# Expected output to contain: not in an Intent project directory
+# Actual output:
+not ok 5 config values with shell metacharacters are never evaled
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/config.bats, line 95)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 6 version-fallback literal exists at exactly one site (Highlander, ST0042 WP-05)
+ok 7 ext-root expansion is not inlined outside intent_helpers (Highlander, ST0042 WP-05)

@@ -1,0 +1,12 @@
+1..4
+not ok 1 an ambient PROJECT_ROOT does not redirect the subagent manifest
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/ambient_project_root_guard.bats, line 53)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 an ambient PROJECT_ROOT does not make a non-project look like a project
+# (in test file tests/unit/ambient_project_root_guard.bats, line 69)
+#   `echo "$output" | grep -qi "not in an intent project"' failed
+ok 3 resolve_project_root overwrites an inherited value rather than trusting it
+ok 4 resolve_project_root finds the real project when standing in one

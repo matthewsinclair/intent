@@ -1,0 +1,8 @@
+1..7
+ok 1 PROJECT_ROOT is detected correctly
+ok 2 config.json is loaded correctly
+ok 3 legacy stp structure is detected
+ok 4 missing config shows appropriate error
+ok 5 config values with shell metacharacters are never evaled
+ok 6 version-fallback literal exists at exactly one site (Highlander, ST0042 WP-05)
+ok 7 ext-root expansion is not inlined outside intent_helpers (Highlander, ST0042 WP-05)

@@ -1,0 +1,10 @@
+1..9
+ok 1 swift pack: every catalogued rule exists
+ok 2 swift pack has the expected total rule count
+ok 3 swift pack: each rule declares its canonical id
+ok 4 swift pack: each rule declares language: swift
+ok 5 swift pack: each rule passes intent claude rules validate
+ok 6 swift pack: rules list reports every swift id
+ok 7 swift pack: each rule has a fenced swift code block in Bad section
+ok 8 swift pack: each rule has a fenced swift code block in Good section
+ok 9 swift pack: no sibling .swift files alongside RULE.md

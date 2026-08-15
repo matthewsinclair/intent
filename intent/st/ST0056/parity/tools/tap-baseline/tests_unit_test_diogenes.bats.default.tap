@@ -1,0 +1,20 @@
+1..19
+ok 1 claude subagents list includes diogenes
+ok 2 claude subagents list shows diogenes description
+ok 3 claude subagents install diogenes installs successfully
+ok 4 claude subagents install diogenes creates manifest entry
+ok 5 claude subagents install diogenes file has correct content
+ok 6 claude subagents show diogenes displays metadata
+ok 7 claude subagents sync detects diogenes as up-to-date
+ok 8 claude subagents sync detects diogenes modification
+ok 9 claude subagents uninstall diogenes removes the file
+ok 10 claude skills list includes in-elixir-testing
+ok 11 claude skills list shows in-elixir-testing description
+ok 12 claude skills install in-elixir-testing installs successfully
+ok 13 claude skills install in-elixir-testing creates manifest entry
+ok 14 claude skills install in-elixir-testing file has correct content
+ok 15 claude skills install --all includes in-elixir-testing
+ok 16 claude skills show in-elixir-testing displays content
+ok 17 claude skills sync detects in-elixir-testing as up-to-date
+ok 18 claude skills sync detects in-elixir-testing modification
+ok 19 claude skills uninstall in-elixir-testing removes the file

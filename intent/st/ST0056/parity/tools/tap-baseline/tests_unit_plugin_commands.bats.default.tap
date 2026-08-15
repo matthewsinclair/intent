@@ -1,0 +1,13 @@
+1..12
+ok 1 plugin with no args lists plugins
+ok 2 plugin list shows both plugins
+ok 3 plugin list shows command syntax
+ok 4 plugin list shows descriptions
+ok 5 plugin show claude shows detailed info
+ok 6 plugin show agents shows detailed info
+ok 7 plugin show missing plugin errors
+ok 8 plugin show with no name errors
+ok 9 plugin help shows usage
+ok 10 plugin --help shows usage
+ok 11 plugin invalid subcommand errors
+ok 12 plugin works from non-project directory

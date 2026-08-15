@@ -1,0 +1,6 @@
+1..5
+ok 1 at lint <ID>/NN counts only that work package's rows and names the scope
+ok 2 at lint on the whole thread still sees every row
+ok 3 at lint <ID>/NN --fix does not rewrite a row outside the scope
+ok 4 at lint <ID>/NN --fix still migrates rows inside the scope
+ok 5 ac gate <ID>/NN does not report findings from another work package

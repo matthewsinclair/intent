@@ -1,0 +1,8 @@
+1..7
+ok 1 text report: finding line is [SEVERITY] <id> at <file>:<line> with excerpt
+ok 2 text report: severity sections are headed and ordered critical-first
+ok 3 text report: clean run prints ok line and exits 0
+ok 4 text report: --severity-min critical filters the warning finding
+ok 5 json report: emits valid JSON with severity/rule_id/file/line/excerpt
+ok 6 json report: clean run emits an empty array and exits 0
+ok 7 exit codes: 1 on findings at threshold, 0 below threshold

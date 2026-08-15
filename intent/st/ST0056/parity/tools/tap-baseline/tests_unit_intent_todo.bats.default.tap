@@ -1,0 +1,23 @@
+1..22
+ok 1 update projects threads and WPs into DOING/TODO/DONE buckets
+ok 2 checkbox glyphs map each status
+ok 3 non-canonical status string renders its real glyph, not [?] (issue 0002)
+ok 4 DONE bucket self-sweeps to today (older completions drop off)
+ok 5 on-hold thread is tagged in DOING
+ok 6 todo.md is a generator marker + bucket headings + data (no human title/legend/provenance)
+ok 7 update refuses to overwrite a foreign (utilz todo) file
+ok 8 update refuses a utilz file that predates the marker (title/history frontmatter)
+ok 9 update regenerates a legacy intent file (no frontmatter) and stamps the marker
+ok 10 output is prettier-stable
+ok 11 list prints the file and help shows usage
+ok 12 --json emits a valid keyed-by-bucket structure
+ok 13 done marks a thread done (via intent st done) and regenerates
+ok 14 done inherits the acceptance close-gate: a BLOCKED contract is refused
+ok 15 notdone reopens a completed thread to WIP
+ok 16 toggle flips done/not-done from the current status
+ok 17 st done stamps completed: as an ISO 8601 UTC timestamp
+ok 18 DONE bucket is watermarked and lists completions at/after it
+ok 19 done --flush advances the watermark and empties DONE; real status untouched
+ok 20 done --prune emits the pruned items then flushes
+ok 21 todo is registered in the intent help listing
+ok 22 intent todo dispatches via bin/intent's default fall-through

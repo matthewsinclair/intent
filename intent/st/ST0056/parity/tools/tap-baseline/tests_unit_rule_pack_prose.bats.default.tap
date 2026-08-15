@@ -1,0 +1,13 @@
+1..12
+ok 1 prose pack: every catalogued rule exists
+ok 2 prose pack has the expected total rule count
+ok 3 prose pack: each rule declares its canonical id
+ok 4 prose pack: each rule declares language: prose
+ok 5 prose pack: each rule carries its IN-AU migration alias
+ok 6 prose pack: each rule passes intent claude rules validate
+ok 7 prose pack: rules list reports every prose id
+ok 8 prose pack: every rule is the mechanical style tier
+ok 9 prose pack: each rule has a fenced markdown block in Bad section
+ok 10 prose pack: no sibling .md example files alongside RULE.md
+ok 11 prose pack: mechanical trope pass cites the in-detrope catalogue
+ok 12 prose pack: no vendored trope-indicator file (Highlander)

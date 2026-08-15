@@ -1,0 +1,128 @@
+1..19
+not ok 1 a conforming row is parsed whole: both arms, multi-AC coverage, delimited note
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 45)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 every retired reference form is rejected and told which edit to make
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 65)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 a coverage clause that does not fully parse is named with the ids it did see
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 80)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 a green AT whose cited test file does not exist is a finding, and to-write is exempt
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 96)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 the cited file must carry the AT id, so the link is checkable from both ends
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 111)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 coverage of an id that is not an AC row in this contract is a finding
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 122)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 a non-test AT covering a test-backed AC is named as unsatisfiable
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 132)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 n/a and the non-test marker are enforced as a biconditional
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 145)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 the trailing note must be delimited, and the shipped template teaches that form
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 156)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 at lint --fix migrates the mechanical forms and leaves judgement alone
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 173)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 11 the close-gate blocks on a grammar finding and names the command that fixes it
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 207)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 at green and at red refuse a citation that does not resolve
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 219)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 13 --fix refuses every row it cannot migrate without losing something
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 237)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 14 the suggestion for a multi-file row names every file, not just the first
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 260)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 15 a reference that cannot be a filename is never searched for, and never resolved by glob
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 278)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 16 a status from the wrong arm is refused before the write, not after it
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 312)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 17 the write verifier reports what it observed, not what it did not check
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 342)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 18 a row failing the grammar yields NO field rather than a plausible wrong one
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_contract' in file tests/unit/at_grammar_lint.bats, line 21,
+#  in test file tests/unit/at_grammar_lint.bats, line 358)
+#   `setup_contract' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 19 the extraction seam cannot be reintroduced with a colliding sed delimiter

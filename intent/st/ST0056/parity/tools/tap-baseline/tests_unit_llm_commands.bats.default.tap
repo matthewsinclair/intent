@@ -1,0 +1,6 @@
+1..5
+ok 1 llm with no arguments shows usage
+ok 2 llm usage_rules displays the root canon usage-rules.md
+ok 3 llm usage_rules --symlink creates a symlink in the target directory
+ok 4 llm usage_rules --symlink errors on a missing target directory
+ok 5 llm errors on an unknown subcommand

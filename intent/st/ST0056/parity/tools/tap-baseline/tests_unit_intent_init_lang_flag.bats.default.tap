@@ -1,0 +1,8 @@
+1..7
+ok 1 intent init --help mentions --lang
+ok 2 intent init --lang requires an argument
+ok 3 intent init --lang elixir installs single language
+ok 4 intent init --lang elixir,rust,shell installs all three
+ok 5 intent init --lang=elixir (equals form) also works
+ok 6 intent init with no --lang produces agnostic-canon-only project
+ok 7 intent init --lang bogus,elixir installs elixir, errors on bogus

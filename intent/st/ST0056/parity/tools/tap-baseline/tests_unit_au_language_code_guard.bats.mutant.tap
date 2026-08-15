@@ -1,0 +1,20 @@
+1..4
+not ok 1 rules validate accepts a well-formed IN-AU author id
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/au_language_code_guard.bats, line 22)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 rules validate rejects a malformed IN-AU id (bad zero-padding)
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/au_language_code_guard.bats, line 32)
+#   `assert_output_contains "does not match"' failed
+# Expected output to contain: does not match
+# Actual output:
+not ok 3 rules validate rejects a lowercase au language code
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/au_language_code_guard.bats, line 40)
+#   `assert_output_contains "does not match"' failed
+# Expected output to contain: does not match
+# Actual output:
+ok 4 author is registered in the canon-enumeration LANG_SUBDIRS default

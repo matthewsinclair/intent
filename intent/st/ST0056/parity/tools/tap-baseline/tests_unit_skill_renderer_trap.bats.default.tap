@@ -1,0 +1,4 @@
+1..3
+ok 1 skills directory exists
+ok 2 no canon SKILL.md inlines positional/special-param tokens
+ok 3 in-session ships its release-gate.sh helper

@@ -1,0 +1,20 @@
+1..19
+ok 1 glob_to_regex: lib/**/*.ex
+ok 2 glob_to_regex: test/**/*_test.exs
+ok 3 glob_to_regex: lib/**/live/**/*.ex
+ok 4 TEST-002 rule does NOT apply to apps/control/lib/foo.ex
+ok 5 TEST-002 rule DOES apply to apps/control/test/foo_test.exs (umbrella)
+ok 6 TEST-002 rule DOES apply to test/foo_test.exs (top-level)
+ok 7 TEST-002 rule does NOT apply to lib/mix/tasks/control.boot.ex (no test/ in path)
+ok 8 no-silent-failures (lib code rule) DOES apply to apps/foo/lib/bar.ex
+ok 9 no-silent-failures (lib code rule) does NOT apply to test/foo_test.exs
+ok 10 thin-liveviews (lib/**/live/**/*.ex) applies to apps/web/lib/web/live/page_live.ex
+ok 11 thin-liveviews (lib/**/live/**/*.ex) does NOT apply to apps/web/lib/web/controllers/page_controller.ex
+ok 12 rule without applies_to applies to any file
+ok 13 prose rule (banned-filler) DOES apply to docs/post.md
+ok 14 prose rule (banned-filler) does NOT apply to lib/foo.ex (code)
+ok 15 prose rule (banned-filler) does NOT apply to bin/intent (shell)
+ok 16 content rule (reading-level) applies to .html, not .lua
+ok 17 IN-EX-CODE-002 has no greppable proxy (cannot be expressed as per-file regex)
+ok 18 IN-EX-CODE-006 has no greppable proxy (cross-file concern)
+ok 19 IN-EX-TEST-002 still has its greppable proxy (single-file regex still valid)

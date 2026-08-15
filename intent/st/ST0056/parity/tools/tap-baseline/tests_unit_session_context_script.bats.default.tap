@@ -1,0 +1,6 @@
+1..5
+ok 1 session-context.sh exists and is executable
+ok 2 emits project name and git context for a git project with wip.md
+ok 3 emits project name and git context without wip.md
+ok 4 degrades gracefully with no git
+ok 5 does not persist session_id to a shared state file

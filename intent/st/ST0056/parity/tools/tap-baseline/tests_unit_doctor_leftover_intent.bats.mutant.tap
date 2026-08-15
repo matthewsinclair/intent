@@ -1,0 +1,16 @@
+1..5
+not ok 1 doctor: 'leftover .intent' check passes when no .intent/ exists
+# (in test file tests/unit/doctor_leftover_intent.bats, line 15)
+#   `[ "$status" -eq 0 ]' failed
+not ok 2 doctor: 'leftover .intent' check warns when .intent/ AND intent/.config/ both exist
+# (in test file tests/unit/doctor_leftover_intent.bats, line 28)
+#   `[ "$status" -eq 0 ]' failed
+not ok 3 doctor: leftover-.intent warning surfaces git-rm recovery hint
+# (in test file tests/unit/doctor_leftover_intent.bats, line 40)
+#   `[[ "$output" == *"git rm -rf .intent/"* ]]' failed
+not ok 4 doctor: leftover-.intent check is silent in --quiet mode when ok
+# (in test file tests/unit/doctor_leftover_intent.bats, line 50)
+#   `[ "$status" -eq 0 ]' failed
+not ok 5 doctor: leftover-.intent check still warns in --quiet mode
+# (in test file tests/unit/doctor_leftover_intent.bats, line 62)
+#   `[[ "$output" == *"warning"* ]]' failed

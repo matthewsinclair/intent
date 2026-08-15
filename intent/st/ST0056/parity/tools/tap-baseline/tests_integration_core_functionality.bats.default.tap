@@ -1,0 +1,5 @@
+1..4
+ok 1 intent shows info when run with no args
+ok 2 intent help works globally
+ok 3 intent st list requires project and shows clear error
+ok 4 no more silent failures - all commands give feedback

@@ -1,0 +1,20 @@
+1..19
+ok 1 in-autopsy SKILL.md exists in source
+ok 2 in-autopsy scripts directory exists
+ok 3 in-autopsy autopsy.exs exists
+ok 4 in-autopsy banned-words.txt exists
+ok 5 in-autopsy SKILL.md has frontmatter with description
+ok 6 claude skills list shows in-autopsy
+ok 7 claude skills list shows in-autopsy as NOT INSTALLED
+ok 8 claude skills install copies SKILL.md for in-autopsy
+ok 9 claude skills install copies scripts directory for in-autopsy
+ok 10 claude skills install --all includes in-autopsy with scripts
+ok 11 existing skills still install correctly with directory copy
+ok 12 in-autopsy shows as INSTALLED after install
+ok 13 claude skills sync updates in-autopsy scripts
+ok 14 claude skills show displays in-autopsy info
+ok 15 claude skills show in-autopsy extracts description from frontmatter
+ok 16 claude skills uninstall removes in-autopsy completely
+ok 17 autopsy.exs --help shows usage
+ok 18 banned-words.txt has expected format
+ok 19 in-autopsy full lifecycle: install, sync, uninstall

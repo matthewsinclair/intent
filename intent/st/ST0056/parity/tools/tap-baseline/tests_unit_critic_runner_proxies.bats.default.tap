@@ -1,0 +1,34 @@
+1..33
+ok 1 proxy_is_simple: accepts plain grep -rnE 'pat' lib/
+ok 2 proxy_is_simple: accepts grep with --include= flag
+ok 3 proxy_is_simple: accepts grep -rn (no -E)
+ok 4 proxy_is_simple: accepts pattern containing | (regex alternation)
+ok 5 proxy_is_simple: accepts leading whitespace
+ok 6 proxy_is_simple: rejects pipe to wc
+ok 7 proxy_is_simple: rejects -L flag (inverse semantics)
+ok 8 proxy_is_simple: rejects -L inside flag cluster -rnL
+ok 9 proxy_is_simple: rejects -v negative filter
+ok 10 proxy_is_simple: rejects xargs second-stage filter
+ok 11 proxy_is_simple: rejects awk
+ok 12 proxy_is_simple: rejects -B context flag
+ok 13 proxy_is_simple: rejects comment line
+ok 14 proxy_is_simple: rejects empty line
+ok 15 proxy_is_simple: rejects non-grep first word
+ok 16 patterns_from_grep_block: IN-EX-CODE-005 emits both grep lines
+ok 17 patterns_from_grep_block: IN-EX-TEST-002 emits its single pattern
+ok 18 patterns_from_grep_block: IN-EX-CODE-004 keeps the error-forwarder detector
+ok 19 patterns_from_grep_block: emits stderr note for refused lines and keeps simple ones
+ok 20 patterns_from_grep_block: stderr diagnostic emitted only once per rule
+ok 21 IN-EX-TEST-003 has no greppable proxy (inverse semantics)
+ok 22 IN-EX-CODE-003 has no greppable proxy (line continuation + filter)
+ok 23 IN-EX-LV-001 has no greppable proxy (-B context + filter pipe)
+ok 24 IN-EX-LV-003 has no greppable proxy (awk state machine)
+ok 25 IN-EX-PHX-001 has no greppable proxy (awk state machine)
+ok 26 IN-EX-ASH-001 has no greppable proxy (callsite scope cannot be inferred per-file)
+ok 27 IN-EX-ASH-002 has no greppable proxy (proxy was inverted: fired on compliant)
+ok 28 IN-EX-TEST-004 has no greppable proxy (filter pipe required)
+ok 29 IN-EX-CODE-004 does NOT fire on single-step case (Conflab regression)
+ok 30 IN-EX-TEST-003 does NOT fire on compliant async test (Conflab regression)
+ok 31 IN-EX-TEST-002 still fires on Process.sleep in *_test.exs
+ok 32 IN-EX-CODE-004 still fires on error -> error forwarder antipattern
+ok 33 IN-EX-CODE-005 multi-pattern union: union dedupes (line, content) hits

@@ -1,0 +1,55 @@
+1..54
+ok 1 st requires a command
+ok 2 st new creates a new steel thread
+ok 3 st new creates sequential steel thread IDs
+ok 4 st new stamps frontmatter with the current intent version
+ok 5 st list shows only in-progress threads by default
+ok 6 st list --status all shows all steel threads
+ok 7 st list --status filters by status
+ok 8 st show displays the content of a steel thread
+ok 9 st show works with just the number
+ok 10 st show errors on non-existent steel thread
+ok 11 st organize moves threads by status
+ok 12 st creates steel_threads.md index
+ok 13 st repair shows dry-run output
+ok 14 st repair --write fixes malformed frontmatter
+ok 15 st repair all threads without specific ID
+ok 16 st repair handles missing status field
+ok 17 st repair validates date formats
+ok 18 st repair handles non-existent steel thread
+ok 19 st start marks a not-started thread as in progress
+ok 20 st start works with just the number
+ok 21 st start works with various ID formats
+ok 22 st start does nothing if thread is already in progress
+ok 23 st start moves completed thread to in progress
+ok 24 st start updates steel_threads.md index
+ok 25 st start errors on non-existent steel thread
+ok 26 st start requires a steel thread ID
+ok 27 st start handles thread in main directory
+ok 28 st cancel marks a thread cancelled and relocates to CANCELLED/
+ok 29 st cancel errors on non-existent steel thread
+ok 30 st cancel requires a steel thread ID
+ok 31 st list with comma-separated statuses
+ok 32 st list status ordering
+ok 33 st list with TBC status
+ok 34 st list with case-insensitive status
+ok 35 st new handles slash in title
+ok 36 st new handles ampersand in title
+ok 37 st new handles backslash in title
+ok 38 st new handles mixed special characters in title
+ok 39 st new generates slug in frontmatter
+ok 40 st new generates slug from title with slashes
+ok 41 st new generates slug from title with ampersand
+ok 42 st new truncates slug to 50 chars
+ok 43 st list shows Slug column header
+ok 44 st list falls back to title when no slug field
+ok 45 st new -s creates and starts steel thread
+ok 46 st new --start creates and starts steel thread
+ok 47 st new without --start creates in NOT-STARTED
+ok 48 st new with flag after title works
+ok 49 st new -s generates slug in started thread
+ok 50 st repair normalises wip body status to canonical WIP, not In Progress
+ok 51 st new on legacy file-structure project errors instead of claiming creation
+ok 52 st new stamps acceptance.md into the doc-set
+ok 53 st new stamps acceptance.md content from the template file
+ok 54 st done lands the completed row in steel_threads.md, with the thread's own Created date

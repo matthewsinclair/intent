@@ -1,0 +1,4 @@
+1..3
+ok 1 complete workflow: create project, add steel thread, list it
+ok 2 error handling: project commands fail gracefully outside project
+ok 3 global commands work outside project

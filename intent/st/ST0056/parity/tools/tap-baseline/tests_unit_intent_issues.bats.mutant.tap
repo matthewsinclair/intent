@@ -1,0 +1,119 @@
+1..20
+not ok 1 dispatch: intent issues routes to bin/intent_issues inside a project
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 22)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 dispatch: intent issues fails cleanly outside an Intent project
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/intent_issues.bats, line 30)
+#   `assert_output_contains "not in an Intent project"' failed
+# Expected output to contain: not in an Intent project
+# Actual output:
+not ok 3 help: usage lists the five verbs; unknown verb exits non-zero
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 35)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 add: allocates id, writes OPEN/NNNN/NNNN-slug.md, prints ID:Title
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 51)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 add: second add increments id, no collision
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 61)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 add: --severity sets severity; invalid severity errors
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 68)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 add: 'new' is an alias for 'add'
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 78)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 add: pipe in a title is sanitized (no table-corrupting bar stored)
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 84)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 add: requires a title
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/intent_issues.bats, line 93)
+#   `assert_output_contains "title is required"' failed
+# Expected output to contain: title is required
+# Actual output:
+not ok 10 list: default lists OPEN issues
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 99)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 11 list: --kind filters; empty bucket is clean; invalid kind errors
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 112)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 add: lazily scaffolds issues dirs, writes no per-project _templ
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 127)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 13 show: prints frontmatter and body
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 139)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 14 show: accepts an unpadded id
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 147)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 15 show: picks the frontmatter-bearing primary among multi-file issue dirs
+# (in test file tests/unit/intent_issues.bats, line 154)
+#   `cat > "intent/issues/OPEN/0001/0001-aaa-resolved.md" <<'EOF'' failed
+# /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/91f55ae4-3302-4f70-b68e-6b64e0115e6f/scratchpad/wt-tap/tests/unit/intent_issues.bats: line 154: intent/issues/OPEN/0001/0001-aaa-resolved.md: No such file or directory
+not ok 16 show --json: emits valid JSON with expected fields
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 165)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 17 close: moves OPEN/NNNN dir to CLOSED and mirrors status
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 175)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 18 open: moves CLOSED/NNNN dir back to OPEN and mirrors status
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 185)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 19 read: a legacy RESOLVED issue surfaces as CLOSED (normalised)
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_issues.bats, line 206)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 20 error: unknown id on show/close/open exits non-zero
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/intent_issues.bats, line 218)
+#   `assert_output_contains "not found"' failed
+# Expected output to contain: not found
+# Actual output:

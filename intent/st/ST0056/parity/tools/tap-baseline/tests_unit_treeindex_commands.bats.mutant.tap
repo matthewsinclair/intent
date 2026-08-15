@@ -1,0 +1,54 @@
+1..53
+ok 1 treeindex: shows help with -h flag
+ok 2 treeindex: shows help with --help flag
+ok 3 treeindex: shows usage when no DIR given
+ok 4 treeindex: errors when not in Intent project
+ok 5 treeindex: rejects project root as DIR
+ok 6 treeindex: shadow path maps lib/my_app to intent/.treeindex/lib/my_app
+ok 7 treeindex: shadow path for nested dir is correct
+ok 8 treeindex: creates shadow directories on demand
+ok 9 treeindex: fingerprint detects missing shadow as stale
+ok 10 treeindex: fingerprint changes when file added
+ok 11 treeindex: fingerprint changes when file size changes
+ok 12 treeindex: fingerprint ignores .DS_Store
+ok 13 treeindex: fingerprint includes subdirectory names
+ok 14 treeindex: --check reports stale without generating
+ok 15 treeindex: --check reports up-to-date
+ok 16 treeindex: --check does not require claude on PATH
+ok 17 treeindex: --dry-run shows plan without writing
+ok 18 treeindex: --dry-run does not create shadow directories
+ok 19 treeindex: --prune removes orphaned shadow entries
+ok 20 treeindex: --prune reports zero when no orphans exist
+ok 21 treeindex: --prune cleans up empty shadow directories
+ok 22 treeindex: --prune only removes orphans under target dir
+ok 23 treeindex: --prune handles multiple orphans
+ok 24 treeindex: --prune does not require claude on PATH
+ok 25 treeindex: --prune is idempotent
+ok 26 treeindex: --prune handles nonexistent shadow subtree gracefully
+ok 27 treeindex: --check reports orphaned shadow entries
+ok 28 treeindex: --check does not report orphans when none exist
+ok 29 treeindex: --check reports multiple orphans
+ok 30 treeindex: --check orphan report does not remove files
+ok 31 treeindex: collects directories at default depth 2
+ok 32 treeindex: respects --depth 0 (target only)
+ok 33 treeindex: respects --depth 1
+ok 34 treeindex: skips ignored directories
+ok 35 treeindex: sorts directories bottom-up (deepest first)
+ok 36 treeindex: generates .treeindex at correct shadow path
+ok 37 treeindex: prepends fingerprint header
+ok 38 treeindex: skips up-to-date directories
+ok 39 treeindex: --force regenerates even when up-to-date
+ok 40 treeindex: skips directories with no source files
+ok 41 treeindex: reports progress to stderr
+ok 42 treeindex: multi-level generation creates correct shadow tree
+ok 43 treeindex: auto-creates .treeindexignore on first run
+ok 44 treeindex: .treeindexignore contains expected default patterns
+ok 45 treeindex: does not overwrite existing .treeindexignore
+ok 46 treeindex: respects custom directory ignore patterns
+ok 47 treeindex: respects custom file ignore patterns
+ok 48 treeindex: empty .treeindexignore means no exclusions
+ok 49 treeindex: auto-creates README.md on first run
+ok 50 treeindex: does not overwrite existing README.md
+ok 51 treeindex: README.md contains expected content markers
+ok 52 treeindex: errors on non-existent directory
+ok 53 treeindex: errors on directory outside project root

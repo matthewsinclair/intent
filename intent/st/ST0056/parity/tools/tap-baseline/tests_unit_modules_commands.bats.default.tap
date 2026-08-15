@@ -1,0 +1,21 @@
+1..20
+ok 1 modules shows usage when no subcommand given
+ok 2 modules help shows usage
+ok 3 modules --help shows usage
+ok 4 modules unknown subcommand shows error
+ok 5 intent help shows modules command
+ok 6 intent help modules shows modules help file
+ok 7 modules check with matching registry reports clean
+ok 8 modules check detects unregistered files
+ok 9 modules check detects stale entries
+ok 10 modules check resolves file::function rows by the function, not as a path
+ok 11 modules check exits 0 when clean
+ok 12 modules check exits 1 when issues found
+ok 13 modules find returns matching entries
+ok 14 modules find with no match reports no results
+ok 15 modules find without argument shows error
+ok 16 modules check errors when no MODULES.md
+ok 17 modules find errors when no MODULES.md
+ok 18 modules requires project context
+ok 19 modules check --register shows registration guidance
+ok 20 modules check unknown option shows error

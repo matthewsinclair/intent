@@ -1,0 +1,12 @@
+1..11
+ok 1 intent build release is syntactically valid
+ok 2 the sidecar list is declared once and covers every file a release stamps
+ok 3 the commit stages the sidecar list rather than a hardcoded set
+ok 4 the detect step is scoped to the same list the commit stages
+ok 5 config.json and CLAUDE.md are stamped before the commit, not after the tag
+ok 6 intent build release delegates CLAUDE.md rather than rendering the template itself
+ok 7 intent build release refuses to tag a tree left dirty by the sidecar sync
+ok 8 intent build release documents the in-progress CHANGELOG convention
+ok 9 intent_upgrade routes its stamp through the shared helper
+ok 10 intent build release pins INTENT_HOME to the checkout being released
+ok 11 the CLAUDE.md refresh skips the .claude/ stack

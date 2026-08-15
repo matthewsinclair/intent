@@ -1,0 +1,20 @@
+1..4
+not ok 1 intent organize dispatches (the documented spelling resolves a script)
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/organize_commands.bats, line 46)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 organize --dry-run previews moves without making them
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/organize_commands.bats, line 57)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 organize moves a Completed thread into COMPLETED/
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/organize_commands.bats, line 71)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 4 organize errors outside an Intent project

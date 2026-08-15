@@ -1,0 +1,17 @@
+1..16
+ok 1 writing-extensions.md exists
+ok 2 rules.md exists
+ok 3 critics.md exists
+ok 4 CLAUDE.md cross-references all three new docs
+ok 5 MODULES.md registers all three new docs
+ok 6 DECISION_TREE.md mentions the rule library and ext system
+ok 7 every .md cross-reference from new docs to siblings resolves
+ok 8 no_dead_refs: no doc cites the deleted intent/plugins/claude/subagents/elixir/ path
+ok 9 no_dead_refs: no doc cites the canon subagents/worker-bee/ path as active
+ok 10 no_dead_refs: CLAUDE.md does not list 'elixir' as an active Available Agent
+ok 11 agents_sync_idempotent: two sync runs produce identical AGENTS.md
+ok 12 no canon doc references the phantom 'skills status' subcommand
+ok 13 no canon doc uses the never-existed 'matchers' (plural) hook key
+ok 14 no canon doc references the pre-v2.10 .intent/ config path
+ok 15 no canon doc references phantom soft/strict hook script variants
+ok 16 usage-rules.md lists the in-whiteboard skill

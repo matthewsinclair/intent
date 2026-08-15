@@ -1,0 +1,51 @@
+1..50
+ok 1 claude subagents command shows help when no subcommand given
+ok 2 claude subagents list shows available agents
+ok 3 claude subagents list shows installation status
+ok 4 claude subagents install requires an agent name
+ok 5 claude subagents install installs a single agent
+ok 6 claude subagents install handles non-existent agent
+ok 7 claude subagents install prompts before overwriting
+ok 8 claude subagents install can overwrite when confirmed
+ok 9 claude subagents install supports multiple agents
+ok 10 claude subagents install --all installs all available agents
+ok 11 claude subagents install creates manifest
+ok 12 claude subagents install updates manifest on reinstall
+ok 13 agents handles missing Claude directory gracefully
+ok 14 agents creates .claude/agents directory if missing
+ok 15 agents command handles invalid subcommand
+ok 16 agents works from within a project
+ok 17 claude subagents sync requires installed agents
+ok 18 claude subagents sync detects up-to-date agents
+ok 19 claude subagents sync detects local modifications
+ok 20 claude subagents sync can force overwrite modifications
+ok 21 claude subagents sync updates when source changes
+ok 22 claude subagents sync handles missing Claude directory
+ok 23 claude subagents sync works with multiple agents
+ok 24 claude subagents uninstall requires an agent name
+ok 25 claude subagents uninstall removes a single agent
+ok 26 claude subagents uninstall prompts for confirmation
+ok 27 claude subagents uninstall handles non-existent agent
+ok 28 claude subagents uninstall supports multiple agents
+ok 29 claude subagents uninstall --all removes all agents
+ok 30 claude subagents uninstall updates manifest
+ok 31 claude subagents uninstall warns about unmanaged agents
+ok 32 claude subagents uninstall handles missing Claude directory
+ok 33 claude subagents uninstall handles empty manifest
+ok 34 claude subagents show requires an agent name
+ok 35 claude subagents show displays agent information
+ok 36 claude subagents show indicates installation status
+ok 37 claude subagents show displays metadata
+ok 38 claude subagents show includes system prompt preview
+ok 39 claude subagents show displays installation info when installed
+ok 40 claude subagents show handles non-existent agent
+ok 41 claude subagents show works for both agents
+ok 42 claude subagents status shows no agents when none installed
+ok 43 claude subagents status checks agent integrity
+ok 44 claude subagents status detects missing agents
+ok 45 claude subagents status detects modified agents
+ok 46 claude subagents status detects available updates
+ok 47 claude subagents status handles missing Claude directory
+ok 48 claude subagents status supports verbose flag
+ok 49 claude subagents status works with multiple agents
+ok 50 claude subagents status detects outdated manifest

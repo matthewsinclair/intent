@@ -1,0 +1,7 @@
+1..6
+ok 1 v2.10.x project lands at current target stamp, not hard-coded 2.11.0
+ok 2 v2.11.x project upgrades to current target without 'Unknown version'
+ok 3 v2.11.7+ upgrade installs in-whiteboard skill
+ok 4 v2.11.11+ upgrade wires canon subagent sync
+ok 5 v2.11.11+ upgrade narrates subagent sync at runtime
+ok 6 upgrade aborts before migration when backup cannot be created

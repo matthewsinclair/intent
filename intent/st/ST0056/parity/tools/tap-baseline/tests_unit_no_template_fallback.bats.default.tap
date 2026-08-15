@@ -1,0 +1,8 @@
+1..7
+ok 1 st new fails loudly when the steel-thread templates are missing
+ok 2 st new leaves nothing behind when it refuses
+ok 3 wp new fails loudly when the work-package template is missing
+ok 4 wp new leaves no work-package directory behind when it refuses
+ok 5 a healthy install still creates all five steel-thread documents
+ok 6 a healthy wp carries the template's Acceptance pointer, not the retired checkbox form
+ok 7 no info.md-shaped heredoc remains in the ST or WP creators

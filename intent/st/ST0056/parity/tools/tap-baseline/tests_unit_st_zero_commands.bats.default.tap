@@ -1,0 +1,34 @@
+1..33
+ok 1 st zero shows usage when no subcommand given
+ok 2 st zero help shows usage
+ok 3 st zero --help shows usage
+ok 4 st zero unknown subcommand shows error
+ok 5 st zero install requires project context
+ok 6 st zero install --audit-only shows gap analysis
+ok 7 st zero install --audit-only detects missing CLAUDE.md
+ok 8 st zero install --audit-only detects present CLAUDE.md
+ok 9 st zero install --audit-only detects missing MODULES.md
+ok 10 st zero install --audit-only detects present MODULES.md
+ok 11 st zero install --audit-only detects missing learnings.md
+ok 12 st zero install --audit-only detects present learnings.md
+ok 13 st zero skips Elixir deliverables when no mix.exs
+ok 14 st zero checks Elixir deliverables when mix.exs present
+ok 15 st zero install --deliverable D3 targets single deliverable
+ok 16 st zero install --deliverable rejects invalid ID
+ok 17 st zero install --dry-run shows what would change
+ok 18 st zero install --dry-run does not write files
+ok 19 st zero install creates CLAUDE.md from template when missing
+ok 20 st zero install never overwrites existing CLAUDE.md
+ok 21 st zero install creates DECISION_TREE.md from template
+ok 22 st zero install creates learnings.md
+ok 23 st zero install creates ARCHETYPES.md for Elixir projects
+ok 24 st zero install skips ARCHETYPES.md for non-Elixir projects
+ok 25 st zero install creates DEPENDENCY_GRAPH.md for Elixir projects
+ok 26 st zero install generates MODULES.md from .ex files
+ok 27 st zero install classifies web modules correctly
+ok 28 st zero no longer creates credo_checks/ in an Elixir project
+ok 29 D5a is rejected as an unknown deliverable
+ok 30 no code path under bin/ creates credo_checks/
+ok 31 st zero install creates hook settings when missing
+ok 32 st zero install skips hook when already configured
+ok 33 st zero install reports nothing to install when all present

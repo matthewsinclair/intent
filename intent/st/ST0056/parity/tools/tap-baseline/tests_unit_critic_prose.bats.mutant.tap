@@ -1,0 +1,16 @@
+1..15
+ok 1 critic-prose: directory has agent.md and metadata.json
+ok 2 critic-prose: agent.md frontmatter declares name critic-prose
+ok 3 critic-prose: registered in global-agents.json
+ok 4 critic-prose: metadata.json is valid JSON naming critic-prose
+ok 5 critic-prose: the old critic-author is fully retired (no dir, no manifest entry)
+ok 6 critic-prose: agent.md grants Read, Grep, Glob, Bash
+ok 7 critic-prose: agent.md grants neither Write nor Edit
+ok 8 critic-prose: metadata.json tools are read-only
+ok 9 critic-prose: agent.md defines both mode verbs
+ok 10 critic-prose: agent.md names both tiers (style mechanical, craft judgment)
+ok 11 critic-prose: agent.md loads the shared prose base
+ok 12 critic-prose: agent.md serves both disciplines (author + content)
+ok 13 critic-prose: agent.md resolves the discipline from declared languages
+ok 14 critic-prose: agent.md wires the mechanical trope pass at IN-PR-STYLE-004
+ok 15 critic-prose: agent.md emits the CRAFT-003 /in-detrope handoff, not an invocation

@@ -1,0 +1,19 @@
+1..18
+ok 1 learn shows usage when no args given
+ok 2 learn help shows usage
+ok 3 learn --help shows usage
+ok 4 learn unknown option shows error
+ok 5 intent help shows learn command
+ok 6 intent help learn shows learn help file
+ok 7 learn adds default footgun learning
+ok 8 learn adds learning with worked category
+ok 9 learn adds learning with failed category
+ok 10 learn rejects invalid category
+ok 11 learn --category without argument shows error
+ok 12 learn without description shows error
+ok 13 learn creates learnings file if missing
+ok 14 learn appends multiple learnings to same category
+ok 15 learn adds date prefix to entries
+ok 16 learn --list shows learnings
+ok 17 learn --list with no file shows message
+ok 18 learn requires project context

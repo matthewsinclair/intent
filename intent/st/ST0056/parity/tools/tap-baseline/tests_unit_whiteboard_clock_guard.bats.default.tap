@@ -1,0 +1,13 @@
+1..12
+ok 1 clock guard: an honest stamp with a trailing Z passes
+ok 2 clock guard: check A blocks a stamp in the future
+ok 3 clock guard: check B blocks an entry heading with no Z
+ok 4 clock guard: check B blocks a heartbeat with a T separator and no Z
+ok 5 clock guard: check B blocks a heartbeat with a SPACE separator and no Z
+ok 6 clock guard: check C blocks an append that goes backwards
+ok 7 clock guard: control -- .history/ replays old stamps and must not block
+ok 8 clock guard: control -- prose quoting a future stamp is reporting, not offending
+ok 9 clock guard: control -- pre-existing breakage must not wedge the file
+ok 10 clock guard: control -- a Re: anchor points backwards and must not block
+ok 11 clock guard: a Re: anchor does not mask a genuinely out-of-order entry
+ok 12 clock guard: control -- a project with no whiteboard is untouched

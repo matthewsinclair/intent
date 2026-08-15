@@ -1,0 +1,15 @@
+1..14
+ok 1 AT-01.1 ws new scaffolds a protocol-3.0 node
+ok 2 AT-01.4 hv is workstream zero (active) by default; working nodes paused
+ok 3 AT-01.2 ws new refuses an existing wsid with no mutation
+ok 4 AT-01.3 ws new rejects invalid ids with no partial scaffold
+ok 5 AT-01.5 ws list prints one line per node from frontmatter, no writes
+ok 6 AT-02.1 start assembles the verified claude argv (dry-run)
+ok 7 AT-02.2 compose_ctx carries identity + pickup + plan instruction, not the board
+ok 8 AT-02.3 provision-if-absent: n exits clean (no mutation), y scaffolds then launches
+ok 9 AT-03.1 ws archive retires a node, history intact, gone from list
+ok 10 AT-03.2 ws hygiene flags a corrupted fixture non-zero with a report
+ok 11 AT-03.3 ws hygiene leaves DOING content untouched
+ok 12 AT-03.4 ws hygiene passes a clean board (zero exit, no mutation)
+ok 13 AT-04.1 invocable as intent claude start|ws through the dispatch
+ok 14 AT-04.2 in-whiteboard skill points at the script with no lazy-inbox drift (SSOT)

@@ -1,0 +1,301 @@
+1..50
+not ok 1 claude subagents command shows help when no subcommand given
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 73)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 claude subagents list shows available agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 81)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 claude subagents list shows installation status
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 91)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 claude subagents install requires an agent name
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/agent_commands.bats, line 109)
+#   `assert_output_contains "error: no agent specified"' failed
+# Expected output to contain: error: no agent specified
+# Actual output:
+not ok 5 claude subagents install installs a single agent
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 115)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 claude subagents install handles non-existent agent
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/agent_commands.bats, line 135)
+#   `assert_output_contains "error: 'nonexistent' not found"' failed
+# Expected output to contain: error: 'nonexistent' not found
+# Actual output:
+not ok 7 claude subagents install prompts before overwriting
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 142)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 claude subagents install can overwrite when confirmed
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 155)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 claude subagents install supports multiple agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 174)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 claude subagents install --all installs all available agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 188)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 11 claude subagents install creates manifest
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 210)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 claude subagents install updates manifest on reinstall
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 226)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 13 agents handles missing Claude directory gracefully
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 250)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 14 agents creates .claude/agents directory if missing
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 264)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 15 agents command handles invalid subcommand
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/agent_commands.bats, line 272)
+#   `assert_output_contains "error: Unknown command 'intent claude subagents invalid'"' failed
+# Expected output to contain: error: Unknown command 'intent claude subagents invalid'
+# Actual output:
+not ok 16 agents works from within a project
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 282)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 17 claude subagents sync requires installed agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 296)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 18 claude subagents sync detects up-to-date agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 304)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 19 claude subagents sync detects local modifications
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 317)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 20 claude subagents sync can force overwrite modifications
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 333)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 21 claude subagents sync updates when source changes
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 356)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 22 claude subagents sync handles missing Claude directory
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/agent_commands.bats, line 379)
+#   `assert_output_contains "error: Claude Code not detected"' failed
+# Expected output to contain: error: Claude Code not detected
+# Actual output:
+not ok 23 claude subagents sync works with multiple agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 385)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 24 claude subagents uninstall requires an agent name
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/agent_commands.bats, line 399)
+#   `assert_output_contains "error: no agent specified"' failed
+# Expected output to contain: error: no agent specified
+# Actual output:
+not ok 25 claude subagents uninstall removes a single agent
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 406)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 26 claude subagents uninstall prompts for confirmation
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 428)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 27 claude subagents uninstall handles non-existent agent
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 444)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 28 claude subagents uninstall supports multiple agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 453)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 29 claude subagents uninstall --all removes all agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 470)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 30 claude subagents uninstall updates manifest
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 487)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 31 claude subagents uninstall warns about unmanaged agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 507)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 32 claude subagents uninstall handles missing Claude directory
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/agent_commands.bats, line 533)
+#   `assert_output_contains "error: Claude Code not detected"' failed
+# Expected output to contain: error: Claude Code not detected
+# Actual output:
+not ok 33 claude subagents uninstall handles empty manifest
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 541)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 34 claude subagents show requires an agent name
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/agent_commands.bats, line 549)
+#   `assert_output_contains "error: Agent name required"' failed
+# Expected output to contain: error: Agent name required
+# Actual output:
+not ok 35 claude subagents show displays agent information
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 555)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 36 claude subagents show indicates installation status
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 568)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 37 claude subagents show displays metadata
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 584)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 38 claude subagents show includes system prompt preview
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 594)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 39 claude subagents show displays installation info when installed
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 603)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 40 claude subagents show handles non-existent agent
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/agent_commands.bats, line 614)
+#   `assert_output_contains "error: Agent 'nonexistent' not found"' failed
+# Expected output to contain: error: Agent 'nonexistent' not found
+# Actual output:
+not ok 41 claude subagents show works for both agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 620)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 42 claude subagents status shows no agents when none installed
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 634)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 43 claude subagents status checks agent integrity
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 642)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 44 claude subagents status detects missing agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 657)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 45 claude subagents status detects modified agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 674)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 46 claude subagents status detects available updates
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 693)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 47 claude subagents status handles missing Claude directory
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/agent_commands.bats, line 712)
+#   `assert_output_contains "error: Claude Code not detected"' failed
+# Expected output to contain: error: Claude Code not detected
+# Actual output:
+not ok 48 claude subagents status supports verbose flag
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 718)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 49 claude subagents status works with multiple agents
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 731)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 50 claude subagents status detects outdated manifest
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/agent_commands.bats, line 760)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

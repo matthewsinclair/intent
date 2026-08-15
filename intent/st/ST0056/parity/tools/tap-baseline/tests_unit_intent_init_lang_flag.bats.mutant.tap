@@ -1,0 +1,43 @@
+1..7
+not ok 1 intent init --help mentions --lang
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/intent_init_lang_flag.bats, line 24)
+#   `assert_output_contains "--lang"' failed
+# Expected output to contain: --lang
+# Actual output:
+not ok 2 intent init --lang requires an argument
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/intent_init_lang_flag.bats, line 30)
+#   `assert_output_contains "--lang requires an argument"' failed
+# Expected output to contain: --lang requires an argument
+# Actual output:
+not ok 3 intent init --lang elixir installs single language
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_init_lang_flag.bats, line 35)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 intent init --lang elixir,rust,shell installs all three
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_init_lang_flag.bats, line 42)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 intent init --lang=elixir (equals form) also works
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_init_lang_flag.bats, line 53)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 intent init with no --lang produces agnostic-canon-only project
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_init_lang_flag.bats, line 59)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 intent init --lang bogus,elixir installs elixir, errors on bogus
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/intent_init_lang_flag.bats, line 70)
+#   `assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

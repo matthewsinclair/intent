@@ -1,0 +1,21 @@
+1..20
+ok 1 dispatch: intent issues routes to bin/intent_issues inside a project
+ok 2 dispatch: intent issues fails cleanly outside an Intent project
+ok 3 help: usage lists the five verbs; unknown verb exits non-zero
+ok 4 add: allocates id, writes OPEN/NNNN/NNNN-slug.md, prints ID:Title
+ok 5 add: second add increments id, no collision
+ok 6 add: --severity sets severity; invalid severity errors
+ok 7 add: 'new' is an alias for 'add'
+ok 8 add: pipe in a title is sanitized (no table-corrupting bar stored)
+ok 9 add: requires a title
+ok 10 list: default lists OPEN issues
+ok 11 list: --kind filters; empty bucket is clean; invalid kind errors
+ok 12 add: lazily scaffolds issues dirs, writes no per-project _templ
+ok 13 show: prints frontmatter and body
+ok 14 show: accepts an unpadded id
+ok 15 show: picks the frontmatter-bearing primary among multi-file issue dirs
+ok 16 show --json: emits valid JSON with expected fields
+ok 17 close: moves OPEN/NNNN dir to CLOSED and mirrors status
+ok 18 open: moves CLOSED/NNNN dir back to OPEN and mirrors status
+ok 19 read: a legacy RESOLVED issue surfaces as CLOSED (normalised)
+ok 20 error: unknown id on show/close/open exits non-zero

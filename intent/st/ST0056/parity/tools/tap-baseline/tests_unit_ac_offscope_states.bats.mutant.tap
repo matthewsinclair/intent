@@ -1,0 +1,85 @@
+1..12
+not ok 1 a descoped AC stops blocking and the gate passes a genuinely finished thread
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_threads' in file tests/unit/ac_offscope_states.bats, line 19,
+#  in test file tests/unit/ac_offscope_states.bats, line 45)
+#   `setup_two_threads' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 off-scope ACs are reported separately, never folded away
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_threads' in file tests/unit/ac_offscope_states.bats, line 19,
+#  in test file tests/unit/ac_offscope_states.bats, line 63)
+#   `setup_two_threads' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 the audit trail lands on the line, which is the whole point over deleting it
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_threads' in file tests/unit/ac_offscope_states.bats, line 19,
+#  in test file tests/unit/ac_offscope_states.bats, line 83)
+#   `setup_two_threads' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 a descope names a real thread, never itself, and never nothing
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_threads' in file tests/unit/ac_offscope_states.bats, line 19,
+#  in test file tests/unit/ac_offscope_states.bats, line 97)
+#   `setup_two_threads' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 a withdrawal without a stated reason is refused
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_threads' in file tests/unit/ac_offscope_states.bats, line 19,
+#  in test file tests/unit/ac_offscope_states.bats, line 118)
+#   `setup_two_threads' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 rescope and reinstate undo their own state and refuse the other's
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_threads' in file tests/unit/ac_offscope_states.bats, line 19,
+#  in test file tests/unit/ac_offscope_states.bats, line 129)
+#   `setup_two_threads' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 an off-scope AC is not re-entered by another off-scope verb
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_threads' in file tests/unit/ac_offscope_states.bats, line 19,
+#  in test file tests/unit/ac_offscope_states.bats, line 158)
+#   `setup_two_threads' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 a descoped test-backed AC is off-scope before it is hunted for a covering AT
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_threads' in file tests/unit/ac_offscope_states.bats, line 19,
+#  in test file tests/unit/ac_offscope_states.bats, line 170)
+#   `setup_two_threads' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 an off-scope AC cannot be satisfied, and the refusal names the undo
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_threads' in file tests/unit/ac_offscope_states.bats, line 19,
+#  in test file tests/unit/ac_offscope_states.bats, line 183)
+#   `setup_two_threads' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 a contract emptied by off-scope moves is refused, not passed on an empty set
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_threads' in file tests/unit/ac_offscope_states.bats, line 19,
+#  in test file tests/unit/ac_offscope_states.bats, line 214)
+#   `setup_two_threads' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 11 a field value carrying the delimiter is refused rather than mangled
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_threads' in file tests/unit/ac_offscope_states.bats, line 19,
+#  in test file tests/unit/ac_offscope_states.bats, line 237)
+#   `setup_two_threads' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 satisfied: n/a is read as itself, not as a truncated token
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  from function `setup_two_threads' in file tests/unit/ac_offscope_states.bats, line 19,
+#  in test file tests/unit/ac_offscope_states.bats, line 247)
+#   `setup_two_threads' failed
+# Expected command to succeed, but it failed with status 1
+# Output:

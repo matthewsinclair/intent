@@ -1,0 +1,8 @@
+1..7
+ok 1 attribution file exists
+ok 2 attribution file carries the pinned upstream commit
+ok 3 attribution file carries the MIT copyright
+ok 4 attribution file carries the MIT permission text
+ok 5 every rule with upstream_id has a matching attribution row
+ok 6 attribution table lists exactly the rules with upstream_id set
+ok 7 every upstream_id is a non-empty kebab-case slug

@@ -1,0 +1,22 @@
+1..21
+ok 1 intent_critic exists and is executable
+ok 2 --help prints usage
+ok 3 no args exits 2 with usage
+ok 4 invalid language exits 2
+ok 5 invalid --severity-min exits 2
+ok 6 invalid --format exits 2
+ok 7 no --files and no --staged exits 2
+ok 8 --languages lists the code-critic languages, one per line, exit 0
+ok 9 prose discipline 'author' is a clean no-op (exit 0), not an arg error
+ok 10 prose discipline 'content' is a clean no-op (exit 0), not an arg error
+ok 11 elixir bad fixture produces critical findings and exits 1
+ok 12 elixir good fixture at critical threshold is clean, exits 0
+ok 13 severity-min critical excludes warnings
+ok 14 --format json produces parseable JSON
+ok 15 --format json on clean fixture emits empty array
+ok 16 stderr emits 'note: skipping <rule_id>' for rules whose proxy is not headless-runnable
+ok 17 --staged outside git repo exits 2
+ok 18 --staged with no staged files of the language exits 0
+ok 19 disabled rule in .intent_critic.yml is suppressed
+ok 20 non-disabled rule still fires when config disables a different rule
+ok 21 intent critic dispatches to bin/intent_critic

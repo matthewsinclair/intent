@@ -1,0 +1,92 @@
+1..16
+not ok 1 wp done is blocked while a WP AC is uncovered
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 24)
+#   `run run_intent st new "Gate Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 2 st done is blocked when the ST-level sign-off AC is unsatisfied
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 52)
+#   `run run_intent st new "Gate Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 3 st done is allowed once every AC including sign-off is satisfied
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 84)
+#   `run run_intent st new "Gate Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 4 gate blocks a present contract with zero in-scope ACs
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 122)
+#   `run run_intent st new "Empty Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 5 gate blocks a missing acceptance.md (no contract)
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 132)
+#   `run run_intent st new "Contractless Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 6 gate passes and reports EXEMPT for acceptance: exempt with zero ACs
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 141)
+#   `run run_intent st new "Exempt Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 7 gate unaffected by a real satisfied contract; still blocks unsatisfied and malformed
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 161)
+#   `run run_intent st new "Guarded Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 8 wp done honours the WP-lenient granularity rule
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 223)
+#   `run run_intent st new "Lenient Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 9 gate blocks loudly on a malformed AC id instead of silently dropping it
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 256)
+#   `run run_intent st new "Gate Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 10 gate blocks an unresolvable steel thread instead of passing vacuously
+# (from function `assert_output_contains' in file tests/unit/../lib/test_helper.bash, line 123,
+#  in test file tests/unit/acceptance_close_gate.bats, line 289)
+#   `assert_output_contains "BLOCKED"' failed
+# Expected output to contain: BLOCKED
+# Actual output:
+not ok 11 gate blocks an unresolvable work package instead of passing vacuously
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 295)
+#   `run run_intent st new "Gate Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 12 gate still grants the WP-lenient rollup to a WP that exists, and announces it
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 319)
+#   `run run_intent st new "Gate Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 13 gate announces the pass so a verified contract cannot read as an empty one
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 343)
+#   `run run_intent st new "Gate Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 14 every ac/at reader refuses an unresolvable target instead of reporting an empty set
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 365)
+#   `run run_intent st new "Gate Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+not ok 15 a non-numeric work package number is a clean error, not raw bash arithmetic
+# (from function `assert_success' in file tests/unit/../lib/test_helper.bash, line 132,
+#  in test file tests/unit/acceptance_close_gate.bats, line 396)
+#   `run run_intent st new "Gate Thread"; assert_success' failed
+# Expected command to succeed, but it failed with status 1
+# Output:
+ok 16 no opt-in or closes-as-before claim survives in canon and comments

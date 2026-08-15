@@ -1,0 +1,7 @@
+1..6
+ok 1 elixir pack: every catalogued rule exists
+ok 2 elixir pack has the expected total rule count
+ok 3 elixir pack: each rule declares its canonical id
+ok 4 elixir pack: each rule declares language: elixir
+ok 5 elixir pack: each rule passes intent claude rules validate
+ok 6 elixir pack: rules list reports every elixir id

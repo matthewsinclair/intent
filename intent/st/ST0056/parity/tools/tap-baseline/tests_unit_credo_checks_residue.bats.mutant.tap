@@ -1,0 +1,19 @@
+1..6
+not ok 1 doctor: check passes when no credo_checks/ exists
+# (in test file tests/unit/credo_checks_residue.bats, line 39)
+#   `[ "$status" -eq 0 ]' failed
+not ok 2 doctor: an unwired credo_checks/ is reported as never having run
+# (in test file tests/unit/credo_checks_residue.bats, line 51)
+#   `[ "$status" -eq 0 ]' failed
+not ok 3 doctor: a wired credo_checks/ is reported as live, with the Credo version caveat
+# (in test file tests/unit/credo_checks_residue.bats, line 65)
+#   `[ "$status" -eq 0 ]' failed
+not ok 4 doctor: a stale .credo.exs registration is reported when the directory is gone
+# (in test file tests/unit/credo_checks_residue.bats, line 79)
+#   `[ "$status" -eq 0 ]' failed
+not ok 5 doctor: the mix.exs elixirc_paths end is named, with line numbers
+# (in test file tests/unit/credo_checks_residue.bats, line 92)
+#   `[ "$status" -eq 0 ]' failed
+not ok 6 doctor: residue warns and never errors, so it cannot abort a release
+# (in test file tests/unit/credo_checks_residue.bats, line 110)
+#   `[ "$status" -eq 0 ]' failed

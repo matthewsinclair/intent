@@ -1,0 +1,7 @@
+1..6
+ok 1 get_default_width reads dft_width from config
+ok 2 get_default_width defaults to 120 when dft_width is absent
+ok 3 st list stdout fills the terminal width and never truncates the slug
+ok 4 st list and st sync resolve the same width over the same scope
+ok 5 st sync --write index is canonical markdown, independent of terminal width
+ok 6 explicit --width overrides the terminal width (list and sync alike)

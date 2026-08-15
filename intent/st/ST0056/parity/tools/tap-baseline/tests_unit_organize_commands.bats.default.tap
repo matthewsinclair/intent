@@ -1,0 +1,5 @@
+1..4
+ok 1 intent organize dispatches (the documented spelling resolves a script)
+ok 2 organize --dry-run previews moves without making them
+ok 3 organize moves a Completed thread into COMPLETED/
+ok 4 organize errors outside an Intent project

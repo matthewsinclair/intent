@@ -1,0 +1,12 @@
+1..11
+ok 1 agnostic pack contains all four canonical rules
+ok 2 agnostic pack has no unexpected RULE.md files
+ok 3 each agnostic rule declares language: agnostic
+ok 4 each agnostic rule has a canonical id
+ok 5 each agnostic rule has severity critical
+ok 6 highlander rule concretises in at least two language packs
+ok 7 pfic rule concretises in at least two language packs
+ok 8 thin-coordinator rule concretises in at least two language packs
+ok 9 no-silent-errors rule concretises in at least two language packs
+ok 10 all four agnostic rules pass intent claude rules validate
+ok 11 rules list reports all four agnostic rules

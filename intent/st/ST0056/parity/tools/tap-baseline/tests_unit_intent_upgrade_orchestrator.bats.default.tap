@@ -1,0 +1,12 @@
+1..11
+ok 1 convergent upgrade from a v2.9.x project lands at target (relocate then languages then canon then stamp-once)
+ok 2 interrupted upgrade re-run completes only the remaining work via state probe
+ok 3 no ledger step writes the version; only the orchestrator stamps, last
+ok 4 future or unknown version does not hard-fail before mutation
+ok 5 semver sanity refuses downgrade and missing VERSION before any mutation
+ok 6 backup failure surfaces via error() and aborts before mutation
+ok 7 verified backup tolerates a broken symlink in the source (cp -R, not -r)
+ok 8 only intent_upgrade writes the stamp and the canon engine carries no version-bump
+ok 9 migration code is not sourced into non-upgrade commands
+ok 10 the ledger converges the Language Packs block via lang sync, never lang init
+ok 11 the final stamp survives set -e when the config is already at target

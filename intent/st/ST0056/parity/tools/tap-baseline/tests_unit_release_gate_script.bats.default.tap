@@ -1,0 +1,8 @@
+1..7
+ok 1 release-gate.sh exists and is executable
+ok 2 release-gate.sh uses pure-shell substitution (no awk $1)
+ok 3 release-gate.sh touches the sentinel for CLAUDE_CODE_SESSION_ID
+ok 4 release-gate.sh always touches unknown.sentinel
+ok 5 release-gate.sh degrades to unknown-only when env var is empty
+ok 6 release-gate.sh degrades to unknown-only when env var is unset
+ok 7 release-gate.sh ignores any leftover shared state file
