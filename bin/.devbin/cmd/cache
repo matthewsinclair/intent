@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Report build-cache staleness cargo's own freshness check cannot see
+#
+# intent cache          -- REPORT whether target/ carries artefacts from a path
+#                          the workspace no longer occupies.
+# intent cache --clean  -- remove the stale cache (destructive; read the warning).
+#
+# THE CLASS, in cc's words after it cost them an hour and 1.2G: **a build cache
+# can be stale in a way its own freshness check cannot see.** Every freshness
+# check has a SCOPE. Cargo compares timestamps and input hashes, not the
+# location of the manifest ROOT, so moving the tree bakes the old absolute path
+# into compiled artefacts and cargo goes on reporting them FRESH. The tell is a
+# test that passes in isolation and fails in the suite -- which is a CONCLUSION
+# (something is shared and one of the two runs is lying), not flakiness.
+#
+# WHY A CHECK RATHER THAN A NOTE. cc cleaned 1.2G believing the class was
+# closed. Measured 2026-08-15 at e8d689b, it was not: 228 dep files in
+# native/rust/target still named `native/target`, an intermediate location from
+# an earlier move, and that directory does not exist. Nothing reported it,
+# because nothing was looking. A rule that depends on remembering to look is
+# not a control.
+#
+# THE DISCRIMINATOR, and it is what makes this a measurement rather than a
+# guess: a cold build of a fresh clone at the same revision produced ZERO
+# references to the stale root and 222 to the correct one, against 228 and 304
+# in the working cache. Same source, same revision, different cache -- so the
+# difference is the cache, not the code. Any future version of this check should
+# be validated the same way: build somewhere clean and diff the signature.
+#
+# WHY IT WARNS RATHER THAN REFUSING, unlike the other gates here. Stale residue
+# is LATENT, not wrong: the tree above built, tested and shipped green with all
+# 228 present. Refusing to build over a condition that is usually harmless is
+# how a gate gets switched off, and a switched-off gate protects nothing. This
+# reports, names the cost of ignoring it, and leaves the decision.
+#
+# --clean IS A PEER-AFFECTING ACTION ON THIS PROJECT. Several sessions share one
+# working tree and therefore one target/. Removing it costs whoever is mid-build
+# a full recompile. It asks before doing it and says who else is at risk.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+
+WORKSPACE="${PROJECT_ROOT:?}/native/rust"
+TARGET="$WORKSPACE/target"
+[ -d "$WORKSPACE" ] || die "no Rust workspace at native/rust -- has the tree moved?"
+
+if [ ! -d "$TARGET" ]; then
+  printf 'cache: no target/ -- nothing built, nothing to be stale.\n'
+  exit 0
+fi
+
+DEPS="$TARGET/debug/deps"
+if [ ! -d "$DEPS" ]; then
+  printf 'cache: no debug artefacts yet -- nothing to check.\n'
+  exit 0
+fi
+
+# Collect every target root any artefact names, then keep the ones that are not
+# where the workspace actually is. A path that merely DIFFERS is not proof; a
+# path that differs AND does not exist is a location the tree has left.
+#
+# `|| true` on every pipeline whose emptiness is legitimate: a clean cache
+# matches nothing, and under `set -e` grep's exit 1 would abort the check and
+# report nothing, which reads exactly like a pass.
+roots="$(grep -ho '/[^ :"]*/target/debug' "$DEPS"/*.d 2>/dev/null | sort -u || true)"
+
+stale_roots=""
+while IFS= read -r r; do
+  [ -n "$r" ] || continue
+  [ "$r" = "$TARGET/debug" ] && continue
+  [ -d "$r" ] && continue
+  stale_roots="${stale_roots}${r}
+"
+done <<<"$roots"
+
+if [ -z "${stale_roots//[[:space:]]/}" ]; then
+  printf 'cache: %s\n' "$TARGET"
+  printf 'ok: every artefact names the current target root -- no path-move residue.\n'
+  exit 0
+fi
+
+printf 'cache: %s\n\n' "$TARGET"
+printf 'STALE: artefacts name a target root the workspace no longer occupies.\n\n'
+total=0
+while IFS= read -r r; do
+  [ -n "$r" ] || continue
+  n="$(grep -l "$r" "$DEPS"/*.d 2>/dev/null | wc -l | tr -d ' ')"
+  total=$((total + n))
+  printf '  %-6s artefacts name  %s\n' "$n" "$r"
+  printf '         (that directory does not exist)\n'
+done <<<"$stale_roots"
+
+printf '\n  %s artefacts total. cargo reports these FRESH -- it compares timestamps\n' "$total"
+printf '  and input hashes, never the manifest root, so a path move is invisible to it.\n'
+printf '\n  This is LATENT rather than broken: a tree in this state builds and tests\n'
+printf '  green. The tell when it does bite is a test that passes in isolation and\n'
+printf '  fails in the suite -- a conclusion, not flakiness.\n'
+printf '\n  Fix: int cache --clean   (or `cargo clean` from native/rust)\n'
+
+if [ "${1:-}" != "--clean" ]; then
+  exit 1
+fi
+
+printf '\n'
+warn "--clean removes $TARGET"
+printf '  THIS IS SHARED. Several Claude sessions work in this one tree and build\n'
+printf '  into this one target/. Removing it costs anyone mid-build a full recompile.\n'
+printf '  Announce it on the whiteboard before you do this.\n\n'
+printf '  size: %s\n' "$(du -sh "$TARGET" 2>/dev/null | cut -f1)"
+printf '  proceed? [y/N] '
+read -r reply
+case "$reply" in
+  y | Y)
+    rm -rf "$TARGET"
+    printf 'removed. the next build is cold.\n'
+    ;;
+  *) printf 'left alone.\n' ;;
+esac
