@@ -150,3 +150,33 @@ Both measured against `conflab`, both now in canon so nobody debugs them twice:
 **This is the second item on your desk from me today**, the other being Machine 3's fifth state (`computed`) at 14:08Z, which is right and needs ratifying rather than fixing. **Neither blocks anyone.**
 
 -- vc
+
+## (2026-08-15 15:10Z) ONE NEW DECISION FOR YOU: which platforms does v3.0.0 ship? It is unruled, dc is blocked on it in spirit, and it costs platform reach
+
+**Labelled, since you asked last time which of these were FYI.**
+
+### 1. DECISION NEEDED -- WHICH TARGETS DOES v3.0.0 SHIP? (new, dc raised it, I confirmed it)
+
+**There is no shipped-target statement anywhere in `design.md`.** I checked rather than took dc's word. The only platform sentence in the whole contract is AC-02.1, and that is a **CI build gate**, not a distribution commitment -- "builds with fmt + clippy on macOS and Linux" says nothing about what a user can install. No D-number covers it.
+
+**Why it needs you and not me: it is a REGRESSION IN PLATFORM REACH, knowingly taken.** Intent v2 installs by clone-and-symlink and runs anywhere bash runs, and v2.11.14 fixed a Linux-only `set -e` break, so **Linux is a supported v2 platform in fact, not just in principle.** A macOS-only v3 takes that away from anyone on Linux at the cutover. That is a product call.
+
+**dc's recommendation, which I think is right:** first cut ships **macOS arm64 only**, hand-rolled on the Conflab pattern (build -> sign -> notarise -> verify -> checksum -> publish, local), with **cargo-dist DEFERRED** until Linux artefacts are in scope -- where its matrix earns its keep and there is no signing question to fight.
+
+**dc's counter-argument, quoted rather than summarised because it is the part that makes this a decision:** _"Intent v2 installs by clone-and-symlink and runs anywhere bash runs, so a macOS-only v3 is a REDUCTION IN PLATFORM REACH. That is a real regression for hv to accept knowingly, not something to discover after the cutover."_
+
+**Nothing is blocked meanwhile** -- the macOS leg is needed under every option, so dc is building it now. The matrix changes how much gets built, never how signing works. **But this is the answer dc most wants before building anything, and an open question parked across three rulings becomes a decision made by default.**
+
+Two supporting measurements, both dc's, both independently checkable: **cargo-dist 0.32.0 does not notarise at all** (zero hits for `notarytool`, `notariz`, `stapler`, `altool`, `xcrun`), so the tool AC-11.1 named covers at most half of D38 next door. And **Conflab -- same Apple team, same CLI+daemon shape, same tap -- has both paths and chose local**: `MACOS_RELEASE_CI` has been `off` since 2026-04-16, with four months of releases behind it. That is a revealed preference, not an opinion.
+
+### 2. STILL ON YOUR DESK, UNCHANGED -- Machine 3's fifth state (`computed`), from 14:08Z
+
+One word, yes or no. It is right and needs ratifying rather than fixing. Nothing blocked; cc's cost of reversal keeps rising.
+
+### 3. FYI ONLY, NO ACTION -- the gate was over-reporting, and it was my defect
+
+`ac gate` was scoring **AC-06.4 and AC-06.7 satisfied** while the prose of each said it did not close. Corrected: both texts now credit what actually shipped (search works; the WP view landed), both are held open on one uncovered arm each, and the thread count moved from 32/101 to 31/102.
+
+The cause worth your half-minute: **an AT covers a FILE, an AC states a CRITERION, and the coverage claim joining them is hand-made by me and never re-tested.** Both ACs grew arms over three days as cc reported progress; the AT rows never moved. Underneath it, `ac gate` satisfies an AC on the **first green AT** covering it (`bin/intent_acceptance:454` ORs, it does not AND), so the natural repair -- a second row at `to-write` naming the gap -- has no effect on the verdict. **Filed as issue 0032**, not fixed: it is v2 tooling that WP-04 replaces, `bin/**` is not mutated with sessions live, and the interim control is in place. The note that matters is in the issue: **whoever builds the v3 close-gate must not port the early-return.**
+
+-- vc

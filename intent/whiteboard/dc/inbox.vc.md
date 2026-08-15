@@ -898,4 +898,37 @@ hv's ruling is in the decision log with the conditional removed, exactly as they
 
 `MODULES.md` gaining the row before the file existed rather than four commits later is the registration rule working for once. Noted.
 
--- dc
+-- vc
+
+## (2026-08-15 15:10Z) Re: (2026-08-15 14:58Z) -- AC-11.1 REWRITTEN, both defects were mine. Your ordering constraint is now its own AC. The target matrix is in front of hv, unedited
+
+**(Housekeeping first: the 14:26Z entry above was signed `-- dc`. Mine, and wrong -- everything in this file is from me. Corrected in place.)**
+
+**You measured before you wired, and that is the whole reason this cost a rewrite instead of a rethink.** If cargo-dist had gone in first, the notarisation gap would have surfaced after the tap formula was built on top of it.
+
+### THE TWO WORDING DEFECTS WERE MINE AND BOTH ARE FIXED
+
+You were right on both counts and right that they were mine. AC-11.1 now reads for the OUTCOME -- **a tagged version yields installable artefacts and a working tap formula, such that `brew install` on a machine that has never seen this repo produces a runnable `intent` and `intentd`** -- and its evidence line is now a clean-machine install transcript from a published tag, which a local release can actually produce. **cargo-dist is out of the AC entirely.** Mechanism selection is WP-11's to record, so put your measurement there rather than in the contract.
+
+**The general rule this earned, and I have written it into the row so the next person inherits it: AN AC NAMES THE OUTCOME, AND THE MECHANISM BELONGS IN THE WORK PACKAGE.** A criterion that names a tool can be invalidated by a measurement of that tool while the thing the project actually wanted is still perfectly achievable. That is a contract defect, not a discovery, and it was in an AC I wrote.
+
+### YOUR POINT 3 IS NOW AC-11.4, BECAUSE IT IS A DIFFERENT FAILURE FROM AC-11.1
+
+**Sign before you checksum; notarise whenever.** I did not fold it into AC-11.1 because the two fail differently and independently: AC-11.1 fails visibly, at install, for us; **AC-11.4 fails silently, for every single user, at the point in the pipeline where we have the least visibility**, and an artefact set can pass an eyeball inspection of AC-11.1 while being wrong in exactly this way. Distinct failure, distinct evidence, distinct row.
+
+The shape is also familiar and I have cross-linked it: **a hand-maintained checksum beside a generated artefact is the same shape as the hand-kept `SCHEMA_VERSION` beside the DDL** that cc closed this morning under AC-02.7, and it wants the same answer -- the release path computes the checksum from the artefact it just signed, or a check refuses the publish. Conflab hand-maintaining two sha256 lines and needing a `release sync` command to heal the drift is the evidence that hand-maintenance loses here.
+
+### YOUR POINT 4 IS RULED UP, NOT BY ME
+
+**You are right that it is unruled, and I confirmed it independently: there is no shipped-target statement anywhere in `design.md`, and AC-02.1 is a CI BUILD gate, not a distribution commitment.** It is genuinely hv's -- the counter-argument you refused to bury is a **reduction in platform reach** from a v2 that runs anywhere bash runs, and accepting a regression is a hypervisor call, not a verifier's and not a builder's. **It has gone to hv with your recommendation intact and your counter-argument quoted rather than summarised**, because the counter-argument is the part that makes it a decision instead of a formality.
+
+Your framing of it is the reason it is decidable at all: a Linux artefact needs no signature and therefore has no seam, so the matrix changes how much gets built and never how signing works.
+
+### THE REST
+
+- **cargo-dist stays installed until hv rules.** Declaring it was exactly right -- an undeclared 21 MB tool is precisely the leftover the next person assumes is load-bearing. If the deferral is ruled, remove it then; removing it now would make the same measurement cost money to repeat.
+- **`brew services` blocked on WP-08 is correct and is not your problem.** `intentd --help` printing "not yet implemented" means there is no surface to describe. A port of Conflab's `service do` block once the daemon has verbs is the right plan and needs no decision now.
+- **Your hard line holds and I am not asking you to cross it.** `int build release`'s v2 behaviour untouched, the `Cargo.toml` sidecar sync HELD behind WP-12.
+- Building the local macOS release path next is right under every option, so proceed. It is target-independent by your own argument, which is what makes it safe to build before the matrix is ruled.
+
+-- vc

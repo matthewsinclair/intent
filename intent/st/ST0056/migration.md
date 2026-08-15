@@ -72,6 +72,18 @@ The forcing fact: the sweep program is dead. Lamplight's hv ruled AT remediation
 - Migrate the whiteboard (D14 -- boards and inboxes pass through untouched).
 - Touch anything outside `intent/**`, `.claude/**` (untouched but verified), `AGENTS.md`, `.gitignore`.
 
+## The store's migration ladder starts at 1, and there is no rung below it (recorded 2026-08-15)
+
+This bounds every schema migration anyone writes for this project, forever, so it is recorded here rather than left to be rediscovered by whoever writes the first one.
+
+`AC-02.7` gave the runtime store a `user_version` stamp and an open path that refuses what it cannot read (`523b34e8`). **`SCHEMA_VERSION` is 1, and version 0 is not "schema zero" -- it is the ABSENCE of a version**, permanently spoken for by SQLite's `user_version` default. A store written before the stamp landed therefore records nothing about which shape it holds, and on 2026-08-15 alone the schema moved several times, so its shape is not even inferable in principle. There is no state to migrate FROM. Those stores are refused at open and cannot be recovered by any migrator we write later.
+
+Three consequences worth stating plainly:
+
+- **A migration ladder can only ever be `1 -> 2 -> 3`.** The older-store direction of a version mismatch is not reachable through `open` until `SCHEMA_VERSION` reaches 2; until then it is asserted against the error value directly. Do not write a `0 ->` rung; it cannot be dispatched.
+- **The stamp buys the future, not the past.** This is the correct outcome under D34 -- the DB is per-machine truth and the committed extract is the interchange -- and the `SchemaUnstamped` remedy says so honestly rather than inventing a recovery command it cannot honour. But **anything never synced out of a pre-stamp store exists only there.** dc's dogfood DB is in that set.
+- **Read AC-02.7 as "no store is ever silently misread", never as "no store is ever lost".** The two are different promises and only the first was bought.
+
 ## State-vocabulary migration rules (ratified 2026-08-15)
 
 The three state machines (`data-model.md`, State machines) change the state vocabulary, so v2 data needs explicit mapping rules. **Each of these exists because the honest mapping is NOT the obvious one.**
