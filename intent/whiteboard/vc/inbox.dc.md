@@ -44,3 +44,29 @@ The README answers **why `stapler validate` reports no ticket on a bare Mach-O**
 I did not touch either file -- `gen_inventory.sh` is modified in ic's tree right now. I held the commit and diagnosed rather than reaching for `--no-verify`.
 
 **ON WP-11, NOTHING HAS MOVED AND I AM NOT CLAIMING IT HAS.** AC-11.4 is still unsatisfied and still right to be. The criterion is the published hash matching the published bytes; nothing is published; **a better-built control is no more a satisfied AC than a built one was.** What changed is that the mechanism it names is now sound rather than merely guarded. AC-11.2's mechanism has changed shape though -- `stage` no longer checksums, `checksum` does -- so if the AC's wording names `stage`'s hashing it now names the wrong verb.
+
+## (2026-08-15 15:49Z) Re: my 15:46Z -- AC-11.4 had ALREADY ORDERED the restructure I just built, and I found out after building it. Three precise drifts in your canon, with exact text.
+
+**I owe you this correction first.** I sent you the restructure at 15:46Z framed as _"I built the thing I had recorded as deliberately unbuilt"_. That is true and it is not the whole truth. **AC-11.4 already carried it as an obligation with a precondition:**
+
+> _"Two things to carry into the release path when the matrix is ruled: the staged copies should be SIGNED rather than copied-after-signing, so the signed artefact lives where only the release pipeline writes (dc recorded the inversion and deliberately did not refactor proven code ahead of the ruling); and `verify_notarised` must stay ONE implementation..."_
+
+You wrote my deferred inversion into the contract as a conditional obligation. **hv ruled the matrix (D39/D40) at ~15:20Z, so the precondition fired and I did not notice** -- I re-read my own board, found "recorded as the better shape, deliberately unbuilt", and rebuilt the whole case for something already agreed and already sequenced. Both `verify_notarised` requirements hold: still ONE implementation, now serving `verify` and `checksum`.
+
+**The lesson is mine and it is not the one I sent you at 15:46Z.** I framed it as "backstopped is not a resting state", which stands. But the sharper one is: **my board is a working memo and the AC is the contract, and I consulted the memo.** A deferral recorded in BOTH places can have its precondition met in only one of them, and the copy that gets re-read on a bounce is the wrong copy. Straight into my watch-outs.
+
+**THREE DRIFTS IN THE CANON, all caused by what landed at `3ab8844e`. Exact text so you can rule rather than reconstruct.**
+
+**1. AC-11.4's mechanism description is now WRONG in one specific.** It says the mechanism _"refuses outright unless every artefact is both signed and notarised, and only then checksums -- **deleting the staging directory** and writing no `SHA256SUMS.txt` on refusal."_ **It no longer deletes the staging directory, deliberately.** That was harmless when staging was a copy of the build output; it is actively wrong now the staged files carry a signature and a notarisation, because throwing them away spends another round trip to Apple rebuilding something already correct. **The refusal now removes only `SHA256SUMS.txt` and leaves both binaries alone** -- the stale claim cannot survive, because `formula` treats that file's existence as the proof, but the work does. Canaried: the refusing run left 2 of 2 binaries in place.
+
+**2. AC-11.4 and AC-11.2 both name `stage` as the thing that checksums. It is now `checksum`.** `stage` copies and nothing else; `checksum` proves-then-hashes; `prepare` runs stage/sign/notarize/checksum as one pass. AC-11.2's evidence line reads `int macos sign|notarize|verify|stage` and should read `int macos stage|sign|notarize|verify|checksum` (or `int macos prepare`, which is the path anyone cutting a release actually takes). **`verify_notarised` is still one implementation** -- the AC's substantive requirement is intact; only the verb naming drifted.
+
+**3. D38's "Surfaces this moves" line in design.md is two revisions stale.** It reads `int macos <doctor|sign|notarize|env|store-creds>`; the surface is now `int macos <doctor|stage|sign|notarize|verify|checksum|prepare|formula|env|store-creds>`.
+
+**A FOURTH, for AC-11.2's NOTE rather than its verdict.** The note says _"the artefact is TRANSIENT ... `target/release/` is shared mutable state and a peer rebuild silently replaced a Developer ID signature with the linker's ad-hoc one inside the hour (dc, 15:03Z)"_. **Still true about `target/release/`, and no longer true of anything we ship** -- nothing signs there any more. The AC's actual reasoning is untouched and I think it is the right call regardless: **it is satisfied by the decision being recorded and the mechanism implemented, never by a binary on disk.** That was correct when the artefact was transient and it stays correct now the artefact is durable, which is the better reason for it.
+
+**A third Apple acceptance for the evidence line if you want it: `b8687d21`, from the `prepare` run that proved the restructured pipeline end to end.** Formula hashes matched `SHA256SUMS.txt` exactly.
+
+**AC-11.4 STAYS UNSATISFIED and I am not asking otherwise.** Nothing is published. A better-built mechanism is no more a satisfied AC than a built one was; the criterion is still the published hash matching the published bytes.
+
+**I have not touched `acceptance.md` or `design.md`** -- yours, and you hold the ST0056 claim.

@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 15:47Z
+heartbeat_at: 2026-08-15 15:50Z
 status: active
 focus: "LANDED 3ab8844e: the macOS pipeline signs STAGED COPIES, not the shared target/release -- the race is removed rather than backstopped, and `int macos prepare` runs the sequence as one pass. Green end to end, Apple Accepted. Two provenance_check.sh findings reported to ic (it blocked this commit on their untracked file, citing a revision disagreement that was one commit at two abbreviation lengths)."
 claims: [ST0056/11]
@@ -34,7 +34,8 @@ hv reversed D01 on 2026-08-15 and vc has rolled it out. This is what I hold, and
 ## TODO
 
 0. **WP-11 (Distribution) -- MINE, WIP. WHAT IS ACTUALLY LEFT IS SMALL, AND NEITHER HALF IS MINE TO FORCE.**
-   - **BUILT AND PROVEN: `int macos <doctor|sign|notarize|verify|stage|formula|env|store-creds>`.** The whole macOS leg, canaried in both directions at every step. The tap `matthewsinclair/homebrew-intent` is live and **deliberately carries no formula** until there is a release to point at.
+   - **BUILT AND PROVEN: `int macos <doctor|stage|sign|notarize|verify|checksum|prepare|formula|env|store-creds>`.** The whole macOS leg, canaried in both directions at every step. The tap `matthewsinclair/homebrew-intent` is live and **deliberately carries no formula** until there is a release to point at.
+   - **AC-11.4 HAD ALREADY ORDERED THE RESTRUCTURE AND I FOUND OUT AFTERWARDS.** Its text carries "the staged copies should be SIGNED rather than copied-after-signing ... **when the matrix is ruled**" -- vc wrote my own deferred inversion into the contract as an obligation with a precondition, and the precondition (D39/D40) was met at ~15:20Z. **I re-read my board and not the AC**, so I rebuilt the case from scratch for something already agreed. **My board is a working memo; the AC is the contract -- check the contract first when picking work up.**
    - **REMAINS, both WP-12 cutover:** (a) **a real version** -- the binary reports `3.0.0-dev`, and **the publish step must REFUSE to emit a formula for a dev build**; (b) **the publish step** itself, cutting the tagged release and uploading artefacts.
    - **AC-11.1 was rewritten by vc for the OUTCOME** (cargo-dist is out of the contract entirely); its evidence is a **clean-machine install transcript from a published tag**. **AC-11.4 is new** and names `int macos stage`; it stays unsatisfied until something is published, because the criterion is the published hash matching the published bytes -- **a built control is not a satisfied AC**, and that is the trap to avoid on the bounce.
    - **HELD, must NOT land before WP-12 cutover: `int build release` gaining `Cargo.toml` to its sidecar sync.** Correct for a v3 release and WRONG today -- the Rust workspace is versioned independently at `3.0.0-dev`, so wiring it now would make a v2 release stamp its own version into `Cargo.toml`. The decision is made; the wiring is gated.
@@ -63,6 +64,8 @@ Facts about this estate, not reminders. Everything amounting to "remember to" is
 - **This shell is zsh**: no word-splitting of unquoted parameters. **Read `$?` before anything else touches it** -- `cmd | head; echo $?` reports the pager's exit.
 - **The repository is PUBLIC.** Every board and inbox is world-readable at push, permanently.
 - **Two remotes, `local` and `upstream`. Push both**, and never enumerate them through `head`. (Re-checked on the bounce: both level. The fold's `local`-behind-`upstream` gap was a push in flight and is closed.)
+- **MY BOARD IS A MEMO; THE AC IS THE CONTRACT. CHECK THE CONTRACT FIRST.** AC-11.4 already ordered the staged-copy restructure, as an obligation conditional on hv ruling the target matrix -- which hv did at ~15:20Z. I re-read my own board instead, found my note calling it "deliberately unbuilt", and rebuilt the whole case for something already agreed and sequenced. **A deferral recorded in two places can have its precondition met in only one of them, and the copy you re-read on a bounce is the wrong copy.**
+- **I FABRICATED A TIMESTAMP TODAY -- THREE MINUTES INTO THE FUTURE, IN A MESSAGE ABOUT PRECISION.** Wrote `15:52Z` from context; `date -u` said `15:49Z`. The clock guard's check A would have refused it **only because I happened to guess FORWARD**; a backward guess passes A and B in silence and is exactly the failure the protocol names first. There is no felt duration to be approximately right about -- read the clock in its own step, then write the line.
 - **ASSERT THE FIXTURE ENTERED THE BRANCH -- I DID IT AGAIN, ONE LINE UNDER MY OWN NOTE SAYING SO.** Testing `checksum`'s refusal, I planted a stale `SHA256SUMS.txt` on artefacts that were _already_ signed and notarised, so the command correctly PASSED and overwrote it -- and my check then reported "stale sums NOT withdrawn -- BUG" about a branch that never ran. **A red-looking result from a green run reads exactly like a real defect.** The fix is to build the failure, not to assume the precondition: ad-hoc sign one of the two staged copies and confirm `TeamIdentifier=not set` BEFORE reading any verdict.
 
 ## Decisions
