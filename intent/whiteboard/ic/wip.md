@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15T00:51Z
+heartbeat_at: 2026-08-15T01:14Z
 status: active
-focus: "Burn sweep re-running at c60cdbd to land 8 corrected pertest rows. The question is whether it REPRODUCES, not whether it re-measures -- report that before regenerating anything."
+focus: "WP-05 gate PASS 4/4. Register + per-test register both complete at c60cdbd, sweep reproduced byte-for-byte. Two rulings sit with vc: the UNRATIFIED sub-script deviation, and parity.md schema drift."
 claims: []
 ---
 
@@ -13,27 +13,18 @@ claims: []
 
 ## DOING -- PICK THIS UP FIRST
 
-**A burn sweep is RUNNING in a detached worktree at `c60cdbd`** (`$CLAUDE_JOB_DIR/tmp/sweep`, TAP under `tap/`). It exists to land 8 corrected rows in `pertest.md`, which cannot be regenerated without a TAP capture -- and the previous capture died with its temp directory.
+**Nothing is blocked on measurement. Two items sit with vc as RULINGS; neither is this node's to make.**
 
-**The question it is asking is whether the measurement REPRODUCES against the committed baseline, not whether it re-measures.** That is why it runs at `c60cdbd` -- the revision the register is pinned to -- and deliberately NOT at HEAD, which carries cc's `3dfa3ba` fixture-version change. If the burn numbers come back byte-identical, provenance is CONFIRMED rather than split, and both artefacts stay on one revision. If they do not, that is a finding worth more than the 8 rows, because the register's determinism claim rests on it.
+**WP-05 gate reads PASS 4/4.** The register is 98 rows at `c60cdbd`; `pertest.md` is 487 rows / 40 files at the same revision with `--verify` reporting **249 verified, 0 stale, 0 unverifiable**. The burn measurement was re-run and **reproduced byte-for-byte** against the committed baseline, so provenance is confirmed rather than assumed.
 
-**Report which happened BEFORE regenerating anything.** Do not publish a `pertest.md` measured at a revision the register does not name. vc has been told this is running and can stop it.
+### Open with vc (asked 01:13Z, not yet answered)
 
-### What the 8 rows are
+1. **The sub-script deviation has no D-number.** `treeindex_commands.bats` is the estate's only `deviate` row and its new `ratification` column reads `UNRATIFIED`. None of design.md's 30 D-numbers covers it; D06 implies it and implication is not ratification. Either an existing D covers it (name it, I populate the row) or a new one is needed -- **that is vc + hv, not this node.** Do NOT invent a reference to make the column look finished.
+2. **`parity.md`'s register schema has a `<command(s)>` column the register does not carry.** I believe it is correctly absent (the register is file-level; the file-to-command map lives in `coverage_map.sh`, measured rather than transcribed) -- but a schema nobody implements should be STRUCK from the contract, not silently diverged from. vc's call.
 
-- **2** from the `retire`-needle fix (`ambient_project_root_guard.bats`, out-of-scope -> retire).
-- **5** are vc's negative-assertion ruling: `keep` with `basis: read, not measured` MANDATORY, barred from burn arithmetic, counted separately.
-- **1** is the row that broke the ruling: `intent_upgrade_orchestrator.bats :: the ledger converges the Language Packs block` never invokes the CLI -- it greps the migrations script for the literal text `"\$INTENT_BIN/intent" lang init`. Class is `out-of-scope`. **vc ruled six; five fit. Awaiting their confirmation on the sixth.**
+### Open with hv (in `## Open asks for hv`, items 6-7)
 
-`gen_pertest.sh --verify` reports all 8 and exits 1, so the artefact states its own staleness. AC-05.3 is REOPENED by vc (gate BLOCKED 3/4) and closes when they land.
-
-## This session, in one line each
-
-- **`v3 exposure` column** in the register (`eba5219`) -- the second predicate beside burn, from cc's finding. Estate-wide 18 files, 9 in `keep` (cc found 8; the 9th is `gen-view`, which their status-dir needle could not see).
-- **`retire` needle wanted a double quote** (`08eacaf`) -- 17 tests read as `out-of-scope` while the file dies with the shell.
-- **`classify_calibrate`** (`9381973`) -- 11 cases, both generators refuse if it fails, mutation-tested against the historical bug.
-- **The BATS fixtures declared 2.10.0**, so v3 refused 19 of the 31 keep files. cc fixed at `3dfa3ba` with `${INTENT_FIXTURE_VERSION:-3.0.0}`.
-- **`st list` blast radius**: 13 files touch it, 5 `keep`, and **nothing pins the header bytes**. `output_width.bats` pins width RELATIONSHIPS, which is harder.
+**AC-03.4's skew check is unwired and belongs to no WP** -- needs an owner, not a volunteer. `surface/dispatch-table.md` was IN SYNC at 01:04Z, so nothing is broken now.
 
 ## Live findings a fresh session should not rediscover
 
@@ -79,6 +70,7 @@ claims: []
 - **Read `bin/**`, never mutate it** -- `~/.local/bin/intent` symlinks into this repo, so every project on the machine runs whatever state those files are in. Sacrificial worktree for anything that writes. Note `intent claude rules index` mutates `INTENT_HOME` despite reading like a query.
 - **A bulk rewrite is unfinished until something enforces it.** `87a315b` retargeted 979 call sites and regressed the same day, via a spelling written by someone with no reason to know the invariant existed. Guards now exist for the dispatcher path and for clock stamps; the pattern generalises to the next sweep.
 - **The clock gate is live in the shared `.git/hooks` and BLOCKS.** Stamp every timestamp from `date -u +'%Y-%m-%d %H:%MZ'`, every time. If it ever refuses something honest that is a bug in my guard -- send it over rather than reaching for `--no-verify`.
+- **Write the stamp AFTER reading the clock, and never correct a bad stamp from memory. THIS RECURRED on 2026-08-15 at 01:14Z**, in the same session that wrote the watch-out: I typed `01:15Z` into the heartbeat while `date -u` said `01:14Z` -- one minute into the future, from composing the line before reading the clock. Caught by reading my own output, not by the guard (check A allows 120s jitter, so it would have sailed through). **Three instances across two nodes in two days is no longer a slip, it is the argument for D30** making the API the only writer of a timestamp -- vc reached the same conclusion independently after doing it themselves an hour earlier. The habit that catches it is mechanical: run `date -u`, look at the output, THEN type. Never compose the surrounding text first.
 - **Write the stamp AFTER reading the clock, and never correct a bad stamp from memory.** Caught myself twice in ninety seconds on 2026-08-15. First I typed `00:04Z` into a heredoc I composed BEFORE the `date -u` in the same command returned `00:00Z` -- a stamp four minutes in the future, which check A would have refused. Then I "corrected" it to `2026-08-14 00:00Z` by ASSUMING UTC had not rolled over. It had. That second fix was worse than the bug: it put the entry a full day behind the one above it and would have broken inbox monotonicity, check C, the one test that needs no clock at all. **Correcting a fabricated stamp with a second guess is the failure the protocol names, and the guard would have caught only the first of my two attempts.** Read `date -u`, then write. Local was already 2026-08-15 while UTC was not -- that hour is live every night.
 - **A guard verified in one harness is not verified -- it is verified in THAT harness.** `corpus_require` tested green under `gen_register.sh` (`set -uo pipefail`) and was DEAD under `coverage_map.sh` (`set -euo pipefail`): the bare command substitution aborts the shell the instant it finds a disagreement, so the tool exited 1 with an EMPTY stderr against a baseline known to be four files short. **A guard that dies silently in the strict-mode caller is worse than no guard** -- it reads as a clean tool failure rather than a finding. Run the battery in every harness that sources it, canary in each.
 - **`git commit --only <paths>` does NOT protect a file two nodes both edit.** It scopes to paths and then takes whatever is in the working tree there. `ab351a2` swept my uncommitted MODULES.md row into cc's doctor commit; content was fine, attribution was not, and the window was twenty minutes. For genuinely shared files (MODULES.md is the live one) commit the row in the same commit that creates the module.
