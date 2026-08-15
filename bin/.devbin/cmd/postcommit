@@ -49,6 +49,14 @@
 # act rather than merely report** -- and reporting is what the estate has been
 # doing for eight measured instances without any of them getting cleared.
 #
+# **THE RECOVERY HAS A HORIZON, AND SAYING SO IS THE DIFFERENCE BETWEEN AN
+# HONEST GUARANTEE AND AN OVERSTATED ONE** (vc, reviewing this file; verified
+# here rather than taken). The blob is unreferenced, so `gc` prunes it at
+# `gc.pruneExpire` -- unset in this clone, so git's default of `2.weeks.ago`
+# applies. Reversible for a fortnight, not forever. The output says so, because
+# the failure mode is somebody reading a six-week-old sha off a scrollback and
+# expecting it to resolve.
+#
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
@@ -102,5 +110,6 @@ done < <(git status --porcelain)
 
 if [ "$cleared" -gt 0 ]; then
   printf '    (worktree already matched HEAD for each -- nothing in your tree changed)\n'
+  printf '    recover within ~2 weeks: the blobs above are unreferenced and gc prunes them.\n'
 fi
 exit 0
