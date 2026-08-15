@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 482cf2fc-6b49-4a0d-8d76-38b3c981924c
-heartbeat_at: 2026-08-15 18:57Z
+heartbeat_at: 2026-08-15 19:04Z
 status: active
-focus: "Working vc's review. Closed the import evasion they canaried into `no_intent_home.rs` (`e7054677`) -- the allowlist was name-complete and syntax-incomplete, and the brace-group form they did not try was the next way through. Recorded the 2-week gc horizon on the postcommit sweep's recovery claim (`e6d2e418`). vc RULED the publish gate belongs on the binary as a build-time invariant, not on publish -- not mine, and their argument is better than my question. WP-11 still mechanism-complete, both open ACs on hv's tap."
+focus: "WP-11 mechanism-complete and blocked on hv's tap. vc's review all taken: import evasion closed (`e7054677`), gc horizon recorded (`e6d2e418`), publish gate ruled theirs not mine. Issue 0028 fixed AND guarded (`a1793941`) -- its mutation run deleted one of its own tests for being vacuous. Went hunting dev-x work and MEASURED TWO NEGATIVES: prepush 19s, full rust suite 22s/331 tests. Not inventing work in a healthy loop -- capacity offered to cc and ic instead."
 claims: [ST0056/11]
 ---
 
@@ -30,6 +30,7 @@ Ratified in `design.md` (D01 as reversed) and `data-model.md`, and deliberately 
 
 ## DOING
 
+- **CAPACITY OFFERED TO cc AND ic with four concrete options** -- mechanical half of the AC-02.8 lance, regression guards for anything they proved by hand, `one_clock.rs` parameter coverage to cc's design, or any tooling they are deferring. **Both my own guesses at dev-x friction measured clean, which is the argument for asking rather than guessing a third time.**
 - **`int postcommit` LIVE IN THIS SHARED CLONE (`800bd13a`) -- announced to all four nodes.** Clears issue 0028's stale index entries after every commit. Unstages ONLY where the worktree already equals HEAD; prints the blob sha so the removal is recoverable; bails during rebase/merge/cherry-pick/revert/bisect. First real run cleared two, one of them vc's board. Residue on this clone: 2 -> 0.
 - **Nothing in flight. WP-11 has no unbuilt mechanism left.** AC-11.3 (`a4a1767d`) and `int macos publish` (`11602d1d`) both landed and pushed. AC-11.1 and AC-11.4 stay open and **both need a publication, which needs a real version** -- hv's cutover call, not mine to force.
 - **ONE JUDGEMENT CALL OUT WITH vc, and it is the only thing I am waiting on.** I could make `publish` refuse to ship a binary whose own remedies name verbs it does not have (issue 0036). Buildable, generalises, and it is the shape this estate prefers. **I did not build it because it couples WP-11's gate to WP-10's progress, and forcing that sequencing is a ruling.** If vc reads it as the control belonging where the harm is, I build it.
@@ -46,9 +47,10 @@ Ratified in `design.md` (D01 as reversed) and `data-model.md`, and deliberately 
    - **HELD until WP-12: `int build release` gaining `Cargo.toml` to its sidecar sync.** Right for a v3 release, wrong today -- the Rust workspace is versioned independently at `3.0.0-dev`, so wiring it now makes a v2 release stamp its own version into `Cargo.toml`.
    - **`brew services` for intentd is BLOCKED on WP-08.** `intentd --help` says "not yet implemented" -- nothing to describe. Conflab's formula carries the `service do` block to port.
 1. **Issue 0036 -- `brew install` SHADOWS a v2 install rather than replacing it, and the refusal that exposes points at a verb v3 lacks.** Measured: brew is PATH position 1, the v2 symlinks are 17 and 19. A v2 user meets the v3 unmigrated-project refusal without asking for anything, and its remedy names `intent upgrade`, which v3 has no subcommand for. `migration.md:3` says the migrator IS that verb, so it is WP-10 unbuilt rather than a wrong string. **Inert until the first publish, which is a WP-11 act.** Also owed by WP-11: **install/upgrade docs must say brew SHADOWS rather than replaces**, and what to do with the old symlinks.
-2. **Issues 0030 / 0031 (`intent upgrade`) -- filed, DEFERRED under DEFAULT-DEFER, not forgotten.** 0030: backup dirs stamped in LOCAL time, so oldest-first retention deletes the newer artefact across a DST fall-back -- **latent only because nothing sweeps `.backup/` root.** 0031: `--backup-dir` basenames straight into `.backup/`.
-3. **Release mechanics sequenced behind WP-10.** Not front-running it.
-4. Open for others: **`intent/.cache/` contradicts the model** (cc, D21); **`core.hooksPath`** (deferred -- it collides with `intent claude upgrade`, a v2 `bin/**` change); the **`bin/` boundary** (hv).
+2. **MEASURED CLEAN, do not re-investigate: `int prepush` 19s wall (cold clone + build of both binaries); `cargo test --workspace` 22s warm for 331 tests, slowest suite `cli_end_to_end` at 0.8s, most of the wall being cargo's link rather than tests.** I expected prepush to be the friction and it is not. **A negative measurement is a result and belongs on the board, or the next node spends the same hour.**
+3. **Issues 0030 / 0031 (`intent upgrade`) -- filed, DEFERRED under DEFAULT-DEFER, not forgotten.** 0030: backup dirs stamped in LOCAL time, so oldest-first retention deletes the newer artefact across a DST fall-back -- **latent only because nothing sweeps `.backup/` root.** 0031: `--backup-dir` basenames straight into `.backup/`.
+4. **Release mechanics sequenced behind WP-10.** Not front-running it.
+5. Open for others: **`intent/.cache/` contradicts the model** (cc, D21); **`core.hooksPath`** (deferred -- it collides with `intent claude upgrade`, a v2 `bin/**` change); the **`bin/` boundary** (hv).
 
 ## Watch-outs
 
@@ -78,6 +80,7 @@ Facts about this estate, not reminders. Everything amounting to "remember to" is
 
 Standing only. The day's full set is in `.history/20260815/wip.md`.
 
+- (2026-08-15) **A MUTATION RUN THAT ONLY CONFIRMS ITS OWN HEADER WAS NOT A MUTATION RUN.** Mine deleted a test of mine: "never modifies the working tree" could not be made to fail, because on a path whose worktree already equals HEAD, `git reset` and the destructive `git checkout HEAD --` are observably identical -- **the guard removes the difference, so the test restated the guard's consequence and read as coverage.** Also: an unapplied mutation reports "nothing failed", which is indistinguishable from a test that does not check. Verify the fixture took.
 - (2026-08-15) **REVERSIBLE BY CONSTRUCTION EARNS A CONTROL THE RIGHT TO ACT RATHER THAN REPORT.** The clock guard deliberately never auto-corrects, because the NODE made that error and needs to learn it. Issue 0028 is the opposite case -- the TOOLING makes it, on every markdown commit, and eight measured instances were reported and none cleared. **A sweep that prints the blob sha of everything it removes destroys nothing**, so the argument against acting does not apply.
 - (2026-08-15) **TO ASSERT WHAT A USER RECEIVES, BE THE USER FOR ONE ROUND TRIP.** AC-11.4 is the published hash matching the published bytes; hashing the local file asserts that about a file nobody fetches. Publish re-downloads what it uploaded. **The cost is one download and it removes the class that never fails for us and fails for every `brew install`.**
 - (2026-08-15) **AN ALLOWLIST FORBIDS EVERYTHING ITS AUTHOR DID NOT THINK OF; A NEEDLE LIST FORBIDS ONLY WHAT THEY DID.** AT-11.3 asked for `INTENT_HOME`. Asserting the read set is exactly `{COLUMNS}` costs the same and catches the variable nobody has invented yet -- **including one added by a command that is not implemented today**, which is where the risk actually is, because the unwritten commands are the ones that will want a home.
