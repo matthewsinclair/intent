@@ -37,9 +37,23 @@ claims: []
 
 ## Live findings a fresh session should not rediscover
 
-**The burn ratio is BLIND TO NEGATIVE-ASSERTION TESTS.** A test asserting a failure passes under both bindings, because `/usr/bin/false` fails too. Six such tests across three files, surfaced as the six `UNCLASSIFIED` per-test rows. **One-directional**: the method under-counts CLI reach and never over-counts, so every burn figure is a FLOOR. Eighth measurement rule in `parity.md`.
+**ONE SHAPE ACCOUNTS FOR MOST OF TONIGHT, and cc named it best: an authored claim with no mechanism able to contradict it.** Three instances in one evening, all found sideways rather than by the thing that should have caught them -- cc's test asserting both `sync` spellings agree (written from the same misreading as the code, so it confirmed only that a wrong model was self-consistent); my `note` on a dispatch-table row that rendered into no view; my count typed beside the rows it counted. The generalisation is cc's and it belongs in `parity.md`.
 
-**`surface/dispatch-table.md` was stale against its own canon** -- cc's `sync` row existed in the JSON and not in the view since `f0d6e64`. Repaired at `b697874`. Nothing caught it because **AC-03.4's skew check is not wired up yet**, on the very artefact that ratifies the generated-view pattern.
+**THE SWEEP COSTS 7m52s, NOT HOURS.** All 98 files, both bindings, 896K of TAP. I wrote "multi-hour" into a tool header as justification and vc ruled on the same premise -- neither of us had measured it. The 3.5 hours was ONE FILE HUNG, and `test_diogenes.bats` measured cleanly as FULL on the re-run under identical backgrounded no-tty conditions. **A stale artefact should now be FIXED, not deferred with a note.** Corrected in `burn.sh` and `gen_pertest.sh` at `ebd1cfd`.
+
+**BURN IS A V2-SIDE MEASUREMENT AND CANNOT SEE A V3 LAYOUT DECISION.** Both its runs are v2. So `keep` never meant "safe to point at v3", and 18 files in the estate carry v3-layout exposure that burn is structurally blind to -- now a column, three hazards: `status-dir`, `gen-view` (worse: the write SUCCEEDS and is outvoted by regeneration), `region-marker` (D25). Found from the v3 side by cc, twice.
+
+**A GREP CANNOT TELL A CALL SITE FROM A STRING BEING SEARCHED FOR.** Three times in `lib_classify.sh` alone: the sub-script rule, the guard allowlist, and the invocation needle firing on an escaped `\$INTENT_BIN` used as a grep pattern. Every needle now carries a complement case; `classify_calibrate` runs 11 of them before either generator will classify anything, and both generators refuse if it fails.
+
+**A POSITIONAL READ SURVIVES A SCHEMA CHANGE WITHOUT COMPLAINING.** Adding the `region` column to `fixture_probe`'s TSV shifted `exposure` from field 4 to 5; `gen_register` kept reading 4 and published the region COUNT as the exposure value. Every row still looked like a row. It now asserts the full header and refuses. Same family as the above: the consumer could not detect its own premise going stale.
+
+**THE BATS FIXTURES DECLARED 2.10.0**, so the v3 binary refused 19 of the 31 `keep` files at fixture construction. cc fixed it at `3dfa3ba` with `${INTENT_FIXTURE_VERSION:-3.0.0}`. Their earlier 23-red measurement predates AC-10.7 and is clean; anything measured between `5463674` and `3dfa3ba` is not.
+
+**VERIFIED-ABSENT GAPS ARE MEASUREMENTS AND NOBODY RECORDS THEM** (cc, 01:04Z). They went looking for a missing existence check on a to-write AT's cited file, expected the gap open, and found it CLOSED at `bin/intent_acceptance:1337`, correctly gated on the green transition. Recorded here so the same ground is not re-searched by the next person with the same suspicion.
+
+**`intent config` is a real coverage HOLE and that is the correct answer** -- the dispatch table already rules its v3 shape a DESIGN decision, not a port (v2 prints 0 bytes on both streams). Do not write a v2-parity test for it; there is no behaviour worth reproducing.
+
+**`surface/dispatch-table.md` is IN SYNC** as of 01:04Z. The `f0d6e64` staleness is repaired. AC-03.4's skew check is still unwired and belongs to no WP -- hv ask #6.
 
 ## TODO -- in order
 
