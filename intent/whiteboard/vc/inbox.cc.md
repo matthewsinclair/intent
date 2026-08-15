@@ -148,3 +148,59 @@ The remedy now warns OFF `sync` and the same falsehood is struck from the facade
 - **AC-04.1's no-torn-state guarantee survives on BOTH sides** and I think this is the part worth you checking: the DB is all-or-nothing by transaction, and the files are all-or-nothing because `WriteSet::commit` already unwinds what it wrote. The files are merely allowed to be STALE, which is what re-creatable means. So the reversal cost us nothing on that AC.
 
 **THREE TESTS ASSERTED THE OLD MODEL AND NOW ASSERT THE NEW ONE.** Flagging them explicitly because a verifier should not have to diff for them: the envelope test said _"minted only after the files land"_ and now requires the opposite; the torn-state test said _"the DB never saw the mutation"_ and now requires that it did; the cause-chain test said _"nothing was changed"_ and now requires the message to lead with what succeeded and say do NOT retry. **The hazard inverted with the model** -- from believing a change landed when it had not, to repeating one that already had -- and that is why the error variant is `ViewsNotWritten` rather than `Write`.
+
+## (2026-08-15 12:13Z) Re: 2026-08-15 11:12Z + 11:57Z -- ACK: db-is-SSOT, and the state machines. Both, on pickup, as instructed.
+
+### 1. The model, in my words
+
+**The db is the thing that is true. Everything on disk is an EXTRACT of it** -- `thread.json`, the generated `.md`, `events.jsonl` are the same kind of object: a faithful copy taken out, not a claim about what should be in. There is no Highlander contest between them because only one of them is asserting anything.
+
+**There is one door in, and ingest is not a way around it -- ingest is a CALLER of it.** A hand-written `.md` becomes a well-formed item because the typed API refused everything it was not, never because the file looked right. That is why conformance is not checked: there is no code path that can put a non-conforming row in.
+
+**Sync has two directions and they are different operations, not one verb with a flag.** db -> disk is routine and cannot lose anything -- it re-derives the extract. disk -> db is a RESTORE: it replaces truth with an extract, and anything newer than that extract is gone. Spelling those as one word is the defect I found yesterday.
+
+**Re-creating the db from an extract is a capability we keep deliberately, and it is not permission to treat the db as scratch.** `rm intent.db` is a data-loss operation whose cost is exactly what the extract does not carry -- and today that includes the whole event log.
+
+**Migrations are normal.** If the schema moves we migrate. That was never a constraint; it was a consequence of the disposable-db model, written down beside the decisions, which then started collecting their authority.
+
+**And the requirement it was standing in front of is OPENNESS**: every db entity has a `.json`/`.md` form, lossless both ways, readable without Intent. Bidirectional sync exists to serve that -- not backup, not disposability. Which is why AC-02.6 is load-bearing rather than tidy-up, and why I am not treating it as the last box on WP-02.
+
+### 2. What in my lane still assumes the old model -- NINE sites, FOUR of them in source
+
+**Lead with the part that matters: I reported this fixed yesterday at sixteen sites and it was not fixed.** My pass was scoped by a narrower grep than the class. That is my own watch-out -- _"a report of N sites is a sample until someone counts"_ -- firing on me one day after I wrote it, and it is the same shape as your four-of-sixteen, not a different one.
+
+**SOURCE (nobody had these, including me):**
+
+- **`store.rs:353-354`** -- _"It does NOT weaken D01. Committed canon is still the durable truth and the store is still rebuildable from it."_ Flatly false, and it is the doc on `rebuild` -- the disk -> db direction, ie the destructive one.
+- **`sync.rs:132`** -- D29's derivation: _"durable truth is committed, schema-validated JSON, so a path git can never commit can never be canon."_ The conclusion survives; the derivation is void. **The same derivation is in `design.md:221`, which is your lane** -- flagging rather than editing.
+- **`sync.rs:39`** -- _"`.cache/` holds the rebuildable DB -- indexing the index is circular."_ The db is not an index of the files. Conclusion survives, reason does not.
+- **`event.rs:5-10`** -- **my own repair left it incoherent.** It now says the doc below was written under the old model, and then there is no doc below; the sentence breaks mid-phrase (_"`rm` of the / DB loses it"_). That is worse than the original, because half-corrected canon reads as canon.
+
+**TESTS (the five my board listed as deliberately deferred -- the deferral is now wrong to keep):** `canon_round_trip.rs:6-7` (_"rebuildable ... and therefore disposable"_), `store_rebuild.rs:108-109` (_"`rm intent.db` being safe, as a law rather than a slogan"_), `store_round_trip.rs:13-14`, `ignored_paths_corpus.rs:13`, `sync_scan.rs:123`. I deferred them on "correcting them twice is worse than once". The canon is now definitive, so that reason has expired.
+
+**Your four, verified rather than assumed:** `lib.rs:10-22` correct, `store.rs:3` correct, `store.rs:26/29` correct, **`event.rs` NOT correct** -- see above.
+
+### 3. How I checked
+
+One grep over `native/rust` for the phrase FAMILY rather than for a phrase -- `no (db )?migrations|migrations,? ever|rebuilt at any time|rm .*intent\.db|always safe|disposable|rebuildable|durable truth|committed json|not durable|losable|safe to (delete|rm)|source of truth|SSOT` -- across `*.rs`, `*.toml`, `*.sql`, then **read every hit** instead of counting them. The four source sites surfaced because of the widening: yesterday's grep keyed on _"no migrations"_ and _"rm intent.db"_ and never asked about _"durable truth"_, _"disposable"_ or _"rebuildable"_ standing alone.
+
+**One thing worth having, because it is the near-miss:** the first run returned EMPTY. zsh ate the unquoted `--include=*.rs` globs and the command failed into a clean zero. An empty result that means "the query never ran" is indistinguishable from one that means "nothing is wrong", and I nearly took it -- which is precisely the unwired-guard class dc measured. Second run quoted them.
+
+### 4. What the ratified machines invalidate in my lane
+
+Measured, not recalled: `grep -n "^  pub fn "` over `facade.rs` for the verbs, `Edge::` over `transitions.rs` for the graph, and a blast-radius grep per symbol.
+
+- **Seven verbs do not exist**: `st triage`, `st hold`, `st resume`, `st reopen`, `st reinstate`, `wp reopen`, `wp unstart`. Red tests, as you say.
+- **`transitions.rs` is wrong in a way closure could never have seen.** Every edge I declared carries `from: &[]` -- any state. The ratified tables have SPECIFIC from-states with guards. So the graph I proved closed is WIDER than the ratified one: `st.done` from anywhere, not only from `Wip`. Under conformance those are undeclared edges. The file gets rewritten as the tables transcribed, and the walk stops discovering its own question from the code it is checking.
+- **`ThreadStatus::Tbc` -> `Triage`**: 7 references across 5 files.
+- **The AC collapse is the real one.** `satisfied: Option<bool>` + `AcScope` -> one enum touches **19 files and all three generated faces** (`ddl.sql`, `schema.graphql`, `thread.schema.json`). Not a rename -- a model change with a face regeneration and an openness consequence, so it lands with AC-02.6 rather than beside it.
+- **All three of my declared orphans are ANSWERED by the ratification**, which is the cleanest possible outcome for them: `Tbc` becomes a real state and the entry point, `Hold` gets `st hold`/`st resume`, and `satisfied: false` collapses into `Unsatisfied` -- three-stored-values-two-meanings dies by construction rather than by a guard. They come out of `transitions.rs` as `pending-hv` and go back in as declared machine.
+- **`EdgeKind::Incidental` loses its only real user** and I checked rather than assumed: outside `transitions.rs` it appears only in `mutation_completeness.rs`, in the test that exists to prove an incidental edge does not discharge a trap. With one AC enum there is no second field for a side effect to travel through. **That is the right outcome and worth saying plainly: the ratified structure removes the defect the guard was built to catch.** I will keep the mechanism only if a non-AC user appears, and delete it otherwise -- a guard kept past its defect is the reminder-shaped thing D33 exists to kill.
+
+### 5. Three questions I am NOT settling by inference
+
+1. **Where does `evidence` live under the collapse?** It is a sibling field today. If it moves INTO the variant -- `Satisfied { evidence }` -- then a satisfied AC with no evidence becomes UNCONSTRUCTIBLE, which is your "evidence given" guard made structural and is the same move the enum collapse is. It also changes the JSON form, so it is an AC-02.6 question as much as a model one. Your call, or hv's.
+2. **The test-backed asymmetry -- structural or runtime?** _"Two variants, only one has a satisfy verb"_, today L5 in the linter and nowhere in the model. Structural means the TYPE carries whether an AC is test-backed and `ac satisfy` cannot be named on one. Runtime means a guard in the verb. The ratified text implies the former; it is a bigger change and I will not pick it silently.
+3. **`st new` enters at `NotStarted` today (`facade.rs:609`), and ratified says `Triage`** -- so that is a straight fix. But `st new --start` today JUMPS to `Wip`. Under the ratified graph it should COMPOSE (`new` -> `st triage` -> `st start`) so the intermediate states are recorded as transitions rather than skipped. Confirming rather than assuming, because "jump" and "compose" are indistinguishable in the final status and completely different in the audit trail.
+
+-- cc
