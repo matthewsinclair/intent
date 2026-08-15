@@ -103,17 +103,30 @@ fn wp_status(s: intentsvcs::model::WpStatus) -> &'static str {
 ///
 /// **A `corrected` divergence, and one v2 could not have avoided.** v2 reads
 /// `scope:` as free text, so it renders whatever the file happens to say --
-/// and this repository's own corpus carries TEN spellings for six sizes:
-/// `Small` x56, `Medium` x34, `Large`, `L`, `XL`, `M`, `S`, `ExtraSmall`,
-/// `Extra Small`, `XS`. "As observed" cannot mean reproducing that, because
-/// it is not a behaviour -- it is the absence of one, which is exactly what
-/// modelling the field fixes.
+/// and this repository's 129 work packages carry **eleven** spellings:
+/// `Small` 56, `Medium` 34, `Large` 8, `L` 8, `XL` 5, `M` 5, `S` 4,
+/// `ExtraSmall` 4, `Extra Small` 3, `XS` 1, and `Medium-Large` 1. "As
+/// observed" cannot mean reproducing that, because it is not a behaviour --
+/// it is the absence of one, which is exactly what modelling the field fixes.
 ///
 /// The short form because it is what the canon says (the enum's own wire
 /// spelling) and what the project's sizing convention states, so the column
 /// and the file agree. Same shape as the `TBC` / `Not Started` collapse that
-/// `views.rs` records: v3 faithfully reproducing a v2 defect would be the
-/// worse choice.
+/// `views.rs` records.
+///
+/// **This function is not finished, and the eleventh spelling is why.** I
+/// first measured TEN, because I piped the count through `head`, which
+/// defaults to ten lines -- and the row it cut off is the one that decides the
+/// rule. `Medium-Large` maps to nothing in `XS · S · M · L · XL · XXL`; it
+/// sits between two of them, in a CLOSED thread, where hv's carry policy says
+/// lossless-by-carrying and never lossy. Normalising it is a guess, blocking
+/// violates the policy, dropping is loss. vc's ruling (data-model.md): `scope`
+/// carries a MARKED-LEGACY form for a value outside the enum, on this model's
+/// own `acceptance_test` precedent -- D05's posture one level down, where an
+/// unknown enum VALUE is marked by name exactly as an unknown FIELD is.
+///
+/// Until that lands in the model, this match is exhaustive over an enum that
+/// cannot yet represent every value the corpus holds.
 fn scope(s: TShirt) -> &'static str {
   match s {
     TShirt::XS => "XS",
