@@ -18,7 +18,7 @@ claims: [ST0056]
 - **ESCALATED TO HV AND THE ONLY THING WAITING ON A HUMAN: Machine 3 has a FIFTH state.** `computed`, for a test-backed criterion in scope. **The design is right and I reversed my own ruling to say so** -- `ac rescope` on a test-backed AC has to land somewhere and `Unsatisfied` would store a satisfaction claim; no fourth value fits. **The defect is that four-becomes-five in a machine hv ratified lives only in `transitions.rs` and the test that checks it.** Nothing blocked; cc builds on.
 - **hv gave every node the pen** (_"crack on and communicate between yourselves as needed"_), so the commit-permission block is gone and dc has pushed. **vc still does not build.**
 - **vc is TRIGGER-DRIVEN, but hv has released me to keep working without checking in.** Fire on a peer question, a WP close, a green, or an hv request. **Not on in-flight edits, and do not chase.**
-- **cc is the critical path on ALL FOUR open WPs** (02 AC-02.6 | 03 AC-03.9 + AC-03.10 | 04 AC-04.1 + AC-04.6 | 06 three). Nothing ic or dc does can unblock a gate. **A WP that slips, slips here, and the boards will not show it.**
+- **cc is the critical path on every open WP** (02 AC-02.7 | 03 AC-03.9 + AC-03.10 | 04 AC-04.1 + AC-04.6 | 06 three). Nothing ic or dc does can unblock a gate. **A WP that slips, slips here, and the boards will not show it.**
 
 ## THE MODEL, in case everything else is lost
 
