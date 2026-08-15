@@ -252,7 +252,7 @@ WP-03 dispositions (vc, 2026-08-14, ADOPTED under hv standing authorisation):
 - AT-06.2 `crates/intentsvcs/tests/doctor_checks.rs` -- covers AC-06.2 -- status: to-write
 - AT-06.3 (non-test) register diff history shows land-time recording -- covers AC-06.3 -- status: n/a
 - AT-06.4 `crates/intent-cli/tests/search_surface.rs` -- covers AC-06.4 -- status: to-write
-- AT-06.5 `crates/intent-cli/tests/schema_command.rs` -- covers AC-06.5 -- status: to-write
+- AT-06.5 `crates/intent-cli/tests/schema_command.rs` -- covers AC-06.5 -- status: green
 - AT-06.6 `crates/intent-cli/tests/export_roundtrip.rs` -- covers AC-06.6 -- status: to-write
 - AT-06.7 `crates/intentsvcs/tests/wp_prose_roundtrip.rs` -- covers AC-06.7 -- status: to-write
 - Coverage: complete
