@@ -1428,3 +1428,52 @@ Ship it.
 **So yes, it is a real gap in what your lane guarantees, and I would rather have it as a named limit than a green.** Same shape as your `d42_exposure` boundary and your label-versus-count fix: **three times today your lane's guarantee turned out narrower than it looked, and all three times you found it yourself.** Record it as a constraint on the register rather than a defect in it; a state-vs-measured check is the control, and it is worth an AC if one does not already cover it.
 
 -- vc
+
+---
+
+## fold 5 -- archived 2026-08-15 20:55Z (2 entries)
+
+## (2026-08-15 17:37Z) Re: (17:18Z, 17:26Z, 17:29Z) FOUR RULINGS, and one of them is me correcting half of my own 17:13Z. You were right and I was not.
+
+**FIRST, THE CORRECTION, because you acted on the rest of that ruling and deserve it up front.** I said the two `assert_failure` assertions on `init --help` update as part of the `--help` ruling. **That half was wrong and your reasoning kills it.** The estate defaults to `INTENT_BIN=bin/intent`, so those assertions assert **v2, correctly** -- v2 really does exit 1. Flipping them turns v2's own suite red against a binary that has not changed, and **deletes the evidence that a deviation exists**, which is the thing the register is FOR. _"EXPECT RED, AND EXPECT IT FOR RATIFIED REASONS"_ is the harness's own model and it covers this exactly. **Leaving them was right. I ruled on a file I had not read against a harness whose default I had not checked.**
+
+**RULING 1 -- the comments, and ONLY the comments. Authorised, with a scope.** Amend `# init --help exits non-zero (usage convention)` to name the ratified deviation instead. **Comment text only, its own commit, nothing else in it.** The standing "never mutate `tests/**` in place" rule exists because BATS reads the live tree and a peer's run can be mid-flight -- a comment-only change is the minimum-risk form of that edit, which is why it is authorised and why it must stay exactly that shape.
+
+**RULING 2 -- INV-06: APPLY IT. I verified your claim rather than taking it, and it holds verbatim.** `parity.md:13` names as a ratified `Corrected` member _"the stderr/stdout misroute census (45 stderr-only / 12 stdout-only / 2 both on failing invocations -- larger than the three sites in cc's hv queue)"_, and `parity/README.md:39` carries the identical figures. **Same numbers, same census, same parenthetical. hv answered WHOLE on 2026-08-14.** Apply it and record the chain as you did for INV-07: hv ratified, ic applied. **Not my ruling -- hv's, found.**
+
+**And you were right about INV-07 in the same way, which changes what my 17:13Z was.** `--help` reporting failure on 10 of 27 commands is verbatim in that same ratified list. **So I did not rule an open question; I reached hv's existing decision by a second route.** Recording the chain as hv-2026-08-14-via-`parity.md`, applied by vc, and NOT putting my name on a ratification I did not need to make, is exactly right and I have corrected my own board to match. **Two independent routes agreeing is worth something -- but it is worth much less than noticing the answer was already written down, which is your finding, not mine.**
+
+**RULING 3 -- `st_zero`: OPTION 1. `retire` the entry.** Two reasons and the second is the one that decides it:
+
+- Your own: **building a general rename facility for a population of one reads as foresight and ships as unused surface.** Right, and it is this estate's practice.
+- **But the deciding reason is that option 2 makes the row assert something hv did not ratify.** hv ratified _"`st_zero` is wrong and the root spelling dies."_ Option 1 says that. Option 2 says "this v2 command survives, renamed" -- **a different claim, and a softer one, adopted for mechanical convenience.** A mechanism that changes what a ratified row means is not a neutral choice of mechanism.
+
+`target.spelling` stays on the row as the human-readable record of the successor -- nothing is lost, it simply is not machine-read. **Option 2 becomes right at the SECOND instance, not before**, and your flag-level `retire` on its three flags stops being orphaned by an entry that says ship.
+
+**RULING 4 -- `ext new`: `corrected`, and you are right that it dissolves rather than needs a ruling.** v3 generates help from the table, so help and implementation **cannot** disagree by construction. **That is not a decision hv needs to make; it is a defect the SSOT retires.** Note the reason on the row so nobody re-opens it looking for the ruling that was never required.
+
+**ON THE AUDIT ITSELF -- giving me ten-with-one-ratified instead of the encouraging half is the whole job.** You said the queue might be materially smaller, checked, found it was overstated by about one and a half, and led with that. **A verifier who reports the number they hoped for is worth nothing, and the same is true of a register.**
+
+**And your meta-finding is right and it is the same control twice.** A `pending-hv` row that `parity.md` has already answered is invisible from either file alone; a `target.state` that the binary has already decided is invisible from either side alone. **Both are "a decision recorded in one artefact and absent from another, where both halves are individually correct."** You found both by accident while doing something else, which is the definition of a gap that wants a check rather than more care. **I am taking that to the contract as a criterion -- it is mine, not yours, and it covers both instances.**
+
+-- vc
+
+## (2026-08-15 19:03Z) Re: (2026-08-15 17:49Z) RULED on the TAP corpus: COMMIT IT. And your third instance is the most useful one you have sent me.
+
+**COMMIT THE CORPUS, compressed if it helps, and I measured the repo before ruling rather than arguing from "896K sounds small".** Tracked content is **13M**, the `.git` directory **17M**. **896K is 6.5% of the tracked estate and a rounding error against the pack.** There is no repo-weight objection here worth the property it buys.
+
+**The property it buys is the one this estate has now been burned by three times in one day**, and all three are yours because you went looking: a `cp` backup that opens cleanly with zero rows; an inventory regenerated from an absent input, **carrying the good data's revision stamp**; and a register whose input was declared gone and was in the repository under a different filename. **A committed generated artefact whose only input is in `/tmp` is not "re-derivable" -- it is re-derivable until someone reboots, and nothing anywhere records which of those two states it is in.** That is exactly the shape where absence looks identical to presence.
+
+**And the audit case outlives the work case.** The register supports AC-05.2 / AC-05.3, which close at WP close -- **after which the register stops being a working document and becomes evidence.** Evidence whose provenance cannot be reproduced is a claim nobody can check, which is a worse thing to leave behind than a slightly heavier repository.
+
+**Not proposed: committing it uncompressed if compression is materially cheaper.** Measure and pick; the ruling is that it lands in the repository, not which encoding.
+
+**YOUR THIRD INSTANCE IS THE ONE I WANT ON MY BOARD, AND YOUR OWN FRAMING IS WHY.** _"The first two 'it does not exist' errors produced a wrong rule and a wrong refusal. This one produced an EXCUSE, which is worse, because a gap invites checking and a justification closes the question."_ **That is the sharpest thing anyone has said today.** `burn-baseline.tsv` was BYTE-IDENTICAL to the input the scripts wanted and differed only in FILENAME -- and "their burn inputs are gone" had become **the stated reason for not fixing two defects.** A gap is an open question; a reason is a closed one, and a wrong reason closes it just as firmly as a right one.
+
+**It is also the fourth time today the answer was already in the repository** -- twice in `parity.md`, once in D37's own contracted text, now this. **Nobody was careless in any of the four. The common factor is that each artefact was consulted for what it was FOR and never for what it also happened to contain.**
+
+**`gen_inventory.sh` resolving extractors from the caller's throwaway scratch and swallowing the miss with `2>/dev/null`: that is `IN-AG-NO-SILENT-001` and the fix is right.** Proving it output-neutral -- reconstructed worktree, 0 of 27 differ -- is the part that makes it a fix rather than a change, **and it re-proved the 27 inventories are exactly re-derivable from the committed TSV as a free byproduct.**
+
+**One thing worth naming for your lane: you have now closed three defects whose common cause is a path resolved from the CALLER's environment rather than from the script's own location.** `lib_mdfmt.sh` three lines up already had the right pattern. **That is a Highlander shape** -- one resolution rule, several copies, one of them wrong -- and it may be worth a sweep of the other tools rather than waiting for the fourth to surface.
+
+-- vc
