@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15 17:49Z
+heartbeat_at: 2026-08-15 19:07Z
 status: active
-focus: "Folded. EXP-05 built + adopted, surface_check.sh built (21 findings), INV-07 applied. OWED: the register-vs-truth control -- do not start it before vc answers on the AC."
+focus: "AC-05.5 landed, so the register-vs-truth control is UNBLOCKED and needs one format ruling from vc. cc's two asks answered; surface_check at 6 and now refuses a stale binary."
 claims: []
 ---
 
@@ -13,14 +13,16 @@ claims: []
 
 ## DOING -- PICK THIS UP FIRST
 
-**THE ONE THING I OWE, and vc called it the better finding of the day: nothing compares what the register SAYS against what is true elsewhere.** Two axes, both demonstrated by accident rather than by design:
+**THE ONE THING I OWE, and the criterion for it HAS NOW LANDED: AC-05.5, vc, `1793dc38`.** Decision drift -- a decision recorded in one contract artefact and absent from another, invisible from either side alone because both halves are individually correct. It reports rather than refuses, on my own reasoning. **The AC was vc's to write and the CHECK is mine to build. It is unblocked.**
 
-- **state vs the BINARY** -- `surface_check.sh` covers the flag and arity half. It does NOT check `target.state` itself, which is the axis that let the contract say "open" for hours while the binary said "closed".
-- **state vs `parity.md`** -- INV-07 and INV-06 were BOTH ratified there and the table went on asking hv for them. Two of my own artefacts, disagreeing for a day about what had been decided.
+Two axes, both originally found by accident rather than by design:
 
-**The buildable design: `parity.md`'s ratified `Corrected` members should CITE the unit they cover** (INV-07, INV-06, ...), so the check is exact instead of prose matched against prose.
+- **state vs the BINARY** -- `surface_check.sh` covers the flag and arity half, and vc's row notes it is structurally blind to the other one.
+- **state vs `parity.md`** -- INV-07 and INV-06 were BOTH ratified there while the table went on asking hv for them. **This is the half AC-05.5 adds and the half I build.**
 
-**vc HAS TAKEN THE CRITERION -- it is theirs, not mine.** Their words: _"I am taking that to the contract as a criterion -- it is mine, not yours, and it covers both instances."_ So the AC is coming from vc and **the CHECK is mine to build once it lands.** Do not author the `parity.md` citations before the criterion exists; `parity.md` is the WP-01 spec and vc is ruling on its contents.
+**ONE THING BLOCKS THE FIRST LINE OF CODE and it is a format ruling, not a design question. Asked vc 19:06Z: what does a ratified `Corrected` member's CITATION look like?** My proposal, in vc's existing idiom rather than a new one: a trailing `-- covers: INV-07, INV-06` clause, spaced `--` separator, comma-separated ids with nothing fused -- **the same grammar the AT row already uses**, so the contract has one rule for "a machine-read list at the end of an authored line" instead of two. Then the check is SET EQUALITY, firing in both directions: a row claiming `corrected` that nothing ratifies, and **a ratification nothing has applied** -- the second being the direction that would have caught INV-06/INV-07, and the one a check written from the defect would most likely have missed, because the defect presented as rows being stale.
+
+**DO NOT author the citations before vc rules the format.** `parity.md` is the WP-01 spec and its contents are vc's.
 
 ## TODO
 
@@ -30,8 +32,11 @@ claims: []
 
 ## Open with others -- LIVE ASKS ONLY
 
+0. **LIVE, WITH vc (19:06Z): the `Corrected` citation FORMAT (blocks the AC-05.5 check, above), and whether `ingest --from-md` is withdrawn.** The second is a proposal, not a finding -- see the reversal in Watch-outs. **If vc rules it withdrawn, FOUR artefacts change in ONE commit or the drift is real**, and one of them is `acceptance.md`, so ordering matters.
+   0b. **LIVE, WITH cc (19:05Z): both their asks are answered and unblocked.** `schema --versions` is authored AND already in the rebuilt binary, so the reader can land any time. `sync --to-store` is `keep`, so the disposition half and its other five PRESENT rows can land. **The boundary is RULED: input domain, not direction** -- `sync` moves this tool's own extract, `ingest` takes foreign markdown, and the ERROR CONTRACTS differ, which is what makes them two commands. cc's retire proposal read the shared gate as the identity; by that argument `st new` is also `ingest`. Also handed cc a measured AC-06.11-adjacent finding: **17 commands unimplemented, 9 of them leaves with ZERO verbs, all telling the user to run `--help` `for the verbs that are`.**
+
 1. **vc ANSWERED ALL FOUR AND ALL FOUR ARE APPLIED (17:37Z).** INV-06 `corrected` -- vc verified the verbatim match against `parity.md:13` AND `parity/README.md:39` rather than taking it on report; chain recorded as hv ratified, ic found, vc verified, ic applied. **`st_zero` retires** -- and the deciding reason is vc's, not mine: `corrected` would make the row assert something hv did NOT ratify (hv said the root spelling DIES; "survives, renamed" is a softer claim adopted for mechanical convenience). **Verified end-to-end: rebuilt, `intent st_zero` is gone, `st bootstrap` carries the behaviour, and surface_check dropped 21 -> 18 on its own.** **`ext new` `corrected`** with no hv ruling because none was required. **The two `init --help` COMMENTS amended** -- comment text only, its own commit, assertions untouched; **vc corrected their own 17:13Z half-ruling** and agreed the assertions must stay.
-2. **cc, four defects, one live.** The spine does not honour the flag `disposition` (`spine.rs:142`); `ac satisfy --evidence` is declared `required` and read as `unwrap_or_default()` (`render.rs:671`) so a missing citation silently becomes `""`; a family that HAS VERBS never gets its own declared flags (`intent todo --json` exits 1); and `subcommand_required(true)` is hardcoded against a declared `arity: "0..1"` on **8 of 8** reachable families. **All four reproduce with `bash intent/st/ST0056/parity/tools/surface_check.sh`.**
+2. **cc's four defects: THREE FIXED AND CONFIRMED BY MY OWN INSTRUMENT, one ruled.** ARITY, family flags and short-only flags all landed at `9122f4e5`; against a fresh binary `surface_check.sh` shows **zero ARITY, zero MISSING**, which is a better witness than cc's reading of their own fix or mine of the source. The fourth was never a defect -- it was the boundary ruling, now made. **What remains is 6 PRESENT rows, all cleared by cc's disposition half**: `bootstrap --quiet`, `doctor --fix/-v/-q`, `fileindex -v`, `ingest --from-md`. Still open and unrelated: `ac satisfy --evidence` is declared `required` and read as `unwrap_or_default()` (`render.rs:671`), so a missing citation silently becomes `""`.
 3. **The hv queue is 8 real units** (was reported as 14). `critic`'s exit-2 is still the only one with a LIVE CONSUMER -- the pre-commit gate reads it today.
 
 ## Watch-outs
@@ -52,7 +57,8 @@ Durable only. Everything settled lives in the artefact that carries it.
 - **A MISSING MEASUREMENT MUST PRESENT AS A REFUSAL TO MEASURE, NEVER AS A MEASUREMENT OF NOTHING.**
 - **A QUOTE CHARACTER INSIDE A QUOTING CONTEXT, IN PROSE NOBODY PROOF-READS FOR SYNTAX.** An apostrophe in a single-quoted jq program CLOSES it -- `vc's`, then `run's`, the second one inside a comment explaining a different bug. Backticks in a double-quoted string are command substitution. **Put the program in a file.**
 - **A GUARD THAT MUST BE BYPASSED IS A GUARD NOBODY KEEPS**, and one that prints 26 lines to say one thing teaches its readers to skim. Refuse on what the CURRENT COMMIT adds, read the INDEX not the worktree, and report once. **A report is the right shape mid-ladder: `surface_check.sh` reports 21 findings and gates nothing.**
-- **A red test is evidence about the tree it RAN AGAINST**, and `cargo build` in a shared worktree passes on uncommitted work. **The release binary was an hour stale when I first measured against it.** Verify at HEAD; `int build cli` takes 30 seconds.
+- **A red test is evidence about the tree it RAN AGAINST**, and `cargo build` in a shared worktree passes on uncommitted work. Verify at HEAD; `int build cli` takes 30 seconds. **TWICE NOW, and the second time it nearly went out as a regression report to the peer who had just fixed it** -- the binary predated cc's fix by 14 minutes and my check duly reported the findings they had closed. **The failure shape is the dangerous part: a stale binary does not fail loudly, it produces a plausible, well-formatted, entirely wrong report -- and what it invents is precisely what somebody just fixed, so it argues hardest exactly when it is most wrong.** MECHANISED, so it is no longer a thing to remember: `surface_check.sh` refuses on a binary older than its own inputs, with the absent-binary refusals rather than with the findings, because a binary that is not the tree is an INABILITY TO MEASURE. `find -newer`, never `stat` -- BSD and GNU take different format flags, and a portability check must not fail differently on the platform it is not being run on.
+- **EVERY INPUT TO A DECISION CAN BE CORRECT AND THE DECISION STILL CONTRADICT A DISTANT ARTEFACT. GREP THE SPELLING BEFORE YOU WITHDRAW IT.** I ruled `ingest --from-md` dropped: cc's argument was sound, my own note on the row said the same, and it really is a mode flag with one mode. **Then I grepped it and found SEVEN live citations across FOUR artefacts I do not own** -- one of them `acceptance.md`, which does not merely mention the flag but RULES that its scaffolding ships. **The drop would have put my table in contradiction with the ratified contract: AC-05.5's exact class, manufactured by me, one hour after vc landed the criterion to catch it.** Nothing about it felt uncertain, which is the whole point -- **care does not scale to a citation four files and two thousand lines away, and I was being careful.** A withdrawal is a claim about every reader of the name, so it is a `grep -rn` question before it is a judgement.
 - **I FABRICATED A TIMESTAMP TODAY AND THE GUARD CAUGHT IT.** Bumping a heartbeat inside a batched edit, I typed `17:52Z` -- plausible, wrong by nine minutes, read off nothing. **The tell is the batching**: every stamp I read in its own step was right, and the one I folded into a multi-command edit was invented. **`date -u` is its own step, always**, and a stamp you cannot point at a command for is not an approximation, it is data you made up.
 - **ic cannot certify a green suite.** matts owns the authoritative run; everything here is evidence.
 - **Read `bin/**` and `tests/**`, never mutate them** -- two symlinks point at `bin/intent`, the BATS estate defaults to `INTENT_BIN=bin/intent`, and four sessions are live. `native/**` and `bin/.devbin/**` are safe.

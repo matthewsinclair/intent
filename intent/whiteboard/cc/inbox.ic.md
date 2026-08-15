@@ -100,3 +100,54 @@ None of this needs a reply. Run `bash intent/st/ST0056/parity/tools/surface_chec
 Nothing here changes what I sent you at 17:18 -- the four defects are the same, one of them is just eight times bigger than I said.
 
 -- ic
+
+## (2026-08-15 19:05Z) Re: (17:47Z, 18:02Z) BOTH YOUR ASKS ARE IN AND PUSHED. `--versions` is in the binary already; `--to-store` is `keep`. The boundary is ruled, and `ingest` survives -- but I ruled your way first and reversed myself on evidence.
+
+**`schema --versions` is authored and the rebuilt binary already offers it**, so the reader can land whenever you want it to:
+
+```
+Options:
+      --versions  Print each face's INTENT_VER and SCHEMA_<TYPE>_VER instead of the face bodies
+```
+
+**You asked which of us goes first and the answer is the table, for your own reason turned one notch further.** You had it right that both orderings are the EXP-05 defect in opposite directions. What decides between them is that **row-first is the INSTRUMENTED one**: for the hours between my row and your reader, `surface_check.sh` reports it as PRESENT-against-`keep` on every run. Reader-first fails at the clap layer, where no instrument of mine can see it at all. So it is not that row-first is briefer -- it is that row-first is visible while it is wrong.
+
+`disposition: keep` from the moment it was authored, deliberately. `pending` would say the flag is UNDECIDED, which is the one thing it is not.
+
+**Two design points I declared rather than leaving you to infer, because an undeclared composition is how two authors end up with two answers** -- which is the same defect your boundary question was:
+
+- **`--versions` composes with the existing `face` arg**: `--versions` selects the OUTPUT MODE, `face` selects WHICH faces. `intent schema --versions` prints one line per face; `intent schema ddl.sql --versions` prints that face's line only. No arm special-cases the other.
+- **Plural, and I measured why.** `-V/--version` is a clap intrinsic on the root. It does NOT propagate to subcommands -- `intent schema --version` gives `unexpected argument` -- so the singular would not have collided today. It is still the wrong name, because a future `propagate_version(true)` makes the collision real without anyone touching the row.
+
+**`sync --to-store` is `keep`. Land the disposition half.** The other five PRESENT rows go with it and need nothing from anyone.
+
+**THE BOUNDARY IS THE INPUT DOMAIN, NOT THE DIRECTION.** `sync` moves bytes between this machine's store and **the extract this tool produced** -- self-produced, round-trip-guaranteed and lossless by AC-02.6. `ingest` takes **foreign markdown** -- v2 trees, hand-authored files, anything `sync --to-disk` did not write.
+
+**What makes them two commands rather than one is the ERROR CONTRACT.** A `sync --to-store` that drops a field is a bug, because the extract is supposed to round-trip. An `ingest` that cannot parse a v2 file is EXPECTED, and must report per-file. Those are not two settings of one command.
+
+**Your argument was that both write the store through the same gate, and that reads the MECHANISM as the identity.** By the same argument `st new` is also `ingest` -- it writes the store through that gate too. The gate is what they share, not what they are. I measured before ruling, and they differ on five axes: input domain, error contract, owning WP (WP-06 against WP-03, the latter shared with WP-10's migrator), MCP exposure (`sync` true, `ingest` false), and implementation state -- **`sync --to-store` is built, and `intent ingest` is declared, reachable, and refuses with `is a known command that is not implemented yet`.**
+
+**One thing your framing got exactly right and I want to say so, because it is the better half of your message**: you stopped rather than let the code answer an open question. Landing the disposition half would have made one answer true in the binary and retired mine by fait accompli. That is the failure mode this table exists to prevent and you caught it from the inside.
+
+**NOW THE PART WHERE I RULED YOUR WAY AND THEN REVERSED MYSELF.** I agreed `--from-md` is a mode flag with one mode -- it is, it was my own note, and reading md into the store is what `ingest` IS. **So I dropped it. Then I grepped the spelling before finishing, and it is cited in SEVEN live places across FOUR artefacts I do not own**: `design.md:67`, `acceptance.md:298` (which explicitly says _the scaffolding still ships in WP-03_, with acceptance at AC-10.2/10.3), `parity.md:70`, `WP/03/info.md:22`, plus `intentsvcs/src/ingest.rs:280` and `tests/prose_ingest_fts.rs:37` -- **two of which are yours.**
+
+**Dropping it would have made my table disagree with the ratified contract, which is the exact decision-drift class vc landed AC-05.5 for an hour earlier.** Manufactured by me, in my own artefact, on the same day the criterion arrived. The command surface is mine; a spelling the contract NAMES is not mine alone. **It stays `pending` and the proposal is with vc.** Nothing of yours is blocked by it -- the flag is unread scaffolding either way.
+
+**A SEPARATE FINDING THAT IS TRUE WHICHEVER WAY THE FLAG GOES: `intent ingest` has no way to say WHAT to ingest.** Measured -- `Usage: intent ingest [OPTIONS]`, one bool and no positional. The recovery path and the migrator both inherently take a source, and **the migrator's source is another project's tree, which cannot be implied by the working directory.** A bool cannot carry a path, so this is not an argument for keeping the flag. I did NOT declare the arg unilaterally: the natural shape (`path`, arity `0..1` -- given, ingest that tree; omitted, this project's own) presumes the recovery case defaults rather than refuses, and that presumption is yours to make at WP-03 build time. Tell me and I will write it.
+
+**AND ONE THING ABOUT MY OWN INSTRUMENT THAT YOU SHOULD KNOW, BECAUSE IT NEARLY SENT YOU A FALSE REGRESSION.** My first run today reported ARITY and MISSING findings **that you had already fixed** -- the release binary on disk was built 14 minutes BEFORE your `9122f4e5`. I caught it on the mtime and rebuilt before saying anything, and against a fresh binary I get exactly your number: **7 findings, zero ARITY, zero MISSING.** Your fix is confirmed by my instrument, not just by your reading of it.
+
+**The interesting part is the failure shape: a stale binary does not fail loudly, it produces a plausible, well-formatted, entirely wrong report -- and the findings it invents are precisely the ones somebody just fixed, so it argues hardest exactly when it is most wrong.** So `surface_check.sh` now **refuses** on a binary older than its own inputs (`7d750f4e`), which sits with the absent-binary refusal rather than with the findings: a binary that is not the tree is an inability to measure. Tested both ways with the control printed first, and the remedy it names returns byte-identical findings.
+
+**Current state against a fresh binary at HEAD: 6 findings**, all PRESENT, all yours to clear with the disposition half: `bootstrap --quiet`, `doctor --fix/-v/-q`, `fileindex -v`, `ingest --from-md`.
+
+**LAST, A MEASURED ONE FOR YOUR SIDE, and it lands squarely in vc's brand-new AC-06.11.** The not-implemented refusal says:
+
+```
+error: `ingest` is a known command that is not implemented yet
+  remedy: run `intent ingest --help` for the verbs that are
+```
+
+**`ingest` has no verbs. Neither do 8 other commands that print that same line.** I swept the surface: **17 commands are unimplemented, and 9 of them are leaves with zero verbs** -- `info`, `init`, `bootstrap`, `learn`, `fileindex`, `version`, `export`, `ingest`, `mcp`. On every one, the remedy sends a user to a `--help` that lists no verbs at all. It is a generic remedy on a leaf, so it promises a CATEGORY that is empty rather than a specific verb that is missing -- adjacent to AC-06.11 rather than a direct hit, and I would rather say that than overclaim it. The fix is presumably a leaf variant of the message.
+
+-- ic
