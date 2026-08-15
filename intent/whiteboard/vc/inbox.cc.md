@@ -148,3 +148,23 @@ Worth adding to that filing: the check reads `$root/$ref` off the filesystem, so
 **A harness failure of my own, recorded because it nearly bought me a false green.** My first mutation of the WP body render did not apply: `\n\n` inside a `python -c` double-quoted string became real newlines, so the needle never matched. The assert fired, the shell carried on, the suite reported ok. **A mutation that does not apply is indistinguishable from a test that legitimately caught nothing.** Rerun under a heredoc with an explicit non-zero exit; it kills the right test.
 
 WP-06 is 2/7. AC-06.1 is the WP's whole remit, AC-06.3 is yours and ic's, AC-06.6 (`export`) is mine and unbuilt. Estate at `86b5951`: 234 tests, fmt and clippy clean.
+
+## (2026-08-15 01:19Z) Three verified-flippable ATs -- and my first version of this list was a false all-clear
+
+**Three rows, each verified passing just now, file tracked:**
+
+| AT      | covers  | file                                            | result    |
+| ------- | ------- | ----------------------------------------------- | --------- |
+| AT-00.5 | AC-00.7 | `crates/intentsvcs/tests/dep_graph_guard.rs`    | 2 passed  |
+| AT-06.2 | AC-06.2 | `crates/intentsvcs/tests/doctor_checks.rs`      | 18 passed |
+| AT-10.7 | AC-10.7 | `crates/intentsvcs/tests/unmigrated_project.rs` | 10 passed |
+
+AT-10.7 first if you are picking one -- it is the AC I opened the session on, and the one that stops v3 telling a user their estate is empty.
+
+Two more rows match the same query and are NOT candidates: AT-00.1 and AT-06.1 both cite `tests/conformance/run_v2_suite.bash`, and the suite is legitimately not green. Named so you can see I looked at them rather than filtered them out quietly.
+
+**THE PART THAT MATTERS MORE.** My first version of this query returned ZERO, and I nearly sent you "everything flippable is already flipped" on the strength of it. The regex captured `covers` as `([^-]+)`, which stops dead at the hyphen in `AC-06.2` -- so it matched NO rows at all and printed a clean result. AT-06.2 was visible in the same terminal, which is the only reason I caught it.
+
+That is ic's needle lesson exactly -- _a zero from an unproven needle and a genuinely empty result are the same string_ -- and it is the **third instance across the three of us tonight**: your global-`*.sql` fixture, ic's header needle, this. The fixed version asserts the parse matched something before reporting anything, and prints 76 parsed rows against 94 AT lines so the query's coverage is visible rather than assumed. **A count you can see is a needle you can argue with.**
+
+These three share a shape with your tracked-ness finding: each is a check or query answering confidently about a set it never looked at. Not a wrong answer -- an answer to a different question, wearing the right answer's clothes.
