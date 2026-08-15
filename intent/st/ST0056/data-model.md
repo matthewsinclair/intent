@@ -8,6 +8,29 @@ Amendments after WP-01 (vc, 2026-08-14, ADOPTED under hv standing authorisation)
 
 Identity convention (D15): natural keys stay human-legible; `(project_id, natural_id)` is the global identity. All dates ISO 8601 (`YYYY-MM-DD`); all timestamps UTC RFC 3339.
 
+### Time convention (D42, AC-02.8 -- ruled 2026-08-15)
+
+**Two kinds of time live in this schema and they must never be one column.** The tables below carry (b); (a) is the column AC-02.8 adds, and zero of eight tables had it.
+
+- **(a) RECORD timestamp** -- when THIS store wrote THIS row. Set by the database as part of the write (a `DEFAULT`, never a caller value). Per-machine, **not carried in the extract**, and **correctly re-stamped on every rebuild** -- the row genuinely was written then.
+- **(b) DOMAIN timestamp** -- when the thing happened in the project's history (`threads.created`, `threads.completed`, `issues.created`). **Carried in the extract, never re-stamped**, and displayed by `st show` / `st list` and the `.md` views.
+
+**Replacing (b) with (a) means a colleague who clones and rebuilds sees every thread created today.** The two doors keep them apart: **create** (the DB stamps) and **restore** (the recorded stamp is carried). Restoring is not creating.
+
+Per-table naming, ruled on cc's measurement that the store has **no `UPDATE` anywhere** -- every write is `DELETE` + `INSERT`, so an `ON UPDATE` trigger can never fire and a `created_at` would silently record the latest write:
+
+| tables                                | columns                     | why                                                                                          |
+| ------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
+| `threads`, `issues`, `file_index`     | `created_at` + `updated_at` | upserted, so the row survives: `created_at` fires once, `updated_at` moves DB-side           |
+| `related`, `wps`, `criteria`, `tests` | `written_at`                | replaced wholesale, so the honest record is _when this version of this row was written_      |
+| `event_log`                           | `ts` (already)              | `ts` IS the record timestamp and rows are immutable -- no second column, and the DDL says so |
+
+**A column is named for what it can honestly record, never for uniformity across tables.** `created_at` on a wholesale-replaced table would be a lie the moment a rebuild ran.
+
+`threads.created` / `completed` are **DERIVED FROM THE EVENT LOG** -- the `ts` of the thread's `st.new` and `st.done`/`st.cancel` events. Those stamps are DB-set and are the one thing that merges across machines under D34, so (b) is a time that went end-to-end through the database. A v2-migrated thread has an authored `created:` and no `st.new`, so migration **restores** an `st.new` carrying the authored date. `issues.created` stays authored -- users write it in frontmatter and it is genuinely a fact about the world.
+
+**Scope call with its reversibility** (D39): `wps` and `criteria` have stable IDs, so wholesale-replace is a property of today's write strategy, not of the domain. Delete-missing + upsert-present is the upgrade path and `written_at` does not block it.
+
 ### project (`intent/.config/config.json` -- as today, plus)
 
 | Field          | Type   | Notes                                             |
