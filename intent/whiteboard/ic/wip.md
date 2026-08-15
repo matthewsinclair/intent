@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: f26f5f7b-1122-4fc2-89ad-dc33221f4e10
-heartbeat_at: 2026-08-15T00:08Z
+heartbeat_at: 2026-08-15T00:13Z
 status: paused
 focus: "Register + per-test register both COMPLETE and committed. AC-05.3 is blocked on two vc RULINGS, not on measurement -- do not close it from this node. Six negative-assertion rows need adjudication."
 claims: []
