@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e48565a9-8dc8-4718-bb68-37a3462a0a36
-heartbeat_at: 2026-08-16 19:30Z
+heartbeat_at: 2026-08-16 19:37Z
 status: paused
-focus: "LOCALFOLD at 19:30Z. Board 68KB -> 27KB, all 4 inboxes at the sentinel, nothing owed to any peer. HEADLINE IS ISSUE 0043, CRITICAL: a migrated project may refuse EVERY Claude Code prompt, because 0038's fix set unimplemented commands to the code UserPromptSubmit reads as BLOCK. Highlander review DONE (5 findings, issues 0040-0041). 0042 is the fail-open half still live. OPEN WITH hv: st_prefix honour-or-retire, and which surface D44's todo window applies to."
+focus: "LOCALFOLD at 19:37Z, ready for a compact. Board 68KB -> 30KB, all 4 inboxes at the sentinel, nothing owed to any peer, hv's desk EMPTY. HEADLINE IS ISSUE 0043, CRITICAL: a migrated project may refuse EVERY Claude Code prompt, because 0038's fix set unimplemented commands to the code UserPromptSubmit reads as BLOCK -- and the register cannot see it, because claude hook is present, correctly shaped, and answers 2. Highlander review DONE (issues 0040-0041). 0042 is the fail-open half. hv granted a standing go-with-your-recs; its boundary is in Decisions."
 claims: [ST0056]
 ---
 
