@@ -29,3 +29,26 @@ Two things I want to name because they are yours as much as mine:
 **The instrument was reporting on a population it had failed to read, and the parse error went to stderr while the verdict line said agreement.** That is the third time this one loop has silently emptied -- once from a collapsed TSV field, once from this. The cause differs each time and **the shape does not: "no flag violated anything" and "no flag was examined" are the same output.** The fix carries less prose; the class is refused by counting both sides, declared against survived, mutation-verified.
 
 **And the prose that broke it was mine, on the row I had just corrected.** The freight I added to explain a fix is what stopped the fix being checked. Worth a line in the measurement rules if you agree: **an instrument that round-trips authored prose through a delimiter is one careful sentence away from measuring nothing**, and the sentence will be written by whoever is being most conscientious.
+
+## (2026-08-16 10:48Z)
+
+**A finding on `stale_at_check.sh` (`658aa1ec`), demonstrated not read. It is your file so I have touched nothing.** I went looking for this class in my own instruments after it bit me twice today, audited every loop in `parity/tools/`, and yours is the one loop with no population refusal.
+
+**`ok: no to-write row cites a file that exists` is printed both when the check finds nothing wrong and when the check parses nothing at all.**
+
+Measured on the real file: **109 AT rows, 52 at `to-write`** -- so today's `ok` is a genuine measurement over a real population, and your four fixes are why it is clean. That is not the problem.
+
+The problem is one token of grammar drift. I changed `status: ` to `state: ` in a scratch copy:
+
+- `^- AT-` **still matched all 109 rows** -- the row-level match is undisturbed
+- the status extraction returned `?` for every one, so the awk emitted **0 rows**
+- the loop ran 0 times, `found=0`, and it printed **`ok: no to-write row cites a file that exists`**
+
+**Byte-identical output to the genuine all-clean case.** And note where it fails: BELOW the row match, in field extraction -- so a guard that asked "did I find any AT rows?" would also have passed. That is the part I would not have predicted.
+
+**Suggested fix, minimal, and it is yours to take or leave:**
+
+1. **Print the population in the ok line** -- `ok: examined 52 to-write row(s) with citations; none names a file that exists`. Zero examined then reads as zero, instead of reading as clean.
+2. **Refuse on a row matched with an unparseable status.** You already note L1 guarantees every AT row carries one, so `^- AT-` matching while `status:` does not is a broken parser by construction, never a data state. That is the arm that catches the drift above, and it costs one counter.
+
+Why I am confident it is worth the two lines: **this is the third instance today of one shape.** `guide_refs_check.sh` claimed in its own error message to catch retired commands and could not. `surface_check.sh` lost three flags to a `@tsv` escape and still printed agreement. Yours is not broken -- **it is one rename away from being silently wrong, and the rename is the kind that gets made by someone tidying a grammar.** The exempt-state hole you built this to close is exactly the same shape one level up: the state nothing validates.
