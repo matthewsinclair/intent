@@ -23,7 +23,9 @@ Nothing was stale, which is the part worth understanding: the list was maintaine
 
 ## The two halves
 
-**Generated, from the dispatch table.** The command reference. Completeness is the property that matters and it is the one a generator gives for free: every declared row appears, on the commit that declares it, or the generator refuses.
+**Generated, from the dispatch table.** The command reference. Completeness is the property that matters and it is the one a generator gives for free: every **shipped** row appears, on the commit that declares it, or the generator refuses.
+
+**"Shipped", not "declared", and the difference is five commands.** This sentence read _"every declared row appears"_ until it was measured against the table on 2026-08-16, and the table declares 112 rows of which **5 do not ship** -- `st organize`, `organize`, `treeindex`, `help`, `st_zero`. `is_shipped()` is `disposition != "retire" && target.state != "retire"`, and a guide built on the unqualified sentence would have told an agent to call **`intent st_zero`, which hv explicitly ruled dead** ("st_zero is wrong and the root spelling dies"). The table is a PARITY REGISTER before it is a command list: it records what v2 had in order to rule on it, so a row's existence is a statement that the question was ASKED, never that the answer was yes. Completeness is therefore over the shipped set in both directions -- a shipped row missing from the guide refuses the build, and a retired row present in it is the same defect wearing the opposite sign.
 
 **Authored, in prose.** Workflow sequences, methodology, conventions, and the NEVER DO section. No table can supply these -- the table knows `st new` exists and cannot know that a steel thread is documented before it is coded. Roughly two thirds of the v2 guide is this, and it is the two thirds worth keeping.
 
@@ -35,8 +37,18 @@ Not the same projection a human help screen wants. An agent needs the constraint
 
 1. **`exposed_on_mcp`** -- may an agent call this at all. Declared per row (AC-09.1), never derived.
 2. **`read_or_mutate`** -- does this change durable state. Declared over the WHOLE entry, so `at lint` is a mutation because `--fix` exists, and `todo list` is a mutation because it generates `todo.md` when absent.
-3. **path, help, arguments, flags** -- the call.
-4. **exit-code contract** -- from the surface-wide invariants, once, not per row.
+3. **path, help, arguments, flags** -- the call. Flags are the `keep` set only, which is `Flag::ships()`; see below for what that deliberately excludes.
+4. **surface-wide facts, stated ONCE and not per row** -- the exit-code contract, and `--help`.
+
+### Which flags, and the one that is missing if nobody asks
+
+The table declares 94 flags in four dispositions, and **three different sets are defensible**, so the projection has to name one: `keep` (66) ships and the renderer must emit it; `intrinsic` (10) ships and clap supplies it; `pending` (6) and `retire` (12) do not ship at all.
+
+Per row the answer is `keep`, which is exactly `Flag::ships()`. **`doctor` is the proof that this is right rather than merely convenient**: its four flags are `--fix` (retire), `--verbose` and `--quiet` (pending), and `--help` (intrinsic), so it renders with NO flags -- and that is accurate, because v3's `doctor` takes none. The withheld three are not silently dropped either; `doctor` names them itself (AC-06.8), so the one surface that knows they are pending is the one an agent is already looking at.
+
+**`--help` is where the per-row answer alone fails, and it fails silently in the direction of omission.** `Flag::ships()` is false for `intrinsic` -- correctly, since its whole meaning is "the renderer is not expected to read it" -- so a guide built on `ships()` and nothing else **never tells an agent that `--help` works on anything**. For the help screen that is harmless, because clap prints its own. **A guide is a document, and nothing else in it will say so.** Routing `--help` to the surface-wide section is also strictly more accurate than rendering it per row: only 10 rows declare it, clap supplies it to all 112, so the per-row projection would under-report it even if `ships()` admitted it. Same shape as the exit-code contract, for the same reason -- a fact true of the whole surface is stated once and is wrong when distributed.
+
+The general form, since it has now cost me four times: **a predicate answers the question it was written for, and reusing it means checking that the new question is the same one.** `Flag::ships()` answers _"must the renderer emit this"_. The guide asks _"does this flag exist at runtime"_. The two coincide for 66 of 76 flags, which is precisely why the substitution reads as obviously fine.
 
 Point 4 is the one an agent-specific guide gets wrong by omission. An agent must decide whether a command SUCCEEDED, and the answer is not obvious from this surface: INV-04 says 0 is success and 1 is every failure, **except `intent critic`, which exits 2 when it has findings, and `intent claude hook`, which propagates**. An agent that reads 2 as failure will report a passing critic run as broken. INV-01 (failures write `error:` to stderr) and INV-03 (the exact not-in-a-project message) are the other two an agent parses rather than reads.
 
@@ -46,17 +58,19 @@ Generating the list closes the list. It does not close the **prose**, and the au
 
 `parity/tools/guide_refs_check.sh` closes it: every `intent <cmd>` written in an authored prose file must resolve to a declared path or alias. It refuses otherwise.
 
-Three things it does that a naive version does not, each earned:
+Four things it does that a naive version does not, each earned:
 
+- **A reference that RESOLVES can still be dead.** `KNOWN` is every DECLARED path, and five declared rows do not ship, so the check passed `treeindex`, `st_zero` and `organize` as _"3 distinct command reference(s), all declared"_ -- **while its own error message named the case, "a renamed or RETIRED command named in prose".** The file asserted the capability in the sentence where it lacked it, and the gap was found by measuring the claim rather than reading it. Retirement is a separate test with its own message, because "no such command" and "declared, but retired" send an author to different places -- the first to look for a typo, the second to a ruling. `KNOWN` deliberately keeps the retired paths: filtering them breaks family detection, and the retired `st organize` would be reported as _"not one of st's subcommands"_, which is false.
 - **A family is distinguished from a leaf, derived from the table.** A second word after a family (`st`, `claude`) is a subcommand claim and must resolve; after a leaf (`critic`) it is prose continuing. Without this, `intent st create` passes because `st` exists -- and that substitution is exactly what a rename produces. It survived as a mutant against the first version.
 - **Zero references REFUSES.** A guide naming no command means the extractor stopped matching, and an empty match set passes every check built on it.
 - **An empty table REFUSES.** Otherwise the check reports the entire guide as broken, which is a true statement about nothing.
 
-It takes explicit file arguments and **must not be wired at the whole tree.** A document ABOUT the guide legitimately quotes commands that do not exist -- this one does, twice, and the check refuses it:
+It takes explicit file arguments and **must not be wired at the whole tree.** A document ABOUT the guide legitimately names commands an agent must not call -- this one does twice, once of each kind, and the check refuses it:
 
 ```
-error: surface/agent-guide.spec.md references command(s) the dispatch table does not declare
+error: surface/agent-guide.spec.md names command(s) that will not answer -- a renamed or retired command in prose is a hand-maintained command reference, and nothing regenerates it:
   intent st create  -- 'st' is a family and 'create' is not one of its subcommands
+  intent st_zero  -- declared, but RETIRED -- it does not ship, so nothing answers this call
 ```
 
 That is the control working, on real prose rather than a synthetic mutant, and it is also the reason the target list is named rather than globbed. A check pointed at everything gets turned off.

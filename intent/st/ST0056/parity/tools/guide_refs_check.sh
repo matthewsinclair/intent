@@ -53,6 +53,28 @@ KNOWN="$(printf '%s\n%s\n' "$PATHS" "$ALIASES" | sed '/^$/d' | sort -u)"
 
 is_known() { printf '%s\n' "$KNOWN" | grep -qxF "$1"; }
 
+# A REFERENCE THAT RESOLVES CAN STILL BE DEAD, and this check said otherwise for
+# as long as it has existed. `KNOWN` is every DECLARED path, and **the dispatch
+# table is a parity register before it is a command list**: it records what v2
+# had in order to rule on it, so a row means the question was ASKED, never that
+# the answer was yes. Five declared rows do not ship.
+#
+# The message on line ~111 named the case it could not see -- "a renamed or
+# RETIRED command named in prose" -- so the file asserted the capability in the
+# same sentence it lacked it. Measured 2026-08-16: a scratch paragraph naming
+# `intent treeindex`, `intent st_zero` and `intent organize` passed green as
+# "3 distinct command reference(s), all declared". `st_zero` is the one hv
+# explicitly killed ("the root spelling dies").
+#
+# `KNOWN` deliberately still carries the retired paths, because removing them
+# breaks `is_family`: `st organize` is retired and `st` is not, and a filtered
+# set would report `organize` as "not one of st's subcommands" -- which is false
+# and sends the author looking for a typo. Retirement is a SEPARATE test with
+# its own message, so the two failures stay distinguishable: "no such command"
+# is a rename or a typo, "declared, but retired" is a command that was ruled on.
+RETIRED="$(jq -r '[.families[].entries[], .new_surface[]] | .[] | select(.disposition == "retire" or .target.state == "retire") | .path' "$TABLE" | sort -u)"
+is_retired() { [ -n "$RETIRED" ] && printf '%s\n' "$RETIRED" | grep -qxF "$1"; }
+
 # A command that HAS declared subcommands is a family, and a second word after
 # one is a subcommand claim that must resolve. A command with none is a leaf, and
 # a second word after it is just prose continuing -- "intent critic on staged
@@ -88,12 +110,21 @@ for f in "$@"; do
   [ "$n" -gt 0 ] || die "no \`intent <cmd>\` reference found in $f -- a guide that names no command means the extractor stopped matching, and an empty match set passes every check built on it"
 
   bad=""
+  dead=""
   while IFS= read -r r; do
     [ -n "$r" ] || continue
-    is_known "$r" && continue
     first="${r%% *}"
+    if is_known "$r"; then
+      is_retired "$r" && dead="$dead
+$r"
+      continue
+    fi
     if is_known "$first" && ! is_family "$first"; then
-      # Prose running on past a LEAF command. Legitimate English, resolves.
+      # Prose running on past a LEAF command. Legitimate English, resolves --
+      # unless the leaf itself is retired, which is the case that reads most
+      # like ordinary prose: "run intent treeindex on each subdirectory".
+      is_retired "$first" && dead="$dead
+$first"
       continue
     fi
     if is_family "$first"; then
@@ -107,11 +138,23 @@ for f in "$@"; do
 $refs
 EOF
 
+  # Deduped: two sentences continuing past the same retired leaf produce two
+  # references and one defect.
+  if [ -n "$dead" ]; then
+    while IFS= read -r d; do
+      [ -n "$d" ] || continue
+      bad="$bad
+  intent $d  -- declared, but RETIRED -- it does not ship, so nothing answers this call"
+    done <<EOF
+$(printf '%s\n' "$dead" | sed '/^$/d' | sort -u)
+EOF
+  fi
+
   if [ -n "$bad" ]; then
-    echo "error: $f references command(s) the dispatch table does not declare -- a renamed or retired command named in prose is a hand-maintained command reference, and nothing regenerates it:$bad" >&2
+    echo "error: $f names command(s) that will not answer -- a renamed or retired command in prose is a hand-maintained command reference, and nothing regenerates it:$bad" >&2
     rc=1
   else
-    echo "ok: $f -- $n distinct command reference(s), all declared" >&2
+    echo "ok: $f -- $n distinct command reference(s), all declared and shipping" >&2
   fi
 done
 
