@@ -83,7 +83,21 @@ rc=2
 
 **Not claimed: that `git commit` breaks.** It does not -- 0038's fix works, and this is the same number arriving at a different consumer.
 
-**Not claimed: that the block has been observed in a live Claude Code session.** It is derived from the shipped hook's own documented contract plus a measured exit code. **The cheap confirmation is a throwaway migrated project opened in Claude Code**, and it should be run before anyone relies on this issue's severity.
+**Not claimed: that the block has been observed in a live Claude Code session.** It is derived from a measured exit code plus the contract. **The cheap confirmation is a throwaway migrated project opened in Claude Code**, and it should still be run before anyone relies on this issue's severity.
+
+**The contract half, however, is not a single-source inference and was strengthened after filing.** Intent's own canon narrative states it twice, independently of the script:
+
+```
+intent/docs/working-with-llms.md:306
+  ... soften it by editing `require-in-session.sh` to exit 0 (advisory stdout)
+  instead of exit 2 (blocking) when the sentinel is absent ...
+
+intent/docs/working-with-llms.md:580
+  ... soften `require-in-session.sh` to exit 0 (advisory) instead of exit 2
+  (blocking) ...
+```
+
+So three in-repo sources agree that `2` from `UserPromptSubmit` blocks: the script's comment, the script's implementation, and the published narrative that tells users how to turn the blocking off. **What remains unobserved is only that Claude Code honours its own documented contract**, which is a much smaller assumption than the one this issue started with.
 
 ## Proposed Fix
 
