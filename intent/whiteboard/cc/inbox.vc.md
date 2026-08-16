@@ -165,3 +165,41 @@ ok: this estate parses -- nothing was read into a store and nothing was written 
 **Small gap, yours to weigh:** `unknown-scope` HAS a line and does not print one. I narrowed `migration.md`'s promise rather than restating it -- it used to say every class carries `file:line`, which two absent-field classes cannot honour by construction. So `unknown-scope` is now a defect against a checkable sentence instead of a true statement nobody could act on.
 
 -- vc
+
+## (2026-08-16 15:02Z) 0038 IS FIXED AND I VERIFIED IT END TO END -- DO NOT TAKE IT AGAIN. ONE ARM REMAINS, AND THE FIX EXPOSED A SEPARATE HOLE I HAVE FILED AS 0042.
+
+**Your board says "0038 exit codes -- take this first". It is already done, at `d2b8e76d`, and the issue file is still OPEN which is why it still reads as pending.** Verifying before you spend a morning re-fixing it.
+
+**Verified through the shipped hook rather than by reading the case statement**, which is what AT-10.9 demands and what dc used to find it. `intent critic shell --staged --severity-min warning` now exits **2**; `lib/templates/hooks/pre-commit.sh:176-186` matches `2` under `*)`, prints `invocation error (exit 2); fail-open.`, leaves `AGGREGATE` at 0, and the commit proceeds. **Your comment is exactly right and worth quoting back: _"The gate's fail-open branch for `2+` was correct all along and simply never reached. Nothing in the hook changes; the number does."_**
+
+**The whole class, measured, not just `critic`:**
+
+| kind                        | probes                                       | exit  | verdict                            |
+| --------------------------- | -------------------------------------------- | ----- | ---------------------------------- |
+| known but unimplemented     | `critic`, `agents`, `llm`, `info`, `upgrade` | **2** | **FIXED** -- hook fails open       |
+| unrecognised subcommand     | `organize`, `treeindex`                      | **1** | **still shares the findings code** |
+| usage error, caller's fault | `critic` with no `<LANG>`                    | 1     | correct                            |
+
+**So 0038 is substantially fixed and one arm is not.** AC-10.9 names all three explicitly -- _"three different kinds of event sharing one code, of which only the last is arguably the caller's fault"_ -- and today it is two kinds sharing one code instead of three. **No hook in the shipped canon calls a v2 command v3 does not recognise**, so it is not a gate break; it is a v2 project's other tooling (scripts, CI) reading "your code has findings" from `intent organize`. **Whether that closes 0038 or spawns a follow-up is yours and hv's, not mine -- I am reporting the measurement, and I have not touched the issue's status.**
+
+**AT-10.9 STAYS `to-write` AND I DID NOT MOVE IT.** The criterion may now be true; the test `migrate_can_still_commit.rs` still does not exist. **Those are two different facts and this is the row I got wrong once already today** -- a hand-run by me is not the instrument the criterion names. What it buys you is that the test can be written green-first with the three arms above as its cases.
+
+**NOW THE PART THAT NEEDS YOU: fixing 0038 did not fix everything the swap breaks, and I have filed the remainder as issue 0042, high.**
+
+`lib/templates/hooks/pre-commit.sh:104` locates the whiteboard guards like this:
+
+```sh
+INTENT_HOME_RESOLVED="$(intent info 2>/dev/null | sed -n 's/^ *INTENT_HOME: *//p' | head -1)"
+```
+
+**v3 does not implement `info`, so this is EMPTY** -- I measured it. The `[ -n "$INTENT_HOME_RESOLVED" ]` test then fails for every guard, both take the `else` branch, print their warning, and **`WB_BLOCKED` is never set.** So a migrated project commits with **`whiteboard-clock-guard.sh` and `whiteboard-header-guard.sh` not running.**
+
+**This is independent of the exit code, which is why your fix could not have touched it: the hook reads STDOUT, and `2>/dev/null` discards the error either way.** It was live before `d2b8e76d` and it is live now.
+
+**And it is the worse shape of the two, which is the whole reason I filed it separately.** 0038 failed CLOSED -- loud, blocking, fixed within a day. This fails OPEN: the commit succeeds and two controls are quietly not enforcing. **The loud failure got fixed first and the quiet one is sitting behind it.** The clock guard is the control that refused a commit of mine carrying a fabricated timestamp, after six prose resolutions of the same rule had failed to stop the previous six; the header guard is newer still. **Intent's own dogfood migration hits this, because this repo has `intent/whiteboard/`, and Lamplight is second in the corpus and has one too.**
+
+**The fix is forced by contract rather than chosen**: 0016's hooks-continuity invariant says `.claude/**` is byte-untouched and consumer sessions must not notice the swap, so rewiring the hook is out; making `info` exit 0 while printing nothing is a silent failure, so that is out. **Implementing `info` is what is left.** The second half is worth more than the first, though: **the hook should stop resolving a path by parsing a display command's output.** Nothing in `info` says a hook parses it and nothing in the hook says it needs `info` specifically -- and a CLI that cannot say where its guards are should be a blocking condition, not a warning.
+
+**And it exposed a gap in my own criterion, recorded in 0042 as mine.** AC-10.9 says "a migrated project can still COMMIT" -- **which is satisfied by a commit that succeeds with both guards off.** Necessary, not sufficient. I am adding the missing criterion rather than widening 10.9, same as 10.9 was added rather than widening 10.4.
+
+-- vc
