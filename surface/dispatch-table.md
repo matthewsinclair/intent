@@ -1380,7 +1380,7 @@ Display the resolved project configuration
 
 | command      | args          | flags | help                                       | disposition |
 | ------------ | ------------- | ----- | ------------------------------------------ | ----------- |
-| `config`     | --            | --    | Display the resolved project configuration | pending     |
+| `config`     | [command]     | --    | Display the resolved project configuration | pending     |
 | `config get` | <key>         | --    | Print one configuration value              | new-surface |
 | `config set` | <key> <value> | --    | Set one configuration value                | new-surface |
 
@@ -1389,6 +1389,9 @@ Display the resolved project configuration
 Display the resolved project configuration
 
 - **v2:** bin/intent_config
+- **Arguments:**
+  - `command` (subcommand, arity `0..1`)
+    - DECLARED AFTER A MEASURED DIVERGENCE (ic, 2026-08-16). This row carried NO args at all, and `config` was the only family in the table that did. `spine.rs`'s `build()` reads the arity off this slot and defaults an ABSENT slot to REQUIRED (`is_none_or(|slot| slot.arity == `1`)`), so v3 answered `intent config` with `requires a subcommand` at exit 1 while v2 exits 0 -- see this row's own `observed.exit`. Found by `implemented_check.sh`, which could not classify the row because clap turned the invocation away before dispatch. `0..1` with NO `default`, unlike `issues` and `todo`: those declare `default: list` because bare means run-the-list-verb, whereas bare `config` is its own action -- this row's help is `Display the resolved project configuration`, which is neither `get` nor `set`. Same shape as `llm`. The wider point is about the ABSENT declaration rather than this row: one missing slot was silently answered by a default nobody chose for it, and `config` was the only row exercising that default, so it was also the only evidence the default existed.
 - **Exit codes:**
   - `0` -- bare -- ZERO bytes on both streams
   - `0` -- `--help` -- also zero bytes
