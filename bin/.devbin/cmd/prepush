@@ -93,6 +93,17 @@ done
 # guard that only knows one of them is a guard with a documented way around it.
 FROZEN_REMOTES="upstream"
 
+# DECLARED ONCE, CONSUMED TWICE -- the same arrangement `precommit --list-guards`
+# uses, and for the same reason. `int build release` pushes to every remote and
+# must refuse BEFORE it tags rather than dying at the push with a tag already
+# cut; it needs this list to do that, and a second copy of the list in the
+# release orchestrator is two homes for one fact. The runner that enforces the
+# rule is the authority on what the rule is; everyone else asks.
+if [ "${1:-}" = "--list-frozen" ]; then
+  for frozen in $FROZEN_REMOTES; do printf '%s\n' "$frozen"; done
+  exit 0
+fi
+
 if [ -n "$REMOTE" ] && [ -z "${INTENT_ALLOW_FROZEN_PUSH:-}" ]; then
   for frozen in $FROZEN_REMOTES; do
     frozen_url="$(git -C "$ROOT" config --get "remote.$frozen.url" 2>/dev/null || true)"

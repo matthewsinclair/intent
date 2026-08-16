@@ -6,13 +6,22 @@
 #
 # Cuts an Intent release in one invocation: pre-flight checks, version bump,
 # CHANGELOG date finalisation, sidecar sync (VERSION, config.json intent_version,
-# AGENTS.md, CLAUDE.md), commit, tag, push to both remotes, and GitHub release
-# publication. Every sidecar is stamped BEFORE the commit, so the tag describes a
-# self-consistent tree -- there is no post-tag wrap to remember.
+# AGENTS.md, CLAUDE.md, and for a 3.x target the native workspace version),
+# commit, tag, push to both remotes, and GitHub release publication. Every
+# sidecar is stamped BEFORE the commit, so the tag describes a self-consistent
+# tree -- there is no post-tag wrap to remember.
 #
 # Modelled on ../Conflab/scripts/release. Pared back to Intent's surface:
-# single repo, two remotes (local Dropbox + upstream GitHub), no native
-# binary build, no Homebrew tap.
+# single repo, two remotes (local Dropbox + upstream GitHub).
+#
+# THIS COMMAND OWNS THE TAG AND THE RELEASE OBJECT, AND NOTHING ELSE (D43). It
+# does not build, sign, notarise or upload a native binary, and it does not
+# touch the Homebrew tap: `int macos prepare` owns the artefacts and
+# `int macos publish` owns the assets on the object this creates. No command
+# owns two of the three. What it DOES own for v3 is the version those artefacts
+# will report -- `native/rust/Cargo.toml` carries `[workspace.package] version`
+# and the binary compiles its own version string from it, so a tag cut without
+# stamping it publishes a binary that disagrees with its own tag.
 #
 # WRITING THE CHANGELOG SECTION
 #
@@ -239,6 +248,39 @@ preflight() {
   fi
   log_info "both remotes (local, upstream) configured"
 
+  # A FROZEN REMOTE IS A PRE-FLIGHT FAILURE, NOT A PUSH FAILURE.
+  #
+  # This script pushes `local` AND `upstream`, and the pre-push gate refuses a
+  # remote the hypervisor has closed. Discovering that at the push step means the
+  # commit is made, the sidecars are stamped and THE TAG IS ALREADY CUT -- a
+  # release that is half-published, with a tag on one remote, no GitHub release,
+  # and a confusing refusal from a gate the operator was not thinking about.
+  #
+  # Each step is correct and the composition is not, which is this thread's
+  # recurring shape. The fix is to ask the question at the only moment the answer
+  # is still cheap.
+  #
+  # The list comes from `int prepush --list-frozen` rather than being restated
+  # here: the runner that enforces the rule is the authority on what the rule is.
+  frozen_hit=""
+  if [ -x "$PROJECT_ROOT/bin/int" ]; then
+    for frozen in $("$PROJECT_ROOT/bin/int" prepush --list-frozen 2>/dev/null || true); do
+      case "$frozen" in
+        local | upstream) frozen_hit="$frozen" ;;
+      esac
+    done
+  fi
+  if [ -n "$frozen_hit" ]; then
+    abort "remote '$frozen_hit' is FROZEN, and this release would push to it.
+
+  A release cannot complete while a remote it publishes to is closed, and
+  finding that out at the push step leaves the tag already cut.
+
+  If the hypervisor has lifted the freeze, remove '$frozen_hit' from
+  FROZEN_REMOTES in bin/.devbin/cmd/prepush and commit that first."
+  fi
+  log_info "no frozen remote in the push set"
+
   if [ "$SKIP_TESTS" = "true" ]; then
     log_warn "--skip-tests: skipping doctor + test suite"
     return 0
@@ -335,6 +377,31 @@ log_step "sidecar sync"
 CONFIG_REL="intent/.config/config.json"
 SIDECAR_FILES="VERSION CHANGELOG.md AGENTS.md CLAUDE.md $CONFIG_REL"
 
+# THE NATIVE WORKSPACE IS A SIDECAR ONLY FOR A 3.x RELEASE, and the condition is
+# the whole design rather than a special case.
+#
+# `native/rust/Cargo.toml` carries `[workspace.package] version`, every crate
+# inherits it with `version.workspace = true`, and the binary compiles its own
+# version string from `env!("CARGO_PKG_VERSION")`. So the workspace version IS
+# the v3 product's version. A 2.x release must never touch it -- v2 is the shell
+# CLI and stamping `2.19.1` into the Rust workspace would make the next v3 build
+# announce itself as a v2 -- and a 3.x release must always touch it, or the tag
+# says `v3.0.0` while `intent --version` says whatever the tree happened to hold.
+# Measured: the workspace sits at `3.0.0-dev`, so without this the first v3 tag
+# would publish a binary calling itself a dev build.
+#
+# The condition retires itself. Once 2.x stops being cut there is no other arm,
+# and this collapses to an unconditional sidecar.
+NATIVE_MANIFEST_REL="native/rust/Cargo.toml"
+NATIVE_LOCK_REL="native/rust/Cargo.lock"
+STAMP_NATIVE=false
+case "$TARGET" in
+  [3-9].* | [1-9][0-9]*.*) [ -f "$PROJECT_ROOT/$NATIVE_MANIFEST_REL" ] && STAMP_NATIVE=true ;;
+esac
+if [ "$STAMP_NATIVE" = "true" ]; then
+  SIDECAR_FILES="$SIDECAR_FILES $NATIVE_MANIFEST_REL $NATIVE_LOCK_REL"
+fi
+
 NEEDS_COMMIT=false
 
 # /VERSION
@@ -377,6 +444,72 @@ else
     1) log_info "$CONFIG_REL already at $TARGET" ;;
     *) abort "cannot stamp intent_version in $CONFIG_REL" ;;
   esac
+fi
+
+# native/rust -- the workspace version, and the lockfile that must move with it.
+#
+# THE LOCK IS NOT OPTIONAL. `Cargo.lock` records each workspace member's version,
+# so stamping the manifest alone leaves the two disagreeing and **every
+# `--locked` build fails** -- which is the build a release should be using.
+# Measured on a clean HEAD checkout: manifest-only is REFUSED with `cannot update
+# the lock file ... because --locked was passed`.
+#
+# CARGO WRITES THE LOCK; THIS SCRIPT DOES NOT REIMPLEMENT IT. The obvious version
+# rewrote the member entries by hand, and it was wrong the first time it ran: it
+# stamped three members and MISSED `intentd`, which is the second shipped binary.
+# A hand-kept list of crates is the needle that skips the names nobody has
+# invented yet, and this workspace will gain crates. Cargo knows the members;
+# asking it cannot go stale.
+#
+# BUT CARGO IS ALLOWED TO DO MORE THAN WE ASKED, so the diff is BOUNDED and a
+# surprise is a refusal rather than a silent dependency bump inside a release
+# commit. Measured on the same checkout: the update touches exactly the four
+# workspace member version lines and no dependency at all. If it ever touches
+# anything else, the release stops -- **the one moment a resolver change must not
+# ride along unnoticed is the commit the tag points at.**
+if [ "$STAMP_NATIVE" = "true" ]; then
+  native_current="$(sed -n 's/^version = "\(.*\)"$/\1/p' "$PROJECT_ROOT/$NATIVE_MANIFEST_REL" | head -1)"
+  if [ "$native_current" = "$TARGET" ]; then
+    log_info "$NATIVE_MANIFEST_REL already at $TARGET"
+  elif [ "$DRY_RUN" = "true" ]; then
+    log_dry "would stamp [workspace.package] version = $TARGET in $NATIVE_MANIFEST_REL (from $native_current)"
+    log_dry "would refresh $NATIVE_LOCK_REL via cargo, refusing any change beyond workspace member versions"
+  else
+    lock_before="$(mktemp)"
+    cp "$PROJECT_ROOT/$NATIVE_LOCK_REL" "$lock_before"
+    sed -i.bak "s|^version = \"$native_current\"$|version = \"$TARGET\"|" "$PROJECT_ROOT/$NATIVE_MANIFEST_REL"
+    rm -f "$PROJECT_ROOT/$NATIVE_MANIFEST_REL.bak"
+
+    # No --locked: the point is to let cargo rewrite the lock. Not --offline
+    # either: the lock legitimately names targets this machine never builds
+    # (windows, wasm), and --offline fails on those with an error that reads
+    # exactly like an inconsistent lockfile. Measured, and it cost a wrong
+    # diagnosis before it was.
+    if ! (cd "$PROJECT_ROOT/$(dirname "$NATIVE_MANIFEST_REL")" && cargo metadata --format-version 1 >/dev/null 2>&1); then
+      cp "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL"
+      rm -f "$lock_before"
+      abort "cargo could not refresh $NATIVE_LOCK_REL after the version stamp"
+    fi
+
+    # Every changed line must be a version line. `diff` output we accept is only
+    # `< version = "..."` / `> version = "..."` plus hunk headers and separators.
+    unexpected="$(diff "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL" 2>/dev/null |
+      grep -E '^[<>]' | grep -vE '^[<>] version = "[^"]*"$' || true)"
+    rm -f "$lock_before"
+    if [ -n "$unexpected" ]; then
+      abort "refreshing $NATIVE_LOCK_REL changed more than workspace versions -- refusing to fold a dependency change into a release commit:
+$unexpected"
+    fi
+
+    log_info "stamped $NATIVE_MANIFEST_REL + $NATIVE_LOCK_REL to $TARGET (was $native_current)"
+    NEEDS_COMMIT=true
+  fi
+else
+  # Named, not silent. A 2.x cut leaving the native workspace alone is correct
+  # and is worth one line, because the alternative reading -- that the script
+  # forgot -- is the one a reader reaches for when v3 exists in the tree.
+  [ -f "$PROJECT_ROOT/$NATIVE_MANIFEST_REL" ] &&
+    log_info "$NATIVE_MANIFEST_REL untouched: $TARGET is not a 3.x release"
 fi
 
 # AGENTS.md regeneration
