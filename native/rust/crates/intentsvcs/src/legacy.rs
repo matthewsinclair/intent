@@ -72,6 +72,7 @@ impl Scan {
 /// Parse an entire v2 estate. Writes nothing.
 pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
   let mut out = Scan::default();
+  retired_settings(project, &mut out);
   for (id, dir) in thread_dirs(project) {
     let info = dir.join("info.md");
     let Ok(text) = std::fs::read_to_string(&info) else {
@@ -194,8 +195,47 @@ fn thread_dirs(project: &Project) -> Vec<(String, std::path::PathBuf)> {
   out
 }
 
-fn is_thread_id(name: &str) -> bool {
-  name.len() == 6 && name.starts_with("ST") && name[2..].bytes().all(|b| b.is_ascii_digit())
+use crate::model::is_thread_id;
+
+/// **Name a retired config knob the project actually set** (issue 0040, hv).
+///
+/// `st_prefix` is gone from `Config` and lands in `extra`, so the declaration
+/// survives in the file. What must not survive is v3 reading a project whose
+/// threads are on some other prefix and reporting a clean, empty conversion:
+/// `is_thread_id` recognises nothing, `thread_dirs` yields nothing, and every
+/// count reconciles perfectly against zero.
+///
+/// **Blocks rather than carries, and the closed/live split does not apply**,
+/// because the finding is about the project rather than about a thread -- and
+/// there is no thread to attribute it to precisely when it matters most.
+///
+/// Costs nothing today: all sixteen fleet projects use the default, so this is
+/// silent on every one of them. It is here for the reader who is not in the
+/// fleet, who is the only person the retirement could have hurt.
+fn retired_settings(project: &Project, out: &mut Scan) {
+  let Some(declared) = project
+    .config()
+    .extra
+    .get(crate::project::RETIRED_ST_PREFIX_KEY)
+    .and_then(|v| v.as_str())
+  else {
+    return;
+  };
+  if declared == crate::model::THREAD_PREFIX {
+    // Declared, and declaring the value v3 fixed it to. Nothing is lost and
+    // nothing changes, so saying anything here would be noise on a project
+    // that did nothing wrong.
+    return;
+  }
+  let key = crate::project::RETIRED_ST_PREFIX_KEY;
+  let fixed = crate::model::THREAD_PREFIX;
+  out.block(Finding::new(
+    project.relative(&Project::config_path(project.root())),
+    FindingClass::RetiredSetting,
+    format!(
+      "`{key}: {declared}` is retired -- v3 fixes the steel-thread prefix at `{fixed}`, so no artefact named `{declared}...` is recognised as a thread"
+    ),
+  ));
 }
 
 /// v2's status synonym table, ported from `bin/intent_helpers:canonical_status`.

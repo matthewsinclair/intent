@@ -198,6 +198,43 @@ fn the_gates_own_block_still_reaches_the_caller_through_the_v3_binary() {
   );
 }
 
+/// **The hook door DELEGATES: every `2` a Claude Code hook sees came from the
+/// script, never from the CLI.**
+///
+/// This is the per-caller answer to the four-contracts problem, stated as a
+/// mechanism rather than as a choice of constant. `2` means four different
+/// things to four consumers (fail-open, block, advisory, refuse-to-stop), so no
+/// global value is right; what makes the Claude Code side safe is that
+/// `claude hook` is the single door those consumers reach the binary through
+/// and it hands the decision to the script.
+///
+/// Driven over the failure modes the CLI can reach BEFORE any script runs --
+/// an unknown hook name, and a missing name at all. Both must answer 1, which
+/// vc's ARM1 measured as non-blocking; a `2` here would refuse the prompt on
+/// the operator's behalf over a typo in their settings file.
+#[test]
+fn the_hook_door_never_answers_in_the_callers_refusal_code() {
+  let root = install_root();
+  for argv in [
+    vec!["claude".to_string(), "hook".to_string(), "nope".to_string()],
+    vec!["claude".to_string(), "hook".to_string()],
+  ] {
+    let (code, stderr) = run(&argv, &root);
+    assert_ne!(
+      code,
+      Some(2),
+      "`intent {}` answered in the code UserPromptSubmit reads as BLOCK. Every failure the CLI itself can reach on this path must be 1 -- measured as \
+       non-blocking -- so that a 2 reaching a hook consumer is always the script's own deliberate refusal. stderr: {stderr}",
+      argv.join(" ")
+    );
+    assert!(
+      !stderr.contains(UNIMPLEMENTED),
+      "`intent {}` reported itself unimplemented: {stderr}",
+      argv.join(" ")
+    );
+  }
+}
+
 /// **Issue 0042: the pre-commit gate's own resolution expression, run against
 /// this binary.**
 ///

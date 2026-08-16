@@ -49,6 +49,15 @@ fn reads_no_model(path: &str) -> Option<&'static str> {
     // Stdio and socket servers: wiring these later must not hang this test.
     "mcp" | "daemon" => Some("long-running servers -- excluded by construction"),
     "version" | "info" | "help" => Some("tool-level, not project-level"),
+    // The agent guide is generated from the dispatch table compiled into this
+    // binary -- the same category as `schema`, and verified rather than
+    // assumed: `guide.rs` touches no facade and opens no project. **It is the
+    // one command an agent in an unmigrated project needs MOST**, because the
+    // guide is where `intent upgrade` is written down; refusing it would
+    // withhold the instructions for the state the reader is stuck in.
+    // (Exemption added by cc with the wiring that made it reachable; ic owns
+    // the renderer and this list, and should reword if the framing is wrong.)
+    "llm guide" => Some("generated from the compiled-in table; it never reads a project"),
     _ => None,
   }
 }

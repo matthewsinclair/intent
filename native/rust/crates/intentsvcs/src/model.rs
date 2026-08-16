@@ -35,6 +35,49 @@ pub const THREAD_SCHEMA: &str = "intent/thread@3.0";
 /// The `schema` field value for issue canon files.
 pub const ISSUE_SCHEMA: &str = "intent/issue@3.0";
 
+/// **THE steel-thread id form: `ST` and four digits, in one place.**
+///
+/// hv retired `st_prefix` (issue 0040): the prefix is FIXED. Retiring it turned
+/// out not to be a change of direction -- `st_prefix` appears in no ST0056
+/// spec, so the design had already dropped the knob and the type was behind the
+/// design rather than ahead of it.
+///
+/// **What the retirement is really for is here, not in the deletion.** The
+/// field existed and nothing read it, while the id form was spelled out FOUR
+/// separate times: `facade.rs` allocated with `format!("ST{:04}")` and
+/// recognised with `strip_prefix("ST")`, `legacy.rs` recognised with
+/// `starts_with("ST")` AND a hardcoded `len() == 6`. That `6` is `"ST".len() +
+/// 4` -- the same fact as the prefix, written a second way, in a place that
+/// would not move if the first one did. A config knob nobody read was the
+/// harmless half; four hand-written copies of what it configured was the rest.
+pub const THREAD_PREFIX: &str = "ST";
+/// How many digits follow [`THREAD_PREFIX`]. Zero-padded, fixed width.
+pub const THREAD_DIGITS: usize = 4;
+
+/// The canonical id for the nth steel thread.
+pub fn thread_id(seq: u32) -> String {
+  format!("{THREAD_PREFIX}{seq:0THREAD_DIGITS$}")
+}
+
+/// Whether `name` is a steel-thread id.
+///
+/// The width is DERIVED rather than asserted, so this and [`thread_id`] cannot
+/// disagree about what they both describe.
+pub fn is_thread_id(name: &str) -> bool {
+  name.len() == THREAD_PREFIX.len() + THREAD_DIGITS
+    && name.starts_with(THREAD_PREFIX)
+    && name[THREAD_PREFIX.len()..]
+      .bytes()
+      .all(|b| b.is_ascii_digit())
+}
+
+/// The sequence number in a thread id, or `None` if it is not one.
+pub fn thread_seq(name: &str) -> Option<u32> {
+  is_thread_id(name)
+    .then(|| name[THREAD_PREFIX.len()..].parse().ok())
+    .flatten()
+}
+
 /// Render any model enum as its canonical wire string via serde -- the one
 /// naming authority. Panics only if serialisation itself fails, which for
 /// these unit enums cannot happen.

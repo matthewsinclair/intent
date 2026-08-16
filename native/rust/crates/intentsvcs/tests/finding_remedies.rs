@@ -118,7 +118,7 @@ fn no_remedy_proposes_an_operation_wider_than_the_fault() {
       "--to-store",
       "replaces the whole store; event_log is durable truth no file can reconstruct",
     ),
-    ("rm ", "D36: the store is the source of truth, not a cache"),
+    ("rm", "D36: the store is the source of truth, not a cache"),
     ("delete the store", "D36"),
     ("intent.db", "no remedy sends an operator at the store file"),
   ];
@@ -127,10 +127,70 @@ fn no_remedy_proposes_an_operation_wider_than_the_fault() {
     let remedy = class_of(&wire).remedy();
     for (needle, why) in FORBIDDEN {
       assert!(
-        !remedy.contains(needle),
+        !names_operation(remedy, needle),
         "`{wire}`'s remedy names `{needle}` -- {why}\n  remedy was: {remedy}"
       );
     }
+  }
+}
+
+/// Whether `remedy` names `needle` AS A COMMAND rather than inside a word.
+///
+/// **`rm` was matched with a bare `contains("rm ")` and it fired on the word
+/// "form"** -- and on "confirm", "perform" and "term", none of which anyone
+/// had written yet. A substring needle for a two-letter command is a trap set
+/// for whoever next uses an ordinary English word, and the failure it produces
+/// blames their remedy for a defect in the check.
+///
+/// Matching on token boundaries instead: the needle must start the string or
+/// follow a non-word character, and must end the string or be followed by one.
+/// That still catches every real spelling -- `rm intent.db`, "run `rm`",
+/// "(rm)" -- and stops reading the middle of words.
+fn names_operation(remedy: &str, needle: &str) -> bool {
+  let boundary = |c: char| !c.is_alphanumeric() && c != '_' && c != '-';
+  let mut from = 0;
+  while let Some(hit) = remedy[from..].find(needle) {
+    let at = from + hit;
+    let end = at + needle.len();
+    let before_ok = at == 0 || remedy[..at].chars().next_back().is_some_and(boundary);
+    let after_ok = end == remedy.len() || remedy[end..].chars().next().is_some_and(boundary);
+    if before_ok && after_ok {
+      return true;
+    }
+    from = at + 1;
+  }
+  false
+}
+
+/// **The boundary matcher itself, driven both ways.** Loosening a check is how
+/// a check stops checking, so the loosening gets its own proof: the words that
+/// caused the false positive must pass, and every real spelling of the command
+/// must still be caught.
+#[test]
+fn the_operation_matcher_reads_commands_and_not_the_middles_of_words() {
+  for innocent in [
+    "rename the artefacts to the fixed form before migrating",
+    "confirm the change",
+    "perform the migration",
+    "the term is retired",
+    "reformat it",
+  ] {
+    assert!(
+      !names_operation(innocent, "rm"),
+      "a word containing `rm` is not the command `rm`: {innocent}"
+    );
+  }
+  for real in [
+    "rm intent.db",
+    "run `rm` on it",
+    "do not rm",
+    "(rm) the file",
+    "rm",
+  ] {
+    assert!(
+      names_operation(real, "rm"),
+      "this names the command and must still be caught: {real}"
+    );
   }
 }
 

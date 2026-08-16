@@ -31,22 +31,33 @@ pub struct Config {
   pub project_id: Option<String>,
   #[serde(default = "default_intent_dir")]
   pub intent_dir: String,
-  #[serde(default = "default_st_prefix")]
-  pub st_prefix: String,
   #[serde(default)]
   pub languages: Vec<String>,
   /// Everything else in the file, carried so a rewrite never drops a block
   /// this version does not know about.
+  ///
+  /// **`st_prefix` lands here, and that is the retirement working rather than
+  /// a leak** (issue 0040, hv). The field is gone from the type -- the prefix
+  /// is fixed at `crate::model::THREAD_PREFIX` -- so a v2 project that
+  /// declared it keeps the declaration in the file, byte for byte, instead of
+  /// having it silently dropped on the first rewrite. v3 does not honour it,
+  /// and [`crate::legacy`] says so out loud when the value is not the default.
+  /// Retiring a knob nobody uses is fine; retiring it under someone who does,
+  /// without telling them, is the silent data change this thread exists to
+  /// prevent.
   #[serde(flatten)]
   pub extra: serde_json::Map<String, serde_json::Value>,
 }
 
+/// The retired `st_prefix` key, by the name it has in `config.json`.
+///
+/// Named once so the migrator's check and any later reader agree about what
+/// they are looking for. There is deliberately no `default_st_prefix()` beside
+/// it: a default would be a second place the prefix is decided.
+pub const RETIRED_ST_PREFIX_KEY: &str = "st_prefix";
+
 fn default_intent_dir() -> String {
   "intent".to_string()
-}
-
-fn default_st_prefix() -> String {
-  "ST".to_string()
 }
 
 #[derive(Debug, thiserror::Error)]

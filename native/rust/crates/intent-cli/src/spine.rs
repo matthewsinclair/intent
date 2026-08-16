@@ -46,13 +46,34 @@ pub const EXIT_ERROR: i32 = 1;
 /// in view, and a different caller spells the opposite decision with the same
 /// number.
 ///
-/// | consumer                                   | invokes                    | reads `2` as        | action              |
+/// | consumer                                   | invokes                    | what `2` MEANS there | action              |
 /// | ------------------------------------------ | -------------------------- | ------------------- | ------------------- |
 /// | `.claude/settings.json` `UserPromptSubmit`  | `claude hook require-in-session` | deliberate refusal | **blocks the prompt** |
-/// | `.claude/settings.json` `SessionStart`      | `claude hook session-context`    | deliberate refusal | stderr surfaced, session proceeds |
+/// | `.claude/settings.json` `SessionStart`      | `claude hook session-context`    | advisory | does NOT block -- **and the hook never runs** |
+/// | Claude Code `Stop` (not wired to `intent`)  | --                         | refuse to stop      | 24s hang, zero output |
 /// | `hooks/pre-commit.sh:175` (critic loop)     | `critic <lang>`            | tooling unavailable | **fails open**, commit proceeds |
 /// | `.claude/scripts/post-tool-advisory.sh:73`  | `critic <lang>`            | nothing -- `\|\| true` | advisory suppressed |
 /// | `hooks/pre-commit.sh:104`                   | `info`                     | **nothing at all**  | see below |
+///
+/// **The first three rows are MEASURED against Claude Code 2.1.233** (vc, five
+/// arms, 2026-08-16), not read off a contract. Two of them matter beyond the
+/// count. `SessionStart` failing open is a finding rather than a relief: the
+/// session opens, `session-context.sh` never executes, and the project context
+/// plus the `/in-session` reminder -- the documented entry to the whole gate --
+/// **silently do not arrive**, so the migrated experience was a contextless
+/// session that then refused its first prompt. And `Stop` is clean only by
+/// accident of being a bare `echo`; routing it through `intent claude hook`,
+/// which is the obvious tidying move, would arm a fourth distinct failure from
+/// this one constant.
+///
+/// **So `2` has four measured meanings across four contracts, and there is no
+/// value of this constant that is right for four contracts that disagree.**
+/// The fix is not a better number, it is per-caller -- and for the Claude Code
+/// side it is already structural rather than a choice: **`claude hook` is the
+/// single door Claude Code reaches this binary through, and it DELEGATES.** It
+/// execs the script, so every `2` a hook consumer sees is the script's own
+/// deliberate one; no path inside `render::hook` produces `Unavailable`, which
+/// `the_hook_door_never_answers_in_the_callers_refusal_code` holds it to.
 ///
 /// **The last row is the one that changes the shape of the problem, and it is
 /// why 0042 could never have been fixed by choosing a better number.** That
@@ -62,6 +83,13 @@ pub const EXIT_ERROR: i32 = 1;
 /// stopped enforcing -- at ANY exit code. **Some callers have a stdout
 /// contract, not an exit-code contract**, and a command they depend on is
 /// unfixable from this constant in either direction.
+///
+/// One more, from the same measurement, because it defeats the obvious
+/// detector: **on a blocked prompt the `claude` process itself exits 0.** The
+/// block is in-band, in the output stream. Any wrapper checking the process
+/// status sees success while the model never saw the prompt -- a second silent
+/// failure sitting in the exact layer somebody would reach for to catch the
+/// first. Assert on OUTPUT there, never on the code.
 ///
 /// Two things deliberately NOT in the table, because a record is worth only
 /// what its exclusions are worth. **`bin/.devbin/cmd/build.d/release:373` calls
@@ -292,14 +320,23 @@ fn positionals(mut cmd: Command, entry: &Entry) -> Command {
     if arg.kind == "subcommand" {
       continue;
     }
-    let required = arg.arity == "1";
-    // `0..n` is the table's open-ended spelling and carries neither `+` nor
-    // `*`, so a check for those two alone read it as a single value.
-    let multiple = arg.arity.contains('+') || arg.arity.contains('*') || arg.arity.ends_with('n');
+    // **BOTH predicates now come from the table's own type** (ic, measured
+    // 2026-08-16). The inline `arity == "1"` here was false for `1..n`, which
+    // declares a MINIMUM of one -- so `intent lang init` with no language
+    // parsed cleanly and fell through to the renderer, where v2 refuses it
+    // outright (`bin/intent_lang:251`). Two rows were affected, `lang init` and
+    // `lang remove`, and both are latent only because `lang` is unwired: the
+    // day WP-07 wires it, the renderer is handed an empty list.
+    //
+    // The `multiple` half was already correct and moves for the same reason
+    // rather than a different one. Two readers of one grammar drift, and this
+    // one drifted in the half nobody had a test for -- ic's own first test for
+    // `required()` asserted the wrong answer and PASSED, because it was
+    // written by reading the implementation instead of the meaning of `<x>`.
     let mut a = Arg::new(arg.name.clone())
-      .required(required)
+      .required(arg.required())
       .value_name(arg.name.to_uppercase());
-    a = if multiple {
+    a = if arg.repeated() {
       a.action(ArgAction::Append).num_args(1..)
     } else {
       a.action(ArgAction::Set)
@@ -521,6 +558,63 @@ mod tests {
     assert!(
       !names.contains(&"organize".to_string()),
       "a ratified retire does not reach the surface"
+    );
+  }
+
+  /// **Every slot the table declares mandatory is mandatory ON THE SURFACE.**
+  ///
+  /// `dispatch::Arg::required()` already had a test; nothing checked that the
+  /// spine CALLED it, and it did not -- an inline `arity == "1"` here read
+  /// `1..n` as optional, so `intent lang init` with no language parsed cleanly
+  /// where v2 refuses it. A correct predicate with a second, wrong copy at the
+  /// only call site is indistinguishable from having no predicate at all.
+  ///
+  /// Driven through `try_get_matches_from` rather than by re-reading the table,
+  /// because the question is what the BUILT surface does. Asserting over every
+  /// declared row rather than the two measured ones: a fix that repaired
+  /// `lang init` by name would pass a two-row test and leave the mechanism.
+  #[test]
+  fn a_slot_the_table_declares_mandatory_is_refused_when_it_is_absent() {
+    let table = dispatch::table();
+    let mut checked = 0;
+    let mut accepted = Vec::new();
+
+    for family in &table.families {
+      for entry in &family.entries {
+        if !entry.is_shipped() {
+          continue;
+        }
+        // Only rows whose FIRST positional is mandatory: with a leading
+        // optional slot, clap has no missing-argument to report.
+        let Some(first) = entry.args.iter().find(|a| a.kind != "subcommand") else {
+          continue;
+        };
+        if !first.required() {
+          continue;
+        }
+        checked += 1;
+
+        let argv: Vec<String> = std::iter::once("intent".to_string())
+          .chain(entry.path.split_whitespace().map(str::to_string))
+          .collect();
+        if build(&table).try_get_matches_from(&argv).is_ok() {
+          accepted.push(format!(
+            "`{}` declares <{}> at arity {:?} and parsed with it absent",
+            entry.path, first.name, first.arity
+          ));
+        }
+      }
+    }
+
+    assert!(
+      checked > 20,
+      "only {checked} rows declared a mandatory first positional -- the walk is broken, and a broken walk passes this test vacuously"
+    );
+    assert!(
+      accepted.is_empty(),
+      "the surface accepted an invocation missing an argument the table declares mandatory:\n  {}\n\nThe renderer would be handed an empty value where v2 \
+       refuses the invocation outright.",
+      accepted.join("\n  ")
     );
   }
 

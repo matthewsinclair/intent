@@ -98,6 +98,19 @@ pub enum FindingClass {
   /// machine and would not survive a clone, reported to the person who still
   /// has it.
   EventLogAbsent,
+  /// The project sets a config knob v3 has retired, to a value v3 will not
+  /// honour.
+  ///
+  /// **`st_prefix` is the instance and the reason the class exists** (issue
+  /// 0040, hv). Retiring a knob nobody uses is free; retiring it under someone
+  /// who DOES use it, silently, is the change this thread exists to prevent --
+  /// and here the consequence is total rather than cosmetic. v3 recognises a
+  /// steel thread by `crate::model::is_thread_id`, so a project whose threads
+  /// are named on any other prefix has NONE of them recognised: the migration
+  /// would report a clean conversion of an empty estate. **That is the
+  /// answers-confidently-from-partial-evidence bug with the evidence set to
+  /// zero**, which is why it blocks rather than carries.
+  RetiredSetting,
 }
 
 impl FindingClass {
@@ -224,6 +237,14 @@ impl FindingClass {
         9,
         "event-log-absent",
         "run `intent sync --to-disk` and commit the result -- nothing recomputes history, so until the extract is in the repository it exists only here",
+      ),
+      // Rank 1, beside `unmigrated`: every other finding on such a project is
+      // downstream of it, and on a non-default `st_prefix` there will BE no
+      // other findings, because no thread is recognised in the first place.
+      Self::RetiredSetting => (
+        1,
+        "retired-setting",
+        "v3 fixes this setting and does not read it -- rename the artefacts to the fixed form before migrating, or the migration will not see them at all. The declaration is left in config.json rather than removed for you",
       ),
     }
   }

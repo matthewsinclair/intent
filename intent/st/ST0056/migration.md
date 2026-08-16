@@ -44,8 +44,11 @@ residue: <file>:<line> -- <class> -- <detail>
 | broken-reference   | an AT file reference / descope target that does not resolve                      | v2 CLI / hand             |
 | duplicate-id       | two artefacts claiming one natural id (the 0011 class)                           | hand                      |
 | field-not-recorded | a field the estate never recorded, the artefact predating the convention         | **nothing -- carried**    |
+| retired-setting    | a config knob v3 has retired, set to a value v3 will not honour                  | hand, BEFORE migrating    |
 
 Totals print per class; the report never truncates (the no-silent-caps rule -- a capped residue list reads as complete when it is not).
+
+**`retired-setting` is the one class here that is not about an artefact, and it is the only one that must be fixed BEFORE the migration rather than during or after it** (added by cc 2026-08-16 with the code that emits it, under hv's `st_prefix` retirement -- vc to reword freely, the row is here so the contract and the migrator land together rather than one check apart). Its instance is `st_prefix`: v3 fixes the steel-thread prefix, so a project that set it to anything else has **none** of its threads recognised. That makes it the only class whose consequence is invisible by construction -- there is no residue to report, because there is no artefact the scanner can see to report it against, and every count reconciles perfectly against zero. It blocks for that reason, and the closed/live split does not apply to it: the finding is about the project, not about a thread, and there is no thread to attribute it to precisely when it matters most.
 
 **`field-not-recorded` and `unknown-scope` were added 2026-08-16 after this table was measured against the implementation and found short by exactly those two** -- which are the only two classes Intent's own tree, the canary, actually produces. `legacy.rs` constructs eight `FindingClass` variants and this table declared six, so **an operator meeting either of the classes they will actually meet found neither in the contract, and every check reported agreement.** Guarded from here by `parity/tools/residue_class_check.sh`, which compares this table against the implementation in both directions rather than trusting a transcription.
 

@@ -40,6 +40,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("backup", m)) => backup(m),
     Some(("info", _)) => info(),
     Some(("claude", m)) => claude(m),
+    Some(("llm", m)) => llm(m),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -1427,6 +1428,32 @@ fn or_unknown(value: &str) -> &str {
     "Unknown"
   } else {
     value
+  }
+}
+
+/// `intent llm` -- and `guide` is the verb that exists.
+///
+/// **The renderer is ic's and landed tested (`2a654db3`); this is the arm that
+/// makes it reachable.** They had the line in this file and took it back out
+/// within the minute rather than leave a verb of theirs inside someone else's
+/// uncommitted change, which is the right call and is why it is here instead.
+///
+/// `guide::render` returns the whole document as a `String` and takes the
+/// table: the command reference is generated at render time from
+/// `dispatch::shipped_entries`, so there is no committed guide file to go
+/// stale. `print!` rather than `println!` -- the document ends with its own
+/// newline, and adding a second is a diff in anything that captures it.
+fn llm(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    Some(("guide", _)) => {
+      print!(
+        "{}",
+        crate::guide::render(&dispatch::table()).map_err(Failure::Error)?
+      );
+      Ok(())
+    }
+    Some((verb, _)) => unwired("llm", verb),
+    None => unwired("llm", ""),
   }
 }
 

@@ -1822,11 +1822,10 @@ impl Facade {
       .canon
       .threads
       .iter()
-      .filter_map(|t| t.id.strip_prefix("ST"))
-      .filter_map(|n| n.parse::<u32>().ok())
+      .filter_map(|t| crate::model::thread_seq(&t.id))
       .max()
       .unwrap_or(0);
-    format!("ST{:04}", highest + 1)
+    crate::model::thread_id(highest + 1)
   }
 }
 
