@@ -22,7 +22,15 @@ builtin_docs_agents() {
   # file, and a hand edit to it is destroyed here without comment. Every project
   # that had this command printed this line.
   warn "AGENTS.md is generated -- a hand edit is lost here"
-  intent agents sync
+  # Status made explicit rather than left to position. As the function's last
+  # command this already propagated -- correctly, and BY ACCIDENT OF WIRING: one
+  # appended line (a log, a cleanup, a `return 0`) would have swallowed it
+  # silently, which is the treeindex defect below arriving by the other door.
+  local rc=0
+  intent agents sync || rc=$?
+  [ "$rc" -eq 0 ] ||
+    warn "intent agents sync failed (exit $rc) -- AGENTS.md NOT regenerated"
+  return "$rc"
 }
 
 # builtin_docs_treeindex -- rebuild the per-subdirectory index.

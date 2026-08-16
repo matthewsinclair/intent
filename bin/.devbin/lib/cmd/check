@@ -27,11 +27,21 @@ builtin_check_critic() {
   require_tool intent "Install Intent: see intent/docs at the Intent install"
   require_tool jq "brew install jq"
 
-  local declared headless langs="" lang rc=0
+  local declared headless langs="" lang rc=0 hl_rc=0
   declared="$(jq -r '(.languages // []) | .[]' "$PROJECT_ROOT/intent/.config/config.json" 2>/dev/null || true)"
   [ -n "$declared" ] ||
     die "no languages declared in intent/.config/config.json (intent lang init <lang>)"
-  headless="$(intent critic --languages 2>/dev/null || true)"
+  # "NO LANGUAGE HAS A HEADLESS CRITIC" AND "THE TOOL THAT LISTS THEM DID NOT
+  # ANSWER" ARE DIFFERENT ABSENCES (issue 0042's shape, one directory over).
+  # `|| true` discarded the status, so a CLI that cannot answer produced an empty
+  # list, which produced an empty `langs`, which died naming the wrong cause --
+  # blaming the project's language declarations for a failure of the tool. It
+  # fails closed, so nothing was ever silently skipped; the cost is a wrong
+  # diagnosis at exactly the moment it is most expensive, since the known trigger
+  # is a v3 binary shadowing v2 on PATH.
+  headless="$(intent critic --languages 2>/dev/null)" || hl_rc=$?
+  [ "$hl_rc" -eq 0 ] ||
+    die "\`intent critic --languages\` failed (exit $hl_rc) -- cannot tell which languages have a headless critic. The tool did not answer; this is not an absence of critics. Check which \`intent\` is on PATH (a v3 binary shadowing a v2 install is the known cause -- issues 0036/0042)."
 
   for lang in $declared; do
     case "
