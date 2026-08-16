@@ -6367,10 +6367,12 @@
       },
       "disposition": "new-surface",
       "exposed_on_mcp": true,
-      "read_or_mutate": "mutate",
+      "read_or_mutate": "read",
       "mcp_review": {
-        "counterintuitive": "`export` reads as a read -- it takes nothing out of the store that was not already there. It is `mutate` because the field is defined over DURABLE STATE, not over the store: export writes files into the working tree and can clobber them. Anyone who reads this field as 'touches the database' will disagree with this row, which is why the definition is written down."
-      }
+        "counterintuitive": "`export` sounds like it produces a FILE and it does not -- it writes the document to STDOUT, so `intent export > estate.json` is the SHELL creating the file, not the command. Under this table's own definition the row is a `read`: `read` means no invocation of the entry, UNDER ANY FLAG, changes durable state, and this entry declares exactly one flag (`--format`, which chooses a projection) and zero arguments. Quantifying over the flag set is the whole test, and there is one flag to quantify over.",
+        "grounded_in": "This row's own `flags` and `args`, plus `render.rs`'s `export()`, which calls the facade and `print!`s the result."
+      },
+      "read_or_mutate_correction": "CORRECTED 2026-08-16 (ic). Was `mutate`. Found by cc while building the renderer and deferred here rather than resolved there, because the table is ic's -- `render.rs:1215` states the case in full. **The old defence was reasoned about a command that does not exist as declared**: it justified `mutate` by working-tree clobbering, which requires an output path this row has never carried. Sound reasoning, wrong subject. Two independent routes agree on `read`, which is why this is a correction rather than a preference: (1) the definition quantifies over EVERY flag, and the only flag selects a format rather than a destination; (2) `schema` is structurally the same command -- one flag, a face printed to stdout, zero destinations -- and is declared `read`, so counting shell redirection as mutation would make `schema` a mutation too and leave the table disagreeing with itself about one shape. **The MUTATE lean does not preserve the old value.** The lean governs UNCERTAINTY -- it is the tie-break when the answer is genuinely unclear -- and nothing is unclear once the flag set is read; treating a lean as a floor would make the field unfalsifiable in one direction. The cost of leaving it wrong is the failure the agent guide exists to prevent: an agent reading `mutate` treats `intent export` as capable of clobbering its working tree, and either avoids the command or copies files defensively before calling it. That is a capability the tool does not have and a workaround built against a phantom."
     },
     {
       "path": "ingest",

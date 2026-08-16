@@ -135,7 +135,10 @@ COVERED="st list|st show|st edit|wp list|wp show|ac list|ac status|ac gate|at li
 # after this probe landed and reported UNCOVERED on the next run, which is the
 # whole point of deriving the population from the table rather than from this
 # list. A row added later surfaces as a gap instead of shrinking the corpus.
-NO_V2="search|schema|llm guide"
+# `export` earned its place the same way on 2026-08-16, and is the better story
+# because nothing was ADDED: the row was reclassified `mutate` -> `read`, which
+# moved it into this probe's population without touching a single line here.
+NO_V2="search|schema|llm guide|export"
 
 DECLARED="$(jq -r '[.families[].entries[], .new_surface[]][]
   | select(.exposed_on_mcp == true and .read_or_mutate == "read") | .path' "$TABLE" | sort -u)"
@@ -153,7 +156,21 @@ done
 
 printf '\nread-claim: %d row(s) declare exposed+read; %d probed; no v2 incumbent, not probed:%s\n' \
   "$(printf '%s\n' "$DECLARED" | grep -c .)" "$PROBED" "${SKIPPED:- none}"
-[ -z "$UNCOVERED" ] || printf 'read-claim: UNCOVERED by the invocation map (declared read, never run):%s\n' "$UNCOVERED"
+if [ -n "$UNCOVERED" ]; then
+  # REFUSES rather than reports, since 2026-08-16. It printed and exited 0 until
+  # `export` moved into the population by reclassification -- which showed that
+  # the two lists above are only a discipline if being in NEITHER is an error.
+  # An unprobed `read` claim is a promise to an agent with nothing behind it,
+  # and this file's own siblings all refuse rather than default.
+  #
+  # The remedy is a decision, not a chore, which is why it is worth blocking on:
+  # a row belongs in `COVERED` with an invocation (it has a v2 incumbent and the
+  # claim can be witnessed) or in `NO_V2` (it cannot be, and that gets recorded).
+  # Silence chose neither and looked identical to both.
+  printf 'read-claim: FINDING -- declared `read` but never run:%s\n' "$UNCOVERED"
+  printf '  -- add an invocation above and list it in COVERED, or name it in NO_V2 if it has no v2 incumbent.\n'
+  exit 1
+fi
 
 if [ -n "$MUTATORS" ]; then
   printf 'read-claim: FINDING -- rows declared `read` that CHANGED THE TREE:%s\n' "$MUTATORS"
