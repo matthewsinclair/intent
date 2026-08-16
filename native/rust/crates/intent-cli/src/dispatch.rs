@@ -40,6 +40,17 @@ use serde::Deserialize;
 /// The committed table, compiled into the binary.
 const TABLE: &str = include_str!("../../../../../surface/dispatch-table.json");
 
+/// One declared value of a closed-domain field.
+///
+/// `target_states` spells the key `state` and the two disposition lists spell it
+/// `value`; the alias takes both rather than making the reader care which list
+/// they are holding.
+#[derive(Debug, Clone, Deserialize)]
+pub struct Vocab {
+  #[serde(alias = "state")]
+  pub value: String,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct Table {
   pub schema: String,
@@ -62,6 +73,24 @@ pub struct Table {
   pub new_surface: Vec<Entry>,
   #[serde(default)]
   pub invariants: Vec<Invariant>,
+  /// **The declared vocabularies, read rather than restated.**
+  ///
+  /// Each of the three closed-domain string fields below used to be documented
+  /// by a doc comment listing its values, and both of those comments were wrong:
+  /// the entry disposition said three where the vocabulary has five, and
+  /// `target.state` said five where it has six (ic, 2026-08-15). Neither was
+  /// noticed, because the act that adds a value is not the act that updates a
+  /// comment -- and `banana` on `st start` passed every check in the repo.
+  ///
+  /// So the values are not written down here at all. They are read from the
+  /// table that declares them, and [`table`] refuses any row carrying a value
+  /// none of them lists.
+  #[serde(default)]
+  pub target_states: Vec<Vocab>,
+  #[serde(default)]
+  pub entry_dispositions: Vec<Vocab>,
+  #[serde(default)]
+  pub flag_dispositions: Vec<Vocab>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -85,7 +114,9 @@ pub struct Entry {
   pub v2: String,
   #[serde(default)]
   pub target: Target,
-  /// `keep` · `retire` · `pending`.
+  /// One of [`Table::entry_dispositions`], which is where the values live and
+  /// what [`table`] validates against. Not restated here: this comment said
+  /// three when the vocabulary had five, and nothing could tell.
   #[serde(default)]
   pub disposition: String,
   /// The work package that owes this command, eg `WP-06`. Carried on
@@ -130,7 +161,10 @@ pub struct Flag {
   pub kind: String,
   #[serde(default)]
   pub help: String,
-  /// `keep` · `intrinsic` · `retire` · `pending`.
+  /// One of [`Table::flag_dispositions`]. This one happens to be RIGHT today,
+  /// and it is going anyway: its two siblings were both wrong, and a
+  /// hand-written copy that is currently accurate is the same mechanism a
+  /// beat earlier.
   #[serde(default)]
   pub disposition: String,
   /// The authored placeholder for the value, eg `<text>` -- what the usage line
@@ -193,7 +227,9 @@ impl Flag {
 
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct Target {
-  /// `as-observed` · `corrected` · `pending-hv` · `retire` · `undefined`.
+  /// One of [`Table::target_states`]. Not restated here: this comment said five
+  /// when the vocabulary had six, missing `new-surface` -- the second-largest
+  /// class at 18 rows.
   #[serde(default)]
   pub state: String,
 }
@@ -230,9 +266,97 @@ impl Entry {
 /// Parse the compiled-in table. Panics on a malformed table because the table
 /// is compiled in: a failure here is a broken build, never bad user input.
 pub fn table() -> Table {
-  serde_json::from_str(TABLE).expect(
+  let table: Table = serde_json::from_str(TABLE).expect(
     "the compiled-in dispatch table parses; a failure here means the committed table is malformed, which is a build defect rather than anything a user did",
-  )
+  );
+  if let Err(unknown) = check_vocabularies(&table) {
+    panic!(
+      "the dispatch table carries values no vocabulary declares:\n  {}\n\
+       Each is a closed domain declared in the table itself (`entry_dispositions`, `target_states`, \
+       `flag_dispositions`); a value outside one is a typo or an undeclared addition, and either is \
+       a build defect.",
+      unknown.join("\n  ")
+    );
+  }
+  table
+}
+
+/// Every closed-domain value in the table is one the table declares.
+///
+/// **This exists because the two readers of those fields fail in opposite
+/// directions and neither one is safe alone.** `Entry::is_shipped` is
+/// `disposition != "retire"`, which fails OPEN: `retre` ships a retired
+/// command. `Flag::ships` is `disposition == "keep"`, which fails CLOSED and
+/// silently -- a typo drops a flag from the surface with nothing in the build
+/// to say so, and only an external check nobody runs on a push reports it.
+///
+/// Measured by ic: 25 of 111 rows carry one fact in two fields (`disposition`
+/// and `target.state` move in perfect lockstep on all 19 `new-surface` and all
+/// 6 `retire` rows), and that UNDECLARED redundancy was the only thing stopping
+/// a single hand-edit from shipping a retired command.
+///
+/// Refusing at load is stronger than either polarity, and it makes the choice
+/// between them stop mattering: an unrecognised value never reaches a reader at
+/// all. It is also where the strictness belongs -- the table is compiled in, so
+/// this is a build defect and never something a user did. vc found the hole by
+/// putting `banana` on `st start` and watching every check in the repo pass.
+fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
+  let names = |v: &[Vocab]| -> Vec<String> { v.iter().map(|x| x.value.clone()).collect() };
+  let states = names(&table.target_states);
+  let entry_dispositions = names(&table.entry_dispositions);
+  let flag_dispositions = names(&table.flag_dispositions);
+
+  // An empty vocabulary would make every check below vacuous, so the absence of
+  // a declaration is itself the first thing refused.
+  let mut unknown = Vec::new();
+  for (what, declared) in [
+    ("target_states", &states),
+    ("entry_dispositions", &entry_dispositions),
+    ("flag_dispositions", &flag_dispositions),
+  ] {
+    if declared.is_empty() {
+      unknown.push(format!(
+        "{what} declares no values at all, so nothing below it could be checked"
+      ));
+    }
+  }
+  if !unknown.is_empty() {
+    return Err(unknown);
+  }
+
+  for entry in table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .chain(table.new_surface.iter())
+  {
+    if !entry_dispositions.contains(&entry.disposition) {
+      unknown.push(format!(
+        "`{}` disposition {:?} is not in entry_dispositions",
+        entry.path, entry.disposition
+      ));
+    }
+    if !states.contains(&entry.target.state) {
+      unknown.push(format!(
+        "`{}` target.state {:?} is not in target_states",
+        entry.path, entry.target.state
+      ));
+    }
+    for flag in &entry.flags {
+      if !flag_dispositions.contains(&flag.disposition) {
+        unknown.push(format!(
+          "`{}` flag {:?} disposition {:?} is not in flag_dispositions",
+          entry.path, flag.spellings, flag.disposition
+        ));
+      }
+    }
+  }
+
+  if unknown.is_empty() {
+    Ok(())
+  } else {
+    Err(unknown)
+  }
 }
 
 /// Every shipped entry, ported and added alike, in table order.
@@ -254,6 +378,58 @@ pub fn entry<'a>(table: &'a Table, path: &str) -> Option<&'a Entry> {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  /// **`banana` on `st start` passed every check in the repo** (vc's probe,
+  /// 2026-08-15), because these are bare `String`s with `#[serde(default)]` and
+  /// nothing compared them to the vocabulary that declares them.
+  ///
+  /// Driven with that exact value, on all three fields, and paired with the
+  /// real table coming back clean -- a refusal that fires on everything is not
+  /// a check.
+  #[test]
+  fn a_value_no_vocabulary_declares_is_refused() {
+    assert!(
+      check_vocabularies(&table()).is_ok(),
+      "the committed table is conformant, or every case below passes for the wrong reason"
+    );
+
+    let mut bad = table();
+    bad.families[0].entries[0].disposition = "banana".to_string();
+    let err = check_vocabularies(&bad).expect_err("an undeclared disposition is refused");
+    assert!(
+      err.iter().any(|e| e.contains("banana")),
+      "the refusal names the offending value: {err:?}"
+    );
+
+    let mut bad = table();
+    bad.families[0].entries[0].target.state = "banana".to_string();
+    assert!(
+      check_vocabularies(&bad).is_err(),
+      "target.state is checked too -- it is the field that said five when it had six"
+    );
+
+    let mut bad = table();
+    let flagged = bad
+      .families
+      .iter_mut()
+      .flat_map(|f| f.entries.iter_mut())
+      .find(|e| !e.flags.is_empty())
+      .expect("some entry declares a flag");
+    flagged.flags[0].disposition = "banana".to_string();
+    assert!(
+      check_vocabularies(&bad).is_err(),
+      "and flag dispositions, which fail CLOSED and silently when unrecognised"
+    );
+
+    // An empty vocabulary must refuse rather than accept everything: a check
+    // whose declared set is missing would otherwise pass on every row.
+    let mut hollow = table();
+    hollow.entry_dispositions.clear();
+    assert!(
+      check_vocabularies(&hollow).is_err(),
+      "an absent vocabulary makes every row vacuously conformant"
+    );
+  }
 
   #[test]
   fn the_compiled_table_parses_and_is_the_expected_shape() {
