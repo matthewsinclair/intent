@@ -87,3 +87,30 @@ The one home decomposes into `components()`; the copy does `to_string_lossy().re
 **What is CLEAN, reported because a review that lists only defects misdescribes the code.** Zero duplicate type names across 13,905 lines of `src` -- the model is genuinely single-authored. **The thin-skin invariant holds**: `intent-cli/src` contains zero `rusqlite` uses and zero filesystem writes, so the CLI reaches canon only through the facade. And the two `unwired` functions are the pattern done RIGHT -- one per surface, each documented as _"the one refusal, so the message cannot drift between resolvers"_, which is what 0041's four functions should look like.
 
 -- vc
+
+## (2026-08-16 14:37Z) 0040 UPDATE -- I RAN IT. THE FAILURE IS SILENT SUCCESS, NOT A BREAK. AND I LOWERED MY OWN SEVERITY TO MEDIUM: TAKE 0038 FIRST, NOT THIS.
+
+**I filed 0040 at `high` on a reading and then went and measured it, and both halves of that changed something.**
+
+**The behaviour is worse than I described.** Four fixtures from one generator, identical but for the directory name and the config value, each a committed v2 repo at 2.19.0 with one WIP thread:
+
+| fixture | directory | `st_prefix` | threads read | residue | exit | output                   |
+| ------- | --------- | ----------- | ------------ | ------- | ---- | ------------------------ |
+| st      | `ST0001`  | `ST`        | **1**        | 0       | 0    | `ok: this estate parses` |
+| th      | `TH0001`  | `TH`        | **0**        | 0       | 0    | `ok: this estate parses` |
+| mix1    | `ST0001`  | `TH`        | **1**        | 0       | 0    | `ok: this estate parses` |
+| mix2    | `TH0001`  | `ST`        | **0**        | 0       | 0    | `ok: this estate parses` |
+
+**The config has no effect in EITHER direction** -- `TH` in config does not stop an `ST` directory being read, and `ST` in config does not rescue a `TH` one. The directory name alone decides.
+
+**And the invisible cases do not fail. They succeed.** `read: 0 thread(s)`, `residue: 0 blocking, 0 carried`, **`ok: this estate parses`, exit 0.** I had written "silent under-count"; it is stronger than that. **A refusal would be safe -- the operator fixes and re-runs. A green `ok:` over an unread estate is an instruction to proceed, and exit 0 means a pipeline does.** AC-00.2 / AC-10.5 promise converted-or-named-in-residue, and this is neither: the residue line positively asserts there is nothing to name.
+
+**Now the part that should change what you do with it. I lowered the severity to `medium` and 0038 outranks it.**
+
+I named a fleet survey as the thing that would settle the ranking, so I ran it. **Every project uses `ST`** -- Anvil, Baize, Cdsync, Conflab, Courses, Devbin, Intent, Lamplight, MicroGPTEx, Molt, Molt-flynn, Molt-matts, Prolix, Riffle, Utilz all set it explicitly; Laksa omits the field, which defaults to `ST`. **The whole `migration.md` corpus -- Intent, Lamplight, Utilz, Baize -- is unaffected, and Intent's own dogfood migration is safe.**
+
+**So the defect is real and the urgency is not, and those are different things.** The contract is still breached with no instrument able to see it, and v2 documented the setting, so a user outside this fleet may hold one. But **ranking it `high` next to 0038 would have been the actual harm**: 0038 blocks every commit in a migrated project, this affects zero known projects, and two `high` rows where one is unreachable is how the reachable one loses its place.
+
+**One observation in passing, and I am NOT reporting it as a finding because I cannot attribute it to HEAD.** The debug binary in the tree exits **2** for an unimplemented command, not 1 -- `intent upgrade` on a v2 fixture gives `rc=2` with `is a known command that is not implemented yet`. If that is your 0038 fix landing, good; if it is not, then 0038's stated exit code may be off by one and worth re-reading before you build against it. The binary is newer than my archive and `spine.rs` was dirty when I looked, so I deliberately did not read your tree to find out. **Your call, your lane -- I am telling you what I saw, not what it means.**
+
+-- vc

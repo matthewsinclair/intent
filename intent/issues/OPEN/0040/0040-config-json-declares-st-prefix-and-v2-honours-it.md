@@ -4,7 +4,7 @@ title: config.json declares st_prefix and v2 honours it in six places, but v3 re
 date: 2026-08-16
 reporter: matts
 status: OPEN
-severity: high
+severity: medium
 ---
 
 # 0040: config.json declares st_prefix and v2 honours it in six places, but v3 reads the field nowhere -- the id allocator and the legacy scanner both hardcode ST
@@ -62,6 +62,19 @@ bin/intent_st:228:  printf "%s%04d" "$st_prefix" $next_id
 bin/intent_init:120:  "st_prefix": "ST",
 ```
 
+**Confirmed by running, not by reading.** Four fixtures from one generator, differing only in the thread directory's name and the `st_prefix` value, each a committed git repo at `intent_version: 2.19.0` with a single WIP thread. Run against the debug binary (`legacy.rs` is clean at HEAD, so this path is HEAD's):
+
+| fixture | directory | `st_prefix` | threads read | residue | exit | output                   |
+| ------- | --------- | ----------- | ------------ | ------- | ---- | ------------------------ |
+| st      | `ST0001`  | `ST`        | **1**        | 0       | 0    | `ok: this estate parses` |
+| th      | `TH0001`  | `TH`        | **0**        | 0       | 0    | `ok: this estate parses` |
+| mix1    | `ST0001`  | `TH`        | **1**        | 0       | 0    | `ok: this estate parses` |
+| mix2    | `TH0001`  | `ST`        | **0**        | 0       | 0    | `ok: this estate parses` |
+
+Two things the crossed arms establish that the straight pair could not. **The config field has no effect in either direction**: setting `st_prefix: TH` does not stop an `ST` directory being read (mix1), and setting `st_prefix: ST` does not rescue a `TH` directory (mix2). The directory name alone decides, exactly as `legacy.rs:198` says.
+
+**And the invisible cases do not fail -- they SUCCEED.** `read: 0 thread(s)`, `residue: 0 blocking, 0 carried`, `ok: this estate parses`, **exit 0**. The operator is told their estate is clean by a tool that could not see any of it.
+
 ## Root Cause
 
 **The same declared-but-unhonoured class as 0035 / 0039 / EXP-07, arriving through the opposite mechanism, which is why no instrument built for those would find it.**
@@ -82,13 +95,30 @@ Recording the table because the classification is the reusable part: a declared-
 
 ## Impact
 
-**A project configured with any prefix other than `ST` migrates into a v3 that cannot see its own threads.**
+**A project configured with any prefix other than `ST` is read as an empty estate, and told so with an `ok:` and exit 0.**
 
-- `legacy.rs:198` does not recognise the thread directories, so Phase A reads the estate as empty rather than reporting residue -- **the failure mode is a silent under-count, not a refusal**, which is the direction the migrator is explicitly built to avoid.
-- `facade.rs:1895` then allocates `ST0001` into a project whose every existing thread carries a different prefix.
-- The field survives the migration into the v3 config carrying a value nothing honours, so the config keeps claiming a setting that has stopped working.
+**The failure is not that the migration breaks -- it is that the migration SUCCEEDS on nothing and says so.** That is the worst available shape and it is the one measured above. A refusal would be safe: the operator fixes the estate and re-runs. A green `ok: this estate parses` over an unread estate is an instruction to proceed, and exit 0 means an automated pipeline does.
 
-**Not claimed: that any fleet member currently sets a non-default prefix.** Intent's own is `ST` and I have not surveyed Lamplight, Utilz or Baize. The severity is `high` on the migrator's contract rather than on a known affected project -- AC-00.2 / AC-10.5 assert that every v2 artefact is accounted for or named in the residue, and a thread whose directory is not recognised is neither.
+- **AC-00.2 / AC-10.5 are breached silently.** Artefact conservation says every v2 artefact is converted or named in the residue by class. An unrecognised thread directory is **neither** -- it is not converted, and `residue: 0 blocking, 0 carried` positively asserts there is nothing to name.
+- **`facade.rs:1895` then allocates `ST0001`** into a project whose every existing thread carries a different prefix, so the first post-migration `st new` collides the two vocabularies.
+- **The field survives into the v3 config carrying a value nothing honours**, so the file keeps claiming a setting that stopped working.
+- **`IN-AG-NO-SILENT-001`** in its purest form: the one code path that exists to report what could not be read reports that everything was read.
+
+**Filed at `high`, lowered to `medium` by the survey below, and the reasoning is recorded rather than quietly adjusted.**
+
+I named the fleet survey as the thing that would settle the severity, then ran it. **Every project surveyed uses `ST`:**
+
+```
+Anvil ST · Baize ST · Cdsync ST · Conflab ST · Courses ST · Devbin ST · Intent ST
+Laksa (absent -- defaults to ST) · Lamplight ST · MicroGPTEx ST · Molt ST
+Molt-flynn ST · Molt-matts ST · Prolix ST · Riffle ST · Utilz ST
+```
+
+**So the entire migration corpus named in `migration.md` -- Intent, Lamplight, Utilz, Baize -- is unaffected, and no migration we are actually about to run can hit this.** Intent's own dogfood migration is safe.
+
+**Why it stays open at `medium` rather than closing.** The breach is of the migrator's contract, not of a project: AC-00.2 / AC-10.5 promise conservation-or-residue and this path delivers neither, with no instrument able to see it. v2 documented and honoured the setting, so a user outside this fleet may hold one, and v3 ships publicly. **What the survey removes is urgency, not the defect** -- which is the distinction between severity and correctness, and the reason to run the survey before ranking rather than after.
+
+**Ranking it `high` beside 0038 would have been the real harm.** 0038 blocks every commit in a migrated project; this affects zero known projects. Two `high` rows where one is unreachable is how the reachable one loses its place in the queue.
 
 **Also not claimed: that the fix is to honour it.** Retiring the field is a legitimate answer -- v3 may reasonably decide the prefix is fixed. That is a ratification with a `disposition: retire` row and a migration note, which is a decision; what exists today is neither.
 
