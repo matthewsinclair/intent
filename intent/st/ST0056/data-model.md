@@ -33,16 +33,18 @@ Per-table naming, ruled on cc's measurement that the store has **no `UPDATE` any
 
 ### project (`intent/.config/config.json` -- as today, plus)
 
-| Field          | Type   | Notes                                             |
-| -------------- | ------ | ------------------------------------------------- |
-| project_id     | uuid   | stamped at migration (D15); never changes         |
-| intent_version | string | `3.0.0`+                                          |
-| name, author   | string | as v2                                             |
-| languages      | array  | as v2 (ST0037)                                    |
-| server         | object | RESERVED, absent in v3 (D15); intentc-era binding |
-| todo           | object | `{done_watermark: rfc3339}` -- see below          |
+| Field          | Type   | Notes                                                         |
+| -------------- | ------ | ------------------------------------------------------------- |
+| project_id     | uuid   | stamped at migration (D15); never changes                     |
+| intent_version | string | `3.0.0`+                                                      |
+| name, author   | string | as v2                                                         |
+| languages      | array  | as v2 (ST0037)                                                |
+| server         | object | RESERVED, absent in v3 (D15); intentc-era binding             |
+| todo           | object | `{window_hours: int}` (D44) -- **NOT a watermark**; see below |
 
-#### The todo watermark: a generated view that was its own database
+#### The todo watermark: a generated view that was its own database -- RETIRED BY D44, kept as archaeology
+
+> **The v3 mechanism described below no longer exists** (hv ruled `todo --flush` / `--prune` dead; D44; cc unbuilt it at `7663fb19`, removing the watermark, the `todo.flush` op, `Facade::todo_flush`, `RenderContext.todo_watermark` and `in_done_bucket`). **This section's own last paragraph predicted exactly that** -- _"if they retire, the watermark retires with them and DONE filtering becomes a query parameter over the `completed` dates already in the model"_ -- and that is what D44 ruled, so the field is a **display window** now, not durable state. **The v2 archaeology below is kept because it is still the reason v3 does not do this**, and a retired mechanism whose reasoning is deleted gets reinvented. Flagged by cc, 2026-08-16, as stale in vc's file; corrected rather than removed.
 
 Found by cc at WP-03 when the no-clock law (D23) forced the question of whether `todo.md`'s `## DONE:<timestamp>` heading was render time or data. It is data, and the mechanism is worse than a stray timestamp:
 
@@ -53,7 +55,9 @@ So the view is the only durable home of a fact the tool reads back as truth. Thr
 
 Ruling (vc, 2026-08-14; ADOPTED under hv standing authorisation): the watermark is **durable project state**, homed in `config.json` under a `todo` block, **always materialised and never defaulted at render time**. The render path receives it as an input and never reads it back. The v2 start-of-today fallback does not survive -- a default computed from a clock is the defect wearing a different hat.
 
-Open for hv, and it decides whether this field exists at all: whether `todo --flush` / `--prune` semantics carry into v3. If they retire, the watermark retires with them and DONE filtering becomes a query parameter over the `completed` dates already in the model. The field is provisional precisely because it is downstream of that behaviour question.
+~~Open for hv, and it decides whether this field exists at all~~ **ANSWERED: hv retired `todo --flush` / `--prune` (D44, 2026-08-16), so the watermark retired with them and DONE filtering became exactly the "query parameter over the `completed` dates already in the model" this paragraph named.** Recorded as a hit rather than deleted: the field was marked provisional _because_ it was downstream of a behaviour question, the question was asked of the right person, and the answer removed the field. That is the provisional marking working, and it is worth one line of evidence that it does.
+
+**What replaces it, and the constraint that shapes it (D44 + D42).** The window is **configuration, not state**: `todo.window_hours`, default 24, non-destructive -- nothing is flushed, pruned or forgotten, because every completed date is already in the model and the file is regenerated from it. **The reason it must be config rather than a flag is measured: all six `todo` verbs regenerate the file, so a flag on any one of them is a silent-revert generator** -- the next verb rewrites the file without it.
 
 ### steel_thread (`st/<ID>/thread.json`)
 
