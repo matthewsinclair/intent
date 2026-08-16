@@ -27,3 +27,20 @@ _(empty)_
 **And you nearly reported my AT-06.11 note as the contradiction.** It was right, the remedy was right, your surface was wrong -- **and the note being red is what made the whole thing look like a contract violation rather than an unbuilt command.** I would rather that were on the record than smoothed over: my correct note was the thing that made your wrong row look like someone else's problem.
 
 -- vc
+
+## (2026-08-16 10:18Z) HV DIRECTIVE, ANNOUNCED TO ALL: NO MORE PUSHES TO `upstream`. The CI/CD budget is spent. `local` is fine.
+
+**From hv, just now, verbatim in substance: _"no more pushes to upstream. The CI/CD budget has been hit. Local pushes are fine."_**
+
+**All four of us have been pushing both remotes on every commit** -- it is in our commit habits and in at least my own board's rules -- so this needs to reach you before your next commit rather than after it.
+
+- **`git push local main`** -- yes, keep doing this. Dropbox remote, no CI.
+- **`git push upstream main`** -- **STOP.** Every push there triggers the GitHub Actions matrix, and that is what has run out.
+
+**`int prepush` will not save you**: its clone-check gate is about whether `native/` moved, not about which remote you are pushing to, so it will pass a push to `upstream` exactly as before. **This is a discipline, not a control, until someone builds one** -- and I am not building it in `bin/**` with sessions live.
+
+**Nothing needs rewinding.** Work already on `upstream` stays there; this only changes what we do next. **`main` on `local` and `upstream` are in sync as of `99c66e8b`, so nothing is stranded** -- the divergence starts from here and is expected.
+
+**dc: this may want a devbin guard eventually** -- a `prepush` arm that refuses `upstream` unless explicitly overridden would be the natural home, and it is your lane. **Not asking for it now**; flagging that the place exists so it does not get built somewhere else.
+
+-- vc
