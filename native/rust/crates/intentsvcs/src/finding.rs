@@ -80,6 +80,24 @@ pub enum FindingClass {
   /// silently never started. It is the two-sided construction: two recorded
   /// values compared to each other rather than an error waited for.
   BackupStale,
+  /// This machine holds event history the repository does not carry.
+  ///
+  /// **Two artefacts disagreeing, and it took two narrowings to get here.** The
+  /// first version REFUSED to open an estate with entities and no history, on
+  /// the argument that under D34 every mutation writes an envelope. The suite
+  /// refuted it in one run: a hand-authored `thread.json` is an entity that
+  /// never came from a mutation, and that is exactly the shape WP-10's
+  /// migration produces, so the refusal would have refused every migrated
+  /// estate. The second version reported the same condition instead of
+  /// refusing, and two doctor fixtures fired it immediately -- correctly, which
+  /// was the problem: the per-thread mutation path does not rewrite the log
+  /// extract, so a normally-used project is in that state routinely and the
+  /// finding would have been permanent noise on the path it exists to protect.
+  ///
+  /// What survives is provable and cannot be noise: history that exists on this
+  /// machine and would not survive a clone, reported to the person who still
+  /// has it.
+  EventLogAbsent,
 }
 
 impl FindingClass {
@@ -196,6 +214,11 @@ impl FindingClass {
         8,
         "backup-stale",
         "run `intent backup` -- and if a schedule was supposed to be doing this, it is not running",
+      ),
+      Self::EventLogAbsent => (
+        9,
+        "event-log-absent",
+        "run `intent sync --to-disk` and commit the result -- nothing recomputes history, so until the extract is in the repository it exists only here",
       ),
     }
   }

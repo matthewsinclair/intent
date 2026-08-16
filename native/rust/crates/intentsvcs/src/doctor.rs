@@ -144,8 +144,64 @@ pub fn diagnose(
 
   db_checks(&canon, project, &mut report.findings);
   file_checks(project, &canon, ctx, &mut report);
+  history_checks(project, &canon, store, &mut report.findings);
 
   report
+}
+
+/// **Does the repository carry the history this machine has?** (AC-03.11.)
+///
+/// `event_log` is the one table derived from nothing (D34), so it is the one
+/// whose absence nothing else reveals: every other question the estate answers
+/// is answerable without it, which is why a clone with no history at all read
+/// as perfectly healthy for as long as it did.
+///
+/// **The condition is two artefacts disagreeing, not one artefact missing**,
+/// and the difference is what makes this reportable at all. "Entities and no
+/// log" was the first version and it is too broad to be useful: the per-thread
+/// mutation path deliberately does not rewrite the log extract, so a project
+/// mutated normally sits in that state routinely, and a finding that fires
+/// routinely is the trained-to-be-ignored failure. Worse, a hand-authored or
+/// freshly migrated estate is permanently in it -- so the check would have been
+/// loudest exactly where AC-03.11 needs it trusted.
+///
+/// What IS provable is this store holding envelopes the repository does not.
+/// That is not a guess about intent; it is history that exists on one machine
+/// and would not survive a clone, reported to the person who still has it. The
+/// case it does not cover -- a clone that arrived with no log, where the data is
+/// already gone and nothing local can prove it ever existed -- is with vc,
+/// because answering it means ruling on how current the committed extract must
+/// be, which is a D34 question rather than a diagnostic one.
+fn history_checks(
+  project: &Project,
+  canon: &crate::ingest::Canon,
+  store: Option<&crate::store::Store>,
+  findings: &mut Vec<Finding>,
+) {
+  if canon.threads.is_empty() && canon.issues.is_empty() {
+    return;
+  }
+  let Some(store) = store else {
+    return;
+  };
+  let recorded = store.events().map(|e| e.len()).unwrap_or_default();
+  if recorded == 0 {
+    return;
+  }
+  let path = project.events_jsonl();
+  // Asked by SIZE rather than by existence, so a truncated log -- which a
+  // failed write or a bad merge leaves behind, and which `exists()` calls
+  // healthy -- answers the same as an absent one.
+  let committed = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+  if committed == 0 {
+    findings.push(Finding::new(
+      project.relative(&path),
+      FindingClass::EventLogAbsent,
+      format!(
+        "this store holds {recorded} event(s) and the repository carries none of them -- a clone of this project would arrive with no history"
+      ),
+    ));
+  }
 }
 
 /// Unwrap an ingest failure into findings. A refusal already carries them; any

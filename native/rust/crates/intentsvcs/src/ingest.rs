@@ -258,6 +258,21 @@ pub fn resync(project: &Project, store: &mut Store) -> Result<Canon, IngestError
   // because a missing log looks exactly like a project that has never
   // recorded anything.
   restore_event_log(project, store)?;
+
+  // **The restore SUCCEEDING is not the same as the history being there**, and
+  // the gap is reported rather than refused. `restore_event_log` returns
+  // `Ok(0)` for an absent file, which is right on its own terms: a project that
+  // has never recorded anything has no log, and refusing to open it would be
+  // refusing `intent init`.
+  //
+  // An earlier version of this refused when the canon had entities and the
+  // restore produced nothing, arguing that under D34 every mutation writes an
+  // envelope so entities imply history. **The suite refuted it: a hand-authored
+  // `thread.json` is an entity that never came from a mutation, and that is
+  // exactly the shape WP-10's migration produces** -- so the refusal would have
+  // refused every estate the migrator makes, on the path AC-03.11 exists to
+  // protect. The check lives in `doctor` as `EventLogAbsent` instead, which is
+  // what the criterion's own word REPORTED asks for.
   Ok(canon)
 }
 
