@@ -1611,7 +1611,7 @@ Upgrade an Intent project to the current version
 
 | command   | args | flags                                      | help                                             | disposition |
 | --------- | ---- | ------------------------------------------ | ------------------------------------------------ | ----------- |
-| `upgrade` | --   | --backup-dir <dir>, --no-backup, --help/-h | Upgrade an Intent project to the current version | retire      |
+| `upgrade` | --   | --backup-dir <dir>, --no-backup, --help/-h | Upgrade an Intent project to the current version | keep        |
 
 ### `upgrade`
 
@@ -1621,11 +1621,11 @@ Upgrade an Intent project to the current version
 - **Flags:**
   - `--backup-dir` `<dir>` (string) -- Custom backup directory name
     - **default:** .backup/backup-TIMESTAMP
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
+    - **disposition:** pending
+    - **disposition basis:** PENDING, ic 2026-08-16. This flag carried `retire` on the basis "Inherited from the entry: a retired command never reaches clap, so neither can its flags" -- and the entry is no longer `retire` (see the target block: `upgrade` is v3's migration door, migration.md:3). **The basis was the whole justification, so correcting the entry left the value unsupported rather than merely stale.** It was never decided on its own merits. Not defaulted to `keep`: v3's migration rolls back through git (AC-10.6 exercises `git revert`, tree-identical), so v2's backup-directory flags may not apply at all -- which is a judgement nobody has made. `pending` does not ship, so nothing is advertised while it is open.
   - `--no-backup` (bool) -- Skip backup creation (dangerous)
-    - **disposition:** retire
-    - **disposition basis:** Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it.
+    - **disposition:** pending
+    - **disposition basis:** PENDING, ic 2026-08-16. This flag carried `retire` on the basis "Inherited from the entry: a retired command never reaches clap, so neither can its flags" -- and the entry is no longer `retire` (see the target block: `upgrade` is v3's migration door, migration.md:3). **The basis was the whole justification, so correcting the entry left the value unsupported rather than merely stale.** It was never decided on its own merits. Not defaulted to `keep`: v3's migration rolls back through git (AC-10.6 exercises `git revert`, tree-identical), so v2's backup-directory flags may not apply at all -- which is a judgement nobody has made. `pending` does not ship, so nothing is advertised while it is open.
   - `--help`, `-h` (bool) -- Print the usage block
     - **disposition:** intrinsic
     - **disposition basis:** PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration.
@@ -1637,7 +1637,10 @@ Upgrade an Intent project to the current version
 - **stdout:** the convergent ledger walk
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** Convergent since ST0043: it probes on-disk state, runs only the steps still needed, applies canon via `intent claude upgrade --apply`, and stamps the version once at the end. Safe to re-run after an interruption.
-- **Target:** `retire` -- ratified: D09 -- migration floor v2.19.0, two-hop; v2's ledger is never reimplemented in Rust -- behaviour: The v3 migrator (WP-10) is the successor surface: `intent ingest --from-md` is its engine.
+- **Target:** `pending-hv` -- ratified: CORRECTED BY ic 2026-08-16, ratification of the new state OUTSTANDING. This row said `retire`/`retire` and that was my error, with a live consequence: `is_shipped()` gates on BOTH fields, so `upgrade` would never have reached clap and WP-10's migration would have shipped with NO DOOR.
+- **why the old ratification was wrong:** It cited D09, and D09 is one line -- `Migration floor v2.19.0, two-hop` -- which says nothing about the command. What is retired is v2's LEDGER (`the v2 ledger is never reimplemented in Rust`, migration.md:7), the version-walk mechanism, not the verb. `migration.md:3` is explicit in the opposite direction: **`The migrator is the v3 binary's intent upgrade detecting a v2 project`**. So `upgrade` is v3's migration DOOR and keeps its spelling. My own `behaviour` field on the old row named `intent ingest --from-md` as the engine, and I read the ENGINE's succession as the DOOR's retirement: the ingest engine replaces the ledger, the command survives.
+- **corroborated by the binary:** v3's unmigrated-project refusal already emits `run intent upgrade to migrate this project to Intent v3`, and AT-06.11 is held red `until WP-10 lands upgrade`. Both were right and this table was the odd one out -- which is why the defect first presented as an AC-06.11 violation, a remedy naming a command the binary cannot do. The remedy was correct and the SURFACE was wrong.
+- **state is pending deliberately:** Not a guess dressed as a decision. `keep` is carried by migration.md:3. But WHAT v3's `upgrade` does differs from v2's -- a one-hop v2->v3 migration rather than a convergent version ladder -- and a deliberate behaviour change flowing from v3's design is what `deviate` means in the register vocabulary. `target_states` has no `deviate`, so no value in it can say this. Classifying it is a parity call for vc or hv; `pending-hv` is this file's declared honest blank.
 - **MCP:** not exposed -- **mutates**
 
 ## Family: `organize`

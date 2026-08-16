@@ -43,17 +43,44 @@
     }
   ],
   "entry_dispositions": [
-    { "value": "keep", "gloss": "The v2 command survives into v3. It is the answer for a corrected command too -- a behaviour that is fixed still SURVIVES, and `target.state: corrected` is what records the fix." },
-    { "value": "retire", "gloss": "The v2 command does not ship in v3. Every retire row carries its own ratification; the class is not the warrant." },
-    { "value": "deviate", "gloss": "A deliberate behaviour change that is a design consequence rather than a bug fix. ZERO rows here and that is a FACT ABOUT THE SURFACE, not a gap: no v2 COMMAND is a deliberate behaviour change. See `shared_vocabulary` below before concluding it is dead." },
-    { "value": "pending", "gloss": "Undecided, written explicitly. Never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight." },
-    { "value": "new-surface", "gloss": "There is no v2 command, so the question `what becomes of it` does not apply. Declared rather than omitted for the same reason `pending` is." }
+    {
+      "value": "keep",
+      "gloss": "The v2 command survives into v3. It is the answer for a corrected command too -- a behaviour that is fixed still SURVIVES, and `target.state: corrected` is what records the fix."
+    },
+    {
+      "value": "retire",
+      "gloss": "The v2 command does not ship in v3. Every retire row carries its own ratification; the class is not the warrant."
+    },
+    {
+      "value": "deviate",
+      "gloss": "A deliberate behaviour change that is a design consequence rather than a bug fix. ZERO rows here and that is a FACT ABOUT THE SURFACE, not a gap: no v2 COMMAND is a deliberate behaviour change. See `shared_vocabulary` below before concluding it is dead."
+    },
+    {
+      "value": "pending",
+      "gloss": "Undecided, written explicitly. Never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight."
+    },
+    {
+      "value": "new-surface",
+      "gloss": "There is no v2 command, so the question `what becomes of it` does not apply. Declared rather than omitted for the same reason `pending` is."
+    }
   ],
   "flag_dispositions": [
-    { "value": "keep", "gloss": "Ships and must be read by the renderer." },
-    { "value": "retire", "gloss": "Recorded from v2 and never reaches clap." },
-    { "value": "pending", "gloss": "Does not ship. Deliberately does NOT refuse the build; `doctor` reports the count instead, because a guard that must be bypassed is a guard nobody keeps." },
-    { "value": "intrinsic", "gloss": "Ships, and clap supplies it, so the renderer is not expected to read it." }
+    {
+      "value": "keep",
+      "gloss": "Ships and must be read by the renderer."
+    },
+    {
+      "value": "retire",
+      "gloss": "Recorded from v2 and never reaches clap."
+    },
+    {
+      "value": "pending",
+      "gloss": "Does not ship. Deliberately does NOT refuse the build; `doctor` reports the count instead, because a guard that must be bypassed is a guard nobody keeps."
+    },
+    {
+      "value": "intrinsic",
+      "gloss": "Ships, and clap supplies it, so the renderer is not expected to read it."
+    }
   ],
   "shared_vocabulary": "READ THIS BEFORE APPLYING THE `target_states` UNUSED-VALUE REFUSAL TO ANYTHING ELSE. `target_states` is checked in BOTH directions -- an undeclared state, and a declared state no row uses -- and the second direction is only valid because that vocabulary has ONE HOME. `entry_dispositions` does not: the `about` block says `disposition` uses one vocabulary SHARED WITH the keep/retire/deviate register, and `deviate` has 47 rows in `pertest.md` and 3 in `register.md` while having none here. A shared vocabulary is populated ACROSS its homes and fully populated in none of them, so an unused-value refusal would fire on a correct value, correctly declared, with 47 members one artefact away. The refusal's premise is SINGLE-HOMEDNESS, not declaration. Caught by vc 2026-08-15, on ic proposing to drop `deviate` after reading zero rows -- the same rule, the same author and the same evening as the refusal it would have broken.",
   "field_overlap": "`disposition` and `target.state` answer DIFFERENT questions -- what becomes of the v2 command, versus what v3 does -- and they share exactly two values, on which they move in perfect lockstep: all 19 `new-surface` rows and all 6 `retire` rows carry the same value in both fields. NOTHING MAKES THEM AGREE. `is_shipped()` reads both for `retire` (`disposition != \"retire\" && target.state != \"retire\"`), which fails OPEN on a typo, so a single hand-edit out of agreement ships a retired command; the redundancy is what currently prevents that and it is undeclared. 25 of 111 rows carry one fact in two fields. Recorded rather than mechanised: the fix is either a check that the two agree, or a decision that one of them is derived -- and that is a design call, not a typo.",
@@ -3481,8 +3508,8 @@
               "help": "Custom backup directory name",
               "value": "<dir>",
               "default": ".backup/backup-TIMESTAMP",
-              "disposition": "retire",
-              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
+              "disposition": "pending",
+              "disposition_basis": "PENDING, ic 2026-08-16. This flag carried `retire` on the basis \"Inherited from the entry: a retired command never reaches clap, so neither can its flags\" -- and the entry is no longer `retire` (see the target block: `upgrade` is v3's migration door, migration.md:3). **The basis was the whole justification, so correcting the entry left the value unsupported rather than merely stale.** It was never decided on its own merits. Not defaulted to `keep`: v3's migration rolls back through git (AC-10.6 exercises `git revert`, tree-identical), so v2's backup-directory flags may not apply at all -- which is a judgement nobody has made. `pending` does not ship, so nothing is advertised while it is open."
             },
             {
               "spellings": [
@@ -3490,8 +3517,8 @@
               ],
               "type": "bool",
               "help": "Skip backup creation (dangerous)",
-              "disposition": "retire",
-              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
+              "disposition": "pending",
+              "disposition_basis": "PENDING, ic 2026-08-16. This flag carried `retire` on the basis \"Inherited from the entry: a retired command never reaches clap, so neither can its flags\" -- and the entry is no longer `retire` (see the target block: `upgrade` is v3's migration door, migration.md:3). **The basis was the whole justification, so correcting the entry left the value unsupported rather than merely stale.** It was never decided on its own merits. Not defaulted to `keep`: v3's migration rolls back through git (AC-10.6 exercises `git revert`, tree-identical), so v2's backup-directory flags may not apply at all -- which is a judgement nobody has made. `pending` does not ship, so nothing is advertised while it is open."
             },
             {
               "spellings": [
@@ -3533,11 +3560,13 @@
             }
           },
           "target": {
-            "state": "retire",
-            "ratification": "D09 -- migration floor v2.19.0, two-hop; v2's ledger is never reimplemented in Rust",
-            "behaviour": "The v3 migrator (WP-10) is the successor surface: `intent ingest --from-md` is its engine."
+            "state": "pending-hv",
+            "ratification": "CORRECTED BY ic 2026-08-16, ratification of the new state OUTSTANDING. This row said `retire`/`retire` and that was my error, with a live consequence: `is_shipped()` gates on BOTH fields, so `upgrade` would never have reached clap and WP-10's migration would have shipped with NO DOOR.",
+            "why_the_old_ratification_was_wrong": "It cited D09, and D09 is one line -- `Migration floor v2.19.0, two-hop` -- which says nothing about the command. What is retired is v2's LEDGER (`the v2 ledger is never reimplemented in Rust`, migration.md:7), the version-walk mechanism, not the verb. `migration.md:3` is explicit in the opposite direction: **`The migrator is the v3 binary's intent upgrade detecting a v2 project`**. So `upgrade` is v3's migration DOOR and keeps its spelling. My own `behaviour` field on the old row named `intent ingest --from-md` as the engine, and I read the ENGINE's succession as the DOOR's retirement: the ingest engine replaces the ledger, the command survives.",
+            "corroborated_by_the_binary": "v3's unmigrated-project refusal already emits `run intent upgrade to migrate this project to Intent v3`, and AT-06.11 is held red `until WP-10 lands upgrade`. Both were right and this table was the odd one out -- which is why the defect first presented as an AC-06.11 violation, a remedy naming a command the binary cannot do. The remedy was correct and the SURFACE was wrong.",
+            "state_is_pending_deliberately": "Not a guess dressed as a decision. `keep` is carried by migration.md:3. But WHAT v3's `upgrade` does differs from v2's -- a one-hop v2->v3 migration rather than a convergent version ladder -- and a deliberate behaviour change flowing from v3's design is what `deviate` means in the register vocabulary. `target_states` has no `deviate`, so no value in it can say this. Classifying it is a parity call for vc or hv; `pending-hv` is this file's declared honest blank."
           },
-          "disposition": "retire",
+          "disposition": "keep",
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate"
         }
