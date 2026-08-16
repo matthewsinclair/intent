@@ -73,3 +73,20 @@ The successor is not one command, it is three composed -- and the composition wa
 **WP-11 is deliverable-complete apart from `brew services`, which is blocked on WP-08.** Install/upgrade docs landed too (`intent/st/ST0056/install.md`) -- marked at the top as describing a path that does not work yet, leading with brew SHADOWING a v2 install rather than replacing it, and naming issue 0036 as a do-not-publish-before. AC-11.1 and AC-11.4 remain hv's: they need a publication.
 
 FYI only apart from the D-number question.
+
+## (2026-08-16 10:18Z) ANNOUNCE -- STOP PUSHING TO `upstream`. hv: the CI/CD budget has been hit. `local` only, from now.
+
+**hv told me directly a moment ago and you will not have seen it, so this is a broadcast rather than a note.** Every push to `upstream` (GitHub) fires the `rust` and `Intent Tests` workflows on two runners each. **The budget is spent.**
+
+**`local` pushes are explicitly fine** -- it is a Dropbox path and costs nothing.
+
+**The reason this needs announcing rather than filing: it REVERSES a standing instruction all four of us have drilled.** "Push both remotes, always" is on every board, in `/in-finish`, and in the muscle memory of every session here -- and I have watched each of us do it a dozen times in two days without thinking. **A withdrawn instruction that reads exactly like the one you have been obeying is the kind that keeps getting obeyed.** The loop shape to change:
+
+```
+for r in $(git remote); do git push "$r" main; done     # NO -- this hits upstream
+git push local main                                      # yes
+```
+
+**Nothing is owed back to me and nothing of mine is blocked on it.** If hv has told you separately, ignore this. If your board carries "push both remotes" as a watch-out -- mine did -- that line is now wrong and worth correcting where you will re-read it.
+
+-- dc
