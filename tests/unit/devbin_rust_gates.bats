@@ -131,6 +131,28 @@ normalise() {
   [[ "$output" != *"Failed to find targets"* ]]
 }
 
+@test "the set of disabled gates is pinned" {
+  # `enabled: false` removes a gate from `int check all` AND from help, so a
+  # disabled gate is invisible rather than merely off. That is the right lever --
+  # `check toolchain` demands a `.tool-versions` this project deliberately does
+  # not have, and a permanently-red aggregate trains everyone to ignore the one
+  # command that would tell them something is wrong -- but it is a lever that
+  # silently shrinks what "all" means.
+  #
+  # So the set is pinned rather than the mechanism forbidden: turning off a
+  # second gate becomes a deliberate act with a test to update, instead of a
+  # config line nobody reviews. Each entry here should carry its reason in
+  # config.yaml beside the flag.
+  local disabled
+  # `[a-z0-9_-]` and not `[a-z-]`: the first mutation of this test disabled a gate
+  # called `clippy2` and the extractor SILENTLY DID NOT SEE IT, so the test passed
+  # over exactly the change it exists to catch. A needle that skips the names
+  # nobody has invented yet is the allowlist-versus-needle-list lesson, one file
+  # over, in a test written the same day.
+  disabled="$(grep -B1 '^ *enabled: false' "$CONFIG" | sed -n 's/^ *\([a-z][a-z0-9_-]*\):$/\1/p' | sort | tr '\n' ' ')"
+  [ "$disabled" = "toolchain " ]
+}
+
 @test "the declared language set is pinned" {
   # NOT tidiness. `commands.check.options.format.run` replaces devbin's
   # multi-language format builtin with ONE command line, because devbin refuses

@@ -91,6 +91,33 @@ commands:
         summary: rustfmt over the workspace, non-mutating
         run: cargo fmt --all --manifest-path native/rust/Cargo.toml --check
 
+      # OFF BECAUSE THIS PROJECT HAS NO PIN, AND `int check all` WAS RED FOREVER
+      # FOR A REASON THAT COULD NEVER CHANGE. The gate checks that a
+      # `.tool-versions` pin matches what is running; there is no `.tool-versions`
+      # here, so it failed on every run of the one command a developer uses to ask
+      # "is anything wrong". **A permanently-red aggregate is worse than a slow
+      # one: a slow gate gets bypassed, a always-red gate gets ignored, and the
+      # real failure then hides inside the noise.** Measured 2026-08-16: clippy,
+      # format and critic all pass; toolchain was the whole of the red.
+      #
+      # `enabled: false` rather than a `.tool-versions`, because WHETHER TO PIN IS
+      # AN OPEN QUESTION AND NOT MINE TO SETTLE BY ADDING A FILE. What is recorded
+      # is the neighbouring decision, in .github/workflows/rust.yml: NO
+      # rust-toolchain.toml, on the measurement that rustup is not installed here
+      # and rustc is Homebrew's, so such a file is ignored in silence -- **a pin
+      # that does not bind is worse than no pin, because it does not refuse and it
+      # misleads.** asdf IS installed, so a `.tool-versions` might bind where a
+      # rust-toolchain.toml would not; that is exactly why it is a decision rather
+      # than a tidy-up. Raised with hv. Turn this back on the day a pin lands.
+      #
+      # Devbin's own principle points the same way and is worth noting upstream:
+      # `builtin_check_format` treats a determinate "nothing to check" as REPORT
+      # AND PASS, on the grounds that it is a fact about the project rather than a
+      # run that went wrong. The toolchain arm fails instead. Two adjacent gates
+      # answering the same situation in opposite directions.
+      toolchain:
+        enabled: false
+
   fmt:
     options:
       # `--all` IS LOAD-BEARING AND ITS ABSENCE FAILS IN THE DIRECTION THAT
