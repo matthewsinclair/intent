@@ -44,6 +44,23 @@ pub enum FindingClass {
   UnknownFileShape,
   /// Two artefacts claiming one natural id (the 0011 class).
   DuplicateId,
+  /// An AC/AT/claims/index row the frozen legacy grammar cannot read
+  /// (migration.md).
+  UnparseableRow,
+  /// A status value outside the v2 vocabulary -- which is what
+  /// `canonical_status` ACCEPTS, not the set of values v2 prints.
+  UnknownStatus,
+  /// A T-shirt scope outside the enum. v2 reads `scope:` as free text, so this
+  /// is the absence of a vocabulary rather than a violation of one.
+  UnknownScope,
+  /// An AT file reference or coverage link that does not resolve.
+  BrokenReference,
+  /// A field the v2 estate never recorded, because the artefact predates the
+  /// convention that introduced it. **Not a defect and not the reader's to
+  /// fix** -- reported so the migration's counts reconcile, and kept apart from
+  /// `UnknownStatus` / `UnknownScope`, which describe a value that IS there and
+  /// is wrong.
+  FieldNotRecorded,
   /// A generated view on disk differs from what the model renders -- a
   /// hand-edit that would otherwise be silently overwritten, or silently
   /// believed.
@@ -97,6 +114,43 @@ impl FindingClass {
         0,
         "unmigrated",
         "migrate the project first -- every other finding on it is downstream of this one",
+      ),
+      // **The four migration classes. Their remedy names the FIXING
+      // ENVIRONMENT, which is the last v2 release rather than this binary**
+      // (migration.md's two-hop): v3 refuses what it cannot convert without
+      // loss, and the tool that can repair a v2 artefact is v2. A remedy
+      // sending someone to fix v2 markdown with a v3 command would be a
+      // remedy that cannot be acted on.
+      Self::UnparseableRow => (
+        1,
+        "unparseable-row",
+        "repair the row under v2 tooling (`intent at lint --fix` where it applies, by hand where it does not), then re-run the migration",
+      ),
+      Self::UnknownStatus => (
+        1,
+        "unknown-status",
+        "set the status to one v2 accepts, using the v2 CLI, then re-run the migration",
+      ),
+      // It says the model cannot hold it YET, because that is the true
+      // reason and it is not the reader's problem to solve.
+      Self::UnknownScope => (
+        1,
+        "unknown-scope",
+        "set the scope to a T-shirt size under v2 tooling, or wait for a build whose model carries the value verbatim -- nothing here guesses which size was meant",
+      ),
+      Self::BrokenReference => (
+        1,
+        "broken-reference",
+        "point the reference at something that exists, or remove it, under v2 tooling -- then re-run the migration",
+      ),
+      // **It says there is nothing to do, because there is nothing to do.** The
+      // artefact predates the field; v2 was content with it and v3 carries it
+      // as it is. A remedy that suggested authoring the value would be asking
+      // someone to invent data about finished work.
+      Self::FieldNotRecorded => (
+        1,
+        "field-not-recorded",
+        "nothing to fix -- the artefact predates the field, and the migration carries it as it is",
       ),
       Self::MalformedJson => (
         1,

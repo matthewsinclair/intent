@@ -1,26 +1,29 @@
-//! `intent ingest [PATH]` -- the WP-03 scaffolding for the markdown door that
-//! WP-10's migrator plugs into.
+//! `intent ingest [PATH]` -- Phase A of the v2 migration (migration.md, WP-10).
 //!
-//! **What is testable now is the SHAPE, and it is worth pinning precisely
-//! because the body is not here yet.** The parser lands in WP-10; until then
-//! every path through this verb ends in a refusal, so the properties that can
-//! go wrong are which project it resolved, and whether the refusal tells the
-//! truth about what it did to that project.
+//! **This file used to assert a refusal, and the refusal is gone.** The verb
+//! was scaffolding: every path through it ended in "not available in this
+//! build", and these tests pinned the SHAPE of that -- which project it
+//! resolved, and whether the refusal told the truth about what it had done to
+//! it. The parser has since landed, so the two tests asserting the refusal were
+//! asserting a defect, and they are replaced rather than adjusted. A test that
+//! keeps passing by describing what a command used to do is worse than none: it
+//! reads like coverage of the thing that replaced it.
+//!
+//! What Phase A promises is narrow and worth pinning exactly: it READS an
+//! estate and writes nothing, it distinguishes residue that blocks from legacy
+//! that carries, and it never reports an absent field as a wrong one.
 
 use std::process::Command;
 
-fn run(args: &[&str], cwd: &std::path::Path) -> (String, i32) {
+fn run(args: &[&str], cwd: &std::path::Path) -> (String, String, i32) {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
     .current_dir(cwd)
     .output()
     .expect("run the v3 binary");
   (
-    format!(
-      "{}{}",
-      String::from_utf8_lossy(&out.stdout),
-      String::from_utf8_lossy(&out.stderr)
-    ),
+    String::from_utf8_lossy(&out.stdout).into_owned(),
+    String::from_utf8_lossy(&out.stderr).into_owned(),
     out.status.code().unwrap_or(-1),
   )
 }
@@ -34,83 +37,164 @@ fn project(dir: &std::path::Path) {
   .expect("write config");
 }
 
-/// **The refusal says what did NOT happen, and says nothing about repairing
-/// anything.**
+/// Write a v2 steel thread the way v2.19 writes one.
+fn v2_thread(dir: &std::path::Path, id: &str, status: &str) {
+  let st = dir.join("intent/st").join(id);
+  std::fs::create_dir_all(&st).expect("mkdir st");
+  std::fs::write(
+    st.join("info.md"),
+    format!(
+      "---\nverblock: \"14 Aug 2026:v0.1: cc - x\"\nintent_version: 2.19.0\nstatus: {status}\nslug: a-slug\ncreated: 20260814\ncompleted:\n---\n\n# {id}: A thread\n\n## Objective\n\nShip it.\n\n## Context\n\nBecause.\n"
+    ),
+  )
+  .expect("write info.md");
+}
+
+/// **Phase A reads, reports, and writes NOTHING** -- including no database.
 ///
-/// This is the assertion with teeth, because the first wiring failed it in a
-/// way that would have cost someone work. `ingest::from_md` expressed "not
-/// built yet" as a `Refusal` carrying a `FindingClass::UnknownFileShape`
-/// finding, so the estate-facing remedy for that class -- "move or rename it"
-/// -- was printed at a user whose only mistake was running an unimplemented
-/// command. It named `intent/st`.
+/// The last clause is the one worth a test: this runs on a project that has not
+/// been migrated, so creating a store as a side effect of inspecting it would
+/// leave a v3 artefact inside a v2 estate the operator never asked to change,
+/// on the one command whose whole promise is that it is safe to run.
 #[test]
-fn the_refusal_does_not_send_anyone_to_repair_a_project_that_is_fine() {
+fn phase_a_reads_a_v2_estate_and_leaves_it_exactly_as_it_was() {
   let dir = tempfile::tempdir().expect("tempdir");
   project(dir.path());
+  v2_thread(dir.path(), "ST0001", "WIP");
+  v2_thread(dir.path(), "ST0002", "Completed");
 
-  let (text, code) = run(&["ingest"], dir.path());
-  assert_eq!(code, 1, "an unavailable operation fails: {text}");
+  let before = std::fs::read_to_string(dir.path().join("intent/st/ST0001/info.md")).expect("read");
+
+  let (_, err, code) = run(&["ingest"], dir.path());
+  assert_eq!(code, 0, "a clean v2 estate parses: {err}");
   assert!(
-    text.contains("not available in this build"),
-    "it says what is unavailable: {text}"
+    err.contains("2 thread(s)"),
+    "it reports what it read: {err}"
   );
   assert!(
-    text.contains("nothing was read and nothing was written"),
-    "and leads its remedy with what did not happen, which is the reader's actual question: {text}"
+    err.contains("nothing was read into a store and nothing was written"),
+    "and says what it did NOT do, because `ok` on a migration command reads as `migrated`: {err}"
   );
-  for wrong in [
-    "move or rename",
-    "fix the artefacts",
-    "could not read the committed canon",
-    "intent doctor",
-  ] {
-    assert!(
-      !text.contains(wrong),
-      "an unbuilt feature must not be reported as a damaged estate -- {wrong:?} in: {text}"
-    );
+
+  assert_eq!(
+    std::fs::read_to_string(dir.path().join("intent/st/ST0001/info.md")).expect("read"),
+    before,
+    "Phase A rewrote the estate it was only supposed to read"
+  );
+  assert!(
+    !dir.path().join("intent/.cache/intent.db").exists(),
+    "Phase A created a store on an unmigrated project"
+  );
+}
+
+/// **Residue in a LIVE thread blocks; the same defect in a CLOSED thread
+/// carries.**
+///
+/// hv's ruling, and the reason the two are separate buckets rather than one
+/// severity field. Asserted with the SAME defect in both kinds of thread, so
+/// the test cannot pass by treating everything alike.
+#[test]
+fn live_residue_blocks_and_closed_residue_carries() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  project(dir.path());
+  for (id, status) in [("ST0003", "Completed"), ("ST0004", "WIP")] {
+    v2_thread(dir.path(), id, status);
+    let info = dir.path().join("intent/st").join(id).join("info.md");
+    let text = std::fs::read_to_string(&info).expect("read");
+    std::fs::write(
+      &info,
+      text.replace(&format!("status: {status}"), "status: Banana"),
+    )
+    .expect("write");
   }
+
+  let (out, err, code) = run(&["ingest"], dir.path());
+  assert_eq!(code, 1, "live residue blocks the migration: {err}{out}");
+  assert!(
+    out.contains("ST0004"),
+    "the blocking finding names the live thread: {out}"
+  );
+  assert!(
+    out.contains("Banana"),
+    "and the value it could not read: {out}"
+  );
+  assert!(
+    err.contains("blocking"),
+    "the totals distinguish the two buckets: {err}"
+  );
+  assert!(
+    err.contains("v2 tooling"),
+    "and the remedy names the FIXING ENVIRONMENT, which is v2 rather than this binary: {err}"
+  );
+}
+
+/// **An absent field is not a wrong one**, and conflating them invents work.
+///
+/// The first run of this parser against Intent's own estate reported 20
+/// findings and **19 were fields that had never been authored**, described as
+/// values "not in the v2 vocabulary". Three closed threads predate the
+/// work-package frontmatter convention entirely. Reporting those as defects
+/// sends an operator to repair files their own tooling was content with, which
+/// is the confident-from-partial-evidence habit v3 exists to end.
+#[test]
+fn a_field_that_was_never_recorded_is_not_reported_as_a_wrong_value() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  project(dir.path());
+  v2_thread(dir.path(), "ST0001", "Completed");
+  // A work package in the older shape: no frontmatter at all.
+  let wp = dir.path().join("intent/st/ST0001/WP/01");
+  std::fs::create_dir_all(&wp).expect("mkdir wp");
+  std::fs::write(
+    wp.join("info.md"),
+    "# WP01: An old work package\n\n## Scope\n\nAll of it.\n",
+  )
+  .expect("write wp");
+
+  let (out, err, code) = run(&["ingest"], dir.path());
+  assert_eq!(code, 0, "a pre-convention artefact does not block: {err}");
+  assert!(
+    out.contains("predates the frontmatter convention"),
+    "it is reported as what it is: {out}"
+  );
+  assert!(
+    !out.contains("is not in the v2 vocabulary"),
+    "an absent field must not be described as a value v2 would have rejected: {out}"
+  );
+  assert!(
+    out.contains("nothing to fix"),
+    "and its remedy says there is nothing to do, because there is not: {out}"
+  );
 }
 
 /// `[PATH]` selects the project, and its absence selects the one you are in.
-///
-/// Asserted by the DIFFERENCE rather than by either alone: both cases refuse
-/// with the same words today, so a test that only checked the message would
-/// pass on an arm that ignored the argument entirely. What distinguishes them
-/// is which project fails to resolve.
 #[test]
 fn a_named_path_is_the_project_and_an_absent_one_means_the_project_you_are_in() {
   let outside = tempfile::tempdir().expect("tempdir");
   let estate = tempfile::tempdir().expect("tempdir");
   project(estate.path());
+  v2_thread(estate.path(), "ST0001", "Completed");
 
-  // Standing OUTSIDE any project, with no path: there is nothing to resolve.
-  let (text, code) = run(&["ingest"], outside.path());
+  let (_, err, code) = run(&["ingest"], outside.path());
   assert_eq!(code, 1);
   assert!(
-    text.contains("no Intent project") || text.contains("intent init"),
-    "with no path and no project, the failure is about locating one: {text}"
+    err.contains("no Intent project") || err.contains("intent init"),
+    "with no path and no project, the failure is about locating one: {err}"
   );
 
-  // The same invocation, NAMING the estate: it resolves, and the refusal is
-  // the operation's rather than the lookup's.
-  let (text, code) = run(
+  let (_, err, code) = run(
     &["ingest", &estate.path().display().to_string()],
     outside.path(),
   );
-  assert_eq!(code, 1);
-  assert!(
-    text.contains("not available in this build"),
-    "a named path resolves from outside it -- the migrator's whole case: {text}"
-  );
+  assert_eq!(code, 0, "a named path resolves from outside it: {err}");
+  assert!(err.contains("1 thread(s)"), "and reads THAT estate: {err}");
 
-  // A path that is not a project names the path, not the working directory.
-  let (text, code) = run(
+  let (_, err, code) = run(
     &["ingest", &outside.path().display().to_string()],
     estate.path(),
   );
   assert_eq!(code, 1);
   assert!(
-    text.contains("config.json") && text.contains("the root of an Intent project"),
-    "a bad path is reported as a bad path, even standing inside a good project: {text}"
+    err.contains("config.json") && err.contains("the root of an Intent project"),
+    "a bad path is reported as a bad path, even standing inside a good project: {err}"
   );
 }

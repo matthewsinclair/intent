@@ -157,9 +157,6 @@ pub enum FacadeError {
   Store(#[from] StoreError),
   #[error("could not read the committed canon")]
   Ingest(#[from] IngestError),
-  /// Something this build does not do -- NOT a fault in the project.
-  #[error("{what} is not available in this build")]
-  Unavailable { what: String },
   #[error("no export format named `{format}`")]
   NoSuchFormat {
     format: String,
@@ -316,13 +313,6 @@ impl FacadeError {
       ),
       Self::Ingest { .. } => {
         "fix the artefacts named above, then retry -- run `intent doctor` to list them".to_string()
-      }
-      // **Leads with what did NOT happen**, because that is the reader's actual
-      // question. Someone who ran a migration and got an error wants to know
-      // whether their estate was touched before they want to know why, and this
-      // is the one case where the answer is "not at all".
-      Self::Unavailable { .. } => {
-        "nothing was read and nothing was written, so the project is exactly as it was -- keep using the version of Intent that wrote it until a build offers this".to_string()
       }
       // **"one of:" lists only what can be HAD.** Offering a refused format as
       // the remedy for a refusal spends the operator's next command on a
@@ -943,10 +933,12 @@ impl Facade {
   /// true of every other ingest failure and false of this one, where nothing
   /// was read and nothing is wrong. An unbuilt feature reported as a damaged
   /// estate sends a user to repair files that are fine.
-  pub fn ingest_from_md(project: &Project) -> Result<crate::ingest::Canon, FacadeError> {
-    ingest::from_md(project).map_err(|e| match e {
-      IngestError::Unavailable { what } => FacadeError::Unavailable { what },
-      other => FacadeError::Ingest(other),
+  pub fn ingest_from_md(project: &Project) -> Result<crate::legacy::Scan, FacadeError> {
+    crate::legacy::scan(project).map_err(|source| {
+      FacadeError::Ingest(IngestError::Io {
+        path: project.relative(project.root()),
+        source,
+      })
     })
   }
 

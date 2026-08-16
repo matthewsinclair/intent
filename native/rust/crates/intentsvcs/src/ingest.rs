@@ -45,25 +45,6 @@ pub enum IngestError {
   // reported twelve problems as twenty-four.
   #[error("{0}")]
   Refused(Refusal),
-  /// A source shape this build cannot read.
-  ///
-  /// **Its own variant because it is not a defect in anyone's estate**, and
-  /// expressing it as one produced advice that would have destroyed work. It
-  /// was a `Refusal` carrying a `FindingClass::UnknownFileShape` finding, and
-  /// that class's remedy is "move or rename it -- a modelled directory carries
-  /// only the artefacts Intent writes". Correct for the class; catastrophic
-  /// here. **`intent ingest` told a user to move or rename `intent/st` because
-  /// a feature was unimplemented** -- and the finding's own text, which was
-  /// right, sat one line above it.
-  ///
-  /// The wrapper was wrong at the layer above too: a `Refusal` renders through
-  /// `FacadeError::Ingest`, whose message is "could not read the committed
-  /// canon" and whose remedy is "fix the artefacts named above, then retry".
-  /// Nothing was read, nothing was named, and there was nothing to fix. **Three
-  /// lines of confident instruction, all of it wrong, wrapped around one
-  /// correct sentence.**
-  #[error("{what} is not available in this build")]
-  Unavailable { what: String },
   /// The event log's extract exists and is not readable as one.
   ///
   /// Its own variant rather than a finding: history is the one thing nothing
@@ -346,18 +327,6 @@ pub fn refresh_index(project: &Project, store: &mut Store) -> Result<(), IngestE
   } else {
     Err(Refusal::new(findings).into())
   }
-}
-
-/// Ingest a v2 estate by parsing its markdown -- the explicit recovery path,
-/// and the seam the WP-10 migrator plugs its frozen legacy parser into
-/// (design.md; acceptance lives at AC-10.2/10.3, not in WP-03).
-///
-/// It refuses rather than half-working, because a migrator that does half of a
-/// two-ended migration is the failure this project has already paid for once.
-pub fn from_md(_project: &Project) -> Result<Canon, IngestError> {
-  Err(IngestError::Unavailable {
-    what: "reading a v2 estate from markdown".to_string(),
-  })
 }
 
 /// Validate against the generated schema, then deserialise.

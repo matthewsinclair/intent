@@ -995,12 +995,57 @@ fn ingest(a: &ArgMatches) -> Result<(), String> {
     })?,
     None => context()?.0,
   };
-  Facade::ingest_from_md(&project).map_err(fail)?;
-  // Unreachable until WP-10 lands the parser, and written anyway: an arm whose
-  // success path is a `todo!()` is one refactor away from being a silent
-  // success, and the message a migrator will want is the count it moved.
-  println!("ok: ingested {}", project.relative(project.root()));
-  Ok(())
+  let scan = Facade::ingest_from_md(&project).map_err(fail)?;
+
+  // **The residue report, in migration.md's format: one line per finding,
+  // machine-parseable, human-actionable, and NEVER truncated.** A capped list
+  // reads as complete when it is not, which on a migration means an operator
+  // fixing what they were shown and hitting the rest one command later.
+  for finding in &scan.residue {
+    println!("{finding}");
+  }
+  // Carried findings are printed too, and marked, because the counts have to
+  // reconcile: hv's ruling is that a closed thread's legacy grammar CONVERTS
+  // rather than blocking, and a report that showed only blockers would leave
+  // the operator unable to tell "nothing wrong" from "not looked at".
+  for finding in &scan.carried {
+    // **Marked on its own line rather than prefixed.** `Finding` renders its
+    // own `residue:` lead and its remedy, so a prefix here produced
+    // "carried: residue: ..." -- two verdicts on one line, and the remedy that
+    // follows tells the reader to fix a row the ruling says converts as it is.
+    println!("carried (converts as-is, no action):");
+    println!("{finding}");
+  }
+
+  let wps: usize = scan.threads.iter().map(|t| t.wps.len()).sum();
+  let criteria: usize = scan.threads.iter().map(|t| t.criteria.len()).sum();
+  let tests: usize = scan.threads.iter().map(|t| t.tests.len()).sum();
+  eprintln!(
+    "read: {} thread(s), {wps} work package(s), {criteria} criteria, {tests} acceptance test(s)",
+    scan.threads.len()
+  );
+  eprintln!(
+    "residue: {} blocking, {} carried",
+    scan.residue.len(),
+    scan.carried.len()
+  );
+
+  if scan.residue.is_empty() {
+    // **It says what it did NOT do.** This is the read-only half of the
+    // migration; someone who runs it and sees "ok" will otherwise assume their
+    // project has been converted, and then be surprised by either answer to
+    // "did it work".
+    eprintln!("ok: this estate parses -- nothing was read into a store and nothing was written");
+    Ok(())
+  } else {
+    // Live-thread residue BLOCKS. The remedy names the fixing environment,
+    // which is v2: this binary refuses what it cannot convert without loss,
+    // and the tool that can repair a v2 artefact is the last v2 release.
+    Err(
+      "error: this estate has residue in live steel threads, so migrating it now would lose data\n  remedy: fix the rows named above under v2 tooling, then run this again -- the `carried:` lines are not yours to fix, they convert as they are"
+        .to_string(),
+    )
+  }
 }
 
 /// `intent todo` -- the flat DOING / TODO / DONE view.
