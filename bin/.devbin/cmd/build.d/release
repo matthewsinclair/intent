@@ -237,6 +237,41 @@ lock_members() {
   ' "$1" | sort
 }
 
+lock_nonmember_changes() {
+  # lock_nonmember_changes BEFORE AFTER -> names of changed non-member packages.
+  #
+  # Empty output means every package whose name/version pair changed is a
+  # workspace member of AFTER, which is the only condition under which a release
+  # may fold a refreshed lockfile into its commit.
+  #
+  # Returns non-zero WITHOUT emitting names when either extraction comes back
+  # empty. An empty parse yields an empty difference, so it would otherwise
+  # report "nothing changed" and accept anything -- the caller must be able to
+  # tell "no offenders" from "could not look".
+  #
+  # This lives in a function rather than inline at the call site because the
+  # comparison is pure over two files, so it can be tested for what it actually
+  # decides. Inline it could only be grepped, and a grep cannot tell whether the
+  # thing it matched is correct -- which is how the defect below survived.
+  local before="$1" after="$2"
+  local pkgs_before pkgs_after members
+  pkgs_before="$(mktemp)"; pkgs_after="$(mktemp)"; members="$(mktemp)"
+
+  lock_packages "$before" > "$pkgs_before"
+  lock_packages "$after"  > "$pkgs_after"
+  lock_members  "$after"  > "$members"
+
+  if [ ! -s "$pkgs_after" ] || [ ! -s "$members" ]; then
+    rm -f "$pkgs_before" "$pkgs_after" "$members"
+    return 1
+  fi
+
+  comm -3 "$pkgs_before" "$pkgs_after" | sed 's/^\t//' | cut -f1 | sort -u |
+    comm -23 - "$members"
+  rm -f "$pkgs_before" "$pkgs_after" "$members"
+  return 0
+}
+
 extract_changelog_section() {
   # extract_changelog_section VERSION -> writes the section to stdout.
   # Section runs from "## [VERSION]" up to (but not including) the next "## [".
@@ -538,23 +573,17 @@ if [ "$STAMP_NATIVE" = "true" ]; then
     # Correlating each changed version with the package NAME it sits under is
     # the whole fix, and it lets the refusal name the offending crate instead of
     # printing diff lines a reader has to interpret.
-    pkgs_before="$(mktemp)"; pkgs_after="$(mktemp)"; lock_member_list="$(mktemp)"
-    lock_packages "$lock_before" > "$pkgs_before"
-    lock_packages "$PROJECT_ROOT/$NATIVE_LOCK_REL" > "$pkgs_after"
-    lock_members  "$PROJECT_ROOT/$NATIVE_LOCK_REL" > "$lock_member_list"
-
-    # An extractor that silently returns nothing makes the comparison below
-    # report no changes, so the check would ACCEPT ANYTHING and say so
-    # confidently. An empty parse is a broken parse, never a clean lockfile.
-    if [ ! -s "$pkgs_after" ] || [ ! -s "$lock_member_list" ]; then
+    # A non-zero return is "could not look", never "nothing changed": an
+    # extractor that silently returns nothing makes the comparison report no
+    # changes, so the check would ACCEPT ANYTHING and say so confidently. An
+    # empty parse is a broken parse, never a clean lockfile.
+    if ! unexpected="$(lock_nonmember_changes "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL")"; then
       cp "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL"
-      rm -f "$lock_before" "$pkgs_before" "$pkgs_after" "$lock_member_list"
+      rm -f "$lock_before"
       abort "could not read packages or workspace members out of $NATIVE_LOCK_REL -- refusing to check nothing and call it clean"
     fi
 
-    unexpected="$(comm -3 "$pkgs_before" "$pkgs_after" | sed 's/^\t//' | cut -f1 | sort -u |
-      comm -23 - "$lock_member_list")"
-    rm -f "$lock_before" "$pkgs_before" "$pkgs_after" "$lock_member_list"
+    rm -f "$lock_before"
     if [ -n "$unexpected" ]; then
       abort "refreshing $NATIVE_LOCK_REL changed packages that are NOT workspace members -- refusing to fold a dependency change into a release commit:
 $(printf '%s\n' "$unexpected" | sed 's/^/  /')"
