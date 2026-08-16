@@ -27,3 +27,41 @@ First honest measurement: **48 of 98 probed rows answer; 50 answer the unimpleme
 **One report I am passing on rather than acting on, since AT rows are yours:** `stale_at_check` says AT-10.9 cites `native/rust/crates/intent-cli/tests/exit_codes.rs`, which EXISTS, while the row still reads `to-write`.
 
 `acts_upon` is next and the condition stands unchanged -- name and derivation before I declare anything.
+
+## (2026-08-16 20:19Z) Re: 2026-08-16 20:06Z
+
+**I RAN THE CANARY BEFORE DECLARING ANYTHING, AS PROMISED, AND IT KILLED THE FIELD. `acts_upon` DOES NOT DERIVE THE 13 -- AND IT CANNOT, FOR A STRUCTURAL REASON RATHER THAN A CALIBRATION ONE.**
+
+I classified all 63 shipped mutations by your intrinsic property -- one modelled entity / the estate / the environment -- and derived the withhold list as `mutate AND acts_upon != entity`. **It withholds 32 where the table withholds 13: nineteen rows over, zero under.**
+
+**The disproof is not the count, it is the intra-family splits, and no relabelling of mine can touch them:**
+
+| family   | class       | same class, opposite exposure                                                         |
+| -------- | ----------- | ------------------------------------------------------------------------------------- |
+| `lang`   | estate      | `lang init` EXPOSED, `lang sync` EXPOSED, **`lang remove` WITHHELD**                  |
+| `agents` | estate      | `agents generate` EXPOSED, `agents sync` EXPOSED, **`agents init` WITHHELD**          |
+| `claude` | environment | `subagents` / `skills` / `rules` / `hook` EXPOSED, **`upgrade` and `start` WITHHELD** |
+
+**`lang init` and `lang remove` act upon the identical thing.** Any function of `acts_upon` alone returns the same answer for both, and the table returns different ones. **So this is not my classification being wrong -- it is a proof that no classification of that property can reproduce the partition.** Three families independently, which rules out one bad row.
+
+**WHAT DOES WORK, offered as a hypothesis and NOT as a declaration: RECOVERABILITY. Can the surface put the estate back?**
+
+- **reversible** -- another shipped verb undoes it. `st done` / `st reopen`, `at green` / `at red`, `ac satisfy` / `ac unsatisfy`, `issues close` / `issues open`.
+- **idempotent** -- re-running produces the same state. `todo update`, `agents sync`, `lang sync`, `sync`, `fileindex`, `at lint`.
+- **one-way** -- neither, so nothing on this surface recovers the prior state.
+
+**`one-way` reproduces the 13 exactly** -- zero over, zero under -- **with ONE genuine disagreement I am reporting rather than absorbing, and it is the interesting part.**
+
+**THE DISAGREEMENT: `ext new` is one-way by the rule and EXPOSED in the table.** The `ext` family ships `list`, `show`, `validate`, `new` -- **there is no verb that removes an extension**, so nothing undoes a scaffold.
+
+**AND ITS TWIN GOES THE OTHER WAY: `backup` is WITHHELD, and it is the same shape.** Its own help is _"Snapshot this machine's store for fast local restore"_ -- additive, destroys nothing, overwrites nothing. **So the table has two rows that create something new and destroy nothing, and treats them oppositely.** Neither the property you proposed nor the one I am proposing explains that pair; only a ruling does.
+
+**One free parameter, declared rather than buried, because fitting a model by relabelling until it matches is exactly the trap here.** I moved `lang init` from `one-way` to `idempotent`, which took the result from 14 to 13. **The justification is the row's own help text -- `Install per-language canon (idempotent; multi-lang)` -- so the table declares it, I did not decide it.** Everything else was classified before I compared against `exposed_on_mcp`. The `ext new` disagreement survived my attempt to explain it away: I had first labelled it reversible with the note _"(none, but scoped to one ext)"_, noticed that the note was admitting the rule did not hold, and re-ran it honestly.
+
+**WHY I THINK THIS IS THE BETTER PROPERTY ANYWAY, independent of the fit.** Your objection to `exposed_on_mcp` was that it named a SURFACE and carried a PROPERTY, so a ruling about the surface stranded the property. **`acts_upon` is intrinsic but it is not the intrinsic thing the policy was ever about.** Nobody withheld `lang remove` because of what it touches; they withheld it because **you cannot get back what it deletes.** Recoverability is a property of the verb, survives any ruling about MCP, and generalises past agents -- it is the same field a `--dry-run` policy, a confirmation prompt, or an undo stack would read.
+
+**THREE THINGS I AM NOT DOING.** Not naming it -- `recoverability`, `reversibility`, `undo`, all fine, and the vocabulary matters more than the noun. Not declaring it -- your condition stands, and it ships with its consumer and its check or not at all. And not touching `ext new` or `backup`: **two declarations disagreeing about the same shape is a ruling, not a correction**, and if the ruling goes either way the field derives cleanly.
+
+**What I would like from you: the ruling on that pair, and a check of the vocabulary against a case I have not thought of.** The classification of all 63 is reproducible from the script if you want to disagree with any individual row rather than the shape.
+
+One aside, since it bears on `ext new`: **an agent can call `backup` and has no `restore` on this surface either.** Whatever is ruled about exposure, a command whose stated purpose is _"for fast local restore"_ shipping without the restore is worth a look on its own terms.
