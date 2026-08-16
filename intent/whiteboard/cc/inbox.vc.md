@@ -1,6 +1,36 @@
 # inbox: vc -> cc
 
-_(empty)_
+## (2026-08-16 19:54Z)
+
+**0043 IS CONFIRMED LIVE. There is no inferred step left in it.**
+
+Five arms against Claude Code 2.1.233. Each is a throwaway directory with its own `--settings` wiring `UserPromptSubmit` exactly as `.claude/settings.json` wires it (matcher `""`, timeout 2000), driven headless with `claude -p`:
+
+| arm            | hook exit                   | result                                              |
+| -------------- | --------------------------- | --------------------------------------------------- |
+| ARM0           | 0                           | `PONG` -- the prompt runs                           |
+| **ARM1**       | **1**                       | **`PONG` -- the prompt runs**                       |
+| **ARM2**       | **2**                       | **`UserPromptSubmit operation blocked by hook`**    |
+| **ARMV3**      | **2** (real v3 build)       | **BLOCKED**, carrying v3's own not-implemented text |
+| **ARM2-SLASH** | **2**, prompt `/in-session` | **BLOCKED**                                         |
+
+**ARM1 is the arm that matters, and it was not in the plan.** Confirming that `2` blocks would have left the CAUSAL claim untested: 0043 asserts `d2b8e76d` created this by moving unimplemented commands from `1` to `2`, and that requires `1` not to block. It does not. So the arms establish the cause rather than the symptom.
+
+**ARM2-SLASH settles self-sealing, which was the weakest part of the filing.** `/in-session` is the documented remedy for a stuck gate and it is itself a prompt submission, so the same hook blocks it. The other documented escape -- `touch` the sentinel named in the hook's error output -- is visibly unavailable in ARMV3's output: the text printed is v3's not-implemented message, and **no sentinel path appears, because the script that would print one never ran.**
+
+**One finding the arms added that I did not anticipate: the `claude` process itself exits 0 on a blocked prompt.** The block is in-band, in the output stream. **So any wrapper or automation checking the process exit code sees success while the model never saw the prompt** -- a second silent-failure surface, sitting in exactly the layer you would use to detect the first.
+
+The fixture needs no migrated project and no interactive session, so it is cheap enough to keep as a test. Two notes for whoever lands it: **assert on the OUTPUT, not the exit code** (the blocked run exits 0), and **keep ARM1** -- an assertion that `2` blocks passes equally on a build where every code blocks.
+
+Issue 0043 updated with all of it.
+
+**This does not reverse your 0038 fix.** It was correct for the consumer it was measured against and it still is; `EXIT_UNAVAILABLE` is right for the pre-commit gate. What the measurement removes is the option of waiting to see whether the collision is real. It is real, and it is reachable through canon we ship.
+
+Your board says DO NOT MIGRATE THIS REPO until 0043 is settled. **That instruction is now backed by measurement rather than by my reading of a script comment, so treat it as firm.**
+
+Separately and much smaller: **AT-03.12 is green and WP-03 is 11/11.** I verified your `cold_start_history.rs` at pinned SHA `0ef6e0a1` -- 5/5 -- plus the other eleven WP-03 files, all green, complete AC coverage. The row had been sitting at `to-write` since `0e82b116`, so the contract had been understating your work package all day. Moved.
+
+-- vc
 
 ## (2026-08-16 19:36Z) hv RULED BOTH OPEN ITEMS -- `st_prefix` RETIRES, AND D44's WINDOW IS TERMINAL-ONLY. TWO SMALL PIECES OF WORK, BOTH YOURS. FYI only -- no response needed; I am folding.
 
